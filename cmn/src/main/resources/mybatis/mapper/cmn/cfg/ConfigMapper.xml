@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="fps.cmn.cfg.mapper.ConfigMapper">
+
+    <!-- 모든 공통 설정값을 조회합니다. -->
+    <select id="findAllConfigs" resultType="map">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM config_table
+        ORDER BY config_key
+    </select>
+
+    <!-- 설정 키로 설정값을 조회합니다. -->
+    <select id="findConfigByKey" resultType="map" parameterType="string">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM config_table
+        WHERE config_key = #{configKey}
+    </select>
+
+    <!-- 설정 ID로 설정값을 조회합니다. -->
+    <select id="findConfigById" resultType="map" parameterType="long">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM config_table
+        WHERE config_id = #{configId}
+    </select>
+
+    <!-- 공통 설정값을 등록합니다. 등록 직후 서비스에서 캐시를 리프레시합니다. -->
+    <insert id="insertConfig" parameterType="fps.cmn.cfg.dto.CommonConfigRequest"
+            useGeneratedKeys="true"
+            keyProperty="configId"
+            keyColumn="config_id">
+        INSERT INTO config_table (
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{configKey},
+            #{configValue},
+            IFNULL(NULLIF(#{configType}, ''), 'STRING'),
+            #{description},
+            IFNULL(NULLIF(#{encryptedYn}, ''), 'N'),
+            IFNULL(NULLIF(#{useYn}, ''), 'Y'),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW(),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW()
+        )
+    </insert>
+
+    <!-- 공통 설정값을 수정합니다. -->
+    <update id="updateConfig">
+        UPDATE config_table
+        SET
+            config_key = #{request.configKey},
+            config_value = #{request.configValue},
+            config_type = IFNULL(NULLIF(#{request.configType}, ''), 'STRING'),
+            description = #{request.description},
+            encrypted_yn = IFNULL(NULLIF(#{request.encryptedYn}, ''), 'N'),
+            use_yn = IFNULL(NULLIF(#{request.useYn}, ''), 'Y'),
+            updated_by = IFNULL(NULLIF(#{request.requestUser}, ''), 'SYSTEM'),
+            updated_at = NOW()
+        WHERE config_id = #{configId}
+    </update>
+
+    <!-- 공통 설정값을 삭제합니다. 실제 운영에서는 필요 시 use_yn=N 방식의 논리 삭제로 바꿀 수 있습니다. -->
+    <delete id="deleteConfig" parameterType="long">
+        DELETE FROM config_table
+        WHERE config_id = #{configId}
+    </delete>
+</mapper>

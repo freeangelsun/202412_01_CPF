@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  회원(Member) MyBatis Mapper XML
+  
+  매핑 정보:
+  - namespace: fps.mbr.bse.mapper.MemberMapper
+  - 주요 쿼리: selectAllMembers, selectMemberById, selectMembersByName, insertMember, updateMember, deleteMemberById
+  
+  명명 규칙:
+  - select*: 조회
+  - insert*: 등록
+  - update*: 수정
+  - delete*: 삭제
+  
+  @author FPS Team
+  @version 1.0.0
+-->
+
+<mapper namespace="fps.mbr.bse.mapper.MemberMapper">
+    
+    <!-- 전체 회원 조회 -->
+    <select id="selectAllMembers" resultMap="memberMap">
+        SELECT id, name, description, created_by, created_at, updated_by, updated_at
+        FROM member
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 회원 ID로 단건 조회 -->
+    <select id="selectMemberById" parameterType="int" resultMap="memberMap">
+        SELECT id, name, description, created_by, created_at, updated_by, updated_at
+        FROM member
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 회원명으로 부분 검색 -->
+    <select id="selectMembersByName" parameterType="string" resultMap="memberMap">
+        SELECT id, name, description, created_by, created_at, updated_by, updated_at
+        FROM member
+        WHERE name LIKE CONCAT('%', #{name}, '%')
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 회원 등록 -->
+    <insert id="insertMember" parameterType="Member" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO member (name, description, created_by, created_at, updated_by, updated_at)
+        VALUES (#{name}, #{description}, #{createdBy}, NOW(), #{updatedBy}, NOW())
+    </insert>
+    
+    <!-- 회원 정보 수정 -->
+    <update id="updateMember" parameterType="Member">
+        UPDATE member
+        SET name = #{name},
+            description = #{description},
+            updated_by = #{updatedBy},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 회원 삭제 -->
+    <delete id="deleteMemberById" parameterType="int">
+        DELETE FROM member
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 결과 매핑 정의 -->
+    <resultMap id="memberMap" type="Member">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="description" property="description" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+</mapper>

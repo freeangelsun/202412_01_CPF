@@ -8,7 +8,7 @@ version = '0.0.1-fps.cmn-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17) // Java 17 사용
+		languageVersion = JavaLanguageVersion.of(21) // Java 21 기반 컴파일 및 실행
 	}
 }
 
@@ -18,14 +18,13 @@ repositories {
 
 dependencyManagement {
 	imports {
-		mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.1'
+		mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
 	}
 }
 
 dependencies {
-	// ✅ Lombok 설정 (컴파일 시 어노테이션 처리)
-	api 'org.projectlombok:lombok:1.18.32'
-	annotationProcessor 'org.projectlombok:lombok:1.18.32'
+	// ✅ PFW 확장 인터페이스 구현 (예: 표준 오류 메시지 리졸버)
+	api project(':pfw')
 
 	// ✅ MyBatis 설정 (공통 데이터 접근)
 	api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
@@ -40,18 +39,10 @@ dependencies {
 	api 'org.springframework.boot:spring-boot-starter-cache'
 	api 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 
-	// ✅ AOP 및 AspectJ 설정 (공통 로깅 및 트랜잭션 관리)
-	api 'org.springframework.boot:spring-boot-starter-aop'
-	api 'org.aspectj:aspectjrt:1.9.20'
-	api 'org.aspectj:aspectjweaver:1.9.20'
-
 	// ✅ Bean Validation 설정 (DTO 검증)
 	api 'jakarta.validation:jakarta.validation-api:3.0.2'
 	api 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
 	api 'org.springframework.boot:spring-boot-starter-validation'
-
-	// ✅ 테스트 의존성
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {

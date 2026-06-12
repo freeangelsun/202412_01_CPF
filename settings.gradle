@@ -19,7 +19,7 @@ gradleEnterprise {
     buildScan {
         termsOfServiceUrl = "https://gradle.com/terms-of-service"
         termsOfServiceAgree = "yes"
-        publishAlways() // 빌드 스캔 항상 게시
+        //publishAlways() // 빌드 스캔 항상 게시
         tag "FPS_PROJECT"
     }
 }
@@ -28,9 +28,12 @@ gradleEnterprise {
 rootProject.name = '202412_01_FPS'
 
 // ✅ 서브모듈 정의
-include 'cmn', 'acc' // 필요한 경우 주석 해제하여 추가 가능
-// include 'mbr', 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
+include 'pfw', 'cmn', 'acc', 'mbr', 'xyz' // 필요한 경우 주석 해제하여 추가 가능
+// include 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
 
 // ✅ 모듈 별 디렉터리 경로 설정 (필요시 명시적으로 추가)
+project(':pfw').projectDir = file('pfw')
 project(':cmn').projectDir = file('cmn')
 project(':acc').projectDir = file('acc')
+project(':mbr').projectDir = file('mbr')
+project(':xyz').projectDir = file('xyz')

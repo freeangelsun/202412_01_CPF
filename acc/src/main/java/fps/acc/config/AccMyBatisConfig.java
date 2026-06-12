@@ -17,7 +17,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @MapperScan(
-        basePackages = "fps.acc.mapper",
+        basePackages = "fps.acc",
         sqlSessionFactoryRef = "accSqlSessionFactory"
 )
 public class AccMyBatisConfig {
@@ -48,7 +48,7 @@ public class AccMyBatisConfig {
         );
 
         // TypeAliases 패키지 설정 (옵션)
-        sqlSessionFactoryBean.setTypeAliasesPackage("fps.acc.db.model");
+        sqlSessionFactoryBean.setTypeAliasesPackage("fps.acc.bse.entity");
 
         return sqlSessionFactoryBean.getObject();
     }

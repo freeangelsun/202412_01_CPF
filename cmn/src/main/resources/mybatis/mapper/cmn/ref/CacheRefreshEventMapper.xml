@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="fps.cmn.ref.mapper.CacheRefreshEventMapper">
+
+    <!--
+        공통 캐시 변경 이벤트를 등록합니다.
+        published_at은 밀리초 단위 추적을 위해 DATETIME(3)을 사용합니다.
+    -->
+    <insert id="insertEvent">
+        INSERT INTO cache_refresh_event (
+            cache_name,
+            event_type,
+            event_key,
+            source_was_id,
+            published_by,
+            published_at,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{cacheName},
+            #{eventType},
+            #{eventKey},
+            #{sourceWasId},
+            #{publishedBy},
+            CURRENT_TIMESTAMP(3),
+            #{publishedBy},
+            #{publishedBy}
+        )
+    </insert>
+
+    <!-- 새로 기동한 WAS는 기존 이벤트를 재처리하지 않기 위해 마지막 이벤트 ID부터 시작합니다. -->
+    <select id="findMaxEventId" resultType="long">
+        SELECT MAX(event_id)
+        FROM cache_refresh_event
+    </select>
+
+    <!-- 각 WAS가 마지막 처리 이후 이벤트만 순서대로 가져옵니다. -->
+    <select id="findEventsAfter" resultType="map">
+        SELECT
+            event_id AS eventId,
+            cache_name AS cacheName,
+            event_type AS eventType,
+            event_key AS eventKey,
+            source_was_id AS sourceWasId,
+            published_by AS publishedBy,
+            published_at AS publishedAt
+        FROM cache_refresh_event
+        WHERE event_id &gt; #{lastEventId}
+        ORDER BY event_id
+    </select>
+</mapper>

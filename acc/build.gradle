@@ -1,7 +1,7 @@
 plugins {
-	id 'org.springframework.boot' version '3.4.1' // Spring Boot 설정
-	id 'io.spring.dependency-management' version '1.1.7' // Spring 의존성 관리
-	id 'java' // Java 모듈로 설정
+	id 'org.springframework.boot' version '3.4.13' // Spring Boot 3.4.x 최신 안정화 버전으로 변경
+	id 'io.spring.dependency-management' version '1.1.7' // Spring 의존성 관리를 유지
+	id 'java' // Java 모듈 설정
 }
 
 group = 'fps.acc'
@@ -9,7 +9,7 @@ version = '0.0.1-fps.acc-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17) // Java 17 사용
+		languageVersion = JavaLanguageVersion.of(21) // Java 21 기반 컴파일 및 실행
 	}
 }
 
@@ -21,22 +21,20 @@ dependencies {
 	// ✅ 공통 모듈 (CMN) 의존성
 	implementation project(':cmn')
 
+	// ✅ 프레임워크 공통 모듈 (거래ID/로그/보안/WebClient)
+	implementation project(':pfw')
+
 	// ✅ Spring Boot Starter Web (REST API 제공 시 필요)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	// ✅ 서블릿 API
-	implementation 'javax.servlet:javax.servlet-api:4.0.1'
+	// ✅ Jakarta Servlet API (Spring Boot 3.0에서는 javax 대신 jakarta 패키지를 사용)
+	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 
 	// ✅ MariaDB 드라이버 (ACC 전용 데이터 소스)
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	// ✅ Lombok (컴파일 시 어노테이션 처리)
-	compileOnly 'org.projectlombok:lombok:1.18.32'
-	annotationProcessor 'org.projectlombok:lombok:1.18.32'
-
 	// ✅ 테스트 의존성 (JUnit5)
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 
 	// ✅ Mockito (선택 사항)
 	testImplementation 'org.mockito:mockito-core:5.5.0'

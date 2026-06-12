@@ -1,10 +1,13 @@
+# ACC 모듈 공통 설정 파일입니다.
+# Spring Boot 3.0 및 Java 21 환경에서 실행되도록 기본 구성 정보를 제공합니다.
+
 spring:
   application:
     name: acc
 
   profiles:
     active: local
-    include: cmn  # 공통 설정을 포함
+    include: pfw, cmn  # PFW 프레임워크와 CMN 개발 공통 설정을 함께 로드합니다.
 
   datasource:
     hikari:
@@ -20,8 +23,7 @@ spring:
 mybatis:
   config-location: classpath:mybatis/config/acc-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/acc/**/*.xml
-  type-aliases-package: fps.acc.db.entity
-
+  type-aliases-package: fps.acc.bse.entity
 
 server:
   port: 8080
@@ -29,10 +31,10 @@ server:
 # 로그 설정
 logging:
   config: classpath:log/logback-spring.xml
-  # 로그 레벨 설정
   level:
     root: INFO # 전체 애플리케이션의 기본 로그 레벨
-    fps.cmn: DEBUG  # CMN 전용 로그 레벨 (ACC에서 제어)
-    fps.acc: DEBUG  # ACC 모듈에 대한 디버깅 로그 레벨
+    fps.pfw: DEBUG  # PFW 프레임워크 모듈 로그 레벨
+    fps.cmn: DEBUG  # CMN 개발 공통 모듈 로그 레벨
+    fps.acc: DEBUG  # ACC 모듈 로그 레벨
 
 

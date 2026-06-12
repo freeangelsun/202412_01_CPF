@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @EnableCaching // Spring Cache 기능 활성화
+@EnableScheduling // CMN 캐시 주기 갱신과 DB 이벤트 기반 리프레시 리스너를 활성화
 public class CacheConfig {
 
     /**
@@ -30,7 +32,7 @@ public class CacheConfig {
      */
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("codeCache", "messageCache");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("codeCache", "messageCache", "configCache");
 
         // Caffeine 캐시 설정
         cacheManager.setCaffeine(Caffeine.newBuilder()

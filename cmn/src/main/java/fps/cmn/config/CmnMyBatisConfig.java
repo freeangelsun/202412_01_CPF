@@ -13,7 +13,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import javax.sql.DataSource;
 
 @Configuration
-@MapperScan(basePackages = "fps.cmn.mapper", sqlSessionFactoryRef = "cmnSqlSessionFactory") // 매퍼 인터페이스 패키지 지정
+@MapperScan(basePackages = "fps.cmn", sqlSessionFactoryRef = "cmnSqlSessionFactory") // CMN 하위 도메인의 매퍼 인터페이스를 스캔합니다.
 public class CmnMyBatisConfig {
 
     private final DataSource cmnDataSource;

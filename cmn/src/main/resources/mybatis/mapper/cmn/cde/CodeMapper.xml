@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="fps.cmn.cde.mapper.CodeMapper">
+
+    <!-- 모든 코드 조회 -->
+    <select id="findAllCodes" resultType="map">
+        SELECT
+            code_id,
+            parent_id,
+            code_key,
+            code_value,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM code_table
+        ORDER BY parent_id, code_key, code_value
+    </select>
+
+    <!-- 특정 코드 키로 조회 -->
+    <select id="findCodeByKey" resultType="map" parameterType="string">
+        SELECT
+            code_id,
+            parent_id,
+            code_key,
+            code_value,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM code_table
+        WHERE code_key = #{codeKey}
+        ORDER BY code_id
+        LIMIT 1
+    </select>
+
+    <!-- 특정 코드 키에 해당하는 코드 목록을 조회합니다. -->
+    <select id="findCodesByKey" resultType="map" parameterType="string">
+        SELECT
+            code_id,
+            parent_id,
+            code_key,
+            code_value,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM code_table
+        WHERE code_key = #{codeKey}
+        ORDER BY code_value, code_id
+    </select>
+
+    <!-- 코드 ID로 코드 한 건을 조회합니다. -->
+    <select id="findCodeById" resultType="map" parameterType="long">
+        SELECT
+            code_id,
+            parent_id,
+            code_key,
+            code_value,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM code_table
+        WHERE code_id = #{codeId}
+    </select>
+
+    <!-- 공통 코드를 등록합니다. 등록 직후 서비스에서 캐시를 리프레시합니다. -->
+    <insert id="insertCode" parameterType="fps.cmn.cde.dto.CommonCodeRequest"
+            useGeneratedKeys="true"
+            keyProperty="codeId"
+            keyColumn="code_id">
+        INSERT INTO code_table (
+            parent_id,
+            code_key,
+            code_value,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{parentId},
+            #{codeKey},
+            #{codeValue},
+            #{description},
+            IFNULL(NULLIF(#{useYn}, ''), 'Y'),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW(),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW()
+        )
+    </insert>
+
+    <!-- 공통 코드를 수정합니다. -->
+    <update id="updateCode">
+        UPDATE code_table
+        SET
+            parent_id = #{request.parentId},
+            code_key = #{request.codeKey},
+            code_value = #{request.codeValue},
+            description = #{request.description},
+            use_yn = IFNULL(NULLIF(#{request.useYn}, ''), 'Y'),
+            updated_by = IFNULL(NULLIF(#{request.requestUser}, ''), 'SYSTEM'),
+            updated_at = NOW()
+        WHERE code_id = #{codeId}
+    </update>
+
+    <!-- 공통 코드를 삭제합니다. 실제 운영에서는 필요 시 use_yn=N 방식의 논리 삭제로 바꿀 수 있습니다. -->
+    <delete id="deleteCode" parameterType="long">
+        DELETE FROM code_table
+        WHERE code_id = #{codeId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <settings>
+        <!-- DB 컬럼 스네이크 케이스를 Java 카멜 케이스로 자동 매핑합니다. -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 로그 출력은 애플리케이션 Logback 설정을 따릅니다. -->
+        <setting name="logImpl" value="SLF4J"/>
+    </settings>
+</configuration>

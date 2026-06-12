@@ -10,7 +10,7 @@ spring:
 mybatis:
   config-location: classpath:mybatis/config/acc-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/acc/**/*.xml
-  type-aliases-package: fps.acc.db.model
+  type-aliases-package: fps.acc.bse.entity
 
 
 server:
@@ -22,5 +22,6 @@ logging:
   # 로그 레벨 설정
   level:
     root: INFO # 전체 애플리케이션의 기본 로그 레벨
-    fps.cmn: DEBUG  # CMN 전용 로그 레벨 (ACC에서 제어)
+    fps.pfw: DEBUG  # PFW 프레임워크 로그 레벨
+    fps.cmn: DEBUG  # CMN 개발 공통 로그 레벨
     fps.acc: DEBUG  # ACC 모듈에 대한 디버깅 로그 레벨

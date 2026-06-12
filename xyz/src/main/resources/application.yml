@@ -1,0 +1,24 @@
+# XYZ 교육용 주제영역 기본 설정입니다.
+# PFW/CMN 설정을 함께 로드해 실제 업무 서비스와 같은 공통 프레임워크 환경으로 실행합니다.
+spring:
+  application:
+    name: xyz
+  profiles:
+    active: local
+    include: pfw, cmn
+
+server:
+  port: 8099
+
+logging:
+  config: classpath:log/logback-local.xml
+  level:
+    root: INFO
+    fps.pfw: INFO
+    fps.cmn: INFO
+    fps.xyz: DEBUG
+
+fps:
+  framework:
+    module-id: XYZ
+    was-id: ${WAS_ID:xyzAP01}

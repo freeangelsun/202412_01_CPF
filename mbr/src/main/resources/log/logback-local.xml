@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 프로파일: local (로컬 개발 환경) -->
+    
+    <!-- 속성 정의 -->
+    <property name="LOG_DIR" value="logs/mbr" />
+    <property name="LOG_FILE_NAME" value="mbr" />
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] [TranId: %X{transactionId}] [BizTranId: %X{businessTransactionId}] [TraceId: %X{traceId}] [SpanId: %X{spanId}] [DynLevel: %X{dynamicLogLevel}] - %msg%n" />
+    <property name="LOG_CHARSET" value="UTF-8" />
+    
+    <!-- 콘솔 Appender (개발 환경에서는 콘솔 출력) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>${LOG_CHARSET}</charset>
+        </encoder>
+    </appender>
+    
+    <!-- 파일 Appender (INFO 레벨) -->
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${LOG_FILE_NAME}.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>${LOG_CHARSET}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- 파일 Appender (ERROR 레벨) -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${LOG_FILE_NAME}-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>${LOG_CHARSET}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}-error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 거래ID별 보조 추적 로그입니다. 같은 글로벌 거래ID로 ACC -> MBR을 통과하면 각 WAS의 동일 거래ID 파일에서 흐름을 이어 볼 수 있습니다. -->
+    <appender name="TRANSACTION_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
+            <key>transactionId</key>
+            <defaultValue>NO_TRANSACTION</defaultValue>
+        </discriminator>
+        <timeout>30 minutes</timeout>
+        <maxAppenderCount>1000</maxAppenderCount>
+        <sift>
+            <appender name="TRANSACTION-${transactionId}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>${LOG_DIR}/transactions/%d{yyyy-MM-dd}/${transactionId}.%i.log</fileNamePattern>
+                    <maxFileSize>10MB</maxFileSize>
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>2GB</totalSizeCap>
+                </rollingPolicy>
+                <encoder>
+                    <pattern>${LOG_PATTERN}</pattern>
+                    <charset>${LOG_CHARSET}</charset>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+    
+    <!-- Async Appender (비동기 로깅으로 성능 개선) -->
+    <appender name="ASYNC_FILE_INFO" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE_INFO" />
+    </appender>
+    
+    <appender name="ASYNC_FILE_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE_ERROR" />
+    </appender>
+    
+    <!-- 로거 설정 -->
+    <!-- FPS 패키지 DEBUG 레벨 -->
+    <logger name="fps" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="ASYNC_FILE_INFO" />
+        <appender-ref ref="ASYNC_FILE_ERROR" />
+        <appender-ref ref="TRANSACTION_FILE" />
+    </logger>
+    
+    <!-- Spring Framework DEBUG 레벨 (Web 요청 추적용) -->
+    <logger name="org.springframework.web" level="DEBUG" />
+    
+    <!-- MyBatis SQL 로깅 -->
+    <logger name="org.apache.ibatis" level="DEBUG" />
+    
+    <!-- 데이터소스 로깅 -->
+    <logger name="com.zaxxer.hikari" level="INFO" />
+    
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="ASYNC_FILE_INFO" />
+        <appender-ref ref="ASYNC_FILE_ERROR" />
+        <appender-ref ref="TRANSACTION_FILE" />
+    </root>
+</configuration>

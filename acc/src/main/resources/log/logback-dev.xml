@@ -2,7 +2,7 @@
 <configuration>
     <property name="MODULE_NAME" value="acc" />
     <property name="LOG_PATH" value="/logs" />
-    <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} - %msg%n" />
+    <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} [TranId: %X{transactionId}] [BizTranId: %X{businessTransactionId}] [TraceId: %X{traceId}] [SpanId: %X{spanId}] [DynLevel: %X{dynamicLogLevel}] - %msg%n" />
 
     <!-- ✅ 로그 상태 리스너 (디버깅용) -->
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
@@ -43,14 +43,58 @@
         </encoder>
     </appender>
 
+    <!-- ✅ PFW 프레임워크 로그 어펜더 -->
+    <appender name="PFW_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${MODULE_NAME}/pfw-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ✅ 거래ID별 보조 추적 로그: DB 거래로그를 기준으로 보되, 장애 분석 시 파일 단위로 한 거래 흐름을 빠르게 확인합니다. -->
+    <appender name="TRANSACTION_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
+            <key>transactionId</key>
+            <defaultValue>NO_TRANSACTION</defaultValue>
+        </discriminator>
+        <timeout>30 minutes</timeout>
+        <maxAppenderCount>1000</maxAppenderCount>
+        <sift>
+            <appender name="TRANSACTION-${transactionId}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>${LOG_PATH}/${MODULE_NAME}/transactions/%d{yyyy-MM-dd}/${transactionId}.%i.log</fileNamePattern>
+                    <maxFileSize>10MB</maxFileSize>
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>2GB</totalSizeCap>
+                </rollingPolicy>
+                <encoder>
+                    <charset>UTF-8</charset>
+                    <pattern>${LOG_PATTERN}</pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+
     <!-- ✅ 로거 설정 -->
     <logger name="fps.${MODULE_NAME}" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="MODULE_FILE" />
+        <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
     <logger name="fps.cmn" level="DEBUG" additivity="false">
         <appender-ref ref="CMN_FILE" />
+        <appender-ref ref="TRANSACTION_FILE" />
+    </logger>
+
+    <logger name="fps.pfw" level="DEBUG" additivity="false">
+        <appender-ref ref="PFW_FILE" />
+        <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
     <!-- ✅ 모든 로거가 ROOT를 사용하도록 강제 -->
@@ -64,5 +108,6 @@
     <root level="DEBUG">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="MODULE_FILE" />
+        <appender-ref ref="TRANSACTION_FILE" />
     </root>
 </configuration>

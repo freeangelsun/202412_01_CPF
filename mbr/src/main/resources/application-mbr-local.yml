@@ -1,0 +1,86 @@
+# ==================== MBR 모듈 로컬 환경 설정 ====================
+# 로컬 개발 환경에서만 사용 (application-mbr-local.yml)
+# 프로파일 활성화: spring.profiles.active=local
+
+spring:
+  # ==================== 데이터소스 설정 ====================
+  datasource:
+    url: jdbc:mariadb://localhost:3306/cmnDB
+    username: root
+    password: test
+    driver-class-name: org.mariadb.jdbc.Driver
+    
+    # 커넥션 풀 설정 (HikariCP)
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: true
+      connection-test-query: "SELECT 1"
+  
+  # ==================== JPA/Hibernate 설정 ====================
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+    open-in-view: false
+
+# ==================== MyBatis 설정 ====================
+mybatis:
+  config-location: classpath:mybatis/config/mbr-mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/mbr/**/*.xml
+  type-aliases-package: fps.mbr.bse.entity
+  type-handlers-package: fps.mbr.handler
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: NULL
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# ==================== 서버 설정 ====================
+server:
+  port: 8081
+  servlet:
+    context-path: /
+  
+  # 타임아웃 설정
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20000
+    accept-count: 100
+
+# ==================== 로깅 설정 ====================
+logging:
+  level:
+    root: INFO
+    fps: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.jdbc.core: DEBUG
+    org.apache.ibatis: DEBUG
+  
+  config: classpath:log/logback-local.xml
+  file:
+    name: logs/mbr.log
+    max-size: 10MB
+    max-history: 7
+
+# ==================== 액추에이터 (Actuator) 설정 ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, env
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      simple:
+        enabled: true

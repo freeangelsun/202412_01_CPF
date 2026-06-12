@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!--
+  MyBatis 설정 파일 - mbr 모듈
+  
+  주요 설정:
+  - typeAliases: 도메인 객체 별칭 정의
+  - mappers: 매퍼 XML 파일 위치 지정
+  
+  사용 예:
+  <typeAlias alias="Member" type="fps.mbr.bse.entity.Member" />
+  
+  @author FPS Team
+  @version 1.0.0
+-->
+
+<configuration>
+    <!-- 타입 별칭 정의 -->
+    <typeAliases>
+        <typeAlias alias="Member" type="fps.mbr.bse.entity.Member" />
+    </typeAliases>
+    
+</configuration>

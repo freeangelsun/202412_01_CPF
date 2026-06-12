@@ -11,12 +11,7 @@
     </settings>
 
     <typeAliases>
-        <!-- fps.cmn.db.entity 내 모든 클래스에 대한 별칭을 자동으로 생성합니다. -->
-        <package name="fps.cmn.db.entity"/>
+        <!-- CMN 샘플 도메인 엔티티에 대한 별칭을 자동으로 생성합니다. -->
+        <package name="fps.cmn.smp.entity"/>
     </typeAliases>
-
-    <mappers>
-        <!-- fps.cmn.db.mapper 내 모든 매퍼 인터페이스를 자동으로 매핑합니다. -->
-        <package name="fps.cmn.db.mapper"/>
-    </mappers>
 </configuration>

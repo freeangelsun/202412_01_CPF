@@ -1,0 +1,55 @@
+plugins {
+	id 'java-library'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'fps.pfw'
+version = '0.0.1-fps.pfw-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
+	}
+}
+
+dependencies {
+	// 프레임워크 DB 로그 적재와 MyBatis 매퍼 구성을 제공합니다.
+	api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+	api 'org.mariadb.jdbc:mariadb-java-client:3.3.1'
+
+	// 거래 로깅, 서비스 접근 정책, 컨트롤러 메타데이터 검증에 사용합니다.
+	api 'org.springframework.boot:spring-boot-starter-aop'
+	api 'org.aspectj:aspectjrt:1.9.20'
+	api 'org.aspectj:aspectjweaver:1.9.20'
+
+	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
+	api 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// 프레임워크 필터/인터셉터/검증 기능에 필요한 의존성입니다.
+	api 'org.springframework.boot:spring-boot-starter-validation'
+	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+	compileOnly 'org.springframework:spring-web'
+	compileOnly 'org.springframework:spring-webmvc'
+
+	// OpenAPI 3 문서, Swagger UI, Scalar API Reference를 제공합니다.
+	api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+	api 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.17'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.withType(Test) {
+	enabled = false
+}

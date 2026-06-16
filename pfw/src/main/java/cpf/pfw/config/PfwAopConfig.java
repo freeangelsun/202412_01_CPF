@@ -4,10 +4,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
- * PFW ?꾨젅?꾩썙??AOP 湲곕뒫???쒖꽦?뷀빀?덈떎.
+ * Enables PFW AOP support such as transaction logging.
  */
 @Configuration
 @EnableAspectJAutoProxy
 public class PfwAopConfig {
 }
-

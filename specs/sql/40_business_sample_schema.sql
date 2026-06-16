@@ -1,43 +1,22 @@
 -- Business and education sample schemas used by current code.
 
-USE cmnDB;
-
-CREATE TABLE IF NOT EXISTS cmn_member (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- MBR local profile currently points to cmnDB, so keep the sample member table here.
-CREATE TABLE IF NOT EXISTS member (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    INDEX IDX_MEMBER_NAME (name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 USE accDB;
 
-CREATE TABLE IF NOT EXISTS acc_member (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
+CREATE TABLE IF NOT EXISTS acc_account (
+    account_id INT NOT NULL AUTO_INCREMENT,
+    account_no VARCHAR(30) NOT NULL,
+    account_name VARCHAR(100) NOT NULL,
+    account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    balance DECIMAL(18,2) NOT NULL DEFAULT 0,
     description TEXT NULL,
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    INDEX IDX_ACC_MEMBER_NAME (name)
+    PRIMARY KEY (account_id),
+    UNIQUE KEY UK_ACC_ACCOUNT_NO (account_no),
+    INDEX IDX_ACC_ACCOUNT_STATUS (account_status),
+    INDEX IDX_ACC_ACCOUNT_NAME (account_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 USE mbrDB;

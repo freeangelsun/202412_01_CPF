@@ -104,7 +104,7 @@ class MbrControllerValidationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value("EPFW900001"))
                 .andExpect(jsonPath("$.messageCode").value("MPFW900001"))
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("?꾩닔 嫄곕옒 ?ㅻ뜑")));
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("필수 거래 헤더가 누락되었습니다.")));
     }
 
     /**

@@ -4,8 +4,8 @@ spring:
   datasource:
     pfw:
       url: ${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}
-      username: ${PFW_DB_USERNAME:root}
-      password: ${PFW_DB_PASSWORD:test}
+      username: ${PFW_DB_USERNAME:cpf_pfw}
+      password: ${PFW_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
 springdoc:

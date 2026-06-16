@@ -1,99 +1,87 @@
-# CPF initial database SQL
+# CPF Initial Database SQL
 
-This folder contains MariaDB/MySQL scripts for a clean CPF local or test
-installation. Scripts are intentionally separated by purpose so a DBA can run
-only the required area.
+`specs/sql`은 CPF 로컬/테스트 MariaDB 설치 스크립트를 담고 있습니다. 현재 기준은 단순합니다.
 
-## Recommended local execution
+- `pfwDB`: 프레임워크/운영 공통 메타데이터
+- `admDB`: 관리자/운영자 권한과 감사
+- `accDB`: 계좌 업무 샘플
+- `mbrDB`: 회원 업무 샘플
 
-For a local developer install, run the all-in-one script from the repository
-root:
+`cmnDB`는 더 이상 만들지 않습니다. CMN 모듈은 공통 기능 라이브러리이고, 코드/메시지/응답코드/설정/캐시 이벤트 같은 프레임워크 참조 데이터는 `pfwDB`가 소유합니다.
 
-```powershell
-mysql -h localhost -P 3306 -u root -p < specs/sql/00_all_install.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/99_smoke_check.sql
-```
+## One File Execution
 
-Or run install and smoke check in one command:
+`00_all_install.sql`과 `00_all_install_and_smoke.sql`은 `SOURCE` 실행순서 파일이 아니라 실제 SQL 전체가 펼쳐진 실행 파일입니다.
 
 ```powershell
-mysql -h localhost -P 3306 -u root -p < specs/sql/00_all_install_and_smoke.sql
+cmd.exe /d /c '"C:\Program Files\MariaDB 12.3\bin\mariadb.exe" --host=127.0.0.1 --port=3306 --user=root --password=비밀번호 --ssl=0 --default-character-set=utf8mb4 < "specs\sql\00_all_install_and_smoke.sql"'
 ```
 
-The `00_*` files use MySQL client `SOURCE` commands, so run them from the
-repository root. If a DBA runs scripts from another working directory, use the
-split files below.
+PowerShell `Get-Content | mariadb` 파이프는 한글 seed가 깨질 수 있으니 사용하지 않습니다.
 
-## Split execution order
+## Split Files
+
+분리 파일은 검토와 유지보수용입니다.
 
 1. `01_create_databases.sql`
-2. `10_pfw_schema.sql`
-3. `20_cmn_schema.sql`
-4. `30_adm_schema.sql`
-5. `40_business_sample_schema.sql`
-6. `50_framework_seed_data.sql`
-7. `60_adm_seed_data.sql`
-8. `70_test_data.sql`
-9. `99_smoke_check.sql` for verification only
+2. `02_create_service_users.sql`
+3. `03_cleanup_legacy_layout.sql`
+4. `10_pfw_schema.sql`
+5. `20_cmn_schema.sql`
+6. `30_adm_schema.sql`
+7. `40_business_sample_schema.sql`
+8. `50_framework_seed_data.sql`
+9. `60_adm_seed_data.sql`
+10. `70_test_data.sql`
+11. `99_smoke_check.sql`
 
-## Target databases
+## Database Ownership
 
-| Database | Owner | Main tables |
+| Database | Owner | Tables |
 | --- | --- | --- |
-| `pfwDB` | PFW | `TRAN_LOG`, `TRAN_LOG_DTL` |
-| `cmnDB` | CMN and current MBR local sample | `code_table`, `message_table`, `response_code_table`, `config_table`, `cache_refresh_event`, `cmn_member`, `member` |
-| `admDB` | ADM | `operator_*`, `dynamic_log_level_rule` |
-| `accDB` | ACC | `acc_member` |
-| `mbrDB` | Optional separated MBR DB | `member` |
+| `pfwDB` | Framework | `TRAN_LOG`, `TRAN_LOG_DTL`, `code_table`, `message_table`, `response_code_table`, `config_table`, `cache_refresh_event`, `file_exchange_log`, `security_jwt_key`, `security_token_audit_log` |
+| `admDB` | Admin | `operator_user`, `operator_role`, `operator_user_role`, `operator_menu`, `operator_role_menu`, `operator_session`, `operator_audit_log`, `dynamic_log_level_rule` |
+| `accDB` | Account sample | `acc_account` |
+| `mbrDB` | Member sample | `member` |
 
-## Notes
+모든 base table은 `CREATED_BY`, `CREATED_AT`, `UPDATED_BY`, `UPDATED_AT` 공통 컬럼을 가집니다.
 
-- The scripts use `CREATE TABLE IF NOT EXISTS` and idempotent seed inserts.
-- Response codes use `{S|E}{MODULE}{GROUP}{SEQ}`. Examples: `SACC000000`,
-  `EACC010001`, `EPFW900001`.
-- Message codes use `M{MODULE}{GROUP}{SEQ}`. One `message_table` row stores both
-  `external_message` and `internal_message`.
-- `message_format_type` is `FIXED` or `INDEXED`; indexed messages use common
-  placeholders such as `{0}`, `{1}`.
-- `response_code_table` links each response code to one `message_code`. Runtime
-  exception handling and logging should resolve this table from
-  `responseCodeCache`, then resolve `message_table` from `messageCache`.
-- `TRAN_LOG` keeps response metadata separately: `HTTP_STATUS` is the numeric
-  HTTP status, `RESPONSE_CODE` is the standard response code, and
-  `MESSAGE_CODE` is the standard message code. `EXTERNAL_MESSAGE` and
-  `INTERNAL_MESSAGE` are populated for success and failure. `ERROR_CODE` and
-  `ERROR_MESSAGE` are populated only for failed transactions.
-- ADM operator and authorization APIs are DB-first against `operator_user`,
-  `operator_user_role`, `operator_role`, `operator_menu`, and
-  `operator_role_menu`. Runtime code keeps a local education fallback only when
-  the ADM database is unavailable.
-- Dynamic log-level rules are applied in WAS memory for immediate runtime
-  effect and persisted to `dynamic_log_level_rule` for ADM tracking and later
-  multi-WAS propagation.
-- The ADM seed account is for local/test only: `admin / Adm!n12345`.
-- Production secrets, JWT secrets, token values, and raw passwords must not be
-  stored in these scripts.
-- If each service uses a physically separate DB account, grant only the target
-  database privileges required by that service.
-- Current local MBR configuration points to `cmnDB`; `mbrDB.member` is included
-  for a later separated MBR datasource test.
+## Legacy Cleanup
 
-## Local Smoke Test
+`03_cleanup_legacy_layout.sql`은 이전 로컬 샘플 구조를 정리합니다.
 
-If a MariaDB/MySQL client is installed and you want to run split files manually,
-run the scripts in order:
+- `cmnDB` 제거
+- `admDB.member` 제거
+- `accDB.acc_member` 제거
 
-```powershell
-mysql -h localhost -P 3306 -u root -p < specs/sql/01_create_databases.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/10_pfw_schema.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/20_cmn_schema.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/30_adm_schema.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/40_business_sample_schema.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/50_framework_seed_data.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/60_adm_seed_data.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/70_test_data.sql
-mysql -h localhost -P 3306 -u root -p < specs/sql/99_smoke_check.sql
-```
+현재 구조에서 ACC는 `acc_account`, MBR은 `member`만 사용합니다.
 
-`99_smoke_check.sql` does not modify data. It checks core table row counts and
-representative response-code/message links.
+## Service Users
+
+`02_create_service_users.sql`는 local/test 전용 계정을 만듭니다.
+
+| User | Database | Privileges |
+| --- | --- | --- |
+| `cpf_pfw` | `pfwDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+| `cpf_adm` | `admDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+| `cpf_acc` | `accDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+| `cpf_mbr` | `mbrDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+
+운영 환경에서는 local password를 사용하지 말고 환경변수, Vault, KMS, Secret Manager 등으로 교체해야 합니다.
+
+## Cache Refresh Event
+
+`cache_refresh_event`는 다중 WAS 캐시 동기화를 위한 프레임워크 이벤트 로그입니다. 코드/메시지/응답코드/설정 캐시가 한 WAS에서 바뀌었을 때 다른 WAS가 DB polling으로 변경을 감지해 자기 메모리 캐시를 refresh합니다.
+
+브로커가 있는 운영 환경에서는 Kafka/RabbitMQ/Redis Pub/Sub을 실시간 경로로 쓰고, `cache_refresh_event`는 fallback 및 추적 로그로 유지하거나 보존 기간을 짧게 가져가면 됩니다.
+
+## Verified Checks
+
+실DB 검증 기준:
+
+- `00_all_install_and_smoke.sql` 직접 실행 성공
+- 같은 파일 재실행 시 row count 유지
+- `cmnDB` 없음
+- `accDB.acc_member` 없음
+- 모든 base table 공통 등록/수정 컬럼 존재
+- `cpf_acc`가 `pfwDB.code_table` 조회 시 권한 거부

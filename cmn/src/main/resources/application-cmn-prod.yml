@@ -2,15 +2,15 @@ spring:
   datasource:
     cmn:
       #      jndi-name: java:comp/env/jdbc/cmnDS
-      url: jdbc:mariadb://localhost:3306/cmnDB
-      username: root
-      password: test
+      url: ${CMN_DB_URL:${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}}
+      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw}}
+      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD}}
       driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
-  type-aliases-package: cpf.cmn.smp.entity
+  type-aliases-package: cpf.cmn
 
 cpf:
   cmn:

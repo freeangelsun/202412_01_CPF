@@ -3,7 +3,7 @@ package cpf.pfw.common.exception;
 import java.util.Map;
 
 /**
- * 媛쒕컻?먭? 紐낆떆?곸쑝濡??낅젰媛?寃利??ㅽ뙣瑜??쒗쁽?????ъ슜?섎뒗 ?쒖? ?덉쇅?낅땲??
+ * Exception for request and business input validation failures.
  */
 public class FpsValidationException extends FpsException {
     public FpsValidationException(String detail) {
@@ -14,4 +14,3 @@ public class FpsValidationException extends FpsException {
         super(errorCode, detail, messageArguments);
     }
 }
-

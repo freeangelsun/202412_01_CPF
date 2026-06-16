@@ -7,8 +7,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * ?쒕퉬??ID濡?????쒕쾭 二쇱냼瑜?李얠븘二쇰뒗 怨듯넻 ?덉??ㅽ듃由ъ엯?덈떎.
- * ?ㅼ젣 二쇱냼??application-pfw.yml ?먮뒗 ?섍꼍蹂?섏뿉??二쇱엯?⑸땲??
+ * Resolves service ids to configured base URLs.
+ *
+ * <p>The actual endpoints are managed in {@code application-pfw.yml} under {@code cpf.services.*}.</p>
  */
 public class FpsServiceEndpointRegistry {
 
@@ -19,10 +20,10 @@ public class FpsServiceEndpointRegistry {
     }
 
     /**
-     * ?쒕퉬??ID???대떦?섎뒗 base-url??諛섑솚?⑸땲??
+     * Returns the base URL for a service id.
      *
-     * @param serviceId mbr, acc, cmn 媛숈? 二쇱젣?곸뿭 ID
-     * @return ????쒕퉬??湲곕낯 URL
+     * @param serviceId service id such as {@code mbr}, {@code acc}, or {@code cmn}
+     * @return normalized base URL without trailing slash
      */
     public String baseUrl(String serviceId) {
         String normalizedServiceId = normalize(serviceId);
@@ -31,7 +32,7 @@ public class FpsServiceEndpointRegistry {
         if (endpoint == null || !hasText(endpoint.getBaseUrl())) {
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.SERVICE_ENDPOINT_NOT_FOUND,
-                    "?쒕퉬???묒냽 ?뺣낫媛 ?놁뒿?덈떎. cpf.services." + normalizedServiceId + ".base-url ?ㅼ젙???뺤씤?섏꽭??",
+                    "Service endpoint is not configured. Check cpf.services." + normalizedServiceId + ".base-url.",
                     Map.of("serviceId", normalizedServiceId));
         }
         return trimTrailingSlash(endpoint.getBaseUrl());
@@ -41,7 +42,7 @@ public class FpsServiceEndpointRegistry {
         if (!hasText(serviceId)) {
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.SERVICE_ENDPOINT_NOT_FOUND,
-                    "?쒕퉬??ID???꾩닔?낅땲??",
+                    "Service id is required.",
                     Map.of("serviceId", "EMPTY"));
         }
         return serviceId.trim().toLowerCase(Locale.ROOT);
@@ -59,4 +60,3 @@ public class FpsServiceEndpointRegistry {
         return value != null && !value.isBlank();
     }
 }
-

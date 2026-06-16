@@ -96,12 +96,54 @@
         <pre class="detail">{{ pretty(logDetail) }}</pre>
       </section>
 
+      <section class="panel" v-show="activeMenu === 'auditLogs'">
+        <div class="panel-title">
+          <h2>Audit Logs</h2>
+          <button type="button" @click="loadAuditLogs">Search</button>
+        </div>
+        <div class="filters">
+          <label>Operator ID <input v-model="auditSearch.operatorId" type="text"></label>
+          <label>Action Type <input v-model="auditSearch.actionType" type="text"></label>
+          <label>Target Type <input v-model="auditSearch.targetType" type="text"></label>
+          <label>Target ID <input v-model="auditSearch.targetId" type="text"></label>
+          <label>Limit <input v-model.number="auditSearch.limit" type="number" min="1" max="500"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+            <tr>
+              <th>AUDIT_ID</th>
+              <th>Operator</th>
+              <th>Action</th>
+              <th>Target</th>
+              <th>Reason</th>
+              <th>Created</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in auditLogs" :key="item.AUDIT_ID">
+              <td>{{ item.AUDIT_ID }}</td>
+              <td>{{ item.OPERATOR_ID }}</td>
+              <td>{{ item.ACTION_TYPE }}</td>
+              <td>{{ item.TARGET_TYPE }} / {{ item.TARGET_ID }}</td>
+              <td>{{ item.REASON }}</td>
+              <td>{{ item.CREATED_AT }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="detail">{{ pretty(auditResult) }}</pre>
+      </section>
+
       <section class="panel" v-show="activeMenu === 'cache'">
         <div class="panel-title">
           <h2>Cache Management</h2>
-          <div class="actions">
+          <div class="actions" v-if="canWrite('CACHE')">
             <button type="button" v-for="target in cacheTargets" :key="target" @click="refreshCache(target)">{{ target }}</button>
           </div>
+        </div>
+        <div class="filters" v-if="canWrite('CACHE')">
+          <label>Reason <input v-model="cacheReason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(cacheResult) }}</pre>
       </section>
@@ -111,9 +153,9 @@
           <h2>Response Codes</h2>
           <div class="actions">
             <button type="button" @click="loadResponseCodes">Search</button>
-            <button type="button" @click="createResponseCode">Create</button>
-            <button type="button" @click="updateResponseCode">Update</button>
-            <button type="button" @click="deleteResponseCode">Delete</button>
+            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="createResponseCode">Create</button>
+            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="updateResponseCode">Update</button>
+            <button type="button" v-if="canDelete('RESPONSE_CODE')" @click="deleteResponseCode">Delete</button>
           </div>
         </div>
         <div class="filters">
@@ -125,6 +167,7 @@
           <label>Seq <input v-model="responseCodeForm.sequenceNo" type="text"></label>
           <label>HTTP <input v-model.number="responseCodeForm.httpStatus" type="number"></label>
           <label>Description <input v-model="responseCodeForm.description" type="text"></label>
+          <label v-if="canWrite('RESPONSE_CODE') || canDelete('RESPONSE_CODE')">Reason <input v-model="responseCodeReason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
       </section>
@@ -140,7 +183,31 @@
           <label>Level <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
           <label>TTL Seconds <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>
           <label>Reason <input v-model="logLevelForm.reason" type="text"></label>
-          <button type="button" @click="registerLogLevelRule">Register</button>
+          <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">Register</button>
+        </div>
+        <div class="table-wrap" v-if="logLevelResult.persistedRules && logLevelResult.persistedRules.length">
+          <table>
+            <thead>
+            <tr>
+              <th>Rule ID</th>
+              <th>Business ID</th>
+              <th>Transaction ID</th>
+              <th>Level</th>
+              <th>Expires</th>
+              <th v-if="canDelete('DYNAMIC_LOG')">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in logLevelResult.persistedRules" :key="item.ruleId">
+              <td>{{ item.ruleId }}</td>
+              <td>{{ item.businessTransactionId }}</td>
+              <td>{{ item.transactionId }}</td>
+              <td>{{ item.logLevel }}</td>
+              <td>{{ item.expiresAt }}</td>
+              <td v-if="canDelete('DYNAMIC_LOG')"><button type="button" @click="removeLogLevelRule(item.ruleId)">Delete</button></td>
+            </tr>
+            </tbody>
+          </table>
         </div>
         <pre class="detail">{{ pretty(logLevelResult) }}</pre>
       </section>
@@ -154,7 +221,8 @@
           <label>Operator ID <input v-model="operatorForm.operatorId" type="text"></label>
           <label>Operator Name <input v-model="operatorForm.operatorName" type="text"></label>
           <label>Initial Password <input v-model="operatorForm.password" type="password"></label>
-          <button type="button" @click="createOperator">Create</button>
+          <label v-if="canWrite('OPERATOR')">Reason <input v-model="operatorForm.reason" type="text"></label>
+          <button type="button" v-if="canWrite('OPERATOR')" @click="createOperator">Create</button>
         </div>
         <pre class="detail">{{ pretty(operatorResult) }}</pre>
       </section>

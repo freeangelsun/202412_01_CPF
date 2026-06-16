@@ -47,14 +47,15 @@ public class AdmOperatorController {
     @FpsTransaction(id = "ADM02OPR0031", name = "ADMOperatorCreate")
     @Operation(summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
     public ResponseEntity<AdmOperator> createOperator(@RequestBody AdmOperatorCreateRequest request, HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.createOperator(request);
         auditLogService.record(
                 TransactionContext.getOrCreateTransactionId(),
-                request.requestUser(),
+                requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_CREATE",
                 "operator_user",
                 operator.operatorId(),
-                "Operator created",
+                reason,
                 servletRequest.getRemoteAddr());
         return ResponseEntity.ok(operator);
     }
@@ -66,14 +67,15 @@ public class AdmOperatorController {
             @PathVariable String operatorId,
             @RequestBody AdmPasswordChangeRequest request,
             HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.changePassword(operatorId, request);
         auditLogService.record(
                 TransactionContext.getOrCreateTransactionId(),
-                request.requestUser(),
+                requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_PASSWORD_CHANGE",
                 "operator_user",
                 operatorId,
-                "Operator password changed",
+                reason,
                 servletRequest.getRemoteAddr());
         return ResponseEntity.ok(operator);
     }
@@ -97,5 +99,13 @@ public class AdmOperatorController {
     @Operation(summary = "List menus", description = "Returns ADM menus.")
     public ResponseEntity<List<AdmMenu>> findMenus() {
         return ResponseEntity.ok(operatorService.findMenus());
+    }
+
+    private String requestUser(HttpServletRequest request, String fallback) {
+        Object operatorId = request.getAttribute("adm.operatorId");
+        if (operatorId instanceof String value && !value.isBlank()) {
+            return value;
+        }
+        return fallback;
     }
 }

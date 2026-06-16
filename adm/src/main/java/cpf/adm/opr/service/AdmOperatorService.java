@@ -202,7 +202,7 @@ public class AdmOperatorService {
                     ORDER BY SORT_ORDER, MENU_ID
                     """, (rs, rowNum) -> new AdmMenu(
                     rs.getString("MENU_ID"), rs.getString("PARENT_MENU_ID"), rs.getString("MENU_NAME"),
-                    rs.getString("MENU_PATH"), rs.getInt("SORT_ORDER")));
+                    rs.getString("MENU_PATH"), rs.getInt("SORT_ORDER"), true, true, true));
         } catch (DataAccessException ex) {
             return fallbackMenus.stream().sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
         }
@@ -216,26 +216,28 @@ public class AdmOperatorService {
             String placeholders = String.join(",", roleIds.stream().map(role -> "?").toList());
             List<Object> args = new ArrayList<>(roleIds);
             return admJdbcTemplate.query("""
-                    SELECT DISTINCT m.MENU_ID, m.PARENT_MENU_ID, m.MENU_NAME, m.MENU_PATH, m.SORT_ORDER
+                    SELECT m.MENU_ID, m.PARENT_MENU_ID, m.MENU_NAME, m.MENU_PATH, m.SORT_ORDER,
+                           MAX(rm.READ_YN) AS READ_YN,
+                           MAX(rm.WRITE_YN) AS WRITE_YN,
+                           MAX(rm.DELETE_YN) AS DELETE_YN
                     FROM operator_menu m
                     JOIN operator_role_menu rm ON rm.MENU_ID = m.MENU_ID
                     WHERE m.USE_YN = 'Y'
                       AND rm.READ_YN = 'Y'
                       AND rm.ROLE_ID IN (%s)
+                    GROUP BY m.MENU_ID, m.PARENT_MENU_ID, m.MENU_NAME, m.MENU_PATH, m.SORT_ORDER
                     ORDER BY m.SORT_ORDER, m.MENU_ID
                     """.formatted(placeholders), (rs, rowNum) -> new AdmMenu(
                     rs.getString("MENU_ID"), rs.getString("PARENT_MENU_ID"), rs.getString("MENU_NAME"),
-                    rs.getString("MENU_PATH"), rs.getInt("SORT_ORDER")), args.toArray());
+                    rs.getString("MENU_PATH"), rs.getInt("SORT_ORDER"),
+                    "Y".equals(rs.getString("READ_YN")),
+                    "Y".equals(rs.getString("WRITE_YN")),
+                    "Y".equals(rs.getString("DELETE_YN"))), args.toArray());
         } catch (DataAccessException ex) {
             if (roleIds.contains("ADM_ADMIN")) {
                 return findMenus();
             }
-            if (roleIds.contains("ADM_OPERATOR")) {
-                return fallbackMenus.stream().filter(menu -> !"OPERATOR".equals(menu.menuId()))
-                        .sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
-            }
-            return fallbackMenus.stream().filter(menu -> !"DYNAMIC_LOG".equals(menu.menuId()) && !"OPERATOR".equals(menu.menuId()))
-                    .sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
+            return fallbackMenusForRoles(roleIds);
         }
     }
 
@@ -306,8 +308,10 @@ public class AdmOperatorService {
         fallbackMenus.add(new AdmMenu("DASHBOARD", null, "Dashboard", "/adm", 10));
         fallbackMenus.add(new AdmMenu("LOG_LIST", null, "Transaction Logs", "/adm#logs", 20));
         fallbackMenus.add(new AdmMenu("CACHE", null, "Cache Management", "/adm#cache", 30));
-        fallbackMenus.add(new AdmMenu("DYNAMIC_LOG", null, "Dynamic Log Level", "/adm#log-level", 40));
-        fallbackMenus.add(new AdmMenu("OPERATOR", null, "Operator Management", "/adm#operators", 50));
+        fallbackMenus.add(new AdmMenu("RESPONSE_CODE", null, "Response Codes", "/adm#response-codes", 40));
+        fallbackMenus.add(new AdmMenu("DYNAMIC_LOG", null, "Dynamic Log Level", "/adm#log-level", 50));
+        fallbackMenus.add(new AdmMenu("AUDIT_LOG", null, "Audit Logs", "/adm#audit-logs", 60));
+        fallbackMenus.add(new AdmMenu("OPERATOR", null, "Operator Management", "/adm#operators", 70));
 
         operators.put("admin", new OperatorState("admin", "Local Administrator", hashPassword("Adm!n12345"),
                 List.of("ADM_ADMIN"), false, 0, true, LocalDateTime.now().minusDays(91),
@@ -319,6 +323,33 @@ public class AdmOperatorService {
             return List.of();
         }
         return java.util.Arrays.stream(roleIds.split(",")).map(String::trim).filter(role -> !role.isBlank()).toList();
+    }
+
+    private List<AdmMenu> fallbackMenusForRoles(List<String> roleIds) {
+        if (roleIds.contains("ADM_ADMIN")) {
+            return fallbackMenus.stream().sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
+        }
+        if (roleIds.contains("ADM_OPERATOR")) {
+            return fallbackMenus.stream()
+                    .filter(menu -> !"OPERATOR".equals(menu.menuId()) && !"RESPONSE_CODE".equals(menu.menuId()))
+                    .map(menu -> switch (menu.menuId()) {
+                        case "CACHE", "DYNAMIC_LOG" -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
+                                menu.path(), menu.sortOrder(), true, true, "DYNAMIC_LOG".equals(menu.menuId()));
+                        default -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
+                                menu.path(), menu.sortOrder(), true, false, false);
+                    })
+                    .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                    .toList();
+        }
+        return fallbackMenus.stream()
+                .filter(menu -> !"DYNAMIC_LOG".equals(menu.menuId())
+                        && !"OPERATOR".equals(menu.menuId())
+                        && !"RESPONSE_CODE".equals(menu.menuId())
+                        && !"AUDIT_LOG".equals(menu.menuId()))
+                .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
+                        menu.path(), menu.sortOrder(), true, false, false))
+                .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                .toList();
     }
 
     private LocalDateTime toLocalDateTime(Timestamp timestamp) {

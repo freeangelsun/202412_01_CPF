@@ -8,26 +8,26 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 二쇱젣?곸뿭蹂??쒕쾭 ?묒냽 ?뺣낫瑜?怨듯넻?쇰줈 愿由ы빀?덈떎.
- * ?? cpf.services.mbr.base-url=http://localhost:8081
+ * Service endpoint configuration for inter-service HTTP calls.
+ *
+ * <p>Example: {@code cpf.services.mbr.base-url=http://localhost:8081}</p>
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "fps")
+@ConfigurationProperties(prefix = "cpf")
 public class FpsServiceEndpointProperties {
 
-    /** ?쒕퉬??ID蹂??묒냽 ?뺣낫?낅땲?? ?ㅻ뒗 mbr, acc, cmn 媛숈? 二쇱젣?곸뿭 ID瑜??ъ슜?⑸땲?? */
+    /** Map keyed by service id such as {@code mbr}, {@code acc}, {@code cmn}, and {@code adm}. */
     private Map<String, ServiceEndpoint> services = new LinkedHashMap<>();
 
     @Getter
     @Setter
     public static class ServiceEndpoint {
 
-        /** ????쒕퉬?ㅼ쓽 湲곕낯 URL?낅땲?? ?댁쁺?먯꽌??VIP, DNS, Kubernetes Service 二쇱냼 ?깆쓣 ?ъ슜?⑸땲?? */
+        /** Base URL of the target service. In production this should point to VIP, DNS, or Kubernetes Service. */
         private String baseUrl;
 
-        /** 濡쒓렇? ?덉쇅 硫붿떆吏?먯꽌 ?щ엺???앸퀎?섍린 ?ъ슫 ?쒕퉬???대쫫?낅땲?? */
+        /** Human-readable service description for documentation and diagnostics. */
         private String description;
     }
 }
-

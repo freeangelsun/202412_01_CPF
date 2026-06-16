@@ -5,11 +5,11 @@ spring:
   datasource:
     cmn:
       # 濡쒖뺄 MariaDB??CMN 怨듯넻 ?ㅽ궎留?URL?낅땲??
-      url: ${CMN_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
+      url: ${CMN_DB_URL:${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}}
       # 濡쒖뺄 DB ?ъ슜?먯엯?덈떎.
-      username: ${CMN_DB_USERNAME:root}
+      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw}}
       # 濡쒖뺄 DB 鍮꾨?踰덊샇?낅땲??
-      password: ${CMN_DB_PASSWORD:test}
+      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD:cpf_local_pw}}
       # MariaDB JDBC Driver ?대옒?ㅼ엯?덈떎.
       driver-class-name: org.mariadb.jdbc.Driver
 
@@ -19,7 +19,7 @@ mybatis:
   # CMN Mapper XML ?꾩껜 ?ㅼ틪 寃쎈줈?낅땲??
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
   # ?섑뵆 Entity alias 湲곗??낅땲??
-  type-aliases-package: cpf.cmn.smp.entity
+  type-aliases-package: cpf.cmn
 
 cpf:
   cmn:

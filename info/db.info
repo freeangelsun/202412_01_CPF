@@ -1,241 +1,42 @@
-CREATE DATABASE cmnDB;
+CPF database layout note
+========================
 
-USE cmnDB;
-CREATE TABLE cmn_member (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+This file is a short reference only.
+The executable installation scripts are under specs/sql.
 
-INSERT INTO cmn_member (name, description)
-VALUES
-('cmn 1', 'This is a test description 1'),
-('cmn 2', 'This is a test description 2'),
-('cmn 3', 'This is a test description 3');
+Canonical install scripts
+-------------------------
 
+- specs/sql/00_all_install.sql
+- specs/sql/00_all_install_and_smoke.sql
 
-CREATE TABLE code_table (
-    code_id INT PRIMARY KEY AUTO_INCREMENT,       -- 고유 ID
-    parent_id INT NULL,                           -- 상위 코드 ID (NULL이면 최상위 코드)
-    code_key VARCHAR(50) NOT NULL,                -- 코드 키
-    code_value VARCHAR(50) NOT NULL,              -- 코드 값
-    description VARCHAR(255) NULL,               -- 코드 설명
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',          -- 사용 여부
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES code_table(code_id) ON DELETE SET NULL,
-    INDEX IDX_CODE_KEY (code_key),
-    INDEX IDX_CODE_PARENT (parent_id),
-    INDEX IDX_CODE_USE (use_yn)
-);
+Database ownership
+------------------
 
--- 최상위 코드
-INSERT INTO code_table (parent_id, code_key, code_value, description)
-VALUES (NULL, 'USER', '사용자 코드', '사용자 관련 코드');
+- pfwDB: framework-owned metadata and common reference tables.
+  - TRAN_LOG
+  - TRAN_LOG_DTL
+  - code_table
+  - message_table
+  - response_code_table
+  - config_table
+  - cache_refresh_event
+  - file_exchange_log
+  - security_jwt_key
+  - security_token_audit_log
+- admDB: admin console, operator, role, menu, audit, dynamic log rules.
+- accDB: account sample domain. Uses acc_account.
+- mbrDB: member sample domain. Uses member.
 
--- 하위 코드
-INSERT INTO code_table (parent_id, code_key, code_value, description)
-VALUES (1, 'USER_ROLE', 'ADMIN', '사용자 역할 코드');
+cmnDB is intentionally not used.
+CMN is a common Java module, not a separate data owner. Framework/common
+reference data belongs to pfwDB.
 
-INSERT INTO code_table (parent_id, code_key, code_value, description)
-VALUES (1, 'USER_STATUS', 'ACTIVE', '사용자 상태 코드');
+All CPF-owned tables must include:
 
-INSERT INTO code_table (parent_id, code_key, code_value, description)
-VALUES (1, 'USER_STATUS', 'INACTIVE', '비활성 상태 코드');
+- created_by
+- created_at
+- updated_by
+- updated_at
 
-
-CREATE TABLE message_table (
-    message_id INT PRIMARY KEY AUTO_INCREMENT,    -- 고유 ID
-    message_key VARCHAR(50) NOT NULL,             -- 메시지 키
-    message_value VARCHAR(255) NOT NULL,          -- 메시지 내용
-    locale VARCHAR(10) NOT NULL,                  -- 언어 설정 (예: en, ko)
-    message_type VARCHAR(20) NOT NULL DEFAULT 'EXTERNAL', -- 메시지 유형(EXTERNAL/INTERNAL)
-    description VARCHAR(255) NULL,                -- 메시지 설명
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',          -- 사용 여부
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY UK_MESSAGE_KEY_LOCALE_TYPE (message_key, locale, message_type),
-    INDEX IDX_MESSAGE_TYPE (message_type, use_yn),
-    INDEX IDX_MESSAGE_USE (use_yn)
-);
-
-INSERT INTO message_table (message_key, message_value, locale, message_type, description)
-VALUES ('WELCOME_MSG', 'Welcome to the system!', 'en', 'EXTERNAL', '영문 환영 메시지');
-INSERT INTO message_table (message_key, message_value, locale, message_type, description)
-VALUES ('WELCOME_MSG', '시스템에 오신 것을 환영합니다!', 'ko', 'EXTERNAL', '국문 환영 메시지');
-INSERT INTO message_table (message_key, message_value, locale, message_type, description)
-VALUES ('ERR.INVALID_PARAMETER.EXTERNAL', '요청 값이 올바르지 않습니다.', 'ko', 'EXTERNAL', '고객용 입력 오류 메시지');
-INSERT INTO message_table (message_key, message_value, locale, message_type, description)
-VALUES ('ERR.INVALID_PARAMETER.INTERNAL', '입력 파라미터 검증에 실패했습니다.', 'ko', 'INTERNAL', '내부 입력 오류 메시지');
-
-CREATE TABLE config_table (
-    config_id INT PRIMARY KEY AUTO_INCREMENT,     -- 고유 ID
-    config_key VARCHAR(100) NOT NULL,             -- 설정 키
-    config_value VARCHAR(1000) NOT NULL,          -- 설정 값
-    config_type VARCHAR(30) NOT NULL DEFAULT 'STRING', -- 설정 값 유형
-    description VARCHAR(255) NULL,                -- 설정 설명
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N',    -- 암호화 대상 여부
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',          -- 사용 여부
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY UK_CONFIG_KEY (config_key),
-    INDEX IDX_CONFIG_USE (use_yn)
-);
-
-INSERT INTO config_table (config_key, config_value, config_type, description)
-VALUES ('FPS.LOGIN.MAX_FAIL_COUNT', '5', 'NUMBER', '로그인 실패 허용 횟수');
-INSERT INTO config_table (config_key, config_value, config_type, description)
-VALUES ('FPS.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 기능 사용 여부');
-
-CREATE TABLE cache_refresh_event (
-    event_id BIGINT PRIMARY KEY AUTO_INCREMENT,   -- 캐시 이벤트 ID
-    cache_name VARCHAR(50) NOT NULL,              -- 대상 캐시명
-    event_type VARCHAR(30) NOT NULL,              -- CREATE, UPDATE, DELETE, MANUAL_REFRESH
-    event_key VARCHAR(200) NULL,                  -- 변경된 업무 키
-    source_was_id VARCHAR(50) NULL,               -- 이벤트 발생 WAS
-    published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', -- 이벤트 발행자
-    published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), -- 이벤트 발행 시각
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX IDX_CACHE_REFRESH_EVENT_CACHE_ID (cache_name, event_id),
-    INDEX IDX_CACHE_REFRESH_EVENT_TIME (published_at)
-);
-
-------------------------------------------------------------------------------------------------------
-CREATE DATABASE pfwDB;
-USE pfwDB;
-
--- 프레임워크 필수 거래 로그 테이블
-CREATE TABLE TRAN_LOG (
-    LOG_DATE DATE NOT NULL, -- 로그 기준일자
-    LOG_IDX BIGINT AUTO_INCREMENT PRIMARY KEY, -- 로그 인덱스
-    TRANSACTION_ID VARCHAR(100) NOT NULL, -- 업무 거래 전체 추적 ID
-    TRACE_ID VARCHAR(100) NOT NULL, -- 기술 추적 ID
-    SPAN_ID VARCHAR(100), -- 현재 처리 구간 ID
-    PARENT_SPAN_ID VARCHAR(100), -- 이전 처리 구간 ID
-    SEQUENCE_NO INT NOT NULL DEFAULT 1, -- 동일 요청 내 로그 순번
-    MODULE_ID VARCHAR(20) NOT NULL, -- 모듈 ID (ACC, MBR, CMN)
-    MENU_ID VARCHAR(50), -- 거래(메뉴) ID
-    BUSINESS_TRANSACTION_ID VARCHAR(12) NOT NULL, -- 컨트롤러 업무 거래ID
-    BUSINESS_TRANSACTION_NAME VARCHAR(100) NOT NULL, -- 컨트롤러 업무 거래명
-    LOG_TYPE VARCHAR(20) NOT NULL, -- SUCCESS, FAILURE
-    REQUEST_TYPE VARCHAR(20) NOT NULL, -- 요청 구분
-    ORIGINAL_CHANNEL_CODE VARCHAR(20) NOT NULL, -- 최초 전송 채널 코드
-    CHANNEL_CODE VARCHAR(20) NOT NULL, -- 현재 전송 채널 코드
-    MEMBER_NO VARCHAR(50), -- 회원 번호
-    CUSTOMER_NO VARCHAR(50), -- 고객 번호
-    SCREEN_ID VARCHAR(50), -- 화면 ID
-    DEVICE_ID VARCHAR(100), -- 디바이스 ID
-    CLIENT_REQUEST_TIME VARCHAR(30), -- 클라이언트 요청 일시
-    WAS_ID VARCHAR(50) NOT NULL, -- 프레임워크 노드/WAS 인스턴스 번호
-    RESERVED_FIELD_1 VARCHAR(255), -- 확장 예약 필드 1
-    RESERVED_FIELD_2 VARCHAR(255), -- 확장 예약 필드 2
-    RESERVED_FIELD_3 VARCHAR(255), -- 확장 예약 필드 3
-    RESERVED_FIELD_4 VARCHAR(255), -- 확장 예약 필드 4
-    RESERVED_FIELD_5 VARCHAR(255), -- 확장 예약 필드 5
-    HTTP_METHOD VARCHAR(10), -- HTTP Method
-    URI VARCHAR(500) NOT NULL, -- 요청 URI
-    CONTROLLER VARCHAR(255), -- 컨트롤러 메서드
-    EXECUTION_PACKAGE VARCHAR(255), -- 실제 실행 패키지명
-    EXECUTION_CLASS VARCHAR(255), -- 실제 실행 클래스명
-    EXECUTION_METHOD VARCHAR(100), -- 실제 실행 메서드명
-    EXECUTION_SIGNATURE VARCHAR(1000), -- 실제 실행 메서드 시그니처
-    WORKFLOW_ID VARCHAR(50), -- 워크플로우 ID
-    WORKFLOW_NAME VARCHAR(100), -- 워크플로우명
-    WORKFLOW_INSTANCE_ID VARCHAR(100), -- 워크플로우 인스턴스 ID
-    WORKFLOW_STEP_ID VARCHAR(50), -- 워크플로우 스텝 ID
-    WORKFLOW_STEP_NAME VARCHAR(100), -- 워크플로우 스텝명
-    WORKFLOW_STATUS VARCHAR(30), -- 워크플로우 처리 상태
-    WORKFLOW_FAILURE_POLICY VARCHAR(30), -- 실패 처리 정책
-    COMPENSATION_YN CHAR(1) NOT NULL DEFAULT 'N', -- 보상 거래 여부
-    COMPENSATION_TRANSACTION_ID VARCHAR(12), -- 보상 거래ID
-    COMPENSATION_TARGET_TRANSACTION_ID VARCHAR(12), -- 보상 대상 원거래ID
-    COMPENSATION_STATUS VARCHAR(30), -- 보상 처리 상태
-    PARAMETERS MEDIUMTEXT, -- 요청 파라미터
-    REQUEST_BODY MEDIUMTEXT, -- 요청 Body
-    RESPONSE MEDIUMTEXT, -- 리턴값
-    RESPONSE_CODE INT, -- 응답 코드
-    ERROR_CODE VARCHAR(100), -- 표준 오류 코드
-    EXTERNAL_MESSAGE VARCHAR(500), -- 고객용 오류 메시지
-    INTERNAL_MESSAGE MEDIUMTEXT, -- 내부 추적용 오류 메시지
-    ERROR_MESSAGE MEDIUMTEXT, -- 오류 정보
-    EXEC_USER VARCHAR(100) NOT NULL DEFAULT 'N/A', -- 거래 수행 유저
-    CLIENT_IP VARCHAR(100), -- 클라이언트 IP
-    USER_AGENT VARCHAR(500), -- User-Agent
-    START_TIME DATETIME(3) NOT NULL, -- 최초 수행 일시
-    END_TIME DATETIME(3), -- 거래 종료 일시
-    DURATION_MS BIGINT, -- 수행 시간
-    CREATED_BY VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', -- 등록자
-    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, -- 생성 시각
-    UPDATED_BY VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', -- 수정자
-    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 수정 시각
-    INDEX IDX_TRAN_LOG_DATE (LOG_DATE),
-    INDEX IDX_TRAN_LOG_TRANSACTION_ID (TRANSACTION_ID),
-    INDEX IDX_TRAN_LOG_TRANSACTION_TIME (TRANSACTION_ID, START_TIME, LOG_IDX),
-    INDEX IDX_TRAN_LOG_TRACE_ID (TRACE_ID),
-    INDEX IDX_TRAN_LOG_BUSINESS_TRANSACTION_ID (BUSINESS_TRANSACTION_ID),
-    INDEX IDX_TRAN_LOG_BUSINESS_TIME (BUSINESS_TRANSACTION_ID, START_TIME),
-    INDEX IDX_TRAN_LOG_MEMBER_NO (MEMBER_NO),
-    INDEX IDX_TRAN_LOG_MEMBER_TIME (MEMBER_NO, START_TIME),
-    INDEX IDX_TRAN_LOG_CUSTOMER_NO (CUSTOMER_NO),
-    INDEX IDX_TRAN_LOG_CUSTOMER_TIME (CUSTOMER_NO, START_TIME),
-    INDEX IDX_TRAN_LOG_CHANNEL_TIME (CHANNEL_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_MODULE_TIME (MODULE_ID, START_TIME),
-    INDEX IDX_TRAN_LOG_STATUS_TIME (LOG_TYPE, RESPONSE_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_ERROR_CODE (ERROR_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_WORKFLOW_INSTANCE (WORKFLOW_INSTANCE_ID),
-    INDEX IDX_TRAN_LOG_WORKFLOW_TIME (WORKFLOW_INSTANCE_ID, START_TIME, LOG_IDX),
-    INDEX IDX_TRAN_LOG_WORKFLOW_STEP (WORKFLOW_STEP_ID),
-    INDEX IDX_TRAN_LOG_COMPENSATION (COMPENSATION_YN, COMPENSATION_STATUS),
-    INDEX IDX_TRAN_LOG_EXECUTION_CLASS (EXECUTION_CLASS),
-    INDEX IDX_TRAN_LOG_EXECUTION_TIME (EXECUTION_CLASS, EXECUTION_METHOD, START_TIME)
-) ENGINE=InnoDB;
-
-CREATE TABLE TRAN_LOG_DTL (
-    DETAIL_ID BIGINT AUTO_INCREMENT PRIMARY KEY, -- 상세 로그 ID
-    LOG_IDX BIGINT NOT NULL, -- 참조 로그 인덱스
-    DETAIL_KEY VARCHAR(100) NOT NULL, -- 상세 키
-    DETAIL_VALUE MEDIUMTEXT NOT NULL, -- 상세 값
-    CREATED_BY VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', -- 등록자
-    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, -- 생성 시각
-    UPDATED_BY VARCHAR(100) NOT NULL DEFAULT 'SYSTEM', -- 수정자
-    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 수정 시각
-    FOREIGN KEY (LOG_IDX) REFERENCES TRAN_LOG(LOG_IDX) ON DELETE CASCADE,
-    INDEX IDX_TRAN_LOG_DTL_LOG_IDX (LOG_IDX),
-    INDEX IDX_TRAN_LOG_DTL_LOG_KEY (LOG_IDX, DETAIL_KEY)
-) ENGINE=InnoDB;
-
-commit;
-
-------------------------------------------------------------------------------------------------------
-CREATE DATABASE accDB;
-USE accDB;
-CREATE TABLE acc_member (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-INSERT INTO acc_member (name, description)
-VALUES
-('acc 1', 'This is a test description 1'),
-('acc 2', 'This is a test description 2'),
-('acc 3', 'This is a test description 3');
-
-commit;
+Use specs/sql/99_smoke_check.sql after installation to verify the layout.

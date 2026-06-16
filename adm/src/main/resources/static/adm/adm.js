@@ -22,6 +22,7 @@ if (!window.Vue) {
         loginForm: { operatorId: "admin", password: "Adm!n12345" },
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "Logs" },
+          { id: "auditLogs", menuId: "AUDIT_LOG", label: "Audit" },
           { id: "cache", menuId: "CACHE", label: "Cache" },
           { id: "responseCodes", menuId: "RESPONSE_CODE", label: "Response Codes" },
           { id: "logLevel", menuId: "DYNAMIC_LOG", label: "Dynamic Log" },
@@ -29,10 +30,13 @@ if (!window.Vue) {
         ],
         cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
         logSearch: { transactionId: "", businessTransactionId: "", memberNo: "", customerNo: "" },
+        auditSearch: { operatorId: "", actionType: "", targetType: "", targetId: "", limit: 100 },
         logSort: { key: "LOG_IDX", direction: "desc" },
         logPage: { page: 1, size: 10 },
+        cacheReason: "ADM cache refresh",
+        responseCodeReason: "ADM response code change",
         logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "ADM diagnostics" },
-        operatorForm: { operatorId: "", operatorName: "", password: "" },
+        operatorForm: { operatorId: "", operatorName: "", password: "", reason: "ADM operator provisioning" },
         responseCodeForm: {
           responseCode: "EXYZ010001",
           messageCode: "MXYZ090001",
@@ -46,7 +50,9 @@ if (!window.Vue) {
           requestUser: "admin-ui"
         },
         logs: [],
+        auditLogs: [],
         logDetail: {},
+        auditResult: {},
         cacheResult: {},
         responseCodeResult: {},
         logLevelResult: {},
@@ -92,6 +98,7 @@ if (!window.Vue) {
       if (this.authenticated) {
         this.loadMe();
         this.searchLogs();
+        this.loadAuditLogs();
         this.loadOperators();
         this.loadResponseCodes();
         this.loadLogLevelRules();
@@ -103,6 +110,23 @@ if (!window.Vue) {
       },
       setMessage(message) {
         this.uiMessage = message || "";
+      },
+      permission(menuId) {
+        const found = this.authorizedMenus.find(menu => (menu.menuId || menu.id) === menuId);
+        return found || { readAllowed: true, writeAllowed: true, deleteAllowed: true };
+      },
+      canWrite(menuId) {
+        return this.permission(menuId).writeAllowed !== false;
+      },
+      canDelete(menuId) {
+        return this.permission(menuId).deleteAllowed !== false;
+      },
+      requireReason(reason) {
+        if (!reason || !String(reason).trim()) {
+          this.setMessage("Audit reason is required.");
+          return false;
+        }
+        return true;
       },
       sortLogs(key) {
         if (this.logSort.key === key) {
@@ -121,12 +145,23 @@ if (!window.Vue) {
         }
         return headers;
       },
-      async getJson(url) {
-        const response = await fetch(url, { headers: this.apiHeaders() });
+      async parseResponse(response) {
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await response.json()
+          : { message: await response.text() };
         if (response.status === 401) {
           this.clearToken("Session expired. Please sign in again.");
+        } else if (response.status === 403) {
+          this.setMessage(data.message || "Permission is required for this operation.");
+        } else if (!response.ok) {
+          this.setMessage(data.message || `Request failed. status=${response.status}`);
         }
-        return response.json();
+        return data;
+      },
+      async getJson(url) {
+        const response = await fetch(url, { headers: this.apiHeaders() });
+        return this.parseResponse(response);
       },
       async sendJson(url, method, body) {
         const response = await fetch(url, {
@@ -134,10 +169,7 @@ if (!window.Vue) {
           headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: body ? JSON.stringify(body) : undefined
         });
-        if (response.status === 401) {
-          this.clearToken("Session expired. Please sign in again.");
-        }
-        return response.json();
+        return this.parseResponse(response);
       },
       async login() {
         if (!this.loginForm.operatorId || !this.loginForm.password) {
@@ -149,7 +181,7 @@ if (!window.Vue) {
           headers: { ...defaultHeaders, "Content-Type": "application/json" },
           body: JSON.stringify(this.loginForm)
         });
-        const data = await response.json();
+        const data = await this.parseResponse(response);
         if (!response.ok || !data.accessToken) {
           this.authMessage = JSON.stringify(data, null, 2);
           return;
@@ -161,6 +193,7 @@ if (!window.Vue) {
         this.authMessage = "";
         this.setMessage("Signed in.");
         this.searchLogs();
+        this.loadAuditLogs();
         this.loadOperators();
         this.loadResponseCodes();
         this.loadLogLevelRules();
@@ -201,8 +234,17 @@ if (!window.Vue) {
         if (!logIdx) return;
         this.logDetail = await this.getJson(`/adm/api/logs/${logIdx}`);
       },
+      async loadAuditLogs() {
+        const params = this.buildParams(this.auditSearch);
+        const data = await this.getJson(`/adm/api/audit-logs?${params.toString()}`);
+        this.auditLogs = data.items || [];
+        this.auditResult = data;
+        this.setMessage(`Loaded ${this.auditLogs.length} audit logs.`);
+      },
       async refreshCache(target) {
-        this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?target=${target}`, "POST");
+        if (!this.requireReason(this.cacheReason)) return;
+        const params = this.buildParams({ target, reason: this.cacheReason, requestUser: "admin-ui" });
+        this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?${params.toString()}`, "POST");
         this.setMessage(`${target} cache refresh requested.`);
       },
       async loadResponseCodes() {
@@ -228,22 +270,29 @@ if (!window.Vue) {
         if (!/^M[A-Z]{3}[0-9]{6}$/.test(this.responseCodeForm.messageCode || "")) {
           return "Message Code must match MCMN000001 format.";
         }
+        if (!this.requireReason(this.responseCodeReason)) {
+          return "Audit reason is required.";
+        }
         return "";
       },
       async createResponseCode() {
         const error = this.validateResponseCodeForm();
         if (error) return this.setMessage(error);
-        this.responseCodeResult = await this.sendJson("/adm/api/response-codes", "POST", this.responseCodeForm);
+        const params = this.buildParams({ reason: this.responseCodeReason });
+        this.responseCodeResult = await this.sendJson(`/adm/api/response-codes?${params.toString()}`, "POST", this.responseCodeForm);
         this.setMessage("Response code created.");
       },
       async updateResponseCode() {
         const error = this.validateResponseCodeForm();
         if (error) return this.setMessage(error);
-        this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}`, "PUT", this.responseCodeForm);
+        const params = this.buildParams({ reason: this.responseCodeReason });
+        this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}?${params.toString()}`, "PUT", this.responseCodeForm);
         this.setMessage("Response code updated.");
       },
       async deleteResponseCode() {
-        this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}`, "DELETE");
+        if (!this.requireReason(this.responseCodeReason)) return;
+        const params = this.buildParams({ reason: this.responseCodeReason, requestUser: "admin-ui" });
+        this.responseCodeResult = await this.sendJson(`/adm/api/response-codes/${this.responseCodeForm.responseCode}?${params.toString()}`, "DELETE");
         this.setMessage("Response code delete requested.");
       },
       async loadLogLevelRules() {
@@ -258,9 +307,17 @@ if (!window.Vue) {
           this.setMessage("TTL must be greater than zero.");
           return;
         }
+        if (!this.requireReason(this.logLevelForm.reason)) return;
         const params = this.buildParams(this.logLevelForm);
         this.logLevelResult = await this.sendJson(`/adm/api/log-level/rules?${params.toString()}`, "PUT");
         this.setMessage("Dynamic log rule registered.");
+      },
+      async removeLogLevelRule(ruleId) {
+        if (!ruleId || !this.requireReason(this.logLevelForm.reason)) return;
+        const params = this.buildParams({ reason: this.logLevelForm.reason, requestUser: "admin-ui" });
+        this.logLevelResult = await this.sendJson(`/adm/api/log-level/rules/${ruleId}?${params.toString()}`, "DELETE");
+        this.setMessage("Dynamic log rule removed.");
+        this.loadLogLevelRules();
       },
       async loadOperators() {
         this.operatorResult = await this.getJson("/adm/api/operators");
@@ -274,12 +331,14 @@ if (!window.Vue) {
           this.setMessage("Initial password must be at least 10 characters.");
           return;
         }
+        if (!this.requireReason(this.operatorForm.reason)) return;
         this.operatorResult = await this.sendJson("/adm/api/operators", "POST", {
           operatorId: this.operatorForm.operatorId,
           operatorName: this.operatorForm.operatorName,
           password: this.operatorForm.password,
           roleIds: ["ADM_VIEWER"],
-          requestUser: "admin-ui"
+          requestUser: "admin-ui",
+          reason: this.operatorForm.reason
         });
         this.setMessage("Operator create requested.");
       }

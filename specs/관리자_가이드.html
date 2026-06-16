@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CPF 관리자 가이드</title>
   <style>
-    body{margin:0;background:#f6f8fb;color:#172033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.68}
-    .wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;width:min(1280px,calc(100% - 36px));margin:0 auto;padding:28px 0 56px}
-    nav,main{background:#fff;border:1px solid #d9e0ea;border-radius:8px}nav{position:sticky;top:18px;align-self:start;padding:18px}
-    nav a{display:block;padding:5px 0;color:#2457c5;text-decoration:none;font-size:14px}main{padding:32px}
-    h1{margin:0 0 10px;font-size:30px}h2{margin:34px 0 12px;padding-top:22px;border-top:1px solid #d9e0ea;font-size:22px}
-    table{width:100%;border-collapse:collapse;margin:10px 0 18px}th,td{border:1px solid #d9e0ea;padding:9px 11px;text-align:left;vertical-align:top}th{background:#eef3f9}
-    code{background:#eef3f9;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace}pre{overflow:auto;background:#172033;color:#f7fbff;padding:14px;border-radius:8px}
-    .note{border-left:4px solid #2457c5;background:#f0f5ff;padding:12px 14px;margin:14px 0}.warn{border-left:4px solid #a65312;background:#fff7ed;padding:12px 14px;margin:14px 0}
+    body{margin:0;background:#f6f8fb;color:#172033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.68}.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;width:min(1280px,calc(100% - 36px));margin:0 auto;padding:28px 0 56px}
+    nav,main{background:#fff;border:1px solid #d9e0ea;border-radius:8px}nav{position:sticky;top:18px;align-self:start;padding:18px}nav a{display:block;padding:5px 0;color:#2457c5;text-decoration:none;font-size:14px}main{padding:32px}
+    h1{margin:0 0 10px;font-size:30px}h2{margin:34px 0 12px;padding-top:22px;border-top:1px solid #d9e0ea;font-size:22px}table{width:100%;border-collapse:collapse;margin:10px 0 18px}th,td{border:1px solid #d9e0ea;padding:9px 11px;text-align:left;vertical-align:top}th{background:#eef3f9}
+    code{background:#eef3f9;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace}pre{overflow:auto;background:#172033;color:#f7fbff;padding:14px;border-radius:8px}.note{border-left:4px solid #2457c5;background:#f0f5ff;padding:12px 14px;margin:14px 0}.warn{border-left:4px solid #a65312;background:#fff7ed;padding:12px 14px;margin:14px 0}
     @media(max-width:900px){.wrap{grid-template-columns:1fr;width:min(100% - 24px,1280px)}nav{position:static}main{padding:20px}}
   </style>
 </head>
@@ -20,15 +16,7 @@
 <div class="wrap">
   <nav>
     <strong>목차</strong>
-    <a href="./index.html">문서 홈</a>
-    <a href="#overview">1. ADM 개요</a>
-    <a href="#login">2. 로그인/세션</a>
-    <a href="#ui">3. 화면 기능</a>
-    <a href="#authz">4. 권한</a>
-    <a href="#audit">5. 감사 로그</a>
-    <a href="#dynamic">6. 동적 로그레벨</a>
-    <a href="#tables">7. 테이블</a>
-    <a href="#config">8. 설정</a>
+    <a href="./index.html">문서 홈</a><a href="#overview">1. ADM 개요</a><a href="#login">2. 로그인/세션</a><a href="#ui">3. 화면 기능</a><a href="#api">4. API</a><a href="#authz">5. 권한</a><a href="#audit">6. 감사 로그</a><a href="#dynamic">7. 동적 로그레벨</a><a href="#tables">8. 테이블</a><a href="#config">9. 설정</a><a href="#ops">10. 운영 체크리스트</a>
   </nav>
   <main>
     <h1>CPF 관리자 가이드</h1>
@@ -38,9 +26,9 @@
     <table>
       <tr><th>항목</th><th>내용</th></tr>
       <tr><td>정적 화면</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm.js</code>, <code>adm.css</code></td></tr>
-      <tr><td>인증 필터</td><td><code>AdmApiAuthFilter</code></td></tr>
-      <tr><td>운영자 서비스</td><td><code>AdmOperatorService</code>: DB-first, DB 미가용 시 교육용 fallback</td></tr>
-      <tr><td>세션 서비스</td><td><code>AdmSessionService</code>: <code>operator_session</code> token hash 저장</td></tr>
+      <tr><td>인증 필터</td><td><code>AdmApiAuthFilter</code>. <code>/adm/api/auth/login</code>을 제외한 <code>/adm/api/**</code> 요청을 검사합니다.</td></tr>
+      <tr><td>운영자 서비스</td><td><code>AdmOperatorService</code>. DB-first, DB 미가용 시 교육용 fallback</td></tr>
+      <tr><td>세션 서비스</td><td><code>AdmSessionService</code>. <code>operator_session</code> token hash 저장</td></tr>
     </table>
 
     <h2 id="login">2. 로그인/세션</h2>
@@ -49,20 +37,34 @@
   "operatorId": "admin",
   "password": "Adm!n12345"
 }</code></pre>
-    <p>응답의 <code>accessToken</code>은 화면에서 <code>Authorization: Bearer {token}</code>으로 사용합니다. 세션은 <code>operator_session</code>에 token hash로 저장되며 로그아웃 시 폐기됩니다.</p>
+    <p>응답의 <code>accessToken</code>은 화면에서 <code>Authorization: Bearer {token}</code>으로 사용합니다. 세션은 <code>operator_session</code>에 token hash로 저장되고, 로그아웃 시 폐기합니다.</p>
+    <div class="warn">seed 계정 <code>admin / Adm!n12345</code>은 local/test 전용입니다. 운영 환경에서는 초기 비밀번호 변경, 계정 잠금 정책, secret 외부화를 필수로 적용합니다.</div>
 
     <h2 id="ui">3. 화면 기능</h2>
     <table>
       <tr><th>메뉴</th><th>주요 기능</th><th>API</th></tr>
       <tr><td>Logs</td><td>거래 로그 검색, 정렬, 페이지, 상세 JSON 확인</td><td><code>GET /adm/api/logs</code></td></tr>
-      <tr><td>Cache</td><td>CODE/MESSAGE/RESPONSE_CODE/CONFIG/ALL 캐시 refresh</td><td><code>POST /adm/api/cache/refresh</code></td></tr>
+      <tr><td>Audit</td><td>운영 조작 감사 로그 검색</td><td><code>GET /adm/api/audit-logs</code></td></tr>
+      <tr><td>Cache</td><td>CODE/MESSAGE/RESPONSE_CODE/CONFIG/ALL 캐시 refresh. 변경 시 사유 필수</td><td><code>GET /adm/api/cache/summary</code>, <code>POST /adm/api/cache/refresh</code></td></tr>
       <tr><td>Response Codes</td><td>응답코드 조회/등록/수정/삭제, 입력 포맷 검증</td><td><code>/adm/api/response-codes</code></td></tr>
-      <tr><td>Dynamic Log</td><td>거래별 DEBUG/TRACE 임시 룰 등록/조회</td><td><code>/adm/api/log-level/rules</code></td></tr>
-      <tr><td>Operators</td><td>운영자 조회/등록</td><td><code>/adm/api/operators</code></td></tr>
+      <tr><td>Dynamic Log</td><td>거래별 DEBUG/TRACE 임시 룰 등록/조회/삭제</td><td><code>/adm/api/log-level/rules</code></td></tr>
+      <tr><td>Operators</td><td>운영자 조회/등록, 비밀번호 변경, 역할/메뉴 조회</td><td><code>/adm/api/operators</code></td></tr>
     </table>
 
-    <h2 id="authz">4. 권한</h2>
-    <p>권한은 <code>operator_role_menu</code>를 기준으로 서버에서 메뉴 목록을 내려주고, UI는 이 목록으로 표시 메뉴를 필터링합니다.</p>
+    <h2 id="api">4. API</h2>
+    <table>
+      <tr><th>영역</th><th>Endpoint</th><th>거래ID</th></tr>
+      <tr><td>인증</td><td><code>POST /adm/api/auth/login</code>, <code>GET /adm/api/auth/me</code>, <code>POST /adm/api/auth/logout</code></td><td><code>ADM06OPR0040</code>, <code>ADM01OPR0041</code>, <code>ADM06OPR0042</code></td></tr>
+      <tr><td>로그</td><td><code>GET /adm/api/logs</code>, <code>GET /adm/api/logs/{logIdx}</code></td><td><code>ADM01OPR0001</code>, <code>ADM01OPR0002</code></td></tr>
+      <tr><td>감사</td><td><code>GET /adm/api/audit-logs</code></td><td><code>ADM01OPR0050</code></td></tr>
+      <tr><td>캐시</td><td><code>GET /adm/api/cache/summary</code>, <code>POST /adm/api/cache/refresh?target=ALL</code></td><td><code>ADM01OPR0010</code>, <code>ADM05OPR0011</code></td></tr>
+      <tr><td>동적 로그</td><td><code>GET /adm/api/log-level/rules</code>, <code>PUT /adm/api/log-level/rules</code>, <code>DELETE /adm/api/log-level/rules/{ruleId}</code></td><td><code>ADM01OPR0020</code>, <code>ADM05OPR0021</code>, <code>ADM04OPR0022</code></td></tr>
+      <tr><td>운영자</td><td><code>GET /adm/api/operators</code>, <code>POST /adm/api/operators</code>, <code>POST /adm/api/operators/{operatorId}/password</code>, <code>GET /adm/api/operators/roles</code>, <code>GET /adm/api/operators/menus</code></td><td><code>ADM01OPR0030</code>, <code>ADM02OPR0031</code>, <code>ADM03OPR0032</code>, <code>ADM01OPR0034</code>, <code>ADM01OPR0035</code></td></tr>
+      <tr><td>응답코드</td><td><code>GET/POST /adm/api/response-codes</code>, <code>GET/PUT/DELETE /adm/api/response-codes/{responseCode}</code></td><td><code>ADM01OPR0040</code> ~ <code>ADM04OPR0044</code></td></tr>
+    </table>
+
+    <h2 id="authz">5. 권한</h2>
+    <p>권한은 <code>operator_role_menu</code>를 기준으로 서버에서 메뉴 목록과 <code>READ_YN</code>, <code>WRITE_YN</code>, <code>DELETE_YN</code>을 내려줍니다. UI는 메뉴와 버튼을 필터링하고, <code>AdmApiAuthFilter</code>는 동일 권한으로 API write/delete 요청을 다시 검사합니다.</p>
     <table>
       <tr><th>역할</th><th>기본 정책</th></tr>
       <tr><td><code>ADM_ADMIN</code></td><td>전체 메뉴/작업 가능</td></tr>
@@ -70,22 +72,24 @@
       <tr><td><code>ADM_VIEWER</code></td><td>조회 중심 권한</td></tr>
     </table>
 
-    <h2 id="audit">5. 감사 로그</h2>
-    <p>주요 운영 조작은 <code>operator_audit_log</code>에 저장합니다.</p>
+    <h2 id="audit">6. 감사 로그</h2>
+    <p>주요 운영 조작은 사유를 필수로 받아 <code>operator_audit_log</code>에 저장합니다. 화면의 Audit 메뉴와 <code>GET /adm/api/audit-logs</code> API에서 운영자, action type, target 기준으로 조회합니다.</p>
     <table>
       <tr><th>행위</th><th>Action Type</th></tr>
       <tr><td>운영자 생성</td><td><code>OPERATOR_CREATE</code></td></tr>
       <tr><td>운영자 비밀번호 변경</td><td><code>OPERATOR_PASSWORD_CHANGE</code></td></tr>
       <tr><td>동적 로그 룰 등록</td><td><code>DYNAMIC_LOG_REGISTER</code></td></tr>
       <tr><td>동적 로그 룰 삭제</td><td><code>DYNAMIC_LOG_REMOVE</code></td></tr>
+      <tr><td>캐시 refresh</td><td><code>CACHE_REFRESH</code></td></tr>
+      <tr><td>응답코드 등록/수정/삭제</td><td><code>RESPONSE_CODE_CREATE</code>, <code>RESPONSE_CODE_UPDATE</code>, <code>RESPONSE_CODE_DELETE</code></td></tr>
     </table>
 
-    <h2 id="dynamic">6. 동적 로그레벨</h2>
-    <p>ADM에서 등록한 룰은 즉시 현재 WAS 메모리에 반영되고 <code>dynamic_log_level_rule</code>에도 저장됩니다. 각 WAS는 <code>cpf.adm.dynamic-log.sync-millis</code> 주기로 DB 활성 룰을 재동기화할 수 있습니다.</p>
+    <h2 id="dynamic">7. 동적 로그레벨</h2>
+    <p>ADM에서 등록한 룰은 즉시 현재 WAS 메모리에 반영하고 <code>dynamic_log_level_rule</code>에도 저장합니다. 각 WAS는 <code>cpf.adm.dynamic-log.sync-millis</code> 주기로 DB 활성 룰을 재동기화합니다.</p>
     <pre><code>PUT /adm/api/log-level/rules?businessTransactionId=XYZ01EDU0001&amp;logLevel=DEBUG&amp;ttlSeconds=600&amp;reason=diagnostics</code></pre>
-    <div class="note">등록/삭제 시 <code>cache_refresh_event</code>에 <code>dynamicLogLevelRule</code> 이벤트도 발행합니다. Redis/Kafka Pub/Sub으로 교체하면 실시간 다중 WAS 전파 구조로 확장할 수 있습니다.</div>
+    <div class="note">등록/삭제 시 <code>cache_refresh_event</code>에 <code>dynamicLogLevelRule</code> 이벤트를 남기고, CMN 메시징 destination <code>cpf.adm.dynamic-log-level</code>에도 이벤트를 발행합니다. 로컬은 IN_MEMORY, 운영은 Kafka/RabbitMQ 브로커 설정으로 다중 WAS 전파를 구성합니다. Redis Pub/Sub이 필요하면 같은 broadcaster 인터페이스에 Redis adapter를 추가합니다.</div>
 
-    <h2 id="tables">7. 테이블</h2>
+    <h2 id="tables">8. 테이블</h2>
     <table>
       <tr><th>테이블</th><th>용도</th></tr>
       <tr><td><code>operator_user</code></td><td>운영자 계정, PBKDF2 password hash, lock/fail count</td></tr>
@@ -98,15 +102,25 @@
       <tr><td><code>dynamic_log_level_rule</code></td><td>동적 로그레벨 룰</td></tr>
     </table>
 
-    <h2 id="config">8. 설정</h2>
+    <h2 id="config">9. 설정</h2>
     <table>
       <tr><th>Property</th><th>설명</th></tr>
       <tr><td><code>cpf.adm.security.enabled</code></td><td>ADM API 인증 필터 사용 여부</td></tr>
       <tr><td><code>cpf.adm.security.session-ttl-seconds</code></td><td>ADM 세션 TTL</td></tr>
       <tr><td><code>cpf.adm.password-policy.*</code></td><td>비밀번호 길이/복잡도/만료/실패 횟수 정책</td></tr>
       <tr><td><code>cpf.adm.dynamic-log.sync-millis</code></td><td>DB 동적 로그 룰 재동기화 주기</td></tr>
+      <tr><td><code>spring.datasource.adm.*</code></td><td>ADM DB 연결 정보</td></tr>
     </table>
-    <div class="warn">운영에서는 DB 비밀번호, JWT signing key, 암호화 secret을 파일에 두지 말고 Vault/KMS 또는 배포 환경변수로 관리합니다.</div>
+
+    <h2 id="ops">10. 운영 체크리스트</h2>
+    <table>
+      <tr><th>영역</th><th>확인</th></tr>
+      <tr><td>계정</td><td>seed 계정 삭제/비밀번호 변경, 실패 횟수 잠금, 관리자 계정 분리</td></tr>
+      <tr><td>세션</td><td>토큰 TTL, 로그아웃 폐기, 만료 세션 정리</td></tr>
+      <tr><td>감사</td><td>운영자 ID, action type, 대상, 사유, IP 저장 여부</td></tr>
+      <tr><td>권한</td><td>메뉴 노출뿐 아니라 API write/delete 권한 서버 검증</td></tr>
+      <tr><td>보안</td><td>DB 비밀번호, JWT secret/signing key, 암호화 secret 외부화</td></tr>
+    </table>
   </main>
 </div>
 </body>

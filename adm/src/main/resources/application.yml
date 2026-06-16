@@ -10,8 +10,8 @@ spring:
     adm:
       driver-class-name: ${ADM_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}
-      username: ${ADM_DB_USERNAME:root}
-      password: ${ADM_DB_PASSWORD:}
+      username: ${ADM_DB_USERNAME:cpf_adm}
+      password: ${ADM_DB_PASSWORD:cpf_local_pw}
 
 server:
   port: ${ADM_SERVER_PORT:8090}

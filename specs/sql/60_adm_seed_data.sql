@@ -20,8 +20,10 @@ VALUES
     ('DASHBOARD', NULL, 'Dashboard', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, 'Transaction Logs', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE', NULL, 'Cache Management', '/adm#cache', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('DYNAMIC_LOG', NULL, 'Dynamic Log Level', '/adm#log-level', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR', NULL, 'Operator Management', '/adm#operators', 50, 'Y', 'SYSTEM', 'SYSTEM')
+    ('RESPONSE_CODE', NULL, 'Response Codes', '/adm#response-codes', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DYNAMIC_LOG', NULL, 'Dynamic Log Level', '/adm#log-level', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT_LOG', NULL, 'Audit Logs', '/adm#audit-logs', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR', NULL, 'Operator Management', '/adm#operators', 70, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     PARENT_MENU_ID = VALUES(PARENT_MENU_ID),
     MENU_NAME = VALUES(MENU_NAME),
@@ -86,7 +88,7 @@ SELECT 'ADM_OPERATOR', MENU_ID, 'Y',
        CASE WHEN MENU_ID = 'DYNAMIC_LOG' THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM operator_menu
-WHERE MENU_ID <> 'OPERATOR'
+WHERE MENU_ID NOT IN ('OPERATOR', 'RESPONSE_CODE')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -97,7 +99,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO operator_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM operator_menu
-WHERE MENU_ID NOT IN ('DYNAMIC_LOG', 'OPERATOR')
+WHERE MENU_ID NOT IN ('DYNAMIC_LOG', 'OPERATOR', 'RESPONSE_CODE', 'AUDIT_LOG')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -132,4 +134,3 @@ INSERT INTO operator_audit_log (
     'SYSTEM',
     'SYSTEM'
 );
-

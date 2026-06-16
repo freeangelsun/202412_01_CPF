@@ -1,29 +1,6 @@
--- Local and integration test data for ACC, MBR, CMN, PFW, and ADM screens.
+-- Local and integration test data for ACC, MBR, PFW, and ADM screens.
 
-USE cmnDB;
-
-INSERT INTO cmn_member (id, name, description, created_by, updated_by)
-VALUES
-    (1, 'cmn 1', 'CMN sample member 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'cmn 2', 'CMN sample member 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'cmn 3', 'CMN sample member 3', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    name = VALUES(name),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO member (id, name, description, created_by, updated_by)
-VALUES
-    (1, 'mbr 1', 'MBR CRUD sample member 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'mbr 2', 'MBR CRUD sample member 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'mbr 3', 'MBR CRUD sample member 3', 'SYSTEM', 'SYSTEM'),
-    (100, 'search target', 'MBR name search test row', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    name = VALUES(name),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+USE pfwDB;
 
 INSERT INTO file_exchange_log (
     EXCHANGE_ID,
@@ -67,13 +44,16 @@ ON DUPLICATE KEY UPDATE
 
 USE accDB;
 
-INSERT INTO acc_member (id, name, description, created_by, updated_by)
+INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)
 VALUES
-    (1, 'acc 1', 'ACC sample member 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'acc 2', 'ACC sample member 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'acc 3', 'ACC sample member 3', 'SYSTEM', 'SYSTEM')
+    (1, '100-000-000001', 'ACC sample account 1', 'ACTIVE', 100000.00, 'ACC account sample 1', 'SYSTEM', 'SYSTEM'),
+    (2, '100-000-000002', 'ACC sample account 2', 'ACTIVE', 250000.00, 'ACC account sample 2', 'SYSTEM', 'SYSTEM'),
+    (3, '100-000-000003', 'ACC dormant account', 'DORMANT', 0.00, 'ACC dormant account sample', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
-    name = VALUES(name),
+    account_no = VALUES(account_no),
+    account_name = VALUES(account_name),
+    account_status = VALUES(account_status),
+    balance = VALUES(balance),
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;

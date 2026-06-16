@@ -1,9 +1,12 @@
 package cpf.adm.opr.controller;
 
 import cpf.adm.opr.service.AdmCacheOperationService;
+import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +23,11 @@ import java.util.Map;
 @Tag(name = "ADM-OPR Cache", description = "CMN cache summary and refresh APIs")
 public class AdmCacheController {
     private final AdmCacheOperationService cacheOperationService;
+    private final AdmAuditLogService auditLogService;
 
-    public AdmCacheController(AdmCacheOperationService cacheOperationService) {
+    public AdmCacheController(AdmCacheOperationService cacheOperationService, AdmAuditLogService auditLogService) {
         this.cacheOperationService = cacheOperationService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/summary")
@@ -35,8 +40,22 @@ public class AdmCacheController {
     @PostMapping("/refresh")
     @FpsTransaction(id = "ADM05OPR0011", name = "ADMCacheRefresh")
     @Operation(summary = "Refresh cache", description = "Refreshes CODE, MESSAGE, RESPONSE_CODE, CONFIG, or ALL cache targets.")
-    public ResponseEntity<Map<String, Object>> refresh(@RequestParam(defaultValue = "ALL") String target) {
-        return safeResponse(() -> cacheOperationService.refresh(target));
+    public ResponseEntity<Map<String, Object>> refresh(
+            @RequestParam(defaultValue = "ALL") String target,
+            @RequestParam String reason,
+            @RequestParam(defaultValue = "ADM") String requestUser,
+            HttpServletRequest servletRequest) {
+        String auditReason = auditLogService.requireReason(reason);
+        ResponseEntity<Map<String, Object>> response = safeResponse(() -> cacheOperationService.refresh(target));
+        auditLogService.record(
+                TransactionContext.getOrCreateTransactionId(),
+                requestUser(servletRequest, requestUser),
+                "CACHE_REFRESH",
+                "cache",
+                target,
+                auditReason,
+                servletRequest.getRemoteAddr());
+        return response;
     }
 
     private ResponseEntity<Map<String, Object>> safeResponse(CacheAction action) {
@@ -56,5 +75,13 @@ public class AdmCacheController {
     @FunctionalInterface
     private interface CacheAction {
         Map<String, Object> run();
+    }
+
+    private String requestUser(HttpServletRequest request, String fallback) {
+        Object operatorId = request.getAttribute("adm.operatorId");
+        if (operatorId instanceof String value && !value.isBlank()) {
+            return value;
+        }
+        return fallback;
     }
 }

@@ -15,9 +15,9 @@ spring:
         logger: SLF4J
     acc:
       #     jndi-name: java:comp/env/jdbc/accDS
-      url: jdbc:mariadb://localhost:3306/accDB
-      username: root
-      password: test
+      url: ${ACC_DB_URL:jdbc:mariadb://localhost:3306/accDB}
+      username: ${ACC_DB_USERNAME:cpf_acc}
+      password: ${ACC_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:

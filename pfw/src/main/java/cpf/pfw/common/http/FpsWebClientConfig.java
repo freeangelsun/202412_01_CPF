@@ -17,8 +17,9 @@ import java.time.Duration;
 import java.util.Map;
 
 /**
- * 二쇱젣?곸뿭 媛??몄텧???ъ슜?섎뒗 WebClient 怨듯넻 ?ㅼ젙?낅땲??
- * 怨듯넻 嫄곕옒 ?ㅻ뜑瑜??먮룞?쇰줈 ?꾪뙆?섏뿬 ACC -> MBR -> 湲고? ?쒕퉬???먮쫫??媛숈? 嫄곕옒ID濡?異붿쟻?⑸땲??
+ * WebClient configuration for calls between CPF services.
+ *
+ * <p>It propagates transaction and workflow headers across service boundaries.</p>
  */
 @Configuration
 @EnableConfigurationProperties({
@@ -55,8 +56,7 @@ public class FpsWebClientConfig {
     }
 
     /**
-     * ?꾩옱 ?붿껌??嫄곕옒 ?ㅻ뜑瑜??섏쐞 ?쒕퉬???몄텧???먮룞?쇰줈 蹂듭궗?⑸땲??
-     * ?대? ?몄텧 肄붾뱶?먯꽌 紐낆떆???ㅻ뜑媛 ?덉쑝硫?洹?媛믪쓣 ?곗꽑?⑸땲??
+     * Propagates transaction and workflow context headers to downstream services.
      */
     private ExchangeFilterFunction transactionHeaderPropagationFilter() {
         return (request, next) -> {
@@ -81,4 +81,3 @@ public class FpsWebClientConfig {
         return value != null && !value.isBlank();
     }
 }
-

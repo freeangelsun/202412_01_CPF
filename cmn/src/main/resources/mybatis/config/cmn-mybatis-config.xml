@@ -4,15 +4,7 @@
 
 <configuration>
     <settings>
-        <!-- mapUnderscoreToCamelCase: ?ㅻ꽕?댄겕 耳?댁뒪(created_at)瑜?移대찞 耳?댁뒪(createdAt)濡??먮룞 蹂?섑빀?덈떎. -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
-        <!-- 荑쇰━ 濡쒓렇瑜??쒖? 異쒕젰?쇰줈 ?ㅼ젙?⑸땲?? -->
-        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <setting name="logImpl" value="SLF4J"/>
     </settings>
-
-    <typeAliases>
-        <!-- CMN ?섑뵆 ?꾨찓???뷀떚?곗뿉 ???蹂꾩묶???먮룞?쇰줈 ?앹꽦?⑸땲?? -->
-        <package name="cpf.cmn.smp.entity"/>
-    </typeAliases>
 </configuration>
-

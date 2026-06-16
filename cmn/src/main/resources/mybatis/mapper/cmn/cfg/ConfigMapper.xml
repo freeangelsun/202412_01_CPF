@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.cmn.cfg.mapper.ConfigMapper">
+<mapper namespace="cpf.cmn.cfg.mapper.ConfigMapper">
 
-    <!-- 모든 공통 설정값을 조회합니다. -->
+    <!-- 紐⑤뱺 怨듯넻 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
     <select id="findAllConfigs" resultType="map">
         SELECT
             config_id,
@@ -22,7 +22,7 @@
         ORDER BY config_key
     </select>
 
-    <!-- 설정 키로 설정값을 조회합니다. -->
+    <!-- ?ㅼ젙 ?ㅻ줈 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
     <select id="findConfigByKey" resultType="map" parameterType="string">
         SELECT
             config_id,
@@ -40,7 +40,7 @@
         WHERE config_key = #{configKey}
     </select>
 
-    <!-- 설정 ID로 설정값을 조회합니다. -->
+    <!-- ?ㅼ젙 ID濡??ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
     <select id="findConfigById" resultType="map" parameterType="long">
         SELECT
             config_id,
@@ -58,8 +58,8 @@
         WHERE config_id = #{configId}
     </select>
 
-    <!-- 공통 설정값을 등록합니다. 등록 직후 서비스에서 캐시를 리프레시합니다. -->
-    <insert id="insertConfig" parameterType="fps.cmn.cfg.dto.CommonConfigRequest"
+    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ?깅줉?⑸땲?? ?깅줉 吏곹썑 ?쒕퉬?ㅼ뿉??罹먯떆瑜?由ы봽?덉떆?⑸땲?? -->
+    <insert id="insertConfig" parameterType="cpf.cmn.cfg.dto.CommonConfigRequest"
             useGeneratedKeys="true"
             keyProperty="configId"
             keyColumn="config_id">
@@ -88,7 +88,7 @@
         )
     </insert>
 
-    <!-- 공통 설정값을 수정합니다. -->
+    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ?섏젙?⑸땲?? -->
     <update id="updateConfig">
         UPDATE config_table
         SET
@@ -103,9 +103,10 @@
         WHERE config_id = #{configId}
     </update>
 
-    <!-- 공통 설정값을 삭제합니다. 실제 운영에서는 필요 시 use_yn=N 방식의 논리 삭제로 바꿀 수 있습니다. -->
+    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ??젣?⑸땲?? ?ㅼ젣 ?댁쁺?먯꽌???꾩슂 ??use_yn=N 諛⑹떇???쇰━ ??젣濡?諛붽? ???덉뒿?덈떎. -->
     <delete id="deleteConfig" parameterType="long">
         DELETE FROM config_table
         WHERE config_id = #{configId}
     </delete>
 </mapper>
+

@@ -1,31 +1,50 @@
-# CMN 공통 모듈 환경 설정 파일입니다.
-# Spring Boot 3.0 및 Java 21 기반 공통 데이터 소스 및 MyBatis 설정을 정의합니다.
+# CMN common configuration.
 
 spring:
   application:
     name: cmn
   cache:
     type: caffeine
-
   datasource:
     cmn:
-      #      jndi-name: java:comp/env/jdbc/cmnDS
-      url: jdbc:mariadb://localhost:3306/cmnDB
-      username: root
-      password: test
+      url: ${CMN_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
+      username: ${CMN_DB_USERNAME:root}
+      password: ${CMN_DB_PASSWORD:test}
       driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
-  type-aliases-package: fps.cmn.smp.entity
+  type-aliases-package: cpf.cmn.smp.entity
 
-fps:
+cpf:
   cmn:
     cache:
-      preload-enabled: ${FPS_CMN_CACHE_PRELOAD_ENABLED:true}
-      event-poll-enabled: ${FPS_CMN_CACHE_EVENT_POLL_ENABLED:true}
-      refresh-poll-millis: ${FPS_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
-      refresh-initial-delay-millis: ${FPS_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}
-      periodic-refresh-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}
-      periodic-refresh-initial-delay-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}
+      preload-enabled: ${CPF_CMN_CACHE_PRELOAD_ENABLED:${FPS_CMN_CACHE_PRELOAD_ENABLED:true}}
+      fail-fast-on-startup: ${CPF_CMN_CACHE_FAIL_FAST_ON_STARTUP:${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}}
+      event-poll-enabled: ${CPF_CMN_CACHE_EVENT_POLL_ENABLED:${FPS_CMN_CACHE_EVENT_POLL_ENABLED:true}}
+      refresh-poll-millis: ${CPF_CMN_CACHE_REFRESH_POLL_MILLIS:${FPS_CMN_CACHE_REFRESH_POLL_MILLIS:5000}}
+      refresh-initial-delay-millis: ${CPF_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:${FPS_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}}
+      periodic-refresh-millis: ${CPF_CMN_CACHE_PERIODIC_REFRESH_MILLIS:${FPS_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}}
+      periodic-refresh-initial-delay-millis: ${CPF_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:${FPS_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}}
+    messaging:
+      enabled: ${CPF_CMN_MESSAGING_ENABLED:${FPS_CMN_MESSAGING_ENABLED:true}}
+      broker: ${CPF_CMN_MESSAGING_BROKER:${FPS_CMN_MESSAGING_BROKER:IN_MEMORY}}
+      default-destination: ${CPF_CMN_MESSAGING_DEFAULT_DESTINATION:${FPS_CMN_MESSAGING_DEFAULT_DESTINATION:cpf.default.event}}
+      recent-message-limit: ${CPF_CMN_MESSAGING_RECENT_LIMIT:${FPS_CMN_MESSAGING_RECENT_LIMIT:200}}
+      rabbit:
+        exchange: ${CPF_CMN_RABBIT_EXCHANGE:${FPS_CMN_RABBIT_EXCHANGE:cpf.exchange}}
+        routing-key: ${CPF_CMN_RABBIT_ROUTING_KEY:${FPS_CMN_RABBIT_ROUTING_KEY:cpf.default.event}}
+    file-exchange:
+      base-dir: ${CPF_CMN_FILE_BASE_DIR:${FPS_CMN_FILE_BASE_DIR:${java.io.tmpdir}/cpf-cmn-file-exchange}}
+      ssh-enabled: ${CPF_CMN_FILE_SSH_ENABLED:${FPS_CMN_FILE_SSH_ENABLED:false}}
+      dry-run: ${CPF_CMN_FILE_DRY_RUN:${FPS_CMN_FILE_DRY_RUN:true}}
+      timeout-seconds: ${CPF_CMN_FILE_TIMEOUT_SECONDS:${FPS_CMN_FILE_TIMEOUT_SECONDS:15}}
+      allowed-hosts: ${CPF_CMN_FILE_ALLOWED_HOSTS:${FPS_CMN_FILE_ALLOWED_HOSTS:}}
+    security:
+      jwt:
+        issuer: ${CPF_CMN_SECURITY_JWT_ISSUER:${FPS_CMN_SECURITY_JWT_ISSUER:CPF}}
+        audience: ${CPF_CMN_SECURITY_JWT_AUDIENCE:${FPS_CMN_SECURITY_JWT_AUDIENCE:CPF-API}}
+        secret: ${CPF_CMN_SECURITY_JWT_SECRET:${FPS_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}}
+        ttl-seconds: ${CPF_CMN_SECURITY_JWT_TTL_SECONDS:${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}}
+

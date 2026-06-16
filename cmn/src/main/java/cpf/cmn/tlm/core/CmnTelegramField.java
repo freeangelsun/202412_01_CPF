@@ -1,0 +1,62 @@
+package cpf.cmn.tlm.core;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * DTO ?꾨뱶? 怨좎젙湲몄씠 ?꾨Ц 援ш컙??留ㅽ븨?섎뒗 ?대끂?뚯씠?섏엯?덈떎.
+ *
+ * <p>?낅Т DTO?????대끂?뚯씠?섏쓣 遺숈씠硫?CMN ?꾨Ц ?쒕퉬?ㅺ? DTO瑜??쎌뼱
+ * ?꾨Ц 臾몄옄?대줈 留뚮뱾嫄곕굹, ?꾨Ц 臾몄옄?댁쓣 DTO濡?蹂듭썝?????덉뒿?덈떎.</p>
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
+public @interface CmnTelegramField {
+    /**
+     * ?꾨Ц ???꾨뱶 ?쒖꽌?낅땲?? 1遺???쒖옉?섎뒗 媛믪쓣 沅뚯옣?⑸땲??
+     */
+    int order();
+
+    /**
+     * ?꾨뱶 ?쇰━紐낆엯?덈떎. 鍮꾩썙?먮㈃ Java ?꾨뱶紐낆쓣 ?ъ슜?⑸땲??
+     */
+    String name() default "";
+
+    /**
+     * ?꾨Ц?먯꽌 李⑥??섎뒗 怨좎젙 湲몄씠?낅땲??
+     */
+    int length();
+
+    /**
+     * ?먮즺?뺤엯?덈떎. 湲곕낯? 臾몄옄?댁엯?덈떎.
+     */
+    CmnTelegramFieldType type() default CmnTelegramFieldType.STRING;
+
+    /**
+     * ?뺣젹 諛⑹떇?낅땲?? AUTO?대㈃ ?먮즺??湲곗??쇰줈 ?먮룞 寃곗젙?⑸땲??
+     */
+    CmnTelegramAlign align() default CmnTelegramAlign.AUTO;
+
+    /**
+     * ?⑤뵫 臾몄옄?낅땲?? 湲곕낯 '\0'?대㈃ ?먮즺??湲곗? 湲곕낯 ?⑤뵫???ъ슜?⑸땲??
+     */
+    char padding() default '\0';
+
+    /**
+     * 媛믪씠 ?놁쓣 ???ъ슜??湲곕낯 臾몄옄?댁엯?덈떎.
+     */
+    String defaultValue() default "";
+
+    /**
+     * DECIMAL ??낆뿉???뚯닔???놁씠 ?ㅼ뼱??湲덉븸???댁꽍???뚯닔 ?먮━?섏엯?덈떎.
+     */
+    int scale() default 0;
+
+    /**
+     * ?뚯떛 ???욌뮘 ?⑤뵫 臾몄옄瑜??쒓굅?좎? ?щ??낅땲??
+     */
+    boolean trim() default true;
+}
+

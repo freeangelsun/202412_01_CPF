@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPF ADM</title>
+  <link rel="stylesheet" href="/adm/adm.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div>
+      <h1>CPF ADM</h1>
+      <p>Framework Administration</p>
+    </div>
+    <nav v-if="authenticated">
+      <button type="button" v-for="menu in visibleMenus" :key="menu.id" @click="activeMenu = menu.id">{{ menu.label }}</button>
+      <button type="button" @click="logout">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="login-panel" v-if="!authenticated">
+      <div class="panel">
+        <div class="panel-title"><h2>Operator Login</h2></div>
+        <div class="filters login-form">
+          <label>Operator ID <input v-model="loginForm.operatorId" type="text" autocomplete="username"></label>
+          <label>Password <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
+          <button type="button" @click="login">Login</button>
+        </div>
+        <p class="hint">Initial sample account is <strong>admin / Adm!n12345</strong>.</p>
+        <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
+      </div>
+    </section>
+
+    <template v-if="authenticated">
+      <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
+
+      <section class="summary-grid">
+        <div class="metric"><span>Service</span><strong>ADM</strong></div>
+        <div class="metric"><span>Port</span><strong>8090</strong></div>
+        <div class="metric"><span>Common Modules</span><strong>PFW / CMN</strong></div>
+        <div class="metric"><span>Operator</span><strong>{{ currentOperator.operatorId }}</strong></div>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'logs'">
+        <div class="panel-title">
+          <h2>Transaction Logs</h2>
+          <button type="button" @click="searchLogs">Search</button>
+        </div>
+        <div class="filters">
+          <label>Transaction ID <input v-model="logSearch.transactionId" type="text"></label>
+          <label>Business Transaction ID <input v-model="logSearch.businessTransactionId" type="text"></label>
+          <label>Member No <input v-model="logSearch.memberNo" type="text"></label>
+          <label>Customer No <input v-model="logSearch.customerNo" type="text"></label>
+        </div>
+        <div class="pager">
+          <span>{{ sortedLogs.length }} rows</span>
+          <label>Rows
+            <select v-model.number="logPage.size">
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+          </label>
+          <button type="button" @click="moveLogPage(-1)">Prev</button>
+          <span>{{ logPage.page }} / {{ logTotalPages }}</span>
+          <button type="button" @click="moveLogPage(1)">Next</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+            <tr>
+              <th @click="sortLogs('LOG_IDX')">LOG_IDX</th>
+              <th @click="sortLogs('TRANSACTION_ID')">Transaction ID</th>
+              <th @click="sortLogs('BUSINESS_TRANSACTION_ID')">Business ID</th>
+              <th @click="sortLogs('BUSINESS_TRANSACTION_NAME')">Name</th>
+              <th @click="sortLogs('MODULE_ID')">Module</th>
+              <th @click="sortLogs('LOG_TYPE')">Type</th>
+              <th @click="sortLogs('DURATION_MS')">Duration</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in pagedLogs" :key="item.LOG_IDX" @click="loadLogDetail(item.LOG_IDX)">
+              <td>{{ item.LOG_IDX }}</td>
+              <td>{{ item.TRANSACTION_ID }}</td>
+              <td>{{ item.BUSINESS_TRANSACTION_ID }}</td>
+              <td>{{ item.BUSINESS_TRANSACTION_NAME }}</td>
+              <td>{{ item.MODULE_ID }}</td>
+              <td>{{ item.LOG_TYPE }}</td>
+              <td>{{ item.DURATION_MS }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="detail">{{ pretty(logDetail) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'cache'">
+        <div class="panel-title">
+          <h2>Cache Management</h2>
+          <div class="actions">
+            <button type="button" v-for="target in cacheTargets" :key="target" @click="refreshCache(target)">{{ target }}</button>
+          </div>
+        </div>
+        <pre class="detail">{{ pretty(cacheResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'responseCodes'">
+        <div class="panel-title">
+          <h2>Response Codes</h2>
+          <div class="actions">
+            <button type="button" @click="loadResponseCodes">Search</button>
+            <button type="button" @click="createResponseCode">Create</button>
+            <button type="button" @click="updateResponseCode">Update</button>
+            <button type="button" @click="deleteResponseCode">Delete</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Response Code <input v-model="responseCodeForm.responseCode" type="text"></label>
+          <label>Message Code <input v-model="responseCodeForm.messageCode" type="text"></label>
+          <label>Result <select v-model="responseCodeForm.resultType"><option>S</option><option>E</option></select></label>
+          <label>Module <input v-model="responseCodeForm.moduleId" type="text"></label>
+          <label>Group <input v-model="responseCodeForm.responseGroup" type="text"></label>
+          <label>Seq <input v-model="responseCodeForm.sequenceNo" type="text"></label>
+          <label>HTTP <input v-model.number="responseCodeForm.httpStatus" type="number"></label>
+          <label>Description <input v-model="responseCodeForm.description" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'logLevel'">
+        <div class="panel-title">
+          <h2>Dynamic Log Level</h2>
+          <button type="button" @click="loadLogLevelRules">Search</button>
+        </div>
+        <div class="filters">
+          <label>Business Transaction ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="XYZ01EDU0001"></label>
+          <label>Transaction ID <input v-model="logLevelForm.transactionId" type="text"></label>
+          <label>Level <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
+          <label>TTL Seconds <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>
+          <label>Reason <input v-model="logLevelForm.reason" type="text"></label>
+          <button type="button" @click="registerLogLevelRule">Register</button>
+        </div>
+        <pre class="detail">{{ pretty(logLevelResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'operators'">
+        <div class="panel-title">
+          <h2>Operator Management</h2>
+          <button type="button" @click="loadOperators">Search</button>
+        </div>
+        <div class="filters">
+          <label>Operator ID <input v-model="operatorForm.operatorId" type="text"></label>
+          <label>Operator Name <input v-model="operatorForm.operatorName" type="text"></label>
+          <label>Initial Password <input v-model="operatorForm.password" type="password"></label>
+          <button type="button" @click="createOperator">Create</button>
+        </div>
+        <pre class="detail">{{ pretty(operatorResult) }}</pre>
+      </section>
+    </template>
+  </main>
+</div>
+
+<noscript>JavaScript is required for CPF ADM.</noscript>
+<script src="/adm/vendor/vue.global.prod.js"></script>
+<script src="/adm/adm.js"></script>
+</body>
+</html>

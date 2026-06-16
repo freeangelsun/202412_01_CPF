@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPF 관리자 가이드</title>
+  <style>
+    body{margin:0;background:#f6f8fb;color:#172033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.68}
+    .wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;width:min(1280px,calc(100% - 36px));margin:0 auto;padding:28px 0 56px}
+    nav,main{background:#fff;border:1px solid #d9e0ea;border-radius:8px}nav{position:sticky;top:18px;align-self:start;padding:18px}
+    nav a{display:block;padding:5px 0;color:#2457c5;text-decoration:none;font-size:14px}main{padding:32px}
+    h1{margin:0 0 10px;font-size:30px}h2{margin:34px 0 12px;padding-top:22px;border-top:1px solid #d9e0ea;font-size:22px}
+    table{width:100%;border-collapse:collapse;margin:10px 0 18px}th,td{border:1px solid #d9e0ea;padding:9px 11px;text-align:left;vertical-align:top}th{background:#eef3f9}
+    code{background:#eef3f9;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace}pre{overflow:auto;background:#172033;color:#f7fbff;padding:14px;border-radius:8px}
+    .note{border-left:4px solid #2457c5;background:#f0f5ff;padding:12px 14px;margin:14px 0}.warn{border-left:4px solid #a65312;background:#fff7ed;padding:12px 14px;margin:14px 0}
+    @media(max-width:900px){.wrap{grid-template-columns:1fr;width:min(100% - 24px,1280px)}nav{position:static}main{padding:20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <strong>목차</strong>
+    <a href="./index.html">문서 홈</a>
+    <a href="#overview">1. ADM 개요</a>
+    <a href="#login">2. 로그인/세션</a>
+    <a href="#ui">3. 화면 기능</a>
+    <a href="#authz">4. 권한</a>
+    <a href="#audit">5. 감사 로그</a>
+    <a href="#dynamic">6. 동적 로그레벨</a>
+    <a href="#tables">7. 테이블</a>
+    <a href="#config">8. 설정</a>
+  </nav>
+  <main>
+    <h1>CPF 관리자 가이드</h1>
+    <p>ADM은 CPF 운영자용 화면과 API입니다. 기본 URL은 <code>http://localhost:8090/adm</code>, API prefix는 <code>/adm/api/**</code>입니다.</p>
+
+    <h2 id="overview">1. ADM 개요</h2>
+    <table>
+      <tr><th>항목</th><th>내용</th></tr>
+      <tr><td>정적 화면</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm.js</code>, <code>adm.css</code></td></tr>
+      <tr><td>인증 필터</td><td><code>AdmApiAuthFilter</code></td></tr>
+      <tr><td>운영자 서비스</td><td><code>AdmOperatorService</code>: DB-first, DB 미가용 시 교육용 fallback</td></tr>
+      <tr><td>세션 서비스</td><td><code>AdmSessionService</code>: <code>operator_session</code> token hash 저장</td></tr>
+    </table>
+
+    <h2 id="login">2. 로그인/세션</h2>
+    <pre><code>POST /adm/api/auth/login
+{
+  "operatorId": "admin",
+  "password": "Adm!n12345"
+}</code></pre>
+    <p>응답의 <code>accessToken</code>은 화면에서 <code>Authorization: Bearer {token}</code>으로 사용합니다. 세션은 <code>operator_session</code>에 token hash로 저장되며 로그아웃 시 폐기됩니다.</p>
+
+    <h2 id="ui">3. 화면 기능</h2>
+    <table>
+      <tr><th>메뉴</th><th>주요 기능</th><th>API</th></tr>
+      <tr><td>Logs</td><td>거래 로그 검색, 정렬, 페이지, 상세 JSON 확인</td><td><code>GET /adm/api/logs</code></td></tr>
+      <tr><td>Cache</td><td>CODE/MESSAGE/RESPONSE_CODE/CONFIG/ALL 캐시 refresh</td><td><code>POST /adm/api/cache/refresh</code></td></tr>
+      <tr><td>Response Codes</td><td>응답코드 조회/등록/수정/삭제, 입력 포맷 검증</td><td><code>/adm/api/response-codes</code></td></tr>
+      <tr><td>Dynamic Log</td><td>거래별 DEBUG/TRACE 임시 룰 등록/조회</td><td><code>/adm/api/log-level/rules</code></td></tr>
+      <tr><td>Operators</td><td>운영자 조회/등록</td><td><code>/adm/api/operators</code></td></tr>
+    </table>
+
+    <h2 id="authz">4. 권한</h2>
+    <p>권한은 <code>operator_role_menu</code>를 기준으로 서버에서 메뉴 목록을 내려주고, UI는 이 목록으로 표시 메뉴를 필터링합니다.</p>
+    <table>
+      <tr><th>역할</th><th>기본 정책</th></tr>
+      <tr><td><code>ADM_ADMIN</code></td><td>전체 메뉴/작업 가능</td></tr>
+      <tr><td><code>ADM_OPERATOR</code></td><td>운영 작업 가능, 운영자 관리 제한</td></tr>
+      <tr><td><code>ADM_VIEWER</code></td><td>조회 중심 권한</td></tr>
+    </table>
+
+    <h2 id="audit">5. 감사 로그</h2>
+    <p>주요 운영 조작은 <code>operator_audit_log</code>에 저장합니다.</p>
+    <table>
+      <tr><th>행위</th><th>Action Type</th></tr>
+      <tr><td>운영자 생성</td><td><code>OPERATOR_CREATE</code></td></tr>
+      <tr><td>운영자 비밀번호 변경</td><td><code>OPERATOR_PASSWORD_CHANGE</code></td></tr>
+      <tr><td>동적 로그 룰 등록</td><td><code>DYNAMIC_LOG_REGISTER</code></td></tr>
+      <tr><td>동적 로그 룰 삭제</td><td><code>DYNAMIC_LOG_REMOVE</code></td></tr>
+    </table>
+
+    <h2 id="dynamic">6. 동적 로그레벨</h2>
+    <p>ADM에서 등록한 룰은 즉시 현재 WAS 메모리에 반영되고 <code>dynamic_log_level_rule</code>에도 저장됩니다. 각 WAS는 <code>cpf.adm.dynamic-log.sync-millis</code> 주기로 DB 활성 룰을 재동기화할 수 있습니다.</p>
+    <pre><code>PUT /adm/api/log-level/rules?businessTransactionId=XYZ01EDU0001&amp;logLevel=DEBUG&amp;ttlSeconds=600&amp;reason=diagnostics</code></pre>
+    <div class="note">등록/삭제 시 <code>cache_refresh_event</code>에 <code>dynamicLogLevelRule</code> 이벤트도 발행합니다. Redis/Kafka Pub/Sub으로 교체하면 실시간 다중 WAS 전파 구조로 확장할 수 있습니다.</div>
+
+    <h2 id="tables">7. 테이블</h2>
+    <table>
+      <tr><th>테이블</th><th>용도</th></tr>
+      <tr><td><code>operator_user</code></td><td>운영자 계정, PBKDF2 password hash, lock/fail count</td></tr>
+      <tr><td><code>operator_role</code></td><td>운영자 역할</td></tr>
+      <tr><td><code>operator_user_role</code></td><td>운영자-역할 매핑</td></tr>
+      <tr><td><code>operator_menu</code></td><td>ADM 메뉴</td></tr>
+      <tr><td><code>operator_role_menu</code></td><td>역할별 메뉴 권한</td></tr>
+      <tr><td><code>operator_session</code></td><td>Bearer token hash 세션</td></tr>
+      <tr><td><code>operator_audit_log</code></td><td>운영 조작 감사</td></tr>
+      <tr><td><code>dynamic_log_level_rule</code></td><td>동적 로그레벨 룰</td></tr>
+    </table>
+
+    <h2 id="config">8. 설정</h2>
+    <table>
+      <tr><th>Property</th><th>설명</th></tr>
+      <tr><td><code>cpf.adm.security.enabled</code></td><td>ADM API 인증 필터 사용 여부</td></tr>
+      <tr><td><code>cpf.adm.security.session-ttl-seconds</code></td><td>ADM 세션 TTL</td></tr>
+      <tr><td><code>cpf.adm.password-policy.*</code></td><td>비밀번호 길이/복잡도/만료/실패 횟수 정책</td></tr>
+      <tr><td><code>cpf.adm.dynamic-log.sync-millis</code></td><td>DB 동적 로그 룰 재동기화 주기</td></tr>
+    </table>
+    <div class="warn">운영에서는 DB 비밀번호, JWT signing key, 암호화 secret을 파일에 두지 말고 Vault/KMS 또는 배포 환경변수로 관리합니다.</div>
+  </main>
+</div>
+</body>
+</html>

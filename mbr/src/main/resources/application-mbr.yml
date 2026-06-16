@@ -1,9 +1,6 @@
-# ==================== Spring Boot 애플리케이션 공통 설정 ====================
 spring:
   application:
-    name: fps-mbr
-  
-  # ==================== JPA/Hibernate 설정 ====================
+    name: cpf-mbr
   jpa:
     hibernate:
       ddl-auto: validate
@@ -13,20 +10,18 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
         format_sql: true
 
-# ==================== 로깅 설정 ====================
 logging:
   level:
     root: INFO
-    fps: DEBUG
+    cpf: DEBUG
     org.springframework.web: INFO
   config: classpath:log/logback-local.xml
 
-# ==================== 액추에이터 (Actuator) 설정 ====================
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: health,info,metrics
   endpoint:
     health:
       show-details: when-authorized

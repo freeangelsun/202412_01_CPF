@@ -4,14 +4,15 @@
 
 <configuration>
     <settings>
-        <!-- mapUnderscoreToCamelCase: 스네이크 케이스(created_at)를 카멜 케이스(createdAt)로 자동 변환합니다. -->
+        <!-- mapUnderscoreToCamelCase: ?ㅻ꽕?댄겕 耳?댁뒪(created_at)瑜?移대찞 耳?댁뒪(createdAt)濡??먮룞 蹂?섑빀?덈떎. -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
-        <!-- 쿼리 로그를 표준 출력으로 설정합니다. -->
+        <!-- 荑쇰━ 濡쒓렇瑜??쒖? 異쒕젰?쇰줈 ?ㅼ젙?⑸땲?? -->
         <setting name="logImpl" value="STDOUT_LOGGING"/>
     </settings>
 
     <typeAliases>
-        <!-- ACC 업무 도메인 엔티티에 대한 별칭을 자동으로 생성합니다. -->
-        <package name="fps.acc.bse.entity"/>
+        <!-- ACC ?낅Т ?꾨찓???뷀떚?곗뿉 ???蹂꾩묶???먮룞?쇰줈 ?앹꽦?⑸땲?? -->
+        <package name="cpf.acc.bse.entity"/>
     </typeAliases>
 </configuration>
+

@@ -2,11 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.cmn.ref.mapper.CacheRefreshEventMapper">
+<mapper namespace="cpf.cmn.ref.mapper.CacheRefreshEventMapper">
 
     <!--
-        공통 캐시 변경 이벤트를 등록합니다.
-        published_at은 밀리초 단위 추적을 위해 DATETIME(3)을 사용합니다.
+        怨듯넻 罹먯떆 蹂寃??대깽?몃? ?깅줉?⑸땲??
+        published_at? 諛由ъ큹 ?⑥쐞 異붿쟻???꾪빐 DATETIME(3)???ъ슜?⑸땲??
     -->
     <insert id="insertEvent">
         INSERT INTO cache_refresh_event (
@@ -30,13 +30,13 @@
         )
     </insert>
 
-    <!-- 새로 기동한 WAS는 기존 이벤트를 재처리하지 않기 위해 마지막 이벤트 ID부터 시작합니다. -->
+    <!-- ?덈줈 湲곕룞??WAS??湲곗〈 ?대깽?몃? ?ъ쿂由ы븯吏 ?딄린 ?꾪빐 留덉?留??대깽??ID遺???쒖옉?⑸땲?? -->
     <select id="findMaxEventId" resultType="long">
         SELECT MAX(event_id)
         FROM cache_refresh_event
     </select>
 
-    <!-- 각 WAS가 마지막 처리 이후 이벤트만 순서대로 가져옵니다. -->
+    <!-- 媛?WAS媛 留덉?留?泥섎━ ?댄썑 ?대깽?몃쭔 ?쒖꽌?濡?媛?몄샃?덈떎. -->
     <select id="findEventsAfter" resultType="map">
         SELECT
             event_id AS eventId,
@@ -51,3 +51,4 @@
         ORDER BY event_id
     </select>
 </mapper>
+

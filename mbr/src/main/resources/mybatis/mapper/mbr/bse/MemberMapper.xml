@@ -3,39 +3,39 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--
-  회원(Member) MyBatis Mapper XML
+  ?뚯썝(Member) MyBatis Mapper XML
   
-  매핑 정보:
-  - namespace: fps.mbr.bse.mapper.MemberMapper
-  - 주요 쿼리: selectAllMembers, selectMemberById, selectMembersByName, insertMember, updateMember, deleteMemberById
+  留ㅽ븨 ?뺣낫:
+  - namespace: cpf.mbr.bse.mapper.MemberMapper
+  - 二쇱슂 荑쇰━: selectAllMembers, selectMemberById, selectMembersByName, insertMember, updateMember, deleteMemberById
   
-  명명 규칙:
-  - select*: 조회
-  - insert*: 등록
-  - update*: 수정
-  - delete*: 삭제
+  紐낅챸 洹쒖튃:
+  - select*: 議고쉶
+  - insert*: ?깅줉
+  - update*: ?섏젙
+  - delete*: ??젣
   
   @author FPS Team
   @version 1.0.0
 -->
 
-<mapper namespace="fps.mbr.bse.mapper.MemberMapper">
+<mapper namespace="cpf.mbr.bse.mapper.MemberMapper">
     
-    <!-- 전체 회원 조회 -->
+    <!-- ?꾩껜 ?뚯썝 議고쉶 -->
     <select id="selectAllMembers" resultMap="memberMap">
         SELECT id, name, description, created_by, created_at, updated_by, updated_at
         FROM member
         ORDER BY id DESC
     </select>
     
-    <!-- 회원 ID로 단건 조회 -->
+    <!-- ?뚯썝 ID濡??④굔 議고쉶 -->
     <select id="selectMemberById" parameterType="int" resultMap="memberMap">
         SELECT id, name, description, created_by, created_at, updated_by, updated_at
         FROM member
         WHERE id = #{id}
     </select>
     
-    <!-- 회원명으로 부분 검색 -->
+    <!-- ?뚯썝紐낆쑝濡?遺遺?寃??-->
     <select id="selectMembersByName" parameterType="string" resultMap="memberMap">
         SELECT id, name, description, created_by, created_at, updated_by, updated_at
         FROM member
@@ -43,13 +43,13 @@
         ORDER BY id DESC
     </select>
     
-    <!-- 회원 등록 -->
+    <!-- ?뚯썝 ?깅줉 -->
     <insert id="insertMember" parameterType="Member" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO member (name, description, created_by, created_at, updated_by, updated_at)
         VALUES (#{name}, #{description}, #{createdBy}, NOW(), #{updatedBy}, NOW())
     </insert>
     
-    <!-- 회원 정보 수정 -->
+    <!-- ?뚯썝 ?뺣낫 ?섏젙 -->
     <update id="updateMember" parameterType="Member">
         UPDATE member
         SET name = #{name},
@@ -59,13 +59,13 @@
         WHERE id = #{id}
     </update>
     
-    <!-- 회원 삭제 -->
+    <!-- ?뚯썝 ??젣 -->
     <delete id="deleteMemberById" parameterType="int">
         DELETE FROM member
         WHERE id = #{id}
     </delete>
     
-    <!-- 결과 매핑 정의 -->
+    <!-- 寃곌낵 留ㅽ븨 ?뺤쓽 -->
     <resultMap id="memberMap" type="Member">
         <id column="id" property="id" />
         <result column="name" property="name" />
@@ -76,3 +76,4 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 </mapper>
+

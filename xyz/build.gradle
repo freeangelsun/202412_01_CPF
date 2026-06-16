@@ -4,8 +4,8 @@ plugins {
     id 'java'
 }
 
-group = 'fps.xyz'
-version = '0.0.1-fps.xyz-SNAPSHOT'
+group = 'cpf.xyz'
+version = '0.0.1-cpf.xyz-SNAPSHOT'
 
 java {
     toolchain {
@@ -18,14 +18,14 @@ repositories {
 }
 
 dependencies {
-    // 교육용 주제영역도 실제 업무 서비스와 동일하게 PFW/CMN을 포함해 표준 사용법을 검증합니다.
+    // 援먯쑁??二쇱젣?곸뿭???ㅼ젣 ?낅Т ?쒕퉬?ㅼ? ?숈씪?섍쾶 PFW/CMN???ы븿???쒖? ?ъ슜踰뺤쓣 寃利앺빀?덈떎.
     implementation project(':pfw')
     implementation project(':cmn')
 
-    // REST 샘플 API를 제공하기 위한 Spring MVC 의존성입니다.
+    // REST ?섑뵆 API瑜??쒓났?섍린 ?꾪븳 Spring MVC ?섏〈?깆엯?덈떎.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // 로컬에서 PFW/CMN 로그와 캐시 DB를 함께 사용할 수 있도록 MariaDB 드라이버를 포함합니다.
+    // 濡쒖뺄?먯꽌 PFW/CMN 濡쒓렇? 罹먯떆 DB瑜??④퍡 ?ъ슜?????덈룄濡?MariaDB ?쒕씪?대쾭瑜??ы븿?⑸땲??
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -38,3 +38,4 @@ tasks.named('test') {
 tasks.withType(Test) {
     enabled = false
 }
+

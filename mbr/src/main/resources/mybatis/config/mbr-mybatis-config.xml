@@ -3,23 +3,24 @@
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <!--
-  MyBatis 설정 파일 - mbr 모듈
+  MyBatis ?ㅼ젙 ?뚯씪 - mbr 紐⑤뱢
   
-  주요 설정:
-  - typeAliases: 도메인 객체 별칭 정의
-  - mappers: 매퍼 XML 파일 위치 지정
+  二쇱슂 ?ㅼ젙:
+  - typeAliases: ?꾨찓??媛앹껜 蹂꾩묶 ?뺤쓽
+  - mappers: 留ㅽ띁 XML ?뚯씪 ?꾩튂 吏??
   
-  사용 예:
-  <typeAlias alias="Member" type="fps.mbr.bse.entity.Member" />
+  ?ъ슜 ??
+  <typeAlias alias="Member" type="cpf.mbr.bse.entity.Member" />
   
   @author FPS Team
   @version 1.0.0
 -->
 
 <configuration>
-    <!-- 타입 별칭 정의 -->
+    <!-- ???蹂꾩묶 ?뺤쓽 -->
     <typeAliases>
-        <typeAlias alias="Member" type="fps.mbr.bse.entity.Member" />
+        <typeAlias alias="Member" type="cpf.mbr.bse.entity.Member" />
     </typeAliases>
     
 </configuration>
+

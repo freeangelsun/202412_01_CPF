@@ -3,11 +3,11 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.pfw.mapper.common.logging.TransactionLogMapper">
+<mapper namespace="cpf.pfw.mapper.common.logging.TransactionLogMapper">
 
-    <!-- TRAN_LOG 테이블에 거래 요약 로그를 삽입합니다. -->
+    <!-- TRAN_LOG ?뚯씠釉붿뿉 嫄곕옒 ?붿빟 濡쒓렇瑜??쎌엯?⑸땲?? -->
     <insert id="insertTransactionLog"
-            parameterType="fps.pfw.common.logging.TransactionLogRecord"
+            parameterType="cpf.pfw.common.logging.TransactionLogRecord"
             useGeneratedKeys="true"
             keyProperty="logIdx"
             keyColumn="LOG_IDX">
@@ -58,7 +58,10 @@
             PARAMETERS,
             REQUEST_BODY,
             RESPONSE,
+            HTTP_STATUS,
             RESPONSE_CODE,
+            MESSAGE_CODE,
+            MESSAGE_CONTENT,
             ERROR_MESSAGE,
             ERROR_CODE,
             EXTERNAL_MESSAGE,
@@ -120,7 +123,10 @@
             #{parameters},
             #{requestBody},
             #{response},
+            #{httpStatus},
             #{responseCode},
+            #{messageCode},
+            #{messageContent},
             #{errorMessage},
             #{errorCode},
             #{externalMessage},
@@ -138,7 +144,7 @@
         )
     </insert>
 
-    <!-- TRAN_LOG_DTL 테이블에 상세 로그를 삽입합니다. -->
+    <!-- TRAN_LOG_DTL ?뚯씠釉붿뿉 ?곸꽭 濡쒓렇瑜??쎌엯?⑸땲?? -->
     <insert id="insertTransactionLogDetail" parameterType="map">
         INSERT INTO TRAN_LOG_DTL (
             LOG_IDX,
@@ -160,3 +166,4 @@
     </insert>
 
 </mapper>
+

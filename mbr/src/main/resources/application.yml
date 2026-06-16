@@ -1,5 +1,3 @@
-# MBR 모듈 기본 설정 진입점입니다.
-# Spring Boot가 자동으로 읽는 파일에서 공통/모듈별 설정을 가져옵니다.
 spring:
   config:
     import:

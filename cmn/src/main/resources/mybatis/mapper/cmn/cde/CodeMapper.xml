@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.cmn.cde.mapper.CodeMapper">
+<mapper namespace="cpf.cmn.cde.mapper.CodeMapper">
 
-    <!-- 모든 코드 조회 -->
+    <!-- 紐⑤뱺 肄붾뱶 議고쉶 -->
     <select id="findAllCodes" resultType="map">
         SELECT
             code_id,
@@ -21,7 +21,7 @@
         ORDER BY parent_id, code_key, code_value
     </select>
 
-    <!-- 특정 코드 키로 조회 -->
+    <!-- ?뱀젙 肄붾뱶 ?ㅻ줈 議고쉶 -->
     <select id="findCodeByKey" resultType="map" parameterType="string">
         SELECT
             code_id,
@@ -40,7 +40,7 @@
         LIMIT 1
     </select>
 
-    <!-- 특정 코드 키에 해당하는 코드 목록을 조회합니다. -->
+    <!-- ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 紐⑸줉??議고쉶?⑸땲?? -->
     <select id="findCodesByKey" resultType="map" parameterType="string">
         SELECT
             code_id,
@@ -58,7 +58,7 @@
         ORDER BY code_value, code_id
     </select>
 
-    <!-- 코드 ID로 코드 한 건을 조회합니다. -->
+    <!-- 肄붾뱶 ID濡?肄붾뱶 ??嫄댁쓣 議고쉶?⑸땲?? -->
     <select id="findCodeById" resultType="map" parameterType="long">
         SELECT
             code_id,
@@ -75,8 +75,8 @@
         WHERE code_id = #{codeId}
     </select>
 
-    <!-- 공통 코드를 등록합니다. 등록 직후 서비스에서 캐시를 리프레시합니다. -->
-    <insert id="insertCode" parameterType="fps.cmn.cde.dto.CommonCodeRequest"
+    <!-- 怨듯넻 肄붾뱶瑜??깅줉?⑸땲?? ?깅줉 吏곹썑 ?쒕퉬?ㅼ뿉??罹먯떆瑜?由ы봽?덉떆?⑸땲?? -->
+    <insert id="insertCode" parameterType="cpf.cmn.cde.dto.CommonCodeRequest"
             useGeneratedKeys="true"
             keyProperty="codeId"
             keyColumn="code_id">
@@ -103,7 +103,7 @@
         )
     </insert>
 
-    <!-- 공통 코드를 수정합니다. -->
+    <!-- 怨듯넻 肄붾뱶瑜??섏젙?⑸땲?? -->
     <update id="updateCode">
         UPDATE code_table
         SET
@@ -117,10 +117,11 @@
         WHERE code_id = #{codeId}
     </update>
 
-    <!-- 공통 코드를 삭제합니다. 실제 운영에서는 필요 시 use_yn=N 방식의 논리 삭제로 바꿀 수 있습니다. -->
+    <!-- 怨듯넻 肄붾뱶瑜???젣?⑸땲?? ?ㅼ젣 ?댁쁺?먯꽌???꾩슂 ??use_yn=N 諛⑹떇???쇰━ ??젣濡?諛붽? ???덉뒿?덈떎. -->
     <delete id="deleteCode" parameterType="long">
         DELETE FROM code_table
         WHERE code_id = #{codeId}
     </delete>
 
 </mapper>
+

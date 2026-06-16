@@ -1,10 +1,8 @@
-# PFW 프레임워크 모듈 공통 설정입니다.
-# 거래ID, 보안 헤더, 거래 로그, 서비스 간 WebClient 전파 기능을 제공합니다.
+# PFW common configuration.
 
 spring:
   datasource:
     pfw:
-      # 운영에서는 PFW 전용 DB 또는 프레임워크 공용 스키마를 사용합니다.
       url: ${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}
       username: ${PFW_DB_USERNAME:root}
       password: ${PFW_DB_PASSWORD:test}
@@ -12,10 +10,10 @@ spring:
 
 springdoc:
   api-docs:
-    enabled: ${FPS_OPENAPI_ENABLED:true}
+    enabled: ${CPF_OPENAPI_ENABLED:${FPS_OPENAPI_ENABLED:true}}
     path: /v3/api-docs
   swagger-ui:
-    enabled: ${FPS_SWAGGER_UI_ENABLED:true}
+    enabled: ${CPF_SWAGGER_UI_ENABLED:${FPS_SWAGGER_UI_ENABLED:true}}
     path: /swagger-ui.html
     display-request-duration: true
     tags-sorter: alpha
@@ -27,31 +25,32 @@ springdoc:
 mybatis:
   config-location: classpath:mybatis/config/pfw-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/pfw/**/*.xml
-  type-aliases-package: fps.pfw.common.logging
+  type-aliases-package: cpf.pfw.common.logging
 
-fps:
+cpf:
   framework:
-    # 거래ID 포맷: yyyyMMddHHmmssSSS + moduleId(3) + wasId + sequence
     module-id: ${spring.application.name:pfw}
     was-id: ${WAS_ID:local01}
     transaction-id:
       sequence-digits: 7
   http-client:
-    # 주제영역 간 HTTP 호출 공통 타임아웃입니다.
-    connect-timeout-millis: ${FPS_HTTP_CONNECT_TIMEOUT_MS:3000}
-    read-timeout-millis: ${FPS_HTTP_READ_TIMEOUT_MS:5000}
-    max-in-memory-size-kb: ${FPS_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}
+    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS:${FPS_HTTP_CONNECT_TIMEOUT_MS:3000}}
+    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS:${FPS_HTTP_READ_TIMEOUT_MS:5000}}
+    max-in-memory-size-kb: ${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:${FPS_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
   services:
-    # 운영에서는 IP보다 DNS/VIP/Kubernetes Service 이름을 권장합니다.
     acc:
-      base-url: ${FPS_SERVICE_ACC_URL:http://localhost:8080}
-      description: ACC 주제영역
+      base-url: ${CPF_SERVICE_ACC_URL:${FPS_SERVICE_ACC_URL:http://localhost:8080}}
+      description: ACC service
     mbr:
-      base-url: ${FPS_SERVICE_MBR_URL:http://localhost:8081}
-      description: MBR 주제영역
+      base-url: ${CPF_SERVICE_MBR_URL:${FPS_SERVICE_MBR_URL:http://localhost:8081}}
+      description: MBR service
     cmn:
-      base-url: ${FPS_SERVICE_CMN_URL:http://localhost:8082}
-      description: CMN 개발 공통 서비스
+      base-url: ${CPF_SERVICE_CMN_URL:${FPS_SERVICE_CMN_URL:http://localhost:8082}}
+      description: CMN service
     pfw:
-      base-url: ${FPS_SERVICE_PFW_URL:http://localhost:8083}
-      description: PFW 프레임워크 서비스
+      base-url: ${CPF_SERVICE_PFW_URL:${FPS_SERVICE_PFW_URL:http://localhost:8083}}
+      description: PFW service
+    adm:
+      base-url: ${CPF_SERVICE_ADM_URL:${FPS_SERVICE_ADM_URL:http://localhost:8090}}
+      description: ADM service
+

@@ -20,15 +20,15 @@ gradleEnterprise {
         termsOfServiceUrl = "https://gradle.com/terms-of-service"
         termsOfServiceAgree = "yes"
         //publishAlways() // 빌드 스캔 항상 게시
-        tag "FPS_PROJECT"
+        tag "CPF_PROJECT"
     }
 }
 
 // ✅ 루트 프로젝트 이름 설정
-rootProject.name = '202412_01_FPS'
+rootProject.name = 'cpf-coreflow-platform-framework'
 
 // ✅ 서브모듈 정의
-include 'pfw', 'cmn', 'acc', 'mbr', 'xyz' // 필요한 경우 주석 해제하여 추가 가능
+include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm' // 필요한 경우 주석 해제하여 추가 가능
 // include 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
 
 // ✅ 모듈 별 디렉터리 경로 설정 (필요시 명시적으로 추가)
@@ -37,3 +37,4 @@ project(':cmn').projectDir = file('cmn')
 project(':acc').projectDir = file('acc')
 project(':mbr').projectDir = file('mbr')
 project(':xyz').projectDir = file('xyz')
+project(':adm').projectDir = file('adm')

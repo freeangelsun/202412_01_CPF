@@ -1,51 +1,38 @@
 plugins {
-	id 'org.springframework.boot' version '3.4.13' // Spring Boot 3.4.x 최신 안정화 버전으로 변경
-	id 'io.spring.dependency-management' version '1.1.7' // Spring 의존성 관리를 유지
-	id 'java' // Java 모듈 설정
+    id 'org.springframework.boot' version '3.4.13'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
 }
 
-group = 'fps.acc'
-version = '0.0.1-fps.acc-SNAPSHOT'
+group = 'cpf.acc'
+version = '0.0.1-cpf.acc-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21) // Java 21 기반 컴파일 및 실행
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral() // Maven 중앙 저장소 사용
+    mavenCentral()
 }
 
 dependencies {
-	// ✅ 공통 모듈 (CMN) 의존성
-	implementation project(':cmn')
+    implementation project(':cmn')
+    implementation project(':pfw')
 
-	// ✅ 프레임워크 공통 모듈 (거래ID/로그/보안/WebClient)
-	implementation project(':pfw')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	// ✅ Spring Boot Starter Web (REST API 제공 시 필요)
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	// ✅ Jakarta Servlet API (Spring Boot 3.0에서는 javax 대신 jakarta 패키지를 사용)
-	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-
-	// ✅ MariaDB 드라이버 (ACC 전용 데이터 소스)
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-
-	// ✅ 테스트 의존성 (JUnit5)
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-	// ✅ Mockito (선택 사항)
-	testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
 }
 
-// ✅ 테스트 설정
 tasks.named('test') {
-	useJUnitPlatform() // JUnit5 테스트 사용
+    useJUnitPlatform()
 }
 
-// ✅ 테스트 실행 비활성화 (필요 시)
-tasks.withType(Test) {
-	enabled = false
+tasks.withType(Test).configureEach {
+    enabled = false
 }

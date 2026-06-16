@@ -1,0 +1,44 @@
+plugins {
+    id 'org.springframework.boot' version '3.4.13'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+}
+
+group = 'cpf.adm'
+version = '0.0.1-cpf.adm-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 愿由ъ옄 ?쒕퉬?ㅻ룄 ?낅Т ?쒕퉬?ㅼ? ?숈씪?섍쾶 PFW/CMN ?쒖? 湲곕뒫???ъ슜?⑸땲??
+    implementation project(':pfw')
+    implementation project(':cmn')
+
+    // 愿由ъ옄 REST API? ?뺤쟻 ?붾㈃???쒓났?섍린 ?꾪븳 Spring MVC ?섏〈?깆엯?덈떎.
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // PFW 濡쒓렇 ?뚯씠釉붿쓣 吏곸젒 議고쉶?섍린 ?꾪븳 JdbcTemplate ?섏〈?깆엯?덈떎.
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // 濡쒖뺄/?댁쁺 DB ?묒냽??MariaDB ?쒕씪?대쾭?낅땲??
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(Test) {
+    enabled = false
+}
+

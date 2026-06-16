@@ -10,15 +10,23 @@ spring:
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
-  type-aliases-package: fps.cmn.smp.entity
+  type-aliases-package: cpf.cmn.smp.entity
 
-fps:
+cpf:
   cmn:
     cache:
       preload-enabled: ${FPS_CMN_CACHE_PRELOAD_ENABLED:true}
+      fail-fast-on-startup: ${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:true}
       event-poll-enabled: ${FPS_CMN_CACHE_EVENT_POLL_ENABLED:true}
       refresh-poll-millis: ${FPS_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
       refresh-initial-delay-millis: ${FPS_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}
       periodic-refresh-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}
       periodic-refresh-initial-delay-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}
+    security:
+      jwt:
+        issuer: ${FPS_CMN_SECURITY_JWT_ISSUER}
+        audience: ${FPS_CMN_SECURITY_JWT_AUDIENCE}
+        secret: ${FPS_CMN_SECURITY_JWT_SECRET}
+        ttl-seconds: ${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}
+
 

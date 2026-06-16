@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPF 개발 가이드</title>
+  <style>
+    body{margin:0;background:#f6f8fb;color:#172033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.68}
+    .wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;width:min(1280px,calc(100% - 36px));margin:0 auto;padding:28px 0 56px}
+    nav,main{background:#fff;border:1px solid #d9e0ea;border-radius:8px}
+    nav{position:sticky;top:18px;align-self:start;padding:18px}
+    nav a{display:block;padding:5px 0;color:#2457c5;text-decoration:none;font-size:14px}
+    main{padding:32px} h1{margin:0 0 10px;font-size:30px} h2{margin:34px 0 12px;padding-top:22px;border-top:1px solid #d9e0ea;font-size:22px}
+    table{width:100%;border-collapse:collapse;margin:10px 0 18px} th,td{border:1px solid #d9e0ea;padding:9px 11px;text-align:left;vertical-align:top} th{background:#eef3f9}
+    code{background:#eef3f9;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace} pre{overflow:auto;background:#172033;color:#f7fbff;padding:14px;border-radius:8px}
+    .note{border-left:4px solid #2457c5;background:#f0f5ff;padding:12px 14px;margin:14px 0}.good{border-left:4px solid #14795b;background:#edf8f4;padding:12px 14px;margin:14px 0}
+    @media(max-width:900px){.wrap{grid-template-columns:1fr;width:min(100% - 24px,1280px)}nav{position:static}main{padding:20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <strong>목차</strong>
+    <a href="./index.html">문서 홈</a>
+    <a href="#overview">1. 개발 기준</a>
+    <a href="#package">2. 패키지 규칙</a>
+    <a href="#codes">3. 코드/메시지 표준</a>
+    <a href="#response">4. 표준 응답/헤더</a>
+    <a href="#samples">5. 샘플 API</a>
+    <a href="#common">6. 공통 라이브러리</a>
+    <a href="#db">7. DB/SQL</a>
+    <a href="#test">8. 검증</a>
+  </nav>
+  <main>
+    <h1>CPF 개발 가이드</h1>
+    <p>CPF는 <code>cpf.*</code> Java package를 표준으로 사용합니다. 기존 프레임워크 API 호환을 위해 <code>FpsTransaction</code>, <code>FpsWebClient</code>, <code>FpsWorkflow</code> 같은 클래스명은 유지합니다.</p>
+
+    <h2 id="overview">1. 개발 기준</h2>
+    <table>
+      <tr><th>항목</th><th>기준</th></tr>
+      <tr><td>Java</td><td>Java 21</td></tr>
+      <tr><td>Spring</td><td>Spring Boot 3.4.x</td></tr>
+      <tr><td>Root project</td><td><code>cpf-coreflow-platform-framework</code></td></tr>
+      <tr><td>공통 모듈</td><td><code>pfw</code>, <code>cmn</code></td></tr>
+      <tr><td>업무/운영 모듈</td><td><code>acc</code>, <code>mbr</code>, <code>xyz</code>, <code>adm</code></td></tr>
+    </table>
+
+    <h2 id="package">2. 패키지 규칙</h2>
+    <p>패키지는 <code>cpf.{module}.{domain}.{layer}</code> 형태를 사용합니다.</p>
+    <table>
+      <tr><th>예시</th><th>용도</th></tr>
+      <tr><td><code>cpf.pfw.common.logging</code></td><td>거래 로그, 거래 컨텍스트, 동적 로그레벨</td></tr>
+      <tr><td><code>cpf.cmn.msg.service</code></td><td>메시지/응답코드 캐시와 resolver</td></tr>
+      <tr><td><code>cpf.mbr.bse.controller</code></td><td>회원 기본 샘플 API</td></tr>
+      <tr><td><code>cpf.acc.tst.controller</code></td><td>ACC 테스트/교육 API</td></tr>
+      <tr><td><code>cpf.xyz.edu.controller</code></td><td>교육용 기능별 샘플 API</td></tr>
+      <tr><td><code>cpf.adm.opr.controller</code></td><td>운영자/로그/캐시/응답코드 관리 API</td></tr>
+    </table>
+
+    <h2 id="codes">3. 코드/메시지 표준</h2>
+    <table>
+      <tr><th>분류</th><th>형식</th><th>예</th></tr>
+      <tr><td>응답코드</td><td><code>{S|E}{MODULE}{GROUP}{SEQ}</code></td><td><code>SACC000000</code>, <code>EACC010001</code></td></tr>
+      <tr><td>메시지코드</td><td><code>M{MODULE}{GROUP}{SEQ}</code></td><td><code>MCMN000001</code>, <code>MXYZ090001</code></td></tr>
+      <tr><td>거래코드</td><td><code>{MODULE}{TYPE}{DOMAIN}{SEQ}</code></td><td><code>MBR01BSE0001</code>, <code>ADM05OPR0021</code></td></tr>
+    </table>
+    <p><code>response_code_table</code>은 응답코드와 메시지코드를 연결합니다. <code>message_table</code>은 한 레코드에 <code>external_message</code>, <code>internal_message</code>를 함께 저장하며 <code>{0}</code>, <code>{1}</code> indexed parameter를 지원합니다.</p>
+    <pre><code>throw new FpsBusinessException("EACC010001", "business detail", Map.of("0", "M0001"));</code></pre>
+
+    <h2 id="response">4. 표준 응답/헤더</h2>
+    <p>PFW/CMN resolver는 응답코드/메시지코드를 캐시에서 해석해 응답 body, 응답 header, 거래 로그 metadata에 세팅합니다.</p>
+    <table>
+      <tr><th>헤더</th><th>설명</th></tr>
+      <tr><td><code>X-Fps-Response-Code</code></td><td>표준 응답코드. 성공/실패 모두 가능.</td></tr>
+      <tr><td><code>X-Fps-Response-Message-Code</code></td><td>응답코드에 연결된 메시지코드.</td></tr>
+      <tr><td><code>X-Fps-Message-Code</code></td><td>실제 출력 메시지코드.</td></tr>
+      <tr><td><code>X-Fps-Message-Content</code></td><td>외부 메시지 내용 URL-encoded 값.</td></tr>
+    </table>
+
+    <h2 id="samples">5. 샘플 API</h2>
+    <table>
+      <tr><th>모듈</th><th>주요 API</th></tr>
+      <tr><td>MBR</td><td><code>GET /mbr/list</code>, <code>GET /mbr/detail?memberId=1</code>, <code>POST /mbr/create</code></td></tr>
+      <tr><td>ACC</td><td><code>GET /members/acc</code>, <code>GET /members/mbr/detail</code>, <code>GET /acc/tran/standard-exception</code></td></tr>
+      <tr><td>XYZ</td><td><code>GET /xyz/edu</code>, <code>GET /xyz/edu/cache</code>, <code>POST /xyz/edu/messaging/publish</code>, <code>GET /xyz/edu/security/crypto/basic</code></td></tr>
+      <tr><td>ADM</td><td><code>/adm</code>, <code>/adm/api/logs</code>, <code>/adm/api/response-codes</code>, <code>/adm/api/log-level/rules</code></td></tr>
+    </table>
+
+    <h2 id="common">6. 공통 라이브러리</h2>
+    <table>
+      <tr><th>영역</th><th>클래스</th></tr>
+      <tr><td>HTTP 호출</td><td><code>FpsWebClient</code>, <code>cpf.services.*.base-url</code></td></tr>
+      <tr><td>캐시</td><td><code>CodeCacheService</code>, <code>MessageCacheService</code>, <code>ResponseCodeCacheService</code>, <code>ConfigCacheService</code></td></tr>
+      <tr><td>암호화</td><td><code>CmnCryptoService</code>: Base64, Base64Url, SHA-256, HMAC, AES-GCM, PBKDF2, secure random</td></tr>
+      <tr><td>JWT/OAuth</td><td><code>CmnJwtService</code>, <code>CmnOAuthBearerTokenService</code></td></tr>
+      <tr><td>MQ</td><td><code>CmnMessagePublisher</code>, <code>CmnMessageConsumer</code></td></tr>
+      <tr><td>전문</td><td><code>CmnTelegramService</code>, <code>@CmnTelegramField</code></td></tr>
+    </table>
+
+    <h2 id="db">7. DB/SQL</h2>
+    <p>개발자 로컬 설치는 아래 하나로 시작할 수 있습니다.</p>
+    <pre><code>mysql -h localhost -P 3306 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
+    <p>DBA 검토나 부분 재실행이 필요하면 <code>01_create_databases.sql</code>부터 <code>70_test_data.sql</code>까지 분리 파일을 순서대로 실행하고, 마지막에 <code>99_smoke_check.sql</code>을 실행합니다.</p>
+
+    <h2 id="test">8. 검증</h2>
+    <pre><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline
+.\gradlew.bat :mbr:test --tests cpf.cmn.sec.crypto.CmnCryptoServiceTest --tests cpf.cmn.msg.service.CmnFpsResponseCodeResolverTest --tests cpf.pfw.common.logging.LoggingAspectMetadataTest --tests cpf.mbr.bse.controller.MbrControllerValidationTest --offline</code></pre>
+    <div class="good">문서, SQL, seed data, 응답코드/메시지, 소스 계약은 같은 변경 단위에서 함께 갱신합니다.</div>
+  </main>
+</div>
+</body>
+</html>

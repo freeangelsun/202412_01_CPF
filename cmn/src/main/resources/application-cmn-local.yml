@@ -1,30 +1,76 @@
-# CMN 공통 모듈 로컬 실행용 환경 설정입니다.
-# Spring Boot 3.0 및 Java 21 환경에서 공통 데이터 소스와 MyBatis 매핑을 정의합니다.
+# CMN 怨듯넻 紐⑤뱢 濡쒖뺄 ?ㅽ뻾???섍꼍 ?ㅼ젙?낅땲??
+# 濡쒖뺄 媛쒕컻?먯꽌??蹂꾨룄 Kafka/RabbitMQ ?놁씠 IN_MEMORY 硫붿떆吏뺤쑝濡??섑뵆???뺤씤?⑸땲??
 
 spring:
   datasource:
     cmn:
-      #      jndi-name: java:comp/env/jdbc/cmnDS
-      url: jdbc:mariadb://localhost:3306/cmnDB
-      username: root
-      password: test
+      # 濡쒖뺄 MariaDB??CMN 怨듯넻 ?ㅽ궎留?URL?낅땲??
+      url: ${CMN_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
+      # 濡쒖뺄 DB ?ъ슜?먯엯?덈떎.
+      username: ${CMN_DB_USERNAME:root}
+      # 濡쒖뺄 DB 鍮꾨?踰덊샇?낅땲??
+      password: ${CMN_DB_PASSWORD:test}
+      # MariaDB JDBC Driver ?대옒?ㅼ엯?덈떎.
       driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:
+  # CMN MyBatis 怨듯넻 ?ㅼ젙 ?뚯씪 ?꾩튂?낅땲??
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
+  # CMN Mapper XML ?꾩껜 ?ㅼ틪 寃쎈줈?낅땲??
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
-  type-aliases-package: fps.cmn.smp.entity
+  # ?섑뵆 Entity alias 湲곗??낅땲??
+  type-aliases-package: cpf.cmn.smp.entity
 
-fps:
+cpf:
   cmn:
     cache:
+      # 濡쒖뺄?먯꽌??湲곕룞 ??罹먯떆瑜?誘몃━ ?곸옱?⑸땲??
       preload-enabled: ${FPS_CMN_CACHE_PRELOAD_ENABLED:true}
+      # 濡쒖뺄?먯꽌??DB媛 ??쾶 ?⑤뜑?쇰룄 ?쒕퉬???붾㈃/API ?뺤씤??媛?ν븯?꾨줉 湲곕룞??怨꾩냽?⑸땲??
+      fail-fast-on-startup: ${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}
+      # 濡쒖뺄 ?ㅼ쨷 ?쒕퉬???ㅽ뻾 ?쒖뿉??罹먯떆 蹂寃??대깽?몃? 媛먯??⑸땲??
       event-poll-enabled: ${FPS_CMN_CACHE_EVENT_POLL_ENABLED:true}
+      # 罹먯떆 ?대깽???대쭅 二쇨린(ms)?낅땲??
       refresh-poll-millis: ${FPS_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
+      # 罹먯떆 ?대깽???대쭅 理쒖큹 ?湲??쒓컙(ms)?낅땲??
       refresh-initial-delay-millis: ${FPS_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}
+      # ?꾩껜 罹먯떆 二쇨린 由ы봽?덉떆 媛꾧꺽(ms)?낅땲??
       periodic-refresh-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}
+      # ?꾩껜 罹먯떆 二쇨린 由ы봽?덉떆 理쒖큹 ?湲??쒓컙(ms)?낅땲??
       periodic-refresh-initial-delay-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}
-
-
-
+    messaging:
+      # 濡쒖뺄/援먯쑁 ?섍꼍?먯꽌???몃? 釉뚮줈而??놁씠 JVM 硫붾え由ъ뿉??諛쒗뻾怨??뚮퉬瑜?泥섎━?⑸땲??
+      enabled: ${FPS_CMN_MESSAGING_ENABLED:true}
+      # ?댁쁺 寃利앹씠 ?꾩슂???뚮쭔 KAFKA ?먮뒗 RABBIT?쇰줈 蹂寃쏀빀?덈떎.
+      broker: ${FPS_CMN_MESSAGING_BROKER:IN_MEMORY}
+      # ?섑뵆 API媛 紐⑹쟻吏瑜??앸왂?덉쓣 ???ъ슜??湲곕낯 destination?낅땲??
+      default-destination: ${FPS_CMN_MESSAGING_DEFAULT_DESTINATION:cpf.local.event}
+      # ?붾㈃/?섑뵆?먯꽌 議고쉶??理쒓렐 硫붿떆吏 蹂닿? 嫄댁닔?낅땲??
+      recent-message-limit: ${FPS_CMN_MESSAGING_RECENT_LIMIT:200}
+      rabbit:
+        # 濡쒖뺄 RabbitMQ 寃利????ъ슜??exchange 湲곕낯媛믪엯?덈떎.
+        exchange: ${FPS_CMN_RABBIT_EXCHANGE:cpf.exchange}
+        # 濡쒖뺄 RabbitMQ 寃利????ъ슜??routing key 湲곕낯媛믪엯?덈떎.
+        routing-key: ${FPS_CMN_RABBIT_ROUTING_KEY:cpf.local.event}
+    file-exchange:
+      # 濡쒖뺄 ?뚯씪 ?곌퀎 ?섑뵆???ъ슜?섎뒗 湲곗? ?붾젆?곕━?낅땲??
+      base-dir: ${FPS_CMN_FILE_BASE_DIR:${java.io.tmpdir}/fps-cmn-file-exchange}
+      # 濡쒖뺄?먯꽌??SSH ?ㅽ뻾??湲곕낯 鍮꾪솢?깊솕?섍퀬 紐낅졊 怨꾪쉷留??뺤씤?⑸땲??
+      ssh-enabled: ${FPS_CMN_FILE_SSH_ENABLED:false}
+      # true?대㈃ SCP/SFTP/FTP 紐낅졊???ㅼ젣 ?ㅽ뻾?섏? ?딄퀬 怨꾪쉷留?諛섑솚?⑸땲??
+      dry-run: ${FPS_CMN_FILE_DRY_RUN:true}
+      # ?먭꺽 紐낅졊 ?ㅽ뻾 ??꾩븘??珥덉엯?덈떎.
+      timeout-seconds: ${FPS_CMN_FILE_TIMEOUT_SECONDS:15}
+      # 濡쒖뺄?먯꽌 ?ㅼ젣 SSH ?ㅽ뻾??耳쒕젮硫??덉슜 ?몄뒪?몃? ?섍꼍蹂?섎줈 吏?뺥빀?덈떎.
+      allowed-hosts: ${FPS_CMN_FILE_ALLOWED_HOSTS:}
+    security:
+      jwt:
+        # 濡쒖뺄 援먯쑁 ?섑뵆??JWT 諛쒓툒?먯엯?덈떎.
+        issuer: ${FPS_CMN_SECURITY_JWT_ISSUER:FPS-LOCAL}
+        # 濡쒖뺄 援먯쑁 ?섑뵆??JWT ????쒖뒪?쒖엯?덈떎.
+        audience: ${FPS_CMN_SECURITY_JWT_AUDIENCE:FPS-LOCAL-API}
+        # 濡쒖뺄 援먯쑁 ?섑뵆???쒕챸 ?쒗겕由우엯?덈떎. ?댁쁺 媛믨낵 ?덈? 怨듭쑀?섏? ?딆뒿?덈떎.
+        secret: ${FPS_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}
+        # 濡쒖뺄 援먯쑁 ?섑뵆 ?좏겙 ?좏슚 ?쒓컙(珥??낅땲??
+        ttl-seconds: ${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}
 

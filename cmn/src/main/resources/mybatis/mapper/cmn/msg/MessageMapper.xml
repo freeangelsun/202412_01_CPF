@@ -2,117 +2,85 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.cmn.msg.mapper.MessageMapper">
+<mapper namespace="cpf.cmn.msg.mapper.MessageMapper">
 
-    <!-- 모든 메시지 조회 -->
+    <sql id="messageColumns">
+        message_id,
+        message_code,
+        message_code AS message_key,
+        locale,
+        message_format_type,
+        external_message,
+        external_message AS message_value,
+        internal_message,
+        parameter_count,
+        parameter_sample,
+        description,
+        use_yn,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+    </sql>
+
     <select id="findAllMessages" resultType="map">
         SELECT
-            message_id,
-            message_key,
-            message_value,
-            locale,
-            message_type,
-            description,
-            use_yn,
-            created_by,
-            created_at,
-            updated_by,
-            updated_at
+            <include refid="messageColumns"/>
         FROM message_table
-        ORDER BY message_key, locale, message_type
+        ORDER BY message_code, locale
     </select>
 
-    <!-- 특정 메시지 키로 조회 -->
     <select id="findMessageByKey" resultType="map" parameterType="string">
         SELECT
-            message_id,
-            message_key,
-            message_value,
-            locale,
-            message_type,
-            description,
-            use_yn,
-            created_by,
-            created_at,
-            updated_by,
-            updated_at
+            <include refid="messageColumns"/>
         FROM message_table
-        WHERE message_key = #{messageKey}
-        ORDER BY locale, message_type, message_id
+        WHERE message_code = #{messageKey}
+          AND use_yn = 'Y'
+        ORDER BY locale, message_id
         LIMIT 1
     </select>
 
-    <!-- 메시지 키와 언어 코드로 메시지 한 건을 조회합니다. -->
     <select id="findMessageByKeyAndLocale" resultType="map">
         SELECT
-            message_id,
-            message_key,
-            message_value,
-            locale,
-            message_type,
-            description,
-            use_yn,
-            created_by,
-            created_at,
-            updated_by,
-            updated_at
+            <include refid="messageColumns"/>
         FROM message_table
-        WHERE message_key = #{messageKey}
+        WHERE message_code = #{messageKey}
           AND locale = #{locale}
-        ORDER BY message_type, message_id
-        LIMIT 1
-    </select>
-
-    <select id="findMessageByKeyLocaleType" resultType="map">
-        SELECT
-            message_id,
-            message_key,
-            message_value,
-            locale,
-            message_type,
-            description,
-            use_yn,
-            created_by,
-            created_at,
-            updated_by,
-            updated_at
-        FROM message_table
-        WHERE message_key = #{messageKey}
-          AND locale = #{locale}
-          AND message_type = #{messageType}
           AND use_yn = 'Y'
         ORDER BY message_id
         LIMIT 1
     </select>
 
-    <!-- 메시지 ID로 메시지 한 건을 조회합니다. -->
+    <select id="findMessageByKeyLocaleType" resultType="map">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM message_table
+        WHERE message_code = #{messageKey}
+          AND locale = #{locale}
+          AND use_yn = 'Y'
+        ORDER BY message_id
+        LIMIT 1
+    </select>
+
     <select id="findMessageById" resultType="map" parameterType="long">
         SELECT
-            message_id,
-            message_key,
-            message_value,
-            locale,
-            message_type,
-            description,
-            use_yn,
-            created_by,
-            created_at,
-            updated_by,
-            updated_at
+            <include refid="messageColumns"/>
         FROM message_table
         WHERE message_id = #{messageId}
     </select>
 
-    <!-- 공통 메시지를 등록합니다. 등록 직후 서비스에서 캐시를 리프레시합니다. -->
-    <insert id="insertMessage" parameterType="fps.cmn.msg.dto.CommonMessageRequest"
+    <insert id="insertMessage" parameterType="cpf.cmn.msg.dto.CommonMessageRequest"
             useGeneratedKeys="true"
             keyProperty="messageId"
             keyColumn="message_id">
         INSERT INTO message_table (
-            message_key,
-            message_value,
+            message_code,
             locale,
-            message_type,
+            message_format_type,
+            external_message,
+            internal_message,
+            parameter_count,
+            parameter_sample,
             description,
             use_yn,
             created_by,
@@ -120,10 +88,13 @@
             updated_by,
             updated_at
         ) VALUES (
-            #{messageKey},
-            #{messageValue},
+            #{effectiveMessageCode},
             #{locale},
-            IFNULL(NULLIF(#{messageType}, ''), 'EXTERNAL'),
+            IFNULL(NULLIF(#{messageFormatType}, ''), 'FIXED'),
+            #{effectiveExternalMessage},
+            #{effectiveInternalMessage},
+            IFNULL(#{parameterCount}, 0),
+            #{parameterSample},
             #{description},
             IFNULL(NULLIF(#{useYn}, ''), 'Y'),
             IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
@@ -133,14 +104,16 @@
         )
     </insert>
 
-    <!-- 공통 메시지를 수정합니다. -->
     <update id="updateMessage">
         UPDATE message_table
         SET
-            message_key = #{request.messageKey},
-            message_value = #{request.messageValue},
+            message_code = #{request.effectiveMessageCode},
             locale = #{request.locale},
-            message_type = IFNULL(NULLIF(#{request.messageType}, ''), 'EXTERNAL'),
+            message_format_type = IFNULL(NULLIF(#{request.messageFormatType}, ''), 'FIXED'),
+            external_message = #{request.effectiveExternalMessage},
+            internal_message = #{request.effectiveInternalMessage},
+            parameter_count = IFNULL(#{request.parameterCount}, 0),
+            parameter_sample = #{request.parameterSample},
             description = #{request.description},
             use_yn = IFNULL(NULLIF(#{request.useYn}, ''), 'Y'),
             updated_by = IFNULL(NULLIF(#{request.requestUser}, ''), 'SYSTEM'),
@@ -148,10 +121,10 @@
         WHERE message_id = #{messageId}
     </update>
 
-    <!-- 공통 메시지를 삭제합니다. 실제 운영에서는 필요 시 use_yn=N 방식의 논리 삭제로 바꿀 수 있습니다. -->
     <delete id="deleteMessage" parameterType="long">
         DELETE FROM message_table
         WHERE message_id = #{messageId}
     </delete>
 
 </mapper>
+

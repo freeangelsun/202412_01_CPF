@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="fps.acc.bse.mapper.AccMemberMapper">
-    <select id="selectAllMembers" resultType="fps.acc.bse.entity.AccMember">
+<mapper namespace="cpf.acc.bse.mapper.AccMemberMapper">
+    <select id="selectAllMembers" resultType="cpf.acc.bse.entity.AccMember">
         SELECT
             id,
             name,
@@ -13,3 +13,4 @@
         FROM acc_member;
     </select>
 </mapper>
+

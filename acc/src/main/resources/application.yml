@@ -1,5 +1,5 @@
-# ACC 모듈 공통 설정 파일입니다.
-# Spring Boot 3.0 및 Java 21 환경에서 실행되도록 기본 구성 정보를 제공합니다.
+# ACC 紐⑤뱢 怨듯넻 ?ㅼ젙 ?뚯씪?낅땲??
+# Spring Boot 3.0 諛?Java 21 ?섍꼍?먯꽌 ?ㅽ뻾?섎룄濡?湲곕낯 援ъ꽦 ?뺣낫瑜??쒓났?⑸땲??
 
 spring:
   application:
@@ -7,7 +7,7 @@ spring:
 
   profiles:
     active: local
-    include: pfw, cmn  # PFW 프레임워크와 CMN 개발 공통 설정을 함께 로드합니다.
+    include: pfw, cmn  # PFW ?꾨젅?꾩썙?ъ? CMN 媛쒕컻 怨듯넻 ?ㅼ젙???④퍡 濡쒕뱶?⑸땲??
 
   datasource:
     hikari:
@@ -23,18 +23,19 @@ spring:
 mybatis:
   config-location: classpath:mybatis/config/acc-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/acc/**/*.xml
-  type-aliases-package: fps.acc.bse.entity
+  type-aliases-package: cpf.acc.bse.entity
 
 server:
   port: 8080
 
-# 로그 설정
+# 濡쒓렇 ?ㅼ젙
 logging:
   config: classpath:log/logback-spring.xml
   level:
-    root: INFO # 전체 애플리케이션의 기본 로그 레벨
-    fps.pfw: DEBUG  # PFW 프레임워크 모듈 로그 레벨
-    fps.cmn: DEBUG  # CMN 개발 공통 모듈 로그 레벨
-    fps.acc: DEBUG  # ACC 모듈 로그 레벨
+    root: INFO # ?꾩껜 ?좏뵆由ъ??댁뀡??湲곕낯 濡쒓렇 ?덈꺼
+    cpf.pfw: DEBUG  # PFW ?꾨젅?꾩썙??紐⑤뱢 濡쒓렇 ?덈꺼
+    cpf.cmn: DEBUG  # CMN 媛쒕컻 怨듯넻 紐⑤뱢 濡쒓렇 ?덈꺼
+    cpf.acc: DEBUG  # ACC 紐⑤뱢 濡쒓렇 ?덈꺼
+
 
 

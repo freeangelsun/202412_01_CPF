@@ -46,18 +46,18 @@
         </sift>
     </appender>
 
-    <logger name="fps.xyz" level="DEBUG" additivity="false">
+    <logger name="cpf.xyz" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="MODULE_FILE" />
         <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
-    <logger name="fps.pfw" level="INFO" additivity="false">
+    <logger name="cpf.pfw" level="INFO" additivity="false">
         <appender-ref ref="MODULE_FILE" />
         <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
-    <logger name="fps.cmn" level="INFO" additivity="false">
+    <logger name="cpf.cmn" level="INFO" additivity="false">
         <appender-ref ref="MODULE_FILE" />
         <appender-ref ref="TRANSACTION_FILE" />
     </logger>
@@ -68,3 +68,4 @@
         <appender-ref ref="TRANSACTION_FILE" />
     </root>
 </configuration>
+

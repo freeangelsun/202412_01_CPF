@@ -1,132 +1,124 @@
 plugins {
-	id 'java'
-	/*
-	 	Spring Boot 3.0 기반으로 전체 모듈을 통합 관리합니다.
-	 	실제 Spring Boot 플러그인은 각 서브모듈에서 활성화합니다.
-	 */
-	id 'org.springframework.boot' version '3.4.13' apply false
-	id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'java'
+    id 'org.springframework.boot' version '3.4.13' apply false
+    id 'io.spring.dependency-management' version '1.1.7' apply false
 }
-
 
 allprojects {
-	repositories {
-		mavenCentral() // Maven Central Repository 추가
-	}
+    repositories {
+        mavenCentral()
+    }
 }
 
-
 subprojects {
-	apply plugin: 'java'
-	apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
 
-	// Spring Boot BOM으로 모든 Spring Boot 의존성 버전 관리
-	dependencyManagement {
-		imports {
-			mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
-		}
-	}
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
+        }
+    }
 
-	dependencies {
-
-		compileOnly 'org.projectlombok:lombok:1.18.32'
-		annotationProcessor 'org.projectlombok:lombok:1.18.32'
-		testCompileOnly 'org.projectlombok:lombok:1.18.32'
-		testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	}
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.32'
+        annotationProcessor 'org.projectlombok:lombok:1.18.32'
+        testCompileOnly 'org.projectlombok:lombok:1.18.32'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
 }
 
 tasks.register('runLocalServices') {
-	group = 'application'
-	description = '로컬 개발용으로 실제 서버 주제영역(MBR, ACC, XYZ)을 동시에 실행합니다. PFW/CMN은 라이브러리로 포함됩니다.'
+    group = 'application'
+    description = 'Run MBR, ACC, XYZ, and ADM local services together. PFW/CMN are library modules.'
 
-	dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes'
+    dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes'
 
-	doLast {
-		def services = [
-				[name: 'MBR', project: project(':mbr'), mainClass: 'fps.mbr.MbrApplication'],
-				[name: 'ACC', project: project(':acc'), mainClass: 'fps.acc.AccApplication'],
-				[name: 'XYZ', project: project(':xyz'), mainClass: 'fps.xyz.XyzApplication']
-		]
-		def javaExecutable = new File(
-				System.getProperty('java.home'),
-				'bin/java' + (System.getProperty('os.name').toLowerCase().contains('windows') ? '.exe' : '')
-		)
-		def processes = []
-		def logThreads = []
+    doLast {
+        def services = [
+                [name: 'MBR', project: project(':mbr'), mainClass: 'cpf.mbr.MbrApplication'],
+                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccApplication'],
+                [name: 'XYZ', project: project(':xyz'), mainClass: 'cpf.xyz.XyzApplication'],
+                [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication']
+        ]
+        def javaExecutable = new File(
+                System.getProperty('java.home'),
+                'bin/java' + (System.getProperty('os.name').toLowerCase().contains('windows') ? '.exe' : '')
+        )
+        def processes = []
+        def logThreads = []
 
-		logger.lifecycle('로컬 주제영역 서비스를 시작합니다: MBR(8081), ACC(8080), XYZ(8099)')
-		logger.lifecycle('PFW, CMN은 각 서비스에 라이브러리로 포함되며 별도 포트로 실행하지 않습니다.')
-		logger.lifecycle('종료하려면 Gradle 실행 창에서 중지 버튼 또는 Ctrl+C를 사용하세요.')
+        logger.lifecycle('Starting local CPF services: MBR(8081), ACC(8080), XYZ(8099), ADM(8090)')
+        logger.lifecycle('PFW and CMN run as libraries inside each service.')
 
-		services.each { service ->
-			def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
-			def argFile = new File(temporaryDir, "${service.name.toLowerCase()}-java-args.txt")
-			argFile.parentFile.mkdirs()
-			argFile.text = [
-					'-cp',
-					quoteJavaArg(classpath),
-					service.mainClass
-			].join(System.lineSeparator())
+        services.each { service ->
+            def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
+            def argFile = new File(temporaryDir, "${service.name.toLowerCase()}-java-args.txt")
+            argFile.parentFile.mkdirs()
+            argFile.text = [
+                    '-cp',
+                    quoteJavaArg(classpath),
+                    service.mainClass
+            ].join(System.lineSeparator())
 
-			def processBuilder = new ProcessBuilder(javaExecutable.absolutePath, "@${argFile.absolutePath}")
-			processBuilder.directory(rootProject.projectDir)
-			processBuilder.redirectErrorStream(true)
+            def processBuilder = new ProcessBuilder(javaExecutable.absolutePath, "@${argFile.absolutePath}")
+            processBuilder.directory(rootProject.projectDir)
+            processBuilder.redirectErrorStream(true)
 
-			def process = processBuilder.start()
-			processes << [name: service.name, process: process]
+            def process = processBuilder.start()
+            processes << [name: service.name, process: process]
 
-			def logThread = Thread.start("${service.name}-local-log") {
-				process.inputStream.withReader('UTF-8') { reader ->
-					String line
-					while ((line = reader.readLine()) != null) {
-						println "[${service.name}] ${line}"
-					}
-				}
-			}
-			logThreads << logThread
-		}
+            def logThread = Thread.start("${service.name}-local-log") {
+                process.inputStream.withReader('UTF-8') { reader ->
+                    String line
+                    while ((line = reader.readLine()) != null) {
+                        println "[${service.name}] ${line}"
+                    }
+                }
+            }
+            logThreads << logThread
+        }
 
-		def shutdownHook = new Thread({
-			stopLocalServiceProcesses(processes)
-		}, 'runLocalServices-shutdown')
-		Runtime.runtime.addShutdownHook(shutdownHook)
+        def shutdownHook = new Thread({
+            stopLocalServiceProcesses(processes)
+        }, 'runLocalServices-shutdown')
+        Runtime.runtime.addShutdownHook(shutdownHook)
 
-		try {
-			while (processes.every { it.process.isAlive() }) {
-				Thread.sleep(1000)
-			}
+        try {
+            while (processes.every { it.process.isAlive() }) {
+                Thread.sleep(1000)
+            }
 
-			def stopped = processes.find { !it.process.isAlive() }
-			if (stopped != null) {
-				throw new GradleException("${stopped.name} 서비스가 종료되었습니다. runLocalServices를 중지합니다.")
-			}
-		} finally {
-			try {
-				Runtime.runtime.removeShutdownHook(shutdownHook)
-			} catch (IllegalStateException ignored) {
-				// JVM 종료 중이면 shutdownHook 제거가 불가능합니다.
-			}
-			stopLocalServiceProcesses(processes)
-			logThreads.each { it.join(1000) }
-		}
-	}
+            def stopped = processes.find { !it.process.isAlive() }
+            if (stopped != null) {
+                throw new GradleException("${stopped.name} stopped. Stopping runLocalServices.")
+            }
+        } finally {
+            try {
+                Runtime.runtime.removeShutdownHook(shutdownHook)
+            } catch (IllegalStateException ignored) {
+                // JVM is already shutting down.
+            }
+            stopLocalServiceProcesses(processes)
+            logThreads.each { it.join(1000) }
+        }
+    }
 }
 
 String quoteJavaArg(String value) {
-	return '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    return '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
 }
 
 void stopLocalServiceProcesses(List processes) {
-	processes.each { entry ->
-		def process = entry.process
-		if (process.isAlive()) {
-			process.destroy()
-			if (!process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
-				process.destroyForcibly()
-			}
-		}
-	}
+    processes.each { entry ->
+        def process = entry.process
+        if (process.isAlive()) {
+            process.destroy()
+            if (!process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                process.destroyForcibly()
+            }
+        }
+    }
 }

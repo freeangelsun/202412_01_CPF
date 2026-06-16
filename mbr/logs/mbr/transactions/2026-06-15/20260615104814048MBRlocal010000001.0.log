@@ -1,0 +1,1 @@
+2026-06-15 10:48:14.054 [DEBUG] [Test worker] [o.s.w.s.m.m.a.RequestMappingHandlerMapping] [TranId: 20260615104814048MBRlocal010000001] [BizTranId: ] [TraceId: ebd38e7d-0d62-4bfe-9a47-e74b86d758b0] [SpanId: SPN-89017924-cec4-4869-9f16-34583bc4b266] [DynLevel: ] - Mapped to fps.mbr.bse.controller.MbrController#getDetail(Integer)

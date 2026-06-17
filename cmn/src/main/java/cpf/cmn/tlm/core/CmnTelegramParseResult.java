@@ -11,7 +11,7 @@ import java.util.Map;
  * @param actualLength    ?ㅼ젣 ?섏떊 湲몄씠
  * @param rawFields       ?꾨뱶蹂??먮Ц 臾몄옄?? * @param typedFields     ?꾨뱶蹂??먮즺??蹂??寃곌낵
  * @param json            JSON ?쒗쁽
- * @param warnings        湲몄씠 遺議? 珥덇낵 ??寃쎄퀬 紐⑸줉
+ * @param warnings        湲몄씠 遺議? 珥덇낵 ??寃쎄퀬 ⑸줉
  */
 public record CmnTelegramParseResult(
         String originalText,

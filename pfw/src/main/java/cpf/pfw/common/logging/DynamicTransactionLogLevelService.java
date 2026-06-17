@@ -100,7 +100,7 @@ public class DynamicTransactionLogLevelService {
     /**
      * ?꾩옱 ?깅줉??洹쒖튃??議고쉶?⑸땲??
      *
-     * @return 留뚮즺?섏? ?딆? 洹쒖튃 紐⑸줉
+     * @return 留뚮즺?섏? ?딆? 洹쒖튃 ⑸줉
      */
     public List<DynamicLogLevelRule> findActiveRules() {
         cleanupExpired();
@@ -120,7 +120,7 @@ public class DynamicTransactionLogLevelService {
     }
 
     /**
-     * 紐⑤뱺 洹쒖튃???쒓굅?⑸땲??
+     * ⑤뱺 洹쒖튃???쒓굅?⑸땲??
      */
     public void clear() {
         rules.clear();

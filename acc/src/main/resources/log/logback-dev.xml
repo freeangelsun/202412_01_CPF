@@ -15,7 +15,7 @@
         </encoder>
     </appender>
 
-    <!-- ??紐⑤뱢 濡쒓렇 ?댄렂??(RollingFileAppender ?ъ슜) -->
+    <!-- ??⑤뱢 濡쒓렇 ?댄렂??(RollingFileAppender ?ъ슜) -->
     <appender name="MODULE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- ???쇰퀎 濡쒓렇 ?뚯씪 ?앹꽦 -->
@@ -97,7 +97,7 @@
         <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
-    <!-- ??紐⑤뱺 濡쒓굅媛 ROOT瑜??ъ슜?섎룄濡?媛뺤젣 -->
+    <!-- ??⑤뱺 濡쒓굅媛 ROOT瑜??ъ슜?섎룄濡?媛뺤젣 -->
     <logger name="org.apache.ibatis" level="DEBUG" additivity="true"/>
     <logger name="org.apache.ibatis.SQL" level="DEBUG" additivity="true"/>
     <logger name="org.apache.ibatis.mapping" level="DEBUG" additivity="true"/>

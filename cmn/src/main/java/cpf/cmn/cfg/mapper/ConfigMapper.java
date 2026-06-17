@@ -15,7 +15,7 @@ public interface ConfigMapper {
     /**
      * ?꾩껜 ?ㅼ젙媛믪쓣 議고쉶?⑸땲??
      *
-     * @return ?ㅼ젙媛?紐⑸줉
+     * @return ?ㅼ젙媛?⑸줉
      */
     List<Map<String, Object>> findAllConfigs();
 

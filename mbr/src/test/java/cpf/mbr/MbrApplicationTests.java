@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * MBR 紐⑤뱢 湲곕낯 Spring Boot ?뚯뒪??
+ * MBR ⑤뱢 湲곕낯 Spring Boot ?뚯뒪??
  * 
  * @author FPS Team
  * @version 1.0.0

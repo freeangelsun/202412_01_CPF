@@ -26,14 +26,14 @@
     <select id="findAllMessages" resultType="map">
         SELECT
             <include refid="messageColumns"/>
-        FROM message_table
+        FROM pfw_message
         ORDER BY message_code, locale
     </select>
 
     <select id="findMessageByKey" resultType="map" parameterType="string">
         SELECT
             <include refid="messageColumns"/>
-        FROM message_table
+        FROM pfw_message
         WHERE message_code = #{messageKey}
           AND use_yn = 'Y'
         ORDER BY locale, message_id
@@ -43,7 +43,7 @@
     <select id="findMessageByKeyAndLocale" resultType="map">
         SELECT
             <include refid="messageColumns"/>
-        FROM message_table
+        FROM pfw_message
         WHERE message_code = #{messageKey}
           AND locale = #{locale}
           AND use_yn = 'Y'
@@ -54,7 +54,7 @@
     <select id="findMessageByKeyLocaleType" resultType="map">
         SELECT
             <include refid="messageColumns"/>
-        FROM message_table
+        FROM pfw_message
         WHERE message_code = #{messageKey}
           AND locale = #{locale}
           AND use_yn = 'Y'
@@ -65,7 +65,7 @@
     <select id="findMessageById" resultType="map" parameterType="long">
         SELECT
             <include refid="messageColumns"/>
-        FROM message_table
+        FROM pfw_message
         WHERE message_id = #{messageId}
     </select>
 
@@ -73,7 +73,7 @@
             useGeneratedKeys="true"
             keyProperty="messageId"
             keyColumn="message_id">
-        INSERT INTO message_table (
+        INSERT INTO pfw_message (
             message_code,
             locale,
             message_format_type,
@@ -105,7 +105,7 @@
     </insert>
 
     <update id="updateMessage">
-        UPDATE message_table
+        UPDATE pfw_message
         SET
             message_code = #{request.effectiveMessageCode},
             locale = #{request.locale},
@@ -122,7 +122,7 @@
     </update>
 
     <delete id="deleteMessage" parameterType="long">
-        DELETE FROM message_table
+        DELETE FROM pfw_message
         WHERE message_id = #{messageId}
     </delete>
 

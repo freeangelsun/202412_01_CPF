@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * PFW 嫄곕옒 濡쒓렇 ??嫄댁쓣 ?쒗쁽?섎뒗 ?곗씠??媛앹껜?낅땲??
+ * PFW 거래 로그 요약 저장 객체입니다.
  *
- * <p>{@code LoggingAspect}媛 而⑦듃濡ㅻ윭 ?ㅽ뻾 ?뺣낫瑜???媛앹껜???닿퀬,
- * {@code TransactionLogService}媛 TRAN_LOG ?뚯씠釉붿뿉 ??ν빀?덈떎.
- * 蹂몃Ц, ?뚮씪誘명꽣, ?묐떟泥섎읆 ???곗씠?곕뒗 ??媛앹껜?먮룄 ?붿빟 ??ν븯怨? * TRAN_LOG_DTL?먮뒗 ??媛??곸꽭 濡쒓렇濡???踰?????ν빀?덈떎.</p>
+ * <p>{@code LoggingAspect}가 요청, 응답, 실행 메타, 표준 거래 헤더를 수집하고
+ * {@code TransactionLogService}가 {@code pfw_transaction_log}에 저장합니다.
+ * 본문처럼 큰 데이터는 요약 로그와 상세 로그에 나누어 저장합니다.</p>
  */
 @Data
 @Builder
@@ -30,6 +30,15 @@ public class TransactionLogRecord {
     private String businessTransactionId;
     private String businessTransactionName;
     private String logType;
+    private String apiVersion;
+    private String clientAppId;
+    private String clientVersion;
+    private String callerService;
+    private String callerInstanceId;
+    private String correlationId;
+    private String idempotencyKey;
+    private String locale;
+    private String timezone;
     private String requestType;
     private String originalChannelCode;
     private String channelCode;
@@ -80,4 +89,3 @@ public class TransactionLogRecord {
     private LocalDateTime endTime;
     private Long durationMs;
 }
-

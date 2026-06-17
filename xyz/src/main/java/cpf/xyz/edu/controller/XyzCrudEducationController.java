@@ -21,14 +21,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CRUD ?쒖? 媛쒕컻 ?⑦꽩??蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
+ * 신규 업무 모듈 개발자가 가장 먼저 참고하는 CRUD 교육 API입니다.
  *
- * <p>議고쉶 ?앸퀎?먮뒗 寃쎈줈 蹂?섍? ?꾨땲??紐낆떆 荑쇰━ ?뚮씪誘명꽣濡?諛쏄퀬,
- * ?깅줉/?섏젙 ?곗씠?곕뒗 Body DTO濡?諛쏅뒗 湲덉쑖沅?API ?쒖????섑뵆濡??쒓났?⑸땲??</p>
+ * <p>Controller, Service, DTO, 예외, 거래 로그 ID 부여 방식을 한 화면에서 확인할 수 있도록
+ * 메모리 기반 샘플 저장소를 사용합니다. 실제 업무 모듈에서는 같은 패턴에 Mapper 또는 Repository를
+ * 연결하면 됩니다.</p>
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "XYZ-EDU 01. CRUD ?쒖?", description = "紐⑸줉/?④굔/?깅줉/?섏젙/??젣 ?쒖? API ?섑뵆")
+@Tag(name = "XYZ-EDU 01. CRUD 샘플", description = "조회, 상세, 등록, 수정, 삭제 API 작성 기준")
 public class XyzCrudEducationController {
     private final XyzSampleService xyzSampleService;
 
@@ -37,53 +38,53 @@ public class XyzCrudEducationController {
     }
 
     /**
-     * 紐⑸줉 議고쉶 媛쒕컻 ?⑦꽩?낅땲??
+     * 목록 조회 API의 기본 구조를 보여줍니다.
      *
-     * @return ?섑뵆 紐⑸줉
+     * @return 샘플 목록
      */
     @GetMapping("/samples")
-    @FpsTransaction(id = "XYZ01EDU0001", name = "XYZ援먯쑁紐⑸줉議고쉶")
-    @Operation(summary = "XYZ 援먯쑁 ?섑뵆 紐⑸줉 議고쉶", description = "紐⑸줉 議고쉶, readOnly ?몃옖??뀡, 嫄곕옒 濡쒓렇 ?곸옱 湲곗????뺤씤?⑸땲??")
+    @FpsTransaction(id = "XYZ01EDU0001", name = "XYZ교육샘플목록조회")
+    @Operation(summary = "샘플 목록 조회", description = "readOnly 조회 API와 표준 거래 로그 기록 방식을 확인합니다.")
     public ResponseEntity<List<XyzSampleResponse>> findSamples() {
         return ResponseEntity.ok(xyzSampleService.findSamples());
     }
 
     /**
-     * ?④굔 議고쉶 媛쒕컻 ?⑦꽩?낅땲??
+     * 단건 상세 조회 API의 기본 구조를 보여줍니다.
      *
-     * @param sampleId ?섑뵆 ID
-     * @return ?섑뵆 ?④굔
+     * @param sampleId 샘플 ID
+     * @return 샘플 상세
      */
     @GetMapping("/samples/detail")
-    @FpsTransaction(id = "XYZ01EDU0002", name = "XYZ援먯쑁?④굔議고쉶")
-    @Operation(summary = "XYZ 援먯쑁 ?섑뵆 ?④굔 議고쉶", description = "紐낆떆 荑쇰━ ?뚮씪誘명꽣? ?쒖? NotFound ?덉쇅 泥섎━ 諛⑹떇???뺤씤?⑸땲??")
+    @FpsTransaction(id = "XYZ01EDU0002", name = "XYZ교육샘플상세조회")
+    @Operation(summary = "샘플 상세 조회", description = "필수 파라미터 검증과 NotFound 예외 처리 흐름을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> getSample(@RequestParam Long sampleId) {
         return ResponseEntity.ok(xyzSampleService.getSample(sampleId));
     }
 
     /**
-     * ?깅줉 媛쒕컻 ?⑦꽩?낅땲??
+     * 등록 API의 기본 구조를 보여줍니다.
      *
-     * @param request ?깅줉 ?붿껌
-     * @return ?깅줉???섑뵆
+     * @param request 등록 요청
+     * @return 등록된 샘플
      */
     @PostMapping("/samples")
-    @FpsTransaction(id = "XYZ02EDU0001", name = "XYZ援먯쑁?섑뵆?깅줉")
-    @Operation(summary = "XYZ 援먯쑁 ?섑뵆 ?깅줉", description = "Body DTO瑜??댁슜???깅줉 嫄곕옒? ?쒖? 嫄곕옒ID 遺??諛⑹떇???뺤씤?⑸땲??")
+    @FpsTransaction(id = "XYZ02EDU0001", name = "XYZ교육샘플등록")
+    @Operation(summary = "샘플 등록", description = "Body DTO를 받아 신규 데이터를 생성하는 API 작성 방식을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> createSample(@RequestBody XyzSampleRequest request) {
         return ResponseEntity.ok(xyzSampleService.createSample(request));
     }
 
     /**
-     * ?섏젙 媛쒕컻 ?⑦꽩?낅땲??
+     * 수정 API의 기본 구조를 보여줍니다.
      *
-     * @param sampleId ?섏젙???섑뵆 ID
-     * @param request  ?섏젙 ?붿껌
-     * @return ?섏젙???섑뵆
+     * @param sampleId 수정 대상 샘플 ID
+     * @param request 수정 요청
+     * @return 수정된 샘플
      */
     @PutMapping("/samples")
-    @FpsTransaction(id = "XYZ03EDU0001", name = "XYZ援먯쑁?섑뵆?섏젙")
-    @Operation(summary = "XYZ 援먯쑁 ?섑뵆 ?섏젙", description = "?앸퀎?먮뒗 荑쇰━ ?뚮씪誘명꽣濡? 蹂寃?媛믪? Body濡?諛쏅뒗 ?섏젙 嫄곕옒 ?쒖????뺤씤?⑸땲??")
+    @FpsTransaction(id = "XYZ03EDU0001", name = "XYZ교육샘플수정")
+    @Operation(summary = "샘플 수정", description = "식별자와 Body DTO를 함께 받아 데이터를 수정하는 API 작성 방식을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> updateSample(
             @RequestParam Long sampleId,
             @RequestBody XyzSampleRequest request) {
@@ -91,14 +92,14 @@ public class XyzCrudEducationController {
     }
 
     /**
-     * ??젣 媛쒕컻 ?⑦꽩?낅땲??
+     * 삭제 API의 기본 구조를 보여줍니다.
      *
-     * @param sampleId ??젣???섑뵆 ID
-     * @return ??젣 寃곌낵
+     * @param sampleId 삭제 대상 샘플 ID
+     * @return 삭제 결과
      */
     @DeleteMapping("/samples")
-    @FpsTransaction(id = "XYZ04EDU0001", name = "XYZ援먯쑁?섑뵆??젣")
-    @Operation(summary = "XYZ 援먯쑁 ?섑뵆 ??젣", description = "紐낆떆 ?뚮씪誘명꽣 湲곕컲 ??젣 嫄곕옒? ??젣 ???쒖? ?덉쇅 ?먮쫫???뺤씤?⑸땲??")
+    @FpsTransaction(id = "XYZ04EDU0001", name = "XYZ교육샘플삭제")
+    @Operation(summary = "샘플 삭제", description = "삭제 API와 삭제 결과 응답 작성 방식을 확인합니다.")
     public ResponseEntity<Map<String, Object>> deleteSample(@RequestParam Long sampleId) {
         xyzSampleService.deleteSample(sampleId);
         Map<String, Object> response = new LinkedHashMap<>();
@@ -107,4 +108,3 @@ public class XyzCrudEducationController {
         return ResponseEntity.ok(response);
     }
 }
-

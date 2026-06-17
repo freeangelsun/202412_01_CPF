@@ -34,4 +34,13 @@ out/
 /.nb-gradle/
 
 ### VS Code ###
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+### CPF runtime logs ###
+logs/
+**/logs/
+*.log
+*.log.*

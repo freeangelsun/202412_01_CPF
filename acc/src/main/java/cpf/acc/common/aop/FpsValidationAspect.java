@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 /**
- * AOP瑜??ъ슜?섏뿬 紐⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 FpsDTO 洹쒓꺽??寃利앺빀?덈떎.
+ * AOP瑜??ъ슜?섏뿬 ⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 FpsDTO 洹쒓꺽??寃利앺빀?덈떎.
  * ?붿껌??FpsDTO 洹쒓꺽??留욎? ?딆쑝硫??덉쇅瑜?諛쒖깮?쒗궢?덈떎.
  */
 @Aspect
@@ -31,7 +31,7 @@ public class FpsValidationAspect {
     }
 
     /**
-     * 紐⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 FpsDTO瑜?寃利?
+     * ⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 FpsDTO瑜?寃利?
      *
      * @param joinPoint AOP 議곗씤?ъ씤??
      * @return 硫붿꽌???ㅽ뻾 寃곌낵

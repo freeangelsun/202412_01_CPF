@@ -89,6 +89,15 @@ public class TransactionContextFilter extends OncePerRequestFilter {
 
     private TransactionHeader buildTransactionHeader(HttpServletRequest request) {
         return TransactionHeader.builder()
+                .apiVersion(request.getHeader(TransactionContext.HEADER_API_VERSION))
+                .clientAppId(request.getHeader(TransactionContext.HEADER_CLIENT_APP_ID))
+                .clientVersion(request.getHeader(TransactionContext.HEADER_CLIENT_VERSION))
+                .callerService(request.getHeader(TransactionContext.HEADER_CALLER_SERVICE))
+                .callerInstanceId(request.getHeader(TransactionContext.HEADER_CALLER_INSTANCE_ID))
+                .correlationId(request.getHeader(TransactionContext.HEADER_CORRELATION_ID))
+                .idempotencyKey(request.getHeader(TransactionContext.HEADER_IDEMPOTENCY_KEY))
+                .locale(request.getHeader(TransactionContext.HEADER_LOCALE))
+                .timezone(request.getHeader(TransactionContext.HEADER_TIMEZONE))
                 .requestType(request.getHeader(TransactionContext.HEADER_REQUEST_TYPE))
                 .originalChannelCode(request.getHeader(TransactionContext.HEADER_ORIGINAL_CHANNEL_CODE))
                 .channelCode(request.getHeader(TransactionContext.HEADER_CHANNEL_CODE))

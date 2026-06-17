@@ -18,7 +18,7 @@ public class CmnMyBatisConfig {
 
     private final DataSource cmnDataSource;
 
-    // DataSource 紐낇솗?섍쾶 吏??
+    // DataSource 낇솗?섍쾶 吏??
     public CmnMyBatisConfig(@Qualifier("cmnDataSource") DataSource cmnDataSource) {
         this.cmnDataSource = cmnDataSource;
     }

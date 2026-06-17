@@ -4,9 +4,9 @@ import cpf.cmn.mqe.core.CmnMessageBrokerType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * CMN 硫붿떆吏 ??怨듯넻 紐⑤뱢 ?ㅼ젙?낅땲??
+ * CMN 硫붿떆吏 ??怨듯넻 ⑤뱢 ?ㅼ젙?낅땲??
  *
- * <p>?낅Т 媛쒕컻?먮뒗 Kafka, RabbitMQ, 濡쒖뺄 ?몃찓紐⑤━ 以??대뼡 釉뚮줈而ㅻ? ?ъ슜?좎?
+ * <p>?낅Т 媛쒕컻?먮뒗 Kafka, RabbitMQ, 濡쒖뺄 ?몃찓⑤━ 以??대뼡 釉뚮줈而ㅻ? ?ъ슜?좎?
  * {@code cpf.cmn.messaging.broker} ?ㅼ젙留?諛붽씀硫??⑸땲?? 濡쒖뺄 援먯쑁 ?섍꼍?먯꽌?? * 蹂꾨룄 釉뚮줈而??놁씠 ?숈옉?섎룄濡?湲곕낯媛믪쓣 {@code IN_MEMORY}濡??〓땲??</p>
  */
 @ConfigurationProperties(prefix = "cpf.cmn.messaging")
@@ -23,7 +23,7 @@ public class CmnMessagingProperties {
     private CmnMessageBrokerType broker = CmnMessageBrokerType.IN_MEMORY;
 
     /**
-     * 紐⑹쟻吏媛 ?앸왂?먯쓣 ???ъ슜??湲곕낯 topic/queue ?대쫫?낅땲??
+     * ⑹쟻吏媛 ?앸왂?먯쓣 ???ъ슜??湲곕낯 topic/queue ?대쫫?낅땲??
      */
     private String defaultDestination = "cpf.default.event";
 

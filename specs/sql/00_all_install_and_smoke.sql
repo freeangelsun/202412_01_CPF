@@ -1,13 +1,18 @@
--- CPF all-in-one install and smoke-check script
--- Generated from split SQL files. Execute this file directly from any working directory.
+-- CPF 전체 설치 SQL입니다.
+-- 이 파일은 split SQL의 내용을 모두 포함한 단일 실행 파일입니다.
+-- DB 생성 이후 로컬 초기화 검증을 위해 현재 CPF 표준 테이블을 제거하고 재생성합니다.
 
 -- ============================================================================
--- BEGIN specs/sql/01_create_databases.sql
+-- specs/sql/01_create_databases.sql
 -- ============================================================================
--- CPF initial database creation for MariaDB/MySQL.
--- Run with a user that can create databases.
+-- CPF 초기 데이터베이스 생성 스크립트입니다.
+-- 데이터베이스 생성 권한이 있는 migration 계정 또는 root 계정으로 실행합니다.
 
 CREATE DATABASE IF NOT EXISTS pfwDB
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+CREATE DATABASE IF NOT EXISTS cmnDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
@@ -23,632 +28,1144 @@ CREATE DATABASE IF NOT EXISTS mbrDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
--- END specs/sql/01_create_databases.sql
+-- ============================================================================
+-- CPF 전체 테이블 초기화
+-- ============================================================================
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
+DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
+DROP TABLE IF EXISTS mbrDB.mbr_member_role;
+DROP TABLE IF EXISTS mbrDB.mbr_member;
+DROP TABLE IF EXISTS accDB.acc_account;
+DROP TABLE IF EXISTS admDB.adm_operation_log;
+DROP TABLE IF EXISTS admDB.adm_password_history;
+DROP TABLE IF EXISTS admDB.adm_password_policy;
+DROP TABLE IF EXISTS admDB.adm_mfa_otp_secret;
+DROP TABLE IF EXISTS admDB.adm_ip_allowlist;
+DROP TABLE IF EXISTS admDB.adm_dynamic_log_level_rule;
+DROP TABLE IF EXISTS admDB.adm_operator_session;
+DROP TABLE IF EXISTS admDB.adm_audit_log;
+DROP TABLE IF EXISTS admDB.adm_role_button;
+DROP TABLE IF EXISTS admDB.adm_button;
+DROP TABLE IF EXISTS admDB.adm_role_menu;
+DROP TABLE IF EXISTS admDB.adm_menu;
+DROP TABLE IF EXISTS admDB.adm_operator_role;
+DROP TABLE IF EXISTS admDB.adm_role;
+DROP TABLE IF EXISTS admDB.adm_operator;
+DROP TABLE IF EXISTS cmnDB.cmn_business_log;
+DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
+DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
+DROP TABLE IF EXISTS cmnDB.cmn_sequence;
+DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_instance;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_schedule;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_job;
+DROP TABLE IF EXISTS pfwDB.pfw_security_token_audit_log;
+DROP TABLE IF EXISTS pfwDB.pfw_security_jwt_key;
+DROP TABLE IF EXISTS pfwDB.pfw_file_exchange_log;
+DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
+DROP TABLE IF EXISTS pfwDB.pfw_config;
+DROP TABLE IF EXISTS pfwDB.pfw_response_code;
+DROP TABLE IF EXISTS pfwDB.pfw_message;
+DROP TABLE IF EXISTS pfwDB.pfw_code;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================================
--- BEGIN specs/sql/02_create_service_users.sql
+-- specs/sql/02_create_service_users.sql
 -- ============================================================================
--- Local least-privilege service users for CPF modules.
--- These accounts are for local/test only. Change passwords or use environment variables in real deployments.
+-- CPF 로컬/테스트용 최소 권한 계정 생성 스크립트입니다.
+-- 운영 환경에서는 같은 계정 구조를 유지하되 비밀번호는 Vault/KMS 또는 배포 환경변수로 주입합니다.
 
-CREATE USER IF NOT EXISTS 'cpf_pfw'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_adm'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_acc'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_mbr'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_pfw_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_cmn_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_adm_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_acc_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_mbr_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
 
-ALTER USER 'cpf_pfw'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-ALTER USER 'cpf_adm'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-ALTER USER 'cpf_acc'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-ALTER USER 'cpf_mbr'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_pfw_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_cmn_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_adm_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_acc_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+CREATE USER IF NOT EXISTS 'cpf_mbr_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON pfwDB.* TO 'cpf_pfw'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON admDB.* TO 'cpf_adm'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON accDB.* TO 'cpf_acc'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON mbrDB.* TO 'cpf_mbr'@'localhost';
+ALTER USER 'cpf_pfw_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_cmn_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_adm_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_acc_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_mbr_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+
+ALTER USER 'cpf_pfw_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_cmn_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_adm_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_acc_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+ALTER USER 'cpf_mbr_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
+
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON pfwDB.* TO 'cpf_pfw_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON cmnDB.* TO 'cpf_cmn_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON admDB.* TO 'cpf_adm_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON accDB.* TO 'cpf_acc_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON mbrDB.* TO 'cpf_mbr_migration'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON pfwDB.* TO 'cpf_pfw_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON cmnDB.* TO 'cpf_cmn_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON admDB.* TO 'cpf_adm_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON accDB.* TO 'cpf_acc_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON mbrDB.* TO 'cpf_mbr_app'@'localhost';
 
 FLUSH PRIVILEGES;
 
--- END specs/sql/02_create_service_users.sql
-
 -- ============================================================================
--- BEGIN specs/sql/03_cleanup_legacy_layout.sql
+-- specs/sql/10_pfw_schema.sql
 -- ============================================================================
--- Cleanup legacy local/test sample layout.
--- Earlier CPF sample scripts created CMN-owned reference tables and member samples outside their domains.
--- The current layout owns framework reference tables in pfwDB and MBR samples in mbrDB.member only.
-
-DROP DATABASE IF EXISTS cmnDB;
-DROP TABLE IF EXISTS admDB.member;
-DROP TABLE IF EXISTS accDB.acc_member;
-
--- END specs/sql/03_cleanup_legacy_layout.sql
-
--- ============================================================================
--- BEGIN specs/sql/10_pfw_schema.sql
--- ============================================================================
--- PFW framework schema.
--- Target DB: pfwDB
+-- PFW 프레임워크 엔진 스키마입니다.
+-- 거래로그, 시스템 코드/메시지, 응답코드, 설정, 캐시 이벤트, 보안 메타, 배치 운영 메타를 pfwDB에 배치합니다.
 
 USE pfwDB;
 
-CREATE TABLE IF NOT EXISTS TRAN_LOG (
-    LOG_DATE DATE NOT NULL,
-    LOG_IDX BIGINT NOT NULL AUTO_INCREMENT,
-    TRANSACTION_ID VARCHAR(100) NULL,
-    TRACE_ID VARCHAR(100) NULL,
-    SPAN_ID VARCHAR(100) NULL,
-    PARENT_SPAN_ID VARCHAR(100) NULL,
-    SEQUENCE_NO INT NULL DEFAULT 1,
-    MODULE_ID VARCHAR(20) NULL DEFAULT 'N/A',
-    MENU_ID VARCHAR(50) NULL,
-    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL,
-    BUSINESS_TRANSACTION_NAME VARCHAR(150) NULL,
-    LOG_TYPE VARCHAR(20) NULL DEFAULT 'N/A',
-    REQUEST_TYPE VARCHAR(20) NULL,
-    ORIGINAL_CHANNEL_CODE VARCHAR(20) NULL,
-    CHANNEL_CODE VARCHAR(20) NULL,
-    MEMBER_NO VARCHAR(50) NULL,
-    CUSTOMER_NO VARCHAR(50) NULL,
-    SCREEN_ID VARCHAR(50) NULL,
-    DEVICE_ID VARCHAR(100) NULL,
-    CLIENT_REQUEST_TIME VARCHAR(30) NULL,
-    WAS_ID VARCHAR(50) NULL,
-    RESERVED_FIELD_1 VARCHAR(255) NULL,
-    RESERVED_FIELD_2 VARCHAR(255) NULL,
-    RESERVED_FIELD_3 VARCHAR(255) NULL,
-    RESERVED_FIELD_4 VARCHAR(255) NULL,
-    RESERVED_FIELD_5 VARCHAR(255) NULL,
-    HTTP_METHOD VARCHAR(10) NULL,
-    URI VARCHAR(500) NULL DEFAULT 'N/A',
-    CONTROLLER VARCHAR(255) NULL,
-    EXECUTION_PACKAGE VARCHAR(255) NULL,
-    EXECUTION_CLASS VARCHAR(255) NULL,
-    EXECUTION_METHOD VARCHAR(100) NULL,
-    EXECUTION_SIGNATURE VARCHAR(1000) NULL,
-    WORKFLOW_ID VARCHAR(50) NULL,
-    WORKFLOW_NAME VARCHAR(100) NULL,
-    WORKFLOW_INSTANCE_ID VARCHAR(100) NULL,
-    WORKFLOW_STEP_ID VARCHAR(50) NULL,
-    WORKFLOW_STEP_NAME VARCHAR(100) NULL,
-    WORKFLOW_STATUS VARCHAR(30) NULL,
-    WORKFLOW_FAILURE_POLICY VARCHAR(30) NULL,
-    COMPENSATION_YN CHAR(1) NOT NULL DEFAULT 'N',
-    COMPENSATION_TRANSACTION_ID VARCHAR(20) NULL,
-    COMPENSATION_TARGET_TRANSACTION_ID VARCHAR(20) NULL,
-    COMPENSATION_STATUS VARCHAR(30) NULL,
-    PARAMETERS MEDIUMTEXT NULL,
-    REQUEST_BODY MEDIUMTEXT NULL,
-    RESPONSE MEDIUMTEXT NULL,
-    HTTP_STATUS INT NULL,
-    RESPONSE_CODE VARCHAR(20) NULL,
-    MESSAGE_CODE VARCHAR(20) NULL,
-    MESSAGE_CONTENT VARCHAR(1000) NULL,
-    ERROR_MESSAGE MEDIUMTEXT NULL,
-    ERROR_CODE VARCHAR(100) NULL,
-    EXTERNAL_MESSAGE VARCHAR(1000) NULL,
-    INTERNAL_MESSAGE MEDIUMTEXT NULL,
-    EXEC_USER VARCHAR(100) NOT NULL DEFAULT 'N/A',
-    CLIENT_IP VARCHAR(100) NULL,
-    USER_AGENT VARCHAR(500) NULL,
-    START_TIME DATETIME(3) NULL,
-    END_TIME DATETIME(3) NULL,
-    DURATION_MS BIGINT NULL,
-    CREATED_BY VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_transaction_log (
+    LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
+    LOG_IDX BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 로그 순번',
+    TRANSACTION_ID VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    TRACE_ID VARCHAR(100) NULL COMMENT '분산 추적 ID',
+    SPAN_ID VARCHAR(100) NULL COMMENT '현재 span ID',
+    PARENT_SPAN_ID VARCHAR(100) NULL COMMENT '상위 span ID',
+    SEQUENCE_NO INT NULL DEFAULT 1 COMMENT '거래 내부 로그 순번',
+    MODULE_ID VARCHAR(20) NULL DEFAULT 'N/A' COMMENT '모듈 ID',
+    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 또는 화면 ID',
+    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL COMMENT '업무 거래 ID',
+    BUSINESS_TRANSACTION_NAME VARCHAR(150) NULL COMMENT '업무 거래명',
+    LOG_TYPE VARCHAR(20) NULL DEFAULT 'N/A' COMMENT '로그 유형',
+    API_VERSION VARCHAR(20) NULL COMMENT '호출 API 버전',
+    CLIENT_APP_ID VARCHAR(80) NULL COMMENT '클라이언트 앱 또는 제휴 시스템 ID',
+    CLIENT_VERSION VARCHAR(50) NULL COMMENT '클라이언트 앱 또는 SDK 버전',
+    CALLER_SERVICE VARCHAR(120) NULL COMMENT '호출 서비스명',
+    CALLER_INSTANCE_ID VARCHAR(120) NULL COMMENT '호출 인스턴스 ID',
+    CORRELATION_ID VARCHAR(120) NULL COMMENT '내부 연계 상관관계 ID',
+    IDEMPOTENCY_KEY VARCHAR(120) NULL COMMENT '중복 처리 방지 멱등키',
+    LOCALE VARCHAR(20) NULL COMMENT '클라이언트 locale',
+    TIMEZONE VARCHAR(50) NULL COMMENT '클라이언트 시간대',
+    REQUEST_TYPE VARCHAR(20) NULL COMMENT '요청 유형',
+    ORIGINAL_CHANNEL_CODE VARCHAR(20) NULL COMMENT '최초 유입 채널 코드',
+    CHANNEL_CODE VARCHAR(20) NULL COMMENT '현재 처리 채널 코드',
+    MEMBER_NO VARCHAR(50) NULL COMMENT '회원 번호',
+    CUSTOMER_NO VARCHAR(50) NULL COMMENT '고객 번호',
+    SCREEN_ID VARCHAR(50) NULL COMMENT '화면 ID',
+    DEVICE_ID VARCHAR(100) NULL COMMENT '디바이스 ID',
+    CLIENT_REQUEST_TIME VARCHAR(30) NULL COMMENT '클라이언트 요청 생성 시각',
+    WAS_ID VARCHAR(50) NULL COMMENT '처리 WAS ID',
+    RESERVED_FIELD_1 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 1',
+    RESERVED_FIELD_2 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 2',
+    RESERVED_FIELD_3 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 3',
+    RESERVED_FIELD_4 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 4',
+    RESERVED_FIELD_5 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 5',
+    HTTP_METHOD VARCHAR(10) NULL COMMENT 'HTTP 메서드',
+    URI VARCHAR(500) NULL DEFAULT 'N/A' COMMENT '요청 URI',
+    CONTROLLER VARCHAR(255) NULL COMMENT 'Controller 요약',
+    EXECUTION_PACKAGE VARCHAR(255) NULL COMMENT '실행 패키지명',
+    EXECUTION_CLASS VARCHAR(255) NULL COMMENT '실행 클래스명',
+    EXECUTION_METHOD VARCHAR(100) NULL COMMENT '실행 메서드명',
+    EXECUTION_SIGNATURE VARCHAR(1000) NULL COMMENT '실행 시그니처',
+    WORKFLOW_ID VARCHAR(50) NULL COMMENT '워크플로우 ID',
+    WORKFLOW_NAME VARCHAR(100) NULL COMMENT '워크플로우명',
+    WORKFLOW_INSTANCE_ID VARCHAR(100) NULL COMMENT '워크플로우 인스턴스 ID',
+    WORKFLOW_STEP_ID VARCHAR(50) NULL COMMENT '워크플로우 단계 ID',
+    WORKFLOW_STEP_NAME VARCHAR(100) NULL COMMENT '워크플로우 단계명',
+    WORKFLOW_STATUS VARCHAR(30) NULL COMMENT '워크플로우 상태',
+    WORKFLOW_FAILURE_POLICY VARCHAR(30) NULL COMMENT '워크플로우 실패 정책',
+    COMPENSATION_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '보상 거래 여부',
+    COMPENSATION_TRANSACTION_ID VARCHAR(20) NULL COMMENT '보상 거래 ID',
+    COMPENSATION_TARGET_TRANSACTION_ID VARCHAR(20) NULL COMMENT '보상 대상 거래 ID',
+    COMPENSATION_STATUS VARCHAR(30) NULL COMMENT '보상 처리 상태',
+    PARAMETERS MEDIUMTEXT NULL COMMENT '마스킹된 요청 파라미터',
+    REQUEST_BODY MEDIUMTEXT NULL COMMENT '마스킹된 요청 본문',
+    RESPONSE MEDIUMTEXT NULL COMMENT '마스킹된 응답 본문',
+    HTTP_STATUS INT NULL COMMENT 'HTTP 상태 코드',
+    RESPONSE_CODE VARCHAR(20) NULL COMMENT 'CPF 응답 코드',
+    MESSAGE_CODE VARCHAR(20) NULL COMMENT '메시지 코드',
+    MESSAGE_CONTENT VARCHAR(1000) NULL COMMENT '외부 호출 메시지',
+    ERROR_MESSAGE MEDIUMTEXT NULL COMMENT '마스킹된 오류 메시지',
+    ERROR_CODE VARCHAR(100) NULL COMMENT '내부 오류 코드',
+    EXTERNAL_MESSAGE VARCHAR(1000) NULL COMMENT '외부 표시 메시지',
+    INTERNAL_MESSAGE MEDIUMTEXT NULL COMMENT '내부 진단 메시지',
+    EXEC_USER VARCHAR(100) NOT NULL DEFAULT 'N/A' COMMENT '실행 사용자',
+    CLIENT_IP VARCHAR(100) NULL COMMENT '클라이언트 IP',
+    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
+    START_TIME DATETIME(3) NULL COMMENT '처리 시작 시각',
+    END_TIME DATETIME(3) NULL COMMENT '처리 종료 시각',
+    DURATION_MS BIGINT NULL COMMENT '처리 시간 밀리초',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (LOG_IDX),
-    INDEX IDX_TRAN_LOG_DATE (LOG_DATE),
-    INDEX IDX_TRAN_LOG_TRANSACTION_ID (TRANSACTION_ID),
-    INDEX IDX_TRAN_LOG_TRANSACTION_TIME (TRANSACTION_ID, START_TIME, LOG_IDX),
-    INDEX IDX_TRAN_LOG_TRACE_ID (TRACE_ID),
-    INDEX IDX_TRAN_LOG_BUSINESS_TRANSACTION_ID (BUSINESS_TRANSACTION_ID),
-    INDEX IDX_TRAN_LOG_BUSINESS_TIME (BUSINESS_TRANSACTION_ID, START_TIME),
-    INDEX IDX_TRAN_LOG_MEMBER_TIME (MEMBER_NO, START_TIME),
-    INDEX IDX_TRAN_LOG_CUSTOMER_TIME (CUSTOMER_NO, START_TIME),
-    INDEX IDX_TRAN_LOG_CHANNEL_TIME (CHANNEL_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_MODULE_TIME (MODULE_ID, START_TIME),
-    INDEX IDX_TRAN_LOG_STATUS_TIME (LOG_TYPE, RESPONSE_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_HTTP_STATUS_TIME (HTTP_STATUS, START_TIME),
-    INDEX IDX_TRAN_LOG_MESSAGE_CODE (MESSAGE_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_ERROR_CODE (ERROR_CODE, START_TIME),
-    INDEX IDX_TRAN_LOG_WORKFLOW_TIME (WORKFLOW_INSTANCE_ID, START_TIME, LOG_IDX),
-    INDEX IDX_TRAN_LOG_COMPENSATION (COMPENSATION_YN, COMPENSATION_STATUS),
-    INDEX IDX_TRAN_LOG_EXECUTION_TIME (EXECUTION_CLASS, EXECUTION_METHOD, START_TIME)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_transaction_log_date (LOG_DATE),
+    INDEX ix_pfw_transaction_log_transaction_id (TRANSACTION_ID),
+    INDEX ix_pfw_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),
+    INDEX ix_pfw_transaction_log_trace_id (TRACE_ID),
+    INDEX ix_pfw_transaction_log_business_transaction_id (BUSINESS_TRANSACTION_ID),
+    INDEX ix_pfw_transaction_log_business_time (BUSINESS_TRANSACTION_ID, START_TIME),
+    INDEX ix_pfw_transaction_log_client_app (CLIENT_APP_ID, START_TIME),
+    INDEX ix_pfw_transaction_log_correlation (CORRELATION_ID, START_TIME),
+    INDEX ix_pfw_transaction_log_idempotency (IDEMPOTENCY_KEY),
+    INDEX ix_pfw_transaction_log_member_time (MEMBER_NO, START_TIME),
+    INDEX ix_pfw_transaction_log_customer_time (CUSTOMER_NO, START_TIME),
+    INDEX ix_pfw_transaction_log_channel_time (CHANNEL_CODE, START_TIME),
+    INDEX ix_pfw_transaction_log_module_time (MODULE_ID, START_TIME),
+    INDEX ix_pfw_transaction_log_status_time (LOG_TYPE, RESPONSE_CODE, START_TIME),
+    INDEX ix_pfw_transaction_log_http_status_time (HTTP_STATUS, START_TIME)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 요약 로그';
 
-CREATE TABLE IF NOT EXISTS TRAN_LOG_DTL (
-    DETAIL_ID BIGINT NOT NULL AUTO_INCREMENT,
-    LOG_IDX BIGINT NOT NULL,
-    DETAIL_KEY VARCHAR(100) NOT NULL DEFAULT 'N/A',
-    DETAIL_VALUE MEDIUMTEXT NOT NULL,
-    CREATED_BY VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_transaction_log_detail (
+    DETAIL_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 상세 로그 순번',
+    LOG_IDX BIGINT NOT NULL COMMENT '거래 로그 순번',
+    DETAIL_KEY VARCHAR(100) NOT NULL DEFAULT 'N/A' COMMENT '상세 항목 키',
+    DETAIL_VALUE MEDIUMTEXT NOT NULL COMMENT '상세 항목 값',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (DETAIL_ID),
-    CONSTRAINT FK_TRAN_LOG_DTL_LOG
-        FOREIGN KEY (LOG_IDX) REFERENCES TRAN_LOG(LOG_IDX)
+    CONSTRAINT fk_pfw_transaction_log_detail_log
+        FOREIGN KEY (LOG_IDX) REFERENCES pfw_transaction_log(LOG_IDX)
         ON DELETE CASCADE,
-    INDEX IDX_TRAN_LOG_DTL_LOG_IDX (LOG_IDX),
-    INDEX IDX_TRAN_LOG_DTL_LOG_KEY (LOG_IDX, DETAIL_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_transaction_log_detail_log_idx (LOG_IDX),
+    INDEX ix_pfw_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 상세 로그';
 
-CREATE TABLE IF NOT EXISTS code_table (
-    code_id BIGINT NOT NULL AUTO_INCREMENT,
-    parent_id BIGINT NULL,
-    code_key VARCHAR(80) NOT NULL,
-    code_value VARCHAR(120) NOT NULL,
-    description VARCHAR(500) NULL,
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_code (
+    code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
+    parent_id BIGINT NULL COMMENT '상위 코드 순번',
+    code_key VARCHAR(80) NOT NULL COMMENT '코드 그룹 키',
+    code_value VARCHAR(120) NOT NULL COMMENT '코드 값',
+    description VARCHAR(500) NULL COMMENT '코드 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (code_id),
-    CONSTRAINT FK_CODE_PARENT
-        FOREIGN KEY (parent_id) REFERENCES code_table(code_id)
+    CONSTRAINT fk_pfw_code_parent
+        FOREIGN KEY (parent_id) REFERENCES pfw_code(code_id)
         ON DELETE SET NULL,
-    UNIQUE KEY UK_CODE_KEY_VALUE (code_key, code_value),
-    INDEX IDX_CODE_PARENT (parent_id),
-    INDEX IDX_CODE_USE (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uk_pfw_code_key_value (code_key, code_value),
+    INDEX ix_pfw_code_parent (parent_id),
+    INDEX ix_pfw_code_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 공통 코드';
 
-CREATE TABLE IF NOT EXISTS message_table (
-    message_id BIGINT NOT NULL AUTO_INCREMENT,
-    message_code VARCHAR(20) NOT NULL,
-    locale VARCHAR(10) NOT NULL DEFAULT 'ko',
-    message_format_type VARCHAR(20) NOT NULL DEFAULT 'FIXED',
-    external_message VARCHAR(2000) NOT NULL,
-    internal_message VARCHAR(4000) NOT NULL,
-    parameter_count INT NOT NULL DEFAULT 0,
-    parameter_sample VARCHAR(1000) NULL,
-    description VARCHAR(500) NULL,
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_message (
+    message_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 순번',
+    message_code VARCHAR(20) NOT NULL COMMENT '메시지 코드',
+    locale VARCHAR(10) NOT NULL DEFAULT 'ko' COMMENT '언어 코드',
+    message_format_type VARCHAR(20) NOT NULL DEFAULT 'FIXED' COMMENT '메시지 포맷 유형',
+    external_message VARCHAR(2000) NOT NULL COMMENT '외부 노출 메시지',
+    internal_message VARCHAR(4000) NOT NULL COMMENT '내부 진단 메시지',
+    parameter_count INT NOT NULL DEFAULT 0 COMMENT '파라미터 개수',
+    parameter_sample VARCHAR(1000) NULL COMMENT '파라미터 예시',
+    description VARCHAR(500) NULL COMMENT '메시지 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (message_id),
-    UNIQUE KEY UK_MESSAGE_CODE_LOCALE (message_code, locale),
-    INDEX IDX_MESSAGE_CODE_USE (message_code, use_yn),
-    INDEX IDX_MESSAGE_USE (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uk_pfw_message_code_locale (message_code, locale),
+    INDEX ix_pfw_message_code_use (message_code, use_yn),
+    INDEX ix_pfw_message_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 메시지';
 
-CREATE TABLE IF NOT EXISTS response_code_table (
-    response_code VARCHAR(20) NOT NULL,
-    message_code VARCHAR(20) NOT NULL,
-    result_type CHAR(1) NOT NULL,
-    module_id VARCHAR(3) NOT NULL,
-    response_group VARCHAR(2) NOT NULL,
-    sequence_no VARCHAR(4) NOT NULL,
-    http_status INT NOT NULL,
-    description VARCHAR(500) NULL,
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_response_code (
+    response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
+    message_code VARCHAR(20) NOT NULL COMMENT '연결 메시지 코드',
+    result_type CHAR(1) NOT NULL COMMENT '결과 유형',
+    module_id VARCHAR(3) NOT NULL COMMENT '모듈 ID',
+    response_group VARCHAR(2) NOT NULL COMMENT '응답 그룹',
+    sequence_no VARCHAR(4) NOT NULL COMMENT '응답 일련번호',
+    http_status INT NOT NULL COMMENT 'HTTP 상태 코드',
+    description VARCHAR(500) NULL COMMENT '응답 코드 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (response_code),
-    INDEX IDX_RESPONSE_CODE_MESSAGE (message_code),
-    INDEX IDX_RESPONSE_CODE_MODULE (module_id, result_type, response_group)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_response_code_message (message_code),
+    INDEX ix_pfw_response_code_module (module_id, result_type, response_group)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 응답 코드';
 
-CREATE TABLE IF NOT EXISTS config_table (
-    config_id BIGINT NOT NULL AUTO_INCREMENT,
-    config_key VARCHAR(150) NOT NULL,
-    config_value VARCHAR(2000) NOT NULL,
-    config_type VARCHAR(30) NOT NULL DEFAULT 'STRING',
-    description VARCHAR(500) NULL,
-    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_config (
+    config_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '설정 순번',
+    config_key VARCHAR(150) NOT NULL COMMENT '설정 키',
+    config_value VARCHAR(2000) NOT NULL COMMENT '설정 값',
+    config_type VARCHAR(30) NOT NULL DEFAULT 'STRING' COMMENT '설정 값 유형',
+    description VARCHAR(500) NULL COMMENT '설정 설명',
+    encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (config_id),
-    UNIQUE KEY UK_CONFIG_KEY (config_key),
-    INDEX IDX_CONFIG_USE (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uk_pfw_config_key (config_key),
+    INDEX ix_pfw_config_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 설정';
 
-CREATE TABLE IF NOT EXISTS cache_refresh_event (
-    event_id BIGINT NOT NULL AUTO_INCREMENT,
-    cache_name VARCHAR(50) NOT NULL,
-    event_type VARCHAR(30) NOT NULL,
-    event_key VARCHAR(200) NULL,
-    source_was_id VARCHAR(50) NULL,
-    published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_cache_refresh_event (
+    event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '캐시 갱신 이벤트 순번',
+    cache_name VARCHAR(50) NOT NULL COMMENT '캐시 이름',
+    event_type VARCHAR(30) NOT NULL COMMENT '이벤트 유형',
+    event_key VARCHAR(200) NULL COMMENT '이벤트 대상 키',
+    source_was_id VARCHAR(50) NULL COMMENT '이벤트 발행 WAS ID',
+    published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '발행자',
+    published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발행일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (event_id),
-    INDEX IDX_CACHE_REFRESH_EVENT_CACHE_ID (cache_name, event_id),
-    INDEX IDX_CACHE_REFRESH_EVENT_TIME (published_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_cache_refresh_event_cache_id (cache_name, event_id),
+    INDEX ix_pfw_cache_refresh_event_time (published_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 캐시 갱신 DB fallback 이벤트';
 
-CREATE TABLE IF NOT EXISTS file_exchange_log (
-    EXCHANGE_ID VARCHAR(80) NOT NULL,
-    TRANSACTION_ID VARCHAR(80) NULL,
-    TRACE_ID VARCHAR(80) NULL,
-    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL,
-    ACTION_TYPE VARCHAR(30) NOT NULL,
-    PROTOCOL VARCHAR(20) NOT NULL,
-    DIRECTION VARCHAR(20) NULL,
-    EXECUTED_YN CHAR(1) NOT NULL DEFAULT 'N',
-    SUCCESS_YN CHAR(1) NOT NULL DEFAULT 'N',
-    HOST VARCHAR(255) NULL,
-    SOURCE_PATH VARCHAR(1000) NULL,
-    TARGET_PATH VARCHAR(1000) NULL,
-    REQUEST_USER VARCHAR(50) NULL,
-    MESSAGE VARCHAR(2000) NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_file_exchange_log (
+    EXCHANGE_ID VARCHAR(80) NOT NULL COMMENT '파일 교환 ID',
+    TRANSACTION_ID VARCHAR(80) NULL COMMENT '전역 거래 ID',
+    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
+    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL COMMENT '업무 거래 ID',
+    ACTION_TYPE VARCHAR(30) NOT NULL COMMENT '파일 작업 유형',
+    PROTOCOL VARCHAR(20) NOT NULL COMMENT '파일 교환 프로토콜',
+    DIRECTION VARCHAR(20) NULL COMMENT '송수신 방향',
+    EXECUTED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 여부',
+    SUCCESS_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '성공 여부',
+    HOST VARCHAR(255) NULL COMMENT '대상 호스트',
+    SOURCE_PATH VARCHAR(1000) NULL COMMENT '원본 경로',
+    TARGET_PATH VARCHAR(1000) NULL COMMENT '대상 경로',
+    REQUEST_USER VARCHAR(50) NULL COMMENT '요청 사용자',
+    MESSAGE VARCHAR(2000) NULL COMMENT '처리 메시지',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (EXCHANGE_ID),
-    INDEX IX_FILE_EXCHANGE_TX (TRANSACTION_ID, CREATED_AT),
-    INDEX IX_FILE_EXCHANGE_BIZ (BUSINESS_TRANSACTION_ID, CREATED_AT),
-    INDEX IX_FILE_EXCHANGE_HOST (HOST, CREATED_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_file_exchange_tx (TRANSACTION_ID, created_at),
+    INDEX ix_pfw_file_exchange_biz (BUSINESS_TRANSACTION_ID, created_at),
+    INDEX ix_pfw_file_exchange_host (HOST, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 파일 교환 로그';
 
-CREATE TABLE IF NOT EXISTS security_jwt_key (
-    KEY_ID VARCHAR(80) NOT NULL,
-    ISSUER VARCHAR(100) NOT NULL,
-    ALGORITHM VARCHAR(20) NOT NULL DEFAULT 'HS256',
-    SECRET_REF VARCHAR(500) NOT NULL,
-    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    EXPIRE_AT DATETIME NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_security_jwt_key (
+    KEY_ID VARCHAR(80) NOT NULL COMMENT 'JWT key ID',
+    ISSUER VARCHAR(100) NOT NULL COMMENT '토큰 발급자',
+    ALGORITHM VARCHAR(20) NOT NULL DEFAULT 'HS256' COMMENT '서명 알고리즘',
+    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'Vault/KMS/환경변수 secret 참조',
+    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (KEY_ID),
-    INDEX IX_SECURITY_JWT_KEY_ISSUER (ISSUER, ACTIVE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_security_jwt_key_issuer (ISSUER, ACTIVE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW JWT key 메타';
 
-CREATE TABLE IF NOT EXISTS security_token_audit_log (
-    TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT,
-    TRANSACTION_ID VARCHAR(80) NULL,
-    TRACE_ID VARCHAR(80) NULL,
-    TOKEN_HASH VARCHAR(512) NULL,
-    TOKEN_TYPE VARCHAR(30) NOT NULL DEFAULT 'Bearer',
-    ISSUER VARCHAR(100) NULL,
-    SUBJECT VARCHAR(200) NULL,
-    AUDIENCE VARCHAR(200) NULL,
-    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'N',
-    EXPIRE_AT DATETIME NULL,
-    FAILURE_REASON VARCHAR(1000) NULL,
-    CLIENT_IP VARCHAR(50) NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'PFW',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pfw_security_token_audit_log (
+    TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
+    TRANSACTION_ID VARCHAR(80) NULL COMMENT '전역 거래 ID',
+    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
+    TOKEN_HASH VARCHAR(512) NULL COMMENT '토큰 해시',
+    TOKEN_TYPE VARCHAR(30) NOT NULL DEFAULT 'Bearer' COMMENT '토큰 유형',
+    ISSUER VARCHAR(100) NULL COMMENT '토큰 발급자',
+    SUBJECT VARCHAR(200) NULL COMMENT '토큰 주체',
+    AUDIENCE VARCHAR(200) NULL COMMENT '토큰 대상',
+    ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '활성 여부',
+    EXPIRE_AT DATETIME NULL COMMENT '만료일시',
+    FAILURE_REASON VARCHAR(1000) NULL COMMENT '검증 실패 사유',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (TOKEN_AUDIT_ID),
-    INDEX IX_SECURITY_TOKEN_TX (TRANSACTION_ID),
-    INDEX IX_SECURITY_TOKEN_HASH (TOKEN_HASH),
-    INDEX IX_SECURITY_TOKEN_SUBJECT_TIME (SUBJECT, CREATED_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_pfw_security_token_tx (TRANSACTION_ID),
+    INDEX ix_pfw_security_token_hash (TOKEN_HASH),
+    INDEX ix_pfw_security_token_subject_time (SUBJECT, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 보안 토큰 감사 로그';
 
--- END specs/sql/10_pfw_schema.sql
+CREATE TABLE IF NOT EXISTS pfw_batch_job (
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    job_name VARCHAR(150) NOT NULL COMMENT '배치 Job 이름',
+    job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET' COMMENT '배치 Job 유형',
+    description VARCHAR(500) NULL COMMENT '배치 설명',
+    restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (job_id),
+    INDEX ix_pfw_batch_job_use (use_yn, job_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Job 기준';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_schedule (
+    schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    cron_expression VARCHAR(100) NOT NULL COMMENT 'Cron 표현식',
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul' COMMENT '스케줄 기준 시간대',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '스케줄 활성 여부',
+    last_fire_at DATETIME NULL COMMENT '마지막 실행 예정 일시',
+    next_fire_at DATETIME NULL COMMENT '다음 실행 예정 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (schedule_id),
+    INDEX ix_pfw_batch_schedule_job (job_id, enabled_yn),
+    CONSTRAINT fk_pfw_batch_schedule_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 스케줄';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_instance (
+    instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
+    instance_name VARCHAR(150) NOT NULL COMMENT '배치 인스턴스명',
+    host_name VARCHAR(150) NULL COMMENT '호스트명',
+    server_port INT NULL COMMENT '서버 포트',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    description VARCHAR(500) NULL COMMENT '인스턴스 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (instance_id),
+    INDEX ix_pfw_batch_instance_active (active_yn, last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 서버 인스턴스';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_execution (
+    execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
+    job_parameters VARCHAR(2000) NULL COMMENT '배치 파라미터',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
+    start_time DATETIME(3) NULL COMMENT '시작 일시',
+    end_time DATETIME(3) NULL COMMENT '종료 일시',
+    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
+    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
+    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
+    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
+    requested_by VARCHAR(100) NULL COMMENT '실행 요청자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (execution_id),
+    INDEX ix_pfw_batch_execution_job_time (job_id, start_time),
+    INDEX ix_pfw_batch_execution_status (execution_status, start_time),
+    INDEX ix_pfw_batch_execution_spring (spring_batch_execution_id),
+    CONSTRAINT fk_pfw_batch_execution_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
+    CONSTRAINT fk_pfw_batch_execution_instance
+        FOREIGN KEY (batch_instance_id) REFERENCES pfw_batch_instance(instance_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
+    step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
+    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    step_name VARCHAR(150) NOT NULL COMMENT 'Step 이름',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
+    start_time DATETIME(3) NULL COMMENT '시작 일시',
+    end_time DATETIME(3) NULL COMMENT '종료 일시',
+    read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
+    write_count BIGINT NOT NULL DEFAULT 0 COMMENT '처리 건수',
+    skip_count BIGINT NOT NULL DEFAULT 0 COMMENT '건너뛴 건수',
+    error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
+    step_log MEDIUMTEXT NULL COMMENT 'Step 로그',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (step_execution_id),
+    INDEX ix_pfw_batch_step_execution_parent (execution_id, step_name),
+    CONSTRAINT fk_pfw_batch_step_execution_parent
+        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Step 실행 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_lock (
+    lock_key VARCHAR(200) NOT NULL COMMENT '배치 잠금 키',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    job_parameters_hash VARCHAR(128) NOT NULL COMMENT 'Job 파라미터 해시',
+    owner_id VARCHAR(100) NOT NULL COMMENT '잠금 소유자',
+    locked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '잠금 획득 일시',
+    expire_at DATETIME(3) NOT NULL COMMENT '잠금 만료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (lock_key),
+    INDEX ix_pfw_batch_lock_job (job_id, job_parameters_hash),
+    INDEX ix_pfw_batch_lock_expire (expire_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 중복 실행 방지 잠금';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_operation_log (
+    operation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 운영 로그 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    operation_type VARCHAR(30) NOT NULL COMMENT '운영 작업 유형',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '운영 사유',
+    before_data LONGTEXT NULL COMMENT '작업 전 데이터',
+    after_data LONGTEXT NULL COMMENT '작업 후 데이터',
+    result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
+    result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (operation_id),
+    INDEX ix_pfw_batch_operation_job_time (job_id, created_at),
+    INDEX ix_pfw_batch_operation_execution (execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 운영 작업 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_business_day_calendar (
+    calendar_id VARCHAR(50) NOT NULL COMMENT '캘린더 ID',
+    business_date DATE NOT NULL COMMENT '기준 일자',
+    holiday_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '휴일 여부',
+    business_day_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '영업일 여부',
+    description VARCHAR(500) NULL COMMENT '일자 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (calendar_id, business_date),
+    INDEX ix_pfw_business_day_calendar_date (business_date, business_day_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 영업일 캘린더';
 
 -- ============================================================================
--- BEGIN specs/sql/20_cmn_schema.sql
+-- specs/sql/20_cmn_schema.sql
 -- ============================================================================
--- CMN has no standalone schema in the current CPF layout.
--- Framework/common reference data is owned by pfwDB.
+-- CMN 업무 공통 스키마입니다.
+-- 여러 업무 모듈이 함께 사용하는 채번, 알림 로그, 업무 로그를 cmnDB에 배치합니다.
 
--- END specs/sql/20_cmn_schema.sql
+USE cmnDB;
+
+CREATE TABLE IF NOT EXISTS cmn_sequence (
+    sequence_key VARCHAR(80) NOT NULL COMMENT '채번 기준 키',
+    business_area VARCHAR(50) NOT NULL DEFAULT 'COMMON' COMMENT '업무 영역',
+    business_key VARCHAR(100) NOT NULL DEFAULT 'DEFAULT' COMMENT '업무 키',
+    sequence_kind VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '채번 종류',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'ALL' COMMENT '채널 코드',
+    prefix VARCHAR(30) NOT NULL COMMENT '채번 접두어',
+    date_pattern VARCHAR(20) NULL COMMENT '번호에 포함할 일자 패턴',
+    current_value BIGINT NOT NULL DEFAULT 0 COMMENT '현재 채번 값',
+    start_value BIGINT NOT NULL DEFAULT 1 COMMENT '초기 시작 번호',
+    increment_by INT NOT NULL DEFAULT 1 COMMENT '증가 단위',
+    min_value BIGINT NOT NULL DEFAULT 1 COMMENT '허용 최소 번호',
+    max_value BIGINT NOT NULL DEFAULT 999999999999999999 COMMENT '허용 최대 번호',
+    range_size INT NOT NULL DEFAULT 1 COMMENT '향후 구간 선점 확장을 위한 예약 크기',
+    number_length INT NOT NULL DEFAULT 8 COMMENT '번호 숫자 영역 길이',
+    reset_cycle VARCHAR(20) NOT NULL DEFAULT 'NONE' COMMENT '초기화 주기',
+    reset_pattern VARCHAR(20) NULL COMMENT '초기화 기준 일자 패턴',
+    reset_timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul' COMMENT '초기화 기준 시간대',
+    last_reset_key VARCHAR(20) NULL COMMENT '마지막 초기화 기준 키',
+    log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '발급 로그 저장 여부',
+    retention_days INT NOT NULL DEFAULT 365 COMMENT '발급 로그 보존 일수',
+    description VARCHAR(500) NULL COMMENT '채번 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (sequence_key),
+    UNIQUE KEY uk_cmn_sequence_business (business_area, business_key, sequence_kind, channel_code),
+    INDEX ix_cmn_sequence_use (use_yn),
+    INDEX ix_cmn_sequence_reset (reset_cycle, last_reset_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 채번 기준';
+
+CREATE TABLE IF NOT EXISTS cmn_sequence_issue_log (
+    issue_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채번 발급 로그 순번',
+    sequence_key VARCHAR(80) NOT NULL COMMENT '채번 기준 키',
+    business_area VARCHAR(50) NOT NULL DEFAULT 'COMMON' COMMENT '업무 영역',
+    business_key VARCHAR(100) NOT NULL DEFAULT 'DEFAULT' COMMENT '업무 키',
+    sequence_kind VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '채번 종류',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'ALL' COMMENT '채널 코드',
+    issued_no VARCHAR(120) NOT NULL COMMENT '최종 발급 번호',
+    issued_value BIGINT NOT NULL COMMENT '발급 숫자 값',
+    prefix VARCHAR(30) NOT NULL COMMENT '발급 시점 접두어',
+    date_key VARCHAR(20) NULL COMMENT '발급 시점 일자 키',
+    request_channel VARCHAR(30) NULL COMMENT '요청 채널',
+    request_user VARCHAR(100) NULL COMMENT '요청 사용자',
+    transaction_id VARCHAR(100) NULL COMMENT '프레임워크 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT '분산 추적 ID',
+    success_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '발급 성공 여부',
+    failure_reason VARCHAR(1000) NULL COMMENT '발급 실패 사유',
+    retention_until DATE NULL COMMENT '보존 만료 기준일',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (issue_id),
+    UNIQUE KEY uk_cmn_sequence_issue_no (issued_no),
+    INDEX ix_cmn_sequence_issue_key_time (sequence_key, created_at),
+    INDEX ix_cmn_sequence_issue_business_time (business_area, business_key, sequence_kind, channel_code, created_at),
+    INDEX ix_cmn_sequence_issue_retention (retention_until),
+    CONSTRAINT fk_cmn_sequence_issue_sequence
+        FOREIGN KEY (sequence_key) REFERENCES cmn_sequence(sequence_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 채번 발급 로그';
+
+CREATE TABLE IF NOT EXISTS cmn_notification_log (
+    notification_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 로그 순번',
+    notification_type VARCHAR(30) NOT NULL COMMENT '알림 유형',
+    receiver VARCHAR(200) NOT NULL COMMENT '수신자',
+    title VARCHAR(300) NOT NULL COMMENT '알림 제목',
+    message TEXT NOT NULL COMMENT '알림 메시지',
+    send_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '발송 상태',
+    send_result VARCHAR(1000) NULL COMMENT '발송 결과',
+    transaction_id VARCHAR(100) NULL COMMENT '프레임워크 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT '분산 추적 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (notification_id),
+    INDEX ix_cmn_notification_status_time (send_status, created_at),
+    INDEX ix_cmn_notification_receiver_time (receiver, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 알림 로그';
+
+CREATE TABLE IF NOT EXISTS cmn_business_log (
+    business_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 공통 로그 순번',
+    business_area VARCHAR(30) NOT NULL COMMENT '업무 영역',
+    business_key VARCHAR(100) NOT NULL COMMENT '업무 키',
+    log_type VARCHAR(30) NOT NULL COMMENT '로그 유형',
+    log_message VARCHAR(2000) NOT NULL COMMENT '로그 메시지',
+    log_payload LONGTEXT NULL COMMENT '로그 상세 payload',
+    transaction_id VARCHAR(100) NULL COMMENT '프레임워크 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT '분산 추적 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (business_log_id),
+    INDEX ix_cmn_business_log_area_key (business_area, business_key),
+    INDEX ix_cmn_business_log_type_time (log_type, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 업무 로그';
 
 -- ============================================================================
--- BEGIN specs/sql/30_adm_schema.sql
+-- specs/sql/30_adm_schema.sql
 -- ============================================================================
--- ADM administration schema.
--- Target DB: admDB
+-- ADM 관리자 운영 스키마입니다.
+-- 운영자, 역할, 메뉴/버튼 권한, 세션, 감사 로그, 보안 운영 메타를 admDB에 배치합니다.
 
 USE admDB;
 
-CREATE TABLE IF NOT EXISTS operator_user (
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    OPERATOR_NAME VARCHAR(100) NOT NULL,
-    PASSWORD_HASH VARCHAR(512) NOT NULL,
-    LOCKED_YN CHAR(1) NOT NULL DEFAULT 'N',
-    FAIL_COUNT INT NOT NULL DEFAULT 0,
-    PASSWORD_CHANGED_AT DATETIME NULL,
-    PASSWORD_CHANGE_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (OPERATOR_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS adm_operator (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    OPERATOR_NAME VARCHAR(100) NOT NULL COMMENT '운영자명',
+    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '비밀번호 해시',
+    LOCKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    FAIL_COUNT INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    PASSWORD_CHANGED_AT DATETIME NULL COMMENT '비밀번호 변경일시',
+    PASSWORD_EXPIRE_AT DATETIME NULL COMMENT '비밀번호 만료일시',
+    PASSWORD_CHANGE_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '비밀번호 변경 필요 여부',
+    LAST_LOGIN_AT DATETIME NULL COMMENT '마지막 로그인 일시',
+    LAST_LOGIN_IP VARCHAR(50) NULL COMMENT '마지막 로그인 IP',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (OPERATOR_ID),
+    INDEX ix_adm_operator_use (USE_YN),
+    INDEX ix_adm_operator_lock (LOCKED_YN, FAIL_COUNT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자';
 
-CREATE TABLE IF NOT EXISTS operator_role (
-    ROLE_ID VARCHAR(50) NOT NULL,
-    ROLE_NAME VARCHAR(100) NOT NULL,
-    DESCRIPTION VARCHAR(500) NULL,
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (ROLE_ID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS adm_role (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    ROLE_NAME VARCHAR(100) NOT NULL COMMENT '역할명',
+    ROLE_TYPE VARCHAR(30) NOT NULL DEFAULT 'BUSINESS_OPERATOR' COMMENT '역할 유형',
+    DESCRIPTION VARCHAR(500) NULL COMMENT '역할 설명',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ROLE_ID),
+    INDEX ix_adm_role_type (ROLE_TYPE, USE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할';
 
-CREATE TABLE IF NOT EXISTS operator_user_role (
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    ROLE_ID VARCHAR(50) NOT NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_operator_role (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (OPERATOR_ID, ROLE_ID),
-    CONSTRAINT FK_OPERATOR_USER_ROLE_USER
-        FOREIGN KEY (OPERATOR_ID) REFERENCES operator_user(OPERATOR_ID)
+    CONSTRAINT fk_adm_operator_role_operator
+        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
         ON DELETE CASCADE,
-    CONSTRAINT FK_OPERATOR_USER_ROLE_ROLE
-        FOREIGN KEY (ROLE_ID) REFERENCES operator_role(ROLE_ID)
+    CONSTRAINT fk_adm_operator_role_role
+        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 역할 매핑';
 
-CREATE TABLE IF NOT EXISTS operator_menu (
-    MENU_ID VARCHAR(50) NOT NULL,
-    PARENT_MENU_ID VARCHAR(50) NULL,
-    MENU_NAME VARCHAR(100) NOT NULL,
-    MENU_PATH VARCHAR(200) NOT NULL,
-    SORT_ORDER INT NOT NULL DEFAULT 0,
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_menu (
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    PARENT_MENU_ID VARCHAR(50) NULL COMMENT '상위 메뉴 ID',
+    MENU_NAME VARCHAR(100) NOT NULL COMMENT '메뉴명',
+    MENU_PATH VARCHAR(200) NOT NULL COMMENT '메뉴 경로',
+    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (MENU_ID),
-    INDEX IX_OPERATOR_MENU_PARENT (PARENT_MENU_ID, SORT_ORDER),
-    CONSTRAINT FK_OPERATOR_MENU_PARENT
-        FOREIGN KEY (PARENT_MENU_ID) REFERENCES operator_menu(MENU_ID)
+    INDEX ix_adm_menu_parent (PARENT_MENU_ID, SORT_ORDER),
+    CONSTRAINT fk_adm_menu_parent
+        FOREIGN KEY (PARENT_MENU_ID) REFERENCES adm_menu(MENU_ID)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴';
 
-CREATE TABLE IF NOT EXISTS operator_role_menu (
-    ROLE_ID VARCHAR(50) NOT NULL,
-    MENU_ID VARCHAR(50) NOT NULL,
-    READ_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    WRITE_YN CHAR(1) NOT NULL DEFAULT 'N',
-    DELETE_YN CHAR(1) NOT NULL DEFAULT 'N',
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_role_menu (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    READ_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '조회 권한 여부',
+    WRITE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '등록/수정 권한 여부',
+    DELETE_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '삭제 권한 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (ROLE_ID, MENU_ID),
-    CONSTRAINT FK_OPERATOR_ROLE_MENU_ROLE
-        FOREIGN KEY (ROLE_ID) REFERENCES operator_role(ROLE_ID)
+    CONSTRAINT fk_adm_role_menu_role
+        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
         ON DELETE CASCADE,
-    CONSTRAINT FK_OPERATOR_ROLE_MENU_MENU
-        FOREIGN KEY (MENU_ID) REFERENCES operator_menu(MENU_ID)
+    CONSTRAINT fk_adm_role_menu_menu
+        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 메뉴 권한';
 
-CREATE TABLE IF NOT EXISTS operator_audit_log (
-    AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT,
-    TRANSACTION_ID VARCHAR(80) NULL,
-    TRACE_ID VARCHAR(80) NULL,
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    MENU_ID VARCHAR(50) NULL,
-    ACTION_TYPE VARCHAR(30) NOT NULL,
-    TARGET_TYPE VARCHAR(50) NULL,
-    TARGET_ID VARCHAR(100) NULL,
-    REASON VARCHAR(500) NULL,
-    REQUEST_BODY LONGTEXT NULL,
-    CLIENT_IP VARCHAR(50) NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_button (
+    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
+    MENU_ID VARCHAR(50) NOT NULL COMMENT '메뉴 ID',
+    ACTION_CODE VARCHAR(50) NOT NULL COMMENT '행위 코드',
+    BUTTON_NAME VARCHAR(100) NOT NULL COMMENT '버튼/행위명',
+    HTTP_METHOD VARCHAR(10) NULL COMMENT '대상 HTTP 메서드',
+    API_PATTERN VARCHAR(300) NULL COMMENT '대상 API 경로 패턴',
+    SORT_ORDER INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (BUTTON_ID),
+    UNIQUE KEY uk_adm_button_menu_action (MENU_ID, ACTION_CODE),
+    INDEX ix_adm_button_menu (MENU_ID, SORT_ORDER),
+    CONSTRAINT fk_adm_button_menu
+        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 메뉴별 버튼/행위';
+
+CREATE TABLE IF NOT EXISTS adm_role_button (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    BUTTON_ID VARCHAR(80) NOT NULL COMMENT '버튼/행위 ID',
+    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ROLE_ID, BUTTON_ID),
+    CONSTRAINT fk_adm_role_button_role
+        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_adm_role_button_button
+        FOREIGN KEY (BUTTON_ID) REFERENCES adm_button(BUTTON_ID)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 버튼/행위 권한';
+
+CREATE TABLE IF NOT EXISTS adm_audit_log (
+    AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '감사 로그 순번',
+    TRANSACTION_ID VARCHAR(80) NULL COMMENT '프레임워크 거래 ID',
+    TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
+    BUTTON_ID VARCHAR(80) NULL COMMENT '버튼/행위 ID',
+    ACTION_TYPE VARCHAR(30) NOT NULL COMMENT '행위 유형',
+    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
+    TARGET_ID VARCHAR(100) NULL COMMENT '대상 ID',
+    REASON VARCHAR(500) NOT NULL COMMENT '감사 사유',
+    BEFORE_DATA LONGTEXT NULL COMMENT '변경 전 데이터',
+    AFTER_DATA LONGTEXT NULL COMMENT '변경 후 데이터',
+    DIFF_DATA LONGTEXT NULL COMMENT '변경 차이 데이터',
+    REQUEST_BODY LONGTEXT NULL COMMENT '요청 본문',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    RETENTION_UNTIL DATE NULL COMMENT '보존 만료 기준일',
+    IMMUTABLE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '삭제 불가 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (AUDIT_ID),
-    INDEX IX_OPERATOR_AUDIT_TX (TRANSACTION_ID),
-    INDEX IX_OPERATOR_AUDIT_OPERATOR_TIME (OPERATOR_ID, CREATED_AT),
-    INDEX IX_OPERATOR_AUDIT_ACTION_TIME (ACTION_TYPE, CREATED_AT),
-    INDEX IX_OPERATOR_AUDIT_TARGET_TIME (TARGET_TYPE, TARGET_ID, CREATED_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_adm_audit_log_tx (TRANSACTION_ID),
+    INDEX ix_adm_audit_log_operator_time (OPERATOR_ID, created_at),
+    INDEX ix_adm_audit_log_action_time (ACTION_TYPE, created_at),
+    INDEX ix_adm_audit_log_target_time (TARGET_TYPE, TARGET_ID, created_at),
+    INDEX ix_adm_audit_log_retention (RETENTION_UNTIL, IMMUTABLE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 감사 로그';
 
-CREATE TABLE IF NOT EXISTS operator_session (
-    SESSION_ID VARCHAR(80) NOT NULL,
-    TOKEN_HASH VARCHAR(512) NOT NULL,
-    OPERATOR_ID VARCHAR(50) NOT NULL,
-    ROLE_IDS VARCHAR(1000) NULL,
-    ISSUED_AT DATETIME NOT NULL,
-    EXPIRE_AT DATETIME NOT NULL,
-    REVOKED_YN CHAR(1) NOT NULL DEFAULT 'N',
-    CLIENT_IP VARCHAR(50) NULL,
-    USER_AGENT VARCHAR(500) NULL,
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_operator_session (
+    SESSION_ID VARCHAR(80) NOT NULL COMMENT '세션 ID',
+    TOKEN_HASH VARCHAR(512) NOT NULL COMMENT '토큰 해시',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    ROLE_IDS VARCHAR(1000) NULL COMMENT '역할 ID 목록',
+    ISSUED_AT DATETIME NOT NULL COMMENT '발급일시',
+    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
+    REVOKED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    USER_AGENT VARCHAR(500) NULL COMMENT 'User-Agent',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (SESSION_ID),
-    INDEX IX_OPERATOR_SESSION_TOKEN (TOKEN_HASH),
-    INDEX IX_OPERATOR_SESSION_USER (OPERATOR_ID, EXPIRE_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_adm_operator_session_token (TOKEN_HASH),
+    INDEX ix_adm_operator_session_user (OPERATOR_ID, EXPIRE_AT),
+    INDEX ix_adm_operator_session_active (REVOKED_YN, EXPIRE_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 세션';
 
-CREATE TABLE IF NOT EXISTS dynamic_log_level_rule (
-    RULE_ID VARCHAR(80) NOT NULL,
-    TRANSACTION_ID VARCHAR(100) NULL,
-    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL,
-    MODULE_ID VARCHAR(10) NULL,
-    LOG_LEVEL VARCHAR(10) NOT NULL,
-    EXPIRE_AT DATETIME NOT NULL,
-    REASON VARCHAR(500) NULL,
-    USE_YN CHAR(1) NOT NULL DEFAULT 'Y',
-    CREATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    CREATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UPDATED_BY VARCHAR(50) NOT NULL DEFAULT 'ADM',
-    UPDATED_AT DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS adm_dynamic_log_level_rule (
+    RULE_ID VARCHAR(80) NOT NULL COMMENT '동적 로그 레벨 규칙 ID',
+    TRANSACTION_ID VARCHAR(100) NULL COMMENT '프레임워크 거래 ID',
+    BUSINESS_TRANSACTION_ID VARCHAR(20) NULL COMMENT '업무 거래 ID',
+    MODULE_ID VARCHAR(10) NULL COMMENT '모듈 ID',
+    LOG_LEVEL VARCHAR(10) NOT NULL COMMENT '적용 로그 레벨',
+    EXPIRE_AT DATETIME NOT NULL COMMENT '만료일시',
+    REASON VARCHAR(500) NULL COMMENT '적용 사유',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (RULE_ID),
-    INDEX IX_DYNAMIC_LOG_BIZ_TX (BUSINESS_TRANSACTION_ID, EXPIRE_AT),
-    INDEX IX_DYNAMIC_LOG_TX (TRANSACTION_ID, EXPIRE_AT),
-    INDEX IX_DYNAMIC_LOG_ACTIVE (USE_YN, EXPIRE_AT)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX ix_adm_dynamic_log_level_rule_biz_tx (BUSINESS_TRANSACTION_ID, EXPIRE_AT),
+    INDEX ix_adm_dynamic_log_level_rule_tx (TRANSACTION_ID, EXPIRE_AT),
+    INDEX ix_adm_dynamic_log_level_rule_active (USE_YN, EXPIRE_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 동적 로그 레벨 규칙';
 
--- END specs/sql/30_adm_schema.sql
+CREATE TABLE IF NOT EXISTS adm_ip_allowlist (
+    ALLOW_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT 'IP 허용 목록 순번',
+    IP_PATTERN VARCHAR(100) NOT NULL COMMENT '허용 IP 또는 CIDR 패턴',
+    DESCRIPTION VARCHAR(500) NULL COMMENT '허용 사유',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ALLOW_ID),
+    UNIQUE KEY uk_adm_ip_allowlist_pattern (IP_PATTERN),
+    INDEX ix_adm_ip_allowlist_use (USE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 관리자 IP 허용 목록';
+
+CREATE TABLE IF NOT EXISTS adm_mfa_otp_secret (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    SECRET_REF VARCHAR(500) NOT NULL COMMENT 'OTP secret 참조',
+    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'MFA 사용 여부',
+    VERIFIED_AT DATETIME NULL COMMENT 'MFA 검증일시',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (OPERATOR_ID),
+    CONSTRAINT fk_adm_mfa_otp_secret_operator
+        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 MFA OTP secret 메타';
+
+CREATE TABLE IF NOT EXISTS adm_password_policy (
+    POLICY_ID VARCHAR(50) NOT NULL COMMENT '비밀번호 정책 ID',
+    MIN_LENGTH INT NOT NULL DEFAULT 12 COMMENT '최소 길이',
+    REQUIRE_UPPER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대문자 필수 여부',
+    REQUIRE_LOWER_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '소문자 필수 여부',
+    REQUIRE_DIGIT_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '숫자 필수 여부',
+    REQUIRE_SPECIAL_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '특수문자 필수 여부',
+    MAX_FAIL_COUNT INT NOT NULL DEFAULT 5 COMMENT '최대 실패 횟수',
+    EXPIRE_DAYS INT NOT NULL DEFAULT 90 COMMENT '만료 일수',
+    HISTORY_LIMIT INT NOT NULL DEFAULT 5 COMMENT '재사용 금지 이력 수',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (POLICY_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 정책';
+
+CREATE TABLE IF NOT EXISTS adm_password_history (
+    HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '비밀번호 이력 순번',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    PASSWORD_HASH VARCHAR(512) NOT NULL COMMENT '이전 비밀번호 해시',
+    CHANGED_REASON VARCHAR(500) NULL COMMENT '변경 사유',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (HISTORY_ID),
+    INDEX ix_adm_password_history_operator_time (OPERATOR_ID, created_at),
+    CONSTRAINT fk_adm_password_history_operator
+        FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 변경 이력';
+
+CREATE TABLE IF NOT EXISTS adm_operation_log (
+    OPERATION_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '운영 작업 로그 순번',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
+    BUTTON_ID VARCHAR(80) NULL COMMENT '버튼/행위 ID',
+    OPERATION_TYPE VARCHAR(50) NOT NULL COMMENT '운영 작업 유형',
+    TARGET_TYPE VARCHAR(50) NULL COMMENT '대상 유형',
+    TARGET_ID VARCHAR(100) NULL COMMENT '대상 ID',
+    RESULT_TYPE CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
+    RESULT_MESSAGE VARCHAR(1000) NULL COMMENT '결과 메시지',
+    CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (OPERATION_ID),
+    INDEX ix_adm_operation_log_operator_time (OPERATOR_ID, created_at),
+    INDEX ix_adm_operation_log_target_time (TARGET_TYPE, TARGET_ID, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 작업 로그';
 
 -- ============================================================================
--- BEGIN specs/sql/40_business_sample_schema.sql
+-- specs/sql/40_business_sample_schema.sql
 -- ============================================================================
--- Business and education sample schemas used by current code.
+-- 업무/교육 샘플 스키마입니다.
+-- ACC 계정 샘플과 MBR 회원 샘플은 각 업무 DB에만 배치합니다.
 
 USE accDB;
 
 CREATE TABLE IF NOT EXISTS acc_account (
-    account_id INT NOT NULL AUTO_INCREMENT,
-    account_no VARCHAR(30) NOT NULL,
-    account_name VARCHAR(100) NOT NULL,
-    account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    balance DECIMAL(18,2) NOT NULL DEFAULT 0,
-    description TEXT NULL,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    account_id INT NOT NULL AUTO_INCREMENT COMMENT '계정 순번',
+    account_no VARCHAR(30) NOT NULL COMMENT '계정 번호',
+    account_name VARCHAR(100) NOT NULL COMMENT '계정명',
+    account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '계정 상태',
+    balance DECIMAL(18,2) NOT NULL DEFAULT 0 COMMENT '잔액',
+    description TEXT NULL COMMENT '계정 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (account_id),
-    UNIQUE KEY UK_ACC_ACCOUNT_NO (account_no),
-    INDEX IDX_ACC_ACCOUNT_STATUS (account_status),
-    INDEX IDX_ACC_ACCOUNT_NAME (account_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uk_acc_account_no (account_no),
+    INDEX ix_acc_account_status (account_status),
+    INDEX ix_acc_account_name (account_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 샘플';
 
 USE mbrDB;
 
-CREATE TABLE IF NOT EXISTS member (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS mbr_member (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 순번',
+    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
+    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
+    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    name VARCHAR(100) NOT NULL COMMENT '회원명',
+    email VARCHAR(200) NULL COMMENT '이메일',
+    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
+    member_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태',
+    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    withdraw_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '탈퇴 여부',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'WEB' COMMENT '가입 채널 코드',
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
+    last_login_at DATETIME NULL COMMENT '최근 로그인일시',
+    description TEXT NULL COMMENT '회원 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (id),
-    INDEX IDX_MEMBER_NAME (name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uk_mbr_member_no (member_no),
+    UNIQUE KEY uk_mbr_member_login_id (login_id),
+    INDEX ix_mbr_member_customer (customer_no),
+    INDEX ix_mbr_member_name (name),
+    INDEX ix_mbr_member_status (member_status, lock_yn, withdraw_yn),
+    INDEX ix_mbr_member_channel_joined (channel_code, joined_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원';
 
--- END specs/sql/40_business_sample_schema.sql
+CREATE TABLE IF NOT EXISTS mbr_member_role (
+    member_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    service_code VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '서비스 코드',
+    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
+    role_name VARCHAR(100) NULL COMMENT '회원 역할명',
+    grade_code VARCHAR(50) NULL COMMENT '회원 등급 코드',
+    temporary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '임시 권한 여부',
+    expire_at DATETIME NULL COMMENT '권한 만료일시',
+    granted_by VARCHAR(100) NULL COMMENT '권한 부여자',
+    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 부여일시',
+    revoked_by VARCHAR(100) NULL COMMENT '권한 회수자',
+    revoked_at DATETIME NULL COMMENT '권한 회수일시',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (member_role_id),
+    UNIQUE KEY uk_mbr_member_role (member_id, service_code, role_code),
+    INDEX ix_mbr_member_role_member (member_id, use_yn),
+    INDEX ix_mbr_member_role_expire (expire_at),
+    CONSTRAINT fk_mbr_member_role_member
+        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한';
+
+CREATE TABLE IF NOT EXISTS mbr_member_role_history (
+    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 이력 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    service_code VARCHAR(30) NOT NULL COMMENT '서비스 코드',
+    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
+    action_type VARCHAR(30) NOT NULL COMMENT '권한 행위 유형',
+    reason VARCHAR(500) NOT NULL COMMENT '권한 변경 사유',
+    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
+    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
+    operator_id VARCHAR(100) NULL COMMENT '처리 운영자 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (history_id),
+    INDEX ix_mbr_member_role_history_member (member_id, created_at),
+    INDEX ix_mbr_member_role_history_role (service_code, role_code, created_at),
+    CONSTRAINT fk_mbr_member_role_history_member
+        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 변경 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_member_login_history (
+    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
+    login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
+    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
+    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (login_history_id),
+    INDEX ix_mbr_member_login_member_time (member_id, created_at),
+    INDEX ix_mbr_member_login_result_time (login_result, created_at),
+    CONSTRAINT fk_mbr_member_login_history_member
+        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
 
 -- ============================================================================
--- BEGIN specs/sql/50_framework_seed_data.sql
+-- specs/sql/50_framework_seed_data.sql
 -- ============================================================================
--- CPF framework initial code, response-code, message, and config data.
--- Target DB: pfwDB
+-- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
+-- 대상 DB: pfwDB
 
 USE pfwDB;
 
-INSERT INTO code_table (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
-    (NULL, 'CODE_GROUP', 'MODULE', 'Service module code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'REQUEST_TYPE', 'Request type code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'CHANNEL_CODE', 'Channel code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'RESULT_TYPE', 'Response result type code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'MESSAGE_FORMAT_TYPE', 'Message format type code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'LOG_LEVEL', 'Runtime log level code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'CACHE_NAME', 'CMN cache name code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'WORKFLOW_STATUS', 'Workflow status code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'WORKFLOW_FAILURE_POLICY', 'Workflow failure policy code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'FILE_PROTOCOL', 'File exchange protocol code group', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'YN', 'Yes or no code group', 'SYSTEM', 'SYSTEM')
+    (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'CHANNEL_CODE', '채널 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'RESULT_TYPE', '응답 결과 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'MESSAGE_FORMAT_TYPE', '메시지 포맷 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'LOG_LEVEL', '동적 로그 레벨 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'CACHE_NAME', '캐시 이름 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'BATCH_JOB_TYPE', '배치 Job 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO code_table (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'PFW', 'Framework common library', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', 'Common development library', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ACC', 'Account sample service', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', 'Member sample service', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'XYZ', 'Education sample service', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', 'Admin service', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', 'Normal request', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', 'Compensation request', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', 'Retry request', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', 'Web channel', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', 'Mobile channel', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', 'Batch channel', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', 'Admin channel', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', 'Success response', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', 'Error response', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', 'Fixed message without parameters', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', 'Indexed parameter message using {0}, {1}', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'Trace logging', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'Debug logging', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'Info logging', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'Warning logging', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'Error logging', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', 'Common code cache', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', 'Common message cache', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', 'Common response code cache', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', 'Common config cache', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', 'All common caches', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_STATUS') p), 'WORKFLOW_STATUS', 'STARTED', 'Workflow started', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_STATUS') p), 'WORKFLOW_STATUS', 'SUCCESS', 'Workflow succeeded', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_STATUS') p), 'WORKFLOW_STATUS', 'FAILED', 'Workflow failed', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_FAILURE_POLICY') p), 'WORKFLOW_FAILURE_POLICY', 'ROLLBACK', 'Rollback on failure', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_FAILURE_POLICY') p), 'WORKFLOW_FAILURE_POLICY', 'VERIFY', 'Manual or automatic verification required', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_FAILURE_POLICY') p), 'WORKFLOW_FAILURE_POLICY', 'MANUAL', 'Manual follow-up required', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'WORKFLOW_FAILURE_POLICY') p), 'WORKFLOW_FAILURE_POLICY', 'IGNORE', 'Ignore failure', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'FILE_PROTOCOL') p), 'FILE_PROTOCOL', 'LOCAL', 'Local file protocol', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'FILE_PROTOCOL') p), 'FILE_PROTOCOL', 'FTP', 'FTP protocol', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'FILE_PROTOCOL') p), 'FILE_PROTOCOL', 'SFTP', 'SFTP protocol', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'FILE_PROTOCOL') p), 'FILE_PROTOCOL', 'SCP', 'SCP protocol', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'FILE_PROTOCOL') p), 'FILE_PROTOCOL', 'SSH', 'SSH command protocol', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', 'Yes', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM code_table WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', 'No', 'SYSTEM', 'SYSTEM')
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'PFW', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ACC', '계정 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'XYZ', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', '재시도 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', '웹 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', '모바일 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', '배치 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', '관리자 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', '성공', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', '오류', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', '고정 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', '인덱스 파라미터 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'TRACE 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'DEBUG 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'INFO 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'WARN 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'ERROR 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', '전체 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', '코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', '메시지 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', '응답코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', '설정 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'TASKLET', 'Tasklet 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parent_id = VALUES(parent_id),
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO message_table (
+INSERT INTO pfw_message (
     message_code, locale, message_format_type, external_message, internal_message,
     parameter_count, parameter_sample, description, created_by, updated_by
 ) VALUES
-    ('MPFW900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'PFW 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'PFW header validation message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900001', 'en', 'INDEXED', 'Required transaction header is missing.', 'PFW transaction header validation failed. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'PFW header validation message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'PFW @FpsTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'PFW metadata validation message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'PFW 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'PFW endpoint message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 설정 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW dynamic log message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW internal error message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990001', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW database message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'PFW invalid parameter message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'PFW not found message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberId"]', 'PFW duplicate message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'PFW validation message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'PFW unauthorized message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'PFW forbidden message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'PFW business rule message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'PFW external service message', 'SYSTEM', 'SYSTEM'),
-    ('MPFW000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'PFW 공통 요청이 정상 처리되었습니다.', 0, NULL, 'PFW common success message', 'SYSTEM', 'SYSTEM'),
-    ('MACC000000', 'ko', 'FIXED', '성공', 'ACC 요청이 정상 처리되었습니다.', 0, NULL, 'ACC success message', 'SYSTEM', 'SYSTEM'),
-    ('MACC010000', 'ko', 'FIXED', '성공', 'ACC 업무 요청이 정상 처리되었습니다.', 0, NULL, 'ACC business success message', 'SYSTEM', 'SYSTEM'),
-    ('MACC010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', 'ACC 파라미터 검증에 실패했습니다. field={0}', 1, '["accountId"]', 'ACC invalid parameter message', 'SYSTEM', 'SYSTEM'),
-    ('MACC010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', 'ACC 조회 대상이 없습니다. target={0}', 1, '["account"]', 'ACC not found message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR000000', 'ko', 'FIXED', '성공', 'MBR 요청이 정상 처리되었습니다.', 0, NULL, 'MBR success message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010001', 'ko', 'FIXED', '생성 성공', 'MBR 데이터가 생성되었습니다.', 0, NULL, 'MBR created message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010002', 'ko', 'FIXED', '수정 성공', 'MBR 데이터가 수정되었습니다.', 0, NULL, 'MBR updated message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010003', 'ko', 'FIXED', '삭제 성공', 'MBR 데이터가 삭제되었습니다.', 0, NULL, 'MBR deleted message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010101', 'ko', 'FIXED', '잘못된 요청입니다.', 'MBR 요청 형식이 올바르지 않습니다.', 0, NULL, 'MBR bad request message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010102', 'ko', 'INDEXED', '유효하지 않은 파라미터입니다.', 'MBR 파라미터 검증에 실패했습니다. field={0}', 1, '["memberId"]', 'MBR invalid parameter message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010103', 'ko', 'INDEXED', '요청한 자원을 찾을 수 없습니다.', 'MBR 조회 대상이 없습니다. target={0}', 1, '["member"]', 'MBR not found message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010104', 'ko', 'INDEXED', '중복된 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberId"]', 'MBR duplicate message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010105', 'ko', 'INDEXED', '입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR validation message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010106', 'ko', 'FIXED', '인증이 필요합니다.', 'MBR 인증되지 않은 요청입니다.', 0, NULL, 'MBR unauthorized message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR010107', 'ko', 'FIXED', '접근 권한이 없습니다.', 'MBR 접근 권한이 없습니다.', 0, NULL, 'MBR forbidden message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR030001', 'ko', 'INDEXED', '외부 서비스 오류가 발생했습니다.', 'MBR 외부 서비스 오류가 발생했습니다. service={0}', 1, '["external"]', 'MBR external service message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR990000', 'ko', 'INDEXED', '내부 서버 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR internal server message', 'SYSTEM', 'SYSTEM'),
-    ('MMBR990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', 'MBR 데이터베이스 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'MBR database message', 'SYSTEM', 'SYSTEM'),
-    ('MXYZ090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=XYZ_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'XYZ dynamic duplicate education message', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'ko', 'FIXED', 'CPF 샘플 시스템에 오신 것을 환영합니다.', 'CMN welcome sample message.', 0, NULL, 'Sample welcome message', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF sample system.', 'CMN welcome sample message.', 0, NULL, 'Sample welcome message', 'SYSTEM', 'SYSTEM')
+    ('MPFW000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'PFW 공통 요청이 정상 처리되었습니다.', 0, NULL, 'PFW 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'PFW 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'PFW 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'PFW 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'PFW 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'PFW 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'PFW 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'PFW 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'PFW 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'PFW 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'PFW 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'PFW @FpsTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'PFW 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'PFW 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'PFW endpoint 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MACC000000', 'ko', 'FIXED', '성공', 'ACC 요청이 정상 처리되었습니다.', 0, NULL, 'ACC 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MACC010001', 'ko', 'INDEXED', '계정 요청 값이 올바르지 않습니다.', 'ACC 파라미터 검증에 실패했습니다. field={0}', 1, '["accountId"]', 'ACC 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MACC010002', 'ko', 'INDEXED', '계정 정보를 찾을 수 없습니다.', 'ACC 조회 대상이 없습니다. target={0}', 1, '["account"]', 'ACC 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR000000', 'ko', 'FIXED', '성공', 'MBR 요청이 정상 처리되었습니다.', 0, NULL, 'MBR 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010001', 'ko', 'FIXED', '회원이 생성되었습니다.', 'MBR 회원 데이터가 생성되었습니다.', 0, NULL, 'MBR 생성 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010002', 'ko', 'FIXED', '회원이 수정되었습니다.', 'MBR 회원 데이터가 수정되었습니다.', 0, NULL, 'MBR 수정 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010003', 'ko', 'FIXED', '회원이 삭제되었습니다.', 'MBR 회원 데이터가 삭제되었습니다.', 0, NULL, 'MBR 삭제 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010101', 'ko', 'FIXED', '회원 요청 형식이 올바르지 않습니다.', 'MBR 요청 형식이 올바르지 않습니다.', 0, NULL, 'MBR bad request 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010102', 'ko', 'INDEXED', '유효하지 않은 회원 파라미터입니다.', 'MBR 파라미터 검증에 실패했습니다. field={0}', 1, '["memberId"]', 'MBR 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010103', 'ko', 'INDEXED', '회원 정보를 찾을 수 없습니다.', 'MBR 조회 대상이 없습니다. target={0}', 1, '["member"]', 'MBR 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010104', 'ko', 'INDEXED', '중복된 회원 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'MBR 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MXYZ090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=XYZ_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'XYZ 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'ko', 'FIXED', 'CPF 샘플 시스템에 오신 것을 환영합니다.', 'CMN welcome sample message.', 0, NULL, 'CMN 샘플 환영 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF sample system.', 'CMN welcome sample message.', 0, NULL, 'CMN 샘플 환영 메시지', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     message_format_type = VALUES(message_format_type),
     external_message = VALUES(external_message),
@@ -660,43 +1177,38 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO response_code_table (
+INSERT INTO pfw_response_code (
     response_code, message_code, result_type, module_id, response_group, sequence_no,
     http_status, description, created_by, updated_by
 ) VALUES
-    ('SPFW000000', 'MPFW000000', 'S', 'PFW', '00', '0000', 200, 'PFW common success', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010001', 'MPFW010001', 'E', 'PFW', '01', '0001', 400, 'Invalid parameter', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010002', 'MPFW010002', 'E', 'PFW', '01', '0002', 404, 'Not found', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010003', 'MPFW010003', 'E', 'PFW', '01', '0003', 409, 'Duplicate', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010004', 'MPFW010004', 'E', 'PFW', '01', '0004', 400, 'Validation failed', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010005', 'MPFW010005', 'E', 'PFW', '01', '0005', 401, 'Unauthorized', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010006', 'MPFW010006', 'E', 'PFW', '01', '0006', 403, 'Forbidden', 'SYSTEM', 'SYSTEM'),
-    ('EPFW020001', 'MPFW020001', 'E', 'PFW', '02', '0001', 400, 'Business rule violation', 'SYSTEM', 'SYSTEM'),
-    ('EPFW030001', 'MPFW030001', 'E', 'PFW', '03', '0001', 502, 'External service error', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900001', 'MPFW900001', 'E', 'PFW', '90', '0001', 400, 'Missing transaction header', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900002', 'MPFW900002', 'E', 'PFW', '90', '0002', 500, 'Invalid transaction metadata', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900003', 'MPFW900003', 'E', 'PFW', '90', '0003', 500, 'Service endpoint not found', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, 'Dynamic log rule invalid', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, 'Internal server error', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, 'Database error', 'SYSTEM', 'SYSTEM'),
-    ('SACC000000', 'MACC000000', 'S', 'ACC', '00', '0000', 200, 'ACC common success', 'SYSTEM', 'SYSTEM'),
-    ('SACC010000', 'MACC010000', 'S', 'ACC', '01', '0000', 200, 'ACC business success', 'SYSTEM', 'SYSTEM'),
-    ('EACC010001', 'MACC010001', 'E', 'ACC', '01', '0001', 400, 'ACC invalid parameter', 'SYSTEM', 'SYSTEM'),
-    ('EACC010002', 'MACC010002', 'E', 'ACC', '01', '0002', 404, 'ACC not found', 'SYSTEM', 'SYSTEM'),
-    ('SMBR000000', 'MMBR000000', 'S', 'MBR', '00', '0000', 200, 'MBR common success', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010001', 'MMBR010001', 'S', 'MBR', '01', '0001', 200, 'MBR created', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010002', 'MMBR010002', 'S', 'MBR', '01', '0002', 200, 'MBR updated', 'SYSTEM', 'SYSTEM'),
-    ('SMBR010003', 'MMBR010003', 'S', 'MBR', '01', '0003', 200, 'MBR deleted', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010001', 'MMBR010101', 'E', 'MBR', '01', '0001', 400, 'MBR bad request', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010002', 'MMBR010102', 'E', 'MBR', '01', '0002', 400, 'MBR invalid parameter', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010003', 'MMBR010103', 'E', 'MBR', '01', '0003', 404, 'MBR not found', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010004', 'MMBR010104', 'E', 'MBR', '01', '0004', 409, 'MBR duplicate', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010005', 'MMBR010105', 'E', 'MBR', '01', '0005', 400, 'MBR validation failed', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010006', 'MMBR010106', 'E', 'MBR', '01', '0006', 401, 'MBR unauthorized', 'SYSTEM', 'SYSTEM'),
-    ('EMBR010007', 'MMBR010107', 'E', 'MBR', '01', '0007', 403, 'MBR forbidden', 'SYSTEM', 'SYSTEM'),
-    ('EMBR030001', 'MMBR030001', 'E', 'MBR', '03', '0001', 502, 'MBR external service error', 'SYSTEM', 'SYSTEM'),
-    ('EMBR990000', 'MMBR990000', 'E', 'MBR', '99', '0000', 500, 'MBR internal server error', 'SYSTEM', 'SYSTEM'),
-    ('EMBR990001', 'MMBR990001', 'E', 'MBR', '99', '0001', 500, 'MBR database error', 'SYSTEM', 'SYSTEM')
+    ('SPFW000000', 'MPFW000000', 'S', 'PFW', '00', '0000', 200, 'PFW 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010001', 'MPFW010001', 'E', 'PFW', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010002', 'MPFW010002', 'E', 'PFW', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010003', 'MPFW010003', 'E', 'PFW', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010004', 'MPFW010004', 'E', 'PFW', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010005', 'MPFW010005', 'E', 'PFW', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),
+    ('EPFW010006', 'MPFW010006', 'E', 'PFW', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),
+    ('EPFW020001', 'MPFW020001', 'E', 'PFW', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),
+    ('EPFW030001', 'MPFW030001', 'E', 'PFW', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW900001', 'MPFW900001', 'E', 'PFW', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),
+    ('EPFW900002', 'MPFW900002', 'E', 'PFW', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW900003', 'MPFW900003', 'E', 'PFW', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
+    ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
+    ('SACC000000', 'MACC000000', 'S', 'ACC', '00', '0000', 200, 'ACC 성공', 'SYSTEM', 'SYSTEM'),
+    ('EACC010001', 'MACC010001', 'E', 'ACC', '01', '0001', 400, 'ACC 파라미터 오류', 'SYSTEM', 'SYSTEM'),
+    ('EACC010002', 'MACC010002', 'E', 'ACC', '01', '0002', 404, 'ACC 미존재', 'SYSTEM', 'SYSTEM'),
+    ('SMBR000000', 'MMBR000000', 'S', 'MBR', '00', '0000', 200, 'MBR 성공', 'SYSTEM', 'SYSTEM'),
+    ('SMBR010001', 'MMBR010001', 'S', 'MBR', '01', '0001', 200, 'MBR 생성 성공', 'SYSTEM', 'SYSTEM'),
+    ('SMBR010002', 'MMBR010002', 'S', 'MBR', '01', '0002', 200, 'MBR 수정 성공', 'SYSTEM', 'SYSTEM'),
+    ('SMBR010003', 'MMBR010003', 'S', 'MBR', '01', '0003', 200, 'MBR 삭제 성공', 'SYSTEM', 'SYSTEM'),
+    ('EMBR010001', 'MMBR010101', 'E', 'MBR', '01', '0001', 400, 'MBR 요청 형식 오류', 'SYSTEM', 'SYSTEM'),
+    ('EMBR010002', 'MMBR010102', 'E', 'MBR', '01', '0002', 400, 'MBR 파라미터 오류', 'SYSTEM', 'SYSTEM'),
+    ('EMBR010003', 'MMBR010103', 'E', 'MBR', '01', '0003', 404, 'MBR 미존재', 'SYSTEM', 'SYSTEM'),
+    ('EMBR010004', 'MMBR010104', 'E', 'MBR', '01', '0004', 409, 'MBR 중복', 'SYSTEM', 'SYSTEM'),
+    ('EMBR010005', 'MMBR010105', 'E', 'MBR', '01', '0005', 400, 'MBR 검증 실패', 'SYSTEM', 'SYSTEM'),
+    ('EMBR990000', 'MMBR990000', 'E', 'MBR', '99', '0000', 500, 'MBR 내부 오류', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     message_code = VALUES(message_code),
     result_type = VALUES(result_type),
@@ -709,27 +1221,20 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO config_table (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+INSERT INTO pfw_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
 VALUES
-    ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'Preload CMN cache at startup', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', 'Fail startup when CMN cache preload fails', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', 'Cache refresh event polling interval in milliseconds', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.CACHE.PERIODIC_REFRESH_MILLIS', '1800000', 'NUMBER', 'Periodic cache refresh interval in milliseconds', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', 'Default CMN message broker type', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.MESSAGING.DEFAULT_DESTINATION', 'cpf.default.event', 'STRING', 'Default messaging destination', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.FILE.SSH_ENABLED', 'N', 'BOOLEAN', 'Allow SSH/SCP/SFTP execution', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.FILE.DRY_RUN', 'Y', 'BOOLEAN', 'Plan remote file operations without execution', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.FILE.TIMEOUT_SECONDS', '15', 'NUMBER', 'File exchange timeout seconds', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.SECURITY.JWT.ISSUER', 'CPF', 'STRING', 'Sample JWT issuer', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.SECURITY.JWT.AUDIENCE', 'CPF-API', 'STRING', 'Sample JWT audience', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.CMN.SECURITY.JWT.TTL_SECONDS', '300', 'NUMBER', 'Sample JWT TTL seconds', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'PFW HTTP client connect timeout', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'PFW HTTP client read timeout', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.ADM.SESSION_TTL_SECONDS', '3600', 'NUMBER', 'ADM session TTL seconds', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.ADM.PASSWORD_EXPIRE_DAYS', '90', 'NUMBER', 'ADM password expiration days', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM password minimum length', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.ADM.PASSWORD_MAX_FAIL_COUNT', '5', 'NUMBER', 'ADM login failure lock threshold', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', 'Enable sample APIs and education flows', 'N', 'SYSTEM', 'SYSTEM')
+    ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'PFW HTTP client 연결 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'PFW HTTP client 읽기 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.ADM.SESSION_TTL_SECONDS', '3600', 'NUMBER', 'ADM 세션 TTL 초', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.ADM.PASSWORD_EXPIRE_DAYS', '90', 'NUMBER', 'ADM 비밀번호 만료 일수', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.ADM.PASSWORD_MAX_FAIL_COUNT', '5', 'NUMBER', 'ADM 로그인 실패 잠금 기준', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.BATCH.DEFAULT_LOCK_SECONDS', '3600', 'NUMBER', '배치 기본 lock 만료 초', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     config_value = VALUES(config_value),
     config_type = VALUES(config_type),
@@ -739,8 +1244,8 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO security_jwt_key (
-    KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, CREATED_BY, UPDATED_BY
+INSERT INTO pfw_security_jwt_key (
+    KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
 ) VALUES (
     'local-cpf-hs256-001',
     'CPF',
@@ -757,79 +1262,416 @@ ON DUPLICATE KEY UPDATE
     SECRET_REF = VALUES(SECRET_REF),
     ACTIVE_YN = VALUES(ACTIVE_YN),
     EXPIRE_AT = VALUES(EXPIRE_AT),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cache_refresh_event (
+INSERT INTO pfw_cache_refresh_event (
     cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by
 )
 SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM cache_refresh_event
+    FROM pfw_cache_refresh_event
     WHERE cache_name = 'ALL'
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
 
--- END specs/sql/50_framework_seed_data.sql
+INSERT INTO pfw_batch_instance (
+    instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
+) VALUES (
+    'local-batch-01',
+    '로컬 배치 인스턴스',
+    'localhost',
+    8099,
+    'Y',
+    NOW(3),
+    'XYZ EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    instance_name = VALUES(instance_name),
+    host_name = VALUES(host_name),
+    server_port = VALUES(server_port),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_batch_job (
+    job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
+) VALUES
+    ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_CHUNK_JOB', 'CPF 교육 Chunk Job', 'CHUNK', '대용량 읽기/처리/쓰기 샘플을 위한 Chunk Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_RETRY_JOB', 'CPF 교육 재처리 Job', 'RETRY', '실패 재처리와 checkpoint/restart 교육을 위한 Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    job_name = VALUES(job_name),
+    job_type = VALUES(job_type),
+    description = VALUES(description),
+    restartable_yn = VALUES(restartable_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_batch_schedule (
+    schedule_id, job_id, cron_expression, timezone, enabled_yn, created_by, updated_by
+) VALUES
+    ('CPF_EDU_TASKLET_DAILY', 'CPF_EDU_TASKLET_JOB', '0 0 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    job_id = VALUES(job_id),
+    cron_expression = VALUES(cron_expression),
+    timezone = VALUES(timezone),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_batch_execution (
+    job_id, schedule_id, job_parameters, execution_status, batch_instance_id, start_time, end_time,
+    read_count, write_count, skip_count, requested_by, created_by, updated_by
+)
+SELECT
+    'CPF_EDU_TASKLET_JOB',
+    'CPF_EDU_TASKLET_DAILY',
+    '{"sample":true}',
+    'COMPLETED',
+    'local-batch-01',
+    DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
+    DATE_SUB(NOW(3), INTERVAL 9 MINUTE),
+    1,
+    1,
+    0,
+    'SYSTEM',
+    'SYSTEM',
+    'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM pfw_batch_execution
+    WHERE job_id = 'CPF_EDU_TASKLET_JOB'
+      AND requested_by = 'SYSTEM'
+      AND job_parameters = '{"sample":true}'
+);
+
+SET @cpf_edu_execution_id = (
+    SELECT execution_id
+    FROM pfw_batch_execution
+    WHERE job_id = 'CPF_EDU_TASKLET_JOB'
+      AND requested_by = 'SYSTEM'
+      AND job_parameters = '{"sample":true}'
+    ORDER BY execution_id
+    LIMIT 1
+);
+
+INSERT INTO pfw_batch_step_execution (
+    execution_id, step_name, execution_status, start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
+)
+SELECT @cpf_edu_execution_id, 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 샘플 정상 완료', 'SYSTEM', 'SYSTEM'
+WHERE @cpf_edu_execution_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_batch_step_execution
+      WHERE execution_id = @cpf_edu_execution_id
+        AND step_name = 'CPF_EDU_TASKLET_STEP'
+  );
+
+INSERT INTO pfw_business_day_calendar (
+    calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
+) VALUES
+    ('DEFAULT', CURRENT_DATE, 'N', 'Y', '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
+    ('DEFAULT', DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY), 'N', 'Y', '로컬 smoke 검증용 다음 영업일', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    holiday_yn = VALUES(holiday_yn),
+    business_day_yn = VALUES(business_day_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
 -- ============================================================================
--- BEGIN specs/sql/60_adm_seed_data.sql
+-- specs/sql/55_cmn_seed_data.sql
 -- ============================================================================
--- ADM initial roles, menus, permissions, and local/test account.
--- Target DB: admDB
+-- CMN 업무 공통 기능 초기 데이터입니다.
+-- 교육 샘플에서 바로 호출 가능한 채번 기준과 예시 로그를 등록합니다.
+
+USE cmnDB;
+
+INSERT INTO cmn_sequence (
+    sequence_key,
+    business_area,
+    business_key,
+    sequence_kind,
+    channel_code,
+    prefix,
+    date_pattern,
+    current_value,
+    start_value,
+    increment_by,
+    min_value,
+    max_value,
+    range_size,
+    number_length,
+    reset_cycle,
+    reset_pattern,
+    reset_timezone,
+    last_reset_key,
+    log_enabled_yn,
+    retention_days,
+    description,
+    use_yn,
+    created_by,
+    updated_by
+) VALUES (
+    'CMN_EDU_ORDER',
+    'CMN_EDU',
+    'ORDER',
+    'ORDER_NO',
+    'WEB',
+    'EDU',
+    'yyyyMMdd',
+    0,
+    1,
+    1,
+    1,
+    999999,
+    1,
+    6,
+    'DAY',
+    'yyyyMMdd',
+    'Asia/Seoul',
+    DATE_FORMAT(CURRENT_DATE, '%Y%m%d'),
+    'Y',
+    365,
+    'CMN 교육용 주문번호 채번 샘플',
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    business_area = VALUES(business_area),
+    business_key = VALUES(business_key),
+    sequence_kind = VALUES(sequence_kind),
+    channel_code = VALUES(channel_code),
+    prefix = VALUES(prefix),
+    date_pattern = VALUES(date_pattern),
+    start_value = VALUES(start_value),
+    increment_by = VALUES(increment_by),
+    min_value = VALUES(min_value),
+    max_value = VALUES(max_value),
+    range_size = VALUES(range_size),
+    number_length = VALUES(number_length),
+    reset_cycle = VALUES(reset_cycle),
+    reset_pattern = VALUES(reset_pattern),
+    reset_timezone = VALUES(reset_timezone),
+    log_enabled_yn = VALUES(log_enabled_yn),
+    retention_days = VALUES(retention_days),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_notification_log (
+    notification_type,
+    receiver,
+    title,
+    message,
+    send_status,
+    send_result,
+    transaction_id,
+    trace_id,
+    created_by,
+    updated_by
+)
+SELECT
+    'EMAIL',
+    'developer@example.com',
+    'CMN 알림 로그 샘플',
+    'CMN 공통 알림 로그 테이블 연동을 확인하기 위한 초기 데이터입니다.',
+    'READY',
+    NULL,
+    'INITIAL_SQL_SEED',
+    'INITIAL_SQL_SEED',
+    'SYSTEM',
+    'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM cmn_notification_log
+    WHERE transaction_id = 'INITIAL_SQL_SEED'
+      AND title = 'CMN 알림 로그 샘플'
+);
+
+INSERT INTO cmn_business_log (
+    business_area,
+    business_key,
+    log_type,
+    log_message,
+    log_payload,
+    transaction_id,
+    trace_id,
+    created_by,
+    updated_by
+)
+SELECT
+    'CMN_EDU',
+    'INITIAL',
+    'SEED',
+    'CMN 공통 업무 로그 테이블 연동을 확인하기 위한 초기 데이터입니다.',
+    '{"source":"55_cmn_seed_data.sql"}',
+    'INITIAL_SQL_SEED',
+    'INITIAL_SQL_SEED',
+    'SYSTEM',
+    'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM cmn_business_log
+    WHERE business_area = 'CMN_EDU'
+      AND business_key = 'INITIAL'
+      AND log_type = 'SEED'
+);
+
+-- ============================================================================
+-- specs/sql/60_adm_seed_data.sql
+-- ============================================================================
+-- ADM 초기 역할, 메뉴, 버튼 권한, 보안 정책, 로컬 계정 데이터입니다.
+-- 대상 DB: admDB
 
 USE admDB;
 
-INSERT INTO operator_role (ROLE_ID, ROLE_NAME, DESCRIPTION, USE_YN, CREATED_BY, UPDATED_BY)
+INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, created_by, updated_by)
 VALUES
-    ('ADM_ADMIN', 'Framework Administrator', 'Can manage every ADM menu and operation.', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATOR', 'Operations User', 'Can query logs, refresh caches, and manage dynamic log levels.', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_VIEWER', 'Read Only User', 'Can query logs and settings without changing data.', 'Y', 'SYSTEM', 'SYSTEM')
+    ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_DEV_OPERATOR', '개발자 운영자', 'DEVELOPER_OPERATOR', '로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_BIZ_OPERATOR', '업무 운영자', 'BUSINESS_OPERATOR', '회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_VIEWER', '조회 전용 운영자', 'VIEWER', '운영 정보를 조회만 할 수 있습니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     ROLE_NAME = VALUES(ROLE_NAME),
+    ROLE_TYPE = VALUES(ROLE_TYPE),
     DESCRIPTION = VALUES(DESCRIPTION),
     USE_YN = VALUES(USE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, CREATED_BY, UPDATED_BY)
+INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES
-    ('DASHBOARD', NULL, 'Dashboard', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('LOG_LIST', NULL, 'Transaction Logs', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CACHE', NULL, 'Cache Management', '/adm#cache', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('RESPONSE_CODE', NULL, 'Response Codes', '/adm#response-codes', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('DYNAMIC_LOG', NULL, 'Dynamic Log Level', '/adm#log-level', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('AUDIT_LOG', NULL, 'Audit Logs', '/adm#audit-logs', 60, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR', NULL, 'Operator Management', '/adm#operators', 70, 'Y', 'SYSTEM', 'SYSTEM')
+    ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MESSAGE', NULL, '메시지 관리', '/adm#messages', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CODE', NULL, '코드 관리', '/adm#codes', 80, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CONFIG', NULL, '설정 관리', '/adm#configs', 100, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DYNAMIC_LOG', NULL, '동적 로그 레벨', '/adm#log-level', 110, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     PARENT_MENU_ID = VALUES(PARENT_MENU_ID),
     MENU_NAME = VALUES(MENU_NAME),
     MENU_PATH = VALUES(MENU_PATH),
     SORT_ORDER = VALUES(SORT_ORDER),
     USE_YN = VALUES(USE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_user (
+INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
+VALUES
+    ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_READ', 'MEMBER', 'READ', '회원 조회', 'GET', '/adm/api/members/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_CREATE', 'MEMBER', 'CREATE', '회원 등록', 'POST', '/adm/api/members', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_UPDATE', 'MEMBER', 'UPDATE', '회원 수정', 'PUT', '/adm/api/members/*', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_STATUS', 'MEMBER', 'STATUS', '회원 상태 변경', 'PUT', '/adm/api/members/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_ROLE_GRANT', 'MEMBER', 'ROLE_GRANT', '회원 권한 부여', 'POST', '/adm/api/members/*/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_ROLE_REVOKE', 'MEMBER', 'ROLE_REVOKE', '회원 권한 회수', 'DELETE', '/adm/api/members/*/roles/*', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_READ', 'BATCH', 'READ', '조회', 'GET', '/adm/api/batch/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_REGISTER', 'BATCH', 'REGISTER', '배치 등록', 'POST', '/adm/api/batch/jobs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_EXECUTE', 'BATCH', 'EXECUTE', '수동 실행', 'POST', '/adm/api/batch/*/run', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_RETRY', 'BATCH', 'RETRY', '실패 재수행', 'POST', '/adm/api/batch/executions/*/retry', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_STOP', 'BATCH', 'STOP', '실행 중지', 'POST', '/adm/api/batch/executions/*/stop', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_SCHEDULE', 'BATCH', 'SCHEDULE', '스케줄 변경', 'POST', '/adm/api/batch/schedules/**', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_CALENDAR_SAVE', 'BATCH', 'CALENDAR_SAVE', '영업일 저장', 'POST', '/adm/api/batch/calendar', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_READ', 'CACHE', 'READ', '조회', 'GET', '/adm/api/cache/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CACHE_REFRESH', 'CACHE', 'REFRESH', '캐시 갱신', 'POST', '/adm/api/cache/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MESSAGE_READ', 'MESSAGE', 'READ', '조회', 'GET', '/adm/api/messages/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MESSAGE_WRITE', 'MESSAGE', 'WRITE', '등록/수정', 'POST', '/adm/api/messages/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MESSAGE_DISABLE', 'MESSAGE', 'DISABLE', '비활성', 'DELETE', '/adm/api/messages/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CODE_READ', 'CODE', 'READ', '조회', 'GET', '/adm/api/codes/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CODE_WRITE', 'CODE', 'WRITE', '등록/수정', 'POST', '/adm/api/codes/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CODE_DISABLE', 'CODE', 'DISABLE', '비활성', 'DELETE', '/adm/api/codes/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RESPONSE_CODE_READ', 'RESPONSE_CODE', 'READ', '조회', 'GET', '/adm/api/response-codes/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RESPONSE_CODE_WRITE', 'RESPONSE_CODE', 'WRITE', '등록/수정', 'POST', '/adm/api/response-codes/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CONFIG_READ', 'CONFIG', 'READ', '조회', 'GET', '/adm/api/configs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CONFIG_WRITE', 'CONFIG', 'WRITE', '수정', 'POST', '/adm/api/configs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DYNAMIC_LOG_READ', 'DYNAMIC_LOG', 'READ', '조회', 'GET', '/adm/api/log-level/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DYNAMIC_LOG_WRITE', 'DYNAMIC_LOG', 'WRITE', '적용', 'POST', '/adm/api/log-level/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PASSWORD_READ', 'PASSWORD', 'READ', '정책 조회', 'GET', '/adm/api/operators/password-policy/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PASSWORD_RESET', 'PASSWORD', 'RESET_PASSWORD', '비밀번호 초기화', 'POST', '/adm/api/operators/*/password/reset', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PASSWORD_UNLOCK', 'PASSWORD', 'UNLOCK', '잠금 해제', 'POST', '/adm/api/operators/*/unlock', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PASSWORD_SESSION_REVOKE', 'PASSWORD', 'REVOKE_SESSION', '세션 강제 종료', 'POST', '/adm/api/operators/sessions/*/revoke', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_READ', 'SECURITY', 'READ', '조회', 'GET', '/adm/api/security/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_WRITE', 'SECURITY', 'WRITE', '보안 설정 변경', 'POST', '/adm/api/security/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION_READ', 'PERMISSION', 'READ', '조회', 'GET', '/adm/api/permissions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION_WRITE', 'PERMISSION', 'WRITE', '권한 변경', 'POST', '/adm/api/permissions/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR_READ', 'OPERATOR', 'READ', '조회', 'GET', '/adm/api/operators/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR_CREATE', 'OPERATOR', 'CREATE', '운영자 등록', 'POST', '/adm/api/operators', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR_ROLE_UPDATE', 'OPERATOR', 'ROLE_UPDATE', '역할 부여', 'PUT', '/adm/api/operators/*/roles', 30, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    MENU_ID = VALUES(MENU_ID),
+    ACTION_CODE = VALUES(ACTION_CODE),
+    BUTTON_NAME = VALUES(BUTTON_NAME),
+    HTTP_METHOD = VALUES(HTTP_METHOD),
+    API_PATTERN = VALUES(API_PATTERN),
+    SORT_ORDER = VALUES(SORT_ORDER),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_password_policy (
+    POLICY_ID, MIN_LENGTH, REQUIRE_UPPER_YN, REQUIRE_LOWER_YN, REQUIRE_DIGIT_YN,
+    REQUIRE_SPECIAL_YN, MAX_FAIL_COUNT, EXPIRE_DAYS, HISTORY_LIMIT, USE_YN, created_by, updated_by
+) VALUES (
+    'DEFAULT', 12, 'Y', 'Y', 'Y', 'Y', 5, 90, 5, 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    MIN_LENGTH = VALUES(MIN_LENGTH),
+    REQUIRE_UPPER_YN = VALUES(REQUIRE_UPPER_YN),
+    REQUIRE_LOWER_YN = VALUES(REQUIRE_LOWER_YN),
+    REQUIRE_DIGIT_YN = VALUES(REQUIRE_DIGIT_YN),
+    REQUIRE_SPECIAL_YN = VALUES(REQUIRE_SPECIAL_YN),
+    MAX_FAIL_COUNT = VALUES(MAX_FAIL_COUNT),
+    EXPIRE_DAYS = VALUES(EXPIRE_DAYS),
+    HISTORY_LIMIT = VALUES(HISTORY_LIMIT),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_operator (
     OPERATOR_ID,
     OPERATOR_NAME,
     PASSWORD_HASH,
     LOCKED_YN,
     FAIL_COUNT,
     PASSWORD_CHANGED_AT,
+    PASSWORD_EXPIRE_AT,
     PASSWORD_CHANGE_REQUIRED_YN,
     USE_YN,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 ) VALUES (
     'admin',
-    'Local Administrator',
+    '로컬 관리자',
     'PBKDF2$120000$AQIDBAUGBwgJCgsMDQ4PEA==$cjgjgGQwgcZ0+fFaA8Z4qBJkZfszRZ73BSBIMXAJkqI=',
     'N',
     0,
     DATE_SUB(NOW(), INTERVAL 91 DAY),
+    DATE_ADD(NOW(), INTERVAL 90 DAY),
     'Y',
     'Y',
     'SYSTEM',
@@ -840,53 +1682,138 @@ ON DUPLICATE KEY UPDATE
     PASSWORD_HASH = VALUES(PASSWORD_HASH),
     LOCKED_YN = VALUES(LOCKED_YN),
     FAIL_COUNT = VALUES(FAIL_COUNT),
+    PASSWORD_EXPIRE_AT = VALUES(PASSWORD_EXPIRE_AT),
     PASSWORD_CHANGE_REQUIRED_YN = VALUES(PASSWORD_CHANGE_REQUIRED_YN),
     USE_YN = VALUES(USE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_user_role (OPERATOR_ID, ROLE_ID, CREATED_BY, UPDATED_BY)
+INSERT INTO adm_operator_role (OPERATOR_ID, ROLE_ID, created_by, updated_by)
 VALUES ('admin', 'ADM_ADMIN', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
-FROM operator_menu
+FROM adm_menu
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
     DELETE_YN = VALUES(DELETE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
-SELECT 'ADM_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('CACHE', 'DYNAMIC_LOG') THEN 'Y' ELSE 'N' END,
-       CASE WHEN MENU_ID = 'DYNAMIC_LOG' THEN 'Y' ELSE 'N' END,
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
+SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('BATCH', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID IN ('MESSAGE', 'CODE', 'DYNAMIC_LOG') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
-FROM operator_menu
-WHERE MENU_ID NOT IN ('OPERATOR', 'RESPONSE_CODE')
+FROM adm_menu
+WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
     DELETE_YN = VALUES(DELETE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
+SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
+       CASE WHEN MENU_ID IN ('MEMBER', 'BATCH', 'CACHE') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
+       'SYSTEM', 'SYSTEM'
+FROM adm_menu
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'CACHE', 'MESSAGE', 'CODE')
+ON DUPLICATE KEY UPDATE
+    READ_YN = VALUES(READ_YN),
+    WRITE_YN = VALUES(WRITE_YN),
+    DELETE_YN = VALUES(DELETE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
-FROM operator_menu
-WHERE MENU_ID NOT IN ('DYNAMIC_LOG', 'OPERATOR', 'RESPONSE_CODE', 'AUDIT_LOG')
+FROM adm_menu
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
     DELETE_YN = VALUES(DELETE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO operator_audit_log (
+INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
+SELECT 'ADM_OPERATOR', MENU_ID, READ_YN, WRITE_YN, DELETE_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_role_menu
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
+ON DUPLICATE KEY UPDATE
+    READ_YN = VALUES(READ_YN),
+    WRITE_YN = VALUES(WRITE_YN),
+    DELETE_YN = VALUES(DELETE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
+SELECT 'ADM_ADMIN', BUTTON_ID, 'Y', 'SYSTEM', 'SYSTEM'
+FROM adm_button
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
+SELECT 'ADM_DEV_OPERATOR', BUTTON_ID,
+       CASE WHEN MENU_ID IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY') THEN 'N' ELSE 'Y' END,
+       'SYSTEM', 'SYSTEM'
+FROM adm_button
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
+SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
+       CASE
+           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'CACHE_REFRESH') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'CACHE', 'MESSAGE', 'CODE') THEN 'Y'
+           ELSE 'N'
+       END,
+       'SYSTEM', 'SYSTEM'
+FROM adm_button
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
+SELECT 'ADM_VIEWER', BUTTON_ID,
+       CASE WHEN ACTION_CODE IN ('READ', 'DETAIL') THEN 'Y' ELSE 'N' END,
+       'SYSTEM', 'SYSTEM'
+FROM adm_button
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
+SELECT 'ADM_OPERATOR', BUTTON_ID, ALLOW_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_role_button
+WHERE ROLE_ID = 'ADM_DEV_OPERATOR'
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_ip_allowlist (IP_PATTERN, DESCRIPTION, USE_YN, created_by, updated_by)
+VALUES ('127.0.0.1', '로컬 개발 PC', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    DESCRIPTION = VALUES(DESCRIPTION),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_audit_log (
     TRANSACTION_ID,
     TRACE_ID,
     OPERATOR_ID,
@@ -897,9 +1824,9 @@ INSERT INTO operator_audit_log (
     REASON,
     REQUEST_BODY,
     CLIENT_IP,
-    CREATED_BY,
-    UPDATED_BY
-) VALUES (
+    created_by,
+    updated_by
+) SELECT
     'INITIAL_SQL_SEED',
     'INITIAL_SQL_SEED',
     'admin',
@@ -907,23 +1834,29 @@ INSERT INTO operator_audit_log (
     'SEED',
     'ADM',
     'INITIAL_DATA',
-    'Initial ADM seed data registered.',
+    'ADM 초기 데이터 등록',
     NULL,
     '127.0.0.1',
     'SYSTEM',
     'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM adm_audit_log
+    WHERE TRANSACTION_ID = 'INITIAL_SQL_SEED'
+      AND OPERATOR_ID = 'admin'
+      AND ACTION_TYPE = 'SEED'
+      AND TARGET_TYPE = 'ADM'
+      AND TARGET_ID = 'INITIAL_DATA'
 );
 
--- END specs/sql/60_adm_seed_data.sql
-
 -- ============================================================================
--- BEGIN specs/sql/70_test_data.sql
+-- specs/sql/70_test_data.sql
 -- ============================================================================
--- Local and integration test data for ACC, MBR, PFW, and ADM screens.
+-- 로컬 및 통합 검증용 테스트 데이터입니다.
 
 USE pfwDB;
 
-INSERT INTO file_exchange_log (
+INSERT INTO pfw_file_exchange_log (
     EXCHANGE_ID,
     TRANSACTION_ID,
     TRACE_ID,
@@ -938,8 +1871,8 @@ INSERT INTO file_exchange_log (
     TARGET_PATH,
     REQUEST_USER,
     MESSAGE,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 ) VALUES (
     'FILE-LOCAL-SAMPLE-001',
     'TEST_TRANSACTION',
@@ -951,25 +1884,25 @@ INSERT INTO file_exchange_log (
     'Y',
     'Y',
     'localhost',
-    '/tmp/fps/source.txt',
-    '/tmp/fps/target.txt',
+    '/tmp/cpf/source.txt',
+    '/tmp/cpf/target.txt',
     'SYSTEM',
-    'Local file exchange sample history.',
+    '로컬 파일 교환 샘플 이력입니다.',
     'SYSTEM',
     'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     MESSAGE = VALUES(MESSAGE),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
 USE accDB;
 
 INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)
 VALUES
-    (1, '100-000-000001', 'ACC sample account 1', 'ACTIVE', 100000.00, 'ACC account sample 1', 'SYSTEM', 'SYSTEM'),
-    (2, '100-000-000002', 'ACC sample account 2', 'ACTIVE', 250000.00, 'ACC account sample 2', 'SYSTEM', 'SYSTEM'),
-    (3, '100-000-000003', 'ACC dormant account', 'DORMANT', 0.00, 'ACC dormant account sample', 'SYSTEM', 'SYSTEM')
+    (1, '100-000-000001', 'ACC 샘플 계정 1', 'ACTIVE', 100000.00, 'ACC 계정 샘플 1', 'SYSTEM', 'SYSTEM'),
+    (2, '100-000-000002', 'ACC 샘플 계정 2', 'ACTIVE', 250000.00, 'ACC 계정 샘플 2', 'SYSTEM', 'SYSTEM'),
+    (3, '100-000-000003', 'ACC 휴면 계정', 'DORMANT', 0.00, 'ACC 휴면 계정 샘플', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     account_no = VALUES(account_no),
     account_name = VALUES(account_name),
@@ -981,23 +1914,61 @@ ON DUPLICATE KEY UPDATE
 
 USE mbrDB;
 
-INSERT INTO member (id, name, description, created_by, updated_by)
-VALUES
-    (1, 'mbr 1', 'MBR separated DB sample member 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'mbr 2', 'MBR separated DB sample member 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'mbr 3', 'MBR separated DB sample member 3', 'SYSTEM', 'SYSTEM'),
-    (100, 'search target', 'MBR separated DB name search test row', 'SYSTEM', 'SYSTEM')
+INSERT INTO mbr_member (
+    id, member_no, customer_no, login_id, name, email, mobile_no,
+    member_status, lock_yn, withdraw_yn, channel_code, description, created_by, updated_by
+) VALUES
+    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
+    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
+    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
+    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
+    customer_no = VALUES(customer_no),
+    login_id = VALUES(login_id),
     name = VALUES(name),
+    email = VALUES(email),
+    mobile_no = VALUES(mobile_no),
+    member_status = VALUES(member_status),
+    lock_yn = VALUES(lock_yn),
+    withdraw_yn = VALUES(withdraw_yn),
+    channel_code = VALUES(channel_code),
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO mbr_member_role (
+    member_id, service_code, role_code, role_name, grade_code, temporary_yn, expire_at,
+    granted_by, use_yn, created_by, updated_by
+) VALUES
+    (1, 'MBR', 'MBR_USER', '일반 회원', 'NORMAL', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM'),
+    (2, 'MBR', 'MBR_PREMIUM', '프리미엄 회원', 'PREMIUM', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    role_name = VALUES(role_name),
+    grade_code = VALUES(grade_code),
+    temporary_yn = VALUES(temporary_yn),
+    expire_at = VALUES(expire_at),
+    granted_by = VALUES(granted_by),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO mbr_member_login_history (
+    member_id, login_id, login_result, login_ip, user_agent, failure_reason, created_by, updated_by
+)
+SELECT 1, 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL, 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM mbr_member_login_history
+    WHERE member_id = 1
+      AND login_id = 'mbr001'
+      AND user_agent = 'SQL-SEED'
+);
 
 USE pfwDB;
 
 SET @sample_transaction_id = '20260615120000000MBRlocal010000001';
 
-INSERT INTO TRAN_LOG (
+INSERT INTO pfw_transaction_log (
     LOG_DATE,
     TRANSACTION_ID,
     TRACE_ID,
@@ -1007,6 +1978,15 @@ INSERT INTO TRAN_LOG (
     BUSINESS_TRANSACTION_ID,
     BUSINESS_TRANSACTION_NAME,
     LOG_TYPE,
+    API_VERSION,
+    CLIENT_APP_ID,
+    CLIENT_VERSION,
+    CALLER_SERVICE,
+    CALLER_INSTANCE_ID,
+    CORRELATION_ID,
+    IDEMPOTENCY_KEY,
+    LOCALE,
+    TIMEZONE,
     REQUEST_TYPE,
     ORIGINAL_CHANNEL_CODE,
     CHANNEL_CODE,
@@ -1023,7 +2003,9 @@ INSERT INTO TRAN_LOG (
     EXECUTION_METHOD,
     EXECUTION_SIGNATURE,
     PARAMETERS,
+    REQUEST_BODY,
     RESPONSE,
+    HTTP_STATUS,
     RESPONSE_CODE,
     EXEC_USER,
     CLIENT_IP,
@@ -1031,8 +2013,8 @@ INSERT INTO TRAN_LOG (
     START_TIME,
     END_TIME,
     DURATION_MS,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 )
 SELECT
     CURDATE(),
@@ -1042,8 +2024,17 @@ SELECT
     1,
     'MBR',
     'MBR01BSE0001',
-    'MBR member list sample',
+    'MBR 회원 목록 샘플',
     'SUCCESS',
+    'v1',
+    'cpf-edu-web',
+    '1.0.0',
+    'xyz-education',
+    'local-dev',
+    'corr-sample-001',
+    'idem-sample-001',
+    'ko-KR',
+    'Asia/Seoul',
     'NORMAL',
     'WEB',
     'WEB',
@@ -1054,14 +2045,16 @@ SELECT
     'local01',
     'GET',
     '/mbr/list',
-    'fps.mbr.bse.controller.MbrController',
-    'fps.mbr.bse.controller',
+    'cpf.mbr.bse.controller.MbrController',
+    'cpf.mbr.bse.controller',
     'MbrController',
     'getAllMembers',
     'MbrController.getAllMembers()',
     '{}',
-    '{"code":"1000","message":"success"}',
+    '{"memberNo":"M000000001","password":"masked"}',
+    '{"code":"SPFW000000","message":"정상 처리되었습니다."}',
     200,
+    'SPFW000000',
     'SYSTEM',
     '127.0.0.1',
     'SQL-SEED',
@@ -1072,55 +2065,71 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM TRAN_LOG
+    FROM pfw_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
 );
 
 SET @sample_log_idx = (
     SELECT LOG_IDX
-    FROM TRAN_LOG
+    FROM pfw_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
     ORDER BY LOG_IDX
     LIMIT 1
 );
 
-INSERT INTO TRAN_LOG_DTL (
+INSERT INTO pfw_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 )
-SELECT @sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL"}', 'SYSTEM', 'SYSTEM'
+SELECT @sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM TRAN_LOG_DTL
+      FROM pfw_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'headers'
   );
 
-INSERT INTO TRAN_LOG_DTL (
+INSERT INTO pfw_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 )
-SELECT @sample_log_idx, 'memo', 'Seed transaction log for ADM log screen smoke test.', 'SYSTEM', 'SYSTEM'
+SELECT @sample_log_idx, 'fixedTelegram', 'M000000001회원1              000000010000Y20260617', 'SYSTEM', 'SYSTEM'
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM TRAN_LOG_DTL
+      FROM pfw_transaction_log_detail
+      WHERE LOG_IDX = @sample_log_idx
+        AND DETAIL_KEY = 'fixedTelegram'
+  );
+
+INSERT INTO pfw_transaction_log_detail (
+    LOG_IDX,
+    DETAIL_KEY,
+    DETAIL_VALUE,
+    created_by,
+    updated_by
+)
+SELECT @sample_log_idx, 'memo', 'ADM 로그 화면 smoke 검증용 거래 로그입니다.', 'SYSTEM', 'SYSTEM'
+WHERE @sample_log_idx IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'memo'
   );
 
 USE admDB;
 
-INSERT INTO dynamic_log_level_rule (
+INSERT INTO adm_dynamic_log_level_rule (
     RULE_ID,
     TRANSACTION_ID,
     BUSINESS_TRANSACTION_ID,
@@ -1129,8 +2138,8 @@ INSERT INTO dynamic_log_level_rule (
     EXPIRE_AT,
     REASON,
     USE_YN,
-    CREATED_BY,
-    UPDATED_BY
+    created_by,
+    updated_by
 ) VALUES (
     'sample-rule-001',
     NULL,
@@ -1138,7 +2147,7 @@ INSERT INTO dynamic_log_level_rule (
     'MBR',
     'DEBUG',
     DATE_ADD(NOW(), INTERVAL 30 MINUTE),
-    'Initial sample dynamic log rule for ADM screen smoke test.',
+    'ADM 화면 smoke 검증용 동적 로그 규칙입니다.',
     'Y',
     'SYSTEM',
     'SYSTEM'
@@ -1150,41 +2159,94 @@ ON DUPLICATE KEY UPDATE
     EXPIRE_AT = VALUES(EXPIRE_AT),
     REASON = VALUES(REASON),
     USE_YN = VALUES(USE_YN),
-    UPDATED_BY = VALUES(UPDATED_BY),
-    UPDATED_AT = CURRENT_TIMESTAMP;
-
--- END specs/sql/70_test_data.sql
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 
 -- ============================================================================
--- BEGIN specs/sql/99_smoke_check.sql
+-- specs/sql/99_smoke_check.sql
 -- ============================================================================
--- CPF initial database smoke check.
--- Run after 01_create_databases.sql through 70_test_data.sql.
+-- CPF 초기 데이터베이스 smoke check입니다.
+-- 01_create_databases.sql부터 70_test_data.sql까지 실행한 뒤 수행합니다.
 
-SELECT 'pfwDB.TRAN_LOG' AS check_name, COUNT(*) AS row_count FROM pfwDB.TRAN_LOG;
-SELECT 'pfwDB.TRAN_LOG_DTL' AS check_name, COUNT(*) AS row_count FROM pfwDB.TRAN_LOG_DTL;
+SELECT 'pfwDB.pfw_transaction_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log;
+SELECT 'pfwDB.pfw_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log_detail;
+SELECT 'pfwDB.pfw_code' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_code;
+SELECT 'pfwDB.pfw_message' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_message;
+SELECT 'pfwDB.pfw_response_code' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_response_code;
+SELECT 'pfwDB.pfw_config' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_config;
+SELECT 'pfwDB.pfw_cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_cache_refresh_event;
+SELECT 'pfwDB.pfw_batch_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job;
+SELECT 'pfwDB.pfw_batch_schedule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_schedule;
+SELECT 'pfwDB.pfw_batch_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_instance;
+SELECT 'pfwDB.pfw_batch_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution;
+SELECT 'pfwDB.pfw_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_step_execution;
+SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
 
-SELECT 'pfwDB.code_table' AS check_name, COUNT(*) AS row_count FROM pfwDB.code_table;
-SELECT 'pfwDB.message_table' AS check_name, COUNT(*) AS row_count FROM pfwDB.message_table;
-SELECT 'pfwDB.response_code_table' AS check_name, COUNT(*) AS row_count FROM pfwDB.response_code_table;
-SELECT 'pfwDB.config_table' AS check_name, COUNT(*) AS row_count FROM pfwDB.config_table;
-SELECT 'pfwDB.cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.cache_refresh_event;
+SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence;
+SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
+SELECT 'cmnDB.cmn_notification_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_notification_log;
+SELECT 'cmnDB.cmn_business_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_business_log;
 
-SELECT 'admDB.operator_user' AS check_name, COUNT(*) AS row_count FROM admDB.operator_user;
-SELECT 'admDB.operator_menu' AS check_name, COUNT(*) AS row_count FROM admDB.operator_menu;
-SELECT 'admDB.operator_role' AS check_name, COUNT(*) AS row_count FROM admDB.operator_role;
+SELECT 'admDB.adm_operator' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator;
+SELECT 'admDB.adm_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_menu;
+SELECT 'admDB.adm_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_button;
+SELECT 'admDB.adm_role' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role;
+SELECT 'admDB.adm_role_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_menu;
+SELECT 'admDB.adm_role_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_button;
+SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
+SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
 SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
-SELECT 'mbrDB.member' AS check_name, COUNT(*) AS row_count FROM mbrDB.member;
+SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
+SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
+SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
+
+SELECT TRANSACTION_ID, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
+FROM pfwDB.pfw_transaction_log
+WHERE TRANSACTION_ID = '20260615120000000MBRlocal010000001'
+ORDER BY LOG_IDX
+LIMIT 1;
+
+SELECT DETAIL_KEY, DETAIL_VALUE
+FROM pfwDB.pfw_transaction_log_detail
+WHERE DETAIL_KEY IN ('headers', 'fixedTelegram')
+ORDER BY DETAIL_KEY;
+
+SELECT sequence_key, business_area, business_key, sequence_kind, channel_code, start_value, increment_by, reset_cycle, log_enabled_yn
+FROM cmnDB.cmn_sequence
+WHERE sequence_key = 'CMN_EDU_ORDER';
+
+SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, IMMUTABLE_YN
+FROM admDB.adm_audit_log
+ORDER BY AUDIT_ID DESC
+LIMIT 5;
+
+SELECT ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN
+FROM admDB.adm_role_menu
+WHERE MENU_ID IN ('MEMBER', 'BATCH', 'PERMISSION')
+ORDER BY ROLE_ID, MENU_ID;
+
+SELECT ROLE_ID, BUTTON_ID, ALLOW_YN
+FROM admDB.adm_role_button
+WHERE BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_ROLE_GRANT', 'BATCH_EXECUTE', 'BATCH_CALENDAR_SAVE')
+ORDER BY ROLE_ID, BUTTON_ID;
+
+SELECT member_no, customer_no, login_id, name, member_status, lock_yn, withdraw_yn
+FROM mbrDB.mbr_member
+ORDER BY id
+LIMIT 5;
+
+SELECT member_id, service_code, role_code, role_name, use_yn
+FROM mbrDB.mbr_member_role
+ORDER BY member_role_id
+LIMIT 5;
 
 SELECT response_code, message_code, result_type, http_status
-FROM pfwDB.response_code_table
+FROM pfwDB.pfw_response_code
 WHERE response_code IN ('SPFW000000', 'EPFW010004', 'SACC000000', 'EACC010001', 'SMBR000000', 'EMBR010002')
 ORDER BY response_code;
 
 SELECT message_code, locale, message_format_type, external_message, internal_message
-FROM pfwDB.message_table
+FROM pfwDB.pfw_message
 WHERE message_code IN ('MCMN000001', 'MPFW010004', 'MACC010001', 'MMBR010102', 'MXYZ090001')
 ORDER BY message_code, locale;
-
--- END specs/sql/99_smoke_check.sql

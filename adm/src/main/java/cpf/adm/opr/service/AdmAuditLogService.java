@@ -13,6 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ADM 운영 행위 감사 로그를 조회하고 기록합니다.
+ *
+ * <p>권한 변경, 회원 변경, 배치 실행, 비밀번호 초기화처럼 운영 리스크가 있는 작업은 감사 사유와
+ * 변경 전/후 데이터를 함께 남겨 사후 추적이 가능하게 합니다.</p>
+ */
 @Service
 public class AdmAuditLogService {
     private static final Logger log = LoggerFactory.getLogger(AdmAuditLogService.class);
@@ -31,9 +37,10 @@ public class AdmAuditLogService {
             int limit) {
 
         StringBuilder sql = new StringBuilder("""
-                SELECT AUDIT_ID, TRANSACTION_ID, TRACE_ID, OPERATOR_ID, MENU_ID, ACTION_TYPE,
-                       TARGET_TYPE, TARGET_ID, REASON, CLIENT_IP, CREATED_AT
-                FROM operator_audit_log
+                SELECT AUDIT_ID, TRANSACTION_ID, TRACE_ID, OPERATOR_ID, MENU_ID, BUTTON_ID, ACTION_TYPE,
+                       TARGET_TYPE, TARGET_ID, REASON, BEFORE_DATA, AFTER_DATA, DIFF_DATA,
+                       CLIENT_IP, RETENTION_UNTIL, IMMUTABLE_YN, CREATED_AT
+                FROM adm_audit_log
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -59,7 +66,7 @@ public class AdmAuditLogService {
         try {
             return admJdbcTemplate.queryForList(sql.toString(), args.toArray());
         } catch (DataAccessException ex) {
-            log.warn("ADM audit log query skipped. message={}", ex.getMessage());
+            log.warn("ADM 감사 로그 조회를 건너뜁니다. message={}", ex.getMessage());
             return List.of();
         }
     }
@@ -72,15 +79,30 @@ public class AdmAuditLogService {
             String targetId,
             String reason,
             String clientIp) {
+        record(transactionId, operatorId, actionType, targetType, targetId, reason, null, null, null, clientIp);
+    }
+
+    public void record(
+            String transactionId,
+            String operatorId,
+            String actionType,
+            String targetType,
+            String targetId,
+            String reason,
+            String beforeData,
+            String afterData,
+            String diffData,
+            String clientIp) {
 
         String requiredReason = requireReason(reason);
         try {
             admJdbcTemplate.update("""
-                    INSERT INTO operator_audit_log (
+                    INSERT INTO adm_audit_log (
                         TRANSACTION_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID,
-                        REASON, CLIENT_IP, CREATED_BY, UPDATED_BY
+                        REASON, BEFORE_DATA, AFTER_DATA, DIFF_DATA, CLIENT_IP,
+                        RETENTION_UNTIL, IMMUTABLE_YN, CREATED_BY, UPDATED_BY
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 5 YEAR), 'Y', ?, ?)
                     """,
                     value(transactionId, "NO_TRANSACTION"),
                     value(operatorId, "UNKNOWN"),
@@ -88,18 +110,21 @@ public class AdmAuditLogService {
                     targetType,
                     targetId,
                     requiredReason,
+                    beforeData,
+                    afterData,
+                    diffData,
                     clientIp,
                     value(operatorId, "SYSTEM"),
                     value(operatorId, "SYSTEM"));
         } catch (Exception ex) {
-            log.warn("ADM audit log write skipped. actionType={}, targetType={}, targetId={}, message={}",
+            log.warn("ADM 감사 로그 기록을 건너뜁니다. actionType={}, targetType={}, targetId={}, message={}",
                     actionType, targetType, targetId, ex.getMessage());
         }
     }
 
     public String requireReason(String reason) {
         if (!TextUtils.hasText(reason)) {
-            throw new FpsValidationException("Audit reason is required.");
+            throw new FpsValidationException("감사 사유는 필수입니다.");
         }
         return reason.trim();
     }

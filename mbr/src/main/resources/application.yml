@@ -5,3 +5,15 @@ spring:
       - optional:classpath:application-cmn.yml
       - classpath:application-mbr.yml
       - classpath:application-mbr-local.yml
+
+---
+# prod에서는 local import의 개발 기본값을 운영 환경변수로 덮습니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${MBR_DB_URL}
+    username: ${MBR_DB_USERNAME}
+    password: ${MBR_DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver

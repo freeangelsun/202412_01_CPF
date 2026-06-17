@@ -13,7 +13,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import javax.sql.DataSource;
 
 /**
- * ACC 紐⑤뱢??MyBatis ?ㅼ젙 ?대옒??
+ * ACC ⑤뱢??MyBatis ?ㅼ젙 ?대옒??
  */
 @Configuration
 @MapperScan(

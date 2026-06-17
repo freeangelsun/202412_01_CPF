@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
  *
- * <p>濡쒖뺄 ?뚯씪 ?낆텧?μ? 利됱떆 ?ъ슜?????덇퀬, SSH/SCP/SFTP/FTP 媛숈? ?먭꺽 ?곌퀎?? * ?댁쁺 蹂댁븞 ?뺤콉???곕씪 ?덉슜 ?몄뒪?몄? ?ㅽ뻾 ?щ?瑜?紐낆떆?곸쑝濡?耳쒖빞 ?⑸땲??</p>
+ * <p>濡쒖뺄 ?뚯씪 ?낆텧?μ? 利됱떆 ?ъ슜?????덇퀬, SSH/SCP/SFTP/FTP 媛숈? ?먭꺽 ?곌퀎?? * ?댁쁺 蹂댁븞 ?뺤콉???곕씪 ?덉슜 ?몄뒪?몄? ?ㅽ뻾 ?щ?瑜?낆떆?곸쑝濡?耳쒖빞 ?⑸땲??</p>
  */
 @Service
 public class CmnFileExchangeService {
@@ -85,29 +85,29 @@ public class CmnFileExchangeService {
     }
 
     /**
-     * 湲곗? ?붾젆?곕━ ?꾨옒 ?뚯씪 紐⑸줉??議고쉶?⑸땲??
+     * 湲곗? ?붾젆?곕━ ?꾨옒 ?뚯씪 ⑸줉??議고쉶?⑸땲??
      *
      * @param relativeDir 湲곗? ?붾젆?곕━ 湲곗? ?곷? ?붾젆?곕━
-     * @return ?뚯씪 紐⑸줉
+     * @return ?뚯씪 ⑸줉
      */
     public List<String> list(String relativeDir) {
         Path target = resolveSafePath(TextUtils.defaultIfBlank(relativeDir, "."));
         try (var stream = Files.list(target)) {
             List<String> files = stream.map(path -> baseDir().relativize(path).toString().replace("\\", "/")).toList();
             recordHistory("LOCAL_LIST", CmnFileProtocol.LOCAL.name(), "LIST", true, true,
-                    null, relativeDir, target.toString(), "SYSTEM", "濡쒖뺄 ?뚯씪 紐⑸줉 議고쉶瑜??꾨즺?덉뒿?덈떎.");
+                    null, relativeDir, target.toString(), "SYSTEM", "濡쒖뺄 ?뚯씪 ⑸줉 議고쉶瑜??꾨즺?덉뒿?덈떎.");
             return files;
         } catch (IOException ex) {
             recordHistory("LOCAL_LIST", CmnFileProtocol.LOCAL.name(), "LIST", true, false,
                     null, relativeDir, target.toString(), "SYSTEM", ex.getMessage());
-            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 紐⑸줉 議고쉶???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 ⑸줉 議고쉶???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
         }
     }
 
     /**
      * 濡쒖뺄/?먭꺽 ?뚯씪 ?꾩넚??泥섎━?⑸땲??
      *
-     * <p>LOCAL? ?ㅼ젣 蹂듭궗?⑸땲?? SCP/SFTP/FTP??紐낅졊 怨꾪쉷??留뚮뱾怨?
+     * <p>LOCAL? ?ㅼ젣 蹂듭궗?⑸땲?? SCP/SFTP/FTP??낅졊 怨꾪쉷??留뚮뱾怨?
      * {@code dryRun=false}, {@code sshEnabled=true}, ?덉슜 ?몄뒪??議곌굔??留뚯”???뚮쭔 ?ㅽ뻾?⑸땲??</p>
      *
      * @param request ?뚯씪 ?꾩넚 ?붿껌
@@ -131,7 +131,7 @@ public class CmnFileExchangeService {
                     false,
                     protocol,
                     command,
-                    "?먭꺽 ?뚯씪 ?꾩넚 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 紐낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.",
+                    "?먭꺽 ?뚯씪 ?꾩넚 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.",
                     request.localPath(),
                     request.remotePath());
             recordHistory("REMOTE_TRANSFER", protocol.name(), direction.name(), false, true,
@@ -154,14 +154,14 @@ public class CmnFileExchangeService {
     }
 
     /**
-     * SSH 紐낅졊???ㅽ뻾?섍굅???ㅽ뻾 怨꾪쉷??諛섑솚?⑸땲??
+     * SSH 낅졊???ㅽ뻾?섍굅???ㅽ뻾 怨꾪쉷??諛섑솚?⑸땲??
      *
-     * @param request SSH 紐낅졊 ?붿껌
+     * @param request SSH 낅졊 ?붿껌
      * @return ?ㅽ뻾 寃곌낵
      */
     public CmnRemoteCommandResult runSshCommand(CmnRemoteCommandRequest request) {
         if (request == null || !TextUtils.hasText(request.command())) {
-            throw new FpsValidationException("SSH ?ㅽ뻾 紐낅졊? ?꾩닔?낅땲??");
+            throw new FpsValidationException("SSH ?ㅽ뻾 낅졊? ?꾩닔?낅땲??");
         }
         List<String> command = buildSshCommand(request);
         if (!properties.isSshEnabled()) {
@@ -171,7 +171,7 @@ public class CmnFileExchangeService {
                     0,
                     command,
                     "",
-                    "SSH 紐낅졊 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 紐낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.");
+                    "SSH 낅졊 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.");
             recordHistory("SSH_COMMAND", "SSH", "COMMAND", false, true,
                     request.host(), request.command(), null, request.requestUser(), result.message());
             return result;
@@ -184,7 +184,7 @@ public class CmnFileExchangeService {
                 processResult.exitCode(),
                 command,
                 processResult.output(),
-                "SSH 紐낅졊 ?ㅽ뻾???꾨즺?덉뒿?덈떎.");
+                "SSH 낅졊 ?ㅽ뻾???꾨즺?덉뒿?덈떎.");
         recordHistory("SSH_COMMAND", "SSH", "COMMAND", true, result.success(),
                 request.host(), request.command(), null, request.requestUser(), result.message());
         return result;
@@ -193,7 +193,7 @@ public class CmnFileExchangeService {
     /**
      * 理쒓렐 ?뚯씪/?먭꺽 ?곌퀎 ?대젰??議고쉶?⑸땲??
      *
-     * @return 理쒓렐 ?대젰 紐⑸줉
+     * @return 理쒓렐 ?대젰 ⑸줉
      */
     public List<CmnFileExchangeHistoryRecord> findRecentHistory() {
         return history.stream().toList();
@@ -324,15 +324,15 @@ public class CmnFileExchangeService {
             boolean finished = process.waitFor(timeout.toSeconds(), TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                return new ProcessResult(124, "?몃? 紐낅졊????꾩븘?껋쑝濡?醫낅즺?섏뿀?듬땲??");
+                return new ProcessResult(124, "?몃? 낅졊????꾩븘?껋쑝濡?醫낅즺?섏뿀?듬땲??");
             }
             String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             return new ProcessResult(process.exitValue(), output);
         } catch (IOException ex) {
-            throw new FpsExternalServiceException("?몃? 紐낅졊 ?ㅽ뻾???ㅽ뙣?덉뒿?덈떎. command=" + command, ex);
+            throw new FpsExternalServiceException("?몃? 낅졊 ?ㅽ뻾???ㅽ뙣?덉뒿?덈떎. command=" + command, ex);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new FpsExternalServiceException("?몃? 紐낅졊 ?ㅽ뻾??以묐떒?섏뿀?듬땲?? command=" + command, ex);
+            throw new FpsExternalServiceException("?몃? 낅졊 ?ㅽ뻾??以묐떒?섏뿀?듬땲?? command=" + command, ex);
         }
     }
 

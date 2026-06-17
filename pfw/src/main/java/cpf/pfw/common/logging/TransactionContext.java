@@ -17,6 +17,15 @@ public final class TransactionContext {
     public static final String HEADER_TRACE_ID = "X-Trace-Id";
     public static final String HEADER_SPAN_ID = "X-Span-Id";
     public static final String HEADER_PARENT_SPAN_ID = "X-Parent-Span-Id";
+    public static final String HEADER_API_VERSION = "X-Api-Version";
+    public static final String HEADER_CLIENT_APP_ID = "X-Client-App-Id";
+    public static final String HEADER_CLIENT_VERSION = "X-Client-Version";
+    public static final String HEADER_CALLER_SERVICE = "X-Caller-Service";
+    public static final String HEADER_CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
+    public static final String HEADER_CORRELATION_ID = "X-Correlation-Id";
+    public static final String HEADER_IDEMPOTENCY_KEY = "X-Idempotency-Key";
+    public static final String HEADER_LOCALE = "X-Locale";
+    public static final String HEADER_TIMEZONE = "X-Timezone";
     public static final String HEADER_REQUEST_TYPE = "X-Request-Type";
     public static final String HEADER_ORIGINAL_CHANNEL_CODE = "X-Original-Channel-Code";
     public static final String HEADER_CHANNEL_CODE = "X-Channel-Code";
@@ -163,6 +172,15 @@ public final class TransactionContext {
 
         TransactionHeader transactionHeader = currentHeader();
         if (transactionHeader != null) {
+            putIfHasText(headers, HEADER_API_VERSION, transactionHeader.getApiVersion());
+            putIfHasText(headers, HEADER_CLIENT_APP_ID, transactionHeader.getClientAppId());
+            putIfHasText(headers, HEADER_CLIENT_VERSION, transactionHeader.getClientVersion());
+            putIfHasText(headers, HEADER_CALLER_SERVICE, transactionHeader.getCallerService());
+            putIfHasText(headers, HEADER_CALLER_INSTANCE_ID, transactionHeader.getCallerInstanceId());
+            putIfHasText(headers, HEADER_CORRELATION_ID, transactionHeader.getCorrelationId());
+            putIfHasText(headers, HEADER_IDEMPOTENCY_KEY, transactionHeader.getIdempotencyKey());
+            putIfHasText(headers, HEADER_LOCALE, transactionHeader.getLocale());
+            putIfHasText(headers, HEADER_TIMEZONE, transactionHeader.getTimezone());
             putIfHasText(headers, HEADER_REQUEST_TYPE, transactionHeader.getRequestType());
             putIfHasText(headers, HEADER_ORIGINAL_CHANNEL_CODE, transactionHeader.getOriginalChannelCode());
             putIfHasText(headers, HEADER_CHANNEL_CODE, transactionHeader.getChannelCode());
@@ -192,22 +210,23 @@ public final class TransactionContext {
     }
 
     /**
-     * 而⑦듃濡ㅻ윭 ?낅Т 嫄곕옒ID? 嫄곕옒紐낆쓣 MDC????ν빀?덈떎.
+     * 업무 거래 ID와 거래명을 MDC에 저장합니다.
      *
-     * <p>?꾪꽣 ?④퀎?먯꽌???대뼡 而⑦듃濡ㅻ윭媛 ?ㅽ뻾?좎? ?????놁쑝誘濡?
-     * {@code LoggingAspect}媛 {@code @FpsTransaction}???댁꽍?????몄텧?⑸땲??</p>
+     * <p>로그 패턴과 APM 연동에서 동일한 값을 사용할 수 있도록
+     * {@code LoggingAspect}가 {@code @FpsTransaction} 정보를 해석한 뒤 호출합니다.</p>
      *
-     * @param businessTransactionId   ?낅Т 嫄곕옒ID
-     * @param businessTransactionName ?낅Т 嫄곕옒紐?     */
+     * @param businessTransactionId   업무 거래 ID
+     * @param businessTransactionName 업무 거래명
+     */
     public static void putBusinessTransaction(String businessTransactionId, String businessTransactionName) {
         putIfHasText(MDC_BUSINESS_TRANSACTION_ID, businessTransactionId);
         putIfHasText(MDC_BUSINESS_TRANSACTION_NAME, businessTransactionName);
     }
 
     /**
-     * ?꾩옱 嫄곕옒???곸슜???숈쟻 濡쒓렇?덈꺼??MDC????ν빀?덈떎.
+     * 동적 로그 레벨 규칙으로 결정된 로그 레벨을 MDC에 저장합니다.
      *
-     * @param logLevel ?숈쟻 濡쒓렇?덈꺼
+     * @param logLevel 로그 레벨 문자열
      */
     public static void putDynamicLogLevel(String logLevel) {
         putIfHasText(MDC_DYNAMIC_LOG_LEVEL, logLevel);
@@ -265,4 +284,3 @@ public final class TransactionContext {
         return value != null && !value.isBlank();
     }
 }
-

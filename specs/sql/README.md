@@ -1,87 +1,79 @@
-# CPF Initial Database SQL
+# CPF SQL 가이드
 
-`specs/sql`은 CPF 로컬/테스트 MariaDB 설치 스크립트를 담고 있습니다. 현재 기준은 단순합니다.
+`specs/sql`은 로컬/검증용 MariaDB 설치 SQL과 운영 migration 기준을 함께 관리합니다. 분리 SQL은 유지보수 기준이고, `00_all_install.sql`, `00_all_install_and_smoke.sql`는 실제 SQL 본문을 모두 포함한 단일 실행 파일입니다.
 
-- `pfwDB`: 프레임워크/운영 공통 메타데이터
-- `admDB`: 관리자/운영자 권한과 감사
-- `accDB`: 계좌 업무 샘플
-- `mbrDB`: 회원 업무 샘플
+## 실행 파일
 
-`cmnDB`는 더 이상 만들지 않습니다. CMN 모듈은 공통 기능 라이브러리이고, 코드/메시지/응답코드/설정/캐시 이벤트 같은 프레임워크 참조 데이터는 `pfwDB`가 소유합니다.
+| 파일 | 용도 |
+| --- | --- |
+| `00_all_install.sql` | DB, 계정, 스키마, seed, 테스트 데이터를 한 번에 설치 |
+| `00_all_install_and_smoke.sql` | 전체 설치 후 smoke 조회까지 실행 |
+| `migration/flyway/V1__cpf_baseline_install.sql` | 신규 환경 Flyway baseline SQL |
+| `migration/flyway/V2__add_transaction_header_columns.sql` | 기존 설치 DB의 거래 헤더 컬럼 보강 |
+| `migration/flyway/V3__adm_cmn_batch_security_operations.sql` | CMN 채번 확장, ADM 버튼 권한/보안, PFW 배치 메타 보강 |
 
-## One File Execution
-
-`00_all_install.sql`과 `00_all_install_and_smoke.sql`은 `SOURCE` 실행순서 파일이 아니라 실제 SQL 전체가 펼쳐진 실행 파일입니다.
-
-```powershell
-cmd.exe /d /c '"C:\Program Files\MariaDB 12.3\bin\mariadb.exe" --host=127.0.0.1 --port=3306 --user=root --password=비밀번호 --ssl=0 --default-character-set=utf8mb4 < "specs\sql\00_all_install_and_smoke.sql"'
-```
-
-PowerShell `Get-Content | mariadb` 파이프는 한글 seed가 깨질 수 있으니 사용하지 않습니다.
-
-## Split Files
-
-분리 파일은 검토와 유지보수용입니다.
+## 분리 SQL 순서
 
 1. `01_create_databases.sql`
 2. `02_create_service_users.sql`
-3. `03_cleanup_legacy_layout.sql`
-4. `10_pfw_schema.sql`
-5. `20_cmn_schema.sql`
-6. `30_adm_schema.sql`
-7. `40_business_sample_schema.sql`
-8. `50_framework_seed_data.sql`
+3. `10_pfw_schema.sql`
+4. `20_cmn_schema.sql`
+5. `30_adm_schema.sql`
+6. `40_business_sample_schema.sql`
+7. `50_framework_seed_data.sql`
+8. `55_cmn_seed_data.sql`
 9. `60_adm_seed_data.sql`
 10. `70_test_data.sql`
 11. `99_smoke_check.sql`
 
-## Database Ownership
+`archive/03_cleanup_legacy_layout.sql`은 초기 개발 중 사용했던 구형 명칭 정리 참고 파일입니다. 공식 신규 설치와 baseline에는 구형 테이블을 포함하지 않습니다.
 
-| Database | Owner | Tables |
+## DB 소유권
+
+| DB | 역할 | 주요 테이블 |
 | --- | --- | --- |
-| `pfwDB` | Framework | `TRAN_LOG`, `TRAN_LOG_DTL`, `code_table`, `message_table`, `response_code_table`, `config_table`, `cache_refresh_event`, `file_exchange_log`, `security_jwt_key`, `security_token_audit_log` |
-| `admDB` | Admin | `operator_user`, `operator_role`, `operator_user_role`, `operator_menu`, `operator_role_menu`, `operator_session`, `operator_audit_log`, `dynamic_log_level_rule` |
-| `accDB` | Account sample | `acc_account` |
-| `mbrDB` | Member sample | `member` |
+| `pfwDB` | 프레임워크 엔진/메타 | `pfw_transaction_log`, `pfw_code`, `pfw_message`, `pfw_response_code`, `pfw_config`, `pfw_cache_refresh_event`, `pfw_batch_*`, `pfw_security_*` |
+| `cmnDB` | 업무 공통 기능 | `cmn_sequence`, `cmn_sequence_issue_log`, `cmn_notification_log`, `cmn_business_log` |
+| `admDB` | 관리자/운영 | `adm_operator`, `adm_role`, `adm_menu`, `adm_button`, `adm_role_menu`, `adm_role_button`, `adm_password_*`, `adm_audit_log`, `adm_operator_session`, `adm_ip_allowlist`, `adm_mfa_otp_secret` |
+| `accDB` | 계정 샘플 | `acc_account` |
+| `mbrDB` | 회원 샘플 | `mbr_member`, `mbr_member_role`, `mbr_member_role_history`, `mbr_member_login_history` |
 
-모든 base table은 `CREATED_BY`, `CREATED_AT`, `UPDATED_BY`, `UPDATED_AT` 공통 컬럼을 가집니다.
+## 테이블/컬럼 표준
 
-## Legacy Cleanup
+- 테이블명은 `{주제영역}_{업무명}` lower snake case를 사용합니다.
+- `*_table` suffix는 사용하지 않습니다.
+- FK, UK, index는 `fk_`, `uk_`, `ix_` + 테이블명 + 의미 순서로 작성합니다.
+- 모든 테이블은 `created_by`, `created_at`, `updated_by`, `updated_at`을 가집니다.
+- 모든 테이블과 주요 컬럼은 DB에서 바로 읽을 수 있도록 한글 `COMMENT`를 작성합니다.
 
-`03_cleanup_legacy_layout.sql`은 이전 로컬 샘플 구조를 정리합니다.
+## CMN 채번 기준
 
-- `cmnDB` 제거
-- `admDB.member` 제거
-- `accDB.acc_member` 제거
+`cmn_sequence`는 `sequence_key` 직접 호출과 `business_area + business_key + sequence_kind + channel_code` 조합 호출을 모두 지원합니다.
 
-현재 구조에서 ACC는 `acc_account`, MBR은 `member`만 사용합니다.
+- `start_value`, `increment_by`, `min_value`, `max_value`로 번호 범위를 제어합니다.
+- `reset_cycle`은 `NONE`, `DAY`, `MONTH`, `YEAR`, `PATTERN`을 기준으로 사용합니다.
+- `log_enabled_yn='Y'`이면 `cmn_sequence_issue_log`에 발급 이력을 남깁니다.
+- 발급번호는 gap을 허용합니다. 업무 처리 실패 후 번호 재사용은 감사 추적을 해치므로 금지합니다.
 
-## Service Users
+## Flyway 기준
 
-`02_create_service_users.sql`는 local/test 전용 계정을 만듭니다.
+Flyway를 표준 migration 도구로 채택합니다. 운영 적용 시 migration 계정만 DDL 권한을 가지고, 애플리케이션 계정은 DML 권한만 가집니다.
 
-| User | Database | Privileges |
-| --- | --- | --- |
-| `cpf_pfw` | `pfwDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
-| `cpf_adm` | `admDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
-| `cpf_acc` | `accDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
-| `cpf_mbr` | `mbrDB` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+신규 변경 절차:
 
-운영 환경에서는 local password를 사용하지 말고 환경변수, Vault, KMS, Secret Manager 등으로 교체해야 합니다.
+1. `V4__add_xxx.sql`처럼 증가하는 버전 파일을 추가합니다.
+2. 같은 변경을 분리 설치 SQL에도 반영합니다.
+3. `00_all_install.sql`, `00_all_install_and_smoke.sql`, Flyway baseline 또는 증분 migration을 함께 갱신합니다.
+4. MariaDB에서 idempotent, FK/index, seed, 권한을 확인합니다.
 
-## Cache Refresh Event
+## Smoke 실행 예시
 
-`cache_refresh_event`는 다중 WAS 캐시 동기화를 위한 프레임워크 이벤트 로그입니다. 코드/메시지/응답코드/설정 캐시가 한 WAS에서 바뀌었을 때 다른 WAS가 DB polling으로 변경을 감지해 자기 메모리 캐시를 refresh합니다.
+운영에서는 비밀번호가 콘솔 기록에 남지 않도록 secret 주입 방식을 사용합니다.
 
-브로커가 있는 운영 환경에서는 Kafka/RabbitMQ/Redis Pub/Sub을 실시간 경로로 쓰고, `cache_refresh_event`는 fallback 및 추적 로그로 유지하거나 보존 기간을 짧게 가져가면 됩니다.
+```powershell
+cmd.exe /d /c '"C:\Program Files\MariaDB 12.3\bin\mariadb.exe" --host=127.0.0.1 --port=3306 --user=root --password=<비밀번호> --ssl=0 --default-character-set=utf8mb4 < "specs\sql\00_all_install_and_smoke.sql"'
+```
 
-## Verified Checks
+## 캐시 이벤트 테이블
 
-실DB 검증 기준:
-
-- `00_all_install_and_smoke.sql` 직접 실행 성공
-- 같은 파일 재실행 시 row count 유지
-- `cmnDB` 없음
-- `accDB.acc_member` 없음
-- 모든 base table 공통 등록/수정 컬럼 존재
-- `cpf_acc`가 `pfwDB.code_table` 조회 시 권한 거부
+`pfw_cache_refresh_event`는 Redis/Kafka가 없거나 장애가 있는 환경에서도 다중 WAS 캐시 갱신을 추적하고 재처리하기 위한 DB fallback 이벤트입니다. broker가 있으면 broker를 우선 사용하고, DB event는 추적과 fallback 용도로 유지합니다.

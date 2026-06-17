@@ -4,6 +4,8 @@ import cpf.adm.opr.dto.AdmLoginRequest;
 import cpf.adm.opr.dto.AdmMenu;
 import cpf.adm.opr.dto.AdmOperator;
 import cpf.adm.opr.dto.AdmOperatorCreateRequest;
+import cpf.adm.opr.dto.AdmOperatorPasswordResetRequest;
+import cpf.adm.opr.dto.AdmOperatorRoleUpdateRequest;
 import cpf.adm.opr.dto.AdmPasswordChangeRequest;
 import cpf.adm.opr.dto.AdmRole;
 import cpf.cmn.utils.DateTimeUtils;
@@ -32,6 +34,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * ADM 운영자, 역할, 메뉴 권한을 관리합니다.
+ *
+ * <p>DB가 준비되지 않은 로컬 초반에도 ADM UI를 확인할 수 있도록 메모리 fallback을 유지합니다.
+ * DB가 정상 연결되면 DB 기준 운영자와 권한을 우선 사용합니다.</p>
+ */
 @Service
 public class AdmOperatorService {
     private static final Logger log = LoggerFactory.getLogger(AdmOperatorService.class);
@@ -58,8 +66,8 @@ public class AdmOperatorService {
                     SELECT u.OPERATOR_ID, u.OPERATOR_NAME, u.LOCKED_YN, u.PASSWORD_CHANGED_AT,
                            u.PASSWORD_CHANGE_REQUIRED_YN, u.CREATED_AT, u.UPDATED_AT,
                            GROUP_CONCAT(ur.ROLE_ID ORDER BY ur.ROLE_ID SEPARATOR ',') AS ROLE_IDS
-                    FROM operator_user u
-                    LEFT JOIN operator_user_role ur ON ur.OPERATOR_ID = u.OPERATOR_ID
+                    FROM adm_operator u
+                    LEFT JOIN adm_operator_role ur ON ur.OPERATOR_ID = u.OPERATOR_ID
                     WHERE u.USE_YN = 'Y'
                     GROUP BY u.OPERATOR_ID, u.OPERATOR_NAME, u.LOCKED_YN, u.PASSWORD_CHANGED_AT,
                              u.PASSWORD_CHANGE_REQUIRED_YN, u.CREATED_AT, u.UPDATED_AT
@@ -74,7 +82,7 @@ public class AdmOperatorService {
                     stringTime(rs.getTimestamp("CREATED_AT")),
                     stringTime(rs.getTimestamp("UPDATED_AT"))));
         } catch (DataAccessException ex) {
-            log.debug("ADM operator DB list skipped. reason={}", ex.getMessage());
+            log.debug("ADM 운영자 DB 조회를 건너뜁니다. reason={}", ex.getMessage());
             return operators.values().stream()
                     .map(this::toResponse)
                     .sorted(Comparator.comparing(AdmOperator::operatorId))
@@ -94,25 +102,18 @@ public class AdmOperatorService {
 
         try {
             admJdbcTemplate.update("""
-                    INSERT INTO operator_user (
+                    INSERT INTO adm_operator (
                         OPERATOR_ID, OPERATOR_NAME, PASSWORD_HASH, LOCKED_YN, FAIL_COUNT,
                         PASSWORD_CHANGED_AT, PASSWORD_CHANGE_REQUIRED_YN, USE_YN, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, 'N', 0, CURRENT_TIMESTAMP, 'Y', 'Y', ?, ?)
                     """, operatorId, operatorName, passwordHash, requestUser, requestUser);
-            admJdbcTemplate.update("DELETE FROM operator_user_role WHERE OPERATOR_ID = ?", operatorId);
-            for (String roleId : roleIds) {
-                admJdbcTemplate.update("""
-                        INSERT INTO operator_user_role (OPERATOR_ID, ROLE_ID, CREATED_BY, UPDATED_BY)
-                        VALUES (?, ?, ?, ?)
-                        ON DUPLICATE KEY UPDATE UPDATED_BY = VALUES(UPDATED_BY), UPDATED_AT = CURRENT_TIMESTAMP
-                        """, operatorId, roleId, requestUser, requestUser);
-            }
+            replaceRoles(operatorId, roleIds, requestUser);
         } catch (DataAccessException ex) {
-            log.debug("ADM operator DB create skipped. operatorId={}, reason={}", operatorId, ex.getMessage());
+            log.debug("ADM 운영자 DB 생성을 건너뜁니다. operatorId={}, reason={}", operatorId, ex.getMessage());
             OperatorState state = new OperatorState(operatorId, operatorName, passwordHash, roleIds,
                     false, 0, true, LocalDateTime.now(), DateTimeUtils.nowDateTimeMillis(), DateTimeUtils.nowDateTimeMillis());
             if (operators.putIfAbsent(operatorId, state) != null) {
-                throw new FpsValidationException("Operator already exists. operatorId=" + operatorId);
+                throw new FpsValidationException("이미 존재하는 운영자입니다. operatorId=" + operatorId);
             }
             return toResponse(state);
         }
@@ -125,26 +126,29 @@ public class AdmOperatorService {
         try {
             OperatorState state = loadOperatorState(operatorId);
             if (state.locked) {
-                throw new FpsValidationException("Locked operator account. operatorId=" + operatorId);
+                throw new FpsValidationException("잠긴 운영자 계정입니다. operatorId=" + operatorId);
             }
             if (!matchesPassword(password, state.passwordHash)) {
                 int failed = state.failedLoginCount + 1;
                 boolean locked = failed >= passwordPolicyService.maxFailCount();
                 admJdbcTemplate.update("""
-                        UPDATE operator_user
+                        UPDATE adm_operator
                         SET FAIL_COUNT = ?, LOCKED_YN = ?, UPDATED_BY = 'ADM', UPDATED_AT = CURRENT_TIMESTAMP
                         WHERE OPERATOR_ID = ?
                         """, failed, locked ? "Y" : "N", operatorId);
-                throw new FpsValidationException("Operator authentication failed.");
+                throw new FpsValidationException("운영자 인증에 실패했습니다.");
             }
             admJdbcTemplate.update("""
-                    UPDATE operator_user
-                    SET FAIL_COUNT = 0, UPDATED_BY = 'ADM', UPDATED_AT = CURRENT_TIMESTAMP
+                    UPDATE adm_operator
+                    SET FAIL_COUNT = 0,
+                        LAST_LOGIN_AT = CURRENT_TIMESTAMP,
+                        UPDATED_BY = 'ADM',
+                        UPDATED_AT = CURRENT_TIMESTAMP
                     WHERE OPERATOR_ID = ?
                     """, operatorId);
             return toResponse(state.withFailedLoginCount(0));
         } catch (DataAccessException ex) {
-            log.debug("ADM operator DB auth skipped. operatorId={}, reason={}", operatorId, ex.getMessage());
+            log.debug("ADM 운영자 DB 인증을 건너뜁니다. operatorId={}, reason={}", operatorId, ex.getMessage());
             return authenticateFallback(operatorId, password);
         }
     }
@@ -155,20 +159,20 @@ public class AdmOperatorService {
         String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
         try {
             int updated = admJdbcTemplate.update("""
-                    UPDATE operator_user
+                    UPDATE adm_operator
                     SET PASSWORD_HASH = ?, PASSWORD_CHANGED_AT = CURRENT_TIMESTAMP,
                         PASSWORD_CHANGE_REQUIRED_YN = 'N', FAIL_COUNT = 0, LOCKED_YN = 'N',
                         UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, hash, requestUser, operatorId);
             if (updated == 0) {
-                throw new FpsNotFoundException("Operator not found. operatorId=" + operatorId);
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
             OperatorState state = operators.get(operatorId);
             if (state == null) {
-                throw new FpsNotFoundException("Operator not found. operatorId=" + operatorId);
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.passwordHash = hash;
             state.passwordChangedAt = LocalDateTime.now();
@@ -180,11 +184,105 @@ public class AdmOperatorService {
         }
     }
 
+    public AdmOperator resetPassword(String operatorId, AdmOperatorPasswordResetRequest request) {
+        passwordPolicyService.requireValid(operatorId, request.newPassword());
+        String hash = hashPassword(request.newPassword());
+        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        try {
+            OperatorState before = loadOperatorState(operatorId);
+            admJdbcTemplate.update("""
+                    INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
+                    VALUES (?, ?, ?, ?, ?)
+                    """, operatorId, before.passwordHash, TextUtils.defaultIfBlank(request.reason(), "비밀번호 초기화"), requestUser, requestUser);
+            int updated = admJdbcTemplate.update("""
+                    UPDATE adm_operator
+                    SET PASSWORD_HASH = ?,
+                        PASSWORD_CHANGED_AT = CURRENT_TIMESTAMP,
+                        PASSWORD_CHANGE_REQUIRED_YN = ?,
+                        FAIL_COUNT = 0,
+                        LOCKED_YN = 'N',
+                        UPDATED_BY = ?,
+                        UPDATED_AT = CURRENT_TIMESTAMP
+                    WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
+                    """, hash, request.forceChange() ? "Y" : "N", requestUser, operatorId);
+            if (updated == 0) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            return findOperator(operatorId);
+        } catch (DataAccessException ex) {
+            OperatorState state = operators.get(operatorId);
+            if (state == null) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            state.passwordHash = hash;
+            state.passwordChangedAt = LocalDateTime.now();
+            state.passwordChangeRequired = request.forceChange();
+            state.failedLoginCount = 0;
+            state.locked = false;
+            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            return toResponse(state);
+        }
+    }
+
+    public AdmOperator unlockOperator(String operatorId, String requestUser) {
+        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
+        try {
+            int updated = admJdbcTemplate.update("""
+                    UPDATE adm_operator
+                    SET LOCKED_YN = 'N',
+                        FAIL_COUNT = 0,
+                        UPDATED_BY = ?,
+                        UPDATED_AT = CURRENT_TIMESTAMP
+                    WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
+                    """, user, operatorId);
+            if (updated == 0) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            return findOperator(operatorId);
+        } catch (DataAccessException ex) {
+            OperatorState state = operators.get(operatorId);
+            if (state == null) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            state.failedLoginCount = 0;
+            state.locked = false;
+            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            return toResponse(state);
+        }
+    }
+
+    public AdmOperator updateRoles(String operatorId, AdmOperatorRoleUpdateRequest request) {
+        List<String> roleIds = request.roleIds() == null || request.roleIds().isEmpty()
+                ? List.of("ADM_VIEWER")
+                : List.copyOf(request.roleIds());
+        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        try {
+            Integer operatorCount = admJdbcTemplate.queryForObject("""
+                    SELECT COUNT(*)
+                    FROM adm_operator
+                    WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
+                    """, Integer.class, operatorId);
+            if (operatorCount == null || operatorCount == 0) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            replaceRoles(operatorId, roleIds, requestUser);
+            return findOperator(operatorId);
+        } catch (DataAccessException ex) {
+            OperatorState state = operators.get(operatorId);
+            if (state == null) {
+                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+            }
+            state.roleIds = roleIds;
+            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            return toResponse(state);
+        }
+    }
+
     public List<AdmRole> findRoles() {
         try {
             return admJdbcTemplate.query("""
                     SELECT ROLE_ID, ROLE_NAME, DESCRIPTION
-                    FROM operator_role
+                    FROM adm_role
                     WHERE USE_YN = 'Y'
                     ORDER BY ROLE_ID
                     """, (rs, rowNum) -> new AdmRole(rs.getString("ROLE_ID"), rs.getString("ROLE_NAME"), rs.getString("DESCRIPTION")));
@@ -197,7 +295,7 @@ public class AdmOperatorService {
         try {
             return admJdbcTemplate.query("""
                     SELECT MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER
-                    FROM operator_menu
+                    FROM adm_menu
                     WHERE USE_YN = 'Y'
                     ORDER BY SORT_ORDER, MENU_ID
                     """, (rs, rowNum) -> new AdmMenu(
@@ -220,8 +318,8 @@ public class AdmOperatorService {
                            MAX(rm.READ_YN) AS READ_YN,
                            MAX(rm.WRITE_YN) AS WRITE_YN,
                            MAX(rm.DELETE_YN) AS DELETE_YN
-                    FROM operator_menu m
-                    JOIN operator_role_menu rm ON rm.MENU_ID = m.MENU_ID
+                    FROM adm_menu m
+                    JOIN adm_role_menu rm ON rm.MENU_ID = m.MENU_ID
                     WHERE m.USE_YN = 'Y'
                       AND rm.READ_YN = 'Y'
                       AND rm.ROLE_ID IN (%s)
@@ -245,11 +343,26 @@ public class AdmOperatorService {
         return Map.of("operatorId", operatorId, "violations", passwordPolicyService.validate(operatorId, password));
     }
 
+    public Map<String, Object> passwordPolicy() {
+        return passwordPolicyService.currentPolicy();
+    }
+
+    private void replaceRoles(String operatorId, List<String> roleIds, String requestUser) {
+        admJdbcTemplate.update("DELETE FROM adm_operator_role WHERE OPERATOR_ID = ?", operatorId);
+        for (String roleId : roleIds) {
+            admJdbcTemplate.update("""
+                    INSERT INTO adm_operator_role (OPERATOR_ID, ROLE_ID, CREATED_BY, UPDATED_BY)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE UPDATED_BY = VALUES(UPDATED_BY), UPDATED_AT = CURRENT_TIMESTAMP
+                    """, operatorId, roleId, requestUser, requestUser);
+        }
+    }
+
     private AdmOperator findOperator(String operatorId) {
         return findOperators().stream()
                 .filter(operator -> operator.operatorId().equals(operatorId))
                 .findFirst()
-                .orElseThrow(() -> new FpsNotFoundException("Operator not found. operatorId=" + operatorId));
+                .orElseThrow(() -> new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId));
     }
 
     private OperatorState loadOperatorState(String operatorId) {
@@ -257,15 +370,15 @@ public class AdmOperatorService {
                         SELECT u.OPERATOR_ID, u.OPERATOR_NAME, u.PASSWORD_HASH, u.LOCKED_YN, u.FAIL_COUNT,
                                u.PASSWORD_CHANGED_AT, u.PASSWORD_CHANGE_REQUIRED_YN, u.CREATED_AT, u.UPDATED_AT,
                                GROUP_CONCAT(ur.ROLE_ID ORDER BY ur.ROLE_ID SEPARATOR ',') AS ROLE_IDS
-                        FROM operator_user u
-                        LEFT JOIN operator_user_role ur ON ur.OPERATOR_ID = u.OPERATOR_ID
+                        FROM adm_operator u
+                        LEFT JOIN adm_operator_role ur ON ur.OPERATOR_ID = u.OPERATOR_ID
                         WHERE u.OPERATOR_ID = ? AND u.USE_YN = 'Y'
                         GROUP BY u.OPERATOR_ID, u.OPERATOR_NAME, u.PASSWORD_HASH, u.LOCKED_YN, u.FAIL_COUNT,
                                  u.PASSWORD_CHANGED_AT, u.PASSWORD_CHANGE_REQUIRED_YN, u.CREATED_AT, u.UPDATED_AT
                         """,
                 rs -> {
                     if (!rs.next()) {
-                        throw new FpsValidationException("Operator authentication failed.");
+                        throw new FpsValidationException("운영자 인증에 실패했습니다.");
                     }
                     return new OperatorState(
                             rs.getString("OPERATOR_ID"), rs.getString("OPERATOR_NAME"), rs.getString("PASSWORD_HASH"),
@@ -279,7 +392,7 @@ public class AdmOperatorService {
     private AdmOperator authenticateFallback(String operatorId, String password) {
         OperatorState state = operators.get(operatorId);
         if (state == null || state.locked) {
-            throw new FpsValidationException("Operator authentication failed.");
+            throw new FpsValidationException("운영자 인증에 실패했습니다.");
         }
         if (!matchesPassword(password, state.passwordHash)) {
             state.failedLoginCount++;
@@ -287,7 +400,7 @@ public class AdmOperatorService {
                 state.locked = true;
             }
             state.updatedAt = DateTimeUtils.nowDateTimeMillis();
-            throw new FpsValidationException("Operator authentication failed.");
+            throw new FpsValidationException("운영자 인증에 실패했습니다.");
         }
         state.failedLoginCount = 0;
         state.updatedAt = DateTimeUtils.nowDateTimeMillis();
@@ -301,17 +414,27 @@ public class AdmOperatorService {
     }
 
     private void seedFallback() {
-        fallbackRoles.add(new AdmRole("ADM_ADMIN", "Framework Administrator", "Can manage every ADM menu and operation."));
-        fallbackRoles.add(new AdmRole("ADM_OPERATOR", "Operations User", "Can query logs, refresh caches, and manage dynamic log levels."));
-        fallbackRoles.add(new AdmRole("ADM_VIEWER", "Read Only User", "Can query logs and settings without changing data."));
+        fallbackRoles.add(new AdmRole("ADM_ADMIN", "프레임워크 관리자", "모든 ADM 메뉴와 운영 작업을 관리합니다."));
+        fallbackRoles.add(new AdmRole("ADM_DEV_OPERATOR", "개발자 운영자", "로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다."));
+        fallbackRoles.add(new AdmRole("ADM_BIZ_OPERATOR", "업무 운영자", "회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다."));
+        fallbackRoles.add(new AdmRole("ADM_VIEWER", "조회 전용 운영자", "운영 정보를 조회만 할 수 있습니다."));
+        fallbackRoles.add(new AdmRole("ADM_OPERATOR", "운영자 호환 역할", "기존 ADM_OPERATOR 호환을 위한 역할입니다."));
 
-        fallbackMenus.add(new AdmMenu("DASHBOARD", null, "Dashboard", "/adm", 10));
-        fallbackMenus.add(new AdmMenu("LOG_LIST", null, "Transaction Logs", "/adm#logs", 20));
-        fallbackMenus.add(new AdmMenu("CACHE", null, "Cache Management", "/adm#cache", 30));
-        fallbackMenus.add(new AdmMenu("RESPONSE_CODE", null, "Response Codes", "/adm#response-codes", 40));
-        fallbackMenus.add(new AdmMenu("DYNAMIC_LOG", null, "Dynamic Log Level", "/adm#log-level", 50));
-        fallbackMenus.add(new AdmMenu("AUDIT_LOG", null, "Audit Logs", "/adm#audit-logs", 60));
-        fallbackMenus.add(new AdmMenu("OPERATOR", null, "Operator Management", "/adm#operators", 70));
+        fallbackMenus.add(new AdmMenu("DASHBOARD", null, "대시보드", "/adm", 10));
+        fallbackMenus.add(new AdmMenu("LOG_LIST", null, "온라인 거래 로그", "/adm#logs", 20));
+        fallbackMenus.add(new AdmMenu("AUDIT_LOG", null, "감사 로그", "/adm#audit-logs", 30));
+        fallbackMenus.add(new AdmMenu("MEMBER", null, "회원 관리", "/adm#members", 40));
+        fallbackMenus.add(new AdmMenu("BATCH", null, "배치 관제", "/adm#batch", 50));
+        fallbackMenus.add(new AdmMenu("CACHE", null, "캐시 관리", "/adm#cache", 60));
+        fallbackMenus.add(new AdmMenu("MESSAGE", null, "메시지 관리", "/adm#messages", 70));
+        fallbackMenus.add(new AdmMenu("CODE", null, "코드 관리", "/adm#codes", 80));
+        fallbackMenus.add(new AdmMenu("RESPONSE_CODE", null, "응답코드 관리", "/adm#response-codes", 90));
+        fallbackMenus.add(new AdmMenu("CONFIG", null, "설정 관리", "/adm#configs", 100));
+        fallbackMenus.add(new AdmMenu("DYNAMIC_LOG", null, "동적 로그 레벨", "/adm#log-level", 110));
+        fallbackMenus.add(new AdmMenu("PASSWORD", null, "비밀번호 관리", "/adm#password", 120));
+        fallbackMenus.add(new AdmMenu("SECURITY", null, "보안 운영", "/adm#security", 130));
+        fallbackMenus.add(new AdmMenu("PERMISSION", null, "권한 관리", "/adm#permissions", 140));
+        fallbackMenus.add(new AdmMenu("OPERATOR", null, "운영자 관리", "/adm#operators", 150));
 
         operators.put("admin", new OperatorState("admin", "Local Administrator", hashPassword("Adm!n12345"),
                 List.of("ADM_ADMIN"), false, 0, true, LocalDateTime.now().minusDays(91),
@@ -329,23 +452,32 @@ public class AdmOperatorService {
         if (roleIds.contains("ADM_ADMIN")) {
             return fallbackMenus.stream().sorted(Comparator.comparingInt(AdmMenu::sortOrder)).toList();
         }
-        if (roleIds.contains("ADM_OPERATOR")) {
+        if (roleIds.contains("ADM_OPERATOR") || roleIds.contains("ADM_DEV_OPERATOR")) {
             return fallbackMenus.stream()
-                    .filter(menu -> !"OPERATOR".equals(menu.menuId()) && !"RESPONSE_CODE".equals(menu.menuId()))
+                    .filter(menu -> !"OPERATOR".equals(menu.menuId())
+                            && !"PERMISSION".equals(menu.menuId())
+                            && !"PASSWORD".equals(menu.menuId())
+                            && !"SECURITY".equals(menu.menuId()))
                     .map(menu -> switch (menu.menuId()) {
-                        case "CACHE", "DYNAMIC_LOG" -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
-                                menu.path(), menu.sortOrder(), true, true, "DYNAMIC_LOG".equals(menu.menuId()));
+                        case "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG", "DYNAMIC_LOG" ->
+                                new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
+                                        menu.path(), menu.sortOrder(), true, true, "MESSAGE".equals(menu.menuId()) || "CODE".equals(menu.menuId()));
                         default -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                                 menu.path(), menu.sortOrder(), true, false, false);
                     })
                     .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
                     .toList();
         }
+        if (roleIds.contains("ADM_BIZ_OPERATOR")) {
+            return fallbackMenus.stream()
+                    .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
+                    .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
+                            menu.path(), menu.sortOrder(), true, List.of("MEMBER", "BATCH", "CACHE").contains(menu.menuId()), "MEMBER".equals(menu.menuId())))
+                    .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
+                    .toList();
+        }
         return fallbackMenus.stream()
-                .filter(menu -> !"DYNAMIC_LOG".equals(menu.menuId())
-                        && !"OPERATOR".equals(menu.menuId())
-                        && !"RESPONSE_CODE".equals(menu.menuId())
-                        && !"AUDIT_LOG".equals(menu.menuId()))
+                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
                 .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                         menu.path(), menu.sortOrder(), true, false, false))
                 .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
@@ -369,7 +501,7 @@ public class AdmOperatorService {
             return "PBKDF2$" + PBKDF2_ITERATIONS + "$" + Base64.getEncoder().encodeToString(salt) + "$"
                     + Base64.getEncoder().encodeToString(hash);
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to hash operator password.", ex);
+            throw new IllegalStateException("운영자 비밀번호 해시에 실패했습니다.", ex);
         }
     }
 
@@ -394,7 +526,7 @@ public class AdmOperatorService {
         private final String operatorId;
         private final String operatorName;
         private final String createdAt;
-        private final List<String> roleIds;
+        private List<String> roleIds;
         private String passwordHash;
         private boolean locked;
         private int failedLoginCount;

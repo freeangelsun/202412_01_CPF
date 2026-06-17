@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * ADM 거래 로그 관제 API입니다.
+ */
 @RestController
 @RequestMapping("/adm/api/logs")
-@Tag(name = "ADM-OPR Logs", description = "PFW transaction log query APIs")
+@Tag(name = "ADM-Logs", description = "PFW 거래 로그 조회와 상세 포맷팅 API")
 public class AdmLogController {
     private final AdmLogQueryService logQueryService;
 
@@ -27,21 +30,29 @@ public class AdmLogController {
 
     @GetMapping
     @FpsTransaction(id = "ADM01OPR0001", name = "ADMTransactionLogList")
-    @Operation(summary = "List transaction logs", description = "Searches PFW transaction logs by transaction, business transaction, member, or customer.")
+    @Operation(summary = "거래 로그 목록 조회", description = "거래 ID, trace ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
+            @RequestParam(required = false) String traceId,
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String memberNo,
             @RequestParam(required = false) String customerNo,
+            @RequestParam(required = false) String uri,
+            @RequestParam(required = false) String responseCode,
+            @RequestParam(required = false) Integer httpStatus,
+            @RequestParam(required = false) String channelCode,
+            @RequestParam(required = false) String logType,
             @RequestParam(defaultValue = "50") int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
             response.put("available", true);
-            response.put("items", logQueryService.findLogs(transactionId, businessTransactionId, memberNo, customerNo, limit));
+            response.put("items", logQueryService.findLogs(
+                    transactionId, traceId, businessTransactionId, memberNo, customerNo,
+                    uri, responseCode, httpStatus, channelCode, logType, limit));
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("items", java.util.List.of());
-            response.put("message", "PFW transaction log database is not available.");
+            response.put("message", "PFW 거래 로그 DB를 사용할 수 없습니다.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);
@@ -49,7 +60,7 @@ public class AdmLogController {
 
     @GetMapping("/{logIdx}")
     @FpsTransaction(id = "ADM01OPR0002", name = "ADMTransactionLogDetail")
-    @Operation(summary = "Transaction log detail", description = "Returns a TRAN_LOG row and related detail rows.")
+    @Operation(summary = "거래 로그 상세 조회", description = "거래 요약, 상세 로그, JSON pretty, 고정길이 전문 필드 분해 결과를 조회합니다.")
     public ResponseEntity<Map<String, Object>> getLogDetail(@PathVariable Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
@@ -58,7 +69,7 @@ public class AdmLogController {
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("item", null);
-            response.put("message", "PFW transaction log detail is not available.");
+            response.put("message", "PFW 거래 로그 상세를 사용할 수 없습니다.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);

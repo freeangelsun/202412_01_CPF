@@ -20,7 +20,7 @@ public @interface CmnTelegramField {
     int order();
 
     /**
-     * ?꾨뱶 ?쇰━紐낆엯?덈떎. 鍮꾩썙?먮㈃ Java ?꾨뱶紐낆쓣 ?ъ슜?⑸땲??
+     * ?꾨뱶 ?쇰━낆엯?덈떎. 鍮꾩썙?먮㈃ Java ?꾨뱶낆쓣 ?ъ슜?⑸땲??
      */
     String name() default "";
 

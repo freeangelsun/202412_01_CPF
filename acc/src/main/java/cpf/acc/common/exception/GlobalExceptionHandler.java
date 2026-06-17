@@ -144,7 +144,7 @@ public class GlobalExceptionHandler {
      * @param spanId        Span ID
      * @param parentSpanId  Parent Span ID
      * @param logType       濡쒓렇 ?좏삎 (SUCCESS/FAILURE)
-     * @param moduleId      紐⑤뱢 ID
+     * @param moduleId      ⑤뱢 ID
      * @param menuId        硫붾돱 ID
      * @param uri           ?붿껌 URI
      * @param parameters    ?붿껌 ?뚮씪誘명꽣
@@ -171,8 +171,17 @@ public class GlobalExceptionHandler {
                 .moduleId(moduleId)
                 .menuId(menuId)
                 .businessTransactionId("ACC99ERR0001")
-                .businessTransactionName("ACC怨듯넻?덉쇅泥섎━")
+                .businessTransactionName("ACC 공통 예외 처리")
                 .logType(logType)
+                .apiVersion(headerValue(transactionHeader, TransactionHeader::getApiVersion, null))
+                .clientAppId(headerValue(transactionHeader, TransactionHeader::getClientAppId, null))
+                .clientVersion(headerValue(transactionHeader, TransactionHeader::getClientVersion, null))
+                .callerService(headerValue(transactionHeader, TransactionHeader::getCallerService, null))
+                .callerInstanceId(headerValue(transactionHeader, TransactionHeader::getCallerInstanceId, null))
+                .correlationId(headerValue(transactionHeader, TransactionHeader::getCorrelationId, null))
+                .idempotencyKey(headerValue(transactionHeader, TransactionHeader::getIdempotencyKey, null))
+                .locale(headerValue(transactionHeader, TransactionHeader::getLocale, null))
+                .timezone(headerValue(transactionHeader, TransactionHeader::getTimezone, null))
                 .requestType(headerValue(transactionHeader, TransactionHeader::getRequestType, "UNKNOWN"))
                 .originalChannelCode(headerValue(transactionHeader, TransactionHeader::getOriginalChannelCode, "UNKNOWN"))
                 .channelCode(headerValue(transactionHeader, TransactionHeader::getChannelCode, "UNKNOWN"))

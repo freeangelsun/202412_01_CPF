@@ -50,9 +50,9 @@ public class MessageCacheService {
     }
 
     /**
-     * 紐⑤뱺 硫붿떆吏 ?곗씠?곕? 罹먯떛?⑸땲??
+     * ⑤뱺 硫붿떆吏 ?곗씠?곕? 罹먯떛?⑸땲??
      *
-     * @return 硫붿떆吏 ?곗씠??紐⑸줉
+     * @return 硫붿떆吏 ?곗씠??⑸줉
      */
     @Cacheable("messageCache")
     public List<Map<String, Object>> getAllMessages() {
@@ -134,7 +134,7 @@ public class MessageCacheService {
      * 怨듯넻 硫붿떆吏瑜???젣?섍퀬 硫붿떆吏 罹먯떆瑜?利됱떆 由ы봽?덉떆?⑸땲??
      *
      * @param messageId ??젣??硫붿떆吏 ID
-     * @return 理쒖떊 硫붿떆吏 紐⑸줉
+     * @return 理쒖떊 硫붿떆吏 ⑸줉
      */
     @Transactional(transactionManager = "cmnTransactionManager")
     public List<Map<String, Object>> deleteMessage(Long messageId) {
@@ -153,7 +153,7 @@ public class MessageCacheService {
     /**
      * 罹먯떆瑜?由щ줈?⑺빀?덈떎.
      *
-     * @return 理쒖떊 硫붿떆吏 ?곗씠??紐⑸줉
+     * @return 理쒖떊 硫붿떆吏 ?곗씠??⑸줉
      */
     @CachePut("messageCache")
     public List<Map<String, Object>> reloadMessages() {
@@ -163,7 +163,7 @@ public class MessageCacheService {
     /**
      * 硫붿떆吏 罹먯떆瑜?利됱떆 鍮꾩슦怨?理쒖떊 DB 媛믪쓣 ?ㅼ떆 議고쉶?⑸땲??
      *
-     * @return 理쒖떊 硫붿떆吏 ?곗씠??紐⑸줉
+     * @return 理쒖떊 硫붿떆吏 ?곗씠??⑸줉
      */
     public List<Map<String, Object>> refreshMessages() {
         logger.info("Cache Refresh: Clearing message cache and fetching updated messages from database");
@@ -174,7 +174,7 @@ public class MessageCacheService {
     /**
      * 硫붿떆吏 罹먯떆瑜?利됱떆 由ы봽?덉떆?섍퀬 ?ㅻⅨ WAS?먮룄 由ы봽?덉떆 ?대깽?몃? ?꾪뙆?⑸땲??
      *
-     * @return 理쒖떊 硫붿떆吏 ?곗씠??紐⑸줉
+     * @return 理쒖떊 硫붿떆吏 ?곗씠??⑸줉
      */
     public List<Map<String, Object>> refreshMessagesAndPublish() {
         List<Map<String, Object>> latestMessages = refreshMessages();

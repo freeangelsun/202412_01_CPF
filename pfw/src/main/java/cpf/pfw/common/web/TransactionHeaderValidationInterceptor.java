@@ -63,7 +63,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             String headerNames = String.join(", ", missingHeaders);
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
-                    "?꾩닔 嫄곕옒 ?ㅻ뜑媛 ?꾨씫?섏뿀?듬땲?? " + headerNames,
+                    "필수 거래 헤더가 누락되었습니다. " + headerNames,
                     Map.of("0", headerNames, "1", request.getRequestURI()));
         }
     }
@@ -73,19 +73,20 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         if (transaction == null) {
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction 嫄곕옒 硫뷀??곗씠?곌? ?꾨씫?섏뿀?듬땲??",
+                    "@FpsTransaction 거래 메타 정보가 필요합니다.",
                     Map.of("0", "@FpsTransaction"));
         }
         if (!BUSINESS_TRANSACTION_ID_PATTERN.matcher(transaction.id()).matches()) {
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction.id??{二쇱젣?곸뿭3}{嫄곕옒?좏삎2}{以묎컙?꾨찓??}{?쇰젴踰덊샇4} ?뺤떇?댁뼱???⑸땲?? " + transaction.id(),
+                    "@FpsTransaction.id는 {모듈3자리}{업무구분2자리}{거래구분3자리}{일련번호4자리} 형식이어야 합니다. "
+                            + transaction.id(),
                     Map.of("0", "@FpsTransaction.id", "1", transaction.id()));
         }
         if (transaction.name() == null || transaction.name().isBlank()) {
             throw new FpsFrameworkException(
                     FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction.name? ?꾩닔?낅땲??",
+                    "@FpsTransaction.name은 필수입니다.",
                     Map.of("0", "@FpsTransaction.name"));
         }
     }
@@ -130,4 +131,3 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }
-

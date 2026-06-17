@@ -1,10 +1,11 @@
 package cpf.mbr.bse.service;
 
-import cpf.mbr.common.exception.ApiException;
-import cpf.mbr.common.response.ResponseCode;
+import cpf.cmn.utils.TextUtils;
 import cpf.mbr.bse.dto.MbrDTO;
 import cpf.mbr.bse.entity.Member;
 import cpf.mbr.bse.mapper.MemberMapper;
+import cpf.mbr.common.exception.ApiException;
+import cpf.mbr.common.response.ResponseCode;
 import cpf.pfw.common.exception.FpsNotFoundException;
 import cpf.pfw.common.exception.FpsValidationException;
 import lombok.RequiredArgsConstructor;
@@ -13,264 +14,210 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * ?뚯썝 ?쒕퉬??
- * - ?뚯썝 議고쉶, ?깅줉, ?섏젙, ??젣 鍮꾩쫰?덉뒪 濡쒖쭅
- * - ?곗씠??寃利?諛?蹂??
- * - ?몃옖??뀡 愿由?
- * 
- * @author FPS Team
- * @version 1.0.0
+ * MBR 회원 샘플 서비스입니다.
+ *
+ * <p>개발자 교육용 CRUD 흐름과 ADM 회원 운영 화면에서 공통으로 사용할 수 있도록
+ * 회원 기본 정보, 상태, 잠금, 탈퇴 여부를 함께 관리합니다.</p>
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(transactionManager = "mbrTransactionManager")
 public class MbrService {
-    
+    private static final DateTimeFormatter MEMBER_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private final MemberMapper memberMapper;
-    
-    /**
-     * ?꾩껜 ?뚯썝 紐⑸줉 議고쉶
-     * @return ?뚯썝 DTO 紐⑸줉
-     */
+
+    /** 전체 회원 목록을 조회합니다. */
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public List<MbrDTO> getAllMembers() {
-        log.info("?꾩껜 ?뚯썝 紐⑸줉 議고쉶 ?쒖옉");
-        
         List<Member> members = memberMapper.selectAllMembers();
-        
-        if (members.isEmpty()) {
-            log.info("議고쉶???뚯썝 ?놁쓬");
-        } else {
-            log.info("議고쉶???뚯썝 ?? {}", members.size());
-        }
-        
-        return members.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        log.info("MBR 회원 목록 조회 완료. count={}", members.size());
+        return members.stream().map(this::convertToDto).toList();
     }
-    
-    /**
-     * ?뚯썝 ID濡??곸꽭 議고쉶
-     * @param memberId ?뚯썝 ID (?꾩닔, 荑쇰━ ?뚮씪誘명꽣)
-     * @return ?뚯썝 DTO
-     */
+
+    /** 회원 내부 순번으로 상세 정보를 조회합니다. */
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public MbrDTO getMemberById(Integer memberId) {
-        // ?낅젰媛?寃利?
         if (memberId == null || memberId <= 0) {
-            log.warn("?좏슚?섏? ?딆? ?뚯썝 ID: {}", memberId);
-            // PFW ?쒖? ?덉쇅 ?섑뵆?낅땲?? 怨좉컼??硫붿떆吏??硫붿떆吏 ?뚯씠釉붿쓽 EXTERNAL 臾멸뎄瑜??ъ슜?섍퀬,
-            // "memberId: ..." ?곸꽭 ?댁슜? ?대? 硫붿떆吏/DB 濡쒓렇/?뚯씪 濡쒓렇 異붿쟻?⑹쑝濡쒕쭔 ?쒖슜?⑸땲??
-            throw new FpsValidationException("memberId???묒닔?ъ빞 ?⑸땲?? memberId=" + memberId);
+            throw new FpsValidationException("memberId는 양수여야 합니다. memberId=" + memberId);
         }
-        
-        log.info("?뚯썝 ?곸꽭 議고쉶 - memberId: {}", memberId);
-        
+
         Member member = memberMapper.selectMemberById(memberId)
-                .orElseThrow(() -> {
-                    log.warn("?뚯썝??李얠쓣 ???놁쓬 - memberId: {}", memberId);
-                    // 議고쉶 ????놁쓬???쒖? ?덉쇅濡??섏?硫?PFW媛 HTTP 404, ?ㅻ쪟肄붾뱶, 硫붿떆吏 ?ㅻ뜑瑜??먮룞 援ъ꽦?⑸땲??
-                    return new FpsNotFoundException("?뚯썝 湲곕낯?뺣낫媛 議댁옱?섏? ?딆뒿?덈떎. memberId=" + memberId);
-                });
-        
+                .orElseThrow(() -> new FpsNotFoundException("회원을 찾을 수 없습니다. memberId=" + memberId));
         return convertToDto(member);
     }
-    
-    /**
-     * ?뚯썝紐낆쑝濡?寃??議고쉶
-     * @param name ?뚯썝紐?寃???ㅼ썙??(?꾩닔, 荑쇰━ ?뚮씪誘명꽣)
-     * @return ?뚯썝 DTO 紐⑸줉
-     */
+
+    /** 회원명 일부로 회원을 검색합니다. */
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public List<MbrDTO> searchMembersByName(String name) {
-        // ?낅젰媛?寃利?
-        if (name == null || name.trim().isEmpty()) {
-            log.warn("?뚯썝紐?寃???ㅼ썙?쒓? 鍮꾩뼱?덉쓬");
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? ?꾩닔 ?낅젰媛믪엯?덈떎.");
+        if (!TextUtils.hasText(name)) {
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명 검색어는 필수입니다.");
         }
-        
         if (name.length() > 100) {
-            log.warn("?뚯썝紐?寃???ㅼ썙??湲몄씠 珥덇낵: {}", name.length());
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? 100???댄븯?ъ빞 ?⑸땲??");
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명 검색어는 100자 이하여야 합니다.");
         }
-        
-        log.info("?뚯썝紐?寃??- keyword: {}", name);
-        
-        List<Member> members = memberMapper.selectMembersByName(name);
-        
-        log.info("Member search result count: {}", members.size());
-        
-        return members.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+
+        List<Member> members = memberMapper.selectMembersByName(name.trim());
+        log.info("MBR 회원 검색 완료. keyword={}, count={}", name, members.size());
+        return members.stream().map(this::convertToDto).toList();
     }
-    
-    /**
-     * ?뚯썝 ?깅줉
-     * @param memberName ?뚯썝紐?(?꾩닔, Body ?뚮씪誘명꽣)
-     * @param description ?뚯썝 ?ㅻ챸 (?좏깮, Body ?뚮씪誘명꽣)
-     * @param requesterId ?붿껌??ID (媛먯떆??
-     * @return ?깅줉???뚯썝 DTO
-     */
+
+    /** 기존 샘플 API 호환용 회원 생성 메서드입니다. */
     public MbrDTO createMember(String memberName, String description, String requesterId) {
-        // ?낅젰媛?寃利?
-        if (memberName == null || memberName.trim().isEmpty()) {
-            log.warn("?뚯썝紐낆씠 鍮꾩뼱?덉쓬");
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? ?꾩닔 ?낅젰媛믪엯?덈떎.");
-        }
-        
-        if (memberName.length() > 100) {
-            log.warn("?뚯썝紐?湲몄씠 珥덇낵: {}", memberName.length());
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? 100???댄븯?ъ빞 ?⑸땲??");
-        }
-        
-        if (description != null && description.length() > 255) {
-            log.warn("?ㅻ챸 湲몄씠 珥덇낵: {}", description.length());
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?ㅻ챸? 255???댄븯?ъ빞 ?⑸땲??");
-        }
-        
-        log.info("?뚯썝 ?깅줉 ?쒖옉 - memberName: {}, requesterId: {}", memberName, requesterId);
-        
-        // ?뷀떚???앹꽦 諛??깅줉
+        return createMember(MbrDTO.builder()
+                .memberName(memberName)
+                .description(description)
+                .build(), requesterId);
+    }
+
+    /** 회원을 생성합니다. */
+    public MbrDTO createMember(MbrDTO request, String requesterId) {
+        validateMemberName(request.getMemberName());
+        validateDescription(request.getDescription());
+
+        String user = TextUtils.defaultIfBlank(requesterId, "SYSTEM");
+        String memberNo = TextUtils.defaultIfBlank(request.getMemberNo(), generateMemberNo());
+        String loginId = TextUtils.defaultIfBlank(request.getLoginId(), memberNo.toLowerCase());
+
         Member member = Member.builder()
-                .name(memberName.trim())
-                .description(description != null ? description.trim() : null)
-                .createdBy(requesterId != null ? requesterId : "SYSTEM")
-                .updatedBy(requesterId != null ? requesterId : "SYSTEM")
+                .memberNo(memberNo)
+                .customerNo(TextUtils.defaultIfBlank(request.getCustomerNo(), "C" + memberNo.substring(1)))
+                .loginId(loginId)
+                .name(request.getMemberName().trim())
+                .email(blankToNull(request.getEmail()))
+                .mobileNo(blankToNull(request.getMobileNo()))
+                .memberStatus(TextUtils.defaultIfBlank(request.getMemberStatus(), "ACTIVE"))
+                .lockYn(yn(request.getLockYn(), "N"))
+                .withdrawYn(yn(request.getWithdrawYn(), "N"))
+                .channelCode(TextUtils.defaultIfBlank(request.getChannelCode(), "WEB"))
+                .joinedAt(request.getJoinedAt())
+                .lastLoginAt(request.getLastLoginAt())
+                .description(blankToNull(request.getDescription()))
+                .createdBy(user)
+                .updatedBy(user)
                 .build();
-        
+
         int result = memberMapper.insertMember(member);
-        
         if (result <= 0) {
-            log.error("?뚯썝 ?깅줉 ?ㅽ뙣 - memberName: {}", memberName);
-            throw new ApiException(ResponseCode.DATABASE_ERROR, 
-                    "?뚯썝 ?깅줉???ㅽ뙣?덉뒿?덈떎.");
+            throw new ApiException(ResponseCode.DATABASE_ERROR, "회원 등록에 실패했습니다.");
         }
-        
-        log.info("?뚯썝 ?깅줉 ?꾨즺 - id: {}, memberName: {}", member.getId(), memberName);
-        
         return convertToDto(member);
     }
-    
-    /**
-     * ?뚯썝 ?뺣낫 ?섏젙
-     * @param memberId ?뚯썝 ID (?꾩닔, Body ?뚮씪誘명꽣)
-     * @param memberName 蹂寃쎈맆 ?뚯썝紐?(?꾩닔, Body ?뚮씪誘명꽣)
-     * @param description 蹂寃쎈맆 ?ㅻ챸 (?좏깮, Body ?뚮씪誘명꽣)
-     * @param requesterId ?붿껌??ID (媛먯떆??
-     * @return ?섏젙???뚯썝 DTO
-     */
-    public MbrDTO updateMember(Integer memberId, String memberName, 
-                               String description, String requesterId) {
-        // ?낅젰媛?寃利?
-        if (memberId == null || memberId <= 0) {
-            log.warn("?좏슚?섏? ?딆? ?뚯썝 ID: {}", memberId);
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝 ID???묒닔?ъ빞 ?⑸땲??");
+
+    /** 기존 샘플 API 호환용 회원 수정 메서드입니다. */
+    public MbrDTO updateMember(Integer memberId, String memberName, String description, String requesterId) {
+        MbrDTO existing = getMemberById(memberId);
+        existing.setMemberName(memberName);
+        existing.setDescription(description);
+        return updateMember(existing, requesterId);
+    }
+
+    /** 회원 기본 정보를 수정합니다. */
+    public MbrDTO updateMember(MbrDTO request, String requesterId) {
+        if (request.getMemberId() == null || request.getMemberId() <= 0) {
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원 ID는 필수입니다.");
         }
-        
-        if (memberName == null || memberName.trim().isEmpty()) {
-            log.warn("?뚯썝紐낆씠 鍮꾩뼱?덉쓬");
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? ?꾩닔 ?낅젰媛믪엯?덈떎.");
-        }
-        
-        if (memberName.length() > 100) {
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝紐낆? 100???댄븯?ъ빞 ?⑸땲??");
-        }
-        
-        if (description != null && description.length() > 255) {
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?ㅻ챸? 255???댄븯?ъ빞 ?⑸땲??");
-        }
-        
-        log.info("?뚯썝 ?섏젙 ?쒖옉 - memberId: {}, memberName: {}, requesterId: {}", 
-                memberId, memberName, requesterId);
-        
-        // 湲곗〈 ?뚯썝 ?뺤씤
-        Member existing = memberMapper.selectMemberById(memberId)
-                .orElseThrow(() -> {
-                    log.warn("?섏젙???뚯썝??李얠쓣 ???놁쓬 - memberId: {}", memberId);
-                    return new ApiException(ResponseCode.NOT_FOUND, 
-                            "?뚯썝??李얠쓣 ???놁뒿?덈떎.");
-                });
-        
-        // ?뷀떚???낅뜲?댄듃
+        validateMemberName(request.getMemberName());
+        validateDescription(request.getDescription());
+
+        Member existing = memberMapper.selectMemberById(request.getMemberId())
+                .orElseThrow(() -> new ApiException(ResponseCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
+        String user = TextUtils.defaultIfBlank(requesterId, "SYSTEM");
+
         Member member = Member.builder()
-                .id(memberId)
-                .name(memberName.trim())
-                .description(description != null ? description.trim() : null)
+                .id(request.getMemberId())
+                .memberNo(TextUtils.defaultIfBlank(request.getMemberNo(), existing.getMemberNo()))
+                .customerNo(firstText(request.getCustomerNo(), existing.getCustomerNo()))
+                .loginId(TextUtils.defaultIfBlank(request.getLoginId(), existing.getLoginId()))
+                .name(request.getMemberName().trim())
+                .email(firstText(request.getEmail(), existing.getEmail()))
+                .mobileNo(firstText(request.getMobileNo(), existing.getMobileNo()))
+                .memberStatus(TextUtils.defaultIfBlank(request.getMemberStatus(), existing.getMemberStatus()))
+                .lockYn(yn(firstText(request.getLockYn(), existing.getLockYn()), "N"))
+                .withdrawYn(yn(firstText(request.getWithdrawYn(), existing.getWithdrawYn()), "N"))
+                .channelCode(TextUtils.defaultIfBlank(request.getChannelCode(), existing.getChannelCode()))
+                .joinedAt(existing.getJoinedAt())
+                .lastLoginAt(request.getLastLoginAt() != null ? request.getLastLoginAt() : existing.getLastLoginAt())
+                .description(blankToNull(request.getDescription()))
                 .createdBy(existing.getCreatedBy())
                 .createdAt(existing.getCreatedAt())
-                .updatedBy(requesterId != null ? requesterId : "SYSTEM")
+                .updatedBy(user)
                 .build();
-        
+
         int result = memberMapper.updateMember(member);
-        
         if (result <= 0) {
-            log.error("?뚯썝 ?섏젙 ?ㅽ뙣 - memberId: {}", memberId);
-            throw new ApiException(ResponseCode.DATABASE_ERROR, 
-                    "?뚯썝 ?섏젙???ㅽ뙣?덉뒿?덈떎.");
+            throw new ApiException(ResponseCode.DATABASE_ERROR, "회원 수정에 실패했습니다.");
         }
-        
-        log.info("?뚯썝 ?섏젙 ?꾨즺 - memberId: {}", memberId);
-        
-        // ?섏젙???뚯썝 ?ъ“??
-        return getMemberById(memberId);
+        return getMemberById(request.getMemberId());
     }
-    
-    /**
-     * ?뚯썝 ??젣
-     * @param memberId ?뚯썝 ID (?꾩닔, 荑쇰━ ?뚮씪誘명꽣)
-     * @param requesterId ?붿껌??ID (媛먯떆??
-     */
+
+    /** 샘플 API의 물리 삭제 기능입니다. 운영 화면에서는 탈퇴 상태 변경을 우선 사용합니다. */
     public void deleteMember(Integer memberId, String requesterId) {
-        // ?낅젰媛?寃利?
         if (memberId == null || memberId <= 0) {
-            log.warn("?좏슚?섏? ?딆? ?뚯썝 ID: {}", memberId);
-            throw new ApiException(ResponseCode.INVALID_PARAMETER, 
-                    "?뚯썝 ID???묒닔?ъ빞 ?⑸땲??");
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원 ID는 필수입니다.");
         }
-        
-        log.info("?뚯썝 ??젣 ?쒖옉 - memberId: {}, requesterId: {}", memberId, requesterId);
-        
-        // 湲곗〈 ?뚯썝 ?뺤씤
         memberMapper.selectMemberById(memberId)
-                .orElseThrow(() -> {
-                    log.warn("??젣???뚯썝??李얠쓣 ???놁쓬 - memberId: {}", memberId);
-                    return new ApiException(ResponseCode.NOT_FOUND, 
-                            "?뚯썝??李얠쓣 ???놁뒿?덈떎.");
-                });
-        
+                .orElseThrow(() -> new ApiException(ResponseCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
+
         int result = memberMapper.deleteMemberById(memberId);
-        
         if (result <= 0) {
-            log.error("?뚯썝 ??젣 ?ㅽ뙣 - memberId: {}", memberId);
-            throw new ApiException(ResponseCode.DATABASE_ERROR, 
-                    "?뚯썝 ??젣???ㅽ뙣?덉뒿?덈떎.");
+            throw new ApiException(ResponseCode.DATABASE_ERROR, "회원 삭제에 실패했습니다.");
         }
-        
-        log.info("?뚯썝 ??젣 ?꾨즺 - memberId: {}", memberId);
+        log.info("MBR 회원 삭제 완료. memberId={}, requesterId={}", memberId, requesterId);
     }
-    
-    /**
-     * ?뷀떚?곕? DTO濡?蹂??
-     */
+
+    private void validateMemberName(String memberName) {
+        if (!TextUtils.hasText(memberName)) {
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명은 필수입니다.");
+        }
+        if (memberName.length() > 100) {
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명은 100자 이하여야 합니다.");
+        }
+    }
+
+    private void validateDescription(String description) {
+        if (description != null && description.length() > 255) {
+            throw new ApiException(ResponseCode.INVALID_PARAMETER, "설명은 255자 이하여야 합니다.");
+        }
+    }
+
+    private String generateMemberNo() {
+        return "M" + LocalDateTime.now().format(MEMBER_NO_TIME) + (System.nanoTime() % 1000);
+    }
+
+    private String blankToNull(String value) {
+        return TextUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private String firstText(String value, String fallback) {
+        return TextUtils.hasText(value) ? value.trim() : fallback;
+    }
+
+    private String yn(String value, String fallback) {
+        String normalized = TextUtils.defaultIfBlank(value, fallback).trim().toUpperCase();
+        return "Y".equals(normalized) ? "Y" : "N";
+    }
+
     private MbrDTO convertToDto(Member member) {
         return MbrDTO.builder()
                 .memberId(member.getId())
+                .memberNo(member.getMemberNo())
+                .customerNo(member.getCustomerNo())
+                .loginId(member.getLoginId())
                 .memberName(member.getName())
+                .email(member.getEmail())
+                .mobileNo(member.getMobileNo())
+                .memberStatus(member.getMemberStatus())
+                .lockYn(member.getLockYn())
+                .withdrawYn(member.getWithdrawYn())
+                .channelCode(member.getChannelCode())
+                .joinedAt(member.getJoinedAt())
+                .lastLoginAt(member.getLastLoginAt())
                 .description(member.getDescription())
                 .createdBy(member.getCreatedBy())
                 .createdAt(member.getCreatedAt())
@@ -279,4 +226,3 @@ public class MbrService {
                 .build();
     }
 }
-

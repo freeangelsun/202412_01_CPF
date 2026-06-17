@@ -4,7 +4,7 @@
 
 <mapper namespace="cpf.cmn.cfg.mapper.ConfigMapper">
 
-    <!-- 紐⑤뱺 怨듯넻 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
+    <!-- ⑤뱺 怨듯넻 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
     <select id="findAllConfigs" resultType="map">
         SELECT
             config_id,
@@ -18,7 +18,7 @@
             created_at,
             updated_by,
             updated_at
-        FROM config_table
+        FROM pfw_config
         ORDER BY config_key
     </select>
 
@@ -36,7 +36,7 @@
             created_at,
             updated_by,
             updated_at
-        FROM config_table
+        FROM pfw_config
         WHERE config_key = #{configKey}
     </select>
 
@@ -54,7 +54,7 @@
             created_at,
             updated_by,
             updated_at
-        FROM config_table
+        FROM pfw_config
         WHERE config_id = #{configId}
     </select>
 
@@ -63,7 +63,7 @@
             useGeneratedKeys="true"
             keyProperty="configId"
             keyColumn="config_id">
-        INSERT INTO config_table (
+        INSERT INTO pfw_config (
             config_key,
             config_value,
             config_type,
@@ -90,7 +90,7 @@
 
     <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ?섏젙?⑸땲?? -->
     <update id="updateConfig">
-        UPDATE config_table
+        UPDATE pfw_config
         SET
             config_key = #{request.configKey},
             config_value = #{request.configValue},
@@ -105,7 +105,7 @@
 
     <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ??젣?⑸땲?? ?ㅼ젣 ?댁쁺?먯꽌???꾩슂 ??use_yn=N 諛⑹떇???쇰━ ??젣濡?諛붽? ???덉뒿?덈떎. -->
     <delete id="deleteConfig" parameterType="long">
-        DELETE FROM config_table
+        DELETE FROM pfw_config
         WHERE config_id = #{configId}
     </delete>
 </mapper>

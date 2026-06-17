@@ -5,13 +5,13 @@
 
 <mapper namespace="cpf.pfw.mapper.common.logging.TransactionLogMapper">
 
-    <!-- TRAN_LOG ?뚯씠釉붿뿉 嫄곕옒 ?붿빟 濡쒓렇瑜??쎌엯?⑸땲?? -->
+    <!-- pfw_transaction_log 테이블에 거래 요약 로그를 저장합니다. -->
     <insert id="insertTransactionLog"
             parameterType="cpf.pfw.common.logging.TransactionLogRecord"
             useGeneratedKeys="true"
             keyProperty="logIdx"
             keyColumn="LOG_IDX">
-        INSERT INTO TRAN_LOG (
+        INSERT INTO pfw_transaction_log (
             LOG_DATE,
             TRANSACTION_ID,
             TRACE_ID,
@@ -23,6 +23,15 @@
             BUSINESS_TRANSACTION_ID,
             BUSINESS_TRANSACTION_NAME,
             LOG_TYPE,
+            API_VERSION,
+            CLIENT_APP_ID,
+            CLIENT_VERSION,
+            CALLER_SERVICE,
+            CALLER_INSTANCE_ID,
+            CORRELATION_ID,
+            IDEMPOTENCY_KEY,
+            LOCALE,
+            TIMEZONE,
             REQUEST_TYPE,
             ORIGINAL_CHANNEL_CODE,
             CHANNEL_CODE,
@@ -88,6 +97,15 @@
             #{businessTransactionId},
             #{businessTransactionName},
             IFNULL(#{logType}, 'N/A'),
+            #{apiVersion},
+            #{clientAppId},
+            #{clientVersion},
+            #{callerService},
+            #{callerInstanceId},
+            #{correlationId},
+            #{idempotencyKey},
+            #{locale},
+            #{timezone},
             #{requestType},
             #{originalChannelCode},
             #{channelCode},
@@ -144,9 +162,9 @@
         )
     </insert>
 
-    <!-- TRAN_LOG_DTL ?뚯씠釉붿뿉 ?곸꽭 濡쒓렇瑜??쎌엯?⑸땲?? -->
+    <!-- pfw_transaction_log_detail 테이블에 요청/응답 본문 같은 상세 로그를 저장합니다. -->
     <insert id="insertTransactionLogDetail" parameterType="map">
-        INSERT INTO TRAN_LOG_DTL (
+        INSERT INTO pfw_transaction_log_detail (
             LOG_IDX,
             DETAIL_KEY,
             DETAIL_VALUE,
@@ -166,4 +184,3 @@
     </insert>
 
 </mapper>
-

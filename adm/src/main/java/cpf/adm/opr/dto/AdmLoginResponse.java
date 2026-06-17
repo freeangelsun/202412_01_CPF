@@ -8,7 +8,7 @@ import java.util.List;
  * @param accessToken      ADM API ?몄텧???ъ슜??Bearer ?좏겙
  * @param tokenType        ?좏겙 ?좏삎
  * @param expiresInSeconds ?좏겙 留뚮즺源뚯? ?⑥? 珥? * @param operator         濡쒓렇???댁쁺???뺣낫
- * @param menus            ?댁쁺??沅뚰븳 湲곗??쇰줈 ?쒖떆??硫붾돱 紐⑸줉
+ * @param menus            ?댁쁺??沅뚰븳 湲곗??쇰줈 ?쒖떆??硫붾돱 ⑸줉
  */
 public record AdmLoginResponse(
         String accessToken,

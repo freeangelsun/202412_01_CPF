@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * ADM API Bearer ?좏겙 ?몄뀡 ?쒕퉬?ㅼ엯?덈떎.
  *
- * <p>?섑뵆 ?꾨젅?꾩썙?ъ뿉?쒕뒗 ?몃찓紐⑤━ ??μ냼瑜??ъ슜?⑸땲?? ?댁쁺?먯꽌?????대옒?ㅼ쓽 ??μ냼瑜? * DB/Redis/JWT 寃利?諛⑹떇?쇰줈 援먯껜?섎㈃ 而⑦듃濡ㅻ윭? Vue ?붾㈃ 怨꾩빟? 洹몃?濡??좎??⑸땲??</p>
+ * <p>?섑뵆 ?꾨젅?꾩썙?ъ뿉?쒕뒗 ?몃찓⑤━ ??μ냼瑜??ъ슜?⑸땲?? ?댁쁺?먯꽌?????대옒?ㅼ쓽 ??μ냼瑜? * DB/Redis/JWT 寃利?諛⑹떇?쇰줈 援먯껜?섎㈃ 而⑦듃濡ㅻ윭? Vue ?붾㈃ 怨꾩빟? 洹몃?濡??좎??⑸땲??</p>
  */
 @Service
 public class AdmSessionService {
@@ -50,7 +51,7 @@ public class AdmSessionService {
     /**
      * 濡쒓렇???깃났 ?댁쁺?먯뿉寃?API ?좏겙??諛쒓툒?⑸땲??
      *
-     * @param operator ?몄쬆???댁쁺??     * @param menus    沅뚰븳 湲곗? 硫붾돱 紐⑸줉
+     * @param operator ?몄쬆???댁쁺??     * @param menus    沅뚰븳 湲곗? 硫붾돱 ⑸줉
      * @return 濡쒓렇???묐떟
      */
     public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus) {
@@ -97,6 +98,72 @@ public class AdmSessionService {
         }
     }
 
+    public List<Map<String, Object>> findSessions(String operatorId) {
+        try {
+            if (operatorId != null && !operatorId.isBlank()) {
+                return admJdbcTemplate.queryForList("""
+                        SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
+                               REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
+                        FROM adm_operator_session
+                        WHERE OPERATOR_ID = ?
+                        ORDER BY EXPIRE_AT DESC
+                        LIMIT 500
+                        """, operatorId.trim());
+            }
+            return admJdbcTemplate.queryForList("""
+                    SELECT SESSION_ID, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
+                           REVOKED_YN, CLIENT_IP, USER_AGENT, CREATED_AT, UPDATED_AT
+                    FROM adm_operator_session
+                    ORDER BY EXPIRE_AT DESC
+                    LIMIT 500
+                    """);
+        } catch (DataAccessException ex) {
+            log.debug("ADM session DB list skipped. reason={}", ex.getMessage());
+            return sessions.values().stream()
+                    .filter(session -> operatorId == null || operatorId.isBlank() || session.operatorId().equals(operatorId))
+                    .map(session -> Map.<String, Object>of(
+                            "SESSION_ID", "IN_MEMORY",
+                            "OPERATOR_ID", session.operatorId(),
+                            "ROLE_IDS", String.join(",", session.roleIds()),
+                            "ISSUED_AT", session.issuedAt(),
+                            "EXPIRE_AT", session.expiresAt(),
+                            "REVOKED_YN", "N"))
+                    .toList();
+        }
+    }
+
+    public int revokeSession(String sessionId) {
+        try {
+            return admJdbcTemplate.update("""
+                    UPDATE adm_operator_session
+                    SET REVOKED_YN = 'Y',
+                        UPDATED_BY = 'ADM',
+                        UPDATED_AT = CURRENT_TIMESTAMP
+                    WHERE SESSION_ID = ?
+                    """, sessionId);
+        } catch (DataAccessException ex) {
+            log.debug("ADM session DB revoke by id skipped. sessionId={}, reason={}", sessionId, ex.getMessage());
+            return 0;
+        }
+    }
+
+    public int cleanupExpiredSessions() {
+        sessions.entrySet().removeIf(entry -> entry.getValue().expiresAt().isBefore(LocalDateTime.now()));
+        try {
+            return admJdbcTemplate.update("""
+                    UPDATE adm_operator_session
+                    SET REVOKED_YN = 'Y',
+                        UPDATED_BY = 'ADM',
+                        UPDATED_AT = CURRENT_TIMESTAMP
+                    WHERE REVOKED_YN = 'N'
+                      AND EXPIRE_AT <= CURRENT_TIMESTAMP
+                    """);
+        } catch (DataAccessException ex) {
+            log.debug("ADM expired session cleanup skipped. reason={}", ex.getMessage());
+            return 0;
+        }
+    }
+
     private String newToken() {
         byte[] bytes = new byte[32];
         SECURE_RANDOM.nextBytes(bytes);
@@ -106,7 +173,7 @@ public class AdmSessionService {
     private void persistSession(AdmSession session) {
         try {
             admJdbcTemplate.update("""
-                    INSERT INTO operator_session (
+                    INSERT INTO adm_operator_session (
                         SESSION_ID, TOKEN_HASH, OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT,
                         REVOKED_YN, CREATED_BY, UPDATED_BY
                     ) VALUES (?, ?, ?, ?, ?, ?, 'N', ?, ?)
@@ -137,7 +204,7 @@ public class AdmSessionService {
         try {
             return admJdbcTemplate.query("""
                             SELECT OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT
-                            FROM operator_session
+                            FROM adm_operator_session
                             WHERE TOKEN_HASH = ?
                               AND REVOKED_YN = 'N'
                               AND EXPIRE_AT > CURRENT_TIMESTAMP
@@ -167,7 +234,7 @@ public class AdmSessionService {
     private void revokeDbSession(String token) {
         try {
             admJdbcTemplate.update("""
-                    UPDATE operator_session
+                    UPDATE adm_operator_session
                     SET REVOKED_YN = 'Y',
                         UPDATED_BY = 'ADM',
                         UPDATED_AT = CURRENT_TIMESTAMP

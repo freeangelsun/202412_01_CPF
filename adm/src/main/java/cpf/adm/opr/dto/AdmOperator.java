@@ -3,16 +3,16 @@ package cpf.adm.opr.dto;
 import java.util.List;
 
 /**
- * 愿由ъ옄 ?댁쁺??議고쉶 ?묐떟?낅땲??
+ * ADM 운영자 응답입니다.
  *
- * @param operatorId             ?댁쁺??ID
- * @param operatorName           ?댁쁺?먮챸
- * @param roleIds                遺????븷 紐⑸줉
- * @param locked                 怨꾩젙 ?좉툑 ?щ?
- * @param passwordExpired        鍮꾨?踰덊샇 留뚮즺 ?щ?
- * @param passwordChangeRequired 理쒖큹/媛뺤젣 蹂寃??щ?
- * @param createdAt              ?깅줉 ?쒓컖
- * @param updatedAt              ?섏젙 ?쒓컖
+ * @param operatorId             운영자 ID
+ * @param operatorName           운영자명
+ * @param roleIds                부여된 역할 ID 목록
+ * @param locked                 계정 잠금 여부
+ * @param passwordExpired        비밀번호 만료 여부
+ * @param passwordChangeRequired 비밀번호 변경 필요 여부
+ * @param createdAt              등록일시
+ * @param updatedAt              수정일시
  */
 public record AdmOperator(
         String operatorId,
@@ -24,4 +24,3 @@ public record AdmOperator(
         String createdAt,
         String updatedAt) {
 }
-

@@ -12,7 +12,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * ADM?먯꽌 ?ㅻⅨ ?꾨젅?꾩썙???ㅽ궎留덈? 議고쉶?섍린 ?꾪븳 JdbcTemplate ?ㅼ젙?낅땲??
+ * ADM에서 사용하는 DB 연결을 구성합니다.
+ *
+ * <p>ADM 운영 메타는 admDB, 프레임워크 로그/설정 조회는 pfwDB, 회원 운영 화면은
+ * mbrDB를 사용합니다. 운영 환경에서는 각 datasource의 계정과 비밀번호를 환경변수로
+ * 주입해야 합니다.</p>
  */
 @Configuration
 public class AdmJdbcConfig {
@@ -27,6 +31,18 @@ public class AdmJdbcConfig {
 
     @Value("${spring.datasource.adm.driver-class-name:org.mariadb.jdbc.Driver}")
     private String admDriverClassName;
+
+    @Value("${spring.datasource.mbr.url:jdbc:mariadb://localhost:3306/mbrDB}")
+    private String mbrUrl;
+
+    @Value("${spring.datasource.mbr.username:cpf_mbr_app}")
+    private String mbrUsername;
+
+    @Value("${spring.datasource.mbr.password:cpf_local_pw}")
+    private String mbrPassword;
+
+    @Value("${spring.datasource.mbr.driver-class-name:org.mariadb.jdbc.Driver}")
+    private String mbrDriverClassName;
 
     @Bean(name = "admDataSource")
     public DataSource admDataSource() {
@@ -48,15 +64,28 @@ public class AdmJdbcConfig {
         return new JdbcTemplate(admDataSource);
     }
 
-    /**
-     * PFW 濡쒓렇 ?뚯씠釉?議고쉶 ?꾩슜 JdbcTemplate?낅땲??
-     *
-     * @param pfwDataSource PFW ?꾨젅?꾩썙??DataSource
-     * @return PFW JdbcTemplate
-     */
     @Bean(name = "pfwJdbcTemplate")
     public JdbcTemplate pfwJdbcTemplate(@Qualifier("pfwDataSource") DataSource pfwDataSource) {
         return new JdbcTemplate(pfwDataSource);
     }
-}
 
+    @Bean(name = "mbrAdmDataSource")
+    public DataSource mbrAdmDataSource() {
+        return DataSourceBuilder.create()
+                .url(mbrUrl)
+                .username(mbrUsername)
+                .password(mbrPassword)
+                .driverClassName(mbrDriverClassName)
+                .build();
+    }
+
+    @Bean(name = "mbrAdmTransactionManager")
+    public PlatformTransactionManager mbrAdmTransactionManager(@Qualifier("mbrAdmDataSource") DataSource mbrAdmDataSource) {
+        return new DataSourceTransactionManager(mbrAdmDataSource);
+    }
+
+    @Bean(name = "mbrJdbcTemplate")
+    public JdbcTemplate mbrJdbcTemplate(@Qualifier("mbrAdmDataSource") DataSource mbrAdmDataSource) {
+        return new JdbcTemplate(mbrAdmDataSource);
+    }
+}

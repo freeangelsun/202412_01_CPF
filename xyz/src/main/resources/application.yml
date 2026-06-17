@@ -1,36 +1,49 @@
-# XYZ 援먯쑁??二쇱젣?곸뿭 湲곕낯 ?ㅼ젙?낅땲??
-# PFW/CMN ?ㅼ젙???④퍡 濡쒕뱶???ㅼ젣 ?낅Т ?쒕퉬?ㅼ? 媛숈? 怨듯넻 ?꾨젅?꾩썙???섍꼍?쇰줈 ?ㅽ뻾?⑸땲??
+# XYZ 교육 서비스 설정입니다.
+
 spring:
   application:
-    # 援먯쑁??二쇱젣?곸뿭 ?쒕퉬?ㅻ챸?낅땲?? OpenAPI ?쒕ぉ怨?濡쒓렇 application name???ъ슜?⑸땲??
     name: xyz
   profiles:
-    # 濡쒖뺄 ?꾨줈?뚯씪??湲곕낯 ?쒖꽦?뷀빀?덈떎.
     active: local
-    # PFW/CMN 怨듯넻 ?ㅼ젙???④퍡 濡쒕뱶?⑸땲??
     include: pfw, cmn
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
 
 server:
-  # XYZ 援먯쑁???쒕퉬??HTTP ?ы듃?낅땲??
   port: 8099
 
 logging:
-  # 嫄곕옒ID蹂??뚯씪 濡쒓렇? 紐⑤뱢 濡쒓렇瑜??뺤쓽??Logback ?ㅼ젙?낅땲??
   config: classpath:log/logback-local.xml
   level:
-    # ?몃? ?쇱씠釉뚮윭由?湲곕낯 濡쒓렇 ?덈꺼?낅땲??
     root: INFO
-    # PFW ?꾨젅?꾩썙???대? 濡쒓렇 ?덈꺼?낅땲??
     cpf.pfw: INFO
-    # CMN 怨듯넻 湲곕뒫 濡쒓렇 ?덈꺼?낅땲??
     cpf.cmn: INFO
-    # XYZ 援먯쑁???섑뵆? ?숈뒿???꾪빐 DEBUG濡??〓땲??
     cpf.xyz: DEBUG
 
 cpf:
+  cmn:
+    business-db:
+      # 교육 모듈에서는 CMN 업무 공통 샘플을 바로 실행할 수 있도록 기본 활성화합니다.
+      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:true}
   framework:
-    # 湲濡쒕쾶 嫄곕옒ID???ㅼ뼱媛??二쇱젣?곸뿭 肄붾뱶?낅땲??
     module-id: XYZ
-    # 湲濡쒕쾶 嫄곕옒ID???ㅼ뼱媛??WAS/?몃뱶 ?앸퀎?먯엯?덈떎.
     was-id: ${WAS_ID:xyzAP01}
 
+---
+# prod에서는 교육 편의 기본값을 줄이고 운영자가 명시적으로 켜도록 합니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    cpf.xyz: INFO
+
+cpf:
+  cmn:
+    business-db:
+      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}

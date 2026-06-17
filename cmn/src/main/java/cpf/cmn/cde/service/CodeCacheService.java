@@ -50,9 +50,9 @@ public class CodeCacheService {
     }
 
     /**
-     * 紐⑤뱺 肄붾뱶 ?곗씠?곕? 罹먯떛?⑸땲??
+     * ⑤뱺 肄붾뱶 ?곗씠?곕? 罹먯떛?⑸땲??
      *
-     * @return 肄붾뱶 ?곗씠??紐⑸줉
+     * @return 肄붾뱶 ?곗씠??⑸줉
      */
     @Cacheable("codeCache")
     public List<Map<String, Object>> getAllCodes() {
@@ -73,9 +73,9 @@ public class CodeCacheService {
     }
 
     /**
-     * ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 紐⑸줉??議고쉶?⑸땲??
+     * ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 ⑸줉??議고쉶?⑸땲??
      *
-     * @param codeKey 肄붾뱶 ??     * @return 媛숈? 肄붾뱶 ?ㅻ? 媛吏?肄붾뱶 紐⑸줉
+     * @param codeKey 肄붾뱶 ??     * @return 媛숈? 肄붾뱶 ?ㅻ? 媛吏?肄붾뱶 ⑸줉
      */
     public List<Map<String, Object>> getCodesByKey(String codeKey) {
         return codeMapper.findCodesByKey(codeKey);
@@ -121,7 +121,7 @@ public class CodeCacheService {
      * 怨듯넻 肄붾뱶瑜???젣?섍퀬 肄붾뱶 罹먯떆瑜?利됱떆 由ы봽?덉떆?⑸땲??
      *
      * @param codeId ??젣??肄붾뱶 ID
-     * @return 理쒖떊 肄붾뱶 紐⑸줉
+     * @return 理쒖떊 肄붾뱶 ⑸줉
      */
     @Transactional(transactionManager = "cmnTransactionManager")
     public List<Map<String, Object>> deleteCode(Long codeId) {
@@ -136,7 +136,7 @@ public class CodeCacheService {
     /**
      * 罹먯떆瑜?由щ줈?⑺빀?덈떎.
      *
-     * @return 理쒖떊 肄붾뱶 ?곗씠??紐⑸줉
+     * @return 理쒖떊 肄붾뱶 ?곗씠??⑸줉
      */
     @CachePut("codeCache")
     public List<Map<String, Object>> reloadCodes() {
@@ -146,7 +146,7 @@ public class CodeCacheService {
     /**
      * 肄붾뱶 罹먯떆瑜?利됱떆 鍮꾩슦怨?理쒖떊 DB 媛믪쓣 ?ㅼ떆 議고쉶?⑸땲??
      *
-     * @return 理쒖떊 肄붾뱶 ?곗씠??紐⑸줉
+     * @return 理쒖떊 肄붾뱶 ?곗씠??⑸줉
      */
     public List<Map<String, Object>> refreshCodes() {
         logger.info("Cache Refresh: Clearing code cache and fetching updated codes from database");
@@ -157,7 +157,7 @@ public class CodeCacheService {
     /**
      * 肄붾뱶 罹먯떆瑜?利됱떆 由ы봽?덉떆?섍퀬 ?ㅻⅨ WAS?먮룄 由ы봽?덉떆 ?대깽?몃? ?꾪뙆?⑸땲??
      *
-     * @return 理쒖떊 肄붾뱶 ?곗씠??紐⑸줉
+     * @return 理쒖떊 肄붾뱶 ?곗씠??⑸줉
      */
     public List<Map<String, Object>> refreshCodesAndPublish() {
         List<Map<String, Object>> latestCodes = refreshCodes();

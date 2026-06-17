@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 /**
  * 湲덉쑖沅??쒖? ?붿껌 媛앹껜
- * 紐⑤뱺 API ?붿껌?먯꽌 怨듯넻?쇰줈 ?ы븿?섏뼱????硫뷀? ?뺣낫 ?뺤쓽
+ * ⑤뱺 API ?붿껌?먯꽌 怨듯넻?쇰줈 ?ы븿?섏뼱????硫뷀? ?뺣낫 ?뺤쓽
  * 
  * @author FPS Team
  * @version 1.0.0
@@ -30,7 +30,7 @@ public class BaseRequest implements Serializable {
     private String requesterId;
     
     /**
-     * ?붿껌 梨꾨꼸 (紐⑤컮?? WEB, API ??
+     * ?붿껌 梨꾨꼸 (⑤컮?? WEB, API ??
      * - 湲덉쑖沅?媛먯떆 濡쒓렇???꾩닔
      */
     @JsonIgnore

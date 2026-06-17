@@ -10,14 +10,14 @@ import cpf.cmn.cde.dto.CommonCodeRequest;
  * CodeMapper.java
  *
  * - 肄붾뱶 ?곗씠?곕? 議고쉶?섎뒗 MyBatis 留ㅽ띁 ?명꽣?섏씠??
- * - 肄붾뱶 ?뚯씠釉붿뿉??紐⑤뱺 肄붾뱶 ?곗씠?곕? 議고쉶?섍굅???뱀젙 肄붾뱶 ?ㅻ줈 議고쉶?섎뒗 硫붿꽌?쒕? ?쒓났?⑸땲??
+ * - 肄붾뱶 ?뚯씠釉붿뿉??⑤뱺 肄붾뱶 ?곗씠?곕? 議고쉶?섍굅???뱀젙 肄붾뱶 ?ㅻ줈 議고쉶?섎뒗 硫붿꽌?쒕? ?쒓났?⑸땲??
  */
 @Mapper
 public interface CodeMapper {
     /**
-     * 紐⑤뱺 肄붾뱶 ?곗씠?곕? 議고쉶?⑸땲??
+     * ⑤뱺 肄붾뱶 ?곗씠?곕? 議고쉶?⑸땲??
      *
-     * @return 肄붾뱶 ?곗씠??紐⑸줉 (Map ?뺥깭濡?諛섑솚)
+     * @return 肄붾뱶 ?곗씠??⑸줉 (Map ?뺥깭濡?諛섑솚)
      */
     List<Map<String, Object>> findAllCodes();
 
@@ -30,9 +30,9 @@ public interface CodeMapper {
     Map<String, Object> findCodeByKey(@Param("codeKey") String codeKey);
 
     /**
-     * ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 紐⑸줉??議고쉶?⑸땲??
+     * ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 ⑸줉??議고쉶?⑸땲??
      *
-     * @param codeKey 肄붾뱶 ??     * @return 媛숈? 肄붾뱶 ?ㅻ? 媛吏?肄붾뱶 紐⑸줉
+     * @param codeKey 肄붾뱶 ??     * @return 媛숈? 肄붾뱶 ?ㅻ? 媛吏?肄붾뱶 ⑸줉
      */
     List<Map<String, Object>> findCodesByKey(@Param("codeKey") String codeKey);
 

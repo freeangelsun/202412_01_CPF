@@ -3,58 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CPF Documentation</title>
+  <title>CPF 문서 인덱스</title>
   <style>
-    :root{--bg:#f6f8fb;--paper:#fff;--ink:#172033;--muted:#5d6678;--line:#d9e0ea;--blue:#2457c5;--green:#14795b}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.62}
-    main{width:min(1120px,calc(100% - 40px));margin:0 auto;padding:38px 0 56px}
-    header,section,.card{border:1px solid var(--line);background:var(--paper);border-radius:8px}
-    header{padding:30px}h1{margin:0 0 10px;font-size:30px;letter-spacing:0}h2{margin:34px 0 12px;font-size:22px}h3{margin:0 0 8px;font-size:18px}
-    p{margin:0 0 12px}.lead{color:var(--muted);font-size:16px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}.card{min-height:180px;padding:22px;display:flex;flex-direction:column;justify-content:space-between}
-    .badge{display:inline-flex;width:fit-content;min-height:28px;border:1px solid var(--line);padding:2px 10px;border-radius:999px;color:var(--muted);font-size:13px;margin-bottom:12px}
-    section{padding:24px;margin-top:18px}table{width:100%;border-collapse:collapse;background:var(--paper);margin-top:10px}th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}th{background:#eef3f9}
-    code{background:#eef3f9;color:#172033;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:.95em}.good{border-left:4px solid var(--green);background:#edf8f4;padding:12px 14px;margin-top:14px}
-    @media(max-width:880px){.cards{grid-template-columns:1fr}main{width:min(100% - 24px,1120px);padding-top:20px}header,section,.card{padding:18px}}
+    body{margin:0;background:#f7f8fb;color:#182033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.62}
+    main{width:min(1080px,calc(100% - 40px));margin:0 auto;padding:36px 0 56px}
+    header,section{background:#fff;border:1px solid #d9e1ec;border-radius:8px;padding:24px;margin-top:16px}
+    h1{margin:0 0 8px;font-size:30px}h2{font-size:21px;margin:0 0 12px}p{margin:0 0 10px}
+    a{color:#2457c5;text-decoration:none}a:hover{text-decoration:underline}
+    table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #d9e1ec;padding:10px;text-align:left;vertical-align:top}th{background:#eef3f9}
+    code{background:#eef3f9;border-radius:4px;padding:2px 5px;font-family:Consolas,monospace}
   </style>
 </head>
 <body>
 <main>
   <header>
     <h1>CPF CoreFlow Platform Framework</h1>
-    <p class="lead">CPF 문서 진입점입니다. 저장소/제품명은 <code>cpf-coreflow-platform-framework</code>, Java 패키지는 <code>cpf.*</code>입니다.</p>
+    <p>개발자가 신규 업무 모듈을 만들 때 기준으로 삼는 공식 문서 진입점입니다.</p>
   </header>
 
-  <div class="cards">
-    <article class="card">
-      <div><span class="badge">Architecture</span><h3>프레임워크 구성 가이드</h3><p>PFW/CMN/업무 모듈 구조, 공통 기능, DB, OpenAPI, 실행 기준을 설명합니다.</p></div>
-      <a href="./프레임워크_구성_가이드.html">문서 열기</a>
-    </article>
-    <article class="card">
-      <div><span class="badge">Developer</span><h3>개발 가이드</h3><p>패키지 규칙, 거래코드/응답코드/메시지코드, 샘플 API와 개발 패턴을 설명합니다.</p></div>
-      <a href="./개발_가이드.html">문서 열기</a>
-    </article>
-    <article class="card">
-      <div><span class="badge">Admin</span><h3>관리자 가이드</h3><p>ADM 화면/API, 운영자 권한/세션, 캐시, 응답코드, 동적 로그레벨 관리를 설명합니다.</p></div>
-      <a href="./관리자_가이드.html">문서 열기</a>
-    </article>
-  </div>
-
   <section>
-    <h2>구현 상태</h2>
+    <h2>핵심 가이드</h2>
     <table>
-      <thead><tr><th>영역</th><th>상태</th></tr></thead>
+      <thead><tr><th>문서</th><th>내용</th></tr></thead>
       <tbody>
-      <tr><td>프로젝트명</td><td><code>cpf-coreflow-platform-framework</code></td></tr>
-      <tr><td>Java package</td><td><code>cpf.*</code> 표준. 기존 <code>Fps*</code> 클래스명은 프레임워크 API 호환 목적으로 유지합니다.</td></tr>
-      <tr><td>서비스</td><td><code>acc</code>(8080), <code>mbr</code>(8081), <code>adm</code>(8090), <code>xyz</code>(8099). <code>pfw</code>, <code>cmn</code>은 라이브러리 모듈입니다.</td></tr>
-      <tr><td>응답/메시지</td><td><code>response_code_table</code>과 <code>message_table</code>을 캐시로 조회하고, 외부/내부 메시지 및 indexed parameter <code>{0}</code> 형식을 지원합니다.</td></tr>
-      <tr><td>ADM 운영자 권한</td><td><code>operator_user</code>, <code>operator_user_role</code>, <code>operator_role</code>, <code>operator_menu</code>, <code>operator_role_menu</code> 기반 DB-first 흐름입니다.</td></tr>
-      <tr><td>동적 로그레벨</td><td>현재 WAS 메모리에 즉시 반영하고 <code>dynamic_log_level_rule</code> DB에 저장합니다. 각 WAS는 DB polling으로 룰을 재동기화합니다.</td></tr>
-      <tr><td>초기 SQL</td><td><code>specs/sql</code>에 생성, seed, 테스트 데이터, smoke check 스크립트를 분리했습니다.</td></tr>
+      <tr><td><a href="./프레임워크_구성_가이드.html">프레임워크 구성 가이드</a></td><td>PFW/CMN/ADM/업무 모듈 경계, DB 소유권, profile, migration, observability</td></tr>
+      <tr><td><a href="./개발_가이드.html">개발 가이드</a></td><td>API, 응답/오류, 트랜잭션, validation, CMN API, EDU 샘플 매트릭스</td></tr>
+      <tr><td><a href="./관리자_가이드.html">관리자 가이드</a></td><td>ADM 회원관리, 운영자/회원 권한, 통합 로그, 배치, 캐시, 보안 운영</td></tr>
+      <tr><td><a href="./sql/README.md">SQL 가이드</a></td><td>설치 SQL, Flyway migration, 계정 권한, smoke 검증</td></tr>
+      <tr><td><a href="./transaction-header-standard.md">거래 헤더 표준</a></td><td>필수/선택 거래 헤더, 외부 호출 전파, 거래 로그 적재 기준</td></tr>
       </tbody>
     </table>
-    <div class="good">문서, SQL, seed data, 응답코드/메시지, ADM 운영 기능이 바뀌면 관련 문서를 같은 작업에서 함께 갱신합니다.</div>
+  </section>
+
+  <section>
+    <h2>운영 기준</h2>
+    <table>
+      <thead><tr><th>문서</th><th>내용</th></tr></thead>
+      <tbody>
+      <tr><td><a href="./definition-of-done.md">Definition of Done</a></td><td>신규 기능 완료 기준</td></tr>
+      <tr><td><a href="./ci-quality-gate.md">CI 품질 Gate</a></td><td>compile, test, SQL naming/comment, UTF-8, mojibake 기준</td></tr>
+      <tr><td><a href="./module-template.md">신규 업무 모듈 템플릿</a></td><td>Controller/Service/Mapper/DTO/Test/SQL 표준</td></tr>
+      <tr><td><a href="./operation-security-guide.md">운영/보안 가이드</a></td><td>secret, DB 권한, 시큐어코딩, ADM 보안 흐름</td></tr>
+      <tr><td><a href="./adr/0001-module-boundaries.md">ADR 0001</a></td><td>PFW/CMN/ADM/ACC/MBR 분리 결정 기록</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>현재 표준 요약</h2>
+    <table>
+      <tbody>
+      <tr><th>테이블명</th><td><code>{주제영역}_{업무명}</code> lower snake case. 예: <code>pfw_message</code>, <code>cmn_sequence</code>, <code>adm_menu</code>, <code>mbr_member</code></td></tr>
+      <tr><th>공통 컬럼</th><td>모든 테이블에 <code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code> 적용</td></tr>
+      <tr><th>SQL 주석</th><td>공식 schema SQL의 모든 테이블/컬럼은 한글 <code>COMMENT</code> 작성</td></tr>
+      <tr><th>거래 헤더</th><td>필수 헤더 3종과 클라이언트/호출자/멱등성 표준 선택 헤더를 Swagger, Context, 로그에 일치시킴</td></tr>
+      <tr><th>ADM 운영</th><td>회원관리, 권한 매트릭스, 통합 로그 포맷팅, 배치 관제, 캐시/메시지/코드/설정 관리를 한 화면에서 운영</td></tr>
+      <tr><th>CMN DB</th><td>기본은 비활성, <code>cpf.cmn.business-db.enabled=true</code>일 때 채번/알림/업무 로그 API 사용</td></tr>
+      <tr><th>품질 Gate</th><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
+      </tbody>
+    </table>
   </section>
 </main>
 </body>

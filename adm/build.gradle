@@ -18,17 +18,20 @@ repositories {
 }
 
 dependencies {
-    // 愿由ъ옄 ?쒕퉬?ㅻ룄 ?낅Т ?쒕퉬?ㅼ? ?숈씪?섍쾶 PFW/CMN ?쒖? 湲곕뒫???ъ슜?⑸땲??
+    // ADM은 PFW 거래 로그와 CMN 공통 기능을 함께 사용합니다.
     implementation project(':pfw')
     implementation project(':cmn')
 
-    // 愿由ъ옄 REST API? ?뺤쟻 ?붾㈃???쒓났?섍린 ?꾪븳 Spring MVC ?섏〈?깆엯?덈떎.
+    // ADM REST API와 정적 관리 화면을 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // PFW 濡쒓렇 ?뚯씠釉붿쓣 吏곸젒 議고쉶?섍린 ?꾪븳 JdbcTemplate ?섏〈?깆엯?덈떎.
+    // ADM/PFW/MBR 운영 DB를 JdbcTemplate으로 조회하고 변경합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
-    // 濡쒖뺄/?댁쁺 DB ?묒냽??MariaDB ?쒕씪?대쾭?낅땲??
+    // Spring Batch 운영 기능을 ADM에서 수동 실행/재수행/중지할 수 있게 연결합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    // MariaDB 운영 DB에 연결합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -41,4 +44,3 @@ tasks.named('test') {
 tasks.withType(Test) {
     enabled = false
 }
-

@@ -48,7 +48,7 @@ public class ConfigCacheService {
     /**
      * ?꾩껜 ?ㅼ젙媛믪쓣 議고쉶?⑸땲??
      *
-     * @return ?ㅼ젙媛?紐⑸줉
+     * @return ?ㅼ젙媛?⑸줉
      */
     @Cacheable("configCache")
     public List<Map<String, Object>> getAllConfigs() {
@@ -106,7 +106,7 @@ public class ConfigCacheService {
      * 怨듯넻 ?ㅼ젙媛믪쓣 ??젣?섍퀬 ?ㅼ젙 罹먯떆瑜?利됱떆 由ы봽?덉떆?⑸땲??
      *
      * @param configId ??젣???ㅼ젙 ID
-     * @return 理쒖떊 ?ㅼ젙媛?紐⑸줉
+     * @return 理쒖떊 ?ㅼ젙媛?⑸줉
      */
     @Transactional(transactionManager = "cmnTransactionManager")
     public List<Map<String, Object>> deleteConfig(Long configId) {
@@ -119,9 +119,9 @@ public class ConfigCacheService {
     }
 
     /**
-     * ?ㅼ젙 罹먯떆瑜?紐낆떆?곸쑝濡?由щ줈?쒗빀?덈떎.
+     * ?ㅼ젙 罹먯떆瑜?낆떆?곸쑝濡?由щ줈?쒗빀?덈떎.
      *
-     * @return 理쒖떊 ?ㅼ젙媛?紐⑸줉
+     * @return 理쒖떊 ?ㅼ젙媛?⑸줉
      */
     @CachePut("configCache")
     public List<Map<String, Object>> reloadConfigs() {
@@ -131,7 +131,7 @@ public class ConfigCacheService {
     /**
      * ?ㅼ젙 罹먯떆瑜?利됱떆 鍮꾩슦怨?理쒖떊 DB 媛믪쓣 ?ㅼ떆 議고쉶?⑸땲??
      *
-     * @return 理쒖떊 ?ㅼ젙媛?紐⑸줉
+     * @return 理쒖떊 ?ㅼ젙媛?⑸줉
      */
     public List<Map<String, Object>> refreshConfigs() {
         logger.info("Cache Refresh: Clearing config cache and fetching updated configs from database");
@@ -142,7 +142,7 @@ public class ConfigCacheService {
     /**
      * ?ㅼ젙 罹먯떆瑜?利됱떆 由ы봽?덉떆?섍퀬 ?ㅻⅨ WAS?먮룄 由ы봽?덉떆 ?대깽?몃? ?꾪뙆?⑸땲??
      *
-     * @return 理쒖떊 ?ㅼ젙媛?紐⑸줉
+     * @return 理쒖떊 ?ㅼ젙媛?⑸줉
      */
     public List<Map<String, Object>> refreshConfigsAndPublish() {
         List<Map<String, Object>> latestConfigs = refreshConfigs();

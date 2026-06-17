@@ -1,0 +1,9 @@
+{
+  "gradle.autoDetect": "on",
+  "gradle.nestedProjects": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "java.import.gradle.java.home": "D:\\Java\\jdk-21",
+  "java.jdt.ls.java.home": "D:\\Java\\jdk-21",
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.configuration.updateBuildConfiguration": "automatic"
+}

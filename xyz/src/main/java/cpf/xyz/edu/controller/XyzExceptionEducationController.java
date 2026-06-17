@@ -50,7 +50,7 @@ public class XyzExceptionEducationController {
     /**
      * ?쒖? ?ㅻ쪟肄붾뱶? ?숈쟻 硫붿떆吏 ?몄옄瑜??④퍡 ?ъ슜?섎뒗 ?섑뵆?낅땲??
      *
-     * @param fieldName  ?ㅻ쪟媛 諛쒖깮???낅Т ?꾨뱶紐?     * @param fieldValue ?ㅻ쪟媛 諛쒖깮???낅Т ?꾨뱶媛?     * @return ??硫붿꽌?쒕뒗 ?덉쇅瑜??섏????섑뵆?대?濡??뺤긽 ?묐떟??諛섑솚?섏? ?딆뒿?덈떎.
+     * @param fieldName  ?ㅻ쪟媛 諛쒖깮???낅Т ?꾨뱶?     * @param fieldValue ?ㅻ쪟媛 諛쒖깮???낅Т ?꾨뱶媛?     * @return ??硫붿꽌?쒕뒗 ?덉쇅瑜??섏????섑뵆?대?濡??뺤긽 ?묐떟??諛섑솚?섏? ?딆뒿?덈떎.
      */
     @GetMapping("/exception/dynamic-message")
     @FpsTransaction(id = "XYZ09EDU0009", name = "XYZ援먯쑁?숈쟻硫붿떆吏?덉쇅")
@@ -75,7 +75,7 @@ public class XyzExceptionEducationController {
 
     @GetMapping("/exception/response-code")
     @FpsTransaction(id = "XYZ09EDU0013", name = "XYZResponseCodeExceptionSample")
-    @Operation(summary = "Response code exception sample", description = "Throws only a standard response code. PFW resolves response_code_table and message_table from cache and fills response/log metadata.")
+    @Operation(summary = "Response code exception sample", description = "Throws only a standard response code. PFW resolves pfw_response_code and pfw_message from cache and fills response/log metadata.")
     public ResponseEntity<String> throwResponseCodeException(
             @RequestParam(defaultValue = "EACC010001") String responseCode,
             @RequestParam(defaultValue = "accountId") String fieldName) {

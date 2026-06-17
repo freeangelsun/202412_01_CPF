@@ -32,7 +32,7 @@ subprojects {
 
 tasks.register('runLocalServices') {
     group = 'application'
-    description = 'Run MBR, ACC, XYZ, and ADM local services together. PFW/CMN are library modules.'
+    description = 'MBR, ACC, XYZ, ADM 로컬 서비스를 한 번에 실행합니다. PFW/CMN은 라이브러리 모듈입니다.'
 
     dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes'
 
@@ -50,8 +50,8 @@ tasks.register('runLocalServices') {
         def processes = []
         def logThreads = []
 
-        logger.lifecycle('Starting local CPF services: MBR(8081), ACC(8080), XYZ(8099), ADM(8090)')
-        logger.lifecycle('PFW and CMN run as libraries inside each service.')
+        logger.lifecycle('CPF 로컬 서비스 시작: MBR(8081), ACC(8080), XYZ(8099), ADM(8090)')
+        logger.lifecycle('PFW와 CMN은 각 서비스 내부 라이브러리로 동작합니다.')
 
         services.each { service ->
             def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
@@ -99,7 +99,7 @@ tasks.register('runLocalServices') {
             try {
                 Runtime.runtime.removeShutdownHook(shutdownHook)
             } catch (IllegalStateException ignored) {
-                // JVM is already shutting down.
+                // JVM 종료 중에는 shutdown hook 제거가 실패할 수 있습니다.
             }
             stopLocalServiceProcesses(processes)
             logThreads.each { it.join(1000) }
@@ -121,4 +121,30 @@ void stopLocalServiceProcesses(List processes) {
             }
         }
     }
+}
+
+tasks.register('checkUtf8', Exec) {
+    group = 'verification'
+    description = '문서와 소스가 UTF-8로 저장되어 있는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1'
+}
+
+tasks.register('checkMojibake', Exec) {
+    group = 'verification'
+    description = 'UTF-8 검사와 함께 대표적인 mojibake 흔적을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
+}
+
+tasks.register('checkSqlStandard', Exec) {
+    group = 'verification'
+    description = 'CPF SQL 테이블명, 공통 감사 컬럼, 인덱스/제약조건 이름 표준을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sql-standard.ps1'
+}
+
+tasks.register('qualityGate') {
+    group = 'verification'
+    description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
+    dependsOn subprojects.collect { "${it.path}:compileJava" }
+    dependsOn subprojects.collect { "${it.path}:test" }
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkSqlStandard'
 }

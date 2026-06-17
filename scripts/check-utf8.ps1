@@ -53,7 +53,7 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
 }
 
 if ($failures.Count -gt 0) {
-    $failures | Sort-Object | ForEach-Object { Write-Error $_ }
+    $failures | Sort-Object | ForEach-Object { Write-Host $_ }
     exit 1
 }
 

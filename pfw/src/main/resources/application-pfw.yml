@@ -1,10 +1,10 @@
-# PFW common configuration.
+# PFW 공통 설정입니다.
 
 spring:
   datasource:
     pfw:
       url: ${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}
-      username: ${PFW_DB_USERNAME:cpf_pfw}
+      username: ${PFW_DB_USERNAME:cpf_pfw_app}
       password: ${PFW_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
@@ -54,3 +54,14 @@ cpf:
       base-url: ${CPF_SERVICE_ADM_URL:${FPS_SERVICE_ADM_URL:http://localhost:8090}}
       description: ADM service
 
+---
+# prod에서는 DB 접속정보 기본값을 제거하고 배포 환경에서 반드시 주입합니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    pfw:
+      url: ${PFW_DB_URL}
+      username: ${PFW_DB_USERNAME}
+      password: ${PFW_DB_PASSWORD}

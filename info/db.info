@@ -14,19 +14,19 @@ Database ownership
 ------------------
 
 - pfwDB: framework-owned metadata and common reference tables.
-  - TRAN_LOG
-  - TRAN_LOG_DTL
-  - code_table
-  - message_table
-  - response_code_table
-  - config_table
-  - cache_refresh_event
-  - file_exchange_log
-  - security_jwt_key
-  - security_token_audit_log
+  - pfw_transaction_log
+  - pfw_transaction_log_detail
+  - pfw_code
+  - pfw_message
+  - pfw_response_code
+  - pfw_config
+  - pfw_cache_refresh_event
+  - pfw_file_exchange_log
+  - pfw_security_jwt_key
+  - pfw_security_token_audit_log
 - admDB: admin console, operator, role, menu, audit, dynamic log rules.
 - accDB: account sample domain. Uses acc_account.
-- mbrDB: member sample domain. Uses member.
+- mbrDB: member sample domain. Uses mbr_member.
 
 cmnDB is intentionally not used.
 CMN is a common Java module, not a separate data owner. Framework/common

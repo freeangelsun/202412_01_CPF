@@ -1,22 +1,18 @@
-# ACC 紐⑤뱢 怨듯넻 ?ㅼ젙 ?뚯씪?낅땲??
-# Spring Boot 3.0 諛?Java 21 ?섍꼍?먯꽌 ?ㅽ뻾?섎룄濡?湲곕낯 援ъ꽦 ?뺣낫瑜??쒓났?⑸땲??
+# ACC 서비스 기본 설정입니다.
 
 spring:
   application:
     name: acc
-
   profiles:
     active: local
-    include: pfw, cmn  # PFW ?꾨젅?꾩썙?ъ? CMN 媛쒕컻 怨듯넻 ?ㅼ젙???④퍡 濡쒕뱶?⑸땲??
-
+    include: pfw, cmn
   datasource:
     hikari:
       data-source-properties:
         logger: SLF4J
     acc:
-      #     jndi-name: java:comp/env/jdbc/accDS
       url: ${ACC_DB_URL:jdbc:mariadb://localhost:3306/accDB}
-      username: ${ACC_DB_USERNAME:cpf_acc}
+      username: ${ACC_DB_USERNAME:cpf_acc_app}
       password: ${ACC_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
@@ -28,14 +24,30 @@ mybatis:
 server:
   port: 8080
 
-# 濡쒓렇 ?ㅼ젙
 logging:
-  config: classpath:log/logback-spring.xml
+  config: classpath:log/logback-local.xml
   level:
-    root: INFO # ?꾩껜 ?좏뵆由ъ??댁뀡??湲곕낯 濡쒓렇 ?덈꺼
-    cpf.pfw: DEBUG  # PFW ?꾨젅?꾩썙??紐⑤뱢 濡쒓렇 ?덈꺼
-    cpf.cmn: DEBUG  # CMN 媛쒕컻 怨듯넻 紐⑤뱢 濡쒓렇 ?덈꺼
-    cpf.acc: DEBUG  # ACC 紐⑤뱢 濡쒓렇 ?덈꺼
+    root: INFO
+    cpf.pfw: DEBUG
+    cpf.cmn: DEBUG
+    cpf.acc: DEBUG
 
+---
+# prod에서는 DB password 기본값을 제거합니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    acc:
+      url: ${ACC_DB_URL}
+      username: ${ACC_DB_USERNAME}
+      password: ${ACC_DB_PASSWORD}
 
-
+logging:
+  config: classpath:log/logback-prod.xml
+  level:
+    root: INFO
+    cpf.pfw: INFO
+    cpf.cmn: INFO
+    cpf.acc: INFO

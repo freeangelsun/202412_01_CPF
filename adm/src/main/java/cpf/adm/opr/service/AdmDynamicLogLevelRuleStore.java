@@ -26,7 +26,7 @@ public class AdmDynamicLogLevelRuleStore {
     public void save(DynamicLogLevelRule rule) {
         try {
             admJdbcTemplate.update("""
-                    INSERT INTO dynamic_log_level_rule (
+                    INSERT INTO adm_dynamic_log_level_rule (
                         RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
                         EXPIRE_AT, REASON, USE_YN, CREATED_BY, CREATED_AT, UPDATED_BY, UPDATED_AT
                     )
@@ -61,7 +61,7 @@ public class AdmDynamicLogLevelRuleStore {
     public boolean disable(String ruleId, String requestUser) {
         try {
             return admJdbcTemplate.update("""
-                    UPDATE dynamic_log_level_rule
+                    UPDATE adm_dynamic_log_level_rule
                        SET USE_YN = 'N',
                            UPDATED_BY = ?,
                            UPDATED_AT = CURRENT_TIMESTAMP
@@ -78,7 +78,7 @@ public class AdmDynamicLogLevelRuleStore {
             return admJdbcTemplate.query("""
                     SELECT RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL,
                            REASON, CREATED_BY, CREATED_AT, EXPIRE_AT
-                      FROM dynamic_log_level_rule
+                      FROM adm_dynamic_log_level_rule
                      WHERE USE_YN = 'Y'
                        AND EXPIRE_AT > CURRENT_TIMESTAMP
                      ORDER BY CREATED_AT DESC
@@ -101,7 +101,7 @@ public class AdmDynamicLogLevelRuleStore {
     public Map<String, Object> persistenceStatus() {
         try {
             Integer count = admJdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM dynamic_log_level_rule WHERE USE_YN = 'Y' AND EXPIRE_AT > CURRENT_TIMESTAMP",
+                    "SELECT COUNT(*) FROM adm_dynamic_log_level_rule WHERE USE_YN = 'Y' AND EXPIRE_AT > CURRENT_TIMESTAMP",
                     Integer.class);
             return Map.of("available", true, "activeCount", count == null ? 0 : count);
         } catch (Exception ex) {

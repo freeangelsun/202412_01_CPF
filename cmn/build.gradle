@@ -1,6 +1,6 @@
 plugins {
-	id 'java-library' // 怨듯넻 ?쇱씠釉뚮윭由?紐⑤뱢濡??ъ슜
-	id 'io.spring.dependency-management' version '1.1.7' // Spring ?섏〈??愿由?
+	id 'java-library' // CMN 모듈은 공통 라이브러리로 배포한다.
+	id 'io.spring.dependency-management' version '1.1.7' // Spring Boot BOM 기반으로 의존성 버전을 맞춘다.
 }
 
 group = 'cpf.cmn'
@@ -8,12 +8,12 @@ version = '0.0.1-cpf.cmn-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21) // Java 21 湲곕컲 而댄뙆??諛??ㅽ뻾
+		languageVersion = JavaLanguageVersion.of(21) // Java 21 기준으로 컴파일한다.
 	}
 }
 
 repositories {
-	mavenCentral() // Maven 以묒븰 ??μ냼 ?ъ슜
+	mavenCentral() // 공개 Maven 저장소를 사용한다.
 }
 
 dependencyManagement {
@@ -23,40 +23,35 @@ dependencyManagement {
 }
 
 dependencies {
-	// ??PFW ?뺤옣 ?명꽣?섏씠??援ы쁽 (?? ?쒖? ?ㅻ쪟 硫붿떆吏 由ъ「踰?
+	// PFW 프레임워크 공통 기능을 CMN에서 재사용한다.
 	api project(':pfw')
 
-	// ??MyBatis ?ㅼ젙 (怨듯넻 ?곗씠???묎렐)
+	// MyBatis 기반의 SQL 매퍼를 사용한다.
 	api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
 
-	// ??JPA 諛?Hibernate ?ㅼ젙 (誘몃옒 ?뺤옣??吏??
+	// JPA/Hibernate가 필요한 프로젝트는 아래 의존성을 활성화한다.
 	// api 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	// ??MariaDB ?쒕씪?대쾭 (怨듯넻 ?곗씠?곕쿋?댁뒪 吏??
+	// MariaDB 드라이버는 CMN optional datasource와 통합 테스트에서 사용한다.
 	api 'org.mariadb.jdbc:mariadb-java-client:3.3.1'
 
-	// ??罹먯떛 ?ㅼ젙 (Spring Cache + Caffeine)
+	// 로컬 캐시와 공통 캐시 추상화를 제공한다.
 	api 'org.springframework.boot:spring-boot-starter-cache'
 	api 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 
-	// ??硫붿떆吏 ??怨듯넻 紐⑤뱢 (Kafka/RabbitMQ ?대뙌?곗? 援먯쑁???몃찓紐⑤━ 釉뚮줈而?
+	// 메시징 브로커 연동은 Redis/Kafka/RabbitMQ 확장 구조의 기반으로 사용한다.
 	api 'org.springframework.kafka:spring-kafka'
 	api 'org.springframework.boot:spring-boot-starter-amqp'
 
-	// ??怨좎젙湲몄씠 ?꾨Ц怨?硫붿떆吏 Payload瑜?JSON?쇰줈 蹂?섑븯湲??꾪븳 Jackson
+	// 공통 메시지 payload를 JSON으로 직렬화한다.
 	api 'com.fasterxml.jackson.core:jackson-databind'
 
-	// ??Bean Validation ?ㅼ젙 (DTO 寃利?
+	// DTO 검증 표준을 제공한다.
 	api 'jakarta.validation:jakarta.validation-api:3.0.2'
 	api 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
 	api 'org.springframework.boot:spring-boot-starter-validation'
 }
 
 tasks.named('test') {
-	useJUnitPlatform() // JUnit5 ?뚯뒪???ъ슜
+	useJUnitPlatform() // JUnit 5 기반 테스트를 실행한다.
 }
-
-tasks.withType(Test) {
-	enabled = false // ?꾩옱 ?뚯뒪??肄붾뱶 ?묒꽦 ?꾩씠誘濡?鍮꾪솢?깊솕. ?쒖꽦???꾩슂 ??true濡?蹂寃?
-}
-

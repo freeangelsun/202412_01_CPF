@@ -29,7 +29,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/adm/api/response-codes")
-@Tag(name = "ADM-OPR Response Codes", description = "response_code_table management API")
+@Tag(name = "ADM-OPR Response Codes", description = "pfw_response_code management API")
 public class AdmResponseCodeController {
     private final ResponseCodeCacheService responseCodeCacheService;
     private final AdmAuditLogService auditLogService;
@@ -41,14 +41,14 @@ public class AdmResponseCodeController {
 
     @GetMapping
     @FpsTransaction(id = "ADM01OPR0040", name = "ADMResponseCodeList")
-    @Operation(summary = "List response codes", description = "Lists active response codes from response_code_table.")
+    @Operation(summary = "List response codes", description = "Lists active response codes from pfw_response_code.")
     public ResponseEntity<Map<String, Object>> findAll() {
         return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
     }
 
     @GetMapping("/{responseCode}")
     @FpsTransaction(id = "ADM01OPR0041", name = "ADMResponseCodeDetail")
-    @Operation(summary = "Get response code", description = "Gets one active response code from response_code_table.")
+    @Operation(summary = "Get response code", description = "Gets one active response code from pfw_response_code.")
     public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode) {
         return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
     }
@@ -105,7 +105,7 @@ public class AdmResponseCodeController {
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("result", Map.of());
-            response.put("message", "response_code_table operation failed. Check pfwDB schema and seed data.");
+            response.put("message", "pfw_response_code operation failed. Check pfwDB schema and seed data.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);
@@ -127,7 +127,7 @@ public class AdmResponseCodeController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, requestUser),
                 actionType,
-                "response_code_table",
+                "pfw_response_code",
                 responseCode,
                 reason,
                 servletRequest.getRemoteAddr());

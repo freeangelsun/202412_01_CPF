@@ -1,2 +1,2 @@
-fps.pfw.config.PfwExceptionAutoConfiguration
-fps.pfw.config.PfwOpenApiAutoConfiguration
+cpf.pfw.config.PfwExceptionAutoConfiguration
+cpf.pfw.config.PfwOpenApiAutoConfiguration

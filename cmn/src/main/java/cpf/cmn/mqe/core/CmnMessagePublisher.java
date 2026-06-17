@@ -8,7 +8,7 @@ import java.util.Map;
 public interface CmnMessagePublisher {
 
     /**
-     * 湲곕낯 紐⑹쟻吏濡?硫붿떆吏瑜?諛쒗뻾?⑸땲??
+     * 湲곕낯 ⑹쟻吏濡?硫붿떆吏瑜?諛쒗뻾?⑸땲??
      *
      * @param key     ?낅Т ??     * @param payload ?낅Т Payload
      * @return 諛쒗뻾 寃곌낵
@@ -16,7 +16,7 @@ public interface CmnMessagePublisher {
     CmnMessagePublishResult publish(String key, Object payload);
 
     /**
-     * 吏??紐⑹쟻吏濡?硫붿떆吏瑜?諛쒗뻾?⑸땲??
+     * 吏??⑹쟻吏濡?硫붿떆吏瑜?諛쒗뻾?⑸땲??
      *
      * @param destination Kafka topic ?먮뒗 Rabbit routing key
      * @param key         ?낅Т ??     * @param payload     ?낅Т Payload

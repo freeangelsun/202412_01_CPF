@@ -1,11 +1,18 @@
+# CMN 운영 프로필 설정입니다.
+# 운영 secret과 DB password는 기본값을 두지 않고 배포 환경에서 반드시 주입합니다.
+
 spring:
   datasource:
     cmn:
-      #      jndi-name: java:comp/env/jdbc/cmnDS
-      url: ${CMN_DB_URL:${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}}
-      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw}}
+      url: ${CMN_DB_URL:${PFW_DB_URL}}
+      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME}}
       password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD}}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${CMN_DB_DRIVER:org.mariadb.jdbc.Driver}
+    cmn-business:
+      url: ${CMN_BUSINESS_DB_URL}
+      username: ${CMN_BUSINESS_DB_USERNAME}
+      password: ${CMN_BUSINESS_DB_PASSWORD}
+      driver-class-name: ${CMN_BUSINESS_DB_DRIVER:org.mariadb.jdbc.Driver}
 
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
@@ -14,6 +21,8 @@ mybatis:
 
 cpf:
   cmn:
+    business-db:
+      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
     cache:
       preload-enabled: ${FPS_CMN_CACHE_PRELOAD_ENABLED:true}
       fail-fast-on-startup: ${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:true}
@@ -28,5 +37,3 @@ cpf:
         audience: ${FPS_CMN_SECURITY_JWT_AUDIENCE}
         secret: ${FPS_CMN_SECURITY_JWT_SECRET}
         ttl-seconds: ${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}
-
-

@@ -2,73 +2,128 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!--
-  ?뚯썝(Member) MyBatis Mapper XML
-  
-  留ㅽ븨 ?뺣낫:
-  - namespace: cpf.mbr.bse.mapper.MemberMapper
-  - 二쇱슂 荑쇰━: selectAllMembers, selectMemberById, selectMembersByName, insertMember, updateMember, deleteMemberById
-  
-  紐낅챸 洹쒖튃:
-  - select*: 議고쉶
-  - insert*: ?깅줉
-  - update*: ?섏젙
-  - delete*: ??젣
-  
-  @author FPS Team
-  @version 1.0.0
--->
-
+<!-- MBR 회원 샘플 Mapper입니다. -->
 <mapper namespace="cpf.mbr.bse.mapper.MemberMapper">
-    
-    <!-- ?꾩껜 ?뚯썝 議고쉶 -->
+
+    <sql id="memberColumns">
+        id,
+        member_no,
+        customer_no,
+        login_id,
+        name,
+        email,
+        mobile_no,
+        member_status,
+        lock_yn,
+        withdraw_yn,
+        channel_code,
+        joined_at,
+        last_login_at,
+        description,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+    </sql>
+
     <select id="selectAllMembers" resultMap="memberMap">
-        SELECT id, name, description, created_by, created_at, updated_by, updated_at
-        FROM member
+        SELECT <include refid="memberColumns" />
+        FROM mbr_member
         ORDER BY id DESC
     </select>
-    
-    <!-- ?뚯썝 ID濡??④굔 議고쉶 -->
+
     <select id="selectMemberById" parameterType="int" resultMap="memberMap">
-        SELECT id, name, description, created_by, created_at, updated_by, updated_at
-        FROM member
+        SELECT <include refid="memberColumns" />
+        FROM mbr_member
         WHERE id = #{id}
     </select>
-    
-    <!-- ?뚯썝紐낆쑝濡?遺遺?寃??-->
+
     <select id="selectMembersByName" parameterType="string" resultMap="memberMap">
-        SELECT id, name, description, created_by, created_at, updated_by, updated_at
-        FROM member
+        SELECT <include refid="memberColumns" />
+        FROM mbr_member
         WHERE name LIKE CONCAT('%', #{name}, '%')
         ORDER BY id DESC
     </select>
-    
-    <!-- ?뚯썝 ?깅줉 -->
+
     <insert id="insertMember" parameterType="Member" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO member (name, description, created_by, created_at, updated_by, updated_at)
-        VALUES (#{name}, #{description}, #{createdBy}, NOW(), #{updatedBy}, NOW())
+        INSERT INTO mbr_member (
+            member_no,
+            customer_no,
+            login_id,
+            name,
+            email,
+            mobile_no,
+            member_status,
+            lock_yn,
+            withdraw_yn,
+            channel_code,
+            joined_at,
+            last_login_at,
+            description,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        )
+        VALUES (
+            #{memberNo},
+            #{customerNo},
+            #{loginId},
+            #{name},
+            #{email},
+            #{mobileNo},
+            #{memberStatus},
+            #{lockYn},
+            #{withdrawYn},
+            #{channelCode},
+            COALESCE(#{joinedAt}, NOW()),
+            #{lastLoginAt},
+            #{description},
+            #{createdBy},
+            NOW(),
+            #{updatedBy},
+            NOW()
+        )
     </insert>
-    
-    <!-- ?뚯썝 ?뺣낫 ?섏젙 -->
+
     <update id="updateMember" parameterType="Member">
-        UPDATE member
-        SET name = #{name},
+        UPDATE mbr_member
+        SET member_no = #{memberNo},
+            customer_no = #{customerNo},
+            login_id = #{loginId},
+            name = #{name},
+            email = #{email},
+            mobile_no = #{mobileNo},
+            member_status = #{memberStatus},
+            lock_yn = #{lockYn},
+            withdraw_yn = #{withdrawYn},
+            channel_code = #{channelCode},
+            last_login_at = #{lastLoginAt},
             description = #{description},
             updated_by = #{updatedBy},
             updated_at = NOW()
         WHERE id = #{id}
     </update>
-    
-    <!-- ?뚯썝 ??젣 -->
+
     <delete id="deleteMemberById" parameterType="int">
-        DELETE FROM member
+        DELETE FROM mbr_member
         WHERE id = #{id}
     </delete>
-    
-    <!-- 寃곌낵 留ㅽ븨 ?뺤쓽 -->
+
     <resultMap id="memberMap" type="Member">
         <id column="id" property="id" />
+        <result column="member_no" property="memberNo" />
+        <result column="customer_no" property="customerNo" />
+        <result column="login_id" property="loginId" />
         <result column="name" property="name" />
+        <result column="email" property="email" />
+        <result column="mobile_no" property="mobileNo" />
+        <result column="member_status" property="memberStatus" />
+        <result column="lock_yn" property="lockYn" />
+        <result column="withdraw_yn" property="withdrawYn" />
+        <result column="channel_code" property="channelCode" />
+        <result column="joined_at" property="joinedAt" />
+        <result column="last_login_at" property="lastLoginAt" />
         <result column="description" property="description" />
         <result column="created_by" property="createdBy" />
         <result column="created_at" property="createdAt" />
@@ -76,4 +131,3 @@
         <result column="updated_at" property="updatedAt" />
     </resultMap>
 </mapper>
-

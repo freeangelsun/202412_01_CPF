@@ -1,4 +1,4 @@
-# ACC 紐⑤뱢 濡쒖뺄 ?ㅽ뻾???섍꼍 ?ㅼ젙?낅땲??
+# ACC ⑤뱢 濡쒖뺄 ?ㅽ뻾???섍꼍 ?ㅼ젙?낅땲??
 # Java 21 諛?Spring Boot 3.0??留욎텣 濡쒖뺄 媛쒕컻 ?꾩슜 援ъ꽦?낅땲??
 
 spring:
@@ -9,7 +9,7 @@ spring:
     acc:
 #     jndi-name: java:comp/env/jdbc/accDS
       url: ${ACC_DB_URL:jdbc:mariadb://localhost:3306/accDB}
-      username: ${ACC_DB_USERNAME:cpf_acc}
+      username: ${ACC_DB_USERNAME:cpf_acc_app}
       password: ${ACC_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
@@ -31,6 +31,6 @@ logging:
     root: INFO # ?꾩껜 ?좏뵆由ъ??댁뀡??湲곕낯 濡쒓렇 ?덈꺼
     cpf.pfw: DEBUG  # PFW ?꾨젅?꾩썙??濡쒓렇 ?덈꺼
     cpf.cmn: DEBUG  # CMN 媛쒕컻 怨듯넻 濡쒓렇 ?덈꺼
-    cpf.acc: DEBUG  # ACC 紐⑤뱢??????붾쾭源?濡쒓렇 ?덈꺼
+    cpf.acc: DEBUG  # ACC ⑤뱢??????붾쾭源?濡쒓렇 ?덈꺼
 
 

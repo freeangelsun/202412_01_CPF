@@ -1,7 +1,7 @@
 package cpf.cmn.mqe.core;
 
 /**
- * CMN 硫붿떆吏?怨듯넻 紐⑤뱢?먯꽌 吏?먰븯??釉뚮줈而?醫낅쪟?낅땲??
+ * CMN 硫붿떆吏?怨듯넻 ⑤뱢?먯꽌 吏?먰븯??釉뚮줈而?醫낅쪟?낅땲??
  */
 public enum CmnMessageBrokerType {
     /**

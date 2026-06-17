@@ -11,24 +11,24 @@
   <header class="topbar">
     <div>
       <h1>CPF ADM</h1>
-      <p>Framework Administration</p>
+      <p>프레임워크 운영 콘솔</p>
     </div>
     <nav v-if="authenticated">
       <button type="button" v-for="menu in visibleMenus" :key="menu.id" @click="activeMenu = menu.id">{{ menu.label }}</button>
-      <button type="button" @click="logout">Logout</button>
+      <button type="button" @click="logout">로그아웃</button>
     </nav>
   </header>
 
   <main>
     <section class="login-panel" v-if="!authenticated">
       <div class="panel">
-        <div class="panel-title"><h2>Operator Login</h2></div>
+        <div class="panel-title"><h2>운영자 로그인</h2></div>
         <div class="filters login-form">
-          <label>Operator ID <input v-model="loginForm.operatorId" type="text" autocomplete="username"></label>
-          <label>Password <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
-          <button type="button" @click="login">Login</button>
+          <label>운영자 ID <input v-model="loginForm.operatorId" type="text" autocomplete="username"></label>
+          <label>비밀번호 <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
+          <button type="button" @click="login">로그인</button>
         </div>
-        <p class="hint">Initial sample account is <strong>admin / Adm!n12345</strong>.</p>
+        <p class="hint">초기 샘플 계정은 로컬 검증용입니다. 운영 환경에서는 seed 비밀번호를 반드시 교체해야 합니다.</p>
         <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
       </div>
     </section>
@@ -37,192 +37,371 @@
       <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
 
       <section class="summary-grid">
-        <div class="metric"><span>Service</span><strong>ADM</strong></div>
-        <div class="metric"><span>Port</span><strong>8090</strong></div>
-        <div class="metric"><span>Common Modules</span><strong>PFW / CMN</strong></div>
-        <div class="metric"><span>Operator</span><strong>{{ currentOperator.operatorId }}</strong></div>
+        <div class="metric"><span>서비스</span><strong>ADM</strong></div>
+        <div class="metric"><span>포트</span><strong>8090</strong></div>
+        <div class="metric"><span>공통 모듈</span><strong>PFW / CMN</strong></div>
+        <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
       </section>
 
       <section class="panel" v-show="activeMenu === 'logs'">
         <div class="panel-title">
-          <h2>Transaction Logs</h2>
-          <button type="button" @click="searchLogs">Search</button>
+          <h2>거래 로그</h2>
+          <button type="button" @click="searchLogs">조회</button>
         </div>
         <div class="filters">
-          <label>Transaction ID <input v-model="logSearch.transactionId" type="text"></label>
-          <label>Business Transaction ID <input v-model="logSearch.businessTransactionId" type="text"></label>
-          <label>Member No <input v-model="logSearch.memberNo" type="text"></label>
-          <label>Customer No <input v-model="logSearch.customerNo" type="text"></label>
+          <label>거래 ID <input v-model="logSearch.transactionId" type="text"></label>
+          <label>Trace ID <input v-model="logSearch.traceId" type="text"></label>
+          <label>업무 거래 ID <input v-model="logSearch.businessTransactionId" type="text"></label>
+          <label>URI <input v-model="logSearch.uri" type="text"></label>
+          <label>응답코드 <input v-model="logSearch.responseCode" type="text"></label>
+          <label>HTTP 상태 <input v-model="logSearch.httpStatus" type="number"></label>
+          <label>회원번호 <input v-model="logSearch.memberNo" type="text"></label>
+          <label>고객번호 <input v-model="logSearch.customerNo" type="text"></label>
         </div>
         <div class="pager">
-          <span>{{ sortedLogs.length }} rows</span>
-          <label>Rows
+          <span>{{ sortedLogs.length }}건</span>
+          <label>행 수
             <select v-model.number="logPage.size">
               <option :value="10">10</option>
               <option :value="20">20</option>
               <option :value="50">50</option>
             </select>
           </label>
-          <button type="button" @click="moveLogPage(-1)">Prev</button>
+          <button type="button" @click="moveLogPage(-1)">이전</button>
           <span>{{ logPage.page }} / {{ logTotalPages }}</span>
-          <button type="button" @click="moveLogPage(1)">Next</button>
+          <button type="button" @click="moveLogPage(1)">다음</button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
             <tr>
               <th @click="sortLogs('LOG_IDX')">LOG_IDX</th>
-              <th @click="sortLogs('TRANSACTION_ID')">Transaction ID</th>
-              <th @click="sortLogs('BUSINESS_TRANSACTION_ID')">Business ID</th>
-              <th @click="sortLogs('BUSINESS_TRANSACTION_NAME')">Name</th>
-              <th @click="sortLogs('MODULE_ID')">Module</th>
-              <th @click="sortLogs('LOG_TYPE')">Type</th>
-              <th @click="sortLogs('DURATION_MS')">Duration</th>
+              <th @click="sortLogs('TRANSACTION_ID')">거래 ID</th>
+              <th @click="sortLogs('TRACE_ID')">Trace</th>
+              <th @click="sortLogs('BUSINESS_TRANSACTION_ID')">업무 ID</th>
+              <th @click="sortLogs('URI')">URI</th>
+              <th @click="sortLogs('HTTP_STATUS')">HTTP</th>
+              <th @click="sortLogs('RESPONSE_CODE')">응답코드</th>
+              <th @click="sortLogs('DURATION_MS')">소요</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="item in pagedLogs" :key="item.LOG_IDX" @click="loadLogDetail(item.LOG_IDX)">
               <td>{{ item.LOG_IDX }}</td>
               <td>{{ item.TRANSACTION_ID }}</td>
+              <td>{{ item.TRACE_ID }}</td>
               <td>{{ item.BUSINESS_TRANSACTION_ID }}</td>
-              <td>{{ item.BUSINESS_TRANSACTION_NAME }}</td>
-              <td>{{ item.MODULE_ID }}</td>
-              <td>{{ item.LOG_TYPE }}</td>
+              <td>{{ item.URI }}</td>
+              <td>{{ item.HTTP_STATUS }}</td>
+              <td>{{ item.RESPONSE_CODE }}</td>
               <td>{{ item.DURATION_MS }}</td>
             </tr>
             </tbody>
           </table>
         </div>
-        <pre class="detail">{{ pretty(logDetail) }}</pre>
+        <div class="actions">
+          <button type="button" v-for="tab in logDetailTabs" :key="tab" @click="logDetailTab = tab">{{ tab }}</button>
+          <button type="button" @click="copyLogDetail">복사</button>
+          <button type="button" @click="downloadLogDetail">다운로드</button>
+        </div>
+        <pre class="detail">{{ activeLogDetailPayload }}</pre>
       </section>
 
-      <section class="panel" v-show="activeMenu === 'auditLogs'">
+      <section class="panel" v-show="activeMenu === 'members'">
         <div class="panel-title">
-          <h2>Audit Logs</h2>
-          <button type="button" @click="loadAuditLogs">Search</button>
+          <h2>회원 관리</h2>
+          <button type="button" @click="searchMembers">조회</button>
         </div>
         <div class="filters">
-          <label>Operator ID <input v-model="auditSearch.operatorId" type="text"></label>
-          <label>Action Type <input v-model="auditSearch.actionType" type="text"></label>
-          <label>Target Type <input v-model="auditSearch.targetType" type="text"></label>
-          <label>Target ID <input v-model="auditSearch.targetId" type="text"></label>
-          <label>Limit <input v-model.number="auditSearch.limit" type="number" min="1" max="500"></label>
+          <label>회원번호 <input v-model="memberSearch.memberNo" type="text"></label>
+          <label>고객번호 <input v-model="memberSearch.customerNo" type="text"></label>
+          <label>로그인 ID <input v-model="memberSearch.loginId" type="text"></label>
+          <label>이름 <input v-model="memberSearch.name" type="text"></label>
+          <label>이메일 <input v-model="memberSearch.email" type="text"></label>
+          <label>휴대폰 <input v-model="memberSearch.mobileNo" type="text"></label>
+          <label>상태 <input v-model="memberSearch.memberStatus" type="text"></label>
+          <label>권한 <input v-model="memberSearch.roleCode" type="text"></label>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
             <tr>
-              <th>AUDIT_ID</th>
-              <th>Operator</th>
-              <th>Action</th>
-              <th>Target</th>
-              <th>Reason</th>
-              <th>Created</th>
+              <th>ID</th>
+              <th>회원번호</th>
+              <th>고객번호</th>
+              <th>로그인 ID</th>
+              <th>이름</th>
+              <th>상태</th>
+              <th>잠금</th>
+              <th>탈퇴</th>
+              <th>채널</th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="item in auditLogs" :key="item.AUDIT_ID">
-              <td>{{ item.AUDIT_ID }}</td>
-              <td>{{ item.OPERATOR_ID }}</td>
-              <td>{{ item.ACTION_TYPE }}</td>
-              <td>{{ item.TARGET_TYPE }} / {{ item.TARGET_ID }}</td>
-              <td>{{ item.REASON }}</td>
-              <td>{{ item.CREATED_AT }}</td>
+            <tr v-for="item in memberResult.items" :key="item.id" @click="loadMemberDetail(item.id)">
+              <td>{{ item.id }}</td>
+              <td>{{ item.member_no }}</td>
+              <td>{{ item.customer_no }}</td>
+              <td>{{ item.login_id }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.member_status }}</td>
+              <td>{{ item.lock_yn }}</td>
+              <td>{{ item.withdraw_yn }}</td>
+              <td>{{ item.channel_code }}</td>
             </tr>
             </tbody>
           </table>
+        </div>
+        <div class="filters">
+          <label>회원 ID <input v-model.number="memberForm.memberId" type="number"></label>
+          <label>회원번호 <input v-model="memberForm.memberNo" type="text"></label>
+          <label>고객번호 <input v-model="memberForm.customerNo" type="text"></label>
+          <label>로그인 ID <input v-model="memberForm.loginId" type="text"></label>
+          <label>이름 <input v-model="memberForm.name" type="text"></label>
+          <label>이메일 <input v-model="memberForm.email" type="text"></label>
+          <label>휴대폰 <input v-model="memberForm.mobileNo" type="text"></label>
+          <label>상태 <input v-model="memberStatusForm.memberStatus" type="text"></label>
+          <label>잠금 <select v-model="memberStatusForm.lockYn"><option>Y</option><option>N</option></select></label>
+          <label>탈퇴 <select v-model="memberStatusForm.withdrawYn"><option>Y</option><option>N</option></select></label>
+          <label>역할 <input v-model="memberRoleForm.roleCode" type="text"></label>
+          <label>사유 <input v-model="memberForm.reason" type="text"></label>
+        </div>
+        <div class="actions">
+          <button type="button" v-if="canWrite('MEMBER')" @click="createMember">등록</button>
+          <button type="button" v-if="canWrite('MEMBER')" @click="updateMember">수정</button>
+          <button type="button" v-if="canWrite('MEMBER')" @click="updateMemberStatus">상태 변경</button>
+          <button type="button" v-if="canWrite('MEMBER')" @click="grantMemberRole">권한 부여</button>
+          <button type="button" v-if="canDelete('MEMBER')" @click="revokeMemberRole">권한 회수</button>
+        </div>
+        <pre class="detail">{{ pretty(memberDetail) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'batch'">
+        <div class="panel-title">
+          <h2>배치 관제</h2>
+          <div class="actions">
+            <button type="button" @click="loadBatch">조회</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="registerBatchJob">배치 등록</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="runBatchJob">수동 실행</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="retryBatchExecution">실패 재수행</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="stopBatchExecution">중지</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="saveBusinessDay">영업일 저장</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Job ID <input v-model="batchForm.jobId" type="text"></label>
+          <label>Job명 <input v-model="batchForm.jobName" type="text"></label>
+          <label>유형 <select v-model="batchForm.jobType"><option>TASKLET</option><option>CHUNK</option><option>RETRY</option></select></label>
+          <label>Execution ID <input v-model.number="batchForm.executionId" type="number"></label>
+          <label>Schedule ID <input v-model="batchForm.scheduleId" type="text"></label>
+          <label>파라미터 <input v-model="batchForm.jobParameters" type="text"></label>
+          <label>영업일 <input v-model="batchForm.businessDate" type="date"></label>
+          <label>사유 <input v-model="batchForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(batchResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'auditLogs'">
+        <div class="panel-title">
+          <h2>감사 로그</h2>
+          <button type="button" @click="loadAuditLogs">조회</button>
+        </div>
+        <div class="filters">
+          <label>운영자 ID <input v-model="auditSearch.operatorId" type="text"></label>
+          <label>행위 <input v-model="auditSearch.actionType" type="text"></label>
+          <label>대상 유형 <input v-model="auditSearch.targetType" type="text"></label>
+          <label>대상 ID <input v-model="auditSearch.targetId" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(auditResult) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'cache'">
         <div class="panel-title">
-          <h2>Cache Management</h2>
+          <h2>캐시 관리</h2>
           <div class="actions" v-if="canWrite('CACHE')">
             <button type="button" v-for="target in cacheTargets" :key="target" @click="refreshCache(target)">{{ target }}</button>
           </div>
         </div>
         <div class="filters" v-if="canWrite('CACHE')">
-          <label>Reason <input v-model="cacheReason" type="text"></label>
+          <label>사유 <input v-model="cacheReason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(cacheResult) }}</pre>
       </section>
 
+      <section class="panel" v-show="activeMenu === 'messages'">
+        <div class="panel-title">
+          <h2>메시지 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadMessages">조회</button>
+            <button type="button" v-if="canWrite('MESSAGE')" @click="createMessage">등록</button>
+            <button type="button" v-if="canWrite('MESSAGE')" @click="updateMessage">수정</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Message ID <input v-model.number="messageForm.messageId" type="number"></label>
+          <label>Message Code <input v-model="messageForm.messageCode" type="text"></label>
+          <label>Locale <input v-model="messageForm.locale" type="text"></label>
+          <label>외부 메시지 <input v-model="messageForm.externalMessage" type="text"></label>
+          <label>내부 메시지 <input v-model="messageForm.internalMessage" type="text"></label>
+          <label>사유 <input v-model="messageForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(messageResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'codes'">
+        <div class="panel-title">
+          <h2>코드 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadCodes">조회</button>
+            <button type="button" v-if="canWrite('CODE')" @click="createCode">등록</button>
+            <button type="button" v-if="canWrite('CODE')" @click="updateCode">수정</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Code ID <input v-model.number="codeForm.codeId" type="number"></label>
+          <label>Parent ID <input v-model.number="codeForm.parentId" type="number"></label>
+          <label>Code Key <input v-model="codeForm.codeKey" type="text"></label>
+          <label>Code Value <input v-model="codeForm.codeValue" type="text"></label>
+          <label>설명 <input v-model="codeForm.description" type="text"></label>
+          <label>사유 <input v-model="codeForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(codeResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'configs'">
+        <div class="panel-title">
+          <h2>설정 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadConfigs">조회</button>
+            <button type="button" v-if="canWrite('CONFIG')" @click="createConfig">등록</button>
+            <button type="button" v-if="canWrite('CONFIG')" @click="updateConfig">수정</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Config ID <input v-model.number="configForm.configId" type="number"></label>
+          <label>Config Key <input v-model="configForm.configKey" type="text"></label>
+          <label>Config Value <input v-model="configForm.configValue" type="text"></label>
+          <label>유형 <input v-model="configForm.configType" type="text"></label>
+          <label>암호화 <select v-model="configForm.encryptedYn"><option>Y</option><option>N</option></select></label>
+          <label>사유 <input v-model="configForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(configResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'permissions'">
+        <div class="panel-title">
+          <h2>권한 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadPermissions">조회</button>
+            <button type="button" v-if="canWrite('PERMISSION')" @click="updateMenuPermission">메뉴 권한 저장</button>
+            <button type="button" v-if="canWrite('PERMISSION')" @click="updateButtonPermission">버튼 권한 저장</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Role ID <input v-model="permissionForm.roleId" type="text"></label>
+          <label>Menu ID <input v-model="permissionForm.menuId" type="text"></label>
+          <label>Button ID <input v-model="permissionForm.buttonId" type="text"></label>
+          <label>조회 <select v-model="permissionForm.readYn"><option>Y</option><option>N</option></select></label>
+          <label>쓰기 <select v-model="permissionForm.writeYn"><option>Y</option><option>N</option></select></label>
+          <label>삭제/허용 <select v-model="permissionForm.deleteYn"><option>Y</option><option>N</option></select></label>
+          <label>사유 <input v-model="permissionForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(permissionResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'password'">
+        <div class="panel-title">
+          <h2>비밀번호/세션 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadPasswordPolicy">정책 조회</button>
+            <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="resetOperatorPassword">비밀번호 초기화</button>
+            <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="unlockOperator">잠금 해제</button>
+            <button type="button" @click="loadSessions">세션 조회</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>운영자 ID <input v-model="passwordForm.operatorId" type="text"></label>
+          <label>새 비밀번호 <input v-model="passwordForm.newPassword" type="password"></label>
+          <label>강제 변경 <select v-model="passwordForm.forceChange"><option :value="true">Y</option><option :value="false">N</option></select></label>
+          <label>세션 ID <input v-model="passwordForm.sessionId" type="text"></label>
+          <label>사유 <input v-model="passwordForm.reason" type="text"></label>
+          <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="revokeSession">세션 강제 종료</button>
+          <button type="button" v-if="canWrite('PASSWORD') || canWrite('OPERATOR')" @click="cleanupExpiredSessions">만료 세션 정리</button>
+        </div>
+        <pre class="detail">{{ pretty(passwordResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'security'">
+        <div class="panel-title">
+          <h2>보안 운영</h2>
+          <div class="actions">
+            <button type="button" @click="loadSecurity">조회</button>
+            <button type="button" v-if="canWrite('SECURITY')" @click="saveIpAllowlist">IP 저장</button>
+            <button type="button" v-if="canWrite('SECURITY')" @click="registerMfa">MFA 등록</button>
+            <button type="button" v-if="canWrite('SECURITY')" @click="verifyMfa">MFA 검증</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>IP/CIDR <input v-model="securityForm.ipPattern" type="text"></label>
+          <label>설명 <input v-model="securityForm.description" type="text"></label>
+          <label>운영자 ID <input v-model="securityForm.operatorId" type="text"></label>
+          <label>Secret Ref <input v-model="securityForm.secretRef" type="text"></label>
+          <label>OTP Code <input v-model="securityForm.otpCode" type="text"></label>
+          <label>사유 <input v-model="securityForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(securityResult) }}</pre>
+      </section>
+
       <section class="panel" v-show="activeMenu === 'responseCodes'">
         <div class="panel-title">
-          <h2>Response Codes</h2>
+          <h2>응답코드 관리</h2>
           <div class="actions">
-            <button type="button" @click="loadResponseCodes">Search</button>
-            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="createResponseCode">Create</button>
-            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="updateResponseCode">Update</button>
-            <button type="button" v-if="canDelete('RESPONSE_CODE')" @click="deleteResponseCode">Delete</button>
+            <button type="button" @click="loadResponseCodes">조회</button>
+            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="createResponseCode">등록</button>
+            <button type="button" v-if="canWrite('RESPONSE_CODE')" @click="updateResponseCode">수정</button>
+            <button type="button" v-if="canDelete('RESPONSE_CODE')" @click="deleteResponseCode">삭제</button>
           </div>
         </div>
         <div class="filters">
           <label>Response Code <input v-model="responseCodeForm.responseCode" type="text"></label>
           <label>Message Code <input v-model="responseCodeForm.messageCode" type="text"></label>
-          <label>Result <select v-model="responseCodeForm.resultType"><option>S</option><option>E</option></select></label>
-          <label>Module <input v-model="responseCodeForm.moduleId" type="text"></label>
-          <label>Group <input v-model="responseCodeForm.responseGroup" type="text"></label>
-          <label>Seq <input v-model="responseCodeForm.sequenceNo" type="text"></label>
+          <label>결과 <select v-model="responseCodeForm.resultType"><option>S</option><option>E</option></select></label>
+          <label>모듈 <input v-model="responseCodeForm.moduleId" type="text"></label>
+          <label>그룹 <input v-model="responseCodeForm.responseGroup" type="text"></label>
+          <label>순번 <input v-model="responseCodeForm.sequenceNo" type="text"></label>
           <label>HTTP <input v-model.number="responseCodeForm.httpStatus" type="number"></label>
-          <label>Description <input v-model="responseCodeForm.description" type="text"></label>
-          <label v-if="canWrite('RESPONSE_CODE') || canDelete('RESPONSE_CODE')">Reason <input v-model="responseCodeReason" type="text"></label>
+          <label>사유 <input v-model="responseCodeReason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'logLevel'">
         <div class="panel-title">
-          <h2>Dynamic Log Level</h2>
-          <button type="button" @click="loadLogLevelRules">Search</button>
+          <h2>동적 로그 레벨</h2>
+          <button type="button" @click="loadLogLevelRules">조회</button>
         </div>
         <div class="filters">
-          <label>Business Transaction ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="XYZ01EDU0001"></label>
-          <label>Transaction ID <input v-model="logLevelForm.transactionId" type="text"></label>
-          <label>Level <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
-          <label>TTL Seconds <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>
-          <label>Reason <input v-model="logLevelForm.reason" type="text"></label>
-          <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">Register</button>
-        </div>
-        <div class="table-wrap" v-if="logLevelResult.persistedRules && logLevelResult.persistedRules.length">
-          <table>
-            <thead>
-            <tr>
-              <th>Rule ID</th>
-              <th>Business ID</th>
-              <th>Transaction ID</th>
-              <th>Level</th>
-              <th>Expires</th>
-              <th v-if="canDelete('DYNAMIC_LOG')">Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="item in logLevelResult.persistedRules" :key="item.ruleId">
-              <td>{{ item.ruleId }}</td>
-              <td>{{ item.businessTransactionId }}</td>
-              <td>{{ item.transactionId }}</td>
-              <td>{{ item.logLevel }}</td>
-              <td>{{ item.expiresAt }}</td>
-              <td v-if="canDelete('DYNAMIC_LOG')"><button type="button" @click="removeLogLevelRule(item.ruleId)">Delete</button></td>
-            </tr>
-            </tbody>
-          </table>
+          <label>업무 거래 ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="XYZ01EDU0001"></label>
+          <label>거래 ID <input v-model="logLevelForm.transactionId" type="text"></label>
+          <label>레벨 <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
+          <label>TTL 초 <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>
+          <label>사유 <input v-model="logLevelForm.reason" type="text"></label>
+          <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">등록</button>
         </div>
         <pre class="detail">{{ pretty(logLevelResult) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'operators'">
         <div class="panel-title">
-          <h2>Operator Management</h2>
-          <button type="button" @click="loadOperators">Search</button>
+          <h2>운영자 관리</h2>
+          <button type="button" @click="loadOperators">조회</button>
         </div>
         <div class="filters">
-          <label>Operator ID <input v-model="operatorForm.operatorId" type="text"></label>
-          <label>Operator Name <input v-model="operatorForm.operatorName" type="text"></label>
-          <label>Initial Password <input v-model="operatorForm.password" type="password"></label>
-          <label v-if="canWrite('OPERATOR')">Reason <input v-model="operatorForm.reason" type="text"></label>
-          <button type="button" v-if="canWrite('OPERATOR')" @click="createOperator">Create</button>
+          <label>운영자 ID <input v-model="operatorForm.operatorId" type="text"></label>
+          <label>운영자명 <input v-model="operatorForm.operatorName" type="text"></label>
+          <label>초기 비밀번호 <input v-model="operatorForm.password" type="password"></label>
+          <label>사유 <input v-model="operatorForm.reason" type="text"></label>
+          <button type="button" v-if="canWrite('OPERATOR')" @click="createOperator">등록</button>
         </div>
         <pre class="detail">{{ pretty(operatorResult) }}</pre>
       </section>
@@ -230,7 +409,7 @@
   </main>
 </div>
 
-<noscript>JavaScript is required for CPF ADM.</noscript>
+<noscript>CPF ADM은 JavaScript가 필요합니다.</noscript>
 <script src="/adm/vendor/vue.global.prod.js"></script>
 <script src="/adm/adm.js"></script>
 </body>

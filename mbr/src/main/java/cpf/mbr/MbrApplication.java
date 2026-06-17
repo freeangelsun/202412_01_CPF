@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * ?뚯썝 愿由?紐⑤뱢 Spring Boot ?좏뵆由ъ??댁뀡 吏꾩엯??
+ * ?뚯썝 愿由?⑤뱢 Spring Boot ?좏뵆由ъ??댁뀡 吏꾩엯??
  * 
  * 二쇱슂 ?뱀쭠:
  * - 湲덉쑖沅??쒖? REST API ?쒓났

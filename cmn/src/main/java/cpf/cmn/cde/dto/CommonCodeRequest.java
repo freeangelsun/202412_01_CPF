@@ -4,34 +4,33 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 怨듯넻 肄붾뱶 ?깅줉/?섏젙 ?붿껌 DTO?낅땲??
- *
- * <p>CMN 肄붾뱶 愿由щ뒗 ?낅Т ?붾㈃???좏깮媛? ?곹깭媛? 援щ텇媛믪쿂???щ윭 二쇱젣?곸뿭?먯꽌 諛섎났 ?ъ슜?섎뒗 媛믪쓣
- * DB? 罹먯떆????ν븯湲??꾪븳 怨듯넻 湲곕뒫?낅땲??</p>
+ * 공통 코드 등록/수정 요청 DTO입니다.
  */
 @Data
 public class CommonCodeRequest {
-    /** ?깅줉 ??DB?먯꽌 ?앹꽦??肄붾뱶 ID瑜??닿굅?? ?섏젙 ?붾㈃?먯꽌 ?앸퀎媛믪쑝濡??ъ슜?????덉뒿?덈떎. */
+    /** 수정 대상 코드 ID입니다. 등록 시에는 DB에서 자동 생성됩니다. */
     private Long codeId;
 
-    /** ?곸쐞 肄붾뱶 ID?낅땲?? 理쒖긽??肄붾뱶?대㈃ null濡??〓땲?? */
+    /** 상위 코드 ID입니다. 코드 그룹이면 null을 사용합니다. */
     private Long parentId;
 
-    /** 肄붾뱶 洹몃９ ?먮뒗 肄붾뱶 ?ㅼ엯?덈떎. ?? USER_STATUS */
-    @NotBlank(message = "肄붾뱶 ?ㅻ뒗 ?꾩닔?낅땲??")
+    /** 코드 그룹 키입니다. 예: USER_STATUS */
+    @NotBlank(message = "코드 그룹 키는 필수입니다.")
     private String codeKey;
 
-    /** ?ㅼ젣 肄붾뱶 媛믪엯?덈떎. ?? ACTIVE */
-    @NotBlank(message = "肄붾뱶 媛믪? ?꾩닔?낅땲??")
+    /** 코드 값입니다. 예: ACTIVE */
+    @NotBlank(message = "코드 값은 필수입니다.")
     private String codeValue;
 
-    /** 肄붾뱶 ?ㅻ챸?낅땲?? ?붾㈃ ?쒖떆???댁쁺?먭? ?섎?瑜??뚯븙?????ъ슜?⑸땲?? */
+    /** 코드 설명입니다. */
     private String description;
 
-    /** ?ъ슜 ?щ??낅땲?? Y?대㈃ ?ъ슜, N?대㈃ 誘몄궗?⑹엯?덈떎. */
+    /** 사용 여부입니다. Y 또는 N을 사용합니다. */
     private String useYn = "Y";
 
-    /** ?깅줉???섏젙?먮줈 ?④만 ?ъ슜??ID?낅땲?? 媛믪씠 ?놁쑝硫?SYSTEM?쇰줈 泥섎━?⑸땲?? */
+    /** 요청자 ID입니다. */
     private String requestUser = "SYSTEM";
-}
 
+    /** ADM 변경 감사 사유입니다. */
+    private String reason;
+}

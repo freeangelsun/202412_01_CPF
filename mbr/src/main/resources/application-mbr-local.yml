@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
-    username: ${MBR_DB_USERNAME:cpf_mbr}
+    username: ${MBR_DB_USERNAME:cpf_mbr_app}
     password: ${MBR_DB_PASSWORD:cpf_local_pw}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:

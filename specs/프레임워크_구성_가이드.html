@@ -5,96 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CPF 프레임워크 구성 가이드</title>
   <style>
-    body{margin:0;background:#f6f8fb;color:#172033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.68}.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;width:min(1280px,calc(100% - 36px));margin:0 auto;padding:28px 0 56px}
-    nav,main{background:#fff;border:1px solid #d9e0ea;border-radius:8px}nav{position:sticky;top:18px;align-self:start;padding:18px}nav a{display:block;padding:5px 0;color:#2457c5;text-decoration:none;font-size:14px}main{padding:32px}
-    h1{margin:0 0 10px;font-size:30px}h2{margin:34px 0 12px;padding-top:22px;border-top:1px solid #d9e0ea;font-size:22px}table{width:100%;border-collapse:collapse;margin:10px 0 18px}th,td{border:1px solid #d9e0ea;padding:9px 11px;text-align:left;vertical-align:top}th{background:#eef3f9}
-    code{background:#eef3f9;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace}pre{overflow:auto;background:#172033;color:#f7fbff;padding:14px;border-radius:8px}.good{border-left:4px solid #14795b;background:#edf8f4;padding:12px 14px;margin:14px 0}
-    @media(max-width:900px){.wrap{grid-template-columns:1fr;width:min(100% - 24px,1280px)}nav{position:static}main{padding:20px}}
+    body{font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.62;margin:0;background:#f7f8fb;color:#182033}
+    main{width:min(1100px,calc(100% - 40px));margin:0 auto;padding:36px 0 56px}
+    section,header{background:#fff;border:1px solid #d9e1ec;border-radius:8px;padding:24px;margin-top:16px}
+    h1{margin:0 0 8px}h2{margin:0 0 12px;font-size:21px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d9e1ec;padding:10px;text-align:left;vertical-align:top}th{background:#eef3f9}code{background:#eef3f9;padding:2px 5px;border-radius:4px}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <nav>
-    <strong>목차</strong>
-    <a href="./index.html">문서 홈</a><a href="#overview">1. 개요</a><a href="#modules">2. 모듈</a><a href="#pfw">3. PFW</a><a href="#cmn">4. CMN</a><a href="#db">5. DB</a><a href="#openapi">6. OpenAPI</a><a href="#run">7. 실행/검증</a><a href="#extension">8. 확장 포인트</a>
-  </nav>
-  <main>
-    <h1>CPF 프레임워크 구성 가이드</h1>
-    <p>CPF는 <code>pfw</code>, <code>cmn</code> 공통 모듈을 업무 서비스가 의존하는 구조입니다. 업무 서비스는 독립 WAS로 실행하며 공통 거래/로그/캐시/메시지/보안 기능을 공유합니다.</p>
+<main>
+  <header>
+    <h1>프레임워크 구성 가이드</h1>
+    <p>CPF의 모듈, DB, 배포 profile, migration, 관측성 기준을 설명합니다.</p>
+  </header>
 
-    <h2 id="overview">1. 개요</h2>
-    <pre><code>acc / mbr / xyz / adm
-  |       |       |     |
-  +-------+-------+-----+--> pfw: transaction, logging, exception, webclient, workflow
-  +-------+-------+-----+--> cmn: code/message/config cache, security, MQ, telegram, file exchange</code></pre>
-    <p>저장소명은 <code>cpf-coreflow-platform-framework</code>, Java package는 <code>cpf.*</code>입니다. 기존 <code>Fps*</code> 클래스명은 프레임워크 API 이름으로 유지합니다.</p>
-
-    <h2 id="modules">2. 모듈</h2>
+  <section>
+    <h2>모듈 경계</h2>
     <table>
-      <tr><th>모듈</th><th>역할</th><th>주요 경로</th></tr>
-      <tr><td><code>pfw</code></td><td>프레임워크 횡단 기능</td><td><code>pfw/src/main/java/cpf/pfw</code></td></tr>
-      <tr><td><code>cmn</code></td><td>공통 업무 기능</td><td><code>cmn/src/main/java/cpf/cmn</code></td></tr>
-      <tr><td><code>acc</code></td><td>계좌 샘플</td><td><code>acc/src/main/java/cpf/acc</code></td></tr>
-      <tr><td><code>mbr</code></td><td>회원 샘플</td><td><code>mbr/src/main/java/cpf/mbr</code></td></tr>
-      <tr><td><code>xyz</code></td><td>교육 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td></tr>
-      <tr><td><code>adm</code></td><td>운영자 화면/API</td><td><code>adm/src/main/java/cpf/adm</code></td></tr>
+      <tr><th>모듈</th><th>책임</th></tr>
+      <tr><td><code>pfw</code></td><td>거래 ID, 표준 헤더, 거래 로그, 공통 응답/예외, OpenAPI, WebClient, workflow, 보안 메타</td></tr>
+      <tr><td><code>cmn</code></td><td>공통 캐시/MQ/유틸과 선택형 <code>cmnDB</code> 업무 공통 기능</td></tr>
+      <tr><td><code>adm</code></td><td>운영자, 권한, 세션, 감사, 동적 로그레벨</td></tr>
+      <tr><td><code>acc</code>, <code>mbr</code></td><td>업무 샘플 모듈</td></tr>
+      <tr><td><code>xyz</code></td><td>교육 API와 개발 샘플</td></tr>
     </table>
+  </section>
 
-    <h2 id="pfw">3. PFW</h2>
+  <section>
+    <h2>DB 소유권</h2>
     <table>
-      <tr><th>기능</th><th>구현</th></tr>
-      <tr><td>거래ID/Trace</td><td><code>TransactionContextFilter</code>, <code>TransactionIdGenerator</code>, 표준 전파 헤더</td></tr>
-      <tr><td>거래 로그</td><td><code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>TRAN_LOG</code>, <code>TRAN_LOG_DTL</code></td></tr>
-      <tr><td>표준 예외/응답</td><td><code>FpsException</code>, <code>FpsGlobalExceptionHandler</code>, <code>FpsResponseCodeResolver</code></td></tr>
-      <tr><td>서비스 호출</td><td><code>FpsWebClient</code>, <code>cpf.services.*.base-url</code></td></tr>
-      <tr><td>워크플로우</td><td><code>@FpsWorkflow</code>, <code>@FpsWorkflowStep</code>, <code>FpsWorkflowContext</code></td></tr>
-      <tr><td>동적 로그레벨</td><td><code>DynamicTransactionLogLevelService</code>, <code>dynamic_log_level_rule</code> 동기화</td></tr>
-    </table>
-
-    <h2 id="cmn">4. CMN</h2>
-    <table>
-      <tr><th>기능</th><th>구현</th></tr>
-      <tr><td>코드/메시지/응답코드/설정</td><td><code>CodeCacheService</code>, <code>MessageCacheService</code>, <code>ResponseCodeCacheService</code>, <code>ConfigCacheService</code></td></tr>
-      <tr><td>캐시 이벤트</td><td><code>cache_refresh_event</code>, <code>CacheRefreshEventPublisher</code>, <code>CacheRefreshEventListener</code></td></tr>
-      <tr><td>암호화/JWT</td><td><code>CmnCryptoService</code>, <code>CmnJwtService</code>, <code>CmnOAuthBearerTokenService</code></td></tr>
-      <tr><td>MQ</td><td><code>CmnMessageBridgeService</code>, Kafka/RabbitMQ/IN_MEMORY adapter</td></tr>
-      <tr><td>전문</td><td><code>CmnTelegramService</code>, <code>@CmnTelegramField</code></td></tr>
-      <tr><td>파일/원격</td><td><code>CmnFileExchangeService</code>, <code>file_exchange_log</code></td></tr>
-    </table>
-
-    <h2 id="db">5. DB</h2>
-    <table>
-      <tr><th>DB</th><th>주요 테이블</th></tr>
-      <tr><td><code>pfwDB</code></td><td><code>TRAN_LOG</code>, <code>TRAN_LOG_DTL</code>, <code>code_table</code>, <code>message_table</code>, <code>response_code_table</code>, <code>config_table</code>, <code>cache_refresh_event</code>, <code>file_exchange_log</code>, <code>security_jwt_key</code>, <code>security_token_audit_log</code></td></tr>
-      <tr><td><code>admDB</code></td><td><code>operator_user</code>, <code>operator_role</code>, <code>operator_menu</code>, <code>operator_session</code>, <code>operator_audit_log</code>, <code>dynamic_log_level_rule</code></td></tr>
+      <tr><th>DB</th><th>소유 데이터</th></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 메타, 거래로그, 응답코드/메시지, 설정, 캐시 이벤트, JWT/security 메타</td></tr>
+      <tr><td><code>cmnDB</code></td><td>공통 채번, 채번 발급 로그, 공통 알림 로그, 공통 업무 로그</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자, 역할, 메뉴, 세션, 감사 로그, 동적 로그레벨 룰</td></tr>
       <tr><td><code>accDB</code></td><td><code>acc_account</code></td></tr>
-      <tr><td><code>mbrDB</code></td><td><code>member</code></td></tr>
+      <tr><td><code>mbrDB</code></td><td><code>mbr_member</code></td></tr>
     </table>
-    <pre><code>mysql -h localhost -P 3306 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
+  </section>
 
-    <h2 id="openapi">6. OpenAPI</h2>
+  <section>
+    <h2>Profile Matrix</h2>
     <table>
-      <tr><th>서비스</th><th>Swagger</th><th>Scalar</th></tr>
-      <tr><td>ACC</td><td><code>http://localhost:8080/swagger-ui.html</code></td><td><code>http://localhost:8080/scalar</code></td></tr>
-      <tr><td>MBR</td><td><code>http://localhost:8081/swagger-ui.html</code></td><td><code>http://localhost:8081/scalar</code></td></tr>
-      <tr><td>ADM</td><td><code>http://localhost:8090/swagger-ui.html</code></td><td><code>http://localhost:8090/scalar</code></td></tr>
-      <tr><td>XYZ</td><td><code>http://localhost:8099/swagger-ui.html</code></td><td><code>http://localhost:8099/scalar</code></td></tr>
+      <tr><th>profile</th><th>기준</th></tr>
+      <tr><td><code>local</code></td><td>로컬 MariaDB/Redis/Kafka optional. CMN business DB는 필요 시 활성화</td></tr>
+      <tr><td><code>dev/test</code></td><td>테스트 DB와 broker를 연결하고 seed/smoke를 자동 검증</td></tr>
+      <tr><td><code>stg</code></td><td>운영과 같은 권한/secret 구조로 사전 검증</td></tr>
+      <tr><td><code>prod</code></td><td>secret 기본값 금지. 환경변수, Vault, KMS, Secret Manager 사용</td></tr>
     </table>
+  </section>
 
-    <h2 id="run">7. 실행/검증</h2>
-    <pre><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline
-.\gradlew.bat runLocalServices</code></pre>
-    <div class="good">PFW/CMN은 단독 서비스가 아니라 각 업무 서비스에 포함되는 라이브러리 모듈입니다.</div>
+  <section>
+    <h2>Migration</h2>
+    <p>Flyway 형식의 <code>V1__cpf_baseline_install.sql</code>을 기준으로 채택합니다. 설치 SQL과 migration SQL은 목적을 분리하고, 운영 migration은 <code>cpf_*_migration</code> 계정으로만 수행합니다.</p>
+  </section>
 
-    <h2 id="extension">8. 확장 포인트</h2>
+  <section>
+    <h2>Observability</h2>
     <table>
-      <tr><th>영역</th><th>다음 단계</th></tr>
-      <tr><td>동적 로그레벨</td><td>DB polling에서 Redis/Kafka Pub/Sub 실시간 전파로 확장</td></tr>
-      <tr><td>ADM 보안</td><td>JWT signing key/Vault/KMS 연동, 권한별 버튼/행위 제어 강화</td></tr>
-      <tr><td>DB 검증</td><td>실제 MariaDB에서 전체 SQL 실행, FK/index/권한 검증</td></tr>
-      <tr><td>관측성</td><td>Actuator, Micrometer, trace backend 연동</td></tr>
+      <tr><th>항목</th><th>기준</th></tr>
+      <tr><td>health</td><td>actuator health, readiness, liveness를 profile별 노출 정책으로 관리</td></tr>
+      <tr><td>trace</td><td><code>X-Transaction-Id</code>, trace id, span id를 로그와 응답에 연결</td></tr>
+      <tr><td>metrics</td><td>요청 수, 오류 수, 외부 API latency, DB pool, broker 상태를 수집</td></tr>
+      <tr><td>로그</td><td>민감정보 마스킹, 보존기간, 검색 키워드 기준을 운영/보안 가이드에 연결</td></tr>
     </table>
-  </main>
-</div>
+  </section>
+</main>
 </body>
 </html>

@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.List;
 
 /**
- * CMN ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 紐⑤뱢 ?ъ슜踰뺤쓣 蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
+ * CMN ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ⑤뱢 ?ъ슜踰뺤쓣 蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
  */
 @RestController
 @RequestMapping("/xyz/edu")
@@ -81,7 +81,7 @@ public class XyzFileExchangeEducationController {
      */
     @PostMapping("/file-exchange/transfer-plan")
     @FpsTransaction(id = "XYZ09EDU0016", name = "XYZ援먯쑁?뚯씪?꾩넚怨꾪쉷")
-    @Operation(summary = "FTP/SFTP/SCP ?뚯씪 ?꾩넚 怨꾪쉷 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 ?먭꺽 ?뚯씪 ?꾩넚 紐낅졊 怨꾪쉷???앹꽦?⑸땲??")
+    @Operation(summary = "FTP/SFTP/SCP ?뚯씪 ?꾩넚 怨꾪쉷 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 ?먭꺽 ?뚯씪 ?꾩넚 낅졊 怨꾪쉷???앹꽦?⑸땲??")
     public ResponseEntity<CmnFileTransferResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CmnFileProtocol protocol,
             @RequestParam(defaultValue = "UPLOAD") CmnFileTransferDirection direction,
@@ -103,13 +103,13 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * SSH ?먭꺽 紐낅졊 怨꾪쉷???앹꽦?⑸땲??
+     * SSH ?먭꺽 낅졊 怨꾪쉷???앹꽦?⑸땲??
      *
-     * @return SSH 紐낅졊 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
+     * @return SSH 낅졊 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
      */
     @PostMapping("/remote/ssh/command-plan")
-    @FpsTransaction(id = "XYZ09EDU0017", name = "XYZ援먯쑁SSH紐낅졊怨꾪쉷")
-    @Operation(summary = "SSH 紐낅졊 怨꾪쉷 ?섑뵆", description = "CMN ?먭꺽 ?곌퀎 怨듯넻?쇰줈 SSH 紐낅졊 怨꾪쉷???앹꽦?⑸땲??")
+    @FpsTransaction(id = "XYZ09EDU0017", name = "XYZ援먯쑁SSH낅졊怨꾪쉷")
+    @Operation(summary = "SSH 낅졊 怨꾪쉷 ?섑뵆", description = "CMN ?먭꺽 ?곌퀎 怨듯넻?쇰줈 SSH 낅졊 怨꾪쉷???앹꽦?⑸땲??")
     public ResponseEntity<CmnRemoteCommandResult> buildSshCommandPlan(
             @RequestParam(defaultValue = "localhost") String host,
             @RequestParam(defaultValue = "appuser") String username,

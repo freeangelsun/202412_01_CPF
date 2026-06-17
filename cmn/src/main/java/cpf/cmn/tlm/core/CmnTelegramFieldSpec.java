@@ -5,7 +5,7 @@ import cpf.pfw.common.exception.FpsValidationException;
 /**
  * 怨좎젙湲몄씠 ?꾨Ц ?꾨뱶 ?뺤쓽?낅땲??
  *
- * @param name         ?꾨뱶紐? * @param order        ?꾨뱶 ?쒖꽌
+ * @param name         ?꾨뱶? * @param order        ?꾨뱶 ?쒖꽌
  * @param length       怨좎젙 湲몄씠
  * @param type         ?먮즺?? * @param align        ?뺣젹 諛⑹떇
  * @param padding      ?⑤뵫 臾몄옄. '\0'?대㈃ ?먮즺??湲곕낯 ?⑤뵫 ?ъ슜
@@ -24,7 +24,7 @@ public record CmnTelegramFieldSpec(
 
     public CmnTelegramFieldSpec {
         if (name == null || name.isBlank()) {
-            throw new FpsValidationException("?꾨Ц ?꾨뱶紐낆? ?꾩닔?낅땲??");
+            throw new FpsValidationException("?꾨Ц ?꾨뱶낆? ?꾩닔?낅땲??");
         }
         if (order <= 0) {
             throw new FpsValidationException("?꾨Ц ?꾨뱶 ?쒖꽌??1 ?댁긽?댁뼱???⑸땲?? field=" + name);

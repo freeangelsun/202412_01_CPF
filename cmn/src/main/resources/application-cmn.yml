@@ -1,4 +1,4 @@
-# CMN common configuration.
+# CMN 공통 모듈 기본 설정입니다.
 
 spring:
   application:
@@ -7,9 +7,16 @@ spring:
     type: caffeine
   datasource:
     cmn:
+      # PFW가 소유하는 코드, 메시지, 응답코드, 설정, 캐시 이벤트를 조회합니다.
       url: ${CMN_DB_URL:${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}}
-      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw}}
+      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw_app}}
       password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD:cpf_local_pw}}
+      driver-class-name: org.mariadb.jdbc.Driver
+    cmn-business:
+      # 채번, 알림 로그, 업무 로그를 저장하는 선택형 업무 공통 DB입니다.
+      url: ${CMN_BUSINESS_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
+      username: ${CMN_BUSINESS_DB_USERNAME:cpf_cmn_app}
+      password: ${CMN_BUSINESS_DB_PASSWORD:cpf_local_pw}
       driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:
@@ -19,6 +26,8 @@ mybatis:
 
 cpf:
   cmn:
+    business-db:
+      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
     cache:
       preload-enabled: ${CPF_CMN_CACHE_PRELOAD_ENABLED:${FPS_CMN_CACHE_PRELOAD_ENABLED:true}}
       fail-fast-on-startup: ${CPF_CMN_CACHE_FAIL_FAST_ON_STARTUP:${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}}
@@ -48,3 +57,26 @@ cpf:
         secret: ${CPF_CMN_SECURITY_JWT_SECRET:${FPS_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}}
         ttl-seconds: ${CPF_CMN_SECURITY_JWT_TTL_SECONDS:${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}}
 
+---
+# prod에서는 DB/JWT secret 기본값을 제거하고 배포 환경에서 반드시 주입합니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    cmn:
+      url: ${CMN_DB_URL:${PFW_DB_URL}}
+      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME}}
+      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD}}
+    cmn-business:
+      url: ${CMN_BUSINESS_DB_URL}
+      username: ${CMN_BUSINESS_DB_USERNAME}
+      password: ${CMN_BUSINESS_DB_PASSWORD}
+
+cpf:
+  cmn:
+    business-db:
+      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
+    security:
+      jwt:
+        secret: ${CPF_CMN_SECURITY_JWT_SECRET:${FPS_CMN_SECURITY_JWT_SECRET}}

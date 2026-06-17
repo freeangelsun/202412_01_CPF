@@ -1,13 +1,13 @@
 package cpf.xyz.edu.dto;
 
 /**
- * XYZ 援먯쑁???섑뵆 ?묐떟 DTO?낅땲??
+ * XYZ CRUD 교육 샘플 응답 DTO입니다.
  *
- * @param sampleId    ?섑뵆 ID
- * @param title       ?섑뵆 ?쒕ぉ
- * @param status      泥섎━ ?곹깭
- * @param description ?섑뵆 ?ㅻ챸
- * @param createdAt   ?앹꽦 ?쇱떆
+ * @param sampleId 샘플 ID
+ * @param title 샘플 제목
+ * @param status 처리 상태
+ * @param description 샘플 설명
+ * @param createdAt 생성 일시
  */
 public record XyzSampleResponse(
         Long sampleId,
@@ -16,4 +16,3 @@ public record XyzSampleResponse(
         String description,
         String createdAt) {
 }
-

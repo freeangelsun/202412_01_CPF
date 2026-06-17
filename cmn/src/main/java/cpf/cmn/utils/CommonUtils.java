@@ -9,9 +9,9 @@ package cpf.cmn.utils;
 public class CommonUtils {
 
     /**
-     * CMN 紐⑤뱢 ?곌껐 ?щ?瑜?媛꾨떒???뺤씤?섎뒗 ?섑뵆 硫붿꽌?쒖엯?덈떎.
+     * CMN ⑤뱢 ?곌껐 ?щ?瑜?媛꾨떒???뺤씤?섎뒗 ?섑뵆 硫붿꽌?쒖엯?덈떎.
      *
-     * @return CMN 紐⑤뱢 ?몄궗留?     */
+     * @return CMN ⑤뱢 ?몄궗留?     */
     public static String sayHello() {
         return "Hello from Common Module!";
     }

@@ -84,7 +84,7 @@ public class AdmDynamicLogLevelController {
                 cpf.pfw.common.logging.TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "DYNAMIC_LOG_REGISTER",
-                "dynamic_log_level_rule",
+                "adm_dynamic_log_level_rule",
                 rule.ruleId(),
                 auditReason,
                 servletRequest.getRemoteAddr());
@@ -109,7 +109,7 @@ public class AdmDynamicLogLevelController {
                 cpf.pfw.common.logging.TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "DYNAMIC_LOG_REMOVE",
-                "dynamic_log_level_rule",
+                "adm_dynamic_log_level_rule",
                 ruleId,
                 auditReason,
                 servletRequest.getRemoteAddr());

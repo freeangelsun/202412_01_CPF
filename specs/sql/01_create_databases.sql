@@ -1,7 +1,11 @@
--- CPF initial database creation for MariaDB/MySQL.
--- Run with a user that can create databases.
+-- CPF 초기 데이터베이스 생성 스크립트입니다.
+-- 데이터베이스 생성 권한이 있는 migration 계정 또는 root 계정으로 실행합니다.
 
 CREATE DATABASE IF NOT EXISTS pfwDB
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+CREATE DATABASE IF NOT EXISTS cmnDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 

@@ -24,7 +24,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * 湲덉쑖沅?湲濡쒕쾶 ?덉쇅 泥섎━ ?몃뱾?? * - 紐⑤뱺 API?먯꽌 諛쒖깮?섎뒗 ?덉쇅瑜??듭씪???뺤떇?쇰줈 泥섎━
+ * 湲덉쑖沅?湲濡쒕쾶 ?덉쇅 泥섎━ ?몃뱾?? * - ⑤뱺 API?먯꽌 諛쒖깮?섎뒗 ?덉쇅瑜??듭씪???뺤떇?쇰줈 泥섎━
  * - ?덉쇅 濡쒓퉭 諛?媛먯떆 湲곕뒫 ?ы븿
  * 
  * @author FPS Team
@@ -275,8 +275,8 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * ?덉긽移?紐삵븳 ?쒕쾭 ?ㅻ쪟 泥섎━
-     * 紐⑤뱺 RuntimeException
+     * ?덉긽移?삵븳 ?쒕쾭 ?ㅻ쪟 泥섎━
+     * ⑤뱺 RuntimeException
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<BaseResponse<?>> handleRuntimeException(
@@ -294,7 +294,7 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * 紐⑤뱺 ?덉쇅 泥섎━ (Fallback)
+     * ⑤뱺 ?덉쇅 泥섎━ (Fallback)
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<?>> handleException(

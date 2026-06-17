@@ -68,7 +68,7 @@ public class XyzDynamicLogEducationController {
     /**
      * ?꾩옱 WAS 硫붾え由ъ뿉 ?깅줉???숈쟻 濡쒓렇?덈꺼 洹쒖튃??議고쉶?⑸땲??
      *
-     * @return ?숈쟻 濡쒓렇?덈꺼 洹쒖튃 紐⑸줉
+     * @return ?숈쟻 濡쒓렇?덈꺼 洹쒖튃 ⑸줉
      */
     @GetMapping("/admin/log-level")
     @FpsTransaction(id = "XYZ09EDU0006", name = "XYZ援먯쑁?숈쟻濡쒓렇?덈꺼議고쉶")

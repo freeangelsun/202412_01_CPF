@@ -4,37 +4,36 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 怨듯넻 ?ㅼ젙媛??깅줉/?섏젙 ?붿껌 DTO?낅땲??
- *
- * <p>?ㅼ젙媛믪? ?낅Т ?좉?, ?쒕룄, ?곌퀎 ?ㅼ젙 ?ㅼ쿂??諛고룷 ?놁씠 ?댁쁺 以?蹂寃쎈맆 ???덈뒗 媛믪쓣 愿由ы빀?덈떎.
- * 誘쇨컧 ?ㅼ젙? 蹂꾨룄 ?뷀샇???뺤콉??遺숈씪 ???덈룄濡??뷀샇???щ? 而щ읆???④퍡 ?〓땲??</p>
+ * 공통 설정 등록/수정 요청 DTO입니다.
  */
 @Data
 public class CommonConfigRequest {
-    /** ?깅줉 ??DB?먯꽌 ?앹꽦???ㅼ젙 ID瑜??닿굅?? ?섏젙 ?붾㈃?먯꽌 ?앸퀎媛믪쑝濡??ъ슜?????덉뒿?덈떎. */
+    /** 수정 대상 설정 ID입니다. 등록 시에는 DB에서 자동 생성됩니다. */
     private Long configId;
 
-    /** ?ㅼ젙 ?ㅼ엯?덈떎. ?? cpf.LOGIN.MAX_FAIL_COUNT */
-    @NotBlank(message = "?ㅼ젙 ?ㅻ뒗 ?꾩닔?낅땲??")
+    /** 설정 키입니다. 예: CPF.ADM.PASSWORD_MAX_FAIL_COUNT */
+    @NotBlank(message = "설정 키는 필수입니다.")
     private String configKey;
 
-    /** ?ㅼ젙 媛믪엯?덈떎. */
-    @NotBlank(message = "?ㅼ젙 媛믪? ?꾩닔?낅땲??")
+    /** 설정 값입니다. */
+    @NotBlank(message = "설정 값은 필수입니다.")
     private String configValue;
 
-    /** ?ㅼ젙 ??낆엯?덈떎. ?? STRING, NUMBER, BOOLEAN */
+    /** 설정 값 유형입니다. 예: STRING, NUMBER, BOOLEAN */
     private String configType = "STRING";
 
-    /** ?ㅼ젙 ?ㅻ챸?낅땲?? */
+    /** 설정 설명입니다. */
     private String description;
 
-    /** ?뷀샇??????щ??낅땲?? ?꾩옱??而щ읆留?以鍮꾪븯硫??ㅼ젣 ?뷀샇?붾뒗 ?꾩냽 蹂댁븞 湲곕뒫?먯꽌 援ы쁽?⑸땲?? */
+    /** 암호화 값 여부입니다. ADM 조회 시 값은 마스킹합니다. */
     private String encryptedYn = "N";
 
-    /** ?ъ슜 ?щ??낅땲?? Y?대㈃ ?ъ슜, N?대㈃ 誘몄궗?⑹엯?덈떎. */
+    /** 사용 여부입니다. Y 또는 N을 사용합니다. */
     private String useYn = "Y";
 
-    /** ?깅줉???섏젙?먮줈 ?④만 ?ъ슜??ID?낅땲?? 媛믪씠 ?놁쑝硫?SYSTEM?쇰줈 泥섎━?⑸땲?? */
+    /** 요청자 ID입니다. */
     private String requestUser = "SYSTEM";
-}
 
+    /** ADM 변경 감사 사유입니다. */
+    private String reason;
+}

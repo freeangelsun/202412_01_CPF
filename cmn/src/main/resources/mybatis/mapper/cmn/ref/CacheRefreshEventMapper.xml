@@ -9,7 +9,7 @@
         published_at? 諛由ъ큹 ?⑥쐞 異붿쟻???꾪빐 DATETIME(3)???ъ슜?⑸땲??
     -->
     <insert id="insertEvent">
-        INSERT INTO cache_refresh_event (
+        INSERT INTO pfw_cache_refresh_event (
             cache_name,
             event_type,
             event_key,
@@ -33,7 +33,7 @@
     <!-- ?덈줈 湲곕룞??WAS??湲곗〈 ?대깽?몃? ?ъ쿂由ы븯吏 ?딄린 ?꾪빐 留덉?留??대깽??ID遺???쒖옉?⑸땲?? -->
     <select id="findMaxEventId" resultType="long">
         SELECT MAX(event_id)
-        FROM cache_refresh_event
+        FROM pfw_cache_refresh_event
     </select>
 
     <!-- 媛?WAS媛 留덉?留?泥섎━ ?댄썑 ?대깽?몃쭔 ?쒖꽌?濡?媛?몄샃?덈떎. -->
@@ -46,7 +46,7 @@
             source_was_id AS sourceWasId,
             published_by AS publishedBy,
             published_at AS publishedAt
-        FROM cache_refresh_event
+        FROM pfw_cache_refresh_event
         WHERE event_id &gt; #{lastEventId}
         ORDER BY event_id
     </select>

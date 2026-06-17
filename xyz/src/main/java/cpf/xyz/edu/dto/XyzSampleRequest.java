@@ -1,14 +1,14 @@
 package cpf.xyz.edu.dto;
 
 /**
- * XYZ 援먯쑁???섑뵆 ?깅줉 ?붿껌 DTO?낅땲??
+ * XYZ CRUD 교육 샘플 등록/수정 요청 DTO입니다.
  *
- * @param title       ?섑뵆 ?쒕ぉ
- * @param description ?섑뵆 ?ㅻ챸
- * @param requestUser ?붿껌 ?ъ슜?? */
+ * @param title 샘플 제목
+ * @param description 샘플 설명
+ * @param requestUser 요청 사용자
+ */
 public record XyzSampleRequest(
         String title,
         String description,
         String requestUser) {
 }
-

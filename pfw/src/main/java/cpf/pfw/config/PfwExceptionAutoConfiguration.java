@@ -19,7 +19,7 @@ public class PfwExceptionAutoConfiguration {
     /**
      * PFW ?쒖? ?덉쇅 ?몃뱾?щ? Bean?쇰줈 ?깅줉?⑸땲??
      *
-     * @param messageResolverProvider CMN ?먮뒗 ?낅Т 紐⑤뱢???쒓났?섎뒗 硫붿떆吏 由ъ「踰?     * @return ?쒖? ?덉쇅 ?몃뱾??     */
+     * @param messageResolverProvider CMN ?먮뒗 ?낅Т ⑤뱢???쒓났?섎뒗 硫붿떆吏 由ъ「踰?     * @return ?쒖? ?덉쇅 ?몃뱾??     */
     @Bean
     @ConditionalOnMissingBean
     public FpsGlobalExceptionHandler fpsGlobalExceptionHandler(

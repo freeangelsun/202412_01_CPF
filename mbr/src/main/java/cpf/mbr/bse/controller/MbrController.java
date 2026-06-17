@@ -36,7 +36,7 @@ import java.util.List;
 @RequestMapping("/mbr")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "MBR-BSE Member", description = "Member list, detail, search, create, update, and delete sample APIs")
+@Tag(name = "MBR-BSE Member", description = "회원 목록, 상세, 검색, 등록, 수정, 삭제 샘플 API")
 public class MbrController {
 
     private static final String REQUESTER_ID = "SYSTEM";
@@ -45,7 +45,7 @@ public class MbrController {
 
     @GetMapping("/list")
     @FpsTransaction(id = "MBR01BSE0001", name = "MBRMemberList")
-    @Operation(summary = "Member list", description = "Returns all sample members from MBR.")
+    @Operation(summary = "회원 목록 조회", description = "MBR 샘플 회원 목록을 조회합니다.")
     public ResponseEntity<BaseResponse<List<MbrDTO>>> getList() {
         log.info("[MbrController] member list requested");
 
@@ -57,7 +57,7 @@ public class MbrController {
 
     @GetMapping("/detail")
     @FpsTransaction(id = "MBR01BSE0002", name = "MBRMemberDetail")
-    @Operation(summary = "Member detail", description = "Returns one member by memberId.")
+    @Operation(summary = "회원 상세 조회", description = "회원 내부 순번으로 회원 상세를 조회합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> getDetail(
             @RequestParam(name = "memberId")
             @NotNull(message = "memberId is required")
@@ -74,7 +74,7 @@ public class MbrController {
 
     @GetMapping("/search")
     @FpsTransaction(id = "MBR01BSE0003", name = "MBRMemberSearch")
-    @Operation(summary = "Member search", description = "Searches members by name.")
+    @Operation(summary = "회원 검색", description = "회원명으로 회원을 검색합니다.")
     public ResponseEntity<BaseResponse<List<MbrDTO>>> search(
             @RequestParam(name = "name")
             @NotBlank(message = "name is required")
@@ -91,11 +91,11 @@ public class MbrController {
 
     @PostMapping("/create")
     @FpsTransaction(id = "MBR02BSE0001", name = "MBRMemberCreate")
-    @Operation(summary = "Member create", description = "Creates a sample member.")
+    @Operation(summary = "회원 등록", description = "MBR 샘플 회원을 등록합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> create(@Valid @RequestBody MemberCreateRequest request) {
         log.info("[MbrController] member create requested. memberName={}", request.getMemberName());
 
-        MbrDTO createdMember = mbrService.createMember(request.getMemberName(), request.getDescription(), REQUESTER_ID);
+        MbrDTO createdMember = mbrService.createMember(request.toDto(), REQUESTER_ID);
         BaseResponse<MbrDTO> response = BaseResponse.ok(ResponseCode.CREATED, createdMember);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -103,15 +103,11 @@ public class MbrController {
 
     @PutMapping("/update")
     @FpsTransaction(id = "MBR03BSE0001", name = "MBRMemberUpdate")
-    @Operation(summary = "Member update", description = "Updates a sample member.")
+    @Operation(summary = "회원 수정", description = "MBR 샘플 회원을 수정합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> update(@Valid @RequestBody MemberUpdateRequest request) {
         log.info("[MbrController] member update requested. memberId={}", request.getMemberId());
 
-        MbrDTO updatedMember = mbrService.updateMember(
-                request.getMemberId(),
-                request.getMemberName(),
-                request.getDescription(),
-                REQUESTER_ID);
+        MbrDTO updatedMember = mbrService.updateMember(request.toDto(), REQUESTER_ID);
         BaseResponse<MbrDTO> response = BaseResponse.ok(ResponseCode.UPDATED, updatedMember);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -119,7 +115,7 @@ public class MbrController {
 
     @DeleteMapping("/delete")
     @FpsTransaction(id = "MBR04BSE0001", name = "MBRMemberDelete")
-    @Operation(summary = "Member delete", description = "Deletes a sample member by memberId.")
+    @Operation(summary = "회원 삭제", description = "회원 내부 순번으로 샘플 회원을 삭제합니다.")
     public ResponseEntity<BaseResponse<Void>> delete(
             @RequestParam(name = "memberId")
             @NotNull(message = "memberId is required")
@@ -142,8 +138,38 @@ public class MbrController {
         @Size(max = 100, message = "memberName must be 100 characters or less")
         private String memberName;
 
+        @Size(max = 30, message = "memberNo must be 30 characters or less")
+        private String memberNo;
+
+        @Size(max = 30, message = "customerNo must be 30 characters or less")
+        private String customerNo;
+
+        @Size(max = 100, message = "loginId must be 100 characters or less")
+        private String loginId;
+
+        @Size(max = 200, message = "email must be 200 characters or less")
+        private String email;
+
+        @Size(max = 30, message = "mobileNo must be 30 characters or less")
+        private String mobileNo;
+
+        private String channelCode;
+
         @Size(max = 255, message = "description must be 255 characters or less")
         private String description;
+
+        private MbrDTO toDto() {
+            return MbrDTO.builder()
+                    .memberNo(memberNo)
+                    .customerNo(customerNo)
+                    .loginId(loginId)
+                    .memberName(memberName)
+                    .email(email)
+                    .mobileNo(mobileNo)
+                    .channelCode(channelCode)
+                    .description(description)
+                    .build();
+        }
     }
 
     @Data
@@ -158,7 +184,44 @@ public class MbrController {
         @Size(max = 100, message = "memberName must be 100 characters or less")
         private String memberName;
 
+        @Size(max = 30, message = "memberNo must be 30 characters or less")
+        private String memberNo;
+
+        @Size(max = 30, message = "customerNo must be 30 characters or less")
+        private String customerNo;
+
+        @Size(max = 100, message = "loginId must be 100 characters or less")
+        private String loginId;
+
+        @Size(max = 200, message = "email must be 200 characters or less")
+        private String email;
+
+        @Size(max = 30, message = "mobileNo must be 30 characters or less")
+        private String mobileNo;
+
+        private String memberStatus;
+        private String lockYn;
+        private String withdrawYn;
+        private String channelCode;
+
         @Size(max = 255, message = "description must be 255 characters or less")
         private String description;
+
+        private MbrDTO toDto() {
+            return MbrDTO.builder()
+                    .memberId(memberId)
+                    .memberNo(memberNo)
+                    .customerNo(customerNo)
+                    .loginId(loginId)
+                    .memberName(memberName)
+                    .email(email)
+                    .mobileNo(mobileNo)
+                    .memberStatus(memberStatus)
+                    .lockYn(lockYn)
+                    .withdrawYn(withdrawYn)
+                    .channelCode(channelCode)
+                    .description(description)
+                    .build();
+        }
     }
 }

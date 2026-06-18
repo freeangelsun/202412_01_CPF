@@ -2,11 +2,11 @@ package cpf.mbr.common.exception;
 
 import cpf.mbr.common.response.BaseResponse;
 import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.exception.DefaultFpsResponseCodeResolver;
-import cpf.pfw.common.exception.FpsErrorResponse;
-import cpf.pfw.common.exception.FpsException;
-import cpf.pfw.common.exception.FpsResolvedResponse;
-import cpf.pfw.common.exception.FpsResponseCodeResolver;
+import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
+import cpf.pfw.common.exception.CpfErrorResponse;
+import cpf.pfw.common.exception.CpfException;
+import cpf.pfw.common.exception.CpfResolvedResponse;
+import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,25 +27,25 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * 湲덉쑖沅?湲濡쒕쾶 ?덉쇅 泥섎━ ?몃뱾?? * - ⑤뱺 API?먯꽌 諛쒖깮?섎뒗 ?덉쇅瑜??듭씪???뺤떇?쇰줈 泥섎━
  * - ?덉쇅 濡쒓퉭 諛?媛먯떆 湲곕뒫 ?ы븿
  * 
- * @author FPS Team
+ * @author CPF Team
  * @version 1.0.0
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private final FpsResponseCodeResolver responseCodeResolver;
+    private final CpfResponseCodeResolver responseCodeResolver;
 
-    public GlobalExceptionHandler(ObjectProvider<FpsResponseCodeResolver> responseCodeResolverProvider) {
-        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultFpsResponseCodeResolver::new);
+    public GlobalExceptionHandler(ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
+        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
     }
 
     /**
      * PFW ?쒖? ?덉쇅 泥섎━
      * 嫄곕옒 ?ㅻ뜑, 嫄곕옒 硫뷀??곗씠?? PFW 怨듯넻 湲곕뒫?먯꽌 諛쒖깮???ㅻ쪟??PFW ?쒖? ?ㅻ쪟 ?묐떟?쇰줈 諛섑솚?⑸땲??
      */
-    @ExceptionHandler(FpsException.class)
-    public ResponseEntity<FpsErrorResponse> handleFpsException(FpsException ex, WebRequest request) {
-        FpsResolvedResponse resolvedResponse = ex.getErrorCode() != null
+    @ExceptionHandler(CpfException.class)
+    public ResponseEntity<CpfErrorResponse> handleCpfException(CpfException ex, WebRequest request) {
+        CpfResolvedResponse resolvedResponse = ex.getErrorCode() != null
                 ? responseCodeResolver.resolve(ex.getErrorCode(), java.util.Locale.KOREAN, ex.getMessageArguments(), ex.getDetail())
                 : responseCodeResolver.resolve(ex.getResponseCode(), java.util.Locale.KOREAN, ex.getMessageArguments(), ex.getDetail());
         String externalMessage = firstText(ex.getExternalMessage(), resolvedResponse.externalMessage());
@@ -58,12 +58,12 @@ public class GlobalExceptionHandler {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Error-Code", resolvedResponse.errorCode());
         headers.add("X-Message-Code", resolvedResponse.messageCode());
-        headers.add("X-Fps-Response-Code", resolvedResponse.responseCode());
-        headers.add("X-Fps-Response-Message-Code", resolvedResponse.messageCode());
-        headers.add("X-Fps-Message-Code", resolvedResponse.messageCode());
+        headers.add("X-Cpf-Response-Code", resolvedResponse.responseCode());
+        headers.add("X-Cpf-Response-Message-Code", resolvedResponse.messageCode());
+        headers.add("X-Cpf-Message-Code", resolvedResponse.messageCode());
         headers.add("X-Error-Type", ex.getClass().getSimpleName());
 
-        FpsErrorResponse response = FpsErrorResponse.of(
+        CpfErrorResponse response = CpfErrorResponse.of(
                 resolvedResponse,
                 externalMessage,
                 ex.getClass().getSimpleName(),

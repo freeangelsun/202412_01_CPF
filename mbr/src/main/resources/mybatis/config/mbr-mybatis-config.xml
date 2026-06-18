@@ -12,7 +12,7 @@
   ?ъ슜 ??
   <typeAlias alias="Member" type="cpf.mbr.bse.entity.Member" />
   
-  @author FPS Team
+  @author CPF Team
   @version 1.0.0
 -->
 

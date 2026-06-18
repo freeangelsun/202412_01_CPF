@@ -135,6 +135,12 @@ tasks.register('checkMojibake', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
 }
 
+tasks.register('checkLegacyName', Exec) {
+    group = 'verification'
+    description = '과거 프로젝트명 잔재가 소스와 문서에 남아 있는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-legacy-name.ps1'
+}
+
 tasks.register('checkSqlStandard', Exec) {
     group = 'verification'
     description = 'CPF SQL 테이블명, 공통 감사 컬럼, 인덱스/제약조건 이름 표준을 검사합니다.'
@@ -146,5 +152,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkSqlStandard'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard'
 }

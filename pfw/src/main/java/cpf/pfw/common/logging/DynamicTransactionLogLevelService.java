@@ -1,7 +1,7 @@
 package cpf.pfw.common.logging;
 
-import cpf.pfw.common.exception.FpsFrameworkErrorCode;
-import cpf.pfw.common.exception.FpsFrameworkException;
+import cpf.pfw.common.exception.CpfFrameworkErrorCode;
+import cpf.pfw.common.exception.CpfFrameworkException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -33,13 +33,13 @@ public class DynamicTransactionLogLevelService {
      */
     public DynamicLogLevelRule register(DynamicLogLevelRequest request) {
         if (!hasText(request.getTransactionId()) && !hasText(request.getBusinessTransactionId())) {
-            throw new FpsFrameworkException(
-                    FpsFrameworkErrorCode.DYNAMIC_LOG_RULE_INVALID,
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.DYNAMIC_LOG_RULE_INVALID,
                     "transactionId ?먮뒗 businessTransactionId 以??섎굹???꾩닔?낅땲??",
                     Map.of("requiredFields", "transactionId,businessTransactionId"));
         }
 
-        FpsLogLevel logLevel = request.getLogLevel() == null ? FpsLogLevel.DEBUG : request.getLogLevel();
+        CpfLogLevel logLevel = request.getLogLevel() == null ? CpfLogLevel.DEBUG : request.getLogLevel();
         Duration ttl = request.getTtl() == null || request.getTtl().isNegative() || request.getTtl().isZero()
                 ? Duration.ofMinutes(10)
                 : request.getTtl();

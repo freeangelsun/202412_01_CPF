@@ -1,5 +1,7 @@
 # Definition of Done
 
+> 이 문서는 deprecated 보조 문서입니다. 정본은 `specs/개발_가이드.html`, `specs/프레임워크_구성_가이드.html`, `specs/기능_구현_매트릭스.md`를 참조하세요.
+
 신규 기능은 다음 기준을 만족해야 완료로 봅니다.
 
 1. 테이블명, FK/UK/index 이름, 공통 감사 컬럼이 SQL 표준을 따른다.

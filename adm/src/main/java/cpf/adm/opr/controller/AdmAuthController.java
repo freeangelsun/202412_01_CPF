@@ -6,7 +6,7 @@ import cpf.adm.opr.dto.AdmMenu;
 import cpf.adm.opr.dto.AdmOperator;
 import cpf.adm.opr.service.AdmOperatorService;
 import cpf.adm.opr.service.AdmSessionService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
@@ -34,7 +34,7 @@ public class AdmAuthController {
     }
 
     @PostMapping("/login")
-    @FpsTransaction(id = "ADM06OPR0040", name = "ADMLogin")
+    @CpfTransaction(id = "ADM06OPR0040", name = "ADMLogin")
     @Operation(summary = "ADM login", description = "Authenticates an operator and issues a Bearer token.")
     public ResponseEntity<AdmLoginResponse> login(@RequestBody AdmLoginRequest request) {
         AdmOperator operator = operatorService.authenticate(request);
@@ -43,7 +43,7 @@ public class AdmAuthController {
     }
 
     @GetMapping("/me")
-    @FpsTransaction(id = "ADM01OPR0041", name = "ADMCurrentOperator")
+    @CpfTransaction(id = "ADM01OPR0041", name = "ADMCurrentOperator")
     @Operation(summary = "Current operator", description = "Returns the current operator and authorized menus.")
     public ResponseEntity<Map<String, Object>> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         String token = bearerToken(authorization);
@@ -56,7 +56,7 @@ public class AdmAuthController {
     }
 
     @PostMapping("/logout")
-    @FpsTransaction(id = "ADM06OPR0042", name = "ADMLogout")
+    @CpfTransaction(id = "ADM06OPR0042", name = "ADMLogout")
     @Operation(summary = "ADM logout", description = "Revokes the current Bearer token session.")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         sessionService.revoke(bearerToken(authorization));

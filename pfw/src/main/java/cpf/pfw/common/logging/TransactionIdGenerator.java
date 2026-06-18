@@ -92,11 +92,11 @@ public class TransactionIdGenerator {
     private static String resolveModuleId(Environment environment) {
         String configured = environment.getProperty("cpf.framework.module-id");
         if (hasText(configured)) {
-            return configured.replace("fps-", "");
+            return configured.replace("cpf-", "");
         }
 
         String appName = environment.getProperty("spring.application.name", "PFW");
-        return appName.replace("fps-", "");
+        return appName.replace("cpf-", "");
     }
 
     private static String normalizeModuleId(String value) {

@@ -3,7 +3,7 @@ package cpf.pfw.common.filter;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
 import cpf.pfw.common.logging.TransactionIdGenerator;
-import cpf.pfw.common.workflow.FpsWorkflowContext;
+import cpf.pfw.common.workflow.CpfWorkflowContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +43,7 @@ public class TransactionContextFilter extends OncePerRequestFilter {
                 incomingSpanId,
                 transactionId,
                 buildTransactionHeader(request));
-        FpsWorkflowContext.initializeFromHeaders(request);
+        CpfWorkflowContext.initializeFromHeaders(request);
 
         applyTraceHeaders(response);
         applySecurityHeaders(request, response);
@@ -51,7 +51,7 @@ public class TransactionContextFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            FpsWorkflowContext.clear();
+            CpfWorkflowContext.clear();
             TransactionContext.clear();
         }
     }

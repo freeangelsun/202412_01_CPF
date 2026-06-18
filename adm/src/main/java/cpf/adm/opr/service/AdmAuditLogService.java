@@ -1,7 +1,7 @@
 package cpf.adm.opr.service;
 
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -124,7 +124,7 @@ public class AdmAuditLogService {
 
     public String requireReason(String reason) {
         if (!TextUtils.hasText(reason)) {
-            throw new FpsValidationException("감사 사유는 필수입니다.");
+            throw new CpfValidationException("감사 사유는 필수입니다.");
         }
         return reason.trim();
     }

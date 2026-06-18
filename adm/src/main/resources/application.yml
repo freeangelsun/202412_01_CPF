@@ -39,17 +39,17 @@ cpf:
     was-id: ${WAS_ID:admAP01}
   adm:
     security:
-      enabled: ${CPF_ADM_SECURITY_ENABLED:${FPS_ADM_SECURITY_ENABLED:true}}
-      session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:${FPS_ADM_SESSION_TTL_SECONDS:3600}}
+      enabled: ${CPF_ADM_SECURITY_ENABLED:${CPF_ADM_SECURITY_ENABLED:true}}
+      session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:${CPF_ADM_SESSION_TTL_SECONDS:3600}}
       ip-allowlist: ${CPF_ADM_IP_ALLOWLIST:}
       mfa-enabled: ${CPF_ADM_MFA_ENABLED:false}
       session-cleanup-cron: ${CPF_ADM_SESSION_CLEANUP_CRON:0 */10 * * * *}
     password-policy:
-      expire-days: ${CPF_ADM_PASSWORD_EXPIRE_DAYS:${FPS_ADM_PASSWORD_EXPIRE_DAYS:90}}
-      min-length: ${CPF_ADM_PASSWORD_MIN_LENGTH:${FPS_ADM_PASSWORD_MIN_LENGTH:10}}
-      required-category-count: ${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:${FPS_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:3}}
-      max-fail-count: ${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:${FPS_ADM_PASSWORD_MAX_FAIL_COUNT:5}}
-      history-count: ${CPF_ADM_PASSWORD_HISTORY_COUNT:${FPS_ADM_PASSWORD_HISTORY_COUNT:3}}
+      expire-days: ${CPF_ADM_PASSWORD_EXPIRE_DAYS:${CPF_ADM_PASSWORD_EXPIRE_DAYS:90}}
+      min-length: ${CPF_ADM_PASSWORD_MIN_LENGTH:${CPF_ADM_PASSWORD_MIN_LENGTH:10}}
+      required-category-count: ${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:3}}
+      max-fail-count: ${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:5}}
+      history-count: ${CPF_ADM_PASSWORD_HISTORY_COUNT:${CPF_ADM_PASSWORD_HISTORY_COUNT:3}}
 
 ---
 # prod에서는 DB password 같은 secret 기본값을 두지 않고 배포 환경변수 또는 Vault/KMS 연동 값으로만 주입합니다.

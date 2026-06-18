@@ -9,9 +9,9 @@ import cpf.cmn.mqe.core.CmnMessagePublishResult;
 import cpf.cmn.mqe.core.CmnMessagePublisher;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsExternalServiceException;
+import cpf.pfw.common.exception.CpfExternalServiceException;
 import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.workflow.FpsWorkflowContext;
+import cpf.pfw.common.workflow.CpfWorkflowContext;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.ObjectProvider;
@@ -120,7 +120,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
         headers.putAll(TransactionContext.propagationHeaders());
 
         // ?뚰겕?뚮줈??蹂댁긽 異붿쟻 ?ㅻ뜑媛 ?덉쑝硫?MQ ?꾩쿂由ъ뿉?쒕룄 媛숈? ?뚰겕?뚮줈???몄뒪?댁뒪濡??댁뼱吏묐땲??
-        headers.putAll(FpsWorkflowContext.propagationHeaders());
+        headers.putAll(CpfWorkflowContext.propagationHeaders());
 
         if (additionalHeaders != null) {
             additionalHeaders.forEach((key, value) -> {
@@ -167,7 +167,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
                         });
             }
         } catch (RuntimeException ex) {
-            throw new FpsExternalServiceException("MQ 硫붿떆吏 諛쒗뻾???ㅽ뙣?덉뒿?덈떎. broker=" + broker
+            throw new CpfExternalServiceException("MQ 硫붿떆吏 諛쒗뻾???ㅽ뙣?덉뒿?덈떎. broker=" + broker
                     + ", destination=" + envelope.destination(), ex);
         }
     }

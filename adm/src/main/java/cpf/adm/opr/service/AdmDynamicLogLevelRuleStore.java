@@ -1,7 +1,7 @@
 package cpf.adm.opr.service;
 
 import cpf.pfw.common.logging.DynamicLogLevelRule;
-import cpf.pfw.common.logging.FpsLogLevel;
+import cpf.pfw.common.logging.CpfLogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -87,7 +87,7 @@ public class AdmDynamicLogLevelRuleStore {
                     rs.getString("TRANSACTION_ID"),
                     rs.getString("BUSINESS_TRANSACTION_ID"),
                     rs.getString("MODULE_ID"),
-                    FpsLogLevel.valueOf(rs.getString("LOG_LEVEL")),
+                    CpfLogLevel.valueOf(rs.getString("LOG_LEVEL")),
                     rs.getString("REASON"),
                     rs.getString("CREATED_BY"),
                     toLocalDateTime(rs.getTimestamp("CREATED_AT")),

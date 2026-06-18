@@ -18,7 +18,7 @@ public record DynamicLogLevelRule(
         String transactionId,
         String businessTransactionId,
         String moduleId,
-        FpsLogLevel logLevel,
+        CpfLogLevel logLevel,
         String reason,
         String createdBy,
         LocalDateTime createdAt,

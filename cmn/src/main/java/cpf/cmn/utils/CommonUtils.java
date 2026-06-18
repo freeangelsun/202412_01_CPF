@@ -1,17 +1,19 @@
 package cpf.cmn.utils;
 
 /**
- * CMN 怨듯넻 ?좏떥 吏꾩엯???깃꺽???대옒?ㅼ엯?덈떎.
+ * CMN 공통 유틸 진입점 성격의 클래스입니다.
  *
- * <p>湲곗〈 ?섑뵆 ?명솚?깆쓣 ?꾪빐 ?④꺼?먮릺, ?좉퇋 肄붾뱶??湲곕뒫蹂??좏떥 ?대옒?? * {@link TextUtils}, {@link DateTimeUtils}, {@link IdUtils}, {@link MaskingUtils},
- * {@link CollectionSafeUtils}瑜?吏곸젒 ?ъ슜?섎뒗 寃껋쓣 沅뚯옣?⑸땲??</p>
+ * <p>기존 샘플 호환성을 위해 남겨두되, 신규 코드는 기능별 유틸 클래스인
+ * {@link TextUtils}, {@link DateTimeUtils}, {@link IdUtils}, {@link MaskingUtils},
+ * {@link CollectionSafeUtils}를 직접 사용하는 것을 권장합니다.</p>
  */
 public class CommonUtils {
 
     /**
-     * CMN ⑤뱢 ?곌껐 ?щ?瑜?媛꾨떒???뺤씤?섎뒗 ?섑뵆 硫붿꽌?쒖엯?덈떎.
+     * CMN 모듈 연결 여부를 간단히 확인하는 샘플 메소드입니다.
      *
-     * @return CMN ⑤뱢 ?몄궗留?     */
+     * @return CMN 모듈 인사말
+     */
     public static String sayHello() {
         return "Hello from Common Module!";
     }

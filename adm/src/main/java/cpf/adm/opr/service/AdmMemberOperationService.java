@@ -4,8 +4,8 @@ import cpf.adm.opr.dto.AdmMemberRoleRequest;
 import cpf.adm.opr.dto.AdmMemberSaveRequest;
 import cpf.adm.opr.dto.AdmMemberStatusRequest;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsNotFoundException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfNotFoundException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -190,7 +190,7 @@ public class AdmMemberOperationService {
     public Map<String, Object> grantRole(long memberId, AdmMemberRoleRequest request, String requestUser) {
         findMember(memberId);
         if (!TextUtils.hasText(request.roleCode())) {
-            throw new FpsValidationException("회원 권한 코드는 필수입니다.");
+            throw new CpfValidationException("회원 권한 코드는 필수입니다.");
         }
         String user = TextUtils.defaultIfBlank(requestUser, "ADM");
         Map<String, Object> before = findRole(memberId, request.roleCode(), request.serviceCode());
@@ -233,7 +233,7 @@ public class AdmMemberOperationService {
         findMember(memberId);
         Map<String, Object> before = findRole(memberId, roleCode, serviceCode);
         if (before.isEmpty()) {
-            throw new FpsNotFoundException("회원 권한을 찾을 수 없습니다. roleCode=" + roleCode);
+            throw new CpfNotFoundException("회원 권한을 찾을 수 없습니다. roleCode=" + roleCode);
         }
         String user = TextUtils.defaultIfBlank(requestUser, "ADM");
         mbrJdbcTemplate.update("""
@@ -260,7 +260,7 @@ public class AdmMemberOperationService {
                     WHERE id = ?
                     """, memberId);
         } catch (DataAccessException ex) {
-            throw new FpsNotFoundException("회원을 찾을 수 없습니다. memberId=" + memberId);
+            throw new CpfNotFoundException("회원을 찾을 수 없습니다. memberId=" + memberId);
         }
     }
 
@@ -381,10 +381,10 @@ public class AdmMemberOperationService {
 
     private void validateName(String name) {
         if (!TextUtils.hasText(name)) {
-            throw new FpsValidationException("회원명은 필수입니다.");
+            throw new CpfValidationException("회원명은 필수입니다.");
         }
         if (name.length() > 100) {
-            throw new FpsValidationException("회원명은 100자 이하여야 합니다.");
+            throw new CpfValidationException("회원명은 100자 이하여야 합니다.");
         }
     }
 

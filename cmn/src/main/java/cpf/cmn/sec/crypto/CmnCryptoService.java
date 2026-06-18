@@ -1,8 +1,8 @@
 package cpf.cmn.sec.crypto;
 
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsExternalServiceException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfExternalServiceException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -49,7 +49,7 @@ public class CmnCryptoService {
         try {
             return new String(Base64.getDecoder().decode(TextUtils.requireText(encoded, "encoded")), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            throw new FpsValidationException("Base64 ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("Base64 ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
         }
     }
 
@@ -74,7 +74,7 @@ public class CmnCryptoService {
         try {
             return Base64.getUrlDecoder().decode(TextUtils.requireText(encoded, "encoded"));
         } catch (IllegalArgumentException ex) {
-            throw new FpsValidationException("Base64Url ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("Base64Url ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
         }
     }
 
@@ -119,7 +119,7 @@ public class CmnCryptoService {
             mac.init(new SecretKeySpec(TextUtils.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             return mac.doFinal(nullToEmpty(message).getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("HMAC-SHA256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("HMAC-SHA256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -136,7 +136,7 @@ public class CmnCryptoService {
             byte[] encrypted = cipher.doFinal(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8));
             return base64UrlEncode(iv) + "." + base64UrlEncode(encrypted);
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("AES-GCM ?뷀샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("AES-GCM ?뷀샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -149,15 +149,15 @@ public class CmnCryptoService {
         try {
             String[] parts = TextUtils.requireText(cipherText, "cipherText").split("\\.");
             if (parts.length != 2) {
-                throw new FpsValidationException("AES-GCM ?뷀샇臾??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+                throw new CpfValidationException("AES-GCM ?뷀샇臾??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
             }
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, aesKey(secret), new GCMParameterSpec(AES_GCM_TAG_BITS, base64UrlDecode(parts[0])));
             return new String(cipher.doFinal(base64UrlDecode(parts[1])), StandardCharsets.UTF_8);
-        } catch (FpsValidationException ex) {
+        } catch (CpfValidationException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("AES-GCM 蹂듯샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("AES-GCM 蹂듯샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -174,7 +174,7 @@ public class CmnCryptoService {
                     + Base64.getEncoder().encodeToString(salt) + "$"
                     + Base64.getEncoder().encodeToString(hash);
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("PBKDF2 ?댁떆 ?앹꽦???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("PBKDF2 ?댁떆 ?앹꽦???ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -226,7 +226,7 @@ public class CmnCryptoService {
         try {
             return MessageDigest.getInstance("SHA-256").digest(bytes);
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("SHA-256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("SHA-256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 

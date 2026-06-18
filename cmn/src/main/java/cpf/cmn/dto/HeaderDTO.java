@@ -5,21 +5,22 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * ?ㅻ뜑 ?곸뿭 DTO.
- * ⑤뱺 嫄곕옒?먯꽌 怨듯넻?곸쑝濡??꾩슂???ㅻ뜑 ?뺣낫瑜??뺤쓽?⑸땲??
+ * 표준 거래 헤더 DTO입니다.
+ *
+ * <p>모든 거래에서 공통으로 필요한 거래 ID, 최초 채널, 현재 채널, 요청 시각을 담습니다.</p>
  */
-@Data // Lombok???ъ슜??Getter/Setter ?먮룞 ?앹꽦
+@Data
 public class HeaderDTO {
-    @NotEmpty(message = "Transaction ID???꾩닔 媛믪엯?덈떎.")
+    @NotEmpty(message = "Transaction ID는 필수 값입니다.")
     private String transactionId;
 
-    @NotEmpty(message = "Initial Channel Code???꾩닔 媛믪엯?덈떎.")
+    @NotEmpty(message = "Initial Channel Code는 필수 값입니다.")
     private String initialChannelCode;
 
-    @NotEmpty(message = "Channel Code???꾩닔 媛믪엯?덈떎.")
+    @NotEmpty(message = "Channel Code는 필수 값입니다.")
     private String channelCode;
 
-    @NotNull(message = "Timestamp???꾩닔 媛믪엯?덈떎.")
+    @NotNull(message = "Timestamp는 필수 값입니다.")
     private Long timestamp;
 }
 

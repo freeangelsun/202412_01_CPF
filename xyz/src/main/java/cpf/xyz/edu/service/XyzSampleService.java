@@ -3,9 +3,9 @@ package cpf.xyz.edu.service;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsBusinessException;
-import cpf.pfw.common.exception.FpsNotFoundException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfBusinessException;
+import cpf.pfw.common.exception.CpfNotFoundException;
+import cpf.pfw.common.exception.CpfValidationException;
 import cpf.xyz.edu.dto.XyzSampleRequest;
 import cpf.xyz.edu.dto.XyzSampleResponse;
 import org.springframework.stereotype.Service;
@@ -57,11 +57,11 @@ public class XyzSampleService {
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
     public XyzSampleResponse getSample(Long sampleId) {
         if (sampleId == null || sampleId <= 0) {
-            throw new FpsValidationException("sampleId는 1 이상의 값이어야 합니다. sampleId=" + sampleId);
+            throw new CpfValidationException("sampleId는 1 이상의 값이어야 합니다. sampleId=" + sampleId);
         }
         XyzSampleResponse response = samples.get(sampleId);
         if (response == null) {
-            throw new FpsNotFoundException("XYZ 샘플을 찾을 수 없습니다. sampleId=" + sampleId);
+            throw new CpfNotFoundException("XYZ 샘플을 찾을 수 없습니다. sampleId=" + sampleId);
         }
         return response;
     }
@@ -148,7 +148,7 @@ public class XyzSampleService {
         auditSampleService.writeAuditRequiresNew("분리 트랜잭션 감사 샘플. sampleId=" + response.sampleId());
 
         if (failAfterAudit) {
-            throw new FpsBusinessException("감사 기록 이후 주 트랜잭션 실패를 발생시킨 교육 샘플입니다. sampleId=" + response.sampleId());
+            throw new CpfBusinessException("감사 기록 이후 주 트랜잭션 실패를 발생시킨 교육 샘플입니다. sampleId=" + response.sampleId());
         }
         return "분리 트랜잭션 샘플을 정상 처리했습니다. sampleId=" + response.sampleId();
     }

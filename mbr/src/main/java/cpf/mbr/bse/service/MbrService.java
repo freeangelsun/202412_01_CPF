@@ -6,8 +6,8 @@ import cpf.mbr.bse.entity.Member;
 import cpf.mbr.bse.mapper.MemberMapper;
 import cpf.mbr.common.exception.ApiException;
 import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.exception.FpsNotFoundException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfNotFoundException;
+import cpf.pfw.common.exception.CpfValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,11 +44,11 @@ public class MbrService {
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public MbrDTO getMemberById(Integer memberId) {
         if (memberId == null || memberId <= 0) {
-            throw new FpsValidationException("memberId는 양수여야 합니다. memberId=" + memberId);
+            throw new CpfValidationException("memberId는 양수여야 합니다. memberId=" + memberId);
         }
 
         Member member = memberMapper.selectMemberById(memberId)
-                .orElseThrow(() -> new FpsNotFoundException("회원을 찾을 수 없습니다. memberId=" + memberId));
+                .orElseThrow(() -> new CpfNotFoundException("회원을 찾을 수 없습니다. memberId=" + memberId));
         return convertToDto(member);
     }
 

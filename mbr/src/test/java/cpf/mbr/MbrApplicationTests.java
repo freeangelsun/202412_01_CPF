@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 /**
  * MBR ⑤뱢 湲곕낯 Spring Boot ?뚯뒪??
  * 
- * @author FPS Team
+ * @author CPF Team
  * @version 1.0.0
  */
 @SpringBootTest(properties = {

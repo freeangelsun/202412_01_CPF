@@ -3,8 +3,8 @@ package cpf.adm.opr.controller;
 import cpf.pfw.common.logging.DynamicLogLevelRequest;
 import cpf.pfw.common.logging.DynamicLogLevelRule;
 import cpf.pfw.common.logging.DynamicTransactionLogLevelService;
-import cpf.pfw.common.logging.FpsLogLevel;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfLogLevel;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.adm.opr.service.AdmDynamicLogLevelRuleStore;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmDynamicLogLevelBroadcastService;
@@ -46,7 +46,7 @@ public class AdmDynamicLogLevelController {
     }
 
     @GetMapping("/rules")
-    @FpsTransaction(id = "ADM01OPR0020", name = "ADMDynamicLogRuleList")
+    @CpfTransaction(id = "ADM01OPR0020", name = "ADMDynamicLogRuleList")
     @Operation(summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
     public ResponseEntity<Map<String, Object>> findRules() {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -57,12 +57,12 @@ public class AdmDynamicLogLevelController {
     }
 
     @PutMapping("/rules")
-    @FpsTransaction(id = "ADM05OPR0021", name = "ADMDynamicLogRuleRegister")
+    @CpfTransaction(id = "ADM05OPR0021", name = "ADMDynamicLogRuleRegister")
     @Operation(summary = "Register dynamic log rule", description = "Registers a temporary log-level rule by transaction id or business transaction id.")
     public ResponseEntity<DynamicLogLevelRule> register(
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String transactionId,
-            @RequestParam(defaultValue = "DEBUG") FpsLogLevel logLevel,
+            @RequestParam(defaultValue = "DEBUG") CpfLogLevel logLevel,
             @RequestParam(defaultValue = "600") long ttlSeconds,
             @RequestParam String reason,
             @RequestParam(defaultValue = "ADM") String requestUser,
@@ -92,7 +92,7 @@ public class AdmDynamicLogLevelController {
     }
 
     @DeleteMapping("/rules/{ruleId}")
-    @FpsTransaction(id = "ADM04OPR0022", name = "ADMDynamicLogRuleRemove")
+    @CpfTransaction(id = "ADM04OPR0022", name = "ADMDynamicLogRuleRemove")
     @Operation(summary = "Remove dynamic log rule", description = "Removes a dynamic log-level rule by rule id.")
     public ResponseEntity<Map<String, Object>> remove(
             @PathVariable String ruleId,

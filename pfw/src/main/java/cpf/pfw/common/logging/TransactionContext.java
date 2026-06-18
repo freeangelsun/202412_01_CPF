@@ -213,7 +213,7 @@ public final class TransactionContext {
      * 업무 거래 ID와 거래명을 MDC에 저장합니다.
      *
      * <p>로그 패턴과 APM 연동에서 동일한 값을 사용할 수 있도록
-     * {@code LoggingAspect}가 {@code @FpsTransaction} 정보를 해석한 뒤 호출합니다.</p>
+     * {@code LoggingAspect}가 {@code @CpfTransaction} 정보를 해석한 뒤 호출합니다.</p>
      *
      * @param businessTransactionId   업무 거래 ID
      * @param businessTransactionName 업무 거래명

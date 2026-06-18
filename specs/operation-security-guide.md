@@ -1,5 +1,7 @@
 # 운영/보안 가이드
 
+> 이 문서는 deprecated 보조 문서입니다. 정본은 `specs/관리자_가이드.html`, `specs/프레임워크_구성_가이드.html`, `specs/기능_구현_매트릭스.md`를 참조하세요.
+
 ## Secret
 
 - prod profile에는 DB password, JWT secret, crypto key 기본값을 두지 않습니다.

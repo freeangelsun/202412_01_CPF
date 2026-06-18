@@ -1,6 +1,6 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.xyz.edu.dto.XyzSampleRequest;
 import cpf.xyz.edu.dto.XyzSampleResponse;
 import cpf.xyz.edu.service.XyzSampleService;
@@ -43,7 +43,7 @@ public class XyzCrudEducationController {
      * @return 샘플 목록
      */
     @GetMapping("/samples")
-    @FpsTransaction(id = "XYZ01EDU0001", name = "XYZ교육샘플목록조회")
+    @CpfTransaction(id = "XYZ01EDU0001", name = "XYZ교육샘플목록조회")
     @Operation(summary = "샘플 목록 조회", description = "readOnly 조회 API와 표준 거래 로그 기록 방식을 확인합니다.")
     public ResponseEntity<List<XyzSampleResponse>> findSamples() {
         return ResponseEntity.ok(xyzSampleService.findSamples());
@@ -56,7 +56,7 @@ public class XyzCrudEducationController {
      * @return 샘플 상세
      */
     @GetMapping("/samples/detail")
-    @FpsTransaction(id = "XYZ01EDU0002", name = "XYZ교육샘플상세조회")
+    @CpfTransaction(id = "XYZ01EDU0002", name = "XYZ교육샘플상세조회")
     @Operation(summary = "샘플 상세 조회", description = "필수 파라미터 검증과 NotFound 예외 처리 흐름을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> getSample(@RequestParam Long sampleId) {
         return ResponseEntity.ok(xyzSampleService.getSample(sampleId));
@@ -69,7 +69,7 @@ public class XyzCrudEducationController {
      * @return 등록된 샘플
      */
     @PostMapping("/samples")
-    @FpsTransaction(id = "XYZ02EDU0001", name = "XYZ교육샘플등록")
+    @CpfTransaction(id = "XYZ02EDU0001", name = "XYZ교육샘플등록")
     @Operation(summary = "샘플 등록", description = "Body DTO를 받아 신규 데이터를 생성하는 API 작성 방식을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> createSample(@RequestBody XyzSampleRequest request) {
         return ResponseEntity.ok(xyzSampleService.createSample(request));
@@ -83,7 +83,7 @@ public class XyzCrudEducationController {
      * @return 수정된 샘플
      */
     @PutMapping("/samples")
-    @FpsTransaction(id = "XYZ03EDU0001", name = "XYZ교육샘플수정")
+    @CpfTransaction(id = "XYZ03EDU0001", name = "XYZ교육샘플수정")
     @Operation(summary = "샘플 수정", description = "식별자와 Body DTO를 함께 받아 데이터를 수정하는 API 작성 방식을 확인합니다.")
     public ResponseEntity<XyzSampleResponse> updateSample(
             @RequestParam Long sampleId,
@@ -98,7 +98,7 @@ public class XyzCrudEducationController {
      * @return 삭제 결과
      */
     @DeleteMapping("/samples")
-    @FpsTransaction(id = "XYZ04EDU0001", name = "XYZ교육샘플삭제")
+    @CpfTransaction(id = "XYZ04EDU0001", name = "XYZ교육샘플삭제")
     @Operation(summary = "샘플 삭제", description = "삭제 API와 삭제 결과 응답 작성 방식을 확인합니다.")
     public ResponseEntity<Map<String, Object>> deleteSample(@RequestParam Long sampleId) {
         xyzSampleService.deleteSample(sampleId);

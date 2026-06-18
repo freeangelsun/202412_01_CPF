@@ -1,10 +1,10 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.http.FpsWebClient;
-import cpf.pfw.common.logging.FpsTransaction;
-import cpf.pfw.common.workflow.FpsWorkflow;
-import cpf.pfw.common.workflow.FpsWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.FpsWorkflowStep;
+import cpf.pfw.common.http.CpfWebClient;
+import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.workflow.CpfWorkflow;
+import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
+import cpf.pfw.common.workflow.CpfWorkflowStep;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.ParameterizedTypeReference;
@@ -26,13 +26,13 @@ import java.util.Map;
 @RequestMapping("/xyz/edu")
 @Tag(name = "XYZ-EDU 07. ?쒕퉬???몄텧", description = "PFW WebClient ?ㅻ뜑 ?꾪뙆? ?몃? ?몄텧 ?섑뵆")
 public class XyzServiceCallEducationController {
-    private final FpsWebClient fpsWebClient;
+    private final CpfWebClient cpfWebClient;
     private final WebClient externalWebClient;
 
     public XyzServiceCallEducationController(
-            FpsWebClient fpsWebClient,
+            CpfWebClient cpfWebClient,
             WebClient.Builder webClientBuilder) {
-        this.fpsWebClient = fpsWebClient;
+        this.cpfWebClient = cpfWebClient;
         this.externalWebClient = webClientBuilder.build();
     }
 
@@ -43,12 +43,12 @@ public class XyzServiceCallEducationController {
      * @return MBR ?묐떟
      */
     @GetMapping("/service-call/mbr-detail")
-    @FpsTransaction(id = "XYZ08EDU0001", name = "XYZ援먯쑁MBR?곸꽭議고쉶?몄텧")
-    @FpsWorkflow(id = "XYZ08EDU9001", name = "XYZ援먯쑁?쒕퉬?ㅽ샇異쒖썙?ы뵆濡쒖슦")
-    @FpsWorkflowStep(name = "XYZ?먯꽌MBR?뚯썝?곸꽭議고쉶", failurePolicy = FpsWorkflowFailurePolicy.VERIFY)
-    @Operation(summary = "MBR ?쒕퉬???몄텧 ?섑뵆", description = "FpsWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆?섎뒗 ?먮쫫???뺤씤?⑸땲??")
+    @CpfTransaction(id = "XYZ08EDU0001", name = "XYZ援먯쑁MBR?곸꽭議고쉶?몄텧")
+    @CpfWorkflow(id = "XYZ08EDU9001", name = "XYZ援먯쑁?쒕퉬?ㅽ샇異쒖썙?ы뵆濡쒖슦")
+    @CpfWorkflowStep(name = "XYZ?먯꽌MBR?뚯썝?곸꽭議고쉶", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
+    @Operation(summary = "MBR ?쒕퉬???몄텧 ?섑뵆", description = "CpfWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆?섎뒗 ?먮쫫???뺤씤?⑸땲??")
     public ResponseEntity<Map<String, Object>> callMbrDetail(@RequestParam Long memberId) {
-        Map<String, Object> mbrResponse = fpsWebClient.get(
+        Map<String, Object> mbrResponse = cpfWebClient.get(
                 "mbr",
                 uriBuilder -> uriBuilder
                         .path("/mbr/detail")
@@ -58,7 +58,7 @@ public class XyzServiceCallEducationController {
                 });
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("guide", "FpsWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆??MBR ?몄텧 ?섑뵆?낅땲??");
+        response.put("guide", "CpfWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆??MBR ?몄텧 ?섑뵆?낅땲??");
         response.put("mbrResponse", mbrResponse);
         return ResponseEntity.ok(response);
     }
@@ -70,10 +70,10 @@ public class XyzServiceCallEducationController {
      * @return ?몃? ?몄텧 ?묐떟
      */
     @GetMapping("/webclient/external-get")
-    @FpsTransaction(id = "XYZ08EDU0010", name = "XYZ援먯쑁?몃??뱀궗?댄듃?몄텧")
+    @CpfTransaction(id = "XYZ08EDU0010", name = "XYZ援먯쑁?몃??뱀궗?댄듃?몄텧")
     @Operation(summary = "?몃? ?뱀궗?댄듃 ?몄텧 ?섑뵆", description = "Spring WebClient濡??몃? ?뚯뒪???ъ씠?몃? ?몄텧?⑸땲??")
     public ResponseEntity<Map<String, Object>> callExternalWebsite(
-            @RequestParam(defaultValue = "https://postman-echo.com/get?source=fps-xyz") String url) {
+            @RequestParam(defaultValue = "https://postman-echo.com/get?source=cpf-xyz") String url) {
         String responseBody = externalWebClient.get()
                 .uri(url)
                 .retrieve()
@@ -83,7 +83,7 @@ public class XyzServiceCallEducationController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("url", url);
         response.put("body", responseBody);
-        response.put("guide", "?쒕퉬???덉??ㅽ듃由???곸? FpsWebClient, ?몃? 怨듦컻 URL? WebClient瑜??ъ슜?⑸땲??");
+        response.put("guide", "?쒕퉬???덉??ㅽ듃由???곸? CpfWebClient, ?몃? 怨듦컻 URL? WebClient瑜??ъ슜?⑸땲??");
         return ResponseEntity.ok(response);
     }
 }

@@ -3,29 +3,30 @@ package cpf.cmn.utils;
 import cpf.cmn.dto.HeaderDTO;
 
 /**
- * 怨듯넻 ?좏슚??寃???좏떥由ы떚.
- * HeaderDTO 媛앹껜???좏슚?깆쓣 ?뺤씤?⑸땲??
+ * 공통 유효성 검사 유틸리티입니다.
+ *
+ * <p>프레임워크 표준 헤더처럼 여러 모듈에서 반복 검증하는 값은 이 유틸리티로 동일한 기준을 적용합니다.</p>
  */
 public class ValidationUtils {
 
     /**
-     * HeaderDTO???꾩닔 ?꾨뱶瑜?寃?ы빀?덈떎.
+     * HeaderDTO의 필수 필드를 검증합니다.
      *
-     * @param header 寃?ы븷 HeaderDTO 媛앹껜
-     * @throws IllegalArgumentException ?꾨뱶 媛믪씠 ?좏슚?섏? ?딆쓣 寃쎌슦 ?덉쇅 諛쒖깮
+     * @param header 검증할 HeaderDTO 객체
+     * @throws IllegalArgumentException 필수 값이 없을 때 발생
      */
     public static void validateHeader(HeaderDTO header) {
         if (header.getTransactionId() == null || header.getTransactionId().isEmpty()) {
-            throw new IllegalArgumentException("Transaction ID???꾩닔 媛믪엯?덈떎.");
+            throw new IllegalArgumentException("Transaction ID는 필수 값입니다.");
         }
         if (header.getInitialChannelCode() == null || header.getInitialChannelCode().isEmpty()) {
-            throw new IllegalArgumentException("Initial Channel Code???꾩닔 媛믪엯?덈떎.");
+            throw new IllegalArgumentException("Initial Channel Code는 필수 값입니다.");
         }
         if (header.getChannelCode() == null || header.getChannelCode().isEmpty()) {
-            throw new IllegalArgumentException("Channel Code???꾩닔 媛믪엯?덈떎.");
+            throw new IllegalArgumentException("Channel Code는 필수 값입니다.");
         }
         if (header.getTimestamp() == null) {
-            throw new IllegalArgumentException("Timestamp???꾩닔 媛믪엯?덈떎.");
+            throw new IllegalArgumentException("Timestamp는 필수 값입니다.");
         }
     }
 }

@@ -3,10 +3,10 @@ package cpf.acc.bse.controller;
 import cpf.acc.bse.entity.AccAccount;
 import cpf.acc.bse.service.AccAccountService;
 import cpf.acc.bse.service.MbrMemberClientService;
-import cpf.pfw.common.logging.FpsTransaction;
-import cpf.pfw.common.workflow.FpsWorkflow;
-import cpf.pfw.common.workflow.FpsWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.FpsWorkflowStep;
+import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.workflow.CpfWorkflow;
+import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
+import cpf.pfw.common.workflow.CpfWorkflowStep;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
@@ -39,7 +39,7 @@ public class AccountController {
     }
 
     @GetMapping
-    @FpsTransaction(id = "ACC01BSE0001", name = "ACCAccountList")
+    @CpfTransaction(id = "ACC01BSE0001", name = "ACCAccountList")
     @Operation(summary = "ACC account list", description = "Reads sample accounts from the ACC database.")
     public ResponseEntity<Map<String, Object>> getAllAccounts() {
         List<AccAccount> accounts = accAccountService.getAllAccounts();
@@ -53,10 +53,10 @@ public class AccountController {
     }
 
     @GetMapping("/mbr/detail")
-    @FpsTransaction(id = "ACC08BSE0001", name = "MBRMemberDetail")
-    @FpsWorkflow(id = "ACC08BSE9001", name = "MBRMemberDetailWorkflow")
-    @FpsWorkflowStep(name = "CallMBRMemberDetail", failurePolicy = FpsWorkflowFailurePolicy.VERIFY)
-    @Operation(summary = "MBR member detail", description = "Calls MBR through PFW FpsWebClient and propagates CPF headers.")
+    @CpfTransaction(id = "ACC08BSE0001", name = "MBRMemberDetail")
+    @CpfWorkflow(id = "ACC08BSE9001", name = "MBRMemberDetailWorkflow")
+    @CpfWorkflowStep(name = "CallMBRMemberDetail", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
+    @Operation(summary = "MBR member detail", description = "Calls MBR through PFW CpfWebClient and propagates CPF headers.")
     public ResponseEntity<Map<String, Object>> getMbrMemberDetail(
             @RequestParam(name = "memberId")
             @Positive(message = "memberId must be positive")

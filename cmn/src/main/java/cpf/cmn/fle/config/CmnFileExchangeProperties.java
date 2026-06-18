@@ -13,7 +13,7 @@ public class CmnFileExchangeProperties {
     /**
      * 濡쒖뺄 ?뚯씪 ?곌퀎 湲곗? ?붾젆?곕━?낅땲?? ?곷? 寃쎈줈?????붾젆?곕━ 諛뽰쑝濡??섍컝 ???놁뒿?덈떎.
      */
-    private String baseDir = "${java.io.tmpdir}/fps-cmn-file-exchange";
+    private String baseDir = "${java.io.tmpdir}/cpf-cmn-file-exchange";
 
     /**
      * SSH 낅졊 ?ㅽ뻾 ?덉슜 ?щ??낅땲?? 湲곕낯? 蹂댁븞??false?낅땲??

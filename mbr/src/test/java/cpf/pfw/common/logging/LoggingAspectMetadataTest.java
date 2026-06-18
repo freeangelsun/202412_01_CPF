@@ -1,10 +1,10 @@
 package cpf.pfw.common.logging;
 
-import cpf.pfw.common.exception.DefaultFpsMessageResolver;
-import cpf.pfw.common.exception.FpsBusinessException;
-import cpf.pfw.common.exception.FpsMessageResolver;
-import cpf.pfw.common.exception.FpsResolvedResponse;
-import cpf.pfw.common.exception.FpsResponseCodeResolver;
+import cpf.pfw.common.exception.DefaultCpfMessageResolver;
+import cpf.pfw.common.exception.CpfBusinessException;
+import cpf.pfw.common.exception.CpfMessageResolver;
+import cpf.pfw.common.exception.CpfResolvedResponse;
+import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,9 +26,9 @@ class LoggingAspectMetadataTest {
 
     @Test
     void resolveResponseMetadata_ShouldUseResolverForSuccessResponse() throws Exception {
-        FpsResponseCodeResolver resolver = mock(FpsResponseCodeResolver.class);
+        CpfResponseCodeResolver resolver = mock(CpfResponseCodeResolver.class);
         when(resolver.resolve(eq("SACC000000"), eq(Locale.KOREAN), eq(Map.of()), isNull())).thenReturn(
-                new FpsResolvedResponse(200, "SACC000000", "MACC000000", "success", "ACC success", null, null));
+                new CpfResolvedResponse(200, "SACC000000", "MACC000000", "success", "ACC success", null, null));
         LoggingAspect aspect = aspect(resolver);
 
         Object metadata = invoke(
@@ -46,17 +46,17 @@ class LoggingAspectMetadataTest {
 
     @Test
     void resolveErrorMetadata_ShouldUseResolverForResponseCodeException() throws Exception {
-        FpsResponseCodeResolver resolver = mock(FpsResponseCodeResolver.class);
+        CpfResponseCodeResolver resolver = mock(CpfResponseCodeResolver.class);
         Map<String, Object> args = Map.of("0", "accountId");
         when(resolver.resolve(eq("EACC010001"), eq(Locale.KOREAN), eq(args), eq("invalid accountId"))).thenReturn(
-                new FpsResolvedResponse(400, "EACC010001", "MACC010001", "accountId is invalid.", "ACC invalid accountId", "EACC010001", "invalid accountId"));
+                new CpfResolvedResponse(400, "EACC010001", "MACC010001", "accountId is invalid.", "ACC invalid accountId", "EACC010001", "invalid accountId"));
         LoggingAspect aspect = aspect(resolver);
 
         Object metadata = invoke(
                 aspect,
                 "resolveErrorMetadata",
                 new Class<?>[] {Throwable.class, Locale.class},
-                new FpsBusinessException("EACC010001", "invalid accountId", args),
+                new CpfBusinessException("EACC010001", "invalid accountId", args),
                 Locale.KOREAN);
 
         assertThat(value(metadata, "httpStatus")).isEqualTo(400);
@@ -68,10 +68,10 @@ class LoggingAspectMetadataTest {
     }
 
     @SuppressWarnings("unchecked")
-    private LoggingAspect aspect(FpsResponseCodeResolver responseCodeResolver) {
-        ObjectProvider<FpsMessageResolver> messageProvider = mock(ObjectProvider.class);
-        ObjectProvider<FpsResponseCodeResolver> responseProvider = mock(ObjectProvider.class);
-        when(messageProvider.getIfAvailable(any())).thenReturn(new DefaultFpsMessageResolver());
+    private LoggingAspect aspect(CpfResponseCodeResolver responseCodeResolver) {
+        ObjectProvider<CpfMessageResolver> messageProvider = mock(ObjectProvider.class);
+        ObjectProvider<CpfResponseCodeResolver> responseProvider = mock(ObjectProvider.class);
+        when(messageProvider.getIfAvailable(any())).thenReturn(new DefaultCpfMessageResolver());
         when(responseProvider.getIfAvailable(any())).thenReturn(responseCodeResolver);
         return new LoggingAspect(
                 mock(ApplicationEventPublisher.class),

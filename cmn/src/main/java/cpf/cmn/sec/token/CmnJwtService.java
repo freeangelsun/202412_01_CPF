@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cpf.cmn.sec.crypto.CmnCryptoService;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsExternalServiceException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfExternalServiceException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -40,7 +40,7 @@ public class CmnJwtService {
      * @return JWT 臾몄옄??     */
     public String createHs256Token(CmnJwtCreateRequest request) {
         if (request == null) {
-            throw new FpsValidationException("JWT ?앹꽦 ?붿껌? ?꾩닔?낅땲??");
+            throw new CpfValidationException("JWT ?앹꽦 ?붿껌? ?꾩닔?낅땲??");
         }
         long now = Instant.now().getEpochSecond();
         long ttl = request.ttlSeconds() <= 0 ? 300 : request.ttlSeconds();
@@ -107,10 +107,10 @@ public class CmnJwtService {
                 return new CmnJwtValidationResult(false, "JWT ????쒖뒪?쒖씠 ?쇱튂?섏? ?딆뒿?덈떎.", subject, issuer, audience, expiresAt, claims);
             }
             return new CmnJwtValidationResult(true, "JWT 寃利앹뿉 ?깃났?덉뒿?덈떎.", subject, issuer, audience, expiresAt, claims);
-        } catch (FpsValidationException ex) {
+        } catch (CpfValidationException ex) {
             return invalid(ex.getMessage());
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("JWT 寃利?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("JWT 寃利?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
         }
     }
 
@@ -142,7 +142,7 @@ public class CmnJwtService {
     public Map<String, Object> readClaimsWithoutVerification(String token) {
         String[] parts = TextUtils.requireText(token, "token").split("\\.");
         if (parts.length != 3) {
-            throw new FpsValidationException("JWT ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+            throw new CpfValidationException("JWT ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
         }
         return decodeJson(parts[1]);
     }
@@ -151,7 +151,7 @@ public class CmnJwtService {
         try {
             return cryptoService.base64UrlEncode(objectMapper.writeValueAsBytes(source));
         } catch (Exception ex) {
-            throw new FpsExternalServiceException("JWT JSON ?몄퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("JWT JSON ?몄퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -159,7 +159,7 @@ public class CmnJwtService {
         try {
             return objectMapper.readValue(cryptoService.base64UrlDecode(encoded), MAP_TYPE);
         } catch (Exception ex) {
-            throw new FpsValidationException("JWT JSON ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("JWT JSON ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
         }
     }
 

@@ -3,7 +3,7 @@ package cpf.cmn.mqe.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.exception.FpsSystemException;
+import cpf.pfw.common.exception.CpfSystemException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ public class CmnMessageCodec {
         try {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException ex) {
-            throw new FpsSystemException("硫붿떆吏 JSON 吏곷젹?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("硫붿떆吏 JSON 吏곷젹?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 
@@ -41,7 +41,7 @@ public class CmnMessageCodec {
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException ex) {
-            throw new FpsSystemException("硫붿떆吏 JSON ??쭅?ы솕???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("硫붿떆吏 JSON ??쭅?ы솕???ㅽ뙣?덉뒿?덈떎.", ex);
         }
     }
 

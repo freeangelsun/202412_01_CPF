@@ -2,7 +2,7 @@ package cpf.adm.opr.service;
 
 import cpf.adm.config.AdmPasswordPolicyProperties;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,7 +49,7 @@ public class AdmPasswordPolicyService {
     public void requireValid(String operatorId, String password) {
         List<String> violations = validate(operatorId, password);
         if (!violations.isEmpty()) {
-            throw new FpsValidationException("ADM 비밀번호 정책 위반: " + String.join(", ", violations));
+            throw new CpfValidationException("ADM 비밀번호 정책 위반: " + String.join(", ", violations));
         }
     }
 

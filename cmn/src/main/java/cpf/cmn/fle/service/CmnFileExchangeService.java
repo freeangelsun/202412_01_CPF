@@ -11,8 +11,8 @@ import cpf.cmn.fle.core.CmnRemoteCommandResult;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsExternalServiceException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfExternalServiceException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class CmnFileExchangeService {
         } catch (IOException ex) {
             recordHistory("LOCAL_WRITE", CmnFileProtocol.LOCAL.name(), "WRITE", true, false,
                     null, relativePath, target.toString(), "SYSTEM", ex.getMessage());
-            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 ?곌린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ?곌린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
         }
     }
 
@@ -80,7 +80,7 @@ public class CmnFileExchangeService {
         } catch (IOException ex) {
             recordHistory("LOCAL_READ", CmnFileProtocol.LOCAL.name(), "READ", true, false,
                     null, relativePath, target.toString(), "SYSTEM", ex.getMessage());
-            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 ?쎄린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ?쎄린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
         }
     }
 
@@ -100,7 +100,7 @@ public class CmnFileExchangeService {
         } catch (IOException ex) {
             recordHistory("LOCAL_LIST", CmnFileProtocol.LOCAL.name(), "LIST", true, false,
                     null, relativeDir, target.toString(), "SYSTEM", ex.getMessage());
-            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 ⑸줉 議고쉶???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ⑸줉 議고쉶???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
         }
     }
 
@@ -115,7 +115,7 @@ public class CmnFileExchangeService {
      */
     public CmnFileTransferResult transfer(CmnFileTransferRequest request) {
         if (request == null) {
-            throw new FpsValidationException("?뚯씪 ?꾩넚 ?붿껌? ?꾩닔?낅땲??");
+            throw new CpfValidationException("?뚯씪 ?꾩넚 ?붿껌? ?꾩닔?낅땲??");
         }
         CmnFileProtocol protocol = request.protocol() == null ? CmnFileProtocol.LOCAL : request.protocol();
         CmnFileTransferDirection direction = request.direction() == null
@@ -161,7 +161,7 @@ public class CmnFileExchangeService {
      */
     public CmnRemoteCommandResult runSshCommand(CmnRemoteCommandRequest request) {
         if (request == null || !TextUtils.hasText(request.command())) {
-            throw new FpsValidationException("SSH ?ㅽ뻾 낅졊? ?꾩닔?낅땲??");
+            throw new CpfValidationException("SSH ?ㅽ뻾 낅졊? ?꾩닔?낅땲??");
         }
         List<String> command = buildSshCommand(request);
         if (!properties.isSshEnabled()) {
@@ -219,7 +219,7 @@ public class CmnFileExchangeService {
         } catch (IOException ex) {
             recordHistory("LOCAL_COPY", CmnFileProtocol.LOCAL.name(), "COPY", true, false,
                     null, source.toString(), target.toString(), request.requestUser(), ex.getMessage());
-            throw new FpsExternalServiceException("濡쒖뺄 ?뚯씪 蹂듭궗???ㅽ뙣?덉뒿?덈떎. source="
+            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 蹂듭궗???ㅽ뙣?덉뒿?덈떎. source="
                     + source + ", target=" + target, ex);
         }
     }
@@ -292,7 +292,7 @@ public class CmnFileExchangeService {
                     "ftp://" + request.host() + "/" + request.remotePath());
         }
 
-        throw new FpsValidationException("吏?먰븯吏 ?딅뒗 ?뚯씪 ?꾩넚 ?꾨줈?좎퐳?낅땲?? protocol=" + protocol);
+        throw new CpfValidationException("吏?먰븯吏 ?딅뒗 ?뚯씪 ?꾩넚 ?꾨줈?좎퐳?낅땲?? protocol=" + protocol);
     }
 
     private List<String> buildSshCommand(CmnRemoteCommandRequest request) {
@@ -329,36 +329,36 @@ public class CmnFileExchangeService {
             String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             return new ProcessResult(process.exitValue(), output);
         } catch (IOException ex) {
-            throw new FpsExternalServiceException("?몃? 낅졊 ?ㅽ뻾???ㅽ뙣?덉뒿?덈떎. command=" + command, ex);
+            throw new CpfExternalServiceException("?몃? 낅졊 ?ㅽ뻾???ㅽ뙣?덉뒿?덈떎. command=" + command, ex);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new FpsExternalServiceException("?몃? 낅졊 ?ㅽ뻾??以묐떒?섏뿀?듬땲?? command=" + command, ex);
+            throw new CpfExternalServiceException("?몃? 낅졊 ?ㅽ뻾??以묐떒?섏뿀?듬땲?? command=" + command, ex);
         }
     }
 
     private void validateRemoteRequest(String host, String username) {
         if (!TextUtils.hasText(host)) {
-            throw new FpsValidationException("?먭꺽 ?몄뒪?몃뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("?먭꺽 ?몄뒪?몃뒗 ?꾩닔?낅땲??");
         }
         if (!TextUtils.hasText(username)) {
-            throw new FpsValidationException("?먭꺽 ?ъ슜?먮뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("?먭꺽 ?ъ슜?먮뒗 ?꾩닔?낅땲??");
         }
     }
 
     private void validateAllowedHost(String host) {
         if (!properties.getAllowedHosts().contains(host)) {
-            throw new FpsValidationException("?덉슜?섏? ?딆? ?먭꺽 ?몄뒪?몄엯?덈떎. host=" + host);
+            throw new CpfValidationException("?덉슜?섏? ?딆? ?먭꺽 ?몄뒪?몄엯?덈떎. host=" + host);
         }
     }
 
     private Path resolveSafePath(String relativePath) {
         if (!TextUtils.hasText(relativePath)) {
-            throw new FpsValidationException("?뚯씪 寃쎈줈???꾩닔?낅땲??");
+            throw new CpfValidationException("?뚯씪 寃쎈줈???꾩닔?낅땲??");
         }
         Path baseDir = baseDir();
         Path target = baseDir.resolve(relativePath).normalize();
         if (!target.startsWith(baseDir)) {
-            throw new FpsValidationException("湲곗? ?붾젆?곕━ 諛뽰쓽 ?뚯씪? ?묎렐?????놁뒿?덈떎. path=" + relativePath);
+            throw new CpfValidationException("湲곗? ?붾젆?곕━ 諛뽰쓽 ?뚯씪? ?묎렐?????놁뒿?덈떎. path=" + relativePath);
         }
         return target;
     }

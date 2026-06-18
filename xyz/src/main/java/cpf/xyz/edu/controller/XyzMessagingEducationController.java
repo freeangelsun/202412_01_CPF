@@ -6,7 +6,7 @@ import cpf.cmn.mqe.core.CmnMessagePublishResult;
 import cpf.cmn.mqe.core.CmnMessagePublisher;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +37,7 @@ public class XyzMessagingEducationController {
     }
 
     @PostMapping("/messaging/publish")
-    @FpsTransaction(id = "XYZ09EDU0010", name = "XYZMessagePublish")
+    @CpfTransaction(id = "XYZ09EDU0010", name = "XYZMessagePublish")
     @Operation(summary = "Message publish sample", description = "Publishes an envelope through the CMN message abstraction.")
     public ResponseEntity<Map<String, Object>> publishMessage(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination,
@@ -60,7 +60,7 @@ public class XyzMessagingEducationController {
     }
 
     @GetMapping("/messaging/recent")
-    @FpsTransaction(id = "XYZ09EDU0011", name = "XYZMessageRecent")
+    @CpfTransaction(id = "XYZ09EDU0011", name = "XYZMessageRecent")
     @Operation(summary = "Recent message sample", description = "Returns recent messages from the active message adapter.")
     public ResponseEntity<Map<String, Object>> findRecentMessages(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination) {

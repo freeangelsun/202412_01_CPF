@@ -18,30 +18,30 @@ cpf:
     business-db:
       enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
     cache:
-      preload-enabled: ${FPS_CMN_CACHE_PRELOAD_ENABLED:true}
-      fail-fast-on-startup: ${FPS_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}
-      event-poll-enabled: ${FPS_CMN_CACHE_EVENT_POLL_ENABLED:true}
-      refresh-poll-millis: ${FPS_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
-      refresh-initial-delay-millis: ${FPS_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}
-      periodic-refresh-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}
-      periodic-refresh-initial-delay-millis: ${FPS_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}
+      preload-enabled: ${CPF_CMN_CACHE_PRELOAD_ENABLED:true}
+      fail-fast-on-startup: ${CPF_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}
+      event-poll-enabled: ${CPF_CMN_CACHE_EVENT_POLL_ENABLED:true}
+      refresh-poll-millis: ${CPF_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
+      refresh-initial-delay-millis: ${CPF_CMN_CACHE_REFRESH_INITIAL_DELAY_MILLIS:5000}
+      periodic-refresh-millis: ${CPF_CMN_CACHE_PERIODIC_REFRESH_MILLIS:1800000}
+      periodic-refresh-initial-delay-millis: ${CPF_CMN_CACHE_PERIODIC_REFRESH_INITIAL_DELAY_MILLIS:1800000}
     messaging:
-      enabled: ${FPS_CMN_MESSAGING_ENABLED:true}
-      broker: ${FPS_CMN_MESSAGING_BROKER:IN_MEMORY}
-      default-destination: ${FPS_CMN_MESSAGING_DEFAULT_DESTINATION:cpf.local.event}
-      recent-message-limit: ${FPS_CMN_MESSAGING_RECENT_LIMIT:200}
+      enabled: ${CPF_CMN_MESSAGING_ENABLED:true}
+      broker: ${CPF_CMN_MESSAGING_BROKER:IN_MEMORY}
+      default-destination: ${CPF_CMN_MESSAGING_DEFAULT_DESTINATION:cpf.local.event}
+      recent-message-limit: ${CPF_CMN_MESSAGING_RECENT_LIMIT:200}
       rabbit:
-        exchange: ${FPS_CMN_RABBIT_EXCHANGE:cpf.exchange}
-        routing-key: ${FPS_CMN_RABBIT_ROUTING_KEY:cpf.local.event}
+        exchange: ${CPF_CMN_RABBIT_EXCHANGE:cpf.exchange}
+        routing-key: ${CPF_CMN_RABBIT_ROUTING_KEY:cpf.local.event}
     file-exchange:
-      base-dir: ${FPS_CMN_FILE_BASE_DIR:${java.io.tmpdir}/cpf-cmn-file-exchange}
-      ssh-enabled: ${FPS_CMN_FILE_SSH_ENABLED:false}
-      dry-run: ${FPS_CMN_FILE_DRY_RUN:true}
-      timeout-seconds: ${FPS_CMN_FILE_TIMEOUT_SECONDS:15}
-      allowed-hosts: ${FPS_CMN_FILE_ALLOWED_HOSTS:}
+      base-dir: ${CPF_CMN_FILE_BASE_DIR:${java.io.tmpdir}/cpf-cmn-file-exchange}
+      ssh-enabled: ${CPF_CMN_FILE_SSH_ENABLED:false}
+      dry-run: ${CPF_CMN_FILE_DRY_RUN:true}
+      timeout-seconds: ${CPF_CMN_FILE_TIMEOUT_SECONDS:15}
+      allowed-hosts: ${CPF_CMN_FILE_ALLOWED_HOSTS:}
     security:
       jwt:
-        issuer: ${FPS_CMN_SECURITY_JWT_ISSUER:CPF-LOCAL}
-        audience: ${FPS_CMN_SECURITY_JWT_AUDIENCE:CPF-LOCAL-API}
-        secret: ${FPS_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}
-        ttl-seconds: ${FPS_CMN_SECURITY_JWT_TTL_SECONDS:300}
+        issuer: ${CPF_CMN_SECURITY_JWT_ISSUER:CPF-LOCAL}
+        audience: ${CPF_CMN_SECURITY_JWT_AUDIENCE:CPF-LOCAL-API}
+        secret: ${CPF_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}
+        ttl-seconds: ${CPF_CMN_SECURITY_JWT_TTL_SECONDS:300}

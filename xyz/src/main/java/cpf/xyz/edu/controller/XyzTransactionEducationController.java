@@ -1,9 +1,9 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.FpsTransaction;
-import cpf.pfw.common.workflow.FpsWorkflow;
-import cpf.pfw.common.workflow.FpsWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.FpsWorkflowStep;
+import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.workflow.CpfWorkflow;
+import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
+import cpf.pfw.common.workflow.CpfWorkflowStep;
 import cpf.xyz.edu.service.XyzSampleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,16 +27,16 @@ public class XyzTransactionEducationController {
     }
 
     @PostMapping("/transaction/single")
-    @FpsTransaction(id = "XYZ05EDU0001", name = "XYZSingleTransaction")
+    @CpfTransaction(id = "XYZ05EDU0001", name = "XYZSingleTransaction")
     @Operation(summary = "Single transaction sample", description = "Runs one sample transaction through the XYZ service.")
     public ResponseEntity<String> runSingleTransactionSample() {
         return ResponseEntity.ok(xyzSampleService.runSingleTransactionSample());
     }
 
     @PostMapping("/transaction/separated")
-    @FpsTransaction(id = "XYZ05EDU0002", name = "XYZSeparatedTransaction")
-    @FpsWorkflow(id = "XYZ05EDU9001", name = "XYZSeparatedTransactionWorkflow")
-    @FpsWorkflowStep(name = "XYZSeparatedTransactionStep", failurePolicy = FpsWorkflowFailurePolicy.MANUAL)
+    @CpfTransaction(id = "XYZ05EDU0002", name = "XYZSeparatedTransaction")
+    @CpfWorkflow(id = "XYZ05EDU9001", name = "XYZSeparatedTransactionWorkflow")
+    @CpfWorkflowStep(name = "XYZSeparatedTransactionStep", failurePolicy = CpfWorkflowFailurePolicy.MANUAL)
     @Operation(summary = "Separated transaction sample", description = "Runs REQUIRES_NEW audit logic and optional failure after audit.")
     public ResponseEntity<Map<String, Object>> runSeparatedTransactionSample(
             @RequestParam(defaultValue = "false") boolean failAfterAudit) {

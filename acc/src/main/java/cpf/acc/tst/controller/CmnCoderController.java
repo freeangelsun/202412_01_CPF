@@ -1,6 +1,6 @@
 package cpf.acc.tst.controller;
 
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.cmn.cde.service.CodeCacheService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +17,10 @@ import java.util.Map;
  * ??而⑦듃濡ㅻ윭???ы븿??{@link CodeCacheService}瑜?吏곸젒 二쇱엯諛쏆븘 ?몄텧?⑸땲??</p>
  *
  * <p>PFW 濡쒓렇 愿?먯뿉?쒕뒗 ??而⑦듃濡ㅻ윭???쇰컲 而⑦듃濡ㅻ윭? ?숈씪?섍쾶
- * {@link FpsTransaction}???낅Т 嫄곕옒ID? 嫄곕옒낆씠 pfw_transaction_log???곸옱?⑸땲??</p>
+ * {@link CpfTransaction}???낅Т 嫄곕옒ID? 嫄곕옒낆씠 pfw_transaction_log???곸옱?⑸땲??</p>
  */
 @RestController
-@RequestMapping("/fps/codes")
+@RequestMapping("/cpf/codes")
 @Tag(name = "ACC-TST CMN 肄붾뱶議고쉶", description = "CMN 怨듯넻 肄붾뱶 罹먯떆 議고쉶 ?섑뵆 API")
 public class CmnCoderController {
 
@@ -38,7 +38,7 @@ public class CmnCoderController {
      * @return CMN 肄붾뱶 ?뚯씠釉붿뿉??議고쉶?덇굅??罹먯떆?먯꽌 媛?몄삩 肄붾뱶 ⑸줉?낅땲??
      */
     @GetMapping
-    @FpsTransaction(id = "ACC09TST0003", name = "怨듯넻肄붾뱶⑸줉議고쉶?섑뵆")
+    @CpfTransaction(id = "ACC09TST0003", name = "怨듯넻肄붾뱶⑸줉議고쉶?섑뵆")
     public List<Map<String, Object>> getAllCodes() {
         // ?쒕퉬?ㅺ? ?대? 罹먯떆瑜??ъ슜?섎?濡?諛섎났 議고쉶 ??DB 遺?섎? 以꾩씪 ???덉뒿?덈떎.
         return codeCacheService.getAllCodes();
@@ -51,7 +51,7 @@ public class CmnCoderController {
      * @return 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 ?곗씠?곗엯?덈떎.
      */
     @GetMapping("/detail")
-    @FpsTransaction(id = "ACC09TST0004", name = "怨듯넻肄붾뱶?곸꽭議고쉶?섑뵆")
+    @CpfTransaction(id = "ACC09TST0004", name = "怨듯넻肄붾뱶?곸꽭議고쉶?섑뵆")
     public Map<String, Object> getCodeByKey(@RequestParam("codeKey") String codeKey) {
         // 낆떆 荑쇰━ ?뚮씪誘명꽣濡?諛쏆? codeKey瑜?罹먯떆 ?쒕퉬?ㅼ뿉 ?꾨떖???④굔 肄붾뱶瑜?議고쉶?⑸땲??
         return codeCacheService.getCodeByKey(codeKey);

@@ -11,7 +11,7 @@ public class DynamicLogLevelRequest {
     private String transactionId;
     private String businessTransactionId;
     private String moduleId;
-    private FpsLogLevel logLevel = FpsLogLevel.DEBUG;
+    private CpfLogLevel logLevel = CpfLogLevel.DEBUG;
     private Duration ttl = Duration.ofMinutes(10);
     private String reason = "?댁쁺 吏꾨떒";
     private String requestUser = "SYSTEM";
@@ -40,11 +40,11 @@ public class DynamicLogLevelRequest {
         this.moduleId = moduleId;
     }
 
-    public FpsLogLevel getLogLevel() {
+    public CpfLogLevel getLogLevel() {
         return logLevel;
     }
 
-    public void setLogLevel(FpsLogLevel logLevel) {
+    public void setLogLevel(CpfLogLevel logLevel) {
         this.logLevel = logLevel;
     }
 

@@ -4,7 +4,7 @@ import cpf.adm.opr.dto.AdmButtonPermissionUpdateRequest;
 import cpf.adm.opr.dto.AdmMenuPermissionUpdateRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmPermissionService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,21 +33,21 @@ public class AdmPermissionController {
     }
 
     @GetMapping("/menu-matrix")
-    @FpsTransaction(id = "ADM01PER0010", name = "ADMMenuPermissionMatrix")
+    @CpfTransaction(id = "ADM01PER0010", name = "ADMMenuPermissionMatrix")
     @Operation(summary = "메뉴 권한 매트릭스 조회", description = "역할별 ADM 메뉴 조회/쓰기/삭제 권한을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMenuMatrix() {
         return ResponseEntity.ok(permissionService.findMenuPermissions());
     }
 
     @GetMapping("/button-matrix")
-    @FpsTransaction(id = "ADM01PER0011", name = "ADMButtonPermissionMatrix")
+    @CpfTransaction(id = "ADM01PER0011", name = "ADMButtonPermissionMatrix")
     @Operation(summary = "버튼 권한 매트릭스 조회", description = "역할별 ADM 버튼/행위 권한을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findButtonMatrix() {
         return ResponseEntity.ok(permissionService.findButtonPermissions());
     }
 
     @PutMapping("/roles/{roleId}/menus/{menuId}")
-    @FpsTransaction(id = "ADM03PER0012", name = "ADMMenuPermissionUpdate")
+    @CpfTransaction(id = "ADM03PER0012", name = "ADMMenuPermissionUpdate")
     @Operation(summary = "메뉴 권한 변경", description = "역할별 메뉴 권한을 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateMenuPermission(
             @PathVariable String roleId,
@@ -73,7 +73,7 @@ public class AdmPermissionController {
     }
 
     @PutMapping("/roles/{roleId}/buttons/{buttonId}")
-    @FpsTransaction(id = "ADM03PER0013", name = "ADMButtonPermissionUpdate")
+    @CpfTransaction(id = "ADM03PER0013", name = "ADMButtonPermissionUpdate")
     @Operation(summary = "버튼 권한 변경", description = "역할별 버튼/행위 권한을 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateButtonPermission(
             @PathVariable String roleId,

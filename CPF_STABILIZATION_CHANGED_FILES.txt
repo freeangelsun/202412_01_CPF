@@ -1,61 +1,71 @@
-CPF stabilization changed files
-Generated: 2026-06-18 11:38:28 +09:00
+CPF 안정화 변경 파일 목록
+작성 시각: 2026-06-18 13:30:35 +09:00
 
-== git diff --name-only ==
-README.md
-adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java
-adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java
-adm/src/main/resources/static/adm/adm.js
-adm/src/main/resources/static/adm/index.html
-scripts/check-sql-standard.ps1
-scripts/check-utf8.ps1
-specs/index.html
-specs/sql/00_all_install.sql
-specs/sql/00_all_install_and_smoke.sql
-specs/sql/10_pfw_schema.sql
-specs/sql/50_framework_seed_data.sql
-specs/sql/60_adm_seed_data.sql
-specs/sql/99_smoke_check.sql
-specs/sql/README.md
-specs/sql/migration/README.md
-specs/sql/migration/flyway/V1__cpf_baseline_install.sql
-specs/개발_가이드.html
-specs/관리자_가이드.html
-specs/프레임워크_구성_가이드.html
-xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java
+주의:
+- `CPF_CODEX_REQUEST_20260618_01.md`는 사용자가 갱신한 입력 파일이며 작업 변경으로 계산하지 않습니다.
+- 현재 git status에는 rename이 delete/untracked 쌍으로 보입니다. 커밋 전 rename으로 검토해야 합니다.
+- `mbr/logs/mbr/*.log`는 runtime 산출물이므로 삭제 상태로 정리했습니다.
 
-== untracked files from git status --short ==
-CPF_CODEX_REQUEST_20260618_01.md
-CPF_STABILIZATION_REPORT.md
-CPF_STABILIZATION_CHANGED_FILES.txt
-specs/sql/migration/flyway/V4__batch_schedule_repository_notification.sql
+1. 레거시 명칭 정리
+- `pfw/src/main/java/cpf/pfw/common/exception/Fps*.java` -> `Cpf*.java`
+- `pfw/src/main/java/cpf/pfw/common/http/Fps*.java` -> `Cpf*.java`
+- `pfw/src/main/java/cpf/pfw/common/logging/Fps*.java` -> `Cpf*.java`
+- `pfw/src/main/java/cpf/pfw/common/web/FpsResponseHeaderAdvice.java` -> `CpfResponseHeaderAdvice.java`
+- `pfw/src/main/java/cpf/pfw/common/workflow/Fps*.java` -> `Cpf*.java`
+- `acc/src/main/java/cpf/acc/common/aop/FpsValidationAspect.java` -> `CpfValidationAspect.java`
+- `cmn/src/main/java/cpf/cmn/dto/FpsDTO.java` -> `CpfDTO.java`
+- `cmn/src/main/java/cpf/cmn/msg/service/CmnFps*.java` -> `CmnCpf*.java`
+- `mbr/src/test/java/cpf/cmn/msg/service/CmnFpsResponseCodeResolverTest.java` -> `CmnCpfResponseCodeResolverTest.java`
+- 관련 Java, YAML, SQL, 문서, Swagger annotation 문자열에서 CPF 기준 명칭으로 변경했습니다.
 
-== git diff --stat ==
- README.md                                          |   7 +-
- .../cpf/adm/opr/controller/AdmBatchController.java |  29 +-
- .../adm/opr/service/AdmBatchOperationService.java  | 165 ++++++++++
- adm/src/main/resources/static/adm/adm.js           |  31 +-
- adm/src/main/resources/static/adm/index.html       |   6 +
- scripts/check-sql-standard.ps1                     |  21 +-
- scripts/check-utf8.ps1                             |   6 +
- specs/index.html                                   |   5 +-
- specs/sql/00_all_install.sql                       | 320 ++++++++++++++++++-
- specs/sql/00_all_install_and_smoke.sql             | 346 ++++++++++++++++++++-
- specs/sql/10_pfw_schema.sql                        | 193 ++++++++++++
- specs/sql/50_framework_seed_data.sql               | 102 +++++-
- specs/sql/60_adm_seed_data.sql                     |   5 +-
- specs/sql/99_smoke_check.sql                       |  26 +-
- specs/sql/README.md                                |  15 +-
- specs/sql/migration/README.md                      |   3 +
- .../migration/flyway/V1__cpf_baseline_install.sql  | 322 ++++++++++++++++++-
- specs/개발_가이드.html                             |   4 +
- specs/관리자_가이드.html                           |  20 +-
- specs/프레임워크_구성_가이드.html                  |   7 +-
- .../controller/XyzBatchEducationController.java    |  17 +-
- 21 files changed, 1597 insertions(+), 53 deletions(-)
+2. 품질 검사/빌드
+- `build.gradle`: `checkLegacyName` task 추가, `qualityGate`에 연결.
+- `scripts/check-utf8.ps1`: UTF-8 strict 검사 유지, mojibake 검사 패턴을 코드포인트/정규식 기반으로 강화, request/report/build/bin/log 산출물 제외.
+- `scripts/check-legacy-name.ps1`: 과거 프로젝트명 잔재 검색 스크립트 신규 추가.
 
-== git warnings observed ==
-warning: in the working copy of 'specs/sql/00_all_install.sql', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'specs/sql/00_all_install_and_smoke.sql', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'specs/sql/migration/flyway/V1__cpf_baseline_install.sql', CRLF will be replaced by LF the next time Git touches it
+3. 문서
+- `README.md`: 기능 구현 매트릭스 링크 추가.
+- `specs/index.html`: 기능 구현 매트릭스 링크 추가, 보조 md 문서가 deprecated 보조 문서임을 명시.
+- `specs/기능_구현_매트릭스.md`: 기능별 구현 상태, 주요 소스, API, ADM 화면, DB, Swagger, EDU, 테스트, 검증 방법 매트릭스 신규 작성.
+- `specs/transaction-header-standard.md`: deprecated 보조 문서 안내 추가.
+- `specs/definition-of-done.md`: deprecated 보조 문서 안내 추가.
+- `specs/ci-quality-gate.md`: deprecated 안내와 legacy name 검사 명령 추가.
+- `specs/module-template.md`: deprecated 보조 문서 안내 추가.
+- `specs/operation-security-guide.md`: deprecated 보조 문서 안내 추가.
 
+4. CMN 기본 DTO/유틸 한글 정리
+- `cmn/src/main/java/cpf/cmn/dto/HeaderDTO.java`: 깨진 주석/validation 메시지 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/dto/CpfDTO.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/dto/DataDTO.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/ValidationUtils.java`: 깨진 주석/예외 메시지 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/DateTimeUtils.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/IdUtils.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/CommonUtils.java`: 깨진 주석 정상 한글화.
+- `cmn/src/main/java/cpf/cmn/utils/CollectionSafeUtils.java`: 깨진 주석 정상 한글화.
+
+5. PFW build 문서성 주석
+- `pfw/build.gradle`: 깨진 의존성 설명 주석 정상 한글화.
+
+6. SQL/설정/EDU/ADM 관련 기존 변경 유지 및 CPF 명칭 동기화
+- `specs/sql/00_all_install.sql`
+- `specs/sql/00_all_install_and_smoke.sql`
+- `specs/sql/50_framework_seed_data.sql`
+- `specs/sql/migration/flyway/V1__cpf_baseline_install.sql`
+- `adm/src/main/java/cpf/adm/opr/controller/*.java`
+- `adm/src/main/java/cpf/adm/opr/service/*.java`
+- `adm/src/main/resources/application.yml`
+- `xyz/src/main/java/cpf/xyz/edu/controller/*.java`
+- `xyz/src/main/java/cpf/xyz/edu/service/XyzSampleService.java`
+- `acc/src/main/java/cpf/acc/**/*.java`
+- `mbr/src/main/java/cpf/mbr/**/*.java`
+- `pfw/src/main/resources/application-pfw.yml`
+- `cmn/src/main/resources/application-cmn*.yml`
+
+7. Runtime log 산출물
+- `mbr/logs/mbr/mbr-error.log`: 삭제 상태. tracked runtime log 제거 필요.
+- `mbr/logs/mbr/mbr.log`: 삭제 상태. tracked runtime log 제거 필요.
+
+8. 검증 결과에 따른 주의 파일군
+- `check-utf8.ps1 -CheckMojibake`가 아직 ACC/ADM/CMN/MBR/PFW/XYZ 다수 파일을 실패로 검출합니다.
+- 다음 작업에서는 리포트의 mojibake 실패 파일군을 기준으로 전수 정리해야 합니다.

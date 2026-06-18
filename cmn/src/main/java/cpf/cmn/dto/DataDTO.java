@@ -4,14 +4,15 @@ import jakarta.validation.Valid;
 import lombok.Data;
 
 /**
- * ?대옒?? DataDTO
+ * CPF 표준 본문 DTO입니다.
  *
- * ?곗씠???붿껌??怨듯넻 援ъ“瑜??뺤쓽?⑸땲??
- * @param <T> ?곗씠?????(?? ACC ⑤뱢??DTO)
+ * <p>업무 요청 또는 응답의 실제 본문을 담는 공통 래퍼입니다.</p>
+ *
+ * @param <T> 업무 본문 타입
  */
 @Data
 public class DataDTO<T> {
     @Valid
-    private T body; // ?곗씠??蹂몃Ц (?쒕꽕由????
+    private T body;
 }
 

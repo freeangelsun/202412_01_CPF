@@ -1,13 +1,13 @@
 package cpf.pfw.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.exception.DefaultFpsResponseCodeResolver;
-import cpf.pfw.common.exception.FpsErrorResponse;
-import cpf.pfw.common.exception.FpsFrameworkErrorCode;
-import cpf.pfw.common.exception.FpsFrameworkException;
-import cpf.pfw.common.exception.FpsResolvedResponse;
-import cpf.pfw.common.exception.FpsResponseCodeResolver;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
+import cpf.pfw.common.exception.CpfErrorResponse;
+import cpf.pfw.common.exception.CpfFrameworkErrorCode;
+import cpf.pfw.common.exception.CpfFrameworkException;
+import cpf.pfw.common.exception.CpfResolvedResponse;
+import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,13 +28,13 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
 
     private static final Pattern BUSINESS_TRANSACTION_ID_PATTERN = Pattern.compile("^[A-Z]{3}[0-9]{2}[A-Z0-9]{3}[0-9]{4}$");
     private final ObjectMapper objectMapper;
-    private final FpsResponseCodeResolver responseCodeResolver;
+    private final CpfResponseCodeResolver responseCodeResolver;
 
     public TransactionHeaderValidationInterceptor(
             ObjectMapper objectMapper,
-            ObjectProvider<FpsResponseCodeResolver> responseCodeResolverProvider) {
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
         this.objectMapper = objectMapper;
-        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultFpsResponseCodeResolver::new);
+        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         try {
             validateRequiredHeaders(request);
             validateTransactionMetadata(handlerMethod);
-        } catch (FpsFrameworkException ex) {
+        } catch (CpfFrameworkException ex) {
             writeFrameworkError(response, ex);
             return false;
         }
@@ -61,42 +61,42 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
 
         if (!missingHeaders.isEmpty()) {
             String headerNames = String.join(", ", missingHeaders);
-            throw new FpsFrameworkException(
-                    FpsFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
                     "필수 거래 헤더가 누락되었습니다. " + headerNames,
                     Map.of("0", headerNames, "1", request.getRequestURI()));
         }
     }
 
     private void validateTransactionMetadata(HandlerMethod handlerMethod) {
-        FpsTransaction transaction = resolveTransactionAnnotation(handlerMethod);
+        CpfTransaction transaction = resolveTransactionAnnotation(handlerMethod);
         if (transaction == null) {
-            throw new FpsFrameworkException(
-                    FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction 거래 메타 정보가 필요합니다.",
-                    Map.of("0", "@FpsTransaction"));
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "@CpfTransaction 거래 메타 정보가 필요합니다.",
+                    Map.of("0", "@CpfTransaction"));
         }
         if (!BUSINESS_TRANSACTION_ID_PATTERN.matcher(transaction.id()).matches()) {
-            throw new FpsFrameworkException(
-                    FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction.id는 {모듈3자리}{업무구분2자리}{거래구분3자리}{일련번호4자리} 형식이어야 합니다. "
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "@CpfTransaction.id는 {모듈3자리}{업무구분2자리}{거래구분3자리}{일련번호4자리} 형식이어야 합니다. "
                             + transaction.id(),
-                    Map.of("0", "@FpsTransaction.id", "1", transaction.id()));
+                    Map.of("0", "@CpfTransaction.id", "1", transaction.id()));
         }
         if (transaction.name() == null || transaction.name().isBlank()) {
-            throw new FpsFrameworkException(
-                    FpsFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@FpsTransaction.name은 필수입니다.",
-                    Map.of("0", "@FpsTransaction.name"));
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "@CpfTransaction.name은 필수입니다.",
+                    Map.of("0", "@CpfTransaction.name"));
         }
     }
 
-    private FpsTransaction resolveTransactionAnnotation(HandlerMethod handlerMethod) {
-        FpsTransaction methodAnnotation = handlerMethod.getMethodAnnotation(FpsTransaction.class);
+    private CpfTransaction resolveTransactionAnnotation(HandlerMethod handlerMethod) {
+        CpfTransaction methodAnnotation = handlerMethod.getMethodAnnotation(CpfTransaction.class);
         if (methodAnnotation != null) {
             return methodAnnotation;
         }
-        return handlerMethod.getBeanType().getAnnotation(FpsTransaction.class);
+        return handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
     }
 
     private void require(HttpServletRequest request, String headerName, List<String> missingHeaders) {
@@ -106,14 +106,14 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         }
     }
 
-    private void writeFrameworkError(HttpServletResponse response, FpsFrameworkException ex) throws IOException {
-        FpsResolvedResponse resolvedResponse = responseCodeResolver.resolve(
+    private void writeFrameworkError(HttpServletResponse response, CpfFrameworkException ex) throws IOException {
+        CpfResolvedResponse resolvedResponse = responseCodeResolver.resolve(
                 ex.getErrorCode(),
                 java.util.Locale.KOREAN,
                 ex.getMessageArguments(),
                 ex.getDetail());
         String externalMessage = resolvedResponse.externalMessage();
-        FpsErrorResponse errorResponse = FpsErrorResponse.of(
+        CpfErrorResponse errorResponse = CpfErrorResponse.of(
                 resolvedResponse,
                 externalMessage,
                 ex.getClass().getSimpleName(),
@@ -124,9 +124,9 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         response.setCharacterEncoding("UTF-8");
         response.setHeader("X-Error-Code", resolvedResponse.errorCode());
         response.setHeader("X-Message-Code", resolvedResponse.messageCode());
-        response.setHeader("X-Fps-Response-Code", resolvedResponse.responseCode());
-        response.setHeader("X-Fps-Response-Message-Code", resolvedResponse.messageCode());
-        response.setHeader("X-Fps-Message-Code", resolvedResponse.messageCode());
+        response.setHeader("X-Cpf-Response-Code", resolvedResponse.responseCode());
+        response.setHeader("X-Cpf-Response-Message-Code", resolvedResponse.messageCode());
+        response.setHeader("X-Cpf-Message-Code", resolvedResponse.messageCode());
         response.setHeader("X-Error-Type", ex.getClass().getSimpleName());
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }

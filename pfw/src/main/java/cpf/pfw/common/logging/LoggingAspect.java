@@ -1,17 +1,17 @@
 package cpf.pfw.common.logging;
 
-import cpf.pfw.common.exception.DefaultFpsMessageResolver;
-import cpf.pfw.common.exception.DefaultFpsResponseCodeResolver;
-import cpf.pfw.common.exception.FpsException;
-import cpf.pfw.common.exception.FpsMessageResolver;
-import cpf.pfw.common.exception.FpsResolvedResponse;
-import cpf.pfw.common.exception.FpsResponseCodeResolver;
-import cpf.pfw.common.workflow.FpsWorkflow;
-import cpf.pfw.common.workflow.FpsWorkflowContext;
-import cpf.pfw.common.workflow.FpsWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.FpsWorkflowMetadata;
-import cpf.pfw.common.workflow.FpsWorkflowStatus;
-import cpf.pfw.common.workflow.FpsWorkflowStep;
+import cpf.pfw.common.exception.DefaultCpfMessageResolver;
+import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
+import cpf.pfw.common.exception.CpfException;
+import cpf.pfw.common.exception.CpfMessageResolver;
+import cpf.pfw.common.exception.CpfResolvedResponse;
+import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.workflow.CpfWorkflow;
+import cpf.pfw.common.workflow.CpfWorkflowContext;
+import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
+import cpf.pfw.common.workflow.CpfWorkflowMetadata;
+import cpf.pfw.common.workflow.CpfWorkflowStatus;
+import cpf.pfw.common.workflow.CpfWorkflowStep;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,20 +57,20 @@ public class LoggingAspect {
     private final ApplicationEventPublisher eventPublisher;
     private final Environment environment;
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
-    private final FpsMessageResolver messageResolver;
-    private final FpsResponseCodeResolver responseCodeResolver;
+    private final CpfMessageResolver messageResolver;
+    private final CpfResponseCodeResolver responseCodeResolver;
 
     public LoggingAspect(
             ApplicationEventPublisher eventPublisher,
             Environment environment,
             DynamicTransactionLogLevelService dynamicLogLevelService,
-            ObjectProvider<FpsMessageResolver> messageResolverProvider,
-            ObjectProvider<FpsResponseCodeResolver> responseCodeResolverProvider) {
+            ObjectProvider<CpfMessageResolver> messageResolverProvider,
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
         this.eventPublisher = eventPublisher;
         this.environment = environment;
         this.dynamicLogLevelService = dynamicLogLevelService;
-        this.messageResolver = messageResolverProvider.getIfAvailable(DefaultFpsMessageResolver::new);
-        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultFpsResponseCodeResolver::new);
+        this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
+        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
     }
 
     @Around("execution(* cpf..*Controller.*(..))")
@@ -85,7 +85,7 @@ public class LoggingAspect {
         String parentSpanId = TransactionContext.currentParentSpanId();
         int sequenceNo = TransactionContext.nextSequenceNo();
         TransactionHeader transactionHeader = TransactionContext.currentHeader();
-        FpsTransaction fpsTransaction = resolveFpsTransaction(joinPoint);
+        CpfTransaction cpfTransaction = resolveCpfTransaction(joinPoint);
 
         String moduleId = resolveModuleId(joinPoint);
         String controller = joinPoint.getSignature().toShortString();
@@ -100,11 +100,11 @@ public class LoggingAspect {
                 request != null ? clientIp(request) : null,
                 "N/A");
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
-        String businessTransactionId = fpsTransaction != null ? fpsTransaction.id() : "UNKNOWN";
-        String businessTransactionName = fpsTransaction != null ? fpsTransaction.name() : controller;
+        String businessTransactionId = cpfTransaction != null ? cpfTransaction.id() : "UNKNOWN";
+        String businessTransactionName = cpfTransaction != null ? cpfTransaction.name() : controller;
         String menuId = firstText(request != null ? request.getParameter("menuId") : null, businessTransactionId);
         TransactionContext.putBusinessTransaction(businessTransactionId, businessTransactionName);
-        FpsWorkflowMetadata workflowMetadata = resolveWorkflowMetadata(
+        CpfWorkflowMetadata workflowMetadata = resolveWorkflowMetadata(
                 joinPoint,
                 transactionId,
                 businessTransactionId,
@@ -114,7 +114,7 @@ public class LoggingAspect {
                 .orElse(null);
         TransactionContext.putDynamicLogLevel(dynamicLogLevelRule != null ? dynamicLogLevelRule.logLevel().name() : null);
 
-        FpsWorkflowContext.apply(workflowMetadata);
+        CpfWorkflowContext.apply(workflowMetadata);
 
         logger.info(
                 "Transaction started. transactionId={}, businessTransactionId={}, businessTransactionName={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowInstanceId={}, workflowStepId={}, method={}, uri={}, controller={}, executionClass={}, executionMethod={}, clientIp={}, parameters={}, requestBody={}",
@@ -301,7 +301,7 @@ public class LoggingAspect {
             String uri,
             String controller,
             ExecutionMetadata executionMetadata,
-            FpsWorkflowMetadata workflowMetadata,
+            CpfWorkflowMetadata workflowMetadata,
             boolean success,
             String parameters,
             String requestBody,
@@ -453,12 +453,12 @@ public class LoggingAspect {
             putDetail(details, "transactionHeader", transactionHeader.toString());
         }
         putDetail(details, "propagationHeaders", TransactionContext.propagationHeaders().toString());
-        putDetail(details, "workflowPropagationHeaders", FpsWorkflowContext.propagationHeaders().toString());
+        putDetail(details, "workflowPropagationHeaders", CpfWorkflowContext.propagationHeaders().toString());
         return details;
     }
 
     private void logDynamic(DynamicLogLevelRule rule, String message, Object... arguments) {
-        if (rule == null || rule.logLevel() == null || rule.logLevel() == FpsLogLevel.OFF) {
+        if (rule == null || rule.logLevel() == null || rule.logLevel() == CpfLogLevel.OFF) {
             return;
         }
 
@@ -479,19 +479,19 @@ public class LoggingAspect {
         }
     }
 
-    private FpsTransaction resolveFpsTransaction(ProceedingJoinPoint joinPoint) {
-        return resolveAnnotation(joinPoint, FpsTransaction.class);
+    private CpfTransaction resolveCpfTransaction(ProceedingJoinPoint joinPoint) {
+        return resolveAnnotation(joinPoint, CpfTransaction.class);
     }
 
-    private FpsWorkflowMetadata resolveWorkflowMetadata(
+    private CpfWorkflowMetadata resolveWorkflowMetadata(
             ProceedingJoinPoint joinPoint,
             String transactionId,
             String businessTransactionId,
             String businessTransactionName) {
 
-        FpsWorkflow workflow = resolveAnnotation(joinPoint, FpsWorkflow.class);
-        FpsWorkflowStep step = resolveAnnotation(joinPoint, FpsWorkflowStep.class);
-        FpsWorkflowMetadata incoming = FpsWorkflowContext.current();
+        CpfWorkflow workflow = resolveAnnotation(joinPoint, CpfWorkflow.class);
+        CpfWorkflowStep step = resolveAnnotation(joinPoint, CpfWorkflowStep.class);
+        CpfWorkflowMetadata incoming = CpfWorkflowContext.current();
 
         String workflowId = firstText(
                 incoming != null ? incoming.getWorkflowId() : null,
@@ -514,11 +514,11 @@ public class LoggingAspect {
             workflowStepName = businessTransactionName;
         }
 
-        FpsWorkflowFailurePolicy failurePolicy = step != null
+        CpfWorkflowFailurePolicy failurePolicy = step != null
                 ? step.failurePolicy()
                 : incoming != null ? incoming.getFailurePolicy() : null;
         if (failurePolicy == null && workflowDeclared) {
-            failurePolicy = FpsWorkflowFailurePolicy.FAIL;
+            failurePolicy = CpfWorkflowFailurePolicy.FAIL;
         }
 
         boolean compensation = step != null && step.compensation()
@@ -534,7 +534,7 @@ public class LoggingAspect {
                 incoming != null ? incoming.getWorkflowInstanceId() : null,
                 workflowDeclared ? transactionId : null);
 
-        return FpsWorkflowMetadata.builder()
+        return CpfWorkflowMetadata.builder()
                 .workflowId(workflowId)
                 .workflowName(workflowName)
                 .workflowInstanceId(workflowInstanceId)
@@ -598,56 +598,56 @@ public class LoggingAspect {
         }
     }
 
-    private String workflowStatusName(FpsWorkflowMetadata metadata, boolean success) {
+    private String workflowStatusName(CpfWorkflowMetadata metadata, boolean success) {
         if (metadata == null || !metadata.isActive()) {
-            return FpsWorkflowStatus.NONE.name();
+            return CpfWorkflowStatus.NONE.name();
         }
         if (success) {
             return metadata.isCompensation()
-                    ? FpsWorkflowStatus.COMPENSATED.name()
-                    : FpsWorkflowStatus.COMPLETED.name();
+                    ? CpfWorkflowStatus.COMPENSATED.name()
+                    : CpfWorkflowStatus.COMPLETED.name();
         }
 
-        FpsWorkflowFailurePolicy policy = metadata.getFailurePolicy();
+        CpfWorkflowFailurePolicy policy = metadata.getFailurePolicy();
         if (policy == null) {
-            return FpsWorkflowStatus.FAILED.name();
+            return CpfWorkflowStatus.FAILED.name();
         }
 
         return switch (policy) {
-            case RETRY -> FpsWorkflowStatus.RETRY_PENDING.name();
-            case COMPENSATE -> FpsWorkflowStatus.COMPENSATING.name();
-            case PENDING -> FpsWorkflowStatus.PENDING.name();
-            case VERIFY -> FpsWorkflowStatus.VERIFY_REQUIRED.name();
-            case MANUAL -> FpsWorkflowStatus.MANUAL_REQUIRED.name();
-            case IGNORE -> FpsWorkflowStatus.IGNORED.name();
-            case FAIL -> FpsWorkflowStatus.FAILED.name();
+            case RETRY -> CpfWorkflowStatus.RETRY_PENDING.name();
+            case COMPENSATE -> CpfWorkflowStatus.COMPENSATING.name();
+            case PENDING -> CpfWorkflowStatus.PENDING.name();
+            case VERIFY -> CpfWorkflowStatus.VERIFY_REQUIRED.name();
+            case MANUAL -> CpfWorkflowStatus.MANUAL_REQUIRED.name();
+            case IGNORE -> CpfWorkflowStatus.IGNORED.name();
+            case FAIL -> CpfWorkflowStatus.FAILED.name();
         };
     }
 
-    private String compensationStatusName(FpsWorkflowMetadata metadata, boolean success) {
+    private String compensationStatusName(CpfWorkflowMetadata metadata, boolean success) {
         if (metadata == null || !metadata.isActive()) {
             return null;
         }
 
         if (metadata.isCompensation()) {
             return success
-                    ? FpsWorkflowStatus.COMPENSATED.name()
-                    : FpsWorkflowStatus.COMPENSATION_FAILED.name();
+                    ? CpfWorkflowStatus.COMPENSATED.name()
+                    : CpfWorkflowStatus.COMPENSATION_FAILED.name();
         }
-        if (!success && metadata.getFailurePolicy() == FpsWorkflowFailurePolicy.COMPENSATE) {
-            return FpsWorkflowStatus.COMPENSATING.name();
+        if (!success && metadata.getFailurePolicy() == CpfWorkflowFailurePolicy.COMPENSATE) {
+            return CpfWorkflowStatus.COMPENSATING.name();
         }
         return null;
     }
 
-    private String compensationYn(FpsWorkflowMetadata metadata) {
+    private String compensationYn(CpfWorkflowMetadata metadata) {
         return metadata != null && metadata.isCompensation() ? "Y" : "N";
     }
 
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
-            return appName.replace("fps-", "").toUpperCase();
+            return appName.replace("cpf-", "").toUpperCase();
         }
 
         String declaringType = joinPoint.getSignature().getDeclaringTypeName();
@@ -704,7 +704,7 @@ public class LoggingAspect {
         String normalizedModuleId = hasText(moduleId) && !"N/A".equals(moduleId) ? moduleId : "PFW";
         String responseCode = bodyProperty(body, "statusCode");
         String normalizedResponseCode = firstText(responseCode, "S" + normalizedModuleId + "000000");
-        FpsResolvedResponse resolved = responseCodeResolver.resolve(normalizedResponseCode, Locale.KOREAN, Map.of(), null);
+        CpfResolvedResponse resolved = responseCodeResolver.resolve(normalizedResponseCode, Locale.KOREAN, Map.of(), null);
         String messageCode = firstText(bodyProperty(body, "messageCode"), resolved.messageCode());
         String bodyMessage = firstText(bodyProperty(body, "messageContent"), bodyProperty(body, "message"));
         String messageContent = firstText(bodyMessage, resolved.externalMessage());
@@ -725,8 +725,8 @@ public class LoggingAspect {
     }
 
     private int resolveErrorResponseCode(Throwable ex) {
-        if (ex instanceof FpsException fpsException && fpsException.getErrorCode() != null) {
-            return fpsException.getErrorCode().getHttpStatus().value();
+        if (ex instanceof CpfException cpfException && cpfException.getErrorCode() != null) {
+            return cpfException.getErrorCode().getHttpStatus().value();
         }
         if (ex instanceof ResponseStatusException responseStatusException) {
             return responseStatusException.getStatusCode().value();
@@ -747,17 +747,17 @@ public class LoggingAspect {
     }
 
     private ErrorMetadata resolveErrorMetadata(Throwable ex, Locale locale) {
-        if (ex instanceof FpsException fpsException) {
-            FpsResolvedResponse resolved = fpsException.getErrorCode() != null
-                    ? responseCodeResolver.resolve(fpsException.getErrorCode(), locale, fpsException.getMessageArguments(), fpsException.getDetail())
-                    : responseCodeResolver.resolve(fpsException.getResponseCode(), locale, fpsException.getMessageArguments(), fpsException.getDetail());
+        if (ex instanceof CpfException cpfException) {
+            CpfResolvedResponse resolved = cpfException.getErrorCode() != null
+                    ? responseCodeResolver.resolve(cpfException.getErrorCode(), locale, cpfException.getMessageArguments(), cpfException.getDetail())
+                    : responseCodeResolver.resolve(cpfException.getResponseCode(), locale, cpfException.getMessageArguments(), cpfException.getDetail());
             return new ErrorMetadata(
                     resolved.httpStatus(),
                     resolved.responseCode(),
                     resolved.messageCode(),
                     resolved.errorCode(),
-                    firstText(fpsException.getExternalMessage(), resolved.externalMessage()),
-                    firstText(fpsException.getInternalMessage(), resolved.internalMessage()),
+                    firstText(cpfException.getExternalMessage(), resolved.externalMessage()),
+                    firstText(cpfException.getInternalMessage(), resolved.internalMessage()),
                     resolved.errorMessage());
         }
 

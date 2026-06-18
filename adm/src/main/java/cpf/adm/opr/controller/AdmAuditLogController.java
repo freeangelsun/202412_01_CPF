@@ -1,7 +1,7 @@
 package cpf.adm.opr.controller;
 
 import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class AdmAuditLogController {
     }
 
     @GetMapping
-    @FpsTransaction(id = "ADM01OPR0050", name = "ADMAuditLogList")
+    @CpfTransaction(id = "ADM01OPR0050", name = "ADMAuditLogList")
     @Operation(summary = "List audit logs", description = "Returns recent ADM operator audit logs.")
     public ResponseEntity<Map<String, Object>> findAuditLogs(
             @RequestParam(required = false) String operatorId,

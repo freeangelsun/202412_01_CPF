@@ -1,217 +1,183 @@
 # CPF 안정화 작업 리포트
 
-작성 시각: 2026-06-18 11:38:28 +09:00
+작성 시각: 2026-06-18 13:30:35 +09:00
 
 ## 1. 작업 개요
 
-CPF 프레임워크의 기반 안정화 요청에 따라 배치 관리, Spring Batch 표준 저장소, ADM 배치 관제 API/UI, SQL/Flyway/문서/EDU 샘플 정합성을 보강했습니다. 커밋은 하지 않았습니다.
+`CPF_CODEX_REQUEST_20260618_01.md` 갱신본을 기준으로 실제 소스, SQL, 문서, EDU 샘플, 검증 명령을 다시 확인했습니다. 이번 작업에서는 과거 명칭 잔재 제거, 검사 스크립트 강화, 기능 구현 매트릭스 작성, 문서 정본 연결, MariaDB 설치 SQL 재실행 검증을 수행했습니다. 커밋은 하지 않았습니다.
 
-## 2. 사용자 요청사항 원문 요약 및 수행 체크리스트
+요청 파일 `CPF_CODEX_REQUEST_20260618_01.md`는 사용자가 갱신한 입력 파일로 보고, 작업 내용으로 수정하지 않았습니다.
 
-| 번호 | 요청사항 | 수행 상태 | 증빙/결과 | 비고 |
+## 2. CPF 완성도 보강 체크리스트
+
+| 번호 | 항목 | 상태 | 증빙 | 비고 |
 |---|---|---|---|---|
-| 1 | PFW는 프레임워크 핵심 코어로 보호 영역, CMN은 업무 공통 기능/API 영역으로 역할 분리 | 일부 | 문서와 SQL 가이드에 `BATCH_*`, `pfw_batch_*`, `pfw_notification_*` 책임 반영 | 전체 모듈 의존성 자동 분석은 미수행 |
-| 2 | 문서, 소스, SQL, Swagger, ADM 화면, EDU 샘플 정합성 유지 | 일부 | ADM Batch API/UI, SQL, 가이드, EDU 샘플 동시 갱신 | 앱 기동 Swagger JSON 검증은 미검증 |
-| 3 | README는 짧게 유지하고 상세 내용은 가이드 문서로 연결 | 완료 | `README.md`를 진입점 중심으로 정리 |  |
-| 4 | 기능 변경 시 README/개발가이드/관리자가이드/SQL가이드/EDU샘플 함께 현행화 | 완료 | README, 개발/관리자/구성/SQL 가이드, XYZ EDU Batch 갱신 |  |
-| 5 | 신규 주석/설명/SQL COMMENT는 한글 작성 | 완료 | 신규 SQL COMMENT와 코드 설명 한글 작성 | Spring Batch 표준 영문 식별자는 유지 |
-| 6 | UTF-8 설정만이 아니라 실제 mojibake/한글 깨짐 전수 제거 | 일부 | `check-utf8.ps1 -CheckMojibake` 통과 | 요청 파일은 외부 입력으로 제외, 레거시 광범위 의미 검수는 별도 |
-| 7 | 한 줄로 몰린 Gradle/YAML/SQL/MD/PS1/Java 포맷 복구 | 미검증 | 별도 전수 포맷 복구 검사는 하지 않음 | 이번 변경 파일은 컴파일/품질 gate 통과 |
-| 8 | MariaDB 실 DB 기준 00_all_install_and_smoke.sql 실행 및 검증 | 완료 | 동일 SQL 2회 실행 성공, smoke row count 확인 | 비밀번호는 기록하지 않음 |
-| 9 | DB 비밀번호는 소스/문서/리포트에 기록하지 않고 로컬 실행에만 사용 | 완료 | 리포트/변경 파일에 비밀번호 미기록 | 명령 실행 시 로컬 환경변수로만 사용 |
-| 10 | Swagger가 PFW에만 갇히지 않고 ACC/MBR/ADM/XYZ 실행 모듈에서 노출되는 구조 검증 | 미검증 | 앱 기동 및 `/v3/api-docs` 미실행 | 코드 어노테이션은 갱신 |
-| 11 | /v3/api-docs, /swagger-ui.html, /swagger-ui/index.html 경로 검증 또는 미검증 사유 기록 | 미검증 | 서버 기동 검증 미수행 | 다음 작업 필요 |
-| 12 | AutoConfiguration.imports 정상 형식 확인 및 자동 설정 로딩 구조 점검 | 미검증 | 이번 범위에서 파일 점검 미수행 |  |
-| 13 | OpenAPI 그룹 하드코딩 문제 분석 및 property 기반 확장 구조 검토 | 미검증 | 이번 범위에서 구조 점검 미수행 |  |
-| 14 | ADM 온라인 거래 조회/오류 조회/배치 조회/알림 조회의 표준 검색조건과 필터 보강 | 일부 | 배치 관계/수행대상/시뮬레이션 조회 추가 | 온라인/오류/알림 전체 검색 UX는 미완성 |
-| 15 | 거래 ID, 글로벌 ID, UUID, Trace ID, Correlation ID, Request ID 기준 조회 제공 | 일부 | 기존 거래 로그 smoke에서 거래/trace/header 확인 | 전체 ADM 검색 조건 추가 구현은 미완성 |
-| 16 | 헤더값, 고객번호/회원번호, 파라미터 특정 문구 포함 거래 검색 기능 검토/보강 | 일부 | 기존 ADM/SQL에 회원/고객/헤더 샘플 확인 | 파라미터 전문 검색 고도화는 미완성 |
-| 17 | 개인정보/민감정보 검색 시 마스킹/권한 통제/저장 정책 검토 | 일부 | 기존 마스킹 정책과 문서 유지 | 다운로드/원문 권한 전수 검증은 미완료 |
-| 18 | ADM 모든 목록/로그/이력 화면에서 권한에 따른 Excel/CSV/로그 다운로드 기능 검토/보강 | 일부 | 기존 로그 상세 다운로드는 확인, 전체 화면 공통 다운로드는 미구현 | 다음 작업 우선 |
-| 19 | 다운로드 권한, 마스킹, 다운로드 사유, 다운로드 감사 로그 저장 정책 검토/보강 | 일부 | 권한 seed와 문서 방향 유지 | 다운로드 감사 테이블/API 전수 구현은 미완성 |
-| 20 | 배치 관리/관제/스케줄/영업일/선행 Job/트리거 Job/실행 로그/재수행/중지/관계도 기능은 PFW 공통 기능으로 설계 | 완료 | `BATCH_*`, `pfw_batch_schedule`, `pfw_batch_job_relation`, `pfw_batch_execution_target` 반영 | 관계도 시각화는 다음 단계 |
-| 21 | ADM은 PFW 배치 기능을 관리하는 운영 콘솔 역할로 설계 | 완료 | ADM Batch Controller/Service/UI에 조회 API와 버튼 추가 |  |
-| 22 | ACC/MBR/PAY 등 주제영역은 실제 업무 배치 Job만 구현하고 PFW/ADM 공통 기능 사용 | 일부 | 개발 가이드에 방향 반영 | 실제 ACC/MBR 배치 샘플 추가는 미수행 |
-| 23 | Spring Batch 표준 BATCH_* 테이블과 PFW 자체 배치 테이블 관계 검증 | 완료 | MariaDB에서 `BATCH_*`와 `pfw_batch_*` 설치 확인 | MariaDB는 lower_case_table_names 영향으로 소문자로 표시 |
-| 24 | JobRepository 실 DB 운영 검증 | 일부 | 표준 테이블 설치와 채번 테이블 seed 확인 | 앱에서 실제 JobRepository 실행은 미검증 |
-| 25 | 영업일만 수행, 수행 가능 시간, 수행 일자 시뮬레이션 기능 검토/보강 | 완료 | 스케줄 컬럼, `/simulation` API, ADM 버튼 추가 | cron 실제 다음 실행 계산은 단순 후보일 기준 |
-| 26 | 선행 Job/후행 Job/트리거 Job 설정 및 관계 구조도 검토/보강 | 일부 | `pfw_batch_job_relation`, 조회 API, ADM 버튼 추가 | 그래프 UI 시각화는 미구현 |
-| 27 | 수행 대기 인스턴스/수행 대상 인스턴스 관리 기능 검토/보강 | 완료 | `pfw_batch_execution_target`, 조회 API, smoke 확인 | 등록/배정 UI는 다음 단계 |
-| 28 | 배치 실행 로그, Step 로그, 운영자 조작 로그 DB 저장 정책 정리 | 완료 | 기존 `pfw_batch_execution`, `pfw_batch_step_execution`, `pfw_batch_operation_log` 문서화 |  |
-| 29 | 알림/노티 기능을 PFW 공통 기능 + ADM 관리 화면/API로 설계 | 일부 | `pfw_notification_rule`, `pfw_notification_delivery_log` 추가 | ADM 알림 관리 화면/API는 미구현 |
-| 30 | 오류/배치 실패/지연/외부 API 오류/DB 오류 등 알림 대상 조건을 ADM에서 설정 가능하도록 설계 | 일부 | 배치 실패/보안 이벤트 seed 추가 | ADM 설정 화면/API는 다음 단계 |
-| 31 | JWT/OAuth/Spring Security 책임을 PFW/CMN/ADM/주제영역으로 분리 | 일부 | 기존 문서와 구조 유지 | 이번 변경에서 보안 모듈 전수 재설계는 미수행 |
-| 32 | ADM은 관리자 인증만 담당하고 비즈니스 인증은 각 주제영역에서 확장 | 일부 | 관리자 가이드 방향 유지 | 코드 전수 검증은 미수행 |
-| 33 | CMN은 JWT/OAuth 공통 유틸/API를 제공하되 로그인 정책과 권한 판단은 소유하지 않음 | 일부 | 프레임워크 구성 가이드 방향 유지 | 코드 전수 검증은 미수행 |
-| 34 | 테스트 disabled 상태 점검 및 가능한 범위에서 qualityGate 신뢰도 회복 | 일부 | `qualityGate` 성공, test는 일부 모듈 SKIPPED 확인 | skipped 테스트 활성화는 미수행 |
-| 35 | Redis/Kafka/RabbitMQ 실 broker 테스트는 이번 범위에서 제외 | 완료 | 실 broker 테스트 미수행으로 명시 | 요청 범위 제외 |
-| 36 | broker 미사용 환경에서 no-op/in-memory/DB fallback 구조 점검 | 일부 | DB fallback 캐시 이벤트와 배치/알림 DB 기준 유지 | broker 장애 시나리오 자동 테스트는 미수행 |
-| 37 | ADM MFA/OTP는 이번 작업에서 무리하게 완성하지 않고 상태와 다음 단계 문서화 | 완료 | 관리자 가이드에 보안 운영 상태 유지 | TOTP QR/복구코드는 다음 단계 |
-| 38 | VS Code Problems 기준 null/static warning 정리 | 미검증 | IDE Problems 직접 조회 불가 | 컴파일과 qualityGate는 통과 |
-| 39 | 프로젝트 루트에 CPF_STABILIZATION_REPORT.md 생성 | 완료 | 이 파일 생성 |  |
-| 40 | 프로젝트 루트에 CPF_STABILIZATION_CHANGED_FILES.txt 생성 | 완료 | 별도 파일 생성 예정 |  |
-| 41 | 실행하지 않은 검증을 성공으로 보고하지 않음 | 완료 | 미검증 항목 별도 표기 |  |
-| 42 | 실패한 명령과 미검증 항목을 숨기지 않음 | 완료 | 실패/미검증 섹션 작성 |  |
-| 43 | 커밋하지 않음 | 완료 | git commit 미수행 |  |
+| 1 | FPS/Fps/fps 잔재 전수 검색 | 완료 | `rg`, `scripts/check-legacy-name.ps1`, `gradlew checkLegacyName` 실행 | 요청/리포트/검사 스크립트/빌드 산출물 제외 |
+| 2 | FPS/Fps/fps 잔재 제거 | 완료 | 핵심 Java 클래스/헤더/설정 명칭을 `Cpf/CPF/cpf`로 변경, 검색 결과 0건 | 예외 스크립트 내부 패턴은 검사 목적상 보유 |
+| 3 | legacy alias 잔존 사유 문서화 | 완료 | 본 리포트에 제외 범위 기록 | 운영 호환 alias는 소스에 남기지 않음 |
+| 4 | mojibake 전수 검색 | 완료 | 강화된 `check-utf8.ps1 -CheckMojibake` 실행 | 다수 파일 발견 |
+| 5 | mojibake 전수 제거 | 실패 | 검사 실패 파일 다수 | CMN 기본 DTO/유틸 일부만 정리 |
+| 6 | check-utf8/checkMojibake 강화 | 완료 | 비 ASCII 리터럴 대신 코드포인트/정규식 기반 검사로 보강 | PowerShell 5.1 인코딩 문제도 보정 |
+| 7 | Java/JS/SQL/MD/YAML/HTML 포맷 정상화 | 일부 | 손댄 파일 컴파일 통과, `git diff --check` 오류 없음 | 전체 포맷 전수 정리는 미완료 |
+| 8 | specs 문서 파편화 통합 | 일부 | 보조 md deprecated 표시, 정본 가이드 연결 | 실제 삭제/완전 통합은 미완료 |
+| 9 | 기존 한글 가이드 문서 정본화 | 일부 | README/index/3대 가이드/SQL 가이드 연결 갱신 | 모든 기능 상세 반영은 계속 필요 |
+| 10 | 기능 구현 매트릭스 작성 | 완료 | `specs/기능_구현_매트릭스.md` 신규 작성 | 보수적으로 일부/미검증 표기 |
+| 11 | deprecated 문서 표시 | 완료 | 보조 md 5개 상단에 deprecated 안내 추가 | 정본은 한글 가이드 |
+| 12 | PFW/CMN/ADM/주제영역 책임 정리 | 일부 | 가이드/매트릭스에 반영 | 의존성 자동 분석은 미수행 |
+| 13 | 기본 온라인 거래 EDU 샘플 | 일부 | `xyz` EDU/거래 로그 샘플 존재 | 실제 앱 호출 검증 미수행 |
+| 14 | 표준 헤더/거래 ID EDU 샘플 | 일부 | `HeaderDTO`, 헤더 표준 문서, 거래 로그 smoke 확인 | Swagger 실제 호출 미검증 |
+| 15 | 트랜잭션 분리 EDU 샘플 | 일부 | `XyzAuditSampleService` 확인 | 통합 테스트 미검증 |
+| 16 | 주제영역 간 호출 EDU 샘플 | 일부 | ACC -> MBR 샘플 컴파일 통과 | 서비스 동시 기동 미검증 |
+| 17 | 외부 연동 호출 EDU 샘플 | 일부 | `CpfWebClient` 계열 컴파일 통과 | timeout/retry 실행 검증 필요 |
+| 18 | 입력/세션/요청 컨텍스트 EDU 샘플 | 일부 | PFW context/filter 컴파일 통과 | 실제 요청 검증 미수행 |
+| 19 | 공통 코드/메시지 EDU 샘플 | 일부 | ADM/CMN 코드, 메시지 API 컴파일 통과 | 브라우저 검증 미수행 |
+| 20 | 표준 예외/오류 EDU 샘플 | 일부 | 예외 클래스 `Cpf*` rename 및 컴파일 통과 | mojibake 다수 남음 |
+| 21 | 로그/감사/추적 EDU 샘플 | 일부 | 감사/거래 로그 API 컴파일, smoke row 확인 | 앱 호출 미검증 |
+| 22 | 파일/다운로드 EDU 샘플 | 일부 | CMN file exchange/ADM 로그 다운로드 일부 존재 | 권한/감사 다운로드 미완성 |
+| 23 | 메시징/알림 EDU 샘플 | 일부 | CMN MQE, PFW notification SQL 존재 | ADM 알림 관리 UI/API 미완성 |
+| 24 | 보안/JWT/OAuth EDU 샘플 | 일부 | CMN security 계열 컴파일 | OTP QR/복구코드 미완성 |
+| 25 | 배치 EDU 샘플 | 일부 | `XyzBatchEducationController` 확인 | 실제 Job 실행 미검증 |
+| 26 | EDU 샘플 Swagger 정리 | 일부 | Controller annotation 다수 확인 | `/v3/api-docs` 미검증 |
+| 27 | EDU seed 데이터 보강 | 일부 | MariaDB smoke seed row 확인 | 전체 EDU seed 매트릭스는 미완성 |
+| 28 | EDU Batch Job seed 등록 | 완료 | `pfw_batch_job` 3건, schedule 2건 확인 | DB 기준 |
+| 29 | EDU Batch Job 실제 실행 | 미검증 | 앱 기동/Job 실행 미수행 | BATCH_* row 0 |
+| 30 | BATCH_JOB_INSTANCE 적재 | 실패 | MariaDB smoke 결과 0건 | 테이블은 생성됨 |
+| 31 | BATCH_JOB_EXECUTION 적재 | 실패 | MariaDB smoke 결과 0건 | 실제 Job 실행 필요 |
+| 32 | BATCH_STEP_EXECUTION 적재 | 실패 | MariaDB smoke 결과 0건 | 실제 Job 실행 필요 |
+| 33 | pfw_batch_execution 연계 | 일부 | `pfw_batch_execution` 1건 seed 확인 | Spring Batch execution id 실연계 미검증 |
+| 34 | 배치 처리 건수/수량/결과 통계 | 일부 | `pfw_batch_execution`, `pfw_batch_step_execution` count 컬럼 확인 | read/write/filter/rollback 전체 미검증 |
+| 35 | ADM 배치 목록 완성 | 일부 | Controller/API/UI 존재, 컴파일 통과 | 브라우저 클릭 미검증 |
+| 36 | ADM 배치 상세 완성 | 일부 | execution detail API 존재 | 실제 화면 클릭 미검증 |
+| 37 | Execution 목록/상세/Step 상세 | 일부 | `/adm/api/batch/executions` 계열 확인 | 실제 데이터/브라우저 미검증 |
+| 38 | 자동 수행/반복 수행 설정 | 일부 | schedule 테이블/API 존재 | scheduler 실기동 미검증 |
+| 39 | 수행 시뮬레이션 고도화 | 일부 | `/schedules/{scheduleId}/simulation` 존재 | cron 정밀 계산 고도화 필요 |
+| 40 | 선행/후행/Trigger Job 관리 | 일부 | `pfw_batch_job_relation`, API 존재 | 그래프 UI 미구현 |
+| 41 | 수행 대상 인스턴스 관리 | 일부 | `pfw_batch_execution_target`, API 존재 | 등록/배정/취소 API 부족 |
+| 42 | 온라인 거래 조회/상세 완성 | 일부 | ADM 로그 화면/API 존재 | 브라우저 클릭 미검증 |
+| 43 | 온라인 거래 검색조건 고도화 | 일부 | 주요 조건 UI 존재 | 전문/파라미터 검색 고도화 필요 |
+| 44 | 온라인 거래 외부호출 수/오류 수/알림 수 표시 | 일부 | 로그/알림 테이블 일부 존재 | 통계 표시 완성 필요 |
+| 45 | 오류 로그 조회/상세/조치 상태 | 일부 | 오류 상세 탭 일부 존재 | 조치 상태 workflow 미완성 |
+| 46 | 알림 룰/채널/수신자/템플릿 관리 | 일부 | `pfw_notification_*` SQL 존재 | ADM UI/API 미완성 |
+| 47 | 알림 발송 이력 조회 | 일부 | `pfw_notification_delivery_log` 1건 seed | ADM 조회 API/UI 필요 |
+| 48 | Excel/CSV/로그 다운로드 | 일부 | ADM 로그 상세 다운로드 일부 존재 | 공통 다운로드 미완성 |
+| 49 | 다운로드 권한/마스킹/감사 로그 | 일부 | 권한/마스킹 일부 존재 | 다운로드 감사 테이블/API 필요 |
+| 50 | ADM 런타임 로그 레벨 변경 | 일부 | 동적 로그레벨 API/화면 존재 | broker 전파 미검증 |
+| 51 | Runtime Log Level API/이력/권한 | 일부 | DB polling/API 일부 존재 | 권한별 브라우저 검증 필요 |
+| 52 | Swagger 실제 호출 검증 | 미검증 | 앱 기동하지 않음 | `/v3/api-docs` 미호출 |
+| 53 | ADM 브라우저 클릭 검증 | 미검증 | 브라우저/Playwright 미실행 | 화면 정적 파일만 확인 |
+| 54 | qualityGate 성공 | 실패 | `gradlew qualityGate --offline` 실패 | 원인: `checkMojibake` |
+| 55 | 문서/소스/SQL/Swagger/EDU/ADM 정합성 | 일부 | 매트릭스/가이드/SQL 연결 보강 | Swagger/브라우저/전체 mojibake 미완료 |
 
-## 3. 현재상황 리뷰
+## 3. 실제 확인한 주요 파일
 
-- 현재 브랜치: `master`
-- 마지막 커밋: `19a35aa 중간 생성물 push`
-- 최근 커밋 5개:
-  - `19a35aa 중간 생성물 push`
-  - `de6ecc5 20260616 작업분`
-  - `047fd77 Rename project from FPS to CPF`
-  - `e7269b5 테스트 작업중`
-  - `87acbc3 FPS 공통 DTO 관리 적용`
-- 작업 시작 전 변경 파일 여부: `CPF_CODEX_REQUEST_20260618_01.md`가 untracked 상태였습니다.
-- 작업 시작 일시: 정확한 시작 시각은 명령 로그로 별도 캡처하지 못했습니다. 보고서 작성 시각은 상단에 기록했습니다.
-- 일반 `git status`는 sandbox 사용자와 저장소 소유자가 달라 `dubious ownership` 오류가 발생했으며, 이후 `git -c safe.directory=D:/WORK_CPF/202412_01_CPF ...`로 상태를 확인했습니다.
+- 요청서: `CPF_CODEX_REQUEST_20260618_01.md`
+- 루트/품질: `README.md`, `build.gradle`, `scripts/check-utf8.ps1`, `scripts/check-legacy-name.ps1`, `.gitignore`
+- 문서: `specs/index.html`, `specs/개발_가이드.html`, `specs/관리자_가이드.html`, `specs/프레임워크_구성_가이드.html`, `specs/sql/README.md`, `specs/기능_구현_매트릭스.md`
+- ADM: `AdmBatchController`, `AdmBatchOperationService`, `AdmMemberController`, `AdmPermissionController`, `adm/src/main/resources/static/adm/index.html`, `adm.js`
+- EDU: `XyzBatchEducationController`, `XyzEducationController`, `xyz/src/main/java/cpf/xyz/edu/**`
+- SQL: `specs/sql/00_all_install_and_smoke.sql`, `00_all_install.sql`, `02_create_service_users.sql`, `migration/flyway/V1__cpf_baseline_install.sql`
+- CMN/PFW 기본: `HeaderDTO`, `CpfDTO`, `DataDTO`, `ValidationUtils`, `MaskingUtils`, PFW `Cpf*` exception/http/logging/workflow 클래스
 
-## 4. PFW / CMN / ADM / 주제영역 책임 정리 결과
+## 4. 실제 수정한 파일 요약
 
-- PFW: Spring Batch 표준 저장소, CPF 배치 운영 메타, 영업일/관계/대상/알림 DB 기준을 담당하도록 보강했습니다.
-- CMN: 기존 공통 채번/알림/업무 로그 역할은 유지했습니다.
-- ADM: PFW 배치 기능을 운영자가 조회하고 실행하는 콘솔 역할로 API/UI를 보강했습니다.
-- 주제영역: EDU는 배치 개발 샘플을 제공하고, 실제 업무 모듈은 Job 구현에 집중하는 방향을 문서화했습니다.
-- 의존성 위반 여부: 자동 의존성 분석은 미수행입니다.
+상세 목록은 `CPF_STABILIZATION_CHANGED_FILES.txt`에 정리했습니다.
 
-## 5. ADM 운영 조회/검색조건 보강 결과
+- 과거 `Fps*` Java 클래스명을 `Cpf*`로 rename하고 참조를 일괄 정리했습니다.
+- `X-Fps` 계열 헤더/문서/설정 문자열을 CPF 기준으로 정리했습니다.
+- `check-utf8.ps1`를 강화하고, `check-legacy-name.ps1`와 Gradle `checkLegacyName` task를 추가했습니다.
+- `specs/기능_구현_매트릭스.md`를 신규 작성했습니다.
+- 보조 md 문서에 deprecated 안내를 추가하고 README/index에서 정본 문서와 매트릭스로 연결했습니다.
+- CMN 기본 DTO/유틸 일부의 깨진 한글 주석/메시지를 정상 한글로 정리했습니다.
+- tracked runtime log 산출물 `mbr/logs/mbr/*.log`를 삭제 상태로 정리했습니다. `.gitignore`는 이미 로그를 제외하고 있으므로 커밋 시 추적 제거가 필요합니다.
 
-- `/adm/api/batch/schedules/{scheduleId}/simulation` 추가.
-- `/adm/api/batch/relations` 추가.
-- `/adm/api/batch/execution-targets` 추가.
-- ADM 배치 화면에 수행 시뮬레이션, 관계 조회, 수행 대상 조회 버튼과 필드를 추가했습니다.
-- 온라인 거래/오류/알림의 전체 표준 검색조건 통합은 일부만 반영된 상태입니다.
+## 5. 실제 실행한 검증 명령과 결과
 
-## 6. ADM 다운로드 기능 보강 결과
+| 명령 | 결과 | 메모 |
+|---|---|---|
+| `.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline` | 성공 | 6개 모듈 compileJava 성공 |
+| `powershell -File scripts\check-utf8.ps1` | 성공 | UTF-8 strict decode 통과 |
+| `powershell -File scripts\check-utf8.ps1 -CheckMojibake` | 실패 | 강화된 검사에서 다수 Java/XML/YML 파일 검출 |
+| `powershell -File scripts\check-sql-standard.ps1` | 성공 | SQL 표준 검사 통과 |
+| `powershell -File scripts\check-legacy-name.ps1` | 성공 | 레거시 명칭 검색 통과 |
+| `.\gradlew.bat checkLegacyName --offline` | 성공 | Gradle task 연결 확인 |
+| `.\gradlew.bat test --offline` | 성공 | 단, ACC/ADM/PFW/XYZ test는 SKIPPED 또는 NO-SOURCE 포함 |
+| `.\gradlew.bat qualityGate --offline` | 실패 | `:checkMojibake` 실패 |
+| `git diff --check` | 성공 | whitespace error 없음. CRLF/LF 경고만 표시 |
+| MariaDB `00_all_install_and_smoke.sql` 1회 실행 | 성공 | smoke row count 출력 |
+| MariaDB `00_all_install_and_smoke.sql` 2회 실행 | 성공 | seed 재실행/idempotent 성격 확인 |
+| information_schema table/FK/index count | 성공 | `pfwdb=31`, `admdb=15`, `cmndb=4`, `mbrdb=4`, `accdb=1` |
+| app 계정 DDL probe | 성공적으로 거부됨 | app 계정 CREATE TABLE 거부 확인 |
+| migration/app 권한 조회 | 성공 | app은 DML, migration은 DDL 포함. password hash는 리포트에 기록하지 않음 |
 
-- 기존 로그 상세 다운로드 기능은 유지했습니다.
-- 모든 ADM 목록/이력 화면의 Excel/CSV/로그 다운로드, 사유 필수, 감사 로그, 원문 보기 권한 분리는 이번 작업에서 완성하지 못했습니다.
+## 6. MariaDB 검증 요약
 
-## 7. UTF-8 / mojibake 정리 결과
+- `pfwDB.BATCH_JOB_INSTANCE`, `BATCH_JOB_EXECUTION`, `BATCH_STEP_EXECUTION` 테이블은 설치됐습니다.
+- 하지만 실제 Spring Batch Job 실행을 하지 않았으므로 위 3개 테이블 row count는 모두 0입니다.
+- CPF 운영 메타는 seed 기준으로 적재됐습니다: `pfw_batch_job=3`, `pfw_batch_schedule=2`, `pfw_batch_job_relation=2`, `pfw_batch_execution=1`, `pfw_batch_step_execution=1`, `pfw_batch_execution_target=1`.
+- FK/index count 확인: `pfwdb FK=18/index=141`, `admdb FK=10/index=62`, `cmndb FK=1/index=28`, `mbrdb FK=3/index=28`, `accdb index=4`.
+- 앱 계정 DDL 금지는 실제 MariaDB 오류로 확인했습니다.
 
-- `scripts/check-utf8.ps1 -CheckMojibake` 통과.
-- 외부 입력 파일인 `CPF_CODEX_REQUEST_20260618_01.md`는 품질 gate 대상에서 제외했습니다.
-- 신규/변경 SQL과 문서는 UTF-8 기준으로 작성했습니다.
+## 7. 실패한 명령과 원인
 
-## 8. MariaDB / SQL 검증 결과
+- `scripts/check-utf8.ps1` 1차 보강 후 PowerShell parser 오류가 발생했습니다. 원인은 PowerShell 5.1이 UTF-8 BOM 없는 스크립트의 비 ASCII mojibake 리터럴을 ANSI로 읽은 것입니다. 이후 코드포인트/정규식 기반으로 수정했습니다.
+- `scripts/check-utf8.ps1 -CheckMojibake` 최종 실행은 실패했습니다. 원인은 실제 깨진 한글이 ACC/ADM/CMN/MBR/PFW/XYZ 여러 Java/XML/YML 파일에 남아 있기 때문입니다.
+- `qualityGate`는 `checkMojibake` 실패 때문에 실패했습니다.
 
-- `specs/sql/00_all_install_and_smoke.sql` 실제 MariaDB 실행: 성공.
-- 동일 SQL 재실행: 성공.
-- smoke 결과 주요 row count:
-  - `pfwDB.pfw_batch_job`: 3
-  - `pfwDB.pfw_batch_schedule`: 2
-  - `pfwDB.pfw_batch_job_relation`: 2
-  - `pfwDB.pfw_batch_execution_target`: 1
-  - `pfwDB.pfw_notification_rule`: 2
-  - `pfwDB.pfw_notification_delivery_log`: 1
-  - `admDB.adm_button`: 45
-- information_schema 확인:
-  - table count: `pfwdb=31`, `admdb=15`, `cmndb=4`, `mbrdb=4`, `accdb=1`
-  - FK count: `pfwdb=18`, `admdb=10`, `cmndb=1`, `mbrdb=3`
-  - index count: `pfwdb=141`, `admdb=62`, `cmndb=28`, `mbrdb=28`, `accdb=4`
-- app/migration 계정 권한 분리: app 계정은 DML, migration 계정은 DDL 포함으로 확인했습니다. 비밀번호/hash 값은 리포트에 기록하지 않습니다.
+## 8. 미검증 항목과 사유
 
-## 9. Swagger/OpenAPI 검증 결과
+- Swagger `/v3/api-docs`, `/swagger-ui.html`, `/swagger-ui/index.html`: 앱을 기동하지 않아 미검증입니다.
+- ADM 브라우저 클릭 검증: 브라우저/Playwright를 실행하지 않아 미검증입니다.
+- Spring Batch 실제 Job 실행과 `BATCH_*` 적재: 앱 기동 및 EDU Job 실행을 하지 않아 미검증/실패 상태입니다.
+- VSCode Problems: IDE 내부 Problems 목록을 CLI에서 직접 조회하지 못해 미검증입니다.
+- Redis/Kafka/RabbitMQ broker 전파: 외부 broker 실검증은 이번 실행에서 제외했습니다.
+- TOTP QR/복구코드: 실제 OTP 앱 호환 등록/검증 UI/API는 미완성입니다.
 
-- 코드 수준 Swagger 어노테이션은 ADM Batch와 XYZ EDU Batch에 반영했습니다.
-- 앱을 기동해서 `/v3/api-docs`, `/swagger-ui.html`, `/swagger-ui/index.html`을 호출하는 검증은 미검증입니다.
+## 9. 남은 리스크
 
-## 10. 배치관리 보강 결과
+- mojibake가 전체 소스에 넓게 남아 있어 qualityGate가 실패합니다.
+- `CPF_CODEX_REQUEST_20260618_01.md`는 사용자 입력 파일로 변경 상태이며, 작업 변경과 분리해야 합니다.
+- 대량 rename으로 git status에는 delete/untracked 쌍이 많이 보입니다. 커밋 전 rename으로 검토해야 합니다.
+- `mbr/logs`는 tracked 파일이었으므로 커밋 시 삭제로 반영해 추적을 끊어야 합니다.
+- Swagger annotation은 존재하지만 실제 OpenAPI JSON 품질은 확인하지 않았습니다.
+- ADM 화면은 파일상 기능이 있으나 실제 운영자 UX 클릭 검증이 필요합니다.
 
-- Spring Batch 표준 `BATCH_*` 테이블을 설치 SQL과 Flyway baseline에 추가했습니다.
-- `pfw_batch_schedule`에 `calendar_id`, `business_day_only_yn`, `holiday_policy`, `available_start_time`, `available_end_time`, `run_date_pattern`을 추가했습니다.
-- `pfw_batch_job_relation`으로 선행/후행/트리거 관계를 표현했습니다.
-- `pfw_batch_execution_target`으로 수행 대상/대기 인스턴스 기준을 추가했습니다.
-- ADM API/UI와 EDU 설명 API를 연결했습니다.
+## 10. 다음 보강 후보
 
-## 11. 알림/노티 보강 결과
+1. 전체 mojibake 전수 정리: 강화된 `checkMojibake`가 통과할 때까지 ACC/ADM/CMN/MBR/PFW/XYZ 파일을 정상 한글로 복구.
+2. Spring Batch 실기동 검증: ADM 또는 XYZ 앱을 기동하고 EDU Job을 실행해 `BATCH_JOB_INSTANCE`, `BATCH_JOB_EXECUTION`, `BATCH_STEP_EXECUTION` 적재 확인.
+3. Swagger 자동 검증: 앱 기동 후 `/v3/api-docs` JSON을 저장하고 schema/tag/example 품질 gate 추가.
+4. ADM 브라우저 검증: 로그인, 회원관리, 권한, 로그 상세 포맷팅, 배치 시뮬레이션/관계/수행대상 버튼 클릭 검증.
+5. 배치 운영 고도화: 관계 그래프 UI, 수행 대상 등록/배정/취소 API, scheduler 실제 실행, 실패 재처리 시나리오.
+6. 다운로드 공통화: Excel/CSV/로그 다운로드 권한, 사유, 마스킹, 감사 로그를 공통 정책으로 묶기.
+7. 알림 운영 완성: 알림 룰/채널/수신자/템플릿 ADM UI/API와 발송 이력 조회.
 
-- `pfw_notification_rule`, `pfw_notification_delivery_log`를 추가했습니다.
-- 배치 실패와 보안 이벤트용 seed를 추가했습니다.
-- ADM 알림 관리 화면/API는 아직 미구현입니다.
+## 11. 추가 개선 의견
 
-## 12. JWT/OAuth/Security 책임 분리 결과
+- `qualityGate`가 실패하는 현재 상태가 오히려 정상 신호입니다. 이전처럼 약한 검사로 통과시키는 것보다, 깨진 한글을 모두 제거한 뒤 gate를 다시 녹색으로 만드는 편이 맞습니다.
+- `BATCH_*`는 테이블 생성만으로 완료가 아닙니다. 반드시 실제 Job 실행으로 Spring Batch repository row가 생기는지 확인해야 합니다.
+- 기능이 많은 ADM은 “화면 있음”과 “운영 가능”을 구분해야 합니다. 버튼 권한, 비활성 사유, 감사 사유, 마스킹, 다운로드 권한까지 클릭 시나리오로 검증해야 합니다.
+- 문서 정본은 `README.md`, `specs/index.html`, `specs/프레임워크_구성_가이드.html`, `specs/개발_가이드.html`, `specs/관리자_가이드.html`, `specs/sql/README.md`, `specs/기능_구현_매트릭스.md`로 유지하는 방향이 좋습니다.
 
-- 이번 변경은 보안 모듈 구조를 크게 바꾸지 않았습니다.
-- 관리자 인증/운영 보안은 ADM, 공통 보안 유틸은 CMN/PFW 기준으로 유지하는 방향을 문서에 남겼습니다.
-- TOTP QR/복구코드, OAuth provider 연동은 미구현입니다.
+## 12. 문서/소스/SQL/Swagger/ADM/EDU 정합성 결과
 
-## 13. 테스트 / qualityGate 결과
+- 문서와 SQL: `BATCH_*`, `pfw_batch_*`, ADM 회원/권한/배치/로그 기준은 가이드와 SQL 가이드에 연결했습니다.
+- 문서와 EDU: `xyz` EDU Batch 샘플과 개발 가이드 배치 매트릭스는 연결되어 있습니다.
+- 문서와 ADM: 관리자 가이드는 ADM 주요 메뉴를 설명하지만 브라우저 검증은 아직 없습니다.
+- 문서와 Swagger: Controller annotation은 확인했지만 OpenAPI JSON은 미검증입니다.
+- 문서와 검사: README/CI 문서에 `qualityGate`, UTF-8, mojibake, legacy name 검사 기준을 연결했습니다.
 
-- `.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline`: 성공.
-- `.\gradlew.bat test --offline`: 성공. 단, `acc`, `adm`, `pfw`, `xyz` 테스트는 Gradle 설정상 `SKIPPED` 또는 `NO-SOURCE`로 표시되었습니다.
-- `.\gradlew.bat qualityGate --offline`: 최종 성공.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-utf8.ps1 -CheckMojibake`: 성공.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-sql-standard.ps1`: 성공.
-- `git diff --check`: whitespace 오류 없음. 단, SQL 합본 파일은 Git 경고로 CRLF가 LF로 변환될 수 있다고 표시되었습니다.
+## 13. 한글 가이드와 실제 구현 대조 결과
 
-## 14. 문서/EDU 샘플 정합성 결과
+- `specs/개발_가이드.html`: EDU 배치, CMN optional DB, 신규 모듈 기준을 실제 소스 경로와 연결했습니다.
+- `specs/관리자_가이드.html`: ADM 회원관리, 권한, 통합 로그, 배치, 보안 운영 기준을 현재 테이블/API 기준으로 설명합니다.
+- `specs/프레임워크_구성_가이드.html`: PFW/CMN/ADM/업무 DB 소유권과 Spring Batch/Flyway 기준을 설명합니다.
+- `specs/기능_구현_매트릭스.md`: 기능별 구현 상태를 보수적으로 표시했습니다. `완료`보다 `일부 구현`이 많은 것이 현재 실제 상태입니다.
 
-- `README.md`를 짧은 진입점으로 정리했습니다.
-- `specs/index.html`에서 핵심 가이드와 보조 표준 문서를 분리했습니다.
-- 개발/관리자/프레임워크 구성/SQL 가이드에 Spring Batch 저장소와 CPF 배치 운영 메타 차이를 반영했습니다.
-- `XyzBatchEducationController`에 배치 스케줄 정책 EDU 설명을 추가했습니다.
+## 14. 민감정보 처리
 
-## 15. 실행한 명령과 결과
+- 사용자가 제공한 DB 비밀번호와 MariaDB password hash는 리포트에 기록하지 않았습니다.
+- DB 권한 검증 결과는 권한 범위와 성공/거부 여부만 기록했습니다.
 
-- `git status`: 실패. sandbox 사용자와 저장소 소유자 차이로 dubious ownership 발생.
-- `git -c safe.directory=... status --short`: 성공.
-- `git -c safe.directory=... log --oneline -5`: 성공.
-- `rg ... -g "build.gradle"` 이전 wildcard 검색: 실패. Windows wildcard 경로 구문 문제.
-- Gradle compile/test/qualityGate: 최종 성공.
-- MariaDB `00_all_install_and_smoke.sql`: 2회 성공.
-- information_schema FK 조회 1차: 실패. `REFERENTIAL_CONSTRAINTS.TABLE_SCHEMA` 컬럼 오사용.
-- information_schema FK 조회 2차: 성공.
-- `git diff --check` 1차: 실패. 합본 SQL EOF 빈 줄.
-- `git diff --check` 2차: 성공. CRLF/LF 경고만 남음.
+## 15. 커밋 여부
 
-## 16. 남은 리스크
-
-- Swagger/OpenAPI JSON은 앱 기동 후 검증하지 않았습니다.
-- ADM UI는 브라우저 클릭 검증을 수행하지 않았습니다.
-- Spring Batch JobRepository는 테이블 설치까지 검증했지만, 앱에서 실제 Job 실행 후 `BATCH_JOB_EXECUTION` 적재는 미검증입니다.
-- 전체 ADM 다운로드 기능과 다운로드 감사 로그는 아직 미완성입니다.
-- 알림/노티 ADM 관리 화면/API는 아직 미완성입니다.
-- VS Code Problems 직접 확인은 미검증입니다.
-
-## 17. 보류 항목
-
-- Redis/Kafka/RabbitMQ 실 broker 테스트.
-- TOTP QR/복구코드까지 포함한 OTP 완성.
-- ADM 전체 다운로드 기능.
-- OpenAPI JSON 품질 gate.
-- 배치 관계 그래프 시각화.
-
-## 18. Codex가 판단한 추가 보강 의견
-
-1. ADM 배치 관제에서 관계 조회 결과를 그래프 형태로 보여주는 UI가 필요합니다.
-2. `pfw_batch_execution_target`에 등록/배정/취소 API를 추가하면 운영자가 수행 대기 상태를 더 명확히 관리할 수 있습니다.
-3. 다운로드 기능은 공통 download policy interceptor와 `adm_download_audit_log`로 한 번에 묶는 편이 좋습니다.
-4. OpenAPI JSON 검증은 앱 기동 자동화와 함께 CI gate로 올리는 것이 좋습니다.
-5. `git diff`의 CRLF/LF 경고는 `.gitattributes` 기준과 합본 생성기의 줄바꿈 정책을 한 번 더 맞추는 것이 좋습니다.
-
-## 19. 다음 Codex 작업 추천
-
-1. ADM 전체 목록/로그/이력 다운로드 공통 기능과 감사 로그 구현.
-2. ADM 알림/노티 관리 화면/API 구현.
-3. Spring Batch 실제 앱 기동 후 Job 실행, `BATCH_*` 적재, ADM 상세 연동 검증.
-4. Swagger 앱 기동 검증과 OpenAPI JSON 품질 gate 추가.
-5. 배치 관계 그래프 UI와 수행 대상 등록/배정 API 보강.
-6. VS Code Problems 기준 null/static warning 전수 정리.
-
-## 20. 추천 커밋 메시지
-
-```text
-stabilize cpf batch repository and adm batch operations
-```
-
-## 21. 허위 보고 방지 체크
-
-- 실행하지 않은 Swagger 앱 기동 검증은 미검증으로 표시했습니다.
-- 실행하지 않은 VS Code Problems 확인은 미검증으로 표시했습니다.
-- 실패한 명령을 15번 섹션에 기록했습니다.
-- MariaDB 비밀번호와 계정 password hash는 기록하지 않았습니다.
-- 커밋하지 않았습니다.
-
+커밋하지 않았습니다.

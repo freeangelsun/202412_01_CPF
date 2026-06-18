@@ -7,8 +7,8 @@ import cpf.cmn.tlm.core.CmnTelegramFieldSpec;
 import cpf.cmn.tlm.core.CmnTelegramFieldType;
 import cpf.cmn.tlm.core.CmnTelegramParseResult;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsSystemException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfSystemException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
@@ -123,7 +123,7 @@ public class CmnTelegramService {
      */
     public String writeFromDto(Object dto) {
         if (dto == null) {
-            throw new FpsValidationException("?꾨Ц ?앹꽦 ???DTO???꾩닔?낅땲??");
+            throw new CpfValidationException("?꾨Ц ?앹꽦 ???DTO???꾩닔?낅땲??");
         }
         return writeFromMap(valuesFromDto(dto), schemaFromDto(dto.getClass()));
     }
@@ -173,7 +173,7 @@ public class CmnTelegramService {
                 case DATE -> TextUtils.hasText(value) ? LocalDate.parse(value.replace("-", ""), BASIC_DATE) : null;
             };
         } catch (RuntimeException ex) {
-            throw new FpsValidationException("?꾨Ц ?꾨뱶 ?먮즺??蹂?섏뿉 ?ㅽ뙣?덉뒿?덈떎. field="
+            throw new CpfValidationException("?꾨Ц ?꾨뱶 ?먮즺??蹂?섏뿉 ?ㅽ뙣?덉뒿?덈떎. field="
                     + field.name() + ", value=" + raw + ", type=" + field.type());
         }
     }
@@ -188,7 +188,7 @@ public class CmnTelegramService {
         };
 
         if (raw.length() > field.length()) {
-            throw new FpsValidationException("?꾨Ц ?꾨뱶 湲몄씠瑜?珥덇낵?덉뒿?덈떎. field=" + field.name()
+            throw new CpfValidationException("?꾨Ц ?꾨뱶 湲몄씠瑜?珥덇낵?덉뒿?덈떎. field=" + field.name()
                     + ", length=" + field.length() + ", valueLength=" + raw.length());
         }
 
@@ -287,7 +287,7 @@ public class CmnTelegramService {
 
     private List<CmnTelegramFieldSpec> sortSchema(List<CmnTelegramFieldSpec> schema) {
         if (schema == null || schema.isEmpty()) {
-            throw new FpsValidationException("?꾨Ц ?꾨뱶 ?ㅽ궎留덈뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("?꾨Ц ?꾨뱶 ?ㅽ궎留덈뒗 ?꾩닔?낅땲??");
         }
         return schema.stream()
                 .sorted(Comparator.comparingInt(CmnTelegramFieldSpec::order))
@@ -342,7 +342,7 @@ public class CmnTelegramService {
             }
             return values;
         } catch (ReflectiveOperationException ex) {
-            throw new FpsSystemException("DTO 媛믪쓣 ?꾨Ц ?꾨뱶濡??쎈뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("DTO 媛믪쓣 ?꾨Ц ?꾨뱶濡??쎈뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
         }
     }
 
@@ -372,7 +372,7 @@ public class CmnTelegramService {
             }
             return instance;
         } catch (ReflectiveOperationException ex) {
-            throw new FpsSystemException("?꾨Ц ?뚯떛 寃곌낵瑜?DTO濡?蹂?섑븯??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("?꾨Ц ?뚯떛 寃곌낵瑜?DTO濡?蹂?섑븯??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
         }
     }
 

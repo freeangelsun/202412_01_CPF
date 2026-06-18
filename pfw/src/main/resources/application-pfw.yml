@@ -10,10 +10,10 @@ spring:
 
 springdoc:
   api-docs:
-    enabled: ${CPF_OPENAPI_ENABLED:${FPS_OPENAPI_ENABLED:true}}
+    enabled: ${CPF_OPENAPI_ENABLED:${CPF_OPENAPI_ENABLED:true}}
     path: /v3/api-docs
   swagger-ui:
-    enabled: ${CPF_SWAGGER_UI_ENABLED:${FPS_SWAGGER_UI_ENABLED:true}}
+    enabled: ${CPF_SWAGGER_UI_ENABLED:${CPF_SWAGGER_UI_ENABLED:true}}
     path: /swagger-ui.html
     display-request-duration: true
     tags-sorter: alpha
@@ -34,24 +34,24 @@ cpf:
     transaction-id:
       sequence-digits: 7
   http-client:
-    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS:${FPS_HTTP_CONNECT_TIMEOUT_MS:3000}}
-    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS:${FPS_HTTP_READ_TIMEOUT_MS:5000}}
-    max-in-memory-size-kb: ${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:${FPS_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
+    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS:${CPF_HTTP_CONNECT_TIMEOUT_MS:3000}}
+    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS:${CPF_HTTP_READ_TIMEOUT_MS:5000}}
+    max-in-memory-size-kb: ${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
   services:
     acc:
-      base-url: ${CPF_SERVICE_ACC_URL:${FPS_SERVICE_ACC_URL:http://localhost:8080}}
+      base-url: ${CPF_SERVICE_ACC_URL:${CPF_SERVICE_ACC_URL:http://localhost:8080}}
       description: ACC service
     mbr:
-      base-url: ${CPF_SERVICE_MBR_URL:${FPS_SERVICE_MBR_URL:http://localhost:8081}}
+      base-url: ${CPF_SERVICE_MBR_URL:${CPF_SERVICE_MBR_URL:http://localhost:8081}}
       description: MBR service
     cmn:
-      base-url: ${CPF_SERVICE_CMN_URL:${FPS_SERVICE_CMN_URL:http://localhost:8082}}
+      base-url: ${CPF_SERVICE_CMN_URL:${CPF_SERVICE_CMN_URL:http://localhost:8082}}
       description: CMN service
     pfw:
-      base-url: ${CPF_SERVICE_PFW_URL:${FPS_SERVICE_PFW_URL:http://localhost:8083}}
+      base-url: ${CPF_SERVICE_PFW_URL:${CPF_SERVICE_PFW_URL:http://localhost:8083}}
       description: PFW service
     adm:
-      base-url: ${CPF_SERVICE_ADM_URL:${FPS_SERVICE_ADM_URL:http://localhost:8090}}
+      base-url: ${CPF_SERVICE_ADM_URL:${CPF_SERVICE_ADM_URL:http://localhost:8090}}
       description: ADM service
 
 ---

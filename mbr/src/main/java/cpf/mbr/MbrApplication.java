@@ -22,7 +22,7 @@ import org.springframework.context.annotation.ComponentScan;
  * ?ㅽ뻾 諛⑸쾿:
  *   ./gradlew :mbr:bootRun --args='--spring.profiles.active=local'
  * 
- * @author FPS Team
+ * @author CPF Team
  * @version 1.0.0
  */
 @SpringBootApplication

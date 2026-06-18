@@ -4,10 +4,10 @@ import java.security.SecureRandom;
 import java.util.UUID;
 
 /**
- * ?낅Т?먯꽌 ?먯＜ ?곕뒗 ?꾩떆 ?앸퀎???앹꽦 ?좏떥由ы떚?낅땲??
+ * 업무에서 자주 쓰는 임시 식별자를 생성하는 유틸리티입니다.
  *
- * <p>湲濡쒕쾶 嫄곕옒ID??PFW??{@code TransactionIdGenerator}瑜??ъ슜?댁빞 ?⑸땲??
- * ???대옒?ㅻ뒗 ?낅Т ?꾩떆踰덊샇, ?붾㈃ ?붿껌踰덊샇, ?섑뵆 ?곗씠???ㅼ쿂??嫄곕옒ID媛 ?꾨땶 蹂댁“ ?앸퀎?먯뿉留??ъ슜?⑸땲??</p>
+ * <p>글로벌 거래 ID는 PFW의 {@code TransactionIdGenerator}를 사용해야 합니다.
+ * 이 클래스는 업무 임시번호, 화면 요청번호, 샘플 데이터 식별자처럼 거래 ID가 아닌 보조 식별자에만 사용합니다.</p>
  */
 public final class IdUtils {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -16,17 +16,19 @@ public final class IdUtils {
     }
 
     /**
-     * ?섏씠???녿뒗 UUID 臾몄옄?댁쓣 ?앹꽦?⑸땲??
+     * 하이픈 없는 UUID 문자열을 생성합니다.
      *
-     * @return 32?먮━ UUID 臾몄옄??     */
+     * @return 32자리 UUID 문자열
+     */
     public static String uuid32() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
     /**
-     * 吏?뺥븳 ?묐몢?댁? ?좎쭨/?쒖닔瑜?議고빀???낅Т???꾩떆 ID瑜??앹꽦?⑸땲??
+     * 지정한 접두어와 날짜, 난수를 조합해 업무용 임시 ID를 생성합니다.
      *
-     * @param prefix ?낅Т ?묐몢??     * @return ?? TMP20260612095615123456
+     * @param prefix 업무 접두어
+     * @return 예: TMP20260612095615123456
      */
     public static String temporaryId(String prefix) {
         String safePrefix = TextUtils.defaultIfBlank(prefix, "TMP").trim().toUpperCase();

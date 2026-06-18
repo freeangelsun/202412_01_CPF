@@ -1,7 +1,7 @@
 package cpf.xyz.edu.controller;
 
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.batch.core.Job;
@@ -40,28 +40,28 @@ public class XyzBatchEducationController {
     }
 
     @PostMapping("/tasklet/run")
-    @FpsTransaction(id = "XYZ13EDU0001", name = "XYZBatchTaskletRun")
+    @CpfTransaction(id = "XYZ13EDU0001", name = "XYZBatchTaskletRun")
     @Operation(summary = "Tasklet Job 실행 샘플", description = "단건 처리나 파일 정리처럼 한 번에 끝나는 배치 유형을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runTasklet(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_TASKLET_JOB", requestUser));
     }
 
     @PostMapping("/chunk/run")
-    @FpsTransaction(id = "XYZ13EDU0002", name = "XYZBatchChunkRun")
+    @CpfTransaction(id = "XYZ13EDU0002", name = "XYZBatchChunkRun")
     @Operation(summary = "Chunk Job 실행 샘플", description = "대용량 데이터를 읽기/처리/쓰기 단위로 나누어 처리하는 배치 유형을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runChunk(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_CHUNK_JOB", requestUser));
     }
 
     @PostMapping("/retry/run")
-    @FpsTransaction(id = "XYZ13EDU0003", name = "XYZBatchRetryRun")
+    @CpfTransaction(id = "XYZ13EDU0003", name = "XYZBatchRetryRun")
     @Operation(summary = "실패 재처리 Job 실행 샘플", description = "실패 데이터 적재와 재수행 정책을 설명하는 배치 유형을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runRetry(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_RETRY_JOB", requestUser));
     }
 
     @GetMapping("/retry-policy")
-    @FpsTransaction(id = "XYZ13EDU0004", name = "XYZBatchRetryPolicy")
+    @CpfTransaction(id = "XYZ13EDU0004", name = "XYZBatchRetryPolicy")
     @Operation(summary = "skip/retry 정책 설명", description = "배치 실패 재처리와 skip/retry 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> retryPolicy() {
         return ResponseEntity.ok(Map.of(
@@ -72,7 +72,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/lock-policy")
-    @FpsTransaction(id = "XYZ13EDU0005", name = "XYZBatchLockPolicy")
+    @CpfTransaction(id = "XYZ13EDU0005", name = "XYZBatchLockPolicy")
     @Operation(summary = "중복 실행 방지 lock 설명", description = "동일 job/parameter 중복 실행을 막는 운영 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> lockPolicy() {
         return ResponseEntity.ok(Map.of(
@@ -84,7 +84,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/checkpoint-restart")
-    @FpsTransaction(id = "XYZ13EDU0006", name = "XYZBatchCheckpointRestart")
+    @CpfTransaction(id = "XYZ13EDU0006", name = "XYZBatchCheckpointRestart")
     @Operation(summary = "checkpoint/restart 설명", description = "대용량 배치의 재시작 기준과 checkpoint 저장 원칙을 설명합니다.")
     public ResponseEntity<Map<String, Object>> checkpointRestart() {
         return ResponseEntity.ok(Map.of(
@@ -94,7 +94,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/adm-link")
-    @FpsTransaction(id = "XYZ13EDU0007", name = "XYZBatchAdmLink")
+    @CpfTransaction(id = "XYZ13EDU0007", name = "XYZBatchAdmLink")
     @Operation(summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> admLink() {
         return ResponseEntity.ok(Map.of(
@@ -105,7 +105,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/schedule-policy")
-    @FpsTransaction(id = "XYZ13EDU0008", name = "XYZBatchSchedulePolicy")
+    @CpfTransaction(id = "XYZ13EDU0008", name = "XYZBatchSchedulePolicy")
     @Operation(summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> schedulePolicy() {
         return ResponseEntity.ok(Map.of(

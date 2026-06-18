@@ -6,7 +6,7 @@ import cpf.cmn.cfg.dto.CommonConfigRequest;
 import cpf.cmn.cfg.service.ConfigCacheService;
 import cpf.cmn.msg.dto.CommonMessageRequest;
 import cpf.cmn.msg.service.MessageCacheService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +62,7 @@ public class CmnManagementController {
      * @return ?꾨뗀諭???ｊ탷, ?꾨뗀諭???뤴뫖以? ??뮉 ?袁⑷퍥 ?꾨뗀諭?뤴뫖以??낅빍??
      */
     @GetMapping("/codes")
-    @FpsTransaction(id = "ACC09TST0010", name = "?⑤벏?삭굜遺얜굡鈺곌퀬???묐탣")
+    @CpfTransaction(id = "ACC09TST0010", name = "?⑤벏?삭굜遺얜굡鈺곌퀬???묐탣")
     public ResponseEntity<Map<String, Object>> getCodes(
             @RequestParam(name = "codeId", required = false) Long codeId,
             @RequestParam(name = "codeKey", required = false) String codeKey) {
@@ -89,7 +89,7 @@ public class CmnManagementController {
      * @return ?源낆쨯???꾨뗀諭??類ｋ궖??낅빍??
      */
     @PostMapping("/codes")
-    @FpsTransaction(id = "ACC09TST0011", name = "?⑤벏?삭굜遺얜굡?源낆쨯??묐탣")
+    @CpfTransaction(id = "ACC09TST0011", name = "?⑤벏?삭굜遺얜굡?源낆쨯??묐탣")
     public ResponseEntity<Map<String, Object>> createCode(@Valid @RequestBody CommonCodeRequest request) {
         // ?源낆쨯 ??CodeCacheService쎛 ?꾨뗀諭??Ŋ?녺몴?앸맩???귐뗫늄??됰뻻??몃빍??
         return ok("code created", codeCacheService.createCode(request));
@@ -103,7 +103,7 @@ public class CmnManagementController {
      * @return ??륁젟???꾨뗀諭??類ｋ궖??낅빍??
      */
     @PutMapping("/codes")
-    @FpsTransaction(id = "ACC09TST0012", name = "?⑤벏?삭굜遺얜굡??륁젟??묐탣")
+    @CpfTransaction(id = "ACC09TST0012", name = "?⑤벏?삭굜遺얜굡??륁젟??묐탣")
     public ResponseEntity<Map<String, Object>> updateCode(
             @RequestParam("codeId") Long codeId,
             @Valid @RequestBody CommonCodeRequest request) {
@@ -118,7 +118,7 @@ public class CmnManagementController {
      * @return ??????ㅼ뮇???꾨뗀諭?뤴뫖以??낅빍??
      */
     @DeleteMapping("/codes")
-    @FpsTransaction(id = "ACC09TST0013", name = "?⑤벏?삭굜遺얜굡?????묐탣")
+    @CpfTransaction(id = "ACC09TST0013", name = "?⑤벏?삭굜遺얜굡?????묐탣")
     public ResponseEntity<Map<String, Object>> deleteCode(@RequestParam("codeId") Long codeId) {
         // ??????CodeCacheService쎛 ?꾨뗀諭??Ŋ?녺몴?앸맩???귐뗫늄??됰뻻??몃빍??
         return ok("code deleted", codeCacheService.deleteCode(codeId));
@@ -130,7 +130,7 @@ public class CmnManagementController {
      * @return ㅼ뮇???꾨뗀諭?뤴뫖以??낅빍??
      */
     @PostMapping("/codes/refresh")
-    @FpsTransaction(id = "ACC09TST0014", name = "?⑤벏?삭굜遺얜굡?Ŋ?녺뵳?遊??됰뻻??묐탣")
+    @CpfTransaction(id = "ACC09TST0014", name = "?⑤벏?삭굜遺얜굡?Ŋ?녺뵳?遊??됰뻻??묐탣")
     public ResponseEntity<Map<String, Object>> refreshCodes() {
         // ??곸겫?? ?온???遺얇늺??퐣 ??롫짗 ?귐뗫늄??됰뻻 甕곌쑵????袁ⓥ뀮???怨뱀넺??쎛?類λ립 ??묐탣??낅빍??
         return ok("code cache refreshed", codeCacheService.refreshCodesAndPublish());
@@ -146,7 +146,7 @@ public class CmnManagementController {
      * @return 롫뗄?놅쭪? ??ｊ탷 ??뮉 ?袁⑷퍥 롫뗄?놅쭪? 뤴뫖以??낅빍??
      */
     @GetMapping("/messages")
-    @FpsTransaction(id = "ACC09TST0020", name = "?⑤벏?삼쭖遺용뻻왖鈺곌퀬???묐탣")
+    @CpfTransaction(id = "ACC09TST0020", name = "?⑤벏?삼쭖遺용뻻왖鈺곌퀬???묐탣")
     public ResponseEntity<Map<String, Object>> getMessages(
             @RequestParam(name = "messageId", required = false) Long messageId,
             @RequestParam(name = "messageKey", required = false) String messageKey,
@@ -177,7 +177,7 @@ public class CmnManagementController {
      * @return ?源낆쨯??롫뗄?놅쭪? ?類ｋ궖??낅빍??
      */
     @PostMapping("/messages")
-    @FpsTransaction(id = "ACC09TST0021", name = "?⑤벏?삼쭖遺용뻻왖?源낆쨯??묐탣")
+    @CpfTransaction(id = "ACC09TST0021", name = "?⑤벏?삼쭖遺용뻻왖?源낆쨯??묐탣")
     public ResponseEntity<Map<String, Object>> createMessage(@Valid @RequestBody CommonMessageRequest request) {
         return ok("message created", messageCacheService.createMessage(request));
     }
@@ -190,7 +190,7 @@ public class CmnManagementController {
      * @return ??륁젟??롫뗄?놅쭪? ?類ｋ궖??낅빍??
      */
     @PutMapping("/messages")
-    @FpsTransaction(id = "ACC09TST0022", name = "?⑤벏?삼쭖遺용뻻왖??륁젟??묐탣")
+    @CpfTransaction(id = "ACC09TST0022", name = "?⑤벏?삼쭖遺용뻻왖??륁젟??묐탣")
     public ResponseEntity<Map<String, Object>> updateMessage(
             @RequestParam("messageId") Long messageId,
             @Valid @RequestBody CommonMessageRequest request) {
@@ -204,7 +204,7 @@ public class CmnManagementController {
      * @return ??????ㅼ뮇??롫뗄?놅쭪? 뤴뫖以??낅빍??
      */
     @DeleteMapping("/messages")
-    @FpsTransaction(id = "ACC09TST0023", name = "?⑤벏?삼쭖遺용뻻왖?????묐탣")
+    @CpfTransaction(id = "ACC09TST0023", name = "?⑤벏?삼쭖遺용뻻왖?????묐탣")
     public ResponseEntity<Map<String, Object>> deleteMessage(@RequestParam("messageId") Long messageId) {
         return ok("message deleted", messageCacheService.deleteMessage(messageId));
     }
@@ -215,7 +215,7 @@ public class CmnManagementController {
      * @return ㅼ뮇??롫뗄?놅쭪? 뤴뫖以??낅빍??
      */
     @PostMapping("/messages/refresh")
-    @FpsTransaction(id = "ACC09TST0024", name = "?⑤벏?삼쭖遺용뻻왖?Ŋ?녺뵳?遊??됰뻻??묐탣")
+    @CpfTransaction(id = "ACC09TST0024", name = "?⑤벏?삼쭖遺용뻻왖?Ŋ?녺뵳?遊??됰뻻??묐탣")
     public ResponseEntity<Map<String, Object>> refreshMessages() {
         return ok("message cache refreshed", messageCacheService.refreshMessagesAndPublish());
     }
@@ -228,7 +228,7 @@ public class CmnManagementController {
      * @return ??쇱젟???ｊ탷 ??뮉 ?袁⑷퍥 ??쇱젟?뤴뫖以??낅빍??
      */
     @GetMapping("/configs")
-    @FpsTransaction(id = "ACC09TST0030", name = "?⑤벏???쇱젟鈺곌퀬???묐탣")
+    @CpfTransaction(id = "ACC09TST0030", name = "?⑤벏???쇱젟鈺곌퀬???묐탣")
     public ResponseEntity<Map<String, Object>> getConfigs(
             @RequestParam(name = "configId", required = false) Long configId,
             @RequestParam(name = "configKey", required = false) String configKey) {
@@ -252,7 +252,7 @@ public class CmnManagementController {
      * @return ?源낆쨯????쇱젟??類ｋ궖??낅빍??
      */
     @PostMapping("/configs")
-    @FpsTransaction(id = "ACC09TST0031", name = "?⑤벏???쇱젟?源낆쨯??묐탣")
+    @CpfTransaction(id = "ACC09TST0031", name = "?⑤벏???쇱젟?源낆쨯??묐탣")
     public ResponseEntity<Map<String, Object>> createConfig(@Valid @RequestBody CommonConfigRequest request) {
         return ok("config created", configCacheService.createConfig(request));
     }
@@ -265,7 +265,7 @@ public class CmnManagementController {
      * @return ??륁젟????쇱젟??類ｋ궖??낅빍??
      */
     @PutMapping("/configs")
-    @FpsTransaction(id = "ACC09TST0032", name = "?⑤벏???쇱젟??륁젟??묐탣")
+    @CpfTransaction(id = "ACC09TST0032", name = "?⑤벏???쇱젟??륁젟??묐탣")
     public ResponseEntity<Map<String, Object>> updateConfig(
             @RequestParam("configId") Long configId,
             @Valid @RequestBody CommonConfigRequest request) {
@@ -279,7 +279,7 @@ public class CmnManagementController {
      * @return ??????ㅼ뮇????쇱젟?뤴뫖以??낅빍??
      */
     @DeleteMapping("/configs")
-    @FpsTransaction(id = "ACC09TST0033", name = "?⑤벏???쇱젟?????묐탣")
+    @CpfTransaction(id = "ACC09TST0033", name = "?⑤벏???쇱젟?????묐탣")
     public ResponseEntity<Map<String, Object>> deleteConfig(@RequestParam("configId") Long configId) {
         return ok("config deleted", configCacheService.deleteConfig(configId));
     }
@@ -290,7 +290,7 @@ public class CmnManagementController {
      * @return ㅼ뮇????쇱젟?뤴뫖以??낅빍??
      */
     @PostMapping("/configs/refresh")
-    @FpsTransaction(id = "ACC09TST0034", name = "?⑤벏???쇱젟?Ŋ?녺뵳?遊??됰뻻??묐탣")
+    @CpfTransaction(id = "ACC09TST0034", name = "?⑤벏???쇱젟?Ŋ?녺뵳?遊??됰뻻??묐탣")
     public ResponseEntity<Map<String, Object>> refreshConfigs() {
         return ok("config cache refreshed", configCacheService.refreshConfigsAndPublish());
     }

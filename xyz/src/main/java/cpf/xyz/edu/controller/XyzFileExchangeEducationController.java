@@ -8,7 +8,7 @@ import cpf.cmn.fle.core.CmnFileTransferResult;
 import cpf.cmn.fle.core.CmnRemoteCommandRequest;
 import cpf.cmn.fle.core.CmnRemoteCommandResult;
 import cpf.cmn.fle.service.CmnFileExchangeService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +44,7 @@ public class XyzFileExchangeEducationController {
      * @return ?앹꽦 寃곌낵
      */
     @PostMapping("/file-exchange/local/write")
-    @FpsTransaction(id = "XYZ09EDU0014", name = "XYZ援먯쑁濡쒖뺄?뚯씪?곌린")
+    @CpfTransaction(id = "XYZ09EDU0014", name = "XYZ援먯쑁濡쒖뺄?뚯씪?곌린")
     @Operation(summary = "濡쒖뺄 ?뚯씪 ?곌린 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻 湲곗? ?붾젆?곕━ ?꾨옒???뚯씪???앹꽦?⑸땲??")
     public ResponseEntity<Map<String, Object>> writeLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path,
@@ -64,7 +64,7 @@ public class XyzFileExchangeEducationController {
      * @return ?뚯씪 ?댁슜
      */
     @GetMapping("/file-exchange/local/read")
-    @FpsTransaction(id = "XYZ09EDU0015", name = "XYZ援먯쑁濡쒖뺄?뚯씪?쎄린")
+    @CpfTransaction(id = "XYZ09EDU0015", name = "XYZ援먯쑁濡쒖뺄?뚯씪?쎄린")
     @Operation(summary = "濡쒖뺄 ?뚯씪 ?쎄린 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻 湲곗? ?붾젆?곕━ ?꾨옒 ?뚯씪???쎌뒿?덈떎.")
     public ResponseEntity<Map<String, Object>> readLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path) {
@@ -80,7 +80,7 @@ public class XyzFileExchangeEducationController {
      * @return ?뚯씪 ?꾩넚 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
      */
     @PostMapping("/file-exchange/transfer-plan")
-    @FpsTransaction(id = "XYZ09EDU0016", name = "XYZ援먯쑁?뚯씪?꾩넚怨꾪쉷")
+    @CpfTransaction(id = "XYZ09EDU0016", name = "XYZ援먯쑁?뚯씪?꾩넚怨꾪쉷")
     @Operation(summary = "FTP/SFTP/SCP ?뚯씪 ?꾩넚 怨꾪쉷 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 ?먭꺽 ?뚯씪 ?꾩넚 낅졊 怨꾪쉷???앹꽦?⑸땲??")
     public ResponseEntity<CmnFileTransferResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CmnFileProtocol protocol,
@@ -88,7 +88,7 @@ public class XyzFileExchangeEducationController {
             @RequestParam(defaultValue = "localhost") String host,
             @RequestParam(defaultValue = "appuser") String username,
             @RequestParam(defaultValue = "edu/sample.txt") String localPath,
-            @RequestParam(defaultValue = "/data/fps/sample.txt") String remotePath) {
+            @RequestParam(defaultValue = "/data/cpf/sample.txt") String remotePath) {
         CmnFileTransferRequest request = new CmnFileTransferRequest(
                 protocol,
                 direction,
@@ -108,7 +108,7 @@ public class XyzFileExchangeEducationController {
      * @return SSH 낅졊 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
      */
     @PostMapping("/remote/ssh/command-plan")
-    @FpsTransaction(id = "XYZ09EDU0017", name = "XYZ援먯쑁SSH낅졊怨꾪쉷")
+    @CpfTransaction(id = "XYZ09EDU0017", name = "XYZ援먯쑁SSH낅졊怨꾪쉷")
     @Operation(summary = "SSH 낅졊 怨꾪쉷 ?섑뵆", description = "CMN ?먭꺽 ?곌퀎 怨듯넻?쇰줈 SSH 낅졊 怨꾪쉷???앹꽦?⑸땲??")
     public ResponseEntity<CmnRemoteCommandResult> buildSshCommandPlan(
             @RequestParam(defaultValue = "localhost") String host,
@@ -130,7 +130,7 @@ public class XyzFileExchangeEducationController {
      * @return 理쒓렐 ?뚯씪/?먭꺽 ?곌퀎 ?대젰
      */
     @GetMapping("/file-exchange/history")
-    @FpsTransaction(id = "XYZ09EDU0020", name = "XYZ援먯쑁?뚯씪?곌퀎?대젰議고쉶")
+    @CpfTransaction(id = "XYZ09EDU0020", name = "XYZ援먯쑁?뚯씪?곌퀎?대젰議고쉶")
     @Operation(summary = "?뚯씪/?먭꺽 ?곌퀎 ?대젰 議고쉶 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻??湲곕줉??理쒓렐 泥섎━ ?대젰??議고쉶?⑸땲??")
     public ResponseEntity<List<CmnFileExchangeHistoryRecord>> findFileExchangeHistory() {
         return ResponseEntity.ok(fileExchangeService.findRecentHistory());

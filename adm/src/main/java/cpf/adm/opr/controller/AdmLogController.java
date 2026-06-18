@@ -1,7 +1,7 @@
 package cpf.adm.opr.controller;
 
 import cpf.adm.opr.service.AdmLogQueryService;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.dao.DataAccessException;
@@ -29,7 +29,7 @@ public class AdmLogController {
     }
 
     @GetMapping
-    @FpsTransaction(id = "ADM01OPR0001", name = "ADMTransactionLogList")
+    @CpfTransaction(id = "ADM01OPR0001", name = "ADMTransactionLogList")
     @Operation(summary = "거래 로그 목록 조회", description = "거래 ID, trace ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
@@ -59,7 +59,7 @@ public class AdmLogController {
     }
 
     @GetMapping("/{logIdx}")
-    @FpsTransaction(id = "ADM01OPR0002", name = "ADMTransactionLogDetail")
+    @CpfTransaction(id = "ADM01OPR0002", name = "ADMTransactionLogDetail")
     @Operation(summary = "거래 로그 상세 조회", description = "거래 요약, 상세 로그, JSON pretty, 고정길이 전문 필드 분해 결과를 조회합니다.")
     public ResponseEntity<Map<String, Object>> getLogDetail(@PathVariable Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();

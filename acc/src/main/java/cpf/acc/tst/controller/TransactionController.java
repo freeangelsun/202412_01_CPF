@@ -1,12 +1,12 @@
 package cpf.acc.tst.controller;
 
-import cpf.pfw.common.exception.FpsBusinessException;
-import cpf.pfw.common.exception.FpsExternalServiceException;
-import cpf.pfw.common.exception.FpsValidationException;
-import cpf.pfw.common.logging.FpsTransaction;
-import cpf.pfw.common.workflow.FpsWorkflow;
-import cpf.pfw.common.workflow.FpsWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.FpsWorkflowStep;
+import cpf.pfw.common.exception.CpfBusinessException;
+import cpf.pfw.common.exception.CpfExternalServiceException;
+import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.workflow.CpfWorkflow;
+import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
+import cpf.pfw.common.workflow.CpfWorkflowStep;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionController {
 
     @GetMapping("/success")
-    @FpsTransaction(id = "ACC09TST0001", name = "ACCSuccessSample")
-    @FpsWorkflow(id = "ACC09TST9001", name = "ACCSuccessWorkflow")
-    @FpsWorkflowStep(name = "ACCSuccessStep")
+    @CpfTransaction(id = "ACC09TST0001", name = "ACCSuccessSample")
+    @CpfWorkflow(id = "ACC09TST9001", name = "ACCSuccessWorkflow")
+    @CpfWorkflowStep(name = "ACCSuccessStep")
     @Operation(summary = "Successful transaction sample", description = "Writes a SUCCESS/COMPLETED transaction log sample.")
     public ResponseEntity<String> handleSuccessfulTransaction(@RequestParam String menuId, @RequestParam String execUser) {
         return ResponseEntity.ok("Transaction processed successfully.");
     }
 
     @GetMapping("/failure")
-    @FpsTransaction(id = "ACC09TST0002", name = "ACCFailureSample")
-    @FpsWorkflow(id = "ACC09TST9002", name = "ACCCompensationWorkflow")
-    @FpsWorkflowStep(
+    @CpfTransaction(id = "ACC09TST0002", name = "ACCFailureSample")
+    @CpfWorkflow(id = "ACC09TST9002", name = "ACCCompensationWorkflow")
+    @CpfWorkflowStep(
             name = "ACCFailureStep",
-            failurePolicy = FpsWorkflowFailurePolicy.COMPENSATE,
+            failurePolicy = CpfWorkflowFailurePolicy.COMPENSATE,
             compensationTransactionId = "ACC09TST0005")
     @Operation(summary = "Failed transaction sample", description = "Triggers COMPENSATING workflow metadata for log verification.")
     public ResponseEntity<String> handleFailedTransaction(@RequestParam String menuId, @RequestParam String execUser) {
@@ -42,9 +42,9 @@ public class TransactionController {
     }
 
     @GetMapping("/compensate")
-    @FpsTransaction(id = "ACC09TST0005", name = "ACCCompensationSample")
-    @FpsWorkflow(id = "ACC09TST9002", name = "ACCCompensationWorkflow")
-    @FpsWorkflowStep(
+    @CpfTransaction(id = "ACC09TST0005", name = "ACCCompensationSample")
+    @CpfWorkflow(id = "ACC09TST9002", name = "ACCCompensationWorkflow")
+    @CpfWorkflowStep(
             name = "ACCCompensationStep",
             compensation = true,
             compensationTargetTransactionId = "ACC09TST0002")
@@ -54,16 +54,16 @@ public class TransactionController {
     }
 
     @GetMapping("/standard-exception")
-    @FpsTransaction(id = "ACC09TST0006", name = "PFWStandardExceptionSample")
+    @CpfTransaction(id = "ACC09TST0006", name = "PFWStandardExceptionSample")
     @Operation(summary = "Standard exception sample", description = "Throws validation, business, or external exceptions for handler/log tests.")
     public ResponseEntity<String> throwStandardException(@RequestParam(defaultValue = "validation") String type) {
         if ("business".equalsIgnoreCase(type)) {
-            throw new FpsBusinessException("Business exception sample. type=" + type);
+            throw new CpfBusinessException("Business exception sample. type=" + type);
         }
         if ("external".equalsIgnoreCase(type)) {
-            throw new FpsExternalServiceException("External service exception sample. target=MBR", new IllegalStateException("MBR timeout sample"));
+            throw new CpfExternalServiceException("External service exception sample. target=MBR", new IllegalStateException("MBR timeout sample"));
         }
 
-        throw new FpsValidationException("Validation exception sample. type=" + type);
+        throw new CpfValidationException("Validation exception sample. type=" + type);
     }
 }

@@ -3,7 +3,7 @@ package cpf.xyz.edu.controller;
 import cpf.cmn.tlm.core.CmnTelegramParseResult;
 import cpf.cmn.tlm.service.CmnTelegramService;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.xyz.edu.dto.XyzFixedLengthMemberTelegram;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,7 +30,7 @@ public class XyzTelegramEducationController {
     }
 
     @PostMapping("/fixed-length/parse")
-    @FpsTransaction(id = "XYZ09EDU0012", name = "XYZFixedLengthParse")
+    @CpfTransaction(id = "XYZ09EDU0012", name = "XYZFixedLengthParse")
     @Operation(summary = "Fixed length parse sample", description = "Parses a fixed length string to DTO and map.")
     public ResponseEntity<Map<String, Object>> parseFixedLengthTelegram(@RequestParam(required = false) String telegram) {
         String sampleTelegram = TextUtils.hasText(telegram) ? telegram : telegramService.writeFromDto(defaultTelegramDto());
@@ -45,7 +45,7 @@ public class XyzTelegramEducationController {
     }
 
     @PostMapping("/fixed-length/write")
-    @FpsTransaction(id = "XYZ09EDU0013", name = "XYZFixedLengthWrite")
+    @CpfTransaction(id = "XYZ09EDU0013", name = "XYZFixedLengthWrite")
     @Operation(summary = "Fixed length write sample", description = "Writes a DTO to a fixed length string.")
     public ResponseEntity<Map<String, Object>> writeFixedLengthTelegram(
             @RequestBody(required = false) XyzFixedLengthMemberTelegram request) {
@@ -61,7 +61,7 @@ public class XyzTelegramEducationController {
     }
 
     @PostMapping("/fixed-length/marshal")
-    @FpsTransaction(id = "XYZ09EDU0018", name = "XYZFixedLengthMarshal")
+    @CpfTransaction(id = "XYZ09EDU0018", name = "XYZFixedLengthMarshal")
     @Operation(summary = "Fixed length marshal sample", description = "Alias for fixed-length write.")
     public ResponseEntity<Map<String, Object>> marshalFixedLengthTelegram(
             @RequestBody(required = false) XyzFixedLengthMemberTelegram request) {
@@ -69,7 +69,7 @@ public class XyzTelegramEducationController {
     }
 
     @PostMapping("/fixed-length/unmarshal")
-    @FpsTransaction(id = "XYZ09EDU0019", name = "XYZFixedLengthUnmarshal")
+    @CpfTransaction(id = "XYZ09EDU0019", name = "XYZFixedLengthUnmarshal")
     @Operation(summary = "Fixed length unmarshal sample", description = "Alias for fixed-length parse.")
     public ResponseEntity<Map<String, Object>> unmarshalFixedLengthTelegram(@RequestParam(required = false) String telegram) {
         return parseFixedLengthTelegram(telegram);

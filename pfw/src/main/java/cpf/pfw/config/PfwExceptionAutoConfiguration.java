@@ -1,8 +1,8 @@
 package cpf.pfw.config;
 
-import cpf.pfw.common.exception.FpsGlobalExceptionHandler;
-import cpf.pfw.common.exception.FpsMessageResolver;
-import cpf.pfw.common.exception.FpsResponseCodeResolver;
+import cpf.pfw.common.exception.CpfGlobalExceptionHandler;
+import cpf.pfw.common.exception.CpfMessageResolver;
+import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -22,10 +22,10 @@ public class PfwExceptionAutoConfiguration {
      * @param messageResolverProvider CMN ?먮뒗 ?낅Т ⑤뱢???쒓났?섎뒗 硫붿떆吏 由ъ「踰?     * @return ?쒖? ?덉쇅 ?몃뱾??     */
     @Bean
     @ConditionalOnMissingBean
-    public FpsGlobalExceptionHandler fpsGlobalExceptionHandler(
-            ObjectProvider<FpsMessageResolver> messageResolverProvider,
-            ObjectProvider<FpsResponseCodeResolver> responseCodeResolverProvider) {
-        return new FpsGlobalExceptionHandler(messageResolverProvider, responseCodeResolverProvider);
+    public CpfGlobalExceptionHandler cpfGlobalExceptionHandler(
+            ObjectProvider<CpfMessageResolver> messageResolverProvider,
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
+        return new CpfGlobalExceptionHandler(messageResolverProvider, responseCodeResolverProvider);
     }
 }
 

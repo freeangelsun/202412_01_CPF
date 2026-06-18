@@ -10,8 +10,8 @@ import cpf.adm.opr.dto.AdmPasswordChangeRequest;
 import cpf.adm.opr.dto.AdmRole;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.FpsNotFoundException;
-import cpf.pfw.common.exception.FpsValidationException;
+import cpf.pfw.common.exception.CpfNotFoundException;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -113,7 +113,7 @@ public class AdmOperatorService {
             OperatorState state = new OperatorState(operatorId, operatorName, passwordHash, roleIds,
                     false, 0, true, LocalDateTime.now(), DateTimeUtils.nowDateTimeMillis(), DateTimeUtils.nowDateTimeMillis());
             if (operators.putIfAbsent(operatorId, state) != null) {
-                throw new FpsValidationException("이미 존재하는 운영자입니다. operatorId=" + operatorId);
+                throw new CpfValidationException("이미 존재하는 운영자입니다. operatorId=" + operatorId);
             }
             return toResponse(state);
         }
@@ -126,7 +126,7 @@ public class AdmOperatorService {
         try {
             OperatorState state = loadOperatorState(operatorId);
             if (state.locked) {
-                throw new FpsValidationException("잠긴 운영자 계정입니다. operatorId=" + operatorId);
+                throw new CpfValidationException("잠긴 운영자 계정입니다. operatorId=" + operatorId);
             }
             if (!matchesPassword(password, state.passwordHash)) {
                 int failed = state.failedLoginCount + 1;
@@ -136,7 +136,7 @@ public class AdmOperatorService {
                         SET FAIL_COUNT = ?, LOCKED_YN = ?, UPDATED_BY = 'ADM', UPDATED_AT = CURRENT_TIMESTAMP
                         WHERE OPERATOR_ID = ?
                         """, failed, locked ? "Y" : "N", operatorId);
-                throw new FpsValidationException("운영자 인증에 실패했습니다.");
+                throw new CpfValidationException("운영자 인증에 실패했습니다.");
             }
             admJdbcTemplate.update("""
                     UPDATE adm_operator
@@ -166,13 +166,13 @@ public class AdmOperatorService {
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, hash, requestUser, operatorId);
             if (updated == 0) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
             OperatorState state = operators.get(operatorId);
             if (state == null) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.passwordHash = hash;
             state.passwordChangedAt = LocalDateTime.now();
@@ -206,13 +206,13 @@ public class AdmOperatorService {
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, hash, request.forceChange() ? "Y" : "N", requestUser, operatorId);
             if (updated == 0) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
             OperatorState state = operators.get(operatorId);
             if (state == null) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.passwordHash = hash;
             state.passwordChangedAt = LocalDateTime.now();
@@ -236,13 +236,13 @@ public class AdmOperatorService {
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, user, operatorId);
             if (updated == 0) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
             OperatorState state = operators.get(operatorId);
             if (state == null) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.failedLoginCount = 0;
             state.locked = false;
@@ -263,14 +263,14 @@ public class AdmOperatorService {
                     WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
                     """, Integer.class, operatorId);
             if (operatorCount == null || operatorCount == 0) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             replaceRoles(operatorId, roleIds, requestUser);
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
             OperatorState state = operators.get(operatorId);
             if (state == null) {
-                throw new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.roleIds = roleIds;
             state.updatedAt = DateTimeUtils.nowDateTimeMillis();
@@ -362,7 +362,7 @@ public class AdmOperatorService {
         return findOperators().stream()
                 .filter(operator -> operator.operatorId().equals(operatorId))
                 .findFirst()
-                .orElseThrow(() -> new FpsNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId));
+                .orElseThrow(() -> new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId));
     }
 
     private OperatorState loadOperatorState(String operatorId) {
@@ -378,7 +378,7 @@ public class AdmOperatorService {
                         """,
                 rs -> {
                     if (!rs.next()) {
-                        throw new FpsValidationException("운영자 인증에 실패했습니다.");
+                        throw new CpfValidationException("운영자 인증에 실패했습니다.");
                     }
                     return new OperatorState(
                             rs.getString("OPERATOR_ID"), rs.getString("OPERATOR_NAME"), rs.getString("PASSWORD_HASH"),
@@ -392,7 +392,7 @@ public class AdmOperatorService {
     private AdmOperator authenticateFallback(String operatorId, String password) {
         OperatorState state = operators.get(operatorId);
         if (state == null || state.locked) {
-            throw new FpsValidationException("운영자 인증에 실패했습니다.");
+            throw new CpfValidationException("운영자 인증에 실패했습니다.");
         }
         if (!matchesPassword(password, state.passwordHash)) {
             state.failedLoginCount++;
@@ -400,7 +400,7 @@ public class AdmOperatorService {
                 state.locked = true;
             }
             state.updatedAt = DateTimeUtils.nowDateTimeMillis();
-            throw new FpsValidationException("운영자 인증에 실패했습니다.");
+            throw new CpfValidationException("운영자 인증에 실패했습니다.");
         }
         state.failedLoginCount = 0;
         state.updatedAt = DateTimeUtils.nowDateTimeMillis();

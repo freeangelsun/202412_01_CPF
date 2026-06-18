@@ -3,9 +3,9 @@ package cpf.xyz.edu.controller;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
 import cpf.cmn.utils.MaskingUtils;
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.workflow.FpsWorkflowContext;
+import cpf.pfw.common.workflow.CpfWorkflowContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class XyzUtilityEducationController {
 
     @GetMapping("/utils")
-    @FpsTransaction(id = "XYZ09EDU0004", name = "XYZCommonUtilitySample")
+    @CpfTransaction(id = "XYZ09EDU0004", name = "XYZCommonUtilitySample")
     @Operation(summary = "CMN utility sample", description = "Shows date, id, and masking utility usage.")
     public ResponseEntity<Map<String, Object>> useCommonUtils(@RequestParam(defaultValue = "Sample User") String name) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -37,7 +37,7 @@ public class XyzUtilityEducationController {
     }
 
     @GetMapping("/headers")
-    @FpsTransaction(id = "XYZ09EDU0008", name = "XYZCurrentHeaderSample")
+    @CpfTransaction(id = "XYZ09EDU0008", name = "XYZCurrentHeaderSample")
     @Operation(summary = "Current header sample", description = "Shows transaction and workflow propagation headers.")
     public ResponseEntity<Map<String, Object>> getCurrentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -46,7 +46,7 @@ public class XyzUtilityEducationController {
         response.put("spanId", TransactionContext.getOrCreateSpanId());
         response.put("transactionHeader", TransactionContext.currentHeader());
         response.put("propagationHeaders", TransactionContext.propagationHeaders());
-        response.put("workflowPropagationHeaders", FpsWorkflowContext.propagationHeaders());
+        response.put("workflowPropagationHeaders", CpfWorkflowContext.propagationHeaders());
         return ResponseEntity.ok(response);
     }
 }

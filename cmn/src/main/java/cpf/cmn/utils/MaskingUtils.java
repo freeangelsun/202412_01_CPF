@@ -3,11 +3,11 @@ package cpf.cmn.utils;
 import cpf.pfw.common.logging.SensitiveDataMasker;
 
 /**
- * 媛쒖씤?뺣낫? 誘쇨컧媛?留덉뒪??怨듯넻 ?좏떥由ы떚?낅땲??
+ * 개인정보와 민감값 마스킹 공통 유틸리티입니다.
  *
- * <p>?ㅼ젣 留덉뒪??洹쒖튃? PFW??{@link SensitiveDataMasker}瑜??ъ슜?⑸땲??
- * ?낅Т 媛쒕컻?먮뒗 濡쒓렇???섑뵆 ?묐떟?먯꽌 誘쇨컧媛믪쓣 吏곸젒 ?ㅻ（湲곕낫?????좏떥???듯빐
- * ?꾨젅?꾩썙??湲곗?怨?媛숈? 洹쒖튃???ъ슜?⑸땲??</p>
+ * <p>실제 마스킹 규칙은 PFW의 {@link SensitiveDataMasker}를 사용합니다.
+ * 업무 개발자는 로그나 샘플 응답에서 민감값을 직접 다루기보다 이 유틸리티를 통해
+ * 프레임워크 기준과 같은 규칙을 적용합니다.</p>
  */
 public final class MaskingUtils {
 
@@ -15,18 +15,20 @@ public final class MaskingUtils {
     }
 
     /**
-     * PFW 誘쇨컧?뺣낫 留덉뒪??洹쒖튃?쇰줈 臾몄옄?댁쓣 留덉뒪?뱁빀?덈떎.
+     * PFW 민감정보 마스킹 규칙으로 문자열을 마스킹합니다.
      *
-     * @param value ?먮낯 臾몄옄??     * @return 留덉뒪?밸맂 臾몄옄??     */
+     * @param value 원본 문자열
+     * @return 마스킹된 문자열
+     */
     public static String maskSensitive(String value) {
         return SensitiveDataMasker.mask(value);
     }
 
     /**
-     * ?대쫫??媛?대뜲 ?곸뿭??留덉뒪?뱁빀?덈떎.
+     * 이름의 가운데 영역을 마스킹합니다.
      *
-     * @param name ?대쫫
-     * @return 留덉뒪?밸맂 ?대쫫
+     * @param name 이름
+     * @return 마스킹된 이름
      */
     public static String maskName(String name) {
         if (!TextUtils.hasText(name)) {

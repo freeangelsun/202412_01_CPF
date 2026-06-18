@@ -1,5 +1,7 @@
 # CI 품질 Gate
 
+> 이 문서는 deprecated 보조 문서입니다. 정본은 `specs/프레임워크_구성_가이드.html`, `specs/개발_가이드.html`, `specs/기능_구현_매트릭스.md`를 참조하세요.
+
 CI는 최소한 다음 항목을 통과해야 합니다.
 
 | 단계 | 명령/기준 |
@@ -9,6 +11,7 @@ CI는 최소한 다음 항목을 통과해야 합니다.
 | SQL 표준 | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1` |
 | UTF-8 | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1` |
 | Mojibake | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake` |
+| 레거시 명칭 | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-legacy-name.ps1` |
 | 통합 gate | `.\gradlew.bat qualityGate --offline` |
 
 추가 권장 gate:

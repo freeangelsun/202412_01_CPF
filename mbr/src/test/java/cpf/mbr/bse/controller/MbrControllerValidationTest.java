@@ -2,7 +2,7 @@ package cpf.mbr.bse.controller;
 
 import cpf.mbr.bse.service.MbrService;
 import cpf.mbr.common.exception.GlobalExceptionHandler;
-import cpf.pfw.common.exception.FpsGlobalExceptionHandler;
+import cpf.pfw.common.exception.CpfGlobalExceptionHandler;
 import cpf.pfw.common.filter.TransactionContextFilter;
 import cpf.pfw.common.logging.TransactionIdGenerator;
 import cpf.mbr.common.filter.SecurityHeaderFilter;
@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.matchesPattern;
                 "cpf.cmn.cache.event-poll-enabled=false"
         }
 )
-@Import({GlobalExceptionHandler.class, FpsGlobalExceptionHandler.class, TransactionContextFilter.class, TransactionIdGenerator.class, SecurityHeaderFilter.class})
+@Import({GlobalExceptionHandler.class, CpfGlobalExceptionHandler.class, TransactionContextFilter.class, TransactionIdGenerator.class, SecurityHeaderFilter.class})
 class MbrControllerValidationTest {
 
     @Autowired

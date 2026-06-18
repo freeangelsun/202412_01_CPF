@@ -1,6 +1,6 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.FpsTransaction;
+import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.Map;
 public class XyzEducationController {
 
     @GetMapping
-    @FpsTransaction(id = "XYZ01EDU0099", name = "XYZEducationCatalog")
+    @CpfTransaction(id = "XYZ01EDU0099", name = "XYZEducationCatalog")
     @Operation(summary = "XYZ 교육 카탈로그", description = "개발자가 상황별로 참고할 수 있는 EDU 샘플 API 그룹을 조회합니다.")
     public ResponseEntity<Map<String, Object>> catalog() {
         return ResponseEntity.ok(Map.of(

@@ -34,7 +34,16 @@
       <tr><td>SQL</td><td><code>{module}_{업무명}</code> 테이블과 공통 감사 컬럼, 한글 COMMENT</td></tr>
       <tr><td>Test</td><td>validation, service 단위, mapper 또는 DB smoke</td></tr>
     </table>
-    <p>복붙 기준은 <a href="./module-template.md">신규 업무 모듈 템플릿</a>을 사용합니다.</p>
+    <p>복붙 기준은 아래 템플릿과 <code>xyz</code> 교육 샘플을 함께 사용합니다.</p>
+    <table>
+      <tr><th>구성</th><th>표준 경로/역할</th></tr>
+      <tr><td>Controller</td><td><code>cpf.{module}.{domain}.controller</code>. 신규 공개 API는 <code>/api/v1/{module}/{domain}</code>를 우선 사용하고, 호환 API는 별도 설명을 남깁니다.</td></tr>
+      <tr><td>Service</td><td><code>cpf.{module}.{domain}.service</code>. 상태 변경, 권한 검사, 감사 사유 검증, 트랜잭션 경계를 담당합니다.</td></tr>
+      <tr><td>Mapper</td><td><code>cpf.{module}.{domain}.mapper</code>. SQL Injection 방지를 위해 문자열 결합 대신 parameter binding을 사용합니다.</td></tr>
+      <tr><td>DTO</td><td><code>cpf.{module}.{domain}.dto</code>. Bean Validation과 Swagger example을 함께 작성합니다.</td></tr>
+      <tr><td>SQL</td><td><code>{module}_{업무명}</code> 테이블명, 공통 감사 컬럼, 한글 COMMENT, FK/UK/index 명명 규칙을 적용합니다.</td></tr>
+      <tr><td>Test</td><td>validation, service 단위, mapper 또는 smoke 검증 중 변경 위험에 맞는 테스트를 추가합니다.</td></tr>
+    </table>
   </section>
 
   <section>
@@ -46,6 +55,44 @@
       <tr><td>검색/정렬</td><td>정렬 컬럼은 allowlist로 제한하고 페이징 기본값/최대값을 둡니다.</td></tr>
       <tr><td>Validation</td><td>request DTO에는 Bean Validation, 복합 규칙은 custom validator 사용</td></tr>
       <tr><td>외부 호출</td><td>timeout, retry, circuit breaker, correlation id 전파를 기본으로 합니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>거래 헤더 표준</h2>
+    <p>모든 업무 API는 CPF 표준 거래 헤더를 Swagger, <code>TransactionContext</code>, 외부 호출 전파, 거래 로그 적재 기준과 일치시켜야 합니다.</p>
+    <table>
+      <tr><th>구분</th><th>헤더</th><th>기준</th></tr>
+      <tr><td>필수</td><td><code>X-Request-Type</code>, <code>X-Original-Channel-Code</code>, <code>X-Channel-Code</code></td><td>요청 유형과 채널 추적을 위해 Controller 진입 시 검증합니다.</td></tr>
+      <tr><td>추적</td><td><code>X-Transaction-Id</code>, <code>X-Trace-Id</code>, <code>X-Span-Id</code>, <code>X-Parent-Span-Id</code></td><td>없으면 CPF가 생성하고 응답/로그/외부 호출에 전파합니다.</td></tr>
+      <tr><td>클라이언트</td><td><code>X-Api-Version</code>, <code>X-Client-App-Id</code>, <code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Caller-Instance-Id</code></td><td>배포 버전, 호출자, 인스턴스 추적에 사용합니다.</td></tr>
+      <tr><td>업무 추적</td><td><code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code>, <code>X-Member-No</code>, <code>X-Customer-No</code>, <code>X-User-Id</code></td><td>외부 대조, 중복 요청 방지, 회원/고객 추적에 사용합니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>완료 기준</h2>
+    <table>
+      <tr><th>항목</th><th>기준</th></tr>
+      <tr><td>명칭 일치</td><td>Java, MyBatis, SQL, Swagger, 문서의 테이블명/컬럼명/API명이 서로 일치합니다.</td></tr>
+      <tr><td>권한/감사</td><td>변경성 업무 API는 서버 권한 검사, 감사 사유, before/after diff를 남깁니다.</td></tr>
+      <tr><td>보안</td><td>secret 기본값 금지, 민감정보 마스킹, 내부 오류 은닉, trace id 반환 기준을 지킵니다.</td></tr>
+      <tr><td>검증</td><td>컴파일, 변경 모듈 테스트, SQL 표준, UTF-8/mojibake, 필요한 DB smoke 결과를 남깁니다.</td></tr>
+      <tr><td>문서</td><td>README는 진입점으로 짧게 유지하고, 상세 내용은 HTML 가이드와 EDU 샘플에 반영합니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>CI 품질 Gate</h2>
+    <table>
+      <tr><th>단계</th><th>명령/기준</th></tr>
+      <tr><td>컴파일</td><td><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline</code></td></tr>
+      <tr><td>테스트</td><td><code>.\gradlew.bat :cmn:test --offline</code>와 변경 모듈 테스트</td></tr>
+      <tr><td>SQL 표준</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1</code></td></tr>
+      <tr><td>UTF-8</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1</code></td></tr>
+      <tr><td>Mojibake</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake</code></td></tr>
+      <tr><td>레거시 명칭</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-legacy-name.ps1</code></td></tr>
+      <tr><td>통합 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
     </table>
   </section>
 

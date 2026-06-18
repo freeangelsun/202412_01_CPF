@@ -31,6 +31,18 @@
   </section>
 
   <section>
+    <h2>ADR 0001. 주제영역 분리 결정</h2>
+    <p>CPF는 PFW, CMN, ADM, ACC, MBR의 DB와 테이블 소유권을 분리합니다. PFW 메타와 업무 공통 데이터를 같은 DB에 섞으면 프레임워크 배포와 업무 확장이 서로 강하게 결합되므로, CMN은 jar로 함께 배포하되 <code>cmnDB</code> datasource는 선택형으로 둡니다.</p>
+    <table>
+      <tr><th>결정</th><th>결과</th></tr>
+      <tr><td><code>pfwDB</code>는 프레임워크 엔진, 메타, 거래로그, 시스템 응답코드, 설정, 보안 메타, 캐시 이벤트를 소유합니다.</td><td>프레임워크 배포 단위와 운영 메타가 업무 DB와 섞이지 않습니다.</td></tr>
+      <tr><td><code>cmnDB</code>는 공통 채번, 알림 로그, 공통 업무 로그 같은 업무 공통 기능을 소유합니다.</td><td>공통 업무 기능이 필요한 프로젝트만 DB를 붙여 사용할 수 있습니다.</td></tr>
+      <tr><td><code>admDB</code>는 운영자, 권한, 메뉴, 세션, 감사 로그, 동적 로그레벨을 소유합니다.</td><td>운영 기능과 업무 데이터 권한을 분리해 감사와 통제를 단순화합니다.</td></tr>
+      <tr><td><code>accDB</code>, <code>mbrDB</code>는 업무 샘플 DB이며 각 업무 prefix 테이블만 가집니다.</td><td>신규 업무 모듈은 자기 DB 또는 명확한 공통 DB만 참조합니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
     <h2>DB 소유권</h2>
     <table>
       <tr><th>DB</th><th>소유 데이터</th></tr>
@@ -60,6 +72,29 @@
       <tr><th>파일</th><th>기준</th></tr>
       <tr><td><code>V1__cpf_baseline_install.sql</code></td><td>신규 환경 전체 baseline</td></tr>
       <tr><td><code>V4__batch_schedule_repository_notification.sql</code></td><td>기존 환경에 Spring Batch 표준 저장소, 배치 스케줄 정책, 관계/수행대상, 운영 알림 테이블을 추가</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>SQL/Flyway 운영 기준</h2>
+    <p>설치 SQL과 운영 migration은 <a href="./SQL_가이드.html">SQL 가이드</a>를 정본으로 사용합니다. 분리 SQL은 유지보수 기준이고, <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>는 SOURCE 호출 없이 본문 전체를 포함한 단일 실행 파일이어야 합니다.</p>
+    <table>
+      <tr><th>항목</th><th>기준</th></tr>
+      <tr><td>계정 권한</td><td>migration 계정만 DDL 권한을 가지고, app 계정은 DML 권한만 가집니다.</td></tr>
+      <tr><td>Spring Batch</td><td><code>BATCH_*</code>는 Spring Batch JobRepository 표준 테이블이므로 대문자 명칭을 유지하고, CPF 운영 메타는 <code>pfw_batch_*</code>를 사용합니다.</td></tr>
+      <tr><td>캐시 이벤트</td><td><code>pfw_cache_refresh_event</code>는 Redis/Kafka 장애 또는 미사용 환경에서 다중 WAS 캐시 갱신을 추적하는 DB fallback입니다.</td></tr>
+      <tr><td>검증</td><td>MariaDB 실DB 검증은 FK/index, seed idempotent, smoke SQL, 계정 권한을 분리해 기록합니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>운영/보안 구조</h2>
+    <table>
+      <tr><th>항목</th><th>기준</th></tr>
+      <tr><td>Secret</td><td>prod profile에는 DB password, JWT secret, crypto key 기본값을 두지 않고 환경변수, Vault, KMS, Secret Manager로 주입합니다.</td></tr>
+      <tr><td>시큐어코딩</td><td>parameter binding, 파일 경로 정규화, 민감정보 마스킹, CORS/CSRF profile별 명시 설정, 내부 오류 은닉을 기본으로 합니다.</td></tr>
+      <tr><td>ADM 운영 감사</td><td>비밀번호 초기화, 잠금 해제, 권한 변경, 배치 실행/재수행/중지는 감사 사유를 필수로 받습니다.</td></tr>
+      <tr><td>장애 대응</td><td>DB 백업, 설치 SQL 버전, Flyway migration 버전, trace id, 운영 작업 로그를 함께 확인합니다.</td></tr>
     </table>
   </section>
 

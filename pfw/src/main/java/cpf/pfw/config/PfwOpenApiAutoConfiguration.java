@@ -6,12 +6,17 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 
 import java.util.ArrayList;
@@ -94,6 +99,27 @@ public class PfwOpenApiAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "cpfSwaggerUiHtmlRedirectFilter")
+    public FilterRegistrationBean<Filter> cpfSwaggerUiHtmlRedirectFilter() {
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
+        registration.setName("cpfSwaggerUiHtmlRedirectFilter");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.addUrlPatterns("/*");
+        registration.setFilter((request, response, chain) -> {
+            if (request instanceof HttpServletRequest httpRequest
+                    && response instanceof HttpServletResponse httpResponse
+                    && isSwaggerUiHtmlRequest(httpRequest)) {
+                // springdoc의 legacy 진입점이 환경에 따라 오류를 내도 CPF 공식 경로로 일관되게 보냅니다.
+                httpResponse.setStatus(HttpServletResponse.SC_FOUND);
+                httpResponse.setHeader("Location", httpRequest.getContextPath() + "/swagger-ui/index.html");
+                return;
+            }
+            chain.doFilter(request, response);
+        });
+        return registration;
+    }
+
+    @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
             addHeader(operation, "X-Transaction-Id", false, "전역 거래 ID입니다. 없으면 CPF가 생성합니다.");
@@ -126,6 +152,16 @@ public class PfwOpenApiAutoConfiguration {
             addHeader(operation, "X-Reserved-Field-5", false, "업무 확장 예약 필드 5입니다.");
             return operation;
         };
+    }
+
+    private boolean isSwaggerUiHtmlRequest(HttpServletRequest request) {
+        if (!"GET".equalsIgnoreCase(request.getMethod())) {
+            return false;
+        }
+        String contextPath = request.getContextPath();
+        String requestUri = request.getRequestURI();
+        String path = requestUri.startsWith(contextPath) ? requestUri.substring(contextPath.length()) : requestUri;
+        return "/swagger-ui.html".equals(path);
     }
 
     private void addHeader(io.swagger.v3.oas.models.Operation operation, String name, boolean required, String description) {

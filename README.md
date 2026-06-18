@@ -31,8 +31,8 @@ MariaDB 초기화는 `specs/sql/00_all_install_and_smoke.sql`을 사용합니다
 | [프레임워크 구성 가이드](specs/프레임워크_구성_가이드.html) | 모듈, DB, profile, migration, observability |
 | [개발 가이드](specs/개발_가이드.html) | 신규 모듈, API, 응답/오류, CMN API, EDU 샘플 매트릭스 |
 | [관리자 가이드](specs/관리자_가이드.html) | ADM 회원관리, 권한, 통합 로그, 배치, 캐시, 보안 운영 |
-| [SQL 가이드](specs/sql/README.md) | 설치 SQL, Flyway 기준, 권한 계정, smoke 검증 |
-| [기능 구현 매트릭스](specs/기능_구현_매트릭스.md) | 기능별 소스, API, ADM 화면, DB, Swagger, EDU, 테스트 연결 상태 |
+| [SQL 가이드](specs/SQL_가이드.html) | 설치 SQL, Flyway 기준, 권한 계정, smoke 검증 |
+| [기능 구현 매트릭스](specs/기능_구현_매트릭스.html) | 기능별 소스, API, ADM 화면, DB, Swagger, EDU, 테스트 연결 상태 |
 
 세부 표준 문서는 문서 인덱스와 각 가이드에서 연결합니다. README는 신규 참여자가 시작 위치를 찾는 진입점으로 유지합니다.
 

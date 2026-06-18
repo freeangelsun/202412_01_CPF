@@ -13,6 +13,9 @@ $skipDirectories = @(
     "\.git\", "\.gradle\", "\.idea\", "\.vscode\", "\build\", "\out\",
     "\logs\", "\node_modules\", "\vendor\"
 )
+$skipFileNames = @(
+    "CPF_CODEX_REQUEST_20260618_01.md"
+)
 $mojibakePatterns = @(
     [char]0x63F6,
     [char]0x7B4C,
@@ -33,6 +36,9 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
         }
     }
     if ($textExtensions -notcontains $_.Extension.ToLowerInvariant()) {
+        return
+    }
+    if ($skipFileNames -contains $_.Name) {
         return
     }
 

@@ -32,10 +32,8 @@ MariaDB 초기화는 `specs/sql/00_all_install_and_smoke.sql`을 사용합니다
 | [개발 가이드](specs/개발_가이드.html) | 신규 모듈, API, 응답/오류, CMN API, EDU 샘플 매트릭스 |
 | [관리자 가이드](specs/관리자_가이드.html) | ADM 회원관리, 권한, 통합 로그, 배치, 캐시, 보안 운영 |
 | [SQL 가이드](specs/sql/README.md) | 설치 SQL, Flyway 기준, 권한 계정, smoke 검증 |
-| [거래 헤더 표준](specs/transaction-header-standard.md) | 필수/선택 거래 헤더, 전파, 로그 적재 기준 |
-| [운영/보안 가이드](specs/operation-security-guide.md) | secret, 권한, 로그, 장애 대응 |
-| [Definition of Done](specs/definition-of-done.md) | 신규 기능 완료 기준 |
-| [CI 품질 Gate](specs/ci-quality-gate.md) | compile, test, SQL naming, UTF-8, mojibake 기준 |
+
+세부 표준 문서는 문서 인덱스와 각 가이드에서 연결합니다. README는 신규 참여자가 시작 위치를 찾는 진입점으로 유지합니다.
 
 ## 핵심 표준
 
@@ -46,3 +44,4 @@ MariaDB 초기화는 `specs/sql/00_all_install_and_smoke.sql`을 사용합니다
 - prod profile은 DB/JWT/crypto secret 기본값을 두지 않고 배포 환경에서 주입합니다.
 - 표준 거래 헤더는 Swagger, `TransactionContext`, 외부 호출 전파, `pfw_transaction_log` 적재 기준과 일치해야 합니다.
 - 품질 gate는 `.\gradlew.bat qualityGate --offline`을 기준으로 합니다.
+- Spring Batch 표준 저장소는 `BATCH_*`, CPF 운영 관제 메타는 `pfw_batch_*` 테이블을 사용합니다.

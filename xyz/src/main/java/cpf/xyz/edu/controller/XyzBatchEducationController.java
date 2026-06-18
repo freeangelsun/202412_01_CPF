@@ -98,10 +98,23 @@ public class XyzBatchEducationController {
     @Operation(summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> admLink() {
         return ResponseEntity.ok(Map.of(
-                "metadata", List.of("pfw_batch_job", "pfw_batch_schedule", "pfw_batch_execution", "pfw_batch_step_execution", "pfw_batch_operation_log"),
-                "buttons", List.of("조회", "등록", "수동 실행", "실패 재수행", "중지", "스케줄 활성화", "스케줄 비활성화"),
+                "metadata", List.of("BATCH_*", "pfw_batch_job", "pfw_batch_schedule", "pfw_batch_job_relation", "pfw_batch_execution_target", "pfw_batch_execution", "pfw_batch_step_execution", "pfw_batch_operation_log"),
+                "buttons", List.of("조회", "등록", "수동 실행", "실패 재수행", "중지", "스케줄 활성화", "스케줄 비활성화", "수행 시뮬레이션", "관계 조회", "수행 대상 조회"),
                 "audit", "실행, 재수행, 중지, 스케줄 변경은 감사 사유와 before/after diff를 남깁니다.",
                 "swagger", "ADM-Batch와 XYZ-EDU Batch tag를 함께 확인하면 개발/운영 양쪽 예제를 볼 수 있습니다."));
+    }
+
+    @GetMapping("/schedule-policy")
+    @FpsTransaction(id = "XYZ13EDU0008", name = "XYZBatchSchedulePolicy")
+    @Operation(summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
+    public ResponseEntity<Map<String, Object>> schedulePolicy() {
+        return ResponseEntity.ok(Map.of(
+                "businessDayOnly", "pfw_batch_schedule.business_day_only_yn='Y'이면 pfw_business_day_calendar 기준 영업일만 수행 후보가 됩니다.",
+                "availableTime", "available_start_time과 available_end_time은 운영자가 허용 시간대를 확인하고 시뮬레이션할 때 사용합니다.",
+                "simulation", "GET /adm/api/batch/schedules/{scheduleId}/simulation은 기준일과 조회 일수로 수행 가능 후보일을 반환합니다.",
+                "relation", "pfw_batch_job_relation은 PREDECESSOR, SUCCESSOR, TRIGGER 관계와 필요 상태를 관리합니다.",
+                "target", "pfw_batch_execution_target은 수행 대기/배정/완료 대상 인스턴스와 업무 기준일을 관리합니다.",
+                "notification", "pfw_notification_rule과 pfw_notification_delivery_log는 배치 실패나 보안 이벤트 알림 기준을 관리합니다."));
     }
 
     private Map<String, Object> runJob(String jobId, String requestUser) {

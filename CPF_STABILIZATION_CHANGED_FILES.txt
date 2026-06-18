@@ -1,0 +1,61 @@
+CPF stabilization changed files
+Generated: 2026-06-18 11:38:28 +09:00
+
+== git diff --name-only ==
+README.md
+adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java
+adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java
+adm/src/main/resources/static/adm/adm.js
+adm/src/main/resources/static/adm/index.html
+scripts/check-sql-standard.ps1
+scripts/check-utf8.ps1
+specs/index.html
+specs/sql/00_all_install.sql
+specs/sql/00_all_install_and_smoke.sql
+specs/sql/10_pfw_schema.sql
+specs/sql/50_framework_seed_data.sql
+specs/sql/60_adm_seed_data.sql
+specs/sql/99_smoke_check.sql
+specs/sql/README.md
+specs/sql/migration/README.md
+specs/sql/migration/flyway/V1__cpf_baseline_install.sql
+specs/개발_가이드.html
+specs/관리자_가이드.html
+specs/프레임워크_구성_가이드.html
+xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java
+
+== untracked files from git status --short ==
+CPF_CODEX_REQUEST_20260618_01.md
+CPF_STABILIZATION_REPORT.md
+CPF_STABILIZATION_CHANGED_FILES.txt
+specs/sql/migration/flyway/V4__batch_schedule_repository_notification.sql
+
+== git diff --stat ==
+ README.md                                          |   7 +-
+ .../cpf/adm/opr/controller/AdmBatchController.java |  29 +-
+ .../adm/opr/service/AdmBatchOperationService.java  | 165 ++++++++++
+ adm/src/main/resources/static/adm/adm.js           |  31 +-
+ adm/src/main/resources/static/adm/index.html       |   6 +
+ scripts/check-sql-standard.ps1                     |  21 +-
+ scripts/check-utf8.ps1                             |   6 +
+ specs/index.html                                   |   5 +-
+ specs/sql/00_all_install.sql                       | 320 ++++++++++++++++++-
+ specs/sql/00_all_install_and_smoke.sql             | 346 ++++++++++++++++++++-
+ specs/sql/10_pfw_schema.sql                        | 193 ++++++++++++
+ specs/sql/50_framework_seed_data.sql               | 102 +++++-
+ specs/sql/60_adm_seed_data.sql                     |   5 +-
+ specs/sql/99_smoke_check.sql                       |  26 +-
+ specs/sql/README.md                                |  15 +-
+ specs/sql/migration/README.md                      |   3 +
+ .../migration/flyway/V1__cpf_baseline_install.sql  | 322 ++++++++++++++++++-
+ specs/개발_가이드.html                             |   4 +
+ specs/관리자_가이드.html                           |  20 +-
+ specs/프레임워크_구성_가이드.html                  |   7 +-
+ .../controller/XyzBatchEducationController.java    |  17 +-
+ 21 files changed, 1597 insertions(+), 53 deletions(-)
+
+== git warnings observed ==
+warning: in the working copy of 'specs/sql/00_all_install.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/00_all_install_and_smoke.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/migration/flyway/V1__cpf_baseline_install.sql', CRLF will be replaced by LF the next time Git touches it
+

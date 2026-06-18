@@ -35,20 +35,25 @@ foreach ($relativePath in $schemaFiles) {
         $body = $match.Groups["body"].Value
         $tail = $match.Groups["tail"].Value
         $prefix = ($tableName -split "_")[0]
+        $isSpringBatchTable = $tableName -like "BATCH_*"
 
-        if ($allowedPrefixes -notcontains $prefix) {
+        # Spring Batch 표준 JobRepository 테이블은 프레임워크가 대문자 BATCH_* 이름으로 조회하므로
+        # CPF 주제영역 prefix와 공통 감사 컬럼 규칙의 예외로 둡니다.
+        if (-not $isSpringBatchTable -and $allowedPrefixes -notcontains $prefix) {
             $failures.Add("table prefix invalid: $relativePath -> $tableName")
         }
-        if ($tableName.EndsWith("_table")) {
+        if (-not $isSpringBatchTable -and $tableName.EndsWith("_table")) {
             $failures.Add("table suffix _table is not allowed: $relativePath -> $tableName")
         }
         if ($tail -notmatch "(?i)\bCOMMENT\s*=\s*'[^']+'") {
             $failures.Add("table comment missing: $relativePath -> $tableName")
         }
 
-        foreach ($column in $commonColumns) {
-            if ($body -notmatch "(?im)^\s*$column\s+") {
-                $failures.Add("common audit column missing: $relativePath -> $tableName.$column")
+        if (-not $isSpringBatchTable) {
+            foreach ($column in $commonColumns) {
+                if ($body -notmatch "(?im)^\s*$column\s+") {
+                    $failures.Add("common audit column missing: $relativePath -> $tableName.$column")
+                }
             }
         }
 
@@ -72,6 +77,12 @@ foreach ($relativePath in $schemaFiles) {
     }
 
     $textForNameCheck = [regex]::Replace($text, "'[^']*'", "''")
+    $textForNameCheck = [regex]::Replace(
+        $textForNameCheck,
+        "CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+BATCH_[A-Z0-9_]+\s*\(.*?\)\s*ENGINE\s*=\s*InnoDB.*?;",
+        "",
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
     if ($textForNameCheck -cmatch "(?m)\b(CONSTRAINT|INDEX|UNIQUE\s+KEY)\s+(?!IF\b)[A-Z][A-Z0-9_]*\b") {
         $failures.Add("constraint/index name must be lower snake case: $relativePath")
     }

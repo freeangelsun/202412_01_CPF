@@ -1,5 +1,3 @@
--- CPF Flyway V1 기준 설치 SQL입니다.
--- specs/sql/00_all_install.sql과 같은 기준으로 생성하며, 로컬 기준선 검증에 사용합니다.
 -- CPF 전체 설치 SQL입니다.
 -- 이 파일은 split SQL의 내용을 모두 포함한 단일 실행 파일입니다.
 -- DB 생성 이후 로컬 초기화 검증을 위해 현재 CPF 표준 테이블을 제거하고 재생성합니다.
@@ -31,6 +29,9 @@ CREATE DATABASE IF NOT EXISTS mbrDB
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
 -- ============================================================================
+-- specs/sql/02_create_service_users.sql
+-- ============================================================================
+-- ============================================================================
 -- CPF 전체 테이블 초기화
 -- ============================================================================
 SET FOREIGN_KEY_CHECKS = 0;
@@ -58,14 +59,27 @@ DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence;
+DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
+DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
 DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_target;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_job_relation;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_schedule;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_job;
+DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_PARAMS;
+DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_INSTANCE;
+DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_SEQ;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
+DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
 DROP TABLE IF EXISTS pfwDB.pfw_security_token_audit_log;
 DROP TABLE IF EXISTS pfwDB.pfw_security_jwt_key;
 DROP TABLE IF EXISTS pfwDB.pfw_file_exchange_log;
@@ -77,10 +91,6 @@ DROP TABLE IF EXISTS pfwDB.pfw_code;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 SET FOREIGN_KEY_CHECKS = 1;
-
--- ============================================================================
--- specs/sql/02_create_service_users.sql
--- ============================================================================
 -- CPF 로컬/테스트용 최소 권한 계정 생성 스크립트입니다.
 -- 운영 환경에서는 같은 계정 구조를 유지하되 비밀번호는 Vault/KMS 또는 배포 환경변수로 주입합니다.
 
@@ -397,6 +407,96 @@ CREATE TABLE IF NOT EXISTS pfw_security_token_audit_log (
     INDEX ix_pfw_security_token_subject_time (SUBJECT, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 보안 토큰 감사 로그';
 
+CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_NAME VARCHAR(100) NOT NULL COMMENT 'Spring Batch Job 이름',
+    JOB_KEY VARCHAR(32) NOT NULL COMMENT 'Job 파라미터 식별 키',
+    PRIMARY KEY (JOB_INSTANCE_ID),
+    UNIQUE KEY JOB_INST_UN (JOB_NAME, JOB_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobInstance 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    VERSION BIGINT NULL COMMENT '낙관적 잠금 버전',
+    JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT '실행 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT '실행 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT '실행 상태',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_INST_EXEC_FK
+        FOREIGN KEY (JOB_INSTANCE_ID) REFERENCES BATCH_JOB_INSTANCE(JOB_INSTANCE_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 JobExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_PARAMS (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    PARAMETER_NAME VARCHAR(100) NOT NULL COMMENT '파라미터 이름',
+    PARAMETER_TYPE VARCHAR(100) NOT NULL COMMENT '파라미터 Java 유형',
+    PARAMETER_VALUE VARCHAR(2500) NULL COMMENT '파라미터 값',
+    IDENTIFYING CHAR(1) NOT NULL COMMENT 'JobInstance 식별 파라미터 여부',
+    CONSTRAINT JOB_EXEC_PARAMS_FK
+        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 파라미터 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    VERSION BIGINT NOT NULL COMMENT '낙관적 잠금 버전',
+    STEP_NAME VARCHAR(100) NOT NULL COMMENT 'Step 이름',
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    CREATE_TIME DATETIME(6) NOT NULL COMMENT 'Step 생성 일시',
+    START_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 시작 일시',
+    END_TIME DATETIME(6) NULL DEFAULT NULL COMMENT 'Step 종료 일시',
+    STATUS VARCHAR(10) NULL COMMENT 'Step 상태',
+    COMMIT_COUNT BIGINT NULL COMMENT '커밋 횟수',
+    READ_COUNT BIGINT NULL COMMENT '읽은 건수',
+    FILTER_COUNT BIGINT NULL COMMENT '필터 건수',
+    WRITE_COUNT BIGINT NULL COMMENT '쓴 건수',
+    READ_SKIP_COUNT BIGINT NULL COMMENT '읽기 skip 건수',
+    WRITE_SKIP_COUNT BIGINT NULL COMMENT '쓰기 skip 건수',
+    PROCESS_SKIP_COUNT BIGINT NULL COMMENT '처리 skip 건수',
+    ROLLBACK_COUNT BIGINT NULL COMMENT 'rollback 건수',
+    EXIT_CODE VARCHAR(2500) NULL COMMENT '종료 코드',
+    EXIT_MESSAGE VARCHAR(2500) NULL COMMENT '종료 메시지',
+    LAST_UPDATED DATETIME(6) NULL COMMENT '마지막 수정 일시',
+    PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_STEP_FK
+        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 StepExecution 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_CONTEXT (
+    STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    PRIMARY KEY (STEP_EXECUTION_ID),
+    CONSTRAINT STEP_EXEC_CTX_FK
+        FOREIGN KEY (STEP_EXECUTION_ID) REFERENCES BATCH_STEP_EXECUTION(STEP_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Step 컨텍스트 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_CONTEXT (
+    JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
+    SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
+    SERIALIZED_CONTEXT TEXT NULL COMMENT '직렬화 실행 컨텍스트',
+    PRIMARY KEY (JOB_EXECUTION_ID),
+    CONSTRAINT JOB_EXEC_CTX_FK
+        FOREIGN KEY (JOB_EXECUTION_ID) REFERENCES BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch 표준 Job 컨텍스트 저장소';
+
+CREATE TABLE IF NOT EXISTS BATCH_STEP_EXECUTION_SEQ (
+    ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 채번 값'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch StepExecution 채번 테이블';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_EXECUTION_SEQ (
+    ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 채번 값'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch JobExecution 채번 테이블';
+
+CREATE TABLE IF NOT EXISTS BATCH_JOB_SEQ (
+    ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 채번 값'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch JobInstance 채번 테이블';
+
 CREATE TABLE IF NOT EXISTS pfw_batch_job (
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     job_name VARCHAR(150) NOT NULL COMMENT '배치 Job 이름',
@@ -416,6 +516,12 @@ CREATE TABLE IF NOT EXISTS pfw_batch_schedule (
     schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     cron_expression VARCHAR(100) NOT NULL COMMENT 'Cron 표현식',
+    calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '적용 영업일 캘린더 ID',
+    business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '영업일에만 수행 여부',
+    holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP' COMMENT '휴일 처리 정책',
+    available_start_time TIME NULL COMMENT '수행 가능 시작 시각',
+    available_end_time TIME NULL COMMENT '수행 가능 종료 시각',
+    run_date_pattern VARCHAR(80) NULL COMMENT '수행 일자 패턴',
     timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Seoul' COMMENT '스케줄 기준 시간대',
     enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '스케줄 활성 여부',
     last_fire_at DATETIME NULL COMMENT '마지막 실행 예정 일시',
@@ -430,6 +536,31 @@ CREATE TABLE IF NOT EXISTS pfw_batch_schedule (
         FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 스케줄';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_job_relation (
+    relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
+    related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
+    relation_type VARCHAR(30) NOT NULL COMMENT '관계 유형',
+    trigger_condition VARCHAR(50) NOT NULL DEFAULT 'COMPLETED' COMMENT '트리거 조건',
+    required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED' COMMENT '필수 선행 상태',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '관계 표시 순서',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (relation_id),
+    UNIQUE KEY uk_pfw_batch_job_relation (job_id, related_job_id, relation_type),
+    INDEX ix_pfw_batch_job_relation_job (job_id, relation_type, use_yn),
+    INDEX ix_pfw_batch_job_relation_related (related_job_id, relation_type),
+    CONSTRAINT fk_pfw_batch_job_relation_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pfw_batch_job_relation_related
+        FOREIGN KEY (related_job_id) REFERENCES pfw_batch_job(job_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 선행/후행/트리거 관계';
 
 CREATE TABLE IF NOT EXISTS pfw_batch_instance (
     instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
@@ -476,6 +607,37 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
         FOREIGN KEY (batch_instance_id) REFERENCES pfw_batch_instance(instance_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
+    target_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 수행 대상 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
+    target_instance_id VARCHAR(100) NULL COMMENT '수행 대상 인스턴스 ID',
+    business_date DATE NULL COMMENT '업무 기준일',
+    planned_run_at DATETIME(3) NULL COMMENT '예정 수행 일시',
+    dispatch_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '배정 상태',
+    dispatch_reason VARCHAR(500) NULL COMMENT '배정 또는 제외 사유',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (target_id),
+    INDEX ix_pfw_batch_execution_target_job (job_id, dispatch_status, planned_run_at),
+    INDEX ix_pfw_batch_execution_target_execution (execution_id),
+    INDEX ix_pfw_batch_execution_target_instance (target_instance_id, dispatch_status),
+    CONSTRAINT fk_pfw_batch_execution_target_execution
+        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_execution_target_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
+    CONSTRAINT fk_pfw_batch_execution_target_schedule
+        FOREIGN KEY (schedule_id) REFERENCES pfw_batch_schedule(schedule_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_execution_target_instance
+        FOREIGN KEY (target_instance_id) REFERENCES pfw_batch_instance(instance_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 수행 대상/대기 인스턴스';
 
 CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
@@ -549,6 +711,47 @@ CREATE TABLE IF NOT EXISTS pfw_business_day_calendar (
     PRIMARY KEY (calendar_id, business_date),
     INDEX ix_pfw_business_day_calendar_date (business_date, business_day_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 영업일 캘린더';
+
+CREATE TABLE IF NOT EXISTS pfw_notification_rule (
+    rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
+    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
+    event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'ADM' COMMENT '알림 채널 코드',
+    template_code VARCHAR(80) NULL COMMENT '알림 템플릿 코드',
+    severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
+    receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (rule_id),
+    UNIQUE KEY uk_pfw_notification_rule (event_type, event_sub_type, channel_code),
+    INDEX ix_pfw_notification_rule_use (use_yn, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 규칙';
+
+CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
+    delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
+    rule_id BIGINT NULL COMMENT '알림 규칙 순번',
+    event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
+    target_type VARCHAR(80) NULL COMMENT '알림 대상 유형',
+    target_id VARCHAR(120) NULL COMMENT '알림 대상 ID',
+    receiver VARCHAR(200) NULL COMMENT '수신자',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '발송 상태',
+    delivery_message VARCHAR(2000) NULL COMMENT '발송 메시지',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발송 요청 일시',
+    delivered_at DATETIME(3) NULL COMMENT '발송 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (delivery_id),
+    INDEX ix_pfw_notification_delivery_target (target_type, target_id, requested_at),
+    INDEX ix_pfw_notification_delivery_status (delivery_status, requested_at),
+    CONSTRAINT fk_pfw_notification_delivery_rule
+        FOREIGN KEY (rule_id) REFERENCES pfw_notification_rule(rule_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 발송 로그';
 
 -- ============================================================================
 -- specs/sql/20_cmn_schema.sql
@@ -1279,6 +1482,18 @@ WHERE NOT EXISTS (
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
 
+INSERT INTO BATCH_JOB_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_SEQ);
+
+INSERT INTO BATCH_JOB_EXECUTION_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_EXECUTION_SEQ);
+
+INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
+
 INSERT INTO pfw_batch_instance (
     instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
 ) VALUES (
@@ -1318,15 +1533,36 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO pfw_batch_schedule (
-    schedule_id, job_id, cron_expression, timezone, enabled_yn, created_by, updated_by
+    schedule_id, job_id, cron_expression, calendar_id, business_day_only_yn,
+    holiday_policy, available_start_time, available_end_time, run_date_pattern,
+    timezone, enabled_yn, created_by, updated_by
 ) VALUES
-    ('CPF_EDU_TASKLET_DAILY', 'CPF_EDU_TASKLET_JOB', '0 0 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM')
+    ('CPF_EDU_TASKLET_DAILY', 'CPF_EDU_TASKLET_JOB', '0 0 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:00:00', '04:00:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:30:00', '05:30:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     job_id = VALUES(job_id),
     cron_expression = VALUES(cron_expression),
+    calendar_id = VALUES(calendar_id),
+    business_day_only_yn = VALUES(business_day_only_yn),
+    holiday_policy = VALUES(holiday_policy),
+    available_start_time = VALUES(available_start_time),
+    available_end_time = VALUES(available_end_time),
+    run_date_pattern = VALUES(run_date_pattern),
     timezone = VALUES(timezone),
     enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_batch_job_relation (
+    job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_TASKLET_JOB', 'CPF_EDU_CHUNK_JOB', 'TRIGGER', 'COMPLETED', 'COMPLETED', 20, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    trigger_condition = VALUES(trigger_condition),
+    required_status = VALUES(required_status),
+    sort_order = VALUES(sort_order),
+    use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
@@ -1378,6 +1614,30 @@ WHERE @cpf_edu_execution_id IS NOT NULL
         AND step_name = 'CPF_EDU_TASKLET_STEP'
   );
 
+INSERT INTO pfw_batch_execution_target (
+    execution_id, job_id, schedule_id, target_instance_id, business_date, planned_run_at,
+    dispatch_status, dispatch_reason, created_by, updated_by
+)
+SELECT
+    @cpf_edu_execution_id,
+    'CPF_EDU_TASKLET_JOB',
+    'CPF_EDU_TASKLET_DAILY',
+    'local-batch-01',
+    CURRENT_DATE,
+    CAST(CONCAT(CURRENT_DATE, ' 02:00:00') AS DATETIME),
+    'DONE',
+    '로컬 smoke 검증용 완료 대상',
+    'SYSTEM',
+    'SYSTEM'
+WHERE @cpf_edu_execution_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_batch_execution_target
+      WHERE job_id = 'CPF_EDU_TASKLET_JOB'
+        AND business_date = CURRENT_DATE
+        AND target_instance_id = 'local-batch-01'
+  );
+
 INSERT INTO pfw_business_day_calendar (
     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
 ) VALUES
@@ -1389,6 +1649,45 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_notification_rule (
+    event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
+) VALUES
+    ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    template_code = VALUES(template_code),
+    severity = VALUES(severity),
+    receiver_group = VALUES(receiver_group),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_notification_delivery_log (
+    rule_id, event_type, target_type, target_id, receiver, delivery_status, delivery_message, created_by, updated_by
+)
+SELECT
+    rule_id,
+    'BATCH_EXECUTION',
+    'pfw_batch_execution',
+    CAST(@cpf_edu_execution_id AS CHAR),
+    'ADM_BATCH_OPERATOR',
+    'SKIPPED',
+    '로컬 seed 알림 발송 로그 샘플입니다.',
+    'SYSTEM',
+    'SYSTEM'
+FROM pfw_notification_rule
+WHERE event_type = 'BATCH_EXECUTION'
+  AND event_sub_type = 'FAILED'
+  AND @cpf_edu_execution_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_notification_delivery_log
+      WHERE event_type = 'BATCH_EXECUTION'
+        AND target_id = CAST(@cpf_edu_execution_id AS CHAR)
+        AND receiver = 'ADM_BATCH_OPERATOR'
+  )
+LIMIT 1;
 
 -- ============================================================================
 -- specs/sql/55_cmn_seed_data.sql
@@ -1599,6 +1898,9 @@ VALUES
     ('BATCH_STOP', 'BATCH', 'STOP', '실행 중지', 'POST', '/adm/api/batch/executions/*/stop', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_SCHEDULE', 'BATCH', 'SCHEDULE', '스케줄 변경', 'POST', '/adm/api/batch/schedules/**', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_CALENDAR_SAVE', 'BATCH', 'CALENDAR_SAVE', '영업일 저장', 'POST', '/adm/api/batch/calendar', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_SIMULATION', 'BATCH', 'SIMULATION', '수행 시뮬레이션', 'GET', '/adm/api/batch/schedules/*/simulation', 80, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_RELATION_READ', 'BATCH', 'RELATION_READ', '배치 관계 조회', 'GET', '/adm/api/batch/relations', 90, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_TARGET_READ', 'BATCH', 'TARGET_READ', '수행 대상 조회', 'GET', '/adm/api/batch/execution-targets', 100, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_READ', 'CACHE', 'READ', '조회', 'GET', '/adm/api/cache/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE_REFRESH', 'CACHE', 'REFRESH', '캐시 갱신', 'POST', '/adm/api/cache/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MESSAGE_READ', 'MESSAGE', 'READ', '조회', 'GET', '/adm/api/messages/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -1777,7 +2079,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
 SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
-           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'CACHE_REFRESH') THEN 'Y'
+           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'CACHE_REFRESH') THEN 'Y'
            WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'CACHE', 'MESSAGE', 'CODE') THEN 'Y'
            ELSE 'N'
        END,

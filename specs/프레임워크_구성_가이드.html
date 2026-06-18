@@ -34,7 +34,7 @@
     <h2>DB 소유권</h2>
     <table>
       <tr><th>DB</th><th>소유 데이터</th></tr>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 메타, 거래로그, 응답코드/메시지, 설정, 캐시 이벤트, JWT/security 메타</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 메타, 거래로그, 응답코드/메시지, 설정, 캐시 이벤트, Spring Batch <code>BATCH_*</code> 저장소, CPF 배치 운영 메타, 운영 알림, JWT/security 메타</td></tr>
       <tr><td><code>cmnDB</code></td><td>공통 채번, 채번 발급 로그, 공통 알림 로그, 공통 업무 로그</td></tr>
       <tr><td><code>admDB</code></td><td>운영자, 역할, 메뉴, 세션, 감사 로그, 동적 로그레벨 룰</td></tr>
       <tr><td><code>accDB</code></td><td><code>acc_account</code></td></tr>
@@ -56,6 +56,11 @@
   <section>
     <h2>Migration</h2>
     <p>Flyway 형식의 <code>V1__cpf_baseline_install.sql</code>을 기준으로 채택합니다. 설치 SQL과 migration SQL은 목적을 분리하고, 운영 migration은 <code>cpf_*_migration</code> 계정으로만 수행합니다.</p>
+    <table>
+      <tr><th>파일</th><th>기준</th></tr>
+      <tr><td><code>V1__cpf_baseline_install.sql</code></td><td>신규 환경 전체 baseline</td></tr>
+      <tr><td><code>V4__batch_schedule_repository_notification.sql</code></td><td>기존 환경에 Spring Batch 표준 저장소, 배치 스케줄 정책, 관계/수행대상, 운영 알림 테이블을 추가</td></tr>
+    </table>
   </section>
 
   <section>

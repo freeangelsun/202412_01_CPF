@@ -50,7 +50,7 @@
       <tr><th>메뉴</th><th>조회 대상</th></tr>
       <tr><td>온라인 거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td></tr>
       <tr><td>감사 로그</td><td><code>adm_audit_log</code>의 before/after/diff, 감사 사유, 대상 정보</td></tr>
-      <tr><td>배치 관제</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code></td></tr>
+      <tr><td>배치 관제</td><td><code>BATCH_*</code>, <code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_job_relation</code>, <code>pfw_batch_execution_target</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code></td></tr>
       <tr><td>운영 작업 로그</td><td><code>adm_operation_log</code>, <code>pfw_batch_operation_log</code></td></tr>
     </table>
     <p>로그 상세는 요약, 헤더, request, response, error, detail, diff, step log 탭으로 구분합니다. JSON은 pretty print와 복사/다운로드를 제공하고, 고정길이 전문은 필드명, 시작위치, 길이, 값, 설명을 표 형태로 표시합니다.</p>
@@ -75,8 +75,22 @@
       <tr><td>메시지/코드/응답코드/설정</td><td>등록, 수정, 비활성, 캐시 refresh 연동, 감사 사유 필수</td></tr>
       <tr><td>비밀번호 관리</td><td>정책 조회, 초기화, 강제 변경, 잠금 해제, 실패 횟수 초기화, 세션 폐기</td></tr>
       <tr><td>보안 운영</td><td>IP allowlist, MFA 등록/검증/해제 상태 관리, 로그인 감사 로그 확장</td></tr>
-      <tr><td>배치 운영</td><td>수동 실행, 실패 재수행, 중지, 스케줄 enable/disable, 모든 작업 감사 사유 필수</td></tr>
-      <tr><td>영업일/캘린더</td><td>배치 등록, 스케줄 운영, 영업일/휴일 저장을 ADM 배치 관제와 함께 관리</td></tr>
+      <tr><td>배치 운영</td><td>수동 실행, 실패 재수행, 중지, 스케줄 enable/disable, 수행 시뮬레이션, 관계 조회, 수행 대상 조회를 제공하고 모든 변경 작업은 감사 사유 필수</td></tr>
+      <tr><td>영업일/캘린더</td><td>스케줄의 영업일 전용 여부, 휴일 정책, 수행 가능 시작/종료 시각, 수행 일자 패턴을 ADM 배치 관제에서 확인</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>배치 관제 상세</h2>
+    <table>
+      <tr><th>기능</th><th>운영 기준</th></tr>
+      <tr><td>Spring Batch 저장소</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code>은 Spring Batch가 직접 사용하는 표준 JobRepository 테이블입니다.</td></tr>
+      <tr><td>CPF 운영 메타</td><td><code>pfw_batch_execution.spring_batch_execution_id</code>로 Spring Batch 실행 ID를 연결하고, 운영자 조회/검색/감사 로그는 CPF 메타 테이블에 저장합니다.</td></tr>
+      <tr><td>영업일만 수행</td><td><code>pfw_batch_schedule.business_day_only_yn</code>, <code>calendar_id</code>, <code>holiday_policy</code>로 휴일 수행 여부를 판단합니다.</td></tr>
+      <tr><td>수행 시뮬레이션</td><td>ADM의 수행 시뮬레이션 버튼은 기준일과 조회 일수를 받아 영업일 여부, 수행 가능 여부, 사유를 표시합니다.</td></tr>
+      <tr><td>선행/트리거 관계</td><td><code>pfw_batch_job_relation</code>에서 선행 Job, 후행 Job, 트리거 조건, 필수 상태를 조회합니다. 그래프 UI는 이후 시각화 고도화 대상입니다.</td></tr>
+      <tr><td>수행 대상 인스턴스</td><td><code>pfw_batch_execution_target</code>에서 수행 대기/배정/완료 대상 인스턴스, 업무 기준일, 예정 수행 일시를 확인합니다.</td></tr>
+      <tr><td>알림</td><td><code>pfw_notification_rule</code>, <code>pfw_notification_delivery_log</code>는 배치 실패와 보안 이벤트의 운영 알림 기준과 발송 이력을 관리합니다.</td></tr>
     </table>
   </section>
 </main>

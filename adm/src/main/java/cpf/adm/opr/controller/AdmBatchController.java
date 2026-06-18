@@ -67,9 +67,19 @@ public class AdmBatchController {
 
     @GetMapping("/schedules")
     @FpsTransaction(id = "ADM01BAT0012", name = "ADMBatchScheduleList")
-    @Operation(summary = "배치 스케줄 조회", description = "배치 스케줄과 활성 여부를 조회합니다.")
+    @Operation(summary = "배치 스케줄 조회", description = "배치 스케줄, 영업일 전용 여부, 수행 가능 시간, 휴일 정책을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSchedules() {
         return ResponseEntity.ok(batchOperationService.findSchedules());
+    }
+
+    @GetMapping("/schedules/{scheduleId}/simulation")
+    @FpsTransaction(id = "ADM01BAT0023", name = "ADMBatchScheduleSimulation")
+    @Operation(summary = "배치 스케줄 시뮬레이션", description = "영업일 캘린더와 스케줄 정책을 기준으로 수행 가능 후보일을 미리 계산합니다.")
+    public ResponseEntity<List<Map<String, Object>>> simulateSchedule(
+            @PathVariable String scheduleId,
+            @RequestParam(required = false) String baseDate,
+            @RequestParam(defaultValue = "14") int days) {
+        return ResponseEntity.ok(batchOperationService.simulateSchedule(scheduleId, baseDate, days));
     }
 
     @GetMapping("/executions")
@@ -93,6 +103,23 @@ public class AdmBatchController {
     @Operation(summary = "배치 인스턴스 조회", description = "배치 서버 인스턴스와 heartbeat 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findInstances() {
         return ResponseEntity.ok(batchOperationService.findInstances());
+    }
+
+    @GetMapping("/relations")
+    @FpsTransaction(id = "ADM01BAT0024", name = "ADMBatchRelationList")
+    @Operation(summary = "배치 관계 조회", description = "선행 Job, 후행 Job, 트리거 Job 관계를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findRelations(@RequestParam(required = false) String jobId) {
+        return ResponseEntity.ok(batchOperationService.findRelations(jobId));
+    }
+
+    @GetMapping("/execution-targets")
+    @FpsTransaction(id = "ADM01BAT0025", name = "ADMBatchExecutionTargetList")
+    @Operation(summary = "배치 수행 대상 조회", description = "수행 대기/배정/완료 대상 인스턴스와 예정 수행 정보를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findExecutionTargets(
+            @RequestParam(required = false) String jobId,
+            @RequestParam(required = false) String dispatchStatus,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(batchOperationService.findExecutionTargets(jobId, dispatchStatus, limit));
     }
 
     @GetMapping("/calendar")

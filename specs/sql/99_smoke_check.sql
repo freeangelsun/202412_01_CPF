@@ -8,12 +8,23 @@ SELECT 'pfwDB.pfw_message' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_m
 SELECT 'pfwDB.pfw_response_code' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_response_code;
 SELECT 'pfwDB.pfw_config' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_config;
 SELECT 'pfwDB.pfw_cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_cache_refresh_event;
+SELECT 'pfwDB.BATCH_JOB_INSTANCE' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_INSTANCE;
+SELECT 'pfwDB.BATCH_JOB_EXECUTION' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION;
+SELECT 'pfwDB.BATCH_JOB_EXECUTION_PARAMS' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION_PARAMS;
+SELECT 'pfwDB.BATCH_STEP_EXECUTION' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_STEP_EXECUTION;
+SELECT 'pfwDB.BATCH_JOB_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_SEQ;
+SELECT 'pfwDB.BATCH_JOB_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION_SEQ;
+SELECT 'pfwDB.BATCH_STEP_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_STEP_EXECUTION_SEQ;
 SELECT 'pfwDB.pfw_batch_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job;
 SELECT 'pfwDB.pfw_batch_schedule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_schedule;
+SELECT 'pfwDB.pfw_batch_job_relation' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job_relation;
 SELECT 'pfwDB.pfw_batch_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_instance;
 SELECT 'pfwDB.pfw_batch_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution;
+SELECT 'pfwDB.pfw_batch_execution_target' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution_target;
 SELECT 'pfwDB.pfw_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_step_execution;
 SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
+SELECT 'pfwDB.pfw_notification_rule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_rule;
+SELECT 'pfwDB.pfw_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_delivery_log;
 
 SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence;
 SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
@@ -61,8 +72,21 @@ ORDER BY ROLE_ID, MENU_ID;
 
 SELECT ROLE_ID, BUTTON_ID, ALLOW_YN
 FROM admDB.adm_role_button
-WHERE BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_ROLE_GRANT', 'BATCH_EXECUTE', 'BATCH_CALENDAR_SAVE')
+WHERE BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_ROLE_GRANT', 'BATCH_EXECUTE', 'BATCH_CALENDAR_SAVE', 'BATCH_SIMULATION', 'BATCH_TARGET_READ')
 ORDER BY ROLE_ID, BUTTON_ID;
+
+SELECT schedule_id, job_id, business_day_only_yn, holiday_policy, available_start_time, available_end_time, run_date_pattern
+FROM pfwDB.pfw_batch_schedule
+ORDER BY schedule_id;
+
+SELECT job_id, related_job_id, relation_type, trigger_condition, required_status
+FROM pfwDB.pfw_batch_job_relation
+ORDER BY job_id, related_job_id;
+
+SELECT job_id, schedule_id, target_instance_id, business_date, dispatch_status
+FROM pfwDB.pfw_batch_execution_target
+ORDER BY target_id
+LIMIT 5;
 
 SELECT member_no, customer_no, login_id, name, member_status, lock_yn, withdraw_yn
 FROM mbrDB.mbr_member

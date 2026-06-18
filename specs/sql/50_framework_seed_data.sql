@@ -205,6 +205,18 @@ WHERE NOT EXISTS (
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
 
+INSERT INTO BATCH_JOB_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_SEQ);
+
+INSERT INTO BATCH_JOB_EXECUTION_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_EXECUTION_SEQ);
+
+INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
+SELECT 0
+WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
+
 INSERT INTO pfw_batch_instance (
     instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
 ) VALUES (
@@ -244,15 +256,36 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO pfw_batch_schedule (
-    schedule_id, job_id, cron_expression, timezone, enabled_yn, created_by, updated_by
+    schedule_id, job_id, cron_expression, calendar_id, business_day_only_yn,
+    holiday_policy, available_start_time, available_end_time, run_date_pattern,
+    timezone, enabled_yn, created_by, updated_by
 ) VALUES
-    ('CPF_EDU_TASKLET_DAILY', 'CPF_EDU_TASKLET_JOB', '0 0 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM')
+    ('CPF_EDU_TASKLET_DAILY', 'CPF_EDU_TASKLET_JOB', '0 0 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:00:00', '04:00:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:30:00', '05:30:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     job_id = VALUES(job_id),
     cron_expression = VALUES(cron_expression),
+    calendar_id = VALUES(calendar_id),
+    business_day_only_yn = VALUES(business_day_only_yn),
+    holiday_policy = VALUES(holiday_policy),
+    available_start_time = VALUES(available_start_time),
+    available_end_time = VALUES(available_end_time),
+    run_date_pattern = VALUES(run_date_pattern),
     timezone = VALUES(timezone),
     enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_batch_job_relation (
+    job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_EDU_TASKLET_JOB', 'CPF_EDU_CHUNK_JOB', 'TRIGGER', 'COMPLETED', 'COMPLETED', 20, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    trigger_condition = VALUES(trigger_condition),
+    required_status = VALUES(required_status),
+    sort_order = VALUES(sort_order),
+    use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
@@ -304,6 +337,30 @@ WHERE @cpf_edu_execution_id IS NOT NULL
         AND step_name = 'CPF_EDU_TASKLET_STEP'
   );
 
+INSERT INTO pfw_batch_execution_target (
+    execution_id, job_id, schedule_id, target_instance_id, business_date, planned_run_at,
+    dispatch_status, dispatch_reason, created_by, updated_by
+)
+SELECT
+    @cpf_edu_execution_id,
+    'CPF_EDU_TASKLET_JOB',
+    'CPF_EDU_TASKLET_DAILY',
+    'local-batch-01',
+    CURRENT_DATE,
+    CAST(CONCAT(CURRENT_DATE, ' 02:00:00') AS DATETIME),
+    'DONE',
+    '로컬 smoke 검증용 완료 대상',
+    'SYSTEM',
+    'SYSTEM'
+WHERE @cpf_edu_execution_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_batch_execution_target
+      WHERE job_id = 'CPF_EDU_TASKLET_JOB'
+        AND business_date = CURRENT_DATE
+        AND target_instance_id = 'local-batch-01'
+  );
+
 INSERT INTO pfw_business_day_calendar (
     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
 ) VALUES
@@ -315,3 +372,42 @@ ON DUPLICATE KEY UPDATE
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_notification_rule (
+    event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
+) VALUES
+    ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    template_code = VALUES(template_code),
+    severity = VALUES(severity),
+    receiver_group = VALUES(receiver_group),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_notification_delivery_log (
+    rule_id, event_type, target_type, target_id, receiver, delivery_status, delivery_message, created_by, updated_by
+)
+SELECT
+    rule_id,
+    'BATCH_EXECUTION',
+    'pfw_batch_execution',
+    CAST(@cpf_edu_execution_id AS CHAR),
+    'ADM_BATCH_OPERATOR',
+    'SKIPPED',
+    '로컬 seed 알림 발송 로그 샘플입니다.',
+    'SYSTEM',
+    'SYSTEM'
+FROM pfw_notification_rule
+WHERE event_type = 'BATCH_EXECUTION'
+  AND event_sub_type = 'FAILED'
+  AND @cpf_edu_execution_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pfw_notification_delivery_log
+      WHERE event_type = 'BATCH_EXECUTION'
+        AND target_id = CAST(@cpf_edu_execution_id AS CHAR)
+        AND receiver = 'ADM_BATCH_OPERATOR'
+  )
+LIMIT 1;

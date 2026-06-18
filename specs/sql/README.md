@@ -11,6 +11,7 @@
 | `migration/flyway/V1__cpf_baseline_install.sql` | 신규 환경 Flyway baseline SQL |
 | `migration/flyway/V2__add_transaction_header_columns.sql` | 기존 설치 DB의 거래 헤더 컬럼 보강 |
 | `migration/flyway/V3__adm_cmn_batch_security_operations.sql` | CMN 채번 확장, ADM 버튼 권한/보안, PFW 배치 메타 보강 |
+| `migration/flyway/V4__batch_schedule_repository_notification.sql` | Spring Batch 표준 저장소와 배치 스케줄/관계/수행대상/알림 보강 |
 
 ## 분리 SQL 순서
 
@@ -32,7 +33,7 @@
 
 | DB | 역할 | 주요 테이블 |
 | --- | --- | --- |
-| `pfwDB` | 프레임워크 엔진/메타 | `pfw_transaction_log`, `pfw_code`, `pfw_message`, `pfw_response_code`, `pfw_config`, `pfw_cache_refresh_event`, `pfw_batch_*`, `pfw_security_*` |
+| `pfwDB` | 프레임워크 엔진/메타 | `pfw_transaction_log`, `pfw_code`, `pfw_message`, `pfw_response_code`, `pfw_config`, `pfw_cache_refresh_event`, `BATCH_*`, `pfw_batch_*`, `pfw_notification_*`, `pfw_security_*` |
 | `cmnDB` | 업무 공통 기능 | `cmn_sequence`, `cmn_sequence_issue_log`, `cmn_notification_log`, `cmn_business_log` |
 | `admDB` | 관리자/운영 | `adm_operator`, `adm_role`, `adm_menu`, `adm_button`, `adm_role_menu`, `adm_role_button`, `adm_password_*`, `adm_audit_log`, `adm_operator_session`, `adm_ip_allowlist`, `adm_mfa_otp_secret` |
 | `accDB` | 계정 샘플 | `acc_account` |
@@ -45,6 +46,7 @@
 - FK, UK, index는 `fk_`, `uk_`, `ix_` + 테이블명 + 의미 순서로 작성합니다.
 - 모든 테이블은 `created_by`, `created_at`, `updated_by`, `updated_at`을 가집니다.
 - 모든 테이블과 주요 컬럼은 DB에서 바로 읽을 수 있도록 한글 `COMMENT`를 작성합니다.
+- Spring Batch 표준 JobRepository 테이블인 `BATCH_*`는 외부 프레임워크가 고정 명칭으로 찾기 때문에 예외적으로 대문자 표준명을 유지합니다.
 
 ## CMN 채번 기준
 
@@ -65,6 +67,17 @@ Flyway를 표준 migration 도구로 채택합니다. 운영 적용 시 migratio
 2. 같은 변경을 분리 설치 SQL에도 반영합니다.
 3. `00_all_install.sql`, `00_all_install_and_smoke.sql`, Flyway baseline 또는 증분 migration을 함께 갱신합니다.
 4. MariaDB에서 idempotent, FK/index, seed, 권한을 확인합니다.
+
+## Spring Batch 저장소와 CPF 운영 메타
+
+Spring Batch가 직접 사용하는 표준 저장소는 `BATCH_JOB_INSTANCE`, `BATCH_JOB_EXECUTION`, `BATCH_STEP_EXECUTION` 같은 `BATCH_*` 테이블입니다. ADM 관제에서 검색하고 보여주는 운영 정보는 `pfw_batch_job`, `pfw_batch_schedule`, `pfw_batch_execution`, `pfw_batch_step_execution`, `pfw_batch_operation_log`에 저장합니다.
+
+- `pfw_batch_execution.spring_batch_execution_id`는 Spring Batch `BATCH_JOB_EXECUTION.JOB_EXECUTION_ID`를 연결하는 참조 값입니다.
+- `pfw_batch_schedule.business_day_only_yn='Y'`이면 `pfw_business_day_calendar` 기준 영업일만 수행 후보로 계산합니다.
+- `available_start_time`, `available_end_time`, `run_date_pattern`은 ADM 수행 시뮬레이션과 운영자 판단 기준으로 사용합니다.
+- `pfw_batch_job_relation`은 선행 Job, 후행 Job, 트리거 Job 관계를 저장합니다.
+- `pfw_batch_execution_target`은 수행 대기/배정/완료 대상 인스턴스와 기준일을 저장합니다.
+- `pfw_notification_rule`, `pfw_notification_delivery_log`는 배치 실패, 보안 이벤트 같은 운영 알림의 DB 기준입니다. 실제 SMS/메일/메신저 발송은 프로젝트별 adapter에서 확장합니다.
 
 ## Smoke 실행 예시
 

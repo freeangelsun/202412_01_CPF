@@ -106,6 +106,8 @@ if (!window.Vue) {
           jobParameters: "{\"sample\":true}",
           calendarId: "DEFAULT",
           businessDate: new Date().toISOString().slice(0, 10),
+          simulationDays: 14,
+          dispatchStatus: "WAITING",
           holidayYn: "N",
           businessDayYn: "Y",
           description: "ADM 영업일 샘플",
@@ -464,14 +466,16 @@ if (!window.Vue) {
         this.setMessage(`${target} 캐시 갱신을 요청했습니다.`);
       },
       async loadBatch() {
-        const [jobs, executions, schedules, instances, calendar] = await Promise.all([
+        const [jobs, executions, schedules, instances, relations, targets, calendar] = await Promise.all([
           this.getJson("/adm/api/batch/jobs"),
           this.getJson("/adm/api/batch/executions?limit=50"),
           this.getJson("/adm/api/batch/schedules"),
           this.getJson("/adm/api/batch/instances"),
+          this.getJson(`/adm/api/batch/relations?${this.buildParams({ jobId: this.batchForm.jobId }).toString()}`),
+          this.getJson(`/adm/api/batch/execution-targets?${this.buildParams({ jobId: this.batchForm.jobId, dispatchStatus: this.batchForm.dispatchStatus, limit: 50 }).toString()}`),
           this.getJson(`/adm/api/batch/calendar?${this.buildParams({ calendarId: this.batchForm.calendarId }).toString()}`)
         ]);
-        this.batchResult = { jobs, executions, schedules, instances, calendar };
+        this.batchResult = { jobs, executions, schedules, instances, relations, targets, calendar };
       },
       async registerBatchJob() {
         if (!this.batchForm.jobId || !this.requireReason(this.batchForm.reason)) return;
@@ -522,6 +526,29 @@ if (!window.Vue) {
           reason: this.batchForm.reason
         });
         this.setMessage("영업일 캘린더를 저장했습니다.");
+      },
+      async simulateBatchSchedule() {
+        if (!this.batchForm.scheduleId) return;
+        const params = this.buildParams({
+          baseDate: this.batchForm.businessDate,
+          days: this.batchForm.simulationDays || 14
+        });
+        this.batchResult = {
+          simulation: await this.getJson(`/adm/api/batch/schedules/${this.batchForm.scheduleId}/simulation?${params.toString()}`)
+        };
+        this.setMessage("배치 수행 시뮬레이션을 조회했습니다.");
+      },
+      async loadBatchRelations() {
+        const params = this.buildParams({ jobId: this.batchForm.jobId });
+        this.batchResult = { relations: await this.getJson(`/adm/api/batch/relations?${params.toString()}`) };
+      },
+      async loadBatchTargets() {
+        const params = this.buildParams({
+          jobId: this.batchForm.jobId,
+          dispatchStatus: this.batchForm.dispatchStatus,
+          limit: 100
+        });
+        this.batchResult = { targets: await this.getJson(`/adm/api/batch/execution-targets?${params.toString()}`) };
       },
       async loadMessages() {
         this.messageResult = await this.getJson("/adm/api/messages");

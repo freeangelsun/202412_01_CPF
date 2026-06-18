@@ -186,6 +186,9 @@
             <button type="button" v-if="canWrite('BATCH')" @click="retryBatchExecution">실패 재수행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="stopBatchExecution">중지</button>
             <button type="button" v-if="canWrite('BATCH')" @click="saveBusinessDay">영업일 저장</button>
+            <button type="button" @click="simulateBatchSchedule">수행 시뮬레이션</button>
+            <button type="button" @click="loadBatchRelations">관계 조회</button>
+            <button type="button" @click="loadBatchTargets">수행 대상 조회</button>
           </div>
         </div>
         <div class="filters">
@@ -195,7 +198,10 @@
           <label>Execution ID <input v-model.number="batchForm.executionId" type="number"></label>
           <label>Schedule ID <input v-model="batchForm.scheduleId" type="text"></label>
           <label>파라미터 <input v-model="batchForm.jobParameters" type="text"></label>
+          <label>캘린더 <input v-model="batchForm.calendarId" type="text"></label>
           <label>영업일 <input v-model="batchForm.businessDate" type="date"></label>
+          <label>시뮬레이션 일수 <input v-model.number="batchForm.simulationDays" type="number" min="1" max="62"></label>
+          <label>수행 상태 <input v-model="batchForm.dispatchStatus" type="text" placeholder="WAITING"></label>
           <label>사유 <input v-model="batchForm.reason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(batchResult) }}</pre>

@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,8 @@ public class AdmBatchOperationService {
     public List<Map<String, Object>> findSchedules() {
         return queryOrEmpty("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
+                       calendar_id, business_day_only_yn, holiday_policy,
+                       available_start_time, available_end_time, run_date_pattern,
                        last_fire_at, next_fire_at, created_at, updated_at
                 FROM pfw_batch_schedule
                 ORDER BY job_id, schedule_id
@@ -129,6 +132,92 @@ public class AdmBatchOperationService {
                 FROM pfw_batch_instance
                 ORDER BY active_yn DESC, instance_name
                 """);
+    }
+
+    public List<Map<String, Object>> findRelations(String jobId) {
+        if (TextUtils.hasText(jobId)) {
+            return queryOrEmpty("""
+                    SELECT r.relation_id, r.job_id, j.job_name,
+                           r.related_job_id, rel.job_name AS related_job_name,
+                           r.relation_type, r.trigger_condition, r.required_status,
+                           r.sort_order, r.use_yn, r.created_at, r.updated_at
+                    FROM pfw_batch_job_relation r
+                    JOIN pfw_batch_job j ON j.job_id = r.job_id
+                    JOIN pfw_batch_job rel ON rel.job_id = r.related_job_id
+                    WHERE r.job_id = ?
+                       OR r.related_job_id = ?
+                    ORDER BY r.job_id, r.sort_order, r.related_job_id
+                    """, jobId.trim(), jobId.trim());
+        }
+        return queryOrEmpty("""
+                SELECT r.relation_id, r.job_id, j.job_name,
+                       r.related_job_id, rel.job_name AS related_job_name,
+                       r.relation_type, r.trigger_condition, r.required_status,
+                       r.sort_order, r.use_yn, r.created_at, r.updated_at
+                FROM pfw_batch_job_relation r
+                JOIN pfw_batch_job j ON j.job_id = r.job_id
+                JOIN pfw_batch_job rel ON rel.job_id = r.related_job_id
+                ORDER BY r.job_id, r.sort_order, r.related_job_id
+                """);
+    }
+
+    public List<Map<String, Object>> findExecutionTargets(String jobId, String dispatchStatus, int limit) {
+        int resolvedLimit = Math.max(1, Math.min(limit, 500));
+        if (TextUtils.hasText(jobId) && TextUtils.hasText(dispatchStatus)) {
+            return queryOrEmpty("""
+                    SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
+                           t.target_instance_id, i.instance_name, t.business_date,
+                           t.planned_run_at, t.dispatch_status, t.dispatch_reason,
+                           t.created_at, t.updated_at
+                    FROM pfw_batch_execution_target t
+                    JOIN pfw_batch_job j ON j.job_id = t.job_id
+                    LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                    WHERE t.job_id = ?
+                      AND t.dispatch_status = ?
+                    ORDER BY t.planned_run_at DESC, t.target_id DESC
+                    LIMIT ?
+                    """, jobId.trim(), dispatchStatus.trim(), resolvedLimit);
+        }
+        if (TextUtils.hasText(jobId)) {
+            return queryOrEmpty("""
+                    SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
+                           t.target_instance_id, i.instance_name, t.business_date,
+                           t.planned_run_at, t.dispatch_status, t.dispatch_reason,
+                           t.created_at, t.updated_at
+                    FROM pfw_batch_execution_target t
+                    JOIN pfw_batch_job j ON j.job_id = t.job_id
+                    LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                    WHERE t.job_id = ?
+                    ORDER BY t.planned_run_at DESC, t.target_id DESC
+                    LIMIT ?
+                    """, jobId.trim(), resolvedLimit);
+        }
+        return queryOrEmpty("""
+                SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
+                       t.target_instance_id, i.instance_name, t.business_date,
+                       t.planned_run_at, t.dispatch_status, t.dispatch_reason,
+                       t.created_at, t.updated_at
+                FROM pfw_batch_execution_target t
+                JOIN pfw_batch_job j ON j.job_id = t.job_id
+                LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                ORDER BY t.planned_run_at DESC, t.target_id DESC
+                LIMIT ?
+                """, resolvedLimit);
+    }
+
+    public List<Map<String, Object>> simulateSchedule(String scheduleId, String baseDate, int days) {
+        Map<String, Object> schedule = findSchedule(TextUtils.requireText(scheduleId, "scheduleId"));
+        LocalDate startDate = parseDateOrToday(baseDate);
+        int resolvedDays = Math.max(1, Math.min(days, 62));
+        String calendarId = TextUtils.defaultIfBlank(String.valueOf(schedule.get("calendar_id")), "DEFAULT");
+        boolean businessDayOnly = "Y".equalsIgnoreCase(String.valueOf(schedule.get("business_day_only_yn")));
+        boolean enabled = "Y".equalsIgnoreCase(String.valueOf(schedule.get("enabled_yn")));
+        Map<String, Map<String, Object>> calendarByDate = loadCalendarMap(
+                calendarId, startDate, startDate.plusDays(resolvedDays - 1L));
+
+        return startDate.datesUntil(startDate.plusDays(resolvedDays))
+                .map(date -> buildSimulationRow(schedule, calendarByDate.get(date.toString()), date, enabled, businessDayOnly))
+                .toList();
     }
 
     public List<Map<String, Object>> findBusinessCalendar(String calendarId, String fromDate, String toDate) {
@@ -332,10 +421,86 @@ public class AdmBatchOperationService {
     private Map<String, Object> findSchedule(String scheduleId) {
         return pfwJdbcTemplate.queryForMap("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
+                       calendar_id, business_day_only_yn, holiday_policy,
+                       available_start_time, available_end_time, run_date_pattern,
                        last_fire_at, next_fire_at, created_at, updated_at
                 FROM pfw_batch_schedule
                 WHERE schedule_id = ?
                 """, scheduleId);
+    }
+
+    private Map<String, Map<String, Object>> loadCalendarMap(String calendarId, LocalDate from, LocalDate to) {
+        List<Map<String, Object>> rows = queryOrEmpty("""
+                SELECT calendar_id, business_date, holiday_yn, business_day_yn, description
+                FROM pfw_business_day_calendar
+                WHERE calendar_id = ?
+                  AND business_date BETWEEN ? AND ?
+                """, calendarId, from.toString(), to.toString());
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows) {
+            result.put(String.valueOf(row.get("business_date")), row);
+        }
+        return result;
+    }
+
+    private Map<String, Object> buildSimulationRow(
+            Map<String, Object> schedule,
+            Map<String, Object> calendar,
+            LocalDate date,
+            boolean enabled,
+            boolean businessDayOnly) {
+        String businessDayYn = resolveBusinessDayYn(calendar, date);
+        boolean runnable = enabled && (!businessDayOnly || "Y".equals(businessDayYn));
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("schedule_id", schedule.get("schedule_id"));
+        row.put("job_id", schedule.get("job_id"));
+        row.put("plan_date", date.toString());
+        row.put("cron_expression", schedule.get("cron_expression"));
+        row.put("timezone", schedule.get("timezone"));
+        row.put("calendar_id", schedule.get("calendar_id"));
+        row.put("business_day_only_yn", schedule.get("business_day_only_yn"));
+        row.put("holiday_policy", schedule.get("holiday_policy"));
+        row.put("available_start_time", schedule.get("available_start_time"));
+        row.put("available_end_time", schedule.get("available_end_time"));
+        row.put("run_date_pattern", schedule.get("run_date_pattern"));
+        row.put("business_day_yn", businessDayYn);
+        row.put("runnable_yn", runnable ? "Y" : "N");
+        row.put("reason", simulationReason(enabled, businessDayOnly, businessDayYn, schedule));
+        return row;
+    }
+
+    private String resolveBusinessDayYn(Map<String, Object> calendar, LocalDate date) {
+        if (calendar != null && calendar.get("business_day_yn") != null) {
+            return String.valueOf(calendar.get("business_day_yn"));
+        }
+        return date.getDayOfWeek().getValue() <= 5 ? "Y" : "N";
+    }
+
+    private String simulationReason(
+            boolean enabled,
+            boolean businessDayOnly,
+            String businessDayYn,
+            Map<String, Object> schedule) {
+        if (!enabled) {
+            return "스케줄이 비활성 상태입니다.";
+        }
+        if (businessDayOnly && !"Y".equals(businessDayYn)) {
+            return "영업일 전용 스케줄이며 휴일 정책은 "
+                    + TextUtils.defaultIfBlank(String.valueOf(schedule.get("holiday_policy")), "SKIP")
+                    + " 입니다.";
+        }
+        return "수행 가능 후보일입니다.";
+    }
+
+    private LocalDate parseDateOrToday(String value) {
+        if (!TextUtils.hasText(value)) {
+            return LocalDate.now();
+        }
+        try {
+            return LocalDate.parse(value.trim());
+        } catch (DateTimeParseException ex) {
+            return LocalDate.now();
+        }
     }
 
     private Object findSpringBatchExecution(Map<String, Object> execution) {

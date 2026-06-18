@@ -63,6 +63,7 @@
   <section>
     <h2>Batch 개발 샘플</h2>
     <p>CPF 배치는 Spring Batch를 표준 엔진으로 사용하고, ADM 배치 관제는 Spring Batch 실행 결과와 CPF 운영 메타 테이블을 함께 조회합니다.</p>
+    <p>Spring Batch 자체 실행 저장소는 <code>BATCH_*</code> 테이블이며, CPF 운영 화면에서 검색하고 감사하는 데이터는 <code>pfw_batch_*</code> 테이블입니다. 신규 배치 개발자는 Job bean을 등록하고, 운영 노출이 필요한 Job은 <code>pfw_batch_job</code> seed 또는 ADM 배치 등록으로 메타를 맞춥니다.</p>
     <table>
       <tr><th>상황</th><th>참고 샘플</th><th>운영 연결</th></tr>
       <tr><td>단건/정리성 작업</td><td><code>POST /xyz/edu/batch/tasklet/run</code></td><td>ADM 배치 수동 실행과 실행 이력 조회</td></tr>
@@ -71,6 +72,9 @@
       <tr><td>중복 실행 방지</td><td><code>GET /xyz/edu/batch/lock-policy</code></td><td>동일 job/parameter lock과 idempotency 기준</td></tr>
       <tr><td>checkpoint/restart</td><td><code>GET /xyz/edu/batch/checkpoint-restart</code></td><td>재시작 가능 job과 실패 데이터 적재 기준</td></tr>
       <tr><td>ADM 관제 연동</td><td><code>GET /xyz/edu/batch/adm-link</code></td><td>JobRepository, JobExplorer, JobOperator, CPF batch 메타 동기화</td></tr>
+      <tr><td>영업일 수행 정책</td><td><code>GET /adm/api/batch/schedules/{scheduleId}/simulation</code></td><td>영업일 전용 여부, 휴일 정책, 수행 가능 시간대 사전 확인</td></tr>
+      <tr><td>선행/트리거 관계</td><td><code>GET /adm/api/batch/relations</code></td><td>선행 Job과 트리거 Job 관계 조회</td></tr>
+      <tr><td>수행 대상 인스턴스</td><td><code>GET /adm/api/batch/execution-targets</code></td><td>수행 대기/배정/완료 대상 인스턴스 조회</td></tr>
     </table>
   </section>
 

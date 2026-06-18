@@ -8,10 +8,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * CPF ?쒖? ?ㅻ쪟 ?묐떟?낅땲??
+ * CPF 기능 설명입니다.
  *
- * <p>怨좉컼?먭쾶??{@code message}? {@code messageCode}留??대젮蹂대궡怨?
- * ?대? ?곸꽭 ?ъ쑀??DB 濡쒓렇? ?뚯씪 濡쒓렇???④퉩?덈떎.</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Data
 @Builder

@@ -6,8 +6,8 @@ import org.springframework.context.ApplicationEvent;
 import java.util.Map;
 
 /**
- * ?몃옖??뀡 濡쒓렇 ?대깽???대옒??
- * 濡쒓렇 ?곗씠?곕? DB????ν븯湲??꾪븳 ?대깽???뺤쓽?낅땲??
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Getter
 public class TransactionLogEvent extends ApplicationEvent {

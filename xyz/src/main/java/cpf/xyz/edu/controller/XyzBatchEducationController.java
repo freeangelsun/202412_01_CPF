@@ -8,15 +8,22 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +39,15 @@ import java.util.Map;
 public class XyzBatchEducationController {
     private final JobLauncher jobLauncher;
     private final Map<String, Job> jobs;
+    private final JdbcTemplate pfwJdbcTemplate;
 
     public XyzBatchEducationController(ObjectProvider<JobLauncher> jobLauncherProvider,
-                                       ObjectProvider<Map<String, Job>> jobsProvider) {
+                                       ObjectProvider<Map<String, Job>> jobsProvider,
+                                       @Qualifier("pfwDataSource") ObjectProvider<DataSource> pfwDataSourceProvider) {
         this.jobLauncher = jobLauncherProvider.getIfAvailable();
         this.jobs = jobsProvider.getIfAvailable(Map::of);
+        DataSource pfwDataSource = pfwDataSourceProvider.getIfAvailable();
+        this.pfwJdbcTemplate = pfwDataSource == null ? null : new JdbcTemplate(pfwDataSource);
     }
 
     @PostMapping("/tasklet/run")
@@ -139,6 +150,7 @@ public class XyzBatchEducationController {
             response.put("executionId", execution.getId());
             response.put("status", execution.getStatus().name());
             response.put("exitStatus", execution.getExitStatus().getExitCode());
+            response.put("pfwBatchExecution", recordPfwBatchExecution(jobId, requestUser, execution));
             response.put("guide", "실무에서는 이 실행 결과를 pfw_batch_execution과 ADM 배치 관제 화면에서 함께 추적합니다.");
             return response;
         } catch (Exception ex) {
@@ -160,5 +172,103 @@ public class XyzBatchEducationController {
                 .filter(job -> jobId.equals(job.getName()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private Map<String, Object> recordPfwBatchExecution(String jobId, String requestUser, JobExecution execution) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (pfwJdbcTemplate == null) {
+            result.put("linked", false);
+            result.put("reason", "PFW datasource가 없어 CPF 운영 메타 기록을 생략했습니다.");
+            return result;
+        }
+
+        String user = TextUtils.defaultIfBlank(requestUser, "XYZ_EDU");
+        try {
+            long readCount = sumStepCounts(execution, StepCountType.READ);
+            long writeCount = sumStepCounts(execution, StepCountType.WRITE);
+            long skipCount = sumStepCounts(execution, StepCountType.SKIP);
+            pfwJdbcTemplate.update("""
+                    INSERT INTO pfw_batch_execution (
+                        job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
+                        batch_instance_id, start_time, end_time, read_count, write_count, skip_count,
+                        error_message, requested_by, created_by, updated_by
+                    ) VALUES (?, NULL, ?, ?, ?, 'local-batch-01', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    jobId,
+                    execution.getJobParameters().toString(),
+                    execution.getStatus().name(),
+                    execution.getId(),
+                    toTimestamp(execution.getStartTime()),
+                    toTimestamp(execution.getEndTime()),
+                    readCount,
+                    writeCount,
+                    skipCount,
+                    execution.getFailureExceptions().isEmpty() ? null : execution.getAllFailureExceptions().toString(),
+                    user,
+                    user,
+                    user);
+            Long pfwExecutionId = pfwJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+            if (pfwExecutionId != null) {
+                recordPfwStepExecutions(pfwExecutionId, execution, user);
+            }
+            result.put("linked", true);
+            result.put("pfwExecutionId", pfwExecutionId);
+            result.put("springBatchExecutionId", execution.getId());
+            result.put("readCount", readCount);
+            result.put("writeCount", writeCount);
+            result.put("skipCount", skipCount);
+            return result;
+        } catch (DataAccessException ex) {
+            result.put("linked", false);
+            result.put("reason", ex.getMostSpecificCause().getMessage());
+            return result;
+        }
+    }
+
+    private void recordPfwStepExecutions(Long pfwExecutionId, JobExecution execution, String user) {
+        for (StepExecution step : execution.getStepExecutions()) {
+            pfwJdbcTemplate.update("""
+                    INSERT INTO pfw_batch_step_execution (
+                        execution_id, step_name, execution_status, start_time, end_time,
+                        read_count, write_count, skip_count, error_message, step_log, created_by, updated_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    pfwExecutionId,
+                    step.getStepName(),
+                    step.getStatus().name(),
+                    toTimestamp(step.getStartTime()),
+                    toTimestamp(step.getEndTime()),
+                    step.getReadCount(),
+                    step.getWriteCount(),
+                    step.getSkipCount(),
+                    step.getFailureExceptions().isEmpty() ? null : step.getFailureExceptions().toString(),
+                    "commit=" + step.getCommitCount()
+                            + ", rollback=" + step.getRollbackCount()
+                            + ", readSkip=" + step.getReadSkipCount()
+                            + ", processSkip=" + step.getProcessSkipCount()
+                            + ", writeSkip=" + step.getWriteSkipCount(),
+                    user,
+                    user);
+        }
+    }
+
+    private long sumStepCounts(JobExecution execution, StepCountType type) {
+        return execution.getStepExecutions().stream()
+                .mapToLong(step -> switch (type) {
+                    case READ -> step.getReadCount();
+                    case WRITE -> step.getWriteCount();
+                    case SKIP -> step.getSkipCount();
+                })
+                .sum();
+    }
+
+    private Timestamp toTimestamp(LocalDateTime value) {
+        return value == null ? null : Timestamp.valueOf(value);
+    }
+
+    private enum StepCountType {
+        READ,
+        WRITE,
+        SKIP
     }
 }

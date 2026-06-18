@@ -11,10 +11,10 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * CMN 罹먯떆 蹂寃??대깽?몃? 諛쒗뻾?섎뒗 ?쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>CRUD ?먯껜??肄붾뱶/硫붿떆吏/?ㅼ젙 ?쒕퉬?ㅺ? ?섑뻾?섍퀬,
- * ???쒕퉬?ㅻ뒗 ?ㅻⅨ WAS媛 蹂寃??ъ떎???????덈룄濡??대깽???뚯씠釉붿뿉 湲곕줉留??대떦?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CacheRefreshEventPublisher {
@@ -30,15 +30,15 @@ public class CacheRefreshEventPublisher {
     }
 
     /**
-     * 罹먯떆 由ы봽?덉떆 ?대깽?몃? 諛쒗뻾?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * <p>?대깽??諛쒗뻾? 蹂꾨룄 ?몃옖??뀡?쇰줈 泥섎━?⑸땲??
-     * ?대깽???뚯씠釉붿씠 ?꾩쭅 ?앹꽦?섏? ?딆? 濡쒖뺄 ?섍꼍?먯꽌???낅Т CRUD媛 ?ㅽ뙣?섏? ?딅룄濡?     * ?덉쇅??寃쎄퀬 濡쒓렇濡쒕쭔 ?④퉩?덈떎.</p>
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      *
-     * @param cacheName 蹂寃쎈맂 罹먯떆 ?대쫫?낅땲??
-     * @param eventType 蹂寃??좏삎?낅땲??
-     * @param eventKey 蹂寃쎈맂 ?낅Т ?ㅼ엯?덈떎.
-     * @param requestUser 蹂寃??붿껌 ?ъ슜?먯엯?덈떎.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void publish(String cacheName, String eventType, String eventKey, String requestUser) {
@@ -46,15 +46,15 @@ public class CacheRefreshEventPublisher {
     }
 
     /**
-     * ?꾩옱 ?낅Т ?몃옖??뀡???뺤긽 而ㅻ컠????罹먯떆 由ы봽?덉떆 ?대깽?몃? 諛쒗뻾?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * <p>CRUD ?곗씠?곌? 而ㅻ컠?섍린 ?꾩뿉 ?ㅻⅨ WAS媛 ?대깽?몃? 쇱? ?쎌쑝硫?     * ?ㅻ옒???곗씠?곕? ?ㅼ떆 罹먯떆?????덉뒿?덈떎. 洹몃옒???몃옖??뀡 ?덉뿉?쒕뒗
-     * afterCommit ?낆쑝濡?吏??諛쒗뻾?섍퀬, ?몃옖??뀡 諛뽰뿉?쒕뒗 利됱떆 諛쒗뻾?⑸땲??</p>
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      *
-     * @param cacheName 蹂寃쎈맂 罹먯떆 ?대쫫?낅땲??
-     * @param eventType 蹂寃??좏삎?낅땲??
-     * @param eventKey 蹂寃쎈맂 ?낅Т ?ㅼ엯?덈떎.
-     * @param requestUser 蹂寃??붿껌 ?ъ슜?먯엯?덈떎.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public void publishAfterCommit(String cacheName, String eventType, String eventKey, String requestUser) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {

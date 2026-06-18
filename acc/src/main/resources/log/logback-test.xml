@@ -4,10 +4,10 @@
     <property name="LOG_PATH" value="D:/logs" />
     <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} [TranId: %X{transactionId}] [BizTranId: %X{businessTransactionId}] [TraceId: %X{traceId}] [SpanId: %X{spanId}] [DynLevel: %X{dynamicLogLevel}] - %msg%n" />
 
-    <!-- ??濡쒓렇 ?곹깭 由ъ뒪??(?붾쾭源낆슜) -->
+    <!-- CPF 설정 설명입니다. -->
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
 
-    <!-- ??肄섏넄 ?댄렂??-->
+    <!-- CPF 설정 설명입니다. -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <charset>UTF-8</charset>
@@ -15,10 +15,10 @@
         </encoder>
     </appender>
 
-    <!-- ??⑤뱢 濡쒓렇 ?댄렂??(RollingFileAppender ?ъ슜) -->
+    <!-- CPF 설정 설명입니다. -->
     <appender name="MODULE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- ???쇰퀎 濡쒓렇 ?뚯씪 ?앹꽦 -->
+            <!-- CPF 설정 설명입니다. -->
             <fileNamePattern>${LOG_PATH}/${MODULE_NAME}/${MODULE_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
@@ -29,10 +29,10 @@
         </encoder>
     </appender>
 
-    <!-- ??CMN 濡쒓렇 ?댄렂??-->
+    <!-- CPF 설정 설명입니다. -->
     <appender name="CMN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- ???쇰퀎 CMN 濡쒓렇 ?뚯씪 ?앹꽦 -->
+            <!-- CPF 설정 설명입니다. -->
             <fileNamePattern>${LOG_PATH}/${MODULE_NAME}/cmn-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
@@ -43,7 +43,7 @@
         </encoder>
     </appender>
 
-    <!-- ??PFW ?꾨젅?꾩썙??濡쒓렇 ?댄렂??-->
+    <!-- CPF 설정 설명입니다. -->
     <appender name="PFW_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/${MODULE_NAME}/pfw-%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -56,7 +56,7 @@
         </encoder>
     </appender>
 
-    <!-- ??嫄곕옒ID蹂?蹂댁“ 異붿쟻 濡쒓렇: DB 嫄곕옒濡쒓렇瑜?湲곗??쇰줈 蹂대릺, ?μ븷 遺꾩꽍 ???뚯씪 ?⑥쐞濡???嫄곕옒 ?먮쫫??鍮좊Ⅴ寃??뺤씤?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <appender name="TRANSACTION_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
             <key>transactionId</key>
@@ -80,7 +80,7 @@
         </sift>
     </appender>
 
-    <!-- ??濡쒓굅 ?ㅼ젙 -->
+    <!-- CPF 설정 설명입니다. -->
     <logger name="cpf.${MODULE_NAME}" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="MODULE_FILE" />
@@ -97,14 +97,14 @@
         <appender-ref ref="TRANSACTION_FILE" />
     </logger>
 
-    <!-- ??⑤뱺 濡쒓굅媛 ROOT瑜??ъ슜?섎룄濡?媛뺤젣 -->
+    <!-- CPF 설정 설명입니다. -->
     <logger name="org.apache.ibatis" level="DEBUG" additivity="true"/>
     <logger name="org.apache.ibatis.SQL" level="DEBUG" additivity="true"/>
     <logger name="org.apache.ibatis.mapping" level="DEBUG" additivity="true"/>
     <logger name="org.apache.ibatis.result" level="DEBUG" additivity="true"/>
 
 
-    <!-- ??ROOT 濡쒓렇 ?ㅼ젙 -->
+    <!-- CPF 설정 설명입니다. -->
     <root level="DEBUG">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="MODULE_FILE" />

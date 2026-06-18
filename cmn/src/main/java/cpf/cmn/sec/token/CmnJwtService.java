@@ -15,10 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * CMN JWT 怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
- *
- * <p>?몃? OAuth ?쒕쾭???щ궡 ?몄쬆 ?쒕쾭?먯꽌 諛쒓툒??JWT瑜?寃利앺븯嫄곕굹,
- * 援먯쑁/?대? ?곌퀎??HMAC JWT瑜??앹꽦?????ъ슜?⑸땲??</p>
+ * CMN JWT 생성과 검증 서비스입니다.
+ * 현재 프레임워크 기본 구현은 HS256 서명 방식을 제공하며, 운영 환경에서는 secret을 환경변수나 Vault/KMS로 주입합니다.
  */
 @Service
 public class CmnJwtService {
@@ -34,13 +32,14 @@ public class CmnJwtService {
     }
 
     /**
-     * HMAC-SHA256 JWT瑜??앹꽦?⑸땲??
+     * HS256 JWT를 생성합니다.
      *
-     * @param request ?앹꽦 ?붿껌
-     * @return JWT 臾몄옄??     */
+     * @param request JWT 생성 요청
+     * @return JWT 문자열
+     */
     public String createHs256Token(CmnJwtCreateRequest request) {
         if (request == null) {
-            throw new CpfValidationException("JWT ?앹꽦 ?붿껌? ?꾩닔?낅땲??");
+            throw new CpfValidationException("JWT 생성 요청이 필요합니다.");
         }
         long now = Instant.now().getEpochSecond();
         long ttl = request.ttlSeconds() <= 0 ? 300 : request.ttlSeconds();
@@ -64,12 +63,13 @@ public class CmnJwtService {
     }
 
     /**
-     * HMAC-SHA256 JWT瑜?寃利앺빀?덈떎.
+     * HS256 JWT를 검증합니다.
      *
-     * @param token            JWT
-     * @param secret           HMAC ?쒗겕由?     * @param expectedIssuer   湲곕? 諛쒓툒?? 鍮꾩뼱 ?덉쑝硫?寃利앺븯吏 ?딆뒿?덈떎.
-     * @param expectedAudience 湲곕? ????쒖뒪?? 鍮꾩뼱 ?덉쑝硫?寃利앺븯吏 ?딆뒿?덈떎.
-     * @return 寃利?寃곌낵
+     * @param token JWT 문자열
+     * @param secret HS256 서명 secret
+     * @param expectedIssuer 기대 발급자
+     * @param expectedAudience 기대 대상
+     * @return JWT 검증 결과
      */
     public CmnJwtValidationResult validateHs256Token(
             String token,
@@ -79,16 +79,16 @@ public class CmnJwtService {
         try {
             String[] parts = TextUtils.requireText(token, "token").split("\\.");
             if (parts.length != 3) {
-                return invalid("JWT ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+                return invalid("JWT 형식이 올바르지 않습니다.");
             }
             Map<String, Object> header = decodeJson(parts[0]);
             if (!"HS256".equals(String.valueOf(header.get("alg")))) {
-                return invalid("吏?먰븯吏 ?딅뒗 JWT ?뚭퀬由ъ쬁?낅땲?? alg=" + header.get("alg"));
+                return invalid("지원하지 않는 JWT 알고리즘입니다. alg=" + header.get("alg"));
             }
             String signingInput = parts[0] + "." + parts[1];
             String expectedSignature = cryptoService.hmacSha256Base64Url(signingInput, TextUtils.requireText(secret, "secret"));
             if (!MessageDigest.isEqual(expectedSignature.getBytes(StandardCharsets.UTF_8), parts[2].getBytes(StandardCharsets.UTF_8))) {
-                return invalid("JWT ?쒕챸???좏슚?섏? ?딆뒿?덈떎.");
+                return invalid("JWT 서명이 일치하지 않습니다.");
             }
 
             Map<String, Object> claims = decodeJson(parts[1]);
@@ -98,27 +98,27 @@ public class CmnJwtService {
             Instant expiresAt = Instant.ofEpochSecond(longClaim(claims, "exp"));
 
             if (expiresAt.isBefore(Instant.now())) {
-                return new CmnJwtValidationResult(false, "JWT媛 留뚮즺?섏뿀?듬땲??", subject, issuer, audience, expiresAt, claims);
+                return new CmnJwtValidationResult(false, "JWT가 만료되었습니다.", subject, issuer, audience, expiresAt, claims);
             }
             if (TextUtils.hasText(expectedIssuer) && !expectedIssuer.equals(issuer)) {
-                return new CmnJwtValidationResult(false, "JWT 諛쒓툒?먭? ?쇱튂?섏? ?딆뒿?덈떎.", subject, issuer, audience, expiresAt, claims);
+                return new CmnJwtValidationResult(false, "JWT 발급자가 일치하지 않습니다.", subject, issuer, audience, expiresAt, claims);
             }
             if (TextUtils.hasText(expectedAudience) && !expectedAudience.equals(audience)) {
-                return new CmnJwtValidationResult(false, "JWT ????쒖뒪?쒖씠 ?쇱튂?섏? ?딆뒿?덈떎.", subject, issuer, audience, expiresAt, claims);
+                return new CmnJwtValidationResult(false, "JWT 대상이 일치하지 않습니다.", subject, issuer, audience, expiresAt, claims);
             }
-            return new CmnJwtValidationResult(true, "JWT 寃利앹뿉 ?깃났?덉뒿?덈떎.", subject, issuer, audience, expiresAt, claims);
+            return new CmnJwtValidationResult(true, "JWT 검증에 성공했습니다.", subject, issuer, audience, expiresAt, claims);
         } catch (CpfValidationException ex) {
             return invalid(ex.getMessage());
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("JWT 寃利?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("JWT 검증 처리에 실패했습니다.", ex);
         }
     }
 
     /**
-     * JWT 留뚮즺 ?щ?留??뺤씤?⑸땲??
+     * JWT 만료 여부를 확인합니다.
      *
-     * @param token JWT
-     * @return 留뚮즺 ?щ?
+     * @param token JWT 문자열
+     * @return 만료되었거나 해석할 수 없으면 true
      */
     public boolean isExpired(String token) {
         try {
@@ -133,16 +133,16 @@ public class CmnJwtService {
     }
 
     /**
-     * ?쒕챸 寃利??놁씠 ?대젅?꾩쓣 議고쉶?⑸땲??
+     * 서명 검증 없이 claim만 읽습니다.
+     * 운영 인증에는 사용하지 말고, 진단이나 교육 샘플처럼 신뢰 경계 밖에서만 사용합니다.
      *
-     * <p>?붾쾭源??⑸룄?낅땲?? ?몄쬆/?멸? ?먮떒?먮뒗 諛섎뱶??validate 硫붿꽌?쒕? ?ъ슜?⑸땲??</p>
-     *
-     * @param token JWT
-     * @return ?대젅??     */
+     * @param token JWT 문자열
+     * @return JWT claim
+     */
     public Map<String, Object> readClaimsWithoutVerification(String token) {
         String[] parts = TextUtils.requireText(token, "token").split("\\.");
         if (parts.length != 3) {
-            throw new CpfValidationException("JWT ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+            throw new CpfValidationException("JWT 형식이 올바르지 않습니다.");
         }
         return decodeJson(parts[1]);
     }
@@ -151,7 +151,7 @@ public class CmnJwtService {
         try {
             return cryptoService.base64UrlEncode(objectMapper.writeValueAsBytes(source));
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("JWT JSON ?몄퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("JWT JSON 인코딩에 실패했습니다.", ex);
         }
     }
 
@@ -159,7 +159,7 @@ public class CmnJwtService {
         try {
             return objectMapper.readValue(cryptoService.base64UrlDecode(encoded), MAP_TYPE);
         } catch (Exception ex) {
-            throw new CpfValidationException("JWT JSON ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("JWT JSON 디코딩에 실패했습니다.");
         }
     }
 
@@ -180,4 +180,3 @@ public class CmnJwtService {
         return Long.parseLong(String.valueOf(value));
     }
 }
-

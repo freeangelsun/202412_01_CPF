@@ -12,13 +12,21 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
+/**
+ * CMN 모듈 MyBatis 설정입니다.
+ * 공통 코드, 메시지, 캐시 이벤트, 업무 공통 기능 Mapper를 같은 SqlSessionFactory로 연결합니다.
+ */
 @Configuration
-@MapperScan(basePackages = "cpf.cmn", sqlSessionFactoryRef = "cmnSqlSessionFactory") // CMN ?섏쐞 ?꾨찓?몄쓽 留ㅽ띁 ?명꽣?섏씠?ㅻ? ?ㅼ틪?⑸땲??
+@MapperScan(basePackages = "cpf.cmn", sqlSessionFactoryRef = "cmnSqlSessionFactory")
 public class CmnMyBatisConfig {
 
     private final DataSource cmnDataSource;
 
-    // DataSource 낇솗?섍쾶 吏??
+    /**
+     * CMN 기준 datasource를 주입합니다.
+     *
+     * @param cmnDataSource CMN 공통 datasource
+     */
     public CmnMyBatisConfig(@Qualifier("cmnDataSource") DataSource cmnDataSource) {
         this.cmnDataSource = cmnDataSource;
     }
@@ -27,18 +35,13 @@ public class CmnMyBatisConfig {
     public SqlSessionFactory cmnSqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(cmnDataSource);
-
-        // MyBatis ?ㅼ젙 ?뚯씪 吏??
         sqlSessionFactoryBean.setConfigLocation(
                 new ClassPathResource("mybatis/config/cmn-mybatis-config.xml")
         );
-
-        // 留ㅽ띁 XML ?뚯씪 寃쎈줈 吏??
         sqlSessionFactoryBean.setMapperLocations(
                 new PathMatchingResourcePatternResolver()
                         .getResources("classpath:mybatis/mapper/cmn/**/*.xml")
         );
-
         return sqlSessionFactoryBean.getObject();
     }
 
@@ -48,4 +51,3 @@ public class CmnMyBatisConfig {
         return new SqlSessionTemplate(cmnSqlSessionFactory);
     }
 }
-

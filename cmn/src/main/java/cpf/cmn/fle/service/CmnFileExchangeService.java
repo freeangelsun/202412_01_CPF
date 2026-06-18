@@ -27,9 +27,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>濡쒖뺄 ?뚯씪 ?낆텧?μ? 利됱떆 ?ъ슜?????덇퀬, SSH/SCP/SFTP/FTP 媛숈? ?먭꺽 ?곌퀎?? * ?댁쁺 蹂댁븞 ?뺤콉???곕씪 ?덉슜 ?몄뒪?몄? ?ㅽ뻾 ?щ?瑜?낆떆?곸쑝濡?耳쒖빞 ?⑸땲??</p>
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CmnFileExchangeService {
@@ -43,11 +43,11 @@ public class CmnFileExchangeService {
     }
 
     /**
-     * 湲곗? ?붾젆?곕━ ?꾨옒???띿뒪???뚯씪???앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param relativePath 湲곗? ?붾젆?곕━ 湲곗? ?곷? 寃쎈줈
-     * @param contents     ?뚯씪 ?댁슜
-     * @return ?앹꽦???뚯씪 寃쎈줈
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public Path writeText(String relativePath, String contents) {
         Path target = resolveSafePath(relativePath);
@@ -55,67 +55,67 @@ public class CmnFileExchangeService {
             Files.createDirectories(target.getParent());
             Files.writeString(target, contents == null ? "" : contents, StandardCharsets.UTF_8);
             recordHistory("LOCAL_WRITE", CmnFileProtocol.LOCAL.name(), "WRITE", true, true,
-                    null, relativePath, target.toString(), "SYSTEM", "濡쒖뺄 ?뚯씪 ?곌린瑜??꾨즺?덉뒿?덈떎.");
+                    null, relativePath, target.toString(), "SYSTEM", "CPF 처리 기준입니다.");
             return target;
         } catch (IOException ex) {
             recordHistory("LOCAL_WRITE", CmnFileProtocol.LOCAL.name(), "WRITE", true, false,
                     null, relativePath, target.toString(), "SYSTEM", ex.getMessage());
-            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ?곌린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + target, ex);
         }
     }
 
     /**
-     * 湲곗? ?붾젆?곕━ ?꾨옒???띿뒪???뚯씪???쎌뒿?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @param relativePath 湲곗? ?붾젆?곕━ 湲곗? ?곷? 寃쎈줈
-     * @return ?뚯씪 ?댁슜
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public String readText(String relativePath) {
         Path target = resolveSafePath(relativePath);
         try {
             String contents = Files.readString(target, StandardCharsets.UTF_8);
             recordHistory("LOCAL_READ", CmnFileProtocol.LOCAL.name(), "READ", true, true,
-                    null, relativePath, target.toString(), "SYSTEM", "濡쒖뺄 ?뚯씪 ?쎄린瑜??꾨즺?덉뒿?덈떎.");
+                    null, relativePath, target.toString(), "SYSTEM", "CPF 처리 기준입니다.");
             return contents;
         } catch (IOException ex) {
             recordHistory("LOCAL_READ", CmnFileProtocol.LOCAL.name(), "READ", true, false,
                     null, relativePath, target.toString(), "SYSTEM", ex.getMessage());
-            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ?쎄린???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + target, ex);
         }
     }
 
     /**
-     * 湲곗? ?붾젆?곕━ ?꾨옒 ?뚯씪 ⑸줉??議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param relativeDir 湲곗? ?붾젆?곕━ 湲곗? ?곷? ?붾젆?곕━
-     * @return ?뚯씪 ⑸줉
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public List<String> list(String relativeDir) {
         Path target = resolveSafePath(TextUtils.defaultIfBlank(relativeDir, "."));
         try (var stream = Files.list(target)) {
             List<String> files = stream.map(path -> baseDir().relativize(path).toString().replace("\\", "/")).toList();
             recordHistory("LOCAL_LIST", CmnFileProtocol.LOCAL.name(), "LIST", true, true,
-                    null, relativeDir, target.toString(), "SYSTEM", "濡쒖뺄 ?뚯씪 ⑸줉 議고쉶瑜??꾨즺?덉뒿?덈떎.");
+                    null, relativeDir, target.toString(), "SYSTEM", "CPF 처리 기준입니다.");
             return files;
         } catch (IOException ex) {
             recordHistory("LOCAL_LIST", CmnFileProtocol.LOCAL.name(), "LIST", true, false,
                     null, relativeDir, target.toString(), "SYSTEM", ex.getMessage());
-            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 ⑸줉 議고쉶???ㅽ뙣?덉뒿?덈떎. path=" + target, ex);
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + target, ex);
         }
     }
 
     /**
-     * 濡쒖뺄/?먭꺽 ?뚯씪 ?꾩넚??泥섎━?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * <p>LOCAL? ?ㅼ젣 蹂듭궗?⑸땲?? SCP/SFTP/FTP??낅졊 怨꾪쉷??留뚮뱾怨?
-     * {@code dryRun=false}, {@code sshEnabled=true}, ?덉슜 ?몄뒪??議곌굔??留뚯”???뚮쭔 ?ㅽ뻾?⑸땲??</p>
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      *
-     * @param request ?뚯씪 ?꾩넚 ?붿껌
-     * @return ?뚯씪 ?꾩넚 寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public CmnFileTransferResult transfer(CmnFileTransferRequest request) {
         if (request == null) {
-            throw new CpfValidationException("?뚯씪 ?꾩넚 ?붿껌? ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         CmnFileProtocol protocol = request.protocol() == null ? CmnFileProtocol.LOCAL : request.protocol();
         CmnFileTransferDirection direction = request.direction() == null
@@ -131,7 +131,7 @@ public class CmnFileExchangeService {
                     false,
                     protocol,
                     command,
-                    "?먭꺽 ?뚯씪 ?꾩넚 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.",
+                    "CPF 처리 기준입니다.",
                     request.localPath(),
                     request.remotePath());
             recordHistory("REMOTE_TRANSFER", protocol.name(), direction.name(), false, true,
@@ -154,14 +154,14 @@ public class CmnFileExchangeService {
     }
 
     /**
-     * SSH 낅졊???ㅽ뻾?섍굅???ㅽ뻾 怨꾪쉷??諛섑솚?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param request SSH 낅졊 ?붿껌
-     * @return ?ㅽ뻾 寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public CmnRemoteCommandResult runSshCommand(CmnRemoteCommandRequest request) {
         if (request == null || !TextUtils.hasText(request.command())) {
-            throw new CpfValidationException("SSH ?ㅽ뻾 낅졊? ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         List<String> command = buildSshCommand(request);
         if (!properties.isSshEnabled()) {
@@ -171,7 +171,7 @@ public class CmnFileExchangeService {
                     0,
                     command,
                     "",
-                    "SSH 낅졊 ?ㅽ뻾? 鍮꾪솢?깊솕?섏뼱 낅졊 怨꾪쉷留?諛섑솚?덉뒿?덈떎.");
+                    "CPF 처리 기준입니다.");
             recordHistory("SSH_COMMAND", "SSH", "COMMAND", false, true,
                     request.host(), request.command(), null, request.requestUser(), result.message());
             return result;
@@ -184,16 +184,16 @@ public class CmnFileExchangeService {
                 processResult.exitCode(),
                 command,
                 processResult.output(),
-                "SSH 낅졊 ?ㅽ뻾???꾨즺?덉뒿?덈떎.");
+                "CPF 처리 기준입니다.");
         recordHistory("SSH_COMMAND", "SSH", "COMMAND", true, result.success(),
                 request.host(), request.command(), null, request.requestUser(), result.message());
         return result;
     }
 
     /**
-     * 理쒓렐 ?뚯씪/?먭꺽 ?곌퀎 ?대젰??議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return 理쒓렐 ?대젰 ⑸줉
+     * CPF 기능 설명입니다.
      */
     public List<CmnFileExchangeHistoryRecord> findRecentHistory() {
         return history.stream().toList();
@@ -210,7 +210,7 @@ public class CmnFileExchangeService {
                     true,
                     CmnFileProtocol.LOCAL,
                     List.of("copy", source.toString(), target.toString()),
-                    "濡쒖뺄 ?뚯씪 蹂듭궗瑜??꾨즺?덉뒿?덈떎.",
+                    "CPF 처리 기준입니다.",
                     source.toString(),
                     target.toString());
             recordHistory("LOCAL_COPY", CmnFileProtocol.LOCAL.name(), "COPY", true, true,
@@ -219,7 +219,7 @@ public class CmnFileExchangeService {
         } catch (IOException ex) {
             recordHistory("LOCAL_COPY", CmnFileProtocol.LOCAL.name(), "COPY", true, false,
                     null, source.toString(), target.toString(), request.requestUser(), ex.getMessage());
-            throw new CpfExternalServiceException("濡쒖뺄 ?뚯씪 蹂듭궗???ㅽ뙣?덉뒿?덈떎. source="
+            throw new CpfExternalServiceException("CPF 처리 기준입니다."
                     + source + ", target=" + target, ex);
         }
     }
@@ -292,7 +292,7 @@ public class CmnFileExchangeService {
                     "ftp://" + request.host() + "/" + request.remotePath());
         }
 
-        throw new CpfValidationException("吏?먰븯吏 ?딅뒗 ?뚯씪 ?꾩넚 ?꾨줈?좎퐳?낅땲?? protocol=" + protocol);
+        throw new CpfValidationException("CPF 처리 기준입니다." + protocol);
     }
 
     private List<String> buildSshCommand(CmnRemoteCommandRequest request) {
@@ -324,41 +324,41 @@ public class CmnFileExchangeService {
             boolean finished = process.waitFor(timeout.toSeconds(), TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                return new ProcessResult(124, "?몃? 낅졊????꾩븘?껋쑝濡?醫낅즺?섏뿀?듬땲??");
+                return new ProcessResult(124, "CPF 처리 기준입니다.");
             }
             String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             return new ProcessResult(process.exitValue(), output);
         } catch (IOException ex) {
-            throw new CpfExternalServiceException("?몃? 낅졊 ?ㅽ뻾???ㅽ뙣?덉뒿?덈떎. command=" + command, ex);
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + command, ex);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new CpfExternalServiceException("?몃? 낅졊 ?ㅽ뻾??以묐떒?섏뿀?듬땲?? command=" + command, ex);
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + command, ex);
         }
     }
 
     private void validateRemoteRequest(String host, String username) {
         if (!TextUtils.hasText(host)) {
-            throw new CpfValidationException("?먭꺽 ?몄뒪?몃뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         if (!TextUtils.hasText(username)) {
-            throw new CpfValidationException("?먭꺽 ?ъ슜?먮뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
     }
 
     private void validateAllowedHost(String host) {
         if (!properties.getAllowedHosts().contains(host)) {
-            throw new CpfValidationException("?덉슜?섏? ?딆? ?먭꺽 ?몄뒪?몄엯?덈떎. host=" + host);
+            throw new CpfValidationException("CPF 처리 기준입니다." + host);
         }
     }
 
     private Path resolveSafePath(String relativePath) {
         if (!TextUtils.hasText(relativePath)) {
-            throw new CpfValidationException("?뚯씪 寃쎈줈???꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         Path baseDir = baseDir();
         Path target = baseDir.resolve(relativePath).normalize();
         if (!target.startsWith(baseDir)) {
-            throw new CpfValidationException("湲곗? ?붾젆?곕━ 諛뽰쓽 ?뚯씪? ?묎렐?????놁뒿?덈떎. path=" + relativePath);
+            throw new CpfValidationException("CPF 처리 기준입니다." + relativePath);
         }
         return target;
     }

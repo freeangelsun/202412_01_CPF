@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ?뱀젙 嫄곕옒留??댁쁺 以??꾩떆 ?곸꽭 濡쒓렇?덈꺼濡??щ━??諛⑸쾿??蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
+ * CPF 기능 설명입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "XYZ-EDU 10. ?숈쟻 濡쒓렇?덈꺼", description = "?뱀젙 嫄곕옒 DEBUG/TRACE ?꾩떆 ?꾪솚 ?섑뵆")
+@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
 public class XyzDynamicLogEducationController {
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
 
@@ -34,24 +34,24 @@ public class XyzDynamicLogEducationController {
     }
 
     /**
-     * ?숈쟻 濡쒓렇?덈꺼 洹쒖튃???깅줉?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param businessTransactionId ?낅Т 嫄곕옒ID
-     * @param transactionId         湲濡쒕쾶 嫄곕옒ID
-     * @param logLevel              ?곸슜 濡쒓렇?덈꺼
-     * @param ttlSeconds            ?좎? ?쒓컙
-     * @param reason                ?깅줉 ?ъ쑀
-     * @param requestUser           ?깅줉??     * @return ?깅줉??洹쒖튃
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @PutMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0005", name = "XYZ援먯쑁?숈쟻濡쒓렇?덈꺼?깅줉")
-    @Operation(summary = "?숈쟻 濡쒓렇?덈꺼 ?깅줉", description = "?댁쁺 以??뱀젙 嫄곕옒ID ?먮뒗 ?낅Т 嫄곕옒ID留??꾩떆 DEBUG/TRACE濡??щ━??洹쒖튃???깅줉?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0005", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<DynamicLogLevelRule> registerDynamicLogLevel(
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String transactionId,
             @RequestParam(defaultValue = "DEBUG") CpfLogLevel logLevel,
             @RequestParam(defaultValue = "600") long ttlSeconds,
-            @RequestParam(defaultValue = "XYZ 援먯쑁???숈쟻 濡쒓렇?덈꺼 ?섑뵆") String reason,
+            @RequestParam(defaultValue = "CPF 처리 기준입니다.") String reason,
             @RequestParam(defaultValue = "SYSTEM") String requestUser) {
 
         DynamicLogLevelRequest request = new DynamicLogLevelRequest();
@@ -66,26 +66,26 @@ public class XyzDynamicLogEducationController {
     }
 
     /**
-     * ?꾩옱 WAS 硫붾え由ъ뿉 ?깅줉???숈쟻 濡쒓렇?덈꺼 洹쒖튃??議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return ?숈쟻 濡쒓렇?덈꺼 洹쒖튃 ⑸줉
+     * CPF 기능 설명입니다.
      */
     @GetMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0006", name = "XYZ援먯쑁?숈쟻濡쒓렇?덈꺼議고쉶")
-    @Operation(summary = "?숈쟻 濡쒓렇?덈꺼 議고쉶", description = "?꾩옱 WAS 硫붾え由ъ뿉 ?깅줉???숈쟻 濡쒓렇?덈꺼 洹쒖튃??議고쉶?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0006", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<List<DynamicLogLevelRule>> findDynamicLogLevelRules() {
         return ResponseEntity.ok(dynamicLogLevelService.findActiveRules());
     }
 
     /**
-     * ?숈쟻 濡쒓렇?덈꺼 洹쒖튃????젣?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param ruleId 洹쒖튃 ID
-     * @return ??젣 寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @DeleteMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0007", name = "XYZ援먯쑁?숈쟻濡쒓렇?덈꺼??젣")
-    @Operation(summary = "?숈쟻 濡쒓렇?덈꺼 ??젣", description = "?숈쟻 濡쒓렇?덈꺼 洹쒖튃 ID濡??꾩떆 吏꾨떒 ?ㅼ젙????젣?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0007", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<Map<String, Object>> removeDynamicLogLevelRule(@RequestParam String ruleId) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("removed", dynamicLogLevelService.remove(ruleId));

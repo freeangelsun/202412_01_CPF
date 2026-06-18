@@ -4,7 +4,7 @@
 
 <mapper namespace="cpf.cmn.cfg.mapper.ConfigMapper">
 
-    <!-- ⑤뱺 怨듯넻 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findAllConfigs" resultType="map">
         SELECT
             config_id,
@@ -22,7 +22,7 @@
         ORDER BY config_key
     </select>
 
-    <!-- ?ㅼ젙 ?ㅻ줈 ?ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findConfigByKey" resultType="map" parameterType="string">
         SELECT
             config_id,
@@ -40,7 +40,7 @@
         WHERE config_key = #{configKey}
     </select>
 
-    <!-- ?ㅼ젙 ID濡??ㅼ젙媛믪쓣 議고쉶?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findConfigById" resultType="map" parameterType="long">
         SELECT
             config_id,
@@ -58,7 +58,7 @@
         WHERE config_id = #{configId}
     </select>
 
-    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ?깅줉?⑸땲?? ?깅줉 吏곹썑 ?쒕퉬?ㅼ뿉??罹먯떆瑜?由ы봽?덉떆?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <insert id="insertConfig" parameterType="cpf.cmn.cfg.dto.CommonConfigRequest"
             useGeneratedKeys="true"
             keyProperty="configId"
@@ -88,7 +88,7 @@
         )
     </insert>
 
-    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ?섏젙?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <update id="updateConfig">
         UPDATE pfw_config
         SET
@@ -103,7 +103,7 @@
         WHERE config_id = #{configId}
     </update>
 
-    <!-- 怨듯넻 ?ㅼ젙媛믪쓣 ??젣?⑸땲?? ?ㅼ젣 ?댁쁺?먯꽌???꾩슂 ??use_yn=N 諛⑹떇???쇰━ ??젣濡?諛붽? ???덉뒿?덈떎. -->
+    <!-- CPF 설정 설명입니다. -->
     <delete id="deleteConfig" parameterType="long">
         DELETE FROM pfw_config
         WHERE config_id = #{configId}

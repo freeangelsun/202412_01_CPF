@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.List;
 
 /**
- * CMN ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ⑤뱢 ?ъ슜踰뺤쓣 蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
+ * CPF 기능 설명입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "XYZ-EDU 08. ?뚯씪/?먭꺽 ?곌퀎", description = "濡쒖뺄 ?뚯씪, FTP/SFTP/SCP, SSH ?곌퀎 ?섑뵆")
+@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
 public class XyzFileExchangeEducationController {
     private final CmnFileExchangeService fileExchangeService;
 
@@ -37,18 +37,18 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 濡쒖뺄 ?뚯씪???앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param path     湲곗? ?붾젆?곕━ ?꾨옒 ?곷? 寃쎈줈
-     * @param contents ?뚯씪 ?댁슜
-     * @return ?앹꽦 寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @PostMapping("/file-exchange/local/write")
-    @CpfTransaction(id = "XYZ09EDU0014", name = "XYZ援먯쑁濡쒖뺄?뚯씪?곌린")
-    @Operation(summary = "濡쒖뺄 ?뚯씪 ?곌린 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻 湲곗? ?붾젆?곕━ ?꾨옒???뚯씪???앹꽦?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0014", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<Map<String, Object>> writeLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path,
-            @RequestParam(defaultValue = "XYZ 援먯쑁???뚯씪 ?곌퀎 ?섑뵆") String contents) {
+            @RequestParam(defaultValue = "CPF 처리 기준입니다.") String contents) {
         Path writtenPath = fileExchangeService.writeText(path, contents);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("path", writtenPath.toString());
@@ -58,14 +58,14 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 濡쒖뺄 ?뚯씪???쎌뒿?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @param path 湲곗? ?붾젆?곕━ ?꾨옒 ?곷? 寃쎈줈
-     * @return ?뚯씪 ?댁슜
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @GetMapping("/file-exchange/local/read")
-    @CpfTransaction(id = "XYZ09EDU0015", name = "XYZ援먯쑁濡쒖뺄?뚯씪?쎄린")
-    @Operation(summary = "濡쒖뺄 ?뚯씪 ?쎄린 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻 湲곗? ?붾젆?곕━ ?꾨옒 ?뚯씪???쎌뒿?덈떎.")
+    @CpfTransaction(id = "XYZ09EDU0015", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<Map<String, Object>> readLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -75,13 +75,13 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * FTP/SFTP/SCP ?뚯씪 ?꾩넚 怨꾪쉷???앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return ?뚯씪 ?꾩넚 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
+     * CPF 기능 설명입니다.
      */
     @PostMapping("/file-exchange/transfer-plan")
-    @CpfTransaction(id = "XYZ09EDU0016", name = "XYZ援먯쑁?뚯씪?꾩넚怨꾪쉷")
-    @Operation(summary = "FTP/SFTP/SCP ?뚯씪 ?꾩넚 怨꾪쉷 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻?쇰줈 ?먭꺽 ?뚯씪 ?꾩넚 낅졊 怨꾪쉷???앹꽦?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0016", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<CmnFileTransferResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CmnFileProtocol protocol,
             @RequestParam(defaultValue = "UPLOAD") CmnFileTransferDirection direction,
@@ -103,13 +103,13 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * SSH ?먭꺽 낅졊 怨꾪쉷???앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return SSH 낅졊 怨꾪쉷 ?먮뒗 ?ㅽ뻾 寃곌낵
+     * CPF 기능 설명입니다.
      */
     @PostMapping("/remote/ssh/command-plan")
-    @CpfTransaction(id = "XYZ09EDU0017", name = "XYZ援먯쑁SSH낅졊怨꾪쉷")
-    @Operation(summary = "SSH 낅졊 怨꾪쉷 ?섑뵆", description = "CMN ?먭꺽 ?곌퀎 怨듯넻?쇰줈 SSH 낅졊 怨꾪쉷???앹꽦?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0017", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<CmnRemoteCommandResult> buildSshCommandPlan(
             @RequestParam(defaultValue = "localhost") String host,
             @RequestParam(defaultValue = "appuser") String username,
@@ -125,13 +125,13 @@ public class XyzFileExchangeEducationController {
     }
 
     /**
-     * CMN ?뚯씪/?먭꺽 ?곌퀎 理쒓렐 ?대젰??議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return 理쒓렐 ?뚯씪/?먭꺽 ?곌퀎 ?대젰
+     * CPF 기능 설명입니다.
      */
     @GetMapping("/file-exchange/history")
-    @CpfTransaction(id = "XYZ09EDU0020", name = "XYZ援먯쑁?뚯씪?곌퀎?대젰議고쉶")
-    @Operation(summary = "?뚯씪/?먭꺽 ?곌퀎 ?대젰 議고쉶 ?섑뵆", description = "CMN ?뚯씪 ?곌퀎 怨듯넻??湲곕줉??理쒓렐 泥섎━ ?대젰??議고쉶?⑸땲??")
+    @CpfTransaction(id = "XYZ09EDU0020", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<List<CmnFileExchangeHistoryRecord>> findFileExchangeHistory() {
         return ResponseEntity.ok(fileExchangeService.findRecentHistory());
     }

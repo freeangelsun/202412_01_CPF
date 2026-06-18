@@ -6,32 +6,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * CMN ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ?ㅼ젙?낅땲??
+ * CPF 기능 설명입니다.
  */
 @ConfigurationProperties(prefix = "cpf.cmn.file-exchange")
 public class CmnFileExchangeProperties {
     /**
-     * 濡쒖뺄 ?뚯씪 ?곌퀎 湲곗? ?붾젆?곕━?낅땲?? ?곷? 寃쎈줈?????붾젆?곕━ 諛뽰쑝濡??섍컝 ???놁뒿?덈떎.
+     * CPF 기능 설명입니다.
      */
     private String baseDir = "${java.io.tmpdir}/cpf-cmn-file-exchange";
 
     /**
-     * SSH 낅졊 ?ㅽ뻾 ?덉슜 ?щ??낅땲?? 湲곕낯? 蹂댁븞??false?낅땲??
+     * CPF 기능 설명입니다.
      */
     private boolean sshEnabled = false;
 
     /**
-     * SSH/SCP/SFTP ?묒냽 ?덉슜 ?몄뒪??⑸줉?낅땲?? 鍮꾩뼱 ?덉쑝硫??먭꺽 ?ㅽ뻾???덉슜?섏? ?딆뒿?덈떎.
+     * CPF 기능 설명입니다.
      */
     private List<String> allowedHosts = new ArrayList<>();
 
     /**
-     * ?몃? 낅졊 ??꾩븘??珥덉엯?덈떎.
+     * CPF 기능 설명입니다.
      */
     private int timeoutSeconds = 15;
 
     /**
-     * ?먭꺽 ?뚯씪 ?꾩넚???ㅼ젣 ?ㅽ뻾?섏? ?딄퀬 낅졊 怨꾪쉷留?諛섑솚?좎? ?щ??낅땲??
+     * CPF 기능 설명입니다.
      */
     private boolean dryRun = true;
 

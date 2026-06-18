@@ -9,17 +9,19 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 
 /**
- * PFW ?쒖? ?덉쇅 ?몃뱾???먮룞 ?ㅼ젙?낅땲??
- *
- * <p>?낅Т ?좏뵆由ъ??댁뀡??{@code cpf.pfw} ?⑦궎吏瑜?吏곸젒 而댄룷?뚰듃 ?ㅼ틪?섏? ?딆븘?? * PFW ?쒖? ?ㅻ쪟 ?묐떟???ъ슜?????덇쾶 ?⑸땲??</p>
+ * PFW 표준 예외 처리기를 자동 등록하는 설정입니다.
+ * 업무 모듈이 별도 예외 처리기를 제공하지 않아도 CPF 공통 오류 응답을 사용할 수 있게 합니다.
  */
 @AutoConfiguration
 public class PfwExceptionAutoConfiguration {
 
     /**
-     * PFW ?쒖? ?덉쇅 ?몃뱾?щ? Bean?쇰줈 ?깅줉?⑸땲??
+     * PFW 공통 예외 처리기를 Bean으로 등록합니다.
      *
-     * @param messageResolverProvider CMN ?먮뒗 ?낅Т ⑤뱢???쒓났?섎뒗 硫붿떆吏 由ъ「踰?     * @return ?쒖? ?덉쇅 ?몃뱾??     */
+     * @param messageResolverProvider 메시지 변환기 Provider
+     * @param responseCodeResolverProvider 응답 코드 변환기 Provider
+     * @return PFW 공통 예외 처리기
+     */
     @Bean
     @ConditionalOnMissingBean
     public CpfGlobalExceptionHandler cpfGlobalExceptionHandler(
@@ -28,4 +30,3 @@ public class PfwExceptionAutoConfiguration {
         return new CpfGlobalExceptionHandler(messageResolverProvider, responseCodeResolverProvider);
     }
 }
-

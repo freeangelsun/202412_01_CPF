@@ -3,9 +3,9 @@ package cpf.pfw.common.logging;
 import java.time.Duration;
 
 /**
- * ?숈쟻 嫄곕옒 濡쒓렇?덈꺼 ?깅줉 ?붿껌?낅땲??
+ * CPF 기능 설명입니다.
  *
- * <p>ADM ?댁쁺 ?붾㈃?대굹 ?섑뵆 而⑦듃濡ㅻ윭媛 ???붿껌 媛앹껜瑜?留뚮뱾?? * {@link DynamicTransactionLogLevelService}???꾨떖?⑸땲??</p>
+ * CPF 기능 설명입니다.
  */
 public class DynamicLogLevelRequest {
     private String transactionId;
@@ -13,7 +13,7 @@ public class DynamicLogLevelRequest {
     private String moduleId;
     private CpfLogLevel logLevel = CpfLogLevel.DEBUG;
     private Duration ttl = Duration.ofMinutes(10);
-    private String reason = "?댁쁺 吏꾨떒";
+    private String reason = "CPF 처리 기준입니다.";
     private String requestUser = "SYSTEM";
 
     public String getTransactionId() {

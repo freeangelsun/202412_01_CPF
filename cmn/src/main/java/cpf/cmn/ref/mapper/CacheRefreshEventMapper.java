@@ -7,24 +7,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CMN 罹먯떆 由ы봽?덉떆 ?대깽?몃? ??ν븯怨?議고쉶?섎뒗 MyBatis 留ㅽ띁?낅땲??
+ * CPF 기능 설명입니다.
  *
- * <p>肄붾뱶/硫붿떆吏/?ㅼ젙媛믪? 媛?WAS??濡쒖뺄 Caffeine 罹먯떆???щ씪媛묐땲??
- * ??WAS?먯꽌 CRUD媛 諛쒖깮?섎㈃ ??留ㅽ띁濡?DB ?대깽?몃? ?④린怨?
- * ?ㅻⅨ WAS?????대깽?몃? 議고쉶???먯떊??濡쒖뺄 罹먯떆瑜?媛깆떊?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Mapper
 public interface CacheRefreshEventMapper {
 
     /**
-     * 罹먯떆 蹂寃??대깽?몃? ?깅줉?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param cacheName 罹먯떆 ?대쫫?낅땲?? ?? codeCache, messageCache, configCache
-     * @param eventType ?대깽???좏삎?낅땲?? ?? CREATE, UPDATE, DELETE, MANUAL_REFRESH
-     * @param eventKey 蹂寃쎈맂 ?곗씠?곗쓽 ?낅Т ?ㅼ엯?덈떎.
-     * @param sourceWasId ?대깽?몃? 諛쒖깮?쒗궓 WAS ?앸퀎?먯엯?덈떎.
-     * @param publishedBy ?대깽?몃? 諛쒖깮?쒗궓 ?ъ슜?먯엯?덈떎.
-     * @return ?깅줉 嫄댁닔?낅땲??
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     int insertEvent(
             @Param("cacheName") String cacheName,
@@ -34,17 +34,17 @@ public interface CacheRefreshEventMapper {
             @Param("publishedBy") String publishedBy);
 
     /**
-     * ?꾩옱源뚯? ?깅줉??留덉?留??대깽??ID瑜?議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @return 留덉?留??대깽??ID?낅땲?? ?대깽?멸? ?놁쑝硫?null?낅땲??
+     * CPF 기능 설명입니다.
      */
     Long findMaxEventId();
 
     /**
-     * 留덉?留?泥섎━ ID ?댄썑??罹먯떆 蹂寃??대깽?몃? 議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param lastEventId 媛?WAS媛 留덉?留됱쑝濡?泥섎━???대깽??ID?낅땲??
-     * @return ???대깽??⑸줉?낅땲??
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     List<Map<String, Object>> findEventsAfter(@Param("lastEventId") long lastEventId);
 }

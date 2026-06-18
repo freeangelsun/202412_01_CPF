@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * OAuth Bearer ?좏겙 怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>?낅Т ?쒕퉬?ㅻ뒗 Authorization ?ㅻ뜑 ?뚯떛, Bearer ?좏겙 ?뺤떇 寃利? JWT 湲곕컲 ?좏겙 寃利앹쓣
- * ???쒕퉬?ㅻ? ?듯빐 ?섑뻾?⑸땲?? ?몃? OAuth Introspection Endpoint ?몄텧? ?꾩옣 ?몄쬆 ?쒕쾭
- * ?ㅽ럺??留욎떠 ?대뙌?곕? 異붽??섎뒗 諛⑹떇?쇰줈 ?뺤옣?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CmnOAuthBearerTokenService {
@@ -21,10 +21,10 @@ public class CmnOAuthBearerTokenService {
     }
 
     /**
-     * Authorization ?ㅻ뜑?먯꽌 Bearer ?좏겙??異붿텧?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param authorizationHeader Authorization ?ㅻ뜑
-     * @return Bearer ?좏겙
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public String extractBearerToken(String authorizationHeader) {
         if (!TextUtils.hasText(authorizationHeader)) {
@@ -38,10 +38,10 @@ public class CmnOAuthBearerTokenService {
     }
 
     /**
-     * Authorization ?ㅻ뜑??Bearer JWT瑜?寃利앺빀?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @param authorizationHeader Authorization ?ㅻ뜑
-     * @param secret              HMAC ?쒗겕由?     * @param expectedIssuer      湲곕? 諛쒓툒??     * @param expectedAudience    湲곕? ????쒖뒪??     * @return OAuth ?좏겙 寃利?寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public CmnOAuthTokenIntrospectionResult introspectJwtBearer(
             String authorizationHeader,
@@ -51,7 +51,7 @@ public class CmnOAuthBearerTokenService {
         String token = extractBearerToken(authorizationHeader);
         if (!TextUtils.hasText(token)) {
             return new CmnOAuthTokenIntrospectionResult(false, "Bearer", null, null, null, null, Map.of(),
-                    "Authorization ?ㅻ뜑??Bearer ?좏겙???놁뒿?덈떎.");
+                    "CPF 처리 기준입니다.");
         }
         CmnJwtValidationResult validation = jwtService.validateHs256Token(token, secret, expectedIssuer, expectedAudience);
         return new CmnOAuthTokenIntrospectionResult(

@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 湲덉쑖沅?怨좎젙湲몄씠 ?꾨Ц??Map/DTO/JSON?쇰줈 蹂?섑븯怨??ㅼ떆 ?꾨Ц?쇰줈 ?앹꽦?섎뒗 怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>?꾨Ц 湲몄씠, ?⑤뵫, ?먮즺??蹂??濡쒖쭅???낅Т 肄붾뱶留덈떎 諛섎났?섎㈃ ?μ븷 ?먯씤???섍린 ?쎌뒿?덈떎.
- * ?낅Т 媛쒕컻?먮뒗 DTO??{@link CmnTelegramField}瑜??좎뼵?섍굅???꾨뱶 ?ㅽ궎留?⑸줉???섍꺼
- * ???쒕퉬?ㅻ? ?ъ슜?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CmnTelegramService {
@@ -42,11 +42,11 @@ public class CmnTelegramService {
     }
 
     /**
-     * 怨좎젙湲몄씠 ?꾨Ц??Map怨?JSON?쇰줈 ?뚯떛?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param telegram ?섏떊 ?꾨Ц
-     * @param schema   ?꾨뱶 ?뺤쓽
-     * @return ?뚯떛 寃곌낵
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public CmnTelegramParseResult parseToMap(String telegram, List<CmnTelegramFieldSpec> schema) {
         List<CmnTelegramFieldSpec> fields = sortSchema(schema);
@@ -56,12 +56,12 @@ public class CmnTelegramService {
 
         String normalizedTelegram = telegram == null ? "" : telegram;
         if (actualLength < expectedLength) {
-            warnings.add("?섏떊 ?꾨Ц 湲몄씠媛 ?ㅽ궎留덈낫??吏㏃븘 遺議깊븳 援ш컙??怨듬갚?쇰줈 蹂댁젙?덉뒿?덈떎. actual="
+            warnings.add("CPF 처리 기준입니다."
                     + actualLength + ", expected=" + expectedLength);
             normalizedTelegram = normalizedTelegram + " ".repeat(expectedLength - actualLength);
         }
         if (actualLength > expectedLength) {
-            warnings.add("?섏떊 ?꾨Ц 湲몄씠媛 ?ㅽ궎留덈낫??湲몄뼱 珥덇낵 援ш컙? __remaining ?꾨뱶??蹂닿??덉뒿?덈떎. actual="
+            warnings.add("CPF 처리 기준입니다."
                     + actualLength + ", expected=" + expectedLength);
         }
 
@@ -91,10 +91,10 @@ public class CmnTelegramService {
     }
 
     /**
-     * 怨좎젙湲몄씠 ?꾨Ц??DTO濡??뚯떛?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param telegram ?섏떊 ?꾨Ц
-     * @param dtoType  DTO ???     * @param <T>      DTO ?쒕꽕由????     * @return ?뚯떛??DTO
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public <T> T parseToDto(String telegram, Class<T> dtoType) {
         CmnTelegramParseResult result = parseToMap(telegram, schemaFromDto(dtoType));
@@ -102,10 +102,10 @@ public class CmnTelegramService {
     }
 
     /**
-     * Map 媛믪쓣 怨좎젙湲몄씠 ?꾨Ц?쇰줈 ?앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param values ?꾨뱶蹂?媛?     * @param schema ?꾨뱶 ?뺤쓽
-     * @return ?앹꽦??怨좎젙湲몄씠 ?꾨Ц
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public String writeFromMap(Map<String, ?> values, List<CmnTelegramFieldSpec> schema) {
         StringBuilder builder = new StringBuilder();
@@ -116,22 +116,22 @@ public class CmnTelegramService {
     }
 
     /**
-     * DTO 媛믪쓣 怨좎젙湲몄씠 ?꾨Ц?쇰줈 ?앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param dto ?꾨Ц ?앹꽦 ???DTO
-     * @return ?앹꽦??怨좎젙湲몄씠 ?꾨Ц
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public String writeFromDto(Object dto) {
         if (dto == null) {
-            throw new CpfValidationException("?꾨Ц ?앹꽦 ???DTO???꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         return writeFromMap(valuesFromDto(dto), schemaFromDto(dto.getClass()));
     }
 
     /**
-     * DTO ?대끂?뚯씠?섏쓣 ?ㅽ궎留?⑸줉?쇰줈 蹂?섑빀?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @param dtoType DTO ???     * @return ?꾨Ц ?꾨뱶 ?뺤쓽 ⑸줉
+     * CPF 기능 설명입니다.
      */
     public List<CmnTelegramFieldSpec> schemaFromDto(Class<?> dtoType) {
         List<CmnTelegramFieldSpec> schema = new ArrayList<>();
@@ -173,7 +173,7 @@ public class CmnTelegramService {
                 case DATE -> TextUtils.hasText(value) ? LocalDate.parse(value.replace("-", ""), BASIC_DATE) : null;
             };
         } catch (RuntimeException ex) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶 ?먮즺??蹂?섏뿉 ?ㅽ뙣?덉뒿?덈떎. field="
+            throw new CpfValidationException("CPF 처리 기준입니다."
                     + field.name() + ", value=" + raw + ", type=" + field.type());
         }
     }
@@ -188,7 +188,7 @@ public class CmnTelegramService {
         };
 
         if (raw.length() > field.length()) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶 湲몄씠瑜?珥덇낵?덉뒿?덈떎. field=" + field.name()
+            throw new CpfValidationException("CPF 처리 기준입니다." + field.name()
                     + ", length=" + field.length() + ", valueLength=" + raw.length());
         }
 
@@ -287,7 +287,7 @@ public class CmnTelegramService {
 
     private List<CmnTelegramFieldSpec> sortSchema(List<CmnTelegramFieldSpec> schema) {
         if (schema == null || schema.isEmpty()) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶 ?ㅽ궎留덈뒗 ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         return schema.stream()
                 .sorted(Comparator.comparingInt(CmnTelegramFieldSpec::order))
@@ -342,7 +342,7 @@ public class CmnTelegramService {
             }
             return values;
         } catch (ReflectiveOperationException ex) {
-            throw new CpfSystemException("DTO 媛믪쓣 ?꾨Ц ?꾨뱶濡??쎈뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("CPF 처리 기준입니다.", ex);
         }
     }
 
@@ -372,7 +372,7 @@ public class CmnTelegramService {
             }
             return instance;
         } catch (ReflectiveOperationException ex) {
-            throw new CpfSystemException("?꾨Ц ?뚯떛 寃곌낵瑜?DTO濡?蹂?섑븯??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", ex);
+            throw new CpfSystemException("CPF 처리 기준입니다.", ex);
         }
     }
 

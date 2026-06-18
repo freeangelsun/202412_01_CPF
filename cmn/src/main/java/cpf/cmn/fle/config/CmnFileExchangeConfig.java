@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 /**
- * CMN ?뚯씪/?먭꺽 ?곌퀎 怨듯넻 ⑤뱢 ?ㅼ젙?낅땲??
+ * CPF 기능 설명입니다.
  */
 @Configuration
 @EnableConfigurationProperties(CmnFileExchangeProperties.class)

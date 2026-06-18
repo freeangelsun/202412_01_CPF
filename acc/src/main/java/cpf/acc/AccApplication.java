@@ -4,15 +4,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * ACC ⑤뱢??硫붿씤 ?좏뵆由ъ??댁뀡 吏꾩엯???대옒?ㅼ엯?덈떎.
- * Spring Boot 3.0 湲곕컲?쇰줈 ?ㅽ뻾?섎ŉ, CMN 怨듯넻 ⑤뱢怨?ACC ⑤뱢???④퍡 ?ㅼ틪?섏뿬 而댄룷?뚰듃瑜??깅줉?⑸땲??
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "cpf.acc"})
 public class AccApplication {
 
 	/**
-	 * ?좏뵆由ъ??댁뀡 ?쒖옉 硫붿꽌??
-	 * @param args SpringApplication???꾨떖?섎뒗 ?ㅽ뻾 ?몄옄
+	 * CPF 기능 설명입니다.
+	 * CPF 기능 설명입니다.
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(AccApplication.class, args);

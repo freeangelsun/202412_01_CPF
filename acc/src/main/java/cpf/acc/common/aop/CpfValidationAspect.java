@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 /**
- * AOP瑜??ъ슜?섏뿬 ⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 CpfDTO 洹쒓꺽??寃利앺빀?덈떎.
- * ?붿껌??CpfDTO 洹쒓꺽??留욎? ?딆쑝硫??덉쇅瑜?諛쒖깮?쒗궢?덈떎.
+ * ACC Controller 요청 DTO를 검증하는 AOP입니다.
+ * 단순 query parameter, path variable, servlet 객체는 검증 대상에서 제외하고 CPF 표준 DTO만 검증합니다.
  */
 @Aspect
 @Component
@@ -21,46 +21,35 @@ public class CpfValidationAspect {
 
     private final Validator validator;
 
-    /**
-     * ?앹꽦??
-     *
-     * @param validator Validator ?몄뒪?댁뒪
-     */
     public CpfValidationAspect(Validator validator) {
         this.validator = validator;
     }
 
     /**
-     * ⑤뱺 而⑦듃濡ㅻ윭 ?붿껌?먯꽌 CpfDTO瑜?寃利?
+     * Controller 인자 중 {@link CpfDTO}만 헤더와 데이터, Bean Validation 기준으로 검증합니다.
      *
-     * @param joinPoint AOP 議곗씤?ъ씤??
-     * @return 硫붿꽌???ㅽ뻾 寃곌낵
-     * @throws Throwable 寃利??ㅽ뙣 ???덉쇅 諛쒖깮
+     * @param joinPoint Controller 호출 지점
+     * @return Controller 실행 결과
+     * @throws Throwable Controller 실행 중 발생한 예외
      */
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object validateCpfRequest(ProceedingJoinPoint joinPoint) throws Throwable {
-        Object[] args = joinPoint.getArgs();
-
-        for (Object arg : args) {
-            if (!(arg instanceof CpfDTO)) {
-                throw new IllegalArgumentException("?붿껌? 諛섎뱶??CpfDTO ?뺤떇?댁뼱???⑸땲??");
-            }
-
-            CpfDTO<?> cpfDTO = (CpfDTO<?>) arg;
-
-            // Header? Data ?꾨뱶 寃利?
-            if (cpfDTO.getHeader() == null || cpfDTO.getData() == null) {
-                throw new IllegalArgumentException("CpfDTO 援ъ“媛 ?щ컮瑜댁? ?딆뒿?덈떎. Header ?먮뒗 Data媛 ?꾨씫?섏뿀?듬땲??");
-            }
-
-            // Bean Validation ?섑뻾
-            Set<ConstraintViolation<CpfDTO<?>>> violations = validator.validate(cpfDTO);
-            if (!violations.isEmpty()) {
-                throw new ConstraintViolationException("CpfDTO ?좏슚??寃利??ㅽ뙣", violations);
+        for (Object arg : joinPoint.getArgs()) {
+            if (arg instanceof CpfDTO<?> cpfDTO) {
+                validateCpfDto(cpfDTO);
             }
         }
-
         return joinPoint.proceed();
     }
-}
 
+    private void validateCpfDto(CpfDTO<?> cpfDTO) {
+        if (cpfDTO.getHeader() == null || cpfDTO.getData() == null) {
+            throw new IllegalArgumentException("CPF 표준 요청은 header와 data가 필요합니다.");
+        }
+
+        Set<ConstraintViolation<CpfDTO<?>>> violations = validator.validate(cpfDTO);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException("CPF 표준 요청 검증에 실패했습니다.", violations);
+        }
+    }
+}

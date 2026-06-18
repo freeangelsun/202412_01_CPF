@@ -3,24 +3,16 @@
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <!--
-  MyBatis ?ㅼ젙 ?뚯씪 - mbr ⑤뱢
-  
-  二쇱슂 ?ㅼ젙:
-  - typeAliases: ?꾨찓??媛앹껜 蹂꾩묶 ?뺤쓽
-  - mappers: 留ㅽ띁 XML ?뚯씪 ?꾩튂 吏??
-  
-  ?ъ슜 ??
-  <typeAlias alias="Member" type="cpf.mbr.bse.entity.Member" />
-  
-  @author CPF Team
-  @version 1.0.0
+  MBR 모듈 MyBatis 설정입니다.
+
+  설정 기준
+  - typeAliases: Mapper XML에서 사용할 도메인 별칭을 등록합니다.
+  - mappers: 각 Mapper XML은 애플리케이션 설정의 mapper-locations에서 로딩합니다.
 -->
 
 <configuration>
-    <!-- ???蹂꾩묶 ?뺤쓽 -->
+    <!-- 회원 도메인 객체를 Mapper XML에서 Member 별칭으로 사용할 수 있게 등록합니다. -->
     <typeAliases>
         <typeAlias alias="Member" type="cpf.mbr.bse.entity.Member" />
     </typeAliases>
-    
 </configuration>
-

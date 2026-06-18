@@ -3,10 +3,10 @@ package cpf.pfw.common.exception;
 import org.springframework.http.HttpStatus;
 
 /**
- * ?낅Т 媛쒕컻?먭? enum 異붽? ?놁씠 ?고??꾩뿉 議곕┰?댁꽌 ?ъ슜?????덈뒗 ?ㅻ쪟?뺤쓽?낅땲??
+ * CPF 기능 설명입니다.
  *
- * <p>????ㅻ쪟肄붾뱶???ъ궗?⑺븯怨?硫붿떆吏 ?ㅼ? 硫붿떆吏 ?몄옄留??щ━ ?곕㈃,
- * ?ㅻ쪟肄붾뱶媛 ?낅Т 耳?댁뒪蹂꾨줈 遺덊븘?뷀븯寃??섏뼱?섎뒗 臾몄젣瑜?以꾩씪 ???덉뒿?덈떎.</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 public class CpfDynamicErrorCode implements CpfErrorDefinition {
     private final String statusCode;
@@ -32,12 +32,12 @@ public class CpfDynamicErrorCode implements CpfErrorDefinition {
     }
 
     /**
-     * ?낅Т 洹쒖튃 ?꾨컲 怨꾩뿴???숈쟻 ?ㅻ쪟?뺤쓽瑜??앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param messageKeyPrefix 硫붿떆吏 ?뚯씠釉?肄붾뱶. ?? {@code MXYZ090001}
-     * @param defaultExternalMessage 硫붿떆吏 ?뚯씠釉?媛믪씠 ?놁쓣 ????怨좉컼??湲곕낯 硫붿떆吏
-     * @param defaultInternalMessage 硫붿떆吏 ?뚯씠釉?媛믪씠 ?놁쓣 ?????대? 湲곕낯 硫붿떆吏
-     * @return ?낅Т 洹쒖튃 ?꾨컲 ?숈쟻 ?ㅻ쪟?뺤쓽
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public static CpfDynamicErrorCode business(
             String messageKeyPrefix,
@@ -53,12 +53,12 @@ public class CpfDynamicErrorCode implements CpfErrorDefinition {
     }
 
     /**
-     * 以묐났 ?곗씠??怨꾩뿴???숈쟻 ?ㅻ쪟?뺤쓽瑜??앹꽦?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param messageKeyPrefix 硫붿떆吏 ?뚯씠釉?肄붾뱶. ?? {@code MXYZ090001}
-     * @param defaultExternalMessage 硫붿떆吏 ?뚯씠釉?媛믪씠 ?놁쓣 ????怨좉컼??湲곕낯 硫붿떆吏
-     * @param defaultInternalMessage 硫붿떆吏 ?뚯씠釉?媛믪씠 ?놁쓣 ?????대? 湲곕낯 硫붿떆吏
-     * @return 以묐났 ?곗씠???숈쟻 ?ㅻ쪟?뺤쓽
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public static CpfDynamicErrorCode duplicate(
             String messageKeyPrefix,

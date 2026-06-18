@@ -2,33 +2,28 @@ package cpf.mbr.bse.controller;
 
 import cpf.mbr.bse.service.MbrService;
 import cpf.mbr.common.exception.GlobalExceptionHandler;
+import cpf.mbr.common.filter.SecurityHeaderFilter;
 import cpf.pfw.common.exception.CpfGlobalExceptionHandler;
 import cpf.pfw.common.filter.TransactionContextFilter;
 import cpf.pfw.common.logging.TransactionIdGenerator;
-import cpf.mbr.common.filter.SecurityHeaderFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.matchesPattern;
 
 /**
- * MBR 而⑦듃濡ㅻ윭???낅젰媛?寃利앷낵 PFW 怨듯넻 ?ㅻ뜑 泥섎━瑜??뺤씤?섎뒗 MVC ?뚯뒪?몄엯?덈떎.
- *
- * <p>???뚯뒪?몃뒗 ?ㅼ젣 DB瑜??몄텧?섏? ?딄퀬, {@link MbrService}瑜?Mockito Bean?쇰줈 ?泥댄빀?덈떎.
- * ?곕씪??而⑦듃濡ㅻ윭 吏꾩엯 ?꾪썑??寃利? ?쒖? ?먮윭 ?묐떟, 嫄곕옒 ?ㅻ뜑 ?앹꽦/諛섑솚 ?숈옉留?鍮좊Ⅴ寃??뺤씤?????덉뒿?덈떎.</p>
- *
- * <p>湲덉쑖沅?API 湲곗??쇰줈 ?뚯썝 ID瑜?{@code /mbr/{id}}泥섎읆 寃쎈줈??臾살? ?딄퀬
- * {@code /mbr/detail?memberId=...}泥섎읆 낆떆 ?뚮씪誘명꽣濡?諛쏅뒗 ?뺤콉???④퍡 寃利앺빀?덈떎.</p>
+ * MBR Controller의 요청 경로, 필수 거래 헤더, 입력값 검증 응답을 확인합니다.
  */
 @WebMvcTest(
         controllers = MbrController.class,
@@ -37,7 +32,13 @@ import static org.hamcrest.Matchers.matchesPattern;
                 "cpf.cmn.cache.event-poll-enabled=false"
         }
 )
-@Import({GlobalExceptionHandler.class, CpfGlobalExceptionHandler.class, TransactionContextFilter.class, TransactionIdGenerator.class, SecurityHeaderFilter.class})
+@Import({
+        GlobalExceptionHandler.class,
+        CpfGlobalExceptionHandler.class,
+        TransactionContextFilter.class,
+        TransactionIdGenerator.class,
+        SecurityHeaderFilter.class
+})
 class MbrControllerValidationTest {
 
     @Autowired
@@ -47,10 +48,7 @@ class MbrControllerValidationTest {
     private MbrService mbrService;
 
     /**
-     * ?뚯썝 ID瑜?寃쎈줈 蹂?섎줈 ?몄텧?섎뒗 API媛 ?대젮 ?덉? ?딆?吏 ?뺤씤?⑸땲??
-     *
-     * <p>???뚯뒪?멸? ?듦낵?섎㈃ {@code GET /mbr/1}? ?곸꽭議고쉶濡?泥섎━?섏? ?딄퀬 404濡??묐떟?⑸땲??
-     * PFW ?꾪꽣??404 ?묐떟?먮룄 嫄곕옒ID ?ㅻ뜑瑜??대젮二쇰?濡??μ븷 異붿쟻??媛?ν빀?덈떎.</p>
+     * 회원 ID를 path variable로 받는 과거 형식이 노출되지 않는지 확인합니다.
      */
     @Test
     void detailDoesNotExposeMemberIdAsPathVariable() throws Exception {
@@ -60,9 +58,7 @@ class MbrControllerValidationTest {
     }
 
     /**
-     * ?뚯썝 ?곸꽭議고쉶?먯꽌 0 ?댄븯???뚯썝 ID瑜?嫄곕??섎뒗吏 ?뺤씤?⑸땲??
-     *
-     * <p>?붿껌???좏슚??{@code X-Transaction-Id}? {@code X-Trace-Id}瑜??ｌ쑝硫?     * ?묐떟 蹂몃Ц怨??묐떟 ?ㅻ뜑?먮룄 媛숈? 媛믪씠 ?좎??섏뼱???⑸땲??</p>
+     * 양수가 아닌 회원 ID 요청은 validation 오류로 응답합니다.
      */
     @Test
     void detailRejectsInvalidMemberIdQueryParameter() throws Exception {
@@ -83,7 +79,7 @@ class MbrControllerValidationTest {
     }
 
     /**
-     * ?뚯썝 ID ??낆씠 ?レ옄媛 ?꾨땺 ???쒖? ?뚮씪誘명꽣 ?ㅻ쪟濡??묐떟?섎뒗吏 ?뺤씤?⑸땲??
+     * 숫자가 아닌 회원 ID 요청은 타입 변환 오류로 응답합니다.
      */
     @Test
     void detailRejectsWrongMemberIdType() throws Exception {
@@ -95,7 +91,7 @@ class MbrControllerValidationTest {
     }
 
     /**
-     * PFW ?꾩닔 ?낅Т ?ㅻ뜑媛 ?놁쑝硫?而⑦듃濡ㅻ윭 ?낅Т 濡쒖쭅?쇰줈 吏꾩엯?섏? ?딅뒗吏 ?뺤씤?⑸땲??
+     * CPF 필수 거래 헤더가 없으면 PFW 공통 오류로 응답합니다.
      */
     @Test
     void detailRejectsMissingRequiredBusinessHeaders() throws Exception {
@@ -104,11 +100,11 @@ class MbrControllerValidationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value("EPFW900001"))
                 .andExpect(jsonPath("$.messageCode").value("MPFW900001"))
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("필수 거래 헤더가 누락되었습니다.")));
+                .andExpect(jsonPath("$.message").value(containsString("필수 거래 헤더가 누락되었습니다.")));
     }
 
     /**
-     * ?뚯썝 ?깅줉 ?붿껌?먯꽌 ?꾩닔 Body 媛믪씠 鍮꾩뼱 ?덉쑝硫?Bean Validation ?ㅻ쪟濡??묐떟?섎뒗吏 ?뺤씤?⑸땲??
+     * 회원명은 공백으로 등록할 수 없습니다.
      */
     @Test
     void createRejectsBlankMemberName() throws Exception {
@@ -121,11 +117,7 @@ class MbrControllerValidationTest {
     }
 
     /**
-     * ?뚯뒪???붿껌??諛섎났?쇰줈 ?꾩슂??PFW ?낅Т ?ㅻ뜑瑜??앹꽦?⑸땲??
-     *
-     * <p>{@code X-Request-Type}, {@code X-Original-Channel-Code}, {@code X-Channel-Code}??     * 而⑦듃濡ㅻ윭 吏꾩엯 ?꾩뿉 寃利앸릺???꾩닔 ?ㅻ뜑?낅땲?? ?섎㉧吏 ?뚯썝踰덊샇, IP, ?덉빟 ?꾨뱶??     * 濡쒓렇 寃?됯낵 ?뺤옣 ?꾨뱶 ?곸옱瑜??뺤씤?섍린 ?꾪븳 ?좏깮 ?ㅻ뜑?낅땲??</p>
-     *
-     * @return MBR 而⑦듃濡ㅻ윭 ?붿껌???ъ슜???쒖? ?낅Т ?ㅻ뜑?낅땲??
+     * Controller 테스트에서 공통 헤더 통과가 필요한 요청에 사용할 표준 거래 헤더입니다.
      */
     private org.springframework.http.HttpHeaders requiredBusinessHeaders() {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -139,4 +131,3 @@ class MbrControllerValidationTest {
         return headers;
     }
 }
-

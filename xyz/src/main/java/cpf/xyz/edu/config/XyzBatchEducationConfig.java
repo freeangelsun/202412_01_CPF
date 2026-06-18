@@ -8,7 +8,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.support.ListItemReader;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -19,11 +19,10 @@ import java.util.stream.IntStream;
 /**
  * XYZ 배치 교육용 Job 설정입니다.
  *
- * <p>Spring Batch 인프라가 준비된 실행 환경에서만 Job bean을 등록합니다. 따라서 로컬 개발자가 배치 DB 설정을 아직
- * 붙이지 않은 상태에서도 XYZ 애플리케이션은 정상 기동되고, 배치 교육 API는 비활성 안내를 반환할 수 있습니다.</p>
+ * <p>로컬 교육 환경에서는 {@link XyzBatchRepositoryConfig}가 PFW DB의 BATCH_* 테이블을
+ * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 샘플로 동작합니다.</p>
  */
 @Configuration
-@ConditionalOnBean(JobRepository.class)
 public class XyzBatchEducationConfig {
     private static final Logger log = LoggerFactory.getLogger(XyzBatchEducationConfig.class);
 
@@ -35,7 +34,9 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    public Step cpfEduTaskletStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step cpfEduTaskletStep(
+            JobRepository jobRepository,
+            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_TASKLET_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // Tasklet은 파일 정리, 단건 집계, 외부 시스템 상태 확인처럼 한 번에 끝나는 작업에 적합합니다.
@@ -54,7 +55,9 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    public Step cpfEduChunkStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step cpfEduChunkStep(
+            JobRepository jobRepository,
+            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
         List<Integer> sampleItems = IntStream.rangeClosed(1, 25).boxed().toList();
         return new StepBuilder("CPF_EDU_CHUNK_STEP", jobRepository)
                 .<Integer, String>chunk(5, transactionManager)
@@ -78,7 +81,9 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    public Step cpfEduRetryStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step cpfEduRetryStep(
+            JobRepository jobRepository,
+            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_RETRY_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // 실제 업무에서는 실패 데이터를 별도 테이블에 적재하고, 재처리 가능 상태만 다시 수행합니다.

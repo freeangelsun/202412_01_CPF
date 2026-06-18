@@ -13,7 +13,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import javax.sql.DataSource;
 
 /**
- * ACC ⑤뱢??MyBatis ?ㅼ젙 ?대옒??
+ * CPF 기능 설명입니다.
  */
 @Configuration
 @MapperScan(
@@ -29,32 +29,32 @@ public class AccMyBatisConfig {
     }
 
     /**
-     * ACC ?꾩슜 SqlSessionFactory ?ㅼ젙
+     * CPF 기능 설명입니다.
      */
     @Bean(name = "accSqlSessionFactory")
     public SqlSessionFactory accSqlSessionFactory() throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(accDataSource);
 
-        // MyBatis ?꾩뿭 ?ㅼ젙 ?뚯씪
+        // CPF 기능 설명입니다.
         sqlSessionFactoryBean.setConfigLocation(
                 new ClassPathResource("mybatis/config/acc-mybatis-config.xml")
         );
 
-        // 留ㅽ띁 XML ?뚯씪 寃쎈줈
+        // CPF 기능 설명입니다.
         sqlSessionFactoryBean.setMapperLocations(
                 new PathMatchingResourcePatternResolver()
                         .getResources("classpath:mybatis/mapper/acc/**/*.xml")
         );
 
-        // TypeAliases ?⑦궎吏 ?ㅼ젙 (?듭뀡)
+        // CPF 기능 설명입니다.
         sqlSessionFactoryBean.setTypeAliasesPackage("cpf.acc.bse.entity");
 
         return sqlSessionFactoryBean.getObject();
     }
 
     /**
-     * ACC ?꾩슜 SqlSessionTemplate ?ㅼ젙
+     * CPF 기능 설명입니다.
      */
     @Bean(name = "accSqlSessionTemplate")
     public SqlSessionTemplate accSqlSessionTemplate(

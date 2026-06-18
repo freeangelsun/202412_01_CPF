@@ -29,11 +29,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Kafka/RabbitMQ/?몃찓⑤━ 釉뚮줈而ㅻ? 怨듯넻 ?명꽣?섏씠?ㅻ줈 媛먯떥??硫붿떆吏??쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>?낅Т 媛쒕컻?먮뒗 ???쒕퉬?ㅻ? 吏곸젒 援ы쁽?섏? ?딄퀬 {@link CmnMessagePublisher}?
- * {@link CmnMessageConsumer}瑜?二쇱엯諛쏆븘 ?ъ슜?⑸땲?? 硫붿떆吏?먮뒗 ?꾩옱 PFW 嫄곕옒 ?ㅻ뜑?
- * ?뚰겕?뚮줈???ㅻ뜑媛 ?먮룞?쇰줈 ?ㅻ━誘濡? HTTP ?몄텧怨?MQ 諛쒗뻾??媛숈? 湲濡쒕쾶 嫄곕옒ID濡?異붿쟻?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageConsumer {
@@ -72,7 +72,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
                     resolvedDestination,
                     resolvedKey,
                     TransactionContext.getOrCreateTransactionId(),
-                    "CMN 硫붿떆吏?湲곕뒫??鍮꾪솢?깊솕?섏뼱 硫붿떆吏瑜?諛쒗뻾?섏? ?딆븯?듬땲??");
+                    "CPF 처리 기준입니다.");
         }
 
         CmnMessageEnvelope envelope = new CmnMessageEnvelope(
@@ -92,7 +92,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
                 resolvedDestination,
                 resolvedKey,
                 envelope.headers().get(TransactionContext.HEADER_TRANSACTION_ID),
-                "硫붿떆吏瑜?諛쒗뻾?덉뒿?덈떎.");
+                "CPF 처리 기준입니다.");
     }
 
     @Override
@@ -116,10 +116,10 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
     private Map<String, String> buildHeaders(Map<String, String> additionalHeaders) {
         Map<String, String> headers = new LinkedHashMap<>();
 
-        // HTTP ?몄텧怨??숈씪?섍쾶 PFW 嫄곕옒 ?ㅻ뜑瑜?MQ 硫붿떆吏?먮룄 ?ㅼ뼱 ??援ш컙 異붿쟻??媛?ν븯寃??⑸땲??
+        // CPF 기능 설명입니다.
         headers.putAll(TransactionContext.propagationHeaders());
 
-        // ?뚰겕?뚮줈??蹂댁긽 異붿쟻 ?ㅻ뜑媛 ?덉쑝硫?MQ ?꾩쿂由ъ뿉?쒕룄 媛숈? ?뚰겕?뚮줈???몄뒪?댁뒪濡??댁뼱吏묐땲??
+        // CPF 기능 설명입니다.
         headers.putAll(CpfWorkflowContext.propagationHeaders());
 
         if (additionalHeaders != null) {
@@ -144,7 +144,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
             if (broker == CmnMessageBrokerType.KAFKA) {
                 KafkaTemplate<String, String> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
                 if (kafkaTemplate == null) {
-                    throw new IllegalStateException("KafkaTemplate Bean???놁뒿?덈떎.");
+                    throw new IllegalStateException("CPF 처리 기준입니다.");
                 }
                 kafkaTemplate.send(envelope.destination(), envelope.key(), jsonMessage);
                 return;
@@ -153,7 +153,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
             if (broker == CmnMessageBrokerType.RABBIT) {
                 RabbitTemplate rabbitTemplate = rabbitTemplateProvider.getIfAvailable();
                 if (rabbitTemplate == null) {
-                    throw new IllegalStateException("RabbitTemplate Bean???놁뒿?덈떎.");
+                    throw new IllegalStateException("CPF 처리 기준입니다.");
                 }
                 rabbitTemplate.convertAndSend(
                         properties.getRabbit().getExchange(),
@@ -167,7 +167,7 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
                         });
             }
         } catch (RuntimeException ex) {
-            throw new CpfExternalServiceException("MQ 硫붿떆吏 諛쒗뻾???ㅽ뙣?덉뒿?덈떎. broker=" + broker
+            throw new CpfExternalServiceException("CPF 처리 기준입니다." + broker
                     + ", destination=" + envelope.destination(), ex);
         }
     }

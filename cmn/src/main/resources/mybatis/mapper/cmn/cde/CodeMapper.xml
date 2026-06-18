@@ -4,7 +4,7 @@
 
 <mapper namespace="cpf.cmn.cde.mapper.CodeMapper">
 
-    <!-- ⑤뱺 肄붾뱶 議고쉶 -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findAllCodes" resultType="map">
         SELECT
             code_id,
@@ -21,7 +21,7 @@
         ORDER BY parent_id, code_key, code_value
     </select>
 
-    <!-- ?뱀젙 肄붾뱶 ?ㅻ줈 議고쉶 -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findCodeByKey" resultType="map" parameterType="string">
         SELECT
             code_id,
@@ -40,7 +40,7 @@
         LIMIT 1
     </select>
 
-    <!-- ?뱀젙 肄붾뱶 ?ㅼ뿉 ?대떦?섎뒗 肄붾뱶 ⑸줉??議고쉶?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findCodesByKey" resultType="map" parameterType="string">
         SELECT
             code_id,
@@ -58,7 +58,7 @@
         ORDER BY code_value, code_id
     </select>
 
-    <!-- 肄붾뱶 ID濡?肄붾뱶 ??嫄댁쓣 議고쉶?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <select id="findCodeById" resultType="map" parameterType="long">
         SELECT
             code_id,
@@ -75,7 +75,7 @@
         WHERE code_id = #{codeId}
     </select>
 
-    <!-- 怨듯넻 肄붾뱶瑜??깅줉?⑸땲?? ?깅줉 吏곹썑 ?쒕퉬?ㅼ뿉??罹먯떆瑜?由ы봽?덉떆?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <insert id="insertCode" parameterType="cpf.cmn.cde.dto.CommonCodeRequest"
             useGeneratedKeys="true"
             keyProperty="codeId"
@@ -103,7 +103,7 @@
         )
     </insert>
 
-    <!-- 怨듯넻 肄붾뱶瑜??섏젙?⑸땲?? -->
+    <!-- CPF 설정 설명입니다. -->
     <update id="updateCode">
         UPDATE pfw_code
         SET
@@ -117,7 +117,7 @@
         WHERE code_id = #{codeId}
     </update>
 
-    <!-- 怨듯넻 肄붾뱶瑜???젣?⑸땲?? ?ㅼ젣 ?댁쁺?먯꽌???꾩슂 ??use_yn=N 諛⑹떇???쇰━ ??젣濡?諛붽? ???덉뒿?덈떎. -->
+    <!-- CPF 설정 설명입니다. -->
     <delete id="deleteCode" parameterType="long">
         DELETE FROM pfw_code
         WHERE code_id = #{codeId}

@@ -5,10 +5,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * CPF 硫붿떆吏 ?쒗뵆由우쓽 ?숈쟻 媛믪쓣 移섑솚?섎뒗 怨듯넻 ?щ㎎?곗엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>CMN 硫붿떆吏 ?뚯씠釉붿씠???덉쇅 ?앹꽦?먯뿉??{@code {fieldName}} 媛숈? ?뚮젅?댁뒪??붾? ?ъ슜?섎㈃,
- * ?쒖? ?덉쇅 泥섎━? 嫄곕옒 濡쒓렇媛 媛숈? 洹쒖튃?쇰줈 硫붿떆吏瑜?議곕┰?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 public final class CpfMessageFormatter {
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
@@ -17,10 +17,10 @@ public final class CpfMessageFormatter {
     }
 
     /**
-     * 硫붿떆吏 ?쒗뵆由??덉쓽 {@code {key}} 媛믪쓣 ?몄옄 留듭쓽 媛믪쑝濡?移섑솚?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param template 硫붿떆吏 ?쒗뵆由?     * @param arguments 移섑솚??硫붿떆吏 ?몄옄
-     * @return 移섑솚??硫붿떆吏. ?몄옄媛 ?녾굅???ㅺ? ?놁쑝硫??먮옒 ?뚮젅?댁뒪??붾? ?좎??⑸땲??
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public static String format(String template, Map<String, Object> arguments) {
         if (template == null || template.isBlank() || arguments == null || arguments.isEmpty()) {

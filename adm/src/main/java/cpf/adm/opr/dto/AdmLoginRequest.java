@@ -1,11 +1,10 @@
 package cpf.adm.opr.dto;
 
 /**
- * ADM 濡쒓렇???붿껌?낅땲??
+ * ADM 운영자 로그인 요청입니다.
  *
- * @param operatorId ?댁쁺??ID
- * @param password   ?댁쁺??鍮꾨?踰덊샇
+ * @param operatorId 운영자 ID
+ * @param password   로그인 비밀번호
  */
 public record AdmLoginRequest(String operatorId, String password) {
 }
-

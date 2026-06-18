@@ -1,5 +1,5 @@
-# ACC ⑤뱢 濡쒖뺄 ?ㅽ뻾???섍꼍 ?ㅼ젙?낅땲??
-# Java 21 諛?Spring Boot 3.0??留욎텣 濡쒖뺄 媛쒕컻 ?꾩슜 援ъ꽦?낅땲??
+# CPF 설정 설명입니다.
+# CPF 설정 설명입니다.
 
 spring:
   datasource:
@@ -23,14 +23,14 @@ mybatis:
 server:
   port: 8080
 
-# 濡쒓렇 ?ㅼ젙
+# CPF 설정 설명입니다.
 logging:
   config: classpath:log/logback-local.xml
-  # 濡쒓렇 ?덈꺼 ?ㅼ젙
+  # CPF 설정 설명입니다.
   level:
-    root: INFO # ?꾩껜 ?좏뵆由ъ??댁뀡??湲곕낯 濡쒓렇 ?덈꺼
-    cpf.pfw: DEBUG  # PFW ?꾨젅?꾩썙??濡쒓렇 ?덈꺼
-    cpf.cmn: DEBUG  # CMN 媛쒕컻 怨듯넻 濡쒓렇 ?덈꺼
-    cpf.acc: DEBUG  # ACC ⑤뱢??????붾쾭源?濡쒓렇 ?덈꺼
+    root: INFO # CPF 설정 설명입니다.
+    cpf.pfw: DEBUG  # PFW 한글 한글
+    cpf.cmn: DEBUG  # CPF 설정 설명입니다.
+    cpf.acc: DEBUG  # ACC 한글 한글
 
 

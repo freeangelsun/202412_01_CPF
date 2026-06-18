@@ -4,14 +4,14 @@
 
 <configuration>
     <settings>
-        <!-- mapUnderscoreToCamelCase: ?ㅻ꽕?댄겕 耳?댁뒪(created_at)瑜?移대찞 耳?댁뒪(createdAt)濡??먮룞 蹂?섑빀?덈떎. -->
+        <!-- CPF 설정 설명입니다. -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
-        <!-- 荑쇰━ 濡쒓렇瑜??쒖? 異쒕젰?쇰줈 ?ㅼ젙?⑸땲?? -->
+        <!-- CPF 설정 설명입니다. -->
         <setting name="logImpl" value="STDOUT_LOGGING"/>
     </settings>
 
     <typeAliases>
-        <!-- ACC ?낅Т ?꾨찓???뷀떚?곗뿉 ???蹂꾩묶???먮룞?쇰줈 ?앹꽦?⑸땲?? -->
+        <!-- CPF 설정 설명입니다. -->
         <package name="cpf.acc.bse.entity"/>
     </typeAliases>
 </configuration>

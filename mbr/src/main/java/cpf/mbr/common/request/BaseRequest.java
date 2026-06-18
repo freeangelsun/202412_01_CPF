@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 湲덉쑖沅??쒖? ?붿껌 媛앹껜
- * ⑤뱺 API ?붿껌?먯꽌 怨듯넻?쇰줈 ?ы븿?섏뼱????硫뷀? ?뺣낫 ?뺤쓽
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  * 
  * @author CPF Team
  * @version 1.0.0
@@ -23,29 +23,29 @@ public class BaseRequest implements Serializable {
     private static final long serialVersionUID = 1L;
     
     /**
-     * ?붿껌??ID (媛먯떆/濡쒓퉭??
-     * - ?섏쨷??security context?먯꽌 ?먮룞 ?ㅼ젙
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @JsonIgnore
     private String requesterId;
     
     /**
-     * ?붿껌 梨꾨꼸 (⑤컮?? WEB, API ??
-     * - 湲덉쑖沅?媛먯떆 濡쒓렇???꾩닔
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @JsonIgnore
     private String channel;
     
     /**
-     * ?붿껌 IP 二쇱냼
-     * - ?묎렐 ?쒖뼱 諛?媛먯떆???ъ슜
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @JsonIgnore
     private String clientIp;
     
     /**
-     * ?ъ슜???먯씠?꾪듃
-     * - 媛먯떆 諛??듦퀎???ъ슜
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @JsonIgnore
     private String userAgent;

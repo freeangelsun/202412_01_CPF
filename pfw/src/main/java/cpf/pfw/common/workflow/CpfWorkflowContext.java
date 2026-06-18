@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * ?꾩옱 ?붿껌???뚰겕?뚮줈??硫뷀??곗씠?곕? 蹂닿??섍퀬 ?섏쐞 ?쒕퉬???몄텧 ?ㅻ뜑濡??꾪뙆?⑸땲??
+ * CPF 기능 설명입니다.
  */
 public final class CpfWorkflowContext {
     private static final String ATTR_WORKFLOW_METADATA = "cpfWorkflowMetadata";

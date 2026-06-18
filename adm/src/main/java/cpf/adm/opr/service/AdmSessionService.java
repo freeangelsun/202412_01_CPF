@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * ADM API Bearer ?좏겙 ?몄뀡 ?쒕퉬?ㅼ엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>?섑뵆 ?꾨젅?꾩썙?ъ뿉?쒕뒗 ?몃찓⑤━ ??μ냼瑜??ъ슜?⑸땲?? ?댁쁺?먯꽌?????대옒?ㅼ쓽 ??μ냼瑜? * DB/Redis/JWT 寃利?諛⑹떇?쇰줈 援먯껜?섎㈃ 而⑦듃濡ㅻ윭? Vue ?붾㈃ 怨꾩빟? 洹몃?濡??좎??⑸땲??</p>
+ * CPF 기능 설명입니다.
  */
 @Service
 public class AdmSessionService {
@@ -49,10 +49,10 @@ public class AdmSessionService {
     }
 
     /**
-     * 濡쒓렇???깃났 ?댁쁺?먯뿉寃?API ?좏겙??諛쒓툒?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param operator ?몄쬆???댁쁺??     * @param menus    沅뚰븳 湲곗? 硫붾돱 ⑸줉
-     * @return 濡쒓렇???묐떟
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus) {
         String token = newToken();
@@ -65,10 +65,10 @@ public class AdmSessionService {
     }
 
     /**
-     * ?좏겙?쇰줈 ?좏슚???몄뀡??議고쉶?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param token Bearer ?좏겙
-     * @return ?좏슚???몄뀡
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     public Optional<AdmSession> findValidSession(String token) {
         if (token == null || token.isBlank()) {
@@ -87,9 +87,9 @@ public class AdmSessionService {
     }
 
     /**
-     * 濡쒓렇?꾩썐 ???몄뀡???쒓굅?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param token Bearer ?좏겙
+     * CPF 기능 설명입니다.
      */
     public void revoke(String token) {
         if (token != null) {

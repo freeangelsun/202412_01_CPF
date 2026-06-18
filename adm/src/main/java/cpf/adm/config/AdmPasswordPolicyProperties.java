@@ -3,7 +3,7 @@ package cpf.adm.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * ADM ?댁쁺??鍮꾨?踰덊샇 ?뺤콉 ?ㅼ젙?낅땲??
+ * CPF 기능 설명입니다.
  */
 @ConfigurationProperties(prefix = "cpf.adm.password-policy")
 public class AdmPasswordPolicyProperties {

@@ -3,13 +3,13 @@ package cpf.cmn.tlm.core;
 import cpf.pfw.common.exception.CpfValidationException;
 
 /**
- * 怨좎젙湲몄씠 ?꾨Ц ?꾨뱶 ?뺤쓽?낅땲??
+ * CPF 기능 설명입니다.
  *
- * @param name         ?꾨뱶? * @param order        ?꾨뱶 ?쒖꽌
- * @param length       怨좎젙 湲몄씠
- * @param type         ?먮즺?? * @param align        ?뺣젹 諛⑹떇
- * @param padding      ?⑤뵫 臾몄옄. '\0'?대㈃ ?먮즺??湲곕낯 ?⑤뵫 ?ъ슜
- * @param defaultValue 湲곕낯媛? * @param scale        DECIMAL ?뚯닔 ?먮━?? * @param trim         ?뚯떛 ??怨듬갚/?⑤뵫 ?쒓굅 ?щ?
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 public record CmnTelegramFieldSpec(
         String name,
@@ -24,13 +24,13 @@ public record CmnTelegramFieldSpec(
 
     public CmnTelegramFieldSpec {
         if (name == null || name.isBlank()) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶낆? ?꾩닔?낅땲??");
+            throw new CpfValidationException("CPF 처리 기준입니다.");
         }
         if (order <= 0) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶 ?쒖꽌??1 ?댁긽?댁뼱???⑸땲?? field=" + name);
+            throw new CpfValidationException("CPF 처리 기준입니다." + name);
         }
         if (length <= 0) {
-            throw new CpfValidationException("?꾨Ц ?꾨뱶 湲몄씠??1 ?댁긽?댁뼱???⑸땲?? field=" + name);
+            throw new CpfValidationException("CPF 처리 기준입니다." + name);
         }
         type = type == null ? CmnTelegramFieldType.STRING : type;
         align = align == null ? CmnTelegramAlign.AUTO : align;

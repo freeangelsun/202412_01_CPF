@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CMN 罹먯떆 由ы봽?덉떆 ?대깽?몃? 媛먯????꾩옱 WAS??濡쒖뺄 罹먯떆瑜?媛깆떊?섎뒗 由ъ뒪?덉엯?덈떎.
+ * CPF 기능 설명입니다.
  *
- * <p>?몃? 硫붿떆吏 釉뚮줈而ㅻ? ?꾩쭅 ?꾩엯?섏? ?딆? ?④퀎?먯꽌???ㅼ쨷 WAS 罹먯떆瑜?留욎텧 ???덈룄濡? * DB ?대깽???뚯씠釉붿쓣 吏㏃? 二쇨린濡??뺤씤?⑸땲?? ?댁쁺?먯꽌 Kafka, Redis Pub/Sub,
- * Spring Cloud Bus 媛숈? ?꾧뎄瑜??꾩엯?섎㈃ ???대옒?ㅼ쓽 議고쉶 遺遺꾨쭔 援먯껜?섎㈃ ?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 @Service
 public class CacheRefreshEventListener {
@@ -50,7 +50,7 @@ public class CacheRefreshEventListener {
     }
 
     /**
-     * 湲곕룞 ?쒖젏 ?댁쟾 ?대깽?몃뒗 ?대? 吏??蹂寃쎌쑝濡?蹂닿퀬, 留덉?留??대깽??ID遺??媛먯떆瑜??쒖옉?⑸땲??
+     * CPF 기능 설명입니다.
      */
     @PostConstruct
     public void initializeLastEventId() {
@@ -69,7 +69,7 @@ public class CacheRefreshEventListener {
     }
 
     /**
-     * ??罹먯떆 蹂寃??대깽?몃? 議고쉶?섍퀬, ?대깽?몄뿉 留욌뒗 濡쒖뺄 罹먯떆瑜?鍮꾩썎?덈떎.
+     * CPF 기능 설명입니다.
      */
     @Scheduled(
             fixedDelayString = "${cpf.cmn.cache.refresh-poll-millis:5000}",

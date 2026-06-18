@@ -26,14 +26,14 @@ logging:
 cpf:
   cmn:
     business-db:
-      # 교육 모듈에서는 CMN 업무 공통 샘플을 바로 실행할 수 있도록 기본 활성화합니다.
+      # 교육 모듈에서 CMN 업무 공통 샘플을 바로 실행할 수 있도록 local 기본값은 활성화합니다.
       enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:true}
   framework:
     module-id: XYZ
     was-id: ${WAS_ID:xyzAP01}
 
 ---
-# prod에서는 교육 편의 기본값을 줄이고 운영자가 명시적으로 켜도록 합니다.
+# prod에서는 교육 편의 기본값을 줄이고 운영자가 명시적으로 켠 경우에만 CMN 업무 DB를 사용합니다.
 spring:
   config:
     activate:

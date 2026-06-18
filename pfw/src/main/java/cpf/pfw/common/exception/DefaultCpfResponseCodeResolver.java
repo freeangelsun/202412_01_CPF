@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Fallback resolver used when CMN DB-backed catalogs are not available.
+ * CMN DB 기반 응답코드/메시지 카탈로그를 사용할 수 없을 때 기본 응답 메타를 조립합니다.
  */
 public class DefaultCpfResponseCodeResolver implements CpfResponseCodeResolver {
     @Override
@@ -16,7 +16,7 @@ public class DefaultCpfResponseCodeResolver implements CpfResponseCodeResolver {
         String resolvedCode = hasText(responseCode) ? responseCode : CpfErrorCode.INTERNAL_SERVER_ERROR.getStatusCode();
         boolean failure = resolvedCode.startsWith("E");
         String messageCode = failure ? CpfErrorCode.INTERNAL_SERVER_ERROR.getMessageCode() : defaultMessageCode(resolvedCode);
-        String message = failure ? "泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎." : "?뺤긽 泥섎━?섏뿀?듬땲??";
+        String message = failure ? "CPF 처리 중 오류가 발생했습니다." : "정상 처리되었습니다.";
         return new CpfResolvedResponse(
                 failure ? 500 : 200,
                 resolvedCode,
@@ -64,4 +64,3 @@ public class DefaultCpfResponseCodeResolver implements CpfResponseCodeResolver {
         return value != null && !value.isBlank();
     }
 }
-

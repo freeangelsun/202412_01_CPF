@@ -4,28 +4,25 @@ import cpf.mbr.common.response.ResponseCode;
 import lombok.Getter;
 
 /**
- * 湲덉쑖沅?API ?덉쇅 ?뺤쓽
- * - ⑤뱺 鍮꾩쫰?덉뒪 濡쒖쭅 ?덉쇅?????대옒?ㅻ? ?곸냽諛쏆븘 ?뺤쓽
- * - ?묐떟 肄붾뱶? 硫붿떆吏瑜??④퍡 愿由?
- * 
- * @author CPF Team
- * @version 1.0.0
+ * MBR API 처리 중 발생한 업무 오류를 표현하는 예외입니다.
+ * 공통 응답 코드, 사용자 메시지, 상세 원인을 함께 보관해 전역 예외 처리기에서 표준 응답으로 변환합니다.
  */
 @Getter
 public class ApiException extends RuntimeException {
-    
-    /** ?묐떟 肄붾뱶 */
+
+    /** 표준 응답 코드입니다. */
     private final ResponseCode responseCode;
-    
-    /** ?먮윭 硫붿떆吏 */
+
+    /** 외부 응답에 사용할 오류 메시지입니다. */
     private final String errorMessage;
-    
-    /** ?먮윭 ?곸꽭 ?뺣낫 */
+
+    /** 운영 진단에 참고할 상세 설명입니다. */
     private final String details;
-    
+
     /**
-     * ?앹꽦??1: ?묐떟 肄붾뱶留??ъ슜
-     * @param responseCode ?묐떟 肄붾뱶
+     * 응답 코드에 등록된 기본 메시지로 예외를 생성합니다.
+     *
+     * @param responseCode 표준 응답 코드
      */
     public ApiException(ResponseCode responseCode) {
         super(responseCode.getMessage());
@@ -33,11 +30,12 @@ public class ApiException extends RuntimeException {
         this.errorMessage = responseCode.getMessage();
         this.details = null;
     }
-    
+
     /**
-     * ?앹꽦??2: ?묐떟 肄붾뱶? 而ㅼ뒪? 硫붿떆吏
-     * @param responseCode ?묐떟 肄붾뱶
-     * @param errorMessage 而ㅼ뒪? ?먮윭 硫붿떆吏
+     * 호출자가 지정한 메시지로 예외를 생성합니다.
+     *
+     * @param responseCode 표준 응답 코드
+     * @param errorMessage 외부 응답에 사용할 오류 메시지
      */
     public ApiException(ResponseCode responseCode, String errorMessage) {
         super(errorMessage);
@@ -45,12 +43,13 @@ public class ApiException extends RuntimeException {
         this.errorMessage = errorMessage;
         this.details = null;
     }
-    
+
     /**
-     * ?앹꽦??3: ?묐떟 肄붾뱶, 硫붿떆吏, ?곸꽭 ?뺣낫
-     * @param responseCode ?묐떟 肄붾뱶
-     * @param errorMessage ?먮윭 硫붿떆吏
-     * @param details ?곸꽭 ?뺣낫
+     * 오류 메시지와 상세 설명을 함께 담아 예외를 생성합니다.
+     *
+     * @param responseCode 표준 응답 코드
+     * @param errorMessage 외부 응답에 사용할 오류 메시지
+     * @param details 운영 진단에 참고할 상세 설명
      */
     public ApiException(ResponseCode responseCode, String errorMessage, String details) {
         super(errorMessage);
@@ -58,13 +57,14 @@ public class ApiException extends RuntimeException {
         this.errorMessage = errorMessage;
         this.details = details;
     }
-    
+
     /**
-     * ?앹꽦??4: ?묐떟 肄붾뱶, 硫붿떆吏, ?곸꽭 ?뺣낫, Cause
-     * @param responseCode ?묐떟 肄붾뱶
-     * @param errorMessage ?먮윭 硫붿떆吏
-     * @param details ?곸꽭 ?뺣낫
-     * @param cause ?먯씤 ?덉쇅
+     * 원인 예외까지 포함해 예외를 생성합니다.
+     *
+     * @param responseCode 표준 응답 코드
+     * @param errorMessage 외부 응답에 사용할 오류 메시지
+     * @param details 운영 진단에 참고할 상세 설명
+     * @param cause 원인 예외
      */
     public ApiException(ResponseCode responseCode, String errorMessage, String details, Throwable cause) {
         super(errorMessage, cause);
@@ -73,4 +73,3 @@ public class ApiException extends RuntimeException {
         this.details = details;
     }
 }
-

@@ -3,11 +3,15 @@ package cpf.cmn.sec.token;
 import java.util.Map;
 
 /**
- * JWT ?앹꽦 ?붿껌?낅땲??
+ * HS256 JWT 생성 요청 값입니다.
  *
- * @param issuer     諛쒓툒?? * @param subject    ?좏겙 二쇱껜
- * @param audience   ????쒖뒪?? * @param ttlSeconds ?좏슚 ?쒓컙(珥?
- * @param secret     HMAC ?쒕챸 ?쒗겕由? * @param claims     異붽? ?대젅?? */
+ * @param issuer 토큰 발급자
+ * @param subject 토큰 주체
+ * @param audience 토큰 대상
+ * @param ttlSeconds 토큰 만료 초
+ * @param secret HS256 서명 secret
+ * @param claims 추가 claim
+ */
 public record CmnJwtCreateRequest(
         String issuer,
         String subject,
@@ -16,4 +20,3 @@ public record CmnJwtCreateRequest(
         String secret,
         Map<String, Object> claims) {
 }
-

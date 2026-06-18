@@ -20,11 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 二쇱젣?곸뿭 媛??몄텧怨??몃? ?뱀궗?댄듃 ?몄텧??蹂댁뿬二쇰뒗 援먯쑁??而⑦듃濡ㅻ윭?낅땲??
+ * CPF 기능 설명입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "XYZ-EDU 07. ?쒕퉬???몄텧", description = "PFW WebClient ?ㅻ뜑 ?꾪뙆? ?몃? ?몄텧 ?섑뵆")
+@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
 public class XyzServiceCallEducationController {
     private final CpfWebClient cpfWebClient;
     private final WebClient externalWebClient;
@@ -37,16 +37,16 @@ public class XyzServiceCallEducationController {
     }
 
     /**
-     * PFW ?쒖? WebClient濡?MBR ?뚯썝 ?곸꽭瑜??몄텧?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param memberId 議고쉶??MBR ?뚯썝 ID
-     * @return MBR ?묐떟
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @GetMapping("/service-call/mbr-detail")
-    @CpfTransaction(id = "XYZ08EDU0001", name = "XYZ援먯쑁MBR?곸꽭議고쉶?몄텧")
-    @CpfWorkflow(id = "XYZ08EDU9001", name = "XYZ援먯쑁?쒕퉬?ㅽ샇異쒖썙?ы뵆濡쒖슦")
-    @CpfWorkflowStep(name = "XYZ?먯꽌MBR?뚯썝?곸꽭議고쉶", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
-    @Operation(summary = "MBR ?쒕퉬???몄텧 ?섑뵆", description = "CpfWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆?섎뒗 ?먮쫫???뺤씤?⑸땲??")
+    @CpfTransaction(id = "XYZ08EDU0001", name = "CPF 처리 기준입니다.")
+    @CpfWorkflow(id = "XYZ08EDU9001", name = "CPF 처리 기준입니다.")
+    @CpfWorkflowStep(name = "CPF 처리 기준입니다.", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<Map<String, Object>> callMbrDetail(@RequestParam Long memberId) {
         Map<String, Object> mbrResponse = cpfWebClient.get(
                 "mbr",
@@ -58,20 +58,20 @@ public class XyzServiceCallEducationController {
                 });
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("guide", "CpfWebClient媛 嫄곕옒/?뚰겕?뚮줈???ㅻ뜑瑜??먮룞 ?꾪뙆??MBR ?몄텧 ?섑뵆?낅땲??");
+        response.put("guide", "CPF 처리 기준입니다.");
         response.put("mbrResponse", mbrResponse);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * ?몃? ?뱀궗?댄듃瑜?WebClient濡??몄텧?⑸땲??
+     * CPF 기능 설명입니다.
      *
-     * @param url ?몄텧???몃? URL
-     * @return ?몃? ?몄텧 ?묐떟
+     * CPF 기능 설명입니다.
+     * CPF 기능 설명입니다.
      */
     @GetMapping("/webclient/external-get")
-    @CpfTransaction(id = "XYZ08EDU0010", name = "XYZ援먯쑁?몃??뱀궗?댄듃?몄텧")
-    @Operation(summary = "?몃? ?뱀궗?댄듃 ?몄텧 ?섑뵆", description = "Spring WebClient濡??몃? ?뚯뒪???ъ씠?몃? ?몄텧?⑸땲??")
+    @CpfTransaction(id = "XYZ08EDU0010", name = "CPF 처리 기준입니다.")
+    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
     public ResponseEntity<Map<String, Object>> callExternalWebsite(
             @RequestParam(defaultValue = "https://postman-echo.com/get?source=cpf-xyz") String url) {
         String responseBody = externalWebClient.get()
@@ -83,7 +83,7 @@ public class XyzServiceCallEducationController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("url", url);
         response.put("body", responseBody);
-        response.put("guide", "?쒕퉬???덉??ㅽ듃由???곸? CpfWebClient, ?몃? 怨듦컻 URL? WebClient瑜??ъ슜?⑸땲??");
+        response.put("guide", "CPF 처리 기준입니다.");
         return ResponseEntity.ok(response);
     }
 }

@@ -19,9 +19,8 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /**
- * CMN 蹂댁븞/?뷀샇??怨듯넻 ?쒕퉬?ㅼ엯?덈떎.
- *
- * <p>?낅Т 媛쒕컻?먭? Base64, SHA-256, HMAC, AES-GCM, PBKDF2 媛숈? 湲곕낯 蹂댁븞 泥섎━瑜? * 媛쒕퀎 援ы쁽?섏? ?딅룄濡?怨듯넻 API濡??쒓났?⑸땲?? ?댁쁺 ?ㅼ? ?쒗겕由우? ?뚯뒪媛 ?꾨땲?? * ?섍꼍 蹂?? Vault, KMS, ?щ궡 ?ㅺ?由??쒖뒪?쒖뿉??二쇱엯?댁빞 ?⑸땲??</p>
+ * CMN 보안 유틸리티 서비스입니다.
+ * Base64, HMAC, AES-GCM, PBKDF2, 난수 생성처럼 여러 업무 모듈이 공유하는 보안 기능을 제공합니다.
  */
 @Service
 public class CmnCryptoService {
@@ -32,40 +31,45 @@ public class CmnCryptoService {
     private static final int PBKDF2_KEY_BITS = 256;
 
     /**
-     * 臾몄옄?댁쓣 Base64濡??몄퐫?⑺빀?덈떎.
+     * 일반 문자열을 Base64 문자열로 변환합니다.
      *
-     * @param plainText ?먮Ц
-     * @return Base64 臾몄옄??     */
+     * @param plainText 원문
+     * @return Base64 문자열
+     */
     public String base64Encode(String plainText) {
         return Base64.getEncoder().encodeToString(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * Base64 臾몄옄?댁쓣 UTF-8 臾몄옄?대줈 ?붿퐫?⑺빀?덈떎.
+     * Base64 문자열을 원문 문자열로 복원합니다.
      *
-     * @param encoded Base64 臾몄옄??     * @return ?먮Ц
+     * @param encoded Base64 문자열
+     * @return 원문 문자열
      */
     public String base64Decode(String encoded) {
         try {
             return new String(Base64.getDecoder().decode(TextUtils.requireText(encoded, "encoded")), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            throw new CpfValidationException("Base64 ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("Base64 값이 올바르지 않습니다.");
         }
     }
 
     /**
-     * URL-safe Base64濡??몄퐫?⑺빀?덈떎.
+     * 바이트 배열을 URL-safe Base64 문자열로 변환합니다.
      *
-     * @param bytes ?먮낯 諛붿씠??     * @return ?⑤뵫???쒓굅??URL-safe Base64
+     * @param bytes 원본 바이트
+     * @return URL-safe Base64 문자열
      */
     public String base64UrlEncode(byte[] bytes) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes == null ? new byte[0] : bytes);
     }
 
     /**
-     * URL-safe Base64 臾몄옄?댁쓣 ?붿퐫?⑺빀?덈떎.
+     * 문자열을 URL-safe Base64 문자열로 변환합니다.
      *
-     * @param encoded URL-safe Base64 臾몄옄??     * @return ?붿퐫??諛붿씠??     */
+     * @param plainText 원문
+     * @return URL-safe Base64 문자열
+     */
     public String base64UrlEncode(String plainText) {
         return base64UrlEncode(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8));
     }
@@ -74,28 +78,29 @@ public class CmnCryptoService {
         try {
             return Base64.getUrlDecoder().decode(TextUtils.requireText(encoded, "encoded"));
         } catch (IllegalArgumentException ex) {
-            throw new CpfValidationException("Base64Url ?붿퐫?⑹뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            throw new CpfValidationException("Base64 URL 값이 올바르지 않습니다.");
         }
     }
 
-    /**
-     * SHA-256 ?댁떆瑜?16吏꾩닔 臾몄옄?대줈 諛섑솚?⑸땲??
-     *
-     * @param plainText ?먮Ц
-     * @return SHA-256 hex
-     */
     public String base64UrlDecodeToString(String encoded) {
         return new String(base64UrlDecode(encoded), StandardCharsets.UTF_8);
     }
 
+    /**
+     * SHA-256 해시를 hex 문자열로 반환합니다.
+     *
+     * @param plainText 원문
+     * @return SHA-256 hex 문자열
+     */
     public String sha256Hex(String plainText) {
         return HexFormat.of().formatHex(sha256(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
-     * HMAC-SHA256 ?쒕챸??URL-safe Base64 臾몄옄?대줈 諛섑솚?⑸땲??
+     * SHA-256 해시를 URL-safe Base64 문자열로 반환합니다.
      *
-     * @param message ?쒕챸 ???臾몄옄??     * @param secret  ?쒕챸 ?쒗겕由?     * @return HMAC-SHA256 Base64Url
+     * @param plainText 원문
+     * @return SHA-256 URL-safe Base64 문자열
      */
     public String sha256Base64Url(String plainText) {
         return base64UrlEncode(sha256(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8)));
@@ -106,9 +111,12 @@ public class CmnCryptoService {
     }
 
     /**
-     * HMAC-SHA256 ?쒕챸 諛붿씠?몃? 諛섑솚?⑸땲??
+     * HMAC-SHA256 결과를 hex 문자열로 반환합니다.
      *
-     * @param message ?쒕챸 ???臾몄옄??     * @param secret  ?쒕챸 ?쒗겕由?     * @return HMAC-SHA256 諛붿씠??     */
+     * @param message 서명 대상 메시지
+     * @param secret 서명 secret
+     * @return HMAC-SHA256 hex 문자열
+     */
     public String hmacSha256Hex(String message, String secret) {
         return HexFormat.of().formatHex(hmacSha256Bytes(message, secret));
     }
@@ -119,15 +127,17 @@ public class CmnCryptoService {
             mac.init(new SecretKeySpec(TextUtils.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             return mac.doFinal(nullToEmpty(message).getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("HMAC-SHA256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("HMAC-SHA256 처리에 실패했습니다.", ex);
         }
     }
 
     /**
-     * AES-GCM 諛⑹떇?쇰줈 臾몄옄?댁쓣 ?뷀샇?뷀빀?덈떎.
+     * AES-GCM 방식으로 문자열을 암호화합니다.
      *
-     * @param plainText ?먮Ц
-     * @param secret    ?뷀샇???쒗겕由?     * @return {@code iv.cipherText} ?뺤떇 ?뷀샇臾?     */
+     * @param plainText 원문
+     * @param secret 암호화 secret
+     * @return IV와 암호문을 점으로 연결한 문자열
+     */
     public String aesGcmEncrypt(String plainText, String secret) {
         try {
             byte[] iv = randomBytes(AES_GCM_IV_BYTES);
@@ -136,20 +146,22 @@ public class CmnCryptoService {
             byte[] encrypted = cipher.doFinal(nullToEmpty(plainText).getBytes(StandardCharsets.UTF_8));
             return base64UrlEncode(iv) + "." + base64UrlEncode(encrypted);
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("AES-GCM ?뷀샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("AES-GCM 암호화에 실패했습니다.", ex);
         }
     }
 
     /**
-     * AES-GCM ?뷀샇臾몄쓣 蹂듯샇?뷀빀?덈떎.
+     * AES-GCM 암호문을 복호화합니다.
      *
-     * @param cipherText {@code iv.cipherText} ?뺤떇 ?뷀샇臾?     * @param secret     ?뷀샇???쒗겕由?     * @return ?먮Ц
+     * @param cipherText IV와 암호문을 점으로 연결한 문자열
+     * @param secret 복호화 secret
+     * @return 복호화된 원문
      */
     public String aesGcmDecrypt(String cipherText, String secret) {
         try {
             String[] parts = TextUtils.requireText(cipherText, "cipherText").split("\\.");
             if (parts.length != 2) {
-                throw new CpfValidationException("AES-GCM ?뷀샇臾??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+                throw new CpfValidationException("AES-GCM 암호문 형식이 올바르지 않습니다.");
             }
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, aesKey(secret), new GCMParameterSpec(AES_GCM_TAG_BITS, base64UrlDecode(parts[0])));
@@ -157,15 +169,16 @@ public class CmnCryptoService {
         } catch (CpfValidationException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("AES-GCM 蹂듯샇?붿뿉 ?ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("AES-GCM 복호화에 실패했습니다.", ex);
         }
     }
 
     /**
-     * PBKDF2 鍮꾨?踰덊샇 ?댁떆瑜??앹꽦?⑸땲??
+     * PBKDF2 방식으로 비밀번호 저장용 해시를 생성합니다.
      *
-     * @param password ?먮Ц 鍮꾨?踰덊샇
-     * @return PBKDF2 ?댁떆 臾몄옄??     */
+     * @param password 원문 비밀번호
+     * @return PBKDF2 저장 문자열
+     */
     public String pbkdf2Hash(String password) {
         try {
             byte[] salt = randomBytes(16);
@@ -174,16 +187,16 @@ public class CmnCryptoService {
                     + Base64.getEncoder().encodeToString(salt) + "$"
                     + Base64.getEncoder().encodeToString(hash);
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("PBKDF2 ?댁떆 ?앹꽦???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("PBKDF2 해시 생성에 실패했습니다.", ex);
         }
     }
 
     /**
-     * PBKDF2 鍮꾨?踰덊샇 ?댁떆瑜?寃利앺빀?덈떎.
+     * 비밀번호와 저장된 PBKDF2 해시가 일치하는지 확인합니다.
      *
-     * @param password   ?먮Ц 鍮꾨?踰덊샇
-     * @param storedHash ??λ맂 ?댁떆
-     * @return ?쇱튂 ?щ?
+     * @param password 원문 비밀번호
+     * @param storedHash 저장된 PBKDF2 해시
+     * @return 일치하면 true
      */
     public boolean pbkdf2Matches(String password, String storedHash) {
         try {
@@ -201,10 +214,11 @@ public class CmnCryptoService {
     }
 
     /**
-     * URL-safe ?쒖닔 ?좏겙???앹꽦?⑸땲??
+     * 보안 난수 기반 토큰을 생성합니다.
      *
-     * @param byteLength ?쒖닔 諛붿씠??湲몄씠
-     * @return ?좏겙 臾몄옄??     */
+     * @param byteLength 생성할 난수 바이트 길이
+     * @return URL-safe Base64 토큰
+     */
     public String secureRandomToken(int byteLength) {
         return base64UrlEncode(randomBytes(Math.max(16, byteLength)));
     }
@@ -226,7 +240,7 @@ public class CmnCryptoService {
         try {
             return MessageDigest.getInstance("SHA-256").digest(bytes);
         } catch (Exception ex) {
-            throw new CpfExternalServiceException("SHA-256 泥섎━???ㅽ뙣?덉뒿?덈떎.", ex);
+            throw new CpfExternalServiceException("SHA-256 처리에 실패했습니다.", ex);
         }
     }
 
@@ -240,4 +254,3 @@ public class CmnCryptoService {
         return value == null ? "" : value;
     }
 }
-

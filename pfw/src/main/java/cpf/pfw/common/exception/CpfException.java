@@ -5,10 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * CPF ?쒖? ?덉쇅??理쒖긽???대옒?ㅼ엯?덈떎.
+ * CPF 표준 오류 응답을 만들기 위한 공통 예외입니다.
  *
- * <p>?몃? 怨좉컼?먭쾶 蹂댁뿬以?硫붿떆吏? ?대? 濡쒓렇???④만 硫붿떆吏瑜?遺꾨━?⑸땲??
- * 怨좉컼??硫붿떆吏??{@code EXTERNAL}, ?댁쁺/媛쒕컻?먯슜 硫붿떆吏??{@code INTERNAL} 硫붿떆吏濡?愿由ы빀?덈떎.</p>
+ * 응답코드 기반 예외와 enum 기반 예외를 모두 지원하며, 메시지 치환 인자를 함께 전달합니다.
  */
 public class CpfException extends RuntimeException {
     private final CpfErrorDefinition errorCode;
@@ -116,11 +115,10 @@ public class CpfException extends RuntimeException {
         if (hasText(detail)) {
             return detail;
         }
-        return errorCode != null ? errorCode.getDefaultInternalMessage() : "CPF ?쒖? ?덉쇅媛 諛쒖깮?덉뒿?덈떎.";
+        return errorCode != null ? errorCode.getDefaultInternalMessage() : "CPF 처리 중 오류가 발생했습니다.";
     }
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
     }
 }
-

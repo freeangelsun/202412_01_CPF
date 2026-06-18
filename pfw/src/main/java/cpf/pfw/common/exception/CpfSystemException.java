@@ -1,7 +1,7 @@
 package cpf.pfw.common.exception;
 
 /**
- * ?쒖뒪???대? ?ㅻ쪟瑜??쒗쁽?섎뒗 ?쒖? ?덉쇅?낅땲??
+ * CPF 기능 설명입니다.
  */
 public class CpfSystemException extends CpfException {
     public CpfSystemException(String detail, Throwable cause) {

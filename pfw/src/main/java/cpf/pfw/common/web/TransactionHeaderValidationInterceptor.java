@@ -1,12 +1,12 @@
 package cpf.pfw.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import cpf.pfw.common.exception.CpfErrorResponse;
 import cpf.pfw.common.exception.CpfFrameworkErrorCode;
 import cpf.pfw.common.exception.CpfFrameworkException;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,10 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * CPF 표준 거래 헤더와 @CpfTransaction 메타 정보를 검증합니다.
+ */
 @Component
 public class TransactionHeaderValidationInterceptor implements HandlerInterceptor {
 
-    private static final Pattern BUSINESS_TRANSACTION_ID_PATTERN = Pattern.compile("^[A-Z]{3}[0-9]{2}[A-Z0-9]{3}[0-9]{4}$");
+    private static final Pattern BUSINESS_TRANSACTION_ID_PATTERN =
+            Pattern.compile("^[A-Z]{3}[0-9]{2}[A-Z0-9]{3}[0-9]{4}$");
+
     private final ObjectMapper objectMapper;
     private final CpfResponseCodeResolver responseCodeResolver;
 
@@ -53,6 +58,9 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         return true;
     }
 
+    /**
+     * PFW 공통 거래 처리에 필요한 필수 업무 헤더가 누락되었는지 확인합니다.
+     */
     private void validateRequiredHeaders(HttpServletRequest request) {
         List<String> missingHeaders = new ArrayList<>();
         require(request, TransactionContext.HEADER_REQUEST_TYPE, missingHeaders);
@@ -68,6 +76,9 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         }
     }
 
+    /**
+     * Controller 또는 메서드에 선언된 거래 메타 정보가 표준 형식을 만족하는지 확인합니다.
+     */
     private void validateTransactionMetadata(HandlerMethod handlerMethod) {
         CpfTransaction transaction = resolveTransactionAnnotation(handlerMethod);
         if (transaction == null) {
@@ -106,6 +117,9 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         }
     }
 
+    /**
+     * 인터셉터 단계에서 차단한 프레임워크 오류를 JSON 표준 응답으로 직접 기록합니다.
+     */
     private void writeFrameworkError(HttpServletResponse response, CpfFrameworkException ex) throws IOException {
         CpfResolvedResponse resolvedResponse = responseCodeResolver.resolve(
                 ex.getErrorCode(),

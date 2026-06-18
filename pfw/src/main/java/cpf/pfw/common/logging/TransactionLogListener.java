@@ -8,7 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * ?몃옖??뀡 濡쒓렇 ?대깽?몃? ?섏떊?섏뿬 ?꾨젅?꾩썙??濡쒓렇 ?뚯씠釉붿뿉 ??ν빀?덈떎.
+ * CPF 기능 설명입니다.
  */
 @Component
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class TransactionLogListener {
     private final TransactionLogService logService;
 
     /**
-     * 濡쒓렇 ?곸옱 ?ㅽ뙣媛 ?ㅼ젣 ?낅Т 嫄곕옒 ?ㅽ뙣濡?踰덉?吏 ?딅룄濡??덉쇅瑜??≪닔?섍퀬 寃쎄퀬 濡쒓렇留??④퉩?덈떎.
+     * CPF 기능 설명입니다.
      */
     @EventListener
     public void handleTransactionLogEvent(TransactionLogEvent event) {

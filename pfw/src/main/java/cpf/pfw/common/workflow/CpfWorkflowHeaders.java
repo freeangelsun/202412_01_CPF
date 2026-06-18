@@ -1,7 +1,7 @@
 package cpf.pfw.common.workflow;
 
 /**
- * 二쇱젣?곸뿭 媛??뚰겕?뚮줈??異붿쟻???꾪빐 ?꾪뙆?섎뒗 ?좏깮 ?ㅻ뜑?낅땲??
+ * CPF 기능 설명입니다.
  */
 public final class CpfWorkflowHeaders {
     public static final String HEADER_WORKFLOW_ID = "X-Workflow-Id";

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * MBR ⑤뱢 湲곕낯 Spring Boot ?뚯뒪??
+ * CPF 기능 설명입니다.
  * 
  * @author CPF Team
  * @version 1.0.0
@@ -17,7 +17,7 @@ class MbrApplicationTests {
     
     @Test
     void contextLoads() {
-        // ?좏뵆由ъ??댁뀡 ?뺤긽 濡쒕뱶 ?뺤씤
+        // CPF 기능 설명입니다.
     }
 }
 

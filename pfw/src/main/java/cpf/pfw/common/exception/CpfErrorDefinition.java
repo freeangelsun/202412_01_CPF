@@ -3,61 +3,61 @@ package cpf.pfw.common.exception;
 import org.springframework.http.HttpStatus;
 
 /**
- * CPF ?ㅻ쪟肄붾뱶媛 諛섎뱶???쒓났?댁빞 ?섎뒗 ?쒖? 怨꾩빟?낅땲??
+ * CPF 기능 설명입니다.
  *
- * <p>?낅Т ?ㅻ쪟肄붾뱶瑜?enum??怨꾩냽 異붽??섎㈃ 肄붾뱶媛 湲고븯湲됱닔?곸쑝濡??섏뼱?????덉뒿?덈떎.
- * 洹몃옒??PFW?????명꽣?섏씠?ㅻ? 湲곗??쇰줈 enum ?ㅻ쪟肄붾뱶, ?꾨젅?꾩썙??肄붿뼱 ?ㅻ쪟肄붾뱶,
- * ?낅Т?먯꽌 ?고??꾩뿉 議곕┰?섎뒗 ?숈쟻 ?ㅻ쪟肄붾뱶瑜?⑤몢 媛숈? 諛⑹떇?쇰줈 泥섎━?⑸땲??</p>
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
+ * CPF 기능 설명입니다.
  */
 public interface CpfErrorDefinition {
 
     /**
-     * ?묐떟怨?濡쒓렇???④만 ?꾨젅?꾩썙???곹깭 肄붾뱶?낅땲??
+     * CPF 기능 설명입니다.
      *
-     * @return ?곹깭 肄붾뱶
+     * CPF 기능 설명입니다.
      */
     String getStatusCode();
 
     /**
-     * ?묐떟 ?ㅻ뜑, ?묐떟 諛붾뵒, 嫄곕옒 濡쒓렇???④만 ????ㅻ쪟肄붾뱶?낅땲??
+     * CPF 기능 설명입니다.
      *
-     * @return ????ㅻ쪟肄붾뱶
+     * CPF 기능 설명입니다.
      */
     String getMessageCode();
 
     /**
-     * HTTP ?묐떟 ?곹깭?낅땲??
+     * CPF 기능 설명입니다.
      *
-     * @return HTTP ?곹깭
+     * CPF 기능 설명입니다.
      */
     HttpStatus getHttpStatus();
 
     /**
-     * 硫붿떆吏 ?뚯씠釉붿뿉 媛믪씠 ?놁쓣 ???ъ슜??怨좉컼??湲곕낯 硫붿떆吏?낅땲??
+     * CPF 기능 설명입니다.
      *
-     * @return 怨좉컼??湲곕낯 硫붿떆吏
+     * CPF 기능 설명입니다.
      */
     String getDefaultExternalMessage();
 
     /**
-     * 硫붿떆吏 ?뚯씠釉붿뿉 媛믪씠 ?놁쓣 ???ъ슜???대? 異붿쟻??湲곕낯 硫붿떆吏?낅땲??
+     * CPF 기능 설명입니다.
      *
-     * @return ?대? 湲곕낯 硫붿떆吏
+     * CPF 기능 설명입니다.
      */
     String getDefaultInternalMessage();
 
     /**
-     * 怨좉컼??硫붿떆吏 ?뚯씠釉??ㅼ엯?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @return EXTERNAL 硫붿떆吏 ??     */
+     * CPF 기능 설명입니다. */
     default String getExternalMessageKey() {
         return getMessageCode();
     }
 
     /**
-     * ?대???硫붿떆吏 ?뚯씠釉??ㅼ엯?덈떎.
+     * CPF 기능 설명입니다.
      *
-     * @return INTERNAL 硫붿떆吏 ??     */
+     * CPF 기능 설명입니다. */
     default String getInternalMessageKey() {
         return getMessageCode();
     }

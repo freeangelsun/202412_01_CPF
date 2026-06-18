@@ -6,58 +6,57 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * ACC?먯꽌 MBR ?뚯썝 ?곸꽭議고쉶 API ?묐떟??諛쏆쓣 ???ъ슜?섎뒗 ?섑뵆 DTO?낅땲??
- * MBR ⑤뱢??Java ?대옒?ㅻ? 吏곸젒 李몄“?섏? ?딄퀬 HTTP ?묐떟 怨꾩빟留?留욎떠 ?섏〈?깆쓣 ??땅?덈떎.
+ * MBR 회원 상세 조회 응답입니다.
+ * ACC 모듈은 이 DTO로 MBR API 응답을 역직렬화합니다.
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MbrMemberDetailResponse {
 
-    /** ?묐떟 硫붿떆吏 ID?낅땲?? */
+    /** 응답 메시지 ID입니다. */
     private String messageId;
 
-    /** 湲濡쒕쾶 嫄곕옒ID?낅땲?? ACC? MBR 濡쒓렇媛 媛숈? 媛믪쑝濡??곌껐?섏뼱???⑸땲?? */
+    /** ACC와 MBR 호출을 같은 흐름으로 추적하기 위한 거래 ID입니다. */
     private String transactionId;
 
-    /** 湲곗닠 濡쒓렇 異붿쟻??Trace ID?낅땲?? */
+    /** 분산 추적에 사용하는 Trace ID입니다. */
     private String traceId;
 
-    /** ?낅Т ?묐떟 肄붾뱶?낅땲?? */
+    /** 처리 결과 코드입니다. */
     private String statusCode;
 
-    /** ?낅Т ?묐떟 硫붿떆吏?낅땲?? */
+    /** 처리 결과 메시지입니다. */
     private String message;
 
-    /** ?뚯썝 ?곸꽭 ?곗씠?곗엯?덈떎. */
+    /** 회원 상세 데이터입니다. */
     private MbrMemberData data;
 
-    /** ?묐떟 ?앹꽦 ?쇱떆?낅땲?? */
+    /** 응답 생성 일시입니다. */
     private LocalDateTime timestamp;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MbrMemberData {
 
-        /** ?뚯썝 ID?낅땲?? */
+        /** 회원 ID입니다. */
         private Integer memberId;
 
-        /** ?뚯썝낆엯?덈떎. */
+        /** 회원 이름입니다. */
         private String memberName;
 
-        /** ?뚯썝 ?ㅻ챸?낅땲?? */
+        /** 회원 설명입니다. */
         private String description;
 
-        /** ?앹꽦??ID?낅땲?? */
+        /** 등록자입니다. */
         private String createdBy;
 
-        /** ?앹꽦 ?쇱떆?낅땲?? */
+        /** 등록 일시입니다. */
         private LocalDateTime createdAt;
 
-        /** ?섏젙??ID?낅땲?? */
+        /** 수정자입니다. */
         private String updatedBy;
 
-        /** ?섏젙 ?쇱떆?낅땲?? */
+        /** 수정 일시입니다. */
         private LocalDateTime updatedAt;
     }
 }
-

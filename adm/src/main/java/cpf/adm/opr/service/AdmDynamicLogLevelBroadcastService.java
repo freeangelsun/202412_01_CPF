@@ -9,6 +9,7 @@ import cpf.pfw.common.logging.DynamicLogLevelRule;
 import cpf.pfw.common.logging.DynamicTransactionLogLevelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +30,8 @@ public class AdmDynamicLogLevelBroadcastService {
     public AdmDynamicLogLevelBroadcastService(
             AdmDynamicLogLevelRuleStore ruleStore,
             DynamicTransactionLogLevelService runtimeService,
-            ObjectProvider<CmnMessagePublisher> messagePublisherProvider,
-            ObjectProvider<CmnMessageConsumer> messageConsumerProvider,
+            @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessagePublisher> messagePublisherProvider,
+            @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessageConsumer> messageConsumerProvider,
             ObjectProvider<CacheRefreshEventPublisher> cacheRefreshEventPublisherProvider) {
         this.ruleStore = ruleStore;
         this.runtimeService = runtimeService;

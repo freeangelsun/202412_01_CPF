@@ -11,7 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * ADM?먯꽌 CMN 肄붾뱶/硫붿떆吏/?ㅼ젙 罹먯떆瑜??섎룞 由ы봽?덉떆?섍린 ?꾪븳 ?쒕퉬?ㅼ엯?덈떎.
+ * ADM 캐시 운영 서비스입니다.
+ * 운영자가 코드, 메시지, 응답코드, 설정 캐시 상태를 확인하고 refresh 요청을 수행할 수 있게 합니다.
  */
 @Service
 public class AdmCacheOperationService {
@@ -32,9 +33,10 @@ public class AdmCacheOperationService {
     }
 
     /**
-     * 罹먯떆 愿由??붾㈃??湲곕낯 ?곹깭瑜?議고쉶?⑸땲??
+     * 캐시 대표 샘플을 조회합니다.
      *
-     * @return 罹먯떆蹂??덈궡? ????곗씠??     */
+     * @return 캐시 이름과 샘플 데이터
+     */
     public Map<String, Object> summary() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("cacheNames", "codeCache, messageCache, responseCodeCache, configCache");
@@ -46,10 +48,10 @@ public class AdmCacheOperationService {
     }
 
     /**
-     * 罹먯떆瑜??섎룞 由ы봽?덉떆?⑸땲??
+     * 지정된 캐시를 갱신합니다.
      *
-     * @param target ALL, CODE, MESSAGE, RESPONSE_CODE, CONFIG
-     * @return 由ы봽?덉떆 寃곌낵
+     * @param target ALL, CODE, MESSAGE, RESPONSE_CODE, CONFIG 중 하나
+     * @return refresh 결과
      */
     public Map<String, Object> refresh(String target) {
         String normalizedTarget = TextUtils.normalizeCode(target);
@@ -74,4 +76,3 @@ public class AdmCacheOperationService {
         return response;
     }
 }
-

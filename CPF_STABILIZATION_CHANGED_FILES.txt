@@ -1,71 +1,153 @@
-CPF 안정화 변경 파일 목록
-작성 시각: 2026-06-18 13:30:35 +09:00
+# CPF stabilization changed files
 
-주의:
-- `CPF_CODEX_REQUEST_20260618_01.md`는 사용자가 갱신한 입력 파일이며 작업 변경으로 계산하지 않습니다.
-- 현재 git status에는 rename이 delete/untracked 쌍으로 보입니다. 커밋 전 rename으로 검토해야 합니다.
-- `mbr/logs/mbr/*.log`는 runtime 산출물이므로 삭제 상태로 정리했습니다.
+Generated: 2026-06-18
 
-1. 레거시 명칭 정리
-- `pfw/src/main/java/cpf/pfw/common/exception/Fps*.java` -> `Cpf*.java`
-- `pfw/src/main/java/cpf/pfw/common/http/Fps*.java` -> `Cpf*.java`
-- `pfw/src/main/java/cpf/pfw/common/logging/Fps*.java` -> `Cpf*.java`
-- `pfw/src/main/java/cpf/pfw/common/web/FpsResponseHeaderAdvice.java` -> `CpfResponseHeaderAdvice.java`
-- `pfw/src/main/java/cpf/pfw/common/workflow/Fps*.java` -> `Cpf*.java`
-- `acc/src/main/java/cpf/acc/common/aop/FpsValidationAspect.java` -> `CpfValidationAspect.java`
-- `cmn/src/main/java/cpf/cmn/dto/FpsDTO.java` -> `CpfDTO.java`
-- `cmn/src/main/java/cpf/cmn/msg/service/CmnFps*.java` -> `CmnCpf*.java`
-- `mbr/src/test/java/cpf/cmn/msg/service/CmnFpsResponseCodeResolverTest.java` -> `CmnCpfResponseCodeResolverTest.java`
-- 관련 Java, YAML, SQL, 문서, Swagger annotation 문자열에서 CPF 기준 명칭으로 변경했습니다.
-
-2. 품질 검사/빌드
-- `build.gradle`: `checkLegacyName` task 추가, `qualityGate`에 연결.
-- `scripts/check-utf8.ps1`: UTF-8 strict 검사 유지, mojibake 검사 패턴을 코드포인트/정규식 기반으로 강화, request/report/build/bin/log 산출물 제외.
-- `scripts/check-legacy-name.ps1`: 과거 프로젝트명 잔재 검색 스크립트 신규 추가.
-
-3. 문서
-- `README.md`: 기능 구현 매트릭스 링크 추가.
-- `specs/index.html`: 기능 구현 매트릭스 링크 추가, 보조 md 문서가 deprecated 보조 문서임을 명시.
-- `specs/기능_구현_매트릭스.md`: 기능별 구현 상태, 주요 소스, API, ADM 화면, DB, Swagger, EDU, 테스트, 검증 방법 매트릭스 신규 작성.
-- `specs/transaction-header-standard.md`: deprecated 보조 문서 안내 추가.
-- `specs/definition-of-done.md`: deprecated 보조 문서 안내 추가.
-- `specs/ci-quality-gate.md`: deprecated 안내와 legacy name 검사 명령 추가.
-- `specs/module-template.md`: deprecated 보조 문서 안내 추가.
-- `specs/operation-security-guide.md`: deprecated 보조 문서 안내 추가.
-
-4. CMN 기본 DTO/유틸 한글 정리
-- `cmn/src/main/java/cpf/cmn/dto/HeaderDTO.java`: 깨진 주석/validation 메시지 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/dto/CpfDTO.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/dto/DataDTO.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/ValidationUtils.java`: 깨진 주석/예외 메시지 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/DateTimeUtils.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/IdUtils.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/CommonUtils.java`: 깨진 주석 정상 한글화.
-- `cmn/src/main/java/cpf/cmn/utils/CollectionSafeUtils.java`: 깨진 주석 정상 한글화.
-
-5. PFW build 문서성 주석
-- `pfw/build.gradle`: 깨진 의존성 설명 주석 정상 한글화.
-
-6. SQL/설정/EDU/ADM 관련 기존 변경 유지 및 CPF 명칭 동기화
-- `specs/sql/00_all_install.sql`
-- `specs/sql/00_all_install_and_smoke.sql`
-- `specs/sql/50_framework_seed_data.sql`
-- `specs/sql/migration/flyway/V1__cpf_baseline_install.sql`
-- `adm/src/main/java/cpf/adm/opr/controller/*.java`
-- `adm/src/main/java/cpf/adm/opr/service/*.java`
-- `adm/src/main/resources/application.yml`
-- `xyz/src/main/java/cpf/xyz/edu/controller/*.java`
-- `xyz/src/main/java/cpf/xyz/edu/service/XyzSampleService.java`
-- `acc/src/main/java/cpf/acc/**/*.java`
-- `mbr/src/main/java/cpf/mbr/**/*.java`
-- `pfw/src/main/resources/application-pfw.yml`
-- `cmn/src/main/resources/application-cmn*.yml`
-
-7. Runtime log 산출물
-- `mbr/logs/mbr/mbr-error.log`: 삭제 상태. tracked runtime log 제거 필요.
-- `mbr/logs/mbr/mbr.log`: 삭제 상태. tracked runtime log 제거 필요.
-
-8. 검증 결과에 따른 주의 파일군
-- `check-utf8.ps1 -CheckMojibake`가 아직 ACC/ADM/CMN/MBR/PFW/XYZ 다수 파일을 실패로 검출합니다.
-- 다음 작업에서는 리포트의 mojibake 실패 파일군을 기준으로 전수 정리해야 합니다.
+```text
+ M CPF_CODEX_REQUEST_20260618_01.md
+ M CPF_STABILIZATION_CHANGED_FILES.txt
+ M CPF_STABILIZATION_REPORT.md
+ M acc/build.gradle
+ M acc/src/main/java/cpf/acc/AccApplication.java
+ M acc/src/main/java/cpf/acc/bse/dto/MbrMemberDetailResponse.java
+ M acc/src/main/java/cpf/acc/bse/service/MbrMemberClientService.java
+ M acc/src/main/java/cpf/acc/common/aop/CpfValidationAspect.java
+ M acc/src/main/java/cpf/acc/common/exception/GlobalExceptionHandler.java
+ M acc/src/main/java/cpf/acc/config/AccMyBatisConfig.java
+ M acc/src/main/java/cpf/acc/tst/controller/CmnCoderController.java
+ M acc/src/main/java/cpf/acc/tst/controller/CmnManagementController.java
+ M acc/src/main/resources/application-dev.yml
+ M acc/src/main/resources/application-local.yml
+ M acc/src/main/resources/application-prod.yml
+ M acc/src/main/resources/application-test.yml
+ M acc/src/main/resources/log/logback-dev.xml
+ M acc/src/main/resources/log/logback-local.xml
+ M acc/src/main/resources/log/logback-prod.xml
+ M acc/src/main/resources/log/logback-test.xml
+ M acc/src/main/resources/mybatis/config/acc-mybatis-config.xml
+ M acc/src/test/java/cpf/acc/AccApplicationTests.java
+ M acc/src/test/java/cpf/acc/tst/controller/AccTransactionControllerTest.java
+ M adm/build.gradle
+ M adm/src/main/java/cpf/adm/AdmApplication.java
+ M adm/src/main/java/cpf/adm/config/AdmPasswordPolicyProperties.java
+ M adm/src/main/java/cpf/adm/config/AdmSecurityProperties.java
+ M adm/src/main/java/cpf/adm/opr/controller/AdmAuthController.java
+ M adm/src/main/java/cpf/adm/opr/controller/AdmPageController.java
+ M adm/src/main/java/cpf/adm/opr/dto/AdmLoginRequest.java
+ M adm/src/main/java/cpf/adm/opr/dto/AdmLoginResponse.java
+ M adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmCacheOperationService.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmDynamicLogLevelBroadcastService.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmSessionService.java
+ M cmn/src/main/java/cpf/cmn/cde/mapper/CodeMapper.java
+ M cmn/src/main/java/cpf/cmn/cde/service/CodeCacheService.java
+ M cmn/src/main/java/cpf/cmn/cfg/mapper/ConfigMapper.java
+ M cmn/src/main/java/cpf/cmn/cfg/service/ConfigCacheService.java
+ M cmn/src/main/java/cpf/cmn/config/CmnMyBatisConfig.java
+ M cmn/src/main/java/cpf/cmn/fle/config/CmnFileExchangeConfig.java
+ M cmn/src/main/java/cpf/cmn/fle/config/CmnFileExchangeProperties.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnFileExchangeHistoryRecord.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnFileProtocol.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnFileTransferDirection.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnFileTransferRequest.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnFileTransferResult.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnRemoteCommandRequest.java
+ M cmn/src/main/java/cpf/cmn/fle/core/CmnRemoteCommandResult.java
+ M cmn/src/main/java/cpf/cmn/fle/service/CmnFileExchangeService.java
+ M cmn/src/main/java/cpf/cmn/mqe/config/CmnMessagingConfig.java
+ M cmn/src/main/java/cpf/cmn/mqe/config/CmnMessagingProperties.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessageBrokerType.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessageConsumer.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessageEnvelope.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessageHandler.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessagePublishResult.java
+ M cmn/src/main/java/cpf/cmn/mqe/core/CmnMessagePublisher.java
+ M cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService.java
+ M cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageCodec.java
+ M cmn/src/main/java/cpf/cmn/msg/mapper/MessageMapper.java
+ M cmn/src/main/java/cpf/cmn/msg/service/CmnCpfMessageResolver.java
+ M cmn/src/main/java/cpf/cmn/msg/service/MessageCacheService.java
+ M cmn/src/main/java/cpf/cmn/ref/mapper/CacheRefreshEventMapper.java
+ M cmn/src/main/java/cpf/cmn/ref/service/CacheRefreshEventListener.java
+ M cmn/src/main/java/cpf/cmn/ref/service/CacheRefreshEventPublisher.java
+ M cmn/src/main/java/cpf/cmn/sec/crypto/CmnCryptoService.java
+ M cmn/src/main/java/cpf/cmn/sec/token/CmnJwtCreateRequest.java
+ M cmn/src/main/java/cpf/cmn/sec/token/CmnJwtService.java
+ M cmn/src/main/java/cpf/cmn/sec/token/CmnJwtValidationResult.java
+ M cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthBearerTokenService.java
+ M cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthTokenIntrospectionResult.java
+ M cmn/src/main/java/cpf/cmn/tlm/core/CmnTelegramAlign.java
+ M cmn/src/main/java/cpf/cmn/tlm/core/CmnTelegramField.java
+ M cmn/src/main/java/cpf/cmn/tlm/core/CmnTelegramFieldSpec.java
+ M cmn/src/main/java/cpf/cmn/tlm/core/CmnTelegramFieldType.java
+ M cmn/src/main/java/cpf/cmn/tlm/core/CmnTelegramParseResult.java
+ M cmn/src/main/java/cpf/cmn/tlm/service/CmnTelegramService.java
+ M cmn/src/main/java/cpf/cmn/validation/HeaderValidator.java
+ M cmn/src/main/resources/mybatis/mapper/cmn/cde/CodeMapper.xml
+ M cmn/src/main/resources/mybatis/mapper/cmn/cfg/ConfigMapper.xml
+ M cmn/src/main/resources/mybatis/mapper/cmn/ref/CacheRefreshEventMapper.xml
+ M mbr/src/main/java/cpf/mbr/MbrApplication.java
+ M mbr/src/main/java/cpf/mbr/common/exception/ApiException.java
+ M mbr/src/main/java/cpf/mbr/common/exception/GlobalExceptionHandler.java
+ M mbr/src/main/java/cpf/mbr/common/request/BaseRequest.java
+ M mbr/src/main/java/cpf/mbr/common/response/ResponseCode.java
+ M mbr/src/main/resources/mybatis/config/mbr-mybatis-config.xml
+ M mbr/src/test/java/cpf/mbr/MbrApplicationTests.java
+ M mbr/src/test/java/cpf/mbr/bse/controller/MbrControllerValidationTest.java
+ M mbr/src/test/java/cpf/mbr/common/logging/SensitiveDataMaskerTest.java
+ M mbr/src/test/java/cpf/mbr/common/logging/TransactionIdGeneratorTest.java
+ M pfw/build.gradle
+ M pfw/src/main/java/cpf/pfw/common/aop/ServiceAccessAspect.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfBusinessException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfDynamicErrorCode.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfErrorCode.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfErrorDefinition.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfErrorResponse.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfExternalServiceException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfFrameworkException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfGlobalExceptionHandler.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfMessageFormatter.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfMessageResolver.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfNotFoundException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfResolvedMessage.java
+ M pfw/src/main/java/cpf/pfw/common/exception/CpfSystemException.java
+ M pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfMessageResolver.java
+ M pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfResponseCodeResolver.java
+ M pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java
+ M pfw/src/main/java/cpf/pfw/common/logging/CpfTransaction.java
+ M pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRequest.java
+ M pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRule.java
+ M pfw/src/main/java/cpf/pfw/common/logging/DynamicTransactionLogLevelService.java
+ M pfw/src/main/java/cpf/pfw/common/logging/LoggingAspect.java
+ M pfw/src/main/java/cpf/pfw/common/logging/TransactionLogEvent.java
+ M pfw/src/main/java/cpf/pfw/common/logging/TransactionLogListener.java
+ M pfw/src/main/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptor.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflow.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowContext.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowFailurePolicy.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowHeaders.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowMetadata.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowStatus.java
+ M pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowStep.java
+ M pfw/src/main/java/cpf/pfw/config/PfwDataSourceConfig.java
+ M pfw/src/main/java/cpf/pfw/config/PfwExceptionAutoConfiguration.java
+ M pfw/src/main/java/cpf/pfw/config/PfwMyBatisConfig.java
+ M pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionLogMapper.java
+ M pfw/src/main/java/cpf/pfw/service/common/logging/TransactionLogService.java
+ M specs/기능_구현_매트릭스.md
+ M xyz/build.gradle
+ M xyz/src/main/java/cpf/xyz/edu/config/XyzBatchEducationConfig.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzDynamicLogEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzExceptionEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzFileExchangeEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzMessagingEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/controller/XyzServiceCallEducationController.java
+ M xyz/src/main/java/cpf/xyz/edu/dto/XyzFixedLengthMemberTelegram.java
+ M xyz/src/main/java/cpf/xyz/edu/service/XyzAuditSampleService.java
+ M xyz/src/main/resources/application.yml
+ M xyz/src/main/resources/log/logback-local.xml
+?? adm/src/main/java/cpf/adm/config/AdmBatchRepositoryConfig.java
+?? adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java
+?? xyz/src/main/java/cpf/xyz/edu/config/XyzBatchRepositoryConfig.java
+```

@@ -23,30 +23,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 湲濡쒕쾶 ?덉쇅 泥섎━ ?몃뱾???대옒??
- * - MVC ?덈꺼??二쇱슂 ?덉쇅瑜?泥섎━?섍퀬 DB???몃옖??뀡 濡쒓렇瑜?湲곕줉?⑸땲??
+ * ACC API에서 발생한 예외를 공통 오류 응답과 PFW 거래 로그로 변환합니다.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * ?앹꽦??
-     *
-     * @param eventPublisher ?대깽??諛쒗뻾??(?몃옖??뀡 濡쒓렇 ??μ슜)
-     */
     public GlobalExceptionHandler(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
     /**
-     * MissingServletRequestParameterException 泥섎━.
-     *
-     * @param ex      ?꾨씫???뚮씪誘명꽣 ?덉쇅
-     * @param request HTTP ?붿껌 媛앹껜
-     * @return ?대씪?댁뼵?몄뿉 諛섑솚??HTTP ?묐떟
+     * 필수 요청 파라미터가 누락된 경우 400 오류로 응답합니다.
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex, WebRequest request) {
@@ -54,11 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * ConstraintViolationException 泥섎━.
-     *
-     * @param ex      ?좏슚??寃利??ㅽ뙣 ?덉쇅
-     * @param request HTTP ?붿껌 媛앹껜
-     * @return ?대씪?댁뼵?몄뿉 諛섑솚??HTTP ?묐떟
+     * Bean Validation 오류를 필드별 메시지로 묶어 400 오류로 응답합니다.
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<String> handleValidationException(ConstraintViolationException ex, WebRequest request) {
@@ -77,11 +64,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * IllegalArgumentException 泥섎━.
-     *
-     * @param ex      IllegalArgumentException ?덉쇅
-     * @param request HTTP ?붿껌 媛앹껜
-     * @return ?대씪?댁뼵?몄뿉 諛섑솚??HTTP ?묐떟
+     * 잘못된 인자 오류를 400 오류로 응답합니다.
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
@@ -89,11 +72,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * ?쇰컲?곸씤 ?덉쇅 泥섎━.
-     *
-     * @param ex      諛쒖깮???덉쇅
-     * @param request HTTP ?붿껌 媛앹껜
-     * @return ?대씪?댁뼵?몄뿉 諛섑솚??HTTP ?묐떟
+     * 처리되지 않은 예외를 500 오류로 응답합니다.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGeneralException(Exception ex, WebRequest request) {
@@ -101,13 +80,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * ?ㅻ쪟 硫붿떆吏瑜??щ㎎?섍퀬 ?몃옖??뀡 濡쒓렇瑜?湲곕줉?⑸땲??
-     *
-     * @param ex      ?덉쇅 媛앹껜
-     * @param request HTTP ?붿껌 媛앹껜
-     * @param status  HTTP ?곹깭 肄붾뱶
-     * @param logType 濡쒓렇 ?좏삎
-     * @return ?대씪?댁뼵?몄뿉 諛섑솚??HTTP ?묐떟
+     * 오류 응답을 생성하고 거래 로그 이벤트를 발행합니다.
      */
     private ResponseEntity<String> processExceptionAndLog(Exception ex, WebRequest request, HttpStatus status, String logType) {
         String requestUri = getRequestUri(request);
@@ -124,8 +97,8 @@ public class GlobalExceptionHandler {
                 "ACC",
                 "default-menu",
                 requestUri,
-                null, // ?붿껌 ?뚮씪誘명꽣 ?놁쓬
-                null, // ?묐떟 ?곗씠???놁쓬
+                null,
+                null,
                 status.value(),
                 ex.getMessage(),
                 execUser,
@@ -137,23 +110,23 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * ?몃옖??뀡 濡쒓렇 諛쒗뻾 硫붿꽌??
+     * PFW 거래 로그에 저장할 오류 거래 레코드를 구성합니다.
      *
-     * @param transactionId ?몃옖??뀡 ID
+     * @param transactionId 거래 ID
      * @param traceId       Trace ID
      * @param spanId        Span ID
      * @param parentSpanId  Parent Span ID
-     * @param logType       濡쒓렇 ?좏삎 (SUCCESS/FAILURE)
-     * @param moduleId      ⑤뱢 ID
-     * @param menuId        硫붾돱 ID
-     * @param uri           ?붿껌 URI
-     * @param parameters    ?붿껌 ?뚮씪誘명꽣
-     * @param response      ?묐떟 ?곗씠??
-     * @param responseCode  HTTP ?묐떟 肄붾뱶
-     * @param errorMessage  ?ㅻ쪟 硫붿떆吏
-     * @param execUser      ?ㅽ뻾 ?ъ슜??
-     * @param startTime     ?붿껌 ?쒖옉 ?쒓컙
-     * @param endTime       ?붿껌 醫낅즺 ?쒓컙
+     * @param logType       로그 유형
+     * @param moduleId      모듈 ID
+     * @param menuId        메뉴 ID
+     * @param uri           요청 URI
+     * @param parameters    요청 파라미터
+     * @param response      응답 본문
+     * @param responseCode  HTTP 응답 코드
+     * @param errorMessage  오류 메시지
+     * @param execUser      실행 사용자
+     * @param startTime     시작 일시
+     * @param endTime       종료 일시
      */
     private void publishTransactionLog(String transactionId, String traceId, String spanId, String parentSpanId,
                                        String logType, String moduleId, String menuId,
@@ -227,23 +200,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * ConstraintViolation ?뺣낫瑜??щ㎎?낇빀?덈떎.
-     *
-     * @param violation ?좏슚??寃利??ㅽ뙣 ?뺣낫
-     * @return ?щ㎎???ㅻ쪟 硫붿떆吏
+     * Bean Validation 위반 정보를 사람이 읽을 수 있는 문자열로 변환합니다.
      */
     private String formatConstraintViolation(ConstraintViolation<?> violation) {
         return violation.getPropertyPath() + ": " + violation.getMessage();
     }
 
     /**
-     * ?붿껌 URI瑜?諛섑솚?⑸땲??
-     *
-     * @param request WebRequest 媛앹껜
-     * @return ?붿껌 URI
+     * WebRequest 설명에서 요청 URI를 추출합니다.
      */
     private String getRequestUri(WebRequest request) {
         return Optional.ofNullable(request.getDescription(false)).orElse("Unknown URI");
     }
 }
-

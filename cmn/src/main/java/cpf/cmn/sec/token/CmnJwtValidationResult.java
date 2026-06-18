@@ -4,13 +4,16 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * JWT 寃利?寃곌낵?낅땲??
+ * JWT 검증 결과입니다.
  *
- * @param valid     ?좏슚 ?щ?
- * @param reason    ?ㅽ뙣 ?ъ쑀 ?먮뒗 ?깃났 硫붿떆吏
- * @param subject   ?좏겙 二쇱껜
- * @param issuer    諛쒓툒?? * @param audience  ????쒖뒪?? * @param expiresAt 留뚮즺 ?쒓컖
- * @param claims    ?꾩껜 ?대젅?? */
+ * @param valid 검증 성공 여부
+ * @param reason 검증 실패 또는 성공 사유
+ * @param subject 토큰 주체
+ * @param issuer 토큰 발급자
+ * @param audience 토큰 대상
+ * @param expiresAt 토큰 만료 시각
+ * @param claims 토큰 claim
+ */
 public record CmnJwtValidationResult(
         boolean valid,
         String reason,
@@ -20,4 +23,3 @@ public record CmnJwtValidationResult(
         Instant expiresAt,
         Map<String, Object> claims) {
 }
-

@@ -768,7 +768,7 @@ public class LoggingAspect {
                 "EPFW990000",
                 "MPFW990000",
                 ex.getClass().getSimpleName(),
-                "泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
+                "CPF 처리 기준입니다.",
                 internalMessage,
                 internalMessage);
     }

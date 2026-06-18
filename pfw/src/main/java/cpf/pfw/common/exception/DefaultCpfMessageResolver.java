@@ -3,7 +3,7 @@ package cpf.pfw.common.exception;
 import java.util.Locale;
 
 /**
- * 蹂꾨룄 硫붿떆吏 ??μ냼媛 ?놁쓣 ???ъ슜?섎뒗 湲곕낯 硫붿떆吏 由ъ「踰꾩엯?덈떎.
+ * CMN 메시지 카탈로그를 사용할 수 없을 때 오류 코드의 기본 메시지를 반환합니다.
  */
 public class DefaultCpfMessageResolver implements CpfMessageResolver {
 
@@ -14,4 +14,3 @@ public class DefaultCpfMessageResolver implements CpfMessageResolver {
                 errorCode.getDefaultInternalMessage());
     }
 }
-

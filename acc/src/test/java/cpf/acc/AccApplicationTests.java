@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = AccApplication.class)
 class AccApplicationTests {
 
-	private static final Logger logger = LoggerFactory.getLogger(AccApplicationTests.class); // SLF4J 濡쒓굅 ?좎뼵
+	private static final Logger logger = LoggerFactory.getLogger(AccApplicationTests.class); // CPF 기능 설명입니다.
 
 	@Test
 	void contextLoads() {

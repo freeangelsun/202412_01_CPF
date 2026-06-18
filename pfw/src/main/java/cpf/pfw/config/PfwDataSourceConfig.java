@@ -11,7 +11,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * PFW ?꾨젅?꾩썙???꾩닔 ?뚯씠釉붿슜 DataSource ?ㅼ젙?낅땲??
+ * CPF 기능 설명입니다.
  */
 @Configuration
 public class PfwDataSourceConfig {

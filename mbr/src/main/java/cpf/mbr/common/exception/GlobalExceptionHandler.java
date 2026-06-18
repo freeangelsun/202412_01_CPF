@@ -2,11 +2,11 @@ package cpf.mbr.common.exception;
 
 import cpf.mbr.common.response.BaseResponse;
 import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import cpf.pfw.common.exception.CpfErrorResponse;
 import cpf.pfw.common.exception.CpfException;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -24,11 +24,8 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * 湲덉쑖沅?湲濡쒕쾶 ?덉쇅 泥섎━ ?몃뱾?? * - ⑤뱺 API?먯꽌 諛쒖깮?섎뒗 ?덉쇅瑜??듭씪???뺤떇?쇰줈 泥섎━
- * - ?덉쇅 濡쒓퉭 諛?媛먯떆 湲곕뒫 ?ы븿
- * 
- * @author CPF Team
- * @version 1.0.0
+ * MBR 전역 예외 처리기입니다.
+ * MVC validation, 파라미터 오류, CPF 공통 예외를 MBR 표준 응답으로 변환합니다.
  */
 @Slf4j
 @RestControllerAdvice
@@ -39,10 +36,6 @@ public class GlobalExceptionHandler {
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
     }
 
-    /**
-     * PFW ?쒖? ?덉쇅 泥섎━
-     * 嫄곕옒 ?ㅻ뜑, 嫄곕옒 硫뷀??곗씠?? PFW 怨듯넻 湲곕뒫?먯꽌 諛쒖깮???ㅻ쪟??PFW ?쒖? ?ㅻ쪟 ?묐떟?쇰줈 諛섑솚?⑸땲??
-     */
     @ExceptionHandler(CpfException.class)
     public ResponseEntity<CpfErrorResponse> handleCpfException(CpfException ex, WebRequest request) {
         CpfResolvedResponse resolvedResponse = ex.getErrorCode() != null
@@ -73,247 +66,106 @@ public class GlobalExceptionHandler {
                 .headers(headers)
                 .body(response);
     }
-    
-    /**
-     * ApiException 泥섎━
-     * 鍮꾩쫰?덉뒪 濡쒖쭅?먯꽌 諛쒖깮???덉쇅
-     */
+
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<BaseResponse<?>> handleApiException(
-            ApiException ex,
-            WebRequest request) {
-        
-        // 濡쒓퉭: 鍮꾩쫰?덉뒪 ?덉쇅 (?뺤긽 踰붿쐞???덉쇅)
+    public ResponseEntity<BaseResponse<?>> handleApiException(ApiException ex, WebRequest request) {
         log.warn("API Exception [{}] - Message: {}, Details: {}",
                 ex.getResponseCode().getCode(),
                 ex.getErrorMessage(),
                 ex.getDetails());
-        
-        BaseResponse<?> response = BaseResponse.error(
-                ex.getResponseCode(),
-                ex.getErrorMessage()
-        );
-        
-        // ?곹깭 肄붾뱶 寃곗젙
-        HttpStatus httpStatus = determineHttpStatus(ex.getResponseCode());
-        
-        return new ResponseEntity<>(response, httpStatus);
+        return new ResponseEntity<>(
+                BaseResponse.error(ex.getResponseCode(), ex.getErrorMessage()),
+                determineHttpStatus(ex.getResponseCode()));
     }
-    
-    /**
-     * ?낅젰媛?寃利??ㅻ쪟 泥섎━
-     * @Valid 寃利??ㅽ뙣??     */
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse<?>> handleValidationException(
-            MethodArgumentNotValidException ex,
-            WebRequest request) {
-        
-        // 泥?踰덉㎏ 寃利??ㅻ쪟 ?꾨뱶 異붿텧
+    public ResponseEntity<BaseResponse<?>> handleValidationException(MethodArgumentNotValidException ex, WebRequest request) {
         String fieldName = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .findFirst()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("?낅젰媛?寃利??ㅽ뙣");
-        
+                .orElse("요청 본문 검증에 실패했습니다.");
         log.warn("Validation Exception - Field: {}", fieldName);
-        
-        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
-                .errorType("VALIDATION_ERROR")
-                .fieldName(fieldName)
-                .details("?낅젰??媛믪씠 ?좏슚?섏? ?딆뒿?덈떎.")
-                .build();
-        
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.VALIDATION_FAILED,
-                errorDetail
-        );
-        
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return badRequest(ResponseCode.VALIDATION_FAILED, "VALIDATION_ERROR", fieldName, "요청 본문 검증에 실패했습니다.");
     }
 
-    /**
-     * 荑쇰━ ?뚮씪誘명꽣/RequestParam 寃利??ㅻ쪟 泥섎━
-     */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<BaseResponse<?>> handleConstraintViolationException(
-            ConstraintViolationException ex,
-            WebRequest request) {
-
+    public ResponseEntity<BaseResponse<?>> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
         String details = ex.getConstraintViolations()
                 .stream()
                 .findFirst()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .orElse("?뚮씪誘명꽣 寃利??ㅽ뙣");
-
+                .orElse("요청 파라미터 검증에 실패했습니다.");
         log.warn("Constraint Violation Exception - {}", details);
-
-        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
-                .errorType("PARAMETER_VALIDATION_ERROR")
-                .fieldName(details)
-                .details("?붿껌 ?뚮씪誘명꽣媛 ?좏슚?섏? ?딆뒿?덈떎.")
-                .build();
-
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.VALIDATION_FAILED,
-                errorDetail
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return badRequest(ResponseCode.VALIDATION_FAILED, "PARAMETER_VALIDATION_ERROR", details, "요청 파라미터 검증에 실패했습니다.");
     }
 
-    /**
-     * ?꾩닔 荑쇰━ ?뚮씪誘명꽣 ?꾨씫 泥섎━
-     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<BaseResponse<?>> handleMissingServletRequestParameterException(
             MissingServletRequestParameterException ex,
             WebRequest request) {
-
-        String fieldName = ex.getParameterName();
-        log.warn("Missing Request Parameter - {}", fieldName);
-
-        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
-                .errorType("MISSING_PARAMETER")
-                .fieldName(fieldName)
-                .details("?꾩닔 ?붿껌 ?뚮씪誘명꽣媛 ?꾨씫?섏뿀?듬땲??")
-                .build();
-
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.INVALID_PARAMETER,
-                errorDetail
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        log.warn("Missing Request Parameter - {}", ex.getParameterName());
+        return badRequest(ResponseCode.INVALID_PARAMETER, "MISSING_PARAMETER", ex.getParameterName(), "필수 요청 파라미터가 누락되었습니다.");
     }
 
-    /**
-     * 荑쇰━ ?뚮씪誘명꽣 ???蹂???ㅻ쪟 泥섎━
-     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<BaseResponse<?>> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex,
             WebRequest request) {
-
-        log.warn("Method Argument Type Mismatch - field: {}, value: {}",
-                ex.getName(),
-                ex.getValue());
-
-        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
-                .errorType("PARAMETER_TYPE_MISMATCH")
-                .fieldName(ex.getName())
-                .details("?붿껌 ?뚮씪誘명꽣 ??낆씠 ?щ컮瑜댁? ?딆뒿?덈떎.")
-                .build();
-
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.INVALID_PARAMETER,
-                errorDetail
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        log.warn("Method Argument Type Mismatch - field: {}, value: {}", ex.getName(), ex.getValue());
+        return badRequest(ResponseCode.INVALID_PARAMETER, "PARAMETER_TYPE_MISMATCH", ex.getName(), "요청 파라미터 타입이 올바르지 않습니다.");
     }
 
-    /**
-     * JSON Body ?뚯떛 ?ㅻ쪟 泥섎━
-     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<BaseResponse<?>> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException ex,
             WebRequest request) {
-
         log.warn("HTTP Message Not Readable: {}", ex.getMessage());
-
-        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
-                .errorType("INVALID_REQUEST_BODY")
-                .fieldName("body")
-                .details("?붿껌 蹂몃Ц ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.")
-                .build();
-
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.BAD_REQUEST,
-                errorDetail
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return badRequest(ResponseCode.BAD_REQUEST, "INVALID_REQUEST_BODY", "body", "요청 본문을 읽을 수 없습니다.");
     }
 
-    /**
-     * 留ㅽ븨?섏? ?딆? URL/?뺤쟻 由ъ냼???붿껌 泥섎━
-     */
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
-    public ResponseEntity<BaseResponse<?>> handleNotFoundException(
-            Exception ex,
-            WebRequest request) {
-
+    public ResponseEntity<BaseResponse<?>> handleNotFoundException(Exception ex, WebRequest request) {
         log.warn("Resource Not Found: {}", ex.getMessage());
-
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.NOT_FOUND,
-                "?붿껌??API瑜?李얠쓣 ???놁뒿?덈떎."
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(BaseResponse.error(ResponseCode.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."), HttpStatus.NOT_FOUND);
     }
-    
-    /**
-     * IllegalArgumentException 泥섎━
-     * ?좏슚?섏? ?딆? ?뚮씪誘명꽣
-     */
+
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<BaseResponse<?>> handleIllegalArgumentException(
-            IllegalArgumentException ex,
-            WebRequest request) {
-        
+    public ResponseEntity<BaseResponse<?>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         log.warn("Illegal Argument Exception: {}", ex.getMessage());
-        
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.INVALID_PARAMETER,
-                ex.getMessage()
-        );
-        
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(BaseResponse.error(ResponseCode.INVALID_PARAMETER, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
-    
-    /**
-     * ?덉긽移?삵븳 ?쒕쾭 ?ㅻ쪟 泥섎━
-     * ⑤뱺 RuntimeException
-     */
+
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<BaseResponse<?>> handleRuntimeException(
-            RuntimeException ex,
-            WebRequest request) {
-        
+    public ResponseEntity<BaseResponse<?>> handleRuntimeException(RuntimeException ex, WebRequest request) {
         log.error("Unexpected Runtime Exception", ex);
-        
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.INTERNAL_SERVER_ERROR,
-                "?쒕쾭 泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."
-        );
-        
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(
+                BaseResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "처리 중 오류가 발생했습니다."),
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
-    /**
-     * ⑤뱺 ?덉쇅 泥섎━ (Fallback)
-     */
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<?>> handleException(
-            Exception ex,
-            WebRequest request) {
-        
+    public ResponseEntity<BaseResponse<?>> handleException(Exception ex, WebRequest request) {
         log.error("Unexpected Exception", ex);
-        
-        BaseResponse<?> response = BaseResponse.error(
-                ResponseCode.INTERNAL_SERVER_ERROR,
-                "?쒖뒪???ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."
-        );
-        
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(
+                BaseResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "처리 중 오류가 발생했습니다."),
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
-    /**
-     * ?묐떟 肄붾뱶???곕씪 HTTP ?곹깭 肄붾뱶 寃곗젙
-     */
+
+    private ResponseEntity<BaseResponse<?>> badRequest(
+            ResponseCode responseCode,
+            String errorType,
+            String fieldName,
+            String details) {
+        BaseResponse.ErrorDetail errorDetail = BaseResponse.ErrorDetail.builder()
+                .errorType(errorType)
+                .fieldName(fieldName)
+                .details(details)
+                .build();
+        return new ResponseEntity<>(BaseResponse.error(responseCode, errorDetail), HttpStatus.BAD_REQUEST);
+    }
+
     private HttpStatus determineHttpStatus(ResponseCode responseCode) {
         return switch (responseCode) {
             case SUCCESS, CREATED, UPDATED, DELETED -> HttpStatus.OK;
@@ -330,4 +182,3 @@ public class GlobalExceptionHandler {
         return first != null && !first.isBlank() ? first : second;
     }
 }
-

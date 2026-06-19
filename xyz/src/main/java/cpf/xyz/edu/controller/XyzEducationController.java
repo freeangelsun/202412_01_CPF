@@ -23,7 +23,7 @@ public class XyzEducationController {
         return ResponseEntity.ok(Map.of(
                 "purpose", "CPF 프레임워크 표준 기능을 학습하기 위한 교육 API입니다.",
                 "groups", List.of(
-                        Map.of("name", "CRUD", "apis", List.of("GET /xyz/edu/samples", "GET /xyz/edu/samples/detail", "POST /xyz/edu/samples")),
+                        Map.of("name", "CRUD", "apis", List.of("GET /xyz/edu/crud-items", "GET /xyz/edu/crud-items/detail", "POST /xyz/edu/crud-items")),
                         Map.of("name", "CMN cache", "apis", List.of("GET /xyz/edu/cache", "POST /xyz/edu/cache/refresh", "POST /xyz/edu/cmn/code")),
                         Map.of("name", "Exception", "apis", List.of("GET /xyz/edu/exception", "GET /xyz/edu/exception/dynamic-message")),
                         Map.of("name", "Utility", "apis", List.of("GET /xyz/edu/utils", "GET /xyz/edu/headers")),

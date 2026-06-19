@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
  * XYZ 배치 교육용 Job 설정입니다.
  *
  * <p>로컬 교육 환경에서는 {@link XyzBatchRepositoryConfig}가 PFW DB의 BATCH_* 테이블을
- * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 샘플로 동작합니다.</p>
+ * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 교육 예제로 동작합니다.</p>
  */
 @Configuration
 public class XyzBatchEducationConfig {
@@ -58,10 +58,10 @@ public class XyzBatchEducationConfig {
     public Step cpfEduChunkStep(
             JobRepository jobRepository,
             @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
-        List<Integer> sampleItems = IntStream.rangeClosed(1, 25).boxed().toList();
+        List<Integer> educationItems = IntStream.rangeClosed(1, 25).boxed().toList();
         return new StepBuilder("CPF_EDU_CHUNK_STEP", jobRepository)
                 .<Integer, String>chunk(5, transactionManager)
-                .reader(new ListItemReader<>(sampleItems))
+                .reader(new ListItemReader<>(educationItems))
                 .processor(item -> {
                     // Processor는 원천 데이터를 업무 DTO나 적재 포맷으로 변환하는 계층입니다.
                     return "회원-" + String.format("%03d", item);

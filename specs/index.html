@@ -2,52 +2,87 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CPF 문서 인덱스</title>
+  <title>CPF 문서 포털</title>
   <style>
-    body{margin:0;background:#f7f8fb;color:#182033;font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.62}
-    main{width:min(1080px,calc(100% - 40px));margin:0 auto;padding:36px 0 56px}
-    header,section{background:#fff;border:1px solid #d9e1ec;border-radius:8px;padding:24px;margin-top:16px}
-    h1{margin:0 0 8px;font-size:30px}h2{font-size:21px;margin:0 0 12px}p{margin:0 0 10px}
-    a{color:#2457c5;text-decoration:none}a:hover{text-decoration:underline}
-    table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #d9e1ec;padding:10px;text-align:left;vertical-align:top}th{background:#eef3f9}
-    code{background:#eef3f9;border-radius:4px;padding:2px 5px;font-family:Consolas,monospace}
+    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; margin: 0; color: #1f2937; background: #f8fafc; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2, h3 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #eef2ff; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
-  <header>
-    <h1>CPF CoreFlow Platform Framework</h1>
-    <p>개발자가 신규 업무 모듈을 만들 때 기준으로 삼는 공식 문서 진입점입니다.</p>
-  </header>
+  <section>
+    <h1>CPF CoreFlow Platform Framework 문서 포털</h1>
+    <p>CPF는 프레임워크 코어, 프로젝트 공통, 관리자, 회원, 업무 관리자, 대외연계, 교육 API를 함께 제공하는 범용 업무 프레임워크입니다. 이 포털은 개발자, 운영자, 검수자가 같은 기준으로 구현과 문서를 대조하도록 만든 진입점입니다.</p>
+    <p class="note">PFW는 CPF가 자체 제공하는 프레임워크 코어이고, CMN은 CPF 적용 프로젝트에서 개발자가 확장하는 프로젝트 공통 영역입니다. 이 경계는 SQL, Java API, EDU, 관리자 문서 모두에서 흔들리지 않는 기준입니다.</p>
+  </section>
 
   <section>
-    <h2>공식 문서</h2>
+    <h2>문서 사용 순서</h2>
     <table>
-      <thead><tr><th>문서</th><th>내용</th></tr></thead>
+      <thead>
+      <tr><th>대상</th><th>먼저 볼 문서</th><th>다음 확인</th><th>목적</th></tr>
+      </thead>
       <tbody>
-      <tr><td><a href="./프레임워크_구성_가이드.html">프레임워크 구성 가이드</a></td><td>PFW/CMN/ADM/업무 모듈 경계, DB 소유권, profile, Flyway, observability, quality gate</td></tr>
-      <tr><td><a href="./개발_가이드.html">개발 가이드</a></td><td>API, 응답/오류, 트랜잭션, validation, 외부 호출, CMN API, EDU 샘플 매트릭스</td></tr>
-      <tr><td><a href="./관리자_가이드.html">관리자 가이드</a></td><td>ADM 회원관리, 운영자 권한, 로그, 알림, 다운로드 감사, 배치, 캐시, 메시지, 코드, 설정, 보안 운영</td></tr>
-      <tr><td><a href="./SQL_가이드.html">SQL 가이드</a></td><td>설치 SQL, Flyway migration, 계정 권한, seed idempotent, smoke 검증</td></tr>
-      <tr><td><a href="./기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>기능별 소스, API, ADM 화면, DB, Swagger, EDU, 테스트 연결 상태</td></tr>
-      <tr><td><a href="../CPF_STABILIZATION_REPORT.html">최신 안정화 리포트</a></td><td>이번 작업 수행 내역, 검증 결과, 미검증 항목, 다음 보강 후보</td></tr>
+      <tr><td>신규 개발자</td><td><a href="개발_가이드.html">개발 가이드</a></td><td><a href="프레임워크_구성_가이드.html">프레임워크 구성 가이드</a>, <code>xyz/src/main/java/cpf/xyz/edu</code></td><td>신규 업무 API, 배치, 대외연계, 공통 기능 개발 방법을 익힙니다.</td></tr>
+      <tr><td>운영자</td><td><a href="관리자_가이드.html">관리자 가이드</a></td><td>ADM 화면, ADM API, 운영 로그</td><td>권한, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 절차를 확인합니다.</td></tr>
+      <tr><td>DB 담당자</td><td><a href="SQL_가이드.html">SQL 가이드</a></td><td><code>specs/sql</code>, Flyway migration</td><td>DB 소유권, 설치 순서, 권한 계정, smoke 검증 기준을 확인합니다.</td></tr>
+      <tr><td>검수자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>안정화 리포트, qualityGate 결과</td><td>문서상 완료가 실제 소스, SQL, Swagger, EDU, 검증과 맞는지 대조합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>현재 표준 요약</h2>
+    <h2>모듈 책임 요약</h2>
     <table>
+      <thead>
+      <tr><th>모듈</th><th>책임</th><th>주요 경로</th><th>주의할 경계</th></tr>
+      </thead>
       <tbody>
-      <tr><th>DB 표준</th><td><code>{주제영역}_{업무명}</code> lower snake case, 공통 감사 컬럼, 한글 COMMENT를 사용합니다.</td></tr>
-      <tr><th>ADM 운영</th><td>회원, 권한, 로그, 알림, 다운로드 감사, 배치, 캐시, 메시지, 코드, 응답코드, 설정, 보안 기능을 운영 콘솔에서 관리합니다.</td></tr>
-      <tr><th>다운로드</th><td><code>/adm/api/downloads</code> 공통 API로 사유, 마스킹, 감사 로그를 남깁니다.</td></tr>
-      <tr><th>배치</th><td>Spring Batch 연동, CPF 배치 메타, 영업일/관계/수행대상 조회, scheduler run-once smoke를 제공합니다.</td></tr>
-      <tr><th>거래 ID</th><td><code>X-Transaction-Id</code>는 17자리 일시, 3자리 모듈 ID, 7자리 WAS ID, 7자리 순번을 조합한 34자리 필수 헤더입니다.</td></tr>
-      <tr><th>BIZADM</th><td><code>bizadm</code>은 ADM 내부 기능이 아니라 CPF 적용 프로젝트에서 업무 관리자 화면을 구성하는 별도 샘플 모듈입니다.</td></tr>
-      <tr><th>EXS</th><td><code>exs</code>는 기관, 채널, endpoint, 인증, 라우팅, 거래/전문 로그, 통제, 재처리의 대외 연계 주제영역 샘플입니다.</td></tr>
-      <tr><th>품질 Gate</th><td><code>qualityGate</code>는 compile, unit test, UTF-8, mojibake, SQL standard, Java format, HTML docs, transaction ID standard 검사를 수행합니다.</td></tr>
+      <tr><td>PFW</td><td>프레임워크 코어와 표준 API</td><td><code>pfw/src/main/java/cpf/pfw</code></td><td>PFW DB 원천 기능은 PFW API로 제공하고 업무 모듈이 테이블을 직접 관리하지 않습니다.</td></tr>
+      <tr><td>CMN</td><td>프로젝트 공통 확장</td><td><code>cmn/src/main/java/cpf/cmn</code></td><td>업무 채번, 업무 알림, 업무 로그처럼 프로젝트별 공통은 CMN에서 구현합니다.</td></tr>
+      <tr><td>ADM</td><td>프레임워크 운영 관리자</td><td><code>adm/src/main/java/cpf/adm</code>, <code>adm/src/main/resources/static/adm</code></td><td>UI 권한 표시와 서버 API 권한 차단을 함께 맞춥니다.</td></tr>
+      <tr><td>BIZADM</td><td>업무 관리자 기본 구현</td><td><code>bizadm/src/main/java/cpf/bizadm/operation</code>, <code>bizadm/src/main/java/cpf/bizadm/auth</code></td><td>운영 모듈에 sample 패키지를 두지 않습니다.</td></tr>
+      <tr><td>MBR</td><td>회원 기본 구현</td><td><code>mbr/src/main/java/cpf/mbr</code></td><td>ADM 회원 관제와 회원 권한 변경 이력을 연결합니다.</td></tr>
+      <tr><td>EXS</td><td>대외연계 기본 구현</td><td><code>exs/src/main/java/cpf/exs/operation</code>, <code>exs/src/main/java/cpf/exs/flow</code></td><td>대외 token 원문은 저장하거나 반환하지 않습니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>개발자 교육 API</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>교육 코드라도 공개 클래스명은 Education 용어를 사용합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>표준 요약</h2>
+    <table>
+      <thead>
+      <tr><th>표준</th><th>기준</th><th>검증 위치</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>거래 ID</td><td><code>X-Transaction-Id</code> 헤더로 전달하는 34자리 <code>transactionGlobalId</code>, 날짜/모듈/WAS/순번 조합</td><td><code>TransactionIdGenerator</code>, <code>scripts/check-transaction-id-standard.ps1</code></td></tr>
+      <tr><td>DB 명명</td><td><code>{주제영역}_{업무명}</code> lower snake case와 공통 감사 컬럼</td><td><code>specs/sql</code>, <code>scripts/check-sql-standard.ps1</code></td></tr>
+      <tr><td>HTML 문서</td><td>실제 HTML 구조, <code>main</code>, <code>section</code>, <code>table</code> 사용</td><td><code>scripts/check-html-docs.ps1</code></td></tr>
+      <tr><td>운영 sample 금지</td><td>운영 모듈 sample 패키지, SampleController, SampleService 금지</td><td><code>scripts/check-sample-standard.ps1</code></td></tr>
+      <tr><td>secret 보호</td><td>원문 secret, DB password, JWT secret, token 원문 노출 금지</td><td><code>scripts/check-security-seed-standard.ps1</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>현재 구현 상태 요약</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>상태</th><th>근거</th><th>주의</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM 운영</td><td>일부 구현</td><td>회원, 로그, 권한, 배치, 캐시, 메시지, 코드, 설정, 보안 컨트롤러와 정적 화면 존재</td><td>실제 브라우저 클릭과 OpenAPI JSON 검증은 앱 기동이 필요합니다.</td></tr>
+      <tr><td>BIZADM</td><td>일부 구현</td><td>DB 기반 운영 컨트롤러와 인증 컨트롤러 존재</td><td>업무별 확장 기능은 프로젝트에서 추가해야 합니다.</td></tr>
+      <tr><td>EXS</td><td>일부 구현</td><td>대외 기준정보, token, 통제, 재처리, 수신/송신 로그 API 존재</td><td>외부기관 실연계는 mock/fallback 이후 실환경 검증이 필요합니다.</td></tr>
+      <tr><td>Batch</td><td>일부 구현</td><td>PFW 공통 배치 API, Spring Batch 교육 Job, ADM 배치 관제 API 존재</td><td>장기 운영 JobRepository 시나리오는 MariaDB와 스케줄러 실기동 검증이 필요합니다.</td></tr>
+      <tr><td>Docs</td><td>재작성</td><td>이 포털과 상세 가이드가 코드 경로와 검증 명령을 연결합니다.</td><td>기능 추가 시 README, 가이드, SQL, EDU, Swagger를 함께 갱신해야 합니다.</td></tr>
       </tbody>
     </table>
   </section>

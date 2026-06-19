@@ -25,9 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * CPF 기능 설명입니다.
+ * ADM 운영자 세션을 발급, 조회, 폐기, 정리하는 서비스입니다.
  *
- * CPF 기능 설명입니다.
+ * <p>세션 token 원문은 운영 화면이나 DB에 노출하지 않고 hash로 저장합니다. DB가 준비된 환경에서는
+ * adm_operator_session을 기준으로 조회하고, 로컬 초기 기동처럼 DB가 아직 준비되지 않은 경우에는
+ * 메모리 fallback으로 ADM 화면 확인이 가능하도록 합니다.</p>
  */
 @Service
 public class AdmSessionService {
@@ -49,10 +51,13 @@ public class AdmSessionService {
     }
 
     /**
-     * CPF 기능 설명입니다.
+     * 인증된 운영자에게 ADM bearer 세션을 발급합니다.
      *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * <p>발급된 token은 응답으로 한 번만 전달하고, 저장소에는 hash와 역할 목록, 만료 시각을 기록합니다.</p>
+     *
+     * @param operator 인증된 운영자
+     * @param menus 운영자 역할에 허용된 ADM 메뉴 목록
+     * @return 로그인 응답
      */
     public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus) {
         String token = newToken();
@@ -65,10 +70,13 @@ public class AdmSessionService {
     }
 
     /**
-     * CPF 기능 설명입니다.
+     * 요청 token이 유효한 ADM 세션인지 확인합니다.
      *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * <p>메모리 캐시에서 먼저 찾고, 없으면 token hash로 DB 세션을 조회합니다. 만료된 세션은 즉시 폐기
+     * 처리하여 같은 token이 다시 사용되지 않게 합니다.</p>
+     *
+     * @param token ADM bearer token 원문
+     * @return 유효 세션
      */
     public Optional<AdmSession> findValidSession(String token) {
         if (token == null || token.isBlank()) {
@@ -87,9 +95,9 @@ public class AdmSessionService {
     }
 
     /**
-     * CPF 기능 설명입니다.
+     * 로그아웃 또는 강제 폐기 요청으로 세션을 폐기합니다.
      *
-     * CPF 기능 설명입니다.
+     * @param token 폐기할 ADM bearer token 원문
      */
     public void revoke(String token) {
         if (token != null) {
@@ -259,4 +267,3 @@ public class AdmSessionService {
         return cryptoService.sha256Hex(token);
     }
 }
-

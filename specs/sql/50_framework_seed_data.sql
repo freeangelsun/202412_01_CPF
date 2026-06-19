@@ -92,8 +92,8 @@ INSERT INTO pfw_message (
     ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MXYZ090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=XYZ_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'XYZ 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'ko', 'FIXED', 'CPF 샘플 시스템에 오신 것을 환영합니다.', 'CMN welcome sample message.', 0, NULL, 'CMN 샘플 환영 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF sample system.', 'CMN welcome sample message.', 0, NULL, 'CMN 샘플 환영 메시지', 'SYSTEM', 'SYSTEM')
+    ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     message_format_type = VALUES(message_format_type),
     external_message = VALUES(external_message),
@@ -296,7 +296,7 @@ INSERT INTO pfw_batch_execution (
 SELECT
     'CPF_EDU_TASKLET_JOB',
     'CPF_EDU_TASKLET_DAILY',
-    '{"sample":true}',
+    '{"edu":true}',
     'COMPLETED',
     'local-batch-01',
     DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
@@ -312,7 +312,7 @@ WHERE NOT EXISTS (
     FROM pfw_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
-      AND job_parameters = '{"sample":true}'
+      AND job_parameters = '{"edu":true}'
 );
 
 SET @cpf_edu_execution_id = (
@@ -320,7 +320,7 @@ SET @cpf_edu_execution_id = (
     FROM pfw_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
-      AND job_parameters = '{"sample":true}'
+      AND job_parameters = '{"edu":true}'
     ORDER BY execution_id
     LIMIT 1
 );
@@ -328,7 +328,7 @@ SET @cpf_edu_execution_id = (
 INSERT INTO pfw_batch_step_execution (
     execution_id, step_name, execution_status, start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
-SELECT @cpf_edu_execution_id, 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 샘플 정상 완료', 'SYSTEM', 'SYSTEM'
+SELECT @cpf_edu_execution_id, 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1

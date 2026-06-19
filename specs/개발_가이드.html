@@ -2,170 +2,139 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CPF 개발 가이드</title>
   <style>
-    body{font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.62;margin:0;background:#f7f8fb;color:#182033}
-    main{width:min(1120px,calc(100% - 40px));margin:0 auto;padding:36px 0 56px}
-    section,header{background:#fff;border:1px solid #d9e1ec;border-radius:8px;padding:24px;margin-top:16px}
-    h1{margin:0 0 8px}h2{margin:0 0 12px;font-size:21px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #d9e1ec;padding:10px;text-align:left;vertical-align:top}th{background:#eef3f9}code{background:#eef3f9;padding:2px 5px;border-radius:4px}
+    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; margin: 0; color: #1f2937; background: #f8fafc; }
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2, h3 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #fef3c7; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
-  <header>
-    <h1>개발 가이드</h1>
-    <p>신규 업무 개발자가 CPF 기준으로 Controller, Service, Mapper, SQL, 테스트, 문서를 맞추기 위한 가이드입니다.</p>
-  </header>
-
   <section>
-    <h2>API Versioning</h2>
-    <p>신규 외부 공개 API는 <code>/api/v1/{module}/{domain}</code>를 기본으로 사용합니다. 기존 샘플 경로인 <code>/mbr</code>, <code>/accounts</code>, <code>/xyz/edu</code>, <code>/adm/api</code>는 교육/호환 경로로 유지합니다.</p>
+    <h1>CPF 개발 가이드</h1>
+    <p>이 문서는 신규 업무 기능을 만드는 개발자가 Controller, Service, Repository 또는 Mapper, DTO, SQL, Swagger, EDU, 테스트를 같은 기준으로 작성하도록 안내합니다.</p>
+    <p class="warn">PFW가 제공하는 표준 기능은 업무 모듈에서 직접 재구현하지 않습니다. 거래 ID, 표준 응답, 예외, 배치 실행, OpenAPI 공통 설명, 거래 로그는 PFW API와 annotation을 사용합니다.</p>
   </section>
 
   <section>
-    <h2>신규 모듈 생성 기준</h2>
+    <h2>신규 업무 모듈 개발 절차</h2>
     <table>
-      <tr><th>산출물</th><th>기준</th></tr>
-      <tr><td>패키지</td><td><code>cpf.{module}.{domain}.controller/service/mapper/dto</code></td></tr>
-      <tr><td>Controller</td><td>Swagger tag, summary, description, request/response example 작성</td></tr>
-      <tr><td>Service</td><td>상태 변경 트랜잭션 경계와 권한/감사 사유 검증 위치</td></tr>
-      <tr><td>Mapper</td><td>동적 문자열 SQL 조립 금지, parameter binding 사용</td></tr>
-      <tr><td>SQL</td><td><code>{module}_{업무명}</code> 테이블과 공통 감사 컬럼, 한글 COMMENT</td></tr>
-      <tr><td>Test</td><td>validation, service 단위, mapper 또는 DB smoke</td></tr>
-    </table>
-    <p>복붙 기준은 아래 템플릿과 <code>xyz</code> 교육 샘플을 함께 사용합니다.</p>
-    <table>
-      <tr><th>구성</th><th>표준 경로/역할</th></tr>
-      <tr><td>Controller</td><td><code>cpf.{module}.{domain}.controller</code>. 신규 공개 API는 <code>/api/v1/{module}/{domain}</code>를 우선 사용하고, 호환 API는 별도 설명을 남깁니다.</td></tr>
-      <tr><td>Service</td><td><code>cpf.{module}.{domain}.service</code>. 상태 변경, 권한 검사, 감사 사유 검증, 트랜잭션 경계를 담당합니다.</td></tr>
-      <tr><td>Mapper</td><td><code>cpf.{module}.{domain}.mapper</code>. SQL Injection 방지를 위해 문자열 결합 대신 parameter binding을 사용합니다.</td></tr>
-      <tr><td>DTO</td><td><code>cpf.{module}.{domain}.dto</code>. Bean Validation과 Swagger example을 함께 작성합니다.</td></tr>
-      <tr><td>SQL</td><td><code>{module}_{업무명}</code> 테이블명, 공통 감사 컬럼, 한글 COMMENT, FK/UK/index 명명 규칙을 적용합니다.</td></tr>
-      <tr><td>Test</td><td>validation, service 단위, mapper 또는 smoke 검증 중 변경 위험에 맞는 테스트를 추가합니다.</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>공통 기준</h2>
-    <table>
-      <tr><th>항목</th><th>기준</th></tr>
-      <tr><td>응답/오류</td><td><code>pfw_response_code</code>, <code>pfw_message</code>에 등록하고 Swagger example과 테스트를 함께 갱신</td></tr>
-      <tr><td>Transaction</td><td>상태 변경 Service method에 <code>@Transactional</code> 적용. Controller와 Mapper에는 두지 않습니다.</td></tr>
-      <tr><td>검색/정렬</td><td>정렬 컬럼은 allowlist로 제한하고 페이징 기본값/최대값을 둡니다.</td></tr>
-      <tr><td>Validation</td><td>request DTO에는 Bean Validation, 복합 규칙은 custom validator 사용</td></tr>
-      <tr><td>외부 호출</td><td>timeout, retry, circuit breaker, correlation id 전파를 기본으로 합니다.</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>거래 헤더 표준</h2>
-    <p>모든 업무 API는 CPF 표준 거래 헤더를 Swagger, <code>TransactionContext</code>, 외부 호출 전파, 거래 로그 적재 기준과 일치시켜야 합니다.</p>
-    <table>
-      <tr><th>구분</th><th>헤더</th><th>기준</th></tr>
-      <tr><td>필수</td><td><code>X-Request-Type</code>, <code>X-Original-Channel-Code</code>, <code>X-Channel-Code</code></td><td>요청 유형과 채널 추적을 위해 Controller 진입 시 검증합니다.</td></tr>
-      <tr><td>추적</td><td><code>X-Transaction-Id</code>, <code>X-Trace-Id</code>, <code>X-Span-Id</code>, <code>X-Parent-Span-Id</code></td><td><code>X-Transaction-Id</code>는 필수이며 34자리 공식 규격으로 검증합니다. Trace/Span 값은 없으면 CPF가 생성해 응답/로그/외부 호출에 전파합니다.</td></tr>
-      <tr><td>클라이언트</td><td><code>X-Api-Version</code>, <code>X-Client-App-Id</code>, <code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Caller-Instance-Id</code></td><td>배포 버전, 호출자, 인스턴스 추적에 사용합니다.</td></tr>
-      <tr><td>업무 추적</td><td><code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code>, <code>X-Member-No</code>, <code>X-Customer-No</code>, <code>X-User-Id</code></td><td>외부 대조, 중복 요청 방지, 회원/고객 추적에 사용합니다.</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>완료 기준</h2>
-    <table>
-      <tr><th>항목</th><th>기준</th></tr>
-      <tr><td>명칭 일치</td><td>Java, MyBatis, SQL, Swagger, 문서의 테이블명/컬럼명/API명이 서로 일치합니다.</td></tr>
-      <tr><td>권한/감사</td><td>변경성 업무 API는 서버 권한 검사, 감사 사유, before/after diff를 남깁니다.</td></tr>
-      <tr><td>보안</td><td>secret 기본값 금지, 민감정보 마스킹, 내부 오류 은닉, trace id 반환 기준을 지킵니다.</td></tr>
-      <tr><td>검증</td><td>컴파일, 변경 모듈 테스트, SQL 표준, UTF-8/mojibake, 필요한 DB smoke 결과를 남깁니다.</td></tr>
-      <tr><td>문서</td><td>README는 진입점으로 짧게 유지하고, 상세 내용은 HTML 가이드와 EDU 샘플에 반영합니다.</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>CI 품질 Gate</h2>
-    <table>
-      <tr><th>단계</th><th>명령/기준</th></tr>
-      <tr><td>컴파일</td><td><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava :bizadm:compileJava :exs:compileJava --offline</code></td></tr>
-      <tr><td>테스트</td><td><code>.\gradlew.bat :cmn:test --offline</code>와 변경 모듈 테스트</td></tr>
-      <tr><td>SQL 표준</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1</code></td></tr>
-      <tr><td>UTF-8</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1</code></td></tr>
-      <tr><td>Mojibake</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake</code></td></tr>
-      <tr><td>레거시 명칭</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-legacy-name.ps1</code></td></tr>
-      <tr><td>통합 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>CMN 공통 API/메소드</h2>
-    <table>
-      <tr><th>기능</th><th>메소드/API</th><th>사용 상황</th></tr>
-      <tr><td>공통 채번</td><td><code>CmnSequenceService.issue</code>, <code>POST /xyz/edu/cmn-business/sequence/issue</code></td><td>주문번호, 신청번호, 문서번호처럼 다중 WAS에서 중복되면 안 되는 번호</td></tr>
-      <tr><td>알림 로그</td><td><code>CmnNotificationLogService.register</code>, <code>POST /xyz/edu/cmn-business/notification-log</code></td><td>메일/SMS/푸시 발송 요청과 처리 상태 공통 추적</td></tr>
-      <tr><td>업무 로그</td><td><code>CmnBusinessLogService.register</code>, <code>POST /xyz/edu/cmn-business/business-log</code></td><td>거래 로그보다 업무 의미가 중요한 상태 변경과 이벤트</td></tr>
-      <tr><td>optional DB</td><td><code>cpf.cmn.business-db.enabled=true</code></td><td>CMN DB가 필요한 프로젝트만 datasource를 붙여 사용</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>Batch 개발 샘플</h2>
-    <p>CPF 배치는 Spring Batch를 표준 엔진으로 사용하고, ADM 배치 관제는 Spring Batch 실행 결과와 CPF 운영 메타 테이블을 함께 조회합니다.</p>
-    <p>Spring Batch 자체 실행 저장소는 <code>BATCH_*</code> 테이블이며, CPF 운영 화면에서 검색하고 감사하는 데이터는 <code>pfw_batch_*</code> 테이블입니다. 신규 배치 개발자는 Job bean을 등록하고, 운영 노출이 필요한 Job은 <code>pfw_batch_job</code> seed 또는 ADM 배치 등록으로 메타를 맞춥니다.</p>
-    <table>
-      <tr><th>상황</th><th>참고 샘플</th><th>운영 연결</th></tr>
-      <tr><td>단건/정리성 작업</td><td><code>POST /xyz/edu/batch/tasklet/run</code></td><td>ADM 배치 수동 실행과 실행 이력 조회</td></tr>
-      <tr><td>대용량 chunk 처리</td><td><code>POST /xyz/edu/batch/chunk/run</code></td><td>step 단위 read/process/write/skip 건수 확인</td></tr>
-      <tr><td>실패 재처리</td><td><code>POST /xyz/edu/batch/retry/run</code>, <code>GET /xyz/edu/batch/retry-policy</code></td><td>실패 이력, 재수행 가능 상태, 감사 사유 연결</td></tr>
-      <tr><td>중복 실행 방지</td><td><code>GET /xyz/edu/batch/lock-policy</code></td><td>동일 job/parameter lock과 idempotency 기준</td></tr>
-      <tr><td>checkpoint/restart</td><td><code>GET /xyz/edu/batch/checkpoint-restart</code></td><td>재시작 가능 job과 실패 데이터 적재 기준</td></tr>
-      <tr><td>ADM 관제 연동</td><td><code>GET /xyz/edu/batch/adm-link</code></td><td>JobRepository, JobExplorer, JobOperator, CPF batch 메타 동기화</td></tr>
-      <tr><td>영업일 수행 정책</td><td><code>GET /adm/api/batch/schedules/{scheduleId}/simulation</code></td><td>영업일 전용 여부, 휴일 정책, 수행 가능 시간대 사전 확인</td></tr>
-      <tr><td>선행/트리거 관계</td><td><code>GET /adm/api/batch/relations</code></td><td>선행 Job과 트리거 Job 관계 조회</td></tr>
-      <tr><td>수행 대상 인스턴스</td><td><code>GET /adm/api/batch/execution-targets</code></td><td>수행 대기/배정/완료 대상 인스턴스 조회</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>상황별 참고 샘플 매트릭스</h2>
-    <table>
-      <tr><th>상황</th><th>참고</th></tr>
-      <tr><td>CRUD/validation/API 문서화</td><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzCrudEducationController.java</code></td></tr>
-      <tr><td>CMN optional DB 사용</td><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzCmnBusinessEducationController.java</code></td></tr>
-      <tr><td>채번/알림/업무로그 교육 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzCmnBusinessEducationController.java</code></td></tr>
-      <tr><td>Tasklet/Chunk/Retry/Lock/Restart 배치 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java</code>, <code>xyz/src/main/java/cpf/xyz/edu/config/XyzBatchEducationConfig.java</code></td></tr>
-      <tr><td>ADM 회원/회원권한 운영</td><td><code>adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java</code>, <code>adm/src/main/resources/static/adm</code></td></tr>
-      <tr><td>ADM 운영 API</td><td><code>adm/src/main/java/cpf/adm/opr/controller</code></td></tr>
-      <tr><td>업무 관리자 운영 API</td><td><code>bizadm/src/main/java/cpf/bizadm/operation</code>, <code>bizadm/src/main/java/cpf/bizadm/auth</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
-      <tr><td>대외 연계 운영 API</td><td><code>exs/src/main/java/cpf/exs/operation</code>, <code>exs/src/main/java/cpf/exs/flow</code>, <code>exs/src/main/java/cpf/exs/sample</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
-      <tr><td>BIZADM 로그인/권한 token</td><td><code>BizAdmAuthController</code>, <code>BizAdmAuthService</code>, <code>BizAdmAuthRepository</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code></td></tr>
-      <tr><td>MBR 회원 로그인/token</td><td><code>MbrAuthController</code>, <code>MbrAuthService</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td></tr>
-      <tr><td>EXS token/통제/재처리 운영</td><td><code>ExsOperationController</code>, <code>ExsOperationService</code>, <code>ExsOperationRepository</code>, <code>exs_token_store</code>, <code>exs_token_event_history</code></td></tr>
-      <tr><td>SQL 설치/seed/smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td></tr>
-      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>인증/token 기본 구현 샘플</h2>
-    <table>
+      <thead>
+      <tr><th>순서</th><th>작업</th><th>기준</th><th>참고 파일</th></tr>
+      </thead>
       <tbody>
-      <tr><th>BIZADM</th><td><code>/api/bizadm/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>/me</code>, <code>/login-history</code>를 제공합니다. access token에는 <code>loginDomain=BIZADM</code>, <code>moduleId</code>, <code>wasId</code>, <code>serverInstanceId</code>, 메뉴/버튼 권한을 포함하고, 로그인 이력과 refresh token hash는 <code>bizadmDB</code>에 저장합니다.</td></tr>
-      <tr><th>MBR</th><td><code>/mbr/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>/me</code>, <code>/login-history</code>를 제공합니다. 회원 계정, 실패 횟수, 로그인 이력, refresh token hash는 <code>mbrDB</code> 기준으로 처리합니다.</td></tr>
-      <tr><th>EXS</th><td><code>/api/exs/operations/tokens</code>, <code>/token-events</code>, <code>/retries</code>, <code>/control-policies</code>로 대외 token 갱신, 통제 정책, 재처리 요청을 관리합니다. <code>/api/exs/inbound</code>와 <code>/api/exs/outbound</code>는 <code>X-Transaction-Id</code>를 검증하고 거래/전문 로그를 DB에 선저장합니다.</td></tr>
-      <tr><th>보안 저장 원칙</th><td>비밀번호와 refresh token, 대외 token 원문은 저장하지 않습니다. 운영 seed에는 원문 secret을 넣지 않고 hash placeholder나 마스킹 값만 둡니다.</td></tr>
-      <tr><th>현재 수준</th><td>인증/token 핵심 저장소는 DB 기준으로 보강했습니다. ADM 정적 화면에는 BIZADM/EXS 조회 wrapper를 연결했습니다. 실제 브라우저 클릭 검증과 업무별 전용 SPA UX는 다음 고도화 과제입니다.</td></tr>
+      <tr><td>1</td><td>주제영역과 DB prefix 결정</td><td><code>{주제영역}_{업무명}</code> 테이블명과 공통 감사 컬럼을 먼저 설계합니다.</td><td><code>specs/sql/40_business_sample_schema.sql</code></td></tr>
+      <tr><td>2</td><td>API 경로 결정</td><td>운영 API는 sample 경로를 사용하지 않고 정식 도메인 경로를 사용합니다.</td><td><code>/api/bizadm/**</code>, <code>/api/exs/**</code></td></tr>
+      <tr><td>3</td><td>DTO와 validation 작성</td><td>입력 DTO는 request/response를 분리하고 필수값 검증은 Service 진입부에서 명확히 처리합니다.</td><td><code>XyzCrudEducationRequest</code>, <code>XyzCrudEducationResponse</code></td></tr>
+      <tr><td>4</td><td>Service 트랜잭션 경계 작성</td><td>쓰기 작업은 Service 계층에 <code>@Transactional</code>을 두고, 조회는 readOnly를 사용합니다.</td><td><code>XyzCrudEducationService</code></td></tr>
+      <tr><td>5</td><td>Repository 또는 Mapper 작성</td><td>운영 구현체는 DB 기반으로 작성하고 하드코딩 목록을 운영 데이터로 사용하지 않습니다.</td><td><code>BizAdmOperationRepository</code>, <code>ExsOperationRepository</code></td></tr>
+      <tr><td>6</td><td>Swagger와 표준 헤더 설명</td><td><code>@Tag</code>, <code>@Operation</code>, 표준 거래 헤더, 오류 응답을 작성합니다.</td><td><code>BizAdmOperationController</code>, <code>ExsFlowController</code></td></tr>
+      <tr><td>7</td><td>EDU 또는 가이드 연결</td><td>공통 패턴을 추가하면 XYZ EDU 또는 개발 가이드에 사용 예를 연결합니다.</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td></tr>
+      <tr><td>8</td><td>검증 실행</td><td>컴파일, 테스트, qualityGate, smoke를 실행하고 미실행 항목은 리포트에 미검증으로 남깁니다.</td><td><code>scripts/check-sample-standard.ps1</code>, <code>scripts/check-html-docs.ps1</code></td></tr>
       </tbody>
     </table>
   </section>
+
   <section>
-    <h2>신규 개발 시 참고 샘플</h2>
+    <h2>Controller 작성 규칙</h2>
     <table>
+      <thead>
+      <tr><th>항목</th><th>규칙</th><th>예시</th></tr>
+      </thead>
       <tbody>
-      <tr><th>ADM 알림</th><td><code>AdmNotificationController</code>, <code>AdmNotificationService</code>, <code>NotificationSender</code> 구조를 참고합니다. Controller는 요청/응답만 처리하고, SQL/감사/발송은 Service와 Sender로 분리합니다.</td></tr>
-      <tr><th>ADM 다운로드</th><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code>를 참고합니다. 다운로드 유형은 화이트리스트로 제한하고, CSV 생성, 민감정보 마스킹, 감사 로그 저장을 한 서비스에서 처리합니다.</td></tr>
-      <tr><th>배치 스케줄러</th><td><code>CpfBatchLauncher</code>, <code>CpfBatchLockManager</code>, <code>PfwBatchScheduleService</code>, <code>PfwBatchExecutionTargetService</code>, <code>PfwBatchScheduler</code>를 참고합니다. 스케줄 판정, lock, 실행 대상 기록, 실행 요청을 분리합니다.</td></tr>
-      <tr><th>업무 관리자/대외 운영</th><td><code>bizadm</code>은 ADM 내부 운영 기능이 아니라 업무 프로젝트 관리 화면의 기본 구현 예시입니다. <code>exs</code>는 외부기관 송수신과 거래/전문 로그 분리 예시입니다.</td></tr>
-      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>, <code>checkTransactionIdStandard</code>, <code>checkSecuritySeedStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
+      <tr><td>경로</td><td>운영 API는 <code>/api/{domain}</code> 또는 <code>/adm/api/{domain}</code> 형태로 작성합니다.</td><td><code>/api/exs/inbound</code>, <code>/adm/api/batch/jobs</code></td></tr>
+      <tr><td>거래 로그</td><td>업무 거래 단위에는 <code>@CpfTransaction</code>을 부여합니다.</td><td><code>ExsFlowController.receiveInbound</code></td></tr>
+      <tr><td>표준 헤더</td><td>외부 수신/송신과 중요 운영 API는 <code>X-Transaction-Id</code> 검증을 포함합니다.</td><td><code>TransactionIdGenerator.isValid</code></td></tr>
+      <tr><td>권한</td><td>ADM write/delete/execute API는 버튼 권한과 API 권한을 서버에서 검사합니다.</td><td><code>AdmApiAuthFilter</code>, <code>AdmPermissionService</code></td></tr>
+      <tr><td>Swagger</td><td><code>@Tag</code>와 <code>@Operation</code>에는 운영자가 이해할 summary와 description을 작성합니다.</td><td><code>BIZADM-Operations</code>, <code>EXS-Flow</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Service와 트랜잭션</h2>
+    <table>
+      <thead>
+      <tr><th>상황</th><th>사용 기준</th><th>주의</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>단순 조회</td><td><code>@Transactional(readOnly = true)</code> 또는 DB 접근 단일 query</td><td>대량 조회는 paging, limit, 정렬 기준을 명확히 둡니다.</td></tr>
+      <tr><td>등록/수정/삭제</td><td>Service public method에 쓰기 트랜잭션을 둡니다.</td><td>Controller에서 DB 작업을 직접 호출하지 않습니다.</td></tr>
+      <tr><td>감사 로그</td><td>주 트랜잭션 실패와 별도 보존이 필요하면 <code>REQUIRES_NEW</code>를 검토합니다.</td><td>감사 사유 누락 시 저장하지 않습니다.</td></tr>
+      <tr><td>외부 호출 포함</td><td>DB lock과 외부 호출을 한 트랜잭션 안에 오래 묶지 않습니다.</td><td>timeout, retry, circuit breaker, correlation id를 남깁니다.</td></tr>
+      <tr><td>배치</td><td>Job 자체는 Spring Batch가 관리하고 실행 요청은 <code>CpfBatchLauncher</code>를 통과합니다.</td><td>업무 개발자가 JobLauncher를 직접 호출하지 않습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>PFW 공통 API 사용법</h2>
+    <table>
+      <thead>
+      <tr><th>기능</th><th>사용 API</th><th>개발자가 해야 할 일</th><th>하지 말아야 할 일</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>거래 ID</td><td><code>TransactionContext</code>, <code>TransactionIdGenerator</code></td><td>요청 헤더를 검증하고 내부 호출에 전파합니다.</td><td>업무별 별도 거래 ID 포맷을 만들지 않습니다.</td></tr>
+      <tr><td>표준 예외</td><td><code>CpfBusinessException</code>, <code>CpfValidationException</code>, <code>CpfNotFoundException</code></td><td>의미 있는 메시지와 오류 상황을 구분합니다.</td><td>내부 stack trace를 응답으로 노출하지 않습니다.</td></tr>
+      <tr><td>WebClient</td><td><code>CpfWebClient</code>, <code>CpfHttpClientProperties</code></td><td>timeout, retry, header 전파를 표준으로 사용합니다.</td><td>임의 HTTP client를 제각각 만들지 않습니다.</td></tr>
+      <tr><td>Batch</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchExecutionRequest</code></td><td>Job ID, 파라미터, 요청자, 사유를 표준 모델로 전달합니다.</td><td>PFW lock과 운영 이력을 우회하지 않습니다.</td></tr>
+      <tr><td>Workflow</td><td><code>@CpfWorkflow</code>, <code>@CpfWorkflowStep</code></td><td>멀티스텝 업무의 실패 정책과 추적 단위를 명확히 남깁니다.</td><td>단순 로그 문자열만으로 단계 상태를 표현하지 않습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>CMN 공통 기능 사용법</h2>
+    <table>
+      <thead>
+      <tr><th>기능</th><th>역할</th><th>대표 파일</th><th>EDU</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>업무 채번</td><td>업무영역, 업무키, 채번종류, 채널, 반복주기 기준 번호 발급</td><td><code>CmnSequenceService</code>, <code>cmn_sequence</code></td><td><code>XyzCmnBusinessEducationController</code></td></tr>
+      <tr><td>업무 알림 로그</td><td>프로젝트 업무 알림 발송 요청과 결과 기록</td><td><code>CmnNotificationLogService</code>, <code>cmn_notification_log</code></td><td><code>/xyz/edu/cmn-business/notification-log</code></td></tr>
+      <tr><td>업무 로그</td><td>업무 처리 결과, 업무키, 참조 ID, 상태 저장</td><td><code>CmnBusinessLogService</code>, <code>cmn_business_log</code></td><td><code>/xyz/edu/cmn-business/business-log</code></td></tr>
+      <tr><td>전문 처리</td><td>고정길이 전문 필드 parse/write</td><td><code>CmnTelegramService</code></td><td><code>XyzTelegramEducationController</code></td></tr>
+      <tr><td>MQ fallback</td><td>Redis/Kafka/MQ 없이 로컬 메시지 publish/consume 동작</td><td><code>CmnMessageBridgeService</code></td><td><code>XyzMessagingEducationController</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>상황별 EDU 매핑표</h2>
+    <table>
+      <thead>
+      <tr><th>상황</th><th>먼저 볼 EDU</th><th>운영 코드</th><th>확인할 문서</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>CRUD API를 새로 만든다</td><td><code>XyzCrudEducationController</code></td><td><code>BizAdmOperationController</code></td><td>Controller, Service, DTO, transaction 기준</td></tr>
+      <tr><td>표준 오류와 메시지를 쓴다</td><td><code>XyzExceptionEducationController</code></td><td><code>cpf.pfw.common.exception</code></td><td>응답코드와 메시지 등록 절차</td></tr>
+      <tr><td>업무 채번이 필요하다</td><td><code>XyzCmnBusinessEducationController</code></td><td><code>CmnSequenceService</code></td><td>CMN 업무 공통 기능 기준</td></tr>
+      <tr><td>대외 수신/송신 API를 만든다</td><td><code>XyzServiceCallEducationController</code></td><td><code>ExsFlowController</code>, <code>ExsOperationService</code></td><td>EXS 선저장, token, retry 기준</td></tr>
+      <tr><td>배치를 만든다</td><td><code>XyzBatchEducationController</code></td><td><code>CpfBatchLauncher</code>, <code>AdmBatchController</code></td><td>PFW 배치 API와 ADM 관제 기준</td></tr>
+      <tr><td>고정길이 전문을 보여준다</td><td><code>XyzTelegramEducationController</code></td><td><code>AdmLogQueryService</code></td><td>ADM 로그 상세 포맷팅 기준</td></tr>
+      <tr><td>보안 유틸을 사용한다</td><td><code>XyzSecurityEducationController</code></td><td><code>CmnCryptoService</code>, <code>CmnJwtService</code></td><td>secret 노출 금지와 token realm 기준</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>테스트와 품질 기준</h2>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>명령</th><th>정상 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>컴파일</td><td><code>.\gradlew.bat compileJava --offline</code></td><td>전체 모듈 Java 컴파일 성공</td></tr>
+      <tr><td>테스트</td><td><code>.\gradlew.bat test --offline</code></td><td>단위/슬라이스/통합 테스트 성공 또는 실패 사유 기록</td></tr>
+      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>문서, SQL, UTF-8, sample, 보안 seed, 거래 ID 표준 통과</td></tr>
+      <tr><td>OpenAPI</td><td><code>powershell -File scripts/smoke-openapi.ps1</code></td><td>앱 기동 후 JSON 문서 조회 가능</td></tr>
+      <tr><td>MariaDB</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치, FK/index, seed 재실행, smoke query 통과</td></tr>
       </tbody>
     </table>
   </section>

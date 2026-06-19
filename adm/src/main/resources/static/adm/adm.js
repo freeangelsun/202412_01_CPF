@@ -118,14 +118,14 @@ if (!window.Vue) {
           jobType: "TASKLET",
           executionId: null,
           scheduleId: "CPF_EDU_TASKLET_DAILY",
-          jobParameters: "{\"sample\":true}",
+          jobParameters: "{\"edu\":true}",
           calendarId: "DEFAULT",
           businessDate: new Date().toISOString().slice(0, 10),
           simulationDays: 14,
           dispatchStatus: "WAITING",
           holidayYn: "N",
           businessDayYn: "Y",
-          description: "ADM 영업일 샘플",
+          description: "ADM 영업일 교육 데이터",
           reason: "배치 운영 변경"
         },
         notificationForm: {

@@ -136,14 +136,14 @@ public class ExsOperationService {
      * 대외 수신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
      */
     public Map<String, Object> receiveInbound(String transactionGlobalId, Map<String, Object> payload) {
-        return saveExchangeLog(transactionGlobalId, payload, "INBOUND", "POST", "/api/exs/sample/inbound", "N");
+        return saveExchangeLog(transactionGlobalId, payload, "INBOUND", "POST", "/api/exs/inbound", "N");
     }
 
     /**
      * 대외 송신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
      */
     public Map<String, Object> sendOutbound(String transactionGlobalId, Map<String, Object> payload) {
-        return saveExchangeLog(transactionGlobalId, payload, "OUTBOUND", "POST", "/api/exs/sample/outbound", "Y");
+        return saveExchangeLog(transactionGlobalId, payload, "OUTBOUND", "POST", "/api/exs/outbound", "Y");
     }
 
     private Map<String, Object> saveExchangeLog(

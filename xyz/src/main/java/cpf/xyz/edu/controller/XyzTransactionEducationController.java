@@ -4,7 +4,7 @@ import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.workflow.CpfWorkflow;
 import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
 import cpf.pfw.common.workflow.CpfWorkflowStep;
-import cpf.xyz.edu.service.XyzSampleService;
+import cpf.xyz.edu.service.XyzCrudEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -18,33 +18,33 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "XYZ-EDU 09. Transaction", description = "Single transaction and separated audit transaction samples")
+@Tag(name = "XYZ-EDU 09. Transaction", description = "단일 트랜잭션과 분리 감사 트랜잭션 교육")
 public class XyzTransactionEducationController {
-    private final XyzSampleService xyzSampleService;
+    private final XyzCrudEducationService crudEducationService;
 
-    public XyzTransactionEducationController(XyzSampleService xyzSampleService) {
-        this.xyzSampleService = xyzSampleService;
+    public XyzTransactionEducationController(XyzCrudEducationService crudEducationService) {
+        this.crudEducationService = crudEducationService;
     }
 
     @PostMapping("/transaction/single")
     @CpfTransaction(id = "XYZ05EDU0001", name = "XYZSingleTransaction")
-    @Operation(summary = "Single transaction sample", description = "Runs one sample transaction through the XYZ service.")
-    public ResponseEntity<String> runSingleTransactionSample() {
-        return ResponseEntity.ok(xyzSampleService.runSingleTransactionSample());
+    @Operation(summary = "단일 트랜잭션 교육", description = "XYZ 교육 서비스에서 하나의 트랜잭션으로 등록 흐름을 실행합니다.")
+    public ResponseEntity<String> runSingleTransactionEducation() {
+        return ResponseEntity.ok(crudEducationService.runSingleTransactionEducation());
     }
 
     @PostMapping("/transaction/separated")
     @CpfTransaction(id = "XYZ05EDU0002", name = "XYZSeparatedTransaction")
     @CpfWorkflow(id = "XYZ05EDU9001", name = "XYZSeparatedTransactionWorkflow")
     @CpfWorkflowStep(name = "XYZSeparatedTransactionStep", failurePolicy = CpfWorkflowFailurePolicy.MANUAL)
-    @Operation(summary = "Separated transaction sample", description = "Runs REQUIRES_NEW audit logic and optional failure after audit.")
-    public ResponseEntity<Map<String, Object>> runSeparatedTransactionSample(
+    @Operation(summary = "분리 트랜잭션 교육", description = "REQUIRES_NEW 감사 로직과 감사 이후 실패 흐름을 확인합니다.")
+    public ResponseEntity<Map<String, Object>> runSeparatedTransactionEducation(
             @RequestParam(defaultValue = "false") boolean failAfterAudit) {
 
-        String result = xyzSampleService.runSeparatedTransactionSample(failAfterAudit);
+        String result = crudEducationService.runSeparatedTransactionEducation(failAfterAudit);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("result", result);
-        response.put("auditMessages", xyzSampleService.getAuditMessages());
+        response.put("auditMessages", crudEducationService.getAuditMessages());
         return ResponseEntity.ok(response);
     }
 }

@@ -4,119 +4,108 @@
   <meta charset="utf-8">
   <title>CPF SQL 가이드</title>
   <style>
-    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; margin: 0; color: #1f2937; background: #f8fafc; }
-    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2, h3 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #dcfce7; }
+    th { background: #fce7f3; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .note { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 14px; }
+    .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
     <h1>CPF SQL 가이드</h1>
-    <p>이 문서는 MariaDB 설치 SQL, Flyway migration, DB 권한, 테이블/컬럼 명명, seed, smoke 검증의 기준서입니다. Java, Mapper, Swagger, ADM 화면과 SQL은 항상 함께 현행화해야 합니다.</p>
-    <p class="note">신규 설치 기준은 <code>specs/sql/00_all_install.sql</code>과 <code>specs/sql/00_all_install_and_smoke.sql</code>입니다. 이 두 파일은 SOURCE 지시어 목록이 아니라 실제 SQL이 합쳐진 단일 실행 파일이어야 합니다.</p>
+    <p>이 문서는 CPF DB 소유권, 테이블 명명, 설치 SQL, Flyway migration, 권한 계정, smoke 검증 기준을 정리합니다. SQL은 코드와 문서, Swagger, EDU 샘플의 근거가 되므로 가장 먼저 현행화해야 합니다.</p>
+    <p class="warn">과거 테이블명, 대문자 레거시 테이블명, <code>_table</code> suffix는 기준본에 남기지 않습니다. 새로 만드는 단계에서는 정리한 현재 표준만 유지합니다.</p>
+  </section>
+
+  <section>
+    <h2>테이블 명명 표준</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>기준</th><th>예시</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>테이블명</td><td><code>{주제영역}_{업무명}</code> lower snake case</td><td><code>adm_menu</code>, <code>pfw_transaction_log</code>, <code>mbr_member</code></td></tr>
+      <tr><td>금지 suffix</td><td><code>_table</code> 같은 불필요한 suffix 금지</td><td><code>pfw_message</code> 사용, message table suffix 금지</td></tr>
+      <tr><td>공통 컬럼</td><td><code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code></td><td>모든 업무/운영 테이블 기본 포함</td></tr>
+      <tr><td>제약조건</td><td>주제영역 prefix를 포함해 FK, UK, index 이름 통일</td><td><code>fk_adm_operator_role_role</code>, <code>uk_mbr_member_login_id</code></td></tr>
+      <tr><td>COMMENT</td><td>테이블과 주요 컬럼 COMMENT는 한글로 작성</td><td>운영자 ID, 거래 ID, 감사 사유 등</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>SQL 파일 역할</h2>
+    <table>
+      <thead>
+      <tr><th>파일</th><th>역할</th><th>주의</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>specs/sql/01_create_databases.sql</code></td><td>DB 생성</td><td>로컬 설치 기준이며 운영은 DBA 절차를 따릅니다.</td></tr>
+      <tr><td><code>specs/sql/02_create_service_users.sql</code></td><td>migration 계정과 app 계정 분리</td><td>app 계정은 DML 중심, DDL은 migration 계정 기준입니다.</td></tr>
+      <tr><td><code>specs/sql/10_pfw_schema.sql</code></td><td>PFW 코어와 Spring Batch 테이블</td><td>프레임워크 메타, 거래 로그, batch 원천/운영 메타를 포함합니다.</td></tr>
+      <tr><td><code>specs/sql/20_cmn_schema.sql</code></td><td>프로젝트 공통 DB</td><td>채번, 업무 알림, 업무 로그 등 프로젝트 공통 기능입니다.</td></tr>
+      <tr><td><code>specs/sql/30_adm_schema.sql</code></td><td>ADM 운영자와 권한</td><td>운영자, 메뉴, 버튼, 권한, 감사, 다운로드 감사 기준입니다.</td></tr>
+      <tr><td><code>specs/sql/40_business_sample_schema.sql</code></td><td>BIZADM, MBR, EXS, ACC 기본 구현체</td><td>운영 sample이 아니라 DB 기반 기본 구현체 schema입니다.</td></tr>
+      <tr><td><code>specs/sql/50_framework_seed_data.sql</code></td><td>PFW seed</td><td>메시지, 응답코드, 설정, 캐시 이벤트 seed입니다.</td></tr>
+      <tr><td><code>specs/sql/55_cmn_seed_data.sql</code></td><td>CMN seed</td><td>채번 정책, 업무 공통 seed입니다.</td></tr>
+      <tr><td><code>specs/sql/60_adm_seed_data.sql</code></td><td>ADM seed</td><td>운영자 역할, 메뉴, 버튼, 권한 seed입니다.</td></tr>
+      <tr><td><code>specs/sql/70_test_data.sql</code></td><td>로컬 smoke 데이터</td><td>운영 민감정보 또는 실제 secret을 넣지 않습니다.</td></tr>
+      <tr><td><code>specs/sql/99_smoke_check.sql</code></td><td>설치 후 확인 query</td><td>FK, index, seed, 주요 count를 확인합니다.</td></tr>
+      <tr><td><code>specs/sql/00_all_install.sql</code></td><td>전체 설치 단일 실행 파일</td><td>SOURCE 모음이 아니라 실제 SQL 본문을 포함해야 합니다.</td></tr>
+      <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>전체 설치와 smoke 단일 실행 파일</td><td>실제 MariaDB에서 재실행 idempotent를 확인합니다.</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section>
     <h2>DB 소유권</h2>
     <table>
       <thead>
-      <tr><th>DB</th><th>책임</th><th>대표 테이블</th><th>원칙</th></tr>
+      <tr><th>DB</th><th>소유 주제</th><th>대표 테이블</th><th>운영 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_batch_job</code>, <code>BATCH_*</code></td><td>PFW API가 원천 관리합니다.</td></tr>
-      <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>선택형 datasource로 구성하고 미사용 시 서비스가 기동되어야 합니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>프레임워크 운영 관리자</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>운영 권한과 감사 이력은 ADM DB 기준입니다.</td></tr>
-      <tr><td><code>bizadmDB</code></td><td>업무 관리자 운영</td><td><code>bizadm_admin_user</code>, <code>bizadm_customer</code>, <code>bizadm_download_audit</code></td><td>프로젝트 업무 관리자 기본 구현입니다.</td></tr>
-      <tr><td><code>mbrDB</code></td><td>회원 기본 구현</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_login_history</code></td><td>회원 정보와 회원 권한은 ADM 운영자 권한과 분리합니다.</td></tr>
-      <tr><td><code>exsDB</code></td><td>대외연계</td><td><code>exs_institution</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code>, <code>exs_retry_request</code></td><td>수신/송신 로그는 업무 처리 전 선저장을 원칙으로 합니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_response_code</code>, <code>pfw_message</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>업무 모듈은 PFW API로 접근합니다.</td></tr>
+      <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>optional datasource로 구성합니다.</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_audit_log</code>, <code>adm_download_audit_log</code></td><td>권한 변경과 운영 조치는 감사 로그를 남깁니다.</td></tr>
+      <tr><td><code>bizadmDB</code></td><td>업무 관리자 기본 구현</td><td><code>bizadm_customer</code>, <code>bizadm_product</code>, <code>bizadm_order</code>, <code>bizadm_masking_audit</code></td><td>마스킹 해제 사유와 감사 로그를 필수로 합니다.</td></tr>
+      <tr><td><code>mbrDB</code></td><td>회원 기본 구현</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_login_history</code>, <code>mbr_refresh_token</code></td><td>refresh token 원문 저장 금지입니다.</td></tr>
+      <tr><td><code>exsDB</code></td><td>대외연계 기본 구현</td><td><code>exs_token_store</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code>, <code>exs_retry_log</code></td><td>대외 token 원문 저장 금지입니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>설치 SQL 구성</h2>
+    <h2>Flyway와 변경 이력</h2>
     <table>
       <thead>
-      <tr><th>순서</th><th>파일</th><th>역할</th><th>주의</th></tr>
+      <tr><th>구분</th><th>기준</th><th>예시</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td><code>01_create_databases.sql</code></td><td>CPF DB 생성</td><td>환경별 DB명 변경 시 모든 datasource와 문서를 함께 수정합니다.</td></tr>
-      <tr><td>2</td><td><code>02_create_service_users.sql</code></td><td>migration 계정과 app 계정 분리</td><td>app 계정은 DML 중심, migration 계정은 DDL 권한을 가집니다.</td></tr>
-      <tr><td>3</td><td><code>10_pfw_schema.sql</code></td><td>PFW 코어, 거래 로그, 메시지, 응답코드, 배치 메타, Spring Batch 테이블</td><td>PFW 테이블은 PFW API가 원천 관리합니다.</td></tr>
-      <tr><td>4</td><td><code>20_cmn_schema.sql</code></td><td>CMN 업무 공통 채번, 알림 로그, 업무 로그</td><td>업무 공통은 프로젝트별 확장 가능성을 남깁니다.</td></tr>
-      <tr><td>5</td><td><code>30_adm_schema.sql</code></td><td>ADM 운영자, 권한, 감사, 다운로드, 보안 운영</td><td>권한과 감사 컬럼은 누락되면 안 됩니다.</td></tr>
-      <tr><td>6</td><td><code>40_business_sample_schema.sql</code></td><td>ACC, MBR, BIZADM, EXS 기본 업무 도메인 테이블</td><td>파일명은 기존 설치 체계와 호환하지만 내용은 운영 기본 구현체 기준입니다.</td></tr>
-      <tr><td>7</td><td><code>50_framework_seed_data.sql</code>, <code>55_cmn_seed_data.sql</code>, <code>60_adm_seed_data.sql</code></td><td>프레임워크, CMN, ADM seed</td><td>seed는 idempotent해야 합니다.</td></tr>
-      <tr><td>8</td><td><code>70_test_data.sql</code>, <code>99_smoke_check.sql</code></td><td>로컬 검증 데이터와 smoke query</td><td>운영 데이터로 오해되지 않게 smoke 목적을 명확히 둡니다.</td></tr>
+      <tr><td>baseline</td><td>현재 기준 설치 SQL은 Flyway V1 baseline으로 반영합니다.</td><td><code>V1__cpf_baseline_install.sql</code></td></tr>
+      <tr><td>변경 migration</td><td>기능 추가는 V2 이후 순차 migration으로 남깁니다.</td><td><code>V8__mbr_auth_login_history_nullable_member.sql</code></td></tr>
+      <tr><td>역할 분리</td><td>설치 SQL은 기준본 설치, Flyway는 운영 변경 이력입니다.</td><td>둘을 혼용하지 않습니다.</td></tr>
+      <tr><td>rollback</td><td>운영 rollback은 별도 복구 SQL 또는 백업 복구 절차로 관리합니다.</td><td>무분별한 down migration 자동 실행 금지</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>명명과 COMMENT 기준</h2>
+    <h2>검증 절차</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>표준</th><th>예시</th><th>검증</th></tr>
+      <tr><th>검증</th><th>명령 또는 절차</th><th>성공 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td>테이블명</td><td><code>{주제영역}_{업무명}</code> lower snake case</td><td><code>adm_menu</code>, <code>mbr_member</code>, <code>exs_transaction_log</code></td><td><code>check-sql-standard.ps1</code></td></tr>
-      <tr><td>공통 감사 컬럼</td><td><code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code></td><td>모든 CPF 운영 테이블</td><td>schema SQL 검사</td></tr>
-      <tr><td>제약조건</td><td>주제영역 prefix를 포함한 의미 있는 이름</td><td><code>uk_adm_role_menu</code>, <code>idx_pfw_tran_log_trace</code></td><td>SQL naming 검사</td></tr>
-      <tr><td>COMMENT</td><td>테이블과 컬럼에 한글 설명 작성</td><td><code>COMMENT '운영자 ID'</code></td><td>리뷰와 SQL 검사</td></tr>
-      <tr><td>seed</td><td><code>INSERT ... ON DUPLICATE KEY UPDATE</code> 또는 존재 확인</td><td>메뉴, 코드, 메시지, 기본 권한</td><td>MariaDB 재실행 검증</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>Spring Batch와 CPF 배치 메타</h2>
-    <table>
-      <thead>
-      <tr><th>테이블군</th><th>목적</th><th>관리 주체</th><th>연결 기준</th></tr>
-      </thead>
-      <tbody>
-      <tr><td><code>BATCH_*</code></td><td>Spring Batch 표준 JobRepository 메타</td><td>Spring Batch</td><td>JobExecutionId, StepExecutionId</td></tr>
-      <tr><td><code>pfw_batch_job</code></td><td>ADM에 노출할 Job 등록 메타</td><td>CPF PFW/ADM</td><td>job_id</td></tr>
-      <tr><td><code>pfw_batch_schedule</code></td><td>스케줄, 영업일 전용, 수행 시간대</td><td>CPF PFW/ADM</td><td>schedule_id, job_id</td></tr>
-      <tr><td><code>pfw_batch_job_relation</code></td><td>선행, 후행, 트리거 관계</td><td>CPF PFW/ADM</td><td>source_job_id, target_job_id</td></tr>
-      <tr><td><code>pfw_batch_execution_target</code></td><td>수행 대기/배정/완료 대상 인스턴스</td><td>CPF PFW/ADM</td><td>business_date, instance_id</td></tr>
-      <tr><td><code>pfw_batch_execution</code></td><td>CPF 운영 실행 이력</td><td>CPF PFW/ADM</td><td>pfw_execution_id와 Spring Batch executionId</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>Flyway와 migration</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>기준</th><th>주의</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>baseline</td><td><code>V1__cpf_baseline_install.sql</code>은 신규 설치 기준과 동기화합니다.</td><td>합본 SQL과 구조가 어긋나면 검증자가 다른 DB를 보게 됩니다.</td></tr>
-      <tr><td>증분</td><td><code>V2__</code> 이후는 기능 단위로 작성합니다.</td><td>기존 운영 DB 변경을 위해 idempotent 보정 SQL을 고려합니다.</td></tr>
-      <tr><td>rollback</td><td>DDL rollback 파일보다 보정 migration과 백업/복구 절차를 우선합니다.</td><td>데이터 손실 가능성이 있는 rollback은 자동화하지 않습니다.</td></tr>
-      <tr><td>권한</td><td>migration 계정과 app 계정을 분리합니다.</td><td>app 계정에 DDL 권한을 주지 않습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>검증 명령</h2>
-    <table>
-      <thead>
-      <tr><th>검증</th><th>명령 또는 파일</th><th>정상 결과</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>SQL 표준</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1</code></td><td>테이블명, 공통 감사 컬럼, 제약조건 표준 통과</td></tr>
-      <tr><td>보안 seed</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-security-seed-standard.ps1</code></td><td>원문 password, access token, refresh token, secret 미검출</td></tr>
-      <tr><td>MariaDB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치, seed 재실행, FK/index, smoke query 통과</td></tr>
-      <tr><td>합본 재생성</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1</code></td><td>개별 SQL과 합본 SQL 내용 동기화</td></tr>
+      <tr><td>SQL 표준</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1</code></td><td>테이블명, 공통 컬럼, FK/index, all install 동기화 통과</td></tr>
+      <tr><td>MariaDB 설치</td><td><code>specs/sql/00_all_install_and_smoke.sql</code> 실행</td><td>설치, seed, smoke query 성공</td></tr>
+      <tr><td>seed idempotent</td><td>동일 SQL 재실행</td><td>중복 오류 없이 seed 최신화</td></tr>
+      <tr><td>권한 계정</td><td>migration 계정과 app 계정으로 각각 DDL/DML 확인</td><td>app 계정은 DDL 차단, DML 허용</td></tr>
+      <tr><td>문자셋</td><td><code>utf8mb4</code>와 한글 COMMENT 조회</td><td>한글 COMMENT와 seed 메시지가 깨지지 않음</td></tr>
       </tbody>
     </table>
   </section>

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * EXS 대외 연계 운영 서비스입니다.
+ * EXS 대외연계 운영 서비스입니다.
  *
  * <p>대외 token, 통제 정책, 재처리 요청은 회원/관리자 인증 token과 분리해서 exsDB에 저장합니다.
  * 원문 token은 저장하거나 반환하지 않고 hash와 마스킹 값만 운영 화면에 제공합니다.</p>
@@ -62,11 +62,12 @@ public class ExsOperationService {
     }
 
     /**
-     * 외부기관 token을 갱신하고 token hash, 마스킹 값, 운영 이벤트를 DB에 저장합니다.
+     * 인증기관 token을 갱신하고 token hash, 마스킹 값, 운영 이벤트를 DB에 저장합니다.
      */
     public Map<String, Object> refreshToken(TokenRefreshRequest request) {
         String authProfileCode = TextUtils.requireText(request.authProfileCode(), "authProfileCode");
         String tokenKey = TextUtils.defaultIfBlank(request.tokenKey(), "access-token");
+        String reason = TextUtils.requireText(request.reason(), "reason");
         String rawToken = cryptoService.secureRandomToken(48);
         String tokenHash = cryptoService.sha256Base64Url(rawToken);
         Instant issuedAt = Instant.now();
@@ -91,7 +92,7 @@ public class ExsOperationService {
                 authProfileCode,
                 tokenKey,
                 "TOKEN_REFRESH",
-                TextUtils.requireText(request.reason(), "reason"),
+                reason,
                 transactionGlobalId,
                 serverInstanceId,
                 requestUser));

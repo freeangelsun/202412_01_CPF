@@ -179,6 +179,12 @@ tasks.register('checkSampleStandard', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sample-standard.ps1'
 }
 
+tasks.register('checkFeatureEvidence', Exec) {
+    group = 'verification'
+    description = 'CPF 기능별 Controller, Service, Repository, SQL, 테스트, 문서 증거가 함께 있는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-feature-evidence.ps1'
+}
+
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
     description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 스키마를 smoke 검증합니다.'
@@ -196,5 +202,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence'
 }

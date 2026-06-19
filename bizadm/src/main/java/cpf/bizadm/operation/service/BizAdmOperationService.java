@@ -13,8 +13,7 @@ import java.util.Map;
  * BIZADM 업무 운영 서비스입니다.
  *
  * <p>조회 데이터는 DB 저장소에서 읽고, 개인정보 원문 조회는 감사 사유를 필수로 남깁니다.
- * 업무 관리자 기능은 ADM 공통 운영자 기능과 분리하되, 운영 화면에서 함께 연결할 수 있도록
- * 동일한 응답 구조와 감사 기준을 사용합니다.</p>
+ * 업무 관리자 기능은 ADM 공통 운영자 기능과 분리하되, ADM 화면에서 함께 관제할 수 있도록 동일한 응답 구조와 감사 기준을 사용합니다.</p>
  */
 @Service
 public class BizAdmOperationService {
@@ -41,7 +40,7 @@ public class BizAdmOperationService {
     }
 
     /**
-     * 고객 목록은 기본적으로 마스킹해서 반환합니다.
+     * 고객 목록은 기본적으로 이메일과 휴대폰 번호를 마스킹해서 반환합니다.
      */
     public List<Map<String, Object>> findCustomers() {
         return repository.findCustomers().stream()

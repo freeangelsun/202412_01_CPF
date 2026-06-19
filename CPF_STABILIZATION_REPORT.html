@@ -2,42 +2,46 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
-    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.55; margin: 0; color: #1f2937; background: #f8fafc; }
-    main { max-width: 1420px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1320px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2, h3 { color: #111827; }
-    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; font-size: 13px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px 10px; vertical-align: top; }
-    th { background: #eef2ff; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #047857; font-weight: 700; }
-    .fail { color: #b91c1c; font-weight: 700; }
-    .hold { color: #92400e; font-weight: 700; }
+    .done { color: #047857; font-weight: 700; }
+    .partial { color: #b45309; font-weight: 700; }
+    .failed { color: #b91c1c; font-weight: 700; }
+    .unverified { color: #6b7280; font-weight: 700; }
     .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>CPF를 공식 기준본 수준으로 정리하기 위해 운영 모듈 sample 제거, EDU 명칭 정리, 문서 정본화, 품질 gate 강화, SQL 합본 동기화, MariaDB smoke 검증을 수행했습니다.</p>
-    <p class="note">민감정보는 기록하지 않았습니다. DB 접속 비밀번호와 grant의 password hash는 리포트에 남기지 않습니다.</p>
+    <h1>CPF 안정화 리포트</h1>
+    <p>신규 요청 파일을 기준으로 실제 구현, 테스트, 문서, SQL, 품질 gate를 다시 점검했습니다. 실행하지 않은 검증은 성공으로 쓰지 않고 미검증으로 분리했습니다.</p>
+    <p class="note">요청 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다. 현재 작업 트리에는 사용자 변경으로 남아 있습니다.</p>
   </section>
 
   <section>
-    <h2>소스 기준</h2>
+    <h2>전체 판정</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>결과</th><th>비고</th></tr>
+      <tr><th>구분</th><th>판정</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>branch</td><td><code>master</code></td><td>Git safe directory 보호 때문에 조회 명령에 일회성 safe 옵션을 사용했습니다.</td></tr>
-      <tr><td>local HEAD</td><td><code>bfff2b0ea7eb8e56fcfba85ac5c8f5f6c82969ad</code></td><td>작업 전후 commit은 수행하지 않았습니다.</td></tr>
-      <tr><td>origin/master HEAD</td><td><code>bfff2b0ea7eb8e56fcfba85ac5c8f5f6c82969ad</code></td><td>원격 HEAD 확인만 수행했습니다.</td></tr>
-      <tr><td>git status 요약</td><td>문서, Java, SQL, Gradle, 신규 검사 스크립트 변경 있음</td><td>신규 요청 파일은 작업 전 사용자 변경 상태였고 작업 대상에서 제외했습니다.</td></tr>
-      <tr><td>Git commit/push</td><td class="ok">미수행</td><td>요청 기준 준수</td></tr>
-      <tr><td>별도 변경파일 목록</td><td class="ok">생성하지 않음</td><td>변경 증적은 이 HTML 리포트 안에만 기록했습니다.</td></tr>
+      <tr><td>컴파일</td><td class="done">성공</td><td><code>.\gradlew.bat compileJava --offline</code> 성공</td></tr>
+      <tr><td>전체 테스트</td><td class="done">성공</td><td><code>.\gradlew.bat test --offline</code> 성공. ADM, BIZADM, EXS 신규 테스트 포함</td></tr>
+      <tr><td>품질 gate</td><td class="done">성공</td><td><code>.\gradlew.bat qualityGate --offline</code> 최종 성공. 최초에는 인덱스의 거래 ID 설명 누락으로 실패했고, 문서 보강 후 재실행 성공</td></tr>
+      <tr><td>MariaDB 설치 smoke</td><td class="done">성공</td><td>전체 설치와 smoke SQL을 실제 MariaDB에서 2회 실행 성공. 거래 로그 일자 mismatch count 0</td></tr>
+      <tr><td>DB 권한 분리</td><td class="done">성공</td><td>app 계정 DDL 차단 확인, migration 계정 DDL probe 생성/삭제 성공. 비밀값과 password hash는 리포트에 기록하지 않음</td></tr>
+      <tr><td>OpenAPI smoke</td><td class="unverified">미검증</td><td>앱이 기동 중이 아니어서 <code>scripts/smoke-openapi.ps1</code> 연결 실패. 성공으로 보고하지 않음</td></tr>
+      <tr><td>Node 기반 JS 검사</td><td class="unverified">미검증</td><td>로컬 PATH에서 node 실행 파일을 찾지 못함</td></tr>
+      <tr><td>브라우저 클릭 검증</td><td class="unverified">미검증</td><td>ADM 정적 smoke는 성공했지만 실제 브라우저 클릭은 실행하지 않음</td></tr>
+      <tr><td>실 broker 검증</td><td class="unverified">미검증</td><td>Redis/Kafka/MQ 실제 broker 장애 시나리오는 별도 환경 필요</td></tr>
       </tbody>
     </table>
   </section>
@@ -46,39 +50,36 @@
     <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>수행 내용</th><th>주요 파일</th><th>판정</th></tr>
+      <tr><th>영역</th><th>수행 내용</th><th>파일 또는 경로</th><th>검증</th></tr>
       </thead>
       <tbody>
-      <tr><td>문서 정본화</td><td>루트 README와 specs 핵심 HTML 가이드를 모듈 책임, PFW/CMN 경계, DB 소유권, ADM 운영, SQL, 검증 기준 중심으로 재작성했습니다.</td><td><code>README</code>, <code>specs/index.html</code>, <code>specs/프레임워크_구성_가이드.html</code>, <code>specs/개발_가이드.html</code>, <code>specs/관리자_가이드.html</code>, <code>specs/SQL_가이드.html</code>, <code>specs/기능_구현_매트릭스.html</code></td><td class="ok">완료</td></tr>
-      <tr><td>PFW/CMN 경계</td><td>PFW는 프레임워크 코어, CMN은 프로젝트 공통 확장이라는 기준을 README와 각 가이드에 반영했습니다. 업무 채번, 업무 알림, 업무 로그는 CMN 업무 공통으로 정리했습니다.</td><td><code>README</code>, <code>specs/프레임워크_구성_가이드.html</code>, <code>specs/개발_가이드.html</code></td><td class="ok">완료</td></tr>
-      <tr><td>운영 sample 제거</td><td>BIZADM/EXS 운영 모듈의 과거 호환용 sample Controller를 삭제하고 정식 운영 API 기준으로 정리했습니다.</td><td><code>BizAdmSampleController</code> 삭제, <code>ExsAdminController</code> 삭제, <code>ExsFlowController</code> 삭제</td><td class="ok">완료</td></tr>
-      <tr><td>EXS 정식 경로</td><td>대외 수신/송신 로그에 남는 request URI를 <code>/api/exs/inbound</code>, <code>/api/exs/outbound</code>로 변경했습니다.</td><td><code>exs/src/main/java/cpf/exs/operation/service/ExsOperationService.java</code></td><td class="ok">완료</td></tr>
-      <tr><td>XYZ EDU 명칭 정리</td><td>교육 코드의 공개 타입명을 Sample에서 Education 도메인으로 변경하고 CRUD 교육 경로를 <code>/xyz/edu/crud-items</code>로 정리했습니다.</td><td><code>XyzCrudEducationService</code>, <code>XyzCrudEducationRequest</code>, <code>XyzCrudEducationResponse</code>, <code>XyzTransactionEducationAuditService</code></td><td class="ok">완료</td></tr>
-      <tr><td>ADM 주석 품질</td><td>placeholder 주석을 실제 세션 발급, token hash 저장, DB fallback 기준 설명으로 교체했습니다.</td><td><code>adm/src/main/java/cpf/adm/opr/service/AdmSessionService.java</code></td><td class="ok">완료</td></tr>
-      <tr><td>품질 gate 강화</td><td>운영 모듈 sample 패키지, SampleController/Service, 운영 하드코딩 데이터 잔존을 검사하는 스크립트를 추가하고 qualityGate에 연결했습니다.</td><td><code>scripts/check-sample-standard.ps1</code>, <code>build.gradle</code></td><td class="ok">완료</td></tr>
-      <tr><td>SQL 동기화</td><td>배치 seed 파라미터를 교육 기준으로 정리하고, 분리 SQL 기준으로 합본 설치 SQL과 Flyway baseline을 재생성했습니다.</td><td><code>specs/sql/50_framework_seed_data.sql</code>, <code>specs/sql/00_all_install.sql</code>, <code>specs/sql/00_all_install_and_smoke.sql</code>, <code>specs/sql/migration/flyway/V1__cpf_baseline_install.sql</code></td><td class="ok">완료</td></tr>
-      <tr><td>ADM UI 기본값</td><td>배치 기본 실행 파라미터를 교육 기준으로 맞추고 영업일 설명 문구를 정리했습니다.</td><td><code>adm/src/main/resources/static/adm/adm.js</code></td><td class="ok">완료</td></tr>
+      <tr><td>EXS</td><td>토큰 갱신 사유 검증을 DB 쓰기 전에 수행하도록 수정했습니다. 사유 누락 시 token hash와 이벤트가 저장되지 않습니다.</td><td><code>exs/src/main/java/cpf/exs/operation/service/ExsOperationService.java</code></td><td><code>ExsOperationServiceTest</code>, 전체 테스트</td></tr>
+      <tr><td>EXS</td><td>토큰 원문 미노출, hash 저장, 마스킹 token 반환, retry 사유 필수, 수신 로그 URI 기본값을 테스트로 고정했습니다.</td><td><code>exs/src/test/java/cpf/exs/operation/service/ExsOperationServiceTest.java</code></td><td>targeted test와 전체 테스트 성공</td></tr>
+      <tr><td>BIZADM</td><td>고객 목록 마스킹과 원문 조회 감사 사유/요청자 기록을 테스트로 고정했습니다.</td><td><code>bizadm/src/test/java/cpf/bizadm/operation/service/BizAdmOperationServiceTest.java</code></td><td>targeted test와 전체 테스트 성공</td></tr>
+      <tr><td>ADM</td><td>다운로드 정책 유형과 미지원 다운로드 유형 차단을 테스트했습니다. 미지원 유형은 감사 사유 처리나 DB 조회 전에 차단됩니다.</td><td><code>adm/src/test/java/cpf/adm/opr/service/AdmDownloadServiceTest.java</code></td><td>targeted test와 전체 테스트 성공</td></tr>
+      <tr><td>품질 gate</td><td>기능 증거 검사를 추가했습니다. 주요 Controller, Service, Repository, SQL, EDU, 테스트, 문서가 함께 존재하는지 확인합니다.</td><td><code>scripts/check-feature-evidence.ps1</code>, <code>build.gradle</code></td><td><code>checkFeatureEvidence</code>와 <code>qualityGate</code> 성공</td></tr>
+      <tr><td>문서</td><td>README를 짧은 진입점으로 재정리하고, 주요 HTML 가이드를 실제 구현 경로와 검증 기준 중심으로 재작성했습니다.</td><td>README, <code>specs/index.html</code>, 개발/관리자/구성/SQL/매트릭스 가이드</td><td><code>check-html-docs</code>, <code>checkMojibake</code>, <code>qualityGate</code> 성공</td></tr>
+      <tr><td>문서</td><td>PFW는 프레임워크 코어, CMN은 프로젝트 공통 영역이라는 기준을 README와 가이드에 명시했습니다.</td><td>README, 인덱스, 개발 가이드, 구성 가이드, SQL 가이드</td><td>문서 gate 성공</td></tr>
+      <tr><td>문서</td><td>기능 구현 매트릭스에서 완료, 부분 구현, 미검증을 분리했습니다. ADM 배치 영업일 시뮬레이션과 선행/트리거 관계도 UX는 추가 고도화로 표시했습니다.</td><td><code>specs/기능_구현_매트릭스.html</code></td><td>문서 gate 성공</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>요청별 검증</h2>
+    <h2>기능별 증거</h2>
     <table>
       <thead>
-      <tr><th>요청 ID</th><th>요청사항</th><th>기존 상태</th><th>문제점</th><th>수정 방식</th><th>변경 파일</th><th>검증 명령</th><th>예상 정상 결과</th><th>실제 결과</th><th>판정</th><th>미검증/실패 사유</th><th>다음 조치</th></tr>
+      <tr><th>기능</th><th>Controller/API</th><th>Service</th><th>Repository/Mapper</th><th>SQL/DB</th><th>EDU/문서</th><th>테스트</th><th>판정</th></tr>
       </thead>
       <tbody>
-      <tr><td>REQ-01</td><td>README와 specs 정본화</td><td>내용이 요약 수준이고 파일명별 역할이 약했습니다.</td><td>개발자와 운영자가 실제 코드 기준을 찾기 어려웠습니다.</td><td>모듈 책임, DB, API, 검증 기준을 HTML 표로 재작성했습니다.</td><td>README, specs HTML</td><td><code>check-html-docs</code>, <code>qualityGate</code></td><td>실제 HTML 구조와 정본 내용 통과</td><td>통과</td><td class="ok">완료</td><td></td><td>기능 변경 시 문서 동시 갱신</td></tr>
-      <tr><td>REQ-02</td><td>운영 모듈 sample 제거</td><td>BIZADM/EXS sample 패키지와 SampleController가 존재했습니다.</td><td>운영 구현체가 sample처럼 보였습니다.</td><td>호환용 래퍼를 삭제하고 정식 API 기준으로 유지했습니다.</td><td>BIZADM/EXS sample Controller 삭제</td><td><code>check-sample-standard</code>, <code>clean qualityGate</code></td><td>sample 폴더와 SampleController/Service 없음</td><td>통과</td><td class="ok">완료</td><td></td><td>빌드 산출물도 clean 후 재검증 완료</td></tr>
-      <tr><td>REQ-03</td><td>EDU sample 명칭 정리</td><td>XYZ EDU에 XyzSample 타입이 있었습니다.</td><td>교육 코드와 운영 sample 금지 기준이 혼동됐습니다.</td><td>EducationItem 중심 타입과 경로로 변경했습니다.</td><td>XYZ EDU DTO/Service/Controller</td><td><code>compileJava</code>, <code>check-sample-standard</code></td><td>참조 깨짐 없이 컴파일</td><td>통과</td><td class="ok">완료</td><td></td><td>다른 EDU의 설명 문구도 지속 정리</td></tr>
-      <tr><td>REQ-04</td><td>PFW/CMN 경계 정리</td><td>문서에서 경계가 흔들릴 수 있었습니다.</td><td>PFW 코어 기능과 프로젝트 공통 기능이 섞여 보였습니다.</td><td>PFW 코어와 CMN 프로젝트 공통 원칙을 문서와 매트릭스에 고정했습니다.</td><td>README, 구성 가이드, 개발 가이드</td><td><code>check-html-docs</code></td><td>문서 구조 통과</td><td>통과</td><td class="ok">완료</td><td></td><td>코드 구조 이동이 필요한 부분은 다음 보강에서 재검토</td></tr>
-      <tr><td>REQ-05</td><td>품질 gate 강화</td><td>sample 구조 재발 방지 검사가 없었습니다.</td><td>운영 모듈에 sample 패키지가 다시 들어올 수 있었습니다.</td><td>신규 검사 스크립트와 Gradle task를 추가했습니다.</td><td><code>scripts/check-sample-standard.ps1</code>, <code>build.gradle</code></td><td><code>.\gradlew.bat clean qualityGate --offline</code></td><td>모든 gate 성공</td><td>성공</td><td class="ok">완료</td><td></td><td>CI에 동일 task 연결</td></tr>
-      <tr><td>REQ-06</td><td>SQL/Flyway 동기화</td><td>seed 문구와 합본 SQL 동기화가 재확인 필요했습니다.</td><td>배치 교육 seed가 sample 파라미터를 사용했습니다.</td><td>교육 파라미터로 변경하고 합본과 Flyway baseline을 재생성했습니다.</td><td>SQL seed, 합본, Flyway baseline</td><td><code>build-all-install-sql</code>, <code>check-sql-standard</code>, MariaDB smoke</td><td>설치 SQL 실행 성공</td><td>성공</td><td class="ok">완료</td><td></td><td>증분 migration 작성 시 baseline과 분리 유지</td></tr>
-      <tr><td>REQ-07</td><td>MariaDB 실검증</td><td>PATH에 mysql 명령이 없었습니다.</td><td>처음 PowerShell pipe 방식은 한글 입력이 깨질 수 있었습니다.</td><td>MariaDB 12.3 client 직접 경로와 cmd 파일 리다이렉션으로 재실행했습니다.</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>MariaDB client 실행, FK/index query, 권한 query</td><td>smoke row count, date mismatch 0, FK/index 확인</td><td>성공</td><td class="ok">완료</td><td></td><td>PowerShell pipe 방식은 DB 설치 검증에 사용하지 않기</td></tr>
-      <tr><td>REQ-08</td><td>ADM UI/API wrapper</td><td>정적 UI smoke 기준 재확인 필요</td><td>기능 추가 뒤 UI 경로 drift 가능</td><td>ADM JS 기본값을 정리하고 smoke를 재실행했습니다.</td><td><code>adm.js</code></td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>필수 메뉴/버튼/API marker 존재</td><td>성공</td><td class="ok">완료</td><td></td><td>브라우저 클릭 검증은 다음 단계</td></tr>
-      <tr><td>REQ-09</td><td>Swagger/OpenAPI 앱 기동 검증</td><td>스크립트는 존재하나 앱이 기동 중이 아니었습니다.</td><td>현재 상태로는 JSON을 받을 수 없습니다.</td><td>smoke 스크립트를 실행해 실제 실패를 확인했습니다.</td><td><code>scripts/smoke-openapi.ps1</code></td><td><code>scripts/smoke-openapi.ps1</code></td><td>기동 앱의 OpenAPI JSON 조회</td><td>원격 서버 연결 실패</td><td class="fail">실패</td><td>ADM/MBR/XYZ/BIZADM/EXS 서비스 미기동</td><td><code>runLocalServices</code> 기동 후 재실행</td></tr>
-      <tr><td>REQ-10</td><td>Node 기반 JS 문법 검사</td><td>Node 설치 여부 미확인</td><td>현재 PATH에서 node 명령을 찾지 못했습니다.</td><td>node version 확인을 시도했습니다.</td><td><code>adm.js</code></td><td><code>node --version</code></td><td>node version 출력 후 JS check 가능</td><td>명령 없음</td><td class="hold">미검증</td><td>Node 실행 파일이 PATH에 없음</td><td>Node 설치 또는 사내 표준 JS 검사 도구 지정</td></tr>
+      <tr><td>PFW 거래 ID/헤더</td><td><code>TransactionContextFilter</code></td><td><code>TransactionIdGenerator</code>, <code>TransactionContext</code></td><td><code>TransactionLogMapper</code></td><td><code>pfw_transaction_log</code></td><td>개발 가이드, 인덱스</td><td>거래 ID 표준 gate, MariaDB mismatch count 0</td><td class="done">구현 검증</td></tr>
+      <tr><td>PFW Batch 공통</td><td><code>AdmBatchController</code></td><td><code>CpfBatchLauncher</code>, <code>CpfBatchLockManager</code></td><td><code>CpfBatchOperationRepository</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td><code>XyzBatchEducationController</code>, 관리자 가이드</td><td>compile/test, MariaDB smoke</td><td class="partial">부분 구현. 앱 기동 시나리오 추가 필요</td></tr>
+      <tr><td>CMN 채번/업무 공통</td><td>EDU API</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code></td><td>cmn datasource와 mapper</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td><code>XyzCmnBusinessEducationController</code>, 개발 가이드</td><td>CMN 테스트, MariaDB smoke</td><td class="partial">부분 구현. 운영 DB 격리수준 검증 추가 필요</td></tr>
+      <tr><td>ADM 운영</td><td>권한, 회원, 로그, 배치, 캐시, 메시지, 코드, 설정, 다운로드 Controller</td><td>ADM 운영 Service</td><td>JdbcTemplate 기반 저장소 접근</td><td><code>adm_*</code>, <code>pfw_*</code>, <code>mbr_*</code></td><td>관리자 가이드, 기능 매트릭스</td><td>ADM static smoke, ADM 다운로드 테스트</td><td class="partial">부분 구현. 브라우저 클릭과 API 권한 통합 테스트 필요</td></tr>
+      <tr><td>BIZADM 운영</td><td><code>BizAdmAuthController</code>, <code>BizAdmOperationController</code></td><td><code>BizAdmAuthService</code>, <code>BizAdmOperationService</code></td><td><code>BizAdmAuthRepository</code>, <code>BizAdmOperationRepository</code></td><td><code>bizadm_*</code></td><td>개발 가이드, 매트릭스</td><td><code>BizAdmOperationServiceTest</code>, MariaDB smoke</td><td class="partial">부분 구현. 인증 API 통합 테스트 추가 필요</td></tr>
+      <tr><td>MBR 회원</td><td><code>MbrController</code>, <code>MbrAuthController</code>, ADM 회원 wrapper</td><td><code>MbrService</code>, <code>MbrAuthService</code></td><td><code>MemberMapper</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_login_history</code></td><td>개발 가이드, 관리자 가이드</td><td>MBR 테스트, MariaDB smoke</td><td class="partial">부분 구현. 상태 전환 전체 통합 테스트 필요</td></tr>
+      <tr><td>EXS 대외연계</td><td><code>ExsFlowController</code>, <code>ExsOperationController</code>, <code>ExsAdminOperationController</code></td><td><code>ExsOperationService</code>, <code>ExsFlowService</code></td><td><code>ExsOperationRepository</code></td><td><code>exs_*</code></td><td><code>XyzServiceCallEducationController</code>, 개발 가이드</td><td><code>ExsOperationServiceTest</code>, MariaDB smoke</td><td class="partial">부분 구현. 실제 외부기관 연동 adapter 검증 필요</td></tr>
+      <tr><td>EDU</td><td><code>xyz/edu/controller</code></td><td><code>xyz/edu/service</code></td><td>필요 시 PFW/CMN 호출</td><td>선택 사용</td><td>개발 가이드 매트릭스</td><td>compile/test, 기능 증거 gate</td><td class="partial">부분 구현. 학습용 주석 추가 보강 여지 있음</td></tr>
       </tbody>
     </table>
   </section>
@@ -87,68 +88,39 @@
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>실행 결과</th><th>핵심 증적</th><th>판정</th></tr>
+      <tr><th>명령</th><th>결과</th><th>주요 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat compileJava --offline</code></td><td>BUILD SUCCESSFUL</td><td>PFW, CMN, ADM, BIZADM, EXS, XYZ 포함 전체 컴파일</td><td class="ok">성공</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td>BUILD SUCCESSFUL</td><td>테스트가 있는 ACC, CMN, MBR 수행. 일부 모듈은 NO-SOURCE</td><td class="ok">성공</td></tr>
-      <tr><td><code>.\gradlew.bat clean qualityGate --offline</code></td><td>BUILD SUCCESSFUL</td><td>clean 후 컴파일, 테스트, HTML, Java format, UTF-8, mojibake, SQL, security seed, sample, 거래 ID 검사 통과</td><td class="ok">성공</td></tr>
-      <tr><td>ADM UI smoke</td><td>ADM UI smoke check passed</td><td>batch, logs, audit, notification, downloads, bizadm, exs marker 확인</td><td class="ok">성공</td></tr>
-      <tr><td>MariaDB smoke</td><td>설치 SQL 실행 성공</td><td>거래 로그 1건, 상세 3건, ADM 버튼 52건, role button 260건, 배치 schedule 2건, date mismatch 0</td><td class="ok">성공</td></tr>
-      <tr><td>FK/index</td><td>FK와 index 메타 조회 성공</td><td>FK: pfw 18, adm 10, mbr 4, bizadm 2, cmn 1. Index: pfw 67, adm 29, bizadm 25, exs 22, mbr 17, cmn 12, acc 4</td><td class="ok">성공</td></tr>
-      <tr><td>DB 계정 권한</td><td>app DML only, migration DDL 확인</td><td>PFW/ADM/CMN/ACC/MBR/BIZADM/EXS app 계정 DML_ONLY, migration 계정 HAS_DDL</td><td class="ok">성공</td></tr>
-      <tr><td>OpenAPI smoke</td><td>원격 서버 연결 실패</td><td>서비스 미기동 상태에서 실제 실패 확인</td><td class="fail">실패</td></tr>
-      <tr><td>Node check</td><td>node 명령 없음</td><td>PATH에서 node를 찾지 못함</td><td class="hold">미검증</td></tr>
+      <tr><td><code>.\gradlew.bat :bizadm:test --offline --tests cpf.bizadm.operation.service.BizAdmOperationServiceTest</code></td><td class="done">성공</td><td>고객 마스킹, 원문 조회 사유 필수, 감사 로그 호출 검증</td></tr>
+      <tr><td><code>.\gradlew.bat :exs:test --offline --tests cpf.exs.operation.service.ExsOperationServiceTest</code></td><td class="done">성공</td><td>token hash 저장, 원문 미노출, 사유 누락 저장 차단, retry 사유 필수, inbound 로그 검증</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:test --offline --tests cpf.adm.opr.service.AdmDownloadServiceTest</code></td><td class="done">성공</td><td>다운로드 정책과 미지원 유형 차단 검증</td></tr>
+      <tr><td><code>.\gradlew.bat compileJava --offline</code></td><td class="done">성공</td><td>전체 모듈 컴파일 성공</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="done">성공</td><td>전체 테스트 성공</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="done">성공</td><td>UTF-8, mojibake, SQL, Java format, HTML docs, transaction ID, security seed, sample, feature evidence gate 통과</td></tr>
+      <tr><td><code>scripts/smoke-adm-ui.ps1</code></td><td class="done">성공</td><td>ADM 주요 메뉴/API marker 정적 확인</td></tr>
+      <tr><td>MariaDB 전체 설치와 smoke SQL</td><td class="done">성공</td><td>2회 실행 성공. 주요 row count 출력, batch/영업일/권한/회원/BIZADM/EXS seed 확인, 거래 로그 일자 mismatch count 0</td></tr>
+      <tr><td>FK/index 정보 스키마 조회</td><td class="done">성공</td><td>FK count: pfw 18, cmn 1, adm 10, mbr 4, bizadm 2. Index count: pfw 143, cmn 28, adm 69, acc 4, mbr 34, bizadm 56, exs 45</td></tr>
+      <tr><td>DB 권한 probe</td><td class="done">성공</td><td>app 계정 DDL 차단, migration 계정 DDL 허용 확인</td></tr>
+      <tr><td><code>scripts/smoke-openapi.ps1</code></td><td class="unverified">미검증</td><td>서비스 미기동으로 원격 연결 실패</td></tr>
+      <tr><td><code>node --version</code></td><td class="unverified">미검증</td><td>node 실행 파일 없음</td></tr>
+      <tr><td>브라우저 실제 클릭</td><td class="unverified">미검증</td><td>이번 작업에서는 브라우저를 띄운 클릭 검증을 수행하지 않음</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>MariaDB 검증 상세</h2>
+    <h2>남은 리스크와 다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>결과</th><th>비고</th></tr>
+      <tr><th>우선순위</th><th>보강 후보</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>클라이언트</td><td>MariaDB 12.3 client 확인</td><td>PATH에는 없었고 표준 설치 경로의 실행 파일을 사용했습니다.</td></tr>
-      <tr><td>TLS</td><td>기본 접속은 TLS credential 오류</td><td>로컬 smoke는 <code>--ssl=0</code>로 SQL 검증을 분리했습니다.</td></tr>
-      <tr><td>인코딩</td><td>cmd 파일 리다이렉션 방식으로 한글 정상 입력 확인</td><td>PowerShell 문자열 pipe는 한글 깨짐 위험이 있어 사용하지 않는 기준으로 남깁니다.</td></tr>
-      <tr><td>seed 재실행</td><td>설치 SQL을 반복 실행해 성공</td><td>최종 기준은 합본 재생성 후 재실행 결과입니다.</td></tr>
-      <tr><td>LOG_DATE</td><td>transaction_log_date_mismatch_count 0</td><td>거래 ID 앞자리 날짜와 로그 기준일 불일치 없음</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>남은 리스크와 다음 보강</h2>
-    <table>
-      <thead>
-      <tr><th>우선순위</th><th>항목</th><th>사유</th><th>다음 조치</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>1</td><td>OpenAPI 앱 기동 검증</td><td>현재 서비스가 떠 있지 않아 smoke가 실패했습니다.</td><td><code>runLocalServices</code> 또는 개별 앱 기동 후 <code>smoke-openapi</code> 재실행</td></tr>
-      <tr><td>2</td><td>ADM 브라우저 클릭 검증</td><td>정적 marker smoke는 통과했지만 실제 클릭, 권한별 비활성 사유, 상세 포맷은 브라우저 E2E가 필요합니다.</td><td>Playwright 또는 사내 UI 검증 도구 도입</td></tr>
-      <tr><td>3</td><td>운영 fallback 저장소 재검토</td><td>ADM 세션/운영자 fallback, CMN 메시지 bridge, 동적 로그 cache는 로컬/장애 fallback 목적의 인메모리 구조가 남아 있습니다.</td><td>prod profile에서 DB/broker 우선, fallback 제한 정책을 더 강제</td></tr>
-      <tr><td>4</td><td>파일명 정리 후보</td><td><code>40_business_sample_schema.sql</code> 파일명은 기존 설치 체계와 요청서 호환 때문에 유지했습니다.</td><td>사용자 승인 후 <code>business_domain_schema</code> 계열로 rename migration 계획 수립</td></tr>
-      <tr><td>5</td><td>Node/JS 품질 gate</td><td>Node가 PATH에 없어 JS 문법 검사를 수행하지 못했습니다.</td><td>Node 설치 또는 Gradle 기반 JS 검사 대체 도구 지정</td></tr>
-      <tr><td>6</td><td>Redis/Kafka 실 broker</td><td>현재는 mock/fallback과 문서 기준이 중심입니다.</td><td>docker compose 또는 운영 broker로 장애 시나리오 검증</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>금지사항 준수</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>결과</th><th>비고</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>Git commit</td><td class="ok">미수행</td><td>요청 준수</td></tr>
-      <tr><td>Git push</td><td class="ok">미수행</td><td>요청 준수</td></tr>
-      <tr><td>branch 생성</td><td class="ok">미수행</td><td>요청 준수</td></tr>
-      <tr><td>기존 요청 파일 수정</td><td class="ok">미수정</td><td>작업 대상에서 제외했습니다.</td></tr>
-      <tr><td>신규 요청 파일 수정</td><td class="ok">미수정</td><td>작업 전 사용자 변경 상태만 유지했습니다.</td></tr>
-      <tr><td>별도 변경파일 목록 생성</td><td class="ok">미생성</td><td>파일 존재 여부 확인 결과 없음</td></tr>
+      <tr><td>1</td><td>ADM 실제 브라우저 클릭 검증과 버튼 비활성 사유 UX 검증</td><td>정적 smoke는 통과했지만 실제 운영자 클릭, 상세 탭, 권한 차단 UX는 별도 검증이 필요합니다.</td></tr>
+      <tr><td>2</td><td>앱 기동 후 OpenAPI JSON 품질 gate</td><td>현재 앱 미기동으로 OpenAPI smoke는 미검증입니다.</td></tr>
+      <tr><td>3</td><td>ADM 배치 고도화</td><td>영업일만 수행, 수행 가능 시간, 다음 수행일 시뮬레이션, 선행/트리거 관계도, 수행대기 인스턴스 관계 시각화가 운영 UX에 필요합니다.</td></tr>
+      <tr><td>4</td><td>BIZADM, MBR, EXS API 통합 테스트 확대</td><td>서비스 단위 테스트는 보강했지만 로그인, refresh token, 상태 변경, retry worker의 API/DB 통합 테스트가 더 필요합니다.</td></tr>
+      <tr><td>5</td><td>Redis/Kafka/MQ 실 broker 장애 시나리오</td><td>mock/fallback 기준과 실제 broker 기준을 분리해서 검증해야 합니다.</td></tr>
+      <tr><td>6</td><td>EDU 샘플 주석 추가 보강</td><td>학습용 코드는 운영 코드보다 더 상세한 라인 단위 설명이 있으면 개발자 온보딩 품질이 올라갑니다.</td></tr>
       </tbody>
     </table>
   </section>

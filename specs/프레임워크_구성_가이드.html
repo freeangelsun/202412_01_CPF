@@ -4,117 +4,105 @@
   <meta charset="utf-8">
   <title>CPF 프레임워크 구성 가이드</title>
   <style>
-    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; margin: 0; color: #1f2937; background: #f8fafc; }
-    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2, h3 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #ecfeff; }
+    th { background: #ede9fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .rule { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 14px; }
+    .note { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
     <h1>CPF 프레임워크 구성 가이드</h1>
-    <p>이 문서는 CPF의 공식 아키텍처 기준서입니다. 구현과 문서가 충돌할 때는 이 책임 경계를 먼저 확인하고, 이후 실제 소스와 SQL을 맞춰야 합니다.</p>
-    <p class="rule">PFW는 프레임워크 코어, CMN은 프로젝트 공통 확장입니다. PFW 테이블의 원천 기능은 PFW API로 제공하고, CMN과 업무 모듈은 그 API를 사용합니다.</p>
+    <p>이 문서는 CPF의 모듈 경계, DB 구성, profile, 배치 구조, 품질 gate, 로컬 실행 기준을 정리합니다. 프레임워크 코어와 프로젝트 공통의 경계를 흔들지 않는 것이 가장 중요한 원칙입니다.</p>
+    <p class="note">PFW는 프레임워크가 자체 제공하는 기능과 공통 API를 담당합니다. CMN은 CPF를 적용하는 프로젝트에서 개발자가 확장하는 프로젝트 공통 영역입니다.</p>
   </section>
 
   <section>
-    <h2>전체 아키텍처</h2>
+    <h2>모듈 구성</h2>
     <table>
       <thead>
-      <tr><th>계층</th><th>구성</th><th>책임</th><th>대표 구현</th></tr>
+      <tr><th>모듈</th><th>유형</th><th>주요 의존</th><th>기동 방식</th></tr>
       </thead>
       <tbody>
-      <tr><td>Framework Core</td><td>PFW</td><td>거래 추적, 표준 응답/오류, 프레임워크 설정, 로그, OpenAPI, 배치 공통 API</td><td><code>cpf.pfw.common.logging</code>, <code>cpf.pfw.common.batch</code>, <code>cpf.pfw.common.exception</code></td></tr>
-      <tr><td>Project Common</td><td>CMN</td><td>프로젝트 업무 공통 기능과 CPF 보조 어댑터</td><td><code>cpf.cmn.biz.sequence</code>, <code>cpf.cmn.biz.notification</code>, <code>cpf.cmn.biz.log</code>, <code>cpf.cmn.mqe</code></td></tr>
-      <tr><td>Operation</td><td>ADM</td><td>프레임워크 운영과 관제</td><td><code>cpf.adm.opr.controller</code>, <code>adm/src/main/resources/static/adm</code></td></tr>
-      <tr><td>Business Admin</td><td>BIZADM</td><td>프로젝트 업무 관리자 기본 구현</td><td><code>cpf.bizadm.operation</code>, <code>cpf.bizadm.auth</code></td></tr>
-      <tr><td>Business Domain</td><td>MBR, ACC</td><td>회원과 계정 업무 기준 구현</td><td><code>cpf.mbr.bse</code>, <code>cpf.acc.bse</code></td></tr>
-      <tr><td>External System</td><td>EXS</td><td>대외기관, 채널, endpoint, 수신/송신, token, 재처리</td><td><code>cpf.exs.operation</code>, <code>cpf.exs.flow</code></td></tr>
-      <tr><td>Education</td><td>XYZ EDU</td><td>개발자 학습 API와 유형별 예제</td><td><code>cpf.xyz.edu</code></td></tr>
+      <tr><td><code>pfw</code></td><td>library</td><td>Spring Web, MyBatis, OpenAPI, Batch 공통</td><td>단독 서비스가 아니라 업무 서비스에 포함됩니다.</td></tr>
+      <tr><td><code>cmn</code></td><td>library</td><td>PFW, optional cmnDB</td><td>단독 서비스가 아니라 업무 서비스에 포함됩니다. cmnDB는 사용하지 않아도 기동 가능해야 합니다.</td></tr>
+      <tr><td><code>adm</code></td><td>application</td><td>PFW, CMN, ADM/PFW/MBR datasource</td><td>운영 관리자 서비스입니다.</td></tr>
+      <tr><td><code>bizadm</code></td><td>application</td><td>PFW, CMN, bizadmDB</td><td>업무 관리자 기본 구현체입니다.</td></tr>
+      <tr><td><code>mbr</code></td><td>application</td><td>PFW, CMN, mbrDB</td><td>회원 기본 구현체입니다.</td></tr>
+      <tr><td><code>acc</code></td><td>application</td><td>PFW, CMN, accDB, MBR 연계</td><td>계정 업무 예제입니다.</td></tr>
+      <tr><td><code>exs</code></td><td>application</td><td>PFW, CMN, exsDB</td><td>대외연계 기본 구현체입니다.</td></tr>
+      <tr><td><code>xyz</code></td><td>application</td><td>PFW, CMN</td><td>EDU 교육 API 서비스입니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>PFW와 CMN 책임 경계</h2>
+    <h2>DB 구성과 책임</h2>
     <table>
       <thead>
-      <tr><th>구분</th><th>PFW 책임</th><th>CMN 책임</th><th>금지 기준</th></tr>
+      <tr><th>DB</th><th>책임</th><th>대표 테이블</th><th>주의</th></tr>
       </thead>
       <tbody>
-      <tr><td>거래 추적</td><td><code>transactionGlobalId</code>, 표준 헤더, 거래 로그 AOP</td><td>업무 DTO 변환과 보조 유틸</td><td>업무 모듈에서 자체 거래 ID 규칙을 만들지 않습니다.</td></tr>
-      <tr><td>응답/오류</td><td>표준 오류 코드, 메시지 resolver, 예외 handler</td><td>프로젝트별 메시지 캐시 보조와 DTO 변환</td><td>PFW 응답코드를 CMN이 원천 관리하지 않습니다.</td></tr>
-      <tr><td>설정/코드/메시지</td><td>프레임워크 설정, 공통 메시지, 응답코드 원천</td><td>프로젝트 공통 코드 캐시 또는 조회 보조</td><td>PFW 테이블을 CMN 전용 Mapper로 직접 수정하지 않습니다.</td></tr>
-      <tr><td>알림</td><td>배치 실패, 캐시 실패, 보안 이벤트 같은 프레임워크 운영 알림</td><td>업무 알림 로그와 프로젝트 업무 알림 발송</td><td>업무 알림을 PFW 운영 알림 테이블에 섞지 않습니다.</td></tr>
-      <tr><td>채번</td><td>프레임워크 거래 ID와 내부 운영 ID</td><td>업무 채번, 업무키, 반복주기, 발급 로그</td><td>회원번호나 주문번호를 PFW 코어 기능으로 두지 않습니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_batch_job</code>, <code>BATCH_*</code></td><td>업무 모듈은 PFW API를 통해 사용합니다.</td></tr>
+      <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>optional datasource입니다. 미사용 프로젝트도 기동 가능해야 합니다.</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자와 권한</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_audit_log</code></td><td>운영 행위는 감사 로그를 남깁니다.</td></tr>
+      <tr><td><code>bizadmDB</code></td><td>업무 관리자 기본 구현</td><td><code>bizadm_admin_user</code>, <code>bizadm_customer</code>, <code>bizadm_masking_audit</code></td><td>sample 저장소를 사용하지 않습니다.</td></tr>
+      <tr><td><code>mbrDB</code></td><td>회원 기본 구현</td><td><code>mbr_member</code>, <code>mbr_login_history</code>, <code>mbr_refresh_token</code></td><td>token 원문은 저장하지 않습니다.</td></tr>
+      <tr><td><code>exsDB</code></td><td>대외연계 기본 구현</td><td><code>exs_token_store</code>, <code>exs_transaction_log</code>, <code>exs_retry_log</code></td><td>대외 token 원문은 저장하거나 반환하지 않습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>ADM과 BIZADM 분리</h2>
+    <h2>Profile 기준</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>ADM</th><th>BIZADM</th></tr>
+      <tr><th>profile</th><th>용도</th><th>secret 기준</th><th>외부 의존</th></tr>
       </thead>
       <tbody>
-      <tr><td>운영자</td><td>프레임워크 운영자, 개발자 운영자, 업무 운영자, 조회 전용</td><td>프로젝트 업무 관리자</td></tr>
-      <tr><td>권한</td><td>프레임워크 메뉴, 버튼, API 권한</td><td>업무 관리자 메뉴, 버튼, 다운로드, 마스킹 권한</td></tr>
-      <tr><td>감사</td><td>ADM 운영 행위와 프레임워크 메타 변경 감사</td><td>업무 관리자 행위, 고객 원문 조회, 다운로드 감사</td></tr>
-      <tr><td>API</td><td><code>/adm/api/**</code></td><td><code>/api/bizadm/**</code></td></tr>
+      <tr><td><code>local</code></td><td>개발 PC</td><td>로컬 예시 값 허용. 운영 secret 금지</td><td>MariaDB, Redis, Kafka는 선택 구성</td></tr>
+      <tr><td><code>dev</code></td><td>개발 서버</td><td>환경변수 또는 secret reference 사용</td><td>공용 개발 DB</td></tr>
+      <tr><td><code>test</code></td><td>테스트 자동화</td><td>테스트 전용 secret</td><td>테스트 DB 또는 container</td></tr>
+      <tr><td><code>stg</code></td><td>운영 전 검증</td><td>운영과 같은 방식의 secret 주입</td><td>운영 유사 인프라</td></tr>
+      <tr><td><code>prod</code></td><td>운영</td><td>기본값 금지. 환경변수, Vault, KMS 확장 구조 사용</td><td>운영 DB, broker, 로그 수집 시스템</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>배치 구조</h2>
+    <h2>Batch 구조</h2>
     <table>
       <thead>
-      <tr><th>구성</th><th>역할</th><th>주요 파일</th><th>운영 연결</th></tr>
+      <tr><th>계층</th><th>역할</th><th>테이블</th><th>운영 화면</th></tr>
       </thead>
       <tbody>
-      <tr><td>Spring Batch</td><td>JobRepository, JobLauncher, JobExecution, StepExecution 표준 실행 메타</td><td><code>pfw/src/main/java/cpf/pfw/config/CpfBatchAutoConfiguration.java</code>, <code>adm/src/main/java/cpf/adm/config/AdmBatchRepositoryConfig.java</code></td><td><code>BATCH_*</code> 테이블</td></tr>
-      <tr><td>PFW 배치 API</td><td>중복 실행 방지, CPF 실행 이력, operation log, 이벤트 발행</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchLockManager</code>, <code>CpfBatchOperationRepository</code></td><td><code>pfw_batch_execution</code>, <code>pfw_batch_operation_log</code></td></tr>
-      <tr><td>ADM 관제</td><td>Job 등록, 스케줄, 영업일, 선행/트리거 관계, 실행 대상, 시뮬레이션, 수동 실행</td><td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code>, <code>PfwBatchScheduleService</code></td><td>ADM 배치 화면과 <code>/adm/api/batch/**</code></td></tr>
-      <tr><td>EDU 배치</td><td>Tasklet, Chunk, Retry, Lock, Restart, ADM 연동 교육</td><td><code>XyzBatchEducationController</code>, <code>XyzBatchEducationConfig</code></td><td>PFW API 사용법 학습</td></tr>
+      <tr><td>Spring Batch</td><td>JobRepository, JobExplorer, JobOperator, JobLauncher 기반 실행 메타</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>ADM 배치 상세에서 원천 실행 메타를 조회합니다.</td></tr>
+      <tr><td>CPF Batch</td><td>운영 job 등록, 스케줄, lock, 수동 실행, 재수행, 중지, 이력</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_lock</code></td><td><code>AdmBatchController</code>와 ADM 화면이 사용합니다.</td></tr>
+      <tr><td>EDU Batch</td><td>Tasklet, Chunk, retry, restart, lock 샘플</td><td>필요 시 PFW Batch 사용</td><td><code>XyzBatchEducationController</code>에서 개발자가 흐름을 학습합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>DB 소유권과 profile</h2>
+    <h2>품질 gate</h2>
     <table>
       <thead>
-      <tr><th>DB</th><th>소유권</th><th>설치 SQL</th><th>profile 기준</th></tr>
+      <tr><th>gate</th><th>스크립트 또는 태스크</th><th>목적</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>PFW 프레임워크 코어</td><td><code>10_pfw_schema.sql</code>, <code>50_framework_seed_data.sql</code></td><td>모든 서비스가 라이브러리로 참조하되 app 계정은 DML 위주로 제한합니다.</td></tr>
-      <tr><td><code>cmnDB</code></td><td>프로젝트 공통 선택 DB</td><td><code>20_cmn_schema.sql</code>, <code>55_cmn_seed_data.sql</code></td><td>사용하지 않는 프로젝트도 기동 가능해야 하며 사용 시에만 datasource를 활성화합니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>ADM 운영</td><td><code>30_adm_schema.sql</code>, <code>60_adm_seed_data.sql</code></td><td>운영 secret 기본값은 prod에서 제거하고 환경변수 또는 Vault/KMS 확장 구조를 사용합니다.</td></tr>
-      <tr><td><code>bizadmDB</code>, <code>mbrDB</code>, <code>exsDB</code></td><td>업무 관리자, 회원, 대외연계</td><td><code>40_business_sample_schema.sql</code></td><td>프로젝트 도메인 확장 시 같은 prefix와 감사 컬럼 표준을 유지합니다.</td></tr>
+      <tr><td>UTF-8</td><td><code>check-utf8</code>, <code>checkMojibake</code></td><td>BOM, 깨진 인코딩, mojibake marker 차단</td></tr>
+      <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td>테이블명, 공통 컬럼, FK/index 명명, all install 동기화 확인</td></tr>
+      <tr><td>문서 구조</td><td><code>scripts/check-html-docs.ps1</code></td><td>specs 문서를 실제 HTML 구조로 유지</td></tr>
+      <tr><td>운영 sample 금지</td><td><code>scripts/check-sample-standard.ps1</code></td><td>운영 모듈 sample 패키지와 하드코딩 저장소 방지</td></tr>
+      <tr><td>기능 증거</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>주요 기능의 Controller, Service, Repository, SQL, 테스트, 문서 증거 존재 확인</td></tr>
+      <tr><td>전체 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>컴파일, 테스트, 정적 품질 gate 통합 실행</td></tr>
       </tbody>
     </table>
-  </section>
-
-  <section>
-    <h2>품질 gate와 확장 기준</h2>
-    <table>
-      <thead>
-      <tr><th>검사</th><th>명령</th><th>기준</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>기본 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>컴파일, 테스트, UTF-8, mojibake, SQL, HTML, Java format, 거래 ID, secret seed, sample 표준</td></tr>
-      <tr><td>ADM UI smoke</td><td><code>powershell -File scripts/smoke-adm-ui.ps1</code></td><td>정적 화면에 필수 메뉴, 버튼, API 경로가 존재하는지 확인</td></tr>
-      <tr><td>OpenAPI smoke</td><td><code>powershell -File scripts/smoke-openapi.ps1</code></td><td>기동 중인 애플리케이션의 OpenAPI JSON을 확인</td></tr>
-      <tr><td>DB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>MariaDB 설치, FK, index, seed idempotent, smoke query 확인</td></tr>
-      </tbody>
-    </table>
-    <p>Redis, Kafka, MQ는 로컬 fallback과 mock adapter 기준을 먼저 제공하고, 실 broker 장애 시나리오는 별도 환경에서 검증합니다.</p>
   </section>
 </main>
 </body>

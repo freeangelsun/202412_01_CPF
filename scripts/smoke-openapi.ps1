@@ -1,7 +1,13 @@
 param(
     [string] $AdmBaseUrl = "http://localhost:8090",
+    [string] $MbrBaseUrl = "http://localhost:8081",
     [string] $XyzBaseUrl = "http://localhost:8099",
-    [switch] $SkipXyz
+    [string] $BizAdmBaseUrl = "http://localhost:8091",
+    [string] $ExsBaseUrl = "http://localhost:8092",
+    [switch] $SkipMbr,
+    [switch] $SkipXyz,
+    [switch] $SkipBizAdm,
+    [switch] $SkipExs
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,8 +57,31 @@ Invoke-JsonSmoke -BaseUrl $AdmBaseUrl -RequiredTags @(
     "ADM-Dynamic-Log-Level"
 )
 
+if (-not $SkipMbr) {
+    Invoke-JsonSmoke -BaseUrl $MbrBaseUrl -RequiredTags @("MBR-Auth")
+}
+
 if (-not $SkipXyz) {
-    Invoke-JsonSmoke -BaseUrl $XyzBaseUrl -RequiredTags @("EDU")
+    Invoke-JsonSmoke -BaseUrl $XyzBaseUrl -RequiredTags @(
+        "XYZ-EDU 00. Catalog",
+        "XYZ-EDU 11. Security",
+        "XYZ-EDU 13. Batch"
+    )
+}
+
+if (-not $SkipBizAdm) {
+    Invoke-JsonSmoke -BaseUrl $BizAdmBaseUrl -RequiredTags @(
+        "BIZADM-Auth",
+        "BIZADM-Sample"
+    )
+}
+
+if (-not $SkipExs) {
+    Invoke-JsonSmoke -BaseUrl $ExsBaseUrl -RequiredTags @(
+        "EXS-Admin",
+        "EXS-Operations",
+        "EXS-Flow"
+    )
 }
 
 Write-Host "OpenAPI smoke check passed."

@@ -55,6 +55,8 @@ if (!window.Vue) {
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
+          { id: "bizadm", menuId: "BIZADM", label: "업무관리" },
+          { id: "exs", menuId: "EXS", label: "대외연계" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" }
         ],
         logSearch: {
@@ -228,7 +230,9 @@ if (!window.Vue) {
         configResult: {},
         permissionResult: {},
         passwordResult: {},
-        securityResult: {}
+        securityResult: {},
+        bizAdmResult: {},
+        exsResult: {}
       };
     },
     computed: {
@@ -394,7 +398,9 @@ if (!window.Vue) {
           this.loadCodes(),
           this.loadConfigs(),
           this.loadPermissions(),
-          this.loadSecurity()
+          this.loadSecurity(),
+          this.loadBizAdmOperations(),
+          this.loadExsOperations()
         ]);
       },
       async loadMe() {
@@ -931,6 +937,100 @@ if (!window.Vue) {
           reason: this.securityForm.reason
         });
         this.setMessage("MFA 검증을 요청했습니다.");
+      },
+      async loadBizAdmOperations() {
+        const [
+          adminUsers,
+          roles,
+          menus,
+          permissions,
+          customers,
+          products,
+          orders,
+          settings,
+          downloads
+        ] = await Promise.allSettled([
+          this.getJson("/api/bizadm/admin-users"),
+          this.getJson("/api/bizadm/roles"),
+          this.getJson("/api/bizadm/menus"),
+          this.getJson("/api/bizadm/permissions"),
+          this.getJson("/api/bizadm/customers"),
+          this.getJson("/api/bizadm/products"),
+          this.getJson("/api/bizadm/orders"),
+          this.getJson("/api/bizadm/settings"),
+          this.getJson("/api/bizadm/downloads")
+        ]);
+        this.bizAdmResult = {
+          adminUsers: this.settledValue(adminUsers),
+          roles: this.settledValue(roles),
+          menus: this.settledValue(menus),
+          permissions: this.settledValue(permissions),
+          customers: this.settledValue(customers),
+          products: this.settledValue(products),
+          orders: this.settledValue(orders),
+          settings: this.settledValue(settings),
+          downloads: this.settledValue(downloads)
+        };
+        this.setMessage("BIZADM 업무 관리자 API wrapper를 조회했습니다.");
+      },
+      async loadExsOperations() {
+        const [
+          institutions,
+          channels,
+          endpoints,
+          authProfiles,
+          sampleTokens,
+          routes,
+          transactions,
+          messages,
+          samplePolicies,
+          sampleRetries,
+          tokens,
+          tokenEvents,
+          retries,
+          controlPolicies
+        ] = await Promise.allSettled([
+          this.getJson("/api/exs/institutions"),
+          this.getJson("/api/exs/channels"),
+          this.getJson("/api/exs/endpoints"),
+          this.getJson("/api/exs/auth-profiles"),
+          this.getJson("/api/exs/tokens"),
+          this.getJson("/api/exs/routes"),
+          this.getJson("/api/exs/transactions"),
+          this.getJson("/api/exs/messages"),
+          this.getJson("/api/exs/control-policies"),
+          this.getJson("/api/exs/retries"),
+          this.getJson("/api/exs/operations/tokens"),
+          this.getJson("/api/exs/operations/token-events?limit=50"),
+          this.getJson("/api/exs/operations/retries?limit=50"),
+          this.getJson("/api/exs/operations/control-policies")
+        ]);
+        this.exsResult = {
+          institutions: this.settledValue(institutions),
+          channels: this.settledValue(channels),
+          endpoints: this.settledValue(endpoints),
+          authProfiles: this.settledValue(authProfiles),
+          sampleTokens: this.settledValue(sampleTokens),
+          routes: this.settledValue(routes),
+          transactions: this.settledValue(transactions),
+          messages: this.settledValue(messages),
+          samplePolicies: this.settledValue(samplePolicies),
+          sampleRetries: this.settledValue(sampleRetries),
+          tokens: this.settledValue(tokens),
+          tokenEvents: this.settledValue(tokenEvents),
+          retries: this.settledValue(retries),
+          controlPolicies: this.settledValue(controlPolicies)
+        };
+        this.setMessage("EXS 대외연계 API wrapper를 조회했습니다.");
+      },
+      settledValue(result) {
+        if (result.status === "fulfilled") {
+          return result.value;
+        }
+        return {
+          status: "미검증",
+          message: result.reason?.message || "API wrapper 호출에 실패했습니다."
+        };
       }
     }
   }).mount("#app");

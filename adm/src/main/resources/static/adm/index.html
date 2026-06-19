@@ -426,6 +426,38 @@
         <pre class="detail">{{ pretty(securityResult) }}</pre>
       </section>
 
+      <section class="panel" v-show="activeMenu === 'bizadm'">
+        <div class="panel-title">
+          <h2>BIZADM 업무관리 wrapper</h2>
+          <div class="actions">
+            <button type="button" @click="loadBizAdmOperations">전체 조회</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>사용자 API <input readonly value="/api/bizadm/admin-users"></label>
+          <label>역할 API <input readonly value="/api/bizadm/roles"></label>
+          <label>권한 API <input readonly value="/api/bizadm/permissions"></label>
+          <label>업무 데이터 API <input readonly value="/api/bizadm/customers"></label>
+        </div>
+        <pre class="detail">{{ pretty(bizAdmResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'exs'">
+        <div class="panel-title">
+          <h2>EXS 대외연계 wrapper</h2>
+          <div class="actions">
+            <button type="button" @click="loadExsOperations">전체 조회</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>기관 API <input readonly value="/api/exs/institutions"></label>
+          <label>Endpoint API <input readonly value="/api/exs/endpoints"></label>
+          <label>Token API <input readonly value="/api/exs/operations/tokens"></label>
+          <label>재처리 API <input readonly value="/api/exs/operations/retries"></label>
+        </div>
+        <pre class="detail">{{ pretty(exsResult) }}</pre>
+      </section>
+
       <section class="panel" v-show="activeMenu === 'responseCodes'">
         <div class="panel-title">
           <h2>응답코드 관리</h2>

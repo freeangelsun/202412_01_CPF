@@ -153,7 +153,7 @@
       <tr><th>MBR</th><td><code>/mbr/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>/me</code>, <code>/login-history</code>를 제공합니다. 회원 계정, 실패 횟수, 로그인 이력, refresh token hash는 <code>mbrDB</code> 기준으로 처리합니다.</td></tr>
       <tr><th>EXS</th><td><code>/api/exs/operations/tokens</code>, <code>/token-events</code>, <code>/retries</code>, <code>/control-policies</code>로 대외 token 갱신, 통제 정책, 재처리 요청을 관리합니다. <code>/api/exs/inbound</code>와 <code>/api/exs/outbound</code>는 <code>X-Transaction-Id</code>를 검증하고 거래/전문 로그를 DB에 선저장합니다.</td></tr>
       <tr><th>보안 저장 원칙</th><td>비밀번호와 refresh token, 대외 token 원문은 저장하지 않습니다. 운영 seed에는 원문 secret을 넣지 않고 hash placeholder나 마스킹 값만 둡니다.</td></tr>
-      <tr><th>현재 수준</th><td>인증/token 핵심 저장소는 DB 기준으로 보강했습니다. BIZADM/EXS 전용 Vue route와 실제 브라우저 클릭 검증은 다음 고도화 과제입니다.</td></tr>
+      <tr><th>현재 수준</th><td>인증/token 핵심 저장소는 DB 기준으로 보강했습니다. ADM 정적 화면에는 BIZADM/EXS 조회 wrapper를 연결했습니다. 실제 브라우저 클릭 검증과 업무별 전용 SPA UX는 다음 고도화 과제입니다.</td></tr>
       </tbody>
     </table>
   </section>

@@ -6,57 +6,268 @@
   <title>CPF 기능 구현 매트릭스</title>
   <style>
     body{font-family:"Malgun Gothic","Segoe UI",Arial,sans-serif;line-height:1.56;margin:0;background:#f7f8fb;color:#182033}
-    main{width:min(1480px,calc(100% - 36px));margin:0 auto;padding:36px 0 56px}
+    main{width:min(1720px,calc(100% - 36px));margin:0 auto;padding:36px 0 56px}
     section,header{background:#fff;border:1px solid #d9e1ec;border-radius:8px;padding:22px;margin-top:16px}
     h1{margin:0 0 8px}h2{font-size:21px;margin:0 0 12px}
-    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}th,td{border:1px solid #d9e1ec;padding:9px;text-align:left;vertical-align:top}th{background:#eef3f9}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+    th,td{border:1px solid #d9e1ec;padding:8px;text-align:left;vertical-align:top}
+    th{background:#eef3f9}
     code{background:#eef3f9;border-radius:4px;padding:2px 5px;font-family:Consolas,monospace;white-space:nowrap}
-    .status{font-weight:700}.partial{color:#8a5a00}.todo{color:#8a1f11}.done{color:#126b32}
+    .status{font-weight:700}.partial{color:#8a5a00}.todo{color:#8a1f11}.done{color:#126b32}.unchecked{color:#555}
+    .wide{overflow-x:auto}
   </style>
 </head>
 <body>
 <main>
   <header>
     <h1>기능 구현 매트릭스</h1>
-    <p>CPF 기능이 소스, API, ADM 화면, DB, Swagger, EDU 샘플, 검증과 연결되어 있는지 확인하기 위한 기준표입니다.</p>
+    <p>CPF 기능을 소스, API, 화면, DB, Swagger, EDU 샘플, 검증 결과 기준으로 대조하기 위한 HTML 검수표입니다.</p>
   </header>
-
-  <section>
-    <h2>기능별 연결 상태</h2>
-    <table>
-      <thead>
-      <tr><th>대분류</th><th>기능명</th><th>구현 상태</th><th>주요 소스/API</th><th>ADM 화면/DB</th><th>Swagger/EDU</th><th>검증 방법</th><th>비고</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>거래 표준</td><td>34자리 트랜잭션 글로벌 ID</td><td class="status partial">일부 구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>check-transaction-id-standard.ps1</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>공통 OpenAPI 설정, XYZ EDU 거래 샘플</td><td>compile, transaction ID standard, 로그 적재 smoke</td><td>앱 기동 후 OpenAPI JSON 검증 필요</td></tr>
-      <tr><td>ADM</td><td>회원 관리/회원 권한</td><td class="status partial">일부 구현</td><td><code>AdmMemberController</code>, <code>/adm/api/members</code></td><td>회원 화면, <code>mbr_member</code>, <code>mbr_member_role</code></td><td>ADM-Member</td><td>compile, UI smoke</td><td>브라우저 클릭 검증 필요</td></tr>
-      <tr><td>ADM</td><td>운영자 권한</td><td class="status partial">일부 구현</td><td><code>AdmApiAuthFilter</code>, <code>/adm/api/permissions</code></td><td>권한 화면, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code></td><td>ADM-Permission</td><td>compile, seed 검증</td><td>서버 API 권한 검사 포함</td></tr>
-      <tr><td>로그</td><td>온라인 거래 로그</td><td class="status partial">일부 구현</td><td><code>AdmLogController</code>, <code>AdmLogQueryService</code></td><td>거래 로그 화면, <code>pfw_transaction_log</code></td><td>ADM-Log</td><td>compile, UI smoke</td><td>JSON pretty, 고정길이 전문 포맷팅 포함</td></tr>
-      <tr><td>감사</td><td>감사 로그</td><td class="status partial">일부 구현</td><td><code>AdmAuditLogService</code>, <code>/adm/api/audit-logs</code></td><td>감사 로그 화면, <code>adm_audit_log</code></td><td>ADM-Audit</td><td>compile, SQL standard</td><td>diff 정책 고도화 여지 있음</td></tr>
-      <tr><td>알림</td><td>알림 규칙/테스트 발송</td><td class="status partial">일부 구현</td><td><code>AdmNotificationController</code>, <code>AdmNotificationService</code>, <code>NotificationSender</code></td><td>알림 화면, <code>pfw_notification_rule</code>, <code>pfw_notification_delivery_log</code></td><td>ADM-Notification</td><td>compile, ADM UI smoke</td><td>Mock sender 적용, 실제 채널 adapter는 다음 단계</td></tr>
-      <tr><td>다운로드</td><td>권한/마스킹/감사 다운로드</td><td class="status partial">일부 구현</td><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code></td><td>다운로드 화면, <code>adm_download_audit_log</code></td><td>ADM-Download</td><td>compile, SQL standard, ADM UI smoke</td><td>민감정보 원문 다운로드 권한은 정책 확장 후보</td></tr>
-      <tr><td>배치</td><td>배치 Job/Execution/Step 관제</td><td class="status partial">일부 구현</td><td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code></td><td>배치 화면, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>ADM-Batch, XYZ EDU Batch</td><td>compile, DB smoke</td><td>Spring Batch JobRepository 실운영 smoke 필요</td></tr>
-      <tr><td>배치</td><td>영업일/관계/수행대상</td><td class="status partial">일부 구현</td><td><code>simulateSchedule</code>, <code>findRelations</code>, <code>findExecutionTargets</code></td><td><code>pfw_business_day_calendar</code>, <code>pfw_batch_job_relation</code>, <code>pfw_batch_execution_target</code></td><td>ADM-Batch, XYZ EDU Batch</td><td>compile, API smoke 후보</td><td>관계 그래프 시각화는 다음 단계</td></tr>
-      <tr><td>배치</td><td>자동 스케줄러</td><td class="status partial">일부 구현</td><td><code>PfwBatchScheduler</code>, <code>PfwBatchScheduleService</code>, <code>PfwBatchLockService</code></td><td><code>pfw_batch_schedule</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_execution_target</code></td><td>ADM-Batch</td><td><code>/adm/api/batch/scheduler/run-once</code>, scheduler smoke 후보</td><td>기본 비활성, property로 활성화</td></tr>
-      <tr><td>공통 운영</td><td>캐시/메시지/코드/응답코드/설정</td><td class="status partial">일부 구현</td><td>ADM 각 Controller, CMN cache service</td><td>ADM 화면, <code>pfw_code</code>, <code>pfw_message</code>, <code>pfw_config</code></td><td>ADM-Code, ADM-Message, ADM-Config</td><td>compile, SQL standard</td><td>브라우저 클릭 검증 필요</td></tr>
-      <tr><td>보안</td><td>비밀번호/세션/MFA/IP allowlist</td><td class="status partial">일부 구현</td><td>ADM security/operator API</td><td>보안 화면, <code>adm_password_policy</code>, <code>adm_operator_session</code>, <code>adm_mfa_otp_secret</code></td><td>ADM-Security</td><td>compile</td><td>TOTP QR/복구코드 완성은 다음 단계</td></tr>
-      <tr><td>CMN</td><td>채번/알림 로그/업무 로그</td><td class="status partial">일부 구현</td><td><code>cmn/biz</code>, XYZ CMN EDU</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code></td><td>XYZ-EDU</td><td>CMN test, concurrency test</td><td>cmnDB optional datasource 기준</td></tr>
-      <tr><td>MBR</td><td>회원 로그인/token</td><td class="status partial">일부 구현</td><td><code>MbrAuthController</code>, <code>MbrAuthService</code>, <code>MemberMapper</code></td><td><code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>MBR-Auth</td><td>compile, SQL standard</td><td>DB 영속화는 반영했으며, 실제 MariaDB 로그인/refresh 시나리오 검증은 필요</td></tr>
-      <tr><td>BIZADM</td><td>업무/프로젝트 관리자 샘플과 인증</td><td class="status partial">일부 구현</td><td><code>BizAdmAuthController</code>, <code>BizAdmAuthService</code>, <code>BizAdmAuthRepository</code></td><td><code>bizadmDB</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code></td><td>BIZADM-Auth</td><td>compile, SQL standard</td><td>DB 영속화는 반영했으며, 실제 Vue route/view는 다음 고도화 대상</td></tr>
-      <tr><td>EXS</td><td>대외 연계 샘플과 운영 API</td><td class="status partial">일부 구현</td><td><code>ExsOperationController</code>, <code>ExsOperationService</code>, <code>ExsOperationRepository</code>, <code>ExsFlowController</code></td><td><code>exsDB</code>, <code>exs_token_store</code>, <code>exs_token_event_history</code>, <code>exs_retry_log</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code></td><td>EXS-Flow, EXS-Operations</td><td>compile, SQL standard</td><td>DB 영속화는 반영했으며, 실제 외부기관 adapter와 broker 테스트는 다음 고도화 대상</td></tr>
-      <tr><td>품질</td><td>qualityGate</td><td class="status done">완료</td><td><code>build.gradle</code>, <code>scripts/check-*.ps1</code></td><td>CI gate</td><td>프레임워크 구성 가이드</td><td><code>qualityGate</code></td><td>보안 seed 검사를 포함합니다. OpenAPI/ADM UI smoke는 별도 task</td></tr>
-      <tr><td>문서</td><td>HTML 가이드 정본화</td><td class="status partial">일부 구현</td><td>루트 README, <code>specs/index.html</code>, 주요 HTML 가이드</td><td>문서 포털</td><td>EDU 샘플 매트릭스 연결</td><td><code>checkHtmlDocs</code></td><td>상세 가이드는 계속 현행화 대상</td></tr>
-      </tbody>
-    </table>
-  </section>
 
   <section>
     <h2>상태 기준</h2>
     <ul>
-      <li><span class="status done">완료</span>: 로컬 검증까지 성공한 기능입니다.</li>
-      <li><span class="status partial">일부 구현</span>: 코드/SQL/문서는 있으나 앱 기동, 브라우저 클릭, 외부 broker 같은 추가 검증이 필요한 기능입니다.</li>
-      <li><span class="status todo">미구현</span>: 설계 또는 후보만 있는 기능입니다.</li>
+      <li><span class="status done">완료</span>: 소스와 문서가 있고 로컬 검증까지 성공한 항목입니다.</li>
+      <li><span class="status partial">일부 구현</span>: 코드 또는 SQL은 있으나 앱 기동, 브라우저 클릭, 실 DB, 외부 broker 검증이 남은 항목입니다.</li>
+      <li><span class="status todo">미구현</span>: 설계 또는 후보만 있고 실제 운영 구현이 없는 항목입니다.</li>
+      <li><span class="status unchecked">미검증</span>: 환경 부재 또는 미실행으로 결과를 확인하지 못한 항목입니다.</li>
     </ul>
+  </section>
+
+  <section>
+    <h2>기능별 연결 상태</h2>
+    <div class="wide">
+      <table>
+        <thead>
+        <tr>
+          <th>대분류</th>
+          <th>기능명</th>
+          <th>구현 상태</th>
+          <th>주요 소스</th>
+          <th>API</th>
+          <th>화면</th>
+          <th>DB/저장 구조</th>
+          <th>Swagger Tag</th>
+          <th>EDU 참조</th>
+          <th>검증 방법</th>
+          <th>예상 정상 결과</th>
+          <th>실제 검증 결과</th>
+          <th>미검증 사유</th>
+          <th>비고/다음 보완</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>거래 표준</td>
+          <td>34자리 트랜잭션 글로벌 ID</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>TransactionIdGenerator</code>, <code>TransactionHeaderValidationInterceptor</code></td>
+          <td>전 모듈 <code>X-Transaction-Id</code></td>
+          <td>ADM 로그 상세</td>
+          <td><code>pfw_transaction_log</code>, 주요 이력 테이블 추적 컬럼</td>
+          <td>공통 OpenAPI 설정</td>
+          <td><code>XyzTransactionEducationController</code></td>
+          <td><code>check-transaction-id-standard.ps1</code>, compile</td>
+          <td>34자리 규격과 헤더 설명이 검출됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>HTTP 요청 기반 오류 응답은 앱 미기동으로 미검증</td>
+          <td>OpenAPI HTTP smoke와 실제 로그 적재 smoke 추가</td>
+        </tr>
+        <tr>
+          <td>ADM</td>
+          <td>회원 관리/회원 권한</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>AdmMemberController</code>, <code>AdmMemberOperationService</code></td>
+          <td><code>/adm/api/members</code></td>
+          <td>ADM 회원 패널</td>
+          <td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_role_history</code></td>
+          <td>ADM-Member</td>
+          <td>개발 가이드 회원 운영 항목</td>
+          <td>compile, ADM UI smoke</td>
+          <td>회원 목록, 상세, 상태, 권한 버튼이 화면과 API에 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>브라우저 클릭과 실 DB 조회는 미검증</td>
+          <td>권한 변경 diff와 다운로드 정책 고도화</td>
+        </tr>
+        <tr>
+          <td>ADM</td>
+          <td>운영자 메뉴/버튼/API 권한</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>AdmApiAuthFilter</code>, <code>AdmPermissionController</code></td>
+          <td><code>/adm/api/permissions</code></td>
+          <td>ADM 권한 패널</td>
+          <td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code></td>
+          <td>ADM-OPR Permissions</td>
+          <td>관리자 가이드 권한 운영</td>
+          <td>compile, SQL standard</td>
+          <td>버튼별 서버 권한 검사와 감사 사유가 적용됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>권한별 실제 HTTP 403 smoke는 미검증</td>
+          <td>역할별 UX 비활성 사유 표시 확대</td>
+        </tr>
+        <tr>
+          <td>ADM</td>
+          <td>통합 로그 관제</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>AdmLogController</code>, <code>AdmLogQueryService</code></td>
+          <td><code>/adm/api/logs</code></td>
+          <td>ADM 거래 로그 패널</td>
+          <td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td>
+          <td>ADM-Log</td>
+          <td><code>XyzTelegramEducationController</code></td>
+          <td>compile, ADM UI smoke</td>
+          <td>JSON pretty와 고정길이 전문 탭을 조회할 수 있습니다.</td>
+          <td>정적 검증 성공</td>
+          <td>실제 로그 데이터 브라우저 검증은 미검증</td>
+          <td>원문 보기/다운로드 권한 분리 고도화</td>
+        </tr>
+        <tr>
+          <td>배치</td>
+          <td>Spring Batch 관제와 영업일 스케줄</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code>, <code>PfwBatchScheduleService</code></td>
+          <td><code>/adm/api/batch</code></td>
+          <td>ADM 배치 패널</td>
+          <td><code>pfw_batch_*</code>, <code>pfw_business_day_calendar</code></td>
+          <td>ADM-Batch</td>
+          <td><code>XyzBatchEducationController</code></td>
+          <td>compile, ADM UI smoke, SQL standard</td>
+          <td>Job, 실행 이력, step, 영업일, 시뮬레이션, 관계, 수행 대상이 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>JobRepository 실 DB 실행과 브라우저 클릭은 미검증</td>
+          <td>관계 그래프 시각화와 실 Job bean smoke 추가</td>
+        </tr>
+        <tr>
+          <td>공통 운영</td>
+          <td>캐시/메시지/코드/응답코드/설정</td>
+          <td class="status partial">일부 구현</td>
+          <td>ADM 공통 운영 Controller, CMN cache service</td>
+          <td><code>/adm/api/cache</code>, <code>/adm/api/messages</code>, <code>/adm/api/codes</code></td>
+          <td>ADM 캐시, 메시지, 코드, 설정 패널</td>
+          <td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_config</code></td>
+          <td>ADM-PFW Codes, ADM-PFW Configs</td>
+          <td><code>XyzCmnEducationController</code></td>
+          <td>compile, SQL standard</td>
+          <td>조회/등록/수정과 cache refresh가 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>브라우저 클릭과 캐시 refresh 실동작은 미검증</td>
+          <td>변경 전후 diff 표시 확대</td>
+        </tr>
+        <tr>
+          <td>보안</td>
+          <td>비밀번호/세션/MFA/IP allowlist</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>AdmSecurityController</code>, <code>AdmOperatorController</code></td>
+          <td><code>/adm/api/security</code>, <code>/adm/api/operators</code></td>
+          <td>ADM 비밀번호, 보안 패널</td>
+          <td><code>adm_password_policy</code>, <code>adm_operator_session</code>, <code>adm_mfa_otp_secret</code></td>
+          <td>ADM-Security</td>
+          <td><code>XyzSecurityEducationController</code></td>
+          <td>compile, security seed check</td>
+          <td>정책 조회, 초기화, 잠금 해제, 세션 폐기, MFA 기본 API가 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>TOTP QR, 복구코드, 실제 OTP 앱 검증은 미검증</td>
+          <td>OTP 등록 UX와 복구코드 저장 정책 보강</td>
+        </tr>
+        <tr>
+          <td>CMN</td>
+          <td>채번/알림 로그/업무 로그</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code></td>
+          <td>XYZ EDU API</td>
+          <td>EDU 문서 연결</td>
+          <td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code></td>
+          <td>XYZ-EDU</td>
+          <td><code>XyzCmnBusinessEducationController</code></td>
+          <td>CMN test, concurrency test 후보</td>
+          <td>row lock 기반 중복 없는 채번이 동작합니다.</td>
+          <td>Gradle test 성공</td>
+          <td>실 MariaDB 동시성은 미검증</td>
+          <td>실 DB 동시성 반복 테스트 추가</td>
+        </tr>
+        <tr>
+          <td>MBR</td>
+          <td>회원 로그인/token</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>MbrAuthController</code>, <code>MbrAuthService</code>, <code>MemberMapper</code></td>
+          <td><code>/mbr/auth</code></td>
+          <td>ADM 회원 패널에서 운영 조회</td>
+          <td><code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td>
+          <td>MBR-Auth</td>
+          <td>개발 가이드 인증 표준</td>
+          <td>compile, SQL standard</td>
+          <td>로그인 이력과 refresh token hash가 DB 기준으로 처리됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>실 DB 로그인/refresh HTTP smoke는 미검증</td>
+          <td>회원 로그인 통합 테스트 추가</td>
+        </tr>
+        <tr>
+          <td>BIZADM</td>
+          <td>업무 관리자 인증과 운영 샘플</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>BizAdmAuthController</code>, <code>BizAdmAuthService</code>, <code>BizAdmAuthRepository</code></td>
+          <td><code>/api/bizadm/auth</code>, <code>/api/bizadm</code></td>
+          <td>ADM BIZADM wrapper 패널</td>
+          <td><code>bizadm_admin_user</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code></td>
+          <td>BIZADM-Auth, BIZADM-Sample</td>
+          <td>개발 가이드 BIZADM 표준</td>
+          <td>compile, ADM UI smoke, SQL standard</td>
+          <td>DB repository와 조회 wrapper가 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>실 DB 로그인과 브라우저 클릭은 미검증</td>
+          <td>업무 관리자 전용 SPA route와 권한 UX 고도화</td>
+        </tr>
+        <tr>
+          <td>EXS</td>
+          <td>대외 token/통제/재처리/선저장</td>
+          <td class="status partial">일부 구현</td>
+          <td><code>ExsOperationController</code>, <code>ExsOperationRepository</code>, <code>ExsFlowController</code></td>
+          <td><code>/api/exs</code>, <code>/api/exs/operations</code></td>
+          <td>ADM EXS wrapper 패널</td>
+          <td><code>exs_token_store</code>, <code>exs_token_event_history</code>, <code>exs_transaction_log</code></td>
+          <td>EXS-Admin, EXS-Operations, EXS-Flow</td>
+          <td>개발 가이드 EXS 표준</td>
+          <td>compile, ADM UI smoke, SQL standard</td>
+          <td>token, event, retry, control, 선저장 로그가 DB 저장소와 연결됩니다.</td>
+          <td>정적 검증 성공</td>
+          <td>실 DB와 외부기관 adapter 연동은 미검증</td>
+          <td>실 기관 mock server와 장애 재처리 시나리오 추가</td>
+        </tr>
+        <tr>
+          <td>품질</td>
+          <td>qualityGate</td>
+          <td class="status done">완료</td>
+          <td><code>build.gradle</code>, <code>scripts/check-*.ps1</code></td>
+          <td>Gradle task</td>
+          <td>해당 없음</td>
+          <td>CI 품질 기준</td>
+          <td>해당 없음</td>
+          <td>프레임워크 구성 가이드</td>
+          <td><code>.\gradlew.bat qualityGate --offline</code></td>
+          <td>compile, test, UTF-8, mojibake, SQL, 보안 seed 검사가 성공합니다.</td>
+          <td>성공</td>
+          <td>없음</td>
+          <td>OpenAPI HTTP smoke와 MariaDB smoke는 별도 환경 필요</td>
+        </tr>
+        <tr>
+          <td>문서</td>
+          <td>HTML 가이드와 README 현행화</td>
+          <td class="status done">완료</td>
+          <td><code>README</code>, <code>specs/*.html</code></td>
+          <td>해당 없음</td>
+          <td>문서 포털</td>
+          <td>문서 산출물</td>
+          <td>해당 없음</td>
+          <td>상황별 샘플 매트릭스</td>
+          <td><code>check-html-docs.ps1</code></td>
+          <td>HTML 구조와 Markdown 잔재 검사가 성공합니다.</td>
+          <td>성공</td>
+          <td>없음</td>
+          <td>기능 추가 시 가이드 동시 갱신 유지</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 </main>
 </body>

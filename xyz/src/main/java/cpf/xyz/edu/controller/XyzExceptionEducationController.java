@@ -17,50 +17,36 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * 표준 예외와 응답코드 기반 오류 처리를 학습하는 EDU API입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+@Tag(name = "XYZ-EDU 07. 예외 처리", description = "표준 예외, 응답코드, 다국어 메시지 사용 샘플")
 public class XyzExceptionEducationController {
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
     @GetMapping("/exception")
-    @CpfTransaction(id = "XYZ09EDU0003", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0003", name = "XYZStandardExceptionSample")
+    @Operation(summary = "표준 예외 샘플", description = "업무/외부/검증 오류별 표준 예외 변환 흐름을 확인합니다.")
     public ResponseEntity<String> throwStandardException(@RequestParam(defaultValue = "validation") String type) {
         String normalizedType = TextUtils.normalizeCode(type);
         if ("BUSINESS".equals(normalizedType)) {
-            throw new CpfBusinessException("CPF 처리 기준입니다." + type);
+            throw new CpfBusinessException("업무 예외 샘플입니다. type=" + type);
         }
         if ("EXTERNAL".equals(normalizedType)) {
-            throw new CpfExternalServiceException("CPF 처리 기준입니다.", new IllegalStateException("sample external failure"));
+            throw new CpfExternalServiceException("외부 연계 예외 샘플입니다.", new IllegalStateException("sample external failure"));
         }
-        throw new CpfValidationException("CPF 처리 기준입니다." + type);
+        throw new CpfValidationException("검증 예외 샘플입니다. type=" + type);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
     @GetMapping("/exception/dynamic-message")
-    @CpfTransaction(id = "XYZ09EDU0009", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0009", name = "XYZDynamicMessageExceptionSample")
+    @Operation(summary = "동적 메시지 예외 샘플", description = "응답코드와 메시지 인자를 함께 전달하는 예외 흐름을 확인합니다.")
     public ResponseEntity<String> throwDynamicMessageException(
-            @RequestParam(defaultValue = "CPF 처리 기준입니다.") String fieldName,
+            @RequestParam(defaultValue = "회원번호") String fieldName,
             @RequestParam(defaultValue = "M0001") String fieldValue) {
 
-        String externalMessage = "CPF 처리 기준입니다.";
-        String internalMessage = "CPF 처리 기준입니다.";
+        String externalMessage = "중복된 값이 존재합니다.";
+        String internalMessage = "중복 검증 예외 샘플입니다.";
         Map<String, Object> messageArguments = Map.of(
                 "fieldName", fieldName,
                 "fieldValue", fieldValue);
@@ -69,33 +55,33 @@ public class XyzExceptionEducationController {
                 CpfDynamicErrorCode.duplicate("MXYZ090001", externalMessage, internalMessage),
                 externalMessage,
                 internalMessage,
-                "CPF 처리 기준입니다.",
+                "중복 값 검증",
                 messageArguments);
     }
 
     @GetMapping("/exception/response-code")
     @CpfTransaction(id = "XYZ09EDU0013", name = "XYZResponseCodeExceptionSample")
-    @Operation(summary = "Response code exception sample", description = "Throws only a standard response code. PFW resolves pfw_response_code and pfw_message from cache and fills response/log metadata.")
+    @Operation(summary = "응답코드 예외 샘플", description = "응답코드만 전달했을 때 PFW가 메시지와 HTTP 상태를 해석하는 흐름을 확인합니다.")
     public ResponseEntity<String> throwResponseCodeException(
             @RequestParam(defaultValue = "EACC010001") String responseCode,
             @RequestParam(defaultValue = "accountId") String fieldName) {
 
         throw new CpfBusinessException(
                 TextUtils.normalizeCode(responseCode),
-                "XYZ response-code based exception sample. field=" + fieldName,
+                "응답코드 기반 예외 샘플입니다. field=" + fieldName,
                 Map.of("0", fieldName));
     }
 
     @GetMapping("/exception/indexed-message")
     @CpfTransaction(id = "XYZ09EDU0014", name = "XYZIndexedMessageExceptionSample")
-    @Operation(summary = "Indexed message exception sample", description = "Demonstrates common indexed placeholders such as {0} and {1}.")
+    @Operation(summary = "인덱스 메시지 예외 샘플", description = "{0}, {1} 같은 메시지 인자 치환 기준을 확인합니다.")
     public ResponseEntity<String> throwIndexedMessageException(
             @RequestParam(defaultValue = "memberNo") String fieldName,
             @RequestParam(defaultValue = "M0001") String fieldValue) {
 
         throw new CpfBusinessException(
                 "EPFW010003",
-                "XYZ indexed message exception sample. field=" + fieldName + ", value=" + fieldValue,
+                "인덱스 메시지 예외 샘플입니다. field=" + fieldName + ", value=" + fieldValue,
                 Map.of("0", fieldName, "1", fieldValue));
     }
 }

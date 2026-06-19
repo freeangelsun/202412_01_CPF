@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.List;
 
 /**
- * CPF 기능 설명입니다.
+ * 파일 송수신과 원격 명령 실행 계획을 학습하는 EDU API입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+@Tag(name = "XYZ-EDU 08. 파일 연계", description = "로컬 파일, 원격 파일 전송, SSH 명령 계획 샘플")
 public class XyzFileExchangeEducationController {
     private final CmnFileExchangeService fileExchangeService;
 
@@ -36,19 +36,12 @@ public class XyzFileExchangeEducationController {
         this.fileExchangeService = fileExchangeService;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
     @PostMapping("/file-exchange/local/write")
-    @CpfTransaction(id = "XYZ09EDU0014", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0014", name = "XYZLocalFileWrite")
+    @Operation(summary = "로컬 파일 쓰기 샘플", description = "허용된 EDU 경로에 텍스트 파일을 쓰고 파일 목록을 조회합니다.")
     public ResponseEntity<Map<String, Object>> writeLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path,
-            @RequestParam(defaultValue = "CPF 처리 기준입니다.") String contents) {
+            @RequestParam(defaultValue = "CPF 파일 연계 교육 샘플입니다.") String contents) {
         Path writtenPath = fileExchangeService.writeText(path, contents);
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("path", writtenPath.toString());
@@ -57,15 +50,9 @@ public class XyzFileExchangeEducationController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
     @GetMapping("/file-exchange/local/read")
-    @CpfTransaction(id = "XYZ09EDU0015", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0015", name = "XYZLocalFileRead")
+    @Operation(summary = "로컬 파일 읽기 샘플", description = "파일 연계 서비스가 관리하는 로컬 텍스트 파일을 읽습니다.")
     public ResponseEntity<Map<String, Object>> readLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -74,14 +61,9 @@ public class XyzFileExchangeEducationController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
     @PostMapping("/file-exchange/transfer-plan")
-    @CpfTransaction(id = "XYZ09EDU0016", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0016", name = "XYZFileTransferPlan")
+    @Operation(summary = "파일 전송 계획 샘플", description = "SCP/SFTP 같은 원격 파일 전송 요청 구조와 감사 이력 기준을 확인합니다.")
     public ResponseEntity<CmnFileTransferResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CmnFileProtocol protocol,
             @RequestParam(defaultValue = "UPLOAD") CmnFileTransferDirection direction,
@@ -102,14 +84,9 @@ public class XyzFileExchangeEducationController {
         return ResponseEntity.ok(fileExchangeService.transfer(request));
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
     @PostMapping("/remote/ssh/command-plan")
-    @CpfTransaction(id = "XYZ09EDU0017", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0017", name = "XYZSshCommandPlan")
+    @Operation(summary = "SSH 명령 계획 샘플", description = "원격 서버 명령 실행 요청과 이력 저장 구조를 확인합니다.")
     public ResponseEntity<CmnRemoteCommandResult> buildSshCommandPlan(
             @RequestParam(defaultValue = "localhost") String host,
             @RequestParam(defaultValue = "appuser") String username,
@@ -124,14 +101,9 @@ public class XyzFileExchangeEducationController {
         return ResponseEntity.ok(fileExchangeService.runSshCommand(request));
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
     @GetMapping("/file-exchange/history")
-    @CpfTransaction(id = "XYZ09EDU0020", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0020", name = "XYZFileExchangeHistory")
+    @Operation(summary = "파일 연계 이력 조회", description = "최근 파일 연계 요청과 처리 결과 이력을 조회합니다.")
     public ResponseEntity<List<CmnFileExchangeHistoryRecord>> findFileExchangeHistory() {
         return ResponseEntity.ok(fileExchangeService.findRecentHistory());
     }

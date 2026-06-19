@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CPF 기능 설명입니다.
+ * 동적 로그 레벨 운영 방법을 보여주는 EDU API입니다.
  */
 @RestController
 @RequestMapping("/xyz/edu")
-@Tag(name = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+@Tag(name = "XYZ-EDU 10. 동적 로그", description = "거래별 로그 레벨을 운영 중 임시로 높이는 교육 샘플")
 public class XyzDynamicLogEducationController {
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
 
@@ -33,25 +33,15 @@ public class XyzDynamicLogEducationController {
         this.dynamicLogLevelService = dynamicLogLevelService;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
     @PutMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0005", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0005", name = "XYZDynamicLogLevelRegister")
+    @Operation(summary = "동적 로그 레벨 등록", description = "업무 거래 ID 또는 거래 ID 기준으로 임시 로그 레벨 규칙을 등록합니다.")
     public ResponseEntity<DynamicLogLevelRule> registerDynamicLogLevel(
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String transactionId,
             @RequestParam(defaultValue = "DEBUG") CpfLogLevel logLevel,
             @RequestParam(defaultValue = "600") long ttlSeconds,
-            @RequestParam(defaultValue = "CPF 처리 기준입니다.") String reason,
+            @RequestParam(defaultValue = "운영 진단을 위한 임시 로그 레벨 변경") String reason,
             @RequestParam(defaultValue = "SYSTEM") String requestUser) {
 
         DynamicLogLevelRequest request = new DynamicLogLevelRequest();
@@ -65,27 +55,16 @@ public class XyzDynamicLogEducationController {
         return ResponseEntity.ok(dynamicLogLevelService.register(request));
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
     @GetMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0006", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0006", name = "XYZDynamicLogLevelList")
+    @Operation(summary = "동적 로그 레벨 조회", description = "현재 유효한 동적 로그 레벨 규칙을 조회합니다.")
     public ResponseEntity<List<DynamicLogLevelRule>> findDynamicLogLevelRules() {
         return ResponseEntity.ok(dynamicLogLevelService.findActiveRules());
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
     @DeleteMapping("/admin/log-level")
-    @CpfTransaction(id = "XYZ09EDU0007", name = "CPF 처리 기준입니다.")
-    @Operation(summary = "CPF 처리 기준입니다.", description = "CPF 처리 기준입니다.")
+    @CpfTransaction(id = "XYZ09EDU0007", name = "XYZDynamicLogLevelRemove")
+    @Operation(summary = "동적 로그 레벨 제거", description = "등록된 동적 로그 레벨 규칙을 ruleId 기준으로 제거합니다.")
     public ResponseEntity<Map<String, Object>> removeDynamicLogLevelRule(@RequestParam String ruleId) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("removed", dynamicLogLevelService.remove(ruleId));

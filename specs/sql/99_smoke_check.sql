@@ -49,14 +49,14 @@ SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB
 SELECT 'bizadmDB.bizadm_admin_user' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_admin_user;
 SELECT 'bizadmDB.bizadm_login_history' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_login_history;
 SELECT 'bizadmDB.bizadm_refresh_token' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_refresh_token;
-SELECT 'bizadmDB.bizadm_menu_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_menu_sample;
-SELECT 'bizadmDB.bizadm_role_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_role_sample;
-SELECT 'bizadmDB.bizadm_permission_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_permission_sample;
+SELECT 'bizadmDB.bizadm_menu' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_menu;
+SELECT 'bizadmDB.bizadm_role' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_role;
+SELECT 'bizadmDB.bizadm_permission' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_permission;
 SELECT 'bizadmDB.bizadm_customer' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_customer;
 SELECT 'bizadmDB.bizadm_product' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_product;
 SELECT 'bizadmDB.bizadm_order' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_order;
 SELECT 'bizadmDB.bizadm_project_setting' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_project_setting;
-SELECT 'bizadmDB.bizadm_masking_audit_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_masking_audit_sample;
+SELECT 'bizadmDB.bizadm_masking_audit' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_masking_audit;
 
 SELECT 'exsDB.exs_institution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_institution;
 SELECT 'exsDB.exs_channel' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_channel;

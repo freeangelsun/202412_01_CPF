@@ -1,6 +1,6 @@
 package cpf.bizadm.sample.controller;
 
-import cpf.bizadm.sample.service.BizAdmSampleService;
+import cpf.bizadm.operation.service.BizAdmOperationService;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,88 +15,91 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 업무 관리자 화면에서 자주 필요한 메뉴, 권한, 마스킹, 다운로드 흐름을 보여주는 샘플 API입니다.
+ * BIZADM 교육/호환용 API입니다.
+ *
+ * <p>이 컨트롤러는 과거 샘플 경로를 유지하기 위한 얇은 래퍼입니다.
+ * 응답 데이터는 하드코딩하지 않고 운영용 {@link BizAdmOperationService}를 통해 조회합니다.</p>
  */
 @RestController
-@RequestMapping("/api/bizadm")
-@Tag(name = "BIZADM-Sample", description = "업무/프로젝트 관리자 샘플 API")
+@RequestMapping("/api/bizadm/sample")
+@Tag(name = "BIZADM-Sample", description = "BIZADM 교육/호환 API")
 public class BizAdmSampleController {
 
-    private final BizAdmSampleService sampleService;
+    private final BizAdmOperationService operationService;
 
-    public BizAdmSampleController(BizAdmSampleService sampleService) {
-        this.sampleService = sampleService;
+    public BizAdmSampleController(BizAdmOperationService operationService) {
+        this.operationService = operationService;
     }
 
     @GetMapping("/admin-users")
-    @CpfTransaction(id = "BIZ01ADM0001", name = "BizAdmAdminUserList")
-    @Operation(summary = "업무 관리자 사용자 샘플 조회", description = "ADM 공통 권한 체계와 분리된 업무 관리자 사용자 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01ADM0001", name = "BizAdmSampleAdminUserList")
+    @Operation(summary = "업무 관리자 사용자 조회 예시", description = "운영 저장소를 사용해 업무 관리자 사용자 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findAdminUsers() {
-        return ResponseEntity.ok(sampleService.findAdminUsers());
+        return ResponseEntity.ok(operationService.findAdminUsers());
     }
 
     @GetMapping("/menus")
-    @CpfTransaction(id = "BIZ01MNU0001", name = "BizAdmMenuList")
-    @Operation(summary = "업무 관리자 메뉴 샘플 조회", description = "업무 모듈 메뉴와 버튼 권한 연결 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01MNU0001", name = "BizAdmSampleMenuList")
+    @Operation(summary = "업무 관리자 메뉴 조회 예시", description = "운영 저장소를 사용해 업무 관리자 메뉴 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMenus() {
-        return ResponseEntity.ok(sampleService.findMenus());
+        return ResponseEntity.ok(operationService.findMenus());
     }
 
     @GetMapping("/roles")
-    @CpfTransaction(id = "BIZ01ROL0001", name = "BizAdmRoleList")
-    @Operation(summary = "업무 관리자 역할 샘플 조회", description = "업무 관리자 역할과 권한 범위 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01ROL0001", name = "BizAdmSampleRoleList")
+    @Operation(summary = "업무 관리자 역할 조회 예시", description = "운영 저장소를 사용해 업무 관리자 역할 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findRoles() {
-        return ResponseEntity.ok(sampleService.findRoles());
+        return ResponseEntity.ok(operationService.findRoles());
     }
 
     @GetMapping("/permissions")
-    @CpfTransaction(id = "BIZ01PER0001", name = "BizAdmPermissionList")
-    @Operation(summary = "업무 관리자 권한 샘플 조회", description = "메뉴/버튼/API 권한 매트릭스 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01PER0001", name = "BizAdmSamplePermissionList")
+    @Operation(summary = "업무 관리자 권한 조회 예시", description = "운영 저장소를 사용해 메뉴/버튼 권한 매트릭스를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findPermissions() {
-        return ResponseEntity.ok(sampleService.findPermissions());
+        return ResponseEntity.ok(operationService.findPermissions());
     }
 
     @GetMapping("/customers")
-    @CpfTransaction(id = "BIZ01CUS0001", name = "BizAdmCustomerList")
-    @Operation(summary = "고객 샘플 조회", description = "마스킹이 필요한 업무 데이터 목록 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01CUS0001", name = "BizAdmSampleCustomerList")
+    @Operation(summary = "고객 조회 예시", description = "운영 저장소를 사용해 마스킹된 고객 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCustomers() {
-        return ResponseEntity.ok(sampleService.findCustomers(false, ""));
+        return ResponseEntity.ok(operationService.findCustomers());
     }
 
     @PostMapping("/masking/unmask")
-    @CpfTransaction(id = "BIZ02MSK0001", name = "BizAdmUnmask")
-    @Operation(summary = "마스킹 해제 샘플", description = "마스킹 해제 권한과 감사 사유가 필요한 업무 운영 흐름을 보여줍니다.")
+    @CpfTransaction(id = "BIZ02MSK0001", name = "BizAdmSampleUnmask")
+    @Operation(summary = "마스킹 해제 예시", description = "감사 사유를 필수로 받아 고객 원문 조회 감사 이력을 남깁니다.")
     public ResponseEntity<List<Map<String, Object>>> unmaskCustomers(
             @RequestParam String reason,
-            @RequestParam(defaultValue = "admin-ui") String requestUser) {
-        return ResponseEntity.ok(sampleService.findCustomers(true, requestUser + ":" + reason));
+            @RequestParam(defaultValue = "BIZADM_SAMPLE") String requestUser) {
+        return ResponseEntity.ok(operationService.unmaskCustomers(reason, requestUser));
     }
 
     @GetMapping("/products")
-    @CpfTransaction(id = "BIZ01PRD0001", name = "BizAdmProductList")
-    @Operation(summary = "상품 샘플 조회", description = "업무 기준정보 관리 화면 샘플 데이터를 조회합니다.")
+    @CpfTransaction(id = "BIZ01PRD0001", name = "BizAdmSampleProductList")
+    @Operation(summary = "상품 조회 예시", description = "운영 저장소를 사용해 상품 기준정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findProducts() {
-        return ResponseEntity.ok(sampleService.findProducts());
+        return ResponseEntity.ok(operationService.findProducts());
     }
 
     @GetMapping("/orders")
-    @CpfTransaction(id = "BIZ01ORD0001", name = "BizAdmOrderList")
-    @Operation(summary = "주문 샘플 조회", description = "업무 거래 데이터 조회와 다운로드 대상 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01ORD0001", name = "BizAdmSampleOrderList")
+    @Operation(summary = "주문 조회 예시", description = "운영 저장소를 사용해 주문 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findOrders() {
-        return ResponseEntity.ok(sampleService.findOrders());
+        return ResponseEntity.ok(operationService.findOrders());
     }
 
     @GetMapping("/settings")
-    @CpfTransaction(id = "BIZ01SET0001", name = "BizAdmSettingList")
-    @Operation(summary = "업무 설정 샘플 조회", description = "업무 모듈 전용 설정 관리 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01SET0001", name = "BizAdmSampleSettingList")
+    @Operation(summary = "업무 설정 조회 예시", description = "운영 저장소를 사용해 업무 설정을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSettings() {
-        return ResponseEntity.ok(sampleService.findSettings());
+        return ResponseEntity.ok(operationService.findSettings());
     }
 
     @GetMapping("/downloads")
-    @CpfTransaction(id = "BIZ01DWN0001", name = "BizAdmDownloadPolicyList")
-    @Operation(summary = "업무 다운로드 정책 샘플 조회", description = "다운로드 권한, 마스킹, 감사 사유 정책 예시를 조회합니다.")
+    @CpfTransaction(id = "BIZ01DWN0001", name = "BizAdmSampleDownloadPolicyList")
+    @Operation(summary = "다운로드 정책 조회 예시", description = "운영 저장소를 사용해 다운로드 정책을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findDownloadPolicies() {
-        return ResponseEntity.ok(sampleService.findDownloadPolicies());
+        return ResponseEntity.ok(operationService.findDownloadPolicies());
     }
 }

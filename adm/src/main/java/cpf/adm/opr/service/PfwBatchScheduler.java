@@ -1,6 +1,7 @@
 package cpf.adm.opr.service;
 
 import cpf.adm.opr.dto.PfwBatchScheduleCandidate;
+import cpf.pfw.common.batch.CpfBatchLockManager;
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +26,7 @@ import java.util.Map;
 @Component
 public class PfwBatchScheduler {
     private final PfwBatchScheduleService scheduleService;
-    private final PfwBatchLockService lockService;
+    private final CpfBatchLockManager lockService;
     private final PfwBatchExecutionTargetService targetService;
     private final AdmBatchOperationService batchOperationService;
     private final JdbcTemplate pfwJdbcTemplate;
@@ -35,7 +36,7 @@ public class PfwBatchScheduler {
 
     public PfwBatchScheduler(
             PfwBatchScheduleService scheduleService,
-            PfwBatchLockService lockService,
+            CpfBatchLockManager lockService,
             PfwBatchExecutionTargetService targetService,
             AdmBatchOperationService batchOperationService,
             @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
@@ -69,7 +70,7 @@ public class PfwBatchScheduler {
     }
 
     private Map<String, Object> runCandidate(PfwBatchScheduleCandidate candidate, String requestUser) {
-        String lockKey = lockService.lockKey(candidate.scheduleId(), String.valueOf(candidate.plannedRunAt()));
+        String lockKey = lockService.scheduleLockKey(candidate.scheduleId(), String.valueOf(candidate.plannedRunAt()));
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("scheduleId", candidate.scheduleId());
         result.put("jobId", candidate.jobId());

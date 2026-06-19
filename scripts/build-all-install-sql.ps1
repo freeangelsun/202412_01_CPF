@@ -44,14 +44,14 @@ DROP TABLE IF EXISTS exsDB.exs_endpoint;
 DROP TABLE IF EXISTS exsDB.exs_channel;
 DROP TABLE IF EXISTS exsDB.exs_institution;
 
-DROP TABLE IF EXISTS bizadmDB.bizadm_masking_audit_sample;
+DROP TABLE IF EXISTS bizadmDB.bizadm_masking_audit;
 DROP TABLE IF EXISTS bizadmDB.bizadm_project_setting;
 DROP TABLE IF EXISTS bizadmDB.bizadm_order;
 DROP TABLE IF EXISTS bizadmDB.bizadm_product;
 DROP TABLE IF EXISTS bizadmDB.bizadm_customer;
-DROP TABLE IF EXISTS bizadmDB.bizadm_permission_sample;
-DROP TABLE IF EXISTS bizadmDB.bizadm_role_sample;
-DROP TABLE IF EXISTS bizadmDB.bizadm_menu_sample;
+DROP TABLE IF EXISTS bizadmDB.bizadm_permission;
+DROP TABLE IF EXISTS bizadmDB.bizadm_role;
+DROP TABLE IF EXISTS bizadmDB.bizadm_menu;
 DROP TABLE IF EXISTS bizadmDB.bizadm_refresh_token;
 DROP TABLE IF EXISTS bizadmDB.bizadm_login_history;
 DROP TABLE IF EXISTS bizadmDB.bizadm_admin_user;

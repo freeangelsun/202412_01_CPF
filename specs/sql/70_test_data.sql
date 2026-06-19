@@ -361,10 +361,10 @@ WHERE admin_login_id = 'biz-admin'
         AND transaction_global_id = '20260615120000000BIZbizAP010000001'
   );
 
-INSERT INTO bizadm_menu_sample (
+INSERT INTO bizadm_menu (
     menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
 ) VALUES (
-    'BIZ_CUSTOMER', '고객 업무 관리 샘플', '/api/bizadm/customers', 10, 'Y', 'SYSTEM', 'SYSTEM'
+    'BIZ_CUSTOMER', '고객 업무 관리', '/api/bizadm/customers', 10, 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     menu_name = VALUES(menu_name),
@@ -374,7 +374,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_role_sample (
+INSERT INTO bizadm_role (
     role_code, role_name, write_allowed_yn, use_yn, created_by, updated_by
 ) VALUES (
     'BIZ_MANAGER', '업무 관리자', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
@@ -386,7 +386,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_permission_sample (
+INSERT INTO bizadm_permission (
     role_code, menu_code, button_code, allow_yn, created_by, updated_by
 ) VALUES
     ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'READ', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -437,7 +437,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO bizadm_project_setting (
     setting_key, setting_value, description, use_yn, created_by, updated_by
 ) VALUES (
-    'bizadm.sample.masking.enabled', 'Y', '업무 관리자 샘플 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+    'bizadm.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
@@ -446,13 +446,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_masking_audit_sample (
+INSERT INTO bizadm_masking_audit (
     target_type, target_id, operator_id, reason, result_type, created_by, updated_by
 )
 SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM bizadm_masking_audit_sample
+    FROM bizadm_masking_audit
     WHERE target_type = 'CUSTOMER'
       AND target_id = 'CUST000001'
       AND operator_id = 'biz-admin'

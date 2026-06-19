@@ -22,13 +22,13 @@
     <h2>모듈 경계</h2>
     <table>
       <tr><th>모듈</th><th>책임</th></tr>
-      <tr><td><code>pfw</code></td><td>거래 ID, 표준 헤더, 거래 로그, 공통 응답/예외, OpenAPI, WebClient, workflow, 보안 메타</td></tr>
+      <tr><td><code>pfw</code></td><td>거래 ID, 표준 헤더, 거래 로그, 공통 응답/예외, OpenAPI, WebClient, workflow, 보안 메타, 배치 공통 Facade</td></tr>
       <tr><td><code>cmn</code></td><td>공통 캐시/MQ/유틸과 선택형 <code>cmnDB</code> 업무 공통 기능</td></tr>
       <tr><td><code>adm</code></td><td>운영자, 권한, 세션, 감사, 동적 로그레벨</td></tr>
       <tr><td><code>acc</code>, <code>mbr</code></td><td>업무 샘플 모듈</td></tr>
       <tr><td><code>xyz</code></td><td>교육 API와 개발 샘플</td></tr>
-      <tr><td><code>bizadm</code></td><td>CPF 적용 프로젝트에서 업무/프로젝트 관리자 화면을 구현하는 별도 샘플 모듈</td></tr>
-      <tr><td><code>exs</code></td><td>대외기관, 채널, endpoint, 인증, 라우팅, 대외 거래/전문 로그를 다루는 대외 연계 샘플 모듈</td></tr>
+      <tr><td><code>bizadm</code></td><td>CPF 적용 프로젝트에서 업무/프로젝트 관리자 화면을 구현하는 별도 운영 기본 모듈</td></tr>
+      <tr><td><code>exs</code></td><td>대외기관, 채널, endpoint, 인증, 라우팅, 대외 거래/전문 로그를 다루는 대외 연계 기본 모듈</td></tr>
     </table>
   </section>
 
@@ -54,7 +54,7 @@
       <tr><td><code>admDB</code></td><td>운영자, 역할, 메뉴, 세션, 감사 로그, 동적 로그레벨 룰</td></tr>
       <tr><td><code>accDB</code></td><td><code>acc_account</code></td></tr>
       <tr><td><code>mbrDB</code></td><td><code>mbr_member</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td></tr>
-      <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code>, <code>bizadm_menu_sample</code>, <code>bizadm_permission_sample</code>, <code>bizadm_customer</code>, <code>bizadm_order</code></td></tr>
+      <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code>, <code>bizadm_menu</code>, <code>bizadm_permission</code>, <code>bizadm_customer</code>, <code>bizadm_order</code></td></tr>
       <tr><td><code>exsDB</code></td><td><code>exs_institution</code>, <code>exs_endpoint</code>, <code>exs_auth_profile</code>, <code>exs_token_store</code>, <code>exs_token_event_history</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code></td></tr>
     </table>
   </section>

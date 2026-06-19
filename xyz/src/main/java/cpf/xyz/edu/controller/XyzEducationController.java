@@ -38,8 +38,11 @@ public class XyzEducationController {
                         Map.of("name", "Batch", "apis", List.of(
                                 "POST /xyz/edu/batch/tasklet/run",
                                 "POST /xyz/edu/batch/chunk/run",
+                                "POST /xyz/edu/batch/retry/run",
                                 "GET /xyz/edu/batch/retry-policy",
+                                "GET /xyz/edu/batch/lock-policy",
                                 "GET /xyz/edu/batch/checkpoint-restart",
-                                "GET /xyz/edu/batch/adm-link")))));
+                                "GET /xyz/edu/batch/adm-link",
+                                "GET /xyz/edu/batch/schedule-policy")))));
     }
 }

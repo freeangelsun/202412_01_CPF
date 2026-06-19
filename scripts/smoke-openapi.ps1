@@ -72,7 +72,7 @@ if (-not $SkipXyz) {
 if (-not $SkipBizAdm) {
     Invoke-JsonSmoke -BaseUrl $BizAdmBaseUrl -RequiredTags @(
         "BIZADM-Auth",
-        "BIZADM-Sample"
+        "BIZADM-Operations"
     )
 }
 

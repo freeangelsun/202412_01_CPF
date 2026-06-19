@@ -1,15 +1,13 @@
 package cpf.adm.opr.service;
 
 import cpf.cmn.utils.TextUtils;
+import cpf.pfw.common.batch.CpfBatchExecutionRequest;
+import cpf.pfw.common.batch.CpfBatchExecutionResult;
+import cpf.pfw.common.batch.CpfBatchLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -25,30 +23,24 @@ import java.util.Map;
 /**
  * PFW 배치 운영 메타와 Spring Batch 실행 기능을 연결합니다.
  *
- * <p>실제 Spring Batch Job bean이 있으면 JobLauncher와 JobOperator로 실행, 재시작, 중지를 수행합니다.
- * 로컬 교육 환경처럼 Job bean이 없는 경우에도 ADM 운영 메타 테이블에는 요청 이력을 남겨 화면 검증이 가능하게 합니다.</p>
+ * <p>실행, 재수행, 중지는 PFW 공통 {@link CpfBatchLauncher}를 통해 처리합니다.
+ * ADM은 운영자가 보는 조회, 영업일, 관계, 수행 대상, 감사 연결 기능을 담당합니다.</p>
  */
 @Service
 public class AdmBatchOperationService {
     private static final Logger log = LoggerFactory.getLogger(AdmBatchOperationService.class);
 
     private final JdbcTemplate pfwJdbcTemplate;
-    private final JobLauncher jobLauncher;
+    private final CpfBatchLauncher batchLauncher;
     private final JobExplorer jobExplorer;
-    private final JobOperator jobOperator;
-    private final Map<String, Job> jobs;
 
     public AdmBatchOperationService(
             @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
-            ObjectProvider<JobLauncher> jobLauncherProvider,
-            ObjectProvider<JobExplorer> jobExplorerProvider,
-            ObjectProvider<JobOperator> jobOperatorProvider,
-            ObjectProvider<Map<String, Job>> jobsProvider) {
+            CpfBatchLauncher batchLauncher,
+            ObjectProvider<JobExplorer> jobExplorerProvider) {
         this.pfwJdbcTemplate = pfwJdbcTemplate;
-        this.jobLauncher = jobLauncherProvider.getIfAvailable();
+        this.batchLauncher = batchLauncher;
         this.jobExplorer = jobExplorerProvider.getIfAvailable();
-        this.jobOperator = jobOperatorProvider.getIfAvailable();
-        this.jobs = jobsProvider.getIfAvailable(Map::of);
     }
 
     public List<Map<String, Object>> findJobs() {
@@ -292,25 +284,9 @@ public class AdmBatchOperationService {
     }
 
     public Map<String, Object> requestRun(String jobId, String jobParameters, String requestUser, String reason) {
-        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
-        Job job = resolveJob(jobId);
-        if (job != null && jobLauncher != null) {
-            try {
-                JobExecution jobExecution = jobLauncher.run(job, toJobParameters(jobParameters, user));
-                long executionId = insertExecution(jobId, null, jobParameters, jobExecution.getStatus().name(), user,
-                        jobExecution.getId(), null, null);
-                recordOperation(jobId, executionId, "RUN", user, reason, null,
-                        "SPRING_BATCH_EXECUTION_ID=" + jobExecution.getId());
-                return findExecutionDetail(executionId);
-            } catch (Exception ex) {
-                long executionId = insertExecution(jobId, null, jobParameters, "FAILED", user, null, null, ex.getMessage());
-                recordOperation(jobId, executionId, "RUN_FAILED", user, reason, null, ex.getMessage());
-                return findExecutionDetail(executionId);
-            }
-        }
-        long executionId = insertExecution(jobId, null, jobParameters, "REQUESTED", user, null, null, null);
-        recordOperation(jobId, executionId, "RUN", user, reason, null, "REQUESTED");
-        return findExecution(executionId);
+        CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.run(
+                jobId, jobParameters, requestUser, reason));
+        return toAdmExecutionResult(result);
     }
 
     public Map<String, Object> requestScheduledRun(
@@ -319,73 +295,36 @@ public class AdmBatchOperationService {
             String jobParameters,
             String requestUser,
             String reason) {
-        String user = TextUtils.defaultIfBlank(requestUser, "PfwBatchScheduler");
-        Job job = resolveJob(jobId);
-        if (job != null && jobLauncher != null) {
-            try {
-                JobExecution jobExecution = jobLauncher.run(job, toJobParameters(jobParameters, user));
-                long executionId = insertExecution(jobId, scheduleId, jobParameters, jobExecution.getStatus().name(), user,
-                        jobExecution.getId(), null, null);
-                recordOperation(jobId, executionId, "SCHEDULE_RUN", user, reason, null,
-                        "SCHEDULE_ID=" + scheduleId + ", SPRING_BATCH_EXECUTION_ID=" + jobExecution.getId());
-                return findExecutionDetail(executionId);
-            } catch (Exception ex) {
-                long executionId = insertExecution(jobId, scheduleId, jobParameters, "FAILED", user, null, null, ex.getMessage());
-                recordOperation(jobId, executionId, "SCHEDULE_RUN_FAILED", user, reason, null, ex.getMessage());
-                return findExecutionDetail(executionId);
-            }
-        }
-        long executionId = insertExecution(jobId, scheduleId, jobParameters, "REQUESTED", user, null, null, null);
-        recordOperation(jobId, executionId, "SCHEDULE_RUN", user, reason, null, "REQUESTED");
-        return findExecution(executionId);
+        CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.scheduledRun(
+                scheduleId, jobId, jobParameters, requestUser, reason));
+        return toAdmExecutionResult(result);
     }
 
     public Map<String, Object> requestRetry(long executionId, String requestUser, String reason) {
-        Map<String, Object> source = findExecution(executionId);
-        String jobId = String.valueOf(source.get("job_id"));
-        String jobParameters = String.valueOf(source.get("job_parameters"));
-        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
-
-        Object springExecutionId = source.get("spring_batch_execution_id");
-        if (jobOperator != null && springExecutionId != null) {
-            try {
-                long restartedId = jobOperator.restart(Long.parseLong(String.valueOf(springExecutionId)));
-                long retryExecutionId = insertExecution(jobId, null, jobParameters, "RESTARTED", user, restartedId, null, null);
-                recordOperation(jobId, retryExecutionId, "RETRY", user, reason, String.valueOf(source),
-                        "SPRING_BATCH_EXECUTION_ID=" + restartedId);
-                return findExecutionDetail(retryExecutionId);
-            } catch (Exception ex) {
-                log.warn("Spring Batch 재시작에 실패했습니다. executionId={}, message={}", executionId, ex.getMessage());
-            }
-        }
-
-        long retryExecutionId = insertExecution(jobId, null, jobParameters, "REQUESTED", user, null, null, null);
-        recordOperation(jobId, retryExecutionId, "RETRY", user, reason, String.valueOf(source), "REQUESTED");
-        return findExecution(retryExecutionId);
+        CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.retry(
+                executionId, requestUser, reason));
+        return toAdmExecutionResult(result);
     }
 
     public Map<String, Object> requestStop(long executionId, String requestUser, String reason) {
-        Map<String, Object> before = findExecution(executionId);
-        Object springExecutionId = before.get("spring_batch_execution_id");
-        if (jobOperator != null && springExecutionId != null) {
-            try {
-                jobOperator.stop(Long.parseLong(String.valueOf(springExecutionId)));
-            } catch (Exception ex) {
-                log.warn("Spring Batch 중지 요청에 실패했습니다. executionId={}, message={}", executionId, ex.getMessage());
-            }
+        CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.stop(
+                executionId, requestUser, reason));
+        return toAdmExecutionResult(result);
+    }
+
+    private Map<String, Object> toAdmExecutionResult(CpfBatchExecutionResult result) {
+        if (result.pfwExecutionId() != null && result.pfwExecutionId() > 0) {
+            return findExecutionDetail(result.pfwExecutionId());
         }
-        pfwJdbcTemplate.update("""
-                UPDATE pfw_batch_execution
-                SET execution_status = 'STOPPING',
-                    updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE execution_id = ?
-                  AND execution_status IN ('STARTING', 'STARTED', 'REQUESTED', 'RESTARTED')
-                """, TextUtils.defaultIfBlank(requestUser, "ADM"), executionId);
-        Map<String, Object> after = findExecution(executionId);
-        recordOperation(String.valueOf(after.get("job_id")), executionId, "STOP",
-                TextUtils.defaultIfBlank(requestUser, "ADM"), reason, String.valueOf(before), String.valueOf(after));
-        return after;
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("executed", result.executed());
+        response.put("jobId", result.jobId());
+        response.put("executionId", result.pfwExecutionId());
+        response.put("springBatchExecutionId", result.springBatchExecutionId());
+        response.put("status", result.status());
+        response.put("message", result.message());
+        response.put("detail", result.detail());
+        return response;
     }
 
     public Map<String, Object> updateScheduleEnabled(String scheduleId, boolean enabled, String requestUser, String reason) {
@@ -401,29 +340,6 @@ public class AdmBatchOperationService {
         recordOperation(String.valueOf(after.get("job_id")), null, enabled ? "SCHEDULE_ENABLE" : "SCHEDULE_DISABLE",
                 TextUtils.defaultIfBlank(requestUser, "ADM"), reason, String.valueOf(before), String.valueOf(after));
         return after;
-    }
-
-    private long insertExecution(
-            String jobId,
-            String scheduleId,
-            String jobParameters,
-            String status,
-            String requestUser,
-            Long springBatchExecutionId,
-            String batchInstanceId,
-            String errorMessage) {
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_batch_execution (
-                    job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
-                    batch_instance_id, error_message, requested_by, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, jobId, scheduleId, TextUtils.defaultIfBlank(jobParameters, "{}"), status,
-                springBatchExecutionId, batchInstanceId, errorMessage, requestUser, requestUser, requestUser);
-        Long executionId = pfwJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        if (executionId == null) {
-            throw new IllegalStateException("배치 실행 요청 ID를 확인할 수 없습니다.");
-        }
-        return executionId;
     }
 
     private Map<String, Object> findExecution(long executionId) {
@@ -547,28 +463,6 @@ public class AdmBatchOperationService {
             log.debug("Spring Batch 실행 상세를 조회할 수 없습니다. reason={}", ex.getMessage());
             return null;
         }
-    }
-
-    private Job resolveJob(String jobId) {
-        if (!TextUtils.hasText(jobId) || jobs.isEmpty()) {
-            return null;
-        }
-        Job direct = jobs.get(jobId);
-        if (direct != null) {
-            return direct;
-        }
-        return jobs.values().stream()
-                .filter(job -> jobId.equals(job.getName()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private JobParameters toJobParameters(String jobParameters, String requestUser) {
-        return new JobParametersBuilder()
-                .addString("admJobParameters", TextUtils.defaultIfBlank(jobParameters, "{}"))
-                .addString("requestUser", TextUtils.defaultIfBlank(requestUser, "ADM"))
-                .addLong("requestTime", System.currentTimeMillis())
-                .toJobParameters();
     }
 
     private List<Map<String, Object>> queryOrEmpty(String sql, Object... args) {

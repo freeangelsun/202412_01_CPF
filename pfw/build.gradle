@@ -35,6 +35,9 @@ dependencies {
 	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
 	api 'org.springframework.boot:spring-boot-starter-webflux'
 
+	// CPF 표준 배치 API 컴파일에만 사용합니다. 실제 Batch 런타임은 ADM/XYZ/BAT 같은 배치 사용 모듈이 명시합니다.
+	compileOnly 'org.springframework.batch:spring-batch-core'
+
 	// 프레임워크 필터, 인터셉터, 검증 기능에 필요한 표준 의존성입니다.
 	api 'org.springframework.boot:spring-boot-starter-validation'
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'

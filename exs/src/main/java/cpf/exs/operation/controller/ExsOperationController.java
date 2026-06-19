@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * EXS 대외 연계 운영 API입니다.
+ * EXS 대외 연계 운영 조작 API입니다.
  *
- * <p>이 API는 sample 패키지가 아닌 EXS 운영 기능 그룹에 속합니다. token, 통제 정책, 재처리 요청은
- * exsDB에 영속화되며 원문 token은 저장하거나 반환하지 않습니다.</p>
+ * <p>이 API는 sample 패키지가 아닌 EXS 운영 기능 그룹에 속합니다.
+ * token, 통제 정책, 재처리 요청은 exsDB에 영속화되며 원문 token은 저장하거나 반환하지 않습니다.</p>
  */
 @RestController
 @RequestMapping("/api/exs/operations")

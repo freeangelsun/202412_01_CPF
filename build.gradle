@@ -151,13 +151,13 @@ tasks.register('checkSqlStandard', Exec) {
 
 tasks.register('checkJavaFormat', Exec) {
     group = 'verification'
-    description = '주요 Java 소스의 최소 포맷 기준과 비정상 장문 라인을 검사합니다.'
+    description = '주요 Java 소스의 최소 포맷 기준과 비정상 문자열 라인을 검사합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
 }
 
 tasks.register('checkHtmlDocs', Exec) {
     group = 'verification'
-    description = 'specs HTML 문서가 실제 HTML 구조이며 Markdown 잔재가 없는지 검사합니다.'
+    description = 'specs HTML 문서가 실제 HTML 구조이고 Markdown 잔재가 없는지 검사합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-html-docs.ps1'
 }
 
@@ -175,7 +175,7 @@ tasks.register('checkSecuritySeedStandard', Exec) {
 
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
-    description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 품질을 smoke 검증합니다.'
+    description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 스키마를 smoke 검증합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-openapi.ps1'
 }
 

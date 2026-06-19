@@ -43,5 +43,47 @@ public final class MaskingUtils {
         }
         return trimmed.charAt(0) + "*".repeat(trimmed.length() - 2) + trimmed.charAt(trimmed.length() - 1);
     }
+
+    /**
+     * 이메일 local-part의 뒤쪽을 마스킹합니다.
+     *
+     * @param email 이메일
+     * @return 마스킹된 이메일
+     */
+    public static String maskEmail(String email) {
+        if (!TextUtils.hasText(email)) {
+            return "";
+        }
+        String trimmed = email.trim();
+        int atIndex = trimmed.indexOf('@');
+        if (atIndex <= 1) {
+            return "***" + (atIndex >= 0 ? trimmed.substring(atIndex) : "");
+        }
+        String localPart = trimmed.substring(0, atIndex);
+        String domain = trimmed.substring(atIndex);
+        int visibleLength = Math.min(2, localPart.length());
+        return localPart.substring(0, visibleLength) + "****" + domain;
+    }
+
+    /**
+     * 휴대폰 번호의 가운데 영역을 마스킹합니다.
+     *
+     * @param mobileNo 휴대폰 번호
+     * @return 마스킹된 휴대폰 번호
+     */
+    public static String maskMobile(String mobileNo) {
+        if (!TextUtils.hasText(mobileNo)) {
+            return "";
+        }
+        String trimmed = mobileNo.trim();
+        if (trimmed.length() <= 4) {
+            return "****";
+        }
+        String digits = trimmed.replaceAll("[^0-9]", "");
+        if (digits.length() >= 10) {
+            return digits.substring(0, 3) + "-****-" + digits.substring(digits.length() - 4);
+        }
+        return trimmed.substring(0, Math.min(2, trimmed.length())) + "****" + trimmed.substring(trimmed.length() - 2);
+    }
 }
 

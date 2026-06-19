@@ -43,10 +43,10 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     PRIMARY KEY (admin_user_id),
     UNIQUE KEY uk_bizadm_admin_user_login (admin_login_id),
     INDEX ix_bizadm_admin_user_role (role_code, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 사용자 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 사용자';
 
-CREATE TABLE IF NOT EXISTS bizadm_menu_sample (
-    menu_sample_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 샘플 순번',
+CREATE TABLE IF NOT EXISTS bizadm_menu (
+    menu_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 순번',
     menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
     menu_name VARCHAR(120) NOT NULL COMMENT '업무 메뉴명',
     api_path VARCHAR(300) NULL COMMENT '연결 API 경로',
@@ -56,12 +56,12 @@ CREATE TABLE IF NOT EXISTS bizadm_menu_sample (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (menu_sample_id),
-    UNIQUE KEY uk_bizadm_menu_sample_code (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 메뉴 샘플';
+    PRIMARY KEY (menu_id),
+    UNIQUE KEY uk_bizadm_menu_code (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 메뉴';
 
-CREATE TABLE IF NOT EXISTS bizadm_role_sample (
-    role_sample_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 역할 샘플 순번',
+CREATE TABLE IF NOT EXISTS bizadm_role (
+    role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 역할 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
     role_name VARCHAR(120) NOT NULL COMMENT '업무 역할명',
     write_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '쓰기 허용 여부',
@@ -70,12 +70,12 @@ CREATE TABLE IF NOT EXISTS bizadm_role_sample (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (role_sample_id),
-    UNIQUE KEY uk_bizadm_role_sample_code (role_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 역할 샘플';
+    PRIMARY KEY (role_id),
+    UNIQUE KEY uk_bizadm_role_code (role_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 역할';
 
-CREATE TABLE IF NOT EXISTS bizadm_permission_sample (
-    permission_sample_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 샘플 순번',
+CREATE TABLE IF NOT EXISTS bizadm_permission (
+    permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
     menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
     button_code VARCHAR(80) NOT NULL COMMENT '버튼/행위 코드',
@@ -84,10 +84,10 @@ CREATE TABLE IF NOT EXISTS bizadm_permission_sample (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (permission_sample_id),
-    UNIQUE KEY uk_bizadm_permission_sample (role_code, menu_code, button_code),
-    INDEX ix_bizadm_permission_sample_menu (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 권한 샘플';
+    PRIMARY KEY (permission_id),
+    UNIQUE KEY uk_bizadm_permission (role_code, menu_code, button_code),
+    INDEX ix_bizadm_permission_menu (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 권한';
 
 CREATE TABLE IF NOT EXISTS bizadm_customer (
     customer_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고객 샘플 순번',
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS bizadm_customer (
     PRIMARY KEY (customer_id),
     UNIQUE KEY uk_bizadm_customer_no (customer_no),
     INDEX ix_bizadm_customer_status (customer_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 고객 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 고객';
 
 CREATE TABLE IF NOT EXISTS bizadm_product (
     product_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '상품 샘플 순번',
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS bizadm_product (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (product_id),
     UNIQUE KEY uk_bizadm_product_code (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 상품 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 상품';
 
 CREATE TABLE IF NOT EXISTS bizadm_order (
     order_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '주문 샘플 순번',
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS bizadm_order (
     UNIQUE KEY uk_bizadm_order_no (order_no),
     INDEX ix_bizadm_order_customer (customer_no),
     INDEX ix_bizadm_order_product (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 주문 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 주문';
 
 CREATE TABLE IF NOT EXISTS bizadm_project_setting (
     setting_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 설정 순번',
@@ -147,9 +147,9 @@ CREATE TABLE IF NOT EXISTS bizadm_project_setting (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (setting_id),
     UNIQUE KEY uk_bizadm_project_setting_key (setting_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 프로젝트 설정 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 프로젝트 설정';
 
-CREATE TABLE IF NOT EXISTS bizadm_masking_audit_sample (
+CREATE TABLE IF NOT EXISTS bizadm_masking_audit (
     masking_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '마스킹 감사 샘플 순번',
     target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
     target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS bizadm_masking_audit_sample (
     PRIMARY KEY (masking_audit_id),
     INDEX ix_bizadm_masking_audit_target (target_type, target_id, created_at),
     INDEX ix_bizadm_masking_audit_operator (operator_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 마스킹 감사 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 마스킹 감사';
 
 USE exsDB;
 

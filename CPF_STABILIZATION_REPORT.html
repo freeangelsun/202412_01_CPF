@@ -19,212 +19,120 @@
 </head>
 <body>
 <main>
-  <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>작성일: 2026-06-19</p>
-    <p>요청서 파일은 확인용으로만 읽었고 작업 대상에서 제외했습니다. commit, push, branch 생성은 수행하지 않았습니다.</p>
-  </section>
+  <h1>CPF 안정화 작업 리포트</h1>
+  <p class="note">작성일: 2026-06-19 KST. 신규 요청 파일은 확인용으로만 사용했고 수정하지 않았습니다. 비밀번호와 secret 값은 리포트에 기록하지 않았습니다.</p>
 
   <section>
-    <h2>소스 기준 확인</h2>
-    <table>
-      <tr><th>항목</th><th>결과</th></tr>
-      <tr><td>브랜치</td><td><code>master</code></td></tr>
-      <tr><td>local HEAD</td><td><code>71dc08474b34fa9e498254f587e61c36b9a6ba94</code></td></tr>
-      <tr><td>origin/master HEAD</td><td><code>71dc08474b34fa9e498254f587e61c36b9a6ba94</code></td></tr>
-      <tr><td>원격 fetch</td><td class="unchecked">미검증. 네트워크 fetch는 실행하지 않았습니다.</td></tr>
-      <tr><td>루트 산출물</td><td>안정화 HTML 리포트만 존재합니다. 별도 수정파일 목록 산출물은 생성하지 않았습니다.</td></tr>
-      <tr><td>작업 전 상태</td><td>요청서 파일만 수정 상태였습니다. 해당 파일은 작업 대상에서 제외했습니다.</td></tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>수행 작업</h2>
-    <table>
-      <tr><th>구분</th><th>내용</th><th>판정</th></tr>
-      <tr>
-        <td>ADM 화면 wrapper</td>
-        <td>ADM 정적 화면과 스크립트에 BIZADM 업무관리 wrapper, EXS 대외연계 wrapper를 추가했습니다.</td>
-        <td class="partial">일부 구현</td>
-      </tr>
-      <tr>
-        <td>ADM UI smoke</td>
-        <td>정적 smoke 기준에 BIZADM, EXS, 관련 API marker를 추가해 화면 연결 누락을 잡도록 보강했습니다.</td>
-        <td class="ok">완료</td>
-      </tr>
-      <tr>
-        <td>OpenAPI smoke</td>
-        <td>ADM, MBR, XYZ, BIZADM, EXS 서비스별 필수 Swagger tag를 검사할 수 있게 스크립트를 확장했습니다.</td>
-        <td class="partial">일부 구현</td>
-      </tr>
-      <tr>
-        <td>기능 구현 매트릭스</td>
-        <td>요청서의 필수 컬럼을 모두 포함하는 HTML table 검수표로 재작성했습니다.</td>
-        <td class="ok">완료</td>
-      </tr>
-      <tr>
-        <td>EDU 샘플 설명</td>
-        <td>동적 로그, 예외, 파일 연계, 서비스 호출 EDU API의 임시 문구를 실제 한글 설명으로 정리했습니다.</td>
-        <td class="ok">완료</td>
-      </tr>
-      <tr>
-        <td>문서 현행화</td>
-        <td>개발 가이드와 관리자 가이드에서 BIZADM/EXS wrapper 현황과 미검증 범위를 현재 소스 기준으로 갱신했습니다.</td>
-        <td class="ok">완료</td>
-      </tr>
-    </table>
-  </section>
-
-  <section>
-    <h2>요청사항별 증적</h2>
+    <h2>1. 작업 기준과 재확인</h2>
     <div class="wide">
       <table>
-        <thead>
-        <tr>
-          <th>요청 ID</th>
-          <th>요청사항</th>
-          <th>변경 파일</th>
-          <th>검증 방법</th>
-          <th>예상 정상 결과</th>
-          <th>실제 결과</th>
-          <th>증적</th>
-          <th>판정</th>
-          <th>미검증/실패 사유</th>
-          <th>잔여 과제</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td>REQ-001</td>
-          <td>루트 안정화 리포트 HTML화</td>
-          <td><code>CPF_STABILIZATION_REPORT.html</code></td>
-          <td><code>scripts/check-html-docs.ps1</code></td>
-          <td>HTML 구조와 필수 section 존재, Markdown 잔재 없음</td>
-          <td>성공</td>
-          <td>check-html-docs 성공</td>
-          <td class="ok">완료</td>
-          <td>없음</td>
-          <td>기능 추가 시 리포트 재작성</td>
-        </tr>
-        <tr>
-          <td>REQ-002</td>
-          <td>BIZADM/EXS ADM 화면 wrapper 보강</td>
-          <td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm/src/main/resources/static/adm/adm.js</code></td>
-          <td><code>scripts/smoke-adm-ui.ps1</code></td>
-          <td>BIZADM/EXS 메뉴와 API wrapper marker 검출</td>
-          <td>성공</td>
-          <td>ADM UI smoke check passed.</td>
-          <td class="partial">일부 구현</td>
-          <td>브라우저 클릭은 수행하지 않음</td>
-          <td>업무별 전용 화면, 권한별 비활성 사유 UX 보강</td>
-        </tr>
-        <tr>
-          <td>REQ-003</td>
-          <td>OpenAPI smoke 전 모듈 확장</td>
-          <td><code>scripts/smoke-openapi.ps1</code></td>
-          <td>PowerShell scriptblock parse, 앱 기동 후 HTTP smoke 후보</td>
-          <td>ADM, MBR, XYZ, BIZADM, EXS tag 검사 가능</td>
-          <td>스크립트 문법 검증 성공, HTTP smoke 미실행</td>
-          <td>smoke-openapi syntax passed.</td>
-          <td class="partial">일부 구현</td>
-          <td>서비스를 기동하지 않아 HTTP 응답은 미검증</td>
-          <td>runLocalServices 이후 실제 URL 검사</td>
-        </tr>
-        <tr>
-          <td>REQ-004</td>
-          <td>기능 구현 매트릭스 필수 컬럼 보강</td>
-          <td><code>specs/기능_구현_매트릭스.html</code></td>
-          <td><code>check-html-docs.ps1</code>, 컬럼 직접 검색</td>
-          <td>대분류, 기능명, 상태, 소스, API, 화면, DB, Swagger, EDU, 검증 결과 포함</td>
-          <td>성공</td>
-          <td>필수 컬럼 검색 성공</td>
-          <td class="ok">완료</td>
-          <td>없음</td>
-          <td>실 DB/브라우저 검증 완료 시 상태 재조정</td>
-        </tr>
-        <tr>
-          <td>REQ-005</td>
-          <td>EDU 문구와 Swagger 설명 정리</td>
-          <td><code>xyz/src/main/java/cpf/xyz/edu/controller</code> 하위 4개 controller</td>
-          <td><code>rg "CPF 처리 기준입니다"</code>, compile</td>
-          <td>임시 문구 제거, 한글 설명 반영</td>
-          <td>성공</td>
-          <td>임시 문구 검색 결과 없음, compileJava 성공</td>
-          <td class="ok">완료</td>
-          <td>없음</td>
-          <td>남은 영어 설명은 별도 문구 정비 후보</td>
-        </tr>
-        <tr>
-          <td>REQ-006</td>
-          <td>MariaDB 설치 SQL 실실행</td>
-          <td>변경 없음</td>
-          <td><code>mysql --version</code></td>
-          <td>MariaDB client 확인 후 설치 SQL 실행</td>
-          <td>client 명령을 찾지 못함</td>
-          <td>mysql command not found</td>
-          <td class="unchecked">미검증</td>
-          <td>로컬 PATH에서 MariaDB client를 찾을 수 없음</td>
-          <td>client 경로 지정 후 별도 DB에서 smoke 실행</td>
-        </tr>
-        <tr>
-          <td>REQ-007</td>
-          <td>Node 기반 ADM 스크립트 문법 검사</td>
-          <td>변경 없음</td>
-          <td><code>node --check adm/src/main/resources/static/adm/adm.js</code></td>
-          <td>JavaScript syntax 통과</td>
-          <td>node 명령을 찾지 못함</td>
-          <td>node command not found</td>
-          <td class="unchecked">미검증</td>
-          <td>로컬 PATH에 Node 실행 파일 없음</td>
-          <td>Node 설치 또는 브라우저 smoke 추가</td>
-        </tr>
-        </tbody>
+        <tr><th>항목</th><th>결과</th></tr>
+        <tr><td>요청 기준</td><td>신규 요청 파일의 “구현하지 않은 것을 완료로 보고하지 말 것”, “요청 파일 수정 금지”, “리포트만 생성” 기준을 적용했습니다.</td></tr>
+        <tr><td>기존 변경 보존</td><td>이전 요청 파일 삭제 상태와 신규 요청 파일 untracked 상태는 사용자 변경으로 보고 건드리지 않았습니다.</td></tr>
+        <tr><td>현행 표준 확인</td><td>PFW/CMN/ADM/ACC/MBR/BIZADM/EXS/XYZ 모듈 구조, <code>specs/sql</code>, 품질 gate, ADM 정적 UI smoke, MariaDB 설치 SQL을 기준으로 검증했습니다.</td></tr>
       </table>
     </div>
   </section>
 
   <section>
-    <h2>검증 명령 결과</h2>
-    <table>
-      <tr><th>명령</th><th>실행 여부</th><th>결과</th><th>요약</th></tr>
-      <tr><td><code>.\gradlew.bat compileJava --offline</code></td><td>실행</td><td class="ok">성공</td><td>BUILD SUCCESSFUL</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td>실행</td><td class="ok">성공</td><td>BUILD SUCCESSFUL</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td>실행</td><td class="ok">성공</td><td>HTML, Java format, legacy name, UTF-8, mojibake, 보안 seed, SQL, transaction ID 검사 통과</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td>실행</td><td class="ok">성공</td><td>HTML docs check passed.</td></tr>
-      <tr><td><code>scripts/check-java-format.ps1</code></td><td>실행</td><td class="ok">성공</td><td>Java format check passed.</td></tr>
-      <tr><td><code>scripts/check-legacy-name.ps1</code></td><td>실행</td><td class="ok">성공</td><td>Legacy name marker check passed.</td></tr>
-      <tr><td><code>scripts/check-security-seed-standard.ps1</code></td><td>실행</td><td class="ok">성공</td><td>Security seed standard check passed.</td></tr>
-      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td>실행</td><td class="ok">성공</td><td>SQL standard check passed.</td></tr>
-      <tr><td><code>scripts/check-transaction-id-standard.ps1</code></td><td>실행</td><td class="ok">성공</td><td>Transaction ID standard check passed.</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>실행</td><td class="ok">성공</td><td>UTF-8 check passed.</td></tr>
-      <tr><td><code>scripts/smoke-adm-ui.ps1</code></td><td>실행</td><td class="ok">성공</td><td>ADM UI smoke check passed.</td></tr>
-      <tr><td><code>scripts/smoke-openapi.ps1</code></td><td>문법 확인만 실행</td><td class="unchecked">미검증</td><td>앱을 기동하지 않아 HTTP smoke는 실행하지 않음</td></tr>
-      <tr><td><code>node --check</code></td><td>실행 시도</td><td class="unchecked">미검증</td><td>node 명령 없음</td></tr>
-      <tr><td>MariaDB smoke</td><td>실행 시도 전 client 확인</td><td class="unchecked">미검증</td><td>mysql client 명령 없음</td></tr>
-    </table>
+    <h2>2. 구현 완료</h2>
+    <div class="wide">
+      <table>
+        <tr><th>영역</th><th>반영 내용</th><th>증적</th></tr>
+        <tr>
+          <td>PFW 배치 공통 API</td>
+          <td>Spring Batch 실행을 각 모듈이 직접 호출하지 않도록 <code>cpf.pfw.common.batch</code>에 공통 Facade, 실행 요청/결과 DTO, 이벤트, 잠금, 운영 저장소를 추가했습니다. Batch 의존성은 <code>compileOnly</code>와 조건부 자동구성으로 분리해 비배치 모듈에 BatchAutoConfiguration이 전파되지 않게 했습니다.</td>
+          <td><code>CpfBatchLauncher</code>, <code>CpfBatchAutoConfiguration</code>, <code>AutoConfiguration.imports</code></td>
+        </tr>
+        <tr>
+          <td>ADM 배치 운영 연동</td>
+          <td>ADM 배치 실행/재수행/중지 요청은 PFW 공통 <code>CpfBatchLauncher</code>를 사용하도록 정리했고, 스케줄러 잠금은 PFW 공통 <code>CpfBatchLockManager</code>로 통합했습니다.</td>
+          <td><code>AdmBatchOperationService</code>, <code>PfwBatchScheduler</code></td>
+        </tr>
+        <tr>
+          <td>XYZ 배치 EDU</td>
+          <td>교육용 배치 실행 컨트롤러가 직접 <code>JobLauncher</code>를 호출하지 않고 PFW 배치 공통 API를 사용하도록 재작성했습니다. Tasklet/Chunk/Retry/Lock/Restart/ADM 연동 안내 API를 유지했습니다.</td>
+          <td><code>XyzBatchEducationController</code>, <code>XyzEducationController</code></td>
+        </tr>
+        <tr>
+          <td>BIZADM 운영 API</td>
+          <td>하드코딩 샘플 중심 응답을 운영 DB 기반 조회로 전환했습니다. 기존 <code>/api/bizadm/sample</code> 경로는 호환용 래퍼로 유지하되 운영 서비스에 위임합니다.</td>
+          <td><code>BizAdmOperationController</code>, <code>BizAdmOperationService</code>, <code>BizAdmOperationRepository</code></td>
+        </tr>
+        <tr>
+          <td>EXS 운영 API</td>
+          <td>대외기관, 채널, endpoint, 인증 프로파일, token, 라우팅, 거래/전문 로그, 통제 정책, 재처리 API를 DB 기반 운영 기능으로 정리했습니다. 기존 sample 경로도 운영 서비스 위임으로 바꾸고 하드코딩 서비스는 제거했습니다.</td>
+          <td><code>ExsAdminOperationController</code>, <code>ExsOperationController</code>, <code>ExsOperationService</code>, <code>ExsOperationRepository</code></td>
+        </tr>
+        <tr>
+          <td>SQL/Flyway/문서 동기화</td>
+          <td>BIZADM 테이블의 <code>_sample</code> suffix를 제거하고 설치 SQL, smoke SQL, Flyway baseline/증분, SQL 가이드와 기능 매트릭스를 같은 이름으로 맞췄습니다.</td>
+          <td><code>bizadm_menu</code>, <code>bizadm_role</code>, <code>bizadm_permission</code>, <code>bizadm_masking_audit</code></td>
+        </tr>
+        <tr>
+          <td>UTF-8/mojibake 정리</td>
+          <td>새로 손댄 Java/Gradle/리포트의 깨진 한글을 정상 문장으로 복구했고, <code>check-utf8.ps1</code>의 BOM 및 mojibake 탐지 패턴을 강화했습니다.</td>
+          <td><code>build.gradle</code>, <code>CmnCoderController</code>, BIZADM/EXS 운영 코드, <code>scripts/check-utf8.ps1</code></td>
+        </tr>
+      </table>
+    </div>
   </section>
 
   <section>
-    <h2>남은 리스크</h2>
+    <h2>3. MariaDB 실검증</h2>
+    <div class="wide">
+      <table>
+        <tr><th>검증</th><th>상태</th><th>결과</th></tr>
+        <tr><td>MariaDB 접속</td><td class="ok">성공</td><td>로컬 MariaDB 12.3.2 접속 확인. 접속 비밀번호는 기록하지 않음.</td></tr>
+        <tr><td><code>00_all_install_and_smoke.sql</code> 실행</td><td class="ok">성공</td><td>파일 리다이렉션 방식으로 실행 성공. PowerShell 문자열 파이프 방식은 한글 seed가 깨질 수 있어 사용하지 않는 것으로 정리.</td></tr>
+        <tr><td>거래일자/거래 ID 검증</td><td class="ok">성공</td><td><code>transaction_log_date_mismatch_count = 0</code>. 샘플 거래 ID 앞 8자리와 로그일자/시작일자가 일치함.</td></tr>
+        <tr><td>Spring Batch/CPF 배치 테이블</td><td class="ok">성공</td><td><code>BATCH_*</code> JobRepository 테이블과 <code>pfw_batch_*</code> 운영 메타 테이블 생성 확인.</td></tr>
+        <tr><td>FK/index 확인</td><td class="ok">성공</td><td>FK: ADM 10, BIZADM 2, CMN 1, MBR 4, PFW 18. Index: ACC 4, ADM 69, BIZADM 56, CMN 28, EXS 45, MBR 34, PFW 143.</td></tr>
+        <tr><td>seed 재실행</td><td class="ok">성공</td><td><code>50_framework_seed_data.sql</code>, <code>55_cmn_seed_data.sql</code>, <code>60_adm_seed_data.sql</code>, <code>70_test_data.sql</code> 재실행 오류 없음.</td></tr>
+        <tr><td>DB 권한 분리</td><td class="ok">성공</td><td><code>cpf_*_app</code> 계정은 DML 권한, <code>cpf_*_migration</code> 계정은 DDL 포함 권한으로 생성 확인. 권한 hash/secret은 기록하지 않음.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. 검증 결과</h2>
+    <div class="wide">
+      <table>
+        <tr><th>명령</th><th>상태</th><th>비고</th></tr>
+        <tr><td><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :acc:compileJava :adm:compileJava :xyz:compileJava :bizadm:compileJava :exs:compileJava --offline</code></td><td class="ok">성공</td><td>전체 주요 모듈 컴파일 확인.</td></tr>
+        <tr><td><code>.\gradlew.bat :bizadm:compileJava :exs:compileJava --offline --rerun-tasks</code></td><td class="ok">성공</td><td>BIZADM/EXS 하드코딩 서비스 제거 후 강제 컴파일.</td></tr>
+        <tr><td><code>.\gradlew.bat :acc:compileJava --offline --rerun-tasks</code></td><td class="ok">성공</td><td>ACC 깨진 주석 정리 후 강제 컴파일.</td></tr>
+        <tr><td><code>.\gradlew.bat checkMojibake checkUtf8 --offline</code></td><td class="ok">성공</td><td>강화된 mojibake/UTF-8 검사 통과.</td></tr>
+        <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>HTML docs, Java format, legacy name, mojibake, security seed, SQL standard, transaction ID standard, UTF-8, compile/test 통과.</td></tr>
+        <tr><td><code>.\gradlew.bat admUiSmoke --offline</code></td><td class="ok">성공</td><td>ADM 정적 화면/스크립트 smoke 통과.</td></tr>
+        <tr><td><code>.\gradlew.bat openApiSmoke --offline</code></td><td class="fail">실패</td><td>ADM/XYZ 앱이 기동 중이지 않아 <code>/v3/api-docs</code> 호출 실패. 성공으로 보고하지 않고 앱 기동 후 재검증 항목으로 분리.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>5. 일부/미검증/남은 리스크</h2>
+    <div class="wide">
+      <table>
+        <tr><th>항목</th><th>상태</th><th>사유와 다음 조치</th></tr>
+        <tr><td>OpenAPI JSON 품질 gate</td><td class="unchecked">미검증</td><td>앱 기동이 필요합니다. <code>runLocalServices</code> 또는 ADM/XYZ 단독 기동 후 <code>openApiSmoke</code>를 재실행해야 합니다.</td></tr>
+        <tr><td>브라우저 실제 클릭 검증</td><td class="unchecked">미검증</td><td>정적 ADM UI smoke는 통과했지만, 실제 브라우저 클릭/권한별 비활성 사유/데이터 바인딩은 앱 기동 후 확인해야 합니다.</td></tr>
+        <tr><td>Redis/Kafka broker 실연동</td><td class="unchecked">미검증</td><td>이번 범위에서는 DB fallback과 코드/문서 기준만 확인했습니다. 실제 broker 장애 전환 시나리오는 별도 환경이 필요합니다.</td></tr>
+        <tr><td>OTP QR/복구코드 실제 앱 호환</td><td class="unchecked">미검증</td><td>이번 작업의 직접 변경 범위가 아니며, 실제 OTP 앱 등록/검증 UI/API는 다음 보강에서 기동 검증까지 필요합니다.</td></tr>
+        <tr><td>요청 파일 인코딩</td><td class="partial">보존</td><td>신규 요청 파일 자체는 현재 깨진 문자열이 보이지만 요청 파일 수정 금지 조건 때문에 제외했습니다.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. 다음 보강 후보</h2>
     <ul>
-      <li>BIZADM/MBR/EXS DB repository와 SQL 구조는 정적 검증됐지만, MariaDB 실실행은 client 부재로 미검증입니다.</li>
-      <li>ADM 정적 smoke는 통과했지만 실제 브라우저 클릭, 권한별 버튼 비활성 사유, 화면 렌더링은 미검증입니다.</li>
-      <li>OpenAPI smoke 스크립트는 전 모듈 검사 구조로 확장했지만, 앱 기동 후 HTTP 검증은 미실행입니다.</li>
-      <li>Spring Batch JobRepository, JobExplorer, JobOperator는 컴파일 기준 연결됐지만, 실 DB Job 실행 시나리오는 미검증입니다.</li>
-      <li>실제 OTP 앱 QR, 복구코드, Redis/Kafka 실 broker 연동은 이번 범위에서 구현 검증하지 않았습니다.</li>
+      <li>ADM/XYZ/BIZADM/EXS를 실제 기동한 뒤 OpenAPI JSON 품질 gate와 브라우저 클릭 smoke를 CI에 연결.</li>
+      <li>ADM 화면에서 BIZADM/EXS 운영 API의 권한별 버튼 비활성 사유, 감사 사유 모달, 원문 보기 권한을 실제 데이터 기준으로 클릭 검증.</li>
+      <li>Redis/Kafka broker 실연동 테스트와 DB fallback 장애 전환 테스트 자동화.</li>
+      <li>OTP TOTP QR 등록, 검증, 해제, 복구코드 흐름을 실제 OTP 앱 기준으로 완성 검증.</li>
+      <li>요청 파일을 UTF-8 원문으로 다시 저장한 뒤, 요구사항 누락 여부를 한 번 더 대조.</li>
     </ul>
-  </section>
-
-  <section>
-    <h2>다음 보강 후보</h2>
-    <ol>
-      <li>MariaDB client 경로를 지정해 전체 설치 SQL과 smoke SQL 실실행, FK/index/seed idempotent 검증</li>
-      <li>runLocalServices로 ADM, MBR, XYZ, BIZADM, EXS를 기동한 뒤 OpenAPI HTTP smoke 실행</li>
-      <li>Playwright 또는 표준 브라우저 smoke로 ADM 주요 메뉴 클릭, BIZADM/EXS wrapper 렌더링 검증</li>
-      <li>BIZADM/EXS 전용 화면을 ADM wrapper 수준에서 업무별 운영 UX로 확장</li>
-      <li>Spring Batch 실제 JobRepository 기반 수동 실행, 실패 재수행, 중지, 스케줄러 1회 실행 시나리오 검증</li>
-      <li>TOTP QR/복구코드, Redis/Kafka broker 실연동, DB fallback 장애 시나리오 검증</li>
-    </ol>
   </section>
 </main>
 </body>

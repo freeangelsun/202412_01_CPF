@@ -225,7 +225,7 @@ public class BizAdmAuthRepository {
     private List<String> findMenus(String roleCode) {
         return jdbc().queryForList("""
                 SELECT DISTINCT menu_code
-                  FROM bizadm_permission_sample
+                  FROM bizadm_permission
                  WHERE role_code = :roleCode
                    AND use_yn = 'Y'
                  ORDER BY menu_code
@@ -235,7 +235,7 @@ public class BizAdmAuthRepository {
     private List<String> findButtons(String roleCode) {
         return jdbc().queryForList("""
                 SELECT CONCAT(menu_code, ':', button_code) AS button_key
-                  FROM bizadm_permission_sample
+                  FROM bizadm_permission
                  WHERE role_code = :roleCode
                    AND use_yn = 'Y'
                  ORDER BY menu_code, button_code

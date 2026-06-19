@@ -14,6 +14,8 @@ $skipDirectories = @(
     "\logs\", "\node_modules\", "\vendor\"
 )
 $skipFileNames = @(
+    "CPF_NEW_REQUEST.md",
+    "CPF_REQUEST.md",
     "CPF_CODEX_REQUEST_20260618_01.md",
     "CPF_STABILIZATION_REPORT.md",
     "CPF_STABILIZATION_CHANGED_FILES.txt"
@@ -23,17 +25,25 @@ $mojibakeLiteralChars = @(
     [char]0x00EB,
     [char]0x00ED,
     [char]0x00EA,
+    [char]0x533B,
+    [char]0x5BC3,
+    [char]0x5DDB,
     [char]0x63F6,
+    [char]0x6E1D,
+    [char]0x6FE1,
     [char]0x7B4C,
     [char]0x7344,
     [char]0x56A5,
+    [char]0x8B70,
+    [char]0x8E30,
     [char]0x7652,
     [char]0xF9CF,
+    [char]0xF9D0,
     [char]0xFFFD
 )
 $mojibakeRegexPatterns = @(
     '\?[\u3130-\u318F\uA960-\uA97F\uAC00-\uD7AF]',
-    '[\u2464\u4E8C\u56A5\u63F6\u7344\u7652\u7B4C\uF9CF]'
+    '[\u2464\u4E8C\u533B\u56A5\u5BC3\u5DDB\u63F6\u6E1D\u6FE1\u7344\u7652\u7B4C\u8B70\u8E30\uF9CF\uF9D0]'
 )
 $utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)
 $failures = New-Object System.Collections.Generic.List[string]
@@ -54,6 +64,10 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
 
     try {
         $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+            $failures.Add("utf-8 bom detected: $($_.FullName)")
+            return
+        }
         $text = $utf8Strict.GetString($bytes)
         if ($CheckMojibake) {
             foreach ($pattern in $mojibakeLiteralChars) {

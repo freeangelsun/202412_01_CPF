@@ -1,6 +1,6 @@
-package cpf.exs.sample.controller;
+package cpf.exs.operation.controller;
 
-import cpf.exs.sample.service.ExsOperationService;
+import cpf.exs.operation.service.ExsOperationService;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +17,9 @@ import java.util.Map;
 
 /**
  * EXS 대외 연계 운영 API입니다.
+ *
+ * <p>이 API는 sample 패키지가 아닌 EXS 운영 기능 그룹에 속합니다. token, 통제 정책, 재처리 요청은
+ * exsDB에 영속화되며 원문 token은 저장하거나 반환하지 않습니다.</p>
  */
 @RestController
 @RequestMapping("/api/exs/operations")
@@ -37,7 +40,7 @@ public class ExsOperationController {
 
     @PostMapping("/tokens/refresh")
     @CpfTransaction(id = "EXS02OPT0002", name = "ExsOperationTokenRefresh")
-    @Operation(summary = "대외 token 갱신", description = "외부기관 인증 프로파일 기준으로 token을 갱신하고 원문 대신 hash와 마스킹 값을 남깁니다.")
+    @Operation(summary = "대외 token 갱신", description = "외부기관 인증 프로파일 기준으로 token을 갱신하고 원문 대신 hash와 마스킹 값을 DB에 남깁니다.")
     public ResponseEntity<Map<String, Object>> refreshToken(@RequestBody ExsOperationService.TokenRefreshRequest request) {
         return ResponseEntity.ok(operationService.refreshToken(request));
     }

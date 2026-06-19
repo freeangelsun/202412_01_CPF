@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS mbr_member_role_history (
 
 CREATE TABLE IF NOT EXISTS mbr_member_login_history (
     login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    member_id BIGINT NULL COMMENT '회원 순번',
     login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
     member_no VARCHAR(50) NULL COMMENT '회원 번호',
     customer_no VARCHAR(50) NULL COMMENT '고객 번호',

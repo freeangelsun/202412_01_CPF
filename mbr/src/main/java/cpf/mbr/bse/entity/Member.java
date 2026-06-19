@@ -33,6 +33,18 @@ public class Member implements Serializable {
     /** 로그인 ID입니다. */
     private String loginId;
 
+    /** 회원 비밀번호 hash입니다. */
+    private String passwordHash;
+
+    /** 로그인 실패 횟수입니다. */
+    private Integer loginFailCount;
+
+    /** 비밀번호 강제 변경 여부입니다. */
+    private String passwordChangeRequiredYn;
+
+    /** 비밀번호 만료 일시입니다. */
+    private LocalDateTime passwordExpireAt;
+
     /** 회원명입니다. */
     private String name;
 

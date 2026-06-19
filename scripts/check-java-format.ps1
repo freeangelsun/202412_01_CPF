@@ -30,12 +30,22 @@ Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*.java" | ForEach-Objec
     if ($text -match "(?m)^\s*(@[A-Za-z0-9_.]+(?:\([^\r\n]*\))?)[ \t]+(public|protected|private|class|interface|enum|record)\b") {
         $failures.Add("annotation과 선언부 사이 줄바꿈 누락: $relative")
     }
+    if ($text -match "(?m)^\s*(public|protected|private)\s+[^{;=]+[ \t]+(public|protected|private)\s+") {
+        $failures.Add("여러 method/field 선언이 한 줄에 붙어 있을 가능성: $relative")
+    }
+    if ($text -match "(?m)^\s*(class|interface|enum|record)\s+\S+.*\}\s*(class|interface|enum|record)\s+") {
+        $failures.Add("여러 type 선언이 한 줄에 붙어 있을 가능성: $relative")
+    }
 
     for ($index = 0; $index -lt $lines.Count; $index++) {
         $line = $lines[$index]
         if ($line.Length -gt 220) {
             $lineNumber = $index + 1
             $failures.Add("비정상 장문 라인($lineNumber): $relative")
+        }
+        if ($line -match ";\s*(public|protected|private|import|class|interface|enum|record)\s+") {
+            $lineNumber = $index + 1
+            $failures.Add("선언/구문이 한 줄에 연속 배치됨($lineNumber): $relative")
         }
     }
 }

@@ -124,10 +124,10 @@
     <h2>BIZADM/MBR/EXS 운영 기준</h2>
     <table>
       <tbody>
-      <tr><th>BIZADM 인증</th><td>BIZADM은 ADM 내부 운영자 계정이 아니라 프로젝트/업무 관리자 계정입니다. <code>/api/bizadm/auth/*</code> API는 <code>loginDomain=BIZADM</code> token을 발급하고, 로그인 이력에는 거래 ID와 서버 인스턴스 정보를 남깁니다.</td></tr>
-      <tr><th>MBR 인증</th><td>MBR 회원 token은 ADM/BIZADM token과 혼용하지 않습니다. 회원 로그인 이력은 회원번호, 고객번호, login ID, 실패 사유, 거래 ID를 기준으로 운영 조회할 수 있어야 합니다.</td></tr>
-      <tr><th>EXS 운영</th><td>EXS 대외 token은 사람 로그인 token과 분리합니다. 대외 token 갱신, token 이벤트, 통제 정책, 재처리 요청은 <code>/api/exs/operations/*</code> API에서 원문 secret 없이 관리합니다.</td></tr>
-      <tr><th>감사 기준</th><td>token 갱신, 재처리, 통제 정책 변경, 회원/업무 관리자 상태 변경은 운영 사유와 before/after diff를 남기는 방향으로 고도화합니다. 이번 기준 구현은 API/SQL 골격이며 통합 감사 저장소 연결은 다음 단계입니다.</td></tr>
+      <tr><th>BIZADM 인증</th><td>BIZADM은 ADM 내부 운영자 계정이 아니라 프로젝트/업무 관리자 계정입니다. <code>/api/bizadm/auth/*</code> API는 <code>loginDomain=BIZADM</code> token을 발급하고, 로그인 이력과 refresh token hash는 <code>bizadmDB</code>에 저장합니다.</td></tr>
+      <tr><th>MBR 인증</th><td>MBR 회원 token은 ADM/BIZADM token과 혼용하지 않습니다. 회원 로그인 이력과 refresh token hash는 <code>mbrDB</code>에 저장하며, 미등록 login ID 실패도 이력으로 남길 수 있게 구성합니다.</td></tr>
+      <tr><th>EXS 운영</th><td>EXS 대외 token은 사람 로그인 token과 분리합니다. 대외 token 갱신, token 이벤트, 통제 정책, 재처리 요청, 대외 수신/송신 선저장 로그는 <code>exsDB</code>에 저장합니다.</td></tr>
+      <tr><th>감사 기준</th><td>token 갱신, 재처리, 통제 정책 변경, 회원/업무 관리자 상태 변경은 운영 사유와 before/after diff를 남기는 방향으로 고도화합니다. 이번 기준은 핵심 이력의 DB 영속화를 우선 적용했습니다.</td></tr>
       <tr><th>화면 기준</th><td>ADM은 플랫폼 운영 기능, BIZADM은 업무 관리자 기능으로 분리합니다. BIZADM/EXS 전용 Vue 화면은 API 구현 이후 별도 route와 권한 UX를 붙이는 고도화 대상입니다.</td></tr>
       </tbody>
     </table>

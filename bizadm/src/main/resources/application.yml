@@ -15,3 +15,10 @@ cpf:
   framework:
     module-id: BIZ
     was-id: ${WAS_ID:bizAP01}
+  bizadm:
+    datasource:
+      enabled: ${CPF_BIZADM_DB_ENABLED:false}
+      url: ${BIZADM_DB_URL:jdbc:mariadb://localhost:3306/bizadmDB}
+      username: ${BIZADM_DB_USERNAME:cpf_bizadm_app}
+      password: ${BIZADM_DB_PASSWORD:cpf_local_pw}
+      driver-class-name: org.mariadb.jdbc.Driver

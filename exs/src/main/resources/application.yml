@@ -15,3 +15,10 @@ cpf:
   framework:
     module-id: EXS
     was-id: ${WAS_ID:exsAP01}
+  exs:
+    datasource:
+      enabled: ${CPF_EXS_DB_ENABLED:false}
+      url: ${EXS_DB_URL:jdbc:mariadb://localhost:3306/exsDB}
+      username: ${EXS_DB_USERNAME:cpf_exs_app}
+      password: ${EXS_DB_PASSWORD:cpf_local_pw}
+      driver-class-name: org.mariadb.jdbc.Driver

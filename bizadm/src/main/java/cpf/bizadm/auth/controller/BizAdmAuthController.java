@@ -1,6 +1,6 @@
-package cpf.bizadm.sample.controller;
+package cpf.bizadm.auth.controller;
 
-import cpf.bizadm.sample.service.BizAdmAuthService;
+import cpf.bizadm.auth.service.BizAdmAuthService;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +20,9 @@ import java.util.Map;
 
 /**
  * BIZADM 업무 관리자 인증 API입니다.
+ *
+ * <p>이 API는 sample 패키지가 아닌 BIZADM 인증 기능 그룹에 속합니다. 로그인 이력과 refresh token은
+ * bizadmDB에 저장되며, datasource가 비활성화된 환경에서는 명확한 서비스 사용 불가 오류를 반환합니다.</p>
  */
 @RestController
 @RequestMapping("/api/bizadm/auth")
@@ -33,11 +36,14 @@ public class BizAdmAuthController {
 
     @PostMapping("/login")
     @CpfTransaction(id = "BIZ02AUT0001", name = "BizAdmLogin")
-    @Operation(summary = "업무 관리자 로그인", description = "BIZADM 전용 JWT access token과 hash 저장형 refresh token을 발급합니다.")
+    @Operation(summary = "업무 관리자 로그인", description = "BIZADM 전용 JWT access token과 DB hash 저장형 refresh token을 발급합니다.")
     public ResponseEntity<BizAdmAuthService.LoginResult> login(
             @RequestBody BizAdmAuthService.LoginRequest request,
             HttpServletRequest servletRequest) {
-        return ResponseEntity.ok(authService.login(request, servletRequest.getRemoteAddr(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
+        return ResponseEntity.ok(authService.login(
+                request,
+                servletRequest.getRemoteAddr(),
+                servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
     @PostMapping("/refresh")
@@ -49,7 +55,7 @@ public class BizAdmAuthController {
 
     @PostMapping("/logout")
     @CpfTransaction(id = "BIZ02AUT0003", name = "BizAdmLogout")
-    @Operation(summary = "업무 관리자 로그아웃", description = "refresh token hash 상태를 폐기 처리합니다.")
+    @Operation(summary = "업무 관리자 로그아웃", description = "DB에 저장된 refresh token hash 상태를 폐기 처리합니다.")
     public ResponseEntity<Map<String, Object>> logout(@RequestBody(required = false) BizAdmAuthService.RefreshRequest request) {
         return ResponseEntity.ok(authService.logout(request));
     }

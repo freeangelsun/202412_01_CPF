@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 품질 보강 리포트</title>
   <style>
     body { font-family: Arial, "Malgun Gothic", sans-serif; margin: 32px; color: #222; line-height: 1.55; }
+    main { max-width: 1180px; margin: 0 auto; }
     h1 { font-size: 28px; margin-bottom: 8px; }
     h2 { font-size: 20px; margin-top: 28px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
     table { border-collapse: collapse; width: 100%; margin: 12px 0; }
@@ -17,141 +18,135 @@
   </style>
 </head>
 <body>
-<h1>CPF 안정화 작업 리포트</h1>
-<p>작성일: 2026-06-19</p>
-<p><code>CPF_REQUEST.md</code>는 요청 확인용으로만 사용했고 작업 대상에서 제외했습니다. 별도 수정파일 목록 파일은 생성하지 않았습니다.</p>
+<main>
+  <section>
+    <h1>CPF 품질 보강 리포트</h1>
+    <p>작성일: 2026-06-19</p>
+    <p>요청 파일은 확인용으로만 사용했고 작업 대상에서 제외했습니다. 커밋, push, branch 생성은 수행하지 않았습니다.</p>
+  </section>
 
-<h2>1. 작업 요약</h2>
-<table>
-  <tr><th>구분</th><th>내용</th></tr>
-  <tr><td class="ok">[성공]</td><td>BIZADM/MBR 인증 기본 API, EXS 운영 API, 인증/token SQL 스키마, Flyway V7, 합본 설치 SQL, smoke 조회, 품질 gate, HTML 가이드를 동기화했습니다.</td></tr>
-  <tr><td class="warn">[일부 구현]</td><td>신규 API는 공통 JWT/암호화/거래 ID 기준을 사용하지만 token 저장소는 현재 in-memory 기본 구현입니다. 실제 DB mapper 영속화와 Vue 화면 연결은 다음 단계입니다.</td></tr>
-  <tr><td class="warn">[미검증]</td><td>MariaDB 실실행, 앱 기동 후 OpenAPI JSON 검증, 브라우저 클릭 검증, Redis/Kafka/외부기관 실연동은 이번 환경에서 수행하지 않았습니다.</td></tr>
-</table>
+  <section>
+    <h2>1. 소스 기준</h2>
+    <table>
+      <tr><th>항목</th><th>결과</th></tr>
+      <tr><td>로컬 브랜치</td><td><code>master</code></td></tr>
+      <tr><td>로컬 commit</td><td><code>29b513b0c6f0a4d04c60c56bc9ab62f1d40165e6</code></td></tr>
+      <tr><td>로컬 remote tracking 기준</td><td><code>origin/master</code> commit이 로컬 commit과 일치</td></tr>
+      <tr><td>GitHub 실시간 확인</td><td class="warn">네트워크 fetch는 수행하지 않았으므로 미검증입니다.</td></tr>
+      <tr><td>Git 확인 방식</td><td>현재 sandbox 사용자와 저장소 소유자가 달라 전역 설정을 바꾸지 않고 명령 단위 <code>safe.directory</code> 옵션으로 읽기 확인했습니다.</td></tr>
+    </table>
+  </section>
 
-<h2>2. 주요 변경 파일</h2>
-<table>
-  <tr><th>영역</th><th>파일</th><th>요약</th></tr>
-  <tr><td>BIZADM</td><td><code>BizAdmAuthController.java</code>, <code>BizAdmAuthService.java</code></td><td>BIZADM 로그인, refresh, logout, me, login-history 기본 API를 추가했습니다.</td></tr>
-  <tr><td>MBR</td><td><code>MbrAuthController.java</code>, <code>MbrAuthService.java</code></td><td>회원 로그인, refresh, logout, me, login-history 기본 API를 추가했습니다.</td></tr>
-  <tr><td>EXS</td><td><code>ExsOperationController.java</code>, <code>ExsOperationService.java</code></td><td>대외 token 갱신, token 이벤트, 재처리, 통제 정책 운영 API를 추가했습니다.</td></tr>
-  <tr><td>SQL</td><td><code>40_business_sample_schema.sql</code>, <code>70_test_data.sql</code>, <code>99_smoke_check.sql</code>, <code>00_all_install*.sql</code>, <code>V1__cpf_baseline_install.sql</code>, <code>V7__auth_domain_refresh_token_exs_token_history.sql</code></td><td>로그인 도메인, refresh token hash, EXS token hash/event 이력 구조를 반영했습니다.</td></tr>
-  <tr><td>품질</td><td><code>build.gradle</code>, <code>scripts/check-security-seed-standard.ps1</code>, <code>scripts/build-all-install-sql.ps1</code></td><td>보안 seed 검사와 합본 SQL 재생성 스크립트를 추가하고 <code>qualityGate</code>에 연결했습니다.</td></tr>
-  <tr><td>문서</td><td><code>README.md</code>, 개발/관리자/SQL/프레임워크/기능 매트릭스 HTML 가이드</td><td>신규 API, DB 소유권, Flyway V7, 보안 seed gate, 구현 수준을 현행화했습니다.</td></tr>
-</table>
+  <section>
+    <h2>2. 작업 요약</h2>
+    <table>
+      <tr><th>구분</th><th>내용</th></tr>
+      <tr><td class="ok">성공</td><td>BIZADM 인증, MBR 인증, EXS 운영 API를 임시 메모리 저장소 중심에서 DB 저장소 기준으로 보강했습니다.</td></tr>
+      <tr><td class="ok">성공</td><td>EXS 표준 수신/송신 API를 추가하고 <code>X-Transaction-Id</code> 검증 후 거래/전문 로그를 DB에 선저장하도록 구성했습니다.</td></tr>
+      <tr><td class="ok">성공</td><td>루트 안정화 리포트, specs HTML 문서, Java raw 포맷, SQL 표준, 보안 seed 검사를 품질 gate에 포함했습니다.</td></tr>
+      <tr><td class="warn">일부 구현</td><td>BIZADM/EXS Vue route와 실제 브라우저 클릭 검증은 아직 수행하지 않았습니다.</td></tr>
+    </table>
+  </section>
 
-<h2>3. 성공 항목</h2>
-<ul>
-  <li><code>.\gradlew.bat test --offline</code> 성공</li>
-  <li><code>.\gradlew.bat qualityGate --offline</code> 성공</li>
-  <li><code>checkHtmlDocs</code>, <code>checkJavaFormat</code>, <code>checkLegacyName</code>, <code>checkMojibake</code>, <code>checkSecuritySeedStandard</code>, <code>checkSqlStandard</code>, <code>checkTransactionIdStandard</code>, <code>checkUtf8</code> 성공</li>
-  <li>합본 SQL과 Flyway baseline에 신규 테이블/컬럼/seed/smoke 조회 반영 확인</li>
-</ul>
+  <section>
+    <h2>3. 주요 변경 파일</h2>
+    <table>
+      <tr><th>영역</th><th>파일</th><th>내용</th></tr>
+      <tr><td>BIZADM</td><td><code>cpf.bizadm.auth</code>, <code>BizAdmDataSourceConfig.java</code></td><td>sample 패키지 밖으로 인증 기능을 분리하고, 업무 관리자/로그인 이력/refresh token hash를 bizadmDB 기준으로 처리합니다.</td></tr>
+      <tr><td>MBR</td><td><code>MbrAuthService.java</code>, <code>MemberMapper.java</code>, <code>MemberMapper.xml</code>, <code>Member.java</code></td><td>회원 인증, 실패 횟수, 로그인 이력, refresh token hash를 mbrDB MyBatis 기준으로 처리합니다.</td></tr>
+      <tr><td>EXS</td><td><code>cpf.exs.operation</code>, <code>cpf.exs.flow</code>, <code>ExsDataSourceConfig.java</code></td><td>token, token event, retry, control policy, 대외 수신/송신 선저장 로그를 exsDB 기준으로 처리합니다.</td></tr>
+      <tr><td>SQL</td><td><code>40_business_sample_schema.sql</code>, <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>, Flyway baseline, Flyway V8</td><td>미등록 회원 로그인 실패 이력을 위해 MBR 로그인 이력의 회원 순번 nullable 구조를 반영했습니다.</td></tr>
+      <tr><td>품질</td><td><code>check-html-docs.ps1</code>, <code>check-java-format.ps1</code></td><td>루트 HTML 리포트와 불필요 산출물 잔재, Java 장문 한 줄/붙은 선언 검사를 강화했습니다.</td></tr>
+      <tr><td>문서</td><td>README, 개발/관리자/SQL/프레임워크/기능 매트릭스 가이드</td><td>DB 영속화 기준, Flyway V8, BIZADM/MBR/EXS 구현 수준을 현행화했습니다.</td></tr>
+    </table>
+  </section>
 
-<h2>4. 실패 항목</h2>
-<ul>
-  <li><span class="fail">Node 기반 JS 문법 검사 실패</span>: <code>node</code> 명령이 현재 PATH에 없어 <code>node --check adm/src/main/resources/static/adm/adm.js</code>를 실행하지 못했습니다.</li>
-  <li><span class="warn">일시 이슈</span>: 이전 병렬 Gradle 검증은 타임아웃 가능성이 있어 중단했고, 동일 검증은 순차 실행으로 재수행해 성공했습니다.</li>
-</ul>
+  <section>
+    <h2>4. 성공 항목</h2>
+    <ul>
+      <li><code>compileJava</code> 성공</li>
+      <li><code>test --offline</code> 성공</li>
+      <li><code>qualityGate --offline</code> 성공</li>
+      <li><code>checkJavaFormat</code> 성공</li>
+      <li><code>checkHtmlDocs</code> 성공</li>
+      <li><code>checkSqlStandard</code> 성공</li>
+      <li><code>checkUtf8</code>, <code>checkMojibake</code>, <code>checkLegacyName</code>, <code>checkSecuritySeedStandard</code>, <code>checkTransactionIdStandard</code> 성공</li>
+      <li>합본 설치 SQL 재생성 성공</li>
+      <li>불필요한 수정파일 목록 산출물은 생성하지 않음</li>
+    </ul>
+  </section>
 
-<h2>5. 미검증 항목</h2>
-<table>
-  <tr><th>항목</th><th>미검증 사유</th><th>다음 조치</th></tr>
-  <tr><td>MariaDB <code>00_all_install_and_smoke.sql</code> 실실행</td><td><code>mariadb</code>/<code>mysql</code> 클라이언트를 PATH에서 찾지 못했고, 설치 SQL은 기존 CPF DB 테이블을 drop 후 재생성하므로 별도 확인 후 실행해야 합니다.</td><td>MariaDB client 경로 확인 후 별도 sandbox DB 또는 백업 후 실행합니다.</td></tr>
-  <tr><td>OpenAPI JSON 품질 gate</td><td>앱 기동과 <code>/v3/api-docs</code> 호출을 수행하지 않았습니다.</td><td>ADM/BIZADM/MBR/EXS 앱 기동 smoke와 JSON schema 검사를 자동화합니다.</td></tr>
-  <tr><td>Vue/브라우저 클릭 검증</td><td>브라우저 자동화와 Node 도구가 준비되지 않았습니다.</td><td>Node/Playwright 또는 프로젝트 표준 UI smoke 환경을 구성합니다.</td></tr>
-  <tr><td>Redis/Kafka/외부기관 연동</td><td>실 broker와 외부기관 mock server를 실행하지 않았습니다.</td><td>Docker compose 기반 broker/mock smoke를 분리 추가합니다.</td></tr>
-</table>
+  <section>
+    <h2>5. 실패 항목</h2>
+    <ul>
+      <li><span class="warn">중간 실패 후 수정</span>: MBR 로그인 실패 이력 기록 메서드 오버로드가 모호해 1회 컴파일 실패했고, 타입을 명확히 지정해 재실행 성공했습니다.</li>
+    </ul>
+  </section>
 
-<h2>6. 정적 확인 항목</h2>
-<ul>
-  <li>Swagger tag: <code>BIZADM-Auth</code>, <code>MBR-Auth</code>, <code>EXS-Operations</code> 추가 확인</li>
-  <li>SQL: <code>mbr_refresh_token</code>, <code>bizadm_refresh_token</code>, <code>exs_token_event_history</code>가 split/install/baseline/smoke에 반영됨</li>
-  <li>문서: README, 개발가이드, 관리자 가이드, SQL 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스 동기화</li>
-  <li>보안 seed: token/secret 원문 저장 후보를 검사하는 <code>checkSecuritySeedStandard</code> 추가</li>
-</ul>
+  <section>
+    <h2>6. 미검증 항목</h2>
+    <table>
+      <tr><th>항목</th><th>사유</th><th>다음 조치</th></tr>
+      <tr><td>GitHub 실시간 master fetch</td><td>네트워크 fetch는 수행하지 않았습니다.</td><td>사용자 환경에서 fetch 후 local/remote commit 재확인</td></tr>
+      <tr><td>MariaDB 실실행</td><td>이번 작업에서는 실제 DB 초기화 명령을 실행하지 않았습니다.</td><td>백업 또는 별도 sandbox DB에서 설치 SQL과 smoke SQL 실행</td></tr>
+      <tr><td>BIZADM/MBR/EXS 실제 로그인/refresh HTTP 시나리오</td><td>앱 기동과 HTTP 호출은 수행하지 않았습니다.</td><td>DB 활성화 profile로 앱 기동 후 API smoke 추가</td></tr>
+      <tr><td>Vue/브라우저 클릭 검증</td><td>브라우저 자동화는 수행하지 않았습니다.</td><td>Playwright 또는 프로젝트 표준 UI smoke 구성</td></tr>
+      <tr><td>OpenAPI JSON gate</td><td>앱 기동 후 <code>/v3/api-docs</code> 호출은 수행하지 않았습니다.</td><td>서비스 기동 smoke와 JSON schema 검사 추가</td></tr>
+    </table>
+  </section>
 
-<h2>7. 설계 판단 내역</h2>
-<table>
-  <tr><th>판단</th><th>근거</th></tr>
-  <tr><td>BIZADM/MBR token 분리</td><td>ADM, BIZADM, MBR token 혼용을 막기 위해 <code>loginDomain</code>, issuer, audience를 분리했습니다.</td></tr>
-  <tr><td>refresh token hash 저장</td><td>원문 refresh token 저장을 피하고, 응답 시 최초 1회만 원문을 반환하는 구조로 잡았습니다.</td></tr>
-  <tr><td>EXS token과 사람 로그인 token 분리</td><td>대외기관 token은 운영 API에서 hash/마스킹 중심으로 다루고 사람 인증 token과 혼용하지 않습니다.</td></tr>
-  <tr><td>합본 SQL 생성 스크립트</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>, Flyway baseline의 drift를 줄이기 위해 split SQL 기반 재생성 스크립트를 추가했습니다.</td></tr>
-  <tr><td>생성 스크립트 주석 일부 ASCII 유지</td><td>Windows PowerShell 5.1이 BOM 없는 PS1의 한글 here-string을 ANSI로 해석해 합본 SQL에 mojibake가 생기는 문제를 막기 위한 예방 조치입니다.</td></tr>
-</table>
+  <section>
+    <h2>7. 정적 확인 항목</h2>
+    <ul>
+      <li>BIZADM 인증 핵심 구현은 <code>cpf.bizadm.auth</code>로 이동했습니다.</li>
+      <li>EXS 운영 핵심 구현은 <code>cpf.exs.operation</code>, 표준 대외 흐름은 <code>cpf.exs.flow</code>로 이동했습니다.</li>
+      <li>기존 sample 패키지는 읽기 전용 예제/샘플 성격으로 남겼습니다.</li>
+      <li>루트 안정화 리포트와 specs HTML 문서는 실제 HTML 구조 검사 대상입니다.</li>
+      <li>수정파일 목록 산출물과 Markdown 형식 리포트 산출물은 현재 루트에 존재하지 않습니다.</li>
+    </ul>
+  </section>
 
-<h2>8. 재확인 필요 항목</h2>
-<ul>
-  <li>현재 SQL 서비스 계정 예시는 local 설치용 고정 비밀번호를 사용합니다. 운영 배포에서는 반드시 환경변수/Vault/KMS 또는 배포 시 치환 구조로 분리해야 합니다.</li>
-  <li>BIZADM/MBR 인증 서비스는 in-memory 저장소이므로 다중 WAS와 재기동 환경에서는 DB/Redis 저장소로 교체해야 합니다.</li>
-  <li>기능 매트릭스의 BIZADM/EXS UI 항목은 일부 구현으로 유지했습니다. API가 생겼지만 화면 route와 실제 클릭 smoke는 아직 아닙니다.</li>
-</ul>
+  <section>
+    <h2>8. 설계 판단 내역</h2>
+    <table>
+      <tr><th>판단</th><th>근거</th></tr>
+      <tr><td>DB 비활성 시 503 처리</td><td>BIZADM/EXS는 DB 없이 가짜 정상 응답을 주지 않도록 datasource 비활성 시 서비스 사용 불가로 처리했습니다.</td></tr>
+      <tr><td>선택형 datasource</td><td>교육/문서 확인용 기동과 실제 DB 연동을 분리하기 위해 <code>CPF_BIZADM_DB_ENABLED</code>, <code>CPF_EXS_DB_ENABLED</code>로 활성화합니다.</td></tr>
+      <tr><td>MBR 로그인 이력 nullable 회원 순번</td><td>미등록 login ID 실패도 감사 이력으로 남겨야 하므로 <code>member_id</code>를 nullable로 보강했습니다.</td></tr>
+      <tr><td>EXS 표준 수신 API 거래 ID 검증</td><td>대외 표준 API에서는 거래 ID를 조용히 생성하지 않고 <code>X-Transaction-Id</code>를 검증해 오류를 명확히 반환합니다.</td></tr>
+    </table>
+  </section>
 
-<h2>9. 저장 구조 반영 내역</h2>
-<table>
-  <tr><th>DB</th><th>반영</th></tr>
-  <tr><td><code>mbrDB</code></td><td><code>mbr_member</code> 인증 컬럼, <code>mbr_member_login_history</code> 확장, <code>mbr_refresh_token</code> 추가</td></tr>
-  <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code> 인증 컬럼, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code> 추가</td></tr>
-  <tr><td><code>exsDB</code></td><td><code>exs_token_store</code> hash/마스킹 컬럼, <code>exs_token_event_history</code> 추가</td></tr>
-  <tr><td><code>pfwDB</code></td><td>Spring Batch 표준 테이블과 <code>pfw_batch_*</code>, 영업일/관계/수행대상 테이블은 기존 기준을 유지했습니다.</td></tr>
-</table>
+  <section>
+    <h2>9. 보안 검증 결과</h2>
+    <table>
+      <tr><th>항목</th><th>결과</th></tr>
+      <tr><td>비밀번호 원문 저장</td><td class="ok">저장하지 않음. PBKDF2 hash 기준 검증</td></tr>
+      <tr><td>refresh token 원문 저장</td><td class="ok">저장하지 않음. hash 저장 후 원문은 응답 1회성 값</td></tr>
+      <tr><td>EXS 대외 token 원문 저장</td><td class="ok">저장하지 않음. hash와 마스킹 값만 DB 저장</td></tr>
+      <tr><td>영역 token 혼용 방지</td><td class="ok">BIZADM/MBR <code>loginDomain</code>, issuer, audience 분리</td></tr>
+      <tr><td>운영 secret 기본값</td><td class="warn">local 기본값은 남아 있습니다. prod profile 강제화는 추가 보강 필요</td></tr>
+    </table>
+  </section>
 
-<h2>10. API 반영 내역</h2>
-<table>
-  <tr><th>영역</th><th>API</th></tr>
-  <tr><td>BIZADM</td><td><code>POST /api/bizadm/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>GET /me</code>, <code>GET /login-history</code></td></tr>
-  <tr><td>MBR</td><td><code>POST /mbr/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>GET /me</code>, <code>GET /login-history</code></td></tr>
-  <tr><td>EXS</td><td><code>GET /api/exs/operations/tokens</code>, <code>POST /tokens/refresh</code>, <code>GET /token-events</code>, <code>POST/GET /retries</code>, <code>POST/GET /control-policies</code></td></tr>
-</table>
+  <section>
+    <h2>10. 기능 구현 매트릭스 반영 수준</h2>
+    <p>BIZADM/MBR/EXS 항목은 DB 영속화 반영 상태로 갱신했습니다. 단, 실제 MariaDB HTTP smoke와 Vue 화면 검증은 미검증으로 유지했습니다.</p>
+  </section>
 
-<h2>11. Vue 화면 반영 내역</h2>
-<p><span class="warn">[일부 구현/미구현]</span> 이번 작업은 API, SQL, Swagger annotation, 문서 중심입니다. BIZADM/EXS 전용 Vue route와 화면 클릭 검증은 수행하지 않았습니다. ADM 기존 화면은 이번 범위에서 수정하지 않았습니다.</p>
-
-<h2>12. BIZADM 구현 수준</h2>
-<p><span class="warn">[일부 구현]</span> 로그인, refresh, logout, 현재 사용자, 로그인 이력 API와 SQL 저장 구조를 추가했습니다. 운영자/역할/메뉴/권한/다운로드/마스킹/감사 UI의 완성 구현은 다음 단계입니다.</p>
-
-<h2>13. MBR 구현 수준</h2>
-<p><span class="warn">[일부 구현]</span> 회원 로그인과 token 재발급, 현재 회원, 로그인 이력 API를 추가했습니다. 회원 상태별 로그인 제한, DB mapper 기반 token 영속화, 회원 다운로드/마스킹/감사 UI는 다음 단계입니다.</p>
-
-<h2>14. EXS 구현 수준</h2>
-<p><span class="warn">[일부 구현]</span> 대외 token 운영, token 이벤트, 통제 정책, 재처리 API와 저장 구조를 추가했습니다. 실제 기관 adapter, 라우팅 엔진, broker 연동, 전문 파싱/재처리 UI는 다음 단계입니다.</p>
-
-<h2>15. 공통 인증/토큰 구현 수준</h2>
-<p><span class="warn">[일부 구현]</span> 공통 JWT/crypto 서비스를 재사용하고 token에 <code>loginDomain</code>, <code>moduleId</code>, <code>wasId</code>, <code>serverInstanceId</code>를 포함했습니다. 공통 refresh token repository 추상화와 서버 권한 필터 통합은 추가 보강이 필요합니다.</p>
-
-<h2>16. 공통 코드/메시지 구현 수준</h2>
-<p>이번 작업에서 공통 코드/메시지 관리 기능은 직접 변경하지 않았습니다. 기존 PFW/ADM 기준을 유지했고, 신규 오류/응답 메시지의 DB seed화는 다음 보강 과제로 남겼습니다.</p>
-
-<h2>17. transactionGlobalId 구현 수준</h2>
-<p>신규 BIZADM/MBR 로그인 이력과 EXS 운영 이벤트에 <code>transactionGlobalId</code>를 포함했습니다. 서비스 코드는 현재 거래 ID가 없으면 <code>TransactionContext.getOrCreateTransactionId</code> 기준으로 생성합니다.</p>
-
-<h2>18. 서버 인스턴스 추적 구현 수준</h2>
-<p>신규 API 응답/이력 모델에 <code>moduleId</code>, <code>wasId</code>, <code>serverInstanceId</code>를 포함했습니다. 이중화 운영에서 어느 인스턴스가 token/로그를 처리했는지 추적하는 기준을 마련했습니다.</p>
-
-<h2>19. 보안 검증 결과</h2>
-<table>
-  <tr><th>항목</th><th>결과</th></tr>
-  <tr><td>비밀번호/token 원문 저장 방지</td><td class="ok">신규 구현은 hash/마스킹 중심으로 구성했습니다.</td></tr>
-  <tr><td>대외 token 원문 노출 방지</td><td class="ok">EXS token 응답은 hash preview와 마스킹 값을 사용합니다.</td></tr>
-  <tr><td>보안 seed gate</td><td class="ok"><code>checkSecuritySeedStandard</code> 통과</td></tr>
-  <tr><td>운영 secret 강제화</td><td class="warn">local SQL 계정 비밀번호 예시는 남아 있어 운영 profile 강제화는 추가 보강 필요</td></tr>
-</table>
-
-<h2>20. 기능 구현 매트릭스 반영 수준</h2>
-<p>기능 구현 매트릭스에 MBR 인증, BIZADM 인증, EXS 운영 API, 보안 seed gate를 반영했습니다. 구현 수준은 실제 상태에 맞춰 <code>일부 구현</code>과 <code>미검증</code>으로 표시했습니다.</p>
-
-<h2>21. 잔여 과제</h2>
-<ol>
-  <li>MariaDB client 경로 확인 후 <code>00_all_install_and_smoke.sql</code> 실실행, FK/index/seed idempotent/권한 분리 검증</li>
-  <li>BIZADM/MBR refresh token 저장소를 DB mapper 또는 Redis 기반으로 교체하고 다중 WAS 재기동 시나리오 테스트</li>
-  <li>BIZADM/EXS Vue 화면 route, 권한별 버튼 상태, 다운로드/마스킹/감사 UI 구현</li>
-  <li>OpenAPI JSON 자동 검증 task와 앱 기동 smoke 추가</li>
-  <li>Node/브라우저 UI 검증 환경 구성 후 ADM/BIZADM/EXS 화면 클릭 검증</li>
-  <li>운영 secret/JWT/DB password를 prod profile에서 기본값 없이 환경변수/Vault/KMS로 강제</li>
-  <li>Redis/Kafka/외부기관 mock server를 Docker compose로 구성하고 fallback 장애 시나리오 검증</li>
-  <li>공통 오류코드/메시지 seed와 신규 API 응답 메시지 연결</li>
-</ol>
-
+  <section>
+    <h2>11. 잔여 과제</h2>
+    <ol>
+      <li>MariaDB에서 전체 설치 SQL과 smoke SQL 실실행</li>
+      <li>BIZADM/MBR/EXS DB 활성화 profile로 API smoke 자동화</li>
+      <li>BIZADM/EXS Vue route, API wrapper, 권한별 버튼 UX 구현</li>
+      <li>공통 Bearer token 필터/인터셉터로 보호 API 권한검사 통합</li>
+      <li>MFA/TOTP QR, 복구코드, challenge 흐름 구현</li>
+      <li>CMN NotificationSender 공통 adapter를 ADM/BIZADM/MBR/EXS에서 재사용하도록 정리</li>
+      <li>EDU 예제에 BIZADM/MBR/EXS 인증, EXS 선저장, token refresh, retry 흐름 추가</li>
+      <li>OpenAPI JSON 품질 gate와 브라우저 UI smoke 자동화</li>
+    </ol>
+  </section>
+</main>
 </body>
 </html>

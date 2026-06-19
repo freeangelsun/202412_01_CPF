@@ -5,19 +5,19 @@ import cpf.adm.config.AdmSecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * CPF 기능 설명입니다.
+ * CPF ADM 운영 애플리케이션입니다.
  *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * <p>PFW/CMN 공통 모듈을 함께 스캔하고, ADM 운영 화면과 배치 스케줄러를 제공합니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "cpf.adm"})
 @EnableConfigurationProperties({AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})
+@EnableScheduling
 public class AdmApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AdmApplication.class, args);
     }
 }
-

@@ -51,7 +51,7 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle('CPF 로컬 서비스 시작: MBR(8081), ACC(8080), XYZ(8099), ADM(8090)')
-        logger.lifecycle('PFW와 CMN은 각 서비스 내부 라이브러리로 동작합니다.')
+        logger.lifecycle('PFW와 CMN은 각 서비스 안에서 라이브러리로 동작합니다.')
 
         services.each { service ->
             def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
@@ -131,7 +131,7 @@ tasks.register('checkUtf8', Exec) {
 
 tasks.register('checkMojibake', Exec) {
     group = 'verification'
-    description = 'UTF-8 검사와 함께 대표적인 mojibake 흔적을 검사합니다.'
+    description = 'UTF-8 검사와 함께 대표적인 글자 깨짐 흔적을 검사합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
 }
 
@@ -147,10 +147,34 @@ tasks.register('checkSqlStandard', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sql-standard.ps1'
 }
 
+tasks.register('checkJavaFormat', Exec) {
+    group = 'verification'
+    description = '주요 Java 소스의 최소 포맷 기준과 비정상 장문 라인을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
+}
+
+tasks.register('checkHtmlDocs', Exec) {
+    group = 'verification'
+    description = 'specs HTML 문서가 실제 HTML 구조이며 Markdown 잔재가 없는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-html-docs.ps1'
+}
+
+tasks.register('openApiSmoke', Exec) {
+    group = 'verification'
+    description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 품질을 smoke 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-openapi.ps1'
+}
+
+tasks.register('admUiSmoke', Exec) {
+    group = 'verification'
+    description = 'ADM 정적 화면과 스크립트에 필수 메뉴, 버튼, API 경로가 있는지 smoke 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs'
 }

@@ -5,6 +5,7 @@ import cpf.adm.opr.dto.AdmBatchOperationRequest;
 import cpf.adm.opr.dto.AdmBusinessDayRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmBatchOperationService;
+import cpf.adm.opr.service.PfwBatchScheduler;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,10 +34,15 @@ import java.util.Map;
 @Tag(name = "ADM-Batch", description = "CPF 배치 관제와 운영 API")
 public class AdmBatchController {
     private final AdmBatchOperationService batchOperationService;
+    private final PfwBatchScheduler batchScheduler;
     private final AdmAuditLogService auditLogService;
 
-    public AdmBatchController(AdmBatchOperationService batchOperationService, AdmAuditLogService auditLogService) {
+    public AdmBatchController(
+            AdmBatchOperationService batchOperationService,
+            PfwBatchScheduler batchScheduler,
+            AdmAuditLogService auditLogService) {
         this.batchOperationService = batchOperationService;
+        this.batchScheduler = batchScheduler;
         this.auditLogService = auditLogService;
     }
 
@@ -120,6 +126,19 @@ public class AdmBatchController {
             @RequestParam(required = false) String dispatchStatus,
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(batchOperationService.findExecutionTargets(jobId, dispatchStatus, limit));
+    }
+
+    @PostMapping("/scheduler/run-once")
+    @CpfTransaction(id = "ADM02BAT0026", name = "ADMBatchSchedulerRunOnce")
+    @Operation(summary = "배치 스케줄러 1회 실행", description = "현재 시점 기준으로 실행 대상 스케줄을 판정하고 자동 실행 흐름을 한 번 수행합니다.")
+    public ResponseEntity<List<Map<String, Object>>> runSchedulerOnce(
+            @RequestBody AdmBatchOperationRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        List<Map<String, Object>> result = batchScheduler.runOnce(requestUser(servletRequest, request.requestUser()));
+        recordAudit(servletRequest, request.requestUser(), "BATCH_SCHEDULER_RUN_ONCE", "pfw_batch_schedule",
+                "DUE_SCHEDULES", reason, null, String.valueOf(result));
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/calendar")

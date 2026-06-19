@@ -46,7 +46,11 @@
       <section class="panel" v-show="activeMenu === 'logs'">
         <div class="panel-title">
           <h2>거래 로그</h2>
-          <button type="button" @click="searchLogs">조회</button>
+          <div class="actions">
+            <button type="button" @click="searchLogs">조회</button>
+            <button type="button" @click="downloadCsv('TRANSACTION_LOGS')">거래 CSV</button>
+            <button type="button" @click="downloadCsv('ERROR_LOGS')">오류 CSV</button>
+          </div>
         </div>
         <div class="filters">
           <label>거래 ID <input v-model="logSearch.transactionId" type="text"></label>
@@ -57,10 +61,11 @@
           <label>HTTP 상태 <input v-model="logSearch.httpStatus" type="number"></label>
           <label>회원번호 <input v-model="logSearch.memberNo" type="text"></label>
           <label>고객번호 <input v-model="logSearch.customerNo" type="text"></label>
+          <label>다운로드 사유 <input v-model="downloadForm.reason" type="text"></label>
         </div>
         <div class="pager">
           <span>{{ sortedLogs.length }}건</span>
-          <label>행 수
+          <label>쪽 크기
             <select v-model.number="logPage.size">
               <option :value="10">10</option>
               <option :value="20">20</option>
@@ -102,7 +107,7 @@
         <div class="actions">
           <button type="button" v-for="tab in logDetailTabs" :key="tab" @click="logDetailTab = tab">{{ tab }}</button>
           <button type="button" @click="copyLogDetail">복사</button>
-          <button type="button" @click="downloadLogDetail">다운로드</button>
+          <button type="button" @click="downloadLogDetail">상세 다운로드</button>
         </div>
         <pre class="detail">{{ activeLogDetailPayload }}</pre>
       </section>
@@ -126,28 +131,13 @@
           <table>
             <thead>
             <tr>
-              <th>ID</th>
-              <th>회원번호</th>
-              <th>고객번호</th>
-              <th>로그인 ID</th>
-              <th>이름</th>
-              <th>상태</th>
-              <th>잠금</th>
-              <th>탈퇴</th>
-              <th>채널</th>
+              <th>ID</th><th>회원번호</th><th>고객번호</th><th>로그인 ID</th><th>이름</th><th>상태</th><th>잠금</th><th>탈퇴</th><th>채널</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="item in memberResult.items" :key="item.id" @click="loadMemberDetail(item.id)">
-              <td>{{ item.id }}</td>
-              <td>{{ item.member_no }}</td>
-              <td>{{ item.customer_no }}</td>
-              <td>{{ item.login_id }}</td>
-              <td>{{ item.name }}</td>
-              <td>{{ item.member_status }}</td>
-              <td>{{ item.lock_yn }}</td>
-              <td>{{ item.withdraw_yn }}</td>
-              <td>{{ item.channel_code }}</td>
+              <td>{{ item.id }}</td><td>{{ item.member_no }}</td><td>{{ item.customer_no }}</td><td>{{ item.login_id }}</td>
+              <td>{{ item.name }}</td><td>{{ item.member_status }}</td><td>{{ item.lock_yn }}</td><td>{{ item.withdraw_yn }}</td><td>{{ item.channel_code }}</td>
             </tr>
             </tbody>
           </table>
@@ -185,10 +175,12 @@
             <button type="button" v-if="canWrite('BATCH')" @click="runBatchJob">수동 실행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="retryBatchExecution">실패 재수행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="stopBatchExecution">중지</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="runBatchSchedulerOnce">스케줄러 1회 실행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="saveBusinessDay">영업일 저장</button>
             <button type="button" @click="simulateBatchSchedule">수행 시뮬레이션</button>
             <button type="button" @click="loadBatchRelations">관계 조회</button>
             <button type="button" @click="loadBatchTargets">수행 대상 조회</button>
+            <button type="button" @click="downloadCsv('BATCH_EXECUTIONS')">배치 CSV</button>
           </div>
         </div>
         <div class="filters">
@@ -201,10 +193,80 @@
           <label>캘린더 <input v-model="batchForm.calendarId" type="text"></label>
           <label>영업일 <input v-model="batchForm.businessDate" type="date"></label>
           <label>시뮬레이션 일수 <input v-model.number="batchForm.simulationDays" type="number" min="1" max="62"></label>
-          <label>수행 상태 <input v-model="batchForm.dispatchStatus" type="text" placeholder="WAITING"></label>
+          <label>대상 상태 <input v-model="batchForm.dispatchStatus" type="text" placeholder="WAITING"></label>
           <label>사유 <input v-model="batchForm.reason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(batchResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'notifications'">
+        <div class="panel-title">
+          <h2>알림 관리</h2>
+          <div class="actions">
+            <button type="button" @click="loadNotifications">조회</button>
+            <button type="button" v-if="canWrite('NOTIFICATION')" @click="saveNotificationRule">저장</button>
+            <button type="button" v-if="canWrite('NOTIFICATION')" @click="disableNotificationRule">비활성화</button>
+            <button type="button" v-if="canWrite('NOTIFICATION')" @click="sendNotificationTest">테스트 발송</button>
+            <button type="button" @click="downloadCsv('NOTIFICATION_DELIVERY_LOGS')">발송 이력 CSV</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Rule ID <input v-model.number="notificationForm.ruleId" type="number"></label>
+          <label>Event Type <input v-model="notificationForm.eventType" type="text"></label>
+          <label>Event Sub Type <input v-model="notificationForm.eventSubType" type="text"></label>
+          <label>Channel <input v-model="notificationForm.channelCode" type="text"></label>
+          <label>Severity <select v-model="notificationForm.severity"><option>INFO</option><option>WARN</option><option>ERROR</option></select></label>
+          <label>Receiver Group <input v-model="notificationForm.receiverGroup" type="text"></label>
+          <label>사용 <select v-model="notificationForm.useYn"><option>Y</option><option>N</option></select></label>
+          <label>수신자 <input v-model="notificationForm.receiver" type="text"></label>
+          <label>테스트 메시지 <input v-model="notificationForm.message" type="text"></label>
+          <label>사유 <input v-model="notificationForm.reason" type="text"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Rule ID</th><th>Event</th><th>채널</th><th>심각도</th><th>수신 그룹</th><th>사용</th></tr></thead>
+            <tbody>
+            <tr v-for="rule in notificationResult.rules" :key="rule.ruleId || rule.rule_id" @click="selectNotificationRule(rule)">
+              <td>{{ rule.ruleId || rule.rule_id }}</td>
+              <td>{{ rule.eventType || rule.event_type }} / {{ rule.eventSubType || rule.event_sub_type }}</td>
+              <td>{{ rule.channelCode || rule.channel_code }}</td>
+              <td>{{ rule.severity }}</td>
+              <td>{{ rule.receiverGroup || rule.receiver_group }}</td>
+              <td>{{ rule.useYn || rule.use_yn }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="detail">{{ pretty(notificationResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'downloads'">
+        <div class="panel-title">
+          <h2>다운로드 감사</h2>
+          <div class="actions">
+            <button type="button" @click="loadDownloadPolicies">조회</button>
+            <button type="button" @click="downloadCsv(downloadForm.downloadType)">CSV 다운로드</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>다운로드 유형
+            <select v-model="downloadForm.downloadType">
+              <option>TRANSACTION_LOGS</option>
+              <option>ERROR_LOGS</option>
+              <option>BATCH_EXECUTIONS</option>
+              <option>NOTIFICATION_DELIVERY_LOGS</option>
+            </select>
+          </label>
+          <label>대상 화면 <input v-model="downloadForm.targetType" type="text"></label>
+          <label>시작 <input v-model="downloadForm.fromDate" type="text" placeholder="2026-06-19 00:00:00"></label>
+          <label>종료 <input v-model="downloadForm.toDate" type="text" placeholder="2026-06-19 23:59:59"></label>
+          <label>거래 ID <input v-model="downloadForm.transactionId" type="text"></label>
+          <label>Trace ID <input v-model="downloadForm.traceId" type="text"></label>
+          <label>Job ID <input v-model="downloadForm.jobId" type="text"></label>
+          <label>건수 <input v-model.number="downloadForm.limit" type="number"></label>
+          <label>사유 <input v-model="downloadForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(downloadResult) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'auditLogs'">
@@ -374,7 +436,7 @@
           <label>결과 <select v-model="responseCodeForm.resultType"><option>S</option><option>E</option></select></label>
           <label>모듈 <input v-model="responseCodeForm.moduleId" type="text"></label>
           <label>그룹 <input v-model="responseCodeForm.responseGroup" type="text"></label>
-          <label>순번 <input v-model="responseCodeForm.sequenceNo" type="text"></label>
+          <label>일련번호 <input v-model="responseCodeForm.sequenceNo" type="text"></label>
           <label>HTTP <input v-model.number="responseCodeForm.httpStatus" type="number"></label>
           <label>사유 <input v-model="responseCodeReason" type="text"></label>
         </div>

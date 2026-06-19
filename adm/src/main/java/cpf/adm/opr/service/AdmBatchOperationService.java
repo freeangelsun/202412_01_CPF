@@ -313,6 +313,33 @@ public class AdmBatchOperationService {
         return findExecution(executionId);
     }
 
+    public Map<String, Object> requestScheduledRun(
+            String scheduleId,
+            String jobId,
+            String jobParameters,
+            String requestUser,
+            String reason) {
+        String user = TextUtils.defaultIfBlank(requestUser, "PfwBatchScheduler");
+        Job job = resolveJob(jobId);
+        if (job != null && jobLauncher != null) {
+            try {
+                JobExecution jobExecution = jobLauncher.run(job, toJobParameters(jobParameters, user));
+                long executionId = insertExecution(jobId, scheduleId, jobParameters, jobExecution.getStatus().name(), user,
+                        jobExecution.getId(), null, null);
+                recordOperation(jobId, executionId, "SCHEDULE_RUN", user, reason, null,
+                        "SCHEDULE_ID=" + scheduleId + ", SPRING_BATCH_EXECUTION_ID=" + jobExecution.getId());
+                return findExecutionDetail(executionId);
+            } catch (Exception ex) {
+                long executionId = insertExecution(jobId, scheduleId, jobParameters, "FAILED", user, null, null, ex.getMessage());
+                recordOperation(jobId, executionId, "SCHEDULE_RUN_FAILED", user, reason, null, ex.getMessage());
+                return findExecutionDetail(executionId);
+            }
+        }
+        long executionId = insertExecution(jobId, scheduleId, jobParameters, "REQUESTED", user, null, null, null);
+        recordOperation(jobId, executionId, "SCHEDULE_RUN", user, reason, null, "REQUESTED");
+        return findExecution(executionId);
+    }
+
     public Map<String, Object> requestRetry(long executionId, String requestUser, String reason) {
         Map<String, Object> source = findExecution(executionId);
         String jobId = String.valueOf(source.get("job_id"));

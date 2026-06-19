@@ -26,10 +26,10 @@
     <table>
       <thead><tr><th>문서</th><th>내용</th></tr></thead>
       <tbody>
-      <tr><td><a href="./프레임워크_구성_가이드.html">프레임워크 구성 가이드</a></td><td>PFW/CMN/ADM/업무 모듈 경계, DB 소유권, profile, migration, observability</td></tr>
-      <tr><td><a href="./개발_가이드.html">개발 가이드</a></td><td>API, 응답/오류, 트랜잭션, validation, CMN API, EDU 샘플 매트릭스</td></tr>
-      <tr><td><a href="./관리자_가이드.html">관리자 가이드</a></td><td>ADM 회원관리, 운영자/회원 권한, 통합 로그, 배치, 캐시, 보안 운영</td></tr>
-      <tr><td><a href="./SQL_가이드.html">SQL 가이드</a></td><td>설치 SQL, Flyway migration, 계정 권한, smoke 검증</td></tr>
+      <tr><td><a href="./프레임워크_구성_가이드.html">프레임워크 구성 가이드</a></td><td>PFW/CMN/ADM/업무 모듈 경계, DB 소유권, profile, Flyway, observability, quality gate</td></tr>
+      <tr><td><a href="./개발_가이드.html">개발 가이드</a></td><td>API, 응답/오류, 트랜잭션, validation, 외부 호출, CMN API, EDU 샘플 매트릭스</td></tr>
+      <tr><td><a href="./관리자_가이드.html">관리자 가이드</a></td><td>ADM 회원관리, 운영자 권한, 로그, 알림, 다운로드 감사, 배치, 캐시, 메시지, 코드, 설정, 보안 운영</td></tr>
+      <tr><td><a href="./SQL_가이드.html">SQL 가이드</a></td><td>설치 SQL, Flyway migration, 계정 권한, seed idempotent, smoke 검증</td></tr>
       <tr><td><a href="./기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>기능별 소스, API, ADM 화면, DB, Swagger, EDU, 테스트 연결 상태</td></tr>
       <tr><td><a href="../CPF_STABILIZATION_REPORT.html">최신 안정화 리포트</a></td><td>이번 작업 수행 내역, 검증 결과, 미검증 항목, 다음 보강 후보</td></tr>
       </tbody>
@@ -40,13 +40,11 @@
     <h2>현재 표준 요약</h2>
     <table>
       <tbody>
-      <tr><th>테이블명</th><td><code>{주제영역}_{업무명}</code> lower snake case. 예: <code>pfw_message</code>, <code>cmn_sequence</code>, <code>adm_menu</code>, <code>mbr_member</code></td></tr>
-      <tr><th>공통 컬럼</th><td>모든 테이블에 <code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code> 적용</td></tr>
-      <tr><th>SQL 주석</th><td>공식 schema SQL의 모든 테이블/컬럼은 한글 <code>COMMENT</code> 작성</td></tr>
-      <tr><th>거래 헤더</th><td>필수 헤더 3종과 클라이언트/호출자/멱등성 표준 선택 헤더를 Swagger, Context, 로그에 일치시킴</td></tr>
-      <tr><th>ADM 운영</th><td>회원관리, 권한 매트릭스, 통합 로그 포맷팅, 배치 관제, 캐시/메시지/코드/설정 관리를 한 화면에서 운영</td></tr>
-      <tr><th>CMN DB</th><td>기본은 비활성, <code>cpf.cmn.business-db.enabled=true</code>일 때 채번/알림/업무 로그 API 사용</td></tr>
-      <tr><th>품질 Gate</th><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
+      <tr><th>DB 표준</th><td><code>{주제영역}_{업무명}</code> lower snake case, 공통 감사 컬럼, 한글 COMMENT를 사용합니다.</td></tr>
+      <tr><th>ADM 운영</th><td>회원, 권한, 로그, 알림, 다운로드 감사, 배치, 캐시, 메시지, 코드, 응답코드, 설정, 보안 기능을 운영 콘솔에서 관리합니다.</td></tr>
+      <tr><th>다운로드</th><td><code>/adm/api/downloads</code> 공통 API로 사유, 마스킹, 감사 로그를 남깁니다.</td></tr>
+      <tr><th>배치</th><td>Spring Batch 연동, CPF 배치 메타, 영업일/관계/수행대상 조회, scheduler run-once smoke를 제공합니다.</td></tr>
+      <tr><th>품질 Gate</th><td><code>qualityGate</code>는 compile, unit test, UTF-8, mojibake, SQL standard, Java format, HTML docs 검사를 수행합니다.</td></tr>
       </tbody>
     </table>
   </section>

@@ -108,6 +108,17 @@
       <tr><td>로그</td><td>민감정보 마스킹, 보존기간, 검색 키워드 기준을 운영/보안 가이드에 연결</td></tr>
     </table>
   </section>
+  <section>
+    <h2>품질 Gate와 Smoke 분리</h2>
+    <table>
+      <tbody>
+      <tr><th>기본 Gate</th><td><code>qualityGate</code>는 각 모듈 compile, unit test, UTF-8, mojibake, legacy name, SQL standard, Java format, HTML docs 검사를 수행합니다.</td></tr>
+      <tr><th>분리 Smoke</th><td>MariaDB 설치 SQL, ADM/XYZ 앱 기동, OpenAPI JSON, ADM UI/API, scheduler 자동 실행은 외부 환경이나 장기 실행이 필요하므로 별도 smoke로 분리합니다.</td></tr>
+      <tr><th>배치 Scheduler</th><td>자동 실행은 기본 비활성입니다. 운영 profile에서 <code>cpf.batch.scheduler.enabled=true</code>를 명시하고, lock TTL과 tick 주기를 운영 기준에 맞게 조정합니다.</td></tr>
+      <tr><th>다운로드 감사</th><td>ADM DB에 <code>adm_download_audit_log</code>를 두고, 파일 다운로드 감사와 민감정보 마스킹 정책을 운영 메타로 관리합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 </body>
 </html>

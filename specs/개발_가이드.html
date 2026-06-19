@@ -139,6 +139,17 @@
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
     </table>
   </section>
+  <section>
+    <h2>신규 개발 시 참고 샘플</h2>
+    <table>
+      <tbody>
+      <tr><th>ADM 알림</th><td><code>AdmNotificationController</code>, <code>AdmNotificationService</code>, <code>NotificationSender</code> 구조를 참고합니다. Controller는 요청/응답만 처리하고, SQL/감사/발송은 Service와 Sender로 분리합니다.</td></tr>
+      <tr><th>ADM 다운로드</th><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code>를 참고합니다. 다운로드 유형은 화이트리스트로 제한하고, CSV 생성, 민감정보 마스킹, 감사 로그 저장을 한 서비스에서 처리합니다.</td></tr>
+      <tr><th>배치 스케줄러</th><td><code>PfwBatchScheduleService</code>, <code>PfwBatchLockService</code>, <code>PfwBatchExecutionTargetService</code>, <code>PfwBatchScheduler</code>를 참고합니다. 스케줄 판정, lock, 실행 대상 기록, 실행 요청을 분리합니다.</td></tr>
+      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 </body>
 </html>

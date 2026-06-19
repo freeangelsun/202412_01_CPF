@@ -18,52 +18,41 @@
 <main>
   <header>
     <h1>기능 구현 매트릭스</h1>
-    <p>CPF 기능이 실제 소스, API, ADM 화면, DB, Swagger, EDU 샘플, 검증 명령과 연결되어 있는지 확인하기 위한 검수 기준입니다. <span class="status done">완료</span>는 실제 실행 검증까지 확인된 경우에만 사용하고, 코드나 문서만 있는 기능은 <span class="status partial">일부 구현</span> 또는 <span class="status todo">미검증</span>으로 표시합니다.</p>
+    <p>CPF 기능이 소스, API, ADM 화면, DB, Swagger, EDU 샘플, 검증과 연결되어 있는지 확인하기 위한 기준표입니다.</p>
   </header>
 
   <section>
     <h2>기능별 연결 상태</h2>
     <table>
       <thead>
-      <tr><th>대분류</th><th>기능명</th><th>상태</th><th>주요 소스/API</th><th>ADM 화면/DB</th><th>Swagger/EDU</th><th>검증 방법</th><th>비고</th></tr>
+      <tr><th>대분류</th><th>기능명</th><th>구현 상태</th><th>주요 소스/API</th><th>ADM 화면/DB</th><th>Swagger/EDU</th><th>검증 방법</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td>거래 표준</td><td>표준 헤더/거래 ID</td><td class="status partial">일부 구현</td><td><code>pfw/common/header</code>, <code>pfw/common/logging</code>, 실행 모듈 공통 필터</td><td>거래 로그 상세, <code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>공통 OpenAPI 설정, <code>xyz</code> EDU 거래 샘플</td><td><code>:pfw:compileJava</code>, 헤더 검색, 앱 기동 Swagger 확인</td><td>Swagger path 실검증 결과는 안정화 리포트에 기록합니다.</td></tr>
-      <tr><td>거래 표준</td><td>표준 응답/오류</td><td class="status partial">일부 구현</td><td><code>pfw/common/exception</code>, 모듈 예외 핸들러</td><td>오류 로그/거래 로그, <code>pfw_response_code</code>, <code>pfw_message</code></td><td>모듈별 tag, 오류 EDU 샘플 일부</td><td>예외 클래스와 seed 대조</td><td>전체 응답 schema 자동 검증 필요</td></tr>
-      <tr><td>공통 기능</td><td>공통 코드</td><td class="status partial">일부 구현</td><td><code>cmn/cde</code>, <code>AdmCodeController</code>, <code>/adm/api/codes</code></td><td>코드 관리, <code>pfw_code</code></td><td>ADM-Code, CMN 샘플 일부</td><td>Controller/SQL 대조, 컴파일</td><td>브라우저 클릭 검증 필요</td></tr>
-      <tr><td>공통 기능</td><td>공통 메시지</td><td class="status partial">일부 구현</td><td><code>cmn/msg</code>, <code>AdmMessageController</code>, <code>/adm/api/messages</code></td><td>메시지 관리, <code>pfw_message</code></td><td>ADM-Message, 메시지 EDU 일부</td><td>Controller/SQL 대조, 컴파일</td><td>locale별 UI 검증 필요</td></tr>
-      <tr><td>트랜잭션</td><td>트랜잭션 처리</td><td class="status partial">일부 구현</td><td><code>@CpfTransaction</code>, <code>TransactionLoggingAspect</code></td><td>거래 로그, <code>pfw_transaction_log</code></td><td>공통 설명, 기본 온라인 거래 EDU</td><td>AOP 클래스 컴파일</td><td>실제 요청 로그 적재 검증 필요</td></tr>
-      <tr><td>감사</td><td>감사 로그</td><td class="status partial">일부 구현</td><td><code>AdmAuditLogService</code>, <code>/adm/api/audit-logs</code></td><td>감사 로그, <code>adm_audit_log</code></td><td>ADM-Audit, 운영 변경 샘플</td><td>API/SQL 대조, 컴파일</td><td>diff 품질 고도화 필요</td></tr>
-      <tr><td>로그</td><td>온라인 거래 로그</td><td class="status partial">일부 구현</td><td><code>AdmTransactionLogController</code>, <code>/adm/api/logs</code></td><td>거래 로그 화면, <code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>ADM-Log, 로그 EDU 일부</td><td>Controller/화면 대조</td><td>브라우저 클릭 검증 필요</td></tr>
-      <tr><td>로그</td><td>JSON/고정길이 전문 포맷팅</td><td class="status partial">일부 구현</td><td><code>adm/src/main/resources/static/adm</code> 로그 상세 JS</td><td>로그 상세 탭, 전문 포맷 정의 후보</td><td>ADM-Log</td><td>브라우저 클릭 검증</td><td>고정길이 포맷 정의 테이블/관리 UI 고도화 필요</td></tr>
-      <tr><td>연동</td><td>외부 연동</td><td class="status partial">일부 구현</td><td><code>CpfWebClient</code>, <code>MbrMemberClientService</code></td><td>거래 로그, <code>pfw_transaction_log</code></td><td>ACC/MBR, 외부 호출 EDU 일부</td><td>소스 컴파일</td><td>timeout/retry/circuit breaker 실행 검증 필요</td></tr>
-      <tr><td>파일</td><td>파일 업로드/다운로드</td><td class="status partial">일부 구현</td><td><code>cmn/fle</code>, ADM 로그 다운로드 JS</td><td>로그 다운로드 버튼, <code>file_exchange_log</code></td><td>CMN/ADM 일부, 파일 EDU 일부</td><td>소스 확인, 브라우저 검증</td><td>권한/감사 공통 다운로드 미완성</td></tr>
-      <tr><td>다운로드</td><td>다운로드 권한/마스킹/감사</td><td class="status partial">일부 구현</td><td><code>SensitiveDataMasker</code>, ADM 권한 필터</td><td><code>adm_button</code>, <code>adm_audit_log</code></td><td>ADM 권한 일부, 마스킹 EDU 일부</td><td>권한별 다운로드 시나리오</td><td><code>adm_download_audit_log</code> 후보</td></tr>
-      <tr><td>알림</td><td>알림/노티</td><td class="status partial">일부 구현</td><td><code>AdmNotificationController</code>, <code>/adm/api/notifications/rules</code>, <code>/adm/api/notifications/rules/{ruleId}/disable</code></td><td><code>pfw_notification_rule</code>, <code>pfw_notification_delivery_log</code>, <code>cmn_notification_log</code></td><td>ADM-Notification, CMN/Batch EDU 일부</td><td>컴파일, Swagger smoke</td><td>등록/수정/비활성 API는 보강됨. 전용 UI와 실제 발송 adapter 검증은 추가 필요</td></tr>
-      <tr><td>메시징</td><td>Redis/Kafka broker 전파</td><td class="status todo">미검증</td><td><code>cmn/mqe</code>, broker 확장 지점</td><td>DB fallback 이벤트</td><td>메시징 EDU 일부</td><td>실 broker 테스트</td><td>외부 broker 설치/기동이 필요합니다.</td></tr>
-      <tr><td>보안</td><td>JWT/OAuth/세션</td><td class="status partial">일부 구현</td><td><code>pfw/common/security</code>, <code>cmn/sec</code>, ADM 로그인/세션 일부</td><td>보안/비밀번호 화면, <code>adm_operator_session</code>, <code>adm_ip_allowlist</code>, <code>adm_mfa_otp_secret</code></td><td>ADM-Security 일부, 보안 EDU 일부</td><td>컴파일, API smoke</td><td>TOTP QR/복구코드 완성 필요</td></tr>
-      <tr><td>ADM</td><td>운영자 권한</td><td class="status partial">일부 구현</td><td><code>AdmApiAuthFilter</code>, 권한 Controller, <code>/adm/api/permissions</code></td><td>권한 메뉴, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_role_*</code></td><td>ADM-Permission</td><td>필터/seed 대조</td><td>권한별 브라우저 검증 필요</td></tr>
-      <tr><td>ADM</td><td>회원 관리/회원 권한</td><td class="status partial">일부 구현</td><td><code>AdmMemberController</code>, 회원 권한 API</td><td>회원관리 화면, <code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_role_history</code></td><td>ADM-Member</td><td>Controller/SQL 대조, 브라우저 검증</td><td>운영 UX 고도화 필요</td></tr>
-      <tr><td>운영</td><td>런타임 로그 레벨 변경</td><td class="status partial">일부 구현</td><td><code>AdmDynamicLogLevelController</code>, <code>/adm/api/log-level-rules</code></td><td>동적 로그, <code>adm_dynamic_log_level_rule</code></td><td>ADM-LogLevel</td><td>Controller/SQL 대조</td><td>broker 전파 테스트 미검증</td></tr>
-      <tr><td>배치</td><td>배치 Job/Execution/Step</td><td class="status partial">일부 구현</td><td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code>, <code>/adm/api/batch/**</code></td><td>배치 관제, <code>BATCH_*</code>, <code>pfw_batch_job</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code></td><td>ADM-Batch, XYZ-EDU Batch</td><td>Spring Batch 실행 후 ADM 목록/상세 조회</td><td>자동 scheduler 운영은 별도 검증 필요</td></tr>
-      <tr><td>배치</td><td>배치 스케줄/자동 수행</td><td class="status partial">일부 구현</td><td><code>/adm/api/batch/schedules</code>, 스케줄 조회 API</td><td>배치 관제, <code>pfw_batch_schedule</code></td><td>ADM-Batch, 배치 EDU</td><td>실제 scheduler 실행</td><td>자동 반복 수행 검증 필요</td></tr>
-      <tr><td>배치</td><td>영업일/수행 가능 시간</td><td class="status partial">일부 구현</td><td><code>simulateSchedule</code>, <code>/adm/api/batch/schedules/{scheduleId}/simulation</code>, <code>/adm/api/batch/calendar</code></td><td>수행 시뮬레이션 버튼, <code>pfw_business_day_calendar</code>, <code>pfw_batch_schedule</code></td><td>ADM-Batch, <code>/xyz/edu/batch/schedule-policy</code></td><td>API/SQL 대조, 브라우저 검증</td><td>캘린더 관리 UI 고도화 필요</td></tr>
-      <tr><td>배치</td><td>선행/후행/Trigger 관계</td><td class="status partial">일부 구현</td><td><code>findRelations</code>, <code>/adm/api/batch/relations</code></td><td>관계 조회 버튼, <code>pfw_batch_job_relation</code></td><td>ADM-Batch, 배치 EDU</td><td>API/SQL 대조</td><td>그래프 시각화 미구현</td></tr>
-      <tr><td>배치</td><td>수행 대상 인스턴스</td><td class="status partial">일부 구현</td><td><code>findExecutionTargets</code>, <code>/adm/api/batch/execution-targets</code>, <code>/instances</code></td><td>수행 대상 조회 버튼, <code>pfw_batch_instance</code>, <code>pfw_batch_execution_target</code></td><td>ADM-Batch, 배치 EDU</td><td>API/SQL 대조</td><td>등록/배정/취소 API 필요</td></tr>
-      <tr><td>배치</td><td>실패/지연 알림</td><td class="status partial">일부 구현</td><td>PFW notification SQL</td><td><code>pfw_notification_rule</code>, <code>pfw_notification_delivery_log</code></td><td>배치 정책 EDU</td><td>SQL/seed 대조</td><td>알림 발송 adapter/API 필요</td></tr>
-      <tr><td>EDU</td><td>개발자 교육 샘플</td><td class="status partial">일부 구현</td><td><code>xyz/src/main/java/cpf/xyz/edu</code>, <code>/xyz/edu/**</code></td><td>seed 일부</td><td>XYZ-EDU tags</td><td><code>:xyz:compileJava</code></td><td>모든 기능 라인 단위 샘플은 계속 보강 필요</td></tr>
-      <tr><td>문서</td><td>Swagger/OpenAPI</td><td class="status partial">일부 구현</td><td>Controller annotations, PFW OpenAPI config, <code>/v3/api-docs</code></td><td>Swagger UI</td><td>모듈별 tag, EDU API</td><td>ADM 앱 기동 후 경로 smoke</td><td><code>/swagger-ui.html</code> 결과는 안정화 리포트에 기록합니다.</td></tr>
-      <tr><td>문서</td><td>HTML 가이드 정본화</td><td class="status partial">일부 구현</td><td><code>README.md</code>, <code>specs/index.html</code>, 주요 HTML 가이드</td><td>문서 포털</td><td>EDU 샘플 매트릭스 연결</td><td>링크 검색, 브라우저 렌더링</td><td>요청서 지정 root MD는 통합 대상입니다.</td></tr>
+      <tr><td>거래 표준</td><td>표준 헤더/거래 ID</td><td class="status partial">일부 구현</td><td><code>pfw/common/header</code>, <code>pfw/common/logging</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>공통 OpenAPI 설정, XYZ EDU 거래 샘플</td><td>compile, 로그 적재 smoke</td><td>앱 기동 후 OpenAPI JSON 검증 필요</td></tr>
+      <tr><td>ADM</td><td>회원 관리/회원 권한</td><td class="status partial">일부 구현</td><td><code>AdmMemberController</code>, <code>/adm/api/members</code></td><td>회원 화면, <code>mbr_member</code>, <code>mbr_member_role</code></td><td>ADM-Member</td><td>compile, UI smoke</td><td>브라우저 클릭 검증 필요</td></tr>
+      <tr><td>ADM</td><td>운영자 권한</td><td class="status partial">일부 구현</td><td><code>AdmApiAuthFilter</code>, <code>/adm/api/permissions</code></td><td>권한 화면, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code></td><td>ADM-Permission</td><td>compile, seed 검증</td><td>서버 API 권한 검사 포함</td></tr>
+      <tr><td>로그</td><td>온라인 거래 로그</td><td class="status partial">일부 구현</td><td><code>AdmLogController</code>, <code>AdmLogQueryService</code></td><td>거래 로그 화면, <code>pfw_transaction_log</code></td><td>ADM-Log</td><td>compile, UI smoke</td><td>JSON pretty, 고정길이 전문 포맷팅 포함</td></tr>
+      <tr><td>감사</td><td>감사 로그</td><td class="status partial">일부 구현</td><td><code>AdmAuditLogService</code>, <code>/adm/api/audit-logs</code></td><td>감사 로그 화면, <code>adm_audit_log</code></td><td>ADM-Audit</td><td>compile, SQL standard</td><td>diff 정책 고도화 여지 있음</td></tr>
+      <tr><td>알림</td><td>알림 규칙/테스트 발송</td><td class="status partial">일부 구현</td><td><code>AdmNotificationController</code>, <code>AdmNotificationService</code>, <code>NotificationSender</code></td><td>알림 화면, <code>pfw_notification_rule</code>, <code>pfw_notification_delivery_log</code></td><td>ADM-Notification</td><td>compile, ADM UI smoke</td><td>Mock sender 적용, 실제 채널 adapter는 다음 단계</td></tr>
+      <tr><td>다운로드</td><td>권한/마스킹/감사 다운로드</td><td class="status partial">일부 구현</td><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code></td><td>다운로드 화면, <code>adm_download_audit_log</code></td><td>ADM-Download</td><td>compile, SQL standard, ADM UI smoke</td><td>민감정보 원문 다운로드 권한은 정책 확장 후보</td></tr>
+      <tr><td>배치</td><td>배치 Job/Execution/Step 관제</td><td class="status partial">일부 구현</td><td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code></td><td>배치 화면, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>ADM-Batch, XYZ EDU Batch</td><td>compile, DB smoke</td><td>Spring Batch JobRepository 실운영 smoke 필요</td></tr>
+      <tr><td>배치</td><td>영업일/관계/수행대상</td><td class="status partial">일부 구현</td><td><code>simulateSchedule</code>, <code>findRelations</code>, <code>findExecutionTargets</code></td><td><code>pfw_business_day_calendar</code>, <code>pfw_batch_job_relation</code>, <code>pfw_batch_execution_target</code></td><td>ADM-Batch, XYZ EDU Batch</td><td>compile, API smoke 후보</td><td>관계 그래프 시각화는 다음 단계</td></tr>
+      <tr><td>배치</td><td>자동 스케줄러</td><td class="status partial">일부 구현</td><td><code>PfwBatchScheduler</code>, <code>PfwBatchScheduleService</code>, <code>PfwBatchLockService</code></td><td><code>pfw_batch_schedule</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_execution_target</code></td><td>ADM-Batch</td><td><code>/adm/api/batch/scheduler/run-once</code>, scheduler smoke 후보</td><td>기본 비활성, property로 활성화</td></tr>
+      <tr><td>공통 운영</td><td>캐시/메시지/코드/응답코드/설정</td><td class="status partial">일부 구현</td><td>ADM 각 Controller, CMN cache service</td><td>ADM 화면, <code>pfw_code</code>, <code>pfw_message</code>, <code>pfw_config</code></td><td>ADM-Code, ADM-Message, ADM-Config</td><td>compile, SQL standard</td><td>브라우저 클릭 검증 필요</td></tr>
+      <tr><td>보안</td><td>비밀번호/세션/MFA/IP allowlist</td><td class="status partial">일부 구현</td><td>ADM security/operator API</td><td>보안 화면, <code>adm_password_policy</code>, <code>adm_operator_session</code>, <code>adm_mfa_otp_secret</code></td><td>ADM-Security</td><td>compile</td><td>TOTP QR/복구코드 완성은 다음 단계</td></tr>
+      <tr><td>CMN</td><td>채번/알림 로그/업무 로그</td><td class="status partial">일부 구현</td><td><code>cmn/biz</code>, XYZ CMN EDU</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code></td><td>XYZ-EDU</td><td>CMN test, concurrency test</td><td>cmnDB optional datasource 기준</td></tr>
+      <tr><td>품질</td><td>qualityGate</td><td class="status done">완료</td><td><code>build.gradle</code>, <code>scripts/check-*.ps1</code></td><td>CI gate</td><td>프레임워크 구성 가이드</td><td><code>qualityGate</code></td><td>OpenAPI/ADM UI smoke는 별도 task</td></tr>
+      <tr><td>문서</td><td>HTML 가이드 정본화</td><td class="status partial">일부 구현</td><td>루트 README, <code>specs/index.html</code>, 주요 HTML 가이드</td><td>문서 포털</td><td>EDU 샘플 매트릭스 연결</td><td><code>checkHtmlDocs</code></td><td>상세 가이드는 계속 현행화 대상</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>검수 메모</h2>
+    <h2>상태 기준</h2>
     <ul>
-      <li><span class="status partial">일부 구현</span>은 소스 또는 SQL은 있으나 앱 기동, 브라우저 클릭, 실제 DB 적재, OpenAPI JSON 검증 중 하나 이상이 부족한 상태입니다.</li>
-      <li>기능을 보강할 때는 주요 소스, API, ADM 화면, DB 테이블, Swagger, EDU 샘플, 테스트, 가이드를 함께 갱신해야 합니다.</li>
-      <li>실행하지 않은 검증은 성공으로 표시하지 않고 <span class="status todo">미검증</span> 또는 리포트의 보류 항목으로 분리합니다.</li>
+      <li><span class="status done">완료</span>: 로컬 검증까지 성공한 기능입니다.</li>
+      <li><span class="status partial">일부 구현</span>: 코드/SQL/문서는 있으나 앱 기동, 브라우저 클릭, 외부 broker 같은 추가 검증이 필요한 기능입니다.</li>
+      <li><span class="status todo">미구현</span>: 설계 또는 후보만 있는 기능입니다.</li>
     </ul>
   </section>
 </main>

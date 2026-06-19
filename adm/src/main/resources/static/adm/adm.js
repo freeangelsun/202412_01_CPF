@@ -26,8 +26,10 @@ if (!window.Vue) {
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
-          { id: "members", menuId: "MEMBER", label: "회원 관리" },
+          { id: "members", menuId: "MEMBER", label: "회원" },
           { id: "batch", menuId: "BATCH", label: "배치" },
+          { id: "notifications", menuId: "NOTIFICATION", label: "알림" },
+          { id: "downloads", menuId: "DOWNLOAD", label: "다운로드" },
           { id: "cache", menuId: "CACHE", label: "캐시" },
           { id: "messages", menuId: "MESSAGE", label: "메시지" },
           { id: "codes", menuId: "CODE", label: "코드" },
@@ -39,7 +41,6 @@ if (!window.Vue) {
           { id: "security", menuId: "SECURITY", label: "보안" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" }
         ],
-        cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
         logSearch: {
           transactionId: "",
           traceId: "",
@@ -83,11 +84,7 @@ if (!window.Vue) {
           requestUser: "admin-ui",
           reason: "회원 운영 변경"
         },
-        memberStatusForm: {
-          memberStatus: "ACTIVE",
-          lockYn: "N",
-          withdrawYn: "N"
-        },
+        memberStatusForm: { memberStatus: "ACTIVE", lockYn: "N", withdrawYn: "N" },
         memberRoleForm: {
           serviceCode: "MBR",
           roleCode: "MBR_USER",
@@ -113,13 +110,75 @@ if (!window.Vue) {
           description: "ADM 영업일 샘플",
           reason: "배치 운영 변경"
         },
+        notificationForm: {
+          ruleId: null,
+          eventType: "BATCH",
+          eventSubType: "FAILED",
+          channelCode: "ADM",
+          templateCode: "",
+          severity: "WARN",
+          receiverGroup: "ADM_OPERATOR",
+          useYn: "Y",
+          targetType: "ADM_TEST",
+          targetId: "TEST",
+          receiver: "ADM_OPERATOR",
+          message: "ADM 알림 테스트 발송입니다.",
+          reason: "알림 규칙 변경",
+          requestUser: "admin-ui"
+        },
+        downloadForm: {
+          downloadType: "TRANSACTION_LOGS",
+          targetType: "LOG_LIST",
+          fromDate: "",
+          toDate: "",
+          transactionId: "",
+          traceId: "",
+          jobId: "",
+          limit: 1000,
+          includeSensitive: false,
+          reason: "운영 점검 다운로드",
+          requestUser: "admin-ui"
+        },
+        cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
         cacheReason: "ADM 캐시 갱신",
         responseCodeReason: "ADM 응답코드 변경",
-        logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "장애 진단" },
+        logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "운영 진단" },
         operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
-        messageForm: { messageId: null, messageCode: "MPFW990099", locale: "ko", messageFormatType: "FIXED", externalMessage: "샘플 메시지", internalMessage: "샘플 내부 메시지", parameterCount: 0, parameterSample: "[]", description: "ADM 샘플", useYn: "Y", requestUser: "admin-ui", reason: "메시지 변경" },
-        codeForm: { codeId: null, parentId: null, codeKey: "ADM_SAMPLE", codeValue: "SAMPLE", description: "ADM 샘플 코드", useYn: "Y", requestUser: "admin-ui", reason: "코드 변경" },
-        configForm: { configId: null, configKey: "CPF.ADM.SAMPLE", configValue: "Y", configType: "BOOLEAN", description: "ADM 샘플 설정", encryptedYn: "N", useYn: "Y", requestUser: "admin-ui", reason: "설정 변경" },
+        messageForm: {
+          messageId: null,
+          messageCode: "MPFW990099",
+          locale: "ko",
+          messageFormatType: "FIXED",
+          externalMessage: "샘플 메시지",
+          internalMessage: "샘플 내부 메시지",
+          parameterCount: 0,
+          parameterSample: "[]",
+          description: "ADM 샘플",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "메시지 변경"
+        },
+        codeForm: {
+          codeId: null,
+          parentId: null,
+          codeKey: "ADM_SAMPLE",
+          codeValue: "SAMPLE",
+          description: "ADM 샘플 코드",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "코드 변경"
+        },
+        configForm: {
+          configId: null,
+          configKey: "CPF.ADM.SAMPLE",
+          configValue: "Y",
+          configType: "BOOLEAN",
+          description: "ADM 샘플 설정",
+          encryptedYn: "N",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "설정 변경"
+        },
         permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "로컬 개발", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
@@ -141,11 +200,13 @@ if (!window.Vue) {
         memberResult: { items: [] },
         memberDetail: {},
         auditResult: {},
+        batchResult: {},
+        notificationResult: {},
+        downloadResult: {},
         cacheResult: {},
         responseCodeResult: {},
         logLevelResult: {},
         operatorResult: {},
-        batchResult: {},
         messageResult: {},
         codeResult: {},
         configResult: {},
@@ -184,15 +245,15 @@ if (!window.Vue) {
         return Math.max(1, Math.ceil(this.sortedLogs.length / this.logPage.size));
       },
       activeLogDetailPayload() {
-        const detail = this.logDetail || {};
+        const detail = this.logDetail?.item || this.logDetail || {};
         const tabMap = {
-          "요약": detail.summary || detail,
-          "헤더": detail.headers || detail.HEADERS || {},
-          "요청": detail.request || detail.REQUEST_BODY || {},
-          "응답": detail.response || detail.RESPONSE || {},
-          "오류": detail.error || detail.ERROR_MESSAGE || {},
-          "상세": detail.formattedDetails || detail.details || [],
-          "전문": this.fixedLengthDetails(detail)
+          요약: detail.summary || detail,
+          헤더: detail.headers || detail.HEADERS || {},
+          요청: detail.request || detail.REQUEST_BODY || {},
+          응답: detail.response || detail.RESPONSE || {},
+          오류: detail.error || detail.ERROR_MESSAGE || {},
+          상세: detail.formattedDetails || detail.details || [],
+          전문: this.fixedLengthDetails(detail)
         };
         return this.pretty(tabMap[this.logDetailTab] || {});
       }
@@ -240,16 +301,6 @@ if (!window.Vue) {
           return false;
         }
         return true;
-      },
-      sortLogs(key) {
-        if (this.logSort.key === key) {
-          this.logSort.direction = this.logSort.direction === "asc" ? "desc" : "asc";
-        } else {
-          this.logSort = { key, direction: "asc" };
-        }
-      },
-      moveLogPage(delta) {
-        this.logPage.page = Math.min(this.logTotalPages, Math.max(1, this.logPage.page + delta));
       },
       apiHeaders(extraHeaders = {}) {
         const headers = { ...defaultHeaders, ...extraHeaders };
@@ -313,10 +364,12 @@ if (!window.Vue) {
           this.searchLogs(),
           this.loadAuditLogs(),
           this.searchMembers(),
+          this.loadBatch(),
+          this.loadNotifications(),
+          this.loadDownloadPolicies(),
           this.loadOperators(),
           this.loadResponseCodes(),
           this.loadLogLevelRules(),
-          this.loadBatch(),
           this.loadMessages(),
           this.loadCodes(),
           this.loadConfigs(),
@@ -342,12 +395,20 @@ if (!window.Vue) {
       },
       buildParams(values) {
         const params = new URLSearchParams();
-        Object.entries(values).forEach(([key, value]) => {
+        Object.entries(values || {}).forEach(([key, value]) => {
           if (value !== null && value !== undefined && String(value).trim() !== "") {
             params.set(key, value);
           }
         });
         return params;
+      },
+      sortLogs(key) {
+        this.logSort = this.logSort.key === key
+          ? { key, direction: this.logSort.direction === "asc" ? "desc" : "asc" }
+          : { key, direction: "asc" };
+      },
+      moveLogPage(delta) {
+        this.logPage.page = Math.min(this.logTotalPages, Math.max(1, this.logPage.page + delta));
       },
       fixedLengthDetails(detail) {
         const formatted = detail?.formattedDetails || [];
@@ -368,6 +429,30 @@ if (!window.Vue) {
         anchor.download = `cpf-log-detail-${Date.now()}.json`;
         anchor.click();
         URL.revokeObjectURL(url);
+      },
+      async downloadCsv(downloadType) {
+        if (!this.requireReason(this.downloadForm.reason)) return;
+        const response = await fetch("/adm/api/downloads/csv", {
+          method: "POST",
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ ...this.downloadForm, downloadType })
+        });
+        if (!response.ok) {
+          await this.parseResponse(response);
+          return;
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get("content-disposition") || "";
+        const match = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^"]+)"?/i);
+        const fileName = decodeURIComponent(match?.[1] || match?.[2] || `cpf-${downloadType}-${Date.now()}.csv`);
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        await this.loadDownloadPolicies();
+        this.setMessage(`${downloadType} CSV 다운로드를 요청했습니다.`);
       },
       async searchLogs() {
         const params = this.buildParams(this.logSearch);
@@ -459,12 +544,6 @@ if (!window.Vue) {
         this.memberDetail = await this.sendJson(`/adm/api/members/${this.memberForm.memberId}/roles/${this.memberRoleForm.roleCode}?${params.toString()}`, "DELETE");
         this.setMessage("회원 권한을 회수했습니다.");
       },
-      async refreshCache(target) {
-        if (!this.requireReason(this.cacheReason)) return;
-        const params = this.buildParams({ target, reason: this.cacheReason, requestUser: "admin-ui" });
-        this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?${params.toString()}`, "POST");
-        this.setMessage(`${target} 캐시 갱신을 요청했습니다.`);
-      },
       async loadBatch() {
         const [jobs, executions, schedules, instances, relations, targets, calendar] = await Promise.all([
           this.getJson("/adm/api/batch/jobs"),
@@ -529,13 +608,8 @@ if (!window.Vue) {
       },
       async simulateBatchSchedule() {
         if (!this.batchForm.scheduleId) return;
-        const params = this.buildParams({
-          baseDate: this.batchForm.businessDate,
-          days: this.batchForm.simulationDays || 14
-        });
-        this.batchResult = {
-          simulation: await this.getJson(`/adm/api/batch/schedules/${this.batchForm.scheduleId}/simulation?${params.toString()}`)
-        };
+        const params = this.buildParams({ baseDate: this.batchForm.businessDate, days: this.batchForm.simulationDays || 14 });
+        this.batchResult = { simulation: await this.getJson(`/adm/api/batch/schedules/${this.batchForm.scheduleId}/simulation?${params.toString()}`) };
         this.setMessage("배치 수행 시뮬레이션을 조회했습니다.");
       },
       async loadBatchRelations() {
@@ -543,12 +617,91 @@ if (!window.Vue) {
         this.batchResult = { relations: await this.getJson(`/adm/api/batch/relations?${params.toString()}`) };
       },
       async loadBatchTargets() {
-        const params = this.buildParams({
-          jobId: this.batchForm.jobId,
-          dispatchStatus: this.batchForm.dispatchStatus,
-          limit: 100
-        });
+        const params = this.buildParams({ jobId: this.batchForm.jobId, dispatchStatus: this.batchForm.dispatchStatus, limit: 100 });
         this.batchResult = { targets: await this.getJson(`/adm/api/batch/execution-targets?${params.toString()}`) };
+      },
+      async runBatchSchedulerOnce() {
+        if (!this.requireReason(this.batchForm.reason)) return;
+        this.batchResult = await this.sendJson("/adm/api/batch/scheduler/run-once", "POST", {
+          requestUser: "admin-ui",
+          reason: this.batchForm.reason
+        });
+        this.setMessage("배치 스케줄러 1회 실행을 요청했습니다.");
+      },
+      async loadNotifications() {
+        const [rules, deliveryLogs] = await Promise.all([
+          this.getJson("/adm/api/notifications/rules"),
+          this.getJson("/adm/api/notifications/delivery-logs?limit=50")
+        ]);
+        this.notificationResult = { rules, deliveryLogs };
+      },
+      selectNotificationRule(rule) {
+        this.notificationForm.ruleId = rule.ruleId || rule.rule_id;
+        this.notificationForm.eventType = rule.eventType || rule.event_type || "";
+        this.notificationForm.eventSubType = rule.eventSubType || rule.event_sub_type || "";
+        this.notificationForm.channelCode = rule.channelCode || rule.channel_code || "ADM";
+        this.notificationForm.templateCode = rule.templateCode || rule.template_code || "";
+        this.notificationForm.severity = rule.severity || "INFO";
+        this.notificationForm.receiverGroup = rule.receiverGroup || rule.receiver_group || "";
+        this.notificationForm.useYn = rule.useYn || rule.use_yn || "Y";
+      },
+      notificationPayload() {
+        return {
+          eventType: this.notificationForm.eventType,
+          eventSubType: this.notificationForm.eventSubType,
+          channelCode: this.notificationForm.channelCode,
+          templateCode: this.notificationForm.templateCode,
+          severity: this.notificationForm.severity,
+          receiverGroup: this.notificationForm.receiverGroup,
+          useYn: this.notificationForm.useYn,
+          reason: this.notificationForm.reason,
+          requestUser: "admin-ui"
+        };
+      },
+      async saveNotificationRule() {
+        if (!this.notificationForm.eventType || !this.requireReason(this.notificationForm.reason)) return;
+        const method = this.notificationForm.ruleId ? "PUT" : "POST";
+        const url = this.notificationForm.ruleId
+          ? `/adm/api/notifications/rules/${this.notificationForm.ruleId}`
+          : "/adm/api/notifications/rules";
+        this.notificationResult = await this.sendJson(url, method, this.notificationPayload());
+        await this.loadNotifications();
+        this.setMessage("알림 규칙을 저장했습니다.");
+      },
+      async disableNotificationRule() {
+        if (!this.notificationForm.ruleId || !this.requireReason(this.notificationForm.reason)) return;
+        this.notificationResult = await this.sendJson(`/adm/api/notifications/rules/${this.notificationForm.ruleId}/disable`, "PUT", {
+          reason: this.notificationForm.reason,
+          requestUser: "admin-ui"
+        });
+        await this.loadNotifications();
+        this.setMessage("알림 규칙을 비활성화했습니다.");
+      },
+      async sendNotificationTest() {
+        if (!this.notificationForm.ruleId || !this.requireReason(this.notificationForm.reason)) return;
+        this.notificationResult = await this.sendJson(`/adm/api/notifications/rules/${this.notificationForm.ruleId}/test-send`, "POST", {
+          targetType: this.notificationForm.targetType,
+          targetId: this.notificationForm.targetId,
+          receiver: this.notificationForm.receiver,
+          message: this.notificationForm.message,
+          reason: this.notificationForm.reason,
+          requestUser: "admin-ui"
+        });
+        await this.loadNotifications();
+        this.setMessage("알림 테스트 발송을 요청했습니다.");
+      },
+      async loadDownloadPolicies() {
+        const [policies, auditLogs] = await Promise.all([
+          this.getJson("/adm/api/downloads/policies"),
+          this.getJson("/adm/api/downloads/audit-logs?limit=50")
+        ]);
+        this.downloadResult = { policies, auditLogs };
+      },
+      async refreshCache(target) {
+        if (!this.requireReason(this.cacheReason)) return;
+        const params = this.buildParams({ target, reason: this.cacheReason, requestUser: "admin-ui" });
+        this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?${params.toString()}`, "POST");
+        this.setMessage(`${target} 캐시 갱신을 요청했습니다.`);
       },
       async loadMessages() {
         this.messageResult = await this.getJson("/adm/api/messages");
@@ -619,27 +772,13 @@ if (!window.Vue) {
       },
       validateResponseCodeForm() {
         const code = this.responseCodeForm.responseCode || "";
-        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) {
-          return "응답코드는 EACC010001 또는 SACC000000 형식이어야 합니다.";
-        }
-        if (code[0] !== this.responseCodeForm.resultType) {
-          return "결과 유형은 응답코드 첫 글자와 같아야 합니다.";
-        }
-        if (code.substring(1, 4) !== this.responseCodeForm.moduleId) {
-          return "모듈 ID는 응답코드 2~4번째 자리와 같아야 합니다.";
-        }
-        if (code.substring(4, 6) !== this.responseCodeForm.responseGroup) {
-          return "응답 그룹은 응답코드 5~6번째 자리와 같아야 합니다.";
-        }
-        if (code.substring(6, 10) !== this.responseCodeForm.sequenceNo) {
-          return "일련번호는 응답코드 7~10번째 자리와 같아야 합니다.";
-        }
-        if (!/^M[A-Z]{3}[0-9]{6}$/.test(this.responseCodeForm.messageCode || "")) {
-          return "메시지코드는 MCMN000001 형식이어야 합니다.";
-        }
-        if (!this.requireReason(this.responseCodeReason)) {
-          return "감사 사유는 필수입니다.";
-        }
+        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) return "응답코드는 EACC010001 또는 SACC000000 형식이어야 합니다.";
+        if (code[0] !== this.responseCodeForm.resultType) return "결과 유형은 응답코드 첫 글자와 같아야 합니다.";
+        if (code.substring(1, 4) !== this.responseCodeForm.moduleId) return "모듈 ID는 응답코드 2~4번째 자리와 같아야 합니다.";
+        if (code.substring(4, 6) !== this.responseCodeForm.responseGroup) return "응답 그룹은 응답코드 5~6번째 자리와 같아야 합니다.";
+        if (code.substring(6, 10) !== this.responseCodeForm.sequenceNo) return "일련번호는 응답코드 7~10번째 자리와 같아야 합니다.";
+        if (!/^M[A-Z]{3}[0-9]{6}$/.test(this.responseCodeForm.messageCode || "")) return "메시지코드는 MCMN000001 형식이어야 합니다.";
+        if (!this.requireReason(this.responseCodeReason)) return "감사 사유는 필수입니다.";
         return "";
       },
       async createResponseCode() {
@@ -685,10 +824,6 @@ if (!window.Vue) {
       async createOperator() {
         if (!this.operatorForm.operatorId || !this.operatorForm.operatorName || !this.operatorForm.password) {
           this.setMessage("운영자 ID, 이름, 초기 비밀번호가 필요합니다.");
-          return;
-        }
-        if (this.operatorForm.password.length < 10) {
-          this.setMessage("초기 비밀번호는 10자 이상이어야 합니다.");
           return;
         }
         if (!this.requireReason(this.operatorForm.reason)) return;

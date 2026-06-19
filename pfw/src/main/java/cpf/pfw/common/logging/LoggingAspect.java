@@ -117,7 +117,10 @@ public class LoggingAspect {
         CpfWorkflowContext.apply(workflowMetadata);
 
         logger.info(
-                "Transaction started. transactionId={}, businessTransactionId={}, businessTransactionName={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowInstanceId={}, workflowStepId={}, method={}, uri={}, controller={}, executionClass={}, executionMethod={}, clientIp={}, parameters={}, requestBody={}",
+                "Transaction started. transactionId={}, businessTransactionId={}, businessTransactionName={}, "
+                        + "traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowInstanceId={}, workflowStepId={}, "
+                        + "method={}, uri={}, controller={}, executionClass={}, executionMethod={}, clientIp={}, "
+                        + "parameters={}, requestBody={}",
                 transactionId,
                 businessTransactionId,
                 businessTransactionName,
@@ -888,4 +891,3 @@ public class LoggingAspect {
             String errorMessage) {
     }
 }
-

@@ -1,118 +1,153 @@
-# CPF 3차 완성도 보강 요청서
+# CPF 재작업 요청서
 
-## 문서 체계 단순화, HTML 가이드 정본화, Swagger/ADM 운영 검증
+## 필수 운영 기능 개발, 문서 정본화, 품질 Gate 정상화, 빈 폴더 정리
 
 현재 열려 있는 로컬 프로젝트 소스 기준으로 작업하세요.
 
-이번 작업은 신규 기능을 무리하게 늘리는 작업이 아닙니다.
-CPF 프레임워크의 문서 체계, 소스 포맷, Swagger, ADM 운영 검증, 남은 미검증 항목을 정리하여 프레임워크 완성도를 높이는 작업입니다.
-
-이전 작업에서 qualityGate, MariaDB smoke, EDU Batch 실실행, ADM API smoke가 성공한 것으로 보고되었지만, 문서가 여전히 복잡하고 specs 폴더에 불필요한 md 파일이 남아 있으며, 일부 기능은 브라우저 기준 검증이 부족합니다.
+이번 작업은 단순 문서 정리나 보강이 아닙니다.
+CPF 프레임워크가 실제 운영 가능한 금융권 공통 프레임워크가 되기 위해 필요한 필수 기능을 개발하고, 직전 작업에서 남은 문서/품질/구조 문제를 정리하는 작업입니다.
 
 ---
 
 # 1. 이번 작업 핵심 목표
 
 ```text
-1. README.md를 제외한 specs 문서는 HTML 중심으로 정리
-2. specs 루트의 불필요한 md 문서를 정본 HTML 가이드에 통합 후 삭제
-3. 기능 구현 매트릭스를 md가 아니라 HTML 문서로 전환
-4. specs/index.html을 브라우저에서 바로 보는 문서 포털로 정리
-5. 문서 수를 줄이고, 중복/파편 문서를 제거
-6. 핵심 Java/HTML/SQL/PowerShell/Gradle 포맷 정상화
-7. /swagger-ui.html HTTP 500 수정
-8. /v3/api-docs, /swagger-ui/index.html, /swagger-ui.html 실제 기동 검증
-9. ADM 브라우저 클릭 검증 수행
-10. 알림/다운로드/동적 로그레벨 운영 기능 보강
-11. Batch scheduler 자동 수행 시나리오 검증
-12. Redis/Kafka 실 broker 연동 가능 여부 확인 또는 미검증 사유 명확화
-13. 결과 산출물은 리포트 1개만 생성
+1. README.md 외 specs 정본 문서는 브라우저에서 바로 볼 수 있는 실제 HTML 문서로 정리
+2. 검수용 리포트는 md 또는 html 중 더 적합한 형식으로 1개만 작성
+3. 변경파일 목록 txt는 새로 만들거나 갱신하지 않음
+4. specs 아래 불필요한 md 문서 제거 또는 HTML 정본 문서로 통합
+5. 빈 폴더만 남은 디렉터리는 필요 여부 판단 후 삭제
+6. qualityGate 타임아웃 원인 해결
+7. ADM 알림 기능을 Controller 직접 처리 방식이 아닌 Service/DTO 구조로 개선
+8. ADM 다운로드 공통 기능 개발
+9. 배치 scheduler 자동 수행 기능 개발
+10. OpenAPI/Swagger 검증 자동화
+11. ADM UI/DOM/API smoke 검증 추가
+12. 성공하지 않은 항목은 리포트에 성공으로 쓰지 않음
 ```
 
 ---
 
-# 2. 산출물 기준 변경
+# 2. 산출물 기준
 
-이번 작업부터 결과 산출물은 아래 하나만 새로 작성 또는 갱신하세요.
+## 2.1 검수용 리포트
+
+검수용 리포트는 아래 둘 중 하나만 유지하세요.
 
 ```text
+CPF_STABILIZATION_REPORT.md
+또는
 CPF_STABILIZATION_REPORT.html
 ```
 
-아래 파일은 새로 만들지 마세요.
+리포트 파일 형식은 작업자가 판단하세요.
+
+```text
+- HTML이 브라우저 확인에 더 적합하면 html 사용
+- Markdown이 검수/검색/수정에 더 적합하면 md 사용
+- 단, 둘 다 동시에 최신 산출물로 유지하지 말 것
+```
+
+리포트는 최종 제품 문서가 아니라 검수용 임시 산출물입니다.
+나중에 개발 완료 후 삭제될 수 있으므로, 이 파일에 한해서는 md/html 형식 중 더 실용적인 방식을 선택해도 됩니다.
+
+## 2.2 만들지 말아야 할 산출물
+
+아래 파일은 새로 만들거나 갱신하지 마세요.
 
 ```text
 CPF_STABILIZATION_CHANGED_FILES.txt
 ```
 
-기존에 `CPF_STABILIZATION_CHANGED_FILES.txt`가 남아 있다면 다음 중 하나로 처리하세요.
+기존 파일이 남아 있으면 아래 기준으로 처리하세요.
 
 ```text
-1. 삭제 가능하면 삭제
-2. 삭제가 어렵다면 더 이상 정본 산출물로 사용하지 않음
-3. README.md 또는 specs/index.html에서 링크하지 않음
-4. 리포트 안에 변경 요약 섹션으로 통합
-```
-
-`CPF_STABILIZATION_REPORT.html`에는 아래 내용을 포함하세요.
-
-```text
-1. 작업 요약
-2. 완료 항목
-3. 일부 구현 항목
-4. 실패 항목
-5. 미검증 항목
-6. 실제 실행 명령과 결과
-7. Swagger 검증 결과
-8. ADM 브라우저 검증 결과
-9. 문서 정리 결과
-10. 삭제/통합한 md 문서 목록
-11. 남은 리스크
-12. 다음 작업 후보
+1. 더 이상 사용하지 않는 검수 산출물이면 삭제
+2. 삭제가 어렵다면 README 또는 specs/index.html에서 링크하지 않음
+3. 변경 파일 목록은 별도 파일로 만들지 말고 리포트 안에 요약 섹션으로 포함
 ```
 
 ---
 
-# 3. 문서 체계 단순화 원칙
+# 3. 문서 정본화 기준
 
-문서가 너무 많아지면 프레임워크 검수와 유지보수가 어려워집니다.
-이번 작업에서는 문서 수를 줄이고, 브라우저에서 바로 볼 수 있는 HTML 가이드 중심으로 정리하세요.
+## 3.1 README.md
 
-## 3.1 유지할 정본 문서
-
-아래 문서를 정본으로 유지하세요.
+`README.md`는 루트 진입점으로 유지합니다.
+단, 너무 길게 만들지 말고 아래 내용 중심으로 간단히 정리하세요.
 
 ```text
-README.md
+1. CPF 프로젝트 개요
+2. 모듈 구성
+3. 실행/빌드 기본 명령
+4. specs/index.html 문서 포털 링크
+5. 주요 가이드 링크
+6. 현재 검수 리포트 링크
+```
+
+## 3.2 specs 정본 문서
+
+아래 문서는 실제 HTML 문서로 유지하세요.
+
+```text
 specs/index.html
 specs/프레임워크_구성_가이드.html
 specs/개발_가이드.html
 specs/관리자_가이드.html
 specs/SQL_가이드.html
 specs/기능_구현_매트릭스.html
-CPF_STABILIZATION_REPORT.html
 ```
 
-`README.md`는 루트 진입점으로만 유지합니다.
-상세 가이드는 specs 하위 HTML 문서에서 관리합니다.
-
-## 3.2 md 문서 정리 기준
-
-README.md 외에는 가급적 md 문서를 유지하지 마세요.
-
-현재 specs에 남아 있는 아래 md 문서들은 정본 HTML 가이드에 통합한 뒤 삭제하세요.
+위 파일들은 단순히 확장자만 `.html`이면 안 됩니다.
+반드시 실제 HTML 구조를 갖춰야 합니다.
 
 ```text
+<!doctype html>
+<html lang="ko">
+<head>
+<body>
+<main>
+<section>
+<table>
+```
+
+## 3.3 HTML 문서 금지 패턴
+
+`specs/*.html` 파일 안에 아래 형태가 남아 있으면 실패로 처리하세요.
+
+```text
+# 제목
+## 제목
+| 컬럼 | 컬럼 |
+[링크](파일.md)
+아래 md 문서
+deprecated md 문서
+```
+
+즉, Markdown 문서를 확장자만 html로 바꾸는 방식은 허용하지 않습니다.
+
+---
+
+# 4. specs md 문서 정리
+
+README.md를 제외하고, specs 아래 설명 문서는 가급적 HTML로 관리합니다.
+
+## 4.1 정리 대상
+
+아래 파일이 남아 있으면 내용을 정본 HTML 문서에 통합한 뒤 삭제하세요.
+
+```text
+specs/**/*.md
+specs/sql/README.md
+specs/기능_구현_매트릭스.md
 specs/transaction-header-standard.md
 specs/ci-quality-gate.md
 specs/definition-of-done.md
 specs/module-template.md
 specs/operation-security-guide.md
-specs/기능_구현_매트릭스.md
-specs/sql/README.md
 ```
 
-각 문서의 내용은 아래 기준으로 통합하세요.
+## 4.2 통합 위치
 
 ```text
 transaction-header-standard.md
@@ -142,59 +177,353 @@ specs/기능_구현_매트릭스.md
 → specs/기능_구현_매트릭스.html
 ```
 
-## 3.3 삭제가 곤란한 경우
+---
 
-정말 삭제가 곤란한 md 문서가 있으면 specs 루트에 두지 말고 아래로 이동하세요.
+# 5. 빈 폴더 정리
+
+문서와 파일이 정리되면서 빈 폴더만 남은 곳이 있으면 삭제 여부를 판단하세요.
+
+## 5.1 삭제 가능한 폴더
+
+아래 조건을 모두 만족하면 삭제해도 됩니다.
 
 ```text
-specs/deprecated/
+1. 실제 파일이 하나도 없음
+2. .gitkeep, README, package-info.java 같은 유지 목적 파일도 없음
+3. 소스/리소스/테스트에서 참조하지 않음
+4. 빌드 스크립트에서 참조하지 않음
+5. 향후 모듈 템플릿으로 유지할 명확한 사유가 없음
 ```
 
-단, deprecated 문서는 정본 문서가 아니며, `specs/index.html`에서는 “보관 문서”로만 표시하세요.
-가능하면 deprecated 문서도 HTML로 변환하거나, 정본 가이드에 완전히 통합한 뒤 제거하세요.
+## 5.2 삭제하면 안 되는 폴더
+
+아래 폴더는 단순히 비어 보인다고 삭제하지 마세요.
+
+```text
+.git
+.gradle
+.idea
+.vscode
+build
+out
+target
+generated
+src/main/java
+src/main/resources
+src/test/java
+src/test/resources
+```
+
+단, 모듈 내부에 실제로 불필요한 빈 하위 패키지나 문서 삭제 후 남은 빈 폴더는 정리해도 됩니다.
+
+## 5.3 확인 명령 예시
+
+PowerShell 기준으로 빈 폴더 후보를 확인하세요.
+
+```powershell
+Get-ChildItem -Directory -Recurse |
+  Where-Object {
+    -not (Get-ChildItem -LiteralPath $_.FullName -Force | Where-Object { $_.Name -notin @('.gitkeep') })
+  } |
+  Select-Object FullName
+```
+
+빈 폴더를 삭제한 경우 리포트에 아래를 기록하세요.
+
+```text
+1. 삭제한 폴더 경로
+2. 삭제 사유
+3. 참조 여부 확인 결과
+```
 
 ---
 
-# 4. specs/index.html 정리
+# 6. 품질 Gate 정상화
 
-`specs/index.html`은 브라우저에서 바로 볼 수 있는 문서 포털이어야 합니다.
+직전 작업에서 개별 검사는 성공했으나 `qualityGate`는 타임아웃으로 보고되었습니다.
+이번 작업에서는 반드시 원인을 분리해서 해결하세요.
 
-## 4.1 index 구성
-
-`specs/index.html`에는 아래 링크만 중심으로 남기세요.
-
-```text
-1. 프레임워크 구성 가이드
-2. 개발 가이드
-3. 관리자 가이드
-4. SQL 가이드
-5. 기능 구현 매트릭스
-6. 최신 안정화 리포트
-```
-
-## 4.2 index에서 제거할 것
+## 6.1 요구사항
 
 ```text
-1. 불필요한 md 문서 직접 링크
-2. 중복 문서 링크
-3. deprecated 문서를 정본처럼 보이게 하는 링크
-4. 영어명 guide 문서 링크
-5. 실제 없는 문서 링크
+1. qualityGate가 어떤 하위 task에서 지연되는지 확인
+2. 외부 서버, DB, bootRun, 브라우저 검증, 장시간 smoke가 qualityGate에 포함되어 있으면 분리
+3. qualityGate는 정적 검사, 인코딩 검사, legacy 명칭 검사, compile, unit test 중심으로 구성
+4. MariaDB smoke, OpenAPI smoke, ADM UI smoke, scheduler smoke는 별도 task 또는 별도 명령으로 분리
+5. 최종적으로 .\gradlew.bat qualityGate --offline 성공
 ```
 
 ---
 
-# 5. 기능 구현 매트릭스 HTML 전환
+# 7. Java/문서 포맷 검사 보강
 
-`specs/기능_구현_매트릭스.md`는 더 이상 정본으로 쓰지 말고, 아래 파일로 전환하세요.
+앞으로 같은 포맷 문제가 반복되지 않도록 자동 검사를 추가하세요.
+
+## 7.1 Java 포맷 검사
+
+아래 조건은 실패로 처리하세요.
 
 ```text
+1. package와 import가 같은 줄에 있음
+2. import 여러 개가 한 줄에 붙어 있음
+3. annotation, class 선언, method 선언이 한 줄에 과도하게 붙어 있음
+4. Java 파일에 비정상적으로 긴 한 줄이 존재함
+5. Controller/Service 주요 파일이 물리 개행 기준으로 몇 줄에 몰려 있음
+```
+
+우선 검사 대상:
+
+```text
+adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java
+adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java
+adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java
+adm/src/main/java/cpf/adm/opr/controller/AdmDynamicLogLevelController.java
+```
+
+## 7.2 HTML 문서 검사
+
+아래 조건은 실패로 처리하세요.
+
+```text
+1. specs/*.html이 실제 HTML 구조가 아님
+2. specs/*.html 안에 Markdown 제목 문법이 남아 있음
+3. specs/*.html 안에 Markdown table 문법이 남아 있음
+4. specs/*.html 안에 .md 링크가 남아 있음
+5. specs 아래 README.md 외 md 파일이 남아 있음
+```
+
+---
+
+# 8. ADM 알림 기능 개발
+
+현재 알림 API가 일부 추가되었더라도 Controller 직접 SQL 처리 방식이면 완료로 보지 않습니다.
+운영 기능으로 유지보수할 수 있도록 Service/DTO 구조로 개선하세요.
+
+## 8.1 개발 대상
+
+```text
+AdmNotificationController
+AdmNotificationService
+AdmNotificationRuleRequest
+AdmNotificationRuleResponse
+AdmNotificationDeliveryLogResponse
+NotificationSender
+MockNotificationSender
+NotificationSendResult
+```
+
+## 8.2 필수 기능
+
+```text
+1. 알림 규칙 목록 조회
+2. 알림 규칙 상세 조회
+3. 알림 규칙 등록
+4. 알림 규칙 수정
+5. 알림 규칙 비활성
+6. 알림 발송 이력 조회
+7. 알림 테스트 발송
+8. 감사 사유 필수
+9. 감사 로그 저장
+10. Swagger/OpenAPI 설명 작성
+11. ADM 화면 버튼 연결
+```
+
+## 8.3 알림 연계 대상
+
+```text
+1. 배치 실패
+2. 배치 지연
+3. 배치 미수행
+4. 온라인 거래 오류
+5. 외부 API 오류
+6. 시스템 오류
+```
+
+실제 외부 발송 채널이 없으면 mock sender로 먼저 구현하고, 향후 Redis/Kafka/Email/Mattermost 연동이 가능하도록 인터페이스를 분리하세요.
+
+---
+
+# 9. ADM 다운로드 공통 기능 개발
+
+다운로드는 운영 감사 대상 기능입니다.
+단순 파일 내려받기가 아니라 권한, 마스킹, 사유, 감사 로그가 포함된 공통 기능으로 개발하세요.
+
+## 9.1 개발 대상
+
+```text
+AdmDownloadController
+AdmDownloadService
+DownloadRequest
+DownloadResult
+DownloadPolicy
+DownloadAuditLog
+SensitiveDataMasker 연동
+ADM 화면 다운로드 버튼 연결
+```
+
+## 9.2 필수 기능
+
+```text
+1. 온라인 거래 목록 CSV 다운로드
+2. 오류 로그 목록 CSV 다운로드
+3. 배치 실행 목록 CSV 다운로드
+4. 알림 발송 이력 CSV 다운로드
+5. 다운로드 사유 필수
+6. 메뉴/버튼 권한 검사
+7. 기본 마스킹 적용
+8. 마스킹 해제 권한 분리
+9. 다운로드 감사 로그 저장
+10. 다운로드 실패 시 실패 감사 로그 저장
+```
+
+## 9.3 필요 테이블
+
+필요하면 아래 테이블을 추가하세요.
+
+```text
+adm_download_audit_log
+```
+
+필수 컬럼:
+
+```text
+download_id
+admin_id
+menu_id
+screen_id
+download_type
+target_type
+search_condition_summary
+row_count
+masked_yn
+include_sensitive_yn
+reason
+client_ip
+user_agent
+requested_at
+completed_at
+status
+failure_reason
+file_name
+created_by
+created_at
+updated_by
+updated_at
+```
+
+SQL 변경 시 아래 파일을 함께 갱신하세요.
+
+```text
+분리 SQL
+00_all_install.sql
+00_all_install_and_smoke.sql
+Flyway migration
+specs/SQL_가이드.html
 specs/기능_구현_매트릭스.html
 ```
 
-## 5.1 필수 컬럼
+---
 
-HTML table 형태로 아래 컬럼을 포함하세요.
+# 10. 배치 scheduler 자동 수행 기능 개발
+
+현재 수동 실행과 조회 중심이라면 운영 프레임워크로 부족합니다.
+`pfw_batch_schedule`을 기준으로 자동 수행하는 scheduler를 개발하세요.
+
+## 10.1 개발 대상
+
+```text
+PfwBatchScheduler
+PfwBatchScheduleService
+PfwBatchExecutionTargetService
+PfwBatchLockService
+AdmBatchOperationService 연동
+```
+
+## 10.2 필수 기능
+
+```text
+1. enabled_yn = 'Y'인 스케줄 조회
+2. cron_expression 기준 실행 대상 판단
+3. 영업일 전용 여부 판단
+4. 수행 가능 시작/종료 시간 판단
+5. 중복 실행 방지 lock
+6. pfw_batch_execution_target 생성
+7. JobLauncher 실행
+8. pfw_batch_execution 저장
+9. pfw_batch_step_execution 저장
+10. 실패 시 오류 메시지 저장
+11. 실패/지연 시 알림 이벤트 생성
+12. ADM 화면에서 자동 수행 결과 조회
+```
+
+## 10.3 검증
+
+```text
+1. EDU scheduler job 1개 이상 등록
+2. 짧은 주기의 테스트 스케줄로 자동 수행 확인
+3. BATCH_* 적재 확인
+4. pfw_batch_execution 적재 확인
+5. pfw_batch_execution_target 적재 확인
+6. ADM execution 목록/상세에서 조회 확인
+```
+
+---
+
+# 11. OpenAPI/Swagger 검증 자동화
+
+수동 확인으로 끝내지 말고 자동 smoke를 추가하세요.
+
+## 11.1 검증 대상
+
+```text
+1. /v3/api-docs HTTP 200
+2. /swagger-ui/index.html HTTP 200
+3. /swagger-ui.html HTTP 200 또는 정상 redirect
+4. ADM-Batch tag 존재
+5. ADM-Notification tag 존재
+6. ADM-Log tag 존재
+7. ADM-Dynamic-Log-Level tag 존재
+8. ADM-Download tag 존재
+9. EDU API tag 존재
+10. 깨진 한글 없음
+11. FPS/Fps/fps 잔재 없음
+```
+
+---
+
+# 12. ADM UI/DOM/API smoke 추가
+
+브라우저 자동 클릭이 어렵더라도, 대체 가능한 UI/DOM/API smoke를 구현하세요.
+
+## 12.1 최소 검증 대상
+
+```text
+1. ADM index.html 로딩
+2. 배치 메뉴 존재
+3. 로그 메뉴 존재
+4. 알림 메뉴 존재
+5. 동적 로그레벨 메뉴 존재
+6. 다운로드 버튼 존재
+7. 주요 API path HTTP smoke
+8. 권한 없는 경우 버튼 숨김 또는 비활성 처리 확인
+```
+
+가능한 방식 중 하나를 선택하세요.
+
+```text
+1. Playwright
+2. Selenium
+3. MockMvc + HTML selector 검사
+4. HTTP smoke + DOM 파싱
+```
+
+---
+
+# 13. 기능 구현 매트릭스 갱신
+
+`specs/기능_구현_매트릭스.html`에 이번 작업 결과를 반영하세요.
+
+필수 컬럼:
 
 ```text
 대분류
@@ -211,47 +540,7 @@ EDU 샘플
 비고
 ```
 
-## 5.2 필수 기능군
-
-아래 기능군은 반드시 포함하세요.
-
-```text
-1. 표준 헤더/거래 ID
-2. 표준 응답/오류
-3. 공통 코드
-4. 공통 메시지
-5. 트랜잭션 처리
-6. 트랜잭션 분리
-7. 감사 로그
-8. 온라인 거래 로그
-9. 오류 로그
-10. 외부 연동
-11. 주제영역 간 호출
-12. 파일 업로드/다운로드
-13. Excel/CSV/로그 다운로드
-14. 다운로드 권한/마스킹/감사 로그
-15. 알림/노티
-16. 메시징/비동기
-17. 보안/JWT/OAuth
-18. 관리자 권한
-19. 런타임 로그 레벨 변경
-20. 배치 Job
-21. 배치 스케줄
-22. 배치 자동 수행/반복 수행
-23. 배치 영업일/수행 가능 시간
-24. 배치 선행/후행/Trigger 관계
-25. 배치 수행 대상 인스턴스
-26. 배치 Execution 목록/상세
-27. 배치 Step 상세
-28. 배치 처리 건수/수량/결과 통계
-29. 배치 실패/지연 알림
-30. EDU 샘플
-31. Swagger/OpenAPI
-```
-
-## 5.3 구현 상태 표기
-
-구현 상태는 과장하지 말고 아래 중 하나로 표시하세요.
+구현 상태는 아래 값만 사용하세요.
 
 ```text
 완료
@@ -261,311 +550,13 @@ EDU 샘플
 실패
 ```
 
----
-
-# 6. 한글 가이드 문서 보강
-
-정본 한글 가이드 문서는 실제 기능 검수 기준으로 사용할 수 있어야 합니다.
-
-## 6.1 프레임워크 구성 가이드
-
-`specs/프레임워크_구성_가이드.html`에는 아래 내용을 포함하세요.
-
-```text
-1. PFW / CMN / ADM / 주제영역 책임
-2. DB 소유권
-3. 표준 헤더/거래 ID
-4. 표준 응답/오류
-5. 로그/감사/추적
-6. 배치 프레임워크 구조
-7. 알림/노티 구조
-8. 런타임 로그 레벨 구조
-9. 다운로드 감사 로그 구조
-10. 품질 Gate 기준
-```
-
-## 6.2 개발 가이드
-
-`specs/개발_가이드.html`에는 아래 내용을 포함하세요.
-
-```text
-1. 신규 업무 모듈 개발 방법
-2. Controller / Service / Mapper 작성 기준
-3. 표준 헤더 사용 방법
-4. 표준 응답/오류 사용 방법
-5. 트랜잭션 분리 사용 방법
-6. 외부 연동 호출 방법
-7. 주제영역 간 호출 방법
-8. 공통 코드/메시지 사용 방법
-9. EDU 샘플 사용 방법
-10. Batch Job 작성 방법
-11. 테스트 작성 기준
-12. Definition of Done
-```
-
-## 6.3 관리자 가이드
-
-`specs/관리자_가이드.html`에는 아래 내용을 포함하세요.
-
-```text
-1. ADM 메뉴 구조
-2. 배치 관리
-3. 온라인 거래 조회
-4. 오류 로그 조회
-5. 알림/노티 관리
-6. 다운로드 권한/마스킹/감사 로그
-7. 런타임 로그 레벨 관리
-8. 관리자 권한
-9. 운영 장애 대응 흐름
-10. 브라우저 검증 시나리오
-```
-
-## 6.4 SQL 가이드
-
-`specs/SQL_가이드.html`을 새로 만들고 아래 내용을 통합하세요.
-
-```text
-1. DB 구조
-2. Flyway 기준
-3. 합본 SQL 기준
-4. Spring Batch BATCH_* 테이블
-5. pfw_batch_* 테이블
-6. ADM 운영 테이블
-7. 알림 테이블
-8. 다운로드 감사 로그 테이블
-9. 런타임 로그 레벨 테이블
-10. seed 데이터 기준
-11. MariaDB smoke 검증 방법
-```
+과장하지 말고 실제 확인한 내용만 반영하세요.
 
 ---
 
-# 7. 소스/문서 포맷 정상화
+# 14. 실행 명령
 
-에디터 soft wrap 기준이 아니라 실제 파일 개행 기준으로 정리하세요.
-단, 실제 로컬 파일이 이미 정상 포맷이면 불필요하게 다시 변경하지 마세요.
-
-## 7.1 우선 정리 대상
-
-```text
-build.gradle
-scripts/check-legacy-name.ps1
-scripts/check-utf8.ps1
-
-CPF_STABILIZATION_REPORT.html
-
-adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java
-adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java
-adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java
-adm/src/main/java/cpf/adm/config/AdmBatchRepositoryConfig.java
-
-adm/src/main/resources/static/adm/adm.js
-adm/src/main/resources/static/adm/index.html
-
-specs/index.html
-specs/프레임워크_구성_가이드.html
-specs/개발_가이드.html
-specs/관리자_가이드.html
-specs/SQL_가이드.html
-specs/기능_구현_매트릭스.html
-
-specs/sql/00_all_install_and_smoke.sql
-specs/sql/migration/flyway/*.sql
-
-xyz/src/main/java/cpf/xyz/edu/**/*.java
-```
-
-## 7.2 포맷 기준
-
-```text
-1. Java는 package, import, class, field, constructor, method 단위로 줄바꿈
-2. JavaDoc과 주석은 문장 단위로 줄바꿈
-3. PowerShell은 변수, 배열, 루프, 조건문 단위로 줄바꿈
-4. Gradle은 plugins, allprojects, subprojects, task 단위로 줄바꿈
-5. SQL은 CREATE, ALTER, INSERT, COMMENT 문장 단위로 줄바꿈
-6. HTML 문서는 브라우저에서 보기 좋은 제목, 목차, 표, 코드블록 구조로 작성
-7. 기능 매트릭스는 사람이 검수할 수 있는 HTML table로 작성
-```
-
----
-
-# 8. Swagger 경로 수정
-
-현재 `/swagger-ui.html`이 HTTP 500으로 보고되었습니다.
-이번 작업에서 반드시 수정하세요.
-
-## 8.1 요구사항
-
-```text
-1. /v3/api-docs HTTP 200 확인
-2. /swagger-ui/index.html HTTP 200 확인
-3. /swagger-ui.html HTTP 200 또는 정상 redirect 확인
-4. HTTP 500 원인 분석
-5. Swagger UI에서 ADM Batch, Logs, Notification, Runtime Log Level API 확인
-6. Swagger UI에서 EDU API 확인
-7. Swagger 설명에 깨진 한글 또는 FPS 잔재가 없는지 확인
-```
-
----
-
-# 9. ADM 브라우저 클릭 검증
-
-API smoke만으로 완료 처리하지 마세요.
-이번 작업에서는 실제 브라우저 또는 Playwright 등으로 ADM 화면 클릭 검증을 수행하세요.
-
-## 9.1 검증 대상
-
-```text
-1. ADM 로그인
-2. 배치 메뉴 진입
-3. 배치 Job 목록 조회
-4. 배치 상세 진입
-5. Execution 목록 조회
-6. Execution 상세 조회
-7. Step 상세 조회
-8. 배치 처리 건수/수량/결과 통계 확인
-9. 스케줄 시뮬레이션 실행
-10. 선행/후행/Trigger 관계 조회
-11. 수행 대상 인스턴스 조회
-12. 온라인 거래 조회
-13. 온라인 거래 상세 조회
-14. 오류 로그 조회
-15. 오류 로그 상세 조회
-16. 알림 룰 목록 조회
-17. 알림 발송 이력 조회
-18. 동적 로그레벨 목록 조회
-19. 동적 로그레벨 변경
-20. 동적 로그레벨 원복
-21. Excel/CSV/로그 다운로드 버튼 확인
-22. 권한 부족 시 버튼 숨김 또는 비활성 사유 표시 확인
-```
-
-## 9.2 완료 기준
-
-```text
-1. 브라우저 클릭 검증 결과가 CPF_STABILIZATION_REPORT.html에 있음
-2. 실패 화면은 원인과 로그를 기록
-3. 권한별 UX 미검증이면 미검증으로 표시
-4. 화면별 결과표 작성
-```
-
----
-
-# 10. ADM 알림 기능 보강
-
-현재 알림이 조회 API 중심이라면 운영 기능으로 부족합니다.
-
-## 10.1 보강 대상
-
-```text
-1. 알림 룰 등록
-2. 알림 룰 수정
-3. 알림 룰 삭제 또는 비활성
-4. 알림 채널 관리
-5. 수신자 관리
-6. 수신 그룹 관리
-7. 알림 템플릿 관리
-8. 알림 발송 이력 조회
-9. 실패 이력 조회
-10. 재시도 정책
-11. 중복 억제 정책
-12. 배치 실패/지연/미수행과 알림 연계
-13. 온라인 거래 오류와 알림 연계
-14. 외부 API 오류와 알림 연계
-```
-
----
-
-# 11. 다운로드 기능 보강
-
-다운로드는 단순 파일 내려받기가 아니라 권한, 마스킹, 사유, 감사 로그가 함께 있어야 합니다.
-
-## 11.1 보강 대상
-
-```text
-1. 온라인 거래 목록 Excel 다운로드
-2. 온라인 거래 목록 CSV 다운로드
-3. 온라인 거래 상세 로그 다운로드
-4. 오류 로그 Excel/CSV 다운로드
-5. 배치 Job 목록 다운로드
-6. 배치 Execution 목록 다운로드
-7. 배치 Step 상세 다운로드
-8. 알림 룰/발송 이력 다운로드
-9. 동적 로그레벨 변경 이력 다운로드
-10. 다운로드 사유 입력
-11. 마스킹 기본 적용
-12. 마스킹 해제 권한 분리
-13. 대용량 다운로드 제한
-14. 다운로드 감사 로그 저장
-15. 다운로드 실패 감사 로그 저장
-```
-
----
-
-# 12. Batch scheduler 자동 수행 검증
-
-EDU Job 수동 실행은 확인되었으므로, 이번에는 scheduler 자동 수행을 검증하세요.
-
-## 12.1 검증 대상
-
-```text
-1. 자동 수행 스케줄 등록
-2. 반복 수행 스케줄 등록
-3. Cron 기반 다음 실행 시간 계산
-4. 실제 scheduler trigger 수행
-5. 영업일 조건 반영
-6. 수행 가능 시간 조건 반영
-7. 선행 Job 완료 조건 반영
-8. 선행 Job 실패 시 후행 Job 차단
-9. Trigger Job 연계 수행
-10. 실행 결과 BATCH_* 및 pfw_batch_* 적재
-```
-
----
-
-# 13. Redis/Kafka 실연동 검증
-
-실 broker 연동 가능성을 검증하거나, 환경 부재 시 명확히 미검증으로 남기세요.
-
-## 13.1 검증 대상
-
-```text
-1. Redis 연결
-2. Redis 장애 시 fallback
-3. Kafka publish
-4. Kafka consume
-5. Kafka 장애 시 fallback
-6. 메시지 중복 처리
-7. 메시지 실패 로그
-8. 알림/캐시/동적 로그레벨 전파와 연계
-```
-
----
-
-# 14. 테스트 보강
-
-NO-SOURCE 모듈을 계속 방치하지 마세요.
-
-## 14.1 보강 대상
-
-```text
-1. PFW 핵심 context test
-2. PFW exception/message resolver test
-3. PFW transaction header test
-4. ADM Batch API slice test
-5. ADM Notification API test
-6. ADM Runtime Log Level API test
-7. ADM Download policy test
-8. XYZ EDU Batch execution test
-9. XYZ EDU online transaction sample test
-10. CMN code/message cache test
-```
-
----
-
-# 15. 실행 명령
-
-가능한 범위에서 아래 명령을 실행하고 결과를 리포트에 기록하세요.
+가능한 범위에서 아래를 실행하고 리포트에 결과를 기록하세요.
 
 ```powershell
 .\gradlew.bat checkLegacyName
@@ -573,45 +564,69 @@ NO-SOURCE 모듈을 계속 방치하지 마세요.
 .\gradlew.bat checkMojibake
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
-.\gradlew.bat clean :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline
+.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline
 .\gradlew.bat test --offline
 .\gradlew.bat qualityGate --offline
 ```
 
-가능하면 아래도 수행하세요.
+필요 시 별도 smoke로 아래를 수행하세요.
 
 ```text
-1. MariaDB 00_all_install_and_smoke.sql 실행
-2. ADM 앱 기동
-3. /v3/api-docs 호출
-4. /swagger-ui/index.html 호출
-5. /swagger-ui.html 호출
-6. ADM 브라우저 클릭 검증
-7. Scheduler 자동 수행 검증
-8. Redis/Kafka broker 검증
+1. MariaDB 00_all_install_and_smoke.sql
+2. ADM bootJar
+3. XYZ bootJar
+4. ADM OpenAPI smoke
+5. ADM UI/DOM/API smoke
+6. EDU scheduler 자동 실행 smoke
 ```
+
+---
+
+# 15. 리포트 작성 기준
+
+검수용 리포트에는 아래 내용을 포함하세요.
+
+```text
+1. 작업 요약
+2. 완료 기능
+3. 일부 구현 기능
+4. 실패 기능
+5. 미검증 기능
+6. 실제 실행 명령
+7. qualityGate 결과
+8. SQL 변경 여부
+9. Swagger/OpenAPI 검증 결과
+10. ADM UI/DOM/API smoke 결과
+11. 삭제 또는 통합한 문서 목록
+12. 삭제한 빈 폴더 목록
+13. 남은 리스크
+14. 다음 개발 후보
+```
+
+성공하지 않은 항목은 성공으로 쓰지 마세요.
+실제로 실행하지 않은 검증은 반드시 `미검증`으로 표시하세요.
 
 ---
 
 # 16. 완료 기준
 
-이번 작업은 아래 조건을 충족해야 완료로 볼 수 있습니다.
+이번 작업은 아래 조건을 만족해야 완료입니다.
 
 ```text
-1. README.md 외 specs 루트의 불필요한 md 문서가 제거 또는 HTML 정본 문서로 통합됨
-2. 기능_구현_매트릭스.md가 기능_구현_매트릭스.html로 전환됨
-3. specs/sql/README.md 내용이 SQL_가이드.html로 통합됨
-4. specs/index.html이 브라우저용 문서 포털로 정리됨
-5. CPF_STABILIZATION_CHANGED_FILES.txt를 새로 만들지 않음
-6. CPF_STABILIZATION_REPORT.html만 결과 산출물로 작성됨
-7. 핵심 소스와 문서 포맷이 정상화됨
-8. /swagger-ui.html HTTP 500이 해결됨
-9. ADM 브라우저 클릭 검증 결과가 있음
-10. 알림 기능이 조회 수준을 넘어 등록/수정/비활성/이력 관리까지 확장됨
-11. 다운로드 기능이 권한/마스킹/사유/감사 로그까지 연결됨
-12. Batch scheduler 자동 수행 검증 결과가 있음
-13. Redis/Kafka 실연동 또는 명확한 미검증 사유가 있음
-14. NO-SOURCE 모듈 핵심 테스트가 보강됨
-15. qualityGate가 성공함
-16. 실패/일부/미검증 항목이 숨겨지지 않음
+1. README.md 외 specs 아래 불필요한 md 문서가 남아 있지 않음
+2. specs 정본 문서가 실제 HTML 구조임
+3. HTML 파일 안에 Markdown 문법이 남아 있지 않음
+4. 검수용 리포트는 md/html 중 하나만 최신 산출물로 유지됨
+5. 변경파일 목록 txt를 새로 만들거나 갱신하지 않음
+6. 불필요한 빈 폴더가 정리됨
+7. qualityGate가 성공함
+8. Java 핵심 파일이 물리 개행 기준 정상 포맷임
+9. 알림 기능이 Service/DTO/Sender 구조로 분리됨
+10. 알림 테스트 발송 mock adapter가 있음
+11. 다운로드 공통 API와 감사 로그가 구현됨
+12. 배치 scheduler 자동 수행 기능이 구현됨
+13. OpenAPI 자동 검증이 있음
+14. ADM UI/DOM/API smoke가 있음
+15. SQL, 문서, Swagger, 기능 매트릭스가 서로 맞음
+16. 성공하지 않은 항목은 리포트에 성공으로 쓰지 않음
 ```

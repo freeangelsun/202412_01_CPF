@@ -38,7 +38,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
-        MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "BATCH");
+        MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
+        MENU_BY_PATH_PREFIX.put("/adm/api/downloads", "DOWNLOAD");
         MENU_BY_PATH_PREFIX.put("/adm/api/cache", "CACHE");
         MENU_BY_PATH_PREFIX.put("/adm/api/messages", "MESSAGE");
         MENU_BY_PATH_PREFIX.put("/adm/api/codes", "CODE");
@@ -56,7 +57,11 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/members", "MEMBER_UPDATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/members", "MEMBER_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch", "BATCH_READ");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/notifications", "BATCH_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/notifications", "NOTIFICATION_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/notifications", "NOTIFICATION_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/notifications", "NOTIFICATION_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/downloads", "DOWNLOAD_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/downloads", "DOWNLOAD_EXECUTE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/jobs", "BATCH_REGISTER");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/calendar", "BATCH_CALENDAR_SAVE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/schedules", "BATCH_SCHEDULE");
@@ -267,8 +272,17 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         if (HttpMethod.POST.matches(method) && path.contains("/schedules/")) {
             return "BATCH_SCHEDULE";
         }
+        if (HttpMethod.POST.matches(method) && path.endsWith("/scheduler/run-once")) {
+            return "BATCH_SCHEDULER_RUN";
+        }
         if (HttpMethod.POST.matches(method) && path.endsWith("/run")) {
             return "BATCH_EXECUTE";
+        }
+        if (HttpMethod.PUT.matches(method) && path.contains("/notifications/rules/") && path.endsWith("/disable")) {
+            return "NOTIFICATION_DISABLE";
+        }
+        if (HttpMethod.POST.matches(method) && path.contains("/notifications/rules/") && path.endsWith("/test-send")) {
+            return "NOTIFICATION_TEST_SEND";
         }
         String keyPrefix = method + " ";
         for (Map.Entry<String, String> entry : BUTTON_BY_METHOD_PATH_PREFIX.entrySet()) {

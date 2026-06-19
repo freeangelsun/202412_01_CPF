@@ -35,6 +35,11 @@ public class XyzEducationController {
                         Map.of("name", "Dynamic log", "apis", List.of("PUT /xyz/edu/admin/log-level", "GET /xyz/edu/admin/log-level")),
                         Map.of("name", "Security", "apis", List.of("GET /xyz/edu/security/crypto/basic", "POST /xyz/edu/security/jwt/create", "GET /xyz/edu/security/oauth/introspect")),
                         Map.of("name", "CMN business", "apis", List.of("POST /xyz/edu/cmn-business/sequence/issue", "POST /xyz/edu/cmn-business/notification-log", "POST /xyz/edu/cmn-business/business-log")),
-                        Map.of("name", "Batch", "apis", List.of("POST /xyz/edu/batch/tasklet/run", "POST /xyz/edu/batch/chunk/run", "GET /xyz/edu/batch/retry-policy", "GET /xyz/edu/batch/checkpoint-restart", "GET /xyz/edu/batch/adm-link")))));
+                        Map.of("name", "Batch", "apis", List.of(
+                                "POST /xyz/edu/batch/tasklet/run",
+                                "POST /xyz/edu/batch/chunk/run",
+                                "GET /xyz/edu/batch/retry-policy",
+                                "GET /xyz/edu/batch/checkpoint-restart",
+                                "GET /xyz/edu/batch/adm-link")))));
     }
 }

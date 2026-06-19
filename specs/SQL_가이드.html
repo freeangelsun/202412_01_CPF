@@ -129,6 +129,17 @@
     <h2>캐시 이벤트 테이블</h2>
     <p><code>pfw_cache_refresh_event</code>는 Redis/Kafka가 없거나 장애가 있는 환경에서도 다중 WAS 캐시 갱신을 추적하고 재처리하기 위한 DB fallback 이벤트입니다. broker가 있으면 broker를 우선 사용하고, DB event는 추적과 fallback 용도로 유지합니다.</p>
   </section>
+  <section>
+    <h2>이번 기준 스키마 보강</h2>
+    <table>
+      <tbody>
+      <tr><th>ADM 다운로드 감사</th><td><code>adm_download_audit_log</code>는 다운로드 요청자, 메뉴, 유형, 검색 조건, 행 수, 마스킹 여부, 민감정보 포함 요청 여부, 사유, IP, User-Agent, 상태, 실패 사유, 파일명을 기록합니다.</td></tr>
+      <tr><th>알림/다운로드 권한 Seed</th><td><code>NOTIFICATION</code>, <code>DOWNLOAD</code> 메뉴와 <code>NOTIFICATION_*</code>, <code>DOWNLOAD_*</code>, <code>BATCH_SCHEDULER_RUN</code> 버튼 권한을 seed에 추가했습니다.</td></tr>
+      <tr><th>Flyway</th><td>신규 설치 기준은 baseline SQL에 반영하고, 기존 DB 반영 기준은 <code>V5__adm_download_scheduler_quality_gate.sql</code>에 idempotent DDL/seed로 분리했습니다.</td></tr>
+      <tr><th>단일 설치 SQL</th><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>는 SOURCE 호출이 아닌 전체 SQL 포함 파일로 유지합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 </body>
 </html>

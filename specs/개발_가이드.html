@@ -64,7 +64,7 @@
     <table>
       <tr><th>구분</th><th>헤더</th><th>기준</th></tr>
       <tr><td>필수</td><td><code>X-Request-Type</code>, <code>X-Original-Channel-Code</code>, <code>X-Channel-Code</code></td><td>요청 유형과 채널 추적을 위해 Controller 진입 시 검증합니다.</td></tr>
-      <tr><td>추적</td><td><code>X-Transaction-Id</code>, <code>X-Trace-Id</code>, <code>X-Span-Id</code>, <code>X-Parent-Span-Id</code></td><td>없으면 CPF가 생성하고 응답/로그/외부 호출에 전파합니다.</td></tr>
+      <tr><td>추적</td><td><code>X-Transaction-Id</code>, <code>X-Trace-Id</code>, <code>X-Span-Id</code>, <code>X-Parent-Span-Id</code></td><td><code>X-Transaction-Id</code>는 필수이며 34자리 공식 규격으로 검증합니다. Trace/Span 값은 없으면 CPF가 생성해 응답/로그/외부 호출에 전파합니다.</td></tr>
       <tr><td>클라이언트</td><td><code>X-Api-Version</code>, <code>X-Client-App-Id</code>, <code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Caller-Instance-Id</code></td><td>배포 버전, 호출자, 인스턴스 추적에 사용합니다.</td></tr>
       <tr><td>업무 추적</td><td><code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code>, <code>X-Member-No</code>, <code>X-Customer-No</code>, <code>X-User-Id</code></td><td>외부 대조, 중복 요청 방지, 회원/고객 추적에 사용합니다.</td></tr>
     </table>
@@ -86,7 +86,7 @@
     <h2>CI 품질 Gate</h2>
     <table>
       <tr><th>단계</th><th>명령/기준</th></tr>
-      <tr><td>컴파일</td><td><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava --offline</code></td></tr>
+      <tr><td>컴파일</td><td><code>.\gradlew.bat :pfw:compileJava :cmn:compileJava :adm:compileJava :acc:compileJava :mbr:compileJava :xyz:compileJava :bizadm:compileJava :exs:compileJava --offline</code></td></tr>
       <tr><td>테스트</td><td><code>.\gradlew.bat :cmn:test --offline</code>와 변경 모듈 테스트</td></tr>
       <tr><td>SQL 표준</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1</code></td></tr>
       <tr><td>UTF-8</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1</code></td></tr>
@@ -135,6 +135,8 @@
       <tr><td>Tasklet/Chunk/Retry/Lock/Restart 배치 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java</code>, <code>xyz/src/main/java/cpf/xyz/edu/config/XyzBatchEducationConfig.java</code></td></tr>
       <tr><td>ADM 회원/회원권한 운영</td><td><code>adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java</code>, <code>adm/src/main/resources/static/adm</code></td></tr>
       <tr><td>ADM 운영 API</td><td><code>adm/src/main/java/cpf/adm/opr/controller</code></td></tr>
+      <tr><td>업무 관리자 화면 샘플</td><td><code>bizadm/src/main/java/cpf/bizadm/sample</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
+      <tr><td>대외 연계 샘플</td><td><code>exs/src/main/java/cpf/exs/sample</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
       <tr><td>SQL 설치/seed/smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td></tr>
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
     </table>
@@ -146,7 +148,8 @@
       <tr><th>ADM 알림</th><td><code>AdmNotificationController</code>, <code>AdmNotificationService</code>, <code>NotificationSender</code> 구조를 참고합니다. Controller는 요청/응답만 처리하고, SQL/감사/발송은 Service와 Sender로 분리합니다.</td></tr>
       <tr><th>ADM 다운로드</th><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code>를 참고합니다. 다운로드 유형은 화이트리스트로 제한하고, CSV 생성, 민감정보 마스킹, 감사 로그 저장을 한 서비스에서 처리합니다.</td></tr>
       <tr><th>배치 스케줄러</th><td><code>PfwBatchScheduleService</code>, <code>PfwBatchLockService</code>, <code>PfwBatchExecutionTargetService</code>, <code>PfwBatchScheduler</code>를 참고합니다. 스케줄 판정, lock, 실행 대상 기록, 실행 요청을 분리합니다.</td></tr>
-      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
+      <tr><th>업무 관리자/대외 샘플</th><td><code>bizadm</code>은 ADM 내부 운영 기능이 아니라 업무 프로젝트 관리 화면의 구현 예시입니다. <code>exs</code>는 외부기관 송수신과 거래/전문 로그 분리 예시입니다.</td></tr>
+      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>, <code>checkTransactionIdStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
       </tbody>
     </table>
   </section>

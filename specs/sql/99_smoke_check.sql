@@ -45,11 +45,38 @@ SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_me
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
 
-SELECT TRANSACTION_ID, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
+SELECT 'bizadmDB.bizadm_admin_user' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_admin_user;
+SELECT 'bizadmDB.bizadm_menu_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_menu_sample;
+SELECT 'bizadmDB.bizadm_role_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_role_sample;
+SELECT 'bizadmDB.bizadm_permission_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_permission_sample;
+SELECT 'bizadmDB.bizadm_customer' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_customer;
+SELECT 'bizadmDB.bizadm_product' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_product;
+SELECT 'bizadmDB.bizadm_order' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_order;
+SELECT 'bizadmDB.bizadm_project_setting' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_project_setting;
+SELECT 'bizadmDB.bizadm_masking_audit_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_masking_audit_sample;
+
+SELECT 'exsDB.exs_institution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_institution;
+SELECT 'exsDB.exs_channel' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_channel;
+SELECT 'exsDB.exs_endpoint' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_endpoint;
+SELECT 'exsDB.exs_auth_profile' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_auth_profile;
+SELECT 'exsDB.exs_token_store' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_token_store;
+SELECT 'exsDB.exs_route_rule' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_route_rule;
+SELECT 'exsDB.exs_transaction_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_transaction_log;
+SELECT 'exsDB.exs_message_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_message_log;
+SELECT 'exsDB.exs_control_policy' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_control_policy;
+SELECT 'exsDB.exs_retry_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_retry_log;
+
+SELECT TRANSACTION_ID, LOG_DATE, DATE(START_TIME) AS start_date, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
+       API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
 FROM pfwDB.pfw_transaction_log
 WHERE TRANSACTION_ID = '20260615120000000MBRlocal010000001'
 ORDER BY LOG_IDX
 LIMIT 1;
+
+SELECT COUNT(*) AS transaction_log_date_mismatch_count
+FROM pfwDB.pfw_transaction_log
+WHERE START_TIME IS NOT NULL
+  AND LOG_DATE <> DATE(START_TIME);
 
 SELECT DETAIL_KEY, DETAIL_VALUE
 FROM pfwDB.pfw_transaction_log_detail

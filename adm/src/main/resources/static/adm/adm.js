@@ -8,6 +8,22 @@ const defaultHeaders = {
   "X-Caller-Service": "adm-ui"
 };
 
+function createTransactionGlobalId(moduleId = "ADM", wasId = "admUI01") {
+  const now = new Date();
+  const pad = (value, size) => String(value).padStart(size, "0");
+  const timestamp = [
+    now.getFullYear(),
+    pad(now.getMonth() + 1, 2),
+    pad(now.getDate(), 2),
+    pad(now.getHours(), 2),
+    pad(now.getMinutes(), 2),
+    pad(now.getSeconds(), 2),
+    pad(now.getMilliseconds(), 3)
+  ].join("");
+  const sequence = pad(Math.floor(Math.random() * 9999999) + 1, 7);
+  return `${timestamp}${moduleId}${wasId}${sequence}`;
+}
+
 if (!window.Vue) {
   document.body.innerHTML = "<main class=\"panel\"><h2>Vue 로드 실패</h2><p>/adm/vendor/vue.global.prod.js 파일을 확인하세요.</p></main>";
 } else {
@@ -303,7 +319,11 @@ if (!window.Vue) {
         return true;
       },
       apiHeaders(extraHeaders = {}) {
-        const headers = { ...defaultHeaders, ...extraHeaders };
+        const headers = {
+          ...defaultHeaders,
+          "X-Transaction-Id": createTransactionGlobalId(),
+          ...extraHeaders
+        };
         if (this.token) {
           headers.Authorization = `Bearer ${this.token}`;
         }
@@ -342,7 +362,7 @@ if (!window.Vue) {
         }
         const response = await fetch("/adm/api/auth/login", {
           method: "POST",
-          headers: { ...defaultHeaders, "Content-Type": "application/json" },
+          headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(this.loginForm)
         });
         const data = await this.parseResponse(response);

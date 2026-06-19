@@ -48,6 +48,10 @@ public class TransactionLogRecord {
     private String deviceId;
     private String clientRequestTime;
     private String wasId;
+    private String serverInstanceId;
+    private String hostName;
+    private String processId;
+    private String threadName;
     private String reservedField1;
     private String reservedField2;
     private String reservedField3;

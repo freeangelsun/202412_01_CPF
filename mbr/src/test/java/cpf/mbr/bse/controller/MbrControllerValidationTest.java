@@ -121,6 +121,7 @@ class MbrControllerValidationTest {
      */
     private org.springframework.http.HttpHeaders requiredBusinessHeaders() {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add("X-Transaction-Id", "20260611141234567MBRlocal010000001");
         headers.add("X-Request-Type", "INQUIRY");
         headers.add("X-Original-Channel-Code", "MBL");
         headers.add("X-Channel-Code", "MBR");

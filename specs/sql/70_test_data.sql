@@ -113,6 +113,8 @@ WHERE NOT EXISTS (
 USE pfwDB;
 
 SET @sample_transaction_id = '20260615120000000MBRlocal010000001';
+SET @sample_start_time = '2026-06-15 12:00:00.000';
+SET @sample_end_time = '2026-06-15 12:00:00.012';
 
 INSERT INTO pfw_transaction_log (
     LOG_DATE,
@@ -141,6 +143,10 @@ INSERT INTO pfw_transaction_log (
     SCREEN_ID,
     DEVICE_ID,
     WAS_ID,
+    SERVER_INSTANCE_ID,
+    HOST_NAME,
+    PROCESS_ID,
+    THREAD_NAME,
     HTTP_METHOD,
     URI,
     CONTROLLER,
@@ -163,7 +169,7 @@ INSERT INTO pfw_transaction_log (
     updated_by
 )
 SELECT
-    CURDATE(),
+    DATE(@sample_start_time),
     @sample_transaction_id,
     'trace-sample-001',
     'span-sample-001',
@@ -189,6 +195,10 @@ SELECT
     'MBR_LIST',
     'LOCAL_BROWSER',
     'local01',
+    'local-dev:sql-seed',
+    'local-dev',
+    'sql-seed',
+    'sql-smoke',
     'GET',
     '/mbr/list',
     'cpf.mbr.bse.controller.MbrController',
@@ -204,8 +214,8 @@ SELECT
     'SYSTEM',
     '127.0.0.1',
     'SQL-SEED',
-    NOW(3),
-    NOW(3),
+    @sample_start_time,
+    @sample_end_time,
     12,
     'SYSTEM',
     'SYSTEM'
@@ -307,3 +317,243 @@ ON DUPLICATE KEY UPDATE
     USE_YN = VALUES(USE_YN),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+USE bizadmDB;
+
+INSERT INTO bizadm_admin_user (
+    admin_login_id, admin_name, role_code, use_yn, created_by, updated_by
+) VALUES (
+    'biz-admin', '업무 관리자 샘플', 'BIZ_MANAGER', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    admin_name = VALUES(admin_name),
+    role_code = VALUES(role_code),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_menu_sample (
+    menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
+) VALUES (
+    'BIZ_CUSTOMER', '고객 업무 관리 샘플', '/api/bizadm/customers', 10, 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    menu_name = VALUES(menu_name),
+    api_path = VALUES(api_path),
+    sort_order = VALUES(sort_order),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_role_sample (
+    role_code, role_name, write_allowed_yn, use_yn, created_by, updated_by
+) VALUES (
+    'BIZ_MANAGER', '업무 관리자', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    role_name = VALUES(role_name),
+    write_allowed_yn = VALUES(write_allowed_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_permission_sample (
+    role_code, menu_code, button_code, allow_yn, created_by, updated_by
+) VALUES
+    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'READ', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'WRITE', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'DOWNLOAD', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    allow_yn = VALUES(allow_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_customer (
+    customer_no, customer_name, email, mobile_no, customer_status, created_by, updated_by
+) VALUES (
+    'CUST000001', '샘플 고객', 'customer@example.com', '010-0000-0001', 'ACTIVE', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    customer_name = VALUES(customer_name),
+    email = VALUES(email),
+    mobile_no = VALUES(mobile_no),
+    customer_status = VALUES(customer_status),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_product (
+    product_code, product_name, use_yn, created_by, updated_by
+) VALUES (
+    'PRD_SAMPLE', '샘플 상품', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    product_name = VALUES(product_name),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_order (
+    order_no, customer_no, product_code, order_amount, order_status, created_by, updated_by
+) VALUES (
+    'ORD000001', 'CUST000001', 'PRD_SAMPLE', 10000.00, 'REQUESTED', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    customer_no = VALUES(customer_no),
+    product_code = VALUES(product_code),
+    order_amount = VALUES(order_amount),
+    order_status = VALUES(order_status),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_project_setting (
+    setting_key, setting_value, description, use_yn, created_by, updated_by
+) VALUES (
+    'bizadm.sample.masking.enabled', 'Y', '업무 관리자 샘플 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    setting_value = VALUES(setting_value),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_masking_audit_sample (
+    target_type, target_id, operator_id, reason, result_type, created_by, updated_by
+)
+SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM bizadm_masking_audit_sample
+    WHERE target_type = 'CUSTOMER'
+      AND target_id = 'CUST000001'
+      AND operator_id = 'biz-admin'
+      AND reason = '업무 관리자 샘플 원문보기 감사'
+);
+
+USE exsDB;
+
+INSERT INTO exs_institution (
+    institution_code, institution_name, enabled_yn, created_by, updated_by
+) VALUES (
+    'BANK01', '샘플 대외기관', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    institution_name = VALUES(institution_name),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_channel (
+    institution_code, channel_code, direction, enabled_yn, created_by, updated_by
+) VALUES (
+    'BANK01', 'OPENAPI', 'OUTBOUND', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    direction = VALUES(direction),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_endpoint (
+    endpoint_code, institution_code, http_method, endpoint_uri, timeout_ms, retry_count, enabled_yn, created_by, updated_by
+) VALUES (
+    'BANK01_BALANCE', 'BANK01', 'POST', 'https://example.invalid/balance', 3000, 2, 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    institution_code = VALUES(institution_code),
+    http_method = VALUES(http_method),
+    endpoint_uri = VALUES(endpoint_uri),
+    timeout_ms = VALUES(timeout_ms),
+    retry_count = VALUES(retry_count),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_auth_profile (
+    auth_profile_code, institution_code, auth_type, secret_ref, enabled_yn, created_by, updated_by
+) VALUES (
+    'BANK01_OAUTH', 'BANK01', 'OAUTH2', 'vault://cpf/exs/bank01/oauth', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    institution_code = VALUES(institution_code),
+    auth_type = VALUES(auth_type),
+    secret_ref = VALUES(secret_ref),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_token_store (
+    auth_profile_code, token_key, token_status, expire_at, created_by, updated_by
+) VALUES (
+    'BANK01_OAUTH', 'access-token', 'VALID', DATE_ADD(NOW(), INTERVAL 1 HOUR), 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    token_status = VALUES(token_status),
+    expire_at = VALUES(expire_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_route_rule (
+    route_code, institution_code, channel_code, endpoint_code, enabled_yn, created_by, updated_by
+) VALUES (
+    'BANK01_BALANCE_ROUTE', 'BANK01', 'OPENAPI', 'BANK01_BALANCE', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    institution_code = VALUES(institution_code),
+    channel_code = VALUES(channel_code),
+    endpoint_code = VALUES(endpoint_code),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+SET @sample_exs_transaction_id = '20260615120000000EXSexsAP010000001';
+
+INSERT INTO exs_transaction_log (
+    transaction_global_id, external_transaction_id, institution_code, channel_code, endpoint_code,
+    module_id, was_id, server_instance_id, request_at, response_at, elapsed_ms, direction,
+    http_method, request_uri, status, result_code, error_code, error_message, retryable_yn,
+    created_by, updated_by
+)
+SELECT
+    @sample_exs_transaction_id, 'EXT-20260615-0001', 'BANK01', 'OPENAPI', 'BANK01_BALANCE',
+    'EXS', 'exsAP01', 'local-dev:sql-seed', @sample_start_time, @sample_end_time, 12, 'OUTBOUND',
+    'POST', 'https://example.invalid/balance', 'SUCCESS', '0000', NULL, NULL, 'N',
+    'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM exs_transaction_log
+    WHERE transaction_global_id = @sample_exs_transaction_id
+);
+
+INSERT INTO exs_message_log (
+    transaction_global_id, external_transaction_id, direction, message_summary, payload_store_yn, payload_ref, created_by, updated_by
+)
+SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'OUTBOUND', '샘플 대외 송신 전문 요약', 'N', NULL, 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM exs_message_log
+    WHERE transaction_global_id = @sample_exs_transaction_id
+      AND direction = 'OUTBOUND'
+);
+
+INSERT INTO exs_control_policy (
+    institution_code, control_type, enabled_yn, reason, created_by, updated_by
+) VALUES (
+    'BANK01', 'SEND_BLOCK', 'N', '샘플 기관 정상 송신 허용', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    enabled_yn = VALUES(enabled_yn),
+    reason = VALUES(reason),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_retry_log (
+    transaction_global_id, external_transaction_id, retry_status, retry_count, last_error_message, next_retry_at, created_by, updated_by
+)
+SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'NOT_REQUIRED', 0, NULL, NULL, 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM exs_retry_log
+    WHERE transaction_global_id = @sample_exs_transaction_id
+      AND retry_status = 'NOT_REQUIRED'
+);

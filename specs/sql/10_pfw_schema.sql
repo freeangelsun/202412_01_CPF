@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     DEVICE_ID VARCHAR(100) NULL COMMENT '디바이스 ID',
     CLIENT_REQUEST_TIME VARCHAR(30) NULL COMMENT '클라이언트 요청 생성 시각',
     WAS_ID VARCHAR(50) NULL COMMENT '처리 WAS ID',
+    SERVER_INSTANCE_ID VARCHAR(160) NULL COMMENT '처리 서버 인스턴스 ID',
+    HOST_NAME VARCHAR(120) NULL COMMENT '처리 서버 호스트명',
+    PROCESS_ID VARCHAR(80) NULL COMMENT '처리 서버 프로세스 ID',
+    THREAD_NAME VARCHAR(160) NULL COMMENT '처리 스레드명',
     RESERVED_FIELD_1 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 1',
     RESERVED_FIELD_2 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 2',
     RESERVED_FIELD_3 VARCHAR(255) NULL COMMENT '업무 확장 예약 필드 3',
@@ -92,6 +96,7 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     INDEX ix_pfw_transaction_log_customer_time (CUSTOMER_NO, START_TIME),
     INDEX ix_pfw_transaction_log_channel_time (CHANNEL_CODE, START_TIME),
     INDEX ix_pfw_transaction_log_module_time (MODULE_ID, START_TIME),
+    INDEX ix_pfw_transaction_log_server_time (SERVER_INSTANCE_ID, START_TIME),
     INDEX ix_pfw_transaction_log_status_time (LOG_TYPE, RESPONSE_CODE, START_TIME),
     INDEX ix_pfw_transaction_log_http_status_time (HTTP_STATUS, START_TIME)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 요약 로그';

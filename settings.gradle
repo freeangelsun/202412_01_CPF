@@ -23,7 +23,7 @@ gradleEnterprise {
 
 rootProject.name = 'cpf-coreflow-platform-framework'
 
-include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm'
+include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm', 'bizadm', 'exs'
 // Additional business modules can be added here when needed.
 // include 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
 
@@ -33,3 +33,5 @@ project(':acc').projectDir = file('acc')
 project(':mbr').projectDir = file('mbr')
 project(':xyz').projectDir = file('xyz')
 project(':adm').projectDir = file('adm')
+project(':bizadm').projectDir = file('bizadm')
+project(':exs').projectDir = file('exs')

@@ -32,16 +32,18 @@ subprojects {
 
 tasks.register('runLocalServices') {
     group = 'application'
-    description = 'MBR, ACC, XYZ, ADM 로컬 서비스를 한 번에 실행합니다. PFW/CMN은 라이브러리 모듈입니다.'
+    description = 'MBR, ACC, XYZ, ADM, BIZADM, EXS 로컬 서비스를 한 번에 실행합니다. PFW/CMN은 라이브러리 모듈입니다.'
 
-    dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes'
+    dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes', ':bizadm:classes', ':exs:classes'
 
     doLast {
         def services = [
                 [name: 'MBR', project: project(':mbr'), mainClass: 'cpf.mbr.MbrApplication'],
                 [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccApplication'],
                 [name: 'XYZ', project: project(':xyz'), mainClass: 'cpf.xyz.XyzApplication'],
-                [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication']
+                [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication'],
+                [name: 'BIZADM', project: project(':bizadm'), mainClass: 'cpf.bizadm.BizAdmApplication'],
+                [name: 'EXS', project: project(':exs'), mainClass: 'cpf.exs.ExsApplication']
         ]
         def javaExecutable = new File(
                 System.getProperty('java.home'),
@@ -50,7 +52,7 @@ tasks.register('runLocalServices') {
         def processes = []
         def logThreads = []
 
-        logger.lifecycle('CPF 로컬 서비스 시작: MBR(8081), ACC(8080), XYZ(8099), ADM(8090)')
+        logger.lifecycle('CPF 로컬 서비스 시작: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
         logger.lifecycle('PFW와 CMN은 각 서비스 안에서 라이브러리로 동작합니다.')
 
         services.each { service ->
@@ -159,6 +161,12 @@ tasks.register('checkHtmlDocs', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-html-docs.ps1'
 }
 
+tasks.register('checkTransactionIdStandard', Exec) {
+    group = 'verification'
+    description = 'CPF 트랜잭션 글로벌 ID 34자리 규격이 코드, 설정, SQL, 문서에 반영되어 있는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-transaction-id-standard.ps1'
+}
+
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
     description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 품질을 smoke 검증합니다.'
@@ -176,5 +184,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard'
 }

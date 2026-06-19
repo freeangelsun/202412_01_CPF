@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: exs
+  profiles:
+    include: pfw, cmn
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+
+server:
+  port: ${EXS_SERVER_PORT:8092}
+
+cpf:
+  framework:
+    module-id: EXS
+    was-id: ${WAS_ID:exsAP01}

@@ -9,9 +9,11 @@ import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
+import cpf.pfw.common.logging.TransactionIdGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -34,12 +36,18 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
 
     private final ObjectMapper objectMapper;
     private final CpfResponseCodeResolver responseCodeResolver;
+    private final int transactionIdSequenceDigits;
 
     public TransactionHeaderValidationInterceptor(
             ObjectMapper objectMapper,
-            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
+            Environment environment) {
         this.objectMapper = objectMapper;
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
+        this.transactionIdSequenceDigits = environment.getProperty(
+                "cpf.framework.transaction-id.sequence-digits",
+                Integer.class,
+                7);
     }
 
     @Override
@@ -63,6 +71,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
      */
     private void validateRequiredHeaders(HttpServletRequest request) {
         List<String> missingHeaders = new ArrayList<>();
+        require(request, TransactionContext.HEADER_TRANSACTION_ID, missingHeaders);
         require(request, TransactionContext.HEADER_REQUEST_TYPE, missingHeaders);
         require(request, TransactionContext.HEADER_ORIGINAL_CHANNEL_CODE, missingHeaders);
         require(request, TransactionContext.HEADER_CHANNEL_CODE, missingHeaders);
@@ -73,6 +82,15 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                     CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
                     "필수 거래 헤더가 누락되었습니다. " + headerNames,
                     Map.of("0", headerNames, "1", request.getRequestURI()));
+        }
+
+        String transactionId = request.getHeader(TransactionContext.HEADER_TRANSACTION_ID);
+        if (!TransactionIdGenerator.isValid(transactionId, transactionIdSequenceDigits)) {
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
+                    "트랜잭션 글로벌 ID 형식이 올바르지 않습니다. "
+                            + TransactionContext.HEADER_TRANSACTION_ID + "=" + transactionId,
+                    Map.of("0", TransactionContext.HEADER_TRANSACTION_ID, "1", request.getRequestURI()));
         }
     }
 

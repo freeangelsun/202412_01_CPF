@@ -27,6 +27,8 @@
       <tr><td><code>adm</code></td><td>운영자, 권한, 세션, 감사, 동적 로그레벨</td></tr>
       <tr><td><code>acc</code>, <code>mbr</code></td><td>업무 샘플 모듈</td></tr>
       <tr><td><code>xyz</code></td><td>교육 API와 개발 샘플</td></tr>
+      <tr><td><code>bizadm</code></td><td>CPF 적용 프로젝트에서 업무/프로젝트 관리자 화면을 구현하는 별도 샘플 모듈</td></tr>
+      <tr><td><code>exs</code></td><td>대외기관, 채널, endpoint, 인증, 라우팅, 대외 거래/전문 로그를 다루는 대외 연계 샘플 모듈</td></tr>
     </table>
   </section>
 
@@ -39,6 +41,7 @@
       <tr><td><code>cmnDB</code>는 공통 채번, 알림 로그, 공통 업무 로그 같은 업무 공통 기능을 소유합니다.</td><td>공통 업무 기능이 필요한 프로젝트만 DB를 붙여 사용할 수 있습니다.</td></tr>
       <tr><td><code>admDB</code>는 운영자, 권한, 메뉴, 세션, 감사 로그, 동적 로그레벨을 소유합니다.</td><td>운영 기능과 업무 데이터 권한을 분리해 감사와 통제를 단순화합니다.</td></tr>
       <tr><td><code>accDB</code>, <code>mbrDB</code>는 업무 샘플 DB이며 각 업무 prefix 테이블만 가집니다.</td><td>신규 업무 모듈은 자기 DB 또는 명확한 공통 DB만 참조합니다.</td></tr>
+      <tr><td><code>bizadmDB</code>, <code>exsDB</code>는 각각 업무 관리자 샘플과 대외 연계 샘플 DB입니다.</td><td>ADM 표준 운영 기능과 실제 업무/대외 도메인 기능의 책임 경계를 예제로 보여줍니다.</td></tr>
     </table>
   </section>
 
@@ -51,6 +54,8 @@
       <tr><td><code>admDB</code></td><td>운영자, 역할, 메뉴, 세션, 감사 로그, 동적 로그레벨 룰</td></tr>
       <tr><td><code>accDB</code></td><td><code>acc_account</code></td></tr>
       <tr><td><code>mbrDB</code></td><td><code>mbr_member</code></td></tr>
+      <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code>, <code>bizadm_menu_sample</code>, <code>bizadm_permission_sample</code>, <code>bizadm_customer</code>, <code>bizadm_order</code></td></tr>
+      <tr><td><code>exsDB</code></td><td><code>exs_institution</code>, <code>exs_endpoint</code>, <code>exs_auth_profile</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code></td></tr>
     </table>
   </section>
 
@@ -72,6 +77,7 @@
       <tr><th>파일</th><th>기준</th></tr>
       <tr><td><code>V1__cpf_baseline_install.sql</code></td><td>신규 환경 전체 baseline</td></tr>
       <tr><td><code>V4__batch_schedule_repository_notification.sql</code></td><td>기존 환경에 Spring Batch 표준 저장소, 배치 스케줄 정책, 관계/수행대상, 운영 알림 테이블을 추가</td></tr>
+      <tr><td><code>V6__bizadm_exs_transaction_identity.sql</code></td><td>기존 환경에 거래 로그 서버 인스턴스 컬럼과 <code>bizadmDB</code>, <code>exsDB</code> 스키마를 추가</td></tr>
     </table>
   </section>
 
@@ -103,7 +109,7 @@
     <table>
       <tr><th>항목</th><th>기준</th></tr>
       <tr><td>health</td><td>actuator health, readiness, liveness를 profile별 노출 정책으로 관리</td></tr>
-      <tr><td>trace</td><td><code>X-Transaction-Id</code>, trace id, span id를 로그와 응답에 연결</td></tr>
+      <tr><td>trace</td><td><code>X-Transaction-Id</code> 34자리 공식 규격을 필수 검증하고 trace id, span id를 로그와 응답에 연결</td></tr>
       <tr><td>metrics</td><td>요청 수, 오류 수, 외부 API latency, DB pool, broker 상태를 수집</td></tr>
       <tr><td>로그</td><td>민감정보 마스킹, 보존기간, 검색 키워드 기준을 운영/보안 가이드에 연결</td></tr>
     </table>
@@ -112,7 +118,7 @@
     <h2>품질 Gate와 Smoke 분리</h2>
     <table>
       <tbody>
-      <tr><th>기본 Gate</th><td><code>qualityGate</code>는 각 모듈 compile, unit test, UTF-8, mojibake, legacy name, SQL standard, Java format, HTML docs 검사를 수행합니다.</td></tr>
+      <tr><th>기본 Gate</th><td><code>qualityGate</code>는 각 모듈 compile, unit test, UTF-8, mojibake, legacy name, SQL standard, Java format, HTML docs, transaction ID standard 검사를 수행합니다.</td></tr>
       <tr><th>분리 Smoke</th><td>MariaDB 설치 SQL, ADM/XYZ 앱 기동, OpenAPI JSON, ADM UI/API, scheduler 자동 실행은 외부 환경이나 장기 실행이 필요하므로 별도 smoke로 분리합니다.</td></tr>
       <tr><th>배치 Scheduler</th><td>자동 실행은 기본 비활성입니다. 운영 profile에서 <code>cpf.batch.scheduler.enabled=true</code>를 명시하고, lock TTL과 tick 주기를 운영 기준에 맞게 조정합니다.</td></tr>
       <tr><th>다운로드 감사</th><td>ADM DB에 <code>adm_download_audit_log</code>를 두고, 파일 다운로드 감사와 민감정보 마스킹 정책을 운영 메타로 관리합니다.</td></tr>

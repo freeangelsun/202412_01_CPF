@@ -324,6 +324,7 @@ public class LoggingAspect {
             LocalDateTime endTime,
             long durationMs) {
 
+        ServerInstanceIdentity.Identity serverIdentity = ServerInstanceIdentity.current();
         return TransactionLogRecord.builder()
                 .transactionId(transactionId)
                 .traceId(traceId)
@@ -353,6 +354,10 @@ public class LoggingAspect {
                 .deviceId(headerValue(transactionHeader, TransactionHeader::getDeviceId))
                 .clientRequestTime(headerValue(transactionHeader, TransactionHeader::getClientRequestTime))
                 .wasId(headerValue(transactionHeader, TransactionHeader::getWasId))
+                .serverInstanceId(serverIdentity.serverInstanceId())
+                .hostName(serverIdentity.hostName())
+                .processId(serverIdentity.processId())
+                .threadName(serverIdentity.threadName())
                 .reservedField1(headerValue(transactionHeader, TransactionHeader::getReservedField1))
                 .reservedField2(headerValue(transactionHeader, TransactionHeader::getReservedField2))
                 .reservedField3(headerValue(transactionHeader, TransactionHeader::getReservedField3))
@@ -413,6 +418,10 @@ public class LoggingAspect {
         putDetail(details, "parentSpan.id", record.getParentSpanId());
         putDetail(details, "sequence.no", record.getSequenceNo());
         putDetail(details, "module.id", record.getModuleId());
+        putDetail(details, "server.instance.id", record.getServerInstanceId());
+        putDetail(details, "server.host.name", record.getHostName());
+        putDetail(details, "server.process.id", record.getProcessId());
+        putDetail(details, "server.thread.name", record.getThreadName());
         putDetail(details, "business.transaction.id", record.getBusinessTransactionId());
         putDetail(details, "business.transaction.name", record.getBusinessTransactionName());
         putDetail(details, "workflow.id", record.getWorkflowId());

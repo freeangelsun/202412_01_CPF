@@ -12,7 +12,7 @@ $schemaFiles = @(
     "specs/sql/30_adm_schema.sql",
     "specs/sql/40_business_sample_schema.sql"
 )
-$allowedPrefixes = @("pfw", "cmn", "adm", "acc", "mbr")
+$allowedPrefixes = @("pfw", "cmn", "adm", "acc", "mbr", "bizadm", "exs")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
 

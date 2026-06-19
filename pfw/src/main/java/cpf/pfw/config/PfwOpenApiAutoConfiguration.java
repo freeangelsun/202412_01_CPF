@@ -122,7 +122,11 @@ public class PfwOpenApiAutoConfiguration {
     @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
-            addHeader(operation, "X-Transaction-Id", false, "전역 거래 ID입니다. 없으면 CPF가 생성합니다.");
+            addHeader(
+                    operation,
+                    "X-Transaction-Id",
+                    true,
+                    "트랜잭션 글로벌 ID입니다. yyyyMMddHHmmssSSS + moduleId 3자리 + wasId 7자리 + sequence 7자리 형식입니다.");
             addHeader(operation, "X-Trace-Id", false, "분산 추적 ID입니다. 없으면 CPF가 생성합니다.");
             addHeader(operation, "X-Span-Id", false, "현재 호출 span ID입니다. CPF가 응답 헤더로 반환합니다.");
             addHeader(operation, "X-Parent-Span-Id", false, "상위 호출 span ID입니다. 서비스 간 호출 전파에 사용합니다.");

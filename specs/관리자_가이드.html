@@ -35,6 +35,7 @@
   <section>
     <h2>권한 모델</h2>
     <p>ADM 화면 메뉴 필터링은 <code>adm_role_menu.READ_YN</code>을 기준으로 합니다. 등록, 수정, 삭제, 실행, 재수행, 중지, 잠금해제, 비밀번호 초기화 API는 서버 필터에서 메뉴 권한과 버튼 권한을 다시 검사합니다.</p>
+    <p><code>bizadm</code>은 ADM 내부 기능이 아니라 CPF 적용 프로젝트의 업무 관리자 화면 샘플입니다. ADM은 공통 운영, 감사, 권한 기준을 제공하고 업무 도메인별 관리자 기능은 별도 업무 모듈에서 구현합니다.</p>
     <table>
       <tr><th>역할</th><th>기본 범위</th></tr>
       <tr><td><code>ADM_ADMIN</code></td><td>전체 메뉴와 전체 버튼/행위 허용</td></tr>
@@ -52,6 +53,8 @@
       <tr><td>감사 로그</td><td><code>adm_audit_log</code>의 before/after/diff, 감사 사유, 대상 정보</td></tr>
       <tr><td>배치 관제</td><td><code>BATCH_*</code>, <code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_job_relation</code>, <code>pfw_batch_execution_target</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code></td></tr>
       <tr><td>운영 작업 로그</td><td><code>adm_operation_log</code>, <code>pfw_batch_operation_log</code></td></tr>
+      <tr><td>로그 일자 기준</td><td><code>LOG_DATE</code>는 거래 시작 시각인 <code>START_TIME</code>의 날짜를 기준으로 저장합니다. 적재 지연이 있어도 트랜잭션 ID 앞 17자리 일시와 운영 조회 기준이 어긋나지 않게 하기 위함입니다.</td></tr>
+      <tr><td>서버 인스턴스</td><td><code>MODULE_ID</code>, <code>WAS_ID</code>, <code>SERVER_INSTANCE_ID</code>, host, process, thread 정보를 함께 조회해 이중화 환경의 처리 위치를 추적합니다.</td></tr>
     </table>
     <p>로그 상세는 요약, 헤더, request, response, error, detail, diff, step log 탭으로 구분합니다. JSON은 pretty print와 복사/다운로드를 제공하고, 고정길이 전문은 필드명, 시작위치, 길이, 값, 설명을 표 형태로 표시합니다.</p>
   </section>

@@ -11,13 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * ACC 샘플 거래가 CPF 표준 거래 헤더와 로깅 AOP를 통과하는지 확인합니다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -27,32 +21,21 @@ class AccTransactionControllerTest {
     private MockMvc mockMvc;
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * 정상 거래 요청이 성공 응답으로 끝나는지 확인합니다.
      */
     @Test
     void testSuccessfulTransaction() throws Exception {
         mockMvc.perform(get("/acc/tran/success")
-                        // CPF 기능 설명입니다.
                         .param("menuId", "MENU123")
-                        // CPF 기능 설명입니다.
                         .param("execUser", "testUser")
-                        // CPF 기능 설명입니다.
                         .headers(requiredBusinessHeaders())
-                        // CPF 기능 설명입니다.
                         .contentType(MediaType.APPLICATION_JSON))
-                // CPF 기능 설명입니다.
                 .andExpect(status().isOk());
 
     }
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * 보상 거래 샘플도 동일한 표준 헤더를 사용해 성공하는지 확인합니다.
      */
     @Test
     void testCompensationTransaction() throws Exception {
@@ -65,12 +48,11 @@ class AccTransactionControllerTest {
     }
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
+     * 인터셉터가 요구하는 공통 거래 헤더를 구성합니다.
      */
     private org.springframework.http.HttpHeaders requiredBusinessHeaders() {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add("X-Transaction-Id", "20260611141234567ACCaccAP010000001");
         headers.add("X-Request-Type", "INQUIRY");
         headers.add("X-Original-Channel-Code", "TST");
         headers.add("X-Channel-Code", "ACC");
@@ -78,4 +60,3 @@ class AccTransactionControllerTest {
         return headers;
     }
 }
-

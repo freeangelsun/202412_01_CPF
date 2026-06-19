@@ -181,7 +181,8 @@ public class AdmDownloadService {
 
     private QuerySpec transactionLogQuery(DownloadRequest request, boolean errorOnly) {
         StringBuilder sql = new StringBuilder("""
-                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, BUSINESS_TRANSACTION_ID,
+                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
+                       HOST_NAME, PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID,
                        LOG_TYPE, REQUEST_TYPE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
                        URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, START_TIME, END_TIME, DURATION_MS
                 FROM pfw_transaction_log

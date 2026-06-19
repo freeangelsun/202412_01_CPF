@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 public class TransactionIdGenerator {
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    private static final int MODULE_ID_LENGTH = 3;
+    private static final int WAS_ID_LENGTH = 7;
     private static final int DEFAULT_SEQUENCE_DIGITS = 7;
 
     private final String moduleId;
@@ -59,11 +61,17 @@ public class TransactionIdGenerator {
     }
 
     public boolean isValid(String transactionId) {
+        return isValid(transactionId, sequenceDigits);
+    }
+
+    public static boolean isValid(String transactionId, int sequenceDigits) {
         if (!hasText(transactionId)) {
             return false;
         }
 
-        String pattern = "^\\d{17}[A-Z0-9]{3}[A-Za-z0-9]+\\d{" + sequenceDigits + "}$";
+        int normalizedSequenceDigits = normalizeSequenceDigits(sequenceDigits);
+        String pattern = "^\\d{17}[A-Z0-9]{" + MODULE_ID_LENGTH + "}[A-Za-z0-9]{"
+                + WAS_ID_LENGTH + "}\\d{" + normalizedSequenceDigits + "}$";
         return Pattern.matches(pattern, transactionId);
     }
 
@@ -101,14 +109,18 @@ public class TransactionIdGenerator {
 
     private static String normalizeModuleId(String value) {
         String normalized = normalizeAlphaNumeric(value, "PFW").toUpperCase(Locale.ROOT);
-        if (normalized.length() >= 3) {
-            return normalized.substring(0, 3);
+        if (normalized.length() >= MODULE_ID_LENGTH) {
+            return normalized.substring(0, MODULE_ID_LENGTH);
         }
-        return String.format("%-3s", normalized).replace(' ', 'X');
+        return String.format("%-" + MODULE_ID_LENGTH + "s", normalized).replace(' ', 'X');
     }
 
     private static String normalizeWasId(String value) {
-        return normalizeAlphaNumeric(value, "local01");
+        String normalized = normalizeAlphaNumeric(value, "local01");
+        if (normalized.length() != WAS_ID_LENGTH) {
+            throw new IllegalArgumentException("CPF wasId는 영문/숫자 7자리여야 합니다. wasId=" + normalized);
+        }
+        return normalized;
     }
 
     private static String normalizeAlphaNumeric(String value, String fallback) {

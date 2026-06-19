@@ -29,8 +29,8 @@ mybatis:
 
 cpf:
   framework:
-    module-id: ${spring.application.name:pfw}
-    was-id: ${WAS_ID:local01}
+    module-id: ${CPF_MODULE_ID:PFW}
+    was-id: ${WAS_ID:pfwAP01}
     transaction-id:
       sequence-digits: 7
   http-client:

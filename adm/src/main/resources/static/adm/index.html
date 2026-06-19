@@ -83,6 +83,9 @@
               <th @click="sortLogs('LOG_IDX')">LOG_IDX</th>
               <th @click="sortLogs('TRANSACTION_ID')">거래 ID</th>
               <th @click="sortLogs('TRACE_ID')">Trace</th>
+              <th @click="sortLogs('MODULE_ID')">모듈</th>
+              <th @click="sortLogs('WAS_ID')">WAS</th>
+              <th @click="sortLogs('SERVER_INSTANCE_ID')">인스턴스</th>
               <th @click="sortLogs('BUSINESS_TRANSACTION_ID')">업무 ID</th>
               <th @click="sortLogs('URI')">URI</th>
               <th @click="sortLogs('HTTP_STATUS')">HTTP</th>
@@ -95,6 +98,9 @@
               <td>{{ item.LOG_IDX }}</td>
               <td>{{ item.TRANSACTION_ID }}</td>
               <td>{{ item.TRACE_ID }}</td>
+              <td>{{ item.MODULE_ID }}</td>
+              <td>{{ item.WAS_ID }}</td>
+              <td>{{ item.SERVER_INSTANCE_ID }}</td>
               <td>{{ item.BUSINESS_TRANSACTION_ID }}</td>
               <td>{{ item.URI }}</td>
               <td>{{ item.HTTP_STATUS }}</td>

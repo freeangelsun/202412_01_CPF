@@ -167,6 +167,12 @@ tasks.register('checkTransactionIdStandard', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-transaction-id-standard.ps1'
 }
 
+tasks.register('checkSecuritySeedStandard', Exec) {
+    group = 'verification'
+    description = 'SQL seed에 원문 비밀번호, refresh token, access token, client secret이 들어가지 않는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-security-seed-standard.ps1'
+}
+
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
     description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 품질을 smoke 검증합니다.'
@@ -184,5 +190,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard'
 }

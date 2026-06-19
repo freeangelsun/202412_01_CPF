@@ -1,1122 +1,1378 @@
-# CPF 다음 작업 요청서
+# CPF 기본 구현체 보강 요건 정의서
 
-## 0. 작업 목표
+## 0. 목적
 
-이번 작업은 단순 기능 추가가 아니라, 현재 CPF 안정화 결과의 정합성을 복구하고 CPF의 핵심 운영 프레임워크 기준을 명확히 고정하는 작업이다.
+CPF(CoreFlow Platform Framework)는 단순 샘플 프로젝트가 아니라, 실제 업무 프로젝트가 채택했을 때 기본 운영관리·회원·대외연계·로그·감사·권한·마스킹·다운로드·거래추적 기능을 이미 갖춘 상태에서 빠르게 커스터마이징하여 사용할 수 있는 범용 프레임워크여야 한다.
 
-특히 다음 항목을 반드시 반영한다.
+이번 작업은 `bizadm`, `mbr`, `exs`를 단순 샘플/골격이 아니라 **기본 구현체** 수준으로 보강하는 것이 목적이다.
 
-1. Codex 완료 메시지, `CPF_STABILIZATION_REPORT.html`, 실제 소스 상태의 정합성 복구
-2. `CPF_STABILIZATION_REPORT.html` 하나만 유지
-3. 트랜잭션 글로벌 ID 규칙 공식화 및 모든 거래 필수 적용
-4. 로그/ADM 화면/DB에 모듈 ID, WAS ID, 서버 인스턴스 식별값 노출
-5. `bizadm` 모듈 신설 및 업무/프로젝트 관리자 화면 샘플 구현
-6. `exs` 모듈 신설 및 대외 연계 주제영역 골격 구현
-7. ADM은 CPF 플랫폼 운영관리자로 유지하고, 업무 관리자 기능을 ADM 내부에 섞지 않음
-8. 문서, 기능 구현 매트릭스, SQL, Swagger, smoke, qualityGate 정합성 유지
-9. 실제 실행하지 않은 검증은 절대 성공으로 보고하지 않음
+다만 Codex는 테이블명, 컬럼명, API URI, Vue 파일 경로 등을 임의로 고정된 정답처럼 확정하지 말고, 현재 프로젝트 구조와 기존 명명 규칙을 먼저 확인한 뒤 설계·구현해야 한다.
 
-Git commit, push, branch 생성은 하지 않는다.
+기존 구조와 충돌하거나 선택지가 있는 경우에는 임의 구현하지 말고 `재확인 필요`로 보고한다.
 
 ---
 
-## 1. 매우 중요한 검증 보고 원칙
+## 1. 작업 원칙
 
-이번 작업 완료 보고에서 가장 중요한 원칙은 다음이다.
+### 1.1 기본 구현체 원칙
+
+다음 모듈은 단순 샘플이 아니라 기본 구현체 수준으로 보강한다.
 
 ```text
-Codex는 작업 완료 후 “검증 완료”라고 단정하지 않는다.
-실제로 실행한 명령과 그 결과만 검증 성공으로 보고한다.
-ChatGPT 또는 사용자가 이후 별도로 검수할 예정이므로, Codex는 미실행 항목을 성공으로 포장하거나 추정 검증 결과를 작성하지 않는다.
-로컬에서 실행하지 않은 항목, 앱을 기동하지 않은 항목, DB/브라우저/Swagger를 직접 확인하지 않은 항목은 반드시 미검증으로 남긴다.
+bizadm = 프로젝트/업무 관리자 기본 구현체
+mbr    = 회원/로그인 기본 구현체
+exs    = 대외연계 기본 구현체
 ```
 
-다음 표현은 금지한다.
+다음과 같은 수준은 요건 미달이다.
 
 ```text
-검증 완료
-문제 없음
-성공한 것으로 보임
-대체로 정상
-실행은 안 했지만 가능
-구조상 문제 없어 보임
-정상 동작 예상
-```
-
-성공으로 적을 수 있는 것은 실제로 명령을 실행했거나 실제 파일/소스/화면/API를 확인한 항목뿐이다.
-
-구분은 반드시 다음처럼 한다.
-
-```text
-[성공] 실제 실행해서 성공한 항목
-[실패] 실제 실행했으나 실패한 항목
-[미검증] 실행하지 못했거나 환경이 없어 확인하지 못한 항목
-[정적 확인] Git/파일/소스 내용만 확인한 항목
-```
-
-예시:
-
-```text
-성공: .\gradlew.bat test --offline 실제 실행 성공
-성공: scripts/check-html-docs.ps1 실제 실행 성공
-정적 확인: exs_transaction_log DDL 파일 존재 확인
-미검증: MariaDB 클라이언트가 없어 실제 SQL 실행 미검증
-미검증: 앱을 기동하지 않아 /v3/api-docs HTTP smoke 미검증
-미검증: 브라우저 자동화 도구가 없어 실제 클릭 검증 미검증
+- SampleController 1개
+- Hello API
+- 하드코딩 데이터만 반환하는 Service
+- build 통과용 빈 모듈
+- SQL만 있고 실제 기능 연결 없음
+- API만 있고 화면 없음
+- 화면만 있고 실제 API/DB 연결 없음
+- 권한/마스킹/감사 없이 단순 CRUD만 있음
 ```
 
 ---
 
-## 2. 리포트 산출물 정리
+### 1.2 설계 확정 방식
 
-현재 안정화 리포트 관련 산출물이 서로 충돌할 가능성이 있으므로 반드시 정리한다.
-
-유지 대상:
+Codex는 구현 전에 다음을 확인한다.
 
 ```text
-CPF_STABILIZATION_REPORT.html
+- 기존 모듈 구조
+- 기존 패키지 구조
+- 기존 API prefix 규칙
+- 기존 SQL/Flyway 작성 방식
+- 기존 공통 응답/오류 구조
+- 기존 권한/메뉴/감사/다운로드/마스킹 구조
+- 기존 Vue 구조가 있는 경우 route/view/api 구성
+- 기존 문서와 기능 구현 매트릭스 기준
 ```
 
-삭제 대상:
+확인 후 다음 중 하나로 처리한다.
 
 ```text
-CPF_STABILIZATION_REPORT.md
-CPF_STABILIZATION_CHANGED_FILES.txt
+1. 기존 구조와 명확히 맞는 경우
+   → 기존 규칙에 맞춰 구현
+
+2. 기존 구조가 일부 부족하지만 방향이 명확한 경우
+   → 최소 변경으로 구현하고 리포트에 설계 판단 근거 기록
+
+3. 기존 구조와 충돌하거나 선택지가 큰 경우
+   → 임의 구현 금지
+   → 재확인 필요로 보고
 ```
 
-주의:
+---
+
+### 1.3 재확인 필요 보고 기준
+
+다음 상황은 즉시 구현하지 말고 `재확인 필요`로 분리한다.
 
 ```text
-CPF_STABILIZATION_CHANGED_FILES.txt는 새로 만들거나 갱신하지 않는다.
-변경 파일 요약이 필요하면 CPF_STABILIZATION_REPORT.html 내부 섹션에만 포함한다.
+- 테이블 소유 모듈이 모호한 경우
+- API URI 체계가 기존 구조와 충돌하는 경우
+- ADM과 bizadm 기능이 중복될 가능성이 있는 경우
+- mbr과 bizadm 로그인 구조가 충돌하는 경우
+- 사람 로그인 토큰과 대외기관 토큰이 섞일 가능성이 있는 경우
+- 기존 권한/감사/마스킹 체계를 재사용할지 신규 구현할지 모호한 경우
+- 대규모 구조 변경이 필요한 경우
+- 보안상 위험한 구현이 필요한 경우
+- 기존 테스트/qualityGate가 깨질 가능성이 큰 경우
+```
+
+보고 형식:
+
+```text
+[재확인 필요]
+- 항목:
+- 현재 구조:
+- 충돌 또는 모호한 이유:
+- 선택 가능한 방안:
+- Codex 추천안:
+- 구현 보류 여부:
+```
+
+---
+
+## 2. 공통 책임 경계
+
+### 2.1 PFW 책임
+
+PFW는 프레임워크 코어 기능을 담당한다.
+
+```text
+- transactionGlobalId
+- 표준 헤더
+- 표준 응답/오류
+- 예외 처리
+- TransactionContext
+- MDC
+- 인증 필터 또는 인증 연계 기반
+- 토큰 검증 공통 흐름
+- Refresh Token 공통 저장소 또는 공통 저장 정책
+- 로그/감사 이벤트 기반
+- 배치 기반
+- OpenAPI 공통 설정
+```
+
+PFW에는 업무 로직을 넣지 않는다.
+
+---
+
+### 2.2 CMN 책임
+
+CMN은 공통 유틸과 공통 기반 기능을 담당한다.
+
+```text
+- 공통 코드
+- 공통 메시지
+- PasswordEncoder
+- JWT 발급/검증 보조
+- 암호화/복호화
+- 마스킹
+- Validation
+- WebClient/외부 호출 보조
+- Redis/Kafka/MQ mock/fallback adapter
+```
+
+CMN에는 특정 업무 도메인 로직을 넣지 않는다.
+
+---
+
+### 2.3 ADM 책임
+
+ADM은 CPF 플랫폼 운영관리자 기능을 담당한다.
+
+```text
+- 플랫폼 운영자 계정
+- 플랫폼 권한/메뉴/버튼/API/다운로드 권한
+- 온라인 거래 로그
+- 오류 로그
+- 운영 감사
+- 다운로드 감사
+- 배치 관제
+- 알림 관리
+- 동적 로그레벨
+- 플랫폼 보안 관리
+```
+
+ADM은 CPF 자체 운영을 위한 영역이다.
+프로젝트별 업무 관리자 기능을 ADM에 섞지 않는다.
+
+---
+
+### 2.4 BIZADM 책임
+
+BIZADM은 CPF를 적용한 프로젝트에서 사용할 업무/프로젝트 관리자 기본 구현체다.
+
+```text
+- 프로젝트 관리자 로그인
+- 프로젝트 운영자 관리
+- 프로젝트 역할 관리
+- 프로젝트 메뉴 관리
+- 버튼 권한 관리
+- API 권한 관리
+- 다운로드 권한 관리
+- 마스킹/마스킹 해제 관리
+- 프로젝트 업무 설정
+- 기본 업무 데이터 관리 예시
+- 프로젝트 관리자 Vue 화면
+```
+
+BIZADM은 ADM 공통 체계를 재사용할 수 있으나, ADM 내부 기능으로 섞이면 안 된다.
+
+---
+
+### 2.5 MBR 책임
+
+MBR은 회원 기본 구현체다.
+
+```text
+- 회원 등록/수정/상태 관리
+- 회원 로그인/로그아웃
+- 회원 로그인 이력
+- 로그인 실패/잠금
+- 회원 비밀번호 변경/초기화
+- 회원 개인정보 마스킹
+- 회원 다운로드
+- 회원 감사/이력
+```
+
+회원 기능은 대부분의 업무 시스템에서 공통성이 높으므로 단순 샘플 수준으로 두지 않는다.
+
+---
+
+### 2.6 EXS 책임
+
+EXS는 대외연계 기본 구현체다.
+
+```text
+- 대외기관 관리
+- 대외 채널 관리
+- endpoint 관리
+- 인증 프로파일 관리
+- 대외기관 토큰 관리
+- 라우팅 규칙 관리
+- 대외 거래 로그
+- 대외 송수신 로그
+- 통제 정책
+- 실패/재처리 관리
+- 대외 수신 로그 선저장
+```
+
+EXS의 대외기관 토큰은 사람 로그인 토큰과 분리한다.
+
+---
+
+## 3. 인증/로그인 요건
+
+### 3.1 기본 로그인 방식
+
+CPF의 기본 로그인 방식은 다음을 기준으로 한다.
+
+```text
+JWT Access Token + Refresh Token
+```
+
+Access Token은 `Authorization: Bearer` 방식으로 사용한다.
+
+세션 방식은 기본 구현 대상이 아니다.
+세션 방식이 필요하다고 판단되면 구현하지 말고 확장 옵션으로 문서화하거나 `재확인 필요`로 보고한다.
+
+---
+
+### 3.2 로그인 영역 분리
+
+로그인 영역은 최소 다음 3개로 분리한다.
+
+```text
+ADM    = CPF 플랫폼 운영자
+BIZADM = 프로젝트/업무 관리자
+MBR    = 일반 회원
+```
+
+요건:
+
+```text
+- 각 영역은 동일한 공통 인증/토큰 기반을 재사용한다.
+- 각 영역의 사용자/계정/권한/로그인 이력은 소유 모듈 기준으로 분리한다.
+- ADM 토큰, BIZADM 토큰, MBR 토큰은 혼용되면 안 된다.
+- 토큰에는 로그인 영역을 구분할 수 있는 정보가 포함되어야 한다.
+- 다른 영역의 API 호출 시 권한 오류가 발생해야 한다.
+```
+
+---
+
+### 3.3 비밀번호 보안
+
+필수 요건:
+
+```text
+- 비밀번호 평문 저장 금지
+- 샘플 계정도 해시 저장
+- BCrypt 또는 이에 준하는 안전한 PasswordEncoder 사용
+- 비밀번호 로그 출력 금지
+- 비밀번호 응답 반환 금지
+- 비밀번호 변경 이력 저장
+- 비밀번호 초기화 이력 저장
+- 비밀번호 만료 정책 샘플 제공
+```
+
+구현 방식이 기존 구조와 다르면 설계안을 리포트에 기록한다.
+
+---
+
+### 3.4 Refresh Token 보안
+
+필수 요건:
+
+```text
+- Refresh Token 원문 저장 금지
+- Refresh Token은 해시 또는 안전한 방식으로 저장
+- 로그아웃 시 Refresh Token 폐기
+- 토큰 재발급 시 기존 토큰 처리 정책 명확화
+- 폐기된 토큰 재사용 실패 처리
+- 만료된 토큰 실패 처리
+- 토큰 발급/재발급/폐기/실패 이력 저장
+```
+
+Codex는 기존 구조에 공통 토큰 저장소가 있는지 확인한다.
+
+```text
+- 있으면 기존 구조를 재사용
+- 없으면 공통 저장소 설계안을 제시하고 구현
+- 단, 각 모듈이 제각각 Refresh Token 저장소를 중복 생성하지 않음
+```
+
+---
+
+### 3.5 로그인 이력
+
+ADM, BIZADM, MBR 로그인에는 이력이 남아야 한다.
+
+필수 저장 항목 수준:
+
+```text
+- 로그인 영역
+- 사용자 식별자
+- 로그인 ID
+- 로그인 성공/실패 결과
+- 실패 사유 코드
+- client IP
+- user-agent
+- transactionGlobalId
+- moduleId
+- wasId
+- serverInstanceId
+- 발생 시각
+```
+
+필수 기능:
+
+```text
+- 로그인 성공 이력 저장
+- 로그인 실패 이력 저장
+- 실패 횟수 증가
+- 일정 횟수 실패 시 계정 잠금
+- 계정 잠금 해제 이력
+- 최근 로그인 일시 갱신
+```
+
+---
+
+## 4. transactionGlobalId 요건
+
+### 4.1 공식 규격
+
+거래 ID는 다음 규격을 따른다.
+
+```text
+yyyyMMddHHmmssSSS + moduleId(3자리) + wasId(7자리) + sequence(7자리)
+```
+
+총 34자리다.
+
+요건:
+
+```text
+- moduleId 3자리
+- wasId 7자리
+- sequence 기본 7자리 zero padding
+- 전체 34자리 검증
+- 포맷 오류 시 표준 오류
+```
+
+---
+
+### 4.2 헤더 필수
+
+온라인/API/대외 요청은 표준 transaction ID 헤더가 필수다.
+
+```text
+X-Transaction-Id
+```
+
+요건:
+
+```text
+- 헤더 누락 시 오류
+- 포맷 오류 시 오류
+- 정상 요청은 응답에도 동일 ID 반환
+- 표준 응답/오류 응답에 transactionGlobalId 포함
+```
+
+로그인 요청도 거래로 본다.
+
+로그인 전 transaction ID 확보 방식은 다음 둘 중 기존 구조와 맞는 방식을 선택한다.
+
+```text
+방안 A:
+- PFW transaction ID 발급 API 제공
+- Vue가 로그인 전 ID 발급 API 호출
+- 로그인 요청에 X-Transaction-Id 포함
+
+방안 B:
+- 로그인 API만 예외적으로 서버에서 transaction ID 생성
+- 단, 예외 정책을 문서화하고 감사/로그에 반드시 저장
+```
+
+Codex는 어느 방안을 선택했는지 리포트에 기록한다.
+기존 원칙과 충돌하면 `재확인 필요`로 보고한다.
+
+---
+
+### 4.3 서버 인스턴스 추적
+
+모든 주요 로그/감사/이력에는 다음 값이 남아야 한다.
+
+```text
+transactionGlobalId
+moduleId
+wasId
+serverInstanceId
+```
+
+대상:
+
+```text
+- 온라인 거래 로그
+- 오류 로그
+- 운영 감사 로그
+- 다운로드 감사 로그
+- 로그인 이력
+- 토큰 이벤트 이력
+- 회원 변경 이력
+- 회원 로그인 이력
+- 대외 거래 로그
+- 대외 송수신 로그
+- 대외 재처리 로그
+- 배치 실행 로그
+- 알림 발송 이력
+```
+
+ADM 또는 관련 관리 화면에서 운영자가 어느 모듈, 어느 WAS, 어느 서버 인스턴스에서 발생했는지 확인할 수 있어야 한다.
+
+---
+
+## 5. 공통 코드/공통 메시지 요건
+
+### 5.1 공통 코드
+
+코드성 값은 문자열 하드코딩을 최소화하고 공통 코드 체계를 사용한다.
+
+필수 코드 영역:
+
+```text
+- 로그인 영역
+- 로그인 결과
+- 토큰 이벤트 유형
+- 사용자 상태
+- 관리자 상태
+- 회원 상태
+- 역할 상태
+- 메뉴 유형
+- 버튼 유형
+- 권한 유형
+- 다운로드 유형
+- 감사 이벤트 유형
+- 마스킹 대상 유형
+- 대외기관 상태
+- 대외 채널 유형
+- 대외 인증 방식
+- 대외 거래 상태
+- 송수신 방향
+- 재처리 상태
+- 통제 유형
+```
+
+요건:
+
+```text
+- 코드 그룹 관리 구조 제공
+- 코드 목록 조회 기능 제공
+- Vue 화면 select/options는 코드 조회 기능 사용
+- 코드명은 한글 표시 가능
+- 코드 추가/수정이 확장 가능해야 함
+```
+
+기존 공통 코드 구조가 있으면 재사용한다.
+없으면 현재 구조에 맞는 공통 코드 설계안을 제시하고 구현한다.
+
+---
+
+### 5.2 공통 메시지
+
+오류/안내 메시지는 소스에 흩어진 문자열로만 두지 않는다.
+
+필수 메시지 영역:
+
+```text
+- 로그인 실패
+- 계정 잠금
+- 비밀번호 만료
+- 토큰 누락
+- 토큰 오류
+- 권한 없음
+- 메뉴 접근 권한 없음
+- 버튼 권한 없음
+- API 권한 없음
+- transaction ID 누락
+- transaction ID 포맷 오류
+- 다운로드 사유 누락
+- 마스킹 해제 사유 누락
+- 회원 없음
+- 회원 상태 오류
+- 대외기관 없음
+- 대외기관 중지
+- endpoint 중지
+- 대외 토큰 만료
+- 재처리 사유 누락
+```
+
+요건:
+
+```text
+- 표준 오류 코드와 메시지 분리
+- 사용자 표시 메시지와 내부 로그 메시지 구분
+- 내부 오류 상세를 사용자에게 과도하게 노출하지 않음
+- 공통 메시지 조회 또는 메시지 매핑 구조 제공
+```
+
+기존 메시지 구조가 있으면 재사용한다.
+
+---
+
+## 6. BIZADM 기본 구현체 요건
+
+### 6.1 BIZADM 로그인
+
+필수 기능:
+
+```text
+- 프로젝트 관리자 로그인
+- 로그아웃
+- 토큰 재발급
+- 현재 로그인 관리자 조회
+- 로그인 성공 이력
+- 로그인 실패 이력
+- 로그인 실패 횟수 증가
+- 계정 잠금
+- 계정 잠금 해제
+- 비밀번호 변경
+- 비밀번호 초기화 또는 임시 비밀번호 발급 샘플
+- 최근 로그인 일시 저장
 ```
 
 완료 기준:
 
 ```text
-root 경로에 CPF_STABILIZATION_REPORT.html 하나만 남아야 한다.
-CPF_STABILIZATION_REPORT.md는 없어야 한다.
-CPF_STABILIZATION_CHANGED_FILES.txt는 없어야 한다.
+- 비밀번호 해시 검증
+- Access Token 발급
+- Refresh Token 안전 저장
+- 로그아웃 시 토큰 폐기
+- 로그인 이력 저장
+- 실패 횟수/잠금 동작
+- 표준 오류 응답
+- Swagger 반영
+- Vue 로그인 화면 반영
 ```
 
 ---
 
-## 3. 검증 결과 정합성 복구
+### 6.2 프로젝트 운영자 관리
 
-다음 항목은 실제 실행한 것만 성공으로 기록한다.
+필수 기능:
 
 ```text
-compile
-test --offline
-qualityGate --offline
-UTF-8/mojibake 검사
-legacy name 검사
-SQL standard 검사
-Java format 검사
-HTML docs 검사
-ADM UI smoke
-OpenAPI HTTP smoke
-MariaDB SQL 실제 실행
-브라우저 클릭 검증
+- 운영자 목록 조회
+- 운영자 상세 조회
+- 운영자 등록
+- 운영자 수정
+- 운영자 사용/중지
+- 운영자 잠금/해제
+- 운영자 비밀번호 초기화
+- 운영자별 역할 매핑
+- 운영자 로그인 이력 확인
+- 운영자 변경 감사
 ```
 
-리포트 상태 값은 반드시 다음만 사용한다.
+완료 기준:
 
 ```text
-성공
-실패
-미검증
-```
-
-실제 실행하지 못한 검증은 반드시 `미검증`으로 기록한다.
-
----
-
-## 4. 트랜잭션 글로벌 ID 공식 규격 및 필수 적용
-
-### 4.1 공식 ID 규격
-
-CPF의 모든 거래는 트랜잭션 글로벌 ID를 필수 추적 키로 사용한다.
-
-공식 규격은 다음으로 고정한다.
-
-```text
-yyyyMMddHHmmssSSS + moduleId(3자리) + wasId(7자리) + sequence(7자리 기본 zero padding)
-```
-
-기본 총 길이:
-
-```text
-17 + 3 + 7 + 7 = 34자리
-```
-
-예시:
-
-```text
-20260615120000000MBRlocal010000001
-```
-
-분해:
-
-```text
-20260615120000000 = yyyyMMddHHmmssSSS
-MBR               = moduleId, 3자리
-local01           = wasId, 7자리
-0000001           = 일자별 sequence, 기본 7자리 zero padding
-```
-
-공식 필드명/컬럼명은 다음 기준을 우선 사용한다.
-
-```text
-transactionGlobalId
-moduleId
-wasId
-serverInstanceId
-```
-
-DB 컬럼명은 다음 기준을 사용한다.
-
-```text
-transaction_global_id
-module_id
-was_id
-server_instance_id
+- 실제 저장소 연동
+- 권한 체크
+- 감사 로그
+- 개인정보 마스킹
+- Vue 목록/상세/등록/수정 화면
+- Swagger 반영
 ```
 
 ---
 
-### 4.2 현재 생성 로직 보강 대상
+### 6.3 프로젝트 역할/권한 관리
 
-현재 생성 로직은 `TransactionIdGenerator` 기준으로 다음 설정을 사용한다.
-
-```yaml
-cpf:
-  framework:
-    module-id: MBR
-    was-id: local01
-    transaction-id:
-      sequence-digits: 7
-```
-
-보강해야 할 사항:
+필수 기능:
 
 ```text
-1. moduleId는 반드시 3자리로 정규화한다.
-2. wasId는 공식 규격상 7자리 고정으로 검증한다.
-3. sequence는 기본 7자리 zero padding으로 유지한다.
-4. sequence-digits 설정은 유지하되 기본 공식 규격은 7자리로 문서화한다.
-5. wasId가 7자리가 아니거나 영문/숫자 외 문자가 있으면 부팅 시점 또는 설정 검증 시 실패 처리한다.
-6. transaction ID 전체 포맷 검증은 34자리 표준 기준으로 강화한다.
-7. 테스트 코드로 정상/오류 케이스를 반드시 추가한다.
-8. Java 파일 물리 포맷이 한 줄로 붙어 있으면 정상 개행으로 수정한다.
+- 역할 목록/상세/등록/수정/사용중지
+- 역할별 운영자 매핑
+- 역할별 메뉴 권한
+- 역할별 버튼 권한
+- 역할별 API 권한
+- 역할별 다운로드 권한
+- 권한 변경 이력 또는 감사
 ```
 
-검증 예시:
+요건:
 
 ```text
-정상:
-20260615120000000MBRlocal010000001
-20260615120000000ADMadmAP010000001
-20260615120000000EXSexsAP010000001
-
-오류:
-wasId 7자리 미만
-wasId 8자리 이상
-wasId에 특수문자 포함
-moduleId 3자리 정규화 실패
-전체 길이 34자리 불일치
-sequence 자리수 불일치
+- 권한 없는 메뉴는 화면에 표시하지 않음
+- 권한 없는 버튼은 숨김 또는 비활성
+- 권한 없는 API 호출은 표준 오류
+- 권한 실패 이력 또는 감사 기록
 ```
 
 ---
 
-### 4.3 모든 거래에서 헤더 필수
+### 6.4 프로젝트 메뉴 관리
 
-모든 온라인 거래, 대외 거래, 배치 실행, 내부 API 호출은 트랜잭션 글로벌 ID를 필수로 가져야 한다.
-
-표준 헤더명은 기존 CPF 문서/소스에 정의된 값을 우선 사용하되, 없으면 다음 중 하나로 통일한다.
+필수 기능:
 
 ```text
-X-Transaction-ID
+- 메뉴 트리 조회
+- 메뉴 상세 조회
+- 메뉴 등록
+- 메뉴 수정
+- 메뉴 사용/중지
+- 메뉴 정렬 순서 관리
+- 상위/하위 메뉴 관리
+- route/API 연결 정보 관리
+- 메뉴별 마스킹/다운로드/감사 속성 관리
 ```
 
-또는 CPF 표준 헤더를 이미 쓰고 있다면:
+완료 기준:
 
 ```text
-X-CPF-Transaction-Id
-```
-
-중요:
-
-```text
-헤더명이 여러 개로 흩어져 있으면 안 된다.
-문서, Swagger, 필터, WebClient, 로그, 오류 응답, DB 컬럼 기준을 하나로 맞춘다.
-```
-
-정책:
-
-```text
-온라인/API 요청에서 트랜잭션 글로벌 ID가 없으면 오류 처리한다.
-```
-
-이번 작업에서는 자동 생성보다 필수 검증을 우선한다.
-
-예외적으로 프레임워크 내부에서 최초 ID를 생성해야 하는 경우:
-
-```text
-배치 스케줄러 실행
-내부 run-once 실행
-테스트용 mock 요청
-프레임워크 내부 이벤트
-```
-
-이 경우에도 생성된 ID는 반드시 동일 규격을 따른다.
-
----
-
-### 4.4 PFW/CMN 책임 분리
-
-PFW 책임:
-
-```text
-1. 요청 진입 필터/인터셉터에서 트랜잭션 글로벌 ID 헤더 확인
-2. 없으면 표준 오류 응답 반환
-3. 있으면 포맷 검증
-4. TransactionContext 저장
-5. MDC 저장
-6. 응답 헤더에 동일 ID 반환
-7. 표준 응답/오류 응답에 포함
-8. 온라인 거래 로그에 저장
-9. 오류 로그에 저장
-10. 감사 로그에 저장
-11. 다운로드 감사 로그에 저장
-12. 배치 execution context에 저장
-13. 대외 거래/송수신 로그와 연계
-```
-
-CMN 책임:
-
-```text
-1. 트랜잭션 글로벌 ID 생성 유틸 제공
-2. 트랜잭션 글로벌 ID 포맷 검증 유틸 제공
-3. 표준 헤더명 상수 제공
-4. moduleId/wasId/sequence 자리수 검증 유틸 제공
-5. 외부 호출 WebClient/adapter에서 현재 TransactionContext의 ID를 outbound header로 자동 전파하는 보조 기능 제공
-```
-
-주의:
-
-```text
-PFW는 정책을 강제한다.
-CMN은 생성/검증/전파 보조 API를 제공한다.
-업무 모듈이 임의 포맷으로 ID를 직접 만들면 안 된다.
+- Vue 메뉴 트리 화면
+- 메뉴 상세/등록/수정 화면
+- 권한 속성 설정 가능
+- 실제 권한 로딩과 연결
 ```
 
 ---
 
-### 4.5 대외 EXS에서의 트랜잭션 ID 처리
+### 6.5 프로젝트 업무 데이터 관리 기본 예시
 
-대외기관이 자체 거래 ID를 보내는 경우에도 CPF 내부 트랜잭션 글로벌 ID는 반드시 존재해야 한다.
+BIZADM에는 프로젝트 관리 기능이 실제로 어떻게 동작하는지 확인할 수 있는 기본 업무 데이터 관리 기능이 있어야 한다.
 
-대외 거래 로그에는 최소 다음 두 종류를 구분 저장한다.
+필수 예시:
 
 ```text
-transactionGlobalId     # CPF 내부 글로벌 트랜잭션 ID
-externalTransactionId   # 대외기관이 보낸 거래 ID 또는 전문 ID
+- 고객 관리
+- 상품 관리
+- 주문 관리
+- 프로젝트 설정 관리
 ```
 
-대외 요청 수신 시 처리 기준:
+각 기능의 필수 요건:
 
 ```text
-1. 표준 헤더의 transactionGlobalId 확인
-2. 없으면 오류 처리
-3. 대외기관 자체 거래 ID가 있으면 externalTransactionId로 별도 저장
-4. 대외 수신 로그를 업무 처리 전에 선저장
-5. 업무 모듈 호출 시 transactionGlobalId를 그대로 전파
-6. 외부기관 응답/오류/재처리 로그에도 동일 transactionGlobalId 저장
+- 목록
+- 상세
+- 등록
+- 수정
+- 상태 변경
+- 검색 조건
+- 페이징
+- 권한 체크
+- 개인정보 또는 민감정보 마스킹
+- 다운로드
+- 감사 로그
+- Vue 화면
+```
+
+단, 구체적인 테이블명/API URI는 기존 구조와 명명 규칙을 확인해 결정한다.
+
+---
+
+### 6.6 BIZADM 다운로드/마스킹
+
+필수 기능:
+
+```text
+- 운영자 목록 다운로드
+- 고객 목록 다운로드
+- 주문 목록 다운로드
+- 다운로드 사유 필수
+- 다운로드 권한 검사
+- 기본 마스킹 다운로드
+- 마스킹 해제 다운로드는 별도 권한 필요
+- 마스킹 해제 사유 필수
+- 다운로드 성공/실패 감사
+- 마스킹 해제 성공/실패 감사
 ```
 
 ---
 
-### 4.6 배치에서의 트랜잭션 ID 처리
+### 6.7 BIZADM UI
 
-배치 실행도 거래로 본다.
+BIZADM은 UI 웹 기능이 핵심이다. API만 있으면 완료가 아니다.
 
-배치 실행 시 다음 값을 반드시 생성/저장한다.
+필수 화면 영역:
 
 ```text
-transactionGlobalId
-moduleId
-wasId
-serverInstanceId
-batchJobId
-batchExecutionId
-batchScheduleId
+- 로그인
+- 대시보드 또는 진입 화면
+- 현재 사용자 정보
+- 운영자 관리
+- 역할 관리
+- 메뉴 관리
+- 권한 매핑
+- 버튼 권한
+- API 권한
+- 고객 관리
+- 상품 관리
+- 주문 관리
+- 프로젝트 설정
+- 다운로드/마스킹 사유 입력 화면 또는 modal
 ```
 
-ADM 배치 실행 목록/상세 화면에는 다음 항목이 보여야 한다.
+완료 기준:
 
 ```text
-트랜잭션 글로벌 ID
-모듈 ID
-WAS ID
-서버 인스턴스 ID
-배치 ID
-배치명
-실행 상태
-시작 시각
-종료 시각
-처리 시간
-실패 메시지
-```
-
----
-
-## 5. 로그/ADM 화면/DB에 서버 인스턴스 식별값 노출
-
-운영자는 ADM 화면만 보고도 어떤 서버 인스턴스에서 거래가 처리되었고, 어디서 오류가 발생했는지 확인할 수 있어야 한다.
-
-### 5.1 주요 로그 테이블 보강
-
-다음 테이블 또는 이에 준하는 로그 테이블에 아래 컬럼을 검토/추가한다.
-
-대상:
-
-```text
-pfw_transaction_log
-pfw_error_log
-adm_operation_audit_log
-adm_download_audit_log
-pfw_batch_execution
-pfw_batch_step_execution
-pfw_batch_execution_target
-exs_transaction_log
-exs_message_log
-adm_notification_send_log
-```
-
-필수 컬럼:
-
-```text
-transaction_global_id
-module_id
-was_id
-server_instance_id
-```
-
-권장 컬럼:
-
-```text
-application_name
-host_name
-process_id
-thread_name
-request_uri
-http_method
-client_ip
-user_id
-admin_id
-```
-
-주의:
-
-```text
-이미 유사 컬럼이 있다면 중복 생성하지 말고 표준명으로 정리한다.
-SQL, DTO, Mapper, Service, 화면, 문서의 명칭을 일치시킨다.
+- Vue route/view/api 구조 존재
+- 실제 API 호출
+- 권한에 따른 메뉴/버튼 표시 제어
+- 로그인/토큰 처리
+- 오류 메시지 표시
 ```
 
 ---
 
-### 5.2 ADM 화면 표시 기준
+## 7. MBR 기본 구현체 요건
 
-다음 ADM 목록/상세 화면에는 인스턴스 식별값이 보여야 한다.
+### 7.1 회원 관리
+
+필수 기능:
 
 ```text
-온라인 거래 로그 목록/상세
-오류 로그 목록/상세
-배치 실행 목록/상세
-배치 step 상세
-알림 발송 이력 목록/상세
-다운로드 감사 목록/상세
-운영 감사 목록/상세
-동적 로그레벨 변경 이력
-대외 거래 목록/상세
-대외 송수신 목록/상세
+- 회원 목록 조회
+- 회원 상세 조회
+- 회원 등록
+- 회원 수정
+- 회원 상태 변경
+- 회원 탈퇴
+- 회원 휴면
+- 회원 정지
+- 회원 잠금/해제
+- 회원 식별자 관리
+- 외부 회원 ID 관리
+- 회원 변경 이력
 ```
 
-필수 표시 항목:
+완료 기준:
 
 ```text
-트랜잭션 글로벌 ID
-모듈 ID
-WAS ID
-서버 인스턴스 ID
-처리 서버
-요청 URI
-처리 상태
-오류 코드
-오류 메시지
-처리 시간
-```
-
-목록에서는 최소한 다음은 보여야 한다.
-
-```text
-거래시각
-트랜잭션 글로벌 ID
-모듈
-WAS/인스턴스
-상태
-처리시간
-오류 여부
-```
-
-상세에서는 전체 값을 보여야 한다.
-
----
-
-## 6. `bizadm` 모듈 신설
-
-### 6.1 모듈 정의
-
-`bizadm` 모듈을 신설한다.
-
-정의:
-
-```text
-bizadm은 CPF 적용 프로젝트에서 업무/프로젝트 관리자 화면을 구현하는 방법을 보여주는 샘플 모듈이다.
-adm은 CPF 플랫폼 운영관리자로 유지한다.
-bizadm 기능을 adm 내부 Controller/Service/Mapper에 넣지 않는다.
-```
-
-`settings.gradle`에 다음 모듈을 추가한다.
-
-```text
-bizadm
-```
-
-모듈 책임:
-
-```text
-1. 프로젝트/업무 관리자 화면 샘플
-2. 업무 관리자 사용자 관리 샘플
-3. 업무 메뉴 관리 샘플
-4. 업무 권한 관리 샘플
-5. 버튼 권한 샘플
-6. API 권한 샘플
-7. 다운로드 권한 샘플
-8. 마스킹 정책 샘플
-9. 마스킹 해제 권한/사유/감사 샘플
-10. 업무 데이터 CRUD 샘플
-11. 업무 다운로드 샘플
-12. ADM 공통 메뉴/권한/감사 체계 연계 샘플
+- 실제 저장소 연동
+- 상태별 검증
+- 변경 이력 저장
+- 감사 로그
+- 개인정보 마스킹
+- Swagger 반영
 ```
 
 ---
 
-### 6.2 ADM과 bizadm의 경계
+### 7.2 회원 로그인
 
-반드시 지킬 것:
+필수 기능:
 
 ```text
-adm = CPF 플랫폼 운영관리자
-bizadm = 업무/프로젝트 관리자 화면 샘플
+- 회원 로그인
+- 회원 로그아웃
+- 토큰 재발급
+- 현재 로그인 회원 조회
+- 로그인 성공 이력
+- 로그인 실패 이력
+- 실패 횟수 증가
+- 일정 횟수 실패 시 잠금
+- 회원 상태별 로그인 제한
+- 최근 로그인 일시 저장
+- 비밀번호 변경
+- 비밀번호 초기화 샘플
 ```
 
-ADM에 둘 것:
+회원 상태별 로그인 제한 예시:
 
 ```text
-관리자 계정
-역할
-권한
-메뉴 권한
-버튼 권한
-API 권한
-다운로드 권한
-운영 감사
-다운로드 감사
-거래 로그
-오류 로그
-배치 관제
-알림 관리
-동적 로그레벨
+- 정상: 로그인 가능
+- 휴면: 제한 또는 전환 필요
+- 정지: 로그인 차단
+- 탈퇴: 로그인 차단
+- 잠금: 로그인 차단
 ```
 
-bizadm에 둘 것:
+구체 정책은 구현 후 문서에 기록한다.
+
+---
+
+### 7.3 회원 로그인 이력
+
+필수 기능:
 
 ```text
-업무 관리자 샘플 화면
-업무 기준정보 샘플
-업무 데이터 CRUD 샘플
-업무 다운로드 샘플
-업무 메뉴/버튼/API 권한 적용 샘플
-업무 마스킹/마스킹 해제 샘플
-업무 감사 연계 샘플
+- 회원별 로그인 이력 조회
+- 실패 로그인 이력 조회
+- 잠금 발생 이력 조회
+- 최근 로그인 이력 표시
 ```
 
-금지:
+필수 저장 항목 수준:
 
 ```text
-bizadm 기능을 adm Controller에 추가 금지
-bizadm 기능을 adm Service에 추가 금지
-bizadm 업무 테이블을 adm 업무처럼 취급 금지
-adm 내부 테이블을 bizadm이 직접 무분별하게 조작 금지
+- 회원 식별자
+- 로그인 ID
+- 로그인 결과
+- 실패 사유 코드
+- client IP
+- user-agent
+- transactionGlobalId
+- moduleId
+- wasId
+- serverInstanceId
+- 발생 시각
 ```
 
 ---
 
-### 6.3 bizadm API 구조
+### 7.4 회원 마스킹/다운로드/감사
 
-API prefix:
+필수 마스킹 대상:
 
 ```text
-/api/bizadm/**
+- 회원명
+- 휴대폰번호
+- 이메일
+- 주소
+- 생년월일
+- 외부 회원 ID
 ```
 
-추천 API:
+필수 기능:
 
 ```text
-/api/bizadm/admin-users
-/api/bizadm/menus
-/api/bizadm/roles
-/api/bizadm/permissions
-/api/bizadm/customers
-/api/bizadm/products
-/api/bizadm/orders
-/api/bizadm/settings
-/api/bizadm/downloads
-/api/bizadm/masking/unmask
-```
-
-Swagger Tag:
-
-```text
-BIZADM-Admin-User
-BIZADM-Menu
-BIZADM-Role
-BIZADM-Permission
-BIZADM-Customer
-BIZADM-Product
-BIZADM-Order
-BIZADM-Setting
-BIZADM-Download
-BIZADM-Masking
+- 목록 기본 마스킹
+- 상세 기본 마스킹
+- 마스킹 해제 권한
+- 마스킹 해제 사유
+- 마스킹 해제 감사
+- 회원 목록 다운로드
+- 로그인 이력 다운로드 샘플
+- 다운로드 사유 필수
+- 다운로드 감사
 ```
 
 ---
 
-### 6.4 bizadm UI 구조
+### 7.5 MBR 관리 화면
 
-관리자 화면 UI는 기존 ADM UI와 같은 Vue 관리자 콘솔 체계를 사용한다.
+회원용 최종 사용자 UI 전체는 이번 필수 대상이 아니다.
+다만 관리자 관점에서 회원을 확인할 수 있는 화면은 필요하다.
 
-단일 관리자 콘솔 안에 메뉴를 함께 제공하되 파일은 영역별로 분리한다.
-
-예시:
-
-```text
-views/adm/**
-views/bizadm/**
-views/exs/**
-
-api/admApi.*
-api/bizadmApi.*
-api/exsApi.*
-
-router/admRoutes.*
-router/bizadmRoutes.*
-router/exsRoutes.*
-```
-
-기준:
+필수 화면 영역:
 
 ```text
-1. ADM과 동일한 레이아웃, 메뉴, 권한, 버튼 제어 방식을 사용한다.
-2. bizadm만 별도 프론트 기술로 만들지 않는다.
-3. bizadm route/view/api 파일은 adm과 분리한다.
-4. 메뉴는 ADM 메뉴 체계에 등록하되 모듈 구분은 bizadm으로 관리한다.
+- 회원 목록
+- 회원 상세
+- 회원 상태 변경
+- 회원 로그인 이력
+- 마스킹 해제 사유 입력
+- 다운로드 사유 입력
 ```
 
 ---
 
-### 6.5 메뉴 등록 시 보안/마스킹 속성
+## 8. EXS 기본 구현체 요건
 
-메뉴/버튼/API 등록 시 다음 속성을 포함하거나 연계한다.
+### 8.1 대외기관 관리
 
-```text
-menuId
-moduleId
-menuCode
-menuName
-apiPath
-buttonCode
-requiredPermission
-maskingRequiredYn
-unmaskPermissionCode
-downloadPermissionCode
-downloadReasonRequiredYn
-auditRequiredYn
-personalInfoYn
-sensitiveInfoYn
-enabledYn
-sortOrder
-```
-
-마스킹 처리 기준:
+필수 기능:
 
 ```text
-1. 개인정보 또는 민감정보가 있는 목록/상세 화면은 기본 마스킹한다.
-2. 마스킹 해제는 별도 권한이 있어야 한다.
-3. 마스킹 해제 시 사유 입력을 필수로 한다.
-4. 마스킹 해제 성공/실패를 감사 로그에 남긴다.
-5. 다운로드 시 기본 마스킹을 적용한다.
-6. 마스킹 해제 다운로드는 별도 권한과 사유가 있어야 한다.
-7. 다운로드 성공/실패를 adm_download_audit_log에 남긴다.
+- 대외기관 목록
+- 대외기관 상세
+- 대외기관 등록
+- 대외기관 수정
+- 대외기관 사용/중지
+- 기관 코드 중복 검증
+- 기관별 허용 채널 관리
+- 기관 변경 감사
 ```
 
 ---
 
-### 6.6 bizadm 샘플 테이블
+### 8.2 대외 채널/endpoint 관리
 
-추천 테이블:
+필수 기능:
 
 ```text
-bizadm_admin_user
-bizadm_menu_sample
-bizadm_role_sample
-bizadm_permission_sample
-bizadm_customer
-bizadm_product
-bizadm_order
-bizadm_project_setting
-bizadm_masking_audit_sample
+- 채널 목록/상세/등록/수정/사용중지
+- 채널 유형 관리
+- endpoint 목록/상세/등록/수정/사용중지
+- 기관별 endpoint 매핑
+- HTTP method/URI/timeout/retry 설정
+- endpoint 변경 감사
 ```
 
-단, ADM의 실제 권한/감사 테이블이 이미 있다면 중복 설계하지 말고, bizadm 샘플은 ADM 공통 권한/감사 체계를 사용하는 예제로 구성한다.
-
-모든 테이블은 다음을 지킨다.
+채널 유형은 최소 다음을 고려한다.
 
 ```text
-lower snake case
-한글 COMMENT 필수
-created_by
-created_at
-updated_by
-updated_at
-transaction_global_id 필요 시 포함
-module_id 필요 시 포함
-was_id 필요 시 포함
-server_instance_id 필요 시 포함
+- API
+- SFTP
+- MQ
+- FILE
+```
+
+실제 Redis/Kafka/MQ/SFTP 서버가 없으면 실연동은 미검증으로 기록하고 mock/fallback을 제공한다.
+
+---
+
+### 8.3 대외 인증/토큰 관리
+
+사람 로그인 토큰과 대외기관 토큰은 분리한다.
+
+필수 기능:
+
+```text
+- 인증 프로파일 목록/상세/등록/수정/사용중지
+- 인증 방식 관리
+- OAuth/JWT/API Key/서명 방식 고려
+- 대외기관 토큰 목록
+- 대외기관 토큰 상세
+- 토큰 만료 상태 표시
+- 토큰 갱신 mock
+- 토큰 갱신 성공/실패 이력
+- 토큰 폐기
+- token/secret 원문 화면 노출 금지
+- token/secret 로그 출력 금지
+- token/secret 저장 시 암호화 또는 secret reference 사용
+```
+
+인증 방식은 최소 다음을 고려한다.
+
+```text
+- NONE
+- API_KEY
+- BASIC
+- OAUTH2
+- JWT
+- SIGNATURE
+```
+
+구체 테이블명/컬럼은 기존 구조 확인 후 설계한다.
+
+---
+
+### 8.4 대외 라우팅
+
+필수 기능:
+
+```text
+- 라우팅 규칙 목록
+- 라우팅 규칙 상세
+- 라우팅 규칙 등록/수정/사용중지
+- 기관/endpoint/대상 업무 모듈 매핑
+- 대상 업무 서비스 또는 거래 코드 관리
+- 라우팅 변경 감사
+```
+
+EXS는 타 업무 모듈의 원천 테이블을 직접 조회/수정하지 않는다.
+업무 처리는 해당 업무 모듈 API/Service/Facade/거래를 호출한다.
+
+---
+
+### 8.5 대외 거래 로그
+
+필수 기능:
+
+```text
+- 대외 거래 목록
+- 대외 거래 상세
+- transactionGlobalId 조회
+- externalTransactionId 조회
+- 기관별 조회
+- endpoint별 조회
+- 상태별 조회
+- 기간별 조회
+- 실패 거래 조회
+- 재처리 가능 여부 표시
+- 처리 시간 표시
+- moduleId/wasId/serverInstanceId 표시
+```
+
+필수 저장 항목 수준:
+
+```text
+- CPF transactionGlobalId
+- 대외기관 거래 ID
+- 기관
+- endpoint
+- route
+- 방향
+- 상태
+- 결과 코드
+- 오류 코드
+- 오류 메시지
+- 요청 시각
+- 응답 시각
+- 처리 시간
+- 재처리 가능 여부
+- moduleId
+- wasId
+- serverInstanceId
 ```
 
 ---
 
-## 7. `exs` 모듈 신설
+### 8.6 대외 송수신 로그
 
-### 7.1 모듈 정의
-
-`exs` 모듈을 신설한다.
-
-정의:
+필수 기능:
 
 ```text
-exs는 대외 연계 주제영역 모듈이다.
-대외기관, 대외 채널, endpoint, 인증, OAuth/JWT 토큰, 대외 거래, 송수신 로그, 기관별 연동 설정/통제, 대외 요청 라우팅을 담당한다.
+- 송수신 목록
+- 송수신 상세
+- 요청/응답 방향 구분
+- 요청 URI
+- HTTP method
+- 결과 코드
+- 오류 코드
+- 오류 메시지
+- payload 요약
+- payload 마스킹
+- 원문 조회 권한
+- 원문 조회 사유
+- 원문 조회 감사
 ```
 
-`settings.gradle`에 다음 모듈을 추가한다.
+원문 payload 기준:
 
 ```text
-exs
-```
-
-모듈 책임:
-
-```text
-1. 대외기관 관리
-2. 대외 채널 관리
-3. 대외 endpoint 관리
-4. 대외 인증 프로파일 관리
-5. OAuth/JWT 토큰 관리
-6. 대외 거래 내역 관리
-7. 대외 송수신 내역 관리
-8. 기관별 enabled/disabled 통제
-9. 기관별 연동 설정 통제
-10. 대외 요청 라우팅
-11. 대외 수신 로그 선저장
-12. 업무 모듈 호출 전후 추적
-13. 재처리/실패/차단 상태 관리 골격
+- 기본은 마스킹 또는 요약 저장
+- 원문 저장 여부는 설정으로 분리
+- 원문 조회는 별도 권한 필요
+- 원문 조회 사유 필수
+- 원문 조회 감사 필수
 ```
 
 ---
 
-### 7.2 exs API 구조
+### 8.7 대외 통제 정책
 
-관리자 API:
-
-```text
-/api/exs/institutions
-/api/exs/channels
-/api/exs/endpoints
-/api/exs/auth-profiles
-/api/exs/tokens
-/api/exs/routes
-/api/exs/transactions
-/api/exs/messages
-/api/exs/control-policies
-/api/exs/retries
-```
-
-실제 대외 수신 API:
+필수 기능:
 
 ```text
-/api/exs/inbound/**
-```
-
-실제 대외 송신 또는 테스트 API:
-
-```text
-/api/exs/outbound/**
-```
-
-관리자 API와 대외 수신 API는 역할을 분리한다.
-
-Swagger Tag:
-
-```text
-EXS-Institution
-EXS-Channel
-EXS-Endpoint
-EXS-Auth
-EXS-Token
-EXS-Route
-EXS-Transaction
-EXS-Message
-EXS-Control
-EXS-Retry
-EXS-Inbound
-EXS-Outbound
+- 기관별 차단/허용
+- endpoint별 차단/허용
+- 시간대별 통제 골격
+- IP 허용 목록 골격
+- 점검 모드 설정
+- 통제 사유 저장
+- 통제 변경 감사
 ```
 
 ---
 
-### 7.3 exs 테이블
+### 8.8 대외 재처리
 
-추천 테이블:
+필수 기능:
 
 ```text
-exs_institution
-exs_channel
-exs_endpoint
-exs_auth_profile
-exs_token_store
-exs_route_rule
-exs_transaction_log
-exs_message_log
-exs_control_policy
-exs_retry_log
+- 실패 거래 목록
+- 재처리 대상 표시
+- 재처리 요청
+- 재처리 사유 필수
+- 재처리 권한 체크
+- 재처리 이력 저장
+- 재처리 결과 저장
+- 재처리 실패 사유 저장
 ```
 
-필수 공통 컬럼:
+재처리 화면 필수 항목:
 
 ```text
-created_by
-created_at
-updated_by
-updated_at
-```
-
-대외 거래/송수신 로그 필수 컬럼:
-
-```text
-transaction_global_id
-external_transaction_id
-institution_id
-institution_code
-channel_code
-endpoint_id
-route_id
-module_id
-was_id
-server_instance_id
-request_at
-response_at
-elapsed_ms
-direction
-http_method
-request_uri
-status
-result_code
-error_code
-error_message
-retryable_yn
-```
-
-송수신 전문 저장 기준:
-
-```text
-원문 전문 전체 저장 여부는 설정으로 분리한다.
-기본은 요약/마스킹 저장이다.
-민감정보는 기본 마스킹한다.
-원문 조회는 별도 권한과 사유가 필요하다.
-원문 조회/다운로드는 감사 로그를 남긴다.
+- 거래 ID
+- 대외 거래 ID
+- 기관
+- endpoint
+- 실패 사유
+- 재처리 가능 여부
+- 재처리 횟수
+- 마지막 재처리 시각
+- 재처리 버튼
+- 재처리 사유 입력
 ```
 
 ---
 
-### 7.4 대외 수신 거래 처리 흐름
+### 8.9 대외 수신 로그 선저장
 
-대외 요청 수신 흐름은 다음을 기준으로 구현한다.
+대외 수신은 업무 모듈 호출 전에 로그를 선저장해야 한다.
+
+필수 흐름:
 
 ```text
 1. 대외 요청 수신
-2. 표준 트랜잭션 글로벌 ID 헤더 확인
-3. 없거나 포맷이 틀리면 표준 오류 응답
-4. 대외기관 식별
-5. 기관 enabled/disabled 확인
-6. endpoint/route 사용 가능 여부 확인
-7. 인증/토큰/서명 검증 골격 수행
-8. exs_transaction_log 선저장
-9. exs_message_log 수신 로그 저장
-10. 내부 표준 요청으로 변환
-11. 업무 모듈 호출
-12. 업무 응답 수신
-13. exs_transaction_log 결과 갱신
-14. exs_message_log 응답 로그 저장
-15. 대외 응답 반환
+2. X-Transaction-Id 검증
+3. externalTransactionId 분리
+4. 기관 검증
+5. endpoint 검증
+6. 통제 정책 확인
+7. 인증 프로파일 확인
+8. 대외 거래 로그 선저장
+9. 송수신 수신 로그 저장
+10. 라우팅 규칙 조회
+11. 대상 업무 모듈 호출
+12. 결과 저장
+13. 송수신 응답 로그 저장
+14. 응답 반환
 ```
 
-중요:
+업무 모듈 호출 실패 시에도 대외 요청 수신 사실과 실패 원인은 남아야 한다.
+
+---
+
+### 8.10 EXS UI
+
+필수 화면 영역:
 
 ```text
-대외 수신 로그는 업무 모듈 호출 전에 저장해야 한다.
-업무 모듈 호출 실패 시에도 대외 요청 수신 사실과 실패 원인이 남아야 한다.
-가능하면 선저장은 별도 트랜잭션(REQUIRES_NEW 등)으로 처리한다.
+- 대외기관 관리
+- 채널 관리
+- endpoint 관리
+- 인증 프로파일 관리
+- 토큰 관리
+- 라우팅 관리
+- 대외 거래 내역
+- 대외 송수신 내역
+- 통제 정책
+- 재처리 관리
+```
+
+화면 요건:
+
+```text
+- token/secret 원문 미표시
+- token/secret 마스킹 표시
+- 거래 상세에 transactionGlobalId/externalTransactionId/moduleId/wasId/serverInstanceId 표시
+- 송수신 상세에 payload 마스킹 표시
+- 원문 조회는 권한/사유 필요
+- 재처리는 권한/사유 필요
 ```
 
 ---
 
-### 7.5 OAuth/JWT/토큰 관리
+## 9. 다운로드/마스킹/감사 공통 요건
 
-구현 대상:
+### 9.1 다운로드
+
+다운로드 대상:
 
 ```text
-1. 기관별 인증 방식 관리
-2. OAuth client 정보 관리 골격
-3. JWT 발급/검증 설정 관리 골격
-4. 토큰 저장소 구조
-5. 토큰 만료/갱신 상태
-6. Mock token provider
-7. 실제 외부 인증 서버 부재 시 mock/fallback 동작
+- BIZADM 운영자 목록
+- BIZADM 고객 목록
+- BIZADM 주문 목록
+- MBR 회원 목록
+- MBR 로그인 이력
+- EXS 대외 거래 목록
+- EXS 송수신 목록
 ```
 
-주의:
+필수 요건:
 
 ```text
-실제 secret 값은 소스에 넣지 않는다.
-local/mock profile에서만 샘플 값을 사용한다.
-prod profile에는 기본 secret을 두지 않는다.
+- 다운로드 사유 필수
+- 다운로드 권한 필수
+- 기본 마스킹 다운로드
+- 마스킹 해제 다운로드는 별도 권한 필요
+- 다운로드 성공 감사
+- 다운로드 실패 감사
+- transactionGlobalId 저장
+- moduleId/wasId/serverInstanceId 저장
 ```
 
 ---
 
-## 8. ADM 기능 보강
+### 9.2 마스킹
 
-### 8.1 ADM 다운로드
-
-다음 항목을 보강/검증한다.
+기본 마스킹 대상:
 
 ```text
-1. adm_download_audit_log SQL 존재 확인
-2. 다운로드 사유 필수
-3. 다운로드 권한 검사
-4. 마스킹 기본 적용
-5. 마스킹 해제 권한 분리
-6. 마스킹 해제 사유 필수
-7. 다운로드 성공 감사
-8. 다운로드 실패 감사
-9. 온라인 거래 로그 CSV 다운로드
-10. 오류 로그 CSV 다운로드
-11. 배치 실행 CSV 다운로드
-12. 알림 발송 이력 CSV 다운로드
-13. 대외 거래 CSV 다운로드
-14. 대외 송수신 CSV 다운로드
-15. bizadm 업무 데이터 CSV 다운로드 샘플
+- 이름
+- 휴대폰번호
+- 이메일
+- 주소
+- 생년월일
+- 외부 회원 ID
+- token
+- secret
+- api key
+- payload
 ```
 
-Controller에서 `JdbcTemplate`을 직접 사용하지 않는다.
-
-구조:
+필수 요건:
 
 ```text
-Controller
-→ Service
-→ DTO
-→ Mapper 또는 Repository
+- 목록 기본 마스킹
+- 상세 기본 마스킹
+- 마스킹 해제 권한 필수
+- 마스킹 해제 사유 필수
+- 마스킹 해제 감사 필수
+- token/secret/api key 원문 화면 표시 금지
+- token/secret/api key 로그 출력 금지
 ```
 
 ---
 
-### 8.2 ADM 알림
+## 10. Vue UI 요건
 
-다음 항목을 보강/검증한다.
+BIZADM과 EXS는 UI 웹 기능이 핵심이다. API만 있으면 완료가 아니다.
+
+필수 요건:
 
 ```text
-1. 알림 규칙 목록
-2. 알림 규칙 상세
-3. 알림 규칙 등록
-4. 알림 규칙 수정
-5. 알림 규칙 비활성
-6. 발송 이력 조회
-7. 테스트 발송
-8. 감사 사유 필수
-9. NotificationSender 인터페이스
-10. MockNotificationSender
-11. 배치 실패 알림
-12. 배치 지연 알림
-13. 배치 미수행 알림
-14. 온라인 거래 오류 알림
-15. 대외 API 오류 알림
-16. 시스템 오류 알림
+- 기존 Vue 구조 확인
+- 기존 route/view/api 작성 규칙 확인
+- 기존 구조에 맞춰 화면 추가
+- 로그인/토큰 처리
+- 권한에 따른 메뉴 표시
+- 권한에 따른 버튼 표시
+- 다운로드 사유 입력
+- 마스킹 해제 사유 입력
+- 재처리 사유 입력
+- 오류 메시지 표시
 ```
 
-실제 Redis/Kafka/MQ 서버가 없으므로 실연동 성공을 완료 기준으로 삼지 않는다.
+화면 파일명과 경로는 기존 구조를 확인해 정한다.
+기존 Vue 구조가 없거나 불명확하면 `재확인 필요`로 보고한다.
 
-대신 다음을 완료 기준으로 삼는다.
+---
+
+## 11. Swagger/OpenAPI 요건
+
+필수 반영 영역:
 
 ```text
-mock/fallback sender로 동작
-실제 서버 미설정 시 앱 정상 기동
-알림 이벤트 발생 흐름 검증
-발송 이력 저장
-실패 이력 저장
+- PFW transaction ID
+- CMN code
+- CMN message
+- ADM security/log/audit
+- BIZADM auth
+- BIZADM admin user
+- BIZADM role/menu/permission
+- BIZADM customer/product/order
+- BIZADM download/masking
+- MBR auth
+- MBR member
+- MBR login history
+- MBR download/masking
+- EXS institution
+- EXS channel
+- EXS endpoint
+- EXS auth/token
+- EXS route
+- EXS transaction
+- EXS message
+- EXS control
+- EXS retry
+- EXS inbound/outbound
+```
+
+OpenAPI에는 다음 설명이 있어야 한다.
+
+```text
+- X-Transaction-Id 필수 헤더
+- Authorization: Bearer 사용
+- 표준 응답 구조
+- 표준 오류 구조
+- 권한 필요 여부
+- 다운로드 사유 필요 여부
+- 마스킹 해제 사유 필요 여부
+- 재처리 사유 필요 여부
 ```
 
 ---
 
-### 8.3 Batch Scheduler
+## 12. SQL/Flyway 요건
 
-다음 항목을 실제 구현/검증한다.
+Codex는 현재 SQL/Flyway 구조를 확인하고 기존 규칙에 맞춰 작성한다.
+
+필수 요건:
 
 ```text
-1. pfw_batch_schedule 기준 enabled 스케줄 조회
-2. cron 실행 대상 판단
-3. 영업일 판단 골격
-4. 수행 가능 시간 판단 골격
-5. 중복 실행 방지 lock
-6. execution target 생성
-7. JobLauncher 실행
-8. execution/step 저장
-9. 실패 메시지 저장
-10. 실패/지연/미수행 알림 이벤트 발행
-11. ADM 배치 실행 목록/상세 조회 연계
-12. run-once API와 scheduler 자동 실행 구분
-13. transactionGlobalId/moduleId/wasId/serverInstanceId 저장
+- MariaDB 기준 DDL
+- Flyway migration 반영
+- idempotent 가능한 test data
+- FK/index 검토
+- 샘플 계정 비밀번호는 해시
+- 평문 비밀번호 금지
+- refresh token 원문 금지
+- token/secret 원문 금지
+- 한글 seed 데이터 정상 저장
 ```
 
-배치 화면에는 반드시 인스턴스 식별값이 보여야 한다.
+테이블명/컬럼명은 이 요청서에서 임의 고정하지 않는다.
+단, 다음 데이터 영역이 저장 가능해야 한다.
+
+```text
+- 공통 Refresh Token
+- 토큰 이벤트 이력
+- 공통 코드
+- 공통 메시지
+- BIZADM 관리자 계정
+- BIZADM 역할/메뉴/버튼/API 권한
+- BIZADM 로그인 이력
+- BIZADM 감사
+- MBR 회원
+- MBR 회원 인증 정보
+- MBR 로그인 이력
+- MBR 상태 변경 이력
+- MBR 감사
+- EXS 대외기관
+- EXS 채널
+- EXS endpoint
+- EXS 인증 프로파일
+- EXS 대외 토큰
+- EXS 토큰 이력
+- EXS 라우팅
+- EXS 거래 로그
+- EXS 송수신 로그
+- EXS 통제 정책
+- EXS 재처리 이력
+```
 
 ---
 
-## 9. Java 파일 물리 포맷 정리
+## 13. Quality Gate / 검사 스크립트 요건
 
-일부 Java 파일이 raw 기준으로 한 줄에 붙어 보이는 문제가 있을 수 있다.
-
-반드시 확인할 것:
+기존 qualityGate에 다음을 포함 또는 연계한다.
 
 ```text
-package 선언과 import가 한 줄에 붙어 있지 않아야 한다.
-여러 import가 한 줄에 붙어 있지 않아야 한다.
-annotation/class/method가 한 줄에 과도하게 붙어 있지 않아야 한다.
-모든 Java 파일은 물리 개행 기준으로 정상 포맷이어야 한다.
+- compileJava
+- test
+- UTF-8 검사
+- mojibake 검사
+- legacy FPS/Fps/fps 검사
+- SQL 표준 검사
+- Java 포맷 검사
+- HTML 문서 구조 검사
+- transaction ID 표준 검사
+- 비밀번호 평문 seed 검사
+- refresh token 원문 seed 검사
+- token/secret 원문 seed 검사
 ```
 
-우선 확인 대상:
+보안 seed 검사 요건:
 
 ```text
-pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java
-AdmBatchController
-AdmBatchOperationService
-AdmNotificationController
-AdmDynamicLogLevelController
-AdmDownloadController
-신규 bizadm 전체 Java 파일
-신규 exs 전체 Java 파일
+- 평문 비밀번호 의심 패턴 탐지
+- refresh token 원문 의심 패턴 탐지
+- access token 원문 의심 패턴 탐지
+- api key 원문 의심 패턴 탐지
+- client secret 원문 의심 패턴 탐지
+- secret 원문 의심 패턴 탐지
 ```
-
-`check-java-format.ps1`가 이 문제를 잡도록 보강한다.
 
 ---
 
-## 10. 문서 현행화
+## 14. 기능 구현 매트릭스 요건
 
-다음 문서를 반드시 현행화한다.
-
-```text
-README.md
-specs/index.html
-specs/프레임워크_구성_가이드.html
-specs/개발_가이드.html
-specs/관리자_가이드.html
-specs/SQL_가이드.html
-specs/기능_구현_매트릭스.html
-CPF_STABILIZATION_REPORT.html
-```
-
-반영 내용:
-
-```text
-1. bizadm 모듈 정의
-2. exs 모듈 정의
-3. ADM과 bizadm 경계
-4. 트랜잭션 글로벌 ID 공식 규격
-5. moduleId/wasId/serverInstanceId 로그/화면/DB 기준
-6. 대외 거래 로그 선저장 기준
-7. 다운로드/마스킹/감사 기준
-8. Redis/Kafka/MQ mock/fallback 기준
-9. 미검증 항목 정직하게 기록
-```
-
-HTML 문서는 실제 HTML이어야 한다.
-
-필수 구조:
-
-```html
-<!doctype html>
-<html lang="ko">
-<head>...</head>
-<body>
-<main>
-<section>...</section>
-<table>...</table>
-</main>
-</body>
-</html>
-```
-
-확장자만 `.html`이고 내용이 Markdown이면 실패다.
-
----
-
-## 11. 기능 구현 매트릭스 현행화
-
-`specs/기능_구현_매트릭스.html`은 실제 검수 문서로 유지한다.
-
-필수 컬럼:
-
-```text
-대분류
-기능명
-구현 상태
-주요 소스
-API
-ADM 화면
-DB 테이블
-Swagger Tag
-EDU 샘플
-테스트
-검증 방법
-비고
-```
+`specs/기능_구현_매트릭스.html`에는 기능별로 상태를 나누어 기록한다.
 
 상태 값은 다음만 사용한다.
 
@@ -1128,363 +1384,345 @@ EDU 샘플
 실패
 ```
 
-이번 작업 후 최소 다음 항목을 추가/현행화한다.
+기능은 최소 다음 단위로 분리한다.
 
 ```text
-bizadm 모듈
-bizadm 관리자 사용자 샘플
-bizadm 메뉴 샘플
-bizadm 권한 샘플
-bizadm 버튼 권한 샘플
-bizadm API 권한 샘플
-bizadm 다운로드 샘플
-bizadm 마스킹/마스킹 해제 샘플
-exs 대외기관 관리
-exs 대외채널 관리
-exs endpoint 관리
-exs OAuth/JWT 토큰 관리
-exs 대외거래 로그
-exs 대외 송수신 로그
-exs 대외 수신 로그 선저장
-트랜잭션 글로벌 ID 필수 헤더 검증
-WAS ID 7자리 검증
-serverInstanceId 로그/화면 표시
+공통 JWT 발급/검증
+공통 Refresh Token 저장소
+공통 코드 관리
+공통 메시지 관리
+PFW transaction ID 발급
+BIZADM 로그인
+BIZADM 로그인 이력
+BIZADM 계정 잠금
+BIZADM 운영자 관리
+BIZADM 역할 관리
+BIZADM 메뉴 관리
+BIZADM 버튼 권한
+BIZADM API 권한
+BIZADM 다운로드/마스킹/감사
+MBR 회원 관리
+MBR 회원 로그인
+MBR 로그인 이력
+MBR 계정 잠금
+MBR 회원 상태별 로그인 제한
+MBR 회원 마스킹
+MBR 회원 다운로드/감사
+EXS 대외기관 관리
+EXS endpoint 관리
+EXS 인증 프로파일
+EXS 대외 토큰 관리
+EXS 대외 거래 로그
+EXS 대외 송수신 로그
+EXS 통제 정책
+EXS 재처리
+```
+
+다음처럼 뭉뚱그려 쓰지 않는다.
+
+```text
+bizadm 모듈 완료
+mbr 모듈 완료
+exs 모듈 완료
 ```
 
 ---
 
-## 12. SQL 기준
+## 15. 검증 요건
 
-SQL은 다음 기준을 지킨다.
+### 15.1 실행 검증
 
-```text
-1. MariaDB 기준
-2. lower snake case
-3. 모든 테이블/컬럼 한글 COMMENT
-4. created_by, created_at, updated_by, updated_at 공통 감사 컬럼
-5. transaction_global_id 컬럼은 필요한 로그/감사/거래 테이블에 반영
-6. module_id, was_id, server_instance_id 컬럼 반영
-7. 대외 로그 테이블은 external_transaction_id 별도 보유
-8. 다운로드/마스킹/원문 조회 감사 기준 반영
-```
-
-추가 또는 보강 대상 테이블:
-
-```text
-bizadm_admin_user
-bizadm_menu_sample
-bizadm_role_sample
-bizadm_permission_sample
-bizadm_customer
-bizadm_product
-bizadm_order
-bizadm_project_setting
-exs_institution
-exs_channel
-exs_endpoint
-exs_auth_profile
-exs_token_store
-exs_route_rule
-exs_transaction_log
-exs_message_log
-exs_control_policy
-exs_retry_log
-adm_download_audit_log
-adm_operation_audit_log
-pfw_transaction_log
-pfw_error_log
-pfw_batch_execution
-pfw_batch_step_execution
-pfw_batch_execution_target
-adm_notification_send_log
-```
-
-기존 테이블이 있으면 중복 생성하지 말고 ALTER 또는 문서 정합성 기준으로 정리한다.
-
----
-
-## 13. OpenAPI/Swagger 기준
-
-다음이 `/v3/api-docs`와 Swagger UI에 보여야 한다.
-
-```text
-ADM-Batch
-ADM-Notification
-ADM-Log
-ADM-Dynamic-Log-Level
-ADM-Download
-BIZADM-Admin-User
-BIZADM-Menu
-BIZADM-Role
-BIZADM-Permission
-BIZADM-Customer
-BIZADM-Product
-BIZADM-Order
-BIZADM-Setting
-BIZADM-Download
-BIZADM-Masking
-EXS-Institution
-EXS-Channel
-EXS-Endpoint
-EXS-Auth
-EXS-Token
-EXS-Route
-EXS-Transaction
-EXS-Message
-EXS-Control
-EXS-Inbound
-EXS-Outbound
-EDU API tag
-```
-
-Swagger 설명에는 다음이 포함되어야 한다.
-
-```text
-표준 거래 헤더
-트랜잭션 글로벌 ID 필수 여부
-오류 응답
-표준 응답
-권한 오류
-마스킹/다운로드 사유
-```
-
----
-
-## 14. Smoke/검증 스크립트
-
-다음 스크립트를 유지/보강한다.
-
-```text
-scripts/check-legacy-name.ps1
-scripts/check-utf8.ps1
-scripts/check-sql-standard.ps1
-scripts/check-java-format.ps1
-scripts/check-html-docs.ps1
-scripts/smoke-openapi.ps1
-scripts/smoke-adm-ui.ps1
-```
-
-추가 검토:
-
-```text
-scripts/check-transaction-id-standard.ps1
-```
-
-검사 내용:
-
-```text
-1. TransactionIdGenerator 포맷 검증 테스트 실행 여부
-2. wasId 7자리 기준 문서/설정 반영 여부
-3. SQL에 transaction_global_id/module_id/was_id/server_instance_id 반영 여부
-4. OpenAPI에 트랜잭션 헤더 설명 존재 여부
-5. Java raw 포맷 깨짐 여부
-```
-
----
-
-## 15. 실행 명령
-
-가능한 범위에서 다음을 실행하고 결과를 리포트에 기록한다.
+가능한 범위에서 실행하고 리포트에 기록한다.
 
 ```powershell
-.\gradlew.bat clean compileJava --offline
+.\gradlew.bat compileJava --offline
 .\gradlew.bat test --offline
 .\gradlew.bat qualityGate --offline
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-legacy-name.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-java-format.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-openapi.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1
 ```
 
-MariaDB가 실제로 가능한 경우에만 실행한다.
+각 검사 스크립트를 실행한다.
 
-```powershell
-mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
+```text
+- legacy 명칭 검사
+- UTF-8/mojibake 검사
+- SQL 표준 검사
+- Java 포맷 검사
+- HTML 문서 구조 검사
+- transaction ID 표준 검사
+- 보안 seed 검사
 ```
 
-앱을 실제 기동한 경우에만 OpenAPI HTTP smoke를 성공으로 기록한다.
+MariaDB가 가능하면 SQL smoke를 실행한다.
+실행하지 않았으면 성공으로 기록하지 않는다.
 
-브라우저 자동화 도구가 없으면 실제 브라우저 클릭 검증은 `미검증`으로 기록한다.
+앱을 실제 기동한 경우에만 OpenAPI HTTP smoke 성공으로 기록한다.
+브라우저를 실제 클릭하거나 자동화한 경우에만 브라우저 클릭 smoke 성공으로 기록한다.
+
+Redis/Kafka/MQ 실제 broker가 없으면 실연동은 미검증으로 기록하고, mock/fallback 검증 여부를 별도 기록한다.
 
 ---
 
-## 16. 완료 기준
+### 15.2 공통 인증/토큰 검증
 
-### 16.1 산출물 기준
-
-```text
-CPF_STABILIZATION_REPORT.html 하나만 유지
-CPF_STABILIZATION_REPORT.md 없음
-CPF_STABILIZATION_CHANGED_FILES.txt 없음
-README/specs 현행화
-기능 구현 매트릭스 현행화
-```
-
-### 16.2 모듈 기준
+검증 대상:
 
 ```text
-settings.gradle에 bizadm 포함
-settings.gradle에 exs 포함
-bizadm 디렉터리/Gradle 구성 존재
-exs 디렉터리/Gradle 구성 존재
-adm과 bizadm 책임 경계 문서화
-```
-
-### 16.3 트랜잭션 글로벌 ID 기준
-
-```text
-34자리 공식 규격 문서화
-wasId 7자리 검증
-모든 요청 헤더 필수 검증
-누락 시 표준 오류 처리
-PFW TransactionContext/MDC/응답 헤더 연계
-CMN 생성/검증/전파 유틸 제공
-WebClient outbound header 전파
-온라인/대외/배치/감사/다운로드 로그 저장
-단위 테스트 존재
-```
-
-### 16.4 화면/로그 기준
-
-```text
-ADM 거래 로그 목록/상세에 transactionGlobalId/moduleId/wasId/serverInstanceId 표시
-ADM 오류 로그 목록/상세에 transactionGlobalId/moduleId/wasId/serverInstanceId 표시
-ADM 배치 목록/상세에 transactionGlobalId/moduleId/wasId/serverInstanceId 표시
-ADM 다운로드 감사 목록/상세에 transactionGlobalId/moduleId/wasId/serverInstanceId 표시
-EXS 거래/송수신 목록/상세에 transactionGlobalId/externalTransactionId/moduleId/wasId/serverInstanceId 표시
-```
-
-### 16.5 bizadm 기준
-
-```text
-업무 관리자 화면 샘플 존재
-업무 관리자 사용자/메뉴/권한/버튼/API 권한 샘플 존재
-다운로드/마스킹/마스킹 해제/감사 샘플 존재
-Vue 관리자 콘솔 route/view/api 분리
-Swagger Tag 존재
-기능 매트릭스 반영
-```
-
-### 16.6 exs 기준
-
-```text
-대외기관/채널/endpoint/auth/token/route/transaction/message/control/retry 골격 존재
-대외 수신 로그 선저장 구조 존재
-transactionGlobalId와 externalTransactionId 분리 저장
-OAuth/JWT mock/fallback provider 존재
-Swagger Tag 존재
-기능 매트릭스 반영
+- transaction ID 발급
+- X-Transaction-Id 누락 오류
+- X-Transaction-Id 포맷 오류
+- 비밀번호 해시 저장
+- 평문 비밀번호 미저장
+- 로그인 성공 시 Access Token 발급
+- Refresh Token 안전 저장
+- 로그아웃 시 Refresh Token 폐기
+- Token refresh
+- 폐기된 Refresh Token 재사용 실패
+- 만료된 Refresh Token 실패
+- Authorization: Bearer 검증
+- 토큰 없는 보호 API 호출 실패
+- 다른 로그인 영역 토큰으로 API 호출 실패
 ```
 
 ---
 
-## 17. 리포트 작성 기준
+### 15.3 BIZADM 검증
 
-`CPF_STABILIZATION_REPORT.html`에는 다음 섹션을 포함한다.
+검증 대상:
+
+```text
+- 로그인 성공
+- 로그인 실패
+- 로그인 이력 저장
+- 실패 횟수 증가
+- 계정 잠금
+- 계정 잠금 해제
+- 로그아웃
+- 토큰 재발급
+- 현재 사용자 조회
+- 운영자 목록/상세/등록/수정/상태변경
+- 역할 목록/상세/등록/수정
+- 메뉴 트리 조회/등록/수정
+- 버튼 권한 조회/적용
+- API 권한 실패 시 표준 오류
+- 다운로드 사유 누락 시 오류
+- 마스킹 해제 사유 누락 시 오류
+- 감사 로그 저장
+- Vue route/view 확인
+- Swagger tag 확인
+```
+
+---
+
+### 15.4 MBR 검증
+
+검증 대상:
+
+```text
+- 회원 등록
+- 회원 목록/상세
+- 회원 수정
+- 회원 상태 변경
+- 회원 로그인 성공
+- 회원 로그인 실패
+- 로그인 이력 저장
+- 실패 횟수 증가
+- 계정 잠금
+- 회원 상태별 로그인 제한
+- 로그아웃
+- 토큰 재발급
+- 현재 회원 조회
+- 개인정보 마스킹
+- 마스킹 해제 감사
+- 회원 다운로드 감사
+- Swagger tag 확인
+```
+
+---
+
+### 15.5 EXS 검증
+
+검증 대상:
+
+```text
+- 대외기관 목록/상세/등록/수정
+- 채널 목록/상세/등록/수정
+- endpoint 목록/상세/등록/수정
+- 인증 프로파일 목록/상세
+- 대외 토큰 목록/상세 조회 시 원문 미노출
+- 대외 토큰 refresh mock 성공
+- 대외 토큰 refresh 실패 이력 저장
+- route 목록/상세
+- 대외 수신 시 X-Transaction-Id 검증
+- externalTransactionId 분리 저장
+- 대외 거래 로그 선저장
+- 송수신 로그 저장
+- 실패 거래 조회
+- 재처리 사유 누락 시 오류
+- 재처리 이력 저장
+- 송수신 payload 마스킹
+- 원문 조회 권한/사유 감사
+- Swagger tag 확인
+```
+
+---
+
+## 16. 검증 리포트 요건
+
+`CPF_STABILIZATION_REPORT.html`은 실제 HTML로 작성한다.
+
+필수 섹션:
 
 ```text
 1. 작업 요약
-2. 실제 변경 파일 요약
-3. 검증 결과
-4. 성공 항목
-5. 실패 항목
-6. 미검증 항목
-7. 정적 확인 항목
-8. 트랜잭션 글로벌 ID 반영 내역
-9. 서버 인스턴스 식별값 반영 내역
-10. bizadm 반영 내역
-11. exs 반영 내역
-12. ADM 보강 내역
-13. 문서/SQL/Swagger/Smoke 반영 내역
-14. 다음 잔여 과제
+2. 주요 변경 파일
+3. 성공 항목
+4. 실패 항목
+5. 미검증 항목
+6. 정적 확인 항목
+7. 설계 판단 내역
+8. 재확인 필요 항목
+9. 저장 구조 반영 내역
+10. API 반영 내역
+11. Vue 화면 반영 내역
+12. BIZADM 구현 수준
+13. MBR 구현 수준
+14. EXS 구현 수준
+15. 공통 인증/토큰 구현 수준
+16. 공통 코드/메시지 구현 수준
+17. transactionGlobalId 구현 수준
+18. 서버 인스턴스 추적 구현 수준
+19. 보안 검증 결과
+20. 기능 구현 매트릭스 반영 수준
+21. 잔여 과제
 ```
 
-리포트에는 반드시 다음을 구분한다.
+각 항목은 다음 중 하나로 기록한다.
 
 ```text
-실제 실행한 것
-소스 정적 확인만 한 것
-환경 부재로 미검증인 것
-실패한 것
-```
-
-다시 강조한다.
-
-```text
-실제로 실행하지 않은 항목을 성공으로 적지 않는다.
-ChatGPT 또는 사용자가 나중에 검증할 예정이라고 해서, Codex가 검증 완료라고 대신 쓰면 안 된다.
-Codex는 본인이 실제 수행한 검증만 성공으로 보고한다.
+[성공]
+[실패]
+[미검증]
+[정적 확인]
+[일부 구현]
+[미구현]
+[재확인 필요]
 ```
 
 ---
 
-## 18. 금지사항
-
-```text
-Git commit 금지
-Git push 금지
-branch 생성 금지
-실행하지 않은 검증을 성공으로 기록 금지
-ChatGPT가 나중에 검증할 예정인 항목을 Codex가 검증 완료로 기록 금지
-앱을 기동하지 않고 OpenAPI HTTP smoke 성공 기록 금지
-DB를 실행하지 않고 MariaDB SQL 성공 기록 금지
-브라우저 클릭을 하지 않고 브라우저 클릭 검증 성공 기록 금지
-정적 파일 확인만 하고 런타임 성공으로 기록 금지
-CPF_STABILIZATION_CHANGED_FILES.txt 생성/갱신 금지
-CPF_STABILIZATION_REPORT.md 유지 금지
-ADM에 bizadm 업무 기능 혼입 금지
-업무 모듈에서 임의 트랜잭션 ID 포맷 생성 금지
-대외기관 거래 ID와 CPF transactionGlobalId 혼용 금지
-wasId 길이 가변을 공식 규격처럼 방치 금지
-Java 파일 한 줄 포맷 방치 금지
-HTML 확장자에 Markdown 내용 작성 금지
-FPS/Fps/fps 레거시 명칭 잔재 방치 금지
-한글 깨짐/mojibake 방치 금지
-```
-
----
-
-## 19. 최종 보고 형식
+## 17. Codex 최종 보고 형식
 
 작업 완료 후 다음 형식으로 보고한다.
 
 ```text
 [성공]
-- 실제 실행해서 성공한 항목만 기록
-- 실행 명령과 결과를 함께 기록
+- 실제 실행한 명령
+- 성공 결과
 
 [실패]
-- 실패한 명령, 오류 메시지, 원인, 조치 필요 사항 기록
+- 실패한 명령
+- 오류 메시지
+- 원인
+- 조치 필요 사항
 
 [미검증]
-- 환경 부재 또는 미실행 항목 기록
-- 왜 미검증인지 명확히 기록
-- ChatGPT 또는 사용자가 나중에 검증할 예정인 항목도 여기 포함
+- 실행하지 못한 항목
+- 미검증 사유
 
 [정적 확인]
-- 파일 존재, 소스 구조, 문서 내용 등 실행 없이 확인한 항목 기록
+- 파일/구조/문서/API/UI 존재 확인
 
-[주요 변경 파일]
-- 변경 파일과 변경 목적 요약
+[설계 판단]
+- 기존 구조 확인 결과
+- 선택한 설계 방향
+- 선택 이유
+- 기존 구조와의 정합성
 
-[트랜잭션 글로벌 ID 반영]
-- 공식 규격
-- 필수 헤더 검증
-- wasId 7자리 검증
-- 로그/DB/화면 반영
-- 테스트 결과
+[재확인 필요]
+- 즉시 구현하지 않은 항목
+- 이유
+- 선택 가능한 방안
+- 추천안
 
-[bizadm 반영]
-- 모듈/기능/API/UI/SQL/문서/테스트 요약
+[BIZADM 반영]
+- 로그인/운영자/역할/메뉴/권한/다운로드/마스킹/감사/UI/저장 구조/API 구현 수준
 
-[exs 반영]
-- 모듈/기능/API/UI/SQL/문서/테스트 요약
+[MBR 반영]
+- 회원관리/회원로그인/로그인이력/상태/마스킹/다운로드/감사 구현 수준
+
+[EXS 반영]
+- 기관/채널/endpoint/auth/token/route/transaction/message/control/retry/UI/저장 구조/API 구현 수준
+
+[공통 인증/보안]
+- JWT
+- Refresh Token
+- BCrypt
+- 로그인 영역 분리
+- 토큰 폐기
+- 토큰 재발급
+- 보안 감사
+
+[공통 품질]
+- 한글 주석
+- HTML 문서 구조
+- Java 포맷
+- transactionGlobalId
+- 서버 인스턴스 추적
+- 공통 코드/메시지
 
 [잔여 과제]
-- 다음 작업으로 남길 항목
+- 일부 구현
+- 미구현
+- 미검증
 ```
 
-최종 보고에서도 실제로 실행하지 않은 검증은 절대 성공으로 쓰지 않는다.
+---
+
+## 18. 완료로 인정하지 않는 경우
+
+다음은 완료로 인정하지 않는다.
+
+```text
+- 각 모듈이 제각각 JWT 유틸을 중복 구현
+- Refresh Token 원문 저장
+- 비밀번호 평문 저장
+- 로그인 영역 구분 없음
+- ADM/BIZADM/MBR 토큰 혼용 가능
+- 로그인 이력 없음
+- 계정 잠금 없음
+- 토큰 폐기 없음
+- 토큰 재발급 없음
+- EXS 토큰과 사람 로그인 토큰 혼용
+- 대외 token/secret 원문 화면 노출
+- 공통 코드 없이 문자열 하드코딩
+- 공통 메시지 없이 오류 메시지 산재
+- BIZADM UI 없음
+- EXS UI 없음
+- MBR 로그인 없음
+- EXS 재처리 없음
+- 대외 수신 로그 선저장 없음
+- transactionGlobalId 누락
+- moduleId/wasId/serverInstanceId 누락
+- 기능 구현 매트릭스 과장 기록
+- 검증 없이 완료 기록
+```
+
+---
+
+## 19. ChatGPT 검수 기준
+
+작업 완료 후 ChatGPT는 Codex 보고만 믿지 않고 다음을 검수한다.
+
+```text
+1. GitHub 최신 소스 기준 파일 존재 확인
+2. 기능이 하드코딩 샘플인지 실제 구현체인지 확인
+3. 저장 구조와 Service/Mapper 연결 여부 확인
+4. Vue 화면 존재 여부 확인
+5. 기능 구현 매트릭스 과장 여부 확인
+6. CPF_STABILIZATION_REPORT.html이 실제 HTML인지 확인
+7. transactionGlobalId 34자리 기준 확인
+8. moduleId/wasId/serverInstanceId 반영 여부 확인
+9. 비밀번호/토큰/secret 원문 저장 여부 확인
+10. 완료/일부 구현/미검증 구분 정확성 확인
+11. 재확인 필요 항목이 숨겨지지 않았는지 확인
+```

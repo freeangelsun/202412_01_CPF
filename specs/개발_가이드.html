@@ -137,8 +137,24 @@
       <tr><td>ADM 운영 API</td><td><code>adm/src/main/java/cpf/adm/opr/controller</code></td></tr>
       <tr><td>업무 관리자 화면 샘플</td><td><code>bizadm/src/main/java/cpf/bizadm/sample</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
       <tr><td>대외 연계 샘플</td><td><code>exs/src/main/java/cpf/exs/sample</code>, <code>specs/sql/40_business_sample_schema.sql</code></td></tr>
+      <tr><td>BIZADM 로그인/권한 token</td><td><code>BizAdmAuthController</code>, <code>BizAdmAuthService</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code></td></tr>
+      <tr><td>MBR 회원 로그인/token</td><td><code>MbrAuthController</code>, <code>MbrAuthService</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td></tr>
+      <tr><td>EXS token/통제/재처리 운영</td><td><code>ExsOperationController</code>, <code>ExsOperationService</code>, <code>exs_token_store</code>, <code>exs_token_event_history</code></td></tr>
       <tr><td>SQL 설치/seed/smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td></tr>
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>인증/token 기본 구현 샘플</h2>
+    <table>
+      <tbody>
+      <tr><th>BIZADM</th><td><code>/api/bizadm/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>/me</code>, <code>/login-history</code>를 제공합니다. access token에는 <code>loginDomain=BIZADM</code>, <code>moduleId</code>, <code>wasId</code>, <code>serverInstanceId</code>, 메뉴/버튼 권한을 포함합니다.</td></tr>
+      <tr><th>MBR</th><td><code>/mbr/auth/login</code>, <code>/refresh</code>, <code>/logout</code>, <code>/me</code>, <code>/login-history</code>를 제공합니다. 회원 로그인 이력에는 회원번호, 고객번호, 거래 ID, 모듈, WAS, 서버 인스턴스를 함께 남깁니다.</td></tr>
+      <tr><th>EXS</th><td><code>/api/exs/operations/tokens</code>, <code>/token-events</code>, <code>/retries</code>, <code>/control-policies</code>로 대외 token 갱신, 통제 정책, 재처리 요청을 관리합니다. 대외 token은 사람 로그인 token과 분리하고 원문 대신 hash와 마스킹 값을 사용합니다.</td></tr>
+      <tr><th>보안 저장 원칙</th><td>비밀번호와 refresh token, 대외 token 원문은 저장하지 않습니다. 운영 seed에는 원문 secret을 넣지 않고 hash placeholder나 마스킹 값만 둡니다.</td></tr>
+      <tr><th>현재 수준</th><td>이번 구현은 공통 JWT/암호화/거래 ID 기준을 이용한 기본 API와 SQL 표준화입니다. 실제 DB mapper 영속화, UI route, token 저장소 통합은 다음 고도화 과제입니다.</td></tr>
+      </tbody>
     </table>
   </section>
   <section>
@@ -149,7 +165,7 @@
       <tr><th>ADM 다운로드</th><td><code>AdmDownloadController</code>, <code>AdmDownloadService</code>를 참고합니다. 다운로드 유형은 화이트리스트로 제한하고, CSV 생성, 민감정보 마스킹, 감사 로그 저장을 한 서비스에서 처리합니다.</td></tr>
       <tr><th>배치 스케줄러</th><td><code>PfwBatchScheduleService</code>, <code>PfwBatchLockService</code>, <code>PfwBatchExecutionTargetService</code>, <code>PfwBatchScheduler</code>를 참고합니다. 스케줄 판정, lock, 실행 대상 기록, 실행 요청을 분리합니다.</td></tr>
       <tr><th>업무 관리자/대외 샘플</th><td><code>bizadm</code>은 ADM 내부 운영 기능이 아니라 업무 프로젝트 관리 화면의 구현 예시입니다. <code>exs</code>는 외부기관 송수신과 거래/전문 로그 분리 예시입니다.</td></tr>
-      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>, <code>checkTransactionIdStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
+      <tr><th>품질 Gate</th><td>신규 Java/HTML/SQL 변경은 <code>checkJavaFormat</code>, <code>checkHtmlDocs</code>, <code>checkSqlStandard</code>, <code>checkTransactionIdStandard</code>, <code>checkSecuritySeedStandard</code>를 통과해야 합니다. 외부 서버가 필요한 OpenAPI smoke는 <code>openApiSmoke</code>로 별도 실행합니다.</td></tr>
       </tbody>
     </table>
   </section>

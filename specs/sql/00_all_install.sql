@@ -1,7 +1,6 @@
--- CPF 전체 설치 SQL입니다.
--- 이 파일은 분할 SQL의 현재 본문을 모두 포함한 단일 실행 파일입니다.
--- 로컬 초기화와 smoke 검증을 위해 현재 CPF 표준 테이블을 정리한 뒤 재생성합니다.
-
+-- CPF all install SQL.
+-- This file contains the full SQL body and does not use SOURCE commands.
+-- Rebuild this file from split SQL files with scripts/build-all-install-sql.ps1.
 -- ============================================================================
 -- specs/sql/01_create_databases.sql
 -- ============================================================================
@@ -35,22 +34,23 @@ CREATE DATABASE IF NOT EXISTS bizadmDB
 CREATE DATABASE IF NOT EXISTS exsDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
+-- ============================================================================
+-- CPF table cleanup
+-- ============================================================================
+-- Recreate the current CPF standard tables for local install and smoke check.
 
--- ============================================================================
--- CPF 전체 테이블 초기화
--- ============================================================================
--- 로컬 개발과 smoke 검증에서 현재 CPF 표준 스키마를 재생성하기 위해 사용합니다.
-SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS exsDB.exs_retry_log;
 DROP TABLE IF EXISTS exsDB.exs_control_policy;
 DROP TABLE IF EXISTS exsDB.exs_message_log;
 DROP TABLE IF EXISTS exsDB.exs_transaction_log;
 DROP TABLE IF EXISTS exsDB.exs_route_rule;
+DROP TABLE IF EXISTS exsDB.exs_token_event_history;
 DROP TABLE IF EXISTS exsDB.exs_token_store;
 DROP TABLE IF EXISTS exsDB.exs_auth_profile;
 DROP TABLE IF EXISTS exsDB.exs_endpoint;
 DROP TABLE IF EXISTS exsDB.exs_channel;
 DROP TABLE IF EXISTS exsDB.exs_institution;
+
 DROP TABLE IF EXISTS bizadmDB.bizadm_masking_audit_sample;
 DROP TABLE IF EXISTS bizadmDB.bizadm_project_setting;
 DROP TABLE IF EXISTS bizadmDB.bizadm_order;
@@ -59,32 +59,41 @@ DROP TABLE IF EXISTS bizadmDB.bizadm_customer;
 DROP TABLE IF EXISTS bizadmDB.bizadm_permission_sample;
 DROP TABLE IF EXISTS bizadmDB.bizadm_role_sample;
 DROP TABLE IF EXISTS bizadmDB.bizadm_menu_sample;
+DROP TABLE IF EXISTS bizadmDB.bizadm_refresh_token;
+DROP TABLE IF EXISTS bizadmDB.bizadm_login_history;
 DROP TABLE IF EXISTS bizadmDB.bizadm_admin_user;
+
+DROP TABLE IF EXISTS mbrDB.mbr_refresh_token;
 DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role;
 DROP TABLE IF EXISTS mbrDB.mbr_member;
+
 DROP TABLE IF EXISTS accDB.acc_account;
-DROP TABLE IF EXISTS admDB.adm_operation_log;
+
+DROP TABLE IF EXISTS admDB.adm_download_audit_log;
+DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
+DROP TABLE IF EXISTS admDB.adm_notification_rule;
+DROP TABLE IF EXISTS admDB.adm_operator_session;
+DROP TABLE IF EXISTS admDB.adm_login_history;
 DROP TABLE IF EXISTS admDB.adm_password_history;
 DROP TABLE IF EXISTS admDB.adm_password_policy;
 DROP TABLE IF EXISTS admDB.adm_mfa_otp_secret;
 DROP TABLE IF EXISTS admDB.adm_ip_allowlist;
-DROP TABLE IF EXISTS admDB.adm_dynamic_log_level_rule;
-DROP TABLE IF EXISTS admDB.adm_operator_session;
-DROP TABLE IF EXISTS admDB.adm_download_audit_log;
 DROP TABLE IF EXISTS admDB.adm_audit_log;
 DROP TABLE IF EXISTS admDB.adm_role_button;
-DROP TABLE IF EXISTS admDB.adm_button;
 DROP TABLE IF EXISTS admDB.adm_role_menu;
+DROP TABLE IF EXISTS admDB.adm_button;
 DROP TABLE IF EXISTS admDB.adm_menu;
 DROP TABLE IF EXISTS admDB.adm_operator_role;
 DROP TABLE IF EXISTS admDB.adm_role;
 DROP TABLE IF EXISTS admDB.adm_operator;
+
 DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence;
+
 DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
 DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
 DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
@@ -106,18 +115,14 @@ DROP TABLE IF EXISTS pfwDB.BATCH_JOB_INSTANCE;
 DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_SEQ;
 DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
 DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
-DROP TABLE IF EXISTS pfwDB.pfw_security_token_audit_log;
-DROP TABLE IF EXISTS pfwDB.pfw_security_jwt_key;
-DROP TABLE IF EXISTS pfwDB.pfw_file_exchange_log;
 DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
+DROP TABLE IF EXISTS pfwDB.pfw_dynamic_log_level_rule;
 DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- ============================================================================
 -- specs/sql/02_create_service_users.sql
 -- ============================================================================
@@ -173,7 +178,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON bizadmDB.* TO 'cpf_bizadm_app'@'localhos
 GRANT SELECT, INSERT, UPDATE, DELETE ON exsDB.* TO 'cpf_exs_app'@'localhost';
 
 FLUSH PRIVILEGES;
-
 -- ============================================================================
 -- specs/sql/10_pfw_schema.sql
 -- ============================================================================
@@ -799,7 +803,6 @@ CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
         FOREIGN KEY (rule_id) REFERENCES pfw_notification_rule(rule_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 발송 로그';
-
 -- ============================================================================
 -- specs/sql/20_cmn_schema.sql
 -- ============================================================================
@@ -908,7 +911,6 @@ CREATE TABLE IF NOT EXISTS cmn_business_log (
     INDEX ix_cmn_business_log_area_key (business_area, business_key),
     INDEX ix_cmn_business_log_type_time (log_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 업무 로그';
-
 -- ============================================================================
 -- specs/sql/30_adm_schema.sql
 -- ============================================================================
@@ -1223,7 +1225,6 @@ CREATE TABLE IF NOT EXISTS adm_operation_log (
     INDEX ix_adm_operation_log_operator_time (OPERATOR_ID, created_at),
     INDEX ix_adm_operation_log_target_time (TARGET_TYPE, TARGET_ID, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 작업 로그';
-
 -- ============================================================================
 -- specs/sql/40_business_sample_schema.sql
 -- ============================================================================
@@ -1256,6 +1257,10 @@ CREATE TABLE IF NOT EXISTS mbr_member (
     member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
     customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
     login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
+    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
+    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
     name VARCHAR(100) NOT NULL COMMENT '회원명',
     email VARCHAR(200) NULL COMMENT '이메일',
     mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
@@ -1331,11 +1336,18 @@ CREATE TABLE IF NOT EXISTS mbr_member_role_history (
 CREATE TABLE IF NOT EXISTS mbr_member_login_history (
     login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
     member_id BIGINT NOT NULL COMMENT '회원 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
+    member_no VARCHAR(50) NULL COMMENT '회원 번호',
+    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
     login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
     login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
     login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
     user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
     failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -1343,10 +1355,33 @@ CREATE TABLE IF NOT EXISTS mbr_member_login_history (
     PRIMARY KEY (login_history_id),
     INDEX ix_mbr_member_login_member_time (member_id, created_at),
     INDEX ix_mbr_member_login_result_time (login_result, created_at),
+    INDEX ix_mbr_member_login_global (transaction_global_id),
     CONSTRAINT fk_mbr_member_login_history_member
         FOREIGN KEY (member_id) REFERENCES mbr_member(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_refresh_token (
+    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 refresh token 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
+    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    expire_at DATETIME NOT NULL COMMENT '만료 일시',
+    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    revoked_at DATETIME NULL COMMENT '폐기 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (refresh_token_id),
+    UNIQUE KEY uk_mbr_refresh_token_hash (refresh_token_hash),
+    INDEX ix_mbr_refresh_token_member (member_id, revoked_yn, expire_at),
+    CONSTRAINT fk_mbr_refresh_token_member
+        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 refresh token hash 저장소';
 
 USE bizadmDB;
 
@@ -1354,8 +1389,14 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     admin_user_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 사용자 순번',
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
+    password_hash VARCHAR(300) NULL COMMENT '업무 관리자 비밀번호 hash',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 관리자 역할 코드',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
+    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
+    last_login_at DATETIME NULL COMMENT '최근 로그인 일시',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -1364,6 +1405,53 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     UNIQUE KEY uk_bizadm_admin_user_login (admin_login_id),
     INDEX ix_bizadm_admin_user_role (role_code, use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 사용자 샘플';
+
+CREATE TABLE IF NOT EXISTS bizadm_login_history (
+    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 로그인 이력 순번',
+    admin_user_id BIGINT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
+    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
+    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    client_ip VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (login_history_id),
+    INDEX ix_bizadm_login_history_user_time (admin_user_id, created_at),
+    INDEX ix_bizadm_login_history_result_time (login_result, created_at),
+    INDEX ix_bizadm_login_history_global (transaction_global_id),
+    CONSTRAINT fk_bizadm_login_history_user
+        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS bizadm_refresh_token (
+    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 refresh token 순번',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    expire_at DATETIME NOT NULL COMMENT '만료 일시',
+    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    revoked_at DATETIME NULL COMMENT '폐기 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (refresh_token_id),
+    UNIQUE KEY uk_bizadm_refresh_token_hash (refresh_token_hash),
+    INDEX ix_bizadm_refresh_token_user (admin_user_id, revoked_yn, expire_at),
+    CONSTRAINT fk_bizadm_refresh_token_user
+        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 refresh token hash 저장소';
 
 CREATE TABLE IF NOT EXISTS bizadm_menu_sample (
     menu_sample_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 샘플 순번',
@@ -1551,16 +1639,39 @@ CREATE TABLE IF NOT EXISTS exs_token_store (
     token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 토큰 순번',
     auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
     token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    token_hash VARCHAR(300) NULL COMMENT '대외 token hash',
+    masked_token VARCHAR(200) NULL COMMENT '마스킹 token 표시값',
     token_status VARCHAR(30) NOT NULL COMMENT '토큰 상태',
+    issued_at DATETIME NULL COMMENT '발급 일시',
     expire_at DATETIME NULL COMMENT '토큰 만료일시',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (token_id),
     UNIQUE KEY uk_exs_token_store_key (auth_profile_code, token_key),
-    INDEX ix_exs_token_store_expire (expire_at)
+    INDEX ix_exs_token_store_expire (expire_at),
+    INDEX ix_exs_token_store_hash (token_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 토큰 저장소';
+
+CREATE TABLE IF NOT EXISTS exs_token_event_history (
+    token_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 token 이벤트 순번',
+    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
+    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    event_type VARCHAR(50) NOT NULL COMMENT 'token 이벤트 유형',
+    reason VARCHAR(500) NULL COMMENT '이벤트 사유',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (token_event_id),
+    INDEX ix_exs_token_event_profile_time (auth_profile_code, created_at),
+    INDEX ix_exs_token_event_global (transaction_global_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 token 이벤트 이력';
 
 CREATE TABLE IF NOT EXISTS exs_route_rule (
     route_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 라우팅 규칙 순번',
@@ -1657,7 +1768,6 @@ CREATE TABLE IF NOT EXISTS exs_retry_log (
     INDEX ix_exs_retry_log_global (transaction_global_id, retry_status),
     INDEX ix_exs_retry_log_next (next_retry_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 재처리 로그';
-
 -- ============================================================================
 -- specs/sql/50_framework_seed_data.sql
 -- ============================================================================
@@ -2074,7 +2184,6 @@ WHERE event_type = 'BATCH_EXECUTION'
         AND receiver = 'ADM_BATCH_OPERATOR'
   )
 LIMIT 1;
-
 -- ============================================================================
 -- specs/sql/55_cmn_seed_data.sql
 -- ============================================================================
@@ -2215,7 +2324,6 @@ WHERE NOT EXISTS (
       AND business_key = 'INITIAL'
       AND log_type = 'SEED'
 );
-
 -- ============================================================================
 -- specs/sql/60_adm_seed_data.sql
 -- ============================================================================
@@ -2547,7 +2655,6 @@ WHERE NOT EXISTS (
       AND TARGET_TYPE = 'ADM'
       AND TARGET_ID = 'INITIAL_DATA'
 );
-
 -- ============================================================================
 -- specs/sql/70_test_data.sql
 -- ============================================================================
@@ -2615,15 +2722,20 @@ USE mbrDB;
 
 INSERT INTO mbr_member (
     id, member_no, customer_no, login_id, name, email, mobile_no,
+    password_hash, login_fail_count, password_change_required_yn, password_expire_at,
     member_status, lock_yn, withdraw_yn, channel_code, description, created_by, updated_by
 ) VALUES
-    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
-    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
+    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
+    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
+    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
+    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     customer_no = VALUES(customer_no),
     login_id = VALUES(login_id),
+    password_hash = VALUES(password_hash),
+    login_fail_count = VALUES(login_fail_count),
+    password_change_required_yn = VALUES(password_change_required_yn),
+    password_expire_at = VALUES(password_expire_at),
     name = VALUES(name),
     email = VALUES(email),
     mobile_no = VALUES(mobile_no),
@@ -2652,9 +2764,11 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO mbr_member_login_history (
-    member_id, login_id, login_result, login_ip, user_agent, failure_reason, created_by, updated_by
+    member_id, login_domain, member_no, customer_no, login_id, login_result, login_ip, user_agent, failure_reason,
+    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
 )
-SELECT 1, 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL, 'SYSTEM', 'SYSTEM'
+SELECT 1, 'MBR', 'M000000001', 'C000000001', 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL,
+       '20260615120000000MBRlocal010000001', 'MBR', 'local01', 'local-mbr:seed', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM mbr_member_login_history
@@ -2874,16 +2988,38 @@ ON DUPLICATE KEY UPDATE
 USE bizadmDB;
 
 INSERT INTO bizadm_admin_user (
-    admin_login_id, admin_name, role_code, use_yn, created_by, updated_by
+    admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
+    login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by
 ) VALUES (
-    'biz-admin', '업무 관리자 샘플', 'BIZ_MANAGER', 'Y', 'SYSTEM', 'SYSTEM'
+    'biz-admin', '업무 관리자 샘플', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 'BIZ_MANAGER', 'Y', 'N',
+    0, 'N', NULL, NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     admin_name = VALUES(admin_name),
+    password_hash = VALUES(password_hash),
     role_code = VALUES(role_code),
     use_yn = VALUES(use_yn),
+    lock_yn = VALUES(lock_yn),
+    login_fail_count = VALUES(login_fail_count),
+    password_change_required_yn = VALUES(password_change_required_yn),
+    password_expire_at = VALUES(password_expire_at),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_login_history (
+    admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent,
+    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
+)
+SELECT admin_user_id, 'BIZADM', 'biz-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260615120000000BIZbizAP010000001', 'BIZ', 'bizAP01', 'local-bizadm:seed', 'SYSTEM', 'SYSTEM'
+FROM bizadm_admin_user
+WHERE admin_login_id = 'biz-admin'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM bizadm_login_history
+      WHERE admin_login_id = 'biz-admin'
+        AND transaction_global_id = '20260615120000000BIZbizAP010000001'
+  );
 
 INSERT INTO bizadm_menu_sample (
     menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
@@ -3036,15 +3172,35 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO exs_token_store (
-    auth_profile_code, token_key, token_status, expire_at, created_by, updated_by
+    auth_profile_code, token_key, token_hash, masked_token, token_status, issued_at, expire_at,
+    transaction_global_id, server_instance_id, created_by, updated_by
 ) VALUES (
-    'BANK01_OAUTH', 'access-token', 'VALID', DATE_ADD(NOW(), INTERVAL 1 HOUR), 'SYSTEM', 'SYSTEM'
+    'BANK01_OAUTH', 'access-token', 'HASH_ONLY_SAMPLE_NO_TOKEN_RAW', 'sample****token', 'VALID', NOW(), DATE_ADD(NOW(), INTERVAL 1 HOUR),
+    '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
+    token_hash = VALUES(token_hash),
+    masked_token = VALUES(masked_token),
     token_status = VALUES(token_status),
+    issued_at = VALUES(issued_at),
     expire_at = VALUES(expire_at),
+    transaction_global_id = VALUES(transaction_global_id),
+    server_instance_id = VALUES(server_instance_id),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_token_event_history (
+    auth_profile_code, token_key, event_type, reason, transaction_global_id, server_instance_id, created_by, updated_by
+)
+SELECT 'BANK01_OAUTH', 'access-token', 'TOKEN_REFRESH', 'SQL seed token 상태 샘플', '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM exs_token_event_history
+    WHERE auth_profile_code = 'BANK01_OAUTH'
+      AND token_key = 'access-token'
+      AND event_type = 'TOKEN_REFRESH'
+      AND transaction_global_id = '20260615120000000EXSexsAP010000001'
+);
 
 INSERT INTO exs_route_rule (
     route_code, institution_code, channel_code, endpoint_code, enabled_yn, created_by, updated_by

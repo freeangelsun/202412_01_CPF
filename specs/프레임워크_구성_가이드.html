@@ -53,9 +53,9 @@
       <tr><td><code>cmnDB</code></td><td>공통 채번, 채번 발급 로그, 공통 알림 로그, 공통 업무 로그</td></tr>
       <tr><td><code>admDB</code></td><td>운영자, 역할, 메뉴, 세션, 감사 로그, 동적 로그레벨 룰</td></tr>
       <tr><td><code>accDB</code></td><td><code>acc_account</code></td></tr>
-      <tr><td><code>mbrDB</code></td><td><code>mbr_member</code></td></tr>
-      <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code>, <code>bizadm_menu_sample</code>, <code>bizadm_permission_sample</code>, <code>bizadm_customer</code>, <code>bizadm_order</code></td></tr>
-      <tr><td><code>exsDB</code></td><td><code>exs_institution</code>, <code>exs_endpoint</code>, <code>exs_auth_profile</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code></td></tr>
+      <tr><td><code>mbrDB</code></td><td><code>mbr_member</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td></tr>
+      <tr><td><code>bizadmDB</code></td><td><code>bizadm_admin_user</code>, <code>bizadm_login_history</code>, <code>bizadm_refresh_token</code>, <code>bizadm_menu_sample</code>, <code>bizadm_permission_sample</code>, <code>bizadm_customer</code>, <code>bizadm_order</code></td></tr>
+      <tr><td><code>exsDB</code></td><td><code>exs_institution</code>, <code>exs_endpoint</code>, <code>exs_auth_profile</code>, <code>exs_token_store</code>, <code>exs_token_event_history</code>, <code>exs_transaction_log</code>, <code>exs_message_log</code></td></tr>
     </table>
   </section>
 
@@ -78,6 +78,7 @@
       <tr><td><code>V1__cpf_baseline_install.sql</code></td><td>신규 환경 전체 baseline</td></tr>
       <tr><td><code>V4__batch_schedule_repository_notification.sql</code></td><td>기존 환경에 Spring Batch 표준 저장소, 배치 스케줄 정책, 관계/수행대상, 운영 알림 테이블을 추가</td></tr>
       <tr><td><code>V6__bizadm_exs_transaction_identity.sql</code></td><td>기존 환경에 거래 로그 서버 인스턴스 컬럼과 <code>bizadmDB</code>, <code>exsDB</code> 스키마를 추가</td></tr>
+      <tr><td><code>V7__auth_domain_refresh_token_exs_token_history.sql</code></td><td>기존 환경에 BIZADM/MBR 로그인 도메인, refresh token hash 저장소, EXS token 이력 저장소를 추가</td></tr>
     </table>
   </section>
 
@@ -118,7 +119,7 @@
     <h2>품질 Gate와 Smoke 분리</h2>
     <table>
       <tbody>
-      <tr><th>기본 Gate</th><td><code>qualityGate</code>는 각 모듈 compile, unit test, UTF-8, mojibake, legacy name, SQL standard, Java format, HTML docs, transaction ID standard 검사를 수행합니다.</td></tr>
+      <tr><th>기본 Gate</th><td><code>qualityGate</code>는 각 모듈 compile, unit test, UTF-8, mojibake, legacy name, SQL standard, Java format, HTML docs, transaction ID standard, 보안 seed standard 검사를 수행합니다.</td></tr>
       <tr><th>분리 Smoke</th><td>MariaDB 설치 SQL, ADM/XYZ 앱 기동, OpenAPI JSON, ADM UI/API, scheduler 자동 실행은 외부 환경이나 장기 실행이 필요하므로 별도 smoke로 분리합니다.</td></tr>
       <tr><th>배치 Scheduler</th><td>자동 실행은 기본 비활성입니다. 운영 profile에서 <code>cpf.batch.scheduler.enabled=true</code>를 명시하고, lock TTL과 tick 주기를 운영 기준에 맞게 조정합니다.</td></tr>
       <tr><th>다운로드 감사</th><td>ADM DB에 <code>adm_download_audit_log</code>를 두고, 파일 다운로드 감사와 민감정보 마스킹 정책을 운영 메타로 관리합니다.</td></tr>

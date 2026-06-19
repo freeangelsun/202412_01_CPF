@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS mbr_member (
     member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
     customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
     login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
+    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
+    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
     name VARCHAR(100) NOT NULL COMMENT '회원명',
     email VARCHAR(200) NULL COMMENT '이메일',
     mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
@@ -102,11 +106,18 @@ CREATE TABLE IF NOT EXISTS mbr_member_role_history (
 CREATE TABLE IF NOT EXISTS mbr_member_login_history (
     login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
     member_id BIGINT NOT NULL COMMENT '회원 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
+    member_no VARCHAR(50) NULL COMMENT '회원 번호',
+    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
     login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
     login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
     login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
     user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
     failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -114,10 +125,33 @@ CREATE TABLE IF NOT EXISTS mbr_member_login_history (
     PRIMARY KEY (login_history_id),
     INDEX ix_mbr_member_login_member_time (member_id, created_at),
     INDEX ix_mbr_member_login_result_time (login_result, created_at),
+    INDEX ix_mbr_member_login_global (transaction_global_id),
     CONSTRAINT fk_mbr_member_login_history_member
         FOREIGN KEY (member_id) REFERENCES mbr_member(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_refresh_token (
+    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 refresh token 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
+    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    expire_at DATETIME NOT NULL COMMENT '만료 일시',
+    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    revoked_at DATETIME NULL COMMENT '폐기 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (refresh_token_id),
+    UNIQUE KEY uk_mbr_refresh_token_hash (refresh_token_hash),
+    INDEX ix_mbr_refresh_token_member (member_id, revoked_yn, expire_at),
+    CONSTRAINT fk_mbr_refresh_token_member
+        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 refresh token hash 저장소';
 
 USE bizadmDB;
 
@@ -125,8 +159,14 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     admin_user_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 사용자 순번',
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
+    password_hash VARCHAR(300) NULL COMMENT '업무 관리자 비밀번호 hash',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 관리자 역할 코드',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
+    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
+    last_login_at DATETIME NULL COMMENT '최근 로그인 일시',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -135,6 +175,53 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     UNIQUE KEY uk_bizadm_admin_user_login (admin_login_id),
     INDEX ix_bizadm_admin_user_role (role_code, use_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 사용자 샘플';
+
+CREATE TABLE IF NOT EXISTS bizadm_login_history (
+    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 로그인 이력 순번',
+    admin_user_id BIGINT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
+    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
+    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    client_ip VARCHAR(50) NULL COMMENT '클라이언트 IP',
+    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (login_history_id),
+    INDEX ix_bizadm_login_history_user_time (admin_user_id, created_at),
+    INDEX ix_bizadm_login_history_result_time (login_result, created_at),
+    INDEX ix_bizadm_login_history_global (transaction_global_id),
+    CONSTRAINT fk_bizadm_login_history_user
+        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS bizadm_refresh_token (
+    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 refresh token 순번',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    expire_at DATETIME NOT NULL COMMENT '만료 일시',
+    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
+    revoked_at DATETIME NULL COMMENT '폐기 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (refresh_token_id),
+    UNIQUE KEY uk_bizadm_refresh_token_hash (refresh_token_hash),
+    INDEX ix_bizadm_refresh_token_user (admin_user_id, revoked_yn, expire_at),
+    CONSTRAINT fk_bizadm_refresh_token_user
+        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 refresh token hash 저장소';
 
 CREATE TABLE IF NOT EXISTS bizadm_menu_sample (
     menu_sample_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 샘플 순번',
@@ -322,16 +409,39 @@ CREATE TABLE IF NOT EXISTS exs_token_store (
     token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 토큰 순번',
     auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
     token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    token_hash VARCHAR(300) NULL COMMENT '대외 token hash',
+    masked_token VARCHAR(200) NULL COMMENT '마스킹 token 표시값',
     token_status VARCHAR(30) NOT NULL COMMENT '토큰 상태',
+    issued_at DATETIME NULL COMMENT '발급 일시',
     expire_at DATETIME NULL COMMENT '토큰 만료일시',
+    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (token_id),
     UNIQUE KEY uk_exs_token_store_key (auth_profile_code, token_key),
-    INDEX ix_exs_token_store_expire (expire_at)
+    INDEX ix_exs_token_store_expire (expire_at),
+    INDEX ix_exs_token_store_hash (token_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 토큰 저장소';
+
+CREATE TABLE IF NOT EXISTS exs_token_event_history (
+    token_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 token 이벤트 순번',
+    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
+    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    event_type VARCHAR(50) NOT NULL COMMENT 'token 이벤트 유형',
+    reason VARCHAR(500) NULL COMMENT '이벤트 사유',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (token_event_id),
+    INDEX ix_exs_token_event_profile_time (auth_profile_code, created_at),
+    INDEX ix_exs_token_event_global (transaction_global_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 token 이벤트 이력';
 
 CREATE TABLE IF NOT EXISTS exs_route_rule (
     route_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 라우팅 규칙 순번',

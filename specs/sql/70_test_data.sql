@@ -62,15 +62,20 @@ USE mbrDB;
 
 INSERT INTO mbr_member (
     id, member_no, customer_no, login_id, name, email, mobile_no,
+    password_hash, login_fail_count, password_change_required_yn, password_expire_at,
     member_status, lock_yn, withdraw_yn, channel_code, description, created_by, updated_by
 ) VALUES
-    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
-    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
+    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
+    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
+    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
+    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     customer_no = VALUES(customer_no),
     login_id = VALUES(login_id),
+    password_hash = VALUES(password_hash),
+    login_fail_count = VALUES(login_fail_count),
+    password_change_required_yn = VALUES(password_change_required_yn),
+    password_expire_at = VALUES(password_expire_at),
     name = VALUES(name),
     email = VALUES(email),
     mobile_no = VALUES(mobile_no),
@@ -99,9 +104,11 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO mbr_member_login_history (
-    member_id, login_id, login_result, login_ip, user_agent, failure_reason, created_by, updated_by
+    member_id, login_domain, member_no, customer_no, login_id, login_result, login_ip, user_agent, failure_reason,
+    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
 )
-SELECT 1, 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL, 'SYSTEM', 'SYSTEM'
+SELECT 1, 'MBR', 'M000000001', 'C000000001', 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL,
+       '20260615120000000MBRlocal010000001', 'MBR', 'local01', 'local-mbr:seed', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM mbr_member_login_history
@@ -321,16 +328,38 @@ ON DUPLICATE KEY UPDATE
 USE bizadmDB;
 
 INSERT INTO bizadm_admin_user (
-    admin_login_id, admin_name, role_code, use_yn, created_by, updated_by
+    admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
+    login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by
 ) VALUES (
-    'biz-admin', '업무 관리자 샘플', 'BIZ_MANAGER', 'Y', 'SYSTEM', 'SYSTEM'
+    'biz-admin', '업무 관리자 샘플', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 'BIZ_MANAGER', 'Y', 'N',
+    0, 'N', NULL, NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     admin_name = VALUES(admin_name),
+    password_hash = VALUES(password_hash),
     role_code = VALUES(role_code),
     use_yn = VALUES(use_yn),
+    lock_yn = VALUES(lock_yn),
+    login_fail_count = VALUES(login_fail_count),
+    password_change_required_yn = VALUES(password_change_required_yn),
+    password_expire_at = VALUES(password_expire_at),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bizadm_login_history (
+    admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent,
+    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
+)
+SELECT admin_user_id, 'BIZADM', 'biz-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260615120000000BIZbizAP010000001', 'BIZ', 'bizAP01', 'local-bizadm:seed', 'SYSTEM', 'SYSTEM'
+FROM bizadm_admin_user
+WHERE admin_login_id = 'biz-admin'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM bizadm_login_history
+      WHERE admin_login_id = 'biz-admin'
+        AND transaction_global_id = '20260615120000000BIZbizAP010000001'
+  );
 
 INSERT INTO bizadm_menu_sample (
     menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
@@ -483,15 +512,35 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO exs_token_store (
-    auth_profile_code, token_key, token_status, expire_at, created_by, updated_by
+    auth_profile_code, token_key, token_hash, masked_token, token_status, issued_at, expire_at,
+    transaction_global_id, server_instance_id, created_by, updated_by
 ) VALUES (
-    'BANK01_OAUTH', 'access-token', 'VALID', DATE_ADD(NOW(), INTERVAL 1 HOUR), 'SYSTEM', 'SYSTEM'
+    'BANK01_OAUTH', 'access-token', 'HASH_ONLY_SAMPLE_NO_TOKEN_RAW', 'sample****token', 'VALID', NOW(), DATE_ADD(NOW(), INTERVAL 1 HOUR),
+    '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
+    token_hash = VALUES(token_hash),
+    masked_token = VALUES(masked_token),
     token_status = VALUES(token_status),
+    issued_at = VALUES(issued_at),
     expire_at = VALUES(expire_at),
+    transaction_global_id = VALUES(transaction_global_id),
+    server_instance_id = VALUES(server_instance_id),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO exs_token_event_history (
+    auth_profile_code, token_key, event_type, reason, transaction_global_id, server_instance_id, created_by, updated_by
+)
+SELECT 'BANK01_OAUTH', 'access-token', 'TOKEN_REFRESH', 'SQL seed token 상태 샘플', '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM exs_token_event_history
+    WHERE auth_profile_code = 'BANK01_OAUTH'
+      AND token_key = 'access-token'
+      AND event_type = 'TOKEN_REFRESH'
+      AND transaction_global_id = '20260615120000000EXSexsAP010000001'
+);
 
 INSERT INTO exs_route_rule (
     route_code, institution_code, channel_code, endpoint_code, enabled_yn, created_by, updated_by

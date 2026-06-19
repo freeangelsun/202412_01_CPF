@@ -44,8 +44,11 @@ SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_a
 SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
+SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
 
 SELECT 'bizadmDB.bizadm_admin_user' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_admin_user;
+SELECT 'bizadmDB.bizadm_login_history' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_login_history;
+SELECT 'bizadmDB.bizadm_refresh_token' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_refresh_token;
 SELECT 'bizadmDB.bizadm_menu_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_menu_sample;
 SELECT 'bizadmDB.bizadm_role_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_role_sample;
 SELECT 'bizadmDB.bizadm_permission_sample' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_permission_sample;
@@ -60,6 +63,7 @@ SELECT 'exsDB.exs_channel' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_c
 SELECT 'exsDB.exs_endpoint' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_endpoint;
 SELECT 'exsDB.exs_auth_profile' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_auth_profile;
 SELECT 'exsDB.exs_token_store' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_token_store;
+SELECT 'exsDB.exs_token_event_history' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_token_event_history;
 SELECT 'exsDB.exs_route_rule' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_route_rule;
 SELECT 'exsDB.exs_transaction_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_transaction_log;
 SELECT 'exsDB.exs_message_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_message_log;
@@ -120,9 +124,34 @@ FROM mbrDB.mbr_member
 ORDER BY id
 LIMIT 5;
 
+SELECT login_domain, member_no, customer_no, login_id, login_result, transaction_global_id, module_id, was_id, server_instance_id
+FROM mbrDB.mbr_member_login_history
+ORDER BY login_history_id DESC
+LIMIT 5;
+
+SELECT admin_login_id, role_code, use_yn, lock_yn, login_fail_count
+FROM bizadmDB.bizadm_admin_user
+ORDER BY admin_user_id
+LIMIT 5;
+
+SELECT login_domain, admin_login_id, login_result, transaction_global_id, module_id, was_id, server_instance_id
+FROM bizadmDB.bizadm_login_history
+ORDER BY login_history_id DESC
+LIMIT 5;
+
 SELECT member_id, service_code, role_code, role_name, use_yn
 FROM mbrDB.mbr_member_role
 ORDER BY member_role_id
+LIMIT 5;
+
+SELECT auth_profile_code, token_key, token_status, masked_token, transaction_global_id, server_instance_id
+FROM exsDB.exs_token_store
+ORDER BY token_id
+LIMIT 5;
+
+SELECT auth_profile_code, token_key, event_type, transaction_global_id, server_instance_id
+FROM exsDB.exs_token_event_history
+ORDER BY token_event_id DESC
 LIMIT 5;
 
 SELECT response_code, message_code, result_type, http_status

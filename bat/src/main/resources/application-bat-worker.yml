@@ -1,0 +1,11 @@
+server:
+  port: ${BAT_SERVER_PORT:8093}
+
+cpf:
+  framework:
+    module-id: BAT
+    was-id: ${WAS_ID:batWK01}
+  bat:
+    smoke:
+      run-on-startup: false
+      run-failure-on-startup: false

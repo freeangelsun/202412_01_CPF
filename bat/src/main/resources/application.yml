@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: bat
+  profiles:
+    active: bat-local
+    include: pfw
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
+server:
+  port: ${BAT_SERVER_PORT:8093}
+
+logging:
+  level:
+    root: INFO
+    cpf.pfw: INFO
+    cpf.bat: DEBUG
+
+cpf:
+  framework:
+    module-id: BAT
+    was-id: ${WAS_ID:batWK01}
+  bat:
+    smoke:
+      run-on-startup: ${CPF_BAT_SMOKE_RUN_ON_STARTUP:false}
+      run-failure-on-startup: ${CPF_BAT_SMOKE_RUN_FAILURE_ON_STARTUP:false}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+cpf:
+  bat:
+    smoke:
+      run-on-startup: false
+      run-failure-on-startup: false

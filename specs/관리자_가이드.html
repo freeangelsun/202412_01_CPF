@@ -34,10 +34,11 @@
       <tr><td>회원 관리</td><td><code>AdmMemberController</code>, <code>/adm/api/members</code></td><td><code>AdmMemberOperationService</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 잠금/해제, 권한 변경 이력을 조회합니다.</td></tr>
       <tr><td>로그 관제</td><td><code>AdmLogController</code>, <code>/adm/api/logs</code></td><td><code>AdmLogQueryService</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 조회합니다.</td></tr>
       <tr><td>배치 관제</td><td><code>AdmBatchController</code>, <code>/adm/api/batch</code></td><td><code>AdmBatchOperationService</code>, <code>PfwBatchScheduler</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>목록, 스케줄, 실행 이력, step, worker, lock, ghost, 영업일, 수행 대상, 관계를 관리합니다.</td></tr>
+      <tr><td>BAT 상태 확인</td><td><code>/bat/api/health</code></td><td><code>BatHealthController</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>BAT 독립 실행 상태와 smoke Job 결과를 확인합니다. ADM이 Job 실행 책임을 가져가지 않습니다.</td></tr>
       <tr><td>캐시 관리</td><td><code>AdmCacheController</code></td><td>ADM 캐시 운영 Service</td><td><code>pfw_cache_refresh_event</code></td><td>전체 refresh, key refresh, 이벤트 이력, 실패 이력을 제공합니다.</td></tr>
       <tr><td>메시지/코드/응답코드</td><td><code>AdmMessageController</code>, <code>AdmCodeController</code>, <code>AdmResponseCodeController</code></td><td>각 운영 Service</td><td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_response_code</code></td><td>등록, 수정, 비활성은 감사 사유와 cache refresh 연동을 기준으로 합니다.</td></tr>
       <tr><td>설정 관리</td><td><code>AdmConfigController</code></td><td>설정 운영 Service</td><td><code>pfw_config</code></td><td>secret은 직접 노출하지 않고 마스킹 또는 secret reference만 표시합니다.</td></tr>
-      <tr><td>보안 운영</td><td><code>AdmSecurityController</code></td><td><code>AdmSecurityOperationService</code>, <code>AdmPasswordPolicyService</code></td><td>ADM 보안 테이블</td><td>비밀번호 정책, OTP, IP allowlist, 세션 폐기, 로그인 감사 로그를 관리합니다.</td></tr>
+      <tr><td>보안 운영</td><td><code>AdmSecurityController</code></td><td><code>AdmSecurityOperationService</code>, <code>AdmPasswordPolicyService</code></td><td>ADM 보안 테이블</td><td>비밀번호 정책, OTP, IP allowlist, 세션 만료, 로그인 감사 로그를 관리합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -49,6 +50,7 @@
       <tr><th>항목</th><th>현재 기준</th><th>추가 고도화</th></tr>
       </thead>
       <tbody>
+      <tr><td>실행 책임</td><td>BAT가 PFW Batch 공통 API를 통해 Job을 실행합니다. ADM은 관제와 조치 요청을 담당합니다.</td><td>분산 worker pool과 작업 배정 정책을 확장합니다.</td></tr>
       <tr><td>영업일 수행</td><td>스케줄의 영업일 적용 여부, 수행 가능 시간, 휴일 정책을 기준으로 수행 후보를 계산합니다.</td><td>달력 월간 뷰와 휴일 일괄 업로드 UX를 확장합니다.</td></tr>
       <tr><td>수행 시뮬레이션</td><td><code>/adm/api/batch/schedules/{scheduleId}/simulation</code>으로 수행 후보일을 조회합니다.</td><td>브라우저 클릭 자동화로 결과 표시까지 검증합니다.</td></tr>
       <tr><td>선행/후행/트리거 관계</td><td><code>pfw_batch_job_relation</code> 기준으로 관계를 조회합니다.</td><td>그래프형 관계도 UX를 추가합니다.</td></tr>
@@ -67,8 +69,9 @@
       </thead>
       <tbody>
       <tr><td>정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로가 있는지 확인합니다.</td></tr>
-      <tr><td>runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱을 기동하고 health, OpenAPI, 배치 API, UI marker, cleanup을 검증합니다.</td></tr>
-      <tr><td>브라우저 클릭</td><td>별도 자동화 런타임 필요</td><td>런타임이 없으면 성공으로 보고하지 않고 미검증으로 남깁니다.</td></tr>
+      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/실패 Job, CPF 메타 연결을 확인합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱을 기동하고 health, OpenAPI, 배치 API, UI marker, cleanup을 검증합니다.</td></tr>
+      <tr><td>브라우저 클릭</td><td>별도 자동화 시나리오 필요</td><td>시나리오가 없으면 성공으로 보고하지 않고 미검증으로 남깁니다.</td></tr>
       </tbody>
     </table>
   </section>

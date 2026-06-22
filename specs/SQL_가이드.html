@@ -29,9 +29,24 @@
       <tbody>
       <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_response_code</code>, <code>pfw_message</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>업무 모듈은 PFW API로 접근합니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>프로젝트 공통 기능이 필요할 때 optional datasource로 붙입니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>ADM 운영 기능이 관리합니다.</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>ADM 운영 기능만 관리합니다.</td></tr>
       <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>회원 업무 모듈이 소유하고 ADM은 운영 API로 조회/조치합니다.</td></tr>
       <tr><td><code>bizadmDB</code>, <code>exsDB</code></td><td>업무 관리자와 대외 연계 예제</td><td><code>bizadm_*</code>, <code>exs_*</code></td><td>각 업무 구현체가 소유합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>배치 테이블 기준</h2>
+    <table>
+      <thead>
+      <tr><th>테이블 묶음</th><th>소유 의미</th><th>사용자</th><th>주의사항</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>BATCH_*</code></td><td>Spring Batch JobRepository 원천 실행 메타</td><td>Spring Batch 내부와 BAT</td><td>CPF 관제 편의를 위해 임의 컬럼을 추가하지 않습니다.</td></tr>
+      <tr><td><code>pfw_batch_*</code></td><td>CPF 운영 관제 메타</td><td>PFW Batch API, ADM, BAT</td><td>ADM 관제, 수동 실행, 재수행, 중지, worker, lock, ghost 조치에 사용합니다.</td></tr>
+      <tr><td><code>pfw_batch_instance</code></td><td>실행 인스턴스 등록</td><td>PFW Batch API</td><td>BAT smoke처럼 독립 worker가 먼저 실행되어도 FK 오류가 나지 않도록 PFW가 실행 인스턴스를 보장합니다.</td></tr>
+      <tr><td>신규 BAT 전용 테이블</td><td>이번 기준에서는 없음</td><td>해당 없음</td><td>요청 범위상 center-cut 또는 BAT 전용 테이블은 만들지 않고 기존 SQL을 우선 사용합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -74,9 +89,10 @@
       <tbody>
       <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td>테이블 prefix, 공통 컬럼, index/FK 네이밍 기준 통과</td></tr>
       <tr><td>설치 smoke</td><td><code>00_all_install_and_smoke.sql</code></td><td>DB 생성, Spring Batch 테이블, <code>pfw_batch_*</code>, <code>adm_*</code>, <code>mbr_*</code>, <code>bizadm_*</code>, <code>exs_*</code> 생성 확인</td></tr>
-      <tr><td>seed idempotent</td><td>seed SQL 재실행</td><td>중복 key 오류가 없고 대표 seed 테이블 row count가 불필요하게 증가하지 않아야 합니다.</td></tr>
+      <tr><td>seed idempotent</td><td>seed SQL 재실행</td><td>중복 key 오류가 없고 대상 seed 테이블 row count가 불필요하게 증가하지 않아야 합니다.</td></tr>
+      <tr><td>BAT runtime</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td><code>BATCH_*</code> execution id와 <code>pfw_batch_*</code> execution id가 함께 생성되어야 합니다.</td></tr>
       <tr><td>권한 분리</td><td>app 계정과 migration/root 계정</td><td>app 계정은 SELECT/DML 허용, CREATE/ALTER/DROP 차단입니다. migration/root 계정은 DDL이 가능해야 합니다.</td></tr>
-      <tr><td>문서 동기화</td><td>README, SQL 가이드, 기능 매트릭스, 안정화 리포트</td><td>실행한 검증과 미검증 항목을 문서에 일치시킵니다.</td></tr>
+      <tr><td>문서 동기화</td><td>README, SQL 가이드, 기능 매트릭스, 안정화 리포트</td><td>실행한 검증과 미검증 항목이 문서에 일치해야 합니다.</td></tr>
       </tbody>
     </table>
   </section>

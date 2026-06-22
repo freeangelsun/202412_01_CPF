@@ -27,12 +27,28 @@
       <tr><th>단계</th><th>작성 대상</th><th>기준</th><th>참고 샘플</th></tr>
       </thead>
       <tbody>
-      <tr><td>API</td><td>Controller, DTO</td><td>경로는 <code>/api/{domain}</code>, 운영 API는 <code>/adm/api/{domain}</code> 형식을 사용합니다.</td><td><code>xyz/edu/controller/XyzCrudEducationController.java</code></td></tr>
-      <tr><td>Service</td><td>업무 규칙, 트랜잭션</td><td>트랜잭션 경계는 Service 계층에서 잡고 외부 호출과 DB lock을 한 트랜잭션에 오래 묶지 않습니다.</td><td><code>xyz/edu/controller/XyzTransactionEducationController.java</code></td></tr>
+      <tr><td>API</td><td>Controller, DTO</td><td>업무 경로는 <code>/api/{domain}</code>, 운영 API는 <code>/adm/api/{domain}</code> 형식을 사용합니다. 모든 운영 API는 <code>@CpfTransaction</code> 메타를 둡니다.</td><td><code>xyz/edu/controller/XyzCrudEducationController.java</code></td></tr>
+      <tr><td>Service</td><td>업무 규칙, 트랜잭션</td><td>트랜잭션 경계는 Service 계층에 둡니다. 외부 호출과 DB lock을 긴 트랜잭션으로 묶지 않습니다.</td><td><code>xyz/edu/controller/XyzTransactionEducationController.java</code></td></tr>
       <tr><td>Repository/Mapper</td><td>DB 접근</td><td>업무 테이블은 업무 DB에 두고, PFW 테이블은 PFW API를 통해 사용합니다.</td><td><code>mbr/src/main/java/cpf/mbr/bse/mapper</code></td></tr>
       <tr><td>Validation</td><td>Request DTO, validator</td><td>입력값 검증은 Controller 진입 시점에 수행하고 오류 응답은 CPF 표준 예외로 통일합니다.</td><td><code>XyzSecurityEducationController</code></td></tr>
       <tr><td>Swagger</td><td>Tag, summary, description</td><td>운영자가 읽을 수 있는 한글 설명과 request/response example을 둡니다.</td><td><code>AdmBatchController</code></td></tr>
       <tr><td>Test</td><td>단위, 슬라이스, 통합</td><td>중요 서비스는 단위 테스트, API는 validation 테스트, DB 기능은 가능한 경우 통합 테스트를 둡니다.</td><td><code>adm/src/test/java</code>, <code>cmn/src/test/java</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>배치 개발 기준</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>기준</th><th>구현 위치</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>실행 책임</td><td>실제 Job/Step 실행은 BAT가 담당합니다. ADM은 조회, 수동 실행 요청, 재수행 요청, 중지 요청 같은 관제와 조치만 담당합니다.</td><td><code>bat/src/main/java/cpf/bat</code>, <code>adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java</code></td></tr>
+      <tr><td>공통 API 사용</td><td>BAT는 Spring Batch를 직접 호출하더라도 CPF 완료 기준에서는 <code>CpfBatchLauncher</code>를 통해 실행해야 합니다.</td><td><code>BatSmokeOperationService</code></td></tr>
+      <tr><td>JobRepository</td><td>Spring Batch 원천 메타는 <code>BATCH_*</code>에 기록합니다.</td><td><code>BatBatchRepositoryConfig</code></td></tr>
+      <tr><td>운영 메타</td><td>CPF 관제 메타는 <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>에 기록합니다.</td><td><code>CpfBatchOperationRepository</code></td></tr>
+      <tr><td>최소 검증</td><td>정상 Job과 실패 Job을 모두 실행해 Spring Batch execution id, step execution id, CPF execution id, transactionGlobalId 연결을 확인합니다.</td><td><code>scripts/smoke-bat-runtime.ps1</code></td></tr>
       </tbody>
     </table>
   </section>
@@ -47,11 +63,11 @@
       <tr><td>CRUD API 작성</td><td><code>XyzCrudEducationController</code></td><td>표준 응답, validation, paging/sorting/search</td></tr>
       <tr><td>거래 헤더 사용</td><td><code>XyzTransactionEducationController</code></td><td>거래 ID, trace ID, channel, idempotency key 전달</td></tr>
       <tr><td>CMN 공통 기능 사용</td><td><code>XyzCmnBusinessEducationController</code></td><td>업무 채번, 업무 알림 로그, 업무 로그 호출 방식</td></tr>
-      <tr><td>배치 개발</td><td><code>XyzBatchEducationController</code></td><td>tasklet, chunk, retry, skip, 수동 실행, ADM 관제 연동</td></tr>
+      <tr><td>배치 개발</td><td><code>XyzBatchEducationController</code>, <code>BatSmokeJobConfig</code></td><td>tasklet, chunk, retry, skip, 수동 실행, ADM 관제 연동, BAT 독립 실행</td></tr>
       <tr><td>대외 API 호출</td><td><code>XyzServiceCallEducationController</code></td><td>timeout, retry, correlation id, 오류 매핑</td></tr>
       <tr><td>파일 업로드/다운로드</td><td><code>XyzFileExchangeEducationController</code></td><td>확장자, 크기, path traversal, 다운로드 감사</td></tr>
       <tr><td>전문 처리</td><td><code>XyzTelegramEducationController</code></td><td>JSON 전문과 고정길이 전문 parsing, 필드 정의</td></tr>
-      <tr><td>보안 점검</td><td><code>XyzSecurityEducationController</code></td><td>SQL Injection, XSS, 마스킹, 내부 오류 노출 방지</td></tr>
+      <tr><td>보안 자가점검</td><td><code>XyzSecurityEducationController</code></td><td>SQL Injection, XSS, 마스킹, 내부 오류 노출 방지</td></tr>
       </tbody>
     </table>
   </section>
@@ -65,9 +81,9 @@
       <tbody>
       <tr><td>소스</td><td>Controller, Service, Repository/Mapper, DTO, validation, Swagger 설명이 일치합니다.</td></tr>
       <tr><td>SQL</td><td>테이블명은 주제영역 prefix를 사용하고 모든 테이블에 생성/수정 공통 컬럼을 둡니다.</td></tr>
-      <tr><td>문서</td><td>README는 진입점으로 유지하고 상세는 HTML 가이드에 현행화합니다.</td></tr>
+      <tr><td>문서</td><td>README는 진입점으로 유지하고 상세는 HTML 가이드에 반영합니다.</td></tr>
       <tr><td>EDU</td><td>새 기능은 개발자가 참고할 수 있는 교육 샘플이나 샘플 매트릭스 연결을 제공합니다.</td></tr>
-      <tr><td>검증</td><td>실행하지 않은 검증은 성공으로 쓰지 않고 미검증으로 구분합니다.</td></tr>
+      <tr><td>검증</td><td>실행하지 않은 검증은 성공으로 적지 않고 미검증으로 구분합니다.</td></tr>
       </tbody>
     </table>
   </section>

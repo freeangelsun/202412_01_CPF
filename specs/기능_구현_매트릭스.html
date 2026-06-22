@@ -27,12 +27,13 @@
     <h2>기능별 상태</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>기능</th><th>상태</th><th>주요 증거</th><th>검증</th><th>남은 리스크</th></tr>
+      <tr><th>영역</th><th>기능</th><th>상태</th><th>주요 증거</th><th>검증</th><th>잔여 리스크</th></tr>
       </thead>
       <tbody>
       <tr><td>PFW</td><td>거래 ID와 표준 헤더</td><td class="done">구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>LoggingAspect</code></td><td>컴파일, transaction ID 표준 검사, MariaDB smoke</td><td>운영 로그 데이터는 실제 운영일 기준으로 지속 점검해야 합니다.</td></tr>
       <tr><td>PFW</td><td>표준 응답과 예외</td><td class="partial">부분 구현</td><td><code>CpfGlobalExceptionHandler</code>, <code>pfw_response_code</code>, <code>pfw_message</code></td><td>단위 테스트, OpenAPI smoke</td><td>공통 오류 schema와 예외 케이스별 통합 테스트를 계속 보강해야 합니다.</td></tr>
-      <tr><td>PFW</td><td>Batch 공통 API</td><td class="partial">부분 구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>pfw_batch_*</code>, <code>BATCH_*</code></td><td>MariaDB smoke, ADM runtime smoke</td><td>실시간 heartbeat listener, ghost 자동 감지, 실제 JobRepository 부하 시나리오가 다음 단계입니다.</td></tr>
+      <tr><td>PFW</td><td>Batch 공통 API</td><td class="done">구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>pfw_batch_*</code>, <code>BATCH_*</code></td><td>BAT runtime smoke, MariaDB smoke, ADM runtime smoke</td><td>실시간 heartbeat listener와 장시간 Job 부하 시나리오는 다음 단계입니다.</td></tr>
+      <tr><td>BAT</td><td>독립 배치 worker</td><td class="done">구현</td><td><code>BatApplication</code>, <code>BatSmokeJobConfig</code>, <code>BatHealthController</code>, <code>scripts/smoke-bat-runtime.ps1</code></td><td><code>:bat:test</code>, <code>:bat:bootJar</code>, BAT runtime smoke</td><td>운영용 실제 Job 묶음과 worker pool 배정 정책은 프로젝트별로 확장해야 합니다.</td></tr>
       <tr><td>CMN</td><td>프로젝트 공통 채번/알림/로그</td><td class="partial">부분 구현</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code></td><td>CMN 테스트, 동시성 테스트</td><td>프로젝트별 보존 정책과 업무별 확장 규칙은 적용 프로젝트에서 확정해야 합니다.</td></tr>
       <tr><td>ADM</td><td>운영자 권한</td><td class="partial">부분 구현</td><td><code>AdmApiAuthFilter</code>, <code>AdmPermissionController</code>, <code>adm_role</code>, <code>adm_button</code></td><td>정적 UI smoke, ADM runtime smoke</td><td>서버 권한 차단 통합 테스트와 버튼 비활성 사유 UX 검증이 남아 있습니다.</td></tr>
       <tr><td>ADM</td><td>회원 관리</td><td class="partial">부분 구현</td><td><code>AdmMemberController</code>, <code>AdmMemberOperationService</code>, <code>mbr_member</code>, <code>mbr_member_role</code></td><td>정적 UI smoke, MariaDB smoke</td><td>회원 등록/수정/상태 변경 전체 E2E 검증이 필요합니다.</td></tr>
@@ -42,7 +43,7 @@
       <tr><td>BIZADM</td><td>업무 관리자 기본 구현</td><td class="partial">부분 구현</td><td><code>BizAdmAuthController</code>, <code>BizAdmOperationController</code></td><td>서비스 테스트, MariaDB smoke</td><td>Controller부터 DB까지 이어지는 통합 테스트를 추가해야 합니다.</td></tr>
       <tr><td>MBR</td><td>회원 업무 구현</td><td class="partial">부분 구현</td><td><code>MbrController</code>, <code>MbrAuthController</code>, <code>MemberMapper</code></td><td>서비스 테스트, MariaDB smoke</td><td>회원 상태 전환, 탈퇴/복구, 권한 만료 통합 테스트가 필요합니다.</td></tr>
       <tr><td>EXS</td><td>대외 연계 구현</td><td class="partial">부분 구현</td><td><code>ExsOperationController</code>, <code>ExsFlowController</code>, <code>exs_*</code></td><td>서비스 테스트, MariaDB smoke</td><td>실제 기관 adapter, token refresh, retry worker 검증이 필요합니다.</td></tr>
-      <tr><td>XYZ EDU</td><td>교육 샘플</td><td class="partial">부분 구현</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>컴파일, OpenAPI smoke</td><td>배치 유형별 샘플과 학습용 주석은 계속 보강해야 합니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>교육 샘플</td><td class="partial">부분 구현</td><td><code>xyz/src/main/java/cpf/xyz/edu</code>, <code>BatSmokeJobConfig</code></td><td>컴파일, OpenAPI smoke, BAT smoke</td><td>업무별 실제 배치 샘플은 프로젝트 도메인에 맞춰 계속 보강해야 합니다.</td></tr>
       <tr><td>SQL/Flyway</td><td>설치와 migration</td><td class="done">구현</td><td><code>specs/sql</code>, Flyway V1부터 V9까지 migration</td><td>SQL 표준 검사, MariaDB 전체 설치, seed 재실행, 권한 분리, FK/index/comment/감사 컬럼 smoke</td><td>Gradle Flyway task는 아직 등록되어 있지 않아 파일과 실제 DB 기준으로 대체 검증했습니다.</td></tr>
       <tr><td>Swagger/OpenAPI</td><td>API 문서</td><td class="partial">부분 구현</td><td>Controller annotation, <code>PfwOpenApiAutoConfiguration</code></td><td>ADM runtime smoke에서 OpenAPI smoke 통과</td><td>OpenAPI JSON 품질 gate를 CI 산출물로 고정하는 작업이 남아 있습니다.</td></tr>
       </tbody>

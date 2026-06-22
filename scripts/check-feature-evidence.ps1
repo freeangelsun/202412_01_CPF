@@ -60,6 +60,19 @@ Test-RequiredFile "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLauncher.java"
 Test-RequiredFile "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java" "PFW_BATCH_OPERATION_REPOSITORY"
 Test-RequiredFile "pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java" "PFW_OPENAPI_CONFIG"
 
+# BAT independent worker evidence.
+Test-RequiredText "settings.gradle" "include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm', 'bizadm', 'exs', 'bat'" "BAT_SETTINGS_INCLUDE"
+Test-RequiredFile "bat/build.gradle" "BAT_BUILD"
+Test-RequiredFile "bat/src/main/java/cpf/bat/BatApplication.java" "BAT_APPLICATION"
+Test-RequiredFile "bat/src/main/java/cpf/bat/config/BatBatchRepositoryConfig.java" "BAT_BATCH_REPOSITORY_CONFIG"
+Test-RequiredFile "bat/src/main/java/cpf/bat/job/BatSmokeJobConfig.java" "BAT_SMOKE_JOB_CONFIG"
+Test-RequiredFile "bat/src/main/java/cpf/bat/operation/BatSmokeOperationService.java" "BAT_SMOKE_OPERATION_SERVICE"
+Test-RequiredFile "bat/src/main/java/cpf/bat/operation/BatHealthController.java" "BAT_HEALTH_CONTROLLER"
+Test-RequiredFile "bat/src/test/java/cpf/bat/operation/BatSmokeOperationServiceTest.java" "BAT_OPERATION_TEST"
+Test-RequiredFile "scripts/smoke-bat-runtime.ps1" "SMOKE_BAT_RUNTIME"
+Test-RequiredText "README.md" "scripts/smoke-bat-runtime.ps1" "BAT_DOC_README_SMOKE"
+Test-RequiredText "README.md" "BatApplication" "BAT_DOC_README_MODULE"
+
 # CMN project common evidence.
 Test-RequiredFile "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceService.java" "CMN_SEQUENCE_SERVICE"
 Test-RequiredFile "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogService.java" "CMN_NOTIFICATION_LOG_SERVICE"

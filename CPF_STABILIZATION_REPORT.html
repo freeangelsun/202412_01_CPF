@@ -2,191 +2,109 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 리포트</title>
+  <title>CPF 안정화 작업 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1440px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
-    h1, h2, h3 { color: #111827; }
-    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; font-size: 13px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px 10px; vertical-align: top; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
     th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #047857; font-weight: 700; }
-    .warn { color: #b45309; font-weight: 700; }
-    .fail { color: #b91c1c; font-weight: 700; }
-    .muted { color: #6b7280; }
+    .done { color: #047857; font-weight: 700; }
+    .skipped { color: #6b7280; font-weight: 700; }
+    .risk { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 리포트</h1>
-    <p>리포트 범위는 MariaDB 전체 설치 SQL 재실행, seed idempotent, Flyway와 all install 정합성, DB 권한 분리, FK/index/comment/공통 감사 컬럼 smoke, README와 SQL 가이드와 기능 매트릭스 현행화입니다. 실행하지 않은 검증은 성공으로 기록하지 않았습니다.</p>
-    <table>
-      <tbody>
-      <tr><th>작성일</th><td>2026-06-22</td></tr>
-      <tr><th>작업 범위</th><td>MariaDB 실실행 검증과 문서 현행화</td></tr>
-      <tr><th>최종 판정</th><td class="ok">완료</td></tr>
-      <tr><th>비밀번호 기록 기준</th><td>DB 비밀번호와 secret 값은 리포트에 평문으로 기록하지 않았습니다.</td></tr>
-      </tbody>
-    </table>
+    <h1>CPF 안정화 작업 리포트</h1>
+    <p>이번 작업은 요청서 기준으로 BAT 독립 실행 모듈을 추가하고, Spring Batch JobRepository와 CPF Batch 운영 메타의 연결을 실제 runtime smoke로 확인하는 데 초점을 두었습니다. 실행하지 않은 검증은 성공으로 적지 않고 별도 상태로 남겼습니다.</p>
   </section>
 
   <section>
-    <h2>현재 상태 점검</h2>
+    <h2>작업 전 리뷰</h2>
     <table>
       <thead>
-      <tr><th>점검 항목</th><th>상태</th><th>확인 내용</th></tr>
+      <tr><th>항목</th><th>확인 내용</th><th>판단</th></tr>
       </thead>
       <tbody>
-      <tr><td>전체 설치 SQL</td><td class="ok">완료</td><td><code>specs/sql/00_all_install.sql</code>, <code>specs/sql/00_all_install_and_smoke.sql</code> 존재 확인</td></tr>
-      <tr><td>분리 SQL</td><td class="ok">완료</td><td><code>01_create_databases.sql</code>, <code>02_create_service_users.sql</code>, <code>10_pfw_schema.sql</code>, <code>20_cmn_schema.sql</code>, <code>30_adm_schema.sql</code>, <code>40_business_modules_schema.sql</code>, <code>50_framework_seed_data.sql</code>, <code>55_cmn_seed_data.sql</code>, <code>60_adm_seed_data.sql</code>, <code>70_test_data.sql</code>, <code>99_smoke_check.sql</code></td></tr>
-      <tr><td>Flyway migration</td><td class="ok">완료</td><td><code>V1__cpf_baseline_install.sql</code>부터 <code>V9__batch_worker_ghost_operations.sql</code>까지 확인</td></tr>
-      <tr><td>service user 기준</td><td class="ok">완료</td><td>migration 계정은 DDL/DML, app 계정은 DML 중심으로 생성되도록 SQL 확인</td></tr>
-      <tr><td>직전 리포트</td><td class="warn">상황 확인 필요</td><td>작업 시작 시 안정화 리포트 파일은 0바이트였으므로 직전 DB 미검증 항목은 요청서와 현재 파일 기준으로 재평가했습니다.</td></tr>
-      <tr><td>문서 상태</td><td class="ok">완료</td><td>README, SQL 가이드, 기능 매트릭스를 이번 검증 결과 기준으로 갱신했습니다.</td></tr>
-      <tr><td>BAT 분리 영향</td><td class="ok">완료</td><td>이번 작업은 SQL 검증 범위이며 BAT 분리와 센터컷 확장 구조를 변경하지 않았습니다.</td></tr>
+      <tr><td>BAT 모듈</td><td>독립 실행 배치 worker 모듈이 필요했습니다.</td><td class="done">구현 대상으로 확정</td></tr>
+      <tr><td>ADM 책임</td><td>ADM은 실행 주체가 아니라 관제와 조치 콘솔이어야 합니다.</td><td class="done">책임 분리 유지</td></tr>
+      <tr><td>SQL 범위</td><td>요청 범위에서는 신규 center-cut 또는 BAT 전용 테이블을 만들지 않습니다.</td><td class="done">기존 Spring Batch와 CPF 배치 테이블 사용</td></tr>
+      <tr><td>검증 기준</td><td>jar 단독 기동, health, Job/Step E2E, Spring Batch ID와 CPF 메타 ID 연결이 완료 기준입니다.</td><td class="done">runtime smoke 기준 반영</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>MariaDB 전체 설치 SQL 실행 결과</h2>
+    <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>상태</th><th>결과</th></tr>
+      <tr><th>영역</th><th>내용</th><th>대표 위치</th></tr>
       </thead>
       <tbody>
-      <tr><td>MariaDB client</td><td class="ok">완료</td><td><code>C:\Program Files\MariaDB 12.3\bin\mysql.exe</code>, MariaDB client 12.3.2 확인</td></tr>
-      <tr><td>root 접속</td><td class="ok">완료</td><td><code>--ssl=0</code> 옵션으로 로컬 root 접속 확인. TLS 기본 접속은 로컬 인증서 문제로 실패했으나 SSL 비활성 로컬 접속은 정상입니다.</td></tr>
-      <tr><td>1차 설치와 smoke</td><td class="ok">완료</td><td><code>00_all_install_and_smoke.sql</code> 실행 성공. smoke query가 정상 출력되었습니다.</td></tr>
-      <tr><td>전체 설치 SQL 재실행</td><td class="ok">완료</td><td><code>00_all_install_and_smoke.sql</code> 재실행 성공. 재생성 후 smoke query가 다시 정상 출력되었습니다.</td></tr>
-      <tr><td>생성 DB</td><td class="ok">완료</td><td><code>pfwDB</code>, <code>admDB</code>, <code>mbrDB</code>, <code>cmnDB</code>, <code>accDB</code>, <code>bizadmDB</code>, <code>exsDB</code> 생성 확인</td></tr>
-      <tr><td>주요 테이블 계열</td><td class="ok">완료</td><td><code>pfwDB</code>에 Spring Batch <code>BATCH_*</code> 9개, <code>pfw_batch_*</code> 11개 확인. <code>adm_*</code> 16개, <code>mbr_*</code> 5개, <code>bizadm_*</code> 15개, <code>exs_*</code> 11개 확인</td></tr>
+      <tr><td>BAT 모듈</td><td>독립 Spring Boot 배치 애플리케이션, JobRepository 구성, smoke Job과 실패 Job, health API를 추가했습니다.</td><td><code>bat</code></td></tr>
+      <tr><td>PFW Batch</td><td>BAT worker가 먼저 실행되어도 CPF 배치 실행 인스턴스 FK 오류가 나지 않도록 실행 인스턴스 보장을 추가했습니다. JobExecution 상태가 FAILED일 때 메시지와 이벤트도 실패로 내려가도록 보강했습니다.</td><td><code>CpfBatchOperationRepository</code>, <code>CpfBatchLauncher</code></td></tr>
+      <tr><td>Runtime smoke</td><td>BAT jar를 실제로 띄우고 health, 정상 Job, 실패 Job, Spring Batch execution id, CPF execution id, transactionGlobalId, step id를 검증하는 스크립트를 추가했습니다.</td><td><code>scripts/smoke-bat-runtime.ps1</code></td></tr>
+      <tr><td>문서</td><td>README, 문서 인덱스, 프레임워크 구성, 개발, 관리자, SQL, 기능 매트릭스를 BAT 기준과 역할 경계에 맞게 현행화했습니다.</td><td><code>README</code>, <code>specs</code></td></tr>
+      <tr><td>품질 gate</td><td>오프라인 검증을 막던 외부 Build Scan 필수 플러그인을 제거하고, 기능 증거 검사에 BAT 항목을 추가했습니다.</td><td><code>settings.gradle</code>, <code>check-feature-evidence.ps1</code></td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>Seed Idempotent 검증</h2>
-    <p>전체 설치 후 기존 DB 위에 seed SQL 네 개를 재실행했습니다. 중복 key 오류는 발생하지 않았고 대표 seed 테이블 row count도 증가하지 않았습니다.</p>
+    <h2>BAT smoke 증거</h2>
     <table>
       <thead>
-      <tr><th>테이블</th><th>재실행 전</th><th>재실행 후</th><th>판정</th></tr>
+      <tr><th>항목</th><th>결과</th><th>증거</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw_code</code></td><td>41</td><td>41</td><td class="ok">완료</td></tr>
-      <tr><td><code>pfw_message</code></td><td>31</td><td>31</td><td class="ok">완료</td></tr>
-      <tr><td><code>pfw_response_code</code></td><td>28</td><td>28</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_operator</code></td><td>1</td><td>1</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_role</code></td><td>5</td><td>5</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_menu</code></td><td>17</td><td>17</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_button</code></td><td>60</td><td>60</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_role_menu</code></td><td>65</td><td>65</td><td class="ok">완료</td></tr>
-      <tr><td><code>adm_role_button</code></td><td>300</td><td>300</td><td class="ok">완료</td></tr>
-      <tr><td><code>pfw_batch_job</code></td><td>3</td><td>3</td><td class="ok">완료</td></tr>
-      <tr><td><code>pfw_batch_schedule</code></td><td>2</td><td>2</td><td class="ok">완료</td></tr>
-      <tr><td><code>pfw_business_day_calendar</code></td><td>2</td><td>2</td><td class="ok">완료</td></tr>
+      <tr><td>Health</td><td class="done">UP</td><td>BAT profile은 <code>pfw</code>, <code>bat-local</code>로 기동했고 PFW DB 연결이 UP으로 확인되었습니다.</td></tr>
+      <tr><td>정상 Job</td><td class="done">COMPLETED</td><td>CPF execution id <code>12</code>, Spring Batch execution id <code>10</code>, transactionGlobalId <code>20260622202749842BATsmoke010000004</code></td></tr>
+      <tr><td>실패 Job</td><td class="done">FAILED</td><td>CPF execution id <code>13</code>, Spring Batch execution id <code>11</code>, transactionGlobalId <code>20260622202750204BATsmoke010000005</code></td></tr>
+      <tr><td>Step linkage</td><td class="done">확인</td><td>정상/실패 Job 모두 <code>pfw_batch_step_execution</code>에 Spring Batch step execution id가 연결되었습니다.</td></tr>
+      <tr><td>Cleanup</td><td class="done">확인</td><td>BAT smoke 종료 후 기동 프로세스를 정리했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>Flyway와 all install 정합성</h2>
+    <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>점검 항목</th><th>상태</th><th>결과</th></tr>
+      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td>V9 migration 파일</td><td class="ok">완료</td><td><code>V9__batch_worker_ghost_operations.sql</code> 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_worker</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_ghost_event</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_execution.server_instance_id</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_execution.worker_id</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_execution.transaction_global_id</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_step_execution.spring_batch_step_execution_id</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td><code>pfw_batch_step_execution.worker_id</code></td><td class="ok">완료</td><td>V9, all install, 실제 DB 모두 존재 확인</td></tr>
-      <tr><td>Gradle Flyway task</td><td class="warn">미검증</td><td>현재 Gradle build 파일에 Flyway 플러그인이나 task가 없어 <code>flywayInfo</code>, <code>flywayMigrate</code>는 실행하지 않았습니다. 파일 정합성과 실제 DB 반영으로 대체 검증했습니다.</td></tr>
+      <tr><td><code>:bat:test --offline</code></td><td class="done">통과</td><td>BAT 서비스/컨트롤러 단위 테스트 통과</td></tr>
+      <tr><td><code>:bat:bootJar --offline</code></td><td class="done">통과</td><td>실행 jar 생성 확인</td></tr>
+      <tr><td><code>scripts/smoke-bat-runtime.ps1</code></td><td class="done">통과</td><td>health, 정상 Job, 실패 Job, ID 연결, cleanup 확인</td></tr>
+      <tr><td><code>test --offline</code></td><td class="done">통과</td><td>전체 모듈 테스트 통과</td></tr>
+      <tr><td><code>qualityGate --offline</code></td><td class="done">통과</td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거 검사 통과</td></tr>
+      <tr><td>UTF-8와 mojibake 검사</td><td class="done">통과</td><td>공식 검사 스크립트 기준 통과</td></tr>
+      <tr><td>HTML 문서 검사</td><td class="done">통과</td><td>specs HTML과 안정화 리포트 구조 통과</td></tr>
+      <tr><td>SQL 표준 검사</td><td class="done">통과</td><td>테이블 prefix, 공통 컬럼, SQL 표준 검사 통과</td></tr>
+      <tr><td>ADM runtime smoke</td><td class="done">통과</td><td>ADM health, OpenAPI, 배치 API, 정적 UI smoke, cleanup 확인</td></tr>
+      <tr><td>ADM 브라우저 클릭</td><td class="skipped">미수행</td><td>브라우저 자동화 runtime이 PATH에 없어 클릭 검증은 수행하지 않았습니다.</td></tr>
+      <tr><td>전체 설치 SQL 재실행</td><td class="skipped">미수행</td><td>이번 요청 범위는 BAT 독립 실행 안정화였고, 전체 DB 재설치성 검증은 수행하지 않았습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>DB 권한 검증</h2>
+    <h2>남은 리스크와 다음 보강</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>기대값</th><th>결과</th><th>판정</th></tr>
+      <tr><th>구분</th><th>내용</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>app 계정 SELECT</td><td>허용</td><td><code>pfw_code</code> 조회 성공</td><td class="ok">완료</td></tr>
-      <tr><td>app 계정 INSERT/UPDATE/DELETE</td><td>허용</td><td>root가 만든 임시 DML 검증 테이블에서 DML 성공</td><td class="ok">완료</td></tr>
-      <tr><td>app 계정 CREATE</td><td>차단</td><td>CREATE 권한 거부 확인</td><td class="ok">완료</td></tr>
-      <tr><td>app 계정 ALTER</td><td>차단</td><td>ALTER 권한 거부 확인</td><td class="ok">완료</td></tr>
-      <tr><td>app 계정 DROP</td><td>차단</td><td>DROP 권한 거부 확인</td><td class="ok">완료</td></tr>
-      <tr><td>migration 계정 CREATE/ALTER/DROP</td><td>허용</td><td>임시 테이블 생성, 컬럼 추가, 삭제 성공</td><td class="ok">완료</td></tr>
-      <tr><td>root 계정 CREATE/DROP</td><td>허용</td><td>임시 테이블 생성과 삭제 성공</td><td class="ok">완료</td></tr>
-      <tr><td>검증 테이블 정리</td><td>정리</td><td>임시 검증 테이블 삭제 완료</td><td class="ok">완료</td></tr>
+      <tr><td>브라우저 클릭 검증</td><td>ADM 실제 화면 클릭 자동화는 이번 범위에서 수행하지 않았습니다.</td><td>Playwright 또는 Selenium 시나리오를 별도 추가합니다.</td></tr>
+      <tr><td>운영 배치</td><td>BAT 독립 실행 기준 Job은 검증했지만, 실제 업무 Job 묶음과 worker pool 배정 정책은 프로젝트별 확장이 필요합니다.</td><td>업무 Job 템플릿, worker 배정 정책, 장시간 Job listener를 추가합니다.</td></tr>
+      <tr><td>Broker 연동</td><td>Redis/Kafka 실 broker 장애 시나리오는 이번 범위가 아닙니다.</td><td>별도 broker 환경에서 fallback 장애 시나리오를 검증합니다.</td></tr>
+      <tr><td>전체 DB 재설치</td><td>전체 설치 SQL 재실행은 데이터 초기화 영향이 있어 이번 작업에서 수행하지 않았습니다.</td><td>필요 시 별도 승인 후 MariaDB 전체 설치와 seed idempotent를 재검증합니다.</td></tr>
       </tbody>
     </table>
-  </section>
-
-  <section>
-    <h2>FK / Index / Comment / 공통 감사 컬럼 검증</h2>
-    <p>요청 대상 테이블은 모두 존재했습니다. 모든 대상 테이블에 <code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code> 4개 감사 컬럼이 존재했고, 컬럼 comment 누락은 0건이었습니다. FK가 0건인 독립 기준 테이블은 참조를 받는 기준 테이블 성격으로 확인했습니다.</p>
-    <table>
-      <thead>
-      <tr><th>영역</th><th>대상</th><th>테이블</th><th>index</th><th>FK</th><th>감사 컬럼</th><th>comment</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>PFW Batch</td><td>7개</td><td class="ok">모두 존재</td><td class="ok">모두 존재</td><td class="ok">관계 테이블 FK 존재</td><td class="ok">모두 4개</td><td class="ok">누락 0건</td></tr>
-      <tr><td>ADM</td><td>5개</td><td class="ok">모두 존재</td><td class="ok">모두 존재</td><td class="ok">관계 테이블 FK 존재</td><td class="ok">모두 4개</td><td class="ok">누락 0건</td></tr>
-      <tr><td>MBR</td><td>3개</td><td class="ok">모두 존재</td><td class="ok">모두 존재</td><td class="ok">이력/token FK 존재</td><td class="ok">모두 4개</td><td class="ok">누락 0건</td></tr>
-      <tr><td>BIZADM</td><td>3개</td><td class="ok">모두 존재</td><td class="ok">모두 존재</td><td class="ok">이력/token FK 존재</td><td class="ok">모두 4개</td><td class="ok">누락 0건</td></tr>
-      <tr><td>EXS</td><td>3개</td><td class="ok">모두 존재</td><td class="ok">모두 존재</td><td class="warn">독립 로그/기준 테이블은 FK 0건</td><td class="ok">모두 4개</td><td class="ok">누락 0건</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>검증 명령 결과</h2>
-    <table>
-      <thead>
-      <tr><th>명령</th><th>결과</th><th>비고</th></tr>
-      </thead>
-      <tbody>
-      <tr><td><code>mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></td><td class="ok">성공</td><td>1차 실행과 재실행 모두 성공</td></tr>
-      <tr><td><code>seed SQL 재실행</code></td><td class="ok">성공</td><td>framework, cmn, adm, test data seed 재실행 성공</td></tr>
-      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL standard check passed</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="ok">성공</td><td>리포트 작성 후 재실행하여 HTML docs check passed 확인</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8 check passed</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>BUILD SUCCESSFUL</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:bootJar --offline</code></td><td class="ok">성공</td><td>BUILD SUCCESSFUL</td></tr>
-      <tr><td><code>scripts/smoke-adm-runtime.ps1</code></td><td class="ok">성공</td><td>OpenAPI smoke, ADM UI smoke, ADM runtime smoke 통과</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거 검사 통과</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>미검증 항목과 다음 조치</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>사유와 다음 조치</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>Flyway Gradle task 실행</td><td class="warn">미검증</td><td>현재 Gradle task가 없어 실행하지 않았습니다. 다음 작업에서 Flyway 플러그인 도입 여부를 결정하고 task를 표준화해야 합니다.</td></tr>
-      <tr><td>ADM 브라우저 실제 클릭 자동화</td><td class="warn">미검증</td><td>이번 요청 범위 제외입니다. 다음 작업에서 브라우저 자동화 도구와 시나리오를 붙여야 합니다.</td></tr>
-      <tr><td>Batch listener heartbeat와 ghost 자동 감지</td><td class="warn">미구현</td><td>이번 요청 범위 제외입니다. BAT 분리 작업 때 worker runtime과 함께 다루는 것이 좋습니다.</td></tr>
-      <tr><td>BAT standalone 모듈과 센터컷 기본 구현</td><td class="warn">미구현</td><td>이번 요청 범위 제외입니다. 다음 보강 후보로 남깁니다.</td></tr>
-      <tr><td>온라인/배치 로그 정책과 거래 메타 자동 등록</td><td class="warn">미구현</td><td>이번 요청 범위 제외입니다. BAT/센터컷 설계와 함께 정리해야 합니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>최종 판단</h2>
-    <p class="ok">MariaDB 전체 설치 SQL 실실행, seed idempotent, DB 권한 분리, Flyway V9와 all install 정합성, FK/index/comment/공통 감사 컬럼 smoke는 완료로 판단합니다.</p>
-    <p>다음 보강 우선순위는 ADM 브라우저 클릭 자동화, Batch listener heartbeat와 ghost 자동 감지, BAT standalone 모듈, 센터컷 기본 구현, 온라인/배치 로그 정책과 거래 메타 자동 등록입니다.</p>
   </section>
 </main>
 </body>

@@ -112,12 +112,22 @@ public class CpfBatchLauncher {
                     transactionGlobalId,
                     failureMessage(execution),
                     execution);
+            String executionStatus = execution.getStatus().name();
+            String executionFailureMessage = failureMessage(execution);
+            boolean completed = "COMPLETED".equals(executionStatus);
+            String executionMessage = completed
+                    ? "배치 실행이 완료되었습니다."
+                    : defaultIfBlank(executionFailureMessage, "배치 실행이 완료 상태가 아닙니다. status=" + executionStatus);
             repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
             repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
-                    "SPRING_BATCH_EXECUTION_ID=" + execution.getId(), "S", execution.getStatus().name());
-            publish(CpfBatchEventType.RUN_COMPLETED, jobId, pfwExecutionId, transactionGlobalId,
-                    "배치 실행이 완료되었습니다.", Map.of("springBatchExecutionId", execution.getId()));
-            return result(true, jobId, pfwExecutionId, execution.getId(), execution.getStatus().name(), "배치 실행이 완료되었습니다.");
+                    "SPRING_BATCH_EXECUTION_ID=" + execution.getId(), completed ? "S" : "F", executionStatus);
+            publish(completed ? CpfBatchEventType.RUN_COMPLETED : CpfBatchEventType.RUN_FAILED,
+                    jobId,
+                    pfwExecutionId,
+                    transactionGlobalId,
+                    executionMessage,
+                    Map.of("springBatchExecutionId", execution.getId()));
+            return result(true, jobId, pfwExecutionId, execution.getId(), executionStatus, executionMessage);
         } catch (Exception ex) {
             long executionId = repository.available()
                     ? repository.insertExecution(
@@ -265,5 +275,9 @@ public class CpfBatchLauncher {
             return number.longValue();
         }
         return Long.parseLong(String.valueOf(value));
+    }
+
+    private String defaultIfBlank(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

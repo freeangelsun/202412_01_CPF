@@ -1,6 +1,6 @@
 /*
- * Gradle plugin management must stay at the top of this file.
- * Build Scan terms are accepted here so local Gradle runs do not prompt.
+ * Gradle plugin management는 settings 파일 최상단에 유지합니다.
+ * 품질 gate는 offline 실행을 기본으로 보장해야 하므로 외부 Build Scan 플러그인은 필수 경로에서 제외합니다.
  */
 pluginManagement {
     repositories {
@@ -9,21 +9,9 @@ pluginManagement {
     }
 }
 
-plugins {
-    id 'com.gradle.enterprise' version '3.15'
-}
-
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree = "yes"
-        tag "CPF_PROJECT"
-    }
-}
-
 rootProject.name = 'cpf-coreflow-platform-framework'
 
-include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm', 'bizadm', 'exs'
+include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm', 'bizadm', 'exs', 'bat'
 // Additional business modules can be added here when needed.
 // include 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
 
@@ -35,3 +23,4 @@ project(':xyz').projectDir = file('xyz')
 project(':adm').projectDir = file('adm')
 project(':bizadm').projectDir = file('bizadm')
 project(':exs').projectDir = file('exs')
+project(':bat').projectDir = file('bat')

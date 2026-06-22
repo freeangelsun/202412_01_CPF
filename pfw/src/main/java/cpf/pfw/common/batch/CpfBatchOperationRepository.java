@@ -74,6 +74,7 @@ public class CpfBatchOperationRepository {
         }
         String user = request.normalizedRequestUser("PFW_BATCH");
         BatchCounts counts = BatchCounts.from(jobExecution);
+        ensureBatchInstance(batchInstanceId, serverInstanceId, user);
         jdbc().update("""
                 INSERT INTO pfw_batch_execution (
                     job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
@@ -108,6 +109,33 @@ public class CpfBatchOperationRepository {
             insertStepExecutions(executionId, jobExecution, workerId, user);
         }
         return executionId;
+    }
+
+    private void ensureBatchInstance(String batchInstanceId, String serverInstanceId, String requestUser) {
+        if (batchInstanceId == null || batchInstanceId.isBlank()) {
+            return;
+        }
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
+        String instanceName = defaultIfBlank(serverInstanceId, batchInstanceId);
+        jdbc().update("""
+                INSERT INTO pfw_batch_instance (
+                    instance_id, instance_name, host_name, server_port, active_yn,
+                    last_heartbeat_at, description, created_by, updated_by
+                ) VALUES (?, ?, ?, NULL, 'Y', CURRENT_TIMESTAMP(3), ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    instance_name = VALUES(instance_name),
+                    active_yn = 'Y',
+                    last_heartbeat_at = CURRENT_TIMESTAMP(3),
+                    description = VALUES(description),
+                    updated_by = VALUES(updated_by),
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                batchInstanceId,
+                instanceName,
+                instanceName,
+                "PFW Batch 공통 API가 자동 보장한 실행 인스턴스",
+                user,
+                user);
     }
 
     public Map<String, Object> findExecution(long executionId) {

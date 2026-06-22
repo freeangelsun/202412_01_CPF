@@ -17,7 +17,7 @@
 <main>
   <section>
     <h1>CPF SQL 가이드</h1>
-    <p>SQL은 주제영역 prefix, 공통 생성/수정 컬럼, FK/UK/index 네이밍, seed idempotent를 기준으로 관리합니다. 설치용 SQL과 migration SQL은 역할을 구분하고, 실행하지 않은 DB 검증은 성공으로 보고하지 않습니다.</p>
+    <p>CPF SQL은 주제영역 prefix, 공통 감사 컬럼, FK/UK/index 네이밍, seed idempotent를 기준으로 관리합니다. 설치 SQL과 migration SQL은 역할을 분리하고, 실행하지 않은 DB 검증은 성공으로 보고하지 않습니다.</p>
   </section>
 
   <section>
@@ -29,9 +29,9 @@
       <tbody>
       <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_response_code</code>, <code>pfw_message</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>업무 모듈은 PFW API로 접근합니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>프로젝트 공통 기능이 필요할 때 optional datasource로 붙입니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>운영자 권한/감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>ADM 운영 기능이 관리합니다.</td></tr>
-      <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_login_history</code></td><td>회원 업무 모듈이 소유하고 ADM은 운영 조회/조치 API로 접근합니다.</td></tr>
-      <tr><td><code>bizadmDB</code>, <code>exsDB</code></td><td>업무 관리자와 대외연계</td><td><code>bizadm_*</code>, <code>exs_*</code></td><td>각 업무 구현체가 소유합니다.</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>ADM 운영 기능이 관리합니다.</td></tr>
+      <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>회원 업무 모듈이 소유하고 ADM은 운영 API로 조회/조치합니다.</td></tr>
+      <tr><td><code>bizadmDB</code>, <code>exsDB</code></td><td>업무 관리자와 대외 연계 예제</td><td><code>bizadm_*</code>, <code>exs_*</code></td><td>각 업무 구현체가 소유합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -46,7 +46,7 @@
       <tr><td>분리 설치 SQL</td><td><code>specs/sql/01_create_databases.sql</code>부터 <code>specs/sql/99_smoke_check.sql</code></td><td>영역별 설치, seed, smoke를 나누어 관리합니다.</td></tr>
       <tr><td>단일 설치 SQL</td><td><code>specs/sql/00_all_install.sql</code></td><td>SOURCE 명령 없이 전체 설치 SQL을 한 번에 실행합니다.</td></tr>
       <tr><td>단일 설치와 smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치 후 smoke query까지 한 번에 실행합니다.</td></tr>
-      <tr><td>Migration</td><td><code>specs/sql/migration/flyway/V1__cpf_baseline_install.sql</code> 이후</td><td>버전 이력과 변경 배포 기준을 남깁니다.</td></tr>
+      <tr><td>Migration</td><td><code>specs/sql/migration/flyway/V1__cpf_baseline_install.sql</code> 이후</td><td>버전 이력과 변경 배포 기준을 남깁니다. 현재 Gradle Flyway task는 등록되어 있지 않아 파일과 실제 DB 기준으로 대체 검증합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -58,9 +58,9 @@
       <tr><th>계정</th><th>권한</th><th>용도</th></tr>
       </thead>
       <tbody>
-      <tr><td>migration 계정</td><td>DDL, DML</td><td>설치와 Flyway migration 실행에 사용합니다.</td></tr>
-      <tr><td>app 계정</td><td>DML 중심</td><td>애플리케이션 런타임에서 사용하며 DDL 권한은 제한합니다.</td></tr>
-      <tr><td>root</td><td>로컬 검증 전용</td><td>개발 PC에서 설치 검증에만 사용하고 운영 문서에는 노출하지 않습니다.</td></tr>
+      <tr><td>migration 계정</td><td>DDL, DML</td><td>설치와 migration 실행에 사용합니다.</td></tr>
+      <tr><td>app 계정</td><td>DML 중심</td><td>애플리케이션 runtime에서 사용하며 DDL 권한은 제한합니다.</td></tr>
+      <tr><td>root</td><td>로컬 검증 전용</td><td>개발 PC 설치 검증에만 사용하고 운영 문서에는 비밀번호를 노출하지 않습니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -73,8 +73,10 @@
       </thead>
       <tbody>
       <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td>테이블 prefix, 공통 컬럼, index/FK 네이밍 기준 통과</td></tr>
-      <tr><td>설치 smoke</td><td><code>00_all_install_and_smoke.sql</code></td><td>FK/index, seed idempotent, 권한 계정, smoke query 확인</td></tr>
-      <tr><td>문서 동기화</td><td>README, SQL 가이드, 기능 매트릭스</td><td>변경된 테이블/컬럼/API가 문서에 반영되어야 합니다.</td></tr>
+      <tr><td>설치 smoke</td><td><code>00_all_install_and_smoke.sql</code></td><td>DB 생성, Spring Batch 테이블, <code>pfw_batch_*</code>, <code>adm_*</code>, <code>mbr_*</code>, <code>bizadm_*</code>, <code>exs_*</code> 생성 확인</td></tr>
+      <tr><td>seed idempotent</td><td>seed SQL 재실행</td><td>중복 key 오류가 없고 대표 seed 테이블 row count가 불필요하게 증가하지 않아야 합니다.</td></tr>
+      <tr><td>권한 분리</td><td>app 계정과 migration/root 계정</td><td>app 계정은 SELECT/DML 허용, CREATE/ALTER/DROP 차단입니다. migration/root 계정은 DDL이 가능해야 합니다.</td></tr>
+      <tr><td>문서 동기화</td><td>README, SQL 가이드, 기능 매트릭스, 안정화 리포트</td><td>실행한 검증과 미검증 항목을 문서에 일치시킵니다.</td></tr>
       </tbody>
     </table>
   </section>

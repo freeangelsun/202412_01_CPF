@@ -1,490 +1,425 @@
-# CPF 다음 스텝 요건 목록
+# CPF_REQUEST_002: MariaDB 전체 설치 SQL 재실행 / Seed Idempotent / DB 권한 검증 요청
 
-## 0. 현재 검수 결과 요약
+## 0. 상위 아키텍처 전제
 
-이번 작업으로 ADM 배치 관제 API, worker heartbeat 조회, lock 조회/해제, ghost 후보 조회/조치, V9 migration, 배치 관련 문서/매트릭스/리포트가 일부 보강되었다.
+이번 요청의 직접 구현 범위는 DB 검증이다.
+다만 아래 CPF 아키텍처 전제는 이번 작업 중에도 훼손하지 않는다.
 
-다만 아래 항목은 아직 완료가 아니다.
+* BAT는 향후 독립 실행 가능한 Spring Boot batch worker 모듈로 분리한다.
+* BAT는 단순 library가 아니라 executable jar 형태로 standalone 구동 가능해야 한다.
+* 필요 시 BAT는 WAS/컨테이너 환경에도 배포 가능해야 한다.
+* PFW는 배치 공통 API, 표준 메타, 상태 코드, 오류 코드, 로그/감사 기준을 제공한다.
+* ADM은 배치 실행 로직을 소유하지 않고 실행 상태, 이력, 로그, ghost, lock, worker 상태를 관제한다.
+* 이번 작업 중 PFW/ADM에 BAT 실행 책임을 추가하거나 고착화하지 않는다.
+* 센터컷 대량 모수/item/result 테이블은 PFW에 고정으로 강제하지 않는다.
+* BAT는 향후 기본 센터컷 모수/item/result 테이블과 기본 구현체를 제공한다.
+* 개발자는 필요 시 업무 주제영역별 커스텀 모수/item/result 테이블을 만들고 adapter/handler로 BAT와 연동할 수 있어야 한다.
+* 업무 모듈은 CenterCutTargetProvider, CenterCutHandler, CenterCutResultProvider 등 표준 adapter로 BAT와 연동할 수 있어야 한다.
+* 이번 작업에서 BAT/센터컷을 구현하지 않더라도, 향후 분리를 방해하는 SQL/문서/구조 변경은 하지 않는다.
+* 관련 영향이 발견되면 CPF_STABILIZATION_REPORT.html에 “BAT 분리 영향 / 센터컷 확장성 영향”으로 기록한다.
 
-```text
-- BAT 독립 실행 모듈 없음
-- ADM 앱 실제 기동 OpenAPI smoke 미검증
-- ADM 브라우저 실제 클릭 검증 미수행
-- 장시간 실행 Batch heartbeat listener 미완성
-- ghost 자동 감지 스케줄러/알림 미완성
-- 실제 JobRepository 기반 장시간/실패/재실행 E2E 검증 부족
-- 센터컷/온디맨드/스케일아웃 구조는 아직 후속 요건
-- 온라인/배치 로그 정책 + 거래 메타 자동 등록은 아직 후속 요건
+## 1. 이번 작업 범위 고정
+
+이번 작업은 아래 범위만 수행한다.
+
+* MariaDB 전체 설치 SQL 재실행
+* specs/sql/00_all_install_and_smoke.sql 실제 실행 검증
+* seed 재실행 idempotent 검증
+* Flyway migration과 all_install SQL 정합성 검증
+* app 계정 DDL 차단 검증
+* migration/root 계정 DDL 허용 검증
+* FK/index/comment/공통 감사 컬럼 smoke 확인
+* README / SQL 가이드 / 기능 구현 매트릭스 / CPF_STABILIZATION_REPORT.html 결과 기록
+
+이번 작업에서 아래 항목은 구현하지 않는다.
+필요하면 CPF_STABILIZATION_REPORT.html의 다음 보강 후보로만 기록한다.
+
+* ADM 브라우저 실제 클릭 자동화
+* Batch listener heartbeat / 처리율 갱신
+* ghost 자동 감지 scheduler / 알림
+* BAT 독립 실행 모듈 신설
+* 온디맨드 배치
+* 센터컷 기본 구현체 / 업무별 커스텀 모수 테이블 연동
+* 온라인/배치 로그 정책 + 거래 메타 자동 등록
+* BAT EDU / XYZ EDU 대규모 보강
+* 배치 개발 가이드 / 트랜잭션 가이드 대규모 정본화
+
+요청 파일은 작업 대상으로 수정하지 않는다.
+Git commit, push, branch 생성 지시는 하지 않는다.
+별도 수정파일 목록 산출물은 만들지 않는다.
+작업 결과는 CPF_STABILIZATION_REPORT.html에만 기록한다.
+
+## 2. 작업 전 주의사항
+
+작업 시작 전 CPF_NEW_REQUEST.md 파일 인코딩을 확인한다.
+요청 파일은 UTF-8로 저장되어 있어야 한다.
+
+Windows 터미널에서만 한글이 깨져 보이는 경우에는 파일 자체 문제인지, 터미널 코드페이지 문제인지 구분한다.
+터미널 표시 문제만으로 요청 파일 내용을 임의 수정하지 않는다.
+
+이번 작업은 MariaDB 전체 설치 SQL을 실제 실행하는 검증 작업이다.
+specs/sql/00_all_install_and_smoke.sql 실행 과정에서 로컬 MariaDB의 CPF 관련 DB/schema/table/seed 데이터가 초기화 또는 재생성될 수 있음을 전제로 한다.
+
+DB 계정명, 권한, 비밀번호는 문서 기억으로 판단하지 말고 실제 SQL과 설정 파일 기준으로 확인한다.
+단, 비밀번호와 민감정보는 CPF_STABILIZATION_REPORT.html에 평문으로 기록하지 않는다.
+
+요청서에 기재된 테이블명이 실제 SQL과 다를 경우, 임의로 성공 처리하지 말고 “요청명 / 실제명 불일치”로 리포트에 기록한다.
+
+## 3. 작업 목표
+
+현재 ADM runtime smoke는 기존 설치 DB를 사용했다.
+이번 작업에서는 MariaDB 전체 설치 SQL을 실제로 다시 실행해 CPF 전체 SQL 기준이 깨지지 않았는지 검증한다.
+
+완료는 SQL 파일 존재가 아니라 실제 실행 결과로 판단한다.
+
+완료 목표:
+
+* 00_all_install_and_smoke.sql 실제 실행 성공
+* seed SQL 재실행 시 중복 오류 없이 성공
+* Flyway migration 기준과 all_install 기준 불일치 없음
+* app 계정은 DDL 차단
+* migration/root 계정은 설치 DDL 가능
+* 주요 FK/index/comment/공통 감사 컬럼 확인
+* 실패/미검증 항목은 성공으로 기록하지 않음
+
+## 4. 먼저 현재 상태 판정
+
+작업 시작 전 실제 파일 기준으로 아래를 먼저 확인하고 리포트에 기록한다.
+
+* specs/sql/00_all_install_and_smoke.sql 존재 여부
+* split SQL 파일 목록
+* Flyway migration 파일 목록
+* seed SQL 파일 목록
+* app/migration/root 계정 기준
+* 직전 CPF_STABILIZATION_REPORT.html의 DB 미검증 항목
+* README와 SQL 가이드의 검증 명령 일치 여부
+* BAT 분리 또는 센터컷 확장성에 영향을 줄 수 있는 SQL 변경 여부
+
+상태값은 아래만 사용한다.
+
+* 완료
+* 부분 구현
+* 미구현
+* 미검증
+* 실패
+* 재확인 필요
+
+## 5. SQL 실행 기준
+
+아래 SQL을 실제 MariaDB에 실행한다.
+
+```powershell
+mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
 ```
 
-현재 판정은 `부분 구현 / 운영 검증 미완료 포함`으로 둔다.
+실행 후 아래를 확인한다.
 
----
+* pfwDB 생성
+* admDB 생성
+* mbrDB 생성
+* cmnDB 생성
+* accDB 생성
+* bizadmDB 생성
+* exsDB 생성
+* Spring Batch BATCH_* 테이블 생성
+* pfw_batch_* 운영 메타 테이블 생성
+* adm_* 운영 테이블 생성
+* mbr_* 회원 테이블 생성
+* bizadm_* 기본 구현 테이블 생성
+* exs_* 대외연계 기본 구현 테이블 생성
 
-# 1. 다음 요청 1순위: OpenAPI 안전 기동/종료 + ADM 브라우저 클릭 검증
+실행 실패 시 실패 SQL 위치, 오류 메시지, 원인을 리포트에 기록한다.
+실패했는데 성공으로 기록하지 않는다.
 
-## 목표
+## 6. Seed Idempotent 검증
 
-ADM 배치 관제 API와 UI가 실제 애플리케이션 기동 상태에서 동작하는지 검증한다.
+seed SQL은 반복 실행해도 중복 오류가 나지 않아야 한다.
 
-## 완료 범위
+필수 검증:
 
-```text
-- 앱 안전 기동/종료 자동화
-- health check
-- OpenAPI smoke
-- ADM 배치 API smoke
-- ADM UI 정적 smoke
-- 가능하면 브라우저 클릭 자동화
-- 브라우저 클릭 불가 시 구현 상태와 실클릭 미검증 상태 분리 기록
+* 00_all_install_and_smoke.sql 1회 실행
+* seed 관련 SQL 또는 all_install 2회 실행
+* 중복 key 오류 없음
+* 기준 코드/메뉴/권한/운영자 seed가 중복 증가하지 않음
+* seed 재실행 후 핵심 row count가 예상 범위 유지
+
+확인 대상 예시:
+
+* pfw_code
+* pfw_message
+* pfw_response_code
+* adm_operator
+* adm_role
+* adm_menu
+* adm_button
+* adm_role_menu
+* adm_role_button
+* pfw_batch_job
+* pfw_batch_schedule
+* pfw_business_day_calendar
+
+테이블명이 실제 SQL과 다르면 실제명을 기준으로 확인하고, 요청명과 실제명을 리포트에 함께 기록한다.
+
+## 7. Flyway 기준 검증
+
+Flyway migration과 all_install 기준이 서로 충돌하지 않아야 한다.
+
+필수 검증:
+
+* Flyway migration 파일 목록 확인
+* V9__batch_worker_ghost_operations.sql 포함 여부 확인
+* all_install SQL에 V9 변경분 반영 여부 확인
+* pfw_batch_worker 존재 확인
+* pfw_batch_ghost_event 존재 확인
+* pfw_batch_execution.server_instance_id 존재 확인
+* pfw_batch_execution.worker_id 존재 확인
+* pfw_batch_execution.transaction_global_id 존재 확인
+* pfw_batch_step_execution.spring_batch_step_execution_id 존재 확인
+* pfw_batch_step_execution.worker_id 존재 확인
+
+가능하면 아래 방식 중 하나로 검증한다.
+
+```powershell
+.\gradlew.bat flywayInfo --offline
+.\gradlew.bat flywayMigrate --offline
 ```
 
-## 필수 구현/보강
+프로젝트에 Flyway Gradle task가 없으면 실행하지 말고, 실제 가능한 대체 검증 방식을 리포트에 기록한다.
+Flyway task가 없는데 성공으로 기록하지 않는다.
 
-```text
-- runLocalServices 또는 동등한 앱 기동 스크립트 안정화
-- PID 추적
-- 기동 timeout 처리
-- health endpoint 확인
-- smoke 실행 후 정상 종료/cleanup
-- 기동 실패 시 로그 파일 위치와 실패 사유 기록
-- OpenAPI smoke가 앱 미기동 상태에서 성공으로 기록되지 않도록 방지
+## 8. DB 권한 검증
+
+CPF는 app 계정과 migration/root 계정의 권한을 분리해야 한다.
+
+필수 검증:
+
+app 계정:
+
+* SELECT 가능
+* 설계 기준에 따른 INSERT/UPDATE/DELETE 가능 여부 확인
+* CREATE TABLE 차단
+* ALTER TABLE 차단
+* DROP TABLE 차단
+
+migration/root 계정:
+
+* CREATE TABLE 가능
+* ALTER TABLE 가능
+* DROP TABLE 가능
+
+검증 예시:
+
+```sql
+-- app 계정으로 실패해야 하는 예
+CREATE TABLE pfwDB.app_ddl_block_test (
+    id BIGINT PRIMARY KEY
+);
+
+-- migration/root 계정으로 성공해야 하는 예
+CREATE TABLE pfwDB.migration_ddl_allow_test (
+    id BIGINT PRIMARY KEY
+);
+
+DROP TABLE pfwDB.migration_ddl_allow_test;
 ```
 
-## 필수 테스트
+app 계정에서 DDL이 허용되면 실패로 기록한다.
+비밀번호는 리포트에 평문으로 기록하지 않는다.
 
-```text
-- ADM 앱 기동 성공
-- health check 성공
-- OpenAPI 문서 접근 성공
-- ADM 배치 API endpoint 접근 성공
-- 앱 종료/cleanup 성공
-- 기동 실패 시 미검증 기록 확인
-- 브라우저 클릭 가능 시 Job 목록/상세/Step/worker/ghost 화면 클릭 검증
-```
+## 9. FK / Index / Comment / 감사 컬럼 검증
 
-## 완료 불인정
+핵심 테이블에 대해 FK, index, comment, 공통 감사 컬럼을 확인한다.
 
-```text
-- 앱을 기동하지 않았는데 OpenAPI 성공으로 기록
-- 브라우저 클릭을 하지 않았는데 ADM UI 검증 완료로 기록
-- 정적 marker 확인만으로 운영자 화면 검증 완료 처리
-- PID cleanup 없이 앱 프로세스를 남김
-```
+필수 확인 대상:
 
----
+PFW Batch:
 
-# 2. 다음 요청 2순위: Batch Listener Heartbeat / 처리율 갱신 / Ghost 자동 감지
-
-## 목표
-
-현재 조회/조치 중심의 heartbeat/ghost 기능을 실제 장시간 배치 실행 중 자동 갱신/감지 구조로 보강한다.
-
-## 완료 범위
-
-```text
-- Job/Step listener 기반 heartbeat 갱신
-- 장시간 실행 중 worker 상태 갱신
-- 처리율/TPS/진행률 갱신
-- ghost 자동 감지 scheduler
-- ghost candidate 자동 등록
-- ADM ghost 알림 또는 운영 로그 연동
-```
-
-## 필수 구현
-
-```text
-- BatchJobExecutionListener
-- BatchStepExecutionListener
-- heartbeat update interval 기준
-- processed count 갱신
-- success/fail count 갱신
-- avg elapsed ms / max elapsed ms 갱신
-- RUNNING 상태 + heartbeat timeout 감지
-- ghost candidate 자동 등록
-- ghost 자동 감지 이력 저장
-- ADM에서 자동 감지 결과 조회
-```
-
-## 필수 테스트
-
-```text
-- 장시간 실행 Job에서 heartbeat 주기 갱신
-- Step 실행 중 처리량 갱신
-- worker heartbeat timeout 감지
-- ghost candidate 자동 생성
-- ghost 조치 사유 누락 차단
-- ghost 조치 감사 로그 저장
-```
-
-## 완료 불인정
-
-```text
-- heartbeat 조회 API만 있고 실행 중 갱신 없음
-- ghost 후보 수동 조회만 있고 자동 감지 없음
-- 처리율/진행률 갱신 없음
-- 장시간 Job 테스트 없음
-```
-
----
-
-# 3. 다음 요청 3순위: BAT 독립 실행 모듈 신설
-
-## 목표
-
-BAT를 PFW/ADM 내부 기능이 아닌 독립 실행 가능한 Spring Batch 실행 구현체로 만든다.
-
-## 원칙
-
-```text
-PFW:
-- 배치 공통 API/표준/메타 제공
-
-BAT:
-- 독립 실행 가능한 Spring Boot batch worker
-- PFW 배치 공통 API 사용
-- Spring Batch Job/Step 실행 구현
-- worker heartbeat, lock, retry, recovery 처리
+* pfw_batch_job
+* pfw_batch_schedule
+* pfw_batch_execution
+* pfw_batch_step_execution
+* pfw_batch_lock
+* pfw_batch_worker
+* pfw_batch_ghost_event
 
 ADM:
-- BAT 실행 상태와 결과 관제
 
-업무 모듈:
-- BAT가 직접 DB를 수정하지 않고 Handler/Service/Facade 호출
+* adm_operator
+* adm_role
+* adm_menu
+* adm_role_menu
+* adm_audit_log
+
+MBR:
+
+* mbr_member
+* mbr_refresh_token
+* mbr_member_login_history 또는 실제 login history 테이블명
+
+BIZADM:
+
+* bizadm_admin_user
+* bizadm_refresh_token
+* bizadm_login_history 또는 실제 login history 테이블명
+
+EXS:
+
+* exs_institution
+* exs_endpoint
+* exs_message_log 또는 실제 message/log 테이블명
+
+공통 감사 컬럼은 기존 CPF SQL 표준을 따른다.
+프로젝트 표준 컬럼명이 다르면 기존 표준명을 따른다.
+
+누락 시 완료로 기록하지 않고 다음 보완 항목으로 남긴다.
+
+## 10. 문서 정합성 확인
+
+이번 작업에서 SQL 구조를 변경하지 않는 것이 원칙이다.
+다만 검증 명령, 실제 결과, 실패/미검증 사유는 문서와 리포트에 반영한다.
+
+필수 확인/갱신:
+
+* README.md의 SQL 검증 명령
+* specs/SQL_가이드.html의 all_install/Flyway/권한 검증 기준
+* specs/기능_구현_매트릭스.html의 SQL 검증 상태
+* CPF_STABILIZATION_REPORT.html의 실제 실행 결과
+
+SQL을 변경하지 않았으면 변경하지 않았다고 리포트에 기록한다.
+SQL을 변경했다면 변경 사유와 대상 파일을 리포트에 기록한다.
+
+## 11. 필수 검증 명령
+
+가능한 범위에서 아래를 실행한다.
+
+```powershell
+mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
+
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
+
+.\gradlew.bat test --offline
+.\gradlew.bat qualityGate --offline
 ```
 
-## 필수 구현
+가능하면 ADM runtime smoke도 재실행해 DB 설치 후 앱이 정상 동작하는지 확인한다.
 
-```text
-- settings.gradle include 'bat'
-- bat/build.gradle
-- bat/src/main/java/cpf/bat/BatApplication.java 또는 BatchWorkerApplication
-- executable jar 구동 가능
-- profile: bat-local, bat-worker, scheduler-off 등
-- actuator/health endpoint
-- worker heartbeat
-- JobLauncher 실행
-- JobRepository 표준 사용
-- PFW CpfBatchLauncher 또는 공통 API 사용
-- 독립 JobRepository 임의 생성 금지
+```powershell
+.\gradlew.bat :adm:bootJar --offline
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
 ```
 
-## 구동 기준
+단, 이번 핵심은 DB 전체 설치 재검증이다.
+ADM runtime smoke가 실패하면 실패 사유를 기록하되, DB 설치 성공/실패와 분리해서 판정한다.
 
-```text
-- java -jar bat/build/libs/cpf-bat.jar --spring.profiles.active=bat-local 형태로 구동 가능
-- 별도 batch worker 서버에 독립 배포 가능
-- 필요 시 WAS/컨테이너 환경에도 배포 가능
-- 다중 worker 구동 시 DB lock/claim/heartbeat로 중복 실행 방지
-```
+## 12. CPF_STABILIZATION_REPORT.html 기록 기준
 
-## 필수 테스트
+리포트에는 아래 형식으로 기록한다.
 
-```text
-- :bat:test 성공
-- bat executable jar 생성 확인
-- BAT health check
-- Job 정상 실행
-- Job 실패 실행
-- 중복 실행 차단
-- worker heartbeat 저장
-- ADM에서 BAT worker 상태 조회
-```
+[MariaDB 전체 설치 SQL 재실행 / Seed Idempotent / DB 권한 검증]
 
-## 완료 불인정
+현재 상태 판정:
 
-```text
-- BAT가 library 수준이고 독립 구동 불가
-- PFW/ADM 내부에 배치 실행 로직이 흡수됨
-- settings.gradle/build.gradle 연결 없음
-- 독립 JobRepository 임의 생성
-- :bat:test 없음
-```
+* 직전 미검증 항목:
+* SQL 파일 상태:
+* Flyway 파일 상태:
+* seed 파일 상태:
+* 요청명/실제 테이블명 불일치:
+* BAT 분리 영향:
+* 센터컷 확장성 영향:
 
----
+실행 결과:
 
-# 4. 다음 요청 4순위: 온라인/배치 로그 정책 + 거래 메타 자동 등록
+* 00_all_install_and_smoke.sql 1회 실행:
+* seed 재실행:
+* Flyway 기준 검증:
+* app 계정 DDL 차단:
+* migration/root 계정 DDL 허용:
+* FK/index 확인:
+* comment 확인:
+* 공통 감사 컬럼 확인:
 
-## 목표
+검증 명령:
 
-파일 로그와 DB 로그의 기본 정책을 yml로 관리하고, ADM은 장애/이슈 대응용 override로 사용한다. Controller/API 거래 메타는 자동 등록하고 ADM 로그 메뉴와 연결한다.
+* 실행 명령:
+* 실제 결과:
+* 실패 명령:
+* 실패 사유:
 
-## 원칙
+미검증:
 
-```text
-- 파일 로그와 DB 로그는 모두 yml 기본 정책을 가진다.
-- 파일 로그는 기본적으로 항상 남긴다.
-- DB 로그는 전체/모듈/거래/Batch Job/Step 단위로 저장 여부를 제어한다.
-- ADM 설정은 상시 원천이 아니라 기간/사유/감사 이력이 있는 override다.
-```
+* 미검증 항목:
+* 미검증 사유:
+* 다음 조치:
 
-## 우선순위
+최종 판정:
 
-```text
-1. ADM 활성 override
-2. DB 운영 정책
-3. application.yml 기본값
-4. CPF 기본값
-```
+* 완료 / 부분 구현 / 미검증 / 실패 / 재확인 필요
 
-## 필수 구현
+실행하지 않은 검증은 성공으로 기록하지 않는다.
+MariaDB를 실제로 실행하지 못했으면 미검증으로 기록한다.
+SQL 파일 존재만으로 DB 검증 완료 처리하지 않는다.
 
-```text
-- pfw_transaction_meta
-- pfw_log_policy
-- pfw_log_policy_override
-- pfw_log_policy_audit
-- Controller/API @CpfTransaction 또는 동등한 메타
-- ApplicationReadyEvent 이후 RequestMapping 스캔
-- 비동기/증분 upsert
-- 사라진 거래 inactive 처리
-- ADM 거래 상세에서 거래 로그/오류 로그/감사 로그 자동 연결
-```
+## 13. 완료 기준
 
-## 필수 테스트
+아래가 모두 충족되어야 이번 요청을 완료로 기록한다.
 
-```text
-- yml 기본 정책 로딩
-- ADM override 적용
-- override 만료 후 기본 정책 복귀
-- 거래 메타 자동 등록
-- 거래ID/거래 논리명 누락 차단
-- DB 로그 ON/OFF 실제 저장 여부 확인
-- 변경 사유 누락 차단
-- 감사 이력 저장
-```
+* 00_all_install_and_smoke.sql 실제 실행 성공
+* seed 재실행 idempotent 확인
+* Flyway V9 변경분과 all_install SQL 정합성 확인
+* app 계정 DDL 차단 확인
+* migration/root 계정 DDL 허용 확인
+* 핵심 테이블 FK/index/comment/공통 감사 컬럼 확인
+* 요청명과 실제 테이블명 불일치가 있으면 리포트에 기록
+* README/SQL 가이드/기능 매트릭스/리포트에 실제 결과 반영
+* 실패/미검증 항목을 성공으로 기록하지 않음
+* 이번 작업 중 BAT 분리와 센터컷 확장성을 방해하는 구조 변경 없음
 
----
+## 14. 완료 불인정 기준
 
-# 5. 다음 요청 5순위: 온디맨드 배치 구현
+아래 중 하나라도 해당하면 완료로 기록하지 않는다.
 
-## 목표
+* MariaDB 실제 실행 없이 SQL 검증 완료 처리
+* all_install SQL 파일 존재만 확인하고 완료 처리
+* seed 재실행 없이 idempotent 성공 기록
+* app 계정 DDL 차단 검증 없이 권한 검증 완료 처리
+* Flyway V9와 all_install 정합성 미확인
+* FK/index/comment/감사 컬럼 확인 누락
+* 요청서의 테이블명과 실제 SQL 테이블명이 다른데 성공으로 처리
+* 실패한 SQL을 수정하지 않고 성공 처리
+* 실행하지 않은 명령을 성공으로 기록
+* CPF_STABILIZATION_REPORT.html과 실제 결과 불일치
+* 이번 요청 범위를 넘어 BAT/센터컷/로그 정책 구현 착수
+* PFW/ADM에 향후 BAT가 가져야 할 실행 책임을 추가하거나 고착화
+* PFW에 센터컷 대량 모수/item/result 테이블을 고정 강제하는 방향으로 문서화
 
-운영자/API/업무 요청에 의해 즉시 실행되는 배치 구조를 만든다.
+## 15. 다음 보강 후보로만 기록할 항목
 
-## 필수 구현
+이번 작업에서 아래 항목은 구현하지 않는다.
 
-```text
-- 온디맨드 실행 요청 API
-- 요청자/요청 사유 필수
-- Job parameter validation
-- 중복 요청 방지
-- 실행 대기/실행 중/성공/실패 상태
-- JobExecutionId 연결
-- ADM 실행 결과 조회
-- 실패 시 재실행
-```
+* ADM 브라우저 실제 클릭 자동화
+* Batch listener heartbeat / 처리율 갱신
+* ghost 자동 감지 scheduler / 알림
+* BAT 독립 실행 모듈 신설
+* 온디맨드 배치
+* 센터컷 기본 구현체 + 업무별 커스텀 모수 테이블 연동
+* 온라인/배치 로그 정책 + 거래 메타 자동 등록
 
-## EDU 위치
-
-```text
-bat/src/main/java/cpf/bat/edu/ondemand
-xyz/src/main/java/cpf/xyz/edu/batch/ondemand
-```
-
-## 필수 테스트
-
-```text
-- 정상 요청
-- 요청 사유 누락 차단
-- 중복 요청 차단
-- 실행 성공
-- 실행 실패
-- 재실행
-- ADM 조회
-```
-
----
-
-# 6. 다음 요청 6순위: 센터컷 기본 구현체 + 업무별 확장 저장소 구조
-
-## 목표
-
-센터컷은 BAT 기본 구현체로 제공하되, 대량 item/result 테이블을 PFW에 고정으로 강제하지 않는다. 개발자는 필요 시 업무별 커스텀 모수/item/result 테이블을 만들고 표준 adapter로 연동할 수 있어야 한다.
-
-## 책임 기준
-
-```text
-PFW:
-- 센터컷 표준 인터페이스
-- 상태 코드
-- 오류 코드
-- 로그/감사 기준
-- parent/child transactionGlobalId 기준
+향후 BAT/센터컷 요청 기준은 아래 방향을 유지한다.
 
 BAT:
-- 독립 실행 가능한 센터컷 기본 구현체
-- 기본 모수/item/result 테이블
-- worker, claim/lock, heartbeat, retry, metering, ghost recovery
 
-업무 주제영역:
-- 필요 시 자체 모수/item/result 테이블 추가
-- CenterCutTargetProvider / Handler / ResultProvider adapter 구현
+* 독립 실행 가능한 Spring Boot batch worker
+* executable jar standalone 구동 가능
+* 필요 시 WAS/컨테이너 배포 가능
+* PFW 공통 Batch API 사용
+* ADM은 BAT 상태 관제
 
-ADM:
-- 기본 테이블이든 커스텀 테이블이든 공통 관제
-```
+센터컷:
 
-## BAT 기본 테이블
-
-```text
-- bat_center_cut_request
-- bat_center_cut_item
-- bat_center_cut_result
-- bat_center_cut_worker
-- bat_center_cut_metering
-- bat_center_cut_retry
-```
-
-## 업무별 확장 예
-
-```text
-- mbr_center_cut_item
-- mbr_center_cut_result
-- exs_center_cut_message_item
-- exs_center_cut_retry_result
-- bizadm_center_cut_target
-- bizadm_center_cut_result
-```
-
-## 표준 adapter
-
-```text
-- CenterCutTargetProvider
-- CenterCutItemStateRepository
-- CenterCutResultProvider
-- CenterCutMeteringProvider
-- CenterCutHandler
-```
-
-## 필수 구현
-
-```text
-- 대상 주입
-- item DB 저장
-- worker claim/lock
-- heartbeat
-- timeout recovery
-- 실패 item 재처리
-- 미터링
-- ADM 진행률/결과/실패/재처리 조회
-- 기본 테이블 사용 방식
-- 업무별 커스텀 테이블 연동 방식
-```
-
-## 완료 불인정
-
-```text
-- PFW에 센터컷 대량 item/result 테이블을 고정 강제
-- BAT 기본 구현체 없음
-- 업무별 커스텀 테이블 연동 불가
-- ADM이 커스텀 테이블 사용 시 진행률/결과/실패/재처리 조회 불가
-- BAT가 업무 DB를 직접 수정하고 주제영역 Handler/Service를 우회
-```
-
----
-
-# 7. 다음 요청 7순위: BAT EDU / XYZ EDU 배치 샘플 보강
-
-## 목표
-
-배치 개발자와 업무 개발자가 문서와 샘플만 보고 배치/온디맨드/센터컷을 구현할 수 있게 한다.
-
-## BAT EDU
-
-```text
-bat/src/main/java/cpf/bat/edu/scheduled
-bat/src/main/java/cpf/bat/edu/ondemand
-bat/src/main/java/cpf/bat/edu/centercut
-bat/src/main/java/cpf/bat/edu/chunk
-bat/src/main/java/cpf/bat/edu/tasklet
-bat/src/main/java/cpf/bat/edu/retry
-bat/src/main/java/cpf/bat/edu/transaction
-bat/src/main/java/cpf/bat/edu/servicecall
-```
-
-## XYZ EDU
-
-```text
-xyz/src/main/java/cpf/xyz/edu/batch
-xyz/src/main/java/cpf/xyz/edu/batch/ondemand
-xyz/src/main/java/cpf/xyz/edu/batch/centercut
-xyz/src/main/java/cpf/xyz/edu/batch/transaction
-```
-
-## 필수 예제
-
-```text
-- 정기 배치
-- 온디맨드 배치
-- 센터컷 기본 테이블 사용
-- 센터컷 업무별 커스텀 테이블 사용
-- chunk commit
-- tasklet
-- retry/skip
-- parent/child transactionGlobalId
-- 실패 item 재처리
-- ADM 관제 연결
-```
-
----
-
-# 8. 다음 요청 8순위: 배치 개발 가이드 / 트랜잭션 가이드 정본화
-
-## 목표
-
-배치와 트랜잭션 기준을 개발자가 실제 구현 가능한 수준으로 문서화한다.
-
-## 배치 개발 가이드 필수 내용
-
-```text
-- CPF 배치 아키텍처
-- PFW/BAT/ADM 책임 경계
-- Spring Batch JobRepository 기준
-- BATCH_*와 CPF 운영 메타 관계
-- 정기 배치
-- 온디맨드 배치
-- 센터컷
-- chunk/tasklet/partition
-- retry/skip/restart
-- scheduler
-- worker heartbeat
-- ghost recovery
-- scale-out worker
-- ADM 배치 관제
-- BAT/XYZ EDU 예제
-- 검증 명령
-```
-
-## 트랜잭션 가이드 필수 내용
-
-```text
-- 온라인 API 트랜잭션
-- Service 계층 transaction 기준
-- 외부 호출과 DB lock 분리
-- 감사 로그 트랜잭션
-- EXS 수신/송신 트랜잭션
-- 배치 chunk 트랜잭션
-- 센터컷 item 트랜잭션
-- skip/retry/rollback 기준
-- parent/child transactionGlobalId 기준
-- 실패 item 재처리 기준
-```
-
----
-
-# 9. 추천 실행 순서
-
-```text
-1. OpenAPI 안전 기동/종료 + ADM 브라우저 클릭 검증
-2. Batch Listener Heartbeat / 처리율 갱신 / Ghost 자동 감지
-3. BAT 독립 실행 모듈 신설
-4. 온라인/배치 로그 정책 + 거래 메타 자동 등록
-5. 온디맨드 배치 구현
-6. 센터컷 기본 구현체 + 업무별 확장 저장소 구조
-7. BAT EDU / XYZ EDU 배치 샘플 보강
-8. 배치 개발 가이드 / 트랜잭션 가이드 정본화
-```
-
-각 요청은 한 번에 하나의 묶음만 수행한다.
-선택 범위 밖의 항목은 구현하지 말고 다음 보강 후보로만 기록한다.
+* PFW는 대량 모수/item/result 테이블을 직접 소유하지 않음
+* PFW는 표준 인터페이스/상태/오류/로그/감사/transactionGlobalId 기준 제공
+* BAT는 기본 센터컷 모수/item/result 테이블과 기본 구현체 제공
+* 개발자는 필요 시 업무별 커스텀 모수/item/result 테이블 추가 가능
+* 업무별 테이블은 CenterCutTargetProvider / CenterCutHandler / ResultProvider adapter로 연동

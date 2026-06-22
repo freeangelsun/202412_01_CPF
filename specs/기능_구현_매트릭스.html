@@ -4,48 +4,104 @@
   <meta charset="utf-8">
   <title>CPF 기능 구현 매트릭스</title>
   <style>
-    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.5; }
-    main { max-width: 1500px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
-    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; font-size: 13px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px 9px; vertical-align: top; }
-    th { background: #e0f2fe; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #f1f5f9; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .done { color: #047857; font-weight: 700; }
-    .partial { color: #b45309; font-weight: 700; }
-    .unverified { color: #6b7280; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
     <h1>CPF 기능 구현 매트릭스</h1>
-    <p>이 문서는 기능별 구현 상태를 실제 파일, API, DB, Swagger, EDU, 테스트 증거와 함께 대조합니다. 부분 구현과 미검증 항목은 완료로 표시하지 않습니다.</p>
+    <p>이 문서는 기능별 구현 상태, 증거 파일, 검증 기준, 남은 리스크를 한눈에 보기 위한 검수용 문서입니다. 완료는 실제 파일과 테스트 증거가 있을 때만 사용합니다.</p>
   </section>
 
   <section>
-    <h2>기능별 상태</h2>
+    <h2>상태 값 기준</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>기능</th><th>상태</th><th>주요 증거</th><th>검증</th><th>잔여 리스크</th></tr>
+      <tr><th>상태</th><th>의미</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW</td><td>거래 ID와 표준 헤더</td><td class="done">구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>LoggingAspect</code></td><td>컴파일, transaction ID 표준 검사, MariaDB smoke</td><td>운영 로그 데이터는 실제 운영일 기준으로 지속 점검해야 합니다.</td></tr>
-      <tr><td>PFW</td><td>표준 응답과 예외</td><td class="partial">부분 구현</td><td><code>CpfGlobalExceptionHandler</code>, <code>pfw_response_code</code>, <code>pfw_message</code></td><td>단위 테스트, OpenAPI smoke</td><td>공통 오류 schema와 예외 케이스별 통합 테스트를 계속 보강해야 합니다.</td></tr>
-      <tr><td>PFW</td><td>Batch 공통 API</td><td class="done">구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>pfw_batch_*</code>, <code>BATCH_*</code></td><td>BAT runtime smoke, MariaDB smoke, ADM runtime smoke</td><td>실시간 heartbeat listener와 장시간 Job 부하 시나리오는 다음 단계입니다.</td></tr>
-      <tr><td>BAT</td><td>독립 배치 worker</td><td class="done">구현</td><td><code>BatApplication</code>, <code>BatSmokeJobConfig</code>, <code>BatHealthController</code>, <code>scripts/smoke-bat-runtime.ps1</code></td><td><code>:bat:test</code>, <code>:bat:bootJar</code>, BAT runtime smoke</td><td>운영용 실제 Job 묶음과 worker pool 배정 정책은 프로젝트별로 확장해야 합니다.</td></tr>
-      <tr><td>CMN</td><td>프로젝트 공통 채번/알림/로그</td><td class="partial">부분 구현</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code></td><td>CMN 테스트, 동시성 테스트</td><td>프로젝트별 보존 정책과 업무별 확장 규칙은 적용 프로젝트에서 확정해야 합니다.</td></tr>
-      <tr><td>ADM</td><td>운영자 권한</td><td class="partial">부분 구현</td><td><code>AdmApiAuthFilter</code>, <code>AdmPermissionController</code>, <code>adm_role</code>, <code>adm_button</code></td><td>정적 UI smoke, ADM runtime smoke</td><td>서버 권한 차단 통합 테스트와 버튼 비활성 사유 UX 검증이 남아 있습니다.</td></tr>
-      <tr><td>ADM</td><td>회원 관리</td><td class="partial">부분 구현</td><td><code>AdmMemberController</code>, <code>AdmMemberOperationService</code>, <code>mbr_member</code>, <code>mbr_member_role</code></td><td>정적 UI smoke, MariaDB smoke</td><td>회원 등록/수정/상태 변경 전체 E2E 검증이 필요합니다.</td></tr>
-      <tr><td>ADM</td><td>로그 관제</td><td class="partial">부분 구현</td><td><code>AdmLogController</code>, <code>AdmLogQueryService</code>, <code>pfw_transaction_log</code></td><td>정적 UI smoke, MariaDB smoke</td><td>JSON pretty print, 고정길이 전문 포맷팅, 원문 보기 권한 클릭 검증이 필요합니다.</td></tr>
-      <tr><td>ADM</td><td>배치 관제</td><td class="partial">부분 구현</td><td><code>AdmBatchController</code>, <code>AdmBatchOperationService</code>, <code>PfwBatchScheduler</code>, <code>pfw_batch_*</code></td><td>MariaDB smoke, ADM runtime smoke</td><td>관계도 그래프, 브라우저 클릭, 실시간 listener 갱신은 다음 단계입니다.</td></tr>
-      <tr><td>ADM</td><td>기동 health와 runtime smoke</td><td class="done">구현</td><td><code>AdmHealthController</code>, <code>scripts/smoke-adm-runtime.ps1</code></td><td>health, OpenAPI, 배치 API, UI smoke</td><td>브라우저 클릭 자동화는 미검증입니다.</td></tr>
-      <tr><td>BIZADM</td><td>업무 관리자 기본 구현</td><td class="partial">부분 구현</td><td><code>BizAdmAuthController</code>, <code>BizAdmOperationController</code></td><td>서비스 테스트, MariaDB smoke</td><td>Controller부터 DB까지 이어지는 통합 테스트를 추가해야 합니다.</td></tr>
-      <tr><td>MBR</td><td>회원 업무 구현</td><td class="partial">부분 구현</td><td><code>MbrController</code>, <code>MbrAuthController</code>, <code>MemberMapper</code></td><td>서비스 테스트, MariaDB smoke</td><td>회원 상태 전환, 탈퇴/복구, 권한 만료 통합 테스트가 필요합니다.</td></tr>
-      <tr><td>EXS</td><td>대외 연계 구현</td><td class="partial">부분 구현</td><td><code>ExsOperationController</code>, <code>ExsFlowController</code>, <code>exs_*</code></td><td>서비스 테스트, MariaDB smoke</td><td>실제 기관 adapter, token refresh, retry worker 검증이 필요합니다.</td></tr>
-      <tr><td>XYZ EDU</td><td>교육 샘플</td><td class="partial">부분 구현</td><td><code>xyz/src/main/java/cpf/xyz/edu</code>, <code>BatSmokeJobConfig</code></td><td>컴파일, OpenAPI smoke, BAT smoke</td><td>업무별 실제 배치 샘플은 프로젝트 도메인에 맞춰 계속 보강해야 합니다.</td></tr>
-      <tr><td>SQL/Flyway</td><td>설치와 migration</td><td class="done">구현</td><td><code>specs/sql</code>, Flyway V1부터 V9까지 migration</td><td>SQL 표준 검사, MariaDB 전체 설치, seed 재실행, 권한 분리, FK/index/comment/감사 컬럼 smoke</td><td>Gradle Flyway task는 아직 등록되어 있지 않아 파일과 실제 DB 기준으로 대체 검증했습니다.</td></tr>
-      <tr><td>Swagger/OpenAPI</td><td>API 문서</td><td class="partial">부분 구현</td><td>Controller annotation, <code>PfwOpenApiAutoConfiguration</code></td><td>ADM runtime smoke에서 OpenAPI smoke 통과</td><td>OpenAPI JSON 품질 gate를 CI 산출물로 고정하는 작업이 남아 있습니다.</td></tr>
+      <tr><td>완료</td><td>소스, SQL, 문서, 검증 증거가 현재 저장소 기준으로 존재합니다.</td></tr>
+      <tr><td>부분 구현</td><td>핵심 구조는 있으나 운영 시나리오, UI, 자동화, 외부 연동 일부가 남았습니다.</td></tr>
+      <tr><td>미구현</td><td>요구 기능의 실체가 아직 없습니다.</td></tr>
+      <tr><td>미검증</td><td>구현은 있으나 이번 작업에서 실제 검증을 실행하지 않았습니다.</td></tr>
+      <tr><td>실패</td><td>검증을 실행했고 실패했습니다.</td></tr>
+      <tr><td>재확인 필요</td><td>환경 의존 또는 요구 해석이 남아 추가 확인이 필요합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>핵심 기능 상태</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>남은 리스크</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>PFW</td><td>거래 ID, 거래 헤더, 표준 응답, 예외, 로그</td><td>완료</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>LoggingAspect</code></td><td>운영 부하 기준 성능 테스트는 별도입니다.</td></tr>
+      <tr><td>PFW</td><td>Batch 공통 API와 CPF Batch 메타</td><td>부분 구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>pfw_batch_*</code></td><td>listener heartbeat와 ghost 자동 감지는 다음 보강 후보입니다.</td></tr>
+      <tr><td>BAT</td><td>standalone 배치 worker</td><td>완료</td><td><code>BatApplication</code>, <code>BatBatchRepositoryConfig</code>, <code>BatSmokeJobConfig</code></td><td>실제 운영 배치 Job 확장은 업무별로 필요합니다.</td></tr>
+      <tr><td>BAT</td><td>runtime smoke</td><td>미검증</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>이번 작업에서 실행한 결과를 안정화 리포트에 따로 기록합니다.</td></tr>
+      <tr><td>ADM</td><td>운영자/권한/회원/로그/배치/캐시/메시지/코드/설정</td><td>부분 구현</td><td><code>adm/src/main/java/cpf/adm/opr/controller</code>, <code>adm/src/main/resources/static/adm/adm.js</code></td><td>브라우저 실제 클릭 자동화와 세밀한 UX 검증이 남았습니다.</td></tr>
+      <tr><td>CMN</td><td>프로젝트 공통 채번, 알림, 업무 로그</td><td>완료</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code></td><td>프로젝트별 확장 정책은 도입 프로젝트에서 확정합니다.</td></tr>
+      <tr><td>MBR</td><td>회원 CRUD, 인증, token hash, 이력</td><td>완료</td><td><code>MbrController</code>, <code>MbrAuthService</code>, <code>MemberMapper</code></td><td>실제 SSO/MFA 연동은 별도입니다.</td></tr>
+      <tr><td>EXS</td><td>외부 연계 운영 API와 로그</td><td>완료</td><td><code>ExsOperationController</code>, <code>ExsFlowService</code></td><td>실제 외부기관 연동 테스트는 별도 환경이 필요합니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>교육 샘플</td><td>부분 구현</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>BAT 유형별 샘플과 center-cut 샘플 보강이 필요합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>문서 상태</h2>
+    <table>
+      <thead>
+      <tr><th>문서</th><th>상태</th><th>역할</th><th>주의사항</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>README</td><td>완료</td><td>짧은 진입점과 문서 링크</td><td>상세 절차를 과도하게 넣지 않습니다.</td></tr>
+      <tr><td><code>specs/index.html</code></td><td>완료</td><td>문서 읽는 순서와 모듈 책임</td><td>신규 문서가 생기면 링크를 갱신합니다.</td></tr>
+      <tr><td><code>specs/배치_개발_가이드.html</code></td><td>완료</td><td>BAT 개발 기준</td><td>Job/Step 패턴이 늘면 EDU 샘플과 함께 보강합니다.</td></tr>
+      <tr><td><code>specs/운영_매뉴얼.html</code></td><td>완료</td><td>구동, 중지, 장애 조치, smoke 절차</td><td>운영 자동화가 늘면 runbook을 함께 갱신합니다.</td></tr>
+      <tr><td><code>specs/관리자_가이드.html</code></td><td>완료</td><td>ADM 운영 기능 기준</td><td>브라우저 UX 검증 결과는 리포트로 분리합니다.</td></tr>
+      <tr><td><code>specs/SQL_가이드.html</code></td><td>완료</td><td>DB 소유권, 설치 SQL, batch meta</td><td>SQL 변경 시 설치본과 migration을 함께 갱신합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>검증 기준</h2>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>명령</th><th>완료 판단</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>HTML 문서</td><td><code>scripts/check-html-docs.ps1</code></td><td>specs 문서와 안정화 리포트가 HTML 구조를 만족합니다.</td></tr>
+      <tr><td>UTF-8/mojibake</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>대상 텍스트 파일이 UTF-8 no BOM이고 주요 mojibake marker가 없습니다.</td></tr>
+      <tr><td>기능 증거</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>핵심 파일과 문서 marker가 존재합니다.</td></tr>
+      <tr><td>Gradle test</td><td><code>.\gradlew.bat test --offline</code></td><td>모듈 테스트가 성공합니다.</td></tr>
+      <tr><td>qualityGate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>문서, SQL, UTF-8, 기능 증거 검증이 묶여 통과합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>다음 보강 후보</h2>
+    <table>
+      <thead>
+      <tr><th>우선순위</th><th>항목</th><th>상태</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td>BAT listener heartbeat, 처리량 갱신, ghost 자동 감지</td><td>부분 구현</td></tr>
+      <tr><td>2</td><td>ADM 브라우저 실제 클릭 자동화</td><td>미검증</td></tr>
+      <tr><td>3</td><td>ondemand batch와 parameter 검증 UI</td><td>미구현</td></tr>
+      <tr><td>4</td><td>center-cut 기본 구현체와 EDU 샘플</td><td>미구현</td></tr>
+      <tr><td>5</td><td>온라인/배치 로그 정합 자동 등록</td><td>부분 구현</td></tr>
       </tbody>
     </table>
   </section>

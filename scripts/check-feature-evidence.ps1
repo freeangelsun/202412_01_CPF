@@ -135,6 +135,10 @@ Test-RequiredText "specs/sql/40_business_modules_schema.sql" "exs_transaction_lo
 Test-RequiredText "specs/sql/40_business_modules_schema.sql" "mbr_member" "SQL_MBR_TABLE"
 Test-RequiredFile "README.md" "README"
 Test-RequiredFile "specs/index.html" "DOC_INDEX"
+Test-RequiredText "specs/index.html" "batch-development-guide" "DOC_BATCH_GUIDE_LINK"
+Test-RequiredText "specs/index.html" "operation-runbook" "DOC_OPERATION_RUNBOOK_LINK"
+Test-RequiredText "README.md" "batch-development-guide" "README_BATCH_GUIDE_LINK"
+Test-RequiredText "README.md" "operation-runbook" "README_OPERATION_MANUAL_LINK"
 Test-SpecHtmlDocuments
 Test-RequiredFile "scripts/check-sql-standard.ps1" "CHECK_SQL_STANDARD"
 Test-RequiredFile "scripts/smoke-openapi.ps1" "SMOKE_OPENAPI"

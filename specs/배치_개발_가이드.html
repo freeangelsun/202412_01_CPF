@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>CPF 배치 개발 가이드</title>
+  <style>
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #e0f2fe; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    pre { background: #111827; color: #f9fafb; padding: 14px; overflow-x: auto; border-radius: 6px; }
+    .note { background: #ecfeff; border-left: 4px solid #06b6d4; padding: 12px 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <section id="batch-development-guide">
+    <h1>CPF 배치 개발 가이드</h1>
+    <p>이 문서는 BAT 모듈에서 배치 Job을 개발하고 실행하며, Spring Batch JobRepository와 CPF 운영 메타를 어떻게 연결하는지 설명합니다. README나 프레임워크 구성 가이드의 일부 문단으로 대체하지 않고 별도 기준 문서로 유지합니다.</p>
+    <p class="note">PFW는 프레임워크 공통 API를 제공하고, BAT는 실행 worker입니다. ADM은 배치 상태를 조회하고 운영 조치를 요청하지만 실제 Job/Step 실행 책임을 갖지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>아키텍처 경계</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>책임</th><th>배치 개발자가 지켜야 할 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>PFW</td><td>Batch 공통 launcher, 거래 ID, 표준 상태, 오류, 로그, 감사 기준 제공</td><td>업무 Job은 PFW 내부 테이블을 직접 갱신하지 않고 PFW Batch API를 사용합니다.</td></tr>
+      <tr><td>BAT</td><td>Spring Boot 기반 배치 worker, Job/Step 실행, JobRepository 기록</td><td>Job, Step, Tasklet, Reader, Processor, Writer는 BAT 또는 업무 모듈의 확장 영역에 둡니다.</td></tr>
+      <tr><td>ADM</td><td>배치 관제, 수동 실행 요청, 중지, 재수행, ghost 조치, 로그 조회</td><td>운영 조치는 감사 사유와 권한검사를 거쳐 BAT/운영 메타에 전달합니다.</td></tr>
+      <tr><td>업무 모듈</td><td>업무 데이터 처리와 업무별 center-cut adapter</td><td>업무 DB 변경은 업무 서비스 경계에서 처리하고, PFW DB를 업무 테이블처럼 사용하지 않습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>BAT 모듈 구조</h2>
+    <table>
+      <thead>
+      <tr><th>파일</th><th>역할</th><th>확장 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>bat/src/main/java/cpf/bat/BatApplication.java</code></td><td>BAT standalone boot entry</td><td>배치 worker 기동 profile과 component scan 기준을 확인합니다.</td></tr>
+      <tr><td><code>bat/src/main/java/cpf/bat/config/BatBatchRepositoryConfig.java</code></td><td>Spring Batch JobRepository 설정</td><td>DB 기반 JobRepository를 사용하고 in-memory 대체를 운영 기준으로 삼지 않습니다.</td></tr>
+      <tr><td><code>bat/src/main/java/cpf/bat/config/BatJdbcConfig.java</code></td><td>BAT datasource/Jdbc 설정</td><td>운영 profile에서는 환경변수 또는 secret store 주입을 기준으로 합니다.</td></tr>
+      <tr><td><code>bat/src/main/java/cpf/bat/job/BatSmokeJobConfig.java</code></td><td>정상/실패 smoke Job 샘플</td><td>신규 Job은 이름, parameter, 재수행 가능성, 실패 정책을 명확히 정의합니다.</td></tr>
+      <tr><td><code>bat/src/main/java/cpf/bat/operation/BatHealthController.java</code></td><td>BAT health API</td><td>workerId, serverInstanceId, profile, DB 연결 상태를 운영자가 확인할 수 있게 합니다.</td></tr>
+      <tr><td><code>bat/src/main/java/cpf/bat/operation/BatSmokeOperationService.java</code></td><td>smoke Job 실행 검증</td><td>Spring Batch execution ID와 CPF execution ID 연결을 검증합니다.</td></tr>
+      <tr><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT runtime smoke 자동화</td><td>jar 기동, health, 정상 Job, 실패 Job, cleanup까지 한 번에 검증합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>profile 기준</h2>
+    <table>
+      <thead>
+      <tr><th>profile</th><th>목적</th><th>스케줄러</th><th>검증 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>bat-local</code></td><td>개발 PC smoke</td><td>기본 비활성</td><td>수동 Job 실행과 smoke script로 확인합니다.</td></tr>
+      <tr><td><code>bat-worker</code></td><td>배치 worker 운영</td><td>환경 설정에 따라 활성</td><td>workerId, heartbeat, lock, running execution을 확인합니다.</td></tr>
+      <tr><td><code>prod</code></td><td>운영 배포</td><td>운영 정책 기준</td><td>secret 기본값 금지, DB 계정 권한 분리, 로그 마스킹을 확인합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>JobRepository와 CPF 운영 메타</h2>
+    <table>
+      <thead>
+      <tr><th>구분</th><th>테이블</th><th>용도</th><th>연결 키</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>Spring Batch 원천 실행 이력</td><td><code>jobExecutionId</code>, <code>stepExecutionId</code></td></tr>
+      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code></td><td>ADM 관제와 운영 조치를 위한 메타</td><td><code>executionId</code>, <code>transactionGlobalId</code></td></tr>
+      <tr><td>거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>온라인/운영 API 호출 추적</td><td><code>transactionGlobalId</code>, <code>traceId</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>기본 실행 명령</h2>
+    <pre><code>.\gradlew.bat :bat:test --offline
+.\gradlew.bat :bat:bootJar --offline
+java -jar bat\build\libs\bat-0.0.1-cpf.bat-SNAPSHOT.jar --spring.profiles.active=bat-local
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1</code></pre>
+    <p>jar 파일명은 빌드 설정에 따라 달라질 수 있습니다. 문서의 명령과 실제 산출물 이름이 달라지면 smoke script와 README를 함께 수정합니다.</p>
+  </section>
+
+  <section>
+    <h2>신규 Job 작성 절차</h2>
+    <table>
+      <thead>
+      <tr><th>단계</th><th>작업</th><th>검토 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td>Job 이름, 업무 영역, parameter, 재수행 가능 여부 정의</td><td>동일 parameter 중복 실행과 재수행 정책이 명확해야 합니다.</td></tr>
+      <tr><td>2</td><td>Tasklet 또는 Chunk 방식 선택</td><td>대량 데이터는 paging/chunk, 단순 운영 작업은 tasklet을 우선 검토합니다.</td></tr>
+      <tr><td>3</td><td>실패 정책, skip/retry, checkpoint, idempotency 정의</td><td>재수행 시 중복 처리나 데이터 손상이 없어야 합니다.</td></tr>
+      <tr><td>4</td><td>CPF Batch 운영 메타 연결</td><td>JobExecutionId, StepExecutionId, transactionGlobalId가 연결되어야 합니다.</td></tr>
+      <tr><td>5</td><td>ADM 관제 노출 항목 확인</td><td>실행 상태, 실패 사유, 처리 건수, step log, 수동 조치 권한을 확인합니다.</td></tr>
+      <tr><td>6</td><td>EDU 샘플과 개발 가이드 갱신</td><td>신규 패턴이면 `xyz` 교육 샘플을 함께 보강합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>center-cut 확장 원칙</h2>
+    <p>PFW는 center-cut 대상 목록, item, result 업무 테이블을 직접 소유하지 않습니다. PFW는 표준 인터페이스, 상태, 오류, 로그, 감사, transactionGlobalId 기준을 제공합니다. BAT가 기본 center-cut 구현체를 제공할 수 있고, 업무 영역은 필요 시 업무별 target/item/result 테이블과 adapter를 추가합니다.</p>
+    <table>
+      <thead>
+      <tr><th>확장 지점</th><th>권장 형태</th><th>주의사항</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>대상 조회</td><td><code>CenterCutTargetProvider</code> 형태의 업무 adapter</td><td>업무 DB 소유권을 침범하지 않습니다.</td></tr>
+      <tr><td>처리 로직</td><td><code>CenterCutHandler</code> 형태의 업무 서비스</td><td>idempotency와 실패 재처리 기준을 문서화합니다.</td></tr>
+      <tr><td>결과 적재</td><td><code>ResultProvider</code> 또는 업무 repository</td><td>처리 결과와 실패 데이터 보존기간을 정의합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>다음 보강 후보</h2>
+    <table>
+      <thead>
+      <tr><th>우선순위</th><th>항목</th><th>이유</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td>listener heartbeat와 처리량 갱신</td><td>장시간 실행 Job의 실시간 관제 품질을 높입니다.</td></tr>
+      <tr><td>2</td><td>ghost 자동 감지 scheduler</td><td>비정상 종료 worker의 RUNNING execution을 빠르게 식별합니다.</td></tr>
+      <tr><td>3</td><td>ondemand batch</td><td>운영자가 parameter를 지정해 안전하게 수동 실행할 수 있게 합니다.</td></tr>
+      <tr><td>4</td><td>center-cut 기본 구현체</td><td>대량 업무 처리 패턴을 재사용 가능한 샘플로 제공합니다.</td></tr>
+      <tr><td>5</td><td>온라인/배치 로그 정합 자동 등록</td><td>배치 실행 이력과 거래 로그를 같은 추적 기준으로 묶습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

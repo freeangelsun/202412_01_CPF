@@ -2,70 +2,62 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #e0f2fe; }
+    th { background: #e5e7eb; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .done { color: #047857; font-weight: 700; }
-    .skipped { color: #6b7280; font-weight: 700; }
-    .risk { color: #b91c1c; font-weight: 700; }
+    .ok { color: #047857; font-weight: 700; }
+    .warn { color: #b45309; font-weight: 700; }
+    .fail { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>이번 작업은 요청서 기준으로 BAT 독립 실행 모듈을 추가하고, Spring Batch JobRepository와 CPF Batch 운영 메타의 연결을 실제 runtime smoke로 확인하는 데 초점을 두었습니다. 실행하지 않은 검증은 성공으로 적지 않고 별도 상태로 남겼습니다.</p>
+    <h1>CPF 안정화 리포트</h1>
+    <p>이번 작업은 BAT 문서 정본화, 배치 개발 가이드 분리, 운영 매뉴얼 작성, README와 주요 가이드 동기화를 목표로 수행했습니다. 요청서 파일은 작업 기준으로만 읽었고 직접 수정하지 않았습니다.</p>
   </section>
 
   <section>
-    <h2>작업 전 리뷰</h2>
+    <h2>현재 상태 진단</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>확인 내용</th><th>판단</th></tr>
+      <tr><th>점검 항목</th><th>작업 전 판단</th><th>작업 후 상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>BAT 모듈</td><td>독립 실행 배치 worker 모듈이 필요했습니다.</td><td class="done">구현 대상으로 확정</td></tr>
-      <tr><td>ADM 책임</td><td>ADM은 실행 주체가 아니라 관제와 조치 콘솔이어야 합니다.</td><td class="done">책임 분리 유지</td></tr>
-      <tr><td>SQL 범위</td><td>요청 범위에서는 신규 center-cut 또는 BAT 전용 테이블을 만들지 않습니다.</td><td class="done">기존 Spring Batch와 CPF 배치 테이블 사용</td></tr>
-      <tr><td>검증 기준</td><td>jar 단독 기동, health, Job/Step E2E, Spring Batch ID와 CPF 메타 ID 연결이 완료 기준입니다.</td><td class="done">runtime smoke 기준 반영</td></tr>
+      <tr><td>배치 개발 가이드 별도 문서</td><td>부족 또는 미정본</td><td><span class="ok">완료</span> - <code>specs/배치_개발_가이드.html</code> 작성</td></tr>
+      <tr><td>운영 매뉴얼</td><td>관리자 가이드 일부로 흩어짐</td><td><span class="ok">완료</span> - <code>specs/운영_매뉴얼.html</code> 작성</td></tr>
+      <tr><td>문서 인덱스</td><td>BAT/운영 문서 링크 부족</td><td><span class="ok">완료</span> - 배치 개발 가이드와 운영 매뉴얼 링크 추가</td></tr>
+      <tr><td>README</td><td>BAT 기준과 상세 문서 연결 부족</td><td><span class="ok">완료</span> - 짧은 진입점과 문서 링크 중심으로 재정리</td></tr>
+      <tr><td>프레임워크 구성 가이드</td><td>PFW/BAT/ADM 책임 경계 보강 필요</td><td><span class="ok">완료</span> - PFW, CMN, BAT, ADM, 업무 모듈 경계 정리</td></tr>
+      <tr><td>관리자 가이드</td><td>운영 절차와 배치 관제 설명 보강 필요</td><td><span class="ok">완료</span> - ADM 기능 지도, 배치 운영, 로그 상세 기준 정리</td></tr>
+      <tr><td>SQL 가이드</td><td>Spring Batch와 CPF Batch 메타 관계 보강 필요</td><td><span class="ok">완료</span> - JobRepository와 CPF 운영 메타 역할 분리 설명</td></tr>
+      <tr><td>기능 구현 매트릭스</td><td>BAT와 문서 상태 반영 필요</td><td><span class="ok">완료</span> - BAT, 문서, 잔여 리스크 상태 갱신</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>수행 작업</h2>
+    <h2>반영 파일</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>내용</th><th>대표 위치</th></tr>
+      <tr><th>파일</th><th>반영 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td>BAT 모듈</td><td>독립 Spring Boot 배치 애플리케이션, JobRepository 구성, smoke Job과 실패 Job, health API를 추가했습니다.</td><td><code>bat</code></td></tr>
-      <tr><td>PFW Batch</td><td>BAT worker가 먼저 실행되어도 CPF 배치 실행 인스턴스 FK 오류가 나지 않도록 실행 인스턴스 보장을 추가했습니다. JobExecution 상태가 FAILED일 때 메시지와 이벤트도 실패로 내려가도록 보강했습니다.</td><td><code>CpfBatchOperationRepository</code>, <code>CpfBatchLauncher</code></td></tr>
-      <tr><td>Runtime smoke</td><td>BAT jar를 실제로 띄우고 health, 정상 Job, 실패 Job, Spring Batch execution id, CPF execution id, transactionGlobalId, step id를 검증하는 스크립트를 추가했습니다.</td><td><code>scripts/smoke-bat-runtime.ps1</code></td></tr>
-      <tr><td>문서</td><td>README, 문서 인덱스, 프레임워크 구성, 개발, 관리자, SQL, 기능 매트릭스를 BAT 기준과 역할 경계에 맞게 현행화했습니다.</td><td><code>README</code>, <code>specs</code></td></tr>
-      <tr><td>품질 gate</td><td>오프라인 검증을 막던 외부 Build Scan 필수 플러그인을 제거하고, 기능 증거 검사에 BAT 항목을 추가했습니다.</td><td><code>settings.gradle</code>, <code>check-feature-evidence.ps1</code></td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>BAT smoke 증거</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>결과</th><th>증거</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>Health</td><td class="done">UP</td><td>BAT profile은 <code>pfw</code>, <code>bat-local</code>로 기동했고 PFW DB 연결이 UP으로 확인되었습니다.</td></tr>
-      <tr><td>정상 Job</td><td class="done">COMPLETED</td><td>CPF execution id <code>12</code>, Spring Batch execution id <code>10</code>, transactionGlobalId <code>20260622202749842BATsmoke010000004</code></td></tr>
-      <tr><td>실패 Job</td><td class="done">FAILED</td><td>CPF execution id <code>13</code>, Spring Batch execution id <code>11</code>, transactionGlobalId <code>20260622202750204BATsmoke010000005</code></td></tr>
-      <tr><td>Step linkage</td><td class="done">확인</td><td>정상/실패 Job 모두 <code>pfw_batch_step_execution</code>에 Spring Batch step execution id가 연결되었습니다.</td></tr>
-      <tr><td>Cleanup</td><td class="done">확인</td><td>BAT smoke 종료 후 기동 프로세스를 정리했습니다.</td></tr>
+      <tr><td><code>README</code></td><td>역할 경계, 기본 검증, 문서 진입점, BAT/운영 매뉴얼 링크 정리</td></tr>
+      <tr><td><code>specs/index.html</code></td><td>문서 읽는 순서, batch-development-guide marker, operation-runbook marker 추가</td></tr>
+      <tr><td><code>specs/배치_개발_가이드.html</code></td><td>BAT 아키텍처, JobRepository, CPF 운영 메타, profile, 신규 Job 절차, center-cut 확장 원칙 정리</td></tr>
+      <tr><td><code>specs/운영_매뉴얼.html</code></td><td>ADM/BAT 구동, 중지, smoke 검증, ghost 조치, DB 점검, 보고 원칙 정리</td></tr>
+      <tr><td><code>specs/프레임워크_구성_가이드.html</code></td><td>PFW/CMN/BAT/ADM 책임 경계와 profile, 품질 gate 정리</td></tr>
+      <tr><td><code>specs/관리자_가이드.html</code></td><td>ADM 기능 지도, 배치 운영, 로그 상세, runtime 검증 기준 정리</td></tr>
+      <tr><td><code>specs/SQL_가이드.html</code></td><td>DB 소유권, 설치 SQL, Spring Batch 메타, CPF Batch 메타, migration 기준 정리</td></tr>
+      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>기능 상태, 문서 상태, 검증 기준, 다음 보강 후보 정리</td></tr>
+      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td>배치 개발 가이드와 운영 매뉴얼 문서 marker 검증 추가</td></tr>
       </tbody>
     </table>
   </section>
@@ -74,37 +66,58 @@
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
+      <tr><th>검증</th><th>명령</th><th>결과</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>:bat:test --offline</code></td><td class="done">통과</td><td>BAT 서비스/컨트롤러 단위 테스트 통과</td></tr>
-      <tr><td><code>:bat:bootJar --offline</code></td><td class="done">통과</td><td>실행 jar 생성 확인</td></tr>
-      <tr><td><code>scripts/smoke-bat-runtime.ps1</code></td><td class="done">통과</td><td>health, 정상 Job, 실패 Job, ID 연결, cleanup 확인</td></tr>
-      <tr><td><code>test --offline</code></td><td class="done">통과</td><td>전체 모듈 테스트 통과</td></tr>
-      <tr><td><code>qualityGate --offline</code></td><td class="done">통과</td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거 검사 통과</td></tr>
-      <tr><td>UTF-8와 mojibake 검사</td><td class="done">통과</td><td>공식 검사 스크립트 기준 통과</td></tr>
-      <tr><td>HTML 문서 검사</td><td class="done">통과</td><td>specs HTML과 안정화 리포트 구조 통과</td></tr>
-      <tr><td>SQL 표준 검사</td><td class="done">통과</td><td>테이블 prefix, 공통 컬럼, SQL 표준 검사 통과</td></tr>
-      <tr><td>ADM runtime smoke</td><td class="done">통과</td><td>ADM health, OpenAPI, 배치 API, 정적 UI smoke, cleanup 확인</td></tr>
-      <tr><td>ADM 브라우저 클릭</td><td class="skipped">미수행</td><td>브라우저 자동화 runtime이 PATH에 없어 클릭 검증은 수행하지 않았습니다.</td></tr>
-      <tr><td>전체 설치 SQL 재실행</td><td class="skipped">미수행</td><td>이번 요청 범위는 BAT 독립 실행 안정화였고, 전체 DB 재설치성 검증은 수행하지 않았습니다.</td></tr>
+      <tr><td>HTML 문서 구조</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1</code></td><td><span class="ok">성공</span> - 리포트 작성 전 1차 실행은 리포트 파일 미작성으로 실패했고, 리포트 작성 후 재실행은 성공</td></tr>
+      <tr><td>UTF-8/mojibake</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake</code></td><td><span class="ok">성공</span></td></tr>
+      <tr><td>기능 증거</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1</code></td><td><span class="ok">성공</span></td></tr>
+      <tr><td>Gradle test</td><td><code>.\gradlew.bat test --offline</code></td><td><span class="ok">성공</span> - 전체 모듈 테스트 성공, BAT 테스트 포함</td></tr>
+      <tr><td>qualityGate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td><span class="ok">성공</span> - 기능 증거, HTML 문서, Java format, legacy name, mojibake, sample, security seed, SQL, 거래 ID, UTF-8 gate 통과</td></tr>
+      <tr><td>BAT bootJar</td><td><code>.\gradlew.bat :bat:bootJar --offline</code></td><td><span class="ok">성공</span></td></tr>
+      <tr><td>ADM bootJar</td><td><code>.\gradlew.bat :adm:bootJar --offline</code></td><td><span class="ok">성공</span></td></tr>
+      <tr><td>BAT runtime smoke</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-runtime.ps1</code></td><td><span class="ok">성공</span> - health UP, 정상 Job COMPLETED, 실패 Job FAILED, Spring Batch ID와 CPF execution ID 연결 확인, cleanup 성공</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-runtime.ps1</code></td><td><span class="ok">성공</span> - health UP, OpenAPI smoke, 배치 API, 정적 UI smoke, cleanup 성공. 브라우저 클릭 자동화는 PATH에 runtime이 없어 SKIPPED</td></tr>
+      <tr><td>MariaDB 전체 설치 smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td><span class="warn">이번 범위에서는 자동 실행하지 않음</span></td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>남은 리스크와 다음 보강</h2>
+    <h2>아키텍처 정합성</h2>
     <table>
       <thead>
-      <tr><th>구분</th><th>내용</th><th>다음 조치</th></tr>
+      <tr><th>영역</th><th>정리 결과</th></tr>
       </thead>
       <tbody>
-      <tr><td>브라우저 클릭 검증</td><td>ADM 실제 화면 클릭 자동화는 이번 범위에서 수행하지 않았습니다.</td><td>Playwright 또는 Selenium 시나리오를 별도 추가합니다.</td></tr>
-      <tr><td>운영 배치</td><td>BAT 독립 실행 기준 Job은 검증했지만, 실제 업무 Job 묶음과 worker pool 배정 정책은 프로젝트별 확장이 필요합니다.</td><td>업무 Job 템플릿, worker 배정 정책, 장시간 Job listener를 추가합니다.</td></tr>
-      <tr><td>Broker 연동</td><td>Redis/Kafka 실 broker 장애 시나리오는 이번 범위가 아닙니다.</td><td>별도 broker 환경에서 fallback 장애 시나리오를 검증합니다.</td></tr>
-      <tr><td>전체 DB 재설치</td><td>전체 설치 SQL 재실행은 데이터 초기화 영향이 있어 이번 작업에서 수행하지 않았습니다.</td><td>필요 시 별도 승인 후 MariaDB 전체 설치와 seed idempotent를 재검증합니다.</td></tr>
+      <tr><td>PFW</td><td>프레임워크 코어와 공통 API 제공자로 정의했습니다. 독립 process로 오해하지 않도록 운영 매뉴얼에도 명시했습니다.</td></tr>
+      <tr><td>CMN</td><td>프로젝트 공통 영역으로 정의했습니다. 업무 공통 채번, 업무 알림, 업무 로그는 프로젝트 필요에 따라 확장하는 기준입니다.</td></tr>
+      <tr><td>BAT</td><td>Spring Batch 기반 실행 worker로 정의했습니다. JobRepository 원천 메타와 CPF 운영 메타 연결 기준을 분리했습니다.</td></tr>
+      <tr><td>ADM</td><td>운영 관제 콘솔로 정의했습니다. 실제 Job 실행 책임은 BAT에 두고, ADM은 조회와 조치 요청, 감사 기록을 담당합니다.</td></tr>
+      <tr><td>center-cut</td><td>PFW가 업무 target/item/result 테이블을 고정 소유하지 않는 원칙을 문서화했습니다.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section>
+    <h2>보류 항목과 다음 보강 후보</h2>
+    <table>
+      <thead>
+      <tr><th>우선순위</th><th>항목</th><th>사유</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td>BAT listener heartbeat, 처리량 갱신, ghost 자동 감지</td><td>이번 요청 범위가 문서 정본화라 기능 추가는 제외했습니다.</td></tr>
+      <tr><td>2</td><td>ADM 브라우저 실제 클릭 자동화</td><td>정적 marker 검증과 runtime smoke를 넘어서는 UI 자동화 시나리오가 필요합니다.</td></tr>
+      <tr><td>3</td><td>ondemand batch와 parameter 검증 UI</td><td>운영자 수동 실행 UX와 서버 권한검사를 함께 설계해야 합니다.</td></tr>
+      <tr><td>4</td><td>center-cut 기본 구현체와 EDU 샘플</td><td>업무별 table adapter 기준과 대량 처리 실패 정책을 함께 정리해야 합니다.</td></tr>
+      <tr><td>5</td><td>온라인/배치 로그 정합 자동 등록</td><td>transactionGlobalId, JobExecutionId, StepExecutionId 연결을 자동화하면 관제 품질이 올라갑니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>최종 판정</h2>
+    <p><span class="ok">완료</span> - 이번 요청 범위인 BAT 문서 정본화, 운영 매뉴얼 작성, README와 주요 가이드 동기화, 문서 evidence gate 보강을 완료했습니다. 실행한 검증은 모두 성공으로 확인했고, MariaDB 전체 설치 재실행과 브라우저 클릭 자동화는 미검증 또는 skip으로 분리했습니다.</p>
   </section>
 </main>
 </body>

@@ -18,7 +18,7 @@
 <main>
   <section>
     <h1>CPF 관리자 가이드</h1>
-    <p>ADM은 프레임워크 운영자가 실제로 조회, 조치, 감사할 수 있어야 하는 운영 콘솔입니다. UI 버튼 표시만으로 완료하지 않고, 서버 권한검사와 감사 사유, before/after diff, 민감정보 마스킹이 함께 적용되어야 합니다.</p>
+    <p>ADM은 CPF 프레임워크를 운영자가 조회, 조치, 감사할 수 있게 하는 운영 콘솔입니다. UI 버튼 표시만으로 보안을 완성하지 않고 서버 권한검사, 감사 사유, before/after diff, 민감정보 마스킹을 함께 적용해야 합니다.</p>
     <p class="warn">브라우저 실제 클릭 검증을 수행하지 않은 항목은 화면 검증 완료로 보고하지 않습니다. 정적 smoke는 메뉴와 API marker 확인이며, runtime smoke는 앱 기동과 API 응답 검증입니다.</p>
   </section>
 
@@ -26,37 +26,53 @@
     <h2>ADM 기능 지도</h2>
     <table>
       <thead>
-      <tr><th>기능</th><th>화면/API</th><th>Service</th><th>DB</th><th>운영 기준</th></tr>
+      <tr><th>기능</th><th>대표 API/UI</th><th>주요 테이블</th><th>운영 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td>운영자 관리</td><td><code>AdmOperatorController</code>, <code>/adm/api/operators</code></td><td><code>AdmOperatorService</code></td><td><code>adm_operator</code>, <code>adm_operator_role</code></td><td>등록, 수정, 잠금, 잠금해제, 비밀번호 초기화는 감사 사유가 필요합니다.</td></tr>
-      <tr><td>권한 관리</td><td><code>AdmPermissionController</code>, <code>/adm/api/permissions</code></td><td><code>AdmPermissionService</code></td><td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code></td><td>메뉴/버튼/API 권한을 분리하고 서버에서 검사합니다.</td></tr>
-      <tr><td>회원 관리</td><td><code>AdmMemberController</code>, <code>/adm/api/members</code></td><td><code>AdmMemberOperationService</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 잠금/해제, 권한 변경 이력을 조회합니다.</td></tr>
-      <tr><td>로그 관제</td><td><code>AdmLogController</code>, <code>/adm/api/logs</code></td><td><code>AdmLogQueryService</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 조회합니다.</td></tr>
-      <tr><td>배치 관제</td><td><code>AdmBatchController</code>, <code>/adm/api/batch</code></td><td><code>AdmBatchOperationService</code>, <code>PfwBatchScheduler</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>목록, 스케줄, 실행 이력, step, worker, lock, ghost, 영업일, 수행 대상, 관계를 관리합니다.</td></tr>
-      <tr><td>BAT 상태 확인</td><td><code>/bat/api/health</code></td><td><code>BatHealthController</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>BAT 독립 실행 상태와 smoke Job 결과를 확인합니다. ADM이 Job 실행 책임을 가져가지 않습니다.</td></tr>
-      <tr><td>캐시 관리</td><td><code>AdmCacheController</code></td><td>ADM 캐시 운영 Service</td><td><code>pfw_cache_refresh_event</code></td><td>전체 refresh, key refresh, 이벤트 이력, 실패 이력을 제공합니다.</td></tr>
-      <tr><td>메시지/코드/응답코드</td><td><code>AdmMessageController</code>, <code>AdmCodeController</code>, <code>AdmResponseCodeController</code></td><td>각 운영 Service</td><td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_response_code</code></td><td>등록, 수정, 비활성은 감사 사유와 cache refresh 연동을 기준으로 합니다.</td></tr>
-      <tr><td>설정 관리</td><td><code>AdmConfigController</code></td><td>설정 운영 Service</td><td><code>pfw_config</code></td><td>secret은 직접 노출하지 않고 마스킹 또는 secret reference만 표시합니다.</td></tr>
-      <tr><td>보안 운영</td><td><code>AdmSecurityController</code></td><td><code>AdmSecurityOperationService</code>, <code>AdmPasswordPolicyService</code></td><td>ADM 보안 테이블</td><td>비밀번호 정책, OTP, IP allowlist, 세션 만료, 로그인 감사 로그를 관리합니다.</td></tr>
+      <tr><td>운영자 관리</td><td><code>/adm/api/operators</code></td><td><code>adm_operator</code>, <code>adm_operator_role</code></td><td>등록, 수정, 잠금, 잠금해제, 비밀번호 초기화는 감사 사유가 필요합니다.</td></tr>
+      <tr><td>권한 관리</td><td><code>/adm/api/permissions</code></td><td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code></td><td>메뉴, 버튼, API 권한을 분리하고 서버에서 검사합니다.</td></tr>
+      <tr><td>회원 관리</td><td><code>/adm/api/members</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 권한 변경 이력을 조회합니다.</td></tr>
+      <tr><td>로그 관제</td><td><code>/adm/api/logs</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace ID, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 검색합니다.</td></tr>
+      <tr><td>배치 관제</td><td><code>/adm/api/batch</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>Job, schedule, execution, step, worker, lock, ghost, 영업일, 수행 대상 관계를 관제합니다.</td></tr>
+      <tr><td>캐시 관리</td><td>ADM 캐시 API</td><td><code>pfw_cache_refresh_event</code></td><td>전체 refresh, key refresh, 이벤트 이력, 실패 이력을 조회합니다.</td></tr>
+      <tr><td>메시지/코드/응답코드</td><td>ADM 메시지/코드/응답코드 API</td><td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_response_code</code></td><td>등록, 수정, 비활성, cache refresh 연동과 감사 로그를 적용합니다.</td></tr>
+      <tr><td>설정 관리</td><td>ADM 설정 API</td><td><code>pfw_config</code></td><td>secret 값은 직접 노출하지 않고 마스킹 또는 secret reference만 표시합니다.</td></tr>
+      <tr><td>보안 운영</td><td>ADM 보안 API</td><td>ADM 보안 테이블</td><td>비밀번호 정책, OTP, IP allowlist, 세션 폐기, 로그인 감사 로그를 관리합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>배치 운영 기준</h2>
+    <h2>배치 운영</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>현재 기준</th><th>추가 고도화</th></tr>
+      <tr><th>항목</th><th>현재 기준</th><th>운영자 확인</th></tr>
       </thead>
       <tbody>
-      <tr><td>실행 책임</td><td>BAT가 PFW Batch 공통 API를 통해 Job을 실행합니다. ADM은 관제와 조치 요청을 담당합니다.</td><td>분산 worker pool과 작업 배정 정책을 확장합니다.</td></tr>
-      <tr><td>영업일 수행</td><td>스케줄의 영업일 적용 여부, 수행 가능 시간, 휴일 정책을 기준으로 수행 후보를 계산합니다.</td><td>달력 월간 뷰와 휴일 일괄 업로드 UX를 확장합니다.</td></tr>
-      <tr><td>수행 시뮬레이션</td><td><code>/adm/api/batch/schedules/{scheduleId}/simulation</code>으로 수행 후보일을 조회합니다.</td><td>브라우저 클릭 자동화로 결과 표시까지 검증합니다.</td></tr>
-      <tr><td>선행/후행/트리거 관계</td><td><code>pfw_batch_job_relation</code> 기준으로 관계를 조회합니다.</td><td>그래프형 관계도 UX를 추가합니다.</td></tr>
-      <tr><td>수행 대상</td><td><code>pfw_batch_execution_target</code> 기준으로 대기, 배정, 완료 대상을 조회합니다.</td><td>대상 재배정과 제외 처리 정책을 확장합니다.</td></tr>
-      <tr><td>worker heartbeat</td><td><code>pfw_batch_worker</code>에서 worker 상태와 heartbeat를 조회합니다.</td><td>장시간 실행 Job listener 기반 실시간 갱신을 강화합니다.</td></tr>
-      <tr><td>ghost 조치</td><td>heartbeat가 끊긴 실행 후보를 조회하고 FAIL, ABANDON, RELEASE_LOCK 조치를 남깁니다.</td><td>자동 감지 스케줄러와 알림 연계를 고도화합니다.</td></tr>
+      <tr><td>실행 책임</td><td>BAT가 PFW Batch 공통 API를 통해 Job을 실행합니다. ADM은 관제와 조치 요청을 담당합니다.</td><td>실제 실행 workerId와 JobExecutionId를 확인합니다.</td></tr>
+      <tr><td>영업일 실행</td><td>스케줄의 영업일 적용 여부, 수행 가능 시간, 휴일 정책을 기준으로 실행 후보를 계산합니다.</td><td>수행 시뮬레이션 결과와 실제 schedule 상태를 비교합니다.</td></tr>
+      <tr><td>수행 시뮬레이션</td><td><code>/adm/api/batch/schedules/{scheduleId}/simulation</code> 기준으로 수행 예정일을 조회합니다.</td><td>운영 화면에서는 버튼 권한, 사유 입력, 결과 표시가 함께 필요합니다.</td></tr>
+      <tr><td>선행/후행/트리거 관계</td><td><code>pfw_batch_job_relation</code> 기준으로 관계를 조회합니다.</td><td>목록과 상세에서 선행 Job, 후행 Job, trigger Job 관계를 확인합니다.</td></tr>
+      <tr><td>수행 대상</td><td><code>pfw_batch_execution_target</code> 기준으로 대기, 배정, 완료 대상을 조회합니다.</td><td>수행 대기 인스턴스와 실제 execution 관계를 확인합니다.</td></tr>
+      <tr><td>ghost 조치</td><td>heartbeat timeout과 RUNNING execution 잔존 여부로 ghost 후보를 판단합니다.</td><td>FAIL, ABANDON, RELEASE_LOCK 조치는 감사 사유를 필수로 남깁니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>로그 상세 보기</h2>
+    <table>
+      <thead>
+      <tr><th>탭</th><th>내용</th><th>권한 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>요약</td><td>거래 ID, trace ID, URI, HTTP status, 응답코드, 처리시간</td><td>로그 조회 권한</td></tr>
+      <tr><td>헤더</td><td>거래 헤더, client version, channel, request type</td><td>민감정보 마스킹 기본</td></tr>
+      <tr><td>request/response</td><td>JSON pretty print, key 검색, 복사, 다운로드</td><td>원문 보기와 다운로드 권한 분리</td></tr>
+      <tr><td>전문</td><td>고정길이 전문 포맷 기준 필드명, 시작위치, 길이, 값, 설명</td><td>전문 원문 보기 권한 분리</td></tr>
+      <tr><td>error</td><td>오류 코드, 메시지, stack trace 요약</td><td>내부 오류 상세는 운영 권한자만 조회</td></tr>
+      <tr><td>diff</td><td>변경 전/후 값</td><td>감사 로그 상세 권한</td></tr>
+      <tr><td>step log</td><td>배치 step별 처리 건수, 실패 사유, retry/skip 정보</td><td>배치 로그 상세 권한</td></tr>
       </tbody>
     </table>
   </section>
@@ -65,13 +81,13 @@
     <h2>운영 검증</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>명령</th><th>결과 해석</th></tr>
+      <tr><th>검증</th><th>명령</th><th>해석</th></tr>
       </thead>
       <tbody>
-      <tr><td>정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로가 있는지 확인합니다.</td></tr>
-      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/실패 Job, CPF 메타 연결을 확인합니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱을 기동하고 health, OpenAPI, 배치 API, UI marker, cleanup을 검증합니다.</td></tr>
-      <tr><td>브라우저 클릭</td><td>별도 자동화 시나리오 필요</td><td>시나리오가 없으면 성공으로 보고하지 않고 미검증으로 남깁니다.</td></tr>
+      <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로 marker가 있는지 확인합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, cleanup을 검증합니다.</td></tr>
+      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
+      <tr><td>운영 runbook</td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a></td><td>구동, 중지, 장애 복구, 미검증 보고 원칙을 따릅니다.</td></tr>
       </tbody>
     </table>
   </section>

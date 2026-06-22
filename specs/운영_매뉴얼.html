@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>CPF 운영 매뉴얼</title>
+  <style>
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #fef3c7; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    pre { background: #111827; color: #f9fafb; padding: 14px; overflow-x: auto; border-radius: 6px; }
+    .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <section id="operation-runbook">
+    <h1>CPF 운영 매뉴얼</h1>
+    <p>이 문서는 ADM, BAT, 업무 모듈을 운영 환경에서 어떻게 구동, 중지, 점검, 복구할지 정리한 runbook입니다. 코드 기능의 존재와 운영 검증 결과를 혼동하지 않기 위해 실행하지 않은 검증은 항상 미검증으로 기록합니다.</p>
+    <p class="warn">PFW는 library 성격의 프레임워크 코어이므로 독립 process로 구동하지 않습니다. 실제 process로 구동되는 대표 모듈은 ADM, BAT, 업무 애플리케이션입니다.</p>
+  </section>
+
+  <section>
+    <h2>process별 책임</h2>
+    <table>
+      <thead>
+      <tr><th>process</th><th>구동 책임</th><th>정상 확인</th><th>장애 시 우선 조치</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM</td><td>운영 콘솔, 권한, 회원, 로그, 배치 관제, 캐시/메시지/코드/설정 관리</td><td><code>/adm/api/health</code>, OpenAPI, ADM runtime smoke</td><td>로그 확인, DB 연결 확인, API 권한/세션 상태 확인</td></tr>
+      <tr><td>BAT</td><td>Spring Batch Job/Step 실행, JobRepository 기록, CPF 배치 메타 적재</td><td><code>/bat/api/health</code>, BAT runtime smoke, workerId 확인</td><td>RUNNING execution, lock, worker heartbeat, ghost 후보 확인</td></tr>
+      <tr><td>업무 앱</td><td>온라인 업무 API와 업무 DB 처리</td><td>업무 health, 거래 로그, trace ID</td><td>거래 ID 기준으로 PFW 로그와 업무 로그를 함께 추적</td></tr>
+      <tr><td>PFW</td><td>독립 process 없음</td><td>각 애플리케이션 내부에서 Bean, filter, AOP, facade 동작 확인</td><td>공통 모듈 버전, 설정, 의존성 충돌 확인</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>로컬 구동 시나리오</h2>
+    <table>
+      <thead>
+      <tr><th>시나리오</th><th>명령</th><th>확인 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM 단독</td><td><code>.\gradlew.bat :adm:bootJar --offline</code><br><code>java -jar adm\build\libs\adm-0.0.1-cpf.adm-SNAPSHOT.jar --spring.profiles.active=adm-local</code></td><td>health, OpenAPI, ADM UI 정적 marker, 주요 API 응답</td></tr>
+      <tr><td>BAT 단독</td><td><code>.\gradlew.bat :bat:bootJar --offline</code><br><code>java -jar bat\build\libs\bat-0.0.1-cpf.bat-SNAPSHOT.jar --spring.profiles.active=bat-local</code></td><td>health, 정상 Job, 실패 Job, JobRepository와 CPF 메타 연결</td></tr>
+      <tr><td>ADM + BAT 동시</td><td>각 jar를 별도 terminal 또는 서비스로 기동</td><td>ADM에서 배치 상태를 조회하고 BAT API health를 확인</td></tr>
+      <tr><td>scheduler 비활성 BAT</td><td><code>bat-local</code> 또는 scheduler off 설정</td><td>자동 실행 없이 수동 smoke만 수행</td></tr>
+      <tr><td>scheduler 활성 BAT</td><td><code>bat-worker</code>와 운영 scheduler 설정</td><td>스케줄 대상 Job, 중복 실행 방지, lock 획득 확인</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>smoke 검증</h2>
+    <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</code></pre>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>성공 조건</th><th>실패 시 확인</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>BAT runtime smoke</td><td>jar 기동, health 응답, 정상 Job 성공, 실패 Job 실패 처리, cleanup 성공</td><td>port, profile, datasource, JobRepository 테이블, CPF 배치 메타</td></tr>
+      <tr><td>ADM runtime smoke</td><td>jar 기동, health 응답, OpenAPI 접근, 배치 API marker 확인</td><td>ADM datasource, static resource, security filter, session 설정</td></tr>
+      <tr><td>OpenAPI smoke</td><td>기동 중인 앱의 JSON 문서 조회 성공</td><td>앱 기동 여부, springdoc 설정, context path</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>정상 중지 절차</h2>
+    <table>
+      <thead>
+      <tr><th>단계</th><th>조치</th><th>확인 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td>신규 Job 실행을 차단합니다.</td><td>scheduler disabled 또는 운영 조치 로그 확인</td></tr>
+      <tr><td>2</td><td>RUNNING Job과 Step을 조회합니다.</td><td>Spring Batch execution과 CPF execution 상태가 일치해야 합니다.</td></tr>
+      <tr><td>3</td><td>가능하면 graceful shutdown을 수행합니다.</td><td>worker heartbeat 종료, lock 해제, running execution 없음</td></tr>
+      <tr><td>4</td><td>종료 후 health 미응답을 확인합니다.</td><td>process 종료, port 해제, log flush 확인</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>강제 종료와 ghost 조치</h2>
+    <table>
+      <thead>
+      <tr><th>상황</th><th>판단 기준</th><th>운영 조치</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>worker 비정상 종료</td><td>health 미응답, heartbeat timeout, RUNNING execution 잔존</td><td>ghost 후보로 식별하고 ADM에서 조치 사유를 입력해 FAIL, ABANDON, RELEASE_LOCK 중 선택합니다.</td></tr>
+      <tr><td>lock 잔존</td><td>동일 job/parameter 실행이 lock 때문에 차단</td><td>실행 중 worker 존재 여부를 확인한 뒤 lock 해제 또는 재수행 여부를 결정합니다.</td></tr>
+      <tr><td>부분 처리 실패</td><td>step 실패, 처리 건수 불일치, 실패 데이터 존재</td><td>skip/retry 정책과 checkpoint를 확인한 뒤 재수행 가능 상태인지 판단합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>DB 점검 기준</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>확인 대상</th><th>의미</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>JobRepository 실행 원천 데이터</td></tr>
+      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code></td><td>ADM 관제와 운영 조치를 위한 메타</td></tr>
+      <tr><td>거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>API 호출, trace, request/response, 오류 상세 추적</td></tr>
+      <tr><td>감사 로그</td><td><code>adm_audit_log</code></td><td>누가, 언제, 무엇을, 왜 변경했는지 추적</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>운영 보고 원칙</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>보고 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>실행한 검증</td><td>명령, 결과, 실패 로그 요약을 남깁니다.</td></tr>
+      <tr><td>실행하지 않은 검증</td><td>성공으로 쓰지 않고 미검증과 사유를 남깁니다.</td></tr>
+      <tr><td>외부 환경 검증</td><td>MariaDB, broker, 브라우저 자동화처럼 별도 환경이 필요한 항목은 환경 정보와 함께 분리합니다.</td></tr>
+      <tr><td>문서 변경</td><td>README, 개발 가이드, 관리자 가이드, SQL 가이드, EDU 샘플 연결이 서로 맞는지 확인합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

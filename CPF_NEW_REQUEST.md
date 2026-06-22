@@ -1,1160 +1,712 @@
-# CPF 잔여 기능 완성 및 기능별 전수 테스트 요청서
+# CPF_REQUEST_001: ADM 배치 관제 / Spring Batch E2E / Ghost Recovery 완성 요청
 
-## 1. 작업 목표
+## 0. 이번 작업 범위 고정
 
-CPF(CoreFlow Platform Framework)의 현재 `부분 구현`, `미검증`, `재확인 필요` 상태로 남아 있는 기능을 실제 운영 가능한 수준으로 보강한다.
-
-이번 작업은 문서만 보강하거나, 일부 테스트만 추가하거나, Controller만 추가하고 완료 처리하는 작업이 아니다.
-기능별로 실제 package, Java source, Controller/API, Service, Repository/Mapper, DTO, SQL/Flyway, ADM UI/API wrapper, Swagger, EDU 샘플, 테스트, 검증 결과가 연결되어야 한다.
-
-기능을 완료로 표시하려면 반드시 기능별 테스트 증적을 남긴다.
-테스트하지 않은 기능은 성공으로 기록하지 않는다.
-일부만 개발한 기능은 완료가 아니라 `부분 구현` 또는 `미검증`으로 남긴다.
-
-## 2. 이번 요청에서 반복하지 않을 항목
-
-아래 항목은 현재 기준으로 처리된 것으로 보고 반복 요청하지 않는다.
+이번 작업은 아래 선택 범위만 완료한다.
 
 ```text
-- BIZADM 운영 코드 sample 폴더 제거
-- EXS 운영 코드 sample 폴더 제거
-- BIZADM/EXS SampleController 제거
-- EXS token refresh 사유 검증을 DB 저장 전에 수행하도록 수정한 항목
-- BIZADM/EXS/ADM 단위 테스트 일부 추가
-- 기능 증거 gate 추가 자체
-- MariaDB smoke 실행 결과 기록 자체
+선택 범위:
+- ADM 배치 관제
+- Spring Batch E2E 실행 검증
+- BAT 실행 구현체 필요 여부 판단 및 필요 시 최소 BAT 모듈 생성
+- Batch Worker heartbeat
+- Ghost batch 감지/조치
+- 배치 중복 실행 방지
+- 배치 수동 실행/중지/재실행
+- 배치 로그/실행 이력/Step 이력 ADM 조회
 ```
 
-단, 위 항목도 관련 기능을 통합 테스트할 때 함께 검증 결과는 남긴다.
-
-## 3. 절대 원칙
+이번 작업에서 아래 항목은 구현하지 않는다.
+영향이 있으면 `CPF_STABILIZATION_REPORT.html`의 다음 보강 후보로만 기록한다.
 
 ```text
-1. 개발하지 않은 기능을 개발했다고 기록하지 않는다.
-2. 일부만 개발한 기능을 완료라고 기록하지 않는다.
-3. 테스트하지 않은 기능을 검증 성공으로 기록하지 않는다.
-4. Controller만 있고 Service/Repository/SQL/테스트가 없으면 완료가 아니다.
-5. 문서만 있고 실제 소스가 없으면 완료가 아니다.
-6. 하드코딩 응답, sample, in-memory 운영 저장소는 운영 구현 완료로 보지 않는다.
-7. 완료 기능은 실제 package와 파일 경로를 명확히 기록한다.
-8. 기능별 테스트 결과를 하나하나 CPF_STABILIZATION_REPORT.html에 남긴다.
-9. 실행하지 못한 검증은 성공으로 쓰지 말고 미검증 사유를 기록한다.
-10. Codex 완료 메시지와 CPF_STABILIZATION_REPORT.html 내용이 서로 다르면 안 된다.
+이번 실행 제외:
+- 온라인/배치 로그 정책 + 거래 메타 자동 등록 전체 구현
+- 거래별 로그레벨/DB 로그 저장 override 전체 구현
+- 온디맨드 배치 전체 구현
+- 센터컷/CenterCutWorker/대상 주입/미터링 전체 구현
+- BAT EDU / XYZ EDU 대규모 보강
+- 배치 개발 가이드 전체 정본화
+- 트랜잭션 가이드 전체 정본화
+- Redis/Kafka/MQ 실 broker 검증
 ```
 
-프로그램 수정, 기능 추가/삭제/변경, SQL/API/UI/Swagger/EDU/검증 기준 변경이 발생하면 관련 README와 specs 정본 문서를 반드시 최신화한다.
+단, 이번 선택 범위인 ADM 배치 관제와 Spring Batch E2E를 완료하는 데 필요한 최소 SQL, API, Service, DTO, Mapper, ADM UI/API wrapper, Swagger, EDU, README/specs 문서, 리포트는 반드시 갱신한다.
 
-문서는 실제 구현 기준 정본이어야 하며, 문서만 봐도 기능, API, 소스 위치, DB 테이블, UI, Swagger, EDU 샘플, 테스트 방법, 검증 결과, 미검증 사유를 파악할 수 있어야 한다.
+요청 파일은 읽기 전용으로 둔다.
+Git commit, push, branch 생성 지시는 하지 않는다.
+별도 수정파일 목록 산출물은 만들지 않는다.
+작업 결과는 `CPF_STABILIZATION_REPORT.html`에만 정확히 기록한다.
 
-## 4. 기능별 완료 조건
+---
 
-각 기능은 아래 항목이 모두 연결되어야 `완료`로 기록할 수 있다.
+## 1. BAT 모듈 처리 기준
+
+현재 repository에 `bat` 모듈이 없으면 먼저 아래 기준으로 판단한다.
 
 ```text
-- 담당 모듈
-- 실제 package 경로
-- 실제 Java 소스 파일
-- Controller/API
-- Service
-- Repository 또는 Mapper
-- DTO
-- SQL/Flyway/all_install 반영
-- DB 테이블과 주요 컬럼 COMMENT
-- ADM UI 또는 API wrapper
-- Swagger Tag/Operation/Schema
-- EDU 샘플 또는 개발 가이드 연결
-- 단위 테스트
-- 통합 테스트 또는 API 테스트
-- DB 저장/조회 검증
-- 오류/권한/검증 실패 테스트
-- 검증 명령
-- 실제 검증 결과
+판단 기준:
+- PFW는 배치 공통 API를 제공하는 영역이다.
+- ADM은 배치 운영 관제 영역이다.
+- BAT는 PFW 배치 공통 API를 사용하는 Spring Batch 실행 구현체다.
+- Spring Batch E2E 실행 구현체가 기존 모듈에 없거나 책임 경계가 불명확하면 BAT 모듈을 신규 생성한다.
 ```
 
-위 항목 중 하나라도 빠지면 완료가 아니다.
-빠진 항목은 실제 개발하거나, 이번 작업에서 완료할 수 없으면 사유와 다음 조치를 남긴다.
-
-## 5. 기능별 전수 테스트 방식
-
-각 기능은 가능한 범위에서 아래 테스트를 수행한다.
-
-### 5.1 단위 테스트
-
-Service, Validator, Policy, DTO validation, Mapper 보조 로직은 단위 테스트를 작성한다.
-
-테스트 케이스:
+BAT 모듈 생성이 필요하면 최소 범위로만 생성한다.
 
 ```text
-- 정상 케이스
-- 필수값 누락
-- 잘못된 상태값
-- 권한 없음
-- 중복 데이터
-- 존재하지 않는 ID
-- 만료 token
-- 실패/예외 케이스
+BAT 신규 생성 시 필수:
+- settings.gradle include 'bat' 반영
+- bat/build.gradle 구성
+- bat/src/main/java/cpf/bat/BatApplication.java 또는 실행 구성
+- bat/src/main/java/cpf/bat/job
+- bat/src/main/java/cpf/bat/step
+- bat/src/main/java/cpf/bat/operation
+- bat/src/test/java 테스트
+- PFW CpfBatchLauncher 또는 기존 PFW 배치 공통 API 사용
+- 독립 JobRepository 임의 생성 금지
 ```
 
-권장 명령:
-
-```powershell
-.\gradlew.bat test --offline
-```
-
-### 5.2 Repository/Mapper/SQL 테스트
-
-DB를 사용하는 기능은 Mapper/Repository 테스트 또는 SQL smoke로 검증한다.
-
-확인 기준:
+BAT 모듈을 생성하지 않는 경우에는 그 사유를 리포트에 기록한다.
 
 ```text
-- insert 성공
-- select 성공
-- update 성공
-- delete 또는 상태 변경 성공
-- FK/index 위반 케이스 확인
-- 중복키/필수값 오류 확인
-- 공통 감사 컬럼 저장 확인
+BAT 모듈 미생성 허용 조건:
+- 기존 PFW/ADM/XYZ 구조만으로 Spring Batch E2E 실행 구현체가 명확히 존재함
+- 책임 경계가 문서에 명확히 설명됨
+- :bat:test를 검증 명령에 포함하지 않음
 ```
 
-가능하면 MariaDB 기준으로 확인한다.
+BAT 모듈을 생성한 경우에만 `.\gradlew.bat :bat:test --offline`를 실행한다.
+BAT 모듈을 생성하지 않았는데 `:bat:test` 실패를 검증 실패로 만들지 않는다.
 
-```powershell
-mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
-```
+---
 
-### 5.3 API 테스트
+## 2. 작업 목표
 
-Controller가 있는 기능은 API 호출로 테스트한다.
+운영자가 ADM에서 배치 Job, 실행 이력, Step 이력, 스케줄, 수행 대상, worker 상태, ghost 상태, 실패, 중지, 재실행, 로그를 확인하고 조치할 수 있게 만든다.
 
-확인 기준:
+완료는 코드 존재가 아니라 아래 완료 판정표를 통과해야 인정한다.
 
 ```text
-- 정상 요청
-- 필수 헤더 누락
-- transactionGlobalId 누락/전파
-- 필수 파라미터 누락
-- 권한 없음
-- 존재하지 않는 ID
-- 상태 변경 성공
-- 상태 변경 실패
-- 표준 오류 응답
-```
-
-권장 방식:
-
-```powershell
-curl -i http://localhost:<port>/v3/api-docs
-curl -i http://localhost:<port>/<api-path>
-```
-
-### 5.4 ADM UI/API wrapper 테스트
-
-ADM에서 운영자가 봐야 하는 기능은 UI 또는 API wrapper 기준으로 확인한다.
-
-확인 기준:
-
-```text
-- 메뉴 표시
-- 목록 조회
-- 상세 조회
-- 등록/수정/상태 변경
-- 권한 없는 버튼 숨김 또는 비활성
-- 서버 API 권한 차단
-- 오류 메시지 표시
-- 감사 로그 저장
-```
-
-브라우저 클릭을 수행하지 못하면 `브라우저 클릭 미검증`으로 남긴다.
-단순 정적 marker 확인을 브라우저 검증 성공으로 기록하지 않는다.
-
-### 5.5 Swagger/OpenAPI 테스트
-
-앱을 기동한 뒤 OpenAPI 문서를 확인한다.
-
-확인 기준:
-
-```text
-- /v3/api-docs 응답
-- /swagger-ui/index.html 접근
-- 주요 Controller @Tag 표시
-- 주요 API @Operation 표시
-- 요청/응답 DTO schema 표시
-- 표준 오류 응답 schema 표시
-```
-
-앱을 기동하지 못하면 OpenAPI 성공으로 기록하지 않는다.
-
-### 5.6 감사/로그 테스트
-
-로그와 감사 기능은 실제 DB 저장 여부를 확인한다.
-
-확인 기준:
-
-```text
-- transactionGlobalId 저장
-- 사용자/운영자 ID 저장
-- 처리 시각 저장
-- 요청 URI/API 저장
-- 처리 결과 저장
-- 오류 메시지 저장
-- 변경 전/후 값 저장
-- 다운로드 사유 저장
-- 마스킹 해제 사유 저장
-```
-
-## 6. PFW 기능 보강 및 테스트
-
-PFW는 CPF 프레임워크 코어 영역이다.
-
-### 6.1 표준 응답/오류/예외
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 표준 성공 응답 DTO
-- 표준 오류 응답 DTO
-- 공통 예외
-- 업무 예외
-- 시스템 예외
-- Validation 예외
-- 전역 Exception Handler
-- 오류 코드/메시지 DB 연계
-- Swagger 오류 schema
-- EDU 오류 예제
-```
-
-필수 테스트:
-
-```text
-- 정상 응답 테스트
-- Validation 오류 테스트
-- 업무 예외 테스트
-- 시스템 예외 테스트
-- 존재하지 않는 리소스 오류 테스트
-- 표준 오류 code/message/transactionGlobalId 포함 여부 테스트
-- OpenAPI JSON에서 표준 오류 schema 확인
-```
-
-완료 기준:
-
-```text
-- 주요 API가 표준 응답/오류 구조를 사용한다.
-- 오류 유형별 응답이 구분된다.
-- Swagger와 EDU에 예시가 있다.
-- 테스트 결과가 리포트에 남는다.
-```
-
-### 6.2 transactionGlobalId / trace / 표준 헤더
-
-현재 상태: 구현 검증이나 운영 로그 지속 확인 필요.
-
-필수 테스트:
-
-```text
-- transactionGlobalId 헤더가 있는 요청
-- transactionGlobalId 헤더가 없는 요청
-- 응답 헤더 전파 확인
-- 거래 로그 저장 확인
-- 오류 로그 저장 확인
-- EXS 수신/송신 로그 연계 확인
-- 배치 실행 로그 연계 확인
-```
-
-### 6.3 PFW 거래 로그/감사 로그
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 거래 로그 저장
-- 오류 로그 저장
-- 감사 로그 저장
-- 요청/응답 메타 저장
-- 사용자/운영자/모듈/서버/시간 기록
-- 민감정보 마스킹
-- ADM 조회 API 연계
-- 브라우저 로그 상세 탭 검증
-- 원문 보기 권한 검증
-```
-
-필수 테스트:
-
-```text
-- 정상 API 호출 후 거래 로그 저장 확인
-- 오류 API 호출 후 오류 로그 저장 확인
-- 권한 변경 후 감사 로그 저장 확인
-- 다운로드 후 감사 로그 저장 확인
-- 마스킹 적용 확인
-- ADM 로그 상세 API 또는 화면 확인
-```
-
-### 6.4 PFW Batch 공통 API
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- Batch 실행 요청 모델
-- Batch 실행 결과 모델
-- CpfBatchLauncher
-- batch lock
-- 중복 실행 방지
-- 재실행 가능 여부 판단
-- 실행 전/후 이벤트
-- 실패/지연/미수행 알림 이벤트
-- JobExecutionId와 pfw_batch_execution 연결
-- StepExecutionId와 pfw_batch_step 연결
-- transactionGlobalId 전파
-- ADM 배치 관제 API 연계
-- EDU 배치 예제
-```
-
-필수 테스트:
-
-```text
-- 정상 Job 실행
-- Step 성공 기록
-- Job 실패 기록
-- 중복 실행 차단
-- 재실행 가능 여부 판단
-- JobExecutionId 저장 확인
-- StepExecutionId 저장 확인
-- transactionGlobalId 저장 확인
-- ADM 배치 관제 조회 확인
-```
-
-## 7. CMN 기능 보강 및 테스트
-
-현재 상태: 채번, 업무 알림 로그, 업무 로그 모두 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 업무 공통 채번
-- 주문번호/신청번호/문서번호/접수번호 발급 구조
-- prefix/suffix/자리수/일자 패턴
-- reset cycle 정책
-- MariaDB 격리수준 기준 동시성 검증
-- 발급 이력
-- 업무 알림 요청
-- 업무 알림 처리 이력
-- 업무 이벤트 로그
-- 업무 상태 변경 이력
-- 업무 공통 Validation
-- 업무 공통 파일/전문/마스킹 보조 유틸
-- WebClient adapter
-- Redis/Kafka/MQ mock/fallback adapter
-- EDU CMN 샘플
-```
-
-필수 테스트:
-
-```text
-- 채번 정상 발급
-- 업무키별 채번 분리
-- 일자 패턴 적용
-- 중복 발급 방지
-- 발급 이력 저장
-- 업무 알림 요청 저장
-- 업무 이벤트 로그 저장
-- 업무 상태 변경 이력 저장
-- MariaDB 기준 동시성 또는 격리수준 검증
-```
-
-완료 기준:
-
-```text
-- CMN은 PFW 표준 기능을 원천 관리하지 않는다.
-- 업무 공통 기능이 DB 기반으로 동작한다.
-- 테스트 결과가 있다.
-```
-
-## 8. ADM 기능 보강 및 테스트
-
-ADM은 운영자가 실제로 조회, 조치, 감사할 수 있어야 한다.
-
-### 8.1 운영자/역할/메뉴/버튼/API 권한
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 운영자 CRUD
-- 운영자 잠금/해제
-- 비밀번호 초기화
-- 역할 CRUD
-- 메뉴 권한
-- 버튼 권한
-- API 권한
-- 다운로드 권한
-- 권한 변경 전/후 이력
-- 권한 변경 감사 로그
-- 서버 API 권한 차단
-- UI 버튼 숨김/비활성
-- 버튼 비활성 사유 UX
-```
-
-필수 테스트:
-
-```text
-- 운영자 등록/조회/수정/잠금
-- 역할 등록/수정
-- 메뉴 권한 부여/회수
-- 버튼 권한 부여/회수
-- API 권한 부여/회수
-- 다운로드 권한 부여/회수
-- 권한 없는 API 호출 차단
-- 권한 변경 감사 로그 저장
-- 브라우저 또는 API 통합 테스트
-```
-
-### 8.2 회원 관리와 회원 권한
-
-현재 상태: 부분 구현.
-
-필수 테스트:
-
-```text
-- 회원 목록 조회
-- 회원 상세 조회
-- 회원 상태 변경
-- 회원 잠금/해제
-- 회원 탈퇴/복구 가능 여부
-- 회원 권한 부여/회수
-- 권한 변경 이력 저장
-- ADM 회원 화면/API wrapper 확인
-```
-
-### 8.3 로그 관제
-
-현재 상태: 부분 구현.
-
-필수 테스트:
-
-```text
-- 거래 로그 목록 조회
-- transactionGlobalId 검색
-- 오류 로그 조회
-- 오류 상태 변경
-- 담당자 지정
-- 조치 메모 저장
-- 조치 이력 저장 확인
-- JSON pretty print 표시 확인
-- 고정길이 전문 포맷 표시 확인
-- 다운로드 권한 확인
-```
-
-### 8.4 배치 관제
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- Job 목록
-- Job 상세
-- Execution 이력
-- Step 이력
-- 수동 실행
-- 재실행
-- 중지 요청
-- 실패 사유 조회
-- 배치 알림 이력
-- 영업일 수행 시뮬레이션
-- 수행 가능 시간
-- 다음 수행일 계산
-- 선행/트리거 관계도
-- 수행대기 인스턴스 UX
-```
-
-필수 테스트:
-
-```text
-- Job 목록 조회
-- Job 실행 이력 조회
-- Step 이력 조회
-- 수동 실행
-- 실패 Job 재실행
-- 중지 요청
-- 실패 사유 조회
-- 영업일 시뮬레이션
-- 선행/트리거 관계 조회
-```
-
-### 8.5 캐시/메시지/코드/설정
-
-현재 상태: 부분 구현.
-
-필수 테스트:
-
-```text
-- 캐시 refresh 요청
-- 캐시 refresh 실패 이력 저장
-- 메시지 등록/수정/조회
-- 코드 등록/수정/조회
-- 응답코드 등록/수정/조회
-- 설정 등록/수정/조회
-- 변경 감사 diff 저장
-- 브라우저 편집 검증
-```
-
-### 8.6 다운로드 감사/마스킹 감사
-
-현재 상태: 부분 구현.
-
-필수 테스트:
-
-```text
-- 다운로드 권한 있음
-- 다운로드 권한 없음
-- 다운로드 사유 없음
-- CSV 다운로드 E2E
-- 다운로드 감사 저장
-- 마스킹 적용 조회
-- 원문 보기 권한 있음
-- 원문 보기 권한 없음
-- 마스킹 해제 사유 없음
-- 마스킹 해제 감사 저장
-```
-
-## 9. BIZADM 기본 구현체 보강 및 테스트
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 업무 관리자 로그인 API 통합 테스트
-- 로그인 실패 이력 저장
-- refresh token hash 저장 검증
-- token 원문 미저장 검증
-- 고객 등록/조회/수정
-- 상품 등록/조회/수정
-- 주문 등록/조회/상태 변경
-- 프로젝트 설정 조회/수정
-- 권한 없는 API 차단
-- 다운로드 감사 저장
-- 마스킹 해제 감사 저장
-- ADM 관제 wrapper 확인
-- Swagger 문서화 확인
-```
-
-완료 기준:
-
-```text
-- BIZADM은 실제 DB 기반으로 동작한다.
-- sample/hardcoding이 아니다.
-- ADM에서 관제 또는 wrapper 접근이 가능하다.
-- 인증/refresh token/권한/감사까지 통합 테스트가 있다.
-```
-
-## 10. MBR 회원 기본 구현체 보강 및 테스트
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- 회원 등록
-- 회원 조회
-- 회원 수정
-- 회원 상태 변경
-- 로그인
-- refresh token hash 저장
-- 로그인 성공/실패 이력
-- 회원 잠금
-- 휴면
-- 탈퇴
-- 권한/역할 연결
-- 회원 권한 만료
-- 회원 마스킹
-- 회원 다운로드 감사
-- ADM 회원 관제 wrapper
-- Swagger 문서화
-```
-
-필수 테스트:
-
-```text
-- 회원 등록
-- 회원 조회
-- 회원 수정
-- 회원 상태 변경
-- 로그인 성공
-- 로그인 실패
-- refresh token hash 저장 확인
-- 회원 잠금
-- 휴면 처리
-- 탈퇴 처리
-- 권한 만료 처리
-- 마스킹 적용 조회
-- 회원 다운로드 감사 저장
-- API 통합 테스트
-```
-
-## 11. EXS 대외연계 기본 구현체 보강 및 테스트
-
-현재 상태: 부분 구현.
-
-이미 수정된 항목은 반복하지 않는다.
-
-```text
-- token refresh 사유 누락 시 token hash와 event 저장 차단
-- token 원문 미노출
-- token hash 저장
-- retry 사유 필수
-- inbound 공식 URI 기본값
-```
-
-추가 보강/검증 대상:
-
-```text
-- 기관 등록/조회/수정
-- 채널 등록/조회/수정
-- endpoint 등록/조회/수정
-- 인증 프로파일 등록/조회
-- token refresh API 통합 테스트
-- token event history 조회
-- routing rule 등록/조회/수정
-- inbound 수신 거래 로그 선저장
-- outbound 송신 거래 로그 선저장
-- message log 저장
-- 사용 중지 기관 차단
-- 사용 중지 채널 차단
-- 사용 중지 endpoint 차단
-- 성공 상태 갱신
-- 실패 상태 갱신
-- retryable 판단
-- 재처리 요청 저장
-- retry worker 또는 재처리 실행 흐름 검증
-- 재처리 결과 저장
-- 재처리 감사 로그 저장
-- 실제 외부기관 adapter mock 검증
-- ADM 관제 wrapper 확인
-- Swagger 문서화 확인
-```
-
-완료 기준:
-
-```text
-- inbound/outbound 요청이 DB에 선저장된다.
-- transaction log와 message log가 남는다.
-- routing rule과 기관/채널/endpoint 통제가 적용된다.
-- 재처리 요청/실행/결과/감사가 남는다.
-- 실기관 연동이 없으면 mock/fallback 기준으로 검증한다.
-```
-
-## 12. BAT/Batch 실행 구현체 보강 및 테스트
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- PFW CpfBatchLauncher 사용
-- 표준 Job/Step 예제
-- 업무 Service/Facade 호출 배치
-- Job parameter 표준화
-- transactionGlobalId 전파
-- JobExecutionId 저장
-- StepExecutionId 저장
-- 실패 처리
-- 재실행 처리
-- 중복 실행 방지
-- ADM 배치 관제 연결
-- Spring Batch JobRepository 시나리오
-- scheduler 실기동 또는 mock 검증
-```
-
-필수 테스트:
-
-```text
-- Job 정상 실행
-- Step 정상 실행
-- Job 실패 처리
-- 재실행 처리
-- 중복 실행 방지
-- JobExecutionId 저장 확인
-- StepExecutionId 저장 확인
-- ADM 배치 이력 조회
-```
-
-완료 기준:
-
-```text
-- 독립 JobRepository를 임의 생성하지 않는다.
-- PFW 배치 공통 API를 통해 실행된다.
-- ADM에서 실행/실패/재실행 이력을 볼 수 있다.
-```
-
-## 13. EDU 개발 교육 샘플 보강 및 테스트
-
-현재 상태: 부분 구현.
-
-개발/검증 대상:
-
-```text
-- CRUD 샘플
-- 표준 응답 샘플
-- 표준 오류 샘플
-- transactionGlobalId 샘플
-- 권한 검사 샘플
-- 감사 로그 샘플
-- CMN 채번 샘플
-- CMN 업무 알림/업무 로그 샘플
-- PFW 배치 공통 API 샘플
-- EXS 호출 샘플
-- 마스킹 샘플
-- 다운로드 감사 샘플
-- 개발자가 따라 할 수 있는 주석 보강
-```
-
-필수 테스트:
-
-```text
-- EDU CRUD API 호출
-- 표준 응답 확인
-- 표준 오류 확인
-- transactionGlobalId 확인
-- CMN 채번 호출
-- PFW 배치 API 호출
-- EXS 호출 mock
-- 마스킹 샘플 확인
-- 다운로드 감사 샘플 확인
-```
-
-## 14. Swagger/OpenAPI 전수 테스트
-
-현재 상태: 앱 미기동으로 미검증.
-
-확인 대상:
-
-```text
-- ADM API
-- BIZADM API
-- MBR API
-- EXS API
-- EDU API
-- PFW 공통 API 중 노출 대상
-```
-
-필수 테스트:
-
-```text
-- 앱 기동
-- /v3/api-docs 호출
-- /swagger-ui/index.html 접근
-- 주요 API Tag 확인
-- 주요 Operation 확인
-- 요청/응답 schema 확인
-- 표준 오류 schema 확인
-```
-
-실행하지 못하면 앱별로 미검증 사유를 남긴다.
-
-## 15. ADM 실제 브라우저 클릭 검증
-
-현재 상태: 정적 smoke만 성공, 실제 브라우저 클릭 미검증.
-
-확인 대상:
-
-```text
-- 로그인 화면
-- 대시보드
-- 운영자/권한
-- 회원 관리
-- 거래 로그
-- 오류 로그
-- 배치 관제
-- 알림/캐시/메시지/코드/설정
-- 다운로드 감사
-- BIZADM 관제
-- EXS 관제
-```
-
-필수 기록:
-
-```text
-- 기동 방식
-- 접속 URL
-- 확인한 메뉴
-- 성공한 클릭
-- 실패한 클릭
-- 오류 메시지
-- 미검증 사유
-```
-
-브라우저 클릭을 수행하지 않았으면 성공으로 쓰지 않는다.
-
-## 16. Redis/Kafka/MQ mock/fallback 테스트
-
-현재 상태: 실 broker 미검증.
-
-실제 broker가 없으면 실연동 성공을 완료 기준으로 삼지 않는다.
-대신 mock/fallback 테스트를 수행한다.
-
-필수 테스트:
-
-```text
-- Redis 미설정 상태 앱 기동
-- Kafka 미설정 상태 앱 기동
-- MQ 미설정 상태 앱 기동
-- 알림 발송 mock/fallback
-- 동적 로그레벨 전파 mock/fallback
-- 캐시 refresh mock/fallback
-- 실패 이력 저장
-```
-
-리포트에는 아래를 구분한다.
-
-```text
-- mock/fallback으로 검증한 항목
-- 실 broker가 없어 미검증인 항목
-- 실 broker 연결 시 실행할 검증 절차
-```
-
-## 17. SQL/Flyway/Mapper 정합성 전수 테스트
-
-현재 상태: MariaDB smoke는 성공 기록이 있으나, 기능별 통합 테스트 확대가 필요하다.
-
-필수 확인:
-
-```text
-- Java에서 사용하는 모든 테이블 존재
-- Mapper method와 XML SQL 일치
-- 신규 테이블 COMMENT 존재
-- 공통 감사 컬럼 존재
-- FK/index 존재
-- all_install 반영
-- all_install_and_smoke 반영
-- Flyway baseline 반영
-- app/migration 계정 권한 분리 확인
-```
-
-필수 테스트:
-
-```powershell
-mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
-```
-
-실행하지 못하면 사유를 남긴다.
-
-## 18. 40_business_sample_schema.sql 명칭 정리 여부 결정
-
-현재 `specs/sql/40_business_sample_schema.sql` 파일명은 남아 있다.
-운영 코드 sample 폴더와는 별개로, SQL 파일명이 운영 기본 구현체 성격과 맞는지 결정한다.
-
-처리 기준:
-
-```text
-A. 운영 도메인 성격에 맞게 파일명 변경
-   예: 40_business_domain_schema.sql 또는 40_business_modules_schema.sql
-
-B. 이번 단계에서 변경하지 않으면 보류 사유와 다음 조치를 리포트에 기록
-```
-
-파일명을 변경하는 경우 아래 참조를 모두 수정한다.
-
-```text
-- specs/sql/00_all_install.sql
-- specs/sql/00_all_install_and_smoke.sql
-- specs/sql/migration/flyway/V1__cpf_baseline_install.sql
-- README.md
-- specs/SQL_가이드.html
-- specs/기능_구현_매트릭스.html
-- CPF_STABILIZATION_REPORT.html
-```
-
-## 19. README/specs 문서 최신화
-
-대상 문서:
-
-```text
-README.md
-specs/index.html
-specs/프레임워크_구성_가이드.html
-specs/개발_가이드.html
-specs/관리자_가이드.html
-specs/SQL_가이드.html
-specs/기능_구현_매트릭스.html
-```
-
-각 기능별로 아래를 문서에 반영한다.
-
-```text
-- 기능 목적
-- 담당 모듈
-- package 경로
-- 주요 소스 파일
+완료 필수 요소:
+- Java package/source
 - Controller/API
 - Service
 - Repository/Mapper
-- DTO
-- SQL/Flyway/테이블
-- ADM UI/API wrapper
-- Swagger Tag
-- EDU 샘플
-- 테스트 방법
-- 실제 테스트 결과
-- 미검증 사유
+- DTO/Validation
+- SQL/Flyway/all_install/smoke
+- DB 테이블 COMMENT와 공통 감사 컬럼
+- ADM UI 또는 API wrapper
+- Swagger Tag/Operation/Schema
+- 최소 EDU 샘플 또는 개발 가이드 연결
+- 정상/오류/권한/DB 테스트
+- 실행 명령과 실제 결과
+- README/specs/기능_구현_매트릭스/CPF_STABILIZATION_REPORT.html 반영
 ```
 
-문서에 완료라고 쓰는 항목은 실제 구현과 테스트 근거가 있어야 한다.
+Controller만 있거나, 문서만 있거나, 하드코딩 응답이면 완료가 아니다.
+테스트하지 않은 기능은 완료가 아니다.
+실행하지 않은 검증은 성공으로 기록하지 않는다.
 
-## 20. 전체 실행 명령
+---
 
-가능한 범위에서 아래를 실행한다.
+## 3. 먼저 현재 상태 판정
+
+작업 시작 전 실제 소스/SQL/문서 기준으로 현재 상태를 먼저 판정한다.
+
+아래 항목을 `CPF_STABILIZATION_REPORT.html`에 기록한다.
+
+```text
+현재 상태 판정 항목:
+- bat 모듈 존재 여부
+- 기존 배치 관련 package
+- 기존 ADM 배치 Controller/API
+- 기존 Service
+- 기존 Repository/Mapper
+- 기존 DTO
+- 기존 SQL 테이블
+- 기존 ADM UI/API wrapper
+- 기존 Swagger 문서
+- 기존 테스트
+- 미구현 항목
+- 부분 구현 항목
+- 미검증 항목
+```
+
+상태값은 아래만 사용한다.
+
+```text
+완료
+부분 구현
+미구현
+미검증
+실패
+재확인 필요
+```
+
+---
+
+## 4. DB / SQL 완료 기준
+
+Spring Batch 표준 테이블과 CPF 운영 메타 테이블의 책임을 분리한다.
+
+Spring Batch `BATCH_*` 테이블은 표준 JobRepository가 관리한다.
+CPF 운영 관제 메타는 `pfw_batch_*` 테이블로 별도 관리하고, `JobExecutionId`, `StepExecutionId`, `transactionGlobalId`로 연결한다.
+
+필수 확인/보강 대상:
+
+```text
+Spring Batch 표준:
+- BATCH_JOB_INSTANCE
+- BATCH_JOB_EXECUTION
+- BATCH_STEP_EXECUTION
+- BATCH_JOB_EXECUTION_PARAMS
+- BATCH_JOB_EXECUTION_CONTEXT
+- BATCH_STEP_EXECUTION_CONTEXT
+
+CPF 운영 메타:
+- pfw_batch_job
+- pfw_batch_schedule
+- pfw_batch_execution
+- pfw_batch_step_execution 또는 기존 CPF 표준에 맞는 동등한 Step 운영 메타 테이블
+- pfw_batch_lock
+- pfw_batch_worker
+- pfw_batch_job_relation
+- pfw_batch_execution_target
+- pfw_batch_ghost_event 또는 동등한 ghost/recovery 이력 테이블
+```
+
+필수 기준:
+
+```text
+- all_install SQL에 반영
+- Flyway 또는 기준 SQL에 반영
+- smoke SQL에 반영
+- 테이블 COMMENT 존재
+- 주요 컬럼 COMMENT 존재
+- 공통 감사 컬럼 존재
+- FK/index 기준 확인
+- app 계정 DDL 차단, migration 계정 DDL 허용 기준 유지
+```
+
+`40_business_sample_schema.sql` 파일명 변경 작업은 반복하지 않는다.
+다만 README, specs, SQL 가이드, 개발 가이드, Flyway, all_install, 검사 스크립트에 구명칭 `40_business_sample_schema.sql` 참조가 남아 있으면 `40_business_modules_schema.sql` 기준으로 전수 정리한다.
+
+---
+
+## 5. ADM 배치 API 완료 기준
+
+ADM 배치 API는 최소 아래 기능을 제공해야 한다.
+
+```text
+필수 API:
+- Job 목록 조회
+- Job 상세 조회
+- Job 실행 이력 조회
+- Step 실행 이력 조회
+- 수동 실행
+- 중지 요청
+- 재실행 요청
+- 스케줄 조회
+- 스케줄 등록/수정
+- 영업일 수행 여부 조회
+- 수행 가능 시간 조회
+- 수행 시뮬레이션
+- 선행/트리거 관계 조회
+- 수행 대상 조회
+- worker 상태 조회
+- ghost candidate 조회
+- ghost 상태 조치
+- lock 상태 조회
+- lock 해제 또는 조치 요청
+- 배치 로그 조회
+```
+
+각 API는 아래를 갖춰야 한다.
+
+```text
+- Controller
+- Request DTO
+- Response DTO
+- Validation
+- Service
+- Repository/Mapper
+- 권한 체크
+- 오류 응답
+- Swagger Tag/Operation/Schema
+- 테스트
+```
+
+수동 실행, 중지 요청, 재실행 요청 API/Service는 이번 작업의 핵심이므로 구현 필수다.
+미구현 사유만 기록하고 완료 처리하지 않는다.
+
+---
+
+## 6. Service / Repository / DTO 기준
+
+아래 역할이 실제 코드로 존재해야 한다.
+명칭은 기존 프로젝트 컨벤션에 맞춰도 되지만 역할은 충족해야 한다.
+
+```text
+필수 Service 역할:
+- BatchJobQueryService
+- BatchExecutionService
+- BatchScheduleService
+- BatchRelationService
+- BatchTargetService
+- BatchWorkerHeartbeatService
+- BatchGhostRecoveryService
+- BatchLockService
+- BatchRestartPolicyService
+```
+
+필수 Repository/Mapper 역할:
+
+```text
+- Job 목록/상세 조회
+- Execution 조회
+- Step 조회
+- Schedule 조회/수정
+- Relation 조회
+- Target 조회
+- Worker heartbeat 저장/조회
+- Ghost candidate 조회
+- Ghost 조치 이력 저장
+- Lock 조회/획득/해제
+- 재실행 가능 여부 조회
+```
+
+필수 DTO:
+
+```text
+- BatchJobSearchRequest
+- BatchJobResponse
+- BatchExecutionResponse
+- BatchStepExecutionResponse
+- BatchRunRequest
+- BatchStopRequest
+- BatchRestartRequest
+- BatchScheduleRequest
+- BatchWorkerStatusResponse
+- BatchGhostCandidateResponse
+- BatchGhostActionRequest
+- BatchLockResponse
+```
+
+기존 DTO 명칭이 있으면 재사용하되, 역할 누락이 없도록 보강한다.
+
+---
+
+## 7. Spring Batch E2E 완료 기준
+
+Spring Batch 실행 흐름이 실제로 검증되어야 한다.
+
+필수 검증:
+
+```text
+- JobLauncher를 통한 Job 실행
+- JobRepository에 JobExecution 저장
+- StepExecution 저장
+- CPF pfw_batch_execution과 JobExecutionId 연결
+- CPF pfw_batch_step_execution 또는 동등한 Step 운영 메타와 StepExecutionId 연결
+- transactionGlobalId 생성/저장
+- Job 성공 상태 저장
+- Job 실패 상태 저장
+- Step 실패 상태 저장
+- 실패 Job 재실행 가능 여부 판단
+```
+
+Spring Batch 표준 JobRepository를 우회하거나 독립 JobRepository를 임의 생성하지 않는다.
+
+BAT 모듈을 생성했다면 Spring Batch E2E 실행 구현은 BAT에서 수행하고, PFW 공통 API를 사용해야 한다.
+BAT 모듈을 생성하지 않았다면 기존 모듈의 실행 구현체가 PFW 공통 API를 어떻게 사용하는지 리포트와 문서에 명확히 기록한다.
+
+---
+
+## 8. Ghost Recovery 완료 기준
+
+서버 급중단, deploy/restart, worker 강제 종료로 RUNNING 배치가 실제로는 돌지 않는데 실행 중처럼 남는 상황을 처리한다.
+
+필수 구현:
+
+```text
+- serverInstanceId 기록
+- workerId 기록
+- worker heartbeat 기록
+- JobExecutionId와 serverInstanceId 연결
+- StepExecutionId와 workerId 연결
+- 마지막 heartbeat 시각 기록
+- heartbeat timeout 기준
+- RUNNING but no heartbeat 상태 감지
+- ghost candidate 표시
+- ADM에서 ghost 상태 확인
+- 운영자 조치: TIMEOUT / FAILED / ABANDONED / RETRYABLE
+- 조치 사유 필수
+- 조치자 기록
+- 조치 감사 로그 저장
+- lock 해제 기준
+- 재실행 가능 여부 판단
+- 동일 Job 중복 실행 방지
+```
+
+deploy/restart 중 shutdown hook으로 정리 가능한 범위는 정리하되, 강제 종료는 hook이 보장되지 않으므로 heartbeat 기반 recovery를 반드시 둔다.
+
+ADM ghost 조치에는 사유가 필수다.
+사유 없는 ghost 조치는 차단한다.
+
+---
+
+## 9. 중복 실행 방지 / Lock 기준
+
+동일 Job이 정책상 중복 실행 불가인 경우, 다중 WAS/다중 Worker 환경에서도 중복 실행이 차단되어야 한다.
+
+필수 기준:
+
+```text
+- job_id + business_date 또는 job parameter 기준 lock
+- lock owner serverInstanceId 기록
+- lock 획득 시각 기록
+- lock 만료 기준
+- 정상 종료 시 lock 해제
+- 실패/timeout/ghost 조치 시 lock 해제 기준
+- 중복 실행 요청 시 표준 오류 응답
+- 중복 실행 차단 테스트
+```
+
+메모리 lock만으로 완료 처리하지 않는다.
+DB 기반 lock 또는 동등한 영속 lock 기준이 있어야 한다.
+
+---
+
+## 10. ADM UI / API wrapper 기준
+
+ADM 화면 또는 API wrapper에서 아래를 확인할 수 있어야 한다.
+
+```text
+필수 화면/기능:
+- 배치 Job 목록
+- Job 상세
+- 실행 이력
+- Step 이력
+- 스케줄
+- 영업일/수행 가능 시간
+- 선행/트리거 관계
+- 수행 대상
+- 수동 실행 버튼
+- 중지 버튼
+- 재실행 버튼
+- worker 상태
+- ghost 경고
+- ghost 조치 화면
+- lock 상태
+- 로그 보기
+- 실패 사유 보기
+```
+
+ADM UI는 정적 파일 존재, 화면 marker 존재, API wrapper 존재만으로 완료 처리하지 않는다.
+
+브라우저 클릭 검증을 수행하지 못한 경우, UI 검증 상태는 반드시 `미검증`으로 기록한다.
+
+단, API/Service/Repository/Mapper/DTO/SQL/테스트가 완료된 경우에는 아래처럼 구현 상태와 실클릭 검증 상태를 분리해서 판정한다.
+
+```text
+예시 판정:
+- 배치 관제 API 구현 상태: 완료
+- 배치 관제 Service/Mapper/SQL 구현 상태: 완료
+- ADM UI/API wrapper 구현 상태: 완료
+- ADM 브라우저 실클릭 검증 상태: 미검증
+- 최종 판정: 완료 아님 / UI 실클릭 미검증 포함
+```
+
+브라우저 클릭 검증을 하지 않았는데 `ADM UI 완료`, `브라우저 검증 성공`, `운영자 화면 검증 완료`로 기록하지 않는다.
+
+Node/Playwright 또는 브라우저 자동화 환경이 없으면 작업을 중단하지 말고, 가능한 정적 UI smoke와 API wrapper 테스트를 수행한 뒤 브라우저 실클릭은 미검증으로 남긴다.
+
+최종 완료로 기록하려면 아래 중 하나를 만족해야 한다.
+
+```text
+1. 실제 브라우저 클릭 자동화 또는 수동 클릭 검증 결과가 CPF_STABILIZATION_REPORT.html에 기록됨
+2. 이번 요청 범위에서 브라우저 실클릭 검증이 명시적으로 제외되었고, 최종 판정에서 UI 실클릭 미검증이 분리 기록됨
+```
+
+---
+
+## 11. Swagger / OpenAPI 기준
+
+배치 관제 API는 Swagger/OpenAPI에 노출되어야 한다.
+
+필수 기준:
+
+```text
+- ADM Batch 관련 Tag
+- API별 Operation summary
+- Request schema
+- Response schema
+- 오류 응답 schema
+- 권한 필요 여부 설명
+```
+
+OpenAPI smoke는 앱 기동이 필요하다.
+앱을 기동하지 못했으면 OpenAPI 검증을 성공으로 기록하지 않는다.
+
+앱 기동 검증을 수행할 경우 아래 기준을 따른다.
+
+```text
+- 프로세스 PID 추적
+- health check
+- OpenAPI smoke 실행
+- 종료/cleanup
+- 기동 실패 시 로그와 실패 사유 기록
+```
+
+앱 기동/종료 자동화가 안전하지 않거나 실패하면 OpenAPI/브라우저 검증은 미검증으로 남긴다.
+이 경우에도 코드, SQL, 단위/통합 테스트, 정적 smoke, 문서 검증은 계속 진행한다.
+
+Node/Playwright가 없으면 브라우저 클릭 검증은 미검증으로 남기고, 설치 요구로 작업을 중단하지 않는다.
+
+---
+
+## 12. EDU / 문서 최소 반영 기준
+
+이번 작업에서 배치 개발 가이드 전체 정본화는 하지 않는다.
+다만 ADM 배치 관제와 Spring Batch E2E, Ghost Recovery에 필요한 최소 문서는 갱신한다.
+
+필수 반영:
+
+```text
+- README.md: 배치 관제 검증 상태 요약
+- specs/관리자_가이드.html: ADM 배치 관제 사용 방법
+- specs/배치_개발_가이드.html: 없으면 신규 생성, 있으면 이번 범위만 보강
+- specs/기능_구현_매트릭스.html: 이번 작업 결과 반영
+- specs/SQL_가이드.html: 배치 관련 테이블/검증 명령 반영
+- CPF_STABILIZATION_REPORT.html: 실제 작업 결과 기록
+```
+
+EDU는 최소 아래 중 하나 이상을 제공한다.
+
+```text
+- 단순 Job/Step 실행 예제
+- 실패 Job 재실행 예제
+- worker heartbeat/ghost recovery 흐름 예제
+- ADM 배치 관제 호출 예제
+```
+
+대규모 BAT/XYZ EDU 전체 보강은 이번 범위에서 제외하고 다음 보강 후보로 기록한다.
+
+---
+
+## 13. 필수 테스트
+
+아래 테스트를 추가 또는 보강한다.
+
+```text
+정상 케이스:
+- Job 정상 실행
+- Step 정상 실행
+- JobExecutionId 저장
+- StepExecutionId 저장
+- transactionGlobalId 저장
+- ADM Job 목록 조회
+- ADM Job 상세 조회
+- ADM 실행 이력 조회
+- ADM Step 이력 조회
+
+오류 케이스:
+- Job 실패 처리
+- Step 실패 처리
+- 잘못된 Job parameter 차단
+- 중복 실행 차단
+- 중지 불가 상태 중지 요청 차단
+- 재실행 불가 상태 재실행 요청 차단
+- ghost 조치 사유 누락 차단
+
+운영 케이스:
+- 수동 실행
+- 중지 요청
+- 실패 Job 재실행
+- worker heartbeat 저장
+- heartbeat timeout 감지
+- ghost candidate 조회
+- ghost 조치
+- lock 해제 기준
+- worker 상태 조회
+
+DB 확인:
+- BATCH_JOB_EXECUTION 저장 확인
+- BATCH_STEP_EXECUTION 저장 확인
+- pfw_batch_execution 저장 확인
+- pfw_batch_step_execution 또는 동등한 Step 운영 메타 저장 확인
+- pfw_batch_worker 저장 확인
+- pfw_batch_lock 저장 확인
+- ghost 조치 이력 저장 확인
+```
+
+실제 scheduler 실행이 어렵다면 테스트에서 scheduler mock 또는 JobLauncherTestUtils 등 가능한 방식으로 검증하고, 실 scheduler는 미검증 사유를 남긴다.
+
+---
+
+## 14. 검증 명령
+
+가능한 범위에서 아래 명령을 실행한다.
 
 ```powershell
-.\gradlew.bat clean qualityGate --offline
-.\gradlew.bat compileJava --offline
+.\gradlew.bat :pfw:test --offline
+.\gradlew.bat :adm:test --offline
 .\gradlew.bat test --offline
+.\gradlew.bat compileJava --offline
+.\gradlew.bat qualityGate --offline
 
-.\gradlew.bat :bizadm:test --offline --tests cpf.bizadm.operation.service.BizAdmOperationServiceTest
-.\gradlew.bat :exs:test --offline --tests cpf.exs.operation.service.ExsOperationServiceTest
-.\gradlew.bat :adm:test --offline --tests cpf.adm.opr.service.AdmDownloadServiceTest
-.\gradlew.bat :mbr:test --offline --tests cpf.mbr.bse.controller.MbrControllerValidationTest
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sample-standard.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-legacy-name.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-security-seed-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-transaction-id-standard.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
+
+mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
 ```
 
-가능하면 앱을 기동하고 아래를 실행한다.
+BAT 모듈을 신규 생성한 경우에만 아래 명령도 실행한다.
+
+```powershell
+.\gradlew.bat :bat:test --offline
+```
+
+BAT 모듈을 생성하지 않은 경우에는 `:bat:test`를 실행하지 말고, BAT 미생성 사유와 대체 검증 명령을 리포트에 기록한다.
+
+가능하면 앱 기동 후 아래도 실행한다.
 
 ```powershell
 .\gradlew.bat runLocalServices --offline
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-openapi.ps1
-node --version
-node --check adm/src/main/resources/static/adm/adm.js
-mysql -u root -p < specs/sql/00_all_install_and_smoke.sql
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1
 ```
 
-실행하지 못한 항목은 성공으로 기록하지 않는다.
+앱 기동 검증은 PID 추적, health check, smoke 실행, 종료/cleanup까지 포함한다.
+정상 종료가 보장되지 않으면 OpenAPI/브라우저 검증은 미검증으로 남긴다.
 
-## 21. 기능별 테스트 증적 기록 방식
+---
 
-`CPF_STABILIZATION_REPORT.html`에는 기능별로 아래 형식으로 기록한다.
+## 15. CPF_STABILIZATION_REPORT.html 기록 기준
 
-```text
-[기능명]
-담당 모듈:
-package:
-Controller/API:
-Service:
-Repository/Mapper:
-DTO:
-SQL 테이블:
-ADM UI/API wrapper:
-Swagger:
-EDU 샘플:
-테스트 종류:
-테스트 명령:
-테스트 데이터:
-정상 케이스 결과:
-오류 케이스 결과:
-권한 케이스 결과:
-DB 확인 결과:
-최종 상태:
-미검증 사유:
-다음 조치:
-```
-
-완료 기능은 테스트 증적이 있어야 한다.
-테스트 증적이 없으면 완료로 기록하지 않는다.
-
-## 22. CPF_STABILIZATION_REPORT.html 기록 기준
-
-`CPF_STABILIZATION_REPORT.html`에는 작업 결과를 정확하고 확실하게 기록한다.
-
-요청사항별로 아래를 빠짐없이 작성한다.
+리포트에는 이번 선택 범위에 대해 아래를 기록한다.
 
 ```text
-- 실제 확인한 내용
-- 개발한 기능
-- package 경로
-- 생성/수정한 소스 파일
-- Controller/API
-- Service
-- Repository/Mapper
-- DTO
-- SQL/Flyway/테이블
-- ADM UI/API wrapper
-- Swagger
-- EDU 샘플
-- 테스트 명령
-- 테스트 결과
-- 실패 사유
-- 미검증 사유
-- 남은 보완 사항
-- 최종 판정
+[ADM 배치 관제 / Spring Batch E2E / Ghost Recovery]
+
+현재 상태 판정:
+- 기존 구현:
+- 부분 구현:
+- 미구현:
+- 미검증:
+- BAT 모듈 생성 여부:
+- BAT 모듈 생성 또는 미생성 사유:
+
+개발 기능:
+- package:
+- Controller/API:
+- Service:
+- Repository/Mapper:
+- DTO:
+- SQL 테이블:
+- ADM UI/API wrapper:
+- Swagger:
+- EDU:
+- 문서:
+
+테스트:
+- 테스트 명령:
+- 정상 케이스 결과:
+- 오류 케이스 결과:
+- 운영 케이스 결과:
+- DB 확인 결과:
+- UI 구현/API wrapper 확인 결과:
+- UI 브라우저 실클릭 검증 결과:
+- OpenAPI 확인 결과:
+
+미검증:
+- 미검증 항목:
+- 미검증 사유:
+- 다음 조치:
+
+최종 판정:
+- 완료 / 부분 구현 / 미검증 / 실패 / 재확인 필요
 ```
 
 완료하지 않은 항목을 완료로 기록하지 않는다.
-실행하지 않은 테스트를 성공으로 기록하지 않는다.
+실행하지 않은 검증을 성공으로 기록하지 않는다.
+구현 완료와 브라우저 실클릭 미검증을 반드시 분리해서 기록한다.
 Codex 완료 메시지와 리포트 내용이 서로 다르게 작성되지 않도록 한다.
 
-## 23. 완료 기준
+---
 
-아래를 모두 만족해야 완료다.
+## 16. 완료 기준
+
+이번 작업은 아래가 모두 충족될 때만 완료로 기록한다.
 
 ```text
-- 기능 구현 매트릭스의 부분 구현 항목이 실제 개발/테스트로 완료되거나, 남은 사유가 명확히 기록된다.
-- 개발했다고 보고한 기능은 실제 package와 소스 파일이 존재한다.
-- Controller, Service, Repository/Mapper, DTO, SQL이 연결되어 있다.
-- ADM에서 운영자가 조회/조치할 수 있는 기능은 UI/API wrapper가 있다.
-- Swagger/OpenAPI 문서가 있다.
-- EDU 샘플 또는 개발 가이드 연결이 있다.
-- 기능별 정상/오류/권한/DB 확인 테스트 결과가 있다.
-- 전체 qualityGate, compileJava, test 결과가 있다.
-- README/specs 문서가 실제 구현과 일치한다.
-- 기능 구현 매트릭스가 실제 상태를 반영한다.
-- CPF_STABILIZATION_REPORT.html에 기능별 증적이 정확히 남아 있다.
+- Spring Batch Job 실행 E2E가 검증되었다.
+- JobExecutionId와 StepExecutionId가 CPF 운영 메타와 연결된다.
+- ADM에서 Job 목록/상세/실행 이력/Step 이력을 조회할 수 있다.
+- ADM에서 수동 실행/중지/재실행 API/Service가 구현되어 있다.
+- worker heartbeat가 저장된다.
+- ghost candidate를 감지할 수 있다.
+- ADM에서 ghost 조치가 가능하다.
+- ghost 조치 사유와 감사 로그가 남는다.
+- 중복 실행 방지 lock이 동작한다.
+- SQL/all_install/smoke에 반영되어 있다.
+- Swagger/OpenAPI 문서가 반영되어 있다.
+- 최소 EDU 또는 개발 가이드 연결이 있다.
+- 정상/오류/운영/DB 테스트가 있다.
+- 기능 구현 매트릭스와 리포트가 실제 상태를 반영한다.
+- BAT 모듈 생성 여부와 사유가 명확히 기록되어 있다.
+- UI 실클릭을 하지 못한 경우 최종 판정에서 UI 실클릭 미검증이 분리 기록되어 있다.
 ```
 
-## 24. 완료 불인정 기준
+---
+
+## 17. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 기록하지 않는다.
 
 ```text
-- 일부만 개발하고 완료라고 보고
-- Controller만 만들고 완료라고 보고
-- 문서만 만들고 완료라고 보고
-- 테스트 없이 완료라고 보고
-- 테스트 명령 없이 검증 성공이라고 보고
-- 하드코딩 응답으로 완료라고 보고
-- sample 구조를 운영 구현체로 사용
-- in-memory 저장소를 운영 저장소처럼 사용
-- package나 소스 파일이 없는데 기능 완료라고 기록
-- SQL 없이 DB 기능 완료라고 기록
-- 앱 미기동인데 OpenAPI 성공이라고 기록
-- 브라우저 검증 없이 ADM UI 성공이라고 기록
-- mock/fallback 검증 없이 Redis/Kafka/MQ 대응 완료라고 기록
-- CPF_STABILIZATION_REPORT.html과 실제 소스가 다름
+- Spring Batch JobRepository 실행 없이 완료 처리
+- ADM 정적 smoke만으로 배치 관제 완료 처리
+- Controller만 있고 Service/Mapper/SQL이 없음
+- SQL만 있고 API/Service가 없음
+- 문서만 있고 구현이 없음
+- 수동 실행/중지/재실행 API/Service가 없음
+- ghost recovery 없음
+- worker heartbeat 없음
+- lock 해제 기준 없음
+- 재실행 가능 여부 판단 없음
+- 중복 실행 방지 없음
+- ADM에서 실행 이력/Step 이력을 조회할 수 없음
+- 브라우저 클릭 검증을 수행하지 않았는데 ADM UI 검증 완료로 기록
+- 정적 marker 확인만으로 운영자 화면 검증 완료로 기록
+- API/Service 구현 완료와 UI 실클릭 미검증을 구분하지 않음
+- 앱 미기동인데 OpenAPI 성공으로 기록
+- 실행하지 않은 scheduler 검증을 성공으로 기록
+- BAT 모듈을 생성했는데 settings.gradle/build.gradle/테스트가 연결되지 않음
+- BAT 모듈을 생성하지 않았는데 배치 실행 구현체 책임 경계가 불명확함
+- 테스트 없이 완료로 기록
+- CPF_STABILIZATION_REPORT.html과 실제 소스 상태가 다름
 ```
 
-## 25. 최종 보고 형식
+---
 
-작업 완료 후 아래 형식으로 보고한다.
+## 18. 다음 보강 후보로만 기록할 항목
+
+이번 작업에서 아래는 구현하지 말고, 필요한 경우 다음 보강 후보로만 기록한다.
 
 ```text
-[전체 판정]
-완료:
-부분 구현:
-미구현:
-미검증:
-실패:
-재확인 필요:
-
-[기능별 개발 및 테스트 결과]
-기능명:
-담당 모듈:
-package:
-Controller:
-Service:
-Repository/Mapper:
-DTO:
-SQL:
-UI/API wrapper:
-Swagger:
-EDU:
-테스트 명령:
-정상 테스트:
-오류 테스트:
-권한 테스트:
-DB 확인:
-최종 판정:
-
-[PFW]
-개발 기능:
-테스트 결과:
-미검증:
-
-[CMN]
-개발 기능:
-테스트 결과:
-미검증:
-
-[ADM]
-개발 기능:
-UI/API wrapper:
-브라우저 또는 API 테스트:
-미검증:
-
-[BIZADM]
-개발 기능:
-테스트 결과:
-미검증:
-
-[MBR]
-개발 기능:
-테스트 결과:
-미검증:
-
-[EXS]
-개발 기능:
-테스트 결과:
-미검증:
-
-[BAT]
-개발 기능:
-테스트 결과:
-미검증:
-
-[EDU]
-개발 샘플:
-테스트 결과:
-가이드 연결:
-
-[SQL/Flyway]
-변경 파일:
-MariaDB 테스트 결과:
-미검증:
-
-[Swagger/OpenAPI]
-기동 앱:
-확인 URL:
-결과:
-미검증:
-
-[ADM 브라우저 클릭]
-기동 방식:
-접속 URL:
-확인 메뉴:
-성공:
-실패:
-미검증:
-
-[Redis/Kafka/MQ]
-mock/fallback 테스트:
-실 broker 미검증:
-다음 조치:
-
-[40_business_sample_schema.sql]
-변경 여부:
-보류 사유:
-참조 수정:
-
-[문서]
-README:
-index:
-프레임워크 구성 가이드:
-개발 가이드:
-관리자 가이드:
-SQL 가이드:
-기능 구현 매트릭스:
-
-[리포트]
-CPF_STABILIZATION_REPORT.html 기록 완료 여부:
-기능별 테스트 증적 기록 여부:
-미검증/실패 사유 기록 여부:
+- 온라인/배치 로그 정책 + 거래 메타 자동 등록
+- 거래별 파일 로그/DB 로그 override
+- Batch Job/Step별 로그 정책 override
+- 온디맨드 배치
+- 센터컷 대상 주입/결과/재처리/미터링
+- CenterCutWorker scale-out
+- BAT EDU 전체 보강
+- XYZ EDU 배치 샘플 전체 보강
+- 배치 개발 가이드 대규모 정본화
+- 트랜잭션 가이드 대규모 정본화
+- Redis/Kafka/MQ 실 broker 검증
 ```

@@ -183,9 +183,17 @@
             <button type="button" v-if="canWrite('BATCH')" @click="stopBatchExecution">중지</button>
             <button type="button" v-if="canWrite('BATCH')" @click="runBatchSchedulerOnce">스케줄러 1회 실행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="saveBusinessDay">영업일 저장</button>
+            <button type="button" @click="loadBatchJobDetail">Job 상세</button>
             <button type="button" @click="simulateBatchSchedule">수행 시뮬레이션</button>
             <button type="button" @click="loadBatchRelations">관계 조회</button>
             <button type="button" @click="loadBatchTargets">수행 대상 조회</button>
+            <button type="button" @click="loadBatchSteps">Step 이력</button>
+            <button type="button" @click="loadBatchWorkers">Worker 상태</button>
+            <button type="button" @click="loadBatchLocks">Lock 조회</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="releaseBatchLock">Lock 해제</button>
+            <button type="button" @click="loadBatchGhostCandidates">Ghost 후보</button>
+            <button type="button" v-if="canWrite('BATCH')" @click="actBatchGhost">Ghost 조치</button>
+            <button type="button" @click="loadBatchOperations">운영 로그</button>
             <button type="button" @click="downloadCsv('BATCH_EXECUTIONS')">배치 CSV</button>
           </div>
         </div>
@@ -200,6 +208,9 @@
           <label>영업일 <input v-model="batchForm.businessDate" type="date"></label>
           <label>시뮬레이션 일수 <input v-model.number="batchForm.simulationDays" type="number" min="1" max="62"></label>
           <label>대상 상태 <input v-model="batchForm.dispatchStatus" type="text" placeholder="WAITING"></label>
+          <label>Heartbeat 제한초 <input v-model.number="batchForm.heartbeatTimeoutSeconds" type="number" min="30" max="86400"></label>
+          <label>Lock Key <input v-model="batchForm.lockKey" type="text"></label>
+          <label>Ghost 조치 <select v-model="batchForm.ghostActionType"><option>FAIL</option><option>ABANDON</option><option>RELEASE_LOCK</option></select></label>
           <label>사유 <input v-model="batchForm.reason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(batchResult) }}</pre>

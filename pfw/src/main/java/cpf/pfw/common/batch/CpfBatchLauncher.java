@@ -1,6 +1,7 @@
 package cpf.pfw.common.batch;
 
 import cpf.pfw.common.logging.ServerInstanceIdentity;
+import cpf.pfw.common.logging.ServerInstanceIdentity.Identity;
 import cpf.pfw.common.logging.TransactionContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -70,7 +71,9 @@ public class CpfBatchLauncher {
         String jobId = request.requiredJobId();
         String user = request.normalizedRequestUser("PFW_BATCH");
         String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
-        String ownerId = ServerInstanceIdentity.current().serverInstanceId();
+        Identity identity = ServerInstanceIdentity.current();
+        String ownerId = identity.serverInstanceId();
+        String workerId = ownerId;
         String lockKey = lockManager.lockKey(jobId, request.normalizedJobParameters());
         boolean locked = false;
 
@@ -82,10 +85,14 @@ public class CpfBatchLauncher {
             locked = request.lockRequired();
             Job job = resolveJob(jobId);
             repository.ensureJob(jobId, job == null ? jobId : job.getName(), "TASKLET", user);
+            repository.recordWorkerHeartbeat(workerId, identity, "RUNNING", jobId, null, user);
             publish(CpfBatchEventType.RUN_REQUESTED, jobId, null, transactionGlobalId, "배치 실행 요청", Map.of());
 
             if (jobLauncher == null || job == null) {
-                long executionId = repository.insertExecution(request, "REQUESTED", null, ownerId, null, null);
+                long executionId = repository.insertExecution(
+                        request, "REQUESTED", null, ownerId, identity.serverInstanceId(), workerId,
+                        transactionGlobalId, null, null);
+                repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
                 repository.recordOperation(jobId, executionId, operationType.name(), user, request.reason(), null,
                         "Spring Batch 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.", "S", "REQUESTED");
                 publish(CpfBatchEventType.EXECUTION_NOT_RUN, jobId, executionId, transactionGlobalId,
@@ -100,8 +107,12 @@ public class CpfBatchLauncher {
                     execution.getStatus().name(),
                     execution.getId(),
                     ownerId,
+                    identity.serverInstanceId(),
+                    workerId,
+                    transactionGlobalId,
                     failureMessage(execution),
                     execution);
+            repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
             repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
                     "SPRING_BATCH_EXECUTION_ID=" + execution.getId(), "S", execution.getStatus().name());
             publish(CpfBatchEventType.RUN_COMPLETED, jobId, pfwExecutionId, transactionGlobalId,
@@ -109,8 +120,11 @@ public class CpfBatchLauncher {
             return result(true, jobId, pfwExecutionId, execution.getId(), execution.getStatus().name(), "배치 실행이 완료되었습니다.");
         } catch (Exception ex) {
             long executionId = repository.available()
-                    ? repository.insertExecution(request, "FAILED", null, ownerId, ex.getMessage(), null)
+                    ? repository.insertExecution(
+                            request, "FAILED", null, ownerId, identity.serverInstanceId(), workerId,
+                            transactionGlobalId, ex.getMessage(), null)
                     : -1L;
+            repository.recordWorkerHeartbeat(workerId, identity, "ERROR", jobId, executionId < 0 ? null : executionId, user);
             repository.recordOperation(jobId, executionId < 0 ? null : executionId, operationType.name() + "_FAILED",
                     user, request.reason(), null, ex.getMessage(), "F", ex.getMessage());
             publish(CpfBatchEventType.RUN_FAILED, jobId, executionId < 0 ? null : executionId, transactionGlobalId,
@@ -139,8 +153,14 @@ public class CpfBatchLauncher {
             try {
                 long restartedId = jobOperator.restart(Long.parseLong(String.valueOf(springExecutionId)));
                 CpfBatchExecutionRequest retryRequest = CpfBatchExecutionRequest.run(jobId, parameters, user, request.reason());
-                long pfwExecutionId = repository.insertExecution(retryRequest, "RESTARTED", restartedId,
-                        ServerInstanceIdentity.current().serverInstanceId(), null, jobExplorer == null ? null : jobExplorer.getJobExecution(restartedId));
+                Identity identity = ServerInstanceIdentity.current();
+                String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
+                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "RUNNING", jobId, null, user);
+                long pfwExecutionId = repository.insertExecution(
+                        retryRequest, "RESTARTED", restartedId, identity.serverInstanceId(),
+                        identity.serverInstanceId(), identity.serverInstanceId(), transactionGlobalId,
+                        null, jobExplorer == null ? null : jobExplorer.getJobExecution(restartedId));
+                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "IDLE", null, null, user);
                 repository.recordOperation(jobId, pfwExecutionId, "RETRY", user, request.reason(), String.valueOf(source),
                         "SPRING_BATCH_EXECUTION_ID=" + restartedId, "S", "RESTARTED");
                 return result(true, jobId, pfwExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");

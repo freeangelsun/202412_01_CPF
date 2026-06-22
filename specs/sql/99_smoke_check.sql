@@ -19,9 +19,13 @@ SELECT 'pfwDB.pfw_batch_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw
 SELECT 'pfwDB.pfw_batch_schedule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_schedule;
 SELECT 'pfwDB.pfw_batch_job_relation' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job_relation;
 SELECT 'pfwDB.pfw_batch_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_instance;
+SELECT 'pfwDB.pfw_batch_worker' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_worker;
 SELECT 'pfwDB.pfw_batch_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution;
 SELECT 'pfwDB.pfw_batch_execution_target' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution_target;
 SELECT 'pfwDB.pfw_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_step_execution;
+SELECT 'pfwDB.pfw_batch_lock' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_lock;
+SELECT 'pfwDB.pfw_batch_operation_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_operation_log;
+SELECT 'pfwDB.pfw_batch_ghost_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_ghost_event;
 SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
 SELECT 'pfwDB.pfw_notification_rule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_rule;
 SELECT 'pfwDB.pfw_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_delivery_log;
@@ -117,6 +121,27 @@ ORDER BY job_id, related_job_id;
 SELECT job_id, schedule_id, target_instance_id, business_date, dispatch_status
 FROM pfwDB.pfw_batch_execution_target
 ORDER BY target_id
+LIMIT 5;
+
+SELECT worker_id, server_instance_id, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id
+FROM pfwDB.pfw_batch_worker
+ORDER BY worker_id
+LIMIT 5;
+
+SELECT execution_id, job_id, execution_status, spring_batch_execution_id, batch_instance_id, server_instance_id,
+       worker_id, transaction_global_id, requested_by
+FROM pfwDB.pfw_batch_execution
+ORDER BY execution_id DESC
+LIMIT 5;
+
+SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status
+FROM pfwDB.pfw_batch_step_execution
+ORDER BY step_execution_id DESC
+LIMIT 5;
+
+SELECT ghost_event_id, execution_id, job_id, worker_id, ghost_status, action_type, lock_released_yn, retryable_yn
+FROM pfwDB.pfw_batch_ghost_event
+ORDER BY ghost_event_id DESC
 LIMIT 5;
 
 SELECT member_no, customer_no, login_id, name, member_status, lock_yn, withdraw_yn

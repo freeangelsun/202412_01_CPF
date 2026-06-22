@@ -123,6 +123,9 @@ if (!window.Vue) {
           businessDate: new Date().toISOString().slice(0, 10),
           simulationDays: 14,
           dispatchStatus: "WAITING",
+          heartbeatTimeoutSeconds: 120,
+          lockKey: "",
+          ghostActionType: "FAIL",
           holidayYn: "N",
           businessDayYn: "Y",
           description: "ADM 영업일 교육 데이터",
@@ -571,16 +574,21 @@ if (!window.Vue) {
         this.setMessage("회원 권한을 회수했습니다.");
       },
       async loadBatch() {
-        const [jobs, executions, schedules, instances, relations, targets, calendar] = await Promise.all([
+        const [jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps, calendar] = await Promise.all([
           this.getJson("/adm/api/batch/jobs"),
           this.getJson("/adm/api/batch/executions?limit=50"),
           this.getJson("/adm/api/batch/schedules"),
           this.getJson("/adm/api/batch/instances"),
+          this.getJson(`/adm/api/batch/workers?${this.buildParams({ heartbeatTimeoutSeconds: this.batchForm.heartbeatTimeoutSeconds }).toString()}`),
           this.getJson(`/adm/api/batch/relations?${this.buildParams({ jobId: this.batchForm.jobId }).toString()}`),
           this.getJson(`/adm/api/batch/execution-targets?${this.buildParams({ jobId: this.batchForm.jobId, dispatchStatus: this.batchForm.dispatchStatus, limit: 50 }).toString()}`),
+          this.getJson(`/adm/api/batch/locks?${this.buildParams({ jobId: this.batchForm.jobId }).toString()}`),
+          this.getJson(`/adm/api/batch/ghost-candidates?${this.buildParams({ heartbeatTimeoutSeconds: this.batchForm.heartbeatTimeoutSeconds }).toString()}`),
+          this.getJson(`/adm/api/batch/operations?${this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 50 }).toString()}`),
+          this.getJson(`/adm/api/batch/steps?${this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 50 }).toString()}`),
           this.getJson(`/adm/api/batch/calendar?${this.buildParams({ calendarId: this.batchForm.calendarId }).toString()}`)
         ]);
-        this.batchResult = { jobs, executions, schedules, instances, relations, targets, calendar };
+        this.batchResult = { jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps, calendar };
       },
       async registerBatchJob() {
         if (!this.batchForm.jobId || !this.requireReason(this.batchForm.reason)) return;
@@ -645,6 +653,54 @@ if (!window.Vue) {
       async loadBatchTargets() {
         const params = this.buildParams({ jobId: this.batchForm.jobId, dispatchStatus: this.batchForm.dispatchStatus, limit: 100 });
         this.batchResult = { targets: await this.getJson(`/adm/api/batch/execution-targets?${params.toString()}`) };
+      },
+      async loadBatchWorkers() {
+        const params = this.buildParams({ heartbeatTimeoutSeconds: this.batchForm.heartbeatTimeoutSeconds });
+        this.batchResult = { workers: await this.getJson(`/adm/api/batch/workers?${params.toString()}`) };
+        this.setMessage("배치 worker heartbeat를 조회했습니다.");
+      },
+      async loadBatchLocks() {
+        const params = this.buildParams({ jobId: this.batchForm.jobId });
+        this.batchResult = { locks: await this.getJson(`/adm/api/batch/locks?${params.toString()}`) };
+        this.setMessage("배치 lock을 조회했습니다.");
+      },
+      async releaseBatchLock() {
+        if (!this.batchForm.lockKey || !this.requireReason(this.batchForm.reason)) return;
+        this.batchResult = await this.sendJson("/adm/api/batch/locks/release", "POST", {
+          lockKey: this.batchForm.lockKey,
+          requestUser: "admin-ui",
+          reason: this.batchForm.reason
+        });
+        this.setMessage("배치 lock 강제 해제를 요청했습니다.");
+      },
+      async loadBatchGhostCandidates() {
+        const params = this.buildParams({ heartbeatTimeoutSeconds: this.batchForm.heartbeatTimeoutSeconds });
+        this.batchResult = { ghostCandidates: await this.getJson(`/adm/api/batch/ghost-candidates?${params.toString()}`) };
+        this.setMessage("배치 ghost 후보를 조회했습니다.");
+      },
+      async actBatchGhost() {
+        if (!this.batchForm.executionId || !this.requireReason(this.batchForm.reason)) return;
+        this.batchResult = await this.sendJson(`/adm/api/batch/ghost-candidates/${this.batchForm.executionId}/actions`, "POST", {
+          actionType: this.batchForm.ghostActionType,
+          requestUser: "admin-ui",
+          reason: this.batchForm.reason
+        });
+        this.setMessage("배치 ghost 조치를 요청했습니다.");
+      },
+      async loadBatchOperations() {
+        const params = this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 100 });
+        this.batchResult = { operations: await this.getJson(`/adm/api/batch/operations?${params.toString()}`) };
+        this.setMessage("배치 운영 작업 로그를 조회했습니다.");
+      },
+      async loadBatchSteps() {
+        const params = this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 100 });
+        this.batchResult = { steps: await this.getJson(`/adm/api/batch/steps?${params.toString()}`) };
+        this.setMessage("배치 Step 실행 이력을 조회했습니다.");
+      },
+      async loadBatchJobDetail() {
+        if (!this.batchForm.jobId) return;
+        this.batchResult = await this.getJson(`/adm/api/batch/jobs/${this.batchForm.jobId}`);
+        this.setMessage("배치 Job 상세를 조회했습니다.");
       },
       async runBatchSchedulerOnce() {
         if (!this.requireReason(this.batchForm.reason)) return;

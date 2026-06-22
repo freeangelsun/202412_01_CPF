@@ -1,6 +1,8 @@
 package cpf.adm.opr.controller;
 
+import cpf.adm.opr.dto.AdmBatchGhostActionRequest;
 import cpf.adm.opr.dto.AdmBatchJobRegisterRequest;
+import cpf.adm.opr.dto.AdmBatchLockReleaseRequest;
 import cpf.adm.opr.dto.AdmBatchOperationRequest;
 import cpf.adm.opr.dto.AdmBusinessDayRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
@@ -51,6 +53,13 @@ public class AdmBatchController {
     @Operation(summary = "배치 Job 목록 조회", description = "배치 Job, 마지막 실행 시간, 성공/실패 건수, 평균 수행 시간을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findJobs() {
         return ResponseEntity.ok(batchOperationService.findJobs());
+    }
+
+    @GetMapping("/jobs/{jobId}")
+    @CpfTransaction(id = "ADM01BAT0027", name = "ADMBatchJobDetail")
+    @Operation(summary = "배치 Job 상세 조회", description = "배치 Job 기준정보와 스케줄, 최근 실행, 관계, 수행 대상, lock을 함께 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findJobDetail(@PathVariable String jobId) {
+        return ResponseEntity.ok(batchOperationService.findJobDetail(jobId));
     }
 
     @PostMapping("/jobs")
@@ -104,11 +113,29 @@ public class AdmBatchController {
         return ResponseEntity.ok(batchOperationService.findExecutionDetail(executionId));
     }
 
+    @GetMapping("/steps")
+    @CpfTransaction(id = "ADM01BAT0028", name = "ADMBatchStepExecutionList")
+    @Operation(summary = "배치 Step 실행 이력 조회", description = "CPF 실행 ID 또는 Job ID 기준으로 Step 실행 이력을 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findStepExecutions(
+            @RequestParam(required = false) Long executionId,
+            @RequestParam(required = false) String jobId,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(batchOperationService.findStepExecutions(executionId, jobId, limit));
+    }
+
     @GetMapping("/instances")
     @CpfTransaction(id = "ADM01BAT0015", name = "ADMBatchInstanceList")
     @Operation(summary = "배치 인스턴스 조회", description = "배치 서버 인스턴스와 heartbeat 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findInstances() {
         return ResponseEntity.ok(batchOperationService.findInstances());
+    }
+
+    @GetMapping("/workers")
+    @CpfTransaction(id = "ADM01BAT0029", name = "ADMBatchWorkerList")
+    @Operation(summary = "배치 worker heartbeat 조회", description = "worker 상태, 마지막 heartbeat, 현재 실행 Job/Execution을 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findWorkers(
+            @RequestParam(defaultValue = "120") int heartbeatTimeoutSeconds) {
+        return ResponseEntity.ok(batchOperationService.findWorkers(heartbeatTimeoutSeconds));
     }
 
     @GetMapping("/relations")
@@ -126,6 +153,60 @@ public class AdmBatchController {
             @RequestParam(required = false) String dispatchStatus,
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(batchOperationService.findExecutionTargets(jobId, dispatchStatus, limit));
+    }
+
+    @GetMapping("/locks")
+    @CpfTransaction(id = "ADM01BAT0030", name = "ADMBatchLockList")
+    @Operation(summary = "배치 lock 조회", description = "중복 실행 방지 lock과 만료 상태를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findLocks(@RequestParam(required = false) String jobId) {
+        return ResponseEntity.ok(batchOperationService.findLocks(jobId));
+    }
+
+    @PostMapping("/locks/release")
+    @CpfTransaction(id = "ADM03BAT0031", name = "ADMBatchLockRelease")
+    @Operation(summary = "배치 lock 강제 해제", description = "운영 사유를 남기고 배치 lock을 강제로 해제합니다.")
+    public ResponseEntity<Map<String, Object>> releaseLock(
+            @RequestBody AdmBatchLockReleaseRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        Map<String, Object> result = batchOperationService.releaseLock(
+                request.lockKey(), requestUser(servletRequest, request.requestUser()), reason);
+        recordAudit(servletRequest, request.requestUser(), "BATCH_LOCK_RELEASE", "pfw_batch_lock",
+                request.lockKey(), reason, String.valueOf(result.get("before")), String.valueOf(result));
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/ghost-candidates")
+    @CpfTransaction(id = "ADM01BAT0032", name = "ADMBatchGhostCandidateList")
+    @Operation(summary = "배치 ghost 후보 조회", description = "실행 중 상태이나 worker heartbeat가 끊긴 배치 실행 후보를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findGhostCandidates(
+            @RequestParam(defaultValue = "120") int heartbeatTimeoutSeconds) {
+        return ResponseEntity.ok(batchOperationService.findGhostCandidates(heartbeatTimeoutSeconds));
+    }
+
+    @PostMapping("/ghost-candidates/{executionId}/actions")
+    @CpfTransaction(id = "ADM03BAT0033", name = "ADMBatchGhostAction")
+    @Operation(summary = "배치 ghost 조치", description = "ghost 후보 실행을 실패, 폐기, lock 해제 중 하나로 조치하고 이력을 남깁니다.")
+    public ResponseEntity<Map<String, Object>> actGhostExecution(
+            @PathVariable long executionId,
+            @RequestBody AdmBatchGhostActionRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        Map<String, Object> result = batchOperationService.actGhostExecution(
+                executionId, request.actionType(), requestUser(servletRequest, request.requestUser()), reason);
+        recordAudit(servletRequest, request.requestUser(), "BATCH_GHOST_" + result.get("actionType"), "pfw_batch_execution",
+                String.valueOf(executionId), reason, null, String.valueOf(result));
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/operations")
+    @CpfTransaction(id = "ADM01BAT0034", name = "ADMBatchOperationLogList")
+    @Operation(summary = "배치 운영 작업 로그 조회", description = "실행, 재수행, 중지, 스케줄 변경, ghost 조치, lock 해제 작업 로그를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findOperationLogs(
+            @RequestParam(required = false) String jobId,
+            @RequestParam(required = false) Long executionId,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(batchOperationService.findOperationLogs(jobId, executionId, limit));
     }
 
     @PostMapping("/scheduler/run-once")

@@ -97,12 +97,14 @@ DROP TABLE IF EXISTS cmnDB.cmn_sequence;
 DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
 DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
 DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_ghost_event;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_target;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_job_relation;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_worker;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_schedule;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_job;
@@ -629,6 +631,28 @@ CREATE TABLE IF NOT EXISTS pfw_batch_instance (
     INDEX ix_pfw_batch_instance_active (active_yn, last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 서버 인스턴스';
 
+CREATE TABLE IF NOT EXISTS pfw_batch_worker (
+    worker_id VARCHAR(160) NOT NULL COMMENT '배치 worker ID',
+    server_instance_id VARCHAR(160) NOT NULL COMMENT '서버 인스턴스 ID',
+    host_name VARCHAR(150) NULL COMMENT '호스트명',
+    process_id VARCHAR(80) NULL COMMENT '프로세스 ID',
+    thread_name VARCHAR(160) NULL COMMENT '스레드명',
+    worker_status VARCHAR(30) NOT NULL DEFAULT 'IDLE' COMMENT 'worker 상태',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    current_job_id VARCHAR(100) NULL COMMENT '현재 실행 Job ID',
+    current_execution_id BIGINT NULL COMMENT '현재 CPF 배치 실행 순번',
+    description VARCHAR(500) NULL COMMENT 'worker 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (worker_id),
+    INDEX ix_pfw_batch_worker_server (server_instance_id, active_yn),
+    INDEX ix_pfw_batch_worker_status (worker_status, last_heartbeat_at),
+    INDEX ix_pfw_batch_worker_current_job (current_job_id, current_execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker heartbeat';
+
 CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
@@ -637,6 +661,9 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
     spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
     batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '실행 서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
     start_time DATETIME(3) NULL COMMENT '시작 일시',
     end_time DATETIME(3) NULL COMMENT '종료 일시',
     read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
@@ -652,10 +679,15 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     INDEX ix_pfw_batch_execution_job_time (job_id, start_time),
     INDEX ix_pfw_batch_execution_status (execution_status, start_time),
     INDEX ix_pfw_batch_execution_spring (spring_batch_execution_id),
+    INDEX ix_pfw_batch_execution_worker (worker_id, execution_status, start_time),
+    INDEX ix_pfw_batch_execution_transaction (transaction_global_id),
     CONSTRAINT fk_pfw_batch_execution_job
         FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
     CONSTRAINT fk_pfw_batch_execution_instance
         FOREIGN KEY (batch_instance_id) REFERENCES pfw_batch_instance(instance_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
 
@@ -693,6 +725,8 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
 CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
     execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    spring_batch_step_execution_id BIGINT NULL COMMENT 'Spring Batch StepExecution ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
     step_name VARCHAR(150) NOT NULL COMMENT 'Step 이름',
     execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
     start_time DATETIME(3) NULL COMMENT '시작 일시',
@@ -708,9 +742,14 @@ CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (step_execution_id),
     INDEX ix_pfw_batch_step_execution_parent (execution_id, step_name),
+    INDEX ix_pfw_batch_step_execution_spring (spring_batch_step_execution_id),
+    INDEX ix_pfw_batch_step_execution_worker (worker_id, start_time),
     CONSTRAINT fk_pfw_batch_step_execution_parent
         FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pfw_batch_step_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Step 실행 이력';
 
 CREATE TABLE IF NOT EXISTS pfw_batch_lock (
@@ -748,6 +787,42 @@ CREATE TABLE IF NOT EXISTS pfw_batch_operation_log (
     INDEX ix_pfw_batch_operation_job_time (job_id, created_at),
     INDEX ix_pfw_batch_operation_execution (execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 운영 작업 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_ghost_event (
+    ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
+    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
+    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
+    action_type VARCHAR(30) NULL COMMENT '조치 유형',
+    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
+    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
+    action_at DATETIME(3) NULL COMMENT '조치 일시',
+    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
+    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
+    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
+    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ghost_event_id),
+    INDEX ix_pfw_batch_ghost_event_execution (execution_id, ghost_status),
+    INDEX ix_pfw_batch_ghost_event_job (job_id, detected_at),
+    INDEX ix_pfw_batch_ghost_event_worker (worker_id, detected_at),
+    CONSTRAINT fk_pfw_batch_ghost_event_execution
+        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_ghost_event_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
+    CONSTRAINT fk_pfw_batch_ghost_event_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 ghost 감지와 조치 이력';
 
 CREATE TABLE IF NOT EXISTS pfw_business_day_calendar (
     calendar_id VARCHAR(50) NOT NULL COMMENT '캘린더 ID',
@@ -2013,6 +2088,38 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_batch_worker (
+    worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
+    active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by
+) VALUES (
+    'local-batch-01',
+    'local-batch-01',
+    'localhost',
+    'seed',
+    'seed-main',
+    'IDLE',
+    'Y',
+    NOW(3),
+    NULL,
+    NULL,
+    '로컬 smoke 검증용 배치 worker heartbeat',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    server_instance_id = VALUES(server_instance_id),
+    host_name = VALUES(host_name),
+    process_id = VALUES(process_id),
+    thread_name = VALUES(thread_name),
+    worker_status = VALUES(worker_status),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    current_job_id = VALUES(current_job_id),
+    current_execution_id = VALUES(current_execution_id),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO pfw_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES
@@ -2063,7 +2170,8 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO pfw_batch_execution (
-    job_id, schedule_id, job_parameters, execution_status, batch_instance_id, start_time, end_time,
+    job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id,
+    worker_id, transaction_global_id, start_time, end_time,
     read_count, write_count, skip_count, requested_by, created_by, updated_by
 )
 SELECT
@@ -2072,6 +2180,9 @@ SELECT
     '{"edu":true}',
     'COMPLETED',
     'local-batch-01',
+    'local-batch-01',
+    'local-batch-01',
+    '20260615120000000XYZlocal010000001',
     DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
     DATE_SUB(NOW(3), INTERVAL 9 MINUTE),
     1,
@@ -2099,9 +2210,10 @@ SET @cpf_edu_execution_id = (
 );
 
 INSERT INTO pfw_batch_step_execution (
-    execution_id, step_name, execution_status, start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
+    execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
+    start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
-SELECT @cpf_edu_execution_id, 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
+SELECT @cpf_edu_execution_id, NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
@@ -2398,6 +2510,14 @@ VALUES
     ('BATCH_RELATION_READ', 'BATCH', 'RELATION_READ', '배치 관계 조회', 'GET', '/adm/api/batch/relations', 90, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_TARGET_READ', 'BATCH', 'TARGET_READ', '수행 대상 조회', 'GET', '/adm/api/batch/execution-targets', 100, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_SCHEDULER_RUN', 'BATCH', 'SCHEDULER_RUN', '스케줄러 1회 실행', 'POST', '/adm/api/batch/scheduler/run-once', 110, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_JOB_DETAIL', 'BATCH', 'DETAIL', 'Job 상세 조회', 'GET', '/adm/api/batch/jobs/*', 120, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_STEP_READ', 'BATCH', 'STEP_READ', 'Step 이력 조회', 'GET', '/adm/api/batch/steps', 130, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_WORKER_READ', 'BATCH', 'WORKER_READ', 'Worker 상태 조회', 'GET', '/adm/api/batch/workers', 140, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_LOCK_READ', 'BATCH', 'LOCK_READ', 'Lock 조회', 'GET', '/adm/api/batch/locks', 150, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_LOCK_RELEASE', 'BATCH', 'LOCK_RELEASE', 'Lock 강제 해제', 'POST', '/adm/api/batch/locks/release', 160, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_GHOST_READ', 'BATCH', 'GHOST_READ', 'Ghost 후보 조회', 'GET', '/adm/api/batch/ghost-candidates', 170, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_GHOST_ACTION', 'BATCH', 'GHOST_ACTION', 'Ghost 조치', 'POST', '/adm/api/batch/ghost-candidates/*/actions', 180, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_OPERATION_READ', 'BATCH', 'OPERATION_READ', '운영 작업 로그 조회', 'GET', '/adm/api/batch/operations', 190, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_READ', 'NOTIFICATION', 'READ', '알림 조회', 'GET', '/adm/api/notifications/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_WRITE', 'NOTIFICATION', 'WRITE', '알림 등록/수정', 'POST', '/adm/api/notifications/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_DISABLE', 'NOTIFICATION', 'DISABLE', '알림 비활성화', 'PUT', '/adm/api/notifications/rules/*/disable', 30, 'Y', 'SYSTEM', 'SYSTEM'),

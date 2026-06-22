@@ -48,7 +48,7 @@
       <tr><th>DB</th><th>책임</th><th>대표 테이블</th><th>주의</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_batch_job</code>, <code>BATCH_*</code></td><td>업무 모듈은 PFW API를 통해 사용합니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_batch_job</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_ghost_event</code>, <code>BATCH_*</code></td><td>업무 모듈은 PFW API를 통해 사용합니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>optional datasource입니다. 미사용 프로젝트도 기동 가능해야 합니다.</td></tr>
       <tr><td><code>admDB</code></td><td>운영자와 권한</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_audit_log</code></td><td>운영 행위는 감사 로그를 남깁니다.</td></tr>
       <tr><td><code>bizadmDB</code></td><td>업무 관리자 기본 구현</td><td><code>bizadm_admin_user</code>, <code>bizadm_customer</code>, <code>bizadm_masking_audit</code></td><td>sample 저장소를 사용하지 않습니다.</td></tr>
@@ -82,8 +82,9 @@
       </thead>
       <tbody>
       <tr><td>Spring Batch</td><td>JobRepository, JobExplorer, JobOperator, JobLauncher 기반 실행 메타</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>ADM 배치 상세에서 원천 실행 메타를 조회합니다.</td></tr>
-      <tr><td>CPF Batch</td><td>운영 job 등록, 스케줄, lock, 수동 실행, 재수행, 중지, 이력</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_lock</code></td><td><code>AdmBatchController</code>와 ADM 화면이 사용합니다.</td></tr>
+      <tr><td>CPF Batch</td><td>운영 job 등록, 스케줄, lock, worker heartbeat, ghost 감지/조치, 수동 실행, 재수행, 중지, 이력</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td><code>AdmBatchController</code>와 ADM 화면이 사용합니다.</td></tr>
       <tr><td>EDU Batch</td><td>Tasklet, Chunk, retry, restart, lock 샘플</td><td>필요 시 PFW Batch 사용</td><td><code>XyzBatchEducationController</code>에서 개발자가 흐름을 학습합니다.</td></tr>
+      <tr><td>BAT 모듈 판단</td><td>현재 기준본은 별도 <code>bat</code> 모듈을 만들지 않습니다. <code>pfw</code> 공통 실행기, <code>adm</code> 관제 API, <code>xyz</code> 교육 Job이 Spring Batch E2E 기준을 담당합니다.</td><td>해당 없음</td><td>별도 배치 전용 런타임이 필요해질 때 독립 모듈을 검토합니다.</td></tr>
       </tbody>
     </table>
   </section>

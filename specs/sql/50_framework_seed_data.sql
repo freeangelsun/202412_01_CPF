@@ -240,6 +240,38 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_batch_worker (
+    worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
+    active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by
+) VALUES (
+    'local-batch-01',
+    'local-batch-01',
+    'localhost',
+    'seed',
+    'seed-main',
+    'IDLE',
+    'Y',
+    NOW(3),
+    NULL,
+    NULL,
+    '로컬 smoke 검증용 배치 worker heartbeat',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    server_instance_id = VALUES(server_instance_id),
+    host_name = VALUES(host_name),
+    process_id = VALUES(process_id),
+    thread_name = VALUES(thread_name),
+    worker_status = VALUES(worker_status),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    current_job_id = VALUES(current_job_id),
+    current_execution_id = VALUES(current_execution_id),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO pfw_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES
@@ -290,7 +322,8 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO pfw_batch_execution (
-    job_id, schedule_id, job_parameters, execution_status, batch_instance_id, start_time, end_time,
+    job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id,
+    worker_id, transaction_global_id, start_time, end_time,
     read_count, write_count, skip_count, requested_by, created_by, updated_by
 )
 SELECT
@@ -299,6 +332,9 @@ SELECT
     '{"edu":true}',
     'COMPLETED',
     'local-batch-01',
+    'local-batch-01',
+    'local-batch-01',
+    '20260615120000000XYZlocal010000001',
     DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
     DATE_SUB(NOW(3), INTERVAL 9 MINUTE),
     1,
@@ -326,9 +362,10 @@ SET @cpf_edu_execution_id = (
 );
 
 INSERT INTO pfw_batch_step_execution (
-    execution_id, step_name, execution_status, start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
+    execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
+    start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
-SELECT @cpf_edu_execution_id, 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
+SELECT @cpf_edu_execution_id, NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', DATE_SUB(NOW(3), INTERVAL 10 MINUTE), DATE_SUB(NOW(3), INTERVAL 9 MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1

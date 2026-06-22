@@ -2,43 +2,54 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 리포트</title>
+  <title>CPF 안정화 작업 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1360px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
     th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .done { color: #047857; font-weight: 700; }
-    .partial { color: #b45309; font-weight: 700; }
-    .failed { color: #b91c1c; font-weight: 700; }
-    .unverified { color: #6b7280; font-weight: 700; }
-    .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
+    .ok { color: #047857; font-weight: 700; }
+    .warn { color: #b45309; font-weight: 700; }
+    .fail { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 리포트</h1>
-    <p>갱신된 요청 파일을 기준으로 실제 구현, SQL, 문서, 테스트, 로컬 검증을 다시 점검했습니다. 요청 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다.</p>
-    <p class="note">실행하지 않은 검증은 성공으로 기록하지 않았습니다. OpenAPI 앱 기동 검증, 실제 브라우저 클릭, 실 broker 장애 시나리오는 미검증으로 분리했습니다.</p>
+    <h1>CPF 안정화 작업 리포트</h1>
+    <p>요청서 기준으로 ADM 배치 관제, Spring Batch 운영 메타, worker heartbeat, ghost 조치, lock 운영, SQL/Flyway/문서 동기화를 보강했습니다. 요청서 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다.</p>
+    <p>민감정보와 DB 비밀번호는 이 리포트에 기록하지 않습니다. 실행하지 못했거나 앱 기동이 필요한 검증은 성공으로 표시하지 않고 미검증으로 분리했습니다.</p>
   </section>
 
   <section>
-    <h2>이번 반영 요약</h2>
+    <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th><th>근거</th><th>판정</th></tr>
+      <tr><th>영역</th><th>반영 내용</th><th>대표 파일</th></tr>
       </thead>
       <tbody>
-      <tr><td>SQL 명칭</td><td>업무 구현 schema 파일명을 sample 의미가 없는 <code>40_business_modules_schema.sql</code>로 정리하고 참조를 갱신했습니다.</td><td>분리 SQL, all install, smoke install, Flyway baseline, SQL 가이드, 개발 가이드</td><td class="done">반영</td></tr>
-      <tr><td>SQL 합본</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>, <code>V1__cpf_baseline_install.sql</code>을 재생성했습니다.</td><td><code>scripts/build-all-install-sql.ps1</code> 실행 성공</td><td class="done">반영</td></tr>
-      <tr><td>BIZADM 인증</td><td>로그인 성공 이력, 실패 횟수 증가, refresh token hash 저장, 원문 미저장을 Service 테스트로 고정했습니다.</td><td><code>BizAdmAuthServiceTest</code></td><td class="done">단위 검증</td></tr>
-      <tr><td>MBR 인증</td><td>회원 로그인 성공/실패 이력, refresh token hash 저장, 폐기 token 차단을 Service 테스트로 고정했습니다.</td><td><code>MbrAuthServiceTest</code></td><td class="done">단위 검증</td></tr>
-      <tr><td>기능 증거 gate</td><td>인증 테스트와 renamed SQL을 검사 대상에 추가하고, Windows PowerShell에서 인코딩 오해가 없도록 내부 메시지를 안정화했습니다.</td><td><code>scripts/check-feature-evidence.ps1</code></td><td class="done">통과</td></tr>
-      <tr><td>문서</td><td>개발 가이드와 기능 구현 매트릭스에 BIZADM/MBR 인증 테스트 증거를 반영했습니다.</td><td>개발 가이드, 기능 구현 매트릭스</td><td class="done">반영</td></tr>
+      <tr><td>DB/SQL</td><td><code>pfw_batch_worker</code>, <code>pfw_batch_ghost_event</code>를 추가하고 <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>에 server, worker, transaction, Spring StepExecution 추적 컬럼을 추가했습니다.</td><td><code>specs/sql/10_pfw_schema.sql</code>, <code>specs/sql/50_framework_seed_data.sql</code>, <code>specs/sql/99_smoke_check.sql</code></td></tr>
+      <tr><td>Flyway</td><td>기존 DB 증분 적용을 위한 <code>V9__batch_worker_ghost_operations.sql</code>를 추가했고, 전체 설치 baseline도 재빌드했습니다.</td><td><code>specs/sql/migration/flyway</code></td></tr>
+      <tr><td>PFW Batch</td><td><code>CpfBatchLauncher</code>가 실행 전후 worker heartbeat를 기록하고, CPF 실행 메타에 전역 거래 ID, 서버 인스턴스, worker ID, StepExecution ID를 저장하도록 보강했습니다.</td><td><code>pfw/src/main/java/cpf/pfw/common/batch</code></td></tr>
+      <tr><td>ADM API</td><td>Job 상세, Step 이력, worker 상태, lock 조회/해제, ghost 후보 조회/조치, 운영 작업 로그 조회 API를 추가했습니다. 조치성 API는 감사 사유와 감사 로그를 남깁니다.</td><td><code>adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java</code>, <code>AdmBatchOperationService.java</code></td></tr>
+      <tr><td>ADM UI</td><td>배치 화면에 Job 상세, Step 이력, Worker 상태, Lock 조회/해제, Ghost 후보/조치, 운영 로그 버튼과 입력 항목을 추가했습니다.</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm.js</code></td></tr>
+      <tr><td>테스트</td><td>worker heartbeat 조회, lock 강제 해제, ghost 조치 검증 테스트를 추가했습니다.</td><td><code>adm/src/test/java/cpf/adm/opr/service/AdmBatchOperationServiceTest.java</code></td></tr>
+      <tr><td>문서</td><td>README, 관리자 가이드, 프레임워크 구성 가이드, SQL 가이드, 기능 구현 매트릭스를 새 배치 관제 구조와 맞췄습니다.</td><td><code>README</code>, <code>specs</code> HTML 가이드</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>BAT 모듈 판단</h2>
+    <table>
+      <thead>
+      <tr><th>결정</th><th>사유</th><th>후속 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td class="ok">별도 BAT 모듈 미생성</td><td>현재 구조는 <code>pfw</code>가 공통 배치 실행기를 제공하고, <code>adm</code>이 관제 API/UI를 제공하며, <code>xyz</code>가 교육 Job을 제공합니다. 별도 모듈을 만들면 중복 런타임과 문서 분기가 커져 이번 범위에는 맞지 않습니다.</td><td>독립 배치 전용 런타임, 별도 배포 단위, 배치 worker 전용 프로세스가 필요해질 때 BAT 모듈을 재검토합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -47,62 +58,55 @@
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>명령 또는 방법</th><th>결과</th><th>비고</th></tr>
+      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td>BIZADM 인증 단위 테스트</td><td><code>.\gradlew.bat :bizadm:test --offline --tests cpf.bizadm.auth.service.BizAdmAuthServiceTest</code></td><td class="done">성공</td><td>refresh token 원문 미저장과 실패 이력 확인</td></tr>
-      <tr><td>MBR 인증 단위 테스트</td><td><code>.\gradlew.bat :mbr:test --offline --tests cpf.mbr.bse.service.MbrAuthServiceTest</code></td><td class="done">성공</td><td>hash 저장, 실패 이력, 폐기 token 차단 확인</td></tr>
-      <tr><td>MBR Controller validation</td><td><code>.\gradlew.bat :mbr:test --offline --tests cpf.mbr.bse.controller.MbrControllerValidationTest</code></td><td class="done">성공</td><td>회원 API validation 회귀 확인</td></tr>
-      <tr><td>전체 컴파일</td><td><code>.\gradlew.bat compileJava --offline</code></td><td class="done">성공</td><td>전체 Java 컴파일 성공</td></tr>
-      <tr><td>전체 테스트</td><td><code>.\gradlew.bat test --offline</code></td><td class="done">성공</td><td>전체 모듈 테스트 성공</td></tr>
-      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="done">성공</td><td>기능 증거, HTML 문서, Java format, legacy name, mojibake, sample, 보안 seed, SQL, transaction ID, UTF-8 검사 통과</td></tr>
-      <tr><td>UTF-8와 mojibake</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="done">성공</td><td>별도 옵션으로 재확인</td></tr>
-      <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td class="done">성공</td><td>renamed SQL 포함</td></tr>
-      <tr><td>HTML 문서</td><td><code>scripts/check-html-docs.ps1</code></td><td class="done">성공</td><td>문서 gate 통과</td></tr>
-      <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td class="done">성공</td><td>주요 화면/API marker 확인</td></tr>
-      <tr><td>MariaDB 전체 설치와 smoke</td><td><code>00_all_install_and_smoke.sql</code> 실제 실행</td><td class="done">성공</td><td>현재 SQL 기준 2회 연속 실행 성공. 거래 로그 일자 mismatch count 0</td></tr>
-      <tr><td>MariaDB FK/index</td><td>information_schema 조회</td><td class="done">성공</td><td>FK: adm 10, bizadm 2, cmn 1, mbr 4, pfw 18. Index: acc 4, adm 44, bizadm 41, cmn 15, exs 32, mbr 21, pfw 93</td></tr>
-      <tr><td>DB 권한 분리</td><td>app 계정 DDL probe, migration 계정 DDL probe</td><td class="done">성공</td><td>app 계정 DDL 차단, migration 계정 DDL 허용 확인. 민감정보는 기록하지 않음</td></tr>
-      <tr><td>OpenAPI smoke</td><td><code>scripts/smoke-openapi.ps1</code></td><td class="unverified">미검증</td><td>서비스 미기동으로 원격 연결 실패. 성공으로 보고하지 않음</td></tr>
-      <tr><td>Node 기반 JS 검사</td><td><code>node --version</code></td><td class="unverified">미검증</td><td>로컬 PATH에서 node 실행 파일을 찾지 못함</td></tr>
-      <tr><td>브라우저 클릭 검증</td><td>실제 브라우저 조작</td><td class="unverified">미검증</td><td>이번 작업에서는 브라우저 클릭을 수행하지 않음</td></tr>
-      <tr><td>Redis/Kafka/MQ 실 broker</td><td>실 broker 장애 시나리오</td><td class="unverified">미검증</td><td>별도 broker 환경이 필요함</td></tr>
+      <tr><td>MariaDB 접속</td><td class="ok">성공</td><td>MariaDB 12.3.2 로컬 서비스 접속을 확인했습니다.</td></tr>
+      <tr><td>전체 설치와 smoke SQL</td><td class="ok">성공</td><td><code>00_all_install_and_smoke</code>를 UTF-8 표준입력으로 실행했습니다. worker, ghost, lock, batch execution smoke query가 통과했습니다.</td></tr>
+      <tr><td>seed idempotent</td><td class="ok">성공</td><td>cleanup 없이 framework, CMN, ADM, test seed와 smoke query를 재실행했고 row count 중복 증가 없이 통과했습니다.</td></tr>
+      <tr><td>Flyway V9 SQL</td><td class="ok">성공</td><td>현재 DB에 V9 SQL을 재적용해 문법 오류 없이 통과했습니다.</td></tr>
+      <tr><td>SQL 표준</td><td class="ok">성공</td><td><code>scripts/check-sql-standard.ps1</code> 통과.</td></tr>
+      <tr><td>UTF-8/mojibake</td><td class="ok">성공</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code> 통과.</td></tr>
+      <tr><td>ADM 정적 UI smoke</td><td class="ok">성공</td><td><code>scripts/smoke-adm-ui.ps1</code> 통과.</td></tr>
+      <tr><td>ADM 배치 단위 테스트</td><td class="ok">성공</td><td><code>:adm:test --tests cpf.adm.opr.service.AdmBatchOperationServiceTest</code> 통과.</td></tr>
+      <tr><td>ADM 전체 테스트</td><td class="ok">성공</td><td><code>:adm:test --offline</code> 통과.</td></tr>
+      <tr><td>PFW 테스트 태스크</td><td class="ok">성공</td><td><code>:pfw:test --offline</code>는 테스트 소스가 없어 <code>NO-SOURCE</code>였고 컴파일은 통과했습니다.</td></tr>
+      <tr><td>전체 테스트</td><td class="ok">성공</td><td><code>test --offline</code> 통과.</td></tr>
+      <tr><td>OpenAPI smoke</td><td class="warn">미검증</td><td>ADM 앱이 기동 중이 아니어서 <code>/v3/api-docs</code> 접속이 실패했습니다. 성공으로 보고하지 않습니다.</td></tr>
+      <tr><td>브라우저 클릭 검증</td><td class="warn">미검증</td><td>정적 smoke는 통과했지만 실제 브라우저에서 버튼 클릭과 응답 렌더링은 수행하지 않았습니다.</td></tr>
+      <tr><td>실 장시간 실행 Job heartbeat</td><td class="warn">미검증</td><td>이번 구현은 실행 전후 heartbeat 기록과 관제 조회를 보강했습니다. 장시간 chunk 실행 중 주기 heartbeat는 추가 listener 확장 검증이 필요합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>기능별 현재 판정</h2>
+    <h2>남은 리스크</h2>
     <table>
       <thead>
-      <tr><th>기능</th><th>현재 확인된 구현</th><th>검증한 범위</th><th>남은 범위</th></tr>
+      <tr><th>리스크</th><th>상태</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW 거래 ID/표준 헤더</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, 거래 로그 컬럼과 seed</td><td>transaction ID gate, MariaDB smoke, mismatch count 0</td><td>운영 앱 기동 후 실제 API 로그 지속 검증</td></tr>
-      <tr><td>PFW Batch 공통</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchLockManager</code>, Spring Batch <code>BATCH_*</code>, CPF <code>pfw_batch_*</code></td><td>compile/test, SQL smoke, ADM 정적 marker</td><td>앱 기동 후 JobRepository 실행, restart/stop/retry E2E</td></tr>
-      <tr><td>ADM 배치 관제</td><td>영업일 수행 여부, 수행 가능 시간, 수행 시뮬레이션 API, 선행/트리거 관계, 수행 대상 조회 UI/API</td><td>SQL smoke row, 정적 UI smoke, 소스 marker 확인</td><td>브라우저 클릭, 실제 스케줄러 실행, 관계도 UX 시각화 검증</td></tr>
-      <tr><td>ADM 회원/권한/로그/캐시/메시지/코드/설정</td><td>Controller, Service, SQL seed, 버튼 권한 seed, 정적 UI marker</td><td>compile/test, quality gate, ADM 정적 smoke</td><td>API 권한 차단 통합 테스트, 브라우저 편집/상세/다운로드 권한 검증</td></tr>
-      <tr><td>BIZADM 인증/운영</td><td>인증 Service, 운영 Controller/Service/Repository, 업무 DB schema</td><td>인증 단위 테스트, 운영 Service 테스트, MariaDB smoke</td><td>Controller부터 DB까지 이어지는 인증 API 통합 테스트</td></tr>
-      <tr><td>MBR 회원/인증</td><td>회원 Controller/Service/Mapper, 인증 Service, refresh token hash, 로그인 이력</td><td>인증 단위 테스트, Controller validation, MariaDB smoke</td><td>회원 상태 전환, 휴면, 탈퇴, 권한 만료 통합 테스트</td></tr>
-      <tr><td>CMN 업무 공통</td><td>채번, 업무 알림 로그, 업무 로그, EDU 샘플, optional datasource 구조</td><td>quality gate, CMN 테스트, MariaDB smoke</td><td>운영 DB 격리수준 기준 동시성 검증과 보존 정책 E2E</td></tr>
-      <tr><td>EXS 대외연계</td><td>기관/채널/endpoint, token hash, token event, 수신/송신 로그, retry 구조</td><td>EXS 테스트, MariaDB smoke</td><td>실제 외부기관 adapter mock 확장과 retry worker 실행 시나리오</td></tr>
-      <tr><td>EDU와 문서</td><td>README는 진입점, 상세 HTML 가이드, 기능 구현 매트릭스, EDU Controller</td><td>HTML docs gate, quality gate</td><td>각 EDU 샘플 주석을 더 촘촘하게 확장할 여지 있음</td></tr>
+      <tr><td>OpenAPI 품질 gate</td><td class="warn">앱 기동 필요</td><td>ADM을 실제 기동한 뒤 smoke 스크립트를 실행하고 CI에서 앱 기동형 gate로 분리합니다.</td></tr>
+      <tr><td>브라우저 UX 검증</td><td class="warn">미수행</td><td>ADM 로그인 후 배치 화면의 Job 상세, Worker, Lock, Ghost, 운영 로그 버튼을 실제 클릭 검증합니다.</td></tr>
+      <tr><td>장시간 실행 중 heartbeat</td><td class="warn">부분 구현</td><td>Tasklet/Chunk listener 또는 Step listener로 실행 중 주기 heartbeat와 처리율을 갱신합니다.</td></tr>
+      <tr><td>Ghost 자동 감지</td><td class="warn">수동 조치 구현</td><td>스케줄러 기반 자동 후보 생성, 알림 연동, 자동 lock release 정책은 별도 정책 확정 후 추가합니다.</td></tr>
+      <tr><td>배치 관계도 시각화</td><td class="warn">조회 API 구현</td><td>선행/후행/트리거 관계를 그래프 UI로 표시하는 UX를 추가합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>항상 지켜야 할 기준 점검</h2>
+    <h2>항상 지킨 기준 점검</h2>
     <table>
       <thead>
-      <tr><th>기준</th><th>이번 점검 결과</th></tr>
+      <tr><th>기준</th><th>결과</th></tr>
       </thead>
       <tbody>
-      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td>SQL rename, 테스트 증거, 개발 가이드, 기능 매트릭스는 맞췄습니다. Swagger JSON은 앱 미기동으로 미검증입니다.</td></tr>
-      <tr><td>README는 짧은 진입점 유지</td><td>README는 모듈 지도, DB 소유권, 거래 ID, 검증 명령, 문서 링크 중심으로 유지했습니다.</td></tr>
-      <tr><td>기능 변경 시 README와 가이드 현행화</td><td>개발 가이드, SQL 가이드, 기능 구현 매트릭스, all install/Flyway를 갱신했습니다.</td></tr>
-      <tr><td>신규 주석/설명/SQL COMMENT 한글 작성</td><td>신규 Java 테스트 주석은 한글로 작성했습니다. 단, Windows PowerShell 인코딩 안정화를 위해 검사 스크립트 내부 식별자는 ASCII로 유지했습니다.</td></tr>
-      <tr><td>검증 결과와 미검증 사유 분리</td><td>성공한 명령과 미검증 항목을 별도 행으로 분리했습니다.</td></tr>
+      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td class="warn">소스, SQL, README, HTML 가이드는 동기화했습니다. Swagger JSON은 앱 미기동으로 미검증입니다.</td></tr>
+      <tr><td>README는 짧은 진입점, 상세는 가이드 연결</td><td class="ok">유지했습니다.</td></tr>
+      <tr><td>기능 변경 시 README, 개발/관리자/SQL/구성/매트릭스 현행화</td><td class="ok">반영했습니다.</td></tr>
+      <tr><td>신규 주석과 SQL COMMENT 한글 작성</td><td class="ok">반영했습니다.</td></tr>
+      <tr><td>미실행 검증 성공 보고 금지</td><td class="ok">OpenAPI와 브라우저 클릭은 미검증으로 분리했습니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -111,16 +115,14 @@
     <h2>다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>우선순위</th><th>보강 후보</th><th>이유</th></tr>
+      <tr><th>우선순위</th><th>후보</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>앱을 안전하게 기동/종료하는 OpenAPI 검증 자동화</td><td>현재 smoke 스크립트는 서비스가 떠 있어야 하며, 이번에는 서비스 미기동으로 미검증입니다.</td></tr>
-      <tr><td>2</td><td>ADM 브라우저 클릭 자동화</td><td>정적 smoke는 통과했지만 회원, 배치, 로그, 캐시, 메시지, 코드, 설정 화면의 실제 운영자 UX 검증이 필요합니다.</td></tr>
-      <tr><td>3</td><td>ADM 배치 E2E</td><td>영업일 시뮬레이션, 수행 가능 시간, 선행/트리거 관계, 수행 대상 조회는 존재하지만 실제 scheduler와 Spring Batch 실행 흐름 검증이 필요합니다.</td></tr>
-      <tr><td>4</td><td>BIZADM/MBR 인증 API 통합 테스트</td><td>Service 단위는 보강했지만 Controller, security, DB까지 이어지는 API 통합 테스트가 아직 필요합니다.</td></tr>
-      <tr><td>5</td><td>회원 상태 전환과 권한 만료 통합 테스트</td><td>ADM 회원 관리와 MBR 회원 권한은 운영 기능이므로 등록/수정/잠금/탈퇴/복구/권한 만료 E2E가 필요합니다.</td></tr>
-      <tr><td>6</td><td>실 broker 연동과 fallback 장애 시나리오</td><td>Redis/Kafka/MQ는 로컬 fallback 기준이며, 실 broker 검증은 별도 환경에서 수행해야 합니다.</td></tr>
-      <tr><td>7</td><td>EDU 샘플 주석 고도화</td><td>현재 기능별 EDU 진입점은 있으나 학습용 라인 단위 주석은 더 보강할 수 있습니다.</td></tr>
+      <tr><td>1</td><td>ADM 앱 기동 후 OpenAPI와 브라우저 클릭 검증 자동화</td><td>정적 smoke를 넘어 실제 운영자 UX를 검증해야 합니다.</td></tr>
+      <tr><td>2</td><td>Spring Batch listener 기반 실행 중 heartbeat와 처리율 갱신</td><td>장시간 실행 Job의 ghost 오탐을 줄이고 실시간 관제 품질을 높입니다.</td></tr>
+      <tr><td>3</td><td>Ghost 자동 감지 스케줄러와 알림 연동</td><td>운영자가 수동 조회하기 전에 장애 후보를 자동 노출해야 합니다.</td></tr>
+      <tr><td>4</td><td>배치 관계도 그래프와 캘린더 월간 UX</td><td>선행/후행/트리거 Job과 영업일 수행 계획을 더 직관적으로 확인할 수 있습니다.</td></tr>
+      <tr><td>5</td><td>실 배치 JobRepository E2E 시나리오 확대</td><td>Tasklet, Chunk, 실패, 재시작, stop, duplicate lock을 실제 Job 단위로 더 촘촘히 검증합니다.</td></tr>
       </tbody>
     </table>
   </section>

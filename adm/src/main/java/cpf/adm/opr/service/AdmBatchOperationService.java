@@ -4,6 +4,7 @@ import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.batch.CpfBatchExecutionRequest;
 import cpf.pfw.common.batch.CpfBatchExecutionResult;
 import cpf.pfw.common.batch.CpfBatchLauncher;
+import cpf.pfw.common.exception.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
@@ -59,6 +60,26 @@ public class AdmBatchOperationService {
                 """);
     }
 
+    public Map<String, Object> findJobDetail(String jobId) {
+        String resolvedJobId = TextUtils.requireText(jobId, "jobId");
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("job", findJob(resolvedJobId));
+        result.put("schedules", queryOrEmpty("""
+                SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
+                       calendar_id, business_day_only_yn, holiday_policy,
+                       available_start_time, available_end_time, run_date_pattern,
+                       last_fire_at, next_fire_at, created_at, updated_at
+                FROM pfw_batch_schedule
+                WHERE job_id = ?
+                ORDER BY schedule_id
+                """, resolvedJobId));
+        result.put("executions", findExecutions(resolvedJobId, 50));
+        result.put("relations", findRelations(resolvedJobId));
+        result.put("targets", findExecutionTargets(resolvedJobId, null, 50));
+        result.put("locks", findLocks(resolvedJobId));
+        return result;
+    }
+
     public List<Map<String, Object>> findSchedules() {
         return queryOrEmpty("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
@@ -75,7 +96,8 @@ public class AdmBatchOperationService {
         if (TextUtils.hasText(jobId)) {
             return queryOrEmpty("""
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                           spring_batch_execution_id, batch_instance_id,
+                           spring_batch_execution_id, batch_instance_id, server_instance_id,
+                           worker_id, transaction_global_id,
                            start_time, end_time, read_count, write_count, skip_count,
                            error_message, requested_by, created_at, updated_at
                     FROM pfw_batch_execution
@@ -86,7 +108,8 @@ public class AdmBatchOperationService {
         }
         return queryOrEmpty("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                       spring_batch_execution_id, batch_instance_id,
+                       spring_batch_execution_id, batch_instance_id, server_instance_id,
+                       worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, requested_by, created_at, updated_at
                 FROM pfw_batch_execution
@@ -99,7 +122,8 @@ public class AdmBatchOperationService {
         try {
             Map<String, Object> execution = findExecution(executionId);
             List<Map<String, Object>> steps = pfwJdbcTemplate.queryForList("""
-                    SELECT step_execution_id, execution_id, step_name, execution_status,
+                    SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id,
+                           step_name, execution_status,
                            start_time, end_time, read_count, write_count, skip_count,
                            error_message, step_log, created_at, updated_at
                     FROM pfw_batch_step_execution
@@ -124,6 +148,61 @@ public class AdmBatchOperationService {
                 FROM pfw_batch_instance
                 ORDER BY active_yn DESC, instance_name
                 """);
+    }
+
+    public List<Map<String, Object>> findWorkers(int heartbeatTimeoutSeconds) {
+        int timeoutSeconds = Math.max(30, Math.min(heartbeatTimeoutSeconds, 86400));
+        return queryOrEmpty("""
+                SELECT worker_id, server_instance_id, host_name, process_id, thread_name,
+                       worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id,
+                       CASE
+                           WHEN active_yn <> 'Y' THEN 'INACTIVE'
+                           WHEN last_heartbeat_at IS NULL THEN 'UNKNOWN'
+                           WHEN last_heartbeat_at < TIMESTAMPADD(SECOND, -?, CURRENT_TIMESTAMP(3)) THEN 'STALE'
+                           ELSE 'ONLINE'
+                       END AS heartbeat_state,
+                       created_at, updated_at
+                FROM pfw_batch_worker
+                ORDER BY active_yn DESC, last_heartbeat_at DESC, worker_id
+                """, timeoutSeconds);
+    }
+
+    public List<Map<String, Object>> findStepExecutions(Long executionId, String jobId, int limit) {
+        int resolvedLimit = Math.max(1, Math.min(limit, 500));
+        if (executionId != null) {
+            return queryOrEmpty("""
+                    SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
+                           s.worker_id, s.step_name, s.execution_status,
+                           s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                           s.error_message, s.step_log, s.created_at, s.updated_at
+                    FROM pfw_batch_step_execution s
+                    WHERE s.execution_id = ?
+                    ORDER BY s.step_execution_id
+                    LIMIT ?
+                    """, executionId, resolvedLimit);
+        }
+        if (TextUtils.hasText(jobId)) {
+            return queryOrEmpty("""
+                    SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
+                           s.worker_id, s.step_name, s.execution_status,
+                           s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                           s.error_message, s.step_log, s.created_at, s.updated_at
+                    FROM pfw_batch_step_execution s
+                    JOIN pfw_batch_execution e ON e.execution_id = s.execution_id
+                    WHERE e.job_id = ?
+                    ORDER BY s.step_execution_id DESC
+                    LIMIT ?
+                    """, jobId.trim(), resolvedLimit);
+        }
+        return queryOrEmpty("""
+                SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
+                       s.worker_id, s.step_name, s.execution_status,
+                       s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                       s.error_message, s.step_log, s.created_at, s.updated_at
+                FROM pfw_batch_step_execution s
+                ORDER BY s.step_execution_id DESC
+                LIMIT ?
+                """, resolvedLimit);
     }
 
     public List<Map<String, Object>> findRelations(String jobId) {
@@ -193,6 +272,165 @@ public class AdmBatchOperationService {
                 JOIN pfw_batch_job j ON j.job_id = t.job_id
                 LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
                 ORDER BY t.planned_run_at DESC, t.target_id DESC
+                LIMIT ?
+                """, resolvedLimit);
+    }
+
+    public List<Map<String, Object>> findLocks(String jobId) {
+        if (TextUtils.hasText(jobId)) {
+            return queryOrEmpty("""
+                    SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
+                           CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
+                           created_at, updated_at
+                    FROM pfw_batch_lock
+                    WHERE job_id = ?
+                    ORDER BY locked_at DESC
+                    """, jobId.trim());
+        }
+        return queryOrEmpty("""
+                SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
+                       CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
+                       created_at, updated_at
+                FROM pfw_batch_lock
+                ORDER BY locked_at DESC
+                """);
+    }
+
+    public Map<String, Object> releaseLock(String lockKey, String requestUser, String reason) {
+        String resolvedLockKey = TextUtils.requireText(lockKey, "lockKey");
+        Map<String, Object> before = findLock(resolvedLockKey);
+        int deleted = pfwJdbcTemplate.update("DELETE FROM pfw_batch_lock WHERE lock_key = ?", resolvedLockKey);
+        String operatorId = TextUtils.defaultIfBlank(requestUser, "ADM");
+        recordOperation(String.valueOf(before.get("job_id")), null, "LOCK_RELEASE", operatorId, reason,
+                String.valueOf(before), "deleted=" + deleted);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("lockKey", resolvedLockKey);
+        result.put("released", deleted > 0);
+        result.put("before", before);
+        return result;
+    }
+
+    public List<Map<String, Object>> findGhostCandidates(int heartbeatTimeoutSeconds) {
+        int timeoutSeconds = Math.max(30, Math.min(heartbeatTimeoutSeconds, 86400));
+        return queryOrEmpty("""
+                SELECT e.execution_id, e.job_id, j.job_name, e.schedule_id, e.job_parameters,
+                       e.execution_status, e.spring_batch_execution_id, e.batch_instance_id,
+                       e.server_instance_id, e.worker_id, e.transaction_global_id,
+                       e.start_time, e.end_time, e.requested_by,
+                       w.worker_status, w.last_heartbeat_at,
+                       CASE
+                           WHEN w.worker_id IS NULL THEN '실행 worker heartbeat가 없습니다.'
+                           WHEN w.last_heartbeat_at IS NULL THEN 'worker heartbeat 시각이 없습니다.'
+                           WHEN w.last_heartbeat_at < TIMESTAMPADD(SECOND, -?, CURRENT_TIMESTAMP(3)) THEN 'worker heartbeat 제한 시간을 초과했습니다.'
+                           ELSE '실행 중 상태가 장시간 종료되지 않았습니다.'
+                       END AS detected_reason
+                FROM pfw_batch_execution e
+                JOIN pfw_batch_job j ON j.job_id = e.job_id
+                LEFT JOIN pfw_batch_worker w ON w.worker_id = e.worker_id
+                WHERE e.end_time IS NULL
+                  AND e.execution_status IN ('REQUESTED', 'STARTING', 'STARTED', 'RUNNING', 'UNKNOWN', 'STOPPING')
+                  AND (
+                      w.worker_id IS NULL
+                      OR w.last_heartbeat_at IS NULL
+                      OR w.last_heartbeat_at < TIMESTAMPADD(SECOND, -?, CURRENT_TIMESTAMP(3))
+                  )
+                ORDER BY e.start_time, e.execution_id
+                """, timeoutSeconds, timeoutSeconds);
+    }
+
+    public Map<String, Object> actGhostExecution(long executionId, String actionType, String requestUser, String reason) {
+        String action = normalizeGhostAction(actionType);
+        String operatorId = TextUtils.defaultIfBlank(requestUser, "ADM");
+        Map<String, Object> before = findExecution(executionId);
+        String jobId = String.valueOf(before.get("job_id"));
+        int releasedLocks = 0;
+        if ("FAIL".equals(action)) {
+            pfwJdbcTemplate.update("""
+                    UPDATE pfw_batch_execution
+                    SET execution_status = 'FAILED',
+                        end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
+                        error_message = COALESCE(error_message, 'ADM ghost 조치로 실패 처리되었습니다.'),
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                    """, operatorId, executionId);
+            releasedLocks = releaseLocksForExecution(before);
+        } else if ("ABANDON".equals(action)) {
+            pfwJdbcTemplate.update("""
+                    UPDATE pfw_batch_execution
+                    SET execution_status = 'ABANDONED',
+                        end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
+                        error_message = COALESCE(error_message, 'ADM ghost 조치로 폐기 처리되었습니다.'),
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                    """, operatorId, executionId);
+            releasedLocks = releaseLocksForExecution(before);
+        } else if ("RELEASE_LOCK".equals(action)) {
+            releasedLocks = releaseLocksForExecution(before);
+        }
+        Map<String, Object> after = findExecution(executionId);
+        pfwJdbcTemplate.update("""
+                INSERT INTO pfw_batch_ghost_event (
+                    execution_id, spring_batch_execution_id, job_id, server_instance_id, worker_id,
+                    ghost_status, detected_reason, action_type, action_reason, action_by, action_at,
+                    lock_released_yn, retryable_yn, before_data, after_data, created_by, updated_by
+                ) VALUES (?, ?, ?, ?, ?, 'ACTIONED', ?, ?, ?, ?, CURRENT_TIMESTAMP(3), ?, ?, ?, ?, ?, ?)
+                """,
+                executionId,
+                before.get("spring_batch_execution_id"),
+                jobId,
+                before.get("server_instance_id"),
+                before.get("worker_id"),
+                "ADM에서 ghost 후보를 조치했습니다. action=" + action,
+                action,
+                TextUtils.requireText(reason, "reason"),
+                operatorId,
+                releasedLocks > 0 ? "Y" : "N",
+                "RELEASE_LOCK".equals(action) ? "Y" : "N",
+                String.valueOf(before),
+                String.valueOf(after),
+                operatorId,
+                operatorId);
+        recordOperation(jobId, executionId, "GHOST_" + action, operatorId, reason,
+                String.valueOf(before), String.valueOf(after) + ", releasedLocks=" + releasedLocks);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("execution", after);
+        result.put("actionType", action);
+        result.put("releasedLocks", releasedLocks);
+        return result;
+    }
+
+    public List<Map<String, Object>> findOperationLogs(String jobId, Long executionId, int limit) {
+        int resolvedLimit = Math.max(1, Math.min(limit, 500));
+        if (executionId != null) {
+            return queryOrEmpty("""
+                    SELECT operation_id, job_id, execution_id, operation_type, operator_id,
+                           reason, before_data, after_data, result_type, result_message,
+                           created_at, updated_at
+                    FROM pfw_batch_operation_log
+                    WHERE execution_id = ?
+                    ORDER BY operation_id DESC
+                    LIMIT ?
+                    """, executionId, resolvedLimit);
+        }
+        if (TextUtils.hasText(jobId)) {
+            return queryOrEmpty("""
+                    SELECT operation_id, job_id, execution_id, operation_type, operator_id,
+                           reason, before_data, after_data, result_type, result_message,
+                           created_at, updated_at
+                    FROM pfw_batch_operation_log
+                    WHERE job_id = ?
+                    ORDER BY operation_id DESC
+                    LIMIT ?
+                    """, jobId.trim(), resolvedLimit);
+        }
+        return queryOrEmpty("""
+                SELECT operation_id, job_id, execution_id, operation_type, operator_id,
+                       reason, before_data, after_data, result_type, result_message,
+                       created_at, updated_at
+                FROM pfw_batch_operation_log
+                ORDER BY operation_id DESC
                 LIMIT ?
                 """, resolvedLimit);
     }
@@ -345,12 +583,26 @@ public class AdmBatchOperationService {
     private Map<String, Object> findExecution(long executionId) {
         return pfwJdbcTemplate.queryForMap("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                       spring_batch_execution_id, batch_instance_id,
+                       spring_batch_execution_id, batch_instance_id, server_instance_id,
+                       worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, requested_by, created_at, updated_at
                 FROM pfw_batch_execution
                 WHERE execution_id = ?
                 """, executionId);
+    }
+
+    private Map<String, Object> findLock(String lockKey) {
+        try {
+            return pfwJdbcTemplate.queryForMap("""
+                    SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
+                           created_at, updated_at
+                    FROM pfw_batch_lock
+                    WHERE lock_key = ?
+                    """, lockKey);
+        } catch (DataAccessException ex) {
+            throw new CpfValidationException("해제할 배치 lock을 찾을 수 없습니다. lockKey=" + lockKey);
+        }
     }
 
     private Map<String, Object> findJob(String jobId) {
@@ -489,6 +741,36 @@ public class AdmBatchOperationService {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, 'S', '요청 접수', ?, ?)
                 """, jobId, executionId, operationType, operatorId,
                 TextUtils.defaultIfBlank(reason, "ADM 배치 운영 요청"), beforeData, afterData, operatorId, operatorId);
+    }
+
+    private int releaseLocksForExecution(Map<String, Object> execution) {
+        String jobId = String.valueOf(execution.get("job_id"));
+        Object workerId = execution.get("worker_id");
+        Object serverInstanceId = execution.get("server_instance_id");
+        Object batchInstanceId = execution.get("batch_instance_id");
+        return pfwJdbcTemplate.update("""
+                DELETE FROM pfw_batch_lock
+                WHERE job_id = ?
+                  AND (
+                      owner_id = ?
+                      OR owner_id = ?
+                      OR owner_id = ?
+                      OR ? IS NULL
+                  )
+                """,
+                jobId,
+                workerId,
+                serverInstanceId,
+                batchInstanceId,
+                workerId == null && serverInstanceId == null && batchInstanceId == null ? null : "HAS_OWNER");
+    }
+
+    private String normalizeGhostAction(String actionType) {
+        String action = TextUtils.defaultIfBlank(actionType, "FAIL").trim().toUpperCase();
+        if ("FAIL".equals(action) || "ABANDON".equals(action) || "RELEASE_LOCK".equals(action)) {
+            return action;
+        }
+        throw new CpfValidationException("지원하지 않는 배치 ghost 조치 유형입니다. actionType=" + actionType);
     }
 
     private String yn(String value, String fallback) {

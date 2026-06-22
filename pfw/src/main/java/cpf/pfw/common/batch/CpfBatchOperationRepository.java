@@ -1,6 +1,7 @@
 package cpf.pfw.common.batch;
 
 import cpf.pfw.common.logging.SensitiveDataMasker;
+import cpf.pfw.common.logging.ServerInstanceIdentity;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.ObjectProvider;
@@ -63,6 +64,9 @@ public class CpfBatchOperationRepository {
             String status,
             Long springBatchExecutionId,
             String batchInstanceId,
+            String serverInstanceId,
+            String workerId,
+            String transactionGlobalId,
             String errorMessage,
             JobExecution jobExecution) {
         if (!available()) {
@@ -73,9 +77,10 @@ public class CpfBatchOperationRepository {
         jdbc().update("""
                 INSERT INTO pfw_batch_execution (
                     job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
-                    batch_instance_id, start_time, end_time, read_count, write_count, skip_count,
+                    batch_instance_id, server_instance_id, worker_id, transaction_global_id,
+                    start_time, end_time, read_count, write_count, skip_count,
                     error_message, requested_by, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 request.requiredJobId(),
                 blankToNull(request.scheduleId()),
@@ -83,6 +88,9 @@ public class CpfBatchOperationRepository {
                 required(status, "status"),
                 springBatchExecutionId,
                 batchInstanceId,
+                serverInstanceId,
+                workerId,
+                transactionGlobalId,
                 toTimestamp(jobExecution == null ? null : jobExecution.getStartTime()),
                 toTimestamp(jobExecution == null ? null : jobExecution.getEndTime()),
                 counts.readCount(),
@@ -97,7 +105,7 @@ public class CpfBatchOperationRepository {
             throw new IllegalStateException("CPF 배치 실행 ID를 확인할 수 없습니다.");
         }
         if (jobExecution != null) {
-            insertStepExecutions(executionId, jobExecution, user);
+            insertStepExecutions(executionId, jobExecution, workerId, user);
         }
         return executionId;
     }
@@ -105,7 +113,8 @@ public class CpfBatchOperationRepository {
     public Map<String, Object> findExecution(long executionId) {
         return jdbc().queryForMap("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                       spring_batch_execution_id, batch_instance_id,
+                       spring_batch_execution_id, batch_instance_id, server_instance_id,
+                       worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, requested_by, created_at, updated_at
                 FROM pfw_batch_execution
@@ -117,7 +126,8 @@ public class CpfBatchOperationRepository {
         Map<String, Object> result = new LinkedHashMap<>();
         Map<String, Object> execution = findExecution(executionId);
         List<Map<String, Object>> steps = queryForList("""
-                SELECT step_execution_id, execution_id, step_name, execution_status,
+                SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id,
+                       step_name, execution_status,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, step_log, created_at, updated_at
                 FROM pfw_batch_step_execution
@@ -140,6 +150,56 @@ public class CpfBatchOperationRepository {
                 required(status, "status"),
                 defaultIfBlank(requestUser, "PFW_BATCH"),
                 executionId);
+    }
+
+    public void recordWorkerHeartbeat(
+            String workerId,
+            ServerInstanceIdentity.Identity identity,
+            String workerStatus,
+            String currentJobId,
+            Long currentExecutionId,
+            String requestUser) {
+        if (!available()) {
+            return;
+        }
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
+        String resolvedWorkerId = required(workerId, "workerId");
+        ServerInstanceIdentity.Identity resolvedIdentity = identity == null
+                ? ServerInstanceIdentity.current()
+                : identity;
+        try {
+            jdbc().update("""
+                    INSERT INTO pfw_batch_worker (
+                        worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
+                        active_yn, last_heartbeat_at, current_job_id, current_execution_id, description,
+                        created_by, updated_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'Y', CURRENT_TIMESTAMP(3), ?, ?, 'PFW 배치 실행기 heartbeat', ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        server_instance_id = VALUES(server_instance_id),
+                        host_name = VALUES(host_name),
+                        process_id = VALUES(process_id),
+                        thread_name = VALUES(thread_name),
+                        worker_status = VALUES(worker_status),
+                        active_yn = 'Y',
+                        last_heartbeat_at = CURRENT_TIMESTAMP(3),
+                        current_job_id = VALUES(current_job_id),
+                        current_execution_id = VALUES(current_execution_id),
+                        updated_by = VALUES(updated_by),
+                        updated_at = CURRENT_TIMESTAMP
+                    """,
+                    resolvedWorkerId,
+                    resolvedIdentity.serverInstanceId(),
+                    resolvedIdentity.hostName(),
+                    resolvedIdentity.processId(),
+                    resolvedIdentity.threadName(),
+                    defaultIfBlank(workerStatus, "IDLE"),
+                    blankToNull(currentJobId),
+                    currentExecutionId,
+                    user,
+                    user);
+        } catch (DataAccessException ignored) {
+            // migration 전 DB에서도 배치 실행 자체는 계속 가능해야 하므로 heartbeat 저장 실패는 관제 보강 대상으로 남깁니다.
+        }
     }
 
     public void recordOperation(
@@ -183,15 +243,17 @@ public class CpfBatchOperationRepository {
         }
     }
 
-    private void insertStepExecutions(long pfwExecutionId, JobExecution jobExecution, String user) {
+    private void insertStepExecutions(long pfwExecutionId, JobExecution jobExecution, String workerId, String user) {
         for (StepExecution step : jobExecution.getStepExecutions()) {
             jdbc().update("""
                     INSERT INTO pfw_batch_step_execution (
-                        execution_id, step_name, execution_status, start_time, end_time,
+                        execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status, start_time, end_time,
                         read_count, write_count, skip_count, error_message, step_log, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     pfwExecutionId,
+                    step.getId(),
+                    blankToNull(workerId),
                     step.getStepName(),
                     step.getStatus().name(),
                     toTimestamp(step.getStartTime()),

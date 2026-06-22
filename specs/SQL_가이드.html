@@ -69,7 +69,7 @@
       <tr><th>DB</th><th>소유 주제</th><th>대표 테이블</th><th>운영 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_response_code</code>, <code>pfw_message</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>업무 모듈은 PFW API로 접근합니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어</td><td><code>pfw_transaction_log</code>, <code>pfw_response_code</code>, <code>pfw_message</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_ghost_event</code>, <code>pfw_batch_*</code></td><td>업무 모듈은 PFW API로 접근합니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>optional datasource로 구성합니다.</td></tr>
       <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_audit_log</code>, <code>adm_download_audit_log</code></td><td>권한 변경과 운영 조치는 감사 로그를 남깁니다.</td></tr>
       <tr><td><code>bizadmDB</code></td><td>업무 관리자 기본 구현</td><td><code>bizadm_customer</code>, <code>bizadm_product</code>, <code>bizadm_order</code>, <code>bizadm_masking_audit</code></td><td>마스킹 해제 사유와 감사 로그를 필수로 합니다.</td></tr>
@@ -87,7 +87,7 @@
       </thead>
       <tbody>
       <tr><td>baseline</td><td>현재 기준 설치 SQL은 Flyway V1 baseline으로 반영합니다.</td><td><code>V1__cpf_baseline_install.sql</code></td></tr>
-      <tr><td>변경 migration</td><td>기능 추가는 V2 이후 순차 migration으로 남깁니다.</td><td><code>V8__mbr_auth_login_history_nullable_member.sql</code></td></tr>
+      <tr><td>변경 migration</td><td>기능 추가는 V2 이후 순차 migration으로 남깁니다.</td><td><code>V9__batch_worker_ghost_operations.sql</code></td></tr>
       <tr><td>역할 분리</td><td>설치 SQL은 기준본 설치, Flyway는 운영 변경 이력입니다.</td><td>둘을 혼용하지 않습니다.</td></tr>
       <tr><td>rollback</td><td>운영 rollback은 별도 복구 SQL 또는 백업 복구 절차로 관리합니다.</td><td>무분별한 down migration 자동 실행 금지</td></tr>
       </tbody>
@@ -106,6 +106,7 @@
       <tr><td>seed idempotent</td><td>동일 SQL 재실행</td><td>중복 오류 없이 seed 최신화</td></tr>
       <tr><td>권한 계정</td><td>migration 계정과 app 계정으로 각각 DDL/DML 확인</td><td>app 계정은 DDL 차단, DML 허용</td></tr>
       <tr><td>문자셋</td><td><code>utf8mb4</code>와 한글 COMMENT 조회</td><td>한글 COMMENT와 seed 메시지가 깨지지 않음</td></tr>
+      <tr><td>배치 관제</td><td><code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code> smoke query 확인</td><td>worker heartbeat, lock, ghost 조치 테이블이 설치되고 조회됩니다.</td></tr>
       </tbody>
     </table>
   </section>

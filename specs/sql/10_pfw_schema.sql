@@ -446,6 +446,28 @@ CREATE TABLE IF NOT EXISTS pfw_batch_instance (
     INDEX ix_pfw_batch_instance_active (active_yn, last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 서버 인스턴스';
 
+CREATE TABLE IF NOT EXISTS pfw_batch_worker (
+    worker_id VARCHAR(160) NOT NULL COMMENT '배치 worker ID',
+    server_instance_id VARCHAR(160) NOT NULL COMMENT '서버 인스턴스 ID',
+    host_name VARCHAR(150) NULL COMMENT '호스트명',
+    process_id VARCHAR(80) NULL COMMENT '프로세스 ID',
+    thread_name VARCHAR(160) NULL COMMENT '스레드명',
+    worker_status VARCHAR(30) NOT NULL DEFAULT 'IDLE' COMMENT 'worker 상태',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    current_job_id VARCHAR(100) NULL COMMENT '현재 실행 Job ID',
+    current_execution_id BIGINT NULL COMMENT '현재 CPF 배치 실행 순번',
+    description VARCHAR(500) NULL COMMENT 'worker 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (worker_id),
+    INDEX ix_pfw_batch_worker_server (server_instance_id, active_yn),
+    INDEX ix_pfw_batch_worker_status (worker_status, last_heartbeat_at),
+    INDEX ix_pfw_batch_worker_current_job (current_job_id, current_execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker heartbeat';
+
 CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
@@ -454,6 +476,9 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
     spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
     batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '실행 서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
     start_time DATETIME(3) NULL COMMENT '시작 일시',
     end_time DATETIME(3) NULL COMMENT '종료 일시',
     read_count BIGINT NOT NULL DEFAULT 0 COMMENT '읽은 건수',
@@ -469,10 +494,15 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     INDEX ix_pfw_batch_execution_job_time (job_id, start_time),
     INDEX ix_pfw_batch_execution_status (execution_status, start_time),
     INDEX ix_pfw_batch_execution_spring (spring_batch_execution_id),
+    INDEX ix_pfw_batch_execution_worker (worker_id, execution_status, start_time),
+    INDEX ix_pfw_batch_execution_transaction (transaction_global_id),
     CONSTRAINT fk_pfw_batch_execution_job
         FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
     CONSTRAINT fk_pfw_batch_execution_instance
         FOREIGN KEY (batch_instance_id) REFERENCES pfw_batch_instance(instance_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
 
@@ -510,6 +540,8 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
 CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
     execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    spring_batch_step_execution_id BIGINT NULL COMMENT 'Spring Batch StepExecution ID',
+    worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
     step_name VARCHAR(150) NOT NULL COMMENT 'Step 이름',
     execution_status VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '실행 상태',
     start_time DATETIME(3) NULL COMMENT '시작 일시',
@@ -525,9 +557,14 @@ CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (step_execution_id),
     INDEX ix_pfw_batch_step_execution_parent (execution_id, step_name),
+    INDEX ix_pfw_batch_step_execution_spring (spring_batch_step_execution_id),
+    INDEX ix_pfw_batch_step_execution_worker (worker_id, start_time),
     CONSTRAINT fk_pfw_batch_step_execution_parent
         FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pfw_batch_step_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Step 실행 이력';
 
 CREATE TABLE IF NOT EXISTS pfw_batch_lock (
@@ -565,6 +602,42 @@ CREATE TABLE IF NOT EXISTS pfw_batch_operation_log (
     INDEX ix_pfw_batch_operation_job_time (job_id, created_at),
     INDEX ix_pfw_batch_operation_execution (execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 운영 작업 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_ghost_event (
+    ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
+    execution_id BIGINT NULL COMMENT '배치 실행 순번',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '서버 인스턴스 ID',
+    worker_id VARCHAR(160) NULL COMMENT 'worker ID',
+    ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED' COMMENT 'ghost 이벤트 상태',
+    detected_reason VARCHAR(1000) NOT NULL COMMENT '감지 사유',
+    action_type VARCHAR(30) NULL COMMENT '조치 유형',
+    action_reason VARCHAR(1000) NULL COMMENT '조치 사유',
+    action_by VARCHAR(100) NULL COMMENT '조치 운영자',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
+    action_at DATETIME(3) NULL COMMENT '조치 일시',
+    lock_released_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 해제 여부',
+    retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
+    before_data LONGTEXT NULL COMMENT '조치 전 데이터',
+    after_data LONGTEXT NULL COMMENT '조치 후 데이터',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ghost_event_id),
+    INDEX ix_pfw_batch_ghost_event_execution (execution_id, ghost_status),
+    INDEX ix_pfw_batch_ghost_event_job (job_id, detected_at),
+    INDEX ix_pfw_batch_ghost_event_worker (worker_id, detected_at),
+    CONSTRAINT fk_pfw_batch_ghost_event_execution
+        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_batch_ghost_event_job
+        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
+    CONSTRAINT fk_pfw_batch_ghost_event_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 ghost 감지와 조치 이력';
 
 CREATE TABLE IF NOT EXISTS pfw_business_day_calendar (
     calendar_id VARCHAR(50) NOT NULL COMMENT '캘린더 ID',

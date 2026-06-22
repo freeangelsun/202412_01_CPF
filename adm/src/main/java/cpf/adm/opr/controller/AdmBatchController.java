@@ -57,7 +57,7 @@ public class AdmBatchController {
 
     @GetMapping("/jobs/{jobId}")
     @CpfTransaction(id = "ADM01BAT0027", name = "ADMBatchJobDetail")
-    @Operation(summary = "배치 Job 상세 조회", description = "배치 Job 기준정보와 스케줄, 최근 실행, 관계, 수행 대상, lock을 함께 조회합니다.")
+    @Operation(summary = "배치 Job 상세 조회", description = "배치 Job 기본정보, 스케줄, 최근 실행, 관계, 수행 대상, lock을 함께 조회합니다.")
     public ResponseEntity<Map<String, Object>> findJobDetail(@PathVariable String jobId) {
         return ResponseEntity.ok(batchOperationService.findJobDetail(jobId));
     }
@@ -82,7 +82,7 @@ public class AdmBatchController {
 
     @GetMapping("/schedules")
     @CpfTransaction(id = "ADM01BAT0012", name = "ADMBatchScheduleList")
-    @Operation(summary = "배치 스케줄 조회", description = "배치 스케줄, 영업일 전용 여부, 수행 가능 시간, 휴일 정책을 조회합니다.")
+    @Operation(summary = "배치 스케줄 조회", description = "배치 스케줄, 영업일 적용 여부, 수행 가능 시간, 휴일 정책을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSchedules() {
         return ResponseEntity.ok(batchOperationService.findSchedules());
     }
@@ -108,7 +108,7 @@ public class AdmBatchController {
 
     @GetMapping("/executions/{executionId}")
     @CpfTransaction(id = "ADM01BAT0014", name = "ADMBatchExecutionDetail")
-    @Operation(summary = "배치 실행 상세 조회", description = "배치 실행 상세와 step 로그, Spring Batch 실행 정보를 조회합니다.")
+    @Operation(summary = "배치 실행 상세 조회", description = "배치 실행 상세, step 로그, Spring Batch 실행 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findExecutionDetail(@PathVariable long executionId) {
         return ResponseEntity.ok(batchOperationService.findExecutionDetail(executionId));
     }
@@ -132,7 +132,7 @@ public class AdmBatchController {
 
     @GetMapping("/workers")
     @CpfTransaction(id = "ADM01BAT0029", name = "ADMBatchWorkerList")
-    @Operation(summary = "배치 worker heartbeat 조회", description = "worker 상태, 마지막 heartbeat, 현재 실행 Job/Execution을 조회합니다.")
+    @Operation(summary = "배치 worker heartbeat 조회", description = "worker 상태, 마지막 heartbeat, 현재 실행 Job과 execution을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findWorkers(
             @RequestParam(defaultValue = "120") int heartbeatTimeoutSeconds) {
         return ResponseEntity.ok(batchOperationService.findWorkers(heartbeatTimeoutSeconds));
@@ -147,7 +147,7 @@ public class AdmBatchController {
 
     @GetMapping("/execution-targets")
     @CpfTransaction(id = "ADM01BAT0025", name = "ADMBatchExecutionTargetList")
-    @Operation(summary = "배치 수행 대상 조회", description = "수행 대기/배정/완료 대상 인스턴스와 예정 수행 정보를 조회합니다.")
+    @Operation(summary = "배치 수행 대상 조회", description = "수행 대기, 배정, 완료 대상 인스턴스와 예정 수행 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findExecutionTargets(
             @RequestParam(required = false) String jobId,
             @RequestParam(required = false) String dispatchStatus,
@@ -224,7 +224,7 @@ public class AdmBatchController {
 
     @GetMapping("/calendar")
     @CpfTransaction(id = "ADM01BAT0016", name = "ADMBusinessCalendarList")
-    @Operation(summary = "영업일 캘린더 조회", description = "캘린더 ID와 기간 기준으로 영업일/휴일 정보를 조회합니다.")
+    @Operation(summary = "영업일 캘린더 조회", description = "캘린더 ID와 기간 기준으로 영업일과 휴일 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findBusinessCalendar(
             @RequestParam(defaultValue = "DEFAULT") String calendarId,
             @RequestParam(required = false) String fromDate,
@@ -234,7 +234,7 @@ public class AdmBatchController {
 
     @PostMapping("/calendar")
     @CpfTransaction(id = "ADM02BAT0017", name = "ADMBusinessCalendarSave")
-    @Operation(summary = "영업일 캘린더 저장", description = "영업일/휴일 정보를 등록하거나 갱신합니다.")
+    @Operation(summary = "영업일 캘린더 저장", description = "영업일과 휴일 정보를 등록하거나 갱신합니다.")
     public ResponseEntity<Map<String, Object>> saveBusinessDay(
             @RequestBody AdmBusinessDayRequest request,
             HttpServletRequest servletRequest) {
@@ -283,7 +283,7 @@ public class AdmBatchController {
 
     @PostMapping("/executions/{executionId}/stop")
     @CpfTransaction(id = "ADM03BAT0020", name = "ADMBatchStop")
-    @Operation(summary = "배치 실행 중지", description = "실행 중인 배치에 중지를 요청하고 운영 이력을 남깁니다.")
+    @Operation(summary = "배치 실행 중지", description = "실행 중인 배치의 중지를 요청하고 운영 이력을 남깁니다.")
     public ResponseEntity<Map<String, Object>> stopExecution(
             @PathVariable long executionId,
             @RequestBody AdmBatchOperationRequest request,

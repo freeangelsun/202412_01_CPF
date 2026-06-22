@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
@@ -11,45 +11,32 @@
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
     th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #047857; font-weight: 700; }
-    .warn { color: #b45309; font-weight: 700; }
-    .fail { color: #b91c1c; font-weight: 700; }
+    .pass { color: #047857; font-weight: 700; }
+    .skip { color: #92400e; font-weight: 700; }
+    .pending { color: #6b7280; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>요청서 기준으로 ADM 배치 관제, Spring Batch 운영 메타, worker heartbeat, ghost 조치, lock 운영, SQL/Flyway/문서 동기화를 보강했습니다. 요청서 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다.</p>
-    <p>민감정보와 DB 비밀번호는 이 리포트에 기록하지 않습니다. 실행하지 못했거나 앱 기동이 필요한 검증은 성공으로 표시하지 않고 미검증으로 분리했습니다.</p>
+    <h1>CPF 안정화 리포트</h1>
+    <p>작성일: 2026-06-22</p>
+    <p>이번 작업은 ADM OpenAPI 안전 기동/종료, health check, ADM 배치 API smoke, ADM UI 정적 smoke, 문서 진입점 정리를 중심으로 수행했습니다. 실행하지 않은 검증은 성공으로 표기하지 않았습니다.</p>
   </section>
 
   <section>
     <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th><th>대표 파일</th></tr>
+      <tr><th>영역</th><th>반영 내용</th><th>주요 파일</th></tr>
       </thead>
       <tbody>
-      <tr><td>DB/SQL</td><td><code>pfw_batch_worker</code>, <code>pfw_batch_ghost_event</code>를 추가하고 <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>에 server, worker, transaction, Spring StepExecution 추적 컬럼을 추가했습니다.</td><td><code>specs/sql/10_pfw_schema.sql</code>, <code>specs/sql/50_framework_seed_data.sql</code>, <code>specs/sql/99_smoke_check.sql</code></td></tr>
-      <tr><td>Flyway</td><td>기존 DB 증분 적용을 위한 <code>V9__batch_worker_ghost_operations.sql</code>를 추가했고, 전체 설치 baseline도 재빌드했습니다.</td><td><code>specs/sql/migration/flyway</code></td></tr>
-      <tr><td>PFW Batch</td><td><code>CpfBatchLauncher</code>가 실행 전후 worker heartbeat를 기록하고, CPF 실행 메타에 전역 거래 ID, 서버 인스턴스, worker ID, StepExecution ID를 저장하도록 보강했습니다.</td><td><code>pfw/src/main/java/cpf/pfw/common/batch</code></td></tr>
-      <tr><td>ADM API</td><td>Job 상세, Step 이력, worker 상태, lock 조회/해제, ghost 후보 조회/조치, 운영 작업 로그 조회 API를 추가했습니다. 조치성 API는 감사 사유와 감사 로그를 남깁니다.</td><td><code>adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java</code>, <code>AdmBatchOperationService.java</code></td></tr>
-      <tr><td>ADM UI</td><td>배치 화면에 Job 상세, Step 이력, Worker 상태, Lock 조회/해제, Ghost 후보/조치, 운영 로그 버튼과 입력 항목을 추가했습니다.</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm.js</code></td></tr>
-      <tr><td>테스트</td><td>worker heartbeat 조회, lock 강제 해제, ghost 조치 검증 테스트를 추가했습니다.</td><td><code>adm/src/test/java/cpf/adm/opr/service/AdmBatchOperationServiceTest.java</code></td></tr>
-      <tr><td>문서</td><td>README, 관리자 가이드, 프레임워크 구성 가이드, SQL 가이드, 기능 구현 매트릭스를 새 배치 관제 구조와 맞췄습니다.</td><td><code>README</code>, <code>specs</code> HTML 가이드</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>BAT 모듈 판단</h2>
-    <table>
-      <thead>
-      <tr><th>결정</th><th>사유</th><th>후속 기준</th></tr>
-      </thead>
-      <tbody>
-      <tr><td class="ok">별도 BAT 모듈 미생성</td><td>현재 구조는 <code>pfw</code>가 공통 배치 실행기를 제공하고, <code>adm</code>이 관제 API/UI를 제공하며, <code>xyz</code>가 교육 Job을 제공합니다. 별도 모듈을 만들면 중복 런타임과 문서 분기가 커져 이번 범위에는 맞지 않습니다.</td><td>독립 배치 전용 런타임, 별도 배포 단위, 배치 worker 전용 프로세스가 필요해질 때 BAT 모듈을 재검토합니다.</td></tr>
+      <tr><td>ADM health</td><td>ADM, PFW, MBR datasource 연결 상태를 확인하는 <code>/adm/api/health</code> API를 추가했습니다. health API는 인증과 거래 헤더 검증에서 제외했습니다.</td><td><code>AdmHealthController</code>, <code>AdmApiAuthFilter</code>, <code>TransactionWebMvcConfig</code></td></tr>
+      <tr><td>OpenAPI 품질</td><td>깨진 Swagger annotation을 정상 한글 설명으로 복구하고, OpenAPI smoke tag 기준을 실제 ADM controller tag와 맞췄습니다.</td><td><code>AdmAuthController</code>, <code>AdmBatchController</code>, <code>smoke-openapi.ps1</code></td></tr>
+      <tr><td>ADM runtime smoke</td><td>ADM boot jar를 기동해 health, OpenAPI, 배치 API, UI marker를 검증하고 스크립트가 시작한 프로세스를 종료하는 자동화 스크립트를 추가했습니다.</td><td><code>smoke-adm-runtime.ps1</code>, <code>build.gradle</code></td></tr>
+      <tr><td>ADM UI smoke</td><td>배치 운영 확장 경로인 worker, lock, ghost, operations, relations, execution-targets, calendar marker를 정적 smoke 대상에 추가했습니다.</td><td><code>smoke-adm-ui.ps1</code></td></tr>
+      <tr><td>문서</td><td>README와 6개 HTML 가이드를 UTF-8 정상 한글 문서로 재정리하고, PFW와 CMN 역할 경계, ADM runtime smoke 기준, 미검증 기준을 반영했습니다.</td><td><code>README</code>, <code>specs</code> HTML 가이드</td></tr>
+      <tr><td>테스트</td><td>ADM health 응답의 UP과 DEGRADED 판정을 단위 테스트로 추가했습니다.</td><td><code>AdmHealthControllerTest</code></td></tr>
       </tbody>
     </table>
   </section>
@@ -58,55 +45,53 @@
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
+      <tr><th>검증</th><th>결과</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>MariaDB 접속</td><td class="ok">성공</td><td>MariaDB 12.3.2 로컬 서비스 접속을 확인했습니다.</td></tr>
-      <tr><td>전체 설치와 smoke SQL</td><td class="ok">성공</td><td><code>00_all_install_and_smoke</code>를 UTF-8 표준입력으로 실행했습니다. worker, ghost, lock, batch execution smoke query가 통과했습니다.</td></tr>
-      <tr><td>seed idempotent</td><td class="ok">성공</td><td>cleanup 없이 framework, CMN, ADM, test seed와 smoke query를 재실행했고 row count 중복 증가 없이 통과했습니다.</td></tr>
-      <tr><td>Flyway V9 SQL</td><td class="ok">성공</td><td>현재 DB에 V9 SQL을 재적용해 문법 오류 없이 통과했습니다.</td></tr>
-      <tr><td>SQL 표준</td><td class="ok">성공</td><td><code>scripts/check-sql-standard.ps1</code> 통과.</td></tr>
-      <tr><td>UTF-8/mojibake</td><td class="ok">성공</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code> 통과.</td></tr>
-      <tr><td>ADM 정적 UI smoke</td><td class="ok">성공</td><td><code>scripts/smoke-adm-ui.ps1</code> 통과.</td></tr>
-      <tr><td>ADM 배치 단위 테스트</td><td class="ok">성공</td><td><code>:adm:test --tests cpf.adm.opr.service.AdmBatchOperationServiceTest</code> 통과.</td></tr>
-      <tr><td>ADM 전체 테스트</td><td class="ok">성공</td><td><code>:adm:test --offline</code> 통과.</td></tr>
-      <tr><td>PFW 테스트 태스크</td><td class="ok">성공</td><td><code>:pfw:test --offline</code>는 테스트 소스가 없어 <code>NO-SOURCE</code>였고 컴파일은 통과했습니다.</td></tr>
-      <tr><td>전체 테스트</td><td class="ok">성공</td><td><code>test --offline</code> 통과.</td></tr>
-      <tr><td>OpenAPI smoke</td><td class="warn">미검증</td><td>ADM 앱이 기동 중이 아니어서 <code>/v3/api-docs</code> 접속이 실패했습니다. 성공으로 보고하지 않습니다.</td></tr>
-      <tr><td>브라우저 클릭 검증</td><td class="warn">미검증</td><td>정적 smoke는 통과했지만 실제 브라우저에서 버튼 클릭과 응답 렌더링은 수행하지 않았습니다.</td></tr>
-      <tr><td>실 장시간 실행 Job heartbeat</td><td class="warn">미검증</td><td>이번 구현은 실행 전후 heartbeat 기록과 관제 조회를 보강했습니다. 장시간 chunk 실행 중 주기 heartbeat는 추가 listener 확장 검증이 필요합니다.</td></tr>
+      <tr><td>ADM 단위 테스트</td><td class="pass">통과</td><td><code>.\gradlew.bat :adm:test --offline</code></td></tr>
+      <tr><td>ADM boot jar 생성</td><td class="pass">통과</td><td><code>.\gradlew.bat :adm:bootJar --offline</code></td></tr>
+      <tr><td>ADM runtime smoke</td><td class="pass">통과</td><td>health UP, OpenAPI 통과, 배치 API 10개 endpoint 통과, 정적 UI smoke 통과, cleanup 통과</td></tr>
+      <tr><td>ADM health datasource</td><td class="pass">통과</td><td><code>admDB</code>, <code>pfwDB</code>, <code>mbrDB</code> 모두 UP</td></tr>
+      <tr><td>OpenAPI JSON</td><td class="pass">통과</td><td><code>http://localhost:8090/v3/api-docs</code> 접근 및 필수 tag 확인</td></tr>
+      <tr><td>ADM 배치 API smoke</td><td class="pass">통과</td><td>jobs, job detail, schedules, instances, executions, steps, workers, locks, ghost-candidates, operations 조회 성공</td></tr>
+      <tr><td>ADM 정적 UI smoke</td><td class="pass">통과</td><td><code>scripts/smoke-adm-ui.ps1</code></td></tr>
+      <tr><td>브라우저 실제 클릭</td><td class="skip">미검증</td><td>PATH에서 browser automation runtime을 찾지 못해 성공으로 보고하지 않았습니다.</td></tr>
+      <tr><td>MariaDB 전체 설치 SQL 재실행</td><td class="skip">미실행</td><td>이번 범위는 runtime smoke 중심이며 <code>00_all_install_and_smoke.sql</code> 재실행은 수행하지 않았습니다.</td></tr>
+      <tr><td>HTML 문서 gate</td><td class="pass">통과</td><td><code>scripts/check-html-docs.ps1</code></td></tr>
+      <tr><td>UTF-8와 mojibake gate</td><td class="pass">통과</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td></tr>
+      <tr><td>전체 품질 gate</td><td class="pass">통과</td><td><code>.\gradlew.bat qualityGate --offline</code></td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>남은 리스크</h2>
+    <h2>항상 지켜야 할 기준 점검</h2>
     <table>
       <thead>
-      <tr><th>리스크</th><th>상태</th><th>다음 조치</th></tr>
+      <tr><th>기준</th><th>이번 반영 여부</th></tr>
       </thead>
       <tbody>
-      <tr><td>OpenAPI 품질 gate</td><td class="warn">앱 기동 필요</td><td>ADM을 실제 기동한 뒤 smoke 스크립트를 실행하고 CI에서 앱 기동형 gate로 분리합니다.</td></tr>
-      <tr><td>브라우저 UX 검증</td><td class="warn">미수행</td><td>ADM 로그인 후 배치 화면의 Job 상세, Worker, Lock, Ghost, 운영 로그 버튼을 실제 클릭 검증합니다.</td></tr>
-      <tr><td>장시간 실행 중 heartbeat</td><td class="warn">부분 구현</td><td>Tasklet/Chunk listener 또는 Step listener로 실행 중 주기 heartbeat와 처리율을 갱신합니다.</td></tr>
-      <tr><td>Ghost 자동 감지</td><td class="warn">수동 조치 구현</td><td>스케줄러 기반 자동 후보 생성, 알림 연동, 자동 lock release 정책은 별도 정책 확정 후 추가합니다.</td></tr>
-      <tr><td>배치 관계도 시각화</td><td class="warn">조회 API 구현</td><td>선행/후행/트리거 관계를 그래프 UI로 표시하는 UX를 추가합니다.</td></tr>
+      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td>이번 변경 범위인 ADM health, OpenAPI smoke, ADM batch runtime smoke는 소스, 스크립트, README, HTML 가이드, 리포트에 반영했습니다. SQL 변경은 없었습니다.</td></tr>
+      <tr><td>README는 짧은 진입점, 상세는 가이드 문서</td><td>README를 진입 문서로 재정리하고 상세 운영/개발/SQL 기준은 HTML 가이드로 분리했습니다.</td></tr>
+      <tr><td>기능 변경 시 README, 개발가이드, 관리자 가이드, SQL 가이드, EDU 샘플 현행화</td><td>README와 HTML 가이드는 현행화했습니다. EDU 샘플은 이번 변경 범위에 신규 기능 샘플이 필요하지 않아 추가하지 않았습니다.</td></tr>
+      <tr><td>신규 주석/설명/SQL COMMENT 한글 작성</td><td>Java와 HTML 설명은 한글로 작성했습니다. PowerShell 실행 문자열은 Windows PowerShell 인코딩 문제를 피하기 위해 ASCII로 두고, 설명은 문서에 한글로 남겼습니다.</td></tr>
+      <tr><td>운영 코드 주석은 기능 단위, EDU 주석은 학습용 상세</td><td>운영 코드에는 health 목적과 smoke 판단 기준을 기능 단위 주석으로 남겼습니다.</td></tr>
+      <tr><td>최종 리포트에 수행 작업, 검증 결과, 리스크, 보류 항목, 다음 보강 후보 정리</td><td>이 리포트에 반영했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>항상 지킨 기준 점검</h2>
+    <h2>남은 리스크와 보류 항목</h2>
     <table>
       <thead>
-      <tr><th>기준</th><th>결과</th></tr>
+      <tr><th>항목</th><th>상태</th><th>사유</th></tr>
       </thead>
       <tbody>
-      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td class="warn">소스, SQL, README, HTML 가이드는 동기화했습니다. Swagger JSON은 앱 미기동으로 미검증입니다.</td></tr>
-      <tr><td>README는 짧은 진입점, 상세는 가이드 연결</td><td class="ok">유지했습니다.</td></tr>
-      <tr><td>기능 변경 시 README, 개발/관리자/SQL/구성/매트릭스 현행화</td><td class="ok">반영했습니다.</td></tr>
-      <tr><td>신규 주석과 SQL COMMENT 한글 작성</td><td class="ok">반영했습니다.</td></tr>
-      <tr><td>미실행 검증 성공 보고 금지</td><td class="ok">OpenAPI와 브라우저 클릭은 미검증으로 분리했습니다.</td></tr>
+      <tr><td>브라우저 실제 클릭</td><td class="skip">미검증</td><td>현재 PATH에 Node, npx, Chrome, Edge, Chromium 계열 실행 파일이 없어 클릭 자동화를 수행하지 못했습니다.</td></tr>
+      <tr><td>전체 MariaDB 설치 SQL 재실행</td><td class="skip">미실행</td><td>이번 runtime smoke는 기존 설치 DB를 사용했습니다. 설치 SQL 재실행과 seed idempotent 검증은 별도 작업으로 남깁니다.</td></tr>
+      <tr><td>배치 장시간 listener heartbeat</td><td class="skip">다음 작업</td><td>worker 조회와 ghost 조치 API는 smoke했지만, 장시간 실행 Job listener 기반 heartbeat 갱신은 별도 구현 범위입니다.</td></tr>
+      <tr><td>BAT 독립 실행 모듈</td><td class="skip">다음 작업</td><td>현재 요청 1순위 범위 밖입니다. 별도 모듈 생성과 JobRepository 운영 시나리오가 필요합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -115,14 +100,14 @@
     <h2>다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>우선순위</th><th>후보</th><th>이유</th></tr>
+      <tr><th>우선순위</th><th>작업</th><th>완료 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>ADM 앱 기동 후 OpenAPI와 브라우저 클릭 검증 자동화</td><td>정적 smoke를 넘어 실제 운영자 UX를 검증해야 합니다.</td></tr>
-      <tr><td>2</td><td>Spring Batch listener 기반 실행 중 heartbeat와 처리율 갱신</td><td>장시간 실행 Job의 ghost 오탐을 줄이고 실시간 관제 품질을 높입니다.</td></tr>
-      <tr><td>3</td><td>Ghost 자동 감지 스케줄러와 알림 연동</td><td>운영자가 수동 조회하기 전에 장애 후보를 자동 노출해야 합니다.</td></tr>
-      <tr><td>4</td><td>배치 관계도 그래프와 캘린더 월간 UX</td><td>선행/후행/트리거 Job과 영업일 수행 계획을 더 직관적으로 확인할 수 있습니다.</td></tr>
-      <tr><td>5</td><td>실 배치 JobRepository E2E 시나리오 확대</td><td>Tasklet, Chunk, 실패, 재시작, stop, duplicate lock을 실제 Job 단위로 더 촘촘히 검증합니다.</td></tr>
+      <tr><td>1</td><td>브라우저 클릭 자동화 도입</td><td>ADM 로그인, 배치 메뉴, Job 상세, worker, ghost, lock, operations 화면을 실제 클릭으로 검증합니다.</td></tr>
+      <tr><td>2</td><td>MariaDB 전체 설치 SQL 재실행</td><td>FK/index, seed 재실행, app/migration 계정 권한, smoke query를 결과 리포트에 남깁니다.</td></tr>
+      <tr><td>3</td><td>Batch listener heartbeat</td><td>장시간 실행 Job의 worker heartbeat, 처리량, 성공/실패 count, ghost 자동 후보 생성까지 E2E 검증합니다.</td></tr>
+      <tr><td>4</td><td>BAT 독립 실행 모듈</td><td>독립 boot jar, health, worker heartbeat, JobLauncher, ADM worker 조회 연동, 배포 profile을 완성합니다.</td></tr>
+      <tr><td>5</td><td>로그 관제 포맷터 클릭 검증</td><td>JSON pretty print와 고정길이 전문 필드 표를 브라우저에서 확인합니다.</td></tr>
       </tbody>
     </table>
   </section>

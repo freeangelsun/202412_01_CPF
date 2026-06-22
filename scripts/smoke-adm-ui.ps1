@@ -19,7 +19,7 @@ $index = [System.IO.File]::ReadAllText($indexPath, [System.Text.Encoding]::UTF8)
 $script = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8)
 $combined = "$index`n$script"
 
-# 운영자가 반드시 접근해야 하는 주요 메뉴, 버튼, API 경로를 정적 smoke 기준으로 확인합니다.
+# 운영자가 실제로 접근해야 하는 주요 메뉴, 버튼, API 경로를 정적 smoke 기준으로 확인합니다.
 $requiredMarkers = @(
     "batch",
     "logs",
@@ -32,6 +32,19 @@ $requiredMarkers = @(
     "/api/bizadm",
     "/api/exs",
     "/adm/api/batch",
+    "/adm/api/batch/jobs",
+    "/adm/api/batch/schedules",
+    "/adm/api/batch/instances",
+    "/adm/api/batch/executions",
+    "/adm/api/batch/steps",
+    "/adm/api/batch/workers",
+    "/adm/api/batch/locks",
+    "/adm/api/batch/ghost-candidates",
+    "/adm/api/batch/operations",
+    "/adm/api/batch/relations",
+    "/adm/api/batch/execution-targets",
+    "/adm/api/batch/calendar",
+    "/adm/api/batch/scheduler/run-once",
     "/adm/api/logs",
     "/adm/api/notifications",
     "/adm/api/downloads"
@@ -39,13 +52,13 @@ $requiredMarkers = @(
 
 foreach ($marker in $requiredMarkers) {
     if ($combined.IndexOf($marker, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
-        $failures.Add("ADM UI 필수 요소 누락: $marker")
+        $failures.Add("ADM UI required marker is missing: $marker")
     }
 }
 
 $legacyPattern = ("F" + "PS") + "|" + ("F" + "ps") + "|" + ("f" + "ps")
 if ($script -match $legacyPattern) {
-    $failures.Add("ADM UI 스크립트에 과거 프로젝트명 잔재가 있습니다.")
+    $failures.Add("ADM UI script still contains a legacy project name.")
 }
 
 if ($failures.Count -gt 0) {

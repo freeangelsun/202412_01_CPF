@@ -6,7 +6,7 @@
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
-    h1, h2, h3 { color: #111827; }
+    h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
     th { background: #eef2ff; }
@@ -18,8 +18,8 @@
 <main>
   <section>
     <h1>CPF CoreFlow Platform Framework 문서 인덱스</h1>
-    <p>이 문서는 개발자, 운영자, 검수자가 CPF 프레임워크의 실제 구현과 문서 기준을 같은 순서로 확인하도록 만든 진입점입니다. README는 짧게 유지하고, 세부 기준은 이 HTML 가이드 묶음에서 관리합니다.</p>
-    <p class="note">역할 경계는 고정 기준입니다. PFW는 프레임워크 코어 영역이고, CMN은 CPF를 적용한 프로젝트에서 개발자가 확장하는 프로젝트 공통 영역입니다. PFW 기능은 직접 테이블을 만지는 방식이 아니라 공통 Java API와 운영 API로 사용합니다.</p>
+    <p>이 문서는 개발자, 운영자, 검수자가 CPF 프레임워크의 실제 구현과 문서 기준을 같은 순서로 확인하도록 만든 진입점입니다. README는 짧은 개요로 유지하고, 상세 기준은 이 HTML 가이드 묶음에서 관리합니다.</p>
+    <p class="note">역할 경계는 고정 기준입니다. PFW는 프레임워크 코어 영역이고, CMN은 CPF를 적용하는 프로젝트에서 개발자가 확장하는 프로젝트 공통 영역입니다. PFW 기능은 직접 테이블을 만지는 방식이 아니라 공통 Java API와 운영 API로 사용합니다.</p>
   </section>
 
   <section>
@@ -29,10 +29,10 @@
       <tr><th>대상</th><th>먼저 볼 문서</th><th>다음 확인</th><th>목적</th></tr>
       </thead>
       <tbody>
-      <tr><td>신규 개발자</td><td><a href="개발_가이드.html">개발 가이드</a></td><td><a href="프레임워크_구성_가이드.html">프레임워크 구성 가이드</a>, <code>xyz/src/main/java/cpf/xyz/edu</code></td><td>신규 API, 배치, 대외연계, 공통 기능 개발 방법을 따라 합니다.</td></tr>
+      <tr><td>신규 개발자</td><td><a href="개발_가이드.html">개발 가이드</a></td><td><a href="프레임워크_구성_가이드.html">프레임워크 구성 가이드</a>, <code>xyz/src/main/java/cpf/xyz/edu</code></td><td>신규 API, 배치, 대외연계, 공통 기능 개발 방법을 익힙니다.</td></tr>
       <tr><td>운영자</td><td><a href="관리자_가이드.html">관리자 가이드</a></td><td>ADM 화면, ADM API, 감사 로그</td><td>권한, 회원, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 절차를 확인합니다.</td></tr>
       <tr><td>DB 담당자</td><td><a href="SQL_가이드.html">SQL 가이드</a></td><td><code>specs/sql</code>, Flyway migration</td><td>DB 소유권, 설치 순서, 권한 계정, 테이블 표준, smoke 검증 기준을 확인합니다.</td></tr>
-      <tr><td>검수자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>안정화 리포트, qualityGate 결과</td><td>기능별 구현 상태, 테스트 증거, 미검증 사유를 대조합니다.</td></tr>
+      <tr><td>검수자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>안정화 리포트, Gradle 검증 결과</td><td>기능별 구현 상태, 테스트 증거, 미검증 사유를 대조합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -47,10 +47,10 @@
       <tr><td>PFW</td><td>프레임워크 코어</td><td><code>pfw/src/main/java/cpf/pfw</code></td><td>거래 ID, 표준 응답, 예외, 로그, OpenAPI, WebClient, Batch 공통 API를 제공합니다.</td></tr>
       <tr><td>CMN</td><td>프로젝트 공통</td><td><code>cmn/src/main/java/cpf/cmn</code></td><td>업무 채번, 업무 알림, 업무 로그처럼 프로젝트별 공통 기능을 확장합니다.</td></tr>
       <tr><td>ADM</td><td>운영 관리자</td><td><code>adm/src/main/java/cpf/adm</code>, <code>adm/src/main/resources/static/adm</code></td><td>UI 표시, 서버 권한검사, 감사 사유, 마스킹, 다운로드 감사가 함께 동작해야 합니다.</td></tr>
-      <tr><td>BIZADM</td><td>업무 관리자 기본 구현체</td><td><code>bizadm/src/main/java/cpf/bizadm</code></td><td>sample 저장소가 아니라 DB 기반 기본 구현체입니다.</td></tr>
+      <tr><td>BIZADM</td><td>업무 관리자 예제</td><td><code>bizadm/src/main/java/cpf/bizadm</code></td><td>샘플 저장소가 아니라 실제 DB 기반 업무 관리자 기본 구현체입니다.</td></tr>
       <tr><td>MBR</td><td>회원 기본 구현체</td><td><code>mbr/src/main/java/cpf/mbr</code></td><td>회원 CRUD, 로그인, token hash, 이력, 상태 관리 기준을 제공합니다.</td></tr>
       <tr><td>EXS</td><td>대외연계 기본 구현체</td><td><code>exs/src/main/java/cpf/exs</code></td><td>기관, 채널, endpoint, token hash, 수신/송신 로그, 재처리 기준을 제공합니다.</td></tr>
-      <tr><td>XYZ EDU</td><td>개발자 교육 API</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>운영 코드와 구분되는 학습용 코드입니다. 주석은 더 자세하게 유지합니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>교육 API</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>운영 코드와 구분되는 학습용 코드이며, 주석은 교육 목적상 자세히 작성합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -59,14 +59,15 @@
     <h2>검증 기준</h2>
     <table>
       <thead>
-      <tr><th>구분</th><th>명령 또는 기준</th><th>완료 판정</th></tr>
+      <tr><th>구분</th><th>명령 또는 기준</th><th>완료 판단</th></tr>
       </thead>
       <tbody>
       <tr><td>컴파일</td><td><code>.\gradlew.bat compileJava --offline</code></td><td>모든 모듈 컴파일 성공</td></tr>
-      <tr><td>테스트</td><td><code>.\gradlew.bat test --offline</code></td><td>단위/슬라이스 테스트 성공. 테스트가 없는 기능은 완료로 판정하지 않습니다.</td></tr>
-      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, mojibake, SQL 표준, 문서 구조, sample 금지, 기능 증거 검사 통과</td></tr>
+      <tr><td>테스트</td><td><code>.\gradlew.bat test --offline</code></td><td>단위/슬라이스 테스트 성공. 테스트가 없는 기능은 완료로 보지 않습니다.</td></tr>
+      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, mojibake, SQL 표준, 문서 구조, sample 금지, 기능 증거 검증 통과</td></tr>
       <tr><td>ADM 정적 smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>주요 메뉴, 버튼, API 경로 marker 존재</td></tr>
-      <tr><td>OpenAPI smoke</td><td><code>scripts/smoke-openapi.ps1</code></td><td>앱 기동 후 JSON 조회 성공. 미기동이면 미검증입니다.</td></tr>
+      <tr><td>OpenAPI smoke</td><td><code>scripts/smoke-openapi.ps1</code></td><td>앱 기동 중 JSON 조회 성공. 미기동이면 성공으로 보고하지 않습니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 기동, health, OpenAPI, 배치 API, 정적 UI smoke, 프로세스 cleanup 수행</td></tr>
       <tr><td>MariaDB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치, seed 재실행, FK/index, smoke query 확인</td></tr>
       </tbody>
     </table>
@@ -74,7 +75,7 @@
 
   <section>
     <h2>거래 추적 기준</h2>
-    <p><code>X-Transaction-Id</code>는 CPF 전체에서 사용하는 34자리 <code>transactionGlobalId</code> 헤더입니다. 구조는 <code>yyyyMMddHHmmssSSS</code> 17자리, module ID 3자리, WAS ID 7자리, sequence 7자리 조합이며, 요청에 없으면 PFW가 생성하고 응답 헤더와 거래 로그에 전파합니다.</p>
+    <p><code>X-Transaction-Id</code>는 CPF 온라인 API와 운영 API에서 사용하는 34자리 거래 추적 ID입니다. 구조는 <code>yyyyMMddHHmmssSSS</code> 17자리, module ID 3자리, WAS ID 7자리, sequence 7자리 조합입니다. 호출자가 전달하지 않으면 PFW가 생성하고, 응답 헤더와 거래 로그에 같은 값을 전파합니다.</p>
   </section>
 </main>
 </body>

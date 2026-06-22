@@ -197,6 +197,12 @@ tasks.register('admUiSmoke', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
+tasks.register('admRuntimeSmoke', Exec) {
+    group = 'verification'
+    description = 'ADM 앱을 안전하게 기동한 뒤 health, OpenAPI, 배치 API, UI smoke를 수행하고 종료합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-runtime.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'

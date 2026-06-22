@@ -118,6 +118,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         if (!properties.isEnabled()
                 || !path.startsWith("/adm/api/")
                 || path.equals("/adm/api/auth/login")
+                || path.equals("/adm/api/health")
                 || HttpMethod.OPTIONS.matches(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;

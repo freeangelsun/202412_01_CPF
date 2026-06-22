@@ -6,85 +6,60 @@
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
-    h1, h2, h3 { color: #111827; }
+    h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #ede9fe; }
+    th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .note { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
     <h1>CPF 프레임워크 구성 가이드</h1>
-    <p>이 문서는 CPF의 모듈 경계, DB 구성, profile, 배치 구조, 품질 gate, 로컬 실행 기준을 정리합니다. 프레임워크 코어와 프로젝트 공통의 경계를 흔들지 않는 것이 가장 중요한 원칙입니다.</p>
-    <p class="note">PFW는 프레임워크가 자체 제공하는 기능과 공통 API를 담당합니다. CMN은 CPF를 적용하는 프로젝트에서 개발자가 확장하는 프로젝트 공통 영역입니다.</p>
+    <p>CPF는 프레임워크 코어, 프로젝트 공통, 운영 관리자, 업무 모듈, 교육 모듈을 분리합니다. 이 경계가 흔들리면 DB 소유권, 운영 권한, 배포 단위, 교육 샘플이 뒤섞이므로 신규 기능은 반드시 아래 기준으로 배치합니다.</p>
   </section>
 
   <section>
-    <h2>모듈 구성</h2>
+    <h2>아키텍처 경계</h2>
     <table>
       <thead>
-      <tr><th>모듈</th><th>유형</th><th>주요 의존</th><th>기동 방식</th></tr>
+      <tr><th>영역</th><th>책임</th><th>DB</th><th>확장 방식</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw</code></td><td>library</td><td>Spring Web, MyBatis, OpenAPI, Batch 공통</td><td>단독 서비스가 아니라 업무 서비스에 포함됩니다.</td></tr>
-      <tr><td><code>cmn</code></td><td>library</td><td>PFW, optional cmnDB</td><td>단독 서비스가 아니라 업무 서비스에 포함됩니다. cmnDB는 사용하지 않아도 기동 가능해야 합니다.</td></tr>
-      <tr><td><code>adm</code></td><td>application</td><td>PFW, CMN, ADM/PFW/MBR datasource</td><td>운영 관리자 서비스입니다.</td></tr>
-      <tr><td><code>bizadm</code></td><td>application</td><td>PFW, CMN, bizadmDB</td><td>업무 관리자 기본 구현체입니다.</td></tr>
-      <tr><td><code>mbr</code></td><td>application</td><td>PFW, CMN, mbrDB</td><td>회원 기본 구현체입니다.</td></tr>
-      <tr><td><code>acc</code></td><td>application</td><td>PFW, CMN, accDB, MBR 연계</td><td>계정 업무 예제입니다.</td></tr>
-      <tr><td><code>exs</code></td><td>application</td><td>PFW, CMN, exsDB</td><td>대외연계 기본 구현체입니다.</td></tr>
-      <tr><td><code>xyz</code></td><td>application</td><td>PFW, CMN</td><td>EDU 교육 API 서비스입니다.</td></tr>
+      <tr><td>PFW</td><td>CPF 자체 기능과 운영 메타</td><td><code>pfwDB</code></td><td>Java API, Filter, Interceptor, AOP, Facade, ADM 운영 API로 제공합니다.</td></tr>
+      <tr><td>CMN</td><td>프로젝트 업무 공통</td><td><code>cmnDB</code></td><td>프로젝트가 필요한 업무 채번, 업무 알림, 업무 로그, 보조 기능을 개발합니다.</td></tr>
+      <tr><td>ADM</td><td>운영 콘솔</td><td><code>admDB</code>, 조회 대상 DB</td><td>권한, 감사, 로그, 배치, 캐시, 메시지, 설정을 운영자 UX로 제공합니다.</td></tr>
+      <tr><td>업무 모듈</td><td>실제 업무 서비스</td><td>업무별 DB</td><td>PFW 기능은 API로 호출하고, 업무 데이터는 자기 DB에 둡니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>교육과 샘플</td><td>선택</td><td>개발자가 상황별로 따라 할 수 있는 학습용 코드를 제공합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>DB 구성과 책임</h2>
+    <h2>배치 구성</h2>
     <table>
       <thead>
-      <tr><th>DB</th><th>책임</th><th>대표 테이블</th><th>주의</th></tr>
+      <tr><th>구분</th><th>책임</th><th>주요 테이블</th><th>운영 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_batch_job</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_ghost_event</code>, <code>BATCH_*</code></td><td>업무 모듈은 PFW API를 통해 사용합니다.</td></tr>
-      <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code></td><td>optional datasource입니다. 미사용 프로젝트도 기동 가능해야 합니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>운영자와 권한</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_audit_log</code></td><td>운영 행위는 감사 로그를 남깁니다.</td></tr>
-      <tr><td><code>bizadmDB</code></td><td>업무 관리자 기본 구현</td><td><code>bizadm_admin_user</code>, <code>bizadm_customer</code>, <code>bizadm_masking_audit</code></td><td>sample 저장소를 사용하지 않습니다.</td></tr>
-      <tr><td><code>mbrDB</code></td><td>회원 기본 구현</td><td><code>mbr_member</code>, <code>mbr_login_history</code>, <code>mbr_refresh_token</code></td><td>token 원문은 저장하지 않습니다.</td></tr>
-      <tr><td><code>exsDB</code></td><td>대외연계 기본 구현</td><td><code>exs_token_store</code>, <code>exs_transaction_log</code>, <code>exs_retry_log</code></td><td>대외 token 원문은 저장하거나 반환하지 않습니다.</td></tr>
+      <tr><td>Spring Batch</td><td>JobRepository 원천 실행 메타</td><td><code>BATCH_*</code></td><td>실행 instance, execution, step 원천 이력을 보관합니다.</td></tr>
+      <tr><td>CPF Batch</td><td>ADM 운영 메타</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td>관제, 수동 실행, 재수행, 중지, worker heartbeat, ghost 조치, lock을 관리합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td>기동 검증 자동화</td><td>운영 datasource</td><td>ADM 앱을 기동하고 health, OpenAPI, 배치 API, UI marker를 검증한 뒤 cleanup합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>Profile 기준</h2>
+    <h2>Profile과 운영 secret</h2>
     <table>
       <thead>
-      <tr><th>profile</th><th>용도</th><th>secret 기준</th><th>외부 의존</th></tr>
+      <tr><th>Profile</th><th>용도</th><th>secret 기준</th><th>검증 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>local</code></td><td>개발 PC</td><td>로컬 예시 값 허용. 운영 secret 금지</td><td>MariaDB, Redis, Kafka는 선택 구성</td></tr>
-      <tr><td><code>dev</code></td><td>개발 서버</td><td>환경변수 또는 secret reference 사용</td><td>공용 개발 DB</td></tr>
-      <tr><td><code>test</code></td><td>테스트 자동화</td><td>테스트 전용 secret</td><td>테스트 DB 또는 container</td></tr>
-      <tr><td><code>stg</code></td><td>운영 전 검증</td><td>운영과 같은 방식의 secret 주입</td><td>운영 유사 인프라</td></tr>
-      <tr><td><code>prod</code></td><td>운영</td><td>기본값 금지. 환경변수, Vault, KMS 확장 구조 사용</td><td>운영 DB, broker, 로그 수집 시스템</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>Batch 구조</h2>
-    <table>
-      <thead>
-      <tr><th>계층</th><th>역할</th><th>테이블</th><th>운영 화면</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>Spring Batch</td><td>JobRepository, JobExplorer, JobOperator, JobLauncher 기반 실행 메타</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>ADM 배치 상세에서 원천 실행 메타를 조회합니다.</td></tr>
-      <tr><td>CPF Batch</td><td>운영 job 등록, 스케줄, lock, worker heartbeat, ghost 감지/조치, 수동 실행, 재수행, 중지, 이력</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td><code>AdmBatchController</code>와 ADM 화면이 사용합니다.</td></tr>
-      <tr><td>EDU Batch</td><td>Tasklet, Chunk, retry, restart, lock 샘플</td><td>필요 시 PFW Batch 사용</td><td><code>XyzBatchEducationController</code>에서 개발자가 흐름을 학습합니다.</td></tr>
-      <tr><td>BAT 모듈 판단</td><td>현재 기준본은 별도 <code>bat</code> 모듈을 만들지 않습니다. <code>pfw</code> 공통 실행기, <code>adm</code> 관제 API, <code>xyz</code> 교육 Job이 Spring Batch E2E 기준을 담당합니다.</td><td>해당 없음</td><td>별도 배치 전용 런타임이 필요해질 때 독립 모듈을 검토합니다.</td></tr>
+      <tr><td>local</td><td>개발 PC 실행</td><td>로컬 전용 기본값 허용</td><td>MariaDB, ADM runtime smoke, Gradle test로 확인합니다.</td></tr>
+      <tr><td>dev/test/stg</td><td>공유 환경</td><td>환경변수 또는 배포 secret 사용</td><td>OpenAPI, smoke, 배치 실행, 로그 마스킹을 확인합니다.</td></tr>
+      <tr><td>prod</td><td>운영</td><td>DB password, JWT, crypto secret 기본값 금지</td><td>Vault/KMS 또는 배포 환경변수 주입을 기준으로 합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -93,15 +68,12 @@
     <h2>품질 gate</h2>
     <table>
       <thead>
-      <tr><th>gate</th><th>스크립트 또는 태스크</th><th>목적</th></tr>
+      <tr><th>Gate</th><th>명령</th><th>의미</th></tr>
       </thead>
       <tbody>
-      <tr><td>UTF-8</td><td><code>check-utf8</code>, <code>checkMojibake</code></td><td>BOM, 깨진 인코딩, mojibake marker 차단</td></tr>
-      <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td>테이블명, 공통 컬럼, FK/index 명명, all install 동기화 확인</td></tr>
-      <tr><td>문서 구조</td><td><code>scripts/check-html-docs.ps1</code></td><td>specs 문서를 실제 HTML 구조로 유지</td></tr>
-      <tr><td>운영 sample 금지</td><td><code>scripts/check-sample-standard.ps1</code></td><td>운영 모듈 sample 패키지와 하드코딩 저장소 방지</td></tr>
-      <tr><td>기능 증거</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>주요 기능의 Controller, Service, Repository, SQL, 테스트, 문서 증거 존재 확인</td></tr>
-      <tr><td>전체 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>컴파일, 테스트, 정적 품질 gate 통합 실행</td></tr>
+      <tr><td>기본 품질</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거를 묶어 확인합니다.</td></tr>
+      <tr><td>ADM 정적 UI</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 스크립트에 운영자 핵심 경로가 존재하는지 확인합니다.</td></tr>
+      <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, cleanup을 실제 프로세스로 확인합니다.</td></tr>
       </tbody>
     </table>
   </section>

@@ -1,5 +1,5 @@
 -- CPF 인증 도메인, refresh token hash 저장소, EXS token 이벤트 이력 보강입니다.
--- 신규 설치 기준은 specs/sql/40_business_sample_schema.sql과 00_all_install.sql에 같은 구조가 반영됩니다.
+-- 신규 설치 기준은 specs/sql/40_business_modules_schema.sql과 00_all_install.sql에 같은 구조가 반영됩니다.
 
 USE mbrDB;
 

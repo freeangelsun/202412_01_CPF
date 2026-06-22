@@ -44,13 +44,13 @@
       <tr><th>순서</th><th>작업</th><th>완료 기준</th><th>참고 파일</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>주제영역과 DB prefix 결정</td><td>테이블명은 <code>{주제영역}_{업무명}</code> lower snake case이고, 공통 컬럼 <code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code>을 포함합니다.</td><td><code>specs/sql/40_business_sample_schema.sql</code></td></tr>
+      <tr><td>1</td><td>주제영역과 DB prefix 결정</td><td>테이블명은 <code>{주제영역}_{업무명}</code> lower snake case이고, 공통 컬럼 <code>created_by</code>, <code>created_at</code>, <code>updated_by</code>, <code>updated_at</code>을 포함합니다.</td><td><code>specs/sql/40_business_modules_schema.sql</code></td></tr>
       <tr><td>2</td><td>API 경로와 DTO 설계</td><td>API version, 요청/응답 DTO, validation, 표준 오류 응답을 정의합니다.</td><td><code>MbrController</code>, <code>BizAdmOperationController</code>, <code>ExsFlowController</code></td></tr>
       <tr><td>3</td><td>Service 트랜잭션 경계 작성</td><td>쓰기 작업은 Service 계층에서 트랜잭션을 잡고, 감사 사유와 권한 검사를 저장소 접근 전에 수행합니다.</td><td><code>ExsOperationService</code>, <code>AdmDownloadService</code></td></tr>
       <tr><td>4</td><td>Repository 또는 Mapper 작성</td><td>운영 구현체는 DB 기반으로 동작하며, datasource가 없으면 명확한 오류를 냅니다.</td><td><code>BizAdmOperationRepository</code>, <code>ExsOperationRepository</code>, <code>MemberMapper</code></td></tr>
       <tr><td>5</td><td>SQL, Flyway, all install 동기화</td><td>분리 SQL, 전체 설치 SQL, smoke SQL, Flyway baseline 또는 변경 migration이 서로 맞습니다.</td><td><code>specs/sql</code>, <code>specs/sql/migration/flyway</code></td></tr>
       <tr><td>6</td><td>Swagger와 EDU 연결</td><td>주요 API에 tag, summary, description이 있고, 개발자가 참고할 EDU 또는 가이드가 연결됩니다.</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td></tr>
-      <tr><td>7</td><td>테스트 작성</td><td>정상, 오류, 권한 또는 감사 사유, DB 저장 또는 저장 차단 흐름을 테스트합니다.</td><td><code>BizAdmOperationServiceTest</code>, <code>ExsOperationServiceTest</code>, <code>AdmDownloadServiceTest</code></td></tr>
+      <tr><td>7</td><td>테스트 작성</td><td>정상, 오류, 권한 또는 감사 사유, DB 저장 또는 저장 차단 흐름을 테스트합니다.</td><td><code>BizAdmAuthServiceTest</code>, <code>MbrAuthServiceTest</code>, <code>ExsOperationServiceTest</code>, <code>AdmDownloadServiceTest</code></td></tr>
       <tr><td>8</td><td>문서와 매트릭스 갱신</td><td>README, 개발 가이드, 관리자 가이드, SQL 가이드, 기능 구현 매트릭스, 안정화 리포트가 실제 코드와 일치합니다.</td><td>이 HTML 가이드 묶음</td></tr>
       </tbody>
     </table>
@@ -118,7 +118,9 @@
       <tbody>
       <tr><td>전체 테스트</td><td><code>.\gradlew.bat test --offline</code></td><td>테스트 성공. 실패하면 기능 완료로 보고하지 않습니다.</td></tr>
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, SQL, 문서, sample, 보안 seed, 기능 증거 검사 통과</td></tr>
+      <tr><td>BIZADM 인증</td><td><code>.\gradlew.bat :bizadm:test --offline --tests cpf.bizadm.auth.service.BizAdmAuthServiceTest</code></td><td>로그인 성공 이력, 실패 횟수 증가, refresh token hash 저장과 원문 미저장 확인</td></tr>
       <tr><td>BIZADM 서비스</td><td><code>.\gradlew.bat :bizadm:test --offline --tests cpf.bizadm.operation.service.BizAdmOperationServiceTest</code></td><td>마스킹과 감사 사유 흐름 확인</td></tr>
+      <tr><td>MBR 인증</td><td><code>.\gradlew.bat :mbr:test --offline --tests cpf.mbr.bse.service.MbrAuthServiceTest</code></td><td>로그인 성공/실패 이력, refresh token hash 저장과 폐기 토큰 차단 확인</td></tr>
       <tr><td>EXS 서비스</td><td><code>.\gradlew.bat :exs:test --offline --tests cpf.exs.operation.service.ExsOperationServiceTest</code></td><td>token hash, 사유 검증, retry, 수신 로그 확인</td></tr>
       <tr><td>ADM 다운로드</td><td><code>.\gradlew.bat :adm:test --offline --tests cpf.adm.opr.service.AdmDownloadServiceTest</code></td><td>다운로드 정책과 차단 흐름 확인</td></tr>
       <tr><td>OpenAPI</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-openapi.ps1</code></td><td>앱 기동 후 JSON 검증. 앱 미기동이면 미검증으로 기록합니다.</td></tr>

@@ -1226,7 +1226,7 @@ CREATE TABLE IF NOT EXISTS adm_operation_log (
     INDEX ix_adm_operation_log_target_time (TARGET_TYPE, TARGET_ID, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 작업 로그';
 -- ============================================================================
--- specs/sql/40_business_sample_schema.sql
+-- specs/sql/40_business_modules_schema.sql
 -- ============================================================================
 -- 업무/교육 샘플 스키마입니다.
 -- ACC 계정 샘플과 MBR 회원 샘플은 각 업무 DB에만 배치합니다.

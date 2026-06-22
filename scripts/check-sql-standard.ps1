@@ -10,7 +10,7 @@ $schemaFiles = @(
     "specs/sql/10_pfw_schema.sql",
     "specs/sql/20_cmn_schema.sql",
     "specs/sql/30_adm_schema.sql",
-    "specs/sql/40_business_sample_schema.sql"
+    "specs/sql/40_business_modules_schema.sql"
 )
 $allowedPrefixes = @("pfw", "cmn", "adm", "acc", "mbr", "bizadm", "exs")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")

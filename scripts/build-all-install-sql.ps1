@@ -124,7 +124,7 @@ $installFiles = @(
     "10_pfw_schema.sql",
     "20_cmn_schema.sql",
     "30_adm_schema.sql",
-    "40_business_sample_schema.sql",
+    "40_business_modules_schema.sql",
     "50_framework_seed_data.sql",
     "55_cmn_seed_data.sql",
     "60_adm_seed_data.sql",

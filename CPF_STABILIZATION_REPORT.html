@@ -2,59 +2,58 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 리포트</title>
+  <title>CPF 안정화 작업 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #e0f2fe; }
+    th { background: #f1f5f9; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #166534; font-weight: 700; }
-    .warn { color: #92400e; font-weight: 700; }
-    .fail { color: #991b1b; font-weight: 700; }
+    .ok { color: #047857; font-weight: 700; }
+    .warn { color: #b45309; font-weight: 700; }
+    .fail { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>프레임워크 균형 게이트 / V10 실제 DB 적용 / 온라인·배치 공통 운영 기준 정렬</h1>
-    <p>이번 작업은 신규 대형 기능 구현이 아니라 실제 MariaDB V10 적용, BAT heartbeat/progress fallback 제거 검증, 온라인 거래 메타와 로그 정책 상태 판정, 문서와 기능 매트릭스 균형 조정을 목표로 수행했습니다.</p>
+    <h1>CPF 안정화 작업 리포트</h1>
+    <p>이번 작업은 온라인 거래 메타 정본화, 로그 정책 기본 모델, ADM 운영 API와 UI marker, BAT runtime smoke strict 옵션, 문서와 검증 gate 정합성을 보강하는 범위로 진행했습니다. 요청서는 확인용으로만 사용했고 작업 대상으로 수정하지 않았습니다.</p>
   </section>
 
   <section>
-    <h2>현재 상태 판정</h2>
+    <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>판정 근거</th></tr>
+      <tr><th>영역</th><th>반영 내용</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>V10 실제 DB 적용</td><td class="ok">완료</td><td>로컬 MariaDB에 V10 SQL을 직접 적용했고 <code>pfw_batch_execution</code> 11개 컬럼, <code>pfw_batch_step_execution</code> 10개 컬럼, heartbeat index 2개를 information_schema 기준으로 확인했습니다.</td></tr>
-      <tr><td>BAT heartbeat/progress fallback 제거</td><td class="ok">완료</td><td>BAT runtime smoke에서 <code>CPF_BAT_HEARTBEAT_JOB</code>이 V10 컬럼 기반 <code>processed_count</code>, <code>progress_rate</code>, <code>last_heartbeat_at</code>을 갱신했습니다.</td></tr>
-      <tr><td>온라인 거래 메타</td><td class="warn">부분 구현</td><td><code>@CpfTransaction</code>과 표준 헤더 검증은 있으나 전용 거래 메타 테이블과 자동 등록 구조는 없습니다.</td></tr>
-      <tr><td>온라인 로그 정책</td><td class="warn">부분 구현</td><td><code>LoggingAspect</code>, <code>TransactionLogListener</code>, <code>pfw_transaction_log</code> 기반 DB 로그 저장은 있습니다. 거래별 파일/DB 로그 정책 테이블과 ADM override는 없습니다.</td></tr>
-      <tr><td>온라인 오류/감사 로그</td><td class="warn">부분 구현</td><td>오류는 거래 로그 실패 레코드와 상세 로그로 저장합니다. 별도 <code>pfw_error_log</code>, <code>pfw_audit_log</code>는 없고 운영 감사는 <code>adm_audit_log</code>가 담당합니다.</td></tr>
-      <tr><td>ADM 온라인 거래 관제</td><td class="warn">부분 구현</td><td><code>AdmLogController</code>와 <code>AdmLogQueryService</code>가 거래 로그 검색, JSON pretty, 기본 고정길이 전문 분해를 제공합니다. 거래 메타/로그 정책 관리 API는 없습니다.</td></tr>
-      <tr><td>배치 메타/로그 정책</td><td class="warn">부분 구현</td><td>Spring Batch <code>BATCH_*</code>, CPF <code>pfw_batch_*</code>, operation log, ghost 후보 기반은 있습니다. Job/Step별 로그 정책 override는 없습니다.</td></tr>
-      <tr><td>문서/매트릭스 균형 상태</td><td class="ok">완료</td><td>README와 HTML 가이드, 기능 구현 매트릭스에 온라인과 배치 상태를 분리해 반영했습니다.</td></tr>
-      </tbody>
+      <tr><td>PFW 거래 메타</td><td><code>@CpfTransaction</code> 기반 Spring MVC mapping 스캔, <code>pfw_transaction_meta</code> upsert 저장소, 시작 시 자동 스캔 구성을 추가했습니다.</td><td class="ok">부분 구현 완료</td></tr>
+      <tr><td>ADM 거래 메타</td><td><code>/adm/api/transactions</code> 목록, 상세, 재스캔, 비활성화 API와 ADM UI marker를 추가했습니다.</td><td class="ok">부분 구현 완료</td></tr>
+      <tr><td>로그 정책</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 모델과 ADM 관리 API, 감사 사유 검증, override 기간 검증을 추가했습니다.</td><td class="ok">부분 구현 완료</td></tr>
+      <tr><td>ADM 권한</td><td>거래 메타와 로그 정책 메뉴, 버튼 권한 seed와 ADM API 권한 매핑을 보강했습니다.</td><td class="ok">부분 구현 완료</td></tr>
+      <tr><td>BAT smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code> 기본 경로는 V10 heartbeat/progress 컬럼을 strict 검증하고, 구버전 fallback은 <code>-AllowLegacyFallback</code> 옵션으로 분리했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>문서</td><td>README, 개발 가이드, 관리자 가이드, 프레임워크 구성 가이드, SQL 가이드, 기능 구현 매트릭스에 온라인 거래 메타, 로그 정책, ADM 필수 운영 메뉴, BAT smoke 기준을 반영했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>검증 스크립트</td><td>기능 증거 검증 스크립트를 Windows PowerShell에서도 안전하게 실행되도록 ASCII marker 기반으로 정리했습니다.</td><td class="ok">완료</td></tr>
+    </tbody>
     </table>
   </section>
 
   <section>
-    <h2>실제 확인</h2>
+    <h2>현재 상태 진단</h2>
     <table>
       <thead>
-      <tr><th>구분</th><th>확인 내용</th></tr>
+      <tr><th>항목</th><th>판정</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>확인한 소스</td><td><code>CpfTransaction</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>TransactionLogListener</code>, <code>TransactionLogMapper.xml</code>, <code>AdmLogController</code>, <code>AdmLogQueryService</code>, <code>AdmBatchController</code>, <code>AdmBatchOperationService</code></td></tr>
-      <tr><td>확인한 SQL</td><td><code>10_pfw_schema.sql</code>, <code>30_adm_schema.sql</code>, <code>V10__batch_heartbeat_progress_ghost_detection.sql</code>, 전체 설치 SQL과 smoke SQL의 거래 로그 및 배치 메타 구간</td></tr>
-      <tr><td>확인한 문서</td><td>README, 프레임워크 구성 가이드, 개발 가이드, 배치 개발 가이드, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 기능 구현 매트릭스</td></tr>
-      <tr><td>실행한 명령</td><td><code>:bat:test</code>, <code>:bat:bootJar</code>, BAT runtime smoke, MariaDB V10 SQL 직접 적용, information_schema 컬럼/index 조회, 전체 Gradle test, qualityGate, ADM runtime smoke</td></tr>
-      <tr><td>실제 결과</td><td>BAT heartbeat execution은 <code>processed_count=4</code>, <code>progress_rate=100.00</code>, <code>last_heartbeat_at</code> 갱신을 보였고 step execution도 동일하게 진행률 컬럼이 갱신되었습니다. ADM runtime smoke는 health, OpenAPI, 배치 API marker, static UI, cleanup을 통과했습니다.</td></tr>
-      </tbody>
+      <tr><td><code>@CpfTransaction</code> 정본화</td><td class="ok">완료</td><td>신규 ADM API와 거래 메타 스캐너가 <code>@CpfTransaction</code>을 기준으로 동작합니다. 레거시 이름 검증도 별도 스크립트로 통과했습니다.</td></tr>
+      <tr><td>거래 메타 자동 등록</td><td class="ok">부분 구현</td><td>스캐너와 저장소, 시작 시 스캔은 구현했습니다. 실제 ADM 앱 기동 후 운영 DB에 upsert되는 E2E 검증은 별도 운영 검증으로 남습니다.</td></tr>
+      <tr><td>로그 정책 override</td><td class="ok">부분 구현</td><td>DB 모델, ADM API, validation, audit 저장은 구현했습니다. 실제 로그 적재 정책에 런타임 적용하는 전파 로직은 다음 단계입니다.</td></tr>
+      <tr><td>ADM 필수 운영 메뉴</td><td class="ok">부분 구현</td><td>기능 매트릭스에 필수 운영 메뉴 상태를 명시했고 거래 메타, 로그 정책, 캐시 관리 후보를 반영했습니다.</td></tr>
+      <tr><td>문서 정합성</td><td class="ok">개선</td><td>상세 기준은 HTML 가이드에 두고 README는 짧은 진입점으로 유지했습니다.</td></tr>
+    </tbody>
     </table>
   </section>
 
@@ -65,90 +64,53 @@
       <tr><th>검증</th><th>결과</th><th>메모</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>:bat:test</code></td><td class="ok">완료</td><td>BAT 모듈 테스트가 성공했습니다.</td></tr>
-      <tr><td><code>:bat:bootJar</code></td><td class="ok">완료</td><td>BAT runtime smoke용 jar 생성이 성공했습니다.</td></tr>
-      <tr><td>BAT runtime smoke</td><td class="ok">완료</td><td>정상 Job, heartbeat Job, 실패 Job, cleanup을 통과했습니다.</td></tr>
-      <tr><td>MariaDB V10 적용</td><td class="ok">완료</td><td>migration 전 컬럼 0개 상태에서 V10 SQL 적용 후 컬럼과 index를 확인했습니다.</td></tr>
-      <tr><td><code>test</code></td><td class="ok">완료</td><td>전체 Gradle 테스트가 성공했습니다.</td></tr>
-      <tr><td><code>qualityGate</code></td><td class="ok">완료</td><td>HTML 문서, Java format, legacy name, mojibake, sample, security seed, SQL, transaction ID, UTF-8, 테스트가 통과했습니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td class="ok">완료</td><td>ADM health, OpenAPI, 배치 API marker, static UI, cleanup이 성공했습니다. 브라우저 클릭 자동화는 runtime 부재로 skip되었습니다.</td></tr>
-      </tbody>
+      <tr><td><code>:pfw:compileJava :adm:compileJava</code></td><td class="ok">성공</td><td>오프라인 Gradle 컴파일을 실행했습니다.</td></tr>
+      <tr><td><code>:pfw:test :adm:test</code></td><td class="ok">성공</td><td>오프라인 Gradle 테스트 명령이 종료 코드 0으로 완료됐습니다.</td></tr>
+      <tr><td><code>check-feature-evidence</code></td><td class="ok">성공</td><td>기능 증거 파일과 문서 marker를 확인했습니다.</td></tr>
+      <tr><td><code>check-utf8 -CheckMojibake</code></td><td class="ok">성공</td><td>요청서처럼 제외 목록에 있는 파일을 제외하고 UTF-8과 mojibake 검사를 통과했습니다.</td></tr>
+      <tr><td><code>check-sql-standard</code></td><td class="ok">성공</td><td>공식 schema SQL의 prefix, 공통 컬럼, COMMENT 기준을 통과했습니다.</td></tr>
+      <tr><td><code>check-legacy-name</code></td><td class="ok">성공</td><td>레거시 이름 marker 검사를 통과했습니다.</td></tr>
+      <tr><td><code>check-html-docs</code></td><td class="ok">성공</td><td>리포트 작성 후 HTML 문서 구조 검사를 다시 실행해 통과했습니다.</td></tr>
+      <tr><td><code>qualityGate</code></td><td class="ok">성공</td><td>기능 증거, HTML 문서, Java format, 레거시 이름, mojibake, 샘플 표준, 보안 seed, SQL 표준, 거래 ID 표준, UTF-8, 전체 테스트 gate가 통과했습니다.</td></tr>
+      <tr><td><code>bootJar</code></td><td class="ok">성공</td><td><code>:bat:bootJar :adm:bootJar</code>를 오프라인으로 실행했습니다.</td></tr>
+      <tr><td><code>smoke-adm-ui</code></td><td class="ok">성공</td><td>ADM 정적 UI marker 검증을 통과했습니다.</td></tr>
+      <tr><td><code>smoke-bat-runtime</code></td><td class="ok">성공</td><td>BAT jar 기동, health, 정상 Job, heartbeat/progress, 실패 Job 검증을 통과했습니다.</td></tr>
+      <tr><td><code>smoke-adm-runtime</code></td><td class="ok">성공</td><td>ADM jar 기동, health, OpenAPI smoke, ADM UI smoke, 운영 API smoke를 통과했습니다.</td></tr>
+      <tr><td><code>test</code></td><td class="ok">성공</td><td>전체 Gradle 테스트 명령을 별도로 실행했고 모든 task가 성공 또는 up-to-date로 완료됐습니다.</td></tr>
+      <tr><td>MariaDB 실제 설치 SQL</td><td class="warn">미검증</td><td>전체 설치 SQL은 DB를 drop/create할 수 있어 이번 자동 검증에서는 실행하지 않았습니다.</td></tr>
+      <tr><td>ADM 브라우저 클릭 자동화</td><td class="warn">미검증</td><td>정적 UI marker와 API 컴파일 중심으로 확인했고 브라우저 실제 클릭은 이번 범위에서 제외했습니다.</td></tr>
+    </tbody>
     </table>
   </section>
 
   <section>
-    <h2>보강 내용</h2>
+    <h2>남은 리스크</h2>
     <table>
       <thead>
-      <tr><th>대상</th><th>반영 내용</th></tr>
+      <tr><th>리스크</th><th>설명</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>README</td><td>온라인/배치 균형 상태, V10 실제 검증 결과, 다음 우선순위를 짧은 진입점 기준으로 추가했습니다.</td></tr>
-      <tr><td>프레임워크 구성 가이드</td><td>PFW, BAT, ADM, 온라인 모듈 책임과 공통 운영 축, 로그 정책 우선순위를 정리했습니다.</td></tr>
-      <tr><td>개발 가이드</td><td>온라인 거래 메타 개발 기준, 거래 글로벌 ID 전파, 거래 로그 저장, 자동 등록 미구현 상태를 추가했습니다.</td></tr>
-      <tr><td>배치 개발 가이드</td><td>V10 실제 DB 적용과 fallback 없는 heartbeat/progress 검증 결과, 온라인 기준과 배치 기준 차이를 추가했습니다.</td></tr>
-      <tr><td>관리자/운영 문서</td><td>ADM 온라인 거래 관제와 배치 관제를 분리해 보는 기준, 공통 추적 기준을 추가했습니다.</td></tr>
-      <tr><td>SQL 가이드</td><td>온라인 거래 메타/로그 정책 테이블의 현재 존재 여부와 V10 실제 적용 결과를 반영했습니다.</td></tr>
-      <tr><td>기능 구현 매트릭스</td><td>온라인 거래 메타, 자동 등록, 오류 로그, 감사 로그, 파일/DB 로그 정책, ADM override, 배치 Job/Step 로그 정책, heartbeat/progress, ghost, ADM 관제 행을 보강했습니다.</td></tr>
-      <tr><td>소스 주석</td><td>PFW logging 핵심 클래스의 placeholder 주석과 깨진 설명을 실제 기능 설명으로 정리했습니다.</td></tr>
-      </tbody>
+      <tr><td>런타임 정책 적용</td><td>로그 정책 DB 모델과 ADM API는 있지만 실제 <code>LoggingAspect</code>와 batch listener에 정책 우선순위를 적용하는 로직은 아직 분리되어 있습니다.</td><td>정책 조회 캐시, override 유효기간 평가, 런타임 전파를 구현합니다.</td></tr>
+      <tr><td>거래 메타 E2E</td><td>스캔 구성은 있으나 실제 ADM 앱 기동 후 운영 DB upsert 결과를 자동 검증하지 않았습니다.</td><td>ADM runtime smoke에 거래 메타 scan과 조회 검증을 추가합니다.</td></tr>
+      <tr><td>ADM UX</td><td>거래 메타와 로그 정책 UI marker는 있으나 브라우저 클릭 검증, 상세 오류 메시지, 버튼 비활성 사유 UX는 추가 보강 대상입니다.</td><td>Playwright 또는 정적 DOM 검증을 도입합니다.</td></tr>
+      <tr><td>Broker 전파</td><td>Redis, Kafka, MQ 실 broker 검증은 제외했습니다.</td><td>DB fallback을 유지한 상태에서 broker별 통합 테스트 profile을 추가합니다.</td></tr>
+    </tbody>
     </table>
   </section>
 
   <section>
-    <h2>미구현</h2>
+    <h2>다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>다음 요청 후보</th></tr>
+      <tr><th>우선순위</th><th>후보</th><th>목표</th></tr>
       </thead>
       <tbody>
-      <tr><td>온라인 거래 메타 전용 테이블</td><td><code>pfw_transaction_meta</code> 설계, RequestMapping scan, 기동 시 upsert, inactive 처리, ADM 관리 API/UI</td></tr>
-      <tr><td>로그 정책 override</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, 정책 감사, 기간/사유/변경자 기준</td></tr>
-      <tr><td>오류 로그 전용 테이블</td><td><code>pfw_error_log</code> 필요 여부 결정. 현재 거래 로그 기반 오류 저장과 분리할지 ADR 작성 필요</td></tr>
-      <tr><td>ADM 로그 정책 관리</td><td>온라인/배치 파일 로그와 DB 로그 ON/OFF, 정책 우선순위, override 만료, 감사 이력 관리</td></tr>
-      <tr><td>배치 고급 운영</td><td>pause/resume, 온디맨드 배치, 운영 정책 전체 자동화, center-cut 기본 구현체</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>미검증</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>미검증 사유</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>ADM 브라우저 실제 클릭 자동화</td><td>이번 요청에서 제외된 항목입니다. 정적 marker와 API 소스 확인만 수행했습니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ broker 검증</td><td>이번 요청에서 제외된 외부 broker 검증입니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>아키텍처 영향</h2>
-    <table>
-      <thead>
-      <tr><th>영역</th><th>영향</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>PFW</td><td>프레임워크 코어로 거래 ID, 헤더, 응답, 오류, 로그, Batch 공통 API 기준을 제공한다는 경계를 유지했습니다.</td></tr>
-      <tr><td>BAT</td><td>독립 실행 worker와 Spring Batch JobRepository 사용 원칙을 유지하고, V10 진행률 컬럼 기반으로 검증했습니다.</td></tr>
-      <tr><td>ADM</td><td>운영 콘솔이 온라인 거래 관제와 배치 관제를 모두 보되 실행 로직을 직접 소유하지 않는 기준을 문서화했습니다.</td></tr>
-      <tr><td>온라인 거래</td><td>annotation과 로그 저장은 있으나 메타 자동 등록과 정책 override는 다음 단계로 분리했습니다.</td></tr>
-      <tr><td>센터컷 확장성</td><td>이번 범위에서는 구현하지 않고 PFW 기준, BAT 실행, 업무 adapter 확장 원칙만 유지했습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>최종 판정</h2>
-    <table>
-      <thead>
-      <tr><th>판정</th><th>내용</th></tr>
-      </thead>
-      <tbody>
-      <tr><td class="warn">부분 구현</td><td>V10 실제 DB 적용과 BAT heartbeat/progress 검증, 온라인/배치 균형 문서화는 완료했습니다. 온라인 거래 메타 자동 등록과 로그 정책 override는 명확히 미구현으로 남겼습니다.</td></tr>
-      </tbody>
+      <tr><td>1</td><td>로그 정책 런타임 적용</td><td>온라인, 배치, 외부 연계 로그 적재 정책을 DB override 우선순위로 실제 반영합니다.</td></tr>
+      <tr><td>2</td><td>ADM 거래/오류/감사 통합 관제 고도화</td><td>거래 메타, 거래 로그, 오류, 감사, 정책 변경 이력을 한 화면 흐름으로 연결합니다.</td></tr>
+      <tr><td>3</td><td>ADM 브라우저 자동 검증</td><td>권한별 버튼 노출, 비활성 사유, 거래 메타와 로그 정책 화면 조작을 자동 검증합니다.</td></tr>
+      <tr><td>4</td><td>MariaDB 설치 SQL 실검증</td><td>격리된 로컬 DB에서 전체 설치, seed idempotent, FK/index, app/migration 권한을 검증합니다.</td></tr>
+      <tr><td>5</td><td>Broker 실연동</td><td>캐시 refresh와 로그 정책 전파를 Redis, Kafka, MQ profile별로 검증합니다.</td></tr>
+    </tbody>
     </table>
   </section>
 </main>

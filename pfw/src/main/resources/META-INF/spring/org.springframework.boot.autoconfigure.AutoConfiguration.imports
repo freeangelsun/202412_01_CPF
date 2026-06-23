@@ -1,3 +1,4 @@
 cpf.pfw.config.PfwExceptionAutoConfiguration
 cpf.pfw.config.PfwOpenApiAutoConfiguration
 cpf.pfw.config.CpfBatchAutoConfiguration
+cpf.pfw.config.CpfTransactionMetaAutoConfiguration

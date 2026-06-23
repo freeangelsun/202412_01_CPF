@@ -41,6 +41,7 @@ if (!window.Vue) {
         loginForm: { operatorId: "admin", password: "Adm!n12345" },
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
+          { id: "transactions", menuId: "TRANSACTION_META", label: "거래 메타" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
           { id: "members", menuId: "MEMBER", label: "회원" },
           { id: "batch", menuId: "BATCH", label: "배치" },
@@ -52,6 +53,7 @@ if (!window.Vue) {
           { id: "responseCodes", menuId: "RESPONSE_CODE", label: "응답코드" },
           { id: "configs", menuId: "CONFIG", label: "설정" },
           { id: "logLevel", menuId: "DYNAMIC_LOG", label: "동적 로그" },
+          { id: "logPolicies", menuId: "LOG_POLICY", label: "로그 정책" },
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
@@ -71,6 +73,7 @@ if (!window.Vue) {
           channelCode: "",
           logType: ""
         },
+        transactionSearch: { moduleCode: "", activeYn: "Y", transactionId: "", selectedTransactionId: "", reason: "거래 메타 운영" },
         logSort: { key: "LOG_IDX", direction: "desc" },
         logPage: { page: 1, size: 10 },
         logDetailTab: "요약",
@@ -164,6 +167,28 @@ if (!window.Vue) {
         cacheReason: "ADM 캐시 갱신",
         responseCodeReason: "ADM 응답코드 변경",
         logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "운영 진단" },
+        logPolicyForm: {
+          policyId: null,
+          policyKey: "ONLINE_DEFAULT",
+          policyName: "온라인 거래 기본 로그 정책",
+          targetType: "TRANSACTION",
+          targetId: "*",
+          logLevel: "INFO",
+          dbLogEnabledYn: "Y",
+          fileLogEnabledYn: "Y",
+          requestBodyLogYn: "N",
+          responseBodyLogYn: "N",
+          errorStackLogYn: "Y",
+          retentionDays: 90,
+          samplingRate: 100,
+          priority: 100,
+          activeYn: "Y",
+          description: "ADM에서 관리하는 로그 정책",
+          effectiveStartAt: "",
+          effectiveEndAt: "",
+          reason: "로그 정책 변경",
+          requestUser: "admin-ui"
+        },
         operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
         messageForm: {
           messageId: null,
@@ -216,6 +241,7 @@ if (!window.Vue) {
           requestUser: "admin-ui"
         },
         logs: [],
+        transactionResult: {},
         auditLogs: [],
         logDetail: {},
         memberResult: { items: [] },
@@ -227,6 +253,7 @@ if (!window.Vue) {
         cacheResult: {},
         responseCodeResult: {},
         logLevelResult: {},
+        logPolicyResult: {},
         operatorResult: {},
         messageResult: {},
         codeResult: {},
@@ -389,6 +416,7 @@ if (!window.Vue) {
         await this.loadMe();
         await Promise.allSettled([
           this.searchLogs(),
+          this.loadTransactions(),
           this.loadAuditLogs(),
           this.searchMembers(),
           this.loadBatch(),
@@ -397,9 +425,11 @@ if (!window.Vue) {
           this.loadOperators(),
           this.loadResponseCodes(),
           this.loadLogLevelRules(),
+          this.loadLogPolicies(),
           this.loadMessages(),
           this.loadCodes(),
           this.loadConfigs(),
+          this.loadCacheSummary(),
           this.loadPermissions(),
           this.loadSecurity(),
           this.loadBizAdmOperations(),
@@ -489,6 +519,22 @@ if (!window.Vue) {
         this.logs = data.items || [];
         this.logDetail = data;
         this.setMessage(`거래 로그 ${this.logs.length}건을 조회했습니다.`);
+      },
+      async loadTransactions() {
+        const params = this.buildParams(this.transactionSearch);
+        this.transactionResult = await this.getJson(`/adm/api/transactions?${params.toString()}`);
+      },
+      async scanTransactions() {
+        if (!this.requireReason(this.transactionSearch.reason)) return;
+        const params = this.buildParams({ reason: this.transactionSearch.reason, requestUser: "admin-ui" });
+        this.transactionResult = await this.sendJson(`/adm/api/transactions/scan?${params.toString()}`, "POST");
+        this.setMessage("거래 메타 재스캔을 요청했습니다.");
+      },
+      async inactivateTransaction() {
+        if (!this.transactionSearch.selectedTransactionId || !this.requireReason(this.transactionSearch.reason)) return;
+        const params = this.buildParams({ reason: this.transactionSearch.reason, requestUser: "admin-ui" });
+        this.transactionResult = await this.sendJson(`/adm/api/transactions/${this.transactionSearch.selectedTransactionId}/inactive?${params.toString()}`, "POST");
+        this.setMessage("거래 메타를 비활성화했습니다.");
       },
       async loadLogDetail(logIdx) {
         if (!logIdx) return;
@@ -785,6 +831,9 @@ if (!window.Vue) {
         this.cacheResult = await this.sendJson(`/adm/api/cache/refresh?${params.toString()}`, "POST");
         this.setMessage(`${target} 캐시 갱신을 요청했습니다.`);
       },
+      async loadCacheSummary() {
+        this.cacheResult = await this.getJson("/adm/api/cache/summary");
+      },
       async loadMessages() {
         this.messageResult = await this.getJson("/adm/api/messages");
       },
@@ -899,6 +948,50 @@ if (!window.Vue) {
         const params = this.buildParams(this.logLevelForm);
         this.logLevelResult = await this.sendJson(`/adm/api/log-level/rules?${params.toString()}`, "PUT");
         this.setMessage("동적 로그 규칙을 등록했습니다.");
+      },
+      async loadLogPolicies() {
+        const params = this.buildParams({
+          targetType: this.logPolicyForm.targetType,
+          targetId: this.logPolicyForm.targetId,
+          activeYn: this.logPolicyForm.activeYn
+        });
+        this.logPolicyResult = await this.getJson(`/adm/api/log-policies?${params.toString()}`);
+      },
+      async saveLogPolicy() {
+        if (!this.logPolicyForm.policyKey || !this.logPolicyForm.policyName || !this.requireReason(this.logPolicyForm.reason)) return;
+        const method = this.logPolicyForm.policyId ? "PUT" : "POST";
+        const url = this.logPolicyForm.policyId
+          ? `/adm/api/log-policies/${this.logPolicyForm.policyId}`
+          : "/adm/api/log-policies";
+        this.logPolicyResult = await this.sendJson(url, method, this.logPolicyForm);
+        await this.loadLogPolicies();
+        this.setMessage("로그 정책을 저장했습니다.");
+      },
+      async createLogPolicyOverride() {
+        if (!this.logPolicyForm.targetType || !this.logPolicyForm.targetId || !this.logPolicyForm.effectiveStartAt || !this.logPolicyForm.effectiveEndAt || !this.requireReason(this.logPolicyForm.reason)) return;
+        this.logPolicyResult = await this.sendJson("/adm/api/log-policies/overrides", "POST", {
+          policyId: this.logPolicyForm.policyId,
+          targetType: this.logPolicyForm.targetType,
+          targetId: this.logPolicyForm.targetId,
+          logLevel: this.logPolicyForm.logLevel,
+          dbLogEnabledYn: this.logPolicyForm.dbLogEnabledYn,
+          fileLogEnabledYn: this.logPolicyForm.fileLogEnabledYn,
+          requestBodyLogYn: this.logPolicyForm.requestBodyLogYn,
+          responseBodyLogYn: this.logPolicyForm.responseBodyLogYn,
+          errorStackLogYn: this.logPolicyForm.errorStackLogYn,
+          effectiveStartAt: this.logPolicyForm.effectiveStartAt,
+          effectiveEndAt: this.logPolicyForm.effectiveEndAt,
+          requestUser: "admin-ui",
+          reason: this.logPolicyForm.reason
+        });
+        this.setMessage("로그 정책 override를 등록했습니다.");
+      },
+      async disableLogPolicyOverride() {
+        const overrideId = prompt("중지할 override ID를 입력하세요.");
+        if (!overrideId || !this.requireReason(this.logPolicyForm.reason)) return;
+        const params = this.buildParams({ reason: this.logPolicyForm.reason });
+        this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/overrides/${overrideId}/disable?${params.toString()}`, "PATCH");
+        this.setMessage("로그 정책 override를 중지했습니다.");
       },
       async loadOperators() {
         this.operatorResult = await this.getJson("/adm/api/operators");

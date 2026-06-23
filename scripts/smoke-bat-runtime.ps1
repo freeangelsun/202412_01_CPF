@@ -3,7 +3,8 @@ param(
     [string] $BatBaseUrl = "http://localhost:8093",
     [int] $StartupTimeoutSeconds = 120,
     [int] $ShutdownTimeoutSeconds = 60,
-    [string] $LogDir = ""
+    [string] $LogDir = "",
+    [switch] $AllowLegacyFallback
 )
 
 $ErrorActionPreference = "Stop"
@@ -144,14 +145,32 @@ function Assert-HeartbeatBatchResult {
     $execution = $detail.execution
     $extendedExecution = $detail.extendedExecution
     $steps = @($detail.steps)
-    $processedCount = 0
-    if ($null -ne $extendedExecution -and $null -ne $extendedExecution.processed_count) {
-        $processedCount = [int64] $extendedExecution.processed_count
-    } elseif ($null -ne $execution -and $null -ne $execution.write_count) {
-        $processedCount = [int64] $execution.write_count
+    $extendedSteps = @($detail.extendedSteps)
+    if ($null -eq $extendedExecution -or $null -eq $extendedExecution.processed_count) {
+        if (-not $AllowLegacyFallback) {
+            throw "heartbeatJob V10 extendedExecution.processed_count is missing. Apply V10 schema/runtime or rerun with -AllowLegacyFallback for legacy inspection."
+        }
+    }
+    $processedCount = if ($null -ne $extendedExecution -and $null -ne $extendedExecution.processed_count) {
+        [int64] $extendedExecution.processed_count
+    } elseif ($AllowLegacyFallback -and $null -ne $execution -and $null -ne $execution.write_count) {
+        [int64] $execution.write_count
+    } else {
+        0
     }
     if ($processedCount -lt 2) {
         throw "heartbeatJob processed_count was not updated at least twice. actual=$processedCount"
+    }
+    if (-not $AllowLegacyFallback) {
+        if ($null -eq $extendedExecution.progress_rate) {
+            throw "heartbeatJob V10 extendedExecution.progress_rate is missing."
+        }
+        if ($null -eq $extendedExecution.last_heartbeat_at) {
+            throw "heartbeatJob V10 extendedExecution.last_heartbeat_at is missing."
+        }
+        if ($extendedSteps.Count -lt 1 -or $null -eq $extendedSteps[0].processed_count) {
+            throw "heartbeatJob V10 extendedSteps processed_count evidence is missing."
+        }
     }
 
     $stepLog = ""

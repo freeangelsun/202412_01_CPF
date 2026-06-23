@@ -119,10 +119,14 @@ DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
 DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
 DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
 DROP TABLE IF EXISTS pfwDB.pfw_dynamic_log_level_rule;
+DROP TABLE IF EXISTS pfwDB.pfw_log_policy_audit;
+DROP TABLE IF EXISTS pfwDB.pfw_log_policy_override;
+DROP TABLE IF EXISTS pfwDB.pfw_log_policy;
 DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 -- ============================================================================
@@ -302,6 +306,122 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log_detail (
     INDEX ix_pfw_transaction_log_detail_log_idx (LOG_IDX),
     INDEX ix_pfw_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 상세 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
+    transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 ID',
+    transaction_name VARCHAR(150) NOT NULL COMMENT '업무 거래명',
+    module_code VARCHAR(20) NOT NULL COMMENT '모듈 코드',
+    domain_code VARCHAR(50) NULL COMMENT '업무 영역 코드',
+    http_method VARCHAR(20) NOT NULL DEFAULT 'ANY' COMMENT 'HTTP 메서드',
+    api_path VARCHAR(500) NOT NULL COMMENT 'API 경로',
+    controller_class VARCHAR(255) NOT NULL COMMENT 'Controller 클래스명',
+    handler_method VARCHAR(150) NOT NULL COMMENT 'Handler 메서드명',
+    swagger_operation_id VARCHAR(150) NULL COMMENT 'Swagger operation 식별자',
+    log_policy_key VARCHAR(120) NULL COMMENT '연결 로그 정책 키',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감 거래 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    first_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 감지일시',
+    last_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 감지일시',
+    last_scanned_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 스캔일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (transaction_id),
+    INDEX ix_pfw_transaction_meta_module (module_code, domain_code, active_yn),
+    INDEX ix_pfw_transaction_meta_path (http_method, api_path),
+    INDEX ix_pfw_transaction_meta_policy (log_policy_key, active_yn),
+    INDEX ix_pfw_transaction_meta_scan (active_yn, last_scanned_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온라인 거래 메타';
+
+CREATE TABLE IF NOT EXISTS pfw_log_policy (
+    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
+    policy_key VARCHAR(120) NOT NULL COMMENT '로그 정책 키',
+    policy_name VARCHAR(150) NOT NULL COMMENT '로그 정책명',
+    target_type VARCHAR(30) NOT NULL COMMENT '정책 대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT '정책 대상 ID',
+    log_level VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '기본 로그 레벨',
+    db_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'DB 로그 적재 여부',
+    file_log_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '파일 로그 출력 여부',
+    request_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 본문 로그 여부',
+    response_body_log_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '응답 본문 로그 여부',
+    error_stack_log_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '오류 stack 로그 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '마스킹 정책 키',
+    retention_days INT NOT NULL DEFAULT 90 COMMENT '보존 일수',
+    sampling_rate DECIMAL(5,2) NOT NULL DEFAULT 100.00 COMMENT '샘플링 비율',
+    priority INT NOT NULL DEFAULT 100 COMMENT '정책 우선순위',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    description VARCHAR(500) NULL COMMENT '정책 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (policy_id),
+    UNIQUE KEY uk_pfw_log_policy_key (policy_key),
+    UNIQUE KEY uk_pfw_log_policy_target (target_type, target_id),
+    INDEX ix_pfw_log_policy_active (active_yn, target_type, priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책';
+
+CREATE TABLE IF NOT EXISTS pfw_log_policy_override (
+    override_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 override 순번',
+    policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
+    target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT 'override 대상 ID',
+    override_reason VARCHAR(500) NOT NULL COMMENT 'override 사유',
+    log_level VARCHAR(20) NULL COMMENT '임시 로그 레벨',
+    db_log_enabled_yn CHAR(1) NULL COMMENT 'DB 로그 임시 적재 여부',
+    file_log_enabled_yn CHAR(1) NULL COMMENT '파일 로그 임시 출력 여부',
+    request_body_log_yn CHAR(1) NULL COMMENT '요청 본문 임시 로그 여부',
+    response_body_log_yn CHAR(1) NULL COMMENT '응답 본문 임시 로그 여부',
+    error_stack_log_yn CHAR(1) NULL COMMENT '오류 stack 임시 로그 여부',
+    masking_policy_key VARCHAR(120) NULL COMMENT '임시 마스킹 정책 키',
+    effective_start_at DATETIME(3) NOT NULL COMMENT '적용 시작일시',
+    effective_end_at DATETIME(3) NOT NULL COMMENT '적용 종료일시',
+    requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
+    approved_by VARCHAR(100) NULL COMMENT '승인자',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (override_id),
+    INDEX ix_pfw_log_policy_override_target (target_type, target_id, active_yn),
+    INDEX ix_pfw_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
+    INDEX ix_pfw_log_policy_override_policy (policy_id, active_yn),
+    CONSTRAINT fk_pfw_log_policy_override_policy
+        FOREIGN KEY (policy_id) REFERENCES pfw_log_policy(policy_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책 임시 override';
+
+CREATE TABLE IF NOT EXISTS pfw_log_policy_audit (
+    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 감사 순번',
+    policy_id BIGINT NULL COMMENT '로그 정책 순번',
+    override_id BIGINT NULL COMMENT '로그 정책 override 순번',
+    action_type VARCHAR(30) NOT NULL COMMENT '감사 행위 유형',
+    target_type VARCHAR(30) NOT NULL COMMENT '대상 유형',
+    target_id VARCHAR(150) NOT NULL COMMENT '대상 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '감사 사유',
+    before_data MEDIUMTEXT NULL COMMENT '변경 전 데이터',
+    after_data MEDIUMTEXT NULL COMMENT '변경 후 데이터',
+    diff_data MEDIUMTEXT NULL COMMENT '변경 차이',
+    operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
+    client_ip VARCHAR(100) NULL COMMENT '클라이언트 IP',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (audit_id),
+    INDEX ix_pfw_log_policy_audit_target (target_type, target_id, created_at),
+    INDEX ix_pfw_log_policy_audit_operator (operator_id, created_at),
+    INDEX ix_pfw_log_policy_audit_policy (policy_id, created_at),
+    CONSTRAINT fk_pfw_log_policy_audit_policy
+        FOREIGN KEY (policy_id) REFERENCES pfw_log_policy(policy_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_log_policy_audit_override
+        FOREIGN KEY (override_id) REFERENCES pfw_log_policy_override(override_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책 감사 로그';
 
 CREATE TABLE IF NOT EXISTS pfw_code (
     code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
@@ -2043,6 +2163,33 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_log_policy (
+    policy_key, policy_name, target_type, target_id, log_level,
+    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
+    error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
+    description, created_by, updated_by
+) VALUES
+    ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    policy_name = VALUES(policy_name),
+    target_type = VALUES(target_type),
+    target_id = VALUES(target_id),
+    log_level = VALUES(log_level),
+    db_log_enabled_yn = VALUES(db_log_enabled_yn),
+    file_log_enabled_yn = VALUES(file_log_enabled_yn),
+    request_body_log_yn = VALUES(request_body_log_yn),
+    response_body_log_yn = VALUES(response_body_log_yn),
+    error_stack_log_yn = VALUES(error_stack_log_yn),
+    retention_days = VALUES(retention_days),
+    sampling_rate = VALUES(sampling_rate),
+    priority = VALUES(priority),
+    active_yn = VALUES(active_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO pfw_security_jwt_key (
     KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
 ) VALUES (
@@ -2486,6 +2633,7 @@ INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER,
 VALUES
     ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -2497,6 +2645,7 @@ VALUES
     ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CONFIG', NULL, '설정 관리', '/adm#configs', 100, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DYNAMIC_LOG', NULL, '동적 로그 레벨', '/adm#log-level', 110, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_POLICY', NULL, '로그 정책', '/adm#log-policies', 115, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -2515,6 +2664,9 @@ VALUES
     ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('TRANSACTION_META_READ', 'TRANSACTION_META', 'READ', '거래 메타 조회', 'GET', '/adm/api/transactions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('TRANSACTION_META_SCAN', 'TRANSACTION_META', 'SCAN', '거래 메타 스캔', 'POST', '/adm/api/transactions/scan', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MEMBER_READ', 'MEMBER', 'READ', '회원 조회', 'GET', '/adm/api/members/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MEMBER_CREATE', 'MEMBER', 'CREATE', '회원 등록', 'POST', '/adm/api/members', 20, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -2561,6 +2713,9 @@ VALUES
     ('CONFIG_WRITE', 'CONFIG', 'WRITE', '수정', 'POST', '/adm/api/configs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DYNAMIC_LOG_READ', 'DYNAMIC_LOG', 'READ', '조회', 'GET', '/adm/api/log-level/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DYNAMIC_LOG_WRITE', 'DYNAMIC_LOG', 'WRITE', '적용', 'POST', '/adm/api/log-level/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_POLICY_READ', 'LOG_POLICY', 'READ', '조회', 'GET', '/adm/api/log-policies/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_POLICY_WRITE', 'LOG_POLICY', 'WRITE', '등록/수정', 'POST', '/adm/api/log-policies/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_POLICY_OVERRIDE', 'LOG_POLICY', 'OVERRIDE', '임시 override', 'POST', '/adm/api/log-policies/overrides', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PASSWORD_READ', 'PASSWORD', 'READ', '정책 조회', 'GET', '/adm/api/operators/password-policy/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PASSWORD_RESET', 'PASSWORD', 'RESET_PASSWORD', '비밀번호 초기화', 'POST', '/adm/api/operators/*/password/reset', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PASSWORD_UNLOCK', 'PASSWORD', 'UNLOCK', '잠금 해제', 'POST', '/adm/api/operators/*/unlock', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -2656,8 +2811,8 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG') THEN 'Y' ELSE 'N' END,
-       CASE WHEN MENU_ID IN ('MESSAGE', 'CODE', 'DYNAMIC_LOG') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'MESSAGE', 'CODE', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
 WHERE MENU_ID NOT IN ('OPERATOR', 'PERMISSION', 'PASSWORD', 'SECURITY')
@@ -2674,7 +2829,7 @@ SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
        CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -2685,7 +2840,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -2726,7 +2881,7 @@ INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_b
 SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
            WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH') THEN 'Y'
-           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
            ELSE 'N'
        END,
        'SYSTEM', 'SYSTEM'

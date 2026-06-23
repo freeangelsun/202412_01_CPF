@@ -47,8 +47,8 @@
       <tr><td>거래 ID</td><td>Controller 또는 메서드에 <code>@CpfTransaction</code>을 선언합니다.</td><td>ID는 <code>{모듈3자리}{업무구분2자리}{거래구분3자리}{일련번호4자리}</code> 형식을 사용하고 이름은 운영자가 이해할 수 있게 씁니다.</td></tr>
       <tr><td>거래 글로벌 ID</td><td><code>TransactionContextFilter</code>가 <code>X-Transaction-Id</code>를 검증하거나 생성하고 응답 헤더로 돌려줍니다.</td><td>서비스 간 호출은 <code>TransactionContext.propagationHeaders()</code>를 사용해 trace와 거래 헤더를 이어갑니다.</td></tr>
       <tr><td>거래 로그</td><td><code>LoggingAspect</code>가 요청, 응답, 오류, 실행 메타를 수집하고 <code>pfw_transaction_log</code>에 저장합니다.</td><td>민감정보가 들어갈 수 있는 값은 DTO 단계와 로그 저장 단계 모두에서 마스킹 기준을 확인합니다.</td></tr>
-      <tr><td>메타 자동 등록</td><td>현재는 annotation과 검증 중심이며 전용 거래 메타 테이블 자동 upsert는 없습니다.</td><td>신규 API를 만들 때 문서, Swagger, 기능 매트릭스에 거래 ID가 누락되지 않도록 함께 갱신합니다.</td></tr>
-      <tr><td>로그 정책</td><td>동적 로그 레벨은 ADM 규칙으로 부분 지원합니다.</td><td>거래별 DB 로그 ON/OFF, 파일 로그 정책, override 기간/사유/감사는 다음 표준이 생기면 그 기준을 따릅니다.</td></tr>
+      <tr><td>메타 자동 등록</td><td><code>CpfTransactionMetaScanner</code>가 Spring MVC RequestMapping과 <code>@CpfTransaction</code>을 스캔해 <code>pfw_transaction_meta</code>에 upsert합니다.</td><td>신규 API를 만들 때 거래 ID, 거래명, Swagger 설명을 함께 작성해야 ADM 거래 메타에서 식별하기 쉽습니다.</td></tr>
+      <tr><td>로그 정책</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 기본 모델과 ADM API 골격이 있습니다.</td><td>실제 런타임 로그 적재 정책 적용과 전파는 다음 보강 기준이 확정되면 그 기준을 따릅니다.</td></tr>
       </tbody>
     </table>
   </section>

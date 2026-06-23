@@ -118,6 +118,25 @@
         <pre class="detail">{{ activeLogDetailPayload }}</pre>
       </section>
 
+      <section class="panel" v-show="activeMenu === 'transactions'">
+        <div class="panel-title">
+          <h2>거래 메타</h2>
+          <div class="actions">
+            <button type="button" @click="loadTransactions">조회</button>
+            <button type="button" v-if="canWrite('TRANSACTION_META')" @click="scanTransactions">재스캔</button>
+            <button type="button" v-if="canWrite('TRANSACTION_META')" @click="inactivateTransaction">비활성화</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>모듈 <input v-model="transactionSearch.moduleCode" type="text" placeholder="ADM"></label>
+          <label>활성 <select v-model="transactionSearch.activeYn"><option>Y</option><option>N</option><option value="">전체</option></select></label>
+          <label>거래 ID <input v-model="transactionSearch.transactionId" type="text"></label>
+          <label>선택 거래 ID <input v-model="transactionSearch.selectedTransactionId" type="text"></label>
+          <label>사유 <input v-model="transactionSearch.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(transactionResult) }}</pre>
+      </section>
+
       <section class="panel" v-show="activeMenu === 'members'">
         <div class="panel-title">
           <h2>회원 관리</h2>
@@ -303,8 +322,9 @@
       <section class="panel" v-show="activeMenu === 'cache'">
         <div class="panel-title">
           <h2>캐시 관리</h2>
-          <div class="actions" v-if="canWrite('CACHE')">
-            <button type="button" v-for="target in cacheTargets" :key="target" @click="refreshCache(target)">{{ target }}</button>
+          <div class="actions">
+            <button type="button" @click="loadCacheSummary">조회</button>
+            <button type="button" v-if="canWrite('CACHE')" v-for="target in cacheTargets" :key="target" @click="refreshCache(target)">{{ target }}</button>
           </div>
         </div>
         <div class="filters" v-if="canWrite('CACHE')">
@@ -506,6 +526,36 @@
           <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">등록</button>
         </div>
         <pre class="detail">{{ pretty(logLevelResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'logPolicies'">
+        <div class="panel-title">
+          <h2>로그 정책</h2>
+          <div class="actions">
+            <button type="button" @click="loadLogPolicies">조회</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="saveLogPolicy">저장</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="createLogPolicyOverride">Override 등록</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicyOverride">Override 중지</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>Policy ID <input v-model.number="logPolicyForm.policyId" type="number"></label>
+          <label>Policy Key <input v-model="logPolicyForm.policyKey" type="text"></label>
+          <label>정책명 <input v-model="logPolicyForm.policyName" type="text"></label>
+          <label>대상 유형 <input v-model="logPolicyForm.targetType" type="text"></label>
+          <label>대상 ID <input v-model="logPolicyForm.targetId" type="text"></label>
+          <label>레벨 <select v-model="logPolicyForm.logLevel"><option>TRACE</option><option>DEBUG</option><option>INFO</option><option>WARN</option><option>ERROR</option></select></label>
+          <label>DB 로그 <select v-model="logPolicyForm.dbLogEnabledYn"><option>Y</option><option>N</option></select></label>
+          <label>파일 로그 <select v-model="logPolicyForm.fileLogEnabledYn"><option>Y</option><option>N</option></select></label>
+          <label>요청 본문 <select v-model="logPolicyForm.requestBodyLogYn"><option>Y</option><option>N</option></select></label>
+          <label>응답 본문 <select v-model="logPolicyForm.responseBodyLogYn"><option>Y</option><option>N</option></select></label>
+          <label>보존일 <input v-model.number="logPolicyForm.retentionDays" type="number"></label>
+          <label>우선순위 <input v-model.number="logPolicyForm.priority" type="number"></label>
+          <label>시작 <input v-model="logPolicyForm.effectiveStartAt" type="datetime-local"></label>
+          <label>종료 <input v-model="logPolicyForm.effectiveEndAt" type="datetime-local"></label>
+          <label>사유 <input v-model="logPolicyForm.reason" type="text"></label>
+        </div>
+        <pre class="detail">{{ pretty(logPolicyResult) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'operators'">

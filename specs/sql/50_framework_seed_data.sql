@@ -172,6 +172,33 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_log_policy (
+    policy_key, policy_name, target_type, target_id, log_level,
+    db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
+    error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
+    description, created_by, updated_by
+) VALUES
+    ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'TRANSACTION', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 'N', 'N', 'Y', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    policy_name = VALUES(policy_name),
+    target_type = VALUES(target_type),
+    target_id = VALUES(target_id),
+    log_level = VALUES(log_level),
+    db_log_enabled_yn = VALUES(db_log_enabled_yn),
+    file_log_enabled_yn = VALUES(file_log_enabled_yn),
+    request_body_log_yn = VALUES(request_body_log_yn),
+    response_body_log_yn = VALUES(response_body_log_yn),
+    error_stack_log_yn = VALUES(error_stack_log_yn),
+    retention_days = VALUES(retention_days),
+    sampling_rate = VALUES(sampling_rate),
+    priority = VALUES(priority),
+    active_yn = VALUES(active_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO pfw_security_jwt_key (
     KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
 ) VALUES (

@@ -8,7 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * CPF 기능 설명입니다.
+ * 거래 로그 이벤트를 수신해 PFW 거래 로그 테이블에 저장합니다.
  */
 @Component
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class TransactionLogListener {
     private final TransactionLogService logService;
 
     /**
-     * CPF 기능 설명입니다.
+     * 거래 로그 저장 실패가 업무 응답 실패로 번지지 않도록 경고 로그만 남깁니다.
      */
     @EventListener
     public void handleTransactionLogEvent(TransactionLogEvent event) {
@@ -31,4 +31,3 @@ public class TransactionLogListener {
         }
     }
 }
-

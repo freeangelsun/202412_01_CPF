@@ -43,6 +43,21 @@
   </section>
 
   <section>
+    <h2>온라인 거래 관제와 배치 관제 분리</h2>
+    <table>
+      <thead>
+      <tr><th>구분</th><th>ADM에서 보는 것</th><th>현재 상태</th><th>주의사항</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>온라인 거래</td><td><code>/adm/api/logs</code>로 거래 로그 목록과 상세를 조회합니다. JSON pretty와 기본 고정길이 전문 분해 결과를 함께 제공합니다.</td><td>부분 구현</td><td>거래 메타 전용 관리와 로그 정책 override 관리는 아직 다음 보강 대상입니다.</td></tr>
+      <tr><td>온라인 오류</td><td><code>pfw_transaction_log</code>의 실패 레코드와 상세 로그에서 오류 코드, 메시지, 내부/외부 메시지를 확인합니다.</td><td>부분 구현</td><td>별도 <code>pfw_error_log</code> 테이블은 없습니다.</td></tr>
+      <tr><td>감사</td><td><code>/adm/api/audit-logs</code>와 <code>adm_audit_log</code>로 운영 조치 사유, before/after, diff를 조회합니다.</td><td>부분 구현</td><td>모든 업무 변경 API까지 감사 강제 범위를 넓히는 작업은 남아 있습니다.</td></tr>
+      <tr><td>배치</td><td><code>/adm/api/batch</code>로 Job, schedule, execution, step, worker, relation, target, lock, ghost, calendar를 조회하거나 조치합니다.</td><td>부분 구현</td><td>브라우저 클릭 검증과 운영 정책 전체 자동화는 별도 검증이 필요합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>배치 운영</h2>
     <table>
       <thead>

@@ -10,12 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 /**
- * CPF 기능 설명입니다.
+ * PFW 거래 요약 로그와 상세 로그를 저장합니다.
  *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * <p>요약 정보는 {@code pfw_transaction_log}, 요청/응답/오류 상세는
+ * {@code pfw_transaction_log_detail}에 저장합니다. 모든 상세 값은 저장 전에 마스킹과 길이 제한을 적용합니다.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -29,16 +27,16 @@ public class TransactionLogService {
             return;
         }
 
-        // CPF 기능 설명입니다.
+        // 요약 로그를 먼저 저장해 상세 로그가 참조할 LOG_IDX를 확보합니다.
         logMapper.insertTransactionLog(record);
 
         if (details != null) {
-            // CPF 기능 설명입니다.
+            // AOP가 수집한 헤더, 요청/응답, 실행 메타를 상세 로그로 분리 저장합니다.
             details.forEach((key, value) -> insertDetail(record.getLogIdx(), key, value, record.getExecUser()));
         }
 
         if (record.getErrorMessage() != null) {
-            // CPF 기능 설명입니다.
+            // 오류 메시지는 상세 검색 편의를 위해 명시적인 detail key로 한 번 더 보관합니다.
             insertDetail(record.getLogIdx(), "errorMessage", record.getErrorMessage(), record.getExecUser());
         }
     }
@@ -54,4 +52,3 @@ public class TransactionLogService {
                 auditUser);
     }
 }
-

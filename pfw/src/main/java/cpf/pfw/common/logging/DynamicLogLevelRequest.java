@@ -3,9 +3,10 @@ package cpf.pfw.common.logging;
 import java.time.Duration;
 
 /**
- * CPF 기능 설명입니다.
+ * 동적 거래 로그 레벨 등록 요청입니다.
  *
- * CPF 기능 설명입니다.
+ * <p>운영자가 특정 트랜잭션 또는 업무 거래를 짧은 기간 동안 더 자세히 추적할 때 사용합니다.
+ * 둘 중 하나의 식별자는 반드시 필요하며, TTL이 지나면 런타임 규칙에서 제거됩니다.</p>
  */
 public class DynamicLogLevelRequest {
     private String transactionId;

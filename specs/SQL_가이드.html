@@ -56,6 +56,23 @@
   </section>
 
   <section>
+    <h2>온라인 거래 메타와 로그 정책 현재 상태</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>테이블/구현</th><th>현재 판정</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>온라인 거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>구현되어 있습니다. 요청/응답, 오류, 헤더, 실행 메타를 저장합니다.</td></tr>
+      <tr><td>온라인 거래 메타 전용 테이블</td><td><code>pfw_transaction_meta</code>에 해당하는 테이블</td><td>현재 설치 SQL과 migration에는 없습니다. 다음 보강에서 RequestMapping scan 자동 등록과 함께 설계해야 합니다.</td></tr>
+      <tr><td>온라인 오류 로그 전용 테이블</td><td><code>pfw_error_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 현재는 거래 로그 실패 레코드와 상세 로그로 오류를 추적합니다.</td></tr>
+      <tr><td>PFW 감사 로그 전용 테이블</td><td><code>pfw_audit_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 운영 감사는 <code>adm_audit_log</code>가 담당합니다.</td></tr>
+      <tr><td>로그 정책 테이블</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code></td><td>현재 없습니다. 동적 진단용 <code>adm_dynamic_log_level_rule</code>만 부분 구현되어 있습니다.</td></tr>
+      <tr><td>배치 메타</td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>구현되어 있습니다. V10 진행률/heartbeat 컬럼은 실제 MariaDB 적용과 smoke 검증까지 완료했습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>Spring Batch와 CPF Batch 메타</h2>
     <table>
       <thead>
@@ -95,6 +112,20 @@
       <tr><td>V10</td><td><code>V10__batch_heartbeat_progress_ghost_detection.sql</code>은 <code>pfw_batch_execution</code>과 <code>pfw_batch_step_execution</code>에 진행률, 처리 건수, 마지막 heartbeat 컬럼과 heartbeat 조회 index를 추가합니다.</td></tr>
       <tr><td>rollback</td><td>자동 rollback만 믿지 않고 backup/restore와 수동 복구 절차를 문서화합니다.</td></tr>
       <tr><td>idempotent seed</td><td>재실행해도 중복 데이터가 생기지 않아야 합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>V10 실제 DB 적용 결과</h2>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>결과</th><th>근거</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>컬럼 적용</td><td>완료</td><td><code>pfw_batch_execution</code> 11개 V10 컬럼, <code>pfw_batch_step_execution</code> 10개 V10 컬럼을 information_schema 기준으로 확인했습니다.</td></tr>
+      <tr><td>index 적용</td><td>완료</td><td><code>ix_pfw_batch_execution_heartbeat</code>, <code>ix_pfw_batch_step_execution_heartbeat</code>가 각각 2개 구성 컬럼으로 확인되었습니다.</td></tr>
+      <tr><td>runtime smoke</td><td>완료</td><td><code>CPF_BAT_HEARTBEAT_JOB</code> 실행 후 execution과 step의 <code>processed_count</code>, <code>progress_rate</code>, <code>last_heartbeat_at</code> 값이 갱신되었습니다.</td></tr>
       </tbody>
     </table>
   </section>

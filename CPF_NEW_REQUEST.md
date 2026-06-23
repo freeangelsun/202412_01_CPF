@@ -1,39 +1,34 @@
-# CPF_REQUEST_005: BAT 실행 중 Heartbeat / 처리율 갱신 / Ghost 자동 감지 완성 요청
+# CPF_REQUEST_006: 프레임워크 균형 게이트 / V10 실제 DB 적용 / 온라인·배치 공통 운영 기준 정렬
 
 ## 0. 이번 작업 범위 고정
 
-이번 작업은 BAT 독립 실행 모듈이 생성된 상태를 전제로, 실제 장시간 Batch 실행 중 worker heartbeat, 처리율, 진행률, ghost candidate 자동 감지를 구현하고 검증하는 작업이다.
+이번 작업은 BAT 쪽으로 치우친 최근 작업 흐름을 프레임워크 전체 관점에서 다시 맞추는 작업이다.
 
-이번 작업에서 수행할 범위는 아래로 고정한다.
+이번 작업은 신규 대형 기능 구현이 아니라 아래 세 가지를 닫는 작업으로 범위를 고정한다.
 
-```text
+```text id="z2vqm8"
 선택 범위:
-- BAT 실행 중 worker heartbeat 주기 갱신
-- Job/Step listener 기반 실행 상태 갱신
-- 처리 건수, 성공 건수, 실패 건수, 진행률, 처리율 갱신
-- 장시간 실행 smoke Job 추가 또는 기존 Job 보강
-- heartbeat timeout 기준 ghost candidate 자동 감지
-- ghost candidate 자동 등록 또는 상태 갱신
-- ADM에서 자동 감지된 ghost candidate 조회 가능
-- ghost 조치 사유/조치자/감사 로그 기준 유지
-- 기존 pfw_batch_worker / pfw_batch_execution / pfw_batch_step_execution / pfw_batch_ghost_event 활용
-- README / 배치 개발 가이드 / 운영 매뉴얼 / 기능 구현 매트릭스 / CPF_STABILIZATION_REPORT.html 반영
+1. Flyway V10 실제 MariaDB 적용 및 V10 컬럼 기반 BAT heartbeat/progress 검증
+2. 온라인 거래 메타 / 로그 정책 / 감사 기준의 현재 상태 판정
+3. 온라인·배치·ADM·PFW 공통 운영 기준 정렬 및 문서/매트릭스/리포트 반영
 ```
 
 이번 작업에서 아래 항목은 구현하지 않는다.
 필요하면 `CPF_STABILIZATION_REPORT.html`의 다음 보강 후보로만 기록한다.
 
-```text
+```text id="y5mkv5"
 이번 실행 제외:
-- 온디맨드 배치 전체 구현
-- 센터컷 기본 구현체 전체 구현
+- ADM 배치 운영 정책 전체 구현
+- 배치 강제수행/lock 정책/pause/resume 전체 구현
+- 온라인 거래 메타 자동 등록 전체 구현
+- 온라인/배치 로그 정책 override 전체 구현
+- ADM 로그/오류/감사 관제 전체 구현
+- 온디맨드 배치 구현
+- 센터컷 기본 구현체 구현
 - 센터컷 모수/item/result 테이블 구현
 - 업무별 커스텀 센터컷 adapter 구현
 - ADM 브라우저 실제 클릭 자동화
-- 온라인/배치 로그 정책 + 거래 메타 자동 등록
-- Redis/Kafka/MQ 실 broker 장애 시나리오 검증
-- BAT EDU / XYZ EDU 대규모 보강
-- 전체 MariaDB 설치 SQL 재실행
+- Redis/Kafka/MQ 실 broker 검증
 ```
 
 요청 파일은 작업 대상으로 수정하지 않는다.
@@ -43,73 +38,108 @@ Git commit, push, branch 생성 지시는 하지 않는다.
 
 ---
 
-## 1. 상위 아키텍처 전제
+## 1. 이번 작업의 핵심 의도
 
-이번 작업은 BAT가 실제 실행 중 상태를 주기적으로 남기고, ADM이 이를 관제할 수 있게 하는 작업이다.
+최근 작업으로 BAT 독립 모듈, BAT runtime smoke, heartbeat/progress/ghost detection 기반이 생겼다.
+하지만 프레임워크는 배치만 잘 되면 완성되는 것이 아니다.
 
-아래 책임 경계를 지킨다.
+CPF는 온라인 거래, 배치, ADM 운영, 로그 정책, 감사, 권한, Swagger, 문서, EDU가 함께 맞아야 한다.
 
-```text
+따라서 이번 작업은 아래 중심을 잡는다.
+
+```text id="vk4ldf"
+- 배치 기준이 PFW/ADM에 과하게 섞이지 않았는지 확인
+- 온라인 거래 메타와 로그 정책이 방치되지 않았는지 확인
+- transactionGlobalId 기준이 온라인/배치/EXS에 일관되는지 확인
+- 로그 정책이 파일 로그/DB 로그/yml/DB/ADM override 구조로 정리되어 있는지 확인
+- 기능 구현 매트릭스가 실제 구현 상태를 균형 있게 보여주는지 확인
+- 다음 요청들이 한쪽으로 치우치지 않도록 후속 우선순위를 재정렬
+```
+
+이번 작업은 “많이 구현”이 아니라 “중심을 잃지 않게 기준을 고정”하는 작업이다.
+
+---
+
+## 2. 상위 아키텍처 전제
+
+아래 책임 경계를 모든 문서와 리포트에서 일관되게 유지한다.
+
+```text id="eqtr7q"
 PFW:
-- Batch 공통 API, 공통 repository, 공통 status/error/metadata 기준 제공
-- transactionGlobalId, JobExecutionId, StepExecutionId 연결 기준 제공
-- heartbeat/ghost 판정에 필요한 공통 service/repository 기준 제공
-- 실제 장시간 Job 실행 runtime 자체를 소유하지 않음
+- 공통 framework/library 성격
+- 독립 프로세스가 아님
+- 온라인/배치 공통 transactionGlobalId 기준 제공
+- 표준 응답/오류/헤더 기준 제공
+- Batch 공통 API, JobRepository 연계 메타 기준 제공
+- 거래 메타, 로그 정책, 감사 기준의 공통 모델 제공
+- 실제 BAT runtime 또는 ADM 운영 화면 책임을 소유하지 않음
 
 BAT:
 - 독립 실행 가능한 Spring Boot batch worker
-- 실제 Job/Step 실행 주체
-- 실행 중 heartbeat 갱신 주체
-- listener를 통해 Job/Step 상태와 처리율을 CPF 운영 메타에 반영
+- PFW Batch 공통 API 사용
+- Spring Batch 표준 JobRepository 사용
+- Job/Step 실행 주체
+- heartbeat/progress/ghost 기반 실행 runtime
 - 향후 온디맨드/센터컷 실행 기반
 
 ADM:
-- 실행 로직을 직접 소유하지 않음
-- worker 상태, heartbeat, ghost candidate, lock, 실행 이력, step 이력 관제
-- ghost 조치, lock 조치, 재실행 가능 여부 확인
+- 운영/관리 콘솔
+- 온라인 거래 메타, 로그 정책, 감사, 배치 관제, 권한, 운영 조치 관제
+- 배치 Job/Step 실행 로직을 직접 소유하지 않음
+- 로그 정책 override는 기간/사유/감사 이력이 있는 운영 조치로 관리
+
+온라인 업무 모듈:
+- Controller/API 단위 거래 메타 필요
+- 거래ID와 거래 논리명 필요
+- transactionGlobalId 생성/전파 기준 필요
+- 표준 오류/응답/감사/로그 정책 적용 대상
+
+EXS:
+- 외부 송수신 거래도 transactionGlobalId와 parent/child 기준 필요
+- 외부 호출 로그, 오류, 재시도, 감사 기준 필요
 ```
 
-센터컷 전제도 훼손하지 않는다.
+센터컷 전제도 유지한다.
 
-```text
+```text id="ldo2eo"
 센터컷 전제:
 - PFW는 센터컷 대량 모수/item/result 테이블을 직접 소유하지 않는다.
 - PFW는 표준 인터페이스, 상태, 오류, 로그, 감사, transactionGlobalId 기준만 제공한다.
 - BAT는 향후 기본 센터컷 모수/item/result 테이블과 기본 구현체를 제공한다.
-- 업무 주제영역은 커스텀 모수/item/result 테이블을 추가하고 adapter로 BAT와 연동할 수 있어야 한다.
+- 업무 주제영역은 커스텀 모수/item/result 테이블을 추가할 수 있어야 한다.
+- 업무별 테이블은 CenterCutTargetProvider / CenterCutHandler / ResultProvider adapter로 연동한다.
 ```
-
-이번 작업에서 센터컷을 구현하지 않는다.
-단, 향후 센터컷 확장을 방해하는 구조 변경은 하지 않는다.
 
 ---
 
-## 2. 먼저 현재 상태 판정
+## 3. 먼저 현재 상태 판정
 
-작업 시작 전 실제 소스/SQL/문서 기준으로 현재 상태를 먼저 판정한다.
+작업 시작 전 실제 소스/SQL/문서 기준으로 현재 상태를 판정한다.
 
 아래 항목을 `CPF_STABILIZATION_REPORT.html`에 기록한다.
 
-```text
+```text id="pdeho0"
 현재 상태 판정 항목:
-- bat 모듈 존재 여부
-- BAT health API 존재 여부
-- BAT 정상/실패 smoke Job 존재 여부
-- smoke-bat-runtime.ps1 존재 여부
-- pfw_batch_worker 테이블 구조
-- pfw_batch_execution 테이블 구조
-- pfw_batch_step_execution 테이블 구조
-- pfw_batch_ghost_event 테이블 구조
-- 기존 worker heartbeat 갱신 방식
-- 기존 ghost candidate 조회/조치 방식
-- ADM ghost candidate 조회 API 존재 여부
-- ADM ghost 조치 API 존재 여부
-- 기존 배치 개발 가이드와 운영 매뉴얼의 heartbeat/ghost 설명 상태
+- V10 migration 실제 DB 적용 여부
+- BAT heartbeat/progress가 fallback 없이 V10 컬럼 기반으로 검증 가능한지
+- 온라인 거래 메타 관련 package/source 존재 여부
+- @CpfTransaction 또는 동등한 거래 annotation 존재 여부
+- Controller/API 거래ID/거래 논리명 적용 현황
+- RequestMapping 스캔 기반 거래 메타 자동 등록 존재 여부
+- pfw_transaction_meta 또는 동등 테이블 존재 여부
+- pfw_log_policy 또는 동등 로그 정책 테이블 존재 여부
+- pfw_log_policy_override 또는 동등 ADM override 테이블 존재 여부
+- pfw_transaction_log / pfw_error_log / pfw_audit_log 또는 동등 테이블 존재 여부
+- ADM 거래 메타/로그 정책 관리 API/UI 존재 여부
+- 온라인 거래 로그/오류 로그/감사 로그 연결 상태
+- 배치 Job/Step 로그 정책과 온라인 거래 로그 정책의 관계
+- Swagger/OpenAPI와 거래 메타 정합성 상태
+- README/specs/기능 매트릭스에서 온라인/배치 균형 상태
 ```
 
 상태값은 아래만 사용한다.
 
-```text
+```text id="cx1fzi"
 완료
 부분 구현
 미구현
@@ -122,263 +152,255 @@ Codex 완료 메시지나 과거 리포트만 믿지 말고 실제 파일 기준
 
 ---
 
-## 3. BAT listener / heartbeat 구현 기준
+## 4. V10 실제 DB 적용 검증
 
-BAT는 Job/Step 실행 중 주기적으로 worker heartbeat를 갱신해야 한다.
+직전 작업에서 V10 migration은 추가되었지만, local MariaDB에는 V10 컬럼이 적용되지 않아 runtime smoke가 fallback 경로로 성공했다.
+이번 작업에서는 V10을 실제 DB에 적용하고 fallback이 아닌 V10 컬럼 기반으로 검증한다.
 
-필수 구현 기준:
+필수 확인 대상:
 
-```text
-- JobExecutionListener 또는 동등한 listener
-- StepExecutionListener 또는 동등한 listener
-- heartbeat interval 설정
-- heartbeat timeout 설정
-- workerId 기록
-- serverInstanceId 기록
-- JobExecutionId 기록
-- StepExecutionId 기록
-- 마지막 heartbeat 시각 갱신
-- 현재 실행 중인 jobId / executionId / stepId 연결
-- 실행 중 상태 RUNNING 갱신
-- 정상 종료 시 COMPLETED 갱신
-- 실패 종료 시 FAILED 갱신
+```text id="wkrk3i"
+pfw_batch_execution:
+- total_count
+- processed_count
+- success_count
+- failure_count
+- retry_count
+- progress_rate
+- tps
+- avg_elapsed_ms
+- max_elapsed_ms
+- last_heartbeat_at
+- current_step_name
+
+pfw_batch_step_execution:
+- total_count
+- processed_count
+- success_count
+- failure_count
+- retry_count
+- progress_rate
+- tps
+- avg_elapsed_ms
+- max_elapsed_ms
+- last_heartbeat_at
 ```
 
-설정은 yml 기본값으로 제공한다.
+필수 검증:
 
-```text
-예시 설정:
-cpf.batch.worker.heartbeat-interval-seconds
-cpf.batch.worker.heartbeat-timeout-seconds
-cpf.batch.worker.server-instance-id
-cpf.batch.worker.worker-id
-cpf.batch.ghost-detection.enabled
-cpf.batch.ghost-detection.interval-seconds
+```text id="m1bz5v"
+- V10 migration 실제 적용
+- information_schema 기준 컬럼 존재 확인
+- BAT heartbeat Job 실행
+- processed_count 실제 컬럼 값 증가 확인
+- progress_rate 실제 컬럼 값 확인
+- last_heartbeat_at 실제 컬럼 값 갱신 확인
+- step execution progress 값 확인
+- smoke-bat-runtime에서 fallback 경로가 아니라 V10 컬럼 기반 검증 수행
 ```
 
-설정명은 기존 프로젝트 컨벤션에 맞춰 조정할 수 있다.
-단, 기본값과 override 가능 여부를 문서에 명확히 적는다.
+Flyway Gradle task가 없으면 성공으로 기록하지 않는다.
+대체 방법으로 V10 SQL을 실제 DB에 적용했다면 적용 명령, 결과, 적용 기준을 리포트에 기록한다.
 
 ---
 
-## 4. 처리율 / 진행률 갱신 기준
+## 5. 온라인 거래 메타 현재 상태 판정
 
-장시간 Job 실행 중 ADM에서 진행 상황을 볼 수 있어야 한다.
+이번 작업에서 온라인 거래 메타 전체 구현을 완료하지 않는다.
+다만 현재 상태를 실제 파일 기준으로 판정하고, 부족한 항목을 다음 요청으로 분리할 수 있게 만든다.
 
-필수 갱신 항목:
+필수 판정 항목:
 
-```text
-- totalCount
-- processedCount
-- successCount
-- failureCount
-- skipCount
-- retryCount
-- progressRate
-- tps 또는 처리율
-- avgElapsedMs
-- maxElapsedMs
-- currentStepName
-- currentStatus
-- lastHeartbeatAt
+```text id="u5r38b"
+- Controller/API 단위 거래ID 관리 방식
+- 거래 논리명 관리 방식
+- transactionGlobalId 생성 위치
+- transactionGlobalId 응답 헤더/로그 전파 여부
+- 표준 요청 헤더 기준
+- 표준 응답/오류 구조
+- 온라인 API 오류 로그 저장 여부
+- 온라인 API 감사 로그 저장 여부
+- Swagger Operation과 거래 메타 연결 여부
+- RequestMapping 스캔 또는 annotation scan 존재 여부
+- WAS 기동 후 거래 메타 upsert 구조 존재 여부
+- 사라진 거래 inactive 처리 여부
 ```
 
-기존 테이블에 컬럼이 없으면 아래 기준으로 처리한다.
-
-```text
-우선순위:
-1. 기존 pfw_batch_execution / pfw_batch_step_execution 컬럼 활용
-2. 기존 컬럼으로 부족하면 최소 SQL 변경
-3. SQL 변경 시 Flyway migration, all_install, smoke SQL, SQL 가이드, 기능 매트릭스, 리포트 반영
-```
-
-SQL 변경이 없으면 “기존 테이블 활용, SQL 변경 없음”으로 리포트에 기록한다.
+온라인 거래 메타가 미구현이면 미구현으로 기록한다.
+문서에만 있으면 문서만 존재한다고 기록한다.
+Controller annotation만 있고 DB upsert가 없으면 부분 구현으로 기록한다.
 
 ---
 
-## 5. 장시간 실행 smoke Job 기준
+## 6. 로그 정책 현재 상태 판정
 
-즉시 끝나는 Job만으로는 heartbeat 갱신을 검증할 수 없다.
-이번 작업에서는 heartbeat가 여러 번 갱신될 수 있는 장시간 smoke Job을 추가하거나 기존 smoke Job을 보강한다.
+파일 로그와 DB 로그 정책이 온라인/배치 모두에서 균형 있게 설계되어 있는지 확인한다.
 
-필수 기준:
+필수 판정 항목:
 
-```text
-- 최소 10초 이상 실행되는 smoke Job 또는 Step
-- 실행 중 heartbeat가 2회 이상 갱신되는지 확인
-- 실행 중 step 상태가 RUNNING으로 조회되는지 확인
-- 완료 후 상태가 COMPLETED로 변경되는지 확인
-- 실패 케이스에서 상태가 FAILED로 변경되는지 확인
+```text id="z02me0"
+- application.yml 또는 profile yml의 기본 로그 정책
+- 파일 로그 기본 정책
+- DB 로그 저장 정책
+- 온라인 거래별 DB 로그 ON/OFF 가능 여부
+- 배치 Job별 DB 로그 ON/OFF 가능 여부
+- 배치 Step별 DB 로그 ON/OFF 가능 여부
+- ADM override 구조 존재 여부
+- override 기간/사유/변경자/감사 이력 존재 여부
+- 로그 정책 우선순위 문서화 여부
 ```
 
-테스트 시간이 너무 길어지지 않도록 기본 smoke는 짧게 유지하되, heartbeat 검증에 필요한 최소 시간은 확보한다.
+로그 정책 우선순위는 아래 기준으로 맞춘다.
+
+```text id="7lxvsu"
+1. ADM 활성 override
+2. DB 운영 정책
+3. application.yml 기본값
+4. CPF 기본값
+```
+
+이번 작업에서 로그 정책 전체 구현을 하지 않는다.
+다만 실제 구현 상태와 문서 상태가 다르면 리포트와 매트릭스에 반영한다.
 
 ---
 
-## 6. Ghost 자동 감지 기준
+## 7. 온라인·배치 공통 운영 기준 정렬
 
-기존 ghost 후보 조회/조치가 수동 중심이었다면, 이번 작업에서는 timeout 기준으로 ghost candidate를 자동 감지해야 한다.
+문서와 매트릭스에서 온라인과 배치가 아래 공통 축을 공유하도록 정리한다.
 
-필수 구현 기준:
-
-```text
-- RUNNING 상태 execution 조회
-- 마지막 heartbeat 시각과 현재 시각 비교
-- heartbeat timeout 초과 시 ghost candidate 판정
-- ghost candidate 이력 저장 또는 상태 갱신
-- pfw_batch_ghost_event 또는 동등 테이블에 감지 이력 기록
-- 중복 ghost event 생성 방지
-- ADM에서 자동 감지된 ghost candidate 조회 가능
-- 운영자 조치 전에는 임의로 lock을 해제하지 않음
+```text id="sqlodp"
+공통 축:
+- transactionGlobalId
+- traceId / spanId
+- 표준 응답
+- 표준 오류
+- 표준 헤더
+- 권한
+- 감사 로그
+- 오류 로그
+- 파일 로그
+- DB 로그
+- 로그 정책 override
+- Swagger/OpenAPI
+- EDU 샘플
+- ADM 관제
 ```
 
-ghost 자동 감지는 실행 주체를 명확히 한다.
+온라인과 배치의 차이도 명확히 적는다.
 
-```text
-허용 구조:
-- PFW 공통 GhostDetectionService 제공
-- ADM 또는 BAT가 scheduler로 해당 service를 호출
-- 기본값은 운영 관제 관점에서 ADM scheduler 또는 별도 운영 scheduler가 실행해도 됨
-- BAT worker가 자기 heartbeat를 남기고, 감지 service는 공통 메타를 기준으로 판단
+```text id="i0gixn"
+온라인:
+- Controller/API 단위 거래 메타
+- RequestMapping/annotation scan
+- 거래별 로그/오류/감사 연결
+- 짧은 요청/응답 트랜잭션
+
+배치:
+- Job/Step 단위 메타
+- JobExecutionId / StepExecutionId
+- workerId / serverInstanceId
+- heartbeat / progress / ghost
+- 장시간 실행 트랜잭션
 ```
-
-어느 모듈이 scheduler를 갖는지 리포트와 문서에 명확히 기록한다.
-ADM이 ghost 감지를 수행하더라도 Job/Step 실행 로직을 소유하면 안 된다.
 
 ---
 
-## 7. ADM 관제 연동 기준
+## 8. 기능 구현 매트릭스 보강
 
-ADM에서는 heartbeat와 ghost 자동 감지 결과를 조회할 수 있어야 한다.
+`specs/기능_구현_매트릭스.html`는 배치만 상세하고 온라인이 비어 있으면 안 된다.
+아래 항목을 실제 상태 기준으로 행을 추가하거나 보강한다.
 
-필수 확인:
-
-```text
-- worker 상태 조회 API에서 lastHeartbeatAt 확인
-- worker 상태 조회 API에서 현재 실행 중 Job/Step 확인
-- batch execution 조회에서 progressRate 또는 처리 건수 확인
-- batch step execution 조회에서 처리 건수/상태 확인
-- ghost candidate 조회 API에서 자동 감지된 후보 확인
-- ghost 조치 API에서 조치 사유 필수
-- ghost 조치 감사 로그 저장
+```text id="h55wei"
+필수 행:
+- 온라인 거래 메타
+- 온라인 거래 메타 자동 등록
+- 온라인 transactionGlobalId
+- 온라인 오류 로그
+- 온라인 감사 로그
+- 온라인 파일 로그 정책
+- 온라인 DB 로그 정책
+- ADM 로그 정책 override
+- 배치 Job 로그 정책
+- 배치 Step 로그 정책
+- BAT heartbeat/progress
+- BAT ghost detection
+- ADM 배치 관제
+- ADM 거래/오류/감사 관제
 ```
 
-기존 ADM API를 확장할 경우 Controller/Service/DTO/Mapper/Swagger/테스트를 함께 맞춘다.
+상태값은 실제 기준으로 기록한다.
 
-정적 UI marker만으로 ADM 관제 완료 처리하지 않는다.
-브라우저 실제 클릭 검증은 이번 범위가 아니므로 미검증 또는 다음 보강 후보로 남긴다.
+```text id="kvixxv"
+완료
+부분 구현
+미구현
+미검증
+실패
+재확인 필요
+```
+
+완료는 증거가 있을 때만 사용한다.
+미구현 항목을 숨기지 않는다.
 
 ---
 
-## 8. SQL / Flyway / all_install 기준
+## 9. 문서 반영 기준
 
-이번 작업은 가능하면 기존 테이블을 사용한다.
+이번 작업에서 문서는 균형 기준을 중심으로 최소 갱신한다.
 
-기존 사용 우선 대상:
+필수 반영:
 
-```text
-- pfw_batch_worker
-- pfw_batch_execution
-- pfw_batch_step_execution
-- pfw_batch_ghost_event
-- pfw_batch_lock
-- BATCH_JOB_EXECUTION
-- BATCH_STEP_EXECUTION
+```text id="1k6o8j"
+README.md:
+- 현재 CPF 균형 상태 요약
+- 온라인/배치 공통 기준 요약
+- 다음 요청 우선순위 요약
+
+specs/프레임워크_구성_가이드.html:
+- PFW/BAT/ADM/온라인 모듈 책임 경계
+- transactionGlobalId 공통 기준
+- 온라인/배치 운영 메타 차이
+
+specs/개발_가이드.html:
+- 온라인 거래 메타와 배치 메타의 개발 기준 연결
+- Controller/API 거래ID 기준
+- 배치 Job/Step 기준
+
+specs/배치_개발_가이드.html:
+- V10 실제 DB 적용 결과
+- heartbeat/progress 컬럼 기반 검증 결과
+- 온라인 기준과 다른 점 정리
+
+specs/관리자_가이드.html 또는 운영_매뉴얼.html:
+- ADM에서 온라인 거래/배치 관제를 어떻게 분리해서 보는지 정리
+
+specs/SQL_가이드.html:
+- V10 실제 DB 적용 결과
+- 온라인 거래/로그 정책 테이블 현재 상태 판정
+- 배치 메타 테이블과 온라인 거래 메타 테이블 관계
+
+specs/기능_구현_매트릭스.html:
+- 온라인/배치 공통 항목 균형 있게 반영
+
+CPF_STABILIZATION_REPORT.html:
+- 실제 확인 결과와 미구현/미검증 항목 기록
 ```
 
-신규 컬럼 또는 신규 테이블이 필요한 경우에만 SQL을 변경한다.
-
-SQL 변경 시 필수:
-
-```text
-- Flyway migration 추가
-- all_install SQL 반영
-- smoke SQL 반영
-- table comment / column comment
-- 공통 감사 컬럼
-- FK/index
-- README / SQL 가이드 / 기능 매트릭스 / 리포트 반영
-```
-
-센터컷 대량 모수/item/result 테이블은 이번 작업에서 만들지 않는다.
-PFW에 센터컷 대량 테이블을 고정 추가하지 않는다.
+문서에 없는 기능을 완료로 쓰지 않는다.
+구현 없는 문서는 “설계/기준 문서”로 구분한다.
 
 ---
 
-## 9. 테스트 기준
+## 10. 테스트 / 검증 명령
 
-필수 테스트를 추가 또는 보강한다.
+이번 작업은 V10 실제 DB 적용 검증과 상태 판정 중심이다.
+가능한 범위에서 아래를 실행한다.
 
-```text
-BAT 테스트:
-- listener bean 로딩
-- heartbeat interval 설정 로딩
-- heartbeat 갱신 service 호출
-- 장시간 smoke Job 실행 중 heartbeat 2회 이상 갱신
-- 정상 Job 완료 시 COMPLETED 기록
-- 실패 Job 실패 시 FAILED 기록
-- StepExecutionId와 CPF step 메타 연결 유지
-
-Ghost 테스트:
-- RUNNING + heartbeat 정상 범위는 ghost 아님
-- RUNNING + heartbeat timeout 초과는 ghost candidate
-- ghost event 중복 생성 방지
-- ghost 조치 사유 누락 차단
-- ghost 조치 감사 로그 저장
-
-ADM 테스트:
-- worker 상태 조회
-- execution 진행률 조회
-- step 처리 건수 조회
-- ghost candidate 조회
-```
-
-가능하면 실제 MariaDB 또는 프로젝트 기존 테스트 DB 기준으로 검증한다.
-mock만 수행한 경우에는 mock 기반 테스트라고 리포트에 명확히 기록한다.
-
----
-
-## 10. Runtime smoke 기준
-
-`scripts/smoke-bat-runtime.ps1`를 보강하거나 별도 옵션을 추가해 heartbeat/ghost를 검증한다.
-
-필수 smoke 항목:
-
-```text
-- BAT jar 기동
-- health 확인
-- 장시간 smoke Job 실행
-- 실행 중 heartbeat 2회 이상 조회
-- 실행 중 progress 또는 처리 건수 조회
-- Job 완료 후 COMPLETED 확인
-- 실패 Job 실행 후 FAILED 확인
-- ghost timeout 시나리오 가능하면 검증
-- cleanup 확인
-```
-
-ghost timeout 시나리오를 실제 프로세스 kill로 검증하기 어렵다면 아래 중 하나로 대체한다.
-
-```text
-허용 대체:
-- 테스트용 stale heartbeat fixture 생성
-- RUNNING execution의 lastHeartbeatAt을 timeout 이전 시각으로 조정
-- ghost detection service를 실행해 candidate 생성 확인
-```
-
-대체 검증을 사용한 경우 실제 kill 기반 검증은 미검증으로 기록한다.
-
----
-
-## 11. 검증 명령
-
-가능한 범위에서 아래 명령을 실행한다.
-
-```powershell
+```powershell id="uizkw1"
 .\gradlew.bat :bat:test --offline
 .\gradlew.bat :bat:bootJar --offline
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1
 
-.\gradlew.bat :adm:test --offline
 .\gradlew.bat test --offline
 .\gradlew.bat qualityGate --offline
 
@@ -390,190 +412,134 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.p
 
 가능하면 ADM runtime smoke도 재실행한다.
 
-```powershell
+```powershell id="8woccc"
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
 ```
 
-전체 MariaDB 설치 SQL 재실행은 이번 요청 필수 범위가 아니다.
-실행하지 않았으면 성공으로 기록하지 말고 범위 제외 또는 미검증으로 기록한다.
+V10 DB 적용 검증은 실제 MariaDB 기준으로 수행한다.
+실제 MariaDB에 적용하지 못했으면 성공으로 기록하지 않는다.
 
 ---
 
-## 12. 문서 반영 기준
-
-이번 작업에서 문서는 기능 변경과 함께 최소 범위로 현행화한다.
-
-필수 반영:
-
-```text
-README.md:
-- BAT heartbeat/ghost 자동 감지 요약
-- smoke-bat-runtime 검증 명령 갱신
-
-specs/배치_개발_가이드.html:
-- listener heartbeat 기준
-- 처리율/진행률 갱신 기준
-- ghost 자동 감지 기준
-- 장시간 Job 작성 시 주의사항
-- JobRepository와 CPF 운영 메타 연결 기준
-
-specs/운영_매뉴얼.html:
-- worker heartbeat 모니터링
-- ghost candidate 자동 감지
-- ghost 조치 절차
-- lock 해제 주의사항
-- 장애 후 재기동 절차
-
-specs/관리자_가이드.html:
-- ADM에서 worker/ghost/progress 확인하는 방법
-
-specs/SQL_가이드.html:
-- SQL 변경이 있으면 반영
-- SQL 변경이 없으면 기존 테이블 활용으로 기록
-
-specs/기능_구현_매트릭스.html:
-- BAT heartbeat/ghost 자동 감지 상태 반영
-
-CPF_STABILIZATION_REPORT.html:
-- 실제 작업 결과와 검증 결과 기록
-```
-
-문서만 수정하고 코드/테스트가 없으면 완료가 아니다.
-
----
-
-## 13. CPF_STABILIZATION_REPORT.html 기록 기준
+## 11. CPF_STABILIZATION_REPORT.html 기록 기준
 
 리포트에는 아래 형식으로 기록한다.
 
-```text
-[BAT 실행 중 Heartbeat / 처리율 갱신 / Ghost 자동 감지]
+```text id="mhakbq"
+[프레임워크 균형 게이트 / V10 실제 DB 적용 / 온라인·배치 공통 운영 기준 정렬]
 
 현재 상태 판정:
-- 기존 heartbeat 방식:
-- 기존 ghost 조회/조치 방식:
-- 기존 worker 테이블 상태:
-- 기존 execution/step 메타 상태:
-- 기존 smoke-bat-runtime 상태:
-- 미구현/미검증 항목:
+- V10 실제 DB 적용:
+- BAT heartbeat/progress fallback 제거 여부:
+- 온라인 거래 메타:
+- 온라인 로그 정책:
+- 온라인 오류/감사 로그:
+- ADM 온라인 거래 관제:
+- 배치 메타/로그 정책:
+- 문서/매트릭스 균형 상태:
 
-개발 기능:
-- listener:
-- heartbeat service:
-- progress/metring 갱신:
-- ghost detection service:
-- scheduler 위치:
-- ADM API/DTO/Service/Mapper 변경:
-- SQL 변경 여부:
-- smoke script 변경:
-- 문서 변경:
+실제 확인:
+- 확인한 소스:
+- 확인한 SQL:
+- 확인한 문서:
+- 실행한 명령:
+- 실제 결과:
 
-테스트:
-- :bat:test:
-- :bat:bootJar:
-- smoke-bat-runtime:
-- :adm:test:
-- 전체 test:
-- qualityGate:
-- check scripts:
-- ADM runtime smoke:
+보강 내용:
+- README:
+- 프레임워크 구성 가이드:
+- 개발 가이드:
+- 배치 개발 가이드:
+- 관리자/운영 매뉴얼:
+- SQL 가이드:
+- 기능 구현 매트릭스:
 
-검증 결과:
-- heartbeat 2회 이상 갱신:
-- 진행률/처리율 갱신:
-- 정상 Job 완료:
-- 실패 Job 실패 처리:
-- ghost candidate 자동 생성:
-- ghost 조치 사유 검증:
-- 감사 로그 저장:
+미구현:
+- 미구현 항목:
+- 다음 요청 후보:
 
 미검증:
 - 미검증 항목:
 - 미검증 사유:
-- 다음 조치:
 
 아키텍처 영향:
-- PFW 책임:
-- BAT 책임:
-- ADM 책임:
-- 센터컷 확장성 영향:
+- PFW:
+- BAT:
+- ADM:
+- 온라인 거래:
+- 센터컷 확장성:
 
 최종 판정:
 - 완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요
 ```
 
 실행하지 않은 검증은 성공으로 기록하지 않는다.
-mock 검증은 mock 검증이라고 적는다.
-실제 runtime smoke는 실제 runtime smoke라고 구분한다.
+상태 판정과 구현 완료를 혼동하지 않는다.
 
 ---
 
-## 14. 완료 기준
+## 12. 완료 기준
 
-아래가 모두 충족되어야 완료로 기록한다.
+아래가 모두 충족되어야 이번 요청을 완료로 기록한다.
 
-```text
-- BAT 실행 중 heartbeat가 주기적으로 갱신된다.
-- 장시간 smoke Job에서 heartbeat가 2회 이상 갱신된다.
-- JobExecutionId / StepExecutionId / CPF executionId / transactionGlobalId 연결이 유지된다.
-- 처리 건수 또는 진행률이 실행 중 갱신된다.
-- 정상 Job 완료 시 COMPLETED 상태가 기록된다.
-- 실패 Job 실패 시 FAILED 상태가 기록된다.
-- heartbeat timeout 기준 ghost candidate가 자동 감지된다.
-- ghost event 또는 candidate 이력이 저장된다.
-- ADM에서 ghost candidate를 조회할 수 있다.
-- ghost 조치 사유 누락이 차단된다.
-- ghost 조치 감사 로그가 저장된다.
-- :bat:test, :bat:bootJar, smoke-bat-runtime이 통과한다.
-- README/specs/기능 매트릭스/리포트가 실제 상태와 일치한다.
-- 실행하지 않은 검증을 성공으로 기록하지 않는다.
+```text id="c6g7wl"
+- V10 migration이 실제 MariaDB에 적용되었다.
+- pfw_batch_execution V10 컬럼이 information_schema 기준으로 확인되었다.
+- pfw_batch_step_execution V10 컬럼이 information_schema 기준으로 확인되었다.
+- BAT heartbeat Job이 fallback 없이 V10 컬럼 기반으로 progress/heartbeat를 검증했다.
+- 온라인 거래 메타 현재 상태가 실제 소스/SQL 기준으로 판정되었다.
+- 온라인 로그 정책 현재 상태가 실제 소스/SQL 기준으로 판정되었다.
+- 기능 구현 매트릭스에 온라인/배치 공통 항목이 균형 있게 반영되었다.
+- README와 specs 문서가 온라인/배치/ADM/PFW 책임 경계를 일관되게 설명한다.
+- 미구현/미검증 항목이 숨겨지지 않았다.
+- 다음 요청 우선순위가 프레임워크 전체 균형 관점에서 정리되었다.
 ```
 
 ---
 
-## 15. 완료 불인정 기준
+## 13. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 기록하지 않는다.
 
-```text
-- heartbeat 조회 API만 있고 실행 중 주기 갱신 없음
-- 즉시 종료 Job만 검증하고 장시간 Job heartbeat 검증 없음
-- heartbeat 2회 이상 갱신 증거 없음
-- 처리율/진행률 갱신 없음
-- ghost 후보 수동 조회만 있고 자동 감지 없음
-- ghost event 또는 candidate 이력 없음
-- ghost 조치 사유 누락 차단 없음
-- ADM에서 자동 감지된 ghost candidate 조회 불가
-- JobExecutionId / StepExecutionId / CPF executionId 연결 깨짐
-- BAT가 PFW 공통 API를 우회해 자체 실행 구현
-- ADM이 Job/Step 실행 로직을 직접 소유
-- PFW가 BAT runtime 책임을 소유
-- 센터컷 대량 모수/item/result 테이블을 PFW에 고정 추가
-- SQL 변경이 있는데 Flyway/all_install/SQL 가이드 반영 없음
-- 테스트 없이 완료 기록
+```text id="3fvssi"
+- V10 실제 DB 적용 없이 완료 처리
+- fallback 경로로 smoke가 성공했는데 V10 컬럼 검증 성공으로 기록
+- 온라인 거래 메타를 확인하지 않고 배치만 정리
+- 온라인 로그 정책을 확인하지 않고 배치 로그만 정리
+- 기능 구현 매트릭스가 배치 중심으로만 갱신됨
+- 미구현 항목을 숨김
+- 문서 기준과 실제 소스/SQL 상태가 다름
+- 이번 요청 범위를 넘어 온라인 거래 메타 전체 구현 또는 로그 정책 전체 구현을 시작함
+- 이번 요청 범위를 넘어 배치 운영 정책/센터컷/온디맨드 구현을 시작함
 - 실행하지 않은 검증을 성공으로 기록
-- CPF_STABILIZATION_REPORT.html과 실제 소스 상태 불일치
 ```
 
 ---
 
-## 16. 다음 보강 후보로만 기록할 항목
+## 14. 다음 보강 후보 정렬 기준
 
-이번 작업 이후 다음 보강 후보는 아래 순서로 기록한다.
+이번 작업 이후 다음 요청 후보는 실제 판정 결과를 기준으로 정렬한다.
+다만 기본 방향은 아래 순서를 따른다.
 
-```text
-1. ADM 브라우저 실제 클릭 자동화
-2. 온디맨드 배치
-3. 센터컷 기본 구현체 + 업무별 커스텀 모수/item/result 테이블 연동
-4. BAT EDU / XYZ EDU 배치 샘플 보강
-5. 온라인/배치 로그 정책 + 거래 메타 자동 등록
-6. Redis/Kafka/MQ 실 broker 장애 시나리오 검증
-7. 트랜잭션 가이드 정본화
+```text id="j49i06"
+1. 온라인 거래 메타 자동 등록 + 거래 로그 정책 최소 구현
+2. ADM 배치 운영 정책 / 등록 옵션 / 파라미터 / Lock / BAT EDU
+3. ADM 거래/오류/감사/로그 관제 연결
+4. ADM 브라우저 실제 클릭 자동화
+5. 온디맨드 배치
+6. 센터컷 기본 구현체 + 업무별 커스텀 모수/item/result 테이블 연동
+7. BAT EDU / XYZ EDU 추가 샘플 보강
+8. 트랜잭션 가이드 정본화
+9. Redis/Kafka/MQ mock/fallback 및 실 broker 미검증 절차
 ```
 
-센터컷 후속 작업 기준은 아래 방향을 유지한다.
+온라인 거래 쪽이 너무 미구현이면 1번을 먼저 한다.
+배치 운영 정책이 더 큰 리스크로 확인되면 2번을 먼저 한다.
+둘 다 비슷하면 온라인 거래 메타를 먼저 닫아 프레임워크 균형을 맞춘다.
 
-```text
+센터컷 후속 작업 기준은 계속 유지한다.
+
+```text id="bo0ilv"
 - PFW는 센터컷 대량 모수/item/result 테이블을 직접 소유하지 않음
 - BAT는 기본 센터컷 모수/item/result 테이블과 기본 구현체 제공
 - 업무 주제영역은 커스텀 모수/item/result 테이블을 추가할 수 있음

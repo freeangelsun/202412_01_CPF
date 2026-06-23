@@ -15,27 +15,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * CPF 기능 설명입니다.
+ * 거래별 동적 로그 레벨을 런타임 메모리에 보관하고 조회합니다.
  *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * <p>ADM에서 등록한 규칙은 DB 또는 broker 동기화를 통해 이 서비스로 반영됩니다.
+ * 현재 클래스는 실제 로그 출력 전에 적용할 최종 런타임 규칙을 결정하는 책임만 가집니다.</p>
  */
 @Service
 public class DynamicTransactionLogLevelService {
     private final ConcurrentMap<String, DynamicLogLevelRule> rules = new ConcurrentHashMap<>();
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * 운영 요청을 검증한 뒤 TTL이 있는 런타임 규칙으로 등록합니다.
      */
     public DynamicLogLevelRule register(DynamicLogLevelRequest request) {
         if (!hasText(request.getTransactionId()) && !hasText(request.getBusinessTransactionId())) {
             throw new CpfFrameworkException(
                     CpfFrameworkErrorCode.DYNAMIC_LOG_RULE_INVALID,
-                    "CPF 처리 기준입니다.",
+                    "동적 로그 레벨은 트랜잭션 ID 또는 업무 거래 ID 중 하나가 필요합니다.",
                     Map.of("requiredFields", "transactionId,businessTransactionId"));
         }
 
@@ -79,12 +75,10 @@ public class DynamicTransactionLogLevelService {
     }
 
     /**
-     * CPF 기능 설명입니다.
+     * 현재 거래 조건에 가장 최근 등록된 유효 규칙을 찾습니다.
      *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * <p>트랜잭션 ID 또는 업무 거래 ID가 일치하고, 모듈 조건이 비어 있거나 같은 경우만
+     * 적용 대상으로 봅니다.</p>
      */
     public Optional<DynamicLogLevelRule> resolve(String transactionId, String businessTransactionId, String moduleId) {
         cleanupExpired();
@@ -98,9 +92,7 @@ public class DynamicTransactionLogLevelService {
     }
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
+     * 만료되지 않은 런타임 규칙을 최신 등록 순으로 조회합니다.
      */
     public List<DynamicLogLevelRule> findActiveRules() {
         cleanupExpired();
@@ -110,17 +102,14 @@ public class DynamicTransactionLogLevelService {
     }
 
     /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
+     * 규칙 ID로 런타임 규칙을 제거합니다.
      */
     public boolean remove(String ruleId) {
         return rules.remove(ruleId) != null;
     }
 
     /**
-     * CPF 기능 설명입니다.
+     * 모든 런타임 규칙을 비웁니다.
      */
     public void clear() {
         rules.clear();

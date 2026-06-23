@@ -99,6 +99,22 @@
       </tbody>
     </table>
     <p><code>CPF_BAT_HEARTBEAT_JOB</code>은 heartbeat 검증용 smoke Job입니다. 기본 설정은 <code>cpf.bat.smoke.heartbeat-iterations</code>와 <code>cpf.bat.smoke.heartbeat-sleep-ms</code>로 조정하며, smoke script는 <code>heartbeatCount=</code> step log와 처리 건수 2회 이상 갱신을 확인합니다.</p>
+    <p>2026-06-23 로컬 MariaDB 기준으로 V10 컬럼을 실제 적용했고, BAT runtime smoke에서 <code>pfw_batch_execution.processed_count</code>, <code>progress_rate</code>, <code>last_heartbeat_at</code>과 <code>pfw_batch_step_execution</code>의 동일 진행률 컬럼이 fallback 없이 갱신되는 것을 확인했습니다.</p>
+  </section>
+
+  <section>
+    <h2>온라인 기준과 다른 점</h2>
+    <table>
+      <thead>
+      <tr><th>축</th><th>온라인 API</th><th>배치 Job</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>메타 단위</td><td>Controller/API 단위 <code>@CpfTransaction</code></td><td>Job/Step 단위 <code>pfw_batch_job</code>, <code>pfw_batch_step_execution</code></td></tr>
+      <tr><td>실행 시간</td><td>짧은 요청/응답 트랜잭션</td><td>장시간 실행 가능성이 있어 heartbeat와 progress가 필요합니다.</td></tr>
+      <tr><td>원천 실행 메타</td><td><code>pfw_transaction_log</code> 중심</td><td>Spring Batch <code>BATCH_*</code>와 CPF <code>pfw_batch_*</code>를 연결합니다.</td></tr>
+      <tr><td>운영 조치</td><td>로그 조회, 오류 확인, 감사 추적</td><td>수동 실행, 재수행, 중지, lock 해제, ghost 조치까지 포함합니다.</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section>

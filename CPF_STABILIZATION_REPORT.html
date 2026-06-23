@@ -2,59 +2,58 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
-    body { font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; margin: 0; color: #1f2937; background: #f8fafc; }
-    main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
-    h1 { font-size: 28px; margin: 0 0 8px; }
-    h2 { font-size: 20px; margin-top: 32px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
-    table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; font-size: 14px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px 10px; vertical-align: top; }
-    th { background: #eef2ff; text-align: left; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #047857; font-weight: 700; }
-    .warn { color: #b45309; font-weight: 700; }
-    .skip { color: #6b7280; font-weight: 700; }
+    .ok { color: #166534; font-weight: 700; }
+    .warn { color: #92400e; font-weight: 700; }
+    .fail { color: #991b1b; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>작성일시: 2026-06-23 09시 기준</p>
-    <p>요청서 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다. Git commit, push, branch 생성, 수정파일 목록 산출물 생성은 수행하지 않았습니다.</p>
+    <h1>프레임워크 균형 게이트 / V10 실제 DB 적용 / 온라인·배치 공통 운영 기준 정렬</h1>
+    <p>이번 작업은 신규 대형 기능 구현이 아니라 실제 MariaDB V10 적용, BAT heartbeat/progress fallback 제거 검증, 온라인 거래 메타와 로그 정책 상태 판정, 문서와 기능 매트릭스 균형 조정을 목표로 수행했습니다.</p>
   </section>
 
   <section>
-    <h2>사전 점검 결과</h2>
+    <h2>현재 상태 판정</h2>
     <table>
       <thead>
-      <tr><th>점검 항목</th><th>확인 결과</th><th>조치</th></tr>
+      <tr><th>항목</th><th>상태</th><th>판정 근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>BAT 모듈과 health API</td><td class="ok">존재 확인</td><td><code>BatHealthController</code>에 heartbeat smoke Job 노출을 유지했습니다.</td></tr>
-      <tr><td>정상 및 실패 smoke Job</td><td class="ok">존재 확인</td><td>기존 Job에 <code>CpfBatchRuntimeListener</code>를 연결했습니다.</td></tr>
-      <tr><td>worker heartbeat와 ghost 테이블</td><td class="ok">존재 확인</td><td>기존 <code>pfw_batch_worker</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_ghost_event</code>를 확장 사용했습니다.</td></tr>
-      <tr><td>기존 local DB 상태</td><td class="warn">V10 컬럼 미적용 상태로 확인</td><td>코드는 구버전 DB에서도 fallback으로 실행되게 유지했고, 신규 설치 SQL과 Flyway V10에 컬럼을 반영했습니다.</td></tr>
+      <tr><td>V10 실제 DB 적용</td><td class="ok">완료</td><td>로컬 MariaDB에 V10 SQL을 직접 적용했고 <code>pfw_batch_execution</code> 11개 컬럼, <code>pfw_batch_step_execution</code> 10개 컬럼, heartbeat index 2개를 information_schema 기준으로 확인했습니다.</td></tr>
+      <tr><td>BAT heartbeat/progress fallback 제거</td><td class="ok">완료</td><td>BAT runtime smoke에서 <code>CPF_BAT_HEARTBEAT_JOB</code>이 V10 컬럼 기반 <code>processed_count</code>, <code>progress_rate</code>, <code>last_heartbeat_at</code>을 갱신했습니다.</td></tr>
+      <tr><td>온라인 거래 메타</td><td class="warn">부분 구현</td><td><code>@CpfTransaction</code>과 표준 헤더 검증은 있으나 전용 거래 메타 테이블과 자동 등록 구조는 없습니다.</td></tr>
+      <tr><td>온라인 로그 정책</td><td class="warn">부분 구현</td><td><code>LoggingAspect</code>, <code>TransactionLogListener</code>, <code>pfw_transaction_log</code> 기반 DB 로그 저장은 있습니다. 거래별 파일/DB 로그 정책 테이블과 ADM override는 없습니다.</td></tr>
+      <tr><td>온라인 오류/감사 로그</td><td class="warn">부분 구현</td><td>오류는 거래 로그 실패 레코드와 상세 로그로 저장합니다. 별도 <code>pfw_error_log</code>, <code>pfw_audit_log</code>는 없고 운영 감사는 <code>adm_audit_log</code>가 담당합니다.</td></tr>
+      <tr><td>ADM 온라인 거래 관제</td><td class="warn">부분 구현</td><td><code>AdmLogController</code>와 <code>AdmLogQueryService</code>가 거래 로그 검색, JSON pretty, 기본 고정길이 전문 분해를 제공합니다. 거래 메타/로그 정책 관리 API는 없습니다.</td></tr>
+      <tr><td>배치 메타/로그 정책</td><td class="warn">부분 구현</td><td>Spring Batch <code>BATCH_*</code>, CPF <code>pfw_batch_*</code>, operation log, ghost 후보 기반은 있습니다. Job/Step별 로그 정책 override는 없습니다.</td></tr>
+      <tr><td>문서/매트릭스 균형 상태</td><td class="ok">완료</td><td>README와 HTML 가이드, 기능 구현 매트릭스에 온라인과 배치 상태를 분리해 반영했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>구현 내용</h2>
+    <h2>실제 확인</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th><th>주요 증거</th></tr>
+      <tr><th>구분</th><th>확인 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW Batch runtime</td><td>CPF execution을 Spring Batch 실행 전에 생성하고 JobParameter로 전달하도록 보강했습니다. Job과 Step listener가 같은 execution row에 실행 중 상태와 처리량을 갱신합니다.</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchHeartbeatService</code>, <code>CpfBatchRuntimeListener</code></td></tr>
-      <tr><td>진행률 메타</td><td>total, processed, success, failure, retry, progressRate, tps, 평균 및 최대 처리시간, currentStep, lastHeartbeat를 공통 value object로 계산합니다.</td><td><code>CpfBatchRuntimeProgress</code></td></tr>
-      <tr><td>Step log 보존</td><td>실행 중 heartbeat log가 Step 종료 시 commit log로 덮이지 않도록 step log를 누적 방식으로 변경했습니다.</td><td><code>CpfBatchOperationRepository.upsertStepRuntime</code></td></tr>
-      <tr><td>ghost 자동 감지</td><td>ADM ghost 후보 조회 전에 heartbeat timeout 기준으로 <code>pfw_batch_ghost_event</code> 후보 이벤트를 중복 없이 등록합니다.</td><td><code>CpfBatchGhostDetectionService</code>, <code>AdmBatchOperationService.findGhostCandidates</code></td></tr>
-      <tr><td>BAT heartbeat smoke</td><td><code>CPF_BAT_HEARTBEAT_JOB</code>과 전용 Tasklet을 추가해 최소 2회 이상 heartbeat와 처리 건수 갱신을 검증합니다.</td><td><code>BatHeartbeatSmokeTasklet</code>, <code>BatSmokeJobConfig</code></td></tr>
-      <tr><td>SQL과 Flyway</td><td>배치 실행 및 Step 테이블에 진행률과 heartbeat 컬럼을 추가하고 신규 migration을 추가했습니다.</td><td><code>V10__batch_heartbeat_progress_ghost_detection.sql</code>, 설치 SQL 합본</td></tr>
-      <tr><td>문서</td><td>README, 배치 개발 가이드, 운영 매뉴얼, 관리자 가이드, SQL 가이드, 기능 구현 매트릭스를 현재 코드 기준으로 현행화했습니다.</td><td>HTML 가이드와 README</td></tr>
+      <tr><td>확인한 소스</td><td><code>CpfTransaction</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>TransactionLogListener</code>, <code>TransactionLogMapper.xml</code>, <code>AdmLogController</code>, <code>AdmLogQueryService</code>, <code>AdmBatchController</code>, <code>AdmBatchOperationService</code></td></tr>
+      <tr><td>확인한 SQL</td><td><code>10_pfw_schema.sql</code>, <code>30_adm_schema.sql</code>, <code>V10__batch_heartbeat_progress_ghost_detection.sql</code>, 전체 설치 SQL과 smoke SQL의 거래 로그 및 배치 메타 구간</td></tr>
+      <tr><td>확인한 문서</td><td>README, 프레임워크 구성 가이드, 개발 가이드, 배치 개발 가이드, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 기능 구현 매트릭스</td></tr>
+      <tr><td>실행한 명령</td><td><code>:bat:test</code>, <code>:bat:bootJar</code>, BAT runtime smoke, MariaDB V10 SQL 직접 적용, information_schema 컬럼/index 조회, 전체 Gradle test, qualityGate, ADM runtime smoke</td></tr>
+      <tr><td>실제 결과</td><td>BAT heartbeat execution은 <code>processed_count=4</code>, <code>progress_rate=100.00</code>, <code>last_heartbeat_at</code> 갱신을 보였고 step execution도 동일하게 진행률 컬럼이 갱신되었습니다. ADM runtime smoke는 health, OpenAPI, 배치 API marker, static UI, cleanup을 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -66,48 +65,89 @@
       <tr><th>검증</th><th>결과</th><th>메모</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:compileJava --offline</code></td><td class="ok">성공</td><td>PFW 신규 heartbeat와 ghost 서비스 컴파일 확인</td></tr>
-      <tr><td><code>.\gradlew.bat :bat:test --offline</code></td><td class="ok">성공</td><td>BAT 모듈 테스트 통과</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="ok">성공</td><td>ADM ghost 자동 감지 호출 테스트 포함</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 Gradle 테스트 통과</td></tr>
-      <tr><td><code>.\gradlew.bat :bat:bootJar --offline</code></td><td class="ok">성공</td><td>BAT 실행 jar 생성 확인</td></tr>
-      <tr><td><code>scripts/smoke-bat-runtime.ps1</code></td><td class="ok">성공</td><td>정상 Job, heartbeat Job, 실패 Job, cleanup 통과. heartbeat Job은 writeCount 4, step log에 heartbeatCount 1부터 4까지 기록됨</td></tr>
-      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL 표준 검사 통과</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8와 mojibake 검사 통과</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>기능 증거 검사 통과</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>HTML 문서, Java format, legacy name, mojibake, sample, security seed, SQL, transaction ID, 전체 테스트를 포함해 통과</td></tr>
-      <tr><td>MariaDB V10 migration 실제 적용</td><td class="skip">미검증</td><td>이번 자동 검증에서는 기존 local DB에 신규 V10을 직접 적용하지 않았습니다. runtime smoke는 구버전 DB fallback 경로로 성공했습니다.</td></tr>
+      <tr><td><code>:bat:test</code></td><td class="ok">완료</td><td>BAT 모듈 테스트가 성공했습니다.</td></tr>
+      <tr><td><code>:bat:bootJar</code></td><td class="ok">완료</td><td>BAT runtime smoke용 jar 생성이 성공했습니다.</td></tr>
+      <tr><td>BAT runtime smoke</td><td class="ok">완료</td><td>정상 Job, heartbeat Job, 실패 Job, cleanup을 통과했습니다.</td></tr>
+      <tr><td>MariaDB V10 적용</td><td class="ok">완료</td><td>migration 전 컬럼 0개 상태에서 V10 SQL 적용 후 컬럼과 index를 확인했습니다.</td></tr>
+      <tr><td><code>test</code></td><td class="ok">완료</td><td>전체 Gradle 테스트가 성공했습니다.</td></tr>
+      <tr><td><code>qualityGate</code></td><td class="ok">완료</td><td>HTML 문서, Java format, legacy name, mojibake, sample, security seed, SQL, transaction ID, UTF-8, 테스트가 통과했습니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td class="ok">완료</td><td>ADM health, OpenAPI, 배치 API marker, static UI, cleanup이 성공했습니다. 브라우저 클릭 자동화는 runtime 부재로 skip되었습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>남은 리스크</h2>
+    <h2>보강 내용</h2>
     <table>
       <thead>
-      <tr><th>리스크</th><th>현재 상태</th><th>다음 조치</th></tr>
+      <tr><th>대상</th><th>반영 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td>기존 DB의 V10 미적용</td><td class="warn">local smoke 결과에서 확장 컬럼은 아직 비어 있음</td><td>운영 또는 개발 DB에는 Flyway V10을 적용한 뒤 ADM 목록에서 progress와 lastHeartbeat를 재확인합니다.</td></tr>
-      <tr><td>ghost 주기 scheduler</td><td class="warn">ADM 조회 시 자동 감지까지 구현</td><td>별도 scheduler로 주기 감지를 수행하고 장애 시나리오 테스트를 추가합니다.</td></tr>
-      <tr><td>브라우저 클릭 UX 검증</td><td class="skip">미검증</td><td>ADM 화면 실제 클릭 자동화는 별도 Playwright 또는 브라우저 smoke로 보강합니다.</td></tr>
-      <tr><td>Redis, Kafka, MQ 장애 시나리오</td><td class="skip">미검증</td><td>외부 broker 연동과 fallback 장애 시나리오는 별도 환경에서 검증합니다.</td></tr>
+      <tr><td>README</td><td>온라인/배치 균형 상태, V10 실제 검증 결과, 다음 우선순위를 짧은 진입점 기준으로 추가했습니다.</td></tr>
+      <tr><td>프레임워크 구성 가이드</td><td>PFW, BAT, ADM, 온라인 모듈 책임과 공통 운영 축, 로그 정책 우선순위를 정리했습니다.</td></tr>
+      <tr><td>개발 가이드</td><td>온라인 거래 메타 개발 기준, 거래 글로벌 ID 전파, 거래 로그 저장, 자동 등록 미구현 상태를 추가했습니다.</td></tr>
+      <tr><td>배치 개발 가이드</td><td>V10 실제 DB 적용과 fallback 없는 heartbeat/progress 검증 결과, 온라인 기준과 배치 기준 차이를 추가했습니다.</td></tr>
+      <tr><td>관리자/운영 문서</td><td>ADM 온라인 거래 관제와 배치 관제를 분리해 보는 기준, 공통 추적 기준을 추가했습니다.</td></tr>
+      <tr><td>SQL 가이드</td><td>온라인 거래 메타/로그 정책 테이블의 현재 존재 여부와 V10 실제 적용 결과를 반영했습니다.</td></tr>
+      <tr><td>기능 구현 매트릭스</td><td>온라인 거래 메타, 자동 등록, 오류 로그, 감사 로그, 파일/DB 로그 정책, ADM override, 배치 Job/Step 로그 정책, heartbeat/progress, ghost, ADM 관제 행을 보강했습니다.</td></tr>
+      <tr><td>소스 주석</td><td>PFW logging 핵심 클래스의 placeholder 주석과 깨진 설명을 실제 기능 설명으로 정리했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>다음 보강 후보</h2>
+    <h2>미구현</h2>
     <table>
       <thead>
-      <tr><th>우선순위</th><th>항목</th><th>이유</th></tr>
+      <tr><th>항목</th><th>다음 요청 후보</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>Flyway V10 실제 DB 적용 smoke</td><td>확장 컬럼 기반 progress와 heartbeat 조회를 실제 MariaDB에서 확인해야 합니다.</td></tr>
-      <tr><td>2</td><td>ghost 자동 감지 scheduler</td><td>ADM 조회에 의존하지 않고 운영 주기로 후보를 등록해야 합니다.</td></tr>
-      <tr><td>3</td><td>ADM 배치 화면 progress UX</td><td>progress bar, current step, heartbeat stale 사유를 화면에서 명확히 보여줘야 합니다.</td></tr>
-      <tr><td>4</td><td>배치 장애 시나리오 테스트</td><td>worker 강제 종료, lock 잔존, retry 가능 상태를 통합 smoke로 검증해야 합니다.</td></tr>
-      <tr><td>5</td><td>ondemand batch와 parameter 검증 UI</td><td>운영자가 안전하게 임의 parameter 실행을 요청할 수 있어야 합니다.</td></tr>
+      <tr><td>온라인 거래 메타 전용 테이블</td><td><code>pfw_transaction_meta</code> 설계, RequestMapping scan, 기동 시 upsert, inactive 처리, ADM 관리 API/UI</td></tr>
+      <tr><td>로그 정책 override</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, 정책 감사, 기간/사유/변경자 기준</td></tr>
+      <tr><td>오류 로그 전용 테이블</td><td><code>pfw_error_log</code> 필요 여부 결정. 현재 거래 로그 기반 오류 저장과 분리할지 ADR 작성 필요</td></tr>
+      <tr><td>ADM 로그 정책 관리</td><td>온라인/배치 파일 로그와 DB 로그 ON/OFF, 정책 우선순위, override 만료, 감사 이력 관리</td></tr>
+      <tr><td>배치 고급 운영</td><td>pause/resume, 온디맨드 배치, 운영 정책 전체 자동화, center-cut 기본 구현체</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>미검증</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>미검증 사유</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM 브라우저 실제 클릭 자동화</td><td>이번 요청에서 제외된 항목입니다. 정적 marker와 API 소스 확인만 수행했습니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker 검증</td><td>이번 요청에서 제외된 외부 broker 검증입니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>아키텍처 영향</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>영향</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>PFW</td><td>프레임워크 코어로 거래 ID, 헤더, 응답, 오류, 로그, Batch 공통 API 기준을 제공한다는 경계를 유지했습니다.</td></tr>
+      <tr><td>BAT</td><td>독립 실행 worker와 Spring Batch JobRepository 사용 원칙을 유지하고, V10 진행률 컬럼 기반으로 검증했습니다.</td></tr>
+      <tr><td>ADM</td><td>운영 콘솔이 온라인 거래 관제와 배치 관제를 모두 보되 실행 로직을 직접 소유하지 않는 기준을 문서화했습니다.</td></tr>
+      <tr><td>온라인 거래</td><td>annotation과 로그 저장은 있으나 메타 자동 등록과 정책 override는 다음 단계로 분리했습니다.</td></tr>
+      <tr><td>센터컷 확장성</td><td>이번 범위에서는 구현하지 않고 PFW 기준, BAT 실행, 업무 adapter 확장 원칙만 유지했습니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>최종 판정</h2>
+    <table>
+      <thead>
+      <tr><th>판정</th><th>내용</th></tr>
+      </thead>
+      <tbody>
+      <tr><td class="warn">부분 구현</td><td>V10 실제 DB 적용과 BAT heartbeat/progress 검증, 온라인/배치 균형 문서화는 완료했습니다. 온라인 거래 메타 자동 등록과 로그 정책 override는 명확히 미구현으로 남겼습니다.</td></tr>
       </tbody>
     </table>
   </section>

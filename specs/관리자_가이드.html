@@ -34,7 +34,7 @@
       <tr><td>회원 관리</td><td><code>/adm/api/members</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 권한 변경 이력을 조회합니다.</td></tr>
       <tr><td>로그 관제</td><td><code>/adm/api/logs</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace ID, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 검색합니다.</td></tr>
       <tr><td>거래 메타</td><td><code>/adm/api/transactions</code></td><td><code>pfw_transaction_meta</code></td><td>온라인 Controller/API 메타를 조회하고 재스캔하거나 미사용 거래를 비활성화합니다.</td></tr>
-      <tr><td>로그 정책</td><td><code>/adm/api/log-policies</code></td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책과 기간/사유 기반 임시 override를 관리합니다.</td></tr>
+      <tr><td>로그 정책</td><td><code>/adm/api/log-policies</code></td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책과 기간/사유 기반 임시 override를 관리합니다. 정책 저장, 수정, override 등록/중지는 현재 인스턴스 cache를 evict하고, 필요 시 <code>/adm/api/log-policies/cache/refresh</code> 또는 <code>/adm/api/log-policies/cache/clear</code>로 명시 반영합니다. 캐시 refresh/clear는 별도 버튼 권한(<code>LOG_POLICY_CACHE_REFRESH</code>, <code>LOG_POLICY_CACHE_CLEAR</code>)과 서버 권한검사를 통과해야 합니다.</td></tr>
       <tr><td>배치 관제</td><td><code>/adm/api/batch</code></td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>Job, schedule, execution, step, worker, lock, ghost, 영업일, 수행 대상 관계를 관제합니다.</td></tr>
       <tr><td>캐시 관리</td><td>ADM 캐시 API</td><td><code>pfw_cache_refresh_event</code></td><td>전체 refresh, key refresh, 이벤트 이력, 실패 이력을 조회합니다.</td></tr>
       <tr><td>메시지/코드/응답코드</td><td>ADM 메시지/코드/응답코드 API</td><td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_response_code</code></td><td>등록, 수정, 비활성, cache refresh 연동과 감사 로그를 적용합니다.</td></tr>
@@ -103,7 +103,8 @@
       </thead>
       <tbody>
       <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로 marker가 있는지 확인합니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, cleanup을 검증합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 검증합니다.</td></tr>
+      <tr><td>거래 메타 runtime smoke</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>기동 중인 ADM에 로그인하거나 전달받은 토큰을 사용해 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회를 검증합니다.</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>운영 runbook</td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a></td><td>구동, 중지, 장애 복구, 미검증 보고 원칙을 따릅니다.</td></tr>
       </tbody>

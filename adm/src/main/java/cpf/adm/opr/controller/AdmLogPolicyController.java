@@ -86,6 +86,26 @@ public class AdmLogPolicyController {
         return ResponseEntity.ok(logPolicyService.disableOverride(overrideId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
     }
 
+    @PostMapping("/cache/refresh")
+    @CpfTransaction(id = "ADM03LGP0016", name = "ADMLogPolicyCacheRefresh")
+    @Operation(summary = "로그 정책 cache refresh", description = "지정 대상의 로그 정책을 즉시 재평가하고 현재 인스턴스 cache에 반영합니다.")
+    public ResponseEntity<Map<String, Object>> refreshCache(
+            @RequestParam String targetType,
+            @RequestParam String targetId,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(logPolicyService.refreshCache(targetType, targetId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
+    }
+
+    @PostMapping("/cache/clear")
+    @CpfTransaction(id = "ADM04LGP0017", name = "ADMLogPolicyCacheClear")
+    @Operation(summary = "로그 정책 cache clear", description = "현재 인스턴스의 로그 정책 cache를 전체 비웁니다.")
+    public ResponseEntity<Map<String, Object>> clearCache(
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(logPolicyService.clearCache(reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
+    }
+
     private String requestUser(HttpServletRequest request, String fallback) {
         Object operatorId = request.getAttribute("adm.operatorId");
         if (operatorId instanceof String value && !value.isBlank()) {

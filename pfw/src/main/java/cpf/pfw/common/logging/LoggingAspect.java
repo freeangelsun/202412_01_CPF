@@ -6,6 +6,9 @@ import cpf.pfw.common.exception.CpfException;
 import cpf.pfw.common.exception.CpfMessageResolver;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.logging.policy.LogPolicyDecision;
+import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import cpf.pfw.common.logging.policy.LogPolicyTargetType;
 import cpf.pfw.common.workflow.CpfWorkflow;
 import cpf.pfw.common.workflow.CpfWorkflowContext;
 import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
@@ -59,18 +62,21 @@ public class LoggingAspect {
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
     private final CpfMessageResolver messageResolver;
     private final CpfResponseCodeResolver responseCodeResolver;
+    private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
 
     public LoggingAspect(
             ApplicationEventPublisher eventPublisher,
             Environment environment,
             DynamicTransactionLogLevelService dynamicLogLevelService,
             ObjectProvider<CpfMessageResolver> messageResolverProvider,
-            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
+            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
         this.eventPublisher = eventPublisher;
         this.environment = environment;
         this.dynamicLogLevelService = dynamicLogLevelService;
         this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
+        this.logPolicyResolverProvider = logPolicyResolverProvider;
     }
 
     @Around("execution(* cpf..*Controller.*(..))")
@@ -102,6 +108,10 @@ public class LoggingAspect {
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
         String businessTransactionId = cpfTransaction != null ? cpfTransaction.id() : "UNKNOWN";
         String businessTransactionName = cpfTransaction != null ? cpfTransaction.name() : controller;
+        LogPolicyDecision logPolicy = resolveOnlineLogPolicy(businessTransactionId);
+        if (!logPolicy.requestBodySave()) {
+            requestBody = null;
+        }
         String menuId = firstText(request != null ? request.getParameter("menuId") : null, businessTransactionId);
         TransactionContext.putBusinessTransaction(businessTransactionId, businessTransactionName);
         CpfWorkflowMetadata workflowMetadata = resolveWorkflowMetadata(
@@ -116,7 +126,9 @@ public class LoggingAspect {
 
         CpfWorkflowContext.apply(workflowMetadata);
 
-        logger.info(
+        logByPolicy(
+                logPolicy,
+                CpfLogLevel.INFO,
                 "Transaction started. transactionId={}, businessTransactionId={}, businessTransactionName={}, "
                         + "traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowInstanceId={}, workflowStepId={}, "
                         + "method={}, uri={}, controller={}, executionClass={}, executionMethod={}, clientIp={}, "
@@ -153,9 +165,12 @@ public class LoggingAspect {
             LocalDateTime endTime = LocalDateTime.now();
             long durationMs = elapsedMillis(startNanos);
             ResponseMetadata responseMetadata = resolveResponseMetadata(result, moduleId);
-            String response = SensitiveDataMasker.mask(String.valueOf(result));
+            String rawResponse = SensitiveDataMasker.mask(String.valueOf(result));
+            String response = logPolicy.responseBodySave() ? rawResponse : null;
 
-            logger.info(
+            logByPolicy(
+                    logPolicy,
+                    CpfLogLevel.INFO,
                     "Transaction completed. transactionId={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowStatus={}, compensationYn={}, httpStatus={}, responseCode={}, messageCode={}, durationMs={}",
                     transactionId,
                     traceId,
@@ -214,7 +229,7 @@ public class LoggingAspect {
                     startTime,
                     endTime,
                     durationMs);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule));
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy), logPolicy);
 
             return result;
         } catch (Throwable ex) {
@@ -222,19 +237,38 @@ public class LoggingAspect {
             long durationMs = elapsedMillis(startNanos);
             ErrorMetadata errorMetadata = resolveErrorMetadata(ex, request != null ? request.getLocale() : Locale.KOREAN);
             String errorMessage = SensitiveDataMasker.mask(errorMetadata.errorMessage());
+            String internalErrorMessage = logPolicy.errorStackSave() ? errorMetadata.internalMessage() : null;
 
-            logger.error(
-                    "Transaction failed. transactionId={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowStatus={}, compensationYn={}, durationMs={}, error={}",
-                    transactionId,
-                    traceId,
-                    spanId,
-                    moduleId,
-                    sequenceNo,
-                    workflowStatusName(workflowMetadata, false),
-                    compensationYn(workflowMetadata),
-                    durationMs,
-                    errorMessage,
-                    ex);
+            if (logPolicy.errorStackSave()) {
+                logByPolicy(
+                        logPolicy,
+                        CpfLogLevel.ERROR,
+                        "Transaction failed. transactionId={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowStatus={}, compensationYn={}, durationMs={}, error={}",
+                        transactionId,
+                        traceId,
+                        spanId,
+                        moduleId,
+                        sequenceNo,
+                        workflowStatusName(workflowMetadata, false),
+                        compensationYn(workflowMetadata),
+                        durationMs,
+                        errorMessage,
+                        ex);
+            } else {
+                logByPolicy(
+                        logPolicy,
+                        CpfLogLevel.ERROR,
+                        "Transaction failed. transactionId={}, traceId={}, spanId={}, moduleId={}, sequenceNo={}, workflowStatus={}, compensationYn={}, durationMs={}, error={}",
+                        transactionId,
+                        traceId,
+                        spanId,
+                        moduleId,
+                        sequenceNo,
+                        workflowStatusName(workflowMetadata, false),
+                        compensationYn(workflowMetadata),
+                        durationMs,
+                        errorMessage);
+            }
             logDynamic(
                     dynamicLogLevelRule,
                     "Dynamic transaction diagnostic failed. transactionId={}, businessTransactionId={}, httpStatus={}, responseCode={}, messageCode={}, durationMs={}, errorCode={}, error={}",
@@ -275,14 +309,14 @@ public class LoggingAspect {
                     errorMessage,
                     errorMetadata.errorCode(),
                     errorMetadata.externalMessage(),
-                    errorMetadata.internalMessage(),
+                    internalErrorMessage,
                     execUser,
                     clientIp,
                     userAgent,
                     startTime,
                     endTime,
                     durationMs);
-            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule));
+            publishTransactionLog(record, details(record, transactionHeader, dynamicLogLevelRule, logPolicy), logPolicy);
 
             throw ex;
         }
@@ -403,14 +437,23 @@ public class LoggingAspect {
                 .build();
     }
 
-    private void publishTransactionLog(TransactionLogRecord record, Map<String, String> details) {
-        eventPublisher.publishEvent(new TransactionLogEvent(this, record, details));
+    private void publishTransactionLog(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
+        if (logPolicy != null && !logPolicy.dbLogEnabled()) {
+            logger.debug(
+                    "Transaction DB log skipped by policy. transactionId={}, businessTransactionId={}, source={}",
+                    record != null ? record.getTransactionId() : "N/A",
+                    record != null ? record.getBusinessTransactionId() : "N/A",
+                    logPolicy.resolvedSource());
+            return;
+        }
+        eventPublisher.publishEvent(new TransactionLogEvent(this, record, details, logPolicy));
     }
 
     private Map<String, String> details(
             TransactionLogRecord record,
             TransactionHeader transactionHeader,
-            DynamicLogLevelRule dynamicLogLevelRule) {
+            DynamicLogLevelRule dynamicLogLevelRule,
+            LogPolicyDecision logPolicy) {
         Map<String, String> details = new LinkedHashMap<>();
         putDetail(details, "transaction.id", record.getTransactionId());
         putDetail(details, "trace.id", record.getTraceId());
@@ -461,12 +504,64 @@ public class LoggingAspect {
             putDetail(details, "dynamicLog.reason", dynamicLogLevelRule.reason());
             putDetail(details, "dynamicLog.expiresAt", dynamicLogLevelRule.expiresAt());
         }
+        if (logPolicy != null) {
+            putDetail(details, "logPolicy.targetType", logPolicy.targetType());
+            putDetail(details, "logPolicy.targetId", logPolicy.targetId());
+            putDetail(details, "logPolicy.fileLogLevel", logPolicy.fileLogLevel());
+            putDetail(details, "logPolicy.dbLogEnabled", logPolicy.dbLogEnabledYn());
+            putDetail(details, "logPolicy.dbLogLevel", logPolicy.dbLogLevel());
+            putDetail(details, "logPolicy.requestBodySaveYn", logPolicy.requestBodySaveYn());
+            putDetail(details, "logPolicy.responseBodySaveYn", logPolicy.responseBodySaveYn());
+            putDetail(details, "logPolicy.errorStackSaveYn", logPolicy.errorStackSaveYn());
+            putDetail(details, "logPolicy.maskingPolicyKey", logPolicy.maskingPolicyKey());
+            putDetail(details, "logPolicy.resolvedSource", logPolicy.resolvedSource());
+            putDetail(details, "logPolicy.overrideId", logPolicy.overrideId());
+            putDetail(details, "logPolicy.policyId", logPolicy.policyId());
+        }
         if (transactionHeader != null) {
             putDetail(details, "transactionHeader", transactionHeader.toString());
         }
         putDetail(details, "propagationHeaders", TransactionContext.propagationHeaders().toString());
         putDetail(details, "workflowPropagationHeaders", CpfWorkflowContext.propagationHeaders().toString());
         return details;
+    }
+
+    private LogPolicyDecision resolveOnlineLogPolicy(String businessTransactionId) {
+        LogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
+        if (resolver == null) {
+            return LogPolicyDecision.cpfDefault(LogPolicyTargetType.ONLINE_TRANSACTION, businessTransactionId);
+        }
+        try {
+            return resolver.resolveOnlineTransaction(businessTransactionId);
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to resolve transaction log policy. businessTransactionId={}", businessTransactionId, ex);
+            return LogPolicyDecision.cpfDefault(LogPolicyTargetType.ONLINE_TRANSACTION, businessTransactionId)
+                    .withSource("SAFE_FALLBACK");
+        }
+    }
+
+    private void logByPolicy(LogPolicyDecision logPolicy, CpfLogLevel fallbackLevel, String message, Object... arguments) {
+        CpfLogLevel level = toLogLevel(logPolicy != null ? logPolicy.fileLogLevel() : null, fallbackLevel);
+        switch (level) {
+            case TRACE -> logger.trace(message, arguments);
+            case DEBUG -> logger.debug(message, arguments);
+            case INFO -> logger.info(message, arguments);
+            case WARN -> logger.warn(message, arguments);
+            case ERROR -> logger.error(message, arguments);
+            case OFF -> {
+            }
+        }
+    }
+
+    private CpfLogLevel toLogLevel(String value, CpfLogLevel fallbackLevel) {
+        if (!hasText(value)) {
+            return fallbackLevel;
+        }
+        try {
+            return CpfLogLevel.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return fallbackLevel;
+        }
     }
 
     private void logDynamic(DynamicLogLevelRule rule, String message, Object... arguments) {

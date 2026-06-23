@@ -44,18 +44,18 @@
       <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>남은 리스크</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW</td><td>거래 ID, 거래 헤더, 표준 응답, 예외, 거래 로그</td><td>부분 구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>pfw_transaction_log</code></td><td>거래 메타 자동 등록, 로그 정책 override, 부하 검증은 남아 있습니다.</td></tr>
+      <tr><td>PFW</td><td>거래 ID, 거래 헤더, 표준 응답, 예외, 거래 로그</td><td>부분 구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>LogPolicyResolver</code>, <code>pfw_transaction_log</code></td><td>거래 메타와 로그 정책 런타임 적용은 보강됐고, 부하 검증과 다중 인스턴스 전파는 남아 있습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 거래 메타</td><td>부분 구현</td><td><code>@CpfTransaction</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>pfw_transaction_meta</code>, <code>AdmTransactionMetaController</code></td><td>브라우저 클릭 검증과 대량 운영 UX 고도화는 남아 있습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 거래 메타 자동 등록</td><td>부분 구현</td><td><code>CpfTransactionMetaScanner</code>, <code>CpfTransactionMetaRepository</code>, <code>CpfTransactionMetaAutoConfiguration</code></td><td>운영 DB에 V11 적용 후 실제 앱 기동 scan 결과 검증이 필요합니다.</td></tr>
       <tr><td>온라인</td><td>온라인 transactionGlobalId</td><td>완료</td><td><code>TransactionContextFilter</code>, <code>TransactionContext</code>, <code>TransactionIdGenerator</code></td><td>외부 시스템 간 end-to-end 추적 검증은 별도입니다.</td></tr>
       <tr><td>온라인</td><td>온라인 오류 로그</td><td>부분 구현</td><td><code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>pfw_transaction_log.ERROR_MESSAGE</code>, <code>pfw_transaction_log_detail</code></td><td>별도 <code>pfw_error_log</code> 테이블은 없습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 감사 로그</td><td>부분 구현</td><td><code>adm_audit_log</code>, ADM 운영 조치 API</td><td>모든 온라인 업무 변경 API 감사 강제는 아직 범위가 넓지 않습니다.</td></tr>
-      <tr><td>온라인</td><td>온라인 파일 로그 정책</td><td>부분 구현</td><td>application logging 설정, <code>LoggingAspect</code>, <code>pfw_log_policy</code></td><td>거래별 파일 로그 ON/OFF 정책의 런타임 적용은 아직 남아 있습니다.</td></tr>
-      <tr><td>온라인</td><td>온라인 DB 로그 정책</td><td>부분 구현</td><td><code>TransactionLogListener</code>, <code>TransactionLogMapper.xml</code>, <code>pfw_log_policy_override</code></td><td>거래별 DB 로그 ON/OFF와 기간 override의 런타임 적용은 아직 남아 있습니다.</td></tr>
-      <tr><td>ADM</td><td>로그 정책 override</td><td>부분 구현</td><td><code>AdmLogPolicyController</code>, <code>AdmLogPolicyService</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>실제 런타임 로그 정책 적용과 broker 전파는 남아 있습니다.</td></tr>
+      <tr><td>온라인</td><td>온라인 파일 로그 정책</td><td>부분 구현</td><td><code>LoggingAspect</code>, <code>LogPolicyResolver</code>, <code>LogPolicyCache</code>, <code>pfw_log_policy</code></td><td>거래별 fileLogLevel과 OFF 정책은 런타임 적용됩니다. 다중 인스턴스 즉시 전파는 남아 있습니다.</td></tr>
+      <tr><td>온라인</td><td>온라인 DB 로그 정책</td><td>부분 구현</td><td><code>TransactionLogListener</code>, <code>TransactionLogService</code>, <code>TransactionLogMapper.xml</code>, <code>pfw_log_policy_override</code></td><td>거래별 DB 로그 ON/OFF와 request/response/error 저장 정책은 런타임 적용됩니다. 운영 부하 검증은 남아 있습니다.</td></tr>
+      <tr><td>ADM</td><td>로그 정책 override</td><td>부분 구현</td><td><code>AdmLogPolicyController</code>, <code>AdmLogPolicyService</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>정책 변경 후 현재 인스턴스 cache evict/refresh는 구현됐고, broker 전파는 남아 있습니다.</td></tr>
       <tr><td>PFW</td><td>Batch 공통 API와 CPF Batch 메타</td><td>완료</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>CpfBatchHeartbeatService</code>, <code>CpfBatchRuntimeListener</code>, <code>pfw_batch_*</code></td><td>ghost 주기 scheduler와 broker 장애 시나리오 검증은 다음 보강 후보입니다.</td></tr>
-      <tr><td>배치</td><td>배치 Job 로그 정책</td><td>부분 구현</td><td><code>pfw_batch_job</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_operation_log</code>, <code>pfw_log_policy</code></td><td>Job별 파일/DB 로그 정책 override의 런타임 적용은 아직 남아 있습니다.</td></tr>
-      <tr><td>배치</td><td>배치 Step 로그 정책</td><td>부분 구현</td><td><code>pfw_batch_step_execution</code>, step log, 진행률 컬럼, <code>pfw_log_policy_override</code></td><td>Step별 보존 정책 자동화와 런타임 적용은 아직 남아 있습니다.</td></tr>
+      <tr><td>배치</td><td>배치 Job 로그 정책</td><td>부분 구현</td><td><code>CpfBatchRuntimeListener</code>, <code>LogPolicyResolver</code>, <code>pfw_log_policy</code></td><td>Job 시작 시 <code>BATCH_JOB</code> 정책을 조회해 ExecutionContext에 남깁니다. 별도 배치 로그 저장소 적용은 다음 단계입니다.</td></tr>
+      <tr><td>배치</td><td>배치 Step 로그 정책</td><td>부분 구현</td><td><code>CpfBatchRuntimeListener</code>, <code>pfw_batch_step_execution</code>, <code>pfw_log_policy_override</code></td><td>Step 시작 시 <code>BATCH_STEP</code> 정책을 조회해 ExecutionContext에 남깁니다. Step별 보존 정책 자동화는 남아 있습니다.</td></tr>
       <tr><td>BAT</td><td>standalone 배치 worker</td><td>완료</td><td><code>BatApplication</code>, <code>BatBatchRepositoryConfig</code>, <code>BatSmokeJobConfig</code></td><td>실제 운영 배치 Job 확장은 업무별로 필요합니다.</td></tr>
       <tr><td>BAT</td><td>heartbeat/progress</td><td>완료</td><td><code>V10__batch_heartbeat_progress_ghost_detection.sql</code>, <code>CPF_BAT_HEARTBEAT_JOB</code>, BAT runtime smoke 결과</td><td>운영 장시간 Job 부하 검증은 별도입니다.</td></tr>
       <tr><td>BAT</td><td>ghost detection</td><td>부분 구현</td><td><code>CpfBatchGhostDetectionService</code>, <code>pfw_batch_ghost_event</code>, ADM ghost 후보 API</td><td>주기 scheduler와 장애 시나리오 자동 검증은 남아 있습니다.</td></tr>
@@ -79,7 +79,7 @@
       <tbody>
       <tr><td>거래 로그</td><td>부분 구현</td><td><code>/adm/api/logs</code></td><td>목록/상세/포맷팅은 있으며 통합 관제 UX는 추가 개선 대상입니다.</td></tr>
       <tr><td>거래 메타</td><td>부분 구현</td><td><code>/adm/api/transactions</code></td><td>조회/재스캔/비활성화 API와 UI marker가 있습니다.</td></tr>
-      <tr><td>로그 정책</td><td>부분 구현</td><td><code>/adm/api/log-policies</code></td><td>기본 정책과 override 골격은 있으며 런타임 적용은 다음 단계입니다.</td></tr>
+      <tr><td>로그 정책</td><td>부분 구현</td><td><code>/adm/api/log-policies</code>, <code>/adm/api/log-policies/cache/refresh</code>, <code>/adm/api/log-policies/cache/clear</code></td><td>런타임 적용과 현재 인스턴스 cache 반영은 구현됐고, broker 기반 다중 인스턴스 전파는 다음 단계입니다.</td></tr>
       <tr><td>캐시 관리</td><td>부분 구현</td><td><code>/adm/api/cache</code></td><td>상태 조회와 refresh API가 있으며 broker 실연동 검증은 남아 있습니다.</td></tr>
       <tr><td>배치 관제</td><td>부분 구현</td><td><code>/adm/api/batch</code></td><td>Job, schedule, execution, worker, lock, ghost, 영업일을 조회/조치합니다.</td></tr>
       <tr><td>회원 관리</td><td>부분 구현</td><td><code>/adm/api/members</code></td><td>회원 목록/상세/상태/권한 변경을 제공합니다.</td></tr>
@@ -129,7 +129,7 @@
       </thead>
       <tbody>
       <tr><td>1</td><td>ghost 자동 감지 scheduler와 장애 시나리오 테스트</td><td>부분 구현</td></tr>
-      <tr><td>2</td><td>로그 정책 런타임 적용과 override 전파</td><td>부분 구현</td></tr>
+      <tr><td>2</td><td>로그 정책 다중 인스턴스 broker 전파와 운영 UX 고도화</td><td>부분 구현</td></tr>
       <tr><td>3</td><td>ADM 거래/오류/감사 통합 관제 UX 고도화</td><td>부분 구현</td></tr>
       <tr><td>4</td><td>ADM 브라우저 실제 클릭 자동화</td><td>미검증</td></tr>
       <tr><td>5</td><td>ondemand batch와 parameter 검증 UI</td><td>미구현</td></tr>

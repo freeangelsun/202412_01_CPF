@@ -1,5 +1,6 @@
 package cpf.pfw.common.logging;
 
+import cpf.pfw.common.logging.policy.LogPolicyDecision;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -15,10 +16,16 @@ public class TransactionLogEvent extends ApplicationEvent {
 
     private final TransactionLogRecord record;
     private final Map<String, String> details;
+    private final LogPolicyDecision logPolicy;
 
     public TransactionLogEvent(Object source, TransactionLogRecord record, Map<String, String> details) {
+        this(source, record, details, null);
+    }
+
+    public TransactionLogEvent(Object source, TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
         super(source);
         this.record = record;
         this.details = details;
+        this.logPolicy = logPolicy;
     }
 }

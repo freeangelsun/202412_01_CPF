@@ -58,6 +58,7 @@
     <h2>smoke 검증</h2>
     <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-transaction-meta-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</code></pre>
     <table>
       <thead>
@@ -65,7 +66,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       </thead>
       <tbody>
       <tr><td>BAT runtime smoke</td><td>jar 기동, health 응답, 정상 Job 성공, heartbeat Job 진행률 갱신, 실패 Job 실패 처리, cleanup 성공</td><td>port, profile, datasource, JobRepository 테이블, CPF 배치 메타</td></tr>
-      <tr><td>ADM runtime smoke</td><td>jar 기동, health 응답, OpenAPI 접근, 배치 API marker 확인</td><td>ADM datasource, static resource, security filter, session 설정</td></tr>
+      <tr><td>ADM runtime smoke</td><td>jar 기동, health 응답, OpenAPI 접근, 배치 API marker, 거래 메타 scan/list/detail 확인</td><td>ADM datasource, static resource, security filter, session 설정</td></tr>
+      <tr><td>거래 메타 runtime smoke</td><td>기동 중인 ADM에서 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회 확인</td><td>pfwDB, <code>pfw_transaction_meta</code>, ADM 인증 토큰</td></tr>
       <tr><td>OpenAPI smoke</td><td>기동 중인 앱의 JSON 문서 조회 성공</td><td>앱 기동 여부, springdoc 설정, context path</td></tr>
       </tbody>
     </table>

@@ -48,7 +48,7 @@
       <tr><td>거래 글로벌 ID</td><td><code>TransactionContextFilter</code>가 <code>X-Transaction-Id</code>를 검증하거나 생성하고 응답 헤더로 돌려줍니다.</td><td>서비스 간 호출은 <code>TransactionContext.propagationHeaders()</code>를 사용해 trace와 거래 헤더를 이어갑니다.</td></tr>
       <tr><td>거래 로그</td><td><code>LoggingAspect</code>가 요청, 응답, 오류, 실행 메타를 수집하고 <code>pfw_transaction_log</code>에 저장합니다.</td><td>민감정보가 들어갈 수 있는 값은 DTO 단계와 로그 저장 단계 모두에서 마스킹 기준을 확인합니다.</td></tr>
       <tr><td>메타 자동 등록</td><td><code>CpfTransactionMetaScanner</code>가 Spring MVC RequestMapping과 <code>@CpfTransaction</code>을 스캔해 <code>pfw_transaction_meta</code>에 upsert합니다.</td><td>신규 API를 만들 때 거래 ID, 거래명, Swagger 설명을 함께 작성해야 ADM 거래 메타에서 식별하기 쉽습니다.</td></tr>
-      <tr><td>로그 정책</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 기본 모델과 ADM API 골격이 있습니다.</td><td>실제 런타임 로그 적재 정책 적용과 전파는 다음 보강 기준이 확정되면 그 기준을 따릅니다.</td></tr>
+      <tr><td>로그 정책</td><td><code>LogPolicyResolver</code>가 ADM 활성 override, DB 운영 정책, application 기본값, CPF 기본값 순서로 <code>ONLINE_TRANSACTION</code> 정책을 평가합니다.</td><td><code>dbLogEnabled=N</code>이면 거래 로그 DB 저장을 생략하고, <code>requestBodySaveYn</code>/<code>responseBodySaveYn</code>/<code>errorStackSaveYn</code> 값에 따라 본문과 내부 오류 상세 저장 여부가 결정됩니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -65,6 +65,7 @@
       <tr><td>JobRepository</td><td>Spring Batch 원천 메타는 <code>BATCH_*</code>에 기록합니다.</td><td><code>BatBatchRepositoryConfig</code></td></tr>
       <tr><td>운영 메타</td><td>CPF 관제 메타는 <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>에 기록합니다.</td><td><code>CpfBatchOperationRepository</code></td></tr>
       <tr><td>최소 검증</td><td>정상 Job과 실패 Job을 모두 실행해 Spring Batch execution id, step execution id, CPF execution id, transactionGlobalId 연결을 확인합니다.</td><td><code>scripts/smoke-bat-runtime.ps1</code></td></tr>
+      <tr><td>로그 정책 hook</td><td><code>CpfBatchRuntimeListener</code>가 Job 시작 시 <code>BATCH_JOB</code>, Step 시작 시 <code>BATCH_STEP</code> 정책을 조회해 ExecutionContext에 남깁니다.</td><td>배치 로그 저장소 고도화 시 같은 key를 사용해 Job/Step별 저장 여부와 레벨을 적용합니다.</td></tr>
       </tbody>
     </table>
   </section>

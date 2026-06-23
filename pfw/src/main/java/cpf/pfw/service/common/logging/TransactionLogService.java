@@ -2,6 +2,7 @@ package cpf.pfw.service.common.logging;
 
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.TransactionLogRecord;
+import cpf.pfw.common.logging.policy.LogPolicyDecision;
 import cpf.pfw.mapper.common.logging.TransactionLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,9 @@ import java.util.Map;
 /**
  * PFW 거래 요약 로그와 상세 로그를 저장합니다.
  *
- * <p>요약 정보는 {@code pfw_transaction_log}, 요청/응답/오류 상세는
- * {@code pfw_transaction_log_detail}에 저장합니다. 모든 상세 값은 저장 전에 마스킹과 길이 제한을 적용합니다.</p>
+ * <p>요약 정보는 {@code pfw_transaction_log}, 요청/응답/오류 같은 본문성 데이터는
+ * {@code pfw_transaction_log_detail}에 분리 저장합니다. 로그 정책이 함께 전달되면
+ * DB 저장 여부와 본문 저장 여부를 최종 저장 직전에 한 번 더 확인합니다.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -23,9 +25,19 @@ public class TransactionLogService {
 
     @Transactional(transactionManager = "pfwTransactionManager")
     public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details) {
+        saveTransactionLog(record, details, null);
+    }
+
+    @Transactional(transactionManager = "pfwTransactionManager")
+    public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
         if (record == null) {
             return;
         }
+        if (logPolicy != null && !logPolicy.dbLogEnabled()) {
+            return;
+        }
+
+        applyBodyPolicy(record, details, logPolicy);
 
         // 요약 로그를 먼저 저장해 상세 로그가 참조할 LOG_IDX를 확보합니다.
         logMapper.insertTransactionLog(record);
@@ -38,6 +50,30 @@ public class TransactionLogService {
         if (record.getErrorMessage() != null) {
             // 오류 메시지는 상세 검색 편의를 위해 명시적인 detail key로 한 번 더 보관합니다.
             insertDetail(record.getLogIdx(), "errorMessage", record.getErrorMessage(), record.getExecUser());
+        }
+    }
+
+    private void applyBodyPolicy(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
+        if (logPolicy == null) {
+            return;
+        }
+        if (!logPolicy.requestBodySave()) {
+            record.setRequestBody(null);
+            if (details != null) {
+                details.remove("requestBody");
+            }
+        }
+        if (!logPolicy.responseBodySave()) {
+            record.setResponse(null);
+            if (details != null) {
+                details.remove("response");
+            }
+        }
+        if (!logPolicy.errorStackSave()) {
+            record.setInternalMessage(null);
+            if (details != null) {
+                details.remove("error.internalMessage");
+            }
         }
     }
 

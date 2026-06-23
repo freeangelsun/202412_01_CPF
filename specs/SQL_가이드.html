@@ -66,7 +66,7 @@
       <tr><td>온라인 거래 메타 전용 테이블</td><td><code>pfw_transaction_meta</code></td><td>Controller/API의 <code>@CpfTransaction</code>, HTTP method/path, Controller class, handler method를 저장합니다.</td></tr>
       <tr><td>온라인 오류 로그 전용 테이블</td><td><code>pfw_error_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 현재는 거래 로그 실패 레코드와 상세 로그로 오류를 추적합니다.</td></tr>
       <tr><td>PFW 감사 로그 전용 테이블</td><td><code>pfw_audit_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 운영 감사는 <code>adm_audit_log</code>가 담당합니다.</td></tr>
-      <tr><td>로그 정책 테이블</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책, 기간/사유 기반 override, 정책 변경 감사 이력을 저장합니다.</td></tr>
+      <tr><td>로그 정책 테이블</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책, 기간/사유 기반 override, 정책 변경 감사 이력을 저장합니다. 온라인 거래 정책 대상 유형은 <code>ONLINE_TRANSACTION</code>을 표준으로 사용하고 기존 <code>TRANSACTION</code>은 런타임 호환 별칭으로만 처리합니다.</td></tr>
       <tr><td>배치 메타</td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>구현되어 있습니다. V10 진행률/heartbeat 컬럼은 실제 MariaDB 적용과 smoke 검증까지 완료했습니다.</td></tr>
       </tbody>
     </table>
@@ -111,6 +111,8 @@
       <tr><td>신규 변경</td><td>테이블/컬럼/seed/smoke 변경은 설치 SQL과 migration SQL을 함께 반영합니다.</td></tr>
       <tr><td>V10</td><td><code>V10__batch_heartbeat_progress_ghost_detection.sql</code>은 <code>pfw_batch_execution</code>과 <code>pfw_batch_step_execution</code>에 진행률, 처리 건수, 마지막 heartbeat 컬럼과 heartbeat 조회 index를 추가합니다.</td></tr>
       <tr><td>V11</td><td><code>V11__transaction_meta_log_policy.sql</code>은 <code>pfw_transaction_meta</code>와 로그 정책 기본 모델을 추가합니다.</td></tr>
+      <tr><td>V12</td><td><code>V12__log_policy_runtime_standard.sql</code>은 온라인 로그 정책 대상 유형을 <code>ONLINE_TRANSACTION</code>으로 정리하고 기존 override도 같은 표준명으로 갱신합니다.</td></tr>
+      <tr><td>V13</td><td><code>V13__adm_runtime_policy_permission_seed.sql</code>은 기존 ADM DB에 거래 메타 스캔과 로그 정책 캐시 refresh/clear 버튼 및 역할 권한을 비파괴 방식으로 보정합니다.</td></tr>
       <tr><td>rollback</td><td>자동 rollback만 믿지 않고 backup/restore와 수동 복구 절차를 문서화합니다.</td></tr>
       <tr><td>idempotent seed</td><td>재실행해도 중복 데이터가 생기지 않아야 합니다.</td></tr>
       </tbody>

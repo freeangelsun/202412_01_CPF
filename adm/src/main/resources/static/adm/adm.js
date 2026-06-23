@@ -171,7 +171,7 @@ if (!window.Vue) {
           policyId: null,
           policyKey: "ONLINE_DEFAULT",
           policyName: "온라인 거래 기본 로그 정책",
-          targetType: "TRANSACTION",
+          targetType: "ONLINE_TRANSACTION",
           targetId: "*",
           logLevel: "INFO",
           dbLogEnabledYn: "Y",
@@ -992,6 +992,22 @@ if (!window.Vue) {
         const params = this.buildParams({ reason: this.logPolicyForm.reason });
         this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/overrides/${overrideId}/disable?${params.toString()}`, "PATCH");
         this.setMessage("로그 정책 override를 중지했습니다.");
+      },
+      async refreshLogPolicyCache() {
+        if (!this.logPolicyForm.targetType || !this.logPolicyForm.targetId || !this.requireReason(this.logPolicyForm.reason)) return;
+        const params = this.buildParams({
+          targetType: this.logPolicyForm.targetType,
+          targetId: this.logPolicyForm.targetId,
+          reason: this.logPolicyForm.reason
+        });
+        this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/cache/refresh?${params.toString()}`, "POST");
+        this.setMessage("로그 정책 cache를 갱신했습니다.");
+      },
+      async clearLogPolicyCache() {
+        if (!this.requireReason(this.logPolicyForm.reason)) return;
+        const params = this.buildParams({ reason: this.logPolicyForm.reason });
+        this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/cache/clear?${params.toString()}`, "POST");
+        this.setMessage("로그 정책 cache를 전체 비웠습니다.");
       },
       async loadOperators() {
         this.operatorResult = await this.getJson("/adm/api/operators");

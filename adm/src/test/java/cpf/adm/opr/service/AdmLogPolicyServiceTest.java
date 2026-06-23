@@ -3,7 +3,9 @@ package cpf.adm.opr.service;
 import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
 import cpf.adm.opr.dto.AdmLogPolicyRequest;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -16,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -24,10 +27,10 @@ class AdmLogPolicyServiceTest {
     @Test
     void createOverrideRejectsInvalidPeriodBeforeDbAccess() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate);
+        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
         AdmLogPolicyOverrideRequest request = new AdmLogPolicyOverrideRequest(
                 1L,
-                "TRANSACTION",
+                "ONLINE_TRANSACTION",
                 "ADM01TRN0010",
                 "DEBUG",
                 null,
@@ -52,11 +55,11 @@ class AdmLogPolicyServiceTest {
     @Test
     void createPolicyRejectsMissingReasonBeforeDbAccess() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate);
+        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
         AdmLogPolicyRequest request = new AdmLogPolicyRequest(
                 "ONLINE_DEFAULT",
                 "온라인 기본",
-                "TRANSACTION",
+                "ONLINE_TRANSACTION",
                 "*",
                 "INFO",
                 "Y",
@@ -85,12 +88,35 @@ class AdmLogPolicyServiceTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("pfw_log_policy")))
                 .thenThrow(new DataAccessResourceFailureException("pfwDB 미적용"));
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate);
+        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
 
-        Map<String, Object> result = service.findPolicies("TRANSACTION", "*", "Y", 10);
+        Map<String, Object> result = service.findPolicies("ONLINE_TRANSACTION", "*", "Y", 10);
 
         assertThat(result)
                 .containsEntry("available", false)
                 .containsEntry("items", java.util.List.of());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void clearCacheCallsResolver() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        ObjectProvider<LogPolicyResolver> resolverProvider = mock(ObjectProvider.class);
+        LogPolicyResolver resolver = mock(LogPolicyResolver.class);
+        when(resolverProvider.getIfAvailable()).thenReturn(resolver);
+        when(resolver.cachedSize()).thenReturn(0);
+        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, resolverProvider);
+
+        Map<String, Object> result = service.clearCache("운영 정책 재적용", "tester", "127.0.0.1");
+
+        verify(resolver).clear();
+        assertThat(result).containsEntry("cleared", true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ObjectProvider<LogPolicyResolver> emptyResolverProvider() {
+        ObjectProvider<LogPolicyResolver> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(null);
+        return provider;
     }
 }

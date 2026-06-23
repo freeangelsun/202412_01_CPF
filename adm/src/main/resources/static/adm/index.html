@@ -536,6 +536,8 @@
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="saveLogPolicy">저장</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="createLogPolicyOverride">Override 등록</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicyOverride">Override 중지</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="refreshLogPolicyCache">Cache refresh</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="clearLogPolicyCache">Cache clear</button>
           </div>
         </div>
         <div class="filters">

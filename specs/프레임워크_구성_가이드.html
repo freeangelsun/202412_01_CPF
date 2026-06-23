@@ -64,7 +64,7 @@
       <tr><td>온라인 거래</td><td><code>@CpfTransaction</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>pfw_transaction_log</code>, <code>pfw_transaction_meta</code>로 거래 ID와 요청/응답/오류, Controller/API 메타를 기록합니다.</td><td>운영 부하 검증과 거래 메타 UI 고도화가 필요합니다.</td></tr>
       <tr><td>배치 실행</td><td>BAT worker가 Spring Batch JobRepository와 CPF Batch 메타를 함께 기록합니다. V10 기준 진행률, 처리 건수, 마지막 heartbeat 컬럼이 실제 DB에서 검증되었습니다.</td><td>운영 정책 전체 자동화, pause/resume, 온디맨드 배치, center-cut 기본 구현체는 다음 단계입니다.</td></tr>
       <tr><td>ADM 관제</td><td>거래 로그, 거래 메타, 감사 로그, 배치 Job/Step/worker/lock/ghost, 동적 로그 레벨, 로그 정책을 조회하거나 조치하는 API/UI marker가 있습니다.</td><td>브라우저 클릭 검증과 통합 관제 UX 고도화가 필요합니다.</td></tr>
-      <tr><td>로그 정책</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 기본 모델과 ADM 관리 API가 있습니다.</td><td>우선순위는 ADM 활성 override, DB 운영 정책, application 기본값, CPF 기본값 순서로 런타임 적용해야 합니다.</td></tr>
+      <tr><td>로그 정책</td><td><code>LogPolicyResolver</code>, <code>LogPolicyCache</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code>, ADM 관리 API가 있습니다.</td><td>우선순위는 ADM 활성 override, DB 운영 정책, application 기본값, CPF 기본값 순서입니다. 현재 인스턴스 cache evict/refresh는 구현됐고, Redis/Kafka/MQ 기반 다중 인스턴스 전파는 다음 보강입니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -125,7 +125,8 @@
       <tbody>
       <tr><td>기본 품질</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거를 묶어 확인합니다.</td></tr>
       <tr><td>BAT runtime</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT 앱을 jar로 기동하고 health, 정상/실패 Job, Spring Batch와 CPF 메타 연결을 검증합니다.</td></tr>
-      <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, cleanup을 실제 process로 확인합니다.</td></tr>
+      <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 실제 process로 확인합니다.</td></tr>
+      <tr><td>거래 메타 runtime</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>이미 기동 중인 ADM 또는 ADM runtime smoke 내부에서 거래 메타 E2E를 확인합니다.</td></tr>
       <tr><td>DB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>MariaDB 설치, seed idempotent, FK/index, smoke query를 확인합니다.</td></tr>
       </tbody>
     </table>

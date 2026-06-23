@@ -91,6 +91,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-level", "DYNAMIC_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-level", "DYNAMIC_LOG_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-policies", "LOG_POLICY_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies/cache/refresh", "LOG_POLICY_CACHE_REFRESH");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies/cache/clear", "LOG_POLICY_CACHE_CLEAR");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies", "LOG_POLICY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/log-policies", "LOG_POLICY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PATCH /adm/api/log-policies", "LOG_POLICY_WRITE");

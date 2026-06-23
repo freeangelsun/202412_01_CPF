@@ -4,6 +4,9 @@ import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
 import cpf.adm.opr.dto.AdmLogPolicyRequest;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.logging.policy.LogPolicyDecision;
+import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,15 +23,20 @@ import java.util.Optional;
 /**
  * ADM 로그 정책 관리 서비스입니다.
  *
- * <p>이번 단계는 기본 정책과 임시 override의 DB 기준을 세우는 최소 구현입니다.
- * 실제 런타임 로그 적재 정책 적용과 broker 전파는 다음 보강에서 별도 확장합니다.</p>
+ * <p>기본 정책과 임시 override를 DB 기준으로 관리하고, 현재 인스턴스의
+ * 런타임 로그 정책 cache evict/refresh까지 연결합니다. 다중 인스턴스 broker 전파는
+ * 별도 운영 보강에서 확장합니다.</p>
  */
 @Service
 public class AdmLogPolicyService {
     private final JdbcTemplate pfwJdbcTemplate;
+    private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
 
-    public AdmLogPolicyService(@Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate) {
+    public AdmLogPolicyService(
+            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
         this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.logPolicyResolverProvider = logPolicyResolverProvider;
     }
 
     public Map<String, Object> findPolicies(String targetType, String targetId, String activeYn, int limit) {
@@ -110,6 +118,7 @@ public class AdmLogPolicyService {
         Map<String, Object> after = findPolicyByKey(request.policyKey()).orElse(Map.of());
         insertPolicyAudit(after.get("policy_id"), null, "UPSERT", request.targetType(), request.targetId(),
                 request.reason(), null, String.valueOf(after), "로그 정책 등록/수정", user, clientIp);
+        evictPolicyCache(request.targetType(), request.targetId());
         return after;
     }
 
@@ -160,6 +169,7 @@ public class AdmLogPolicyService {
         Map<String, Object> after = findPolicyById(policyId).orElse(Map.of());
         insertPolicyAudit(policyId, null, "UPDATE", request.targetType(), request.targetId(),
                 request.reason(), String.valueOf(before), String.valueOf(after), "로그 정책 변경", user, clientIp);
+        evictPolicyCache(request.targetType(), request.targetId());
         return after;
     }
 
@@ -195,6 +205,7 @@ public class AdmLogPolicyService {
         Map<String, Object> after = findOverrideById(overrideId == null ? -1 : overrideId).orElse(Map.of());
         insertPolicyAudit(request.policyId(), overrideId, "OVERRIDE_CREATE", request.targetType(), request.targetId(),
                 request.reason(), null, String.valueOf(after), "로그 정책 override 등록", user, clientIp);
+        evictPolicyCache(request.targetType(), request.targetId());
         return after;
     }
 
@@ -212,7 +223,44 @@ public class AdmLogPolicyService {
         insertPolicyAudit(before.get("policy_id"), overrideId, "OVERRIDE_DISABLE",
                 String.valueOf(before.get("target_type")), String.valueOf(before.get("target_id")),
                 reason, String.valueOf(before), String.valueOf(after), "로그 정책 override 중지", user, clientIp);
+        evictPolicyCache(String.valueOf(before.get("target_type")), String.valueOf(before.get("target_id")));
         return after;
+    }
+
+    public Map<String, Object> refreshCache(String targetType, String targetId, String reason, String operatorId, String clientIp) {
+        String normalizedTargetType = required(targetType, "대상 유형");
+        String normalizedTargetId = required(targetId, "대상 ID");
+        String user = defaultIfBlank(operatorId, null, "ADM");
+        LogPolicyResolver resolver = requireResolver();
+        LogPolicyDecision decision = resolver.refresh(normalizedTargetType, normalizedTargetId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("targetType", decision.targetType());
+        result.put("targetId", decision.targetId());
+        result.put("dbLogEnabledYn", decision.dbLogEnabledYn());
+        result.put("requestBodySaveYn", decision.requestBodySaveYn());
+        result.put("responseBodySaveYn", decision.responseBodySaveYn());
+        result.put("errorStackSaveYn", decision.errorStackSaveYn());
+        result.put("resolvedSource", decision.resolvedSource());
+        result.put("policyId", decision.policyId());
+        result.put("overrideId", decision.overrideId());
+        result.put("cacheSize", resolver.cachedSize());
+        insertPolicyAudit(null, null, "CACHE_REFRESH", normalizedTargetType, normalizedTargetId,
+                reason, null, String.valueOf(result), "로그 정책 cache refresh", user, clientIp);
+        return result;
+    }
+
+    public Map<String, Object> clearCache(String reason, String operatorId, String clientIp) {
+        String user = defaultIfBlank(operatorId, null, "ADM");
+        LogPolicyResolver resolver = requireResolver();
+        resolver.clear();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("targetType", "LOG_POLICY_CACHE");
+        result.put("targetId", "*");
+        result.put("cacheSize", resolver.cachedSize());
+        result.put("cleared", true);
+        insertPolicyAudit(null, null, "CACHE_CLEAR", "LOG_POLICY_CACHE", "*",
+                reason, null, String.valueOf(result), "로그 정책 cache clear", user, clientIp);
+        return result;
     }
 
     private List<Map<String, Object>> queryPolicies(String targetType, String targetId, String activeYn, int limit) {
@@ -346,6 +394,32 @@ public class AdmLogPolicyService {
         if (request.effectiveEndAt().isBefore(LocalDateTime.now())) {
             throw new CpfValidationException("override 종료일시는 현재 이후여야 합니다.");
         }
+    }
+
+    private void evictPolicyCache(String targetType, String targetId) {
+        LogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
+        if (resolver == null) {
+            return;
+        }
+        try {
+            if ("*".equals(targetId)) {
+                resolver.clear();
+            } else {
+                resolver.evict(targetType, targetId);
+            }
+        } catch (RuntimeException ex) {
+            // 로그 정책 변경 자체를 실패시키지 않기 위해 cache 반영 실패는 감사 로그와 재시도 대상에 남깁니다.
+            insertPolicyAudit(null, null, "CACHE_EVICT_FAILED", defaultIfBlank(targetType, "UNKNOWN"), defaultIfBlank(targetId, "*"),
+                    "로그 정책 cache evict 실패", null, ex.getMessage(), "로그 정책 cache evict 실패", "ADM", null);
+        }
+    }
+
+    private LogPolicyResolver requireResolver() {
+        LogPolicyResolver resolver = logPolicyResolverProvider.getIfAvailable();
+        if (resolver == null) {
+            throw new CpfValidationException("로그 정책 cache resolver를 사용할 수 없습니다.");
+        }
+        return resolver;
     }
 
     private String required(String value, String label) {

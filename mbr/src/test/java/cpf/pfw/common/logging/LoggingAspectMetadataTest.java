@@ -5,6 +5,7 @@ import cpf.pfw.common.exception.CpfBusinessException;
 import cpf.pfw.common.exception.CpfMessageResolver;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,14 +72,17 @@ class LoggingAspectMetadataTest {
     private LoggingAspect aspect(CpfResponseCodeResolver responseCodeResolver) {
         ObjectProvider<CpfMessageResolver> messageProvider = mock(ObjectProvider.class);
         ObjectProvider<CpfResponseCodeResolver> responseProvider = mock(ObjectProvider.class);
+        ObjectProvider<LogPolicyResolver> logPolicyProvider = mock(ObjectProvider.class);
         when(messageProvider.getIfAvailable(any())).thenReturn(new DefaultCpfMessageResolver());
         when(responseProvider.getIfAvailable(any())).thenReturn(responseCodeResolver);
+        when(logPolicyProvider.getIfAvailable()).thenReturn(null);
         return new LoggingAspect(
                 mock(ApplicationEventPublisher.class),
                 mock(Environment.class),
                 new DynamicTransactionLogLevelService(),
                 messageProvider,
-                responseProvider);
+                responseProvider,
+                logPolicyProvider);
     }
 
     private Object invoke(LoggingAspect aspect, String methodName, Class<?>[] parameterTypes, Object first, Object second) throws Exception {

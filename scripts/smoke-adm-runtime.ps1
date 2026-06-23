@@ -10,13 +10,14 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$result = [ordered]@{
+    $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     admBaseUrl = $AdmBaseUrl
     process = [ordered]@{}
     health = [ordered]@{}
     openapi = [ordered]@{}
     batchApi = [ordered]@{}
+    transactionMetaApi = [ordered]@{}
     staticUi = [ordered]@{}
     browserClick = [ordered]@{}
     cleanup = [ordered]@{}
@@ -263,6 +264,15 @@ try {
     }
     $result.batchApi.status = "PASSED"
     $result.batchApi.checkedEndpoints = $checkedEndpoints
+
+    $transactionMetaResultPath = Join-Path $LogDir "transaction-meta-runtime-smoke-result.json"
+    & (Join-Path $Root "scripts/smoke-transaction-meta-runtime.ps1") `
+        -AdmBaseUrl $AdmBaseUrl `
+        -AccessToken $login.accessToken `
+        -ResultPath $transactionMetaResultPath
+    $result.transactionMetaApi.status = "PASSED"
+    $result.transactionMetaApi.endpoint = "/adm/api/transactions/scan"
+    $result.transactionMetaApi.resultPath = $transactionMetaResultPath
 
     & (Join-Path $Root "scripts/smoke-adm-ui.ps1") -Root $Root
     $result.staticUi.status = "PASSED"

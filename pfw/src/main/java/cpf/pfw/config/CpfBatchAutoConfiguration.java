@@ -8,6 +8,7 @@ import cpf.pfw.common.batch.CpfBatchLockManager;
 import cpf.pfw.common.batch.CpfBatchLoggingEventPublisher;
 import cpf.pfw.common.batch.CpfBatchOperationRepository;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
+import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -67,8 +68,10 @@ public class CpfBatchAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CpfBatchRuntimeListener cpfBatchRuntimeListener(CpfBatchHeartbeatService heartbeatService) {
-        return new CpfBatchRuntimeListener(heartbeatService);
+    public CpfBatchRuntimeListener cpfBatchRuntimeListener(
+            CpfBatchHeartbeatService heartbeatService,
+            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
+        return new CpfBatchRuntimeListener(heartbeatService, logPolicyResolverProvider);
     }
 
     @Bean

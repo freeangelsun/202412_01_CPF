@@ -24,7 +24,7 @@ public class TransactionLogListener {
     @EventListener
     public void handleTransactionLogEvent(TransactionLogEvent event) {
         try {
-            logService.saveTransactionLog(event.getRecord(), event.getDetails());
+            logService.saveTransactionLog(event.getRecord(), event.getDetails(), event.getLogPolicy());
         } catch (Exception e) {
             String transactionId = event.getRecord() != null ? event.getRecord().getTransactionId() : "N/A";
             log.warn("Failed to persist transaction log. transactionId={}", transactionId, e);

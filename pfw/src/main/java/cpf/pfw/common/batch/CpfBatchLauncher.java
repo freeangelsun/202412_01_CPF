@@ -19,9 +19,9 @@ import java.util.Map;
 /**
  * CPF 표준 배치 실행 Facade입니다.
  *
- * <p>호출자는 이 클래스를 통해 수동 실행, 스케줄 실행, 실패 재수행, 중지를 요청합니다.
- * 이 계층은 Spring Batch 실행 ID와 CPF 운영 메타 실행 ID를 함께 기록해 ADM 관제 화면에서
- * 한 흐름으로 조회할 수 있게 합니다.</p>
+ * <p>호출자는 이 클래스만 사용해 수동 실행, 스케줄 실행, 실패 재수행, 중지를 요청합니다.
+ * 실행 시작 전에 CPF execution을 먼저 만들고 Spring Batch JobParameter에 CPF execution ID를 전달하므로
+ * Job/Step listener가 실행 중 heartbeat와 진행률을 같은 행에 갱신할 수 있습니다.</p>
  */
 public class CpfBatchLauncher {
     private final JobLauncher jobLauncher;
@@ -76,6 +76,7 @@ public class CpfBatchLauncher {
         String workerId = ownerId;
         String lockKey = lockManager.lockKey(jobId, request.normalizedJobParameters());
         boolean locked = false;
+        long pfwExecutionId = -1L;
 
         if (request.lockRequired() && !lockManager.acquire(lockKey, jobId, request.normalizedJobParameters(), ownerId, lockTtlSeconds)) {
             return notRun(jobId, "동일 Job/파라미터가 이미 실행 중입니다.", transactionGlobalId);
@@ -89,35 +90,49 @@ public class CpfBatchLauncher {
             publish(CpfBatchEventType.RUN_REQUESTED, jobId, null, transactionGlobalId, "배치 실행 요청", Map.of());
 
             if (jobLauncher == null || job == null) {
-                long executionId = repository.insertExecution(
-                        request, "REQUESTED", null, ownerId, identity.serverInstanceId(), workerId,
-                        transactionGlobalId, null, null);
+                pfwExecutionId = repository.startExecution(
+                        request,
+                        "REQUESTED",
+                        null,
+                        ownerId,
+                        identity.serverInstanceId(),
+                        workerId,
+                        transactionGlobalId,
+                        user);
                 repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
-                repository.recordOperation(jobId, executionId, operationType.name(), user, request.reason(), null,
-                        "Spring Batch 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.", "S", "REQUESTED");
-                publish(CpfBatchEventType.EXECUTION_NOT_RUN, jobId, executionId, transactionGlobalId,
+                repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
+                        "Spring Batch 실행 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.", "S", "REQUESTED");
+                publish(CpfBatchEventType.EXECUTION_NOT_RUN, jobId, pfwExecutionId, transactionGlobalId,
                         "Spring Batch 실행 인프라가 없어 요청만 기록했습니다.", Map.of());
-                return result(false, jobId, executionId, null, "REQUESTED",
-                        "Spring Batch 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.");
+                return result(false, jobId, pfwExecutionId, null, "REQUESTED",
+                        "Spring Batch 실행 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.");
             }
 
-            JobExecution execution = jobLauncher.run(job, toJobParameters(request, transactionGlobalId, user));
-            long pfwExecutionId = repository.insertExecution(
+            pfwExecutionId = repository.startExecution(
                     request,
-                    execution.getStatus().name(),
-                    execution.getId(),
+                    "RUNNING",
+                    null,
                     ownerId,
                     identity.serverInstanceId(),
                     workerId,
                     transactionGlobalId,
-                    failureMessage(execution),
-                    execution);
+                    user);
+            repository.recordWorkerHeartbeat(workerId, identity, "RUNNING", jobId, pfwExecutionId, user);
+            JobExecution execution = jobLauncher.run(job, toJobParameters(request, transactionGlobalId, user, pfwExecutionId));
             String executionStatus = execution.getStatus().name();
             String executionFailureMessage = failureMessage(execution);
+            repository.completeExecution(
+                    pfwExecutionId,
+                    executionStatus,
+                    execution.getId(),
+                    workerId,
+                    executionFailureMessage,
+                    execution,
+                    user);
             boolean completed = "COMPLETED".equals(executionStatus);
             String executionMessage = completed
                     ? "배치 실행이 완료되었습니다."
-                    : defaultIfBlank(executionFailureMessage, "배치 실행이 완료 상태가 아닙니다. status=" + executionStatus);
+                    : defaultIfBlank(executionFailureMessage, "배치 실행 완료 상태가 아닙니다. status=" + executionStatus);
             repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
             repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
                     "SPRING_BATCH_EXECUTION_ID=" + execution.getId(), completed ? "S" : "F", executionStatus);
@@ -129,17 +144,26 @@ public class CpfBatchLauncher {
                     Map.of("springBatchExecutionId", execution.getId()));
             return result(true, jobId, pfwExecutionId, execution.getId(), executionStatus, executionMessage);
         } catch (Exception ex) {
-            long executionId = repository.available()
-                    ? repository.insertExecution(
-                            request, "FAILED", null, ownerId, identity.serverInstanceId(), workerId,
-                            transactionGlobalId, ex.getMessage(), null)
-                    : -1L;
-            repository.recordWorkerHeartbeat(workerId, identity, "ERROR", jobId, executionId < 0 ? null : executionId, user);
-            repository.recordOperation(jobId, executionId < 0 ? null : executionId, operationType.name() + "_FAILED",
+            if (pfwExecutionId < 1 && repository.available()) {
+                pfwExecutionId = repository.startExecution(
+                        request,
+                        "FAILED",
+                        null,
+                        ownerId,
+                        identity.serverInstanceId(),
+                        workerId,
+                        transactionGlobalId,
+                        user);
+            }
+            if (pfwExecutionId > 0) {
+                repository.completeExecution(pfwExecutionId, "FAILED", null, workerId, ex.getMessage(), null, user);
+            }
+            repository.recordWorkerHeartbeat(workerId, identity, "ERROR", jobId, pfwExecutionId < 0 ? null : pfwExecutionId, user);
+            repository.recordOperation(jobId, pfwExecutionId < 0 ? null : pfwExecutionId, operationType.name() + "_FAILED",
                     user, request.reason(), null, ex.getMessage(), "F", ex.getMessage());
-            publish(CpfBatchEventType.RUN_FAILED, jobId, executionId < 0 ? null : executionId, transactionGlobalId,
+            publish(CpfBatchEventType.RUN_FAILED, jobId, pfwExecutionId < 0 ? null : pfwExecutionId, transactionGlobalId,
                     ex.getMessage(), Map.of());
-            return result(false, jobId, executionId < 0 ? null : executionId, null, "FAILED", ex.getMessage());
+            return result(false, jobId, pfwExecutionId < 0 ? null : pfwExecutionId, null, "FAILED", ex.getMessage());
         } finally {
             if (locked) {
                 lockManager.release(lockKey, ownerId);
@@ -165,17 +189,25 @@ public class CpfBatchLauncher {
                 CpfBatchExecutionRequest retryRequest = CpfBatchExecutionRequest.run(jobId, parameters, user, request.reason());
                 Identity identity = ServerInstanceIdentity.current();
                 String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
-                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "RUNNING", jobId, null, user);
-                long pfwExecutionId = repository.insertExecution(
+                long pfwExecutionId = repository.startExecution(
                         retryRequest, "RESTARTED", restartedId, identity.serverInstanceId(),
                         identity.serverInstanceId(), identity.serverInstanceId(), transactionGlobalId,
-                        null, jobExplorer == null ? null : jobExplorer.getJobExecution(restartedId));
+                        user);
+                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "RUNNING", jobId, pfwExecutionId, user);
+                repository.completeExecution(
+                        pfwExecutionId,
+                        "RESTARTED",
+                        restartedId,
+                        identity.serverInstanceId(),
+                        null,
+                        jobExplorer == null ? null : jobExplorer.getJobExecution(restartedId),
+                        user);
                 repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "IDLE", null, null, user);
                 repository.recordOperation(jobId, pfwExecutionId, "RETRY", user, request.reason(), String.valueOf(source),
                         "SPRING_BATCH_EXECUTION_ID=" + restartedId, "S", "RESTARTED");
                 return result(true, jobId, pfwExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");
             } catch (Exception ignored) {
-                // restart가 불가능하면 동일 파라미터 신규 실행 흐름으로 떨어뜨립니다.
+                // restart가 불가능하면 동일 파라미터 신규 실행 흐름으로 전환합니다.
             }
         }
 
@@ -207,13 +239,18 @@ public class CpfBatchLauncher {
                 "STOPPING", "배치 중지를 요청했습니다.", after);
     }
 
-    private JobParameters toJobParameters(CpfBatchExecutionRequest request, String transactionGlobalId, String user) {
+    private JobParameters toJobParameters(
+            CpfBatchExecutionRequest request,
+            String transactionGlobalId,
+            String user,
+            long pfwExecutionId) {
         return new JobParametersBuilder()
                 .addString("cpfJobParameters", request.normalizedJobParameters())
                 .addString("cpfRequestUser", user)
                 .addString("cpfRequestReason", request.normalizedReason("배치 실행 요청"))
                 .addString("transactionGlobalId", transactionGlobalId)
                 .addString("serverInstanceId", ServerInstanceIdentity.current().serverInstanceId())
+                .addLong(CpfBatchHeartbeatService.PARAM_PFW_EXECUTION_ID, pfwExecutionId)
                 .addLong("requestTime", System.currentTimeMillis())
                 .toJobParameters();
     }

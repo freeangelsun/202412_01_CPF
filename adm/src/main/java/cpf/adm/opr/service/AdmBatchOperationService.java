@@ -3,6 +3,7 @@ package cpf.adm.opr.service;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.batch.CpfBatchExecutionRequest;
 import cpf.pfw.common.batch.CpfBatchExecutionResult;
+import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
 import cpf.pfw.common.batch.CpfBatchLauncher;
 import cpf.pfw.common.exception.CpfValidationException;
 import org.slf4j.Logger;
@@ -34,14 +35,17 @@ public class AdmBatchOperationService {
     private final JdbcTemplate pfwJdbcTemplate;
     private final CpfBatchLauncher batchLauncher;
     private final JobExplorer jobExplorer;
+    private final CpfBatchGhostDetectionService ghostDetectionService;
 
     public AdmBatchOperationService(
             @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
             CpfBatchLauncher batchLauncher,
-            ObjectProvider<JobExplorer> jobExplorerProvider) {
+            ObjectProvider<JobExplorer> jobExplorerProvider,
+            ObjectProvider<CpfBatchGhostDetectionService> ghostDetectionServiceProvider) {
         this.pfwJdbcTemplate = pfwJdbcTemplate;
         this.batchLauncher = batchLauncher;
         this.jobExplorer = jobExplorerProvider.getIfAvailable();
+        this.ghostDetectionService = ghostDetectionServiceProvider.getIfAvailable();
     }
 
     public List<Map<String, Object>> findJobs() {
@@ -99,6 +103,9 @@ public class AdmBatchOperationService {
                            spring_batch_execution_id, batch_instance_id, server_instance_id,
                            worker_id, transaction_global_id,
                            start_time, end_time, read_count, write_count, skip_count,
+                           total_count, processed_count, success_count, failure_count, retry_count,
+                           progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
+                           last_heartbeat_at, current_step_name,
                            error_message, requested_by, created_at, updated_at
                     FROM pfw_batch_execution
                     WHERE job_id = ?
@@ -111,6 +118,9 @@ public class AdmBatchOperationService {
                        spring_batch_execution_id, batch_instance_id, server_instance_id,
                        worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
+                       total_count, processed_count, success_count, failure_count, retry_count,
+                       progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
+                       last_heartbeat_at, current_step_name,
                        error_message, requested_by, created_at, updated_at
                 FROM pfw_batch_execution
                 ORDER BY execution_id DESC
@@ -125,6 +135,8 @@ public class AdmBatchOperationService {
                     SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id,
                            step_name, execution_status,
                            start_time, end_time, read_count, write_count, skip_count,
+                           total_count, processed_count, success_count, failure_count, retry_count,
+                           progress_rate, tps, avg_elapsed_ms, max_elapsed_ms, last_heartbeat_at,
                            error_message, step_log, created_at, updated_at
                     FROM pfw_batch_step_execution
                     WHERE execution_id = ?
@@ -174,6 +186,8 @@ public class AdmBatchOperationService {
                     SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                            s.worker_id, s.step_name, s.execution_status,
                            s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                           s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
+                           s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                            s.error_message, s.step_log, s.created_at, s.updated_at
                     FROM pfw_batch_step_execution s
                     WHERE s.execution_id = ?
@@ -186,6 +200,8 @@ public class AdmBatchOperationService {
                     SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                            s.worker_id, s.step_name, s.execution_status,
                            s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                           s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
+                           s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                            s.error_message, s.step_log, s.created_at, s.updated_at
                     FROM pfw_batch_step_execution s
                     JOIN pfw_batch_execution e ON e.execution_id = s.execution_id
@@ -198,6 +214,8 @@ public class AdmBatchOperationService {
                 SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                        s.worker_id, s.step_name, s.execution_status,
                        s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
+                       s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
+                       s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                        s.error_message, s.step_log, s.created_at, s.updated_at
                 FROM pfw_batch_step_execution s
                 ORDER BY s.step_execution_id DESC
@@ -312,11 +330,16 @@ public class AdmBatchOperationService {
 
     public List<Map<String, Object>> findGhostCandidates(int heartbeatTimeoutSeconds) {
         int timeoutSeconds = Math.max(30, Math.min(heartbeatTimeoutSeconds, 86400));
+        if (ghostDetectionService != null) {
+            ghostDetectionService.detectGhostCandidates(timeoutSeconds);
+        }
         return queryOrEmpty("""
                 SELECT e.execution_id, e.job_id, j.job_name, e.schedule_id, e.job_parameters,
                        e.execution_status, e.spring_batch_execution_id, e.batch_instance_id,
                        e.server_instance_id, e.worker_id, e.transaction_global_id,
-                       e.start_time, e.end_time, e.requested_by,
+                       e.start_time, e.end_time, e.last_heartbeat_at AS execution_last_heartbeat_at,
+                       e.current_step_name, e.progress_rate, e.processed_count, e.total_count, e.requested_by,
+                       g.ghost_event_id, g.detected_at AS ghost_detected_at, g.detected_reason AS ghost_detected_reason,
                        w.worker_status, w.last_heartbeat_at,
                        CASE
                            WHEN w.worker_id IS NULL THEN '실행 worker heartbeat가 없습니다.'
@@ -327,6 +350,9 @@ public class AdmBatchOperationService {
                 FROM pfw_batch_execution e
                 JOIN pfw_batch_job j ON j.job_id = e.job_id
                 LEFT JOIN pfw_batch_worker w ON w.worker_id = e.worker_id
+                LEFT JOIN pfw_batch_ghost_event g
+                       ON g.execution_id = e.execution_id
+                      AND g.ghost_status = 'DETECTED'
                 WHERE e.end_time IS NULL
                   AND e.execution_status IN ('REQUESTED', 'STARTING', 'STARTED', 'RUNNING', 'UNKNOWN', 'STOPPING')
                   AND (
@@ -586,6 +612,9 @@ public class AdmBatchOperationService {
                        spring_batch_execution_id, batch_instance_id, server_instance_id,
                        worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
+                       total_count, processed_count, success_count, failure_count, retry_count,
+                       progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
+                       last_heartbeat_at, current_step_name,
                        error_message, requested_by, created_at, updated_at
                 FROM pfw_batch_execution
                 WHERE execution_id = ?

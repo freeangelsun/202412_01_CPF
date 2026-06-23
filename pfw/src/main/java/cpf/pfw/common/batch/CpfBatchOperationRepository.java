@@ -19,8 +19,8 @@ import java.util.Map;
 /**
  * PFW 배치 운영 메타 저장소입니다.
  *
- * <p>Spring Batch 표준 BATCH_* 테이블과 별개로 ADM 관제에 필요한 CPF 운영 메타를
- * pfw_batch_* 테이블에 기록합니다.</p>
+ * <p>Spring Batch 표준 BATCH_* 테이블은 실행 원천 이력으로 유지하고, ADM 관제에 필요한
+ * worker heartbeat, 진행률, ghost 후보, 운영 조치 이력은 pfw_batch_* 테이블에 저장합니다.</p>
  */
 public class CpfBatchOperationRepository {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
@@ -59,7 +59,7 @@ public class CpfBatchOperationRepository {
                 user);
     }
 
-    public long insertExecution(
+    public long startExecution(
             CpfBatchExecutionRequest request,
             String status,
             Long springBatchExecutionId,
@@ -67,13 +67,11 @@ public class CpfBatchOperationRepository {
             String serverInstanceId,
             String workerId,
             String transactionGlobalId,
-            String errorMessage,
-            JobExecution jobExecution) {
+            String requestUser) {
         if (!available()) {
             return -1L;
         }
-        String user = request.normalizedRequestUser("PFW_BATCH");
-        BatchCounts counts = BatchCounts.from(jobExecution);
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
         ensureBatchInstance(batchInstanceId, serverInstanceId, user);
         jdbc().update("""
                 INSERT INTO pfw_batch_execution (
@@ -81,7 +79,7 @@ public class CpfBatchOperationRepository {
                     batch_instance_id, server_instance_id, worker_id, transaction_global_id,
                     start_time, end_time, read_count, write_count, skip_count,
                     error_message, requested_by, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), NULL, 0, 0, 0, NULL, ?, ?, ?)
                 """,
                 request.requiredJobId(),
                 blankToNull(request.scheduleId()),
@@ -92,12 +90,6 @@ public class CpfBatchOperationRepository {
                 serverInstanceId,
                 workerId,
                 transactionGlobalId,
-                toTimestamp(jobExecution == null ? null : jobExecution.getStartTime()),
-                toTimestamp(jobExecution == null ? null : jobExecution.getEndTime()),
-                counts.readCount(),
-                counts.writeCount(),
-                counts.skipCount(),
-                SensitiveDataMasker.mask(errorMessage, 1000),
                 user,
                 user,
                 user);
@@ -105,37 +97,79 @@ public class CpfBatchOperationRepository {
         if (executionId == null) {
             throw new IllegalStateException("CPF 배치 실행 ID를 확인할 수 없습니다.");
         }
-        if (jobExecution != null) {
-            insertStepExecutions(executionId, jobExecution, workerId, user);
-        }
+        tryUpdateExecutionExtendedMetrics(
+                executionId,
+                CpfBatchRuntimeProgress.empty(status),
+                springBatchExecutionId,
+                workerId,
+                user);
         return executionId;
     }
 
-    private void ensureBatchInstance(String batchInstanceId, String serverInstanceId, String requestUser) {
-        if (batchInstanceId == null || batchInstanceId.isBlank()) {
+    public long insertExecution(
+            CpfBatchExecutionRequest request,
+            String status,
+            Long springBatchExecutionId,
+            String batchInstanceId,
+            String serverInstanceId,
+            String workerId,
+            String transactionGlobalId,
+            String errorMessage,
+            JobExecution jobExecution) {
+        long executionId = startExecution(
+                request,
+                status,
+                springBatchExecutionId,
+                batchInstanceId,
+                serverInstanceId,
+                workerId,
+                transactionGlobalId,
+                request.normalizedRequestUser("PFW_BATCH"));
+        completeExecution(executionId, status, springBatchExecutionId, workerId, errorMessage, jobExecution,
+                request.normalizedRequestUser("PFW_BATCH"));
+        return executionId;
+    }
+
+    public void completeExecution(
+            long executionId,
+            String status,
+            Long springBatchExecutionId,
+            String workerId,
+            String errorMessage,
+            JobExecution jobExecution,
+            String requestUser) {
+        if (!available() || executionId < 1) {
             return;
         }
         String user = defaultIfBlank(requestUser, "PFW_BATCH");
-        String instanceName = defaultIfBlank(serverInstanceId, batchInstanceId);
+        BatchCounts counts = BatchCounts.from(jobExecution);
         jdbc().update("""
-                INSERT INTO pfw_batch_instance (
-                    instance_id, instance_name, host_name, server_port, active_yn,
-                    last_heartbeat_at, description, created_by, updated_by
-                ) VALUES (?, ?, ?, NULL, 'Y', CURRENT_TIMESTAMP(3), ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    instance_name = VALUES(instance_name),
-                    active_yn = 'Y',
-                    last_heartbeat_at = CURRENT_TIMESTAMP(3),
-                    description = VALUES(description),
-                    updated_by = VALUES(updated_by),
+                UPDATE pfw_batch_execution
+                SET execution_status = ?,
+                    spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
+                    end_time = COALESCE(?, CURRENT_TIMESTAMP(3)),
+                    read_count = ?,
+                    write_count = ?,
+                    skip_count = ?,
+                    error_message = ?,
+                    updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
+                WHERE execution_id = ?
                 """,
-                batchInstanceId,
-                instanceName,
-                instanceName,
-                "PFW Batch 공통 API가 자동 보장한 실행 인스턴스",
+                required(status, "status"),
+                springBatchExecutionId,
+                toTimestamp(jobExecution == null ? null : jobExecution.getEndTime()),
+                counts.readCount(),
+                counts.writeCount(),
+                counts.skipCount(),
+                SensitiveDataMasker.mask(errorMessage, 1000),
                 user,
-                user);
+                executionId);
+        CpfBatchRuntimeProgress progress = counts.toProgress(status, jobExecution);
+        tryUpdateExecutionExtendedMetrics(executionId, progress, springBatchExecutionId, workerId, user);
+        if (jobExecution != null) {
+            upsertStepExecutions(executionId, jobExecution, workerId, user);
+        }
     }
 
     public Map<String, Object> findExecution(long executionId) {
@@ -164,6 +198,8 @@ public class CpfBatchOperationRepository {
                 """, executionId);
         result.put("execution", execution);
         result.put("steps", steps);
+        result.put("extendedExecution", findExecutionExtendedMetrics(executionId));
+        result.put("extendedSteps", findStepExtendedMetrics(executionId));
         return result;
     }
 
@@ -178,6 +214,109 @@ public class CpfBatchOperationRepository {
                 required(status, "status"),
                 defaultIfBlank(requestUser, "PFW_BATCH"),
                 executionId);
+    }
+
+    public void updateExecutionRuntime(
+            long executionId,
+            Long springBatchExecutionId,
+            String workerId,
+            CpfBatchRuntimeProgress progress,
+            String requestUser) {
+        if (!available() || executionId < 1) {
+            return;
+        }
+        CpfBatchRuntimeProgress resolved = progress == null
+                ? CpfBatchRuntimeProgress.empty("RUNNING")
+                : progress;
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
+        jdbc().update("""
+                UPDATE pfw_batch_execution
+                SET execution_status = ?,
+                    spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
+                    read_count = ?,
+                    write_count = ?,
+                    skip_count = ?,
+                    updated_by = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE execution_id = ?
+                """,
+                resolved.status(),
+                springBatchExecutionId,
+                resolved.totalCount(),
+                resolved.successCount(),
+                resolved.skipCount(),
+                user,
+                executionId);
+        tryUpdateExecutionExtendedMetrics(executionId, resolved, springBatchExecutionId, workerId, user);
+    }
+
+    public void upsertStepRuntime(
+            long executionId,
+            Long springBatchStepExecutionId,
+            String workerId,
+            String stepName,
+            CpfBatchRuntimeProgress progress,
+            String requestUser) {
+        if (!available() || executionId < 1 || stepName == null || stepName.isBlank()) {
+            return;
+        }
+        CpfBatchRuntimeProgress resolved = progress == null
+                ? CpfBatchRuntimeProgress.empty("RUNNING")
+                : progress;
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
+        int updated = jdbc().update("""
+                UPDATE pfw_batch_step_execution
+                SET spring_batch_step_execution_id = COALESCE(?, spring_batch_step_execution_id),
+                    worker_id = ?,
+                    execution_status = ?,
+                    read_count = ?,
+                    write_count = ?,
+                    skip_count = ?,
+                    step_log = CASE
+                        WHEN ? IS NULL THEN step_log
+                        WHEN step_log IS NULL OR step_log = '' THEN ?
+                        WHEN step_log LIKE CONCAT('%', ?, '%') THEN step_log
+                        ELSE CONCAT(step_log, '; ', ?)
+                    END,
+                    updated_by = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE execution_id = ?
+                  AND step_name = ?
+                """,
+                springBatchStepExecutionId,
+                blankToNull(workerId),
+                resolved.status(),
+                resolved.totalCount(),
+                resolved.successCount(),
+                resolved.skipCount(),
+                resolved.stepLog(),
+                resolved.stepLog(),
+                resolved.stepLog(),
+                resolved.stepLog(),
+                user,
+                executionId,
+                stepName);
+        if (updated == 0) {
+            jdbc().update("""
+                    INSERT INTO pfw_batch_step_execution (
+                        execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
+                        start_time, end_time, read_count, write_count, skip_count,
+                        error_message, step_log, created_by, updated_by
+                    ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), NULL, ?, ?, ?, NULL, ?, ?, ?)
+                    """,
+                    executionId,
+                    springBatchStepExecutionId,
+                    blankToNull(workerId),
+                    stepName,
+                    resolved.status(),
+                    resolved.totalCount(),
+                    resolved.successCount(),
+                    resolved.skipCount(),
+                    resolved.stepLog(),
+                    user,
+                    user);
+        }
+        tryUpdateStepExtendedMetrics(executionId, stepName, resolved, user);
     }
 
     public void recordWorkerHeartbeat(
@@ -226,7 +365,67 @@ public class CpfBatchOperationRepository {
                     user,
                     user);
         } catch (DataAccessException ignored) {
-            // migration 전 DB에서도 배치 실행 자체는 계속 가능해야 하므로 heartbeat 저장 실패는 관제 보강 대상으로 남깁니다.
+            // 오래된 DB에서도 배치 실행 자체는 계속 가능해야 하므로 heartbeat 저장 실패는 관제 보강 대상으로 남깁니다.
+        }
+    }
+
+    public int detectGhostCandidates(int heartbeatTimeoutSeconds, String requestUser) {
+        if (!available()) {
+            return 0;
+        }
+        int timeoutSeconds = Math.max(1, heartbeatTimeoutSeconds);
+        String user = defaultIfBlank(requestUser, "PFW_GHOST_DETECTOR");
+        try {
+            return jdbc().update("""
+                    INSERT INTO pfw_batch_ghost_event (
+                        execution_id, spring_batch_execution_id, job_id, server_instance_id, worker_id,
+                        ghost_status, detected_reason, lock_released_yn, retryable_yn,
+                        before_data, created_by, updated_by
+                    )
+                    SELECT e.execution_id,
+                           e.spring_batch_execution_id,
+                           e.job_id,
+                           e.server_instance_id,
+                           e.worker_id,
+                           'DETECTED',
+                           CASE
+                               WHEN w.worker_id IS NULL THEN '실행 worker heartbeat가 없습니다.'
+                               WHEN w.last_heartbeat_at IS NULL THEN 'worker heartbeat 시각이 없습니다.'
+                               WHEN TIMESTAMPDIFF(SECOND, w.last_heartbeat_at, CURRENT_TIMESTAMP(3)) > ?
+                                   THEN 'worker heartbeat timeout을 초과했습니다.'
+                               ELSE '실행 메타 heartbeat timeout을 초과했습니다.'
+                           END,
+                           'N',
+                           'Y',
+                           CONCAT('executionStatus=', e.execution_status,
+                                  ', executionUpdatedAt=', COALESCE(CAST(e.updated_at AS CHAR), ''),
+                                  ', workerHeartbeatAt=', COALESCE(CAST(w.last_heartbeat_at AS CHAR), '')),
+                           ?,
+                           ?
+                    FROM pfw_batch_execution e
+                    LEFT JOIN pfw_batch_worker w ON w.worker_id = e.worker_id
+                    WHERE e.end_time IS NULL
+                      AND e.execution_status IN ('REQUESTED', 'STARTING', 'STARTED', 'RUNNING', 'UNKNOWN', 'STOPPING')
+                      AND (
+                          w.worker_id IS NULL
+                          OR w.last_heartbeat_at IS NULL
+                          OR TIMESTAMPDIFF(SECOND, w.last_heartbeat_at, CURRENT_TIMESTAMP(3)) > ?
+                          OR TIMESTAMPDIFF(SECOND, COALESCE(e.updated_at, e.start_time, e.created_at), CURRENT_TIMESTAMP(3)) > ?
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM pfw_batch_ghost_event g
+                          WHERE g.execution_id = e.execution_id
+                            AND g.ghost_status = 'DETECTED'
+                      )
+                    """,
+                    timeoutSeconds,
+                    user,
+                    user,
+                    timeoutSeconds,
+                    timeoutSeconds);
+        } catch (DataAccessException ignored) {
+            return 0;
         }
     }
 
@@ -271,32 +470,171 @@ public class CpfBatchOperationRepository {
         }
     }
 
-    private void insertStepExecutions(long pfwExecutionId, JobExecution jobExecution, String workerId, String user) {
+    private void ensureBatchInstance(String batchInstanceId, String serverInstanceId, String requestUser) {
+        if (batchInstanceId == null || batchInstanceId.isBlank()) {
+            return;
+        }
+        String user = defaultIfBlank(requestUser, "PFW_BATCH");
+        String instanceName = defaultIfBlank(serverInstanceId, batchInstanceId);
+        jdbc().update("""
+                INSERT INTO pfw_batch_instance (
+                    instance_id, instance_name, host_name, server_port, active_yn,
+                    last_heartbeat_at, description, created_by, updated_by
+                ) VALUES (?, ?, ?, NULL, 'Y', CURRENT_TIMESTAMP(3), ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    instance_name = VALUES(instance_name),
+                    active_yn = 'Y',
+                    last_heartbeat_at = CURRENT_TIMESTAMP(3),
+                    description = VALUES(description),
+                    updated_by = VALUES(updated_by),
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                batchInstanceId,
+                instanceName,
+                instanceName,
+                "PFW Batch 공통 API가 자동 보장한 실행 인스턴스",
+                user,
+                user);
+    }
+
+    private void upsertStepExecutions(long pfwExecutionId, JobExecution jobExecution, String workerId, String user) {
         for (StepExecution step : jobExecution.getStepExecutions()) {
-            jdbc().update("""
-                    INSERT INTO pfw_batch_step_execution (
-                        execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status, start_time, end_time,
-                        read_count, write_count, skip_count, error_message, step_log, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
+            CpfBatchRuntimeProgress progress = StepCounts.from(step).toProgress(step.getStatus().name(), step);
+            upsertStepRuntime(
                     pfwExecutionId,
                     step.getId(),
-                    blankToNull(workerId),
+                    workerId,
                     step.getStepName(),
-                    step.getStatus().name(),
-                    toTimestamp(step.getStartTime()),
-                    toTimestamp(step.getEndTime()),
-                    step.getReadCount(),
-                    step.getWriteCount(),
-                    step.getSkipCount(),
-                    SensitiveDataMasker.mask(step.getFailureExceptions().isEmpty() ? null : step.getFailureExceptions().toString(), 1000),
-                    "commit=" + step.getCommitCount()
-                            + ", rollback=" + step.getRollbackCount()
-                            + ", readSkip=" + step.getReadSkipCount()
-                            + ", processSkip=" + step.getProcessSkipCount()
-                            + ", writeSkip=" + step.getWriteSkipCount(),
-                    user,
+                    progress,
                     user);
+            jdbc().update("""
+                    UPDATE pfw_batch_step_execution
+                    SET end_time = ?,
+                        error_message = ?,
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                      AND step_name = ?
+                    """,
+                    toTimestamp(step.getEndTime()),
+                    SensitiveDataMasker.mask(step.getFailureExceptions().isEmpty() ? null : step.getFailureExceptions().toString(), 1000),
+                    user,
+                    pfwExecutionId,
+                    step.getStepName());
+        }
+    }
+
+    private void tryUpdateExecutionExtendedMetrics(
+            long executionId,
+            CpfBatchRuntimeProgress progress,
+            Long springBatchExecutionId,
+            String workerId,
+            String user) {
+        try {
+            jdbc().update("""
+                    UPDATE pfw_batch_execution
+                    SET total_count = ?,
+                        processed_count = ?,
+                        success_count = ?,
+                        failure_count = ?,
+                        retry_count = ?,
+                        progress_rate = ?,
+                        tps = ?,
+                        avg_elapsed_ms = ?,
+                        max_elapsed_ms = ?,
+                        last_heartbeat_at = CURRENT_TIMESTAMP(3),
+                        current_step_name = ?,
+                        spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
+                        worker_id = COALESCE(?, worker_id),
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                    """,
+                    progress.totalCount(),
+                    progress.processedCount(),
+                    progress.successCount(),
+                    progress.failureCount(),
+                    progress.retryCount(),
+                    progress.progressRate(),
+                    progress.tps(),
+                    progress.avgElapsedMs(),
+                    progress.maxElapsedMs(),
+                    progress.currentStepName(),
+                    springBatchExecutionId,
+                    blankToNull(workerId),
+                    user,
+                    executionId);
+        } catch (DataAccessException ignored) {
+            // 확장 칼럼 migration 전 DB에서는 기존 count와 updated_at만으로 호환 동작합니다.
+        }
+    }
+
+    private void tryUpdateStepExtendedMetrics(
+            long executionId,
+            String stepName,
+            CpfBatchRuntimeProgress progress,
+            String user) {
+        try {
+            jdbc().update("""
+                    UPDATE pfw_batch_step_execution
+                    SET total_count = ?,
+                        processed_count = ?,
+                        success_count = ?,
+                        failure_count = ?,
+                        retry_count = ?,
+                        progress_rate = ?,
+                        tps = ?,
+                        avg_elapsed_ms = ?,
+                        max_elapsed_ms = ?,
+                        last_heartbeat_at = CURRENT_TIMESTAMP(3),
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                      AND step_name = ?
+                    """,
+                    progress.totalCount(),
+                    progress.processedCount(),
+                    progress.successCount(),
+                    progress.failureCount(),
+                    progress.retryCount(),
+                    progress.progressRate(),
+                    progress.tps(),
+                    progress.avgElapsedMs(),
+                    progress.maxElapsedMs(),
+                    user,
+                    executionId,
+                    stepName);
+        } catch (DataAccessException ignored) {
+            // 확장 칼럼 migration 전 DB에서는 기존 step count와 updated_at만으로 호환 동작합니다.
+        }
+    }
+
+    private Map<String, Object> findExecutionExtendedMetrics(long executionId) {
+        try {
+            return jdbc().queryForMap("""
+                    SELECT total_count, processed_count, success_count, failure_count, retry_count,
+                           progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
+                           last_heartbeat_at, current_step_name
+                    FROM pfw_batch_execution
+                    WHERE execution_id = ?
+                    """, executionId);
+        } catch (DataAccessException ignored) {
+            return Map.of();
+        }
+    }
+
+    private List<Map<String, Object>> findStepExtendedMetrics(long executionId) {
+        try {
+            return jdbc().queryForList("""
+                    SELECT step_execution_id, step_name, total_count, processed_count, success_count,
+                           failure_count, retry_count, progress_rate, tps, avg_elapsed_ms,
+                           max_elapsed_ms, last_heartbeat_at
+                    FROM pfw_batch_step_execution
+                    WHERE execution_id = ?
+                    ORDER BY step_execution_id
+                    """, executionId);
+        } catch (DataAccessException ignored) {
+            return List.of();
         }
     }
 
@@ -331,15 +669,93 @@ public class CpfBatchOperationRepository {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
-    private record BatchCounts(long readCount, long writeCount, long skipCount) {
+    private long elapsedMs(LocalDateTime start, LocalDateTime end) {
+        if (start == null) {
+            return 0;
+        }
+        LocalDateTime resolvedEnd = end == null ? LocalDateTime.now() : end;
+        return Math.max(0, java.time.Duration.between(start, resolvedEnd).toMillis());
+    }
+
+    private record BatchCounts(long readCount, long writeCount, long skipCount, long failureCount, long retryCount) {
         static BatchCounts from(JobExecution execution) {
             if (execution == null) {
-                return new BatchCounts(0, 0, 0);
+                return new BatchCounts(0, 0, 0, 0, 0);
             }
             long read = execution.getStepExecutions().stream().mapToLong(StepExecution::getReadCount).sum();
             long write = execution.getStepExecutions().stream().mapToLong(StepExecution::getWriteCount).sum();
             long skip = execution.getStepExecutions().stream().mapToLong(StepExecution::getSkipCount).sum();
-            return new BatchCounts(read, write, skip);
+            long failure = execution.getAllFailureExceptions().size();
+            long retry = execution.getStepExecutions().stream().mapToLong(StepExecution::getRollbackCount).sum();
+            return new BatchCounts(read, write, skip, failure, retry);
+        }
+
+        CpfBatchRuntimeProgress toProgress(String status, JobExecution execution) {
+            long processed = writeCount + skipCount + failureCount;
+            long total = Math.max(readCount, processed);
+            return CpfBatchRuntimeProgress.of(
+                    total,
+                    processed,
+                    writeCount,
+                    failureCount,
+                    skipCount,
+                    retryCount,
+                    execution == null ? 0 : elapsedMsStatic(execution.getStartTime(), execution.getEndTime()),
+                    null,
+                    status,
+                    null);
+        }
+
+        private static long elapsedMsStatic(LocalDateTime start, LocalDateTime end) {
+            if (start == null) {
+                return 0;
+            }
+            LocalDateTime resolvedEnd = end == null ? LocalDateTime.now() : end;
+            return Math.max(0, java.time.Duration.between(start, resolvedEnd).toMillis());
+        }
+    }
+
+    private record StepCounts(long readCount, long writeCount, long skipCount, long failureCount, long retryCount) {
+        static StepCounts from(StepExecution step) {
+            if (step == null) {
+                return new StepCounts(0, 0, 0, 0, 0);
+            }
+            return new StepCounts(
+                    step.getReadCount(),
+                    step.getWriteCount(),
+                    step.getSkipCount(),
+                    step.getFailureExceptions().size(),
+                    step.getRollbackCount());
+        }
+
+        CpfBatchRuntimeProgress toProgress(String status, StepExecution step) {
+            long processed = writeCount + skipCount + failureCount;
+            long total = Math.max(readCount, processed);
+            String stepLog = step == null ? null : "commit=" + step.getCommitCount()
+                    + ", rollback=" + step.getRollbackCount()
+                    + ", readSkip=" + step.getReadSkipCount()
+                    + ", processSkip=" + step.getProcessSkipCount()
+                    + ", writeSkip=" + step.getWriteSkipCount();
+            long elapsedMs = step == null ? 0 : elapsedMsStatic(step.getStartTime(), step.getEndTime());
+            return CpfBatchRuntimeProgress.of(
+                    total,
+                    processed,
+                    writeCount,
+                    failureCount,
+                    skipCount,
+                    retryCount,
+                    elapsedMs,
+                    step == null ? null : step.getStepName(),
+                    status,
+                    stepLog);
+        }
+
+        private static long elapsedMsStatic(LocalDateTime start, LocalDateTime end) {
+            if (start == null) {
+                return 0;
+            }
+            LocalDateTime resolvedEnd = end == null ? LocalDateTime.now() : end;
+            return Math.max(0, java.time.Duration.between(start, resolvedEnd).toMillis());
         }
     }
 }

@@ -1,6 +1,7 @@
 package cpf.adm.opr.service;
 
 import cpf.pfw.common.batch.CpfBatchLauncher;
+import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
 import cpf.pfw.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,8 +34,11 @@ class AdmBatchOperationServiceTest {
     private final JdbcTemplate pfwJdbcTemplate = mock(JdbcTemplate.class);
     private final CpfBatchLauncher batchLauncher = mock(CpfBatchLauncher.class);
     private final ObjectProvider<JobExplorer> jobExplorerProvider = new EmptyJobExplorerProvider();
+    private final CpfBatchGhostDetectionService ghostDetectionService = mock(CpfBatchGhostDetectionService.class);
+    private final ObjectProvider<CpfBatchGhostDetectionService> ghostDetectionServiceProvider =
+            new FixedObjectProvider<>(ghostDetectionService);
     private final AdmBatchOperationService service =
-            new AdmBatchOperationService(pfwJdbcTemplate, batchLauncher, jobExplorerProvider);
+            new AdmBatchOperationService(pfwJdbcTemplate, batchLauncher, jobExplorerProvider, ghostDetectionServiceProvider);
 
     @Test
     void findWorkersUsesHeartbeatTimeoutWithSafeLowerBound() {
@@ -42,6 +46,14 @@ class AdmBatchOperationServiceTest {
         service.findWorkers(1);
 
         verify(pfwJdbcTemplate).queryForList(contains("FROM pfw_batch_worker"), eq(30));
+    }
+
+    @Test
+    void findGhostCandidatesRunsAutoDetectionBeforeQuery() {
+        service.findGhostCandidates(1);
+
+        verify(ghostDetectionService).detectGhostCandidates(30);
+        verify(pfwJdbcTemplate).queryForList(contains("FROM pfw_batch_execution"), eq(30), eq(30));
     }
 
     @Test
@@ -166,6 +178,43 @@ class AdmBatchOperationServiceTest {
         @Override
         public Stream<JobExplorer> orderedStream() {
             return Stream.empty();
+        }
+    }
+
+    private record FixedObjectProvider<T>(T value) implements ObjectProvider<T> {
+        @Override
+        public T getObject(Object... args) {
+            return value;
+        }
+
+        @Override
+        public T getObject() {
+            return value;
+        }
+
+        @Override
+        public T getIfAvailable() {
+            return value;
+        }
+
+        @Override
+        public T getIfUnique() {
+            return value;
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return value == null ? Collections.emptyIterator() : Collections.singleton(value).iterator();
+        }
+
+        @Override
+        public Stream<T> stream() {
+            return value == null ? Stream.empty() : Stream.of(value);
+        }
+
+        @Override
+        public Stream<T> orderedStream() {
+            return stream();
         }
     }
 }

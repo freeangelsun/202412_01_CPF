@@ -54,7 +54,8 @@
       <tr><td>수행 시뮬레이션</td><td><code>/adm/api/batch/schedules/{scheduleId}/simulation</code> 기준으로 수행 예정일을 조회합니다.</td><td>운영 화면에서는 버튼 권한, 사유 입력, 결과 표시가 함께 필요합니다.</td></tr>
       <tr><td>선행/후행/트리거 관계</td><td><code>pfw_batch_job_relation</code> 기준으로 관계를 조회합니다.</td><td>목록과 상세에서 선행 Job, 후행 Job, trigger Job 관계를 확인합니다.</td></tr>
       <tr><td>수행 대상</td><td><code>pfw_batch_execution_target</code> 기준으로 대기, 배정, 완료 대상을 조회합니다.</td><td>수행 대기 인스턴스와 실제 execution 관계를 확인합니다.</td></tr>
-      <tr><td>ghost 조치</td><td>heartbeat timeout과 RUNNING execution 잔존 여부로 ghost 후보를 판단합니다.</td><td>FAIL, ABANDON, RELEASE_LOCK 조치는 감사 사유를 필수로 남깁니다.</td></tr>
+      <tr><td>진행률 관제</td><td><code>pfw_batch_execution</code>과 <code>pfw_batch_step_execution</code>의 처리 건수, 진행률, 현재 step, 마지막 heartbeat를 조회합니다.</td><td>장시간 실행 Job은 heartbeat smoke 기준처럼 주기 갱신 증거를 남겨야 합니다.</td></tr>
+      <tr><td>ghost 조치</td><td>heartbeat timeout과 RUNNING execution 잔존 여부로 ghost 후보를 판단합니다. 후보 조회 시 자동 감지 이벤트가 <code>pfw_batch_ghost_event</code>에 등록됩니다.</td><td>FAIL, ABANDON, RELEASE_LOCK 조치는 감사 사유를 필수로 남깁니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -86,7 +87,7 @@
       <tbody>
       <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로 marker가 있는지 확인합니다.</td></tr>
       <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, cleanup을 검증합니다.</td></tr>
-      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
+      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>운영 runbook</td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a></td><td>구동, 중지, 장애 복구, 미검증 보고 원칙을 따릅니다.</td></tr>
       </tbody>
     </table>

@@ -63,7 +63,7 @@
       </thead>
       <tbody>
       <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code>, <code>BATCH_JOB_EXECUTION_PARAMS</code></td><td>Spring Batch 표준 JobRepository 원천 실행 메타</td><td><code>jobExecutionId</code>, <code>stepExecutionId</code>로 CPF 메타와 연결합니다.</td></tr>
-      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code></td><td>ADM 관제와 운영 조치를 위한 프레임워크 메타</td><td><code>transactionGlobalId</code>, <code>executionId</code>, workerId 기준으로 추적합니다.</td></tr>
+      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td>ADM 관제와 운영 조치를 위한 프레임워크 메타. 실행 중 처리 건수, 진행률, 마지막 heartbeat를 포함합니다.</td><td><code>transactionGlobalId</code>, <code>executionId</code>, workerId 기준으로 추적합니다.</td></tr>
       <tr><td>운영 로그</td><td><code>pfw_transaction_log</code>, <code>adm_audit_log</code></td><td>API 호출과 운영 조치 감사</td><td>수동 실행, 중지, 재수행, ghost 조치에는 감사 사유를 남깁니다.</td></tr>
       </tbody>
     </table>
@@ -92,6 +92,7 @@
       <tbody>
       <tr><td>baseline</td><td><code>V1__cpf_baseline_install.sql</code>처럼 version prefix를 사용합니다.</td></tr>
       <tr><td>신규 변경</td><td>테이블/컬럼/seed/smoke 변경은 설치 SQL과 migration SQL을 함께 반영합니다.</td></tr>
+      <tr><td>V10</td><td><code>V10__batch_heartbeat_progress_ghost_detection.sql</code>은 <code>pfw_batch_execution</code>과 <code>pfw_batch_step_execution</code>에 진행률, 처리 건수, 마지막 heartbeat 컬럼과 heartbeat 조회 index를 추가합니다.</td></tr>
       <tr><td>rollback</td><td>자동 rollback만 믿지 않고 backup/restore와 수동 복구 절차를 문서화합니다.</td></tr>
       <tr><td>idempotent seed</td><td>재실행해도 중복 데이터가 생기지 않아야 합니다.</td></tr>
       </tbody>

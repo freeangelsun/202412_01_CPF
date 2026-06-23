@@ -50,6 +50,7 @@ public class BatHealthController {
         response.put("smoke", registry.snapshot());
         response.put("supportedJobs", new String[] {
                 BatSmokeJobConfig.SMOKE_JOB_ID,
+                BatSmokeJobConfig.HEARTBEAT_JOB_ID,
                 BatSmokeJobConfig.FAIL_JOB_ID
         });
         return ResponseEntity.ok(response);

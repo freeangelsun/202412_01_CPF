@@ -1,5 +1,6 @@
 package cpf.bat.job;
 
+import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -21,10 +22,16 @@ public class BatSmokeJobConfig {
     public static final String SMOKE_STEP_ID = "CPF_BAT_SMOKE_STEP";
     public static final String FAIL_JOB_ID = "CPF_BAT_FAIL_JOB";
     public static final String FAIL_STEP_ID = "CPF_BAT_FAIL_STEP";
+    public static final String HEARTBEAT_JOB_ID = "CPF_BAT_HEARTBEAT_JOB";
+    public static final String HEARTBEAT_STEP_ID = "CPF_BAT_HEARTBEAT_STEP";
 
     @Bean
-    public Job cpfBatSmokeJob(JobRepository jobRepository, Step cpfBatSmokeStep) {
+    public Job cpfBatSmokeJob(
+            JobRepository jobRepository,
+            Step cpfBatSmokeStep,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
         return new JobBuilder(SMOKE_JOB_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
                 .start(cpfBatSmokeStep)
                 .build();
     }
@@ -33,15 +40,21 @@ public class BatSmokeJobConfig {
     public Step cpfBatSmokeStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
-            BatSmokeTasklet batSmokeTasklet) {
+            BatSmokeTasklet batSmokeTasklet,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
         return new StepBuilder(SMOKE_STEP_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
                 .tasklet(batSmokeTasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Job cpfBatFailJob(JobRepository jobRepository, Step cpfBatFailStep) {
+    public Job cpfBatFailJob(
+            JobRepository jobRepository,
+            Step cpfBatFailStep,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
         return new JobBuilder(FAIL_JOB_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
                 .start(cpfBatFailStep)
                 .build();
     }
@@ -50,9 +63,34 @@ public class BatSmokeJobConfig {
     public Step cpfBatFailStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
-            BatFailTasklet batFailTasklet) {
+            BatFailTasklet batFailTasklet,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
         return new StepBuilder(FAIL_STEP_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
                 .tasklet(batFailTasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Job cpfBatHeartbeatJob(
+            JobRepository jobRepository,
+            Step cpfBatHeartbeatStep,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+        return new JobBuilder(HEARTBEAT_JOB_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
+                .start(cpfBatHeartbeatStep)
+                .build();
+    }
+
+    @Bean
+    public Step cpfBatHeartbeatStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            BatHeartbeatSmokeTasklet batHeartbeatSmokeTasklet,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+        return new StepBuilder(HEARTBEAT_STEP_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
+                .tasklet(batHeartbeatSmokeTasklet, transactionManager)
                 .build();
     }
 }

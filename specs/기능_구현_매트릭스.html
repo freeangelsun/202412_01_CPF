@@ -45,9 +45,9 @@
       </thead>
       <tbody>
       <tr><td>PFW</td><td>거래 ID, 거래 헤더, 표준 응답, 예외, 로그</td><td>완료</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>LoggingAspect</code></td><td>운영 부하 기준 성능 테스트는 별도입니다.</td></tr>
-      <tr><td>PFW</td><td>Batch 공통 API와 CPF Batch 메타</td><td>부분 구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>pfw_batch_*</code></td><td>listener heartbeat와 ghost 자동 감지는 다음 보강 후보입니다.</td></tr>
+      <tr><td>PFW</td><td>Batch 공통 API와 CPF Batch 메타</td><td>완료</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>CpfBatchHeartbeatService</code>, <code>CpfBatchRuntimeListener</code>, <code>pfw_batch_*</code></td><td>ghost 주기 scheduler와 broker 장애 시나리오 검증은 다음 보강 후보입니다.</td></tr>
       <tr><td>BAT</td><td>standalone 배치 worker</td><td>완료</td><td><code>BatApplication</code>, <code>BatBatchRepositoryConfig</code>, <code>BatSmokeJobConfig</code></td><td>실제 운영 배치 Job 확장은 업무별로 필요합니다.</td></tr>
-      <tr><td>BAT</td><td>runtime smoke</td><td>미검증</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>이번 작업에서 실행한 결과를 안정화 리포트에 따로 기록합니다.</td></tr>
+      <tr><td>BAT</td><td>runtime smoke</td><td>부분 구현</td><td><code>scripts/smoke-bat-runtime.ps1</code>, <code>CPF_BAT_HEARTBEAT_JOB</code></td><td>스크립트는 heartbeat Job을 포함합니다. 실제 실행 결과는 안정화 리포트에 따로 기록합니다.</td></tr>
       <tr><td>ADM</td><td>운영자/권한/회원/로그/배치/캐시/메시지/코드/설정</td><td>부분 구현</td><td><code>adm/src/main/java/cpf/adm/opr/controller</code>, <code>adm/src/main/resources/static/adm/adm.js</code></td><td>브라우저 실제 클릭 자동화와 세밀한 UX 검증이 남았습니다.</td></tr>
       <tr><td>CMN</td><td>프로젝트 공통 채번, 알림, 업무 로그</td><td>완료</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code></td><td>프로젝트별 확장 정책은 도입 프로젝트에서 확정합니다.</td></tr>
       <tr><td>MBR</td><td>회원 CRUD, 인증, token hash, 이력</td><td>완료</td><td><code>MbrController</code>, <code>MbrAuthService</code>, <code>MemberMapper</code></td><td>실제 SSO/MFA 연동은 별도입니다.</td></tr>
@@ -97,7 +97,7 @@
       <tr><th>우선순위</th><th>항목</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>BAT listener heartbeat, 처리량 갱신, ghost 자동 감지</td><td>부분 구현</td></tr>
+      <tr><td>1</td><td>ghost 자동 감지 scheduler와 장애 시나리오 테스트</td><td>부분 구현</td></tr>
       <tr><td>2</td><td>ADM 브라우저 실제 클릭 자동화</td><td>미검증</td></tr>
       <tr><td>3</td><td>ondemand batch와 parameter 검증 UI</td><td>미구현</td></tr>
       <tr><td>4</td><td>center-cut 기본 구현체와 EDU 샘플</td><td>미구현</td></tr>

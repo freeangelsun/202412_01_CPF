@@ -64,7 +64,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       <tr><th>검증</th><th>성공 조건</th><th>실패 시 확인</th></tr>
       </thead>
       <tbody>
-      <tr><td>BAT runtime smoke</td><td>jar 기동, health 응답, 정상 Job 성공, 실패 Job 실패 처리, cleanup 성공</td><td>port, profile, datasource, JobRepository 테이블, CPF 배치 메타</td></tr>
+      <tr><td>BAT runtime smoke</td><td>jar 기동, health 응답, 정상 Job 성공, heartbeat Job 진행률 갱신, 실패 Job 실패 처리, cleanup 성공</td><td>port, profile, datasource, JobRepository 테이블, CPF 배치 메타</td></tr>
       <tr><td>ADM runtime smoke</td><td>jar 기동, health 응답, OpenAPI 접근, 배치 API marker 확인</td><td>ADM datasource, static resource, security filter, session 설정</td></tr>
       <tr><td>OpenAPI smoke</td><td>기동 중인 앱의 JSON 문서 조회 성공</td><td>앱 기동 여부, springdoc 설정, context path</td></tr>
       </tbody>
@@ -93,7 +93,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       <tr><th>상황</th><th>판단 기준</th><th>운영 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>worker 비정상 종료</td><td>health 미응답, heartbeat timeout, RUNNING execution 잔존</td><td>ghost 후보로 식별하고 ADM에서 조치 사유를 입력해 FAIL, ABANDON, RELEASE_LOCK 중 선택합니다.</td></tr>
+      <tr><td>worker 비정상 종료</td><td>health 미응답, heartbeat timeout, RUNNING execution 잔존</td><td>ADM ghost 후보 조회 시 자동 감지 이벤트를 등록하고, 조치 사유를 입력해 FAIL, ABANDON, RELEASE_LOCK 중 선택합니다.</td></tr>
       <tr><td>lock 잔존</td><td>동일 job/parameter 실행이 lock 때문에 차단</td><td>실행 중 worker 존재 여부를 확인한 뒤 lock 해제 또는 재수행 여부를 결정합니다.</td></tr>
       <tr><td>부분 처리 실패</td><td>step 실패, 처리 건수 불일치, 실패 데이터 존재</td><td>skip/retry 정책과 checkpoint를 확인한 뒤 재수행 가능 상태인지 판단합니다.</td></tr>
       </tbody>
@@ -108,7 +108,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       </thead>
       <tbody>
       <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>JobRepository 실행 원천 데이터</td></tr>
-      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code></td><td>ADM 관제와 운영 조치를 위한 메타</td></tr>
+      <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td>ADM 관제와 운영 조치를 위한 메타. 실행/Step 진행률과 마지막 heartbeat를 포함합니다.</td></tr>
       <tr><td>거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>API 호출, trace, request/response, 오류 상세 추적</td></tr>
       <tr><td>감사 로그</td><td><code>adm_audit_log</code></td><td>누가, 언제, 무엇을, 왜 변경했는지 추적</td></tr>
       </tbody>

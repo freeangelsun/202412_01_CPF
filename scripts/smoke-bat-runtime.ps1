@@ -13,6 +13,7 @@ $result = [ordered]@{
     process = [ordered]@{}
     health = [ordered]@{}
     successJob = [ordered]@{}
+    heartbeatJob = [ordered]@{}
     failJob = [ordered]@{}
     cleanup = [ordered]@{}
 }
@@ -132,6 +133,36 @@ function Assert-BatchResult {
     }
 }
 
+function Assert-HeartbeatBatchResult {
+    param(
+        [object] $Payload
+    )
+
+    Assert-BatchResult -Payload $Payload -ExpectedStatus "COMPLETED" -Name "heartbeatJob"
+
+    $detail = $Payload.detail
+    $execution = $detail.execution
+    $extendedExecution = $detail.extendedExecution
+    $steps = @($detail.steps)
+    $processedCount = 0
+    if ($null -ne $extendedExecution -and $null -ne $extendedExecution.processed_count) {
+        $processedCount = [int64] $extendedExecution.processed_count
+    } elseif ($null -ne $execution -and $null -ne $execution.write_count) {
+        $processedCount = [int64] $execution.write_count
+    }
+    if ($processedCount -lt 2) {
+        throw "heartbeatJob processed_count was not updated at least twice. actual=$processedCount"
+    }
+
+    $stepLog = ""
+    if ($steps.Count -gt 0 -and $null -ne $steps[0].step_log) {
+        $stepLog = [string] $steps[0].step_log
+    }
+    if ($stepLog -notmatch "heartbeatCount=") {
+        throw "heartbeatJob step_log does not contain heartbeatCount evidence."
+    }
+}
+
 $startedProcess = $null
 $previousServerInstanceId = $env:SERVER_INSTANCE_ID
 
@@ -193,6 +224,11 @@ try {
     Assert-BatchResult -Payload $successJob -ExpectedStatus "COMPLETED" -Name "successJob"
     $result.successJob.status = "PASSED"
     $result.successJob.response = $successJob
+
+    $heartbeatJob = Invoke-BatJson -Method Post -Uri "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_HEARTBEAT_JOB/run" -TimeoutSec 90
+    Assert-HeartbeatBatchResult -Payload $heartbeatJob
+    $result.heartbeatJob.status = "PASSED"
+    $result.heartbeatJob.response = $heartbeatJob
 
     $failJob = Invoke-BatJson -Method Post -Uri "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_FAIL_JOB/run"
     Assert-BatchResult -Payload $failJob -ExpectedStatus "FAILED" -Name "failJob"

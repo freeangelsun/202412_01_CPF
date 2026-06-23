@@ -1,10 +1,13 @@
 package cpf.pfw.config;
 
 import cpf.pfw.common.batch.CpfBatchEventPublisher;
+import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
+import cpf.pfw.common.batch.CpfBatchHeartbeatService;
 import cpf.pfw.common.batch.CpfBatchLauncher;
 import cpf.pfw.common.batch.CpfBatchLockManager;
 import cpf.pfw.common.batch.CpfBatchLoggingEventPublisher;
 import cpf.pfw.common.batch.CpfBatchOperationRepository;
+import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -51,6 +54,29 @@ public class CpfBatchAutoConfiguration {
             @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
             @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfBatchLockManager(jdbcTemplateProvider, dataSourceProvider);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfBatchHeartbeatService cpfBatchHeartbeatService(
+            CpfBatchOperationRepository repository,
+            @Value("${cpf.batch.worker.heartbeat-interval-seconds:5}") int heartbeatIntervalSeconds,
+            @Value("${cpf.batch.worker.heartbeat-timeout-seconds:30}") int heartbeatTimeoutSeconds) {
+        return new CpfBatchHeartbeatService(repository, heartbeatIntervalSeconds, heartbeatTimeoutSeconds);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfBatchRuntimeListener cpfBatchRuntimeListener(CpfBatchHeartbeatService heartbeatService) {
+        return new CpfBatchRuntimeListener(heartbeatService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfBatchGhostDetectionService cpfBatchGhostDetectionService(
+            CpfBatchOperationRepository repository,
+            CpfBatchHeartbeatService heartbeatService) {
+        return new CpfBatchGhostDetectionService(repository, heartbeatService);
     }
 
     @Bean

@@ -27,6 +27,15 @@ cpf:
     smoke:
       run-on-startup: ${CPF_BAT_SMOKE_RUN_ON_STARTUP:false}
       run-failure-on-startup: ${CPF_BAT_SMOKE_RUN_FAILURE_ON_STARTUP:false}
+      heartbeat-iterations: ${CPF_BAT_SMOKE_HEARTBEAT_ITERATIONS:4}
+      heartbeat-sleep-ms: ${CPF_BAT_SMOKE_HEARTBEAT_SLEEP_MS:1200}
+  batch:
+    worker:
+      heartbeat-interval-seconds: ${CPF_BATCH_WORKER_HEARTBEAT_INTERVAL_SECONDS:2}
+      heartbeat-timeout-seconds: ${CPF_BATCH_WORKER_HEARTBEAT_TIMEOUT_SECONDS:10}
+    ghost-detection:
+      enabled: ${CPF_BATCH_GHOST_DETECTION_ENABLED:true}
+      interval-seconds: ${CPF_BATCH_GHOST_DETECTION_INTERVAL_SECONDS:30}
 
 ---
 spring:

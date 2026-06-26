@@ -105,6 +105,7 @@
       <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로 marker가 있는지 확인합니다.</td></tr>
       <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 검증합니다.</td></tr>
       <tr><td>거래 메타 runtime smoke</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>기동 중인 ADM에 로그인하거나 전달받은 토큰을 사용해 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회를 검증합니다.</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override, cache refresh, <code>dbLogEnabled=N</code> 적용, override 해제 후 fallback 저장 재개를 검증합니다.</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>운영 runbook</td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a></td><td>구동, 중지, 장애 복구, 미검증 보고 원칙을 따릅니다.</td></tr>
       </tbody>

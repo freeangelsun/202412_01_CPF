@@ -37,6 +37,27 @@ function Save-SmokeResult {
     $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resultPath -Encoding UTF8
 }
 
+function ConvertFrom-Utf8JsonResponse {
+    param([object] $Response)
+    $content = $Response.Content
+    if ($null -ne $Response.RawContentStream) {
+        $stream = $Response.RawContentStream
+        if ($stream.CanSeek) {
+            $stream.Position = 0
+        }
+        $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::UTF8, $true, 1024, $true)
+        try {
+            $content = $reader.ReadToEnd()
+        } finally {
+            $reader.Dispose()
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($content)) {
+        return $null
+    }
+    return $content | ConvertFrom-Json
+}
+
 function Invoke-SmokeJson {
     param(
         [string] $Method,
@@ -56,12 +77,13 @@ function Invoke-SmokeJson {
         Uri = $Uri
         TimeoutSec = $TimeoutSec
         Headers = $mergedHeaders
+        UseBasicParsing = $true
     }
     if ($null -ne $Body) {
         $invokeParams.ContentType = "application/json;charset=UTF-8"
-        $invokeParams.Body = ($Body | ConvertTo-Json -Depth 20)
+        $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
     }
-    Invoke-RestMethod @invokeParams
+    ConvertFrom-Utf8JsonResponse (Invoke-WebRequest @invokeParams)
 }
 
 function New-SmokeHeaders {

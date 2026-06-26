@@ -70,6 +70,7 @@
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거 검증 통과</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상 Job, 실패 Job, Spring Batch ID, CPF 배치 메타 연결 확인</td></tr>
       <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 기동, health, OpenAPI, 배치 API, 정적 UI smoke, process cleanup 수행</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override와 cache refresh 후 DB 로그 저장 중지/재개 효과 확인</td></tr>
       <tr><td>MariaDB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치, seed 재실행, FK/index, smoke query 확인</td></tr>
       </tbody>
     </table>

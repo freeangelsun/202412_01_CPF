@@ -46,12 +46,12 @@
       <tbody>
       <tr><td>PFW</td><td>거래 ID, 거래 헤더, 표준 응답, 예외, 거래 로그</td><td>부분 구현</td><td><code>TransactionIdGenerator</code>, <code>TransactionContextFilter</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>LogPolicyResolver</code>, <code>pfw_transaction_log</code></td><td>거래 메타와 로그 정책 런타임 적용은 보강됐고, 부하 검증과 다중 인스턴스 전파는 남아 있습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 거래 메타</td><td>부분 구현</td><td><code>@CpfTransaction</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>pfw_transaction_meta</code>, <code>AdmTransactionMetaController</code></td><td>브라우저 클릭 검증과 대량 운영 UX 고도화는 남아 있습니다.</td></tr>
-      <tr><td>온라인</td><td>온라인 거래 메타 자동 등록</td><td>부분 구현</td><td><code>CpfTransactionMetaScanner</code>, <code>CpfTransactionMetaRepository</code>, <code>CpfTransactionMetaAutoConfiguration</code></td><td>운영 DB에 V11 적용 후 실제 앱 기동 scan 결과 검증이 필요합니다.</td></tr>
+      <tr><td>온라인</td><td>온라인 거래 메타 자동 등록</td><td>완료</td><td><code>CpfTransactionMetaScanner</code>, <code>CpfTransactionMetaRepository</code>, <code>CpfTransactionMetaAutoConfiguration</code>, <code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>로컬 MariaDB에 V11/V12 적용 후 ADM 기동 scan, upsert, 목록, 상세 조회를 검증했습니다. 브라우저 UX 고도화는 별도 항목입니다.</td></tr>
       <tr><td>온라인</td><td>온라인 transactionGlobalId</td><td>완료</td><td><code>TransactionContextFilter</code>, <code>TransactionContext</code>, <code>TransactionIdGenerator</code></td><td>외부 시스템 간 end-to-end 추적 검증은 별도입니다.</td></tr>
       <tr><td>온라인</td><td>온라인 오류 로그</td><td>부분 구현</td><td><code>LoggingAspect</code>, <code>TransactionLogService</code>, <code>pfw_transaction_log.ERROR_MESSAGE</code>, <code>pfw_transaction_log_detail</code></td><td>별도 <code>pfw_error_log</code> 테이블은 없습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 감사 로그</td><td>부분 구현</td><td><code>adm_audit_log</code>, ADM 운영 조치 API</td><td>모든 온라인 업무 변경 API 감사 강제는 아직 범위가 넓지 않습니다.</td></tr>
       <tr><td>온라인</td><td>온라인 파일 로그 정책</td><td>부분 구현</td><td><code>LoggingAspect</code>, <code>LogPolicyResolver</code>, <code>LogPolicyCache</code>, <code>pfw_log_policy</code></td><td>거래별 fileLogLevel과 OFF 정책은 런타임 적용됩니다. 다중 인스턴스 즉시 전파는 남아 있습니다.</td></tr>
-      <tr><td>온라인</td><td>온라인 DB 로그 정책</td><td>부분 구현</td><td><code>TransactionLogListener</code>, <code>TransactionLogService</code>, <code>TransactionLogMapper.xml</code>, <code>pfw_log_policy_override</code></td><td>거래별 DB 로그 ON/OFF와 request/response/error 저장 정책은 런타임 적용됩니다. 운영 부하 검증은 남아 있습니다.</td></tr>
+      <tr><td>온라인</td><td>온라인 DB 로그 정책</td><td>부분 구현</td><td><code>TransactionLogListener</code>, <code>TransactionLogService</code>, <code>TransactionLogMapper.xml</code>, <code>pfw_log_policy_override</code>, <code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로컬 ADM runtime에서 <code>dbLogEnabled=N</code> override 적용과 해제 후 fallback 저장 재개를 검증했습니다. request/response/error 저장 세부 조합과 운영 부하 검증은 다음 단계입니다.</td></tr>
       <tr><td>ADM</td><td>로그 정책 override</td><td>부분 구현</td><td><code>AdmLogPolicyController</code>, <code>AdmLogPolicyService</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>정책 변경 후 현재 인스턴스 cache evict/refresh는 구현됐고, broker 전파는 남아 있습니다.</td></tr>
       <tr><td>PFW</td><td>Batch 공통 API와 CPF Batch 메타</td><td>완료</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>CpfBatchHeartbeatService</code>, <code>CpfBatchRuntimeListener</code>, <code>pfw_batch_*</code></td><td>ghost 주기 scheduler와 broker 장애 시나리오 검증은 다음 보강 후보입니다.</td></tr>
       <tr><td>배치</td><td>배치 Job 로그 정책</td><td>부분 구현</td><td><code>CpfBatchRuntimeListener</code>, <code>LogPolicyResolver</code>, <code>pfw_log_policy</code></td><td>Job 시작 시 <code>BATCH_JOB</code> 정책을 조회해 ExecutionContext에 남깁니다. 별도 배치 로그 저장소 적용은 다음 단계입니다.</td></tr>
@@ -116,6 +116,8 @@
       <tr><td>UTF-8/mojibake</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>대상 텍스트 파일이 UTF-8 no BOM이고 주요 mojibake marker가 없습니다.</td></tr>
       <tr><td>기능 증거</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>핵심 파일과 문서 marker가 존재합니다.</td></tr>
       <tr><td>Gradle test</td><td><code>.\gradlew.bat test --offline</code></td><td>모듈 테스트가 성공합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 기동, OpenAPI, 배치 API, 거래 메타 E2E, 정적 UI smoke가 성공합니다.</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override 적용과 해제 후 DB 로그 저장 상태 변화가 성공합니다.</td></tr>
       <tr><td>qualityGate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>문서, SQL, UTF-8, 기능 증거 검증이 묶여 통과합니다.</td></tr>
       </tbody>
     </table>

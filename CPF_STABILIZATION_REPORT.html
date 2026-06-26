@@ -2,117 +2,77 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
-    body { margin: 0; font-family: "Malgun Gothic", Arial, sans-serif; color: #222; background: #f7f8fa; line-height: 1.6; }
-    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    h2 { margin: 32px 0 12px; font-size: 20px; border-bottom: 2px solid #d9dee7; padding-bottom: 6px; }
-    p { margin: 8px 0; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin: 12px 0 20px; }
-    th, td { border: 1px solid #d9dee7; padding: 9px 10px; vertical-align: top; text-align: left; }
-    th { background: #eef2f7; font-weight: 700; }
-    code { background: #eef2f7; padding: 1px 4px; border-radius: 4px; }
-    .summary { background: #fff; border: 1px solid #d9dee7; padding: 16px; margin-top: 18px; }
-    .done { color: #0b6b3a; font-weight: 700; }
-    .partial { color: #8a5a00; font-weight: 700; }
-    .failed { color: #a32020; font-weight: 700; }
-    .pending { color: #555; font-weight: 700; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #f1f5f9; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    .ok { color: #047857; font-weight: 700; }
+    .warn { color: #b45309; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>작성 시각: 2026-06-23 20:00 KST</p>
-    <p>작업 주제: 로그 정책 런타임 적용, Override cache 반영, 거래 메타 smoke 보강, HTML 리포트 정본화</p>
-    <div class="summary">
-      <p><strong>종합 상태:</strong> <span class="partial">부분 완료</span></p>
-      <p>코드, SQL, 문서, feature evidence, 단위 테스트, BAT runtime smoke는 보강 및 검증했습니다. ADM runtime smoke는 health, OpenAPI, batch API까지 통과했지만 거래 메타 scan에서 ADM 권한 403이 발생해 전체 성공으로 기록하지 않습니다.</p>
-      <p>요청서는 확인용으로만 사용했고 작업 대상으로 수정하지 않았습니다. Git commit, push, branch 생성, 변경 파일 목록 산출물 생성은 수행하지 않았습니다.</p>
-    </div>
+    <h1>CPF 안정화 리포트</h1>
+    <p>이번 작업은 V13 ADM 권한 seed 실제 적용, PFW 런타임 migration 보정, ADM 거래 메타 E2E smoke 복구, 로그 정책 runtime 효과 검증, 전체 Gradle 테스트 timeout 재확인을 목표로 수행했습니다. 요청서 파일은 작업 대상에서 제외하고 확인 용도로만 사용했습니다.</p>
   </section>
 
   <section>
-    <h2>현재 상태 판정</h2>
+    <h2>수행 작업</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>근거</th><th>비고</th></tr>
+      <tr><th>영역</th><th>내용</th><th>결과</th></tr>
       </thead>
       <tbody>
-      <tr><td>로그 정책 테이블</td><td class="done">완료</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>설치 SQL과 Flyway 변경 이력을 동기화했습니다.</td></tr>
-      <tr><td>정책 평가 공통 컴포넌트</td><td class="done">완료</td><td><code>LogPolicyResolver</code>, <code>LogPolicyCache</code>, <code>LogPolicyTargetType</code></td><td>override, DB 정책, 기본값 fallback 순서로 평가합니다.</td></tr>
-      <tr><td>온라인 거래 정책 적용</td><td class="done">완료</td><td><code>LoggingAspect</code>, <code>TransactionLogEvent</code></td><td><code>ONLINE_TRANSACTION</code> 정책을 조회해 파일 로그 레벨과 DB 저장 여부를 반영합니다.</td></tr>
-      <tr><td>DB 거래 로그 저장 제어</td><td class="done">완료</td><td><code>TransactionLogListener</code>, <code>TransactionLogService</code></td><td><code>dbLogEnabled</code>와 request, response, error 저장 정책을 적용합니다.</td></tr>
-      <tr><td>배치 Job, Step 정책 hook</td><td class="partial">부분 구현</td><td><code>CpfBatchRuntimeListener</code></td><td>Job, Step 시작 시 정책을 조회해 ExecutionContext에 기록합니다. 별도 배치 로그 저장 정책 자동화는 다음 단계입니다.</td></tr>
-      <tr><td>ADM cache 반영 API</td><td class="done">완료</td><td><code>/adm/api/log-policies/cache/refresh</code>, <code>/adm/api/log-policies/cache/clear</code></td><td>정책 저장, 수정, override 변경 후 현재 인스턴스 cache를 evict합니다.</td></tr>
-      <tr><td>ADM 버튼 권한 보정</td><td class="done">완료</td><td><code>V13__adm_runtime_policy_permission_seed.sql</code></td><td>거래 메타 스캔과 로그 정책 cache refresh, clear 버튼 seed를 추가했습니다.</td></tr>
-      <tr><td>거래 메타 E2E smoke</td><td class="failed">실패</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>스크립트는 추가했지만 현재 로컬 DB 권한 seed 미반영으로 scan API가 403을 반환했습니다.</td></tr>
-      <tr><td>HTML 리포트 구조</td><td class="done">완료</td><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>실제 HTML 구조로 작성했고 문서 검증을 통과했습니다.</td></tr>
+      <tr><td>PFW DB 보정</td><td><code>scripts/apply-pfw-runtime-migrations.ps1</code>를 추가해 V11/V12 런타임 migration을 로컬 MariaDB <code>pfwDB</code>에 적용하고 재실행 idempotent를 확인했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>ADM 권한 seed</td><td>V13 seed에 <code>adm_role_menu</code> 권한 보정을 추가했습니다. 기존 403 원인은 버튼 권한뿐 아니라 메뉴 write 권한이 함께 필요했기 때문입니다.</td><td class="ok">완료</td></tr>
+      <tr><td>ADM 권한 적용</td><td><code>scripts/apply-v13-adm-permission-seed.ps1</code>를 추가해 V13 seed를 실제 로컬 MariaDB <code>admDB</code>에 적용하고 2회 실행 idempotent를 확인했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>거래 메타 smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code>와 <code>scripts/smoke-transaction-meta-runtime.ps1</code>로 ADM 기동, health, OpenAPI, 거래 메타 scan, upsert, 목록, 상세 조회를 확인했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>로그 정책 smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>를 추가해 <code>dbLogEnabled=N</code> override 적용 시 DB 로그 저장이 중지되고, override 해제 후 fallback 저장이 재개되는지 확인했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>UTF-8 smoke 응답</td><td>Windows PowerShell REST 응답 디코딩으로 거래 메타 결과 JSON의 한글 메시지가 깨지는 문제를 방지하도록 smoke 스크립트의 JSON 수신을 UTF-8 스트림 기준으로 보강했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>문서 현행화</td><td>README, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스에 신규 적용/검증 명령과 현재 상태를 반영했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>품질 증거 gate</td><td><code>scripts/check-feature-evidence.ps1</code>에 V13 메뉴 권한 보정, PFW runtime migration 적용 스크립트, 로그 정책 runtime smoke 증거를 추가했습니다.</td><td class="ok">완료</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>반영 작업</h2>
+    <h2>실행 검증</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th></tr>
+      <tr><th>검증</th><th>결과</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW 로그 정책</td><td>정책 대상 유형, 정책 결정값, JDBC repository, TTL cache, resolver, auto configuration을 추가했습니다.</td></tr>
-      <tr><td>온라인 로깅</td><td><code>LoggingAspect</code>가 <code>@CpfTransaction</code>의 거래 ID로 정책을 조회하고 로그 레벨, DB 저장 여부, 본문 저장 여부를 적용하도록 보강했습니다.</td></tr>
-      <tr><td>거래 로그 저장</td><td><code>TransactionLogService</code>가 정책에 따라 저장을 건너뛰거나 request, response, error detail 저장을 제외하도록 보강했습니다.</td></tr>
-      <tr><td>배치 정책 hook</td><td>배치 Job과 Step 시작 시 <code>BATCH_JOB</code>, <code>BATCH_STEP</code> 정책을 조회해 운영 메타에 연결 가능한 값을 ExecutionContext에 남기도록 했습니다.</td></tr>
-      <tr><td>ADM 운영 API</td><td>로그 정책 cache refresh, clear API와 화면 버튼을 추가했고, 정책 변경 시 현재 인스턴스 cache evict와 감사 로그가 남도록 했습니다.</td></tr>
-      <tr><td>ADM 권한 seed</td><td>로그 정책 cache 버튼 ID를 full install SQL, smoke install SQL, 분리 seed, Flyway 보정 migration에 반영했습니다.</td></tr>
-      <tr><td>거래 메타 smoke</td><td>ADM 로그인 토큰으로 scan, 목록, 상세를 확인하는 smoke 스크립트를 추가하고 ADM runtime smoke에 연결했습니다.</td></tr>
-      <tr><td>문서</td><td>README, 개발 가이드, 관리자 가이드, 프레임워크 구성 가이드, SQL 가이드, 운영 매뉴얼, 기능 구현 매트릭스를 현재 구현 상태에 맞게 갱신했습니다.</td></tr>
-      <tr><td>품질 게이트</td><td>feature evidence가 로그 정책 resolver, cache, 온라인 정책 적용, 배치 hook, ADM cache API, 거래 메타 smoke, V12, V13을 확인하도록 보강했습니다.</td></tr>
+      <tr><td>PFW V11/V12 로컬 적용</td><td class="ok">성공</td><td><code>pfw_transaction_meta</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 테이블 존재 확인. 정책 seed 3건, <code>ONLINE_TRANSACTION</code> 정책 1건, 재실행 idempotent 확인.</td></tr>
+      <tr><td>ADM V13 로컬 적용</td><td class="ok">성공</td><td>메뉴 2건, 관리자 메뉴 write 2건, 운영자 메뉴 write 4건, 조회 역할 4건, 버튼 8건, scan/cache refresh/cache clear 권한을 확인하고 재실행 idempotent를 확인.</td></tr>
+      <tr><td>ADM runtime smoke</td><td class="ok">성공</td><td>health <code>admDB/pfwDB/mbrDB</code> UP, OpenAPI 접근, 배치 API, 거래 메타 API, 정적 UI smoke, cleanup 성공.</td></tr>
+      <tr><td>거래 메타 E2E</td><td class="ok">성공</td><td>scan <code>detectedCount=108</code>, <code>upsertedCount=108</code>, 목록 20건 조회, 상세 조회 성공. 결과 파일의 한글 메시지도 UTF-8 정상 저장 확인.</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td class="ok">성공</td><td>override 적용 전 최신 로그 순번 1032, <code>dbLogEnabled=N</code> 적용 후 1032 유지, override 해제 후 1129로 증가 확인.</td></tr>
+      <tr><td>모듈 분리 테스트</td><td class="ok">성공</td><td><code>:pfw:test :adm:test :bat:test --offline</code> 성공, <code>:cmn:test :acc:test :mbr:test :xyz:test :bizadm:test :exs:test --offline</code> 성공.</td></tr>
+      <tr><td>전체 Gradle test</td><td class="ok">성공</td><td><code>.\gradlew.bat test --offline</code> 재실행 성공. 이전 timeout은 이번 재실행 기준 재현되지 않았습니다.</td></tr>
+      <tr><td>UTF-8/mojibake gate</td><td class="ok">성공</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code> 통과.</td></tr>
+      <tr><td>SQL 표준 gate</td><td class="ok">성공</td><td><code>scripts/check-sql-standard.ps1</code> 통과.</td></tr>
+      <tr><td>기능 증거 gate</td><td class="ok">성공</td><td><code>scripts/check-feature-evidence.ps1</code> 통과.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>검증 결과</h2>
+    <h2>미검증 및 보류</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>기록</th></tr>
+      <tr><th>항목</th><th>상태</th><th>사유</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>gradlew :pfw:test :adm:test --offline</code></td><td class="done">통과</td><td>PFW와 ADM 단위 테스트 통과</td></tr>
-      <tr><td><code>gradlew :bat:test --offline</code></td><td class="done">통과</td><td>BAT 테스트 통과</td></tr>
-      <tr><td><code>gradlew :adm:bootJar --offline</code></td><td class="done">통과</td><td>ADM 실행 jar 빌드 통과</td></tr>
-      <tr><td><code>gradlew :bat:bootJar --offline</code></td><td class="done">통과</td><td>BAT 실행 jar 빌드 통과</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="done">통과</td><td>UTF-8 및 mojibake 검사 통과</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="done">통과</td><td>신규 기능 marker 검증 통과</td></tr>
-      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td class="done">통과</td><td>SQL 표준 검사 통과</td></tr>
-      <tr><td><code>scripts/check-java-format.ps1</code></td><td class="done">통과</td><td>Java 포맷 검사 통과</td></tr>
-      <tr><td><code>scripts/check-legacy-name.ps1</code></td><td class="done">통과</td><td>legacy naming marker 검사 통과</td></tr>
-      <tr><td><code>scripts/check-security-seed-standard.ps1</code></td><td class="done">통과</td><td>보안 seed 표준 검사 통과</td></tr>
-      <tr><td><code>scripts/check-sample-standard.ps1</code></td><td class="done">통과</td><td>샘플과 하드코딩 표준 검사 통과</td></tr>
-      <tr><td><code>scripts/check-transaction-id-standard.ps1</code></td><td class="done">통과</td><td>거래 ID 표준 검사 통과</td></tr>
-      <tr><td><code>scripts/smoke-bat-runtime.ps1</code></td><td class="done">통과</td><td>BAT health, success job, heartbeat job, fail job, cleanup 통과</td></tr>
-      <tr><td><code>scripts/smoke-adm-runtime.ps1</code></td><td class="failed">실패</td><td>ADM health, OpenAPI, batch API는 통과했지만 거래 메타 scan API가 403을 반환했습니다.</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="done">통과</td><td>HTML 문서 구조와 Markdown 산출물 금지 기준을 통과했습니다.</td></tr>
-      <tr><td><code>gradlew test --offline</code></td><td class="failed">실패</td><td>전체 모듈 테스트는 장시간 실행 후 timeout으로 종료되어 성공으로 기록하지 않습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>미완료와 리스크</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>사유와 다음 조치</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>거래 메타 scan E2E</td><td class="failed">실패</td><td>현재 로컬 ADM DB에 최신 버튼 권한 seed가 반영되지 않아 403이 발생했습니다. <code>V13__adm_runtime_policy_permission_seed.sql</code> 적용 또는 전체 설치 SQL 재적용 후 smoke를 다시 실행해야 합니다.</td></tr>
-      <tr><td>다중 인스턴스 정책 전파</td><td class="partial">부분 구현</td><td>현재 인스턴스 cache evict, refresh, clear는 구현했습니다. Redis, Kafka, MQ broker 전파는 이번 범위 제외 항목으로 남겼습니다.</td></tr>
-      <tr><td>배치 DB 로그 저장 정책 자동화</td><td class="partial">부분 구현</td><td>Batch listener hook은 구현했습니다. Job, Step별 별도 로그 저장소 자동 ON/OFF와 보존 정책은 다음 작업으로 분리했습니다.</td></tr>
-      <tr><td>OpenAPI 품질 gate</td><td class="partial">부분 구현</td><td>ADM runtime smoke에서 <code>/v3/api-docs</code> 호출은 통과했습니다. 별도 schema lint 수준의 품질 gate는 다음 보강 후보입니다.</td></tr>
-      <tr><td>전체 테스트</td><td class="failed">실패</td><td>전체 <code>test</code>는 timeout으로 종료되었습니다. 모듈별 테스트는 이번 변경 영향 범위 중심으로 통과했습니다.</td></tr>
+      <tr><td>전체 설치 SQL 신규 DB 재설치</td><td class="warn">미실행</td><td>이번 작업은 기존 로컬 DB에 V11/V12/V13 보강 migration과 권한 seed를 적용하는 범위로 수행했습니다. 전체 drop/create 성격의 설치 검증은 별도 승인된 시점에 실행해야 합니다.</td></tr>
+      <tr><td>브라우저 실제 클릭 자동화</td><td class="warn">미검증</td><td>ADM runtime smoke에서 브라우저 자동화 runtime이 PATH에 없어 browser click 항목은 skipped로 기록되었습니다. 정적 UI marker와 API smoke는 통과했습니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker 전파</td><td class="warn">보류</td><td>이번 요청 범위는 DB fallback과 현재 인스턴스 cache refresh 검증입니다. 실제 broker 장애 시나리오는 별도 환경이 필요합니다.</td></tr>
+      <tr><td>로그 정책 세부 조합 전체</td><td class="warn">부분 검증</td><td>이번 smoke는 <code>dbLogEnabled</code> 효과를 실제 로그 순번으로 검증했습니다. request/response/error stack 저장 여부 조합은 후속 케이스로 확대해야 합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -121,14 +81,14 @@
     <h2>다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>우선순위</th><th>보강 후보</th><th>이유</th></tr>
+      <tr><th>우선순위</th><th>작업</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>현재 MariaDB에 V13 권한 seed 적용 후 ADM 거래 메타 smoke 재실행</td><td>이번 실패 원인을 닫아야 거래 메타 scan, upsert, ADM 조회 E2E를 완료로 기록할 수 있습니다.</td></tr>
-      <tr><td>2</td><td>Flyway runtime 적용 구조 정리</td><td>현재 migration 파일은 배포 기준으로 정리되어 있으나 앱 기동 시 자동 적용 구조는 별도 확인이 필요합니다.</td></tr>
-      <tr><td>3</td><td>로그 정책 broker 전파</td><td>다중 ADM, 다중 WAS 환경에서 정책 cache 반영 지연을 줄이려면 Redis, Kafka, MQ 중 하나의 전파 채널이 필요합니다.</td></tr>
-      <tr><td>4</td><td>배치 로그 정책 저장 자동화</td><td>현재 hook 값을 기반으로 Job, Step 로그 저장소와 보존 정책까지 연결하면 운영 완성도가 올라갑니다.</td></tr>
-      <tr><td>5</td><td>전체 테스트 timeout 원인 분리</td><td>긴 테스트를 모듈별, 태그별, 통합 테스트별로 분리해야 CI에서 안정적으로 통과시킬 수 있습니다.</td></tr>
+      <tr><td>1</td><td>로그 정책 세부 smoke 확대</td><td><code>requestBodySaveYn</code>, <code>responseBodySaveYn</code>, <code>errorStackSaveYn</code>, active/expired override, default fallback을 각각 독립 케이스로 검증합니다.</td></tr>
+      <tr><td>2</td><td>ADM 브라우저 클릭 자동화</td><td>거래 메타, 로그 정책, 로그 조회 화면을 실제 클릭 시나리오로 검증해 UI 완료 기준을 높입니다.</td></tr>
+      <tr><td>3</td><td>Redis/Kafka/MQ broker 실연동</td><td>로그 정책과 캐시 refresh가 다중 인스턴스에 즉시 전파되는지 장애 fallback까지 확인합니다.</td></tr>
+      <tr><td>4</td><td>전체 설치 SQL 신규 DB 재검증</td><td>기존 DB 보정과 별개로 신규 설치 기준의 FK, index, seed idempotent, 권한 계정을 다시 확인합니다.</td></tr>
+      <tr><td>5</td><td>ADM 통합 관제 UX 고도화</td><td>거래 로그, 오류, 감사, 로그 정책, 거래 메타를 운영자 흐름 기준으로 한 화면에서 추적하도록 다듬습니다.</td></tr>
       </tbody>
     </table>
   </section>

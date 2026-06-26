@@ -134,6 +134,20 @@
   </section>
 
   <section>
+    <h2>V11~V13 로컬 DB 적용 결과</h2>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>결과</th><th>근거</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>PFW V11/V12 적용</td><td>완료</td><td><code>scripts/apply-pfw-runtime-migrations.ps1</code>가 <code>pfw_transaction_meta</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 존재와 seed idempotent를 확인합니다.</td></tr>
+      <tr><td>ADM V13 권한 seed 적용</td><td>완료</td><td><code>scripts/apply-v13-adm-permission-seed.ps1</code>가 <code>TRANSACTION_META</code>, <code>LOG_POLICY</code> 메뉴/버튼 권한과 역할별 재실행 idempotent를 확인합니다.</td></tr>
+      <tr><td>로그 정책 runtime 효과</td><td>완료</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>가 <code>dbLogEnabled=N</code> override 적용 시 로그 저장 중지와 해제 후 저장 재개를 확인합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>center-cut SQL 기준</h2>
     <p>PFW는 center-cut 대상 목록, item, result 업무 테이블을 고정으로 소유하지 않습니다. 업무별 데이터 구조와 보존 정책이 다르기 때문입니다. 공통으로 필요한 상태, 오류, 거래 ID, 운영 로그 기준은 PFW/BAT가 제공하고, 실제 업무 target/item/result 테이블은 업무 모듈 또는 BAT 기본 구현체 확장 영역에서 추가합니다.</p>
   </section>
@@ -141,6 +155,9 @@
   <section>
     <h2>검증 명령</h2>
     <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/apply-pfw-runtime-migrations.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/apply-v13-adm-permission-seed.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-log-policy-runtime.ps1
 mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
     <p>실제 MariaDB 검증을 실행하지 않은 경우 성공으로 기록하지 않고 미검증으로 기록합니다.</p>
   </section>

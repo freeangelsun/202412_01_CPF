@@ -1,40 +1,39 @@
-# CPF_REQUEST_008: 로그 정책 런타임 적용 / Override 전파 / 거래 메타 E2E Smoke / 리포트 HTML 정본화
+# CPF_REQUEST_009: V13 권한 seed 실제 DB 적용 / ADM 거래 메타 E2E smoke 완료 / 로그 정책 효과 검증 / 전체 test timeout 분리
 
 ## 0. 이번 작업 범위 고정
 
-이번 작업은 온라인 거래 메타와 로그 정책 기본 모델이 추가된 이후, 실제 런타임에서 로그 정책이 적용되는지 검증 가능한 수준으로 연결하는 작업이다.
+이번 작업은 직전 작업에서 남은 실패/미검증 항목을 닫는 안정화 작업이다.
+
+직전 작업에서 로그 정책 런타임 적용, ADM 로그 정책 cache refresh/clear API, 거래 메타 smoke script, V13 권한 seed 파일은 반영되었다.
+하지만 ADM 거래 메타 runtime smoke가 403으로 실패했고, 전체 `gradlew test --offline`은 timeout으로 성공 처리되지 않았다.
 
 이번 작업은 아래 범위로 고정한다.
 
-```text id="p8nwsu"
+```text
 선택 범위:
-- pfw_log_policy / pfw_log_policy_override 런타임 적용
-- LoggingAspect에서 온라인 거래별 로그 정책 적용
-- TransactionLogListener 또는 TransactionLogService에서 DB 로그 저장 여부 적용
-- Batch Job/Step listener에서 배치 Job/Step 로그 정책 적용 기준 연결
-- 로그 정책 우선순위 적용
-- 로그 정책 조회 cache 및 refresh/invalidation 기준 구현
-- ADM 로그 정책 변경 시 runtime cache 반영 기준 구현
-- 거래 메타 scan → DB upsert → ADM 조회 E2E smoke 검증
-- check-feature-evidence.ps1 신규 기능 marker 보강
-- CPF_STABILIZATION_REPORT.html을 실제 HTML 문서 형식으로 정본화
-- README / 개발 가이드 / 관리자 가이드 / 운영 매뉴얼 / SQL 가이드 / 기능 매트릭스 / 리포트 반영
+- V13__adm_runtime_policy_permission_seed.sql 실제 local MariaDB 적용
+- ADM 거래 메타 scan API 403 원인 해소
+- 거래 메타 scan → pfw_transaction_meta upsert → 목록 조회 → 상세 조회 E2E smoke 성공
+- smoke-adm-runtime.ps1 전체 성공 상태 복구
+- 로그 정책 실제 효과 검증
+- dbLogEnabled / requestBodySaveYn / responseBodySaveYn / errorStackSaveYn 정책 적용 검증
+- override active 기간 / 만료 기간 / fallback 검증
+- 전체 gradlew test timeout 원인 분리
+- README / 관리자 가이드 / 운영 매뉴얼 / SQL 가이드 / 기능 매트릭스 / CPF_STABILIZATION_REPORT.html 반영
 ```
 
 이번 작업에서 아래 항목은 구현하지 않는다.
-필요하면 `CPF_STABILIZATION_REPORT.html`의 다음 보강 후보로만 기록한다.
 
-```text id="g9hife"
+```text
 이번 실행 제외:
-- ADM 로그 정책 전체 UX 완성
+- 신규 ADM UX 대규모 구현
 - ADM 브라우저 실제 클릭 자동화
-- ADM 오류/감사/마스킹/다운로드 통합 관제 전체 구현
 - ADM Cache hit/miss/ttl/eviction/clear 전체 구현
 - 배치 강제수행/lock/pause/resume 운영 정책 전체 구현
 - 온디맨드 배치 구현
 - 센터컷 기본 구현체 구현
 - Redis/Kafka/MQ 실 broker 검증
-- 전체 트랜잭션 가이드 정본화
+- 트랜잭션 가이드 전체 정본화
 ```
 
 요청 파일은 작업 대상으로 수정하지 않는다.
@@ -46,34 +45,20 @@ Git commit, push, branch 생성 지시는 하지 않는다.
 
 ## 1. 이번 작업의 핵심 의도
 
-직전 작업에서 아래 기반이 추가되었다.
+이번 작업은 새 기능 구현이 아니라 **실패한 검증을 성공 상태로 닫는 작업**이다.
 
-```text id="pb76wr"
-- @CpfTransaction 정본화
-- FpsTransaction 레거시 정리
-- pfw_transaction_meta 기본 모델
-- 거래 메타 scan/upsert 기반
-- ADM 거래 메타 API
-- pfw_log_policy / pfw_log_policy_override / pfw_log_policy_audit 기본 모델
-- ADM 로그 정책 API
-- BAT smoke strict V10 옵션
-- ADM Cache summary/refresh 부분 구현
+직전 리포트 기준 핵심 미완료는 아래다.
+
+```text
+남은 핵심 실패/미검증:
+- smoke-adm-runtime.ps1 안의 거래 메타 scan API가 403으로 실패
+- V13 권한 seed가 local MariaDB에 실제 적용되지 않음
+- 거래 메타 scan → upsert → 목록/상세 조회 E2E가 실패 상태
+- 로그 정책 런타임 적용 소스는 들어갔지만 정책별 실제 DB 저장/미저장 효과 검증 부족
+- 전체 gradlew test --offline이 timeout으로 성공 처리되지 않음
 ```
 
-하지만 아직 핵심 미완료가 남아 있다.
-
-```text id="d8wjcz"
-남은 핵심:
-- 로그 정책이 실제 LoggingAspect에 적용되는지
-- DB 로그 저장 여부가 실제 TransactionLogListener/Service에 적용되는지
-- override 기간/우선순위가 실제 런타임에서 평가되는지
-- 정책 변경 후 cache가 반영되는지
-- 거래 메타 scan 결과가 실제 DB에 저장되고 ADM에서 조회되는지
-- feature evidence gate가 신규 기능을 제대로 검증하는지
-- CPF_STABILIZATION_REPORT.html이 실제 HTML 형식인지
-```
-
-이번 작업은 “모델/API 있음” 단계에서 “런타임 적용/검증 가능” 단계로 올리는 작업이다.
+이번 작업은 이 항목을 닫는 데 집중한다.
 
 ---
 
@@ -81,34 +66,24 @@ Git commit, push, branch 생성 지시는 하지 않는다.
 
 아래 책임 경계를 유지한다.
 
-```text id="syeiea"
+```text
 PFW:
-- 로그 정책 런타임 평가의 공통 기준 제공
-- transactionGlobalId / traceId / spanId 기준 제공
-- LoggingAspect / TransactionLogListener / Batch listener에 정책 적용 기준 제공
-- 정책 조회 cache 및 invalidation 기준 제공
+- @CpfTransaction, 거래 메타 scan/upsert, 로그 정책 resolver/cache, LoggingAspect, TransactionLogService 공통 기준 제공
 - ADM 화면 책임을 직접 소유하지 않음
 
 ADM:
-- 로그 정책 조회/등록/수정/override 관리
-- override 기간/사유/변경자/감사 이력 관리
-- 정책 변경 후 runtime 반영 요청 또는 cache refresh 요청
-- 운영자가 확인 가능한 API/UI wrapper 제공
+- 거래 메타 조회/scan/inactive API 제공
+- 로그 정책 조회/등록/수정/override/cache refresh 관리
+- 권한/버튼/API 권한 seed와 운영 감사 관리
 
 BAT:
-- Batch Job/Step 실행 주체
-- Batch listener에서 Job/Step 로그 정책을 적용받음
-- 온라인 거래 정책 구현을 침범하지 않음
-
-온라인 업무 모듈:
-- Controller/API에 @CpfTransaction 적용
-- 거래별 로그 정책 대상
-- 거래 메타 scan/upsert 대상
+- Batch runtime smoke와 Job/Step listener 정책 hook 유지
+- 이번 작업에서 배치 운영 정책 신규 기능을 확장하지 않음
 ```
 
 센터컷 전제도 유지한다.
 
-```text id="zhaqpy"
+```text
 센터컷 전제:
 - PFW는 센터컷 대량 모수/item/result 테이블을 직접 소유하지 않는다.
 - BAT는 향후 기본 센터컷 구현체를 제공한다.
@@ -119,30 +94,29 @@ BAT:
 
 ## 3. 먼저 현재 상태 판정
 
-작업 시작 전 실제 소스/SQL/문서 기준으로 아래를 판정한다.
+작업 시작 전 실제 소스/SQL/문서/DB 기준으로 아래를 판정한다.
 
-```text id="nze8yr"
+```text
 현재 상태 판정 항목:
+- V13__adm_runtime_policy_permission_seed.sql 파일 존재 여부
+- V13 seed가 local MariaDB에 적용되어 있는지
+- ADM 거래 메타 scan API 권한 seed 존재 여부
+- ADM 거래 메타 목록/상세/scan/inactive API 권한 seed 존재 여부
+- ADM 로그 정책 cache refresh/clear 권한 seed 존재 여부
+- smoke-transaction-meta-runtime.ps1 실패 원인
+- smoke-adm-runtime.ps1 전체 실패 원인
 - pfw_transaction_meta 테이블 존재 여부
-- pfw_log_policy 테이블 존재 여부
-- pfw_log_policy_override 테이블 존재 여부
-- pfw_log_policy_audit 테이블 존재 여부
-- CpfTransactionMetaScanner 존재 여부
-- 거래 메타 startup scan 동작 방식
-- ADM 거래 메타 API 존재 여부
-- ADM 로그 정책 API 존재 여부
-- LoggingAspect가 로그 정책을 실제 조회/적용하는지
-- TransactionLogListener 또는 TransactionLogService가 DB 저장 여부를 정책 기반으로 판단하는지
-- Batch listener가 Job/Step 로그 정책을 적용하는지
-- 로그 정책 cache 존재 여부
-- ADM 정책 변경 시 cache refresh/invalidation 존재 여부
-- check-feature-evidence.ps1이 신규 기능을 검증하는지
-- CPF_STABILIZATION_REPORT.html이 실제 HTML 문서 형식인지
+- 거래 메타 scan 시 DB upsert 여부
+- ADM 목록/상세 조회 가능 여부
+- 로그 정책 resolver/cache 런타임 적용 상태
+- LoggingAspect 정책 적용 상태
+- TransactionLogService 정책 저장 제어 상태
+- 전체 gradlew test timeout 원인
 ```
 
 상태값은 아래만 사용한다.
 
-```text id="vfb4a1"
+```text
 완료
 부분 구현
 미구현
@@ -151,118 +125,88 @@ BAT:
 재확인 필요
 ```
 
-Codex 완료 메시지나 과거 리포트만 믿지 말고 실제 파일 기준으로 확인한다.
+Codex 완료 메시지나 과거 리포트만 믿지 말고 실제 파일/DB 기준으로 확인한다.
 
 ---
 
-## 4. 로그 정책 우선순위 런타임 적용
+## 4. V13 권한 seed 실제 DB 적용
 
-로그 정책은 온라인/배치 모두에서 같은 우선순위를 가져야 한다.
+직전 작업에서는 V13 권한 seed 파일은 생성되었지만 local MariaDB에 적용되지 않아 거래 메타 scan API가 403으로 실패했다.
 
-```text id="jon0hx"
-로그 정책 우선순위:
-1. ADM 활성 override
-2. DB 운영 정책
-3. application.yml 기본값
-4. CPF 기본값
+이번 작업에서는 V13 seed를 실제 local MariaDB에 적용한다.
+
+필수 검증:
+
+```text
+- V13__adm_runtime_policy_permission_seed.sql 실제 적용
+- 적용 전/후 권한 row count 확인
+- ADM 거래 메타 메뉴 권한 확인
+- ADM 거래 메타 버튼 권한 확인
+- ADM 거래 메타 scan API 권한 확인
+- ADM 로그 정책 cache refresh/clear 권한 확인
+- seed 재실행 idempotent 확인
 ```
 
-필수 구현 또는 보강 대상:
+주의:
 
-```text id="i23p7w"
-- LogPolicyResolver 또는 동등한 공통 service
-- LogPolicyCache 또는 동등한 cache
-- LogPolicyTargetType enum 또는 동등 코드
-- ONLINE_TRANSACTION 정책 조회
-- BATCH_JOB 정책 조회
-- BATCH_STEP 정책 조회
-- override 기간 effective_start_at / effective_end_at 평가
-- active_yn 평가
-- target_id 미일치 시 기본 정책 fallback
-- 정책 미존재 시 yml 기본값 fallback
-- 정책 평가 실패 시 업무 응답 실패로 전파하지 않고 안전 fallback
-```
-
-정책 대상 기준:
-
-```text id="ryzbby"
-ONLINE_TRANSACTION:
-- target_id = transactionId
-
-BATCH_JOB:
-- target_id = jobId
-
-BATCH_STEP:
-- target_id = jobId + stepName 또는 별도 stepId 정책
-```
-
-정책 평가 결과에는 최소 아래가 있어야 한다.
-
-```text id="u5kmm9"
-- targetType
-- targetId
-- fileLogLevel
-- dbLogEnabled
-- dbLogLevel
-- requestBodySaveYn
-- responseBodySaveYn
-- errorStackSaveYn
-- maskingPolicyKey
-- resolvedSource
-- overrideId
-- policyId
+```text
+- 비밀번호는 리포트에 기록하지 않는다.
+- root/migration/app 계정 권한 구분을 지킨다.
+- 적용 명령과 결과는 리포트에 기록한다.
+- 적용하지 못하면 성공으로 기록하지 않는다.
 ```
 
 ---
 
-## 5. LoggingAspect 런타임 적용 기준
+## 5. ADM 거래 메타 E2E smoke 완료
 
-`LoggingAspect`는 `@CpfTransaction`의 거래 ID를 기준으로 온라인 거래 로그 정책을 조회하고 적용해야 한다.
+이번 작업의 핵심 완료 기준은 거래 메타 E2E smoke 성공이다.
 
-필수 기준:
+필수 흐름:
 
-```text id="p9jfsz"
-- @CpfTransaction.id를 transactionId로 사용
-- ONLINE_TRANSACTION 정책 조회
-- dbLogEnabled = N이면 DB 거래 로그 저장 event를 발생시키지 않거나 Listener에서 저장하지 않음
-- requestBodySaveYn = N이면 request body 저장하지 않음
-- responseBodySaveYn = N이면 response body 저장하지 않음
-- errorStackSaveYn = N이면 stack trace 저장하지 않음
-- maskingPolicyKey가 있으면 기존 마스킹 정책과 연결
-- 정책 평가 실패 시 yml/CPF 기본값으로 fallback
-- 정책 적용 여부를 debug 또는 운영 로그로 추적 가능
+```text
+1. ADM runtime 기동
+2. ADM health 성공
+3. ADM login 성공
+4. /adm/api/transactions/scan 호출 성공
+5. @CpfTransaction 적용 API scan
+6. pfw_transaction_meta upsert 확인
+7. /adm/api/transactions 목록 조회 성공
+8. /adm/api/transactions/{transactionId} 상세 조회 성공
+9. 동일 scan 재실행 idempotent 확인
+10. smoke-adm-runtime.ps1 전체 성공
+```
+
+필수 확인:
+
+```text
+- 403이 더 이상 발생하지 않는다.
+- scan 결과에 inserted/updated/skipped 또는 동등 결과가 나온다.
+- pfw_transaction_meta에 transaction_id, transaction_name, api_path, controller_class, handler_method가 저장된다.
+- ADM 목록 API에서 scan 결과가 조회된다.
+- ADM 상세 API에서 단건이 조회된다.
 ```
 
 완료 불인정:
 
-```text id="d0w6ar"
-- 로그 정책 테이블은 있지만 LoggingAspect가 사용하지 않음
-- dbLogEnabled=N인데 DB 거래 로그가 저장됨
-- request/response 저장 정책이 무시됨
-- override가 active 기간인데 반영되지 않음
+```text
+- 권한 seed만 적용하고 거래 메타 scan smoke를 재실행하지 않음
+- scan API만 성공하고 DB upsert를 확인하지 않음
+- 목록 조회만 하고 상세 조회를 확인하지 않음
+- smoke-adm-runtime.ps1이 여전히 실패하는데 완료로 기록
 ```
 
 ---
 
-## 6. TransactionLogListener / Service 저장 제어 기준
+## 6. 로그 정책 실제 효과 검증
 
-`TransactionLogListener` 또는 `TransactionLogService`는 정책 결과에 따라 DB 저장 여부를 제어해야 한다.
+직전 작업에서 로그 정책 resolver/cache, LoggingAspect, TransactionLogService 연결은 소스 기준으로 반영되었다.
+이번 작업에서는 실제 정책 효과를 검증한다.
 
-필수 기준:
+필수 테스트/검증:
 
-```text id="hbdcyf"
-- 정책에서 dbLogEnabled=N이면 pfw_transaction_log 저장 안 함
-- 저장하지 않은 경우에도 업무 응답에는 영향 없음
-- 저장하지 않은 사유를 trace/debug 수준으로 확인 가능
-- 오류 상황에서 errorStackSaveYn 정책 적용
-- 민감정보는 기존 마스킹 기준 유지
-- DB 저장 실패는 업무 응답 실패로 전파하지 않음
-```
-
-가능하면 테스트로 확인한다.
-
-```text id="p3553p"
-테스트:
+```text
+ONLINE_TRANSACTION 정책:
 - dbLogEnabled=Y → 거래 로그 저장
 - dbLogEnabled=N → 거래 로그 미저장
 - requestBodySaveYn=N → request body 미저장
@@ -270,247 +214,135 @@ BATCH_STEP:
 - errorStackSaveYn=N → stack trace 미저장
 ```
 
----
+Override 검증:
 
-## 7. Batch Job/Step 로그 정책 적용 기준
-
-Batch도 온라인과 같은 로그 정책 모델을 사용해야 한다.
-
-필수 기준:
-
-```text id="6lz4h6"
-- BATCH_JOB 정책 조회
-- BATCH_STEP 정책 조회
-- Job 시작/종료/실패 로그 저장 여부 적용
-- Step 시작/종료/실패 로그 저장 여부 적용
-- Job/Step별 DB 로그 저장 ON/OFF 적용
-- Job/Step별 로그 레벨 기준 문서화
+```text
+- active override 기간이면 override 적용
+- override 기간 전이면 DB 정책 적용
+- override 기간 만료 후 DB 정책 적용
+- DB 정책 없으면 yml 기본값 적용
+- yml 기본값 없으면 CPF 기본값 적용
 ```
 
-이번 작업에서 전체 batch log 저장 구조가 없다면 아래처럼 처리한다.
+Cache 검증:
 
-```text id="dko6cz"
+```text
+- 정책 조회 후 cache hit 가능
+- ADM 정책 수정 시 해당 target cache evict 또는 refresh
+- override 등록 시 해당 target cache evict 또는 refresh
+- override disable 시 해당 target cache evict 또는 refresh
+```
+
+검증 방식:
+
+```text
 허용:
-- Batch listener에서 정책 resolver를 호출하고 결과를 운영 메타/로그에 반영할 수 있는 hook 구현
-- 실제 배치 로그 DB 저장은 부분 구현 또는 다음 보강으로 분리
+- 단위 테스트
+- 통합 테스트
+- runtime smoke
+- DB row count 확인
 
 불허:
-- 배치 로그 정책 테이블만 만들고 런타임 적용 완료로 기록
+- 소스만 보고 효과 검증 완료 처리
+- Controller/API만 보고 완료 처리
 ```
 
 ---
 
-## 8. 로그 정책 cache / refresh / invalidation 기준
+## 7. smoke-adm-runtime.ps1 보강
 
-정책 조회는 매 요청마다 DB를 직접 때리지 않도록 cache를 둔다.
-단, 운영자가 ADM에서 override를 바꾸면 반영 가능해야 한다.
+`smoke-adm-runtime.ps1`는 ADM health/OpenAPI/batch API뿐 아니라 거래 메타 smoke까지 포함하므로 전체 성공 기준을 명확히 한다.
 
 필수 기준:
 
-```text id="6h5koq"
-- 정책 조회 cache
-- cache key: targetType + targetId
-- ttl 또는 명시적 refresh 기준
-- ADM 정책 변경 시 해당 target cache evict
-- ADM override 등록/비활성화 시 cache evict
-- 전체 cache refresh API 또는 내부 service
-- cache refresh/clear 감사 로그
+```text
+- health 성공
+- OpenAPI 성공
+- batch API smoke 성공
+- transaction meta scan 성공
+- transaction meta list 성공
+- transaction meta detail 성공
+- cleanup 성공
 ```
 
-다중 인스턴스 기준:
+거래 메타 smoke가 실패하면 `smoke-adm-runtime.ps1` 전체는 실패로 기록한다.
 
-```text id="zbiovq"
-우선순위:
-1. DB 기반 cache invalidation event
-2. Redis/Kafka/MQ event
-3. local instance only + 명확한 미검증 기록
-```
-
-현재 실 Redis/Kafka/MQ가 없으면 실연동 성공으로 기록하지 않는다.
-mock/fallback/disabled profile로 검증하고, 실 broker 미검증은 리포트에 남긴다.
+단, 브라우저 클릭 자동화는 이번 범위가 아니므로 런타임 부재 시 SKIPPED로 기록한다.
 
 ---
 
-## 9. ADM 로그 정책 runtime 반영 API 기준
+## 8. 전체 gradlew test timeout 분리
 
-ADM 로그 정책 API는 정책 등록/수정/override 후 runtime cache 반영 기준을 가져야 한다.
+직전 작업에서 모듈별 test는 통과했지만 전체 `gradlew test --offline`은 장시간 timeout으로 성공 처리되지 않았다.
 
-필수 기준:
+이번 작업에서는 timeout 원인을 분리한다.
 
-```text id="cjxkkf"
-- 정책 등록 시 audit 기록
-- 정책 수정 시 audit 기록
-- override 등록 시 audit 기록
-- override 비활성화 시 audit 기록
-- 정책 변경 후 cache evict 또는 refresh 호출
-- cache refresh 실패 시 정책 변경은 성공/실패 기준 명확화
-- 운영 사유 필수
-- 기간 validation
-- active override 중복 처리 기준
+필수 확인:
+
+```text
+- 전체 test timeout 발생 여부
+- 어느 모듈/테스트에서 오래 걸리는지 식별
+- hanging test 여부 확인
+- smoke/runtime test가 unit test에 섞여 timeout을 유발하는지 확인
+- 테스트 병렬/순차 실행 영향 확인
 ```
 
-가능하면 ADM Cache 메뉴와 연결한다.
+가능하면 수정한다.
 
-```text id="te5bc5"
-ADM Cache 연계:
-- 로그 정책 cache 목록 조회
-- 특정 거래 로그 정책 cache clear
-- 전체 로그 정책 cache refresh
-- 운영 사유 필수
-- 감사 로그 기록
+```text
+허용 수정:
+- 장시간 smoke 성격 테스트를 unit test에서 분리
+- timeout이 큰 테스트에 profile/tag 부여
+- test task에서 runtime smoke 제외
+- integrationTest 또는 smoke script로 분리
 ```
 
-이번 작업에서 전체 Cache 메뉴 구현이 크면 최소 로그 정책 cache refresh만 구현하고, 전체 Cache 관제는 다음 요청으로 분리한다.
+완료 기준:
 
----
-
-## 10. 거래 메타 E2E smoke 기준
-
-이번 작업에서는 거래 메타 scan이 실제 DB에 저장되고 ADM에서 조회되는지 검증한다.
-
-필수 검증:
-
-```text id="wkis9a"
-- ADM 또는 테스트 앱 기동
-- ApplicationReadyEvent 기반 거래 메타 scan 수행
-- @CpfTransaction 적용 API가 pfw_transaction_meta에 upsert됨
-- 동일 앱 재기동 또는 재스캔 시 idempotent
-- 사라진 거래 inactive 처리 service 검증
-- ADM /adm/api/transactions 목록에서 조회
-- ADM /adm/api/transactions/{transactionId} 상세 조회
+```text
+- 전체 gradlew test --offline 성공
 ```
 
-실제 runtime smoke가 어렵다면 통합 테스트로 대체할 수 있다.
-단, 대체 검증이면 리포트에 명확히 구분한다.
+완료가 어렵다면:
 
-완료 불인정:
-
-```text id="zj5te5"
-- scanner 소스만 있고 DB upsert 검증 없음
-- ADM API만 있고 scan 결과 조회 검증 없음
-- 문서에는 E2E라고 쓰고 실제로는 단위 테스트만 수행
-```
-
----
-
-## 11. check-feature-evidence.ps1 보강
-
-현재 feature evidence gate가 신규 기능을 충분히 검증하지 못할 수 있다.
-이번 작업에서 신규 기능 marker를 추가한다.
-
-필수 marker 후보:
-
-```text id="fj1eoe"
-- CpfTransactionMetaScanner
-- CpfTransactionMetaRepository
-- CpfTransactionMetaAutoConfiguration
-- pfw_transaction_meta
-- pfw_log_policy
-- pfw_log_policy_override
-- pfw_log_policy_audit
-- AdmTransactionMetaController
-- AdmLogPolicyController
-- LogPolicyResolver 또는 동등 service
-- LogPolicyCache 또는 동등 service
-- LoggingAspect policy 적용
-- TransactionLogListener policy 적용
-- BAT smoke strict V10
-- CPF_STABILIZATION_REPORT.html 실제 HTML 구조
-```
-
-feature evidence gate는 파일 존재만이 아니라 가능한 경우 핵심 문자열도 확인한다.
-
-예:
-
-```text id="qjzljp"
-- dbLogEnabled
-- requestBodySaveYn
-- responseBodySaveYn
-- effectiveStartAt
-- effectiveEndAt
-- cache evict
-- cache refresh
-- @CpfTransaction
-```
-
----
-
-## 12. CPF_STABILIZATION_REPORT.html HTML 정본화
-
-`CPF_STABILIZATION_REPORT.html`은 실제 HTML 문서여야 한다.
-확장자만 `.html`이고 Markdown 형태면 완료로 보지 않는다.
-
-필수 기준:
-
-```text id="mjjzq7"
-- <!DOCTYPE html>
-- <html lang="ko">
-- <head>
-- <meta charset="UTF-8">
-- <title>
-- <body>
-- h1/h2/h3 구조
-- table 또는 section 구조
-- 상태값 badge 또는 텍스트
-- 실행 명령과 결과 구분
-- 미구현/미검증 구분
-- 다음 조치 구분
-```
-
-리포트에는 아래를 명확히 구분한다.
-
-```text id="dk8en8"
-- 실제 확인한 것
-- Codex가 주장한 것
-- 직접 실행한 검증
-- 직접 실행하지 못한 검증
-- 미구현
-- 미검증
-- 실패
+```text
+- 실패/timeout 테스트명
+- 원인
+- 임시 우회 여부
 - 다음 조치
 ```
 
-완료 불인정:
-
-```text id="ie3e1k"
-- .html 확장자지만 Markdown 문서
-- 실행하지 않은 검증을 성공으로 기록
-- 미구현 항목을 숨김
-```
+를 리포트에 명확히 기록한다.
+성공하지 않았으면 성공으로 기록하지 않는다.
 
 ---
 
-## 13. SQL / Flyway / all_install 기준
+## 9. SQL / Flyway / all_install 기준
 
-이번 작업에서 SQL 변경이 있으면 아래를 모두 반영한다.
+이번 작업에서 SQL 변경 또는 seed 적용이 있으면 아래 기준을 따른다.
 
-```text id="mdmm3u"
-- Flyway migration 추가
-- all_install SQL 반영
-- smoke SQL 반영
-- table comment / column comment
-- 공통 감사 컬럼
-- FK/index
+```text
+- Flyway migration 파일 확인
+- 실제 MariaDB 적용
+- seed idempotent 확인
+- all_install SQL 반영 여부 확인
+- smoke SQL 반영 여부 확인
 - SQL 가이드 반영
 - 기능 매트릭스 반영
 - CPF_STABILIZATION_REPORT.html 반영
 ```
 
-SQL 변경 후 가능하면 실제 MariaDB 적용 검증을 수행한다.
-drop/create 성격의 전체 설치 SQL을 실행하지 않으면 미검증으로 남긴다.
-
-센터컷 대량 모수/item/result 테이블은 이번 작업에서 만들지 않는다.
+전체 설치 SQL은 drop/create 성격이면 자동 실행하지 않아도 된다.
+실행하지 않았으면 미검증으로 기록한다.
 
 ---
 
-## 14. 문서 반영 기준
+## 10. 문서 반영 기준
 
-아래 문서를 실제 구현 결과에 맞춰 갱신한다.
+아래 문서를 실제 결과에 맞게 최소 갱신한다.
 
-```text id="r8o8kf"
+```text
 README.md
-specs/프레임워크_구성_가이드.html
-specs/개발_가이드.html
 specs/관리자_가이드.html
 specs/운영_매뉴얼.html
 specs/SQL_가이드.html
@@ -518,142 +350,134 @@ specs/기능_구현_매트릭스.html
 CPF_STABILIZATION_REPORT.html
 ```
 
-문서에는 “구현 완료”, “부분 구현”, “미구현”, “미검증”을 분리해서 기록한다.
+문서에는 아래를 분리해서 기록한다.
 
----
-
-## 15. 테스트 기준
-
-필수 테스트를 추가 또는 보강한다.
-
-```text id="w35bck"
-로그 정책 resolver 테스트:
-- override active 기간이면 override 적용
-- override 기간 밖이면 DB 정책 적용
-- DB 정책 없으면 yml 기본값 적용
-- yml 기본값 없으면 CPF 기본값 적용
-- targetType/targetId별 cache key 분리
-
-온라인 로그 정책 테스트:
-- dbLogEnabled=Y → 거래 로그 저장
-- dbLogEnabled=N → 거래 로그 미저장
-- requestBodySaveYn=N → request body 미저장
-- responseBodySaveYn=N → response body 미저장
-- errorStackSaveYn=N → stack trace 미저장
-
-거래 메타 E2E 테스트:
-- scanAndUpsert
-- idempotent 재스캔
-- inactive 처리
-- ADM 목록 조회
-- ADM 상세 조회
-
-ADM 로그 정책 테스트:
-- 정책 등록/수정 audit
-- override 등록 audit
-- override disable audit
-- reason 누락 차단
-- 기간 validation
-- cache evict 호출
-
-Batch 정책 hook 테스트:
-- BATCH_JOB 정책 조회
-- BATCH_STEP 정책 조회
-- listener에서 resolver 호출
+```text
+- 완료
+- 부분 구현
+- 미구현
+- 미검증
+- 실패
+- 다음 보강
 ```
 
 ---
 
-## 16. 검증 명령
+## 11. feature evidence gate 보강
+
+필요하면 `scripts/check-feature-evidence.ps1`에 이번 실패 방지 marker를 추가한다.
+
+권장 marker:
+
+```text
+- V13__adm_runtime_policy_permission_seed.sql
+- ADM_TRANSACTION_META_SCAN
+- LOG_POLICY_CACHE_REFRESH
+- LOG_POLICY_CACHE_CLEAR
+- smoke-transaction-meta-runtime.ps1
+- pfw_transaction_meta
+- dbLogEnabled
+- requestBodySaveYn
+- responseBodySaveYn
+- errorStackSaveYn
+```
+
+feature evidence는 실제 E2E 성공을 대체하지 않는다.
+E2E 검증은 smoke/test 결과로 따로 기록한다.
+
+---
+
+## 12. 검증 명령
 
 가능한 범위에서 아래 명령을 실행한다.
 
-```powershell id="kix44r"
+```powershell
 .\gradlew.bat :pfw:test --offline
 .\gradlew.bat :adm:test --offline
 .\gradlew.bat :bat:test --offline
 .\gradlew.bat test --offline
-.\gradlew.bat qualityGate --offline
 
 .\gradlew.bat :adm:bootJar --offline
 .\gradlew.bat :bat:bootJar --offline
 
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-transaction-meta-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1
 
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
+
+.\gradlew.bat qualityGate --offline
 ```
-
-가능하면 거래 메타 E2E smoke 스크립트를 추가한다.
-
-```powershell id="ny57rl"
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-transaction-meta-runtime.ps1
-```
-
-추가하지 못하면 사유를 리포트에 기록한다.
 
 실행하지 않은 검증은 성공으로 기록하지 않는다.
 
 ---
 
-## 17. CPF_STABILIZATION_REPORT.html 기록 기준
+## 13. CPF_STABILIZATION_REPORT.html 기록 기준
 
 리포트에는 아래 형식으로 기록한다.
 
-```text id="o0l05b"
-[로그 정책 런타임 적용 / Override 전파 / 거래 메타 E2E Smoke / 리포트 HTML 정본화]
+```text
+[V13 권한 seed 실제 DB 적용 / ADM 거래 메타 E2E smoke 완료 / 로그 정책 효과 검증 / 전체 test timeout 분리]
 
 현재 상태 판정:
-- 로그 정책 테이블:
-- ADM 로그 정책 API:
-- LoggingAspect 정책 적용:
-- TransactionLogListener 정책 적용:
-- Batch listener 정책 적용:
-- 정책 cache:
-- 거래 메타 E2E:
-- feature evidence:
-- 리포트 HTML 구조:
+- V13 seed 적용 전 상태:
+- 거래 메타 scan 403 원인:
+- 로그 정책 효과 검증 전 상태:
+- 전체 test timeout 상태:
 
-개발 기능:
-- LogPolicyResolver:
-- LogPolicyCache:
-- LoggingAspect:
-- TransactionLogListener:
-- Batch listener:
-- ADM policy API:
-- Cache refresh/invalidation:
-- Transaction meta smoke:
-- Feature evidence:
-- Report HTML:
+DB 적용:
+- 적용 SQL:
+- 적용 계정:
+- 적용 명령:
+- 적용 결과:
+- seed idempotent:
+
+거래 메타 E2E:
+- scan:
+- DB upsert:
+- 목록 조회:
+- 상세 조회:
+- 재스캔 idempotent:
+- smoke-adm-runtime:
+
+로그 정책 효과 검증:
+- dbLogEnabled=Y:
+- dbLogEnabled=N:
+- requestBodySaveYn=N:
+- responseBodySaveYn=N:
+- errorStackSaveYn=N:
+- override active:
+- override expired:
+- fallback:
 
 테스트:
 - :pfw:test:
 - :adm:test:
 - :bat:test:
 - 전체 test:
-- qualityGate:
 - smoke-adm-runtime:
+- smoke-transaction-meta-runtime:
 - smoke-bat-runtime:
-- transaction-meta smoke:
+- qualityGate:
 - check scripts:
 
 미구현:
 - 미구현 항목:
-- 다음 요청 후보:
 
 미검증:
 - 미검증 항목:
 - 미검증 사유:
 
-아키텍처 영향:
-- PFW:
-- ADM:
-- BAT:
-- 온라인 거래:
-- 센터컷 확장성:
+실패:
+- 실패 항목:
+- 실패 원인:
+
+다음 조치:
+- 다음 요청 후보:
 
 최종 판정:
 - 완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요
@@ -661,57 +485,56 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-transaction-me
 
 ---
 
-## 18. 완료 기준
+## 14. 완료 기준
 
 아래가 모두 충족되어야 이번 작업을 완료로 기록한다.
 
-```text id="fcoyq1"
-- 로그 정책 우선순위가 런타임에서 적용된다.
-- LoggingAspect가 ONLINE_TRANSACTION 정책을 조회한다.
-- dbLogEnabled=N이면 온라인 거래 로그가 DB에 저장되지 않는다.
-- requestBodySaveYn/responseBodySaveYn/errorStackSaveYn 정책이 적용된다.
-- override 기간/사유/active 상태가 평가된다.
-- 정책 조회 cache가 존재한다.
-- ADM 정책 변경 시 cache evict 또는 refresh가 수행된다.
-- Batch Job/Step listener에서 BATCH_JOB/BATCH_STEP 정책 hook이 동작한다.
-- 거래 메타 scan 결과가 DB에 upsert되고 ADM에서 조회된다.
-- 거래 메타 재스캔이 idempotent하다.
-- 사라진 거래 inactive 처리 기준이 있다.
-- check-feature-evidence가 신규 기능 핵심 marker를 검증한다.
-- CPF_STABILIZATION_REPORT.html이 실제 HTML 문서 형식이다.
-- README/specs/기능 매트릭스/리포트가 실제 구현 상태와 일치한다.
-- 실행하지 않은 검증을 성공으로 기록하지 않는다.
+```text
+- V13 권한 seed가 실제 local MariaDB에 적용되었다.
+- seed 재실행 idempotent가 확인되었다.
+- ADM 거래 메타 scan API 403이 해소되었다.
+- 거래 메타 scan → pfw_transaction_meta upsert가 확인되었다.
+- ADM 거래 메타 목록 조회가 성공했다.
+- ADM 거래 메타 상세 조회가 성공했다.
+- smoke-adm-runtime.ps1이 거래 메타 smoke 포함 전체 성공했다.
+- dbLogEnabled=N이면 거래 로그가 DB에 저장되지 않는 것이 검증되었다.
+- requestBodySaveYn=N이면 request body가 저장되지 않는 것이 검증되었다.
+- responseBodySaveYn=N이면 response body가 저장되지 않는 것이 검증되었다.
+- errorStackSaveYn=N이면 stack trace가 저장되지 않는 것이 검증되었다.
+- active override와 expired override의 정책 적용 차이가 검증되었다.
+- 전체 gradlew test --offline이 성공하거나 timeout 원인이 명확히 분리되었다.
+- CPF_STABILIZATION_REPORT.html에 성공/실패/미검증이 분리 기록되었다.
 ```
 
 ---
 
-## 19. 완료 불인정 기준
+## 15. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 기록하지 않는다.
 
-```text id="upma4n"
-- 로그 정책 테이블만 있고 런타임 적용 없음
-- LoggingAspect가 정책을 조회하지 않음
-- dbLogEnabled=N인데 거래 로그가 저장됨
-- override 기간이 무시됨
-- 정책 cache가 없음
-- ADM 정책 변경 후 cache 반영 기준 없음
-- Batch Job/Step 정책 hook 없음
-- 거래 메타 scanner만 있고 DB upsert/ADM 조회 검증 없음
-- feature evidence가 신규 기능을 검증하지 않음
-- CPF_STABILIZATION_REPORT.html이 Markdown 형태임
-- 문서에는 완료라고 되어 있으나 테스트 없음
+```text
+- V13 seed 파일만 있고 실제 DB 적용 없음
+- scan API 403이 남아 있음
+- scan API만 성공하고 DB upsert 확인 없음
+- 목록 조회만 하고 상세 조회 없음
+- smoke-adm-runtime.ps1이 실패하는데 성공으로 기록
+- 로그 정책 소스만 보고 실제 효과 검증을 하지 않음
+- dbLogEnabled=N 검증 없음
+- request/response/errorStack 저장 제외 검증 없음
+- override 기간 검증 없음
+- 전체 test timeout을 성공처럼 기록
 - 실행하지 않은 검증을 성공으로 기록
 ```
 
 ---
 
-## 20. 다음 보강 후보로만 기록할 항목
+## 16. 다음 보강 후보로만 기록할 항목
 
-이번 작업 이후 다음 보강 후보는 실제 판정 결과를 기준으로 정렬한다.
-기본 우선순위는 아래와 같다.
+이번 작업 이후 다음 보강 후보는 실제 결과를 기준으로 정렬한다.
 
-```text id="s2cqyr"
+기본 후보:
+
+```text
 1. ADM 거래/오류/감사 통합 관제 UX
 2. ADM Cache 관제 / hit-miss / ttl / eviction / clear / 다중 인스턴스 전파
 3. ADM 배치 운영 정책 / 강제수행 / lock / 파라미터 / BAT EDU

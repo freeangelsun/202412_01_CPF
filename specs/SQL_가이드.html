@@ -142,7 +142,7 @@
       <tbody>
       <tr><td>PFW V11/V12 적용</td><td>완료</td><td><code>scripts/apply-pfw-runtime-migrations.ps1</code>가 <code>pfw_transaction_meta</code>, <code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code> 존재와 seed idempotent를 확인합니다.</td></tr>
       <tr><td>ADM V13 권한 seed 적용</td><td>완료</td><td><code>scripts/apply-v13-adm-permission-seed.ps1</code>가 <code>TRANSACTION_META</code>, <code>LOG_POLICY</code> 메뉴/버튼 권한과 역할별 재실행 idempotent를 확인합니다.</td></tr>
-      <tr><td>로그 정책 runtime 효과</td><td>완료</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>가 <code>dbLogEnabled=N</code> override 적용 시 로그 저장 중지와 해제 후 저장 재개를 확인합니다.</td></tr>
+      <tr><td>로그 정책 runtime 효과</td><td>완료</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>가 <code>dbLogEnabled=N</code> 저장 중지와 해제 후 저장 재개, request/response/error stack 저장 제외, active/future override와 DB policy fallback을 확인합니다. application 기본값과 CPF 기본값 fallback은 <code>LogPolicyCacheTest</code>로 보완 검증합니다.</td></tr>
       </tbody>
     </table>
   </section>

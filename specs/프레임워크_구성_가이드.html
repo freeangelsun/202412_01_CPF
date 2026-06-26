@@ -127,7 +127,7 @@
       <tr><td>BAT runtime</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT 앱을 jar로 기동하고 health, 정상/실패 Job, Spring Batch와 CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 실제 process로 확인합니다.</td></tr>
       <tr><td>거래 메타 runtime</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>이미 기동 중인 ADM 또는 ADM runtime smoke 내부에서 거래 메타 E2E를 확인합니다.</td></tr>
-      <tr><td>로그 정책 runtime</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override, cache refresh, DB 로그 저장 중지와 fallback 저장 재개를 실제 ADM process로 확인합니다.</td></tr>
+      <tr><td>로그 정책 runtime</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override, cache refresh, DB 로그 저장 중지와 fallback 저장 재개, request/response/error stack 저장 제외, ADM 로그 조회 API 상태를 실제 ADM process로 확인합니다.</td></tr>
       <tr><td>DB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>MariaDB 설치, seed idempotent, FK/index, smoke query를 확인합니다.</td></tr>
       </tbody>
     </table>

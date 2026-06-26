@@ -40,10 +40,13 @@ $htmlTargets | ForEach-Object {
     $relative = $_.FullName.Substring($Root.Length)
     $text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
 
-    foreach ($required in @("<!doctype html", "<html", "<head", "<body", "<main", "<section")) {
+    foreach ($required in @("<!doctype html", "<html", "<head", "<title", "<body", "<main", "<section")) {
         if ($text.ToLowerInvariant().IndexOf($required) -lt 0) {
             $failures.Add("html required marker missing $($required): $relative")
         }
+    }
+    if ($text -match '```') {
+        $failures.Add("markdown code fence remains: $relative")
     }
     if ($text -match '(?m)^\s{0,3}#{1,6}\s+\S') {
         $failures.Add("markdown heading remains: $relative")

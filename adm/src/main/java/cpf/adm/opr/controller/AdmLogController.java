@@ -17,6 +17,9 @@ import java.util.Map;
 
 /**
  * ADM 거래 로그 관제 API입니다.
+ *
+ * <p>운영 화면에서 거래 ID를 transactionId 또는 transactionGlobalId라고 부를 수 있으므로
+ * 두 파라미터를 같은 검색 조건으로 처리합니다.</p>
  */
 @RestController
 @RequestMapping("/adm/api/logs")
@@ -30,9 +33,12 @@ public class AdmLogController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01OPR0001", name = "ADMTransactionLogList")
-    @Operation(summary = "거래 로그 목록 조회", description = "거래 ID, trace ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
+    @Operation(
+            summary = "거래 로그 목록 조회",
+            description = "transactionId 또는 transactionGlobalId, traceId, 업무 거래 ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
+            @RequestParam(required = false) String transactionGlobalId,
             @RequestParam(required = false) String traceId,
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String memberNo,
@@ -47,7 +53,7 @@ public class AdmLogController {
         try {
             response.put("available", true);
             response.put("items", logQueryService.findLogs(
-                    transactionId, traceId, businessTransactionId, memberNo, customerNo,
+                    firstText(transactionId, transactionGlobalId), traceId, businessTransactionId, memberNo, customerNo,
                     uri, responseCode, httpStatus, channelCode, logType, limit));
         } catch (DataAccessException ex) {
             response.put("available", false);
@@ -60,7 +66,9 @@ public class AdmLogController {
 
     @GetMapping("/{logIdx}")
     @CpfTransaction(id = "ADM01OPR0002", name = "ADMTransactionLogDetail")
-    @Operation(summary = "거래 로그 상세 조회", description = "거래 요약, 상세 로그, JSON pretty, 고정길이 전문 필드 분해 결과를 조회합니다.")
+    @Operation(
+            summary = "거래 로그 상세 조회",
+            description = "거래 요약, 상세 로그, JSON pretty 결과, 고정길이 전문 필드 분해 결과를 조회합니다.")
     public ResponseEntity<Map<String, Object>> getLogDetail(@PathVariable Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
@@ -73,5 +81,15 @@ public class AdmLogController {
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);
+    }
+
+    private String firstText(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first.trim();
+        }
+        if (second != null && !second.isBlank()) {
+            return second.trim();
+        }
+        return null;
     }
 }

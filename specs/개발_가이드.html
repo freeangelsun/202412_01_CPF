@@ -33,7 +33,7 @@
       <tr><td>Repository</td><td>조건 정규화, Mapper 호출</td><td>Controller 파라미터를 SQL에 직접 넘기지 않고 검색어, 상태, 정렬, limit을 정규화합니다.</td><td><code>XyzQueryEducationRepository</code></td></tr>
       <tr><td>Mapper</td><td>MyBatis SQL</td><td>동적 정렬은 whitelist 코드와 XML <code>choose</code>로 처리합니다. 사용자 입력을 <code>${}</code>로 넣지 않습니다.</td><td><code>XyzQueryEducationMapper</code>, <code>XyzQueryEducationMapper.xml</code></td></tr>
       <tr><td>SQL</td><td>schema, seed, smoke, migration</td><td>신규 테이블은 주제영역 prefix, 공통 감사 컬럼, 한글 COMMENT, index 이름 기준을 맞춥니다.</td><td><code>cmn_edu_query_item</code>, <code>V14__edu_query_sample.sql</code></td></tr>
-      <tr><td>Test</td><td>단위, 슬라이스, 통합 테스트</td><td>정렬 whitelist, 최대 조회 건수, NotFound, 페이징 hasNext 계산은 단위 테스트로 고정합니다. MyBatis XML은 안전한 테스트 DB가 있을 때 fixture 기반 slice 테스트로 별도 검증합니다.</td><td><code>XyzQueryEducationRepositoryTest</code>, <code>XyzQueryEducationServiceTest</code>, <code>XyzQueryEducationMapperSliceTest</code></td></tr>
+      <tr><td>Test</td><td>단위, 슬라이스, 통합 테스트</td><td>정렬 whitelist, 최대 조회 건수, NotFound, 페이징 hasNext 계산은 단위 테스트로 고정합니다. MyBatis XML은 안전한 테스트 DB가 있을 때 fixture 기반 slice 테스트로 별도 검증합니다.</td><td><code>XyzQueryEducationRepositoryTest</code>, <code>XyzQueryEducationServiceTest</code>, <code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code></td></tr>
       </tbody>
     </table>
   </section>

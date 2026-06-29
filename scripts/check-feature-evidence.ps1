@@ -174,7 +174,7 @@ Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/repository/XyzQueryEducationRep
 Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/mapper/XyzQueryEducationMapper.java" "EDU_QUERY_MAPPER"
 Test-RequiredFile "xyz/src/main/resources/mybatis/mapper/xyz/edu/XyzQueryEducationMapper.xml" "EDU_QUERY_MAPPER_XML"
 Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationRepositoryTest.java" "EDU_QUERY_REPOSITORY_TEST"
-Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/mapper/XyzQueryEducationMapperSliceTest.java" "EDU_QUERY_MAPPER_SLICE_TEST"
+Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java" "EDU_QUERY_MAPPER_SLICE_TEST"
 Test-RequiredFile "xyz/src/test/resources/fixture/xyz_edu_query_mapper_fixture.sql" "EDU_QUERY_MAPPER_FIXTURE"
 Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/service/XyzQueryEducationServiceTest.java" "EDU_QUERY_SERVICE_TEST"
 Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/controller/XyzCmnBusinessEducationController.java" "EDU_CMN_BUSINESS"

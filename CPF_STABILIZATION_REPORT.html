@@ -2,97 +2,90 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 검증 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1320px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; }
     th, td { border: 1px solid #d1d5db; padding: 9px 10px; vertical-align: top; }
-    th { background: #dcfce7; }
+    th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .warn { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
     .ok { color: #166534; font-weight: 700; }
     .hold { color: #92400e; font-weight: 700; }
+    .fail { color: #991b1b; font-weight: 700; }
+    .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>요청서 기준으로 trusted proxy invalid IP 검증, header mutator 테스트, EDU Mapper slice 존재/실행 상태, 리포트와 가이드 정합성을 보정했습니다.</p>
-    <p class="warn">이번 작업에서는 MariaDB 신규 DB 전체 설치, ADM runtime/OpenAPI, 실제 브라우저 클릭, Redis/Kafka/MQ 실 broker, 센터컷, 온디맨드 배치, CMN 파일 공통 기능을 실행하거나 구현하지 않았습니다. 실행하지 않은 항목은 성공으로 기록하지 않았습니다.</p>
+    <h1>CPF 안정화 검증 리포트</h1>
+    <p>요청서 <code>CPF_REWORK_REQUEST_20260629_2</code> 기준으로 EDU Mapper slice 테스트 증거 파일 불일치와 표준 헤더 trusted proxy 문서 누락을 보정했습니다.</p>
+    <p class="note">신규 요청서는 확인 용도로만 읽었고 수정하지 않았습니다. 별도 수정 파일 목록 산출물은 만들지 않았습니다.</p>
   </section>
 
   <section>
-    <h2>수정한 파일</h2>
+    <h2>핵심 조치</h2>
     <table>
       <thead>
-      <tr><th>파일</th><th>변경 내용</th></tr>
+      <tr><th>항목</th><th>결과</th><th>증거</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfTrustedProxyPolicy.java</code></td><td>forwarded 후보 값을 실제 IP 형식일 때만 인정하도록 보강했습니다. IPv4는 octet 범위를 검증하고, IPv6는 bracket/port 정규화 후 Java IP 파서로 검증합니다.</td></tr>
-      <tr><td><code>pfw/src/test/java/cpf/pfw/common/header/CpfHeaderStandardCoverageTest.java</code></td><td><code>not-an-ip</code>, <code>bad-host-name</code>, <code>invalid-real-ip</code>, <code>999.999.999.999</code>, blank, <code>unknown</code>, 깨진 IPv6 무시와 bracket IPv6 허용 테스트를 추가/보강했습니다.</td></tr>
-      <tr><td><code>pfw/src/test/java/cpf/pfw/common/header/CpfHeaderMutatorTest.java</code></td><td><code>X-User-Id</code>, <code>x-user-id</code>, <code>X-Operator-Id</code>, <code>x-operator-id</code> 차단, 변경 실패 후 <code>TransactionContext</code> 보존, 업무 식별자 변경 허용 테스트를 유지/보강했습니다.</td></tr>
-      <tr><td><code>xyz/src/test/java/cpf/xyz/edu/mapper/XyzQueryEducationMapperSliceTest.java</code></td><td>실제 파일 존재를 확인했고, MyBatis XML 정적 안전성 테스트와 안전한 테스트 DB 환경변수 기반 fixture 실행 테스트를 분리했습니다.</td></tr>
-      <tr><td><code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationRepositoryTest.java</code></td><td>잘못된 sort default 정규화와 whitelist 정렬 코드 검증을 보강한 상태를 확인했습니다.</td></tr>
-      <tr><td><code>specs/표준_헤더_가이드.html</code></td><td><code>CpfTrustedProxyPolicy</code>, invalid IP 무시, bracket IPv6/port 정규화 기준을 반영했습니다.</td></tr>
-      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>trusted proxy, mutator, EDU Mapper slice 상태를 실제 파일과 검증 기준에 맞게 보정했습니다.</td></tr>
-      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>이번 작업 결과, 실행 명령, 성공/skip/미검증, 추후 이슈를 요청 형식에 맞춰 다시 작성했습니다.</td></tr>
-      </tbody>
+      <tr><td>EDU Mapper slice 테스트 실제 파일</td><td class="ok">보정</td><td><code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code>를 실제 테스트 위치로 정리했습니다. 기존 <code>mapper</code> 하위 테스트 파일은 남기지 않았습니다.</td></tr>
+      <tr><td>EDU slice JUnit 결과</td><td class="ok">확인</td><td><code>xyz/build/test-results/test/TEST-cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest.xml</code>에 <code>tests=2</code>, <code>skipped=1</code>, <code>failures=0</code>, <code>errors=0</code>로 생성됨을 확인했습니다.</td></tr>
+      <tr><td>feature evidence 경로</td><td class="ok">보정</td><td><code>scripts/check-feature-evidence.ps1</code>가 repository 경로의 Mapper slice 테스트 파일을 검사하도록 수정했습니다.</td></tr>
+      <tr><td>기능 구현 매트릭스</td><td class="ok">보정</td><td><code>specs/기능_구현_매트릭스.html</code>에 실제 Mapper slice 테스트 경로를 명시했습니다.</td></tr>
+      <tr><td>개발 가이드</td><td class="ok">보정</td><td><code>specs/개발_가이드.html</code>의 EDU 조회 테스트 참조에 실제 Mapper slice 테스트 경로를 명시했습니다.</td></tr>
+      <tr><td>표준 헤더 trusted proxy 기준</td><td class="ok">확인</td><td><code>specs/표준_헤더_가이드.html</code>에 <code>CpfTrustedProxyPolicy</code>, 미신뢰 원격 주소의 전달 헤더 무시, invalid IP/IPv6 무시, bracket IPv6 정규화 기준이 반영되어 있음을 확인했습니다.</td></tr>
+    </tbody>
     </table>
   </section>
 
   <section>
-    <h2>실행한 명령</h2>
+    <h2>검증 결과</h2>
     <table>
       <thead>
       <tr><th>명령</th><th>결과</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>trusted proxy invalid IP, bracket IPv6, mutator user/operator 차단, context 보존 테스트를 포함합니다.</td></tr>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td><code>XyzQueryEducationMapperSliceTest</code>는 <code>tests=2</code>, <code>skipped=1</code>, failures/errors 0입니다. DB fixture 실행부는 환경변수 부재로 skip되었습니다.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL naming, comment, audit column, all install/baseline 누락 방지 검사를 통과했습니다.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>요청 범위의 파일 증거와 문서 증거를 확인했습니다.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-html-docs.ps1</code></td><td class="ok">성공</td><td>루트 리포트와 specs HTML 문서 형식 검증을 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td>새 repository 패키지의 <code>XyzQueryEducationMapperSliceTest</code>가 실행됐습니다. DB fixture 테스트 1건은 환경변수 부재로 skip입니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>trusted proxy invalid IP/IPv6, bracket IPv6, 헤더 보정 제한 테스트가 포함됩니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>실제 파일 증거와 문서 marker 검사를 통과했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-html-docs.ps1</code></td><td class="ok">성공</td><td>중간에 리포트가 비어 있던 상태에서 1회 실패했으나, 리포트 작성과 확장자 직접 참조 제거 후 최종 재실행에서 통과했습니다.</td></tr>
       <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8 및 mojibake marker 검사를 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트를 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>처음 병렬 실행에서는 <code>mbr/build/test-results</code> 파일 잠금으로 실패했으나, 단독 재실행에서 성공했습니다. 최종 상태는 성공입니다.</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트가 최종 파일 상태 기준으로 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>feature evidence, HTML docs, Java format, legacy name, mojibake, sample standard, security seed, SQL, transaction ID, UTF-8, 전체 테스트를 포함해 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>미검증과 완료 불인정</h2>
+    <h2>미검증</h2>
     <table>
       <thead>
-      <tr><th>대상</th><th>상태</th><th>사유</th><th>다음 조치</th><th>완료로 기록하지 않은 이유</th></tr>
+      <tr><th>대상</th><th>상태</th><th>사유와 다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>EDU Mapper DB fixture 실행</td><td class="hold">미검증</td><td>안전한 테스트 DB 환경변수 <code>CPF_XYZ_EDU_MAPPER_SLICE_TEST</code>, DB URL, user, password가 없어 DB 실행 테스트는 skip되었습니다.</td><td>안전한 빈 테스트 DB를 준비하고 환경변수를 지정한 뒤 <code>.\gradlew.bat :xyz:test --offline</code>를 실행합니다.</td><td>skip은 성공이 아니므로 DB fixture 실행 완료로 기록하지 않습니다.</td></tr>
-      <tr><td>MariaDB 신규 DB 전체 설치</td><td class="hold">미검증</td><td>이번 요청 제외 범위이며 cleanup 위험이 있습니다.</td><td>안전한 빈 DB 또는 사용자 명시 승인 DB에서 전체 설치와 seed idempotent를 검증합니다.</td><td>실제 SQL 실행을 하지 않았습니다.</td></tr>
-      <tr><td>ADM runtime/OpenAPI</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다.</td><td>ADM 기동 후 health, OpenAPI JSON, 주요 API smoke를 별도 수행합니다.</td><td>앱 기동과 runtime API 호출을 하지 않았습니다.</td></tr>
-      <tr><td>ADM 실제 브라우저 클릭</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다.</td><td>브라우저 자동화 또는 수동 절차로 주요 화면과 버튼을 검증합니다.</td><td>정적 파일 검사를 실제 클릭 성공으로 간주하지 않습니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ 실 broker</td><td class="hold">실환경 필요</td><td>이번 요청 제외 범위이며 실 broker가 필요합니다.</td><td>mock/fallback과 실 broker 검증을 분리해 진행합니다.</td><td>실 broker 전파 검증을 수행하지 않았습니다.</td></tr>
+      <tr><td>EDU Mapper DB fixture 실실행</td><td class="hold">미검증</td><td>안전한 테스트 DB 환경변수 <code>CPF_XYZ_EDU_MAPPER_SLICE_TEST</code>, <code>CPF_XYZ_EDU_MAPPER_DB_URL</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>, <code>CPF_XYZ_EDU_MAPPER_DB_PASSWORD</code>가 없으면 의도적으로 skip합니다. skip은 성공으로 기록하지 않습니다.</td></tr>
+      <tr><td>MariaDB 전체 설치</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다. 빈 DB 또는 명시 승인 DB에서 <code>00_all_install_and_smoke.sql</code>을 별도 실행해야 합니다.</td></tr>
+      <tr><td>ADM runtime/OpenAPI/browser</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다. 앱 기동 후 runtime smoke와 브라우저 검증으로 닫아야 합니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker</td><td class="hold">미검증</td><td>이번 요청 제외 범위이며 실 broker 또는 명시 mock/fallback 시나리오가 필요합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>추후 이슈</h2>
+    <h2>다음 보강 후보</h2>
     <table>
       <thead>
-      <tr><th>순위</th><th>항목</th><th>닫기 조건</th></tr>
+      <tr><th>순위</th><th>항목</th><th>완료 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>안전한 빈 MariaDB 신규 DB 전체 설치 실검증</td><td>전체 설치, seed 재실행, app/migration 권한 분리, <code>cmn_edu_query_item</code> 생성 확인.</td></tr>
-      <tr><td>2</td><td>ADM runtime/OpenAPI smoke</td><td>ADM health, OpenAPI JSON, 주요 API smoke 성공.</td></tr>
-      <tr><td>3</td><td>ADM 주요 화면 브라우저 클릭 자동화</td><td>운영자 메뉴, 권한 버튼, 로그 상세, 배치 관제, 캐시/메시지/코드 화면 클릭 검증.</td></tr>
-      <tr><td>4</td><td>표준 헤더 수신에서 outbound까지 E2E</td><td>수신, context, log detail, ADM 표시, 하위 mock API 수신까지 한 흐름으로 검증.</td></tr>
-      <tr><td>5</td><td>BAT runtime과 ghost detection</td><td>batch worker, heartbeat, progress, ghost 감지, 재수행 시나리오 검증.</td></tr>
-      <tr><td>6</td><td>CMN 파일 공통 기능과 EDU 파일 처리 샘플</td><td>업로드, Excel/PDF 검증, 파일 생성, 다운로드, 다운로드 감사, 저장소 adapter, ADM 이력, EDU 샘플 구현.</td></tr>
-      <tr><td>7</td><td>Redis/Kafka/MQ mock/fallback 및 실 broker 분리</td><td>local fallback과 실 broker 전파 검증 결과를 분리해 문서화.</td></tr>
-      <tr><td>8</td><td>센터컷 기본 구현체</td><td>대량 파일/전문 분할, 재처리, EDU 샘플, 관리자 관제 기준 구현.</td></tr>
+      <tr><td>1</td><td>안전한 MariaDB 테스트 DB 기준 전체 설치 검증</td><td>FK, index, seed idempotent, app/migration 계정 권한 분리를 실제 DB에서 확인합니다.</td></tr>
+      <tr><td>2</td><td>ADM runtime/OpenAPI/browser smoke</td><td>ADM 기동, <code>/v3/api-docs</code>, 주요 ADM 화면 클릭과 API 응답을 검증합니다.</td></tr>
+      <tr><td>3</td><td>표준 헤더 E2E</td><td>수신 헤더, <code>TransactionContext</code>, 거래 로그, ADM 표시, outbound 전파가 한 거래 흐름으로 이어지는지 확인합니다.</td></tr>
+      <tr><td>4</td><td>EDU Mapper DB fixture 자동화</td><td>격리된 테스트 DB를 compose 또는 test profile로 제공하고 DB slice skip 없이 실행합니다.</td></tr>
       </tbody>
     </table>
   </section>

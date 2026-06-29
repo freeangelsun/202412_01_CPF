@@ -1,7 +1,8 @@
-package cpf.xyz.edu.mapper;
+package cpf.xyz.edu.repository;
 
 import cpf.xyz.edu.dto.XyzQueryEducationCriteria;
 import cpf.xyz.edu.dto.XyzQueryEducationItem;
+import cpf.xyz.edu.mapper.XyzQueryEducationMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;

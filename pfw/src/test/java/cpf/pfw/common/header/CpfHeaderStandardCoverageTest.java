@@ -120,6 +120,34 @@ class CpfHeaderStandardCoverageTest {
     }
 
     @Test
+    void extractorIgnoresUnknownBlankAndInvalidForwardedValues() {
+        System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
+        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "unknown, , not-an-ip");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=unknown;proto=https, for=bad-host-name");
+        request.addHeader(CpfHeaderNames.REAL_IP, "invalid-real-ip");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("10.0.0.1");
+    }
+
+    @Test
+    void extractorFallsBackToTrustedRealIpWhenForwardedHeadersAreInvalid() {
+        System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
+        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "unknown");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=invalid-host");
+        request.addHeader(CpfHeaderNames.REAL_IP, "203.0.113.77");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("203.0.113.77");
+    }
+
+    @Test
     void inboundHeaderExtractionMasksSensitiveHeaderValues() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(CpfHeaderNames.AUTHORIZATION, "Bearer very-sensitive-token");

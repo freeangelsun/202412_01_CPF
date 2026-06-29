@@ -45,6 +45,19 @@ class XyzQueryEducationRepositoryTest {
     }
 
     @Test
+    void nameAscAliasIsNormalizedToWhitelistCode() {
+        XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
+        XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);
+        when(mapper.findItems(any())).thenReturn(List.of());
+
+        repository.findItems(null, null, "nameAsc", 10);
+
+        ArgumentCaptor<XyzQueryEducationCriteria> captor = ArgumentCaptor.forClass(XyzQueryEducationCriteria.class);
+        verify(mapper).findItems(captor.capture());
+        assertThat(captor.getValue().sortCode()).isEqualTo(XyzQueryEducationRepository.SORT_NAME_ASC);
+    }
+
+    @Test
     void keysetQueryRequestsOneMoreRowForHasNextDecision() {
         XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
         XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);

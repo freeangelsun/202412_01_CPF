@@ -5,7 +5,7 @@
   <title>CPF 안정화 작업 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1320px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 26px; }
     th, td { border: 1px solid #d1d5db; padding: 9px 10px; vertical-align: top; }
@@ -20,79 +20,76 @@
 <main>
   <section>
     <h1>CPF 안정화 작업 리포트</h1>
-    <p>검수 결과 기반 보정 요청에 따라 구현 상태와 검증 상태를 분리하고, SQL 설치 정합성, EDU Mapper 검증 구조, 표준 헤더 보안 정책, 기능 매트릭스를 보강했습니다.</p>
-    <p class="warn">실행하지 않은 ADM runtime, OpenAPI runtime, 브라우저 클릭, MariaDB 신규 DB 설치, Redis/Kafka/MQ 실 broker 검증은 성공으로 기록하지 않았습니다.</p>
+    <p>ChatGPT 검수 결과로 지정된 5개 항목을 기준으로 실제 파일 불일치와 미완성 증거를 보정했습니다. 이번 작업은 신규 대형 기능 확장이 아니라 trusted proxy 연결, user/operator mutator 차단, EDU Mapper slice 구조, SQL 설치 정합성 gate, 리포트/매트릭스 정합성에 한정했습니다.</p>
+    <p class="warn">실행하지 않은 MariaDB 신규 DB 설치, ADM runtime/OpenAPI, 브라우저 클릭, Redis/Kafka/MQ 실 broker 검증은 성공으로 기록하지 않았습니다. skip된 EDU DB slice test도 성공으로 기록하지 않았습니다.</p>
   </section>
 
   <section>
-    <h2>수행 작업</h2>
+    <h2>수정한 기능과 파일</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th><th>상태</th></tr>
+      <tr><th>요청</th><th>수정한 파일</th><th>실제 변경 내용</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>리포트/매트릭스</td><td><code>specs/기능_구현_매트릭스.html</code>를 실제 구현과 검증 상태 기준으로 재정리했습니다. 정적 smoke, runtime smoke, 브라우저 클릭, MariaDB 실설치를 별도 행으로 분리했습니다.</td><td class="ok">반영</td></tr>
-      <tr><td>SQL 정합성</td><td><code>cmn_edu_query_item</code>이 split SQL, Flyway, all install, all install and smoke에 모두 있는지 재확인했습니다. <code>check-sql-standard.ps1</code>에 split schema 테이블이 전체 설치본과 baseline에 누락되면 실패하는 검사를 추가했습니다.</td><td class="ok">반영</td></tr>
-      <tr><td>EDU Mapper</td><td><code>XyzQueryEducationMapperSliceTest</code>와 <code>xyz_edu_query_mapper_fixture.sql</code>을 추가했습니다. XML의 안전한 정렬 whitelist는 기본 테스트에서 검증하고, 실제 DB fixture 실행은 안전한 테스트 DB 환경변수 설정 시에만 수행합니다.</td><td class="ok">반영</td></tr>
-      <tr><td>표준 헤더</td><td><code>CpfTrustedProxyPolicy</code>를 추가해 trusted proxy가 아닌 요청에서는 전달 IP 헤더를 신뢰하지 않도록 했습니다. <code>LoggingAspect</code>와 <code>CpfHeaderExtractor</code>도 같은 정책을 사용합니다.</td><td class="ok">반영</td></tr>
-      <tr><td>헤더 보정 제한</td><td><code>CpfHeaderMutator</code>에서 <code>X-User-Id</code>, <code>X-Operator-Id</code>, correlation, idempotency 등 감사/추적 주체성 헤더의 업무 코드 변경을 차단했습니다.</td><td class="ok">반영</td></tr>
-      <tr><td>민감 헤더</td><td>inbound header 추출 단계에서도 토큰/API key/서명/nonce류 원문이 저장 경로에 올라가지 않도록 마스킹을 적용하고 테스트를 추가했습니다.</td><td class="ok">반영</td></tr>
-      <tr><td>문서</td><td>표준 헤더 가이드, 개발 가이드, SQL 가이드, 기능 구현 매트릭스를 구현 내용에 맞춰 갱신했습니다. README는 짧은 진입점 원칙을 유지했습니다.</td><td class="ok">반영</td></tr>
+      <tr><td>Trusted Proxy 실제 연결</td><td><code>CpfHeaderExtractor</code>, <code>CpfTrustedProxyPolicy</code>, <code>LoggingAspect</code>, <code>CpfHeaderStandardCoverageTest</code>, <code>표준_헤더_가이드.html</code></td><td>client IP 산정이 <code>CpfTrustedProxyPolicy.resolveClientIp</code>를 사용하도록 연결했습니다. trusted proxy가 아니면 전달 IP 헤더를 무시하고, trusted proxy일 때만 <code>X-Forwarded-For</code>, <code>Forwarded</code>, <code>X-Real-IP</code>를 검증된 IP 값 기준으로 해석합니다.</td><td class="ok">반영</td></tr>
+      <tr><td>User/Operator Mutator 차단</td><td><code>CpfHeaderMutator</code>, <code>CpfHeaderMutatorTest</code>, <code>표준_헤더_가이드.html</code></td><td><code>X-User-Id</code>, <code>X-Operator-Id</code>, correlation, idempotency key 등 추적/감사 주체성 헤더를 restricted에 포함했습니다. 고객/회원/테넌트/조직/지점/세부채널은 업무 보정 가능 후보로 유지했습니다.</td><td class="ok">반영</td></tr>
+      <tr><td>EDU Mapper slice 구조</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_mapper_fixture.sql</code>, <code>XyzQueryEducationRepositoryTest</code>, <code>개발_가이드.html</code></td><td>MyBatis XML을 읽어 unsafe <code>${}</code>, whitelist 정렬, 직접 JOIN 금지를 기본 test로 확인합니다. 안전한 테스트 DB 환경변수가 있을 때 fixture SQL로 실제 Mapper XML을 실행하는 선택 실행 test 구조를 제공합니다.</td><td class="ok">반영</td></tr>
+      <tr><td>SQL 정합성</td><td><code>check-sql-standard.ps1</code>, <code>SQL_가이드.html</code>, SQL 설치본</td><td><code>cmn_edu_query_item</code>이 split SQL, V14, baseline, <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>에 존재함을 확인했습니다. split schema 테이블이 전체 설치본과 baseline에 누락되면 gate가 실패하도록 검사 로직을 추가했습니다.</td><td class="ok">반영</td></tr>
+      <tr><td>리포트/매트릭스 정합성</td><td><code>CPF_STABILIZATION_REPORT.html</code>, <code>기능_구현_매트릭스.html</code></td><td>구현됨과 runtime/브라우저/실DB 검증됨을 분리했습니다. 정적 ADM UI marker와 실제 브라우저 클릭을 별도 상태로 유지했습니다.</td><td class="ok">반영</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>검증 결과</h2>
+    <h2>실행한 검증</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
+      <tr><th>명령</th><th>결과</th><th>검증 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>표준 헤더, trusted proxy, mutator 제한, 민감 헤더 마스킹 테스트 포함.</td></tr>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td>Mapper XML 위험 패턴 검사는 실행 성공. 실제 DB fixture 실행 테스트 1건은 안전한 DB 환경변수가 없어 skip.</td></tr>
-      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL 표준과 all install 누락 방지 검사 통과.</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>trusted proxy 정책, EDU Mapper slice, fixture 증거 추가 후 통과.</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="ok">성공</td><td>리포트와 specs HTML 문서 형식 검증 통과.</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8 및 mojibake marker 검사 통과.</td></tr>
-      <tr><td><code>scripts/smoke-adm-ui.ps1</code></td><td class="ok">성공</td><td>ADM 정적 UI marker 검증 통과. 실제 브라우저 클릭 검증은 별도입니다.</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트 통과.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>feature evidence, HTML, Java format, legacy name, mojibake, sample, security seed, SQL, transaction id, UTF-8 gate 통과.</td></tr>
+      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>trusted/untrusted proxy, CIDR, invalid IP 무시, 민감 헤더 마스킹, user/operator 차단, 대소문자 우회 차단, 실패 시 context 보존 테스트를 포함합니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td>Repository 정렬 정규화, XML 안전 패턴, 직접 JOIN 금지 테스트를 포함합니다. DB fixture 실행부는 환경변수 부재로 skip됩니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL naming/comment/audit column과 all install/baseline 누락 방지 검사를 통과했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>trusted proxy 정책, EDU Mapper slice, fixture, 문서 증거를 확인했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-html-docs.ps1</code></td><td class="ok">성공</td><td>루트 리포트와 specs HTML 문서 형식 검증을 통과했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8 및 mojibake marker 검사를 통과했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-ui.ps1</code></td><td class="ok">성공</td><td>ADM 정적 UI marker 검증을 통과했습니다. 실제 브라우저 클릭 검증은 아닙니다.</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트를 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>feature evidence, HTML, Java format, legacy name, mojibake, sample, security seed, SQL, transaction id, UTF-8, 테스트 gate를 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>미검증/보류</h2>
+    <h2>미검증과 완료로 인정하지 않은 항목</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>사유/다음 조치</th></tr>
+      <tr><th>대상</th><th>시도한 작업</th><th>상태값</th><th>완료로 기록하지 않은 이유</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>MariaDB 신규 DB 전체 설치</td><td class="hold">미검증</td><td>all install and smoke는 cleanup 위험이 있으므로 안전한 빈 DB 또는 명시 승인 후 실행해야 합니다.</td></tr>
-      <tr><td>EDU Mapper 실제 DB slice</td><td class="hold">미검증</td><td>안전한 테스트 DB 환경변수가 없어 실제 fixture 실행은 skip되었습니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td class="hold">미검증</td><td>ADM 앱 기동과 API 호출 검증은 이번 작업에서 아직 실행하지 않았습니다.</td></tr>
-      <tr><td>OpenAPI runtime smoke</td><td class="hold">미검증</td><td>앱 기동 후 OpenAPI JSON 접근 검증은 아직 실행하지 않았습니다.</td></tr>
-      <tr><td>ADM 브라우저 클릭</td><td class="hold">미검증</td><td>정적 marker 검사는 브라우저 클릭 검증으로 보지 않습니다.</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td class="hold">미검증</td><td>로그 정책 override, fallback, ADM 조회 runtime 검증은 아직 실행하지 않았습니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ 실 broker</td><td class="hold">실환경 필요</td><td>실 broker와 장애 시나리오가 필요합니다.</td></tr>
+      <tr><td>EDU Mapper DB slice test</td><td>선택 실행 test와 fixture SQL을 추가하고 기본 test에서 skip 여부를 확인했습니다.</td><td class="hold">미검증</td><td>안전한 테스트 DB 환경변수가 없어 실제 fixture SQL과 MyBatis XML DB 실행부는 skip되었습니다.</td><td>안전한 빈 테스트 DB를 준비하고 <code>CPF_XYZ_EDU_MAPPER_SLICE_TEST=true</code>, DB URL/user/password를 지정해 <code>:xyz:test</code>를 실행합니다.</td></tr>
+      <tr><td>MariaDB 신규 DB 전체 설치</td><td>SQL 파일과 gate 기준을 정적 검증했습니다.</td><td class="hold">미검증</td><td><code>00_all_install_and_smoke.sql</code>는 cleanup 위험이 있어 승인 없이 실제 DB에 실행하지 않았습니다.</td><td>안전한 빈 DB 또는 명시 승인된 DB에서 전체 설치, seed 재실행, app/migration 권한 분리를 검증합니다.</td></tr>
+      <tr><td>ADM runtime/OpenAPI</td><td>이번 범위에서 제외하고 문서/리포트에 미검증으로 유지했습니다.</td><td class="hold">미검증</td><td>요청서에서 신규 runtime smoke 구현은 제외 범위입니다.</td><td>ADM 기동 후 health, OpenAPI JSON, 주요 API smoke를 별도 작업으로 실행합니다.</td></tr>
+      <tr><td>ADM 브라우저 클릭</td><td>정적 UI marker와 실제 브라우저 클릭 상태를 분리했습니다.</td><td class="hold">미검증</td><td>정적 marker smoke를 브라우저 클릭 성공으로 보지 않습니다.</td><td>브라우저 자동화 또는 수동 검증 절차로 메뉴, 버튼, 로그 상세 탭을 확인합니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ 실 broker</td><td>이번 범위에서 제외하고 추후 이슈로 분리했습니다.</td><td class="hold">실환경 필요</td><td>실 broker와 장애 시나리오가 필요합니다.</td><td>broker 우선 전파와 DB fallback 장애 시나리오를 별도 검증합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>다음 보강 후보</h2>
+    <h2>추후 이슈</h2>
     <table>
       <thead>
-      <tr><th>순위</th><th>항목</th><th>이유</th></tr>
+      <tr><th>순위</th><th>항목</th><th>닫기 조건</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>ADM runtime/OpenAPI/브라우저 클릭 자동화</td><td>운영자 기능은 정적 marker가 아니라 실제 API와 화면 검증이 필요합니다.</td></tr>
-      <tr><td>2</td><td>안전한 MariaDB 테스트 DB에서 전체 설치, seed idempotent, 권한 분리 검증</td><td>신규 프로젝트 설치 재현성을 확정해야 합니다.</td></tr>
-      <tr><td>3</td><td>표준 헤더 E2E 전파 검증</td><td>수신, context, 로그 detail, ADM 응답, outbound 전파를 한 거래에서 증명해야 합니다.</td></tr>
-      <tr><td>4</td><td>EDU Mapper DB slice 실실행 자동화</td><td>개발자 교육 샘플이 XML/fixture 기반으로 완전히 검증되어야 합니다.</td></tr>
-      <tr><td>5</td><td>배치 ghost scheduler, 장애 시나리오, 관계구조도 UX</td><td>운영 관제 완성도를 높이는 다음 핵심입니다.</td></tr>
-      <tr><td>6</td><td>broker 기반 로그/캐시 정책 전파</td><td>다중 인스턴스 운영에서는 DB fallback 외 실시간 전파 검증이 필요합니다.</td></tr>
+      <tr><td>1</td><td>안전한 빈 MariaDB 신규 DB 전체 설치 실검증</td><td>전체 설치 성공, seed idempotent, <code>cmn_edu_query_item</code> 생성, app 계정 DDL 차단, 실패 SQL 없음.</td></tr>
+      <tr><td>2</td><td>ADM runtime 기동 및 OpenAPI 접근 검증</td><td>ADM health, OpenAPI JSON, 거래/로그/배치/캐시 API smoke 통과.</td></tr>
+      <tr><td>3</td><td>ADM 주요 화면 브라우저 클릭 자동화</td><td>로그 상세 헤더 탭, 배치 관제, 권한 버튼 상태, 캐시/메시지/코드 관리 화면 클릭 검증.</td></tr>
+      <tr><td>4</td><td>표준 헤더 E2E 전파 검증</td><td>수신, context, log detail, ADM 응답, outbound mock API 수신까지 한 거래로 검증.</td></tr>
+      <tr><td>5</td><td>BAT runtime과 ghost detection 검증</td><td>장시간 job, heartbeat, progress, ghost 감지, 재수행 정책 검증.</td></tr>
+      <tr><td>6</td><td>Redis/Kafka/MQ mock/fallback 및 실 broker 전파 분리</td><td>local fallback과 실 broker 검증 결과를 분리해 리포트.</td></tr>
+      <tr><td>7</td><td>센터컷 기본 구현체</td><td>대량 파일/전문 분할, 재처리, EDU 샘플, 관리자 관제 기준 구현.</td></tr>
       </tbody>
     </table>
   </section>

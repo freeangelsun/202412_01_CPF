@@ -42,8 +42,15 @@ class XyzQueryEducationMapperSliceTest {
 
         assertThat(xml)
                 .contains("<choose>")
+                .contains("ORDER BY item_id ASC")
                 .contains("criteria.sortCode == 'NAME_ASC'")
+                .contains("criteria.sortCode == 'CREATED_DESC'")
                 .doesNotContain("${");
+        assertThat(xml.toLowerCase())
+                .doesNotContain(" join mbr_member")
+                .doesNotContain(" join exs_")
+                .doesNotContain("from mbr_member")
+                .doesNotContain("from exs_");
     }
 
     @Test
@@ -77,6 +84,11 @@ class XyzQueryEducationMapperSliceTest {
             assertThat(sorted)
                     .extracting(XyzQueryEducationItem::itemId)
                     .containsExactly(90008L, 90005L, 90004L);
+
+            List<XyzQueryEducationItem> nameAsc = mapper.findItems(criteria(null, "ACTIVE", "NAME_ASC", 20, 0, null));
+            assertThat(nameAsc)
+                    .extracting(XyzQueryEducationItem::itemId)
+                    .contains(90001L, 90002L, 90003L, 90004L, 90005L, 90008L);
 
             List<XyzQueryEducationItem> unsafeSortFallsBack = mapper.findItems(criteria(null, "ACTIVE", "item_name desc; drop table", 3, 0, null));
             assertThat(unsafeSortFallsBack)

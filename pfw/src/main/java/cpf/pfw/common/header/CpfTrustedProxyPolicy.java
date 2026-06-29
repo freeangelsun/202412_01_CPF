@@ -39,7 +39,7 @@ public final class CpfTrustedProxyPolicy {
         return firstText(
                 firstForwardedFor(request.getHeader(CpfHeaderNames.FORWARDED_FOR)),
                 firstForwardedHeaderFor(request.getHeader(CpfHeaderNames.FORWARDED)),
-                trimToNull(request.getHeader(CpfHeaderNames.REAL_IP)),
+                trustedHeaderIp(request.getHeader(CpfHeaderNames.REAL_IP)),
                 remoteAddr);
     }
 
@@ -159,7 +159,34 @@ public final class CpfTrustedProxyPolicy {
 
     private static boolean isUsableForwardedValue(String value) {
         String normalized = trimToNull(value);
-        return normalized != null && !"unknown".equalsIgnoreCase(normalized);
+        return normalized != null
+                && !"unknown".equalsIgnoreCase(normalized)
+                && isLikelyIpAddress(normalized);
+    }
+
+    private static String trustedHeaderIp(String value) {
+        String normalized = normalizeForwardedForValue(value);
+        return isUsableForwardedValue(normalized) ? normalized : null;
+    }
+
+    private static boolean isLikelyIpAddress(String value) {
+        return isIpv4Address(value) || isIpv6Address(value);
+    }
+
+    private static boolean isIpv4Address(String value) {
+        try {
+            ipv4ToLong(value);
+            return true;
+        } catch (RuntimeException ex) {
+            return false;
+        }
+    }
+
+    private static boolean isIpv6Address(String value) {
+        if (value == null || !value.contains(":")) {
+            return false;
+        }
+        return value.matches("(?i)[0-9a-f:.]+");
     }
 
     private static String firstText(String first, String second, String third, String fallback) {

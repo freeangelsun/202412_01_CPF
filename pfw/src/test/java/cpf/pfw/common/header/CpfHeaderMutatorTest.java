@@ -80,4 +80,44 @@ class CpfHeaderMutatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("변경할 수 없습니다");
     }
+
+    @Test
+    void restrictedHeadersAreMatchedCaseInsensitively() {
+        TransactionHeader source = TransactionHeader.builder()
+                .userId("login-user")
+                .operatorId("adm01")
+                .build();
+
+        assertThatThrownBy(() -> CpfHeaderMutator.withAllowedHeader(source, "x-user-id", "other-user"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("변경할 수 없습니다");
+        assertThatThrownBy(() -> CpfHeaderMutator.withAllowedHeader(source, "x-operator-id", "other-operator"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("변경할 수 없습니다");
+    }
+
+    @Test
+    void failedMutationDoesNotReplaceCurrentTransactionContextHeader() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        TransactionHeader original = TransactionHeader.builder()
+                .channelCode("MBR")
+                .userId("login-user")
+                .operatorId("adm01")
+                .build();
+        TransactionContext.initialize(
+                "20260615120000000MBRlocal010000001",
+                "TRACE-1",
+                null,
+                "20260615120000000MBRlocal010000001",
+                original);
+
+        assertThatThrownBy(() -> CpfHeaderMutator.put(CpfHeaderNames.USER_ID, "other-user"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("변경할 수 없습니다");
+
+        assertThat(TransactionContext.currentHeader()).isSameAs(original);
+        assertThat(TransactionContext.currentHeader().getUserId()).isEqualTo("login-user");
+        assertThat(TransactionContext.currentHeader().getOperatorId()).isEqualTo("adm01");
+    }
 }

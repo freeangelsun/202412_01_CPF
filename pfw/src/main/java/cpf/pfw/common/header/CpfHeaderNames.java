@@ -1,10 +1,10 @@
 package cpf.pfw.common.header;
 
 /**
- * CPF 온라인 거래에서 사용하는 표준 HTTP 헤더 이름입니다.
+ * CPF 온라인 거래에서 사용하는 표준 HTTP 헤더명입니다.
  *
- * <p>문자열을 여러 곳에 직접 쓰면 로그, Swagger, EDU 샘플, 외부 호출 전파가 쉽게 어긋납니다.
- * 신규 코드는 반드시 이 상수를 기준으로 작성합니다.</p>
+ * <p>업무 코드, 로그 저장, Swagger 문서, EDU 샘플, 하위 호출 전파는 이 상수를 기준으로 작성합니다.
+ * 헤더명을 문자열로 직접 반복 작성하면 문서와 구현이 어긋나기 쉬우므로 신규 코드는 반드시 이 상수를 사용합니다.</p>
  */
 public final class CpfHeaderNames {
     public static final String TRANSACTION_ID = "X-Transaction-Id";

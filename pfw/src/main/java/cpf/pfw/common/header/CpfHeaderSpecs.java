@@ -11,18 +11,19 @@ import java.util.Set;
 /**
  * CPF 표준 헤더 사전입니다.
  *
- * <p>문서와 구현이 같은 기준을 보도록 헤더별 분류, 전파 여부, 로그 정책을 한 곳에서 관리합니다.</p>
+ * <p>이 사전은 문서, 검증, 로그 마스킹, ADM 로그 상세 표시, WebClient/RestClient 자동 전파가 같은
+ * 기준을 보도록 유지하는 단일 기준점입니다.</p>
  */
 public final class CpfHeaderSpecs {
     private static final List<CpfHeaderSpec> ALL = List.of(
             spec(CpfHeaderNames.TRANSACTION_ID, CpfHeaderCategory.REQUIRED, "CPF 거래 글로벌 ID", "클라이언트 또는 PFW", "수신 인터셉터", true, true, "TRANSACTION_ID", 64, true, false, "요약"),
-            spec(CpfHeaderNames.PARENT_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "상위 거래 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "PARENT_TRANSACTION_ID", 64, true, false, "헤더"),
-            spec(CpfHeaderNames.ORIGINAL_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "최초 유입 거래 ID", "최초 유입 서비스", "PFW 헤더 추출기", true, false, "ORIGINAL_TRANSACTION_ID", 64, true, false, "헤더"),
-            spec(CpfHeaderNames.REQUEST_ID, CpfHeaderCategory.RECOMMENDED, "호출자 기준 요청 ID", "클라이언트", "PFW 헤더 추출기", true, false, "REQUEST_ID", 80, true, false, "헤더"),
-            spec(CpfHeaderNames.EXTERNAL_REQUEST_ID, CpfHeaderCategory.OPTIONAL, "외부기관 요청 ID", "외부기관", "PFW 헤더 추출기", true, false, "EXTERNAL_REQUEST_ID", 100, true, false, "헤더"),
-            spec(CpfHeaderNames.CORRELATION_ID, CpfHeaderCategory.RECOMMENDED, "업무 흐름 상관 ID", "클라이언트 또는 Gateway", "PFW 헤더 추출기", true, false, "CORRELATION_ID", 100, true, false, "헤더"),
-            spec(CpfHeaderNames.IDEMPOTENCY_KEY, CpfHeaderCategory.RECOMMENDED, "멱등 처리 키", "클라이언트", "업무 서비스", true, false, "IDEMPOTENCY_KEY", 120, true, true, "헤더"),
-            spec(CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, CpfHeaderCategory.OPTIONAL, "표준 멱등 키 별칭", "클라이언트", "PFW 헤더 추출기", true, false, "IDEMPOTENCY_KEY", 120, true, true, "헤더"),
+            spec(CpfHeaderNames.PARENT_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "직전 상위 거래 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "PARENT_TRANSACTION_ID", 64, true, false, "추적"),
+            spec(CpfHeaderNames.ORIGINAL_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "최초 유입 거래 ID", "최초 유입 서비스", "PFW 헤더 추출기", true, false, "ORIGINAL_TRANSACTION_ID", 64, true, false, "추적"),
+            spec(CpfHeaderNames.REQUEST_ID, CpfHeaderCategory.RECOMMENDED, "호출자 기준 요청 ID", "클라이언트", "PFW 헤더 추출기", true, false, "REQUEST_ID", 80, true, false, "추적"),
+            spec(CpfHeaderNames.EXTERNAL_REQUEST_ID, CpfHeaderCategory.OPTIONAL, "외부 기관 요청 ID", "외부 기관", "PFW 헤더 추출기", true, false, "EXTERNAL_REQUEST_ID", 100, true, false, "추적"),
+            spec(CpfHeaderNames.CORRELATION_ID, CpfHeaderCategory.RECOMMENDED, "업무 흐름 상관 ID", "클라이언트 또는 Gateway", "PFW 헤더 추출기", true, true, "CORRELATION_ID", 100, true, false, "추적"),
+            spec(CpfHeaderNames.IDEMPOTENCY_KEY, CpfHeaderCategory.RECOMMENDED, "멱등 처리 키", "클라이언트", "업무 서비스", true, false, "IDEMPOTENCY_KEY", 120, true, true, "추적"),
+            spec(CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, CpfHeaderCategory.OPTIONAL, "표준 멱등 키 별칭", "클라이언트", "PFW 헤더 추출기", true, false, "IDEMPOTENCY_KEY", 120, true, true, "추적"),
 
             spec(CpfHeaderNames.TRACE_ID, CpfHeaderCategory.RECOMMENDED, "분산 추적 trace ID", "클라이언트 또는 PFW", "PFW 필터", true, true, "TRACE_ID", 80, true, false, "추적"),
             spec(CpfHeaderNames.SPAN_ID, CpfHeaderCategory.INTERNAL_ONLY, "현재 처리 span ID", "PFW", "PFW 필터", false, true, "SPAN_ID", 80, true, false, "추적"),
@@ -30,6 +31,7 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.TRACEPARENT, CpfHeaderCategory.RECOMMENDED, "W3C traceparent", "Gateway 또는 APM", "PFW 헤더 추출기", true, false, "TRACEPARENT", 128, true, false, "추적"),
             spec(CpfHeaderNames.TRACESTATE, CpfHeaderCategory.OPTIONAL, "W3C tracestate", "Gateway 또는 APM", "PFW 헤더 추출기", true, false, "TRACESTATE", 512, true, true, "추적"),
 
+            spec(CpfHeaderNames.API_VERSION, CpfHeaderCategory.RECOMMENDED, "호출 API 버전", "클라이언트", "PFW 헤더 추출기", true, false, "API_VERSION", 20, true, false, "호출"),
             spec(CpfHeaderNames.REQUEST_TYPE, CpfHeaderCategory.REQUIRED, "요청 유형", "클라이언트", "수신 인터셉터", true, false, "REQUEST_TYPE", 30, true, false, "채널"),
             spec(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, CpfHeaderCategory.REQUIRED, "최초 유입 채널", "클라이언트 또는 Gateway", "수신 인터셉터", true, false, "ORIGINAL_CHANNEL_CODE", 30, true, false, "채널"),
             spec(CpfHeaderNames.CHANNEL_CODE, CpfHeaderCategory.REQUIRED, "현재 처리 채널", "클라이언트 또는 Gateway", "수신 인터셉터", true, false, "CHANNEL_CODE", 30, true, false, "채널"),
@@ -47,21 +49,32 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.FORWARDED_FOR, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "프록시 경유 IP 목록", "Proxy/LB/WAF", "PFW 필터", false, false, "FORWARDED_FOR", 512, false, true, "접속"),
             spec(CpfHeaderNames.FORWARDED, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "표준 Forwarded 헤더", "Proxy/LB/WAF", "PFW 필터", false, false, "FORWARDED", 512, false, true, "접속"),
             spec(CpfHeaderNames.REAL_IP, CpfHeaderCategory.RECOMMENDED, "실제 클라이언트 IP 후보", "Proxy/LB/WAF", "PFW 필터", false, false, "REAL_IP", 64, true, true, "접속"),
-            spec(CpfHeaderNames.CLIENT_COUNTRY_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 국가 코드", "Gateway 또는 WAF", "PFW 헤더 추출기", true, false, "CLIENT_COUNTRY_CODE", 2, true, false, "접속"),
+            spec(CpfHeaderNames.CLIENT_COUNTRY_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 국가 ISO 3166-1 alpha-2 코드", "Gateway 또는 WAF", "PFW 헤더 추출기", true, false, "CLIENT_COUNTRY_CODE", 2, true, false, "접속"),
             spec(CpfHeaderNames.CLIENT_REGION_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 지역 코드", "Gateway 또는 WAF", "PFW 헤더 추출기", true, false, "CLIENT_REGION_CODE", 30, true, false, "접속"),
-            spec(CpfHeaderNames.CLIENT_TIMEZONE, CpfHeaderCategory.OPTIONAL, "클라이언트 시간대", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_TIMEZONE", 60, true, false, "접속"),
+            spec(CpfHeaderNames.TIMEZONE, CpfHeaderCategory.RECOMMENDED, "서버 처리 기준 시간대", "클라이언트 또는 Gateway", "PFW 헤더 추출기", true, false, "TIMEZONE", 60, true, false, "접속"),
+            spec(CpfHeaderNames.CLIENT_TIMEZONE, CpfHeaderCategory.OPTIONAL, "클라이언트 표시 기준 시간대", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_TIMEZONE", 60, true, false, "접속"),
 
-            spec(CpfHeaderNames.CLIENT_APP_ID, CpfHeaderCategory.RECOMMENDED, "클라이언트 앱 ID", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_APP_ID", 80, true, false, "호출자"),
-            spec(CpfHeaderNames.CLIENT_VERSION, CpfHeaderCategory.RECOMMENDED, "클라이언트 버전", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_VERSION", 40, true, false, "호출자"),
-            spec(CpfHeaderNames.CALLER_SERVICE, CpfHeaderCategory.RECOMMENDED, "호출 서비스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_SERVICE", 80, true, false, "호출자"),
-            spec(CpfHeaderNames.CALLER_INSTANCE_ID, CpfHeaderCategory.OPTIONAL, "호출 인스턴스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_INSTANCE_ID", 120, true, false, "호출자"),
-            spec(CpfHeaderNames.USER_AGENT, CpfHeaderCategory.RECOMMENDED, "User-Agent", "클라이언트", "PFW 헤더 추출기", false, false, "USER_AGENT", 500, true, true, "호출자"),
+            spec(CpfHeaderNames.CLIENT_APP_ID, CpfHeaderCategory.RECOMMENDED, "클라이언트 앱 ID", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_APP_ID", 80, true, false, "호출"),
+            spec(CpfHeaderNames.CLIENT_VERSION, CpfHeaderCategory.RECOMMENDED, "클라이언트 버전", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_VERSION", 40, true, false, "호출"),
+            spec(CpfHeaderNames.CALLER_SERVICE, CpfHeaderCategory.RECOMMENDED, "호출 서비스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_SERVICE", 80, true, false, "호출"),
+            spec(CpfHeaderNames.CALLER_INSTANCE_ID, CpfHeaderCategory.OPTIONAL, "호출 인스턴스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_INSTANCE_ID", 120, true, false, "호출"),
+            spec(CpfHeaderNames.USER_AGENT, CpfHeaderCategory.RECOMMENDED, "User-Agent", "클라이언트", "PFW 헤더 추출기", false, false, "USER_AGENT", 500, true, true, "호출"),
+            spec(CpfHeaderNames.LOCALE, CpfHeaderCategory.RECOMMENDED, "언어/지역 코드", "클라이언트", "PFW 헤더 추출기", true, false, "LOCALE", 20, true, false, "호출"),
+            spec(CpfHeaderNames.SCREEN_ID, CpfHeaderCategory.OPTIONAL, "화면 ID", "클라이언트", "PFW 헤더 추출기", true, false, "SCREEN_ID", 80, true, false, "호출"),
+            spec(CpfHeaderNames.DEVICE_ID, CpfHeaderCategory.OPTIONAL, "기기 ID", "클라이언트", "PFW 헤더 추출기", true, false, "DEVICE_ID", 120, true, true, "호출"),
+            spec(CpfHeaderNames.CLIENT_REQUEST_TIME, CpfHeaderCategory.OPTIONAL, "클라이언트 요청 시각", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_REQUEST_TIME", 40, true, false, "호출"),
 
             spec(CpfHeaderNames.AUTHORIZATION, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "인증 토큰", "클라이언트", "인증 필터", false, false, null, 0, false, true, "보안"),
             spec(CpfHeaderNames.API_KEY, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "API Key", "클라이언트", "인증 필터", false, false, null, 0, false, true, "보안"),
             spec(CpfHeaderNames.REQUEST_SIGNATURE, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "요청 서명", "클라이언트", "인증 필터", false, false, "REQUEST_SIGNATURE", 256, false, true, "보안"),
             spec(CpfHeaderNames.REQUEST_TIMESTAMP, CpfHeaderCategory.RECOMMENDED, "서명 기준 요청 시각", "클라이언트", "인증 필터", true, false, "REQUEST_TIMESTAMP", 40, true, false, "보안"),
-            spec(CpfHeaderNames.NONCE, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "재전송 방지 난수", "클라이언트", "인증 필터", false, false, "NONCE", 128, false, true, "보안")
+            spec(CpfHeaderNames.NONCE, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "재전송 방지 난수", "클라이언트", "인증 필터", false, false, "NONCE", 128, false, true, "보안"),
+
+            spec(CpfHeaderNames.RESERVED_FIELD_1, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 1", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_1", 200, true, true, "확장"),
+            spec(CpfHeaderNames.RESERVED_FIELD_2, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 2", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_2", 200, true, true, "확장"),
+            spec(CpfHeaderNames.RESERVED_FIELD_3, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 3", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_3", 200, true, true, "확장"),
+            spec(CpfHeaderNames.RESERVED_FIELD_4, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 4", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_4", 200, true, true, "확장"),
+            spec(CpfHeaderNames.RESERVED_FIELD_5, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 5", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_5", 200, true, true, "확장")
     );
 
     private static final Map<String, CpfHeaderSpec> BY_LOWER_NAME = toMap(ALL);

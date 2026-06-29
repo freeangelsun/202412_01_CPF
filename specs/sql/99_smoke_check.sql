@@ -38,6 +38,7 @@ SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_
 SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
 SELECT 'cmnDB.cmn_notification_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_notification_log;
 SELECT 'cmnDB.cmn_business_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_business_log;
+SELECT 'cmnDB.cmn_edu_query_item' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_edu_query_item;
 
 SELECT 'admDB.adm_operator' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator;
 SELECT 'admDB.adm_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_menu;
@@ -98,6 +99,12 @@ ORDER BY DETAIL_KEY;
 SELECT sequence_key, business_area, business_key, sequence_kind, channel_code, start_value, increment_by, reset_cycle, log_enabled_yn
 FROM cmnDB.cmn_sequence
 WHERE sequence_key = 'CMN_EDU_ORDER';
+
+SELECT item_id, item_name, category_code, status_code, owner_member_no
+FROM cmnDB.cmn_edu_query_item
+WHERE use_yn = 'Y'
+ORDER BY item_id
+LIMIT 5;
 
 SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, IMMUTABLE_YN
 FROM admDB.adm_audit_log

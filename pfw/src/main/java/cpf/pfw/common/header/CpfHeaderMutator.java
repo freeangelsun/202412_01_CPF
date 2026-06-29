@@ -7,7 +7,10 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * 현재 거래 컨텍스트의 업무성 헤더만 제한적으로 보정하는 API입니다.
+ * 현재 거래 컨텍스트에서 업무 코드가 바꿀 수 있는 헤더만 제한적으로 보정하는 API입니다.
+ *
+ * <p>거래 ID, trace/span, 인증 토큰처럼 추적성과 보안에 영향을 주는 헤더는 업무 코드에서 변경할 수 없습니다.
+ * 채널 상세, 사용자 식별자, 멱등 키처럼 업무 처리 중 보강될 수 있는 값만 허용합니다.</p>
  */
 public final class CpfHeaderMutator {
     private static final Set<String> RESTRICTED_HEADERS = Set.of(
@@ -31,6 +34,10 @@ public final class CpfHeaderMutator {
         TransactionHeader updated = withAllowedHeader(current, headerName, value);
         TransactionContext.replaceCurrentHeader(updated);
         return updated;
+    }
+
+    public static TransactionHeader withAllowedHeader(String headerName, String value) {
+        return withAllowedHeader(TransactionContext.currentHeader(), headerName, value);
     }
 
     public static TransactionHeader withAllowedHeader(TransactionHeader source, String headerName, String value) {
@@ -84,7 +91,7 @@ public final class CpfHeaderMutator {
         if (normalized.equals(lower(CpfHeaderNames.CLIENT_TIMEZONE))) {
             return builder.clientTimezone(value).build();
         }
-        throw new IllegalArgumentException("업무 코드에서 보정할 수 있도록 등록되지 않은 헤더입니다. headerName=" + headerName);
+        throw new IllegalArgumentException("업무 코드에서 보정하도록 등록되지 않은 헤더입니다. headerName=" + headerName);
     }
 
     private static String lower(String value) {

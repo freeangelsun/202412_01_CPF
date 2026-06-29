@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cpf.xyz.edu.mapper.XyzQueryEducationMapper">
+    <sql id="BaseColumns">
+        item_id AS itemId,
+        item_name AS itemName,
+        category_code AS categoryCode,
+        status_code AS statusCode,
+        owner_member_no AS ownerMemberNo,
+        DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS createdAt
+    </sql>
+
+    <sql id="SearchWhere">
+        FROM cmn_edu_query_item
+        WHERE use_yn = 'Y'
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+                LOWER(item_name) LIKE CONCAT('%', LOWER(#{criteria.keyword}), '%')
+                OR LOWER(category_code) LIKE CONCAT('%', LOWER(#{criteria.keyword}), '%')
+            )
+        </if>
+        <if test="criteria.statusCode != null and criteria.statusCode != ''">
+            AND status_code = #{criteria.statusCode}
+        </if>
+    </sql>
+
+    <sql id="SafeOrderBy">
+        <choose>
+            <when test="criteria.sortCode == 'NAME_ASC'">
+                ORDER BY item_name ASC, item_id ASC
+            </when>
+            <when test="criteria.sortCode == 'CREATED_DESC'">
+                ORDER BY created_at DESC, item_id DESC
+            </when>
+            <otherwise>
+                ORDER BY item_id ASC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="findById" resultType="cpf.xyz.edu.dto.XyzQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        FROM cmn_edu_query_item
+        WHERE item_id = #{itemId}
+          AND use_yn = 'Y'
+    </select>
+
+    <select id="findItems" resultType="cpf.xyz.edu.dto.XyzQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        <include refid="SearchWhere"/>
+        <include refid="SafeOrderBy"/>
+        LIMIT #{criteria.limit}
+    </select>
+
+    <select id="findOffsetPageItems" resultType="cpf.xyz.edu.dto.XyzQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        <include refid="SearchWhere"/>
+        <include refid="SafeOrderBy"/>
+        LIMIT #{criteria.limit}
+        OFFSET #{criteria.offset}
+    </select>
+
+    <select id="countOffsetPageItems" resultType="long">
+        SELECT COUNT(1)
+        <include refid="SearchWhere"/>
+    </select>
+
+    <select id="findKeysetPageItems" resultType="cpf.xyz.edu.dto.XyzQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        FROM cmn_edu_query_item
+        WHERE use_yn = 'Y'
+        <if test="criteria.cursorId != null">
+          AND item_id &gt; #{criteria.cursorId}
+        </if>
+        ORDER BY item_id ASC
+        LIMIT #{criteria.limit}
+    </select>
+</mapper>

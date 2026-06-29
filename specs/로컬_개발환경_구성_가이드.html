@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>CPF 로컬 개발환경 구성 가이드</title>
+  <style>
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #e0f2fe; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    pre { background: #111827; color: #f9fafb; padding: 14px; overflow-x: auto; border-radius: 6px; }
+    .note { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>CPF 로컬 개발환경 구성 가이드</h1>
+    <p>이 문서는 신규 개발자가 로컬 PC에서 CPF를 빌드하고, MariaDB 설치 SQL을 적용하고, ADM/BAT/XYZ를 기동해 smoke 검증까지 수행하는 순서를 정리합니다.</p>
+    <p class="note">실행하지 않은 항목은 성공으로 기록하지 않습니다. DB 접속, 앱 기동, 브라우저 클릭 검증은 실제 실행 결과가 있을 때만 완료로 표시합니다.</p>
+    <p><!-- evidence: cpf-local-dev-guide --></p>
+  </section>
+
+  <section>
+    <h2>필수 도구</h2>
+    <table>
+      <thead>
+      <tr><th>도구</th><th>권장 기준</th><th>확인 방법</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>JDK</td><td>Java 21</td><td><code>java -version</code></td></tr>
+      <tr><td>Gradle</td><td>저장소의 wrapper 사용</td><td><code>.\gradlew.bat --version</code></td></tr>
+      <tr><td>MariaDB</td><td>로컬 개발용 MariaDB 10.x 이상</td><td><code>mysql --version</code></td></tr>
+      <tr><td>PowerShell</td><td>Windows PowerShell 또는 PowerShell 7</td><td><code>$PSVersionTable.PSVersion</code></td></tr>
+      <tr><td>브라우저</td><td>ADM 화면과 Swagger 확인용</td><td><code>http://localhost:8090</code> 접속</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>빌드와 정적 검증</h2>
+    <p>의존성이 이미 내려받아진 환경에서는 offline 검증을 먼저 실행합니다. 네트워크가 필요한 신규 의존성은 별도 승인 후 online 빌드로 확인합니다.</p>
+    <pre><code>.\gradlew.bat :pfw:test --offline
+.\gradlew.bat :adm:test --offline
+.\gradlew.bat :bat:test --offline
+.\gradlew.bat test --offline
+.\gradlew.bat qualityGate --offline</code></pre>
+    <table>
+      <thead>
+      <tr><th>검증</th><th>명령</th><th>완료 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>UTF-8와 글자 깨짐</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>검사 스크립트가 성공 종료합니다.</td></tr>
+      <tr><td>HTML 문서 구조</td><td><code>scripts/check-html-docs.ps1</code></td><td>specs 하위 문서가 HTML 구조이고 불필요한 Markdown 조각이 없습니다.</td></tr>
+      <tr><td>기능 증거</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>핵심 Controller, Service, SQL, EDU, 문서 증거가 존재합니다.</td></tr>
+      <tr><td>SQL 표준</td><td><code>scripts/check-sql-standard.ps1</code></td><td>테이블 prefix, 공통 감사 컬럼, COMMENT, index 이름 기준을 통과합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>MariaDB 설치 SQL</h2>
+    <p>로컬 설치는 분리 SQL을 직접 순서대로 실행하거나, 합본 SQL을 실행합니다. 합본은 SOURCE 명령이 아니라 실제 SQL 본문을 포함합니다.</p>
+    <pre><code>mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install.sql
+mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
+    <table>
+      <thead>
+      <tr><th>파일</th><th>용도</th><th>주의</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>specs/sql/00_all_install.sql</code></td><td>DB 생성, 권한, schema, seed, test data 합본 설치</td><td>로컬 초기화 성격이 있으므로 기존 데이터 보존이 필요한 DB에 실행하지 않습니다.</td></tr>
+      <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치 후 smoke query까지 포함</td><td>FK, index, seed idempotent, 샘플 데이터 조회 결과를 확인합니다.</td></tr>
+      <tr><td><code>specs/sql/migration/flyway</code></td><td>기존 DB 증분 반영용 migration</td><td>신규 baseline과 기존 DB 업그레이드 경로를 분리합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>앱 기동</h2>
+    <p>PFW와 CMN은 라이브러리 모듈입니다. 실제 기동 대상은 ADM, BAT, XYZ, 업무 서비스 모듈입니다.</p>
+    <pre><code>.\gradlew.bat :adm:bootJar --offline
+.\gradlew.bat :bat:bootJar --offline
+.\gradlew.bat :xyz:bootJar --offline
+
+java -jar adm/build/libs/adm-0.0.1-cpf.adm-SNAPSHOT.jar
+java -jar bat/build/libs/bat-0.0.1-cpf.bat-SNAPSHOT.jar
+java -jar xyz/build/libs/xyz-0.0.1-cpf.xyz-SNAPSHOT.jar</code></pre>
+    <table>
+      <thead>
+      <tr><th>모듈</th><th>기본 포트</th><th>확인</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM</td><td><code>8090</code></td><td>운영 콘솔, Swagger, 로그/배치/캐시 관제</td></tr>
+      <tr><td>BAT</td><td>설정 기준</td><td>Spring Batch worker와 health API</td></tr>
+      <tr><td>XYZ</td><td><code>8099</code></td><td>EDU 샘플 API와 조회 MyBatis 샘플</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Runtime smoke</h2>
+    <p>아래 스크립트는 앱 또는 DB가 실제로 떠 있어야 의미가 있습니다. 실행하지 않았다면 미검증으로 기록합니다.</p>
+    <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-log-policy-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-openapi.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1</code></pre>
+  </section>
+
+  <section>
+    <h2>트러블슈팅</h2>
+    <table>
+      <thead>
+      <tr><th>증상</th><th>확인</th><th>조치</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>DB 연결 실패</td><td>JDBC URL, 계정 권한, MariaDB 서비스 상태</td><td>app 계정은 DML 중심, migration 계정은 DDL 권한으로 분리합니다.</td></tr>
+      <tr><td>OpenAPI 접근 실패</td><td>앱 기동 로그, 포트 충돌, profile</td><td>ADM 기동 후 <code>/v3/api-docs</code>와 Swagger UI를 확인합니다.</td></tr>
+      <tr><td>로그에 헤더가 안 보임</td><td>표준 헤더 필수값, <code>LoggingAspect</code>, <code>AdmLogQueryService</code></td><td><code>표준_헤더_가이드.html</code>와 ADM 로그 상세 탭을 함께 확인합니다.</td></tr>
+      <tr><td>EDU 조회 실패</td><td><code>cmn_edu_query_item</code> 존재와 seed 데이터</td><td><code>V14__edu_query_sample.sql</code> 또는 전체 설치 SQL을 적용합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

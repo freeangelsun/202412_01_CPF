@@ -89,6 +89,7 @@ DROP TABLE IF EXISTS admDB.adm_operator_role;
 DROP TABLE IF EXISTS admDB.adm_role;
 DROP TABLE IF EXISTS admDB.adm_operator;
 
+DROP TABLE IF EXISTS cmnDB.cmn_edu_query_item;
 DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
@@ -119,14 +120,10 @@ DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
 DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
 DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
 DROP TABLE IF EXISTS pfwDB.pfw_dynamic_log_level_rule;
-DROP TABLE IF EXISTS pfwDB.pfw_log_policy_audit;
-DROP TABLE IF EXISTS pfwDB.pfw_log_policy_override;
-DROP TABLE IF EXISTS pfwDB.pfw_log_policy;
 DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 -- ============================================================================
@@ -1129,6 +1126,21 @@ CREATE TABLE IF NOT EXISTS cmn_business_log (
     INDEX ix_cmn_business_log_area_key (business_area, business_key),
     INDEX ix_cmn_business_log_type_time (log_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 업무 로그';
+CREATE TABLE IF NOT EXISTS cmn_edu_query_item (
+    item_id BIGINT NOT NULL COMMENT '교육 조회 항목 ID',
+    item_name VARCHAR(200) NOT NULL COMMENT '교육 조회 항목명',
+    category_code VARCHAR(30) NOT NULL COMMENT '교육 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    owner_member_no VARCHAR(50) NULL COMMENT '예시 담당 회원 번호',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (item_id),
+    INDEX ix_cmn_edu_query_item_search (status_code, category_code, item_name),
+    INDEX ix_cmn_edu_query_item_created (created_at, item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN EDU 조회 샘플 항목';
 -- ============================================================================
 -- specs/sql/30_adm_schema.sql
 -- ============================================================================
@@ -3002,6 +3014,28 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+USE cmnDB;
+
+INSERT INTO cmn_edu_query_item (
+    item_id, item_name, category_code, status_code, owner_member_no, use_yn, created_by, updated_by
+) VALUES
+    (1, '표준 헤더 단건 조회', 'HEADER', 'ACTIVE', 'M000000001', 'Y', 'SYSTEM', 'SYSTEM'),
+    (2, '거래 로그 목록 조회', 'LOG', 'ACTIVE', 'M000000002', 'Y', 'SYSTEM', 'SYSTEM'),
+    (3, 'offset 페이징 조회', 'QUERY', 'ACTIVE', 'M000000003', 'Y', 'SYSTEM', 'SYSTEM'),
+    (4, 'keyset 페이징 조회', 'QUERY', 'ACTIVE', 'M000000004', 'Y', 'SYSTEM', 'SYSTEM'),
+    (5, '검색 조건 정규화', 'QUERY', 'INACTIVE', 'M000000005', 'Y', 'SYSTEM', 'SYSTEM'),
+    (6, '정렬 whitelist', 'QUERY', 'ACTIVE', 'M000000006', 'Y', 'SYSTEM', 'SYSTEM'),
+    (7, '하위 호출 헤더 전파', 'HEADER', 'ACTIVE', 'M000000007', 'Y', 'SYSTEM', 'SYSTEM'),
+    (8, 'Swagger 조회 예시', 'DOC', 'ACTIVE', 'M000000008', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    item_name = VALUES(item_name),
+    category_code = VALUES(category_code),
+    status_code = VALUES(status_code),
+    owner_member_no = VALUES(owner_member_no),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 USE accDB;
 
 INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)
@@ -3610,6 +3644,7 @@ SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_
 SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
 SELECT 'cmnDB.cmn_notification_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_notification_log;
 SELECT 'cmnDB.cmn_business_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_business_log;
+SELECT 'cmnDB.cmn_edu_query_item' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_edu_query_item;
 
 SELECT 'admDB.adm_operator' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator;
 SELECT 'admDB.adm_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_menu;
@@ -3670,6 +3705,12 @@ ORDER BY DETAIL_KEY;
 SELECT sequence_key, business_area, business_key, sequence_kind, channel_code, start_value, increment_by, reset_cycle, log_enabled_yn
 FROM cmnDB.cmn_sequence
 WHERE sequence_key = 'CMN_EDU_ORDER';
+
+SELECT item_id, item_name, category_code, status_code, owner_member_no
+FROM cmnDB.cmn_edu_query_item
+WHERE use_yn = 'Y'
+ORDER BY item_id
+LIMIT 5;
 
 SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, IMMUTABLE_YN
 FROM admDB.adm_audit_log

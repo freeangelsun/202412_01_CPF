@@ -82,6 +82,7 @@ DROP TABLE IF EXISTS admDB.adm_operator_role;
 DROP TABLE IF EXISTS admDB.adm_role;
 DROP TABLE IF EXISTS admDB.adm_operator;
 
+DROP TABLE IF EXISTS cmnDB.cmn_edu_query_item;
 DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;

@@ -23,8 +23,8 @@ import java.util.Map;
 /**
  * 조회 API 개발 표준을 학습하기 위한 EDU 컨트롤러입니다.
  *
- * <p>각 메서드는 실무에서 자주 필요한 조회 패턴을 하나씩 분리합니다. 운영 코드에서는 주석을 이렇게 길게 쓰지 않지만,
- * EDU 샘플은 개발자가 따라 하며 배울 수 있도록 의도적으로 상세한 한글 주석을 둡니다.</p>
+ * <p>단건, 목록, offset 페이징, keyset 페이징, 안전한 정렬, 표준 헤더 컨텍스트 조회를 한 곳에서 확인합니다.
+ * 실제 업무에서는 같은 구조로 Controller, Service, Repository, Mapper, SQL, 테스트를 함께 작성합니다.</p>
  */
 @RestController
 @RequestMapping("/xyz/edu/query")
@@ -38,8 +38,6 @@ public class XyzQueryEducationController {
 
     /**
      * 단건 조회 샘플입니다.
-     *
-     * <p>PathVariable로 받은 식별자를 Service로 넘기고, Service는 미존재 예외를 표준 예외로 변환합니다.</p>
      */
     @GetMapping("/items/{itemId}")
     @CpfTransaction(id = "XYZ01QRY0001", name = "XYZ조회EDU단건조회")
@@ -50,8 +48,6 @@ public class XyzQueryEducationController {
 
     /**
      * 목록 조회 샘플입니다.
-     *
-     * <p>검색어, 상태, 정렬, limit을 받되 정렬 값은 Service에서 whitelist로 제한합니다.</p>
      */
     @GetMapping("/items")
     @CpfTransaction(id = "XYZ01QRY0002", name = "XYZ조회EDU목록조회")
@@ -66,8 +62,6 @@ public class XyzQueryEducationController {
 
     /**
      * offset 페이징 샘플입니다.
-     *
-     * <p>관리자성 조회나 작은 목록에서는 offset 페이징을 사용하고, 대용량 실시간 목록은 keyset 페이징을 우선 검토합니다.</p>
      */
     @GetMapping("/items/page")
     @CpfTransaction(id = "XYZ01QRY0003", name = "XYZ조회EDU오프셋페이징")
@@ -83,8 +77,6 @@ public class XyzQueryEducationController {
 
     /**
      * keyset 페이징 샘플입니다.
-     *
-     * <p>마지막으로 본 <code>itemId</code>를 cursor로 넘겨 다음 묶음을 조회합니다.</p>
      */
     @GetMapping("/items/keyset")
     @CpfTransaction(id = "XYZ01QRY0004", name = "XYZ조회EDU키셋페이징")

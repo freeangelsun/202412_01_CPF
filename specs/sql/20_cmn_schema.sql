@@ -103,3 +103,18 @@ CREATE TABLE IF NOT EXISTS cmn_business_log (
     INDEX ix_cmn_business_log_area_key (business_area, business_key),
     INDEX ix_cmn_business_log_type_time (log_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 공통 업무 로그';
+CREATE TABLE IF NOT EXISTS cmn_edu_query_item (
+    item_id BIGINT NOT NULL COMMENT '교육 조회 항목 ID',
+    item_name VARCHAR(200) NOT NULL COMMENT '교육 조회 항목명',
+    category_code VARCHAR(30) NOT NULL COMMENT '교육 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    owner_member_no VARCHAR(50) NULL COMMENT '예시 담당 회원 번호',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (item_id),
+    INDEX ix_cmn_edu_query_item_search (status_code, category_code, item_name),
+    INDEX ix_cmn_edu_query_item_created (created_at, item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN EDU 조회 샘플 항목';

@@ -1,6 +1,8 @@
 package cpf.pfw.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cpf.pfw.common.header.CpfHeaderNames;
+import cpf.pfw.common.header.CpfInboundHeaderValidator;
 import cpf.pfw.common.exception.CpfErrorResponse;
 import cpf.pfw.common.exception.CpfFrameworkErrorCode;
 import cpf.pfw.common.exception.CpfFrameworkException;
@@ -8,8 +10,6 @@ import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
 import cpf.pfw.common.logging.CpfTransaction;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionIdGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,7 +36,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
 
     private final ObjectMapper objectMapper;
     private final CpfResponseCodeResolver responseCodeResolver;
-    private final int transactionIdSequenceDigits;
+    private final CpfInboundHeaderValidator inboundHeaderValidator;
 
     public TransactionHeaderValidationInterceptor(
             ObjectMapper objectMapper,
@@ -44,10 +44,11 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             Environment environment) {
         this.objectMapper = objectMapper;
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
-        this.transactionIdSequenceDigits = environment.getProperty(
+        int transactionIdSequenceDigits = environment.getProperty(
                 "cpf.framework.transaction-id.sequence-digits",
                 Integer.class,
                 7);
+        this.inboundHeaderValidator = new CpfInboundHeaderValidator(transactionIdSequenceDigits);
     }
 
     @Override
@@ -70,11 +71,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
      * PFW 공통 거래 처리에 필요한 필수 업무 헤더가 누락되었는지 확인합니다.
      */
     private void validateRequiredHeaders(HttpServletRequest request) {
-        List<String> missingHeaders = new ArrayList<>();
-        require(request, TransactionContext.HEADER_TRANSACTION_ID, missingHeaders);
-        require(request, TransactionContext.HEADER_REQUEST_TYPE, missingHeaders);
-        require(request, TransactionContext.HEADER_ORIGINAL_CHANNEL_CODE, missingHeaders);
-        require(request, TransactionContext.HEADER_CHANNEL_CODE, missingHeaders);
+        List<String> missingHeaders = new ArrayList<>(inboundHeaderValidator.missingRequiredHeaders(request));
 
         if (!missingHeaders.isEmpty()) {
             String headerNames = String.join(", ", missingHeaders);
@@ -84,13 +81,13 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                     Map.of("0", headerNames, "1", request.getRequestURI()));
         }
 
-        String transactionId = request.getHeader(TransactionContext.HEADER_TRANSACTION_ID);
-        if (!TransactionIdGenerator.isValid(transactionId, transactionIdSequenceDigits)) {
+        String transactionId = request.getHeader(CpfHeaderNames.TRANSACTION_ID);
+        if (!inboundHeaderValidator.isValidTransactionId(transactionId)) {
             throw new CpfFrameworkException(
                     CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
                     "트랜잭션 글로벌 ID 형식이 올바르지 않습니다. "
-                            + TransactionContext.HEADER_TRANSACTION_ID + "=" + transactionId,
-                    Map.of("0", TransactionContext.HEADER_TRANSACTION_ID, "1", request.getRequestURI()));
+                            + CpfHeaderNames.TRANSACTION_ID + "=" + transactionId,
+                    Map.of("0", CpfHeaderNames.TRANSACTION_ID, "1", request.getRequestURI()));
         }
     }
 
@@ -126,13 +123,6 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             return methodAnnotation;
         }
         return handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
-    }
-
-    private void require(HttpServletRequest request, String headerName, List<String> missingHeaders) {
-        String value = request.getHeader(headerName);
-        if (value == null || value.isBlank()) {
-            missingHeaders.add(headerName);
-        }
     }
 
     /**

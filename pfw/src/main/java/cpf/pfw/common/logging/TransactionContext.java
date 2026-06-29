@@ -1,46 +1,67 @@
 package cpf.pfw.common.logging;
 
+import cpf.pfw.common.header.CpfHeaderNames;
+import cpf.pfw.common.header.CpfHeaderPropagator;
 import org.slf4j.MDC;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class TransactionContext {
 
-    public static final String HEADER_TRANSACTION_ID = "X-Transaction-Id";
-    public static final String HEADER_TRACE_ID = "X-Trace-Id";
-    public static final String HEADER_SPAN_ID = "X-Span-Id";
-    public static final String HEADER_PARENT_SPAN_ID = "X-Parent-Span-Id";
-    public static final String HEADER_API_VERSION = "X-Api-Version";
-    public static final String HEADER_CLIENT_APP_ID = "X-Client-App-Id";
-    public static final String HEADER_CLIENT_VERSION = "X-Client-Version";
-    public static final String HEADER_CALLER_SERVICE = "X-Caller-Service";
-    public static final String HEADER_CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
-    public static final String HEADER_CORRELATION_ID = "X-Correlation-Id";
-    public static final String HEADER_IDEMPOTENCY_KEY = "X-Idempotency-Key";
-    public static final String HEADER_LOCALE = "X-Locale";
-    public static final String HEADER_TIMEZONE = "X-Timezone";
-    public static final String HEADER_REQUEST_TYPE = "X-Request-Type";
-    public static final String HEADER_ORIGINAL_CHANNEL_CODE = "X-Original-Channel-Code";
-    public static final String HEADER_CHANNEL_CODE = "X-Channel-Code";
-    public static final String HEADER_MEMBER_NO = "X-Member-No";
-    public static final String HEADER_CUSTOMER_NO = "X-Customer-No";
-    public static final String HEADER_USER_ID = "X-User-Id";
-    public static final String HEADER_SCREEN_ID = "X-Screen-Id";
-    public static final String HEADER_DEVICE_ID = "X-Device-Id";
-    public static final String HEADER_CLIENT_REQUEST_TIME = "X-Client-Request-Time";
-    public static final String HEADER_CLIENT_IP = "X-Client-IP";
-    public static final String HEADER_RESERVED_FIELD_1 = "X-Reserved-Field-1";
-    public static final String HEADER_RESERVED_FIELD_2 = "X-Reserved-Field-2";
-    public static final String HEADER_RESERVED_FIELD_3 = "X-Reserved-Field-3";
-    public static final String HEADER_RESERVED_FIELD_4 = "X-Reserved-Field-4";
-    public static final String HEADER_RESERVED_FIELD_5 = "X-Reserved-Field-5";
+    public static final String HEADER_TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
+    public static final String HEADER_PARENT_TRANSACTION_ID = CpfHeaderNames.PARENT_TRANSACTION_ID;
+    public static final String HEADER_ORIGINAL_TRANSACTION_ID = CpfHeaderNames.ORIGINAL_TRANSACTION_ID;
+    public static final String HEADER_REQUEST_ID = CpfHeaderNames.REQUEST_ID;
+    public static final String HEADER_EXTERNAL_REQUEST_ID = CpfHeaderNames.EXTERNAL_REQUEST_ID;
+    public static final String HEADER_TRACE_ID = CpfHeaderNames.TRACE_ID;
+    public static final String HEADER_SPAN_ID = CpfHeaderNames.SPAN_ID;
+    public static final String HEADER_PARENT_SPAN_ID = CpfHeaderNames.PARENT_SPAN_ID;
+    public static final String HEADER_TRACEPARENT = CpfHeaderNames.TRACEPARENT;
+    public static final String HEADER_TRACESTATE = CpfHeaderNames.TRACESTATE;
+    public static final String HEADER_API_VERSION = CpfHeaderNames.API_VERSION;
+    public static final String HEADER_CLIENT_APP_ID = CpfHeaderNames.CLIENT_APP_ID;
+    public static final String HEADER_CLIENT_VERSION = CpfHeaderNames.CLIENT_VERSION;
+    public static final String HEADER_CALLER_SERVICE = CpfHeaderNames.CALLER_SERVICE;
+    public static final String HEADER_CALLER_INSTANCE_ID = CpfHeaderNames.CALLER_INSTANCE_ID;
+    public static final String HEADER_CORRELATION_ID = CpfHeaderNames.CORRELATION_ID;
+    public static final String HEADER_IDEMPOTENCY_KEY = CpfHeaderNames.IDEMPOTENCY_KEY;
+    public static final String HEADER_IDEMPOTENCY_KEY_ALIAS = CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS;
+    public static final String HEADER_LOCALE = CpfHeaderNames.LOCALE;
+    public static final String HEADER_TIMEZONE = CpfHeaderNames.TIMEZONE;
+    public static final String HEADER_REQUEST_TYPE = CpfHeaderNames.REQUEST_TYPE;
+    public static final String HEADER_ORIGINAL_CHANNEL_CODE = CpfHeaderNames.ORIGINAL_CHANNEL_CODE;
+    public static final String HEADER_CHANNEL_CODE = CpfHeaderNames.CHANNEL_CODE;
+    public static final String HEADER_CHANNEL_DETAIL_CODE = CpfHeaderNames.CHANNEL_DETAIL_CODE;
+    public static final String HEADER_MEMBER_NO = CpfHeaderNames.MEMBER_NO;
+    public static final String HEADER_CUSTOMER_NO = CpfHeaderNames.CUSTOMER_NO;
+    public static final String HEADER_USER_ID = CpfHeaderNames.USER_ID;
+    public static final String HEADER_OPERATOR_ID = CpfHeaderNames.OPERATOR_ID;
+    public static final String HEADER_TENANT_ID = CpfHeaderNames.TENANT_ID;
+    public static final String HEADER_ORGANIZATION_CODE = CpfHeaderNames.ORGANIZATION_CODE;
+    public static final String HEADER_BRANCH_CODE = CpfHeaderNames.BRANCH_CODE;
+    public static final String HEADER_SCREEN_ID = CpfHeaderNames.SCREEN_ID;
+    public static final String HEADER_DEVICE_ID = CpfHeaderNames.DEVICE_ID;
+    public static final String HEADER_CLIENT_REQUEST_TIME = CpfHeaderNames.CLIENT_REQUEST_TIME;
+    public static final String HEADER_CLIENT_IP = CpfHeaderNames.CLIENT_IP;
+    public static final String HEADER_FORWARDED_FOR = CpfHeaderNames.FORWARDED_FOR;
+    public static final String HEADER_FORWARDED = CpfHeaderNames.FORWARDED;
+    public static final String HEADER_REAL_IP = CpfHeaderNames.REAL_IP;
+    public static final String HEADER_CLIENT_COUNTRY_CODE = CpfHeaderNames.CLIENT_COUNTRY_CODE;
+    public static final String HEADER_CLIENT_REGION_CODE = CpfHeaderNames.CLIENT_REGION_CODE;
+    public static final String HEADER_CLIENT_TIMEZONE = CpfHeaderNames.CLIENT_TIMEZONE;
+    public static final String HEADER_USER_AGENT = CpfHeaderNames.USER_AGENT;
+    public static final String HEADER_REQUEST_TIMESTAMP = CpfHeaderNames.REQUEST_TIMESTAMP;
+    public static final String HEADER_RESERVED_FIELD_1 = CpfHeaderNames.RESERVED_FIELD_1;
+    public static final String HEADER_RESERVED_FIELD_2 = CpfHeaderNames.RESERVED_FIELD_2;
+    public static final String HEADER_RESERVED_FIELD_3 = CpfHeaderNames.RESERVED_FIELD_3;
+    public static final String HEADER_RESERVED_FIELD_4 = CpfHeaderNames.RESERVED_FIELD_4;
+    public static final String HEADER_RESERVED_FIELD_5 = CpfHeaderNames.RESERVED_FIELD_5;
 
     public static final String ATTR_TRANSACTION_ID = "transactionId";
     public static final String ATTR_TRACE_ID = "traceId";
@@ -152,6 +173,10 @@ public final class TransactionContext {
         return value instanceof TransactionHeader transactionHeader ? transactionHeader : null;
     }
 
+    public static void replaceCurrentHeader(TransactionHeader transactionHeader) {
+        setAttribute(ATTR_HEADER, transactionHeader);
+    }
+
     public static int nextSequenceNo() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
@@ -165,39 +190,99 @@ public final class TransactionContext {
     }
 
     public static Map<String, String> propagationHeaders() {
-        Map<String, String> headers = new LinkedHashMap<>();
-        headers.put(HEADER_TRANSACTION_ID, getOrCreateTransactionId());
-        headers.put(HEADER_TRACE_ID, getOrCreateTraceId());
-        headers.put(HEADER_PARENT_SPAN_ID, getOrCreateSpanId());
+        return CpfHeaderPropagator.outboundHeaders();
+    }
 
-        TransactionHeader transactionHeader = currentHeader();
-        if (transactionHeader != null) {
-            putIfHasText(headers, HEADER_API_VERSION, transactionHeader.getApiVersion());
-            putIfHasText(headers, HEADER_CLIENT_APP_ID, transactionHeader.getClientAppId());
-            putIfHasText(headers, HEADER_CLIENT_VERSION, transactionHeader.getClientVersion());
-            putIfHasText(headers, HEADER_CALLER_SERVICE, transactionHeader.getCallerService());
-            putIfHasText(headers, HEADER_CALLER_INSTANCE_ID, transactionHeader.getCallerInstanceId());
-            putIfHasText(headers, HEADER_CORRELATION_ID, transactionHeader.getCorrelationId());
-            putIfHasText(headers, HEADER_IDEMPOTENCY_KEY, transactionHeader.getIdempotencyKey());
-            putIfHasText(headers, HEADER_LOCALE, transactionHeader.getLocale());
-            putIfHasText(headers, HEADER_TIMEZONE, transactionHeader.getTimezone());
-            putIfHasText(headers, HEADER_REQUEST_TYPE, transactionHeader.getRequestType());
-            putIfHasText(headers, HEADER_ORIGINAL_CHANNEL_CODE, transactionHeader.getOriginalChannelCode());
-            putIfHasText(headers, HEADER_CHANNEL_CODE, transactionHeader.getChannelCode());
-            putIfHasText(headers, HEADER_MEMBER_NO, transactionHeader.getMemberNo());
-            putIfHasText(headers, HEADER_CUSTOMER_NO, transactionHeader.getCustomerNo());
-            putIfHasText(headers, HEADER_USER_ID, transactionHeader.getUserId());
-            putIfHasText(headers, HEADER_SCREEN_ID, transactionHeader.getScreenId());
-            putIfHasText(headers, HEADER_DEVICE_ID, transactionHeader.getDeviceId());
-            putIfHasText(headers, HEADER_CLIENT_REQUEST_TIME, transactionHeader.getClientRequestTime());
-            putIfHasText(headers, HEADER_CLIENT_IP, transactionHeader.getClientIp());
-            putIfHasText(headers, HEADER_RESERVED_FIELD_1, transactionHeader.getReservedField1());
-            putIfHasText(headers, HEADER_RESERVED_FIELD_2, transactionHeader.getReservedField2());
-            putIfHasText(headers, HEADER_RESERVED_FIELD_3, transactionHeader.getReservedField3());
-            putIfHasText(headers, HEADER_RESERVED_FIELD_4, transactionHeader.getReservedField4());
-            putIfHasText(headers, HEADER_RESERVED_FIELD_5, transactionHeader.getReservedField5());
-        }
-        return headers;
+    public static String parentTransactionId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getParentTransactionId() : null;
+    }
+
+    public static String originalTransactionId() {
+        TransactionHeader header = currentHeader();
+        return header != null && hasText(header.getOriginalTransactionId())
+                ? header.getOriginalTransactionId()
+                : currentTransactionId();
+    }
+
+    public static String requestId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getRequestId() : null;
+    }
+
+    public static String externalRequestId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getExternalRequestId() : null;
+    }
+
+    public static String correlationId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCorrelationId() : null;
+    }
+
+    public static String originalChannelCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getOriginalChannelCode() : null;
+    }
+
+    public static String channelCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getChannelCode() : null;
+    }
+
+    public static String channelDetailCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getChannelDetailCode() : null;
+    }
+
+    public static String userId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getUserId() : null;
+    }
+
+    public static String operatorId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getOperatorId() : null;
+    }
+
+    public static String customerNo() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCustomerNo() : null;
+    }
+
+    public static String memberNo() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getMemberNo() : null;
+    }
+
+    public static String tenantId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getTenantId() : null;
+    }
+
+    public static String organizationCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getOrganizationCode() : null;
+    }
+
+    public static String branchCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getBranchCode() : null;
+    }
+
+    public static String clientIp() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getClientIp() : null;
+    }
+
+    public static String clientCountryCode() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getClientCountryCode() : null;
+    }
+
+    public static String clientTimezone() {
+        TransactionHeader header = currentHeader();
+        return header != null ? firstText(header.getClientTimezone(), header.getTimezone()) : null;
     }
 
     public static void clear() {
@@ -241,12 +326,6 @@ public final class TransactionContext {
     private static void putIfHasText(String key, String value) {
         if (hasText(value)) {
             MDC.put(key, value);
-        }
-    }
-
-    private static void putIfHasText(Map<String, String> headers, String name, String value) {
-        if (hasText(value)) {
-            headers.put(name, value);
         }
     }
 

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>CPF 트랜잭션 가이드</title>
+  <style>
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #eef2ff; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>CPF 트랜잭션 가이드</h1>
+    <p>CPF 온라인 거래는 거래 글로벌 ID, trace/span, 업무 거래 ID, 표준 헤더, 요청/응답/오류 로그를 하나의 흐름으로 묶어 추적합니다.</p>
+  </section>
+
+  <section>
+    <h2>거래 글로벌 ID</h2>
+    <table>
+      <thead>
+      <tr><th>구성</th><th>길이</th><th>설명</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>yyyyMMddHHmmssSSS</code></td><td>17</td><td>생성 시각입니다. 로그 일자와 다르면 유입 헤더 재사용, 테스트 데이터, 시계 차이를 점검합니다.</td></tr>
+      <tr><td>module ID</td><td>3</td><td><code>cpf.framework.module-id</code> 또는 application name에서 산출한 모듈 코드입니다.</td></tr>
+      <tr><td>WAS ID</td><td>7</td><td><code>cpf.framework.was-id</code> 기준의 서버 식별자입니다.</td></tr>
+      <tr><td>sequence</td><td>7 기본</td><td>일자별 증가 순번입니다. 설정에 따라 4자리에서 12자리까지 허용합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>처리 흐름</h2>
+    <table>
+      <thead>
+      <tr><th>순서</th><th>구현</th><th>역할</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td><code>TransactionContextFilter</code></td><td>거래 ID를 검증하거나 생성하고 trace/span과 표준 헤더를 요청 컨텍스트에 저장합니다.</td></tr>
+      <tr><td>2</td><td><code>TransactionHeaderValidationInterceptor</code></td><td>필수 헤더와 <code>@CpfTransaction</code> 메타 정보를 검증합니다.</td></tr>
+      <tr><td>3</td><td><code>LoggingAspect</code></td><td>요청 시작/종료/오류, 헤더 스냅샷, 로그 정책 적용 결과를 거래 로그로 저장합니다.</td></tr>
+      <tr><td>4</td><td><code>CpfHeaderPropagator</code></td><td>하위 호출에 필요한 표준 헤더를 자동 전파합니다.</td></tr>
+      <tr><td>5</td><td><code>AdmLogQueryService</code></td><td>ADM에서 요약, 헤더, 요청, 응답, 오류, 상세, 전문을 분리해 조회합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+<!-- evidence: cpf-transaction-guide -->
+</body>
+</html>

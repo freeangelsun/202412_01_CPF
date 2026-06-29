@@ -109,6 +109,10 @@ public class AdmLogQueryService {
 
         response.put("summary", summary);
         response.put("headers", formatValue("headers", value(findDetail(details, "headers"))));
+        response.put("inboundHeaders", formatValue("inboundHeaders", value(findDetail(details, "inboundHeaders"))));
+        response.put("resolvedHeaders", formatValue("resolvedHeaders", value(findDetail(details, "resolvedHeaders"))));
+        response.put("outboundHeaders", formatValue("outboundHeaders", value(findDetail(details, "outboundHeaders"))));
+        response.put("responseHeaders", formatValue("responseHeaders", value(findDetail(details, "responseHeaders"))));
         response.put("request", formatValue("request", value(summary.get("REQUEST_BODY"))));
         response.put("response", formatValue("response", value(summary.get("RESPONSE"))));
         response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE"))));

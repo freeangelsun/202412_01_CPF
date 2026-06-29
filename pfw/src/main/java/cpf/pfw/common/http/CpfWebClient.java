@@ -8,9 +8,9 @@ import java.net.URI;
 import java.util.function.Function;
 
 /**
- * Small WebClient facade for CPF service-to-service calls.
+ * CPF 서비스 간 호출에 사용하는 작은 WebClient 파사드입니다.
  *
- * <p>Transaction and workflow headers are added by {@link CpfWebClientConfig}.</p>
+ * <p>거래 헤더와 워크플로 헤더는 {@link CpfWebClientConfig}가 자동으로 추가합니다.</p>
  */
 public class CpfWebClient {
 
@@ -23,7 +23,7 @@ public class CpfWebClient {
     }
 
     /**
-     * Builds a WebClient with the base URL configured for the given service id.
+     * 서비스 ID에 연결된 base URL을 적용한 WebClient를 생성합니다.
      */
     public WebClient service(String serviceId) {
         return webClientBuilder.clone()
@@ -32,7 +32,7 @@ public class CpfWebClient {
     }
 
     /**
-     * Executes a blocking GET call for servlet-based service code.
+     * 서블릿 기반 서비스 코드에서 사용할 수 있는 blocking GET 호출입니다.
      */
     public <T> T get(String serviceId, Function<UriBuilder, URI> uriFunction, Class<T> responseType) {
         return service(serviceId)
@@ -44,7 +44,7 @@ public class CpfWebClient {
     }
 
     /**
-     * Executes a blocking GET call with a generic response type.
+     * 제네릭 응답 타입을 사용하는 blocking GET 호출입니다.
      */
     public <T> T get(
             String serviceId,
@@ -60,7 +60,7 @@ public class CpfWebClient {
     }
 
     /**
-     * Executes a blocking POST call for servlet-based service code.
+     * 서블릿 기반 서비스 코드에서 사용할 수 있는 blocking POST 호출입니다.
      */
     public <T> T post(String serviceId, String path, Object requestBody, Class<T> responseType) {
         return service(serviceId)

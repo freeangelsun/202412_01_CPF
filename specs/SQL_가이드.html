@@ -161,6 +161,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-log-policy-run
 mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
     <p>실제 MariaDB 검증을 실행하지 않은 경우 성공으로 기록하지 않고 미검증으로 기록합니다.</p>
   </section>
+  <section>
+    <h2>DB 표준 문서 연결</h2>
+    <p>테이블명, 컬럼명, 공통 감사 컬럼, FK/UK/INDEX 이름, SQL COMMENT 기준은 <a href="DB_표준_가이드.html">DB 표준 가이드</a>를 기준으로 합니다. 설치 SQL과 Flyway migration은 같은 기준을 따라야 하며, 대량 DDL 변경은 실제 MariaDB smoke와 rollback 계획을 분리해 검증합니다.</p>
+  </section>
 </main>
 </body>
 </html>

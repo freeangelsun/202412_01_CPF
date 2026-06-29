@@ -77,7 +77,7 @@ if (!window.Vue) {
         logSort: { key: "LOG_IDX", direction: "desc" },
         logPage: { page: 1, size: 10 },
         logDetailTab: "요약",
-        logDetailTabs: ["요약", "헤더", "요청", "응답", "오류", "상세", "전문"],
+        logDetailTabs: ["요약", "수신 헤더", "해석 헤더", "전파 헤더", "응답 헤더", "요청", "응답", "오류", "상세", "전문"],
         auditSearch: { operatorId: "", actionType: "", targetType: "", targetId: "", limit: 100 },
         memberSearch: {
           memberNo: "",
@@ -298,7 +298,10 @@ if (!window.Vue) {
         const detail = this.logDetail?.item || this.logDetail || {};
         const tabMap = {
           요약: detail.summary || detail,
-          헤더: detail.headers || detail.HEADERS || {},
+          "수신 헤더": detail.inboundHeaders || detail.headers || detail.HEADERS || {},
+          "해석 헤더": detail.resolvedHeaders || detail.headers || detail.HEADERS || {},
+          "전파 헤더": detail.outboundHeaders || {},
+          "응답 헤더": detail.responseHeaders || {},
           요청: detail.request || detail.REQUEST_BODY || {},
           응답: detail.response || detail.RESPONSE || {},
           오류: detail.error || detail.ERROR_MESSAGE || {},

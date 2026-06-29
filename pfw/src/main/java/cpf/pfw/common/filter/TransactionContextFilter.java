@@ -1,5 +1,6 @@
 package cpf.pfw.common.filter;
 
+import cpf.pfw.common.header.CpfHeaderExtractor;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
 import cpf.pfw.common.logging.TransactionIdGenerator;
@@ -60,6 +61,9 @@ public class TransactionContextFilter extends OncePerRequestFilter {
         response.setHeader(TransactionContext.HEADER_TRANSACTION_ID, TransactionContext.getOrCreateTransactionId());
         response.setHeader(TransactionContext.HEADER_TRACE_ID, TransactionContext.getOrCreateTraceId());
         response.setHeader(TransactionContext.HEADER_SPAN_ID, TransactionContext.getOrCreateSpanId());
+        if (TransactionContext.correlationId() != null) {
+            response.setHeader(TransactionContext.HEADER_CORRELATION_ID, TransactionContext.correlationId());
+        }
     }
 
     private void applySecurityHeaders(HttpServletRequest request, HttpServletResponse response) {
@@ -88,33 +92,7 @@ public class TransactionContextFilter extends OncePerRequestFilter {
     }
 
     private TransactionHeader buildTransactionHeader(HttpServletRequest request) {
-        return TransactionHeader.builder()
-                .apiVersion(request.getHeader(TransactionContext.HEADER_API_VERSION))
-                .clientAppId(request.getHeader(TransactionContext.HEADER_CLIENT_APP_ID))
-                .clientVersion(request.getHeader(TransactionContext.HEADER_CLIENT_VERSION))
-                .callerService(request.getHeader(TransactionContext.HEADER_CALLER_SERVICE))
-                .callerInstanceId(request.getHeader(TransactionContext.HEADER_CALLER_INSTANCE_ID))
-                .correlationId(request.getHeader(TransactionContext.HEADER_CORRELATION_ID))
-                .idempotencyKey(request.getHeader(TransactionContext.HEADER_IDEMPOTENCY_KEY))
-                .locale(request.getHeader(TransactionContext.HEADER_LOCALE))
-                .timezone(request.getHeader(TransactionContext.HEADER_TIMEZONE))
-                .requestType(request.getHeader(TransactionContext.HEADER_REQUEST_TYPE))
-                .originalChannelCode(request.getHeader(TransactionContext.HEADER_ORIGINAL_CHANNEL_CODE))
-                .channelCode(request.getHeader(TransactionContext.HEADER_CHANNEL_CODE))
-                .memberNo(request.getHeader(TransactionContext.HEADER_MEMBER_NO))
-                .customerNo(request.getHeader(TransactionContext.HEADER_CUSTOMER_NO))
-                .userId(request.getHeader(TransactionContext.HEADER_USER_ID))
-                .screenId(request.getHeader(TransactionContext.HEADER_SCREEN_ID))
-                .deviceId(request.getHeader(TransactionContext.HEADER_DEVICE_ID))
-                .clientRequestTime(request.getHeader(TransactionContext.HEADER_CLIENT_REQUEST_TIME))
-                .clientIp(request.getHeader(TransactionContext.HEADER_CLIENT_IP))
-                .reservedField1(request.getHeader(TransactionContext.HEADER_RESERVED_FIELD_1))
-                .reservedField2(request.getHeader(TransactionContext.HEADER_RESERVED_FIELD_2))
-                .reservedField3(request.getHeader(TransactionContext.HEADER_RESERVED_FIELD_3))
-                .reservedField4(request.getHeader(TransactionContext.HEADER_RESERVED_FIELD_4))
-                .reservedField5(request.getHeader(TransactionContext.HEADER_RESERVED_FIELD_5))
-                .wasId(transactionIdGenerator.getWasId())
-                .build();
+        return CpfHeaderExtractor.toTransactionHeader(request, transactionIdGenerator.getWasId());
     }
 }
 

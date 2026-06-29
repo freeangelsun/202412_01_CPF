@@ -2,60 +2,42 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 리포트</title>
+  <title>CPF 안정화 작업 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
     th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
-    th { background: #e0f2fe; }
+    th { background: #eef2ff; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .ok { color: #047857; font-weight: 700; }
-    .partial { color: #b45309; font-weight: 700; }
-    .no { color: #b91c1c; font-weight: 700; }
+    .ok { color: #166534; font-weight: 700; }
+    .warn { color: #b45309; font-weight: 700; }
+    .pending { color: #6b7280; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 리포트</h1>
-    <p>이번 리포트는 ADM 거래, 오류, 일반 감사, 정책 감사 통합 관제 기준 보강과 운영 추적 smoke 보강 결과를 기록합니다. 실행하지 않은 검증은 성공으로 표기하지 않습니다.</p>
+    <h1>CPF 안정화 작업 리포트</h1>
+    <p>요청서의 표준 헤더, DB 표준, 아키텍처 기준, ADM 로그 헤더 분리, EDU 조회 샘플 보강을 중심으로 작업했습니다. 요청 파일은 확인용으로만 사용하고 수정하지 않았습니다.</p>
   </section>
 
   <section>
-    <h2>현재 상태 판정</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>판정</th><th>근거</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>리포트 HTML 구조</td><td class="ok">완료</td><td>실제 HTML 구조로 작성했고 HTML 문서 검증을 통과했습니다.</td></tr>
-      <tr><td>거래 로그</td><td class="partial">부분 구현</td><td><code>/adm/api/logs</code> 목록과 상세 API가 존재하고 거래 ID, trace ID, 업무 거래 ID, 실패 로그 조건 검색을 지원합니다.</td></tr>
-      <tr><td>오류 로그</td><td class="partial">부분 구현</td><td>별도 오류 전용 테이블은 없고 <code>pfw_transaction_log</code>의 실패 로그와 상세 로그로 조회합니다. 오류 조치 상태와 이력은 다음 보강입니다.</td></tr>
-      <tr><td>일반 감사</td><td class="partial">부분 구현</td><td><code>/adm/api/audit-logs</code>와 <code>adm_audit_log</code> 기준으로 운영 조치 감사를 조회합니다.</td></tr>
-      <tr><td>정책 감사</td><td class="partial">부분 구현</td><td><code>/adm/api/log-policy-audits</code>를 추가해 <code>pfw_log_policy_audit</code>를 조회합니다.</td></tr>
-      <tr><td>통합 추적 API</td><td class="partial">부분 구현</td><td><code>/adm/api/observability/transactions/{transactionGlobalId}</code>, <code>/adm/api/observability/traces/{traceId}</code>, <code>/adm/api/observability/business-transactions/{businessTransactionId}</code>를 추가했습니다.</td></tr>
-      <tr><td>ADM 헤더부와 데이터부 표시</td><td class="partial">부분 구현</td><td>상세 API는 요약, 헤더, 요청, 응답, 오류, 상세, 전문 포맷 데이터를 분리 반환합니다. 브라우저 클릭 검증은 이번 범위에서 제외했습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>개발 보강</h2>
+    <h2>수행 작업</h2>
     <table>
       <thead>
       <tr><th>영역</th><th>반영 내용</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>ADM 통합 관제</td><td><code>AdmObservabilityController</code>와 <code>AdmObservabilityService</code>를 추가해 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 한 응답으로 묶었습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>정책 감사 조회</td><td><code>AdmLogPolicyAuditController</code>를 추가해 정책 감사 목록을 operator, action, target, policy, override 조건으로 조회하게 했습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>서버 권한검사</td><td><code>AdmApiAuthFilter</code>에 통합 추적과 정책 감사 API 경로를 추가해 기존 로그 조회, 로그 정책 조회 권한과 연결했습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>에 업무 거래 ID 검색, 통합 추적 API 3종, 일반 감사 API, 정책 감사 API 결과를 <code>admObservability</code>에 기록하도록 보강했습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>거래 헤더 로그</td><td><code>LoggingAspect</code>가 실제 런타임 상세 로그에 <code>headers</code> JSON detail을 저장하도록 보강했습니다. 기존 <code>transactionHeader</code>, <code>propagationHeaders</code> detail은 유지합니다.</td><td class="ok">완료</td></tr>
-      <tr><td>배치 연결 안정화</td><td>통합 추적 API의 관련 배치 실행 조회가 현재 <code>pfw_batch_execution</code> 스키마와 맞지 않는 컬럼을 참조하지 않도록 수정했습니다. 배치 연결은 optional 정보이므로 컬럼 차이가 있어도 통합 추적 API 전체가 실패하지 않게 했습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>기능 증거 gate</td><td><code>scripts/check-feature-evidence.ps1</code>에 신규 API, 서비스, 테스트, smoke marker를 추가했습니다.</td><td class="ok">완료</td></tr>
-      <tr><td>문서</td><td>README, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 개발 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스를 실제 API와 smoke 기준에 맞게 갱신했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>PFW 표준 헤더</td><td><code>CpfHeaderNames</code>, <code>CpfHeaderSpec</code>, <code>CpfHeaderSpecs</code>, <code>CpfHeaderExtractor</code>, <code>CpfInboundHeaderValidator</code>, <code>CpfHeaderMutator</code>, <code>CpfHeaderPropagator</code>, <code>CpfHeaderMasker</code>, <code>CpfRestClientInterceptor</code>를 추가했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>PFW 거래 컨텍스트</td><td><code>TransactionHeader</code>를 parent/original transaction, request, correlation, 채널 상세, 운영자, 테넌트, 조직, 위치, 호출자 헤더까지 확장했습니다. <code>TransactionContext</code>에 조회 API와 제한 보정 API 연결점을 추가했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>하위 호출 헤더 전파</td><td>WebClient는 <code>CpfHeaderPropagator.outboundHeaders()</code>를 사용하도록 변경했고, RestClient/RestTemplate 계열은 <code>CpfRestClientInterceptor</code>로 표준 헤더를 적용할 수 있게 했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>거래 로그 헤더 스냅샷</td><td><code>LoggingAspect</code>가 <code>headers</code>, <code>inboundHeaders</code>, <code>resolvedHeaders</code>, <code>outboundHeaders</code>, <code>responseHeaders</code>를 마스킹 후 detail에 저장하도록 보강했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>ADM 로그 상세</td><td><code>AdmLogQueryService</code>가 헤더 스냅샷을 별도 응답 영역으로 반환하고, ADM 화면 탭을 수신 헤더, 해석 헤더, 전파 헤더, 응답 헤더로 분리했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>EDU 조회 샘플</td><td><code>XyzQueryEducationController</code>, <code>XyzQueryEducationService</code>, offset/keyset 응답 DTO를 추가했습니다. 단건, 목록, 검색, 정렬, offset 페이징, keyset 페이징, 헤더 컨텍스트 확인 API를 제공합니다.</td><td class="ok">구현</td></tr>
+      <tr><td>문서</td><td>README 진입점을 재정리하고, 표준 헤더 가이드, DB 표준 가이드, 아키텍처 가이드, 트랜잭션 가이드를 추가했습니다. 개발 가이드, 관리자 가이드, 프레임워크 구성 가이드, SQL 가이드, 기능 구현 매트릭스를 연결했습니다.</td><td class="ok">구현</td></tr>
+      <tr><td>기능 증거</td><td><code>check-feature-evidence.ps1</code>에 표준 헤더 구현, 테스트, 신규 문서, EDU 조회 샘플 증거를 추가했습니다. 한글 파일명 비교는 PowerShell 인코딩 영향을 피하도록 ASCII evidence 토큰 기준으로 조정했습니다.</td><td class="ok">구현</td></tr>
       </tbody>
     </table>
   </section>
@@ -64,61 +46,77 @@
     <h2>온라인 거래 헤더 규격</h2>
     <table>
       <thead>
-      <tr><th>구분</th><th>헤더</th><th>상태</th><th>설명</th></tr>
+      <tr><th>구분</th><th>대표 헤더</th><th>구현 상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>필수</td><td><code>X-Transaction-Id</code></td><td>검증</td><td>34자리 거래 글로벌 ID입니다. 구조는 17자리 일시, 3자리 모듈 ID, 7자리 WAS ID, 7자리 순번입니다.</td></tr>
-      <tr><td>필수</td><td><code>X-Request-Type</code></td><td>검증</td><td>조회, 등록, 수정, 삭제, 처리 같은 요청 유형입니다.</td></tr>
-      <tr><td>필수</td><td><code>X-Original-Channel-Code</code></td><td>검증</td><td>최초 유입 채널입니다.</td></tr>
-      <tr><td>필수</td><td><code>X-Channel-Code</code></td><td>검증</td><td>현재 처리 채널입니다.</td></tr>
-      <tr><td>권장</td><td><code>X-Trace-Id</code>, <code>X-Parent-Span-Id</code>, <code>X-Span-Id</code></td><td>전파</td><td>trace ID가 없으면 생성하고 span ID는 응답 헤더로 반환합니다. 내부 호출은 parent span을 전달합니다.</td></tr>
-      <tr><td>권장</td><td><code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Caller-Instance-Id</code></td><td>수집</td><td>클라이언트 버전, 호출 서비스, 인스턴스 정보를 운영 추적에 사용합니다.</td></tr>
-      <tr><td>권장</td><td><code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code></td><td>수집</td><td>외부 연계 상관 ID와 멱등성 키입니다.</td></tr>
-      <tr><td>권장</td><td><code>X-Member-No</code>, <code>X-Customer-No</code>, <code>X-User-Id</code></td><td>수집</td><td>회원, 고객, 사용자 기준 로그 검색에 사용합니다.</td></tr>
+      <tr><td>거래 생명주기</td><td><code>X-Transaction-Id</code>, <code>X-Parent-Transaction-Id</code>, <code>X-Original-Transaction-Id</code>, <code>X-Request-Id</code>, <code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code></td><td>수신 추출, 컨텍스트 저장, 하위 전파, 로그 스냅샷 반영</td></tr>
+      <tr><td>추적</td><td><code>X-Trace-Id</code>, <code>X-Span-Id</code>, <code>X-Parent-Span-Id</code>, <code>traceparent</code>, <code>tracestate</code></td><td>현재 span은 응답과 로그에 남기고, 하위 호출에는 parent span으로 전달</td></tr>
+      <tr><td>채널/주체</td><td><code>X-Original-Channel-Code</code>, <code>X-Channel-Code</code>, <code>X-Channel-Detail-Code</code>, <code>X-User-Id</code>, <code>X-Operator-Id</code>, <code>X-Customer-No</code>, <code>X-Member-No</code></td><td>필수 헤더 검증, 업무성 헤더 조회와 제한 보정 제공</td></tr>
+      <tr><td>호출자/위치</td><td><code>X-Client-App-Id</code>, <code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Client-IP</code>, <code>X-Client-Country-Code</code>, <code>X-Client-Timezone</code></td><td>수신 추출, 로그 저장, 하위 전파 기준 반영</td></tr>
+      <tr><td>보안</td><td><code>Authorization</code>, <code>X-Api-Key</code>, <code>X-Request-Signature</code>, <code>X-Nonce</code></td><td>원문 로그 저장 금지, 업무 코드 보정 차단, 마스킹 기준 반영</td></tr>
       </tbody>
     </table>
-    <p><code>TransactionContextFilter</code>는 거래 ID, trace ID, span ID를 응답 헤더로 반환합니다. <code>TransactionHeaderValidationInterceptor</code>는 필수 헤더와 거래 ID 형식을 검사합니다. <code>TransactionContext.propagationHeaders()</code>는 서비스 간 호출에 필요한 표준 헤더를 이어 줍니다.</p>
   </section>
 
   <section>
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>메모</th></tr>
+      <tr><th>검증</th><th>결과</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>PFW 헤더 로그 보강 후 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="ok">성공</td><td>ADM 통합 관제 서비스와 컨트롤러 추가 후 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트가 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>기능 증거, HTML 문서, Java format, legacy name, mojibake, sample standard, security seed, SQL standard, transaction ID standard, UTF-8, 테스트가 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:bootJar --offline</code></td><td class="ok">성공</td><td>ADM boot jar 생성이 성공했습니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td class="ok">성공</td><td>OpenAPI smoke, 거래 메타 runtime smoke, ADM UI smoke marker, ADM runtime smoke가 통과했습니다.</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td class="ok">성공</td><td><code>dbLogDisabled</code>, <code>dbLogEnabled</code>, request/response/error stack 정책, override fallback, <code>admObservability.businessTransactionSearch</code>, <code>admObservability.policyAuditQuery</code>, 통합 추적 3종이 통과했습니다.</td></tr>
-      <tr><td>HTML, UTF-8, 기능 증거, SQL standard check</td><td class="ok">성공</td><td>각 check 스크립트를 개별 실행했고 모두 통과했습니다.</td></tr>
-      <tr><td>전체 설치 SQL 신규 DB 재실행</td><td class="partial">미검증</td><td>이번 요청의 실행 제외 범위입니다.</td></tr>
-      <tr><td>브라우저 실제 클릭 자동화</td><td class="partial">미검증</td><td>이번 요청의 실행 제외 범위입니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>표준 헤더 검증, 컨텍스트, 보정, 전파, 마스킹 테스트 포함</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="ok">성공</td><td>ADM 로그 상세 응답 변경 포함 컴파일/테스트 통과</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td>컴파일 성공, 테스트 소스는 없음</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트 성공</td></tr>
+      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8 및 mojibake 검사 통과</td></tr>
+      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>표준 헤더, 문서, EDU 조회 증거 통과</td></tr>
+      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="ok">성공</td><td>specs HTML 문서와 안정화 리포트 HTML 구조 통과</td></tr>
+      <tr><td><code>scripts/check-sql-standard.ps1</code></td><td class="ok">성공</td><td>SQL 표준 검사 통과</td></tr>
+      <tr><td><code>scripts/check-transaction-id-standard.ps1</code></td><td class="ok">성공</td><td>리팩터링된 헤더 검증 구조와 34자리 거래 ID 문서 기준 통과</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>compile, test, UTF-8, mojibake, SQL, HTML, 기능 증거, 거래 ID 표준 gate 통과</td></tr>
+      <tr><td>MariaDB 설치 SQL 실실행</td><td class="pending">미검증</td><td>이번 단계에서는 실행하지 않았습니다.</td></tr>
+      <tr><td>ADM 브라우저 클릭 검증</td><td class="pending">미검증</td><td>정적 UI 매핑은 반영했지만 브라우저 클릭 smoke는 실행하지 않았습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>미구현과 다음 조치</h2>
+    <h2>남은 리스크</h2>
+    <ul>
+      <li>EDU 조회 샘플은 in-memory 기준입니다. MyBatis Mapper, SQL, 슬라이스 테스트까지 포함한 DB 조회 샘플은 다음 보강이 필요합니다.</li>
+      <li>ADM 헤더 탭은 코드와 응답 구조를 반영했지만 실제 브라우저 클릭 검증은 아직 수행하지 않았습니다.</li>
+      <li>DB 표준 가이드는 작성했지만 대량 DDL 정리는 수행하지 않았습니다. 실제 MariaDB smoke와 migration 설계가 선행되어야 합니다.</li>
+      <li>OpenAPI JSON 품질 gate와 runtime smoke는 이번 검증에서 실행하지 않았습니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>항상 지켜야 할 기준 점검</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>다음 조치</th></tr>
+      <tr><th>기준</th><th>이번 작업 반영</th></tr>
       </thead>
       <tbody>
-      <tr><td>오류 조치 상태와 조치 이력</td><td class="no">미구현</td><td>거래 실패 로그를 기준으로 조치 상태, 담당자, 사유, 조치 이력 테이블과 API를 설계합니다.</td></tr>
-      <tr><td>ADM 브라우저 탭형 통합 관제 UX 클릭 검증</td><td class="partial">미검증</td><td>브라우저 자동화 환경에서 거래 상세, 헤더, request, response, error, 감사, 정책 감사 탭을 클릭 검증합니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ broker 실연동</td><td class="partial">미검증</td><td>다중 인스턴스 로그 정책 전파와 cache refresh 장애 시나리오를 별도 환경에서 검증합니다.</td></tr>
-      <tr><td>전체 설치 SQL 신규 DB 재검증</td><td class="partial">미검증</td><td>이번 범위에서 제외했습니다. 신규 DB에서 설치, FK, index, seed idempotent를 별도 실행합니다.</td></tr>
+      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td>표준 헤더와 EDU 조회 샘플은 문서와 매트릭스에 반영했습니다. Swagger runtime 검증은 미검증입니다.</td></tr>
+      <tr><td>README는 짧은 진입점</td><td>README를 짧은 진입점으로 재정리하고 상세는 specs HTML 가이드로 연결했습니다.</td></tr>
+      <tr><td>변경 시 개발 가이드, 관리자 가이드, SQL 가이드, EDU 샘플 현행화</td><td>관련 가이드와 EDU 조회 샘플을 함께 갱신했습니다.</td></tr>
+      <tr><td>신규 주석/설명/SQL COMMENT 한글 작성</td><td>신규 Java 주석과 HTML 문서는 한글로 작성했습니다.</td></tr>
+      <tr><td>최종 리포트에 작업, 검증, 리스크, 다음 후보 정리</td><td>본 리포트에 반영했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>최종 판정</h2>
-    <p class="partial">이번 요청 범위는 완료입니다. 다만 전체 프레임워크 관점에서는 오류 조치 상태/이력, 브라우저 실제 클릭 자동화, broker 실연동, 전체 설치 SQL 신규 DB 재검증이 남아 있으므로 전체 판정은 부분 구현으로 유지합니다.</p>
+    <h2>다음 보강 후보</h2>
+    <ol>
+      <li>MyBatis Mapper와 SQL을 포함한 EDU 조회 샘플 확장, 슬라이스 테스트 추가</li>
+      <li>ADM 브라우저 클릭 smoke로 로그 상세 헤더 탭, JSON pretty, 고정길이 전문 표시 검증</li>
+      <li>OpenAPI JSON 자동 검증과 표준 헤더 공통 파라미터 품질 gate 추가</li>
+      <li>DB 표준 전수 검사 리포트와 단계별 migration 후보 정리</li>
+      <li>MariaDB에서 전체 설치 SQL과 smoke SQL 재실행, FK/index/seed idempotent 검증</li>
+      <li>Redis/Kafka broker 실연동 전파 테스트와 DB fallback 장애 시나리오 검증</li>
+    </ol>
   </section>
 </main>
 </body>

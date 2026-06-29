@@ -6,6 +6,9 @@ import cpf.pfw.common.exception.CpfException;
 import cpf.pfw.common.exception.CpfMessageResolver;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.header.CpfHeaderAuditLogger;
+import cpf.pfw.common.header.CpfHeaderPropagator;
+import cpf.pfw.common.header.CpfHeaderSnapshot;
 import cpf.pfw.common.logging.policy.LogPolicyDecision;
 import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import cpf.pfw.common.logging.policy.LogPolicyTargetType;
@@ -519,10 +522,15 @@ public class LoggingAspect {
             putDetail(details, "logPolicy.policyId", logPolicy.policyId());
         }
         if (transactionHeader != null) {
-            putDetail(details, "headers", headerDetailsJson(transactionHeader));
+            CpfHeaderSnapshot headerSnapshot = CpfHeaderPropagator.currentSnapshot(transactionHeader);
+            putDetail(details, "headers", CpfHeaderAuditLogger.toJson(headerSnapshot.resolvedHeaders()));
+            putDetail(details, "inboundHeaders", CpfHeaderAuditLogger.toJson(headerSnapshot.inboundHeaders()));
+            putDetail(details, "resolvedHeaders", CpfHeaderAuditLogger.toJson(headerSnapshot.resolvedHeaders()));
+            putDetail(details, "outboundHeaders", CpfHeaderAuditLogger.toJson(headerSnapshot.outboundHeaders()));
+            putDetail(details, "responseHeaders", CpfHeaderAuditLogger.toJson(headerSnapshot.responseHeaders()));
             putDetail(details, "transactionHeader", transactionHeader.toString());
         }
-        putDetail(details, "propagationHeaders", TransactionContext.propagationHeaders().toString());
+        putDetail(details, "propagationHeaders", CpfHeaderAuditLogger.toJson(CpfHeaderPropagator.outboundHeaders()));
         putDetail(details, "workflowPropagationHeaders", CpfWorkflowContext.propagationHeaders().toString());
         return details;
     }
@@ -585,70 +593,6 @@ public class LoggingAspect {
         if (value != null) {
             details.put(key, String.valueOf(value));
         }
-    }
-
-    /**
-     * ADM 거래 상세의 헤더 탭에서 바로 JSON pretty print 할 수 있도록 표준 거래 헤더를 JSON으로 보관합니다.
-     */
-    private String headerDetailsJson(TransactionHeader transactionHeader) {
-        Map<String, String> headers = new LinkedHashMap<>(TransactionContext.propagationHeaders());
-        putIfHasText(headers, TransactionContext.HEADER_REQUEST_TYPE, transactionHeader.getRequestType());
-        putIfHasText(headers, TransactionContext.HEADER_ORIGINAL_CHANNEL_CODE, transactionHeader.getOriginalChannelCode());
-        putIfHasText(headers, TransactionContext.HEADER_CHANNEL_CODE, transactionHeader.getChannelCode());
-        putIfHasText(headers, TransactionContext.HEADER_API_VERSION, transactionHeader.getApiVersion());
-        putIfHasText(headers, TransactionContext.HEADER_CLIENT_APP_ID, transactionHeader.getClientAppId());
-        putIfHasText(headers, TransactionContext.HEADER_CLIENT_VERSION, transactionHeader.getClientVersion());
-        putIfHasText(headers, TransactionContext.HEADER_CALLER_SERVICE, transactionHeader.getCallerService());
-        putIfHasText(headers, TransactionContext.HEADER_CALLER_INSTANCE_ID, transactionHeader.getCallerInstanceId());
-        putIfHasText(headers, TransactionContext.HEADER_CORRELATION_ID, transactionHeader.getCorrelationId());
-        putIfHasText(headers, TransactionContext.HEADER_IDEMPOTENCY_KEY, transactionHeader.getIdempotencyKey());
-        putIfHasText(headers, TransactionContext.HEADER_LOCALE, transactionHeader.getLocale());
-        putIfHasText(headers, TransactionContext.HEADER_TIMEZONE, transactionHeader.getTimezone());
-        putIfHasText(headers, TransactionContext.HEADER_MEMBER_NO, transactionHeader.getMemberNo());
-        putIfHasText(headers, TransactionContext.HEADER_CUSTOMER_NO, transactionHeader.getCustomerNo());
-        putIfHasText(headers, TransactionContext.HEADER_USER_ID, transactionHeader.getUserId());
-        putIfHasText(headers, TransactionContext.HEADER_SCREEN_ID, transactionHeader.getScreenId());
-        putIfHasText(headers, TransactionContext.HEADER_DEVICE_ID, transactionHeader.getDeviceId());
-        putIfHasText(headers, TransactionContext.HEADER_CLIENT_REQUEST_TIME, transactionHeader.getClientRequestTime());
-        putIfHasText(headers, TransactionContext.HEADER_CLIENT_IP, transactionHeader.getClientIp());
-        putIfHasText(headers, TransactionContext.HEADER_RESERVED_FIELD_1, transactionHeader.getReservedField1());
-        putIfHasText(headers, TransactionContext.HEADER_RESERVED_FIELD_2, transactionHeader.getReservedField2());
-        putIfHasText(headers, TransactionContext.HEADER_RESERVED_FIELD_3, transactionHeader.getReservedField3());
-        putIfHasText(headers, TransactionContext.HEADER_RESERVED_FIELD_4, transactionHeader.getReservedField4());
-        putIfHasText(headers, TransactionContext.HEADER_RESERVED_FIELD_5, transactionHeader.getReservedField5());
-        putIfHasText(headers, "CPF-Was-Id", transactionHeader.getWasId());
-        return toJson(headers);
-    }
-
-    private void putIfHasText(Map<String, String> values, String key, String value) {
-        if (hasText(value)) {
-            values.put(key, SensitiveDataMasker.mask(value));
-        }
-    }
-
-    private String toJson(Map<String, String> values) {
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, String> entry : values.entrySet()) {
-            if (!first) {
-                json.append(',');
-            }
-            json.append('"').append(escapeJson(entry.getKey())).append("\":\"")
-                    .append(escapeJson(entry.getValue())).append('"');
-            first = false;
-        }
-        json.append('}');
-        return json.toString();
-    }
-
-    private String escapeJson(String value) {
-        return value == null
-                ? ""
-                : value.replace("\\", "\\\\")
-                        .replace("\"", "\\\"")
-                        .replace("\r", "\\r")
-                        .replace("\n", "\\n")
-                        .replace("\t", "\\t");
     }
 
     private CpfTransaction resolveCpfTransaction(ProceedingJoinPoint joinPoint) {

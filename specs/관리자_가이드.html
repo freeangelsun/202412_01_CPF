@@ -114,6 +114,21 @@
       </tbody>
     </table>
   </section>
+  <section>
+    <h2>거래 로그 헤더 분리 조회</h2>
+    <p>ADM 거래 로그 상세는 데이터부와 헤더부를 분리해서 봅니다. 서버 응답은 <code>summary</code>, <code>inboundHeaders</code>, <code>resolvedHeaders</code>, <code>outboundHeaders</code>, <code>responseHeaders</code>, <code>request</code>, <code>response</code>, <code>error</code>, <code>formattedDetails</code>를 반환합니다.</p>
+    <table>
+      <thead>
+      <tr><th>탭</th><th>의미</th><th>운영 확인 포인트</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>수신 헤더</td><td>클라이언트나 상위 서비스가 보낸 헤더</td><td>필수 헤더 누락, 채널/회원/고객 식별 값을 확인합니다.</td></tr>
+      <tr><td>해석 헤더</td><td>PFW가 보정하거나 생성한 현재 거래 기준 헤더</td><td>거래 ID, trace/span, correlation, client IP 해석 결과를 확인합니다.</td></tr>
+      <tr><td>전파 헤더</td><td>하위 서비스로 전달한 헤더</td><td>parent transaction/span 관계와 민감정보 미전파 여부를 확인합니다.</td></tr>
+      <tr><td>응답 헤더</td><td>클라이언트로 돌려준 헤더</td><td>응답 거래 ID와 trace ID가 로그와 일치하는지 확인합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 </body>
 </html>

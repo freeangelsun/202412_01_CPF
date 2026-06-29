@@ -140,6 +140,22 @@
       </tbody>
     </table>
   </section>
+  <section>
+    <h2>이번 보강 반영 항목</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>남은 확인</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>PFW</td><td>표준 헤더 사전과 필수 헤더 검증</td><td>구현</td><td><code>CpfHeaderNames</code>, <code>CpfHeaderSpecs</code>, <code>CpfInboundHeaderValidator</code>, <code>TransactionHeaderValidationInterceptor</code></td><td>전체 앱 기동 후 OpenAPI 공통 헤더와 실제 요청 검증</td></tr>
+      <tr><td>PFW</td><td>거래 컨텍스트 조회와 업무성 헤더 보정</td><td>구현</td><td><code>TransactionContext</code>, <code>CpfHeaderMutator</code>, PFW 단위 테스트</td><td>업무 모듈에서 실제 사용 예제 확대</td></tr>
+      <tr><td>PFW</td><td>WebClient/RestClient 하위 호출 헤더 자동 전파</td><td>구현</td><td><code>CpfHeaderPropagator</code>, <code>CpfWebClientConfig</code>, <code>CpfRestClientInterceptor</code>, PFW 단위 테스트</td><td>실제 외부 연계 smoke와 네트워크 장애 시나리오</td></tr>
+      <tr><td>ADM</td><td>거래 로그 헤더부 분리 표시</td><td>부분 구현</td><td><code>LoggingAspect</code>, <code>AdmLogQueryService</code>, <code>adm.js</code></td><td>브라우저 클릭 검증과 실제 거래 로그 샘플 확인</td></tr>
+      <tr><td>문서</td><td>표준 헤더, DB 표준, 아키텍처 기준</td><td>구현</td><td><code>표준_헤더_가이드.html</code>, <code>DB_표준_가이드.html</code>, <code>아키텍처_가이드.html</code></td><td>DB 전수 표준 검사 리포트와 migration 후보 정리</td></tr>
+      <tr><td>XYZ EDU</td><td>온라인 조회 샘플</td><td>부분 구현</td><td><code>XyzQueryEducationController</code>, <code>XyzQueryEducationService</code>, <code>XyzQueryPageResponse</code>, <code>XyzQueryKeysetResponse</code></td><td>MyBatis Mapper, SQL, 슬라이스 테스트 기반 샘플은 다음 보강 필요</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 </body>
 </html>

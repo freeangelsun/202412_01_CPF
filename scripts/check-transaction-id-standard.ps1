@@ -42,11 +42,11 @@ Assert-Contains `
 
 Assert-Contains `
     "pfw/src/main/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptor.java" `
-    "TransactionContext\.HEADER_TRANSACTION_ID" `
+    "inboundHeaderValidator\.missingRequiredHeaders" `
     "온라인 API 필수 헤더 검사가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptor.java" `
+    "pfw/src/main/java/cpf/pfw/common/header/CpfInboundHeaderValidator.java" `
     "TransactionIdGenerator\.isValid" `
     "X-Transaction-Id 형식 검사가 필요합니다."
 

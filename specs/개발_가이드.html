@@ -107,6 +107,27 @@
       </tbody>
     </table>
   </section>
+  <section>
+    <h2>표준 헤더와 컨텍스트 사용</h2>
+    <p>온라인 API 개발 시 헤더 문자열을 직접 만들지 말고 <code>CpfHeaderNames</code>, <code>TransactionContext</code>, <code>CpfHeaderMutator</code>를 사용합니다. 필수 헤더와 하위 호출 전파 기준은 <a href="표준_헤더_가이드.html">표준 헤더 가이드</a>를 기준으로 합니다.</p>
+    <table>
+      <thead>
+      <tr><th>상황</th><th>사용 API</th><th>주의점</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>현재 거래 ID 조회</td><td><code>TransactionContext.currentTransactionId()</code></td><td>로그, 감사, 외부 호출 연계 키로 사용합니다.</td></tr>
+      <tr><td>현재 회원/고객/채널 조회</td><td><code>TransactionContext.memberNo()</code>, <code>customerNo()</code>, <code>channelCode()</code></td><td>요청 DTO와 헤더 값이 충돌하면 업무 정책을 명확히 둡니다.</td></tr>
+      <tr><td>업무 처리 중 세부 채널 보정</td><td><code>CpfHeaderMutator.put(...)</code></td><td>거래 ID, trace/span, Authorization 같은 시스템/민감 헤더는 변경할 수 없습니다.</td></tr>
+      <tr><td>서비스 간 호출</td><td><code>CpfWebClient</code>, <code>CpfRestClientInterceptor</code></td><td>표준 헤더는 자동 전파되므로 업무 코드가 반복해서 넣지 않습니다.</td></tr>
+      </tbody>
+    </table>
+    <p>실제 조회 EDU 샘플은 <code>XyzQueryEducationController</code>와 <code>XyzQueryEducationService</code>에서 확인합니다. 경로는 <code>/xyz/edu/query/items/{itemId}</code>, <code>/xyz/edu/query/items</code>, <code>/xyz/edu/query/items/page</code>, <code>/xyz/edu/query/items/keyset</code>, <code>/xyz/edu/query/headers</code>입니다.</p>
+  </section>
+
+  <section>
+    <h2>EDU 조회 샘플 기준</h2>
+    <p>조회 샘플은 단건, 목록, offset 페이징, keyset 페이징, 검색, 정렬, DTO 매핑, MyBatis Mapper, Service 트랜잭션 경계, Controller Swagger 예시, 하위 호출 헤더 자동 전파를 각각 분리합니다. EDU 코드는 학습 목적이므로 한글 주석을 자세히 달고, 운영 코드는 기능 단위 주석으로 유지합니다.</p>
+  </section>
 </main>
 </body>
 </html>

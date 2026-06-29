@@ -37,15 +37,15 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.CHANNEL_CODE, CpfHeaderCategory.REQUIRED, "현재 처리 채널", "클라이언트 또는 Gateway", "수신 인터셉터", true, false, "CHANNEL_CODE", 30, true, false, "채널"),
             spec(CpfHeaderNames.CHANNEL_DETAIL_CODE, CpfHeaderCategory.OPTIONAL, "세부 채널", "클라이언트 또는 Gateway", "PFW 헤더 추출기", true, false, "CHANNEL_DETAIL_CODE", 50, true, false, "채널"),
 
-            spec(CpfHeaderNames.USER_ID, CpfHeaderCategory.RECOMMENDED, "사용자 계정 ID", "인증 시스템", "업무 서비스", true, false, "EXEC_USER", 100, true, true, "주체"),
-            spec(CpfHeaderNames.OPERATOR_ID, CpfHeaderCategory.RECOMMENDED, "ADM 운영자 ID", "ADM 인증", "업무 서비스", true, false, "OPERATOR_ID", 100, true, true, "주체"),
+            spec(CpfHeaderNames.USER_ID, CpfHeaderCategory.RECOMMENDED, "사용자 계정 ID", "인증 시스템", "인증/감사 계층", true, false, "EXEC_USER", 100, true, true, "주체"),
+            spec(CpfHeaderNames.OPERATOR_ID, CpfHeaderCategory.RECOMMENDED, "ADM 운영자 ID", "ADM 인증", "인증/감사 계층", true, false, "OPERATOR_ID", 100, true, true, "주체"),
             spec(CpfHeaderNames.CUSTOMER_NO, CpfHeaderCategory.OPTIONAL, "고객 번호", "업무 서비스", "업무 서비스", true, false, "CUSTOMER_NO", 50, true, true, "주체"),
             spec(CpfHeaderNames.MEMBER_NO, CpfHeaderCategory.OPTIONAL, "회원 번호", "MBR 서비스", "업무 서비스", true, false, "MEMBER_NO", 50, true, true, "주체"),
             spec(CpfHeaderNames.TENANT_ID, CpfHeaderCategory.OPTIONAL, "테넌트 ID", "Gateway 또는 업무 서비스", "업무 서비스", true, false, "TENANT_ID", 50, true, false, "주체"),
             spec(CpfHeaderNames.ORGANIZATION_CODE, CpfHeaderCategory.OPTIONAL, "조직 코드", "업무 서비스", "업무 서비스", true, false, "ORGANIZATION_CODE", 50, true, false, "주체"),
             spec(CpfHeaderNames.BRANCH_CODE, CpfHeaderCategory.OPTIONAL, "지점 코드", "업무 서비스", "업무 서비스", true, false, "BRANCH_CODE", 50, true, false, "주체"),
 
-            spec(CpfHeaderNames.CLIENT_IP, CpfHeaderCategory.RECOMMENDED, "클라이언트 IP", "Gateway 또는 PFW", "PFW 필터", true, false, "CLIENT_IP", 64, true, true, "접속"),
+            spec(CpfHeaderNames.CLIENT_IP, CpfHeaderCategory.RECOMMENDED, "신뢰 정책으로 해석한 클라이언트 IP", "PFW", "PFW trusted proxy 정책", true, false, "CLIENT_IP", 64, true, true, "접속"),
             spec(CpfHeaderNames.FORWARDED_FOR, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "프록시 경유 IP 목록", "Proxy/LB/WAF", "PFW 필터", false, false, "FORWARDED_FOR", 512, false, true, "접속"),
             spec(CpfHeaderNames.FORWARDED, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "표준 Forwarded 헤더", "Proxy/LB/WAF", "PFW 필터", false, false, "FORWARDED", 512, false, true, "접속"),
             spec(CpfHeaderNames.REAL_IP, CpfHeaderCategory.RECOMMENDED, "실제 클라이언트 IP 후보", "Proxy/LB/WAF", "PFW 필터", false, false, "REAL_IP", 64, true, true, "접속"),

@@ -9,6 +9,7 @@ import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.header.CpfHeaderAuditLogger;
 import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.header.CpfHeaderSnapshot;
+import cpf.pfw.common.header.CpfTrustedProxyPolicy;
 import cpf.pfw.common.logging.policy.LogPolicyDecision;
 import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import cpf.pfw.common.logging.policy.LogPolicyTargetType;
@@ -916,17 +917,7 @@ public class LoggingAspect {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (hasText(xForwardedFor)) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (hasText(xRealIp)) {
-            return xRealIp;
-        }
-
-        return request.getRemoteAddr();
+        return CpfTrustedProxyPolicy.resolveClientIp(request);
     }
 
     private long elapsedMillis(long startNanos) {

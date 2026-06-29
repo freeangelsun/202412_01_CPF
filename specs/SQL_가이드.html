@@ -47,7 +47,7 @@
       </thead>
       <tbody>
       <tr><td><code>specs/sql/00_all_install.sql</code></td><td>전체 설치 합본</td><td>SOURCE 지시자가 아니라 실제 SQL 본문을 포함합니다.</td></tr>
-      <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>전체 설치와 smoke query 합본</td><td>설치 후 row count, FK/index, 샘플 데이터, 로그 날짜 정합성을 확인합니다.</td></tr>
+      <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>전체 설치와 smoke query 합본</td><td>cleanup을 포함하므로 기존 DB에 실행하면 데이터가 삭제될 수 있습니다. 안전한 빈 DB 또는 명시 승인된 DB에서만 실행합니다.</td></tr>
       <tr><td><code>specs/sql/10_pfw_schema.sql</code></td><td>PFW schema</td><td>프레임워크 코어, Spring Batch, CPF Batch 운영 메타를 포함합니다.</td></tr>
       <tr><td><code>specs/sql/20_cmn_schema.sql</code></td><td>CMN schema</td><td>프로젝트 공통 기능과 EDU 조회 샘플 테이블을 포함합니다.</td></tr>
       <tr><td><code>specs/sql/30_adm_schema.sql</code></td><td>ADM schema</td><td>운영자, 권한, 메뉴, 버튼, 감사, 다운로드 정책을 포함합니다.</td></tr>
@@ -76,7 +76,7 @@
 
   <section>
     <h2>EDU 조회 샘플 SQL</h2>
-    <p><code>cmn_edu_query_item</code>은 XYZ EDU의 MyBatis 조회 샘플에서 사용하는 교육용 테이블입니다. 회원 번호는 예시 값으로만 보관하고 <code>mbr_member</code>와 직접 조인하지 않습니다.</p>
+    <p><code>cmn_edu_query_item</code>은 XYZ EDU의 MyBatis 조회 샘플에서 사용하는 교육용 테이블입니다. 회원 번호는 예시 값으로만 보관하고 <code>mbr_member</code>와 직접 조인하지 않습니다. 이 테이블은 <code>20_cmn_schema.sql</code>, <code>70_test_data.sql</code>, <code>99_smoke_check.sql</code>, <code>V14__edu_query_sample.sql</code>, <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>에 같은 기준으로 반영되어야 합니다.</p>
     <table>
       <thead>
       <tr><th>항목</th><th>기준</th></tr>
@@ -97,6 +97,7 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1
 mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
     <p>실제 MariaDB에서 실행하지 않은 경우 성공으로 기록하지 않고 미검증으로 기록합니다.</p>
+    <p><code>check-sql-standard.ps1</code>는 주제영역 prefix, 공통 감사 컬럼, 한글 COMMENT뿐 아니라 split schema의 테이블이 <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>, baseline migration에 누락되지 않았는지도 검사합니다.</p>
   </section>
 
   <section>

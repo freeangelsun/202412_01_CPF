@@ -9,8 +9,9 @@ import java.util.Set;
 /**
  * 현재 거래 컨텍스트에서 업무 코드가 바꿀 수 있는 헤더만 제한적으로 보정하는 API입니다.
  *
- * <p>거래 ID, trace/span, 인증 토큰처럼 추적성과 보안에 영향을 주는 헤더는 업무 코드에서 변경할 수 없습니다.
- * 채널 상세, 사용자 식별자, 멱등 키처럼 업무 처리 중 보강될 수 있는 값만 허용합니다.</p>
+ * <p>거래 ID, trace/span, 인증 토큰, 사용자/운영자 식별자처럼 추적성과 보안에 영향을 주는 헤더는
+ * 업무 코드에서 변경할 수 없습니다. 업무 보정은 채널 상세, 고객/회원/테넌트/조직/지점처럼
+ * 인증 주체를 바꾸지 않는 보조 식별자에 한정합니다.</p>
  */
 public final class CpfHeaderMutator {
     private static final Set<String> RESTRICTED_HEADERS = Set.of(
@@ -20,6 +21,11 @@ public final class CpfHeaderMutator {
             lower(CpfHeaderNames.TRACE_ID),
             lower(CpfHeaderNames.SPAN_ID),
             lower(CpfHeaderNames.PARENT_SPAN_ID),
+            lower(CpfHeaderNames.USER_ID),
+            lower(CpfHeaderNames.OPERATOR_ID),
+            lower(CpfHeaderNames.CORRELATION_ID),
+            lower(CpfHeaderNames.IDEMPOTENCY_KEY),
+            lower(CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS),
             lower(CpfHeaderNames.AUTHORIZATION),
             lower(CpfHeaderNames.API_KEY),
             lower(CpfHeaderNames.REQUEST_SIGNATURE),
@@ -55,12 +61,6 @@ public final class CpfHeaderMutator {
         if (normalized.equals(lower(CpfHeaderNames.CHANNEL_DETAIL_CODE))) {
             return builder.channelDetailCode(value).build();
         }
-        if (normalized.equals(lower(CpfHeaderNames.USER_ID))) {
-            return builder.userId(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.OPERATOR_ID))) {
-            return builder.operatorId(value).build();
-        }
         if (normalized.equals(lower(CpfHeaderNames.CUSTOMER_NO))) {
             return builder.customerNo(value).build();
         }
@@ -75,21 +75,6 @@ public final class CpfHeaderMutator {
         }
         if (normalized.equals(lower(CpfHeaderNames.BRANCH_CODE))) {
             return builder.branchCode(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.CORRELATION_ID))) {
-            return builder.correlationId(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.IDEMPOTENCY_KEY))) {
-            return builder.idempotencyKey(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.CLIENT_COUNTRY_CODE))) {
-            return builder.clientCountryCode(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.CLIENT_REGION_CODE))) {
-            return builder.clientRegionCode(value).build();
-        }
-        if (normalized.equals(lower(CpfHeaderNames.CLIENT_TIMEZONE))) {
-            return builder.clientTimezone(value).build();
         }
         throw new IllegalArgumentException("업무 코드에서 보정하도록 등록되지 않은 헤더입니다. headerName=" + headerName);
     }

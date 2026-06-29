@@ -15,6 +15,7 @@ $schemaFiles = @(
 $allowedPrefixes = @("pfw", "cmn", "adm", "acc", "mbr", "bizadm", "exs")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
+$schemaTableNames = New-Object System.Collections.Generic.HashSet[string]
 
 foreach ($relativePath in $schemaFiles) {
     $path = Join-Path $Root $relativePath
@@ -41,6 +42,9 @@ foreach ($relativePath in $schemaFiles) {
         # CPF 주제영역 prefix와 공통 감사 컬럼 규칙의 예외로 둡니다.
         if (-not $isSpringBatchTable -and $allowedPrefixes -notcontains $prefix) {
             $failures.Add("table prefix invalid: $relativePath -> $tableName")
+        }
+        if (-not $isSpringBatchTable) {
+            [void] $schemaTableNames.Add($tableName)
         }
         if (-not $isSpringBatchTable -and $tableName.EndsWith("_table")) {
             $failures.Add("table suffix _table is not allowed: $relativePath -> $tableName")
@@ -87,6 +91,37 @@ foreach ($relativePath in $schemaFiles) {
         $failures.Add("constraint/index name must be lower snake case: $relativePath")
     }
 }
+
+# split schema에 있는 테이블이 전체 설치본에 빠지면 신규 DB 재현성이 깨집니다.
+# 이 검사는 Flyway에는 있는데 all_install에는 없는 테이블 누락을 조기에 잡기 위한 안전장치입니다.
+function Test-AllInstallContainsSchemaTables {
+    param(
+        [string] $RelativePath
+    )
+
+    $path = Join-Path $Root $RelativePath
+    if (-not (Test-Path -LiteralPath $path)) {
+        $failures.Add("all install file missing: $RelativePath")
+        return
+    }
+
+    $content = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+    foreach ($tableName in $schemaTableNames) {
+        $escapedTableName = [regex]::Escape($tableName)
+        if ($content -notmatch "(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(?:[a-zA-Z0-9_]+\.)?$escapedTableName\s*\(") {
+            $failures.Add("all install create missing: $RelativePath -> $tableName")
+        }
+    }
+
+    # EDU 조회 샘플은 SQL/Flyway/문서/테스트가 같이 움직이는 대표 샘플이라 seed 누락도 별도 검출합니다.
+    if ($content -notmatch "(?is)INSERT\s+INTO\s+(?:[a-zA-Z0-9_]+\.)?cmn_edu_query_item\s*\(") {
+        $failures.Add("all install seed missing: $RelativePath -> cmn_edu_query_item")
+    }
+}
+
+Test-AllInstallContainsSchemaTables "specs/sql/00_all_install.sql"
+Test-AllInstallContainsSchemaTables "specs/sql/00_all_install_and_smoke.sql"
+Test-AllInstallContainsSchemaTables "specs/sql/migration/flyway/V1__cpf_baseline_install.sql"
 
 if ($failures.Count -gt 0) {
     $failures | Sort-Object | ForEach-Object { Write-Error $_ }

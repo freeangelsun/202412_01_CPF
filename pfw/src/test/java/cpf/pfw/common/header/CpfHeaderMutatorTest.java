@@ -36,6 +36,35 @@ class CpfHeaderMutatorTest {
     }
 
     @Test
+    void businessIdentityHeadersCanBeMutatedButSecurityPrincipalsCannot() {
+        TransactionHeader source = TransactionHeader.builder()
+                .userId("login-user")
+                .operatorId("adm01")
+                .build();
+
+        TransactionHeader updated = CpfHeaderMutator.withAllowedHeader(source, CpfHeaderNames.CUSTOMER_NO, "CUST-001");
+        updated = CpfHeaderMutator.withAllowedHeader(updated, CpfHeaderNames.MEMBER_NO, "MBR-001");
+        updated = CpfHeaderMutator.withAllowedHeader(updated, CpfHeaderNames.TENANT_ID, "TENANT-A");
+        updated = CpfHeaderMutator.withAllowedHeader(updated, CpfHeaderNames.ORGANIZATION_CODE, "ORG-A");
+        updated = CpfHeaderMutator.withAllowedHeader(updated, CpfHeaderNames.BRANCH_CODE, "BR-001");
+
+        assertThat(updated.getCustomerNo()).isEqualTo("CUST-001");
+        assertThat(updated.getMemberNo()).isEqualTo("MBR-001");
+        assertThat(updated.getTenantId()).isEqualTo("TENANT-A");
+        assertThat(updated.getOrganizationCode()).isEqualTo("ORG-A");
+        assertThat(updated.getBranchCode()).isEqualTo("BR-001");
+        assertThat(updated.getUserId()).isEqualTo("login-user");
+        assertThat(updated.getOperatorId()).isEqualTo("adm01");
+
+        assertThatThrownBy(() -> CpfHeaderMutator.withAllowedHeader(source, CpfHeaderNames.USER_ID, "other-user"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("변경할 수 없습니다");
+        assertThatThrownBy(() -> CpfHeaderMutator.withAllowedHeader(source, CpfHeaderNames.OPERATOR_ID, "other-operator"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("변경할 수 없습니다");
+    }
+
+    @Test
     void systemAndSensitiveHeadersCannotBeMutatedByBusinessCode() {
         assertThatThrownBy(() -> CpfHeaderMutator.withAllowedHeader(
                 TransactionHeader.builder().build(),

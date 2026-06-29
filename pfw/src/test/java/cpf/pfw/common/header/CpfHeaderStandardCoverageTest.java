@@ -2,6 +2,7 @@ package cpf.pfw.common.header;
 
 import cpf.pfw.common.logging.TransactionHeader;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.lang.reflect.Field;
@@ -15,6 +16,11 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CpfHeaderStandardCoverageTest {
+
+    @AfterEach
+    void tearDown() {
+        System.clearProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY);
+    }
 
     @Test
     void everyDeclaredHeaderNameHasHeaderSpec() {
@@ -53,6 +59,7 @@ class CpfHeaderStandardCoverageTest {
     @Test
     void extractorResolvesAliasAndNetworkFallbacks() {
         MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("198.51.100.88");
         request.addHeader(CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, "idem-alias-001");
         request.addHeader(CpfHeaderNames.REAL_IP, "10.20.30.40");
         request.addHeader(CpfHeaderNames.CLIENT_COUNTRY_CODE, "KR");
@@ -62,11 +69,69 @@ class CpfHeaderStandardCoverageTest {
         TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
 
         assertThat(header.getIdempotencyKey()).isEqualTo("idem-alias-001");
-        assertThat(header.getClientIp()).isEqualTo("10.20.30.40");
+        assertThat(header.getClientIp()).isEqualTo("198.51.100.88");
+        assertThat(header.getRealIp()).isEqualTo("10.20.30.40");
         assertThat(header.getClientCountryCode()).isEqualTo("KR");
         assertThat(header.getClientTimezone()).isEqualTo("Asia/Seoul");
         assertThat(header.getUserAgent()).isEqualTo("cpf-test-agent");
         assertThat(header.getWasId()).isEqualTo("local01");
+    }
+
+    @Test
+    void extractorIgnoresForwardedHeadersFromUntrustedRemote() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("198.51.100.88");
+        request.addHeader(CpfHeaderNames.CLIENT_IP, "192.0.2.10");
+        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "203.0.113.10, 10.0.0.1");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=203.0.113.20;proto=https");
+        request.addHeader(CpfHeaderNames.REAL_IP, "203.0.113.30");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("198.51.100.88");
+        assertThat(header.getForwardedFor()).isEqualTo("203.0.113.10, 10.0.0.1");
+        assertThat(header.getForwarded()).isEqualTo("for=203.0.113.20;proto=https");
+        assertThat(header.getRealIp()).isEqualTo("203.0.113.30");
+    }
+
+    @Test
+    void extractorUsesForwardedForFromTrustedProxy() {
+        System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
+        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "203.0.113.10, 10.0.0.1");
+        request.addHeader(CpfHeaderNames.REAL_IP, "203.0.113.30");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("203.0.113.10");
+    }
+
+    @Test
+    void extractorUsesForwardedHeaderFromTrustedProxyWhenForwardedForIsAbsent() {
+        System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.0/24");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.15");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=\"203.0.113.44\";proto=https");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("203.0.113.44");
+    }
+
+    @Test
+    void inboundHeaderExtractionMasksSensitiveHeaderValues() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader(CpfHeaderNames.AUTHORIZATION, "Bearer very-sensitive-token");
+        request.addHeader(CpfHeaderNames.API_KEY, "api-key-value");
+        request.addHeader(CpfHeaderNames.CHANNEL_CODE, "MBR");
+
+        Map<String, String> inboundHeaders = CpfHeaderExtractor.extractInboundHeaders(request);
+
+        assertThat(inboundHeaders)
+                .containsEntry(CpfHeaderNames.AUTHORIZATION, "****")
+                .containsEntry(CpfHeaderNames.API_KEY, "****")
+                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "MBR");
     }
 
     @Test

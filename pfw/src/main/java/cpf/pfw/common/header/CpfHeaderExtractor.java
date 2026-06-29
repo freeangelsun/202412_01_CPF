@@ -8,6 +8,9 @@ import java.util.Map;
 
 /**
  * HTTP 요청에서 CPF 표준 헤더를 추출하고 내부 거래 헤더 객체로 변환합니다.
+ *
+ * <p>클라이언트 IP는 전달 헤더를 직접 신뢰하지 않고 {@link CpfTrustedProxyPolicy}를 통해 해석합니다.
+ * 원문 전달 헤더는 감사/ADM 표시를 위해 별도 필드에 보관하고, 거래 기준 IP는 해석 결과만 사용합니다.</p>
  */
 public final class CpfHeaderExtractor {
     private CpfHeaderExtractor() {
@@ -19,7 +22,7 @@ public final class CpfHeaderExtractor {
             return headers;
         }
         for (CpfHeaderSpec spec : CpfHeaderSpecs.all()) {
-            putIfHasText(headers, spec.name(), request.getHeader(spec.name()));
+            putIfHasText(headers, spec.name(), CpfHeaderMasker.mask(spec.name(), request.getHeader(spec.name())));
         }
         return headers;
     }
@@ -55,10 +58,7 @@ public final class CpfHeaderExtractor {
                 .screenId(header(request, CpfHeaderNames.SCREEN_ID))
                 .deviceId(header(request, CpfHeaderNames.DEVICE_ID))
                 .clientRequestTime(header(request, CpfHeaderNames.CLIENT_REQUEST_TIME))
-                .clientIp(firstText(
-                        header(request, CpfHeaderNames.CLIENT_IP),
-                        header(request, CpfHeaderNames.REAL_IP),
-                        request != null ? request.getRemoteAddr() : null))
+                .clientIp(CpfTrustedProxyPolicy.resolveClientIp(request))
                 .forwardedFor(header(request, CpfHeaderNames.FORWARDED_FOR))
                 .forwarded(header(request, CpfHeaderNames.FORWARDED))
                 .realIp(header(request, CpfHeaderNames.REAL_IP))
@@ -90,10 +90,6 @@ public final class CpfHeaderExtractor {
 
     private static String firstText(String first, String second) {
         return hasText(first) ? first : second;
-    }
-
-    private static String firstText(String first, String second, String third) {
-        return hasText(first) ? first : firstText(second, third);
     }
 
     private static boolean hasText(String value) {

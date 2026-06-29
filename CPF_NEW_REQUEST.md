@@ -1,27 +1,27 @@
-# CPF_REQUEST_010: 로그 정책 세부 효과 검증 / ADM 거래·오류·감사 통합 관제 기준 보강 / 리포트 HTML 형식 재확인
+# CPF_REQUEST_011: ADM 거래/오류/감사 통합 관제 UX 기준 보강 / 리포트 HTML 정본화 / 운영 추적 E2E Smoke
 
 ## 0. 이번 작업 범위 고정
 
-이번 작업은 직전 작업에서 성공한 거래 메타 E2E와 `dbLogEnabled` runtime smoke를 기반으로, 로그 정책의 세부 저장 제어를 검증하고 ADM 거래/오류/감사 관제 흐름을 운영자 관점으로 정리하는 작업이다.
+이번 작업은 온라인 거래 메타와 로그 정책 runtime 검증이 일정 수준 닫힌 상태를 전제로, ADM 운영자가 거래 하나를 기준으로 거래 로그, 오류 로그, 감사 로그, 정책 감사 흐름을 추적할 수 있게 하는 운영 관제 기준을 보강하는 작업이다.
 
 이번 작업은 아래 범위로 고정한다.
 
-```text id="r7ixf8"
+```text
 선택 범위:
-- requestBodySaveYn=N 정책 실제 효과 검증
-- responseBodySaveYn=N 정책 실제 효과 검증
-- errorStackSaveYn=N 정책 실제 효과 검증
-- active override / expired override / DB policy / yml default / CPF default fallback 검증
-- 로그 정책 runtime smoke 세부 케이스 확대
-- ADM 거래 로그, 오류 로그, 감사 로그 연결 상태 판정
-- ADM 거래 상세에서 거래 로그/오류/감사로 이어지는 운영 흐름 보강
-- CPF_STABILIZATION_REPORT.html 실제 HTML 구조 재확인 및 필요 시 정본화
+- CPF_STABILIZATION_REPORT.html 실제 HTML 문서 형식 정본화
+- ADM 거래 로그 목록/상세 관제 흐름 보강
+- ADM 오류 로그 조회/조치 상태 현황 판정 및 최소 보강
+- ADM 일반 감사 로그 조회 현황 판정 및 최소 보강
+- pfw_log_policy_audit 정책 감사와 adm_audit_log 일반 감사의 연결 기준 정리
+- transactionGlobalId / traceId / businessTransactionId 기준 통합 추적 API 또는 query 기준 보강
+- ADM 거래 상세에서 거래 로그/오류/감사/정책 감사로 이어지는 API wrapper 또는 UI marker 보강
+- smoke-log-policy-runtime.ps1 또는 신규 smoke에서 거래 → 오류 → 감사 추적 흐름 확인
 - README / 관리자 가이드 / 운영 매뉴얼 / SQL 가이드 / 기능 구현 매트릭스 / 리포트 반영
 ```
 
 이번 작업에서 아래 항목은 구현하지 않는다.
 
-```text id="6fef3s"
+```text
 이번 실행 제외:
 - ADM 브라우저 실제 클릭 자동화
 - ADM Cache hit/miss/ttl/eviction/clear 전체 구현
@@ -29,6 +29,7 @@
 - 배치 강제수행/lock/pause/resume 운영 정책 전체 구현
 - 온디맨드 배치 구현
 - 센터컷 기본 구현체 구현
+- 전체 설치 SQL 신규 DB 재실행
 - 전체 트랜잭션 가이드 정본화
 ```
 
@@ -41,34 +42,34 @@ Git commit, push, branch 생성 지시는 하지 않는다.
 
 ## 1. 이번 작업의 핵심 의도
 
-직전 작업에서 아래 항목은 닫혔다.
+직전 작업에서 아래 항목은 상당 부분 닫혔다.
 
-```text id="kpn15t"
-직전 완료:
-- V11/V12 PFW runtime migration 로컬 DB 적용
-- V13 ADM 권한 seed 로컬 DB 적용
-- ADM 거래 메타 scan 403 해소
-- 거래 메타 scan → upsert → 목록 → 상세 E2E 성공
-- dbLogEnabled=N override 적용 시 DB 거래 로그 미저장 검증
-- override 해제 후 DB 거래 로그 저장 재개 검증
-- 전체 gradlew test --offline 성공 재확인
+```text
+직전 완료 또는 완료에 가까운 항목:
+- dbLogEnabled=N runtime smoke
+- requestBodySaveYn=N runtime smoke
+- responseBodySaveYn=N runtime smoke
+- errorStackSaveYn=N runtime smoke
+- active override runtime smoke
+- future override 미적용 검증
+- DB policy fallback 검증
+- CPF default fallback 검증
+- ADM 로그 조회에서 transactionGlobalId alias와 traceId 검색 확인
+- 감사 로그 API HTTP 200 도달 확인
 ```
 
-하지만 로그 정책은 `dbLogEnabled`만으로 끝나지 않는다.
-운영형 프레임워크 기준으로는 request body, response body, error stack 저장 여부까지 실제 DB 결과로 검증해야 한다.
+하지만 운영자 입장에서는 아직 아래가 부족하다.
 
-이번 작업은 아래를 증명한다.
-
-```text id="0qr9cy"
-- requestBodySaveYn=N이면 request body가 DB에 저장되지 않는다.
-- responseBodySaveYn=N이면 response body가 DB에 저장되지 않는다.
-- errorStackSaveYn=N이면 error stack이 DB에 저장되지 않는다.
-- active override 기간에는 override가 적용된다.
-- expired override는 적용되지 않는다.
-- DB policy가 없으면 yml 기본값으로 fallback된다.
-- yml 기본값도 없으면 CPF 기본값으로 fallback된다.
-- ADM에서 거래 로그, 오류, 감사 흐름을 운영자가 추적할 수 있는 기준이 문서/매트릭스에 정리된다.
+```text
+남은 핵심:
+- 거래 하나를 기준으로 거래 로그, 오류, 감사, 정책 감사를 한 흐름에서 추적하는 UX/API 기준
+- 오류 조치 상태와 조치 이력 관리 기준
+- 일반 감사 로그와 정책 감사 로그의 역할 구분 및 연결 기준
+- transactionGlobalId / traceId / businessTransactionId 검색 기준의 일관성
+- 리포트 파일이 실제 HTML 형식인지 검증
 ```
+
+이번 작업은 “운영자가 장애/이슈 발생 시 ADM에서 따라갈 수 있는 추적 경로”를 만드는 작업이다.
 
 ---
 
@@ -76,28 +77,28 @@ Git commit, push, branch 생성 지시는 하지 않는다.
 
 작업 시작 전 실제 소스/SQL/문서/DB 기준으로 아래를 판정한다.
 
-```text id="vzcprz"
+```text
 현재 상태 판정 항목:
-- smoke-log-policy-runtime.ps1 현재 검증 범위
-- dbLogEnabled=N 검증 결과
-- requestBodySaveYn=N 검증 존재 여부
-- responseBodySaveYn=N 검증 존재 여부
-- errorStackSaveYn=N 검증 존재 여부
-- active override 검증 존재 여부
-- expired override 검증 존재 여부
-- DB policy fallback 검증 존재 여부
-- yml default fallback 검증 존재 여부
-- CPF default fallback 검증 존재 여부
-- ADM 거래 로그 조회 API 상태
-- ADM 오류 로그 조회 API 상태
-- ADM 감사 로그 조회 API 상태
-- ADM 거래 상세에서 로그/오류/감사 연결 상태
-- CPF_STABILIZATION_REPORT.html 실제 HTML 구조 여부
+- CPF_STABILIZATION_REPORT.html이 실제 HTML 구조인지
+- check-html-docs.ps1이 리포트 HTML 구조를 제대로 검증하는지
+- ADM 거래 로그 목록 API 상태
+- ADM 거래 로그 상세 API 상태
+- ADM 오류 로그 API 존재 여부
+- ADM 오류 조치 상태 변경 API 존재 여부
+- ADM 오류 조치 이력 테이블/API 존재 여부
+- ADM 일반 감사 로그 API 상태
+- pfw_log_policy_audit 조회 API 상태
+- adm_audit_log와 pfw_log_policy_audit의 역할 구분 상태
+- transactionGlobalId 검색 지원 여부
+- traceId 검색 지원 여부
+- businessTransactionId 검색 지원 여부
+- 거래 상세에서 오류/감사/정책 감사로 이동 가능한 기준
+- ADM UI marker 또는 API wrapper 상태
 ```
 
 상태값은 아래만 사용한다.
 
-```text id="bcscf2"
+```text
 완료
 부분 구현
 미구현
@@ -110,151 +111,13 @@ Codex 완료 메시지나 과거 리포트만 믿지 말고 실제 파일/DB 기
 
 ---
 
-## 3. 로그 정책 세부 효과 검증
-
-`smoke-log-policy-runtime.ps1` 또는 별도 smoke/test를 보강해 아래 케이스를 검증한다.
-
-### 3.1 requestBodySaveYn=N
-
-필수 검증:
-
-```text id="y4sce0"
-- ONLINE_TRANSACTION 정책 또는 override에서 requestBodySaveYn=N 설정
-- request body가 있는 API 호출
-- pfw_transaction_log_detail 또는 동등 상세 테이블에 request body가 저장되지 않는지 확인
-- response body와 기본 거래 로그 저장 여부는 정책에 따라 별도 확인
-```
-
-### 3.2 responseBodySaveYn=N
-
-필수 검증:
-
-```text id="m18lyt"
-- responseBodySaveYn=N 설정
-- 응답 body가 있는 API 호출
-- pfw_transaction_log_detail 또는 동등 상세 테이블에 response body가 저장되지 않는지 확인
-```
-
-### 3.3 errorStackSaveYn=N
-
-필수 검증:
-
-```text id="s9doky"
-- errorStackSaveYn=N 설정
-- 오류 발생 테스트 API 또는 기존 오류 케이스 호출
-- error stack 또는 internal error detail이 저장되지 않는지 확인
-- 표준 오류 응답은 유지되는지 확인
-```
-
-### 3.4 dbLogEnabled=N 재확인
-
-기존 smoke가 이미 검증했더라도 이번 세부 smoke와 같이 다시 확인한다.
-
-```text id="fvo91a"
-- dbLogEnabled=N이면 pfw_transaction_log row 증가 없음
-- override 해제 후 row 증가 재개
-```
-
-완료 불인정:
-
-```text id="e828p7"
-- 정책 source만 확인하고 DB 결과를 확인하지 않음
-- request/response/error 저장 제외를 단위 테스트만으로 처리하고 runtime smoke 또는 DB 확인이 없음
-- dbLogEnabled만 검증하고 세부 저장 정책은 완료로 기록
-```
-
----
-
-## 4. Override / fallback 검증
-
-로그 정책 우선순위는 아래 기준을 따른다.
-
-```text id="e7q65q"
-1. ADM 활성 override
-2. DB 운영 정책
-3. application.yml 기본값
-4. CPF 기본값
-```
-
-필수 검증:
-
-```text id="xovv9w"
-active override:
-- 현재 시각이 effectiveStartAt ~ effectiveEndAt 사이면 override 적용
-
-expired override:
-- effectiveEndAt이 지난 override는 무시
-- DB policy 또는 기본값으로 fallback
-
-future override:
-- effectiveStartAt이 미래이면 아직 적용하지 않음
-
-DB policy fallback:
-- active override가 없으면 pfw_log_policy 적용
-
-yml default fallback:
-- target별 DB policy가 없으면 yml 기본값 적용
-
-CPF default fallback:
-- yml 기본값도 없으면 CPF 기본값 적용
-```
-
-검증 방식:
-
-```text id="hkk09z"
-허용:
-- 단위 테스트
-- 통합 테스트
-- runtime smoke
-- DB row count 확인
-
-불허:
-- resolver 소스만 보고 완료 처리
-```
-
----
-
-## 5. ADM 거래/오류/감사 통합 관제 기준 보강
-
-이번 작업에서 대형 UX를 완성하지는 않는다.
-다만 운영자가 거래 하나를 기준으로 로그, 오류, 감사 흐름을 추적할 수 있는 최소 기준을 정리하고, 가능한 API wrapper를 보강한다.
-
-필수 판정/보강 항목:
-
-```text id="jnn3fh"
-- ADM 거래 로그 목록 API
-- ADM 거래 로그 상세 API
-- ADM 오류 로그 조회 API
-- ADM 감사 로그 조회 API
-- transactionGlobalId 기준 조회 가능 여부
-- businessTransactionId 기준 조회 가능 여부
-- traceId 기준 조회 가능 여부
-- 거래 메타 상세에서 최근 거래 로그로 이동 가능한 기준
-- 거래 로그 상세에서 오류/감사 로그로 이동 가능한 기준
-- 오류 조치 상태와 조치 이력 존재 여부
-- 감사 로그에서 operatorId, reason, before/after 값 확인 여부
-```
-
-이번 작업에서 실제 UI 클릭은 제외한다.
-다만 정적 UI marker 또는 API wrapper가 있으면 매트릭스에 반영한다.
-
-완료 불인정:
-
-```text id="cu0up9"
-- 거래 로그만 있고 오류/감사 연결 기준 없음
-- transactionGlobalId/traceId 기준 추적 불가
-- 문서에만 “연결 가능”이라고 쓰고 API/DTO/검색 조건 없음
-```
-
----
-
-## 6. CPF_STABILIZATION_REPORT.html 실제 HTML 구조 재확인
+## 3. CPF_STABILIZATION_REPORT.html 실제 HTML 정본화
 
 `CPF_STABILIZATION_REPORT.html`은 실제 HTML 문서여야 한다.
 
 필수 기준:
 
-```text id="b9oycg"
+```text
 - <!DOCTYPE html> 또는 <!doctype html>
 - <html lang="ko">
 - <head>
@@ -263,64 +126,261 @@ CPF default fallback:
 - <body>
 - h1/h2/h3 또는 section 구조
 - table 또는 상태 목록 구조
+- 실행 명령과 실제 결과 구분
+- 미구현/미검증/실패 구분
 ```
+
+`check-html-docs.ps1`도 아래를 검증해야 한다.
+
+````text
+- 루트 CPF_STABILIZATION_REPORT.html 포함
+- <!DOCTYPE 또는 <html 존재
+- <head> 존재
+- <body> 존재
+- <title> 존재
+- Markdown heading 잔재 "# "로 시작하면 실패
+- ``` code fence 잔재 있으면 실패
+````
 
 완료 불인정:
 
-```text id="65pi7k"
+```text
 - .html 확장자지만 Markdown 문서
-- 첫 줄이 # CPF 안정화 리포트 형태
-- 브라우저로 열 때 HTML 구조가 없음
+- 첫 줄이 "# CPF 안정화 리포트" 형태
+- check-html-docs가 리포트 HTML 오류를 잡지 못함
 ```
-
-`check-html-docs.ps1`가 이 기준을 제대로 검증하지 못한다면 해당 스크립트를 보강한다.
 
 ---
 
-## 7. 테스트 기준
+## 4. ADM 거래 로그 관제 보강
 
-필수 테스트 또는 smoke를 보강한다.
+ADM 거래 로그는 운영자가 가장 먼저 보는 진입점이다.
 
-```text id="as6d7j"
-로그 정책 테스트:
-- dbLogEnabled=N
-- requestBodySaveYn=N
-- responseBodySaveYn=N
-- errorStackSaveYn=N
-- active override
-- expired override
-- future override
-- DB policy fallback
-- yml default fallback
-- CPF default fallback
+필수 기준:
 
-ADM 관제 테스트:
-- 거래 로그 목록
-- 거래 로그 상세
+```text
+- 거래 로그 목록 조회
+- 거래 로그 상세 조회
+- businessTransactionId 검색
 - transactionGlobalId 검색
 - traceId 검색
-- 감사 로그 조회
-- 오류 로그 조회 또는 미구현 판정
+- logType 검색
+- moduleCode 또는 module 검색
+- 기간 검색
+- 상세에서 request/response/error detail 확인
+- 마스킹 적용 여부 확인
 ```
 
-가능하면 `scripts/smoke-log-policy-runtime.ps1`에 아래 옵션 또는 케이스를 추가한다.
+가능하면 DTO 또는 응답에 아래 연결 키를 명확히 포함한다.
 
-```text id="ofh88n"
-- -CheckRequestBodyPolicy
-- -CheckResponseBodyPolicy
-- -CheckErrorStackPolicy
-- -CheckOverrideFallback
+```text
+- transactionGlobalId
+- businessTransactionId
+- traceId
+- spanId
+- logIdx
+- errorId 또는 errorLogId
+- auditId 또는 auditLogId
 ```
-
-옵션 이름은 프로젝트 컨벤션에 맞춰 조정 가능하다.
 
 ---
 
-## 8. 검증 명령
+## 5. ADM 오류 로그 관제 기준
+
+별도 `pfw_error_log` 테이블이 없고 `pfw_transaction_log` 기반 오류 로그만 있으면 그렇게 명확히 판정한다.
+
+필수 판정/보강 항목:
+
+```text
+- 오류 로그 전용 테이블 존재 여부
+- 오류 로그 전용 API 존재 여부
+- 거래 로그에서 FAILURE / ERROR logType으로 오류 조회 가능한지
+- transactionGlobalId 기준 오류 조회 가능 여부
+- traceId 기준 오류 조회 가능 여부
+- 오류 조치 상태 컬럼 존재 여부
+- 오류 조치 이력 존재 여부
+- 조치자 / 조치 사유 / 조치 시각 기록 가능 여부
+```
+
+이번 작업에서 오류 조치 기능을 완성하지 못하면 아래처럼 명확히 기록한다.
+
+```text
+허용:
+- 오류 로그는 거래 로그 기반으로 조회 가능
+- 오류 조치 상태/이력은 미구현 또는 부분 구현으로 기록
+- 다음 요청 후보로 분리
+
+불허:
+- 오류 조치 기능이 없는데 완료로 기록
+```
+
+---
+
+## 6. ADM 감사 로그 관제 기준
+
+일반 감사와 정책 감사의 역할을 구분한다.
+
+```text
+adm_audit_log:
+- ADM 운영 조치 감사
+- cache refresh
+- 거래 메타 scan/inactive
+- 로그 정책 변경 조치
+- 운영자 action 기록
+
+pfw_log_policy_audit:
+- 로그 정책 도메인 변경 감사
+- policy create/update
+- override create/disable
+- before/after value
+- reason
+```
+
+필수 기준:
+
+```text
+- 일반 감사 로그 조회 API 상태 확인
+- 정책 감사 로그 조회 API 상태 확인
+- transactionGlobalId 기준 감사 조회 가능 여부 확인
+- operatorId 기준 감사 조회 가능 여부 확인
+- actionType 기준 감사 조회 가능 여부 확인
+- reason 필드 존재 여부 확인
+- beforeValue / afterValue 존재 여부 확인
+```
+
+이번 작업에서 통합 UX가 어렵다면 최소한 아래를 한다.
+
+```text
+- ADM 거래 상세에서 일반 감사와 정책 감사의 조회 기준을 문서화
+- 기능 매트릭스에 일반 감사/정책 감사 상태를 분리
+- API가 없으면 미구현으로 명확히 기록
+```
+
+---
+
+## 7. 통합 추적 API 또는 API wrapper 기준
+
+가능하면 ADM에 통합 추적 API를 추가한다.
+
+권장 API:
+
+```text
+GET /adm/api/observability/transactions/{transactionGlobalId}
+GET /adm/api/observability/traces/{traceId}
+GET /adm/api/observability/business-transactions/{businessTransactionId}
+```
+
+응답은 최소 아래를 포함한다.
+
+```text
+- transaction summary
+- transaction logs
+- error logs 또는 failure logs
+- audit logs
+- policy audit logs
+- related batch executions 있으면 링크 정보
+```
+
+이번 작업에서 통합 API 구현이 크면 다음 방식으로 축소 가능하다.
+
+```text
+허용 축소:
+- 기존 로그/감사 API에 검색 조건 보강
+- ADM UI wrapper에서 각 API 호출 경로만 연결
+- 운영 매뉴얼에 추적 순서 문서화
+
+불허:
+- 문서에만 통합 관제 가능이라고 쓰고 API/검색 조건 없음
+```
+
+---
+
+## 8. Runtime smoke 기준
+
+기존 `scripts/smoke-log-policy-runtime.ps1` 또는 신규 smoke를 보강한다.
+
+필수 확인:
+
+```text
+- 성공 거래 로그 조회
+- 실패 거래 로그 조회
+- transactionGlobalId 검색
+- traceId 검색
+- businessTransactionId 검색
+- 거래 로그 상세 조회
+- 일반 감사 로그 API 도달
+- 정책 감사 로그 API 도달
+- 오류 로그 또는 failure log 조회
+```
+
+가능하면 결과 JSON에 아래를 남긴다.
+
+```text
+admObservability:
+- transactionLogList
+- transactionLogDetail
+- transactionGlobalIdAlias
+- traceSearch
+- businessTransactionSearch
+- errorLogQuery
+- auditLogQuery
+- policyAuditQuery
+```
+
+---
+
+## 9. SQL / Flyway / all_install 기준
+
+이번 작업에서 SQL 변경이 있으면 아래를 모두 반영한다.
+
+```text
+- Flyway migration 추가
+- all_install SQL 반영
+- smoke SQL 반영
+- table comment / column comment
+- 공통 감사 컬럼
+- FK/index
+- SQL 가이드 반영
+- 기능 매트릭스 반영
+- CPF_STABILIZATION_REPORT.html 반영
+```
+
+전체 설치 SQL 재실행은 이번 요청 필수 범위가 아니다.
+실행하지 않으면 미검증으로 기록한다.
+
+---
+
+## 10. 문서 반영 기준
+
+아래 문서를 실제 결과에 맞게 갱신한다.
+
+```text
+README.md
+specs/관리자_가이드.html
+specs/운영_매뉴얼.html
+specs/SQL_가이드.html
+specs/기능_구현_매트릭스.html
+CPF_STABILIZATION_REPORT.html
+```
+
+문서에는 아래를 분리해서 기록한다.
+
+```text
+- 완료
+- 부분 구현
+- 미구현
+- 미검증
+- 실패
+- 다음 보강
+```
+
+---
+
+## 11. 테스트 / 검증 명령
 
 가능한 범위에서 아래 명령을 실행한다.
 
-```powershell id="ifrxv6"
+```powershell
 .\gradlew.bat :pfw:test --offline
 .\gradlew.bat :adm:test --offline
 .\gradlew.bat test --offline
@@ -341,57 +401,40 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.p
 
 ---
 
-## 9. 문서 반영 기준
-
-아래 문서를 실제 결과에 맞게 최소 갱신한다.
-
-```text id="b10tfp"
-README.md
-specs/관리자_가이드.html
-specs/운영_매뉴얼.html
-specs/SQL_가이드.html
-specs/기능_구현_매트릭스.html
-CPF_STABILIZATION_REPORT.html
-```
-
-문서에는 아래를 분리해서 기록한다.
-
-```text id="d5qq4v"
-- 완료
-- 부분 구현
-- 미구현
-- 미검증
-- 실패
-- 다음 보강
-```
-
----
-
-## 10. CPF_STABILIZATION_REPORT.html 기록 기준
+## 12. CPF_STABILIZATION_REPORT.html 기록 기준
 
 리포트에는 아래 형식으로 기록한다.
 
-```text id="yml4no"
-[로그 정책 세부 효과 검증 / ADM 거래·오류·감사 통합 관제 기준 보강 / 리포트 HTML 형식 재확인]
+```text
+[ADM 거래/오류/감사 통합 관제 UX 기준 보강 / 리포트 HTML 정본화 / 운영 추적 E2E Smoke]
 
 현재 상태 판정:
-- dbLogEnabled:
-- requestBodySaveYn:
-- responseBodySaveYn:
-- errorStackSaveYn:
-- active override:
-- expired override:
-- fallback:
-- ADM 거래 로그:
-- ADM 오류 로그:
-- ADM 감사 로그:
 - 리포트 HTML 구조:
+- 거래 로그:
+- 오류 로그:
+- 일반 감사:
+- 정책 감사:
+- transactionGlobalId 검색:
+- traceId 검색:
+- businessTransactionId 검색:
+- 통합 추적 API/UI wrapper:
+
+개발/보강:
+- 리포트 HTML:
+- check-html-docs:
+- ADM 로그 API:
+- ADM 오류 API:
+- ADM 감사 API:
+- 정책 감사 API:
+- smoke script:
+- 문서:
+- 기능 매트릭스:
 
 검증 결과:
-- 로그 정책 smoke:
-- ADM runtime smoke:
 - Gradle test:
 - qualityGate:
+- ADM runtime smoke:
+- log policy smoke:
 - check scripts:
 
 미구현:
@@ -414,54 +457,54 @@ CPF_STABILIZATION_REPORT.html
 
 ---
 
-## 11. 완료 기준
+## 13. 완료 기준
 
-아래가 모두 충족되어야 이번 작업을 완료로 기록한다.
+아래가 모두 충족되어야 완료로 기록한다.
 
-```text id="r7ybvh"
-- dbLogEnabled=N 검증이 유지된다.
-- requestBodySaveYn=N 실제 저장 제외가 검증된다.
-- responseBodySaveYn=N 실제 저장 제외가 검증된다.
-- errorStackSaveYn=N 실제 저장 제외가 검증된다.
-- active override 적용이 검증된다.
-- expired override 미적용이 검증된다.
-- DB policy fallback이 검증된다.
-- yml default 또는 CPF default fallback이 검증된다.
-- ADM 거래 로그 목록/상세 조회 기준이 확인된다.
-- ADM 오류 로그/감사 로그 연결 상태가 실제 기준으로 판정된다.
+```text
 - CPF_STABILIZATION_REPORT.html이 실제 HTML 구조다.
-- README/specs/기능 매트릭스/리포트가 실제 결과와 일치한다.
-- 실행하지 않은 검증을 성공으로 기록하지 않는다.
+- check-html-docs가 리포트 HTML 구조를 검증한다.
+- ADM 거래 로그 목록/상세 조회 기준이 확인된다.
+- businessTransactionId 검색이 확인된다.
+- transactionGlobalId 검색이 확인된다.
+- traceId 검색이 확인된다.
+- 실패 거래 또는 오류 로그 조회 기준이 확인된다.
+- 일반 감사 로그 API 상태가 확인된다.
+- 정책 감사 로그 API 상태가 확인된다.
+- 거래 상세에서 오류/감사/정책 감사로 추적하는 기준이 문서/매트릭스에 반영된다.
+- 미구현 기능은 미구현으로 기록한다.
+- 실행하지 않은 검증은 성공으로 기록하지 않는다.
 ```
 
 ---
 
-## 12. 완료 불인정 기준
+## 14. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 기록하지 않는다.
 
-```text id="pwpnrr"
-- dbLogEnabled만 검증하고 request/response/errorStack 정책을 완료로 기록
-- override active만 검증하고 expired/fallback을 완료로 기록
-- 소스만 확인하고 DB 결과를 확인하지 않음
-- 거래 로그만 있고 오류/감사 연결 상태를 판정하지 않음
+```text
 - CPF_STABILIZATION_REPORT.html이 Markdown 형식
-- check-html-docs가 리포트 HTML 구조를 잡지 못함
+- check-html-docs가 Markdown 형식 리포트를 통과시킴
+- 거래 로그만 있고 오류/감사 연결 상태를 판정하지 않음
+- transactionGlobalId/traceId 검색 검증 없음
+- 감사 로그 API가 없는데 완료로 기록
+- 정책 감사와 일반 감사를 구분하지 않음
+- 문서에만 통합 관제 가능이라고 쓰고 API/검색 조건 없음
 - 실행하지 않은 검증을 성공으로 기록
 ```
 
 ---
 
-## 13. 다음 보강 후보로만 기록할 항목
+## 15. 다음 보강 후보로만 기록할 항목
 
 이번 작업 이후 다음 보강 후보는 실제 결과를 기준으로 정렬한다.
 
 기본 후보:
 
-```text id="4mxxfd"
+```text
 1. ADM 브라우저 실제 클릭 자동화
 2. ADM Cache 관제 / hit-miss / ttl / eviction / clear / 다중 인스턴스 전파
-3. 로그 정책 Redis/Kafka/MQ broker 전파
+3. Redis/Kafka/MQ broker 기반 정책 전파 검증
 4. ADM 배치 운영 정책 / 강제수행 / lock / 파라미터 / BAT EDU
 5. ghost 자동 감지 scheduler와 장애 시나리오 테스트
 6. 온디맨드 배치

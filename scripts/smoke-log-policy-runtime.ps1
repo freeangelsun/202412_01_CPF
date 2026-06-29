@@ -773,7 +773,16 @@ try {
             throw "ADM transaction log list did not return business transaction result."
         }
 
+        $observabilityByBusiness = Invoke-SmokeJson `
+            -Method Get `
+            -Uri "$AdmBaseUrl/adm/api/observability/business-transactions/${policyApiTransactionId}?limit=5" `
+            -Headers $headers
+        if ($observabilityByBusiness.available -eq $false -or @($observabilityByBusiness.transactionLogs).Count -eq 0) {
+            throw "ADM observability business transaction query did not return transaction logs."
+        }
+
         $logsByGlobal = $null
+        $observabilityByGlobal = $null
         if (-not [string]::IsNullOrWhiteSpace($transactionIdForAlias)) {
             $encodedTransactionId = [uri]::EscapeDataString([string] $transactionIdForAlias)
             $logsByGlobal = Invoke-SmokeJson `
@@ -783,9 +792,17 @@ try {
             if ($logsByGlobal.available -eq $false -or @($logsByGlobal.items).Count -eq 0) {
                 throw "ADM transactionGlobalId alias search did not return a result."
             }
+            $observabilityByGlobal = Invoke-SmokeJson `
+                -Method Get `
+                -Uri "$AdmBaseUrl/adm/api/observability/transactions/${encodedTransactionId}?limit=5" `
+                -Headers $headers
+            if ($observabilityByGlobal.available -eq $false -or @($observabilityByGlobal.transactionLogs).Count -eq 0) {
+                throw "ADM observability transactionGlobalId query did not return transaction logs."
+            }
         }
 
         $logsByTrace = $null
+        $observabilityByTrace = $null
         if (-not [string]::IsNullOrWhiteSpace($traceIdForSearch)) {
             $encodedTraceId = [uri]::EscapeDataString([string] $traceIdForSearch)
             $logsByTrace = Invoke-SmokeJson `
@@ -794,6 +811,13 @@ try {
                 -Headers $headers
             if ($logsByTrace.available -eq $false -or @($logsByTrace.items).Count -eq 0) {
                 throw "ADM traceId search did not return a result."
+            }
+            $observabilityByTrace = Invoke-SmokeJson `
+                -Method Get `
+                -Uri "$AdmBaseUrl/adm/api/observability/traces/${encodedTraceId}?limit=5" `
+                -Headers $headers
+            if ($observabilityByTrace.available -eq $false -or @($observabilityByTrace.transactionLogs).Count -eq 0) {
+                throw "ADM observability traceId query did not return transaction logs."
             }
         }
 
@@ -805,6 +829,13 @@ try {
             -Method Get `
             -Uri "$AdmBaseUrl/adm/api/audit-logs?limit=1" `
             -Headers $headers
+        $policyAuditLogs = Invoke-SmokeJsonAllowHttpError `
+            -Method Get `
+            -Uri "$AdmBaseUrl/adm/api/log-policy-audits?targetType=ONLINE_TRANSACTION&targetId=$policyApiTransactionId&limit=5" `
+            -Headers $headers
+        if ($policyAuditLogs.statusCode -ne 200 -or @($policyAuditLogs.body.items).Count -eq 0) {
+            throw "ADM log policy audit query did not return policy audit rows. statusCode=$($policyAuditLogs.statusCode)"
+        }
         $globalAliasStatus = "SKIPPED_NO_TRANSACTION_ID"
         if ($logsByGlobal -ne $null) {
             $globalAliasStatus = "PASSED"
@@ -821,6 +852,7 @@ try {
         if ($auditLogs.statusCode -eq 200) {
             $auditLogQueryStatus = "PASSED"
         }
+        $policyAuditQueryStatus = "PASSED"
 
         $result.admObservability.transactionLogList = [ordered]@{
             status = "PASSED"
@@ -832,6 +864,11 @@ try {
             logIdx = $latestPolicyLogIdx
             hasFormattedDetails = @($policyLogDetail.formattedDetails).Count -gt 0
         }
+        $result.admObservability.businessTransactionSearch = [ordered]@{
+            status = "PASSED"
+            businessTransactionId = $policyApiTransactionId
+            count = @($logsByBusiness.items).Count
+        }
         $result.admObservability.transactionGlobalIdAlias = [ordered]@{
             status = $globalAliasStatus
             transactionId = $transactionIdForAlias
@@ -839,6 +876,23 @@ try {
         $result.admObservability.traceSearch = [ordered]@{
             status = $traceSearchStatus
             traceId = $traceIdForSearch
+        }
+        $result.admObservability.observabilityByBusinessTransaction = [ordered]@{
+            status = "PASSED"
+            businessTransactionId = $policyApiTransactionId
+            transactionLogCount = @($observabilityByBusiness.transactionLogs).Count
+            failureLogCount = @($observabilityByBusiness.failureLogs).Count
+            policyAuditCount = @($observabilityByBusiness.policyAuditLogs).Count
+        }
+        $result.admObservability.observabilityByTransaction = [ordered]@{
+            status = $(if ($observabilityByGlobal -ne $null) { "PASSED" } else { "SKIPPED_NO_TRANSACTION_ID" })
+            transactionId = $transactionIdForAlias
+            transactionLogCount = $(if ($observabilityByGlobal -ne $null) { @($observabilityByGlobal.transactionLogs).Count } else { 0 })
+        }
+        $result.admObservability.observabilityByTrace = [ordered]@{
+            status = $(if ($observabilityByTrace -ne $null) { "PASSED" } else { "SKIPPED_NO_TRACE_ID" })
+            traceId = $traceIdForSearch
+            transactionLogCount = $(if ($observabilityByTrace -ne $null) { @($observabilityByTrace.transactionLogs).Count } else { 0 })
         }
         $result.admObservability.errorLogQuery = [ordered]@{
             status = $errorLogQueryStatus
@@ -848,6 +902,12 @@ try {
             status = $auditLogQueryStatus
             httpStatus = $auditLogs.statusCode
             note = "ADM generic audit API state only. pfw_log_policy_audit is still policy-domain audit storage."
+        }
+        $result.admObservability.policyAuditQuery = [ordered]@{
+            status = $policyAuditQueryStatus
+            httpStatus = $policyAuditLogs.statusCode
+            count = @($policyAuditLogs.body.items).Count
+            source = "pfw_log_policy_audit"
         }
     }
 } catch {

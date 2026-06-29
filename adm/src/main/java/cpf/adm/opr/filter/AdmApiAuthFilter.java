@@ -35,6 +35,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
 
     static {
         MENU_BY_PATH_PREFIX.put("/adm/api/logs", "LOG_LIST");
+        MENU_BY_PATH_PREFIX.put("/adm/api/observability", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/transactions", "TRANSACTION_META");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
@@ -47,12 +48,14 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/response-codes", "RESPONSE_CODE");
         MENU_BY_PATH_PREFIX.put("/adm/api/configs", "CONFIG");
         MENU_BY_PATH_PREFIX.put("/adm/api/log-level", "DYNAMIC_LOG");
+        MENU_BY_PATH_PREFIX.put("/adm/api/log-policy-audits", "LOG_POLICY");
         MENU_BY_PATH_PREFIX.put("/adm/api/log-policies", "LOG_POLICY");
         MENU_BY_PATH_PREFIX.put("/adm/api/security", "SECURITY");
         MENU_BY_PATH_PREFIX.put("/adm/api/permissions", "PERMISSION");
         MENU_BY_PATH_PREFIX.put("/adm/api/operators", "OPERATOR");
 
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/logs", "LOG_LIST_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/observability", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transactions", "TRANSACTION_META_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");
@@ -90,6 +93,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/configs", "CONFIG_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-level", "DYNAMIC_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-level", "DYNAMIC_LOG_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-policy-audits", "LOG_POLICY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/log-policies", "LOG_POLICY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies/cache/refresh", "LOG_POLICY_CACHE_REFRESH");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/log-policies/cache/clear", "LOG_POLICY_CACHE_CLEAR");

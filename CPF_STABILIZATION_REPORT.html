@@ -2,133 +2,123 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 안정화 작업 리포트</title>
+  <title>CPF 안정화 리포트</title>
   <style>
-    body { font-family: "Malgun Gothic", Arial, sans-serif; margin: 0; color: #20242a; background: #f6f8fb; }
-    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; background: #fff; }
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    h2 { margin-top: 30px; padding-bottom: 8px; border-bottom: 2px solid #e3e8ef; font-size: 20px; }
-    p { line-height: 1.65; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #d8dee8; padding: 9px 10px; vertical-align: top; line-height: 1.55; }
-    th { background: #eef3f8; text-align: left; }
-    code { background: #f0f3f7; border-radius: 4px; padding: 1px 5px; }
-    .ok { color: #096b37; font-weight: 700; }
-    .warn { color: #8a5a00; font-weight: 700; }
-    .fail { color: #a01919; font-weight: 700; }
-    .note { background: #f7fbff; border-left: 4px solid #6aa3d8; padding: 12px 14px; }
+    body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    h1, h2 { color: #111827; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th, td { border: 1px solid #d1d5db; padding: 10px 12px; vertical-align: top; }
+    th { background: #e0f2fe; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    .ok { color: #047857; font-weight: 700; }
+    .partial { color: #b45309; font-weight: 700; }
+    .no { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 안정화 작업 리포트</h1>
-    <p>작성일시: 2026-06-26 18:45 KST</p>
-    <p class="note">이번 작업은 로그 정책의 실제 저장 효과와 ADM 거래/오류/감사 관제 기준을 보강하는 범위입니다. 요청서 파일은 확인용으로만 사용했고 작업 대상으로 수정하지 않았습니다. 별도 수정 파일 목록 산출물은 만들지 않았고, 커밋도 수행하지 않았습니다.</p>
+    <h1>CPF 안정화 리포트</h1>
+    <p>이번 리포트는 ADM 거래, 오류, 일반 감사, 정책 감사 통합 관제 기준 보강과 운영 추적 smoke 보강 결과를 기록합니다. 실행하지 않은 검증은 성공으로 표기하지 않습니다.</p>
   </section>
 
   <section>
-    <h2>수행 작업</h2>
+    <h2>현재 상태 판정</h2>
     <table>
       <thead>
-      <tr><th>영역</th><th>반영 내용</th><th>주요 파일</th></tr>
+      <tr><th>항목</th><th>판정</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td>로그 정책 smoke</td><td><code>requestBodySaveYn=N</code>, <code>responseBodySaveYn=N</code>, <code>errorStackSaveYn=N</code>이 실제 거래 로그 요약과 상세 로그에서 저장 제외되는지 확인하도록 runtime smoke를 확장했습니다. <code>dbLogEnabled=N</code> 저장 중지와 해제 후 저장 재개도 계속 검증합니다.</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td></tr>
-      <tr><td>override와 fallback</td><td>active override 우선 적용, future override 미적용, DB policy fallback, CPF 기본값 fallback을 runtime smoke에 추가했습니다. application 기본값과 expired override fallback은 단위 테스트로 보강했습니다.</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>, <code>LogPolicyCacheTest</code></td></tr>
-      <tr><td>ADM 로그 관제</td><td>거래 로그 조회 API에 <code>transactionGlobalId</code> 별칭을 추가해 기존 <code>transactionId</code>와 같은 검색 조건으로 동작하게 했습니다. runtime smoke에서 업무 거래 ID, trace ID, transactionGlobalId 별칭, 실패 로그, 감사 로그 API 도달 상태를 확인합니다.</td><td><code>AdmLogController</code>, <code>scripts/smoke-log-policy-runtime.ps1</code></td></tr>
-      <tr><td>품질 gate</td><td>기능 증거 검사에 신규 로그 정책 smoke 항목, ADM transactionGlobalId 별칭, fallback 단위 테스트 증거를 추가했습니다. HTML 문서 검사는 <code>title</code>과 Markdown code fence 잔재까지 확인하도록 강화했습니다.</td><td><code>scripts/check-feature-evidence.ps1</code>, <code>scripts/check-html-docs.ps1</code></td></tr>
-      <tr><td>문서 현행화</td><td>README, 문서 인덱스, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스에 이번 로그 정책 runtime 검증 범위와 남은 리스크를 반영했습니다.</td><td><code>README</code>, <code>specs</code> HTML 가이드</td></tr>
-    </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>Runtime Smoke 결과</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>증거</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>ADM runtime smoke</td><td class="ok">성공</td><td>health, OpenAPI, 배치 API marker, 거래 메타 scan/list/detail, 정적 UI smoke가 성공했습니다. 브라우저 실제 클릭은 실행 환경 부재로 스크립트 내부에서 skipped로 기록됐습니다.</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td class="ok">성공</td><td><code>build/runtime-smoke/log-policy-runtime-smoke-result.json</code> 기준 전체 smoke가 완료됐습니다.</td></tr>
-      <tr><td><code>dbLogEnabled=N</code></td><td class="ok">성공</td><td>override 적용 전후 log index가 <code>1147</code>로 유지되어 DB 로그 저장이 중지됐고, 해제 후 <code>1241</code>로 증가해 저장 재개가 확인됐습니다.</td></tr>
-      <tr><td>request body 저장 제외</td><td class="ok">성공</td><td>log index <code>1246</code>에서 summary <code>REQUEST_BODY</code>와 detail <code>requestBody</code>가 비어 있음을 확인했습니다.</td></tr>
-      <tr><td>response body 저장 제외</td><td class="ok">성공</td><td>log index <code>1246</code>에서 summary <code>RESPONSE</code>와 detail <code>response</code>가 비어 있음을 확인했습니다.</td></tr>
-      <tr><td>error stack 저장 제외</td><td class="ok">성공</td><td>의도적 400 오류 거래 log index <code>1250</code>에서 summary <code>INTERNAL_MESSAGE</code>와 detail <code>error.internalMessage</code>가 비어 있음을 확인했습니다.</td></tr>
-      <tr><td>fallback 우선순위</td><td class="ok">성공</td><td>active override는 <code>ADM_OVERRIDE</code>, future override는 시작 전 미적용되어 <code>DB_POLICY</code>, DB 정책이 없는 MODULE 대상은 <code>CPF_DEFAULT</code>로 판정됐습니다. application 기본값과 expired override는 단위 테스트로 확인했습니다.</td></tr>
-      <tr><td>ADM 로그 조회</td><td class="ok">성공</td><td><code>ADM03LGP0014</code> 기준 목록/상세, transactionGlobalId 별칭, trace ID, 실패 로그 조회가 성공했습니다. 감사 로그 API도 HTTP 200으로 응답했습니다.</td></tr>
+      <tr><td>리포트 HTML 구조</td><td class="ok">완료</td><td>실제 HTML 구조로 작성했고 HTML 문서 검증을 통과했습니다.</td></tr>
+      <tr><td>거래 로그</td><td class="partial">부분 구현</td><td><code>/adm/api/logs</code> 목록과 상세 API가 존재하고 거래 ID, trace ID, 업무 거래 ID, 실패 로그 조건 검색을 지원합니다.</td></tr>
+      <tr><td>오류 로그</td><td class="partial">부분 구현</td><td>별도 오류 전용 테이블은 없고 <code>pfw_transaction_log</code>의 실패 로그와 상세 로그로 조회합니다. 오류 조치 상태와 이력은 다음 보강입니다.</td></tr>
+      <tr><td>일반 감사</td><td class="partial">부분 구현</td><td><code>/adm/api/audit-logs</code>와 <code>adm_audit_log</code> 기준으로 운영 조치 감사를 조회합니다.</td></tr>
+      <tr><td>정책 감사</td><td class="partial">부분 구현</td><td><code>/adm/api/log-policy-audits</code>를 추가해 <code>pfw_log_policy_audit</code>를 조회합니다.</td></tr>
+      <tr><td>통합 추적 API</td><td class="partial">부분 구현</td><td><code>/adm/api/observability/transactions/{transactionGlobalId}</code>, <code>/adm/api/observability/traces/{traceId}</code>, <code>/adm/api/observability/business-transactions/{businessTransactionId}</code>를 추가했습니다.</td></tr>
+      <tr><td>ADM 헤더부와 데이터부 표시</td><td class="partial">부분 구현</td><td>상세 API는 요약, 헤더, 요청, 응답, 오류, 상세, 전문 포맷 데이터를 분리 반환합니다. 브라우저 클릭 검증은 이번 범위에서 제외했습니다.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section>
+    <h2>개발 보강</h2>
+    <table>
+      <thead>
+      <tr><th>영역</th><th>반영 내용</th><th>상태</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>ADM 통합 관제</td><td><code>AdmObservabilityController</code>와 <code>AdmObservabilityService</code>를 추가해 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 한 응답으로 묶었습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>정책 감사 조회</td><td><code>AdmLogPolicyAuditController</code>를 추가해 정책 감사 목록을 operator, action, target, policy, override 조건으로 조회하게 했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>서버 권한검사</td><td><code>AdmApiAuthFilter</code>에 통합 추적과 정책 감사 API 경로를 추가해 기존 로그 조회, 로그 정책 조회 권한과 연결했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code>에 업무 거래 ID 검색, 통합 추적 API 3종, 일반 감사 API, 정책 감사 API 결과를 <code>admObservability</code>에 기록하도록 보강했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>거래 헤더 로그</td><td><code>LoggingAspect</code>가 실제 런타임 상세 로그에 <code>headers</code> JSON detail을 저장하도록 보강했습니다. 기존 <code>transactionHeader</code>, <code>propagationHeaders</code> detail은 유지합니다.</td><td class="ok">완료</td></tr>
+      <tr><td>배치 연결 안정화</td><td>통합 추적 API의 관련 배치 실행 조회가 현재 <code>pfw_batch_execution</code> 스키마와 맞지 않는 컬럼을 참조하지 않도록 수정했습니다. 배치 연결은 optional 정보이므로 컬럼 차이가 있어도 통합 추적 API 전체가 실패하지 않게 했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>기능 증거 gate</td><td><code>scripts/check-feature-evidence.ps1</code>에 신규 API, 서비스, 테스트, smoke marker를 추가했습니다.</td><td class="ok">완료</td></tr>
+      <tr><td>문서</td><td>README, 관리자 가이드, 운영 매뉴얼, SQL 가이드, 개발 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스를 실제 API와 smoke 기준에 맞게 갱신했습니다.</td><td class="ok">완료</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>온라인 거래 헤더 규격</h2>
+    <table>
+      <thead>
+      <tr><th>구분</th><th>헤더</th><th>상태</th><th>설명</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>필수</td><td><code>X-Transaction-Id</code></td><td>검증</td><td>34자리 거래 글로벌 ID입니다. 구조는 17자리 일시, 3자리 모듈 ID, 7자리 WAS ID, 7자리 순번입니다.</td></tr>
+      <tr><td>필수</td><td><code>X-Request-Type</code></td><td>검증</td><td>조회, 등록, 수정, 삭제, 처리 같은 요청 유형입니다.</td></tr>
+      <tr><td>필수</td><td><code>X-Original-Channel-Code</code></td><td>검증</td><td>최초 유입 채널입니다.</td></tr>
+      <tr><td>필수</td><td><code>X-Channel-Code</code></td><td>검증</td><td>현재 처리 채널입니다.</td></tr>
+      <tr><td>권장</td><td><code>X-Trace-Id</code>, <code>X-Parent-Span-Id</code>, <code>X-Span-Id</code></td><td>전파</td><td>trace ID가 없으면 생성하고 span ID는 응답 헤더로 반환합니다. 내부 호출은 parent span을 전달합니다.</td></tr>
+      <tr><td>권장</td><td><code>X-Client-Version</code>, <code>X-Caller-Service</code>, <code>X-Caller-Instance-Id</code></td><td>수집</td><td>클라이언트 버전, 호출 서비스, 인스턴스 정보를 운영 추적에 사용합니다.</td></tr>
+      <tr><td>권장</td><td><code>X-Correlation-Id</code>, <code>X-Idempotency-Key</code></td><td>수집</td><td>외부 연계 상관 ID와 멱등성 키입니다.</td></tr>
+      <tr><td>권장</td><td><code>X-Member-No</code>, <code>X-Customer-No</code>, <code>X-User-Id</code></td><td>수집</td><td>회원, 고객, 사용자 기준 로그 검색에 사용합니다.</td></tr>
+      </tbody>
+    </table>
+    <p><code>TransactionContextFilter</code>는 거래 ID, trace ID, span ID를 응답 헤더로 반환합니다. <code>TransactionHeaderValidationInterceptor</code>는 필수 헤더와 거래 ID 형식을 검사합니다. <code>TransactionContext.propagationHeaders()</code>는 서비스 간 호출에 필요한 표준 헤더를 이어 줍니다.</p>
   </section>
 
   <section>
     <h2>검증 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>상태</th><th>비고</th></tr>
+      <tr><th>검증</th><th>결과</th><th>메모</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>로그 정책 단위 테스트 포함.</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="ok">성공</td><td>ADM 컴파일과 테스트 통과.</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트 통과.</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:bootJar --offline</code></td><td class="ok">성공</td><td>ADM boot jar 생성 완료.</td></tr>
-      <tr><td><code>scripts/smoke-adm-runtime.ps1</code></td><td class="ok">성공</td><td>OpenAPI smoke와 거래 메타 runtime smoke를 포함해 통과.</td></tr>
-      <tr><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td class="ok">성공</td><td>이번 핵심 로그 정책 세부 효과 검증 통과.</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>신규 증거 항목 포함 통과.</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>UTF-8와 mojibake gate 통과.</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="ok">성공</td><td>본 리포트 작성 후 재실행해 HTML 구조, title, Markdown 잔재 검사를 통과했습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>기능 증거, HTML 문서, Java format, legacy name, mojibake, 샘플 표준, 보안 seed, SQL 표준, 거래 ID 표준, 전체 테스트가 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="ok">성공</td><td>PFW 헤더 로그 보강 후 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="ok">성공</td><td>ADM 통합 관제 서비스와 컨트롤러 추가 후 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트가 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>기능 증거, HTML 문서, Java format, legacy name, mojibake, sample standard, security seed, SQL standard, transaction ID standard, UTF-8, 테스트가 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:bootJar --offline</code></td><td class="ok">성공</td><td>ADM boot jar 생성이 성공했습니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td class="ok">성공</td><td>OpenAPI smoke, 거래 메타 runtime smoke, ADM UI smoke marker, ADM runtime smoke가 통과했습니다.</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td class="ok">성공</td><td><code>dbLogDisabled</code>, <code>dbLogEnabled</code>, request/response/error stack 정책, override fallback, <code>admObservability.businessTransactionSearch</code>, <code>admObservability.policyAuditQuery</code>, 통합 추적 3종이 통과했습니다.</td></tr>
+      <tr><td>HTML, UTF-8, 기능 증거, SQL standard check</td><td class="ok">성공</td><td>각 check 스크립트를 개별 실행했고 모두 통과했습니다.</td></tr>
+      <tr><td>전체 설치 SQL 신규 DB 재실행</td><td class="partial">미검증</td><td>이번 요청의 실행 제외 범위입니다.</td></tr>
+      <tr><td>브라우저 실제 클릭 자동화</td><td class="partial">미검증</td><td>이번 요청의 실행 제외 범위입니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>남은 리스크와 보류 항목</h2>
+    <h2>미구현과 다음 조치</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>사유와 다음 조치</th></tr>
+      <tr><th>항목</th><th>상태</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>브라우저 실제 클릭 자동화</td><td class="warn">미검증</td><td>현재 runtime smoke 결과에 브라우저 자동화 런타임이 없어 skipped로 기록됐습니다. 브라우저 자동화 환경을 준비한 뒤 ADM 화면 클릭 검증을 별도로 수행해야 합니다.</td></tr>
-      <tr><td>정책 감사와 일반 감사의 완전 통합</td><td class="warn">부분 구현</td><td><code>pfw_log_policy_audit</code>는 정책 도메인 감사 저장소이고, <code>adm_audit_log</code>는 ADM 일반 감사 저장소입니다. 이번에는 두 API/저장소의 상태를 확인했지만 단일 UX 통합은 다음 보강입니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ 다중 인스턴스 전파</td><td class="warn">보류</td><td>이번 요청 범위에서 실 broker 연동은 제외됐습니다. 현재는 DB policy와 cache refresh 기준으로 검증했습니다.</td></tr>
-      <tr><td>운영 부하와 장시간 로그 정책 검증</td><td class="warn">미검증</td><td>단건 runtime smoke는 통과했지만, 장시간 부하 상태에서 정책 cache TTL, override 만료, 동시 변경 시나리오는 별도 성능/운영 검증이 필요합니다.</td></tr>
-      <tr><td>전체 설치 SQL 재실행</td><td class="warn">미검증</td><td>이번 작업은 runtime 정책 검증 중심으로 수행했습니다. 전체 설치 SQL과 seed idempotent 재검증은 별도 DB 초기화 시나리오에서 수행하는 것이 안전합니다.</td></tr>
-    </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>항상 지켜야 할 기준 점검</h2>
-    <table>
-      <thead>
-      <tr><th>기준</th><th>이번 준수 상태</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>문서와 소스, SQL, Swagger, EDU 샘플 일치</td><td class="ok">관련 README와 HTML 가이드를 현행화했습니다. 이번 범위는 SQL/EDU 신규 구조 변경이 없어 기존 산출물을 유지했습니다.</td></tr>
-      <tr><td>README는 짧은 진입점, 상세는 가이드 연결</td><td class="ok">README는 런타임 검증 요약만 보강하고 상세 기준은 specs HTML 가이드에 반영했습니다.</td></tr>
-      <tr><td>기능 변경 시 문서 동시 현행화</td><td class="ok">관리자 가이드, 운영 매뉴얼, SQL 가이드, 프레임워크 구성 가이드, 기능 구현 매트릭스를 갱신했습니다.</td></tr>
-      <tr><td>신규 주석과 설명은 한글</td><td class="ok">ADM 로그 컨트롤러 신규 설명은 한글로 작성했습니다. smoke 스크립트의 결과 key는 자동 처리와 JSON 호환성을 위해 영문 식별자를 유지했습니다.</td></tr>
-      <tr><td>실행하지 않은 검증은 성공으로 보고하지 않음</td><td class="ok">브라우저 클릭, broker 실연동, 전체 설치 SQL 재실행은 미검증 또는 보류로 분리했습니다.</td></tr>
-    </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>다음 보강 후보</h2>
-    <table>
-      <thead>
-      <tr><th>우선순위</th><th>보강 후보</th><th>이유</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>1</td><td>ADM 거래/오류/정책 감사/일반 감사 통합 UX</td><td>이번에 API와 smoke 기준은 강화됐지만, 운영자가 한 화면에서 거래와 감사 흐름을 따라가는 UX는 아직 분산돼 있습니다.</td></tr>
-      <tr><td>2</td><td>브라우저 클릭 자동화 환경 구성과 ADM 화면 회귀 검증</td><td>정적 UI marker 검증은 통과하지만 실제 버튼, 탭, 검색, 상세 보기 동작은 별도 자동화가 필요합니다.</td></tr>
-      <tr><td>3</td><td>Redis/Kafka/MQ broker 기반 정책 전파 검증</td><td>다중 인스턴스 운영에서는 cache refresh가 한 인스턴스에만 머물면 안 됩니다.</td></tr>
-      <tr><td>4</td><td>로그 정책 부하/장시간/만료 시나리오</td><td>단건 검증 이후에는 override 만료, TTL, 동시 변경, 대량 트래픽 상태를 검증해야 합니다.</td></tr>
-      <tr><td>5</td><td>전체 설치 SQL 초기화 검증</td><td>새 개발자 배포 기준본으로 굳히려면 초기 DB에서 설치, 재실행, seed idempotent, 권한 분리를 반복 검증해야 합니다.</td></tr>
+      <tr><td>오류 조치 상태와 조치 이력</td><td class="no">미구현</td><td>거래 실패 로그를 기준으로 조치 상태, 담당자, 사유, 조치 이력 테이블과 API를 설계합니다.</td></tr>
+      <tr><td>ADM 브라우저 탭형 통합 관제 UX 클릭 검증</td><td class="partial">미검증</td><td>브라우저 자동화 환경에서 거래 상세, 헤더, request, response, error, 감사, 정책 감사 탭을 클릭 검증합니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker 실연동</td><td class="partial">미검증</td><td>다중 인스턴스 로그 정책 전파와 cache refresh 장애 시나리오를 별도 환경에서 검증합니다.</td></tr>
+      <tr><td>전체 설치 SQL 신규 DB 재검증</td><td class="partial">미검증</td><td>이번 범위에서 제외했습니다. 신규 DB에서 설치, FK, index, seed idempotent를 별도 실행합니다.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section>
+    <h2>최종 판정</h2>
+    <p class="partial">이번 요청 범위는 완료입니다. 다만 전체 프레임워크 관점에서는 오류 조치 상태/이력, 브라우저 실제 클릭 자동화, broker 실연동, 전체 설치 SQL 신규 DB 재검증이 남아 있으므로 전체 판정은 부분 구현으로 유지합니다.</p>
   </section>
 </main>
 </body>

@@ -65,8 +65,8 @@
       <tr><td>온라인 거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>구현되어 있습니다. 요청/응답, 오류, 헤더, 실행 메타를 저장합니다.</td></tr>
       <tr><td>온라인 거래 메타 전용 테이블</td><td><code>pfw_transaction_meta</code></td><td>Controller/API의 <code>@CpfTransaction</code>, HTTP method/path, Controller class, handler method를 저장합니다.</td></tr>
       <tr><td>온라인 오류 로그 전용 테이블</td><td><code>pfw_error_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 현재는 거래 로그 실패 레코드와 상세 로그로 오류를 추적합니다.</td></tr>
-      <tr><td>PFW 감사 로그 전용 테이블</td><td><code>pfw_audit_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 운영 감사는 <code>adm_audit_log</code>가 담당합니다.</td></tr>
-      <tr><td>로그 정책 테이블</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책, 기간/사유 기반 override, 정책 변경 감사 이력을 저장합니다. 온라인 거래 정책 대상 유형은 <code>ONLINE_TRANSACTION</code>을 표준으로 사용하고 기존 <code>TRANSACTION</code>은 런타임 호환 별칭으로만 처리합니다.</td></tr>
+      <tr><td>PFW 감사 로그 전용 테이블</td><td><code>pfw_audit_log</code>에 해당하는 테이블</td><td>별도 테이블은 없습니다. 운영 조치 감사는 <code>adm_audit_log</code>가 담당하고, 로그 정책 도메인 감사는 <code>pfw_log_policy_audit</code>가 담당합니다.</td></tr>
+      <tr><td>로그 정책 테이블</td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책, 기간/사유 기반 override, 정책 변경 감사 이력을 저장합니다. 온라인 거래 정책 대상 유형은 <code>ONLINE_TRANSACTION</code>을 표준으로 사용하고 기존 <code>TRANSACTION</code>은 런타임 호환 별칭으로만 처리합니다. ADM 조회 API는 <code>/adm/api/log-policy-audits</code>입니다.</td></tr>
       <tr><td>배치 메타</td><td><code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>구현되어 있습니다. V10 진행률/heartbeat 컬럼은 실제 MariaDB 적용과 smoke 검증까지 완료했습니다.</td></tr>
       </tbody>
     </table>
@@ -81,7 +81,7 @@
       <tbody>
       <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code>, <code>BATCH_JOB_EXECUTION_PARAMS</code></td><td>Spring Batch 표준 JobRepository 원천 실행 메타</td><td><code>jobExecutionId</code>, <code>stepExecutionId</code>로 CPF 메타와 연결합니다.</td></tr>
       <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td>ADM 관제와 운영 조치를 위한 프레임워크 메타. 실행 중 처리 건수, 진행률, 마지막 heartbeat를 포함합니다.</td><td><code>transactionGlobalId</code>, <code>executionId</code>, workerId 기준으로 추적합니다.</td></tr>
-      <tr><td>운영 로그</td><td><code>pfw_transaction_log</code>, <code>adm_audit_log</code></td><td>API 호출과 운영 조치 감사</td><td>수동 실행, 중지, 재수행, ghost 조치에는 감사 사유를 남깁니다.</td></tr>
+      <tr><td>운영 로그</td><td><code>pfw_transaction_log</code>, <code>adm_audit_log</code>, <code>pfw_log_policy_audit</code></td><td>API 호출, 운영 조치 감사, 로그 정책 감사</td><td>수동 실행, 중지, 재수행, ghost 조치에는 감사 사유를 남기고, 로그 정책 변경은 정책 감사 테이블에도 남깁니다.</td></tr>
       </tbody>
     </table>
   </section>

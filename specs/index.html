@@ -30,7 +30,7 @@
       </thead>
       <tbody>
       <tr><td>신규 개발자</td><td><a href="개발_가이드.html">개발 가이드</a></td><td><a href="프레임워크_구성_가이드.html">프레임워크 구성 가이드</a>, <code>xyz/src/main/java/cpf/xyz/edu</code></td><td>신규 API, CRUD, 배치, 외부 호출, 공통 기능 개발 방법을 파악합니다.</td></tr>
-      <tr><td>운영자</td><td><a href="관리자_가이드.html">관리자 가이드</a></td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a>, ADM 화면, ADM API, 감사 로그</td><td>권한, 회원, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 절차를 확인합니다.</td></tr>
+      <tr><td>운영자</td><td><a href="관리자_가이드.html">관리자 가이드</a></td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a>, ADM 화면, ADM API, 감사 로그, 정책 감사 로그</td><td>권한, 회원, 로그, 통합 추적, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 절차를 확인합니다.</td></tr>
       <tr><td>배치 개발자</td><td><a id="batch-development-guide" href="배치_개발_가이드.html">배치 개발 가이드</a></td><td><code>bat/src/main/java/cpf/bat</code>, <code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT 실행, Spring Batch JobRepository, PFW Batch 운영 메타 연동을 확인합니다.</td></tr>
       <tr><td>DB 담당자</td><td><a href="SQL_가이드.html">SQL 가이드</a></td><td><code>specs/sql</code>, Flyway migration</td><td>DB 소유권, 설치 순서, 권한 계정, 테이블 표준, smoke 검증 기준을 확인합니다.</td></tr>
       <tr><td>검수자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>안정화 리포트, Gradle 검증 결과</td><td>기능별 구현 상태, 테스트 증거, 미검증 사유를 대조합니다.</td></tr>
@@ -70,7 +70,7 @@
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거 검증 통과</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상 Job, 실패 Job, Spring Batch ID, CPF 배치 메타 연결 확인</td></tr>
       <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 기동, health, OpenAPI, 배치 API, 정적 UI smoke, process cleanup 수행</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override와 cache refresh 후 DB 로그 저장 중지/재개, request/response/error 저장 제외, fallback 우선순위, ADM 로그 조회 API 상태 확인</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override와 cache refresh 후 DB 로그 저장 중지/재개, request/response/error 저장 제외, fallback 우선순위, ADM 로그 조회, 통합 추적, 일반 감사, 정책 감사 API 상태 확인</td></tr>
       <tr><td>MariaDB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>설치, seed 재실행, FK/index, smoke query 확인</td></tr>
       </tbody>
     </table>

@@ -59,6 +59,7 @@
     <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-bat-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-adm-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-transaction-meta-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-log-policy-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</code></pre>
     <table>
       <thead>
@@ -68,7 +69,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       <tr><td>BAT runtime smoke</td><td>jar 기동, health 응답, 정상 Job 성공, heartbeat Job 진행률 갱신, 실패 Job 실패 처리, cleanup 성공</td><td>port, profile, datasource, JobRepository 테이블, CPF 배치 메타</td></tr>
       <tr><td>ADM runtime smoke</td><td>jar 기동, health 응답, OpenAPI 접근, 배치 API marker, 거래 메타 scan/list/detail 확인</td><td>ADM datasource, static resource, security filter, session 설정</td></tr>
       <tr><td>거래 메타 runtime smoke</td><td>기동 중인 ADM에서 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회 확인</td><td>pfwDB, <code>pfw_transaction_meta</code>, ADM 인증 토큰</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td><code>dbLogEnabled=N</code> override 적용 시 거래 로그 저장이 멈추고, override 해제 후 저장이 재개되는지 확인합니다. request/response/error stack 저장 제외와 fallback 우선순위, ADM 로그 조회 API 상태도 함께 확인합니다.</td><td>pfwDB 로그 정책 테이블, ADM 로그 정책 권한, cache refresh, ADM 로그 조회 권한</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td><code>dbLogEnabled=N</code> override 적용 시 거래 로그 저장이 멈추고, override 해제 후 저장이 재개되는지 확인합니다. request/response/error stack 저장 제외, fallback 우선순위, ADM 로그 조회, 통합 추적, 일반 감사, 정책 감사 API 상태도 함께 확인합니다.</td><td>pfwDB 로그 정책 테이블, ADM 로그 정책 권한, cache refresh, ADM 로그 조회 권한, 정책 감사 조회 권한</td></tr>
       <tr><td>OpenAPI smoke</td><td>기동 중인 앱의 JSON 문서 조회 성공</td><td>앱 기동 여부, springdoc 설정, context path</td></tr>
       </tbody>
     </table>
@@ -119,6 +120,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
   </section>
 
   <section>
+    <h2>온라인 거래 장애 추적 순서</h2>
+    <table>
+      <thead>
+      <tr><th>단계</th><th>확인 경로</th><th>확인 내용</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>1</td><td><code>/adm/api/logs?transactionGlobalId=...</code> 또는 <code>/adm/api/logs?traceId=...</code></td><td>거래 로그 목록에서 HTTP status, 응답코드, 처리시간, 업무 거래 ID를 확인합니다.</td></tr>
+      <tr><td>2</td><td><code>/adm/api/logs/{logIdx}</code></td><td>상세에서 헤더부, request, response, error, JSON 포맷팅, 고정길이 전문 분해 결과를 확인합니다.</td></tr>
+      <tr><td>3</td><td><code>/adm/api/observability/transactions/{transactionGlobalId}</code></td><td>거래 글로벌 ID 기준으로 성공/실패 로그, 일반 감사, 정책 감사, 배치 실행 연결을 한 번에 확인합니다.</td></tr>
+      <tr><td>4</td><td><code>/adm/api/observability/traces/{traceId}</code></td><td>분산 trace 기준으로 관련 거래 로그를 확인합니다.</td></tr>
+      <tr><td>5</td><td><code>/adm/api/observability/business-transactions/{businessTransactionId}</code></td><td>업무 거래 ID 기준으로 같은 API 기능의 최근 거래와 정책 감사 후보를 확인합니다.</td></tr>
+      <tr><td>6</td><td><code>/adm/api/audit-logs</code>, <code>/adm/api/log-policy-audits</code></td><td>운영 조치 감사와 로그 정책 도메인 감사를 분리해 조회합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>DB 점검 기준</h2>
     <table>
       <thead>
@@ -128,7 +146,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
       <tr><td>Spring Batch</td><td><code>BATCH_JOB_INSTANCE</code>, <code>BATCH_JOB_EXECUTION</code>, <code>BATCH_STEP_EXECUTION</code></td><td>JobRepository 실행 원천 데이터</td></tr>
       <tr><td>CPF Batch</td><td><code>pfw_batch_job</code>, <code>pfw_batch_schedule</code>, <code>pfw_batch_execution</code>, <code>pfw_batch_step_execution</code>, <code>pfw_batch_worker</code>, <code>pfw_batch_lock</code>, <code>pfw_batch_ghost_event</code></td><td>ADM 관제와 운영 조치를 위한 메타. 실행/Step 진행률과 마지막 heartbeat를 포함합니다.</td></tr>
       <tr><td>거래 로그</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code></td><td>API 호출, trace, request/response, 오류 상세 추적</td></tr>
-      <tr><td>감사 로그</td><td><code>adm_audit_log</code></td><td>누가, 언제, 무엇을, 왜 변경했는지 추적</td></tr>
+      <tr><td>일반 감사 로그</td><td><code>adm_audit_log</code></td><td>누가, 언제, 무엇을, 왜 운영 조치했는지 추적</td></tr>
+      <tr><td>정책 감사 로그</td><td><code>pfw_log_policy_audit</code></td><td>로그 정책 생성, 수정, override, 중지, refresh 이력을 추적</td></tr>
       </tbody>
     </table>
   </section>

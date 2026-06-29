@@ -2,6 +2,8 @@ package cpf.pfw.common.header;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -115,6 +117,7 @@ public final class CpfTrustedProxyPolicy {
         }
         return Arrays.stream(header.split(","))
                 .map(CpfTrustedProxyPolicy::trimToNull)
+                .map(CpfTrustedProxyPolicy::normalizeForwardedForValue)
                 .filter(candidate -> candidate != null)
                 .filter(CpfTrustedProxyPolicy::isUsableForwardedValue)
                 .findFirst()
@@ -186,7 +189,14 @@ public final class CpfTrustedProxyPolicy {
         if (value == null || !value.contains(":")) {
             return false;
         }
-        return value.matches("(?i)[0-9a-f:.]+");
+        if (!value.matches("(?i)[0-9a-f:.]+")) {
+            return false;
+        }
+        try {
+            return InetAddress.getByName(value) instanceof Inet6Address;
+        } catch (RuntimeException | java.net.UnknownHostException ex) {
+            return false;
+        }
     }
 
     private static String firstText(String first, String second, String third, String fallback) {

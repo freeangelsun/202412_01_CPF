@@ -100,7 +100,7 @@
       <tbody>
       <tr><td>trusted proxy 설정</td><td>운영 Gateway/LB/WAF의 실제 IP 또는 CIDR만 등록합니다.</td><td><code>-Dcpf.framework.trusted-proxies=10.0.0.10,10.0.0.0/24</code> 또는 <code>CPF_TRUSTED_PROXIES</code></td></tr>
       <tr><td>미신뢰 원격 주소</td><td>전달 계열 헤더를 무시하고 <code>request.getRemoteAddr()</code>를 사용합니다.</td><td><code>CpfTrustedProxyPolicy.resolveClientIp</code></td></tr>
-      <tr><td>신뢰 원격 주소</td><td><code>X-Forwarded-For</code>, <code>Forwarded</code>, <code>X-Real-IP</code>, 원격 주소 순서로 해석합니다.</td><td><code>X-Client-IP</code> 원문은 거래 기준 IP로 신뢰하지 않습니다. <code>unknown</code>, blank, IP 형식이 아닌 값은 무시합니다.</td></tr>
+      <tr><td>신뢰 원격 주소</td><td><code>X-Forwarded-For</code>, <code>Forwarded</code>, <code>X-Real-IP</code>, 원격 주소 순서로 해석합니다.</td><td><code>X-Client-IP</code> 원문은 거래 기준 IP로 신뢰하지 않습니다. <code>unknown</code>, blank, hostname, octet 범위를 벗어난 IPv4, 깨진 IPv6 값은 무시합니다. <code>Forwarded</code>의 bracket IPv6와 port 표기는 정규화합니다.</td></tr>
       <tr><td>ADM 표시</td><td>거래 기준 IP와 원문 전달 헤더를 분리해서 보여줍니다.</td><td><code>resolvedHeaders.X-Client-IP</code>와 <code>inboundHeaders.X-Forwarded-For</code>를 분리합니다.</td></tr>
       <tr><td>민감 헤더</td><td>토큰, API key, 서명, 난수는 원문 저장 금지입니다.</td><td><code>CpfHeaderMasker</code>와 테스트로 회귀를 막습니다.</td></tr>
       </tbody>

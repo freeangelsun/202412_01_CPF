@@ -124,8 +124,8 @@ class CpfHeaderStandardCoverageTest {
         System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("10.0.0.1");
-        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "unknown, , not-an-ip");
-        request.addHeader(CpfHeaderNames.FORWARDED, "for=unknown;proto=https, for=bad-host-name");
+        request.addHeader(CpfHeaderNames.FORWARDED_FOR, "unknown, , not-an-ip, 999.999.999.999");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=unknown;proto=https, for=bad-host-name, for=\"[::::]\"");
         request.addHeader(CpfHeaderNames.REAL_IP, "invalid-real-ip");
 
         TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
@@ -145,6 +145,18 @@ class CpfHeaderStandardCoverageTest {
         TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
 
         assertThat(header.getClientIp()).isEqualTo("203.0.113.77");
+    }
+
+    @Test
+    void extractorAcceptsBracketedIpv6ForwardedValueFromTrustedProxy() {
+        System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("10.0.0.1");
+        request.addHeader(CpfHeaderNames.FORWARDED, "for=\"[2001:db8::1]:443\";proto=https");
+
+        TransactionHeader header = CpfHeaderExtractor.toTransactionHeader(request, "local01");
+
+        assertThat(header.getClientIp()).isEqualTo("2001:db8::1");
     }
 
     @Test

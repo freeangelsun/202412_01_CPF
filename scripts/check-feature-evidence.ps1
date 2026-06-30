@@ -37,6 +37,43 @@ function Test-RequiredText {
     }
 }
 
+function Test-ForbiddenFile {
+    param(
+        [string] $Path,
+        [string] $Name
+    )
+
+    $fullPath = Join-Path $Root $Path
+    if (Test-Path -LiteralPath $fullPath) {
+        $failures.Add("forbidden feature evidence file remains [$Name]: $Path")
+    }
+}
+
+function Test-ForbiddenText {
+    param(
+        [string] $Path,
+        [string] $Text,
+        [string] $Name
+    )
+
+    $fullPath = Join-Path $Root $Path
+    if (-not (Test-Path -LiteralPath $fullPath)) {
+        $failures.Add("missing feature evidence file [$Name]: $Path")
+        return
+    }
+
+    $content = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
+    if ($content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+        $failures.Add("forbidden feature evidence text remains [$Name]: $Path :: $Text")
+    }
+}
+
+function New-UnicodeText {
+    param([int[]] $CodePoints)
+
+    return -join ($CodePoints | ForEach-Object { [char] $_ })
+}
+
 function Test-RequiredTextInSpecs {
     param(
         [string] $Text,
@@ -172,6 +209,8 @@ Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/controller/XyzQueryEducationCon
 Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/service/XyzQueryEducationService.java" "EDU_QUERY_SERVICE"
 Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/repository/XyzQueryEducationRepository.java" "EDU_QUERY_REPOSITORY"
 Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/mapper/XyzQueryEducationMapper.java" "EDU_QUERY_MAPPER"
+Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/dto/XyzQueryEducationCriteria.java" "EDU_QUERY_CRITERIA_DTO"
+Test-RequiredFile "xyz/src/main/java/cpf/xyz/edu/dto/XyzQueryEducationItem.java" "EDU_QUERY_ITEM_DTO"
 Test-RequiredFile "xyz/src/main/resources/mybatis/mapper/xyz/edu/XyzQueryEducationMapper.xml" "EDU_QUERY_MAPPER_XML"
 Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationRepositoryTest.java" "EDU_QUERY_REPOSITORY_TEST"
 Test-RequiredFile "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java" "EDU_QUERY_MAPPER_SLICE_TEST"
@@ -254,6 +293,39 @@ Test-SpecHtmlDocuments
 Test-RequiredFile "scripts/check-sql-standard.ps1" "CHECK_SQL_STANDARD"
 Test-RequiredFile "scripts/smoke-openapi.ps1" "SMOKE_OPENAPI"
 Test-RequiredFile "scripts/smoke-adm-ui.ps1" "SMOKE_ADM_UI"
+
+$canonicalFixtureName = "xyz_edu_query_fixture.sql"
+$canonicalFixturePath = "xyz/src/test/resources/sql/$canonicalFixtureName"
+$legacyFixtureName = "xyz_edu_query_" + "mapper_fixture.sql"
+$legacyFixturePath = "xyz/src/test/resources/fixture/$legacyFixtureName"
+$devGuideFileName = (New-UnicodeText @(0xAC1C, 0xBC1C, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".html"
+$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".html"
+$fixtureEvidenceFiles = @(
+    "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java",
+    "scripts/check-feature-evidence.ps1",
+    "specs/$devGuideFileName",
+    "specs/$featureMatrixFileName",
+    "CPF_STABILIZATION_REPORT.html"
+)
+
+Test-ForbiddenFile $legacyFixturePath "EDU_LEGACY_MAPPER_FIXTURE"
+foreach ($file in $fixtureEvidenceFiles) {
+    Test-RequiredText $file $canonicalFixtureName "EDU_CANONICAL_FIXTURE_TEXT"
+    Test-ForbiddenText $file $legacyFixtureName "EDU_LEGACY_FIXTURE_TEXT"
+}
+Test-RequiredFile $canonicalFixturePath "EDU_CANONICAL_FIXTURE_FILE"
+
+$dbUsernameEnv = "CPF_XYZ_EDU_MAPPER_DB_USERNAME"
+$legacyDbUserEnv = "CPF_XYZ_EDU_MAPPER_DB_USER"
+$dbEnvEvidenceFiles = @(
+    "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java",
+    "specs/$devGuideFileName",
+    "CPF_STABILIZATION_REPORT.html"
+)
+foreach ($file in $dbEnvEvidenceFiles) {
+    Test-RequiredText $file $dbUsernameEnv "EDU_DB_USERNAME_ENV"
+    Test-RequiredText $file $legacyDbUserEnv "EDU_DB_USER_LEGACY_ENV"
+}
 
 if ($failures.Count -gt 0) {
     $failures | Sort-Object | ForEach-Object { Write-Host $_ }

@@ -78,7 +78,12 @@
       <tr><td>로그 정책 runtime smoke</td><td>미검증</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>실행하지 않았다면 성공으로 기록하지 않습니다.</td></tr>
       <tr><td>MariaDB 신규 DB 전체 설치</td><td>미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>안전한 빈 DB 또는 명시 승인 후에만 실행합니다.</td></tr>
       <tr><td>EDU Mapper DB slice</td><td>재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>sql/xyz_edu_query_fixture.sql</code></td><td>현재 세션에서 로컬 MariaDB fixture 실행은 수행했습니다. 다만 빌드 산출물은 저장소 소스가 아니므로 다른 PC에서는 환경변수 지정 후 재실행해야 합니다.</td></tr>
+      <tr><td>표준 헤더 E2E</td><td>미검증</td><td>inbound, context, log, ADM, outbound 통합 거래</td><td>단위 테스트와 정적 문서 evidence를 E2E 성공으로 확대하지 않습니다.</td></tr>
       <tr><td>Redis/Kafka/MQ broker</td><td>미검증</td><td>실 broker와 장애 시나리오</td><td>기본 local test 성공으로 대체하지 않습니다.</td></tr>
+      <tr><td>qualityGate</td><td>완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>현재 작업 세션에서 최종 실행했고 통과했습니다.</td></tr>
+      <tr><td>check-html-docs</td><td>완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>HTML 구조, Markdown 잔재, 불필요 산출물, 기능 매트릭스 상태값 위반을 검사합니다.</td></tr>
+      <tr><td>check-feature-evidence</td><td>완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>정본 fixture 경로, legacy fixture 잔존, DB username 환경변수, 주요 feature evidence를 검사합니다.</td></tr>
+      <tr><td>check-utf8</td><td>완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>현재 스크립트 기준 UTF-8과 mojibake 검사가 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF EDU Mapper DB Fixture 검증 리포트</title>
+  <title>CPF 검증 불일치 정리 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
@@ -20,75 +20,93 @@
 <body>
 <main>
   <section>
-    <h1>CPF EDU Mapper DB Fixture 검증 리포트</h1>
-    <p>신규 요청서 기준으로 XYZ EDU Mapper slice 테스트의 실제 MariaDB fixture 실행 가능성을 검증하고, 성공, skip, 미검증, 실패를 분리했습니다.</p>
-    <p class="note">신규 요청서는 확인 용도로만 읽었고 수정하지 않았습니다. 별도 수정 파일 목록 산출물은 만들지 않았습니다. DB 인증 정보는 리포트에 기록하지 않습니다.</p>
+    <h1>CPF 검증 불일치 정리 리포트</h1>
+    <p>이번 작업은 신규 기능 구현이 아니라, 직전 EDU Mapper DB fixture 검증 작업에서 실제 파일 상태와 보고 내용이 어긋난 부분을 정리한 안정화 작업입니다.</p>
+    <p class="note">요청서는 확인 용도로만 사용했고 수정하지 않았습니다. DB 계정 비밀번호 같은 민감정보는 리포트에 기록하지 않았습니다.</p>
+  </section>
+
+  <section>
+    <h2>파일 상태</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>결과</th><th>판단</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>기존 fixture 경로</td><td class="ok">없음</td><td>이전 fixture 파일은 현재 저장소에 없습니다. 리포트와 문서는 신규 fixture 경로만 evidence로 사용합니다.</td></tr>
+      <tr><td>신규 fixture 경로</td><td class="ok">존재</td><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code> 파일을 EDU Mapper DB slice 테스트의 기준 fixture로 사용합니다.</td></tr>
+      <tr><td>변경 파일 목록 산출물</td><td class="ok">없음</td><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code> 파일은 현재 저장소에 없습니다. 앞으로 생기면 HTML 문서 검증이 실패하도록 보강했습니다.</td></tr>
+      <tr><td>Mapper slice 테스트</td><td class="ok">존재</td><td><code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code>가 repository 경로에 존재합니다.</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section>
     <h2>수정 내용</h2>
     <table>
       <thead>
-      <tr><th>대상</th><th>상태</th><th>내용</th></tr>
+      <tr><th>대상</th><th>변경</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code></td><td class="ok">보강</td><td>정적 XML 안전성 검사, fixture SQL 범위 검사, 실제 DB fixture 실행 검사를 분리했습니다. 신규 환경변수 <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>을 우선 사용하고 기존 <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>는 보조 호환으로 유지했습니다.</td></tr>
-      <tr><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code></td><td class="ok">신규 정리</td><td>요청 경로에 fixture SQL을 배치했습니다. 반복 실행 가능하도록 <code>CREATE TABLE IF NOT EXISTS</code>, fixture ID 범위 삭제, <code>ON DUPLICATE KEY UPDATE</code>를 사용하고, 전체 삭제와 table drop은 사용하지 않습니다.</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">보정</td><td>EDU Mapper fixture evidence를 새 <code>sql/xyz_edu_query_fixture.sql</code> 경로로 확인하게 했습니다.</td></tr>
-      <tr><td><code>specs/개발_가이드.html</code></td><td class="ok">보정</td><td>Mapper slice 실DB 검증 환경변수와 fixture 경로를 실제 코드 기준으로 수정했습니다.</td></tr>
-      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td class="ok">신규 작성</td><td>이번 검증 결과와 남은 미검증 범위를 HTML 리포트로 다시 작성했습니다.</td></tr>
+      <tr><td><code>scripts/check-html-docs.ps1</code></td><td>HTML 필수 구조, UTF-8 charset, 첫 non-blank 라인의 Markdown heading, Markdown fence/table/link, specs 하위 Markdown 문서, 루트 Markdown 리포트, 변경 파일 목록 산출물 존재 여부를 검증하도록 강화했습니다.</td></tr>
+      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>상태값을 <code>완료</code>, <code>부분 구현</code>, <code>미구현</code>, <code>미검증</code>, <code>실패</code>, <code>재확인 필요</code> 여섯 가지로 제한했습니다. EDU Mapper DB slice는 로컬 검증 사실과 타 환경 재현 필요성을 분리해 <code>재확인 필요</code>로 표기했습니다.</td></tr>
+      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>비어 있거나 Markdown처럼 보일 수 있는 내용을 제거하고 실제 HTML 문서로 재작성했습니다. 실행한 검증, 실행하지 않은 검증, 재확인이 필요한 항목을 분리했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>검증 결과</h2>
+    <h2>실행 결과</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>결과</th><th>근거</th></tr>
+      <tr><th>명령 또는 확인</th><th>결과</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td>대상 slice 정적 실행</td><td class="ok">성공</td><td><code>.\gradlew.bat :xyz:test --offline --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest</code> 실행 결과 <code>tests=3</code>, <code>skipped=1</code>, <code>failures=0</code>, <code>errors=0</code>입니다. 안전한 DB 환경변수가 없어서 DB fixture 테스트 1건은 의도대로 skip되었습니다.</td></tr>
-      <tr><td>대상 slice MariaDB fixture 실행</td><td class="ok">성공</td><td>로컬 MariaDB의 전용 테스트 스키마를 대상으로 같은 테스트를 <code>--rerun-tasks</code>로 강제 실행했습니다. JUnit XML 기준 <code>tests=3</code>, <code>skipped=0</code>, <code>failures=0</code>, <code>errors=0</code>입니다.</td></tr>
-      <tr><td>XYZ 전체 테스트</td><td class="ok">성공</td><td><code>.\gradlew.bat :xyz:test --offline</code>가 성공했습니다. 일반 실행은 안전 기본값에 따라 DB fixture 환경변수가 없으면 DB 실행부가 skip될 수 있습니다.</td></tr>
-      <tr><td>전체 Gradle 테스트</td><td class="ok">성공</td><td><code>.\gradlew.bat test --offline</code>가 성공했습니다.</td></tr>
-      <tr><td>품질 게이트</td><td class="ok">성공</td><td>리포트가 비어 있던 중간 상태에서 <code>checkHtmlDocs</code>가 1회 실패했으나, 리포트 작성 후 <code>.\gradlew.bat qualityGate --offline</code> 재실행이 성공했습니다.</td></tr>
-      <tr><td>기능 evidence</td><td class="ok">성공</td><td><code>scripts/check-feature-evidence.ps1</code>가 새 Mapper slice 테스트와 새 fixture SQL 경로를 확인했습니다.</td></tr>
-      <tr><td>HTML 문서 검사</td><td class="ok">성공</td><td><code>scripts/check-html-docs.ps1</code>가 루트 리포트와 specs HTML 형식을 확인했습니다.</td></tr>
-      <tr><td>UTF-8 및 mojibake 검사</td><td class="ok">성공</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code>가 통과했습니다.</td></tr>
+      <tr><td><code>Test-Path</code> 기존 fixture</td><td class="ok">False</td><td>기존 fixture 파일이 남아 있지 않음을 확인했습니다.</td></tr>
+      <tr><td><code>Test-Path</code> 신규 fixture</td><td class="ok">True</td><td>신규 fixture 파일이 존재함을 확인했습니다.</td></tr>
+      <tr><td><code>Test-Path</code> 변경 파일 목록 산출물</td><td class="ok">False</td><td>요청에서 만들지 말라고 한 산출물이 없음을 확인했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest</code></td><td class="ok">성공</td><td>동일 테스트를 <code>--rerun-tasks</code>로 재실행해 실제 수행 성공을 확인했습니다. DB 환경변수가 없는 기본 실행에서는 DB fixture 테스트 1건이 의도대로 skip되었습니다.</td></tr>
+      <tr><td>EDU Mapper DB slice 로컬 DB 실행</td><td class="ok">성공</td><td>별도 환경변수로 로컬 MariaDB 연결을 활성화해 동일 테스트를 재실행했습니다. 민감정보는 리포트에 기록하지 않았습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="ok">성공</td><td>XYZ 모듈 테스트가 성공했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="ok">성공</td><td>전체 모듈 테스트가 성공했습니다. 다만 Gradle 캐시 기준 up-to-date 항목이 포함되어 있습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="ok">성공</td><td>feature evidence, HTML docs, Java format, legacy name, mojibake, sample standard, security seed, SQL standard, transaction ID standard, UTF-8 검사가 포함된 quality gate가 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="ok">성공</td><td>신규 fixture 경로와 문서 evidence 기준이 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="ok">성공</td><td>HTML 구조와 Markdown 잔재, 불필요 산출물 존재 여부 검사가 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="ok">성공</td><td>현재 스크립트 기준 UTF-8 및 mojibake 검사가 통과했습니다.</td></tr>
+      <tr><td>JUnit XML</td><td class="ok">확인</td><td>로컬 DB 활성화 후 최종 <code>XyzQueryEducationMapperSliceTest</code> 결과는 <code>tests=3</code>, <code>skipped=0</code>, <code>failures=0</code>, <code>errors=0</code>입니다. DB 환경변수 미설정 기본 경로에서는 <code>skipped=1</code>도 확인했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>완료와 미완료 분리</h2>
+    <h2>판단</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>판단</th></tr>
+      <tr><th>항목</th><th>상태</th><th>근거와 한계</th></tr>
       </thead>
       <tbody>
-      <tr><td>repository 경로의 Mapper slice 테스트 유지</td><td class="ok">완료</td><td><code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code>가 실제 존재하고 실행됩니다.</td></tr>
-      <tr><td>fixture SQL 요청 경로 배치</td><td class="ok">완료</td><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code>이 실제 존재하고 테스트에서 로드됩니다.</td></tr>
-      <tr><td>안전한 MariaDB 테스트 DB fixture 실행</td><td class="ok">완료</td><td>로컬 전용 테스트 스키마에서 skip 없이 실행됐습니다. 단, 이 검증은 전체 신규 설치 검증이 아니라 Mapper fixture 범위 검증입니다.</td></tr>
-      <tr><td>MariaDB 전체 신규 설치 검증</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다. 전체 설치, FK, index, seed idempotent, 계정 권한 분리는 별도 검증해야 합니다.</td></tr>
-      <tr><td>ADM runtime, OpenAPI, 브라우저 smoke</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다. 앱 기동과 실제 API, 화면 클릭 검증은 수행하지 않았습니다.</td></tr>
-      <tr><td>표준 헤더 E2E와 broker 검증</td><td class="hold">미검증</td><td>이번 요청 제외 범위입니다. inbound, context, log, ADM, outbound 흐름과 Redis/Kafka/MQ 실 broker 검증은 남아 있습니다.</td></tr>
+      <tr><td>기존 fixture 제거</td><td class="ok">완료</td><td>파일 존재 확인 결과 기존 fixture가 없습니다.</td></tr>
+      <tr><td>변경 파일 목록 산출물 미생성</td><td class="ok">완료</td><td>파일 존재 확인 결과 산출물이 없습니다.</td></tr>
+      <tr><td>HTML 문서 구조</td><td class="ok">완료</td><td>강화한 HTML 문서 검증 스크립트가 통과했습니다.</td></tr>
+      <tr><td>기능 매트릭스 상태값</td><td class="ok">완료</td><td>허용 상태값 여섯 가지 기준으로 정리했습니다.</td></tr>
+      <tr><td>EDU Mapper DB fixture</td><td class="hold">재확인 필요</td><td>이 PC의 로컬 MariaDB 환경변수 실행은 <code>tests=3</code>, <code>skipped=0</code>로 성공했습니다. 다만 전체 MariaDB 설치 SQL 검증이나 타 PC 재현 완료로 과장하지 않기 위해 기능 매트릭스에는 재확인 필요로 유지했습니다.</td></tr>
+      <tr><td>MariaDB 전체 신규 설치</td><td class="hold">미검증</td><td>이번 요청의 제외 범위입니다.</td></tr>
+      <tr><td>ADM runtime, OpenAPI, 브라우저, broker</td><td class="hold">미검증</td><td>이번 요청의 제외 범위입니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>다음 보강 후보</h2>
+    <h2>다음 조치</h2>
     <table>
       <thead>
-      <tr><th>순위</th><th>항목</th><th>닫기 조건</th></tr>
+      <tr><th>순위</th><th>작업</th><th>완료 조건</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>MariaDB 신규 빈 DB 전체 설치 검증</td><td><code>00_all_install_and_smoke.sql</code>을 빈 DB에서 실행하고 FK, index, seed 재실행, app/migration 계정 권한을 확인합니다.</td></tr>
-      <tr><td>2</td><td>split SQL, Flyway, all install 정합성 검증</td><td>분할 SQL과 Flyway baseline, all-in-one SQL의 테이블, 컬럼, seed가 일치하는지 자동 비교합니다.</td></tr>
-      <tr><td>3</td><td>ADM runtime과 OpenAPI smoke</td><td>ADM 기동 후 주요 API, OpenAPI JSON, 권한 필터를 실제 호출로 확인합니다.</td></tr>
-      <tr><td>4</td><td>ADM 브라우저 클릭 검증</td><td>로그, 배치, 캐시, 메시지, 코드, 설정, 권한 화면을 실제 브라우저에서 검증합니다.</td></tr>
-      <tr><td>5</td><td>표준 헤더 E2E</td><td>수신 헤더, <code>TransactionContext</code>, DB 로그, ADM 표시, outbound 전파를 한 거래 흐름으로 확인합니다.</td></tr>
+      <tr><td>1</td><td>EDU Mapper DB fixture 재현 절차 자동화</td><td>환경변수 기반 DB 테스트를 별도 명령으로 문서화하고, 타 개발자 PC에서도 동일 결과가 나오도록 검증합니다.</td></tr>
+      <tr><td>2</td><td>MariaDB 전체 설치 SQL 검증</td><td>빈 DB에서 전체 설치, FK, index, seed idempotent, app/migration 계정 권한을 확인합니다.</td></tr>
+      <tr><td>3</td><td>ADM runtime과 OpenAPI smoke</td><td>ADM 기동, 주요 API, OpenAPI JSON을 실제 호출해 검증합니다.</td></tr>
+      <tr><td>4</td><td>ADM 브라우저 클릭 검증</td><td>운영자 화면, 버튼 권한, 로그 상세, 배치 관리 UI를 실제 브라우저에서 확인합니다.</td></tr>
+      <tr><td>5</td><td>표준 헤더 E2E 검증</td><td>수신, context, 로그, outbound, 응답까지 한 거래에서 이어지는지 확인합니다.</td></tr>
       </tbody>
     </table>
   </section>

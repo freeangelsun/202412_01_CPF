@@ -70,7 +70,7 @@
       <tr><td><code>GET /xyz/edu/query/headers</code></td><td>현재 헤더 컨텍스트와 하위 호출 전파 헤더 확인</td><td><code>CpfHeaderPropagator.outboundHeaders</code></td></tr>
       </tbody>
     </table>
-    <p>Mapper slice 검증은 개발자 PC의 업무 DB를 자동으로 건드리지 않기 위해 기본 테스트에서는 skip됩니다. 안전한 빈 테스트 스키마를 준비한 뒤 <code>CPF_XYZ_EDU_MAPPER_SLICE_TEST=true</code>, <code>CPF_XYZ_EDU_MAPPER_DB_URL</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>, <code>CPF_XYZ_EDU_MAPPER_DB_PASSWORD</code>를 지정하면 <code>fixture/xyz_edu_query_mapper_fixture.sql</code>로 실제 XML 조회를 확인합니다.</p>
+    <p>Mapper slice 검증은 개발자 PC의 업무 DB를 자동으로 건드리지 않기 위해 기본 테스트에서는 skip됩니다. 안전한 빈 테스트 스키마를 준비한 뒤 <code>CPF_XYZ_EDU_MAPPER_SLICE_TEST=true</code>, <code>CPF_XYZ_EDU_MAPPER_DB_URL</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_PASSWORD</code>를 지정하면 <code>sql/xyz_edu_query_fixture.sql</code>로 실제 XML 조회를 확인합니다. 기존 자동화 호환을 위해 <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>도 보조로 허용하지만 신규 문서는 <code>DB_USERNAME</code> 기준을 사용합니다.</p>
   </section>
 
   <section>

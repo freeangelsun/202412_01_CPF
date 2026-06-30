@@ -26,13 +26,14 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *
  * <p>기본 Gradle test는 개발자 PC의 MariaDB를 임의로 건드리지 않기 위해 이 테스트의 DB 실행부를 skip합니다.
  * 안전한 빈 테스트 스키마를 준비한 뒤 {@code CPF_XYZ_EDU_MAPPER_SLICE_TEST=true},
- * {@code CPF_XYZ_EDU_MAPPER_DB_URL}, {@code CPF_XYZ_EDU_MAPPER_DB_USER},
+ * {@code CPF_XYZ_EDU_MAPPER_DB_URL}, {@code CPF_XYZ_EDU_MAPPER_DB_USERNAME},
  * {@code CPF_XYZ_EDU_MAPPER_DB_PASSWORD}를 설정하면 실제 Mapper XML과 fixture SQL이 실행됩니다.</p>
  */
 class XyzQueryEducationMapperSliceTest {
     private static final String ENABLED_ENV = "CPF_XYZ_EDU_MAPPER_SLICE_TEST";
     private static final String DB_URL_ENV = "CPF_XYZ_EDU_MAPPER_DB_URL";
-    private static final String DB_USER_ENV = "CPF_XYZ_EDU_MAPPER_DB_USER";
+    private static final String DB_USERNAME_ENV = "CPF_XYZ_EDU_MAPPER_DB_USERNAME";
+    private static final String LEGACY_DB_USER_ENV = "CPF_XYZ_EDU_MAPPER_DB_USER";
     private static final String DB_PASSWORD_ENV = "CPF_XYZ_EDU_MAPPER_DB_PASSWORD";
     private static final String DB_DRIVER_ENV = "CPF_XYZ_EDU_MAPPER_DB_DRIVER";
 
@@ -52,6 +53,22 @@ class XyzQueryEducationMapperSliceTest {
                 .doesNotContain(" join exs_")
                 .doesNotContain("from mbr_member")
                 .doesNotContain("from exs_");
+    }
+
+    @Test
+    void fixtureSqlIsScopedToEduMapperTestData() throws Exception {
+        Resource fixtureSql = new ClassPathResource("sql/xyz_edu_query_fixture.sql");
+        String sql = fixtureSql.getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(fixtureSql.exists()).isTrue();
+        assertThat(sql)
+                .contains("CREATE TABLE IF NOT EXISTS cmn_edu_query_item")
+                .contains("DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 90001 AND 90008")
+                .contains("ON DUPLICATE KEY UPDATE")
+                .doesNotContain("DROP TABLE")
+                .doesNotContain("TRUNCATE TABLE")
+                .doesNotContain("DELETE FROM cmn_edu_query_item;")
+                .doesNotContain("DELETE FROM cmn_edu_query_item WHERE 1=1");
     }
 
     @Test
@@ -112,7 +129,7 @@ class XyzQueryEducationMapperSliceTest {
 
     private static DataSource testDataSource() {
         String url = requiredEnv(DB_URL_ENV);
-        String user = requiredEnv(DB_USER_ENV);
+        String user = requiredFirstEnv(DB_USERNAME_ENV, LEGACY_DB_USER_ENV);
         String password = requiredEnv(DB_PASSWORD_ENV);
         String driver = System.getenv(DB_DRIVER_ENV);
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -125,7 +142,7 @@ class XyzQueryEducationMapperSliceTest {
 
     private static void loadFixture(DataSource dataSource) throws Exception {
         try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new ClassPathResource("fixture/xyz_edu_query_mapper_fixture.sql"));
+            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/xyz_edu_query_fixture.sql"));
         }
     }
 
@@ -161,5 +178,18 @@ class XyzQueryEducationMapperSliceTest {
             throw new IllegalStateException("Mapper slice 테스트 DB 환경변수가 필요합니다. name=" + name);
         }
         return value;
+    }
+
+    private static String requiredFirstEnv(String primaryName, String fallbackName) {
+        String primaryValue = System.getenv(primaryName);
+        if (primaryValue != null && !primaryValue.isBlank()) {
+            return primaryValue;
+        }
+        String fallbackValue = System.getenv(fallbackName);
+        if (fallbackValue != null && !fallbackValue.isBlank()) {
+            return fallbackValue;
+        }
+        throw new IllegalStateException("Mapper slice 테스트 DB 사용자 환경변수가 필요합니다. name="
+                + primaryName + " 또는 " + fallbackName);
     }
 }

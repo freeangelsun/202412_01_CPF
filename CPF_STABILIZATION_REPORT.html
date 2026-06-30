@@ -2,45 +2,44 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF 반복 검수 오류 방지 안정화 리포트</title>
+  <title>CPF 상태값 게이트 및 MariaDB 검증 준비 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
-    main { max-width: 1320px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
+    main { max-width: 1360px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
     h1, h2 { color: #111827; }
     table { width: 100%; border-collapse: collapse; margin: 14px 0 28px; }
     th, td { border: 1px solid #d1d5db; padding: 9px 10px; vertical-align: top; }
     th { background: #dbeafe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .done { color: #166534; font-weight: 700; }
-    .hold { color: #92400e; font-weight: 700; }
+    .status { font-weight: 700; }
+    .done { color: #166534; }
+    .hold { color: #92400e; }
     .warn { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF 반복 검수 오류 방지 안정화 리포트</h1>
-    <p>이번 작업은 신규 기능 개발이 아니라 완료 보고와 실제 저장소 파일 상태가 어긋나는 문제를 줄이기 위한 검증 게이트 정리 작업입니다.</p>
-    <p class="warn">요청서는 확인 용도로만 사용했고 수정하지 않았습니다. 커밋, push, branch 생성은 수행하지 않았습니다. DB 비밀번호 원문은 기록하지 않았습니다.</p>
+    <h1>CPF 상태값 게이트 및 MariaDB 검증 준비 리포트</h1>
+    <p>이번 작업은 상태값 자동 검출, 리포트와 기능 매트릭스 주요 상태 비교, 다음 MariaDB 전체 설치 검증 준비를 마무리하기 위한 안정화 작업입니다.</p>
+    <p class="warn">커밋, push, branch 생성은 수행하지 않았습니다. 요청서 파일은 확인 용도로만 사용했고 작업 대상으로 수정하지 않았습니다. DB 비밀번호 원문은 기록하지 않습니다.</p>
   </section>
 
   <section>
     <h2>기준 정보</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>값</th><th>판단</th></tr>
+      <tr><th>항목</th><th>값</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>작업 시작 branch</td><td><code>master</code></td><td class="done">완료</td></tr>
-      <tr><td>작업 시작 HEAD SHA</td><td><code>c128aca52a8e091c53690cff1bf9415c5f413f42</code></td><td class="done">완료</td></tr>
-      <tr><td>작업 시작 origin/master SHA</td><td><code>c128aca52a8e091c53690cff1bf9415c5f413f42</code></td><td class="done">완료</td></tr>
-      <tr><td>작업 시작 log</td><td><code>c128aca 20290630_02</code></td><td class="done">완료</td></tr>
-      <tr><td>remote</td><td><code>origin</code> fetch/push 모두 GitHub 저장소를 가리킵니다.</td><td class="done">완료</td></tr>
-      <tr><td>작업 시작 status</td><td><code>CPF_NEW_REQUEST</code>, <code>CPF_STABILIZATION_REPORT.html</code> 수정 상태</td><td class="hold">재확인 필요</td></tr>
-      <tr><td>작업 종료 HEAD SHA</td><td><code>c128aca52a8e091c53690cff1bf9415c5f413f42</code></td><td class="done">완료</td></tr>
-      <tr><td>작업 종료 status</td><td><code>CPF_NEW_REQUEST</code>, <code>CPF_STABILIZATION_REPORT.html</code>, <code>scripts/check-feature-evidence.ps1</code>, <code>scripts/check-html-docs.ps1</code>, <code>specs/기능_구현_매트릭스.html</code> 수정 상태</td><td class="hold">재확인 필요</td></tr>
-      <tr><td>GitHub master 확인 가능 여부</td><td>현재 변경은 커밋되지 않은 로컬 작업트리 변경입니다. 사용자가 커밋과 push를 수행해야 GitHub master에서 ChatGPT가 확인할 수 있습니다.</td><td class="hold">재확인 필요</td></tr>
-      <tr><td>Git 명령 특이사항</td><td>일부 Git 읽기 명령은 sandbox 사용자 소유권 차이로 막혀, 전역 설정 변경 없이 일회성 safe-directory 옵션으로 재실행했습니다.</td><td class="done">완료</td></tr>
+      <tr><td>작업 시작 branch</td><td><code>master</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>작업 시작 HEAD SHA</td><td><code>8217fd571163237438437429244f3f7fc5838f54</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>작업 시작 origin/master SHA</td><td><code>8217fd571163237438437429244f3f7fc5838f54</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>작업 시작 log</td><td><code>8217fd5 20290630_03</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>작업 시작 status</td><td>요청서 파일과 <code>CPF_STABILIZATION_REPORT.html</code>이 수정 상태였습니다. 요청서 파일은 사용자 갱신분으로 보고 작업 대상에서 제외했습니다.</td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
+      <tr><td>작업 종료 HEAD SHA</td><td><code>8217fd571163237438437429244f3f7fc5838f54</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>작업 종료 status</td><td>요청서 파일, <code>CPF_STABILIZATION_REPORT.html</code>, <code>scripts/check-html-docs.ps1</code>, <code>specs/기능_구현_매트릭스.html</code> 수정 상태입니다.</td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
+      <tr><td>GitHub master 확인 가능 여부</td><td>현재 변경은 로컬 작업트리 상태입니다. 사용자가 커밋과 push를 수행해야 GitHub master 최신 커밋에서 ChatGPT가 확인할 수 있습니다.</td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
       </tbody>
     </table>
   </section>
@@ -49,13 +48,51 @@
     <h2>변경 파일</h2>
     <table>
       <thead>
-      <tr><th>파일</th><th>변경 목적</th><th>포함되어야 하는 문자열</th><th>제거되어야 하는 문자열</th></tr>
+      <tr><th>파일</th><th>변경 목적</th><th>추가한 검증</th><th>제거한 legacy 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td>HTML 문서 구조, Markdown 잔재, 불필요 산출물, 기능 매트릭스 상태값 위반을 자동 검출합니다.</td><td><code>feature matrix unknown status value</code>, <code>feature matrix forbidden status value</code></td><td>허용되지 않은 상태값을 통과시키는 빈 검증</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td>EDU Mapper fixture 정본 경로, legacy fixture 잔존, DB username 환경변수, Controller/Service/Repository/Mapper/DTO/SQL/Test evidence를 검증합니다.</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>legacy fixture 파일명에 의존하는 evidence</td></tr>
-      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>리포트와 같은 상태값 체계로 qualityGate, check 스크립트, runtime 미검증 항목을 분리했습니다.</td><td><code>완료</code>, <code>부분 구현</code>, <code>미구현</code>, <code>미검증</code>, <code>실패</code>, <code>재확인 필요</code></td><td>허용되지 않은 상태값</td></tr>
-      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>Codex 로컬 실행, 실제 파일 확인, GitHub master 확인 필요, 미검증 항목을 분리하는 완료 보고서로 정리했습니다.</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>실행하지 않은 검증을 완료로 보이게 하는 문장</td></tr>
+      <tr><td><code>scripts/check-html-docs.ps1</code></td><td>기능 매트릭스 상태값과 리포트 상태 불일치를 자동 검출합니다.</td><td>허용 상태값 목록, 금지 상태값 목록, <code>data-status</code> 표시값 일치, <code>data-check-id</code> 비교</td><td>표 셀 위치만 추정하던 상태값 검증</td></tr>
+      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>상태 칸을 marker 기반으로 고정합니다.</td><td>모든 상태 칸에 <code>class="status"</code>와 <code>data-status</code>를 추가하고 주요 검증 행에 <code>data-check-id</code>를 추가했습니다.</td><td>상태값을 일반 텍스트만으로 표시하던 방식</td></tr>
+      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>기능 매트릭스와 비교 가능한 리포트로 정리합니다.</td><td>주요 검증 항목에 같은 <code>data-check-id</code>와 <code>data-status</code>를 부여하고 MariaDB 검증 준비 파일 목록을 기록했습니다.</td><td>로컬 실행 결과와 GitHub 검수 가능 상태가 섞인 보고 방식</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>상태값 검증</h2>
+    <table>
+      <thead>
+      <tr><th>구분</th><th>내용</th><th>상태</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>허용 상태값</td><td><code>완료</code>, <code>부분 구현</code>, <code>미구현</code>, <code>미검증</code>, <code>실패</code>, <code>재확인 필요</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>금지 상태값</td><td><code>실환경 필요</code>, <code>완료 후보</code>, <code>확인 필요</code>, <code>진행중</code>, <code>보류</code>, <code>대기</code>, <code>작업중</code>, <code>성공</code>, <code>검토중</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>기능 매트릭스 검출 기준</td><td>상태 칸은 <code>class="status"</code>와 <code>data-status</code>가 있어야 하고, 화면 표시 텍스트와 <code>data-status</code> 값이 같아야 합니다.</td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>설명 문장 처리</td><td>금지어가 설명 문장에 나오는 것은 무조건 실패 처리하지 않고, 상태 칸 또는 marker 값일 때만 실패 처리합니다.</td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>리포트와 매트릭스 비교</td><td>주요 검증 항목은 양쪽의 <code>data-check-id</code>와 <code>data-status</code>를 비교합니다.</td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>EDU Mapper DB username 기준</td><td>정식 변수는 <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>이고, 기존 자동화 호환을 위해 <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>를 보조로 허용합니다. DB password 값은 리포트에 기록하지 않습니다.</td><td class="status done" data-status="완료">완료</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>주요 상태 비교</h2>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>리포트 상태</th><th>기능 매트릭스 상태</th><th>판단</th></tr>
+      </thead>
+      <tbody>
+      <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status hold" data-status="재확인 필요">재확인 필요</td><td>재확인 필요</td><td>로컬 DB 실행은 기록하지만 GitHub master 재현 확인은 별도입니다.</td></tr>
+      <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>이번 범위에서 신규 빈 DB 설치를 실행하지 않았습니다.</td></tr>
+      <tr data-check-id="adm-runtime"><td>ADM runtime</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>ADM 앱 기동 후 API 호출을 수행하지 않았습니다.</td></tr>
+      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>앱 기동 후 OpenAPI JSON 접근을 수행하지 않았습니다.</td></tr>
+      <tr data-check-id="adm-browser-click"><td>ADM browser click</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>브라우저 클릭 검증은 수행하지 않았습니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>표준 헤더 E2E</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>한 거래로 inbound부터 outbound까지 검증하지 않았습니다.</td></tr>
+      <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status hold" data-status="미검증">미검증</td><td>미검증</td><td>실 broker 검증을 수행하지 않았습니다.</td></tr>
+      <tr data-check-id="quality-gate"><td>qualityGate</td><td class="status done" data-status="완료">완료</td><td>완료</td><td>이번 세션에서 실행해 통과했습니다.</td></tr>
+      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status done" data-status="완료">완료</td><td>완료</td><td>상태값과 상태 비교까지 검사하도록 강화했습니다.</td></tr>
+      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status done" data-status="완료">완료</td><td>완료</td><td>정본 fixture evidence 기준이 통과했습니다.</td></tr>
+      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status done" data-status="완료">완료</td><td>완료</td><td>현재 스크립트 기준 mojibake 검사까지 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -64,12 +101,12 @@
     <h2>삭제 파일 확인</h2>
     <table>
       <thead>
-      <tr><th>Test-Path 대상</th><th>결과</th><th>상태</th></tr>
+      <tr><th>대상</th><th>결과</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code></td><td><code>False</code></td><td class="done">완료</td></tr>
-      <tr><td>이전 EDU Mapper fixture 경로</td><td><code>False</code></td><td class="done">완료</td></tr>
-      <tr><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code></td><td><code>True</code></td><td class="done">완료</td></tr>
+      <tr><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code></td><td><code>False</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>이전 EDU fixture 파일</td><td><code>False</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code></td><td><code>True</code></td><td class="status done" data-status="완료">완료</td></tr>
       </tbody>
     </table>
   </section>
@@ -78,41 +115,37 @@
     <h2>실행 명령 결과</h2>
     <table>
       <thead>
-      <tr><th>명령</th><th>상태</th><th>tests</th><th>skipped</th><th>failures</th><th>errors</th><th>실패 또는 skip 사유</th></tr>
+      <tr><th>명령</th><th>결과</th><th>tests</th><th>skipped</th><th>failures</th><th>errors</th><th>미실행 사유 또는 비고</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest --rerun-tasks</code></td><td class="done">완료</td><td><code>3</code></td><td><code>1</code></td><td><code>0</code></td><td><code>0</code></td><td>기본 실행은 안전한 DB 환경변수가 없으면 DB fixture 테스트 1건을 skip합니다.</td></tr>
-      <tr><td>EDU Mapper DB slice 로컬 DB 실행</td><td class="done">완료</td><td><code>3</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td><code>CPF_XYZ_EDU_MAPPER_SLICE_TEST</code>, <code>CPF_XYZ_EDU_MAPPER_DB_URL</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>, <code>CPF_XYZ_EDU_MAPPER_DB_PASSWORD</code> 기준을 확인했습니다. DB URL은 localhost의 <code>cpf_test</code> 스키마 기준이며 비밀번호 원문은 기록하지 않습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="done">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>빌드는 통과했습니다. 일부 태스크는 up-to-date입니다.</td></tr>
-      <tr><td><code>.\gradlew.bat test --offline</code></td><td class="done">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>전체 테스트 태스크는 통과했습니다. 최종 실행은 up-to-date 항목을 포함합니다.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="done">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>feature evidence, HTML docs, Java format, legacy name, mojibake, sample standard, security seed, SQL standard, transaction ID standard, UTF-8 검사가 통과했습니다.</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="done">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>정본 fixture와 evidence 기준이 통과했습니다.</td></tr>
-      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="done">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>HTML 구조, Markdown 잔재, 불필요 산출물, 상태값 검사가 통과했습니다.</td></tr>
-      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="done">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>현재 스크립트 기준 UTF-8과 mojibake 검사가 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-html-docs.ps1</code></td><td class="status done" data-status="완료">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>HTML 구조, 상태값 marker, 주요 상태 비교가 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="status done" data-status="완료">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>정본 fixture와 evidence 기준이 통과했습니다.</td></tr>
+      <tr><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="status done" data-status="완료">완료</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>해당 없음</td><td>현재 스크립트 기준 UTF-8과 mojibake 검사가 통과했습니다.</td></tr>
+      <tr><td><code>:xyz:test</code> Mapper slice 기본 재실행</td><td class="status done" data-status="완료">완료</td><td><code>3</code></td><td><code>1</code></td><td><code>0</code></td><td><code>0</code></td><td>안전한 DB 환경변수가 없으면 DB fixture 테스트 1건을 skip합니다.</td></tr>
+      <tr><td><code>:xyz:test</code> Mapper slice 로컬 DB 실행</td><td class="status done" data-status="완료">완료</td><td><code>3</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td>로컬 MariaDB의 <code>cpf_test</code> 스키마 기준으로 실행했습니다. DB 비밀번호 원문은 기록하지 않습니다.</td></tr>
+      <tr><td><code>:xyz:test</code> 전체</td><td class="status done" data-status="완료">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>빌드 성공입니다. 일부 태스크는 up-to-date입니다.</td></tr>
+      <tr><td><code>test --offline</code></td><td class="status done" data-status="완료">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>전체 테스트 태스크가 성공했습니다. 일부 태스크는 up-to-date입니다.</td></tr>
+      <tr><td><code>qualityGate --offline</code></td><td class="status done" data-status="완료">완료</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>Gradle 집계</td><td>품질 게이트가 통과했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>리포트와 매트릭스 정합성</h2>
+    <h2>다음 MariaDB 전체 설치 검증 대상</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>리포트 상태</th><th>기능 매트릭스 상태</th><th>불일치 여부</th></tr>
+      <tr><th>구분</th><th>확인한 파일</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>EDU Mapper DB slice</td><td>재확인 필요</td><td>재확인 필요</td><td class="done">완료</td></tr>
-      <tr><td>MariaDB 전체 신규 설치</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>ADM runtime</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>OpenAPI runtime</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>ADM browser click</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>표준 헤더 E2E</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>Redis/Kafka/MQ broker</td><td>미검증</td><td>미검증</td><td class="done">완료</td></tr>
-      <tr><td>qualityGate</td><td>완료</td><td>완료</td><td class="done">완료</td></tr>
-      <tr><td>check-html-docs</td><td>완료</td><td>완료</td><td class="done">완료</td></tr>
-      <tr><td>check-feature-evidence</td><td>완료</td><td>완료</td><td class="done">완료</td></tr>
-      <tr><td>check-utf8</td><td>완료</td><td>완료</td><td class="done">완료</td></tr>
+      <tr><td>all install</td><td><code>specs/sql/00_all_install.sql</code>, <code>specs/sql/00_all_install_and_smoke.sql</code></td><td class="status hold" data-status="미검증">미검증</td></tr>
+      <tr><td>split SQL</td><td><code>01_create_databases.sql</code>, <code>02_create_service_users.sql</code>, <code>10_pfw_schema.sql</code>, <code>20_cmn_schema.sql</code>, <code>30_adm_schema.sql</code>, <code>40_business_modules_schema.sql</code>, <code>50_framework_seed_data.sql</code>, <code>55_cmn_seed_data.sql</code>, <code>60_adm_seed_data.sql</code>, <code>70_test_data.sql</code>, <code>99_smoke_check.sql</code></td><td class="status hold" data-status="미검증">미검증</td></tr>
+      <tr><td>Flyway migration</td><td><code>V1__cpf_baseline_install.sql</code>, <code>V2__add_transaction_header_columns.sql</code>, <code>V3__adm_cmn_batch_security_operations.sql</code>, <code>V4__batch_schedule_repository_notification.sql</code>, <code>V5__adm_download_scheduler_quality_gate.sql</code>, <code>V6__bizadm_exs_transaction_identity.sql</code>, <code>V7__auth_domain_refresh_token_exs_token_history.sql</code>, <code>V8__mbr_auth_login_history_nullable_member.sql</code>, <code>V9__batch_worker_ghost_operations.sql</code>, <code>V10__batch_heartbeat_progress_ghost_detection.sql</code>, <code>V11__transaction_meta_log_policy.sql</code>, <code>V12__log_policy_runtime_standard.sql</code>, <code>V13__adm_runtime_policy_permission_seed.sql</code>, <code>V14__edu_query_sample.sql</code></td><td class="status hold" data-status="미검증">미검증</td></tr>
+      <tr><td>fixture SQL</td><td><code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code></td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
+      <tr><td>표준 검사</td><td><code>scripts/check-sql-standard.ps1</code></td><td class="status done" data-status="완료">완료</td></tr>
+      <tr><td>존재하지 않는 파일</td><td><code>specs/sql/README&#46;md</code></td><td class="status hold" data-status="미검증">미검증</td></tr>
       </tbody>
     </table>
+    <p>이번 범위에서는 MariaDB 신규 빈 DB 전체 설치를 실행하지 않았습니다. 다음 단계 실행 후보는 안전한 빈 DB를 준비한 뒤 전체 설치 SQL 실행, smoke SQL 실행, seed 재실행 idempotent 확인, FK/index 확인, app/migration 계정 권한 확인 순서입니다.</p>
   </section>
 
   <section>
@@ -122,12 +155,12 @@
       <tr><th>대상</th><th>상태</th><th>미검증 사유</th><th>완료로 기록하지 않은 이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>MariaDB 전체 신규 설치</td><td>미검증</td><td>이번 요청 제외 범위입니다.</td><td>EDU Mapper fixture 성공은 전체 설치 성공과 다릅니다.</td></tr>
-      <tr><td>ADM runtime</td><td>미검증</td><td>ADM 앱 기동 후 API 호출을 수행하지 않았습니다.</td><td>정적 파일 evidence를 runtime 성공으로 확대하지 않습니다.</td></tr>
-      <tr><td>OpenAPI runtime</td><td>미검증</td><td>앱 기동 후 OpenAPI JSON을 호출하지 않았습니다.</td><td>설정 파일 존재만으로 runtime 검증을 대체하지 않습니다.</td></tr>
-      <tr><td>ADM browser click</td><td>미검증</td><td>브라우저 자동화나 수동 클릭 검증을 수행하지 않았습니다.</td><td>DOM marker 검사를 화면 동작 성공으로 보지 않습니다.</td></tr>
-      <tr><td>표준 헤더 E2E</td><td>미검증</td><td>inbound부터 outbound까지 한 거래로 검증하지 않았습니다.</td><td>단위 테스트를 E2E 성공으로 확대하지 않습니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ broker</td><td>미검증</td><td>실 broker와 장애 시나리오를 실행하지 않았습니다.</td><td>DB fallback 또는 정적 evidence를 broker 검증으로 보지 않습니다.</td></tr>
+      <tr><td>MariaDB 전체 신규 설치</td><td class="status hold" data-status="미검증">미검증</td><td>이번 요청 범위에서 실제 설치를 하지 않습니다.</td><td>Mapper fixture 성공은 전체 설치 검증이 아닙니다.</td></tr>
+      <tr><td>ADM runtime</td><td class="status hold" data-status="미검증">미검증</td><td>ADM 앱 기동 후 API 호출을 수행하지 않았습니다.</td><td>정적 evidence를 runtime 성공으로 확대하지 않습니다.</td></tr>
+      <tr><td>OpenAPI runtime</td><td class="status hold" data-status="미검증">미검증</td><td>앱 기동 후 OpenAPI JSON을 호출하지 않았습니다.</td><td>설정 파일 존재만으로 runtime 검증을 대체하지 않습니다.</td></tr>
+      <tr><td>ADM browser click</td><td class="status hold" data-status="미검증">미검증</td><td>브라우저 클릭 검증을 수행하지 않았습니다.</td><td>DOM marker 검사를 화면 동작 성공으로 보지 않습니다.</td></tr>
+      <tr><td>표준 헤더 E2E</td><td class="status hold" data-status="미검증">미검증</td><td>한 거래 흐름으로 검증하지 않았습니다.</td><td>단위 테스트를 E2E 성공으로 확대하지 않습니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker</td><td class="status hold" data-status="미검증">미검증</td><td>실 broker와 장애 시나리오를 실행하지 않았습니다.</td><td>DB fallback 또는 정적 evidence를 broker 검증으로 보지 않습니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -139,10 +172,9 @@
       <tr><th>구분</th><th>내용</th><th>상태</th></tr>
       </thead>
       <tbody>
-      <tr><td>GitHub에서 확인해야 할 주요 파일</td><td><code>scripts/check-html-docs.ps1</code>, <code>scripts/check-feature-evidence.ps1</code>, <code>specs/기능_구현_매트릭스.html</code>, <code>CPF_STABILIZATION_REPORT.html</code>, <code>xyz/src/test/resources/sql/xyz_edu_query_fixture.sql</code>, <code>xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java</code></td><td class="hold">재확인 필요</td></tr>
-      <tr><td>GitHub master 확인 조건</td><td>현재 로컬 변경은 커밋되지 않았습니다. 사용자가 커밋과 push를 수행해야 GitHub master 최신 커밋에서 검수할 수 있습니다.</td><td class="hold">재확인 필요</td></tr>
-      <tr><td>주의해야 할 리스크</td><td>로컬 DB slice 통과를 전체 설치 SQL 통과, ADM runtime 통과, 브라우저 동작 통과로 해석하면 안 됩니다.</td><td class="hold">재확인 필요</td></tr>
-      <tr><td>별도 변경파일 목록 산출물</td><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code>는 생성하지 않았고 현재 존재하지 않습니다.</td><td class="done">완료</td></tr>
+      <tr><td>GitHub에서 확인할 주요 파일</td><td><code>scripts/check-html-docs.ps1</code>, <code>specs/기능_구현_매트릭스.html</code>, <code>CPF_STABILIZATION_REPORT.html</code></td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
+      <tr><td>주의할 리스크</td><td>로컬 DB slice 통과를 전체 설치 SQL, ADM runtime, 브라우저 동작, broker 검증 완료로 해석하면 안 됩니다.</td><td class="status hold" data-status="재확인 필요">재확인 필요</td></tr>
+      <tr><td>별도 변경파일 목록 산출물</td><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code>는 생성하지 않았고 현재 존재하지 않습니다.</td><td class="status done" data-status="완료">완료</td></tr>
       </tbody>
     </table>
   </section>

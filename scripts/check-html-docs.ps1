@@ -30,6 +30,45 @@ function New-UnicodeText {
     return -join ($CodePoints | ForEach-Object { [char] $_ })
 }
 
+$script:StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
+$script:StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
+$script:StatusNotImplemented = New-UnicodeText @(0xBBF8, 0xAD6C, 0xD604)
+$script:StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
+$script:StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
+$script:StatusNeedsReview = New-UnicodeText @(0xC7AC, 0xD655, 0xC778, 0x20, 0xD544, 0xC694)
+$script:AllowedStatuses = @(
+    $script:StatusDone,
+    $script:StatusPartial,
+    $script:StatusNotImplemented,
+    $script:StatusNotVerified,
+    $script:StatusFailed,
+    $script:StatusNeedsReview
+)
+$script:ForbiddenStatusValues = @(
+    (New-UnicodeText @(0xC2E4, 0xD658, 0xACBD, 0x20, 0xD544, 0xC694)),
+    (New-UnicodeText @(0xC644, 0xB8CC, 0x20, 0xD6C4, 0xBCF4)),
+    (New-UnicodeText @(0xD655, 0xC778, 0x20, 0xD544, 0xC694)),
+    (New-UnicodeText @(0xC9C4, 0xD589, 0xC911)),
+    (New-UnicodeText @(0xBCF4, 0xB958)),
+    (New-UnicodeText @(0xB300, 0xAE30)),
+    (New-UnicodeText @(0xC791, 0xC5C5, 0xC911)),
+    (New-UnicodeText @(0xC131, 0xACF5)),
+    (New-UnicodeText @(0xAC80, 0xD1A0, 0xC911))
+)
+$script:RequiredCheckIds = @(
+    "edu-mapper-db-slice",
+    "mariadb-full-install",
+    "adm-runtime",
+    "openapi-runtime",
+    "adm-browser-click",
+    "standard-header-e2e",
+    "redis-kafka-mq-broker",
+    "quality-gate",
+    "check-html-docs",
+    "check-feature-evidence",
+    "check-utf8"
+)
+
 function Get-TableCells {
     param([string] $RowHtml)
 
@@ -45,35 +84,173 @@ function Get-TableCells {
     return $cells
 }
 
+function Get-AttributeValue {
+    param(
+        [string] $Tag,
+        [string] $Name
+    )
+
+    $pattern = "\b" + [System.Text.RegularExpressions.Regex]::Escape($Name) + "\s*=\s*[""']([^""']+)[""']"
+    $match = [System.Text.RegularExpressions.Regex]::Match(
+        $Tag,
+        $pattern,
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+    if ($match.Success) {
+        return [System.Net.WebUtility]::HtmlDecode($match.Groups[1].Value)
+    }
+    return $null
+}
+
 function Test-AllowedStatusValue {
     param(
         [string] $Status,
         [string] $Context
     )
 
-    $statusDone = New-UnicodeText @(0xC644, 0xB8CC)
-    $statusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
-    $statusNotImplemented = New-UnicodeText @(0xBBF8, 0xAD6C, 0xD604)
-    $statusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
-    $statusFailed = New-UnicodeText @(0xC2E4, 0xD328)
-    $statusNeedsReview = New-UnicodeText @(0xC7AC, 0xD655, 0xC778, 0x20, 0xD544, 0xC694)
-    $allowedStatuses = @($statusDone, $statusPartial, $statusNotImplemented, $statusNotVerified, $statusFailed, $statusNeedsReview)
-    $forbiddenStatuses = @(
-        (New-UnicodeText @(0xC2E4, 0xD658, 0xACBD, 0x20, 0xD544, 0xC694)),
-        (New-UnicodeText @(0xC644, 0xB8CC, 0x20, 0xD6C4, 0xBCF4)),
-        (New-UnicodeText @(0xD655, 0xC778, 0x20, 0xD544, 0xC694)),
-        (New-UnicodeText @(0xB300, 0xAE30)),
-        (New-UnicodeText @(0xC9C4, 0xD589, 0xC911)),
-        (New-UnicodeText @(0xBCF4, 0xB958))
-    )
-
-    if ($forbiddenStatuses -contains $Status) {
+    if ($script:ForbiddenStatusValues -contains $Status) {
         Add-Failure "feature matrix forbidden status value [$Status]: $Context"
         return
     }
 
-    if ($allowedStatuses -notcontains $Status) {
+    if ($script:AllowedStatuses -notcontains $Status) {
         Add-Failure "feature matrix unknown status value [$Status]: $Context"
+    }
+}
+
+function Test-StatusCell {
+    param(
+        [string] $CellTag,
+        [string] $CellBody,
+        [string] $Context,
+        [bool] $RequireMarker
+    )
+
+    $displayText = ConvertTo-PlainText $CellBody
+    $dataStatus = Get-AttributeValue $CellTag "data-status"
+    $classValue = Get-AttributeValue $CellTag "class"
+    $hasStatusClass = $false
+    if ($classValue -ne $null) {
+        $hasStatusClass = ($classValue -split "\s+") -contains "status"
+    }
+
+    if ($dataStatus -ne $null) {
+        Test-AllowedStatusValue $dataStatus "$Context:data-status"
+        Test-AllowedStatusValue $displayText "$Context:display"
+        if ($dataStatus -ne $displayText) {
+            Add-Failure "status marker mismatch [$Context]: data-status=[$dataStatus], display=[$displayText]"
+        }
+        if (-not $hasStatusClass) {
+            Add-Failure "status marker class missing [$Context]"
+        }
+        return
+    }
+
+    if ($RequireMarker -or ($script:AllowedStatuses -contains $displayText) -or ($script:ForbiddenStatusValues -contains $displayText)) {
+        Add-Failure "status cell data-status missing [$Context]: [$displayText]"
+    }
+}
+
+function Test-MatrixRowStatusMarkers {
+    param([string] $MatrixText)
+
+    $rows = [System.Text.RegularExpressions.Regex]::Matches(
+        $MatrixText,
+        "<tr\b[^>]*>(.*?)</tr>",
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
+
+    foreach ($row in $rows) {
+        $rowHtml = $row.Groups[1].Value
+        $cells = [System.Text.RegularExpressions.Regex]::Matches(
+            $rowHtml,
+            "(<td\b[^>]*>)(.*?)</td>",
+            [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+        )
+        if ($cells.Count -eq 0) {
+            continue
+        }
+
+        if ($cells.Count -eq 2) {
+            Test-StatusCell $cells[0].Groups[1].Value $cells[0].Groups[2].Value "matrix-status-definition" $true
+        } elseif ($cells.Count -eq 5) {
+            Test-StatusCell $cells[2].Groups[1].Value $cells[2].Groups[2].Value "matrix-feature-status" $true
+        } elseif ($cells.Count -eq 4) {
+            $firstText = ConvertTo-PlainText $cells[0].Groups[2].Value
+            if ($firstText -match '^\d+$') {
+                Test-StatusCell $cells[2].Groups[1].Value $cells[2].Groups[2].Value "matrix-next-action-status" $true
+            } else {
+                Test-StatusCell $cells[1].Groups[1].Value $cells[1].Groups[2].Value "matrix-verification-status" $true
+            }
+        } else {
+            for ($index = 0; $index -lt $cells.Count; $index++) {
+                Test-StatusCell $cells[$index].Groups[1].Value $cells[$index].Groups[2].Value "matrix-cell-$index" $false
+            }
+        }
+    }
+}
+
+function Get-CheckStatusMap {
+    param(
+        [string] $Html,
+        [string] $Name
+    )
+
+    $map = @{}
+    $rows = [System.Text.RegularExpressions.Regex]::Matches(
+        $Html,
+        "(<tr\b[^>]*data-check-id\s*=\s*[""'][^""']+[""'][^>]*>)(.*?)</tr>",
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+    )
+
+    foreach ($row in $rows) {
+        $rowTag = $row.Groups[1].Value
+        $checkId = Get-AttributeValue $rowTag "data-check-id"
+        if ([string]::IsNullOrWhiteSpace($checkId)) {
+            Add-Failure "check row id missing: $Name"
+            continue
+        }
+
+        $statusCells = [System.Text.RegularExpressions.Regex]::Matches(
+            $row.Groups[2].Value,
+            "(<td\b[^>]*class\s*=\s*[""'][^""']*\bstatus\b[^""']*[""'][^>]*>)(.*?)</td>",
+            [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
+        )
+        if ($statusCells.Count -ne 1) {
+            Add-Failure "check row status cell count invalid [${Name}:$checkId]: $($statusCells.Count)"
+            continue
+        }
+
+        $cellTag = $statusCells[0].Groups[1].Value
+        $cellBody = $statusCells[0].Groups[2].Value
+        Test-StatusCell $cellTag $cellBody "${Name}:$checkId" $true
+        $map[$checkId] = Get-AttributeValue $cellTag "data-status"
+    }
+
+    return $map
+}
+
+function Test-RequiredCheckStatusMatch {
+    param(
+        [string] $MatrixText,
+        [string] $ReportText
+    )
+
+    $matrixStatusMap = Get-CheckStatusMap $MatrixText "feature-matrix"
+    $reportStatusMap = Get-CheckStatusMap $ReportText "stabilization-report"
+
+    foreach ($checkId in $script:RequiredCheckIds) {
+        if (-not $matrixStatusMap.ContainsKey($checkId)) {
+            Add-Failure "feature matrix check id missing: $checkId"
+            continue
+        }
+        if (-not $reportStatusMap.ContainsKey($checkId)) {
+            Add-Failure "stabilization report check id missing: $checkId"
+            continue
+        }
+        if ($matrixStatusMap[$checkId] -ne $reportStatusMap[$checkId]) {
+            Add-Failure "check status mismatch [$checkId]: matrix=[$($matrixStatusMap[$checkId])], report=[$($reportStatusMap[$checkId])]"
+        }
     }
 }
 
@@ -152,29 +329,13 @@ if (-not (Test-Path -LiteralPath $featureMatrixPath)) {
     Add-Failure "feature matrix html document missing"
 } else {
     $matrixText = [System.IO.File]::ReadAllText($featureMatrixPath, [System.Text.Encoding]::UTF8)
-    $rows = [System.Text.RegularExpressions.Regex]::Matches(
-        $matrixText,
-        "<tr\b[^>]*>(.*?)</tr>",
-        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
-    )
+    Test-MatrixRowStatusMarkers $matrixText
 
-    foreach ($row in $rows) {
-        $cells = Get-TableCells $row.Groups[1].Value
-        if ($cells.Count -eq 0) {
-            continue
-        }
-
-        if ($cells.Count -eq 2) {
-            Test-AllowedStatusValue $cells[0] "status-definition-table"
-        } elseif ($cells.Count -eq 5) {
-            Test-AllowedStatusValue $cells[2] "feature-status-table:$($cells[0])/$($cells[1])"
-        } elseif ($cells.Count -eq 4) {
-            if ($cells[0] -match '^\d+$') {
-                Test-AllowedStatusValue $cells[2] "next-action-table:$($cells[1])"
-            } else {
-                Test-AllowedStatusValue $cells[1] "verification-status-table:$($cells[0])"
-            }
-        }
+    if (Test-Path -LiteralPath $reportPath) {
+        $reportText = [System.IO.File]::ReadAllText($reportPath, [System.Text.Encoding]::UTF8)
+        Test-RequiredCheckStatusMatch $matrixText $reportText
+    } else {
+        Add-Failure "stabilization report html document missing: \CPF_STABILIZATION_REPORT.html"
     }
 }
 

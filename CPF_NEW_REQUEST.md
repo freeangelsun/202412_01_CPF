@@ -1,203 +1,91 @@
-CPF_REWORK_REQUEST_20260630_04 — 상태값 자동 검출 강화 및 MariaDB 전체 설치 검증 준비 요청
+CPF_NEXT_REQUEST_20260630_05 — 표준 헤더 E2E 소스 정합성 및 ADM runtime smoke 준비 요청
 
 ## 1. 작업 목적
 
-이번 작업의 목적은 직전 작업에서 대부분 정리된 반복 오류 방지 체계를 마무리하고, 다음 큰 단계인 MariaDB 신규 빈 DB 전체 설치 검증으로 넘어가기 위한 준비 상태를 만드는 것이다.
+이번 작업의 목적은 CPF 핵심 표준인 “표준 헤더 수신 → 거래 context 생성 → 로그/마스킹 → outbound 자동 전파 → ADM 확인 가능 구조”가 실제 소스 기준으로 연결되어 있는지 확인하고, 부족한 부분을 최소 보강하는 것이다.
 
-이번 작업은 신규 기능 개발이 아니다.
-
-핵심 목적은 아래 3가지다.
-
-1. `specs/기능_구현_매트릭스.html`의 상태값이 허용된 6개만 사용되는지 자동 검출한다.
-2. `CPF_STABILIZATION_REPORT.html`과 기능 매트릭스의 주요 검증 상태가 불일치하지 않도록 점검 기준을 강화한다.
-3. 다음 단계인 MariaDB 전체 설치 검증을 위해 SQL/Flyway/all_install/smoke 대상 파일 목록과 검증 절차를 리포트에 준비한다.
+이번 작업은 문서 포맷 정리나 DB 전체 설치 검증이 아니다.
+문서는 현재 작업자가 참조 가능한 수준으로만 유지하고, 최종 문서 정본화는 마지막 단계에서 별도 진행한다.
 
 ## 2. 이번 범위
 
-이번 범위는 아래로 한정한다.
+이번 범위는 아래 2개 축으로 한정한다.
 
-### 2.1 상태값 자동 검출 강화
+### 2.1 표준 헤더 E2E 소스 정합성 확인 및 최소 보강
 
-대상:
+대상 기능 흐름:
 
-* `scripts/check-html-docs.ps1`
-* 필요 시 `scripts/check-feature-evidence.ps1`
-* `specs/기능_구현_매트릭스.html`
-* `CPF_STABILIZATION_REPORT.html`
+1. inbound 표준 헤더 수신
+2. 필수/권장/금지/민감 헤더 검증
+3. transaction context 생성
+4. current context 조회 API 또는 내부 조회 수단
+5. 허용된 헤더 보정 mutator
+6. 민감 헤더 마스킹
+7. 거래 로그/header snapshot/detail 저장 구조
+8. outbound 자동 전파
+9. `CpfWebClient` / `CpfRestClient` 또는 wrapper/interceptor 기준 하위 호출
+10. ADM에서 inbound/resolved/outbound/response 헤더를 확인할 수 있는 구조
+11. EDU 또는 XYZ 샘플에서 표준 사용 예시
 
-요구사항:
+### 2.2 ADM runtime/OpenAPI smoke 준비
 
-* 기능 매트릭스 상태값은 아래 6개만 허용한다.
-
-```text
-완료
-부분 구현
-미구현
-미검증
-실패
-재확인 필요
-```
-
-* 아래 표현은 상태값으로 사용하면 실패 처리한다.
-
-```text
-실환경 필요
-완료 후보
-확인 필요
-진행중
-보류
-대기
-작업중
-성공
-검토중
-```
-
-* 단, `실환경 필요` 같은 표현은 설명 문장에서는 허용할 수 있다.
-* 상태값 칸 또는 상태값 marker에서만 금지해야 한다.
-* 단순 전체 문자열 검색으로 설명 문장까지 무조건 실패 처리하지 말고, 기능 매트릭스의 상태값 위치를 기준으로 검출한다.
-* HTML 구조가 복잡해서 상태값 칸 검출이 어렵다면, 기능 매트릭스에 `data-status="미검증"` 같은 명확한 marker를 추가하고 그 값을 검사한다.
-* 이 경우 화면 표시 텍스트와 `data-status` 값이 서로 다르면 실패 처리한다.
-
-권장 방식:
-
-```html
-<td class="status" data-status="미검증">미검증</td>
-```
-
-검출 기준:
-
-* `data-status` 값은 허용된 6개 중 하나여야 한다.
-* 상태 칸 표시 텍스트도 허용된 6개 중 하나여야 한다.
-* `data-status`와 표시 텍스트가 다르면 실패한다.
-* `data-status`가 없는 상태 칸이 있으면 실패한다.
-
-완료 불인정:
-
-* 기능 매트릭스에 금지 상태값이 남아 있음
-* 설명 문장과 상태값을 구분하지 못해 정상 문장을 실패 처리
-* 상태값 자동 검출을 구현했다고 보고했지만 실제 스크립트에서 허용 상태값 목록이 없음
-* 기능 매트릭스는 정리했지만 스크립트가 향후 위반을 잡지 못함
-
----
-
-### 2.2 리포트와 기능 매트릭스 주요 상태 불일치 검출
+이번 작업에서 실제 ADM runtime 기동이나 브라우저 클릭을 완료로 만들지 않는다.
+대신 다음 작업에서 바로 runtime smoke를 실행할 수 있도록 대상 API, 스크립트, 확인 기준을 정리한다.
 
 대상:
 
-* `scripts/check-html-docs.ps1`
-* 필요 시 별도 스크립트 추가 가능: `scripts/check-feature-status.ps1`
-* `CPF_STABILIZATION_REPORT.html`
-* `specs/기능_구현_매트릭스.html`
-
-요구사항:
-
-아래 주요 검증 항목은 리포트와 기능 매트릭스가 같은 상태를 말해야 한다.
-
-```text
-EDU Mapper DB slice
-MariaDB 전체 신규 설치
-ADM runtime
-OpenAPI runtime
-ADM browser click
-표준 헤더 E2E
-Redis/Kafka/MQ broker
-qualityGate
-check-html-docs
-check-feature-evidence
-check-utf8
-```
-
-권장 방식:
-
-* 기능 매트릭스에는 각 검증 항목에 `data-check-id`와 `data-status`를 둔다.
-* 안정화 리포트에도 같은 `data-check-id`와 `data-status`를 둔다.
-* 스크립트는 같은 `data-check-id`끼리 status가 같은지 비교한다.
-
-예:
-
-```html
-<tr data-check-id="edu-mapper-db-slice">
-  <td>EDU Mapper DB slice</td>
-  <td class="status" data-status="재확인 필요">재확인 필요</td>
-</tr>
-```
-
-완료 불인정:
-
-* 리포트는 `완료`, 기능 매트릭스는 `미검증`
-* 기능 매트릭스는 `재확인 필요`, 리포트는 `완료`
-* check script가 불일치를 잡지 못함
-* Codex 로컬 실행 성공을 ChatGPT 검증 완료로 표현
-
-주의:
-
-* Codex 로컬 MariaDB Mapper slice 성공은 기록 가능하다.
-* 다만 ChatGPT 직접 실행 또는 재현 가능한 원격 evidence가 없으면 `완료`가 아니라 `재확인 필요`로 둔다.
-* MariaDB Mapper fixture 성공을 MariaDB 전체 설치 성공으로 확대하지 않는다.
-
----
-
-### 2.3 MariaDB 전체 설치 검증 준비
-
-이번 작업에서 MariaDB 전체 설치를 실제 수행하지 않는다.
-대신 다음 작업에서 바로 검증할 수 있도록 대상 파일과 절차를 정리한다.
-
-대상 후보를 실제 repo에서 확인해서 `CPF_STABILIZATION_REPORT.html`에 기록한다.
-
-확인 대상 예시:
-
-```text
-specs/sql/00_all_install.sql
-specs/sql/00_all_install_and_smoke.sql
-Flyway migration 파일
-module별 split SQL
-smoke SQL
-fixture SQL
-scripts/check-sql-standard.ps1
-DB 표준 가이드
-```
-
-요구사항:
-
-* 실제 존재하는 SQL/Flyway/smoke 파일 목록을 확인한다.
-* 존재하지 않는 파일은 있다고 쓰지 않는다.
-* 파일 목록은 `CPF_STABILIZATION_REPORT.html`에 “다음 MariaDB 전체 설치 검증 대상”으로 기록한다.
-* 아직 실행하지 않은 것은 `미검증`으로 기록한다.
-* 다음 단계에서 실행할 검증 명령 후보를 정리한다.
-* MariaDB 신규 빈 DB 실실행은 이번 범위에서 제외한다.
-
-완료 불인정:
-
-* 실제 파일을 확인하지 않고 추정 목록 작성
-* MariaDB 전체 설치를 실행하지 않았는데 완료로 기록
-* Mapper fixture 성공을 전체 설치 성공으로 기록
-* Flyway/all_install/smoke SQL 정합성을 확인하지 않고 성공 기록
+* ADM health 또는 actuator 접근
+* ADM OpenAPI JSON 접근
+* 거래 로그 조회 API
+* 오류 로그 조회 API
+* 감사 로그 조회 API
+* 배치 관제 API
+* 캐시/로그 정책 API
+* 표준 헤더/거래 context 확인용 API가 있으면 포함
 
 ## 3. 제외 범위
 
-이번 작업에서는 아래를 하지 않는다.
+이번 작업에서 아래는 하지 않는다.
 
-* Git commit
-* Git push
-* branch 생성
-* 신규 기능 개발
-* MariaDB 신규 빈 DB 실제 설치
-* ADM runtime 기동
-* OpenAPI runtime 접근
-* 브라우저 클릭 검증
-* Redis/Kafka/MQ 실 broker 검증
-* 문서 포맷 체계 전환
+* Git commit / push / branch 생성
+* 문서 포맷 변경
+* HTML 디자인/CSS/레이아웃 개선
 * Markdown/AsciiDoc/YAML 전환
-* 대규모 문서 정본화
-* 별도 변경파일 목록 산출물 생성
+* 개발가이드/운영가이드 대규모 상세화
+* MariaDB 신규 빈 DB 전체 설치
+* split SQL/Flyway/all_install 최종 검증
+* ADM 브라우저 클릭 검증
+* Redis/Kafka/MQ 실 broker 검증
+* BAT ghost/center-cut 신규 구현
+* 대규모 리팩토링
 
-`CPF_STABILIZATION_CHANGED_FILES.txt` 같은 산출물은 만들지 않는다.
+DB 관련 문서는 이번 작업에서 깊게 보강하지 않는다. DB는 자주 바뀔 수 있으므로, 이번에는 표준 헤더/ADM runtime 준비에 필요한 최소 evidence만 확인한다.
 
-## 4. 작업 시작 전 기준 기록
+## 4. 문서 작업 제한
 
-작업 시작 전에 아래 명령을 실행하고, 결과를 `CPF_STABILIZATION_REPORT.html`에 기록한다.
+문서는 다음 목적에 한정해서만 수정한다.
 
-```powershell
+* 실제 소스와 다른 evidence 경로 수정
+* 상태값 과장 방지
+* `완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요` 상태값 유지
+* 표준 헤더 E2E와 ADM runtime 준비에 필요한 누락 항목 추가
+* 실행하지 않은 항목을 완료로 기록하지 않기
+
+이번 작업에서 아래는 하지 않는다.
+
+* 문서 문장 품질 개선
+* 수십 페이지급 개발가이드 작성
+* 문서 통합/분리 재설계
+* HTML 포맷 품질 정리
+* 문서 디자인 개선
+
+문서 정본화와 상세화는 최종 마무리 단계에서 별도 요청으로 진행한다.
+
+## 5. 작업 시작 전 기준 기록
+
+작업 시작 전에 아래 명령을 실행하고 `CPF_STABILIZATION_REPORT.html`에 기록한다.
+
+```powershell id="9fah1b"
 git branch --show-current
 git remote -v
 git rev-parse HEAD
@@ -208,270 +96,286 @@ git log -1 --oneline
 
 주의:
 
-* 이 명령은 상태 확인용이다.
-* commit/push/branch 생성은 하지 않는다.
-* 로컬 작업트리 변경이 있으면 파일별로 구분해서 기록한다.
+* commit / push / branch 생성은 하지 않는다.
 * `CPF_NEW_REQUEST.md`가 사용자 갱신분으로 수정 상태라면 작업 대상에서 제외하고 리포트에 별도 기록한다.
+* Codex 로컬 변경과 GitHub master 반영 가능 여부를 구분한다.
 
-## 5. 수정 대상 파일
+## 6. 확인 대상 파일 목록
 
-우선 수정 대상은 아래다.
+먼저 실제 파일 존재 여부를 확인하고, 존재하지 않는 파일은 있다고 쓰지 않는다.
 
-```text
-scripts/check-html-docs.ps1
-specs/기능_구현_매트릭스.html
-CPF_STABILIZATION_REPORT.html
+### 6.1 PFW 표준 헤더 후보
+
+아래 후보를 실제 repo 기준으로 확인한다.
+
+```text id="7csb40"
+pfw/src/main/java/**/CpfHeaderNames*
+pfw/src/main/java/**/CpfHeaderSpecs*
+pfw/src/main/java/**/CpfInboundHeaderValidator*
+pfw/src/main/java/**/TransactionHeaderValidationInterceptor*
+pfw/src/main/java/**/CpfHeaderExtractor*
+pfw/src/main/java/**/CpfTrustedProxyPolicy*
+pfw/src/main/java/**/CpfTransactionContext*
+pfw/src/main/java/**/CpfHeaderMutator*
+pfw/src/main/java/**/CpfHeaderSnapshot*
+pfw/src/main/java/**/CpfHeaderMasker*
+pfw/src/main/java/**/CpfHeaderPropagator*
+pfw/src/main/java/**/CpfWebClient*
+pfw/src/main/java/**/CpfRestClient*
+pfw/src/main/java/**/RestClient*
+pfw/src/main/java/**/WebClient*
+pfw/src/main/java/**/LoggingAspect*
 ```
 
-필요한 경우에만 아래 파일을 수정한다.
+### 6.2 ADM 표준 헤더/로그 후보
 
-```text
+```text id="gy1qyb"
+adm/src/main/java/**/AdmLogController*
+adm/src/main/java/**/AdmLogQueryService*
+adm/src/main/java/**/AdmObservabilityController*
+adm/src/main/java/**/AdmAuditLogController*
+adm/src/main/java/**/AdmLogPolicyAuditController*
+adm/src/main/resources/static/adm/**
+scripts/smoke-adm-runtime.ps1
+scripts/smoke-openapi.ps1
+scripts/smoke-log-policy-runtime.ps1
+scripts/smoke-adm-ui.ps1
+```
+
+### 6.3 EDU/XYZ 샘플 후보
+
+```text id="gav3sa"
+xyz/src/main/java/cpf/xyz/edu/**
+xyz/src/test/java/cpf/xyz/edu/**
+xyz/src/test/resources/sql/xyz_edu_query_fixture.sql
+```
+
+### 6.4 테스트 후보
+
+```text id="c3vtl9"
+pfw/src/test/java/**/*
+adm/src/test/java/**/*
+xyz/src/test/java/**/*
+```
+
+## 7. 구현 / 보강 기준
+
+### 7.1 먼저 gap 표를 만들 것
+
+바로 구현하지 말고, 먼저 소스 기준으로 아래 표를 `CPF_STABILIZATION_REPORT.html`에 기록한다.
+
+```text id="0kxli0"
+항목
+확인한 파일
+현재 상태
+부족한 점
+이번 작업에서 보강 여부
+완료로 기록하지 않는 이유
+```
+
+대상 항목:
+
+```text id="o5r0bm"
+표준 헤더 항목 정의
+REQUIRED/RECOMMENDED/OPTIONAL/INTERNAL_ONLY/FORBIDDEN_TO_LOG_RAW 분류
+inbound 자동 검증
+trusted proxy 기반 client IP 산정
+transaction context 생성
+current context 조회
+허용된 mutator
+민감 헤더 마스킹
+거래 로그/header detail 저장
+outbound 자동 전파
+CpfWebClient/CpfRestClient 사용 구조
+ADM inbound/resolved/outbound/response 표시 구조
+EDU/XYZ 샘플
+단위 테스트
+통합/E2E 테스트
+runtime smoke
+```
+
+### 7.2 최소 보강 원칙
+
+부족한 부분이 있으면 이번 범위 안에서 작은 보강만 한다.
+
+허용되는 보강:
+
+* 누락된 테스트 추가
+* existing class에 작은 검증 추가
+* evidence script에 표준 헤더 핵심 파일 누락 검사 추가
+* EDU/XYZ 샘플에서 표준 헤더 사용 예시 보강
+* ADM runtime smoke 대상 API 목록 정리
+* 리포트/기능 매트릭스 상태값 정정
+
+허용하지 않는 보강:
+
+* 대규모 구조 변경
+* DB schema 대폭 변경
+* ADM UI 대규모 개편
+* 문서 수십 페이지 작성
+* runtime 성공으로 포장
+* broker 성공으로 포장
+
+## 8. 표준 헤더 E2E 테스트 기준
+
+가능하면 아래 중 하나를 구현한다.
+
+### 8.1 우선순위 1 — 단위/통합 테스트 기반 E2E 흐름
+
+테스트명 예시:
+
+```text id="zoytie"
+CpfStandardHeaderE2eTest
+CpfHeaderPropagationE2eTest
+CpfTransactionContextHeaderE2eTest
+```
+
+검증 흐름:
+
+```text id="kr1boz"
+1. 표준 inbound header set 구성
+2. validator 통과 확인
+3. transaction context 생성 확인
+4. 민감 헤더가 masking되는지 확인
+5. outbound 전파 시 허용 헤더만 전달되는지 확인
+6. Authorization, X-Api-Key, token류 원문 미전파/미로그 확인
+7. X-User-Id, X-Customer-No, X-Member-No, X-Operator-Id 의미가 섞이지 않는지 확인
+8. X-Original-Channel-Code와 X-Channel-Code 구분 확인
+9. X-Client-IP는 trusted proxy 기준 산정 확인
+```
+
+### 8.2 우선순위 2 — EDU/XYZ 샘플 기반 smoke 준비
+
+실제 runtime을 띄우지 못하면, XYZ/EDU 샘플에 표준 헤더 사용 예시와 테스트를 추가한다.
+
+단, 이것은 E2E 완료가 아니라 `부분 구현` 또는 `재확인 필요`로 기록한다.
+
+## 9. ADM runtime/OpenAPI smoke 준비 기준
+
+이번 작업에서 실제 runtime을 완료로 만들지 않는다.
+다만 다음 작업을 위해 아래를 준비한다.
+
+### 9.1 smoke 대상 API 목록 정리
+
+`CPF_STABILIZATION_REPORT.html`에 아래 형식으로 기록한다.
+
+```text id="0fsptx"
+API 이름
+HTTP method/path
+확인할 내용
+필요한 표준 헤더
+예상 응답
+미검증 사유
+```
+
+대상 후보:
+
+```text id="zjizqg"
+ADM health
+OpenAPI JSON
+거래 로그 목록
+거래 로그 상세
+오류 로그 목록
+감사 로그 목록
+로그 정책 조회
+배치 목록
+배치 실행/중지/재실행 후보 API
+캐시 상태 조회
+```
+
+### 9.2 smoke script 확인
+
+아래 스크립트가 있으면 실제 내용을 확인한다.
+
+```text id="6z13eh"
+scripts/smoke-adm-runtime.ps1
+scripts/smoke-openapi.ps1
+scripts/smoke-log-policy-runtime.ps1
+scripts/smoke-adm-ui.ps1
+```
+
+없으면 없다고 기록한다.
+있으면 실제 API path와 맞는지 확인한다.
+실행하지 않았으면 `미검증`으로 둔다.
+
+## 10. 품질 게이트 보강
+
+반복 오류 방지를 위해 필요한 경우 아래만 보강한다.
+
+```text id="9vd46h"
 scripts/check-feature-evidence.ps1
-scripts/check-feature-status.ps1
+scripts/check-html-docs.ps1
 ```
 
-신규 스크립트를 추가할 경우:
+보강 기준:
 
-* 목적은 기능 매트릭스/리포트 상태 정합성 검출에 한정한다.
-* README나 문서에 필요 이상으로 새 항목을 늘리지 않는다.
-* `CPF_STABILIZATION_REPORT.html`에 신규 스크립트 추가 이유를 기록한다.
+* 표준 헤더 핵심 파일이 문서에만 있고 소스가 없으면 실패 또는 경고
+* CpfWebClient/CpfRestClient 관련 evidence 누락 시 경고
+* ADM runtime smoke script 존재 여부 확인
+* 표준 헤더 E2E 테스트 파일 존재 여부 확인
 
-## 6. 구현 상세 기준
+단, evidence script 성공을 runtime/E2E 성공으로 기록하지 않는다.
 
-### 6.1 허용 상태값 목록을 코드에 명시
+## 11. 검증 명령
 
-스크립트에는 허용 상태값 목록이 명확히 있어야 한다.
+가능한 범위에서 아래를 실행한다.
 
-예:
-
-```powershell
-$AllowedStatuses = @(
-  "완료",
-  "부분 구현",
-  "미구현",
-  "미검증",
-  "실패",
-  "재확인 필요"
-)
-```
-
-금지 상태값도 명시한다.
-
-```powershell
-$ForbiddenStatusValues = @(
-  "실환경 필요",
-  "완료 후보",
-  "확인 필요",
-  "진행중",
-  "보류",
-  "대기",
-  "작업중",
-  "성공",
-  "검토중"
-)
-```
-
-단, 금지어가 설명 문장에 나온다고 무조건 실패 처리하면 안 된다.
-상태값 칸 또는 `data-status` 기준으로 검출한다.
-
----
-
-### 6.2 HTML marker 기준 정리
-
-`specs/기능_구현_매트릭스.html`와 `CPF_STABILIZATION_REPORT.html`의 주요 상태 행에는 가능하면 아래 marker를 추가한다.
-
-```html
-<tr data-check-id="mariadb-full-install">
-  <td>MariaDB 전체 신규 설치</td>
-  <td class="status" data-status="미검증">미검증</td>
-  <td>이번 범위에서 신규 빈 DB 설치를 실행하지 않았음.</td>
-</tr>
-```
-
-검증 대상 주요 `data-check-id`는 아래를 권장한다.
-
-```text
-edu-mapper-db-slice
-mariadb-full-install
-adm-runtime
-openapi-runtime
-adm-browser-click
-standard-header-e2e
-redis-kafka-mq-broker
-quality-gate
-check-html-docs
-check-feature-evidence
-check-utf8
-```
-
----
-
-### 6.3 리포트와 매트릭스 상태 비교
-
-스크립트는 가능한 경우 아래를 비교한다.
-
-* 기능 매트릭스의 `data-check-id`
-* 안정화 리포트의 `data-check-id`
-* 양쪽의 `data-status`
-
-비교 결과:
-
-* 양쪽에 같은 check id가 있고 status가 다르면 실패
-* 기능 매트릭스에 있는데 리포트에 없으면 경고 또는 실패
-* 리포트에 있는데 기능 매트릭스에 없으면 경고 또는 실패
-* 이번 범위에서는 주요 검증 항목만 실패 처리하고, 보조 항목은 경고로 둬도 된다.
-
-단, 실패/경고 기준은 리포트에 명확히 적는다.
-
-## 7. 검증 명령
-
-작업 후 아래 명령을 실행한다.
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake
-.\gradlew.bat :xyz:test --offline --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest --rerun-tasks
+```powershell id="nzqfyh"
+.\gradlew.bat :pfw:test --offline
+.\gradlew.bat :adm:test --offline
 .\gradlew.bat :xyz:test --offline
 .\gradlew.bat qualityGate --offline
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake
 ```
 
-이번 작업은 상태값/문서/스크립트 중심이므로 전체 `test --offline`은 가능하면 실행한다.
+전체 테스트는 가능하면 실행한다.
 
-```powershell
+```powershell id="qrq010"
 .\gradlew.bat test --offline
 ```
 
-단, 시간이 오래 걸리거나 환경상 실행하지 못하면 `미검증`으로 기록한다.
-실행하지 않은 명령을 성공으로 기록하지 않는다.
+단, 실행하지 못하면 성공으로 기록하지 말고 `미검증`으로 기록한다.
 
-## 8. 삭제 파일 확인
+## 12. 완료 기준
 
-아래 파일이 없는지 확인한다.
+이번 작업의 완료 기준은 아래다.
 
-```powershell
-Test-Path .\CPF_STABILIZATION_CHANGED_FILES.txt
-Test-Path .\xyz\src\test\resources\fixture\xyz_edu_query_mapper_fixture.sql
-```
+* 표준 헤더 E2E 관련 소스 파일 목록을 실제 파일 기준으로 확인
+* 누락/부분 구현/미검증 항목을 리포트에 분리 기록
+* 가능한 범위의 단위/통합 테스트를 추가 또는 보강
+* 민감 헤더 원문 로그 금지 기준을 테스트 또는 evidence로 확인
+* outbound 자동 전파 구조가 소스 기준으로 확인됨
+* ADM runtime smoke 대상 API 목록이 실제 controller/path 기준으로 정리됨
+* 실행한 Gradle/check 명령 결과가 리포트에 기록됨
+* 실행하지 않은 runtime/OpenAPI/browser/broker 검증은 `미검증`으로 남김
+* 문서는 포맷/디자인이 아니라 evidence/상태값/중요 누락만 보정
 
-기대 결과:
-
-```text
-False
-False
-```
-
-아래 파일은 있어야 한다.
-
-```powershell
-Test-Path .\xyz\src\test\resources\sql\xyz_edu_query_fixture.sql
-```
-
-기대 결과:
-
-```text
-True
-```
-
-## 9. `CPF_STABILIZATION_REPORT.html` 기록 기준
-
-리포트에는 아래를 반드시 기록한다.
-
-### 9.1 기준 정보
-
-```text
-작업 시작 branch
-작업 시작 HEAD SHA
-작업 시작 origin/master SHA
-작업 종료 HEAD SHA
-작업 종료 status --short
-사용자 push 후 ChatGPT가 확인해야 하는 항목
-```
-
-### 9.2 변경 파일
-
-파일별로 아래를 기록한다.
-
-```text
-파일명
-변경 목적
-추가한 검증 기준
-삭제한 legacy 기준
-```
-
-### 9.3 상태값 검증 결과
-
-아래를 기록한다.
-
-```text
-허용 상태값 목록
-금지 상태값 목록
-기능 매트릭스 상태값 검출 결과
-리포트/매트릭스 주요 상태 비교 결과
-```
-
-### 9.4 실행 명령 결과
-
-명령별로 아래를 기록한다.
-
-```text
-명령
-성공/실패/미실행
-실패 원인
-skip 수
-완료로 기록하지 않은 이유
-```
-
-### 9.5 다음 MariaDB 전체 설치 검증 준비
-
-아래를 기록한다.
-
-```text
-확인한 SQL/Flyway/all_install/smoke 파일 목록
-존재하지 않는 파일 목록
-다음 단계에서 실행할 검증 명령 후보
-이번 범위에서 실제 MariaDB 전체 설치를 하지 않았다는 점
-상태값: 미검증
-```
-
-## 10. 완료 기준
-
-아래가 모두 충족되어야 이번 작업을 완료로 본다.
-
-* 기능 매트릭스 상태값은 허용된 6개만 사용한다.
-* 상태값 위치에 `data-status` 또는 동등한 marker가 있다.
-* `check-html-docs.ps1` 또는 별도 check script가 허용되지 않은 상태값을 검출한다.
-* `실환경 필요` 같은 표현은 상태값이 아니라 설명 문장으로만 사용된다.
-* `CPF_STABILIZATION_REPORT.html`과 기능 매트릭스의 주요 검증 상태가 일치한다.
-* `CPF_STABILIZATION_CHANGED_FILES.txt`가 없다.
-* old fixture 파일이 없다.
-* new fixture 파일만 evidence로 사용된다.
-* check script들이 성공한다.
-* 실행하지 않은 Gradle/MariaDB/runtime/browser/broker 검증은 성공으로 기록하지 않는다.
-* 다음 MariaDB 전체 설치 검증 대상 파일 목록이 실제 파일 기준으로 리포트에 정리된다.
-
-## 11. 완료 불인정 기준
+## 13. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 인정하지 않는다.
 
-* 기능 매트릭스 상태값에 허용되지 않은 값이 남아 있음
-* 상태값 자동 검출 스크립트에 허용 상태값 목록이 없음
-* 설명 문장의 `실환경 필요`까지 무조건 실패 처리해서 문서 작성이 불가능해짐
-* 리포트와 기능 매트릭스가 서로 다른 상태를 말함
-* `CPF_STABILIZATION_CHANGED_FILES.txt`가 남아 있음
-* old fixture 경로가 코드/evidence/문서에 남아 있음
-* `check-html-docs.ps1` 성공 주장과 실제 repo 상태가 충돌함
-* MariaDB 전체 설치를 하지 않았는데 완료로 기록
-* ADM runtime/OpenAPI/browser/broker 미검증을 완료로 기록
-* Codex 로컬 실행 성공을 ChatGPT 직접 검증 완료로 표현
+* 문서만 보강하고 소스/evidence 확인 없음
+* 표준 헤더 E2E를 실제 흐름 없이 완료로 기록
+* 단위 테스트만으로 ADM runtime 성공이라고 기록
+* ADM 정적 UI marker를 브라우저 클릭 성공으로 기록
+* OpenAPI 설정 파일 존재만으로 runtime 접근 성공 처리
+* 민감 헤더 원문 저장 금지 확인 없이 완료 처리
+* X-User-Id를 고객번호로 설명
+* X-Customer-No와 X-Member-No 의미 혼동
+* X-Original-Channel-Code와 X-Channel-Code 의미 혼동
+* X-Client-IP를 client 입력값 그대로 신뢰하는 구조
+* Authorization, X-Api-Key, token류 원문 로그 저장
+* MariaDB Mapper fixture 성공을 MariaDB 전체 설치 성공으로 확대
+* 문서 포맷/디자인 정리로 시간을 소모
 * Git commit / push / branch 생성 수행
-* 별도 변경파일 목록 산출물 생성
 
-## 12. 완료 보고 양식
+## 14. 완료 보고 양식
 
-완료 보고는 반드시 아래 양식으로 작성한다.
+완료 보고는 아래 양식으로 작성한다.
 
-```text
+```text id="aud9ha"
 1. 기준 정보
 - 작업 시작 branch:
 - 작업 시작 HEAD SHA:
@@ -480,24 +384,30 @@ skip 수
 - 작업 종료 status --short:
 - GitHub master 확인 가능 여부:
 
-2. 변경 파일
+2. 확인한 표준 헤더 파일
+- 파일:
+- 확인 내용:
+- 상태:
+
+3. 표준 헤더 E2E gap
+- 항목:
+- 현재 상태:
+- 보강 여부:
+- 남은 미검증:
+
+4. ADM runtime/OpenAPI smoke 준비
+- Controller/API:
+- path:
+- smoke script:
+- 상태:
+- 미검증 사유:
+
+5. 변경 파일
 - 파일:
 - 변경 목적:
-- 추가한 검증:
-- 제거한 legacy 기준:
+- 구현/테스트/문서/evidence 구분:
 
-3. 상태값 검증
-- 허용 상태값:
-- 금지 상태값:
-- 기능 매트릭스 검출 결과:
-- 리포트/매트릭스 불일치 여부:
-
-4. 삭제 파일 확인
-- CPF_STABILIZATION_CHANGED_FILES.txt:
-- old EDU fixture:
-- new EDU fixture:
-
-5. 실행 명령 결과
+6. 실행 명령 결과
 - 명령:
 - 결과:
 - tests:
@@ -506,30 +416,26 @@ skip 수
 - errors:
 - 미실행 사유:
 
-6. MariaDB 전체 설치 검증 준비
-- 확인한 SQL/Flyway/all_install/smoke 파일:
-- 존재하지 않는 파일:
-- 다음 단계 실행 후보 명령:
-- 현재 상태값:
-
 7. 남은 미검증
 - 대상:
-- 미검증 사유:
+- 사유:
 - 완료로 기록하지 않은 이유:
 
-8. ChatGPT 검수 참고
-- GitHub에서 확인할 주요 파일:
-- 주의할 리스크:
+8. 다음 추천 작업
+- ADM runtime smoke
+- ADM browser click
+- 표준 헤더 E2E runtime 검증
+- BAT ghost/center-cut
 ```
 
-## 13. 다음 보강 후보
+## 15. 다음 보강 후보
 
-이번 작업이 완료되면 다음 요청은 아래 순서로 진행한다.
+이번 작업이 끝나면 다음 순서는 아래를 우선 검토한다.
 
-1. MariaDB 신규 빈 DB 전체 설치 검증
-2. split SQL / Flyway / all_install / smoke SQL 정합성 검증
-3. ADM runtime / OpenAPI smoke
-4. ADM 브라우저 클릭 검증
-5. 표준 헤더 inbound → context → log → ADM → outbound E2E 검증
-6. BAT standalone / lock / heartbeat / ghost 검증
-7. 문서 정본화 및 개발가이드 상세화
+1. ADM runtime/OpenAPI smoke 실제 실행
+2. ADM 브라우저 클릭 검증
+3. 표준 헤더 E2E runtime 검증
+4. BAT standalone / heartbeat / ghost
+5. center-cut 기본 구현체와 EDU 샘플
+6. DB/Flyway/all_install 신규 설치 검증
+7. 문서 정본화 및 상세화

@@ -46,10 +46,10 @@
       <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>남은 확인</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW</td><td>표준 헤더 사전과 필수 헤더 검증</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfHeaderNames</code>, <code>CpfHeaderSpecs</code>, <code>CpfInboundHeaderValidator</code>, <code>TransactionHeaderValidationInterceptor</code>, PFW 단위 테스트</td><td>ADM runtime/OpenAPI에서 실제 요청 기준 확인은 미검증입니다.</td></tr>
+      <tr><td>PFW</td><td>표준 헤더 사전과 필수 헤더 검증</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfHeaderNames</code>, <code>CpfHeaderSpecs</code>, <code>CpfInboundHeaderValidator</code>, <code>TransactionHeaderValidationInterceptor</code>, <code>CpfStandardHeaderE2eTest</code></td><td>ADM runtime/OpenAPI에서 실제 요청 기준 확인은 미검증입니다.</td></tr>
       <tr><td>PFW</td><td>trusted proxy 기반 client IP 해석</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfTrustedProxyPolicy</code>, <code>CpfHeaderExtractor</code>, <code>LoggingAspect</code>, <code>CpfHeaderStandardCoverageTest</code></td><td>단위 테스트는 있으나 실제 LB/WAF 뒤 운영 트래픽 검증은 별도 환경에서 재확인해야 합니다.</td></tr>
       <tr><td>PFW</td><td>업무 코드 헤더 보정 제한</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfHeaderMutator</code>, <code>CpfHeaderMutatorTest</code>, <code>표준_헤더_가이드.html</code></td><td>운영 예외 API와 감사 diff 흐름은 별도 기능입니다.</td></tr>
-      <tr><td>PFW</td><td>WebClient/RestClient 하위 호출 헤더 자동 전파</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfHeaderPropagator</code>, <code>CpfWebClientConfig</code>, <code>CpfRestClientInterceptor</code>, 관련 단위 테스트</td><td>하위 mock API 수신 기준 E2E 검증은 다음 보강 후보입니다.</td></tr>
+      <tr><td>PFW</td><td>WebClient/RestClient 하위 호출 헤더 자동 전파</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfHeaderPropagator</code>, <code>CpfWebClient</code>, <code>CpfWebClientConfig</code>, <code>CpfRestClientInterceptor</code>, <code>CpfStandardHeaderE2eTest</code></td><td>소스 테스트 기준 허용 헤더 전파는 확인 대상에 포함했습니다. 실제 하위 HTTP 서버 수신 runtime 검증은 미검증입니다.</td></tr>
       <tr><td>PFW</td><td>온라인 거래 로그와 헤더 detail 저장</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>LoggingAspect</code>, <code>CpfHeaderSnapshot</code>, <code>CpfHeaderMasker</code>, <code>AdmLogQueryService</code></td><td>ADM runtime에서 실제 거래 로그 샘플 조회는 미검증입니다.</td></tr>
       <tr><td>PFW</td><td>온라인 거래 메타와 로그 정책</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfTransactionMetaScanner</code>, <code>LogPolicyResolver</code>, <code>pfw_transaction_meta</code>, <code>pfw_log_policy</code></td><td>runtime smoke와 다중 인스턴스 broker 전파는 미검증입니다.</td></tr>
       <tr><td>PFW/BAT</td><td>Batch 공통 API와 CPF Batch 메타</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>CpfBatchHeartbeatService</code>, <code>pfw_batch_*</code>, <code>BATCH_*</code></td><td>ghost 자동 감지 scheduler와 장애 시나리오 테스트가 남았습니다.</td></tr>
@@ -78,7 +78,7 @@
       <tr><td>로그 정책 runtime smoke</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>실행하지 않았다면 성공으로 기록하지 않습니다.</td></tr>
       <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>안전한 빈 DB 또는 명시 승인 후에만 실행합니다.</td></tr>
       <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>sql/xyz_edu_query_fixture.sql</code></td><td>현재 세션에서 로컬 MariaDB fixture 실행은 수행했습니다. 다만 빌드 산출물은 저장소 소스가 아니므로 다른 PC에서는 환경변수 지정 후 재실행해야 합니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>표준 헤더 E2E</td><td class="status" data-status="미검증">미검증</td><td>inbound, context, log, ADM, outbound 통합 거래</td><td>단위 테스트와 정적 문서 evidence를 E2E 성공으로 확대하지 않습니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>표준 헤더 E2E</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfStandardHeaderE2eTest</code></td><td>inbound 검증, context 생성, trusted proxy IP, 민감 헤더 마스킹, outbound 전파는 소스 테스트로 확인합니다. 실제 ADM runtime 로그 조회와 하위 서버 수신 검증은 미검증입니다.</td></tr>
       <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker와 장애 시나리오</td><td>기본 local test 성공으로 대체하지 않습니다.</td></tr>
       <tr data-check-id="quality-gate"><td>qualityGate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>현재 작업 세션에서 최종 실행했고 통과했습니다.</td></tr>
       <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>HTML 구조, Markdown 잔재, 불필요 산출물, 기능 매트릭스 상태값 위반을 검사합니다.</td></tr>
@@ -97,7 +97,7 @@
       <tbody>
       <tr><td>1</td><td>ADM runtime/OpenAPI smoke와 브라우저 클릭 자동화</td><td class="status" data-status="미검증">미검증</td><td>운영자 기능은 실제 화면과 API가 같이 검증되어야 합니다.</td></tr>
       <tr><td>2</td><td>MariaDB 안전 테스트 DB에서 전체 설치, seed, idempotent 검증</td><td class="status" data-status="미검증">미검증</td><td>설치 SQL은 신규 프로젝트 재현성의 핵심입니다.</td></tr>
-      <tr><td>3</td><td>표준 헤더 E2E 전파와 ADM 로그 상세 검증</td><td class="status" data-status="미검증">미검증</td><td>수신, context, 로그, outbound, 응답이 한 거래에서 이어지는지 증명해야 합니다.</td></tr>
+      <tr><td>3</td><td>표준 헤더 runtime 전파와 ADM 로그 상세 검증</td><td class="status" data-status="미검증">미검증</td><td>소스 테스트는 보강했지만 실제 앱 기동 후 거래 로그 detail과 ADM 화면 표시까지 확인해야 합니다.</td></tr>
       <tr><td>4</td><td>EDU Mapper DB fixture 재현 절차 자동화</td><td class="status" data-status="재확인 필요">재확인 필요</td><td>로컬 DB 환경변수 기반 실행을 다른 개발자 PC에서도 같은 방식으로 재현해야 합니다.</td></tr>
       <tr><td>5</td><td>ghost 자동 감지 scheduler와 batch 장애 시나리오</td><td class="status" data-status="부분 구현">부분 구현</td><td>장시간 배치와 비정상 종료 대응은 운영 프레임워크의 핵심입니다.</td></tr>
       <tr><td>6</td><td>로그 정책 다중 인스턴스 broker 전파</td><td class="status" data-status="미검증">미검증</td><td>Redis/Kafka/MQ 실 broker 기준으로 cache refresh와 동적 로그레벨을 확인해야 합니다.</td></tr>

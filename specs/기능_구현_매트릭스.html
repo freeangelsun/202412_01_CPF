@@ -73,15 +73,15 @@
       </thead>
       <tbody>
       <tr><td>정적 ADM UI marker</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>DOM marker와 API route 문자열 기준 검증입니다. 실제 브라우저 클릭 검증은 아닙니다.</td></tr>
-      <tr data-check-id="adm-runtime"><td>ADM runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 기동, health, 거래/배치/캐시 API 호출이 필요합니다.</td></tr>
-      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-openapi.ps1</code></td><td>실제 앱 기동 후 JSON 접근과 품질 확인이 필요합니다.</td></tr>
+      <tr data-check-id="adm-runtime"><td>ADM runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>2026-07-01 현재 작업에서 BOOT_JAR 기동, health, batch API, transaction meta scan/list/detail, 정적 ADM UI marker, cleanup을 확인했습니다.</td></tr>
+      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-openapi.ps1</code></td><td>2026-07-01 현재 작업에서 ADM 앱 기동 후 <code>/v3/api-docs</code>와 Swagger UI 접근, 필수 tag 검증을 통과했습니다.</td></tr>
       <tr data-check-id="adm-browser-click"><td>ADM browser click</td><td class="status" data-status="미검증">미검증</td><td>브라우저 자동화 또는 수동 검증 절차</td><td>정적 marker 검사를 브라우저 클릭 성공으로 보지 않습니다.</td></tr>
-      <tr><td>로그 정책 runtime smoke</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>실행하지 않았다면 성공으로 기록하지 않습니다.</td></tr>
+      <tr><td>로그 정책 runtime smoke</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>2026-07-01 현재 작업에서 DB 로그 on/off, body/error stack 정책, override fallback, ADM observability 조회를 확인했습니다.</td></tr>
       <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>안전한 빈 DB 또는 명시 승인 후에만 실행합니다.</td></tr>
       <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>sql/xyz_edu_query_fixture.sql</code></td><td>현재 세션에서 로컬 MariaDB fixture 실행은 수행했습니다. 다만 빌드 산출물은 저장소 소스가 아니므로 다른 PC에서는 환경변수 지정 후 재실행해야 합니다.</td></tr>
       <tr data-check-id="standard-header-e2e"><td>PFW 표준 헤더 Source-Level 흐름 테스트</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest</code></td><td>inbound 검증, context 생성, trusted proxy IP, 민감 헤더 마스킹, outbound 허용 정책은 소스 테스트로 확인합니다. Runtime E2E 완료로 확대하지 않습니다.</td></tr>
       <tr><td>표준 헤더 Runtime E2E</td><td class="status" data-status="미검증">미검증</td><td>실제 API 호출, DB 로그 저장, ADM 조회, 하위 HTTP 서버 수신</td><td>앱 기동과 테스트용 하위 서버가 필요하므로 이번 작업에서는 완료로 기록하지 않습니다.</td></tr>
-      <tr><td>ADM 거래 로그 연계</td><td class="status" data-status="미검증">미검증</td><td><code>AdmLogController</code>, <code>AdmLogQueryService</code></td><td>거래 로그 상세 runtime 호출과 DB 적재 결과는 아직 확인하지 않았습니다.</td></tr>
+      <tr><td>ADM 거래 로그 연계</td><td class="status" data-status="완료">완료</td><td><code>AdmLogController</code>, <code>AdmObservabilityController</code>, <code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 runtime smoke에서 거래 로그 목록, 상세, trace 검색, business transaction 검색, 정책 감사 조회를 확인했습니다. 표준 헤더 Runtime E2E는 별도 검증입니다.</td></tr>
       <tr><td>outbound 실제 HTTP 수신 검증</td><td class="status" data-status="미검증">미검증</td><td><code>CpfWebClientConfig</code>, <code>CpfRestClientInterceptor</code></td><td>소스 테스트는 전파 대상 map을 확인하며, 실제 하위 mock 서버 수신은 다음 runtime 테스트 대상입니다.</td></tr>
       <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker와 장애 시나리오</td><td>기본 local test 성공으로 대체하지 않습니다.</td></tr>
       <tr data-check-id="quality-gate"><td>qualityGate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>현재 작업 세션에서 최종 실행했고 통과했습니다.</td></tr>
@@ -99,7 +99,7 @@
       <tr><th>순위</th><th>항목</th><th>상태</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>ADM runtime/OpenAPI smoke와 브라우저 클릭 자동화</td><td class="status" data-status="미검증">미검증</td><td>운영자 기능은 실제 화면과 API가 같이 검증되어야 합니다.</td></tr>
+      <tr><td>1</td><td>ADM 브라우저 클릭 자동화</td><td class="status" data-status="미검증">미검증</td><td>ADM runtime과 OpenAPI는 통과했습니다. 다음은 실제 브라우저 이벤트 기준 검증입니다.</td></tr>
       <tr><td>2</td><td>MariaDB 안전 테스트 DB에서 전체 설치, seed, idempotent 검증</td><td class="status" data-status="미검증">미검증</td><td>설치 SQL은 신규 프로젝트 재현성의 핵심입니다.</td></tr>
       <tr><td>3</td><td>표준 헤더 Runtime E2E와 ADM 로그 상세 검증</td><td class="status" data-status="미검증">미검증</td><td>Source-Level 흐름은 완료했지만 실제 앱 기동 후 거래 로그 detail, ADM 조회, 하위 HTTP 수신까지 확인해야 합니다.</td></tr>
       <tr><td>4</td><td>EDU Mapper DB fixture 재현 절차 자동화</td><td class="status" data-status="재확인 필요">재확인 필요</td><td>로컬 DB 환경변수 기반 실행을 다른 개발자 PC에서도 같은 방식으로 재현해야 합니다.</td></tr>

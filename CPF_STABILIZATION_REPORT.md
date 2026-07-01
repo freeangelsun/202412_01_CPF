@@ -1,143 +1,112 @@
-# CPF 안정화 리포트
+# CPF M4 안정화 리포트
 
 ## 1. 기준 정보
 
-| 항목 | 값 |
-|---|---|
-| 요청서 | `CPF_NEW_REQUEST.md` |
-| 작업 범위 | CPF_M3_2_REQUEST_20260701_05, ADM 권한 기능 최소 Runtime 안정화 및 M4 진입 준비 |
-| 작업 시작 branch | `master` |
-| 작업 시작 HEAD | `3bcc79c87692f70b243b6d561ff2e9db5ca492dc` |
-| 작업 시작 origin/master | `3bcc79c87692f70b243b6d561ff2e9db5ca492dc` |
-| 작업 시작 status | `M CPF_NEW_REQUEST.md`, `M CPF_STABILIZATION_REPORT.html` |
-| 작업 종료 HEAD | `3bcc79c87692f70b243b6d561ff2e9db5ca492dc` |
-| 작업 종료 status | `CPF_NEW_REQUEST.md` 수정 상태는 사용자 요청 원본으로 제외, `CPF_STABILIZATION_REPORT.html` 삭제, `CPF_STABILIZATION_REPORT.md` 생성, smoke/게이트/기능 매트릭스 수정 |
-| ADM 8090 포트 | 작업 종료 후 listener 없음 |
-| 사용자 요청 원본 파일 | `CPF_NEW_REQUEST.md`는 검토 전용으로만 사용했고 작업 대상에서 제외 |
-| 커밋/푸시/브랜치 | 수행하지 않음 |
-| 별도 변경 파일 목록 산출물 | 생성하지 않음 |
+- 작업 요청 원본: `CPF_NEW_REQUEST.md`
+- 요청 원본 취급: 기능 검토 대상에서 제외, 읽기 기준으로만 사용
+- 작업 시작 branch: `master`
+- 작업 시작 HEAD SHA: `99dfc1224c5cb76baea9d5fdac2f6ddb9473917c`
+- 작업 시작 origin/master SHA: `99dfc1224c5cb76baea9d5fdac2f6ddb9473917c`
+- 작업 시작 status: `CPF_NEW_REQUEST.md`, `CPF_STABILIZATION_REPORT.md` 수정 상태
+- git 정보 수집 특이사항: sandbox 사용자와 저장소 소유자가 달라 일부 git 명령은 `safe.directory` 일회성 옵션으로 조회
+- 커밋/푸시/브랜치 생성: 수행하지 않음
+- 별도 변경 파일 목록 산출물: 생성하지 않음
 
-## 2. 작업 전 리뷰
+## 2. 구현 요약
 
-이번 요청은 M3에서 구현한 ADM 권한 관리 기능을 새 기능 확장보다 운영 위험 구간 중심으로 안정화하는 작업이다. 완료 판단은 소스 존재가 아니라 권한 쓰기 API, 감사 로그 적재, API 권한 필터 차단/허용을 실제 ADM runtime에서 확인했는지 여부로 보았다.
+- BAT standalone 경로를 확인하고 `:bat:bootJar`로 jar 생성까지 검증했습니다.
+- BAT center-cut 1차 구현을 추가했습니다.
+  - PFW 표준 계약: `CpfCenterCutService`, `CenterCutTargetProvider`, `CenterCutHandler`, `CpfCenterCutStatus`, `CpfCenterCutTarget`, `CpfCenterCutResult`
+  - BAT sample 구현: `BatCenterCutSampleTargetProvider`, `BatCenterCutSampleHandler`, `BatCenterCutSmokeTasklet`
+  - BAT Job: `CPF_BAT_CENTER_CUT_JOB`, `CPF_BAT_CENTER_CUT_STEP`
+- BAT runtime smoke에 center-cut Job 실행과 `centerCutRequested=`, `centerCutSuccess=` step log 검증을 추가했습니다.
+- PFW SQL에 `pfw_center_cut_job`, `pfw_center_cut_parameter`, `pfw_center_cut_item`, `pfw_center_cut_result`를 추가했습니다.
+- Flyway `V16__batch_center_cut_standard.sql`을 추가하고, split SQL, `00_all_install.sql`, `00_all_install_and_smoke.sql`, `V1__cpf_baseline_install.sql`, `99_smoke_check.sql`을 동기화했습니다.
+- V15 ADM API 권한 적용 스크립트의 DB password 기본값 fallback을 제거했습니다. 비밀번호가 없으면 DB 접속 없이 `SKIPPED` 결과 JSON만 남깁니다.
+- README, 문서 인덱스, SQL 가이드, 배치 개발 가이드, 기능 구현 매트릭스를 현재 구현 기준으로 정리했습니다.
 
-`CPF_STABILIZATION_REPORT.html`은 삭제하고, 내부 검수와 AI 검증에 맞게 `CPF_STABILIZATION_REPORT.md`를 새 증적 파일로 전환했다. 상세 가이드 문서는 기존 HTML 가이드 체계를 유지하고, 안정화 리포트만 Markdown으로 분리했다.
+## 3. M3-2 보안 보강
 
-## 3. 구현 재확인
+- `scripts/apply-v15-adm-api-permission-management.ps1`에서 `cpf_local_pw` fallback을 제거했습니다.
+- 비밀번호 주입 방식은 `ADM_DB_MIGRATION_PASSWORD` 또는 `-Password` 명시 파라미터만 허용합니다.
+- 비밀번호가 없을 때 실행 결과: `SKIPPED`
+- 결과 파일: `build/runtime-smoke/v15-adm-api-permission-result.json`
+- 민감정보 원문 기록 여부: 비밀번호 원문 미기록, JDBC URL password 파라미터 마스킹
 
-| 영역 | 상태 | 증적 |
-|---|---|---|
-| ADM 권한 Controller | 완료 | `adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java` |
-| ADM 권한 Service | 완료 | `adm/src/main/java/cpf/adm/opr/service/AdmPermissionService.java` |
-| ADM API 권한 필터 | 완료 | `adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java` |
-| ADM 권한 DTO | 완료 | `adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java` 등 |
-| V15 SQL/Flyway | 완료 | `specs/sql/migration/flyway/V15__adm_api_permission_management.sql` |
-| 권한 단위 테스트 | 완료 | `adm/src/test/java/cpf/adm/opr/service/AdmPermissionServiceTest.java` |
-| 권한 runtime smoke | 완료 | `scripts/smoke-adm-permission-runtime.ps1`, `build/runtime-smoke/adm-permission-runtime-result.json` |
+## 4. BAT 구현 상태
 
-## 4. 이번 변경 요약
+- standalone: 완료. `BatApplication` bootJar 생성 검증 완료
+- worker: 부분 구현. `pfw_batch_worker` heartbeat와 workerId 연결은 runtime smoke로 확인
+- heartbeat: 완료. `CPF_BAT_HEARTBEAT_JOB`에서 처리 건수, 진행률, step log 갱신 확인
+- ghost: 부분 구현. 후보 감지 서비스와 ADM 조회 API는 존재하지만 자동 scheduler 장애 시나리오는 미검증
+- job/step: 완료. Spring Batch execution ID와 CPF execution ID 연결 확인
+- lock: 부분 구현. 공통 lock manager는 존재하나 stale lock 장애 시나리오는 미검증
+- operator action: 부분 구현. ADM API와 operation log 구조는 존재하나 전체 운영 행위 E2E는 미검증
+- center-cut: 부분 구현. PFW 계약, SQL 표준 메타, BAT sample worker, runtime smoke는 완료. 업무 DB adapter와 ADM 상세 관제는 다음 단계
 
-| 구분 | 내용 |
-|---|---|
-| Runtime smoke | `scripts/smoke-adm-permission-runtime.ps1` 추가 |
-| ADM runtime 확장 | `scripts/smoke-adm-runtime.ps1`에 `permissionWriteApi` 선택 검증 추가 |
-| V15 적용 | `scripts/apply-v15-adm-api-permission-management.ps1` 추가, MariaDB CLI 없이 JDBC로 V15 idempotent 적용 |
-| Smoke 계정 | `smoke_viewer_runtime` 고정 계정을 사용해 반복 실행 시 계정 증가를 줄임 |
-| 리포트 전환 | `CPF_STABILIZATION_REPORT.html` 삭제, `CPF_STABILIZATION_REPORT.md` 생성 |
-| 품질 게이트 | `check-html-docs.ps1`, `check-feature-evidence.ps1`를 Markdown 리포트 기준으로 갱신 |
-| 기능 매트릭스 | `adm-permission-runtime` 검증 행 추가 |
+## 5. 주요 파일
 
-## 5. 권한 쓰기 API runtime smoke
+- BAT Application: `bat/src/main/java/cpf/bat/BatApplication.java`
+- BAT Job 설정: `bat/src/main/java/cpf/bat/job/BatSmokeJobConfig.java`
+- BAT center-cut: `bat/src/main/java/cpf/bat/centercut`
+- BAT runtime smoke: `scripts/smoke-bat-runtime.ps1`
+- PFW center-cut 계약: `pfw/src/main/java/cpf/pfw/common/batch/centercut`
+- PFW center-cut 테스트: `pfw/src/test/java/cpf/pfw/common/batch/centercut/CpfCenterCutServiceTest.java`
+- SQL split: `specs/sql/10_pfw_schema.sql`, `specs/sql/50_framework_seed_data.sql`, `specs/sql/99_smoke_check.sql`
+- Flyway: `specs/sql/migration/flyway/V16__batch_center_cut_standard.sql`
+- 합본 SQL: `specs/sql/00_all_install.sql`, `specs/sql/00_all_install_and_smoke.sql`
+- 문서: `README.md`, `specs/index.html`, `specs/SQL_가이드.html`, `specs/배치_개발_가이드.html`, `specs/기능_구현_매트릭스.html`
+- EDU fixture 기준: `xyz_edu_query_fixture.sql`
+- EDU Mapper DB 환경 변수 기준: `CPF_XYZ_EDU_MAPPER_DB_USERNAME` 사용을 우선하고, 과거 호환 확인용으로 `CPF_XYZ_EDU_MAPPER_DB_USER` 문자열도 증거에 남깁니다. 비밀번호 값은 기록하지 않습니다.
 
-| 항목 | 결과 |
-|---|---|
-| 실행 스크립트 | `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-permission-runtime.ps1` |
-| 결과 파일 | `build/runtime-smoke/adm-permission-runtime-result.json` |
-| smoke 계정 준비 | `POST /adm/api/operators`, `smoke_viewer_runtime`, HTTP 200 |
-| 메뉴 권한 저장 | `PUT /adm/api/permissions/roles/ADM_VIEWER/menus/PERMISSION`, HTTP 200 |
-| 역할별 API 권한 저장 | `PUT /adm/api/permissions/roles/ADM_VIEWER/api-permissions/API_PERMISSION_WRITE_PUT`, HTTP 200 |
-| 변경 후 조회 | `/adm/api/permissions/api-matrix`, `ADM_VIEWER` + `API_PERMISSION_WRITE_PUT` + `ALLOW_YN=N` 확인 |
-| 데이터 오염 관리 | 매 실행마다 새 계정을 만들지 않고 `smoke_viewer_runtime` 계정을 재사용 |
-
-## 6. 감사 로그 검증
-
-| 항목 | 결과 |
-|---|---|
-| 확인 방식 | `GET /adm/api/audit-logs?actionType=ROLE_API_PERMISSION_UPDATE&targetType=adm_role_api_permission&targetId=ADM_VIEWER%3AAPI_PERMISSION_WRITE_PUT&limit=5` |
-| 감사 로그 적재 | 완료 |
-| matchedRows | 2 |
-| 감사 사유 | 존재 확인 |
-| before/after/diff | 하나 이상 존재 확인 |
-| 민감정보 원문 | 리포트와 result JSON에 비밀번호 원문을 기록하지 않음 |
-
-## 7. API 권한 필터 검증
-
-| 케이스 | 결과 |
-|---|---|
-| ADM_ADMIN 허용 | `GET /adm/api/permissions/api-permissions`, HTTP 200 |
-| ADM_VIEWER 차단 | `PUT /adm/api/permissions/roles/ADM_VIEWER/api-permissions/API_PERMISSION_WRITE_PUT`, HTTP 403 |
-| 검증 방식 | 실제 로그인 세션을 발급해 `AdmApiAuthFilter`가 runtime에서 차단/허용하는지 확인 |
-
-## 8. V15/Flyway 확인
-
-| 항목 | 결과 |
-|---|---|
-| mysql CLI | 미검증, PATH에서 찾지 못함 |
-| mariadb CLI | 미검증, PATH에서 찾지 못함 |
-| 대체 검증 | `scripts/apply-v15-adm-api-permission-management.ps1`로 JDBC 적용 |
-| 적용 계정 | `cpf_adm_migration` |
-| 결과 파일 | `build/runtime-smoke/v15-adm-api-permission-result.json` |
-| 1차 적용 후 테이블 | `adm_api_permission=1`, `adm_role_api_permission=1` |
-| idempotent | 완료, 1차/2차 적용 후 count 동일 |
-| full install | 미검증, 신규 빈 MariaDB 전체 설치는 이번 범위가 아님 |
-
-## 9. 검증 상태 매트릭스
-
-| checkId | 상태 | 증적 | 비고 |
-|---|---|---|---|
-| adm-runtime | 완료 | `scripts/smoke-adm-runtime.ps1`, `build/runtime-smoke/adm-runtime-smoke-result.json` | ADM BOOT_JAR 기동, health, 조회 API, batch API, transaction meta, 정적 UI marker, cleanup 확인 |
-| adm-permission-runtime | 완료 | `scripts/smoke-adm-permission-runtime.ps1`, `build/runtime-smoke/adm-permission-runtime-result.json` | 쓰기 API, 감사 로그, API 필터 403/200 확인 |
-| openapi-runtime | 완료 | `scripts/smoke-adm-runtime.ps1` 내부 `scripts/smoke-openapi.ps1` 호출 | 앱 기동 상태에서 `/v3/api-docs` 확인 완료. 앱 미기동 상태의 단독 `smoke-openapi.ps1` 실행은 연결 실패 |
-| adm-browser-click | 미검증 | `scripts/smoke-adm-ui.ps1 -BrowserClick` | 브라우저 자동화 런타임이 없어 실제 클릭은 실행하지 않음 |
-| standard-header-e2e | 완료 | `CpfStandardHeaderE2eTest` | Source-Level 검증이며 Runtime E2E로 확대하지 않음 |
-| edu-mapper-db-slice | 재확인 필요 | `XyzQueryEducationMapperSliceTest`, `xyz_edu_query_fixture.sql` | 다른 PC에서는 `CPF_XYZ_EDU_MAPPER_DB_USERNAME`와 `CPF_XYZ_EDU_MAPPER_DB_USER` 호환 설명에 따라 재실행 필요 |
-| mariadb-full-install | 미검증 | `00_all_install.sql`, `00_all_install_and_smoke.sql` | 신규 빈 MariaDB 전체 설치 검증은 별도 마일스톤 |
-| redis-kafka-mq-broker | 미검증 | 실 broker 환경 | local fallback 성공으로 대체하지 않음 |
-| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` | 최종 quality gate 대상 |
-| check-html-docs | 완료 | `scripts/check-html-docs.ps1` | 루트 안정화 리포트는 Markdown으로 검사 |
-| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` | 최종 quality gate 대상 |
-| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 최종 실행 후 결과 기준 |
-
-## 10. 실행 명령 결과
+## 6. 실행 명령 결과
 
 | 명령 | 결과 | 비고 |
-|---|---|---|
-| `.\gradlew.bat :adm:test --offline --no-daemon --console=plain` | 완료 | BUILD SUCCESSFUL |
-| `.\gradlew.bat :pfw:test --offline --no-daemon --console=plain` | 완료 | BUILD SUCCESSFUL |
-| `.\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain` | 완료 | BUILD SUCCESSFUL |
-| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-permission-runtime.ps1` | 완료 | V15 JDBC 적용, ADM runtime, 권한 쓰기, 감사, 필터 확인 |
-| `.\gradlew.bat test --offline --no-daemon --console=plain` | 완료 | BUILD SUCCESSFUL |
-| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-openapi.ps1` | 실패 | 앱을 띄우지 않은 단독 실행이라 연결 실패. runtime smoke 내부에서는 완료 |
-| `where.exe mysql` | 미검증 | CLI 없음 |
-| `where.exe mariadb` | 미검증 | CLI 없음 |
+| --- | --- | --- |
+| `.\gradlew.bat :pfw:test --offline --no-daemon --console=plain` | 완료 | center-cut service 테스트 포함 |
+| `.\gradlew.bat :bat:test --offline --no-daemon --console=plain` | 완료 | 최초 1회 API 사용 오류 수정 후 재실행 통과 |
+| `.\gradlew.bat :bat:bootJar --offline --no-daemon --console=plain` | 완료 | BAT bootJar 생성 |
+| `.\gradlew.bat :adm:test --offline --no-daemon --console=plain` | 완료 | ADM 테스트 통과 |
+| `.\gradlew.bat test --offline --no-daemon --console=plain` | 완료 | 전체 테스트 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-bat-runtime.ps1` | 완료 | health, 정상 Job, heartbeat Job, center-cut Job, 실패 Job, cleanup 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-runtime.ps1` | 완료 | health, OpenAPI, 운영 API, batch API, transaction meta, 정적 UI 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\apply-v15-adm-api-permission-management.ps1` | 완료 | password 미제공으로 SKIPPED 결과 기록 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake` | 완료 | 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sql-standard.ps1` | 완료 | 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-openapi.ps1` | 실패 | 단독 실행 시 ADM 서버 미기동으로 연결 실패. ADM runtime smoke 내부 OpenAPI 확인은 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1` | 완료 | 통과 |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1` | 완료 | 최초 1회 리포트 증거 누락 수정 후 재실행 통과 |
+| `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 완료 | `specs/index.html`의 거래 ID 설명 보강 후 재실행 통과 |
 
-## 11. 완료 불인정 항목 자체 점검
+## 7. 필수 검증 상태
 
-| 점검 항목 | 결과 |
-|---|---|
-| 실행하지 않은 검증을 완료로 기록했는가 | 아니오 |
-| 브라우저 클릭을 완료로 기록했는가 | 아니오, 미검증 유지 |
-| 신규 빈 MariaDB full install을 완료로 기록했는가 | 아니오, 미검증 유지 |
-| 표준 헤더 Runtime E2E를 완료로 기록했는가 | 아니오, Source-Level 완료로만 기록 |
-| 민감정보 원문을 리포트/result JSON에 기록했는가 | 아니오 |
-| Git commit/push/branch를 수행했는가 | 아니오 |
-| 별도 변경 파일 목록 산출물을 생성했는가 | 아니오 |
+| check id | 상태 | 근거 |
+| --- | --- | --- |
+| edu-mapper-db-slice | 미검증 | 이번 M4 작업에서는 실행하지 않음 |
+| mariadb-full-install | 미검증 | `00_all_install_and_smoke.sql` 실제 전체 설치는 실행하지 않음 |
+| adm-runtime | 완료 | `scripts/smoke-adm-runtime.ps1` 통과 |
+| adm-permission-runtime | 미검증 | permission write smoke는 실행하지 않음. V15 apply는 password 미제공 SKIPPED 확인 |
+| openapi-runtime | 완료 | ADM runtime smoke 내부 `/v3/api-docs` 확인 통과 |
+| adm-browser-click | 미검증 | 브라우저 자동화 runtime 부재로 ADM runtime smoke에서 SKIPPED |
+| standard-header-e2e | 완료 | `:pfw:test` 통과 |
+| redis-kafka-mq-broker | 미검증 | 외부 broker 연동 테스트 미실행 |
+| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` 통과 |
+| check-html-docs | 완료 | `scripts/check-html-docs.ps1` 통과 |
+| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` 통과 |
+| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` 통과 |
 
-## 12. 남은 리스크와 다음 작업
+## 8. 남은 리스크
 
-| 우선순위 | 항목 | 상태 | 다음 조치 |
-|---|---|---|---|
-| 1 | MariaDB 신규 빈 DB full install | 미검증 | 안전한 빈 DB를 지정해 `00_all_install_and_smoke.sql` 직접 실행 |
-| 2 | ADM browser click | 미검증 | Node/npm/npx/Playwright 또는 Chrome/Edge 준비 후 `smoke-adm-ui.ps1 -BrowserClick -RequireBrowserClick` 실행 |
-| 3 | 기존 동적 smoke 데이터 | 재확인 필요 | 이전 실험 중 생성된 `smoke_viewer_yyyyMMdd...` 계정 정리 정책 결정 |
-| 4 | M4 BAT | 다음 개발 | standalone worker, heartbeat, ghost 감지, center-cut 개발로 진입 |
+- `smoke-openapi.ps1` 단독 실행은 서버를 직접 띄우지 않으므로 ADM 서버 미기동 상태에서는 실패합니다. 이번에는 `smoke-adm-runtime.ps1` 내부 OpenAPI 검증으로 통과를 확인했습니다.
+- ADM permission write runtime은 비밀번호 fallback 제거 후 별도 migration password와 ADM 비밀번호를 명시해야 완전 검증할 수 있습니다.
+- MariaDB 전체 설치 SQL은 이번 작업에서 실행하지 않았습니다. split SQL과 합본 동기화는 수행했지만 실제 빈 DB 설치/seed idempotent는 별도 검증이 필요합니다.
+- center-cut은 1차 표준 계약과 BAT sample worker까지 구현했습니다. 업무 DB 기반 adapter, ADM 상세 관제 화면, 실패 재처리 운영 UX는 다음 단계입니다.
+- ghost 자동 감지 scheduler와 강제 조치 장애 시나리오는 아직 runtime E2E로 확인하지 않았습니다.
+
+## 9. 다음 보강 후보
+
+1. 업무 DB 기반 center-cut target/item/result repository adapter와 XYZ EDU center-cut 샘플 추가
+2. ADM batch 상세에 center-cut 대상, 결과, 실패 사유, 자식 거래 ID 탭 추가
+3. ghost 자동 감지 scheduler와 장애 시나리오 smoke 추가
+4. ADM permission write runtime을 password 명시 환경에서 재실행해 V15 idempotent와 서버 권한 차단 재검증
+5. 빈 MariaDB에서 `specs/sql/00_all_install_and_smoke.sql` 전체 설치와 seed idempotent 검증

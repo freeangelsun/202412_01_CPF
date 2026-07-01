@@ -18,8 +18,8 @@
 <main>
   <section>
     <h1>CPF CoreFlow Platform Framework 문서 인덱스</h1>
-    <p>이 문서는 CPF를 개발, 운영, 검증하는 사람이 어떤 가이드를 먼저 볼지 정리하는 진입점입니다. README는 짧은 개요만 유지하고, 실제 기준은 이 HTML 문서 묶음에서 관리합니다.</p>
-    <p class="note">경계 기준: PFW는 프레임워크 코어, CMN은 프로젝트 공통, ADM은 운영 콘솔, BAT는 배치 worker, XYZ는 EDU 샘플입니다.</p>
+    <p>CPF를 개발, 운영, 검증하는 사람이 어떤 가이드를 먼저 볼지 정리한 진입 문서입니다. README는 개요만 유지하고, 실제 기준은 이 HTML 가이드 묶음에서 관리합니다.</p>
+    <p class="note">경계 기준: PFW는 프레임워크 코어, CMN은 프로젝트 공통, ADM은 운영 콘솔, BAT는 배치 worker, XYZ는 EDU 샘플입니다. 이 기준은 <code>cpf-pfw-cmn-boundary</code>입니다.</p>
   </section>
 
   <section>
@@ -29,12 +29,12 @@
       <tr><th>대상</th><th>먼저 볼 문서</th><th>다음 확인</th><th>목적</th></tr>
       </thead>
       <tbody>
-      <tr><td>신규 개발자</td><td><a href="로컬_개발환경_구성_가이드.html">로컬 개발환경 구성 가이드</a></td><td><a href="아키텍처_가이드.html">아키텍처 가이드</a>, <a href="개발_가이드.html">개발 가이드</a>, <code>xyz/src/main/java/cpf/xyz/edu</code></td><td>로컬 빌드, DB 설치, 모듈 경계, EDU 샘플을 이해합니다.</td></tr>
-      <tr><td>온라인 API 개발자</td><td><a href="표준_헤더_가이드.html">표준 헤더 가이드</a></td><td><a href="트랜잭션_가이드.html">트랜잭션 가이드</a>, <a href="개발_가이드.html">개발 가이드</a></td><td>거래 ID, 필수 헤더, <code>inboundHeaders</code>, 하위 호출 전파 기준을 확인합니다.</td></tr>
-      <tr><td>DB 담당자</td><td><a href="SQL_가이드.html">SQL 가이드</a></td><td><a href="DB_표준_가이드.html">DB 표준 가이드</a>, <code>specs/sql</code></td><td>설치 SQL, Flyway, 테이블 prefix, 공통 감사 컬럼, COMMENT 기준을 확인합니다.</td></tr>
+      <tr><td>신규 개발자</td><td><a id="cpf-local-dev-guide" href="로컬_개발환경_구성_가이드.html">로컬 개발환경 구성 가이드</a></td><td><a id="cpf-architecture-guide" href="아키텍처_가이드.html">아키텍처 가이드</a>, <a href="개발_가이드.html">개발 가이드</a></td><td>로컬 빌드, DB 설치, 모듈 경계, EDU 샘플을 이해합니다.</td></tr>
+      <tr><td>온라인 API 개발자</td><td><a id="cpf-standard-header-guide" href="표준_헤더_가이드.html">표준 헤더 가이드</a></td><td><a id="cpf-transaction-guide" href="트랜잭션_가이드.html">트랜잭션 가이드</a>, <a href="개발_가이드.html">개발 가이드</a></td><td><code>inboundHeaders</code>, 거래 ID, 필수 헤더, <code>CpfRestClientInterceptor</code> 전파 기준을 확인합니다.</td></tr>
+      <tr><td>DB 담당자</td><td><a href="SQL_가이드.html">SQL 가이드</a></td><td><a id="cpf-db-standard-guide" href="DB_표준_가이드.html">DB 표준 가이드</a>, <code>specs/sql</code></td><td>설치 SQL, Flyway, 테이블 prefix, 공통 감사 컬럼, SQL COMMENT 기준을 확인합니다.</td></tr>
       <tr><td>운영자</td><td><a href="관리자_가이드.html">관리자 가이드</a></td><td><a id="operation-runbook" href="운영_매뉴얼.html">운영 매뉴얼</a>, ADM 화면, ADM API</td><td>권한, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 절차를 확인합니다.</td></tr>
-      <tr><td>배치 개발자</td><td><a id="batch-development-guide" href="배치_개발_가이드.html">배치 개발 가이드</a></td><td><code>bat/src/main/java/cpf/bat</code>, <code>scripts/smoke-bat-runtime.ps1</code></td><td>Spring Batch와 CPF 배치 운영 메타 연동 방식을 확인합니다.</td></tr>
-      <tr><td>검증자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>최종 안정화 리포트, Gradle 검증 결과</td><td>구현 상태, 증거 파일, 미검증 항목, 다음 보강 후보를 확인합니다.</td></tr>
+      <tr><td>배치 개발자</td><td><a id="batch-development-guide" href="배치_개발_가이드.html">배치 개발 가이드</a></td><td><code>bat/src/main/java/cpf/bat</code>, <code>scripts/smoke-bat-runtime.ps1</code></td><td>Spring Batch, BAT worker, heartbeat, ghost, center-cut 1차 구조를 확인합니다.</td></tr>
+      <tr><td>검증자</td><td><a href="기능_구현_매트릭스.html">기능 구현 매트릭스</a></td><td>최종 안정화 리포트, Gradle 검증 결과</td><td>구현 상태, 증거 파일, 미검증 항목, 다음 보강 우선순위를 확인합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -43,43 +43,39 @@
     <h2>모듈 책임 요약</h2>
     <table>
       <thead>
-      <tr><th>모듈</th><th>책임</th><th>주요 경로</th><th>검수 기준</th></tr>
+      <tr><th>모듈</th><th>책임</th><th>주요 경로</th><th>검토 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW</td><td>프레임워크 코어</td><td><code>pfw/src/main/java/cpf/pfw</code></td><td>표준 헤더, 거래 로그, 예외, 응답, OpenAPI, Batch 공통 API가 문서와 일치해야 합니다.</td></tr>
-      <tr><td>CMN</td><td>프로젝트 공통</td><td><code>cmn/src/main/java/cpf/cmn</code></td><td>프로젝트별 공통 채번, 업무 알림, 업무 로그는 CMN에서 확장하고 PFW 코어와 섞지 않습니다.</td></tr>
-      <tr><td>ADM</td><td>운영 콘솔</td><td><code>adm/src/main/java/cpf/adm</code>, <code>adm/src/main/resources/static/adm</code></td><td><code>/adm/api/transactions</code>, <code>/adm/api/cache</code>, 로그 상세, 버튼 권한, 감사 사유가 연결되어야 합니다.</td></tr>
+      <tr><td>PFW</td><td>프레임워크 코어</td><td><code>pfw/src/main/java/cpf/pfw</code></td><td>표준 헤더, 거래 로그, 응답, 예외, OpenAPI, Batch 공통 API가 문서와 일치해야 합니다.</td></tr>
+      <tr><td>CMN</td><td>프로젝트 공통</td><td><code>cmn/src/main/java/cpf/cmn</code></td><td>프로젝트별 공통 기능은 CMN에서 확장하고 PFW 코어를 오염시키지 않습니다.</td></tr>
+      <tr><td>ADM</td><td>운영 콘솔</td><td><code>adm/src/main/java/cpf/adm</code>, <code>adm/src/main/resources/static/adm</code></td><td><code>/adm/api/transactions</code>, <code>/adm/api/cache</code>, <code>AdmTransactionMetaController</code>, <code>AdmLogPolicyController</code>가 운영 문서와 연결되어야 합니다.</td></tr>
       <tr><td>BAT</td><td>배치 worker</td><td><code>bat/src/main/java/cpf/bat</code></td><td>Spring Batch JobRepository와 CPF 배치 운영 메타가 같은 실행 ID로 연결되어야 합니다.</td></tr>
       <tr><td>업무 모듈</td><td>업무 구현</td><td><code>mbr</code>, <code>acc</code>, <code>bizadm</code>, <code>exs</code></td><td>업무 DB를 소유하고, PFW 기능은 공통 API로 호출합니다.</td></tr>
-      <tr><td>XYZ EDU</td><td>교육 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>운영 코드와 분리하고 학습용 한글 주석과 테스트를 충분히 제공합니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>교육 샘플</td><td><code>xyz/src/main/java/cpf/xyz/edu</code></td><td>학습용 주석, 테스트, 문서 연결을 충분히 제공합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>검증 기준</h2>
+    <h2>핵심 검증</h2>
     <table>
       <thead>
       <tr><th>구분</th><th>명령 또는 기준</th><th>완료 판단</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW 단위 테스트</td><td><code>.\gradlew.bat :pfw:test --offline</code></td><td>표준 헤더 사전, 검증, 전파, 마스킹 테스트 통과</td></tr>
-      <tr><td>전체 품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, SQL 표준, HTML 문서, 기능 증거, 테스트 통과</td></tr>
-      <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>실제 ADM 기동 후 API와 OpenAPI를 확인했을 때만 완료</td></tr>
-      <tr><td>로그 정책 runtime</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>DB 로그 정책, request/response/error 저장 정책, ADM 조회를 실제 호출로 확인</td></tr>
-      <tr><td>MariaDB smoke</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>실제 MariaDB에서 실행했을 때만 완료</td></tr>
+      <tr><td>PFW 단위 테스트</td><td><code>.\gradlew.bat :pfw:test --offline</code></td><td>표준 헤더, 거래, batch 공통, center-cut 계약 테스트 통과</td></tr>
+      <tr><td>BAT 단위 테스트</td><td><code>.\gradlew.bat :bat:test --offline</code></td><td>BAT smoke 서비스와 center-cut sample provider 테스트 통과</td></tr>
+      <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/center-cut/실패 Job 확인</td></tr>
+      <tr><td>로그 정책 runtime</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>DB 로그 정책, request/response/error 저장 정책, ADM 조회 확인</td></tr>
+      <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, SQL 표준, HTML 문서, 기능 증거, 테스트 통과</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>거래 글로벌 ID 규격</h2>
-    <p><code>X-Transaction-Id</code>는 CPF 온라인 거래의 34자리 거래 글로벌 ID입니다. 구성은 <code>yyyyMMddHHmmssSSS</code> 17자리, module ID 3자리, WAS ID 7자리, sequence 7자리입니다. 요청에 값이 없거나 형식이 맞지 않으면 PFW가 생성하거나 필수 헤더 검증 단계에서 차단합니다.</p>
-  </section>
-
-  <section>
-    <h2>핵심 증거 토큰</h2>
-    <p>자동 증거 검사에서 찾는 기준 토큰입니다: <code>cpf-standard-header-guide</code>, <code>cpf-db-standard-guide</code>, <code>cpf-architecture-guide</code>, <code>cpf-transaction-guide</code>, <code>cpf-pfw-cmn-boundary</code>, <code>CpfRestClientInterceptor</code>, <code>AdmTransactionMetaController</code>, <code>AdmLogPolicyController</code>.</p>
+    <h2>표준 거래 ID</h2>
+    <p><code>X-Transaction-Id</code>는 온라인 거래 전 구간에서 동일하게 전달되는 34자리 거래 글로벌 ID입니다. 규격은 <code>yyyyMMddHHmmssSSS</code> 17자리, 모듈 ID 3자리, WAS ID 7자리, 일련번호 7자리를 순서대로 조합합니다.</p>
+    <p>ADM 거래 로그와 상세 로그는 이 값을 기준으로 헤더부, 데이터부, 오류부를 연결하므로 신규 API와 배치 연계 기능은 표준 헤더 가이드와 트랜잭션 가이드를 함께 확인해야 합니다.</p>
   </section>
 </main>
 </body>

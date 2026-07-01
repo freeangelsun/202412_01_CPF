@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * BAT가 PFW Batch 공통 API를 사용해 Job을 실행하도록 연결합니다.
+ * BAT smoke API가 PFW Batch 공통 실행 Facade를 통해 Job을 실행하도록 연결합니다.
  */
 @Service
 public class BatSmokeOperationService {

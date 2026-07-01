@@ -15,6 +15,7 @@ $result = [ordered]@{
     health = [ordered]@{}
     successJob = [ordered]@{}
     heartbeatJob = [ordered]@{}
+    centerCutJob = [ordered]@{}
     failJob = [ordered]@{}
     cleanup = [ordered]@{}
 }
@@ -182,6 +183,26 @@ function Assert-HeartbeatBatchResult {
     }
 }
 
+function Assert-CenterCutBatchResult {
+    param(
+        [object] $Payload
+    )
+
+    Assert-BatchResult -Payload $Payload -ExpectedStatus "COMPLETED" -Name "centerCutJob"
+
+    $steps = @($Payload.detail.steps)
+    if ($steps.Count -lt 1) {
+        throw "centerCutJob step evidence is missing."
+    }
+    $stepLog = ""
+    if ($null -ne $steps[0].step_log) {
+        $stepLog = [string] $steps[0].step_log
+    }
+    if ($stepLog -notmatch "centerCutRequested=" -or $stepLog -notmatch "centerCutSuccess=") {
+        throw "centerCutJob step_log does not contain center-cut summary evidence."
+    }
+}
+
 $startedProcess = $null
 $previousServerInstanceId = $env:SERVER_INSTANCE_ID
 
@@ -248,6 +269,11 @@ try {
     Assert-HeartbeatBatchResult -Payload $heartbeatJob
     $result.heartbeatJob.status = "PASSED"
     $result.heartbeatJob.response = $heartbeatJob
+
+    $centerCutJob = Invoke-BatJson -Method Post -Uri "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_CENTER_CUT_JOB/run" -TimeoutSec 90
+    Assert-CenterCutBatchResult -Payload $centerCutJob
+    $result.centerCutJob.status = "PASSED"
+    $result.centerCutJob.response = $centerCutJob
 
     $failJob = Invoke-BatJson -Method Post -Uri "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_FAIL_JOB/run"
     Assert-BatchResult -Payload $failJob -ExpectedStatus "FAILED" -Name "failJob"

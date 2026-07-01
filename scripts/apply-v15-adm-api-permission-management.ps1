@@ -16,9 +16,6 @@ if ([string]::IsNullOrWhiteSpace($JdbcUrl)) {
 if ([string]::IsNullOrWhiteSpace($Username)) {
     $Username = "cpf_adm_migration"
 }
-if ([string]::IsNullOrWhiteSpace($Password)) {
-    $Password = "cpf_local_pw"
-}
 if ([string]::IsNullOrWhiteSpace($SqlPath)) {
     $SqlPath = Join-Path $Root "specs/sql/migration/flyway/V15__adm_api_permission_management.sql"
 }
@@ -26,6 +23,31 @@ if ([string]::IsNullOrWhiteSpace($ResultPath)) {
     $resultDir = Join-Path $Root "build/runtime-smoke"
     New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
     $ResultPath = Join-Path $resultDir "v15-adm-api-permission-result.json"
+}
+
+function Mask-JdbcUrl {
+    param([string] $Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return ""
+    }
+    return [System.Text.RegularExpressions.Regex]::Replace($Value, "(?i)(password=)[^;&]+", '$1****')
+}
+
+if ([string]::IsNullOrWhiteSpace($Password)) {
+    $skipResult = [ordered]@{
+        startedAt = (Get-Date).ToString("o")
+        status = "SKIPPED"
+        reason = "ADM DB migration password was not provided. Set ADM_DB_MIGRATION_PASSWORD or pass -Password."
+        jdbcUrl = (Mask-JdbcUrl $JdbcUrl)
+        username = $Username
+        sqlPath = $SqlPath.Replace("\", "/")
+        passwordProvided = $false
+        completedAt = (Get-Date).ToString("o")
+    }
+    $skipResult | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ResultPath -Encoding UTF8
+    Write-Host "V15 ADM API permission migration skipped. Password was not provided. Result: $ResultPath"
+    exit 0
 }
 
 if (-not (Test-Path -LiteralPath $SqlPath)) {

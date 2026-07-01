@@ -475,3 +475,64 @@ WHERE event_type = 'BATCH_EXECUTION'
         AND receiver = 'ADM_BATCH_OPERATOR'
   )
 LIMIT 1;
+
+INSERT INTO pfw_batch_job (
+    job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
+) VALUES (
+    'CPF_BAT_CENTER_CUT_JOB',
+    'CPF BAT 센터컷 smoke Job',
+    'TASKLET',
+    'BAT standalone에서 center-cut provider/handler 기본 흐름을 검증하는 Job입니다.',
+    'Y',
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    job_name = VALUES(job_name),
+    job_type = VALUES(job_type),
+    description = VALUES(description),
+    restartable_yn = VALUES(restartable_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_center_cut_job (
+    center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
+    chunk_size, retry_limit, use_yn, description, created_by, updated_by
+) VALUES (
+    'CPF_BAT_CENTER_CUT_JOB',
+    'CPF_BAT_CENTER_CUT_JOB',
+    'CPF BAT 센터컷 smoke Job',
+    'batCenterCutSampleTargetProvider',
+    'batCenterCutSampleHandler',
+    10,
+    3,
+    'Y',
+    'PFW 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    batch_job_id = VALUES(batch_job_id),
+    center_cut_job_name = VALUES(center_cut_job_name),
+    provider_key = VALUES(provider_key),
+    handler_key = VALUES(handler_key),
+    chunk_size = VALUES(chunk_size),
+    retry_limit = VALUES(retry_limit),
+    use_yn = VALUES(use_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_center_cut_parameter (
+    center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
+) VALUES
+    ('CPF_BAT_CENTER_CUT_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_BAT_CENTER_CUT_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    parameter_value = VALUES(parameter_value),
+    encrypted_yn = VALUES(encrypted_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;

@@ -24,6 +24,8 @@ public class BatSmokeJobConfig {
     public static final String FAIL_STEP_ID = "CPF_BAT_FAIL_STEP";
     public static final String HEARTBEAT_JOB_ID = "CPF_BAT_HEARTBEAT_JOB";
     public static final String HEARTBEAT_STEP_ID = "CPF_BAT_HEARTBEAT_STEP";
+    public static final String CENTER_CUT_JOB_ID = "CPF_BAT_CENTER_CUT_JOB";
+    public static final String CENTER_CUT_STEP_ID = "CPF_BAT_CENTER_CUT_STEP";
 
     @Bean
     public Job cpfBatSmokeJob(
@@ -91,6 +93,29 @@ public class BatSmokeJobConfig {
         return new StepBuilder(HEARTBEAT_STEP_ID, jobRepository)
                 .listener(cpfBatchRuntimeListener)
                 .tasklet(batHeartbeatSmokeTasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Job cpfBatCenterCutJob(
+            JobRepository jobRepository,
+            Step cpfBatCenterCutStep,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+        return new JobBuilder(CENTER_CUT_JOB_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
+                .start(cpfBatCenterCutStep)
+                .build();
+    }
+
+    @Bean
+    public Step cpfBatCenterCutStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            cpf.bat.centercut.BatCenterCutSmokeTasklet batCenterCutSmokeTasklet,
+            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+        return new StepBuilder(CENTER_CUT_STEP_ID, jobRepository)
+                .listener(cpfBatchRuntimeListener)
+                .tasklet(batCenterCutSmokeTasklet, transactionManager)
                 .build();
     }
 }

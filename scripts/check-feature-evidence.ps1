@@ -180,6 +180,11 @@ Test-RequiredFile "adm/src/test/java/cpf/adm/opr/service/AdmPermissionServiceTes
 Test-RequiredText "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java" "/api-permissions" "ADM_API_PERMISSION_ENDPOINT"
 Test-RequiredText "adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java" "adm_api_permission" "ADM_API_PERMISSION_FILTER"
 Test-RequiredText "scripts/smoke-adm-runtime.ps1" "/adm/api/permissions/api-permissions" "ADM_PERMISSION_RUNTIME_SMOKE_API"
+Test-RequiredFile "scripts/smoke-adm-permission-runtime.ps1" "ADM_PERMISSION_WRITE_RUNTIME_SMOKE"
+Test-RequiredFile "scripts/apply-v15-adm-api-permission-management.ps1" "ADM_V15_API_PERMISSION_JDBC_APPLY"
+Test-RequiredText "scripts/smoke-adm-runtime.ps1" "permissionWriteApi" "ADM_PERMISSION_WRITE_RUNTIME_RESULT"
+Test-RequiredText "scripts/smoke-adm-runtime.ps1" "adm-permission-runtime-result.json" "ADM_PERMISSION_WRITE_RUNTIME_JSON"
+Test-RequiredText "scripts/smoke-adm-permission-runtime.ps1" "v15-adm-api-permission-result.json" "ADM_V15_API_PERMISSION_RESULT"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java" "ADM_MEMBER_API"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmLogController.java" "ADM_LOG_API"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java" "ADM_OBSERVABILITY_API"
@@ -320,12 +325,13 @@ $legacyFixtureName = "xyz_edu_query_" + "mapper_fixture.sql"
 $legacyFixturePath = "xyz/src/test/resources/fixture/$legacyFixtureName"
 $devGuideFileName = (New-UnicodeText @(0xAC1C, 0xBC1C, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".html"
 $featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".html"
+Test-RequiredText "specs/$featureMatrixFileName" "adm-permission-runtime" "ADM_PERMISSION_RUNTIME_MATRIX"
 $fixtureEvidenceFiles = @(
     "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java",
     "scripts/check-feature-evidence.ps1",
     "specs/$devGuideFileName",
     "specs/$featureMatrixFileName",
-    "CPF_STABILIZATION_REPORT.html"
+    "CPF_STABILIZATION_REPORT.md"
 )
 
 Test-ForbiddenFile $legacyFixturePath "EDU_LEGACY_MAPPER_FIXTURE"
@@ -340,7 +346,7 @@ $legacyDbUserEnv = "CPF_XYZ_EDU_MAPPER_DB_USER"
 $dbEnvEvidenceFiles = @(
     "xyz/src/test/java/cpf/xyz/edu/repository/XyzQueryEducationMapperSliceTest.java",
     "specs/$devGuideFileName",
-    "CPF_STABILIZATION_REPORT.html"
+    "CPF_STABILIZATION_REPORT.md"
 )
 foreach ($file in $dbEnvEvidenceFiles) {
     Test-RequiredText $file $dbUsernameEnv "EDU_DB_USERNAME_ENV"

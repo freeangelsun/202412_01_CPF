@@ -59,6 +59,7 @@ $script:RequiredCheckIds = @(
     "edu-mapper-db-slice",
     "mariadb-full-install",
     "adm-runtime",
+    "adm-permission-runtime",
     "openapi-runtime",
     "adm-browser-click",
     "standard-header-e2e",
@@ -237,7 +238,7 @@ function Test-RequiredCheckStatusMatch {
     )
 
     $matrixStatusMap = Get-CheckStatusMap $MatrixText "feature-matrix"
-    $reportStatusMap = Get-CheckStatusMap $ReportText "stabilization-report"
+    $reportStatusMap = Get-MarkdownCheckStatusMap $ReportText "stabilization-report"
 
     foreach ($checkId in $script:RequiredCheckIds) {
         if (-not $matrixStatusMap.ContainsKey($checkId)) {
@@ -254,6 +255,35 @@ function Test-RequiredCheckStatusMatch {
     }
 }
 
+function Get-MarkdownCheckStatusMap {
+    param(
+        [string] $Markdown,
+        [string] $Name
+    )
+
+    $map = @{}
+    foreach ($line in ($Markdown -split "\r?\n")) {
+        $trimmed = $line.Trim()
+        if (-not $trimmed.StartsWith("|")) {
+            continue
+        }
+        if ($trimmed -match '^\|\s*-+') {
+            continue
+        }
+        $cells = @($trimmed.Trim("|") -split "\|" | ForEach-Object { $_.Trim() })
+        if ($cells.Count -lt 3) {
+            continue
+        }
+        $checkId = $cells[0]
+        $status = $cells[1]
+        if ($script:RequiredCheckIds -contains $checkId) {
+            Test-AllowedStatusValue $status "${Name}:$checkId"
+            $map[$checkId] = $status
+        }
+    }
+    return $map
+}
+
 if (-not (Test-Path -LiteralPath $specsRoot)) {
     throw "specs directory not found: $specsRoot"
 }
@@ -268,13 +298,9 @@ Get-ChildItem -LiteralPath $specsRoot -Recurse -File -Filter "*.html" | ForEach-
     $htmlTargets.Add($_)
 }
 
-$reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.html"
-if (Test-Path -LiteralPath $reportPath) {
-    $htmlTargets.Add((Get-Item -LiteralPath $reportPath))
-}
-
-if (Test-Path -LiteralPath (Join-Path $Root "CPF_STABILIZATION_REPORT.md")) {
-    Add-Failure "root markdown report remains: \CPF_STABILIZATION_REPORT.md"
+$reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.md"
+if (Test-Path -LiteralPath (Join-Path $Root "CPF_STABILIZATION_REPORT.html")) {
+    Add-Failure "root html stabilization report remains: \CPF_STABILIZATION_REPORT.html"
 }
 
 if (Test-Path -LiteralPath (Join-Path $Root "CPF_STABILIZATION_CHANGED_FILES.txt")) {
@@ -335,7 +361,7 @@ if (-not (Test-Path -LiteralPath $featureMatrixPath)) {
         $reportText = [System.IO.File]::ReadAllText($reportPath, [System.Text.Encoding]::UTF8)
         Test-RequiredCheckStatusMatch $matrixText $reportText
     } else {
-        Add-Failure "stabilization report html document missing: \CPF_STABILIZATION_REPORT.html"
+        Add-Failure "stabilization report markdown document missing: \CPF_STABILIZATION_REPORT.md"
     }
 }
 

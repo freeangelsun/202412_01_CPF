@@ -6,6 +6,8 @@ param(
     [string] $LogDir = "",
     [string] $AdmUsername = "admin",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
+    [switch] $IncludePermissionWriteSmoke,
+    [string] $PermissionResultPath = "",
     [switch] $RequireBrowserClick
 )
 
@@ -17,6 +19,7 @@ $ErrorActionPreference = "Stop"
     health = [ordered]@{}
     openapi = [ordered]@{}
     admOperationApi = [ordered]@{}
+    permissionWriteApi = [ordered]@{}
     batchApi = [ordered]@{}
     transactionMetaApi = [ordered]@{}
     staticUi = [ordered]@{}
@@ -32,6 +35,9 @@ New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $stdoutLog = Join-Path $LogDir "adm-bootRun.out.log"
 $stderrLog = Join-Path $LogDir "adm-bootRun.err.log"
 $resultPath = Join-Path $LogDir "adm-runtime-smoke-result.json"
+if ([string]::IsNullOrWhiteSpace($PermissionResultPath)) {
+    $PermissionResultPath = Join-Path $LogDir "adm-permission-runtime-result.json"
+}
 
 function Save-SmokeResult {
     $result.finishedAt = (Get-Date).ToString("o")
@@ -85,6 +91,241 @@ function Invoke-SmokeJson {
         $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
     }
     ConvertFrom-Utf8JsonResponse (Invoke-WebRequest @invokeParams)
+}
+
+function Invoke-SmokeForStatus {
+    param(
+        [string] $Method,
+        [string] $Uri,
+        [hashtable] $Headers = @{},
+        [object] $Body = $null,
+        [int] $TimeoutSec = 15
+    )
+
+    $mergedHeaders = New-SmokeHeaders
+    foreach ($key in $Headers.Keys) {
+        $mergedHeaders[$key] = $Headers[$key]
+    }
+
+    $invokeParams = @{
+        Method = $Method
+        Uri = $Uri
+        TimeoutSec = $TimeoutSec
+        Headers = $mergedHeaders
+        UseBasicParsing = $true
+    }
+    if ($null -ne $Body) {
+        $invokeParams.ContentType = "application/json;charset=UTF-8"
+        $invokeParams.Body = [System.Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
+    }
+
+    try {
+        $response = Invoke-WebRequest @invokeParams
+        return [ordered]@{
+            statusCode = [int] $response.StatusCode
+            body = ConvertFrom-Utf8JsonResponse $response
+        }
+    } catch {
+        $statusCode = 0
+        if ($_.Exception.Response -and $_.Exception.Response.StatusCode) {
+            $statusCode = [int] $_.Exception.Response.StatusCode
+        }
+        return [ordered]@{
+            statusCode = $statusCode
+            error = $_.Exception.Message
+        }
+    }
+}
+
+function Get-SmokeJsonCount {
+    param([object] $Value)
+
+    if ($null -eq $Value) {
+        return 0
+    }
+    if ($Value -is [System.Array]) {
+        return $Value.Count
+    }
+    return 1
+}
+
+function Save-PermissionSmokeResult {
+    param([object] $PermissionResult)
+
+    $PermissionResult.finishedAt = (Get-Date).ToString("o")
+    $PermissionResult | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $PermissionResultPath -Encoding UTF8
+}
+
+function Invoke-AdmPermissionWriteSmoke {
+    param(
+        [hashtable] $AdminHeaders,
+        [string] $AdminPassword
+    )
+
+    $permissionResult = [ordered]@{
+        startedAt = (Get-Date).ToString("o")
+        admBaseUrl = $AdmBaseUrl
+        operatorId = $AdmUsername
+        writes = [ordered]@{}
+        audit = [ordered]@{}
+        filter = [ordered]@{}
+        cleanup = [ordered]@{}
+    }
+
+    $reasonStamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    $reason = "ADM permission runtime smoke $reasonStamp"
+    $viewerOperatorId = "smoke_viewer_runtime"
+    $viewerPassword = "SmokeRuntime!20260701"
+    $apiPermissionId = "API_PERMISSION_WRITE_PUT"
+
+    try {
+        $operators = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/operators" -Headers $AdminHeaders)
+        $viewerExists = @($operators | Where-Object { $_.operatorId -eq $viewerOperatorId }).Count -gt 0
+        if ($viewerExists) {
+            $resetViewer = Invoke-SmokeForStatus -Method Post -Uri "$AdmBaseUrl/adm/api/operators/$viewerOperatorId/password/reset" -Headers $AdminHeaders -Body @{
+                newPassword = $viewerPassword
+                forceChange = $false
+                requestUser = "runtime-smoke"
+                reason = "$reason - reset reusable viewer operator"
+            }
+            $roleViewer = Invoke-SmokeForStatus -Method Put -Uri "$AdmBaseUrl/adm/api/operators/$viewerOperatorId/roles" -Headers $AdminHeaders -Body @{
+                roleIds = @("ADM_VIEWER")
+                requestUser = "runtime-smoke"
+                reason = "$reason - ensure viewer role"
+            }
+            $permissionResult.writes.viewerOperatorReady = [ordered]@{
+                mode = "REUSED"
+                resetStatusCode = $resetViewer.statusCode
+                roleStatusCode = $roleViewer.statusCode
+                operatorId = $viewerOperatorId
+            }
+            if ($resetViewer.statusCode -lt 200 -or $resetViewer.statusCode -ge 300) {
+                throw "viewer operator password reset failed. status=$($resetViewer.statusCode)"
+            }
+            if ($roleViewer.statusCode -lt 200 -or $roleViewer.statusCode -ge 300) {
+                throw "viewer operator role update failed. status=$($roleViewer.statusCode)"
+            }
+        } else {
+            $createViewer = Invoke-SmokeForStatus -Method Post -Uri "$AdmBaseUrl/adm/api/operators" -Headers $AdminHeaders -Body @{
+                operatorId = $viewerOperatorId
+                operatorName = "Runtime Smoke Viewer"
+                password = $viewerPassword
+                roleIds = @("ADM_VIEWER")
+                requestUser = "runtime-smoke"
+                reason = "$reason - create viewer operator"
+            }
+            $permissionResult.writes.viewerOperatorReady = [ordered]@{
+                mode = "CREATED"
+                statusCode = $createViewer.statusCode
+                operatorId = $viewerOperatorId
+            }
+            if ($createViewer.statusCode -lt 200 -or $createViewer.statusCode -ge 300) {
+                throw "viewer operator create failed. status=$($createViewer.statusCode)"
+            }
+        }
+
+        $menuWrite = Invoke-SmokeForStatus -Method Put -Uri "$AdmBaseUrl/adm/api/permissions/roles/ADM_VIEWER/menus/PERMISSION" -Headers $AdminHeaders -Body @{
+            readYn = "Y"
+            writeYn = "N"
+            deleteYn = "N"
+            requestUser = "runtime-smoke"
+            reason = "$reason - save menu permission"
+        }
+        $permissionResult.writes.menuPermission = [ordered]@{
+            method = "PUT"
+            path = "/adm/api/permissions/roles/ADM_VIEWER/menus/PERMISSION"
+            statusCode = $menuWrite.statusCode
+        }
+        if ($menuWrite.statusCode -lt 200 -or $menuWrite.statusCode -ge 300) {
+            throw "menu permission update failed. status=$($menuWrite.statusCode)"
+        }
+
+        $apiWrite = Invoke-SmokeForStatus -Method Put -Uri "$AdmBaseUrl/adm/api/permissions/roles/ADM_VIEWER/api-permissions/$apiPermissionId" -Headers $AdminHeaders -Body @{
+            allowYn = "N"
+            requestUser = "runtime-smoke"
+            reason = "$reason - save API permission"
+        }
+        $permissionResult.writes.roleApiPermission = [ordered]@{
+            method = "PUT"
+            path = "/adm/api/permissions/roles/ADM_VIEWER/api-permissions/$apiPermissionId"
+            statusCode = $apiWrite.statusCode
+        }
+        if ($apiWrite.statusCode -lt 200 -or $apiWrite.statusCode -ge 300) {
+            throw "role API permission update failed. status=$($apiWrite.statusCode)"
+        }
+
+        $matrix = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/permissions/api-matrix" -Headers $AdminHeaders
+        $matrixRows = @($matrix | Where-Object {
+                $_.ROLE_ID -eq "ADM_VIEWER" -and $_.API_PERMISSION_ID -eq $apiPermissionId
+            })
+        $permissionResult.writes.roleApiPermissionReadBack = [ordered]@{
+            matchedRows = Get-SmokeJsonCount $matrixRows
+            allowYn = if ($matrixRows.Count -gt 0) { [string] $matrixRows[0].ALLOW_YN } else { $null }
+        }
+        if ($matrixRows.Count -eq 0 -or [string] $matrixRows[0].ALLOW_YN -ne "N") {
+            throw "role API permission read-back mismatch."
+        }
+
+        $auditTargetId = [uri]::EscapeDataString("ADM_VIEWER:$apiPermissionId")
+        $audit = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/audit-logs?actionType=ROLE_API_PERMISSION_UPDATE&targetType=adm_role_api_permission&targetId=$auditTargetId&limit=5" -Headers $AdminHeaders
+        $auditItems = @($audit.items)
+        $permissionResult.audit.roleApiPermission = [ordered]@{
+            path = "/adm/api/audit-logs"
+            matchedRows = Get-SmokeJsonCount $auditItems
+            hasReason = ($auditItems.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace([string] $auditItems[0].REASON))
+            hasBeforeAfterOrDiff = ($auditItems.Count -gt 0 -and (
+                    -not [string]::IsNullOrWhiteSpace([string] $auditItems[0].BEFORE_DATA) -or
+                    -not [string]::IsNullOrWhiteSpace([string] $auditItems[0].AFTER_DATA) -or
+                    -not [string]::IsNullOrWhiteSpace([string] $auditItems[0].DIFF_DATA)
+                ))
+        }
+        if ($auditItems.Count -eq 0 -or -not $permissionResult.audit.roleApiPermission.hasReason) {
+            throw "role API permission audit log was not found."
+        }
+
+        $viewerLogin = Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
+            operatorId = $viewerOperatorId
+            password = $viewerPassword
+        }
+        if ([string]::IsNullOrWhiteSpace($viewerLogin.accessToken)) {
+            throw "viewer login response does not contain accessToken."
+        }
+        $viewerHeaders = @{ Authorization = "Bearer $($viewerLogin.accessToken)" }
+        $viewerBlocked = Invoke-SmokeForStatus -Method Put -Uri "$AdmBaseUrl/adm/api/permissions/roles/ADM_VIEWER/api-permissions/$apiPermissionId" -Headers $viewerHeaders -Body @{
+            allowYn = "Y"
+            requestUser = $viewerOperatorId
+            reason = "$reason - verify denied viewer write"
+        }
+        $adminAllowed = Invoke-SmokeForStatus -Method Get -Uri "$AdmBaseUrl/adm/api/permissions/api-permissions" -Headers $AdminHeaders
+        $permissionResult.filter.viewerWriteDenied = [ordered]@{
+            method = "PUT"
+            path = "/adm/api/permissions/roles/ADM_VIEWER/api-permissions/$apiPermissionId"
+            statusCode = $viewerBlocked.statusCode
+            expected = 403
+        }
+        $permissionResult.filter.adminReadAllowed = [ordered]@{
+            method = "GET"
+            path = "/adm/api/permissions/api-permissions"
+            statusCode = $adminAllowed.statusCode
+            expected = "2xx"
+        }
+        if ($viewerBlocked.statusCode -ne 403) {
+            throw "viewer write was not denied with 403. status=$($viewerBlocked.statusCode)"
+        }
+        if ($adminAllowed.statusCode -lt 200 -or $adminAllowed.statusCode -ge 300) {
+            throw "admin read was not allowed. status=$($adminAllowed.statusCode)"
+        }
+
+        $permissionResult.status = "PASSED"
+    } catch {
+        $permissionResult.status = "FAILED"
+        $permissionResult.error = $_.Exception.Message
+        Save-PermissionSmokeResult $permissionResult
+        throw
+    }
+
+    Save-PermissionSmokeResult $permissionResult
+    return $permissionResult
 }
 
 function New-SmokeHeaders {
@@ -292,6 +533,23 @@ try {
     }
     $result.admOperationApi.status = "PASSED"
     $result.admOperationApi.checkedEndpoints = $checkedAdmOperationEndpoints
+
+    if ($IncludePermissionWriteSmoke) {
+        $permissionResult = Invoke-AdmPermissionWriteSmoke -AdminHeaders $headers -AdminPassword $AdmPassword
+        $result.permissionWriteApi.status = $permissionResult.status
+        $result.permissionWriteApi.resultPath = $PermissionResultPath
+        $result.permissionWriteApi.checked = @(
+            "/adm/api/operators",
+            "/adm/api/permissions/roles/ADM_VIEWER/menus/PERMISSION",
+            "/adm/api/permissions/roles/ADM_VIEWER/api-permissions/API_PERMISSION_WRITE_PUT",
+            "/adm/api/audit-logs",
+            "403 viewer write deny",
+            "200 admin read allow"
+        )
+    } else {
+        $result.permissionWriteApi.status = "SKIPPED"
+        $result.permissionWriteApi.reason = "Run scripts/smoke-adm-permission-runtime.ps1 or pass -IncludePermissionWriteSmoke to execute write/filter checks."
+    }
 
     $batchEndpoints = @(
         "/adm/api/batch/jobs",

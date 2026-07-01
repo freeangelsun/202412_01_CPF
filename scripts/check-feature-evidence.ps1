@@ -305,6 +305,9 @@ Test-SpecHtmlDocuments
 Test-RequiredFile "scripts/check-sql-standard.ps1" "CHECK_SQL_STANDARD"
 Test-RequiredFile "scripts/smoke-openapi.ps1" "SMOKE_OPENAPI"
 Test-RequiredFile "scripts/smoke-adm-ui.ps1" "SMOKE_ADM_UI"
+Test-RequiredText "scripts/smoke-adm-ui.ps1" "BrowserClick" "SMOKE_ADM_UI_BROWSER_CLICK_OPTION"
+Test-RequiredText "scripts/smoke-adm-ui.ps1" "adm-ui-browser-smoke-result.json" "SMOKE_ADM_UI_BROWSER_CLICK_RESULT"
+Test-RequiredText "scripts/smoke-adm-ui.ps1" "ADM_UI_BROWSER_CLICK_FLOW" "SMOKE_ADM_UI_PLAYWRIGHT_FLOW"
 
 $canonicalFixtureName = "xyz_edu_query_fixture.sql"
 $canonicalFixturePath = "xyz/src/test/resources/sql/$canonicalFixtureName"

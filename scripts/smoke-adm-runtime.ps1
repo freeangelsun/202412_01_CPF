@@ -16,6 +16,7 @@ $ErrorActionPreference = "Stop"
     process = [ordered]@{}
     health = [ordered]@{}
     openapi = [ordered]@{}
+    admOperationApi = [ordered]@{}
     batchApi = [ordered]@{}
     transactionMetaApi = [ordered]@{}
     staticUi = [ordered]@{}
@@ -267,6 +268,31 @@ try {
         throw "ADM login response does not contain accessToken."
     }
     $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+    $admOperationEndpoints = @(
+        "/adm/api/operators",
+        "/adm/api/operators/roles",
+        "/adm/api/operators/menus",
+        "/adm/api/permissions/roles",
+        "/adm/api/permissions/menus",
+        "/adm/api/permissions/buttons",
+        "/adm/api/permissions/menu-matrix",
+        "/adm/api/permissions/button-matrix",
+        "/adm/api/permissions/api-permissions",
+        "/adm/api/permissions/api-matrix",
+        "/adm/api/audit-logs?limit=5",
+        "/adm/api/cache/summary",
+        "/adm/api/messages",
+        "/adm/api/codes",
+        "/adm/api/configs"
+    )
+    $checkedAdmOperationEndpoints = New-Object System.Collections.Generic.List[string]
+    foreach ($endpoint in $admOperationEndpoints) {
+        Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl$endpoint" -Headers $headers | Out-Null
+        $checkedAdmOperationEndpoints.Add($endpoint)
+    }
+    $result.admOperationApi.status = "PASSED"
+    $result.admOperationApi.checkedEndpoints = $checkedAdmOperationEndpoints
+
     $batchEndpoints = @(
         "/adm/api/batch/jobs",
         "/adm/api/batch/jobs/CPF_EDU_TASKLET_JOB",

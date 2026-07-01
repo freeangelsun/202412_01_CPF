@@ -301,6 +301,74 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+-- ADM API 권한은 버튼/행위 권한을 실제 Controller path와 연결하기 위한 서버 권한검사 메타입니다.
+INSERT INTO adm_api_permission (
+    API_PERMISSION_ID,
+    API_GROUP_CODE,
+    HTTP_METHOD,
+    API_PATH,
+    API_NAME,
+    PERMISSION_CODE,
+    MENU_ID,
+    BUTTON_ID,
+    USE_YN,
+    created_by,
+    updated_by
+)
+SELECT
+    CONCAT('API_', BUTTON_ID),
+    MENU_ID,
+    COALESCE(HTTP_METHOD, 'ANY'),
+    API_PATTERN,
+    BUTTON_NAME,
+    ACTION_CODE,
+    MENU_ID,
+    BUTTON_ID,
+    USE_YN,
+    'SYSTEM',
+    'SYSTEM'
+FROM adm_button
+WHERE API_PATTERN IS NOT NULL
+ON DUPLICATE KEY UPDATE
+    API_GROUP_CODE = VALUES(API_GROUP_CODE),
+    HTTP_METHOD = VALUES(HTTP_METHOD),
+    API_PATH = VALUES(API_PATH),
+    API_NAME = VALUES(API_NAME),
+    PERMISSION_CODE = VALUES(PERMISSION_CODE),
+    MENU_ID = VALUES(MENU_ID),
+    BUTTON_ID = VALUES(BUTTON_ID),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission (
+    API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
+    MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by
+) VALUES (
+    'API_PERMISSION_WRITE_PUT', 'PERMISSION', 'PUT', '/adm/api/permissions/**', '권한 변경', 'WRITE',
+    'PERMISSION', 'PERMISSION_WRITE', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    API_GROUP_CODE = VALUES(API_GROUP_CODE),
+    HTTP_METHOD = VALUES(HTTP_METHOD),
+    API_PATH = VALUES(API_PATH),
+    API_NAME = VALUES(API_NAME),
+    PERMISSION_CODE = VALUES(PERMISSION_CODE),
+    MENU_ID = VALUES(MENU_ID),
+    BUTTON_ID = VALUES(BUTTON_ID),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
+SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_role_button rb
+JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO adm_ip_allowlist (IP_PATTERN, DESCRIPTION, USE_YN, created_by, updated_by)
 VALUES ('127.0.0.1', '로컬 개발 PC', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE

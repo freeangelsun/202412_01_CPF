@@ -74,6 +74,8 @@ DROP TABLE IF EXISTS admDB.adm_password_policy;
 DROP TABLE IF EXISTS admDB.adm_mfa_otp_secret;
 DROP TABLE IF EXISTS admDB.adm_ip_allowlist;
 DROP TABLE IF EXISTS admDB.adm_audit_log;
+DROP TABLE IF EXISTS admDB.adm_role_api_permission;
+DROP TABLE IF EXISTS admDB.adm_api_permission;
 DROP TABLE IF EXISTS admDB.adm_role_button;
 DROP TABLE IF EXISTS admDB.adm_role_menu;
 DROP TABLE IF EXISTS admDB.adm_button;

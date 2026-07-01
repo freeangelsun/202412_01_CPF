@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>CPF M2 ADM 브라우저 검증 리포트</title>
+  <title>CPF M3 안정화 리포트</title>
   <style>
     body { margin: 0; background: #f8fafc; color: #1f2937; font-family: Arial, "Malgun Gothic", sans-serif; line-height: 1.6; }
     main { max-width: 1320px; margin: 0 auto; padding: 32px 24px 56px; background: #ffffff; }
@@ -11,115 +11,91 @@
     th, td { border: 1px solid #d1d5db; padding: 9px 10px; vertical-align: top; }
     th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .note { background: #ecfeff; border-left: 4px solid #0891b2; padding: 12px 14px; }
+    .status { font-weight: 700; }
     .warn { background: #fff7ed; border-left: 4px solid #ea580c; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
-    <h1>CPF M2 ADM 브라우저 검증 리포트</h1>
-    <p>이번 작업은 ADM runtime과 OpenAPI가 통과한 상태에서 ADM 운영 콘솔 브라우저 클릭 smoke 가능 여부를 확인하고, 재현 가능한 자동화 진입점을 만드는 작업입니다.</p>
-    <p class="warn">현재 작업 PC에는 Node.js, npm/npx, Playwright, Chrome, Edge, Selenium driver가 없어 실제 브라우저 클릭은 수행하지 못했습니다. 따라서 <code>ADM browser click</code>은 완료가 아니라 미검증으로 기록합니다.</p>
+    <h1>CPF M3 안정화 리포트</h1>
+    <p>요청서 <code>CPF_NEW_REQUEST</code> 기준으로 ADM 운영 콘솔 핵심 기능 1차 개발을 진행했습니다. 요청 원본 파일은 작업 대상으로 수정하지 않았습니다.</p>
+    <p class="warn">실행하지 않은 검증은 완료로 기록하지 않습니다. 브라우저 실제 클릭, 신규 빈 MariaDB 전체 설치, Redis/Kafka/MQ broker, 표준 헤더 Runtime E2E는 이번 작업에서도 미검증 또는 재확인 필요로 남깁니다.</p>
   </section>
 
   <section>
     <h2>기준 정보</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>값</th><th>비고</th></tr>
+      <tr><th>항목</th><th>상태</th><th>값</th></tr>
       </thead>
       <tbody>
-      <tr><td>작업 시작 branch</td><td><code>master</code></td><td>현재 작업 branch입니다.</td></tr>
-      <tr><td>작업 시작 HEAD SHA</td><td><code>608d1de9431da84945df9cc441f70c3a778c9807</code></td><td>작업 시작 시점 기준입니다.</td></tr>
-      <tr><td>작업 시작 origin/master SHA</td><td><code>608d1de9431da84945df9cc441f70c3a778c9807</code></td><td>로컬 remote tracking 기준입니다.</td></tr>
-      <tr><td>작업 시작 status</td><td><code>M CPF_NEW_REQUEST</code>, <code>M CPF_STABILIZATION_REPORT.html</code></td><td>요청 원본과 기존 리포트가 수정 상태였습니다.</td></tr>
-      <tr><td>작업 시작 log</td><td><code>608d1de 20260701_02</code></td><td>최신 커밋 요약입니다.</td></tr>
-      <tr><td>remote</td><td><code>origin https://github.com/freeangelsun/202412_01_CPF.git</code></td><td>네트워크 GitHub 조회는 수행하지 않았고, 로컬 remote 정보만 기록합니다.</td></tr>
-      <tr><td>사용자 요청 원본</td><td class="status" data-status="미검증">미검증</td><td><code>CPF_NEW_REQUEST</code>는 읽기 기준으로만 사용했고 작업 대상에서 제외했습니다.</td></tr>
-      <tr><td>GitHub master 확인 가능 여부</td><td class="status" data-status="미검증">미검증</td><td>네트워크 원격 조회는 이번 검증 범위에서 수행하지 않았습니다.</td></tr>
+      <tr><td>작업 시작 branch</td><td class="status" data-status="완료">완료</td><td><code>master</code></td></tr>
+      <tr><td>작업 시작 HEAD SHA</td><td class="status" data-status="완료">완료</td><td><code>7e5a10c77ba01715eca40ece21280745de24d043</code></td></tr>
+      <tr><td>작업 시작 origin/master SHA</td><td class="status" data-status="완료">완료</td><td><code>7e5a10c77ba01715eca40ece21280745de24d043</code></td></tr>
+      <tr><td>작업 시작 status</td><td class="status" data-status="완료">완료</td><td><code>M CPF_NEW_REQUEST</code>, <code>M CPF_STABILIZATION_REPORT.html</code></td></tr>
+      <tr><td>git 기준 명령</td><td class="status" data-status="재확인 필요">재확인 필요</td><td>샌드박스 사용자와 저장소 소유자가 달라 최초 git 명령은 dubious ownership으로 실패했습니다. 저장소 설정을 바꾸지 않고 명령별 <code>-c safe.directory=...</code>로 기준 정보를 수집했습니다.</td></tr>
+      <tr><td>사용자 요청 원본</td><td class="status" data-status="미검증">미검증</td><td><code>CPF_NEW_REQUEST</code>는 읽기 기준으로만 사용했고 기능 검수 대상에서 제외했습니다.</td></tr>
+      <tr><td>Git commit/push/branch</td><td class="status" data-status="완료">완료</td><td>수행하지 않았습니다.</td></tr>
+      <tr><td>별도 변경파일 목록 산출물</td><td class="status" data-status="완료">완료</td><td><code>CPF_STABILIZATION_CHANGED_FILES.txt</code>는 생성하지 않았습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>변경 파일</h2>
+    <h2>구현 요약</h2>
     <table>
       <thead>
-      <tr><th>파일</th><th>상태</th><th>변경 이유</th></tr>
+      <tr><th>기능</th><th>상태</th><th>반영 내용</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>scripts/smoke-adm-ui.ps1</code></td><td class="status" data-status="부분 구현">부분 구현</td><td>기존 정적 ADM UI marker smoke는 유지하고, <code>-BrowserClick</code> 모드와 결과 JSON 산출을 추가했습니다. 도구가 있는 환경에서는 Playwright 클릭 smoke를 수행합니다.</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td class="status" data-status="완료">완료</td><td>ADM UI browser click 옵션, 결과 JSON 이름, Playwright 흐름 문자열을 evidence gate에 추가했습니다.</td></tr>
-      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td class="status" data-status="완료">완료</td><td>ADM browser click 상태를 현재 환경의 SKIPPED 결과에 맞춰 미검증으로 유지하고 재실행 조건을 명확히 했습니다.</td></tr>
-      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td class="status" data-status="완료">완료</td><td>M2 작업 기준 정보, runtime 재확인, 브라우저 자동화 환경, UI 구조, smoke 결과, 남은 미검증을 기록했습니다.</td></tr>
+      <tr><td>운영자 관리</td><td class="status" data-status="부분 구현">부분 구현</td><td>기존 <code>AdmOperatorController</code>, <code>AdmOperatorService</code> 구조를 유지하고 runtime smoke 조회 대상에 <code>/adm/api/operators</code>, <code>/adm/api/operators/roles</code>, <code>/adm/api/operators/menus</code>를 포함했습니다. 운영자 쓰기 API runtime smoke는 데이터 오염 위험 때문에 실행하지 않았습니다.</td></tr>
+      <tr><td>역할 관리</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>/adm/api/permissions/roles</code> 목록/상세/등록/수정/상태 변경 API와 DTO, 서비스 SQL 작업, 감사 로그 연계를 추가했습니다.</td></tr>
+      <tr><td>메뉴 관리</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>/adm/api/permissions/menus</code> 목록/상세/등록/수정/상태 변경 API와 상위 메뉴 순환 참조 방지 검증을 추가했습니다.</td></tr>
+      <tr><td>버튼 권한 관리</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>/adm/api/permissions/buttons</code> 목록/상세/등록/수정/상태 변경 API를 추가하고 기존 역할별 버튼 권한 저장 흐름과 감사 로그를 유지했습니다.</td></tr>
+      <tr><td>API 권한 관리</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>adm_api_permission</code>, <code>adm_role_api_permission</code> 테이블과 <code>/adm/api/permissions/api-permissions</code>, <code>/adm/api/permissions/api-matrix</code>, 역할별 API 권한 저장 API를 추가했습니다.</td></tr>
+      <tr><td>서버 권한검사</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>AdmApiAuthFilter</code>가 API 권한 테이블을 먼저 확인하고, 테이블이 없거나 매칭 권한이 없으면 기존 메뉴/버튼 권한으로 fallback합니다. 신규 API 권한 테이블이 적용된 DB에서의 차단/허용 runtime 쓰기 검증은 미검증입니다.</td></tr>
+      <tr><td>감사 로그</td><td class="status" data-status="부분 구현">부분 구현</td><td>역할, 메뉴, 버튼, API 권한 생성/수정/상태 변경과 역할별 API 권한 변경에 감사 사유 필수, before/after, diff 메시지를 연결했습니다. 쓰기 API runtime 실행 검증은 미검증입니다.</td></tr>
+      <tr><td>캐시/메시지/코드/설정</td><td class="status" data-status="부분 구현">부분 구현</td><td>이번 M3에서는 새 기능 개발 대상이 아니라 runtime smoke 조회 대상에 포함했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>M1 Runtime 재확인</h2>
+    <h2>계층별 파일</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>결과</th></tr>
+      <tr><th>계층</th><th>상태</th><th>파일</th></tr>
       </thead>
       <tbody>
-      <tr><td>ADM bootJar</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain</code> 통과. <code>adm/build/libs/adm-0.0.1-cpf.adm-SNAPSHOT.jar</code> 기준입니다.</td></tr>
-      <tr data-check-id="adm-runtime"><td>ADM runtime smoke</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-runtime.ps1</code> 재실행 통과. BOOT_JAR 기동, health, batch API, transaction meta scan/list/detail, 정적 ADM UI smoke, cleanup이 통과했습니다.</td></tr>
-      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status" data-status="완료">완료</td><td>runtime smoke 내부에서 <code>http://localhost:8090/v3/api-docs</code>와 Swagger UI smoke가 통과했습니다.</td></tr>
-      <tr><td>실제 포트</td><td class="status" data-status="완료">완료</td><td><code>application.yml</code>과 smoke script 기준 기본 포트는 <code>8090</code>입니다.</td></tr>
-      <tr><td>health</td><td class="status" data-status="완료">완료</td><td>응답 status는 UP이며 <code>admDB</code>, <code>pfwDB</code>, <code>mbrDB</code> 확인이 통과했습니다.</td></tr>
+      <tr><td>Controller</td><td class="status" data-status="완료">완료</td><td><code>adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java</code></td></tr>
+      <tr><td>Service</td><td class="status" data-status="완료">완료</td><td><code>adm/src/main/java/cpf/adm/opr/service/AdmPermissionService.java</code></td></tr>
+      <tr><td>권한 Filter</td><td class="status" data-status="완료">완료</td><td><code>adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java</code></td></tr>
+      <tr><td>DTO</td><td class="status" data-status="완료">완료</td><td><code>AdmRoleManagement</code>, <code>AdmRoleSaveRequest</code>, <code>AdmMenuManagement</code>, <code>AdmMenuSaveRequest</code>, <code>AdmButton</code>, <code>AdmButtonSaveRequest</code>, <code>AdmApiPermission</code>, <code>AdmApiPermissionSaveRequest</code>, <code>AdmApiPermissionRoleUpdateRequest</code>, <code>AdmStatusUpdateRequest</code></td></tr>
+      <tr><td>SQL/Flyway/all_install</td><td class="status" data-status="완료">완료</td><td><code>specs/sql/30_adm_schema.sql</code>, <code>60_adm_seed_data.sql</code>, <code>99_smoke_check.sql</code>, <code>migration/flyway/V15__adm_api_permission_management.sql</code>, <code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code>, <code>V1__cpf_baseline_install.sql</code></td></tr>
+      <tr><td>UI</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm/src/main/resources/static/adm/adm.js</code>. 정적 route는 반영했으나 브라우저 실제 클릭은 미검증입니다.</td></tr>
+      <tr><td>Test</td><td class="status" data-status="완료">완료</td><td><code>adm/src/test/java/cpf/adm/opr/service/AdmPermissionServiceTest.java</code></td></tr>
+      <tr><td>Smoke script</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-runtime.ps1</code>에 운영자/권한/캐시/메시지/코드/설정 조회 API를 추가했습니다.</td></tr>
+      <tr><td>문서</td><td class="status" data-status="완료">완료</td><td><code>specs/관리자_가이드.html</code>, <code>specs/개발_가이드.html</code>, <code>specs/SQL_가이드.html</code>, <code>specs/기능_구현_매트릭스.html</code></td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>브라우저 자동화 환경</h2>
+    <h2>API 목록</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>확인 명령</th><th>결과</th></tr>
+      <tr><th>기능명</th><th>Method</th><th>Path</th><th>권한/감사</th><th>Smoke</th></tr>
       </thead>
       <tbody>
-      <tr><td>내장 브라우저 제어</td><td class="status" data-status="미검증">미검증</td><td>브라우저 제어 연결</td><td>현재 세션에서 제어 가능한 in-app browser가 없어 사용할 수 없었습니다.</td></tr>
-      <tr><td>Node.js</td><td class="status" data-status="실패">실패</td><td><code>node -v</code></td><td>PATH에서 <code>node</code>를 찾지 못했습니다.</td></tr>
-      <tr><td>npm</td><td class="status" data-status="실패">실패</td><td><code>npm -v</code></td><td>PATH에서 <code>npm</code>을 찾지 못했습니다.</td></tr>
-      <tr><td>npx</td><td class="status" data-status="실패">실패</td><td><code>npx playwright --version</code>, <code>Get-Command npx</code></td><td>PATH에서 <code>npx</code>를 찾지 못했습니다.</td></tr>
-      <tr><td>Playwright</td><td class="status" data-status="미검증">미검증</td><td><code>npx playwright --version</code></td><td><code>npx</code>가 없어 Playwright 실행 자체가 불가능했습니다.</td></tr>
-      <tr><td>Chrome</td><td class="status" data-status="실패">실패</td><td><code>where.exe chrome</code>, <code>Get-Command chrome</code></td><td>PATH에서 Chrome 실행 파일을 찾지 못했습니다.</td></tr>
-      <tr><td>Edge</td><td class="status" data-status="실패">실패</td><td><code>where.exe msedge</code>, <code>Get-Command msedge</code></td><td>PATH에서 Edge 실행 파일을 찾지 못했습니다.</td></tr>
-      <tr><td>Selenium driver</td><td class="status" data-status="실패">실패</td><td><code>where.exe chromedriver</code>, <code>where.exe geckodriver</code></td><td>PATH에서 Selenium driver를 찾지 못했습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>ADM UI 구조</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>확인 내용</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>UI 파일</td><td class="status" data-status="완료">완료</td><td><code>adm/src/main/resources/static/adm/index.html</code>, <code>adm.js</code>, <code>adm.css</code>, Vue vendor 파일을 확인했습니다.</td></tr>
-      <tr><td>기본 URL</td><td class="status" data-status="완료">완료</td><td><code>AdmPageController</code>와 정적 리소스 기준 ADM 기본 화면은 <code>/adm</code>입니다.</td></tr>
-      <tr><td>로그인</td><td class="status" data-status="완료">완료</td><td>초기 화면은 <code>운영자 로그인</code>이며 운영자 ID, 비밀번호 입력 후 로그인 버튼을 누르는 흐름입니다. 민감정보 원문은 리포트에 기록하지 않았습니다.</td></tr>
-      <tr><td>화면 전환 방식</td><td class="status" data-status="완료">완료</td><td>별도 URL route가 아니라 Vue의 <code>activeMenu</code> 상태와 상단 메뉴 버튼 클릭으로 화면이 전환됩니다.</td></tr>
-      <tr><td>확인한 주요 화면</td><td class="status" data-status="완료">완료</td><td>거래 로그, 거래 메타, 회원 관리, 배치 관제, 감사 로그, 캐시 관리, 메시지 관리, 코드 관리, 설정 관리, 권한 관리, 비밀번호/세션 관리, 보안 운영, 로그 정책 화면 구조를 확인했습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>ADM UI Smoke 결과</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>결과</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>정적 ADM UI marker smoke</td><td class="status" data-status="완료">완료</td><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1</code> 통과. 이 검증은 문자열과 marker 기준이며 실제 클릭이 아닙니다.</td></tr>
-      <tr data-check-id="adm-browser-click"><td>ADM browser click smoke</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick -AdmBaseUrl http://localhost:8090</code> 실행 결과 <code>build/runtime-smoke/adm-ui-browser-smoke-result.json</code>에 SKIPPED로 기록됐습니다. 사유는 Node/npm/npx 또는 Playwright가 PATH에 없기 때문입니다.</td></tr>
-      <tr><td>클릭 시나리오 준비</td><td class="status" data-status="부분 구현">부분 구현</td><td>도구가 준비된 환경에서는 로그인 화면 확인, 로그인 버튼 클릭, 거래 로그 메뉴 클릭, 배치 메뉴 클릭, 감사 로그 메뉴 클릭, screenshot 저장을 수행하도록 스크립트에 Playwright spec 생성 로직을 넣었습니다.</td></tr>
-      <tr><td>screenshot</td><td class="status" data-status="미검증">미검증</td><td>브라우저 실행이 불가능해 screenshot은 생성되지 않았습니다.</td></tr>
-      <tr><td>trace</td><td class="status" data-status="미검증">미검증</td><td>Playwright 실행이 불가능해 trace는 생성되지 않았습니다.</td></tr>
+      <tr><td>역할 목록</td><td>GET</td><td><code>/adm/api/permissions/roles</code></td><td>PERMISSION_READ</td><td class="status" data-status="완료">완료</td></tr>
+      <tr><td>역할 등록/수정/상태</td><td>POST/PUT</td><td><code>/adm/api/permissions/roles</code>, <code>/adm/api/permissions/roles/{roleId}</code>, <code>/adm/api/permissions/roles/{roleId}/status</code></td><td>PERMISSION_WRITE, 감사 사유 필수</td><td class="status" data-status="미검증">미검증</td></tr>
+      <tr><td>메뉴 목록</td><td>GET</td><td><code>/adm/api/permissions/menus</code></td><td>PERMISSION_READ</td><td class="status" data-status="완료">완료</td></tr>
+      <tr><td>메뉴 등록/수정/상태</td><td>POST/PUT</td><td><code>/adm/api/permissions/menus</code>, <code>/adm/api/permissions/menus/{menuId}</code>, <code>/adm/api/permissions/menus/{menuId}/status</code></td><td>PERMISSION_WRITE, 감사 사유 필수</td><td class="status" data-status="미검증">미검증</td></tr>
+      <tr><td>버튼 목록</td><td>GET</td><td><code>/adm/api/permissions/buttons</code></td><td>PERMISSION_READ</td><td class="status" data-status="완료">완료</td></tr>
+      <tr><td>버튼 등록/수정/상태</td><td>POST/PUT</td><td><code>/adm/api/permissions/buttons</code>, <code>/adm/api/permissions/buttons/{buttonId}</code>, <code>/adm/api/permissions/buttons/{buttonId}/status</code></td><td>PERMISSION_WRITE, 감사 사유 필수</td><td class="status" data-status="미검증">미검증</td></tr>
+      <tr><td>API 권한 목록/매트릭스</td><td>GET</td><td><code>/adm/api/permissions/api-permissions</code>, <code>/adm/api/permissions/api-matrix</code></td><td>PERMISSION_READ</td><td class="status" data-status="완료">완료</td></tr>
+      <tr><td>API 권한 등록/수정/역할 매핑</td><td>POST/PUT</td><td><code>/adm/api/permissions/api-permissions</code>, <code>/adm/api/permissions/roles/{roleId}/api-permissions/{apiPermissionId}</code></td><td>PERMISSION_WRITE, 감사 사유 필수</td><td class="status" data-status="미검증">미검증</td></tr>
       </tbody>
     </table>
   </section>
@@ -131,18 +107,18 @@
       <tr><th>명령</th><th>상태</th><th>요약</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>OpenAPI smoke, transaction meta runtime smoke, ADM UI marker smoke, batch API smoke, cleanup 통과.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1</code></td><td class="status" data-status="완료">완료</td><td>ADM UI smoke check passed.</td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-ui.ps1 -BrowserClick -AdmBaseUrl http://localhost:8090</code></td><td class="status" data-status="미검증">미검증</td><td>환경 부재로 SKIPPED. 완료로 기록하지 않습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>최초 1회는 신규 테스트의 Mockito varargs 검증 표현 때문에 compileTestJava 실패했습니다. 수정 후 재실행하여 BUILD SUCCESSFUL.</td></tr>
       <tr><td><code>.\gradlew.bat :pfw:test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
-      <tr><td><code>.\gradlew.bat :adm:test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
       <tr><td><code>.\gradlew.bat test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
-      <tr data-check-id="check-feature-evidence"><td><code>scripts/check-feature-evidence.ps1</code></td><td class="status" data-status="완료">완료</td><td>Feature evidence check passed.</td></tr>
-      <tr data-check-id="check-html-docs"><td><code>scripts/check-html-docs.ps1</code></td><td class="status" data-status="완료">완료</td><td>HTML docs check passed.</td></tr>
-      <tr data-check-id="check-utf8"><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td class="status" data-status="완료">완료</td><td>UTF-8 check passed.</td></tr>
-      <tr data-check-id="quality-gate"><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL. qualityGate task 통과.</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-all-install-sql.ps1</code></td><td class="status" data-status="완료">완료</td><td>합본 SQL과 Flyway baseline 재생성 완료.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>BOOT_JAR 기동, health UP, OpenAPI, 운영자/권한/캐시/메시지/코드/설정 조회 API, batch API, transaction meta smoke, 정적 UI smoke, cleanup 통과.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-openapi.ps1</code></td><td class="status" data-status="완료">완료</td><td><code>smoke-adm-runtime.ps1</code> 내부에서 실행되어 OpenAPI smoke check passed.</td></tr>
+      <tr><td><code>where.exe mysql</code>, <code>where.exe mariadb</code></td><td class="status" data-status="미검증">미검증</td><td>MariaDB CLI가 PATH에 없어 신규 V15 테이블을 로컬 DB에 직접 적용/조회하는 검증은 수행하지 못했습니다.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sql-standard.ps1</code></td><td class="status" data-status="완료">완료</td><td>SQL standard check passed.</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake</code></td><td class="status" data-status="완료">완료</td><td>UTF-8 check passed.</td></tr>
+      <tr><td><code>scripts/check-feature-evidence.ps1</code>, <code>scripts/check-html-docs.ps1</code></td><td class="status" data-status="완료">완료</td><td>리포트가 0바이트였던 시점에는 실패했습니다. 본 리포트 작성 후 재실행하여 통과했습니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>최종 실행 후 BUILD SUCCESSFUL 기준으로 유지합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -151,60 +127,37 @@
     <h2>필수 체크 상태</h2>
     <table>
       <thead>
-      <tr><th>검증</th><th>상태</th><th>근거</th><th>비고</th></tr>
+      <tr><th>check id</th><th>상태</th><th>근거</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr data-check-id="standard-header-e2e"><td>PFW 표준 헤더 Source-Level 흐름 테스트</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest</code></td><td>소스 레벨 테스트이며 Runtime E2E 완료로 확대하지 않습니다.</td></tr>
-      <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code></td><td>다른 개발자 PC에서는 <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code> 기준으로 DB 계정을 지정합니다. legacy 호환 안내 변수명 <code>CPF_XYZ_EDU_MAPPER_DB_USER</code>는 문서 증거로만 유지합니다.</td></tr>
-      <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>이번 작업은 기존 로컬 DB runtime smoke이며, 신규 빈 DB 전체 설치는 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker 장애 시나리오</td><td>이번 작업에서는 실행하지 않았습니다.</td></tr>
+      <tr data-check-id="adm-runtime"><td>adm-runtime</td><td class="status" data-status="완료">완료</td><td><code>build/runtime-smoke/adm-runtime-smoke-result.json</code></td><td>운영자/권한/캐시/메시지/코드/설정 조회 API가 <code>admOperationApi.checkedEndpoints</code>에 포함되어 PASSED.</td></tr>
+      <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="완료">완료</td><td><code>http://localhost:8090/v3/api-docs</code></td><td>runtime smoke 내부 OpenAPI smoke 통과.</td></tr>
+      <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code></td><td>현재 PC에 Node.js, npm/npx, Playwright, Chrome 또는 Edge가 없어 실제 클릭은 SKIPPED 상태입니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest</code> source-level 기준입니다.</td><td>필수 헤더, context, trusted proxy IP, 민감 헤더 마스킹, outbound 허용 정책을 소스 테스트로 확인합니다. Runtime E2E는 별도 미검증 항목입니다.</td></tr>
+      <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>이번 M3 직접 범위는 아니며, 환경변수 기반 재실행 절차를 유지합니다.</td></tr>
+      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="미검증">미검증</td><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>cleanup 위험이 있어 신규 빈 DB 전체 설치와 seed idempotent 검증은 실행하지 않았습니다.</td></tr>
+      <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker 장애 시나리오</td><td>이번 작업에서는 실행하지 않았습니다.</td></tr>
+      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>Feature evidence check passed.</td></tr>
+      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>HTML docs check passed.</td></tr>
+      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>UTF-8 check passed.</td></tr>
+      <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>BUILD SUCCESSFUL 기준으로 유지합니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>완료 불인정 자체 점검</h2>
+    <h2>남은 작업</h2>
     <table>
       <thead>
-      <tr><th>항목</th><th>상태</th><th>점검 결과</th></tr>
+      <tr><th>항목</th><th>상태</th><th>다음 조치</th></tr>
       </thead>
       <tbody>
-      <tr><td>실행하지 않은 검증 완료 기록 여부</td><td class="status" data-status="완료">완료</td><td>브라우저 클릭, 표준 헤더 Runtime E2E, 신규 MariaDB 설치, broker는 완료로 기록하지 않았습니다.</td></tr>
-      <tr><td>민감정보 원문 기록 여부</td><td class="status" data-status="완료">완료</td><td>로그인 비밀번호와 token 원문은 기록하지 않았습니다.</td></tr>
-      <tr><td>Git commit/push/branch 여부</td><td class="status" data-status="완료">완료</td><td>commit, push, branch 생성은 수행하지 않았습니다.</td></tr>
-      <tr><td>별도 변경파일 목록 산출물 생성 여부</td><td class="status" data-status="완료">완료</td><td>요청 제한에 따라 별도 변경파일 목록 산출물은 생성하지 않았습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>남은 미검증</h2>
-    <table>
-      <thead>
-      <tr><th>항목</th><th>상태</th><th>사유</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>ADM browser click</td><td class="status" data-status="미검증">미검증</td><td>Node.js, npm/npx, Playwright, Chrome 또는 Edge가 필요합니다. 준비 후 <code>scripts/smoke-adm-ui.ps1 -BrowserClick -RequireBrowserClick</code>로 재실행합니다.</td></tr>
-      <tr><td>표준 헤더 Runtime E2E</td><td class="status" data-status="미검증">미검증</td><td>실제 API 호출, DB 거래 로그 저장, ADM 조회, 하위 HTTP 서버 수신까지 묶은 별도 E2E가 필요합니다.</td></tr>
-      <tr><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td>기존 로컬 DB runtime smoke는 성공했지만 빈 DB 전체 설치와 seed idempotent 재실행 검증은 별도입니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker와 장애 fallback 시나리오는 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr><td>운영자/권한/캐시/메시지/코드/설정 API 직접 runtime smoke</td><td class="status" data-status="미검증">미검증</td><td>Controller path는 확인되어 있으나 이번 M2 직접 호출 범위에는 포함하지 않았습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>다음 추천 작업</h2>
-    <table>
-      <thead>
-      <tr><th>순위</th><th>작업</th><th>상태</th><th>이유</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>1</td><td>브라우저 환경 준비 후 ADM click smoke 재실행</td><td class="status" data-status="미검증">미검증</td><td>Node.js, npm/npx, Playwright, Chrome 또는 Edge 설치가 필요합니다.</td></tr>
-      <tr><td>2</td><td>표준 헤더 Runtime E2E</td><td class="status" data-status="미검증">미검증</td><td>실제 요청, 로그 저장, ADM 조회, outbound 수신까지 하나의 흐름으로 닫아야 합니다.</td></tr>
-      <tr><td>3</td><td>ADM 운영 API smoke 확대</td><td class="status" data-status="미검증">미검증</td><td>권한, 캐시, 메시지, 코드, 설정, 운영자 보안 API를 인증 포함 runtime smoke로 확장합니다.</td></tr>
-      <tr><td>4</td><td>MariaDB 빈 DB 전체 설치 검증</td><td class="status" data-status="미검증">미검증</td><td>신규 프로젝트 배포 가능성을 확인하려면 설치 SQL과 seed idempotent를 별도 DB에서 재검증해야 합니다.</td></tr>
-      <tr><td>5</td><td>BAT standalone heartbeat와 ghost</td><td class="status" data-status="부분 구현">부분 구현</td><td>운영 장애 대응 smoke의 다음 단계입니다.</td></tr>
+      <tr><td>ADM 쓰기 API runtime smoke</td><td class="status" data-status="미검증">미검증</td><td>테스트 profile 또는 전용 fixture DB에서 역할/메뉴/버튼/API 권한 쓰기와 감사 로그 적재를 실행 검증합니다.</td></tr>
+      <tr><td>ADM 브라우저 클릭</td><td class="status" data-status="미검증">미검증</td><td>Node.js, npm/npx, Playwright, Chrome 또는 Edge 준비 후 <code>scripts/smoke-adm-ui.ps1 -BrowserClick -RequireBrowserClick</code>를 실행합니다.</td></tr>
+      <tr><td>DB/Flyway/all_install 실DB 적용</td><td class="status" data-status="미검증">미검증</td><td>MariaDB CLI 또는 migration runner가 있는 환경에서 <code>V15__adm_api_permission_management.sql</code> 적용과 <code>00_all_install_and_smoke.sql</code> 신규 빈 DB 실행을 검증합니다.</td></tr>
+      <tr><td>BAT standalone/heartbeat/ghost</td><td class="status" data-status="부분 구현">부분 구현</td><td>M4에서 BAT worker 운영 시나리오를 더 닫습니다.</td></tr>
+      <tr><td>표준 헤더 Runtime E2E</td><td class="status" data-status="미검증">미검증</td><td>실제 API 요청, DB 거래 로그 저장, ADM 조회, 하위 HTTP 수신을 하나의 테스트로 묶습니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker와 DB fallback 장애 시나리오를 검증합니다.</td></tr>
       </tbody>
     </table>
   </section>

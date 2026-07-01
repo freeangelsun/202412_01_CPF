@@ -175,6 +175,11 @@ Test-RequiredFile "cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService
 Test-RequiredFile "cmn/src/test/java/cpf/cmn/biz/sequence/CmnSequenceServiceConcurrencyTest.java" "CMN_SEQUENCE_CONCURRENCY_TEST"
 
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java" "ADM_PERMISSION_API"
+Test-RequiredFile "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java" "ADM_API_PERMISSION_DTO"
+Test-RequiredFile "adm/src/test/java/cpf/adm/opr/service/AdmPermissionServiceTest.java" "ADM_PERMISSION_SERVICE_TEST"
+Test-RequiredText "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java" "/api-permissions" "ADM_API_PERMISSION_ENDPOINT"
+Test-RequiredText "adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java" "adm_api_permission" "ADM_API_PERMISSION_FILTER"
+Test-RequiredText "scripts/smoke-adm-runtime.ps1" "/adm/api/permissions/api-permissions" "ADM_PERMISSION_RUNTIME_SMOKE_API"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java" "ADM_MEMBER_API"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmLogController.java" "ADM_LOG_API"
 Test-RequiredFile "adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java" "ADM_OBSERVABILITY_API"

@@ -81,6 +81,8 @@ DROP TABLE IF EXISTS admDB.adm_password_policy;
 DROP TABLE IF EXISTS admDB.adm_mfa_otp_secret;
 DROP TABLE IF EXISTS admDB.adm_ip_allowlist;
 DROP TABLE IF EXISTS admDB.adm_audit_log;
+DROP TABLE IF EXISTS admDB.adm_role_api_permission;
+DROP TABLE IF EXISTS admDB.adm_api_permission;
 DROP TABLE IF EXISTS admDB.adm_role_button;
 DROP TABLE IF EXISTS admDB.adm_role_menu;
 DROP TABLE IF EXISTS admDB.adm_button;
@@ -1274,6 +1276,49 @@ CREATE TABLE IF NOT EXISTS adm_role_button (
         FOREIGN KEY (BUTTON_ID) REFERENCES adm_button(BUTTON_ID)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 버튼/행위 권한';
+
+CREATE TABLE IF NOT EXISTS adm_api_permission (
+    API_PERMISSION_ID VARCHAR(120) NOT NULL COMMENT 'API 권한 ID',
+    API_GROUP_CODE VARCHAR(50) NOT NULL COMMENT 'API 그룹 코드',
+    HTTP_METHOD VARCHAR(10) NOT NULL COMMENT 'HTTP 메서드',
+    API_PATH VARCHAR(300) NOT NULL COMMENT 'API 경로 패턴',
+    API_NAME VARCHAR(150) NOT NULL COMMENT 'API명',
+    PERMISSION_CODE VARCHAR(50) NOT NULL COMMENT '권한 코드',
+    MENU_ID VARCHAR(50) NULL COMMENT '연결 메뉴 ID',
+    BUTTON_ID VARCHAR(80) NULL COMMENT '연결 버튼/행위 ID',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (API_PERMISSION_ID),
+    UNIQUE KEY uk_adm_api_permission_method_path (HTTP_METHOD, API_PATH),
+    INDEX ix_adm_api_permission_group (API_GROUP_CODE, USE_YN),
+    INDEX ix_adm_api_permission_menu (MENU_ID, BUTTON_ID),
+    CONSTRAINT fk_adm_api_permission_menu
+        FOREIGN KEY (MENU_ID) REFERENCES adm_menu(MENU_ID)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_adm_api_permission_button
+        FOREIGN KEY (BUTTON_ID) REFERENCES adm_button(BUTTON_ID)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM API 권한';
+
+CREATE TABLE IF NOT EXISTS adm_role_api_permission (
+    ROLE_ID VARCHAR(50) NOT NULL COMMENT '역할 ID',
+    API_PERMISSION_ID VARCHAR(120) NOT NULL COMMENT 'API 권한 ID',
+    ALLOW_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (ROLE_ID, API_PERMISSION_ID),
+    CONSTRAINT fk_adm_role_api_permission_role
+        FOREIGN KEY (ROLE_ID) REFERENCES adm_role(ROLE_ID)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_adm_role_api_permission_api
+        FOREIGN KEY (API_PERMISSION_ID) REFERENCES adm_api_permission(API_PERMISSION_ID)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 역할별 API 권한';
 
 CREATE TABLE IF NOT EXISTS adm_audit_log (
     AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '감사 로그 순번',
@@ -2924,6 +2969,74 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+-- ADM API 권한은 버튼/행위 권한을 실제 Controller path와 연결하기 위한 서버 권한검사 메타입니다.
+INSERT INTO adm_api_permission (
+    API_PERMISSION_ID,
+    API_GROUP_CODE,
+    HTTP_METHOD,
+    API_PATH,
+    API_NAME,
+    PERMISSION_CODE,
+    MENU_ID,
+    BUTTON_ID,
+    USE_YN,
+    created_by,
+    updated_by
+)
+SELECT
+    CONCAT('API_', BUTTON_ID),
+    MENU_ID,
+    COALESCE(HTTP_METHOD, 'ANY'),
+    API_PATTERN,
+    BUTTON_NAME,
+    ACTION_CODE,
+    MENU_ID,
+    BUTTON_ID,
+    USE_YN,
+    'SYSTEM',
+    'SYSTEM'
+FROM adm_button
+WHERE API_PATTERN IS NOT NULL
+ON DUPLICATE KEY UPDATE
+    API_GROUP_CODE = VALUES(API_GROUP_CODE),
+    HTTP_METHOD = VALUES(HTTP_METHOD),
+    API_PATH = VALUES(API_PATH),
+    API_NAME = VALUES(API_NAME),
+    PERMISSION_CODE = VALUES(PERMISSION_CODE),
+    MENU_ID = VALUES(MENU_ID),
+    BUTTON_ID = VALUES(BUTTON_ID),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission (
+    API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
+    MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by
+) VALUES (
+    'API_PERMISSION_WRITE_PUT', 'PERMISSION', 'PUT', '/adm/api/permissions/**', '권한 변경', 'WRITE',
+    'PERMISSION', 'PERMISSION_WRITE', 'Y', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    API_GROUP_CODE = VALUES(API_GROUP_CODE),
+    HTTP_METHOD = VALUES(HTTP_METHOD),
+    API_PATH = VALUES(API_PATH),
+    API_NAME = VALUES(API_NAME),
+    PERMISSION_CODE = VALUES(PERMISSION_CODE),
+    MENU_ID = VALUES(MENU_ID),
+    BUTTON_ID = VALUES(BUTTON_ID),
+    USE_YN = VALUES(USE_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
+SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
+FROM adm_role_button rb
+JOIN adm_api_permission ap ON ap.BUTTON_ID = rb.BUTTON_ID
+ON DUPLICATE KEY UPDATE
+    ALLOW_YN = VALUES(ALLOW_YN),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO adm_ip_allowlist (IP_PATTERN, DESCRIPTION, USE_YN, created_by, updated_by)
 VALUES ('127.0.0.1', '로컬 개발 PC', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3652,6 +3765,8 @@ SELECT 'admDB.adm_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_bu
 SELECT 'admDB.adm_role' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role;
 SELECT 'admDB.adm_role_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_menu;
 SELECT 'admDB.adm_role_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_button;
+SELECT 'admDB.adm_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_api_permission;
+SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_api_permission;
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
@@ -3726,6 +3841,11 @@ SELECT ROLE_ID, BUTTON_ID, ALLOW_YN
 FROM admDB.adm_role_button
 WHERE BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_ROLE_GRANT', 'BATCH_EXECUTE', 'BATCH_CALENDAR_SAVE', 'BATCH_SIMULATION', 'BATCH_TARGET_READ')
 ORDER BY ROLE_ID, BUTTON_ID;
+
+SELECT ROLE_ID, API_PERMISSION_ID, ALLOW_YN
+FROM admDB.adm_role_api_permission
+WHERE API_PERMISSION_ID IN ('API_PERMISSION_READ', 'API_PERMISSION_WRITE_PUT', 'API_OPERATOR_READ')
+ORDER BY ROLE_ID, API_PERMISSION_ID;
 
 SELECT schedule_id, job_id, business_day_only_yn, holiday_policy, available_start_time, available_end_time, run_date_pattern
 FROM pfwDB.pfw_batch_schedule

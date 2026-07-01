@@ -31,7 +31,7 @@
       <tbody>
       <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_meta</code>, <code>pfw_log_policy</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code></td><td>업무 데이터 저장소로 사용하지 않습니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_sequence_issue_log</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code>, <code>cmn_edu_query_item</code></td><td>프로젝트에서 필요할 때 optional datasource로 붙입니다.</td></tr>
-      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_audit_log</code></td><td>운영 행위 변경은 감사 사유와 before/after diff를 남깁니다.</td></tr>
+      <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code>, <code>adm_role_api_permission</code>, <code>adm_audit_log</code></td><td>운영 행위 변경은 감사 사유와 before/after diff를 남깁니다.</td></tr>
       <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>ADM은 운영 관제와 조치 API를 제공하지만 회원 데이터의 소유 DB는 MBR입니다.</td></tr>
       <tr><td><code>bizadmDB</code></td><td>업무 관리자 예제</td><td><code>bizadm_admin_user</code>, <code>bizadm_customer</code>, <code>bizadm_product</code>, <code>bizadm_order</code></td><td>업무 관리자 샘플의 실제 DB 기반 구현체입니다.</td></tr>
       <tr><td><code>exsDB</code></td><td>외부 연계 예제</td><td><code>exs_institution</code>, <code>exs_channel</code>, <code>exs_endpoint</code>, <code>exs_transaction_log</code>, <code>exs_retry_log</code></td><td>토큰과 외부 전문은 원문 노출을 피하고 hash 또는 마스킹 기준을 적용합니다.</td></tr>
@@ -50,7 +50,7 @@
       <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>전체 설치와 smoke query 합본</td><td>cleanup을 포함하므로 기존 DB에 실행하면 데이터가 삭제될 수 있습니다. 안전한 빈 DB 또는 명시 승인된 DB에서만 실행합니다.</td></tr>
       <tr><td><code>specs/sql/10_pfw_schema.sql</code></td><td>PFW schema</td><td>프레임워크 코어, Spring Batch, CPF Batch 운영 메타를 포함합니다.</td></tr>
       <tr><td><code>specs/sql/20_cmn_schema.sql</code></td><td>CMN schema</td><td>프로젝트 공통 기능과 EDU 조회 샘플 테이블을 포함합니다.</td></tr>
-      <tr><td><code>specs/sql/30_adm_schema.sql</code></td><td>ADM schema</td><td>운영자, 권한, 메뉴, 버튼, 감사, 다운로드 정책을 포함합니다.</td></tr>
+      <tr><td><code>specs/sql/30_adm_schema.sql</code></td><td>ADM schema</td><td>운영자, 역할, 메뉴, 버튼, API 권한, 감사, 다운로드 정책을 포함합니다.</td></tr>
       <tr><td><code>specs/sql/40_business_modules_schema.sql</code></td><td>업무 예제 schema</td><td>ACC, MBR, BIZADM, EXS 업무 예제 테이블을 포함합니다.</td></tr>
       <tr><td><code>scripts/build-all-install-sql.ps1</code></td><td>합본 SQL 재생성</td><td>분리 SQL 변경 후 합본과 Flyway baseline을 동기화합니다.</td></tr>
       </tbody>
@@ -70,6 +70,7 @@
       <tr><td>V12</td><td><code>V12__log_policy_runtime_standard.sql</code></td><td>온라인 로그 정책 유형을 정리합니다.</td></tr>
       <tr><td>V13</td><td><code>V13__adm_runtime_policy_permission_seed.sql</code></td><td>ADM 런타임 정책 메뉴/버튼 권한 seed를 보강합니다.</td></tr>
       <tr><td>V14</td><td><code>V14__edu_query_sample.sql</code></td><td>EDU 조회 샘플 테이블 <code>cmn_edu_query_item</code>과 seed를 추가합니다.</td></tr>
+      <tr><td>V15</td><td><code>V15__adm_api_permission_management.sql</code></td><td>ADM API 권한 테이블 <code>adm_api_permission</code>, <code>adm_role_api_permission</code>과 버튼 권한 기반 seed를 추가합니다.</td></tr>
       </tbody>
     </table>
   </section>

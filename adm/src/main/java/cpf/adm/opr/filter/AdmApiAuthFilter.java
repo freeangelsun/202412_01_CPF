@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +161,11 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return true;
         }
 
+        Optional<Boolean> dbApiPermission = hasDbApiPermission(session.roleIds(), method, path);
+        if (dbApiPermission.isPresent()) {
+            return dbApiPermission.get();
+        }
+
         Optional<Boolean> dbMenuPermission = hasDbMenuPermission(session.roleIds(), menuId, method);
         if (dbMenuPermission.isPresent() && !dbMenuPermission.get()) {
             return false;
@@ -186,6 +192,44 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return false;
         }
         return roles.contains("ADM_OPERATOR") || roles.contains("ADM_DEV_OPERATOR") || roles.contains("ADM_BIZ_OPERATOR");
+    }
+
+    private Optional<Boolean> hasDbApiPermission(List<String> roleIds, String method, String path) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Optional.of(false);
+        }
+        String placeholders = String.join(",", roleIds.stream().map(role -> "?").toList());
+        List<Object> args = new ArrayList<>();
+        args.addAll(roleIds);
+        args.add(method);
+        args.add("ANY");
+        try {
+            List<Map<String, Object>> permissions = admJdbcTemplate.queryForList("""
+                    SELECT a.API_PATH, COALESCE(MAX(ra.ALLOW_YN), 'N') AS ALLOW_YN
+                    FROM adm_api_permission a
+                    LEFT JOIN adm_role_api_permission ra
+                           ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
+                          AND ra.ROLE_ID IN (%s)
+                    WHERE a.USE_YN = 'Y'
+                      AND a.HTTP_METHOD IN (?, ?)
+                    GROUP BY a.API_PERMISSION_ID, a.API_PATH
+                    """.formatted(placeholders), args.toArray());
+            boolean matched = false;
+            boolean allowed = false;
+            for (Map<String, Object> permission : permissions) {
+                String apiPath = String.valueOf(permission.get("API_PATH"));
+                if (matchesApiPattern(apiPath, path)) {
+                    matched = true;
+                    allowed = allowed || "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
+                }
+            }
+            if (!matched) {
+                return Optional.empty();
+            }
+            return Optional.of(allowed);
+        } catch (DataAccessException ex) {
+            return Optional.empty();
+        }
     }
 
     private Optional<Boolean> hasDbMenuPermission(List<String> roleIds, String menuId, String method) {
@@ -307,6 +351,41 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             }
         }
         return null;
+    }
+
+    private boolean matchesApiPattern(String pattern, String path) {
+        if (pattern == null || pattern.isBlank()) {
+            return false;
+        }
+        String normalizedPattern = pattern.trim();
+        if (normalizedPattern.equals(path)) {
+            return true;
+        }
+        if (normalizedPattern.endsWith("/**")) {
+            String prefix = normalizedPattern.substring(0, normalizedPattern.length() - 3);
+            return path.equals(prefix) || path.startsWith(prefix + "/");
+        }
+        if (!normalizedPattern.contains("*")) {
+            return false;
+        }
+        String[] parts = normalizedPattern.split("\\*", -1);
+        int index = 0;
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            if (part.isEmpty()) {
+                continue;
+            }
+            int found = path.indexOf(part, index);
+            if (found < 0) {
+                return false;
+            }
+            if (i == 0 && found != 0) {
+                return false;
+            }
+            index = found + part.length();
+        }
+        String last = parts[parts.length - 1];
+        return last.isEmpty() || path.endsWith(last);
     }
 
     private String resolveBearerToken(HttpServletRequest request) {

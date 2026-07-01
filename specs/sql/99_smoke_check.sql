@@ -46,6 +46,8 @@ SELECT 'admDB.adm_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_bu
 SELECT 'admDB.adm_role' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role;
 SELECT 'admDB.adm_role_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_menu;
 SELECT 'admDB.adm_role_button' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_button;
+SELECT 'admDB.adm_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_api_permission;
+SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_api_permission;
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
@@ -120,6 +122,11 @@ SELECT ROLE_ID, BUTTON_ID, ALLOW_YN
 FROM admDB.adm_role_button
 WHERE BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_ROLE_GRANT', 'BATCH_EXECUTE', 'BATCH_CALENDAR_SAVE', 'BATCH_SIMULATION', 'BATCH_TARGET_READ')
 ORDER BY ROLE_ID, BUTTON_ID;
+
+SELECT ROLE_ID, API_PERMISSION_ID, ALLOW_YN
+FROM admDB.adm_role_api_permission
+WHERE API_PERMISSION_ID IN ('API_PERMISSION_READ', 'API_PERMISSION_WRITE_PUT', 'API_OPERATOR_READ')
+ORDER BY ROLE_ID, API_PERMISSION_ID;
 
 SELECT schedule_id, job_id, business_day_only_yn, holiday_policy, available_start_time, available_end_time, run_date_pattern
 FROM pfwDB.pfw_batch_schedule

@@ -30,7 +30,7 @@
       </thead>
       <tbody>
       <tr><td>운영자 관리</td><td><code>/adm/api/operators</code></td><td><code>adm_operator</code>, <code>adm_operator_role</code></td><td>등록, 수정, 잠금, 잠금해제, 비밀번호 초기화는 감사 사유가 필요합니다.</td></tr>
-      <tr><td>권한 관리</td><td><code>/adm/api/permissions</code></td><td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code></td><td>메뉴, 버튼, API 권한을 분리하고 서버에서 검사합니다.</td></tr>
+      <tr><td>권한 관리</td><td><code>/adm/api/permissions</code></td><td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code>, <code>adm_role_api_permission</code></td><td>역할, 메뉴, 버튼, API 권한을 분리하고 서버에서 검사합니다. 권한 변경은 감사 사유와 before/after를 남깁니다.</td></tr>
       <tr><td>회원 관리</td><td><code>/adm/api/members</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 권한 변경 이력을 조회합니다.</td></tr>
       <tr><td>로그 관제</td><td><code>/adm/api/logs</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace ID, 업무 거래 ID, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 검색합니다.</td></tr>
       <tr><td>통합 추적</td><td><code>/adm/api/observability</code></td><td><code>pfw_transaction_log</code>, <code>adm_audit_log</code>, <code>pfw_log_policy_audit</code>, <code>pfw_batch_execution</code></td><td>거래 글로벌 ID, trace ID, 업무 거래 ID 중 하나로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 관련 배치 실행을 한 응답으로 조회합니다.</td></tr>
@@ -41,6 +41,21 @@
       <tr><td>메시지/코드/응답코드</td><td>ADM 메시지/코드/응답코드 API</td><td><code>pfw_message</code>, <code>pfw_code</code>, <code>pfw_response_code</code></td><td>등록, 수정, 비활성, cache refresh 연동과 감사 로그를 적용합니다.</td></tr>
       <tr><td>설정 관리</td><td>ADM 설정 API</td><td><code>pfw_config</code></td><td>secret 값은 직접 노출하지 않고 마스킹 또는 secret reference만 표시합니다.</td></tr>
       <tr><td>보안 운영</td><td>ADM 보안 API</td><td>ADM 보안 테이블</td><td>비밀번호 정책, OTP, IP allowlist, 세션 폐기, 로그인 감사 로그를 관리합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>권한 관리 운영 절차</h2>
+    <table>
+      <thead>
+      <tr><th>대상</th><th>조회 API</th><th>변경 API</th><th>운영 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>역할</td><td><code>GET /adm/api/permissions/roles</code></td><td><code>POST /adm/api/permissions/roles</code>, <code>PUT /adm/api/permissions/roles/{roleId}</code></td><td>관리자, 개발자 운영자, 업무 운영자, 조회 전용 역할을 분리합니다.</td></tr>
+      <tr><td>메뉴</td><td><code>GET /adm/api/permissions/menus</code></td><td><code>POST /adm/api/permissions/menus</code>, <code>PUT /adm/api/permissions/menus/{menuId}</code></td><td>상위 메뉴 순환 참조를 금지하고 사용/중지 상태를 관리합니다.</td></tr>
+      <tr><td>버튼/행위</td><td><code>GET /adm/api/permissions/buttons</code></td><td><code>POST /adm/api/permissions/buttons</code>, <code>PUT /adm/api/permissions/buttons/{buttonId}</code></td><td>다운로드, 재수행, 잠금해제 같은 고위험 행위는 별도 버튼 권한으로 분리합니다.</td></tr>
+      <tr><td>API 권한</td><td><code>GET /adm/api/permissions/api-permissions</code>, <code>GET /adm/api/permissions/api-matrix</code></td><td><code>PUT /adm/api/permissions/roles/{roleId}/api-permissions/{apiPermissionId}</code></td><td>Controller path와 HTTP method를 기준으로 서버 필터가 확인할 수 있게 관리합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -106,7 +121,7 @@
       </thead>
       <tbody>
       <tr><td>ADM 정적 UI smoke</td><td><code>scripts/smoke-adm-ui.ps1</code></td><td>ADM 화면과 JS에 핵심 운영 경로 marker가 있는지 확인합니다.</td></tr>
-      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 검증합니다.</td></tr>
+      <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 운영자/권한/캐시/메시지/코드/설정 조회 API, 배치 API, 거래 메타 scan/list/detail, cleanup을 검증합니다.</td></tr>
       <tr><td>거래 메타 runtime smoke</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>기동 중인 ADM에 로그인하거나 전달받은 토큰을 사용해 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회를 검증합니다.</td></tr>
       <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override, cache refresh, <code>dbLogEnabled=N</code> 적용, override 해제 후 fallback 저장 재개, request/response/error stack 저장 제외, <code>transactionGlobalId</code>/trace ID/업무 거래 ID 기반 ADM 로그 조회, 통합 추적 API, 일반 감사 API, 정책 감사 API를 검증합니다.</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>

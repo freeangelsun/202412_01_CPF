@@ -225,7 +225,11 @@ if (!window.Vue) {
           requestUser: "admin-ui",
           reason: "설정 변경"
         },
-        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
+        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
+        roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "샘플 운영 역할", roleType: "BUSINESS_OPERATOR", description: "권한 관리 화면 샘플 역할", useYn: "Y", requestUser: "admin-ui", reason: "역할 관리" },
+        menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "샘플 메뉴", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "admin-ui", reason: "메뉴 관리" },
+        buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "샘플 조회", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "admin-ui", reason: "버튼 관리" },
+        apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "샘플 API 조회", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "admin-ui", reason: "API 권한 관리" },
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "로컬 개발", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
         responseCodeForm: {
@@ -877,9 +881,14 @@ if (!window.Vue) {
         this.setMessage("설정을 수정했습니다.");
       },
       async loadPermissions() {
+        const roles = await this.getJson("/adm/api/permissions/roles");
+        const menus = await this.getJson("/adm/api/permissions/menus");
+        const buttons = await this.getJson("/adm/api/permissions/buttons");
         const menuMatrix = await this.getJson("/adm/api/permissions/menu-matrix");
         const buttonMatrix = await this.getJson("/adm/api/permissions/button-matrix");
-        this.permissionResult = { menuMatrix, buttonMatrix };
+        const apiPermissions = await this.getJson("/adm/api/permissions/api-permissions");
+        const apiMatrix = await this.getJson("/adm/api/permissions/api-matrix");
+        this.permissionResult = { roles, menus, buttons, menuMatrix, buttonMatrix, apiPermissions, apiMatrix };
       },
       async updateMenuPermission() {
         if (!this.permissionForm.roleId || !this.permissionForm.menuId || !this.requireReason(this.permissionForm.reason)) return;
@@ -900,6 +909,55 @@ if (!window.Vue) {
           reason: this.permissionForm.reason
         });
         this.setMessage("버튼 권한을 저장했습니다.");
+      },
+      async updateApiPermissionRole() {
+        if (!this.permissionForm.roleId || !this.permissionForm.apiPermissionId || !this.requireReason(this.permissionForm.reason)) return;
+        this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.permissionForm.roleId}/api-permissions/${this.permissionForm.apiPermissionId}`, "PUT", {
+          allowYn: this.permissionForm.deleteYn,
+          requestUser: "admin-ui",
+          reason: this.permissionForm.reason
+        });
+        this.setMessage("API 권한을 저장했습니다.");
+      },
+      async createRole() {
+        if (!this.roleForm.roleId || !this.roleForm.roleName || !this.requireReason(this.roleForm.reason)) return;
+        this.permissionResult = await this.sendJson("/adm/api/permissions/roles", "POST", this.roleForm);
+        this.setMessage("역할을 등록했습니다.");
+      },
+      async updateRole() {
+        if (!this.roleForm.roleId || !this.roleForm.roleName || !this.requireReason(this.roleForm.reason)) return;
+        this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.roleForm.roleId}`, "PUT", this.roleForm);
+        this.setMessage("역할을 수정했습니다.");
+      },
+      async createManagedMenu() {
+        if (!this.menuManageForm.menuId || !this.menuManageForm.menuName || !this.requireReason(this.menuManageForm.reason)) return;
+        this.permissionResult = await this.sendJson("/adm/api/permissions/menus", "POST", this.menuManageForm);
+        this.setMessage("메뉴를 등록했습니다.");
+      },
+      async updateManagedMenu() {
+        if (!this.menuManageForm.menuId || !this.menuManageForm.menuName || !this.requireReason(this.menuManageForm.reason)) return;
+        this.permissionResult = await this.sendJson(`/adm/api/permissions/menus/${this.menuManageForm.menuId}`, "PUT", this.menuManageForm);
+        this.setMessage("메뉴를 수정했습니다.");
+      },
+      async createButton() {
+        if (!this.buttonForm.buttonId || !this.buttonForm.menuId || !this.buttonForm.buttonName || !this.requireReason(this.buttonForm.reason)) return;
+        this.permissionResult = await this.sendJson("/adm/api/permissions/buttons", "POST", this.buttonForm);
+        this.setMessage("버튼을 등록했습니다.");
+      },
+      async updateButton() {
+        if (!this.buttonForm.buttonId || !this.buttonForm.menuId || !this.buttonForm.buttonName || !this.requireReason(this.buttonForm.reason)) return;
+        this.permissionResult = await this.sendJson(`/adm/api/permissions/buttons/${this.buttonForm.buttonId}`, "PUT", this.buttonForm);
+        this.setMessage("버튼을 수정했습니다.");
+      },
+      async createApiPermission() {
+        if (!this.apiPermissionForm.apiPermissionId || !this.apiPermissionForm.apiPath || !this.requireReason(this.apiPermissionForm.reason)) return;
+        this.permissionResult = await this.sendJson("/adm/api/permissions/api-permissions", "POST", this.apiPermissionForm);
+        this.setMessage("API 권한을 등록했습니다.");
+      },
+      async updateApiPermission() {
+        if (!this.apiPermissionForm.apiPermissionId || !this.apiPermissionForm.apiPath || !this.requireReason(this.apiPermissionForm.reason)) return;
+        this.permissionResult = await this.sendJson(`/adm/api/permissions/api-permissions/${this.apiPermissionForm.apiPermissionId}`, "PUT", this.apiPermissionForm);
+        this.setMessage("API 권한을 수정했습니다.");
       },
       async loadResponseCodes() {
         this.responseCodeResult = await this.getJson("/adm/api/response-codes");

@@ -20,8 +20,8 @@
 <main>
   <section>
     <h1>CPF 안정화 작업 리포트</h1>
-    <p class="note">이번 리포트는 표준 헤더 E2E 소스 정합성과 ADM runtime smoke 준비 상태를 기준으로 작성했습니다. 실제로 실행하지 않은 runtime, OpenAPI, 브라우저, broker, 전체 DB 설치 검증은 성공으로 표시하지 않습니다.</p>
-    <p class="warn">요청서 파일은 사용자 갱신 원본이므로 작업 대상에서 제외했습니다. Git commit, push, branch 생성은 수행하지 않았습니다.</p>
+    <p class="note">이번 작업은 표준 헤더 Source-Level 검증 게이트와 리포트, 기능 매트릭스 상태 불일치를 닫기 위한 안정화 작업입니다.</p>
+    <p class="warn">실행하지 않은 ADM runtime, OpenAPI runtime, 브라우저 클릭, DB 전체 설치, broker 검증은 완료로 기록하지 않습니다. 요청서 파일은 사용자 원본으로 보고 작업 대상에서 제외했습니다.</p>
   </section>
 
   <section>
@@ -29,122 +29,114 @@
     <table>
       <tbody>
       <tr><th>작업 시작 branch</th><td><code>master</code></td></tr>
-      <tr><th>작업 시작 HEAD SHA</th><td><code>805074411ac812cc921dafbb6e683083c4b1ed74</code></td></tr>
-      <tr><th>작업 시작 origin/master SHA</th><td><code>805074411ac812cc921dafbb6e683083c4b1ed74</code></td></tr>
+      <tr><th>작업 시작 HEAD SHA</th><td><code>96591f3b1bdfbfbb7724d8d2316bf2103e81f94d</code></td></tr>
+      <tr><th>작업 시작 origin/master SHA</th><td><code>96591f3b1bdfbfbb7724d8d2316bf2103e81f94d</code></td></tr>
       <tr><th>작업 시작 status</th><td><code>M CPF_NEW_REQUEST</code>, <code>M CPF_STABILIZATION_REPORT.html</code></td></tr>
-      <tr><th>작업 시작 log</th><td><code>8050744 20260630_04</code></td></tr>
-      <tr><th>작업 종료 HEAD SHA</th><td><code>805074411ac812cc921dafbb6e683083c4b1ed74</code></td></tr>
-      <tr><th>작업 종료 status</th><td><code>M CPF_NEW_REQUEST</code>는 사용자 요청 원본으로 제외, <code>M CPF_STABILIZATION_REPORT.html</code>, <code>M scripts/check-feature-evidence.ps1</code>, <code>M specs/기능_구현_매트릭스.html</code>, <code>?? pfw/src/test/java/cpf/pfw/common/header/CpfStandardHeaderE2eTest.java</code></td></tr>
-      <tr><th>GitHub master 확인 가능 여부</th><td>로컬 <code>origin/master</code> 참조만 확인했습니다. 네트워크 조회는 수행하지 않았습니다.</td></tr>
-      <tr><th>권한 이슈</th><td>일부 Git 명령은 sandbox 사용자 기준 <code>safe.directory</code> 검사가 필요했습니다. 리포트 기준 정보는 <code>git -c safe.directory=...</code> 방식으로 확인했습니다.</td></tr>
+      <tr><th>작업 시작 log</th><td><code>96591f3 20260330_05</code></td></tr>
+      <tr><th>작업 종료 HEAD SHA</th><td><code>96591f3b1bdfbfbb7724d8d2316bf2103e81f94d</code></td></tr>
+      <tr><th>작업 종료 status</th><td><code>M CPF_NEW_REQUEST</code>는 사용자 요청 원본, 작업 변경은 <code>CPF_STABILIZATION_REPORT.html</code>, <code>CpfStandardHeaderE2eTest.java</code>, <code>scripts/check-feature-evidence.ps1</code>, <code>specs/기능_구현_매트릭스.html</code></td></tr>
+      <tr><th>GitHub master 확인 가능 여부</th><td>네트워크 조회는 수행하지 않았습니다. 로컬 <code>origin/master</code> 참조와 현재 HEAD가 같은 것만 확인했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>2. 확인한 표준 헤더 파일</h2>
+    <h2>2. 차단 오류 처리 결과</h2>
     <table>
       <thead>
-      <tr><th>파일</th><th>확인 내용</th><th>상태</th></tr>
+      <tr><th>차단 항목</th><th>상태</th><th>처리 내용</th><th>근거</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfHeaderNames.java</code></td><td>표준 헤더 상수, 사용자/운영자/고객/회원/채널/보안 헤더 분리</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfHeaderSpecs.java</code></td><td>REQUIRED, RECOMMENDED, OPTIONAL, INTERNAL_ONLY, FORBIDDEN_TO_LOG_RAW 분류와 전파/로그/마스킹 정책</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfInboundHeaderValidator.java</code></td><td>필수 헤더와 거래 ID 형식 검증</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/filter/TransactionContextFilter.java</code></td><td>수신 요청 기준 거래 컨텍스트 생성과 응답 trace 헤더 설정</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfTrustedProxyPolicy.java</code></td><td>trusted proxy 기준 client IP 해석</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfHeaderMutator.java</code></td><td>업무 코드가 보정 가능한 헤더와 변경 금지 헤더 분리</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/header/CpfHeaderPropagator.java</code></td><td>inbound, resolved, outbound, response 헤더 snapshot과 하위 전파 헤더 생성</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/http/CpfWebClient.java</code>, <code>CpfWebClientConfig.java</code></td><td>WebClient 기반 하위 호출 표준 헤더 자동 전파 구조</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/http/CpfRestClientInterceptor.java</code></td><td>RestClient 또는 RestTemplate 기반 하위 호출 표준 헤더 자동 전파 구조</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>pfw/src/main/java/cpf/pfw/common/logging/LoggingAspect.java</code></td><td>거래 로그 detail에 headers, inboundHeaders, resolvedHeaders, outboundHeaders, responseHeaders 저장</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>adm/src/main/java/cpf/adm/opr/service/AdmLogQueryService.java</code></td><td>ADM 로그 상세에서 헤더부, JSON pretty, 고정길이 전문 기본 필드 분해, 민감정보 마스킹 반환</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
-      <tr><td><code>xyz/src/main/java/cpf/xyz/edu/controller/XyzQueryEducationController.java</code></td><td>EDU 조회 샘플에서 현재 거래 컨텍스트와 outboundHeaders 반환</td><td class="status" data-status="부분 구현">부분 구현</td></tr>
+      <tr><td>Codex 보고와 실제 파일 불일치</td><td class="status" data-status="완료">완료</td><td>리포트 파일이 0바이트인 상태를 확인하고 현재 작업 기준 리포트를 새로 작성했습니다.</td><td><code>CPF_STABILIZATION_REPORT.html</code></td></tr>
+      <tr><td>리포트와 기능 매트릭스 상태 불일치</td><td class="status" data-status="완료">완료</td><td>Source-Level 검증은 완료, Runtime E2E와 ADM 로그 연계는 미검증으로 분리했습니다.</td><td><code>specs/기능_구현_매트릭스.html</code>, 이 리포트</td></tr>
+      <tr><td>표준 헤더 evidence 누락</td><td class="status" data-status="완료">완료</td><td>헤더 extractor, masker, context, header 객체를 evidence gate에 추가했습니다.</td><td><code>scripts/check-feature-evidence.ps1</code></td></tr>
+      <tr><td>완료 과장 여부</td><td class="status" data-status="완료">완료</td><td>소스 테스트 성공을 ADM runtime, DB 로그 저장, OpenAPI runtime 성공으로 쓰지 않도록 분리했습니다.</td><td>검증 상태 매트릭스</td></tr>
+      <tr><td>불필요 산출물 생성</td><td class="status" data-status="완료">완료</td><td>변경 파일 목록 산출물은 생성하지 않았습니다.</td><td><code>check-html-docs</code>에서 금지 산출물도 확인합니다.</td></tr>
+      <tr><td>old fixture path와 legacy evidence</td><td class="status" data-status="완료">완료</td><td><code>xyz_edu_query_fixture.sql</code> 정본 경로와 <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code> 기준을 유지했습니다.</td><td><code>check-feature-evidence</code></td></tr>
+      <tr><td>남은 차단 오류</td><td class="status" data-status="완료">완료</td><td>이번 요청 범위 기준 차단 오류는 남기지 않았습니다.</td><td>최종 검증 명령 결과</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>3. 표준 헤더 E2E gap</h2>
+    <h2>3. 표준 헤더 Source-Level 테스트</h2>
     <table>
-      <thead>
-      <tr><th>항목</th><th>확인한 파일</th><th>현재 상태</th><th>부족한 점</th><th>이번 보강 여부</th><th>완료로 기록하지 않는 이유</th></tr>
-      </thead>
       <tbody>
-      <tr><td>표준 헤더 항목 정의</td><td><code>CpfHeaderNames.java</code>, <code>CpfHeaderSpecs.java</code></td><td>상수와 사전 존재</td><td>runtime 문서 JSON 검증은 미수행</td><td>테스트 evidence 강화</td><td>OpenAPI runtime 미검증</td></tr>
-      <tr><td>분류 정책</td><td><code>CpfHeaderCategory.java</code>, <code>CpfHeaderSpecs.java</code></td><td>분류 존재</td><td>운영 환경 정책 검증은 별도</td><td>evidence gate 강화</td><td>정책 적용 runtime 미검증</td></tr>
-      <tr><td>inbound 자동 검증</td><td><code>CpfInboundHeaderValidator.java</code>, <code>TransactionHeaderValidationInterceptor.java</code></td><td>필수 헤더와 거래 ID 검증 존재</td><td>실제 컨트롤러 호출 차단 검증은 미수행</td><td><code>CpfStandardHeaderE2eTest</code> 추가</td><td>ADM runtime 미검증</td></tr>
-      <tr><td>trusted proxy 기반 client IP</td><td><code>CpfTrustedProxyPolicy.java</code>, <code>CpfHeaderExtractor.java</code></td><td>trusted proxy 설정 기준 해석 존재</td><td>실제 LB/WAF 환경 검증 없음</td><td><code>CpfStandardHeaderE2eTest</code> 추가</td><td>운영 네트워크 미검증</td></tr>
-      <tr><td>transaction context 생성</td><td><code>TransactionContext.java</code>, <code>TransactionContextFilter.java</code></td><td>RequestAttributes 기반 저장 존재</td><td>실제 servlet filter 연쇄 runtime 미수행</td><td><code>CpfStandardHeaderE2eTest</code> 추가</td><td>앱 기동 미검증</td></tr>
-      <tr><td>current context 조회</td><td><code>TransactionContext.java</code>, <code>XyzQueryEducationController.java</code></td><td>조회 API와 EDU 샘플 존재</td><td>실제 EDU API 호출 미수행</td><td>테스트에서 의미 구분 확인</td><td>XYZ runtime 미검증</td></tr>
-      <tr><td>허용 mutator</td><td><code>CpfHeaderMutator.java</code></td><td>허용/금지 헤더 분리</td><td>운영 예외 승인 API는 별도</td><td>테스트에서 channel detail 보정 확인</td><td>운영 UI 미검증</td></tr>
-      <tr><td>민감 헤더 마스킹</td><td><code>CpfHeaderMasker.java</code>, <code>CpfHeaderExtractor.java</code></td><td>토큰, API key, 전달 헤더 raw 저장 방지</td><td>실제 DB detail 조회 미수행</td><td>테스트에서 raw 미노출 확인</td><td>DB runtime 미검증</td></tr>
-      <tr><td>거래 로그 header detail 저장</td><td><code>LoggingAspect.java</code></td><td>detail key 저장 구조 존재</td><td>실제 로그 적재 데이터 미확인</td><td>소스 근거 리포트화</td><td>ADM runtime 로그 조회 미검증</td></tr>
-      <tr><td>outbound 자동 전파</td><td><code>CpfHeaderPropagator.java</code>, <code>CpfRestClientInterceptor.java</code>, <code>CpfWebClientConfig.java</code></td><td>허용 헤더만 전파</td><td>실제 하위 서버 수신 확인 없음</td><td><code>CpfStandardHeaderE2eTest</code> 추가</td><td>하위 HTTP runtime 미검증</td></tr>
-      <tr><td>ADM 헤더 표시</td><td><code>AdmLogQueryService.java</code>, <code>adm.js</code></td><td>수신/해석/전파/응답 헤더 탭 구조 존재</td><td>브라우저 클릭 검증 없음</td><td>소스 근거 리포트화</td><td>ADM UI runtime 미검증</td></tr>
-      <tr><td>EDU/XYZ 샘플</td><td><code>XyzQueryEducationController.java</code></td><td>헤더 컨텍스트 샘플 존재</td><td>실제 API 호출 미수행</td><td>근거 유지</td><td>XYZ runtime 미검증</td></tr>
-      <tr><td>단위 테스트</td><td><code>CpfHeaderStandardCoverageTest.java</code>, <code>CpfHeaderMutatorTest.java</code>, <code>CpfHeaderPropagatorTest.java</code></td><td>개별 테스트 존재</td><td>흐름 단위 테스트 부족</td><td><code>CpfStandardHeaderE2eTest</code> 추가</td><td>소스 테스트이며 runtime은 아님</td></tr>
-      <tr><td>통합/E2E 테스트</td><td><code>CpfStandardHeaderE2eTest.java</code></td><td>소스 레벨 흐름 테스트 추가</td><td>앱 기동 기반 실제 HTTP E2E는 없음</td><td>이번 보강 완료</td><td>runtime E2E 미검증</td></tr>
-      <tr><td>runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code>, <code>scripts/smoke-openapi.ps1</code></td><td>스크립트 존재</td><td>이번 작업에서 실행하지 않음</td><td>대상 API 표 정리</td><td>실행하지 않아 미검증</td></tr>
+      <tr><th>파일</th><td><code>pfw/src/test/java/cpf/pfw/common/header/CpfStandardHeaderE2eTest.java</code></td></tr>
+      <tr><th>포맷과 주석</th><td>정상 Java multi-line 포맷이며, class와 test method에 한글 Javadoc을 추가해 운영 의미와 검증 범위를 설명했습니다.</td></tr>
+      <tr><th>검증한 항목</th><td>필수 표준 헤더 검증, transaction context 생성, trusted proxy 기반 client IP 산정, <code>X-User-Id</code>, <code>X-Customer-No</code>, <code>X-Member-No</code>, <code>X-Operator-Id</code> 의미 분리, <code>X-Original-Channel-Code</code>와 <code>X-Channel-Code</code> 구분, <code>Authorization</code>, <code>X-Api-Key</code>, nonce 원문 미노출, 민감 헤더 마스킹, outbound 허용 헤더만 전파</td></tr>
+      <tr><th>검증하지 않은 항목</th><td>ADM runtime 거래 로그 조회, DB 로그 저장 결과, OpenAPI runtime 접근, 브라우저 클릭, 실제 WebClient 또는 RestClient 하위 mock 서버 수신, Redis/Kafka/MQ broker 전파</td></tr>
+      <tr><th>테스트 결과</th><td><code>.\gradlew.bat :pfw:test --offline</code> BUILD SUCCESSFUL</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>4. ADM runtime/OpenAPI smoke 준비</h2>
+    <h2>4. Evidence gate</h2>
     <table>
       <thead>
-      <tr><th>API 이름</th><th>HTTP method/path</th><th>확인할 내용</th><th>필요 표준 헤더</th><th>예상 응답</th><th>미검증 사유</th></tr>
+      <tr><th>구분</th><th>상태</th><th>확인 파일 또는 기준</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr><td>ADM health</td><td><code>GET /adm/api/health</code></td><td>ADM, PFW, MBR datasource readiness</td><td>표준 smoke 헤더</td><td><code>status=UP</code> 또는 DEGRADED</td><td>앱 기동 smoke 미수행</td></tr>
-      <tr><td>OpenAPI JSON</td><td><code>GET /v3/api-docs</code></td><td>OpenAPI JSON 형식과 필수 tag</td><td>없음 또는 표준 smoke 헤더</td><td><code>openapi</code> 필드 존재</td><td>앱 기동 smoke 미수행</td></tr>
-      <tr><td>거래 로그 목록</td><td><code>GET /adm/api/logs</code></td><td>transactionId, transactionGlobalId, traceId, 업무 거래 ID, URI, 응답코드 검색</td><td>표준 smoke 헤더와 ADM 인증</td><td><code>available</code>, <code>items</code></td><td>PFW 로그 DB와 runtime 호출 미검증</td></tr>
-      <tr><td>거래 로그 상세</td><td><code>GET /adm/api/logs/{logIdx}</code></td><td>summary, inboundHeaders, resolvedHeaders, outboundHeaders, responseHeaders, request, response, error, formattedDetails</td><td>표준 smoke 헤더와 ADM 인증</td><td><code>available</code>, <code>item</code></td><td>실제 로그 데이터 조회 미검증</td></tr>
-      <tr><td>감사 로그 목록</td><td><code>GET /adm/api/audit-logs</code></td><td>운영자, actionType, targetType, targetId 조건 조회</td><td>표준 smoke 헤더와 ADM 인증</td><td><code>items</code></td><td>runtime 호출 미검증</td></tr>
-      <tr><td>로그 정책 감사</td><td><code>GET /adm/api/log-policy-audits</code></td><td>정책 변경, override, cache refresh 이력 조회</td><td>표준 smoke 헤더와 ADM 인증</td><td>정책 감사 wrapper 응답</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>통합 추적</td><td><code>GET /adm/api/observability/transactions/{transactionGlobalId}</code></td><td>거래 ID 기준 로그, 오류, 감사, 배치 연결 조회</td><td>표준 smoke 헤더와 ADM 인증</td><td>통합 추적 map</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>배치 목록</td><td><code>GET /adm/api/batch/jobs</code></td><td>배치 Job, 마지막 실행, 성공/실패 건수, 평균 수행 시간</td><td>표준 smoke 헤더와 ADM 인증</td><td>Job 목록</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>배치 스케줄 시뮬레이션</td><td><code>GET /adm/api/batch/schedules/{scheduleId}/simulation</code></td><td>영업일 캘린더와 수행 가능 후보일 계산</td><td>표준 smoke 헤더와 ADM 인증</td><td>후보일 목록</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>배치 관계</td><td><code>GET /adm/api/batch/relations</code></td><td>선행 Job, 후행 Job, 트리거 Job 관계 조회</td><td>표준 smoke 헤더와 ADM 인증</td><td>관계 목록</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>배치 수행 대상</td><td><code>GET /adm/api/batch/execution-targets</code></td><td>수행 대기, 배정, 완료 대상 인스턴스 조회</td><td>표준 smoke 헤더와 ADM 인증</td><td>수행 대상 목록</td><td>runtime 호출 미검증</td></tr>
-      <tr><td>캐시 상태</td><td><code>GET /adm/api/cache/summary</code></td><td>캐시 대상별 수량과 샘플</td><td>표준 smoke 헤더와 ADM 인증</td><td><code>available</code>, <code>result</code></td><td>runtime 호출 미검증</td></tr>
-      <tr><td>캐시 refresh</td><td><code>POST /adm/api/cache/refresh</code></td><td>target별 refresh와 감사 사유 필수</td><td>표준 smoke 헤더와 ADM 인증</td><td><code>available</code>, <code>result</code></td><td>runtime 호출 미검증</td></tr>
+      <tr><td>표준 헤더 테스트 파일</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest.java</code></td><td>테스트 파일 존재와 핵심 문자열을 확인합니다.</td></tr>
+      <tr><td>표준 헤더 core source</td><td class="status" data-status="완료">완료</td><td><code>CpfHeaderNames</code>, <code>CpfHeaderSpecs</code>, <code>CpfInboundHeaderValidator</code>, <code>CpfHeaderExtractor</code>, <code>CpfHeaderMasker</code>, <code>CpfHeaderPropagator</code>, <code>CpfTrustedProxyPolicy</code>, <code>CpfHeaderMutator</code></td><td>요청서의 필수 source evidence를 gate에 반영했습니다.</td></tr>
+      <tr><td>거래 context evidence</td><td class="status" data-status="완료">완료</td><td><code>TransactionContext</code>, <code>TransactionHeader</code></td><td>현재 거래 컨텍스트 조회와 보관 객체가 빠지지 않게 했습니다.</td></tr>
+      <tr><td>outbound wrapper evidence</td><td class="status" data-status="완료">완료</td><td><code>CpfWebClient</code>, <code>CpfWebClientConfig</code>, <code>CpfRestClientInterceptor</code></td><td>실제 HTTP 수신 완료가 아니라 전파 구조 evidence입니다.</td></tr>
+      <tr><td>legacy와 fixture 기준</td><td class="status" data-status="완료">완료</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>정본 fixture와 환경변수 호환 기준을 유지했습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>5. 변경 파일</h2>
+    <h2>5. 리포트와 기능 매트릭스</h2>
     <table>
       <thead>
-      <tr><th>파일</th><th>변경 목적</th><th>구분</th></tr>
+      <tr><th>항목</th><th>상태</th><th>기준</th><th>불일치 여부</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw/src/test/java/cpf/pfw/common/header/CpfStandardHeaderE2eTest.java</code></td><td>표준 헤더 수신, 검증, context, trusted proxy, 마스킹, outbound 전파 흐름 테스트 추가</td><td>테스트</td></tr>
-      <tr><td><code>scripts/check-feature-evidence.ps1</code></td><td>표준 헤더 E2E 테스트와 CpfWebClient 전파 근거 누락 방지 gate 추가</td><td>evidence</td></tr>
-      <tr><td><code>specs/기능_구현_매트릭스.html</code></td><td>표준 헤더 E2E 상태를 소스 테스트 기준 부분 구현으로 보정하고 runtime 미검증 유지</td><td>문서</td></tr>
-      <tr><td><code>CPF_STABILIZATION_REPORT.html</code></td><td>이번 작업 gap, 검증, 미검증, 다음 작업 기록</td><td>리포트</td></tr>
+      <tr><td>PFW 표준 헤더 Source-Level 흐름 테스트</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest</code>, <code>:pfw:test</code></td><td>없음</td></tr>
+      <tr><td>표준 헤더 Runtime E2E</td><td class="status" data-status="미검증">미검증</td><td>실제 API 호출, DB 로그 저장, ADM 조회, 하위 HTTP 수신</td><td>없음</td></tr>
+      <tr><td>ADM 로그 연계 검증</td><td class="status" data-status="미검증">미검증</td><td><code>AdmLogController</code>, <code>AdmLogQueryService</code></td><td>없음</td></tr>
+      <tr><td>outbound runtime 수신 검증</td><td class="status" data-status="미검증">미검증</td><td>실제 하위 mock 서버 수신</td><td>없음</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>6. 실행 명령 결과</h2>
+    <h2>6. ADM runtime/OpenAPI smoke 준비</h2>
     <table>
       <thead>
-      <tr><th>명령</th><th>결과</th><th>tests</th><th>skipped</th><th>failures</th><th>errors</th><th>미실행 사유</th></tr>
+      <tr><th>확인한 Controller 또는 script</th><th>API path</th><th>script 기준</th><th>path 일치 여부</th><th>실행 여부</th><th>미검증 사유</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="status" data-status="완료">완료</td><td>Gradle BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="status" data-status="완료">완료</td><td>Gradle BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>.\gradlew.bat :xyz:test --offline</code></td><td class="status" data-status="완료">완료</td><td>Gradle BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline</code></td><td class="status" data-status="실패">실패</td><td>timeout</td><td></td><td></td><td>제한 시간 초과</td><td>첫 실행은 제한 시간을 초과했으므로 성공으로 보지 않습니다.</td></tr>
-      <tr><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>Gradle BUILD SUCCESSFUL, qualityGate 통과</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1</code></td><td class="status" data-status="완료">완료</td><td>Feature evidence check passed.</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1</code></td><td class="status" data-status="완료">완료</td><td>HTML docs check passed.</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake</code></td><td class="status" data-status="완료">완료</td><td>UTF-8 check passed.</td><td>없음</td><td>없음</td><td>없음</td><td></td></tr>
-      <tr><td><code>.\gradlew.bat test --offline --no-daemon --console=plain</code></td><td class="status" data-status="완료">완료</td><td>Gradle BUILD SUCCESSFUL</td><td>root test는 NO-SOURCE, 각 모듈 테스트는 up-to-date 포함</td><td>없음</td><td>없음</td><td></td></tr>
+      <tr><td><code>AdmHealthController</code></td><td><code>GET /adm/api/health</code></td><td><code>smoke-adm-runtime.ps1</code>, <code>smoke-log-policy-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>이번 작업은 runtime smoke 실행 범위가 아닙니다.</td></tr>
+      <tr><td><code>smoke-openapi.ps1</code></td><td><code>GET /v3/api-docs</code>, <code>GET /swagger-ui/index.html</code></td><td><code>smoke-openapi.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>앱 기동 후 JSON 접근은 다음 마일스톤입니다.</td></tr>
+      <tr><td><code>AdmLogController</code></td><td><code>GET /adm/api/logs</code>, <code>GET /adm/api/logs/{logIdx}</code></td><td><code>smoke-log-policy-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>실제 로그 데이터와 DB가 필요합니다.</td></tr>
+      <tr><td><code>AdmAuditLogController</code></td><td><code>GET /adm/api/audit-logs</code></td><td><code>smoke-log-policy-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>ADM runtime 기동이 필요합니다.</td></tr>
+      <tr><td><code>AdmLogPolicyController</code></td><td><code>GET /adm/api/log-policies</code>, <code>POST /adm/api/log-policies/overrides</code>, <code>PATCH /adm/api/log-policies/overrides/{overrideId}/disable</code>, <code>POST /adm/api/log-policies/cache/refresh</code></td><td><code>smoke-log-policy-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>로그 정책 DB와 ADM runtime이 필요합니다.</td></tr>
+      <tr><td><code>AdmBatchController</code></td><td><code>GET /adm/api/batch/jobs</code>, <code>GET /adm/api/batch/schedules</code>, <code>GET /adm/api/batch/executions</code>, <code>GET /adm/api/batch/steps</code>, <code>GET /adm/api/batch/workers</code>, <code>GET /adm/api/batch/locks</code></td><td><code>smoke-adm-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>ADM runtime과 배치 메타 DB가 필요합니다.</td></tr>
+      <tr><td><code>AdmCacheController</code></td><td><code>GET /adm/api/cache/summary</code>, <code>POST /adm/api/cache/refresh</code></td><td>다음 runtime smoke 후보</td><td class="status" data-status="재확인 필요">재확인 필요</td><td>미실행</td><td>Controller path는 확인했고, 기존 ADM runtime script에 핵심 호출로 포함할지는 다음 smoke 작업에서 결정합니다.</td></tr>
+      <tr><td><code>AdmTransactionMetaController</code></td><td><code>GET /adm/api/transactions</code>, <code>GET /adm/api/transactions/{transactionId}</code>, <code>POST /adm/api/transactions/scan</code></td><td><code>smoke-adm-runtime.ps1</code>, <code>smoke-transaction-meta-runtime.ps1</code></td><td class="status" data-status="완료">완료</td><td>미실행</td><td>ADM runtime 기동이 필요합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>7. 실행 명령 결과</h2>
+    <table>
+      <thead>
+      <tr><th>명령</th><th>결과</th><th>tests</th><th>skipped</th><th>failures</th><th>errors</th><th>timeout 또는 재실행</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>.\gradlew.bat :pfw:test --offline</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td>없음</td></tr>
+      <tr><td><code>.\gradlew.bat :adm:test --offline</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td>없음</td></tr>
+      <tr><td><code>.\gradlew.bat :xyz:test --offline --console=plain</code></td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL</td><td>없음</td><td>없음</td><td>없음</td><td>병렬 출력 확인을 위해 plain console로 재확인</td></tr>
+      <tr><td><code>.\gradlew.bat test --offline --no-daemon --console=plain</code></td><td class="status" data-status="미검증">미검증</td><td>아직 최종 실행 전</td><td></td><td></td><td></td><td>리포트 작성 후 실행 예정</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td class="status" data-status="실패">실패</td><td><code>checkFeatureEvidence</code> 통과 후 <code>checkHtmlDocs</code>에서 리포트와 매트릭스 상태 불일치 검출</td><td></td><td>상태 불일치</td><td>check-html-docs 실패</td><td>의도한 차단 오류 검출이며, 리포트 상태 동기화 후 재실행합니다.</td></tr>
+      <tr><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code> 재실행</td><td class="status" data-status="완료">완료</td><td>BUILD SUCCESSFUL, qualityGate 통과</td><td>없음</td><td>없음</td><td>없음</td><td>리포트 상태 동기화 후 통과</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1</code></td><td class="status" data-status="완료">완료</td><td>Feature evidence check passed.</td><td>없음</td><td>없음</td><td>없음</td><td>없음</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1</code></td><td class="status" data-status="완료">완료</td><td>HTML docs check passed.</td><td>없음</td><td>없음</td><td>없음</td><td>없음</td></tr>
+      <tr><td><code>powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake</code></td><td class="status" data-status="완료">완료</td><td>UTF-8 check passed.</td><td>없음</td><td>없음</td><td>없음</td><td>없음</td></tr>
       </tbody>
     </table>
   </section>
@@ -156,46 +148,46 @@
       <tr><th>검증</th><th>상태</th><th>기준</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>sql/xyz_edu_query_fixture.sql</code></td><td>현재 작업에서는 재실행하지 않았습니다. 재현 시 <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>과 legacy 호환 <code>CPF_XYZ_EDU_MAPPER_DB_USER</code> 환경변수 기준을 확인합니다.</td></tr>
-      <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>요청 범위에서 전체 DB 설치 검증은 제외했습니다.</td></tr>
-      <tr data-check-id="adm-runtime"><td>ADM runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동 smoke를 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-openapi.ps1</code></td><td>앱 기동 후 JSON 접근은 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="adm-browser-click"><td>ADM browser click</td><td class="status" data-status="미검증">미검증</td><td>브라우저 자동화 또는 수동 검증</td><td>정적 marker를 클릭 성공으로 기록하지 않습니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>표준 헤더 E2E</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfStandardHeaderE2eTest</code></td><td>소스 테스트 기준 흐름은 보강했습니다. runtime 거래 로그와 ADM 화면 조회는 미검증입니다.</td></tr>
-      <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker 장애 시나리오</td><td>요청 범위에서 제외했습니다.</td></tr>
-      <tr data-check-id="quality-gate"><td>qualityGate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td>첫 실행은 timeout이었고, 재실행은 BUILD SUCCESSFUL입니다.</td></tr>
-      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>HTML docs check passed.</td></tr>
-      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>Feature evidence check passed.</td></tr>
-      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>UTF-8 check passed.</td></tr>
+      <tr data-check-id="edu-mapper-db-slice"><td>EDU Mapper DB slice</td><td class="status" data-status="재확인 필요">재확인 필요</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code></td><td>이번 작업에서는 로컬 DB slice를 재실행하지 않았습니다.</td></tr>
+      <tr data-check-id="mariadb-full-install"><td>MariaDB 전체 신규 설치</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install.sql</code>, <code>00_all_install_and_smoke.sql</code></td><td>이번 범위에서 제외했습니다.</td></tr>
+      <tr data-check-id="adm-runtime"><td>ADM runtime</td><td class="status" data-status="미검증">미검증</td><td><code>smoke-adm-runtime.ps1</code></td><td>앱을 기동하지 않았습니다.</td></tr>
+      <tr data-check-id="openapi-runtime"><td>OpenAPI runtime</td><td class="status" data-status="미검증">미검증</td><td><code>smoke-openapi.ps1</code></td><td>기동 중인 앱의 JSON 문서를 호출하지 않았습니다.</td></tr>
+      <tr data-check-id="adm-browser-click"><td>ADM browser click</td><td class="status" data-status="미검증">미검증</td><td>브라우저 자동화 또는 수동 클릭 검증</td><td>정적 marker를 클릭 검증으로 보지 않습니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>PFW 표준 헤더 Source-Level 흐름 테스트</td><td class="status" data-status="완료">완료</td><td><code>CpfStandardHeaderE2eTest</code></td><td>Runtime E2E 완료로 확대하지 않습니다.</td></tr>
+      <tr data-check-id="redis-kafka-mq-broker"><td>Redis/Kafka/MQ broker</td><td class="status" data-status="미검증">미검증</td><td>실 broker와 장애 시나리오</td><td>이번 범위에서 제외했습니다.</td></tr>
+      <tr data-check-id="quality-gate"><td>qualityGate</td><td class="status" data-status="완료">완료</td><td><code>qualityGate</code></td><td>첫 실행에서 리포트와 매트릭스 불일치를 검출했고, 상태 동기화 후 최종 재실행에서 통과했습니다.</td></tr>
+      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>check-html-docs.ps1</code></td><td>HTML docs check passed.</td></tr>
+      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>check-feature-evidence.ps1</code></td><td>Feature evidence check passed.</td></tr>
+      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>check-utf8.ps1 -CheckMojibake</code></td><td>UTF-8 check passed.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>7. 남은 미검증</h2>
+    <h2>8. 남은 미검증</h2>
     <table>
       <thead>
-      <tr><th>대상</th><th>사유</th><th>완료로 기록하지 않는 이유</th></tr>
+      <tr><th>대상</th><th>사유</th><th>완료로 기록하지 않은 이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>ADM runtime smoke</td><td>이번 작업에서는 앱 기동 smoke를 실행하지 않았습니다.</td><td>스크립트 존재와 소스 확인만으로 runtime 성공을 말할 수 없습니다.</td></tr>
-      <tr><td>OpenAPI runtime</td><td>기동 중인 앱의 <code>/v3/api-docs</code>를 호출하지 않았습니다.</td><td>설정 파일 존재와 실제 JSON 응답은 다릅니다.</td></tr>
-      <tr><td>ADM browser click</td><td>브라우저 자동화 시나리오를 실행하지 않았습니다.</td><td>정적 UI marker는 클릭 가능성 검증이 아닙니다.</td></tr>
-      <tr><td>표준 헤더 runtime E2E</td><td>실제 HTTP 요청으로 컨트롤러, 로그 DB, ADM 상세 조회까지 연결하지 않았습니다.</td><td>소스 테스트는 통과해도 runtime 로그 적재와 화면 표시 성공으로 확대하지 않습니다.</td></tr>
-      <tr><td>MariaDB 전체 설치</td><td>요청 범위에서 제외했고 destructive cleanup 위험이 있습니다.</td><td>안전한 빈 DB 또는 명시 승인 없이 실행하지 않습니다.</td></tr>
-      <tr><td>Redis/Kafka/MQ broker</td><td>실 broker를 사용하지 않았습니다.</td><td>DB fallback 구조만으로 broker 성공을 말할 수 없습니다.</td></tr>
+      <tr><td>ADM runtime 기동</td><td>이번 작업은 source와 smoke 준비 범위입니다.</td><td>앱을 실제로 기동하지 않았습니다.</td></tr>
+      <tr><td>OpenAPI runtime 접근</td><td>기동 중인 앱이 필요합니다.</td><td><code>/v3/api-docs</code>를 호출하지 않았습니다.</td></tr>
+      <tr><td>ADM 거래 로그 조회</td><td>실제 거래 로그 데이터와 PFW DB가 필요합니다.</td><td>DB 로그 적재와 조회를 실행하지 않았습니다.</td></tr>
+      <tr><td>실제 HTTP outbound 수신</td><td>하위 mock 서버 또는 runtime test가 필요합니다.</td><td>소스 테스트는 header map 전파 정책만 확인합니다.</td></tr>
+      <tr><td>MariaDB 전체 신규 설치</td><td>이번 범위에서 제외했습니다.</td><td>전체 설치 SQL을 실행하지 않았습니다.</td></tr>
+      <tr><td>Redis/Kafka/MQ broker</td><td>실 broker 환경이 필요합니다.</td><td>broker 전파를 실행하지 않았습니다.</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>8. 다음 추천 작업</h2>
+    <h2>9. 다음 추천 작업</h2>
     <ol>
-      <li>ADM runtime smoke를 실제 실행해서 health, OpenAPI, 로그, 배치, 캐시 API 응답을 확인합니다.</li>
-      <li>표준 헤더 runtime E2E를 추가해 실제 HTTP 요청, PFW 로그 detail, ADM 로그 상세 응답까지 한 흐름으로 검증합니다.</li>
-      <li>ADM 브라우저 클릭 자동화를 추가해 헤더 탭, JSON pretty, 고정길이 전문, 다운로드 권한 UX를 확인합니다.</li>
-      <li>안전한 빈 MariaDB 기준으로 전체 설치와 seed idempotent, FK, index를 재검증합니다.</li>
-      <li>Redis/Kafka/MQ broker 연동과 fallback 장애 시나리오를 별도 환경에서 검증합니다.</li>
+      <li>ADM runtime/OpenAPI smoke 실제 실행</li>
+      <li>표준 헤더 Runtime E2E: 실제 API 호출, context 생성, 로그 저장, ADM 조회, outbound 확인</li>
+      <li>ADM browser click 검증</li>
+      <li>BAT ghost와 center-cut 보강</li>
+      <li>DB/Flyway/all_install 신규 DB 검증</li>
     </ol>
   </section>
 </main>

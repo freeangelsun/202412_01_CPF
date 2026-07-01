@@ -12,6 +12,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * PFW 표준 헤더가 소스 레벨에서 같은 기준으로 해석되는지 확인하는 흐름 테스트입니다.
+ *
+ * <p>이 테스트는 HTTP runtime, DB 로그 저장, ADM 화면 조회를 실행하지 않습니다.
+ * 대신 수신 헤더 검증, 거래 컨텍스트 생성, trusted proxy 기반 IP 산정, 주체 헤더 의미 분리,
+ * 민감 헤더 마스킹, outbound 허용 헤더 전파 정책을 한 요청 객체 기준으로 묶어 검증합니다.</p>
+ */
 class CpfStandardHeaderE2eTest {
     private static final String TRANSACTION_ID = "20260615120000000MBRlocal010000001";
 
@@ -22,6 +29,13 @@ class CpfStandardHeaderE2eTest {
         RequestContextHolder.resetRequestAttributes();
     }
 
+    /**
+     * 운영 검수에서 반복된 헤더 의미 혼동을 막기 위한 대표 흐름입니다.
+     *
+     * <p>{@code X-User-Id}, {@code X-Customer-No}, {@code X-Member-No}, {@code X-Operator-Id}를
+     * 서로 다른 의미로 유지하고, {@code Authorization}, {@code X-Api-Key}, nonce 같은 보안성 값은
+     * 로그 스냅샷과 하위 전파 헤더에 원문으로 남지 않아야 합니다.</p>
+     */
     @Test
     void inboundHeadersCreateContextAndPropagateOnlyAllowedMaskedHeaders() {
         System.setProperty(CpfTrustedProxyPolicy.TRUSTED_PROXIES_PROPERTY, "10.0.0.1");

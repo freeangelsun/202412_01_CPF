@@ -44,6 +44,18 @@ public class AdmJdbcConfig {
     @Value("${spring.datasource.mbr.driver-class-name:org.mariadb.jdbc.Driver}")
     private String mbrDriverClassName;
 
+    @Value("${spring.datasource.xyz.url:jdbc:mariadb://localhost:3306/xyzDB}")
+    private String xyzUrl;
+
+    @Value("${spring.datasource.xyz.username:cpf_xyz_app}")
+    private String xyzUsername;
+
+    @Value("${spring.datasource.xyz.password:cpf_local_pw}")
+    private String xyzPassword;
+
+    @Value("${spring.datasource.xyz.driver-class-name:org.mariadb.jdbc.Driver}")
+    private String xyzDriverClassName;
+
     @Bean(name = "admDataSource")
     public DataSource admDataSource() {
         return DataSourceBuilder.create()
@@ -87,5 +99,20 @@ public class AdmJdbcConfig {
     @Bean(name = "mbrJdbcTemplate")
     public JdbcTemplate mbrJdbcTemplate(@Qualifier("mbrAdmDataSource") DataSource mbrAdmDataSource) {
         return new JdbcTemplate(mbrAdmDataSource);
+    }
+
+    @Bean(name = "xyzAdmDataSource")
+    public DataSource xyzAdmDataSource() {
+        return DataSourceBuilder.create()
+                .url(xyzUrl)
+                .username(xyzUsername)
+                .password(xyzPassword)
+                .driverClassName(xyzDriverClassName)
+                .build();
+    }
+
+    @Bean(name = "xyzJdbcTemplate")
+    public JdbcTemplate xyzJdbcTemplate(@Qualifier("xyzAdmDataSource") DataSource xyzAdmDataSource) {
+        return new JdbcTemplate(xyzAdmDataSource);
     }
 }

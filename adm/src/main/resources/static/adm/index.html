@@ -233,6 +233,87 @@
           <label>사유 <input v-model="batchForm.reason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(batchResult) }}</pre>
+        <div class="subsection">
+          <div class="panel-title">
+            <h3>Center-Cut 관제</h3>
+            <div class="actions">
+              <button type="button" @click="loadCenterCut">Center-Cut 갱신</button>
+              <button type="button" @click="loadCenterCutJobDetail">Job 상세</button>
+              <button type="button" @click="loadCenterCutTargets">Target 조회</button>
+              <button type="button" @click="loadCenterCutResults">Result 조회</button>
+            </div>
+          </div>
+          <div class="filters">
+            <label>Center-Cut Job ID <input v-model="centerCutForm.centerCutJobId" type="text"></label>
+            <label>Target 상태 <input v-model="centerCutForm.statusCode" type="text" placeholder="FAILED"></label>
+            <label>Result 상태 <input v-model="centerCutForm.resultStatus" type="text" placeholder="FAILED"></label>
+            <label>조회 건수 <input v-model.number="centerCutForm.limit" type="number" min="1" max="500"></label>
+          </div>
+          <div class="summary-grid">
+            <div class="metric"><span>전체</span><strong>{{ centerCutResult.summary?.totalCount ?? '-' }}</strong></div>
+            <div class="metric"><span>대기</span><strong>{{ centerCutResult.summary?.readyCount ?? '-' }}</strong></div>
+            <div class="metric"><span>처리중</span><strong>{{ centerCutResult.summary?.runningCount ?? '-' }}</strong></div>
+            <div class="metric"><span>성공</span><strong>{{ centerCutResult.summary?.successCount ?? '-' }}</strong></div>
+            <div class="metric"><span>실패</span><strong>{{ centerCutResult.summary?.failedCount ?? '-' }}</strong></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr><th>Job ID</th><th>배치 Job</th><th>Provider</th><th>Handler</th><th>Chunk</th><th>Retry</th><th>사용</th></tr>
+              </thead>
+              <tbody>
+              <tr v-for="job in centerCutResult.jobs || []" :key="job.centerCutJobId" @click="centerCutForm.centerCutJobId = job.centerCutJobId; loadCenterCutJobDetail();">
+                <td>{{ job.centerCutJobId }}</td>
+                <td>{{ job.batchJobId }}</td>
+                <td>{{ job.providerKey }}</td>
+                <td>{{ job.handlerKey }}</td>
+                <td>{{ job.chunkSize }}</td>
+                <td>{{ job.retryLimit }}</td>
+                <td>{{ job.useYn }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr><th>Target</th><th>업무키</th><th>업무일자</th><th>상태</th><th>재시도</th><th>Parent TID</th><th>Child TID</th><th>실패 사유</th></tr>
+              </thead>
+              <tbody>
+              <tr v-for="target in centerCutResult.targets || []" :key="target.targetId">
+                <td>{{ target.targetId }}</td>
+                <td>{{ target.businessKey }}</td>
+                <td>{{ target.businessDate }}</td>
+                <td>{{ target.statusCode }}</td>
+                <td>{{ target.retryCount }}</td>
+                <td>{{ target.parentTransactionGlobalId }}</td>
+                <td>{{ target.childTransactionGlobalId }}</td>
+                <td>{{ target.lastErrorMessage }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr><th>Result</th><th>Target</th><th>업무키</th><th>상태</th><th>메시지</th><th>Parent TID</th><th>Child TID</th><th>Payload</th></tr>
+              </thead>
+              <tbody>
+              <tr v-for="result in centerCutResult.results || []" :key="result.resultId" @click="loadCenterCutResultDetail(result.resultId)">
+                <td>{{ result.resultId }}</td>
+                <td>{{ result.targetId }}</td>
+                <td>{{ result.businessKey }}</td>
+                <td>{{ result.resultStatus }}</td>
+                <td>{{ result.resultMessage }}</td>
+                <td>{{ result.parentTransactionGlobalId }}</td>
+                <td>{{ result.childTransactionGlobalId }}</td>
+                <td>{{ result.resultPayloadMasked }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <pre class="detail">{{ pretty(centerCutResult) }}</pre>
+        </div>
       </section>
 
       <section class="panel" v-show="activeMenu === 'notifications'">

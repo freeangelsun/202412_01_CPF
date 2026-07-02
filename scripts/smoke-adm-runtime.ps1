@@ -21,6 +21,7 @@ $ErrorActionPreference = "Stop"
     admOperationApi = [ordered]@{}
     permissionWriteApi = [ordered]@{}
     batchApi = [ordered]@{}
+    centerCutApi = [ordered]@{}
     transactionMetaApi = [ordered]@{}
     staticUi = [ordered]@{}
     browserClick = [ordered]@{}
@@ -570,6 +571,45 @@ try {
     }
     $result.batchApi.status = "PASSED"
     $result.batchApi.checkedEndpoints = $checkedEndpoints
+
+    $centerCutEndpoints = @(
+        "/adm/api/center-cut/jobs",
+        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/parameters",
+        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary",
+        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
+        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20"
+    )
+    $checkedCenterCutEndpoints = New-Object System.Collections.Generic.List[string]
+    foreach ($endpoint in $centerCutEndpoints) {
+        Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl$endpoint" -Headers $headers | Out-Null
+        $checkedCenterCutEndpoints.Add($endpoint)
+    }
+    $centerCutSummary = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary" -Headers $headers
+    $centerCutTargets = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20" -Headers $headers)
+    $centerCutResults = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20" -Headers $headers)
+    $hasParentTransactionGlobalId = @($centerCutTargets | Where-Object { $_.parentTransactionGlobalId }).Count -gt 0
+    $hasChildTransactionGlobalId = @($centerCutTargets | Where-Object { $_.childTransactionGlobalId }).Count -gt 0
+    $hasFailureReason = @($centerCutTargets | Where-Object { $_.lastErrorMessage }).Count -gt 0
+    $hasRawPayload = (($centerCutResults | ConvertTo-Json -Depth 20) -match "resultPayload`"")
+    if ($hasRawPayload) {
+        throw "Center-Cut resultPayload raw field must not be exposed."
+    }
+    $result.centerCutApi.status = "PASSED"
+    $result.centerCutApi.checkedEndpoints = $checkedCenterCutEndpoints
+    $result.centerCutApi.summary = $centerCutSummary
+    $result.centerCutApi.targetCount = $centerCutTargets.Count
+    $result.centerCutApi.resultCount = $centerCutResults.Count
+    $result.centerCutApi.hasParentTransactionGlobalId = $hasParentTransactionGlobalId
+    $result.centerCutApi.hasChildTransactionGlobalId = $hasChildTransactionGlobalId
+    $result.centerCutApi.hasFailureReason = $hasFailureReason
+    $result.centerCutApi.rawPayloadExposed = $false
+    & (Join-Path $Root "scripts/smoke-adm-center-cut-runtime.ps1") `
+        -AdmBaseUrl $AdmBaseUrl `
+        -AdmUsername $AdmUsername `
+        -AdmPassword $AdmPassword `
+        -LogDir $LogDir
+    $result.centerCutApi.dedicatedSmokeResultPath = Join-Path $LogDir "adm-center-cut-runtime-smoke-result.json"
 
     $transactionMetaResultPath = Join-Path $LogDir "transaction-meta-runtime-smoke-result.json"
     & (Join-Path $Root "scripts/smoke-transaction-meta-runtime.ps1") `

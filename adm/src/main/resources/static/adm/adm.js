@@ -134,6 +134,12 @@ if (!window.Vue) {
           description: "ADM 영업일 교육 데이터",
           reason: "배치 운영 변경"
         },
+        centerCutForm: {
+          centerCutJobId: "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+          statusCode: "",
+          resultStatus: "",
+          limit: 100
+        },
         notificationForm: {
           ruleId: null,
           eventType: "BATCH",
@@ -252,6 +258,7 @@ if (!window.Vue) {
         memberDetail: {},
         auditResult: {},
         batchResult: {},
+        centerCutResult: {},
         notificationResult: {},
         downloadResult: {},
         cacheResult: {},
@@ -427,6 +434,7 @@ if (!window.Vue) {
           this.loadAuditLogs(),
           this.searchMembers(),
           this.loadBatch(),
+          this.loadCenterCut(),
           this.loadNotifications(),
           this.loadDownloadPolicies(),
           this.loadOperators(),
@@ -642,6 +650,61 @@ if (!window.Vue) {
           this.getJson(`/adm/api/batch/calendar?${this.buildParams({ calendarId: this.batchForm.calendarId }).toString()}`)
         ]);
         this.batchResult = { jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps, calendar };
+      },
+      async loadCenterCut() {
+        const jobId = this.centerCutForm.centerCutJobId;
+        const targetParams = this.buildParams({
+          statusCode: this.centerCutForm.statusCode,
+          limit: this.centerCutForm.limit || 100
+        });
+        const resultParams = this.buildParams({
+          resultStatus: this.centerCutForm.resultStatus,
+          limit: this.centerCutForm.limit || 100
+        });
+        const [jobs, detail, parameters, summary, targets, results] = await Promise.all([
+          this.getJson("/adm/api/center-cut/jobs"),
+          this.getJson(`/adm/api/center-cut/jobs/${jobId}`),
+          this.getJson(`/adm/api/center-cut/jobs/${jobId}/parameters`),
+          this.getJson(`/adm/api/center-cut/jobs/${jobId}/summary`),
+          this.getJson(`/adm/api/center-cut/jobs/${jobId}/targets?${targetParams.toString()}`),
+          this.getJson(`/adm/api/center-cut/jobs/${jobId}/results?${resultParams.toString()}`)
+        ]);
+        this.centerCutResult = { jobs, detail, parameters, summary, targets, results };
+        this.setMessage("Center-Cut 관제 정보를 조회했습니다.");
+      },
+      async loadCenterCutJobDetail() {
+        if (!this.centerCutForm.centerCutJobId) return;
+        this.centerCutResult = await this.getJson(`/adm/api/center-cut/jobs/${this.centerCutForm.centerCutJobId}`);
+        this.setMessage("Center-Cut Job 상세를 조회했습니다.");
+      },
+      async loadCenterCutTargets() {
+        if (!this.centerCutForm.centerCutJobId) return;
+        const params = this.buildParams({
+          statusCode: this.centerCutForm.statusCode,
+          limit: this.centerCutForm.limit || 100
+        });
+        this.centerCutResult = {
+          targets: await this.getJson(`/adm/api/center-cut/jobs/${this.centerCutForm.centerCutJobId}/targets?${params.toString()}`)
+        };
+        this.setMessage("Center-Cut target 목록을 조회했습니다.");
+      },
+      async loadCenterCutResults() {
+        if (!this.centerCutForm.centerCutJobId) return;
+        const params = this.buildParams({
+          resultStatus: this.centerCutForm.resultStatus,
+          limit: this.centerCutForm.limit || 100
+        });
+        this.centerCutResult = {
+          results: await this.getJson(`/adm/api/center-cut/jobs/${this.centerCutForm.centerCutJobId}/results?${params.toString()}`)
+        };
+        this.setMessage("Center-Cut result 목록을 조회했습니다.");
+      },
+      async loadCenterCutResultDetail(resultId) {
+        if (!resultId) return;
+        this.centerCutResult = {
+          resultDetail: await this.getJson(`/adm/api/center-cut/results/${resultId}`)
+        };
+        this.setMessage("Center-Cut result 상세를 조회했습니다.");
       },
       async registerBatchJob() {
         if (!this.batchForm.jobId || !this.requireReason(this.batchForm.reason)) return;

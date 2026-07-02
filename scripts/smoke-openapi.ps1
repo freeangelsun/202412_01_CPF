@@ -52,6 +52,7 @@ function Invoke-JsonSmoke {
 Invoke-JsonSmoke -BaseUrl $AdmBaseUrl -RequiredTags @(
     "ADM-Health",
     "ADM-Batch",
+    "ADM-CenterCut",
     "ADM-Notification",
     "ADM-Download",
     "ADM-Logs",

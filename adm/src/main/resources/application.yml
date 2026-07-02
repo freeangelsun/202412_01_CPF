@@ -17,6 +17,11 @@ spring:
       url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
       username: ${MBR_DB_USERNAME:cpf_mbr_app}
       password: ${MBR_DB_PASSWORD:cpf_local_pw}
+    xyz:
+      driver-class-name: ${XYZ_DB_DRIVER:org.mariadb.jdbc.Driver}
+      url: ${XYZ_DB_URL:jdbc:mariadb://localhost:3306/xyzDB}
+      username: ${XYZ_DB_USERNAME:cpf_xyz_app}
+      password: ${XYZ_DB_PASSWORD:cpf_local_pw}
   batch:
     job:
       enabled: false
@@ -66,6 +71,10 @@ spring:
       url: ${MBR_DB_URL}
       username: ${MBR_DB_USERNAME}
       password: ${MBR_DB_PASSWORD}
+    xyz:
+      url: ${XYZ_DB_URL}
+      username: ${XYZ_DB_USERNAME}
+      password: ${XYZ_DB_PASSWORD}
 
 logging:
   level:

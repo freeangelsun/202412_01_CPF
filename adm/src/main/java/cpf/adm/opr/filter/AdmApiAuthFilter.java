@@ -41,6 +41,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
+        MENU_BY_PATH_PREFIX.put("/adm/api/center-cut", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
         MENU_BY_PATH_PREFIX.put("/adm/api/downloads", "DOWNLOAD");
         MENU_BY_PATH_PREFIX.put("/adm/api/cache", "CACHE");
@@ -66,6 +67,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/members", "MEMBER_UPDATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/members", "MEMBER_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch", "BATCH_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/center-cut", "BATCH_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/notifications", "NOTIFICATION_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/notifications", "NOTIFICATION_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/notifications", "NOTIFICATION_WRITE");

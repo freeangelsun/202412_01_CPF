@@ -62,6 +62,9 @@ DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role;
 DROP TABLE IF EXISTS mbrDB.mbr_member;
 
+DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
+DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
+
 DROP TABLE IF EXISTS accDB.acc_account;
 
 DROP TABLE IF EXISTS admDB.adm_download_audit_log;

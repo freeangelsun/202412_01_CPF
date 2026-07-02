@@ -288,6 +288,17 @@ SELECT COUNT(*)
 FROM pfwDB.bat_center_cut_parameter
 WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
 "@)
+    $result.checks.xyzCenterCutTableCount = [int] (Invoke-Scalar -StepName "xyzCenterCutTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'xyzDB'
+  AND table_name IN ('xyz_center_cut_sample_target', 'xyz_center_cut_sample_result');
+"@)
+    $result.checks.xyzCenterCutSeedCount = [int] (Invoke-Scalar -StepName "xyzCenterCutSeedCount" -SqlText @"
+SELECT COUNT(*)
+FROM xyzDB.xyz_center_cut_sample_target
+WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
+"@)
 
     if ($result.checks.batCenterCutTableCount -ne 4) {
         throw "bat_center_cut_* table count mismatch. actual=$($result.checks.batCenterCutTableCount)"
@@ -297,6 +308,12 @@ WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
     }
     if ($result.checks.centerCutSeedCount -lt 1) {
         throw "CPF_BAT_CENTER_CUT_JOB seed is missing."
+    }
+    if ($result.checks.xyzCenterCutTableCount -ne 2) {
+        throw "xyz_center_cut_sample_* table count mismatch. actual=$($result.checks.xyzCenterCutTableCount)"
+    }
+    if ($result.checks.xyzCenterCutSeedCount -lt 4) {
+        throw "CPF_XYZ_CENTER_CUT_SAMPLE_JOB target seed is missing."
     }
 
     $result.status = $StatusDone

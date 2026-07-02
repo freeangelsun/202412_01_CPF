@@ -497,6 +497,27 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_batch_job (
+    job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
+) VALUES (
+    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
+    'CPF XYZ 업무 DB 센터컷 샘플 Job',
+    'TASKLET',
+    'XYZ 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
+    'Y',
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    job_name = VALUES(job_name),
+    job_type = VALUES(job_type),
+    description = VALUES(description),
+    restartable_yn = VALUES(restartable_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
@@ -525,11 +546,53 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO bat_center_cut_job (
+    center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
+    chunk_size, retry_limit, use_yn, description, created_by, updated_by
+) VALUES (
+    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
+    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
+    'CPF XYZ 업무 DB 센터컷 샘플 Job',
+    'xyzCenterCutTargetProvider',
+    'xyzCenterCutHandler',
+    10,
+    3,
+    'Y',
+    'PFW 표준 계약과 XYZ 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    batch_job_id = VALUES(batch_job_id),
+    center_cut_job_name = VALUES(center_cut_job_name),
+    provider_key = VALUES(provider_key),
+    handler_key = VALUES(handler_key),
+    chunk_size = VALUES(chunk_size),
+    retry_limit = VALUES(retry_limit),
+    use_yn = VALUES(use_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_BAT_CENTER_CUT_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_BAT_CENTER_CUT_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    parameter_value = VALUES(parameter_value),
+    encrypted_yn = VALUES(encrypted_yn),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bat_center_cut_parameter (
+    center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
+) VALUES
+    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'xyz_center_cut_sample_target', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'xyz_center_cut_sample_result', 'N', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parameter_value = VALUES(parameter_value),
     encrypted_yn = VALUES(encrypted_yn),

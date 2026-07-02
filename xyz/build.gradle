@@ -25,6 +25,9 @@ dependencies {
     // EDU REST API를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // 업무 DB 기반 EDU adapter가 JdbcTemplate으로 실제 테이블을 다루는 방법을 보여줍니다.
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
     // 배치 유형별 EDU 샘플과 ADM 배치 관제 연동 예제를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 

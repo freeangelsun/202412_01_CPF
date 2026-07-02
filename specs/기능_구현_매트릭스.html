@@ -46,10 +46,10 @@
       <tr><td>PFW</td><td>표준 헤더와 거래 컨텍스트</td><td class="status" data-status="완료">완료</td><td><code>TransactionContext</code>, <code>CpfHeaderPropagator</code>, <code>StandardHeaderE2eController</code>, <code>scripts/smoke-standard-header-e2e.ps1</code></td><td>ADM 전용 조회 API smoke는 별도 마일스톤에서 확대합니다.</td></tr>
       <tr><td>PFW</td><td>거래 로그와 로그 정책</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>LoggingAspect</code>, <code>LogPolicyResolver</code>, <code>pfw_log_policy</code>, <code>scripts/smoke-log-policy-runtime.ps1</code></td><td>다중 인스턴스 broker 전파 검증은 남았습니다.</td></tr>
       <tr><td>PFW/BAT</td><td>Batch 공통 API와 CPF Batch 메타</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfBatchLauncher</code>, <code>CpfBatchOperationRepository</code>, <code>CpfBatchHeartbeatService</code>, <code>pfw_batch_*</code>, <code>BATCH_*</code></td><td>운영 장애 시나리오와 ghost 자동 scheduler가 남았습니다.</td></tr>
-      <tr><td>PFW/BAT</td><td>center-cut 1차 계약과 BAT sample</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CpfCenterCutService</code>, <code>CenterCutTargetProvider</code>, <code>CenterCutHandler</code>, <code>BatCenterCutSmokeTasklet</code>, <code>bat_center_cut_*</code></td><td>업무 DB 기반 adapter와 ADM center-cut 관제가 다음 단계입니다.</td></tr>
+      <tr><td>PFW/BAT/XYZ</td><td>center-cut 계약, BAT 모수, XYZ 업무 DB adapter</td><td class="status" data-status="완료">완료</td><td><code>CpfCenterCutService</code>, <code>CenterCutTargetProvider</code>, <code>CenterCutHandler</code>, <code>BatCenterCutSmokeTasklet</code>, <code>XyzCenterCutTargetRepository</code>, <code>XyzCenterCutHandler</code>, <code>xyz_center_cut_sample_target</code>, <code>xyz_center_cut_sample_result</code>, <code>scripts/smoke-center-cut-adapter.ps1</code></td><td>ADM center-cut 관제와 브라우저 클릭 검증은 다음 마일스톤입니다.</td></tr>
       <tr><td>ADM</td><td>운영자 권한, 회원, 로그, 배치, 캐시, 메시지, 코드, 설정 API</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>AdmPermissionController</code>, <code>AdmMemberController</code>, <code>AdmLogController</code>, <code>AdmBatchController</code>, <code>adm/src/main/resources/static/adm/adm.js</code></td><td>브라우저 클릭 UX와 운영 화면 세부 완성도는 남았습니다.</td></tr>
       <tr><td>CMN</td><td>프로젝트 공통 채번, 알림, 업무 로그, 파일, 전문, MQ 보조</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CmnSequenceService</code>, <code>CmnNotificationLogService</code>, <code>CmnBusinessLogService</code>, <code>CmnTelegramService</code></td><td>프로젝트별 정책 확장과 DB 동시성 부하 검증이 필요합니다.</td></tr>
-      <tr><td>XYZ EDU</td><td>조회, CRUD, CMN, 배치 교육 샘플</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>XyzQueryEducationController</code>, <code>xyz_edu_query_fixture.sql</code>, <code>XyzBatchEducationController</code></td><td>center-cut EDU 샘플은 다음 단계입니다.</td></tr>
+      <tr><td>XYZ EDU</td><td>조회, CRUD, CMN, 배치, center-cut 교육 샘플</td><td class="status" data-status="완료">완료</td><td><code>XyzQueryEducationController</code>, <code>xyz_edu_query_fixture.sql</code>, <code>XyzBatchEducationController</code>, <code>XyzCenterCutEducationController</code>, <code>xyz_center_cut_fixture.sql</code></td><td>실전 샘플의 범위 확장은 다음 마일스톤에서 계속합니다.</td></tr>
       <tr><td>기준</td><td>최상위 목표 기준과 Markdown 리포트 기준</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>CPF_FINAL_TARGET_REQUIREMENTS.md</code>, <code>CPF_STABILIZATION_REPORT.md</code>, <code>README.md</code></td><td>최종 정본 문서 세트는 계속 현행화합니다.</td></tr>
       <tr><td>SQL</td><td>split SQL, all install, Flyway migration</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-mariadb-full-install.ps1</code>, <code>00_all_install_and_smoke.sql</code>, <code>99_smoke_check.sql</code>, <code>50_framework_seed_data.sql</code></td><td>이번 작업에서 실제 MariaDB full install을 완료했습니다.</td></tr>
       </tbody>
@@ -69,7 +69,8 @@
       <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-permission-runtime.ps1</code></td><td>이번 작업 범위에서 실행하지 않았습니다.</td></tr>
       <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-openapi.ps1</code></td><td>이번 작업 범위에서 ADM/OpenAPI runtime smoke는 실행하지 않았습니다.</td></tr>
       <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code></td><td>브라우저 클릭 검증은 이번 작업 범위가 아닙니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>build/runtime-smoke/standard-header-e2e-result.json</code></td><td>실제 ACC runtime, mock downstream, DB log lookup, 민감 헤더 원문 미저장을 확인했습니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>build/runtime-smoke/standard-header-e2e-result.json</code></td><td>DB password process argument 보정은 완료했지만, 이번 작업의 runtime 재검증은 제한 시간 내 완료되지 않아 성공으로 기록하지 않습니다.</td></tr>
+      <tr data-check-id="center-cut-adapter"><td>center-cut-adapter</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-center-cut-adapter.ps1</code>, <code>build/runtime-smoke/center-cut-adapter-result.json</code>, <code>XyzCenterCutAdapterTest</code></td><td>XYZ 업무 DB target/result adapter가 성공 3건, 실패 1건을 기록하는 흐름을 확인했습니다.</td></tr>
       <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>Redis/Kafka/MQ broker</td><td>외부 broker 실연동은 이번 작업 범위가 아닙니다.</td></tr>
       <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>이번 작업에서 통과했습니다.</td></tr>
       <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>이번 작업에서 통과했습니다.</td></tr>
@@ -86,10 +87,11 @@
       <tr><th>순위</th><th>항목</th><th>상태</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>업무 DB 기반 center-cut adapter와 EDU 샘플</td><td class="status" data-status="부분 구현">부분 구현</td><td>현재는 PFW 계약과 BAT sample smoke 중심입니다.</td></tr>
+      <tr><td>1</td><td>ADM center-cut 관제와 ADM runtime/OpenAPI smoke</td><td class="status" data-status="미검증">미검증</td><td>이번 작업은 업무 DB adapter와 smoke까지 닫았고, 운영 콘솔 관제는 다음 단계입니다.</td></tr>
       <tr><td>2</td><td>ADM 배치, center-cut, 로그 상세 브라우저 클릭 검증</td><td class="status" data-status="미검증">미검증</td><td>운영자 UX는 실제 브라우저 클릭으로 검증해야 합니다.</td></tr>
-      <tr><td>3</td><td>Redis/Kafka/MQ 실제 broker 전파 검증</td><td class="status" data-status="미검증">미검증</td><td>현재는 DB fallback과 단일 runtime 중심입니다.</td></tr>
-      <tr><td>4</td><td>최종 문서 정본 Markdown 세트 정리</td><td class="status" data-status="부분 구현">부분 구현</td><td>구현 변화와 검증 결과가 계속 누적되어 문서 현행화가 필요합니다.</td></tr>
+      <tr><td>3</td><td>EDU/XYZ 실전 샘플 CRUD/paging/validation/facade/outbound 확대</td><td class="status" data-status="부분 구현">부분 구현</td><td>center-cut은 추가됐지만 실전 샘플 전체 정본화는 별도 마일스톤입니다.</td></tr>
+      <tr><td>4</td><td>Redis/Kafka/MQ 실제 broker 전파 검증</td><td class="status" data-status="미검증">미검증</td><td>현재는 DB fallback과 단일 runtime 중심입니다.</td></tr>
+      <tr><td>5</td><td>최종 문서 정본 Markdown 세트 정리</td><td class="status" data-status="부분 구현">부분 구현</td><td>구현 변화와 검증 결과가 계속 누적되어 문서 현행화가 필요합니다.</td></tr>
       </tbody>
     </table>
   </section>

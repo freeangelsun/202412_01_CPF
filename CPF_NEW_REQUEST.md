@@ -1,36 +1,43 @@
-# CPF_M10_1_M9_REQUEST — MariaDB full install 실실행 / 표준 헤더 Runtime E2E 완성 요청
+# CPF_M4_2_CENTER_CUT_ADAPTER_EDU_REQUEST — 업무 DB 기반 Center-Cut Adapter / EDU·XYZ 샘플 보강 요청
 
 ## 0. CPF 최종 목표
 
 이번 작업은 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 최상위 목표 기준서로 따른다.
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`는 이번 작업에서 전체를 구현하라는 범위 문서가 아니다.
-이번 요청서는 그 기준서 아래에서 **신규 MariaDB full install 실실행**과 **표준 헤더 Runtime E2E 완성**을 목표로 한다.
+`CPF_FINAL_TARGET_REQUIREMENTS.md`는 전체 목표 기준서이며, 이번 작업에서 모든 항목을 구현하라는 범위 문서가 아니다.
+Codex는 이번 요청서 범위를 우선 수행하되, 구현 과정에서 CPF 최종 목표와 충돌하지 않도록 설계한다.
 
 이번 작업에서 특히 지킬 기준은 아래와 같다.
 
 ```text
-1. 실행하지 않은 검증은 완료로 기록하지 않는다.
-2. 기존 개발 DB 확인과 신규 빈 MariaDB 설치 검증을 구분한다.
-3. Source-Level 테스트와 Runtime E2E를 구분한다.
-4. 표준 헤더 Runtime E2E는 실제 API 호출, 로그 저장, ADM 조회, outbound 전파까지 확인해야 완료로 본다.
-5. 민감 헤더 원문은 결과 JSON, 로그, DB, 리포트에 기록하지 않는다.
-6. 모든 기능은 향후 확장성/변경 가능성을 고려한다.
+1. PFW는 center-cut 표준 인터페이스, 상태, 로그, 감사, 오류 기준을 담당한다.
+2. BAT는 기본 center-cut 모수/item/result 구현체를 담당한다.
+3. 업무 모듈은 업무 DB 대상 테이블을 adapter로 연결한다.
+4. 업무 item/result 저장소를 PFW에 고정하지 않는다.
+5. 실행하지 않은 검증은 완료로 기록하지 않는다.
+6. 문서 정본화보다 기능 구현과 최소 실행 검증을 우선한다.
 ```
 
 ---
 
 ## 1. 이번 작업 목적
 
-이번 작업 목적은 두 가지다.
+이번 작업 목적은 center-cut을 샘플 수준에서 한 단계 올려, 실제 업무 DB 기반 adapter와 EDU/XYZ 예제로 확장하는 것이다.
+
+이번 작업에서 닫을 범위는 아래다.
 
 ```text
-1. `scripts/smoke-mariadb-full-install.ps1`을 실제 MariaDB 접속 정보로 실행해 신규 DB 설치 검증을 완료한다.
-2. `scripts/smoke-standard-header-e2e.ps1`를 실제 runtime E2E 검증 수준으로 확장하고 실행한다.
+1. 업무 DB 기반 center-cut target/item/result adapter 구조 추가
+2. XYZ 또는 EDU 업무 테이블을 대상으로 center-cut 샘플 구현
+3. BAT center-cut 기본 구현체와 업무 adapter 연결
+4. item별 성공/실패/result 기록 확인
+5. parent/child transactionGlobalId 기준 유지
+6. 최소 smoke 또는 test 추가
+7. 리포트/기능 매트릭스 최소 갱신
+8. smoke-standard-header-e2e.ps1 DB password process argument 보안 보정
 ```
 
-이번 작업은 신규 업무 기능 개발이 아니다.
-목표는 CPF 공통 기반 검증을 실제 실행으로 닫는 것이다.
+이번 작업은 ADM browser click, Redis/Kafka/MQ 실 broker, 최종 문서 정본화 작업이 아니다.
 
 ---
 
@@ -43,7 +50,7 @@ Git commit 금지
 Git push 금지
 branch 생성 금지
 민감정보 원문 기록 금지
-실행하지 않은 검증을 완료로 기록 금지
+실행하지 않은 검증 완료 기록 금지
 별도 변경파일 목록 산출물 생성 금지
 문서 포맷 작업만으로 기능 완료 처리 금지
 HTML 문서 신규 작성 금지
@@ -68,331 +75,273 @@ git status --short
 git log -1 --oneline
 ```
 
-safe.directory 문제로 일부 git 명령이 실패하면 `.git` 파일 확인 기준으로 보조 기록하고, 실패 사유를 리포트에 남긴다.
+safe.directory 문제로 실패하면 기존 방식처럼 `git -c safe.directory=...`로 보조 확인하고 사유를 기록한다.
 
 ---
 
-## 4. MariaDB full install 실실행
+## 4. Center-Cut 현재 기준 확인
 
-### 4.1 목적
+먼저 현재 center-cut 구조를 실제 파일 기준으로 확인한다.
 
-신규 빈 MariaDB 환경에서 CPF 설치 SQL이 실제로 실행되는지 확인한다.
-
-검증 대상:
+확인 대상 후보:
 
 ```text
+pfw center-cut 표준 인터페이스
+BAT center-cut provider/handler/repository/tasklet/job/step
+specs/sql/35_bat_schema.sql
+specs/sql/00_all_install.sql
 specs/sql/00_all_install_and_smoke.sql
 specs/sql/99_smoke_check.sql
-specs/sql/50_framework_seed_data.sql
-specs/sql/35_bat_schema.sql
 specs/sql/migration/flyway/V17__batch_center_cut_ownership_repair.sql
+CPF_STABILIZATION_REPORT.md
+specs/기능_구현_매트릭스.html
 ```
 
-### 4.2 실행 방식
+확인할 기준:
 
-기존 스크립트를 사용한다.
+```text
+1. PFW가 업무 item/result 저장소를 직접 소유하지 않는지
+2. BAT가 기본 center-cut 실행 메타를 소유하는지
+3. 업무 모듈이 adapter로 target/item/result를 연결할 수 있는지
+4. 현재 sample이 메모리 기반인지 DB 기반인지
+5. 업무 DB 기반 예제가 없는 경우 이번 작업에서 최소 예제를 추가할 위치
+```
 
-```powershell
-$env:CPF_DB_HOST = "localhost"
-$env:CPF_DB_PORT = "3306"
-$env:CPF_DB_ROOT_USERNAME = "root"
-$env:CPF_DB_ROOT_PASSWORD = "<로컬 환경변수로만 주입>"
-$env:CPF_MARIADB_CLI = "C:\Program Files\MariaDB 12.3\bin\mariadb.exe"
+---
 
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-mariadb-full-install.ps1 -RequireRun
+## 5. 업무 DB 기반 Adapter 구조 추가
+
+### 5.1 기본 방향
+
+업무 DB 기반 center-cut은 아래 구조를 따른다.
+
+```text
+업무 대상 테이블
+→ CenterCutTargetProvider
+→ BAT center-cut item 생성
+→ CenterCutHandler
+→ item 처리
+→ ItemStateRepository / ResultRepository
+→ BAT result 기록
+→ ADM 또는 smoke 조회
+```
+
+PFW는 공통 계약만 제공하고, 업무 데이터 저장소를 직접 소유하지 않는다.
+
+### 5.2 구현 후보
+
+가능하면 XYZ/EDU에 center-cut 대상 업무 테이블을 둔다.
+
+후보 이름:
+
+```text
+xyz_center_cut_sample_target
+xyz_center_cut_sample_result
+```
+
+또는 기존 EDU/XYZ fixture 테이블을 재사용할 수 있으면 재사용한다.
+
+단, 억지로 새 테이블을 많이 만들지 말고, 실제 center-cut 흐름을 설명할 수 있는 최소 업무 테이블만 둔다.
+
+### 5.3 Adapter 후보
+
+아래 역할을 명확히 나눈다.
+
+```text
+XyzCenterCutTargetProvider
+XyzCenterCutHandler
+XyzCenterCutResultAdapter 또는 Repository
+XyzCenterCutSampleService
+XyzCenterCutSampleController 또는 smoke-only runner
+```
+
+이름은 기존 패키지 구조에 맞춰 조정한다.
+
+### 5.4 처리 시나리오
+
+최소 시나리오:
+
+```text
+1. 업무 대상 데이터 3~5건 seed
+2. center-cut job 실행
+3. 대상 item 조회
+4. item별 handler 처리
+5. 성공 item result 기록
+6. 실패 item 1건 발생 가능하면 실패 result 기록
+7. parent transactionGlobalId와 child transactionGlobalId 연결
+8. smoke SQL 또는 runtime smoke로 결과 확인
+```
+
+---
+
+## 6. SQL / Flyway / all_install 반영
+
+DB 변경이 있으면 아래를 함께 반영한다.
+
+```text
+specs/sql/40_xyz_schema.sql 또는 기존 XYZ SQL 위치
+specs/sql/50_framework_seed_data.sql 또는 업무 seed 위치
+specs/sql/00_all_install.sql
+specs/sql/00_all_install_and_smoke.sql
+specs/sql/99_smoke_check.sql
+specs/sql/migration/flyway/V18__xyz_center_cut_sample.sql 후보
 ```
 
 주의:
 
 ```text
-1. 비밀번호를 소스, 리포트, JSON, 로그에 원문 기록하지 않는다.
-2. 비밀번호는 환경변수 또는 PowerShell parameter로만 주입한다.
-3. `CPF_DB_ROOT_PASSWORD`가 없으면 미검증으로 기록한다.
-4. H2/mock DB 성공을 MariaDB full install 성공으로 기록하지 않는다.
-5. 기존 개발 DB 일부 확인을 신규 빈 MariaDB full install로 기록하지 않는다.
-```
-
-### 4.3 필수 확인
-
-아래를 결과 JSON과 리포트에 기록한다.
-
-```text
-1. MariaDB CLI 경로
-2. 실행 SQL 파일
-3. 00_all_install_and_smoke.sql 실행 결과
-4. 99_smoke_check.sql 실행 결과
-5. 50_framework_seed_data.sql 반복 실행 결과
-6. bat_center_cut_job 생성 여부
-7. bat_center_cut_parameter 생성 여부
-8. bat_center_cut_item 생성 여부
-9. bat_center_cut_result 생성 여부
-10. legacy pfw_center_cut_* 테이블 미존재 여부
-11. CPF_BAT_CENTER_CUT_JOB seed 존재 여부
-12. CPF_BAT_CENTER_CUT_JOB parameter seed 존재 여부
-13. FK/index/unique 오류 여부
-14. 반복 실행 시 idempotent 가능 범위
-```
-
-### 4.4 실패 시 처리
-
-실패하면 실패로 기록하고 아래를 남긴다.
-
-```text
-1. 실패 SQL 파일
-2. 실패 단계
-3. 실패 메시지
-4. 민감정보 제거 여부
-5. 재실행 조건
-```
-
-실패를 미검증으로 바꾸지 않는다.
-
----
-
-## 5. 표준 헤더 Runtime E2E 완성
-
-### 5.1 목표
-
-표준 헤더 Runtime E2E는 아래 흐름이 실제 runtime에서 연결되어야 완료로 볼 수 있다.
-
-```text
-1. 실제 API 호출
-2. 표준 헤더 수신
-3. 필수 헤더 검증
-4. X-Cpf-Ext-* 확장 헤더 수신
-5. 차단 확장 헤더 거부
-6. TransactionContext 생성
-7. 거래 로그 또는 header snapshot 저장
-8. outbound 호출
-9. mock downstream 서버에서 표준/확장 헤더 수신 확인
-10. ADM 또는 로그 조회 API에서 inbound/resolved/outbound/response 확인
-11. Authorization, X-Api-Key, token류 원문 미저장 확인
-```
-
-### 5.2 스크립트 보강
-
-기존 스크립트를 확장한다.
-
-```text
-scripts/smoke-standard-header-e2e.ps1
-```
-
-필수 보강:
-
-```text
-1. 대상 앱 기동 상태 확인
-2. 정상 표준/확장 헤더 요청
-3. 차단 확장 헤더 요청
-4. 민감 헤더 포함 요청
-5. 응답 상태 코드 검증
-6. mock downstream 수신 결과 검증
-7. ADM 또는 로그 조회 API 호출
-8. 결과 JSON에 각 단계별 상태 기록
-9. 실패/미검증/부분 구현/완료 구분
-10. -RequireRuntime 옵션에서 runtime probe 실패 시 실패 처리
-```
-
-### 5.3 mock downstream
-
-표준 헤더 outbound 전파를 검증하려면 mock downstream이 필요하다.
-
-가능한 방식 중 하나를 선택한다.
-
-```text
-1. 프로젝트 내 lightweight mock endpoint 추가
-2. PowerShell 간이 HTTP listener 사용
-3. 별도 Spring test/mock server 사용
-4. 기존 smoke용 downstream endpoint 재사용
-```
-
-검증 항목:
-
-```text
-1. X-Transaction-Id 수신
-2. X-Trace-Id 수신
-3. X-Original-Channel-Code 수신
-4. X-Channel-Code 수신
-5. X-Cpf-Ext-1 수신
-6. X-Cpf-Ext-Campaign-Id 수신
-7. X-Cpf-Ext-Partner-Code 수신
-8. Authorization 원문 미기록
-9. X-Api-Key 원문 미기록
-```
-
-### 5.4 ADM 또는 로그 조회
-
-가능한 경우 ADM API 또는 로그 조회 API로 아래를 확인한다.
-
-```text
-1. transactionGlobalId 기준 거래 로그 조회
-2. inbound header snapshot 조회
-3. resolved header snapshot 조회
-4. outbound header snapshot 조회
-5. response header snapshot 조회
-6. 확장 헤더 조회
-7. 민감 헤더 마스킹 여부
-```
-
-ADM API가 아직 부족하면 아래 중 하나로 처리한다.
-
-```text
-1. 필요한 최소 조회 API를 보강한다.
-2. 기존 로그 조회 API를 활용한다.
-3. DB 직접 조회 smoke로 임시 검증하되, ADM 조회 미연결은 부분 구현으로 남긴다.
-```
-
-### 5.5 완료 기준
-
-아래가 모두 충족되어야 `standard-header-e2e`를 완료로 올릴 수 있다.
-
-```text
-1. 앱 runtime 기동
-2. 정상 표준/확장 헤더 요청 성공
-3. 차단 확장 헤더 요청 실패 확인
-4. TransactionContext 생성 확인
-5. 거래 로그/header snapshot 저장 확인
-6. outbound mock downstream 수신 확인
-7. ADM 또는 로그 조회 API에서 header snapshot 확인
-8. 민감 헤더 원문 미저장 확인
-9. 결과 JSON과 리포트에 증적 기록
-```
-
-하나라도 빠지면 `부분 구현` 또는 `미검증`으로 남긴다.
-
----
-
-## 6. ADM runtime / OpenAPI smoke
-
-표준 헤더 Runtime E2E와 연결되는 범위에서 ADM runtime과 OpenAPI smoke를 재확인한다.
-
-후보 명령:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-runtime.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-openapi.ps1
-```
-
-기준:
-
-```text
-1. ADM 앱 기동 후 OpenAPI 접근 성공이면 openapi-runtime 완료 가능
-2. 앱 미기동 상태에서 smoke-openapi.ps1 단독 실패는 실패로 기록
-3. ADM runtime smoke 내부 OpenAPI와 단독 smoke-openapi 결과를 구분
-4. browser click은 이번 범위가 아니며 실행하지 않으면 미검증으로 유지
+1. split SQL에만 있고 all_install에 없으면 완료 아님
+2. Flyway에만 있고 all_install에 없으면 완료 아님
+3. seed만 있고 smoke 확인이 없으면 완료 아님
+4. 신규 MariaDB full install을 다시 실행하지 않으면 DB full install은 미검증으로 기록
+5. SQL 변경이 있으면 check-sql-standard는 반드시 실행
 ```
 
 ---
 
-## 7. 테스트 / 검증 명령
+## 7. Smoke / Test 추가
+
+가능하면 아래 중 하나 이상을 추가한다.
+
+```text
+1. unit/service test
+2. mapper DB slice test
+3. BAT center-cut adapter test
+4. runtime smoke script
+5. smoke SQL 확인
+```
+
+후보 스크립트:
+
+```text
+scripts/smoke-center-cut-adapter.ps1
+```
+
+최소 검증 항목:
+
+```text
+1. 업무 target seed 존재
+2. provider가 target 조회
+3. handler가 item 처리
+4. result가 DB에 기록
+5. 성공/실패 count 확인
+6. parent/child transactionGlobalId 연결 확인
+7. 민감정보 원문 기록 없음
+```
+
+---
+
+## 8. 표준 헤더 E2E smoke 보안 보정
+
+`smoke-standard-header-e2e.ps1`의 MariaDB query 실행부에서 DB password를 process argument로 넘기지 않도록 보정한다.
+
+현재 보정 대상:
+
+```text
+--password=$DbPassword
+```
+
+요구사항:
+
+```text
+1. password는 환경변수 `MYSQL_PWD` 또는 `MARIADB_PWD`로만 주입한다.
+2. process argument, result JSON, log, report에 password 원문이 남지 않게 한다.
+3. 기존 smoke-standard-header-e2e.ps1 -RequireRuntime 동작은 유지한다.
+4. 민감값 마스킹 회귀 테스트 또는 스크립트 self-check를 추가한다.
+```
+
+이 보정은 이번 center-cut 기능 범위와 직접 충돌하지 않는 작은 보안 보정으로 처리한다.
+
+---
+
+## 9. 실행 검증 요구사항
 
 가능한 범위에서 아래를 실행한다.
 
 ```powershell
 .\gradlew.bat :pfw:test --offline --no-daemon --console=plain
 .\gradlew.bat :bat:test --offline --no-daemon --console=plain
-.\gradlew.bat :adm:test --offline --no-daemon --console=plain
+.\gradlew.bat :xyz:test --offline --no-daemon --console=plain
 .\gradlew.bat test --offline --no-daemon --console=plain
-.\gradlew.bat :bat:bootJar --offline --no-daemon --console=plain
 
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-all-install-sql.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sql-standard.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake
+```
 
+DB 또는 runtime 변경이 있으면 가능하면 아래도 실행한다.
+
+```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-mariadb-full-install.ps1 -RequireRun
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-standard-header-e2e.ps1 -RequireRuntime
-
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-center-cut-adapter.ps1
 .\gradlew.bat qualityGate --offline --no-daemon --console=plain
 ```
 
-실행하지 못한 검증은 미검증으로 기록한다.
+실행하지 못한 검증은 완료로 기록하지 않는다.
 
 ---
 
-## 8. 리포트 / 매트릭스 반영
+## 10. 리포트 / 기능 매트릭스 반영
 
-`CPF_STABILIZATION_REPORT.md`와 기능 매트릭스에 아래를 반영한다.
-
-```text
-1. MariaDB full install 실제 실행 여부
-2. MariaDB 실행 방식
-3. 사용 CLI 또는 Docker 방식
-4. 실행한 SQL 파일
-5. 실패 SQL/단계/원인
-6. bat_center_cut_* 테이블 생성 확인
-7. CPF_BAT_CENTER_CUT_JOB seed 확인
-8. 99_smoke_check.sql 실행 결과
-9. 표준 헤더 Runtime E2E 실제 실행 여부
-10. mock downstream 수신 결과
-11. ADM/log 조회 결과
-12. 민감 헤더 원문 미저장 확인
-13. 실행하지 않은 검증의 미검증 사유
-14. 실패한 검증의 실패 사유
-```
-
-상태값은 아래 6개만 사용한다.
+`CPF_STABILIZATION_REPORT.md`와 `specs/기능_구현_매트릭스.html`에 아래를 최소 반영한다.
 
 ```text
-완료
-부분 구현
-미구현
-미검증
-실패
-재확인 필요
+1. center-cut 업무 DB adapter 구현 여부
+2. XYZ/EDU center-cut 샘플 구현 여부
+3. SQL/Flyway/all_install/smoke 반영 여부
+4. 실행한 test/smoke 결과
+5. 실행하지 않은 검증의 미검증 사유
+6. standard-header-e2e password process argument 보정 여부
+7. 남은 ADM center-cut 관제/browser click 미검증 여부
 ```
+
+문서 정본화, HTML 디자인, 가이드 장문 보강은 이번 범위가 아니다.
 
 ---
 
-## 9. 완료 기준
+## 11. 완료 기준
 
 아래가 충족되어야 이번 작업 완료로 본다.
 
 ```text
-1. `smoke-mariadb-full-install.ps1 -RequireRun`을 실제 MariaDB 접속 정보로 실행함
-2. `00_all_install_and_smoke.sql` 실제 실행 결과를 기록함
-3. `99_smoke_check.sql` 실제 실행 결과를 기록함
-4. `50_framework_seed_data.sql` 반복 실행 결과를 기록함
-5. `bat_center_cut_*` 4개 테이블 생성 확인
-6. legacy `pfw_center_cut_*` 테이블 미존재 확인
-7. `CPF_BAT_CENTER_CUT_JOB` seed 확인
-8. 표준 헤더 Runtime E2E에서 실제 앱 기동 후 요청 수행
-9. 허용 확장 헤더 요청 성공 확인
-10. 차단 확장 헤더 요청 실패 확인
-11. mock downstream에서 outbound 표준/확장 헤더 수신 확인
-12. ADM 또는 로그 조회 API에서 header snapshot 확인
-13. 민감 헤더 원문 미저장 확인
-14. 결과 JSON, 리포트, 기능 매트릭스 상태 일치
-15. 실행하지 않은 검증은 완료로 기록하지 않음
-16. qualityGate 통과
-17. Git commit / push / branch 생성 없음
+1. 업무 DB 기반 center-cut adapter 구조가 실제 소스로 추가됨
+2. XYZ 또는 EDU 샘플에서 center-cut 대상 업무 데이터를 조회할 수 있음
+3. BAT center-cut 기본 구현체와 업무 adapter가 연결됨
+4. item별 처리 결과가 DB에 기록됨
+5. 성공/실패 count 또는 result 조회 가능
+6. parent/child transactionGlobalId 기준이 유지됨
+7. 필요한 SQL이 split/Flyway/all_install/smoke 경로에 반영됨
+8. 관련 test 또는 smoke가 실행됨
+9. 실행하지 않은 검증은 미검증으로 기록됨
+10. `smoke-standard-header-e2e.ps1`의 DB password process argument 노출 가능성이 제거됨
+11. 리포트와 기능 매트릭스 상태값이 실제 파일과 일치함
+12. Git commit / push / branch 생성 없음
 ```
 
 ---
 
-## 10. 완료 불인정 기준
+## 12. 완료 불인정 기준
 
 아래 중 하나라도 해당하면 완료로 인정하지 않는다.
 
 ```text
-1. CPF_DB_ROOT_PASSWORD 없이 MariaDB full install 완료 기록
-2. 기존 개발 DB 일부 확인을 신규 MariaDB full install 완료로 기록
-3. H2/mock DB 성공을 MariaDB full install 완료로 기록
-4. SQL 실행 실패를 미검증으로 바꿔 기록
-5. 표준 헤더 Source-Level 테스트를 Runtime E2E 완료로 기록
-6. 앱 미기동 상태에서 standard-header-e2e 완료 기록
-7. mock downstream 수신 없이 outbound 전파 완료 기록
-8. ADM/log 조회 없이 header snapshot 조회 완료 기록
-9. 민감 헤더 원문을 result JSON, 로그, DB, 리포트에 기록
-10. 실패한 smoke를 숨김
-11. 기능 매트릭스와 CPF_STABILIZATION_REPORT.md 상태 불일치
-12. Git commit / push / branch 생성
-13. 별도 변경파일 목록 산출물 생성
+1. PFW가 업무 item/result 저장소를 직접 소유하는 구조로 회귀
+2. 메모리 sample만 있고 업무 DB 기반 adapter가 없음
+3. SQL이 한 경로에만 반영되고 all_install/Flyway/smoke와 불일치
+4. result DB 기록 없이 로그만 남김
+5. parent/child transactionGlobalId 기준 없음
+6. test/smoke 미실행인데 완료 기록
+7. 민감정보 원문 기록
+8. DB password를 process argument, log, result JSON, report에 원문 노출
+9. 리포트와 기능 매트릭스 상태 불일치
+10. Git commit / push / branch 생성
+11. 별도 변경파일 목록 산출물 생성
 ```
 
 ---
 
-## 11. 완료 보고 양식
+## 13. 완료 보고 양식
 
 ```text
 1. 기준 정보
@@ -403,86 +352,74 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-standard-hea
 - 작업 종료 status --short:
 - 사용자 요청 원본 파일:
 
-2. MariaDB full install
-- 실행 방식:
-- 사용 CLI/Docker:
-- 실행 SQL:
-- 결과:
-- 실패 시 실패 단계:
-- bat_center_cut_* 확인:
-- legacy pfw_center_cut_* 확인:
-- CPF_BAT_CENTER_CUT_JOB 확인:
-- smoke SQL 결과:
-- 비밀번호 원문 미기록 여부:
+2. center-cut adapter
+- 업무 모듈:
+- target table:
+- provider:
+- handler:
+- result repository:
+- parent/child transactionGlobalId:
+- 성공/실패 처리:
 
-3. 표준 헤더 Runtime E2E
-- 앱 기동 방식:
-- 대상 URL:
-- mock downstream:
-- 허용 헤더 검증:
-- 차단 헤더 검증:
-- outbound 수신 검증:
-- ADM/log 조회 검증:
-- 민감 헤더 원문 미기록 여부:
-- 결과 JSON:
+3. SQL 반영
+- split SQL:
+- Flyway:
+- all_install:
+- all_install_and_smoke:
+- 99_smoke_check:
+- seed:
 
-4. ADM/OpenAPI
-- ADM runtime:
-- OpenAPI runtime:
-- 단독 smoke-openapi:
-- browser click:
-
-5. 실행 명령 결과
+4. 실행 검증
 - :pfw:test:
 - :bat:test:
-- :adm:test:
+- :xyz:test:
 - 전체 test:
-- :bat:bootJar:
-- build-all-install:
-- check-sql-standard:
+- smoke-center-cut-adapter:
 - smoke-mariadb-full-install:
-- smoke-standard-header-e2e:
-- smoke-adm-runtime:
+- check-sql-standard:
 - check-feature-evidence:
 - check-html-docs:
 - check-utf8:
 - qualityGate:
 
+5. 표준 헤더 E2E 보안 보정
+- password process argument 제거 여부:
+- 환경변수 주입 방식:
+- result/log/report 민감정보 원문 미기록 확인:
+
 6. 상태값 반영
-- mariadb-full-install:
+- center-cut adapter:
+- EDU/XYZ center-cut sample:
+- ADM center-cut 관제:
+- MariaDB full install:
 - standard-header-e2e:
-- adm-runtime:
-- openapi-runtime:
-- adm-browser-click:
-- redis-kafka-mq-broker:
+- ADM browser click:
 
 7. 남은 작업
-- center-cut 업무 adapter:
-- EDU center-cut 샘플:
 - ADM center-cut 관제:
+- ADM runtime/OpenAPI/browser click:
+- Redis/Kafka/MQ:
+- EDU/XYZ 실전 샘플:
 - CMN 고정길이 전문:
-- EXS 전문 송수신:
-- 브라우저 클릭:
-- 실 broker:
 ```
 
 ---
 
-## 12. 다음 마일스톤 분기
+## 14. 다음 마일스톤 분기
 
-이번 작업이 닫히면 다음은 아래 중 하나로 간다.
+이번 작업이 완료되면 다음은 아래 중 하나로 간다.
 
 ```text
-1. M4-2 — 업무 DB 기반 center-cut adapter + EDU/XYZ center-cut 샘플
-2. M5 — EDU/XYZ 실전 샘플 완성
-3. M6-1 — CMN 고정길이 전문 처리 공통 모듈
-4. M8 — ADM 운영 콘솔 browser click/운영 UX 보강
+1. ADM center-cut 관제 + ADM runtime/OpenAPI smoke
+2. EDU/XYZ 실전 샘플 CRUD/paging/validation/facade/outbound 완성
+3. CMN 고정길이 전문 처리
+4. EXS 전문 송수신
 ```
 
 분기 기준:
 
 ```text
-1. MariaDB full install이 실패하면 DB/SQL 보정 먼저 진행
-2. 표준 헤더 Runtime E2E가 실패하면 헤더/log/ADM/outbound 보정 먼저 진행
-3. 둘 다 완료되면 center-cut adapter와 EDU 샘플로 진행
+1. center-cut adapter가 실패하면 center-cut 보정 먼저 진행
+2. center-cut adapter가 완료되면 ADM 관제 또는 EDU/XYZ 실전 샘플로 진행
+3. ADM runtime 환경이 계속 어려우면 OpenAPI/API smoke까지만 닫고 browser click은 미검증 유지
 ```

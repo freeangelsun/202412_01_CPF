@@ -56,6 +56,8 @@ SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM adm
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
 SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
+SELECT 'xyzDB.xyz_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_target;
+SELECT 'xyzDB.xyz_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_result;
 SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
@@ -111,6 +113,11 @@ FROM cmnDB.cmn_edu_query_item
 WHERE use_yn = 'Y'
 ORDER BY item_id
 LIMIT 5;
+
+SELECT target_id, center_cut_job_id, business_key, status_code, parent_transaction_global_id, child_transaction_global_id
+FROM xyzDB.xyz_center_cut_sample_target
+WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB'
+ORDER BY target_id;
 
 SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, IMMUTABLE_YN
 FROM admDB.adm_audit_log

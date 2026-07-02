@@ -64,6 +64,33 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+USE xyzDB;
+
+DELETE FROM xyz_center_cut_sample_result
+WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
+
+INSERT INTO xyz_center_cut_sample_target (
+    target_id, center_cut_job_id, business_key, business_date, target_payload,
+    status_code, retry_count, parent_transaction_global_id, child_transaction_global_id,
+    started_at, completed_at, last_error_message, use_yn, created_by, updated_by
+) VALUES
+    ('XYZ-CENTER-CUT-001', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('XYZ-CENTER-CUT-002', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('XYZ-CENTER-CUT-003', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('XYZ-CENTER-CUT-004', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    target_payload = VALUES(target_payload),
+    status_code = VALUES(status_code),
+    retry_count = VALUES(retry_count),
+    parent_transaction_global_id = VALUES(parent_transaction_global_id),
+    child_transaction_global_id = VALUES(child_transaction_global_id),
+    started_at = VALUES(started_at),
+    completed_at = VALUES(completed_at),
+    last_error_message = VALUES(last_error_message),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
 USE accDB;
 
 INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)

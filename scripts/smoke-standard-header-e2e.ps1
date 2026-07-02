@@ -197,7 +197,6 @@ function Invoke-MariaDbQuery {
         "--batch",
         "--raw",
         "--skip-column-names",
-        "--password=$DbPassword",
         "--execute=$SqlText"
     )
 
@@ -211,6 +210,9 @@ function Invoke-MariaDbQuery {
     $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
     $psi.EnvironmentVariables["MYSQL_PWD"] = $DbPassword
     $psi.EnvironmentVariables["MARIADB_PWD"] = $DbPassword
+    if (-not [string]::IsNullOrWhiteSpace($DbPassword) -and $psi.Arguments.Contains($DbPassword)) {
+        throw "MariaDB process arguments contain a raw DB password."
+    }
 
     $process = [System.Diagnostics.Process]::new()
     $process.StartInfo = $psi

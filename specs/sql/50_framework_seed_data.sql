@@ -497,7 +497,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_center_cut_job (
+INSERT INTO bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
 ) VALUES (
@@ -525,7 +525,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_center_cut_parameter (
+INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_BAT_CENTER_CUT_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),

@@ -74,7 +74,13 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.RESERVED_FIELD_2, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 2", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_2", 200, true, true, "확장"),
             spec(CpfHeaderNames.RESERVED_FIELD_3, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 3", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_3", 200, true, true, "확장"),
             spec(CpfHeaderNames.RESERVED_FIELD_4, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 4", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_4", 200, true, true, "확장"),
-            spec(CpfHeaderNames.RESERVED_FIELD_5, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 5", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_5", 200, true, true, "확장")
+            spec(CpfHeaderNames.RESERVED_FIELD_5, CpfHeaderCategory.OPTIONAL, "프로젝트 확장 예약 필드 5", "업무 서비스", "업무 서비스", true, false, "RESERVED_FIELD_5", 200, true, true, "확장"),
+
+            spec(CpfHeaderNames.EXTENSION_1, CpfHeaderCategory.OPTIONAL, "CPF 확장 예약 헤더 1", "업무 서비스", "PFW 확장 헤더 정책", true, false, null, 200, true, false, "확장"),
+            spec(CpfHeaderNames.EXTENSION_2, CpfHeaderCategory.OPTIONAL, "CPF 확장 예약 헤더 2", "업무 서비스", "PFW 확장 헤더 정책", true, false, null, 200, true, false, "확장"),
+            spec(CpfHeaderNames.EXTENSION_3, CpfHeaderCategory.OPTIONAL, "CPF 확장 예약 헤더 3", "업무 서비스", "PFW 확장 헤더 정책", true, false, null, 200, true, false, "확장"),
+            spec(CpfHeaderNames.EXTENSION_4, CpfHeaderCategory.OPTIONAL, "CPF 확장 예약 헤더 4", "업무 서비스", "PFW 확장 헤더 정책", true, false, null, 200, true, false, "확장"),
+            spec(CpfHeaderNames.EXTENSION_5, CpfHeaderCategory.OPTIONAL, "CPF 확장 예약 헤더 5", "업무 서비스", "PFW 확장 헤더 정책", true, false, null, 200, true, false, "확장")
     );
 
     private static final Map<String, CpfHeaderSpec> BY_LOWER_NAME = toMap(ALL);
@@ -96,7 +102,14 @@ public final class CpfHeaderSpecs {
         if (name == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(BY_LOWER_NAME.get(lower(name)));
+        CpfHeaderSpec registered = BY_LOWER_NAME.get(lower(name));
+        if (registered != null) {
+            return Optional.of(registered);
+        }
+        if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
+            return Optional.of(extensionSpec(name));
+        }
+        return Optional.empty();
     }
 
     public static boolean isRequired(String name) {
@@ -104,15 +117,31 @@ public final class CpfHeaderSpecs {
     }
 
     public static boolean shouldPropagate(String name) {
+        if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
+            return true;
+        }
         return find(name).map(CpfHeaderSpec::propagation).orElse(false);
     }
 
     public static boolean shouldMask(String name) {
+        if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
+            return false;
+        }
         return find(name).map(spec -> spec.masked() || !spec.loggable()).orElse(false);
     }
 
     public static boolean canLogRaw(String name) {
+        if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
+            return true;
+        }
+        if (CpfExtensionHeaderPolicy.isBlockedSecurityAlias(name)) {
+            return false;
+        }
         return find(name).map(CpfHeaderSpec::loggable).orElse(true);
+    }
+
+    public static boolean isAllowedExtensionHeader(String name) {
+        return CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name);
     }
 
     private static CpfHeaderSpec spec(
@@ -141,6 +170,22 @@ public final class CpfHeaderSpecs {
                 loggable,
                 masked,
                 admSection);
+    }
+
+    private static CpfHeaderSpec extensionSpec(String name) {
+        return spec(
+                name,
+                CpfHeaderCategory.OPTIONAL,
+                "CPF naming rule로 인식한 확장 헤더",
+                "업무 서비스",
+                "PFW 확장 헤더 정책",
+                true,
+                false,
+                null,
+                200,
+                true,
+                false,
+                "확장");
     }
 
     private static Map<String, CpfHeaderSpec> toMap(List<CpfHeaderSpec> specs) {

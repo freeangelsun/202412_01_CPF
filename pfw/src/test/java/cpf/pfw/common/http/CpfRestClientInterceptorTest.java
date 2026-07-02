@@ -34,6 +34,7 @@ class CpfRestClientInterceptorTest {
                         .channelCode("MBR")
                         .clientAppId("cpf-mobile")
                         .clientVersion("1.0.0")
+                        .extensionHeaders(java.util.Map.of("X-Cpf-Ext-Campaign-Id", "CMP-2026"))
                         .build());
         HttpHeaders headers = new HttpHeaders();
         headers.add(CpfHeaderNames.CHANNEL_CODE, "CUSTOM");
@@ -44,6 +45,7 @@ class CpfRestClientInterceptorTest {
         assertThat(headers.getFirst(CpfHeaderNames.TRACE_ID)).isEqualTo("TRACE-1");
         assertThat(headers.getFirst(CpfHeaderNames.PARENT_TRANSACTION_ID)).isEqualTo("20260615120000000MBRlocal010000001");
         assertThat(headers.getFirst(CpfHeaderNames.CHANNEL_CODE)).isEqualTo("CUSTOM");
+        assertThat(headers.getFirst("X-Cpf-Ext-Campaign-Id")).isEqualTo("CMP-2026");
         assertThat(headers).doesNotContainKey(CpfHeaderNames.AUTHORIZATION);
     }
 }

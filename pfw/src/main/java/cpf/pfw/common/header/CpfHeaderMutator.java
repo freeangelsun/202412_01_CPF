@@ -3,7 +3,9 @@ package cpf.pfw.common.header;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,6 +55,10 @@ public final class CpfHeaderMutator {
         if (RESTRICTED_HEADERS.contains(lower(headerName))) {
             throw new IllegalArgumentException("시스템 추적 또는 민감 헤더는 업무 코드에서 변경할 수 없습니다. headerName=" + headerName);
         }
+        if (CpfExtensionHeaderPolicy.isExtensionHeader(headerName)) {
+            CpfExtensionHeaderPolicy.requireAllowedExtensionHeader(headerName);
+            return withExtensionHeader(source, headerName, value);
+        }
 
         TransactionHeader.TransactionHeaderBuilder builder = source != null
                 ? source.toBuilder()
@@ -77,6 +83,26 @@ public final class CpfHeaderMutator {
             return builder.branchCode(value).build();
         }
         throw new IllegalArgumentException("업무 코드에서 보정하도록 등록되지 않은 헤더입니다. headerName=" + headerName);
+    }
+
+    private static TransactionHeader withExtensionHeader(TransactionHeader source, String headerName, String value) {
+        TransactionHeader.TransactionHeaderBuilder builder = source != null
+                ? source.toBuilder()
+                : TransactionHeader.builder();
+        Map<String, String> extensionHeaders = new LinkedHashMap<>();
+        if (source != null && source.getExtensionHeaders() != null) {
+            extensionHeaders.putAll(source.getExtensionHeaders());
+        }
+        removeIgnoreCase(extensionHeaders, headerName);
+        if (value != null && !value.isBlank()) {
+            extensionHeaders.put(headerName, value);
+        }
+        return builder.extensionHeaders(Map.copyOf(extensionHeaders)).build();
+    }
+
+    private static void removeIgnoreCase(Map<String, String> headers, String headerName) {
+        String normalized = lower(headerName);
+        headers.keySet().removeIf(name -> lower(name).equals(normalized));
     }
 
     private static String lower(String value) {

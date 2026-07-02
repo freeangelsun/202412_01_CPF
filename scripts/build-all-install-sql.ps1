@@ -93,6 +93,10 @@ DROP TABLE IF EXISTS cmnDB.cmn_sequence;
 DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
 DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
 DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
+DROP TABLE IF EXISTS pfwDB.bat_center_cut_result;
+DROP TABLE IF EXISTS pfwDB.bat_center_cut_item;
+DROP TABLE IF EXISTS pfwDB.bat_center_cut_parameter;
+DROP TABLE IF EXISTS pfwDB.bat_center_cut_job;
 DROP TABLE IF EXISTS pfwDB.pfw_center_cut_result;
 DROP TABLE IF EXISTS pfwDB.pfw_center_cut_item;
 DROP TABLE IF EXISTS pfwDB.pfw_center_cut_parameter;
@@ -133,6 +137,7 @@ $installFiles = @(
     "10_pfw_schema.sql",
     "20_cmn_schema.sql",
     "30_adm_schema.sql",
+    "35_bat_schema.sql",
     "40_business_modules_schema.sql",
     "50_framework_seed_data.sql",
     "55_cmn_seed_data.sql",

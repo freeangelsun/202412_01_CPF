@@ -3,7 +3,9 @@ package cpf.pfw.common.header;
 import cpf.pfw.common.logging.TransactionHeader;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -23,6 +25,9 @@ public final class CpfHeaderExtractor {
         }
         for (CpfHeaderSpec spec : CpfHeaderSpecs.all()) {
             putIfHasText(headers, spec.name(), CpfHeaderMasker.mask(spec.name(), request.getHeader(spec.name())));
+        }
+        for (Map.Entry<String, String> entry : extractExtensionHeaders(request).entrySet()) {
+            putIfAbsentHasText(headers, entry.getKey(), CpfHeaderMasker.mask(entry.getKey(), entry.getValue()));
         }
         return headers;
     }
@@ -74,8 +79,25 @@ public final class CpfHeaderExtractor {
                 .reservedField3(header(request, CpfHeaderNames.RESERVED_FIELD_3))
                 .reservedField4(header(request, CpfHeaderNames.RESERVED_FIELD_4))
                 .reservedField5(header(request, CpfHeaderNames.RESERVED_FIELD_5))
+                .extensionHeaders(extractExtensionHeaders(request))
                 .wasId(wasId)
                 .build();
+    }
+
+    public static Map<String, String> extractExtensionHeaders(HttpServletRequest request) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        if (request == null) {
+            return headers;
+        }
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames != null && headerNames.hasMoreElements()) {
+            String name = headerNames.nextElement();
+            if (!CpfExtensionHeaderPolicy.isAllowedExtensionHeader(name)) {
+                continue;
+            }
+            putIfAbsentHasText(headers, name, request.getHeader(name));
+        }
+        return headers;
     }
 
     private static String header(HttpServletRequest request, String name) {
@@ -86,6 +108,18 @@ public final class CpfHeaderExtractor {
         if (hasText(value)) {
             headers.put(name, value);
         }
+    }
+
+    private static void putIfAbsentHasText(Map<String, String> headers, String name, String value) {
+        if (!hasText(value) || containsHeaderIgnoreCase(headers, name)) {
+            return;
+        }
+        headers.put(name, value);
+    }
+
+    private static boolean containsHeaderIgnoreCase(Map<String, String> headers, String name) {
+        String normalized = name.toLowerCase(Locale.ROOT);
+        return headers.keySet().stream().anyMatch(key -> key.toLowerCase(Locale.ROOT).equals(normalized));
     }
 
     private static String firstText(String first, String second) {

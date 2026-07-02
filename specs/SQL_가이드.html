@@ -29,7 +29,7 @@
       <tr><th>DB</th><th>소유 영역</th><th>주요 테이블</th><th>주의</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_log_policy</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code>, <code>pfw_center_cut_*</code></td><td>업무 데이터 저장소로 사용하지 않습니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_log_policy</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code>, <code>bat_center_cut_*</code></td><td>업무 데이터 저장소로 사용하지 않습니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code>, <code>cmn_edu_query_item</code></td><td>프로젝트에서 필요할 때 optional datasource로 붙입니다.</td></tr>
       <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code>, <code>adm_audit_log</code></td><td>운영 행위 변경은 감사 사유와 before/after diff를 남깁니다.</td></tr>
       <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>ADM은 운영 API로 관리하지만 회원 데이터 소유권은 MBR에 있습니다.</td></tr>
@@ -47,7 +47,8 @@
       <tbody>
       <tr><td><code>specs/sql/00_all_install.sql</code></td><td>전체 설치 합본</td><td>SOURCE 지시자가 아니라 실제 SQL 본문을 포함합니다.</td></tr>
       <tr><td><code>specs/sql/00_all_install_and_smoke.sql</code></td><td>전체 설치와 smoke query 합본</td><td>cleanup을 포함하므로 기존 DB에 실행하면 데이터가 삭제될 수 있습니다.</td></tr>
-      <tr><td><code>specs/sql/10_pfw_schema.sql</code></td><td>PFW schema</td><td>프레임워크 코어, Spring Batch, CPF Batch 운영 메타, center-cut 표준 메타를 포함합니다.</td></tr>
+      <tr><td><code>specs/sql/10_pfw_schema.sql</code></td><td>PFW schema</td><td>프레임워크 코어, Spring Batch, CPF Batch 운영 메타처럼 PFW가 소유하는 기준 정보를 포함합니다.</td></tr>
+      <tr><td><code>specs/sql/35_bat_schema.sql</code></td><td>BAT schema</td><td>BAT worker가 소유하는 center-cut 기본 모수, 대상, 결과 테이블을 포함합니다.</td></tr>
       <tr><td><code>specs/sql/50_framework_seed_data.sql</code></td><td>PFW seed</td><td>코드, 메시지, 응답코드, 설정, batch job, center-cut 모수를 idempotent 방식으로 적재합니다.</td></tr>
       <tr><td><code>scripts/build-all-install-sql.ps1</code></td><td>합본 SQL 재생성</td><td>분리 SQL 변경 후 합본과 Flyway baseline을 동기화합니다.</td></tr>
       </tbody>
@@ -68,7 +69,8 @@
       <tr><td>V13</td><td><code>V13__adm_runtime_policy_permission_seed.sql</code></td><td>ADM 운영 정책 메뉴/버튼 권한 seed를 보강합니다.</td></tr>
       <tr><td>V14</td><td><code>V14__edu_query_sample.sql</code></td><td>EDU 조회 샘플 테이블과 seed를 추가합니다.</td></tr>
       <tr><td>V15</td><td><code>V15__adm_api_permission_management.sql</code></td><td>ADM API 권한 관리 테이블과 seed를 추가합니다.</td></tr>
-      <tr><td>V16</td><td><code>V16__batch_center_cut_standard.sql</code></td><td><code>pfw_center_cut_job</code>, <code>pfw_center_cut_parameter</code>, <code>pfw_center_cut_item</code>, <code>pfw_center_cut_result</code>와 BAT center-cut smoke seed를 추가합니다.</td></tr>
+      <tr><td>V16</td><td><code>V16__batch_center_cut_standard.sql</code></td><td>M4에서 만든 center-cut 표준 초안입니다. 이력 보존을 위해 변경하지 않고 V17에서 소유권을 보정합니다.</td></tr>
+      <tr><td>V17</td><td><code>V17__batch_center_cut_ownership_repair.sql</code></td><td><code>pfw_center_cut_*</code> 초안 데이터를 <code>bat_center_cut_*</code>로 이관하고 PFW 소유 테이블을 정리합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -80,10 +82,10 @@
       <tr><th>테이블</th><th>역할</th><th>확장 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw_center_cut_job</code></td><td>center-cut Job 모수</td><td>PFW/BAT 공통 실행 기준과 ADM 관제 기준을 제공합니다.</td></tr>
-      <tr><td><code>pfw_center_cut_parameter</code></td><td>center-cut 실행 파라미터</td><td>secret 값은 직접 저장하지 않고 참조 키 또는 암호화 정책을 사용합니다.</td></tr>
-      <tr><td><code>pfw_center_cut_item</code></td><td>표준 대상 상태</td><td>업무별 대용량 대상 테이블이 필요한 경우 업무 DB에 별도 target/item/result 테이블을 만들고 adapter로 연결합니다.</td></tr>
-      <tr><td><code>pfw_center_cut_result</code></td><td>표준 결과 이력</td><td>부모/자식 거래 글로벌 ID와 결과 상태를 운영 추적 기준으로 남깁니다.</td></tr>
+      <tr><td><code>bat_center_cut_job</code></td><td>center-cut Job 모수</td><td>PFW/BAT 공통 실행 기준과 ADM 관제 기준을 제공합니다.</td></tr>
+      <tr><td><code>bat_center_cut_parameter</code></td><td>center-cut 실행 파라미터</td><td>secret 값은 직접 저장하지 않고 참조 키 또는 암호화 정책을 사용합니다.</td></tr>
+      <tr><td><code>bat_center_cut_item</code></td><td>표준 대상 상태</td><td>업무별 대용량 대상 테이블이 필요한 경우 업무 DB에 별도 target/item/result 테이블을 만들고 adapter로 연결합니다.</td></tr>
+      <tr><td><code>bat_center_cut_result</code></td><td>표준 결과 이력</td><td>부모/자식 거래 글로벌 ID와 결과 상태를 운영 추적 기준으로 남깁니다.</td></tr>
       </tbody>
     </table>
   </section>

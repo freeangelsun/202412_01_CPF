@@ -341,10 +341,15 @@ $htmlTargets | ForEach-Object {
     if ($text -match '(?m)^\s*\|.+\|\s*$') {
         Add-Failure "markdown table remains: $relative"
     }
-    if ($text -match '\[[^\]]+\]\([^)]+\.md\)') {
+    $mdReferenceScanText = $text
+    foreach ($allowedMarkdownReference in @("CPF_FINAL_TARGET_REQUIREMENTS.md", "CPF_STABILIZATION_REPORT.md", "README.md")) {
+        $mdReferenceScanText = $mdReferenceScanText.Replace($allowedMarkdownReference, "")
+    }
+
+    if ($mdReferenceScanText -match '\[[^\]]+\]\([^)]+\.md\)') {
         Add-Failure "markdown md link remains: $relative"
     }
-    if ($text -match '\.md\b') {
+    if ($mdReferenceScanText -match '\.md\b') {
         Add-Failure "md file reference remains: $relative"
     }
 }

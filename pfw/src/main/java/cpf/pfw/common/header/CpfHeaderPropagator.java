@@ -18,6 +18,7 @@ public final class CpfHeaderPropagator {
         appendResolvedIdentity(headers, transactionHeader, false);
         appendBusinessHeaders(headers, transactionHeader);
         appendNetworkHeaders(headers, transactionHeader);
+        appendExtensionHeaders(headers, transactionHeader);
         return CpfHeaderMasker.maskHeaders(headers);
     }
 
@@ -27,6 +28,7 @@ public final class CpfHeaderPropagator {
         appendResolvedIdentity(headers, transactionHeader, false);
         appendBusinessHeaders(headers, transactionHeader);
         appendNetworkHeaders(headers, transactionHeader);
+        appendExtensionHeaders(headers, transactionHeader);
         return CpfHeaderMasker.maskHeaders(headers);
     }
 
@@ -35,6 +37,7 @@ public final class CpfHeaderPropagator {
         TransactionHeader transactionHeader = TransactionContext.currentHeader();
         appendResolvedIdentity(headers, transactionHeader, true);
         appendBusinessHeaders(headers, transactionHeader);
+        appendExtensionHeaders(headers, transactionHeader);
         appendOutboundAllowed(headers);
         return headers;
     }
@@ -119,6 +122,17 @@ public final class CpfHeaderPropagator {
         putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_3, headerValue(transactionHeader, TransactionHeader::getReservedField3));
         putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_4, headerValue(transactionHeader, TransactionHeader::getReservedField4));
         putIfHasText(headers, CpfHeaderNames.RESERVED_FIELD_5, headerValue(transactionHeader, TransactionHeader::getReservedField5));
+    }
+
+    private static void appendExtensionHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {
+        if (transactionHeader == null || transactionHeader.getExtensionHeaders() == null) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : transactionHeader.getExtensionHeaders().entrySet()) {
+            if (CpfExtensionHeaderPolicy.isAllowedExtensionHeader(entry.getKey())) {
+                putIfHasText(headers, entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     private static void appendOutboundAllowed(Map<String, String> headers) {

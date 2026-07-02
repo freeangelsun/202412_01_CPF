@@ -4,6 +4,7 @@ import cpf.pfw.common.logging.TransactionIdGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -27,6 +28,22 @@ public class CpfInboundHeaderValidator {
 
     public boolean isValidTransactionId(String transactionId) {
         return TransactionIdGenerator.isValid(transactionId, transactionIdSequenceDigits);
+    }
+
+    public List<String> invalidExtensionHeaders(HttpServletRequest request) {
+        List<String> invalidHeaders = new ArrayList<>();
+        if (request == null) {
+            return invalidHeaders;
+        }
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames != null && headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            if (CpfExtensionHeaderPolicy.isExtensionHeader(headerName)
+                    && !CpfExtensionHeaderPolicy.isAllowedExtensionHeader(headerName)) {
+                invalidHeaders.add(headerName);
+            }
+        }
+        return invalidHeaders;
     }
 
     private void require(HttpServletRequest request, String headerName, List<String> missingHeaders) {

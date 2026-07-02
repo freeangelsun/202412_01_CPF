@@ -89,6 +89,16 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                             + CpfHeaderNames.TRANSACTION_ID + "=" + transactionId,
                     Map.of("0", CpfHeaderNames.TRANSACTION_ID, "1", request.getRequestURI()));
         }
+
+        List<String> invalidExtensionHeaders = inboundHeaderValidator.invalidExtensionHeaders(request);
+        if (!invalidExtensionHeaders.isEmpty()) {
+            String headerNames = String.join(", ", invalidExtensionHeaders);
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
+                    "CPF 확장 헤더는 X-Cpf-Ext-* naming rule을 따르되 인증값, token, API key, secret류를 우회 저장하거나 전파할 수 없습니다. "
+                            + headerNames,
+                    Map.of("0", headerNames, "1", request.getRequestURI()));
+        }
     }
 
     /**

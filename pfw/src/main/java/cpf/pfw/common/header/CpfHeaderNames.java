@@ -67,6 +67,12 @@ public final class CpfHeaderNames {
     public static final String RESERVED_FIELD_4 = "X-Reserved-Field-4";
     public static final String RESERVED_FIELD_5 = "X-Reserved-Field-5";
 
+    public static final String EXTENSION_1 = "X-Cpf-Ext-1";
+    public static final String EXTENSION_2 = "X-Cpf-Ext-2";
+    public static final String EXTENSION_3 = "X-Cpf-Ext-3";
+    public static final String EXTENSION_4 = "X-Cpf-Ext-4";
+    public static final String EXTENSION_5 = "X-Cpf-Ext-5";
+
     private CpfHeaderNames() {
     }
 }

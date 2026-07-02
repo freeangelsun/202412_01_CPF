@@ -10,9 +10,10 @@ $schemaFiles = @(
     "specs/sql/10_pfw_schema.sql",
     "specs/sql/20_cmn_schema.sql",
     "specs/sql/30_adm_schema.sql",
+    "specs/sql/35_bat_schema.sql",
     "specs/sql/40_business_modules_schema.sql"
 )
-$allowedPrefixes = @("pfw", "cmn", "adm", "acc", "mbr", "bizadm", "exs")
+$allowedPrefixes = @("pfw", "cmn", "adm", "bat", "acc", "mbr", "bizadm", "exs")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
 $schemaTableNames = New-Object System.Collections.Generic.HashSet[string]

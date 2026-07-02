@@ -3,6 +3,8 @@ package cpf.pfw.common.logging;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Map;
+
 /**
  * 요청에서 수집한 CPF 표준 거래 헤더입니다.
  *
@@ -55,6 +57,7 @@ public class TransactionHeader {
     String reservedField3;
     String reservedField4;
     String reservedField5;
+    @Builder.Default
+    Map<String, String> extensionHeaders = Map.of();
     String wasId;
 }
-

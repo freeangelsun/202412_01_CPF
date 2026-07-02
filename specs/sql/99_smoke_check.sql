@@ -30,10 +30,10 @@ SELECT 'pfwDB.pfw_batch_step_execution' AS check_name, COUNT(*) AS row_count FRO
 SELECT 'pfwDB.pfw_batch_lock' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_lock;
 SELECT 'pfwDB.pfw_batch_operation_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_operation_log;
 SELECT 'pfwDB.pfw_batch_ghost_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_ghost_event;
-SELECT 'pfwDB.pfw_center_cut_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_center_cut_job;
-SELECT 'pfwDB.pfw_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_center_cut_parameter;
-SELECT 'pfwDB.pfw_center_cut_item' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_center_cut_item;
-SELECT 'pfwDB.pfw_center_cut_result' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_center_cut_result;
+SELECT 'pfwDB.bat_center_cut_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_job;
+SELECT 'pfwDB.bat_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_parameter;
+SELECT 'pfwDB.bat_center_cut_item' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_item;
+SELECT 'pfwDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_result;
 SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
 SELECT 'pfwDB.pfw_notification_rule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_rule;
 SELECT 'pfwDB.pfw_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_delivery_log;

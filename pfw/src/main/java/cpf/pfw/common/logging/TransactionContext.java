@@ -8,6 +8,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -78,6 +79,8 @@ public final class TransactionContext {
     private static final String MDC_DYNAMIC_LOG_LEVEL = "dynamicLogLevel";
     private static final DateTimeFormatter FALLBACK_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     private static final AtomicLong FALLBACK_SEQUENCE = new AtomicLong();
+    private static final ThreadLocal<Map<String, Object>> FALLBACK_ATTRIBUTES =
+            ThreadLocal.withInitial(HashMap::new);
 
     private TransactionContext() {
     }
@@ -164,12 +167,7 @@ public final class TransactionContext {
     }
 
     public static TransactionHeader currentHeader() {
-        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            return null;
-        }
-
-        Object value = attributes.getAttribute(ATTR_HEADER, RequestAttributes.SCOPE_REQUEST);
+        Object value = getAttribute(ATTR_HEADER);
         return value instanceof TransactionHeader transactionHeader ? transactionHeader : null;
     }
 
@@ -178,14 +176,9 @@ public final class TransactionContext {
     }
 
     public static int nextSequenceNo() {
-        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            return 1;
-        }
-
-        Object value = attributes.getAttribute(ATTR_SEQUENCE_NO, RequestAttributes.SCOPE_REQUEST);
+        Object value = getAttribute(ATTR_SEQUENCE_NO);
         int next = value instanceof Number number ? number.intValue() + 1 : 1;
-        attributes.setAttribute(ATTR_SEQUENCE_NO, next, RequestAttributes.SCOPE_REQUEST);
+        setAttribute(ATTR_SEQUENCE_NO, next);
         return next;
     }
 
@@ -292,6 +285,7 @@ public final class TransactionContext {
         MDC.remove(MDC_BUSINESS_TRANSACTION_ID);
         MDC.remove(MDC_BUSINESS_TRANSACTION_NAME);
         MDC.remove(MDC_DYNAMIC_LOG_LEVEL);
+        FALLBACK_ATTRIBUTES.remove();
     }
 
     /**
@@ -334,16 +328,24 @@ public final class TransactionContext {
         if (attributes != null) {
             attributes.setAttribute(name, value, RequestAttributes.SCOPE_REQUEST);
         }
+        FALLBACK_ATTRIBUTES.get().put(name, value);
     }
 
     private static String getAttributeAsString(String name) {
+        Object value = getAttribute(name);
+        return value != null ? value.toString() : null;
+    }
+
+    private static Object getAttribute(String name) {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            return null;
+        if (attributes != null) {
+            Object value = attributes.getAttribute(name, RequestAttributes.SCOPE_REQUEST);
+            if (value != null) {
+                return value;
+            }
         }
 
-        Object value = attributes.getAttribute(name, RequestAttributes.SCOPE_REQUEST);
-        return value != null ? value.toString() : null;
+        return FALLBACK_ATTRIBUTES.get().get(name);
     }
 
     private static String firstText(String first, String second) {

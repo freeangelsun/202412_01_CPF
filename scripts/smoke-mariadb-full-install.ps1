@@ -77,6 +77,18 @@ function ConvertTo-SafeMessage {
     return $Message
 }
 
+function Join-ProcessArguments {
+    param([string[]] $Arguments)
+
+    return ($Arguments | ForEach-Object {
+        if ($_ -match '[\s"]') {
+            '"' + ($_.Replace('\', '\\').Replace('"', '\"')) + '"'
+        } else {
+            $_
+        }
+    }) -join " "
+}
+
 function Find-MariaDbClient {
     if (-not [string]::IsNullOrWhiteSpace($ClientPath)) {
         if (Test-Path -LiteralPath $ClientPath) {
@@ -128,34 +140,57 @@ function Invoke-MariaDbText {
     $psi.RedirectStandardInput = $true
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
+    try {
+        $psi.StandardInputEncoding = [System.Text.Encoding]::UTF8
+    } catch {
+        # Windows PowerShell 5.1에는 StandardInputEncoding이 없으므로 SOURCE 파일 실행으로 우회합니다.
+    }
     $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
     $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
-    [void] $psi.ArgumentList.Add("--protocol=tcp")
-    [void] $psi.ArgumentList.Add("-h")
-    [void] $psi.ArgumentList.Add($HostName)
-    [void] $psi.ArgumentList.Add("-P")
-    [void] $psi.ArgumentList.Add($Port)
-    [void] $psi.ArgumentList.Add("-u")
-    [void] $psi.ArgumentList.Add($RootUsername)
-    [void] $psi.ArgumentList.Add("--default-character-set=utf8mb4")
-    [void] $psi.ArgumentList.Add("--batch")
-    [void] $psi.ArgumentList.Add("--raw")
-    [void] $psi.ArgumentList.Add("--skip-column-names")
+    $arguments = @(
+        "--protocol=tcp",
+        "-h",
+        $HostName,
+        "-P",
+        $Port,
+        "-u",
+        $RootUsername,
+        "--ssl=0",
+        "--default-character-set=utf8mb4",
+        "--batch",
+        "--raw",
+        "--skip-column-names"
+    )
     if (-not [string]::IsNullOrWhiteSpace($RootPassword)) {
+        $arguments += "--password=$RootPassword"
         $psi.EnvironmentVariables["MYSQL_PWD"] = $RootPassword
+        $psi.EnvironmentVariables["MARIADB_PWD"] = $RootPassword
     }
+    $psi.Arguments = Join-ProcessArguments $arguments
 
     $process = [System.Diagnostics.Process]::new()
     $process.StartInfo = $psi
     [void] $process.Start()
-    $process.StandardInput.Write($SqlText)
-    $process.StandardInput.Close()
+    $inputError = $null
+    try {
+        $process.StandardInput.Write($SqlText)
+    } catch {
+        $inputError = $_.Exception.Message
+    } finally {
+        try {
+            $process.StandardInput.Close()
+        } catch {
+            if ([string]::IsNullOrWhiteSpace($inputError)) {
+                $inputError = $_.Exception.Message
+            }
+        }
+    }
     $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
     $process.WaitForExit()
 
-    if ($process.ExitCode -ne 0) {
-        throw "MariaDB SQL step failed. step=$StepName exitCode=$($process.ExitCode) error=$(ConvertTo-SafeMessage $stderr)"
+    if ($process.ExitCode -ne 0 -or -not [string]::IsNullOrWhiteSpace($inputError)) {
+        throw "MariaDB SQL step failed. step=$StepName exitCode=$($process.ExitCode) inputError=$(ConvertTo-SafeMessage $inputError) error=$(ConvertTo-SafeMessage $stderr)"
     }
 
     if (-not [string]::IsNullOrWhiteSpace($stderr)) {
@@ -177,7 +212,8 @@ function Invoke-MariaDbFile {
 
     Add-Log "SQL start: $RelativePath"
     $result.sqlFiles += $RelativePath
-    $output = Invoke-MariaDbText -StepName $StepName -SqlText ([System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8))
+    $sourcePath = ((Resolve-Path -LiteralPath $path).Path).Replace("\", "/")
+    $output = Invoke-MariaDbText -StepName $StepName -SqlText "SOURCE $sourcePath;`n"
     $result.steps[$StepName] = [ordered]@{
         status = $StatusDone
         file = $RelativePath

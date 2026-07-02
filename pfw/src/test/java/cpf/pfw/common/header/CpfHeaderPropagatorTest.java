@@ -65,6 +65,36 @@ class CpfHeaderPropagatorTest {
     }
 
     @Test
+    void contextSurvivesBeforeRequestContextHolderIsBound() {
+        RequestContextHolder.resetRequestAttributes();
+        TransactionHeader header = TransactionHeader.builder()
+                .requestType("ONLINE")
+                .originalChannelCode("MOBILE")
+                .channelCode("ACC")
+                .clientAppId("cpf-smoke-client")
+                .extensionHeaders(Map.of(
+                        CpfHeaderNames.EXTENSION_1, "reserved-one",
+                        "X-Cpf-Ext-Campaign-Id", "CMP-SMOKE"))
+                .build();
+
+        TransactionContext.initialize(
+                "20260702103000000ACClocal010000001",
+                "TRACE-STANDARD-HEADER-E2E",
+                "SPAN-PARENT-E2E",
+                "20260702103000000ACClocal010000001",
+                header);
+
+        Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
+
+        assertThat(TransactionContext.currentHeader()).isSameAs(header);
+        assertThat(outbound)
+                .containsEntry(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MOBILE")
+                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "ACC")
+                .containsEntry(CpfHeaderNames.EXTENSION_1, "reserved-one")
+                .containsEntry("X-Cpf-Ext-Campaign-Id", "CMP-SMOKE");
+    }
+
+    @Test
     void sensitiveHeadersAreMaskedForLogSnapshot() {
         Map<String, String> masked = CpfHeaderMasker.maskHeaders(Map.of(
                 CpfHeaderNames.AUTHORIZATION, "Bearer abc.def",

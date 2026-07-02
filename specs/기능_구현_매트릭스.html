@@ -64,12 +64,12 @@
       </thead>
       <tbody>
       <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td class="status" data-status="미검증">미검증</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code></td><td>이번 M4 작업에서는 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="미검증">미검증</td><td><code>00_all_install_and_smoke.sql</code></td><td>실제 MariaDB 전체 설치 실행 여부는 최종 리포트에 기록합니다.</td></tr>
+      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-mariadb-full-install.ps1</code>, <code>00_all_install_and_smoke.sql</code></td><td>MariaDB CLI는 감지했지만 비밀번호 환경변수가 없어 실제 전체 설치 SQL은 실행하지 않았습니다.</td></tr>
       <tr data-check-id="adm-runtime"><td>adm-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>이번 작업에서는 ADM 앱 기동 runtime smoke를 실행하지 않았습니다.</td></tr>
       <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-permission-runtime.ps1</code></td><td>V15 비밀번호 fallback 제거 후 별도 실행 필요합니다.</td></tr>
       <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>이번 작업에서는 ADM 앱 기동 후 <code>/v3/api-docs</code> runtime 검증을 실행하지 않았습니다.</td></tr>
       <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code></td><td>브라우저/Node/Playwright 환경이 필요합니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="미검증">미검증</td><td><code>.\gradlew.bat :pfw:test --offline</code></td><td>PFW source-level 테스트와 outbound 전파 테스트 대상입니다. 실제 앱 기동 후 수신-검증-로그-ADM 조회-outbound 전파 Runtime E2E는 이번 검증과 분리합니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>build/runtime-smoke/standard-header-e2e-result.json</code></td><td>표준 헤더 Runtime E2E 진입점과 결과 포맷은 준비했습니다. 앱 미기동으로 실제 수신/로그/ADM 조회/outbound 검증은 미검증입니다.</td></tr>
       <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>Redis/Kafka/MQ broker</td><td>외부 broker 연동 테스트는 이번 범위가 아닙니다.</td></tr>
       <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>이번 작업에서 전체 품질 게이트가 통과했습니다.</td></tr>
       <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>이번 작업에서 통과했습니다.</td></tr>

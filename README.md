@@ -46,6 +46,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-eviden
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-log-policy-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-standard-header-e2e.ps1
 ```
 
 실행하지 않은 검증은 완료로 기록하지 않습니다. 기능을 추가하거나 변경하면 코드, SQL, Swagger/OpenAPI, EDU 샘플, README, 관련 가이드, 기능 구현 매트릭스를 함께 현행화합니다.

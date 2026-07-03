@@ -2,6 +2,7 @@ package cpf.pfw.common.header;
 
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
+import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ public final class CpfHeaderPropagator {
         appendBusinessHeaders(headers, transactionHeader);
         appendExtensionHeaders(headers, transactionHeader);
         appendOutboundAllowed(headers);
+        appendSegmentHeaders(headers);
         return headers;
     }
 
@@ -48,6 +50,8 @@ public final class CpfHeaderPropagator {
         Map<String, String> outbound = CpfHeaderMasker.maskHeaders(outboundHeaders());
         Map<String, String> response = new LinkedHashMap<>();
         putIfHasText(response, CpfHeaderNames.TRANSACTION_ID, TransactionContext.currentTransactionId());
+        putIfHasText(response, CpfHeaderNames.ROOT_TRANSACTION_ID, TransactionSegmentContext.rootTransactionGlobalId());
+        putIfHasText(response, CpfHeaderNames.TRANSACTION_SEGMENT_ID, TransactionSegmentContext.currentSegmentId());
         putIfHasText(response, CpfHeaderNames.TRACE_ID, TransactionContext.currentTraceId());
         putIfHasText(response, CpfHeaderNames.SPAN_ID, TransactionContext.currentSpanId());
         putIfHasText(response, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, TransactionHeader::getCorrelationId));
@@ -80,6 +84,17 @@ public final class CpfHeaderPropagator {
         }
         putIfHasText(headers, CpfHeaderNames.TRACEPARENT, headerValue(transactionHeader, TransactionHeader::getTraceparent));
         putIfHasText(headers, CpfHeaderNames.TRACESTATE, headerValue(transactionHeader, TransactionHeader::getTracestate));
+    }
+
+    private static void appendSegmentHeaders(Map<String, String> headers) {
+        String currentSegmentId = TransactionSegmentContext.currentSegmentId();
+        putIfHasText(headers, CpfHeaderNames.ROOT_TRANSACTION_ID, TransactionSegmentContext.rootTransactionGlobalId());
+        putIfHasText(headers, CpfHeaderNames.TRANSACTION_SEGMENT_ID, currentSegmentId);
+        putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, currentSegmentId);
+        int callDepth = TransactionSegmentContext.currentCallDepth();
+        if (callDepth >= 0) {
+            headers.put(CpfHeaderNames.TRANSACTION_CALL_DEPTH, String.valueOf(callDepth));
+        }
     }
 
     private static void appendBusinessHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {

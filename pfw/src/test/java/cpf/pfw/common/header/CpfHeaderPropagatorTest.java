@@ -2,6 +2,7 @@ package cpf.pfw.common.header;
 
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
+import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -104,5 +105,31 @@ class CpfHeaderPropagatorTest {
         assertThat(masked).containsEntry(CpfHeaderNames.AUTHORIZATION, "****");
         assertThat(masked).containsEntry(CpfHeaderNames.API_KEY, "****");
         assertThat(masked).containsEntry(CpfHeaderNames.USER_ID, "user-1");
+    }
+
+    @Test
+    void outboundHeadersContainCurrentTransactionSegment() {
+        TransactionContext.initialize(
+                "20260703120000000ACCtrace010000001",
+                "TRACE-SEGMENT",
+                "PARENT-SPAN",
+                "20260703120000000ACCtrace010000001",
+                TransactionHeader.builder()
+                        .requestType("ONLINE")
+                        .originalChannelCode("APP")
+                        .channelCode("ACC")
+                        .build());
+        TransactionSegmentContext.push(new TransactionSegmentContext.TransactionSegmentFrame(
+                "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12",
+                "20260703120000000ACCtrace010000001",
+                0));
+
+        Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
+
+        assertThat(outbound)
+                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000ACCtrace010000001")
+                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.TRANSACTION_CALL_DEPTH, "0");
     }
 }

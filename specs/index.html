@@ -67,6 +67,7 @@
       <tr><td>BAT 단위 테스트</td><td><code>.\gradlew.bat :bat:test --offline</code></td><td>BAT smoke 서비스와 center-cut sample provider 테스트 통과</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/center-cut/실패 Job 확인</td></tr>
       <tr><td>로그 정책 runtime</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>DB 로그 정책, request/response/error 저장 정책, ADM 조회 확인</td></tr>
+      <tr><td>복합 거래 runtime</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code>, <code>scripts/smoke-adm-transaction-group-runtime.ps1</code></td><td>ACC/MBR/EXS segment 기록과 ADM 거래 그룹 목록/상세/timeline 조회 확인</td></tr>
       <tr><td>품질 gate</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>UTF-8, SQL 표준, HTML 문서, 기능 증거, 테스트 통과</td></tr>
       </tbody>
     </table>
@@ -75,7 +76,7 @@
   <section>
     <h2>표준 거래 ID</h2>
     <p><code>X-Transaction-Id</code>는 온라인 거래 전 구간에서 동일하게 전달되는 34자리 거래 글로벌 ID입니다. 규격은 <code>yyyyMMddHHmmssSSS</code> 17자리, 모듈 ID 3자리, WAS ID 7자리, 일련번호 7자리를 순서대로 조합합니다.</p>
-    <p>ADM 거래 로그와 상세 로그는 이 값을 기준으로 헤더부, 데이터부, 오류부를 연결하므로 신규 API와 배치 연계 기능은 표준 헤더 가이드와 트랜잭션 가이드를 함께 확인해야 합니다.</p>
+    <p>ADM 거래 로그와 상세 로그는 이 값을 기준으로 헤더부, 데이터부, 오류부를 연결합니다. 여러 모듈을 거치는 복합 거래는 <code>pfw_transaction_segment</code>와 <code>/adm/api/transaction-groups</code> 기준으로 구간별 수행시간과 parent 관계를 확인합니다.</p>
   </section>
 </main>
 </body>

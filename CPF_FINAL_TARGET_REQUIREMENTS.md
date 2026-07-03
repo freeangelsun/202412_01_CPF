@@ -1910,3 +1910,1247 @@ CPF의 최종 목표는 다음이다.
 확장 가능한 프레임워크
 문서와 구현이 일치하는 프레임워크
 ```
+
+---
+
+# 11. 20260703 보강 기준 — 복합 거래 Trace / ADM 거래 그룹 조회 / 운영 검색조건 상세
+
+> 이 섹션은 기존 `6.2 표준 헤더 / 거래 Context`, `6.6 로그 / 감사 / 추적성`, `6.10 외부 연계 / EXS`, `6.22 ADM 운영 콘솔`, `6.23 EDU/XYZ 실전 샘플`, `8. 마일스톤 계획`을 보강한다.  
+> 이 기준은 이후 요청서와 검수에서 우선 적용한다.  
+> 특히 ADM 거래 조회 기능은 처음부터 목록/검색/상세/마스킹/권한/감사/수행시간/헤더 검색을 포함해 설계해야 하며, 나중에 덧붙이는 방식으로 만들지 않는다.
+
+## 11.1 현재 최신 확인 상태 기준
+
+현재 최신 확인 commit 기준은 `004cc44 / 20260703_01`이다.
+
+완료/완료권으로 확인된 범위:
+
+```text
+CPF_FINAL_TARGET_REQUIREMENTS.md 최상위 기준서 편입
+표준 헤더/확장 헤더 X-Cpf-Ext-* 구조
+MariaDB full install 실검증
+표준 헤더 Runtime E2E
+center-cut PFW/BAT 소유권 보정
+XYZ 업무 DB 기반 center-cut adapter
+ADM Center-Cut 관제 API/UI/runtime smoke
+XYZ EDU DB 기반 CRUD/validation/search/sort/paging/fixture/DB slice
+ADM runtime smoke -BuildBeforeRun
+ADM permission runtime smoke
+CMN fixed-length 전문 skeleton
+```
+
+아직 미구현/부분 구현/미검증으로 남은 주요 범위:
+
+```text
+복합 거래 trace 표준
+ACC/MBR/EXS 복합 거래 샘플
+transactionGlobalId 기준 ADM 거래 그룹 목록/상세/timeline 조회
+ADM 거래 목록/검색/상세의 표준 헤더 및 확장 헤더 검색조건
+CMN fixed-length 전문 엔진 완성
+EXS REST/고정길이 전문 송수신과 ADM 송수신 조회
+ADM browser click
+최신 기준 전체 MariaDB full install 회귀
+Redis/Kafka/MQ broker 실연동
+```
+
+---
+
+# 12. 복합 거래 Trace 표준 상세
+
+## 12.1 목적
+
+CPF는 단일 API 로그를 남기는 프레임워크가 아니라, 하나의 업무 거래가 여러 주제영역을 지나며 처리되는 전체 흐름을 운영자가 추적할 수 있는 프레임워크여야 한다.
+
+필수 목표:
+
+```text
+transactionGlobalId 하나로 전체 거래 검색
+구간별 transactionSegmentId 관리
+parentSegmentId 기반 거래 트리 구성
+MAIN / SUB / SHARED / EXTERNAL 등 거래 역할 구분
+ACC / MBR / EXS / CMN / BAT / ADM / XYZ 모듈 구간 식별
+전체 수행시간과 구간별 수행시간 측정
+실패 구간과 실패 사유 식별
+ADM에서 거래 그룹 목록/상세/timeline 조회
+표준/확장 헤더 snapshot과 거래 segment 연결
+외부 연계 송수신 로그와 업무 거래 연결
+민감 헤더/민감 payload 원문 노출 금지
+```
+
+## 12.2 필수 거래 식별자
+
+| 항목 | 의미 | 필수 여부 | 비고 |
+|---|---|---:|---|
+| transactionGlobalId | 전체 업무 거래 묶음 ID | 필수 | 모든 segment에서 동일 |
+| rootTransactionGlobalId | 최초 시작 거래 ID | 권장 | 비동기/재처리 확장 대비 |
+| parentTransactionGlobalId | 부모 업무 거래 ID | 권장 | center-cut child, async event 대비 |
+| transactionSegmentId | 현재 구간 ID | 필수 | 구간별 고유값 |
+| parentSegmentId | 상위 구간 ID | 필수 | timeline/tree 구성 |
+| sequenceNo | 거래 내 발생 순번 | 필수 | 목록/상세 정렬 기준 |
+| callDepth | 호출 깊이 | 필수 | tree indentation 기준 |
+| transactionRole | MAIN/SUB/SHARED/EXTERNAL 등 | 필수 | 업무 의미 구분 |
+| direction | INBOUND/OUTBOUND/INTERNAL/RESPONSE | 필수 | 호출 방향 구분 |
+| moduleCode | 현재 처리 모듈 | 필수 | ACC/MBR/EXS 등 |
+| sourceModuleCode | 호출 주체 모듈 | 필수 | ACC→MBR에서 ACC |
+| targetModuleCode | 호출 대상 모듈 | 필수 | ACC→MBR에서 MBR |
+| apiPath | API path 또는 연계 path | 권장 | ADM 검색/상세 기준 |
+| transactionName | 거래명 | 권장 | 운영자 표시명 |
+| startedAt | 구간 시작시각 | 필수 | 수행시간 산정 |
+| endedAt | 구간 종료시각 | 필수 | 수행시간 산정 |
+| durationMs | 구간 수행시간 | 필수 | slow 구간 찾기 |
+| status | 구간 상태 | 필수 | SUCCESS/FAILED/RUNNING 등 |
+| failureYn | 실패 여부 | 필수 | 빠른 필터 |
+| failureCode | 실패 코드 | 권장 | 오류 코드 검색 |
+| failureMessageMasked | 실패 메시지 마스킹 | 권장 | 원문 민감정보 금지 |
+| externalInstitutionCode | 외부기관 코드 | EXS 필수 | EXS 연계 검색 |
+| externalTransactionId | 외부 거래 ID | EXS 권장 | 대외 거래 추적 |
+| traceId/spanId | 기술 trace 식별자 | 권장 | OpenTelemetry/로그 연계 |
+
+## 12.3 transactionRole 표준
+
+| Role | 의미 | 예시 |
+|---|---|---|
+| MAIN | 최초 유입 또는 업무 주거래 | ACC 고객 거래 시작 |
+| SUB | MAIN 처리 중 내부 하위 거래 | ACC가 MBR 조회 호출 |
+| SHARED | 공통/공유 조회 성격 거래 | MBR 회원 조회, CMN 코드 조회 |
+| EXTERNAL | 외부기관/외부 API/전문 송수신 | EXS 기관 송신 |
+| BATCH | 배치 job/step 거래 | BAT job 실행 |
+| CENTER_CUT_PARENT | center-cut 전체 job 거래 | 대량 처리 parent |
+| CENTER_CUT_CHILD | center-cut item 1건 거래 | 대량 처리 child item |
+| OPERATOR_ACTION | 운영자 조치 거래 | lock 강제해제, 재실행 요청 |
+| SYSTEM | 시스템 내부 관리 거래 | heartbeat, health |
+
+기준:
+
+```text
+MAIN은 transactionGlobalId를 시작하는 구간이다.
+SUB는 MAIN 또는 다른 SUB의 하위 업무 구간이다.
+SHARED는 업무 주거래는 아니지만 원인 분석에 필요한 공유 서비스 구간이다.
+EXTERNAL은 EXS 또는 외부기관 호출 구간이다.
+CENTER_CUT_PARENT/CHILD는 transactionGlobalId parent/child 흐름과 segment 흐름을 함께 남긴다.
+OPERATOR_ACTION은 운영자 ID, 권한, 사유, 결과, 감사 로그와 연결해야 한다.
+```
+
+## 12.4 direction 표준
+
+| Direction | 의미 |
+|---|---|
+| INBOUND | 현재 모듈이 요청을 수신한 구간 |
+| OUTBOUND | 현재 모듈이 다른 모듈/외부로 요청을 송신한 구간 |
+| INTERNAL | 모듈 내부 처리 구간 |
+| RESPONSE | 응답 반환 구간 |
+| ASYNC_PUBLISH | 이벤트/메시지 발행 구간 |
+| ASYNC_CONSUME | 이벤트/메시지 소비 구간 |
+| BATCH_STEP | 배치 step 처리 구간 |
+
+## 12.5 필수 복합 거래 샘플
+
+### 패턴 A — ACC orchestration
+
+```text
+ACC MAIN inbound
+  → ACC OUTBOUND to MBR
+    → MBR SHARED/SUB inbound
+    ← MBR response
+  → ACC resume/internal
+  → ACC OUTBOUND to EXS
+    → EXS EXTERNAL send/receive
+    ← EXS response
+← ACC final response
+```
+
+목표:
+
+```text
+ACC가 전체 거래의 주체다.
+MBR은 회원 조회/검증 shared 또는 sub 거래다.
+EXS는 외부기관 호출 external 거래다.
+transactionGlobalId는 모든 구간에서 동일하다.
+segmentId/parentSegmentId/sequenceNo/callDepth로 흐름이 재구성된다.
+ADM 목록에서 moduleFlowText = ACC → MBR → EXS 로 표시된다.
+```
+
+### 패턴 B — nested delegation
+
+```text
+ACC MAIN inbound
+  → ACC OUTBOUND to MBR
+    → MBR SUB inbound
+      → MBR OUTBOUND to EXS
+        → EXS EXTERNAL send/receive
+        ← EXS response
+    ← MBR response
+← ACC response
+```
+
+목표:
+
+```text
+ACC가 시작했지만 EXS 호출은 MBR 내부에서 발생한다.
+ADM timeline에서 MBR 하위에 EXS 구간이 보인다.
+실패 시 실패 구간이 MBR인지 EXS인지 명확히 구분된다.
+```
+
+### 패턴 C — shared + external 혼합
+
+```text
+ACC MAIN 거래
+  → MBR SHARED 회원 조회
+  → CMN SHARED 코드/정책 조회
+  → EXS EXTERNAL 외부기관 호출
+```
+
+목표:
+
+```text
+메인 거래와 공유 조회를 구분한다.
+공유 조회 실패가 전체 실패인지 부분 실패인지 정책으로 구분한다.
+운영자가 shared 구간의 지연도 확인할 수 있다.
+```
+
+## 12.6 구현 위치 기준
+
+```text
+PFW: segment/role/direction 표준, context, propagation, log contract
+ACC: 최초 MAIN 거래 샘플, orchestration 샘플
+MBR: 회원 조회/검증 SHARED/SUB 샘플
+CMN: 코드/정책 SHARED 샘플 후보
+EXS: REST/전문 EXTERNAL 샘플, 송수신 로그
+ADM: transactionGlobalId 그룹 목록/상세/timeline 조회
+EDU/XYZ: 개발자가 복사 가능한 복합 거래 예제와 smoke
+```
+
+금지:
+
+```text
+ACC가 MBR 테이블 직접 조회 금지
+MBR이 EXS 테이블 직접 조회 금지
+EXS 송수신 원문 민감정보 저장 금지
+표준 헤더 수동 하드코딩 금지
+transactionGlobalId만 같고 segment/role/duration이 없는 구조 금지
+```
+
+---
+
+# 13. ADM 거래 그룹 조회 상세 기준
+
+## 13.1 핵심 원칙
+
+ADM 거래 로그 목록은 단건 로그 나열이 아니라 `transactionGlobalId` 기준 거래 그룹 목록이어야 한다.
+
+목표:
+
+```text
+운영자가 거래ID 하나로 전체 흐름을 찾을 수 있다.
+목록에서 시작/종료/상태/전체 소요시간/실패 구간을 바로 볼 수 있다.
+상세에서 ACC→MBR→EXS 같은 호출 흐름을 timeline으로 볼 수 있다.
+표준 헤더와 확장 헤더 snapshot을 볼 수 있다.
+외부기관 송수신 로그를 같은 화면에서 연결 조회할 수 있다.
+민감 헤더와 민감 payload는 원문 노출되지 않는다.
+검색조건은 테이블과 header snapshot에 존재하는 운영 조회 가치 컬럼을 선제 분류한다.
+```
+
+## 13.2 ADM 거래 그룹 메뉴 구조
+
+권장 메뉴:
+
+```text
+ADM
+└─ 거래 관제
+   ├─ 거래 그룹 조회
+   ├─ 거래 상세/timeline
+   ├─ 오류 거래 조회
+   ├─ 지연 거래 조회
+   ├─ 외부 연계 거래 조회
+   ├─ 표준/확장 헤더 조회
+   └─ 거래 조회 감사
+```
+
+배치/center-cut/전문/외부연계는 별도 메뉴가 있더라도 transactionGlobalId로 거래 그룹 조회와 연결되어야 한다.
+
+## 13.3 거래 그룹 목록 API
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups
+```
+
+역할:
+
+```text
+transactionGlobalId 기준으로 거래를 그룹화해 목록 조회한다.
+segment 단건 로그가 여러 건 있어도 목록에서는 거래 1건으로 보인다.
+검색조건/정렬/페이징은 운영 조회 기준으로 제공한다.
+```
+
+필수 request parameter 후보:
+
+```text
+fromDateTime
+fromDateTimeTo 또는 toDateTime
+transactionGlobalId
+transactionSegmentId
+status
+failureYn
+failedModuleCode
+failedSegmentId
+transactionRole
+moduleCode
+includedModuleCode
+sourceModuleCode
+targetModuleCode
+direction
+customerNo
+memberNo
+userId
+operatorId
+channelCode
+originalChannelCode
+clientIp
+institutionCode
+externalInstitutionCode
+externalTransactionId
+apiPath
+transactionName
+errorCode
+durationMsFrom
+durationMsTo
+slowOnly
+externalOnly
+centerCutOnly
+batchOnly
+keyword
+page 또는 cursor
+size
+sort
+```
+
+검색조건 설계 기준:
+
+```text
+테이블에 컬럼이 있고 운영자가 장애 분석에 사용할 수 있으면 검색 후보로 분류한다.
+표준 헤더 snapshot에 있는 주요 값은 검색 후보로 분류한다.
+확장 헤더는 보안 정책에 맞춰 제한 검색한다.
+민감 헤더는 원문 검색/표시를 금지한다.
+```
+
+필수 목록 response field:
+
+```text
+transactionGlobalId
+transactionName
+apiPath
+originModuleCode
+moduleFlowText                  예: ACC → MBR → EXS
+rolesText                       예: MAIN / SHARED / EXTERNAL
+segmentCount
+externalCallCount
+overallStatus
+failureYn
+failedModuleCode
+failedSegmentId
+failedSegmentName
+failureCode
+failureMessageMasked
+startedAt
+endedAt
+totalDurationMs
+slowestSegmentId
+slowestModuleCode
+slowestDurationMs
+customerNoMasked
+memberNoMasked
+userIdMasked
+operatorId
+channelCode
+originalChannelCode
+clientIpMasked
+externalInstitutionCode
+externalTransactionId
+lastErrorAt
+createdAt
+updatedAt
+```
+
+목록 UI 필수 표시 컬럼:
+
+```text
+거래ID
+거래명/API
+최초 모듈
+호출 흐름
+상태
+실패 여부
+실패 구간
+시작시간
+종료시간
+전체 소요시간
+최장 지연 구간
+고객번호/회원번호 또는 마스킹 값
+채널/최초채널
+외부기관/외부거래ID
+```
+
+목록 UI 권장 기능:
+
+```text
+기본 정렬: startedAt desc
+상태 quick filter: 전체/성공/실패/부분실패/처리중
+지연 quick filter: 1초 이상/3초 이상/5초 이상/10초 이상
+외부연계 quick filter
+실패 거래만 보기
+transactionGlobalId 복사 버튼
+상세 이동 버튼
+검색조건 초기화
+검색조건 접기/펼치기
+컬럼 표시 설정 후보
+```
+
+## 13.4 거래 그룹 상세 API
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups/{transactionGlobalId}
+```
+
+필수 response field:
+
+```text
+transactionGlobalId
+rootTransactionGlobalId
+transactionName
+originModuleCode
+moduleFlowText
+overallStatus
+failureYn
+failedSegmentId
+failedModuleCode
+failureCode
+failureMessageMasked
+startedAt
+endedAt
+totalDurationMs
+segmentCount
+externalCallCount
+batchYn
+centerCutYn
+operatorActionYn
+customerNoMasked
+memberNoMasked
+userIdMasked
+operatorId
+channelCode
+originalChannelCode
+clientIpMasked
+requestId
+externalRequestId
+institutionCode
+externalTransactionId
+summaryMessage
+```
+
+상세 화면 섹션:
+
+```text
+1. 전체 요약
+2. 거래 흐름 timeline
+3. 구간별 수행시간
+4. 표준 헤더 snapshot
+5. 확장 헤더 snapshot
+6. 요청/응답 요약
+7. 오류 상세
+8. EXS 외부연계 송수신 로그
+9. 배치/center-cut child 연결
+10. 감사 로그
+11. 운영자 조치 이력
+```
+
+## 13.5 Segment 목록 API
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups/{transactionGlobalId}/segments
+```
+
+필수 field:
+
+```text
+transactionSegmentId
+parentSegmentId
+sequenceNo
+callDepth
+transactionRole
+direction
+moduleCode
+sourceModuleCode
+targetModuleCode
+apiPath
+transactionName
+status
+failureYn
+failureCode
+failureMessageMasked
+startedAt
+endedAt
+durationMs
+requestSummaryMasked
+responseSummaryMasked
+standardHeaderSnapshotId
+extensionHeaderSnapshotId
+externalLogId
+batchExecutionId
+centerCutJobId
+centerCutItemId
+traceId
+spanId
+parentSpanId
+```
+
+UI 기준:
+
+```text
+segment 목록은 sequenceNo 순서로 표시한다.
+callDepth에 따라 들여쓰기 또는 tree 구조로 표시한다.
+실패 구간은 강조한다.
+가장 오래 걸린 구간은 별도 표시한다.
+EXTERNAL 구간은 기관/endpoint/응답코드/소요시간을 같이 표시한다.
+SHARED 구간은 공통 조회임을 표시한다.
+```
+
+## 13.6 Timeline API
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups/{transactionGlobalId}/timeline
+```
+
+응답 구조 후보:
+
+```text
+transactionGlobalId
+overallStatus
+totalDurationMs
+nodes[]
+  transactionSegmentId
+  parentSegmentId
+  label
+  moduleCode
+  transactionRole
+  direction
+  status
+  durationMs
+  startedAt
+  endedAt
+  failureYn
+  children[]
+```
+
+표시 예:
+
+```text
+[ACC] MAIN inbound / 120ms
+  └─ [ACC→MBR] OUTBOUND / 80ms
+      └─ [MBR] SHARED member lookup / 45ms
+          └─ [MBR→EXS] EXTERNAL / 850ms
+              └─ [EXS] response / 20ms
+  └─ [ACC] final response / 30ms
+```
+
+## 13.7 표준 헤더 조회/검색
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups/{transactionGlobalId}/headers
+GET /adm/api/transaction-groups/{transactionGlobalId}/segments/{segmentId}/headers
+```
+
+표준 헤더 검색 후보:
+
+```text
+X-Transaction-Id 또는 transactionGlobalId
+X-Request-Id
+X-External-Request-Id
+X-User-Id
+X-Customer-No
+X-Member-No
+X-Operator-Id
+X-Channel-Code
+X-Original-Channel-Code
+X-Client-IP
+X-Institution-Code
+X-External-Transaction-Id
+traceparent
+tracestate
+correlationId
+callerService
+```
+
+표준 헤더 snapshot 표시 기준:
+
+```text
+inbound header
+resolved header
+outbound header
+response header
+각각의 생성/변경 시점
+마스킹 적용 여부
+차단/누락/검증 실패 항목
+```
+
+주의:
+
+```text
+Authorization 원문 표시 금지
+Cookie/Set-Cookie 원문 표시 금지
+X-Api-Key 원문 표시 금지
+token/secret/password/credential/signature 계열 원문 표시 금지
+```
+
+## 13.8 확장 헤더 조회/검색
+
+확장 헤더 기준:
+
+```text
+X-Cpf-Ext-1 ~ X-Cpf-Ext-5
+X-Cpf-Ext-{Key}
+```
+
+검색 후보:
+
+```text
+extHeaderKey
+extHeaderValueMasked 또는 exact value hash
+X-Cpf-Ext-1
+X-Cpf-Ext-2
+X-Cpf-Ext-3
+X-Cpf-Ext-4
+X-Cpf-Ext-5
+```
+
+설계 기준:
+
+```text
+확장 헤더는 기본 OPTIONAL이다.
+확장 헤더를 무조건 마스킹하지 않는다.
+단, key 이름이나 value가 token/auth/api-key/secret/password/credential/signature 계열이면 원문 저장/전파/검색 금지 또는 마스킹한다.
+검색 가능한 확장 헤더와 표시 가능한 확장 헤더를 정책으로 분리한다.
+value 전체 인덱싱이 부담되면 key + hash + masked value 구조를 고려한다.
+```
+
+## 13.9 외부 연계 로그 연결
+
+후보 API:
+
+```text
+GET /adm/api/transaction-groups/{transactionGlobalId}/external-logs
+GET /adm/api/external-logs
+GET /adm/api/external-logs/{externalLogId}
+```
+
+필수 field:
+
+```text
+externalLogId
+transactionGlobalId
+transactionSegmentId
+institutionCode
+endpointId
+externalTransactionId
+messageCode
+method
+urlMasked
+requestStartedAt
+responseEndedAt
+durationMs
+requestStatus
+responseStatus
+httpStatus
+externalResponseCode
+externalResponseMessageMapped
+retryCount
+timeoutMs
+failureCode
+failureMessageMasked
+requestHeaderMasked
+responseHeaderMasked
+requestPayloadMasked
+responsePayloadMasked
+```
+
+기준:
+
+```text
+EXS 송수신 로그는 transactionGlobalId/segmentId와 연결한다.
+외부기관 응답코드는 CPF 오류코드와 매핑한다.
+원문 전문/원문 payload는 권한 없이 노출하지 않는다.
+전문 원문 조회가 필요하면 별도 권한/감사/마스킹 해제 정책이 필요하다.
+```
+
+## 13.10 권한/마스킹/감사
+
+ADM 거래 조회 권한 후보:
+
+```text
+TRANSACTION_READ
+TRANSACTION_DETAIL_READ
+TRANSACTION_HEADER_READ
+TRANSACTION_PAYLOAD_READ
+TRANSACTION_PAYLOAD_UNMASK
+EXTERNAL_LOG_READ
+EXTERNAL_PAYLOAD_READ
+EXTERNAL_PAYLOAD_UNMASK
+TRANSACTION_DOWNLOAD
+```
+
+마스킹 기준:
+
+```text
+목록은 기본 마스킹
+상세도 기본 마스킹
+원문 조회는 기본 금지
+마스킹 해제는 별도 권한 + 사유 입력 + 감사 로그
+다운로드는 별도 권한 + 다운로드 감사
+```
+
+감사 로그 필수 후보:
+
+```text
+거래 상세 조회 감사 후보
+민감 헤더 조회 감사
+민감 payload 조회 감사
+마스킹 해제 감사
+다운로드 감사
+운영자 조치 감사
+검색조건 포함 여부 후보
+조회 대상 transactionGlobalId
+운영자 ID
+조회 시각
+IP
+사유
+```
+
+## 13.11 페이징/정렬/성능
+
+목록 조회 기준:
+
+```text
+기본 page size 제한
+최대 page size 제한
+기본 정렬 startedAt desc
+sort whitelist 필수
+무제한 조회 금지
+기간 조건 없는 대량 조회 제한
+대량 다운로드는 별도 job 또는 제한 기준 필요
+```
+
+권장 index 후보:
+
+```text
+transactionGlobalId
+startedAt
+status
+failureYn
+moduleCode
+sourceModuleCode
+targetModuleCode
+transactionRole
+customerNo/memberNo/userId/operatorId
+channelCode/originalChannelCode
+externalInstitutionCode/externalTransactionId
+durationMs
+apiPath
+```
+
+헤더 검색 index 후보:
+
+```text
+transactionGlobalId
+headerName
+headerValueHash
+headerValueMasked prefix 후보
+segmentId
+snapshotType
+createdAt
+```
+
+성능 기준:
+
+```text
+목록 화면은 그룹 집계 기준으로 timeout이 나지 않아야 한다.
+상세는 transactionGlobalId 단건 기준으로 segment/header/external log를 조회한다.
+대량 기간 검색은 size 제한과 기간 제한을 둔다.
+slow transaction 조회는 durationMs index를 고려한다.
+```
+
+## 13.12 ADM UI 완료 기준
+
+ADM 거래 그룹 조회 UI는 아래가 있어야 완료권이다.
+
+```text
+거래 그룹 메뉴 진입점
+검색 영역
+목록 테이블
+상세 이동
+timeline 표시
+segment 상세 표시
+header snapshot 표시
+실패 구간 표시
+전체/구간별 소요시간 표시
+민감정보 마스킹 표시
+권한 없음/조회 실패 표준 오류 처리
+정적 marker smoke
+가능하면 browser click smoke
+```
+
+미완료/부분 구현 기준:
+
+```text
+API만 있고 UI 없음 → 부분 구현
+UI 정적 영역만 있고 API 연결 없음 → 부분 구현
+목록은 있으나 transactionGlobalId 그룹이 아니라 단건 로그 나열 → 부분 구현 또는 실패
+시작/종료/상태/소요시간/실패구간 없음 → 완료 불인정
+검색조건 없이 전체 목록만 조회 → 완료 불인정
+헤더 snapshot이 상세와 연결되지 않음 → 부분 구현
+민감 헤더 원문 노출 가능성 있음 → 실패
+```
+
+---
+
+# 14. ADM 운영 기능 전체 보강 목록
+
+ADM은 CPF에서 가장 중요한 운영 접점이다. 다음 기능을 장기 목표로 관리한다.
+
+## 14.1 거래 관제
+
+```text
+거래 그룹 목록
+거래 상세
+segment timeline
+구간별 수행시간
+표준 헤더 snapshot
+확장 헤더 snapshot
+오류 상세
+외부 연계 로그
+전문 송수신 로그
+감사 로그 연결
+운영자 조치 이력
+slow transaction 조회
+failed transaction 조회
+partial failed 조회
+running/stuck transaction 후보
+```
+
+## 14.2 오류 관제
+
+```text
+오류 목록
+오류 상세
+오류코드 검색
+거래ID 연결
+module 검색
+API path 검색
+발생 시간 검색
+처리 상태
+조치자
+조치 내용
+재처리 가능 여부
+오류 빈도 통계 후보
+```
+
+## 14.3 감사 관제
+
+```text
+로그인 감사
+권한 변경 감사
+API 권한 변경 감사
+메뉴/버튼 권한 변경 감사
+마스킹 해제 감사
+다운로드 감사
+운영자 조치 감사
+배치 조치 감사
+전문 원문 조회 감사
+민감 헤더 조회 감사
+```
+
+## 14.4 권한 관제
+
+```text
+운영자 목록
+역할 목록
+메뉴 권한
+버튼 권한
+API 권한
+다운로드 권한
+마스킹 권한
+고위험 기능 권한
+권한 테스트 smoke
+ADM_ADMIN/ADM_VIEWER 기준 runtime 검증
+```
+
+## 14.5 배치/BAT 관제
+
+```text
+worker 목록
+worker 상세
+heartbeat 상태
+ghost candidate
+job execution 목록
+step execution 목록
+parameter 조회
+lock 조회
+stale lock
+중지 요청
+재실행 요청
+강제 실행 요청
+operator action audit
+```
+
+## 14.6 Center-Cut 관제
+
+```text
+center-cut job 목록
+parameter 조회
+target 조회
+result 조회
+summary count
+ready/running/success/failed/skipped/retry/stop 상태
+parent/child transactionGlobalId
+item별 실패 사유
+payload masking
+운영자 조치 후보
+```
+
+## 14.7 EXS/전문 관제
+
+```text
+기관 목록
+endpoint 목록
+송신 로그
+수신 로그
+전문 송신 로그
+전문 수신 로그
+timeout/retry 이력
+응답 코드 매핑
+외부거래ID 검색
+기관코드 검색
+messageCode 검색
+payload masking
+전문 원문 조회 권한/감사 후보
+```
+
+## 14.8 Cache/Policy/Security 관제
+
+```text
+cache 상태
+cache refresh
+정책 목록
+정책 상세
+정책 변경 이력
+보안 설정 조회
+secret 노출 점검 후보
+로그 정책 조회
+마스킹 정책 조회
+feature flag 후보
+```
+
+---
+
+# 15. SQL/DB 보강 기준 — ADM 거래 조회 중심
+
+## 15.1 거래 그룹 저장 구조 후보
+
+선호 구조:
+
+```text
+pfw_transaction_group
+pfw_transaction_segment
+pfw_transaction_header_snapshot
+pfw_transaction_extension_header_snapshot
+pfw_transaction_error
+exs_external_exchange_log
+adm_operator_action_log
+```
+
+단, 기존 테이블이 있으면 기존 구조를 최대한 살리고 migration으로 확장한다.
+
+## 15.2 pfw_transaction_group 후보 컬럼
+
+```text
+transaction_global_id PK
+root_transaction_global_id
+transaction_name
+api_path
+origin_module_code
+module_flow_text
+overall_status
+failure_yn
+failed_segment_id
+failed_module_code
+failure_code
+failure_message_masked
+started_at
+ended_at
+total_duration_ms
+segment_count
+external_call_count
+customer_no_masked
+member_no_masked
+user_id_masked
+operator_id
+channel_code
+original_channel_code
+client_ip_masked
+external_institution_code
+external_transaction_id
+created_at
+updated_at
+```
+
+## 15.3 pfw_transaction_segment 후보 컬럼
+
+```text
+transaction_segment_id PK
+transaction_global_id
+parent_segment_id
+sequence_no
+call_depth
+transaction_role
+direction
+module_code
+source_module_code
+target_module_code
+api_path
+transaction_name
+status
+failure_yn
+failure_code
+failure_message_masked
+started_at
+ended_at
+duration_ms
+trace_id
+span_id
+parent_span_id
+standard_header_snapshot_id
+extension_header_snapshot_id
+external_log_id
+batch_execution_id
+center_cut_job_id
+center_cut_item_id
+created_at
+updated_at
+```
+
+## 15.4 header snapshot 후보 컬럼
+
+```text
+snapshot_id PK
+transaction_global_id
+transaction_segment_id
+snapshot_type       INBOUND / RESOLVED / OUTBOUND / RESPONSE
+header_name
+header_value_masked
+header_value_hash
+sensitive_yn
+blocked_yn
+created_at
+```
+
+주의:
+
+```text
+header value 원문 저장 금지
+검색이 필요한 값은 hash 또는 normalized value 정책 검토
+민감 헤더는 원문/검색값 모두 제한
+```
+
+---
+
+# 16. 다음 요청서 우선순위 보강
+
+다음 요청서는 아래를 필수 축으로 삼는다.
+
+```text
+1. PFW 복합 거래 trace 표준 최소 구현
+2. ACC/MBR/EXS 복합 거래 샘플 최소 1개 runtime smoke
+3. transactionGlobalId 기준 ADM 거래 그룹 목록/상세/timeline API
+4. ADM 목록 필수 필드: 시작시간, 종료시간, 상태, 소요시간, 실패 구간, 호출 흐름
+5. ADM 검색조건: 테이블/header snapshot 기반 운영 조회 가치 컬럼 선제 분류
+6. 표준 헤더/확장 헤더 검색과 마스킹 정책
+7. 구간별 수행시간과 slow/failure segment 표시
+8. CMN fixed-length 전문 엔진 보강은 착수/보강 범위
+9. EXS 송수신 로그 연결은 후보 설계 또는 부분 구현
+```
+
+완료 기준:
+
+```text
+transactionGlobalId 하나로 전체 복합 거래가 조회된다.
+segmentId/parentSegmentId/role/direction/module/duration이 기록된다.
+ADM 거래 그룹 목록이 단건 로그 나열이 아니라 그룹 조회다.
+목록에 시작/종료/상태/전체 소요시간/실패 구간이 보인다.
+검색조건/정렬/페이징이 있다.
+표준 헤더 주요 필드가 검색/상세 후보로 반영된다.
+민감 헤더/민감 payload 원문 노출이 없다.
+Runtime smoke와 ADM smoke가 있다.
+실행하지 않은 검증은 미검증으로 기록한다.
+```
+
+완료 불인정:
+
+```text
+transactionGlobalId만 있고 segment/timeline 없음
+목록이 로그 단건 나열임
+수행시간/시작/종료/상태/실패구간 없음
+검색조건이 부족하거나 header 검색이 없음
+sort whitelist 없음
+민감 헤더 원문 노출 가능
+ACC/MBR/EXS 복합 거래 샘플 runtime 검증 없음
+ADM UI/API 상태를 완료로 과장
+SQL/Flyway/all_install 누락
+리포트/기능 매트릭스 불일치
+```
+
+---
+
+# 17. 최종 목표 추가 후보 — 기존 문서에 더 보강할 기능
+
+아래는 기존 기준서에 더 명시하면 좋은 후보들이다.
+
+## 17.1 Transaction Analytics 후보
+
+```text
+거래 처리량 추이
+평균/최대/percentile 소요시간
+모듈별 오류율
+기관별 timeout 건수
+API별 slow ranking
+실패 구간 ranking
+center-cut 실패 item ranking
+batch 실패 job ranking
+```
+
+초기에는 통계 화면까지 구현하지 않아도, 로그 구조는 통계 확장이 가능해야 한다.
+
+## 17.2 운영자 저장 검색조건 후보
+
+```text
+운영자 개인별 저장 검색조건
+공용 검색조건
+즐겨찾기 필터
+최근 검색조건
+실패 거래 quick filter
+slow 거래 quick filter
+외부연계 거래 quick filter
+```
+
+## 17.3 Alert/Notification 연계 후보
+
+```text
+slow transaction threshold 알림
+EXS timeout 알림
+batch ghost 알림
+lock stale 알림
+center-cut failed threshold 알림
+broker 장애 알림
+ADM 알림 이력 조회
+```
+
+## 17.4 SLO/SLA 후보
+
+```text
+API별 목표 응답시간
+기관별 timeout 기준
+batch job 목표 완료시간
+center-cut 처리량 기준
+오류율 기준
+SLO 위반 로그
+ADM SLO 위반 조회 후보
+```
+
+## 17.5 Data Export 후보
+
+```text
+거래 목록 다운로드
+오류 목록 다운로드
+감사 로그 다운로드
+EXS 송수신 목록 다운로드
+개인정보 포함 여부 표시
+다운로드 권한
+다운로드 사유
+다운로드 감사
+대량 다운로드 비동기 job 후보
+```
+
+## 17.6 운영 조치 후보
+
+```text
+거래 재처리 요청 후보
+EXS 재송신 요청 후보
+batch 재실행
+center-cut item retry
+lock 강제 해제
+ghost 확정 처리
+cache refresh
+policy reload
+마스킹 해제 승인
+2인 승인
+운영자 조치 감사
+```
+
+## 17.7 Security Hardening 후보
+
+```text
+관리자 IP 제한 후보
+MFA 후보
+권한 상승 감사
+휴면 운영자 잠금
+비밀번호 정책
+세션 timeout
+동시 로그인 정책
+API 권한 누락 점검
+민감정보 스캔 smoke 후보
+```
+
+---
+
+# 18. 검수자가 반드시 확인할 항목
+
+검수 시 아래를 빠뜨리지 않는다.
+
+```text
+Codex 보고와 실제 GitHub master 일치 여부
+작업 범위 관련 파일 전수 확인
+Controller-Service-Repository/Mapper-DTO-SQL-Test 연결
+SQL split/Flyway/all_install/smoke 정합성
+기능 매트릭스 상태값 과장 여부
+CPF_STABILIZATION_REPORT.md와 실제 파일 일치 여부
+evidence 경로 실제 존재 여부
+실행한 검증과 미실행 검증 분리
+Runtime smoke 로그 또는 결과 파일 존재 여부
+민감정보 원문 기록 여부
+ADM UI가 API와 실제 연결되는지 여부
+거래 목록이 그룹 조회인지 단건 나열인지 여부
+검색조건과 목록 필드가 운영 가치 컬럼을 반영했는지 여부
+표준/확장 헤더 검색과 마스킹이 반영됐는지 여부
+```
+
+---
+
+# 19. 새 세션 인수인계 요약
+
+새 세션에서 이어갈 때는 아래 요약을 우선 적용한다.
+
+```text
+최신 확인 commit: 004cc44 / 20260703_01
+완료권: 기준서, 표준/확장 헤더, MariaDB full install, standard-header E2E, center-cut 소유권, XYZ center-cut adapter, ADM center-cut 관제, XYZ EDU DB CRUD, ADM BuildBeforeRun/permission runtime, CMN fixed-length skeleton
+다음 핵심: 복합 거래 trace 표준 + ACC/MBR/EXS 샘플 + ADM transactionGlobalId 그룹 목록/상세/timeline + ADM 검색조건/헤더검색/수행시간/실패구간 + CMN 전문 엔진 보강
+요청서 크기: 기존보다 1.5~2배 가능
+검증 강도: 낮추지 않음
+완료 판정: 실행 증적/파일/SQL/smoke/리포트/매트릭스 기준
+```

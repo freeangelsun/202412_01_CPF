@@ -141,6 +141,7 @@ DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 -- ============================================================================
@@ -326,6 +327,55 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log_detail (
     INDEX ix_pfw_transaction_log_detail_log_idx (LOG_IDX),
     INDEX ix_pfw_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 상세 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
+    segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
+    transaction_segment_id VARCHAR(120) NOT NULL COMMENT '거래 구간 ID',
+    transaction_global_id VARCHAR(100) NOT NULL COMMENT '전체 거래 묶음 ID',
+    root_transaction_global_id VARCHAR(100) NULL COMMENT '최초 진입 거래 ID',
+    parent_transaction_global_id VARCHAR(100) NULL COMMENT '부모 거래 ID',
+    parent_segment_id VARCHAR(120) NULL COMMENT '상위 거래 구간 ID',
+    transaction_role VARCHAR(40) NOT NULL COMMENT '구간 역할',
+    module_code VARCHAR(20) NOT NULL COMMENT '현재 처리 모듈 코드',
+    source_module_code VARCHAR(20) NULL COMMENT '호출 출발 모듈 코드',
+    target_module_code VARCHAR(20) NULL COMMENT '호출 대상 모듈 코드',
+    direction VARCHAR(20) NOT NULL COMMENT '구간 처리 방향',
+    call_depth INT NOT NULL DEFAULT 0 COMMENT '호출 깊이',
+    sequence_no INT NOT NULL DEFAULT 1 COMMENT '거래 내 구간 순번',
+    api_path VARCHAR(500) NULL COMMENT '처리 API 경로',
+    transaction_name VARCHAR(200) NULL COMMENT '거래 구간명',
+    started_at DATETIME(6) NOT NULL COMMENT '구간 시작 일시',
+    ended_at DATETIME(6) NULL COMMENT '구간 종료 일시',
+    duration_ms BIGINT NULL COMMENT '구간 수행시간 밀리초',
+    status VARCHAR(30) NOT NULL DEFAULT 'RUNNING' COMMENT '구간 처리 상태',
+    failure_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실패 여부',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message_masked VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    request_header_snapshot_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 헤더 snapshot',
+    response_header_snapshot_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 헤더 snapshot',
+    extension_header_snapshot_masked MEDIUMTEXT NULL COMMENT '마스킹된 확장 헤더 snapshot',
+    customer_no_masked VARCHAR(80) NULL COMMENT '마스킹된 고객번호',
+    member_no_masked VARCHAR(80) NULL COMMENT '마스킹된 회원번호',
+    channel_code VARCHAR(30) NULL COMMENT '현재 채널 코드',
+    original_channel_code VARCHAR(30) NULL COMMENT '최초 유입 채널 코드',
+    external_institution_code VARCHAR(50) NULL COMMENT '외부기관 코드',
+    external_transaction_id VARCHAR(120) NULL COMMENT '외부기관 거래 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
+    PRIMARY KEY (segment_id),
+    UNIQUE KEY uk_pfw_transaction_segment_id (transaction_segment_id),
+    INDEX ix_pfw_transaction_segment_global (transaction_global_id, started_at, segment_id),
+    INDEX ix_pfw_transaction_segment_parent (parent_segment_id),
+    INDEX ix_pfw_transaction_segment_module (module_code, started_at),
+    INDEX ix_pfw_transaction_segment_role (transaction_role, direction),
+    INDEX ix_pfw_transaction_segment_status (failure_yn, status, started_at),
+    INDEX ix_pfw_transaction_segment_duration (duration_ms),
+    INDEX ix_pfw_transaction_segment_customer (customer_no_masked, started_at),
+    INDEX ix_pfw_transaction_segment_member (member_no_masked, started_at),
+    INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
 
 CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
     transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 ID',
@@ -4037,6 +4087,7 @@ WHERE NOT EXISTS (
 
 SELECT 'pfwDB.pfw_transaction_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log;
 SELECT 'pfwDB.pfw_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log_detail;
+SELECT 'pfwDB.pfw_transaction_segment' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_segment;
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;

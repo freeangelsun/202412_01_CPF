@@ -53,6 +53,9 @@ cpf:
     adm:
       base-url: ${CPF_SERVICE_ADM_URL:${CPF_SERVICE_ADM_URL:http://localhost:8090}}
       description: ADM service
+    exs:
+      base-url: ${CPF_SERVICE_EXS_URL:${CPF_SERVICE_EXS_URL:http://localhost:8092}}
+      description: EXS service
 
 ---
 # prod에서는 DB 접속정보 기본값을 제거하고 배포 환경에서 반드시 주입합니다.

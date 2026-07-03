@@ -9,13 +9,19 @@ import java.util.Map;
  */
 public class FixedLengthMessageFormatter {
     private final FixedLengthMaskingRule maskingRule;
+    private final FixedLengthTypeConverter typeConverter;
 
     public FixedLengthMessageFormatter() {
-        this(new FixedLengthMaskingRule());
+        this(new FixedLengthMaskingRule(), new FixedLengthTypeConverter());
     }
 
     public FixedLengthMessageFormatter(FixedLengthMaskingRule maskingRule) {
+        this(maskingRule, new FixedLengthTypeConverter());
+    }
+
+    public FixedLengthMessageFormatter(FixedLengthMaskingRule maskingRule, FixedLengthTypeConverter typeConverter) {
         this.maskingRule = maskingRule;
+        this.typeConverter = typeConverter;
     }
 
     public FixedLengthFormatResult format(Map<String, ?> values, FixedLengthLayoutSpec layout) {
@@ -27,7 +33,7 @@ public class FixedLengthMessageFormatter {
         Map<String, String> maskedFields = new LinkedHashMap<>();
 
         for (FixedLengthFieldSpec field : layout.fields()) {
-            String value = stringValue(values.get(field.name()));
+            String value = typeConverter.format(field, values.get(field.name()));
             if (field.required() && value.isBlank()) {
                 throw new IllegalArgumentException("필수 필드 값이 비어 있습니다. name=" + field.name());
             }
@@ -60,7 +66,4 @@ public class FixedLengthMessageFormatter {
         System.arraycopy(fieldBytes, 0, messageBytes, copyStart, fieldBytes.length);
     }
 
-    private String stringValue(Object value) {
-        return value == null ? "" : String.valueOf(value);
-    }
 }

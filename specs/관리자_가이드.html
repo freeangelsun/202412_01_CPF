@@ -33,6 +33,7 @@
       <tr><td>권한 관리</td><td><code>/adm/api/permissions</code></td><td><code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code>, <code>adm_role_api_permission</code></td><td>역할, 메뉴, 버튼, API 권한을 분리하고 서버에서 검사합니다. 권한 변경은 감사 사유와 before/after를 남깁니다.</td></tr>
       <tr><td>회원 관리</td><td><code>/adm/api/members</code></td><td><code>mbr_member</code>, <code>mbr_member_role</code></td><td>회원 목록, 상세, 등록, 수정, 상태 변경, 권한 변경 이력을 조회합니다.</td></tr>
       <tr><td>로그 관제</td><td><code>/adm/api/logs</code></td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_log_detail</code>, <code>adm_audit_log</code></td><td>거래 ID, trace ID, 업무 거래 ID, URI, 응답코드, 사용자, 채널, 성공/실패 조건으로 검색합니다.</td></tr>
+      <tr><td>복합 거래 그룹</td><td><code>/adm/api/transaction-groups</code></td><td><code>pfw_transaction_segment</code></td><td>하나의 <code>transactionGlobalId</code> 아래 ACC, MBR, EXS segment 목록, timeline, 헤더 스냅샷, 외부 연계 로그를 조회합니다.</td></tr>
       <tr><td>통합 추적</td><td><code>/adm/api/observability</code></td><td><code>pfw_transaction_log</code>, <code>adm_audit_log</code>, <code>pfw_log_policy_audit</code>, <code>pfw_batch_execution</code></td><td>거래 글로벌 ID, trace ID, 업무 거래 ID 중 하나로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 관련 배치 실행을 한 응답으로 조회합니다.</td></tr>
       <tr><td>거래 메타</td><td><code>/adm/api/transactions</code></td><td><code>pfw_transaction_meta</code></td><td>온라인 Controller/API 메타를 조회하고 재스캔하거나 미사용 거래를 비활성화합니다.</td></tr>
       <tr><td>로그 정책</td><td><code>/adm/api/log-policies</code>, <code>/adm/api/log-policy-audits</code></td><td><code>pfw_log_policy</code>, <code>pfw_log_policy_override</code>, <code>pfw_log_policy_audit</code></td><td>기본 로그 정책과 기간/사유 기반 임시 override를 관리합니다. 정책 저장, 수정, override 등록/중지는 현재 인스턴스 cache를 evict하고, 필요 시 <code>/adm/api/log-policies/cache/refresh</code> 또는 <code>/adm/api/log-policies/cache/clear</code>로 명시 반영합니다. 정책 변경 감사는 <code>/adm/api/log-policy-audits</code>로 조회하고, 캐시 refresh/clear는 별도 버튼 권한(<code>LOG_POLICY_CACHE_REFRESH</code>, <code>LOG_POLICY_CACHE_CLEAR</code>)과 서버 권한검사를 통과해야 합니다.</td></tr>
@@ -68,6 +69,7 @@
       </thead>
       <tbody>
       <tr><td>온라인 거래</td><td><code>/adm/api/logs</code>로 거래 로그 목록과 상세를 조회하고 <code>/adm/api/transactions</code>로 거래 메타를 조회합니다. JSON pretty와 기본 고정길이 전문 분해 결과를 함께 제공합니다.</td><td>부분 구현</td><td>거래 메타 브라우저 UX와 대량 운영 검증은 아직 다음 보강 대상입니다.</td></tr>
+      <tr><td>복합 거래</td><td><code>/adm/api/transaction-groups</code>로 전체 거래 묶음을 검색하고 <code>/segments</code>, <code>/timeline</code>, <code>/headers</code>, <code>/external-logs</code>로 구간별 원인을 분리합니다.</td><td>부분 구현</td><td>API와 smoke 스크립트는 추가됐고, 브라우저 timeline UX 검증은 다음 단계입니다.</td></tr>
       <tr><td>온라인 오류</td><td><code>pfw_transaction_log</code>의 실패 레코드와 상세 로그에서 오류 코드, 메시지, 내부/외부 메시지를 확인합니다.</td><td>부분 구현</td><td>별도 <code>pfw_error_log</code> 테이블은 없습니다.</td></tr>
       <tr><td>감사</td><td><code>/adm/api/audit-logs</code>와 <code>adm_audit_log</code>로 운영 조치 사유, before/after, diff를 조회합니다.</td><td>부분 구현</td><td>모든 업무 변경 API까지 감사 강제 범위를 넓히는 작업은 남아 있습니다.</td></tr>
       <tr><td>정책 감사</td><td><code>/adm/api/log-policy-audits</code>와 <code>pfw_log_policy_audit</code>로 로그 정책 생성, 수정, override, 중지, refresh 이력을 조회합니다.</td><td>부분 구현</td><td>일반 감사와 저장소를 분리합니다. 통합 추적 API는 같은 업무 거래 ID 기준으로 정책 감사 후보를 함께 반환합니다.</td></tr>
@@ -124,6 +126,7 @@
       <tr><td>ADM runtime smoke</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 운영자/권한/캐시/메시지/코드/설정 조회 API, 배치 API, 거래 메타 scan/list/detail, cleanup을 검증합니다.</td></tr>
       <tr><td>거래 메타 runtime smoke</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>기동 중인 ADM에 로그인하거나 전달받은 토큰을 사용해 <code>/adm/api/transactions/scan</code>, 목록, 상세 조회를 검증합니다.</td></tr>
       <tr><td>로그 정책 runtime smoke</td><td><code>scripts/smoke-log-policy-runtime.ps1</code></td><td>로그 정책 override, cache refresh, <code>dbLogEnabled=N</code> 적용, override 해제 후 fallback 저장 재개, request/response/error stack 저장 제외, <code>transactionGlobalId</code>/trace ID/업무 거래 ID 기반 ADM 로그 조회, 통합 추적 API, 일반 감사 API, 정책 감사 API를 검증합니다.</td></tr>
+      <tr><td>복합 거래 runtime smoke</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code>, <code>scripts/smoke-adm-transaction-group-runtime.ps1</code></td><td>ACC→MBR→ACC→EXS→ACC runtime 거래 생성과 ADM transaction group 목록/상세/timeline/header 조회를 검증합니다.</td></tr>
       <tr><td>BAT runtime smoke</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT jar 기동, health, 정상/heartbeat/실패 Job, CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>운영 runbook</td><td><a href="운영_매뉴얼.html">운영 매뉴얼</a></td><td>구동, 중지, 장애 복구, 미검증 보고 원칙을 따릅니다.</td></tr>
       </tbody>

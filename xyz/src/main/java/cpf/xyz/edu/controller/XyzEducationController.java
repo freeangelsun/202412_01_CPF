@@ -43,7 +43,7 @@ public class XyzEducationController {
                         Map.of("name", "Fixed length", "apis", List.of("POST /xyz/edu/fixed-length/marshal", "POST /xyz/edu/fixed-length/unmarshal")),
                         Map.of("name", "Service call", "apis", List.of("GET /xyz/edu/service-call/mbr-detail", "GET /xyz/edu/webclient/external-get")),
                         Map.of("name", "File exchange", "apis", List.of("POST /xyz/edu/file-exchange/local/write", "POST /xyz/edu/file-exchange/transfer-plan")),
-                        Map.of("name", "Transaction", "apis", List.of("POST /xyz/edu/transaction/single", "POST /xyz/edu/transaction/separated")),
+                        Map.of("name", "Transaction", "apis", List.of("POST /xyz/edu/transaction/single", "POST /xyz/edu/transaction/separated", "GET /xyz/edu/transactions/composite-sample")),
                         Map.of("name", "Dynamic log", "apis", List.of("PUT /xyz/edu/admin/log-level", "GET /xyz/edu/admin/log-level")),
                         Map.of("name", "Security", "apis", List.of("GET /xyz/edu/security/crypto/basic", "POST /xyz/edu/security/jwt/create", "GET /xyz/edu/security/oauth/introspect")),
                         Map.of("name", "CMN business", "apis", List.of("POST /xyz/edu/cmn-business/sequence/issue", "POST /xyz/edu/cmn-business/notification-log", "POST /xyz/edu/cmn-business/business-log")),

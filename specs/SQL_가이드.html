@@ -29,7 +29,7 @@
       <tr><th>DB</th><th>소유 영역</th><th>주요 테이블</th><th>주의</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_log_policy</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code>, <code>bat_center_cut_*</code></td><td>업무 데이터 저장소로 사용하지 않습니다.</td></tr>
+      <tr><td><code>pfwDB</code></td><td>프레임워크 코어와 운영 메타</td><td><code>pfw_transaction_log</code>, <code>pfw_transaction_segment</code>, <code>pfw_log_policy</code>, <code>pfw_message</code>, <code>pfw_response_code</code>, <code>pfw_config</code>, <code>BATCH_*</code>, <code>pfw_batch_*</code>, <code>bat_center_cut_*</code></td><td>업무 데이터 저장소로 사용하지 않습니다.</td></tr>
       <tr><td><code>cmnDB</code></td><td>프로젝트 업무 공통</td><td><code>cmn_sequence</code>, <code>cmn_notification_log</code>, <code>cmn_business_log</code>, <code>cmn_edu_query_item</code></td><td>프로젝트에서 필요할 때 optional datasource로 붙입니다.</td></tr>
       <tr><td><code>admDB</code></td><td>운영자 권한과 감사</td><td><code>adm_operator</code>, <code>adm_role</code>, <code>adm_menu</code>, <code>adm_button</code>, <code>adm_api_permission</code>, <code>adm_audit_log</code></td><td>운영 행위 변경은 감사 사유와 before/after diff를 남깁니다.</td></tr>
       <tr><td><code>mbrDB</code></td><td>회원 업무</td><td><code>mbr_member</code>, <code>mbr_member_role</code>, <code>mbr_member_login_history</code>, <code>mbr_refresh_token</code></td><td>ADM은 운영 API로 관리하지만 회원 데이터 소유권은 MBR에 있습니다.</td></tr>
@@ -71,6 +71,22 @@
       <tr><td>V15</td><td><code>V15__adm_api_permission_management.sql</code></td><td>ADM API 권한 관리 테이블과 seed를 추가합니다.</td></tr>
       <tr><td>V16</td><td><code>V16__batch_center_cut_standard.sql</code></td><td>M4에서 만든 center-cut 표준 초안입니다. 이력 보존을 위해 변경하지 않고 V17에서 소유권을 보정합니다.</td></tr>
       <tr><td>V17</td><td><code>V17__batch_center_cut_ownership_repair.sql</code></td><td><code>pfw_center_cut_*</code> 초안 데이터를 <code>bat_center_cut_*</code>로 이관하고 PFW 소유 테이블을 정리합니다.</td></tr>
+      <tr><td>V18</td><td><code>V18__xyz_center_cut_sample.sql</code></td><td>XYZ center-cut 교육 샘플 대상과 결과 테이블을 추가합니다.</td></tr>
+      <tr><td>V19</td><td><code>V19__transaction_segment_trace.sql</code></td><td><code>pfw_transaction_segment</code>를 추가해 복합 거래 구간, parent segment, 구간별 수행시간, 외부 연계 식별자를 저장합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>복합 거래 segment SQL 기준</h2>
+    <table>
+      <thead>
+      <tr><th>테이블</th><th>핵심 컬럼</th><th>조회 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>pfw_transaction_segment</code></td><td><code>transaction_global_id</code>, <code>transaction_segment_id</code>, <code>parent_segment_id</code>, <code>transaction_role</code>, <code>module_code</code>, <code>duration_ms</code>, <code>status</code>, <code>external_institution_code</code>, <code>external_transaction_id</code></td><td>ADM <code>/adm/api/transaction-groups</code>가 전체 묶음, segment 목록, timeline, header snapshot, external logs를 조회합니다.</td></tr>
+      <tr><td>index</td><td><code>ix_pfw_transaction_segment_global</code>, <code>ix_pfw_transaction_segment_parent</code>, <code>ix_pfw_transaction_segment_status</code>, <code>ix_pfw_transaction_segment_external</code></td><td>거래 묶음, parent tree, 실패 우선 검색, 외부기관 연계 검색에 사용합니다.</td></tr>
+      <tr><td>smoke</td><td><code>specs/sql/99_smoke_check.sql</code></td><td>설치 후 테이블 존재와 row count를 조회합니다. 실제 runtime 검증은 <code>scripts/smoke-composite-transaction-runtime.ps1</code>와 <code>scripts/smoke-adm-transaction-group-runtime.ps1</code>를 사용합니다.</td></tr>
       </tbody>
     </table>
   </section>

@@ -16,6 +16,10 @@ import java.util.Map;
 public class TransactionHeader {
     String parentTransactionId;
     String originalTransactionId;
+    String rootTransactionGlobalId;
+    String transactionSegmentId;
+    String parentSegmentId;
+    String callDepth;
     String requestId;
     String externalRequestId;
     String apiVersion;

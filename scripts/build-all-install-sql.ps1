@@ -130,6 +130,7 @@ DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 "@

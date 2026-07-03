@@ -10,6 +10,10 @@ public final class CpfHeaderNames {
     public static final String TRANSACTION_ID = "X-Transaction-Id";
     public static final String PARENT_TRANSACTION_ID = "X-Parent-Transaction-Id";
     public static final String ORIGINAL_TRANSACTION_ID = "X-Original-Transaction-Id";
+    public static final String ROOT_TRANSACTION_ID = "X-Root-Transaction-Id";
+    public static final String TRANSACTION_SEGMENT_ID = "X-Transaction-Segment-Id";
+    public static final String PARENT_TRANSACTION_SEGMENT_ID = "X-Parent-Transaction-Segment-Id";
+    public static final String TRANSACTION_CALL_DEPTH = "X-Transaction-Call-Depth";
     public static final String REQUEST_ID = "X-Request-Id";
     public static final String EXTERNAL_REQUEST_ID = "X-External-Request-Id";
     public static final String CORRELATION_ID = "X-Correlation-Id";

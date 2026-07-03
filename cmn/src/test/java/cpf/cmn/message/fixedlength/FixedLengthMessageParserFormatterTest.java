@@ -38,4 +38,21 @@ class FixedLengthMessageParserFormatterTest {
                 .containsEntry("amount", "123");
         assertThat(parsed.maskedFields().get("accountNo")).isEqualTo("1********0");
     }
+
+    @Test
+    void registryAndTypeValidationExposeFieldErrors() {
+        FixedLengthLayoutSpec layout = FixedLengthLayoutSpec.utf8(
+                16,
+                List.of(
+                        new FixedLengthFieldSpec("baseDate", 1, 8, FixedLengthFieldType.DATE, true, '0', FixedLengthAlignment.RIGHT, false),
+                        new FixedLengthFieldSpec("amount", 9, 8, FixedLengthFieldType.NUMBER, true, '0', FixedLengthAlignment.RIGHT, false)));
+        FixedLengthLayoutRegistry registry = new FixedLengthLayoutRegistry();
+        registry.register("EDU_FIXED_001", layout);
+
+        FixedLengthMessageParser parser = new FixedLengthMessageParser();
+        FixedLengthParseResult result = parser.parse("2026023000000100", registry.require("EDU_FIXED_001"));
+
+        assertThat(result.valid()).isFalse();
+        assertThat(result.errors()).anyMatch(error -> error.contains("FIXED_FIELD_TYPE_INVALID"));
+    }
 }

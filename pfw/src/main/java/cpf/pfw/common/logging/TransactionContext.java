@@ -2,6 +2,7 @@ package cpf.pfw.common.logging;
 
 import cpf.pfw.common.header.CpfHeaderNames;
 import cpf.pfw.common.header.CpfHeaderPropagator;
+import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 import org.slf4j.MDC;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -18,6 +19,10 @@ public final class TransactionContext {
     public static final String HEADER_TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
     public static final String HEADER_PARENT_TRANSACTION_ID = CpfHeaderNames.PARENT_TRANSACTION_ID;
     public static final String HEADER_ORIGINAL_TRANSACTION_ID = CpfHeaderNames.ORIGINAL_TRANSACTION_ID;
+    public static final String HEADER_ROOT_TRANSACTION_ID = CpfHeaderNames.ROOT_TRANSACTION_ID;
+    public static final String HEADER_TRANSACTION_SEGMENT_ID = CpfHeaderNames.TRANSACTION_SEGMENT_ID;
+    public static final String HEADER_PARENT_TRANSACTION_SEGMENT_ID = CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID;
+    public static final String HEADER_TRANSACTION_CALL_DEPTH = CpfHeaderNames.TRANSACTION_CALL_DEPTH;
     public static final String HEADER_REQUEST_ID = CpfHeaderNames.REQUEST_ID;
     public static final String HEADER_EXTERNAL_REQUEST_ID = CpfHeaderNames.EXTERNAL_REQUEST_ID;
     public static final String HEADER_TRACE_ID = CpfHeaderNames.TRACE_ID;
@@ -285,6 +290,7 @@ public final class TransactionContext {
         MDC.remove(MDC_BUSINESS_TRANSACTION_ID);
         MDC.remove(MDC_BUSINESS_TRANSACTION_NAME);
         MDC.remove(MDC_DYNAMIC_LOG_LEVEL);
+        TransactionSegmentContext.clear();
         FALLBACK_ATTRIBUTES.remove();
     }
 

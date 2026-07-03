@@ -50,6 +50,7 @@
       <tr><td>현재 회원/고객/채널 조회</td><td><code>TransactionContext.memberNo()</code>, <code>customerNo()</code>, <code>channelCode()</code></td><td>요청 DTO와 헤더 값이 충돌하면 업무 정책을 명확히 정합니다.</td></tr>
       <tr><td>업무 처리 중 헤더 보정</td><td><code>CpfHeaderMutator.put(...)</code></td><td>거래 ID, trace/span, 사용자 ID, 운영자 ID, Authorization, API Key는 업무 코드에서 변경할 수 없습니다. 채널 상세, 고객/회원/테넌트/조직/지점 같은 보조 식별자만 허용합니다.</td></tr>
       <tr><td>서비스 간 호출</td><td><code>CpfRestClientInterceptor</code>, WebClient filter</td><td>표준 헤더를 자동 전파하므로 업무 코드에서 반복적으로 <code>header.add</code>를 작성하지 않습니다.</td></tr>
+      <tr><td>복합 거래 구간 기록</td><td><code>TransactionSegmentService.start</code>, <code>TransactionSegmentScope</code></td><td>여러 모듈을 호출하는 업무는 MAIN, SUB, SHARED, EXTERNAL 구간을 남기고 예외 발생 시 <code>fail()</code>로 종료합니다.</td></tr>
       <tr><td>ADM 로그 상세</td><td><code>inboundHeaders</code>, resolved, outbound, response 탭</td><td>민감 헤더는 원문 저장하지 않고 마스킹된 값만 보여줍니다.</td></tr>
       </tbody>
     </table>
@@ -87,8 +88,9 @@
       <tr><td>ADM 운영 기능 작성</td><td><code>AdmPermissionController</code>, <code>AdmPermissionService</code>, <code>AdmApiAuthFilter</code></td><td>역할, 메뉴, 버튼, API 권한, 감사 사유, 서버 권한검사 연결 방식</td></tr>
       <tr><td>배치 개발</td><td><code>XyzBatchEducationController</code>, <code>BatSmokeJobConfig</code></td><td>tasklet, chunk, 수동 실행, ADM 관제 연동</td></tr>
       <tr><td>외부 API 호출</td><td><code>XyzServiceCallEducationController</code></td><td>timeout, retry, correlation id, 오류 매핑</td></tr>
+      <tr><td>복합 거래 추적</td><td><code>AccCompositeEducationController</code>, <code>MbrCompositeEducationController</code>, <code>ExsCompositeEducationController</code>, <code>XyzCompositeTransactionEducationController</code></td><td>ACC→MBR→EXS 호출에서 표준 헤더, segment ID, parent segment, ADM 거래 그룹 조회가 이어지는 방식을 학습합니다.</td></tr>
       <tr><td>파일 처리</td><td><code>XyzFileExchangeEducationController</code></td><td>확장자, 크기, path traversal, 다운로드 감사</td></tr>
-      <tr><td>전문 처리</td><td><code>XyzTelegramEducationController</code></td><td>JSON 전문과 고정길이 전문 parsing, 필드 정의</td></tr>
+      <tr><td>전문 처리</td><td><code>XyzTelegramEducationController</code>, <code>FixedLengthLayoutRegistry</code>, <code>FixedLengthTypeConverter</code></td><td>JSON 전문과 고정길이 전문 parsing, 필드 정의, 타입 변환, 필드별 오류 코드 수집</td></tr>
       <tr><td>보안 점검</td><td><code>XyzSecurityEducationController</code></td><td>SQL Injection, XSS, 마스킹, 내부 오류 노출 방지</td></tr>
       </tbody>
     </table>

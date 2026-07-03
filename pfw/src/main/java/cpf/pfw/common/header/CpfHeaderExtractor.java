@@ -29,6 +29,14 @@ public final class CpfHeaderExtractor {
         for (Map.Entry<String, String> entry : extractExtensionHeaders(request).entrySet()) {
             putIfAbsentHasText(headers, entry.getKey(), CpfHeaderMasker.mask(entry.getKey(), entry.getValue()));
         }
+        putIfHasText(headers, CpfHeaderNames.ROOT_TRANSACTION_ID,
+                CpfHeaderMasker.mask(CpfHeaderNames.ROOT_TRANSACTION_ID, request.getHeader(CpfHeaderNames.ROOT_TRANSACTION_ID)));
+        putIfHasText(headers, CpfHeaderNames.TRANSACTION_SEGMENT_ID,
+                CpfHeaderMasker.mask(CpfHeaderNames.TRANSACTION_SEGMENT_ID, request.getHeader(CpfHeaderNames.TRANSACTION_SEGMENT_ID)));
+        putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID,
+                CpfHeaderMasker.mask(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, request.getHeader(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID)));
+        putIfHasText(headers, CpfHeaderNames.TRANSACTION_CALL_DEPTH,
+                CpfHeaderMasker.mask(CpfHeaderNames.TRANSACTION_CALL_DEPTH, request.getHeader(CpfHeaderNames.TRANSACTION_CALL_DEPTH)));
         return headers;
     }
 
@@ -36,6 +44,10 @@ public final class CpfHeaderExtractor {
         return TransactionHeader.builder()
                 .parentTransactionId(header(request, CpfHeaderNames.PARENT_TRANSACTION_ID))
                 .originalTransactionId(header(request, CpfHeaderNames.ORIGINAL_TRANSACTION_ID))
+                .rootTransactionGlobalId(header(request, CpfHeaderNames.ROOT_TRANSACTION_ID))
+                .transactionSegmentId(header(request, CpfHeaderNames.TRANSACTION_SEGMENT_ID))
+                .parentSegmentId(header(request, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID))
+                .callDepth(header(request, CpfHeaderNames.TRANSACTION_CALL_DEPTH))
                 .requestId(header(request, CpfHeaderNames.REQUEST_ID))
                 .externalRequestId(header(request, CpfHeaderNames.EXTERNAL_REQUEST_ID))
                 .apiVersion(header(request, CpfHeaderNames.API_VERSION))

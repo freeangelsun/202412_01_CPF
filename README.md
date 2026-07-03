@@ -44,6 +44,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -Chec
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-composite-transaction-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-transaction-group-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-log-policy-runtime.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1
@@ -54,4 +56,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-standard-heade
 
 중간 리포트는 `CPF_STABILIZATION_REPORT.md`에 Markdown으로 작성합니다. HTML/PDF/DOCX 배포본은 최종 정본화 단계에서 Markdown 원본 기준으로 생성합니다.
 
-<!-- evidence: batch-development-guide operation-runbook scripts/smoke-log-policy-runtime.ps1 scripts/smoke-bat-runtime.ps1 BatApplication -->
+<!-- evidence: batch-development-guide operation-runbook scripts/smoke-log-policy-runtime.ps1 scripts/smoke-bat-runtime.ps1 scripts/smoke-composite-transaction-runtime.ps1 scripts/smoke-adm-transaction-group-runtime.ps1 BatApplication -->

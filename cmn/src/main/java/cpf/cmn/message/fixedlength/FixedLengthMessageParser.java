@@ -11,13 +11,19 @@ import java.util.Map;
  */
 public class FixedLengthMessageParser {
     private final FixedLengthMaskingRule maskingRule;
+    private final FixedLengthTypeConverter typeConverter;
 
     public FixedLengthMessageParser() {
-        this(new FixedLengthMaskingRule());
+        this(new FixedLengthMaskingRule(), new FixedLengthTypeConverter());
     }
 
     public FixedLengthMessageParser(FixedLengthMaskingRule maskingRule) {
+        this(maskingRule, new FixedLengthTypeConverter());
+    }
+
+    public FixedLengthMessageParser(FixedLengthMaskingRule maskingRule, FixedLengthTypeConverter typeConverter) {
         this.maskingRule = maskingRule;
+        this.typeConverter = typeConverter;
     }
 
     public FixedLengthParseResult parse(String message, FixedLengthLayoutSpec layout) {
@@ -43,6 +49,8 @@ public class FixedLengthMessageParser {
             if (field.required() && value.isBlank()) {
                 errors.add("필수 필드 값이 비어 있습니다. name=" + field.name());
             }
+            typeConverter.validate(field, value)
+                    .ifPresent(error -> errors.add(error.fieldName() + ":" + error.errorCode() + ":" + error.message()));
             fields.put(field.name(), value);
             maskedFields.put(field.name(), maskingRule.mask(field, value));
         }

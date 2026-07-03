@@ -1,100 +1,137 @@
-# CPF Stabilization Report
+# CPF 안정화 작업 리포트
 
-## 1. 기준 정보
+## 기준 정보
 
-- 작업 시작 branch: `master`
-- 작업 시작 HEAD SHA: `7a7f0530ba37292df39ebf50a00baf4312ab120b`
-- 작업 시작 origin/master SHA: `7a7f0530ba37292df39ebf50a00baf4312ab120b`
-- 작업 시작 마지막 commit: `7a7f053 20260702_05`
-- 작업 시작 status: `CPF_NEW_REQUEST.md`, `CPF_STABILIZATION_REPORT.md`가 수정 상태였습니다.
-- `CPF_NEW_REQUEST.md` 변경 상태/사유: 사용자가 작업 전 신규 요청서를 갱신한 원본 파일입니다. 이번 작업에서는 기능 검수 대상에서 제외하고 편집하지 않았습니다.
-- 별도 변경 파일 목록 산출물: 생성하지 않았습니다.
-- Git commit/push/branch 생성: 수행하지 않았습니다.
+- 요청서: `CPF_NEW_REQUEST.md`
+- 최종 목표 참고: `CPF_FINAL_TARGET_REQUIREMENTS.md`
+- 시작 branch: `master`
+- 시작 HEAD: `004cc441ccbc4e358ab8bcde7dcd52690477dab4`
+- 시작 origin/master: `004cc441ccbc4e358ab8bcde7dcd52690477dab4`
+- 시작 상태: `CPF_NEW_REQUEST.md`, `CPF_STABILIZATION_REPORT.md` 변경 상태에서 작업 시작
+- 금지 준수: commit, push, branch 생성, 별도 변경파일 목록 산출물 생성 없음
 
-## 2. 수행 작업
+## 수행 작업
 
-- XYZ EDU CRUD를 메모리 저장소 샘플에서 `cmn_edu_query_item` DB Mapper 기반 샘플로 전환했습니다.
-- `/xyz/edu/items` 표준 경로와 기존 `/xyz/edu/crud-items` 호환 경로를 함께 제공했습니다.
-- 등록, 수정, 상태 변경, 논리 삭제, 검색, 상태 필터, sort whitelist, limit 검증 흐름을 Controller-Service-Repository-Mapper-Test로 연결했습니다.
-- `xyz_edu_query_fixture.sql`을 canonical fixture로 정리하고, `XyzQueryEducationMapperSliceTest`에 CRUD DB slice 검증을 추가했습니다.
-- `XyzServiceCallEducationController`의 `CpfWebClient` outbound/header propagation 샘플을 feature evidence에 등록했습니다.
-- `scripts/smoke-adm-runtime.ps1`에 `-BuildBeforeRun` 옵션을 추가해 ADM runtime smoke 전에 `:adm:bootJar`를 빌드하도록 보강했습니다.
-- ADM permission runtime smoke에 `ADM_VIEWER`의 `GET /adm/api/center-cut/jobs` 허용 검증을 추가했습니다.
-- CMN에 `cpf.cmn.message.fixedlength` 패키지를 추가하고 byte 길이 기준 fixed-length parser/formatter skeleton, masking, round-trip 테스트를 작성했습니다.
-- `scripts/check-feature-evidence.ps1`에 XYZ CRUD, ADM runtime, CMN fixed-length 증거를 추가했습니다.
-- `specs/기능_구현_매트릭스.html`과 이 리포트를 현재 검증 결과 기준으로 갱신했습니다.
+- PFW 복합 거래 segment 표준을 추가했습니다.
+  - `TransactionSegmentService`, `TransactionSegmentContext`, `TransactionSegmentScope`, `TransactionSegmentRecord`
+  - `TransactionSegmentRole`, `TransactionSegmentDirection`, `TransactionSegmentStatus`
+  - `TransactionSegmentMapper`, `TransactionSegmentMapper.xml`
+- 표준 헤더에 복합 거래 구간 전파 헤더를 추가했습니다.
+  - `X-Root-Transaction-Id`
+  - `X-Transaction-Segment-Id`
+  - `X-Parent-Transaction-Segment-Id`
+  - `X-Transaction-Call-Depth`
+- SQL 기준을 추가했습니다.
+  - `pfw_transaction_segment`
+  - `V19__transaction_segment_trace.sql`
+  - `99_smoke_check.sql` table smoke 항목
+- 복합 거래 교육 샘플을 추가했습니다.
+  - `POST /acc/edu/composite/member-then-external`
+  - `POST /acc/edu/composite/member-calls-external`
+  - `GET /mbr/edu/composite/member-profile`
+  - `GET /mbr/edu/composite/member-calls-external`
+  - `POST /api/exs/edu/external-transfer`
+  - `GET /xyz/edu/transactions/composite-sample`
+- ADM 거래 그룹 조회 API를 추가했습니다.
+  - `GET /adm/api/transaction-groups`
+  - `GET /adm/api/transaction-groups/{transactionGlobalId}`
+  - `GET /adm/api/transaction-groups/{transactionGlobalId}/segments`
+  - `GET /adm/api/transaction-groups/{transactionGlobalId}/timeline`
+  - `GET /adm/api/transaction-groups/{transactionGlobalId}/headers`
+  - `GET /adm/api/transaction-groups/{transactionGlobalId}/external-logs`
+- Runtime smoke 스크립트를 추가했습니다.
+  - `scripts/smoke-composite-transaction-runtime.ps1`
+  - `scripts/smoke-adm-transaction-group-runtime.ps1`
+- CMN 고정길이 전문 skeleton을 보강했습니다.
+  - `FixedLengthLayoutRegistry`
+  - `FixedLengthGroupSpec`
+  - `FixedLengthMessageError`
+  - `FixedLengthMessageException`
+  - `FixedLengthTypeConverter`
+- 문서와 gate를 현행화했습니다.
+  - `README.md`
+  - `specs/index.html`
+  - `specs/트랜잭션_가이드.html`
+  - `specs/표준_헤더_가이드.html`
+  - `specs/관리자_가이드.html`
+  - `specs/개발_가이드.html`
+  - `specs/SQL_가이드.html`
+  - `specs/기능_구현_매트릭스.html`
+  - `scripts/check-html-docs.ps1`
+  - `scripts/check-feature-evidence.ps1`
 
-## 3. EDU/XYZ 실전 샘플
+## 기능 상태
 
-- CRUD: 완료. `XyzCrudEducationController`, `XyzCrudEducationService`, `XyzQueryEducationRepository`, `XyzQueryEducationMapper.xml`이 실제 DB 경로로 연결됩니다.
-- paging: 완료. 기존 offset/keyset paging 샘플 유지 및 전체 테스트 통과.
-- keyset: 완료. `findKeysetPageItems`와 service test 유지.
-- search/sort: 완료. `criteria.sortCode` whitelist와 MyBatis `<choose>` 기반 정렬 유지. `${...}` 정렬 치환은 사용하지 않습니다.
-- validation: 완료. `XyzCrudEducationRequest`, `XyzCrudEducationStatusRequest`, Controller parameter에 Bean Validation을 적용했습니다.
-- mapper/repository: 완료. insert/update/status/logical delete Mapper를 추가했습니다.
-- SQL/fixture: 완료. `xyz_edu_query_fixture.sql`에 CRUD 테스트 범위 `91000-91999` 정리를 추가했습니다.
-- test: 완료. `:xyz:test`, DB slice, 전체 `test` 통과.
-- facade/outbound/header propagation: 완료. `CpfWebClient` 샘플을 evidence gate에 등록했습니다.
+| 항목 | 상태 | 근거 | 남은 확인 |
+| --- | --- | --- | --- |
+| PFW 복합 거래 segment 표준 | 완료 | `TransactionSegmentService`, `TransactionSegmentMapper.xml`, `CpfHeaderPropagator` | 운영 부하와 장기 보존 정책 검증 |
+| `pfw_transaction_segment` SQL | 완료 | `specs/sql/10_pfw_schema.sql`, `V19__transaction_segment_trace.sql`, `99_smoke_check.sql` | 실제 MariaDB 전체 재설치 검증 |
+| ACC/MBR/EXS 복합 거래 샘플 | 부분 구현 | Controller/Service/API 추가 및 모듈 테스트 통과 | runtime 서비스 기동 smoke |
+| ADM 거래 그룹 API | 부분 구현 | `AdmTransactionGroupController`, `AdmTransactionGroupService` | runtime DB 데이터 조회와 브라우저 UX |
+| CMN fixed-length 엔진 skeleton | 완료 | `FixedLengthLayoutRegistry`, `FixedLengthTypeConverter`, `FixedLengthMessageParserFormatterTest` | 반복부 고급 포맷과 전문 사전 DB화 |
+| 문서/품질 gate 연결 | 완료 | README, 가이드, 기능 매트릭스, feature evidence 검사 갱신 | 최종 정본화 디자인 |
 
-## 4. ADM 검증 보강
+## 검증 상태
 
-- browser click 환경 확인: 미검증. `node --version`, `npx --version` 모두 PATH에서 찾지 못했습니다.
-- browser click 실행: 미검증. Node/npx 부재로 `scripts/smoke-adm-ui.ps1 -BrowserClick`는 실행하지 않았습니다.
-- permission runtime: 완료. `scripts/smoke-adm-permission-runtime.ps1 -BuildBeforeRun` 통과.
-- bootJar 최신성 보장: 완료. `build/runtime-smoke/adm-runtime-smoke-result.json`에 `buildBeforeRun.requested=true`, `exitCode=0`, `launchMode=BOOT_JAR`가 기록되었습니다.
-- V15 API permission migration helper: 미검증. `ADM_DB_MIGRATION_PASSWORD`가 제공되지 않아 `apply-v15-adm-api-permission-management.ps1`는 skip되었습니다.
+| check id | 상태 | 증거 | 비고 |
+| --- | --- | --- | --- |
+| edu-mapper-db-slice | 미검증 | `XyzQueryEducationMapperSliceTest`, `xyz_edu_query_fixture.sql`, `CPF_XYZ_EDU_MAPPER_DB_USERNAME`, `CPF_XYZ_EDU_MAPPER_DB_USER` | 이번 작업에서는 DB slice 환경변수를 지정해 실행하지 않았습니다. |
+| mariadb-full-install | 미검증 | `scripts/smoke-mariadb-full-install.ps1` | 전체 DB 재설치 검증은 실행하지 않았습니다. |
+| adm-runtime | 미검증 | `scripts/smoke-adm-runtime.ps1` | ADM 앱 기동 runtime smoke는 이번 작업에서 실행하지 않았습니다. |
+| adm-permission-runtime | 미검증 | `scripts/smoke-adm-permission-runtime.ps1` | 권한 runtime smoke는 이번 작업에서 실행하지 않았습니다. |
+| openapi-runtime | 미검증 | `scripts/smoke-openapi.ps1` | 앱 기동 후 OpenAPI JSON 검증은 실행하지 않았습니다. |
+| adm-browser-click | 미검증 | `scripts/smoke-adm-ui.ps1 -BrowserClick` | 브라우저 클릭 자동화는 실행하지 않았습니다. |
+| standard-header-e2e | 미검증 | `scripts/smoke-standard-header-e2e.ps1` | 이번 작업에서는 실행하지 않았습니다. |
+| complex-transaction-trace | 완료 | `AccCompositeTransactionService`, `MbrCompositeTransactionService`, `ExsCompositeEducationController` | 컴파일과 모듈 테스트 기준으로 확인했습니다. |
+| transaction-segment-log | 완료 | `pfw_transaction_segment`, `TransactionSegmentMapper.xml` | SQL과 MyBatis 저장 경로를 추가했습니다. |
+| adm-transaction-group-list | 부분 구현 | `GET /adm/api/transaction-groups` | API는 추가됐고 runtime DB 조회 검증은 남아 있습니다. |
+| adm-transaction-timeline | 부분 구현 | `GET /adm/api/transaction-groups/{transactionGlobalId}/timeline` | timeline API는 추가됐고 브라우저 UX 검증은 남아 있습니다. |
+| cmn-fixed-length-engine | 완료 | `FixedLengthLayoutRegistry`, `FixedLengthTypeConverter`, `FixedLengthMessageParserFormatterTest` | CMN 단위 테스트를 통과했습니다. |
+| composite-runtime-smoke | 미검증 | `scripts/smoke-composite-transaction-runtime.ps1` | ACC/MBR/EXS 로컬 서비스 기동 후 실행해야 합니다. |
+| adm-transaction-group-runtime | 미검증 | `scripts/smoke-adm-transaction-group-runtime.ps1` | ACC와 ADM runtime 기동 후 실행해야 합니다. |
+| redis-kafka-mq-broker | 미검증 | Redis/Kafka/MQ broker | 외부 broker 실연동 검증은 이번 작업 범위가 아닙니다. |
+| broker-real-integration | 미검증 | Redis/Kafka 실 broker | 실 broker 장애 시나리오 테스트는 실행하지 않았습니다. |
+| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 리포트 작성 후 실행 결과와 맞춥니다. |
+| check-html-docs | 완료 | `scripts/check-html-docs.ps1` | 리포트와 기능 매트릭스 check id 상태 일치 기준입니다. |
+| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` | 복합 거래, ADM 거래 그룹, CMN fixed-length 증거를 포함합니다. |
+| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` | 리포트 작성 후 실행 결과와 맞춥니다. |
 
-## 5. CMN 고정길이 전문 skeleton
+## 실행한 검증
 
-- LayoutSpec: 완료. `FixedLengthLayoutSpec`에 charset, totalLength, fields와 overlap/boundary 검증을 추가했습니다.
-- FieldSpec: 완료. `FixedLengthFieldSpec`에 name, start, length, type, required, padding, alignment, sensitive를 정의했습니다.
-- Parser: 부분 구현. byte 배열 기준 parse, 필수값 오류 수집, masking 결과를 제공합니다.
-- Formatter: 부분 구현. byte 길이 기준 padding/alignment와 1 byte padding 검증을 제공합니다.
-- Masking: 완료. `FixedLengthMaskingRule`이 sensitive field 마스킹을 담당합니다.
-- Test: 완료. UTF-8 한글 2글자 6 byte 필드와 숫자 padding round-trip 테스트를 통과했습니다.
-- 범위 주의: 이번 작업은 skeleton 착수입니다. 반복부, 전문 사전 DB, 타입별 엄격 변환, 오류코드 매핑은 아직 전체 구현으로 표시하지 않습니다.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1`
+- `.\gradlew.bat :pfw:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :cmn:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :acc:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :mbr:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :exs:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :adm:test --offline --no-daemon --console=plain`
+- `.\gradlew.bat :xyz:test --offline --no-daemon --console=plain`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1`
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake`
+- `.\gradlew.bat qualityGate --offline --no-daemon --console=plain`
+- Runtime smoke 사전 포트 확인: ACC 8080, MBR 8081, ADM 8090, EXS 8092 모두 TCP 연결 실패
 
-## 6. 실행 검증
+## 미검증 또는 보류
 
-| check id | 상태 | 결과 |
-|---|---|---|
-| edu-mapper-db-slice | 완료 | `CPF_XYZ_EDU_MAPPER_DB_USERNAME`, `CPF_XYZ_EDU_MAPPER_DB_USER` 호환 로직 포함. 로컬 MariaDB `cpf_test` 기준 `XyzQueryEducationMapperSliceTest` 통과. |
-| mariadb-full-install | 미검증 | `scripts/smoke-mariadb-full-install.ps1` 전체 재설치 검증은 이번 작업에서 실행하지 않았습니다. |
-| adm-runtime | 완료 | `scripts/smoke-adm-runtime.ps1 -BuildBeforeRun` 통과. |
-| adm-permission-runtime | 완료 | `scripts/smoke-adm-permission-runtime.ps1 -BuildBeforeRun` 통과. viewer write 403, viewer Center-Cut read 200 확인. |
-| openapi-runtime | 완료 | ADM runtime smoke 안에서 `scripts/smoke-openapi.ps1`가 통과했습니다. |
-| adm-browser-click | 미검증 | Node/npx가 PATH에서 확인되지 않아 브라우저 클릭 검증은 실행하지 않았습니다. |
-| standard-header-e2e | 미검증 | `scripts/smoke-standard-header-e2e.ps1`는 이번 작업에서 실행하지 않았습니다. |
-| redis-kafka-mq-broker | 미검증 | 외부 broker 실연동은 이번 작업 범위가 아닙니다. |
-| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` 통과. |
-| check-html-docs | 완료 | `scripts/check-html-docs.ps1` 통과. |
-| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` 통과. |
-| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` 통과. |
+- `scripts/smoke-composite-transaction-runtime.ps1`: ACC/MBR/EXS runtime 서비스 포트가 닫혀 있어 실행하지 않았습니다.
+- `scripts/smoke-adm-transaction-group-runtime.ps1`: ACC/ADM runtime 서비스 포트가 닫혀 있어 실행하지 않았습니다.
+- `scripts/smoke-mariadb-full-install.ps1`: 전체 DB 재설치/초기화 위험이 있어 이번 작업에서 실행하지 않았습니다.
+- `scripts/smoke-standard-header-e2e.ps1`: 이번 요청의 필수 runtime 실행 범위에서 제외했습니다.
+- Redis/Kafka/MQ broker 실연동: 외부 broker 환경이 필요해 미검증입니다.
 
-추가 검증:
+## 다음 보강 후보
 
-- `.\gradlew.bat :xyz:test --offline --no-daemon --console=plain`: 통과.
-- `.\gradlew.bat :cmn:test --offline --no-daemon --console=plain`: 통과.
-- `.\gradlew.bat :adm:test --offline --no-daemon --console=plain`: 통과.
-- `.\gradlew.bat test --offline --no-daemon --console=plain`: 통과.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sql-standard.ps1`: 통과.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-html-docs.ps1`: 통과.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-feature-evidence.ps1`: 통과.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-utf8.ps1 -CheckMojibake`: 통과.
-- `.\gradlew.bat qualityGate --offline --no-daemon --console=plain`: 통과.
+1. ACC/MBR/EXS/ADM 로컬 서비스를 기동한 뒤 복합 거래 runtime smoke와 ADM 거래 그룹 runtime smoke를 실행합니다.
+2. ADM 화면에 거래 그룹 timeline tree, segment 상세, header snapshot, external logs 탭을 연결하고 브라우저 클릭 검증을 추가합니다.
+3. 실제 MariaDB에서 `00_all_install_and_smoke.sql`을 실행해 FK, index, seed idempotent, `pfw_transaction_segment` 생성 여부를 확인합니다.
+4. CMN fixed-length 반복부, 전문 사전 DB화, 필드별 오류코드 메시지 연동을 확장합니다.
+5. broker 실연동 환경에서 Redis/Kafka/MQ 이벤트 전파와 DB fallback 장애 시나리오를 검증합니다.
 
-## 7. 보류와 리스크
+## 항상 지켜야 할 기준 점검
 
-- `scripts/smoke-mariadb-full-install.ps1` 전체 설치 검증은 실행하지 않았습니다. 전체 DB 재설치가 필요한 작업이므로 별도 승인/백업 기준으로 진행하는 편이 안전합니다.
-- ADM browser click 검증은 Node/npx 미설치로 미검증입니다.
-- `apply-v15-adm-api-permission-management.ps1`는 마이그레이션 계정 비밀번호 환경변수 미제공으로 skip되었습니다. ADM runtime smoke 자체는 통과했습니다.
-- CMN fixed-length는 skeleton입니다. 전체 전문 엔진 완료로 보고하지 않습니다.
-- `CPF_STABILIZATION_REPORT.html`이 남아 있으면 `check-html-docs`가 실패합니다. 이번 기준 리포트는 Markdown인 `CPF_STABILIZATION_REPORT.md`입니다.
-
-## 8. 다음 보강 후보
-
-1. CMN fixed-length 전문 엔진 완성: 반복부, 타입 변환, 전문 사전, 오류코드, ADM 포맷 뷰어 연동.
-2. ADM 브라우저 클릭 자동화: Node/Playwright 설치 후 메뉴/버튼/비활성 사유 UX 클릭 검증.
-3. MariaDB 전체 설치 smoke: `00_all_install_and_smoke.sql` 재실행, FK/index/seed idempotent/app-migration 권한 검증.
-4. 표준 헤더 E2E: `scripts/smoke-standard-header-e2e.ps1` 재실행과 ADM 로그 헤더/데이터 분리 화면 확인.
-5. Redis/Kafka/MQ broker 실연동: DB fallback 장애 시나리오와 broker 우선 전파 검증.
+- 문서와 소스, SQL, Swagger, EDU 샘플은 같은 명칭과 경로 기준으로 맞췄습니다.
+- README는 짧은 진입점으로 유지하고 상세 내용은 `specs` 가이드에 반영했습니다.
+- 신규 주석과 SQL COMMENT는 한글 기준으로 작성했습니다.
+- 실행하지 않은 검증은 완료로 보고하지 않고 미검증으로 분리했습니다.

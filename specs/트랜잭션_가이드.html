@@ -50,7 +50,40 @@
       </tbody>
     </table>
   </section>
+
+  <section>
+    <h2>복합 거래 segment 표준</h2>
+    <p>하나의 <code>transactionGlobalId</code> 안에서 ACC, MBR, EXS 같은 여러 모듈이 순차 또는 중첩 호출되면 각 처리 구간은 <code>pfw_transaction_segment</code>에 별도 저장합니다. 전체 거래 묶음은 <code>transactionGlobalId</code>, 개별 구간은 <code>transactionSegmentId</code>, 부모 관계는 <code>parentSegmentId</code>로 추적합니다.</p>
+    <table>
+      <thead>
+      <tr><th>항목</th><th>설명</th><th>구현 기준</th></tr>
+      </thead>
+      <tbody>
+      <tr><td><code>transactionGlobalId</code></td><td>전체 거래 묶음 ID</td><td>하위 서비스 호출 시 동일하게 유지합니다.</td></tr>
+      <tr><td><code>rootTransactionGlobalId</code></td><td>최초 유입 거래 ID</td><td><code>X-Root-Transaction-Id</code> 또는 최초 거래 ID로 저장합니다.</td></tr>
+      <tr><td><code>transactionSegmentId</code></td><td>현재 처리 구간 ID</td><td><code>TransactionSegmentService</code>가 생성하고 <code>X-Transaction-Segment-Id</code>로 전파합니다.</td></tr>
+      <tr><td><code>parentSegmentId</code></td><td>상위 구간 ID</td><td>호출 깊이와 timeline tree를 만들 때 사용합니다.</td></tr>
+      <tr><td><code>transactionRole</code></td><td>구간 역할</td><td><code>MAIN</code>, <code>SUB</code>, <code>SHARED</code>, <code>EXTERNAL</code>, <code>BATCH</code>, <code>CENTER_CUT_PARENT</code>, <code>CENTER_CUT_CHILD</code>, <code>OPERATOR_ACTION</code></td></tr>
+      <tr><td><code>direction</code></td><td>구간 방향</td><td><code>INBOUND</code>, <code>OUTBOUND</code>, <code>INTERNAL</code>, <code>RESPONSE</code></td></tr>
+      <tr><td><code>durationMs</code>, <code>status</code></td><td>구간별 수행시간과 성공/실패</td><td>예외 발생 시 해당 구간은 <code>FAILED</code>로 종료합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>복합 거래 교육 샘플</h2>
+    <table>
+      <thead>
+      <tr><th>패턴</th><th>API</th><th>흐름</th><th>검증</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>A</td><td><code>POST /acc/edu/composite/member-then-external</code></td><td>ACC MAIN → ACC OUTBOUND → MBR SHARED → ACC OUTBOUND → EXS EXTERNAL</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code></td></tr>
+      <tr><td>B</td><td><code>POST /acc/edu/composite/member-calls-external</code></td><td>ACC MAIN → ACC OUTBOUND → MBR SUB → MBR OUTBOUND → EXS EXTERNAL</td><td>소스와 단위 테스트 기준 샘플로 제공합니다.</td></tr>
+      <tr><td>EDU 안내</td><td><code>GET /xyz/edu/transactions/composite-sample</code></td><td>개발자가 볼 API, ADM 조회 API, smoke 명령을 한 응답으로 안내합니다.</td><td>개발 가이드의 상황별 샘플 매트릭스와 연결합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
-<!-- evidence: cpf-transaction-guide -->
+<!-- evidence: cpf-transaction-guide pfw_transaction_segment transactionSegmentId scripts/smoke-composite-transaction-runtime.ps1 -->
 </body>
 </html>

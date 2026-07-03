@@ -5,7 +5,8 @@ param(
     [int] $ShutdownTimeoutSeconds = 90,
     [string] $LogDir = "",
     [string] $AdmUsername = "admin",
-    [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD
+    [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
+    [switch] $BuildBeforeRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,6 +32,7 @@ $v15ResultPath = Join-Path $LogDir "v15-adm-api-permission-result.json"
     -AdmUsername $AdmUsername `
     -AdmPassword $AdmPassword `
     -IncludePermissionWriteSmoke `
-    -PermissionResultPath $permissionResultPath
+    -PermissionResultPath $permissionResultPath `
+    -BuildBeforeRun:$BuildBeforeRun
 
 Write-Host "ADM permission runtime smoke completed. Result: $permissionResultPath"

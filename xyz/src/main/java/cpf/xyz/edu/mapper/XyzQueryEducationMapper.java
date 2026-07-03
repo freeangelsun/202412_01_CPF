@@ -8,10 +8,10 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 조회 EDU 샘플의 MyBatis Mapper입니다.
+ * 조회/CRUD EDU 샘플 MyBatis Mapper입니다.
  *
- * <p>업무 예제에서 동적 검색, 안전한 정렬, offset 페이징, keyset 페이징을 어떻게 나눠 작성하는지 보여줍니다.
- * 회원 정보는 MBR 테이블과 직접 조인하지 않고 샘플 테이블의 ownerMemberNo 값만 조회합니다.</p>
+ * <p>동적 검색, 안전한 정렬, offset/keyset paging, 등록/수정/상태변경/논리삭제를 하나의 교육 테이블로 보여줍니다.
+ * 업무 예제는 MBR/EXS 같은 다른 주제영역 테이블을 직접 조인하지 않고, 필요한 식별자 값만 저장해 경계를 유지합니다.</p>
  */
 @Mapper
 public interface XyzQueryEducationMapper {
@@ -24,4 +24,30 @@ public interface XyzQueryEducationMapper {
     long countOffsetPageItems(@Param("criteria") XyzQueryEducationCriteria criteria);
 
     List<XyzQueryEducationItem> findKeysetPageItems(@Param("criteria") XyzQueryEducationCriteria criteria);
+
+    Long nextCrudItemId();
+
+    int insertCrudItem(
+            @Param("itemId") Long itemId,
+            @Param("itemName") String itemName,
+            @Param("categoryCode") String categoryCode,
+            @Param("statusCode") String statusCode,
+            @Param("ownerMemberNo") String ownerMemberNo,
+            @Param("requestUser") String requestUser);
+
+    int updateCrudItem(
+            @Param("itemId") Long itemId,
+            @Param("itemName") String itemName,
+            @Param("categoryCode") String categoryCode,
+            @Param("ownerMemberNo") String ownerMemberNo,
+            @Param("requestUser") String requestUser);
+
+    int updateCrudItemStatus(
+            @Param("itemId") Long itemId,
+            @Param("statusCode") String statusCode,
+            @Param("requestUser") String requestUser);
+
+    int logicalDeleteCrudItem(
+            @Param("itemId") Long itemId,
+            @Param("requestUser") String requestUser);
 }

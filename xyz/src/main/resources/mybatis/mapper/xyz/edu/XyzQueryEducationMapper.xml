@@ -81,4 +81,66 @@
         ORDER BY item_id ASC
         LIMIT #{criteria.limit}
     </select>
+
+    <select id="nextCrudItemId" resultType="long">
+        SELECT COALESCE(MAX(item_id), 90999) + 1
+        FROM cmn_edu_query_item
+        WHERE item_id BETWEEN 91000 AND 91999
+    </select>
+
+    <insert id="insertCrudItem">
+        INSERT INTO cmn_edu_query_item (
+            item_id,
+            item_name,
+            category_code,
+            status_code,
+            owner_member_no,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{itemId},
+            #{itemName},
+            #{categoryCode},
+            #{statusCode},
+            #{ownerMemberNo},
+            'Y',
+            #{requestUser},
+            CURRENT_TIMESTAMP(6),
+            #{requestUser},
+            CURRENT_TIMESTAMP(6)
+        )
+    </insert>
+
+    <update id="updateCrudItem">
+        UPDATE cmn_edu_query_item
+        SET item_name = #{itemName},
+            category_code = #{categoryCode},
+            owner_member_no = #{ownerMemberNo},
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(6)
+        WHERE item_id = #{itemId}
+          AND use_yn = 'Y'
+    </update>
+
+    <update id="updateCrudItemStatus">
+        UPDATE cmn_edu_query_item
+        SET status_code = #{statusCode},
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(6)
+        WHERE item_id = #{itemId}
+          AND use_yn = 'Y'
+    </update>
+
+    <update id="logicalDeleteCrudItem">
+        UPDATE cmn_edu_query_item
+        SET use_yn = 'N',
+            status_code = 'CLOSED',
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(6)
+        WHERE item_id = #{itemId}
+          AND use_yn = 'Y'
+    </update>
 </mapper>

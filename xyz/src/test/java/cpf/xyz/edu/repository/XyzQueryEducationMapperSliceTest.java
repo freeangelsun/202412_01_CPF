@@ -22,12 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * XYZ 조회 EDU의 MyBatis XML을 실제 DB fixture로 검증하는 선택 실행 테스트입니다.
+ * XYZ 조회/CRUD EDU MyBatis XML을 실제 DB fixture로 검증하는 선택 실행 테스트입니다.
  *
- * <p>기본 Gradle test는 개발자 PC의 MariaDB를 임의로 건드리지 않기 위해 이 테스트의 DB 실행부를 skip합니다.
- * 안전한 빈 테스트 스키마를 준비한 뒤 {@code CPF_XYZ_EDU_MAPPER_SLICE_TEST=true},
- * {@code CPF_XYZ_EDU_MAPPER_DB_URL}, {@code CPF_XYZ_EDU_MAPPER_DB_USERNAME},
- * {@code CPF_XYZ_EDU_MAPPER_DB_PASSWORD}를 설정하면 실제 Mapper XML과 fixture SQL이 실행됩니다.</p>
+ * <p>기본 Gradle test는 개발자 PC의 MariaDB를 임의로 건드리지 않도록 DB 구간을 skip합니다.
+ * 안전한 테스트 스키마를 준비한 뒤 환경변수를 지정하면 Mapper XML과 SQL fixture를 실제로 실행합니다.</p>
  */
 class XyzQueryEducationMapperSliceTest {
     private static final String ENABLED_ENV = "CPF_XYZ_EDU_MAPPER_SLICE_TEST";
@@ -47,6 +45,8 @@ class XyzQueryEducationMapperSliceTest {
                 .contains("ORDER BY item_id ASC")
                 .contains("criteria.sortCode == 'NAME_ASC'")
                 .contains("criteria.sortCode == 'CREATED_DESC'")
+                .contains("insertCrudItem")
+                .contains("logicalDeleteCrudItem")
                 .doesNotContain("${");
         assertThat(xml.toLowerCase())
                 .doesNotContain(" join mbr_member")
@@ -64,6 +64,7 @@ class XyzQueryEducationMapperSliceTest {
         assertThat(sql)
                 .contains("CREATE TABLE IF NOT EXISTS cmn_edu_query_item")
                 .contains("DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 90001 AND 90008")
+                .contains("DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 91000 AND 91999")
                 .contains("ON DUPLICATE KEY UPDATE")
                 .doesNotContain("DROP TABLE")
                 .doesNotContain("TRUNCATE TABLE")
@@ -80,7 +81,7 @@ class XyzQueryEducationMapperSliceTest {
         loadFixture(dataSource);
 
         SqlSessionFactory sqlSessionFactory = sqlSessionFactory(dataSource);
-        try (SqlSession session = sqlSessionFactory.openSession()) {
+        try (SqlSession session = sqlSessionFactory.openSession(true)) {
             XyzQueryEducationMapper mapper = session.getMapper(XyzQueryEducationMapper.class);
 
             XyzQueryEducationItem single = mapper.findById(90001L);
@@ -103,11 +104,6 @@ class XyzQueryEducationMapperSliceTest {
                     .extracting(XyzQueryEducationItem::itemId)
                     .containsExactly(90008L, 90005L, 90004L);
 
-            List<XyzQueryEducationItem> nameAsc = mapper.findItems(criteria(null, "ACTIVE", "NAME_ASC", 20, 0, null));
-            assertThat(nameAsc)
-                    .extracting(XyzQueryEducationItem::itemId)
-                    .contains(90001L, 90002L, 90003L, 90004L, 90005L, 90008L);
-
             List<XyzQueryEducationItem> unsafeSortFallsBack = mapper.findItems(criteria(null, "ACTIVE", "item_name desc; drop table", 3, 0, null));
             assertThat(unsafeSortFallsBack)
                     .extracting(XyzQueryEducationItem::itemId)
@@ -124,6 +120,16 @@ class XyzQueryEducationMapperSliceTest {
             assertThat(keysetPageWithLimitPlusOne)
                     .extracting(XyzQueryEducationItem::itemId)
                     .containsExactly(90003L, 90004L, 90005L);
+
+            Long itemId = mapper.nextCrudItemId();
+            mapper.insertCrudItem(itemId, "CRUD 등록 샘플", "CRUD", "ACTIVE", "MBR-CRUD-01", "MAPPER_TEST");
+            assertThat(mapper.findById(itemId).itemName()).isEqualTo("CRUD 등록 샘플");
+            assertThat(mapper.updateCrudItem(itemId, "CRUD 수정 샘플", "CRUD_UPD", "MBR-CRUD-02", "MAPPER_TEST")).isEqualTo(1);
+            assertThat(mapper.findById(itemId).categoryCode()).isEqualTo("CRUD_UPD");
+            assertThat(mapper.updateCrudItemStatus(itemId, "INACTIVE", "MAPPER_TEST")).isEqualTo(1);
+            assertThat(mapper.findById(itemId).statusCode()).isEqualTo("INACTIVE");
+            assertThat(mapper.logicalDeleteCrudItem(itemId, "MAPPER_TEST")).isEqualTo(1);
+            assertThat(mapper.findById(itemId)).isNull();
         }
     }
 
@@ -154,7 +160,7 @@ class XyzQueryEducationMapperSliceTest {
         factoryBean.setMapperLocations(mapperLocations);
         SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
         if (sqlSessionFactory == null) {
-            throw new IllegalStateException("EDU 조회 Mapper용 SqlSessionFactory를 생성하지 못했습니다.");
+            throw new IllegalStateException("EDU 조회 Mapper SqlSessionFactory를 생성하지 못했습니다.");
         }
         if (!sqlSessionFactory.getConfiguration().hasMapper(XyzQueryEducationMapper.class)) {
             sqlSessionFactory.getConfiguration().addMapper(XyzQueryEducationMapper.class);

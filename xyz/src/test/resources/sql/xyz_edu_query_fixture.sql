@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS cmn_edu_query_item (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'EDU 조회 샘플 항목';
 
 DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 90001 AND 90008;
+DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 91000 AND 91999;
 
 INSERT INTO cmn_edu_query_item (
     item_id,

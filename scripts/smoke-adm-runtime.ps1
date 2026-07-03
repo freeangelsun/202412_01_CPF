@@ -8,6 +8,7 @@ param(
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
     [switch] $IncludePermissionWriteSmoke,
     [string] $PermissionResultPath = "",
+    [switch] $BuildBeforeRun,
     [switch] $RequireBrowserClick
 )
 
@@ -292,6 +293,7 @@ function Invoke-AdmPermissionWriteSmoke {
             throw "viewer login response does not contain accessToken."
         }
         $viewerHeaders = @{ Authorization = "Bearer $($viewerLogin.accessToken)" }
+        $viewerCenterCutRead = Invoke-SmokeForStatus -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs" -Headers $viewerHeaders
         $viewerBlocked = Invoke-SmokeForStatus -Method Put -Uri "$AdmBaseUrl/adm/api/permissions/roles/ADM_VIEWER/api-permissions/$apiPermissionId" -Headers $viewerHeaders -Body @{
             allowYn = "Y"
             requestUser = $viewerOperatorId
@@ -304,6 +306,12 @@ function Invoke-AdmPermissionWriteSmoke {
             statusCode = $viewerBlocked.statusCode
             expected = 403
         }
+        $permissionResult.filter.viewerCenterCutReadAllowed = [ordered]@{
+            method = "GET"
+            path = "/adm/api/center-cut/jobs"
+            statusCode = $viewerCenterCutRead.statusCode
+            expected = "2xx"
+        }
         $permissionResult.filter.adminReadAllowed = [ordered]@{
             method = "GET"
             path = "/adm/api/permissions/api-permissions"
@@ -312,6 +320,9 @@ function Invoke-AdmPermissionWriteSmoke {
         }
         if ($viewerBlocked.statusCode -ne 403) {
             throw "viewer write was not denied with 403. status=$($viewerBlocked.statusCode)"
+        }
+        if ($viewerCenterCutRead.statusCode -lt 200 -or $viewerCenterCutRead.statusCode -ge 300) {
+            throw "viewer center-cut read was not allowed. status=$($viewerCenterCutRead.statusCode)"
         }
         if ($adminAllowed.statusCode -lt 200 -or $adminAllowed.statusCode -ge 300) {
             throw "admin read was not allowed. status=$($adminAllowed.statusCode)"
@@ -426,10 +437,40 @@ function Resolve-AdmBootJar {
     return $jar.FullName
 }
 
+function Invoke-AdmBootJarBuild {
+    $gradle = Join-Path $Root "gradlew.bat"
+    if (-not (Test-Path -LiteralPath $gradle)) {
+        throw "Gradle wrapper was not found: $gradle"
+    }
+
+    $buildLog = Join-Path $LogDir "adm-bootJar-before-smoke.log"
+    $result.process.buildBeforeRun = [ordered]@{
+        requested = $true
+        command = ".\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain"
+        log = $buildLog
+    }
+
+    $buildOutput = & $gradle ":adm:bootJar" "--offline" "--no-daemon" "--console=plain" 2>&1
+    $buildOutput | Set-Content -LiteralPath $buildLog -Encoding UTF8
+    $result.process.buildBeforeRun.exitCode = $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        throw "ADM bootJar build before runtime smoke failed. Check log: $buildLog"
+    }
+}
+
 $startedProcess = $null
 $startedByScript = $false
 
 try {
+    if ($BuildBeforeRun) {
+        Invoke-AdmBootJarBuild
+    } else {
+        $result.process.buildBeforeRun = [ordered]@{
+            requested = $false
+            reason = "Pass -BuildBeforeRun to build :adm:bootJar before starting ADM smoke."
+        }
+    }
+
     $initialHealth = Test-HealthReady
     if ($null -ne $initialHealth) {
         $result.process.status = "REUSED"
@@ -545,6 +586,7 @@ try {
             "/adm/api/permissions/roles/ADM_VIEWER/api-permissions/API_PERMISSION_WRITE_PUT",
             "/adm/api/audit-logs",
             "403 viewer write deny",
+            "200 viewer center-cut read allow",
             "200 admin read allow"
         )
     } else {

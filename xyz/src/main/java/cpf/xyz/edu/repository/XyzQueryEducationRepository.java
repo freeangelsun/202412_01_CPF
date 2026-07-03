@@ -10,17 +10,17 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * 조회 EDU 샘플의 Repository입니다.
+ * 조회/CRUD EDU 샘플 Repository입니다.
  *
- * <p>Controller 파라미터를 SQL에 직접 넘기지 않고, 검색어/상태/정렬/limit을 정규화한 뒤 Mapper에 전달합니다.
- * 이 계층을 두면 동적 SQL injection 위험을 줄이고 테스트에서 정렬 whitelist와 최대 조회 건수 제한을 분리 검증할 수 있습니다.</p>
+ * <p>Controller 입력값을 SQL에 바로 붙이지 않고 검색어, 상태, 정렬, paging 값을 정규화한 뒤 Mapper로 전달합니다.
+ * 정렬은 whitelist 코드만 Mapper XML의 {@code choose} 분기로 전달해 SQL injection 위험을 줄입니다.</p>
  */
 @Repository
 public class XyzQueryEducationRepository {
-    static final int MAX_PAGE_SIZE = 100;
-    static final String SORT_ID_ASC = "ID_ASC";
-    static final String SORT_NAME_ASC = "NAME_ASC";
-    static final String SORT_CREATED_DESC = "CREATED_DESC";
+    public static final int MAX_PAGE_SIZE = 100;
+    public static final String SORT_ID_ASC = "ID_ASC";
+    public static final String SORT_NAME_ASC = "NAME_ASC";
+    public static final String SORT_CREATED_DESC = "CREATED_DESC";
 
     private final XyzQueryEducationMapper mapper;
 
@@ -57,6 +57,38 @@ public class XyzQueryEducationRepository {
         return mapper.findKeysetPageItems(criteria(null, null, SORT_ID_ASC, limitPlusOne, 0, cursorId));
     }
 
+    public Long nextCrudItemId() {
+        Long itemId = mapper.nextCrudItemId();
+        return itemId == null ? 91000L : itemId;
+    }
+
+    public void insertCrudItem(
+            Long itemId,
+            String itemName,
+            String categoryCode,
+            String statusCode,
+            String ownerMemberNo,
+            String requestUser) {
+        mapper.insertCrudItem(itemId, itemName, categoryCode, statusCode, ownerMemberNo, requestUser);
+    }
+
+    public int updateCrudItem(
+            Long itemId,
+            String itemName,
+            String categoryCode,
+            String ownerMemberNo,
+            String requestUser) {
+        return mapper.updateCrudItem(itemId, itemName, categoryCode, ownerMemberNo, requestUser);
+    }
+
+    public int updateCrudItemStatus(Long itemId, String statusCode, String requestUser) {
+        return mapper.updateCrudItemStatus(itemId, normalizeUpper(statusCode), requestUser);
+    }
+
+    public int logicalDeleteCrudItem(Long itemId, String requestUser) {
+        return mapper.logicalDeleteCrudItem(itemId, requestUser);
+    }
+
     public int normalizePage(int page) {
         return Math.max(page, 1);
     }
@@ -89,6 +121,16 @@ public class XyzQueryEducationRepository {
             return SORT_CREATED_DESC;
         }
         return SORT_ID_ASC;
+    }
+
+    public String normalizeCategoryCode(String value) {
+        String normalized = normalizeUpper(value);
+        return normalized == null ? "CRUD" : normalized;
+    }
+
+    public String normalizeRequestUser(String value) {
+        String normalized = normalizeText(value);
+        return normalized == null ? "XYZ_EDU" : normalized;
     }
 
     private String normalizeText(String value) {

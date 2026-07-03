@@ -22,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/mbr/edu/composite")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "MBR-EDU Composite Transaction", description = "MBR 구간 및 MBR→EXS 중첩 호출 trace 교육 API")
+@Tag(name = "MBR-EDU Composite Transaction", description = "MBR 구간 및 MBR->EXS 중첩 호출 trace 교육 API")
 public class MbrCompositeEducationController {
     private final MbrCompositeTransactionService compositeTransactionService;
 

@@ -65,7 +65,7 @@ public class MbrCompositeTransactionService {
                         "MBR",
                         "EXS",
                         "/api/exs/edu/external-transfer",
-                        "MBR → EXS 외부 검증 호출",
+                        "MBR -> EXS 외부 검증 호출",
                         () -> exsClientService.requestExternalVerification(memberId));
                 Map<String, Object> result = response(scope, member, external);
                 result.put("segmentIds", nestedSegmentIds(scope, external));

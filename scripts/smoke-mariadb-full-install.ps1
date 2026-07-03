@@ -299,6 +299,53 @@ SELECT COUNT(*)
 FROM xyzDB.xyz_center_cut_sample_target
 WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
 "@)
+    $result.checks.transactionSegmentTableCount = [int] (Invoke-Scalar -StepName "transactionSegmentTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_transaction_segment';
+"@)
+    $result.checks.transactionSegmentRequiredColumnCount = [int] (Invoke-Scalar -StepName "transactionSegmentRequiredColumnCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.columns
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_transaction_segment'
+  AND column_name IN (
+      'transaction_segment_id',
+      'transaction_global_id',
+      'parent_segment_id',
+      'transaction_role',
+      'module_code',
+      'source_module_code',
+      'target_module_code',
+      'direction',
+      'started_at',
+      'ended_at',
+      'duration_ms',
+      'status',
+      'failure_yn',
+      'failure_code',
+      'failure_message_masked',
+      'request_header_snapshot_masked',
+      'response_header_snapshot_masked',
+      'extension_header_snapshot_masked',
+      'external_institution_code',
+      'external_transaction_id'
+  );
+"@)
+    $result.checks.transactionSegmentIndexCount = [int] (Invoke-Scalar -StepName "transactionSegmentIndexCount" -SqlText @"
+SELECT COUNT(DISTINCT index_name)
+FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_transaction_segment'
+  AND index_name IN (
+      'uk_pfw_transaction_segment_id',
+      'ix_pfw_transaction_segment_global',
+      'ix_pfw_transaction_segment_parent',
+      'ix_pfw_transaction_segment_status',
+      'ix_pfw_transaction_segment_external'
+  );
+"@)
 
     if ($result.checks.batCenterCutTableCount -ne 4) {
         throw "bat_center_cut_* table count mismatch. actual=$($result.checks.batCenterCutTableCount)"
@@ -314,6 +361,15 @@ WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
     }
     if ($result.checks.xyzCenterCutSeedCount -lt 4) {
         throw "CPF_XYZ_CENTER_CUT_SAMPLE_JOB target seed is missing."
+    }
+    if ($result.checks.transactionSegmentTableCount -ne 1) {
+        throw "pfw_transaction_segment table is missing."
+    }
+    if ($result.checks.transactionSegmentRequiredColumnCount -ne 20) {
+        throw "pfw_transaction_segment required column count mismatch. actual=$($result.checks.transactionSegmentRequiredColumnCount)"
+    }
+    if ($result.checks.transactionSegmentIndexCount -ne 5) {
+        throw "pfw_transaction_segment required index count mismatch. actual=$($result.checks.transactionSegmentIndexCount)"
     }
 
     $result.status = $StatusDone

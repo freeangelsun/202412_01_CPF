@@ -21,7 +21,12 @@ $skipFileNames = @(
     "CPF_STABILIZATION_CHANGED_FILES.txt"
 )
 $mojibakeLiteralChars = @(
+    # UTF-8 한글이 잘못 디코딩될 때 자주 남는 Latin-1 계열 marker입니다.
+    [char]0x00C2,
+    [char]0x00C3,
+    [char]0x00D0,
     [char]0x00EC,
+    [char]0x00F0,
     [char]0x00EB,
     [char]0x00ED,
     [char]0x00EA,
@@ -43,6 +48,7 @@ $mojibakeLiteralChars = @(
 )
 $mojibakeRegexPatterns = @(
     '\?[\u3130-\u318F\uA960-\uA97F\uAC00-\uD7AF]',
+    '(?:\u00C3|\u00C2|\u00D0|\u00F0|\u00EC|\u00ED|\u00EB|\u00EA)[\u0080-\u00BF]',
     '[\u2464\u4E8C\u533B\u56A5\u5BC3\u5DDB\u63F6\u6E1D\u6FE1\u7344\u7652\u7B4C\u8B70\u8E30\uF9CF\uF9D0]'
 )
 $utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)

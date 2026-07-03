@@ -45,6 +45,17 @@ tasks.register('runLocalServices') {
                 [name: 'BIZADM', project: project(':bizadm'), mainClass: 'cpf.bizadm.BizAdmApplication'],
                 [name: 'EXS', project: project(':exs'), mainClass: 'cpf.exs.ExsApplication']
         ]
+        def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
+        if (!requestedServiceText.isBlank()) {
+            def requestedServices = requestedServiceText
+                    .split(',')
+                    .collect { it.trim().toUpperCase(Locale.ROOT) }
+                    .findAll { !it.isBlank() } as Set
+            services = services.findAll { requestedServices.contains(it.name) }
+            if (services.isEmpty()) {
+                throw new GradleException("cpfRunServices에 실행 가능한 서비스가 없습니다. value=${requestedServiceText}")
+            }
+        }
         def javaExecutable = new File(
                 System.getProperty('java.home'),
                 'bin/java' + (System.getProperty('os.name').toLowerCase().contains('windows') ? '.exe' : '')
@@ -52,7 +63,8 @@ tasks.register('runLocalServices') {
         def processes = []
         def logThreads = []
 
-        logger.lifecycle('CPF 로컬 서비스 시작: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
+        logger.lifecycle("CPF 로컬 서비스 시작 대상: ${services.collect { it.name }.join(', ')}")
+        logger.lifecycle('전체 기본 포트: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
         logger.lifecycle('PFW와 CMN은 각 서비스 안에서 라이브러리로 동작합니다.')
 
         services.each { service ->

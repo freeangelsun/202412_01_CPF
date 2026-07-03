@@ -41,6 +41,7 @@ if (!window.Vue) {
         loginForm: { operatorId: "admin", password: "Adm!n12345" },
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
+          { id: "transactionGroups", menuId: "LOG_LIST", label: "거래 그룹" },
           { id: "transactions", menuId: "TRANSACTION_META", label: "거래 메타" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
           { id: "members", menuId: "MEMBER", label: "회원" },
@@ -73,11 +74,43 @@ if (!window.Vue) {
           channelCode: "",
           logType: ""
         },
+        transactionGroupSearch: {
+          startedAtFrom: "",
+          startedAtTo: "",
+          transactionGlobalId: "",
+          transactionSegmentId: "",
+          status: "",
+          failureYn: "",
+          moduleCode: "",
+          sourceModuleCode: "",
+          targetModuleCode: "",
+          transactionRole: "",
+          direction: "",
+          customerNo: "",
+          memberNo: "",
+          userId: "",
+          operatorId: "",
+          channelCode: "",
+          originalChannelCode: "",
+          externalInstitutionCode: "",
+          externalTransactionId: "",
+          apiPath: "",
+          transactionName: "",
+          failureCode: "",
+          durationMsFrom: "",
+          durationMsTo: "",
+          standardHeaderValue: "",
+          extensionHeaderValue: ""
+        },
         transactionSearch: { moduleCode: "", activeYn: "Y", transactionId: "", selectedTransactionId: "", reason: "거래 메타 운영" },
         logSort: { key: "LOG_IDX", direction: "desc" },
         logPage: { page: 1, size: 10 },
         logDetailTab: "요약",
         logDetailTabs: ["요약", "수신 헤더", "해석 헤더", "전파 헤더", "응답 헤더", "요청", "응답", "오류", "상세", "전문"],
+        transactionGroupSort: "startedAtDesc",
+        transactionGroupPage: { page: 1, size: 10 },
+        transactionGroupDetailTab: "요약",
+        transactionGroupDetailTabs: ["요약", "Timeline", "Segments", "표준 헤더", "확장 헤더", "External Logs", "원본 JSON"],
         auditSearch: { operatorId: "", actionType: "", targetType: "", targetId: "", limit: 100 },
         memberSearch: {
           memberNo: "",
@@ -251,6 +284,8 @@ if (!window.Vue) {
           requestUser: "admin-ui"
         },
         logs: [],
+        transactionGroupResult: { items: [] },
+        transactionGroupDetail: {},
         transactionResult: {},
         auditLogs: [],
         logDetail: {},
@@ -305,6 +340,43 @@ if (!window.Vue) {
       logTotalPages() {
         return Math.max(1, Math.ceil(this.sortedLogs.length / this.logPage.size));
       },
+      transactionGroups() {
+        return this.transactionGroupResult?.items || [];
+      },
+      pagedTransactionGroups() {
+        const start = (this.transactionGroupPage.page - 1) * this.transactionGroupPage.size;
+        return this.transactionGroups.slice(start, start + this.transactionGroupPage.size);
+      },
+      transactionGroupTotalPages() {
+        return Math.max(1, Math.ceil(this.transactionGroups.length / this.transactionGroupPage.size));
+      },
+      activeTransactionGroupPayload() {
+        const detail = this.transactionGroupDetail || {};
+        const headerItems = detail.headers?.headers || detail.headers || [];
+        const standardHeaders = Array.isArray(headerItems)
+          ? headerItems.map(item => ({
+              transactionSegmentId: item.transactionSegmentId,
+              requestHeaderSnapshotMasked: item.requestHeaderSnapshotMasked,
+              responseHeaderSnapshotMasked: item.responseHeaderSnapshotMasked
+            }))
+          : headerItems;
+        const extensionHeaders = Array.isArray(headerItems)
+          ? headerItems.map(item => ({
+              transactionSegmentId: item.transactionSegmentId,
+              extensionHeaderSnapshotMasked: item.extensionHeaderSnapshotMasked
+            }))
+          : headerItems;
+        const tabMap = {
+          요약: detail.summary || {},
+          Timeline: detail.timeline?.items || detail.timeline || [],
+          Segments: detail.segments?.items || detail.segments || [],
+          "표준 헤더": standardHeaders,
+          "확장 헤더": extensionHeaders,
+          "External Logs": detail.externalLogs?.items || detail.externalLogs || [],
+          "원본 JSON": detail
+        };
+        return this.pretty(tabMap[this.transactionGroupDetailTab] || {});
+      },
       activeLogDetailPayload() {
         const detail = this.logDetail?.item || this.logDetail || {};
         const tabMap = {
@@ -325,6 +397,9 @@ if (!window.Vue) {
     watch: {
       logs() {
         this.logPage.page = 1;
+      },
+      transactionGroupResult() {
+        this.transactionGroupPage.page = 1;
       }
     },
     mounted() {
@@ -430,6 +505,7 @@ if (!window.Vue) {
         await this.loadMe();
         await Promise.allSettled([
           this.searchLogs(),
+          this.loadTransactionGroups(),
           this.loadTransactions(),
           this.loadAuditLogs(),
           this.searchMembers(),
@@ -534,6 +610,55 @@ if (!window.Vue) {
         this.logs = data.items || [];
         this.logDetail = data;
         this.setMessage(`거래 로그 ${this.logs.length}건을 조회했습니다.`);
+      },
+      transactionGlobalIdOf(item) {
+        return item?.transaction_global_id || item?.transactionGlobalId || "";
+      },
+      async loadTransactionGroups() {
+        const params = this.buildParams({
+          ...this.transactionGroupSearch,
+          sort: this.transactionGroupSort,
+          limit: this.transactionGroupPage.size
+        });
+        const data = await this.getJson(`/adm/api/transaction-groups?${params.toString()}`);
+        this.transactionGroupResult = data || { items: [] };
+        this.setMessage(`거래 그룹 ${this.transactionGroups.length}건을 조회했습니다.`);
+        const first = this.transactionGroups[0];
+        if (first && !this.transactionGroupDetail?.transactionGlobalId) {
+          await this.loadTransactionGroupDetail(this.transactionGlobalIdOf(first));
+        }
+      },
+      async loadTransactionGroupDetail(transactionGlobalId) {
+        if (!transactionGlobalId) return;
+        const [detail, segments, timeline, headers, externalLogs] = await Promise.all([
+          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}`),
+          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/segments`),
+          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/timeline`),
+          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/headers`),
+          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/external-logs`)
+        ]);
+        this.transactionGroupDetail = {
+          ...detail,
+          segments,
+          timeline,
+          headers,
+          externalLogs
+        };
+        this.transactionGroupDetailTab = "요약";
+        this.setMessage(`거래 그룹 상세를 조회했습니다. transactionGlobalId=${transactionGlobalId}`);
+      },
+      moveTransactionGroupPage(delta) {
+        this.transactionGroupPage.page = Math.min(
+          this.transactionGroupTotalPages,
+          Math.max(1, this.transactionGroupPage.page + delta)
+        );
+      },
+      resetTransactionGroupSearch() {
+        Object.keys(this.transactionGroupSearch).forEach(key => {
+          this.transactionGroupSearch[key] = "";
+        });
+        this.transactionGroupSort = "startedAtDesc";
+        this.transactionGroupDetail = {};
       },
       async loadTransactions() {
         const params = this.buildParams(this.transactionSearch);

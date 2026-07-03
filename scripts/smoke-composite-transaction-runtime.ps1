@@ -21,13 +21,34 @@ $result = [ordered]@{
     probes = [ordered]@{}
 }
 
+$script:sequence = 1
+
+function New-UnicodeText {
+    param([int[]] $CodePoints)
+
+    return -join ($CodePoints | ForEach-Object { [char] $_ })
+}
+
+$StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
+$StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
+
 function Save-SmokeResult {
     $result.finishedAt = (Get-Date).ToString("o")
     $result | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $resultPath -Encoding UTF8
 }
 
+function New-SmokeTransactionId {
+    $timestamp = (Get-Date).ToString("yyyyMMddHHmmssfff")
+    $sequence = $script:sequence.ToString("0000000")
+    $script:sequence++
+    return "$timestamp" + "ACC" + "smoke01" + $sequence
+}
+
 function New-CpfSmokeHeaders {
+    $transactionId = New-SmokeTransactionId
     return @{
+        "X-Transaction-Id" = $transactionId
+        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "ONLINE"
         "X-Original-Channel-Code" = "SMOKE"
         "X-Channel-Code" = "ACC"
@@ -77,12 +98,12 @@ try {
     Assert-Condition ($segmentIds.Count -ge 3) "segmentIds must contain at least 3 ids"
     Assert-Condition (($segmentIds | Select-Object -Unique).Count -eq $segmentIds.Count) "transactionSegmentId values must be unique"
 
-    $result.status = "완료"
+    $result.status = $StatusDone
     $result.transactionGlobalId = $body.transactionGlobalId
     Save-SmokeResult
     Write-Host "Composite transaction runtime smoke passed. Result: $resultPath"
 } catch {
-    $result.status = "실패"
+    $result.status = $StatusFailed
     $result.error = $_.Exception.Message
     Save-SmokeResult
     throw

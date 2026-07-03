@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * ACC 샘플에서 EXS 외부연계 mock API를 호출하는 client입니다.
+ * ACC 샘플에서 EXS 대외연계 교육 API를 호출하는 client입니다.
  */
 @Service
 @RequiredArgsConstructor

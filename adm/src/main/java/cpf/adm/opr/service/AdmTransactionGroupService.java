@@ -107,10 +107,12 @@ public class AdmTransactionGroupService {
                        COUNT(*) AS segment_count,
                        SUM(CASE WHEN transaction_role = 'EXTERNAL' THEN 1 ELSE 0 END) AS external_call_count,
                        GROUP_CONCAT(DISTINCT module_code ORDER BY started_at SEPARATOR ' -> ') AS module_flow_text,
+                       SUBSTRING_INDEX(GROUP_CONCAT(module_code ORDER BY started_at SEPARATOR ' -> '), ' -> ', 1) AS origin_module_code,
                        GROUP_CONCAT(DISTINCT transaction_role ORDER BY started_at SEPARATOR ' / ') AS roles_text,
                        MAX(CASE WHEN failure_yn = 'Y' THEN module_code ELSE NULL END) AS failed_module_code,
                        MAX(CASE WHEN failure_yn = 'Y' THEN transaction_segment_id ELSE NULL END) AS failed_segment_id,
                        MAX(CASE WHEN failure_yn = 'Y' THEN transaction_name ELSE NULL END) AS failed_segment_name,
+                       MAX(CASE WHEN failure_yn = 'Y' THEN failure_code ELSE NULL END) AS failure_code,
                        MAX(CASE WHEN failure_yn = 'Y' THEN failure_message_masked ELSE NULL END) AS failure_message_masked,
                        CASE WHEN SUM(CASE WHEN failure_yn = 'Y' THEN 1 ELSE 0 END) > 0 THEN 'FAILED' ELSE 'SUCCESS' END AS overall_status,
                        CASE WHEN SUM(CASE WHEN failure_yn = 'Y' THEN 1 ELSE 0 END) > 0 THEN 'Y' ELSE 'N' END AS failure_yn,
@@ -120,13 +122,18 @@ public class AdmTransactionGroupService {
                        MAX(original_channel_code) AS original_channel_code,
                        MAX(external_institution_code) AS external_institution_code,
                        MAX(external_transaction_id) AS external_transaction_id,
-                       MAX(transaction_name) AS transaction_name
+                       MAX(transaction_name) AS transaction_name,
+                       MAX(api_path) AS api_path
                 FROM pfw_transaction_segment
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
         appendLike(sql, args, "transaction_global_id", criteria.get("transactionGlobalId"));
+        appendLike(sql, args, "transaction_segment_id", criteria.get("transactionSegmentId"));
+        appendLike(sql, args, "transaction_segment_id", criteria.get("segmentId"));
+        appendLike(sql, args, "transaction_segment_id", criteria.get("failedSegmentId"));
         appendLike(sql, args, "module_code", criteria.get("includedModuleCode"));
+        appendLike(sql, args, "module_code", criteria.get("moduleCode"));
         appendEquals(sql, args, "source_module_code", criteria.get("sourceModuleCode"));
         appendEquals(sql, args, "target_module_code", criteria.get("targetModuleCode"));
         appendEquals(sql, args, "transaction_role", criteria.get("transactionRole"));
@@ -134,7 +141,7 @@ public class AdmTransactionGroupService {
         appendEquals(sql, args, "status", criteria.get("status"));
         appendEquals(sql, args, "failure_yn", criteria.get("failureYn"));
         appendEquals(sql, args, "module_code", criteria.get("failedModuleCode"));
-        appendLike(sql, args, "transaction_segment_id", criteria.get("failedSegmentId"));
+        appendLike(sql, args, "failure_code", criteria.get("failureCode"));
         appendLike(sql, args, "customer_no_masked", criteria.get("customerNo"));
         appendLike(sql, args, "member_no_masked", criteria.get("memberNo"));
         appendLike(sql, args, "customer_no_masked", criteria.get("userId"));
@@ -145,6 +152,10 @@ public class AdmTransactionGroupService {
         appendLike(sql, args, "external_transaction_id", criteria.get("externalTransactionId"));
         appendLike(sql, args, "api_path", criteria.get("apiPath"));
         appendLike(sql, args, "transaction_name", criteria.get("transactionName"));
+        appendLike(sql, args, "request_header_snapshot_masked", criteria.get("standardHeaderValue"));
+        appendLike(sql, args, "response_header_snapshot_masked", criteria.get("responseHeaderValue"));
+        appendLike(sql, args, "extension_header_snapshot_masked", criteria.get("extensionHeaderValue"));
+        appendLike(sql, args, "extension_header_snapshot_masked", criteria.get("extHeaderValue"));
         appendDateTime(sql, args, "started_at", ">=", criteria.get("startedAtFrom"));
         appendDateTime(sql, args, "started_at", "<=", criteria.get("startedAtTo"));
         appendLong(sql, args, "duration_ms", ">=", criteria.get("durationMsFrom"));

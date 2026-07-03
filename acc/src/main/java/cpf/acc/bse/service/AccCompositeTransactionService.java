@@ -95,12 +95,12 @@ public class AccCompositeTransactionService {
                 "ACC",
                 "MBR",
                 "/mbr/edu/composite/member-profile",
-                "ACC → MBR 회원 조회")) {
+                "ACC -> MBR 회원 조회")) {
             try {
                 segmentIds.add(outbound.transactionSegmentId());
                 Map<String, Object> result = mbrMemberClientService.callCompositeMember(memberId);
                 outbound.success();
-                flow.add("ACC → MBR OUTBOUND");
+                flow.add("ACC -> MBR OUTBOUND");
                 addNestedSegmentIds(segmentIds, result);
                 return result;
             } catch (RuntimeException ex) {
@@ -118,7 +118,7 @@ public class AccCompositeTransactionService {
                 "ACC",
                 "EXS",
                 "/api/exs/edu/external-transfer",
-                "ACC → EXS 외부연계 호출")) {
+                "ACC -> EXS 외부연계 호출")) {
             try {
                 segmentIds.add(outbound.transactionSegmentId());
                 String externalTransactionId = "EXT-ACC-" + System.currentTimeMillis();
@@ -129,7 +129,7 @@ public class AccCompositeTransactionService {
                         "institutionCode", "BANK01",
                         "externalTransactionId", externalTransactionId));
                 outbound.success();
-                flow.add("ACC → EXS OUTBOUND");
+                flow.add("ACC -> EXS OUTBOUND");
                 addNestedSegmentIds(segmentIds, result);
                 return result;
             } catch (RuntimeException ex) {
@@ -147,12 +147,12 @@ public class AccCompositeTransactionService {
                 "ACC",
                 "MBR",
                 "/mbr/edu/composite/member-calls-external",
-                "ACC → MBR 중첩 외부연계 호출")) {
+                "ACC -> MBR 중첩 외부연계 호출")) {
             try {
                 segmentIds.add(outbound.transactionSegmentId());
                 Map<String, Object> result = mbrMemberClientService.callMemberWithExternal(memberId);
                 outbound.success();
-                flow.add("ACC → MBR OUTBOUND");
+                flow.add("ACC -> MBR OUTBOUND");
                 addNestedSegmentIds(segmentIds, result);
                 return result;
             } catch (RuntimeException ex) {

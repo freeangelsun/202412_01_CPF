@@ -17,8 +17,8 @@ import javax.sql.DataSource;
 /**
  * EXS 전용 DB 연결 설정입니다.
  *
- * <p>대외 token, 통제 정책, 재처리, 송수신 로그는 DB 영속화를 표준으로 삼습니다. 로컬 교육 기동과
- * 실제 DB 연동을 분리하기 위해 명시적으로 활성화한 경우에만 datasource를 생성합니다.</p>
+ * <p>대외 토큰, 통제 정책, 재처리 요청, 송수신 로그를 exsDB에 저장합니다.
+ * 로컬 교육 기동과 실제 DB 연동을 분리하기 위해 명시적으로 활성화한 경우에만 datasource를 생성합니다.</p>
  */
 @Configuration
 @EnableConfigurationProperties

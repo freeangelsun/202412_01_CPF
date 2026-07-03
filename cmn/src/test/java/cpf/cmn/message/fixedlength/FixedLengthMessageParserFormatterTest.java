@@ -54,5 +54,45 @@ class FixedLengthMessageParserFormatterTest {
 
         assertThat(result.valid()).isFalse();
         assertThat(result.errors()).anyMatch(error -> error.contains("FIXED_FIELD_TYPE_INVALID"));
+        assertThat(result.fieldErrors()).anyMatch(error -> error.errorCode().equals("FIXED_FIELD_TYPE_INVALID"));
+    }
+
+    @Test
+    void formatAndParseRepeatingGroupByCountField() {
+        FixedLengthLayoutSpec layout = FixedLengthLayoutSpec.utf8(
+                24,
+                List.of(
+                        new FixedLengthFieldSpec("messageType", 1, 2, FixedLengthFieldType.STRING, true, ' ', FixedLengthAlignment.LEFT, false),
+                        new FixedLengthFieldSpec("itemCount", 3, 2, FixedLengthFieldType.NUMBER, true, '0', FixedLengthAlignment.RIGHT, false)),
+                List.of(
+                        new FixedLengthGroupSpec(
+                                "items",
+                                "itemCount",
+                                5,
+                                2,
+                                List.of(
+                                        new FixedLengthFieldSpec("itemCode", 1, 3, FixedLengthFieldType.STRING, true, ' ', FixedLengthAlignment.LEFT, false),
+                                        new FixedLengthFieldSpec("amount", 4, 4, FixedLengthFieldType.NUMBER, true, '0', FixedLengthAlignment.RIGHT, true)))));
+
+        FixedLengthMessageFormatter formatter = new FixedLengthMessageFormatter();
+        FixedLengthMessageParser parser = new FixedLengthMessageParser();
+
+        FixedLengthFormatResult formatted = formatter.format(
+                Map.of(
+                        "messageType", "RQ",
+                        "items", List.of(
+                                Map.of("itemCode", "A1", "amount", "12"),
+                                Map.of("itemCode", "B2", "amount", "345"))),
+                layout);
+        FixedLengthParseResult parsed = parser.parse(formatted.message(), layout);
+
+        assertThat(formatted.byteLength()).isEqualTo(24);
+        assertThat(formatted.maskedFields()).containsEntry("itemCount", "2");
+        assertThat(formatted.maskedGroups().get("items")).hasSize(2);
+        assertThat(parsed.valid()).isTrue();
+        assertThat(parsed.fields()).containsEntry("itemCount", "2");
+        assertThat(parsed.groups().get("items").get(0)).containsEntry("itemCode", "A1").containsEntry("amount", "12");
+        assertThat(parsed.groups().get("items").get(1)).containsEntry("itemCode", "B2").containsEntry("amount", "345");
+        assertThat(parsed.maskedGroups().get("items").get(0).get("amount")).isEqualTo("**");
     }
 }

@@ -25,6 +25,17 @@ $result = [ordered]@{
     probes = [ordered]@{}
 }
 
+$script:sequence = 1
+
+function New-UnicodeText {
+    param([int[]] $CodePoints)
+
+    return -join ($CodePoints | ForEach-Object { [char] $_ })
+}
+
+$StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
+$StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
+
 function Save-SmokeResult {
     $result.finishedAt = (Get-Date).ToString("o")
     $result | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $resultPath -Encoding UTF8
@@ -56,7 +67,13 @@ function Invoke-Json {
 }
 
 function New-CpfSmokeHeaders {
+    $timestamp = (Get-Date).ToString("yyyyMMddHHmmssfff")
+    $sequence = $script:sequence.ToString("0000000")
+    $script:sequence++
+    $transactionId = "$timestamp" + "ADM" + "admgrp1" + $sequence
     return @{
+        "X-Transaction-Id" = $transactionId
+        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "ONLINE"
         "X-Original-Channel-Code" = "SMOKE"
         "X-Channel-Code" = "ACC"
@@ -72,6 +89,16 @@ function Assert-Condition {
     }
 }
 
+function Get-PropertyValue {
+    param([object] $Object, [string[]] $Names)
+    foreach ($name in $Names) {
+        if ($null -ne $Object -and $null -ne $Object.PSObject.Properties[$name]) {
+            return $Object.PSObject.Properties[$name].Value
+        }
+    }
+    return $null
+}
+
 try {
     if ([string]::IsNullOrWhiteSpace($TransactionGlobalId)) {
         $composite = Invoke-Json -Method Post -Uri "$AccBaseUrl/acc/edu/composite/member-then-external?memberId=1" -Headers (New-CpfSmokeHeaders)
@@ -83,12 +110,12 @@ try {
         }
     }
 
-    $headers = @{}
+    $headers = New-CpfSmokeHeaders
     if (-not [string]::IsNullOrWhiteSpace($AdmPassword)) {
         $login = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
             operatorId = $AdmUsername
             password = $AdmPassword
-        }
+        } -Headers (New-CpfSmokeHeaders)
         $headers.Authorization = "Bearer $($login.accessToken)"
     }
 
@@ -97,27 +124,50 @@ try {
     $segments = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transaction-groups/$TransactionGlobalId/segments" -Headers $headers
     $timeline = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transaction-groups/$TransactionGlobalId/timeline" -Headers $headers
     $headersResult = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transaction-groups/$TransactionGlobalId/headers" -Headers $headers
+    $externalLogs = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transaction-groups/$TransactionGlobalId/external-logs" -Headers $headers
+
+    $segmentItems = @($segments.items)
+    $timelineItems = @($timeline.items)
+    $externalLogItems = @($externalLogs.items)
+    $segmentIds = @($segmentItems | ForEach-Object { Get-PropertyValue $_ @("transaction_segment_id", "transactionSegmentId") } | Where-Object { -not [string]::IsNullOrWhiteSpace([string] $_) })
+    $uniqueSegmentIds = @($segmentIds | Sort-Object -Unique)
+    $moduleCodes = @($segmentItems | ForEach-Object { Get-PropertyValue $_ @("module_code", "moduleCode") } | Where-Object { -not [string]::IsNullOrWhiteSpace([string] $_) } | Sort-Object -Unique)
 
     $result.probes.list = [ordered]@{ count = @($list.items).Count; sort = $list.sort }
     $result.probes.detail = [ordered]@{ segmentCount = @($detail.segments).Count; summary = $detail.summary }
-    $result.probes.segments = [ordered]@{ count = @($segments.items).Count }
-    $result.probes.timeline = [ordered]@{ count = @($timeline.items).Count }
+    $result.probes.segments = [ordered]@{
+        count = $segmentItems.Count
+        uniqueSegmentIdCount = $uniqueSegmentIds.Count
+        moduleCodes = $moduleCodes
+    }
+    $result.probes.timeline = [ordered]@{ count = $timelineItems.Count }
     $result.probes.headers = [ordered]@{ count = @($headersResult.headers).Count }
+    $result.probes.externalLogs = [ordered]@{ count = $externalLogItems.Count }
+    $result.probes.dbSegmentRows = $segmentItems.Count
 
     Assert-Condition (@($list.items).Count -ge 1) "ADM transaction group list must contain the generated transactionGlobalId"
     Assert-Condition (@($detail.segments).Count -ge 3) "ADM detail must contain at least 3 segments"
-    Assert-Condition (@($timeline.items).Count -ge 3) "ADM timeline must contain at least 3 items"
+    Assert-Condition ($segmentItems.Count -ge 3) "ADM segment API must contain at least 3 segments"
+    Assert-Condition ($timelineItems.Count -ge 3) "ADM timeline must contain at least 3 items"
+    Assert-Condition ($segmentIds.Count -eq $uniqueSegmentIds.Count) "ADM segment API must not expose duplicated transactionSegmentId"
+    Assert-Condition ($moduleCodes -contains "ACC") "ADM segment API must contain ACC segment"
+    Assert-Condition ($moduleCodes -contains "MBR") "ADM segment API must contain MBR segment"
+    Assert-Condition ($moduleCodes -contains "EXS") "ADM segment API must contain EXS segment"
+    Assert-Condition ($externalLogItems.Count -ge 1) "ADM external logs API must contain at least one external candidate row"
     Assert-Condition (($detail.summary.moduleFlowText -match "ACC") -and ($detail.summary.moduleFlowText -match "MBR") -and ($detail.summary.moduleFlowText -match "EXS")) "ADM summary moduleFlowText must contain ACC, MBR, EXS"
     Assert-Condition ($detail.summary.totalDurationMs -ge 0) "ADM summary totalDurationMs must exist"
 
-    $serialized = ($detail | ConvertTo-Json -Depth 30)
+    $serialized = (@($detail, $headersResult, $externalLogs) | ConvertTo-Json -Depth 30)
     Assert-Condition ($serialized -notmatch "Bearer\s+[A-Za-z0-9._~+/=-]+") "sensitive bearer token must not be exposed"
+    Assert-Condition ($serialized -notmatch "(?i)password\s*[:=]\s*[^,*}\]]+") "password-like raw value must not be exposed"
+    Assert-Condition ($serialized -notmatch "(?i)api[-_]?key\s*[:=]\s*[^,*}\]]+") "api key-like raw value must not be exposed"
+    Assert-Condition ($serialized -notmatch "(?i)secret\s*[:=]\s*[^,*}\]]+") "secret-like raw value must not be exposed"
 
-    $result.status = "완료"
+    $result.status = $StatusDone
     Save-SmokeResult
     Write-Host "ADM transaction group runtime smoke passed. Result: $resultPath"
 } catch {
-    $result.status = "실패"
+    $result.status = $StatusFailed
     $result.error = $_.Exception.Message
     Save-SmokeResult
     throw

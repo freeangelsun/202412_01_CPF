@@ -97,6 +97,7 @@ $combined = "$index`n$script"
 $requiredMarkers = @(
     "batch",
     "logs",
+    "transactionGroups",
     "auditLogs",
     "notifications",
     "downloads",
@@ -129,7 +130,16 @@ $requiredMarkers = @(
     "lastErrorMessage",
     "/adm/api/logs",
     "/adm/api/notifications",
-    "/adm/api/downloads"
+    "/adm/api/downloads",
+    "/adm/api/transaction-groups",
+    "transactionGlobalId",
+    "transactionSegmentId",
+    "segment timeline",
+    "External Logs",
+    "standardHeaderValue",
+    "extensionHeaderValue",
+    "X-Cpf-Ext-*",
+    "Authorization"
 )
 
 foreach ($marker in $requiredMarkers) {
@@ -227,6 +237,9 @@ test("ADM UI basic click flow", async ({ page }) => {
   await page.getByRole("button", { name: "\uAC70\uB798 \uB85C\uADF8" }).click();
   await expect(page.getByRole("heading", { name: "\uAC70\uB798 \uB85C\uADF8" })).toBeVisible();
 
+  await page.getByRole("button", { name: "\uAC70\uB798 \uADF8\uB8F9" }).click();
+  await expect(page.getByRole("heading", { name: "\uAC70\uB798 \uADF8\uB8F9" })).toBeVisible();
+
   await page.getByRole("button", { name: "\uBC30\uCE58" }).click();
   await expect(page.getByRole("heading", { name: "\uBC30\uCE58 \uAD00\uC81C" })).toBeVisible();
 
@@ -279,6 +292,7 @@ try {
             "login page visible",
             "login button click",
             "transaction log menu click",
+            "transaction group menu click",
             "batch menu click",
             "audit log menu click",
             "screenshot saved"

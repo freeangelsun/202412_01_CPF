@@ -329,6 +329,10 @@ WHERE table_schema = 'pfwDB'
       'request_header_snapshot_masked',
       'response_header_snapshot_masked',
       'extension_header_snapshot_masked',
+      'user_id_masked',
+      'operator_id_masked',
+      'client_app_id',
+      'caller_service',
       'external_institution_code',
       'external_transaction_id'
   );
@@ -343,8 +347,59 @@ WHERE table_schema = 'pfwDB'
       'ix_pfw_transaction_segment_global',
       'ix_pfw_transaction_segment_parent',
       'ix_pfw_transaction_segment_status',
-      'ix_pfw_transaction_segment_external'
+      'ix_pfw_transaction_segment_external',
+      'ix_pfw_transaction_segment_user',
+      'ix_pfw_transaction_segment_operator',
+      'ix_pfw_transaction_segment_client'
   );
+"@)
+    $result.checks.exsLedgerRequiredColumnCount = [int] (Invoke-Scalar -StepName "exsLedgerRequiredColumnCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.columns
+WHERE table_schema = 'exsDB'
+  AND table_name = 'exs_transaction_log'
+  AND column_name IN (
+      'transaction_segment_id',
+      'api_path',
+      'request_header_masked',
+      'response_header_masked',
+      'request_payload_masked',
+      'response_payload_masked',
+      'http_status',
+      'timeout_ms',
+      'retry_count'
+  );
+"@)
+    $result.checks.exsMessageRequiredColumnCount = [int] (Invoke-Scalar -StepName "exsMessageRequiredColumnCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.columns
+WHERE table_schema = 'exsDB'
+  AND table_name = 'exs_message_log'
+  AND column_name IN (
+      'transaction_segment_id',
+      'message_code',
+      'request_payload_masked',
+      'response_payload_masked',
+      'status',
+      'failure_code',
+      'failure_message_masked'
+  );
+"@)
+    $result.checks.cmnFixedLengthTableCount = [int] (Invoke-Scalar -StepName "cmnFixedLengthTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'cmnDB'
+  AND table_name IN (
+      'cmn_fixed_length_layout',
+      'cmn_fixed_length_group',
+      'cmn_fixed_length_field',
+      'cmn_fixed_length_masking_policy'
+  );
+"@)
+    $result.checks.cmnFixedLengthSeedCount = [int] (Invoke-Scalar -StepName "cmnFixedLengthSeedCount" -SqlText @"
+SELECT COUNT(*)
+FROM cmnDB.cmn_fixed_length_layout
+WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
 "@)
 
     if ($result.checks.batCenterCutTableCount -ne 4) {
@@ -365,11 +420,23 @@ WHERE table_schema = 'pfwDB'
     if ($result.checks.transactionSegmentTableCount -ne 1) {
         throw "pfw_transaction_segment table is missing."
     }
-    if ($result.checks.transactionSegmentRequiredColumnCount -ne 20) {
+    if ($result.checks.transactionSegmentRequiredColumnCount -ne 24) {
         throw "pfw_transaction_segment required column count mismatch. actual=$($result.checks.transactionSegmentRequiredColumnCount)"
     }
-    if ($result.checks.transactionSegmentIndexCount -ne 5) {
+    if ($result.checks.transactionSegmentIndexCount -ne 8) {
         throw "pfw_transaction_segment required index count mismatch. actual=$($result.checks.transactionSegmentIndexCount)"
+    }
+    if ($result.checks.exsLedgerRequiredColumnCount -ne 9) {
+        throw "exs_transaction_log required column count mismatch. actual=$($result.checks.exsLedgerRequiredColumnCount)"
+    }
+    if ($result.checks.exsMessageRequiredColumnCount -ne 7) {
+        throw "exs_message_log required column count mismatch. actual=$($result.checks.exsMessageRequiredColumnCount)"
+    }
+    if ($result.checks.cmnFixedLengthTableCount -ne 4) {
+        throw "cmn_fixed_length_* table count mismatch. actual=$($result.checks.cmnFixedLengthTableCount)"
+    }
+    if ($result.checks.cmnFixedLengthSeedCount -lt 1) {
+        throw "BANK01_BALANCE_REQ_V1 fixed-length layout seed is missing."
     }
 
     $result.status = $StatusDone

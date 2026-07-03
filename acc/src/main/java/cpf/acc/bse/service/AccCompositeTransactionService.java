@@ -1,5 +1,6 @@
 package cpf.acc.bse.service;
 
+import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.segment.TransactionSegmentDirection;
 import cpf.pfw.common.logging.segment.TransactionSegmentRole;
@@ -52,6 +53,44 @@ public class AccCompositeTransactionService {
             } catch (RuntimeException ex) {
                 main.fail(ex.getClass().getSimpleName(), ex.getMessage());
                 throw ex;
+            }
+        }
+    }
+
+    public Map<String, Object> memberThenExternalFailure(Integer memberId) {
+        long started = System.nanoTime();
+        List<String> flow = new ArrayList<>();
+        List<String> segmentIds = new ArrayList<>();
+        try (TransactionSegmentScope main = segmentService.start(
+                TransactionSegmentRole.MAIN,
+                TransactionSegmentDirection.INBOUND,
+                "ACC",
+                null,
+                "ACC",
+                "/acc/edu/composite/member-then-external-failure",
+                "ACC 복합 거래 실패 샘플 시작")) {
+            flow.add("ACC MAIN");
+            segmentIds.add(main.transactionSegmentId());
+            try {
+                Map<String, Object> member = callMbr(memberId, flow, segmentIds);
+                callExsFailure(memberId, flow, segmentIds);
+
+                Map<String, Object> response = baseResponse(started, flow, segmentIds);
+                response.put("pattern", "ACC-MBR-ACC-EXS-ACC-FAILURE");
+                response.put("member", member);
+                response.put("overallStatus", "SUCCESS");
+                main.success();
+                return response;
+            } catch (RuntimeException ex) {
+                main.fail("EXS_TIMEOUT", ex.getMessage());
+                Map<String, Object> response = baseResponse(started, flow, segmentIds);
+                response.put("pattern", "ACC-MBR-ACC-EXS-ACC-FAILURE");
+                response.put("overallStatus", "FAILED");
+                response.put("failureCode", "EXS_TIMEOUT");
+                response.put("failureMessageMasked", SensitiveDataMasker.mask(ex.getMessage(), 1000));
+                response.put("failedSegmentId", segmentIds.isEmpty() ? main.transactionSegmentId() : segmentIds.get(segmentIds.size() - 1));
+                response.put("failedModuleCode", "EXS");
+                return response;
             }
         }
     }
@@ -139,6 +178,37 @@ public class AccCompositeTransactionService {
         }
     }
 
+    private void callExsFailure(Integer memberId, List<String> flow, List<String> segmentIds) {
+        try (TransactionSegmentScope outbound = segmentService.start(
+                TransactionSegmentRole.EXTERNAL,
+                TransactionSegmentDirection.OUTBOUND,
+                "ACC",
+                "ACC",
+                "EXS",
+                "/api/exs/edu/external-transfer/failure",
+                "ACC -> EXS 실패 외부연계 호출")) {
+            segmentIds.add(outbound.transactionSegmentId());
+            String externalTransactionId = "EXT-FAIL-" + System.currentTimeMillis();
+            outbound.record().setExternalInstitutionCode("BANK01");
+            outbound.record().setExternalTransactionId(externalTransactionId);
+            try {
+                exsExchangeClientService.requestExternalTransferFailure(Map.of(
+                        "memberId", memberId,
+                        "institutionCode", "BANK01",
+                        "externalTransactionId", externalTransactionId,
+                        "failureCode", "EXS_TIMEOUT",
+                        "failureMessage", "외부기관 응답 지연"));
+                outbound.fail("EXS_FAILURE_EXPECTED", "EXS 실패 샘플이 실패 응답을 반환하지 않았습니다.");
+                flow.add("ACC -> EXS FAILURE OUTBOUND");
+                throw new IllegalStateException("EXS 실패 샘플이 실패 응답을 반환하지 않았습니다.");
+            } catch (RuntimeException ex) {
+                outbound.fail("EXS_TIMEOUT", ex.getMessage());
+                flow.add("ACC -> EXS FAILURE OUTBOUND");
+                throw ex;
+            }
+        }
+    }
+
     private Map<String, Object> callMbrWithExternal(Integer memberId, List<String> flow, List<String> segmentIds) {
         try (TransactionSegmentScope outbound = segmentService.start(
                 TransactionSegmentRole.SUB,
@@ -162,7 +232,6 @@ public class AccCompositeTransactionService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void addNestedSegmentIds(List<String> segmentIds, Map<String, Object> result) {
         if (result == null) {
             return;

@@ -88,6 +88,10 @@ DROP TABLE IF EXISTS admDB.adm_role;
 DROP TABLE IF EXISTS admDB.adm_operator;
 
 DROP TABLE IF EXISTS cmnDB.cmn_edu_query_item;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_masking_policy;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_field;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_group;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_layout;
 DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;

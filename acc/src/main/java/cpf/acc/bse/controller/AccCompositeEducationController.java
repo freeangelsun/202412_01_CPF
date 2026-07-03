@@ -41,4 +41,12 @@ public class AccCompositeEducationController {
             @RequestParam(defaultValue = "1") @Positive Integer memberId) {
         return ResponseEntity.ok(compositeTransactionService.memberCallsExternal(memberId));
     }
+
+    @PostMapping("/member-then-external-failure")
+    @CpfTransaction(id = "ACC09EDU0003", name = "ACCCompositeMemberThenExternalFailure")
+    @Operation(summary = "ACC 복합 거래 실패 trace", description = "ACC가 MBR 성공 후 EXS 실패를 만나고 실패 구간, 실패 코드, 마스킹된 메시지를 반환합니다.")
+    public ResponseEntity<Map<String, Object>> memberThenExternalFailure(
+            @RequestParam(defaultValue = "1") @Positive Integer memberId) {
+        return ResponseEntity.ok(compositeTransactionService.memberThenExternalFailure(memberId));
+    }
 }

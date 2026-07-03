@@ -146,8 +146,12 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     extension_header_snapshot_masked MEDIUMTEXT NULL COMMENT '마스킹된 확장 헤더 snapshot',
     customer_no_masked VARCHAR(80) NULL COMMENT '마스킹된 고객번호',
     member_no_masked VARCHAR(80) NULL COMMENT '마스킹된 회원번호',
+    user_id_masked VARCHAR(80) NULL COMMENT '마스킹된 사용자 ID',
+    operator_id_masked VARCHAR(80) NULL COMMENT '마스킹된 운영자 ID',
     channel_code VARCHAR(30) NULL COMMENT '현재 채널 코드',
     original_channel_code VARCHAR(30) NULL COMMENT '최초 유입 채널 코드',
+    client_app_id VARCHAR(100) NULL COMMENT '클라이언트 애플리케이션 ID',
+    caller_service VARCHAR(100) NULL COMMENT '호출 서비스 ID',
     external_institution_code VARCHAR(50) NULL COMMENT '외부기관 코드',
     external_transaction_id VARCHAR(120) NULL COMMENT '외부기관 거래 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
@@ -164,6 +168,9 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     INDEX ix_pfw_transaction_segment_duration (duration_ms),
     INDEX ix_pfw_transaction_segment_customer (customer_no_masked, started_at),
     INDEX ix_pfw_transaction_segment_member (member_no_masked, started_at),
+    INDEX ix_pfw_transaction_segment_user (user_id_masked, started_at),
+    INDEX ix_pfw_transaction_segment_operator (operator_id_masked, started_at),
+    INDEX ix_pfw_transaction_segment_client (client_app_id, caller_service, started_at),
     INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
 

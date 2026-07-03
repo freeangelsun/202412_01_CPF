@@ -135,3 +135,147 @@ WHERE NOT EXISTS (
       AND business_key = 'INITIAL'
       AND log_type = 'SEED'
 );
+
+INSERT INTO cmn_fixed_length_layout (
+    layout_id,
+    institution_code,
+    message_code,
+    direction,
+    version,
+    charset_name,
+    total_length,
+    header_length,
+    body_length,
+    trailer_length,
+    enabled_yn,
+    description,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_V1',
+    'BANK01',
+    'BALANCE_REQ',
+    'OUTBOUND',
+    '1.0',
+    'UTF-8',
+    80,
+    20,
+    60,
+    0,
+    'Y',
+    'EXS 대외 잔액조회 요청 교육용 고정길이 전문 layout',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    charset_name = VALUES(charset_name),
+    total_length = VALUES(total_length),
+    header_length = VALUES(header_length),
+    body_length = VALUES(body_length),
+    trailer_length = VALUES(trailer_length),
+    enabled_yn = VALUES(enabled_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_group (
+    group_id,
+    layout_id,
+    group_name,
+    display_name,
+    start_position,
+    repeat_count,
+    repeat_count_field,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_BODY',
+    'BANK01_BALANCE_REQ_V1',
+    'bodyItems',
+    '잔액조회 반복부',
+    21,
+    2,
+    NULL,
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    display_name = VALUES(display_name),
+    start_position = VALUES(start_position),
+    repeat_count = VALUES(repeat_count),
+    repeat_count_field = VALUES(repeat_count_field),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_field (
+    layout_id,
+    group_id,
+    field_name,
+    display_name,
+    start_position,
+    field_length,
+    byte_length,
+    field_type,
+    required_yn,
+    padding_char,
+    align,
+    scale,
+    format_pattern,
+    sensitive_yn,
+    masking_type,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES
+('BANK01_BALANCE_REQ_V1', NULL, 'messageCode', '전문 코드', 1, 10, 10, 'STRING', 'Y', ' ', 'LEFT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', NULL, 'transactionDate', '거래 일자', 11, 8, 8, 'STRING', 'Y', '0', 'RIGHT', 0, 'yyyyMMdd', 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', NULL, 'itemCount', '반복 건수', 19, 2, 2, 'NUMBER', 'Y', '0', 'RIGHT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', 'BANK01_BALANCE_REQ_BODY', 'accountNo', '계좌번호', 21, 20, 20, 'STRING', 'Y', ' ', 'LEFT', 0, NULL, 'Y', 'ACCOUNT', 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', 'BANK01_BALANCE_REQ_BODY', 'amount', '금액', 41, 10, 10, 'NUMBER', 'Y', '0', 'RIGHT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    group_id = VALUES(group_id),
+    display_name = VALUES(display_name),
+    start_position = VALUES(start_position),
+    field_length = VALUES(field_length),
+    byte_length = VALUES(byte_length),
+    field_type = VALUES(field_type),
+    required_yn = VALUES(required_yn),
+    padding_char = VALUES(padding_char),
+    align = VALUES(align),
+    scale = VALUES(scale),
+    format_pattern = VALUES(format_pattern),
+    sensitive_yn = VALUES(sensitive_yn),
+    masking_type = VALUES(masking_type),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_masking_policy (
+    layout_id,
+    field_name,
+    masking_type,
+    visible_prefix,
+    visible_suffix,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_V1',
+    'accountNo',
+    'ACCOUNT',
+    3,
+    3,
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    masking_type = VALUES(masking_type),
+    visible_prefix = VALUES(visible_prefix),
+    visible_suffix = VALUES(visible_suffix),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;

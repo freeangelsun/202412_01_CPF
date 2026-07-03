@@ -1,20 +1,22 @@
 package cpf.exs.operation.controller;
 
 import cpf.exs.operation.service.ExsOperationService;
+import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.segment.TransactionSegmentDirection;
 import cpf.pfw.common.logging.segment.TransactionSegmentRole;
 import cpf.pfw.common.logging.segment.TransactionSegmentScope;
 import cpf.pfw.common.logging.segment.TransactionSegmentService;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,7 +26,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/exs/edu")
-@Tag(name = "EXS-EDU Composite Transaction", description = "EXS 외부연계 segment 기록 교육 API")
+@Tag(name = "EXS-EDU Composite Transaction", description = "EXS 외부연계 segment와 송수신 원장 기록 교육 API")
 public class ExsCompositeEducationController {
     private final TransactionSegmentService segmentService;
     private final ExsOperationService operationService;
@@ -65,6 +67,36 @@ public class ExsCompositeEducationController {
                 response.put("exchangeLog", exchange);
                 scope.success();
                 return ResponseEntity.ok(response);
+            } catch (RuntimeException ex) {
+                scope.fail(ex.getClass().getSimpleName(), ex.getMessage());
+                throw ex;
+            }
+        }
+    }
+
+    @PostMapping("/external-transfer/failure")
+    @CpfTransaction(id = "EXS09EDU0002", name = "EXSCompositeExternalTransferFailure")
+    @Operation(summary = "EXS 외부기관 실패 mock 호출", description = "EXS 송신 실패 원장을 남기고 호출자에게 502 실패 응답을 반환합니다.")
+    public ResponseEntity<Map<String, Object>> externalTransferFailure(@RequestBody(required = false) Map<String, Object> request) {
+        Map<String, Object> body = request == null ? Map.of() : request;
+        try (TransactionSegmentScope scope = segmentService.start(
+                TransactionSegmentRole.EXTERNAL,
+                TransactionSegmentDirection.INBOUND,
+                "EXS",
+                "ACC",
+                "EXS",
+                "/api/exs/edu/external-transfer/failure",
+                "EXS 외부기관 실패 mock 처리")) {
+            try {
+                scope.record().setExternalInstitutionCode(text(body, "institutionCode", "BANK01"));
+                scope.record().setExternalTransactionId(text(body, "externalTransactionId", "N/A"));
+                operationService.sendOutboundFailure(TransactionContext.getOrCreateTransactionId(), body);
+                String failureCode = text(body, "failureCode", "EXS_TIMEOUT");
+                String failureMessage = text(body, "failureMessage", "외부기관 응답 지연");
+                scope.fail(failureCode, failureMessage);
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, failureMessage);
+            } catch (ResponseStatusException ex) {
+                throw ex;
             } catch (RuntimeException ex) {
                 scope.fail(ex.getClass().getSimpleName(), ex.getMessage());
                 throw ex;

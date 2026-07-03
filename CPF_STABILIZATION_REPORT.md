@@ -1,97 +1,90 @@
 # CPF 안정화 작업 리포트
 
-작성 기준: 2026-07-03  
-보고 원칙: 실행하지 않은 검증은 성공으로 기록하지 않고, 민감정보 원문은 리포트에 남기지 않습니다.
-
 ## 1. 작업 요약
 
-- ACC, MBR, EXS 복합 거래 성공 경로를 runtime smoke로 확인하고 동일 `transactionGlobalId` 기준 segment, header, external log가 ADM에서 조회되도록 보강했습니다.
-- ADM 거래 그룹 화면에 목록, 검색 조건, 정렬, 페이징, 상세 탭, segment timeline, 표준 헤더, 확장 헤더, external logs 조회 흐름을 연결했습니다.
-- `pfw_transaction_segment` 설치 SQL, smoke SQL, Flyway 기준 구조를 MariaDB full install smoke 검증 범위에 포함했습니다.
-- CMN 고정길이 전문 엔진에 반복부 group parse/format, 필드 오류, type converter, masking 결과 구조를 보강하고 단위 테스트를 추가했습니다.
-- EXS datasource 비활성 기본 구조를 유지하되 runtime smoke에서는 명시적으로 활성화해야 함을 코드 주석과 smoke 결과로 분리했습니다.
-- 루트 안정화 리포트는 HTML이 아니라 `CPF_STABILIZATION_REPORT.md`만 유지하도록 정리했습니다. 별도 변경파일 목록 산출물은 만들지 않았습니다.
+이번 작업은 `CPF_NEW_REQUEST.md`와 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 읽어, 복합 거래 trace, ADM 거래 그룹 조회, EXS 송수신 원장 저장, CMN fixed-length 사전 DB, MariaDB full install smoke, sanitized evidence 산출, OpenAPI/runtime smoke를 검증 가능한 상태로 보강했다.
 
-## 2. 주요 변경 영역
+요청 파일은 수정하지 않았다. `CPF_NEW_REQUEST.md`와 `CPF_FINAL_TARGET_REQUIREMENTS.md`는 확인용으로만 읽었고, 기존 사용자 변경 상태는 보존했다.
 
-- `scripts/smoke-composite-transaction-runtime.ps1`: 표준 CPF 헤더를 포함하고 복합 거래 segment 수, module flow, 민감정보 원문 미노출을 확인하도록 보강했습니다.
-- `scripts/smoke-adm-transaction-group-runtime.ps1`: ADM 거래 그룹 목록, 상세, segments, timeline, headers, external logs, DB segment row 검증을 추가했습니다.
-- `scripts/smoke-adm-ui.ps1`: ADM 거래 그룹 화면과 API 연결 marker, 확장 헤더, 민감 헤더 표시 기준을 정적 smoke에 포함했습니다.
-- `scripts/smoke-mariadb-full-install.ps1`: `pfw_transaction_segment` 필수 컬럼과 index 검증을 추가했습니다.
-- `adm/src/main/java/cpf/adm/opr/service/AdmTransactionGroupService.java`: 거래 그룹 검색 조건을 segment, module, failure, API path, 표준/확장 헤더 기준으로 확장했습니다.
-- `adm/src/main/resources/static/adm/adm.js`, `adm/src/main/resources/static/adm/index.html`: ADM 거래 그룹 운영 화면을 추가했습니다.
-- `cmn/src/main/java/cpf/cmn/message/fixedlength/*`: 고정길이 전문 반복부와 오류 결과 구조를 보강했습니다.
-- `cmn/src/test/java/cpf/cmn/message/fixedlength/FixedLengthMessageParserFormatterTest.java`: 반복부, type 검증, 필드 오류 테스트를 추가했습니다.
-- `build.gradle`: `runLocalServices`가 필요한 서비스만 선택 기동할 수 있도록 `cpfRunServices` 옵션을 반영했습니다.
-- `specs/기능_구현_매트릭스.html`: 깨진 문구를 정리하고 구현 상태와 검증 상태를 실제 evidence 기준으로 재작성했습니다.
+## 2. 주요 반영 내용
 
-## 3. Runtime Smoke 결과
+- EXS datasource 기본값을 local runtime 기준 활성화로 변경해 `exsTransactionManager` 미생성으로 인한 503 실패를 수정했다.
+- EXS REST 송수신 성공/실패 경로가 `exs_transaction_log`, `exs_message_log`에 실제 원장 로그를 남기도록 보강했다.
+- ADM 거래 그룹 조회가 `pfw_transaction_segment.external_*` 추정값보다 EXS 원장 로그를 우선 조회하도록 정리했다.
+- `X-User-Id`, `X-Customer-No`, `X-Member-No`, `X-Operator-Id`, `X-Client-App-Id`, `X-Caller-Service`를 거래 segment 검색/조회 관점에서 분리했다.
+- ACC 복합 거래 교육 API에 EXS 실패 경로를 추가하고, 실패 응답에 `failureCode`, `failureMessageMasked`, `failedSegmentId`, `failedModuleCode`를 남겼다.
+- CMN fixed-length 사전용 `cmn_fixed_length_layout`, `cmn_fixed_length_group`, `cmn_fixed_length_field`, `cmn_fixed_length_masking_policy` SQL과 seed/smoke를 추가했다.
+- `scripts/smoke-composite-transaction-failure-runtime.ps1`, `scripts/smoke-adm-transaction-group-failure-runtime.ps1`, `scripts/export-sanitized-evidence.ps1`를 추가했다.
+- ADM 거래 그룹 smoke의 ADM 인증 누락 문제를 보강했다.
+- sanitized evidence를 `specs/evidence/20260703_04` 아래에 생성했다.
 
-- `scripts/smoke-standard-header-e2e.ps1`: 통과. 결과 파일은 `build/runtime-smoke/standard-header-e2e-result.json`입니다.
-- `scripts/smoke-composite-transaction-runtime.ps1`: 통과. 결과 파일은 `build/runtime-smoke/composite-transaction-runtime-result.json`입니다.
-- `scripts/smoke-adm-transaction-group-runtime.ps1`: 통과. 결과 파일은 `build/runtime-smoke/adm-transaction-group-runtime-result.json`입니다.
-- 서비스 기동 로그 근거는 `build/runtime-smoke/run-local-services-composite-rerun.job.log`입니다.
-- 검증 중 `Authorization`, `Bearer`, API key, password, secret 계열 원문이 결과 payload에 노출되지 않는지 확인했습니다.
+## 3. 필수 검증 상태
 
-## 4. SQL/Flyway/DB 결과
-
-- `scripts/smoke-mariadb-full-install.ps1` 실행 결과는 `build/sql-smoke/mariadb-full-install-result.json`입니다.
-- `00_all_install_and_smoke.sql`, `99_smoke_check.sql`, `50_framework_seed_data.sql` 실행과 seed 재실행 기준을 확인했습니다.
-- `pfw_transaction_segment` 테이블 존재, 필수 컬럼, index 존재를 smoke 결과에 포함했습니다.
-- SQL 합본은 `scripts/build-all-install-sql.ps1`로 재생성 검증합니다.
-- SQL 표준은 `scripts/check-sql-standard.ps1`로 검증합니다.
-
-## 5. 표준 헤더 규격과 전달 상태
-
-온라인 거래에서 현재 다루는 주요 헤더는 아래 기준입니다.
-
-- 거래/추적: `X-Transaction-Id`, `X-Trace-Id`, `X-Span-Id`, `X-Parent-Span-Id`, `X-Transaction-Segment-Id`
-- 채널/호출자: `X-Original-Channel-Code`, `X-Channel-Code`, `X-Client-App-Id`, `X-Client-Version`, `X-Caller-Service`
-- 사용자 식별: `X-User-Id`, `X-Customer-No`, `X-Member-No`, `X-Operator-Id`
-- 외부 연계: `X-Institution-Code`, `X-External-Transaction-Id`, `X-External-Request-Id`
-- 확장 헤더: `X-Cpf-Ext-*`
-- 민감 헤더: `Authorization`, `X-Api-Key`, token, secret, password, credential, signature 계열은 원문 저장/노출 금지 대상입니다.
-
-ADM 거래 그룹 상세에서는 data 영역과 header 영역을 분리합니다. 표준 헤더, 확장 헤더, external logs를 별도 탭과 API로 조회하며, 민감정보는 마스킹 또는 차단 기준을 따릅니다.
-
-## 6. 검증 상태 매트릭스
-
-| check id | 상태 | 근거 | 비고 |
+| check id | 상태 | evidence | 비고 |
 | --- | --- | --- | --- |
-| edu-mapper-db-slice | 미검증 | `XyzQueryEducationMapperSliceTest`, `xyz_edu_query_fixture.sql` | `CPF_XYZ_EDU_MAPPER_DB_USERNAME`, `CPF_XYZ_EDU_MAPPER_DB_USER` 기반 DB slice 테스트는 이번 작업에서 실행하지 않았습니다. |
-| mariadb-full-install | 완료 | `scripts/smoke-mariadb-full-install.ps1`, `build/sql-smoke/mariadb-full-install-result.json` | MariaDB full install smoke를 실행했습니다. |
-| adm-runtime | 미검증 | `scripts/smoke-adm-runtime.ps1` | ADM 단독 runtime smoke는 이번 작업에서 실행하지 않았습니다. |
-| adm-permission-runtime | 미검증 | `scripts/smoke-adm-permission-runtime.ps1` | 권한 runtime smoke는 이번 작업에서 실행하지 않았습니다. |
-| openapi-runtime | 미검증 | `scripts/smoke-openapi.ps1` | 앱 기동 후 OpenAPI JSON 검증은 실행하지 않았습니다. |
-| adm-browser-click | 미검증 | `scripts/smoke-adm-ui.ps1 -BrowserClick` | 브라우저 클릭 자동화는 실행하지 않았습니다. |
-| standard-header-e2e | 완료 | `scripts/smoke-standard-header-e2e.ps1`, `build/runtime-smoke/standard-header-e2e-result.json` | 표준/확장 헤더 전파와 민감 헤더 차단을 확인했습니다. |
-| complex-transaction-trace | 완료 | `build/runtime-smoke/composite-transaction-runtime-result.json` | ACC, MBR, EXS 복합 거래 성공 경로를 확인했습니다. |
-| transaction-segment-log | 완료 | `pfw_transaction_segment`, `build/runtime-smoke/adm-transaction-group-runtime-result.json` | DB segment row와 ADM 조회를 확인했습니다. |
-| adm-transaction-group-list | 완료 | `GET /adm/api/transaction-groups`, `build/runtime-smoke/adm-transaction-group-runtime-result.json` | ADM 거래 그룹 목록 조회를 runtime으로 확인했습니다. |
-| adm-transaction-timeline | 완료 | `GET /adm/api/transaction-groups/{transactionGlobalId}/timeline`, `build/runtime-smoke/adm-transaction-group-runtime-result.json` | timeline, headers, external logs 조회를 확인했습니다. |
-| cmn-fixed-length-engine | 완료 | `FixedLengthMessageParserFormatterTest` | 반복부 group, 필드 오류, type converter 테스트를 통과했습니다. |
-| composite-runtime-smoke | 완료 | `scripts/smoke-composite-transaction-runtime.ps1` | 로컬 서비스 기동 후 복합 거래 smoke를 통과했습니다. |
-| adm-transaction-group-runtime | 완료 | `scripts/smoke-adm-transaction-group-runtime.ps1` | 목록, 상세, segment, timeline, headers, external logs를 확인했습니다. |
-| redis-kafka-mq-broker | 미검증 | Redis/Kafka/MQ broker | 실 broker 연동 검증은 이번 작업에서 실행하지 않았습니다. |
-| broker-real-integration | 미검증 | Redis/Kafka 실 broker | 실 broker 장애 시나리오는 실행하지 않았습니다. |
-| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 최종 작성 후 실행했고 통과했습니다. |
-| check-html-docs | 완료 | `scripts/check-html-docs.ps1` | 리포트와 기능 매트릭스 check id 상태 일치를 확인합니다. |
-| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` | 필수 파일, API, smoke, 문서 증거를 확인합니다. |
-| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` | 최종 작성 후 실행했고 통과했습니다. |
+| edu-mapper-db-slice | 완료 | `:xyz:test --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest`, `xyz_edu_query_fixture.sql` | `CPF_XYZ_EDU_MAPPER_DB_USERNAME`와 호환용 `CPF_XYZ_EDU_MAPPER_DB_USER` 기준을 확인했다. |
+| mariadb-full-install | 완료 | `scripts/smoke-mariadb-full-install.ps1`, `specs/evidence/20260703_04/mariadb-full-install-result.sanitized.json` | `00_all_install_and_smoke.sql`, FK/index/seed/idempotent, CMN fixed-length, EXS 원장 컬럼을 확인했다. |
+| adm-runtime | 완료 | `scripts/smoke-adm-runtime.ps1 -BuildBeforeRun`, `build/runtime-smoke/adm-runtime-smoke-result.json` | ADM 단독 runtime smoke는 완료했다. OpenAPI는 별도 runtime smoke로 재검증했다. |
+| adm-permission-runtime | 완료 | `scripts/smoke-adm-permission-runtime.ps1`, `build/runtime-smoke/adm-permission-runtime-result.json` | ADM 권한 runtime smoke를 재실행했다. |
+| openapi-runtime | 완료 | `scripts/smoke-openapi.ps1`, `specs/evidence/20260703_04/openapi-runtime-result.sanitized.json` | 이번 기동 범위인 ADM/ACC/MBR/EXS 기준으로 `/v3/api-docs`를 검증했다. XYZ/BIZADM은 이번 runtime 기동 대상이 아니었다. |
+| adm-browser-click | 미검증 | `scripts/smoke-adm-ui.ps1 -BrowserClick`, `specs/evidence/20260703_04/adm-ui-browser-smoke-result.sanitized.json` | Node/npm/npx/Playwright/브라우저 드라이버가 PATH에 없어 실제 클릭 검증은 스킵되었다. 정적 UI marker 검사는 통과했다. |
+| standard-header-e2e | 완료 | `scripts/smoke-standard-header-e2e.ps1`, `specs/evidence/20260703_04/standard-header-e2e-result.sanitized.json` | 표준/확장 헤더 전파, 차단 헤더 거부, DB 로그 detail, 민감 헤더 미원문 저장을 확인했다. |
+| complex-transaction-trace | 완료 | `scripts/smoke-composite-transaction-runtime.ps1`, `scripts/smoke-composite-transaction-failure-runtime.ps1` | ACC, MBR, EXS 성공/실패 복합 거래 trace를 runtime으로 확인했다. |
+| transaction-segment-log | 완료 | `pfw_transaction_segment`, `TransactionSegmentMapper.xml`, `specs/evidence/20260703_04/adm-transaction-group-runtime-result.sanitized.json` | segment row, module flow, header/external log 연결을 ADM API로 확인했다. |
+| adm-transaction-group-list | 완료 | `GET /adm/api/transaction-groups`, `specs/evidence/20260703_04/adm-transaction-group-runtime-result.sanitized.json` | transactionGlobalId 기반 그룹 목록 조회를 확인했다. |
+| adm-transaction-timeline | 완료 | `GET /adm/api/transaction-groups/{transactionGlobalId}/timeline`, `specs/evidence/20260703_04/adm-transaction-group-runtime-result.sanitized.json` | segment, timeline, headers, external logs 조회를 확인했다. |
+| cmn-fixed-length-engine | 완료 | `FixedLengthLayoutRegistry`, `FixedLengthMessageParserFormatterTest`, `specs/sql/20_cmn_schema.sql` | 기존 엔진 테스트와 신규 DB 사전/seed/smoke를 함께 확인했다. ADM 관리 UI는 다음 단계다. |
+| composite-runtime-smoke | 완료 | `specs/evidence/20260703_04/composite-transaction-runtime-result.sanitized.json` | 성공 복합 거래 smoke가 통과했다. |
+| adm-transaction-group-runtime | 완료 | `scripts/smoke-adm-transaction-group-runtime.ps1`, `scripts/smoke-adm-transaction-group-failure-runtime.ps1` | 성공/실패 거래 모두 ADM 목록/상세/timeline/external logs 조회를 통과했다. |
+| redis-kafka-mq-broker | 미검증 | DB fallback 코드 경로 | 실제 Redis/Kafka/MQ broker는 이번 작업에서 띄우지 않았다. |
+| broker-real-integration | 미검증 | 없음 | 실제 broker 장애/fallback 시나리오는 다음 작업 범위다. |
+| quality-gate | 완료 | `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 최종 리포트 작성 후 실행했다. |
+| check-html-docs | 완료 | `scripts/check-html-docs.ps1` | 리포트와 기능 매트릭스 check id 상태 일치를 확인했다. |
+| check-feature-evidence | 완료 | `scripts/check-feature-evidence.ps1` | 요청된 코드/SQL/문서/evidence marker를 확인했다. |
+| check-utf8 | 완료 | `scripts/check-utf8.ps1 -CheckMojibake` | BOM 없는 UTF-8 evidence 재생성 후 통과했다. |
 
-## 7. 미검증 및 보류 항목
+## 4. 실행 검증 결과
 
-- `edu-mapper-db-slice`: 별도 DB slice 환경변수 기반 테스트는 이번 작업에서 실행하지 않았습니다.
-- `adm-runtime`: ADM 단독 runtime smoke는 복합 거래 smoke와 분리되어 있어 이번 작업에서는 실행하지 않았습니다.
-- `adm-permission-runtime`: 권한 runtime smoke는 실행하지 않았습니다.
-- `openapi-runtime`: 앱 기동 후 `/v3/api-docs` 검증은 실행하지 않았습니다.
-- `adm-browser-click`: 정적 UI marker smoke는 수행하지만 실제 브라우저 클릭 자동화는 실행하지 않았습니다.
-- `redis-kafka-mq-broker`, `broker-real-integration`: 실 broker 환경 연동 및 장애 시나리오는 실행하지 않았습니다.
+- `.\gradlew.bat :exs:compileJava :adm:compileJava :acc:compileJava --offline --no-daemon --console=plain`: 통과
+- `.\gradlew.bat test --offline --no-daemon --console=plain`: 통과
+- `.\gradlew.bat :xyz:test --offline --no-daemon --console=plain --tests cpf.xyz.edu.repository.XyzQueryEducationMapperSliceTest --rerun-tasks`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-all-install-sql.ps1`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-sql-standard.ps1`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-mariadb-full-install.ps1 -RequireRun`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-standard-header-e2e.ps1 -RequireRuntime`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-composite-transaction-runtime.ps1 -RequireRuntime`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-composite-transaction-failure-runtime.ps1 -RequireRuntime`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-transaction-group-runtime.ps1 -RequireRuntime`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-transaction-group-failure-runtime.ps1 -RequireRuntime`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-openapi.ps1 -RequireRuntime -SkipXyz -SkipBizAdm`: 통과
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-adm-ui.ps1 -BrowserClick -RequireBrowserClick`: 미검증, 브라우저 자동화 도구 부재로 스킵
 
-## 8. 다음 보강 후보
+## 5. Sanitized Evidence
 
-1. ADM 브라우저 클릭 smoke를 실행해 거래 그룹 메뉴 진입, 검색, 상세 탭 전환까지 실제 화면 기준으로 확인합니다.
-2. OpenAPI runtime smoke를 실행하고 `/v3/api-docs` JSON 품질 gate를 더 강하게 연결합니다.
-3. 실패 복합 거래 샘플을 추가해 실패 segment, failureCode, failureMessageMasked, external timeout 경로를 ADM에서 확인합니다.
-4. CMN 고정길이 전문 layout/field/group 사전을 DB화하고 ADM 조회 기능으로 확장합니다.
-5. Redis/Kafka/MQ 실 broker 연동 테스트와 DB fallback 장애 시나리오를 분리 검증합니다.
+- `specs/evidence/20260703_04/standard-header-e2e-result.sanitized.json`
+- `specs/evidence/20260703_04/composite-transaction-runtime-result.sanitized.json`
+- `specs/evidence/20260703_04/composite-transaction-failure-runtime-result.sanitized.json`
+- `specs/evidence/20260703_04/adm-transaction-group-runtime-result.sanitized.json`
+- `specs/evidence/20260703_04/adm-transaction-group-failure-runtime-result.sanitized.json`
+- `specs/evidence/20260703_04/openapi-runtime-result.sanitized.json`
+- `specs/evidence/20260703_04/adm-ui-browser-smoke-result.sanitized.json`
+- `specs/evidence/20260703_04/mariadb-full-install-result.sanitized.json`
+- `specs/evidence/20260703_04/run-local-services-composite-rerun.sanitized.log`
+- `specs/evidence/20260703_04/runtime-smoke-summary.sanitized.json`
+- `specs/evidence/20260703_04/evidence-manifest.sanitized.json`
+
+## 6. 남은 리스크와 다음 보강 후보
+
+- ADM browser click은 로컬에 Node/npm/npx/Playwright 또는 브라우저 드라이버가 없어 미검증이다. 도구 설치 후 같은 smoke를 재실행해야 한다.
+- OpenAPI runtime은 이번 기동 범위 ADM/ACC/MBR/EXS 기준으로 통과했다. XYZ/BIZADM까지 포함한 전체 서비스 OpenAPI 검증은 별도 기동 범위에서 재확인해야 한다.
+- Redis/Kafka/MQ real broker 연동과 broker 장애 시 DB fallback 시나리오는 아직 미검증이다.
+- CMN fixed-length DB 사전은 SQL/seed/smoke까지 들어갔지만 ADM 관리 UI와 전문 원문 권한 감사는 다음 단계다.
+- EXS 원장 로그는 REST 교육 경로 기준으로 확인했다. 실제 외부기관 adapter, timeout/retry/circuit breaker 운영 시나리오는 다음 단계다.
+
+## 7. 항상 지킨 기준 확인
+
+- 문서, SQL, smoke, evidence, 기능 매트릭스를 같은 check id 기준으로 맞췄다.
+- 실행하지 않은 검증은 성공으로 쓰지 않았다.
+- 요청 파일은 수정하지 않았다.
+- 민감정보 원문은 리포트와 sanitized evidence에 남기지 않았다.
+- `CPF_STABILIZATION_CHANGED_FILES.txt`는 생성하지 않았다.

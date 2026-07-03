@@ -44,6 +44,10 @@ SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM 
 SELECT 'cmnDB.cmn_notification_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_notification_log;
 SELECT 'cmnDB.cmn_business_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_business_log;
 SELECT 'cmnDB.cmn_edu_query_item' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_edu_query_item;
+SELECT 'cmnDB.cmn_fixed_length_layout' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_layout;
+SELECT 'cmnDB.cmn_fixed_length_group' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_group;
+SELECT 'cmnDB.cmn_fixed_length_field' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_field;
+SELECT 'cmnDB.cmn_fixed_length_masking_policy' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_masking_policy;
 
 SELECT 'admDB.adm_operator' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator;
 SELECT 'admDB.adm_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_menu;
@@ -114,6 +118,15 @@ FROM cmnDB.cmn_edu_query_item
 WHERE use_yn = 'Y'
 ORDER BY item_id
 LIMIT 5;
+
+SELECT layout_id, institution_code, message_code, direction, version, enabled_yn
+FROM cmnDB.cmn_fixed_length_layout
+WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
+
+SELECT layout_id, group_id, field_name, display_name, start_position, field_length, field_type, masking_type
+FROM cmnDB.cmn_fixed_length_field
+WHERE layout_id = 'BANK01_BALANCE_REQ_V1'
+ORDER BY start_position;
 
 SELECT target_id, center_cut_job_id, business_key, status_code, parent_transaction_global_id, child_transaction_global_id
 FROM xyzDB.xyz_center_cut_sample_target
@@ -207,6 +220,18 @@ LIMIT 5;
 SELECT auth_profile_code, token_key, event_type, transaction_global_id, server_instance_id
 FROM exsDB.exs_token_event_history
 ORDER BY token_event_id DESC
+LIMIT 5;
+
+SELECT transaction_global_id, transaction_segment_id, external_transaction_id, institution_code,
+       api_path, status, result_code, http_status, error_code, error_message
+FROM exsDB.exs_transaction_log
+ORDER BY transaction_log_id DESC
+LIMIT 5;
+
+SELECT transaction_global_id, transaction_segment_id, external_transaction_id, direction,
+       message_code, status, failure_code, failure_message_masked
+FROM exsDB.exs_message_log
+ORDER BY message_log_id DESC
 LIMIT 5;
 
 SELECT response_code, message_code, result_type, http_status

@@ -16,19 +16,23 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 /**
- * transactionGlobalId 기준으로 복합 거래 구간을 그룹 조회하는 ADM 운영 서비스입니다.
+ * transactionGlobalId 기준으로 복합 거래 구간, 헤더, 외부연계 원장을 조회하는 ADM 운영 서비스입니다.
  */
 @Service
 public class AdmTransactionGroupService {
     private final JdbcTemplate pfwJdbcTemplate;
+    private final JdbcTemplate exsJdbcTemplate;
 
-    public AdmTransactionGroupService(@Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate) {
+    public AdmTransactionGroupService(
+            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("exsJdbcTemplate") JdbcTemplate exsJdbcTemplate) {
         this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.exsJdbcTemplate = exsJdbcTemplate;
     }
 
     public Map<String, Object> findGroups(Map<String, String> criteria) {
         Map<String, Object> response = new LinkedHashMap<>();
-        if (!tableAvailable("pfw_transaction_segment")) {
+        if (!tableAvailable(pfwJdbcTemplate, "pfw_transaction_segment")) {
             response.put("available", false);
             response.put("items", List.of());
             response.put("message", "pfw_transaction_segment 테이블이 없습니다.");
@@ -58,7 +62,7 @@ public class AdmTransactionGroupService {
     }
 
     public List<Map<String, Object>> findSegments(String transactionGlobalId) {
-        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable("pfw_transaction_segment")) {
+        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(pfwJdbcTemplate, "pfw_transaction_segment")) {
             return List.of();
         }
         return pfwJdbcTemplate.queryForList("""
@@ -68,7 +72,8 @@ public class AdmTransactionGroupService {
                        api_path, transaction_name, started_at, ended_at, duration_ms, status,
                        failure_yn, failure_code, failure_message_masked, request_header_snapshot_masked,
                        response_header_snapshot_masked, extension_header_snapshot_masked,
-                       customer_no_masked, member_no_masked, channel_code, original_channel_code,
+                       customer_no_masked, member_no_masked, user_id_masked, operator_id_masked,
+                       client_app_id, caller_service, channel_code, original_channel_code,
                        external_institution_code, external_transaction_id
                 FROM pfw_transaction_segment
                 WHERE transaction_global_id = ?
@@ -90,10 +95,13 @@ public class AdmTransactionGroupService {
     }
 
     public Map<String, Object> findExternalLogs(String transactionGlobalId) {
+        List<Map<String, Object>> items = findExternalLogs(transactionGlobalId, 100);
+        boolean exsLedgerUsed = items.stream().anyMatch(item -> String.valueOf(item.get("source")).startsWith("EXS_"));
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionGlobalId", transactionGlobalId);
-        response.put("items", findExternalLogs(transactionGlobalId, 100));
-        response.put("source", "pfw_transaction_segment.external_*");
+        response.put("items", items);
+        response.put("source", exsLedgerUsed ? "exs_transaction_log/exs_message_log" : "pfw_transaction_segment.external_* fallback");
+        response.put("fallbackUsed", !exsLedgerUsed);
         return response;
     }
 
@@ -118,6 +126,10 @@ public class AdmTransactionGroupService {
                        CASE WHEN SUM(CASE WHEN failure_yn = 'Y' THEN 1 ELSE 0 END) > 0 THEN 'Y' ELSE 'N' END AS failure_yn,
                        MAX(customer_no_masked) AS customer_no_masked,
                        MAX(member_no_masked) AS member_no_masked,
+                       MAX(user_id_masked) AS user_id_masked,
+                       MAX(operator_id_masked) AS operator_id_masked,
+                       MAX(client_app_id) AS client_app_id,
+                       MAX(caller_service) AS caller_service,
                        MAX(channel_code) AS channel_code,
                        MAX(original_channel_code) AS original_channel_code,
                        MAX(external_institution_code) AS external_institution_code,
@@ -144,8 +156,10 @@ public class AdmTransactionGroupService {
         appendLike(sql, args, "failure_code", criteria.get("failureCode"));
         appendLike(sql, args, "customer_no_masked", criteria.get("customerNo"));
         appendLike(sql, args, "member_no_masked", criteria.get("memberNo"));
-        appendLike(sql, args, "customer_no_masked", criteria.get("userId"));
-        appendLike(sql, args, "customer_no_masked", criteria.get("operatorId"));
+        appendLike(sql, args, "user_id_masked", criteria.get("userId"));
+        appendLike(sql, args, "operator_id_masked", criteria.get("operatorId"));
+        appendLike(sql, args, "client_app_id", criteria.get("clientAppId"));
+        appendLike(sql, args, "caller_service", criteria.get("callerService"));
         appendEquals(sql, args, "channel_code", criteria.get("channelCode"));
         appendEquals(sql, args, "original_channel_code", criteria.get("originalChannelCode"));
         appendEquals(sql, args, "external_institution_code", criteria.get("externalInstitutionCode"));
@@ -213,6 +227,20 @@ public class AdmTransactionGroupService {
         return result;
     }
 
+    private Map<String, Object> normalizeExternalRow(Map<String, Object> row, String source) {
+        Map<String, Object> result = new LinkedHashMap<>(row);
+        result.put("source", source);
+        result.computeIfPresent("external_transaction_id", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("request_header_masked", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("response_header_masked", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("request_payload_masked", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("response_payload_masked", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("message_summary", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("failure_message_masked", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        result.computeIfPresent("error_message", (key, value) -> SensitiveDataMasker.mask(String.valueOf(value)));
+        return result;
+    }
+
     private Map<String, Object> summarize(String transactionGlobalId, List<Map<String, Object>> segments) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("transactionGlobalId", transactionGlobalId);
@@ -225,11 +253,15 @@ public class AdmTransactionGroupService {
                 .map(Number.class::cast)
                 .mapToLong(Number::longValue)
                 .sum());
-        summary.put("failedSegmentId", segments.stream()
+        segments.stream()
                 .filter(row -> "Y".equals(String.valueOf(row.get("failure_yn"))))
-                .map(row -> row.get("transaction_segment_id"))
                 .findFirst()
-                .orElse(null));
+                .ifPresent(row -> {
+                    summary.put("failedSegmentId", row.get("transaction_segment_id"));
+                    summary.put("failedModuleCode", row.get("module_code"));
+                    summary.put("failureCode", row.get("failure_code"));
+                    summary.put("failureMessageMasked", row.get("failure_message_masked"));
+                });
         return summary;
     }
 
@@ -263,24 +295,89 @@ public class AdmTransactionGroupService {
             item.put("requestHeaderSnapshotMasked", row.get("request_header_snapshot_masked"));
             item.put("responseHeaderSnapshotMasked", row.get("response_header_snapshot_masked"));
             item.put("extensionHeaderSnapshotMasked", row.get("extension_header_snapshot_masked"));
+            item.put("clientAppId", row.get("client_app_id"));
+            item.put("callerService", row.get("caller_service"));
             return item;
         }).toList();
     }
 
     private List<Map<String, Object>> findExternalLogs(String transactionGlobalId, int limit) {
-        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable("pfw_transaction_segment")) {
+        if (!TextUtils.hasText(transactionGlobalId)) {
+            return List.of();
+        }
+        List<Map<String, Object>> ledgerRows = new ArrayList<>();
+        ledgerRows.addAll(findExsTransactionLogs(transactionGlobalId, limit));
+        if (ledgerRows.size() < limit) {
+            ledgerRows.addAll(findExsMessageLogs(transactionGlobalId, limit - ledgerRows.size()));
+        }
+        if (!ledgerRows.isEmpty()) {
+            return ledgerRows;
+        }
+        return findPfwExternalCandidates(transactionGlobalId, limit);
+    }
+
+    private List<Map<String, Object>> findExsTransactionLogs(String transactionGlobalId, int limit) {
+        if (!tableAvailable(exsJdbcTemplate, "exs_transaction_log")) {
+            return List.of();
+        }
+        try {
+            return exsJdbcTemplate.queryForList("""
+                    SELECT transaction_log_id, transaction_global_id, transaction_segment_id,
+                           external_transaction_id, institution_code, channel_code, endpoint_code,
+                           api_path, module_id, was_id, server_instance_id, request_at, response_at,
+                           elapsed_ms, direction, http_method, request_uri, request_header_masked,
+                           response_header_masked, request_payload_masked, response_payload_masked,
+                           status, result_code, http_status, error_code, error_message,
+                           retryable_yn, timeout_ms, retry_count, created_at
+                    FROM exs_transaction_log
+                    WHERE transaction_global_id = ?
+                    ORDER BY request_at, transaction_log_id
+                    LIMIT ?
+                    """, transactionGlobalId.trim(), limit).stream()
+                    .map(row -> normalizeExternalRow(row, "EXS_TRANSACTION_LOG"))
+                    .toList();
+        } catch (DataAccessException ex) {
+            return List.of();
+        }
+    }
+
+    private List<Map<String, Object>> findExsMessageLogs(String transactionGlobalId, int limit) {
+        if (limit < 1 || !tableAvailable(exsJdbcTemplate, "exs_message_log")) {
+            return List.of();
+        }
+        try {
+            return exsJdbcTemplate.queryForList("""
+                    SELECT message_log_id, transaction_global_id, transaction_segment_id,
+                           external_transaction_id, direction, message_code, message_summary,
+                           request_payload_masked, response_payload_masked, payload_store_yn,
+                           payload_ref, status, failure_code, failure_message_masked, created_at
+                    FROM exs_message_log
+                    WHERE transaction_global_id = ?
+                    ORDER BY created_at, message_log_id
+                    LIMIT ?
+                    """, transactionGlobalId.trim(), limit).stream()
+                    .map(row -> normalizeExternalRow(row, "EXS_MESSAGE_LOG"))
+                    .toList();
+        } catch (DataAccessException ex) {
+            return List.of();
+        }
+    }
+
+    private List<Map<String, Object>> findPfwExternalCandidates(String transactionGlobalId, int limit) {
+        if (!tableAvailable(pfwJdbcTemplate, "pfw_transaction_segment")) {
             return List.of();
         }
         return pfwJdbcTemplate.queryForList("""
                 SELECT transaction_segment_id, module_code, external_institution_code, external_transaction_id,
-                       status, failure_yn, started_at, ended_at, duration_ms
+                       api_path, status, failure_yn, failure_code, failure_message_masked,
+                       started_at, ended_at, duration_ms
                 FROM pfw_transaction_segment
                 WHERE transaction_global_id = ?
                   AND (transaction_role = 'EXTERNAL' OR external_institution_code IS NOT NULL)
                 ORDER BY started_at, sequence_no
                 LIMIT ?
                 """, transactionGlobalId.trim(), limit).stream()
-                .map(this::normalizeSegmentRow)
+                .map(row -> normalizeExternalRow(row, "PFW_SEGMENT_FALLBACK"))
                 .toList();
     }
 
@@ -324,7 +421,7 @@ public class AdmTransactionGroupService {
             sql.append(" AND ").append(column).append(" ").append(operator).append(" ?");
             args.add(Long.parseLong(value.trim()));
         } catch (NumberFormatException ignored) {
-            // 숫자가 아닌 검색값은 SQL에 붙이지 않습니다.
+            // 숫자 조건이 아니면 검색 조건에서 제외합니다.
         }
     }
 
@@ -336,7 +433,7 @@ public class AdmTransactionGroupService {
             sql.append(" AND ").append(column).append(" ").append(operator).append(" ?");
             args.add(LocalDateTime.parse(value.trim()));
         } catch (DateTimeParseException ignored) {
-            // ISO-8601 형식이 아니면 검색조건에서 제외합니다.
+            // ISO-8601 형식이 아니면 검색 조건에서 제외합니다.
         }
     }
 
@@ -351,9 +448,9 @@ public class AdmTransactionGroupService {
         }
     }
 
-    private boolean tableAvailable(String tableName) {
+    private boolean tableAvailable(JdbcTemplate jdbcTemplate, String tableName) {
         try {
-            Integer count = pfwJdbcTemplate.queryForObject("""
+            Integer count = jdbcTemplate.queryForObject("""
                     SELECT COUNT(*)
                     FROM information_schema.tables
                     WHERE table_schema = DATABASE()

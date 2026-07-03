@@ -8,8 +8,10 @@ import cpf.exs.operation.repository.ExsOperationRepository.ExchangeLogWrite;
 import cpf.exs.operation.repository.ExsOperationRepository.RetryWrite;
 import cpf.exs.operation.repository.ExsOperationRepository.TokenEventWrite;
 import cpf.exs.operation.repository.ExsOperationRepository.TokenWrite;
+import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
 import cpf.pfw.common.logging.TransactionContext;
+import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,10 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * EXS 대외연계 운영 서비스입니다.
+ * EXS 외부연계 운영 서비스입니다.
  *
- * <p>대외 token, 통제 정책, 재처리 요청은 회원/관리자 인증 token과 분리해서 exsDB에 저장합니다.
- * 원문 token은 저장하거나 반환하지 않고 hash와 마스킹 값만 운영 화면에 제공합니다.</p>
+ * <p>외부기관 token, 통제 정책, 재처리 요청, 송수신 추적 로그를 exsDB 원장에 저장합니다.
+ * token 원문은 저장하거나 반환하지 않고 hash와 마스킹 값만 운영 화면에 제공합니다.</p>
  */
 @Service
 public class ExsOperationService {
@@ -134,17 +136,30 @@ public class ExsOperationService {
     }
 
     /**
-     * 대외 수신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
+     * 외부 수신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
      */
     public Map<String, Object> receiveInbound(String transactionGlobalId, Map<String, Object> payload) {
-        return saveExchangeLog(transactionGlobalId, payload, "INBOUND", "POST", "/api/exs/inbound", "N");
+        return saveExchangeLog(transactionGlobalId, payload, "INBOUND", "POST", "/api/exs/inbound", "N",
+                "SUCCESS", "EXS_SUCCESS", 200, null, null);
     }
 
     /**
-     * 대외 송신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
+     * 외부 송신 전문을 CPF 거래 ID와 외부 거래 ID 기준으로 사전 적재합니다.
      */
     public Map<String, Object> sendOutbound(String transactionGlobalId, Map<String, Object> payload) {
-        return saveExchangeLog(transactionGlobalId, payload, "OUTBOUND", "POST", "/api/exs/outbound", "Y");
+        return saveExchangeLog(transactionGlobalId, payload, "OUTBOUND", "POST", "/api/exs/outbound", "Y",
+                "SUCCESS", "EXS_SUCCESS", 200, null, null);
+    }
+
+    /**
+     * 실패 송신 로그를 원장에 남기고 호출자에게 실패 응답을 돌려주는 샘플에서 사용합니다.
+     */
+    public Map<String, Object> sendOutboundFailure(String transactionGlobalId, Map<String, Object> payload) {
+        Map<String, Object> body = payload == null ? Map.of() : payload;
+        return saveExchangeLog(transactionGlobalId, body, "OUTBOUND", "POST", "/api/exs/outbound/failure", "Y",
+                "FAILED", "EXS_FAILURE", 502,
+                text(body, "failureCode", "EXS_TIMEOUT"),
+                text(body, "failureMessage", "외부기관 응답 지연"));
     }
 
     private Map<String, Object> saveExchangeLog(
@@ -153,16 +168,23 @@ public class ExsOperationService {
             String direction,
             String httpMethod,
             String requestUri,
-            String retryableYn) {
+            String retryableYn,
+            String status,
+            String resultCode,
+            Integer httpStatus,
+            String failureCode,
+            String failureMessage) {
         Map<String, Object> body = payload == null ? Map.of() : payload;
         String resolvedTransactionId = TextUtils.defaultIfBlank(transactionGlobalId, TransactionContext.getOrCreateTransactionId());
         String externalTransactionId = text(body, "externalTransactionId", "EXT-" + direction + "-" + Instant.now().toEpochMilli());
         return operationRepository.saveExchangeLog(new ExchangeLogWrite(
                 resolvedTransactionId,
+                TransactionSegmentContext.currentSegmentId(),
                 externalTransactionId,
                 text(body, "institutionCode", "BANK01"),
                 text(body, "channelCode", "OPENAPI"),
                 text(body, "endpointCode", direction.equals("INBOUND") ? "BANK01_INBOUND" : "BANK01_BALANCE"),
+                requestUri,
                 "EXS",
                 text(body, "wasId", "exsAP01"),
                 ServerInstanceIdentity.current().serverInstanceId(),
@@ -170,8 +192,20 @@ public class ExsOperationService {
                 direction,
                 httpMethod,
                 requestUri,
+                "{}",
+                "{}",
+                SensitiveDataMasker.mask(body.toString(), 2000),
+                SensitiveDataMasker.mask(Map.of("externalTransactionId", externalTransactionId, "status", status).toString(), 2000),
+                TextUtils.defaultIfBlank(status, "PRE_SAVED"),
+                TextUtils.defaultIfBlank(resultCode, "EXS_PRE_SAVED"),
+                httpStatus,
+                SensitiveDataMasker.truncate(failureCode, 100),
+                SensitiveDataMasker.mask(failureMessage, 1000),
                 retryableYn,
-                text(body, "messageSummary", direction + " 전문 사전 적재")));
+                intValue(body, "timeoutMs", 3000),
+                intValue(body, "retryCount", 0),
+                text(body, "messageCode", "BALANCE_REQ"),
+                SensitiveDataMasker.mask(text(body, "messageSummary", direction + " 전문 사전 적재"), 1000)));
     }
 
     private Map<String, Object> tokenResponse(TokenWrite token) {
@@ -206,6 +240,21 @@ public class ExsOperationService {
             return fallback;
         }
         return String.valueOf(value);
+    }
+
+    private Integer intValue(Map<String, Object> payload, String key, int fallback) {
+        Object value = payload.get(key);
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value == null || String.valueOf(value).isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value).trim());
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
     }
 
     public record TokenRefreshRequest(

@@ -111,10 +111,12 @@ public class ExsOperationRepository {
         return jdbc().queryForList("""
                 SELECT transaction_log_id AS transactionLogId,
                        transaction_global_id AS transactionGlobalId,
+                       transaction_segment_id AS transactionSegmentId,
                        external_transaction_id AS externalTransactionId,
                        institution_code AS institutionCode,
                        channel_code AS channelCode,
                        endpoint_code AS endpointCode,
+                       api_path AS apiPath,
                        module_id AS moduleId,
                        was_id AS wasId,
                        server_instance_id AS serverInstanceId,
@@ -124,11 +126,18 @@ public class ExsOperationRepository {
                        direction,
                        http_method AS httpMethod,
                        request_uri AS requestUri,
+                       request_header_masked AS requestHeaderMasked,
+                       response_header_masked AS responseHeaderMasked,
+                       request_payload_masked AS requestPayloadMasked,
+                       response_payload_masked AS responsePayloadMasked,
                        status,
                        result_code AS resultCode,
+                       http_status AS httpStatus,
                        error_code AS errorCode,
                        error_message AS errorMessage,
-                       retryable_yn AS retryableYn
+                       retryable_yn AS retryableYn,
+                       timeout_ms AS timeoutMs,
+                       retry_count AS retryCount
                   FROM exs_transaction_log
                  ORDER BY transaction_log_id DESC
                  LIMIT :limit
@@ -139,11 +148,18 @@ public class ExsOperationRepository {
         return jdbc().queryForList("""
                 SELECT message_log_id AS messageLogId,
                        transaction_global_id AS transactionGlobalId,
+                       transaction_segment_id AS transactionSegmentId,
                        external_transaction_id AS externalTransactionId,
                        direction,
+                       message_code AS messageCode,
                        message_summary AS messageSummary,
+                       request_payload_masked AS requestPayloadMasked,
+                       response_payload_masked AS responsePayloadMasked,
                        payload_store_yn AS payloadStoreYn,
                        payload_ref AS payloadRef,
+                       status,
+                       failure_code AS failureCode,
+                       failure_message_masked AS failureMessageMasked,
                        created_at AS createdAt
                   FROM exs_message_log
                  ORDER BY message_log_id DESC
@@ -370,10 +386,12 @@ public class ExsOperationRepository {
             jdbc().update("""
                     INSERT INTO exs_transaction_log (
                         transaction_global_id,
+                        transaction_segment_id,
                         external_transaction_id,
                         institution_code,
                         channel_code,
                         endpoint_code,
+                        api_path,
                         module_id,
                         was_id,
                         server_instance_id,
@@ -381,18 +399,29 @@ public class ExsOperationRepository {
                         direction,
                         http_method,
                         request_uri,
+                        request_header_masked,
+                        response_header_masked,
+                        request_payload_masked,
+                        response_payload_masked,
                         status,
                         result_code,
+                        http_status,
+                        error_code,
+                        error_message,
                         retryable_yn,
+                        timeout_ms,
+                        retry_count,
                         created_by,
                         updated_by
                     )
                     VALUES (
                         :transactionGlobalId,
+                        :transactionSegmentId,
                         :externalTransactionId,
                         :institutionCode,
                         :channelCode,
                         :endpointCode,
+                        :apiPath,
                         :moduleId,
                         :wasId,
                         :serverInstanceId,
@@ -400,9 +429,18 @@ public class ExsOperationRepository {
                         :direction,
                         :httpMethod,
                         :requestUri,
-                        'PRE_SAVED',
-                        'EXS_PRE_SAVED',
+                        :requestHeaderMasked,
+                        :responseHeaderMasked,
+                        :requestPayloadMasked,
+                        :responsePayloadMasked,
+                        :status,
+                        :resultCode,
+                        :httpStatus,
+                        :failureCode,
+                        :failureMessageMasked,
                         :retryableYn,
+                        :timeoutMs,
+                        :retryCount,
                         'EXS_FLOW',
                         'EXS_FLOW'
                     )
@@ -410,31 +448,46 @@ public class ExsOperationRepository {
             jdbc().update("""
                     INSERT INTO exs_message_log (
                         transaction_global_id,
+                        transaction_segment_id,
                         external_transaction_id,
                         direction,
+                        message_code,
                         message_summary,
+                        request_payload_masked,
+                        response_payload_masked,
                         payload_store_yn,
                         payload_ref,
+                        status,
+                        failure_code,
+                        failure_message_masked,
                         created_by,
                         updated_by
                     )
                     VALUES (
                         :transactionGlobalId,
+                        :transactionSegmentId,
                         :externalTransactionId,
                         :direction,
+                        :messageCode,
                         :messageSummary,
+                        :requestPayloadMasked,
+                        :responsePayloadMasked,
                         'N',
                         NULL,
+                        :status,
+                        :failureCode,
+                        :failureMessageMasked,
                         'EXS_FLOW',
                         'EXS_FLOW'
                     )
                     """, exchangeParams(row));
             return Map.of(
                     "transactionGlobalId", row.transactionGlobalId(),
+                    "transactionSegmentId", row.transactionSegmentId(),
                     "externalTransactionId", row.externalTransactionId(),
                     "direction", row.direction(),
                     "preSavedYn", "Y",
-                    "status", "PRE_SAVED");
+                    "status", row.status());
         });
     }
 
@@ -455,10 +508,12 @@ public class ExsOperationRepository {
     private MapSqlParameterSource exchangeParams(ExchangeLogWrite row) {
         return new MapSqlParameterSource()
                 .addValue("transactionGlobalId", row.transactionGlobalId())
+                .addValue("transactionSegmentId", row.transactionSegmentId())
                 .addValue("externalTransactionId", row.externalTransactionId())
                 .addValue("institutionCode", row.institutionCode())
                 .addValue("channelCode", row.channelCode())
                 .addValue("endpointCode", row.endpointCode())
+                .addValue("apiPath", row.apiPath())
                 .addValue("moduleId", row.moduleId())
                 .addValue("wasId", row.wasId())
                 .addValue("serverInstanceId", row.serverInstanceId())
@@ -466,7 +521,19 @@ public class ExsOperationRepository {
                 .addValue("direction", row.direction())
                 .addValue("httpMethod", row.httpMethod())
                 .addValue("requestUri", row.requestUri())
+                .addValue("requestHeaderMasked", row.requestHeaderMasked())
+                .addValue("responseHeaderMasked", row.responseHeaderMasked())
+                .addValue("requestPayloadMasked", row.requestPayloadMasked())
+                .addValue("responsePayloadMasked", row.responsePayloadMasked())
+                .addValue("status", row.status())
+                .addValue("resultCode", row.resultCode())
+                .addValue("httpStatus", row.httpStatus())
+                .addValue("failureCode", row.failureCode())
+                .addValue("failureMessageMasked", row.failureMessageMasked())
                 .addValue("retryableYn", row.retryableYn())
+                .addValue("timeoutMs", row.timeoutMs())
+                .addValue("retryCount", row.retryCount())
+                .addValue("messageCode", row.messageCode())
                 .addValue("messageSummary", row.messageSummary());
     }
 
@@ -531,10 +598,12 @@ public class ExsOperationRepository {
 
     public record ExchangeLogWrite(
             String transactionGlobalId,
+            String transactionSegmentId,
             String externalTransactionId,
             String institutionCode,
             String channelCode,
             String endpointCode,
+            String apiPath,
             String moduleId,
             String wasId,
             String serverInstanceId,
@@ -542,7 +611,19 @@ public class ExsOperationRepository {
             String direction,
             String httpMethod,
             String requestUri,
+            String requestHeaderMasked,
+            String responseHeaderMasked,
+            String requestPayloadMasked,
+            String responsePayloadMasked,
+            String status,
+            String resultCode,
+            Integer httpStatus,
+            String failureCode,
+            String failureMessageMasked,
             String retryableYn,
+            Integer timeoutMs,
+            Integer retryCount,
+            String messageCode,
             String messageSummary) {
     }
 }

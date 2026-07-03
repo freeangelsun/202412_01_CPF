@@ -1,0 +1,30 @@
+[
+    {
+        "name":  "standard-header-e2e",
+        "exitCode":  1
+    },
+    {
+        "name":  "composite-success",
+        "exitCode":  0
+    },
+    {
+        "name":  "adm-transaction-group",
+        "exitCode":  0
+    },
+    {
+        "name":  "composite-failure",
+        "exitCode":  0
+    },
+    {
+        "name":  "adm-transaction-group-failure",
+        "exitCode":  0
+    },
+    {
+        "name":  "openapi-runtime",
+        "exitCode":  0
+    },
+    {
+        "name":  "adm-browser-click",
+        "exitCode":  1
+    }
+]

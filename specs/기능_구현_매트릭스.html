@@ -11,27 +11,28 @@
     th, td { border: 1px solid #d1d5db; padding: 9px 10px; vertical-align: top; }
     th { background: #e0f2fe; }
     code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
-    .warn { background: #fff7ed; border-left: 4px solid #ea580c; padding: 12px 14px; }
+    .status { font-weight: 700; white-space: nowrap; }
+    .note { background: #fff7ed; border-left: 4px solid #ea580c; padding: 12px 14px; }
   </style>
 </head>
 <body>
 <main>
   <section>
     <h1>CPF 기능 구현 매트릭스</h1>
-    <p>현재 저장소 기준 구현 상태와 검증 상태를 분리해서 기록합니다. 실행하지 않은 검증은 완료로 표시하지 않습니다.</p>
-    <p class="warn">상태값은 <code>완료</code>, <code>부분 구현</code>, <code>미구현</code>, <code>미검증</code>, <code>실패</code>, <code>재확인 필요</code>만 사용합니다.</p>
+    <p>이 문서는 현재 저장소 기준 구현 상태와 검증 상태를 분리해 기록합니다. 실행하지 않은 검증은 완료로 표시하지 않습니다.</p>
+    <p class="note">상태값은 완료, 부분 구현, 미구현, 미검증, 실패, 재확인 필요만 사용합니다.</p>
   </section>
 
   <section>
     <h2>상태 기준</h2>
     <table>
       <tbody>
-      <tr><td class="status" data-status="완료">완료</td><td>코드, SQL, 테스트, smoke 또는 정적 gate가 현재 저장소 기준으로 통과했습니다.</td></tr>
-      <tr><td class="status" data-status="부분 구현">부분 구현</td><td>동작 가능한 골격은 있으나 운영 전체 시나리오, 화면 클릭 검증, 실 broker 검증 등 일부가 남아 있습니다.</td></tr>
-      <tr><td class="status" data-status="미구현">미구현</td><td>요구 기능을 수행하는 코드 경로가 아직 없습니다.</td></tr>
-      <tr><td class="status" data-status="미검증">미검증</td><td>코드나 스크립트는 있으나 이번 작업에서 실행 검증하지 않았습니다.</td></tr>
-      <tr><td class="status" data-status="실패">실패</td><td>이번 작업에서 실행했고 실패했습니다.</td></tr>
-      <tr><td class="status" data-status="재확인 필요">재확인 필요</td><td>환경 차이, 외부 조건, 검증 기준 변경 때문에 별도 판단이 필요합니다.</td></tr>
+      <tr><td class="status" data-status="완료">완료</td><td>코드, SQL, 테스트, smoke, evidence가 현재 저장소 기준으로 확인된 상태입니다.</td></tr>
+      <tr><td class="status" data-status="부분 구현">부분 구현</td><td>동작 경로는 있으나 운영 UI, 실환경, broker, 권한 감사 등 일부가 남은 상태입니다.</td></tr>
+      <tr><td class="status" data-status="미구현">미구현</td><td>요구 기능을 수행하는 코드 경로가 아직 없는 상태입니다.</td></tr>
+      <tr><td class="status" data-status="미검증">미검증</td><td>코드나 스크립트는 있으나 이번 작업에서 실제 검증하지 않았거나 환경이 없어 실행하지 못한 상태입니다.</td></tr>
+      <tr><td class="status" data-status="실패">실패</td><td>검증을 실행했고 실패한 상태입니다.</td></tr>
+      <tr><td class="status" data-status="재확인 필요">재확인 필요</td><td>요구 범위나 외부 조건이 애매해 별도 판단이 필요한 상태입니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -43,14 +44,14 @@
       <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>남은 확인</th></tr>
       </thead>
       <tbody>
-      <tr><td>PFW</td><td>복합 거래 segment 추적</td><td class="status" data-status="완료">완료</td><td><code>TransactionSegmentService</code>, <code>TransactionSegmentContext</code>, <code>TransactionSegmentScope</code>, <code>TransactionSegmentMapper.xml</code>, <code>CpfHeaderPropagator</code></td><td>장애/실패 segment 샘플은 다음 단계에서 더 넓힙니다.</td></tr>
-      <tr><td>PFW SQL</td><td>복합 거래 구간 로그 테이블</td><td class="status" data-status="완료">완료</td><td><code>pfw_transaction_segment</code>, <code>V19__transaction_segment_trace.sql</code>, <code>99_smoke_check.sql</code>, <code>build/sql-smoke/mariadb-full-install-result.json</code></td><td>MariaDB full install smoke로 테이블, 컬럼, index 존재를 확인했습니다.</td></tr>
-      <tr><td>ACC/MBR/EXS</td><td>복합 거래 교육 API</td><td class="status" data-status="완료">완료</td><td><code>AccCompositeEducationController</code>, <code>MbrCompositeEducationController</code>, <code>ExsCompositeEducationController</code>, <code>XyzCompositeTransactionEducationController</code>, <code>build/runtime-smoke/composite-transaction-runtime-result.json</code></td><td>성공 경로 runtime smoke는 통과했습니다. 실패 경로 샘플은 다음 보강 후보입니다.</td></tr>
-      <tr><td>ADM</td><td>거래 그룹 목록/상세 API와 화면 연결</td><td class="status" data-status="완료">완료</td><td><code>AdmTransactionGroupController</code>, <code>AdmTransactionGroupService</code>, <code>/adm/api/transaction-groups</code>, <code>adm.js</code>, <code>index.html</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>브라우저 클릭 smoke는 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr><td>ADM</td><td>거래 timeline/header/external logs API</td><td class="status" data-status="완료">완료</td><td><code>/segments</code>, <code>/timeline</code>, <code>/headers</code>, <code>/external-logs</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>런타임에서 segment, timeline, header, external log 조회를 확인했습니다.</td></tr>
-      <tr><td>CMN</td><td>고정길이 전문 registry, group, error, type converter</td><td class="status" data-status="완료">완료</td><td><code>FixedLengthLayoutRegistry</code>, <code>FixedLengthGroupSpec</code>, <code>FixedLengthMessageError</code>, <code>FixedLengthTypeConverter</code>, <code>FixedLengthMessageParserFormatterTest</code></td><td>반복부 DB 사전과 전문 layout 관리 UI는 다음 단계입니다.</td></tr>
-      <tr><td>EDU/XYZ</td><td>DB mapper slice 교육 fixture</td><td class="status" data-status="미검증">미검증</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>이번 작업에서는 mapper DB slice 환경변수 기반 테스트를 실행하지 않았습니다.</td></tr>
-      <tr><td>문서</td><td>README와 가이드 현행화</td><td class="status" data-status="완료">완료</td><td><code>README.md</code>, <code>트랜잭션_가이드.html</code>, <code>표준_헤더_가이드.html</code>, <code>관리자_가이드.html</code>, <code>SQL_가이드.html</code>, <code>CPF_STABILIZATION_REPORT.md</code></td><td>최종 정본 단계에서 Markdown 원본 기반 문서 재정비가 필요합니다.</td></tr>
+      <tr><td>PFW</td><td>표준 헤더와 확장 헤더 전파</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>standard-header-e2e-result.sanitized.json</code></td><td>브라우저 화면에서 헤더 탭 클릭 검증은 별도 도구가 필요합니다.</td></tr>
+      <tr><td>PFW</td><td>복합 거래 segment trace</td><td class="status" data-status="완료">완료</td><td><code>pfw_transaction_segment</code>, <code>TransactionSegmentService</code>, <code>TransactionSegmentMapper.xml</code></td><td>운영자 UX의 tree 시각화는 계속 고도화 대상입니다.</td></tr>
+      <tr><td>ACC/MBR/EXS</td><td>복합 거래 성공/실패 교육 API</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code>, <code>scripts/smoke-composite-transaction-failure-runtime.ps1</code></td><td>실제 외부기관 adapter는 다음 단계입니다.</td></tr>
+      <tr><td>ADM</td><td>거래 그룹 목록, 상세, timeline, headers, external logs</td><td class="status" data-status="완료">완료</td><td><code>/adm/api/transaction-groups</code>, <code>scripts/smoke-adm-transaction-group-runtime.ps1</code></td><td>브라우저 클릭 자동화는 미검증입니다.</td></tr>
+      <tr><td>EXS</td><td>송수신 원장 저장과 ADM 원장 우선 조회</td><td class="status" data-status="완료">완료</td><td><code>exs_transaction_log</code>, <code>exs_message_log</code>, <code>EXS_TRANSACTION_LOG</code></td><td>timeout, retry, circuit breaker 실운영 시나리오는 다음 단계입니다.</td></tr>
+      <tr><td>CMN</td><td>fixed-length parser, formatter, DB 사전</td><td class="status" data-status="완료">완료</td><td><code>FixedLengthLayoutRegistry</code>, <code>cmn_fixed_length_layout</code>, <code>cmn_fixed_length_field</code></td><td>ADM 사전 관리 화면은 다음 단계입니다.</td></tr>
+      <tr><td>EDU/XYZ</td><td>Mapper DB slice 교육 fixture</td><td class="status" data-status="완료">완료</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>신규 교육 샘플 추가 시 fixture 이름을 표준으로 유지해야 합니다.</td></tr>
+      <tr><td>문서</td><td>README, 가이드, 기능 매트릭스, 안정화 리포트 정합성</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code>, <code>scripts/check-feature-evidence.ps1</code></td><td>최종 정본 단계에서는 Markdown 원본 기반 문서 체계를 별도 정리합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -62,26 +63,26 @@
       <tr><th>check id</th><th>상태</th><th>증거</th><th>비고</th></tr>
       </thead>
       <tbody>
-      <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td class="status" data-status="미검증">미검증</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code></td><td>DB slice 환경변수 기반 테스트는 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-mariadb-full-install.ps1</code>, <code>build/sql-smoke/mariadb-full-install-result.json</code></td><td>전체 설치 SQL, smoke SQL, seed 재실행, transaction segment 구조를 검증했습니다.</td></tr>
-      <tr data-check-id="adm-runtime"><td>adm-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM 단독 runtime smoke는 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-permission-runtime.ps1</code></td><td>권한 runtime smoke는 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-openapi.ps1</code></td><td>앱 기동 후 OpenAPI JSON 검증은 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code></td><td>브라우저 클릭 자동화는 실행하지 않았고 정적 UI marker smoke만 실행했습니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>build/runtime-smoke/standard-header-e2e-result.json</code></td><td>표준/확장 헤더 전파와 민감 헤더 차단을 runtime smoke로 확인했습니다.</td></tr>
-      <tr data-check-id="complex-transaction-trace"><td>complex-transaction-trace</td><td class="status" data-status="완료">완료</td><td><code>AccCompositeTransactionService</code>, <code>MbrCompositeTransactionService</code>, <code>ExsCompositeEducationController</code>, <code>build/runtime-smoke/composite-transaction-runtime-result.json</code></td><td>ACC, MBR, EXS 경유 복합 거래 runtime smoke가 통과했습니다.</td></tr>
-      <tr data-check-id="transaction-segment-log"><td>transaction-segment-log</td><td class="status" data-status="완료">완료</td><td><code>pfw_transaction_segment</code>, <code>TransactionSegmentMapper.xml</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>동일 transactionGlobalId 기준 DB segment row와 ADM 조회를 확인했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-group-list"><td>adm-transaction-group-list</td><td class="status" data-status="완료">완료</td><td><code>GET /adm/api/transaction-groups</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>런타임 목록 조회와 검색 파라미터 확장을 확인했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-timeline"><td>adm-transaction-timeline</td><td class="status" data-status="완료">완료</td><td><code>GET /adm/api/transaction-groups/{transactionGlobalId}/timeline</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>timeline, segment, header, external logs 응답을 확인했습니다.</td></tr>
-      <tr data-check-id="cmn-fixed-length-engine"><td>cmn-fixed-length-engine</td><td class="status" data-status="완료">완료</td><td><code>FixedLengthLayoutRegistry</code>, <code>FixedLengthTypeConverter</code>, <code>FixedLengthMessageParserFormatterTest</code></td><td>CMN 단위 테스트에서 반복부와 필드 오류를 검증했습니다.</td></tr>
-      <tr data-check-id="composite-runtime-smoke"><td>composite-runtime-smoke</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code>, <code>build/runtime-smoke/composite-transaction-runtime-result.json</code></td><td>ACC, MBR, EXS 로컬 서비스 기동 후 성공 경로를 확인했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-group-runtime"><td>adm-transaction-group-runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-transaction-group-runtime.ps1</code>, <code>build/runtime-smoke/adm-transaction-group-runtime-result.json</code></td><td>ADM 거래 그룹 API의 목록, 상세, segment, timeline, headers, external logs 조회를 확인했습니다.</td></tr>
-      <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>Redis/Kafka/MQ broker</td><td>실 broker 연동 검증은 이번 작업 범위가 아닙니다.</td></tr>
-      <tr data-check-id="broker-real-integration"><td>broker-real-integration</td><td class="status" data-status="미검증">미검증</td><td>Redis/Kafka 실 broker</td><td>실 broker 장애 시나리오 테스트는 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td>최종 리포트 작성 후 실행했고 통과했습니다.</td></tr>
-      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>리포트와 기능 매트릭스의 check id 상태가 일치해야 합니다.</td></tr>
-      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>복합 거래, ADM 거래 그룹, MariaDB smoke, 표준 헤더, CMN fixed-length 증거를 포함합니다.</td></tr>
-      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>최종 리포트 작성 후 실행했고 통과했습니다.</td></tr>
+      <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td class="status" data-status="완료">완료</td><td><code>XyzQueryEducationMapperSliceTest</code>, <code>xyz_edu_query_fixture.sql</code></td><td>MariaDB 기반 mapper slice를 실행했습니다.</td></tr>
+      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-mariadb-full-install.ps1</code>, <code>mariadb-full-install-result.sanitized.json</code></td><td>전체 설치 SQL과 smoke SQL을 실행했습니다.</td></tr>
+      <tr data-check-id="adm-runtime"><td>adm-runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>ADM BuildBeforeRun runtime smoke를 실행했습니다.</td></tr>
+      <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-permission-runtime.ps1</code></td><td>ADM 권한 runtime smoke를 실행했습니다.</td></tr>
+      <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-openapi.ps1</code>, <code>openapi-runtime-result.sanitized.json</code></td><td>ADM, ACC, MBR, EXS 기동 범위로 검증했습니다.</td></tr>
+      <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code>, <code>adm-ui-browser-smoke-result.sanitized.json</code></td><td>Node/npm/npx/Playwright 또는 브라우저 드라이버가 없어 스킵되었습니다.</td></tr>
+      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>standard-header-e2e-result.sanitized.json</code></td><td>DB 로그 detail 조회까지 완료했습니다.</td></tr>
+      <tr data-check-id="complex-transaction-trace"><td>complex-transaction-trace</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code>, <code>composite-transaction-failure-runtime-result.sanitized.json</code></td><td>성공/실패 복합 거래 trace를 확인했습니다.</td></tr>
+      <tr data-check-id="transaction-segment-log"><td>transaction-segment-log</td><td class="status" data-status="완료">완료</td><td><code>pfw_transaction_segment</code>, <code>adm-transaction-group-runtime-result.sanitized.json</code></td><td>segment row와 ADM 조회를 확인했습니다.</td></tr>
+      <tr data-check-id="adm-transaction-group-list"><td>adm-transaction-group-list</td><td class="status" data-status="완료">완료</td><td><code>/adm/api/transaction-groups</code></td><td>transactionGlobalId 그룹 목록을 확인했습니다.</td></tr>
+      <tr data-check-id="adm-transaction-timeline"><td>adm-transaction-timeline</td><td class="status" data-status="완료">완료</td><td><code>/timeline</code>, <code>/headers</code>, <code>/external-logs</code></td><td>timeline과 외부 원장 연결을 확인했습니다.</td></tr>
+      <tr data-check-id="cmn-fixed-length-engine"><td>cmn-fixed-length-engine</td><td class="status" data-status="완료">완료</td><td><code>FixedLengthLayoutRegistry</code>, <code>cmn_fixed_length_layout</code></td><td>엔진 테스트와 DB 사전 smoke를 확인했습니다.</td></tr>
+      <tr data-check-id="composite-runtime-smoke"><td>composite-runtime-smoke</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-composite-transaction-runtime.ps1</code></td><td>성공 복합 거래 runtime smoke를 확인했습니다.</td></tr>
+      <tr data-check-id="adm-transaction-group-runtime"><td>adm-transaction-group-runtime</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-adm-transaction-group-runtime.ps1</code></td><td>성공/실패 ADM 거래 그룹 smoke를 확인했습니다.</td></tr>
+      <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>DB fallback</td><td>실제 broker는 이번 작업에서 띄우지 않았습니다.</td></tr>
+      <tr data-check-id="broker-real-integration"><td>broker-real-integration</td><td class="status" data-status="미검증">미검증</td><td>없음</td><td>Redis/Kafka/MQ 장애 시나리오는 다음 작업입니다.</td></tr>
+      <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>.\gradlew.bat qualityGate --offline --no-daemon --console=plain</code></td><td>최종 리포트 작성 후 실행합니다.</td></tr>
+      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>매트릭스와 리포트 check id 상태 일치를 검증합니다.</td></tr>
+      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>필수 코드/SQL/문서/evidence marker를 확인합니다.</td></tr>
+      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>BOM 없는 UTF-8 evidence와 저장소 인코딩을 확인합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -93,11 +94,11 @@
       <tr><th>순위</th><th>항목</th><th>상태</th><th>이유</th></tr>
       </thead>
       <tbody>
-      <tr><td>1</td><td>ADM 브라우저 클릭 smoke</td><td class="status" data-status="미검증">미검증</td><td>정적 marker smoke는 통과했지만 실제 브라우저 클릭 자동화는 실행하지 않았습니다.</td></tr>
-      <tr><td>2</td><td>ADM 거래 그룹 timeline UX 고도화</td><td class="status" data-status="부분 구현">부분 구현</td><td>API와 기본 화면은 준비됐고 tree/timeline 시각화와 실패 강조 UX를 더 다듬을 수 있습니다.</td></tr>
-      <tr><td>3</td><td>OpenAPI runtime 품질 gate</td><td class="status" data-status="미검증">미검증</td><td>앱 기동 후 <code>/v3/api-docs</code> 검증은 이번 작업에서 실행하지 않았습니다.</td></tr>
-      <tr><td>4</td><td>CMN 고정길이 전문 사전 DB화</td><td class="status" data-status="부분 구현">부분 구현</td><td>엔진은 보강됐지만 layout/field/group 사전의 DB 관리와 ADM 조회는 다음 단계입니다.</td></tr>
-      <tr><td>5</td><td>Redis/Kafka/MQ 실 broker 장애 시나리오</td><td class="status" data-status="미검증">미검증</td><td>현재는 DB fallback과 코드 경로 중심이며 실 broker 연동 검증은 남아 있습니다.</td></tr>
+      <tr><td>1</td><td>ADM browser click 실검증</td><td class="status" data-status="미검증">미검증</td><td>현재 환경에 Node/npm/npx/Playwright 또는 브라우저 드라이버가 없습니다.</td></tr>
+      <tr><td>2</td><td>XYZ/BIZADM 포함 전체 OpenAPI runtime</td><td class="status" data-status="미검증">미검증</td><td>이번 runtime 기동 범위는 ADM, ACC, MBR, EXS였습니다.</td></tr>
+      <tr><td>3</td><td>Redis/Kafka/MQ real broker smoke</td><td class="status" data-status="미검증">미검증</td><td>실제 broker와 장애 fallback 시나리오가 필요합니다.</td></tr>
+      <tr><td>4</td><td>CMN fixed-length 사전 ADM 관리 UI</td><td class="status" data-status="부분 구현">부분 구현</td><td>DB 사전과 seed는 있으나 운영 UI는 다음 단계입니다.</td></tr>
+      <tr><td>5</td><td>EXS timeout, retry, circuit breaker 운영 시나리오</td><td class="status" data-status="부분 구현">부분 구현</td><td>교육 REST 경로 원장은 검증했고 실기관 adapter는 남았습니다.</td></tr>
       </tbody>
     </table>
   </section>

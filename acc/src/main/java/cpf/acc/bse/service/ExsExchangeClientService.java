@@ -27,4 +27,15 @@ public class ExsExchangeClientService {
                 })
                 .block();
     }
+
+    public Map<String, Object> requestExternalTransferFailure(Map<String, Object> request) {
+        return cpfWebClient.service(EXS_SERVICE_ID)
+                .post()
+                .uri("/api/exs/edu/external-transfer/failure")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .block();
+    }
 }

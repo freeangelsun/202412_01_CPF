@@ -17,12 +17,13 @@ import javax.sql.DataSource;
 /**
  * EXS 전용 DB 연결 설정입니다.
  *
- * <p>대외 토큰, 통제 정책, 재처리 요청, 송수신 로그를 exsDB에 저장합니다.
- * 로컬 교육 기동과 실제 DB 연동을 분리하기 위해 명시적으로 활성화한 경우에만 datasource를 생성합니다.</p>
+ * <p>외부 연계 토큰, 통제 정책, 재처리 요청, 송수신 추적 로그를 exsDB에 저장합니다.
+ * EXS는 송수신 원장을 남기는 것이 기본 동작이므로 local/runtime smoke에서는 datasource를 기본 활성화합니다.
+ * DB 없이 EXS 샘플만 띄워야 하는 특수 상황에서는 {@code CPF_EXS_DB_ENABLED=false}로 명시 비활성화합니다.</p>
  */
 @Configuration
 @EnableConfigurationProperties
-@ConditionalOnProperty(prefix = "cpf.exs.datasource", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "cpf.exs.datasource", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ExsDataSourceConfig {
 
     /**
@@ -35,7 +36,7 @@ public class ExsDataSourceConfig {
     }
 
     /**
-     * EXS 대외 연계 DB datasource입니다.
+     * EXS 외부 연계 DB datasource입니다.
      */
     @Bean(name = "exsDataSource")
     public DataSource exsDataSource(DataSourceProperties exsDataSourceProperties) {

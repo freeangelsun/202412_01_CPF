@@ -233,6 +233,16 @@ public final class TransactionContext {
         return header != null ? header.getChannelDetailCode() : null;
     }
 
+    public static String clientAppId() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getClientAppId() : null;
+    }
+
+    public static String callerService() {
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCallerService() : null;
+    }
+
     public static String userId() {
         TransactionHeader header = currentHeader();
         return header != null ? header.getUserId() : null;

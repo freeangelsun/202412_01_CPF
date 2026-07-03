@@ -32,8 +32,12 @@ public class TransactionSegmentRecord {
     private String extensionHeaderSnapshotMasked;
     private String customerNoMasked;
     private String memberNoMasked;
+    private String userIdMasked;
+    private String operatorIdMasked;
     private String channelCode;
     private String originalChannelCode;
+    private String clientAppId;
+    private String callerService;
     private String externalInstitutionCode;
     private String externalTransactionId;
     private String createdBy;
@@ -247,6 +251,22 @@ public class TransactionSegmentRecord {
         this.memberNoMasked = memberNoMasked;
     }
 
+    public String getUserIdMasked() {
+        return userIdMasked;
+    }
+
+    public void setUserIdMasked(String userIdMasked) {
+        this.userIdMasked = userIdMasked;
+    }
+
+    public String getOperatorIdMasked() {
+        return operatorIdMasked;
+    }
+
+    public void setOperatorIdMasked(String operatorIdMasked) {
+        this.operatorIdMasked = operatorIdMasked;
+    }
+
     public String getChannelCode() {
         return channelCode;
     }
@@ -261,6 +281,22 @@ public class TransactionSegmentRecord {
 
     public void setOriginalChannelCode(String originalChannelCode) {
         this.originalChannelCode = originalChannelCode;
+    }
+
+    public String getClientAppId() {
+        return clientAppId;
+    }
+
+    public void setClientAppId(String clientAppId) {
+        this.clientAppId = clientAppId;
+    }
+
+    public String getCallerService() {
+        return callerService;
+    }
+
+    public void setCallerService(String callerService) {
+        this.callerService = callerService;
     }
 
     public String getExternalInstitutionCode() {

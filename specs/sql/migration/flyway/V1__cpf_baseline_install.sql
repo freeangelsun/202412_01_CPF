@@ -99,6 +99,10 @@ DROP TABLE IF EXISTS admDB.adm_role;
 DROP TABLE IF EXISTS admDB.adm_operator;
 
 DROP TABLE IF EXISTS cmnDB.cmn_edu_query_item;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_masking_policy;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_field;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_group;
+DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_layout;
 DROP TABLE IF EXISTS cmnDB.cmn_business_log;
 DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
@@ -356,8 +360,12 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     extension_header_snapshot_masked MEDIUMTEXT NULL COMMENT '마스킹된 확장 헤더 snapshot',
     customer_no_masked VARCHAR(80) NULL COMMENT '마스킹된 고객번호',
     member_no_masked VARCHAR(80) NULL COMMENT '마스킹된 회원번호',
+    user_id_masked VARCHAR(80) NULL COMMENT '마스킹된 사용자 ID',
+    operator_id_masked VARCHAR(80) NULL COMMENT '마스킹된 운영자 ID',
     channel_code VARCHAR(30) NULL COMMENT '현재 채널 코드',
     original_channel_code VARCHAR(30) NULL COMMENT '최초 유입 채널 코드',
+    client_app_id VARCHAR(100) NULL COMMENT '클라이언트 애플리케이션 ID',
+    caller_service VARCHAR(100) NULL COMMENT '호출 서비스 ID',
     external_institution_code VARCHAR(50) NULL COMMENT '외부기관 코드',
     external_transaction_id VARCHAR(120) NULL COMMENT '외부기관 거래 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
@@ -374,6 +382,9 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     INDEX ix_pfw_transaction_segment_duration (duration_ms),
     INDEX ix_pfw_transaction_segment_customer (customer_no_masked, started_at),
     INDEX ix_pfw_transaction_segment_member (member_no_masked, started_at),
+    INDEX ix_pfw_transaction_segment_user (user_id_masked, started_at),
+    INDEX ix_pfw_transaction_segment_operator (operator_id_masked, started_at),
+    INDEX ix_pfw_transaction_segment_client (client_app_id, caller_service, started_at),
     INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
 
@@ -1215,6 +1226,97 @@ CREATE TABLE IF NOT EXISTS cmn_edu_query_item (
     INDEX ix_cmn_edu_query_item_search (status_code, category_code, item_name),
     INDEX ix_cmn_edu_query_item_created (created_at, item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN EDU 조회 샘플 항목';
+
+CREATE TABLE IF NOT EXISTS cmn_fixed_length_layout (
+    layout_id VARCHAR(120) NOT NULL COMMENT '고정길이 전문 layout ID',
+    institution_code VARCHAR(50) NOT NULL COMMENT '기관 코드',
+    message_code VARCHAR(80) NOT NULL COMMENT '전문 코드',
+    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
+    version VARCHAR(30) NOT NULL DEFAULT '1.0' COMMENT 'layout 버전',
+    charset_name VARCHAR(40) NOT NULL DEFAULT 'UTF-8' COMMENT '문자셋',
+    total_length INT NOT NULL COMMENT '전체 전문 길이',
+    header_length INT NOT NULL DEFAULT 0 COMMENT '헤더 길이',
+    body_length INT NOT NULL DEFAULT 0 COMMENT '본문 길이',
+    trailer_length INT NOT NULL DEFAULT 0 COMMENT '트레일러 길이',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    description VARCHAR(500) NULL COMMENT 'layout 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (layout_id),
+    UNIQUE KEY uk_cmn_fixed_length_layout (institution_code, message_code, direction, version),
+    INDEX ix_cmn_fixed_length_layout_enabled (enabled_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 고정길이 전문 layout 사전';
+
+CREATE TABLE IF NOT EXISTS cmn_fixed_length_group (
+    group_id VARCHAR(120) NOT NULL COMMENT '고정길이 반복부 group ID',
+    layout_id VARCHAR(120) NOT NULL COMMENT 'layout ID',
+    group_name VARCHAR(100) NOT NULL COMMENT '반복부명',
+    display_name VARCHAR(200) NOT NULL COMMENT '반복부 표시명',
+    start_position INT NOT NULL COMMENT '1-base 시작 위치',
+    repeat_count INT NOT NULL DEFAULT 1 COMMENT '고정 반복 횟수',
+    repeat_count_field VARCHAR(100) NULL COMMENT '반복 횟수 기준 필드',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (group_id),
+    INDEX ix_cmn_fixed_length_group_layout (layout_id, start_position),
+    CONSTRAINT fk_cmn_fixed_length_group_layout
+        FOREIGN KEY (layout_id) REFERENCES cmn_fixed_length_layout(layout_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 고정길이 전문 반복부 사전';
+
+CREATE TABLE IF NOT EXISTS cmn_fixed_length_field (
+    field_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고정길이 필드 순번',
+    layout_id VARCHAR(120) NOT NULL COMMENT 'layout ID',
+    group_id VARCHAR(120) NULL COMMENT '반복부 group ID',
+    field_name VARCHAR(100) NOT NULL COMMENT '필드명',
+    display_name VARCHAR(200) NOT NULL COMMENT '필드 표시명',
+    start_position INT NOT NULL COMMENT '1-base 시작 위치',
+    field_length INT NOT NULL COMMENT '필드 길이',
+    byte_length INT NOT NULL COMMENT '필드 byte 길이',
+    field_type VARCHAR(30) NOT NULL DEFAULT 'STRING' COMMENT '필드 타입',
+    required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '필수 여부',
+    padding_char CHAR(1) NOT NULL DEFAULT ' ' COMMENT 'padding 문자',
+    align VARCHAR(10) NOT NULL DEFAULT 'LEFT' COMMENT '정렬 방향',
+    scale INT NOT NULL DEFAULT 0 COMMENT '숫자 소수 자리',
+    format_pattern VARCHAR(80) NULL COMMENT '형식 패턴',
+    sensitive_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '민감정보 여부',
+    masking_type VARCHAR(30) NULL COMMENT '마스킹 유형',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (field_id),
+    UNIQUE KEY uk_cmn_fixed_length_field (layout_id, field_name),
+    INDEX ix_cmn_fixed_length_field_layout_pos (layout_id, start_position),
+    INDEX ix_cmn_fixed_length_field_group (group_id, start_position),
+    CONSTRAINT fk_cmn_fixed_length_field_layout
+        FOREIGN KEY (layout_id) REFERENCES cmn_fixed_length_layout(layout_id),
+    CONSTRAINT fk_cmn_fixed_length_field_group
+        FOREIGN KEY (group_id) REFERENCES cmn_fixed_length_group(group_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 고정길이 전문 필드 사전';
+
+CREATE TABLE IF NOT EXISTS cmn_fixed_length_masking_policy (
+    masking_policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고정길이 마스킹 정책 순번',
+    layout_id VARCHAR(120) NOT NULL COMMENT 'layout ID',
+    field_name VARCHAR(100) NOT NULL COMMENT '마스킹 대상 필드명',
+    masking_type VARCHAR(30) NOT NULL COMMENT '마스킹 유형',
+    visible_prefix INT NOT NULL DEFAULT 0 COMMENT '앞쪽 표시 길이',
+    visible_suffix INT NOT NULL DEFAULT 0 COMMENT '뒤쪽 표시 길이',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CMN' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (masking_policy_id),
+    UNIQUE KEY uk_cmn_fixed_length_masking (layout_id, field_name),
+    CONSTRAINT fk_cmn_fixed_length_masking_layout
+        FOREIGN KEY (layout_id) REFERENCES cmn_fixed_length_layout(layout_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN 고정길이 전문 마스킹 정책';
 -- ============================================================================
 -- specs/sql/30_adm_schema.sql
 -- ============================================================================
@@ -2181,10 +2283,12 @@ CREATE TABLE IF NOT EXISTS exs_route_rule (
 CREATE TABLE IF NOT EXISTS exs_transaction_log (
     transaction_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 거래 로그 순번',
     transaction_global_id VARCHAR(34) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    transaction_segment_id VARCHAR(120) NULL COMMENT 'CPF 거래 구간 ID',
     external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
     institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
     channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
     endpoint_code VARCHAR(80) NULL COMMENT '대외 endpoint 코드',
+    api_path VARCHAR(500) NULL COMMENT '요청 API 경로',
     module_id VARCHAR(3) NOT NULL COMMENT '처리 모듈 ID',
     was_id VARCHAR(7) NOT NULL COMMENT '처리 WAS ID',
     server_instance_id VARCHAR(160) NULL COMMENT '처리 서버 인스턴스 ID',
@@ -2194,17 +2298,26 @@ CREATE TABLE IF NOT EXISTS exs_transaction_log (
     direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
     http_method VARCHAR(10) NULL COMMENT 'HTTP 메서드',
     request_uri VARCHAR(500) NULL COMMENT '요청 URI',
+    request_header_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 헤더',
+    response_header_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 헤더',
+    request_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 payload',
+    response_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 payload',
     status VARCHAR(30) NOT NULL COMMENT '처리 상태',
     result_code VARCHAR(50) NULL COMMENT '처리 결과 코드',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
     error_code VARCHAR(100) NULL COMMENT '오류 코드',
     error_message VARCHAR(1000) NULL COMMENT '마스킹된 오류 메시지',
     retryable_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재처리 가능 여부',
+    timeout_ms INT NULL COMMENT 'timeout 밀리초',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '재시도 횟수',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (transaction_log_id),
     INDEX ix_exs_transaction_log_global (transaction_global_id),
+    INDEX ix_exs_transaction_log_segment (transaction_segment_id),
+    INDEX ix_exs_transaction_log_global_segment (transaction_global_id, transaction_segment_id),
     INDEX ix_exs_transaction_log_external (external_transaction_id),
     INDEX ix_exs_transaction_log_target_time (institution_code, channel_code, request_at),
     INDEX ix_exs_transaction_log_status_time (status, request_at)
@@ -2213,17 +2326,25 @@ CREATE TABLE IF NOT EXISTS exs_transaction_log (
 CREATE TABLE IF NOT EXISTS exs_message_log (
     message_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 송수신 로그 순번',
     transaction_global_id VARCHAR(34) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    transaction_segment_id VARCHAR(120) NULL COMMENT 'CPF 거래 구간 ID',
     external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
     direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
+    message_code VARCHAR(80) NULL COMMENT '대외 전문 코드',
     message_summary VARCHAR(1000) NULL COMMENT '마스킹된 전문 요약',
+    request_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 전문',
+    response_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 전문',
     payload_store_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '원문 별도 저장 여부',
     payload_ref VARCHAR(300) NULL COMMENT '원문 저장 참조',
+    status VARCHAR(30) NOT NULL DEFAULT 'PRE_SAVED' COMMENT '전문 처리 상태',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message_masked VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (message_log_id),
     INDEX ix_exs_message_log_global (transaction_global_id, created_at),
+    INDEX ix_exs_message_log_segment (transaction_segment_id, created_at),
     INDEX ix_exs_message_log_external (external_transaction_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 송수신 로그';
 
@@ -3001,6 +3122,150 @@ WHERE NOT EXISTS (
       AND business_key = 'INITIAL'
       AND log_type = 'SEED'
 );
+
+INSERT INTO cmn_fixed_length_layout (
+    layout_id,
+    institution_code,
+    message_code,
+    direction,
+    version,
+    charset_name,
+    total_length,
+    header_length,
+    body_length,
+    trailer_length,
+    enabled_yn,
+    description,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_V1',
+    'BANK01',
+    'BALANCE_REQ',
+    'OUTBOUND',
+    '1.0',
+    'UTF-8',
+    80,
+    20,
+    60,
+    0,
+    'Y',
+    'EXS 대외 잔액조회 요청 교육용 고정길이 전문 layout',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    charset_name = VALUES(charset_name),
+    total_length = VALUES(total_length),
+    header_length = VALUES(header_length),
+    body_length = VALUES(body_length),
+    trailer_length = VALUES(trailer_length),
+    enabled_yn = VALUES(enabled_yn),
+    description = VALUES(description),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_group (
+    group_id,
+    layout_id,
+    group_name,
+    display_name,
+    start_position,
+    repeat_count,
+    repeat_count_field,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_BODY',
+    'BANK01_BALANCE_REQ_V1',
+    'bodyItems',
+    '잔액조회 반복부',
+    21,
+    2,
+    NULL,
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    display_name = VALUES(display_name),
+    start_position = VALUES(start_position),
+    repeat_count = VALUES(repeat_count),
+    repeat_count_field = VALUES(repeat_count_field),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_field (
+    layout_id,
+    group_id,
+    field_name,
+    display_name,
+    start_position,
+    field_length,
+    byte_length,
+    field_type,
+    required_yn,
+    padding_char,
+    align,
+    scale,
+    format_pattern,
+    sensitive_yn,
+    masking_type,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES
+('BANK01_BALANCE_REQ_V1', NULL, 'messageCode', '전문 코드', 1, 10, 10, 'STRING', 'Y', ' ', 'LEFT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', NULL, 'transactionDate', '거래 일자', 11, 8, 8, 'STRING', 'Y', '0', 'RIGHT', 0, 'yyyyMMdd', 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', NULL, 'itemCount', '반복 건수', 19, 2, 2, 'NUMBER', 'Y', '0', 'RIGHT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', 'BANK01_BALANCE_REQ_BODY', 'accountNo', '계좌번호', 21, 20, 20, 'STRING', 'Y', ' ', 'LEFT', 0, NULL, 'Y', 'ACCOUNT', 'Y', 'SYSTEM', 'SYSTEM'),
+('BANK01_BALANCE_REQ_V1', 'BANK01_BALANCE_REQ_BODY', 'amount', '금액', 41, 10, 10, 'NUMBER', 'Y', '0', 'RIGHT', 0, NULL, 'N', NULL, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    group_id = VALUES(group_id),
+    display_name = VALUES(display_name),
+    start_position = VALUES(start_position),
+    field_length = VALUES(field_length),
+    byte_length = VALUES(byte_length),
+    field_type = VALUES(field_type),
+    required_yn = VALUES(required_yn),
+    padding_char = VALUES(padding_char),
+    align = VALUES(align),
+    scale = VALUES(scale),
+    format_pattern = VALUES(format_pattern),
+    sensitive_yn = VALUES(sensitive_yn),
+    masking_type = VALUES(masking_type),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO cmn_fixed_length_masking_policy (
+    layout_id,
+    field_name,
+    masking_type,
+    visible_prefix,
+    visible_suffix,
+    enabled_yn,
+    created_by,
+    updated_by
+) VALUES (
+    'BANK01_BALANCE_REQ_V1',
+    'accountNo',
+    'ACCOUNT',
+    3,
+    3,
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    masking_type = VALUES(masking_type),
+    visible_prefix = VALUES(visible_prefix),
+    visible_suffix = VALUES(visible_suffix),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
 -- specs/sql/60_adm_seed_data.sql
 -- ============================================================================

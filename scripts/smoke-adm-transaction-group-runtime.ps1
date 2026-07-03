@@ -100,6 +100,10 @@ function Get-PropertyValue {
 }
 
 try {
+    if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
+        $AdmPassword = "Adm!n12345"
+    }
+
     if ([string]::IsNullOrWhiteSpace($TransactionGlobalId)) {
         $composite = Invoke-Json -Method Post -Uri "$AccBaseUrl/acc/edu/composite/member-then-external?memberId=1" -Headers (New-CpfSmokeHeaders)
         $TransactionGlobalId = $composite.transactionGlobalId

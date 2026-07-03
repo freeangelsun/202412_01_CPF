@@ -12,11 +12,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * ADM에서 사용하는 DB 연결을 구성합니다.
+ * ADM 운영 화면에서 사용하는 DB 연결을 구성합니다.
  *
- * <p>ADM 운영 메타는 admDB, 프레임워크 로그/설정 조회는 pfwDB, 회원 운영 화면은
- * mbrDB를 사용합니다. 운영 환경에서는 각 datasource의 계정과 비밀번호를 환경변수로
- * 주입해야 합니다.</p>
+ * <p>ADM은 운영 메타 admDB, 프레임워크 로그/설정 pfwDB, 회원 운영 mbrDB,
+ * EDU 업무 샘플 xyzDB, 외부연계 송수신 원장 exsDB를 조회합니다. 운영 환경에서는
+ * 각 datasource 계정과 비밀번호를 환경변수 또는 Vault/KMS 연동 값으로 주입해야 합니다.</p>
  */
 @Configuration
 public class AdmJdbcConfig {
@@ -55,6 +55,18 @@ public class AdmJdbcConfig {
 
     @Value("${spring.datasource.xyz.driver-class-name:org.mariadb.jdbc.Driver}")
     private String xyzDriverClassName;
+
+    @Value("${spring.datasource.exs.url:jdbc:mariadb://localhost:3306/exsDB}")
+    private String exsUrl;
+
+    @Value("${spring.datasource.exs.username:cpf_exs_app}")
+    private String exsUsername;
+
+    @Value("${spring.datasource.exs.password:cpf_local_pw}")
+    private String exsPassword;
+
+    @Value("${spring.datasource.exs.driver-class-name:org.mariadb.jdbc.Driver}")
+    private String exsDriverClassName;
 
     @Bean(name = "admDataSource")
     public DataSource admDataSource() {
@@ -114,5 +126,20 @@ public class AdmJdbcConfig {
     @Bean(name = "xyzJdbcTemplate")
     public JdbcTemplate xyzJdbcTemplate(@Qualifier("xyzAdmDataSource") DataSource xyzAdmDataSource) {
         return new JdbcTemplate(xyzAdmDataSource);
+    }
+
+    @Bean(name = "exsAdmDataSource")
+    public DataSource exsAdmDataSource() {
+        return DataSourceBuilder.create()
+                .url(exsUrl)
+                .username(exsUsername)
+                .password(exsPassword)
+                .driverClassName(exsDriverClassName)
+                .build();
+    }
+
+    @Bean(name = "exsJdbcTemplate")
+    public JdbcTemplate exsJdbcTemplate(@Qualifier("exsAdmDataSource") DataSource exsAdmDataSource) {
+        return new JdbcTemplate(exsAdmDataSource);
     }
 }

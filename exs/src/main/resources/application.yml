@@ -17,7 +17,7 @@ cpf:
     was-id: ${WAS_ID:exsAP01}
   exs:
     datasource:
-      enabled: ${CPF_EXS_DB_ENABLED:false}
+      enabled: ${CPF_EXS_DB_ENABLED:true}
       url: ${EXS_DB_URL:jdbc:mariadb://localhost:3306/exsDB}
       username: ${EXS_DB_USERNAME:cpf_exs_app}
       password: ${EXS_DB_PASSWORD:cpf_local_pw}

@@ -4,20 +4,30 @@ import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import cpf.pfw.common.workflow.CpfWorkflowContext;
 import io.netty.channel.ChannelOption;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.web.client.RestClientCustomizer;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * CPF 서비스 간 호출에 사용하는 WebClient 설정입니다.
@@ -60,6 +70,32 @@ public class CpfWebClientConfig {
         return new CpfWebClient(builder, endpointRegistry);
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfRestClientInterceptor cpfRestClientInterceptor(ObjectProvider<CpfFileLogWriter> fileLogWriterProvider) {
+        return new CpfRestClientInterceptor(fileLogWriterProvider.getIfAvailable());
+    }
+
+    @Bean
+    @ConditionalOnClass(RestClient.class)
+    public RestClientCustomizer cpfRestClientCustomizer(CpfRestClientInterceptor interceptor) {
+        return builder -> builder.requestInterceptor(interceptor);
+    }
+
+    @Bean
+    @ConditionalOnClass(RestTemplate.class)
+    public RestTemplateCustomizer cpfRestTemplateCustomizer(CpfRestClientInterceptor interceptor) {
+        return restTemplate -> {
+            List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>(restTemplate.getInterceptors());
+            boolean alreadyRegistered = interceptors.stream()
+                    .anyMatch(existing -> existing instanceof CpfRestClientInterceptor);
+            if (!alreadyRegistered) {
+                interceptors.add(0, interceptor);
+                restTemplate.setInterceptors(interceptors);
+            }
+        };
+    }
+
     /**
      * 하위 서비스 호출 전에 CPF 표준 거래 헤더와 워크플로 헤더를 추가합니다.
      */
@@ -88,53 +124,80 @@ public class CpfWebClientConfig {
     private ExchangeFilterFunction integrationFileLogFilter(ObjectProvider<CpfFileLogWriter> fileLogWriterProvider) {
         return (request, next) -> {
             long started = System.nanoTime();
+            writeOutboundEvent(
+                    fileLogWriterProvider,
+                    request,
+                    "OUTBOUND_REQUEST",
+                    null,
+                    "REQUESTED",
+                    null,
+                    null,
+                    null,
+                    started);
             return next.exchange(request)
                     .doOnSuccess(response -> {
-                        CpfFileLogWriter writer = fileLogWriterProvider.getIfAvailable();
-                        if (writer == null || response == null) {
-                            return;
+                        if (response != null) {
+                            writeOutboundEvent(
+                                    fileLogWriterProvider,
+                                    request,
+                                    response.statusCode().isError() ? "OUTBOUND_RESPONSE_ERROR" : "OUTBOUND_RESPONSE",
+                                    response.statusCode().value(),
+                                    response.statusCode().isError() ? "FAILED" : "SUCCESS",
+                                    response.statusCode().isError() ? "HTTP_" + response.statusCode().value() : null,
+                                    response.statusCode().isError() ? "하위 서비스 HTTP 오류" : null,
+                                    null,
+                                    started);
                         }
-                        writer.writeIntegration(
-                                null,
-                                inferTargetModule(request.url().getHost(), request.url().getPort(), request.url().getPath()),
-                                "OUTBOUND",
-                                request.method().name(),
-                                request.url().getPath(),
-                                response.statusCode().value(),
-                                response.statusCode().isError() ? "FAILED" : "SUCCESS",
-                                elapsedMillis(started),
-                                response.statusCode().isError() ? "HTTP_" + response.statusCode().value() : null,
-                                response.statusCode().isError() ? "하위 서비스 HTTP 오류" : null,
-                                Map.of(
-                                        "endpointCode", request.url().getHost() + ":" + request.url().getPort(),
-                                        "timeoutMs", 0,
-                                        "timeoutYn", "N",
-                                        "retryCount", 0,
-                                        "requestHeadersMasked", request.headers().toString()));
                     })
                     .doOnError(error -> {
-                        CpfFileLogWriter writer = fileLogWriterProvider.getIfAvailable();
-                        if (writer == null) {
-                            return;
-                        }
-                        writer.writeIntegration(
-                                null,
-                                inferTargetModule(request.url().getHost(), request.url().getPort(), request.url().getPath()),
-                                "OUTBOUND",
-                                request.method().name(),
-                                request.url().getPath(),
+                        String eventType = error instanceof TimeoutException ? "OUTBOUND_TIMEOUT" : "OUTBOUND_EXCEPTION";
+                        writeOutboundEvent(
+                                fileLogWriterProvider,
+                                request,
+                                eventType,
                                 0,
                                 "FAILED",
-                                elapsedMillis(started),
                                 error.getClass().getSimpleName(),
                                 error.getMessage(),
-                                Map.of(
-                                        "endpointCode", request.url().getHost() + ":" + request.url().getPort(),
-                                        "timeoutMs", 0,
-                                        "timeoutYn", "N",
-                                        "retryCount", 0));
+                                error instanceof TimeoutException ? "Y" : "N",
+                                started);
                     });
         };
+    }
+
+    private void writeOutboundEvent(
+            ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
+            ClientRequest request,
+            String eventType,
+            Integer httpStatus,
+            String status,
+            String failureCode,
+            String failureMessage,
+            String timeoutYn,
+            long started) {
+
+        CpfFileLogWriter writer = fileLogWriterProvider.getIfAvailable();
+        if (writer == null) {
+            return;
+        }
+        writer.writeIntegration(
+                null,
+                inferTargetModule(request.url().getHost(), request.url().getPort(), request.url().getPath()),
+                "OUTBOUND",
+                request.method().name(),
+                request.url().getPath(),
+                httpStatus,
+                status,
+                elapsedMillis(started),
+                failureCode,
+                failureMessage,
+                Map.of(
+                        "eventType", eventType,
+                        "endpointCode", request.url().getHost() + ":" + request.url().getPort(),
+                        "timeoutMs", 0,
+                        "timeoutYn", timeoutYn == null ? "N" : timeoutYn,
+                        "retryCount", 0,
+                        "requestHeadersMasked", request.headers().toString()));
     }
 
     private long elapsedMillis(long started) {

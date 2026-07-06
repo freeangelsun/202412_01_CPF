@@ -28,7 +28,10 @@ function Save-Result {
 }
 
 function Invoke-CreateDomain {
-    param([switch] $DryRun)
+    param(
+        [switch] $DryRun,
+        [switch] $GeneratePatch
+    )
 
     $arguments = @(
         "-NoProfile",
@@ -41,6 +44,9 @@ function Invoke-CreateDomain {
     )
     if ($DryRun) {
         $arguments += "-DryRun"
+    }
+    if ($GeneratePatch) {
+        $arguments += "-GeneratePatch"
     }
 
     $output = & powershell @arguments
@@ -55,7 +61,9 @@ $result = [ordered]@{
     moduleCode = $ModuleCode
     dryRun = [ordered]@{}
     generate = [ordered]@{}
+    generatePatch = [ordered]@{}
     requiredFiles = @()
+    requiredPatchFiles = @()
 }
 
 try {
@@ -71,11 +79,16 @@ try {
         "build.gradle",
         "README.md",
         "src/main/resources/application.yml",
+        "src/main/resources/application-${ModuleCode}.yml",
         "src/main/java/cpf/$ModuleCode/controller/PaymentController.java",
+        "src/main/java/cpf/$ModuleCode/facade/PaymentFacade.java",
         "src/main/java/cpf/$ModuleCode/service/PaymentService.java",
         "src/main/java/cpf/$ModuleCode/repository/PaymentRepository.java",
         "src/main/java/cpf/$ModuleCode/dto/PaymentSearchRequest.java",
+        "src/main/java/cpf/$ModuleCode/validation/PaymentSearchValidator.java",
+        "src/test/java/cpf/$ModuleCode/service/PaymentServiceTest.java",
         "src/main/resources/mybatis/mapper/$ModuleCode/PaymentMapper.xml",
+        "smoke/smoke-${ModuleCode}.ps1",
         "sql/Vxx__${ModuleCode}_domain.sql"
     )
     foreach ($relative in $required) {
@@ -87,6 +100,40 @@ try {
         }
         if (-not $exists) {
             throw "create-domain generated file is missing. path=$path"
+        }
+    }
+
+    if (Test-Path -LiteralPath $previewDir) {
+        Remove-Item -LiteralPath $previewDir -Recurse -Force
+    }
+    $result.generatePatch = Invoke-CreateDomain -GeneratePatch
+
+    foreach ($relative in $required) {
+        $path = Join-Path $previewDir $relative
+        $exists = Test-Path -LiteralPath $path
+        if (-not $exists) {
+            throw "create-domain generate-patch base file is missing. path=$path"
+        }
+    }
+    $requiredPatch = @(
+        "patch-candidates/apply-order.md",
+        "patch-candidates/settings.gradle.patch",
+        "patch-candidates/sql/40_business_modules_schema.${ModuleCode}.candidate.sql",
+        "patch-candidates/sql/50_framework_seed.${ModuleCode}.candidate.sql",
+        "patch-candidates/sql/60_adm_seed.${ModuleCode}.candidate.sql",
+        "patch-candidates/sql/99_smoke_check.${ModuleCode}.candidate.sql",
+        "patch-candidates/sql/migration/Vxx__${ModuleCode}_domain.sql",
+        "patch-candidates/smoke-${ModuleCode}.ps1"
+    )
+    foreach ($relative in $requiredPatch) {
+        $path = Join-Path $previewDir $relative
+        $exists = Test-Path -LiteralPath $path
+        $result.requiredPatchFiles += [ordered]@{
+            path = $path.Substring($Root.Length).TrimStart('\', '/')
+            exists = $exists
+        }
+        if (-not $exists) {
+            throw "create-domain patch candidate is missing. path=$path"
         }
     }
 

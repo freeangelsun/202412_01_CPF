@@ -1,20 +1,19 @@
-# CPF 대형 작업 요청서 — 파일 로그 표준, Trace Boost, BAT 로그, 온보딩 생성기, 검증 충돌 봉인
+# CPF 대형 작업 요청서 — 파일 로그/CBW/BAT/Trace Boost runtime closure + 온보딩 생성기 apply-mode
 
 ## 0. 최상위 기준
 
-작업 시작 전에 repo 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 확인한다.
+작업 시작 전 repo 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 확인한다.
 
-이번 작업은 기능 개발을 우선한다.
-문서 포맷 정리, HTML 정본화, 가이드 문장 개선은 후순위다.
+이번 작업은 문서 정리가 아니라 기능 개발과 closure가 목적이다.
 
-문서는 아래 최소 정보만 갱신한다.
+중간 문서는 최소만 갱신한다.
 
 * `CPF_STABILIZATION_REPORT.md`
 * 기능 구현 매트릭스
+* sanitized evidence
 * 필요한 README 최소 보강
-* sanitized evidence 경로
-* 미검증/실패 사유
-* 다음 필요 조건
+
+HTML/PDF/DOCX 정본화, 문장 다듬기, 목차 재정리는 후순위다.
 
 ## 1. 필수 제한
 
@@ -28,761 +27,463 @@ branch 생성 금지
 Authorization/Bearer/X-Api-Key/password/secret/credential/signature 원문 기록 금지
 실행하지 않은 검증 완료 기록 금지
 별도 변경파일 목록 산출물 생성 금지
-문서 포맷 정리만으로 기능 완료 처리 금지
 CPF_NEW_REQUEST.md 수정 금지
 CPF_FINAL_TARGET_REQUIREMENTS.md 수정 금지
+문서 포맷 작업만으로 기능 완료 처리 금지
 ```
 
 ## 2. 컨펌 대기 금지 / 자율 진행 기준
 
-이번 작업에서는 사용자에게 “계속 진행해도 되냐”, “A/B 중 선택해달라”는 식으로 멈추지 않는다.
+이번 작업 중 사용자에게 “계속 진행해도 되냐”, “A/B 중 선택해달라”라고 묻고 멈추지 않는다.
 
-Codex는 아래 기준으로 자율 진행한다.
+Codex는 아래 원칙으로 자율 진행한다.
 
 ```text
 비파괴 작업은 질문하지 말고 진행한다.
-기능 구현, 테스트, smoke, SQL 정합성 확인, evidence 생성, 리포트 갱신은 자율 진행한다.
-요건이 애매하면 CPF_FINAL_TARGET_REQUIREMENTS.md 기준으로 합리적 기본값을 선택하고 완료 보고에 선택 사유를 기록한다.
-요건이 CPF 구조와 충돌하면 무리하게 구현하지 말고 요건 변경안을 제시한다.
-실패하거나 미검증이면 질문으로 멈추지 말고 원인 분류와 대안을 기록한다.
+컴파일 오류, 테스트 오류, smoke 오류는 직접 원인 분석 후 수정한다.
+요건이 애매하면 CPF_FINAL_TARGET_REQUIREMENTS.md 기준으로 합리적 기본값을 선택한다.
+요건이 CPF 구조와 충돌하면 구현을 중단하지 말고 대체 설계안을 적용하거나 부분 구현으로 봉인한다.
+환경 문제는 기능 개발을 멈추는 이유가 아니다.
+환경 문제는 미검증으로 봉인하고 source-level/test/script/evidence 작업은 계속 진행한다.
 ```
 
-단, 아래는 여전히 금지한다.
+단, 아래는 금지한다.
 
 ```text
 Git commit/push/branch 생성
 운영 DB 또는 사용자 데이터 삭제
+실제 외부기관 발송/호출
 민감정보 원문 기록
-요청서/최종목표 파일 임의 수정
-외부 시스템에 실제 발송/실제 기관 호출
 ```
 
-## 3. 실패/미검증 처리 규칙
+## 3. 이번 작업의 큰 목표
 
-동일 항목을 같은 방식으로 반복 실패시키지 않는다.
-
-실패 또는 미검증 항목은 반드시 아래 중 하나로 분류한다.
+이번 작업은 작은 보완이 아니다. 아래 6개 축을 한 번에 진행한다.
 
 ```text
-환경 문제
-구현 문제
-설계 문제
-요청 범위 문제
-도구 한계
+1. 현재 master 소스 정합성 실패 의심 지점 즉시 해소
+2. CBW/CpfWebClient integration 파일 로그 hook 실제 구현
+3. PFW 파일 로그 runtime grep closure
+4. ADM Trace Boost runtime closure
+5. BAT batch 파일 로그 / Batch Trace Boost runtime closure
+6. create-domain 생성기 apply-mode / PFW·ADM seed 후보 고도화
 ```
 
-각 항목에는 반드시 아래를 기록한다.
+## 4. 필수 완료 범위 A — 소스 정합성 즉시 보정
 
-```text
-안 되는 이유
-이번 작업에서 취한 대체 검증
-다음에 필요한 조건
-요건 변경이 필요한지 여부
-이번 작업에서 계속 진행한 후속 기능
-```
+### 4.1 BAT 생성자 불일치 해소
 
-예:
-
-```text
-ADM browser click:
-- 분류: 도구 한계
-- 사유: Node/npm/npx/Playwright/browser driver 없음
-- 대체 검증: UI marker + API runtime + static smoke + self-diagnosis evidence
-- 상태: 미검증
-- 다음 조건: Node/npm/npx/Playwright 또는 browser driver 설치
-- 기능 개발은 계속 진행
-```
-
-## 4. 이번 작업의 큰 목표
-
-이번 작업은 아래 5개 축을 크게 진행한다.
-
-```text
-1. 직전 검증 충돌 봉인
-2. PFW 파일 로그 표준 구현
-3. ADM 동적 로그 레벨 / Trace Boost 온라인 거래 1차 구현
-4. BAT 배치 로그 / 배치 Trace Boost 1차 구현
-5. 신규 주제영역 온보딩 생성기 1차 구현
-```
-
-이번 작업은 단순 보완 작업이 아니다.
-기능 개발 진도가 나야 한다.
-
-## 5. 필수 완료 범위 A — 직전 검증 충돌 봉인
-
-### 5.1 standard-header-e2e summary 충돌 정리
-
-현재 상세 evidence는 완료로 보이나 runtime summary에는 `standard-header-e2e exitCode=1`이 남아 있다.
+현재 `CpfBatchAutoConfiguration`은 `CpfBatchRuntimeListener`를 3개 인자로 생성하는데, listener는 1개 인자 생성자로 보인다.
 
 필수:
 
 ```text
-standard-header-e2e를 재실행하거나 summary 생성 로직을 점검한다.
-상세 result와 summary가 같은 상태를 가리키게 한다.
-실패였으면 실패로 기록한다.
-성공이면 exitCode 0으로 재생성한다.
-report / matrix / runtime summary / evidence 상태값을 일치시킨다.
+CpfBatchRuntimeListener 생성자와 CpfBatchAutoConfiguration 주입 구조를 일치시킨다.
+CpfBatchRuntimeListener가 CpfBatchFileLogWriter를 실제로 사용하게 한다.
+Job before/after, Step before/after 시점에 batch 파일 로그를 남긴다.
+LogPolicyResolver 또는 trace boost policy context가 아직 완성 전이면 nullable/object provider 방식으로 안전하게 처리한다.
 ```
 
 완료 기준:
 
 ```text
-standard-header-e2e-result.sanitized.json
-runtime-smoke-summary.sanitized.json
-CPF_STABILIZATION_REPORT.md
-기능 매트릭스
+:pfw:compileJava 성공
+:bat:compileJava 성공
+전체 gradlew test 성공
+CpfBatchRuntimeListener에서 CpfBatchFileLogWriter.writeBatch 호출 확인
 ```
 
-위 4개가 같은 상태를 보여야 한다.
-
-### 5.2 evidence consistency gate 보강
+### 4.2 `CpfFileLogWriter` 컴파일/마스킹 정합성 점검
 
 필수:
 
 ```text
-check-feature-evidence.ps1 또는 별도 check-report-status-consistency.ps1에서
-report/matrix/evidence/runtime-summary 간 상태 충돌을 잡는다.
+CpfFileLogWriter가 실제 Java 문법상 정상 컴파일되는지 재확인한다.
+파일 로그 실패 시 System.err 출력 문자열이 깨지지 않았는지 확인한다.
+writeEvent 경로도 민감정보 마스킹 정책을 적용한다.
+Batch failureMessageMasked가 실제로 SensitiveDataMasker를 거치도록 보강한다.
 ```
 
-잡아야 할 예:
+완료 기준:
 
 ```text
-상세 evidence status 완료인데 summary exitCode 1
-report는 완료인데 evidence missing
-matrix는 완료인데 runtime summary 실패
-browser click 미검증인데 완료 표기
+파일 로그 writer compile 성공
+writeTransaction/writeIntegration/writeEvent 모두 민감정보 원문 차단
+파일 로그 실패가 업무 실패로 전파되지 않음
+파일 로그 실패 자체는 pfw error/application log에 남음
 ```
 
-## 6. 필수 완료 범위 B — PFW 파일 로그 표준
+## 5. 필수 완료 범위 B — CBW/CpfWebClient integration 파일 로그 hook
 
-DB 로그뿐 아니라 파일 로그도 CPF 핵심 완료 기준이다.
-
-### 6.1 파일 로그명 표준
-
-아래 패턴을 구현한다.
+CBW/CpfWebClient/CpfRestClient 같은 공통 outbound wrapper 로그 기준은 아래다.
 
 ```text
-cpf-{moduleCode}-{logType}.log
-```
-
-필수 logType:
-
-```text
-application
-transaction
-integration
-audit
-error
-batch
+호출 결과 로그 = 호출한 주제영역 로그
+wrapper 내부 정책/전파/마스킹 로그 = PFW 로그
 ```
 
 예:
 
 ```text
-logs/pfw/cpf-pfw-application.log
-logs/pfw/cpf-pfw-transaction.log
-logs/pfw/cpf-pfw-error.log
-
-logs/acc/cpf-acc-application.log
-logs/acc/cpf-acc-transaction.log
-logs/acc/cpf-acc-integration.log
-logs/acc/cpf-acc-error.log
-
-logs/exs/cpf-exs-application.log
-logs/exs/cpf-exs-transaction.log
-logs/exs/cpf-exs-integration.log
-logs/exs/cpf-exs-error.log
-
-logs/bat/cpf-bat-batch.log
-logs/bat/cpf-bat-error.log
+ACC가 EXS 호출 → logs/acc/cpf-acc-integration.log
+MBR이 EXS 호출 → logs/mbr/cpf-mbr-integration.log
+EXS가 외부기관 호출 → logs/exs/cpf-exs-integration.log
+PFW wrapper 내부 정책 적용 → logs/pfw/cpf-pfw-application.log 또는 cpf-pfw-transaction.log
 ```
 
-금지:
+필수 구현:
 
 ```text
-cpf-external.log 같은 EXS 특수 파일명
-모든 모듈 로그를 cpf-application.log 하나에 섞기
-ACC WAS에 cpf-exs-* 로그 파일 생성
-EXS WAS에 cpf-acc-* 로그 파일 생성
+CpfWebClient 또는 CpfWebClientConfig에 integration file log filter/hook 구현
+요청 시작, 응답 성공, 응답 실패, timeout, exception을 기록
+sourceModuleCode는 TransactionContext/module context 기준으로 호출 주체 모듈을 사용
+targetModuleCode는 serviceId 또는 endpoint registry 기준으로 추정
+apiPath, httpMethod, httpStatus, responseCode, durationMs, failureCode, failureMessageMasked 기록
+remote instance response header가 있으면 remoteServerId/remoteInstanceId/remoteHostName 기록
+Authorization/Bearer/X-Api-Key/Cookie/Set-Cookie 원문 기록 금지
 ```
 
-### 6.2 파일 로그 필수 필드
-
-모든 구조화 파일 로그에는 아래 공통 필드가 있어야 한다.
+필수 이벤트:
 
 ```text
-timestamp
-level
-logType
-eventType
-moduleCode
-sourceModuleCode
-targetModuleCode
-transactionGlobalId
-transactionSegmentId
-parentSegmentId
-transactionRole
-direction
-apiPath
-httpMethod
-status
-durationMs
-failureCode
-failureMessageMasked
-serverId
-instanceId
-hostName
-hostIp
-port
-processId
-containerId
-podName
-profile
-appVersion
-buildVersion
+OUTBOUND_REQUEST
+OUTBOUND_RESPONSE
+OUTBOUND_RESPONSE_ERROR
+OUTBOUND_TIMEOUT
+OUTBOUND_EXCEPTION
 ```
 
-integration 로그에는 추가로 아래를 포함한다.
+완료 기준:
 
 ```text
-integrationType
-protocolType
-institutionCode
-endpointCode
-externalTransactionId
-httpStatus
-responseCode
-retryCount
-timeoutMs
-timeoutYn
-requestHeaderMasked
-responseHeaderMasked
-requestPayloadMasked
-responsePayloadMasked
+ACC → EXS 성공 호출 시 cpf-acc-integration.log에 기록
+ACC → EXS 실패 호출 시 cpf-acc-integration.log에 오류 요약 기록
+ACC WAS에 cpf-exs-* 로그가 생성되지 않음
+PFW wrapper 내부 로그는 cpf-pfw-*에만 기록
+동일 transactionGlobalId로 DB segment와 파일 로그 grep 가능
 ```
 
-### 6.3 ACC → EXS 오류 응답 요약 로그
+## 6. 필수 완료 범위 C — EXS integration 파일 로그 hook 실제 연결
 
-ACC가 EXS를 호출하고 EXS가 오류 응답을 보내면, ACC 쪽 로그에도 오류 응답 요약이 남아야 한다.
+EXS 원장 DB 저장과 별도로 파일 로그도 남아야 한다.
 
-ACC WAS에는 `cpf-pfw-*`, `cpf-acc-*` 로그만 존재해야 한다.
-EXS 내부 stacktrace를 ACC 로그에 복제하지 않는다.
-
-ACC `cpf-acc-integration.log` 필수 항목:
+필수:
 
 ```text
-sourceModuleCode=ACC
-targetModuleCode=EXS
-direction=OUTBOUND
-apiPath
-httpMethod
-httpStatus
-responseCode
-durationMs
-retryCount
-timeoutYn
-status
-failureCode
-failureMessageMasked
-responsePayloadMasked summary
-remoteModuleCode
-remoteServerId
-remoteInstanceId
-remoteHostName
-remotePort
-remoteTransactionSegmentId 후보
+EXS 수신/송신 처리에서 cpf-exs-integration.log 기록
+EXS REST 송수신 원장 저장 시 동일 transactionGlobalId/segmentId로 파일 로그 기록
+EXS 실패/timeout 응답 시 failureCode/failureMessageMasked 기록
+institutionCode, endpointCode, externalTransactionId, retryCount, timeoutMs 기록
 ```
 
-EXS 내부 원인은 같은 `transactionGlobalId`로 EXS WAS의 `cpf-exs-*` 로그에서 확인한다.
-
-### 6.4 이중화/다중 인스턴스 식별자
-
-파일 로그와 DB segment에는 아래 식별자가 있어야 한다.
+완료 기준:
 
 ```text
-serverId
-instanceId
-hostName
-hostIp
-port
-processId
-containerId
-podName
-profile
-appVersion
-buildVersion
-startupTime
-servingRole
+EXS 처리 로그는 logs/exs/cpf-exs-integration.log에 남음
+ACC 쪽 outbound 오류 요약과 EXS 쪽 내부 처리 로그가 transactionGlobalId로 연결됨
+EXS 내부 stacktrace를 ACC 로그에 복제하지 않음
 ```
 
-EXS가 응답할 때는 가능하면 아래 응답 헤더를 제공한다.
+## 7. 필수 완료 범위 D — 파일 로그 runtime grep closure
+
+이번 작업에서 `file-log-standard`를 반드시 닫는다.
+
+필수 선행:
 
 ```text
-X-Cpf-Module-Code
-X-Cpf-Server-Id
-X-Cpf-Instance-Id
-X-Cpf-Host-Name
-X-Cpf-App-Version
-X-Transaction-Id
-X-Transaction-Segment-Id
+로컬 서비스 기동 안정화 스크립트 보강
+ACC/MBR/ADM/EXS 포트 확인
+서비스 기동 실패 시 포트/프로세스/로그 원인 분류
 ```
 
-ACC는 응답 헤더를 받아 자신의 outbound log에 remote instance 정보를 기록한다.
-
-### 6.5 환경파일 설정
-
-DB 로그와 파일 로그 저장 여부는 profile별 환경파일에서 제어 가능해야 한다.
-
-필수 설정 후보:
-
-```yaml
-cpf:
-  logging:
-    db:
-      enabled: true
-      transaction-enabled: true
-      audit-enabled: true
-      error-enabled: true
-      integration-enabled: true
-      batch-enabled: true
-    file:
-      enabled: true
-      base-path: ./logs
-      json-line-enabled: true
-      application-enabled: true
-      transaction-enabled: true
-      integration-enabled: true
-      audit-enabled: true
-      error-enabled: true
-      batch-enabled: true
-      file-pattern: "cpf-{moduleCode}-{logType}.log"
-    masking:
-      enabled: true
-      raw-sensitive-log-enabled: false
-    dynamic-level:
-      enabled: true
-      trace-boost-enabled: true
-      max-ttl-minutes: 30
-      require-operator-reason: true
-```
-
-운영 guardrail:
+필수 실행:
 
 ```text
-prod에서 audit/error/transaction/masking을 임의로 비활성화하지 못하게 제한한다.
-비활성화가 필요한 경우 명시적 경고, 사유, 감사 또는 fail-fast를 제공한다.
-```
-
-### 6.6 파일 로그 smoke
-
-신규 smoke를 추가한다.
-
-```text
-scripts/smoke-file-log-standard-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-file-log-standard-runtime.ps1 -RequireRuntime
 ```
 
 검증:
 
 ```text
-ACC 성공 거래 후 cpf-acc-transaction.log grep
-ACC → EXS 실패 후 cpf-acc-integration.log grep
-EXS 처리 후 cpf-exs-integration.log grep
-PFW context 로그 cpf-pfw-transaction.log grep
-transactionGlobalId로 각 파일 로그 검색 가능
-failureCode=EXS_TIMEOUT 검색 가능
-serverId/instanceId 존재
+ACC 성공 거래 후 logs/acc/cpf-acc-transaction.log 생성
+ACC → EXS 실패 후 logs/acc/cpf-acc-integration.log 생성
+EXS 처리 후 logs/exs/cpf-exs-integration.log 생성
+PFW context 로그 logs/pfw/cpf-pfw-transaction.log 또는 application log 생성
+transactionGlobalId grep 성공
+failureCode=EXS_TIMEOUT grep 성공
+serverId/instanceId/hostName/hostIp/port 존재
 민감정보 원문 미노출
 ```
 
 sanitized evidence:
 
 ```text
-specs/evidence/20260703_05/file-log-standard-result.sanitized.json
-specs/evidence/20260703_05/file-log-grep-summary.sanitized.log
+specs/evidence/20260706_02/file-log-standard-result.sanitized.json
+specs/evidence/20260706_02/file-log-grep-summary.sanitized.log
 ```
 
-## 7. 필수 완료 범위 C — ADM 동적 로그 레벨 / Trace Boost 온라인 거래
+만약 runtime 서비스 기동이 계속 실패하면 같은 방식으로 재시도만 반복하지 않는다.
 
-운영 중 전체 WAS 로그 레벨을 올리는 방식은 금지한다.
-특정 거래 또는 조건에 맞는 거래만 DEBUG/TRACE 상세 로그가 활성화되어야 한다.
-
-### 7.1 DB 테이블 후보
+반드시 아래를 기록한다.
 
 ```text
-pfw_dynamic_log_level_rule
-pfw_dynamic_log_level_history
-pfw_trace_boost_policy
-pfw_trace_boost_runtime_state
+환경 문제인지 구현 문제인지 분류
+기동 실패한 모듈
+포트 상태
+프로세스 상태
+마지막 app log
+대체 source-level 검증
+다음 필요 조건
 ```
 
-필수 컬럼 후보:
+단, 기동 실패가 있어도 CBW hook, writer, listener, script, test 개발은 계속 진행한다.
 
-```text
-policyId
-policyName
-targetType
-targetValueMasked
-conditionJson
-moduleCode
-serverId
-instanceId
-loggerName
-level
-enabledYn
-startedAt
-expiresAt
-ttlSeconds
-createdBy
-createdReason
-approvedBy
-status
-rollbackAt
-rollbackReason
-createdAt
-updatedAt
-```
+## 8. 필수 완료 범위 E — ADM Trace Boost runtime closure
 
-### 7.2 ADM API
-
-후보 API:
-
-```text
-GET    /adm/api/log-policies
-POST   /adm/api/log-policies/trace-boost
-POST   /adm/api/log-policies/{policyId}/disable
-GET    /adm/api/log-policies/runtime-state
-GET    /adm/api/log-policies/history
-```
-
-지원 조건:
-
-```text
-transactionGlobalId
-transactionSegmentId
-moduleCode
-serverId
-instanceId
-apiPath
-status
-failureCode
-durationMsFrom
-institutionCode
-endpointCode
-```
-
-### 7.3 동작 기준
+현재 Trace Boost는 API 1차 구현과 미검증 상태다. 이번 작업에서 runtime을 닫는다.
 
 필수:
 
 ```text
-전체 root logger 변경 금지
-특정 transactionGlobalId TRACE boost
-apiPath/status/failureCode/duration 조건 TRACE boost
-TTL 자동 원복
-수동 원복
+/adm/api/log-policies/trace-boost 정책 생성
+/runtime-state 조회
+/history 조회
+disable 또는 rollback
+TTL 만료 또는 수동 해제
 운영자 사유 필수
-정책 변경 감사 로그
+정책 변경 audit 저장
+root logger 전체 변경 금지
+특정 transactionGlobalId 또는 businessTransactionId만 DEBUG/TRACE 적용
 파일 로그에 traceBoostPolicyId 기록
-DEBUG/TRACE에서도 민감정보 원문 금지
-```
-
-### 7.4 Smoke
-
-신규 smoke:
-
-```text
-scripts/smoke-trace-boost-runtime.ps1
-```
-
-검증:
-
-```text
-정책 생성
-특정 transactionGlobalId만 TRACE 상세 로그 증가
-다른 거래는 기본 INFO 유지
-traceBoostPolicyId가 파일 로그에 기록
-DB history 저장
-TTL 만료 후 자동 원복
-수동 원복 API 동작
-root logger level이 변경되지 않음
 민감정보 원문 미노출
 ```
 
-sanitized evidence:
+필수 실행:
 
 ```text
-specs/evidence/20260703_05/trace-boost-runtime-result.sanitized.json
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-trace-boost-runtime.ps1 -RequireRuntime
 ```
 
-## 8. 필수 완료 범위 D — BAT 배치 로그 / 배치 Trace Boost 1차
-
-BAT에도 온라인 거래와 같은 로그 운영성이 필요하다.
-
-### 8.1 BAT 파일 로그
-
-필수 파일:
+완료 기준:
 
 ```text
-logs/bat/cpf-bat-application.log
-logs/bat/cpf-bat-batch.log
-logs/bat/cpf-bat-transaction.log
-logs/bat/cpf-bat-error.log
+traceBoost 정책 생성 성공
+runtime-state에 현재 정책 표시
+history/audit 조회 가능
+대상 거래 파일 로그에 traceBoostPolicyId 존재
+대상 외 거래는 기본 로그 레벨 유지
+root logger level 변경 없음
+cleanup 성공
+sanitized evidence 생성
 ```
 
-필수 필드:
+만약 ADM runtime이 안 뜨면:
 
 ```text
-jobName
-jobExecutionId
-stepName
-stepExecutionId
-runId
-rerunId
-workerInstanceId
-serverId
-instanceId
-itemId
-chunkNo
-partitionNo
-transactionGlobalId
-traceBoostPolicyId
-logLevelApplied
-status
-durationMs
-failureCode
-failureMessageMasked
+환경 문제 / 구현 문제 / 권한 문제 / DB 문제로 분류
+ADM health/OpenAPI/auth/login 중 어디서 실패했는지 기록
+API source/test는 닫고 runtime만 미검증으로 봉인
+같은 방식으로 무한 재시도 금지
 ```
 
-### 8.2 배치 Trace Boost
+## 9. 필수 완료 범위 F — BAT batch 파일 로그 / Batch Trace Boost runtime closure
+
+현재 BAT는 writer는 있으나 listener 연결과 runtime 파일 로그가 닫히지 않았다.
 
 필수:
+
+```text
+CpfBatchRuntimeListener에서 CpfBatchFileLogWriter 호출
+Job before/after 로그
+Step before/after 로그
+jobName/jobExecutionId/stepName/stepExecutionId/runId/rerunId 기록
+workerInstanceId/serverId/instanceId 기록
+traceBoostPolicyId/logLevelApplied 기록
+Batch failureMessageMasked 마스킹
+```
+
+Batch Trace Boost 필수:
 
 ```text
 특정 jobExecutionId만 DEBUG/TRACE
 특정 stepExecutionId만 DEBUG/TRACE
 특정 rerunId만 DEBUG/TRACE
-특정 workerInstanceId/serverId/instanceId만 DEBUG/TRACE
-배치 재수행 시 해당 실행만 로그 레벨 상향
-실행 종료 시 자동 원복
-운영자 사유 필수
-감사 로그
-파일 로그 traceBoostPolicyId
+실행 종료 시 자동 원복 후보
+운영자 사유/감사 후보
+다른 job은 기본 level 유지
 ```
 
-### 8.3 Smoke
-
-신규 smoke:
+필수 실행:
 
 ```text
-scripts/smoke-bat-trace-boost-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-trace-boost-runtime.ps1 -RunBatRuntime -RequireRuntime
 ```
 
-검증:
+완료 기준:
 
 ```text
-BAT worker 기동
-job 실행
-step 실행
-특정 rerun/jobExecutionId trace boost 적용
-해당 실행 파일 로그만 DEBUG/TRACE 상세 증가
-다른 job 실행은 기본 level 유지
-실행 종료 후 자동 원복
-ADM BAT 조회 또는 API 조회
+logs/bat/cpf-bat-batch.log 생성
+jobName 포함
+jobExecutionId 포함
+stepExecutionId 포함
+traceBoostPolicyId 또는 logLevelApplied 포함
+BAT runtime smoke 성공
+sanitized evidence 생성
 ```
 
-환경 문제로 BAT runtime이 어렵다면:
+만약 BAT runtime이 환경 문제로 실패하면:
 
 ```text
-bootJar/test/DB/API/source-level은 닫고
+bootJar/compile/test/source-level은 닫는다.
 runtime만 미검증으로 봉인한다.
-같은 방식으로 반복 실패하지 않는다.
+BAT listener 연결 자체가 실패하면 구현 문제로 보고 즉시 수정한다.
 ```
 
-## 9. 필수 완료 범위 E — 신규 주제영역 온보딩 생성기 1차
+## 10. 필수 완료 범위 G — create-domain 생성기 apply-mode 1차
 
-신규 주제영역을 기존 모듈 복사 후 수동 수정하는 방식으로 만들지 않는다.
-
-### 9.1 생성 방식
-
-ADM에서 소스를 직접 생성하지 않는다.
-
-로컬 개발 워크스페이스에서 관리자급 개발자가 실행하는 CLI 또는 Gradle task로 구현한다.
-
-후보:
-
-```text
-scripts/create-domain.ps1
-또는
-./gradlew createDomain
-```
-
-실행 예:
-
-```powershell
-powershell -File scripts/create-domain.ps1 `
-  -ModuleCode LON `
-  -ModuleName loan `
-  -DisplayName "대출" `
-  -BasePackage cpf.lon `
-  -Port 8095 `
-  -TablePrefix lon
-```
-
-### 9.2 생성 대상
-
-필수 생성:
-
-```text
-신규 Gradle module
-settings.gradle 반영 후보 또는 patch
-build.gradle
-application-{module}.yml
-Java package
-Controller
-Service
-Facade
-Repository/Mapper
-DTO
-Validation
-Mapper XML
-sample CRUD
-search/sort whitelist
-offset paging
-keyset paging 후보
-validation
-unit test
-mapper DB slice test 초안
-runtime smoke 초안
-README 초안
-```
-
-PFW/ADM 자동 대응 후보:
-
-```text
-PFW module registry seed
-PFW log/header/transaction context 대상 등록 seed
-cpf-{moduleCode}-{logType}.log 설정
-ADM menu seed
-ADM API permission seed
-ADM button permission seed
-ADM transaction group moduleCode 후보
-ADM log policy moduleCode 후보
-masking/audit policy seed 후보
-common code seed 후보
-```
-
-SQL:
-
-```text
-split SQL 후보
-Flyway migration 후보
-00_all_install.sql 반영 후보
-00_all_install_and_smoke.sql 반영 후보
-99_smoke_check.sql 반영 후보
-```
-
-### 9.3 Dry-run / 안전장치
+현재 create-domain은 `build/domain-generator/{module}` 후보 생성까지 완료됐다. 이번 작업에서는 실제 적용 후보 수준을 높인다.
 
 필수:
 
 ```text
--DryRun 지원
-이미 존재하는 moduleCode면 중단
-이미 존재하는 package/tablePrefix면 중단
-생성 전 validation
-생성 후 summary 출력
+-DryRun 유지
+-Apply 또는 -GeneratePatch mode 추가
+기존 모듈 충돌 방지
+settings.gradle patch 후보 생성
+build.gradle/module build 후보 생성
+application-{module}.yml 생성
+Controller/Service/Facade/Repository/Mapper/DTO/Validation 생성
+Mapper XML 생성
+sample CRUD/search/sort/paging/validation 강화
+SQL split/Flyway/all_install/smoke_check patch 후보 생성
+PFW module registry seed 후보 생성
+ADM menu/API/button permission seed 후보 생성
+로그 설정 cpf-{moduleCode}-{logType}.log 후보 생성
+테스트/smoke 초안 생성
 ```
 
-금지:
+중요:
 
 ```text
-기존 ACC 폴더 통째 복사 후 문자열 치환만 하는 방식
-ADM 운영 서버가 Git 소스 직접 생성
-Git commit/push 자동 수행
+무조건 실제 settings.gradle이나 all_install을 직접 수정하지 않아도 된다.
+안전하지 않으면 generated patch 파일로 남긴다.
+단, patch 경로와 적용 순서가 명확해야 한다.
 ```
 
-### 9.4 Smoke
-
-신규 smoke:
+필수 smoke:
 
 ```text
-scripts/smoke-create-domain.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-create-domain.ps1
 ```
 
-검증:
+보강 smoke:
+
+```text
+임시 모듈을 generated patch 기준으로 별도 build directory에서 compile 가능한지 확인
+```
+
+완료 기준:
 
 ```text
 DryRun 성공
-임시 moduleCode TMP 또는 LON 생성
-생성 모듈 compile
-생성 모듈 test
-settings/build/yml/SQL seed 후보 생성 확인
-PFW/ADM seed 후보 생성 확인
-민감정보 원문 없음
+Generate 성공
+Patch 후보 생성
+PFW/ADM/SQL/log/test/smoke 후보 포함
+생성된 후보가 기존 모듈 통째 복사 문자열 치환이 아님
+생성 결과 evidence 저장
 ```
 
-이번 작업에서 전체 all_install 자동 수정이 위험하면:
+## 11. 필수 완료 범위 H — evidence/report/matrix 정합성 gate 강화
+
+이번 작업에서 가장 중요한 반복 방지 장치다.
+
+필수:
 
 ```text
-patch 후보 또는 generated SQL 후보로 남긴다.
-상태는 부분 구현으로 기록한다.
-단, 생성기 자체 compile/test는 닫는다.
+check-feature-evidence.ps1가 report/matrix/evidence/runtime-summary 상태 불일치 탐지
+CPF_NEW_REQUEST.md가 변경됐으면 보고서에 '요청서 변경됨'으로 기록
+'요청서 미수정'이라고 보고했는데 commit에 변경이 있으면 실패로 기록
+manifest에 있는 evidence 파일이 실제 repo에 없으면 실패
+runtime summary exitCode 1이면 관련 항목 완료 처리 금지
 ```
 
-## 10. 보강 범위
-
-가능하면 아래도 진행한다.
+필수 체크:
 
 ```text
-EXS timeout/retry/circuit breaker 운영 시나리오 1차
-CMN fixed-length 사전 ADM 조회 API 1차
-ADM log policy UI 1차
-ADM onboarding status UI 1차
+file-log-grep-summary.sanitized.log manifest 존재 여부와 실제 파일 존재 여부 일치
+trace-boost runtime 미검증이면 matrix도 미검증
+bat trace boost 부분 구현이면 matrix도 부분 구현
+```
+
+완료 기준:
+
+```text
+check-feature-evidence.ps1 성공
+check-html-docs.ps1 성공
+runtime-smoke-summary와 matrix 상태 일치
+CPF_STABILIZATION_REPORT.md와 matrix 상태 일치
+```
+
+## 12. 보강 범위
+
+가능하면 아래도 같이 진행한다.
+
+```text
+ADM 로그 정책 UI 1차
+ADM module onboarding status API 1차
+CPF logging health API 1차
+파일 로그 rolling/retention 설정 초안
+파일 로그 경로 권한 오류 진단
+prod profile logging guardrail startup validation
 XYZ/BIZADM OpenAPI runtime smoke 범위 확장
 ```
 
-보강 범위는 못 닫아도 완료로 포장하지 않는다.
+못 닫으면 부분 구현/미검증으로 남긴다.
 
-## 11. 착수 범위
+## 13. 착수 범위
 
-가능하면 아래를 착수한다.
+가능하면 착수한다.
 
 ```text
 Redis/Kafka/MQ real broker smoke 초안
 broker unavailable fallback 정책
 다중 인스턴스 ACC/EXS 처리 인스턴스 smoke 초안
 event/outbox 후보
-retention/purge 정책 후보
+retention/purge policy seed 후보
 ```
 
-실제 broker가 없으면 미검증으로 남긴다.
-mock/embedded 성공을 real broker 완료로 기록하지 않는다.
+실 broker가 없으면 mock/embedded 결과를 real broker 완료로 쓰지 않는다.
 
-## 12. 후순위 / 제외 범위
+## 14. 후순위 / 제외 범위
 
 이번 작업에서 완료 강제하지 않는다.
 
 ```text
 최종 문서 정본화
-전체 HTML 디자인 정리
-실기관 EXS 연계
+HTML 디자인 전면 정리
+실기관 EXS 호출
 전체 Redis/Kafka/MQ 완료
 다중 인스턴스 실환경 전체 검증
 대규모 성능 benchmark
 ```
 
-## 13. 필수 검증 명령
+## 15. 필수 검증 명령
 
-가능한 범위에서 실행한다.
+compile/test:
 
 ```text
+.\gradlew.bat :pfw:compileJava :adm:compileJava :exs:compileJava :bat:compileJava --offline --no-daemon --console=plain --rerun-tasks
 .\gradlew.bat test --offline --no-daemon --console=plain
 .\gradlew.bat qualityGate --offline --no-daemon --console=plain
+```
 
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
+static checks:
+
+```text
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
 ```
 
 runtime:
@@ -793,138 +494,112 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-composite-tran
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-composite-transaction-failure-runtime.ps1 -RequireRuntime
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-transaction-group-runtime.ps1 -RequireRuntime
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-transaction-group-failure-runtime.ps1 -RequireRuntime
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-openapi.ps1 -RequireRuntime
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-file-log-standard-runtime.ps1 -RequireRuntime
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-trace-boost-runtime.ps1 -RequireRuntime
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-trace-boost-runtime.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-bat-trace-boost-runtime.ps1 -RunBatRuntime -RequireRuntime
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-create-domain.ps1
-```
-
-MariaDB:
-
-```text
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1 -RequireRun
 ```
 
 evidence:
 
 ```text
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-sanitized-evidence.ps1 -EvidenceDir specs/evidence/20260703_05
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-runtime-smoke-summary.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-sanitized-evidence.ps1 -EvidenceDir specs/evidence/20260706_02
 ```
 
-## 14. 완료 기준
+## 16. 완료 기준
 
 이번 작업 완료는 아래를 만족해야 한다.
 
 ```text
-standard-header-e2e summary 충돌 해소
-report/matrix/evidence/runtime-summary 상태 일치
-파일 로그 표준 구현
-cpf-{moduleCode}-{logType}.log 생성
-transactionGlobalId 기준 파일 로그 grep 가능
-DB 로그와 파일 로그 연결
-ACC → EXS 오류 응답 요약이 ACC integration log에 남음
-EXS 내부 상세는 EXS 로그에서 확인
-serverId/instanceId/hostName/port 기록
-환경파일로 DB/file 로그 on/off 제어 가능
-prod guardrail 존재
-Trace Boost 온라인 거래 1차 구현
-TTL 자동 원복
-운영자 사유/감사 로그
-root logger 변경 금지 검증
-BAT batch log/trace boost 1차 구현
-create-domain 1차 구현
-sanitized evidence 생성
+BAT compile 생성자 불일치 해소
+CpfBatchRuntimeListener가 batch file writer 실제 호출
+CpfWebClient/CBW integration file log hook 구현
+ACC → EXS 호출 결과가 cpf-acc-integration.log에 기록
+EXS 내부 처리 결과가 cpf-exs-integration.log에 기록
+ACC WAS에 cpf-exs-* 로그가 생성되지 않음
+transactionGlobalId 기준 DB 로그와 파일 로그 grep 연결
+file-log-standard runtime smoke 완료
+Trace Boost runtime smoke 완료
+BAT trace boost runtime smoke 완료 또는 환경 문제 명확 분리
+create-domain apply/patch mode 1차 구현
+evidence manifest 파일과 실제 파일 경로 일치
+runtime summary exitCode와 matrix/report 상태 일치
 민감정보 원문 미노출
-SQL/Flyway/all_install 정합성 유지
 ```
 
-## 15. 완료 불인정 기준
+## 17. 완료 불인정 기준
 
 아래는 완료로 인정하지 않는다.
 
 ```text
-standard-header summary 충돌 방치
-파일 로그 grep evidence 없음
-DB 로그만 있고 파일 로그 없음
-모든 로그가 하나의 application.log에 섞임
-EXS 특수 cpf-external.log만 생성
-ACC WAS에 cpf-exs-* 로그 생성
-Trace Boost가 root logger 전체 DEBUG로 구현됨
-TTL/자동 원복 없음
-운영자 사유/감사 없음
-DEBUG/TRACE에서 민감정보 원문 노출
-BAT 재수행 trace boost 없음
-create-domain이 기존 모듈 통째 복사 후 문자열 치환만 함
-ADM이 운영 서버에서 Git 소스를 직접 생성
-실행하지 않은 검증 완료 기록
-mock/embedded broker를 real broker 완료로 기록
+compileJava 실패 또는 생성자 시그니처 불일치
+WebClient hook 없이 파일 로그 완료 처리
+DB 로그만 있고 파일 로그 grep 없음
+file-log-standard 미검증인데 완료 표기
+Trace Boost API만 있고 runtime 적용 없음
+root logger 전체 변경으로 Trace Boost 구현
+TTL/감사/사유 없음
+BAT writer만 있고 listener 호출 없음
+BAT runtime 파일 로그 없음
+create-domain이 후보 생성만 하고 전체 온보딩 완료로 표기
+manifest에는 evidence가 있는데 repo에 실제 파일 없음
+CPF_NEW_REQUEST.md 변경됐는데 미수정으로 보고
+runtime summary 실패인데 관련 항목 완료 표기
 ```
 
-## 16. 완료 보고 양식
+## 18. 완료 보고 양식
 
 완료 보고는 아래 형식으로 작성한다.
 
 ```text
 1. 작업 요약
 
-2. 컨펌 없이 자율 진행한 판단
+2. 자율 진행 판단
+   - 사용자가 컨펌하지 않아도 진행한 항목
    - 선택한 기본값
-   - 선택 사유
-   - 요건 변경/대체 설계가 있었는지
+   - 요건 변경 또는 대체 설계
 
-3. 필수 완료 범위 결과
-   - 항목 / 상태 / evidence / 남은 확인
+3. 소스 정합성 보정 결과
+   - BAT 생성자/Listener
+   - CpfFileLogWriter
+   - CpfWebClient hook
 
-4. 검증 충돌 봉인 결과
-   - standard-header-e2e
-   - report/matrix/evidence/runtime-summary 정합성
-
-5. 파일 로그 표준 결과
+4. 파일 로그 runtime closure 결과
    - 생성 파일
    - grep evidence
-   - 민감정보 확인
-   - DB 로그 연결
+   - transactionGlobalId
+   - 민감정보 검사
 
-6. Trace Boost 결과
-   - 정책 DB/API/UI
-   - TTL/원복
-   - 파일 로그 traceBoostPolicyId
-   - 감사 로그
+5. Trace Boost runtime 결과
 
-7. BAT 로그/Trace Boost 결과
+6. BAT trace boost 결과
 
-8. create-domain 결과
+7. create-domain 결과
 
-9. 보강/착수 범위 결과
+8. evidence/report/matrix consistency 결과
 
-10. 미검증 항목
-    - 분류: 환경/구현/설계/범위/도구
-    - 사유
-    - 대체 검증
-    - 다음 조건
+9. 미검증 항목
+   - 환경 문제 / 구현 문제 / 설계 문제 / 요청 범위 문제 / 도구 한계 분류
+   - 사유
+   - 대체 검증
+   - 다음 필요 조건
 
-11. 실패 항목
+10. 실패 항목
     - 실패 명령
-    - 원인 분류
+    - 원인
     - 수정 여부
     - 대안
 
-12. Closed
-    - 이번 작업에서 다시 요청하지 않아도 되는 항목
+11. Closed
 
-13. Closed with Limitation
-    - 소스/SQL/test는 닫혔지만 환경 검증만 남은 항목
+12. Closed with Limitation
 
-14. Still Open
-    - 다음 작업에서 이어갈 항목
+13. Still Open
 
-15. Blocked
-    - 환경/도구/권한 문제
+14. Blocked
 
-16. Do Not Rework Without Failure Evidence
-    - 실패 증거 없으면 구조 변경하지 말 항목
+15. Do Not Rework Without Failure Evidence
 ```
 
 상태값은 반드시 아래 6개만 사용한다.
@@ -938,23 +613,23 @@ mock/embedded broker를 real broker 완료로 기록
 재확인 필요
 ```
 
-## 17. 다음 작업 분기 기준
+## 19. 다음 작업 분기
 
-이번 작업 후 다음 분기는 아래 기준으로 판단한다.
+이번 작업 후 분기는 아래 기준으로 판단한다.
 
 ```text
-파일 로그와 Trace Boost가 닫히면:
-  → ADM 운영 UX, EXS timeout/retry, CMN 사전 관리 UI로 이동
+파일 로그/Trace Boost/BAT runtime이 닫히면:
+  → ADM 로그 정책 UI, onboarding status UI, EXS timeout/retry/circuit breaker로 이동
 
-Trace Boost가 온라인만 닫히고 BAT가 남으면:
-  → BAT/Center-Cut 운영 기능을 다음 필수 범위로 유지
+파일 로그 runtime만 계속 미검증이면:
+  → 서비스 기동 안정화와 로그 경로/권한 진단을 먼저 닫고 다른 기능은 계속 진행
 
-create-domain이 1차 성공하면:
-  → 신규 생성 모듈 runtime smoke와 ADM onboarding status UI로 이동
+BAT runtime이 환경 문제면:
+  → BAT source/test/bootJar는 닫고 다중 worker는 후순위로 이동
 
-파일 로그가 계속 미검증이면:
-  → 다음 작업도 파일 로그 grep evidence를 최우선으로 유지
+create-domain patch mode가 닫히면:
+  → 실제 LON 같은 신규 주제영역 샘플 생성 runtime smoke로 이동
 
-standard-header summary 충돌이 남으면:
-  → 다른 완료 항목도 재확인 필요로 격하한다
+evidence consistency가 계속 실패하면:
+  → 새 기능보다 closure gate 보정 우선
 ```

@@ -18,6 +18,7 @@ $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) { $ResultDir = Join-Path $Root "build/runtime-smoke" }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+. (Join-Path $Root "scripts/runtime-diagnostics.ps1")
 $resultPath = Join-Path $ResultDir "trace-boost-runtime-result.json"
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -53,6 +54,24 @@ function Invoke-Json {
     return $response.Content | ConvertFrom-Json
 }
 
+function Test-EndpointListening {
+    param([string] $BaseUrl)
+
+    try {
+        $uri = [System.Uri] $BaseUrl
+        $port = if ($uri.Port -gt 0) { $uri.Port } elseif ($uri.Scheme -eq "https") { 443 } else { 80 }
+        $client = [System.Net.Sockets.TcpClient]::new()
+        try {
+            $task = $client.ConnectAsync("127.0.0.1", $port)
+            return $task.Wait(700) -and $client.Connected
+        } finally {
+            $client.Dispose()
+        }
+    } catch {
+        return $false
+    }
+}
+
 function New-Headers {
     return @{
         "X-Transaction-Id" = "$(Get-Date -Format yyyyMMddHHmmssfff)" + "ADM" + "trb001" + "0000001"
@@ -65,6 +84,9 @@ function New-Headers {
 }
 
 try {
+    if (-not (Test-EndpointListening -BaseUrl $AdmBaseUrl)) {
+        throw "ADM runtime port is not listening. baseUrl=$AdmBaseUrl"
+    }
     if ([string]::IsNullOrWhiteSpace($AdmPassword)) { $AdmPassword = "Adm!n12345" }
     $login = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
         operatorId = $AdmUsername
@@ -120,6 +142,7 @@ try {
 } catch {
     $result.status = $(if ($RequireRuntime) { $StatusFailed } else { $StatusNotVerified })
     $result.error = $_.Exception.Message
+    $result.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ADM" -Ports @(8090) -ErrorMessage $_.Exception.Message
     Save-Result
     if ($RequireRuntime) { throw }
     Write-Host "Trace Boost smoke not verified. result=$resultPath"

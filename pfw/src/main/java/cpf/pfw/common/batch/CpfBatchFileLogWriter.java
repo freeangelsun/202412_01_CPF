@@ -1,6 +1,7 @@
 package cpf.pfw.common.batch;
 
 import cpf.pfw.common.logging.ServerInstanceIdentity;
+import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
@@ -48,7 +49,9 @@ public class CpfBatchFileLogWriter {
             event.put("status", stepExecution.getStatus() != null ? stepExecution.getStatus().name() : null);
             event.put("durationMs", duration(stepExecution.getStartTime(), stepExecution.getEndTime()));
             event.put("failureCode", stepExecution.getExitStatus() != null ? stepExecution.getExitStatus().getExitCode() : null);
-            event.put("failureMessageMasked", stepExecution.getExitStatus() != null ? stepExecution.getExitStatus().getExitDescription() : null);
+            event.put("failureMessageMasked", stepExecution.getExitStatus() != null
+                    ? SensitiveDataMasker.mask(stepExecution.getExitStatus().getExitDescription())
+                    : null);
         }
         event.put("workerInstanceId", ServerInstanceIdentity.current().serverInstanceId());
         fileLogWriter.writeEvent(moduleCode, "batch", event);

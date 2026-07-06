@@ -5,7 +5,9 @@ param(
     [string] $BasePackage = "",
     [string] $TablePrefix = "",
     [string] $OutputDir = "",
-    [switch] $DryRun
+    [switch] $DryRun,
+    [switch] $GeneratePatch,
+    [switch] $Apply
 )
 
 $ErrorActionPreference = "Stop"
@@ -96,15 +98,23 @@ $plan = [ordered]@{
     basePackage = $BasePackage
     tablePrefix = $TablePrefix
     outputDir = $OutputDir
+    generatePatch = [bool] ($GeneratePatch -or $Apply)
+    applyMode = [bool] $Apply
     conflicts = @($conflicts)
     generatedFiles = @()
+    patchFiles = @()
     patchCandidates = @(
         "settings.gradle include '$module'",
         "root build dependency registration if needed",
         "specs/sql/40_business_modules_schema.sql table candidate",
         "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
         "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+        "specs/sql/99_smoke_check.sql smoke candidate",
+        "specs/sql/00_all_install.sql merge candidate",
+        "specs/sql/00_all_install_and_smoke.sql merge candidate",
         "specs/sql/migration/flyway/Vxx__${module}_domain.sql candidate",
+        "application-${module}.yml candidate",
+        "module smoke script candidate",
         "README.md and specs guide link candidate"
     )
 }
@@ -129,7 +139,8 @@ $controller = @"
 package $BasePackage.controller;
 
 import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.service.${ModuleName}Service;
+import $BasePackage.facade.${ModuleName}Facade;
+import $BasePackage.validation.${ModuleName}SearchValidator;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -152,13 +163,41 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "$ModuleUpper 업무", description = "${ModuleName} 신규 업무 API")
 public class ${ModuleName}Controller {
-    private final ${ModuleName}Service service;
+    private final ${ModuleName}Facade facade;
+    private final ${ModuleName}SearchValidator validator;
 
     @GetMapping
     @CpfTransaction(id = "${ModuleUpper}01SRH0010", name = "${ModuleName}Search")
     @Operation(summary = "${ModuleName} 목록 조회", description = "검색, 정렬, 페이징 whitelist를 적용해 목록을 조회합니다.")
     public ResponseEntity<Map<String, Object>> search(${ModuleName}SearchRequest request) {
-        return ResponseEntity.ok(service.search(request));
+        validator.validate(request);
+        return ResponseEntity.ok(facade.search(request));
+    }
+}
+"@
+
+$facade = @"
+package $BasePackage.facade;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+import $BasePackage.service.${ModuleName}Service;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+/**
+ * Controller와 업무 서비스 사이의 조립 계층입니다.
+ *
+ * <p>여러 service 호출, 외부 연계, 감사 사유 조립이 필요한 경우 Facade에서 흐름을 정리합니다.</p>
+ */
+@Component
+@RequiredArgsConstructor
+public class ${ModuleName}Facade {
+    private final ${ModuleName}Service service;
+
+    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+        return service.search(request);
     }
 }
 "@
@@ -243,6 +282,29 @@ public record ${ModuleName}SearchRequest(
 }
 "@
 
+$validator = @"
+package $BasePackage.validation;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+import cpf.pfw.common.exception.CpfValidationException;
+import org.springframework.stereotype.Component;
+
+/**
+ * ${ModuleName} 요청값을 업무 API 진입점에서 검증합니다.
+ */
+@Component
+public class ${ModuleName}SearchValidator {
+    public void validate(${ModuleName}SearchRequest request) {
+        if (request == null) {
+            throw new CpfValidationException("${ModuleName} 조회 조건이 필요합니다.");
+        }
+        if (request.size() != null && request.size() > 200) {
+            throw new CpfValidationException("페이지 크기는 200 이하만 허용합니다.");
+        }
+    }
+}
+"@
+
 $mapperXml = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -294,6 +356,23 @@ cpf:
       file-pattern: "cpf-{moduleCode}-{logType}.log"
 "@
 
+$applicationModuleYml = @"
+# ${ModuleName} 업무 모듈 로컬 설정 후보입니다.
+spring:
+  config:
+    activate:
+      on-profile: local
+  application:
+    name: cpf-$module
+
+cpf:
+  framework:
+    module-id: $ModuleUpper
+  logging:
+    file:
+      file-pattern: "cpf-{moduleCode}-{logType}.log"
+"@
+
 $sql = @"
 -- ${ModuleName} 신규 업무 테이블 후보입니다.
 CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
@@ -320,15 +399,112 @@ $readme = @"
 - 파일 로그는 `cpf-{moduleCode}-{logType}.log` 규격을 따릅니다.
 "@
 
+$serviceTest = @"
+package $BasePackage.service;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+import $BasePackage.repository.${ModuleName}Repository;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class ${ModuleName}ServiceTest {
+    private final ${ModuleName}Repository repository = mock(${ModuleName}Repository.class);
+    private final ${ModuleName}Service service = new ${ModuleName}Service(repository);
+
+    @Test
+    void searchNormalizesPagingAndSort() {
+        when(repository.search(any())).thenReturn(Map.of("items", java.util.List.of(), "criteria", Map.of()));
+
+        Map<String, Object> result = service.search(new ${ModuleName}SearchRequest("keyword", "unsafe_column", "ASC", -1, 999));
+
+        assertThat(result).containsKey("items");
+    }
+}
+"@
+
+$smokeScript = @"
+param(
+    [string] `$BaseUrl = "http://localhost:8080",
+    [int] `$TimeoutSec = 20
+)
+
+`$ErrorActionPreference = "Stop"
+`$uri = "`$BaseUrl/api/v1/$module?keyword=sample&page=0&size=20&sortBy=created_at&sortDirection=DESC"
+`$response = Invoke-WebRequest -Method Get -Uri `$uri -TimeoutSec `$TimeoutSec -UseBasicParsing
+if ([int] `$response.StatusCode -lt 200 -or [int] `$response.StatusCode -ge 300) {
+    throw "${ModuleName} smoke failed. status=`$(`$response.StatusCode)"
+}
+Write-Host "${ModuleName} smoke passed. uri=`$uri"
+"@
+
+$applyOrder = @"
+# ${ModuleName} 도메인 적용 후보 순서
+
+1. `settings.gradle.patch` 내용을 검토한 뒤 신규 모듈 include 여부를 결정합니다.
+2. `${module}/` 후보 소스와 `application-${module}.yml`을 신규 모듈 위치로 옮깁니다.
+3. `sql/Vxx__${module}_domain.sql`을 실제 Flyway version 번호로 복사합니다.
+4. `sql/40_business_modules_schema.${module}.candidate.sql`을 split SQL과 all_install 합본에 반영합니다.
+5. `sql/50_framework_seed.${module}.candidate.sql`로 PFW module registry seed를 반영합니다.
+6. `sql/60_adm_seed.${module}.candidate.sql`로 ADM menu/API/button 권한 seed를 반영합니다.
+7. `sql/99_smoke_check.${module}.candidate.sql`을 smoke check에 반영합니다.
+8. `smoke-${module}.ps1`을 실제 포트와 API path에 맞춰 검증합니다.
+
+이 묶음은 안전한 후보입니다. 운영 SQL과 settings를 자동 수정하지 않습니다.
+"@
+
+$settingsPatch = @"
+--- a/settings.gradle
++++ b/settings.gradle
+@@
++include '$module'
+"@
+
+$pfwSeed = @"
+-- ${ModuleName} PFW module registry seed 후보입니다.
+INSERT INTO pfw_module_registry (module_code, module_name, module_type, active_yn, created_by, updated_by)
+VALUES ('$ModuleUpper', '${ModuleName}', 'BUSINESS', 'Y', 'create-domain', 'create-domain')
+ON DUPLICATE KEY UPDATE module_name = VALUES(module_name), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+"@
+
+$admSeed = @"
+-- ${ModuleName} ADM 메뉴/API/버튼 권한 seed 후보입니다.
+INSERT INTO adm_menu (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
+VALUES ('${ModuleUpper}_ROOT', 'BIZ_ROOT', '${ModuleName}', '/adm/${module}', 900, 'Y', 'create-domain', 'create-domain')
+ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), menu_path = VALUES(menu_path), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission (api_permission_id, api_path, http_method, permission_code, use_yn, created_by, updated_by)
+VALUES ('${ModuleUpper}_SEARCH', '/api/v1/${module}', 'GET', '${ModuleUpper}_READ', 'Y', 'create-domain', 'create-domain')
+ON DUPLICATE KEY UPDATE api_path = VALUES(api_path), http_method = VALUES(http_method), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+"@
+
+$smokeSql = @"
+-- ${ModuleName} smoke check 후보입니다.
+SELECT '${ModuleUpper}_SAMPLE_TABLE' AS check_id, COUNT(*) AS row_count
+FROM information_schema.tables
+WHERE table_schema = DATABASE()
+  AND table_name = '${TablePrefix}_sample';
+"@
+
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
     "src/main/resources/application.yml" = $applicationYml
+    "src/main/resources/application-${module}.yml" = $applicationModuleYml
     "src/main/resources/mybatis/mapper/${module}/${ModuleName}Mapper.xml" = $mapperXml
     "src/main/java/$packagePath/controller/${ModuleName}Controller.java" = $controller
+    "src/main/java/$packagePath/facade/${ModuleName}Facade.java" = $facade
     "src/main/java/$packagePath/service/${ModuleName}Service.java" = $service
     "src/main/java/$packagePath/repository/${ModuleName}Repository.java" = $repository
     "src/main/java/$packagePath/dto/${ModuleName}SearchRequest.java" = $dto
+    "src/main/java/$packagePath/validation/${ModuleName}SearchValidator.java" = $validator
+    "src/test/java/$packagePath/service/${ModuleName}ServiceTest.java" = $serviceTest
+    "smoke/smoke-${module}.ps1" = $smokeScript
     "sql/Vxx__${module}_domain.sql" = $sql
 }
 
@@ -339,6 +515,26 @@ foreach ($entry in $files.GetEnumerator()) {
     }
     Write-Utf8 -Path $path -Content $entry.Value
     $plan.generatedFiles += $path.Substring($Root.Length).TrimStart('\', '/')
+}
+
+if ($GeneratePatch -or $Apply) {
+    $patchFiles = [ordered]@{
+        "patch-candidates/apply-order.md" = $applyOrder
+        "patch-candidates/settings.gradle.patch" = $settingsPatch
+        "patch-candidates/sql/40_business_modules_schema.${module}.candidate.sql" = $sql
+        "patch-candidates/sql/50_framework_seed.${module}.candidate.sql" = $pfwSeed
+        "patch-candidates/sql/60_adm_seed.${module}.candidate.sql" = $admSeed
+        "patch-candidates/sql/99_smoke_check.${module}.candidate.sql" = $smokeSql
+        "patch-candidates/sql/migration/Vxx__${module}_domain.sql" = $sql
+        "patch-candidates/README.${module}.candidate.md" = $readme
+        "patch-candidates/smoke-${module}.ps1" = $smokeScript
+    }
+
+    foreach ($entry in $patchFiles.GetEnumerator()) {
+        $path = Join-Path $OutputDir $entry.Key
+        Write-Utf8 -Path $path -Content $entry.Value
+        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
+    }
 }
 
 $resultPath = Join-Path $OutputDir "create-domain-result.json"

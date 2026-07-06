@@ -19,6 +19,7 @@ $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 if ([string]::IsNullOrWhiteSpace($ResultDir)) { $ResultDir = Join-Path $Root "build/runtime-smoke" }
 if ([string]::IsNullOrWhiteSpace($LogBasePath)) { $LogBasePath = Join-Path $Root "logs" }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+. (Join-Path $Root "scripts/runtime-diagnostics.ps1")
 $resultPath = Join-Path $ResultDir "file-log-standard-result.json"
 $grepPath = Join-Path $ResultDir "file-log-grep-summary.log"
 
@@ -57,6 +58,24 @@ function Read-LastLine {
     $lines = [System.IO.File]::ReadAllLines($Path, [System.Text.Encoding]::UTF8)
     if ($lines.Count -eq 0) { return $null }
     return $lines[$lines.Count - 1]
+}
+
+function Test-EndpointListening {
+    param([string] $BaseUrl)
+
+    try {
+        $uri = [System.Uri] $BaseUrl
+        $port = if ($uri.Port -gt 0) { $uri.Port } elseif ($uri.Scheme -eq "https") { 443 } else { 80 }
+        $client = [System.Net.Sockets.TcpClient]::new()
+        try {
+            $task = $client.ConnectAsync("127.0.0.1", $port)
+            return $task.Wait(700) -and $client.Connected
+        } finally {
+            $client.Dispose()
+        }
+    } catch {
+        return $false
+    }
 }
 
 function Test-LogFile {
@@ -108,6 +127,9 @@ function Test-LogFile {
 
 try {
     try {
+        if (-not (Test-EndpointListening -BaseUrl $AccBaseUrl)) {
+            throw "ACC runtime port is not listening. baseUrl=$AccBaseUrl"
+        }
         $response = Invoke-WebRequest `
             -Method Post `
             -Uri "$AccBaseUrl/acc/edu/composite/member-then-external?memberId=1" `
@@ -122,6 +144,7 @@ try {
     } catch {
         $result.runtimeProbe.status = $StatusNotVerified
         $result.runtimeProbe.error = $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8092) -ErrorMessage $_.Exception.Message
         if ($RequireRuntime) { throw }
     }
 
@@ -151,6 +174,9 @@ try {
 } catch {
     $result.status = $StatusFailed
     $result.error = $_.Exception.Message
+    if ($null -eq $result.runtimeProbe.diagnostics) {
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8092) -ErrorMessage $_.Exception.Message
+    }
     Save-Result
     throw
 }

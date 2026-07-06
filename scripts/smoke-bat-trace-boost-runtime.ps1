@@ -15,6 +15,7 @@ $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) { $ResultDir = Join-Path $Root "build/runtime-smoke" }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+. (Join-Path $Root "scripts/runtime-diagnostics.ps1")
 $resultPath = Join-Path $ResultDir "bat-trace-boost-runtime-result.json"
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -59,6 +60,7 @@ try {
 } catch {
     $result.status = $StatusFailed
     $result.error = $_.Exception.Message
+    $result.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "BAT" -Ports @(8093) -ErrorMessage $_.Exception.Message
     Save-Result
     throw
 }

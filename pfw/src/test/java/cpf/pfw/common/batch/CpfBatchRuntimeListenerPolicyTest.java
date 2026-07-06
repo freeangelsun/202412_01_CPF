@@ -11,7 +11,9 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.ObjectProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +40,29 @@ class CpfBatchRuntimeListenerPolicyTest {
         assertThat(stepExecution.getExecutionContext().getString("cpf.logPolicy.step.targetId")).isEqualTo("CPF_EDU_TASKLET_JOB:sampleStep");
         verify(heartbeatService).recordJobStarted(jobExecution);
         verify(heartbeatService).recordStepStarted(stepExecution);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void listenerWritesBatchFileLogForJobAndStepLifecycle() {
+        CpfBatchHeartbeatService heartbeatService = mock(CpfBatchHeartbeatService.class);
+        ObjectProvider<CpfBatchFileLogWriter> writerProvider = mock(ObjectProvider.class);
+        CpfBatchFileLogWriter writer = mock(CpfBatchFileLogWriter.class);
+        when(writerProvider.getIfAvailable()).thenReturn(writer);
+        CpfBatchRuntimeListener listener = new CpfBatchRuntimeListener(heartbeatService, null, writerProvider);
+        JobExecution jobExecution = new JobExecution(new JobInstance(2L, "CPF_EDU_CHUNK_JOB"), new JobParameters());
+        StepExecution stepExecution = new StepExecution("chunkStep", jobExecution);
+
+        listener.beforeJob(jobExecution);
+        listener.beforeStep(stepExecution);
+        listener.afterStep(stepExecution);
+        listener.afterJob(jobExecution);
+
+        verify(writer).writeBatch(eq("BATCH_JOB_STARTED"), eq(jobExecution), eq(null));
+        verify(writer).writeBatch(eq("BATCH_STEP_STARTED"), eq(jobExecution), eq(stepExecution));
+        verify(writer).writeBatch(eq("BATCH_STEP_FINISHED"), eq(jobExecution), eq(stepExecution));
+        verify(writer).writeBatch(eq("BATCH_JOB_FINISHED"), eq(jobExecution), eq(null));
+        verify(writerProvider, times(4)).getIfAvailable();
     }
 
     private LogPolicyDecision policy(LogPolicyTargetType targetType, String targetId) {

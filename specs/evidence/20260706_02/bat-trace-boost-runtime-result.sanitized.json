@@ -1,0 +1,37 @@
+{
+    "startedAt":  "2026-07-06T11:50:48.5806065+09:00",
+    "status":  "실패",
+    "batRuntime":  {
+                       "status":  "완료"
+                   },
+    "fileLog":  {
+                    "status":  "미검증",
+                    "path":  "logs\\bat\\cpf-bat-batch.log"
+                },
+    "traceBoost":  {
+                       "status":  "부분 구현",
+                       "basis":  "CPF_BATCH_RUNTIME_LISTENER_POLICY_CONTEXT_AND_FILE_LOG"
+                   },
+    "finishedAt":  "2026-07-06T11:51:10.7699862+09:00",
+    "error":  "BAT trace boost runtime smoke failed. result=D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+    "diagnostics":  {
+                        "module":  "BAT",
+                        "classification":  "재확인 필요",
+                        "error":  "BAT trace boost runtime smoke failed. result=D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+                        "ports":  [
+                                      {
+                                          "port":  8093,
+                                          "state":  "LISTENING",
+                                          "owningProcess":  null
+                                      }
+                                  ],
+                        "javaProcesses":  [
+
+                                          ],
+                        "processProbe":  "skipped to keep runtime smoke bounded",
+                        "lastAppLog":  null,
+                        "lastAppLogTail":  [
+                                               "skipped to keep runtime smoke bounded"
+                                           ]
+                    }
+}

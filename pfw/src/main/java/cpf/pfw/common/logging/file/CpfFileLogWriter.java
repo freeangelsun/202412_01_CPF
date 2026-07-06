@@ -8,6 +8,8 @@ import cpf.pfw.common.logging.policy.LogPolicyDecision;
 import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -17,8 +19,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -30,6 +33,7 @@ import java.util.Map;
  */
 @Component
 public class CpfFileLogWriter {
+    private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
     private static final String DEFAULT_PATTERN = "cpf-{moduleCode}-{logType}.log";
 
     private final Environment environment;
@@ -94,7 +98,7 @@ public class CpfFileLogWriter {
         }
 
         Map<String, Object> event = baseEvent(sourceModuleCode, "integration", null, null);
-        event.put("eventType", "INTEGRATION");
+        event.put("eventType", attributeText(attributes, "eventType", "INTEGRATION"));
         event.put("sourceModuleCode", normalizeModuleCode(sourceModuleCode));
         event.put("targetModuleCode", normalizeModuleCode(targetModuleCode));
         event.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
@@ -111,7 +115,7 @@ public class CpfFileLogWriter {
         event.put("httpStatus", httpStatus);
 
         if (attributes != null) {
-            attributes.forEach((key, value) -> event.put(key, maskObject(value)));
+            attributes.forEach((key, value) -> event.put(key, sanitizeValue(key, value)));
         }
         append(sourceModuleCode, "integration", event);
     }
@@ -121,7 +125,10 @@ public class CpfFileLogWriter {
     }
 
     public void writeEvent(String moduleCode, String logType, Map<String, Object> event) {
-        append(moduleCode, logType, event);
+        if (event == null) {
+            return;
+        }
+        append(moduleCode, logType, sanitizeMap(event));
     }
 
     private Map<String, Object> baseEvent(
@@ -172,7 +179,7 @@ public class CpfFileLogWriter {
                     StandardOpenOption.APPEND);
         } catch (IOException ex) {
             // 파일 로그 실패가 업무 응답 실패로 전파되지 않도록 표준 로그만 남깁니다.
-            System.err.println("CPF file log write failed. moduleCode=" + moduleCode + ", logType=" + logType + ", error=" + ex.getMessage());
+            log.warn("CPF file log write failed. moduleCode={}, logType={}, error={}", moduleCode, logType, ex.getMessage());
         }
     }
 
@@ -228,12 +235,68 @@ public class CpfFileLogWriter {
         return details != null ? details.get(key) : null;
     }
 
-    private Object maskObject(Object value) {
-        return value == null ? null : mask(String.valueOf(value));
-    }
-
     private String mask(String value) {
         return value == null ? null : SensitiveDataMasker.mask(value);
+    }
+
+    private Map<String, Object> sanitizeMap(Map<String, Object> source) {
+        Map<String, Object> sanitized = new LinkedHashMap<>();
+        source.forEach((key, value) -> sanitized.put(key, sanitizeValue(key, value)));
+        return sanitized;
+    }
+
+    private Object sanitizeValue(Object key, Object value) {
+        if (value == null || value instanceof Number || value instanceof Boolean) {
+            return value;
+        }
+        if (isSensitiveKey(key)) {
+            return "***";
+        }
+        if (value instanceof Map<?, ?> map) {
+            Map<String, Object> sanitized = new LinkedHashMap<>();
+            map.forEach((nestedKey, nestedValue) -> sanitized.put(String.valueOf(nestedKey), sanitizeValue(nestedKey, nestedValue)));
+            return sanitized;
+        }
+        if (value instanceof Iterable<?> iterable) {
+            List<Object> sanitized = new ArrayList<>();
+            iterable.forEach(item -> sanitized.add(sanitizeValue(null, item)));
+            return sanitized;
+        }
+        return mask(String.valueOf(value));
+    }
+
+    private boolean isSensitiveKey(Object key) {
+        if (key == null) {
+            return false;
+        }
+        String normalized = String.valueOf(key)
+                .replace("-", "")
+                .replace("_", "")
+                .toLowerCase(Locale.ROOT);
+        return normalized.contains("password")
+                || normalized.contains("passwd")
+                || normalized.contains("pwd")
+                || normalized.contains("token")
+                || normalized.contains("authorization")
+                || normalized.contains("apikey")
+                || normalized.contains("cookie")
+                || normalized.contains("secret")
+                || normalized.contains("credential")
+                || normalized.contains("signature")
+                || normalized.contains("accountno")
+                || normalized.contains("cardno")
+                || normalized.contains("rrn")
+                || normalized.contains("ssn")
+                || normalized.contains("otp")
+                || normalized.contains("pin");
+    }
+
+    private String attributeText(Map<String, Object> attributes, String key, String fallback) {
+        if (attributes == null || !attributes.containsKey(key) || attributes.get(key) == null) {
+            return fallback;
+        }
+        String value = String.valueOf(attributes.get(key));
+        return hasText(value) ? value : fallback;
     }
 
     private String hostIp() {

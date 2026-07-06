@@ -18,6 +18,7 @@ import org.springframework.beans.factory.ObjectProvider;
 public class CpfBatchRuntimeListener implements JobExecutionListener, StepExecutionListener {
     private final CpfBatchHeartbeatService heartbeatService;
     private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
+    private final ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider;
 
     public CpfBatchRuntimeListener(CpfBatchHeartbeatService heartbeatService) {
         this(heartbeatService, null);
@@ -26,30 +27,42 @@ public class CpfBatchRuntimeListener implements JobExecutionListener, StepExecut
     public CpfBatchRuntimeListener(
             CpfBatchHeartbeatService heartbeatService,
             ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
+        this(heartbeatService, logPolicyResolverProvider, null);
+    }
+
+    public CpfBatchRuntimeListener(
+            CpfBatchHeartbeatService heartbeatService,
+            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider,
+            ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider) {
         this.heartbeatService = heartbeatService;
         this.logPolicyResolverProvider = logPolicyResolverProvider;
+        this.batchFileLogWriterProvider = batchFileLogWriterProvider;
     }
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
         applyBatchJobPolicy(jobExecution);
         heartbeatService.recordJobStarted(jobExecution);
+        writeBatchFileLog("BATCH_JOB_STARTED", jobExecution, null);
     }
 
     @Override
     public void afterJob(JobExecution jobExecution) {
         heartbeatService.recordJobFinished(jobExecution);
+        writeBatchFileLog("BATCH_JOB_FINISHED", jobExecution, null);
     }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         applyBatchStepPolicy(stepExecution);
         heartbeatService.recordStepStarted(stepExecution);
+        writeBatchFileLog("BATCH_STEP_STARTED", stepExecution.getJobExecution(), stepExecution);
     }
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         heartbeatService.recordStepFinished(stepExecution);
+        writeBatchFileLog("BATCH_STEP_FINISHED", stepExecution.getJobExecution(), stepExecution);
         return stepExecution.getExitStatus();
     }
 
@@ -75,6 +88,13 @@ public class CpfBatchRuntimeListener implements JobExecutionListener, StepExecut
 
     private LogPolicyResolver resolver() {
         return logPolicyResolverProvider != null ? logPolicyResolverProvider.getIfAvailable() : null;
+    }
+
+    private void writeBatchFileLog(String eventType, JobExecution jobExecution, StepExecution stepExecution) {
+        CpfBatchFileLogWriter writer = batchFileLogWriterProvider != null ? batchFileLogWriterProvider.getIfAvailable() : null;
+        if (writer != null) {
+            writer.writeBatch(eventType, jobExecution, stepExecution);
+        }
     }
 
     private void putPolicy(org.springframework.batch.item.ExecutionContext context, String prefix, LogPolicyDecision decision) {

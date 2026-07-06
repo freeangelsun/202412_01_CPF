@@ -2,6 +2,7 @@ package cpf.adm.opr.controller;
 
 import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
 import cpf.adm.opr.dto.AdmLogPolicyRequest;
+import cpf.adm.opr.dto.AdmTraceBoostRequest;
 import cpf.adm.opr.service.AdmLogPolicyService;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,6 +75,39 @@ public class AdmLogPolicyController {
             @RequestBody AdmLogPolicyOverrideRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(logPolicyService.createOverride(request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
+    }
+
+    @PostMapping("/trace-boost")
+    @CpfTransaction(id = "ADM03LGP0018", name = "ADMTraceBoostCreate")
+    @Operation(summary = "거래 단위 Trace Boost 등록", description = "root logger를 올리지 않고 특정 온라인 거래 조건에 임시 로그 레벨 override를 적용합니다.")
+    public ResponseEntity<Map<String, Object>> createTraceBoost(
+            @RequestBody AdmTraceBoostRequest request,
+            HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(logPolicyService.createTraceBoost(request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
+    }
+
+    @PostMapping("/{policyId}/disable")
+    @CpfTransaction(id = "ADM04LGP0019", name = "ADMTraceBoostPolicyDisable")
+    @Operation(summary = "로그 정책 비활성화", description = "Trace Boost 또는 로그 정책을 비활성화하고 감사 로그를 남깁니다.")
+    public ResponseEntity<Map<String, Object>> disablePolicy(
+            @PathVariable long policyId,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(logPolicyService.disablePolicy(policyId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
+    }
+
+    @GetMapping("/runtime-state")
+    @CpfTransaction(id = "ADM01LGP0020", name = "ADMTraceBoostRuntimeState")
+    @Operation(summary = "Trace Boost 적용 상태 조회", description = "현재 유효한 로그 정책 override와 TTL 상태를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findTraceBoostRuntimeState(@RequestParam(defaultValue = "200") int limit) {
+        return ResponseEntity.ok(logPolicyService.findTraceBoostRuntimeState(limit));
+    }
+
+    @GetMapping("/history")
+    @CpfTransaction(id = "ADM01LGP0021", name = "ADMTraceBoostHistory")
+    @Operation(summary = "Trace Boost 변경 이력 조회", description = "Trace Boost 생성, 중지, 정책 비활성화 감사 이력을 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findTraceBoostHistory(@RequestParam(defaultValue = "200") int limit) {
+        return ResponseEntity.ok(logPolicyService.findTraceBoostHistory(limit));
     }
 
     @PatchMapping("/overrides/{overrideId}/disable")

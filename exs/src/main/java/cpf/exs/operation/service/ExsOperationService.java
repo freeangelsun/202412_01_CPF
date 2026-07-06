@@ -11,7 +11,9 @@ import cpf.exs.operation.repository.ExsOperationRepository.TokenWrite;
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
 import cpf.pfw.common.logging.TransactionContext;
+import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import cpf.pfw.common.logging.segment.TransactionSegmentContext;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -29,10 +31,21 @@ import java.util.Map;
 public class ExsOperationService {
     private final CmnCryptoService cryptoService;
     private final ExsOperationRepository operationRepository;
+    private final ObjectProvider<CpfFileLogWriter> fileLogWriterProvider;
 
-    public ExsOperationService(CmnCryptoService cryptoService, ExsOperationRepository operationRepository) {
+    public ExsOperationService(
+            CmnCryptoService cryptoService,
+            ExsOperationRepository operationRepository,
+            ObjectProvider<CpfFileLogWriter> fileLogWriterProvider) {
         this.cryptoService = cryptoService;
         this.operationRepository = operationRepository;
+        this.fileLogWriterProvider = fileLogWriterProvider;
+    }
+
+    public ExsOperationService(
+            CmnCryptoService cryptoService,
+            ExsOperationRepository operationRepository) {
+        this(cryptoService, operationRepository, null);
     }
 
     public List<Map<String, Object>> findInstitutions() {
@@ -177,7 +190,7 @@ public class ExsOperationService {
         Map<String, Object> body = payload == null ? Map.of() : payload;
         String resolvedTransactionId = TextUtils.defaultIfBlank(transactionGlobalId, TransactionContext.getOrCreateTransactionId());
         String externalTransactionId = text(body, "externalTransactionId", "EXT-" + direction + "-" + Instant.now().toEpochMilli());
-        return operationRepository.saveExchangeLog(new ExchangeLogWrite(
+        Map<String, Object> saved = operationRepository.saveExchangeLog(new ExchangeLogWrite(
                 resolvedTransactionId,
                 TransactionSegmentContext.currentSegmentId(),
                 externalTransactionId,
@@ -206,6 +219,47 @@ public class ExsOperationService {
                 intValue(body, "retryCount", 0),
                 text(body, "messageCode", "BALANCE_REQ"),
                 SensitiveDataMasker.mask(text(body, "messageSummary", direction + " 전문 사전 적재"), 1000)));
+        writeExchangeFileLog(body, direction, httpMethod, requestUri, status, resultCode, httpStatus, failureCode, failureMessage, externalTransactionId);
+        return saved;
+    }
+
+    private void writeExchangeFileLog(
+            Map<String, Object> body,
+            String direction,
+            String httpMethod,
+            String requestUri,
+            String status,
+            String resultCode,
+            Integer httpStatus,
+            String failureCode,
+            String failureMessage,
+            String externalTransactionId) {
+
+        CpfFileLogWriter writer = fileLogWriterProvider == null ? null : fileLogWriterProvider.getIfAvailable();
+        if (writer == null) {
+            return;
+        }
+        writer.writeIntegration(
+                "EXS",
+                "EXS",
+                direction,
+                httpMethod,
+                requestUri,
+                httpStatus,
+                status,
+                null,
+                failureCode,
+                failureMessage,
+                Map.of(
+                        "institutionCode", text(body, "institutionCode", "BANK01"),
+                        "endpointCode", text(body, "endpointCode", "BANK01_BALANCE"),
+                        "externalTransactionId", externalTransactionId,
+                        "responseCode", resultCode,
+                        "retryCount", intValue(body, "retryCount", 0),
+                        "timeoutMs", intValue(body, "timeoutMs", 3000),
+                        "timeoutYn", failureCode != null && failureCode.toUpperCase().contains("TIMEOUT") ? "Y" : "N",
+                        "requestPayloadMasked", SensitiveDataMasker.mask(body.toString(), 2000),
+                        "responsePayloadMasked", SensitiveDataMasker.mask(Map.of("externalTransactionId", externalTransactionId, "status", status).toString(), 2000)));
     }
 
     private Map<String, Object> tokenResponse(TokenWrite token) {

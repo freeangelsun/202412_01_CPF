@@ -3,12 +3,14 @@ package cpf.pfw.config;
 import cpf.pfw.common.batch.CpfBatchEventPublisher;
 import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
 import cpf.pfw.common.batch.CpfBatchHeartbeatService;
+import cpf.pfw.common.batch.CpfBatchFileLogWriter;
 import cpf.pfw.common.batch.CpfBatchLauncher;
 import cpf.pfw.common.batch.CpfBatchLockManager;
 import cpf.pfw.common.batch.CpfBatchLoggingEventPublisher;
 import cpf.pfw.common.batch.CpfBatchOperationRepository;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -70,8 +72,15 @@ public class CpfBatchAutoConfiguration {
     @ConditionalOnMissingBean
     public CpfBatchRuntimeListener cpfBatchRuntimeListener(
             CpfBatchHeartbeatService heartbeatService,
-            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider) {
-        return new CpfBatchRuntimeListener(heartbeatService, logPolicyResolverProvider);
+            ObjectProvider<LogPolicyResolver> logPolicyResolverProvider,
+            ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider) {
+        return new CpfBatchRuntimeListener(heartbeatService, logPolicyResolverProvider, batchFileLogWriterProvider);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfBatchFileLogWriter cpfBatchFileLogWriter(CpfFileLogWriter fileLogWriter) {
+        return new CpfBatchFileLogWriter(fileLogWriter);
     }
 
     @Bean

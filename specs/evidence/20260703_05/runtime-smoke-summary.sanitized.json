@@ -1,0 +1,56 @@
+{
+    "generatedAt":  "2026-07-06T09:52:18.9517913+09:00",
+    "items":  {
+                  "standardHeader":  {
+                                         "file":  "standard-header-e2e-result.json",
+                                         "status":  "완료",
+                                         "exitCode":  0
+                                     },
+                  "compositeSuccess":  {
+                                           "file":  "composite-transaction-runtime-result.json",
+                                           "status":  "완료",
+                                           "exitCode":  0
+                                       },
+                  "compositeFailure":  {
+                                           "file":  "composite-transaction-failure-runtime-result.json",
+                                           "status":  "PASSED",
+                                           "exitCode":  0
+                                       },
+                  "admGroupSuccess":  {
+                                          "file":  "adm-transaction-group-runtime-result.json",
+                                          "status":  "완료",
+                                          "exitCode":  0
+                                      },
+                  "admGroupFailure":  {
+                                          "file":  "adm-transaction-group-failure-runtime-result.json",
+                                          "status":  "PASSED",
+                                          "exitCode":  0
+                                      },
+                  "openapi":  {
+                                  "file":  "openapi-runtime-result.json",
+                                  "status":  "PASSED",
+                                  "exitCode":  0
+                              },
+                  "fileLogStandard":  {
+                                          "file":  "file-log-standard-result.json",
+                                          "status":  "미검증",
+                                          "exitCode":  1
+                                      },
+                  "traceBoost":  {
+                                     "file":  "trace-boost-runtime-result.json",
+                                     "status":  "미검증",
+                                     "exitCode":  1
+                                 },
+                  "batTraceBoost":  {
+                                        "file":  "bat-trace-boost-runtime-result.json",
+                                        "status":  "부분 구현",
+                                        "exitCode":  1
+                                    },
+                  "createDomain":  {
+                                       "file":  "create-domain-result.json",
+                                       "status":  "완료",
+                                       "exitCode":  0
+                                   }
+              },
+    "exitCode":  1
+}

@@ -327,6 +327,13 @@ public final class TransactionContext {
         putIfHasText(MDC_DYNAMIC_LOG_LEVEL, logLevel);
     }
 
+    /**
+     * 현재 거래에 적용된 동적 로그 레벨을 반환합니다.
+     */
+    public static String currentDynamicLogLevel() {
+        return MDC.get(MDC_DYNAMIC_LOG_LEVEL);
+    }
+
     private static void putMdc(String transactionId, String traceId, String spanId) {
         MDC.put(MDC_TRANSACTION_ID, transactionId);
         MDC.put(MDC_TRACE_ID, traceId);

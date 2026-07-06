@@ -448,7 +448,6 @@ public class LoggingAspect {
                     record != null ? record.getTransactionId() : "N/A",
                     record != null ? record.getBusinessTransactionId() : "N/A",
                     logPolicy.resolvedSource());
-            return;
         }
         eventPublisher.publishEvent(new TransactionLogEvent(this, record, details, logPolicy));
     }

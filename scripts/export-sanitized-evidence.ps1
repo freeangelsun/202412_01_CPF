@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($EvidenceDir)) {
-    $EvidenceDir = Join-Path $Root "specs/evidence/20260703_04"
+    $EvidenceDir = Join-Path $Root "specs/evidence/20260703_05"
 }
 if ([string]::IsNullOrWhiteSpace($RuntimeDir)) {
     $RuntimeDir = Join-Path $Root "build/runtime-smoke"
@@ -94,6 +94,11 @@ Export-One -Sources @("build/runtime-smoke/adm-transaction-group-failure-runtime
 Export-One -Sources @("build/runtime-smoke/openapi-runtime-result.json") -TargetName "openapi-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/adm-ui-browser-smoke-result.json") -TargetName "adm-ui-browser-smoke-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-smoke-summary.json") -TargetName "runtime-smoke-summary.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/file-log-standard-result.json") -TargetName "file-log-standard-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/file-log-grep-summary.log") -TargetName "file-log-grep-summary.sanitized.log" -Kind "log"
+Export-One -Sources @("build/runtime-smoke/trace-boost-runtime-result.json") -TargetName "trace-boost-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/bat-trace-boost-runtime-result.json") -TargetName "bat-trace-boost-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/create-domain-result.json") -TargetName "create-domain-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/sql-smoke/mariadb-full-install-result.json") -TargetName "mariadb-full-install-result.sanitized.json" -Kind "json"
 Export-One -Sources @(
     "build/runtime-smoke/run-local-services-composite-rerun.sanitized.log",

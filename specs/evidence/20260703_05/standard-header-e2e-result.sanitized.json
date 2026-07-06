@@ -1,0 +1,205 @@
+{
+    "startedAt":  "2026-07-03T19:10:41.8547522+09:00",
+    "status":  "완료",
+    "targetUrl":  "http://localhost:8080/acc/tran/standard-header-e2e?menuId=STANDARD_HEADER_E2E\u0026execUser=runtime-smoke\u0026mockUrl=http%3A%2F%2F127.0.0.1%3A19080%2Fcpf-standard-header-e2e",
+    "resultPath":  "D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\standard-header-e2e-result.json",
+    "scope":  "standard header Runtime E2E",
+    "plannedFlow":  [
+                        "actual API call",
+                        "standard header receive",
+                        "required header validation",
+                        "X-Cpf-Ext-* extension header receive",
+                        "TransactionContext creation",
+                        "transaction log and header snapshot save",
+                        "outbound call",
+                        "mock downstream receive check",
+                        "log lookup",
+                        "sensitive raw header suppression check"
+                    ],
+    "headerScenario":  {
+                           "required":  [
+                                            "X-Transaction-Id",
+                                            "X-Request-Type",
+                                            "X-Original-Channel-Code",
+                                            "X-Channel-Code",
+                                            "X-Trace-Id",
+                                            "X-Client-App-Id",
+                                            "X-User-Id",
+                                            "X-Customer-No",
+                                            "X-Member-No"
+                                        ],
+                           "allowedExtension":  [
+                                                    "X-Cpf-Ext-1",
+                                                    "X-Cpf-Ext-Campaign-Id",
+                                                    "X-Cpf-Ext-Partner-Code"
+                                                ],
+                           "blockedExtension":  [
+                                                    "X-Cpf-Ext-Token",
+                                                    "X-Cpf-Ext-Api-Key",
+                                                    "X-Cpf-Ext-Authorization"
+                                                ],
+                           "sensitive":  [
+                                             "Authorization",
+                                             "X-Api-Key"
+                                         ]
+                       },
+    "probes":  {
+                   "allowedStandardAndExtensionHeaders":  {
+                                                              "status":  "완료",
+                                                              "requestHeaders":  {
+                                                                                     "X-Transaction-Id":  "20260702103000000ACClocal010000001",
+                                                                                     "X-Request-Type":  "ONLINE",
+                                                                                     "X-Original-Channel-Code":  "MOBILE",
+                                                                                     "X-Channel-Code":  "ACC",
+                                                                                     "X-Trace-Id":  "TRACE-STANDARD-HEADER-E2E",
+                                                                                     "X-Parent-Span-Id":  "SPAN-PARENT-E2E",
+                                                                                     "X-Client-App-Id":  "cpf-smoke-client",
+                                                                                     "X-Client-Version":  "1.0.0",
+                                                                                     "X-Caller-Service":  "cpf-standard-header-smoke",
+                                                                                     "X-User-Id":  "smoke-user",
+                                                                                     "X-Customer-No":  "CUST-SMOKE",
+                                                                                     "X-Member-No":  "MBR-SMOKE",
+                                                                                     "X-Cpf-Ext-1":  "reserved-one",
+                                                                                     "X-Cpf-Ext-Campaign-Id":  "CMP-SMOKE",
+                                                                                     "X-Cpf-Ext-Partner-Code":  "PARTNER-SMOKE",
+                                                                                     "Authorization":  "****",
+                                                                                     "X-Api-Key":  "***"
+                                                                                 },
+                                                              "expectedStatus":  "200,201,202,204",
+                                                              "statusCode":  200,
+                                                              "body":  "{\"menuId\":\"STANDARD_HEADER_E2E\",\"execUser\":\"runtime-smoke\",\"transactionId\":\"20260702103000000ACClocal010000001\",\"traceId\":\"TRACE-STANDARD-HEADER-E2E\",\"outboundHeaders\":{\"X-Transaction-Id\":\"20260702103000000ACClocal010000001\",\"X-Parent-Transaction-Id\":\"20260702103000000ACClocal010000001\",\"X-Original-Transaction-Id\":\"20260702103000000ACClocal010000001\",\"X-Trace-Id\":\"TRACE-STANDARD-HEADER-E2E\",\"X-Parent-Span-Id\":\"SPN-f47d9b26-b82e-4cf4-a90f-a1a496c6bf28\",\"X-Client-App-Id\":\"cpf-smoke-client\",\"X-Client-Version\":\"1.0.0\",\"X-Caller-Service\":\"cpf-standard-header-smoke\",\"X-Request-Type\":\"ONLINE\",\"X-Original-Channel-Code\":\"MOBILE\",\"X-Channel-Code\":\"ACC\",\"X-Member-No\":\"MBR-SMOKE\",\"X-Customer-No\":\"CUST-SMOKE\",\"X-User-Id\":\"smoke-user\",\"x-cpf-ext-1\":\"reserved-one\",\"x-cpf-ext-campaign-id\":\"CMP-SMOKE\",\"x-cpf-ext-partner-code\":\"PARTNER-SMOKE\"},\"downstream\":{\"received\":true}}"
+                                                          },
+                   "blockedExtensionHeaderRejected":  {
+                                                          "status":  "완료",
+                                                          "requestHeaders":  {
+                                                                                 "X-Transaction-Id":  "20260702103000000ACClocal010000001",
+                                                                                 "X-Request-Type":  "ONLINE",
+                                                                                 "X-Original-Channel-Code":  "MOBILE",
+                                                                                 "X-Channel-Code":  "ACC",
+                                                                                 "X-Trace-Id":  "TRACE-STANDARD-HEADER-E2E",
+                                                                                 "X-Parent-Span-Id":  "SPAN-PARENT-E2E",
+                                                                                 "X-Client-App-Id":  "cpf-smoke-client",
+                                                                                 "X-Client-Version":  "1.0.0",
+                                                                                 "X-Caller-Service":  "cpf-standard-header-smoke",
+                                                                                 "X-User-Id":  "smoke-user",
+                                                                                 "X-Customer-No":  "CUST-SMOKE",
+                                                                                 "X-Member-No":  "MBR-SMOKE",
+                                                                                 "X-Cpf-Ext-1":  "reserved-one",
+                                                                                 "X-Cpf-Ext-Campaign-Id":  "CMP-SMOKE",
+                                                                                 "X-Cpf-Ext-Partner-Code":  "PARTNER-SMOKE",
+                                                                                 "Authorization":  "****",
+                                                                                 "X-Api-Key":  "***",
+                                                                                 "X-Cpf-Ext-Token":  "***"
+                                                                             },
+                                                          "expectedStatus":  "400,401,403,422",
+                                                          "statusCode":  400
+                                                      }
+               },
+    "mockDownstream":  {
+                           "status":  "완료",
+                           "url":  "http://127.0.0.1:19080/cpf-standard-header-e2e",
+                           "capturePath":  "D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\standard-header-e2e-downstream.json",
+                           "capture":  {
+                                           "receivedAt":  "2026-07-03T19:10:43.2071267+09:00",
+                                           "requestLine":  "GET /cpf-standard-header-e2e HTTP/1.1",
+                                           "headers":  {
+                                                           "accept-encoding":  "gzip",
+                                                           "user-agent":  "ReactorNetty/1.2.13",
+                                                           "host":  "127.0.0.1:19080",
+                                                           "accept":  "*/*",
+                                                           "X-Transaction-Id":  "20260702103000000ACClocal010000001",
+                                                           "X-Parent-Transaction-Id":  "20260702103000000ACClocal010000001",
+                                                           "X-Original-Transaction-Id":  "20260702103000000ACClocal010000001",
+                                                           "X-Trace-Id":  "TRACE-STANDARD-HEADER-E2E",
+                                                           "X-Parent-Span-Id":  "SPN-f47d9b26-b82e-4cf4-a90f-a1a496c6bf28",
+                                                           "X-Client-App-Id":  "cpf-smoke-client",
+                                                           "X-Client-Version":  "1.0.0",
+                                                           "X-Caller-Service":  "cpf-standard-header-smoke",
+                                                           "X-Request-Type":  "ONLINE",
+                                                           "X-Original-Channel-Code":  "MOBILE",
+                                                           "X-Channel-Code":  "ACC",
+                                                           "X-Member-No":  "MBR-SMOKE",
+                                                           "X-Customer-No":  "CUST-SMOKE",
+                                                           "X-User-Id":  "smoke-user",
+                                                           "x-cpf-ext-1":  "reserved-one",
+                                                           "x-cpf-ext-campaign-id":  "CMP-SMOKE",
+                                                           "x-cpf-ext-partner-code":  "PARTNER-SMOKE"
+                                                       }
+                                       },
+                           "missingHeaders":  [
+
+                                              ],
+                           "forbiddenHeaders":  [
+
+                                                ]
+                       },
+    "logLookup":  {
+                      "status":  "완료",
+                      "transactionId":  "20260702103000000ACClocal010000001",
+                      "traceId":  "TRACE-STANDARD-HEADER-E2E",
+                      "logIdx":  "312",
+                      "detailKeys":  [
+                                         "business.transaction.id",
+                                         "business.transaction.name",
+                                         "compensation.yn",
+                                         "controller.shortSignature",
+                                         "error.externalMessage",
+                                         "error.internalMessage",
+                                         "execution.class",
+                                         "execution.method",
+                                         "execution.package",
+                                         "execution.signature",
+                                         "headers",
+                                         "http.clientIp",
+                                         "http.method",
+                                         "http.uri",
+                                         "http.userAgent",
+                                         "inboundHeaders",
+                                         "logPolicy.dbLogEnabled",
+                                         "logPolicy.dbLogLevel",
+                                         "logPolicy.errorStackSaveYn",
+                                         "logPolicy.fileLogLevel",
+                                         "logPolicy.maskingPolicyKey",
+                                         "logPolicy.policyId",
+                                         "logPolicy.requestBodySaveYn",
+                                         "logPolicy.resolvedSource",
+                                         "logPolicy.responseBodySaveYn",
+                                         "logPolicy.targetId",
+                                         "logPolicy.targetType",
+                                         "module.id",
+                                         "outboundHeaders",
+                                         "parameters",
+                                         "parentSpan.id",
+                                         "propagationHeaders",
+                                         "resolvedHeaders",
+                                         "response.code",
+                                         "response.httpStatus",
+                                         "response.messageCode",
+                                         "response.messageContent",
+                                         "responseHeaders",
+                                         "sequence.no",
+                                         "server.host.name",
+                                         "server.instance.id",
+                                         "server.process.id",
+                                         "server.thread.name",
+                                         "span.id",
+                                         "trace.id",
+                                         "transaction.id",
+                                         "transactionHeader",
+                                         "workflow.status",
+                                         "workflowPropagationHeaders"
+                                     ],
+                      "missingDetails":  [
+
+                                         ],
+                      "containsAllowedExtensionHeader":  true,
+                      "containsSensitiveRaw":  false
+                  },
+    "admLookup":  {
+                      "status":  "완료",
+                      "reason":  "pfwDB log lookup verified the evidence required for ADM log detail."
+                  },
+    "sensitiveRawRecorded":  false,
+    "reason":  "Runtime E2E completed: API call, blocked header rejection, downstream propagation, log lookup, and sensitive raw suppression were verified.",
+    "finishedAt":  "2026-07-03T19:10:45.3776943+09:00"
+}

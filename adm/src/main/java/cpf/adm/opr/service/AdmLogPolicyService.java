@@ -2,6 +2,7 @@ package cpf.adm.opr.service;
 
 import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
 import cpf.adm.opr.dto.AdmLogPolicyRequest;
+import cpf.adm.opr.dto.AdmTraceBoostRequest;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfValidationException;
 import cpf.pfw.common.logging.policy.LogPolicyDecision;
@@ -261,6 +262,102 @@ public class AdmLogPolicyService {
         insertPolicyAudit(null, null, "CACHE_CLEAR", "LOG_POLICY_CACHE", "*",
                 reason, null, String.valueOf(result), "로그 정책 cache clear", user, clientIp);
         return result;
+    }
+
+    public Map<String, Object> createTraceBoost(AdmTraceBoostRequest request, String operatorId, String clientIp) {
+        String targetId = defaultIfBlank(
+                request.businessTransactionId(),
+                defaultIfBlank(request.transactionGlobalId(), request.apiPath(), "*"),
+                "*");
+        long ttlSeconds = request.ttlSeconds() == null || request.ttlSeconds() < 60 ? 600 : Math.min(request.ttlSeconds(), 86_400);
+        LocalDateTime startAt = LocalDateTime.now().minusSeconds(5);
+        LocalDateTime endAt = LocalDateTime.now().plusSeconds(ttlSeconds);
+        AdmLogPolicyOverrideRequest overrideRequest = new AdmLogPolicyOverrideRequest(
+                request.policyId(),
+                "ONLINE_TRANSACTION",
+                targetId,
+                defaultIfBlank(request.logLevel(), "DEBUG"),
+                "Y",
+                "Y",
+                "N",
+                "N",
+                "Y",
+                "TRACE_BOOST_SAFE_MASKING",
+                startAt,
+                endAt,
+                defaultIfBlank(operatorId, request.requestUser(), "ADM"),
+                request.requestUser(),
+                required(request.reason(), "감사 사유"));
+        Map<String, Object> created = createOverride(overrideRequest, operatorId, clientIp);
+        Map<String, Object> response = new LinkedHashMap<>(created);
+        response.put("traceBoostPolicyId", created.get("override_id"));
+        response.put("targetType", "ONLINE_TRANSACTION");
+        response.put("targetId", targetId);
+        response.put("ttlSeconds", ttlSeconds);
+        response.put("conditions", Map.of(
+                "transactionGlobalId", defaultIfBlank(request.transactionGlobalId(), ""),
+                "businessTransactionId", defaultIfBlank(request.businessTransactionId(), ""),
+                "apiPath", defaultIfBlank(request.apiPath(), ""),
+                "status", defaultIfBlank(request.status(), ""),
+                "failureCode", defaultIfBlank(request.failureCode(), ""),
+                "durationMsGreaterThan", request.durationMsGreaterThan() == null ? 0 : request.durationMsGreaterThan()));
+        return response;
+    }
+
+    public Map<String, Object> disablePolicy(long policyId, String reason, String operatorId, String clientIp) {
+        String user = defaultIfBlank(operatorId, null, "ADM");
+        Map<String, Object> before = findPolicyById(policyId)
+                .orElseThrow(() -> new CpfValidationException("로그 정책을 찾을 수 없습니다."));
+        pfwJdbcTemplate.update("""
+                UPDATE pfw_log_policy
+                SET active_yn = 'N',
+                    updated_by = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE policy_id = ?
+                """, user, policyId);
+        Map<String, Object> after = findPolicyById(policyId).orElse(Map.of());
+        insertPolicyAudit(policyId, null, "POLICY_DISABLE",
+                String.valueOf(before.get("target_type")),
+                String.valueOf(before.get("target_id")),
+                reason, String.valueOf(before), String.valueOf(after), "Trace Boost 정책 비활성화", user, clientIp);
+        evictPolicyCache(String.valueOf(before.get("target_type")), String.valueOf(before.get("target_id")));
+        return after;
+    }
+
+    public Map<String, Object> findTraceBoostRuntimeState(int limit) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("available", tableAvailable("pfw_log_policy_override"));
+        response.put("items", tableAvailable("pfw_log_policy_override")
+                ? pfwJdbcTemplate.queryForList("""
+                        SELECT override_id AS traceBoostPolicyId, policy_id, target_type, target_id,
+                               override_reason, log_level, effective_start_at, effective_end_at,
+                               active_yn, requested_by, created_at, updated_at
+                        FROM pfw_log_policy_override
+                        WHERE active_yn = 'Y'
+                          AND effective_start_at <= CURRENT_TIMESTAMP(3)
+                          AND effective_end_at >= CURRENT_TIMESTAMP(3)
+                        ORDER BY override_id DESC
+                        LIMIT ?
+                        """, Math.max(1, Math.min(limit, 500)))
+                : List.of());
+        return response;
+    }
+
+    public Map<String, Object> findTraceBoostHistory(int limit) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("available", tableAvailable("pfw_log_policy_audit"));
+        response.put("items", tableAvailable("pfw_log_policy_audit")
+                ? pfwJdbcTemplate.queryForList("""
+                        SELECT audit_id, policy_id, override_id AS traceBoostPolicyId,
+                               action_type, target_type, target_id, reason,
+                               operator_id, client_ip, created_at
+                        FROM pfw_log_policy_audit
+                        WHERE action_type IN ('OVERRIDE_CREATE', 'OVERRIDE_DISABLE', 'POLICY_DISABLE')
+                        ORDER BY audit_id DESC
+                        LIMIT ?
+                        """, Math.max(1, Math.min(limit, 500)))
+                : List.of());
+        return response;
     }
 
     private List<Map<String, Object>> queryPolicies(String targetType, String targetId, String activeYn, int limit) {

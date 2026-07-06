@@ -56,6 +56,29 @@ cpf:
     exs:
       base-url: ${CPF_SERVICE_EXS_URL:${CPF_SERVICE_EXS_URL:http://localhost:8092}}
       description: EXS service
+  logging:
+    db:
+      enabled: ${CPF_LOGGING_DB_ENABLED:true}
+      transaction-enabled: ${CPF_LOGGING_DB_TRANSACTION_ENABLED:true}
+      integration-enabled: ${CPF_LOGGING_DB_INTEGRATION_ENABLED:true}
+      audit-enabled: ${CPF_LOGGING_DB_AUDIT_ENABLED:true}
+      error-enabled: ${CPF_LOGGING_DB_ERROR_ENABLED:true}
+      batch-enabled: ${CPF_LOGGING_DB_BATCH_ENABLED:true}
+    file:
+      enabled: ${CPF_LOGGING_FILE_ENABLED:true}
+      base-path: ${CPF_LOGGING_FILE_BASE_PATH:logs}
+      json-line-enabled: ${CPF_LOGGING_FILE_JSON_LINE_ENABLED:true}
+      file-pattern: ${CPF_LOGGING_FILE_PATTERN:cpf-{moduleCode}-{logType}.log}
+      application-enabled: ${CPF_LOGGING_FILE_APPLICATION_ENABLED:true}
+      transaction-enabled: ${CPF_LOGGING_FILE_TRANSACTION_ENABLED:true}
+      integration-enabled: ${CPF_LOGGING_FILE_INTEGRATION_ENABLED:true}
+      audit-enabled: ${CPF_LOGGING_FILE_AUDIT_ENABLED:true}
+      error-enabled: ${CPF_LOGGING_FILE_ERROR_ENABLED:true}
+      batch-enabled: ${CPF_LOGGING_FILE_BATCH_ENABLED:true}
+    masking:
+      enabled: ${CPF_LOGGING_MASKING_ENABLED:true}
+    dynamic-level:
+      enabled: ${CPF_DYNAMIC_LOG_LEVEL_ENABLED:true}
 
 ---
 # prod에서는 DB 접속정보 기본값을 제거하고 배포 환경에서 반드시 주입합니다.

@@ -1,0 +1,24 @@
+{
+    "startedAt":  "2026-07-06T09:52:04.9485663+09:00",
+    "status":  "미검증",
+    "login":  {
+                  "status":  "미검증"
+              },
+    "createTraceBoost":  {
+                             "status":  "미검증"
+                         },
+    "runtimeState":  {
+                         "status":  "미검증"
+                     },
+    "history":  {
+                    "status":  "미검증"
+                },
+    "fileLog":  {
+                    "status":  "미검증"
+                },
+    "cleanup":  {
+                    "status":  "미검증"
+                },
+    "error":  "Unable to connect to the remote server",
+    "finishedAt":  "2026-07-06T09:52:09.1611039+09:00"
+}

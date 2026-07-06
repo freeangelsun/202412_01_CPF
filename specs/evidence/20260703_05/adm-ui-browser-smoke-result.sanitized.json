@@ -1,0 +1,69 @@
+{
+    "startedAt":  "2026-07-03T19:07:49.2659997+09:00",
+    "admBaseUrl":  "http://localhost:8090",
+    "staticUi":  {
+                     "status":  "PASSED",
+                     "checkedFiles":  [
+                                          "adm/src/main/resources/static/adm/index.html",
+                                          "adm/src/main/resources/static/adm/adm.js"
+                                      ]
+                 },
+    "environment":  {
+                        "node":  {
+                                     "available":  false,
+                                     "path":  "",
+                                     "output":  "",
+                                     "exitCode":  -1
+                                 },
+                        "npm":  {
+                                    "available":  false,
+                                    "path":  "",
+                                    "output":  "",
+                                    "exitCode":  -1
+                                },
+                        "npx":  {
+                                    "available":  false,
+                                    "path":  "",
+                                    "output":  "",
+                                    "exitCode":  -1
+                                },
+                        "chrome":  {
+                                       "available":  false,
+                                       "path":  "",
+                                       "output":  "",
+                                       "exitCode":  -1
+                                   },
+                        "msedge":  {
+                                       "available":  false,
+                                       "path":  "",
+                                       "output":  "",
+                                       "exitCode":  -1
+                                   },
+                        "chromedriver":  {
+                                             "available":  false,
+                                             "path":  "",
+                                             "output":  "",
+                                             "exitCode":  -1
+                                         },
+                        "geckodriver":  {
+                                            "available":  false,
+                                            "path":  "",
+                                            "output":  "",
+                                            "exitCode":  -1
+                                        },
+                        "playwright":  {
+                                           "available":  false,
+                                           "path":  "",
+                                           "output":  "npx is not available.",
+                                           "exitCode":  -1
+                                       }
+                    },
+    "browserClick":  {
+                         "status":  "SKIPPED",
+                         "reason":  "Node/npm/npx or Playwright is not available in PATH."
+                     },
+    "artifacts":  {
+
+                  },
+    "finishedAt":  "2026-07-03T19:07:50.5715838+09:00"
+}

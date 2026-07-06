@@ -1,98 +1,40 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
-    [int] $StartupTimeoutSeconds = 180,
+    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM"),
+    [int] $StartupTimeoutSeconds = 150,
     [switch] $StartServices,
-    [switch] $SkipServiceStart
+    [switch] $StopAfterRun
 )
 
 $ErrorActionPreference = "Stop"
-$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+. (Join-Path $PSScriptRoot "runtime-common.ps1")
 
-function New-UnicodeText {
-    param([int[]] $CodePoints)
-    return -join ($CodePoints | ForEach-Object { [char] $_ })
-}
-
-$StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
-$StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
-$StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
-$StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
-
-if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "build/runtime-smoke"
-}
-if (-not $StartServices) {
-    $SkipServiceStart = $true
-}
+$Root = Get-CpfRuntimeRoot -Root $Root
+$ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-. (Join-Path $Root "scripts/runtime-diagnostics.ps1")
 
 $resultPath = Join-Path $ResultDir "runtime-closure-result.json"
-$serviceLog = Join-Path $ResultDir "run-local-services-closure.out.log"
-$serviceErrLog = Join-Path $ResultDir "run-local-services-closure.err.log"
-$gradleUserHome = if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
-    Join-Path $env:USERPROFILE ".gradle"
-} else {
-    $env:GRADLE_USER_HOME
-}
-$services = @(
-    [ordered]@{ module = "ACC"; port = 8080 },
-    [ordered]@{ module = "MBR"; port = 8081 },
-    [ordered]@{ module = "ADM"; port = 8090 },
-    [ordered]@{ module = "EXS"; port = 8092 }
-)
-
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
-    status = $StatusPartial
-    serviceStart = [ordered]@{
-        status = $StatusNotVerified
-        logPath = $serviceLog.Substring($Root.Length).TrimStart('\', '/')
-        errorLogPath = $serviceErrLog.Substring($Root.Length).TrimStart('\', '/')
-        ports = @()
-    }
-    fileLogStandard = [ordered]@{ status = $StatusNotVerified }
-    traceBoost = [ordered]@{ status = $StatusNotVerified }
-    batTraceBoost = [ordered]@{ status = $StatusNotVerified }
+    status = Get-CpfRuntimeStatusText "Partial"
+    modules = @((Resolve-CpfRuntimeModules -Modules $Modules) | ForEach-Object { $_.module })
+    runtimeStart = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    runtimeStatus = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    runtimeDiagnostics = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    fileLogStandard = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    traceBoost = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    batTraceBoost = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    batLogBean = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    admOperationConsole = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    admLogPolicyUiStatic = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    exsTimeoutRetry = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
+    cmnFixedLengthAdvanced = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
 }
 
-function Save-Result {
+function Save-ClosureResult {
     $result.finishedAt = (Get-Date).ToString("o")
-    [System.IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 40), $Utf8NoBom)
-}
-
-function Add-ServiceLogTail {
-    if (Test-Path -LiteralPath $serviceLog) {
-        $result.serviceStart.logTail = @(Get-Content -LiteralPath $serviceLog -Encoding UTF8 -Tail 80 -ErrorAction SilentlyContinue)
-    }
-    if (Test-Path -LiteralPath $serviceErrLog) {
-        $result.serviceStart.errorLogTail = @(Get-Content -LiteralPath $serviceErrLog -Encoding UTF8 -Tail 80 -ErrorAction SilentlyContinue)
-    }
-}
-
-function Test-ServicePorts {
-    $states = @()
-    foreach ($service in $services) {
-        $client = [System.Net.Sockets.TcpClient]::new()
-        $listening = $false
-        try {
-            $task = $client.ConnectAsync("127.0.0.1", $service.port)
-            $listening = $task.Wait(700) -and $client.Connected
-        } catch {
-            $listening = $false
-        } finally {
-            $client.Dispose()
-        }
-        $states += [ordered]@{
-            module = $service.module
-            port = $service.port
-            listening = $listening
-            owningProcess = $null
-        }
-    }
-    $result.serviceStart.ports = $states
-    return @($states | Where-Object { -not $_.listening }).Count -eq 0
+    Write-CpfRuntimeJson -Path $resultPath -Value $result
 }
 
 function Read-SmokeResult {
@@ -104,10 +46,10 @@ function Read-SmokeResult {
     $path = Join-Path $ResultDir $FileName
     if (-not (Test-Path -LiteralPath $path)) {
         return [ordered]@{
-            status = $StatusNotVerified
+            status = Get-CpfRuntimeStatusText "NotVerified"
             name = $Name
-            resultPath = $path.Substring($Root.Length).TrimStart('\', '/')
-            reason = "smoke result file not found"
+            resultPath = Get-CpfRelativePath -Root $Root -Path $path
+            reason = "result file was not found"
         }
     }
     try {
@@ -115,99 +57,89 @@ function Read-SmokeResult {
         return [ordered]@{
             status = [string] $json.status
             name = $Name
-            resultPath = $path.Substring($Root.Length).TrimStart('\', '/')
-            finishedAt = $json.finishedAt
-            error = $json.error
+            resultPath = Get-CpfRelativePath -Root $Root -Path $path
+            finishedAt = Get-JsonProperty -Value $json -Name "finishedAt"
+            error = Get-JsonProperty -Value $json -Name "error"
+            failureClassification = Get-JsonProperty -Value $json -Name "failureClassification"
         }
     } catch {
         return [ordered]@{
-            status = $StatusFailed
+            status = Get-CpfRuntimeStatusText "Failed"
             name = $Name
-            resultPath = $path.Substring($Root.Length).TrimStart('\', '/')
+            resultPath = Get-CpfRelativePath -Root $Root -Path $path
             error = $_.Exception.Message
         }
     }
 }
 
-$serviceProcess = $null
-$startedAt = Get-Date
+function Get-JsonProperty {
+    param(
+        [object] $Value,
+        [string] $Name
+    )
+
+    if ($null -eq $Value) {
+        return $null
+    }
+    $property = $Value.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $null
+    }
+    return $property.Value
+}
+
 try {
-    if (-not $SkipServiceStart) {
-        if (Test-Path -LiteralPath $serviceLog) {
-            Remove-Item -LiteralPath $serviceLog -Force
-        }
-        if (Test-Path -LiteralPath $serviceErrLog) {
-            Remove-Item -LiteralPath $serviceErrLog -Force
-        }
-        $env:GRADLE_USER_HOME = $gradleUserHome
-        $serviceProcess = Start-Process `
-            -FilePath (Join-Path $Root "gradlew.bat") `
-            -ArgumentList @("runLocalServices", "-PcpfRunServices=MBR,ACC,ADM,EXS", "--offline", "--no-daemon", "--console=plain") `
-            -WorkingDirectory $Root `
-            -RedirectStandardOutput $serviceLog `
-            -RedirectStandardError $serviceErrLog `
-            -WindowStyle Hidden `
-            -PassThru
-        $result.serviceStart.processId = $serviceProcess.Id
-        $result.serviceStart.gradleUserHome = $gradleUserHome
+    if ($StartServices) {
+        & (Join-Path $PSScriptRoot "runtime-start-services.ps1") `
+            -Root $Root `
+            -Modules $Modules `
+            -ResultDir $ResultDir `
+            -StartupTimeoutSeconds $StartupTimeoutSeconds `
+            -NoExitOnFailure
     }
 
-    if ($SkipServiceStart) {
-        $result.serviceStart.status = $StatusNotVerified
-        $result.serviceStart.reason = "service start skipped"
-    } else {
-        $deadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
-        while ((Get-Date) -lt $deadline) {
-            if (Test-ServicePorts) {
-                $result.serviceStart.status = $StatusDone
-                break
-            }
-            if ($serviceProcess -ne $null) {
-                $serviceProcess.Refresh()
-                $result.serviceStart.processExited = $serviceProcess.HasExited
-                if ($serviceProcess.HasExited) {
-                    $result.serviceStart.exitCode = $serviceProcess.ExitCode
-                    $result.serviceStart.status = $StatusFailed
-                    break
-                }
-            }
-            Start-Sleep -Seconds 3
-        }
-    }
+    & (Join-Path $PSScriptRoot "runtime-status.ps1") -Root $Root -Modules $Modules -ResultDir $ResultDir -NoExitOnFailure
+    & (Join-Path $PSScriptRoot "runtime-diagnostics.ps1") -Root $Root -Modules $Modules -ResultDir $ResultDir -NoExitOnFailure
 
-    if (-not $SkipServiceStart -and $result.serviceStart.status -ne $StatusDone) {
-        Test-ServicePorts | Out-Null
-        $result.serviceStart.status = $(if ($result.serviceStart.status -eq $StatusFailed) { $StatusFailed } else { $StatusNotVerified })
-        $result.serviceStart.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8090, 8092) -ErrorMessage "runLocalServices did not expose required ports."
-        Add-ServiceLogTail
-    }
-
+    $result.runtimeStart = Read-SmokeResult -Name "runtime-start-services" -FileName "runtime-start-services-result.json"
+    $result.runtimeStatus = Read-SmokeResult -Name "runtime-status" -FileName "runtime-status-result.json"
+    $result.runtimeDiagnostics = Read-SmokeResult -Name "runtime-diagnostics" -FileName "runtime-diagnostics-result.json"
     $result.fileLogStandard = Read-SmokeResult -Name "file-log-standard" -FileName "file-log-standard-result.json"
     $result.traceBoost = Read-SmokeResult -Name "trace-boost" -FileName "trace-boost-runtime-result.json"
     $result.batTraceBoost = Read-SmokeResult -Name "bat-trace-boost" -FileName "bat-trace-boost-runtime-result.json"
+    $result.batLogBean = Read-SmokeResult -Name "bat-log-bean" -FileName "bat-log-bean-runtime-result.json"
+    $result.admOperationConsole = Read-SmokeResult -Name "adm-operation-console" -FileName "adm-operation-console-runtime-result.json"
+    $result.admLogPolicyUiStatic = Read-SmokeResult -Name "adm-log-policy-ui-static" -FileName "adm-log-policy-ui-static-result.json"
+    $result.exsTimeoutRetry = Read-SmokeResult -Name "exs-timeout-retry" -FileName "exs-timeout-retry-runtime-result.json"
+    $result.cmnFixedLengthAdvanced = Read-SmokeResult -Name "cmn-fixed-length-advanced" -FileName "cmn-fixed-length-advanced-result.json"
 
-    $failed = @(
-        $result.serviceStart,
+    $required = @(
+        $result.runtimeStart,
+        $result.runtimeStatus,
+        $result.runtimeDiagnostics,
         $result.fileLogStandard,
         $result.traceBoost,
-        $result.batTraceBoost
-    ) | Where-Object { $_.status -eq $StatusFailed -or $_.status -eq $StatusNotVerified }
-    $result.status = $(if ($failed.Count -eq 0) { $StatusDone } else { $StatusFailed })
-    Save-Result
-    if ($result.status -eq $StatusFailed) {
+        $result.batTraceBoost,
+        $result.batLogBean,
+        $result.admOperationConsole,
+        $result.admLogPolicyUiStatic,
+        $result.exsTimeoutRetry,
+        $result.cmnFixedLengthAdvanced
+    )
+    $bad = @($required | Where-Object { $_.status -eq (Get-CpfRuntimeStatusText "Failed") -or $_.status -eq (Get-CpfRuntimeStatusText "NotVerified") })
+    $result.status = $(if ($bad.Count -eq 0) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" })
+    Save-ClosureResult
+    if ($result.status -ne (Get-CpfRuntimeStatusText "Done")) {
         exit 1
     }
 } catch {
-    $result.status = $StatusFailed
+    $result.status = Get-CpfRuntimeStatusText "Failed"
     $result.error = $_.Exception.Message
-    Save-Result
+    Save-ClosureResult
     throw
 } finally {
-    if ($serviceProcess -ne $null) {
-        $serviceProcess.Refresh()
-        if (-not $serviceProcess.HasExited) {
-            Stop-Process -Id $serviceProcess.Id -Force -ErrorAction SilentlyContinue
-        }
+    if ($StopAfterRun) {
+        & (Join-Path $PSScriptRoot "runtime-stop-services.ps1") -Root $Root -Modules $Modules -ResultDir $ResultDir
     }
 }
 

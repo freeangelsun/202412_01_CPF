@@ -1,6 +1,10 @@
 package cpf.bat.operation;
 
+import cpf.pfw.common.batch.CpfBatchFileLogWriter;
+import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,11 +22,16 @@ class BatHealthControllerTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         BatSmokeOperationService operationService = mock(BatSmokeOperationService.class);
         BatSmokeExecutionRegistry registry = new BatSmokeExecutionRegistry();
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        ObjectProvider<CpfBatchFileLogWriter> fileLogWriterProvider = beanFactory.getBeanProvider(CpfBatchFileLogWriter.class);
+        ObjectProvider<CpfBatchRuntimeListener> runtimeListenerProvider = beanFactory.getBeanProvider(CpfBatchRuntimeListener.class);
         BatHealthController controller = new BatHealthController(
                 jdbcTemplate,
                 new StandardEnvironment(),
                 operationService,
-                registry);
+                registry,
+                fileLogWriterProvider,
+                runtimeListenerProvider);
 
         when(jdbcTemplate.queryForObject("SELECT 1", Integer.class)).thenReturn(1);
 

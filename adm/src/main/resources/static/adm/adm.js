@@ -223,6 +223,13 @@ if (!window.Vue) {
           priority: 100,
           activeYn: "Y",
           description: "ADM에서 관리하는 로그 정책",
+          traceBoostTransactionGlobalId: "",
+          traceBoostBusinessTransactionId: "",
+          traceBoostApiPath: "",
+          traceBoostStatus: "",
+          traceBoostFailureCode: "",
+          traceBoostDurationMsGreaterThan: null,
+          traceBoostTtlSeconds: 600,
           effectiveStartAt: "",
           effectiveEndAt: "",
           reason: "로그 정책 변경",
@@ -1241,6 +1248,37 @@ if (!window.Vue) {
         const params = this.buildParams({ reason: this.logPolicyForm.reason });
         this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/overrides/${overrideId}/disable?${params.toString()}`, "PATCH");
         this.setMessage("로그 정책 override를 중지했습니다.");
+      },
+      async createTraceBoost() {
+        if (!this.requireReason(this.logPolicyForm.reason)) return;
+        this.logPolicyResult = await this.sendJson("/adm/api/log-policies/trace-boost", "POST", {
+          policyId: this.logPolicyForm.policyId,
+          transactionGlobalId: this.logPolicyForm.traceBoostTransactionGlobalId,
+          businessTransactionId: this.logPolicyForm.traceBoostBusinessTransactionId || this.logPolicyForm.targetId,
+          apiPath: this.logPolicyForm.traceBoostApiPath,
+          status: this.logPolicyForm.traceBoostStatus,
+          failureCode: this.logPolicyForm.traceBoostFailureCode,
+          durationMsGreaterThan: this.logPolicyForm.traceBoostDurationMsGreaterThan,
+          logLevel: this.logPolicyForm.logLevel,
+          ttlSeconds: this.logPolicyForm.traceBoostTtlSeconds,
+          requestUser: "admin-ui",
+          reason: this.logPolicyForm.reason
+        });
+        this.setMessage("Trace Boost를 등록했습니다.");
+      },
+      async loadTraceBoostRuntimeState() {
+        const params = this.buildParams({ limit: 200 });
+        this.logPolicyResult = await this.getJson(`/adm/api/log-policies/runtime-state?${params.toString()}`);
+      },
+      async loadTraceBoostHistory() {
+        const params = this.buildParams({ limit: 200 });
+        this.logPolicyResult = await this.getJson(`/adm/api/log-policies/history?${params.toString()}`);
+      },
+      async disableLogPolicy() {
+        if (!this.logPolicyForm.policyId || !this.requireReason(this.logPolicyForm.reason)) return;
+        const params = this.buildParams({ reason: this.logPolicyForm.reason });
+        this.logPolicyResult = await this.sendJson(`/adm/api/log-policies/${this.logPolicyForm.policyId}/disable?${params.toString()}`, "POST");
+        this.setMessage("로그 정책을 비활성화했습니다.");
       },
       async refreshLogPolicyCache() {
         if (!this.logPolicyForm.targetType || !this.logPolicyForm.targetId || !this.requireReason(this.logPolicyForm.reason)) return;

@@ -1,0 +1,43 @@
+{
+    "startedAt":  "2026-07-06T16:19:53.0342818+09:00",
+    "status":  "실패",
+    "login":  {
+                  "status":  "미검증"
+              },
+    "createTraceBoost":  {
+                             "status":  "미검증"
+                         },
+    "runtimeState":  {
+                         "status":  "미검증"
+                     },
+    "history":  {
+                    "status":  "미검증"
+                },
+    "fileLog":  {
+                    "status":  "미검증"
+                },
+    "cleanup":  {
+                    "status":  "미검증"
+                },
+    "error":  "ADM runtime port is not listening. baseUrl=http://localhost:8090",
+    "diagnostics":  {
+                        "module":  "ADM",
+                        "classification":  "environment",
+                        "error":  "ADM runtime port is not listening. baseUrl=http://localhost:8090",
+                        "ports":  [
+                                      {
+                                          "port":  8090,
+                                          "state":  "NOT_LISTENING",
+                                          "owningProcess":  null
+                                      }
+                                  ],
+                        "pid":  28828,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "processProbe":  "pid-file-and-port-probe",
+                        "logFiles":  {
+
+                                     }
+                    },
+    "finishedAt":  "2026-07-06T16:19:54.5808996+09:00"
+}

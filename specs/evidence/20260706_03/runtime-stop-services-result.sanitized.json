@@ -1,0 +1,38 @@
+{
+    "startedAt":  "2026-07-06T16:21:09.8055251+09:00",
+    "status":  "완료",
+    "modules":  [
+                    {
+                        "module":  "ACC",
+                        "pid":  27984,
+                        "status":  "완료",
+                        "reason":  "recorded PID is already stopped"
+                    },
+                    {
+                        "module":  "MBR",
+                        "pid":  12568,
+                        "status":  "완료",
+                        "reason":  "recorded PID is already stopped"
+                    },
+                    {
+                        "module":  "EXS",
+                        "pid":  24328,
+                        "status":  "완료",
+                        "reason":  "recorded PID is already stopped"
+                    },
+                    {
+                        "module":  "ADM",
+                        "pid":  28828,
+                        "status":  "완료",
+                        "reason":  "recorded PID is already stopped"
+                    },
+                    {
+                        "module":  "BAT",
+                        "pid":  25704,
+                        "status":  "완료",
+                        "reason":  "recorded PID is already stopped"
+                    }
+                ],
+    "rule":  "stop only PIDs recorded by this harness; do not kill arbitrary port owners",
+    "finishedAt":  "2026-07-06T16:21:09.8448424+09:00"
+}

@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($EvidenceDir)) {
-    $EvidenceDir = Join-Path $Root "specs/evidence/20260706_02"
+    $EvidenceDir = Join-Path $Root "specs/evidence/20260706_03"
 }
 if ([string]::IsNullOrWhiteSpace($RuntimeDir)) {
     $RuntimeDir = Join-Path $Root "build/runtime-smoke"
@@ -35,6 +35,8 @@ function Protect-Text {
     }
 
     $masked = $Text
+    # 외부 프로세스 로그가 잘못된 콘솔 인코딩으로 들어온 경우 UTF-8 검사에 걸리는 대체 문자를 제거한다.
+    $masked = $masked.Replace([string][char]0xFFFD, "[encoding-replaced]")
     $masked = [System.Text.RegularExpressions.Regex]::Replace($masked, '(?i)(Bearer\s+)[A-Za-z0-9._~+/=-]+', '$1***')
     $masked = [System.Text.RegularExpressions.Regex]::Replace(
         $masked,
@@ -94,11 +96,20 @@ Export-One -Sources @("build/runtime-smoke/adm-transaction-group-failure-runtime
 Export-One -Sources @("build/runtime-smoke/openapi-runtime-result.json") -TargetName "openapi-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/adm-ui-browser-smoke-result.json") -TargetName "adm-ui-browser-smoke-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-smoke-summary.json") -TargetName "runtime-smoke-summary.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/runtime-start-services-result.json") -TargetName "runtime-start-services-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/runtime-stop-services-result.json") -TargetName "runtime-stop-services-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/runtime-status-result.json") -TargetName "runtime-status-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/runtime-diagnostics-result.json") -TargetName "runtime-diagnostics-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-closure-result.json") -TargetName "runtime-closure-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/file-log-standard-result.json") -TargetName "file-log-standard-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/file-log-grep-summary.log") -TargetName "file-log-grep-summary.sanitized.log" -Kind "log"
 Export-One -Sources @("build/runtime-smoke/trace-boost-runtime-result.json") -TargetName "trace-boost-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/bat-trace-boost-runtime-result.json") -TargetName "bat-trace-boost-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/bat-log-bean-runtime-result.json") -TargetName "bat-log-bean-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/adm-operation-console-runtime-result.json") -TargetName "adm-operation-console-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/adm-log-policy-ui-static-result.json") -TargetName "adm-log-policy-ui-static-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/exs-timeout-retry-runtime-result.json") -TargetName "exs-timeout-retry-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/cmn-fixed-length-advanced-result.json") -TargetName "cmn-fixed-length-advanced-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/create-domain-result.json") -TargetName "create-domain-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/sql-smoke/mariadb-full-install-result.json") -TargetName "mariadb-full-install-result.sanitized.json" -Kind "json"
 Export-One -Sources @(

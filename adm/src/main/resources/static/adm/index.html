@@ -741,6 +741,10 @@
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="saveLogPolicy">저장</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="createLogPolicyOverride">Override 등록</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicyOverride">Override 중지</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="createTraceBoost">Trace Boost 등록</button>
+            <button type="button" @click="loadTraceBoostRuntimeState">Trace Boost 상태</button>
+            <button type="button" @click="loadTraceBoostHistory">Trace Boost 이력</button>
+            <button type="button" v-if="canWrite('LOG_POLICY')" @click="disableLogPolicy">정책 중지</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="refreshLogPolicyCache">Cache refresh</button>
             <button type="button" v-if="canWrite('LOG_POLICY')" @click="clearLogPolicyCache">Cache clear</button>
           </div>
@@ -758,6 +762,13 @@
           <label>응답 본문 <select v-model="logPolicyForm.responseBodyLogYn"><option>Y</option><option>N</option></select></label>
           <label>보존일 <input v-model.number="logPolicyForm.retentionDays" type="number"></label>
           <label>우선순위 <input v-model.number="logPolicyForm.priority" type="number"></label>
+          <label>Trace 거래 ID <input v-model="logPolicyForm.traceBoostTransactionGlobalId" type="text"></label>
+          <label>Trace 업무 거래 ID <input v-model="logPolicyForm.traceBoostBusinessTransactionId" type="text"></label>
+          <label>Trace API 경로 <input v-model="logPolicyForm.traceBoostApiPath" type="text"></label>
+          <label>Trace 상태 <input v-model="logPolicyForm.traceBoostStatus" type="text" placeholder="FAILED"></label>
+          <label>Trace 실패코드 <input v-model="logPolicyForm.traceBoostFailureCode" type="text" placeholder="EXS_TIMEOUT"></label>
+          <label>Trace 지연 기준(ms) <input v-model.number="logPolicyForm.traceBoostDurationMsGreaterThan" type="number"></label>
+          <label>Trace TTL(초) <input v-model.number="logPolicyForm.traceBoostTtlSeconds" type="number"></label>
           <label>시작 <input v-model="logPolicyForm.effectiveStartAt" type="datetime-local"></label>
           <label>종료 <input v-model="logPolicyForm.effectiveEndAt" type="datetime-local"></label>
           <label>사유 <input v-model="logPolicyForm.reason" type="text"></label>

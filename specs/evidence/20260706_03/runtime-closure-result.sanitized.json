@@ -1,0 +1,100 @@
+{
+    "startedAt":  "2026-07-06T16:20:28.2223546+09:00",
+    "status":  "실패",
+    "modules":  [
+                    "ACC",
+                    "MBR",
+                    "EXS",
+                    "ADM",
+                    "BAT"
+                ],
+    "runtimeStart":  {
+                         "status":  "실패",
+                         "name":  "runtime-start-services",
+                         "resultPath":  "build\\runtime-smoke\\runtime-start-services-result.json",
+                         "finishedAt":  "2026-07-06T16:19:20.3923942+09:00",
+                         "error":  null,
+                         "failureClassification":  null
+                     },
+    "runtimeStatus":  {
+                          "status":  "실패",
+                          "name":  "runtime-status",
+                          "resultPath":  "build\\runtime-smoke\\runtime-status-result.json",
+                          "finishedAt":  "2026-07-06T16:20:31.9545288+09:00",
+                          "error":  null,
+                          "failureClassification":  null
+                      },
+    "runtimeDiagnostics":  {
+                               "status":  "실패",
+                               "name":  "runtime-diagnostics",
+                               "resultPath":  "build\\runtime-smoke\\runtime-diagnostics-result.json",
+                               "finishedAt":  "2026-07-06T16:20:35.9446401+09:00",
+                               "error":  null,
+                               "failureClassification":  null
+                           },
+    "fileLogStandard":  {
+                            "status":  "실패",
+                            "name":  "file-log-standard",
+                            "resultPath":  "build\\runtime-smoke\\file-log-standard-result.json",
+                            "finishedAt":  "2026-07-06T16:19:55.2332352+09:00",
+                            "error":  "ACC runtime port is not listening. baseUrl=http://localhost:8080",
+                            "failureClassification":  null
+                        },
+    "traceBoost":  {
+                       "status":  "실패",
+                       "name":  "trace-boost",
+                       "resultPath":  "build\\runtime-smoke\\trace-boost-runtime-result.json",
+                       "finishedAt":  "2026-07-06T16:19:54.5808996+09:00",
+                       "error":  "ADM runtime port is not listening. baseUrl=http://localhost:8090",
+                       "failureClassification":  null
+                   },
+    "batTraceBoost":  {
+                          "status":  "실패",
+                          "name":  "bat-trace-boost",
+                          "resultPath":  "build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+                          "finishedAt":  "2026-07-06T16:20:18.7902245+09:00",
+                          "error":  "BAT trace boost runtime smoke failed. result=D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+                          "failureClassification":  null
+                      },
+    "batLogBean":  {
+                       "status":  "실패",
+                       "name":  "bat-log-bean",
+                       "resultPath":  "build\\runtime-smoke\\bat-log-bean-runtime-result.json",
+                       "finishedAt":  "2026-07-06T16:19:54.6919533+09:00",
+                       "error":  null,
+                       "failureClassification":  "environment"
+                   },
+    "admOperationConsole":  {
+                                "status":  "실패",
+                                "name":  "adm-operation-console",
+                                "resultPath":  "build\\runtime-smoke\\adm-operation-console-runtime-result.json",
+                                "finishedAt":  "2026-07-06T16:19:54.7159678+09:00",
+                                "error":  null,
+                                "failureClassification":  "environment"
+                            },
+    "admLogPolicyUiStatic":  {
+                                 "status":  "완료",
+                                 "name":  "adm-log-policy-ui-static",
+                                 "resultPath":  "build\\runtime-smoke\\adm-log-policy-ui-static-result.json",
+                                 "finishedAt":  "2026-07-06T15:33:51.0662958+09:00",
+                                 "error":  null,
+                                 "failureClassification":  null
+                             },
+    "exsTimeoutRetry":  {
+                            "status":  "실패",
+                            "name":  "exs-timeout-retry",
+                            "resultPath":  "build\\runtime-smoke\\exs-timeout-retry-runtime-result.json",
+                            "finishedAt":  "2026-07-06T16:19:54.7758624+09:00",
+                            "error":  null,
+                            "failureClassification":  "environment"
+                        },
+    "cmnFixedLengthAdvanced":  {
+                                   "status":  "완료",
+                                   "name":  "cmn-fixed-length-advanced",
+                                   "resultPath":  "build\\runtime-smoke\\cmn-fixed-length-advanced-result.json",
+                                   "finishedAt":  "2026-07-06T16:02:56.1694093+09:00",
+                                   "error":  null,
+                                   "failureClassification":  null
+                               },
+    "finishedAt":  "2026-07-06T16:20:36.2184197+09:00"
+}

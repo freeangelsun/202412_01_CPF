@@ -1,0 +1,118 @@
+{
+    "checkedAt":  "2026-07-06T16:20:28.2977644+09:00",
+    "status":  "실패",
+    "modules":  [
+                    {
+                        "module":  "ACC",
+                        "port":  8080,
+                        "status":  "실패",
+                        "listening":  false,
+                        "pid":  27984,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "health":  null,
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\acc\\cmn-2026-07-02.log",
+                                             "bytes":  48957,
+                                             "lastWriteTime":  "2026-07-02T15:54:42.0224808+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\acc\\acc-2026-07-02.log",
+                                             "bytes":  887773,
+                                             "lastWriteTime":  "2026-07-02T15:54:40.1942069+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\acc\\pfw-2026-07-02.log",
+                                             "bytes":  665073,
+                                             "lastWriteTime":  "2026-07-02T15:54:39.9466246+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    },
+                    {
+                        "module":  "MBR",
+                        "port":  8081,
+                        "status":  "실패",
+                        "listening":  false,
+                        "pid":  12568,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "health":  null,
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\mbr\\mbr.log",
+                                             "bytes":  17684,
+                                             "lastWriteTime":  "2026-07-06T16:18:21.1105823+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\mbr\\mbr.2026-07-03.0.log",
+                                             "bytes":  92748,
+                                             "lastWriteTime":  "2026-07-03T19:10:38.9968652+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\mbr\\mbr-error.log",
+                                             "bytes":  0,
+                                             "lastWriteTime":  "2026-07-03T13:14:23.2802987+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    },
+                    {
+                        "module":  "EXS",
+                        "port":  8092,
+                        "status":  "실패",
+                        "listening":  false,
+                        "pid":  24328,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "health":  null,
+                        "logFiles":  {
+
+                                     }
+                    },
+                    {
+                        "module":  "ADM",
+                        "port":  8090,
+                        "status":  "실패",
+                        "listening":  false,
+                        "pid":  28828,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "health":  null,
+                        "logFiles":  {
+
+                                     }
+                    },
+                    {
+                        "module":  "BAT",
+                        "port":  8093,
+                        "status":  "실패",
+                        "listening":  false,
+                        "pid":  25704,
+                        "processAlive":  false,
+                        "processName":  null,
+                        "health":  null,
+                        "logFiles":  {
+
+                                     }
+                    }
+                ],
+    "finishedAt":  "2026-07-06T16:20:31.9545288+09:00"
+}

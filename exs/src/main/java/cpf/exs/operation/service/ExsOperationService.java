@@ -14,6 +14,7 @@ import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import cpf.pfw.common.logging.segment.TransactionSegmentContext;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -33,6 +34,7 @@ public class ExsOperationService {
     private final ExsOperationRepository operationRepository;
     private final ObjectProvider<CpfFileLogWriter> fileLogWriterProvider;
 
+    @Autowired
     public ExsOperationService(
             CmnCryptoService cryptoService,
             ExsOperationRepository operationRepository,

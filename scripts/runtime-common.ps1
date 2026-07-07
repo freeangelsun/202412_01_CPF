@@ -163,6 +163,41 @@ function Write-CpfRuntimeJson {
     [System.IO.File]::WriteAllText($Path, ($Value | ConvertTo-Json -Depth 80), $script:CpfRuntimeUtf8NoBom)
 }
 
+function New-CpfRuntimeTransactionHeaders {
+    param(
+        [string] $Module = "PFW",
+        [string] $WasId = "smoke01",
+        [string] $RequestType = "SMOKE",
+        [string] $ClientAppId = "cpf-runtime-smoke",
+        [string] $ClientVersion = "1.0.0",
+        [string] $UserId = "runtime-smoke",
+        [string] $ChannelCode = ""
+    )
+
+    $normalizedModule = if ([string]::IsNullOrWhiteSpace($Module)) { "PFW" } else { $Module.Trim().ToUpperInvariant() }
+    $normalizedWasId = if ([string]::IsNullOrWhiteSpace($WasId)) { "smoke01" } else { $WasId.Trim() }
+    if ($normalizedWasId.Length -lt 7) {
+        $normalizedWasId = $normalizedWasId.PadRight(7, "0")
+    } elseif ($normalizedWasId.Length -gt 7) {
+        $normalizedWasId = $normalizedWasId.Substring(0, 7)
+    }
+
+    $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    $transactionId = "$timestamp$normalizedModule$normalizedWasId" + "0000001"
+    $resolvedChannel = if ([string]::IsNullOrWhiteSpace($ChannelCode)) { $normalizedModule } else { $ChannelCode.Trim().ToUpperInvariant() }
+
+    return @{
+        "X-Transaction-Id" = $transactionId
+        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
+        "X-Request-Type" = $RequestType
+        "X-Original-Channel-Code" = $resolvedChannel
+        "X-Channel-Code" = $resolvedChannel
+        "X-Client-App-Id" = $ClientAppId
+        "X-Client-Version" = $ClientVersion
+        "X-User-Id" = $UserId
+    }
+}
+
 function Test-CpfRuntimeTcpPort {
     param(
         [int] $Port,

@@ -42,4 +42,19 @@ class CpfFileLogWriterTest {
                 .doesNotContain("api-key-raw")
                 .doesNotContain("credential-raw");
     }
+
+    @Test
+    void writeEventUsesConfiguredModuleIdBeforeApplicationName() throws Exception {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.framework.module-id", "ACC")
+                .withProperty("spring.application.name", "cpf-cmn")
+                .withProperty("server.port", "8080");
+        CpfFileLogWriter writer = new CpfFileLogWriter(environment);
+
+        writer.writeEvent(null, "transaction", Map.of("eventType", "MODULE_ID_PRIORITY_CHECK"));
+
+        assertThat(tempDir.resolve("acc").resolve("cpf-acc-transaction.log")).exists();
+        assertThat(tempDir.resolve("cmn").resolve("cpf-cmn-transaction.log")).doesNotExist();
+    }
 }

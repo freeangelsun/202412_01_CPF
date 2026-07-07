@@ -1,0 +1,24 @@
+{
+    "startedAt":  "2026-07-06T19:41:10.1281986+09:00",
+    "status":  "완료",
+    "sourceMarkers":  {
+                          "FixedLengthLayoutSpec.java":  true,
+                          "FixedLengthFieldSpec.java":  true,
+                          "FixedLengthGroupSpec.java":  true,
+                          "FixedLengthMessageParser.java":  true,
+                          "FixedLengthMessageFormatter.java":  true,
+                          "FixedLengthTypeConverter.java":  true,
+                          "FixedLengthMaskingRule.java":  true,
+                          "FixedLengthLayoutRegistry.java":  true,
+                          "repeatingGroupTest":  true,
+                          "typeValidationTest":  true,
+                          "maskingTest":  true
+                      },
+    "gradleTest":  {
+                       "status":  "완료",
+                       "mode":  "external-direct-command",
+                       "command":  ".\\gradlew.bat :cmn:test --offline --no-daemon --console=plain --tests cpf.cmn.message.fixedlength.FixedLengthMessageParserFormatterTest",
+                       "note":  "direct Gradle command was executed outside this script because nested gradlew can be sandbox-limited"
+                   },
+    "finishedAt":  "2026-07-06T19:41:10.1654498+09:00"
+}

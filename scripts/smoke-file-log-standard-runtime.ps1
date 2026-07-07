@@ -174,7 +174,8 @@ try {
 } catch {
     $result.status = $StatusFailed
     $result.error = $_.Exception.Message
-    if ($null -eq $result.runtimeProbe.diagnostics) {
+    $diagnosticsProperty = $result.runtimeProbe.PSObject.Properties["diagnostics"]
+    if ($null -eq $diagnosticsProperty -or $null -eq $diagnosticsProperty.Value) {
         $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8092) -ErrorMessage $_.Exception.Message
     }
     Save-Result

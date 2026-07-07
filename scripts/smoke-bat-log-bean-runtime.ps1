@@ -26,7 +26,7 @@ $result = [ordered]@{
 
 function Save-BatBeanResult {
     $result.finishedAt = (Get-Date).ToString("o")
-    Write-CpfRuntimeJson -Path $resultPath -Value $result
+    [System.IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 12), $script:CpfRuntimeUtf8NoBom)
 }
 
 try {
@@ -43,19 +43,37 @@ try {
         return
     }
 
+    $batHeaders = New-CpfRuntimeTransactionHeaders -Module "BAT" -WasId "batbean" -ClientAppId "cpf-bat-log-smoke"
+
     $diagnosticUri = "$BatBaseUrl/bat/api/diagnostics/logging"
-    $diagnostic = Invoke-RestMethod -Uri $diagnosticUri -Method Get -TimeoutSec 8
-    $result.loggingDiagnostics = $diagnostic
+    $diagnostic = Invoke-RestMethod -Uri $diagnosticUri -Method Get -Headers $batHeaders -TimeoutSec 8
+    $result.loggingDiagnostics = [ordered]@{
+        cpfBatchFileLogWriterBean = [bool] $diagnostic.cpfBatchFileLogWriterBean
+        cpfBatchRuntimeListenerBean = [bool] $diagnostic.cpfBatchRuntimeListenerBean
+    }
 
     $runUri = "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_SMOKE_JOB/run"
-    $runResult = Invoke-RestMethod -Uri $runUri -Method Post -TimeoutSec 30
-    $result.smokeJobRun = $runResult
+    $runResult = Invoke-RestMethod -Uri $runUri -Method Post -Headers (New-CpfRuntimeTransactionHeaders -Module "BAT" -WasId "batrun0" -ClientAppId "cpf-bat-log-smoke") -TimeoutSec 30
+    $result.smokeJobRun = [ordered]@{
+        executed = [bool] $runResult.executed
+        jobId = [string] $runResult.jobId
+        pfwExecutionId = $runResult.pfwExecutionId
+        springBatchExecutionId = $runResult.springBatchExecutionId
+        status = [string] $runResult.status
+    }
 
     Start-Sleep -Milliseconds 700
     $logExists = Test-Path -LiteralPath $batchLogPath
     $result.batchLogExists = $logExists
     $result.batchLogBytes = $(if ($logExists) { (Get-Item -LiteralPath $batchLogPath).Length } else { 0 })
-    $result.batchLogTail = Get-CpfRuntimeTail -Path $batchLogPath -LineCount 40
+    if ($logExists) {
+        $batchLogContent = [System.IO.File]::ReadAllText($batchLogPath, [System.Text.Encoding]::UTF8)
+        $result.batchLogContainsJobName = $batchLogContent.Contains("jobName")
+        $result.batchLogContainsJobExecutionId = $batchLogContent.Contains("jobExecutionId")
+    } else {
+        $result.batchLogContainsJobName = $false
+        $result.batchLogContainsJobExecutionId = $false
+    }
 
     $beanOk = [bool] $diagnostic.cpfBatchFileLogWriterBean -and [bool] $diagnostic.cpfBatchRuntimeListenerBean
     $logOk = $logExists -and $result.batchLogBytes -gt 0

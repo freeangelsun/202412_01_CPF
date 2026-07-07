@@ -29,16 +29,33 @@ try {
         if ($listening) {
             $httpProbe = Invoke-CpfRuntimeHttpProbe -Port $module.port -Path $module.healthPath -TimeoutSeconds $HttpTimeoutSeconds
         }
-        $moduleStatus = if ($listening) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" }
+        $healthCheckPassed = ($httpProbe -ne $null -and [bool] $httpProbe.success)
+        $processStillAliveAfterProbe = [bool] $pidInfo.processAlive
+        $finalRuntimeUsable = ($listening -and $processStillAliveAfterProbe -and $healthCheckPassed)
+        $moduleStatus = if ($finalRuntimeUsable) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" }
+        $failureRootCause = ""
+        if (-not $listening) {
+            $failureRootCause = "runtime port is not listening."
+        } elseif (-not $processStillAliveAfterProbe) {
+            $failureRootCause = "runtime port is listening but the harness pid is not alive."
+        } elseif (-not $healthCheckPassed) {
+            $failureRootCause = "runtime port is listening but health check failed."
+        }
         $result.modules += [ordered]@{
             module = $module.module
             port = $module.port
             status = $moduleStatus
             listening = $listening
+            portOpened = $listening
             pid = $pidInfo.pid
             processAlive = $pidInfo.processAlive
             processName = $pidInfo.processName
+            processStillAliveAfterProbe = $processStillAliveAfterProbe
             health = $httpProbe
+            healthCheckPassed = $healthCheckPassed
+            finalRuntimeUsable = $finalRuntimeUsable
+            failureClassification = $(if ($finalRuntimeUsable) { $null } else { "environment" })
+            failureRootCause = $failureRootCause
             logFiles = Get-CpfRuntimeLogFiles -Root $Root -Module $module
         }
     }

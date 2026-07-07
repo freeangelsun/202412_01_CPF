@@ -1,0 +1,157 @@
+{
+    "startedAt":  "2026-07-06T19:13:49.5667005+09:00",
+    "status":  "완료",
+    "logBasePath":  "D:\\WORK_CPF\\202412_01_CPF\\logs",
+    "runtimeProbe":  {
+                         "status":  "완료",
+                         "httpStatus":  200
+                     },
+    "transactionGlobalId":  "20260706191349586ACCflog0010000001",
+    "files":  [
+                  {
+                      "moduleCode":  "ACC",
+                      "logType":  "transaction",
+                      "path":  "logs\\acc\\cpf-acc-transaction.log",
+                      "required":  true,
+                      "exists":  true,
+                      "containsTransactionGlobalId":  true,
+                      "requiredFieldsPresent":  [
+                                                    "timestamp",
+                                                    "level",
+                                                    "logType",
+                                                    "eventType",
+                                                    "moduleCode",
+                                                    "transactionGlobalId",
+                                                    "serverId",
+                                                    "instanceId",
+                                                    "hostName",
+                                                    "hostIp",
+                                                    "processId",
+                                                    "profile",
+                                                    "appVersion",
+                                                    "buildVersion"
+                                                ],
+                      "missingFields":  [
+
+                                        ],
+                      "status":  "완료"
+                  },
+                  {
+                      "moduleCode":  "ACC",
+                      "logType":  "integration",
+                      "path":  "logs\\acc\\cpf-acc-integration.log",
+                      "required":  true,
+                      "exists":  true,
+                      "containsTransactionGlobalId":  true,
+                      "requiredFieldsPresent":  [
+                                                    "timestamp",
+                                                    "level",
+                                                    "logType",
+                                                    "eventType",
+                                                    "moduleCode",
+                                                    "transactionGlobalId",
+                                                    "serverId",
+                                                    "instanceId",
+                                                    "hostName",
+                                                    "hostIp",
+                                                    "processId",
+                                                    "profile",
+                                                    "appVersion",
+                                                    "buildVersion"
+                                                ],
+                      "missingFields":  [
+
+                                        ],
+                      "status":  "완료"
+                  },
+                  {
+                      "moduleCode":  "EXS",
+                      "logType":  "transaction",
+                      "path":  "logs\\exs\\cpf-exs-transaction.log",
+                      "required":  false,
+                      "exists":  true,
+                      "containsTransactionGlobalId":  true,
+                      "requiredFieldsPresent":  [
+                                                    "timestamp",
+                                                    "level",
+                                                    "logType",
+                                                    "eventType",
+                                                    "moduleCode",
+                                                    "transactionGlobalId",
+                                                    "serverId",
+                                                    "instanceId",
+                                                    "hostName",
+                                                    "hostIp",
+                                                    "processId",
+                                                    "profile",
+                                                    "appVersion",
+                                                    "buildVersion"
+                                                ],
+                      "missingFields":  [
+
+                                        ],
+                      "status":  "완료"
+                  },
+                  {
+                      "moduleCode":  "EXS",
+                      "logType":  "integration",
+                      "path":  "logs\\exs\\cpf-exs-integration.log",
+                      "required":  false,
+                      "exists":  true,
+                      "containsTransactionGlobalId":  true,
+                      "requiredFieldsPresent":  [
+                                                    "timestamp",
+                                                    "level",
+                                                    "logType",
+                                                    "eventType",
+                                                    "moduleCode",
+                                                    "transactionGlobalId",
+                                                    "serverId",
+                                                    "instanceId",
+                                                    "hostName",
+                                                    "hostIp",
+                                                    "processId",
+                                                    "profile",
+                                                    "appVersion",
+                                                    "buildVersion"
+                                                ],
+                      "missingFields":  [
+
+                                        ],
+                      "status":  "완료"
+                  },
+                  {
+                      "moduleCode":  "BAT",
+                      "logType":  "batch",
+                      "path":  "logs\\bat\\cpf-bat-batch.log",
+                      "required":  false,
+                      "exists":  false,
+                      "containsTransactionGlobalId":  false,
+                      "requiredFieldsPresent":  [
+
+                                                ],
+                      "missingFields":  [
+
+                                        ],
+                      "status":  "미검증"
+                  }
+              ],
+    "requiredFields":  [
+                           "timestamp",
+                           "level",
+                           "logType",
+                           "eventType",
+                           "moduleCode",
+                           "transactionGlobalId",
+                           "serverId",
+                           "instanceId",
+                           "hostName",
+                           "hostIp",
+                           "processId",
+                           "profile",
+                           "appVersion",
+                           "buildVersion"
+                       ],
+    "grepSummaryPath":  "build\\runtime-smoke\\file-log-grep-summary.log",
+    "finishedAt":  "2026-07-06T19:13:54.8176573+09:00"
+}

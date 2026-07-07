@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($EvidenceDir)) {
-    $EvidenceDir = Join-Path $Root "specs/evidence/20260706_03"
+    $EvidenceDir = Join-Path $Root "specs/evidence/20260706_04"
 }
 if ([string]::IsNullOrWhiteSpace($RuntimeDir)) {
     $RuntimeDir = Join-Path $Root "build/runtime-smoke"
@@ -97,6 +97,7 @@ Export-One -Sources @("build/runtime-smoke/openapi-runtime-result.json") -Target
 Export-One -Sources @("build/runtime-smoke/adm-ui-browser-smoke-result.json") -TargetName "adm-ui-browser-smoke-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-smoke-summary.json") -TargetName "runtime-smoke-summary.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-start-services-result.json") -TargetName "runtime-start-services-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/packaged-runtime-resource-check.json") -TargetName "packaged-runtime-resource-check.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-stop-services-result.json") -TargetName "runtime-stop-services-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-status-result.json") -TargetName "runtime-status-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/runtime-diagnostics-result.json") -TargetName "runtime-diagnostics-result.sanitized.json" -Kind "json"

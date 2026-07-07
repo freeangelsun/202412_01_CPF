@@ -48,7 +48,6 @@ public class BatHealthController {
     }
 
     @GetMapping("/bat/api/health")
-    @CpfTransaction(id = "BAT01OPR0001", name = "BATHealth")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new LinkedHashMap<>();
         ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();

@@ -202,11 +202,16 @@ public class CpfFileLogWriter {
     }
 
     private String moduleCode() {
+        String configuredModuleId = environment.getProperty("cpf.framework.module-id");
+        if (hasText(configuredModuleId)) {
+            return normalizeModuleCode(configuredModuleId);
+        }
+
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
             return normalizeModuleCode(appName.replace("cpf-", ""));
         }
-        return environment.getProperty("cpf.framework.module-id", "PFW");
+        return "PFW";
     }
 
     private String normalizeModuleCode(String moduleCode) {

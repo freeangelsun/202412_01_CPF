@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="MODULE_NAME" value="acc" />
-    <property name="LOG_PATH" value="logs" />
+    <property name="LOG_PATH" value="${CPF_LOGGING_FILE_BASE_PATH:-logs}" />
     <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} [TranId: %X{transactionId}] [BizTranId: %X{businessTransactionId}] [TraceId: %X{traceId}] [SpanId: %X{spanId}] [DynLevel: %X{dynamicLogLevel}] - %msg%n" />
 
     <!-- CPF 설정 설명입니다. -->
@@ -112,4 +112,3 @@
         <appender-ref ref="TRANSACTION_FILE" />
     </root>
 </configuration>
-

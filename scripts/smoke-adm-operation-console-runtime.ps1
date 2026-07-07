@@ -54,6 +54,22 @@ function Invoke-AdmJson {
     return $response.Content | ConvertFrom-Json
 }
 
+function Get-AdmOperationItemCount {
+    param([object] $Body)
+
+    if ($Body -is [System.Array]) {
+        return $Body.Count
+    }
+    if ($null -eq $Body) {
+        return $null
+    }
+    $itemsProperty = $Body.PSObject.Properties["items"]
+    if ($null -ne $itemsProperty) {
+        return @($itemsProperty.Value).Count
+    }
+    return $null
+}
+
 try {
     $portListening = Test-CpfRuntimeTcpPort -Port 8090
     $result.portListening = $portListening
@@ -74,14 +90,15 @@ try {
 
     $health = Invoke-AdmJson -Method Get -Path "/adm/api/health"
     $result.health = $health
-    $login = Invoke-AdmJson -Method Post -Path "/adm/api/auth/login" -Body @{
+    $login = Invoke-AdmJson -Method Post -Path "/adm/api/auth/login" -Headers (New-CpfRuntimeTransactionHeaders -Module "ADM" -WasId "admop01" -ClientAppId "cpf-adm-operation-smoke") -Body @{
         operatorId = $AdmUsername
         password = $AdmPassword
     }
     if ([string]::IsNullOrWhiteSpace([string] $login.accessToken)) {
         throw "ADM login response does not contain accessToken."
     }
-    $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+    $headers = New-CpfRuntimeTransactionHeaders -Module "ADM" -WasId "admop02" -ClientAppId "cpf-adm-operation-smoke"
+    $headers.Authorization = "Bearer $($login.accessToken)"
 
     $endpoints = @(
         "/adm/api/transaction-groups?limit=5",
@@ -105,11 +122,11 @@ try {
         $checked.Add([ordered]@{
             method = "GET"
             path = $endpoint
-            itemCount = $(if ($body -is [System.Array]) { $body.Count } elseif ($body -ne $null -and $body.items -ne $null) { @($body.items).Count } else { $null })
+            itemCount = Get-AdmOperationItemCount -Body $body
         })
     }
 
-    $result.checkedEndpoints = @($checked)
+    $result.checkedEndpoints = @($checked.ToArray())
     $result.status = Get-CpfRuntimeStatusText "Done"
     Save-AdmOperationResult
 } catch {

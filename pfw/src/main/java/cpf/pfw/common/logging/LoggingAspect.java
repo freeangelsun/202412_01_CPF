@@ -761,9 +761,9 @@ public class LoggingAspect {
     }
 
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
-        String appName = environment.getProperty("spring.application.name");
-        if (hasText(appName)) {
-            return appName.replace("cpf-", "").toUpperCase();
+        String configuredModuleId = environment.getProperty("cpf.framework.module-id");
+        if (hasText(configuredModuleId)) {
+            return configuredModuleId.replace("cpf-", "").toUpperCase();
         }
 
         String declaringType = joinPoint.getSignature().getDeclaringTypeName();
@@ -778,6 +778,11 @@ public class LoggingAspect {
         }
         if (declaringType.contains(".pfw.")) {
             return "PFW";
+        }
+
+        String appName = environment.getProperty("spring.application.name");
+        if (hasText(appName)) {
+            return appName.replace("cpf-", "").toUpperCase();
         }
         return "N/A";
     }

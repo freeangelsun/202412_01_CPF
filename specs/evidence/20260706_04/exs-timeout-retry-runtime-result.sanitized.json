@@ -1,0 +1,29 @@
+{
+    "startedAt":  "2026-07-06T19:38:08.4782849+09:00",
+    "status":  "완료",
+    "baseUrl":  "http://127.0.0.1:8092",
+    "sourceMarkers":  {
+                          "endpointTimeoutRetry":  true,
+                          "retryLedger":  true,
+                          "timeoutFailureLog":  true,
+                          "cpfErrorMappingCandidate":  true,
+                          "adminLedgerQuery":  true
+                      },
+    "portListening":  true,
+    "endpointListCount":  1,
+    "endpointTimeoutRetryFields":  [
+                                       {
+                                           "timeoutMs":  3000,
+                                           "retryCount":  2,
+                                           "retryableYn":  null
+                                       }
+                                   ],
+    "failureCall":  {
+                        "status":  "EXPECTED_FAILURE",
+                        "httpStatus":  502,
+                        "error":  "WebException"
+                    },
+    "transactionLedgerCount":  6,
+    "timeoutFailureFound":  true,
+    "finishedAt":  "2026-07-06T19:38:08.9413316+09:00"
+}

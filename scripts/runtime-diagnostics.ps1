@@ -42,14 +42,29 @@ function New-CpfRuntimeDiagnostic {
         $logFiles = Get-CpfRuntimeLogFiles -Root $resolvedRoot -Module $moduleInfo -IncludeTail
     }
 
+    $portOpened = (@($portStates | Where-Object { $_.state -eq "LISTENING" }).Count -gt 0)
+    $processStillAliveAfterProbe = ($pidInfo -ne $null -and [bool] $pidInfo.processAlive)
+    $finalRuntimeUsable = ($portOpened -and $processStillAliveAfterProbe)
+    $failureRootCause = ""
+    if (-not $portOpened) {
+        $failureRootCause = "runtime port is not listening."
+    } elseif (-not $processStillAliveAfterProbe) {
+        $failureRootCause = "runtime port is listening but the harness pid is not alive."
+    }
+
     return [ordered]@{
         module = $Module
         classification = Get-CpfRuntimeFailureClassification -Message $ErrorMessage
         error = $ErrorMessage
         ports = $portStates
+        portOpened = $portOpened
         pid = $(if ($pidInfo -ne $null) { $pidInfo.pid } else { $null })
         processAlive = $(if ($pidInfo -ne $null) { $pidInfo.processAlive } else { $false })
         processName = $(if ($pidInfo -ne $null) { $pidInfo.processName } else { $null })
+        processStillAliveAfterProbe = $processStillAliveAfterProbe
+        finalRuntimeUsable = $finalRuntimeUsable
+        failureClassification = $(if ($finalRuntimeUsable) { $null } else { Get-CpfRuntimeFailureClassification -Message $ErrorMessage })
+        failureRootCause = $failureRootCause
         processProbe = "pid-file-and-port-probe"
         logFiles = $logFiles
     }
@@ -84,11 +99,8 @@ function Invoke-CpfRuntimeDiagnostics {
     }
 
     $result.diagnostics = @($diagnosticItems)
-    $notListening = @($result.diagnostics | Where-Object {
-            $ports = @($_.ports)
-            $ports.Count -gt 0 -and @($ports | Where-Object { $_.state -eq "LISTENING" }).Count -eq 0
-        })
-    $result.status = $(if ($notListening.Count -eq 0) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" })
+    $notUsable = @($result.diagnostics | Where-Object { $_.finalRuntimeUsable -ne $true })
+    $result.status = $(if ($notUsable.Count -eq 0) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" })
     $result.finishedAt = (Get-Date).ToString("o")
     $resultPath = Join-Path $resolvedResultDir "runtime-diagnostics-result.json"
     Write-CpfRuntimeJson -Path $resultPath -Value $result

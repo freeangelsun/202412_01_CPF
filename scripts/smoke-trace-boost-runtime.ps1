@@ -74,7 +74,7 @@ function Test-EndpointListening {
 
 function New-Headers {
     return @{
-        "X-Transaction-Id" = "$(Get-Date -Format yyyyMMddHHmmssfff)" + "ADM" + "trb001" + "0000001"
+        "X-Transaction-Id" = "$(Get-Date -Format yyyyMMddHHmmssfff)" + "ADM" + "trb0001" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
         "X-Original-Channel-Code" = "ADM"
@@ -88,12 +88,13 @@ try {
         throw "ADM runtime port is not listening. baseUrl=$AdmBaseUrl"
     }
     if ([string]::IsNullOrWhiteSpace($AdmPassword)) { $AdmPassword = "Adm!n12345" }
-    $login = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
+    $login = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Headers (New-Headers) -Body @{
         operatorId = $AdmUsername
         password = $AdmPassword
     }
     if ([string]::IsNullOrWhiteSpace($login.accessToken)) { throw "ADM login token was not returned." }
-    $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+    $headers = New-Headers
+    $headers.Authorization = "Bearer $($login.accessToken)"
     $result.login.status = $StatusDone
 
     $created = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/log-policies/trace-boost" -Headers $headers -Body @{
@@ -111,11 +112,7 @@ try {
     $result.runtimeState.status = $(if (@($state.items).Count -gt 0) { $StatusDone } else { $StatusPartial })
     $result.runtimeState.count = @($state.items).Count
 
-    $targetHeaders = New-Headers
-    foreach ($key in $headers.Keys) {
-        $targetHeaders[$key] = $headers[$key]
-    }
-    Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transactions?activeYn=Y&limit=1" -Headers $targetHeaders | Out-Null
+    Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transactions?activeYn=Y&limit=1" -Headers $headers | Out-Null
     Start-Sleep -Seconds 2
 
     $history = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/log-policies/history?limit=20" -Headers $headers

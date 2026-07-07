@@ -22,6 +22,7 @@ public class TransactionWebMvcConfig implements WebMvcConfigurer {
                         "/adm",
                         "/adm/",
                         "/adm/api/health",
+                        "/bat/api/health",
                         "/webjars/**",
                         "/swagger-ui.html",
                         "/swagger-ui/**",

@@ -76,6 +76,7 @@ $script:RequiredCheckIds = @(
     "trace-boost-runtime",
     "bat-trace-boost-runtime",
     "runtime-start-services",
+    "packaged-runtime-resources",
     "runtime-status-diagnostics",
     "runtime-closure",
     "adm-operation-console-runtime",

@@ -32,6 +32,22 @@ function Save-ExsResult {
     Write-CpfRuntimeJson -Path $resultPath -Value $result
 }
 
+function Get-ObjectPropertyValue {
+    param(
+        [object] $Object,
+        [string] $Name
+    )
+
+    if ($null -eq $Object) {
+        return $null
+    }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $null
+    }
+    return $property.Value
+}
+
 try {
     $repositoryText = [System.IO.File]::ReadAllText((Join-Path $Root "exs/src/main/java/cpf/exs/operation/repository/ExsOperationRepository.java"), [System.Text.Encoding]::UTF8)
     $serviceText = [System.IO.File]::ReadAllText((Join-Path $Root "exs/src/main/java/cpf/exs/operation/service/ExsOperationService.java"), [System.Text.Encoding]::UTF8)
@@ -55,7 +71,8 @@ try {
         return
     }
 
-    $endpointList = Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/endpoints" -Method Get -TimeoutSec 8
+    $exsHeaders = New-CpfRuntimeTransactionHeaders -Module "EXS" -WasId "exsrt01" -ClientAppId "cpf-exs-timeout-smoke"
+    $endpointList = Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/endpoints" -Method Get -Headers $exsHeaders -TimeoutSec 8
     $result.endpointListCount = @($endpointList).Count
     $result.endpointTimeoutRetryFields = @($endpointList | Select-Object -First 3 timeoutMs,retryCount,retryableYn)
 
@@ -69,7 +86,7 @@ try {
         timeoutMs = 1500
     }
     try {
-        Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/edu/external-transfer/failure" -Method Post -Body ($failureBody | ConvertTo-Json -Depth 10) -ContentType "application/json" -TimeoutSec 15 | Out-Null
+        Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/edu/external-transfer/failure" -Method Post -Headers (New-CpfRuntimeTransactionHeaders -Module "EXS" -WasId "exsfail" -ClientAppId "cpf-exs-timeout-smoke") -Body ($failureBody | ConvertTo-Json -Depth 10) -ContentType "application/json" -TimeoutSec 15 | Out-Null
         $result.failureCall = [ordered]@{ status = "UNEXPECTED_SUCCESS" }
     } catch {
         $statusCode = $null
@@ -83,10 +100,13 @@ try {
         }
     }
 
-    $transactions = Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/transactions?limit=20" -Method Get -TimeoutSec 8
+    $transactionsResponse = Invoke-RestMethod -Uri "$ExsBaseUrl/api/exs/transactions?limit=20" -Method Get -Headers (New-CpfRuntimeTransactionHeaders -Module "EXS" -WasId "exslist" -ClientAppId "cpf-exs-timeout-smoke") -TimeoutSec 8
+    $transactions = if ($null -ne $transactionsResponse.PSObject.Properties["items"]) { @($transactionsResponse.items) } else { @($transactionsResponse) }
     $result.transactionLedgerCount = @($transactions).Count
     $result.timeoutFailureFound = @($transactions | Where-Object {
-            $_.failureCode -eq "EXS_TIMEOUT" -or $_.timeoutYn -eq "Y" -or $_.retryCount -gt 0
+            (Get-ObjectPropertyValue -Object $_ -Name "failureCode") -eq "EXS_TIMEOUT" `
+                -or (Get-ObjectPropertyValue -Object $_ -Name "timeoutYn") -eq "Y" `
+                -or [int] (Get-ObjectPropertyValue -Object $_ -Name "retryCount") -gt 0
         }).Count -gt 0
     $result.status = $(if ($result.timeoutFailureFound) { Get-CpfRuntimeStatusText "Done" } else { Get-CpfRuntimeStatusText "Failed" })
     if (-not $result.timeoutFailureFound) {

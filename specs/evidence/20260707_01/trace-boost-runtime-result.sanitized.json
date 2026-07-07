@@ -1,0 +1,61 @@
+{
+    "startedAt":  "2026-07-07T13:26:38.9048488+09:00",
+    "status":  "완료",
+    "login":  {
+                  "status":  "완료"
+              },
+    "createTraceBoost":  {
+                             "status":  "완료",
+                             "response":  {
+                                              "override_id":  29,
+                                              "policy_id":  null,
+                                              "target_type":  "ONLINE_TRANSACTION",
+                                              "target_id":  "ADM01TRN0010",
+                                              "override_reason":  "runtime-smoke-trace-boost",
+                                              "log_level":  "DEBUG",
+                                              "db_log_enabled_yn":  "Y",
+                                              "file_log_enabled_yn":  "Y",
+                                              "request_body_log_yn":  "N",
+                                              "response_body_log_yn":  "N",
+                                              "error_stack_log_yn":  "Y",
+                                              "masking_policy_key":  "TRACE_BOOST_SAFE_MASKING",
+                                              "effective_start_at":  "2026-07-07T04:26:34.260+00:00",
+                                              "effective_end_at":  "2026-07-07T04:36:39.260+00:00",
+                                              "requested_by":  "admin",
+                                              "approved_by":  "admin",
+                                              "active_yn":  "Y",
+                                              "created_at":  "2026-07-07T04:26:39.000+00:00",
+                                              "updated_at":  "2026-07-07T04:26:39.000+00:00",
+                                              "traceBoostPolicyId":  29,
+                                              "targetType":  "ONLINE_TRANSACTION",
+                                              "targetId":  "ADM01TRN0010",
+                                              "ttlSeconds":  600,
+                                              "conditions":  {
+                                                                 "apiPath":  "",
+                                                                 "transactionGlobalId":  "",
+                                                                 "durationMsGreaterThan":  0,
+                                                                 "status":  "",
+                                                                 "businessTransactionId":  "ADM01TRN0010",
+                                                                 "failureCode":  ""
+                                                             }
+                                          }
+                         },
+    "runtimeState":  {
+                         "status":  "완료",
+                         "count":  1
+                     },
+    "history":  {
+                    "status":  "완료",
+                    "count":  20
+                },
+    "fileLog":  {
+                    "status":  "완료",
+                    "path":  "logs\\adm\\cpf-adm-transaction.log",
+                    "containsTraceBoostPolicyId":  true
+                },
+    "cleanup":  {
+                    "status":  "완료",
+                    "overrideId":  "29"
+                },
+    "finishedAt":  "2026-07-07T13:26:41.7315295+09:00"
+}

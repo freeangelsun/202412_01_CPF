@@ -1,0 +1,47 @@
+{
+    "startedAt":  "2026-07-07T11:16:59.4247870+09:00",
+    "accBaseUrl":  "http://localhost:8080",
+    "admBaseUrl":  "http://localhost:8090",
+    "transactionGlobalId":  "20260707111659433ADMadmgrp10000001",
+    "probes":  {
+                   "generatedComposite":  {
+                                              "transactionGlobalId":  "20260707111659433ADMadmgrp10000001",
+                                              "segmentCount":  5
+                                          },
+                   "list":  {
+                                "count":  1,
+                                "sort":  "startedAtDesc"
+                            },
+                   "detail":  {
+                                  "segmentCount":  5,
+                                  "summary":  {
+                                                  "transactionGlobalId":  "20260707111659433ADMadmgrp10000001",
+                                                  "segmentCount":  5,
+                                                  "moduleFlowText":  "ACC -\u003e MBR -\u003e ACC -\u003e EXS",
+                                                  "overallStatus":  "SUCCESS",
+                                                  "totalDurationMs":  813
+                                              }
+                              },
+                   "segments":  {
+                                    "count":  5,
+                                    "uniqueSegmentIdCount":  5,
+                                    "moduleCodes":  [
+                                                        "ACC",
+                                                        "EXS",
+                                                        "MBR"
+                                                    ]
+                                },
+                   "timeline":  {
+                                    "count":  5
+                                },
+                   "headers":  {
+                                   "count":  5
+                               },
+                   "externalLogs":  {
+                                        "count":  2
+                                    },
+                   "dbSegmentRows":  5
+               },
+    "status":  "완료",
+    "finishedAt":  "2026-07-07T11:17:00.9281517+09:00"
+}

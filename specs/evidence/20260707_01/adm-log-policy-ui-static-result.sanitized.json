@@ -1,0 +1,21 @@
+{
+    "checkedAt":  "2026-07-07T13:27:13.1346590+09:00",
+    "status":  "완료",
+    "markers":  {
+                    "traceBoostApi":  true,
+                    "traceBoostRuntimeState":  true,
+                    "traceBoostHistory":  true,
+                    "traceBoostDisable":  true,
+                    "batchCalendar":  true,
+                    "batchSimulation":  true,
+                    "batchRelations":  true,
+                    "batchTargets":  true,
+                    "batchLocks":  true,
+                    "batchGhost":  true,
+                    "exsLedger":  true,
+                    "centerCutLink":  true,
+                    "reasonGuard":  true,
+                    "operationConsoleMenus":  true
+                },
+    "finishedAt":  "2026-07-07T13:27:13.1626669+09:00"
+}

@@ -1,0 +1,52 @@
+{
+    "startedAt":  "2026-07-07T14:08:20.8940801+09:00",
+    "status":  "PASSED",
+    "accBaseUrl":  "http://localhost:8080",
+    "admBaseUrl":  "http://localhost:8090",
+    "transactionGlobalId":  "20260707140820898ADMfailgrp0000001",
+    "probes":  {
+                   "generatedFailureComposite":  {
+                                                     "transactionGlobalId":  "20260707140820898ADMfailgrp0000001",
+                                                     "segmentCount":  4,
+                                                     "overallStatus":  "FAILED",
+                                                     "failureCode":  "EXS_TIMEOUT",
+                                                     "failedSegmentId":  "20260707140820898ADMfailgrp0000001-SEG-0004-814D4B8E"
+                                                 },
+                   "list":  {
+                                "count":  1,
+                                "sort":  "failedFirst"
+                            },
+                   "detail":  {
+                                  "summary":  {
+                                                  "transactionGlobalId":  "20260707140820898ADMfailgrp0000001",
+                                                  "segmentCount":  5,
+                                                  "moduleFlowText":  "ACC -\u003e MBR -\u003e ACC -\u003e EXS",
+                                                  "overallStatus":  "FAILED",
+                                                  "totalDurationMs":  736,
+                                                  "failedSegmentId":  "20260707140820898ADMfailgrp0000001-SEG-0002-F0E4763F",
+                                                  "failedModuleCode":  "ACC",
+                                                  "failureCode":  "EXS_TIMEOUT",
+                                                  "failureMessageMasked":  "502 Bad Gateway from POST http://localhost:8092/api/exs/edu/external-transfer/failure"
+                                              },
+                                  "segmentCount":  5
+                              },
+                   "segments":  {
+                                    "count":  5,
+                                    "failedCount":  3
+                                },
+                   "timeline":  {
+                                    "count":  5,
+                                    "failedCount":  3
+                                },
+                   "externalLogs":  {
+                                        "count":  2,
+                                        "sources":  [
+                                                        "EXS_MESSAGE_LOG",
+                                                        "EXS_TRANSACTION_LOG"
+                                                    ],
+                                        "source":  "exs_transaction_log/exs_message_log",
+                                        "fallbackUsed":  false
+                                    }
+               },
+    "finishedAt":  "2026-07-07T14:08:22.1165639+09:00"
+}

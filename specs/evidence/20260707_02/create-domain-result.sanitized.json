@@ -1,0 +1,234 @@
+{
+    "startedAt":  "2026-07-07T11:17:08.4352889+09:00",
+    "moduleCode":  "pym",
+    "dryRun":  {
+                   "status":  "완료",
+                   "dryRun":  true,
+                   "moduleCode":  "PYM",
+                   "moduleName":  "Payment",
+                   "basePackage":  "cpf.pym",
+                   "tablePrefix":  "pym",
+                   "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                   "generatePatch":  false,
+                   "applyMode":  false,
+                   "conflicts":  [
+
+                                 ],
+                   "generatedFiles":  [
+
+                                      ],
+                   "patchFiles":  [
+
+                                  ],
+                   "patchCandidates":  [
+                                           "settings.gradle include \u0027pym\u0027",
+                                           "root build dependency registration if needed",
+                                           "specs/sql/40_business_modules_schema.sql table candidate",
+                                           "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                           "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                           "specs/sql/99_smoke_check.sql smoke candidate",
+                                           "specs/sql/00_all_install.sql merge candidate",
+                                           "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                           "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                           "application-pym.yml candidate",
+                                           "module smoke script candidate",
+                                           "README.md and specs guide link candidate"
+                                       ]
+               },
+    "generate":  {
+                     "status":  "완료",
+                     "dryRun":  false,
+                     "moduleCode":  "PYM",
+                     "moduleName":  "Payment",
+                     "basePackage":  "cpf.pym",
+                     "tablePrefix":  "pym",
+                     "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                     "generatePatch":  false,
+                     "applyMode":  false,
+                     "conflicts":  [
+
+                                   ],
+                     "generatedFiles":  [
+                                            "build\\domain-generator\\pym\\build.gradle",
+                                            "build\\domain-generator\\pym\\README.md",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\PaymentMapper.xml",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\controller\\PaymentController.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\facade\\PaymentFacade.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\service\\PaymentService.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\repository\\PaymentRepository.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\dto\\PaymentSearchRequest.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\validation\\PaymentSearchValidator.java",
+                                            "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\service\\PaymentServiceTest.java",
+                                            "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                                            "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql"
+                                        ],
+                     "patchFiles":  [
+
+                                    ],
+                     "patchCandidates":  [
+                                             "settings.gradle include \u0027pym\u0027",
+                                             "root build dependency registration if needed",
+                                             "specs/sql/40_business_modules_schema.sql table candidate",
+                                             "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                             "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                             "specs/sql/99_smoke_check.sql smoke candidate",
+                                             "specs/sql/00_all_install.sql merge candidate",
+                                             "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                             "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                             "application-pym.yml candidate",
+                                             "module smoke script candidate",
+                                             "README.md and specs guide link candidate"
+                                         ]
+                 },
+    "generatePatch":  {
+                          "status":  "완료",
+                          "dryRun":  false,
+                          "moduleCode":  "PYM",
+                          "moduleName":  "Payment",
+                          "basePackage":  "cpf.pym",
+                          "tablePrefix":  "pym",
+                          "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                          "generatePatch":  true,
+                          "applyMode":  false,
+                          "conflicts":  [
+
+                                        ],
+                          "generatedFiles":  [
+                                                 "build\\domain-generator\\pym\\build.gradle",
+                                                 "build\\domain-generator\\pym\\README.md",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\PaymentMapper.xml",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\controller\\PaymentController.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\facade\\PaymentFacade.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\service\\PaymentService.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\repository\\PaymentRepository.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\dto\\PaymentSearchRequest.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\validation\\PaymentSearchValidator.java",
+                                                 "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\service\\PaymentServiceTest.java",
+                                                 "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                                                 "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql"
+                                             ],
+                          "patchFiles":  [
+                                             "build\\domain-generator\\pym\\patch-candidates\\apply-order.md",
+                                             "build\\domain-generator\\pym\\patch-candidates\\settings.gradle.patch",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\40_business_modules_schema.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\50_framework_seed.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\60_adm_seed.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\99_smoke_check.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\migration\\Vxx__pym_domain.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\README.pym.candidate.md",
+                                             "build\\domain-generator\\pym\\patch-candidates\\smoke-pym.ps1"
+                                         ],
+                          "patchCandidates":  [
+                                                  "settings.gradle include \u0027pym\u0027",
+                                                  "root build dependency registration if needed",
+                                                  "specs/sql/40_business_modules_schema.sql table candidate",
+                                                  "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                                  "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                                  "specs/sql/99_smoke_check.sql smoke candidate",
+                                                  "specs/sql/00_all_install.sql merge candidate",
+                                                  "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                                  "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                                  "application-pym.yml candidate",
+                                                  "module smoke script candidate",
+                                                  "README.md and specs guide link candidate"
+                                              ]
+                      },
+    "requiredFiles":  [
+                          {
+                              "path":  "build\\domain-generator\\pym\\build.gradle",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\README.md",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\controller\\PaymentController.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\facade\\PaymentFacade.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\service\\PaymentService.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\repository\\PaymentRepository.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\dto\\PaymentSearchRequest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\validation\\PaymentSearchValidator.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\service\\PaymentServiceTest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\PaymentMapper.xml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                              "exists":  true
+                          }
+                      ],
+    "requiredPatchFiles":  [
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\apply-order.md",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\settings.gradle.patch",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\40_business_modules_schema.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\50_framework_seed.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\60_adm_seed.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\99_smoke_check.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\migration\\Vxx__pym_domain.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\smoke-pym.ps1",
+                                   "exists":  true
+                               }
+                           ],
+    "status":  "완료",
+    "finishedAt":  "2026-07-07T11:17:10.1265258+09:00"
+}

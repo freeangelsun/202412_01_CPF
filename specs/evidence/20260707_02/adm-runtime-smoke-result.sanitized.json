@@ -1,0 +1,130 @@
+{
+    "startedAt":  "2026-07-07T11:16:11.5378220+09:00",
+    "admBaseUrl":  "http://localhost:8090",
+    "process":  {
+                    "buildBeforeRun":  {
+                                           "requested":  false,
+                                           "reason":  "Pass -BuildBeforeRun to build :adm:bootJar before starting ADM smoke."
+                                       },
+                    "status":  "REUSED",
+                    "message":  "Reused an already running ADM application."
+                },
+    "health":  {
+                   "status":  "PASSED",
+                   "response":  {
+                                    "status":  "UP",
+                                    "service":  "ADM",
+                                    "checkedAt":  "2026-07-07T11:16:11.723726200+09:00",
+                                    "checks":  {
+                                                   "admDB":  "UP",
+                                                   "pfwDB":  "UP",
+                                                   "mbrDB":  "UP"
+                                               }
+                                }
+               },
+    "openapi":  {
+                    "status":  "PASSED",
+                    "path":  "http://localhost:8090/v3/api-docs"
+                },
+    "admOperationApi":  {
+                            "status":  "PASSED",
+                            "checkedEndpoints":  [
+                                                     "/adm/api/operators",
+                                                     "/adm/api/operators/roles",
+                                                     "/adm/api/operators/menus",
+                                                     "/adm/api/permissions/roles",
+                                                     "/adm/api/permissions/menus",
+                                                     "/adm/api/permissions/buttons",
+                                                     "/adm/api/permissions/menu-matrix",
+                                                     "/adm/api/permissions/button-matrix",
+                                                     "/adm/api/permissions/api-permissions",
+                                                     "/adm/api/permissions/api-matrix",
+                                                     "/adm/api/audit-logs?limit=5",
+                                                     "/adm/api/cache/summary",
+                                                     "/adm/api/messages",
+                                                     "/adm/api/codes",
+                                                     "/adm/api/configs"
+                                                 ]
+                        },
+    "permissionWriteApi":  {
+                               "status":  "PASSED",
+                               "resultPath":  "D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\adm-permission-runtime-result.json",
+                               "checked":  [
+                                               "/adm/api/operators",
+                                               "/adm/api/permissions/roles/ADM_VIEWER/menus/PERMISSION",
+                                               "/adm/api/permissions/roles/ADM_VIEWER/api-permissions/API_PERMISSION_WRITE_PUT",
+                                               "/adm/api/audit-logs",
+                                               "403 viewer write deny",
+                                               "200 viewer center-cut read allow",
+                                               "200 admin read allow"
+                                           ]
+                           },
+    "batchApi":  {
+                     "status":  "PASSED",
+                     "checkedEndpoints":  [
+                                              "/adm/api/batch/jobs",
+                                              "/adm/api/batch/jobs/CPF_EDU_TASKLET_JOB",
+                                              "/adm/api/batch/schedules",
+                                              "/adm/api/batch/instances",
+                                              "/adm/api/batch/executions?limit=20",
+                                              "/adm/api/batch/steps?limit=20",
+                                              "/adm/api/batch/workers",
+                                              "/adm/api/batch/locks",
+                                              "/adm/api/batch/ghost-candidates",
+                                              "/adm/api/batch/operations?limit=20"
+                                          ]
+                 },
+    "centerCutApi":  {
+                         "status":  "PASSED",
+                         "checkedEndpoints":  [
+                                                  "/adm/api/center-cut/jobs",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/parameters",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20"
+                                              ],
+                         "summary":  {
+                                         "centerCutJobId":  "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+                                         "adapterType":  "XYZ_SAMPLE",
+                                         "totalCount":  4,
+                                         "readyCount":  4,
+                                         "runningCount":  0,
+                                         "successCount":  0,
+                                         "failedCount":  0,
+                                         "skippedCount":  0,
+                                         "retryRequestedCount":  0,
+                                         "stopRequestedCount":  0,
+                                         "lastStartedAt":  null,
+                                         "lastCompletedAt":  null,
+                                         "resultTotalCount":  0,
+                                         "resultSuccessCount":  null,
+                                         "resultFailedCount":  null,
+                                         "resultLastCreatedAt":  null
+                                     },
+                         "targetCount":  1,
+                         "resultCount":  1,
+                         "hasParentTransactionGlobalId":  true,
+                         "hasChildTransactionGlobalId":  true,
+                         "hasFailureReason":  true,
+                         "rawPayloadExposed":  false,
+                         "dedicatedSmokeResultPath":  "D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\adm-center-cut-runtime-smoke-result.json"
+                     },
+    "transactionMetaApi":  {
+                               "status":  "PASSED",
+                               "endpoint":  "/adm/api/transactions/scan",
+                               "resultPath":  "D:\\WORK_CPF\\202412_01_CPF\\build\\runtime-smoke\\transaction-meta-runtime-smoke-result.json"
+                           },
+    "staticUi":  {
+                     "status":  "PASSED"
+                 },
+    "browserClick":  {
+                         "status":  "SKIPPED",
+                         "reason":  "Browser automation runtime was not found in PATH."
+                     },
+    "cleanup":  {
+                    "status":  "SKIPPED",
+                    "message":  "The script reused an existing ADM application and did not stop it."
+                },
+    "finishedAt":  "2026-07-07T11:16:22.2215741+09:00"
+}

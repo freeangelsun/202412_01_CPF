@@ -1,0 +1,100 @@
+{
+    "startedAt":  "2026-07-07T14:07:13.8856776+09:00",
+    "status":  "완료",
+    "modules":  [
+                    "ACC",
+                    "MBR",
+                    "EXS",
+                    "ADM",
+                    "BAT"
+                ],
+    "runtimeStart":  {
+                         "status":  "완료",
+                         "name":  "runtime-start-services",
+                         "resultPath":  "build\\runtime-smoke\\runtime-start-services-result.json",
+                         "finishedAt":  "2026-07-07T11:11:07.8172270+09:00",
+                         "error":  null,
+                         "failureClassification":  null
+                     },
+    "runtimeStatus":  {
+                          "status":  "완료",
+                          "name":  "runtime-status",
+                          "resultPath":  "build\\runtime-smoke\\runtime-status-result.json",
+                          "finishedAt":  "2026-07-07T14:07:15.0591528+09:00",
+                          "error":  null,
+                          "failureClassification":  null
+                      },
+    "runtimeDiagnostics":  {
+                               "status":  "완료",
+                               "name":  "runtime-diagnostics",
+                               "resultPath":  "build\\runtime-smoke\\runtime-diagnostics-result.json",
+                               "finishedAt":  "2026-07-07T14:07:15.2882262+09:00",
+                               "error":  null,
+                               "failureClassification":  null
+                           },
+    "fileLogStandard":  {
+                            "status":  "완료",
+                            "name":  "file-log-standard",
+                            "resultPath":  "build\\runtime-smoke\\file-log-standard-result.json",
+                            "finishedAt":  "2026-07-07T13:26:33.3602883+09:00",
+                            "error":  null,
+                            "failureClassification":  null
+                        },
+    "traceBoost":  {
+                       "status":  "완료",
+                       "name":  "trace-boost",
+                       "resultPath":  "build\\runtime-smoke\\trace-boost-runtime-result.json",
+                       "finishedAt":  "2026-07-07T13:26:41.7315295+09:00",
+                       "error":  null,
+                       "failureClassification":  null
+                   },
+    "batTraceBoost":  {
+                          "status":  "완료",
+                          "name":  "bat-trace-boost",
+                          "resultPath":  "build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+                          "finishedAt":  "2026-07-07T13:26:55.8087755+09:00",
+                          "error":  null,
+                          "failureClassification":  null
+                      },
+    "batLogBean":  {
+                       "status":  "완료",
+                       "name":  "bat-log-bean",
+                       "resultPath":  "build\\runtime-smoke\\bat-log-bean-runtime-result.json",
+                       "finishedAt":  "2026-07-07T13:26:49.5800307+09:00",
+                       "error":  null,
+                       "failureClassification":  null
+                   },
+    "admOperationConsole":  {
+                                "status":  "완료",
+                                "name":  "adm-operation-console",
+                                "resultPath":  "build\\runtime-smoke\\adm-operation-console-runtime-result.json",
+                                "finishedAt":  "2026-07-07T13:27:06.5254859+09:00",
+                                "error":  null,
+                                "failureClassification":  null
+                            },
+    "admLogPolicyUiStatic":  {
+                                 "status":  "완료",
+                                 "name":  "adm-log-policy-ui-static",
+                                 "resultPath":  "build\\runtime-smoke\\adm-log-policy-ui-static-result.json",
+                                 "finishedAt":  "2026-07-07T13:27:13.1626669+09:00",
+                                 "error":  null,
+                                 "failureClassification":  null
+                             },
+    "exsTimeoutRetry":  {
+                            "status":  "완료",
+                            "name":  "exs-timeout-retry",
+                            "resultPath":  "build\\runtime-smoke\\exs-timeout-retry-runtime-result.json",
+                            "finishedAt":  "2026-07-07T13:27:19.6813673+09:00",
+                            "error":  null,
+                            "failureClassification":  null
+                        },
+    "cmnFixedLengthAdvanced":  {
+                                   "status":  "완료",
+                                   "name":  "cmn-fixed-length-advanced",
+                                   "resultPath":  "build\\runtime-smoke\\cmn-fixed-length-advanced-result.json",
+                                   "finishedAt":  "2026-07-07T14:07:02.1669451+09:00",
+                                   "error":  null,
+                                   "failureClassification":  null
+                               },
+    "finishedAt":  "2026-07-07T14:07:15.4087610+09:00"
+}

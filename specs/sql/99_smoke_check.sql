@@ -243,3 +243,26 @@ SELECT message_code, locale, message_format_type, external_message, internal_mes
 FROM pfwDB.pfw_message
 WHERE message_code IN ('MCMN000001', 'MPFW010004', 'MACC010001', 'MMBR010102', 'MXYZ090001')
 ORDER BY message_code, locale;
+
+SELECT 'pfwDB.pfw_service' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service;
+SELECT 'pfwDB.pfw_service_endpoint' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_endpoint;
+SELECT 'pfwDB.pfw_service_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_instance;
+SELECT 'pfwDB.pfw_service_health_status' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_health_status;
+SELECT 'pfwDB.pfw_service_routing_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_routing_policy;
+SELECT 'pfwDB.pfw_service_circuit_state' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_circuit_state;
+SELECT 'pfwDB.pfw_service_call_history' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_call_history;
+
+SELECT service_id, service_name, service_type, owner_module_code, use_yn
+FROM pfwDB.pfw_service
+WHERE service_id IN ('ACC', 'MBR', 'EXS', 'BAT', 'ADM')
+ORDER BY service_id;
+
+SELECT endpoint_code, service_id, base_url, default_timeout_ms, default_retry_count, use_yn
+FROM pfwDB.pfw_service_endpoint
+WHERE endpoint_code IN ('ACC_API', 'MBR_API', 'EXS_API', 'BAT_API', 'ADM_API')
+ORDER BY endpoint_code;
+
+SELECT instance_id, service_id, endpoint_code, instance_status, active_yn
+FROM pfwDB.pfw_service_instance
+WHERE instance_id IN ('ACC-local-01', 'MBR-local-01', 'EXS-local-01', 'BAT-local-01', 'ADM-local-01')
+ORDER BY instance_id;

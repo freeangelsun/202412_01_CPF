@@ -145,6 +145,13 @@ DROP TABLE IF EXISTS pfwDB.pfw_config;
 DROP TABLE IF EXISTS pfwDB.pfw_response_code;
 DROP TABLE IF EXISTS pfwDB.pfw_message;
 DROP TABLE IF EXISTS pfwDB.pfw_code;
+DROP TABLE IF EXISTS pfwDB.pfw_service_call_history;
+DROP TABLE IF EXISTS pfwDB.pfw_service_circuit_state;
+DROP TABLE IF EXISTS pfwDB.pfw_service_routing_policy;
+DROP TABLE IF EXISTS pfwDB.pfw_service_health_status;
+DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
+DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
+DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
@@ -387,6 +394,179 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     INDEX ix_pfw_transaction_segment_client (client_app_id, caller_service, started_at),
     INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
+
+CREATE TABLE IF NOT EXISTS pfw_service (
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    service_name VARCHAR(150) NOT NULL COMMENT '서비스명',
+    service_type VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT '서비스 유형',
+    owner_module_code VARCHAR(20) NOT NULL COMMENT '소유 모듈 코드',
+    description VARCHAR(500) NULL COMMENT '서비스 설명',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (service_id),
+    INDEX ix_pfw_service_owner (owner_module_code, use_yn),
+    INDEX ix_pfw_service_type (service_type, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 레지스트리';
+
+CREATE TABLE IF NOT EXISTS pfw_service_endpoint (
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_name VARCHAR(150) NOT NULL COMMENT 'Endpoint명',
+    endpoint_type VARCHAR(30) NOT NULL DEFAULT 'HTTP' COMMENT 'Endpoint 유형',
+    base_url VARCHAR(500) NOT NULL COMMENT '기본 URL',
+    context_path VARCHAR(200) NULL COMMENT 'Context path',
+    default_timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '기본 timeout 밀리초',
+    default_retry_count INT NOT NULL DEFAULT 0 COMMENT '기본 retry 횟수',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (endpoint_code),
+    INDEX ix_pfw_service_endpoint_service (service_id, use_yn),
+    INDEX ix_pfw_service_endpoint_type (endpoint_type, use_yn),
+    CONSTRAINT fk_pfw_service_endpoint_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Endpoint 레지스트리';
+
+CREATE TABLE IF NOT EXISTS pfw_service_instance (
+    instance_id VARCHAR(120) NOT NULL COMMENT '서비스 인스턴스 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_name VARCHAR(150) NOT NULL COMMENT '서비스 인스턴스명',
+    base_url VARCHAR(500) NOT NULL COMMENT '인스턴스 기본 URL',
+    host_name VARCHAR(150) NULL COMMENT 'Host명',
+    port_no INT NULL COMMENT 'Port 번호',
+    instance_status VARCHAR(30) NOT NULL DEFAULT 'UP' COMMENT '인스턴스 상태',
+    weight INT NOT NULL DEFAULT 100 COMMENT '라우팅 가중치',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (instance_id),
+    INDEX ix_pfw_service_instance_endpoint (service_id, endpoint_code, active_yn, instance_status),
+    INDEX ix_pfw_service_instance_weight (endpoint_code, weight),
+    CONSTRAINT fk_pfw_service_instance_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
+    CONSTRAINT fk_pfw_service_instance_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 인스턴스 레지스트리';
+
+CREATE TABLE IF NOT EXISTS pfw_service_health_status (
+    health_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 health 이력 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    health_status VARCHAR(30) NOT NULL COMMENT 'Health 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (health_id),
+    INDEX ix_pfw_service_health_target (service_id, endpoint_code, instance_id, checked_at),
+    INDEX ix_pfw_service_health_status (health_status, checked_at),
+    CONSTRAINT fk_pfw_service_health_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
+    CONSTRAINT fk_pfw_service_health_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code),
+    CONSTRAINT fk_pfw_service_health_instance
+        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Health 상태 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_service_routing_policy (
+    policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '라우팅 정책 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    routing_mode VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT '라우팅 모드',
+    load_balance_type VARCHAR(30) NOT NULL DEFAULT 'WEIGHT' COMMENT '부하 분산 유형',
+    failover_enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Failover 사용 여부',
+    health_check_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Health check 필수 여부',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    priority INT NOT NULL DEFAULT 100 COMMENT '우선순위',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (policy_id),
+    UNIQUE KEY uk_pfw_service_routing_policy (service_id, endpoint_code, priority),
+    INDEX ix_pfw_service_routing_active (service_id, endpoint_code, active_yn, priority),
+    CONSTRAINT fk_pfw_service_routing_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
+    CONSTRAINT fk_pfw_service_routing_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 라우팅 정책';
+
+CREATE TABLE IF NOT EXISTS pfw_service_circuit_state (
+    circuit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Circuit 상태 ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    circuit_state VARCHAR(30) NOT NULL DEFAULT 'CLOSED' COMMENT 'Circuit 상태',
+    failure_count INT NOT NULL DEFAULT 0 COMMENT '실패 횟수',
+    success_count INT NOT NULL DEFAULT 0 COMMENT '성공 횟수',
+    opened_at DATETIME(3) NULL COMMENT 'Open 일시',
+    half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
+    closed_at DATETIME(3) NULL COMMENT 'Close 일시',
+    last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (circuit_id),
+    UNIQUE KEY uk_pfw_service_circuit_state (service_id, endpoint_code, instance_id),
+    INDEX ix_pfw_service_circuit_state (circuit_state, updated_at),
+    CONSTRAINT fk_pfw_service_circuit_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
+    CONSTRAINT fk_pfw_service_circuit_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code),
+    CONSTRAINT fk_pfw_service_circuit_instance
+        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Circuit 상태';
+
+CREATE TABLE IF NOT EXISTS pfw_service_call_history (
+    call_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 호출 이력 ID',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
+    service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
+    endpoint_code VARCHAR(80) NULL COMMENT 'Endpoint 코드',
+    instance_id VARCHAR(120) NULL COMMENT '서비스 인스턴스 ID',
+    http_method VARCHAR(10) NOT NULL DEFAULT 'GET' COMMENT 'HTTP Method',
+    request_path VARCHAR(500) NOT NULL DEFAULT '/' COMMENT '요청 경로',
+    call_status VARCHAR(30) NOT NULL COMMENT '호출 상태',
+    http_status INT NULL COMMENT 'HTTP 상태 코드',
+    duration_ms BIGINT NULL COMMENT '소요 시간 밀리초',
+    timeout_ms INT NULL COMMENT 'Timeout 밀리초',
+    retry_count INT NULL COMMENT 'Retry 횟수',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (call_id),
+    INDEX ix_pfw_service_call_history_tx (transaction_global_id, call_id),
+    INDEX ix_pfw_service_call_history_service (service_id, endpoint_code, created_at),
+    INDEX ix_pfw_service_call_history_status (call_status, created_at),
+    CONSTRAINT fk_pfw_service_call_history_service
+        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
+    CONSTRAINT fk_pfw_service_call_history_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_pfw_service_call_history_instance
+        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 호출 이력';
 
 CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
     transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 ID',
@@ -2968,6 +3148,151 @@ ON DUPLICATE KEY UPDATE
     use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service (
+    service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
+) VALUES
+    ('ACC', '계정 서비스', 'INTERNAL', 'ACC', 'CPF 계정 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EXS', '외부 연계 서비스', 'INTERNAL', 'EXS', 'CPF 외부 연계 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_name = VALUES(service_name),
+    service_type = VALUES(service_type),
+    owner_module_code = VALUES(owner_module_code),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_endpoint (
+    endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
+    default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
+) VALUES
+    ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8080', '/acc', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EXS_API', 'EXS', 'EXS API Endpoint', 'HTTP', 'http://localhost:8092', '/api/exs', 5000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_name = VALUES(endpoint_name),
+    endpoint_type = VALUES(endpoint_type),
+    base_url = VALUES(base_url),
+    context_path = VALUES(context_path),
+    default_timeout_ms = VALUES(default_timeout_ms),
+    default_retry_count = VALUES(default_retry_count),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_instance (
+    instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
+    port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
+) VALUES
+    ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8080', 'localhost', 8080, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('EXS-local-01', 'EXS', 'EXS_API', 'EXS local instance', 'http://localhost:8092', 'localhost', 8092, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_code = VALUES(endpoint_code),
+    instance_name = VALUES(instance_name),
+    base_url = VALUES(base_url),
+    host_name = VALUES(host_name),
+    port_no = VALUES(port_no),
+    instance_status = VALUES(instance_status),
+    weight = VALUES(weight),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_routing_policy (
+    service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
+    health_check_required_yn, active_yn, priority, created_by, updated_by
+) VALUES
+    ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('EXS', 'EXS_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    routing_mode = VALUES(routing_mode),
+    load_balance_type = VALUES(load_balance_type),
+    failover_enabled_yn = VALUES(failover_enabled_yn),
+    health_check_required_yn = VALUES(health_check_required_yn),
+    active_yn = VALUES(active_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_circuit_state (
+    service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by
+) VALUES
+    ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('EXS', 'EXS_API', 'EXS-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    circuit_state = VALUES(circuit_state),
+    failure_count = VALUES(failure_count),
+    success_count = VALUES(success_count),
+    closed_at = VALUES(closed_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'MBR', 'MBR_API', 'MBR-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'MBR' AND endpoint_code = 'MBR_API' AND instance_id = 'MBR-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'EXS', 'EXS_API', 'EXS-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'EXS' AND endpoint_code = 'EXS_API' AND instance_id = 'EXS-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
+);
 
 INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by

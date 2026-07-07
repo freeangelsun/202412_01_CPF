@@ -100,7 +100,7 @@ class MbrControllerValidationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value("EPFW900001"))
                 .andExpect(jsonPath("$.messageCode").value("MPFW900001"))
-                .andExpect(jsonPath("$.message").value(containsString("필수 거래 헤더가 누락되었습니다.")));
+                .andExpect(jsonPath("$.message").value(containsString("Required transaction header is missing.")));
     }
 
     /**

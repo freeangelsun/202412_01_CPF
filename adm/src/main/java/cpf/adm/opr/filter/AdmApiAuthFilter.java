@@ -38,6 +38,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/logs", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/transaction-groups", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/observability", "LOG_LIST");
+        MENU_BY_PATH_PREFIX.put("/adm/api/service-registry", "SERVICE_REGISTRY");
         MENU_BY_PATH_PREFIX.put("/adm/api/transactions", "TRANSACTION_META");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
@@ -60,6 +61,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/logs", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transaction-groups", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/observability", "LOG_LIST_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/service-registry", "SERVICE_REGISTRY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transactions", "TRANSACTION_META_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");

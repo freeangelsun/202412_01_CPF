@@ -586,6 +586,151 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO pfw_service (
+    service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
+) VALUES
+    ('ACC', '계정 서비스', 'INTERNAL', 'ACC', 'CPF 계정 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EXS', '외부 연계 서비스', 'INTERNAL', 'EXS', 'CPF 외부 연계 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_name = VALUES(service_name),
+    service_type = VALUES(service_type),
+    owner_module_code = VALUES(owner_module_code),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_endpoint (
+    endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
+    default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
+) VALUES
+    ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8080', '/acc', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EXS_API', 'EXS', 'EXS API Endpoint', 'HTTP', 'http://localhost:8092', '/api/exs', 5000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_name = VALUES(endpoint_name),
+    endpoint_type = VALUES(endpoint_type),
+    base_url = VALUES(base_url),
+    context_path = VALUES(context_path),
+    default_timeout_ms = VALUES(default_timeout_ms),
+    default_retry_count = VALUES(default_retry_count),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_instance (
+    instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
+    port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
+) VALUES
+    ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8080', 'localhost', 8080, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('EXS-local-01', 'EXS', 'EXS_API', 'EXS local instance', 'http://localhost:8092', 'localhost', 8092, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_code = VALUES(endpoint_code),
+    instance_name = VALUES(instance_name),
+    base_url = VALUES(base_url),
+    host_name = VALUES(host_name),
+    port_no = VALUES(port_no),
+    instance_status = VALUES(instance_status),
+    weight = VALUES(weight),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_routing_policy (
+    service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
+    health_check_required_yn, active_yn, priority, created_by, updated_by
+) VALUES
+    ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('EXS', 'EXS_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    routing_mode = VALUES(routing_mode),
+    load_balance_type = VALUES(load_balance_type),
+    failover_enabled_yn = VALUES(failover_enabled_yn),
+    health_check_required_yn = VALUES(health_check_required_yn),
+    active_yn = VALUES(active_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_circuit_state (
+    service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by
+) VALUES
+    ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('EXS', 'EXS_API', 'EXS-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    circuit_state = VALUES(circuit_state),
+    failure_count = VALUES(failure_count),
+    success_count = VALUES(success_count),
+    closed_at = VALUES(closed_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'MBR', 'MBR_API', 'MBR-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'MBR' AND endpoint_code = 'MBR_API' AND instance_id = 'MBR-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'EXS', 'EXS_API', 'EXS-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'EXS' AND endpoint_code = 'EXS_API' AND instance_id = 'EXS-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
+SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
+);
+
 INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES

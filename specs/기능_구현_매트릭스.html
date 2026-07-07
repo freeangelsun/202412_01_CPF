@@ -18,75 +18,56 @@
 <body>
 <main>
   <section>
-    <h1>CPF 기능 구현 매트릭스</h1>
-    <p>이 문서는 현재 저장소 기준 기능 구현 상태와 검증 상태를 분리해 기록합니다. 실행하지 않은 검증은 완료로 표시하지 않습니다.</p>
-    <p class="note">상태 값은 완료, 부분 구현, 미구현, 미검증, 실패, 재확인 필요만 사용합니다. `CPF_STABILIZATION_REPORT.md`의 검증 표와 반드시 같은 check id, 같은 상태를 유지합니다.</p>
+  <h1>CPF 기능 구현 매트릭스</h1>
+  <p class="note">이 문서는 안정화 리포트와 증적 인덱스의 check id와 상태를 동일하게 유지합니다. 실행하지 않은 검증은 완료로 표시하지 않습니다.</p>
+  <p class="note">필수 marker: <code>scripts/smoke-mariadb-full-install.ps1</code>, <code>scripts/smoke-standard-header-e2e.ps1</code>, <code>xyz_edu_query_fixture.sql</code></p>
   </section>
-
   <section>
-    <h2>기능 상태</h2>
-    <table>
-      <thead>
-      <tr><th>영역</th><th>기능</th><th>상태</th><th>증거</th><th>비고</th></tr>
-      </thead>
-      <tbody>
-      <tr><td>Runtime</td><td>ACC, MBR, EXS, ADM, BAT bootJar 기반 기동</td><td class="status" data-status="완료">완료</td><td><code>runtime-start-services-result.sanitized.json</code></td><td>포트 열림, 프로세스 생존, health 통과, jar fallback 미사용을 함께 확인했습니다.</td></tr>
-      <tr><td>Runtime</td><td>패키징 리소스 검사</td><td class="status" data-status="완료">완료</td><td><code>packaged-runtime-resource-check.sanitized.json</code></td><td>bootJar 내부에 절대 로그 경로가 남지 않았고 포트/env marker를 확인했습니다.</td></tr>
-      <tr><td>PFW</td><td>구조화 파일 로그 표준</td><td class="status" data-status="완료">완료</td><td><code>file-log-standard-result.sanitized.json</code></td><td>ACC 거래 로그와 연계 로그가 <code>logs/acc</code> 기준으로 생성되는 것을 확인했습니다.</td></tr>
-      <tr><td>PFW</td><td>Trace Boost runtime</td><td class="status" data-status="완료">완료</td><td><code>trace-boost-runtime-result.sanitized.json</code></td><td>ADM 로그 정책 생성, runtime state, history, 파일 로그 반영을 확인했습니다.</td></tr>
-      <tr><td>BAT</td><td>배치 파일 로그와 Trace Boost</td><td class="status" data-status="완료">완료</td><td><code>bat-log-bean-runtime-result.sanitized.json</code>, <code>bat-trace-boost-runtime-result.sanitized.json</code></td><td>BAT logging bean과 배치 파일 로그 생성, traceBoostPolicyId 기록을 확인했습니다.</td></tr>
-      <tr><td>ADM</td><td>운영 콘솔 API smoke</td><td class="status" data-status="완료">완료</td><td><code>adm-operation-console-runtime-result.sanitized.json</code></td><td>권한 인증 후 batch, cache, message, code, config, transaction group 조회 API를 확인했습니다.</td></tr>
-      <tr><td>ADM</td><td>Log Policy UI 정적 marker</td><td class="status" data-status="완료">완료</td><td><code>adm-log-policy-ui-static-result.sanitized.json</code></td><td>Trace Boost UI marker와 정적 스크립트 연결을 확인했습니다.</td></tr>
-      <tr><td>EXS</td><td>timeout/retry/failureCode runtime</td><td class="status" data-status="완료">완료</td><td><code>exs-timeout-retry-runtime-result.sanitized.json</code></td><td>EXS endpoint, 실패 호출, timeout/retry ledger 노출을 확인했습니다.</td></tr>
-      <tr><td>CMN</td><td>fixed-length 반복부, type, validation, masking</td><td class="status" data-status="완료">완료</td><td><code>cmn-fixed-length-advanced-result.sanitized.json</code></td><td>직접 Gradle 테스트와 smoke 결과 파일을 함께 남겼습니다.</td></tr>
-      <tr><td>EDU/XYZ</td><td>Mapper DB slice 교육 fixture</td><td class="status" data-status="미검증">미검증</td><td><code>xyz_edu_query_fixture.sql</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USERNAME</code>, <code>CPF_XYZ_EDU_MAPPER_DB_USER</code></td><td>이번 작업에서는 별도 테스트 DB slice를 재실행하지 않았습니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>검증 상태</h2>
-    <table>
-      <thead>
-      <tr><th>check id</th><th>상태</th><th>증거</th><th>비고</th></tr>
-      </thead>
-      <tbody>
-      <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td class="status" data-status="완료">완료</td><td><code>edu-mapper-db-slice.log</code>, <code>xyz_edu_query_fixture.sql</code></td><td>MariaDB 테스트 DB 기준 Mapper slice 테스트를 통과했습니다.</td></tr>
-      <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-mariadb-full-install.ps1</code>, <code>mariadb-full-install-result.sanitized.json</code></td><td>MariaDB CLI로 전체 설치 SQL, smoke SQL, seed 재실행 검증을 통과했습니다.</td></tr>
-      <tr data-check-id="adm-runtime"><td>adm-runtime</td><td class="status" data-status="완료">완료</td><td><code>adm-runtime-smoke-result.json</code></td><td>ADM runtime smoke가 OpenAPI, Center-Cut, transaction meta, UI static 검증을 통과했습니다.</td></tr>
-      <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td class="status" data-status="완료">완료</td><td><code>adm-permission-runtime-result.json</code></td><td>ADM permission runtime smoke를 통과했습니다.</td></tr>
-      <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td class="status" data-status="완료">완료</td><td><code>openapi-runtime-result.sanitized.json</code></td><td>ADM runtime smoke 내부 OpenAPI 검증이 통과했고 sanitized evidence를 남겼습니다.</td></tr>
-      <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td class="status" data-status="미검증">미검증</td><td><code>scripts/smoke-adm-ui.ps1 -BrowserClick</code></td><td>브라우저 클릭 검증은 이번 범위에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td class="status" data-status="완료">완료</td><td><code>scripts/smoke-standard-header-e2e.ps1</code>, <code>standard-header-e2e-result.sanitized.json</code></td><td>표준 헤더 수신, 확장 헤더, outbound 전파, DB log 조회를 통과했습니다.</td></tr>
-      <tr data-check-id="complex-transaction-trace"><td>complex-transaction-trace</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code></td><td>ACC/MBR/EXS 복합 거래 trace smoke를 통과했습니다.</td></tr>
-      <tr data-check-id="transaction-segment-log"><td>transaction-segment-log</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code></td><td>복합 거래 smoke에서 transaction segment 기록을 검증했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-group-list"><td>adm-transaction-group-list</td><td class="status" data-status="완료">완료</td><td><code>adm-operation-console-runtime-result.sanitized.json</code></td><td>ADM 운영 콘솔 smoke에서 거래 그룹 목록 API를 조회했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-timeline"><td>adm-transaction-timeline</td><td class="status" data-status="완료">완료</td><td><code>adm-transaction-group-runtime-result.sanitized.json</code></td><td>ADM 거래 그룹 runtime smoke에서 timeline, headers, external logs 조회를 확인했습니다.</td></tr>
-      <tr data-check-id="cmn-fixed-length-engine"><td>cmn-fixed-length-engine</td><td class="status" data-status="완료">완료</td><td><code>FixedLengthMessageParserFormatterTest</code></td><td>CMN fixed-length 단위 테스트를 직접 실행했습니다.</td></tr>
-      <tr data-check-id="composite-runtime-smoke"><td>composite-runtime-smoke</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code>, <code>composite-transaction-failure-runtime-result.sanitized.json</code></td><td>복합 거래 성공/실패 runtime smoke를 모두 통과했습니다.</td></tr>
-      <tr data-check-id="adm-transaction-group-runtime"><td>adm-transaction-group-runtime</td><td class="status" data-status="완료">완료</td><td><code>adm-transaction-group-runtime-result.sanitized.json</code>, <code>adm-transaction-group-failure-runtime-result.sanitized.json</code></td><td>ADM 거래 그룹 성공/실패 runtime smoke를 모두 통과했습니다.</td></tr>
-      <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td class="status" data-status="미검증">미검증</td><td>broker optional</td><td>실제 Redis/Kafka/MQ broker 연동은 이번 범위에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="broker-real-integration"><td>broker-real-integration</td><td class="status" data-status="미검증">미검증</td><td>broker optional</td><td>실제 broker 장애/복구 시나리오는 이번 범위에서 실행하지 않았습니다.</td></tr>
-      <tr data-check-id="file-log-standard"><td>file-log-standard</td><td class="status" data-status="완료">완료</td><td><code>file-log-standard-result.sanitized.json</code></td><td>ACC 거래 파일 로그와 integration 파일 로그를 확인했습니다.</td></tr>
-      <tr data-check-id="trace-boost-runtime"><td>trace-boost-runtime</td><td class="status" data-status="완료">완료</td><td><code>trace-boost-runtime-result.sanitized.json</code></td><td>ADM Trace Boost runtime smoke를 통과했습니다.</td></tr>
-      <tr data-check-id="bat-trace-boost-runtime"><td>bat-trace-boost-runtime</td><td class="status" data-status="완료">완료</td><td><code>bat-trace-boost-runtime-result.sanitized.json</code></td><td>BAT 배치 로그에 traceBoostPolicyId가 남는 것을 확인했습니다.</td></tr>
-      <tr data-check-id="runtime-start-services"><td>runtime-start-services</td><td class="status" data-status="완료">완료</td><td><code>runtime-start-services-result.sanitized.json</code></td><td>bootJar build, process start, health, finalRuntimeUsable을 확인했습니다.</td></tr>
-      <tr data-check-id="packaged-runtime-resources"><td>packaged-runtime-resources</td><td class="status" data-status="완료">완료</td><td><code>packaged-runtime-resource-check.sanitized.json</code></td><td>jar 내부 forbidden log path와 runtime marker를 검사했습니다.</td></tr>
-      <tr data-check-id="runtime-status-diagnostics"><td>runtime-status-diagnostics</td><td class="status" data-status="완료">완료</td><td><code>runtime-status-result.sanitized.json</code>, <code>runtime-diagnostics-result.sanitized.json</code></td><td>5개 모듈 모두 포트, 프로세스, health, finalRuntimeUsable이 true입니다.</td></tr>
-      <tr data-check-id="runtime-closure"><td>runtime-closure</td><td class="status" data-status="완료">완료</td><td><code>runtime-closure-result.sanitized.json</code></td><td>요청 범위의 runtime smoke를 묶어 완료로 집계했습니다.</td></tr>
-      <tr data-check-id="adm-operation-console-runtime"><td>adm-operation-console-runtime</td><td class="status" data-status="완료">완료</td><td><code>adm-operation-console-runtime-result.sanitized.json</code></td><td>ADM 운영 콘솔 주요 조회 API가 인증과 표준 헤더 기준으로 통과했습니다.</td></tr>
-      <tr data-check-id="adm-log-policy-ui-static"><td>adm-log-policy-ui-static</td><td class="status" data-status="완료">완료</td><td><code>adm-log-policy-ui-static-result.sanitized.json</code></td><td>정적 UI marker를 확인했습니다.</td></tr>
-      <tr data-check-id="bat-log-bean-runtime"><td>bat-log-bean-runtime</td><td class="status" data-status="완료">완료</td><td><code>bat-log-bean-runtime-result.sanitized.json</code></td><td>BAT logging bean과 batch log 생성 증적을 확인했습니다.</td></tr>
-      <tr data-check-id="exs-timeout-retry-runtime"><td>exs-timeout-retry-runtime</td><td class="status" data-status="완료">완료</td><td><code>exs-timeout-retry-runtime-result.sanitized.json</code></td><td>EXS timeout/retry ledger 증적을 확인했습니다.</td></tr>
-      <tr data-check-id="cmn-fixed-length-advanced"><td>cmn-fixed-length-advanced</td><td class="status" data-status="완료">완료</td><td><code>cmn-fixed-length-advanced-result.sanitized.json</code></td><td>고급 fixed-length marker와 직접 Gradle 테스트 증적을 확인했습니다.</td></tr>
-      <tr data-check-id="create-domain-smoke"><td>create-domain-smoke</td><td class="status" data-status="완료">완료</td><td><code>create-domain-result.sanitized.json</code></td><td>create-domain smoke를 통과했습니다.</td></tr>
-      <tr data-check-id="runtime-smoke-summary"><td>runtime-smoke-summary</td><td class="status" data-status="완료">완료</td><td><code>runtime-smoke-summary.sanitized.json</code></td><td>runtime smoke summary를 재생성했고 exitCode 0을 확인했습니다.</td></tr>
-      <tr data-check-id="quality-gate"><td>quality-gate</td><td class="status" data-status="완료">완료</td><td><code>qualityGate</code></td><td>최종 리포트 작성 후 Gradle qualityGate로 재확인합니다.</td></tr>
-      <tr data-check-id="check-html-docs"><td>check-html-docs</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-html-docs.ps1</code></td><td>최종 리포트 작성 후 HTML/리포트 상태 일치를 재확인합니다.</td></tr>
-      <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-feature-evidence.ps1</code></td><td>최종 리포트 작성 후 기능 증적 marker를 재확인합니다.</td></tr>
-      <tr data-check-id="check-utf8"><td>check-utf8</td><td class="status" data-status="완료">완료</td><td><code>scripts/check-utf8.ps1 -CheckMojibake</code></td><td>UTF-8과 mojibake 검사를 통과했습니다.</td></tr>
-      </tbody>
-    </table>
+  <h2>검증 상태</h2>
+  <table>
+    <thead>
+    <tr><th>check id</th><th>영역</th><th>상태</th><th>증적</th><th>비고</th></tr>
+    </thead>
+    <tbody>
+    <tr data-check-id="edu-mapper-db-slice"><td>edu-mapper-db-slice</td><td>EDU</td><td class="status" data-status="완료">완료</td><td><code>edu-mapper-db-slice.log</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="mariadb-full-install"><td>mariadb-full-install</td><td>SQL</td><td class="status" data-status="완료">완료</td><td><code>mariadb-full-install-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-runtime"><td>adm-runtime</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-runtime-smoke-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-permission-runtime"><td>adm-permission-runtime</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-permission-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="openapi-runtime"><td>openapi-runtime</td><td>OpenAPI</td><td class="status" data-status="완료">완료</td><td><code>openapi-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-browser-click"><td>adm-browser-click</td><td>ADM UI</td><td class="status" data-status="미검증">미검증</td><td><code>adm-ui-browser-smoke-result.sanitized.json</code></td><td>브라우저 클릭 실검증 미수행</td></tr>
+    <tr data-check-id="standard-header-e2e"><td>standard-header-e2e</td><td>PFW</td><td class="status" data-status="완료">완료</td><td><code>standard-header-e2e-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="complex-transaction-trace"><td>complex-transaction-trace</td><td>PFW</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="transaction-segment-log"><td>transaction-segment-log</td><td>PFW</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-transaction-group-list"><td>adm-transaction-group-list</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-operation-console-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-transaction-timeline"><td>adm-transaction-timeline</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-transaction-group-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="cmn-fixed-length-engine"><td>cmn-fixed-length-engine</td><td>CMN</td><td class="status" data-status="완료">완료</td><td><code>cmn-fixed-length-advanced-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="composite-runtime-smoke"><td>composite-runtime-smoke</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>composite-transaction-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-transaction-group-runtime"><td>adm-transaction-group-runtime</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-transaction-group-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="redis-kafka-mq-broker"><td>redis-kafka-mq-broker</td><td>Broker</td><td class="status" data-status="미검증">미검증</td><td>없음</td><td>실제 broker 미실행</td></tr>
+    <tr data-check-id="broker-real-integration"><td>broker-real-integration</td><td>Broker</td><td class="status" data-status="미검증">미검증</td><td>없음</td><td>장애/fallback 미실행</td></tr>
+    <tr data-check-id="file-log-standard"><td>file-log-standard</td><td>PFW</td><td class="status" data-status="완료">완료</td><td><code>file-log-standard-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="trace-boost-runtime"><td>trace-boost-runtime</td><td>PFW</td><td class="status" data-status="완료">완료</td><td><code>trace-boost-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="bat-trace-boost-runtime"><td>bat-trace-boost-runtime</td><td>BAT</td><td class="status" data-status="완료">완료</td><td><code>bat-trace-boost-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="runtime-start-services"><td>runtime-start-services</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>runtime-start-services-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="packaged-runtime-resources"><td>packaged-runtime-resources</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>packaged-runtime-resource-check.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="runtime-status-diagnostics"><td>runtime-status-diagnostics</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>runtime-status-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="runtime-closure"><td>runtime-closure</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>runtime-closure-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-operation-console-runtime"><td>adm-operation-console-runtime</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-operation-console-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="adm-log-policy-ui-static"><td>adm-log-policy-ui-static</td><td>ADM</td><td class="status" data-status="완료">완료</td><td><code>adm-log-policy-ui-static-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="bat-log-bean-runtime"><td>bat-log-bean-runtime</td><td>BAT</td><td class="status" data-status="완료">완료</td><td><code>bat-log-bean-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="exs-timeout-retry-runtime"><td>exs-timeout-retry-runtime</td><td>EXS</td><td class="status" data-status="완료">완료</td><td><code>exs-timeout-retry-runtime-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="cmn-fixed-length-advanced"><td>cmn-fixed-length-advanced</td><td>CMN</td><td class="status" data-status="완료">완료</td><td><code>cmn-fixed-length-advanced-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="create-domain-smoke"><td>create-domain-smoke</td><td>Tooling</td><td class="status" data-status="완료">완료</td><td><code>create-domain-result.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="pfw-service-call-engine"><td>pfw-service-call-engine</td><td>PFW</td><td class="status" data-status="부분 구현">부분 구현</td><td><code>service-registry-runtime-result.sanitized.json</code></td><td>레지스트리/이력 1차 구현</td></tr>
+    <tr data-check-id="adm-service-registry-runtime"><td>adm-service-registry-runtime</td><td>ADM</td><td class="status" data-status="미검증">미검증</td><td><code>adm-service-registry-runtime-result.sanitized.json</code></td><td>실제 API 호출 미수행</td></tr>
+    <tr data-check-id="runtime-smoke-summary"><td>runtime-smoke-summary</td><td>Runtime</td><td class="status" data-status="완료">완료</td><td><code>runtime-smoke-summary.sanitized.json</code></td><td>이전 검증 증적</td></tr>
+    <tr data-check-id="check-report-matrix-evidence-consistency"><td>check-report-matrix-evidence-consistency</td><td>Quality</td><td class="status" data-status="완료">완료</td><td><code>quality-gate.log</code></td><td>qualityGate 안에서 report/matrix/evidence 정합성 실행</td></tr>
+    <tr data-check-id="quality-gate"><td>quality-gate</td><td>Quality</td><td class="status" data-status="완료">완료</td><td><code>quality-gate.log</code></td><td>이번 작업 최종 단계</td></tr>
+    <tr data-check-id="check-html-docs"><td>check-html-docs</td><td>Quality</td><td class="status" data-status="완료">완료</td><td><code>check-html-docs.log</code></td><td>이번 작업 최종 단계</td></tr>
+    <tr data-check-id="check-feature-evidence"><td>check-feature-evidence</td><td>Quality</td><td class="status" data-status="완료">완료</td><td><code>check-feature-evidence.log</code></td><td>이번 작업 최종 단계</td></tr>
+    <tr data-check-id="check-utf8"><td>check-utf8</td><td>Quality</td><td class="status" data-status="완료">완료</td><td><code>check-utf8-mojibake.log</code></td><td>이번 작업 최종 단계</td></tr>
+    </tbody>
+  </table>
   </section>
 </main>
 </body>

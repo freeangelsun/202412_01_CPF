@@ -1,0 +1,221 @@
+{
+    "generatedAt":  "2026-07-07T18:30:13.1013554+09:00",
+    "evidenceDir":  "specs\\evidence\\20260707_02",
+    "items":  [
+                  {
+                      "target":  "standard-header-e2e-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\standard-header-e2e-result.json",
+                      "bytes":  16060,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "composite-transaction-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\composite-transaction-runtime-result.json",
+                      "bytes":  887,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "composite-transaction-failure-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\composite-transaction-failure-runtime-result.json",
+                      "bytes":  829,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-transaction-group-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-transaction-group-runtime-result.json",
+                      "bytes":  2339,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-transaction-group-failure-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-transaction-group-failure-runtime-result.json",
+                      "bytes":  3123,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "openapi-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\openapi-runtime-result.json",
+                      "bytes":  3122,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-runtime-smoke-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-runtime-smoke-result.json",
+                      "bytes":  8051,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-permission-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-permission-runtime-result.json",
+                      "bytes":  3180,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-ui-browser-smoke-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-ui-browser-smoke-result.json",
+                      "bytes":  3265,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-smoke-summary.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-smoke-summary.json",
+                      "bytes":  2999,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-start-services-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-start-services-result.json",
+                      "bytes":  10194,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "packaged-runtime-resource-check.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\packaged-runtime-resource-check.json",
+                      "bytes":  19433,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-stop-services-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-stop-services-result.json",
+                      "bytes":  1146,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-status-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-status-result.json",
+                      "bytes":  13977,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-diagnostics-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-diagnostics-result.json",
+                      "bytes":  133389,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "runtime-closure-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\runtime-closure-result.json",
+                      "bytes":  5335,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "file-log-standard-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\file-log-standard-result.json",
+                      "bytes":  8691,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "file-log-grep-summary.sanitized.log",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\file-log-grep-summary.log",
+                      "bytes":  518,
+                      "kind":  "log"
+                  },
+                  {
+                      "target":  "trace-boost-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\trace-boost-runtime-result.json",
+                      "bytes":  3508,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "bat-trace-boost-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\bat-trace-boost-runtime-result.json",
+                      "bytes":  723,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "bat-log-bean-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\bat-log-bean-runtime-result.json",
+                      "bytes":  1028,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-operation-console-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-operation-console-runtime-result.json",
+                      "bytes":  4037,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-log-policy-ui-static-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-log-policy-ui-static-result.json",
+                      "bytes":  825,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "exs-timeout-retry-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\exs-timeout-retry-runtime-result.json",
+                      "bytes":  1191,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "cmn-fixed-length-advanced-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\cmn-fixed-length-advanced-result.json",
+                      "bytes":  5265,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "create-domain-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\create-domain-result.json",
+                      "bytes":  16137,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "service-registry-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\service-registry-runtime-result.json",
+                      "bytes":  5084,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "adm-service-registry-runtime-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\runtime-smoke\\adm-service-registry-runtime-result.json",
+                      "bytes":  560,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "mariadb-full-install-result.sanitized.json",
+                      "status":  "EXPORTED",
+                      "source":  "build\\sql-smoke\\mariadb-full-install-result.json",
+                      "bytes":  2339,
+                      "kind":  "json"
+                  },
+                  {
+                      "target":  "run-local-services-composite-rerun.sanitized.log",
+                      "status":  "MISSING",
+                      "sources":  [
+                                      "build/runtime-smoke/run-local-services-composite-rerun.sanitized.log",
+                                      "build/runtime-smoke/run-local-services-composite-rerun.job.log",
+                                      "build/runtime-smoke/run-local-services-closure.job.log",
+                                      "build/runtime-smoke/run-local-services-20260706-02.out.log",
+                                      "build/runtime-smoke/run-local-services.job.log"
+                                  ],
+                      "kind":  "log"
+                  }
+              ]
+}

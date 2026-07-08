@@ -57,12 +57,12 @@ Assert-Contains `
 
 Assert-Contains `
     "pfw/src/main/resources/application-pfw.yml" `
-    "module-id:\s*\$\{CPF_MODULE_ID:PFW\}" `
+    "module-id:\s*\$\{CPF_APP_MODULE_ID:\$\{CPF_MODULE_ID:[A-Z0-9]{3}\}\}" `
     "PFW module-id 기본값이 3자리여야 합니다."
 
 Assert-Contains `
     "pfw/src/main/resources/application-pfw.yml" `
-    "was-id:\s*\$\{WAS_ID:pfwAP01\}" `
+    "was-id:\s*\$\{CPF_APP_WAS_ID:\$\{WAS_ID:[A-Za-z0-9]{7}\}\}" `
     "PFW was-id 기본값이 7자리여야 합니다."
 
 Assert-Contains `

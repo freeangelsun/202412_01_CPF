@@ -1,0 +1,12 @@
+# ACC 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${ACC_MODULE_ID:ACC}
+    was-id: ${ACC_WAS_ID:${WAS_ID:accAP01}}
+  service-call:
+    registry-mode: ${ACC_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+
+logging:
+  file:
+    path: ${ACC_LOG_BASE_PATH:logs/acc}

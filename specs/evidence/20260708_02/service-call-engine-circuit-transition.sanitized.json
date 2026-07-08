@@ -1,0 +1,17 @@
+{
+    "startedAt":  "2026-07-08T11:47:32.6926864+09:00",
+    "runRuntimeRequested":  false,
+    "validationMode":  "source-circuit-contract",
+    "checks":  {
+                   "openBlock":  true,
+                   "openStatePersistence":  true,
+                   "halfOpenTransition":  true,
+                   "closeStatePersistence":  true,
+                   "circuitTest":  true
+               },
+    "status":  "DONE",
+    "failed":  [
+
+               ],
+    "finishedAt":  "2026-07-08T11:47:32.6996851+09:00"
+}

@@ -1,0 +1,11 @@
+# ACC local profile 설정입니다.
+
+server:
+  port: ${ACC_SERVER_PORT:8080}
+
+spring:
+  datasource:
+    acc:
+      url: ${ACC_DATASOURCE_URL:${ACC_DB_URL:jdbc:mariadb://localhost:3306/accDB}}
+      username: ${ACC_DATASOURCE_USERNAME:${ACC_DB_USERNAME:cpf_acc_app}}
+      password: ${ACC_DATASOURCE_PASSWORD:${ACC_DB_PASSWORD:cpf_local_pw}}

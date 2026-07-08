@@ -1,0 +1,13 @@
+# CMN stg 공통 정책입니다. 실행 모듈 설정을 덮어쓰지 않습니다.
+
+cpf:
+  cmn:
+    cache:
+      preload-enabled: ${CPF_CMN_CACHE_PRELOAD_ENABLED:true}
+      refresh-poll-millis: ${CPF_CMN_CACHE_REFRESH_POLL_MILLIS:5000}
+    messaging:
+      enabled: ${CPF_CMN_MESSAGING_ENABLED:true}
+      broker: ${CPF_CMN_MESSAGING_BROKER:IN_MEMORY}
+    file-exchange:
+      dry-run: ${CPF_CMN_FILE_DRY_RUN:true}
+      timeout-seconds: ${CPF_CMN_FILE_TIMEOUT_SECONDS:15}

@@ -1164,3 +1164,12 @@ Codex 요청서 15 — 최종 회귀/품질게이트/Report Matrix Evidence Cons
 - Codex 변경파일 목록
 - 실행 결과 원문 전체
 ```
+# Codex 공통 작업 지침 보강
+
+- 작업 기준은 항상 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 현재 요청서이다. 목표 파일은 읽기 전용 기준으로만 사용하고, 요청서가 별도 지시하지 않으면 수정하지 않는다.
+- 완료 주장은 실제 파일, 실제 실행 로그, 실제 evidence가 있을 때만 사용한다. 실행하지 않은 검증은 반드시 미검증으로 남긴다.
+- PFW는 프레임워크 코어 영역이며 표준 헤더, 거래 ID, 로그, 응답/오류, service call engine, PFW broker capability, file transfer capability, security/credential capability, runtime control capability를 소유한다.
+- CMN은 프로젝트 공통 영역이며 업무 공통 규칙, helper, fixture, fixed-length helper, 프로젝트 공통 확장을 소유한다. Kafka/MQ/Redis Stream, SSH/SFTP/FTP/FTPS 같은 기술 engine은 PFW capability 또는 PFW port-adapter 구조로 검토한다.
+- EXS는 외부연계 기술의 소유자가 아니다. EXS는 대외업무 adapter/구현체이며 외부 연계 기술 공통화가 필요하면 PFW/CMN capability로 올린다.
+- Spring Event는 hook, telemetry, cache invalidation, 감사/로그 보조 용도로만 사용한다. 거래 흐름, saga, compensation, unknown result, reconciliation, DLQ/replay의 핵심 전달 수단으로 완료 처리하지 않는다.
+- 요청서 템플릿 앞에는 이 공통 지침을 반복 반영하고, report/matrix/evidence 경로와 상태가 서로 맞는지 항상 검사한다.

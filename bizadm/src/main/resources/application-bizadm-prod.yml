@@ -1,0 +1,4 @@
+# BIZADM prod profile 설정입니다.
+
+server:
+  port: ${BIZADM_SERVER_PORT}

@@ -1,0 +1,11 @@
+# ACC dev profile 설정입니다.
+
+server:
+  port: ${ACC_SERVER_PORT}
+
+spring:
+  datasource:
+    acc:
+      url: ${ACC_DATASOURCE_URL}
+      username: ${ACC_DATASOURCE_USERNAME}
+      password: ${ACC_DATASOURCE_PASSWORD}

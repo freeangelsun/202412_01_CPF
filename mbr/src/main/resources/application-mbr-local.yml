@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
-    username: ${MBR_DB_USERNAME:cpf_mbr_app}
-    password: ${MBR_DB_PASSWORD:cpf_local_pw}
+    url: ${MBR_DATASOURCE_URL:${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}}
+    username: ${MBR_DATASOURCE_USERNAME:${MBR_DB_USERNAME:cpf_mbr_app}}
+    password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD:cpf_local_pw}}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -52,7 +52,7 @@ logging:
     org.apache.ibatis: DEBUG
   config: classpath:log/logback-local.xml
   file:
-    name: logs/mbr.log
+    name: ${MBR_LOG_BASE_PATH:logs}/mbr.log
 
 management:
   endpoints:
@@ -69,5 +69,5 @@ management:
 
 cpf:
   framework:
-    module-id: MBR
-    was-id: local01
+    module-id: ${MBR_MODULE_ID:MBR}
+    was-id: ${MBR_WAS_ID:local01}

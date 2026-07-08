@@ -73,7 +73,14 @@ foreach ($module in $modules) {
                 }
             }
             if (Test-Text $text "KafkaTemplate|JmsTemplate|RabbitTemplate|Sftp|SFTP|FTP|FTPS|SSH") {
-                Add-Finding $warnings "CMN_TECH_ENGINE_REVIEW" $relativePath "CMN has broker/file-transfer technical implementation candidate." "Move technical engine to PFW port if needed; keep CMN as project common rule/helper."
+                if ($text -match "CPF-OWNERSHIP:CMN_PROJECT_HELPER") {
+                    continue
+                }
+                if ($text -match "CPF-OWNERSHIP:PFW_PORT_MIGRATION_CANDIDATE") {
+                    Add-Finding $warnings "CMN_PFW_PORT_MIGRATION_CANDIDATE" $relativePath "CMN has technology engine code kept for compatibility." "Move broker/file-transfer execution to PFW port adapter and keep CMN as envelope/rule/helper."
+                } else {
+                    Add-Finding $warnings "CMN_TECH_ENGINE_REVIEW" $relativePath "CMN has broker/file-transfer technical implementation candidate." "Move technical engine to PFW port if needed; keep CMN as project common rule/helper."
+                }
             }
         }
 
@@ -93,6 +100,9 @@ foreach ($module in $modules) {
                 Add-Finding $failures "BUSINESS_NO_RAW_HTTP_CLIENT" $relativePath "Business module creates raw HTTP client." "Use CpfWebClient or PFW Service Call Engine."
             }
             if (Test-Text $text "https?://") {
+                if ($relativePath -match "^xyz/src/main/java/cpf/xyz/edu/" -and $text -match "CPF-ARCH-ALLOW-DIRECT-URL:\s*EDU_ONLY") {
+                    continue
+                }
                 Add-Finding $warnings "BUSINESS_DIRECT_URL_REVIEW" $relativePath "Business source has URL literal." "Check whether this is education-only or should use registry/service-call."
             }
             if (Test-Text $text "KafkaTemplate|JmsTemplate|RabbitTemplate|RedisTemplate") {
@@ -111,6 +121,12 @@ $requiredCapabilityFiles = @(
     "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqPort.java",
     "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerReplayPort.java",
     "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerHealthPort.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerHistoryPort.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerOutboxPort.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerInboxPort.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerIdempotencyPort.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayRequest.java",
+    "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayResult.java",
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferClient.java",
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferPort.java",
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferRequest.java",
@@ -118,7 +134,17 @@ $requiredCapabilityFiles = @(
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferHistoryPort.java",
     "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferHealthPort.java",
+    "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferProtocol.java",
+    "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferPolicy.java",
+    "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumPolicy.java",
+    "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfDuplicatePreventionPort.java",
+    "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferHistoryQuery.java",
     "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialRef.java",
+    "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java",
+    "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialValidationResult.java",
+    "pfw/src/main/java/cpf/pfw/common/security/CpfTokenProviderPort.java",
+    "pfw/src/main/java/cpf/pfw/common/security/CpfTokenRequest.java",
+    "pfw/src/main/java/cpf/pfw/common/security/CpfTokenResult.java",
     "pfw/src/main/java/cpf/pfw/common/security/CpfSecretProviderPort.java",
     "pfw/src/main/java/cpf/pfw/common/security/CpfKeyProviderPort.java",
     "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
@@ -128,6 +154,14 @@ $requiredCapabilityFiles = @(
     "pfw/src/main/java/cpf/pfw/common/runtime/CpfHeartbeatPort.java",
     "pfw/src/main/java/cpf/pfw/common/runtime/CpfHealthCheckPort.java",
     "pfw/src/main/java/cpf/pfw/common/runtime/CpfGhostDetectorPort.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireRequest.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireResult.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfHeartbeatRequest.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfHeartbeatResult.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfGhostDetectionResult.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfWorkerControlRequest.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfWorkerControlResult.java",
+    "pfw/src/main/java/cpf/pfw/common/runtime/CpfRuntimeHealthQuery.java",
     "pfw/src/main/java/cpf/pfw/common/admin/CpfBrokerStatusQuery.java",
     "pfw/src/main/java/cpf/pfw/common/admin/CpfFileTransferStatusQuery.java",
     "pfw/src/main/java/cpf/pfw/common/admin/CpfCredentialStatusQuery.java",

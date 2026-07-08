@@ -1,8 +1,16 @@
 spring:
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bat.yml
+      - optional:classpath:application-bat-${spring.profiles.active:local}.yml
   application:
     name: bat
   profiles:
-    active: bat-local
+    active: local
     include: pfw
   batch:
     job:

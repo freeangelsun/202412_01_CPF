@@ -1,8 +1,6 @@
 # CMN 공통 모듈 기본 설정입니다.
 
 spring:
-  application:
-    name: cmn
   cache:
     type: caffeine
   datasource:

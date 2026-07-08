@@ -1,0 +1,12 @@
+# BIZADM 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${BIZADM_MODULE_ID:BIZADM}
+    was-id: ${BIZADM_WAS_ID:${WAS_ID:bizadmAP01}}
+  service-call:
+    registry-mode: ${BIZADM_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+
+logging:
+  file:
+    path: ${BIZADM_LOG_BASE_PATH:logs/bizadm}

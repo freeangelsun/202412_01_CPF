@@ -29,14 +29,15 @@ mybatis:
 
 cpf:
   framework:
-    module-id: ${CPF_MODULE_ID:PFW}
-    was-id: ${WAS_ID:pfwAP01}
+    # PFW는 라이브러리이므로 실행 모듈 ID를 PFW로 고정하지 않습니다.
+    module-id: ${CPF_APP_MODULE_ID:${CPF_MODULE_ID:APP}}
+    was-id: ${CPF_APP_WAS_ID:${WAS_ID:appAP01}}
     transaction-id:
       sequence-digits: 7
   http-client:
-    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS:${CPF_HTTP_CONNECT_TIMEOUT_MS:3000}}
-    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS:${CPF_HTTP_READ_TIMEOUT_MS:5000}}
-    max-in-memory-size-kb: ${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
+    connect-timeout-millis: ${CPF_PFW_HTTP_CONNECT_TIMEOUT_MS:${CPF_HTTP_CONNECT_TIMEOUT_MS:3000}}
+    read-timeout-millis: ${CPF_PFW_HTTP_READ_TIMEOUT_MS:${CPF_HTTP_READ_TIMEOUT_MS:5000}}
+    max-in-memory-size-kb: ${CPF_PFW_HTTP_MAX_IN_MEMORY_SIZE_KB:${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
   services:
     acc:
       base-url: ${CPF_SERVICE_ACC_URL:${CPF_SERVICE_ACC_URL:http://localhost:8080}}

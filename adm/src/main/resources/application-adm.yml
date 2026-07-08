@@ -1,0 +1,12 @@
+# ADM 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${ADM_MODULE_ID:ADM}
+    was-id: ${ADM_WAS_ID:${WAS_ID:admAP01}}
+  service-call:
+    registry-mode: ${ADM_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+
+logging:
+  file:
+    path: ${ADM_LOG_BASE_PATH:logs/adm}

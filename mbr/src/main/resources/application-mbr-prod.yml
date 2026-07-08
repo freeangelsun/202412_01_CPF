@@ -1,0 +1,15 @@
+# MBR prod profile 설정입니다.
+
+server:
+  port: ${MBR_SERVER_PORT}
+
+cpf:
+  framework:
+    module-id: ${MBR_MODULE_ID:MBR}
+    was-id: ${MBR_WAS_ID:${WAS_ID:mbrAP01}}
+
+spring:
+  datasource:
+    url: ${MBR_DATASOURCE_URL:${MBR_DB_URL}}
+    username: ${MBR_DATASOURCE_USERNAME:${MBR_DB_USERNAME}}
+    password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD}}

@@ -1,6 +1,14 @@
 # ADM 서비스 설정입니다.
 
 spring:
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-adm.yml
+      - optional:classpath:application-adm-${spring.profiles.active:local}.yml
   application:
     name: adm
   profiles:

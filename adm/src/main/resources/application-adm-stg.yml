@@ -1,0 +1,11 @@
+# ADM stg profile 설정입니다.
+
+server:
+  port: ${ADM_SERVER_PORT}
+
+spring:
+  datasource:
+    adm:
+      url: ${ADM_DATASOURCE_URL}
+      username: ${ADM_DATASOURCE_USERNAME}
+      password: ${ADM_DATASOURCE_PASSWORD}

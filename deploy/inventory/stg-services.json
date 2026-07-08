@@ -1,0 +1,12 @@
+{
+  "env": "stg",
+  "services": [
+    {"module": "ACC", "hostAlias": "acc-stg", "sshHostEnvKey": "ACC_SSH_HOST", "sshUserEnvKey": "ACC_SSH_USER", "deployBase": "/apps/cpf/acc", "healthUrl": "http://${ACC_SSH_HOST}:${ACC_SERVER_PORT}/actuator/health", "serviceName": "cpf-acc", "portEnvKey": "ACC_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "MBR", "hostAlias": "mbr-stg", "sshHostEnvKey": "MBR_SSH_HOST", "sshUserEnvKey": "MBR_SSH_USER", "deployBase": "/apps/cpf/mbr", "healthUrl": "http://${MBR_SSH_HOST}:${MBR_SERVER_PORT}/actuator/health", "serviceName": "cpf-mbr", "portEnvKey": "MBR_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "EXS", "hostAlias": "exs-stg", "sshHostEnvKey": "EXS_SSH_HOST", "sshUserEnvKey": "EXS_SSH_USER", "deployBase": "/apps/cpf/exs", "healthUrl": "http://${EXS_SSH_HOST}:${EXS_SERVER_PORT}/actuator/health", "serviceName": "cpf-exs", "portEnvKey": "EXS_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "ADM", "hostAlias": "adm-stg", "sshHostEnvKey": "ADM_SSH_HOST", "sshUserEnvKey": "ADM_SSH_USER", "deployBase": "/apps/cpf/adm", "healthUrl": "http://${ADM_SSH_HOST}:${ADM_SERVER_PORT}/actuator/health", "serviceName": "cpf-adm", "portEnvKey": "ADM_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "BAT", "hostAlias": "bat-stg", "sshHostEnvKey": "BAT_SSH_HOST", "sshUserEnvKey": "BAT_SSH_USER", "deployBase": "/apps/cpf/bat", "healthUrl": "http://${BAT_SSH_HOST}:${BAT_SERVER_PORT}/actuator/health", "serviceName": "cpf-bat", "portEnvKey": "BAT_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "BIZADM", "hostAlias": "bizadm-stg", "sshHostEnvKey": "BIZADM_SSH_HOST", "sshUserEnvKey": "BIZADM_SSH_USER", "deployBase": "/apps/cpf/bizadm", "healthUrl": "http://${BIZADM_SSH_HOST}:${BIZADM_SERVER_PORT}/actuator/health", "serviceName": "cpf-bizadm", "portEnvKey": "BIZADM_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true},
+    {"module": "XYZ", "hostAlias": "xyz-stg", "sshHostEnvKey": "XYZ_SSH_HOST", "sshUserEnvKey": "XYZ_SSH_USER", "deployBase": "/apps/cpf/xyz", "healthUrl": "http://${XYZ_SSH_HOST}:${XYZ_SERVER_PORT}/actuator/health", "serviceName": "cpf-xyz", "portEnvKey": "XYZ_SERVER_PORT", "profile": "stg", "approvalRequired": true, "rollbackEnabled": true}
+  ]
+}

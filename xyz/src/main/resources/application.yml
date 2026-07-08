@@ -1,6 +1,14 @@
 # XYZ 교육 서비스 설정입니다.
 
 spring:
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-xyz.yml
+      - optional:classpath:application-xyz-${spring.profiles.active:local}.yml
   application:
     name: xyz
   profiles:

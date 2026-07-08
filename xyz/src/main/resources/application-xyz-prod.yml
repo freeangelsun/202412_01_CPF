@@ -1,0 +1,11 @@
+# XYZ/EDU prod profile 설정입니다.
+
+server:
+  port: ${XYZ_SERVER_PORT}
+
+spring:
+  datasource:
+    xyz:
+      url: ${XYZ_DATASOURCE_URL}
+      username: ${XYZ_DATASOURCE_USERNAME}
+      password: ${XYZ_DATASOURCE_PASSWORD}

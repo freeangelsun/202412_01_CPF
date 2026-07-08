@@ -1,4 +1,12 @@
 spring:
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bizadm.yml
+      - optional:classpath:application-bizadm-${spring.profiles.active:local}.yml
   application:
     name: bizadm
   profiles:

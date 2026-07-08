@@ -1,0 +1,12 @@
+# XYZ/EDU 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${XYZ_MODULE_ID:XYZ}
+    was-id: ${XYZ_WAS_ID:${WAS_ID:xyzAP01}}
+  service-call:
+    registry-mode: ${XYZ_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+
+logging:
+  file:
+    path: ${XYZ_LOG_BASE_PATH:logs/xyz}

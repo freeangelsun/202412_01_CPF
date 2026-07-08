@@ -215,6 +215,24 @@ tasks.register('checkSpringEventUsage', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-spring-event-usage.ps1'
 }
 
+tasks.register('checkProfileLoading', Exec) {
+    group = 'verification'
+    description = 'PFW/CMN 공통 profile과 업무 서비스별 local/dev/stg/prod profile import 규칙을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-profile-loading.ps1'
+}
+
+tasks.register('checkPackagedDependencies', Exec) {
+    group = 'verification'
+    description = '업무 서비스 bootJar가 PFW/CMN 런타임 의존성을 포함할 수 있는 구조인지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/deploy/check-packaged-dependencies.ps1', '-Module', 'ACC'
+}
+
+tasks.register('checkDeployDryRun', Exec) {
+    group = 'verification'
+    description = '공통 배포 스크립트가 env/inventory 기준으로 dry-run 증적을 생성하는지 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/deploy/deploy-module.ps1', '-Module', 'ACC', '-Env', 'dev', '-DryRun', '-SkipArtifactRequired'
+}
+
 tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
@@ -244,5 +262,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkPackagedDependencies', 'checkDeployDryRun', 'checkReportMatrixEvidenceConsistency'
 }

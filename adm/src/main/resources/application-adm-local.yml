@@ -1,0 +1,11 @@
+# ADM local profile 설정입니다.
+
+server:
+  port: ${ADM_SERVER_PORT:8090}
+
+spring:
+  datasource:
+    adm:
+      url: ${ADM_DATASOURCE_URL:${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}}
+      username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME:cpf_adm_app}}
+      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD:cpf_local_pw}}

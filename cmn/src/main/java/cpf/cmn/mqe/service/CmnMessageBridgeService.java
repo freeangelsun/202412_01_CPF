@@ -29,11 +29,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * CPF 기능 설명입니다.
+ * CMN 메시지 envelope 교육/프로젝트 helper 서비스입니다.
  *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * <p>CPF-OWNERSHIP:PFW_PORT_MIGRATION_CANDIDATE</p>
+ * <p>메시지 envelope, topic naming, 최근 메시지 조회 helper는 CMN에 둘 수 있지만,
+ * Kafka/RabbitMQ client 직접 사용은 PFW broker port adapter로 이동해야 하는 기술 engine 후보입니다.
+ * 이번 단계에서는 기존 샘플 호환성을 유지하고 architecture scan과 gap에 후속 이동 대상으로 남깁니다.</p>
  */
 @Service
 public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageConsumer {
@@ -187,4 +188,3 @@ public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageC
         }
     }
 }
-

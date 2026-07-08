@@ -1,0 +1,11 @@
+# EXS prod profile 설정입니다.
+
+server:
+  port: ${EXS_SERVER_PORT}
+
+cpf:
+  exs:
+    datasource:
+      url: ${EXS_DATASOURCE_URL}
+      username: ${EXS_DATASOURCE_USERNAME}
+      password: ${EXS_DATASOURCE_PASSWORD}

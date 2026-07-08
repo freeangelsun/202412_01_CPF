@@ -1,0 +1,35 @@
+{
+    "startedAt":  "2026-07-08T12:01:12.9603812+09:00",
+    "finishedAt":  "2026-07-08T12:01:28.9602492+09:00",
+    "module":  "ACC",
+    "env":  "dev",
+    "dryRun":  true,
+    "buildBeforeDeploy":  true,
+    "skipArtifactRequired":  false,
+    "realRemoteExecuted":  false,
+    "remoteResult":  "DRY_RUN_ONLY",
+    "rollbackExecuted":  false,
+    "status":  "DONE",
+    "artifact":  {
+                     "path":  "acc/build/libs/acc-0.0.1-cpf.acc-SNAPSHOT.jar",
+                     "sha256":  "7989C62EB3C9DF372B716B38A8BE9DF3DE9FFE92AC8CB286B5C3CA2A79EB5090"
+                 },
+    "target":  {
+                   "envFile":  "deploy/env/dev-acc.env",
+                   "inventory":  "deploy/inventory/dev-services.json",
+                   "hostAlias":  "acc-dev",
+                   "deployBase":  "/apps/cpf/acc",
+                   "serviceName":  "cpf-acc",
+                   "healthUrl":  "http://${ACC_SSH_HOST}:${ACC_SERVER_PORT}/actuator/health",
+                   "rollbackEnabled":  true
+               },
+    "remoteActions":  [
+                          "validate-env",
+                          "build-bootJar",
+                          "checksum",
+                          "package-dependency-check"
+                      ],
+    "failures":  [
+
+                 ]
+}

@@ -1,0 +1,12 @@
+# PFW stg 공통 정책입니다.
+
+cpf:
+  http-client:
+    connect-timeout-millis: ${CPF_PFW_HTTP_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-millis: ${CPF_PFW_HTTP_READ_TIMEOUT_MS:4000}
+  service-call:
+    registry-mode: ${CPF_PFW_SERVICE_REGISTRY_MODE:DB}
+  broker:
+    publish-timeout-millis: ${CPF_PFW_BROKER_PUBLISH_TIMEOUT_MS:3000}
+  filetransfer:
+    timeout-millis: ${CPF_PFW_FILETRANSFER_TIMEOUT_MS:10000}

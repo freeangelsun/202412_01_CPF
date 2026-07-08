@@ -2,9 +2,11 @@ spring:
   config:
     import:
       - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
       - optional:classpath:application-cmn.yml
-      - classpath:application-mbr.yml
-      - classpath:application-mbr-local.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-mbr.yml
+      - optional:classpath:application-mbr-${spring.profiles.active:local}.yml
 
 ---
 # prod에서는 local import의 개발 기본값을 운영 환경변수로 덮습니다.

@@ -1,0 +1,12 @@
+# BAT 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${BAT_MODULE_ID:BAT}
+    was-id: ${BAT_WAS_ID:${WAS_ID:batWK01}}
+  service-call:
+    registry-mode: ${BAT_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+
+logging:
+  file:
+    path: ${BAT_LOG_BASE_PATH:logs/bat}

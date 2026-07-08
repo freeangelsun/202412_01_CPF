@@ -21,6 +21,10 @@ import java.util.Map;
 
 /**
  * 내부 서비스 호출과 외부 HTTP 호출 표준을 학습하는 EDU API입니다.
+ *
+ * <p>CPF-ARCH-ALLOW-DIRECT-URL: EDU_ONLY</p>
+ * <p>이 URL literal은 운영 호출이 아니라 WebClient timeout 교육 샘플의 기본값입니다.
+ * 운영 업무 코드는 PFW Service Call Engine registry 기반 호출을 사용해야 합니다.</p>
  */
 @RestController
 @RequestMapping("/xyz/edu")

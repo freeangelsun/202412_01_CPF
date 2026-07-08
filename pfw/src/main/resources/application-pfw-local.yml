@@ -1,0 +1,12 @@
+# PFW local 공통 정책입니다. 실행 모듈의 application-<module>-local.yml이 최종 실행값을 소유합니다.
+
+cpf:
+  http-client:
+    connect-timeout-millis: ${CPF_PFW_HTTP_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-millis: ${CPF_PFW_HTTP_READ_TIMEOUT_MS:5000}
+  service-call:
+    registry-mode: ${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}
+  broker:
+    publish-timeout-millis: ${CPF_PFW_BROKER_PUBLISH_TIMEOUT_MS:3000}
+  filetransfer:
+    timeout-millis: ${CPF_PFW_FILETRANSFER_TIMEOUT_MS:10000}

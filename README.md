@@ -42,6 +42,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.p
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-packaged-runtime-resources.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-architecture-ownership.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-spring-event-usage.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-profile-loading.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy/check-packaged-dependencies.ps1 -Module ACC
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy/deploy-module.ps1 -Module ACC -Env dev -DryRun -BuildBeforeDeploy
 ```
 
 ## 주요 smoke

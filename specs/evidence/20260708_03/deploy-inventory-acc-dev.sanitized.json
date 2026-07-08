@@ -1,0 +1,24 @@
+{
+    "generatedAt": "2026-07-08T17:26:10.493+0900",
+    "module": "ACC",
+    "env": "dev",
+    "status": "DONE",
+    "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/dev-services.json",
+    "target": {
+        "module": "ACC",
+        "hostAlias": "acc-dev",
+        "sshHostEnvKey": "ACC_SSH_HOST",
+        "sshUserEnvKey": "ACC_SSH_USER",
+        "deployBase": "/apps/cpf/acc",
+        "healthUrl": "http://${ACC_SSH_HOST}:${ACC_SERVER_PORT}/actuator/health",
+        "serviceName": "cpf-acc",
+        "portEnvKey": "ACC_SERVER_PORT",
+        "profile": "dev",
+        "approvalRequired": false,
+        "rollbackEnabled": true,
+        "runtimeMode": "embedded-bootjar"
+    },
+    "failures": [
+        
+    ]
+}

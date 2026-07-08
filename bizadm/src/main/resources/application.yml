@@ -28,5 +28,5 @@ cpf:
       enabled: ${CPF_BIZADM_DB_ENABLED:false}
       url: ${BIZADM_DB_URL:jdbc:mariadb://localhost:3306/bizadmDB}
       username: ${BIZADM_DB_USERNAME:cpf_bizadm_app}
-      password: ${BIZADM_DB_PASSWORD:cpf_local_pw}
+      password: ${BIZADM_DB_PASSWORD:__REPLACE_BY_ENV__}
       driver-class-name: org.mariadb.jdbc.Driver

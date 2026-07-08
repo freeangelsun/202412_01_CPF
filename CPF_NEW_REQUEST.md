@@ -1,235 +1,254 @@
-# Codex 요청서 05 — Evidence 정합성 복구, 환경/Profile 표준화, 원격배포 기반, PFW Capability 실사용 전진
+# Codex 요청서 — 가비지 정리, 환경/Profile 정합성, Gradle 배포 표준, WAS 호환 설정, 자동생성/BAT 보강
 
 ## 0. Codex 공통 작업 지침
 
-아래 기준은 이번 요청서의 모든 작업에 우선 적용한다. 개별 작업 항목에 반복해서 적혀 있지 않아도 반드시 지킨다.
+이번 요청은 실제 개발서버, 운영서버, 외부 WAS, Jenkins 실환경, real broker, real SFTP/FTP/SSH, Vault/KMS/HSM, MariaDB 신규 빈 DB, ADM browser runtime 환경을 Codex가 직접 준비해 검증하는 작업이 아니다.
 
-1. CPF 표준 스펙은 흔들지 않는다.
-2. 기술 capability는 업무 주제영역에 종속시키지 않는다.
-3. PFW는 기본 프레임워크 기술 기능을 소유한다.
-4. CMN은 프로젝트 공통 커스텀/업무 공통 확장을 소유한다.
-5. EXS/ACC/MBR/BAT/BIZADM/EDU/XYZ는 PFW/CMN capability를 사용하는 consumer, adapter, 업무 설정, 업무 구현체 역할만 한다.
-6. EXS는 외부연계 기술 소유자가 아니다. EXS는 대외업무 대표 adapter/구현체다.
-7. Kafka/MQ/Redis Stream 같은 broker 기술 capability는 PFW가 소유한다.
-8. SSH/SFTP/FTP/FTPS 같은 file transfer 기술 capability도 PFW 기본 capability 후보로 둔다.
-9. OAuth/JWT/mTLS, timeout/retry/circuit/failover, unknown result, reconciliation, outbox/inbox/idempotency, broker port, file transfer port는 PFW/CMN 공통 capability로 둔다.
-10. fixed-length parser/formatter/layout, 공통 메시지/코드, 공통 validation/helper/fixture는 CMN capability로 둔다.
-11. PFW/CMN이 업무 주제영역에 의존하면 안 된다.
-12. 업무 주제영역 간 내부 기술 클래스 재사용을 금지한다.
-13. 업무 코드는 URL 직접 조합, Controller 직접 호출, 타 주제영역 DB/Mapper/Repository 직접 접근을 금지한다.
-14. Spring Event는 핵심 거래 흐름, 외부 송신, saga/compensation, unknown result, reconciliation, multi-instance 전달, DLQ/replay의 중심 기술로 사용하지 않는다.
-15. 핵심 흐름은 DB 상태, transactionGlobalId, segment/timeline, outbox/inbox, idempotency, broker/scheduler 재처리 구조를 우선한다.
-16. `CPF_FINAL_TARGET_REQUIREMENTS.md`는 로컬 checkout 기준으로 관련 키워드/REQ-ID/섹션을 검색해 작업 기준을 잡는다.
-17. 목표파일을 삭제/축약/덮어쓰기 하지 않는다.
-18. 문서는 개발 중 정본화하지 않고 검수 가능한 최소 기록만 남긴다.
-19. 실행하지 않은 검증을 완료로 기록하지 않는다.
-20. source/test/SQL/Flyway/all_install/smoke/evidence/report/matrix 정합성을 맞춘다.
-21. Git commit/push/branch 생성은 금지한다.
+Codex가 할 수 있는 범위와 할 수 없는 범위를 명확히 구분한다.
 
-## 1. 이번 요청의 목적
+```text id="codex-scope"
+Codex 완료 가능:
+- source 구현
+- yml/env/profile 정리
+- Gradle task 구현
+- bootJar packaging 검증
+- PFW/CMN dependency 포함 검증
+- config loading 검증
+- datasource URL/JNDI mode 설정 구조 구현
+- external WAS/JNDI command/config plan 생성
+- remote deploy dry-run
+- garbage file scan/delete
+- source/unit/contract test
+- report/evidence/matrix/gap 정합성 복구
 
-이번 요청은 문서 정리만 하는 작업이 아니다.
-지난 작업에서 추가된 PFW capability skeleton, architecture ownership scan, Spring Event scan을 기준으로 **보고/증적 정합성을 복구하고**, 동시에 **환경/profile 표준화와 원격 배포 기반을 크게 전진**시킨다.
-
-작업 비중은 아래를 목표로 한다.
-
-```text
-개발/소스/스크립트/검증: 70%
-report/evidence/matrix/gap 최소 정합성: 20%
-후속 runtime 준비: 10%
+Codex 완료 불가:
+- 실제 외부 WAS 설치
+- 실제 WAS datasource/JNDI resource 등록
+- 실제 개발서버 원격 배포
+- 실제 원격 stop/start/restart/rollback
+- 실제 broker runtime
+- 실제 SFTP/FTP/SSH runtime
+- 실제 Vault/KMS/HSM runtime
+- 실제 ADM browser click
+- 실제 MariaDB 신규 빈 DB full install
 ```
 
-## 2. 선행 필수 — report/evidence/matrix/guide 정합성 복구
+기본 실행 표준은 아래로 둔다.
 
-### 2.1 `20260708_01` evidence 정합성 반영
+```text id="runtime-base"
+CPF 기본 실행 표준:
+- Spring Boot executable bootJar
+- embedded Tomcat
+- java -jar 실행
+- module별 server.port
+- module별 datasource URL/env 기반 설정
+- PFW/CMN은 업무 서비스 bootJar 내부 dependency
+```
 
-현재 `specs/evidence/20260708_01`에는 아래 증적이 존재한다.
+외부 WAS/JNDI는 기본이 아니라 선택 호환 옵션이다.
 
-* `architecture-ownership-scan.sanitized.json`
-* `spring-event-usage-scan.sanitized.json`
-* `service-call-engine-runtime-success.sanitized.json`
-* `service-call-engine-circuit-transition.sanitized.json`
-* `service-call-engine-failover.sanitized.json`
-* `service-registry-health-runtime.sanitized.json`
-* `adm-service-registry-runtime-result.json`
-* `adm-service-registry-ui-static-smoke.sanitized.json`
+```text id="runtime-optional"
+선택 호환:
+- 외부 WAS 배포
+- WAS datasource/JNDI
+- JNDI resource name
+- WAR 배포 후보
 
-그런데 GitHub master 기준으로 `CPF_STABILIZATION_REPORT.md`, `CPF_EVIDENCE_INDEX.md`가 아직 `20260707_03` 또는 이전 증적 중심으로 보일 수 있다. 이를 반드시 정합화한다.
+단, 실제 WAS/JNDI runtime 검증은 환경이 없으면 미검증으로 남긴다.
+```
 
-필수 작업:
+반드시 지킬 기준:
 
-* `CPF_STABILIZATION_REPORT.md`에 `20260708_01` 작업 결과 반영
-* `CPF_EVIDENCE_INDEX.md`에 `20260708_01` evidence 경로 반영
-* `CPF_GAP_MATRIX.md`에 남은 gap 반영
-* `specs/기능_구현_매트릭스.html`의 check id/status/evidence 동기화
-* `check-report-matrix-evidence-consistency.ps1`가 `20260708_01` 경로를 제대로 검증하는지 확인
+```text id="global-rules"
+- Git commit 금지
+- Git push 금지
+- branch 생성 금지
+- CPF_FINAL_TARGET_REQUIREMENTS.md 수정 금지
+- CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md 수정 금지
+- CPF_NEW_REQUEST.md 수정 금지
+- 실행하지 않은 검증 완료 기록 금지
+- dry-run을 real remote deploy로 기록 금지
+- source-only smoke를 runtime 완료로 기록 금지
+- static UI smoke를 browser click 완료로 기록 금지
+- external WAS/JNDI config validation을 실제 WAS runtime 완료로 기록 금지
+- embedded/mock broker를 real broker 완료로 기록 금지
+- placeholder script를 실제 구현 완료로 기록 금지
+- stale evidence를 신규 완료 근거로 사용 금지
+- 없는 evidence 경로를 완료 근거로 기록 금지
+- secret/password/token/private key/cert 원문 기록 금지
+```
+
+상태값은 아래 6개만 사용한다.
+
+```text id="status-values"
+완료
+부분 구현
+미구현
+미검증
+실패
+재확인 필요
+```
+
+실패/미검증 항목은 같은 방식으로 반복 요청하지 말고 원인과 대안을 보고한다.
+
+## 1. 선행 검수 결과 반영
+
+현재 검수 기준으로 아래 문제가 확인되었다. 이번 작업은 이 문제를 먼저 반영한다.
+
+```text id="review-summary"
+1. scripts/deploy 아래 ps1/sh 배포 파일은 존재하나 실제 원격 배포 엔진이 아니라 dry-run/placeholder 중심이다.
+2. Jenkins-ready 배포 표준은 ps1/sh 직접 호출이 아니라 Gradle task 중심이어야 한다.
+3. root build.gradle에는 ps1을 직접 호출하는 checkDeployDryRun류 구조가 있어 Gradle-native 표준으로 부족하다.
+4. yml/profile/env 구조가 신규 표준과 구버전 파일이 혼재되어 있다.
+5. deploy/env 파일에 빈 값이 남아 있다.
+6. PFW/CMN yml에 실행 주체 설정이나 datasource 기본값으로 오해될 수 있는 설정이 남아 있다.
+7. datasource는 URL mode를 기본으로 하되 외부 WAS/JNDI mode도 설정 구조는 지원해야 한다.
+8. 실제 외부 WAS/JNDI runtime 검증은 Codex가 수행할 수 없으므로 미검증으로 남겨야 한다.
+9. 주제영역 자동 생성 기능이 새 profile/env/deploy 표준을 따라야 한다.
+10. BAT edu 패키지 누락, BAT Job 실행 단위 로그 파일 분리도 보강해야 한다.
+```
+
+## 2. 가비지 파일 / 불필요 파일 / stale 설정 전수 정리
+
+이번 작업의 최우선 항목이다.
+
+### 2.1 전수 목록 산출
+
+아래 파일 목록을 evidence로 남긴다.
+
+```powershell id="file-scan"
+git ls-files > specs/evidence/20260708_03/git-files.txt
+git ls-files "*application*.yml" "*application*.yaml" "*application*.properties" > specs/evidence/20260708_03/config-files.txt
+git ls-files "deploy/env/*" "deploy/inventory/*" > specs/evidence/20260708_03/deploy-config-files.txt
+git ls-files "scripts/deploy/*" > specs/evidence/20260708_03/deploy-script-files.txt
+git ls-files "specs/evidence/**" > specs/evidence/20260708_03/evidence-files.txt
+```
+
+### 2.2 정리 대상
+
+아래를 전수 점검한다.
+
+```text id="cleanup-targets"
+1. yml/properties/env
+   - 구버전 application-dev.yml/local.yml/prod.yml/test.yml
+   - 신규 application-<module>-*.yml와 중복되는 파일
+   - 더 이상 spring.config.import에서 로드되지 않는 파일
+   - spring.profiles.include 구버전 방식만 사용하는 파일
+   - module prefix 규칙과 충돌하는 env key
+   - 빈 값이 남은 env 파일
+   - local/dev/stg/prod 표준과 맞지 않는 파일
+
+2. scripts/deploy
+   - Gradle task에서 호출되지 않는 ps1/sh
+   - placeholder만 출력하는 remote-start/stop/restart/rollback
+   - Jenkins 표준과 충돌하는 Windows-only ps1
+   - Gradle task로 대체 가능한 중복 script
+   - 실제 기능 없이 evidence만 만드는 script
+
+3. source/test/template
+   - dead source
+   - 더 이상 import되지 않는 DTO/helper
+   - 구버전 자동생성 template
+   - BAT edu로 이동해야 하는 예제 코드
+   - EXS/타 업무영역에 잘못 위치한 공통 기술 코드
+
+4. evidence/report
+   - 없는 evidence path
+   - stale evidence를 신규 완료 근거로 쓰는 항목
+   - SKIPPED인데 완료로 오인되는 항목
+   - 이전 evidence와 신규 evidence가 중복된 항목
+```
+
+### 2.3 삭제 기준
+
+확정 삭제 기준:
+
+```text id="delete-rules"
+- git grep으로 참조 없음
+- Gradle build/test에서 참조 없음
+- script에서 호출 없음
+- README/report/matrix/evidence에서 참조 없음
+- 자동생성 템플릿에서 참조 없음
+- qualityGate/check script에서 참조 없음
+- 같은 목적의 신규 표준 파일이 존재
+```
+
+삭제 금지:
+
+```text id="delete-forbidden"
+- CPF_FINAL_TARGET_REQUIREMENTS.md
+- CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+- CPF_NEW_REQUEST.md
+- 사용자가 명시한 기준 파일
+- 직접 확인되지 않은 파일
+- 대용량 목표파일 원본
+- 후속 작업 필요성이 있으나 판단 근거가 부족한 파일
+```
+
+애매한 파일은 삭제하지 말고 `재확인 필요`로 남긴다.
+
+필수 evidence:
+
+```text id="cleanup-evidence"
+specs/evidence/20260708_03/garbage-file-scan.sanitized.json
+specs/evidence/20260708_03/deleted-files.sanitized.json
+specs/evidence/20260708_03/retained-review-required-files.sanitized.json
+```
 
 완료 기준:
 
-* 완료/부분 구현/미검증 상태가 report, evidence index, matrix, gap에서 서로 일치
-* 존재하지 않는 evidence 경로 제거
-* stale evidence를 새 작업 완료 근거로 사용하지 않음
-* `pfw-capability-skeleton`은 `부분 구현`
-* `architecture-ownership-scan`은 failure 0건이지만 warning 6건으로 `재확인 필요`를 유지
-* `spring-event-usage-scan`은 forbidden 0건이면 완료 후보
-* `pfw-service-call-engine-runtime`은 실제 다중 서비스 HTTP runtime 전까지 `부분 구현`
-* `adm-service-registry-runtime`은 실제 `-RunRuntime` 전까지 `미검증`
-* static UI smoke는 browser click 완료로 올리지 않음
+```text id="cleanup-done"
+- 확정 가비지 파일 삭제
+- 삭제 보류 파일은 재확인 필요로 기록
+- 삭제 후 build/test/qualityGate 통과
+- 삭제로 인한 yml/profile/import/deploy/auto-generation 깨짐 없음
+```
 
-### 2.2 `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` 최신 기준 반영 재확인
+## 3. yml/properties/env 정리 및 profile 표준화
 
-사용자가 제공한 최신 교체용 기준을 repo root의 `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`에 반영한다.
+### 3.1 profile 표준
 
-필수 포함:
+CPF profile은 아래 4개로 통일한다.
 
-* Codex 공통 작업 지침
-* PFW/CMN/업무 주제영역 ownership
-* EXS는 외부연계 기술 소유자가 아니라 대외업무 대표 adapter/구현체
-* Kafka/MQ/Redis Stream은 PFW broker capability
-* SSH/SFTP/FTP/FTPS는 PFW file transfer capability
-* Spring Event 남용 금지
-* 중간 문서 최소 기록
-* 요청서 템플릿 맨 앞에 Codex 공통 작업 지침
-* PFW/CMN 연계 공통 capability + EXS adapter 기준
-* architecture rule / forbidden dependency / evidence 기준
-
-주의:
-
-* 문서 정본화 금지
-* HTML/PDF 생성 금지
-* 장문 설명 추가 금지
-* 검수와 요청서 작성에 필요한 기준만 반영
-* `CPF_FINAL_TARGET_REQUIREMENTS.md`는 수정하지 않음
-
-완료 기준:
-
-* `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`에서 `Codex 공통 작업 지침` 검색 가능
-* `EXS는 외부연계 기술의 소유자가 아니다` 검색 가능
-* `PFW broker capability`, `file transfer capability`, `Spring Event` 기준 검색 가능
-* UTF-8/mojibake check 통과
-
-## 3. Architecture ownership warning 6건 해소 또는 명확화
-
-지난 scan 결과 기준 재확인 필요 후보가 6건 있다.
-
-* `cmn/src/main/java/cpf/cmn/fle/core/CmnFileProtocol.java`
-* `cmn/src/main/java/cpf/cmn/fle/core/CmnFileTransferRequest.java`
-* `cmn/src/main/java/cpf/cmn/fle/core/CmnRemoteCommandRequest.java`
-* `cmn/src/main/java/cpf/cmn/fle/service/CmnFileExchangeService.java`
-* `cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService.java`
-* `xyz/src/main/java/cpf/xyz/edu/controller/XyzServiceCallEducationController.java`
-
-필수 작업:
-
-1. CMN `fle` 파일들이 실제 file transfer technical engine인지, 아니면 프로젝트 공통 파일 규칙/helper인지 분류한다.
-2. 실제 SSH/SFTP/FTP/remote command 기술 engine이면 PFW `filetransfer`/`runtime` port 쪽으로 이동 또는 adapter 분리 후보로 만든다.
-3. CMN에 남길 경우 이름/패키지/주석/역할을 “프로젝트 공통 파일 규칙/helper”로 명확히 한다.
-4. CMN `mqe`가 broker engine인지 message envelope/helper인지 분류한다.
-5. broker 기술 engine이면 PFW `broker` port 쪽으로 이동 또는 adapter 분리 후보로 만든다.
-6. XYZ EDU URL literal은 교육용 fixture인지, 실제 업무 코드의 direct URL인지 분리한다.
-7. 교육용이면 scan allowlist 또는 `education-only` marker로 명확히 한다.
-8. 실제 호출이면 Service Call Engine registry 기반으로 변경한다.
-
-완료 기준:
-
-* architecture ownership scan warning이 0건이 되거나,
-* warning이 남는 경우 각 warning별로 “의도된 예외 / 후속 보정 필요 / 실제 위반”을 report/gap에 명확히 기록
-* failure는 0건 유지
-* qualityGate 통과
-
-## 4. PFW capability skeleton 보강
-
-지난 작업에서 PFW broker/filetransfer/security/runtime/admin skeleton은 착수됐다. 이번 요청에서는 누락 후보와 실사용 연결 가능성을 보강한다.
-
-### 4.1 Broker capability 보강
-
-필수 후보:
-
-* `CpfBrokerHistoryPort`
-* broker publish/consume history DTO
-* outbox/inbox/idempotency 연계 후보 interface
-* DLQ/replay request/result DTO
-* broker health/status query DTO 보강
-
-완료 기준:
-
-* compile 가능한 interface/record
-* PFW unit/contract test 추가
-* Kafka/MQ/Redis 실제 runtime은 미검증 유지
-* 업무 주제영역에 broker client 직접 구현 금지 scan 유지
-
-### 4.2 File Transfer capability 보강
-
-필수 후보:
-
-* SSH/SFTP/FTP/FTPS protocol enum 또는 value object
-* temp file / rename / archive policy 후보
-* checksum validation 후보
-* duplicate prevention 후보
-* transfer retry policy 후보
-* transfer history query DTO
-
-완료 기준:
-
-* compile 가능한 interface/record
-* PFW unit/contract test 추가
-* 실제 SFTP/FTP/SSH 서버 runtime은 미검증 유지
-* EXS/BAT에 file transfer engine이 직접 박히지 않도록 scan 유지
-
-### 4.3 Security/Credential capability 보강
-
-필수 후보:
-
-* `CpfTokenProviderPort`
-* `CpfCredentialProviderPort`
-* credential reference validation
-* secret 원문 출력 방지 test
-* mTLS/JWT/OAuth credential linkage 후보 interface
-
-완료 기준:
-
-* 원문 secret/password/token/private key가 DTO, log, evidence에 남지 않음
-* PFW unit/contract test 추가
-* 실제 vault/HSM/secret manager 연동은 미검증 또는 후순위 유지
-
-### 4.4 Runtime capability 보강
-
-필수 후보:
-
-* lock acquire/release result
-* heartbeat request/result
-* ghost detection result
-* scheduler/worker control request/result
-* runtime health query DTO
-
-완료 기준:
-
-* PFW compile/test 통과
-* 실제 multi-instance runtime은 미검증 유지
-* ADM 관제 후보 DTO와 연결 가능한 구조
-
-## 5. 환경별 yml/profile 표준화
-
-### 5.1 profile 표준
-
-CPF profile 표준은 아래 4개로 통일한다.
-
-```text
+```text id="profiles"
 local : 개발자 로컬 PC
 dev   : 개발 서버 / 개발존
 stg   : 스테이징 / 검증존
 prod  : 운영존
 ```
 
-`prd`가 아니라 `prod`를 표준으로 사용한다.
+`prd`는 표준으로 쓰지 않는다.
 
-### 5.2 PFW/CMN 환경별 yml
+### 3.2 업무 서비스 표준 구조
 
-PFW/CMN은 실행 주체가 아니다. 다만 각 업무 서비스 bootJar 내부 classpath에서 library로 동작하므로 zone별 공통 정책을 제공하기 위한 환경별 yml을 둔다.
+대상 모듈:
+
+```text id="modules"
+ACC / MBR / EXS / ADM / BAT / BIZADM / EDU / XYZ
+```
+
+각 업무 서비스는 아래 구조로 통일한다.
+
+```text id="module-yml-structure"
+<module>/src/main/resources/application.yml
+<module>/src/main/resources/application-<module>.yml
+<module>/src/main/resources/application-<module>-local.yml
+<module>/src/main/resources/application-<module>-dev.yml
+<module>/src/main/resources/application-<module>-stg.yml
+<module>/src/main/resources/application-<module>-prod.yml
+```
+
+기존 `application-local.yml`, `application-dev.yml`, `application-prod.yml`, `application-test.yml`는 신규 표준으로 이관 후 삭제 후보로 분류한다.
+
+테스트 전용이 실제 필요하면 `application-<module>-test.yml`로 명확히 바꾸고 사유를 기록한다.
+
+### 3.3 PFW/CMN 표준 구조
+
+PFW/CMN은 실행 주체가 아니지만 zone별 공통 정책 파일은 둔다.
 
 PFW:
 
-```text
+```text id="pfw-yml"
 pfw/src/main/resources/application-pfw.yml
 pfw/src/main/resources/application-pfw-local.yml
 pfw/src/main/resources/application-pfw-dev.yml
@@ -239,7 +258,7 @@ pfw/src/main/resources/application-pfw-prod.yml
 
 CMN:
 
-```text
+```text id="cmn-yml"
 cmn/src/main/resources/application-cmn.yml
 cmn/src/main/resources/application-cmn-local.yml
 cmn/src/main/resources/application-cmn-dev.yml
@@ -247,32 +266,34 @@ cmn/src/main/resources/application-cmn-stg.yml
 cmn/src/main/resources/application-cmn-prod.yml
 ```
 
-PFW/CMN yml은 공통 기본값과 zone별 기본 정책만 제공한다. `spring.application.name`, `server.port`, `spring.profiles.active`, 업무 datasource, module-id, instance-id, logging path를 강제로 덮지 않는다.
+PFW/CMN 금지:
 
-### 5.3 업무 서비스 환경별 yml
-
-대상 모듈:
-
-```text
-ACC / MBR / EXS / ADM / BAT / BIZADM / EDU / XYZ
+```text id="pfw-cmn-forbidden"
+- spring.application.name 강제
+- server.port 강제
+- spring.profiles.active 강제
+- 업무 datasource 강제
+- module-id를 PFW/CMN으로 고정
+- instance-id/was-id 강제
+- 업무 logging path 강제
+- local password성 값 기본 기록
 ```
 
-각 업무 서비스는 아래 구조를 가진다.
+PFW/CMN 허용:
 
-```text
-<module>/src/main/resources/application.yml
-<module>/src/main/resources/application-<module>.yml
-<module>/src/main/resources/application-<module>-local.yml
-<module>/src/main/resources/application-<module>-dev.yml
-<module>/src/main/resources/application-<module>-stg.yml
-<module>/src/main/resources/application-<module>-prod.yml
+```text id="pfw-cmn-allowed"
+- cpf.pfw.* 공통 기술 정책
+- cpf.cmn.* 공통 규칙/helper 정책
+- retry/timeout/circuit/filetransfer/broker/security/cache/parser 기본값
 ```
 
-각 업무 서비스의 `application.yml`은 `spring.config.import` 방식으로 PFW/CMN 및 자기 module 설정을 명시적으로 로드한다.
+### 3.4 import 방식
 
-ACC 예시:
+각 업무 서비스의 `application.yml`은 `spring.config.import`로 명시 로딩한다.
 
-```yaml
+예시:
+
+```yaml id="import-example"
 spring:
   config:
     import:
@@ -284,213 +305,307 @@ spring:
       - optional:classpath:application-acc-${spring.profiles.active:local}.yml
 ```
 
-동일 구조를 MBR/EXS/ADM/BAT/BIZADM/EDU/XYZ에도 적용한다.
+`spring.profiles.include`와 `spring.config.import`가 혼재하면 `spring.config.import` 기준으로 정리한다.
 
-### 5.4 환경변수 prefix 규칙
+### 3.5 env 값 기본 정책
 
-환경변수 중복을 막기 위해 실행 주체 설정은 module prefix를 사용한다.
+env/yml 값을 비워두지 않는다.
 
-```text
-ACC_*
-MBR_*
-EXS_*
-ADM_*
-BAT_*
-BIZADM_*
-EDU_*
-XYZ_*
+허용:
+
+```text id="env-defaults"
+- local과 동일한 safe default
+- localhost 기반 safe default
+- __REPLACE_BY_ENV__ placeholder
+- __REPLACE_BY_WAS_JNDI__ placeholder
+- disabled/off/dry-run 같은 안전 기본값
 ```
-
-예시:
-
-```text
-ACC_SERVER_PORT
-ACC_DATASOURCE_URL
-ACC_DATASOURCE_USERNAME
-ACC_DATASOURCE_PASSWORD
-ACC_MODULE_ID
-ACC_INSTANCE_ID
-ACC_WAS_ID
-ACC_LOG_BASE_PATH
-ACC_SERVICE_REGISTRY_MODE
-```
-
-PFW/CMN 공통 정책은 아래 prefix를 사용한다.
-
-```text
-CPF_PFW_*
-CPF_CMN_*
-```
-
-예시:
-
-```text
-CPF_PFW_HTTP_CONNECT_TIMEOUT_MS
-CPF_PFW_HTTP_READ_TIMEOUT_MS
-CPF_PFW_RETRY_MAX_ATTEMPTS
-CPF_PFW_CIRCUIT_FAILURE_THRESHOLD
-CPF_PFW_SERVICE_REGISTRY_MODE
-CPF_PFW_FILETRANSFER_TIMEOUT_MS
-CPF_PFW_BROKER_PUBLISH_TIMEOUT_MS
-
-CPF_CMN_CACHE_TTL_SECONDS
-CPF_CMN_MESSAGE_CACHE_TTL_SECONDS
-CPF_CMN_FILE_NAMING_POLICY
-CPF_CMN_VALIDATION_STRICT_MODE
-```
-
-공통 fallback은 허용하되, 최종 실행 설정은 module prefix가 우선해야 한다.
 
 금지:
 
-```text
-- PFW/CMN yml이 spring.application.name을 강제
-- PFW/CMN yml이 server.port를 강제
-- PFW/CMN yml이 spring.profiles.active를 강제
-- PFW/CMN yml이 업무 datasource를 덮어씀
-- PFW/CMN yml이 module-id를 PFW/CMN으로 고정
-- secret/token/password/private key/cert 원문을 yml에 기록
-- 여러 모듈이 같은 SERVER_PORT, DATASOURCE_URL만 사용해서 충돌
-```
-
-### 5.5 profile loading smoke
-
-각 모듈별로 local/dev/stg/prod config loading smoke를 만든다.
-
-검증 항목:
-
-```text
-- application-pfw.yml import 여부
-- application-pfw-<profile>.yml import 여부
-- application-cmn.yml import 여부
-- application-cmn-<profile>.yml import 여부
-- application-<module>.yml import 여부
-- application-<module>-<profile>.yml import 여부
-- module-id가 PFW/CMN이 아니라 ACC/MBR/EXS/ADM/BAT 등 자기 값인지
-- server.port가 module prefix 환경변수 기준으로 적용되는지
-- datasource placeholder가 module prefix 기준인지
-- log path가 module prefix 기준인지
-- PFW/CMN 설정이 업무 서비스 실행 설정을 덮지 않는지
-```
-
-완료 기준:
-
-* ACC/MBR/EXS/ADM/BAT/BIZADM/EDU/XYZ 환경별 yml 구조 반영
-* PFW/CMN 환경별 yml 구조 반영
-* 각 업무 서비스가 spring.config.import로 명시 로딩
-* module prefix 환경변수 규칙 반영
-* profile loading smoke evidence 생성
-* secret 원문이 yml/evidence/log에 남지 않음
-
-## 6. 주제영역별 packaging 및 원격 배포쉘 표준화
-
-### 6.1 packaging 기준
-
-PFW/CMN은 별도 WAS/서버로 배포하지 않는다. 각 업무 서비스 bootJar/distribution의 runtime dependency로 포함한다.
-
-기본 표준:
-
-```text
-- self-contained Spring Boot executable jar 1개 배포
-- thin jar + external lib 폴더 방식은 후순위 옵션
-- 업무 서비스 bootJar 내부 BOOT-INF/lib에 PFW/CMN jar 포함 여부 검증
-- PFW/CMN 소스를 업무 주제영역으로 복사하지 않음
-- PFW/CMN jar를 주제영역별 lib 폴더에 수동 복사하는 구조를 표준으로 보지 않음
-```
-
-PFW/CMN이 바뀌면 영향을 받는 업무 서비스 bootJar를 다시 빌드하고 재배포하는 구조로 본다.
-
-### 6.2 공통 원격 배포쉘
-
-원격 배포쉘은 환경별로 완전히 별도 구현하지 않는다.
-
-기준:
-
-```text
-공통 deploy-module.ps1 / deploy-module.sh를 배포 엔진으로 만들고,
-Module과 Env 파라미터 및 deploy/env, deploy/inventory 설정으로 local/dev/stg/prod를 모두 대응한다.
-
-모듈별 deploy-acc.ps1, deploy-mbr.ps1 등은 공통 엔진을 호출하는 얇은 wrapper로 둔다.
-환경별 차이는 코드 분기가 아니라 env/inventory 설정으로 관리한다.
-
-prod는 같은 엔진을 사용하되 RequireApproval, RunQualityGate, checksum, backup, rollback, health check를 강제한다.
-```
-
-필수 구현 후보:
-
-```text
-scripts/deploy/deploy-module.ps1
-scripts/deploy/deploy-module.sh
-
-scripts/deploy/deploy-acc.ps1
-scripts/deploy/deploy-mbr.ps1
-scripts/deploy/deploy-exs.ps1
-scripts/deploy/deploy-adm.ps1
-scripts/deploy/deploy-bat.ps1
-scripts/deploy/deploy-bizadm.ps1
-scripts/deploy/deploy-edu.ps1
-scripts/deploy/deploy-xyz.ps1
-
-scripts/deploy/remote-start-module.ps1
-scripts/deploy/remote-stop-module.ps1
-scripts/deploy/remote-restart-module.ps1
-scripts/deploy/remote-health-check.ps1
-scripts/deploy/rollback-module.ps1
-scripts/deploy/check-packaged-dependencies.ps1
-```
-
-### 6.3 deploy env 파일
-
-환경 파일:
-
-```text
-deploy/env/local-acc.env
-deploy/env/dev-acc.env
-deploy/env/stg-acc.env
-deploy/env/prod-acc.env
-
-deploy/env/local-mbr.env
-deploy/env/dev-mbr.env
-deploy/env/stg-mbr.env
-deploy/env/prod-mbr.env
-```
-
-동일 기준으로 EXS/ADM/BAT/BIZADM/EDU/XYZ 생성한다.
-
-env 파일의 환경변수는 module prefix 규칙을 따른다.
-
-ACC 예시:
-
-```text
-SPRING_PROFILES_ACTIVE=dev
-ACC_MODULE_ID=ACC
-ACC_INSTANCE_ID=acc-dev-01
-ACC_WAS_ID=accAP01
-ACC_SERVER_PORT=8080
-ACC_LOG_BASE_PATH=/logs/cpf/acc
+```text id="env-empty-forbidden"
+ACC_SERVER_PORT=
 ACC_DATASOURCE_URL=
 ACC_DATASOURCE_USERNAME=
 ACC_DATASOURCE_PASSWORD=
 ```
 
-secret 원문을 실제 값으로 채우지 않는다. template 또는 placeholder만 둔다.
+secret 원문 금지:
 
-### 6.4 inventory
+```text id="secret-forbidden"
+- password 실제값
+- token 실제값
+- private key
+- certificate 원문
+- client secret
+- SSH key
+```
 
-inventory:
+## 4. 실행 방식과 datasource 표준
 
-```text
+### 4.1 기본 실행 방식
+
+CPF 기본 실행은 외부 WAS가 아니라 Spring Boot embedded Tomcat 기준이다.
+
+```text id="embedded-runtime"
+- bootJar 1개 생성
+- java -jar <module>.jar 실행
+- --spring.profiles.active=<env> 사용
+- module별 server.port 사용
+- PFW/CMN은 bootJar 내부 dependency
+```
+
+remoteDeploy dry-run은 아래 command plan을 생성해야 한다.
+
+```text id="java-jar-plan"
+build:
+./gradlew :acc:bootJar
+
+run:
+java -jar acc/build/libs/acc-*.jar --spring.profiles.active=dev
+
+health:
+http://<host>:<ACC_SERVER_PORT>/actuator/health
+```
+
+### 4.2 datasource mode
+
+datasource는 URL 직접 설정을 기본으로 한다.
+
+```text id="ds-priority"
+기본:
+<MODULE>_DATASOURCE_MODE=url
+
+선택 호환:
+<MODULE>_DATASOURCE_MODE=jndi
+```
+
+URL mode:
+
+```text id="url-mode"
+<MODULE>_DATASOURCE_URL
+<MODULE>_DATASOURCE_USERNAME
+<MODULE>_DATASOURCE_PASSWORD
+```
+
+JNDI mode:
+
+```text id="jndi-mode"
+<MODULE>_DATASOURCE_JNDI_NAME
+```
+
+예시:
+
+```text id="ds-example"
+ACC_DATASOURCE_MODE=url
+ACC_DATASOURCE_URL=jdbc:mariadb://localhost:3306/cpf_acc
+ACC_DATASOURCE_USERNAME=cpf_acc
+ACC_DATASOURCE_PASSWORD=__REPLACE_BY_ENV__
+
+ACC_DATASOURCE_MODE=jndi
+ACC_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpfAccDataSource
+```
+
+### 4.3 WAS/JNDI 대응 기준
+
+외부 WAS/JNDI는 구현/설정 구조만 지원한다.
+
+```text id="was-jndi-rule"
+- 외부 WAS/JNDI 설정 구조는 구현한다.
+- 실제 WAS 설치/기동/리소스 등록은 요구하지 않는다.
+- JNDI config validation까지만 완료 가능하다.
+- 실제 WAS/JNDI runtime smoke는 환경이 없으면 미검증으로 기록한다.
+- JNDI mode가 없어도 embedded bootJar URL mode가 기본 실행 기준이다.
+```
+
+검증 기준:
+
+```text id="ds-validation"
+- URL mode profile loading 검증
+- JNDI mode placeholder/config validation 검증
+- PFW/CMN이 datasource를 덮어쓰지 않는지 검증
+- 빈 datasource env 값이 없는지 검증
+- 실제 WAS/JNDI 연동은 미검증 유지
+```
+
+## 5. Gradle 중심 배포 구조
+
+### 5.1 기준
+
+Jenkins/운영/개발 표준 진입점은 Gradle로 통일한다.
+
+```text id="gradle-standard"
+Jenkins는 scripts/deploy/*.ps1 또는 *.sh를 직접 호출하지 않는다.
+Jenkins 표준 호출은 ./gradlew remoteDeploy ... 형태로 둔다.
+```
+
+사용자 기준상 `apply from`, 별도 include, ps1/sh 중심 구조는 지양한다.
+가능한 root `build.gradle` 내부에 명확한 `CPF Remote Deploy Tasks` section을 둔다.
+
+### 5.2 필수 Gradle task
+
+root `build.gradle`에 아래 task를 구현한다.
+
+```text id="gradle-tasks"
+checkDeployEnv
+checkDeployInventory
+checkPackagedDependencies
+remoteDeployDryRun
+remoteDeploy
+rollbackDeploy
+```
+
+필수 parameter:
+
+```text id="gradle-params"
+-PcpfModule=ACC|MBR|EXS|ADM|BAT|BIZADM|EDU|XYZ
+-PcpfEnv=local|dev|stg|prod
+-PcpfDeployMode=dryRun|remote
+-PcpfRequireApproval=true|false
+-PcpfResultDir=specs/evidence/20260708_03
+```
+
+Jenkins 호출 예시:
+
+```bash id="jenkins-dryrun"
+./gradlew remoteDeploy \
+  -PcpfModule=ACC \
+  -PcpfEnv=dev \
+  -PcpfDeployMode=dryRun
+```
+
+운영 후보:
+
+```bash id="jenkins-prod"
+./gradlew remoteDeploy \
+  -PcpfModule=ACC \
+  -PcpfEnv=prod \
+  -PcpfDeployMode=remote \
+  -PcpfRequireApproval=true
+```
+
+### 5.3 Gradle task 책임
+
+Gradle task 안에서 처리한다.
+
+```text id="gradle-responsibility"
+- module/env/mode parameter 검증
+- env 파일 로딩/검증
+- inventory 파일 로딩/검증
+- :<module>:bootJar 실행
+- bootJar 존재 확인
+- bootJar 내부 PFW/CMN dependency 포함 검증
+- artifact checksum 생성
+- embedded Tomcat java -jar command plan 생성
+- optional WAS/JNDI config plan 생성
+- healthUrl template 검증
+- dry-run evidence JSON 생성
+- prod approval flag 검증
+- remote mode 환경 부재 시 fail-fast
+```
+
+### 5.4 실제 remote mode 기준
+
+실제 원격 서버가 없으면 remote mode를 완료로 기록하지 않는다.
+
+현재 Codex가 할 수 있는 범위:
+
+```text id="remote-possible"
+- dry-run
+- package 검증
+- checksum 생성
+- command plan 생성
+- evidence 생성
+```
+
+할 수 없는 범위:
+
+```text id="remote-impossible"
+- 실제 원격 전송
+- 실제 원격 stop/start
+- 실제 원격 health check
+- 실제 rollback
+```
+
+### 5.5 ps1/sh 정리
+
+`scripts/deploy/*.ps1`, `scripts/deploy/*.sh`는 전수 점검한다.
+
+정리 기준:
+
+```text id="script-cleanup"
+- Gradle task로 대체된 script는 삭제 후보
+- placeholder만 출력하는 remote-start/stop/restart/rollback은 삭제 후보
+- Gradle에서 호출되지 않는 script는 삭제 후보
+- Windows-only ps1인데 Linux/Jenkins 대응이 없으면 삭제 또는 재확인 필요
+- 실제 구현이 필요한 OS별 보조 script로 남길 경우 사유 기록
+```
+
+완료 기준:
+
+```text id="gradle-deploy-done"
+- Jenkins 표준 진입점은 gradlew
+- ps1 직접 호출 task 제거 또는 재확인 필요 기록
+- remoteDeployDryRun evidence 생성
+- remoteDeploy는 실제 서버 없으면 미검증 유지
+```
+
+## 6. deploy/env 및 inventory 정리
+
+### 6.1 deploy/env
+
+대상:
+
+```text id="env-files"
+deploy/env/local-*.env
+deploy/env/dev-*.env
+deploy/env/stg-*.env
+deploy/env/prod-*.env
+```
+
+정리 기준:
+
+```text id="env-rules"
+- 빈 값 금지
+- module prefix 사용
+- datasource mode 포함
+- URL mode 기본
+- JNDI mode 선택 호환
+- log path safe default 포함
+- secret은 placeholder 사용
+- 실제 운영값 기록 금지
+```
+
+예시:
+
+```text id="env-example"
+SPRING_PROFILES_ACTIVE=dev
+ACC_MODULE_ID=ACC
+ACC_INSTANCE_ID=acc-dev-01
+ACC_WAS_ID=accAP01
+ACC_SERVER_PORT=8080
+ACC_LOG_BASE_PATH=./logs/acc
+ACC_DATASOURCE_MODE=url
+ACC_DATASOURCE_URL=jdbc:mariadb://localhost:3306/cpf_acc
+ACC_DATASOURCE_USERNAME=cpf_acc
+ACC_DATASOURCE_PASSWORD=__REPLACE_BY_ENV__
+ACC_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpfAccDataSource
+```
+
+### 6.2 inventory
+
+대상:
+
+```text id="inventory-files"
 deploy/inventory/local-services.json
 deploy/inventory/dev-services.json
 deploy/inventory/stg-services.json
 deploy/inventory/prod-services.template.json
 ```
 
-inventory에는 실제 민감정보를 기록하지 않는다.
+필수 필드:
 
-필수 후보 필드:
-
-```text
+```text id="inventory-fields"
 env
 module
 hostAlias
@@ -501,221 +616,411 @@ healthUrl
 serviceName
 portEnvKey
 profile
+runtimeMode
 approvalRequired
 rollbackEnabled
 ```
 
-### 6.5 배포쉘 필수 기능
+`runtimeMode` 후보:
 
-`deploy-module.ps1` 필수 기능:
-
-```text
-1. module/env 입력
-2. :<module>:bootJar 실행
-3. qualityGate 선택 실행
-4. bootJar 내부 PFW/CMN dependency 포함 여부 검사
-5. artifact checksum 생성
-6. 원격 서버 배포 디렉터리 확인/생성
-7. 기존 jar 백업
-8. 신규 jar 전송
-9. 원격 stop
-10. 원격 start
-11. health check
-12. service registry heartbeat 확인
-13. 실패 시 rollback
-14. deployment evidence JSON 생성
+```text id="runtime-mode"
+embedded-bootjar
+external-was
 ```
 
-### 6.6 dry-run / real remote 구분
+기본은 `embedded-bootjar`다.
 
-실제 서버 접속정보가 없으면 real remote deploy 완료로 기록하지 않는다.
+## 7. 주제영역 자동 생성 기능 영향도 보정
 
-완료/미검증 기준:
+이번 profile/env/deploy/Gradle 변경은 주제영역 자동 생성 기능에 반드시 반영한다.
 
-```text
-- local dry-run 또는 packaging 검증까지만 완료/부분 구현으로 기록
-- 실제 원격 전송/stop/start/health check 미수행 시 remote deploy는 미검증
-- 배포 evidence에는 module, env, artifact, checksum, target host alias, deploy path, result, rollback 여부를 기록
-- 비밀번호, private key, token, 접속정보 원문은 evidence에 남기지 않음
+### 7.1 점검 대상
+
+```text id="generator-targets"
+- create-domain script
+- create-domain template
+- generated sample module
+- README/guide의 신규 모듈 생성 절차
+- 자동 생성되는 yml/properties/env
+- 자동 생성되는 build.gradle/settings.gradle 반영
+- 자동 생성되는 deploy env/inventory
+- 자동 생성되는 smoke/test/evidence skeleton
 ```
 
-## 7. Service Call Engine runtime closure 준비 보강
+### 7.2 자동 생성 결과 표준
 
-이전 작업은 source/unit contract 중심이다. 이번 요청에서는 실제 runtime 검증으로 가기 위한 준비를 더 강화한다.
+신규 모듈 생성 시 아래가 생성되어야 한다.
 
-필수 보강:
+```text id="generated-files"
+<module>/src/main/resources/application.yml
+<module>/src/main/resources/application-<module>.yml
+<module>/src/main/resources/application-<module>-local.yml
+<module>/src/main/resources/application-<module>-dev.yml
+<module>/src/main/resources/application-<module>-stg.yml
+<module>/src/main/resources/application-<module>-prod.yml
 
-* `runtime-start-services.ps1`와 service-call smoke 연계 확인
-* ACC/MBR/EXS/ADM multi-service 기동 후 호출 시나리오 정의
-* success/failure/timeout/retry/failover/circuit/call-history 검증 항목 명확화
-* `RunRuntime` 없이 실행한 source smoke와 실제 runtime smoke를 evidence에서 구분
-* `RequireRuntime` 옵션이 있는 경우 source-only로 성공 처리하지 않도록 유지/강화
-* selectedInstanceId, transactionGlobalId, segment/timeline, call history가 runtime smoke에서 확인될 수 있도록 준비
-* service/endpoint/instance registry seed가 runtime 테스트에 필요한 최소 데이터를 갖추는지 확인
+deploy/env/local-<module>.env
+deploy/env/dev-<module>.env
+deploy/env/stg-<module>.env
+deploy/env/prod-<module>.env
 
-실제 multi-service runtime이 환경상 불가능하면:
+deploy/inventory/* 에 module 후보 반영
+```
 
-* 완료로 기록하지 말 것
-* `미검증`으로 남길 것
-* 필요한 포트/profile/env/DB 조건을 report/gap에 최소 기록할 것
+자동 생성되는 설정은 아래를 포함한다.
 
-## 8. ADM Service Registry runtime/browser 준비 보강
+```text id="generated-config"
+- PFW/CMN spring.config.import
+- module prefix env
+- datasource mode url/jndi
+- embedded bootJar runtimeMode 기본값
+- Gradle remoteDeploy에서 사용할 module/env 정보
+```
 
-필수 보강:
+### 7.3 자동 생성 금지 구조
 
-* `scripts/smoke-adm-service-registry-runtime.ps1 -RunRuntime` 실제 실행 조건 정리
-* service/endpoint/instance/health/routing/circuit/call-history API 목록 정리
-* browser click script 또는 Playwright 환경 조건 정리
-* static UI smoke와 browser click smoke를 명확히 분리
-* ADM 화면에서 service/endpoint/instance/health/circuit/call-history가 운영자가 보기 좋은 최소 구조인지 점검
-* 권한/감사/마스킹/검색조건이 누락된 경우 gap으로 남김
+```text id="generator-forbidden"
+- spring.profiles.include 구버전 방식
+- SERVER_PORT, DATASOURCE_URL 같은 공통 env만 사용
+- module prefix 없는 환경변수 생성
+- PFW/CMN import 누락
+- EXS 내부 기술 클래스를 기본 dependency로 추가
+- 주제영역 간 Controller/Repository/Mapper 직접 참조 생성
+- deploy env/inventory 누락
+- local/dev/stg/prod 중 일부만 생성
+- 빈 yml/env 파일 생성
+- secret/password/token 원문 포함
+- ps1 직접 호출 기준 문서 생성
+- external WAS/JNDI를 기본 실행 전제로 생성
+```
 
-실행하지 못하면 `미검증` 유지.
+### 7.4 검증
 
-## 9. SQL/Flyway/all_install 재검증 준비
+테스트용 신규 주제영역 1개를 생성해 아래를 검증한다.
 
-이번 작업에서 MariaDB full install을 직접 하지 못하면 완료로 올리지 않는다.
+```text id="generator-validation"
+- 생성된 yml/env 구조
+- PFW/CMN import
+- module prefix 환경변수
+- datasource url/jndi mode
+- embedded bootJar runtimeMode
+- Gradle deploy task와 연동 가능한 env/inventory
+- ownership scan 통과
+- build/test 영향 없음
+```
 
-필수 보강:
+검증용 임시 생성물은 테스트 후 삭제하고 evidence만 남긴다.
 
-* service registry 관련 split SQL/Flyway/all_install/99_smoke_check 정합성 점검
-* broker/filetransfer/security skeleton이 DB 테이블을 만들지 않는다면 SQL 반영 불필요 사유 기록
-* DB 테이블을 추가한다면 split SQL/Flyway/all_install/99_smoke_check 모두 반영
-* 실제 MariaDB 신규 빈 DB 재설치가 불가능하면 `미검증` 유지
-* `CPF_GAP_MATRIX.md`에 남길 것
+## 8. 최근 작업 영향도 점검
 
-## 10. qualityGate 보강
+어제/그제 작업과 이번 작업이 충돌하지 않는지 확인한다.
 
-qualityGate에 아래 항목을 연결한다.
+대상:
 
-* ownership architecture scan
-* Spring Event misuse scan
-* service-call boundary scan
-* profile loading smoke
-* deploy dry-run/package check
-* packaged PFW/CMN dependency check
-* report/matrix/evidence consistency
-* feature evidence check
-* UTF-8/mojibake check
-* HTML docs check
-* forbidden state value check
-* missing evidence path check
-* SKIPPED evidence 완료 오인 방지 check
+```text id="impact-targets"
+- Service Call Engine
+- PFW broker/filetransfer/security/runtime/admin capability skeleton
+- CMN fle/mqe warning 후보
+- architecture ownership scan
+- Spring Event scan
+- qualityGate
+- profile loading smoke
+- deploy dry-run/package check
+- report/matrix/evidence
+- 주제영역 자동 생성 기능
+- BAT center-cut
+```
+
+필수 확인:
+
+```text id="impact-validation"
+- profile 변경 후 service registry/endpoint/instance 설정이 깨지지 않는지
+- module-id/instance-id/was-id가 업무 모듈 기준으로 잡히는지
+- PFW/CMN yml이 실행 주체 설정을 덮지 않는지
+- ownership scan false positive가 늘지 않는지
+- Spring Event scan이 계속 qualityGate에 연결되는지
+- deploy dry-run이 Gradle task 기준으로 동작하는지
+- 기존 evidence가 stale 완료 근거로 남지 않는지
+```
+
+## 9. CMN migration warning 처리
+
+Architecture ownership warning으로 남은 CMN 후보를 정리한다.
+
+대상 후보:
+
+```text id="cmn-warning"
+CmnFileExchangeService
+CmnMessageBridgeService
+```
+
+처리 기준:
+
+```text id="cmn-warning-rules"
+- 실제 기술 engine이면 PFW port/capability로 이동 또는 adapter 분리
+- CMN에 남길 경우 프로젝트 공통 helper/rule/service임을 명확히 함
+- broker/filetransfer 기술 ownership을 CMN이 갖는 형태는 금지
+- migration이 크면 이번 작업에서는 재확인 필요로 남기고 후속 설계안을 기록
+```
 
 완료 기준:
 
-* qualityGate 성공 로그 생성
-* 실패 시 실패로 남김
-* qualityGate가 실제로 새 scan/smoke를 호출하는지 evidence에 기록
-* warning/NEEDS_REVIEW 항목은 완료로 숨기지 않고 report/gap에 남김
+```text id="cmn-warning-done"
+- warning 0건 또는
+- warning 유지 시 사유와 후속 이동 계획 명확화
+```
 
-## 11. 필수 실행 명령
+## 10. BAT edu 패키지 보정
 
-가능한 범위에서 아래를 실행하고 evidence를 남긴다.
+사용자 요구 기준: BAT 예제는 BAT 주제영역 안에 `edu` 패키지를 만들어 구성한다.
 
-```powershell
+현재 `bat/src/main/java/cpf/bat/edu`가 없으면 생성한다.
+
+기준:
+
+```text id="bat-edu"
+- BAT 운영/기본 구현 코드는 cpf.bat.centercut, cpf.bat.job, cpf.bat.operation 등 실무 패키지 유지
+- 교육/예제 목적 코드는 cpf.bat.edu 하위로 이동 또는 wrapper/example 구성
+- BAT edu는 별도 edu 모듈과 혼동되지 않게 package/README/test에서 명확히 표현
+- 기존 centercut 샘플성 코드가 있다면 역할을 재분류
+```
+
+필수 검증:
+
+```text id="bat-edu-validation"
+- bat/src/main/java/cpf/bat/edu 존재
+- bat/src/test/java/cpf/bat/edu 후보 존재
+- build/test 통과
+- sample/edu/operation 패키지 역할 구분
+- README/report/matrix/evidence 최소 기록
+```
+
+## 11. BAT 배치 Job 실행 단위 로그 파일 분리
+
+사용자 요구 기준: WAS/worker 인스턴스별 로그가 아니라 **배치 Job 실행 단위별 로그 파일**이 필요하다.
+
+### 11.1 기준
+
+```text id="bat-job-log"
+- jobName별 로그 디렉터리 분리
+- jobInstanceId 또는 jobInstanceKey 기록
+- jobExecutionId 또는 runId별 로그 파일 생성
+- transactionGlobalId 기록
+- centerCutExecutionId가 있는 경우 centerCutExecutionId별 로그 디렉터리 생성
+- restart/retry 실행은 기존 로그를 덮지 않고 execution별 로그로 분리
+- 같은 job이 동시에 여러 건 실행되어도 로그 파일이 섞이지 않음
+- worker/WAS instanceId는 파일 분리 기준이 아니라 로그 필드로 포함
+- BAT_INSTANCE_ID / BAT_WAS_ID는 실행 위치 추적용으로 사용
+- 로그 파일명/evidence에 secret/개인정보 원문을 남기지 않음
+```
+
+### 11.2 권장 경로
+
+일반 batch job:
+
+```text id="bat-job-path"
+./logs/bat/jobs/<jobName>/<yyyyMMdd>/jobInstance-<jobInstanceId>/execution-<jobExecutionId>.log
+```
+
+center-cut:
+
+```text id="centercut-log-path"
+./logs/bat/centercut/<centerCutExecutionId>/parent.log
+./logs/bat/centercut/<centerCutExecutionId>/summary.log
+./logs/bat/centercut/<centerCutExecutionId>/items/item-<itemId>.log
+```
+
+### 11.3 구현 기준
+
+이번 작업에서는 실제 대량 runtime 검증을 요구하지 않는다.
+
+가능 범위:
+
+```text id="bat-log-possible"
+- 로그 경로 계산 component
+- jobName/jobExecutionId/runId/transactionGlobalId 기반 file name policy
+- unit test
+- source/profile smoke
+- evidence JSON
+```
+
+실제 runtime 실행이 없으면:
+
+```text id="bat-log-no-runtime"
+- job execution runtime log 분리 완료로 기록하지 않음
+- 부분 구현 또는 미검증으로 기록
+```
+
+## 12. qualityGate 보강
+
+qualityGate는 실제로 Codex가 실행 가능한 정적/소스/패키징/dry-run 검증 중심으로 구성한다.
+
+필수 연결:
+
+```text id="qualitygate-items"
+- garbage file scan
+- yml/profile consistency scan
+- env empty value scan
+- datasource mode scan
+- Gradle deploy task scan
+- ps1/sh direct-call scan
+- create-domain template scan
+- BAT edu package scan
+- BAT job log path policy test
+- ownership scan
+- Spring Event scan
+- service-call boundary scan
+- profile loading smoke
+- packaged dependency check
+- remoteDeployDryRun through Gradle task
+- report/matrix/evidence consistency
+- feature evidence check
+- UTF-8/mojibake check
+```
+
+금지:
+
+```text id="qualitygate-forbidden"
+- 실제 서버 없는 상태에서 real remote deploy를 qualityGate 필수로 걸지 말 것
+- 실제 WAS 없는 상태에서 JNDI runtime을 qualityGate 필수로 걸지 말 것
+- real broker 없는 상태에서 broker runtime을 qualityGate 필수로 걸지 말 것
+- browser 없는 상태에서 browser click을 qualityGate 필수로 걸지 말 것
+```
+
+## 13. 필수 실행 명령
+
+가능한 범위에서 아래 명령을 실행하고 evidence를 남긴다.
+
+```powershell id="commands"
 .\gradlew.bat :pfw:test --offline --no-daemon --console=plain
 .\gradlew.bat :cmn:test --offline --no-daemon --console=plain
+.\gradlew.bat :bat:test --offline --no-daemon --console=plain
 .\gradlew.bat :adm:test --offline --no-daemon --console=plain --tests cpf.adm.opr.controller.AdmServiceRegistryControllerTest
 .\gradlew.bat :pfw:test --offline --no-daemon --console=plain --tests cpf.pfw.common.servicecall.*
+.\gradlew.bat :pfw:test --offline --no-daemon --console=plain --tests cpf.pfw.common.capability.*
 
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-architecture-ownership.ps1 -ResultDir specs/evidence/20260708_03
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-spring-event-usage.ps1 -ResultDir specs/evidence/20260708_03
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-service-call-boundary.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-architecture-ownership.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-spring-event-usage.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-profile-loading.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy/check-packaged-dependencies.ps1 -Module ACC -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy/deploy-module.ps1 -Module ACC -Env dev -DryRun -BuildBeforeDeploy -ResultDir specs/evidence/20260708_02
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-profile-loading.ps1 -ResultDir specs/evidence/20260708_03
+
+.\gradlew.bat checkDeployEnv -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
+.\gradlew.bat checkDeployInventory -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
+.\gradlew.bat checkPackagedDependencies -PcpfModule=ACC -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
+.\gradlew.bat remoteDeployDryRun -PcpfModule=ACC -PcpfEnv=dev -PcpfDeployMode=dryRun -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
 
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-report-matrix-evidence-consistency.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
 
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-runtime.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-circuit-runtime.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-failover-runtime.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-service-registry-health-runtime.ps1 -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-service-registry-ui-static.ps1 -ResultDir specs/evidence/20260708_02
-
 .\gradlew.bat qualityGate --offline --no-daemon --console=plain
 ```
 
-실제 runtime 환경이 준비되어 있으면 아래도 실행한다.
+주의:
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/runtime-start-services.ps1 -Modules ACC,MBR,EXS,ADM -BuildBeforeRun
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-runtime.ps1 -RunRuntime -RequireRuntime -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-service-registry-runtime.ps1 -RunRuntime -ResultDir specs/evidence/20260708_02
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1
+```text id="command-rules"
+- remoteDeploy 실제 remote mode는 실행하지 않는다.
+- 실제 서버 접속 정보가 없으면 remoteDeploy는 dryRun까지만 수행한다.
+- 실제 WAS/JNDI runtime 검증은 수행하지 않는다.
+- 실행하지 않은 검증은 미검증으로 기록한다.
 ```
 
-실행하지 못한 명령은 완료로 기록하지 말고 미검증과 사유를 기록한다.
+## 14. report/evidence/matrix/gap 기록 기준
 
-## 12. 산출물 기록 기준
+문서 정본화 금지. 최소 기록만 한다.
 
-문서 정본화 금지. 아래 최소 기록만 한다.
+수정 대상:
 
-* `CPF_STABILIZATION_REPORT.md`: 상태값, 실행 명령, evidence 경로, 미검증 사유
-* `CPF_GAP_MATRIX.md`: 남은 gap과 우선순위
-* `CPF_EVIDENCE_INDEX.md`: 실제 존재하는 evidence 경로만 기록
-* `specs/기능_구현_매트릭스.html`: check id/status/evidence 최소 정합성
-* `README.md`: 깨진 smoke 명령이나 주요 진입점만 최소 수정
-* `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`: 최신 공통 기준 반영 여부 확인
+```text id="docs-update"
+CPF_STABILIZATION_REPORT.md
+CPF_GAP_MATRIX.md
+CPF_EVIDENCE_INDEX.md
+specs/기능_구현_매트릭스.html
+README.md
+```
 
-## 13. 완료 불인정 기준
+수정 금지:
 
-아래 중 하나라도 해당하면 완료로 기록하지 않는다.
+```text id="docs-forbidden"
+CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+CPF_FINAL_TARGET_REQUIREMENTS.md
+CPF_NEW_REQUEST.md
+```
 
-* PFW/CMN이 업무 주제영역에 의존
-* 업무 주제영역이 EXS 내부 기술 클래스를 공통 기능처럼 사용
-* Kafka/SFTP/FTP/OAuth/JWT/mTLS/retry/circuit/unknown result/reconciliation이 특정 업무 주제영역 전용으로 구현
-* Spring Event만으로 핵심 거래/외부 송신/복구/대사 완료 주장
-* PFW/CMN yml이 업무 서비스 실행 주체 설정을 덮어씀
-* module prefix 없이 공통 환경변수만 사용해 모듈 간 충돌 가능
-* source-only smoke를 real runtime으로 기록
-* static UI smoke를 browser click 완료로 기록
-* embedded/mock broker를 real broker 완료로 기록
-* dry-run deploy를 real remote deploy 완료로 기록
-* 기존 개발 DB 확인을 신규 MariaDB full install 완료로 기록
-* 없는 evidence 파일을 완료 근거로 참조
-* skeleton/interface만 만들고 runtime 완료로 기록
-* `CPF_FINAL_TARGET_REQUIREMENTS.md`를 삭제/축약/덮어쓰기
-* Git commit/push/branch 생성
+기록 기준:
 
-## 14. Codex 완료 보고 필수 형식
+```text id="docs-rule"
+- 완료/부분 구현/미구현/미검증/실패/재확인 필요 상태값 일치
+- 실제 존재하는 evidence 경로만 기록
+- 삭제 파일/보류 파일 evidence 기록
+- dry-run은 dry-run으로 기록
+- ps1/sh placeholder 제거/보류 사유 기록
+- remote deploy 실제 미검증 유지
+- external WAS/JNDI 실제 runtime 미검증 유지
+- datasource JNDI config validation과 runtime 검증을 분리
+- BAT job log runtime 미실행 시 부분 구현/미검증 유지
+```
 
-작업 완료 보고에는 아래를 반드시 포함한다.
+## 15. 완료 불인정 기준
 
-```text
+아래는 완료로 기록하지 않는다.
+
+```text id="not-done"
+- ps1/sh만 만들고 Jenkins-ready Gradle 배포 완료 주장
+- Gradle task가 ps1 호출 wrapper일 뿐인데 Gradle 배포 완료 주장
+- 실제 서버 없이 remote deploy 완료 주장
+- 실제 WAS 없이 external WAS/JNDI runtime 완료 주장
+- env 값이 빈 상태인데 profile/env 완료 주장
+- JNDI mode 없이 WAS datasource 호환 완료 주장
+- PFW/CMN이 datasource/module-id/server.port를 강제하는데 설정 표준 완료 주장
+- 구버전 yml이 남아 있는데 가비지 정리 완료 주장
+- 자동 생성 기능이 구버전 yml/env를 만들고 있는데 profile 표준 완료 주장
+- BAT edu 패키지 없이 BAT 예제 보정 완료 주장
+- BAT job execution별 로그 runtime 없이 runtime 완료 주장
+- stale evidence를 신규 완료 근거로 사용
+- CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md 수정
+```
+
+## 16. Codex 완료 보고 필수 형식
+
+완료 보고는 아래 형식으로 작성한다.
+
+```text id="report-format"
 1. 실제 수정한 핵심 파일
-2. report/evidence/matrix/gap 정합성 복구 결과
-3. CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md 최신 기준 반영 여부
-4. architecture ownership warning 6건 처리 결과
-5. 새로 추가/보강한 PFW capability package/interface 목록
-6. CMN 책임 경계 보강 내용
-7. ownership scan 결과
-8. Spring Event scan 결과
-9. local/dev/stg/prod yml/profile 반영 결과
-10. module prefix 환경변수 반영 결과
-11. PFW/CMN config import 검증 결과
-12. bootJar 내부 PFW/CMN dependency 포함 검증 결과
-13. 원격 배포쉘/dry-run 검증 결과
-14. Service Call Engine runtime/source-only 구분
-15. ADM Service Registry runtime/browser 검증 여부
-16. SQL/Flyway/all_install 반영 여부
-17. 실제 실행 명령
-18. evidence 경로
-19. 완료/부분 구현/미구현/미검증/실패/재확인 필요 분리
-20. 후속 gap
-21. Git commit/push/branch 미수행 여부
+2. 삭제한 파일 목록과 삭제 사유
+3. 삭제 보류/재확인 필요 파일 목록과 사유
+4. yml/properties/env 정리 결과
+5. PFW/CMN 설정 강제 제거 결과
+6. embedded bootJar 실행 표준 반영 결과
+7. datasource URL/JNDI mode 반영 결과
+8. external WAS/JNDI config validation 결과와 runtime 미검증 사유
+9. deploy/env 빈 값 제거 및 placeholder 반영 결과
+10. Gradle remote deploy task 구현 결과
+11. ps1/sh 삭제/보류/재분류 결과
+12. Jenkins 호출 예시
+13. create-domain 자동 생성 영향도 보정 결과
+14. CMN migration warning 처리 결과
+15. BAT edu 패키지 보정 결과
+16. BAT job execution log policy 구현/검증 결과
+17. 기존 Service Call/PFW capability/profile/deploy/evidence 영향도 점검 결과
+18. qualityGate 연결 결과
+19. 실제 실행 명령
+20. evidence 경로
+21. 완료/부분 구현/미구현/미검증/실패/재확인 필요 분리
+22. 대안 적용이 필요한 항목과 사유
+23. Git commit/push/branch 미수행 여부
 ```
 
 보고 시 금지:
 
-```text
-- 실행하지 않은 검증을 완료라고 쓰지 말 것
-- dry-run을 real remote deploy라고 쓰지 말 것
-- static UI smoke를 browser click이라고 쓰지 말 것
-- source-only smoke를 runtime 완료라고 쓰지 말 것
-- 없는 evidence 파일을 참조하지 말 것
+```text id="report-forbidden"
+- 실행하지 않은 검증을 완료로 쓰지 말 것
+- 같은 실패를 같은 방식으로 재요청하지 말 것
+- 실제 서버 없는 remote deploy를 완료로 쓰지 말 것
+- 실제 WAS 없는 JNDI runtime을 완료로 쓰지 말 것
+- dry-run을 real deploy로 쓰지 말 것
+- placeholder script를 실제 구현으로 쓰지 말 것
+- 삭제하지 않은 가비지 후보를 숨기지 말 것
+- 미정리 yml/env를 완료로 포장하지 말 것
 ```

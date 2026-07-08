@@ -19,22 +19,22 @@ spring:
       driver-class-name: ${ADM_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}
       username: ${ADM_DB_USERNAME:cpf_adm_app}
-      password: ${ADM_DB_PASSWORD:cpf_local_pw}
+      password: ${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}
     mbr:
       driver-class-name: ${MBR_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
       username: ${MBR_DB_USERNAME:cpf_mbr_app}
-      password: ${MBR_DB_PASSWORD:cpf_local_pw}
+      password: ${MBR_DB_PASSWORD:__REPLACE_BY_ENV__}
     xyz:
       driver-class-name: ${XYZ_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${XYZ_DB_URL:jdbc:mariadb://localhost:3306/xyzDB}
       username: ${XYZ_DB_USERNAME:cpf_xyz_app}
-      password: ${XYZ_DB_PASSWORD:cpf_local_pw}
+      password: ${XYZ_DB_PASSWORD:__REPLACE_BY_ENV__}
     exs:
       driver-class-name: ${EXS_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${EXS_DB_URL:jdbc:mariadb://localhost:3306/exsDB}
       username: ${EXS_DB_USERNAME:cpf_exs_app}
-      password: ${EXS_DB_PASSWORD:cpf_local_pw}
+      password: ${EXS_DB_PASSWORD:__REPLACE_BY_ENV__}
   batch:
     job:
       enabled: false

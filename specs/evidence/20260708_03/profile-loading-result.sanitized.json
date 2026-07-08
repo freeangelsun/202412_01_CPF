@@ -1,0 +1,320 @@
+{
+    "generatedAt":  "2026-07-08T17:59:09.8322480+09:00",
+    "status":  "DONE",
+    "failureCount":  0,
+    "checkedModules":  [
+                           "acc",
+                           "mbr",
+                           "exs",
+                           "adm",
+                           "bat",
+                           "bizadm",
+                           "xyz"
+                       ],
+    "checkedProfiles":  [
+                            "local",
+                            "dev",
+                            "stg",
+                            "prod"
+                        ],
+    "failures":  [
+
+                 ],
+    "checks":  [
+                   {
+                       "name":  "PFW_PROFILE_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "pfw/src/main/resources/application-pfw-local.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cmn/src/main/resources/application-cmn-local.yml"
+                   },
+                   {
+                       "name":  "PFW_PROFILE_DEV",
+                       "status":  "DONE",
+                       "detail":  "pfw/src/main/resources/application-pfw-dev.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_DEV",
+                       "status":  "DONE",
+                       "detail":  "cmn/src/main/resources/application-cmn-dev.yml"
+                   },
+                   {
+                       "name":  "PFW_PROFILE_STG",
+                       "status":  "DONE",
+                       "detail":  "pfw/src/main/resources/application-pfw-stg.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_STG",
+                       "status":  "DONE",
+                       "detail":  "cmn/src/main/resources/application-cmn-stg.yml"
+                   },
+                   {
+                       "name":  "PFW_PROFILE_PROD",
+                       "status":  "DONE",
+                       "detail":  "pfw/src/main/resources/application-pfw-prod.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_PROD",
+                       "status":  "DONE",
+                       "detail":  "cmn/src/main/resources/application-cmn-prod.yml"
+                   },
+                   {
+                       "name":  "PFW_PROFILE_BASE",
+                       "status":  "DONE",
+                       "detail":  "pfw/src/main/resources/application-pfw.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_BASE",
+                       "status":  "DONE",
+                       "detail":  "cmn/src/main/resources/application-cmn.yml"
+                   },
+                   {
+                       "name":  "APPLICATION_YML_ACC",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_ACC",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application-acc.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application-acc-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_DEV",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application-acc-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_STG",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application-acc-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_PROD",
+                       "status":  "DONE",
+                       "detail":  "acc/src/main/resources/application-acc-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_ACC",
+                       "status":  "DONE",
+                       "detail":  "ACC runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_MBR",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_MBR",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application-mbr.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application-mbr-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_DEV",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application-mbr-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_STG",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application-mbr-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_PROD",
+                       "status":  "DONE",
+                       "detail":  "mbr/src/main/resources/application-mbr-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_MBR",
+                       "status":  "DONE",
+                       "detail":  "MBR runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_EXS",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_EXS",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application-exs.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application-exs-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_DEV",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application-exs-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_STG",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application-exs-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_PROD",
+                       "status":  "DONE",
+                       "detail":  "exs/src/main/resources/application-exs-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_EXS",
+                       "status":  "DONE",
+                       "detail":  "EXS runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_ADM",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_ADM",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application-adm.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application-adm-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_DEV",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application-adm-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_STG",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application-adm-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_PROD",
+                       "status":  "DONE",
+                       "detail":  "adm/src/main/resources/application-adm-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_ADM",
+                       "status":  "DONE",
+                       "detail":  "ADM runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_BAT",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_BAT",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application-bat.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application-bat-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_DEV",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application-bat-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_STG",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application-bat-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_PROD",
+                       "status":  "DONE",
+                       "detail":  "bat/src/main/resources/application-bat-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_BAT",
+                       "status":  "DONE",
+                       "detail":  "BAT runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_BIZADM",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_BIZADM",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application-bizadm.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BIZADM_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application-bizadm-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BIZADM_DEV",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application-bizadm-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BIZADM_STG",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application-bizadm-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BIZADM_PROD",
+                       "status":  "DONE",
+                       "detail":  "bizadm/src/main/resources/application-bizadm-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_BIZADM",
+                       "status":  "DONE",
+                       "detail":  "BIZADM runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_XYZ",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_XYZ",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application-xyz.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_XYZ_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application-xyz-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_XYZ_DEV",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application-xyz-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_XYZ_STG",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application-xyz-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_XYZ_PROD",
+                       "status":  "DONE",
+                       "detail":  "xyz/src/main/resources/application-xyz-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_XYZ",
+                       "status":  "DONE",
+                       "detail":  "XYZ runtime placeholders found."
+                   }
+               ]
+}

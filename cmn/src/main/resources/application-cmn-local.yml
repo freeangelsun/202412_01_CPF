@@ -5,12 +5,12 @@ spring:
     cmn:
       url: ${CMN_DB_URL:${PFW_DB_URL:jdbc:mariadb://localhost:3306/pfwDB}}
       username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME:cpf_pfw_app}}
-      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD:cpf_local_pw}}
+      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD:__REPLACE_BY_ENV__}}
       driver-class-name: org.mariadb.jdbc.Driver
     cmn-business:
       url: ${CMN_BUSINESS_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
       username: ${CMN_BUSINESS_DB_USERNAME:cpf_cmn_app}
-      password: ${CMN_BUSINESS_DB_PASSWORD:cpf_local_pw}
+      password: ${CMN_BUSINESS_DB_PASSWORD:__REPLACE_BY_ENV__}
       driver-class-name: org.mariadb.jdbc.Driver
 
 cpf:
@@ -43,5 +43,5 @@ cpf:
       jwt:
         issuer: ${CPF_CMN_SECURITY_JWT_ISSUER:CPF-LOCAL}
         audience: ${CPF_CMN_SECURITY_JWT_AUDIENCE:CPF-LOCAL-API}
-        secret: ${CPF_CMN_SECURITY_JWT_SECRET:local-education-secret-change-me}
+        secret: ${CPF_CMN_SECURITY_JWT_SECRET:__REPLACE_BY_ENV__}
         ttl-seconds: ${CPF_CMN_SECURITY_JWT_TTL_SECONDS:300}

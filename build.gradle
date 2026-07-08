@@ -32,7 +32,7 @@ subprojects {
 
 tasks.register('runLocalServices') {
     group = 'application'
-    description = 'MBR, ACC, XYZ, ADM, BIZADM, EXS 로컬 서비스를 한 번에 실행합니다. PFW/CMN은 라이브러리 모듈입니다.'
+    description = 'CPF verification or deployment task.'
 
     dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes', ':bizadm:classes', ':exs:classes'
 
@@ -53,7 +53,7 @@ tasks.register('runLocalServices') {
                     .findAll { !it.isBlank() } as Set
             services = services.findAll { requestedServices.contains(it.name) }
             if (services.isEmpty()) {
-                throw new GradleException("cpfRunServices에 실행 가능한 서비스가 없습니다. value=${requestedServiceText}")
+                throw new GradleException("Unsupported cpfRunServices value: ${requestedServiceText}")
             }
         }
         def javaExecutable = new File(
@@ -63,9 +63,9 @@ tasks.register('runLocalServices') {
         def processes = []
         def logThreads = []
 
-        logger.lifecycle("CPF 로컬 서비스 시작 대상: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('전체 기본 포트: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
-        logger.lifecycle('PFW와 CMN은 각 서비스 안에서 라이브러리로 동작합니다.')
+        logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
+        logger.lifecycle('Default ports: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
+        logger.lifecycle('PFW and CMN are library modules and are not started as standalone services.')
 
         services.each { service ->
             def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
@@ -113,7 +113,7 @@ tasks.register('runLocalServices') {
             try {
                 Runtime.runtime.removeShutdownHook(shutdownHook)
             } catch (IllegalStateException ignored) {
-                // JVM 종료 중에는 shutdown hook 제거가 실패할 수 있습니다.
+                // Shutdown hook cleanup failures are ignored because the process is already ending.
             }
             stopLocalServiceProcesses(processes)
             logThreads.each { it.join(1000) }
@@ -137,63 +137,266 @@ void stopLocalServiceProcesses(List processes) {
     }
 }
 
+ext.cpfServiceModules = [
+        ACC   : 'acc',
+        MBR   : 'mbr',
+        EXS   : 'exs',
+        ADM   : 'adm',
+        BAT   : 'bat',
+        BIZADM: 'bizadm',
+        XYZ   : 'xyz',
+        EDU   : 'xyz'
+]
+ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
+
+String cpfRequestedModule() {
+    return (findProperty('cpfModule') ?: 'ACC').toString().trim().toUpperCase(Locale.ROOT)
+}
+
+String cpfModuleProjectName(String moduleCode) {
+    def value = ext.cpfServiceModules[moduleCode]
+    if (value == null) {
+        throw new GradleException("Unsupported CPF deploy module: ${moduleCode}")
+    }
+    return value
+}
+
+String cpfRequestedEnv() {
+    def env = (findProperty('cpfEnv') ?: 'dev').toString().trim().toLowerCase(Locale.ROOT)
+    if (!ext.cpfDeployEnvs.contains(env)) {
+        throw new GradleException("Unsupported CPF deploy environment: ${env}")
+    }
+    return env
+}
+
+File cpfResultDir() {
+    return file((findProperty('cpfResultDir') ?: 'build/runtime-smoke').toString())
+}
+
+Map<String, String> cpfReadEnvFile(File envFile) {
+    if (!envFile.exists()) {
+        throw new GradleException("Deploy env file is missing: ${envFile}")
+    }
+    def values = [:]
+    envFile.readLines('UTF-8').each { line ->
+        def trimmed = line.trim()
+        if (trimmed.isEmpty() || trimmed.startsWith('#')) {
+            return
+        }
+        def index = trimmed.indexOf('=')
+        if (index <= 0) {
+        throw new GradleException("Deploy env file is missing: ${envFile}")
+        }
+        values[trimmed.substring(0, index)] = trimmed.substring(index + 1)
+    }
+    return values
+}
+
+Map cpfReadInventory(File inventoryFile) {
+    if (!inventoryFile.exists()) {
+        throw new GradleException("Deploy inventory file is missing: ${inventoryFile}")
+    }
+    return new groovy.json.JsonSlurper().parse(inventoryFile) as Map
+}
+
+void cpfWriteJson(File outputFile, Object value) {
+    outputFile.parentFile.mkdirs()
+    outputFile.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(value)), 'UTF-8')
+}
+
+Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
+    def moduleLower = cpfModuleProjectName(moduleCode)
+    def envFile = file("deploy/env/${env}-${moduleLower}.env")
+    def values = cpfReadEnvFile(envFile)
+    def prefix = moduleCode == 'EDU' ? 'XYZ' : moduleCode
+    def requiredKeys = [
+            'SPRING_PROFILES_ACTIVE',
+            "${prefix}_MODULE_ID".toString(),
+            "${prefix}_INSTANCE_ID".toString(),
+            "${prefix}_WAS_ID".toString(),
+            "${prefix}_SERVER_PORT".toString(),
+            "${prefix}_LOG_BASE_PATH".toString(),
+            "${prefix}_DATASOURCE_MODE".toString(),
+            "${prefix}_DATASOURCE_URL".toString(),
+            "${prefix}_DATASOURCE_USERNAME".toString(),
+            "${prefix}_DATASOURCE_PASSWORD".toString(),
+            "${prefix}_DATASOURCE_JNDI_NAME".toString()
+    ]
+    def failures = []
+    requiredKeys.each { key ->
+        if (!values.containsKey(key)) {
+            failures << "Required env key is missing: ${key}"
+        } else if (values[key] == null || values[key].trim().isEmpty()) {
+            failures << "Empty env value is not allowed: ${key}"
+        }
+    }
+    def datasourceModeKey = "${prefix}_DATASOURCE_MODE".toString()
+    def datasourcePasswordKey = "${prefix}_DATASOURCE_PASSWORD".toString()
+    if (values[datasourceModeKey] && !['url', 'jndi'].contains(values[datasourceModeKey].toLowerCase(Locale.ROOT))) {
+        failures << "${prefix}_DATASOURCE_MODE must be url or jndi."
+    }
+    if ((values[datasourcePasswordKey] ?: '').toLowerCase(Locale.ROOT).contains('cpf_local_pw')) {
+        failures << "${prefix}_DATASOURCE_PASSWORD must not contain a local default password."
+    }
+    def result = [
+            generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            module     : moduleCode,
+            env        : env,
+            status     : failures.isEmpty() ? 'DONE' : 'FAILED',
+            envFile    : "deploy/env/${env}-${moduleLower}.env",
+            keyCount   : values.size(),
+            failures   : failures
+    ]
+    cpfWriteJson(new File(resultDir, "deploy-env-${moduleLower}-${env}.sanitized.json"), result)
+    if (!failures.isEmpty()) {
+        throw new GradleException("Deploy env validation failed: ${failures.join(', ')}")
+    }
+    return result
+}
+
+Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
+    def moduleLower = cpfModuleProjectName(moduleCode)
+    def inventoryFile = file("deploy/inventory/${env}-services.json")
+    if (env == 'prod' && !inventoryFile.exists()) {
+        inventoryFile = file('deploy/inventory/prod-services.template.json')
+    }
+    def inventory = cpfReadInventory(inventoryFile)
+    def effectiveModule = moduleCode == 'EDU' ? 'XYZ' : moduleCode
+    def services = inventory.services ?: []
+    def service = services.find { it.module == effectiveModule }
+    def failures = []
+    if (service == null) {
+                failures << "Inventory field is missing: ${key}"
+    } else {
+        ['module', 'hostAlias', 'sshHostEnvKey', 'sshUserEnvKey', 'deployBase', 'healthUrl', 'serviceName', 'portEnvKey', 'profile', 'runtimeMode', 'approvalRequired', 'rollbackEnabled'].each { key ->
+            if (!service.containsKey(key)) {
+                failures << "Inventory field is missing: ${key}"
+            }
+        }
+        if (service.runtimeMode && !['embedded-bootjar', 'external-was'].contains(service.runtimeMode)) {
+            failures << "runtimeMode must be embedded-bootjar or external-was."
+        }
+    }
+    def result = [
+            generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            module     : moduleCode,
+            env        : env,
+            status     : failures.isEmpty() ? 'DONE' : 'FAILED',
+            inventory  : inventoryFile.path.replace('\\', '/'),
+            target     : service,
+            failures   : failures
+    ]
+    cpfWriteJson(new File(resultDir, "deploy-inventory-${moduleLower}-${env}.sanitized.json"), result)
+    if (!failures.isEmpty()) {
+        throw new GradleException("Deploy inventory validation failed: ${failures.join(', ')}")
+    }
+    return result
+}
+
+Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
+    def moduleLower = cpfModuleProjectName(moduleCode)
+    def jarFile = project(":${moduleLower}").tasks.named('bootJar').get().archiveFile.get().asFile
+    if (!jarFile.exists()) {
+        throw new GradleException("bootJar output is missing: ${jarFile}")
+    }
+    def entries = []
+    new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+        entries = zip.entries().collect { it.name }
+    }
+    def containsPfw = entries.any { it ==~ /BOOT-INF\/lib\/pfw-.*\.jar/ }
+    def containsCmn = entries.any { it ==~ /BOOT-INF\/lib\/cmn-.*\.jar/ }
+    def failures = []
+    if (!containsPfw) {
+        failures << 'bootJar does not contain PFW jar.'
+    }
+    if (moduleLower != 'bat' && !containsCmn) {
+        failures << 'bootJar does not contain CMN jar.'
+    }
+    def result = [
+            generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            module     : moduleCode,
+            status     : failures.isEmpty() ? 'DONE' : 'FAILED',
+            artifact   : jarFile.path.replace('\\', '/'),
+            containsPfw: containsPfw,
+            containsCmn: containsCmn,
+            failures   : failures
+    ]
+    cpfWriteJson(new File(resultDir, "packaged-dependencies-${moduleLower}.sanitized.json"), result)
+    if (!failures.isEmpty()) {
+        throw new GradleException("Package dependency validation failed: ${failures.join(', ')}")
+    }
+    return result
+}
+
+String cpfSha256(File file) {
+    def digest = java.security.MessageDigest.getInstance('SHA-256')
+    file.withInputStream { input ->
+        byte[] buffer = new byte[8192]
+        int read
+        while ((read = input.read(buffer)) > 0) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    return digest.digest().collect { String.format('%02x', it) }.join()
+}
+
 tasks.register('checkUtf8', Exec) {
     group = 'verification'
-    description = '문서와 소스가 UTF-8로 저장되어 있는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1'
 }
 
 tasks.register('checkMojibake', Exec) {
     group = 'verification'
-    description = 'UTF-8 검사와 함께 대표적인 글자 깨짐 흔적을 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
 }
 
 tasks.register('checkLegacyName', Exec) {
     group = 'verification'
-    description = '과거 프로젝트명 잔재가 소스와 문서에 남아 있는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-legacy-name.ps1'
 }
 
 tasks.register('checkSqlStandard', Exec) {
     group = 'verification'
-    description = 'CPF SQL 테이블명, 공통 감사 컬럼, 인덱스/제약조건 이름 표준을 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sql-standard.ps1'
 }
 
 tasks.register('checkJavaFormat', Exec) {
     group = 'verification'
-    description = '주요 Java 소스의 최소 포맷 기준과 비정상 문자열 라인을 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
 }
 
 tasks.register('checkHtmlDocs', Exec) {
     group = 'verification'
-    description = 'specs HTML 문서가 실제 HTML 구조이고 Markdown 잔재가 없는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-html-docs.ps1'
 }
 
 tasks.register('checkTransactionIdStandard', Exec) {
     group = 'verification'
-    description = 'CPF 트랜잭션 글로벌 ID 34자리 규격이 코드, 설정, SQL, 문서에 반영되어 있는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-transaction-id-standard.ps1'
 }
 
 tasks.register('checkSecuritySeedStandard', Exec) {
     group = 'verification'
-    description = 'SQL seed에 원문 비밀번호, refresh token, access token, client secret이 들어가지 않는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-security-seed-standard.ps1'
 }
 
 tasks.register('checkSampleStandard', Exec) {
     group = 'verification'
-    description = '운영 모듈 sample 패키지, SampleController/Service, 하드코딩 데이터 잔존 여부를 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sample-standard.ps1'
 }
 
 tasks.register('checkFeatureEvidence', Exec) {
     group = 'verification'
-    description = 'CPF 기능별 Controller, Service, Repository, SQL, 테스트, 문서 증거가 함께 있는지 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-feature-evidence.ps1'
 }
 
@@ -217,22 +420,134 @@ tasks.register('checkSpringEventUsage', Exec) {
 
 tasks.register('checkProfileLoading', Exec) {
     group = 'verification'
-    description = 'PFW/CMN 공통 profile과 업무 서비스별 local/dev/stg/prod profile import 규칙을 검사합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-profile-loading.ps1'
 }
 
-tasks.register('checkPackagedDependencies', Exec) {
+tasks.register('checkRuntimeConfigStandard', Exec) {
     group = 'verification'
-    description = '업무 서비스 bootJar가 PFW/CMN 런타임 의존성을 포함할 수 있는 구조인지 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/deploy/check-packaged-dependencies.ps1', '-Module', 'ACC'
+    description = 'CPF verification or deployment task.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-runtime-config-standard.ps1'
 }
 
-tasks.register('checkDeployDryRun', Exec) {
+tasks.register('checkDeployEnv') {
     group = 'verification'
-    description = '공통 배포 스크립트가 env/inventory 기준으로 dry-run 증적을 생성하는지 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/deploy/deploy-module.ps1', '-Module', 'ACC', '-Env', 'dev', '-DryRun', '-SkipArtifactRequired'
+    description = 'CPF verification or deployment task.'
+    doLast {
+        cpfValidateDeployEnv(cpfRequestedModule(), cpfRequestedEnv(), cpfResultDir())
+    }
 }
 
+tasks.register('checkDeployInventory') {
+    group = 'verification'
+    description = 'CPF verification or deployment task.'
+    doLast {
+        cpfValidateDeployInventory(cpfRequestedModule(), cpfRequestedEnv(), cpfResultDir())
+    }
+}
+
+tasks.register('checkPackagedDependencies') {
+    group = 'verification'
+    description = 'CPF verification or deployment task.'
+    def moduleCode = cpfRequestedModule()
+    def moduleLower = cpfModuleProjectName(moduleCode)
+    dependsOn ":${moduleLower}:bootJar"
+    doLast {
+        cpfCheckPackagedDependencies(moduleCode, cpfResultDir())
+    }
+}
+
+tasks.register('remoteDeployDryRun') {
+    group = 'verification'
+    description = 'CPF verification or deployment task.'
+    def moduleCode = cpfRequestedModule()
+    def moduleLower = cpfModuleProjectName(moduleCode)
+    dependsOn 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', ":${moduleLower}:bootJar"
+    doLast {
+        def env = cpfRequestedEnv()
+        def resultDir = cpfResultDir()
+        def envResult = cpfValidateDeployEnv(moduleCode, env, resultDir)
+        def inventoryResult = cpfValidateDeployInventory(moduleCode, env, resultDir)
+        def packageResult = cpfCheckPackagedDependencies(moduleCode, resultDir)
+        def jarFile = project(":${moduleLower}").tasks.named('bootJar').get().archiveFile.get().asFile
+        def target = inventoryResult.target
+        def javaPlan = "java -jar ${jarFile.path.replace('\\', '/')} --spring.profiles.active=${env}"
+        def externalWasPlan = [
+                mode        : 'external-was',
+                status      : 'CONFIG_PLAN_ONLY',
+                datasource  : "${moduleCode}_DATASOURCE_MODE=jndi",
+                jndiNameKey : "${moduleCode}_DATASOURCE_JNDI_NAME",
+                runtimeCheck: 'External WAS and JNDI registration are not executed by this dry-run.'
+        ]
+        def result = [
+                generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+                module            : moduleCode,
+                env               : env,
+                deployMode        : 'dryRun',
+                status            : 'DONE',
+                realRemoteExecuted: false,
+                artifact          : packageResult.artifact,
+                checksumSha256    : cpfSha256(jarFile),
+                envEvidence       : envResult,
+                inventoryEvidence : inventoryResult,
+                javaJarCommandPlan: javaPlan,
+                healthUrl         : target.healthUrl,
+                runtimeMode       : target.runtimeMode,
+                externalWasPlan   : externalWasPlan,
+                rollbackExecuted  : false
+        ]
+        cpfWriteJson(new File(resultDir, "remote-deploy-dry-run-${moduleLower}-${env}.sanitized.json"), result)
+    }
+}
+
+tasks.register('checkDeployDryRun') {
+    group = 'verification'
+    description = 'CPF verification or deployment task.'
+    dependsOn 'remoteDeployDryRun'
+}
+
+tasks.register('remoteDeploy') {
+    group = 'deployment'
+    description = 'CPF verification or deployment task.'
+    doLast {
+        def moduleCode = cpfRequestedModule()
+        def env = cpfRequestedEnv()
+        def mode = (findProperty('cpfDeployMode') ?: 'remote').toString()
+        def requireApproval = (findProperty('cpfRequireApproval') ?: 'true').toString().toBoolean()
+        def result = [
+                generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+                module            : moduleCode,
+                env               : env,
+                deployMode        : mode,
+                requireApproval   : requireApproval,
+                realRemoteExecuted: false,
+                status            : 'FAILED',
+                failureReason     : 'Real remote deployment is not executed because no approved remote target is configured.'
+        ]
+        cpfWriteJson(new File(cpfResultDir(), "remote-deploy-${cpfModuleProjectName(moduleCode)}-${env}.sanitized.json"), result)
+        throw new GradleException(result.failureReason)
+    }
+}
+
+tasks.register('rollbackDeploy') {
+    group = 'deployment'
+    description = 'CPF verification or deployment task.'
+    doLast {
+        def moduleCode = cpfRequestedModule()
+        def env = cpfRequestedEnv()
+        def result = [
+                generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+                module            : moduleCode,
+                env               : env,
+                realRemoteExecuted: false,
+                rollbackExecuted  : false,
+                status            : 'FAILED',
+                failureReason     : 'Real rollback is not executed because no approved remote target or rollback artifact is configured.'
+        ]
+        cpfWriteJson(new File(cpfResultDir(), "rollback-deploy-${cpfModuleProjectName(moduleCode)}-${env}.sanitized.json"), result)
+        throw new GradleException(result.failureReason)
+    }
+}
 tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
@@ -241,26 +556,26 @@ tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
 
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
-    description = '기동 중인 ADM/XYZ 서비스의 OpenAPI 문서 스키마를 smoke 검증합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-openapi.ps1'
 }
 
 tasks.register('admUiSmoke', Exec) {
     group = 'verification'
-    description = 'ADM 정적 화면과 스크립트에 필수 메뉴, 버튼, API 경로가 있는지 smoke 검증합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
 tasks.register('admRuntimeSmoke', Exec) {
     group = 'verification'
-    description = 'ADM 앱을 안전하게 기동한 뒤 health, OpenAPI, 배치 API, UI smoke를 수행하고 종료합니다.'
+    description = 'CPF verification or deployment task.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-runtime.ps1'
 }
 
 tasks.register('qualityGate') {
     group = 'verification'
-    description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
+    description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkPackagedDependencies', 'checkDeployDryRun', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
 }

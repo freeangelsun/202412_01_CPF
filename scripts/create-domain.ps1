@@ -114,6 +114,18 @@ $plan = [ordered]@{
         "specs/sql/00_all_install_and_smoke.sql merge candidate",
         "specs/sql/migration/flyway/Vxx__${module}_domain.sql candidate",
         "application-${module}.yml candidate",
+        "src/main/resources/application-${module}-local.yml candidate",
+        "src/main/resources/application-${module}-dev.yml candidate",
+        "src/main/resources/application-${module}-stg.yml candidate",
+        "src/main/resources/application-${module}-prod.yml candidate",
+        "deploy/env/local-${module}.env candidate",
+        "deploy/env/dev-${module}.env candidate",
+        "deploy/env/stg-${module}.env candidate",
+        "deploy/env/prod-${module}.env candidate",
+        "deploy/inventory/local-services.json candidate",
+        "deploy/inventory/dev-services.json candidate",
+        "deploy/inventory/stg-services.json candidate",
+        "deploy/inventory/prod-services.template.json candidate",
         "module smoke script candidate",
         "README.md and specs guide link candidate"
     )
@@ -153,22 +165,22 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * ${ModuleName} 업무 API 예시입니다.
+ * ${ModuleName} ? API ????
  *
- * <p>신규 주제영역은 Controller에서 요청 검증과 Swagger 설명을 담당하고,
- * 실제 업무 규칙은 Service/Facade 계층으로 위임합니다.</p>
+ * <p>? ?? Controller? ?  Swagger ?????,
+ * ? ? ? Service/Facade ? ????</p>
  */
 @RestController
 @RequestMapping("/api/v1/$module")
 @RequiredArgsConstructor
-@Tag(name = "$ModuleUpper 업무", description = "${ModuleName} 신규 업무 API")
+@Tag(name = "$ModuleUpper ?", description = "${ModuleName} ? ? API")
 public class ${ModuleName}Controller {
     private final ${ModuleName}Facade facade;
     private final ${ModuleName}SearchValidator validator;
 
     @GetMapping
     @CpfTransaction(id = "${ModuleUpper}01SRH0010", name = "${ModuleName}Search")
-    @Operation(summary = "${ModuleName} 목록 조회", description = "검색, 정렬, 페이징 whitelist를 적용해 목록을 조회합니다.")
+    @Operation(summary = "${ModuleName}  ", description = "?? ?, ??whitelist?????????")
     public ResponseEntity<Map<String, Object>> search(${ModuleName}SearchRequest request) {
         validator.validate(request);
         return ResponseEntity.ok(facade.search(request));
@@ -187,9 +199,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * Controller와 업무 서비스 사이의 조립 계층입니다.
+ * Controller? ? ?????? ???
  *
- * <p>여러 service 호출, 외부 연계, 감사 사유 조립이 필요한 경우 Facade에서 흐름을 정리합니다.</p>
+ * <p>? service ?, ?? ?,  ? ????? Facade? ???????</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -214,7 +226,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 /**
- * ${ModuleName} 업무 규칙을 처리하는 서비스입니다.
+ * ${ModuleName} ? ??? ???.
  */
 @Service
 @RequiredArgsConstructor
@@ -239,7 +251,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 
 /**
- * MyBatis mapper 호출을 캡슐화하는 저장소입니다.
+ * MyBatis mapper ???????????
  */
 @Repository
 @RequiredArgsConstructor
@@ -260,9 +272,9 @@ package $BasePackage.dto;
 import java.util.Set;
 
 /**
- * ${ModuleName} 조회 조건입니다.
+ * ${ModuleName}  ???
  *
- * <p>정렬 컬럼은 whitelist만 허용해 SQL Injection을 차단합니다.</p>
+ * <p>? ? whitelist????SQL Injection?????</p>
  */
 public record ${ModuleName}SearchRequest(
         String keyword,
@@ -290,16 +302,16 @@ import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Component;
 
 /**
- * ${ModuleName} 요청값을 업무 API 진입점에서 검증합니다.
+ * ${ModuleName} ? ? API ????.
  */
 @Component
 public class ${ModuleName}SearchValidator {
     public void validate(${ModuleName}SearchRequest request) {
         if (request == null) {
-            throw new CpfValidationException("${ModuleName} 조회 조건이 필요합니다.");
+            throw new CpfValidationException("${ModuleName}  ??????");
         }
         if (request.size() != null && request.size() > 200) {
-            throw new CpfValidationException("페이지 크기는 200 이하만 허용합니다.");
+            throw new CpfValidationException("? ???200 ??????");
         }
     }
 }
@@ -309,7 +321,7 @@ $mapperXml = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="$BasePackage.mapper.${ModuleName}Mapper">
-  <!-- ${ModuleName} 목록 조회: 정렬 컬럼은 DTO whitelist에서만 전달합니다. -->
+  <!-- ${ModuleName}  : ? ? DTO whitelist?????? -->
   <select id="search" resultType="map">
     SELECT ${TablePrefix}_id,
            ${TablePrefix}_name,
@@ -347,56 +359,58 @@ $applicationYml = @"
 spring:
   application:
     name: cpf-$module
-
-cpf:
-  framework:
-    module-id: $ModuleUpper
-  logging:
-    file:
-      file-pattern: "cpf-{moduleCode}-{logType}.log"
-"@
-
-$applicationModuleYml = @"
-# ${ModuleName} 업무 모듈 로컬 설정 후보입니다.
-spring:
   config:
-    activate:
-      on-profile: local
-  application:
-    name: cpf-$module
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${Dollar}{spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${Dollar}{spring.profiles.active:local}.yml
+      - optional:classpath:application-$module.yml
+      - optional:classpath:application-$module-${Dollar}{spring.profiles.active:local}.yml
 
 cpf:
   framework:
-    module-id: $ModuleUpper
+    module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   logging:
     file:
       file-pattern: "cpf-{moduleCode}-{logType}.log"
 "@
-
+$applicationModuleYml = @"
+# ${ModuleName}     .
+cpf:
+  framework:
+    module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
+  datasource:
+    mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
+    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
+  logging:
+    file:
+      file-pattern: "cpf-{moduleCode}-{logType}.log"
+"@
 $sql = @"
--- ${ModuleName} 신규 업무 테이블 후보입니다.
+-- ${ModuleName} ? ? ??????
 CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
-    ${TablePrefix}_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '${ModuleName} 식별자',
-    ${TablePrefix}_name VARCHAR(200) NOT NULL COMMENT '${ModuleName} 명',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    ${TablePrefix}_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '${ModuleName} ???,
+    ${TablePrefix}_name VARCHAR(200) NOT NULL COMMENT '${ModuleName} ?,
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '? ',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '? ?? ??',
+    created_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '???,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '??',
+    updated_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '???,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '??',
     PRIMARY KEY (${TablePrefix}_id),
     INDEX ix_${TablePrefix}_sample_status (status_code, deleted_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='${ModuleName} 샘플';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='${ModuleName} ?';
 "@
 
 $readme = @"
-# ${ModuleName} 도메인 생성 후보
+# ${ModuleName} ???? ?
 
-이 폴더는 `scripts/create-domain.ps1`가 만든 신규 주제영역 적용 후보입니다.
+?????`scripts/create-domain.ps1`  ? ? ? ????
 
-- 실제 적용 전 `settings.gradle`, `specs/sql`, ADM 메뉴/API/button seed, OpenAPI 설명을 검토합니다.
-- Controller, Service, Repository, DTO, Mapper XML, SQL 후보가 같은 업무명과 table prefix를 사용합니다.
-- 파일 로그는 `cpf-{moduleCode}-{logType}.log` 규격을 따릅니다.
+- ? ? ??`settings.gradle`, `specs/sql`, ADM /API/button seed, OpenAPI ?????.
+- Controller, Service, Repository, DTO, Mapper XML, SQL ? ? ? table prefix?????
+- ? ??`cpf-{moduleCode}-{logType}.log` ????.
 "@
 
 $serviceTest = @"
@@ -444,18 +458,18 @@ Write-Host "${ModuleName} smoke passed. uri=`$uri"
 "@
 
 $applyOrder = @"
-# ${ModuleName} 도메인 적용 후보 순서
+# ${ModuleName} ???? ? ?
 
-1. `settings.gradle.patch` 내용을 검토한 뒤 신규 모듈 include 여부를 결정합니다.
-2. `${module}/` 후보 소스와 `application-${module}.yml`을 신규 모듈 위치로 옮깁니다.
-3. `sql/Vxx__${module}_domain.sql`을 실제 Flyway version 번호로 복사합니다.
-4. `sql/40_business_modules_schema.${module}.candidate.sql`을 split SQL과 all_install 합본에 반영합니다.
-5. `sql/50_framework_seed.${module}.candidate.sql`로 PFW module registry seed를 반영합니다.
-6. `sql/60_adm_seed.${module}.candidate.sql`로 ADM menu/API/button 권한 seed를 반영합니다.
-7. `sql/99_smoke_check.${module}.candidate.sql`을 smoke check에 반영합니다.
-8. `smoke-${module}.ps1`을 실제 포트와 API path에 맞춰 검증합니다.
+1. `settings.gradle.patch` ???? ???  include ??????
+2. `${module}/` ? ?? `application-${module}.yml`???  ?????.
+3. `sql/Vxx__${module}_domain.sql`??? Flyway version ????
+4. `sql/40_business_modules_schema.${module}.candidate.sql`??split SQL?all_install ??????
+5. `sql/50_framework_seed.${module}.candidate.sql`?PFW module registry seed????
+6. `sql/60_adm_seed.${module}.candidate.sql`?ADM menu/API/button  seed????
+7. `sql/99_smoke_check.${module}.candidate.sql`??smoke check?????
+8. `smoke-${module}.ps1`??? ?? API path?? ?.
 
-이 묶음은 안전한 후보입니다. 운영 SQL과 settings를 자동 수정하지 않습니다.
+??? ??????? ? SQL?settings?? ??? ??.
 "@
 
 $settingsPatch = @"
@@ -466,14 +480,14 @@ $settingsPatch = @"
 "@
 
 $pfwSeed = @"
--- ${ModuleName} PFW module registry seed 후보입니다.
+-- ${ModuleName} PFW module registry seed ????
 INSERT INTO pfw_module_registry (module_code, module_name, module_type, active_yn, created_by, updated_by)
 VALUES ('$ModuleUpper', '${ModuleName}', 'BUSINESS', 'Y', 'create-domain', 'create-domain')
 ON DUPLICATE KEY UPDATE module_name = VALUES(module_name), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 "@
 
 $admSeed = @"
--- ${ModuleName} ADM 메뉴/API/버튼 권한 seed 후보입니다.
+-- ${ModuleName} ADM /API/  seed ????
 INSERT INTO adm_menu (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
 VALUES ('${ModuleUpper}_ROOT', 'BIZ_ROOT', '${ModuleName}', '/adm/${module}', 900, 'Y', 'create-domain', 'create-domain')
 ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), menu_path = VALUES(menu_path), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
@@ -484,12 +498,81 @@ ON DUPLICATE KEY UPDATE api_path = VALUES(api_path), http_method = VALUES(http_m
 "@
 
 $smokeSql = @"
--- ${ModuleName} smoke check 후보입니다.
+-- ${ModuleName} smoke check ????
 SELECT '${ModuleUpper}_SAMPLE_TABLE' AS check_id, COUNT(*) AS row_count
 FROM information_schema.tables
 WHERE table_schema = DATABASE()
   AND table_name = '${TablePrefix}_sample';
 "@
+
+$profileApplicationFiles = [ordered]@{}
+foreach ($profileName in @("local", "dev", "stg", "prod")) {
+    $profileApplicationFiles["src/main/resources/application-${module}-${profileName}.yml"] = @"
+# ${ModuleName} ${profileName}   .
+spring:
+  config:
+    activate:
+      on-profile: $profileName
+
+server:
+  port: ${Dollar}{$($ModuleUpper)_SERVER_PORT:8080}
+
+cpf:
+  framework:
+    module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
+    instance-id: ${Dollar}{$($ModuleUpper)_INSTANCE_ID:${ModuleUpper}01}
+    was-id: ${Dollar}{$($ModuleUpper)_WAS_ID:${profileName}-01}
+  datasource:
+    mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
+    url: ${Dollar}{$($ModuleUpper)_DATASOURCE_URL:jdbc:mariadb://localhost:3306/${module}DB}
+    username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:${module}_app}
+    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:__REPLACE_BY_ENV__}
+    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
+"@
+}
+
+$deployEnvFiles = [ordered]@{}
+foreach ($profileName in @("local", "dev", "stg", "prod")) {
+    $deployEnvFiles["deploy/env/${profileName}-${module}.env"] = @"
+SPRING_PROFILES_ACTIVE=$profileName
+${ModuleUpper}_MODULE_ID=$ModuleUpper
+${ModuleUpper}_INSTANCE_ID=${ModuleUpper}-${profileName}-01
+${ModuleUpper}_WAS_ID=${profileName}-was-01
+${ModuleUpper}_SERVER_PORT=8080
+${ModuleUpper}_LOG_BASE_PATH=./logs/$module
+${ModuleUpper}_DATASOURCE_MODE=url
+${ModuleUpper}_DATASOURCE_URL=jdbc:mariadb://localhost:3306/${module}DB
+${ModuleUpper}_DATASOURCE_USERNAME=${module}_app
+${ModuleUpper}_DATASOURCE_PASSWORD=__REPLACE_BY_ENV__
+${ModuleUpper}_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpf$($ModuleUpper)DataSource
+"@
+}
+
+$deployInventoryFiles = [ordered]@{}
+foreach ($profileName in @("local", "dev", "stg", "prod")) {
+    $inventoryFileName = if ($profileName -eq "prod") { "prod-services.template.json" } else { "$profileName-services.json" }
+    $deployInventoryFiles["deploy/inventory/${inventoryFileName}.${module}.candidate.json"] = @"
+{
+  "profile": "$profileName",
+  "services": [
+    {
+      "module": "$ModuleUpper",
+      "hostAlias": "${module}-${profileName}",
+      "sshHostEnvKey": "${ModuleUpper}_SSH_HOST",
+      "sshUserEnvKey": "${ModuleUpper}_SSH_USER",
+      "deployBase": "/opt/cpf/$module",
+      "healthUrl": "http://localhost:8080/actuator/health",
+      "serviceName": "cpf-$module",
+      "portEnvKey": "${ModuleUpper}_SERVER_PORT",
+      "profile": "$profileName",
+      "runtimeMode": "embedded-bootjar",
+      "approvalRequired": true,
+      "rollbackEnabled": true
+    }
+  ]
+}
+"@
+}
 
 $files = [ordered]@{
     "build.gradle" = $buildGradle
@@ -506,6 +589,16 @@ $files = [ordered]@{
     "src/test/java/$packagePath/service/${ModuleName}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript
     "sql/Vxx__${module}_domain.sql" = $sql
+}
+
+foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
+    $files[$entry.Key] = $entry.Value
+}
+foreach ($entry in $deployEnvFiles.GetEnumerator()) {
+    $files[$entry.Key] = $entry.Value
+}
+foreach ($entry in $deployInventoryFiles.GetEnumerator()) {
+    $files[$entry.Key] = $entry.Value
 }
 
 foreach ($entry in $files.GetEnumerator()) {
@@ -532,6 +625,21 @@ if ($GeneratePatch -or $Apply) {
 
     foreach ($entry in $patchFiles.GetEnumerator()) {
         $path = Join-Path $OutputDir $entry.Key
+        Write-Utf8 -Path $path -Content $entry.Value
+        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
+    }
+    foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
+        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
+        Write-Utf8 -Path $path -Content $entry.Value
+        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
+    }
+    foreach ($entry in $deployEnvFiles.GetEnumerator()) {
+        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
+        Write-Utf8 -Path $path -Content $entry.Value
+        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
+    }
+    foreach ($entry in $deployInventoryFiles.GetEnumerator()) {
+        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
         Write-Utf8 -Path $path -Content $entry.Value
         $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
     }

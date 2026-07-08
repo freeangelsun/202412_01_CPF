@@ -8,4 +8,4 @@ spring:
     acc:
       url: ${ACC_DATASOURCE_URL:${ACC_DB_URL:jdbc:mariadb://localhost:3306/accDB}}
       username: ${ACC_DATASOURCE_USERNAME:${ACC_DB_USERNAME:cpf_acc_app}}
-      password: ${ACC_DATASOURCE_PASSWORD:${ACC_DB_PASSWORD:cpf_local_pw}}
+      password: ${ACC_DATASOURCE_PASSWORD:${ACC_DB_PASSWORD:__REPLACE_BY_ENV__}}

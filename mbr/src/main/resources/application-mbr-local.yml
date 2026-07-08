@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${MBR_DATASOURCE_URL:${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}}
     username: ${MBR_DATASOURCE_USERNAME:${MBR_DB_USERNAME:cpf_mbr_app}}
-    password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD:cpf_local_pw}}
+    password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD:__REPLACE_BY_ENV__}}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
       maximum-pool-size: 10

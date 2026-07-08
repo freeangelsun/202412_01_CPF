@@ -8,4 +8,4 @@ cpf:
     datasource:
       url: ${EXS_DATASOURCE_URL:${EXS_DB_URL:jdbc:mariadb://localhost:3306/exsDB}}
       username: ${EXS_DATASOURCE_USERNAME:${EXS_DB_USERNAME:cpf_exs_app}}
-      password: ${EXS_DATASOURCE_PASSWORD:${EXS_DB_PASSWORD:cpf_local_pw}}
+      password: ${EXS_DATASOURCE_PASSWORD:${EXS_DB_PASSWORD:__REPLACE_BY_ENV__}}

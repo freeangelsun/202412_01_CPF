@@ -18,7 +18,7 @@ spring:
     xyz:
       url: ${XYZ_DB_URL:jdbc:mariadb://localhost:3306/xyzDB}
       username: ${XYZ_DB_USERNAME:cpf_xyz_app}
-      password: ${XYZ_DB_PASSWORD:cpf_local_pw}
+      password: ${XYZ_DB_PASSWORD:__REPLACE_BY_ENV__}
       driver-class-name: org.mariadb.jdbc.Driver
   batch:
     job:

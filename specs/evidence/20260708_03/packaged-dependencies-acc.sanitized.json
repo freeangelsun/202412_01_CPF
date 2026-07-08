@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-08T17:26:10.501+0900",
+    "module": "ACC",
+    "status": "DONE",
+    "artifact": "D:/WORK_CPF/202412_01_CPF/acc/build/libs/acc-0.0.1-cpf.acc-SNAPSHOT.jar",
+    "containsPfw": true,
+    "containsCmn": true,
+    "failures": [
+        
+    ]
+}

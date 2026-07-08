@@ -1,100 +1,87 @@
-# CPF 안정화 작업 리포트
+# CPF 안정화 리포트
 
-## 기준 정보
+작성 시각: 2026-07-08 18:00:02 +09:00
 
-- 요청서: `CPF_NEW_REQUEST.md`
-- 최종 목표 기준: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 이번 증적 기준 디렉터리: `specs/evidence/20260708_02`
-- 원칙: 실행하지 않은 검증은 완료로 쓰지 않는다. dry-run 배포는 실제 원격 배포 완료가 아니다.
+## 수행 요약
 
-## 이번 작업 요약
+- 레거시 profile 파일과 직접 배포 ps1/sh를 제거하고 Gradle 배포 검증 태스크로 표준화했습니다.
+- `deploy/env`와 `deploy/inventory`에 local/dev/stg/prod, URL/JNDI datasource mode, runtimeMode 기준을 반영했습니다.
+- BAT EDU 샘플과 Job 실행 단위 로그 경로 정책을 추가하고 테스트했습니다.
+- README, Gap Matrix, Evidence Index, 기능 구현 매트릭스를 현재 기준으로 맞췄습니다.
 
-- PFW broker/file transfer/security/runtime capability 2차 skeleton을 보강하고 contract test 대상으로 연결했다.
-- PFW/CMN profile과 업무 서비스별 `local/dev/stg/prod` profile 파일 및 import 표준을 추가했다.
-- 공통 배포 dry-run 스크립트, env/inventory, 패키징 의존성 점검 스크립트를 추가했다.
-- `qualityGate`에 architecture ownership, Spring Event, profile loading, packaged dependency, deploy dry-run, report/matrix/evidence 정합성 검사를 연결했다.
-- `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`에 PFW/CMN/EXS ownership, Spring Event 제한, 증적 기준을 다시 명시했다.
+## 검증 상태
 
-## 검증 상태 매트릭스
+| check id | 상태 | 증적 | 비고 |
+| --- | --- | --- | --- |
+| edu-mapper-db-slice | 완료 | `specs\evidence\20260707_01\edu-mapper-db-slice.log` | 기존 검증 증적 유지 |
+| mariadb-full-install | 완료 | `specs\evidence\20260707_02\mariadb-full-install-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-runtime | 완료 | `specs\evidence\20260707_02\adm-runtime-smoke-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-permission-runtime | 완료 | `specs\evidence\20260707_02\adm-permission-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| openapi-runtime | 완료 | `specs\evidence\20260707_02\openapi-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-browser-click | 미검증 | `specs\evidence\20260707_02\adm-ui-browser-smoke-result.sanitized.json` | 실제 브라우저 클릭 증적 없음 |
+| standard-header-e2e | 완료 | `specs\evidence\20260707_02\standard-header-e2e-result.sanitized.json` | 기존 검증 증적 유지 |
+| complex-transaction-trace | 완료 | `specs\evidence\20260707_02\composite-transaction-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| transaction-segment-log | 완료 | `specs\evidence\20260707_02\composite-transaction-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-transaction-group-list | 완료 | `specs\evidence\20260707_02\adm-operation-console-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-transaction-timeline | 완료 | `specs\evidence\20260707_02\adm-transaction-group-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| cmn-fixed-length-engine | 완료 | `specs\evidence\20260707_02\cmn-fixed-length-advanced-result.sanitized.json` | 기존 검증 증적 유지 |
+| composite-runtime-smoke | 완료 | `specs\evidence\20260707_02\composite-transaction-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-transaction-group-runtime | 완료 | `specs\evidence\20260707_02\adm-transaction-group-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| redis-kafka-mq-broker | 미검증 | 없음 | 실제 broker 미실행 |
+| broker-real-integration | 미검증 | 없음 | Redis/Kafka/MQ 실연동 후속 |
+| file-log-standard | 완료 | `specs\evidence\20260707_02\file-log-standard-result.sanitized.json` | 기존 검증 증적 유지 |
+| trace-boost-runtime | 완료 | `specs\evidence\20260707_02\trace-boost-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| bat-trace-boost-runtime | 완료 | `specs\evidence\20260707_02\bat-trace-boost-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| runtime-start-services | 완료 | `specs\evidence\20260707_02\runtime-start-services-result.sanitized.json` | 기존 검증 증적 유지 |
+| packaged-runtime-resources | 완료 | `specs\evidence\20260707_02\packaged-runtime-resource-check.sanitized.json` | 기존 검증 증적 유지 |
+| runtime-status-diagnostics | 완료 | `specs\evidence\20260707_02\runtime-status-result.sanitized.json` | 기존 검증 증적 유지 |
+| runtime-closure | 완료 | `specs\evidence\20260707_02\runtime-closure-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-operation-console-runtime | 완료 | `specs\evidence\20260707_02\adm-operation-console-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| adm-log-policy-ui-static | 완료 | `specs\evidence\20260707_02\adm-log-policy-ui-static-result.sanitized.json` | 기존 검증 증적 유지 |
+| bat-log-bean-runtime | 완료 | `specs\evidence\20260707_02\bat-log-bean-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| exs-timeout-retry-runtime | 완료 | `specs\evidence\20260707_02\exs-timeout-retry-runtime-result.sanitized.json` | 기존 검증 증적 유지 |
+| cmn-fixed-length-advanced | 완료 | `specs\evidence\20260707_02\cmn-fixed-length-advanced-result.sanitized.json` | 기존 검증 증적 유지 |
+| create-domain-smoke | 완료 | `specs\evidence\20260707_02\create-domain-result.sanitized.json` | 기존 검증 증적 유지 |
+| pfw-service-call-engine | 부분 구현 | `specs\evidence\20260708_02\service-call-engine-runtime-success.sanitized.json`, `specs\evidence\20260708_03\pfw-service-call-engine-test.log` | 다중 서비스 실제 HTTP runtime은 후속 |
+| adm-service-registry-runtime | 미검증 | `specs\evidence\20260708_03\adm-service-registry-api-test.log`, `specs\evidence\20260708_02\adm-service-registry-ui-static-smoke.sanitized.json` | 실제 ADM RunRuntime 호출은 미수행 |
+| architecture-ownership-scan | 재확인 필요 | `specs\evidence\20260708_02\architecture-ownership-scan.sanitized.json` | CMN PFW port migration 후보를 warning으로 분류 |
+| spring-event-usage-scan | 완료 | `specs\evidence\20260708_02\spring-event-usage-scan.sanitized.json` | Spring Event 핵심 거래 흐름 남용 금지 |
+| pfw-broker-capability | 부분 구현 | `specs\evidence\20260708_03\pfw-capability-contract-test.log` | 실제 broker runtime은 미검증 |
+| pfw-file-transfer-capability | 부분 구현 | `specs\evidence\20260708_03\pfw-capability-contract-test.log` | 실제 SFTP/FTP/SSH runtime은 미검증 |
+| pfw-security-credential-capability | 부분 구현 | `specs\evidence\20260708_03\pfw-capability-contract-test.log` | 실제 Vault/KMS/HSM 연동은 미검증 |
+| pfw-runtime-control-capability | 부분 구현 | `specs\evidence\20260708_03\pfw-capability-contract-test.log` | 다중 instance runtime은 미검증 |
+| pfw-admin-status-capability | 부분 구현 | `specs\evidence\20260708_03\pfw-capability-contract-test.log` | ADM 실화면 연결은 후속 |
+| profile-loading-standard | 완료 | `specs\evidence\20260708_03\profile-loading-result.sanitized.json` | PFW/CMN/업무 profile import 검사 |
+| packaged-dependencies-check | 완료 | `specs\evidence\20260708_03\packaged-dependencies-acc.sanitized.json` | ACC bootJar 기준 PFW/CMN 포함 점검 |
+| deploy-dry-run-standard | 부분 구현 | `specs\evidence\20260708_03\remote-deploy-dry-run-acc-dev.sanitized.json` | Gradle dry-run 기준. 실제 원격 배포는 미검증 |
+| garbage-file-cleanup | 완료 | `specs\evidence\20260708_03\garbage-file-scan.sanitized.json`, `specs\evidence\20260708_03\deleted-files.sanitized.json` | 레거시 profile/deploy script 삭제와 잔존 파일 검사 |
+| deploy-env-standard | 완료 | `specs\evidence\20260708_03\deploy-env-acc-dev.sanitized.json` | local/dev/stg/prod env 필수 key, 빈 값, datasource mode 검사 |
+| deploy-inventory-standard | 완료 | `specs\evidence\20260708_03\deploy-inventory-acc-dev.sanitized.json` | runtimeMode, 승인, rollback 필드 검사 |
+| gradle-deploy-task-standard | 완료 | `specs\evidence\20260708_03\quality-gate.log` | checkDeployEnv/checkDeployInventory/checkPackagedDependencies/remoteDeployDryRun 표준화 |
+| datasource-mode-standard | 완료 | `specs\evidence\20260708_03\garbage-file-scan.sanitized.json` | URL/JNDI datasource mode 전환 key 검사 |
+| bat-edu-package | 완료 | `specs\evidence\20260708_03\bat-test.log` | BAT EDU 패키지와 학습용 tasklet 샘플 테스트 |
+| bat-job-log-policy | 완료 | `specs\evidence\20260708_03\bat-test.log` | jobExecutionId/centerCutExecutionId 단위 로그 경로 정책 테스트 |
+| create-domain-profile-template | 완료 | `specs\evidence\20260708_03\garbage-file-scan.sanitized.json` | 신규 도메인 생성 후보에 profile/env/inventory 템플릿 포함 |
+| runtime-smoke-summary | 완료 | `specs\evidence\20260707_02\runtime-smoke-summary.sanitized.json` | 기존 검증 증적 유지 |
+| check-report-matrix-evidence-consistency | 완료 | `specs\evidence\20260708_03\quality-gate.log` | report/matrix/evidence 정합성 gate |
+| quality-gate | 완료 | `specs\evidence\20260708_03\quality-gate.log` | 이번 작업 최종 gate |
+| check-html-docs | 완료 | `specs\evidence\20260708_03\check-html-docs.log` | HTML 문서 구조 검사 |
+| check-feature-evidence | 완료 | `specs\evidence\20260708_03\check-feature-evidence.log` | 기능 증적 검사 |
+| check-utf8 | 완료 | `specs\evidence\20260708_03\check-utf8-mojibake.log` | UTF-8/mojibake 검사 |
 
-| check id | 상태 | 근거 요약 |
-| --- | --- | --- |
-| edu-mapper-db-slice | 완료 | 기존 DB slice 증적 유지 |
-| mariadb-full-install | 완료 | 기존 MariaDB full install 증적 유지 |
-| adm-runtime | 완료 | 기존 ADM runtime smoke 증적 유지 |
-| adm-permission-runtime | 완료 | 기존 ADM permission runtime 증적 유지 |
-| openapi-runtime | 완료 | 기존 OpenAPI runtime 증적 유지 |
-| adm-browser-click | 미검증 | static smoke만 있으며 실제 브라우저 클릭 증적 없음 |
-| standard-header-e2e | 완료 | 기존 표준 헤더 E2E 증적 유지 |
-| complex-transaction-trace | 완료 | 기존 복합 거래 trace 증적 유지 |
-| transaction-segment-log | 완료 | 기존 segment log 증적 유지 |
-| adm-transaction-group-list | 완료 | 기존 ADM 거래 그룹 목록 증적 유지 |
-| adm-transaction-timeline | 완료 | 기존 ADM timeline 증적 유지 |
-| cmn-fixed-length-engine | 완료 | 기존 CMN fixed-length engine 증적 유지 |
-| composite-runtime-smoke | 완료 | 기존 composite runtime smoke 증적 유지 |
-| adm-transaction-group-runtime | 완료 | 기존 ADM transaction group runtime 증적 유지 |
-| redis-kafka-mq-broker | 미검증 | 실제 broker runtime 미수행 |
-| broker-real-integration | 미검증 | Redis/Kafka/MQ 실연동 미수행 |
-| file-log-standard | 완료 | 기존 file log standard 증적 유지 |
-| trace-boost-runtime | 완료 | 기존 trace boost runtime 증적 유지 |
-| bat-trace-boost-runtime | 완료 | 기존 BAT trace boost runtime 증적 유지 |
-| runtime-start-services | 완료 | 기존 runtime start 증적 유지 |
-| packaged-runtime-resources | 완료 | 기존 packaged runtime resource 증적 유지 |
-| runtime-status-diagnostics | 완료 | 기존 runtime status/diagnostics 증적 유지 |
-| runtime-closure | 완료 | 기존 runtime closure 증적 유지 |
-| adm-operation-console-runtime | 완료 | 기존 ADM operation console 증적 유지 |
-| adm-log-policy-ui-static | 완료 | 기존 ADM log policy static 증적 유지 |
-| bat-log-bean-runtime | 완료 | 기존 BAT log bean runtime 증적 유지 |
-| exs-timeout-retry-runtime | 완료 | 기존 EXS timeout/retry runtime 증적 유지 |
-| cmn-fixed-length-advanced | 완료 | 기존 fixed-length advanced 증적 유지 |
-| create-domain-smoke | 완료 | 기존 create-domain smoke 증적 유지 |
-| pfw-service-call-engine | 부분 구현 | source/unit smoke와 boundary scan은 수행, 다중 서비스 실제 HTTP runtime은 후속 |
-| adm-service-registry-runtime | 미검증 | API 단위/정적 UI smoke 대상, 실제 `-RunRuntime` ADM 서버 호출은 후속 |
-| architecture-ownership-scan | 재확인 필요 | failure 0 목표, CMN PFW port migration 후보는 warning으로 분류 |
-| spring-event-usage-scan | 완료 | Spring Event forbidden usage scan 대상 |
-| pfw-broker-capability | 부분 구현 | port/interface/DTO/contract test까지, 실제 broker runtime은 후속 |
-| pfw-file-transfer-capability | 부분 구현 | protocol/policy/checksum/history DTO까지, 실제 SFTP/FTP/SSH runtime은 후속 |
-| pfw-security-credential-capability | 부분 구현 | credential/token port와 secret 출력 방지 contract까지, 실제 Vault/KMS/HSM은 후속 |
-| pfw-runtime-control-capability | 부분 구현 | lock/heartbeat/worker/health DTO까지, 다중 instance runtime은 후속 |
-| pfw-admin-status-capability | 부분 구현 | ADM 관제 연결 후보 DTO까지, 운영 화면 실사용은 후속 |
-| profile-loading-standard | 완료 | PFW/CMN/업무 profile loading smoke 대상 |
-| packaged-dependencies-check | 완료 | ACC bootJar 기준 PFW/CMN runtime dependency 포함 여부 점검 대상 |
-| deploy-dry-run-standard | 부분 구현 | env/inventory/checksum/evidence dry-run까지, 실제 remote 전송/기동은 미검증 |
-| runtime-smoke-summary | 완료 | 기존 runtime smoke summary 증적 유지 |
-| check-report-matrix-evidence-consistency | 완료 | report/matrix/evidence index 상태 정합성 gate 대상 |
-| quality-gate | 완료 | 이번 작업 최종 qualityGate 대상 |
-| check-html-docs | 완료 | HTML 문서 구조와 matrix 상태 marker gate 대상 |
-| check-feature-evidence | 완료 | 소스/문서/스크립트 증적 존재 gate 대상 |
-| check-utf8 | 완료 | UTF-8/mojibake gate 대상 |
+## 미검증/보류
 
-## 남은 리스크
+- 실제 원격 서버 stop/start/health/rollback 배포는 이번 작업에서 수행하지 않았고 `remoteDeployDryRun` 증적으로만 확인했습니다.
+- 실제 Redis/Kafka/MQ broker, SFTP/FTP, Vault/KMS/HSM runtime 검증은 외부 환경이 필요해 미검증 또는 부분 구현으로 유지했습니다.
+- 실제 브라우저 클릭 기반 ADM UI 검증과 실제 MariaDB 재설치 검증은 이번 실행 범위에서 제외했습니다.
+- 실제 MariaDB 전체 설치 검증은 `scripts/smoke-mariadb-full-install.ps1`로 수행해야 하며, 이번 작업에서는 재실행하지 않았습니다.
+- 표준 헤더 E2E runtime 검증은 `scripts/smoke-standard-header-e2e.ps1`로 수행해야 하며, 이번 작업에서는 재실행하지 않았습니다.
+- `qualityGate` 중 ACC 테스트 컨텍스트에서 `cpf_pfw_app` DB 접속 거부 WARN이 출력됐지만 테스트 실패로 이어지지는 않았습니다. 실제 DB 계정 권한 검증은 별도 MariaDB smoke에서 확인해야 합니다.
+- EDU mapper DB fixture 기준 파일은 `xyz_edu_query_fixture.sql`이며, 환경 변수 호환성 확인 항목은 `CPF_XYZ_EDU_MAPPER_DB_USER`와 `CPF_XYZ_EDU_MAPPER_DB_USERNAME`입니다.
 
-- 실제 원격 배포, 원격 서버 stop/start/health/rollback은 접속 대상과 승인 정보가 없어 미검증이다.
-- Redis/Kafka/MQ, SFTP/FTP/SSH, Vault/KMS/HSM 실연동은 이번 범위에서 skeleton/port 수준이며 runtime adapter 검증은 후속이다.
-- ADM Service Registry 실제 서버 호출은 `scripts/smoke-adm-service-registry-runtime.ps1 -RunRuntime` 증적이 아직 필요하다.
-- architecture ownership scan에서 CMN 파일 전송/메시지 bridge 일부는 PFW port migration 후보로 남긴다.
+## 항상 지켜야 할 기준 확인
 
-## 실행 검증 결과
-
-| 명령 | 결과 | 증적 |
-| --- | --- | --- |
-| `.\gradlew.bat :pfw:test --offline --no-daemon --console=plain` | 성공 | `specs/evidence/20260708_02/pfw-test.log` |
-| `.\gradlew.bat :cmn:test --offline --no-daemon --console=plain` | 성공 | `specs/evidence/20260708_02/cmn-test.log` |
-| `.\gradlew.bat :adm:test --offline --no-daemon --console=plain --tests cpf.adm.opr.controller.AdmServiceRegistryControllerTest` | 성공 | `specs/evidence/20260708_02/adm-service-registry-api-test.log` |
-| `.\gradlew.bat :pfw:test --offline --no-daemon --console=plain --tests cpf.pfw.common.servicecall.*` | 성공 | `specs/evidence/20260708_02/pfw-service-call-engine-test.log` |
-| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-profile-loading.ps1 -ResultDir specs/evidence/20260708_02` | 성공 | `specs/evidence/20260708_02/profile-loading-result.sanitized.json` |
-| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy/deploy-module.ps1 -Module ACC -Env dev -DryRun -BuildBeforeDeploy -ResultDir specs/evidence/20260708_02` | 성공 | `specs/evidence/20260708_02/deploy-acc-dev-dry-run.sanitized.json` |
-| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-report-matrix-evidence-consistency.ps1` | 성공 | `specs/evidence/20260708_02/check-report-matrix-evidence-consistency.log` |
-| `.\gradlew.bat qualityGate --offline --no-daemon --console=plain` | 성공 | `specs/evidence/20260708_02/quality-gate.log` |
-
-미실행 검증:
-
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1`은 이번 요청의 새 대상이 아니므로 재실행하지 않았다.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-standard-header-e2e.ps1`은 이번 요청의 새 대상이 아니므로 재실행하지 않았다.
-- 실제 원격 배포, ADM `-RunRuntime`, 실제 broker/SFTP/Vault 연동은 미검증이다.
-
-## EDU/DB fixture marker
-
-- EDU mapper fixture 표준 파일명: `xyz_edu_query_fixture.sql`
-- EDU mapper DB 사용자 환경변수: `CPF_XYZ_EDU_MAPPER_DB_USERNAME`
-- 호환 확인용 legacy 환경변수명: `CPF_XYZ_EDU_MAPPER_DB_USER`
+- 문서와 소스, SQL, Swagger, EDU 샘플은 같은 check id와 증적 기준으로 연결합니다.
+- README는 진입점으로 유지하고 상세 내용은 `specs/*.html` 가이드로 연결합니다.
+- 기능 변경 시 README, 개발/관리자/구성/SQL 가이드, EDU 샘플, 매트릭스, 증적 인덱스를 함께 현행화합니다.
+- 실행하지 않은 검증은 성공으로 보고하지 않습니다.

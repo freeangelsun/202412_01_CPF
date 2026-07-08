@@ -8,4 +8,4 @@ spring:
     adm:
       url: ${ADM_DATASOURCE_URL:${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}}
       username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME:cpf_adm_app}}
-      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD:cpf_local_pw}}
+      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}}

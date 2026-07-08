@@ -28,5 +28,5 @@ cpf:
       enabled: ${CPF_EXS_DB_ENABLED:true}
       url: ${EXS_DB_URL:jdbc:mariadb://localhost:3306/exsDB}
       username: ${EXS_DB_USERNAME:cpf_exs_app}
-      password: ${EXS_DB_PASSWORD:cpf_local_pw}
+      password: ${EXS_DB_PASSWORD:__REPLACE_BY_ENV__}
       driver-class-name: org.mariadb.jdbc.Driver

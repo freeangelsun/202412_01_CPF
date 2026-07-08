@@ -37,11 +37,18 @@
 | exs-timeout-retry-runtime | 완료 | `specs/evidence/20260707_01/exs-timeout-retry-runtime-result.sanitized.json` | JSON parse | 이전 검증 증적 |
 | cmn-fixed-length-advanced | 완료 | `specs/evidence/20260707_01/cmn-fixed-length-advanced-result.sanitized.json` | JSON parse | 이전 검증 증적 |
 | create-domain-smoke | 완료 | `specs/evidence/20260707_01/create-domain-result.sanitized.json` | JSON parse | 이전 검증 증적 |
-| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260707_03/service-registry-runtime-result.sanitized.json`, `specs/evidence/20260707_03/service-call-engine-runtime-success.sanitized.json`, `specs/evidence/20260707_03/service-registry-health-runtime.sanitized.json`, `specs/evidence/20260707_03/service-call-engine-circuit-transition.sanitized.json`, `specs/evidence/20260707_03/service-call-engine-failover.sanitized.json`, `specs/evidence/20260707_03/pfw-service-call-engine-test.log`, `specs/evidence/20260707_03/forbidden-direct-call-scan.log` | JSON parse, Gradle test log, boundary scan log | 엔진 경로와 source/unit smoke는 통과. 실제 다중 서비스 HTTP runtime은 후속 |
-| adm-service-registry-runtime | 미검증 | `specs/evidence/20260707_03/adm-service-registry-api-test.log`, `specs/evidence/20260707_03/adm-service-registry-ui-static-smoke.sanitized.json`, `specs/evidence/20260707_03/adm-service-registry-runtime-result.sanitized.json` | Gradle test log, JSON parse | API 단위/정적 UI 통과. 실제 ADM 서버 API 호출은 미수행 |
+| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260708_01/service-registry-runtime-result.json`, `specs/evidence/20260708_01/service-call-engine-runtime-success.sanitized.json`, `specs/evidence/20260708_01/service-registry-health-runtime.sanitized.json`, `specs/evidence/20260708_01/service-call-engine-circuit-transition.sanitized.json`, `specs/evidence/20260708_01/service-call-engine-failover.sanitized.json`, `specs/evidence/20260708_01/pfw-service-call-engine-test.log`, `specs/evidence/20260708_01/forbidden-direct-call-scan.log` | JSON parse, Gradle test log, boundary scan log | 엔진 경로와 source/unit smoke는 통과. 실제 다중 서비스 HTTP runtime은 후속 |
+| adm-service-registry-runtime | 미검증 | `specs/evidence/20260708_01/adm-service-registry-api-test.log`, `specs/evidence/20260708_01/adm-service-registry-ui-static-smoke.sanitized.json`, `specs/evidence/20260708_01/adm-service-registry-runtime-result.json` | Gradle test log, JSON parse | API 단위/정적 UI 통과. 실제 ADM 서버 API 호출은 미수행 |
+| architecture-ownership-scan | 재확인 필요 | `specs/evidence/20260708_01/architecture-ownership-scan.sanitized.json`, `specs/evidence/20260708_01/check-architecture-ownership.log` | JSON parse, scan log | PFW/CMN/업무 ownership scan. CMN 기술 engine 후보는 후속 재확인 |
+| spring-event-usage-scan | 완료 | `specs/evidence/20260708_01/spring-event-usage-scan.sanitized.json`, `specs/evidence/20260708_01/check-spring-event-usage.log` | JSON parse, scan log | Spring Event 핵심 거래 흐름 남용 금지 scan |
+| pfw-broker-capability | 부분 구현 | `specs/evidence/20260708_01/pfw-capability-contract-test.log` | Gradle test log | Broker port/interface/DTO 추가. 실제 broker runtime은 미검증 |
+| pfw-file-transfer-capability | 부분 구현 | `specs/evidence/20260708_01/pfw-capability-contract-test.log` | Gradle test log | File transfer port/interface/DTO 추가. 실제 SFTP/FTP/SSH runtime은 미검증 |
+| pfw-security-credential-capability | 부분 구현 | `specs/evidence/20260708_01/pfw-capability-contract-test.log` | Gradle test log | Credential/key/cert/sign/encryption port 추가 |
+| pfw-runtime-control-capability | 부분 구현 | `specs/evidence/20260708_01/pfw-capability-contract-test.log` | Gradle test log | Distributed lock, heartbeat, health, ghost detector port 추가 |
+| pfw-admin-status-capability | 부분 구현 | `specs/evidence/20260708_01/pfw-capability-contract-test.log` | Gradle test log | ADM 관제 후보 query DTO 추가 |
 | runtime-smoke-summary | 완료 | `specs/evidence/20260707_01/runtime-smoke-summary.sanitized.json` | JSON parse | 이전 검증 증적 |
-| check-report-matrix-evidence-consistency | 완료 | `specs/evidence/20260707_03/quality-gate.log` | Gradle 로그 | qualityGate 안에서 report/matrix/evidence 상태값 정합성 실행 |
-| quality-gate | 완료 | `specs/evidence/20260707_03/quality-gate.log` | Gradle 로그 | 이번 작업 최종 단계 |
-| check-html-docs | 완료 | `specs/evidence/20260707_03/check-html-docs.log` | 스크립트 로그 | 이번 작업 최종 단계 |
-| check-feature-evidence | 완료 | `specs/evidence/20260707_03/check-feature-evidence.log` | 스크립트 로그 | 이번 작업 최종 단계 |
-| check-utf8 | 완료 | `specs/evidence/20260707_03/check-utf8-mojibake.log` | 스크립트 로그 | 이번 작업 최종 단계 |
+| check-report-matrix-evidence-consistency | 완료 | `specs/evidence/20260708_01/quality-gate.log` | Gradle 로그 | qualityGate 안에서 report/matrix/evidence 상태값 정합성 실행 |
+| quality-gate | 완료 | `specs/evidence/20260708_01/quality-gate.log` | Gradle 로그 | 이번 작업 최종 단계 |
+| check-html-docs | 완료 | `specs/evidence/20260708_01/check-html-docs.log` | 스크립트 로그 | 이번 작업 최종 단계 |
+| check-feature-evidence | 완료 | `specs/evidence/20260708_01/check-feature-evidence.log` | 스크립트 로그 | 이번 작업 최종 단계 |
+| check-utf8 | 완료 | `specs/evidence/20260708_01/check-utf8-mojibake.log` | 스크립트 로그 | 이번 작업 최종 단계 |

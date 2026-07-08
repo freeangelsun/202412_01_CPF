@@ -2,7 +2,7 @@
 
 - **확정 파일명**: `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
 - **권장 위치**: repo root
-- **기준일**: 2026-07-07
+- **기준일**: 2026-07-08
 - **적용 대상**: ChatGPT 검수자, Codex 작업자, CPF 프로젝트 진행자
 - **상위 목표 기준서**: `CPF_FINAL_TARGET_REQUIREMENTS.md`
 - **본 문서의 역할**: CPF 프로젝트를 검수하고, 진행 순서를 잡고, 완료 여부를 판정하고, 다음 Codex 요청서를 작성하기 위한 상세 기준서
@@ -104,6 +104,35 @@ CPF는 단순 공통 유틸/샘플/사내 표준이 아니다. 최종 목표는 
 사용자는 최종 목표 기준서를 하나의 파일로 운영하기로 결정했다. 따라서 repo 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`가 최상위이자 상세 통합 기준서다.
 
 분리 상세 파일을 만들더라도 최종 판정 기준은 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 본 지침 파일이다.
+
+### 2.5 PFW/CMN/업무 주제영역 ownership 원칙
+
+PFW는 CPF 프레임워크 코어와 기술 capability를 소유한다. 표준 헤더, 거래 ID, 거래 로그, 서비스 호출 엔진, broker port, file transfer port, credential/security port, runtime lock/heartbeat/health port는 PFW에 둔다.
+
+CMN은 프로젝트 공통 규칙과 업무 공통 확장을 소유한다. 공통 코드/메시지 확장, topic naming rule, 파일명/디렉터리 규칙, 고정길이 layout/helper, validation/helper/fixture는 CMN 후보지만 Kafka/MQ/Redis Stream, SFTP/FTP/FTPS/SSH 같은 기술 engine 자체를 CMN에 고정하지 않는다.
+
+ACC/MBR/BAT/BIZADM/EXS/XYZ는 PFW/CMN capability를 사용하는 consumer, adapter, 업무 구현체다. EXS는 외부연계 업무 대표 adapter이지 외부연계 기술 전체의 소유자가 아니다. EXS 안의 timeout/retry/circuit/OAuth/JWT/mTLS/fixed-length/unknown result/reconciliation 구현은 PFW/CMN 공통 capability로 올릴 후보인지 계속 검수한다.
+
+### 2.6 Architecture rule과 금지 의존성
+
+검수자는 아래 위반이 있으면 완료로 판정하지 않는다.
+
+```text
+- PFW가 cpf.acc/cpf.mbr/cpf.exs/cpf.bat/cpf.bizadm/cpf.adm/cpf.xyz 구현체에 의존
+- CMN이 업무 주제영역 구현체에 의존
+- 업무 주제영역이 타 주제영역 Controller/Repository/Mapper를 직접 import
+- ACC/MBR/BAT/BIZADM/XYZ가 EXS 내부 기술 클래스를 공통 기능처럼 재사용
+- 업무 코드가 raw WebClient.builder, RestTemplate, RestClient.create, URL 직접 조합으로 외부/타 업무를 호출
+- Kafka/MQ/Redis Stream, SFTP/FTP/FTPS/SSH, credential/key/cert 처리 기술이 특정 업무 모듈 전용으로 고정
+```
+
+Architecture scan은 실패와 재확인 후보를 분리한다. 즉시 금지 의존성은 실패이고, CMN/EXS에 남아 있는 기술 engine 후보는 `재확인 필요` 또는 `부분 구현`으로 report/gap에 남긴다.
+
+### 2.7 Spring Event 사용 제한
+
+Spring Event는 hook, telemetry, cache invalidation, 감사/로그 보조 용도로만 허용한다. 핵심 거래 흐름, 외부 송신, saga/compensation, unknown result, reconciliation, multi-instance 전달, DLQ/replay는 Spring Event 중심으로 완료 주장할 수 없다.
+
+핵심 흐름은 DB 상태, transactionGlobalId, segment/timeline, outbox/inbox, idempotency, broker/scheduler 재처리 구조로 검수한다.
 
 
 ## 3. 상태값 표준

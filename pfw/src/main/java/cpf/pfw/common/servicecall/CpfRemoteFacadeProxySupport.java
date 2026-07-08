@@ -1,5 +1,6 @@
 package cpf.pfw.common.servicecall;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -17,6 +18,12 @@ public class CpfRemoteFacadeProxySupport {
     }
 
     protected <T> ServiceCallResult<T> call(ServiceCallRequest request, Supplier<T> remoteCall) {
+        return serviceCallEngine.invoke(request, remoteCall);
+    }
+
+    protected <T> ServiceCallResult<T> call(
+            ServiceCallRequest request,
+            Function<ServiceCallResolvedTarget, T> remoteCall) {
         return serviceCallEngine.invoke(request, remoteCall);
     }
 }

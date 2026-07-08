@@ -39,6 +39,7 @@ if (!window.Vue) {
         authMessage: "",
         uiMessage: "",
         loginForm: { operatorId: "admin", password: "Adm!n12345" },
+        /*
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
           { id: "transactionGroups", menuId: "LOG_LIST", label: "거래 그룹" },
@@ -61,6 +62,57 @@ if (!window.Vue) {
           { id: "bizadm", menuId: "BIZADM", label: "업무관리" },
           { id: "exs", menuId: "EXS", label: "대외연계" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" }
+        ],
+        */
+        /*
+        menus: [
+          { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
+          { id: "transactionGroups", menuId: "LOG_LIST", label: "거래 그룹" },
+          { id: "transactions", menuId: "TRANSACTION_META", label: "거래 메타" },
+          { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
+          { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "서비스 호출" },
+          { id: "members", menuId: "MEMBER", label: "회원" },
+          { id: "batch", menuId: "BATCH", label: "배치" },
+          { id: "notifications", menuId: "NOTIFICATION", label: "알림" },
+          { id: "downloads", menuId: "DOWNLOAD", label: "다운로드" },
+          { id: "cache", menuId: "CACHE", label: "캐시" },
+          { id: "messages", menuId: "MESSAGE", label: "메시지" },
+          { id: "codes", menuId: "CODE", label: "코드" },
+          { id: "responseCodes", menuId: "RESPONSE_CODE", label: "응답코드" },
+          { id: "configs", menuId: "CONFIG", label: "설정" },
+          { id: "logLevel", menuId: "DYNAMIC_LOG", label: "동적 로그" },
+          { id: "logPolicies", menuId: "LOG_POLICY", label: "로그 정책" },
+          { id: "permissions", menuId: "PERMISSION", label: "권한" },
+          { id: "password", menuId: "PASSWORD", label: "비밀번호" },
+          { id: "security", menuId: "SECURITY", label: "보안" },
+          { id: "bizadm", menuId: "BIZADM", label: "업무관리" },
+          { id: "exs", menuId: "EXS", label: "대외연계" },
+          { id: "operators", menuId: "OPERATOR", label: "운영자" }
+        ],
+        */
+        menus: [
+          { id: "logs", menuId: "LOG_LIST", label: "\uAC70\uB798 \uB85C\uADF8" },
+          { id: "transactionGroups", menuId: "LOG_LIST", label: "\uAC70\uB798 \uADF8\uB8F9" },
+          { id: "transactions", menuId: "TRANSACTION_META", label: "\uAC70\uB798 \uBA54\uD0C0" },
+          { id: "auditLogs", menuId: "AUDIT_LOG", label: "\uAC10\uC0AC \uB85C\uADF8" },
+          { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "\uC11C\uBE44\uC2A4 \uD638\uCD9C" },
+          { id: "members", menuId: "MEMBER", label: "\uD68C\uC6D0" },
+          { id: "batch", menuId: "BATCH", label: "\uBC30\uCE58" },
+          { id: "notifications", menuId: "NOTIFICATION", label: "\uC54C\uB9BC" },
+          { id: "downloads", menuId: "DOWNLOAD", label: "\uB2E4\uC6B4\uB85C\uB4DC" },
+          { id: "cache", menuId: "CACHE", label: "\uCE90\uC2DC" },
+          { id: "messages", menuId: "MESSAGE", label: "\uBA54\uC2DC\uC9C0" },
+          { id: "codes", menuId: "CODE", label: "\uCF54\uB4DC" },
+          { id: "responseCodes", menuId: "RESPONSE_CODE", label: "\uC751\uB2F5\uCF54\uB4DC" },
+          { id: "configs", menuId: "CONFIG", label: "\uC124\uC815" },
+          { id: "logLevel", menuId: "DYNAMIC_LOG", label: "\uB3D9\uC801 \uB85C\uADF8" },
+          { id: "logPolicies", menuId: "LOG_POLICY", label: "\uB85C\uADF8 \uC815\uCC45" },
+          { id: "permissions", menuId: "PERMISSION", label: "\uAD8C\uD55C" },
+          { id: "password", menuId: "PASSWORD", label: "\uBE44\uBC00\uBC88\uD638" },
+          { id: "security", menuId: "SECURITY", label: "\uBCF4\uC548" },
+          { id: "bizadm", menuId: "BIZADM", label: "\uC5C5\uBB34\uAD00\uB9AC" },
+          { id: "exs", menuId: "EXS", label: "\uB300\uC678\uC5F0\uACC4" },
+          { id: "operators", menuId: "OPERATOR", label: "\uC6B4\uC601\uC790" }
         ],
         logSearch: {
           transactionId: "",
@@ -124,6 +176,7 @@ if (!window.Vue) {
           roleCode: "",
           limit: 100
         },
+        /*
         memberForm: {
           memberId: null,
           memberNo: "",
@@ -290,6 +343,355 @@ if (!window.Vue) {
           useYn: "Y",
           requestUser: "admin-ui"
         },
+        */
+        /*
+        memberForm: {
+          memberId: null,
+          memberNo: "",
+          customerNo: "",
+          loginId: "",
+          name: "",
+          email: "",
+          mobileNo: "",
+          memberStatus: "ACTIVE",
+          channelCode: "WEB",
+          description: "",
+          requestUser: "admin-ui",
+          reason: "회원 운영 변경"
+        },
+        memberStatusForm: { memberStatus: "ACTIVE", lockYn: "N", withdrawYn: "N" },
+        memberRoleForm: {
+          serviceCode: "MBR",
+          roleCode: "MBR_USER",
+          roleName: "일반 회원",
+          temporaryYn: "N",
+          expireAt: "",
+          reason: "회원 권한 변경",
+          requestUser: "admin-ui"
+        },
+        batchForm: {
+          jobId: "CPF_EDU_TASKLET_JOB",
+          jobName: "CPF EDU Tasklet Job",
+          jobType: "TASKLET",
+          executionId: null,
+          scheduleId: "CPF_EDU_TASKLET_DAILY",
+          jobParameters: "{\"edu\":true}",
+          calendarId: "DEFAULT",
+          businessDate: new Date().toISOString().slice(0, 10),
+          simulationDays: 14,
+          dispatchStatus: "WAITING",
+          heartbeatTimeoutSeconds: 120,
+          lockKey: "",
+          ghostActionType: "FAIL",
+          holidayYn: "N",
+          businessDayYn: "Y",
+          description: "ADM 작업자 교육 데이터",
+          reason: "배치 운영 변경"
+        },
+        centerCutForm: {
+          centerCutJobId: "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+          statusCode: "",
+          resultStatus: "",
+          limit: 100
+        },
+        notificationForm: {
+          ruleId: null,
+          eventType: "BATCH",
+          eventSubType: "FAILED",
+          channelCode: "ADM",
+          templateCode: "",
+          severity: "WARN",
+          receiverGroup: "ADM_OPERATOR",
+          useYn: "Y",
+          targetType: "ADM_TEST",
+          targetId: "TEST",
+          receiver: "ADM_OPERATOR",
+          message: "ADM 알림 테스트 발송입니다.",
+          reason: "알림 규칙 변경",
+          requestUser: "admin-ui"
+        },
+        downloadForm: {
+          downloadType: "TRANSACTION_LOGS",
+          targetType: "LOG_LIST",
+          fromDate: "",
+          toDate: "",
+          transactionId: "",
+          traceId: "",
+          jobId: "",
+          limit: 1000,
+          includeSensitive: false,
+          reason: "운영 증적 다운로드",
+          requestUser: "admin-ui"
+        },
+        cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
+        cacheReason: "ADM 캐시 갱신",
+        responseCodeReason: "ADM 응답코드 변경",
+        logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "운영 진단" },
+        logPolicyForm: {
+          policyId: null,
+          policyKey: "ONLINE_DEFAULT",
+          policyName: "온라인 거래 기본 로그 정책",
+          targetType: "ONLINE_TRANSACTION",
+          targetId: "*",
+          logLevel: "INFO",
+          dbLogEnabledYn: "Y",
+          fileLogEnabledYn: "Y",
+          requestBodyLogYn: "N",
+          responseBodyLogYn: "N",
+          errorStackLogYn: "Y",
+          retentionDays: 90,
+          samplingRate: 100,
+          priority: 100,
+          activeYn: "Y",
+          description: "ADM에서 관리하는 로그 정책",
+          traceBoostTransactionGlobalId: "",
+          traceBoostBusinessTransactionId: "",
+          traceBoostApiPath: "",
+          traceBoostStatus: "",
+          traceBoostFailureCode: "",
+          traceBoostDurationMsGreaterThan: null,
+          traceBoostTtlSeconds: 600,
+          effectiveStartAt: "",
+          effectiveEndAt: "",
+          reason: "로그 정책 변경",
+          requestUser: "admin-ui"
+        },
+        operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
+        messageForm: {
+          messageId: null,
+          messageCode: "MPFW990099",
+          locale: "ko",
+          messageFormatType: "FIXED",
+          externalMessage: "샘플 메시지",
+          internalMessage: "샘플 내부 메시지",
+          parameterCount: 0,
+          parameterSample: "[]",
+          description: "ADM 샘플",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "메시지 변경"
+        },
+        codeForm: {
+          codeId: null,
+          parentId: null,
+          codeKey: "ADM_SAMPLE",
+          codeValue: "SAMPLE",
+          description: "ADM 샘플 코드",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "코드 변경"
+        },
+        configForm: {
+          configId: null,
+          configKey: "CPF.ADM.SAMPLE",
+          configValue: "Y",
+          configType: "BOOLEAN",
+          description: "ADM 샘플 설정",
+          encryptedYn: "N",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "설정 변경"
+        },
+        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
+        roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "샘플 운영 역할", roleType: "BUSINESS_OPERATOR", description: "권한 관리 화면 샘플 역할", useYn: "Y", requestUser: "admin-ui", reason: "역할 관리" },
+        menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "샘플 메뉴", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "admin-ui", reason: "메뉴 관리" },
+        buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "샘플 조회", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "admin-ui", reason: "버튼 관리" },
+        apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "샘플 API 조회", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "admin-ui", reason: "API 권한 관리" },
+        passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
+        securityForm: { ipPattern: "127.0.0.1", description: "로컬 개발", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
+        responseCodeForm: {
+          responseCode: "EXYZ010001",
+          messageCode: "MXYZ090001",
+          resultType: "E",
+          moduleId: "XYZ",
+          responseGroup: "01",
+          sequenceNo: "0001",
+          httpStatus: 400,
+          description: "XYZ 샘플 응답코드",
+          useYn: "Y",
+          requestUser: "admin-ui"
+        },
+        serviceRegistrySearch: {
+          serviceId: "",
+          endpointCode: "",
+          instanceStatus: "",
+          transactionGlobalId: "",
+          limit: 50
+        },
+        */
+        memberForm: {
+          memberId: null,
+          memberNo: "",
+          customerNo: "",
+          loginId: "",
+          name: "",
+          email: "",
+          mobileNo: "",
+          memberStatus: "ACTIVE",
+          channelCode: "WEB",
+          description: "",
+          requestUser: "admin-ui",
+          reason: "\uD68C\uC6D0 \uC6B4\uC601 \uBCC0\uACBD"
+        },
+        memberStatusForm: { memberStatus: "ACTIVE", lockYn: "N", withdrawYn: "N" },
+        memberRoleForm: {
+          serviceCode: "MBR",
+          roleCode: "MBR_USER",
+          roleName: "\uC77C\uBC18 \uD68C\uC6D0",
+          temporaryYn: "N",
+          expireAt: "",
+          reason: "\uD68C\uC6D0 \uAD8C\uD55C \uBCC0\uACBD",
+          requestUser: "admin-ui"
+        },
+        batchForm: {
+          jobId: "CPF_EDU_TASKLET_JOB",
+          jobName: "CPF EDU Tasklet Job",
+          jobType: "TASKLET",
+          executionId: null,
+          scheduleId: "CPF_EDU_TASKLET_DAILY",
+          jobParameters: "{\"edu\":true}",
+          calendarId: "DEFAULT",
+          businessDate: new Date().toISOString().slice(0, 10),
+          simulationDays: 14,
+          dispatchStatus: "WAITING",
+          heartbeatTimeoutSeconds: 120,
+          lockKey: "",
+          ghostActionType: "FAIL",
+          holidayYn: "N",
+          businessDayYn: "Y",
+          description: "ADM batch education data",
+          reason: "\uBC30\uCE58 \uC6B4\uC601 \uBCC0\uACBD"
+        },
+        centerCutForm: {
+          centerCutJobId: "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+          statusCode: "",
+          resultStatus: "",
+          limit: 100
+        },
+        notificationForm: {
+          ruleId: null,
+          eventType: "BATCH",
+          eventSubType: "FAILED",
+          channelCode: "ADM",
+          templateCode: "",
+          severity: "WARN",
+          receiverGroup: "ADM_OPERATOR",
+          useYn: "Y",
+          targetType: "ADM_TEST",
+          targetId: "TEST",
+          receiver: "ADM_OPERATOR",
+          message: "ADM notification test message.",
+          reason: "\uC54C\uB9BC \uADDC\uCE59 \uBCC0\uACBD",
+          requestUser: "admin-ui"
+        },
+        downloadForm: {
+          downloadType: "TRANSACTION_LOGS",
+          targetType: "LOG_LIST",
+          fromDate: "",
+          toDate: "",
+          transactionId: "",
+          traceId: "",
+          jobId: "",
+          limit: 1000,
+          includeSensitive: false,
+          reason: "\uC6B4\uC601 \uC99D\uC801 \uB2E4\uC6B4\uB85C\uB4DC",
+          requestUser: "admin-ui"
+        },
+        cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
+        cacheReason: "\uCE90\uC2DC \uAC31\uC2E0",
+        responseCodeReason: "\uC751\uB2F5\uCF54\uB4DC \uBCC0\uACBD",
+        logLevelForm: { businessTransactionId: "", transactionId: "", logLevel: "DEBUG", ttlSeconds: 600, reason: "\uC6B4\uC601 \uC9C4\uB2E8" },
+        logPolicyForm: {
+          policyId: null,
+          policyKey: "ONLINE_DEFAULT",
+          policyName: "\uC628\uB77C\uC778 \uAC70\uB798 \uAE30\uBCF8 \uB85C\uADF8 \uC815\uCC45",
+          targetType: "ONLINE_TRANSACTION",
+          targetId: "*",
+          logLevel: "INFO",
+          dbLogEnabledYn: "Y",
+          fileLogEnabledYn: "Y",
+          requestBodyLogYn: "N",
+          responseBodyLogYn: "N",
+          errorStackLogYn: "Y",
+          retentionDays: 90,
+          samplingRate: 100,
+          priority: 100,
+          activeYn: "Y",
+          description: "ADM managed log policy",
+          traceBoostTransactionGlobalId: "",
+          traceBoostBusinessTransactionId: "",
+          traceBoostApiPath: "",
+          traceBoostStatus: "",
+          traceBoostFailureCode: "",
+          traceBoostDurationMsGreaterThan: null,
+          traceBoostTtlSeconds: 600,
+          effectiveStartAt: "",
+          effectiveEndAt: "",
+          reason: "\uB85C\uADF8 \uC815\uCC45 \uBCC0\uACBD",
+          requestUser: "admin-ui"
+        },
+        operatorForm: { operatorId: "", operatorName: "", password: "", reason: "\uC6B4\uC601\uC790 \uB4F1\uB85D" },
+        messageForm: {
+          messageId: null,
+          messageCode: "MPFW990099",
+          locale: "ko",
+          messageFormatType: "FIXED",
+          externalMessage: "\uC0D8\uD50C \uBA54\uC2DC\uC9C0",
+          internalMessage: "\uC0D8\uD50C \uB0B4\uBD80 \uBA54\uC2DC\uC9C0",
+          parameterCount: 0,
+          parameterSample: "[]",
+          description: "ADM sample",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "\uBA54\uC2DC\uC9C0 \uBCC0\uACBD"
+        },
+        codeForm: {
+          codeId: null,
+          parentId: null,
+          codeKey: "ADM_SAMPLE",
+          codeValue: "SAMPLE",
+          description: "ADM sample code",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "\uCF54\uB4DC \uBCC0\uACBD"
+        },
+        configForm: {
+          configId: null,
+          configKey: "CPF.ADM.SAMPLE",
+          configValue: "Y",
+          configType: "BOOLEAN",
+          description: "ADM sample config",
+          encryptedYn: "N",
+          useYn: "Y",
+          requestUser: "admin-ui",
+          reason: "\uC124\uC815 \uBCC0\uACBD"
+        },
+        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "\uAD8C\uD55C \uBCC0\uACBD" },
+        roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "\uC0D8\uD50C \uC6B4\uC601 \uC5ED\uD560", roleType: "BUSINESS_OPERATOR", description: "ADM permission sample role", useYn: "Y", requestUser: "admin-ui", reason: "\uC5ED\uD560 \uAD00\uB9AC" },
+        menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "\uC0D8\uD50C \uBA54\uB274", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "admin-ui", reason: "\uBA54\uB274 \uAD00\uB9AC" },
+        buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "\uC0D8\uD50C \uC870\uD68C", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "admin-ui", reason: "\uBC84\uD2BC \uAD00\uB9AC" },
+        apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "\uC0D8\uD50C API \uC870\uD68C", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "admin-ui", reason: "API \uAD8C\uD55C \uAD00\uB9AC" },
+        passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "\uBE44\uBC00\uBC88\uD638 \uC6B4\uC601" },
+        securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "\uBCF4\uC548 \uC6B4\uC601" },
+        responseCodeForm: {
+          responseCode: "EXYZ010001",
+          messageCode: "MXYZ090001",
+          resultType: "E",
+          moduleId: "XYZ",
+          responseGroup: "01",
+          sequenceNo: "0001",
+          httpStatus: 400,
+          description: "XYZ sample response code",
+          useYn: "Y",
+          requestUser: "admin-ui"
+        },
+        serviceRegistrySearch: {
+          serviceId: "",
+          endpointCode: "",
+          instanceStatus: "",
+          transactionGlobalId: "",
+          limit: 50
+        },
         logs: [],
         transactionGroupResult: { items: [] },
         transactionGroupDetail: {},
@@ -314,6 +716,7 @@ if (!window.Vue) {
         permissionResult: {},
         passwordResult: {},
         securityResult: {},
+        serviceRegistryResult: {},
         bizAdmResult: {},
         exsResult: {}
       };
@@ -515,6 +918,7 @@ if (!window.Vue) {
           this.loadTransactionGroups(),
           this.loadTransactions(),
           this.loadAuditLogs(),
+          this.loadServiceRegistry(),
           this.searchMembers(),
           this.loadBatch(),
           this.loadCenterCut(),
@@ -693,6 +1097,44 @@ if (!window.Vue) {
         const data = await this.getJson(`/adm/api/audit-logs?${params.toString()}`);
         this.auditLogs = data.items || [];
         this.auditResult = data;
+      },
+      async loadServiceRegistry() {
+        const search = this.serviceRegistrySearch || {};
+        const baseParams = this.buildParams({
+          serviceId: search.serviceId,
+          endpointCode: search.endpointCode,
+          limit: search.limit || 50
+        });
+        const instanceParams = this.buildParams({
+          serviceId: search.serviceId,
+          endpointCode: search.endpointCode,
+          status: search.instanceStatus,
+          limit: search.limit || 50
+        });
+        const historyParams = this.buildParams({
+          serviceId: search.serviceId,
+          transactionGlobalId: search.transactionGlobalId,
+          limit: search.limit || 50
+        });
+        const [services, endpoints, instances, health, routingPolicies, circuits, callHistory] = await Promise.allSettled([
+          this.getJson(`/adm/api/service-registry/services?${baseParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/endpoints?${baseParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/instances?${instanceParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/health?${baseParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/routing-policies?${baseParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/circuit-states?${baseParams.toString()}`),
+          this.getJson(`/adm/api/service-registry/call-history?${historyParams.toString()}`)
+        ]);
+        this.serviceRegistryResult = {
+          services: this.settledValue(services),
+          endpoints: this.settledValue(endpoints),
+          instances: this.settledValue(instances),
+          health: this.settledValue(health),
+          routingPolicies: this.settledValue(routingPolicies),
+          circuits: this.settledValue(circuits),
+          callHistory: this.settledValue(callHistory)
+        };
+        this.setMessage("Service Registry status loaded.");
       },
       async searchMembers() {
         const params = this.buildParams(this.memberSearch);
@@ -1479,9 +1921,21 @@ if (!window.Vue) {
         if (result.status === "fulfilled") {
           return result.value;
         }
+        /*
         return {
           status: "미검증",
           message: result.reason?.message || "API wrapper 호출에 실패했습니다."
+        };
+        */
+        /*
+        return {
+          status: "미검증",
+          message: result.reason?.message || "API wrapper 호출이 실패했습니다."
+        };
+        */
+        return {
+          status: "\uBBF8\uAC80\uC99D",
+          message: result.reason?.message || "API wrapper call failed."
         };
       }
     }

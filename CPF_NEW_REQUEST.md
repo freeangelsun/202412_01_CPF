@@ -1,807 +1,952 @@
-# Codex 요청서 02 — 목표파일 요청 인덱스 보강, Evidence/Matrix 정합성 복구, PFW Service Call Engine 대형 착수
+# Codex 요청서 03 최종본 — PFW Service Call Engine Runtime 대형 개발, Service Registry/Health/Circuit/ADM 관제 확장, Evidence Gate 최소 정합성 복구
 
-## 0. 상위 기준
+## 0. 작업 기준
 
-이번 작업은 repo root의 아래 두 파일을 상위 기준으로 수행한다.
+기준 repository:
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md
-CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
-```
+`https://github.com/freeangelsun/202412_01_CPF`
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`는 이미 대용량 최종 목표파일로 master에 반영된 상태로 본다.
-이번 작업에서 `CPF_FINAL_TARGET_REQUIREMENTS.md`의 상세 본문을 삭제, 축약, 재생성, 덮어쓰기 하지 않는다.
+기준 branch:
 
-`CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`는 검수, 프로젝트 진행, 완료 판정, 반복 실패 방지, Codex 요청서 작성 기준이다.
+`master`
 
-이번 요청의 핵심은 아래다.
+작업 시작 전 로컬 checkout 기준으로 아래 파일을 확인한다.
 
-```text
-1. 대용량 목표파일을 앞으로 요청서 작성에 안정적으로 활용하기 위한 요청서 작성용 인덱스 보강
-2. CPF_EVIDENCE_INDEX.md / CPF_STABILIZATION_REPORT.md / CPF_GAP_MATRIX.md / 기능 매트릭스 정합성 복구
-3. check-report-matrix-evidence-consistency.ps1와 qualityGate 신뢰 회복
-4. README 진입점 보강
-5. PFW Service Call Engine / Service Registry / Remote Facade Proxy / ADM 관제 대형 착수
-```
+* `CPF_FINAL_TARGET_REQUIREMENTS.md`
+* `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
+* `CPF_STABILIZATION_REPORT.md`
+* `CPF_GAP_MATRIX.md`
+* `CPF_EVIDENCE_INDEX.md`
+* `specs/기능_구현_매트릭스.html`
+* `scripts/check-report-matrix-evidence-consistency.ps1`
 
-이번 요청은 CPF 전체 최종 목표를 한 번에 완료하라는 뜻이 아니다.
-하지만 대형 마일스톤 단위로 가능한 만큼 많이 진행한다.
+`CPF_FINAL_TARGET_REQUIREMENTS.md`는 대용량 최종 목표파일이다.
+상세 본문을 삭제, 축약, 덮어쓰기 하지 않는다.
+이번 작업에서 목표파일은 원칙적으로 수정하지 않는다. 필요 시 상단 요청서 작성용 인덱스 보강만 허용한다.
 
----
+이번 요청은 오늘 마지막 대형 작업 요청이다.
+중간 confirmation 요청하지 말고, 가능한 범위는 Codex가 합리적으로 판단해 끝까지 진행한다.
+단, 실제 실행하지 못한 검증은 절대 완료로 기록하지 않는다.
 
-## 1. Codex 크레딧 절약 / 작업 효율 기준
-
-이번 작업은 크게 진행하되, 불필요한 repo 전체 탐색, 같은 실패 반복, 장문 리포트 재작성은 피한다.
-
-```text
-1. 목표 달성을 위해 필요한 소스, 설정, SQL, 테스트, smoke script, evidence 연결 수정은 Codex 판단으로 수행한다.
-2. 목표와 무관한 문서 정본화, 대규모 스타일 변경, 불필요한 리팩토링은 하지 않는다.
-3. CPF_FINAL_TARGET_REQUIREMENTS.md는 대용량 파일이므로 전체를 장문 출력하거나 요약하지 않는다.
-4. 목표파일은 필요한 키워드, 제목, REQ-ID prefix, 섹션 단위로 검색한다.
-5. 동일 실패는 같은 방식으로 반복하지 않는다. 1회 재시도 후에도 실패하면 원인과 대안을 기록한다.
-6. 전체 Gradle test/qualityGate는 중간에 반복 실행하지 말고 targeted check 후 마지막에 수행한다.
-7. 결과 리포트는 CPF_STABILIZATION_REPORT.md, CPF_GAP_MATRIX.md, CPF_EVIDENCE_INDEX.md 중심으로 최소 갱신한다.
-8. 실행하지 않은 검증은 완료로 기록하지 않는다.
-```
+Git commit 금지.
+Git push 금지.
+branch 생성 금지.
+민감정보 원문 기록 금지.
+실행하지 않은 검증을 완료로 기록 금지.
+별도 변경파일 목록 산출물 생성 금지.
+문서량 채우기식 문서화 금지.
+신규 HTML 작성/수정은 지양한다. 단, 기존 ADM 화면 또는 기존 기능 매트릭스 유지보수에 필요한 최소 수정은 허용한다.
+PDF 생성 금지.
+`CPF_NEW_REQUEST.md` 임의 수정 금지.
 
 ---
 
-## 2. 필수 제한
+## 1. 이번 요청의 우선순위
 
-아래는 반드시 지킨다.
+이번 요청은 문서 정본화가 목적이 아니다.
 
-```text
-Git commit 금지
-Git push 금지
-branch 생성 금지
-민감정보 원문 기록 금지
-Authorization/Bearer/X-Api-Key/password/secret/credential/signature 원문 기록 금지
-실행하지 않은 검증 완료 기록 금지
-별도 변경파일 목록만을 위한 산출물 생성 금지
-문서량 채우기식 문서화 금지
-PDF 생성 금지
-CPF_NEW_REQUEST.md 임의 수정 금지
-```
+우선순위는 아래 순서다.
 
-기존 `specs/기능_구현_매트릭스.html`은 repo 표준 및 check script와 연결되어 있으므로, 정합성 복구를 위한 최소 수정은 허용한다.
+1. PFW Service Call Engine 실제 runtime 호출 구조 개발
+2. Service Registry / Endpoint / Instance / Health / Circuit / Call History 개발
+3. Remote Facade Proxy 구조 개발
+4. ADM Service Registry API / 운영 조회 API 개발
+5. SQL / Flyway / all_install / seed / smoke 정합성 반영
+6. Source-level test 및 runtime smoke 강화
+7. Evidence / Matrix / Report는 검수 가능한 최소 수준으로만 정합성 맞춤
+
+문서는 예쁘게 쓰지 않는다.
+문서는 검수자가 실제 완료 여부를 확인할 수 있는 최소 기록만 남긴다.
 
 ---
 
-## 3. 필수 완료 범위 A — 대용량 목표파일 요청서 작성용 인덱스 보강
+## 2. 필수 완료 범위
 
-### 3.1 목적
+### 2.1 PFW Service Call Engine Runtime 1차 완성
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`는 대용량 최종 목표파일이다. ChatGPT와 Codex가 매번 전체 파일을 통째로 읽지 못하더라도, 요청서와 작업 플랜이 목표파일 기준에서 흔들리지 않도록 파일 맨 앞에 **요청서 작성용 목표 인덱스**를 추가한다.
+현재 PFW Service Call Engine은 착수 단계로 본다.
+이번 작업에서는 실제 업무 모듈이 사용할 수 있는 runtime 호출 엔진 1차 구조까지 개발한다.
 
-상세 목표 본문은 삭제하거나 축약하지 않는다.
-인덱스는 상세 본문을 대체하는 문서가 아니라, 상세 본문을 찾기 위한 navigation이다.
+필수 개발 범위:
 
-### 3.2 추가 위치
+1. Service Call Engine 핵심 인터페이스
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md` 최상단 또는 기존 목차 바로 아래에 아래 섹션을 추가한다.
+   * serviceCode 기반 호출
+   * endpointCode 또는 logical operation 기반 호출
+   * target module 추상화
+   * request/response wrapper
+   * transaction context 연동
+   * standard header propagation
+   * extension header propagation
+   * sensitive header masking
+   * call result 표준화
 
-```text
-# 0. 요청서 작성용 목표 인덱스
+2. Service registry lookup
 
-이 섹션은 Codex와 ChatGPT가 대용량 목표파일을 기준으로 요청서와 검수 범위를 잡기 위한 navigation이다.
-상세 목표 본문을 대체하지 않는다.
-요청서 작성 시 이 인덱스의 도메인, 키워드, REQ-ID prefix, 검증 범위를 먼저 확인한 뒤 상세 본문을 검색한다.
-```
+   * serviceCode로 service 조회
+   * endpoint 조회
+   * enabled 여부 확인
+   * routing mode 확인
+   * timeout/retry/circuit policy 조회
+   * instance 후보 조회
 
-### 3.3 필수 인덱스 도메인
+3. Instance selection
 
-아래 도메인별로 최소 항목을 만든다.
+   * direct instance mode
+   * LB endpoint mode
+   * health-aware selection
+   * weight 기반 selection 1차 구현
+   * fallback instance selection
+   * selectedInstanceId 기록
 
-```text
-PFW-SERVICE-CALL
-PFW-SERVICE-REGISTRY
-PFW-TRANSACTION-CONTEXT
-PFW-LOGGING-TRACE-BOOST
-ADM-TRANSACTION-MONITORING
-ADM-SERVICE-REGISTRY-MONITORING
-SAGA-COMPENSATION
-OUTBOX-INBOX-IDEMPOTENCY
-BAT-WORKER
-BAT-CENTER-CUT
-BAT-DOMAIN-CALL
-EXS-INTEGRATION
-CMN-COMMON-FUNCTION
-SECURITY-RBAC-ABAC
-MASKING-PRIVACY-SECRET
-BROKER-EVENT
-SQL-FLYWAY-INSTALL
-RUNTIME-SMOKE-EVIDENCE
-BROWSER-CLICK
-RELEASE-DR-OPERATIONS
-ARCHITECTURE-RULE-CHECK
-```
+4. Actual HTTP adapter
 
-각 도메인에는 아래 필드를 넣는다.
+   * 단순 wrapper 수준 금지
+   * 실제 outbound HTTP 호출 path 구현
+   * local stub server 또는 test endpoint를 통한 runtime smoke 가능 구조
+   * request method, path, header, body 처리
+   * response status, header, body 처리
+   * timeout 처리
+   * exception 처리
+   * retry/failover 연동
 
-```text
-도메인명
-목적
-주요 키워드
-관련 REQ-ID prefix 후보
-관련 모듈
-필수 구현 파일군
-필수 SQL/Flyway/all_install 확인 범위
-필수 ADM/API/UI 확인 범위
-필수 smoke/evidence 범위
-완료 불인정 기준
-대형 요청서 작성 시 포함 기준
-```
+5. Timeout / Retry / Failover
 
-### 3.4 예시 형식
+   * default timeout
+   * endpoint timeout override
+   * retry max attempts
+   * retry interval
+   * retryable status/error 분리
+   * failover 대상 instance 재선택
+   * attemptNo 기록
+   * 최종 실패 기록
 
-```text
-## 0.x PFW-SERVICE-CALL
+6. Circuit breaker 1차 구현
 
-목적:
-- CPF Service Call Engine 기준으로 주제영역 간 호출을 표준화한다.
-- 업무 코드는 URL 직접 조합, Controller 직접 호출, 타 주제영역 DB 직접 접근을 금지한다.
+   * CLOSED
+   * OPEN
+   * HALF_OPEN
+   * failure count
+   * success count
+   * lastFailureAt
+   * openedAt
+   * nextRetryAt
+   * recovery transition
+   * circuit open 시 호출 차단
+   * half-open trial 호출
 
-주요 키워드:
-- CpfServiceCallEngine
-- CpfWebClient
-- CpfRestClient
-- Local Facade
-- Remote Facade Proxy
-- service/endpoint/instance registry
-- health-aware routing
-- failover
-- timeout
-- retry
-- circuit breaker
-- selectedInstanceId
+7. Call history 저장
 
-관련 REQ-ID prefix 후보:
-- PFW-CALL-*
-- PFW-REG-*
-- PFW-ROUTE-*
-- PFW-RESILIENCE-*
-- ADM-SVC-*
+   * transactionGlobalId
+   * segmentId
+   * parentSegmentId
+   * serviceCode
+   * endpointCode
+   * selectedInstanceId
+   * attemptNo
+   * routingMode
+   * startedAt
+   * endedAt
+   * durationMs
+   * resultStatus
+   * httpStatus
+   * errorCode
+   * sanitized error message
+   * retry 여부
+   * failover 여부
+   * circuit 상태
 
-필수 확인:
-- source
-- yml/properties
-- split SQL
-- Flyway
-- 00_all_install.sql
-- 00_all_install_and_smoke.sql
-- 99_smoke_check.sql
-- unit/integration test
-- runtime smoke
-- ADM API
-- report/matrix/evidence
+8. Segment / Timeline 연동
 
-완료 불인정:
-- HTTP wrapper만 있고 registry/routing/health/failover가 없음
-- selectedInstanceId 로그 없음
-- SQL/Flyway/all_install 누락
-- runtime smoke 없음
-```
+   * transactionGlobalId 하나로 전체 호출 흐름 추적
+   * sourceModuleCode
+   * targetModuleCode
+   * direction
+   * role
+   * callDepth
+   * sequenceNo
+   * selectedInstanceId
+   * startedAt
+   * endedAt
+   * durationMs
+   * status
+   * failure segment 표시
 
-### 3.5 완료 기준
+9. Header 정책
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md 상세 본문은 유지된다.
-요청서 작성용 목표 인덱스가 최상단에 추가된다.
-PFW/ADM/BAT/EXS/CMN/Security/Broker/SQL/Runtime 도메인의 요청서 작성 기준이 들어간다.
-인덱스는 상세 본문을 대체하지 않는다고 명시한다.
-README에 목표파일 대용량 사용 방식이 짧게 안내된다.
-```
+   * `X-User-Id`는 고객번호가 아님
+   * `X-Customer-No`가 고객번호
+   * `X-Member-No`가 회원번호
+   * `X-Operator-Id`는 ADM 운영 조치자
+   * `X-Original-Channel-Code`는 최초 유입 채널
+   * `X-Channel-Code`는 현재 처리 채널
+   * `X-Cpf-Ext-*` 확장 헤더 naming rule 유지
+   * Authorization, token, api-key, secret, password, credential, signature 계열 원문 저장 금지
 
-### 3.6 완료 불인정
+완료 기준:
 
-```text
-상세 목표 본문 삭제
-대용량 목표파일 재생성
-요약 인덱스만 남기고 상세 체크포인트 제거
-목표파일을 다시 작은 파일로 축소
-요청서 작성용 인덱스 없이 기존 본문만 유지
-```
+* 실제 HTTP adapter path를 통과하는 runtime smoke 성공
+* timeout/retry/failover/circuit 중 최소 1차 상태 전이 검증
+* selectedInstanceId 기록 확인
+* call history 저장 확인
+* transactionGlobalId/segment 연결 확인
+* 민감 헤더 원문 미저장 확인
+* source/test/smoke/evidence가 함께 존재
 
----
+완료 불인정 기준:
 
-## 4. 필수 완료 범위 B — Evidence index 경로 불일치 수정
-
-### 4.1 현재 문제
-
-`CPF_EVIDENCE_INDEX.md`는 일부 `.log` 파일을 완료 증적으로 참조한다.
-
-예시:
-
-```text
-specs/evidence/20260707_01/quality-gate.log
-specs/evidence/20260707_01/check-html-docs.log
-specs/evidence/20260707_01/check-feature-evidence.log
-specs/evidence/20260707_01/check-utf8-mojibake.log
-specs/evidence/20260707_01/edu-mapper-db-slice.log
-```
-
-현재 repo에 실제 존재하는 evidence와 `CPF_EVIDENCE_INDEX.md`가 참조하는 경로를 전수 대조한다.
-
-### 4.2 처리 방식
-
-둘 중 하나로 정리한다.
-
-#### 1안 — 실제 로그 파일을 evidence에 저장
-
-최종 검증 명령 출력을 sanitized log로 저장한다.
-
-```powershell
-New-Item -ItemType Directory -Force specs/evidence/20260707_02 | Out-Null
-
-.\gradlew.bat qualityGate --offline --no-daemon --console=plain *> specs/evidence/20260707_02/quality-gate.log
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1 *> specs/evidence/20260707_02/check-html-docs.log
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1 *> specs/evidence/20260707_02/check-feature-evidence.log
-
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake *> specs/evidence/20260707_02/check-utf8-mojibake.log
-```
-
-EDU mapper DB slice도 실제 실행 로그 또는 sanitized summary JSON으로 남긴다.
-
-#### 2안 — repo에 로그를 올리지 않을 정책이면 index에서 제거
-
-로그 파일을 repo에 포함하지 않을 정책이면 `CPF_EVIDENCE_INDEX.md`에서 완료 증적 경로로 쓰지 않는다.
-이 경우 완료 근거는 repo에 실제 존재하는 sanitized JSON 또는 manifest만 사용한다.
-
-### 4.3 완료 기준
-
-```text
-CPF_EVIDENCE_INDEX.md가 참조하는 모든 evidence 경로가 실제 repo에 존재한다.
-존재하지 않는 파일을 완료 근거로 쓰지 않는다.
-JSON evidence는 parse 가능하다.
-log evidence를 쓰면 실제 파일이 존재한다.
-real broker/browser click 미검증 항목은 없음/미검증으로 유지한다.
-```
+* serviceCode 없이 URL 직접 호출
+* 단순 HTTP utility wrapper 수준
+* retry/circuit/failover 상태 전이 미구현
+* call history 저장 없음
+* selectedInstanceId 미기록
+* runtime smoke 없음
+* 실행하지 않은 검증을 완료로 기록
 
 ---
 
-## 5. 필수 완료 범위 C — 기능 매트릭스와 consistency script 구조 정합화
+### 2.2 Remote Facade Proxy 1차 개발
 
-### 5.1 현재 문제
+CPF는 same JVM 전용 구조가 아니다.
+Local Facade와 Remote Facade Proxy를 모두 고려해야 한다.
 
-`specs/기능_구현_매트릭스.html`은 확장자는 `.html`이지만 현재 내용은 Markdown 형식에 가깝다.
-`check-report-matrix-evidence-consistency.ps1`가 어떤 구조를 파싱하는지와 matrix 파일 구조를 맞춘다.
+필수 개발 범위:
 
-### 5.2 처리 방식
+1. Facade Contract / Port 정의
 
-둘 중 하나로 정리한다.
+   * 업무 코드가 직접 URL을 만들지 않도록 한다.
+   * Controller 직접 호출 금지
+   * 타 주제영역 DB 직접 접근 금지
+   * Local 구현체와 Remote Proxy 구현체를 분리한다.
 
-#### 권장 1안 — 실제 HTML table 구조로 복구
+2. Remote Facade Proxy
 
-기능 매트릭스를 실제 HTML table로 만들고 check id를 명확히 둔다.
+   * Service Call Engine을 통해 호출
+   * serviceCode/endpointCode 기반 호출
+   * 표준 request/response mapping
+   * timeout/retry/circuit 결과 처리
+   * transactionGlobalId/segment 전파
 
-필수 예시:
+3. 샘플 연동
 
-```html
-<tr data-check-id="mariadb-full-install">
-  <td>mariadb-full-install</td>
-  <td class="status" data-status="완료">완료</td>
-  <td>specs/evidence/20260707_01/mariadb-full-install-result.sanitized.json</td>
-  <td>MariaDB full install smoke 통과</td>
-</tr>
-```
+   * MBR 또는 EDU/XYZ 중 하나 이상에 Remote Facade Proxy 샘플을 실제 연결한다.
+   * 단순 dummy class 금지
+   * 테스트에서 proxy 호출 path가 검증되어야 한다.
+   * same JVM local facade와 remote facade proxy 선택 구조를 profile/property로 분리한다.
 
-#### 대안 2안 — script가 Markdown 구조도 파싱하도록 확장
+4. 금지 패턴 제거
 
-Markdown 형태를 유지하려면 `check-report-matrix-evidence-consistency.ps1`가 현재 matrix 구조를 정확히 파싱하도록 수정한다.
+   * 업무 코드 URL 직접 조합 금지
+   * Controller bean 직접 호출 금지
+   * 타 모듈 Mapper/Repository 직접 호출 금지
 
-단, `.html` 확장자에 Markdown 내용을 넣는 혼란은 해소한다. 가능하면 1안을 우선한다.
+완료 기준:
 
-### 5.3 동기화 대상 check id
-
-아래 check id는 반드시 `CPF_STABILIZATION_REPORT.md`, `CPF_EVIDENCE_INDEX.md`, `CPF_GAP_MATRIX.md`, `specs/기능_구현_매트릭스.html`에서 상태와 evidence가 일관되게 연결되어야 한다.
-
-```text
-edu-mapper-db-slice
-mariadb-full-install
-adm-runtime
-adm-permission-runtime
-openapi-runtime
-adm-browser-click
-standard-header-e2e
-complex-transaction-trace
-transaction-segment-log
-adm-transaction-group-list
-adm-transaction-timeline
-cmn-fixed-length-engine
-composite-runtime-smoke
-adm-transaction-group-runtime
-redis-kafka-mq-broker
-broker-real-integration
-file-log-standard
-trace-boost-runtime
-bat-trace-boost-runtime
-runtime-start-services
-packaged-runtime-resources
-runtime-status-diagnostics
-runtime-closure
-adm-operation-console-runtime
-adm-log-policy-ui-static
-bat-log-bean-runtime
-exs-timeout-retry-runtime
-cmn-fixed-length-advanced
-create-domain-smoke
-runtime-smoke-summary
-quality-gate
-check-html-docs
-check-feature-evidence
-check-utf8
-```
-
-### 5.4 EDU mapper 상태 정리
-
-현재 EDU mapper는 기능 상태와 검증 상태가 다르게 보일 수 있다.
-아래처럼 분리해서 혼동을 제거한다.
-
-```text
-기능 상태: EDU/XYZ mapper 교육 fixture 제공 여부
-검증 상태: 실제 MariaDB DB slice 테스트 실행 여부
-```
-
-같은 check id의 검증 상태는 report/evidence와 일치시킨다.
-
-### 5.5 완료 기준
-
-```text
-기능 매트릭스가 consistency script에서 실제 파싱된다.
-report/matrix/evidence 상태값이 일치한다.
-미검증 항목은 완료로 집계되지 않는다.
-ADM browser click은 실제 browser click 전까지 미검증이다.
-Redis/Kafka/MQ real broker는 실제 broker 실행 전까지 미검증이다.
-EDU mapper 기능 상태와 검증 상태가 혼동되지 않는다.
-```
+* Remote Facade Proxy 테스트 존재
+* Service Call Engine 경유 확인
+* local/remote 선택 구조 확인
+* forbidden direct call scan 통과
 
 ---
 
-## 6. 필수 완료 범위 D — consistency gate와 qualityGate 신뢰 회복
+### 2.3 Service Registry / Endpoint / Instance / Health / Circuit DB 모델 보강
 
-### 6.1 consistency script 강화
+PFW 운영 DB 기준으로 service routing 운영 메타를 관리할 수 있어야 한다.
 
-`scripts/check-report-matrix-evidence-consistency.ps1`는 아래를 검증해야 한다.
+필수 테이블 또는 기존 테이블 보강 범위:
 
-```text
-CPF_STABILIZATION_REPORT.md의 check id와 상태
-CPF_EVIDENCE_INDEX.md의 check id와 상태/evidence 경로
-specs/기능_구현_매트릭스.html의 check id와 상태
-CPF_GAP_MATRIX.md의 미검증/실패/후순위 항목
-evidence 파일 존재 여부
-JSON parse 가능 여부
-완료 항목의 evidence 존재 여부
-미검증 항목이 완료로 집계되지 않는지
-browser click SKIPPED가 완료가 아닌지
-real broker 미실행이 완료가 아닌지
-```
+1. Service Registry
 
-### 6.2 실제 실행
+   * serviceCode
+   * moduleCode
+   * serviceName
+   * ownerModuleCode
+   * description
+   * enabled
+   * routingMode
+   * defaultTimeoutMs
+   * defaultRetryPolicyId
+   * defaultCircuitPolicyId
+   * createdAt
+   * updatedAt
 
-수정 후 아래를 실행한다.
+2. Endpoint Registry
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-report-matrix-evidence-consistency.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
-.\gradlew.bat qualityGate --offline --no-daemon --console=plain
-```
+   * endpointCode
+   * serviceCode
+   * operationCode
+   * protocol
+   * method
+   * path
+   * enabled
+   * timeoutOverrideMs
+   * retryPolicyOverrideId
+   * circuitPolicyOverrideId
 
-### 6.3 evidence
+3. Instance Registry
 
-검증 결과는 아래 중 하나로 남긴다.
+   * instanceId
+   * serviceCode
+   * moduleCode
+   * host
+   * port
+   * baseUrl
+   * lbEndpointUrl
+   * directModeEnabled
+   * lbModeEnabled
+   * weight
+   * zone
+   * enabled
+   * healthStatus
+   * lastHeartbeatAt
+   * lastHealthCheckAt
 
-```text
-specs/evidence/20260707_02/report-matrix-evidence-consistency-result.sanitized.json
-specs/evidence/20260707_02/quality-gate.log
-specs/evidence/20260707_02/evidence-manifest.sanitized.json
-```
+4. Health History
 
-### 6.4 완료 기준
+   * instanceId
+   * healthStatus
+   * checkedAt
+   * responseTimeMs
+   * reasonCode
+   * sanitized reason message
 
-```text
-check-report-matrix-evidence-consistency.ps1가 실제 matrix를 파싱한다.
-불일치가 있으면 실패한다.
-불일치가 없으면 성공한다.
-qualityGate가 consistency gate를 포함한다.
-qualityGate 성공 evidence가 실제 repo 파일로 존재한다.
-```
+5. Circuit State
 
----
+   * serviceCode
+   * endpointCode
+   * instanceId nullable
+   * circuitStatus
+   * failureCount
+   * successCount
+   * openedAt
+   * halfOpenedAt
+   * closedAt
+   * nextRetryAt
+   * lastFailureAt
 
-## 7. 필수 완료 범위 E — README 진입점 보강
+6. Call History
 
-README는 짧게 유지하되 주요 문서 목록에 아래를 반드시 포함한다.
+   * transactionGlobalId
+   * segmentId
+   * serviceCode
+   * endpointCode
+   * selectedInstanceId
+   * attemptNo
+   * routingMode
+   * startedAt
+   * endedAt
+   * durationMs
+   * resultStatus
+   * httpStatus
+   * errorCode
+   * sanitized error message
+   * retryYn
+   * failoverYn
+   * circuitStatus
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md
-CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
-CPF_STABILIZATION_REPORT.md
-CPF_GAP_MATRIX.md
-CPF_EVIDENCE_INDEX.md
-specs/기능_구현_매트릭스.html
-```
+필수 반영 경로:
 
-README에는 역할을 짧게 명시한다.
+* split SQL
+* Flyway migration
+* seed SQL
+* `00_all_install.sql`
+* `00_all_install_and_smoke.sql`
+* `99_smoke_check.sql`
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md = 무엇을 만들어야 하는가
-CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md = 어떻게 검수하고 완료로 볼 것인가
-CPF_STABILIZATION_REPORT.md = 최근 작업 검증 결과
-CPF_GAP_MATRIX.md = 남은 미구현/미검증/실패 항목
-CPF_EVIDENCE_INDEX.md = 검증 증적 경로
-specs/기능_구현_매트릭스.html = 기능/검증 상태 매트릭스
-```
+완료 기준:
 
-대용량 목표파일 사용 방식도 한 줄로 넣는다.
+* Flyway와 all_install이 동일 구조를 반영
+* 신규 빈 DB 설치를 고려한 순서 정합성 확보
+* seed로 service/endpoint/instance 기본 데이터 생성
+* smoke SQL로 registry/health/circuit/call history 최소 확인 가능
+* SQL에 한글 설명 주석 충분히 작성
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md는 대용량 최종 목표파일이므로 요청서 작성 시 최상단 요청서 작성용 목표 인덱스와 관련 REQ-ID/키워드 검색을 우선 사용한다.
-```
+완료 불인정 기준:
 
----
-
-## 8. 필수 완료 범위 F — PFW Service Call Engine / Service Registry 대형 착수
-
-정합성 복구가 완료되면 바로 PFW Service Call Engine을 크게 착수한다.
-
-### 8.1 목표파일 기준 검색
-
-작업 전 `CPF_FINAL_TARGET_REQUIREMENTS.md`에서 아래 키워드를 로컬 기준으로 검색한다.
-
-```text
-Service Call Engine
-CpfWebClient
-CpfRestClient
-Remote Facade Proxy
-Local Facade
-service registry
-endpoint registry
-instance registry
-routing policy
-health check
-failover
-timeout
-retry
-circuit breaker
-selectedInstanceId
-transactionGlobalId
-segment propagation
-```
-
-검색 결과의 관련 섹션/REQ-ID prefix를 `CPF_STABILIZATION_REPORT.md`에 짧게 기록한다.
-
-### 8.2 DB/SQL 착수
-
-아래 테이블 후보를 설계/구현한다.
-
-```text
-pfw_service
-pfw_service_endpoint
-pfw_service_instance
-pfw_service_health_status
-pfw_service_routing_policy
-pfw_service_circuit_state
-pfw_service_call_history
-```
-
-필수 필드 후보:
-
-```text
-serviceCode
-moduleCode
-endpointCode
-endpointMode
-lbUrl
-instanceId
-instanceUrl
-healthUrl
-zone
-region
-weight
-priority
-enabledYn
-maintenanceYn
-status
-lastHealthCheckAt
-lastSuccessAt
-lastFailureAt
-failureCount
-latencyMs
-routingPolicy
-timeoutMs
-retryPolicyId
-circuitPolicyId
-selectedInstanceId
-transactionGlobalId
-transactionSegmentId
-sourceModuleCode
-targetModuleCode
-```
-
-SQL 반영 범위:
-
-```text
-split SQL
-Flyway migration
-00_all_install.sql
-00_all_install_and_smoke.sql
-99_smoke_check.sql
-```
-
-한 경로만 반영하면 완료로 기록하지 않는다.
-
-### 8.3 Java 구성 착수
-
-아래 클래스/컴포넌트 후보를 구현한다.
-
-```text
-CpfServiceCallEngine
-CpfServiceRegistry
-CpfEndpointRegistry
-CpfServiceInstanceRegistry
-CpfEndpointResolver
-CpfRoutingPolicyResolver
-CpfHealthAwareInstanceSelector
-CpfRemoteFacadeProxySupport
-CpfServiceCallLogWriter
-CpfServiceHealthChecker
-CpfServiceCallProperties
-```
-
-필수 기능:
-
-```text
-LB endpoint mode
-direct instance mode
-health-aware routing
-round-robin 후보
-priority/weight 후보
-timeout
-retry
-failover
-circuit breaker 상태 후보
-selectedInstanceId logging
-remote response header capture
-transactionGlobalId propagation
-transactionSegmentId propagation
-source/target module logging
-```
-
-### 8.4 Local/Remote Facade 기준 착수
-
-아래 기준을 명시적으로 구현/문서화/테스트한다.
-
-```text
-Facade는 같은 JVM 전용이 아니다.
-같은 JVM에서는 Local Facade 사용.
-MSA에서는 Facade Contract/Port를 Remote Facade Proxy가 구현.
-Remote Facade Proxy는 CpfWebClient/CpfRestClient 또는 CpfServiceCallEngine을 통해 대상 API 호출.
-업무 코드는 URL 직접 조합 금지.
-업무 코드는 Controller 직접 호출 금지.
-업무 코드는 타 주제영역 DB 직접 접근 금지.
-```
-
-가능하면 ACC → MBR 또는 ACC → EXS 호출 중 하나를 Service Call Engine 경유 예제로 보강한다.
-
-### 8.5 설정
-
-`application.yml` 또는 모듈별 yml/properties에 아래 설정 후보를 추가한다.
-
-```yaml
-cpf:
-  service-call:
-    enabled: true
-    endpoint-mode: direct # direct | lb
-    timeout-ms: 3000
-    retry:
-      enabled: true
-      max-attempts: 2
-    circuit-breaker:
-      enabled: true
-    health-check:
-      enabled: true
-    logging:
-      selected-instance: true
-      response-header-capture: true
-```
-
-모든 신규/수정 설정에는 한글 설명 주석을 철저히 작성한다.
-
-### 8.6 ADM API 착수
-
-아래 API 후보를 구현한다.
-
-```text
-GET /adm/api/service-registry/services
-GET /adm/api/service-registry/endpoints
-GET /adm/api/service-registry/instances
-GET /adm/api/service-registry/health
-GET /adm/api/service-registry/routing-policies
-GET /adm/api/service-registry/circuit-states
-GET /adm/api/service-registry/call-history
-```
-
-필수 응답 필드 후보:
-
-```text
-serviceCode
-moduleCode
-endpointCode
-instanceId
-endpointMode
-status
-healthStatus
-selectedYn
-lastHealthCheckAt
-lastSuccessAt
-lastFailureAt
-failureCount
-latencyMs
-routingPolicy
-circuitState
-```
-
-ADM browser UI는 이번 요청에서 완료 강제하지 않는다.
-API와 runtime smoke를 우선한다.
-
-### 8.7 Smoke/Test
-
-가능한 범위에서 아래 smoke를 추가/실행한다.
-
-```text
-service registry seed smoke
-service instance health smoke
-direct instance routing smoke
-LB endpoint mode config smoke
-selectedInstanceId log smoke
-failover fallback smoke
-ADM service registry API smoke
-```
-
-스크립트 후보:
-
-```text
-scripts/smoke-service-registry-runtime.ps1
-scripts/smoke-service-call-engine-runtime.ps1
-scripts/smoke-adm-service-registry-runtime.ps1
-```
+* Flyway만 있고 all_install 누락
+* all_install만 있고 Flyway 누락
+* seed만 있고 smoke 없음
+* 기존 개발 DB 기준만 확인하고 신규 빈 DB full install 완료 주장
+* 테이블은 있는데 Service Call Engine에서 사용하지 않음
 
 ---
 
-## 9. 보강 범위 — 남은 미검증 항목 유지
+### 2.4 Instance Health / Heartbeat / Ghost 판단 1차 개발
+
+Service Registry는 단순 목록이 아니라 runtime routing 판단에 사용되어야 한다.
+
+필수 개발 범위:
+
+1. instance heartbeat update API 또는 service
+2. health check service
+3. health TTL 판단
+4. stale instance 판단
+5. ghost instance 판단
+6. DOWN/DEGRADED/UNKNOWN 상태 처리
+7. routing selection에서 unhealthy instance 제외
+8. ADM 조회용 health summary 제공
+
+완료 기준:
+
+* heartbeat update 테스트
+* TTL 만료 테스트
+* stale/ghost 판단 테스트
+* health-aware routing 테스트
+* ADM API에서 health 상태 조회 가능
+
+---
+
+### 2.5 ADM Service Registry API 개발
+
+ADM에서 service registry와 routing 상태를 조회할 수 있어야 한다.
+
+필수 API 범위:
+
+1. service 목록 조회
+2. service 상세 조회
+3. endpoint 목록 조회
+4. endpoint 상세 조회
+5. instance 목록 조회
+6. instance 상세 조회
+7. instance health 조회
+8. routing policy 조회
+9. circuit state 조회
+10. call history 목록 조회
+11. transactionGlobalId 기준 call history 조회
+12. selectedInstanceId 기준 call history 조회
+13. serviceCode 기준 최근 실패 호출 조회
+14. DOWN/DEGRADED instance 목록 조회
+
+필수 계층:
+
+* Controller
+* Service
+* DTO
+* Mapper
+* SQL
+* Test
+* smoke script
+
+완료 기준:
+
+* `:adm:test` 통과
+* ADM API 단위/통합 테스트 존재
+* runtime smoke 가능하면 실제 실행
+* runtime smoke 불가 시 미검증으로 남김
+* API 응답 evidence 저장
+
+완료 불인정 기준:
+
+* Controller만 있고 Mapper/SQL 연결 없음
+* 정적 JSON 응답
+* runtime smoke 미실행인데 runtime 완료 기록
+* 권한/인증 오류를 무시하고 완료 처리
+
+---
+
+### 2.6 ADM Service Registry 화면 1차 개발
+
+문서 정본화는 하지 않지만, ADM 운영 관제 화면은 개발 작업으로 본다.
+
+필수 화면 범위:
+
+1. Service Registry 목록
+2. Service 상세
+3. Endpoint 목록
+4. Instance 목록
+5. Health 상태 표시
+6. Routing mode 표시
+7. Circuit 상태 표시
+8. 최근 call history 표시
+9. transactionGlobalId 검색
+10. selectedInstanceId 표시
+11. DOWN/DEGRADED instance 필터
+12. 최근 실패 호출 필터
+
+기존 ADM 화면 구조를 우선 사용한다.
+신규 HTML 대량 작성은 지양한다.
+기존 화면/JS/API 연동 구조 안에서 최소 수정한다.
+
+필수 smoke:
+
+* 정적 marker smoke
+* API endpoint 연결 smoke
+* 가능하면 browser click smoke
+
+browser click을 실제 실행하지 못하면 `미검증`으로 남긴다.
+정적 marker smoke는 browser click 완료가 아니다.
+
+완료 기준:
+
+* ADM 화면에서 신규 API endpoint 연결 확인
+* 정적 marker smoke 통과
+* browser click은 실제 실행한 경우에만 완료
+
+---
+
+### 2.7 Runtime Smoke Script 개발
+
+이번 작업은 source-level test만으로 끝내지 않는다.
+runtime smoke script를 반드시 보강한다.
+
+필수 script 후보:
+
+1. `scripts/smoke-service-call-engine-runtime.ps1`
+2. `scripts/smoke-adm-service-registry-runtime.ps1`
+3. `scripts/smoke-service-registry-health-runtime.ps1`
+4. `scripts/smoke-service-call-engine-circuit-runtime.ps1`
+5. `scripts/smoke-service-call-engine-failover-runtime.ps1`
+6. `scripts/smoke-adm-service-registry-ui-static.ps1`
+
+각 script는 아래를 명확히 구분한다.
+
+* source-level 검증
+* runtime 검증
+* browser click 검증
+* 미실행
+* 실패
+
+완료 기준:
+
+* runtime smoke script가 존재
+* 실행 가능한 것은 실제 실행
+* 실행 불가한 것은 사유와 함께 미검증 기록
+* SKIPPED를 완료로 기록하지 않음
+
+---
+
+### 2.8 Architecture Rule / Forbidden Direct Call Gate 강화
+
+Service Call Engine을 만들었으면 업무 코드가 우회 호출하지 못하게 막아야 한다.
+
+필수 검사:
+
+1. URL 직접 조합 탐지
+2. Controller 직접 호출 탐지
+3. 타 주제영역 Mapper/Repository 직접 접근 탐지
+4. hardcoded host/url 탐지
+5. hardcoded secret/token/api-key/password 탐지
+6. Authorization/token 계열 로그 출력 탐지
+7. Remote Facade Proxy 또는 Service Call Engine 경유 여부 확인
+
+필수 script 또는 qualityGate 연동:
+
+* architecture rule check
+* forbidden direct call scan
+* hardcoded secret/url scan
+
+완료 기준:
+
+* 신규 코드에 forbidden pattern 없음
+* scan이 qualityGate에 포함됨
+* 위반 발견 시 실패 또는 재확인 필요로 기록
+
+---
+
+### 2.9 Test Coverage 확대
+
+이번 요청은 개발량을 크게 잡는다.
+테스트도 함께 늘린다.
+
+필수 테스트 범위:
+
+1. Service registry lookup test
+2. endpoint lookup test
+3. instance selection test
+4. health-aware routing test
+5. heartbeat update test
+6. ghost/stale 판단 test
+7. timeout test
+8. retry test
+9. failover test
+10. circuit closed/open/half-open/close transition test
+11. call history save test
+12. transactionGlobalId propagation test
+13. segment/timeline save test
+14. sensitive header masking test
+15. Remote Facade Proxy test
+16. ADM service registry API test
+17. ADM call history API test
+18. SQL smoke test
+19. evidence consistency test
+
+완료 기준:
+
+* `:pfw:test` 통과
+* `:adm:test` 통과
+* 관련 모듈 테스트 통과
+* 실패 테스트가 있으면 원인과 미완료 항목 기록
+
+---
+
+## 3. 보강 범위
+
+### 3.1 PFW 파일 로그와 DB 로그 연결
+
+Service Call Engine 호출 결과는 DB call history만으로 끝내지 않는다.
+
+보강 범위:
+
+* `cpf-{moduleCode}-{logType}.log` 파일 로그와 DB call history 연결
+* transactionGlobalId 기준 검색 가능
+* selectedInstanceId 로그 기록
+* retry/failover/circuit 상태 로그 기록
+* 민감정보 masking
+
+완료 기준:
+
+* 파일 로그 또는 log appender 테스트/스모크 evidence 존재
+* 민감정보 원문 미기록 확인
+
+---
+
+### 3.2 ADM 권한/RBAC 1차 연결
+
+ADM service registry API는 운영성 API다.
+가능한 범위에서 권한 체크와 감사 로그를 연결한다.
+
+보강 범위:
+
+* service registry 조회 권한
+* circuit/health 조회 권한
+* call history 조회 권한
+* transactionGlobalId 조회 권한
+* audit log 기록
+* 다운로드 기능이 있다면 다운로드 감사 기록
+
+완료 기준:
+
+* 권한 체크 테스트 또는 smoke 존재
+* 권한 미연결 시 `부분 구현` 또는 `미검증`으로 기록
+
+---
+
+### 3.3 CMN 공통 코드/메시지 연동
+
+Service Call Engine과 ADM API에서 사용하는 상태값/오류코드는 가능한 범위에서 CMN 공통 코드/메시지와 연결한다.
+
+보강 범위:
+
+* health status
+* circuit status
+* routing mode
+* call result status
+* retry result
+* failover result
+* 표준 오류 메시지
+
+완료 기준:
+
+* hardcoded status 난립 방지
+* 공통 코드/메시지 seed 또는 TODO가 명확히 구분됨
+
+---
+
+## 4. 문서 최소 갱신 범위
+
+이번 작업은 문서 정본화가 아니다.
+문서 작업은 검수 가능한 최소 수준으로만 한다.
+
+필수 갱신 대상:
+
+* `CPF_STABILIZATION_REPORT.md`
+* `CPF_GAP_MATRIX.md`
+* `CPF_EVIDENCE_INDEX.md`
+* `specs/기능_구현_매트릭스.html`
+* `README.md` 주요 진입점이 깨진 경우만 보정
+
+문서에는 장문 설명을 추가하지 않는다.
+각 항목은 아래 정보만 기록한다.
+
+* 상태값
+* 핵심 변경 소스 경로
+* 핵심 SQL/Flyway/all_install 경로
+* 실행한 검증 명령
+* evidence 경로
+* 실행하지 못한 검증과 사유
+* 남은 gap
+
+상태값은 아래 6개만 사용한다.
+
+* 완료
+* 부분 구현
+* 미구현
+* 미검증
+* 실패
+* 재확인 필요
+
+완료/부분 구현으로 기록한 항목은 실제 evidence 경로가 있어야 한다.
+없는 evidence 파일을 참조하지 않는다.
+문서량을 늘리기 위한 설명은 쓰지 않는다.
+
+---
+
+## 5. Evidence 최소 정합성 복구
+
+Evidence gate는 검수 가능한 수준으로 유지한다.
+다만 이번 요청의 중심은 문서가 아니라 개발이다.
+
+필수 작업:
+
+1. `CPF_EVIDENCE_INDEX.md`가 참조하는 완료/부분 구현 evidence 파일은 실제 repo에 존재해야 한다.
+2. qualityGate 성공 evidence는 실제 파일로 남긴다.
+3. `check-report-matrix-evidence-consistency.ps1`는 최소한 아래를 실패 처리해야 한다.
+
+   * 없는 evidence 파일 참조
+   * 허용되지 않은 상태값 사용
+   * report/matrix/evidence/gap 상태값 불일치
+   * 완료 항목에 SKIPPED evidence 연결
+   * 기능 매트릭스 `data-check-id`, `data-status` 파싱 실패
+4. negative self-test는 가능하면 수행하되, 개발 작업을 과도하게 막지 않는다.
+5. negative self-test가 시간상 어려우면 `재확인 필요`로 남기고, 최소한 실제 evidence 누락은 잡아야 한다.
+
+완료 기준:
+
+* 없는 evidence 파일을 완료 근거로 참조하지 않음
+* qualityGate 성공 로그 존재
+* consistency script 통과
+* report/matrix/evidence/gap 상태값 일치
+
+---
+
+## 6. 착수 범위
+
+아래는 이번 작업에서 가능한 범위까지 착수한다.
+실제 검증 전까지 완료로 올리지 않는다.
+
+### 6.1 Multi-instance 검증 준비
+
+* 2대/3대 instance seed
+* routing weight 테스트 구조
+* selectedInstanceId 비교 smoke skeleton
+* failover scenario skeleton
+
+실제 2대/3대 WAS 기동 검증을 못 하면 `미검증`으로 남긴다.
+
+### 6.2 Real Broker 검증 준비
+
+Redis/Kafka/MQ real broker는 이번 요청에서 완료하지 않는다.
+
+가능하면 아래만 준비한다.
+
+* broker profile skeleton
+* smoke script skeleton
+* broker event schema placeholder
+* DLQ/replay TODO 명확화
+
+embedded/mock broker 결과를 real broker 완료로 기록하지 않는다.
+
+### 6.3 Runtime Browser Click 준비
+
+ADM browser click은 실제 실행해야만 완료다.
+
+이번 요청에서는 아래를 준비한다.
+
+* browser click script skeleton
+* service registry 화면 selector marker
+* API 연동 확인용 화면 marker
+
+실제 browser click 미실행 시 `미검증` 유지.
+
+---
+
+## 7. 후순위/제외 범위
 
 아래는 이번 요청에서 완료로 올리지 않는다.
 
-```text
-ADM browser click
-Redis/Kafka/MQ real broker
-broker 장애/복구/DLQ/replay
-2대/3대 multi-instance 실검증
-DR/backup/restore
-성능 benchmark
-최종 PDF/HTML 정본화
-전체 15,000개 이상 체크포인트 구현 완료
-```
+* ADM browser click 실제 미실행 항목
+* Redis/Kafka/MQ real broker 검증
+* broker 장애/복구/DLQ/replay
+* 2대/3대 multi-instance 실검증
+* DR/backup/restore
+* 성능 benchmark
+* 최종 PDF/HTML 정본화
+* 전체 15,000개 이상 체크포인트 구현 완료
 
-단, 목표에서 삭제하지 말고 `CPF_GAP_MATRIX.md`에 미검증 또는 후순위로 유지한다.
+위 항목은 목표에서 삭제하지 말고 `CPF_GAP_MATRIX.md`에 `미검증`, `미구현`, 또는 `후순위` 성격으로 남긴다.
 
 ---
 
-## 10. 필수 검증 명령
+## 8. 필수 실행 명령
 
-가능한 범위에서 아래를 실행한다.
+가능한 범위에서 아래 명령을 실제 실행한다.
+실행하지 못하면 사유를 기록하고 완료로 올리지 않는다.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-report-matrix-evidence-consistency.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
-
-.\gradlew.bat clean :pfw:bootJar :acc:bootJar :mbr:bootJar :adm:bootJar :exs:bootJar :bat:bootJar --offline --no-daemon --console=plain --rerun-tasks
-
-.\gradlew.bat test --offline --no-daemon --console=plain
-
-.\gradlew.bat qualityGate --offline --no-daemon --console=plain
+.\gradlew.bat clean :pfw:test :adm:test :mbr:test --no-daemon --console=plain --rerun-tasks
 ```
 
-모듈명이 실제 repo와 다르면 실제 Gradle module 기준으로 조정한다.
-전체 test가 너무 크면 관련 targeted test를 먼저 실행하고 마지막에 qualityGate를 수행한다.
+```powershell
+.\gradlew.bat qualityGate --no-daemon --console=plain
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-report-matrix-evidence-consistency.ps1
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-html-docs.ps1
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-feature-evidence.ps1
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-utf8.ps1 -CheckMojibake
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-runtime.ps1 -RunRuntime
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-adm-service-registry-runtime.ps1 -RunRuntime
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-service-registry-health-runtime.ps1 -RunRuntime
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-circuit-runtime.ps1 -RunRuntime
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-service-call-engine-failover-runtime.ps1 -RunRuntime
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-adm-service-registry-ui-static.ps1
+```
+
+MariaDB 신규 빈 DB full install 환경이 가능하면 아래도 실행한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1
+```
+
+브라우저 click 환경이 가능하면 아래도 실행한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-adm-ui-browser-click.ps1 -RunBrowser
+```
+
+브라우저 click을 실행하지 못하면 `미검증`으로 기록한다.
+SKIPPED를 완료로 기록하지 않는다.
 
 ---
 
-## 11. 완료 리포트 기준
+## 9. 필수 Evidence 경로
 
-작업 종료 시 아래 파일을 최소 갱신한다.
+이번 작업 evidence는 아래 경로를 우선 사용한다.
 
-```text
-CPF_STABILIZATION_REPORT.md
-CPF_GAP_MATRIX.md
-CPF_EVIDENCE_INDEX.md
-README.md
-specs/기능_구현_매트릭스.html
-```
+`specs/evidence/20260707_03/`
 
-리포트에는 아래를 기록한다.
+필수 또는 권장 evidence:
 
-```text
-요청 범위
-목표파일 요청서 작성용 인덱스 보강 여부
-목표파일 관련 검색 키워드/섹션/REQ-ID prefix
-report/matrix/evidence 정합성 결과
-수정한 정합성 항목
-PFW Service Call Engine 착수 범위
-SQL/Flyway/all_install 반영 여부
-실행 명령
-실행 일시
-profile
-DB 종류
-runtime smoke 여부
-browser click 여부
-real broker 검증 여부
-evidence 경로
-실패/미검증 사유
-다음 조치
-```
+* `quality-gate.log`
+* `report-matrix-evidence-consistency.log`
+* `pfw-service-call-engine-test.log`
+* `service-call-engine-runtime-success.sanitized.json`
+* `service-call-engine-timeout-retry.sanitized.json`
+* `service-call-engine-circuit-transition.sanitized.json`
+* `service-call-engine-failover.sanitized.json`
+* `service-call-engine-call-history.sanitized.json`
+* `service-registry-health-runtime.sanitized.json`
+* `service-registry-heartbeat-ghost.sanitized.json`
+* `adm-service-registry-api-test.log`
+* `adm-service-registry-runtime-result.sanitized.json`
+* `adm-service-registry-ui-static-smoke.log`
+* `remote-facade-proxy-test.log`
+* `sql-flyway-all-install-smoke.log`
+* `architecture-rule-check.log`
+* `forbidden-direct-call-scan.log`
+* `hardcoded-secret-url-scan.log`
+* `check-html-docs.log`
+* `check-feature-evidence.log`
+* `check-utf8-mojibake.log`
 
-결과 리포트는 최소 갱신한다. 로그 전문을 장문으로 붙이지 않는다.
+파일명은 실제 구현에 맞게 조정할 수 있다.
+단, `CPF_EVIDENCE_INDEX.md`에 기록한 경로는 반드시 실제 repo에 존재해야 한다.
 
 ---
 
-## 12. 완료 기준
+## 10. 완료 기준
 
-이번 요청의 완료 기준은 아래다.
+이번 요청의 완료 후보는 아래를 만족해야 한다.
 
-```text
-CPF_FINAL_TARGET_REQUIREMENTS.md 상세 본문이 삭제/축약/덮어쓰기 되지 않음
-CPF_FINAL_TARGET_REQUIREMENTS.md 상단에 요청서 작성용 목표 인덱스가 추가됨
-CPF_EVIDENCE_INDEX.md가 존재하지 않는 파일을 완료 증적으로 참조하지 않음
-기능 매트릭스와 consistency script 구조가 맞음
-report/matrix/evidence 상태값이 일치함
-qualityGate 성공 evidence가 실제 repo 파일로 존재함
-README 주요 문서 목록에 기준 파일과 report/gap/evidence/matrix 파일이 포함됨
-PFW Service Call Engine / Service Registry / Remote Facade Proxy가 착수됨
-관련 SQL/Flyway/all_install/smoke가 가능한 범위에서 반영됨
-ADM browser click과 real broker는 실제 실행 전까지 미검증으로 유지됨
-실행하지 않은 검증을 완료로 기록하지 않음
-Git commit/push/branch 생성 없음
-```
-
----
-
-## 13. 완료 불인정 기준
-
-아래는 완료로 인정하지 않는다.
-
-```text
-목표파일 상세 본문 삭제 또는 축약
-목표파일을 작은 파일로 다시 덮어쓰기
-요청서 작성용 목표 인덱스 없이 완료 주장
-없는 evidence 파일을 완료 근거로 참조
-feature matrix를 script가 실제 파싱하지 못함
-report는 완료인데 matrix/evidence는 미검증 또는 누락
-qualityGate 성공 로그/summary가 repo에 없음
-browser click SKIPPED를 완료로 기록
-real broker 미실행을 완료로 기록
-PFW Service Call Engine을 단순 HTTP wrapper 수준으로만 구현하고 완료 주장
-SQL/Flyway/all_install 중 한 경로만 반영하고 완료 주장
-CPF_NEW_REQUEST.md 임의 수정
-Git commit/push/branch 생성
-```
+1. PFW Service Call Engine 실제 runtime HTTP adapter 구현
+2. serviceCode/endpointCode 기반 registry lookup 구현
+3. health-aware instance selection 구현
+4. selectedInstanceId 기록
+5. timeout/retry/failover/circuit 1차 구현
+6. call history 저장
+7. transactionGlobalId/segment/timeline 연동
+8. 민감 헤더 원문 미저장
+9. Remote Facade Proxy 1차 구현
+10. ADM Service Registry API 구현
+11. ADM Service Registry 화면 1차 구현
+12. SQL/Flyway/all_install/seed/smoke 정합성 반영
+13. Service Registry / Endpoint / Instance / Health / Circuit / Call History 테스트 존재
+14. runtime smoke 가능한 항목 실제 실행
+15. qualityGate 성공 evidence 존재
+16. 없는 evidence 파일을 완료 근거로 참조하지 않음
+17. report/matrix/evidence/gap 최소 정합성 유지
+18. browser click 미실행 시 미검증 유지
+19. real broker 미실행 시 미검증 유지
+20. Git commit/push/branch 생성 없음
 
 ---
 
-## 14. 완료 보고 마지막 문장
+## 11. 완료 불인정 기준
 
-완료 보고 마지막에는 반드시 아래를 쓴다.
+아래 중 하나라도 있으면 완료로 기록하지 않는다.
 
-```text
-이번 작업에서 실제 실행한 검증과 실행하지 않은 검증을 분리했습니다.
-실행하지 않은 검증은 완료로 기록하지 않았습니다.
-report/matrix/evidence 상태값 정합성을 실제 파일 기준으로 확인했습니다.
-CPF_FINAL_TARGET_REQUIREMENTS.md 상세 본문은 삭제/축약/덮어쓰기 하지 않았습니다.
-Git commit/push/branch 생성은 수행하지 않았습니다.
-```
+* 목표파일 상세 본문 삭제 또는 축약
+* 목표파일을 작은 파일로 덮어쓰기
+* Service Call Engine이 단순 HTTP wrapper 수준
+* service registry lookup 없이 URL 직접 호출
+* selectedInstanceId 미기록
+* call history 미저장
+* retry/circuit/failover 미구현
+* runtime smoke 없이 runtime 완료 주장
+* Remote Facade Proxy 없이 업무 코드가 URL 직접 호출
+* SQL/Flyway/all_install 중 한 경로만 반영
+* ADM API가 정적 JSON 또는 Controller 단독 구현
+* ADM 화면 marker만 있고 API 연결 없음
+* browser click SKIPPED를 완료로 기록
+* real broker 미실행을 완료로 기록
+* 없는 evidence 파일을 완료 근거로 참조
+* qualityGate 성공 로그 없음
+* `CPF_NEW_REQUEST.md` 임의 수정
+* Git commit/push/branch 생성
+* 민감정보 원문 evidence 기록
+
+---
+
+## 12. 완료 보고 방식
+
+작업 완료 후 아래 형식으로 보고한다.
+
+1. 작업 요약
+2. 실제 개발한 핵심 기능
+3. PFW Service Call Engine runtime 구현 내역
+4. Service Registry / Health / Circuit / Call History 구현 내역
+5. Remote Facade Proxy 구현 내역
+6. ADM API/UI 구현 내역
+7. SQL/Flyway/all_install/smoke 반영 내역
+8. 직접 실행한 검증 명령
+9. 실행하지 못한 검증과 사유
+10. evidence 파일 경로
+11. 완료/부분 구현/미구현/미검증/실패/재확인 필요 판정
+12. 남은 gap
+13. 다음 작업 후보
+
+보고는 짧아도 된다.
+단, 실행한 검증과 evidence 경로는 반드시 정확해야 한다.
+실행하지 않은 검증은 완료로 기록하지 않는다.

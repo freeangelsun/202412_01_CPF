@@ -197,6 +197,12 @@ tasks.register('checkFeatureEvidence', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-feature-evidence.ps1'
 }
 
+tasks.register('checkServiceCallBoundary', Exec) {
+    group = 'verification'
+    description = 'CPF service call engine boundary rules must prevent direct URL, controller, and cross-domain repository access.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-service-call-boundary.ps1'
+}
+
 tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
@@ -226,5 +232,5 @@ tasks.register('qualityGate') {
     description = '로컬/CI에서 사용하는 CPF 기본 품질 gate를 실행합니다.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkReportMatrixEvidenceConsistency'
 }

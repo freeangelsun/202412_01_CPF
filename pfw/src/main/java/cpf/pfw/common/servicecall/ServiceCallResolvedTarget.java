@@ -12,4 +12,28 @@ public record ServiceCallResolvedTarget(
         Map<String, Object> routingPolicy,
         String baseUrl,
         String routingMode) {
+
+    public String serviceId() {
+        return value(service, "serviceId");
+    }
+
+    public String endpointCode() {
+        return value(endpoint, "endpointCode");
+    }
+
+    public String instanceId() {
+        return value(instance, "instanceId");
+    }
+
+    public boolean failoverEnabled() {
+        return "Y".equalsIgnoreCase(value(routingPolicy, "failoverEnabledYn"));
+    }
+
+    private String value(Map<String, Object> row, String key) {
+        if (row == null || row.isEmpty()) {
+            return null;
+        }
+        Object found = row.get(key);
+        return found == null ? null : String.valueOf(found);
+    }
 }

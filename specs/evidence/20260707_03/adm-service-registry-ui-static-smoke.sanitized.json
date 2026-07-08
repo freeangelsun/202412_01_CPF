@@ -1,0 +1,19 @@
+{
+    "startedAt":  "2026-07-08T09:44:31.8004316+09:00",
+    "validationMode":  "adm-static-ui-contract",
+    "checks":  {
+                   "menuId":  true,
+                   "state":  true,
+                   "loader":  true,
+                   "servicesApi":  true,
+                   "circuitApi":  true,
+                   "callHistoryApi":  true,
+                   "htmlPanel":  true,
+                   "htmlTitle":  true
+               },
+    "status":  "DONE",
+    "failed":  [
+
+               ],
+    "finishedAt":  "2026-07-08T09:44:31.8044471+09:00"
+}

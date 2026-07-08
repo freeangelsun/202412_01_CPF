@@ -2,9 +2,10 @@ package cpf.pfw.common.servicecall;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * 서비스 ID와 endpoint code를 실제 base URL 호출 대상으로 해석합니다.
+ * 서비스 ID와 endpoint code를 실제 호출 대상으로 해석합니다.
  */
 public class CpfEndpointResolver {
     private final CpfServiceRegistry serviceRegistry;
@@ -27,6 +28,10 @@ public class CpfEndpointResolver {
     }
 
     public ServiceCallResolvedTarget resolve(ServiceCallRequest request) {
+        return resolve(request, Set.of());
+    }
+
+    public ServiceCallResolvedTarget resolve(ServiceCallRequest request, Set<String> excludedInstanceIds) {
         String serviceId = requireText(request.serviceId(), "serviceId").toUpperCase();
         Map<String, Object> service = serviceRegistry.findService(serviceId)
                 .orElseThrow(() -> new IllegalStateException("PFW 서비스 레지스트리에 서비스가 없습니다. serviceId=" + serviceId));
@@ -35,7 +40,7 @@ public class CpfEndpointResolver {
         String endpointCode = String.valueOf(endpoint.get("endpointCode"));
         Map<String, Object> policy = routingPolicyResolver.resolve(serviceId, endpointCode);
         List<Map<String, Object>> instances = instanceRegistry.findInstances(serviceId, endpointCode, null, 100);
-        Map<String, Object> instance = instanceSelector.select(instances, request.instanceId()).orElse(Map.of());
+        Map<String, Object> instance = instanceSelector.select(instances, request.instanceId(), excludedInstanceIds).orElse(Map.of());
         String baseUrl = firstText(value(instance, "baseUrl"), value(endpoint, "baseUrl"));
         return new ServiceCallResolvedTarget(service, endpoint, instance, policy, baseUrl, value(policy, "routingMode"));
     }

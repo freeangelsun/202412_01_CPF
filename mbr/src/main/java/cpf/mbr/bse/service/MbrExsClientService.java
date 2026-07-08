@@ -18,16 +18,14 @@ public class MbrExsClientService {
     private final CpfWebClient cpfWebClient;
 
     public Map<String, Object> requestExternalVerification(Integer memberId) {
-        return cpfWebClient.service(EXS_SERVICE_ID)
-                .post()
-                .uri("/api/exs/edu/external-transfer")
-                .bodyValue(Map.of(
+        return cpfWebClient.post(
+                EXS_SERVICE_ID,
+                "/api/exs/edu/external-transfer",
+                Map.of(
                         "memberId", memberId,
                         "institutionCode", "BANK01",
-                        "externalTransactionId", "EXT-MBR-" + System.currentTimeMillis()))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-                })
-                .block();
+                        "externalTransactionId", "EXT-MBR-" + System.currentTimeMillis()),
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                });
     }
 }

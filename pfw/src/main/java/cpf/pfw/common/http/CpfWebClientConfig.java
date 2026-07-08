@@ -2,6 +2,7 @@ package cpf.pfw.common.http;
 
 import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import cpf.pfw.common.servicecall.CpfServiceCallEngine;
 import cpf.pfw.common.workflow.CpfWorkflowContext;
 import io.netty.channel.ChannelOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -50,7 +51,8 @@ public class CpfWebClientConfig {
     public CpfWebClient cpfWebClient(
             CpfHttpClientProperties httpClientProperties,
             CpfServiceEndpointRegistry endpointRegistry,
-            ObjectProvider<CpfFileLogWriter> fileLogWriterProvider) {
+            ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
+            ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider) {
 
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, httpClientProperties.getConnectTimeoutMillis())
@@ -67,7 +69,7 @@ public class CpfWebClientConfig {
                 .filter(transactionHeaderPropagationFilter())
                 .filter(integrationFileLogFilter(fileLogWriterProvider));
 
-        return new CpfWebClient(builder, endpointRegistry);
+        return new CpfWebClient(builder, endpointRegistry, serviceCallEngineProvider);
     }
 
     @Bean

@@ -1,0 +1,16 @@
+{
+    "startedAt":  "2026-07-07T19:29:30.8712517+09:00",
+    "runRuntimeRequested":  false,
+    "validationMode":  "source-failover-contract",
+    "checks":  {
+                   "excludedInstanceTracking":  true,
+                   "failoverFlag":  true,
+                   "selectorExclude":  true,
+                   "failoverTest":  true
+               },
+    "status":  "DONE",
+    "failed":  [
+
+               ],
+    "finishedAt":  "2026-07-07T19:29:30.8782506+09:00"
+}

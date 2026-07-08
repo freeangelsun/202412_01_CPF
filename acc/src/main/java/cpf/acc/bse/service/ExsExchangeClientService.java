@@ -18,24 +18,20 @@ public class ExsExchangeClientService {
     private final CpfWebClient cpfWebClient;
 
     public Map<String, Object> requestExternalTransfer(Map<String, Object> request) {
-        return cpfWebClient.service(EXS_SERVICE_ID)
-                .post()
-                .uri("/api/exs/edu/external-transfer")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-                })
-                .block();
+        return cpfWebClient.post(
+                EXS_SERVICE_ID,
+                "/api/exs/edu/external-transfer",
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                });
     }
 
     public Map<String, Object> requestExternalTransferFailure(Map<String, Object> request) {
-        return cpfWebClient.service(EXS_SERVICE_ID)
-                .post()
-                .uri("/api/exs/edu/external-transfer/failure")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-                })
-                .block();
+        return cpfWebClient.post(
+                EXS_SERVICE_ID,
+                "/api/exs/edu/external-transfer/failure",
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                });
     }
 }

@@ -1,0 +1,16 @@
+{
+    "startedAt":  "2026-07-07T19:29:30.5987776+09:00",
+    "runRuntimeRequested":  false,
+    "validationMode":  "source-health-contract",
+    "checks":  {
+                   "recordHealthStatus":  true,
+                   "updateInstanceHealth":  true,
+                   "heartbeatColumn":  true,
+                   "summarize":  true
+               },
+    "status":  "DONE",
+    "failed":  [
+
+               ],
+    "finishedAt":  "2026-07-07T19:29:30.6048406+09:00"
+}

@@ -169,7 +169,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260708_04').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260708_05').toString())
 }
 
 Map<String, String> cpfReadEnvFile(File envFile) {

@@ -1,7 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/sample-coverage-matrix.md"),
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260708_04")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260708_05")
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,6 +57,10 @@ $requiredSampleIds = @(
     "XYZ-EDU-SEC-001","XYZ-EDU-SEC-002","XYZ-EDU-SEC-003","XYZ-EDU-SEC-004","XYZ-EDU-SEC-005",
     "XYZ-EDU-AUDIT-001","XYZ-EDU-AUDIT-002","XYZ-EDU-AUDIT-003",
     "XYZ-EDU-VALID-001","XYZ-EDU-VALID-002","XYZ-EDU-VALID-003","XYZ-EDU-VALID-004",
+    "XYZ-EDU-TLM-001","XYZ-EDU-TLM-002","XYZ-EDU-TLM-003","XYZ-EDU-TLM-004",
+    "XYZ-EDU-MSG-001","XYZ-EDU-MSG-002","XYZ-EDU-MSG-003","XYZ-EDU-MSG-004","XYZ-EDU-MSG-005",
+    "XYZ-EDU-FILE-001","XYZ-EDU-FILE-002","XYZ-EDU-FILE-003","XYZ-EDU-FILE-004","XYZ-EDU-FILE-005","XYZ-EDU-FILE-006","XYZ-EDU-FILE-007","XYZ-EDU-FILE-008",
+    "XYZ-EDU-ARCHIVE-001","XYZ-EDU-ARCHIVE-002","XYZ-EDU-ARCHIVE-003","XYZ-EDU-ARCHIVE-004",
     "XYZ-EDU-OPER-001","XYZ-EDU-OPER-002",
     "BAT-EDU-JOB-001","BAT-EDU-JOB-002","BAT-EDU-JOB-003","BAT-EDU-JOB-004","BAT-EDU-JOB-005","BAT-EDU-JOB-006","BAT-EDU-JOB-007","BAT-EDU-JOB-008","BAT-EDU-JOB-009",
     "BAT-EDU-TRX-001","BAT-EDU-TRX-002","BAT-EDU-TRX-003","BAT-EDU-TRX-004",
@@ -64,13 +68,16 @@ $requiredSampleIds = @(
     "BAT-EDU-CENTER-001","BAT-EDU-CENTER-002","BAT-EDU-CENTER-003","BAT-EDU-CENTER-004","BAT-EDU-CENTER-005","BAT-EDU-CENTER-006","BAT-EDU-CENTER-007",
     "BAT-EDU-LOG-001","BAT-EDU-LOG-002","BAT-EDU-LOG-003","BAT-EDU-LOG-004","BAT-EDU-LOG-005",
     "BAT-EDU-IDEMP-001","BAT-EDU-IDEMP-002","BAT-EDU-UNKNOWN-001","BAT-EDU-RECON-001","BAT-EDU-RECON-002",
+    "BAT-EDU-ARCHIVE-001","BAT-EDU-ARCHIVE-002","BAT-EDU-ARCHIVE-003",
     "CMN-EDU-FIXED-001","CMN-EDU-FIXED-002","CMN-EDU-FIXED-003","CMN-EDU-FIXED-004","CMN-EDU-FIXED-005","CMN-EDU-FIXED-006","CMN-EDU-FIXED-007","CMN-EDU-FIXED-008","CMN-EDU-FIXED-009","CMN-EDU-FIXED-010","CMN-EDU-FIXED-011",
     "CMN-EDU-MSG-001","CMN-EDU-CODE-001","CMN-EDU-VALID-001","CMN-EDU-CONV-001","CMN-EDU-FILE-001","CMN-EDU-FILE-002","CMN-EDU-FIXTURE-001","CMN-EDU-MASK-001",
     "EXS-EDU-FIXED-001","EXS-EDU-FIXED-002","EXS-EDU-FIXED-003","EXS-EDU-FIXED-004","EXS-EDU-ENDPOINT-001","EXS-EDU-ENDPOINT-002","EXS-EDU-AUTH-001","EXS-EDU-AUTH-002","EXS-EDU-AUTH-003","EXS-EDU-CALL-001",
     "EXS-EDU-RETRY-001","EXS-EDU-RETRY-002","EXS-EDU-RETRY-003","EXS-EDU-RETRY-004","EXS-EDU-UNKNOWN-001","EXS-EDU-RECON-001","EXS-EDU-LEDGER-001","EXS-EDU-IDEMP-001","EXS-EDU-FILE-001","EXS-EDU-FILE-002",
+    "EXS-EDU-ARCHIVE-001","EXS-EDU-ARCHIVE-002",
     "PFW-EDU-CALL-001","PFW-EDU-CALL-002","PFW-EDU-CALL-003","PFW-EDU-CALL-004","PFW-EDU-CALL-005","PFW-EDU-CALL-006","PFW-EDU-CALL-007","PFW-EDU-CALL-008","PFW-EDU-CALL-009","PFW-EDU-CALL-010",
     "PFW-EDU-BROKER-001","PFW-EDU-BROKER-002","PFW-EDU-BROKER-003","PFW-EDU-BROKER-004","PFW-EDU-BROKER-005","PFW-EDU-BROKER-006","PFW-EDU-BROKER-007","PFW-EDU-BROKER-008",
     "PFW-EDU-FILE-001","PFW-EDU-FILE-002","PFW-EDU-FILE-003","PFW-EDU-FILE-004","PFW-EDU-FILE-005","PFW-EDU-FILE-006",
+    "PFW-EDU-ARCHIVE-001","PFW-EDU-ARCHIVE-002","PFW-EDU-ARCHIVE-003","PFW-EDU-ARCHIVE-004","PFW-EDU-ARCHIVE-005","PFW-EDU-ARCHIVE-006","PFW-EDU-ARCHIVE-007","PFW-EDU-ARCHIVE-008","PFW-EDU-ARCHIVE-009","PFW-EDU-ARCHIVE-010",
     "PFW-EDU-SEC-001","PFW-EDU-SEC-002","PFW-EDU-SEC-003","PFW-EDU-SEC-004","PFW-EDU-SEC-005",
     "PFW-EDU-RUNTIME-001","PFW-EDU-RUNTIME-002","PFW-EDU-RUNTIME-003","PFW-EDU-RUNTIME-004","PFW-EDU-RUNTIME-005","PFW-EDU-RUNTIME-006","PFW-EDU-ADMIN-001","PFW-EDU-AUDIT-001","PFW-EDU-MASK-001",
     "ADM-EDU-OPR-001","ADM-EDU-OPR-002","ADM-EDU-OPR-003","ADM-EDU-OPR-004","ADM-EDU-OPR-005","ADM-EDU-OPR-006","ADM-EDU-OPR-007","ADM-EDU-OPR-008","ADM-EDU-OPR-009","ADM-EDU-OPR-010",
@@ -175,6 +182,124 @@ if (-not (Test-Path -LiteralPath $MatrixPath)) {
             if ($row.status -eq $statusDone -and (Test-ReasonText $row.evidencePath)) {
                 Add-Failure ("completed sample must have evidence path: {0}" -f $row.sampleId)
             }
+            if (-not (Test-ReasonText $row.evidencePath) -and -not (Test-Path -LiteralPath (Join-RootPath $row.evidencePath))) {
+                Add-Failure ("sample evidencePath missing: {0} :: {1}" -f $row.sampleId, $row.evidencePath)
+            }
+        }
+
+        $catalogOnlyRows = @($rows | Where-Object {
+                $_.sourcePath -match 'EducationCoverageCatalog\.java$' -or $_.testPath -match 'EducationCoverageCatalogTest\.java$'
+            })
+        foreach ($row in $catalogOnlyRows) {
+            if ($row.status -eq $statusDone) {
+                Add-Failure ("catalog-only sample cannot be completed: {0}" -f $row.sampleId)
+            }
+            if ($row.validationLevel -eq "unit-test" -and $row.testPath -match 'EducationCoverageCatalogTest\.java$' -and $row.status -eq $statusDone) {
+                Add-Failure ("CoverageCatalogTest cannot be functional unit evidence: {0}" -f $row.sampleId)
+            }
+        }
+
+        $duplicateSourceFindings = New-Object System.Collections.Generic.List[object]
+        $actualSourceRows = @($rows | Where-Object {
+                -not (Test-ReasonText $_.sourcePath) -and $_.sourcePath -notmatch 'EducationCoverageCatalog\.java$'
+            })
+        foreach ($group in @($actualSourceRows | Group-Object sourcePath | Where-Object { $_.Count -gt 5 })) {
+            $duplicateSourceFindings.Add([pscustomobject]@{
+                sourcePath = $group.Name
+                sampleIds = @($group.Group | ForEach-Object { $_.sampleId })
+                count = $group.Count
+            }) | Out-Null
+            Add-Failure ("one sample source represents too many sampleIds: {0} :: {1}" -f $group.Name, $group.Count)
+        }
+
+        $actualSampleFiles = @(
+            Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
+                Where-Object {
+                    $_.FullName -notmatch '\\build\\' -and
+                    $_.FullName -notmatch 'EducationCoverageCatalog\.java$'
+                } |
+                ForEach-Object { $_.FullName.Substring($Root.Length).TrimStart('\') -replace '\\', '/' }
+        )
+        $actualSampleTestFiles = @(
+            Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSampleTest.java" |
+                Where-Object {
+                    $_.FullName -notmatch '\\build\\' -and
+                    $_.FullName -notmatch 'EducationCoverageCatalogTest\.java$'
+                } |
+                ForEach-Object { $_.FullName.Substring($Root.Length).TrimStart('\') -replace '\\', '/' }
+        )
+        $batSamples = @($actualSampleFiles | Where-Object { $_ -like 'bat/src/main/java/cpf/bat/edu/*' })
+        $batTests = @($actualSampleTestFiles | Where-Object { $_ -like 'bat/src/test/java/cpf/bat/edu/*' })
+        $xyzSamples = @($actualSampleFiles | Where-Object { $_ -like 'xyz/src/main/java/cpf/xyz/edu/*' })
+        $xyzTests = @($actualSampleTestFiles | Where-Object { $_ -like 'xyz/src/test/java/cpf/xyz/edu/*' })
+        $cmnSamples = @($actualSampleFiles | Where-Object { $_ -like 'cmn/src/main/java/cpf/cmn/edu/*' })
+        $cmnTests = @($actualSampleTestFiles | Where-Object { $_ -like 'cmn/src/test/java/cpf/cmn/edu/*' })
+        $exsSamples = @($actualSampleFiles | Where-Object { $_ -like 'exs/src/main/java/cpf/exs/edu/*' })
+        $exsTests = @($actualSampleTestFiles | Where-Object { $_ -like 'exs/src/test/java/cpf/exs/edu/*' })
+        $pfwSamples = @($actualSampleFiles | Where-Object { $_ -like 'pfw/src/main/java/cpf/pfw/common/*' })
+        $pfwTests = @($actualSampleTestFiles | Where-Object { $_ -like 'pfw/src/test/java/cpf/pfw/common/*' })
+        $admBizSamples = @($actualSampleFiles | Where-Object { $_ -like 'adm/src/main/java/cpf/adm/edu/*' -or $_ -like 'bizadm/src/main/java/cpf/bizadm/edu/*' })
+        $admBizTests = @($actualSampleTestFiles | Where-Object { $_ -like 'adm/src/test/java/cpf/adm/edu/*' -or $_ -like 'bizadm/src/test/java/cpf/bizadm/edu/*' })
+
+        if ($batSamples.Count -lt 15) {
+            Add-Failure ("BAT edu actual sample class count is below minimum: {0}" -f $batSamples.Count)
+        }
+        if ($batTests.Count -lt 15) {
+            Add-Failure ("BAT edu actual test class count is below minimum: {0}" -f $batTests.Count)
+        }
+        if ($xyzSamples.Count -lt 20) {
+            Add-Failure ("XYZ edu actual sample class count is below minimum: {0}" -f $xyzSamples.Count)
+        }
+        if ($xyzTests.Count -lt 20) {
+            Add-Failure ("XYZ edu actual test class count is below minimum: {0}" -f $xyzTests.Count)
+        }
+        if ($cmnSamples.Count -lt 5 -or $cmnTests.Count -lt 5) {
+            Add-Failure ("CMN edu fixed/helper sample coverage is below minimum.")
+        }
+        if ($exsSamples.Count -lt 5 -or $exsTests.Count -lt 5) {
+            Add-Failure ("EXS edu adapter sample coverage is below minimum.")
+        }
+        if ($pfwSamples.Count -lt 5 -or $pfwTests.Count -lt 5) {
+            Add-Failure ("PFW capability sample coverage is below minimum.")
+        }
+        if ($admBizSamples.Count -lt 5 -or $admBizTests.Count -lt 5) {
+            Add-Failure ("ADM/BIZADM operation/auth sample coverage is below minimum.")
+        }
+
+        $requiredPackageFragments = @(
+            'bat/src/main/java/cpf/bat/edu/job/',
+            'bat/src/main/java/cpf/bat/edu/chunk/',
+            'bat/src/main/java/cpf/bat/edu/servicecall/',
+            'bat/src/main/java/cpf/bat/edu/archive/',
+            'xyz/src/main/java/cpf/xyz/edu/servicecall/',
+            'xyz/src/main/java/cpf/xyz/edu/header/',
+            'xyz/src/main/java/cpf/xyz/edu/messaging/',
+            'xyz/src/main/java/cpf/xyz/edu/archive/',
+            'cmn/src/main/java/cpf/cmn/edu/fixedlength/',
+            'exs/src/main/java/cpf/exs/edu/fixedlength/',
+            'pfw/src/main/java/cpf/pfw/common/archive/'
+        )
+        $missingPackageFragments = @($requiredPackageFragments | Where-Object {
+                $fragment = $_
+                -not ($actualSampleFiles | Where-Object { $_.StartsWith($fragment) } | Select-Object -First 1)
+            })
+        foreach ($fragment in $missingPackageFragments) {
+            Add-Failure ("required edu package has no actual sample: {0}" -f $fragment)
+        }
+
+        $archiveFiles = @(
+            'pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveService.java',
+            'pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java',
+            'pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java',
+            'pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java',
+            'pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java',
+            'xyz/src/main/java/cpf/xyz/edu/archive/XyzArchiveEducationSample.java',
+            'bat/src/main/java/cpf/bat/edu/archive/BatArchiveCompressionEducationSample.java',
+            'exs/src/main/java/cpf/exs/edu/archive/ExsArchiveEducationSample.java'
+        )
+        $missingArchiveFiles = @($archiveFiles | Where-Object { -not (Test-Path -LiteralPath (Join-RootPath $_)) })
+        foreach ($file in $missingArchiveFiles) {
+            Add-Failure ("archive/compression coverage file missing: {0}" -f $file)
         }
 
         $statusSummary = $rows | Group-Object status | ForEach-Object {
@@ -217,6 +342,50 @@ if (-not (Test-Path -LiteralPath $MatrixPath)) {
             status = $(if ($placeholderFindings.Count -eq 0) { $statusDone } else { $statusFailed })
             findings = $placeholderFindings
         })
+        Write-JsonEvidence "sample-catalog-only-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if (@($catalogOnlyRows | Where-Object { $_.status -eq $statusDone }).Count -eq 0) { $statusDone } else { $statusFailed })
+            catalogOnlyCount = $catalogOnlyRows.Count
+            completedCatalogOnly = @($catalogOnlyRows | Where-Object { $_.status -eq $statusDone } | ForEach-Object { $_.sampleId })
+        })
+        Write-JsonEvidence "sample-source-duplication-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($duplicateSourceFindings.Count -eq 0) { $statusDone } else { $statusFailed })
+            findings = $duplicateSourceFindings
+        })
+        Write-JsonEvidence "sample-actual-implementation-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($actualSampleFiles.Count -gt 0 -and $actualSampleTestFiles.Count -gt 0) { $statusDone } else { $statusFailed })
+            sampleCount = $actualSampleFiles.Count
+            testCount = $actualSampleTestFiles.Count
+            samples = $actualSampleFiles
+            tests = $actualSampleTestFiles
+        })
+        Write-JsonEvidence "sample-package-structure-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($missingPackageFragments.Count -eq 0) { $statusDone } else { $statusFailed })
+            missingPackageFragments = $missingPackageFragments
+        })
+        Write-JsonEvidence "bat-edu-actual-sample-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($batSamples.Count -ge 15 -and $batTests.Count -ge 15) { $statusDone } else { $statusFailed })
+            sampleCount = $batSamples.Count
+            testCount = $batTests.Count
+        })
+        Write-JsonEvidence "xyz-edu-actual-sample-scan.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($xyzSamples.Count -ge 20 -and $xyzTests.Count -ge 20) { $statusDone } else { $statusFailed })
+            sampleCount = $xyzSamples.Count
+            testCount = $xyzTests.Count
+        })
+        Write-JsonEvidence "archive-compression-coverage.sanitized.json" ([pscustomobject]@{
+            generatedAt = (Get-Date).ToString("o")
+            status = $(if ($missingArchiveFiles.Count -eq 0) { $statusDone } else { $statusFailed })
+            requiredFiles = $archiveFiles
+            missingFiles = $missingArchiveFiles
+            tarStatus = $statusPartial
+            tarReason = "TAR support remains partial because the Java standard library has no built-in TAR implementation."
+        })
         Write-JsonEvidence "sample-coverage-result.sanitized.json" ([pscustomobject]@{
             generatedAt = (Get-Date).ToString("o")
             status = $(if ($failures.Count -eq 0) { $statusDone } else { $statusFailed })
@@ -224,6 +393,8 @@ if (-not (Test-Path -LiteralPath $MatrixPath)) {
             matrixSampleCount = $rows.Count
             statusSummary = $statusSummary
             moduleSummary = $moduleSummary
+            actualSampleCount = $actualSampleFiles.Count
+            actualSampleTestCount = $actualSampleTestFiles.Count
             failures = $failures
         })
     }

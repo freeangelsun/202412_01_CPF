@@ -1,0 +1,14 @@
+adm/src/main/java/cpf/adm/edu/AdmEducationCoverageCatalog.java
+adm/src/test/java/cpf/adm/edu/AdmEducationCoverageCatalogTest.java
+bat/src/main/java/cpf/bat/edu/catalog/BatEducationCoverageCatalog.java
+bat/src/test/java/cpf/bat/edu/catalog/BatEducationCoverageCatalogTest.java
+bizadm/src/main/java/cpf/bizadm/edu/BizAdmEducationCoverageCatalog.java
+bizadm/src/test/java/cpf/bizadm/edu/BizAdmEducationCoverageCatalogTest.java
+cmn/src/main/java/cpf/cmn/edu/CmnEducationCoverageCatalog.java
+cmn/src/test/java/cpf/cmn/edu/CmnEducationCoverageCatalogTest.java
+exs/src/main/java/cpf/exs/edu/ExsEducationCoverageCatalog.java
+exs/src/test/java/cpf/exs/edu/ExsEducationCoverageCatalogTest.java
+pfw/src/main/java/cpf/pfw/common/edu/PfwEducationCoverageCatalog.java
+pfw/src/test/java/cpf/pfw/common/edu/PfwEducationCoverageCatalogTest.java
+xyz/src/main/java/cpf/xyz/edu/catalog/XyzEducationCoverageCatalog.java
+xyz/src/test/java/cpf/xyz/edu/catalog/XyzEducationCoverageCatalogTest.java

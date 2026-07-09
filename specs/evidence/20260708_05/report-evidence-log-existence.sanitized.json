@@ -1,0 +1,12 @@
+{
+    "generatedAt":  "2026-07-09T12:44:42.3173626+09:00",
+    "status":  "완료",
+    "checkedTargets":  [
+                           "CPF_STABILIZATION_REPORT.md",
+                           "CPF_EVIDENCE_INDEX.md",
+                           "CPF_GAP_MATRIX.md",
+                           "specs/sample-coverage-matrix.md",
+                           "specs/기능_구현_매트릭스.html"
+                       ],
+    "result":  "report evidence and log references exist or are marked as not executed"
+}

@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-09T12:51:40.400+0900",
+    "module": "ACC",
+    "env": "dev",
+    "status": "DONE",
+    "envFile": "deploy/env/dev-acc.env",
+    "keyCount": 11,
+    "failures": [
+        
+    ]
+}

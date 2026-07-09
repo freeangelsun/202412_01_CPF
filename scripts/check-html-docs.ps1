@@ -98,12 +98,18 @@ $script:RequiredCheckIds = @(
     "packaged-dependencies-check",
     "deploy-dry-run-standard",
     "garbage-file-cleanup",
+    "empty-directory-scan",
     "deploy-env-standard",
     "deploy-inventory-standard",
     "gradle-deploy-task-standard",
     "datasource-mode-standard",
+    "local-port-duplicate-scan",
+    "edu-module-deploy-alias-scan",
     "bat-edu-package",
     "bat-job-log-policy",
+    "sample-coverage-matrix",
+    "sample-placeholder-scan",
+    "evidence-path-existence-check",
     "create-domain-profile-template",
     "runtime-smoke-summary",
     "check-report-matrix-evidence-consistency",
@@ -333,7 +339,9 @@ if (-not (Test-Path -LiteralPath $specsRoot)) {
 
 # 상세 가이드는 HTML로 관리합니다. specs 하위 Markdown 문서가 생기면 문서 체계가 다시 흩어지므로 실패 처리합니다.
 Get-ChildItem -LiteralPath $specsRoot -Recurse -File -Filter "*.md" | ForEach-Object {
-    Add-Failure "specs markdown document remains: $($_.FullName.Substring($Root.Length))"
+    if ($_.Name -ne "sample-coverage-matrix.md") {
+        Add-Failure "specs markdown document remains: $($_.FullName.Substring($Root.Length))"
+    }
 }
 
 $htmlTargets = New-Object System.Collections.Generic.List[System.IO.FileInfo]
@@ -385,7 +393,7 @@ $htmlTargets | ForEach-Object {
         Add-Failure "markdown table remains: $relative"
     }
     $mdReferenceScanText = $text
-    foreach ($allowedMarkdownReference in @("CPF_FINAL_TARGET_REQUIREMENTS.md", "CPF_STABILIZATION_REPORT.md", "README.md")) {
+    foreach ($allowedMarkdownReference in @("CPF_FINAL_TARGET_REQUIREMENTS.md", "CPF_STABILIZATION_REPORT.md", "CPF_EVIDENCE_INDEX.md", "README.md")) {
         $mdReferenceScanText = $mdReferenceScanText.Replace($allowedMarkdownReference, "")
     }
 

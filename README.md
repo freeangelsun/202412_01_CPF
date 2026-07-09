@@ -11,6 +11,7 @@ CPF는 Java 21과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크
 | `CPF_STABILIZATION_REPORT.md` | 최근 작업 결과, 검증 결과, 미검증/보류 항목 리포트입니다. |
 | `CPF_GAP_MATRIX.md` | 남은 gap과 우선순위 매트릭스입니다. |
 | `CPF_EVIDENCE_INDEX.md` | 검증 증적 파일 목록입니다. |
+| specs/sample-coverage-matrix.md | XYZ/BAT/CMN/EXS/PFW/ADM/BIZADM 교육 샘플의 sampleId, source/test/evidence/status 매트릭스입니다. |
 | `specs/index.html` | 상세 가이드 진입점입니다. |
 | `specs/개발_가이드.html` | 업무 개발, validation, transaction, service-call, EDU 샘플 안내입니다. |
 | `specs/관리자_가이드.html` | ADM 운영, 권한, 로그, 배치, 캐시, 보안 운영 안내입니다. |
@@ -45,6 +46,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-architecture-o
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-spring-event-usage.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-profile-loading.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-runtime-config-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sample-coverage.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-evidence-path-existence.ps1
 ```
 
 ## 배포 검증
@@ -52,10 +55,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-runtime-config
 배포 검증은 `scripts/deploy/*.ps1` 직접 호출이 아니라 Gradle 태스크를 표준으로 사용합니다. `remoteDeployDryRun`은 실제 원격 서버 접속 없이 env, inventory, bootJar, PFW/CMN 포함 여부, checksum, java -jar 실행 계획, 외부 WAS/JNDI 설정 계획을 증적으로 남깁니다.
 
 ```powershell
-.\gradlew.bat checkDeployEnv -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
-.\gradlew.bat checkDeployInventory -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
-.\gradlew.bat checkPackagedDependencies -PcpfModule=ACC -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
-.\gradlew.bat remoteDeployDryRun -PcpfModule=ACC -PcpfEnv=dev -PcpfDeployMode=dryRun -PcpfRequireApproval=false -PcpfResultDir=specs/evidence/20260708_03 --offline --no-daemon --console=plain
+.\gradlew.bat checkDeployEnv -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_04 --offline --no-daemon --console=plain
+.\gradlew.bat checkDeployInventory -PcpfModule=ACC -PcpfEnv=dev -PcpfResultDir=specs/evidence/20260708_04 --offline --no-daemon --console=plain
+.\gradlew.bat checkPackagedDependencies -PcpfModule=ACC -PcpfResultDir=specs/evidence/20260708_04 --offline --no-daemon --console=plain
+.\gradlew.bat remoteDeployDryRun -PcpfModule=ACC -PcpfEnv=dev -PcpfDeployMode=dryRun -PcpfRequireApproval=false -PcpfResultDir=specs/evidence/20260708_04 --offline --no-daemon --console=plain
 ```
 
 ## 주요 smoke
@@ -63,7 +66,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-runtime-config
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/runtime-start-services.ps1 -Modules ACC,MBR,EXS,ADM,BAT -BuildBeforeRun -NoExitOnFailure
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-runtime-closure.ps1 -Modules ACC,MBR,EXS,ADM,BAT
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-sanitized-evidence.ps1 -EvidenceDir specs/evidence/20260708_03
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-sanitized-evidence.ps1 -EvidenceDir specs/evidence/20260708_04
 
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-standard-header-e2e.ps1

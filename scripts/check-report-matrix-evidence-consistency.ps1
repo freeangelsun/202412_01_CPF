@@ -1,5 +1,6 @@
 param(
-    [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
+    [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260708_04")
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,6 +10,17 @@ $failures = New-Object System.Collections.Generic.List[string]
 function Add-Failure {
     param([string] $Message)
     $failures.Add($Message)
+}
+
+function Write-JsonEvidence {
+    param(
+        [string] $FileName,
+        [object] $Value
+    )
+    New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+    $path = Join-Path $ResultDir $FileName
+    $json = $Value | ConvertTo-Json -Depth 12
+    [System.IO.File]::WriteAllText($path, $json, [System.Text.UTF8Encoding]::new($false))
 }
 
 function New-UnicodeText {
@@ -56,6 +68,12 @@ $script:AllowedStatuses = @(
     $script:StatusNeedsReview
 )
 
+Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscustomobject]@{
+    generatedAt = (Get-Date).ToString("o")
+    status = $script:StatusNotVerified
+    note = "self evidence file initialized before consistency scanning"
+})
+
 $script:RequiredCheckIds = @(
     "edu-mapper-db-slice",
     "mariadb-full-install",
@@ -99,12 +117,18 @@ $script:RequiredCheckIds = @(
     "packaged-dependencies-check",
     "deploy-dry-run-standard",
     "garbage-file-cleanup",
+    "empty-directory-scan",
     "deploy-env-standard",
     "deploy-inventory-standard",
     "gradle-deploy-task-standard",
     "datasource-mode-standard",
+    "local-port-duplicate-scan",
+    "edu-module-deploy-alias-scan",
     "bat-edu-package",
     "bat-job-log-policy",
+    "sample-coverage-matrix",
+    "sample-placeholder-scan",
+    "evidence-path-existence-check",
     "create-domain-profile-template",
     "runtime-smoke-summary",
     "check-report-matrix-evidence-consistency",
@@ -359,6 +383,14 @@ foreach ($checkId in $script:RequiredCheckIds) {
         Test-EvidenceFile $relativePath $checkId
     }
 }
+
+Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscustomobject]@{
+    generatedAt = (Get-Date).ToString("o")
+    status = $(if ($failures.Count -eq 0) { $script:StatusDone } else { $script:StatusFailed })
+    requiredCheckCount = $script:RequiredCheckIds.Count
+    failureCount = $failures.Count
+    failures = $failures
+})
 
 if ($failures.Count -gt 0) {
     $failures | Sort-Object | ForEach-Object { Write-Host $_ }

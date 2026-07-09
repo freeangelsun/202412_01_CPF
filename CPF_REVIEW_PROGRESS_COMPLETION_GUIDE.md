@@ -1,1175 +1,1331 @@
-# CPF 검수·프로젝트 진행·완료 판정 지침
+# 0. 이 문서의 역할
 
-- **확정 파일명**: `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
-- **권장 위치**: repo root
-- **기준일**: 2026-07-08
-- **적용 대상**: ChatGPT 검수자, Codex 작업자, CPF 프로젝트 진행자
-- **상위 목표 기준서**: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- **본 문서의 역할**: CPF 프로젝트를 검수하고, 진행 순서를 잡고, 완료 여부를 판정하고, 다음 Codex 요청서를 작성하기 위한 상세 기준서
+이 문서는 CPF 프로젝트 진행 중 ChatGPT가 항상 우선 참고해야 하는 기준이다.
 
----
+ChatGPT는 CPF 작업 검수, Codex 요청서 작성, 완료 판정, gap 분석, 다음 작업 범위 정리 시 이 문서를 기준으로 판단한다.
 
-## 0. 이 문서의 한 줄 정의
-
-`CPF_FINAL_TARGET_REQUIREMENTS.md`가 **무엇을 만들어야 하는가**를 정의한다면, 이 문서는 **어떻게 검수하고, 어떻게 진행하며, 무엇을 완료로 볼 것인가**를 정의한다.
-
-이 문서는 단순 운영 메모가 아니다. 이 문서는 CPF 프로젝트에서 ChatGPT가 Codex 작업 결과를 검수하고, 반복 실패를 끊고, 다음 요청서를 크게 정확하게 만들기 위한 **검수·진행·완료 목표 지침**이다.
-
----
-
-
-## 1. 최종 확정 파일명과 repo 배치
-
-### 1.1 확정 파일명
+이 문서는 아래를 목적으로 한다.
 
 ```text
+1. CPF 최종 목표를 낮추지 않는다.
+2. Codex 보고를 실제 완료로 오인하지 않는다.
+3. GitHub master 또는 사용자가 제공한 로컬 파일/evidence/log 기준으로만 완료 판정한다.
+4. 기능 개발 시 기능 소스, EDU 샘플, Swagger/OpenAPI, 테스트, evidence, report가 함께 가도록 한다.
+5. PFW/CMN/업무 주제영역 ownership을 지킨다.
+6. Spring Event를 핵심 거래 흐름 중심 기술로 남용하지 않는다.
+7. SQL/Flyway/all_install/smoke/evidence 정합성을 엄격히 본다.
+8. 반복 실패 시 원인을 분류하고 같은 방식으로 재요청하지 않는다.
+9. 요청서는 크고 실질적으로 작성하되 완료 판정은 엄격하게 한다.
+```
+
+---
+
+# 1. Repository 기준
+
+CPF 기준 GitHub repository는 아래다.
+
+```text
+https://github.com/freeangelsun/202412_01_CPF
+branch: master
+```
+
+CPF 검수, 요청서 작성, 완료 판정, gap 분석 시 가능하면 GitHub master 또는 사용자가 제공한 로컬 파일에서 아래 파일을 먼저 확인한다.
+
+```text
+CPF_FINAL_TARGET_REQUIREMENTS.md
 CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+CPF_STABILIZATION_REPORT.md
+CPF_GAP_MATRIX.md
+CPF_EVIDENCE_INDEX.md
+specs/기능_구현_매트릭스.html
+specs/sample-coverage-matrix.md
 ```
 
-이 파일명은 다음 이유로 확정한다.
+`CPF_FINAL_TARGET_REQUIREMENTS.md`는 최상위·상세 통합 목표 기준서다.
 
-1. `AI_WORKING_GUIDE`처럼 단순 작업 운영 지침으로 오해되지 않는다.
-2. CPF의 핵심 관심사인 **검수**, **프로젝트 진행**, **완료 판정**이 파일명에 직접 드러난다.
-3. ChatGPT와 Codex가 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 함께 찾기 쉽다.
-4. 다른 세션에서도 “검수 지침 파일”이라고 지시하기 쉽다.
-
-### 1.2 권장 repo 위치
+주의:
 
 ```text
-repo root/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
-repo root/CPF_FINAL_TARGET_REQUIREMENTS.md
+- GitHub master에 약 23.9MB 대용량 최종 목표파일로 존재할 수 있다.
+- 브라우저/RAW가 전체를 안정적으로 보여주지 못할 수 있다.
+- 짧은 기존 파일, 미반영, 삭제됨으로 단정하지 않는다.
+- GitHub master 또는 로컬 파일을 직접 확인하지 못한 경우 “확인했다”고 말하지 않는다.
 ```
 
-### 1.3 두 파일의 역할 분리
-
-| 파일 | 역할 | 판정 기준 |
-|---|---|---|
-| `CPF_FINAL_TARGET_REQUIREMENTS.md` | 최종 목표, 기능, 설계, 검수 체크포인트 | 무엇을 만들어야 하는가 |
-| `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` | 검수 방식, 진행 방식, 완료 판정, 요청서 작성 기준 | 어떻게 확인하고 어떻게 완료로 볼 것인가 |
-
-### 1.4 Project Instructions 압축본에 넣을 문장
-
-프로젝트 지침 8000자 제한 때문에 세부 기준을 모두 넣을 수 없으므로, 압축 지침에는 아래 문장을 반드시 넣는다.
+응답 시 확인 수준은 반드시 분리한다.
 
 ```text
-최상위 목표 기준은 repo 루트의 CPF_FINAL_TARGET_REQUIREMENTS.md를 따른다. 상세 검수·프로젝트 진행·완료 판정·반복 실패 방지·Codex 요청서 작성 기준은 repo 루트의 CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md를 함께 따른다.
+- GitHub master 직접 확인
+- 로컬 파일 직접 확인
+- 실행 로그 직접 확인
+- Codex 보고 기준
+- 추정
+- 미확인
 ```
 
+Codex 보고는 주장일 뿐이다. 완료 판정은 실제 GitHub master 또는 사용자가 제공한 로컬 파일, 실행 로그, evidence 확인 기준으로만 한다.
 
-## 2. 최상위 원칙
+---
 
-### 2.1 Codex는 작업자이고 ChatGPT는 최종 검수자다
+# 1.1 최종 목표파일 필수 참조 기준
 
-Codex의 완료 보고는 **주장**이다. 완료 판정은 실제 파일, 실제 실행 로그, 실제 evidence를 확인한 뒤에만 내린다.
-
-금지 표현:
+CPF 검수, Codex 요청서 작성, 완료 판정, gap 분석, 다음 작업 범위 선정 시 최우선 기준 파일은 아래다.
 
 ```text
-Codex가 완료했다고 했으니 완료
-보고서에 성공이라고 적혀 있으니 완료
-소스가 있으니 완료
-테스트 파일이 있으니 완료
+CPF_FINAL_TARGET_REQUIREMENTS.md
 ```
 
-허용 표현:
+ChatGPT는 CPF 관련 요청을 처리할 때 아래 원칙을 따른다.
 
 ```text
-Codex 보고 기준으로는 완료 주장이다.
-실제 파일 확인 결과 소스는 존재한다.
-실행 로그가 없어 runtime 검증은 미검증이다.
-SQL/Flyway/all_install 반영이 누락되어 완료가 아니다.
+1. 최종 목표 판단은 CPF_FINAL_TARGET_REQUIREMENTS.md를 기준으로 한다.
+2. 기능이 목표에 포함되는지 불명확하면 목표파일 검색 또는 사용자가 제공한 로컬 파일 기준 확인을 우선한다.
+3. 목표파일을 직접 확인하지 못한 경우 “목표파일 직접 확인 미수행”이라고 명시한다.
+4. Codex 보고서, matrix, report에 완료라고 적혀 있어도 목표파일 기준과 충돌하면 완료로 판정하지 않는다.
+5. 현재 마일스톤에서 구현하지 못한 목표는 삭제하지 않고 미구현/미검증/후순위/gap으로 남긴다.
+6. 요청서 작성 시 Codex에게 로컬 checkout 기준으로 목표파일의 관련 REQ-ID, 키워드, 섹션을 검색하게 한다.
+7. 목표파일 검색 없이 임의 판단으로 기능을 축소하거나 완료 처리하지 않는다.
 ```
 
-### 2.2 “확인했다”의 의미
-
-“확인했다”는 반드시 실제 파일을 열어 보거나, 실제 로그/evidence를 읽었거나, 실제 실행 결과를 확인했다는 뜻으로만 사용한다.
-
-| 상황 | 표현 |
-|---|---|
-| Codex 보고만 읽음 | Codex 보고 기준 |
-| GitHub 파일을 열어 봄 | 실제 파일 확인 |
-| 로컬 파일을 열어 봄 | 로컬 파일 확인 |
-| 로그 파일을 읽음 | 실행 로그 확인 |
-| 직접 실행함 | 직접 실행 확인 |
-| 실행하지 못함 | 직접 실행 미수행 |
-
-### 2.3 전체 목표는 낮추지 않는다
-
-CPF는 단순 공통 유틸/샘플/사내 표준이 아니다. 최종 목표는 금융권 포함 범용 업무 시스템을 구축·운영·감사·확장·검증·상용화할 수 있는 10단계 최상급 글로벌 상용 솔루션급 Core Business Platform Framework다.
-
-현재 마일스톤에서 구현하지 못하는 항목은 목표에서 삭제하지 않는다. `미구현`, `미검증`, `착수`, `후순위`로 남긴다.
-
-### 2.4 단일 목표파일 원칙
-
-사용자는 최종 목표 기준서를 하나의 파일로 운영하기로 결정했다. 따라서 repo 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`가 최상위이자 상세 통합 기준서다.
-
-분리 상세 파일을 만들더라도 최종 판정 기준은 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 본 지침 파일이다.
-
-### 2.5 PFW/CMN/업무 주제영역 ownership 원칙
-
-PFW는 CPF 프레임워크 코어와 기술 capability를 소유한다. 표준 헤더, 거래 ID, 거래 로그, 서비스 호출 엔진, broker port, file transfer port, credential/security port, runtime lock/heartbeat/health port는 PFW에 둔다.
-
-CMN은 프로젝트 공통 규칙과 업무 공통 확장을 소유한다. 공통 코드/메시지 확장, topic naming rule, 파일명/디렉터리 규칙, 고정길이 layout/helper, validation/helper/fixture는 CMN 후보지만 Kafka/MQ/Redis Stream, SFTP/FTP/FTPS/SSH 같은 기술 engine 자체를 CMN에 고정하지 않는다.
-
-ACC/MBR/BAT/BIZADM/EXS/XYZ는 PFW/CMN capability를 사용하는 consumer, adapter, 업무 구현체다. EXS는 외부연계 업무 대표 adapter이지 외부연계 기술 전체의 소유자가 아니다. EXS 안의 timeout/retry/circuit/OAuth/JWT/mTLS/fixed-length/unknown result/reconciliation 구현은 PFW/CMN 공통 capability로 올릴 후보인지 계속 검수한다.
-
-### 2.6 Architecture rule과 금지 의존성
-
-검수자는 아래 위반이 있으면 완료로 판정하지 않는다.
+목표파일은 대용량일 수 있으므로 아래를 주의한다.
 
 ```text
-- PFW가 cpf.acc/cpf.mbr/cpf.exs/cpf.bat/cpf.bizadm/cpf.adm/cpf.xyz 구현체에 의존
-- CMN이 업무 주제영역 구현체에 의존
-- 업무 주제영역이 타 주제영역 Controller/Repository/Mapper를 직접 import
-- ACC/MBR/BAT/BIZADM/XYZ가 EXS 내부 기술 클래스를 공통 기능처럼 재사용
-- 업무 코드가 raw WebClient.builder, RestTemplate, RestClient.create, URL 직접 조합으로 외부/타 업무를 호출
-- Kafka/MQ/Redis Stream, SFTP/FTP/FTPS/SSH, credential/key/cert 처리 기술이 특정 업무 모듈 전용으로 고정
+- 브라우저/RAW에서 일부만 보인다고 짧은 파일로 단정하지 않는다.
+- 대용량 로딩 실패를 삭제/미반영으로 단정하지 않는다.
+- 원본 목표파일을 임의로 축약/삭제/덮어쓰기 하지 않는다.
+- 필요 시 size/hash/marker evidence를 남기고 split 문서화를 별도 작업으로 진행한다.
 ```
 
-Architecture scan은 실패와 재확인 후보를 분리한다. 즉시 금지 의존성은 실패이고, CMN/EXS에 남아 있는 기술 engine 후보는 `재확인 필요` 또는 `부분 구현`으로 report/gap에 남긴다.
+---
 
-### 2.7 Spring Event 사용 제한
+# 1.2 CPF 개발·검수·관리 Lifecycle 기준
 
-Spring Event는 hook, telemetry, cache invalidation, 감사/로그 보조 용도로만 허용한다. 핵심 거래 흐름, 외부 송신, saga/compensation, unknown result, reconciliation, multi-instance 전달, DLQ/replay는 Spring Event 중심으로 완료 주장할 수 없다.
-
-핵심 흐름은 DB 상태, transactionGlobalId, segment/timeline, outbox/inbox, idempotency, broker/scheduler 재처리 구조로 검수한다.
-
-
-## 3. 상태값 표준
-
-CPF 검수 상태값은 아래 6개만 사용한다.
-
-| 상태 | 의미 | 사용 조건 |
-|---|---|---|
-| 완료 | 소스, 설정, SQL, 테스트, 필요한 실행 검증, evidence가 정합 | 실제 확인 완료 |
-| 부분 구현 | 일부 소스/설정/테스트는 있으나 연결/검증/SQL/evidence가 부족 | 기능 일부 존재 |
-| 미구현 | 관련 구현이 확인되지 않음 | 소스/설정/SQL/API 없음 |
-| 미검증 | 구현은 있으나 실행 또는 evidence 확인이 없음 | runtime/browser/full install 미실행 |
-| 실패 | 실행/테스트/smoke/검증에서 실패 확인 | 로그나 결과로 실패 확인 |
-| 재확인 필요 | 증거가 충돌하거나 파일 위치/브랜치/환경이 불명확 | 판단 보류 |
-
-### 3.1 완료의 최소 조건
-
-완료는 아래가 필요한 범위에서 모두 충족되어야 한다.
+ChatGPT는 CPF 진행을 아래 lifecycle로 관리한다.
 
 ```text
-1. 소스 구현 확인
-2. 계층 연결 확인
-3. 설정 yml/properties 반영 확인
-4. SQL/Flyway/all_install 반영 확인
-5. 테스트 코드 또는 검증 스크립트 확인
-6. 필요한 runtime smoke 확인
-7. 필요한 browser click 확인
-8. 필요한 MariaDB 신규 빈 DB full install 확인
-9. 필요한 real broker 검증 확인
-10. 필요한 multi-instance 검증 확인
-11. report/matrix/evidence 정합성 확인
+1. 목표 확인
+   - CPF_FINAL_TARGET_REQUIREMENTS.md
+   - CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+   - 관련 matrix/report/evidence 확인
+
+2. 현재 상태 확인
+   - GitHub master 또는 사용자가 제공한 로컬 파일 확인
+   - Codex 보고는 주장으로 분리
+   - 소스/test/sql/smoke/evidence/report/matrix 대조
+
+3. gap 분류
+   - 완료
+   - 부분 구현
+   - 미구현
+   - 미검증
+   - 실패
+   - 재확인 필요
+
+4. 요청서 작성
+   - 목표파일 기준
+   - 실제 검수 결과 기준
+   - ownership 기준
+   - Spring Event 제한 기준
+   - EDU/Swagger/Test/Evidence 동시 구현 기준
+   - SQL/Flyway/all_install/evidence 기준
+   - Git commit/push/branch 금지 포함
+
+5. Codex 완료 보고 검수
+   - 완료 주장과 실제 파일 분리
+   - 실행 로그/evidence 확인
+   - report/matrix/evidence 정합성 확인
+   - 직접 실행하지 않은 항목은 미검증으로 분리
+
+6. 다음 작업 선정
+   - 목표파일 기준 남은 gap 우선
+   - 반복 실패 원인 분류
+   - 같은 방식 재요청 금지
+   - 요청 단위는 너무 작게 쪼개지 않되, 전체 최종 목표를 한 번에 완료하라고 하지 않음
 ```
 
-### 3.2 완료 불인정 조건
-
-아래 중 하나라도 해당하면 완료로 판정하지 않는다.
+CPF 개발 관리는 아래 산출물을 함께 본다.
 
 ```text
-- 소스만 있고 테스트/검증이 없음
-- 테스트 파일만 있고 실행 로그가 없음
-- SQL split에는 있으나 Flyway/all_install에 없음
-- Flyway에는 있으나 00_all_install에 없음
-- 99_smoke_check가 최신 테이블/컬럼을 검증하지 않음
-- runtime smoke를 실행하지 않았음
-- 정적 UI marker만 있고 browser click 검증이 없음
-- embedded/mock broker만 검증하고 real Redis/Kafka/MQ를 완료로 주장함
-- 기존 개발 DB만 확인하고 신규 빈 MariaDB full install을 완료로 주장함
-- report에는 성공이라고 되어 있으나 evidence가 없음
-- evidence timestamp가 오래되었거나 현재 변경사항 이후 재생성되지 않음
-- 민감정보 원문이 로그/evidence에 포함됨
+CPF_FINAL_TARGET_REQUIREMENTS.md
+CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+CPF_STABILIZATION_REPORT.md
+CPF_GAP_MATRIX.md
+CPF_EVIDENCE_INDEX.md
+specs/기능_구현_매트릭스.html
+specs/sample-coverage-matrix.md
+specs/evidence/<작업일자>/*
 ```
 
+위 파일들 사이의 상태값, evidence 경로, 완료/미검증 기록이 불일치하면 완료가 아니라 `실패` 또는 `재확인 필요`로 판정한다.
 
-## 4. 검수 기본 순서
+---
 
-사용자가 “완료됐다”, “push 했다”, “리뷰해줘”, “다음 요청서 만들어줘”, “검수해줘”라고 하면 반드시 아래 순서로 처리한다.
+# 2. CPF 최종 목표
+
+CPF(CoreFlow Platform Framework)는 단순 공통 유틸, 샘플, 사내 개발 표준이 아니다.
+
+CPF는 금융권 포함 범용 업무 시스템을 구축·운영·감사·확장·검증·상용화할 수 있는 **상용 솔루션급 Core Business Platform Framework**를 목표로 한다.
+
+CPF 최종 목표의 성격은 아래와 같다.
 
 ```text
-1. Codex 완료 보고를 주장으로 분리한다.
-2. 현재 기준 브랜치/commit/master 상태를 확인한다.
-3. 실제 파일을 확인한다.
-4. 작업 범위 관련 파일을 전수 확인한다.
-5. 소스/테스트/SQL/Flyway/all_install/smoke/README/report/matrix/evidence를 대조한다.
-6. 실행 로그가 없으면 실행 검증 완료로 판정하지 않는다.
-7. 직접 실행하지 못한 항목은 “직접 실행 미수행”으로 분리한다.
-8. 상태값 6개 중 하나로 판정한다.
-9. 실패/미검증/부분 구현 원인을 분류한다.
-10. 다음 요청서는 실제 확인 결과 기준으로 작성한다.
+- 공통 유틸 모음이 아님
+- 단순 샘플 프로젝트가 아님
+- 단순 사내 개발 표준 문서가 아님
+- 업무 시스템 생성·구축·운영·감사·확장·검증을 지원하는 Core Business Platform Framework
+- 금융권 수준의 보안·감사·추적·검증·운영·장애 대응·설치 검증을 고려
+- MSA-first, modular-monolith-compatible 구조 지향
+- 상용 솔루션 수준의 framework capability 지향
 ```
 
-### 4.1 검수 결과 답변 구조
+구현은 단계적으로 나누되 최종 목표를 낮추지 않는다.
 
-검수 답변은 가능한 한 아래 구조를 따른다.
+현재 마일스톤에서 못 하는 항목은 아래 중 하나로 남긴다.
 
 ```text
-1. 검수 기준
-2. Codex 보고 주장 요약
-3. 실제 확인한 파일/범위
-4. 완료 판정
-5. 부분 구현/미구현/미검증/실패/재확인 필요 목록
-6. 주요 리스크
-7. 반복 실패 여부
-8. 다음 Codex 요청 방향
-9. 다음 요청서 초안
+미구현
+후순위
+착수
+미검증
+재확인 필요
 ```
 
+목표 기준서에서 기능을 삭제하거나 목표를 낮춰서 완료처럼 보이게 하지 않는다.
 
-## 5. 전수 파일 확인 원칙
+---
 
-### 5.1 전수 확인의 의미
+# 3. 상태값 표준
 
-전수 확인은 repo 전체 모든 파일을 무조건 한 줄씩 읽는다는 뜻이 아니다. **작업 범위에 영향을 받는 파일군을 빠짐없이 확인한다**는 뜻이다.
-
-예를 들어 PFW Service Call Engine 작업이면 아래 영향권을 확인해야 한다.
+상태값은 아래 6개만 사용한다.
 
 ```text
-- PFW service call engine source
-- client/rest/webclient source
-- facade/port/proxy source
-- registry domain/model/mapper/service/controller
-- yml/properties 설정
-- SQL split files
-- Flyway migration
-- 00_all_install.sql
-- 00_all_install_and_smoke.sql
-- 99_smoke_check.sql
-- unit/integration/runtime tests
-- smoke scripts
-- ADM API/UI linkage
-- report/matrix/evidence
-- README/spec 최소 상태 기록
-- architecture rule check
+완료
+부분 구현
+미구현
+미검증
+실패
+재확인 필요
 ```
 
-### 5.2 작업 범위별 영향 파일군
+다른 상태값을 임의로 만들지 않는다.
 
-| 작업 범위 | 필수 확인 파일군 |
-|---|---|
-| PFW core | source, config, SQL, tests, smoke, report, matrix, evidence |
-| ADM | controller/service/mapper, UI, API, auth, audit, browser/smoke, evidence |
-| BAT | worker, job/step, lock/heartbeat, SQL, scheduler, smoke, logs, evidence |
-| EXS | institution/endpoint, protocol, timeout/retry/circuit, mapping, SQL, smoke, evidence |
-| CMN | code/message/file/parser/formatter, SQL, tests, fixture, evidence |
-| SQL | split SQL, Flyway, all_install, smoke_check, README/report/matrix |
-| Log | logback, yml, DB table, file path, masking, smoke evidence |
-| Security | auth, permission, masking, secret scan, audit, policy, evidence |
-| UI | routes, menus, API client, page/component, static marker, browser evidence |
-| Broker | producer/consumer, schema, DLQ, replay, idempotency, real broker evidence |
+## 3.1 상태값 의미
 
-### 5.3 전수 확인이 필요한 대표 상황
+### 완료
+
+완료는 아래가 실제 확인된 상태다.
 
 ```text
-- Codex가 여러 모듈을 수정했다고 보고한 경우
-- SQL/Flyway/all_install을 건드린 경우
-- ADM 화면/API가 포함된 경우
-- 로그/마스킹/보안/권한이 포함된 경우
-- runtime smoke를 완료했다고 주장한 경우
-- “전체 정합화” 또는 “cleanup”을 수행했다고 보고한 경우
-- 이전 요청에서 실패/미검증이 반복된 경우
+- 소스 구현
+- 계층 연결
+- SQL/Flyway/all_install 반영 필요 시 반영
+- 테스트 존재 및 실행 evidence 존재
+- 필요한 smoke/runtime/browser/MariaDB/broker/multi-instance 검증 수행
+- report/matrix/evidence 정합성 확인
+- 없는 evidence 참조 없음
+- 실행하지 않은 검증을 완료로 기록하지 않음
 ```
 
+### 부분 구현
 
-## 6. Source-Level 테스트와 Runtime 검증 구분
+소스 또는 구조가 일부 있으나 완료 조건을 충족하지 못한 상태다.
 
-CPF에서는 테스트 종류를 반드시 구분한다.
-
-| 구분 | 의미 | 완료 판정 |
-|---|---|---|
-| Source-Level Test | unit/integration test 코드 또는 Gradle test | 소스 레벨 검증 |
-| Runtime Smoke | 실제 서버를 띄워 핵심 API/로그/DB 확인 | 실행 생존 검증 |
-| Runtime E2E | 여러 모듈을 띄워 거래 흐름 확인 | 통합 실행 검증 |
-| Browser Click | 실제 브라우저에서 ADM 화면 클릭 | 화면 실행 검증 |
-| Static UI Marker | 파일 문자열/마커 존재 확인 | 화면 완료 아님 |
-| MariaDB Full Install | 신규 빈 MariaDB에 전체 설치 | 설치 검증 |
-| Existing Dev DB Check | 기존 개발 DB에서 확인 | full install 아님 |
-| Embedded/Mock Broker | 테스트용 broker/mock | real broker 아님 |
-| Real Broker | 실제 Redis/Kafka/MQ | 운영 유사 검증 |
-
-### 6.1 금지 판정
+예:
 
 ```text
-- unit test 성공을 runtime E2E 완료로 판정 금지
-- static UI marker를 browser click 완료로 판정 금지
-- embedded broker를 real broker 완료로 판정 금지
-- 기존 DB 확인을 신규 빈 DB full install 완료로 판정 금지
-- smoke script 존재를 smoke 성공으로 판정 금지
+- 소스만 있고 테스트/evidence 없음
+- source/contract만 있고 runtime 미검증
+- EDU 샘플은 있으나 테스트 없음
+- Swagger annotation 일부만 있음
+- SQL split은 있으나 Flyway/all_install 미반영
+- matrix/report 반영이 불완전함
 ```
 
+### 미구현
 
-## 7. Evidence 기준
+해당 기능, 파일, 테스트, 설정, SQL, 샘플 등이 존재하지 않거나 실질 구현이 없는 상태다.
 
-### 7.1 evidence의 역할
+### 미검증
 
-Evidence는 “완료 주장을 검증할 수 있는 증거”다. 문서상 성공 표시가 아니라 실제 실행 결과, 로그, 캡처, SQL 결과, report, matrix 연결이 evidence다.
+구현 또는 파일은 있으나 실제 검증을 수행하지 않았거나 evidence가 없는 상태다.
 
-### 7.2 evidence 필수 요소
+예:
 
 ```text
-- 실행 일시
-- 실행 환경
-- 대상 commit 또는 파일 기준
-- 실행 명령 또는 검증 방법
-- 성공/실패 결과
-- 주요 로그 일부 또는 파일 경로
-- 관련 REQ-ID 또는 기능 ID
-- 실패 시 원인/후속 조치
+- 실제 MariaDB 신규 빈 DB full install 미실행
+- 실제 broker runtime 미실행
+- 실제 SFTP/SSH runtime 미실행
+- 실제 browser click 미실행
+- 실제 remote deploy 미실행
+- 실행 로그 없음
 ```
 
-### 7.3 stale evidence 판정
+### 실패
 
-아래는 stale evidence로 본다.
+실행 결과 실패, 품질 게이트 실패, ownership 위반, evidence 불일치 등 명확한 문제 상태다.
+
+### 재확인 필요
+
+GitHub view/raw/evidence가 충돌하거나, 로컬에서만 확인 가능한 사안이거나, 사용자 확인이 필요한 상태다.
+
+---
+
+# 4. 기본 검수 원칙
+
+사용자가 아래와 같이 말하면 검수 기준으로 처리한다.
 
 ```text
-- 현재 수정일보다 오래된 smoke evidence
-- SQL 변경 후 재실행되지 않은 all_install evidence
-- logback/yml 변경 후 재생성되지 않은 log evidence
-- UI 변경 후 재실행되지 않은 browser evidence
-- multi-instance routing 변경 후 단일 인스턴스 evidence만 존재
-- broker 설정 변경 후 embedded evidence만 존재
+완료됐다
+push 했다
+리뷰해줘
+검수해줘
+다음 요청서 만들어줘
 ```
 
-### 7.4 evidence 없는 완료 금지
-
-Codex가 완료라고 보고해도 evidence가 없으면 아래처럼 판정한다.
+처리 순서:
 
 ```text
-소스 구현은 확인됨.
-실행 evidence가 없어 runtime 검증은 미검증.
-따라서 상태는 완료가 아니라 부분 구현 또는 미검증.
+1. Codex 보고와 완료 리포트를 주장으로 분리한다.
+2. GitHub master 또는 로컬 파일을 직접 확인한다.
+3. 기준 파일을 확인한다.
+4. 작업 범위 관련 파일을 확인한다.
+5. 소스, 테스트, SQL, Flyway, all_install, smoke, README, report, matrix, evidence를 대조한다.
+6. 기술 ownership 위반 여부를 확인한다.
+7. 금지 의존성 여부를 확인한다.
+8. Spring Event 남용 여부를 확인한다.
+9. 실행 로그가 없으면 실행 검증 완료로 판정하지 않는다.
+10. 직접 실행하지 못한 항목은 “직접 실행 미수행”으로 분리한다.
+11. 검수 결과 기준으로 다음 요청서를 작성한다.
 ```
 
-
-## 8. 반복작업 방지 원칙
-
-### 8.1 같은 요청 반복 금지
-
-같은 기능이 실패했는데 같은 문구로 다시 요청하지 않는다. 같은 요청을 반복하면 Codex가 같은 방식으로 다시 실패할 가능성이 높다.
-
-금지:
+주의:
 
 ```text
-지난번 실패한 항목 다시 완료해줘.
-누락된 것 다시 해줘.
-아까 안 된 것 다시 고쳐줘.
+- 정적 UI marker smoke는 browser click 완료가 아니다.
+- embedded/mock broker는 real broker 완료가 아니다.
+- 기존 개발 DB 확인은 신규 빈 MariaDB full install 완료가 아니다.
+- dry-run은 real remote deploy 완료가 아니다.
+- source smoke는 runtime smoke 완료가 아니다.
 ```
+
+---
+
+# 5. 중간 문서 운영 기준
+
+CPF 개발 중간 단계에서는 문서 정본화를 하지 않는다.
+
+개발이 계속 바뀌므로 문서 작업은 작업 진행, 검수, 후속 개발에 지장 없을 정도의 최소 기록만 남긴다.
+
+중간 단계에서 필요한 기록은 아래로 제한한다.
+
+```text
+- 상태값
+- 핵심 변경 소스 경로
+- SQL/Flyway/all_install/smoke 반영 여부
+- 실제 실행한 검증 명령
+- evidence 경로
+- 실행하지 못한 검증과 사유
+- 남은 gap
+```
+
+아래 문서는 검수 가능한 최소 정합성만 맞춘다.
+
+```text
+CPF_STABILIZATION_REPORT.md
+CPF_GAP_MATRIX.md
+CPF_EVIDENCE_INDEX.md
+specs/기능_구현_매트릭스.html
+specs/sample-coverage-matrix.md
+```
+
+금지 또는 지양:
+
+```text
+- 장문 설명으로 문서량 채우기
+- 문구 다듬기 중심 정본화
+- 상세 가이드 정본화
+- PDF/HTML 정본화
+- 신규 HTML 작성/수정 남발
+```
+
+신규 가이드 문서는 Markdown을 우선한다.
+
+기존 HTML 파일은 qualityGate, 기능 매트릭스, ADM 정적 화면 smoke 등 현재 구조 유지에 필요한 최소 수정만 허용한다.
+
+PDF 생성은 최종 정본화 단계에서만 수행한다.
+
+---
+
+# 6. 목표파일 대용량 처리 기준
+
+`CPF_FINAL_TARGET_REQUIREMENTS.md`는 대용량 단일 파일이므로 AI/검수/요청서 작성에 불리할 수 있다.
+
+그러나 임의로 삭제, 축약, 덮어쓰기 하지 않는다.
+
+요청서 작성 시 Codex에게 로컬 checkout 기준으로 아래를 검색하게 한다.
+
+```text
+- 목표파일 최상단 요청서 작성용 인덱스
+- 관련 키워드
+- REQ-ID prefix
+- 관련 섹션
+```
+
+목표파일 검색 없이 임의 판단으로 구현하지 않게 한다.
+
+향후 별도 작업으로 목표파일을 아래 구조로 split하는 것은 권장한다.
+
+```text
+docs/requirements/
+REQ_MANIFEST.json
+```
+
+단, 원본 대용량 파일은 size/hash/marker evidence를 남기고 보존한 뒤 진행한다.
+
+---
+
+# 7. 기술 ownership 기준
+
+모든 기술 capability는 업무 주제영역에 종속시키지 않는다.
+
+## 7.1 PFW 책임
+
+기본 프레임워크 기술 기능은 `pfw`가 소유한다.
+
+PFW 책임 후보:
+
+```text
+Service Call Engine
+CpfWebClient/CpfRestClient
+timeout/retry/circuit breaker/failover
+service/endpoint/instance registry
+instance health/heartbeat/ghost 판단
+transactionGlobalId/TransactionContext
+segment/timeline
+selectedInstanceId logging
+표준/확장 헤더 전파
+masking/security/audit 기본
+idempotency 표준
+outbox/inbox 표준
+unknown result 표준 모델
+reconciliation 표준 port
+broker publish/consume 표준 port
+file transfer 표준 port
+archive/compression 표준 port
+SFTP/FTP/SCP/SSH request/result/plan
+secret provider port
+credential reference
+token provider port
+key/cert provider port
+runtime heartbeat
+distributed lock
+architecture rule check
+```
+
+## 7.2 CMN 책임
+
+프로젝트 공통 커스텀과 업무 공통 확장은 `cmn`이 소유한다.
+
+CMN 책임 후보:
+
+```text
+공통 코드
+공통 메시지
+프로젝트 표준 오류/상태 코드 확장
+고정길이 전문 layout/parser/formatter
+전문 field spec
+전문 fixture/helper
+파일명/디렉터리 규칙 helper
+validation/converter/helper
+프로젝트별 adapter base
+업무 공통 helper
+```
+
+## 7.3 업무 주제영역 책임
+
+`exs`, `acc`, `mbr`, `bat`, `bizadm`, `adm`, `xyz` 등 업무 주제영역은 PFW/CMN capability를 사용하는 consumer, adapter, 업무 설정, 업무 구현체 역할을 담당한다.
+
+EXS는 외부연계 기술의 소유자가 아니다.
+
+EXS 책임 후보:
+
+```text
+대외기관 업무 설정
+기관별 endpoint 업무 설정
+대외 송수신 원장
+기관별 adapter
+대외 전문 송수신 업무 구현체
+대외 unknown result 처리 구현체
+대외 reconciliation 구현체
+대외 파일 송수신 업무 adapter
+```
+
+ACC/MBR/BAT/BIZADM 등 다른 주제영역도 EXS를 거치지 않고 PFW/CMN capability를 직접 또는 facade/port를 통해 사용할 수 있어야 한다.
+
+## 7.4 금지 구조
+
+```text
+PFW가 EXS/ACC/MBR/BAT/BIZADM에 의존
+CMN이 업무 주제영역 구현체에 의존
+ACC/MBR/BAT가 EXS 내부 기술 클래스를 공통 기능처럼 직접 사용
+업무 주제영역 간 내부 기술 클래스 재사용
+fixed-length parser/formatter가 EXS 전용
+timeout/retry/circuit/failover가 EXS 전용
+OAuth/JWT/mTLS가 EXS 전용
+unknown result/reconciliation 표준 모델이 EXS 전용
+broker/filetransfer/archive 기술 engine이 CMN 소유처럼 구현
+```
+
+---
+
+# 8. Service Call / MSA 기준
+
+CPF는 MSA-first, modular-monolith-compatible 구조를 기준으로 한다.
+
+모든 주제영역은 아래 방식으로 배포될 수 있어야 한다.
+
+```text
+같은 JVM
+별도 WAS
+1대 인스턴스
+2대 인스턴스
+3대 이상 다중 인스턴스
+```
+
+PFW는 모든 주제영역 호출에 대해 아래를 공통 제공해야 한다.
+
+```text
+service/endpoint/instance registry
+health check
+client-side load balancing
+LB endpoint mode
+direct instance mode
+failover
+timeout
+retry
+circuit breaker
+selected instance logging
+remote instance response header
+ADM 관제
+```
+
+Facade는 같은 JVM 전용 개념이 아니다.
+
+```text
+같은 JVM:
+- Local Facade 사용
+
+MSA:
+- Facade Contract/Port를 Remote Facade Proxy가 구현
+- CpfWebClient/CpfRestClient를 통해 대상 API 호출
+```
+
+업무 코드 금지:
+
+```text
+URL 직접 조합
+Controller 직접 호출
+타 주제영역 DB 직접 접근
+타 주제영역 Repository/Mapper 직접 참조
+```
+
+---
+
+# 9. Spring Event 사용 기준
+
+Spring Event는 핵심 거래 흐름의 중심 기술로 남용하지 않는다.
 
 허용:
 
 ```text
-지난 요청에서 EXS unknown result runtime smoke가 실패했다.
-먼저 실패 원인을 source/config/SQL/runtime/env/evidence 중 하나로 분류하라.
-같은 방식으로 재시도하지 말고, 실패 원인별 대안을 적용하라.
-실행하지 못하면 완료가 아니라 미검증으로 남기고 대안 evidence 경로를 제시하라.
+같은 JVM 내부 보조 hook
+감사/알림/cache invalidation/telemetry
+이미 DB 상태가 저장된 뒤의 부가 후처리
+유실되어도 재계산 또는 재처리 가능한 이벤트
 ```
 
-### 8.2 실패 횟수별 대응
-
-| 실패 횟수 | 대응 |
-|---|---|
-| 1회 실패 | 원인 분류 후 보완 요청 |
-| 2회 실패 | 동일 접근 금지, 대안 설계/검증 경로 요구 |
-| 3회 실패 | 범위 축소 또는 선행 진단 요청으로 전환 |
-| 4회 이상 | 구현 접근 재검토, 요구사항/아키텍처/환경 분리 |
-
-### 8.3 반복 실패 원인 분류
-
-반복 실패 항목은 반드시 아래 중 하나 이상으로 분류한다.
+제한 또는 금지:
 
 ```text
-1. 요구사항 불명확
-2. 아키텍처 접근 오류
-3. 소스 구현 누락
-4. 계층 연결 누락
-5. 설정 누락
-6. SQL/Flyway/all_install 불일치
-7. 테스트 코드만 있고 실행 없음
-8. runtime 환경 문제
-9. 포트/프로파일/DB/broker 경로 문제
-10. evidence 생성/기록 누락
-11. report/matrix 허위 성공 또는 불일치
-12. Codex가 범위를 과소해석
-13. 요청서가 너무 작거나 추상적
-14. 한 요청에서 너무 많은 영역을 무질서하게 수정
+핵심 거래 상태 전이를 ApplicationEvent/EventListener 체인에 의존
+외부 송신을 outbox 없이 EventListener에서 직접 처리
+Saga/compensation을 Spring Event만으로 처리
+unknown result/reconciliation을 이벤트 체인에만 의존
+multi-instance 전달을 Spring Event로 완료 주장
+broker DLQ/replay를 Spring Event로 대체
 ```
 
-### 8.4 대안 제시 의무
-
-반복 실패가 확인되면 다음 요청서에는 반드시 대안이 포함되어야 한다.
-
-대안 예시:
+핵심 흐름은 아래를 우선한다.
 
 ```text
-- 직접 runtime 실행이 어렵다면 실행 전 진단 스크립트를 먼저 만든다.
-- browser click이 어렵다면 UI route/API/static marker를 분리하고 browser는 미검증으로 남긴다.
-- real broker가 없으면 embedded와 real broker를 명확히 분리하고 real broker 검증 스크립트/설정만 착수한다.
-- full install이 실패하면 SQL split/Flyway/all_install 차이를 먼저 검출하는 consistency script를 만든다.
-- 동일 서비스 호출 구조가 계속 실패하면 Local Facade와 Remote Proxy를 분리해 contract부터 고정한다.
+DB 상태
+transactionGlobalId
+segment/timeline
+outbox/inbox
+idempotency
+broker 또는 scheduler 기반 재처리 구조
 ```
-
-
-## 9. 요청서 작성 원칙
-
-### 9.1 요청서는 검수 결과 기반으로만 작성한다
-
-다음 요청서는 Codex 보고가 아니라 실제 검수 결과를 기준으로 작성한다.
-
-요청서 작성 전 반드시 확인할 것:
-
-```text
-- 이번 요청에서 실제 완료된 것
-- 부분 구현된 것
-- 미구현으로 남은 것
-- 미검증으로 남은 것
-- 실패한 것
-- 재확인 필요한 것
-- 반복 실패 항목
-- 다음 요청에서 선행 진단이 필요한 것
-```
-
-### 9.2 요청 범위는 크게 잡되 판정 가능해야 한다
-
-사용자는 요청 목록 반복을 너무 자주 하지 않기를 원한다. 따라서 요청서는 작게 쪼개지 않는다. 하지만 “전체 다 해”처럼 판정 불가능하게 쓰지 않는다.
-
-권장 방식:
-
-```text
-- 대형 마일스톤 단위로 묶는다.
-- 필수 완료 범위와 착수 범위를 분리한다.
-- 검증 가능한 완료 기준을 명시한다.
-- 후순위/제외 범위를 명시한다.
-- 실행하지 못한 검증을 완료로 쓰지 못하게 한다.
-```
-
-### 9.3 요청서 4분할 구조
-
-모든 대형 요청서는 가능하면 아래 구조를 따른다.
-
-```text
-1. 필수 완료 범위
-   - 이번 요청에서 소스/설정/SQL/테스트/smoke/evidence까지 닫아야 하는 항목
-
-2. 보강 범위
-   - 기존 구현이 있으나 연결/설정/SQL/주석/evidence가 부족한 항목
-
-3. 착수 범위
-   - 큰 구조를 잡고 일부 기반을 구현하되 완료로 주장하지 않을 항목
-
-4. 후순위/제외 범위
-   - 이번 요청에서 건드리지 않거나 목표에만 남길 항목
-```
-
-### 9.4 요청서 필수 제한
-
-Codex 요청서에는 아래 제한을 넣는다.
-
-```text
-- Git commit 금지
-- Git push 금지
-- branch 생성 금지
-- 민감정보 원문 기록 금지
-- 실행하지 않은 검증 완료 기록 금지
-- 별도 변경파일 목록 산출물 생성 금지
-- 문서 정본화 금지
-- 신규 HTML 문서 작성 지양
-- 신규/수정 문서는 Markdown 우선
-- 실제 실행하지 않은 browser/full install/real broker/multi-instance 검증은 미검증으로 기록
-```
-
-
-## 10. Codex 요청서 표준 템플릿
-
-아래 템플릿은 다음 요청서를 만들 때 기본으로 사용한다.
-
-```markdown
-# Codex 요청서 — <대형 마일스톤명>
-
-## 0. 상위 기준
-
-이번 작업은 repo 루트의 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`를 상위 기준으로 수행한다.
-
-`CPF_FINAL_TARGET_REQUIREMENTS.md`는 무엇을 만들어야 하는지의 최상위 목표 기준서다.
-`CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`는 어떻게 검수하고, 어떻게 진행하며, 무엇을 완료로 볼 것인지의 기준서다.
-
-이번 요청은 CPF 전체 최종 목표를 한 번에 완료하라는 뜻이 아니다. 전체 목표를 기준으로 이번 대형 범위에서 닫을 수 있는 항목을 최대한 구현/보강/검증하되, 미구현/미검증 항목은 숨기지 말고 남긴다.
-
-## 1. 필수 완료 범위
-
-- <REQ-ID 또는 기능군>
-- 소스/설정/SQL/Flyway/all_install/테스트/smoke/evidence까지 가능한 범위에서 닫는다.
-- 실행하지 않은 항목은 완료로 기록하지 않는다.
-
-## 2. 보강 범위
-
-- 기존 구현이 있으나 연결, 설정, SQL, 테스트, evidence가 부족한 항목을 보강한다.
-
-## 3. 착수 범위
-
-- 전체 목표상 필요한 기반 구조를 착수한다.
-- 착수 항목은 완료로 주장하지 않는다.
-
-## 4. 후순위/제외 범위
-
-- 이번 요청에서 제외할 항목을 명시한다.
-- 목표에서 삭제하지 말고 미구현/미검증/후순위로 남긴다.
-
-## 5. 검증 기준
-
-- Source-Level Test와 Runtime Smoke를 구분한다.
-- 기존 개발 DB 확인과 신규 빈 MariaDB full install을 구분한다.
-- Static UI Marker와 Browser Click을 구분한다.
-- Embedded/Mock Broker와 Real Broker를 구분한다.
-- 실행하지 않은 검증은 미검증으로 기록한다.
-
-## 6. Evidence 기준
-
-- 실행 명령, 실행 일시, 대상 환경, 결과, 로그 경로, 관련 REQ-ID를 남긴다.
-- report/matrix/evidence가 서로 맞지 않으면 성공으로 기록하지 않는다.
-
-## 7. 반복 실패 방지
-
-- 이전 실패/미검증 항목은 같은 방식으로 단순 재시도하지 않는다.
-- 먼저 원인을 source/config/SQL/runtime/env/evidence/design 중 하나로 분류한다.
-- 2회 이상 실패한 항목은 다른 접근 방식 또는 선행 진단을 제시한다.
-
-## 8. 필수 제한
-
-- Git commit 금지
-- Git push 금지
-- branch 생성 금지
-- 민감정보 원문 기록 금지
-- 실행하지 않은 검증 완료 기록 금지
-- 별도 변경파일 목록 산출물 생성 금지
-- 문서 정본화 금지
-```
-
-
-## 11. 검수 답변 표준 템플릿
-
-ChatGPT가 검수 답변을 만들 때는 아래 구조를 기본으로 한다.
-
-```markdown
-# CPF 검수 결과 — <대상 작업명>
-
-## 1. 검수 기준
-
-- 기준 목표파일: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 기준 지침파일: `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
-- 기준 branch/commit: <확인한 경우만>
-- 직접 실행 여부: <직접 실행 / 직접 실행 미수행>
-
-## 2. Codex 보고 주장 요약
-
-Codex 보고 기준으로 주장한 완료 항목:
-
-- ...
-
-주의: 이 항목은 실제 완료 판정이 아니라 Codex 주장이다.
-
-## 3. 실제 확인 범위
-
-실제 확인한 파일/경로:
-
-- ...
-
-확인하지 못한 범위:
-
-- ...
-
-## 4. 상태 판정 요약
-
-| 영역 | 상태 | 근거 |
-|---|---|---|
-| ... | 완료/부분 구현/미구현/미검증/실패/재확인 필요 | ... |
-
-## 5. 상세 검수 결과
-
-### 5.1 완료
-
-- ...
-
-### 5.2 부분 구현
-
-- ...
-
-### 5.3 미구현
-
-- ...
-
-### 5.4 미검증
-
-- ...
-
-### 5.5 실패
-
-- ...
-
-### 5.6 재확인 필요
-
-- ...
-
-## 6. report/matrix/evidence 정합성
-
-- ...
-
-## 7. 반복 실패 여부
-
-- 반복 실패 항목:
-- 원인 분류:
-- 다음 접근 대안:
-
-## 8. 다음 요청서 방향
-
-- 필수 완료 범위:
-- 보강 범위:
-- 착수 범위:
-- 후순위/제외 범위:
-
-## 9. 다음 Codex 요청서
-
-<요청서 초안>
-```
-
-
-## 12. 대형 마일스톤 진행 계획
-
-요청 반복을 줄이기 위해 1차 실사용 가능한 CPF 코어 완성권은 아래처럼 대형 요청으로 묶는다.
-
-| 순번 | 대형 요청 | 목표 |
-|---|---|---|
-| 0 | 현재 작업 검수 | Codex 보고와 실제 파일/evidence 대조 |
-| 1 | 목표파일/지침파일 정합화 | 단일 목표파일과 본 지침 repo 반영 |
-| 2 | PFW Service Call Engine/MSA 기반 | registry, routing, LB/direct, failover, retry, circuit |
-| 3 | 표준 헤더/TransactionContext/Segment | header validation, propagation, timeline |
-| 4 | 로그/Trace Boost runtime closure | DB/file log, masking, TTL, approval, evidence |
-| 5 | ADM 운영 콘솔 1차 대보강 | transaction, routing, health, log/audit, operator action |
-| 6 | Saga/Compensation/Outbox/Inbox | idempotency, unknown result, manual recovery |
-| 7 | BAT/Worker/Center-Cut | standalone, lock, heartbeat, ghost, rerun, item compensation |
-| 8 | BAT 호출 예제 | sync/async/shared/exs/facade reuse |
-| 9 | EXS 대외연계 | institution, endpoint, REST/fixed, OAuth/JWT/mTLS, reconciliation |
-| 10 | CMN 공통기능 | code, message, file, parser, formatter, fixture |
-| 11 | 보안/권한/마스킹/승인 | RBAC/ABAC, data/download/unmask, secret/key/cert |
-| 12 | Broker/Event/Cache/Policy | Redis/Kafka/MQ, DLQ, replay, ordering, policy |
-| 13 | SQL/Flyway/all_install/full install | split SQL, Flyway, 00_all_install, 99_smoke_check |
-| 14 | Runtime E2E/Browser/Multi-instance | startup, browser click, AP01/AP02, real broker 구분 |
-| 15 | 회귀/품질게이트/정본화 준비 | matrix/report/evidence consistency, arch rule, scans |
-
-이 표는 고정된 작업 횟수가 아니라 큰 진행 방향이다. 검수 결과에 따라 병합하거나 순서를 바꿀 수 있다.
-
-
-## 13. SQL/Flyway/all_install 검수 기준
-
-SQL 관련 작업은 아래 4개 경로를 반드시 대조한다.
-
-```text
-1. split SQL
-2. Flyway migration
-3. 00_all_install.sql
-4. 00_all_install_and_smoke.sql / 99_smoke_check.sql
-```
-
-### 13.1 완료 조건
-
-```text
-- 신규 테이블/컬럼/인덱스가 split SQL에 존재
-- 동일 내용이 Flyway에 반영
-- 신규 빈 DB 설치용 all_install에 반영
-- smoke_check가 핵심 테이블/컬럼/기본 데이터 확인
-- MariaDB 신규 빈 DB full install evidence 존재
-```
-
-### 13.2 불인정 조건
-
-```text
-- Flyway만 있고 all_install 누락
-- all_install만 있고 Flyway 누락
-- smoke_check가 기존 테이블만 확인
-- 기존 개발 DB에서만 확인
-- 실행 로그 없이 문서에 성공 표시
-```
-
-
-## 14. ADM/UI 검수 기준
-
-ADM 기능은 API와 화면을 분리해서 검수한다.
-
-### 14.1 API 검수
-
-```text
-- controller endpoint 존재
-- service/mapper 연결
-- 권한/감사/마스킹 적용
-- 검색/목록/상세/상태/조치 API 구분
-- transactionGlobalId 또는 관련 key로 추적 가능
-- 오류 응답 표준화
-- test 또는 runtime API evidence 존재
-```
-
-### 14.2 UI 검수
-
-```text
-- route/menu 등록
-- page/component 존재
-- API client 연결
-- 검색 조건/테이블/상세/액션 버튼 확인
-- 권한별 버튼/데이터 표시 통제
-- static marker smoke는 UI 파일 존재 확인일 뿐
-- browser click evidence가 있어야 화면 실행 완료 후보
-```
-
-### 14.3 완료 불인정
-
-```text
-- API만 있고 화면 없음: ADM 화면 완료 아님
-- 화면 파일만 있고 API 연결 없음: 부분 구현
-- static marker만 있고 browser click 없음: browser 미검증
-- 권한/감사 없는 operator action: 완료 아님
-```
-
-
-## 15. 로그/마스킹/Trace Boost 검수 기준
-
-### 15.1 로그 완료 조건
-
-```text
-- DB log table 존재
-- file log path 설정 존재
-- logback/yml/properties 반영
-- cpf-{moduleCode}-{logType}.log 생성 evidence
-- transactionGlobalId/segmentId/moduleCode/instanceId 필드 확인
-- 민감정보 마스킹 확인
-- ADM 조회 또는 report 연결 확인
-```
-
-### 15.2 Trace Boost 완료 조건
-
-```text
-- scope가 transaction/module/API/job/item 등으로 제한
-- TTL 존재
-- 승인/감사 기록 존재
-- 동적 로그 레벨 적용 evidence 존재
-- 마스킹이 DEBUG/TRACE에서도 유지
-- TTL 만료 후 원복 evidence 존재
-```
-
-### 15.3 완료 불인정
-
-```text
-- root TRACE 전체 적용
-- TTL 없음
-- 승인/감사 없음
-- 파일 로그 생성 evidence 없음
-- raw payload/token/secret 원문 저장
-```
-
-
-## 16. MSA/Service Call Engine 검수 기준
-
-PFW의 CpfWebClient/CpfRestClient는 단순 HTTP wrapper가 아니라 CPF Service Call Engine이다.
-
-### 16.1 완료 후보 조건
-
-```text
-- service registry 존재
-- endpoint registry 존재
-- instance registry 존재
-- health status 저장/조회 존재
-- routing policy 존재
-- LB endpoint mode 지원
-- direct instance mode 지원
-- selectedInstanceId logging
-- timeout/retry/circuit/failover 정책 연결
-- outbound header propagation
-- remote instance response header 수집
-- ADM service instance/routing/health 조회
-- runtime smoke 또는 integration evidence 존재
-```
-
-### 16.2 금지 구현
-
-```text
-- 업무 코드에서 URL 직접 조합
-- 업무 코드에서 Controller 직접 호출
-- 타 주제영역 DB 직접 접근
-- 같은 JVM 전용 Facade만 제공하고 MSA remote proxy 없음
-- selectedInstanceId 없이 호출 결과만 기록
-```
-
-
-## 17. BAT/Center-Cut 검수 기준
-
-BAT는 standalone worker/application 관점에서 검수한다.
-
-### 17.1 BAT 완료 후보 조건
-
-```text
-- standalone worker 기동 구조
-- job/step/parameter 관리
-- lock/heartbeat/ghost detection
-- stop/rerun/force run
-- operator action audit
-- jobExecutionId/stepExecutionId/runId/rerunId logging
-- BAT 로그 파일 생성
-- 타 주제영역 호출 시 facade/service call engine 사용
-- 직접 DB/Controller/URL 호출 금지
-```
-
-### 17.2 Center-Cut 완료 후보 조건
-
-```text
-- parent/child/item/result 개념 구분
-- chunk/partition 처리
-- pause/resume/stop/rerun failed only
-- item-level state/result
-- item compensation
-- ADM 조회/조치
-- smoke/evidence
-```
-
-
-## 18. EXS 검수 기준
-
-EXS는 대외기관/endpoint/전문/REST/인증/timeout/retry/circuit/unknown result/reconciliation이 핵심이다.
-
-### 18.1 완료 후보 조건
-
-```text
-- 기관 관리
-- endpoint 관리
-- REST 송수신
-- fixed-length 전문 parser/formatter 연계
-- timeout/retry/circuit policy
-- OAuth/JWT/mTLS/token 관리
-- response code mapping
-- send/receive log
-- unknown result status
-- reconciliation job 또는 API
-- cancellation/reversal/status inquiry 후보
-- ADM 조회
-- masking/audit
-- runtime smoke/evidence
-```
-
-### 18.2 완료 불인정
-
-```text
-- 단순 REST client만 있음
-- 기관/endpoint DB 없음
-- timeout 발생 시 unknown result 분류 없음
-- retry/circuit 설정만 있고 실행 evidence 없음
-- 전문 parser/formatter fixture 없음
-```
-
-
-## 19. 보안/권한/민감정보 검수 기준
-
-### 19.1 권한 검수
-
-```text
-- menu 권한
-- button 권한
-- API 권한
-- data scope 권한
-- download 권한
-- unmask 권한
-- trace boost 권한
-- batch force/rerun 권한
-- compensation/manual recovery 권한
-- routing/endpoint 변경 권한
-```
-
-### 19.2 민감정보 검수
-
-```text
-- Authorization 원문 로그 금지
-- X-Api-Key 원문 로그 금지
-- token/secret/password/credential/signature 원문 금지
-- X-Cpf-Ext-* 확장 헤더 naming rule
-- 우회 민감 헤더 저장/전파 금지
-- masking off in prod 금지 또는 fail-fast
-```
-
-### 19.3 승인/이중통제 검수
-
-```text
-- unmask
-- 대량 다운로드
-- trace boost TRACE
-- batch force run
-- compensation execution
-- routing/endpoint 변경
-- secret/key/cert rotation
-- break-glass
-```
-
-
-## 20. 품질게이트 검수 기준
-
-### 20.1 Architecture Rule Check
-
-```text
-- forbidden direct URL call scan
-- forbidden Controller direct call scan
-- forbidden cross-domain DB/Mapper/Repository access scan
-- hardcoded secret scan
-- hardcoded URL scan
-- forbidden package dependency scan
-```
-
-### 20.2 Report/Matrix/Evidence Consistency Gate
-
-```text
-- report 성공 항목이 evidence와 일치
-- matrix 완료 항목이 실제 구현과 일치
-- evidence가 현재 변경 이후 생성
-- 실패/미검증이 숨겨지지 않음
-- 상태값 6개 외 표현 사용 금지
-```
-
-
-## 21. 빠른 검수 체크리스트
-
-### 21.1 검수 시작 전
-
-- [ ] 기준 branch/commit 확인
-- [ ] Codex 보고와 실제 확인을 분리
-- [ ] 이번 요청 범위 확인
-- [ ] 영향 파일군 식별
-- [ ] 직접 실행 가능 여부 확인
-
-### 21.2 파일 확인
-
-- [ ] source 확인
-- [ ] yml/properties 확인
-- [ ] SQL split 확인
-- [ ] Flyway 확인
-- [ ] all_install 확인
-- [ ] smoke_check 확인
-- [ ] test 확인
-- [ ] smoke script 확인
-- [ ] README/spec/report/matrix 확인
-- [ ] evidence 확인
-
-### 21.3 판정
-
-- [ ] 완료 항목 근거 존재
-- [ ] 부분 구현 항목 분리
-- [ ] 미구현 항목 분리
-- [ ] 미검증 항목 분리
-- [ ] 실패 항목 분리
-- [ ] 재확인 필요 항목 분리
-
-### 21.4 다음 요청서 작성
-
-- [ ] 반복 실패 원인 분류
-- [ ] 동일 접근 반복 금지 반영
-- [ ] 대안 제시
-- [ ] 필수/보강/착수/후순위 분리
-- [ ] 완료 불인정 기준 명시
-- [ ] 검증/evidence 기준 명시
-
-
-## 22. 금지 답변 패턴
-
-ChatGPT 검수 답변에서 아래 표현을 피한다.
-
-```text
-- 대체로 완료된 것 같습니다.
-- 아마 반영된 것 같습니다.
-- Codex가 했다고 하니 완료로 보면 됩니다.
-- 테스트는 나중에 하면 됩니다.
-- 문서상 완료라서 완료입니다.
-- smoke는 스크립트가 있으니 된 것입니다.
-- browser는 UI 파일이 있으니 된 것입니다.
-```
-
-대신 아래처럼 말한다.
-
-```text
-- 실제 파일 기준으로는 소스는 확인되나 runtime evidence가 없어 미검증입니다.
-- Codex 보고 기준 완료 주장이나, Flyway와 all_install 정합성이 확인되지 않아 완료로 판정하지 않습니다.
-- browser click evidence가 없어 UI 실행 검증은 미검증입니다.
-- 동일 항목이 2회 실패했으므로 다음 요청서는 동일 방식 반복이 아니라 원인 분류와 대안 구현을 요구해야 합니다.
-```
-
-
-## 23. 마지막 원칙
-
-CPF는 장기전이다. 하지만 반복작업을 줄이려면 다음 세 가지를 지켜야 한다.
-
-```text
-1. 목표는 크게 본다.
-2. 요청은 큰 마일스톤으로 묶는다.
-3. 완료 판정은 작고 엄격하게 한다.
-```
-
-즉, Codex에게는 큰 방향과 큰 범위를 주되, ChatGPT 검수에서는 실제 파일/evidence 기준으로 냉정하게 상태를 분리한다.
-
-완료가 아니면 완료가 아니라고 말한다. 미검증이면 미검증이라고 말한다. 실패가 반복되면 같은 요청을 반복하지 않고 원인과 대안을 요구한다.
-
-이 문서는 그 기준을 고정하기 위한 파일이다.
-
 
 ---
 
-# 부록 A. 상태 판정 카드 예시
+# 10. 기능 개발 시 EDU/Swagger/Test/Evidence 동시 구현 원칙
 
-## A.1 완료 예시
+앞으로 CPF 기능을 신규 구현하거나 수정할 때는 기능 소스만 수정하지 않는다.
 
-```text
-상태: 완료
-근거:
-- source 구현 확인
-- yml 설정 확인
-- Flyway 및 all_install 반영 확인
-- unit/integration test 성공 로그 확인
-- runtime smoke evidence 확인
-- report/matrix/evidence 정합 확인
-판정:
-- 이번 범위 기준 완료
-```
+해당 기능의 개발자 참조 EDU 샘플, EDU 테스트, 기능 테스트, Swagger/OpenAPI, evidence, report를 함께 갱신한다.
 
-## A.2 부분 구현 예시
+## 10.1 기능 완료 후보 조건
+
+기능 완료 후보가 되려면 필요한 범위에서 아래가 함께 확인되어야 한다.
 
 ```text
-상태: 부분 구현
-근거:
-- source와 test는 존재
-- SQL/Flyway/all_install 누락
-- runtime smoke evidence 없음
-판정:
-- 구현 일부는 있으나 완료 불가
+1. 기능 소스 구현
+2. 기능 자체 테스트 구현
+3. 기능별 EDU 샘플 소스 구현
+4. EDU 샘플 테스트 구현
+5. REST API 기능이면 Swagger/OpenAPI 반영
+6. OpenAPI smoke 또는 coverage 검증
+7. sample coverage matrix 반영
+8. 기능 매트릭스 반영
+9. evidence 생성
+10. CPF_STABILIZATION_REPORT.md 반영
+11. CPF_EVIDENCE_INDEX.md 반영
+12. CPF_GAP_MATRIX.md 반영
 ```
 
-## A.3 미검증 예시
+기능 소스만 있고 EDU/Swagger/Test/Evidence가 없으면 완료가 아니라 `부분 구현` 또는 `미검증`으로 판정한다.
+
+## 10.2 기능 완료 판정
 
 ```text
-상태: 미검증
-근거:
-- 구현은 존재
-- 실행 로그 또는 smoke evidence 없음
-판정:
-- 직접 실행 또는 evidence 확인 전까지 완료 불가
+기능 소스만 있음
+→ 부분 구현
+
+기능 소스 + 기능 테스트만 있음
+→ 부분 구현 또는 미검증
+
+기능 소스 + 기능 테스트 + Swagger만 있음
+→ 부분 구현
+
+기능 소스 + 기능 테스트 + EDU 샘플 + EDU 테스트 + Swagger + evidence + report까지 있음
+→ 완료 후보
+
+실제 runtime이 필요한데 실행하지 않았음
+→ source/contract 수준은 완료 후보가 될 수 있으나 runtime은 미검증
 ```
 
-## A.4 실패 예시
+## 10.3 완료 불인정
 
 ```text
-상태: 실패
-근거:
-- runtime smoke 실행 결과 500 응답
-- 로그상 테이블 누락 오류 확인
-판정:
-- SQL/all_install/Flyway 정합성 재검토 필요
+기능 소스만 있고 EDU 샘플 없음
+EDU 샘플은 있으나 EDU 테스트 없음
+REST API인데 Swagger/OpenAPI 누락
+Swagger UI만 열리고 schema/operation 검증 없음
+sample coverage matrix 누락
+CoverageCatalog만 있고 실제 sample class 없음
+evidencePath가 실제 존재하지 않음
+report에는 완료라고 되어 있으나 evidence가 없음
+외부 runtime을 실행하지 않았는데 runtime 완료로 기록
 ```
 
+---
 
-# 부록 B. 반복 실패 대응 카드
+# 11. 기능별 검수 단위
+
+앞으로 기능 검수는 “소스 구현 여부”만 보지 않는다.
+
+기능별 검수 단위는 아래 묶음으로 본다.
 
 ```text
-반복 실패 항목:
-실패 횟수:
-마지막 실패 근거:
-원인 분류:
-동일 접근 반복 금지 여부:
-대안 1:
-대안 2:
-다음 요청서 반영 문구:
-완료 불인정 기준:
+기능 소스
+기능 테스트
+EDU 샘플
+EDU 샘플 테스트
+Swagger/OpenAPI
+OpenAPI 검증
+sample coverage matrix
+evidence
+report/index/gap matrix
 ```
 
-예시:
+검수 답변에는 가능한 범위에서 아래 표를 포함한다.
+
+| 기능 | 기능 소스 | 기능 테스트 | EDU 샘플 | EDU 테스트 | Swagger/OpenAPI | Evidence | 상태 |
+|---|---|---|---|---|---|---|---|
+| ... | 확인/누락 | 확인/누락 | 확인/누락 | 확인/누락 | 확인/누락 | 확인/누락 | 완료/부분 구현/미구현/미검증/실패/재확인 필요 |
+
+기능 소스만 보고 완료 판정하지 않는다.
+
+---
+
+# 12. EDU 샘플 기능별 패키지 기준
+
+EDU 샘플은 한 패키지에 몰아넣지 않는다.
+
+개발자가 기능별로 쉽게 찾고 참고할 수 있도록 `edu` 하위에 기능별 package를 나눠 구성한다.
+
+`catalog` 패키지는 sampleId 목록 관리와 coverage tracking 용도로만 사용한다.
+
+실제 개발자 참조 샘플은 기능별 package 하위에 둔다.
+
+## 12.1 XYZ EDU
+
+XYZ는 별도 EDU 서비스가 아니라 XYZ 내부 교육 샘플 패키지를 가진다.
 
 ```text
-반복 실패 항목: MariaDB 신규 빈 DB full install
-실패 횟수: 2회
-마지막 실패 근거: 00_all_install.sql 실행 중 pfw_trace_boost_policy 컬럼 누락
-원인 분류: SQL split/Flyway/all_install 불일치
-동일 접근 반복 금지 여부: 동일 단순 재실행 금지
-대안 1: SQL consistency check script를 먼저 작성
-대안 2: Flyway와 all_install 간 테이블/컬럼 diff 산출 후 보정
-다음 요청서 반영 문구: 먼저 SQL 정합성 진단을 수행하고, 누락을 보정한 뒤 신규 빈 DB full install evidence를 생성하라.
-완료 불인정 기준: 기존 개발 DB 성공, SQL 파일 존재, 미실행 보고는 완료로 인정하지 않는다.
+xyz/src/main/java/cpf/xyz/edu/crud
+xyz/src/main/java/cpf/xyz/edu/query
+xyz/src/main/java/cpf/xyz/edu/pagination
+xyz/src/main/java/cpf/xyz/edu/detail
+xyz/src/main/java/cpf/xyz/edu/transaction
+xyz/src/main/java/cpf/xyz/edu/servicecall
+xyz/src/main/java/cpf/xyz/edu/facade
+xyz/src/main/java/cpf/xyz/edu/header
+xyz/src/main/java/cpf/xyz/edu/idempotency
+xyz/src/main/java/cpf/xyz/edu/failure
+xyz/src/main/java/cpf/xyz/edu/security
+xyz/src/main/java/cpf/xyz/edu/audit
+xyz/src/main/java/cpf/xyz/edu/validation
+xyz/src/main/java/cpf/xyz/edu/telegram
+xyz/src/main/java/cpf/xyz/edu/messaging
+xyz/src/main/java/cpf/xyz/edu/filetransfer
+xyz/src/main/java/cpf/xyz/edu/archive
+xyz/src/main/java/cpf/xyz/edu/operation
 ```
 
+## 12.2 BAT EDU
 
-# 부록 C. Codex 보고 검수용 질문
-
-Codex 보고를 받으면 아래 질문을 기준으로 검수한다.
+BAT는 BAT 내부에 배치 교육 샘플 패키지를 가진다.
 
 ```text
-1. 어떤 파일을 실제로 수정했는가?
-2. 수정한 파일이 목표 REQ-ID와 연결되는가?
-3. SQL 변경이 split/Flyway/all_install/smoke에 모두 반영되었는가?
-4. 설정 변경에 한글 설명 주석이 있는가?
-5. source test와 runtime smoke를 구분했는가?
-6. evidence가 실제로 존재하는가?
-7. evidence가 현재 변경 이후 생성되었는가?
-8. report/matrix가 실제 상태와 일치하는가?
-9. 실행하지 않은 검증을 완료로 적지 않았는가?
-10. 민감정보 원문이 로그/evidence에 남지 않았는가?
-11. 반복 실패 항목에 대해 원인 분류와 대안을 제시했는가?
-12. 다음 요청에서 같은 방식 반복이 아닌가?
+bat/src/main/java/cpf/bat/edu/job
+bat/src/main/java/cpf/bat/edu/chunk
+bat/src/main/java/cpf/bat/edu/transaction
+bat/src/main/java/cpf/bat/edu/servicecall
+bat/src/main/java/cpf/bat/edu/centercut
+bat/src/main/java/cpf/bat/edu/logging
+bat/src/main/java/cpf/bat/edu/idempotency
+bat/src/main/java/cpf/bat/edu/retry
+bat/src/main/java/cpf/bat/edu/restart
+bat/src/main/java/cpf/bat/edu/reconciliation
+bat/src/main/java/cpf/bat/edu/archive
 ```
 
+## 12.3 EXS EDU
 
-# 부록 D. 대형 요청서 제목 예시
+EXS는 외부연계 기술 소유자가 아니라 대외업무 adapter/구현체 샘플을 가진다.
 
 ```text
-Codex 요청서 01 — CPF 목표파일/검수지침 반영 및 현재 상태 Gap 정합화
-Codex 요청서 02 — PFW Service Call Engine/MSA Registry/Routing 기반 구현
-Codex 요청서 03 — 표준 헤더/TransactionContext/Segment/Timeline Runtime Closure
-Codex 요청서 04 — DB 로그/파일 로그/Trace Boost Runtime Evidence Closure
-Codex 요청서 05 — ADM 거래/로그/서비스 인스턴스/라우팅 관제 대보강
-Codex 요청서 06 — Saga/Compensation/Outbox/Inbox/Idempotency/Unknown Result
-Codex 요청서 07 — BAT Standalone Worker/Lock/Heartbeat/Ghost/Center-Cut
-Codex 요청서 08 — BAT 도메인 호출/SHARED/비동기 Event/Online Facade 재사용
-Codex 요청서 09 — EXS 기관/Endpoint/전문/REST/Auth/Retry/Circuit/Reconciliation
-Codex 요청서 10 — CMN 공통코드/메시지/파일/전문 Parser/Formatter/Fixture
-Codex 요청서 11 — 보안/RBAC/ABAC/마스킹/승인/Secret/Certificate
-Codex 요청서 12 — Real Broker/Event/DLQ/Replay/Ordering/Cache/Policy
-Codex 요청서 13 — SQL/Flyway/all_install/MariaDB Full Install Closure
-Codex 요청서 14 — Runtime E2E/Browser Click/Multi-instance/Failover Evidence
-Codex 요청서 15 — 최종 회귀/품질게이트/Report Matrix Evidence Consistency
+exs/src/main/java/cpf/exs/edu/fixedlength
+exs/src/main/java/cpf/exs/edu/endpoint
+exs/src/main/java/cpf/exs/edu/auth
+exs/src/main/java/cpf/exs/edu/servicecall
+exs/src/main/java/cpf/exs/edu/retry
+exs/src/main/java/cpf/exs/edu/unknown
+exs/src/main/java/cpf/exs/edu/reconciliation
+exs/src/main/java/cpf/exs/edu/ledger
+exs/src/main/java/cpf/exs/edu/filetransfer
+exs/src/main/java/cpf/exs/edu/archive
 ```
 
+## 12.4 CMN EDU/Test-Support
 
-# 부록 E. 본 문서 갱신 원칙
-
-이 문서는 검수 기준 문서다. 기능 목표를 확장하는 문서는 아니다. 기능 목표는 `CPF_FINAL_TARGET_REQUIREMENTS.md`에 반영한다.
-
-본 문서에 반영할 수 있는 것:
+CMN은 기술 engine 소유자가 아니라 공통 helper, parser, formatter, fixture, validation 역할을 가진다.
 
 ```text
-- 검수 방식
-- 완료 판정 기준
-- 요청서 작성 방식
-- 반복 실패 방지 방식
-- evidence 판단 기준
-- 상태값 적용 기준
-- 전수 파일 확인 방식
+cmn/src/main/java/cpf/cmn/edu/fixedlength
+cmn/src/main/java/cpf/cmn/edu/validation
+cmn/src/main/java/cpf/cmn/edu/converter
+cmn/src/main/java/cpf/cmn/edu/message
+cmn/src/main/java/cpf/cmn/edu/code
+cmn/src/main/java/cpf/cmn/edu/fixture
+cmn/src/main/java/cpf/cmn/edu/file
+cmn/src/main/java/cpf/cmn/edu/masking
 ```
 
-본 문서에 반영하지 않을 것:
+## 12.5 ADM/BIZADM EDU
 
 ```text
-- 신규 기능 목표 상세 카드
-- 특정 업무 기능 구현 상세
-- 임시 작업 보고
-- Codex 변경파일 목록
-- 실행 결과 원문 전체
-```
-# Codex 공통 작업 지침 보강
+adm/src/main/java/cpf/adm/edu/operation
+adm/src/main/java/cpf/adm/edu/registry
+adm/src/main/java/cpf/adm/edu/servicecall
+adm/src/main/java/cpf/adm/edu/batch
+adm/src/main/java/cpf/adm/edu/filetransfer
+adm/src/main/java/cpf/adm/edu/broker
+adm/src/main/java/cpf/adm/edu/runtime
+adm/src/main/java/cpf/adm/edu/scheduler
 
-- 작업 기준은 항상 `CPF_FINAL_TARGET_REQUIREMENTS.md`와 현재 요청서이다. 목표 파일은 읽기 전용 기준으로만 사용하고, 요청서가 별도 지시하지 않으면 수정하지 않는다.
-- 완료 주장은 실제 파일, 실제 실행 로그, 실제 evidence가 있을 때만 사용한다. 실행하지 않은 검증은 반드시 미검증으로 남긴다.
-- PFW는 프레임워크 코어 영역이며 표준 헤더, 거래 ID, 로그, 응답/오류, service call engine, PFW broker capability, file transfer capability, security/credential capability, runtime control capability를 소유한다.
-- CMN은 프로젝트 공통 영역이며 업무 공통 규칙, helper, fixture, fixed-length helper, 프로젝트 공통 확장을 소유한다. Kafka/MQ/Redis Stream, SSH/SFTP/FTP/FTPS 같은 기술 engine은 PFW capability 또는 PFW port-adapter 구조로 검토한다.
-- EXS는 외부연계 기술의 소유자가 아니다. EXS는 대외업무 adapter/구현체이며 외부 연계 기술 공통화가 필요하면 PFW/CMN capability로 올린다.
-- Spring Event는 hook, telemetry, cache invalidation, 감사/로그 보조 용도로만 사용한다. 거래 흐름, saga, compensation, unknown result, reconciliation, DLQ/replay의 핵심 전달 수단으로 완료 처리하지 않는다.
-- 요청서 템플릿 앞에는 이 공통 지침을 반복 반영하고, report/matrix/evidence 경로와 상태가 서로 맞는지 항상 검사한다.
+bizadm/src/main/java/cpf/bizadm/edu/auth
+bizadm/src/main/java/cpf/bizadm/edu/menu
+bizadm/src/main/java/cpf/bizadm/edu/api
+bizadm/src/main/java/cpf/bizadm/edu/button
+bizadm/src/main/java/cpf/bizadm/edu/audit
+bizadm/src/main/java/cpf/bizadm/edu/download
+bizadm/src/main/java/cpf/bizadm/edu/masking
+```
+
+## 12.6 PFW capability sample/test-support
+
+PFW는 독립 EDU 서비스가 아니라 capability별 package와 test-support를 통해 샘플을 제공한다.
+
+```text
+pfw/src/main/java/cpf/pfw/common/servicecall
+pfw/src/main/java/cpf/pfw/common/broker
+pfw/src/main/java/cpf/pfw/common/filetransfer
+pfw/src/main/java/cpf/pfw/common/archive
+pfw/src/main/java/cpf/pfw/common/security
+pfw/src/main/java/cpf/pfw/common/runtime
+pfw/src/main/java/cpf/pfw/common/admin
+pfw/src/main/java/cpf/pfw/common/audit
+pfw/src/main/java/cpf/pfw/common/masking
+```
+
+## 12.7 완료 불인정
+
+```text
+EDU 실제 샘플이 catalog package에만 몰려 있음
+기능별 package가 없음
+하나의 controller에 모든 샘플을 몰아넣음
+sampleId featureArea와 sourcePath package가 맞지 않음
+CoverageCatalog만 만들고 sample 완료 처리
+```
+
+---
+
+# 13. Sample Coverage Matrix 기준
+
+`specs/sample-coverage-matrix.md`는 단순 샘플 목록이 아니라 기능 검증 coverage를 추적하는 기준 파일이다.
+
+기능 개발 시 sample coverage matrix도 함께 갱신한다.
+
+필수 컬럼:
+
+```text
+sampleId
+module
+package
+featureArea
+sampleName
+sourcePath
+testPath
+evidencePath
+validationLevel
+runtimeRequired
+runtimeExecuted
+status
+notes
+swaggerTag
+swaggerOperationId
+openApiPath
+httpMethod
+openApiVerified
+```
+
+기준:
+
+```text
+sourcePath는 실제 샘플 class 또는 실제 기능 테스트여야 한다.
+CoverageCatalog는 완료 근거로 사용하지 않는다.
+testPath는 실제 기능/계약/fixture 테스트여야 한다.
+완료 sample은 evidencePath가 실제 존재해야 한다.
+REST API 샘플은 Swagger operation과 연결되어야 한다.
+외부 runtime 필요 항목은 runtimeRequired=true, runtimeExecuted=false로 분리한다.
+```
+
+완료 불인정:
+
+```text
+sampleId만 있고 실제 sourcePath 없음
+CoverageCatalog만 있고 실제 sample class 없음
+CoverageCatalogTest를 기능 테스트처럼 완료 처리
+evidencePath가 존재하지 않음
+REST API sample인데 Swagger operation 연결 없음
+```
+
+---
+
+# 14. 전체 거래/API Swagger/OpenAPI 표준 대응 기준
+
+Swagger/OpenAPI는 EDU 샘플 API에 한정하지 않는다.
+
+CPF의 모든 REST 거래/API는 구현과 동시에 OpenAPI 계약이 생성·관리·검증되어야 한다.
+
+## 14.1 적용 대상
+
+```text
+ADM 운영 API
+BIZADM 업무관리 API
+ACC 업무 API
+MBR 업무 API
+EXS 대외연계 API
+BAT 배치 실행/관리 API
+XYZ 업무/EDU API
+PFW runtime/admin/status API 후보
+공통 인증/권한/메뉴/코드/메시지/감사/다운로드/마스킹 API
+Service Call/Registry/Health API
+File Transfer API
+Broker/Outbox/Inbox API
+Archive/Compression API
+Fixed-Length 전문 API
+Scheduler/Worker/Batch execution API
+```
+
+## 14.2 모든 REST Controller 기준
+
+```text
+@Tag 명시
+@Operation 명시
+operationId 중복 금지
+summary/description 명시
+@ApiResponses 명시
+성공 response schema 명시
+표준 오류 response schema 명시
+request DTO schema 명시
+response DTO schema 명시
+필수 request header 명시
+transactionGlobalId 관련 header 명시
+moduleId/instanceId/selectedInstanceId 관련 header 또는 설명 명시
+권한이 필요한 API는 권한 요구사항 설명
+마스킹 대상 응답은 마스킹 설명
+감사/다운로드 감사 대상 API는 감사 설명
+외부 runtime 미검증 API는 runtime 미검증 여부 설명
+```
+
+## 14.3 OpenAPI 검증 기준
+
+Swagger UI 접근만으로 완료 처리하지 않는다.
+
+아래를 함께 검증한다.
+
+```text
+module별 /v3/api-docs 접근 가능
+module별 /swagger-ui/index.html 접근 가능
+모든 Controller가 OpenAPI path로 노출되는지 확인
+Controller method 수와 OpenAPI operation 수 비교
+operationId 중복 검사
+path/method 중복 검사
+@Tag 누락 검사
+@Operation 누락 검사
+request schema 누락 검사
+response schema 누락 검사
+standard error response 누락 검사
+required header 설명 누락 검사
+transactionGlobalId/header 설명 누락 검사
+권한/마스킹/감사 설명 누락 검사
+```
+
+## 14.4 완료 불인정
+
+```text
+EDU 샘플 API만 Swagger 대응하고 일반 거래 API는 누락
+Swagger UI만 열리고 schema 품질 검증 없음
+Controller가 있는데 OpenAPI operation 없음
+@Tag 없음
+@Operation 없음
+operationId 중복
+request/response schema 누락
+표준 오류 response 누락
+transactionGlobalId/header 설명 누락
+권한/마스킹/감사 설명 누락
+openApiSmoke가 qualityGate에 연결되지 않음
+OpenAPI evidence 없이 Swagger 완료 기록
+```
+
+---
+
+# 15. Java 25 LTS 표준 목표 기준
+
+CPF의 Java 표준 목표 버전은 Java 25 LTS로 한다.
+
+단, Java 25 전환은 단순 문서 표기가 아니라 Gradle toolchain, module compile, test, bootJar, qualityGate, CI/Jenkins 기준으로 검증해야 한다.
+
+기준:
+
+```text
+Java target version: 25
+Java toolchain: 25
+JDK distribution candidate: Eclipse Temurin 25 LTS 또는 조직 표준 OpenJDK 25 LTS
+```
+
+완료 후보 조건:
+
+```text
+java -version evidence 존재
+gradle --version evidence 존재
+Gradle toolchain 25 설정
+전체 모듈 compile/test 성공
+실행 주체 모듈 bootJar 성공
+qualityGate 성공
+Java 17/21 하드코딩 잔존 여부 검사
+Spring Boot/Spring Framework/Gradle wrapper 호환성 확인
+```
+
+완료 불인정:
+
+```text
+문서에만 Java 25라고 기록
+toolchain 설정 없음
+java -version evidence 없음
+compile/test 미실행
+bootJar 미검증
+Java 25에서 실패했는데 완료 기록
+```
+
+Spring Boot major upgrade가 필요하면 무리하게 완료 처리하지 말고 `재확인 필요` 또는 `미구현`으로 gap에 남긴다.
+
+---
+
+# 16. 요청서 작성 기준
+
+앞으로 Codex 요청서에서 기능을 신규 구현하거나 수정하라고 할 때는 아래 항목을 기본 포함한다.
+
+```text
+기능 소스 구현
+기능 테스트 구현
+기능별 EDU 샘플 구현
+EDU 샘플 테스트 구현
+REST API이면 Swagger/OpenAPI 반영
+OpenAPI smoke 또는 coverage 검증
+sample coverage matrix 반영
+기능 매트릭스 반영
+evidence 생성
+CPF_STABILIZATION_REPORT.md 반영
+CPF_EVIDENCE_INDEX.md 반영
+CPF_GAP_MATRIX.md 반영
+```
+
+즉, “기능 구현” 요청은 기본적으로 EDU/Swagger/Test/Evidence 동시 구현 요청으로 해석한다.
+
+요청서에는 항상 아래 금지를 포함한다.
+
+```text
+Git commit 금지
+Git push 금지
+branch 생성 금지
+민감정보 원문 기록 금지
+실행하지 않은 검증 완료 기록 금지
+별도 변경파일 목록 산출물 생성 금지
+문서량 채우기식 문서화 금지
+신규 HTML 작성/수정 지양
+PDF 생성은 최종 정본화 단계에서만 수행
+```
+
+---
+
+# 17. SQL / 설치 / evidence 기준
+
+SQL 검수 시 아래 정합성을 본다.
+
+```text
+split SQL
+Flyway migration
+00_all_install.sql
+00_all_install_and_smoke.sql
+99_smoke_check.sql
+```
+
+MariaDB 신규 빈 DB 실실행 없이 전체 설치 성공이라고 말하지 않는다.
+
+완료/부분 구현으로 기록한 항목은 실제 존재하는 evidence 경로가 있어야 한다.
+
+금지:
+
+```text
+없는 evidence 파일을 완료 근거로 참조
+stale evidence를 신규 완료 근거로 참조
+다른 profile evidence를 완료 근거로 참조
+다른 DB evidence를 완료 근거로 참조
+다른 branch 산출물을 완료 근거로 참조
+```
+
+qualityGate는 아래를 잡아야 한다.
+
+```text
+report/matrix/evidence 불일치
+없는 evidence
+허용되지 않은 상태값
+SKIPPED 완료 기록
+sample coverage matrix 누락
+CoverageCatalog-only 완료 처리
+OpenAPI 누락
+EDU 샘플 누락
+```
+
+---
+
+# 18. Java/profile/deploy 기준
+
+CPF profile 표준은 아래다.
+
+```text
+local
+dev
+stg
+prod
+```
+
+`prd`는 표준으로 쓰지 않는다.
+
+PFW/CMN은 실행 주체가 아니지만 공통 기본값과 zone별 override를 위해 아래와 같은 파일을 둘 수 있다.
+
+```text
+application-pfw-local/dev/stg/prod.yml
+application-cmn-local/dev/stg/prod.yml
+```
+
+단, PFW/CMN은 실행 주체 설정을 강제하지 않는다.
+
+PFW/CMN 금지:
+
+```text
+server.port 강제
+datasource 강제
+module-id 강제
+실행 주체 설정 강제
+```
+
+실행 주체 설정은 각 업무 서비스 yml 또는 deploy env가 최종 결정한다.
+
+실행 주체:
+
+```text
+ACC
+MBR
+EXS
+ADM
+BAT
+BIZADM
+XYZ
+```
+
+실행 주체 아님:
+
+```text
+PFW
+CMN
+EDU
+```
+
+EDU는 별도 서비스가 아니라 XYZ/BAT 등 내부 교육 샘플 패키지다.
+
+금지/점검 대상:
+
+```text
+EDU_SERVER_PORT
+deploy/env/*-edu.env
+deploy-edu.ps1
+deploy-edu.sh
+settings.gradle 별도 edu module
+build.gradle EDU alias
+inventory EDU 서비스 등록
+-PcpfModule=EDU 성공 처리
+```
+
+기본 실행 표준:
+
+```text
+Spring Boot executable bootJar
+embedded Tomcat
+java -jar
+module별 server.port
+module별 datasource URL/env 기반 설정
+```
+
+외부 WAS/JNDI는 선택 호환 옵션이다. 실제 WAS/JNDI runtime 검증은 환경 없으면 미검증이다.
+
+---
+
+# 19. 가비지 파일 / 빈 폴더 기준
+
+가비지 정리 시 파일뿐 아니라 빈 폴더도 확인한다.
+
+Git은 빈 폴더를 추적하지 않으므로 GitHub tree만으로는 확인할 수 없다.
+
+Codex 완료 후 로컬 checkout 기준 empty directory scan evidence가 필요하다.
+
+검사 대상:
+
+```text
+scripts/deploy
+deploy/env
+deploy/inventory
+src/main/java
+src/test/java
+src/main/resources
+src/test/resources
+specs/evidence
+각 edu package
+```
+
+가비지 삭제 기준:
+
+```text
+git grep 참조 없음
+Gradle build/test 참조 없음
+script 호출 없음
+README/report/matrix/evidence 참조 없음
+qualityGate/check script 참조 없음
+자동생성 템플릿 참조 없음
+같은 목적의 신규 표준 파일 존재
+```
+
+삭제 금지 또는 보류:
+
+```text
+CPF_FINAL_TARGET_REQUIREMENTS.md
+CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+CPF_NEW_REQUEST.md
+사용자가 명시한 기준 파일
+직접 확인 안 된 파일
+대용량 목표파일 원본
+후속 필요성이 있으나 근거 부족한 파일
+```
+
+애매하면 삭제하지 말고 `재확인 필요`로 남긴다.
+
+---
+
+# 20. OpenAPI/Swagger 검수 기준
+
+Swagger/OpenAPI는 전체 REST 거래/API 계약 관리 기준이다.
+
+검수 시 아래를 확인한다.
+
+```text
+모든 Controller가 OpenAPI path로 노출되는지
+operationId 중복 없는지
+request/response schema 있는지
+표준 오류 response 있는지
+transactionGlobalId/header 설명 있는지
+권한/마스킹/감사 설명 있는지
+sampleId와 Swagger operation 매핑이 있는지
+openApiSmoke 또는 OpenAPI coverage 검증 evidence가 있는지
+qualityGate에 연결되어 있는지
+```
+
+Swagger UI 접근만으로 완료 판정하지 않는다.
+
+---
+
+# 21. qualityGate 기준
+
+qualityGate는 단순 빌드 성공이 아니라 report/matrix/evidence/coverage 정합성까지 잡아야 한다.
+
+qualityGate 필수 후보:
+
+```text
+check-feature-evidence
+check-html-docs
+check-report-matrix-evidence-consistency
+check-evidence-path-existence
+check-sample-coverage
+check-sample-catalog-only
+check-sample-source-duplication
+check-sample-actual-implementation
+check-sample-package-structure
+check-openapi-controller-coverage
+check-openapi-operation-id
+check-openapi-schema
+check-openapi-standard-error
+check-openapi-headers
+check-openapi-security-audit-masking
+check-architecture-ownership
+check-spring-event-usage
+check-utf8-mojibake
+check-empty-directories
+check-garbage-files
+check-local-port-duplicates
+check-java25-toolchain
+```
+
+qualityGate가 통과했다고 해도, 실제 evidence 파일이 없거나 stale이면 완료 판정하지 않는다.
+
+---
+
+# 22. 검수 답변 기준
+
+CPF 검수 답변은 아래를 분리한다.
+
+```text
+검증 사실
+Codex 주장
+추정
+미확인 사항
+직접 실행 미수행
+```
+
+직접 확인하지 않은 것은 완료라고 하지 않는다.
+
+검수 답변에는 가능하면 아래 표를 포함한다.
+
+| 영역 | 상태 | 근거 | 미확인/리스크 |
+|---|---|---|---|
+| 기능 소스 | 완료/부분 구현/... | 경로/evidence | ... |
+| EDU 샘플 | 완료/부분 구현/... | 경로/evidence | ... |
+| Swagger/OpenAPI | 완료/부분 구현/... | 경로/evidence | ... |
+| 테스트 | 완료/부분 구현/... | 로그/evidence | ... |
+| Evidence 정합성 | 완료/실패/... | 경로 | ... |
+| Runtime 검증 | 미검증/완료 | 로그 | ... |
+
+---
+
+# 23. 반복 실패 대응 기준
+
+반복 실패 항목은 같은 방식으로 재요청하지 않는다.
+
+실패 원인을 아래로 분류한다.
+
+```text
+요구사항 해석 문제
+설계 방향 문제
+소스 구현 누락
+계층 연결 누락
+SQL/Flyway/all_install 누락
+설정/profile 문제
+테스트 설계 문제
+실행 환경 문제
+DB/MariaDB 문제
+broker 문제
+browser/UI 검증 문제
+evidence 부재 또는 불일치
+Codex 보고와 실제 파일 불일치
+ownership 위반
+Spring Event 남용
+Swagger/OpenAPI 누락
+EDU 샘플 누락
+sample coverage matrix 누락
+qualityGate 설계 문제
+```
+
+같은 방식으로 안 되면 대안을 제시한다.
+
+---
+
+# 24. 마지막 원칙
+
+CPF 작업은 빠르게 가되 완료 판정은 엄격하게 한다.
+
+```text
+기능만 구현하고 완료라고 하지 않는다.
+EDU 샘플만 있고 테스트 없으면 완료라고 하지 않는다.
+Swagger UI만 열리면 완료라고 하지 않는다.
+evidence 없는 완료는 완료가 아니다.
+Codex 보고는 완료 근거가 아니라 검수 대상이다.
+목표를 낮춰서 완료처럼 만들지 않는다.
+```
+
+앞으로 CPF 기능 개발은 아래를 한 묶음으로 본다.
+
+```text
+기능 구현
++ EDU 샘플
++ EDU 테스트
++ 기능 테스트
++ Swagger/OpenAPI
++ OpenAPI 검증
++ sample coverage
++ evidence
++ report/index/gap matrix
+```
+
+이 기준을 만족하지 못하면 `완료`가 아니라 `부분 구현`, `미검증`, `미구현`, `실패`, `재확인 필요` 중 하나로 판정한다.

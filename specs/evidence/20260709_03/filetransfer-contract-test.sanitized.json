@@ -1,0 +1,23 @@
+{
+    "runtimeExecuted":  false,
+    "feature":  "PFW FileTransfer",
+    "testClasses":  [
+                        "PfwFileTransferAdvancedEducationSampleTest.java"
+                    ],
+    "runtimeNote":  "외부 runtime 검증이 아니라 Java 21 단위/계약 테스트로 검증했습니다.",
+    "generatedAt":  "2026-07-10T09:58:13.9847645+09:00",
+    "pfwTestLog":  "specs/evidence/20260709_03/pfw-test.log",
+    "sourceClasses":  [
+                          "PfwFileTransferAdvancedEducationSample.java"
+                      ],
+    "status":  "완료",
+    "verified":  [
+                     "LOCAL adapter copy",
+                     "checksum",
+                     "temp rename policy",
+                     "duplicateKey",
+                     "transfer history",
+                     "unknown result",
+                     "SFTP/FTP/SCP/SSH protocol plan"
+                 ]
+}

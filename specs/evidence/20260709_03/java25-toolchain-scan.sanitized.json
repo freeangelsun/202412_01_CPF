@@ -1,0 +1,9 @@
+{
+    "generatedAt":  "2026-07-10T09:58:14.0489477+09:00",
+    "status":  "재확인 필요",
+    "defaultJavaEvidence":  "specs/evidence/20260709_03/java-version.log",
+    "gradleEvidence":  "specs/evidence/20260709_03/gradle-version.log",
+    "pfwToolchain":  "Java 21",
+    "java25RuntimeDetected":  true,
+    "java25TestCompleted":  false
+}

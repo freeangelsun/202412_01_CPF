@@ -1,0 +1,9 @@
+{
+    "generatedAt":  "2026-07-10T09:58:14.0367144+09:00",
+    "status":  "재확인 필요",
+    "javaVersionEvidence":  "specs/evidence/20260709_03/java-version.log",
+    "attemptLog":  "specs/evidence/20260709_03/java25-pfw-test-attempt.log",
+    "result":  "Gradle 8.11.1 test task 구성 단계에서 Type T not present로 실패했습니다.",
+    "completedAsJava25":  false,
+    "verifiedWithJava21":  "specs/evidence/20260709_03/pfw-test.log"
+}

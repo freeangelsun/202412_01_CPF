@@ -1,0 +1,161 @@
+[2026-06-18 17:09:18.702] [http-nio-18099-exec-4] DEBUG o.s.web.servlet.DispatcherServlet [TranId: 20260618170918701CMNlocal010000004] [BizTranId: ] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - POST "/xyz/edu/batch/retry/run?requestUser=STABILIZATION", parameters={masked}
+[2026-06-18 17:09:18.706] [http-nio-18099-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping [TranId: 20260618170918701CMNlocal010000004] [BizTranId: ] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Mapped to cpf.xyz.edu.controller.XyzBatchEducationController#runRetry(String)
+[2026-06-18 17:09:18.708] [http-nio-18099-exec-4] INFO  c.pfw.common.logging.LoggingAspect [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Transaction started. transactionId=20260618170918701CMNlocal010000004, businessTransactionId=XYZ13EDU0003, businessTransactionName=XYZBatchRetryRun, traceId=66d175c3-78b3-40c6-b253-bf07f5890d1e, spanId=SPN-6758b3d8-0033-4679-bb62-a4704df511af, moduleId=CMN, sequenceNo=1, workflowInstanceId=None, workflowStepId=None, method=POST, uri=/xyz/edu/batch/retry/run?requestUser=STABILIZATION, controller=XyzBatchEducationController.runRetry(..), executionClass=cpf.xyz.edu.controller.XyzBatchEducationController, executionMethod=runRetry, clientIp=127.0.0.1, parameters=requestUser=STABILIZATION, requestBody=[STABILIZATION]
+[2026-06-18 17:09:18.709] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.709] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT JOB_INSTANCE_ID, JOB_NAME
+FROM BATCH_JOB_INSTANCE
+WHERE JOB_NAME = ?
+ AND JOB_KEY = ?]
+[2026-06-18 17:09:18.711] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.711] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT JOB_INSTANCE_ID, JOB_NAME
+FROM BATCH_JOB_INSTANCE
+WHERE JOB_NAME = ?
+ AND JOB_KEY = ?]
+[2026-06-18 17:09:18.712] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.712] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT JOB_INSTANCE_ID, JOB_NAME
+FROM BATCH_JOB_INSTANCE
+WHERE JOB_NAME = ?
+ AND JOB_KEY = ?]
+[2026-06-18 17:09:18.714] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.714] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_JOB_INSTANCE(JOB_INSTANCE_ID, JOB_NAME, JOB_KEY, VERSION)
+	VALUES (?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.716] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.716] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_JOB_EXECUTION(JOB_EXECUTION_ID, JOB_INSTANCE_ID, START_TIME, END_TIME, STATUS, EXIT_CODE, EXIT_MESSAGE, VERSION, CREATE_TIME, LAST_UPDATED)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.717] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing SQL batch update [INSERT INTO BATCH_JOB_EXECUTION_PARAMS(JOB_EXECUTION_ID, PARAMETER_NAME, PARAMETER_TYPE, PARAMETER_VALUE, IDENTIFYING)
+	VALUES (?, ?, ?, ?, ?)
+] with a batch size of 100
+[2026-06-18 17:09:18.718] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_JOB_EXECUTION_PARAMS(JOB_EXECUTION_ID, PARAMETER_NAME, PARAMETER_TYPE, PARAMETER_VALUE, IDENTIFYING)
+	VALUES (?, ?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.719] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.719] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_JOB_EXECUTION_CONTEXT (SHORT_CONTEXT, SERIALIZED_CONTEXT, JOB_EXECUTION_ID)
+	VALUES(?, ?, ?)
+]
+[2026-06-18 17:09:18.720] [http-nio-18099-exec-4] INFO  o.s.b.c.l.s.TaskExecutorJobLauncher [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Job: [SimpleJob: [name=CPF_EDU_RETRY_JOB]] launched with the following parameters: [{'requestTime':'{value=1781770158708, type=class java.lang.Long, identifying=true}','requestUser':'{value=STABILIZATION, type=class java.lang.String, identifying=true}'}]
+[2026-06-18 17:09:18.721] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.721] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT VERSION
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID=?
+]
+[2026-06-18 17:09:18.722] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.722] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT COUNT(*)
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.722] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.723] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_JOB_EXECUTION
+SET START_TIME = ?, END_TIME = ?,  STATUS = ?, EXIT_CODE = ?, EXIT_MESSAGE = ?, VERSION = VERSION + 1, CREATE_TIME = ?, LAST_UPDATED = ?
+WHERE JOB_EXECUTION_ID = ? AND VERSION = ?
+]
+[2026-06-18 17:09:18.724] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.724] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT SE.STEP_EXECUTION_ID, SE.STEP_NAME, SE.START_TIME, SE.END_TIME, SE.STATUS, SE.COMMIT_COUNT, SE.READ_COUNT, SE.FILTER_COUNT, SE.WRITE_COUNT, SE.EXIT_CODE, SE.EXIT_MESSAGE, SE.READ_SKIP_COUNT, SE.WRITE_SKIP_COUNT, SE.PROCESS_SKIP_COUNT, SE.ROLLBACK_COUNT, SE.LAST_UPDATED, SE.VERSION, SE.CREATE_TIME, JE.JOB_EXECUTION_ID, JE.START_TIME, JE.END_TIME, JE.STATUS, JE.EXIT_CODE, JE.EXIT_MESSAGE, JE.CREATE_TIME, JE.LAST_UPDATED, JE.VERSION
+FROM BATCH_JOB_EXECUTION JE
+	JOIN BATCH_STEP_EXECUTION SE ON SE.JOB_EXECUTION_ID = JE.JOB_EXECUTION_ID
+WHERE JE.JOB_INSTANCE_ID = ? AND SE.STEP_NAME = ?
+]
+[2026-06-18 17:09:18.726] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.726] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT COUNT(*)
+FROM BATCH_JOB_EXECUTION JE
+	JOIN BATCH_STEP_EXECUTION SE ON SE.JOB_EXECUTION_ID = JE.JOB_EXECUTION_ID
+WHERE JE.JOB_INSTANCE_ID = ? AND SE.STEP_NAME = ?
+]
+[2026-06-18 17:09:18.729] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.730] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_STEP_EXECUTION(STEP_EXECUTION_ID, VERSION, STEP_NAME, JOB_EXECUTION_ID, START_TIME, END_TIME, STATUS, COMMIT_COUNT, READ_COUNT, FILTER_COUNT, WRITE_COUNT, EXIT_CODE, EXIT_MESSAGE, READ_SKIP_COUNT, WRITE_SKIP_COUNT, PROCESS_SKIP_COUNT, ROLLBACK_COUNT, LAST_UPDATED, CREATE_TIME)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.730] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.730] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO BATCH_STEP_EXECUTION_CONTEXT (SHORT_CONTEXT, SERIALIZED_CONTEXT, STEP_EXECUTION_ID)
+	VALUES(?, ?, ?)
+]
+[2026-06-18 17:09:18.731] [http-nio-18099-exec-4] INFO  o.s.batch.core.job.SimpleStepHandler [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing step: [CPF_EDU_RETRY_STEP]
+[2026-06-18 17:09:18.732] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.732] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION
+SET START_TIME = ?, END_TIME = ?, STATUS = ?, COMMIT_COUNT = ?, READ_COUNT = ?, FILTER_COUNT = ?, WRITE_COUNT = ?, EXIT_CODE = ?, EXIT_MESSAGE = ?, VERSION = VERSION + 1, READ_SKIP_COUNT = ?, PROCESS_SKIP_COUNT = ?, WRITE_SKIP_COUNT = ?, ROLLBACK_COUNT = ?, LAST_UPDATED = ?
+WHERE STEP_EXECUTION_ID = ? AND VERSION = ?
+]
+[2026-06-18 17:09:18.733] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.733] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT VERSION
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID=?
+]
+[2026-06-18 17:09:18.734] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.735] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION_CONTEXT
+SET SHORT_CONTEXT = ?, SERIALIZED_CONTEXT = ?
+WHERE STEP_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.736] [http-nio-18099-exec-4] INFO  c.x.e.config.XyzBatchEducationConfig [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - CPF EDU Retry 정책 샘플 배치 실행. jobParameters={requestTime=1781770158708, requestUser=STABILIZATION}
+[2026-06-18 17:09:18.737] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.737] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION_CONTEXT
+SET SHORT_CONTEXT = ?, SERIALIZED_CONTEXT = ?
+WHERE STEP_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.738] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.738] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION
+SET START_TIME = ?, END_TIME = ?, STATUS = ?, COMMIT_COUNT = ?, READ_COUNT = ?, FILTER_COUNT = ?, WRITE_COUNT = ?, EXIT_CODE = ?, EXIT_MESSAGE = ?, VERSION = VERSION + 1, READ_SKIP_COUNT = ?, PROCESS_SKIP_COUNT = ?, WRITE_SKIP_COUNT = ?, ROLLBACK_COUNT = ?, LAST_UPDATED = ?
+WHERE STEP_EXECUTION_ID = ? AND VERSION = ?
+]
+[2026-06-18 17:09:18.739] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.739] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT VERSION
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID=?
+]
+[2026-06-18 17:09:18.740] [http-nio-18099-exec-4] INFO  o.s.batch.core.step.AbstractStep [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Step: [CPF_EDU_RETRY_STEP] executed in 8ms
+[2026-06-18 17:09:18.741] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.741] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION_CONTEXT
+SET SHORT_CONTEXT = ?, SERIALIZED_CONTEXT = ?
+WHERE STEP_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.743] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.743] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_STEP_EXECUTION
+SET START_TIME = ?, END_TIME = ?, STATUS = ?, COMMIT_COUNT = ?, READ_COUNT = ?, FILTER_COUNT = ?, WRITE_COUNT = ?, EXIT_CODE = ?, EXIT_MESSAGE = ?, VERSION = VERSION + 1, READ_SKIP_COUNT = ?, PROCESS_SKIP_COUNT = ?, WRITE_SKIP_COUNT = ?, ROLLBACK_COUNT = ?, LAST_UPDATED = ?
+WHERE STEP_EXECUTION_ID = ? AND VERSION = ?
+]
+[2026-06-18 17:09:18.745] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.745] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT VERSION
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID=?
+]
+[2026-06-18 17:09:18.748] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.748] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_JOB_EXECUTION_CONTEXT
+SET SHORT_CONTEXT = ?, SERIALIZED_CONTEXT = ?
+WHERE JOB_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.750] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.750] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT VERSION
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID=?
+]
+[2026-06-18 17:09:18.751] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL query
+[2026-06-18 17:09:18.751] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [SELECT COUNT(*)
+FROM BATCH_JOB_EXECUTION
+WHERE JOB_EXECUTION_ID = ?
+]
+[2026-06-18 17:09:18.752] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.753] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [UPDATE BATCH_JOB_EXECUTION
+SET START_TIME = ?, END_TIME = ?,  STATUS = ?, EXIT_CODE = ?, EXIT_MESSAGE = ?, VERSION = VERSION + 1, CREATE_TIME = ?, LAST_UPDATED = ?
+WHERE JOB_EXECUTION_ID = ? AND VERSION = ?
+]
+[2026-06-18 17:09:18.755] [http-nio-18099-exec-4] INFO  o.s.b.c.l.s.TaskExecutorJobLauncher [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Job: [SimpleJob: [name=CPF_EDU_RETRY_JOB]] completed with the following parameters: [{'requestTime':'{value=1781770158708, type=class java.lang.Long, identifying=true}','requestUser':'{value=STABILIZATION, type=class java.lang.String, identifying=true}'}] and the following status: [COMPLETED] in 29ms
+[2026-06-18 17:09:18.756] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.756] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO pfw_batch_execution (
+    job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
+    batch_instance_id, start_time, end_time, read_count, write_count, skip_count,
+    error_message, requested_by, created_by, updated_by
+) VALUES (?, NULL, ?, ?, ?, 'local-batch-01', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.757] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.StatementCreatorUtils [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - JDBC getParameterType call failed - using fallback method instead: java.sql.SQLFeatureNotSupportedException: (conn=630) Getting parameter type metadata are not supported
+[2026-06-18 17:09:18.760] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing SQL query [SELECT LAST_INSERT_ID()]
+[2026-06-18 17:09:18.761] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL update
+[2026-06-18 17:09:18.761] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.JdbcTemplate [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Executing prepared SQL statement [INSERT INTO pfw_batch_step_execution (
+    execution_id, step_name, execution_status, start_time, end_time,
+    read_count, write_count, skip_count, error_message, step_log, created_by, updated_by
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+]
+[2026-06-18 17:09:18.762] [http-nio-18099-exec-4] DEBUG o.s.jdbc.core.StatementCreatorUtils [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - JDBC getParameterType call failed - using fallback method instead: java.sql.SQLFeatureNotSupportedException: (conn=630) Getting parameter type metadata are not supported
+[2026-06-18 17:09:18.764] [http-nio-18099-exec-4] INFO  c.pfw.common.logging.LoggingAspect [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Transaction completed. transactionId=20260618170918701CMNlocal010000004, traceId=66d175c3-78b3-40c6-b253-bf07f5890d1e, spanId=SPN-6758b3d8-0033-4679-bb62-a4704df511af, moduleId=CMN, sequenceNo=1, workflowStatus=NONE, compensationYn=N, httpStatus=200, responseCode=SCMN000000, messageCode=MCMN000000, durationMs=56
+[2026-06-18 17:09:18.777] [http-nio-18099-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
+[2026-06-18 17:09:18.778] [http-nio-18099-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Writing [{enabled=true, jobId=CPF_EDU_RETRY_JOB, executionId=3, status=COMPLETED, exitStatus=COMPLETED, pfwBa (truncated)...]
+[2026-06-18 17:09:18.779] [http-nio-18099-exec-4] DEBUG o.s.web.servlet.DispatcherServlet [TranId: 20260618170918701CMNlocal010000004] [BizTranId: XYZ13EDU0003] [TraceId: 66d175c3-78b3-40c6-b253-bf07f5890d1e] [SpanId: SPN-6758b3d8-0033-4679-bb62-a4704df511af] [DynLevel: ] - Completed 200 OK

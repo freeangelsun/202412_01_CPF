@@ -1,0 +1,6 @@
+transactionGlobalId=20260707132630330ACCflog0010000001
+완료 logs\acc\cpf-acc-transaction.log containsTransactionGlobalId=True missingFields=
+완료 logs\acc\cpf-acc-integration.log containsTransactionGlobalId=True missingFields=
+완료 logs\exs\cpf-exs-transaction.log containsTransactionGlobalId=True missingFields=
+완료 logs\exs\cpf-exs-integration.log containsTransactionGlobalId=True missingFields=
+미검증 logs\bat\cpf-bat-batch.log containsTransactionGlobalId=False missingFields=transactionGlobalId

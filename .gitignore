@@ -40,7 +40,7 @@ out/
 !.vscode/extensions.json
 
 ### CPF runtime logs ###
-logs/
-**/logs/
-*.log
-*.log.*
+# logs/
+# **/logs/
+# *.log
+# *.log.*

@@ -209,7 +209,10 @@ public class AdmObservabilityService {
         try {
             return pfwJdbcTemplate.queryForList("""
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                           spring_batch_execution_id, transaction_global_id, batch_instance_id,
+                           spring_batch_execution_id, spring_batch_job_instance_id, business_date,
+                           run_id, rerun_id, original_job_execution_id, restart_attempt,
+                           transaction_global_id, parent_transaction_global_id,
+                           transaction_segment_id, parent_segment_id, job_log_relative_path, batch_instance_id,
                            server_instance_id, worker_id, start_time, end_time, processed_count,
                            success_count, failure_count, progress_rate, current_step_name,
                            last_heartbeat_at, created_at

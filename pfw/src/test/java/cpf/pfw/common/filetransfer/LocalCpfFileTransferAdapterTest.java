@@ -49,6 +49,54 @@ class LocalCpfFileTransferAdapterTest {
     }
 
     @Test
+    void downloadRejectsLocalPathOutsideConfiguredBase() throws Exception {
+        Path remoteBase = tempDir.resolve("remote");
+        Files.createDirectories(remoteBase);
+        Files.writeString(remoteBase.resolve("source.dat"), "CPF");
+        CpfFileTransferRequest download = new CpfFileTransferRequest(
+                "TX-1",
+                "SEG-1",
+                "LOCAL_EDU",
+                "DOWNLOAD",
+                tempDir.resolve("../outside.dat").normalize().toString(),
+                "source.dat",
+                null,
+                0,
+                Map.of());
+
+        assertThatThrownBy(() -> new LocalCpfFileTransferAdapter().execute(
+                endpoint(remoteBase, "N"),
+                download))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("localPath");
+    }
+
+    @Test
+    void checksumFailureRemovesTemporaryFile() throws Exception {
+        Path source = tempDir.resolve("source.dat");
+        Files.writeString(source, "CPF");
+        Path remoteBase = tempDir.resolve("remote");
+        CpfFileTransferRequest request = new CpfFileTransferRequest(
+                "TX-1",
+                "SEG-1",
+                "LOCAL_EDU",
+                "UPLOAD",
+                source.toString(),
+                "target.dat",
+                "invalid-checksum",
+                Files.size(source),
+                Map.of());
+
+        CpfFileTransferResult result = new LocalCpfFileTransferAdapter().execute(
+                endpoint(remoteBase, "N"),
+                request);
+
+        assertThat(result.status()).isEqualTo("FAILED");
+        assertThat(remoteBase.resolve("target.dat.cpf.tmp")).doesNotExist();
+        assertThat(remoteBase.resolve("target.dat")).doesNotExist();
+    }
+
+    @Test
     void engineRecordsSuccessAndPreventsDuplicate() throws Exception {
         Path source = tempDir.resolve("source.dat");
         Files.writeString(source, "CPF");
@@ -78,7 +126,9 @@ class LocalCpfFileTransferAdapterTest {
                 remoteBase.toString(),
                 null,
                 Duration.ofSeconds(5),
-                Map.of("overwriteYn", overwriteYn));
+                Map.of(
+                        "overwriteYn", overwriteYn,
+                        "localBasePath", tempDir.toString()));
     }
 
     private CpfFileTransferRequest request(Path source, String remotePath) {

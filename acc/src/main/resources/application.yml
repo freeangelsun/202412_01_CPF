@@ -33,7 +33,7 @@ server:
   port: ${ACC_SERVER_PORT:8080}
 
 logging:
-  config: classpath:log/logback-local.xml
+  config: classpath:log/cpf-logback-spring.xml
   level:
     root: INFO
     cpf.pfw: DEBUG
@@ -53,7 +53,7 @@ spring:
       password: ${ACC_DB_PASSWORD}
 
 logging:
-  config: classpath:log/logback-prod.xml
+  config: classpath:log/cpf-logback-spring.xml
   level:
     root: INFO
     cpf.pfw: INFO

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
     [string] $ModuleCode = "pym",
@@ -190,6 +190,10 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
+ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '21')
+        .toString()
+        .toInteger()
+
 allprojects {
     repositories {
         mavenCentral()
@@ -220,24 +224,19 @@ subprojects {
     [System.IO.File]::WriteAllText((Join-Path $verificationDir "build.gradle"), $rootBuild, $Utf8NoBom)
     $gradleWrapper = Join-Path $Root "gradlew.bat"
     $compileLogPath = Join-Path $ResultDir "create-domain-compile.log"
-    $commandLine = '""{0}" -p "{1}" :{2}:test :{2}:bootJar --offline --no-daemon --console=plain"' -f `
-            $gradleWrapper, $verificationDir, $ModuleCode
-    $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
-    $processInfo.FileName = $env:ComSpec
-    $processInfo.Arguments = "/d /s /c $commandLine"
-    $processInfo.UseShellExecute = $false
-    $processInfo.RedirectStandardOutput = $true
-    $processInfo.RedirectStandardError = $true
-    $processInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
-    $processInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
-    $process = [System.Diagnostics.Process]::new()
-    $process.StartInfo = $processInfo
-    [void] $process.Start()
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    $process.WaitForExit()
-    $compileExitCode = $process.ExitCode
-    $compileOutput = $stdout + $(if ([string]::IsNullOrWhiteSpace($stderr)) { "" } else { "`n" + $stderr })
+    # 중첩 PowerShell의 Process.Start는 로컬 보안 정책에 따라 cmd.exe 실행이 차단될 수 있다.
+    # 현재 프로세스에서 래퍼를 직접 실행하면 동일한 Gradle 검증을 수행하면서 종료 코드를 정확히 보존한다.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $compileOutputLines = @(& $gradleWrapper -p $verificationDir `
+                ":${ModuleCode}:test" ":${ModuleCode}:bootJar" `
+                --offline --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
+        $compileExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $compileOutput = ($compileOutputLines -join "`n") + "`n"
     [System.IO.File]::WriteAllText($compileLogPath, $compileOutput, $Utf8NoBom)
     $result.compile = [ordered]@{
         status = if ($compileExitCode -eq 0) { $StatusDone } else { $StatusFailed }

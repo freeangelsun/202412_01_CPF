@@ -169,8 +169,12 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260713_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260713_02').toString())
 }
+
+ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '21')
+        .toString()
+        .toInteger()
 
 Map<String, String> cpfReadEnvFile(File envFile) {
     if (!envFile.exists()) {
@@ -440,6 +444,20 @@ tasks.register('checkRuntimeConfigStandard', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-runtime-config-standard.ps1'
 }
 
+tasks.register('checkLogManagementStandard', Exec) {
+    group = 'verification'
+    description = '런타임 로그 비추적, 공통 로그 경로, 정제 증적 규격을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-log-management-standard.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkOpenApiSourceCoverage', Exec) {
+    group = 'verification'
+    description = '전체 Controller의 OpenAPI operationId 자동 보장과 명시 ID 중복을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-openapi-source-coverage.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('checkSampleCoverage', Exec) {
     group = 'verification'
     description = 'CPF education sample coverage matrix and source evidence must be consistent.'
@@ -602,5 +620,5 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
 }

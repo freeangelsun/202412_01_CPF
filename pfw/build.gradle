@@ -8,7 +8,7 @@ version = '0.0.1-cpf.pfw-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
 	}
 }
 

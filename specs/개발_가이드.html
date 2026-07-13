@@ -75,6 +75,22 @@
   </section>
 
   <section>
+    <h2>실행 모듈 로그 표준</h2>
+    <p>ACC, MBR, EXS, ADM, BAT, BIZADM, XYZ는 <code>${CPF_LOG_ROOT}/{moduleCode}</code>만 사용합니다. PFW와 CMN은 독립 로그 디렉터리를 만들지 않고 자신을 실행한 모듈에 귀속됩니다.</p>
+    <table>
+      <thead><tr><th>구분</th><th>표준</th><th>검증</th></tr></thead>
+      <tbody>
+      <tr><td>일반 로그</td><td><code>cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log</code></td><td><code>CpfFileLogWriterTest</code>에서 Asia/Seoul 기준 일자 전환과 인스턴스 파일명을 확인합니다.</td></tr>
+      <tr><td>보관</td><td><code>CPF_LOG_MAX_HISTORY_DAYS</code>, <code>CPF_LOG_ARCHIVE_COMPRESS_ENABLED</code>로 보관 일수와 gzip 압축을 제어합니다.</td><td>지난 일자 압축과 늦은 로그 병합을 Clock 주입 테스트로 확인합니다.</td></tr>
+      <tr><td>BAT JobInstance</td><td><code>bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log</code></td><td><code>CpfBatchFileLogWriterTest</code>에서 다른 인스턴스 분리, restart 동일 파일, 업무일자 고정, JSON Lines를 확인합니다.</td></tr>
+      <tr><td>컨텍스트 누락</td><td>거래 ID 없는 온라인 거래 로그는 <code>NO_TRANSACTION</code> 파일로 보내지 않고 <code>CONTEXT_MISSING</code> 오류와 누적 계수로 남깁니다.</td><td><code>CpfTransactionContextAnomalyMonitorTest</code>와 ADM health 진단을 확인합니다.</td></tr>
+      </tbody>
+    </table>
+    <p>업무 개발자는 <code>XyzFileLogEducationSample</code>에서 application, transaction, error 로그를 PFW writer로 분리하는 방법과 민감정보 키의 원문 저장 차단을 확인합니다. BAT 운영 조회 호출은 <code>XyzAdmBatchLogQueryEducationSample</code>에서 <code>RELIABILITY_READ</code> 권한, 목록 URL, 상세 URL, 안전한 jobName 검증을 함께 확인합니다. 배치 파일 생성과 restart 연결은 <code>BatJobLogEducationSample</code>을 참고합니다.</p>
+    <p>로그 파일 원문은 Git에 추가하지 않습니다. 검증 출력은 <code>scripts/write-sanitized-evidence.ps1</code>로 정제한 <code>*.sanitized.log</code>만 증적으로 사용하고 <code>checkLogManagementStandard</code>로 검사합니다.</p>
+  </section>
+
+  <section>
     <h2>Reliability capability 사용 기준</h2>
     <p>멱등 처리, Broker outbox/inbox/DLQ, 파일전송 이력과 결과 미확정 처리는 업무 모듈에서 재구현하지 않고 PFW port와 engine을 사용합니다. 운영 영속성은 JDBC adapter를 연결하고, in-memory 또는 deterministic adapter는 EDU와 단위 테스트에만 사용합니다.</p>
     <table>
@@ -85,7 +101,7 @@
       <tr><td>REST·배치 중복 실행 방지</td><td><code>CpfIdempotencyEngine</code>, <code>CpfIdempotencyCommand</code>, <code>JdbcCpfIdempotencyRepository</code></td><td><code>XyzIdempotencyEducationSample</code>, <code>BatIdempotencyEducationSample</code>, <code>CpfIdempotencyEngineTest</code></td></tr>
       <tr><td>업무 이벤트 안전 발행</td><td><code>CpfBrokerOutboxPort</code>, <code>CpfBrokerPublisherWorker</code></td><td><code>XyzOutboxInboxEducationSample</code>, <code>CpfBrokerWorkerTest</code></td></tr>
       <tr><td>소비 중복과 실패 격리</td><td><code>CpfBrokerConsumerWorker</code>, <code>CpfBrokerInboxPort</code>, <code>CpfBrokerDlqPort</code></td><td>동일 messageId는 중복 처리하고 업무 예외는 DLQ로 이동하는 단위 테스트를 참고합니다.</td></tr>
-      <tr><td>LOCAL 파일전송</td><td><code>CpfFileTransferEngine</code>, <code>LocalCpfFileTransferAdapter</code></td><td><code>XyzFileChecksumEducationSample</code>, <code>LocalCpfFileTransferAdapterTest</code></td></tr>
+      <tr><td>LOCAL 파일전송</td><td><code>CpfFileTransferEngine</code>, <code>LocalCpfFileTransferAdapter</code></td><td><code>XyzFileChecksumEducationSample</code>, <code>LocalCpfFileTransferAdapterTest</code>. DOWNLOAD은 <code>localBasePath</code>가 필수이며 경로 이탈, 심볼릭 링크, checksum 실패 후 temp 잔존을 차단합니다.</td></tr>
       <tr><td>결과 미확정 후속 처리</td><td><code>CpfReconciliationPort</code>, <code>CpfUnknownResultRecord</code></td><td>transactionGlobalId, segmentId, externalKey를 보존하고 ADM 수동 확정과 연결합니다.</td></tr>
       </tbody>
     </table>
@@ -118,6 +134,7 @@
       <tr><td>멱등 요청 처리</td><td><code>XyzIdempotencyEducationSample</code>, <code>CpfIdempotencyEngineTest</code></td><td>동일 요청 replay, payload 충돌, 처리 중 중복, 실패·UNKNOWN 재시도</td></tr>
       <tr><td>Broker 신뢰성 처리</td><td><code>XyzOutboxInboxEducationSample</code>, <code>CpfBrokerWorkerTest</code></td><td>outbox claim, publisher 결과 저장, inbox 중복, DLQ 이동</td></tr>
       <tr><td>파일전송</td><td><code>XyzFileChecksumEducationSample</code>, <code>LocalCpfFileTransferAdapterTest</code></td><td>streaming, temp rename, checksum, path traversal, 이력·중복 처리</td></tr>
+      <tr><td>구조화 로그 기록·조회</td><td><code>XyzFileLogEducationSample</code>, <code>BatJobLogEducationSample</code>, <code>XyzAdmBatchLogQueryEducationSample</code></td><td>일반 로그 유형 분리, 민감정보 마스킹 방어, JobInstance 파일 경로, ADM 목록·상세 조회</td></tr>
       <tr><td>CMN 공통 기능 사용</td><td><code>XyzCmnBusinessEducationController</code></td><td>프로젝트 공통 채번, 업무 알림 로그, 업무 로그 호출 방식</td></tr>
       <tr><td>ADM 운영 기능 작성</td><td><code>AdmPermissionController</code>, <code>AdmPermissionService</code>, <code>AdmApiAuthFilter</code></td><td>역할, 메뉴, 버튼, API 권한, 감사 사유, 서버 권한검사 연결 방식</td></tr>
       <tr><td>배치 개발</td><td><code>XyzBatchEducationController</code>, <code>BatSmokeJobConfig</code></td><td>tasklet, chunk, 수동 실행, ADM 관제 연동</td></tr>

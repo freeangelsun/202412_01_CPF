@@ -92,6 +92,7 @@
       <tr><td>선행/후행/트리거 관계</td><td><code>pfw_batch_job_relation</code> 기준으로 관계를 조회합니다.</td><td>목록과 상세에서 선행 Job, 후행 Job, trigger Job 관계를 확인합니다.</td></tr>
       <tr><td>수행 대상</td><td><code>pfw_batch_execution_target</code> 기준으로 대기, 배정, 완료 대상을 조회합니다.</td><td>수행 대기 인스턴스와 실제 execution 관계를 확인합니다.</td></tr>
       <tr><td>진행률 관제</td><td><code>pfw_batch_execution</code>과 <code>pfw_batch_step_execution</code>의 처리 건수, 진행률, 현재 step, 마지막 heartbeat를 조회합니다.</td><td>장시간 실행 Job은 heartbeat smoke 기준처럼 주기 갱신 증거를 남겨야 합니다.</td></tr>
+      <tr><td>JobInstance 파일 로그</td><td><code>GET /adm/api/reliability/batch-job-logs</code>와 상세 API로 업무일자, Job명, JobInstance ID별 JSON Lines를 조회합니다.</td><td>서버는 <code>CPF_LOG_ROOT/bat/jobs</code> 아래 정규 파일만 읽고 실제 절대 경로, 심볼릭 링크, 경로 이탈을 허용하지 않습니다.</td></tr>
       <tr><td>ghost 조치</td><td>heartbeat timeout과 RUNNING execution 잔존 여부로 ghost 후보를 판단합니다. 후보 조회 시 자동 감지 이벤트가 <code>pfw_batch_ghost_event</code>에 등록됩니다.</td><td>FAIL, ABANDON, RELEASE_LOCK 조치는 감사 사유를 필수로 남깁니다.</td></tr>
       </tbody>
     </table>
@@ -125,11 +126,12 @@
       <tr><td>Broker 조회</td><td><code>GET /adm/api/reliability/broker/outbox</code>, <code>/inbox</code>, <code>/dlq</code></td><td>transactionGlobalId, topic, 처리 상태, worker, 실패 사유를 확인합니다.</td></tr>
       <tr><td>DLQ replay</td><td><code>POST /adm/api/reliability/broker/dlq/{messageId}/replay</code></td><td><code>RELIABILITY_REPLAY</code> 권한, 사유, before/after 감사 로그가 필요하며 이미 요청된 건은 거부합니다.</td></tr>
       <tr><td>파일전송 이력</td><td><code>GET /adm/api/reliability/file-transfers</code></td><td>endpoint, 상태, transactionGlobalId, checksum, 크기, 결과 상세를 확인합니다.</td></tr>
+      <tr><td>BAT JobInstance 로그</td><td><code>GET /adm/api/reliability/batch-job-logs</code>, <code>GET /adm/api/reliability/batch-job-logs/{businessDate}/{jobName}/{jobInstanceId}</code></td><td>업무일자, Job명, JobInstance ID로 검색하고 최근 JSON Lines를 구조화해 조회합니다. 조회 API는 ADM 서버 권한 필터를 통과해야 합니다.</td></tr>
       <tr><td>결과 미확정 조회</td><td><code>GET /adm/api/reliability/unknown-results</code></td><td>유형, 상태, transactionGlobalId, external key, 다음 조치를 확인합니다.</td></tr>
       <tr><td>수동 확정</td><td><code>POST /adm/api/reliability/unknown-results/{unknownId}/resolve</code></td><td><code>RELIABILITY_RESOLVE</code> 권한과 사유가 필수이며 최종 처리된 건의 중복 변경을 차단합니다.</td></tr>
       </tbody>
     </table>
-    <p>현재 API compile/unit test는 통과했지만 실제 MariaDB 조회, 정적 UI 메뉴, 브라우저 클릭은 미검증입니다. 이 상태를 운영 화면 완료로 해석하지 않습니다.</p>
+    <p>현재 API compile/unit test와 정적 UI JavaScript 검증 범위는 통과했지만 실제 MariaDB 조회와 브라우저 클릭은 미검증입니다. 이 상태를 운영 화면 완료로 해석하지 않습니다.</p>
   </section>
 
   <section>

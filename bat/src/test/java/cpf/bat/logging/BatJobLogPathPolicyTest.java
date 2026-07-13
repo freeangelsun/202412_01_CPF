@@ -10,18 +10,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class BatJobLogPathPolicyTest {
 
     @Test
-    void buildJobExecutionLogPathUsesJobExecutionUnit() {
+    void buildJobInstanceLogPathUsesBusinessDateAndJobInstanceUnit() {
         BatJobLogPathPolicy policy = new BatJobLogPathPolicy();
 
-        String path = policy.buildJobExecutionLogPath(
-                "./logs/bat",
+        String path = policy.buildJobInstanceLogPath(
+                "./logs",
                 "dailySettlementJob",
                 LocalDate.of(2026, 7, 8),
-                12L,
-                34L
+                12L
         );
 
-        assertThat(path).isEqualTo("./logs/bat/jobs/dailySettlementJob/20260708/jobInstance-12/execution-34.log");
+        assertThat(path)
+                .endsWith("/logs/bat/jobs/20260708/dailySettlementJob/cpf-bat-dailySettlementJob-12-20260708.log");
     }
 
     @Test
@@ -37,7 +37,19 @@ class BatJobLogPathPolicyTest {
     void buildJobExecutionLogPathRejectsBlankJobName() {
         BatJobLogPathPolicy policy = new BatJobLogPathPolicy();
 
-        assertThatThrownBy(() -> policy.buildJobExecutionLogPath("./logs/bat", " ", LocalDate.now(), 1L, 1L))
+        assertThatThrownBy(() -> policy.buildJobInstanceLogPath("./logs", " ", LocalDate.now(), 1L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void buildJobInstanceLogPathRejectsDirectoryNavigationJobName() {
+        BatJobLogPathPolicy policy = new BatJobLogPathPolicy();
+
+        assertThatThrownBy(() -> policy.buildJobInstanceLogPath(
+                "./logs",
+                "..",
+                LocalDate.of(2026, 7, 13),
+                1L))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

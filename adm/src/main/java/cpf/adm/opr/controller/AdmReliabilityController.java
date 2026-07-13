@@ -2,6 +2,7 @@ package cpf.adm.opr.controller;
 
 import cpf.adm.opr.dto.AdmReliabilityActionRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
+import cpf.adm.opr.service.AdmBatchJobLogService;
 import cpf.adm.opr.service.AdmReliabilityService;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
@@ -29,12 +30,15 @@ import java.util.Map;
 @Tag(name = "ADM-OPR Reliability", description = "PFW reliability capability 운영 조회와 수동 처리 API")
 public class AdmReliabilityController {
     private final AdmReliabilityService reliabilityService;
+    private final AdmBatchJobLogService batchJobLogService;
     private final AdmAuditLogService auditLogService;
 
     public AdmReliabilityController(
             AdmReliabilityService reliabilityService,
+            AdmBatchJobLogService batchJobLogService,
             AdmAuditLogService auditLogService) {
         this.reliabilityService = reliabilityService;
+        this.batchJobLogService = batchJobLogService;
         this.auditLogService = auditLogService;
     }
 
@@ -122,6 +126,38 @@ public class AdmReliabilityController {
             @RequestParam(required = false) String transactionGlobalId,
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(reliabilityService.findUnknownResults(type, status, transactionGlobalId, limit));
+    }
+
+    @GetMapping("/batch-job-logs")
+    @CpfTransaction(id = "ADM01REL0009", name = "ADMReliabilityBatchJobLogList")
+    @Operation(
+            operationId = "findAdmBatchJobInstanceLogs",
+            summary = "BAT JobInstance 로그 목록 조회",
+            description = "CPF_LOG_ROOT 아래 정규화된 BAT JobInstance 로그 메타데이터만 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> batchJobLogs(
+            @RequestParam(required = false) String businessDate,
+            @RequestParam(required = false) String jobName,
+            @RequestParam(required = false) Long jobInstanceId,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(batchJobLogService.findLogs(businessDate, jobName, jobInstanceId, limit));
+    }
+
+    @GetMapping("/batch-job-logs/{businessDate}/{jobName}/{jobInstanceId}")
+    @CpfTransaction(id = "ADM01REL0010", name = "ADMReliabilityBatchJobLogDetail")
+    @Operation(
+            operationId = "getAdmBatchJobInstanceLog",
+            summary = "BAT JobInstance 로그 상세 조회",
+            description = "경로 이탈과 심볼릭 링크를 차단하고 마지막 JSON Lines 레코드를 구조화해 반환합니다.")
+    public ResponseEntity<Map<String, Object>> batchJobLogDetail(
+            @PathVariable String businessDate,
+            @PathVariable String jobName,
+            @PathVariable long jobInstanceId,
+            @RequestParam(defaultValue = "200") int maxRecords) {
+        return ResponseEntity.ok(batchJobLogService.findDetail(
+                businessDate,
+                jobName,
+                jobInstanceId,
+                maxRecords));
     }
 
     @PostMapping("/unknown-results/{unknownId}/resolve")

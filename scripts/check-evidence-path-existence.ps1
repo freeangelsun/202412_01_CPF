@@ -1,12 +1,14 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_02")
 )
 
 $ErrorActionPreference = "Stop"
 
 $failures = New-Object System.Collections.Generic.List[string]
 $evidenceRows = New-Object System.Collections.Generic.List[object]
+$currentEvidenceIds = @{}
+$legacyUntrackedRows = New-Object System.Collections.Generic.List[object]
 
 function New-UnicodeText {
     param([int[]] $CodePoints)
@@ -91,6 +93,8 @@ if (Test-Path -LiteralPath $featureMatrixPath) {
 
 $uniqueRows = @($evidenceRows | Sort-Object evidencePath, sourceFile -Unique)
 $missingRows = New-Object System.Collections.Generic.List[object]
+$currentResultRelative = $ResultDir.Substring($Root.Length).TrimStart("\", "/").Replace("\", "/")
+$startCommit = (& git -C $Root rev-parse HEAD).Trim()
 foreach ($row in $uniqueRows) {
     $fullPath = Join-Path $Root ($row.evidencePath.Replace("/", "\"))
     if (-not (Test-Path -LiteralPath $fullPath)) {
@@ -102,6 +106,39 @@ foreach ($row in $uniqueRows) {
     if ($item.Length -le 0) {
         $missingRows.Add($row) | Out-Null
         Add-Failure ("evidence file is empty: {0} referenced by {1}" -f $row.evidencePath, $row.sourceFile)
+        continue
+    }
+
+    $trackedPaths = @(& git -C $Root ls-files -- $row.evidencePath)
+    $tracked = $trackedPaths -contains $row.evidencePath
+    $isCurrent = $row.evidencePath.StartsWith($currentResultRelative + "/", [System.StringComparison]::OrdinalIgnoreCase)
+    if ($isCurrent -and -not $tracked) {
+        Add-Failure ("current evidence is not tracked by Git: {0}" -f $row.evidencePath)
+    } elseif (-not $isCurrent -and -not $tracked) {
+        $legacyUntrackedRows.Add($row) | Out-Null
+    }
+    $isRawCurrentLog = $isCurrent `
+        -and $row.evidencePath.EndsWith(".log", [System.StringComparison]::OrdinalIgnoreCase) `
+        -and -not $row.evidencePath.EndsWith(".sanitized.log", [System.StringComparison]::OrdinalIgnoreCase)
+    if ($isRawCurrentLog) {
+        Add-Failure ("current raw log cannot be used as evidence: {0}" -f $row.evidencePath)
+    }
+
+    if ($isCurrent -and $row.evidencePath.EndsWith(".sanitized.log", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $content = Read-Utf8Text $fullPath
+        $commitMatch = [regex]::Match($content, '(?m)^START_COMMIT=([^\r\n]+)$')
+        $idMatch = [regex]::Match($content, '(?m)^EVIDENCE_ID=([^\r\n]+)$')
+        if (-not $commitMatch.Success -or $commitMatch.Groups[1].Value -ne $startCommit) {
+            Add-Failure ("current evidence start commit is stale or missing: {0}" -f $row.evidencePath)
+        }
+        if (-not $idMatch.Success) {
+            Add-Failure ("current evidence id is missing: {0}" -f $row.evidencePath)
+        } elseif ($currentEvidenceIds.ContainsKey($idMatch.Groups[1].Value) `
+                -and $currentEvidenceIds[$idMatch.Groups[1].Value] -ne $row.evidencePath) {
+            Add-Failure ("duplicate current evidence id: {0}" -f $idMatch.Groups[1].Value)
+        } else {
+            $currentEvidenceIds[$idMatch.Groups[1].Value] = $row.evidencePath
+        }
     }
 }
 
@@ -110,8 +147,11 @@ Write-JsonEvidence "evidence-path-existence-check.sanitized.json" ([pscustomobje
     status = $(if ($failures.Count -eq 0) { $statusDone } else { $statusFailed })
     checkedCount = $uniqueRows.Count
     missingCount = $missingRows.Count
+    currentEvidenceIdCount = $currentEvidenceIds.Count
+    legacyUntrackedCount = $legacyUntrackedRows.Count
     checked = $uniqueRows
     missing = $missingRows
+    legacyUntracked = $legacyUntrackedRows
     failures = $failures
 })
 

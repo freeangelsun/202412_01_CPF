@@ -100,8 +100,11 @@ public class AdmBatchOperationService {
         if (TextUtils.hasText(jobId)) {
             return queryOrEmpty("""
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                           spring_batch_execution_id, batch_instance_id, server_instance_id,
-                           worker_id, transaction_global_id,
+                           spring_batch_execution_id, spring_batch_job_instance_id, business_date,
+                           run_id, rerun_id, original_job_execution_id, restart_attempt,
+                           batch_instance_id, server_instance_id, worker_id,
+                           transaction_global_id, parent_transaction_global_id,
+                           transaction_segment_id, parent_segment_id, job_log_relative_path,
                            start_time, end_time, read_count, write_count, skip_count,
                            total_count, processed_count, success_count, failure_count, retry_count,
                            progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
@@ -115,8 +118,11 @@ public class AdmBatchOperationService {
         }
         return queryOrEmpty("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                       spring_batch_execution_id, batch_instance_id, server_instance_id,
-                       worker_id, transaction_global_id,
+                       spring_batch_execution_id, spring_batch_job_instance_id, business_date,
+                       run_id, rerun_id, original_job_execution_id, restart_attempt,
+                       batch_instance_id, server_instance_id, worker_id,
+                       transaction_global_id, parent_transaction_global_id,
+                       transaction_segment_id, parent_segment_id, job_log_relative_path,
                        start_time, end_time, read_count, write_count, skip_count,
                        total_count, processed_count, success_count, failure_count, retry_count,
                        progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
@@ -609,8 +615,11 @@ public class AdmBatchOperationService {
     private Map<String, Object> findExecution(long executionId) {
         return pfwJdbcTemplate.queryForMap("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                       spring_batch_execution_id, batch_instance_id, server_instance_id,
-                       worker_id, transaction_global_id,
+                       spring_batch_execution_id, spring_batch_job_instance_id, business_date,
+                       run_id, rerun_id, original_job_execution_id, restart_attempt,
+                       batch_instance_id, server_instance_id, worker_id,
+                       transaction_global_id, parent_transaction_global_id,
+                       transaction_segment_id, parent_segment_id, job_log_relative_path,
                        start_time, end_time, read_count, write_count, skip_count,
                        total_count, processed_count, success_count, failure_count, retry_count,
                        progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,

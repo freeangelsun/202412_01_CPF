@@ -8,5 +8,4 @@ cpf:
     registry-mode: ${BAT_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
 
 logging:
-  file:
-    path: ${BAT_LOG_BASE_PATH:logs/bat}
+  config: classpath:log/cpf-logback-spring.xml

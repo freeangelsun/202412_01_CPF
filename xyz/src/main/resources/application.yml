@@ -30,7 +30,7 @@ server:
   port: 8099
 
 logging:
-  config: classpath:log/logback-local.xml
+  config: classpath:log/cpf-logback-spring.xml
   level:
     root: INFO
     cpf.pfw: INFO

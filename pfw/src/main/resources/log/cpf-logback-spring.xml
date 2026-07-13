@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false">
+    <!-- 실행 주체와 무관하게 같은 환경변수와 파일명 규칙을 사용합니다. -->
+    <springProperty scope="context" name="LOG_ROOT" source="cpf.logging.file.base-path" defaultValue="./logs" />
+    <springProperty scope="context" name="MODULE_CODE" source="spring.application.name" defaultValue="app" />
+    <springProperty scope="context" name="INSTANCE_ID" source="cpf.framework.was-id" defaultValue="local-01" />
+    <springProperty scope="context" name="LOG_TIMEZONE" source="cpf.logging.file.timezone" defaultValue="Asia/Seoul" />
+    <springProperty scope="context" name="MAX_HISTORY" source="cpf.logging.file.max-history-days" defaultValue="30" />
+    <springProperty scope="context" name="TOTAL_SIZE_CAP" source="cpf.logging.file.total-size-cap" defaultValue="2GB" />
+
+    <property name="LOG_DIR" value="${LOG_ROOT}/${MODULE_CODE}" />
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX,${LOG_TIMEZONE}} level=%-5level module=${MODULE_CODE} instance=${INSTANCE_ID} thread=%thread transactionGlobalId=%X{transactionId} traceId=%X{traceId} segmentId=%X{spanId} logger=%logger{40} message=%replace(%msg){'[\r\n]+','\\n'} exception=%replace(%ex){'[\r\n]+','\\n'}%n" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- active 파일도 날짜를 포함하며 일자 변경 시 자동으로 새 파일을 엽니다. -->
+    <appender name="APPLICATION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/cpf-${MODULE_CODE}-application-${INSTANCE_ID}.%d{yyyy-MM-dd,${LOG_TIMEZONE}}.log.gz</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/cpf-${MODULE_CODE}-error-${INSTANCE_ID}.%d{yyyy-MM-dd,${LOG_TIMEZONE}}.log.gz</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 거래별 동적 appender를 사용하지 않아 거래 ID가 없는 별도 파일이 생성되지 않습니다. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="APPLICATION_FILE" />
+        <appender-ref ref="ERROR_FILE" />
+    </root>
+</configuration>

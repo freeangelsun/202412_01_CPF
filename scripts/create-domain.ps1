@@ -367,7 +367,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
     }
 }
 
@@ -406,7 +406,7 @@ public class ${ModuleName}Application {
 $applicationYml = @"
 spring:
   application:
-    name: cpf-$module
+    name: $module
   config:
     import:
       - optional:classpath:application-pfw.yml
@@ -421,7 +421,13 @@ cpf:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   logging:
     file:
-      file-pattern: "cpf-{moduleCode}-{logType}.log"
+      base-path: ${Dollar}{CPF_LOG_ROOT:./logs}
+      timezone: ${Dollar}{CPF_LOG_TIMEZONE:Asia/Seoul}
+      max-history-days: ${Dollar}{CPF_LOG_MAX_HISTORY_DAYS:30}
+      archive-compress-enabled: ${Dollar}{CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
+      file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
+logging:
+  config: classpath:log/cpf-logback-spring.xml
 "@
 $applicationModuleYml = @"
 # ${ModuleName} 주제영역 공통 설정입니다.
@@ -433,7 +439,7 @@ cpf:
     jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
   logging:
     file:
-      file-pattern: "cpf-{moduleCode}-{logType}.log"
+      file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
 "@
 $sql = @"
 -- ${ModuleName} 업무 샘플 테이블입니다.
@@ -458,7 +464,7 @@ $readme = @"
 
 - 실제 반영 전 `settings.gradle`, `specs/sql`, ADM 메뉴/API/버튼 seed, OpenAPI 문서를 함께 검토합니다.
 - Controller, Facade, Service, Repository, DTO, Mapper XML, SQL의 모듈 코드와 테이블 prefix를 일치시킵니다.
-- 운영 로그는 `cpf-{moduleCode}-{logType}.log` 규칙을 사용합니다.
+- 운영 로그는 `${Dollar}{CPF_LOG_ROOT}/{moduleCode}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log` 규칙을 사용합니다.
 "@
 
 $serviceTest = @"

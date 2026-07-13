@@ -70,7 +70,13 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
 
     try {
         $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
-        if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+        $hasUtf8Bom = $bytes.Length -ge 3 `
+            -and $bytes[0] -eq 0xEF `
+            -and $bytes[1] -eq 0xBB `
+            -and $bytes[2] -eq 0xBF
+        # Windows PowerShell 5.1은 BOM 없는 UTF-8 스크립트의 한글 리터럴을 시스템 코드페이지로 읽습니다.
+        # 따라서 ps1만 UTF-8 BOM을 허용하고 Java, SQL, 문서 등 나머지 텍스트는 BOM을 금지합니다.
+        if ($hasUtf8Bom -and $_.Extension.ToLowerInvariant() -ne ".ps1") {
             $failures.Add("utf-8 bom detected: $($_.FullName)")
             return
         }

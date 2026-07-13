@@ -8,5 +8,4 @@ cpf:
     registry-mode: ${BIZADM_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
 
 logging:
-  file:
-    path: ${BIZADM_LOG_BASE_PATH:logs/bizadm}
+  config: classpath:log/cpf-logback-spring.xml

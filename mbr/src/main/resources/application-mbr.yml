@@ -1,6 +1,6 @@
 spring:
   application:
-    name: cpf-mbr
+    name: mbr
   jpa:
     hibernate:
       ddl-auto: validate
@@ -15,7 +15,7 @@ logging:
     root: INFO
     cpf: DEBUG
     org.springframework.web: INFO
-  config: classpath:log/logback-local.xml
+  config: classpath:log/cpf-logback-spring.xml
 
 management:
   endpoints:

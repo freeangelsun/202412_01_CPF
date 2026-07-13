@@ -2,6 +2,7 @@ package cpf.adm.opr.service;
 
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.logging.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -104,7 +105,7 @@ public class AdmAuditLogService {
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 5 YEAR), 'Y', ?, ?)
                     """,
-                    value(transactionId, "NO_TRANSACTION"),
+                    value(transactionId, TransactionContext.getOrCreateTransactionId()),
                     value(operatorId, "UNKNOWN"),
                     value(actionType, "UNKNOWN"),
                     targetType,

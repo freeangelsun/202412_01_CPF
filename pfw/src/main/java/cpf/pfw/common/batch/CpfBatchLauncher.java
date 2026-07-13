@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * CPF 표준 배치 실행 Facade입니다.
@@ -244,15 +246,29 @@ public class CpfBatchLauncher {
             String transactionGlobalId,
             String user,
             long pfwExecutionId) {
-        return new JobParametersBuilder()
+        String workerInstanceId = ServerInstanceIdentity.current().serverInstanceId();
+        long requestTime = System.currentTimeMillis();
+        JobParametersBuilder builder = new JobParametersBuilder()
                 .addString("cpfJobParameters", request.normalizedJobParameters())
                 .addString("cpfRequestUser", user)
                 .addString("cpfRequestReason", request.normalizedReason("배치 실행 요청"))
                 .addString("transactionGlobalId", transactionGlobalId)
-                .addString("serverInstanceId", ServerInstanceIdentity.current().serverInstanceId())
+                .addString("businessDate", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE))
+                .addString("serverInstanceId", workerInstanceId)
+                .addString("workerInstanceId", workerInstanceId)
+                .addString("selectedInstanceId", workerInstanceId)
+                .addString("runId", String.valueOf(requestTime))
+                .addString("rerunId", "0")
+                .addLong("restartAttempt", 0L)
                 .addLong(CpfBatchHeartbeatService.PARAM_PFW_EXECUTION_ID, pfwExecutionId)
-                .addLong("requestTime", System.currentTimeMillis())
-                .toJobParameters();
+                .addLong("requestTime", requestTime);
+        if (TransactionContext.parentTransactionId() != null) {
+            builder.addString("parentTransactionGlobalId", TransactionContext.parentTransactionId());
+        }
+        if (TransactionContext.currentSpanId() != null) {
+            builder.addString("parentSegmentId", TransactionContext.currentSpanId());
+        }
+        return builder.toJobParameters();
     }
 
     private Job resolveJob(String jobId) {

@@ -1,7 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/sample-coverage-matrix.md"),
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_02")
 )
 
 $ErrorActionPreference = "Stop"

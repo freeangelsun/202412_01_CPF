@@ -12,6 +12,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +170,7 @@ public class CpfBatchOperationRepository {
         CpfBatchRuntimeProgress progress = counts.toProgress(status, jobExecution);
         tryUpdateExecutionExtendedMetrics(executionId, progress, springBatchExecutionId, workerId, user);
         if (jobExecution != null) {
+            tryUpdateExecutionLogLinkage(executionId, jobExecution, user);
             upsertStepExecutions(executionId, jobExecution, workerId, user);
         }
     }
@@ -199,6 +202,7 @@ public class CpfBatchOperationRepository {
         result.put("execution", execution);
         result.put("steps", steps);
         result.put("extendedExecution", findExecutionExtendedMetrics(executionId));
+        result.put("logLinkage", findExecutionLogLinkage(executionId));
         result.put("extendedSteps", findStepExtendedMetrics(executionId));
         return result;
     }
@@ -569,6 +573,61 @@ public class CpfBatchOperationRepository {
         }
     }
 
+    private void tryUpdateExecutionLogLinkage(long executionId, JobExecution jobExecution, String user) {
+        if (jobExecution == null || jobExecution.getJobInstance() == null) {
+            return;
+        }
+        try {
+            String businessDateText = executionContextValue(
+                    jobExecution,
+                    CpfBatchFileLogWriter.CONTEXT_BUSINESS_DATE,
+                    jobExecution.getJobParameters().getString("businessDate"));
+            LocalDate businessDate = businessDateText == null
+                    ? null
+                    : parseBusinessDate(businessDateText);
+            long jobInstanceId = jobExecution.getJobInstance().getInstanceId();
+            String relativePath = businessDate == null || jobInstanceId < 1
+                    ? null
+                    : CpfBatchJobLogPath.relativePath(
+                            jobExecution.getJobInstance().getJobName(),
+                            jobInstanceId,
+                            businessDate).toString().replace('\\', '/');
+            jdbc().update("""
+                    UPDATE pfw_batch_execution
+                    SET spring_batch_job_instance_id = ?,
+                        business_date = ?,
+                        run_id = ?,
+                        rerun_id = ?,
+                        original_job_execution_id = ?,
+                        restart_attempt = ?,
+                        parent_transaction_global_id = ?,
+                        transaction_segment_id = ?,
+                        parent_segment_id = ?,
+                        job_log_relative_path = ?,
+                        updated_by = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE execution_id = ?
+                    """,
+                    jobInstanceId,
+                    businessDate == null ? null : java.sql.Date.valueOf(businessDate),
+                    jobExecution.getJobParameters().getString("runId"),
+                    jobExecution.getJobParameters().getString("rerunId"),
+                    nullableLong(executionContextValue(
+                            jobExecution,
+                            CpfBatchFileLogWriter.CONTEXT_ORIGINAL_JOB_EXECUTION_ID,
+                            jobExecution.getJobParameters().getString("originalJobExecutionId"))),
+                    executionContextLong(jobExecution, CpfBatchFileLogWriter.CONTEXT_RESTART_ATTEMPT, 0L),
+                    executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_PARENT_TRANSACTION_GLOBAL_ID, null),
+                    executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_SEGMENT_ID, null),
+                    executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_PARENT_SEGMENT_ID, null),
+                    relativePath,
+                    user,
+                    executionId);
+        } catch (DataAccessException | IllegalArgumentException ignored) {
+            // V24 적용 전 DB에서도 기존 배치 실행은 유지하고 로그 연계 정보만 비워 둡니다.
+        }
+    }
+
     private void tryUpdateStepExtendedMetrics(
             long executionId,
             String stepName,
@@ -623,6 +682,21 @@ public class CpfBatchOperationRepository {
         }
     }
 
+    private Map<String, Object> findExecutionLogLinkage(long executionId) {
+        try {
+            return jdbc().queryForMap("""
+                    SELECT spring_batch_job_instance_id, business_date, run_id, rerun_id,
+                           original_job_execution_id, restart_attempt,
+                           parent_transaction_global_id, transaction_segment_id, parent_segment_id,
+                           job_log_relative_path
+                    FROM pfw_batch_execution
+                    WHERE execution_id = ?
+                    """, executionId);
+        } catch (DataAccessException ignored) {
+            return Map.of();
+        }
+    }
+
     private List<Map<String, Object>> findStepExtendedMetrics(long executionId) {
         try {
             return jdbc().queryForList("""
@@ -652,6 +726,46 @@ public class CpfBatchOperationRepository {
 
     private Timestamp toTimestamp(LocalDateTime value) {
         return value == null ? null : Timestamp.valueOf(value);
+    }
+
+    private String executionContextValue(JobExecution execution, String key, String fallback) {
+        if (execution != null && execution.getExecutionContext() != null
+                && execution.getExecutionContext().containsKey(key)) {
+            Object value = execution.getExecutionContext().get(key);
+            if (value != null && !String.valueOf(value).isBlank()) {
+                return String.valueOf(value);
+            }
+        }
+        return fallback;
+    }
+
+    private long executionContextLong(JobExecution execution, String key, long fallback) {
+        String value = executionContextValue(execution, key, null);
+        if (value == null) {
+            return fallback;
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
+    private Long nullableLong(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private LocalDate parseBusinessDate(String value) {
+        return value.contains("-")
+                ? LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE)
+                : LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
     private String required(String value, String fieldName) {

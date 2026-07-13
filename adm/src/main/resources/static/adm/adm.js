@@ -527,6 +527,25 @@ if (!window.Vue) {
           topic: "",
           endpointCode: "",
           type: "",
+          businessDate: "",
+          jobName: "",
+          jobInstanceId: null,
+          limit: 100
+        },
+        reliabilityAction: {
+          messageId: "",
+          unknownId: "",
+          targetStatus: "CONFIRMED_SUCCESS",
+          reason: ""
+        },
+        reliabilitySearch: {
+          scope: "",
+          status: "",
+          key: "",
+          transactionGlobalId: "",
+          topic: "",
+          endpointCode: "",
+          type: "",
           limit: 100
         },
         reliabilityAction: {
@@ -1156,13 +1175,14 @@ if (!window.Vue) {
       },
       async loadReliability() {
         const search = this.reliabilitySearch;
-        const [idempotency, outbox, inbox, dlq, fileTransfers, unknownResults] = await Promise.allSettled([
+        const [idempotency, outbox, inbox, dlq, fileTransfers, unknownResults, batchJobLogs] = await Promise.allSettled([
           this.getJson(`/adm/api/reliability/idempotency?${this.buildParams({ scope: search.scope, status: search.status, key: search.key, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/broker/outbox?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/broker/inbox?${this.buildParams({ status: search.status, key: search.key, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/broker/dlq?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/file-transfers?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, endpointCode: search.endpointCode, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionGlobalId: search.transactionGlobalId, limit: search.limit }).toString()}`)
+          this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionGlobalId: search.transactionGlobalId, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/batch-job-logs?${this.buildParams({ businessDate: search.businessDate, jobName: search.jobName, jobInstanceId: search.jobInstanceId, limit: search.limit }).toString()}`)
         ]);
         this.reliabilityResult = {
           idempotency: this.settledValue(idempotency),
@@ -1170,9 +1190,25 @@ if (!window.Vue) {
           inbox: this.settledValue(inbox),
           dlq: this.settledValue(dlq),
           fileTransfers: this.settledValue(fileTransfers),
-          unknownResults: this.settledValue(unknownResults)
+          unknownResults: this.settledValue(unknownResults),
+          batchJobLogs: this.settledValue(batchJobLogs)
         };
         this.setMessage("Reliability 운영 데이터를 조회했습니다.");
+      },
+      async loadBatchJobLogDetail() {
+        const search = this.reliabilitySearch;
+        if (!search.businessDate || !search.jobName || !search.jobInstanceId) {
+          this.setMessage("업무일자, Job 이름, JobInstance ID를 입력하세요.");
+          return;
+        }
+        const path = [search.businessDate, search.jobName, search.jobInstanceId]
+          .map(value => encodeURIComponent(value))
+          .join("/");
+        this.reliabilityResult = {
+          ...this.reliabilityResult,
+          batchJobLogDetail: await this.getJson(`/adm/api/reliability/batch-job-logs/${path}?maxRecords=200`)
+        };
+        this.setMessage("BAT JobInstance 로그 상세를 조회했습니다.");
       },
       async replayDlq() {
         if (!this.reliabilityAction.messageId || !this.requireReason(this.reliabilityAction.reason)) return;

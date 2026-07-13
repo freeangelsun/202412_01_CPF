@@ -86,4 +86,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-adm-transactio
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-create-domain.ps1
 ```
 
+운영 로그와 검증 증적 정책은 <code>./gradlew.bat checkLogManagementStandard</code>로 확인합니다. 상세 경로·파일명·BAT JobInstance 규칙은 [개발 가이드](specs/개발_가이드.html)와 [관리자 가이드](specs/관리자_가이드.html)를 참고합니다.
+
 실행하지 않은 검증은 성공으로 기록하지 않습니다. 기능을 추가하거나 변경하면 코드, SQL, Swagger/OpenAPI, EDU 샘플, README, 상세 가이드, 기능 구현 매트릭스, 증적 인덱스, 안정화 리포트를 함께 현행화해야 합니다.

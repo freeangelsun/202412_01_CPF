@@ -67,9 +67,14 @@ cpf:
       batch-enabled: ${CPF_LOGGING_DB_BATCH_ENABLED:true}
     file:
       enabled: ${CPF_LOGGING_FILE_ENABLED:true}
-      base-path: ${CPF_LOGGING_FILE_BASE_PATH:logs}
+      base-path: ${CPF_LOG_ROOT:${CPF_LOGGING_FILE_BASE_PATH:./logs}}
+      timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
+      max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
+      total-size-cap: ${CPF_LOG_TOTAL_SIZE_CAP:2GB}
+      archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
+      initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:false}
       json-line-enabled: ${CPF_LOGGING_FILE_JSON_LINE_ENABLED:true}
-      file-pattern: ${CPF_LOGGING_FILE_PATTERN:cpf-{moduleCode}-{logType}.log}
+      file-pattern: ${CPF_LOGGING_FILE_PATTERN:cpf-{moduleCode}-{logType}-{instanceId}.{date}.log}
       application-enabled: ${CPF_LOGGING_FILE_APPLICATION_ENABLED:true}
       transaction-enabled: ${CPF_LOGGING_FILE_TRANSACTION_ENABLED:true}
       integration-enabled: ${CPF_LOGGING_FILE_INTEGRATION_ENABLED:true}
@@ -92,3 +97,7 @@ spring:
       url: ${PFW_DB_URL}
       username: ${PFW_DB_USERNAME}
       password: ${PFW_DB_PASSWORD}
+cpf:
+  logging:
+    file:
+      initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:true}

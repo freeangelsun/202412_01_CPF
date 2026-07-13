@@ -14,14 +14,19 @@ $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $resultPath = Join-Path $ResultDir "bat-log-bean-runtime-result.json"
-$batchLogPath = Join-Path $Root "logs/bat/cpf-bat-batch.log"
+$logRoot = if ([string]::IsNullOrWhiteSpace($env:CPF_LOG_ROOT)) {
+    Join-Path $Root "logs"
+} else {
+    [System.IO.Path]::GetFullPath($env:CPF_LOG_ROOT)
+}
+$batchLogRoot = Join-Path $logRoot "bat/jobs"
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"
     baseUrl = $BatBaseUrl
     diagnosticApi = "/bat/api/diagnostics/logging"
     smokeJobApi = "/bat/api/smoke/jobs/CPF_BAT_SMOKE_JOB/run"
-    batchLogPath = Get-CpfRelativePath -Root $Root -Path $batchLogPath
+    batchLogRoot = Get-CpfRelativePath -Root $Root -Path $batchLogRoot
 }
 
 function Save-BatBeanResult {
@@ -63,8 +68,13 @@ try {
     }
 
     Start-Sleep -Milliseconds 700
-    $logExists = Test-Path -LiteralPath $batchLogPath
+    $batchLogPath = Get-ChildItem -LiteralPath $batchLogRoot -Recurse -File `
+            -Filter "cpf-bat-CPF_BAT_SMOKE_JOB-*.log" -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+    $logExists = -not [string]::IsNullOrWhiteSpace($batchLogPath) -and (Test-Path -LiteralPath $batchLogPath)
     $result.batchLogExists = $logExists
+    $result.batchLogPath = $(if ($logExists) { Get-CpfRelativePath -Root $Root -Path $batchLogPath } else { $null })
     $result.batchLogBytes = $(if ($logExists) { (Get-Item -LiteralPath $batchLogPath).Length } else { 0 })
     if ($logExists) {
         $batchLogContent = [System.IO.File]::ReadAllText($batchLogPath, [System.Text.Encoding]::UTF8)

@@ -42,9 +42,19 @@ try {
         $result.batRuntime.source = "build/runtime-smoke/bat-runtime-smoke-result.json"
     }
 
-    $batLog = Join-Path $Root "logs/bat/cpf-bat-batch.log"
-    $result.fileLog.path = $batLog.Substring($Root.Length).TrimStart('\', '/')
-    if (Test-Path -LiteralPath $batLog) {
+    $logRoot = if ([string]::IsNullOrWhiteSpace($env:CPF_LOG_ROOT)) {
+        Join-Path $Root "logs"
+    } else {
+        [System.IO.Path]::GetFullPath($env:CPF_LOG_ROOT)
+    }
+    $batLogRoot = Join-Path $logRoot "bat/jobs"
+    $batLog = Get-ChildItem -LiteralPath $batLogRoot -Recurse -File -Filter "cpf-bat-*.log" `
+            -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+    $result.fileLog.root = $batLogRoot.Substring($Root.Length).TrimStart('\', '/')
+    $result.fileLog.path = $(if ($batLog) { $batLog.Substring($Root.Length).TrimStart('\', '/') } else { $null })
+    if ($batLog -and (Test-Path -LiteralPath $batLog)) {
         $content = [System.IO.File]::ReadAllText($batLog, [System.Text.Encoding]::UTF8)
         $result.fileLog.containsJobName = $content.Contains("jobName")
         $result.fileLog.containsJobExecutionId = $content.Contains("jobExecutionId")

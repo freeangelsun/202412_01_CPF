@@ -50,9 +50,7 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.jdbc.core: DEBUG
     org.apache.ibatis: DEBUG
-  config: classpath:log/logback-local.xml
-  file:
-    name: ${MBR_LOG_BASE_PATH:logs}/mbr.log
+  config: classpath:log/cpf-logback-spring.xml
 
 management:
   endpoints:

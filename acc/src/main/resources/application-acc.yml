@@ -8,5 +8,4 @@ cpf:
     registry-mode: ${ACC_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
 
 logging:
-  file:
-    path: ${ACC_LOG_BASE_PATH:logs/acc}
+  config: classpath:log/cpf-logback-spring.xml

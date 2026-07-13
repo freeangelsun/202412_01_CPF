@@ -5,6 +5,8 @@ import cpf.pfw.common.batch.CpfBatchFileLogWriter;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
@@ -24,6 +26,7 @@ import java.util.Map;
  * BAT 단독 기동 상태와 smoke Job 실행 결과를 확인하는 운영 API입니다.
  */
 @RestController
+@Tag(name = "BAT 운영", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
 public class BatHealthController {
     private final JdbcTemplate pfwJdbcTemplate;
     private final Environment environment;
@@ -48,6 +51,7 @@ public class BatHealthController {
     }
 
     @GetMapping("/bat/api/health")
+    @Operation(operationId = "getBatHealth", summary = "BAT 실행 상태 조회")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new LinkedHashMap<>();
         ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();
@@ -69,6 +73,7 @@ public class BatHealthController {
 
     @PostMapping("/bat/api/smoke/jobs/{jobId}/run")
     @CpfTransaction(id = "BAT02OPR0002", name = "BATSmokeJobRun")
+    @Operation(operationId = "runBatSmokeJob", summary = "BAT smoke Job 수동 실행")
     public ResponseEntity<Map<String, Object>> runSmokeJob(@PathVariable String jobId) {
         Map<String, Object> result = operationService.run(jobId, "BAT smoke API 수동 실행");
         if (BatSmokeJobConfig.FAIL_JOB_ID.equals(jobId)) {
@@ -81,11 +86,12 @@ public class BatHealthController {
 
     @GetMapping("/bat/api/diagnostics/logging")
     @CpfTransaction(id = "BAT01OPR0003", name = "BATLoggingDiagnostics")
+    @Operation(operationId = "getBatLoggingDiagnostics", summary = "BAT JobInstance 로그 설정 진단")
     public ResponseEntity<Map<String, Object>> loggingDiagnostics() {
         Map<String, Object> response = new LinkedHashMap<>();
         String basePath = environment.getProperty("cpf.logging.file.base-path", "logs");
         Path logDirectory = Path.of(basePath, "bat").toAbsolutePath().normalize();
-        Path logPath = logDirectory.resolve("cpf-bat-batch.log");
+        Path jobsDirectory = logDirectory.resolve("jobs");
 
         response.put("application", "bat");
         response.put("profiles", environment.getActiveProfiles());
@@ -100,16 +106,18 @@ public class BatHealthController {
                 "cpf.logging.file.enabled", environment.getProperty("cpf.logging.file.enabled", "true"),
                 "cpf.logging.file.batch-enabled", environment.getProperty("cpf.logging.file.batch-enabled", "true"),
                 "cpf.logging.file.base-path", basePath,
+                "cpf.logging.file.timezone", environment.getProperty("cpf.logging.file.timezone", "Asia/Seoul"),
                 "server.port", environment.getProperty("server.port", "8093"),
                 "cpf.framework.module-id", environment.getProperty("cpf.framework.module-id", "BAT"),
                 "cpf.framework.was-id", environment.getProperty("cpf.framework.was-id", "batWK01")));
         response.put("workingDirectory", Path.of("").toAbsolutePath().normalize().toString());
         response.put("logDirectory", logDirectory.toString());
-        response.put("batchLogPath", logPath.toString());
+        response.put("jobInstanceLogRoot", jobsDirectory.toString());
+        response.put("jobInstanceLogPattern",
+                "bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log");
         response.put("logDirectoryExists", Files.exists(logDirectory));
         response.put("logDirectoryWritable", isWritableDirectory(logDirectory));
-        response.put("batchLogExists", Files.exists(logPath));
-        response.put("batchLogBytes", batchLogBytes(logPath));
+        response.put("jobInstanceLogCount", countLogFiles(jobsDirectory));
         return ResponseEntity.ok(response);
     }
 
@@ -131,9 +139,16 @@ public class BatHealthController {
         }
     }
 
-    private long batchLogBytes(Path logPath) {
+    private long countLogFiles(Path logDirectory) {
         try {
-            return Files.exists(logPath) ? Files.size(logPath) : 0L;
+            if (!Files.isDirectory(logDirectory)) {
+                return 0L;
+            }
+            try (var paths = Files.walk(logDirectory)) {
+                return paths.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().endsWith(".log"))
+                        .count();
+            }
         } catch (Exception ex) {
             return -1L;
         }

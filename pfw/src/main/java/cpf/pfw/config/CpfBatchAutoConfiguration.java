@@ -11,6 +11,7 @@ import cpf.pfw.common.batch.CpfBatchOperationRepository;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import cpf.pfw.common.logging.policy.LogPolicyResolver;
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import cpf.pfw.common.logging.TransactionIdGenerator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -25,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.time.Clock;
 import java.util.Map;
 
 /**
@@ -79,8 +81,13 @@ public class CpfBatchAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CpfBatchFileLogWriter cpfBatchFileLogWriter(CpfFileLogWriter fileLogWriter) {
-        return new CpfBatchFileLogWriter(fileLogWriter);
+    public CpfBatchFileLogWriter cpfBatchFileLogWriter(
+            CpfFileLogWriter fileLogWriter,
+            TransactionIdGenerator transactionIdGenerator) {
+        return new CpfBatchFileLogWriter(
+                fileLogWriter,
+                transactionIdGenerator,
+                Clock.system(fileLogWriter.logZoneId()));
     }
 
     @Bean

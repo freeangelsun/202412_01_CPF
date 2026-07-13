@@ -20,7 +20,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * CPF API 문서 자동 설정입니다.
@@ -158,6 +161,33 @@ public class PfwOpenApiAutoConfiguration {
         };
     }
 
+    /**
+     * 명시적 operationId가 없는 API에도 재현 가능한 식별자를 부여합니다.
+     *
+     * <p>개발자가 업무 의미가 담긴 operationId를 선언하면 그 값을 우선 사용합니다. 선언하지 않은 경우에는
+     * Controller, 메서드, 파라미터 타입을 조합하므로 메서드 오버로드도 서로 다른 ID를 가집니다.</p>
+     */
+    @Bean
+    public OperationCustomizer cpfOperationIdCustomizer() {
+        return (operation, handlerMethod) -> {
+            if (operation.getOperationId() == null || operation.getOperationId().isBlank()) {
+                operation.setOperationId(generatedOperationId(handlerMethod));
+            }
+            return operation;
+        };
+    }
+
+    String generatedOperationId(org.springframework.web.method.HandlerMethod handlerMethod) {
+        String controller = handlerMethod.getBeanType().getSimpleName().replaceFirst("Controller$", "");
+        String method = capitalize(handlerMethod.getMethod().getName());
+        String parameters = Arrays.stream(handlerMethod.getMethod().getParameterTypes())
+                .map(Class::getSimpleName)
+                .map(this::capitalize)
+                .collect(Collectors.joining("And"));
+        String base = lowerFirst(controller) + method;
+        return parameters.isBlank() ? base : base + "Using" + parameters;
+    }
+
     private boolean isSwaggerUiHtmlRequest(HttpServletRequest request) {
         if (!"GET".equalsIgnoreCase(request.getMethod())) {
             return false;
@@ -184,5 +214,19 @@ public class PfwOpenApiAutoConfiguration {
                     .description(description)
                     .schema(new StringSchema()));
         }
+    }
+
+    private String capitalize(String value) {
+        if (value == null || value.isBlank()) {
+            return "Value";
+        }
+        return value.substring(0, 1).toUpperCase(Locale.ROOT) + value.substring(1);
+    }
+
+    private String lowerFirst(String value) {
+        if (value == null || value.isBlank()) {
+            return "controller";
+        }
+        return value.substring(0, 1).toLowerCase(Locale.ROOT) + value.substring(1);
     }
 }

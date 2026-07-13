@@ -1,5 +1,6 @@
 package cpf.adm.opr.controller;
 
+import cpf.pfw.common.logging.CpfTransactionContextAnomalyMonitor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +37,10 @@ public class AdmHealthController {
     }
 
     @GetMapping
-    @Operation(summary = "ADM health 조회", description = "ADM 앱 기동 상태와 운영 datasource 연결 상태를 확인합니다.")
+    @Operation(
+            operationId = "getAdmHealth",
+            summary = "ADM health 조회",
+            description = "ADM 앱 기동 상태, 운영 datasource, 거래 context 누락 누적 건수를 확인합니다.")
     public Map<String, Object> health() {
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
@@ -49,6 +53,7 @@ public class AdmHealthController {
         response.put("service", "ADM");
         response.put("checkedAt", OffsetDateTime.now().toString());
         response.put("checks", checks);
+        response.put("transactionContextMissingCount", CpfTransactionContextAnomalyMonitor.missingCount());
         return response;
     }
 

@@ -1,0 +1,163 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=worktree-diff
+STATUS=완료
+EXECUTED_AT=2026-07-13T16:41:19.5556220+09:00
+START_COMMIT=1d5f2280f72719959dfd98dd78acde6299b0da74
+BRANCH=master
+COMMAND=git status --short; git rev-parse HEAD
+EXIT_CODE=0
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=8.11.1
+PROFILE=verification
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=eb179138d99325c71c77118c318dbbdfa30c5223aeac2c974ca587ab4723ab82
+--- SANITIZED_OUTPUT ---
+START_COMMIT=1d5f2280f72719959dfd98dd78acde6299b0da74
+BRANCH=master
+REQUEST_HASH=ED9CAB302744ADFB7042FEB2B091824A408E231204E4ABB90B0F8B7CBF3B83B3
+RAW_LOG_TRACKING_REMOVAL_COUNT=967
+OTHER_CHANGED_PATH_COUNT=136
+--- CHANGED_PATHS_EXCLUDING_RAW_LOG_DELETIONS ---
+ M .editorconfig
+ M .gitattributes
+ M .gitignore
+ M CPF_EVIDENCE_INDEX.md
+ M CPF_GAP_MATRIX.md
+ M CPF_NEW_REQUEST.md
+ M CPF_STABILIZATION_REPORT.md
+ M README.md
+ M acc/build.gradle
+ M acc/src/main/resources/application-acc.yml
+ M acc/src/main/resources/application.yml
+ D acc/src/main/resources/log/logback-dev.xml
+ D acc/src/main/resources/log/logback-local.xml
+ D acc/src/main/resources/log/logback-prod.xml
+ D acc/src/main/resources/log/logback-test.xml
+ M adm/build.gradle
+ M adm/src/main/java/cpf/adm/opr/controller/AdmHealthController.java
+ M adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java
+ M adm/src/main/java/cpf/adm/opr/controller/AdmReliabilityController.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmAuditLogService.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java
+ M adm/src/main/java/cpf/adm/opr/service/AdmObservabilityService.java
+ M adm/src/main/resources/application-adm.yml
+ M adm/src/main/resources/static/adm/adm.js
+ M adm/src/main/resources/static/adm/index.html
+ M bat/build.gradle
+ M bat/src/main/java/cpf/bat/edu/logging/BatJobLogEducationSample.java
+ M bat/src/main/java/cpf/bat/logging/BatJobLogPathPolicy.java
+ M bat/src/main/java/cpf/bat/operation/BatHealthController.java
+ M bat/src/main/resources/application-bat.yml
+ M bat/src/test/java/cpf/bat/edu/logging/BatJobLogEducationSampleTest.java
+ M bat/src/test/java/cpf/bat/logging/BatJobLogPathPolicyTest.java
+ M bizadm/build.gradle
+ M bizadm/src/main/resources/application-bizadm.yml
+ M build.gradle
+ M cmn/build.gradle
+ M exs/build.gradle
+ M exs/src/main/resources/application-exs.yml
+ M mbr/build.gradle
+ M mbr/src/main/resources/application-mbr-local.yml
+ M mbr/src/main/resources/application-mbr.yml
+ D mbr/src/main/resources/log/logback-local.xml
+ M pfw/build.gradle
+ M pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java
+ M pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLauncher.java
+ M pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java
+ M pfw/src/main/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapter.java
+ M pfw/src/main/java/cpf/pfw/common/logging/file/CpfFileLogWriter.java
+ M pfw/src/main/java/cpf/pfw/config/CpfBatchAutoConfiguration.java
+ M pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java
+ M pfw/src/main/resources/application-pfw.yml
+ M pfw/src/test/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapterTest.java
+ M pfw/src/test/java/cpf/pfw/common/logging/file/CpfFileLogWriterTest.java
+ M scripts/check-cpf-request-protection.ps1
+ M scripts/check-evidence-path-existence.ps1
+ M scripts/check-feature-evidence.ps1
+ M scripts/check-report-matrix-evidence-consistency.ps1
+ M scripts/check-runtime-config-standard.ps1
+ M scripts/check-sample-coverage.ps1
+ M scripts/check-utf8.ps1
+ M scripts/create-domain.ps1
+ M scripts/smoke-bat-log-bean-runtime.ps1
+ M scripts/smoke-bat-trace-boost-runtime.ps1
+ M scripts/smoke-create-domain.ps1
+ M "specs/SQL_\352\260\200\354\235\264\353\223\234.html"
+A  specs/evidence/20260713_02/adm-browser-click.sanitized.log
+A  specs/evidence/20260713_02/adm-ui-js-syntax.sanitized.log
+A  specs/evidence/20260713_02/archive-compression-coverage.sanitized.json
+A  specs/evidence/20260713_02/bat-edu-actual-sample-scan.sanitized.json
+A  specs/evidence/20260713_02/cpf-new-request-protection.sanitized.json
+A  specs/evidence/20260713_02/cpf-new-request.baseline.sha256
+A  specs/evidence/20260713_02/create-domain-smoke.sanitized.log
+A  specs/evidence/20260713_02/datasource-mode-scan.sanitized.json
+A  specs/evidence/20260713_02/deleted-empty-directories.sanitized.json
+A  specs/evidence/20260713_02/deleted-files.sanitized.json
+A  specs/evidence/20260713_02/deploy-env-acc-dev.sanitized.json
+A  specs/evidence/20260713_02/deploy-inventory-acc-dev.sanitized.json
+A  specs/evidence/20260713_02/edu-module-deploy-alias-scan.sanitized.json
+A  specs/evidence/20260713_02/empty-directory-scan.sanitized.json
+A  specs/evidence/20260713_02/evidence-path-existence-check.sanitized.json
+A  specs/evidence/20260713_02/garbage-file-scan.sanitized.json
+A  specs/evidence/20260713_02/git-diff-check.sanitized.log
+A  specs/evidence/20260713_02/gradle-remote-deploy-task-scan.sanitized.json
+A  specs/evidence/20260713_02/java25-pfw-test.sanitized.log
+A  specs/evidence/20260713_02/local-port-duplicate-scan.sanitized.json
+A  specs/evidence/20260713_02/log-management-standard.sanitized.json
+A  specs/evidence/20260713_02/log-tracking-policy.sanitized.log
+A  specs/evidence/20260713_02/mariadb-preflight.sanitized.log
+A  specs/evidence/20260713_02/openapi-runtime.sanitized.log
+A  specs/evidence/20260713_02/openapi-source-coverage.sanitized.json
+A  specs/evidence/20260713_02/packaged-dependencies-acc.sanitized.json
+A  specs/evidence/20260713_02/quality-gate.sanitized.log
+A  specs/evidence/20260713_02/reliability-log-tests.sanitized.log
+A  specs/evidence/20260713_02/remote-deploy-dry-run-acc-dev.sanitized.json
+A  specs/evidence/20260713_02/remote-deploy-dry-run.sanitized.json
+A  specs/evidence/20260713_02/report-matrix-evidence-consistency.sanitized.json
+A  specs/evidence/20260713_02/retained-empty-directories.sanitized.json
+A  specs/evidence/20260713_02/retained-review-required-files.sanitized.json
+A  specs/evidence/20260713_02/sample-actual-implementation-scan.sanitized.json
+A  specs/evidence/20260713_02/sample-catalog-only-scan.sanitized.json
+A  specs/evidence/20260713_02/sample-coverage-result.sanitized.json
+A  specs/evidence/20260713_02/sample-package-structure-scan.sanitized.json
+A  specs/evidence/20260713_02/sample-placeholder-scan.sanitized.json
+A  specs/evidence/20260713_02/sample-source-duplication-scan.sanitized.json
+A  specs/evidence/20260713_02/static-quality-gates.sanitized.log
+A  specs/evidence/20260713_02/worktree-diff.sanitized.log
+A  specs/evidence/20260713_02/xyz-edu-actual-sample-scan.sanitized.json
+A  specs/evidence/20260713_02/xyz-log-edu-tests.sanitized.log
+ M specs/sample-coverage-matrix.md
+ M specs/sql/00_all_install.sql
+ M specs/sql/00_all_install_and_smoke.sql
+ M specs/sql/10_pfw_schema.sql
+ M specs/sql/migration/flyway/V1__cpf_baseline_install.sql
+ M "specs/\352\260\234\353\260\234_\352\260\200\354\235\264\353\223\234.html"
+ M "specs/\352\264\200\353\246\254\354\236\220_\352\260\200\354\235\264\353\223\234.html"
+ M "specs/\352\270\260\353\212\245_\352\265\254\355\230\204_\353\247\244\355\212\270\353\246\255\354\212\244.html"
+ M xyz/build.gradle
+ M xyz/src/main/resources/application-xyz.yml
+ M xyz/src/main/resources/application.yml
+ D xyz/src/main/resources/log/logback-local.xml
+?? adm/src/main/java/cpf/adm/opr/service/AdmBatchJobLogService.java
+?? adm/src/test/java/cpf/adm/opr/service/AdmBatchJobLogServiceTest.java
+?? pfw/src/main/java/cpf/pfw/common/batch/CpfBatchJobLogPath.java
+?? pfw/src/main/java/cpf/pfw/common/logging/CpfTransactionContextAnomalyMonitor.java
+?? pfw/src/main/resources/log/
+?? pfw/src/test/java/cpf/pfw/common/batch/CpfBatchFileLogWriterTest.java
+?? pfw/src/test/java/cpf/pfw/common/logging/CpfTransactionContextAnomalyMonitorTest.java
+?? pfw/src/test/java/cpf/pfw/config/
+?? scripts/check-log-management-standard.ps1
+?? scripts/check-openapi-source-coverage.ps1
+?? scripts/write-sanitized-evidence.ps1
+?? specs/sql/migration/flyway/V24__batch_job_instance_log_linkage.sql
+?? xyz/src/main/java/cpf/xyz/edu/logging/
+?? xyz/src/main/java/cpf/xyz/edu/operation/XyzAdmBatchLogQueryEducationSample.java
+?? xyz/src/test/java/cpf/xyz/edu/logging/
+?? xyz/src/test/java/cpf/xyz/edu/operation/XyzAdmBatchLogQueryEducationSampleTest.java

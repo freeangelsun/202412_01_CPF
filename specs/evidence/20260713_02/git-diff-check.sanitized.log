@@ -1,0 +1,46 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=git-diff-check
+STATUS=완료
+EXECUTED_AT=2026-07-13T16:40:29.9866720+09:00
+START_COMMIT=1d5f2280f72719959dfd98dd78acde6299b0da74
+BRANCH=master
+COMMAND=git diff --check
+EXIT_CODE=0
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=8.11.1
+PROFILE=verification
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=aad4cc74468a41247b04255700eb347c4bacb83e5ebbd240ec2e514cb16549c1
+--- SANITIZED_OUTPUT ---
+warning: in the working copy of '.gitignore', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'CPF_NEW_REQUEST.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'README.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'build.gradle', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'cmn/build.gradle', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'mbr/build.gradle', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'scripts/check-cpf-request-protection.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-evidence-path-existence.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-feature-evidence.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-report-matrix-evidence-consistency.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-runtime-config-standard.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-sample-coverage.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check-utf8.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/create-domain.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/smoke-bat-log-bean-runtime.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/smoke-bat-trace-boost-runtime.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/smoke-create-domain.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specs/evidence/20260713_02/evidence-path-existence-check.sanitized.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/evidence/20260713_02/log-management-standard.sanitized.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/evidence/20260713_02/report-matrix-evidence-consistency.sanitized.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sample-coverage-matrix.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/00_all_install.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/00_all_install_and_smoke.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/10_pfw_schema.sql', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'specs/sql/migration/flyway/V1__cpf_baseline_install.sql', CRLF will be replaced by LF the next time Git touches it

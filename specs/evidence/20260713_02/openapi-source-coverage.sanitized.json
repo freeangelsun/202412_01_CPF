@@ -1,0 +1,22 @@
+{
+    "generatedAt":  "2026-07-13T16:26:54.2909049+09:00",
+    "status":  "완료",
+    "coverageMode":  "명시 operationId 또는 PFW 결정적 자동 생성",
+    "controllerCount":  59,
+    "mappingCount":  349,
+    "explicitOperationIdCount":  17,
+    "duplicateOperationIdCount":  0,
+    "modulePfwDependency":  {
+                                "acc":  true,
+                                "adm":  true,
+                                "bat":  true,
+                                "bizadm":  true,
+                                "exs":  true,
+                                "mbr":  true,
+                                "xyz":  true
+                            },
+    "runtimeOpenApiJsonVerified":  false,
+    "failures":  [
+
+                 ]
+}

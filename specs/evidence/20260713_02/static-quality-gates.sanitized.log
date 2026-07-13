@@ -1,0 +1,86 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=static-quality-gates
+STATUS=완료
+EXECUTED_AT=2026-07-13T16:13:02.0556953+09:00
+START_COMMIT=1d5f2280f72719959dfd98dd78acde6299b0da74
+BRANCH=master
+COMMAND=.\gradlew.bat checkUtf8 checkMojibake checkSqlStandard checkFeatureEvidence checkSampleCoverage checkHtmlDocs checkEvidencePathExistence checkOpenApiSourceCoverage checkLogManagementStandard --rerun-tasks --no-daemon --console=plain
+EXIT_CODE=0
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=8.11.1
+PROFILE=verification
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=3388d55bc088b10bb4736820dbb09cb4469064ac64c0771f5df82e05c6e7ec45
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-21 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-21/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-21/bin/java.exe" goto execute 
+
+<WORKSPACE>>set CLASSPATH=<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar 
+
+<WORKSPACE>>"D:\Java\jdk-21/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain checkUtf8 checkMojibake checkSqlStandard checkFeatureEvidence checkSampleCoverage checkHtmlDocs checkEvidencePathExistence checkOpenApiSourceCoverage checkLogManagementStandard --rerun-tasks --no-daemon --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :checkUtf8
+UTF-8 check passed.
+Run with -CheckMojibake to also fail on common mojibake markers.
+
+> Task :checkMojibake
+UTF-8 check passed.
+
+> Task :checkSqlStandard
+SQL standard check passed.
+
+> Task :checkFeatureEvidence
+Feature evidence check passed.
+
+> Task :checkSampleCoverage
+sample coverage check passed: <WORKSPACE>\specs\sample-coverage-matrix.md
+
+> Task :checkHtmlDocs
+HTML docs check passed.
+
+> Task :checkEvidencePathExistence
+evidence path existence check passed: <WORKSPACE>\specs\evidence\20260713_02
+
+> Task :checkOpenApiSourceCoverage
+OpenAPI source coverage check passed.
+
+> Task :checkLogManagementStandard
+Log management standard check passed.
+
+BUILD SUCCESSFUL in 56s
+9 actionable tasks: 9 executed
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

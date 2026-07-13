@@ -1,0 +1,217 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=quality-gate
+STATUS=완료
+EXECUTED_AT=2026-07-13T16:31:04.0072587+09:00
+START_COMMIT=1d5f2280f72719959dfd98dd78acde6299b0da74
+BRANCH=master
+COMMAND=.\gradlew.bat qualityGate -PcpfResultDir=specs/evidence/20260713_02 --rerun-tasks --no-daemon --console=plain
+EXIT_CODE=0
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=8.11.1
+PROFILE=verification
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=301
+FAILURES=0
+ERRORS=0
+SKIPPED=3
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=c9ab92770a9250c8dcc0012b02871eaa87d151f4d6233f4d38c6fb506e209712
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-21 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-21/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-21/bin/java.exe" goto execute 
+
+<WORKSPACE>>set CLASSPATH=<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar 
+
+<WORKSPACE>>"D:\Java\jdk-21/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain qualityGate -PcpfResultDir=specs/evidence/20260713_02 --rerun-tasks --no-daemon --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :checkArchitectureOwnership
+Architecture ownership scan statusCode=NEEDS_REVIEW failures=0 warnings=2 evidence=<WORKSPACE>\build\runtime-smoke\architecture-ownership-scan.sanitized.json
+REVIEW [CMN_PFW_PORT_MIGRATION_CANDIDATE] cmn/src/main/java/cpf/cmn/fle/service/CmnFileExchangeService.java
+REVIEW [CMN_PFW_PORT_MIGRATION_CANDIDATE] cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService.java
+
+> Task :checkCpfRequestProtection
+CPF request protection check passed.
+
+> Task :checkDeployEnv
+> Task :checkDeployInventory
+
+> Task :checkRuntimeConfigStandard
+runtime config standard check passed: <WORKSPACE>\specs\evidence\20260713_02
+
+> Task :checkSampleCoverage
+sample coverage check passed: <WORKSPACE>\specs\sample-coverage-matrix.md
+
+> Task :pfw:compileJava
+> Task :cmn:compileJava
+> Task :acc:compileJava
+> Task :acc:processResources
+> Task :acc:classes
+> Task :acc:resolveMainClassName
+> Task :cmn:processResources
+> Task :cmn:classes
+> Task :cmn:jar
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+> Task :acc:bootJar
+> Task :checkPackagedDependencies
+> Task :remoteDeployDryRun
+
+> Task :checkEvidencePathExistence
+evidence path existence check passed: <WORKSPACE>\specs\evidence\20260713_02
+
+> Task :checkFeatureEvidence
+Feature evidence check passed.
+
+> Task :checkHtmlDocs
+HTML docs check passed.
+
+> Task :checkJavaFormat
+Java format check passed.
+
+> Task :checkLegacyName
+Legacy name marker check passed.
+
+> Task :checkLogManagementStandard
+Log management standard check passed.
+
+> Task :checkMojibake
+UTF-8 check passed.
+
+> Task :checkOpenApiSourceCoverage
+OpenAPI source coverage check passed.
+
+> Task :checkProfileLoading
+Profile loading check status=DONE failures=0 evidence=<WORKSPACE>\build\runtime-smoke\profile-loading-result.sanitized.json
+
+> Task :checkReportMatrixEvidenceConsistency
+Report, feature matrix, and evidence index consistency check passed.
+
+> Task :checkSampleStandard
+Sample and hardcoding standard check passed.
+
+> Task :checkSecuritySeedStandard
+Security seed standard check passed.
+
+> Task :checkServiceCallBoundary
+Service call boundary scan passed.
+
+> Task :checkSpringEventUsage
+Spring Event usage scan statusCode=DONE allowed=5 review=0 forbidden=0 evidence=<WORKSPACE>\build\runtime-smoke\spring-event-usage-scan.sanitized.json
+
+> Task :checkSqlStandard
+SQL standard check passed.
+
+> Task :checkTransactionIdStandard
+Transaction ID standard check passed.
+
+> Task :checkUtf8
+UTF-8 check passed.
+Run with -CheckMojibake to also fail on common mojibake markers.
+
+> Task :acc:compileTestJava
+> Task :acc:processTestResources NO-SOURCE
+> Task :acc:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :acc:test
+
+2026-07-13T16:27:41.969+09:00 level=DEBUG module=acc instance=accAP01 thread=SpringApplicationShutdownHook transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@49ede9c7, started on Mon Jul 13 16:27:11 KST 2026 exception=
+2026-07-13T16:27:42.527+09:00 level=WARN  module=acc instance=accAP01 thread=scheduling-1 transactionGlobalId= traceId= segmentId= logger=c.c.r.service.CacheRefreshEventListener message=CMN cache refresh event polling skipped. reason=\n### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection\n### The error may exist in class path resource [mybatis/mapper/cmn/ref/CacheRefreshEventMapper.xml]\n### The error may involve cpf.cmn.ref.mapper.CacheRefreshEventMapper.findEventsAfter\n### The error occurred while executing a query\n### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection exception=
+2026-07-13T16:27:43.670+09:00 level=INFO  module=acc instance=accAP01 thread=scheduling-1 transactionGlobalId= traceId= segmentId= logger=com.zaxxer.hikari.HikariDataSource message=HikariPool-3 - Starting... exception=
+2026-07-13T16:27:43.674+09:00 level=WARN  module=acc instance=accAP01 thread=scheduling-1 transactionGlobalId= traceId= segmentId= logger=o.m.jdbc.message.server.ErrorPacket message=Error: 1045-28000: Access denied for user 'cpf_pfw_app'@'localhost' (using password: *** exception=
+2026-07-13T16:27:44.613+09:00 level=DEBUG module=acc instance=accAP01 thread=SpringApplicationShutdownHook transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@592efd6, started on Mon Jul 13 16:27:26 KST 2026 exception=
+2026-07-13T16:27:44.685+09:00 level=WARN  module=acc instance=accAP01 thread=scheduling-1 transactionGlobalId= traceId= segmentId= logger=c.c.r.service.CacheRefreshEventListener message=CMN cache refresh event polling skipped. reason=\n### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection\n### The error may exist in class path resource [mybatis/mapper/cmn/ref/CacheRefreshEventMapper.xml]\n### The error may involve cpf.cmn.ref.mapper.CacheRefreshEventMapper.findEventsAfter\n### The error occurred while executing a query\n### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection exception=
+
+> Task :adm:compileJava
+> Task :adm:processResources
+> Task :adm:classes
+> Task :adm:compileTestJava
+> Task :adm:processTestResources NO-SOURCE
+> Task :adm:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :adm:test
+> Task :bat:compileJava
+> Task :bat:processResources
+> Task :bat:classes
+> Task :bat:compileTestJava
+> Task :bat:processTestResources NO-SOURCE
+> Task :bat:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :bat:test
+> Task :bizadm:compileJava
+> Task :bizadm:processResources
+> Task :bizadm:classes
+> Task :bizadm:compileTestJava
+> Task :bizadm:processTestResources NO-SOURCE
+> Task :bizadm:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :bizadm:test
+> Task :cmn:compileTestJava
+> Task :cmn:processTestResources NO-SOURCE
+> Task :cmn:testClasses
+> Task :cmn:test
+> Task :exs:compileJava
+> Task :exs:processResources
+> Task :exs:classes
+> Task :exs:compileTestJava
+> Task :exs:processTestResources NO-SOURCE
+> Task :exs:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :exs:test
+> Task :mbr:compileJava
+> Task :mbr:processResources
+> Task :mbr:classes
+> Task :mbr:compileTestJava
+> Task :mbr:processTestResources NO-SOURCE
+> Task :mbr:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-07-13T16:30:20.069+09:00 level=DEBUG module=mbr instance=local01 thread=SpringApplicationShutdownHook transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@15d236fd, started on Mon Jul 13 16:30:06 KST 2026 exception=
+2026-07-13T16:30:20.091+09:00 level=DEBUG module=mbr instance=local01 thread=SpringApplicationShutdownHook transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@74ae2dec, started on Mon Jul 13 16:30:13 KST 2026 exception=
+> Task :mbr:test
+> Task :pfw:compileTestJava
+> Task :pfw:processTestResources NO-SOURCE
+> Task :pfw:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :pfw:test
+> Task :xyz:compileJava
+> Task :xyz:processResources
+> Task :xyz:classes
+> Task :xyz:compileTestJava
+> Task :xyz:processTestResources
+> Task :xyz:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :xyz:test
+> Task :qualityGate
+
+BUILD SUCCESSFUL in 6m 24s
+66 actionable tasks: 66 executed
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

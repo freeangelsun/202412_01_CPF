@@ -1,0 +1,148 @@
+-- CPF V22 migration.
+-- PFW reliability capability에서 사용하는 idempotency, broker, file transfer, unknown result 저장소를 추가합니다.
+
+USE pfwDB;
+
+CREATE TABLE IF NOT EXISTS pfw_idempotency_record (
+    idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
+    scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT '중복 처리 키',
+    request_hash VARCHAR(128) NULL COMMENT '요청 본문 해시',
+    payload_hash VARCHAR(128) NULL COMMENT '처리 대상 payload 해시',
+    record_status VARCHAR(30) NOT NULL DEFAULT 'PROCESSING' COMMENT '중복 처리 상태',
+    stored_response MEDIUMTEXT NULL COMMENT '재응답용 저장 응답',
+    retry_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재요청 허용 여부',
+    completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
+    expires_at DATETIME(3) NULL COMMENT '만료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (idempotency_seq),
+    UNIQUE KEY uk_pfw_idempotency_record_key (scope, idempotency_key),
+    INDEX ix_pfw_idempotency_record_status (record_status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 중복 처리 기록';
+
+CREATE TABLE IF NOT EXISTS pfw_broker_outbox (
+    outbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Outbox 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
+    message_key VARCHAR(200) NULL COMMENT 'Broker partition key',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    producer_module VARCHAR(20) NULL COMMENT '생산 모듈',
+    consumer_module VARCHAR(20) NULL COMMENT '소비 모듈',
+    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
+    payload LONGBLOB NULL COMMENT '메시지 payload',
+    content_type VARCHAR(100) NULL COMMENT '메시지 content type',
+    header_json MEDIUMTEXT NULL COMMENT '메시지 header 직렬화 값',
+    attribute_json MEDIUMTEXT NULL COMMENT '메시지 속성 직렬화 값',
+    outbox_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Outbox 처리 상태',
+    worker_id VARCHAR(120) NULL COMMENT '처리 worker ID',
+    broker_name VARCHAR(80) NULL COMMENT '전송 대상 broker 이름',
+    partition_key VARCHAR(200) NULL COMMENT '전송 partition key',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    occurred_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '업무 이벤트 발생 일시',
+    claimed_at DATETIME(3) NULL COMMENT 'worker 점유 일시',
+    published_at DATETIME(3) NULL COMMENT '발행 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (outbox_id),
+    UNIQUE KEY uk_pfw_broker_outbox_message (message_id),
+    INDEX ix_pfw_broker_outbox_status (outbox_status, outbox_id),
+    INDEX ix_pfw_broker_outbox_tx (transaction_global_id, segment_id),
+    INDEX ix_pfw_broker_outbox_topic (topic, occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker Outbox';
+
+CREATE TABLE IF NOT EXISTS pfw_broker_inbox (
+    inbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Inbox 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
+    inbox_status VARCHAR(30) NOT NULL DEFAULT 'RECEIVED' COMMENT 'Inbox 처리 상태',
+    result_detail VARCHAR(1000) NULL COMMENT '소비 처리 결과 상세',
+    received_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '수신 일시',
+    consumed_at DATETIME(3) NULL COMMENT '소비 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (inbox_id),
+    UNIQUE KEY uk_pfw_broker_inbox_message (message_id),
+    INDEX ix_pfw_broker_inbox_idempotency (idempotency_key),
+    INDEX ix_pfw_broker_inbox_status (inbox_status, received_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker Inbox';
+
+CREATE TABLE IF NOT EXISTS pfw_broker_dlq (
+    dlq_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'DLQ 내부 순번',
+    message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
+    topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    failure_reason VARCHAR(1000) NULL COMMENT 'DLQ 이동 사유',
+    replay_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '재처리 상태',
+    replay_count INT NOT NULL DEFAULT 0 COMMENT '재처리 요청 횟수',
+    replay_requested_at DATETIME(3) NULL COMMENT '재처리 요청 일시',
+    replay_completed_at DATETIME(3) NULL COMMENT '재처리 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (dlq_id),
+    UNIQUE KEY uk_pfw_broker_dlq_message (message_id),
+    INDEX ix_pfw_broker_dlq_status (replay_status, created_at),
+    INDEX ix_pfw_broker_dlq_topic (topic, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker DLQ';
+
+CREATE TABLE IF NOT EXISTS pfw_file_transfer_history (
+    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '파일 전송 이력 내부 순번',
+    transfer_id VARCHAR(260) NOT NULL COMMENT '파일 전송 ID',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT '파일 전송 endpoint 코드',
+    transfer_operation VARCHAR(30) NOT NULL COMMENT '전송 작업 유형',
+    local_path VARCHAR(1000) NULL COMMENT '로컬 파일 경로',
+    remote_path VARCHAR(1000) NULL COMMENT '원격 파일 경로',
+    checksum VARCHAR(128) NULL COMMENT '파일 checksum',
+    file_size BIGINT NOT NULL DEFAULT 0 COMMENT '파일 크기',
+    duplicate_key VARCHAR(1200) NOT NULL COMMENT '중복 방지 키',
+    transfer_status VARCHAR(30) NOT NULL COMMENT '전송 상태',
+    result_detail VARCHAR(1000) NULL COMMENT '전송 결과 상세',
+    completed_at DATETIME(3) NULL COMMENT '전송 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (history_id),
+    UNIQUE KEY uk_pfw_file_transfer_history_id (transfer_id),
+    INDEX ix_pfw_file_transfer_duplicate (endpoint_code, duplicate_key(255), checksum),
+    INDEX ix_pfw_file_transfer_tx (transaction_global_id, segment_id),
+    INDEX ix_pfw_file_transfer_status (transfer_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 파일 전송 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_unknown_result (
+    unknown_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Unknown result 내부 순번',
+    unknown_id VARCHAR(120) NOT NULL COMMENT 'Unknown result ID',
+    unknown_type VARCHAR(40) NOT NULL COMMENT 'Unknown result 유형',
+    unknown_status VARCHAR(40) NOT NULL DEFAULT 'CHECK_PENDING' COMMENT 'Unknown result 상태',
+    transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
+    segment_id VARCHAR(120) NULL COMMENT '거래 구간 ID',
+    external_key VARCHAR(200) NULL COMMENT '외부 시스템 또는 메시지 키',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
+    next_action VARCHAR(100) NULL COMMENT '다음 조치',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '감지 일시',
+    resolved_at DATETIME(3) NULL COMMENT '해결 일시',
+    resolved_by VARCHAR(100) NULL COMMENT '해결 운영자',
+    audit_reason VARCHAR(500) NULL COMMENT '수동 처리 감사 사유',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (unknown_seq),
+    UNIQUE KEY uk_pfw_unknown_result_id (unknown_id),
+    INDEX ix_pfw_unknown_result_status (unknown_type, unknown_status, detected_at),
+    INDEX ix_pfw_unknown_result_tx (transaction_global_id, segment_id),
+    INDEX ix_pfw_unknown_result_external (external_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Unknown result 및 reconciliation 이력';

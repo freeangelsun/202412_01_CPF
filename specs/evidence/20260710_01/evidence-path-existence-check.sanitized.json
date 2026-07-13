@@ -1,0 +1,750 @@
+{
+    "generatedAt":  "2026-07-13T09:31:45.3330486+09:00",
+    "status":  "완료",
+    "checkedCount":  184,
+    "missingCount":  0,
+    "checked":  [
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_01/edu-mapper-db-slice.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_01/edu-mapper-db-slice.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_01/edu-mapper-db-slice.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-log-policy-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-log-policy-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-log-policy-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-operation-console-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-operation-console-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-operation-console-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-operation-console-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-service-registry-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-service-registry-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-service-registry-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-service-registry-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-transaction-group-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-transaction-group-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-transaction-group-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-ui-browser-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-ui-browser-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-ui-browser-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/adm-ui-browser-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-log-bean-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-log-bean-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-log-bean-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/bat-trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/file-log-standard-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/file-log-standard-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/file-log-standard-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/file-log-standard-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/packaged-runtime-resource-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/packaged-runtime-resource-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/packaged-runtime-resource-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-closure-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-closure-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-closure-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-smoke-summary.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-smoke-summary.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-smoke-summary.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-start-services-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-start-services-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-start-services-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-status-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-status-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/runtime-status-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/service-registry-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/standard-header-e2e-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/standard-header-e2e-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/standard-header-e2e-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/standard-header-e2e-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260707_02/trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260707_02/trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260707_02/trace-boost-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_03/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260708_03/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_03/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_03/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/bat-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/bat-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/bat-test.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/bat-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/cmn-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/cmn-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/cmn-test.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/cmn-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/datasource-mode-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/datasource-mode-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/datasource-mode-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-env-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-env-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-env-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-inventory-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-inventory-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/deploy-inventory-acc-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/edu-module-deploy-alias-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/edu-module-deploy-alias-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/edu-module-deploy-alias-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/empty-directory-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/empty-directory-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/empty-directory-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/exs-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/exs-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/exs-test.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/exs-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/garbage-file-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/garbage-file-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/garbage-file-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/gradle-remote-deploy-task-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/gradle-remote-deploy-task-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/gradle-remote-deploy-task-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/local-port-duplicate-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/local-port-duplicate-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/local-port-duplicate-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/packaged-dependencies-acc.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/packaged-dependencies-acc.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/packaged-dependencies-acc.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/remote-deploy-dry-run.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260708_05/remote-deploy-dry-run.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260708_05/remote-deploy-dry-run.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260708_05/remote-deploy-dry-run.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/broker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/broker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/broker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/broker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/java25-compatibility-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/runtime-worker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/runtime-worker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/runtime-worker-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/security-credential-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/security-credential-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/security-credential-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/security-credential-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/servicecall-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/servicecall-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/servicecall-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/servicecall-contract-test.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260709_03/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260709_03/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260709_03/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-feature-evidence.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-feature-evidence.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/check-feature-evidence.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-html-docs.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-html-docs.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/check-html-docs.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-utf8-mojibake.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/check-utf8-mojibake.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/check-utf8-mojibake.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/cpf-new-request-protection.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/pfw-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/pfw-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/pfw-test.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/pfw-test.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/quality-gate.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/quality-gate.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/quality-gate.log"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/quality-gate.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/report-matrix-evidence-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/report-matrix-evidence-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/report-matrix-evidence-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-coverage-check.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-placeholder-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-placeholder-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "specs/기능_구현_매트릭스.html",
+                        "evidencePath":  "specs/evidence/20260710_01/sample-placeholder-scan.sanitized.json"
+                    }
+                ],
+    "missing":  [
+
+                ],
+    "failures":  [
+
+                 ]
+}

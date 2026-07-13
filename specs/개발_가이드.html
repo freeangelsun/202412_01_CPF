@@ -75,6 +75,37 @@
   </section>
 
   <section>
+    <h2>Reliability capability 사용 기준</h2>
+    <p>멱등 처리, Broker outbox/inbox/DLQ, 파일전송 이력과 결과 미확정 처리는 업무 모듈에서 재구현하지 않고 PFW port와 engine을 사용합니다. 운영 영속성은 JDBC adapter를 연결하고, in-memory 또는 deterministic adapter는 EDU와 단위 테스트에만 사용합니다.</p>
+    <table>
+      <thead>
+      <tr><th>상황</th><th>PFW API</th><th>EDU와 검증</th></tr>
+      </thead>
+      <tbody>
+      <tr><td>REST·배치 중복 실행 방지</td><td><code>CpfIdempotencyEngine</code>, <code>CpfIdempotencyCommand</code>, <code>JdbcCpfIdempotencyRepository</code></td><td><code>XyzIdempotencyEducationSample</code>, <code>BatIdempotencyEducationSample</code>, <code>CpfIdempotencyEngineTest</code></td></tr>
+      <tr><td>업무 이벤트 안전 발행</td><td><code>CpfBrokerOutboxPort</code>, <code>CpfBrokerPublisherWorker</code></td><td><code>XyzOutboxInboxEducationSample</code>, <code>CpfBrokerWorkerTest</code></td></tr>
+      <tr><td>소비 중복과 실패 격리</td><td><code>CpfBrokerConsumerWorker</code>, <code>CpfBrokerInboxPort</code>, <code>CpfBrokerDlqPort</code></td><td>동일 messageId는 중복 처리하고 업무 예외는 DLQ로 이동하는 단위 테스트를 참고합니다.</td></tr>
+      <tr><td>LOCAL 파일전송</td><td><code>CpfFileTransferEngine</code>, <code>LocalCpfFileTransferAdapter</code></td><td><code>XyzFileChecksumEducationSample</code>, <code>LocalCpfFileTransferAdapterTest</code></td></tr>
+      <tr><td>결과 미확정 후속 처리</td><td><code>CpfReconciliationPort</code>, <code>CpfUnknownResultRecord</code></td><td>transactionGlobalId, segmentId, externalKey를 보존하고 ADM 수동 확정과 연결합니다.</td></tr>
+      </tbody>
+    </table>
+    <p>실 Kafka/MQ, SFTP/FTP/SCP/SSH, MariaDB 다중 worker 경쟁을 실행하지 않은 상태에서는 해당 capability 전체를 완료로 판단하지 않습니다.</p>
+  </section>
+
+  <section>
+    <h2>신규 주제영역 생성기</h2>
+    <p><code>scripts/create-domain.ps1</code>은 Controller, Facade, Service, Repository, DTO, validation, Mapper, profile, SQL, ADM/배포 후보를 생성합니다. 생성 결과를 바로 정본에 합치지 말고 patch candidate를 검토합니다.</p>
+    <table>
+      <thead><tr><th>검증</th><th>명령</th><th>확인 내용</th></tr></thead>
+      <tbody>
+      <tr><td>LNG 생성 smoke</td><td><code>scripts/smoke-create-domain.ps1 -ModuleCode lng -ModuleName Lending</code></td><td>UTF-8 손상, 필수 파일, Application, profile, test, bootJar를 임시 빌드에서 확인합니다.</td></tr>
+      <tr><td>의존성 원칙</td><td><code>project(':pfw')</code>, <code>project(':cmn')</code></td><td>신규 업무 모듈은 기존 ACC/MBR/EXS/XYZ/BAT 내부 코드에 의존하지 않습니다.</td></tr>
+      <tr><td>SQL 반영</td><td><code>patch-candidates/sql</code></td><td>Flyway version, split SQL, all_install, smoke, seed를 함께 현행화합니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>상황별 참고 샘플 매트릭스</h2>
     <table>
       <thead>
@@ -84,6 +115,9 @@
       <tr><td>CRUD API 작성</td><td><code>XyzCrudEducationController</code></td><td>표준 응답, validation, 등록/수정/삭제 API 구조</td></tr>
       <tr><td>조회 API 작성</td><td><code>XyzQueryEducationController</code>, <code>XyzQueryEducationMapper.xml</code></td><td>단건, 목록, offset, keyset, 안전한 정렬</td></tr>
       <tr><td>표준 헤더 사용</td><td><code>XyzTransactionEducationController</code>, <code>CpfHeaderSpecs</code></td><td>거래 ID, trace ID, 채널, idempotency key 전달</td></tr>
+      <tr><td>멱등 요청 처리</td><td><code>XyzIdempotencyEducationSample</code>, <code>CpfIdempotencyEngineTest</code></td><td>동일 요청 replay, payload 충돌, 처리 중 중복, 실패·UNKNOWN 재시도</td></tr>
+      <tr><td>Broker 신뢰성 처리</td><td><code>XyzOutboxInboxEducationSample</code>, <code>CpfBrokerWorkerTest</code></td><td>outbox claim, publisher 결과 저장, inbox 중복, DLQ 이동</td></tr>
+      <tr><td>파일전송</td><td><code>XyzFileChecksumEducationSample</code>, <code>LocalCpfFileTransferAdapterTest</code></td><td>streaming, temp rename, checksum, path traversal, 이력·중복 처리</td></tr>
       <tr><td>CMN 공통 기능 사용</td><td><code>XyzCmnBusinessEducationController</code></td><td>프로젝트 공통 채번, 업무 알림 로그, 업무 로그 호출 방식</td></tr>
       <tr><td>ADM 운영 기능 작성</td><td><code>AdmPermissionController</code>, <code>AdmPermissionService</code>, <code>AdmApiAuthFilter</code></td><td>역할, 메뉴, 버튼, API 권한, 감사 사유, 서버 권한검사 연결 방식</td></tr>
       <tr><td>배치 개발</td><td><code>XyzBatchEducationController</code>, <code>BatSmokeJobConfig</code></td><td>tasklet, chunk, 수동 실행, ADM 관제 연동</td></tr>

@@ -73,8 +73,28 @@
       <tr><td>V17</td><td><code>V17__batch_center_cut_ownership_repair.sql</code></td><td><code>pfw_center_cut_*</code> 초안 데이터를 <code>bat_center_cut_*</code>로 이관하고 PFW 소유 테이블을 정리합니다.</td></tr>
       <tr><td>V18</td><td><code>V18__xyz_center_cut_sample.sql</code></td><td>XYZ center-cut 교육 샘플 대상과 결과 테이블을 추가합니다.</td></tr>
       <tr><td>V19</td><td><code>V19__transaction_segment_trace.sql</code></td><td><code>pfw_transaction_segment</code>를 추가해 복합 거래 구간, parent segment, 구간별 수행시간, 외부 연계 식별자를 저장합니다.</td></tr>
+      <tr><td>V20</td><td><code>V20__transaction_segment_identity_and_exs_cmn_dictionary.sql</code></td><td>거래 구간 식별 정보와 EXS/CMN 사전 기준을 보강합니다.</td></tr>
+      <tr><td>V21</td><td><code>V21__pfw_service_call_registry.sql</code></td><td>PFW service registry, endpoint, instance, health, routing과 호출 이력을 추가합니다.</td></tr>
+      <tr><td>V22</td><td><code>V22__pfw_reliability_persistence.sql</code></td><td>멱등 처리, Broker outbox/inbox/DLQ, 파일전송 이력, 결과 미확정 테이블을 추가합니다.</td></tr>
+      <tr><td>V23</td><td><code>V23__adm_reliability_operations.sql</code></td><td>ADM Reliability 메뉴, 조회/replay/수동확정 버튼과 역할별 API 권한을 추가합니다.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section>
+    <h2>Reliability persistence 기준</h2>
+    <table>
+      <thead><tr><th>테이블</th><th>역할</th><th>운영 조회</th></tr></thead>
+      <tbody>
+      <tr><td><code>pfw_idempotency_record</code></td><td>scope/key/hash, 상태, 저장 응답, TTL과 재시도 허용 여부를 보관합니다.</td><td><code>GET /adm/api/reliability/idempotency</code></td></tr>
+      <tr><td><code>pfw_broker_outbox</code></td><td>업무 transaction 이후 발행할 메시지와 worker claim·발행 결과를 보관합니다.</td><td><code>GET /adm/api/reliability/broker/outbox</code></td></tr>
+      <tr><td><code>pfw_broker_inbox</code></td><td>messageId와 idempotencyKey로 소비 중복을 차단합니다.</td><td><code>GET /adm/api/reliability/broker/inbox</code></td></tr>
+      <tr><td><code>pfw_broker_dlq</code></td><td>실패 사유, replay 상태·횟수·시각을 보관합니다.</td><td><code>GET /adm/api/reliability/broker/dlq</code></td></tr>
+      <tr><td><code>pfw_file_transfer_history</code></td><td>transactionGlobalId, segment, endpoint, checksum, duplicate key와 결과를 보관합니다.</td><td><code>GET /adm/api/reliability/file-transfers</code></td></tr>
+      <tr><td><code>pfw_unknown_result</code></td><td>외부 결과 미확정 상태와 자동·수동 reconciliation 정보를 보관합니다.</td><td><code>GET /adm/api/reliability/unknown-results</code></td></tr>
+      </tbody>
+    </table>
+    <p>V22 source와 all_install에 존재하는 것만으로 실검증 완료가 아닙니다. 신규 빈 MariaDB schema에서 V22 upgrade, PK/UK/index, 재실행 정책을 확인해야 완료로 올립니다.</p>
   </section>
 
   <section>

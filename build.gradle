@@ -169,7 +169,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260710_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260713_01').toString())
 }
 
 Map<String, String> cpfReadEnvFile(File envFile) {
@@ -396,6 +396,12 @@ tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
     description = 'CPF_NEW_REQUEST.md must remain unchanged after the work baseline is captured.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-cpf-request-protection.ps1'
+}
+
+tasks.register('initializeCpfRequestProtection', Exec) {
+    group = 'verification'
+    description = 'Initialize CPF_NEW_REQUEST.md protection baseline explicitly before protected work starts.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-cpf-request-protection.ps1', '-InitializeBaseline'
 }
 
 tasks.register('checkFeatureEvidence', Exec) {

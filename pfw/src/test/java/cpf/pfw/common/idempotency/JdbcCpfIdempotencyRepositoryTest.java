@@ -73,4 +73,30 @@ class JdbcCpfIdempotencyRepositoryTest {
 
         verify(jdbcTemplate).update(anyString(), any(), any(), any(), any(), any());
     }
+
+    @Test
+    void restartUsesConditionalAtomicUpdate() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any()))
+                .thenReturn(1);
+        JdbcCpfIdempotencyRepository repository = new JdbcCpfIdempotencyRepository(jdbcTemplate);
+
+        boolean restarted = repository.restart(
+                "HTTP",
+                "idem-004",
+                "request-hash",
+                "payload-hash",
+                Instant.now().plusSeconds(60));
+
+        assertThat(restarted).isTrue();
+    }
+
+    @Test
+    void expireBeforeLimitsCleanupBatch() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.update(anyString(), any(), eq(1000))).thenReturn(3);
+        JdbcCpfIdempotencyRepository repository = new JdbcCpfIdempotencyRepository(jdbcTemplate);
+
+        assertThat(repository.expireBefore(Instant.now(), 5000)).isEqualTo(3);
+    }
 }

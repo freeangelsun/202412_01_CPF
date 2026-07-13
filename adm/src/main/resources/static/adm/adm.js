@@ -96,6 +96,7 @@ if (!window.Vue) {
           { id: "transactions", menuId: "TRANSACTION_META", label: "\uAC70\uB798 \uBA54\uD0C0" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "\uAC10\uC0AC \uB85C\uADF8" },
           { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "\uC11C\uBE44\uC2A4 \uD638\uCD9C" },
+          { id: "reliability", menuId: "RELIABILITY", label: "\uC2E0\uB8B0\uC131 \uCC98\uB9AC" },
           { id: "members", menuId: "MEMBER", label: "\uD68C\uC6D0" },
           { id: "batch", menuId: "BATCH", label: "\uBC30\uCE58" },
           { id: "notifications", menuId: "NOTIFICATION", label: "\uC54C\uB9BC" },
@@ -518,6 +519,22 @@ if (!window.Vue) {
           transactionGlobalId: "",
           limit: 50
         },
+        reliabilitySearch: {
+          scope: "",
+          status: "",
+          key: "",
+          transactionGlobalId: "",
+          topic: "",
+          endpointCode: "",
+          type: "",
+          limit: 100
+        },
+        reliabilityAction: {
+          messageId: "",
+          unknownId: "",
+          targetStatus: "CONFIRMED_SUCCESS",
+          reason: ""
+        },
         */
         memberForm: {
           memberId: null,
@@ -717,6 +734,7 @@ if (!window.Vue) {
         passwordResult: {},
         securityResult: {},
         serviceRegistryResult: {},
+        reliabilityResult: {},
         bizAdmResult: {},
         exsResult: {}
       };
@@ -1135,6 +1153,48 @@ if (!window.Vue) {
           callHistory: this.settledValue(callHistory)
         };
         this.setMessage("Service Registry status loaded.");
+      },
+      async loadReliability() {
+        const search = this.reliabilitySearch;
+        const [idempotency, outbox, inbox, dlq, fileTransfers, unknownResults] = await Promise.allSettled([
+          this.getJson(`/adm/api/reliability/idempotency?${this.buildParams({ scope: search.scope, status: search.status, key: search.key, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/broker/outbox?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/broker/inbox?${this.buildParams({ status: search.status, key: search.key, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/broker/dlq?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/file-transfers?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, endpointCode: search.endpointCode, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionGlobalId: search.transactionGlobalId, limit: search.limit }).toString()}`)
+        ]);
+        this.reliabilityResult = {
+          idempotency: this.settledValue(idempotency),
+          outbox: this.settledValue(outbox),
+          inbox: this.settledValue(inbox),
+          dlq: this.settledValue(dlq),
+          fileTransfers: this.settledValue(fileTransfers),
+          unknownResults: this.settledValue(unknownResults)
+        };
+        this.setMessage("Reliability 운영 데이터를 조회했습니다.");
+      },
+      async replayDlq() {
+        if (!this.reliabilityAction.messageId || !this.requireReason(this.reliabilityAction.reason)) return;
+        this.reliabilityResult = await this.sendJson(
+          `/adm/api/reliability/broker/dlq/${encodeURIComponent(this.reliabilityAction.messageId)}/replay`,
+          "POST",
+          { reason: this.reliabilityAction.reason, requestUser: "admin-ui" }
+        );
+        this.setMessage("DLQ 재처리를 요청했습니다.");
+      },
+      async resolveUnknownResult() {
+        if (!this.reliabilityAction.unknownId || !this.requireReason(this.reliabilityAction.reason)) return;
+        this.reliabilityResult = await this.sendJson(
+          `/adm/api/reliability/unknown-results/${encodeURIComponent(this.reliabilityAction.unknownId)}/resolve`,
+          "POST",
+          {
+            targetStatus: this.reliabilityAction.targetStatus,
+            reason: this.reliabilityAction.reason,
+            requestUser: "admin-ui"
+          }
+        );
+        this.setMessage("결과 미확정 건의 수동 처리를 요청했습니다.");
       },
       async searchMembers() {
         const params = this.buildParams(this.memberSearch);

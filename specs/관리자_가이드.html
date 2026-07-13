@@ -116,6 +116,23 @@
   </section>
 
   <section>
+    <h2>Reliability 운영 API</h2>
+    <p>PFW 멱등, Broker, 파일전송, 결과 미확정 데이터는 <code>/adm/api/reliability</code>에서 조회합니다. 조회와 수동 작업은 <code>AdmApiAuthFilter</code>의 메뉴·버튼·API 권한을 통과해야 하며 replay와 수동 확정은 감사 사유가 필수입니다.</p>
+    <table>
+      <thead><tr><th>기능</th><th>API</th><th>운영 기준</th></tr></thead>
+      <tbody>
+      <tr><td>멱등 처리 조회</td><td><code>GET /adm/api/reliability/idempotency</code></td><td>scope, 상태, idempotency key로 검색합니다. 저장 응답 원문은 기본 목록에서 노출하지 않습니다.</td></tr>
+      <tr><td>Broker 조회</td><td><code>GET /adm/api/reliability/broker/outbox</code>, <code>/inbox</code>, <code>/dlq</code></td><td>transactionGlobalId, topic, 처리 상태, worker, 실패 사유를 확인합니다.</td></tr>
+      <tr><td>DLQ replay</td><td><code>POST /adm/api/reliability/broker/dlq/{messageId}/replay</code></td><td><code>RELIABILITY_REPLAY</code> 권한, 사유, before/after 감사 로그가 필요하며 이미 요청된 건은 거부합니다.</td></tr>
+      <tr><td>파일전송 이력</td><td><code>GET /adm/api/reliability/file-transfers</code></td><td>endpoint, 상태, transactionGlobalId, checksum, 크기, 결과 상세를 확인합니다.</td></tr>
+      <tr><td>결과 미확정 조회</td><td><code>GET /adm/api/reliability/unknown-results</code></td><td>유형, 상태, transactionGlobalId, external key, 다음 조치를 확인합니다.</td></tr>
+      <tr><td>수동 확정</td><td><code>POST /adm/api/reliability/unknown-results/{unknownId}/resolve</code></td><td><code>RELIABILITY_RESOLVE</code> 권한과 사유가 필수이며 최종 처리된 건의 중복 변경을 차단합니다.</td></tr>
+      </tbody>
+    </table>
+    <p>현재 API compile/unit test는 통과했지만 실제 MariaDB 조회, 정적 UI 메뉴, 브라우저 클릭은 미검증입니다. 이 상태를 운영 화면 완료로 해석하지 않습니다.</p>
+  </section>
+
+  <section>
     <h2>운영 검증</h2>
     <table>
       <thead>

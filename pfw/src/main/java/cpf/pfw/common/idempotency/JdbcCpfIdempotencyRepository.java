@@ -86,8 +86,55 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     }
 
     @Override
+    public boolean restart(
+            String scope,
+            String idempotencyKey,
+            String requestHash,
+            String payloadHash,
+            Instant expiresAt) {
+        int updated = jdbcTemplate.update("""
+                UPDATE pfw_idempotency_record
+                SET record_status = 'PROCESSING',
+                    stored_response = NULL,
+                    retry_allowed_yn = 'N',
+                    completed_at = NULL,
+                    expires_at = ?,
+                    updated_by = 'PFW_IDEMPOTENCY',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE scope = ?
+                  AND idempotency_key = ?
+                  AND request_hash = ?
+                  AND payload_hash = ?
+                  AND record_status IN ('FAILED', 'UNKNOWN', 'EXPIRED')
+                  AND (retry_allowed_yn = 'Y' OR record_status = 'EXPIRED')
+                """,
+                timestamp(expiresAt),
+                scope,
+                idempotencyKey,
+                requestHash,
+                payloadHash);
+        return updated == 1;
+    }
+
+    @Override
     public void expire(String scope, String idempotencyKey) {
         complete(scope, idempotencyKey, "EXPIRED", null, false);
+    }
+
+    @Override
+    public int expireBefore(Instant now, int limit) {
+        return jdbcTemplate.update("""
+                UPDATE pfw_idempotency_record
+                SET record_status = 'EXPIRED',
+                    retry_allowed_yn = 'Y',
+                    updated_by = 'PFW_IDEMPOTENCY_CLEANUP',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE record_status = 'PROCESSING'
+                  AND expires_at IS NOT NULL
+                  AND expires_at <= ?
+                ORDER BY idempotency_id
+                LIMIT ?
+                """, timestamp(now == null ? Instant.now() : now), safeLimit(limit));
     }
 
     private CpfIdempotencyRecord mapRecord(Map<String, Object> row) {
@@ -106,6 +153,10 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
 
     private String normalizeStatus(String status) {
         return status == null || status.isBlank() ? "UNKNOWN" : status.trim().toUpperCase();
+    }
+
+    private int safeLimit(int limit) {
+        return Math.max(1, Math.min(limit, 1000));
     }
 
     private Timestamp timestamp(Instant instant) {

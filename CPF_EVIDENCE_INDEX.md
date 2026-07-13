@@ -1,17 +1,17 @@
 # CPF 증적 인덱스
 
-작성 시각: 2026-07-13 09:25 KST
+작성 시각: 2026-07-13 13:10 KST
 
-기준 증적 디렉터리: `specs/evidence/20260710_01`
+기준 증적 디렉터리: `specs/evidence/20260713_01`
 
 | check id | 상태 | 증적 | 확인 기준 | 비고 |
 | --- | --- | --- | --- | --- |
 | edu-mapper-db-slice | 완료 | `specs/evidence/20260707_01/edu-mapper-db-slice.log` | report/matrix/evidence 정합성 | 기존 EDU mapper DB slice 증적 유지 |
-| mariadb-full-install | 완료 | `specs/evidence/20260707_02/mariadb-full-install-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 MariaDB full install 증적 유지, 이번 작업 재실행 없음 |
+| mariadb-full-install | 미검증 | `specs/evidence/20260713_01/mariadb-full-install-result.json` | report/matrix/evidence 정합성 | CLI는 확인했으나 DB secret 미제공으로 접속·설치·Flyway 미실행 |
 | adm-runtime | 완료 | `specs/evidence/20260707_02/adm-runtime-smoke-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 ADM runtime smoke 증적 유지 |
 | adm-permission-runtime | 완료 | `specs/evidence/20260707_02/adm-permission-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 ADM 권한 runtime smoke 증적 유지 |
-| openapi-runtime | 완료 | `specs/evidence/20260707_02/openapi-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 OpenAPI runtime smoke 증적 유지 |
-| adm-browser-click | 완료 | `specs/evidence/20260707_02/adm-ui-browser-smoke-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 ADM browser smoke 증적 유지 |
+| openapi-runtime | 부분 구현 | `specs/evidence/20260707_02/openapi-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 runtime 증적은 있으나 신규 API와 전체 Controller coverage 미완 |
+| adm-browser-click | 미검증 | 없음 | report/matrix/evidence 정합성 | 이번 작업에서 브라우저 클릭 재실행 없음 |
 | standard-header-e2e | 완료 | `specs/evidence/20260707_02/standard-header-e2e-result.sanitized.json` | report/matrix/evidence 정합성 | scripts/smoke-standard-header-e2e.ps1 기준 기존 증적 |
 | complex-transaction-trace | 완료 | `specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 복합 거래 trace 증적 유지 |
 | transaction-segment-log | 완료 | `specs/evidence/20260707_02/composite-transaction-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 segment log 증적 유지 |
@@ -34,16 +34,16 @@
 | bat-log-bean-runtime | 완료 | `specs/evidence/20260707_02/bat-log-bean-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 BAT log bean runtime 증적 유지 |
 | exs-timeout-retry-runtime | 완료 | `specs/evidence/20260708_05/exs-test.log` | report/matrix/evidence 정합성 | 기존 EXS timeout/retry 테스트 증적 유지 |
 | cmn-fixed-length-advanced | 완료 | `specs/evidence/20260708_05/cmn-test.log` | report/matrix/evidence 정합성 | 기존 CMN advanced fixed-length 테스트 증적 유지 |
-| create-domain-smoke | 완료 | `specs/evidence/20260707_02/create-domain-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 create-domain smoke 증적 유지 |
-| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260709_03/servicecall-contract-test.sanitized.json`, `specs/evidence/20260710_01/pfw-test.log` | report/matrix/evidence 정합성 | contract 유지, 다중 HTTP runtime 미검증 |
+| create-domain-smoke | 완료 | `specs/evidence/20260713_01/create-domain-result.json`, `specs/evidence/20260713_01/create-domain-compile.log` | report/matrix/evidence 정합성 | LNG 생성·UTF-8 marker·필수 파일·test·bootJar 실제 통과 |
+| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260709_03/servicecall-contract-test.sanitized.json`, `specs/evidence/20260713_01/reliability-module-tests.log` | report/matrix/evidence 정합성 | 기존 contract 유지, 다중 HTTP runtime 미검증 |
 | adm-service-registry-runtime | 완료 | `specs/evidence/20260707_02/adm-service-registry-runtime-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 ADM service registry runtime 증적 유지 |
 | architecture-ownership-scan | 재확인 필요 | `specs/evidence/20260709_03/architecture-ownership-scan.sanitized.json` | report/matrix/evidence 정합성 | CMN 기술 실행 후보는 PFW migration 추적 필요 |
 | spring-event-usage-scan | 완료 | `specs/evidence/20260709_03/spring-event-usage-scan.sanitized.json` | report/matrix/evidence 정합성 | Spring Event usage scan 통과 증적 유지 |
-| pfw-broker-capability | 부분 구현 | `specs/evidence/20260709_03/broker-contract-test.sanitized.json`, `specs/evidence/20260710_01/pfw-test.log` | report/matrix/evidence 정합성 | persistent adapter와 SQL 추가, 실 broker runtime 미검증 |
-| pfw-file-transfer-capability | 부분 구현 | `specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json`, `specs/evidence/20260710_01/pfw-test.log` | report/matrix/evidence 정합성 | history/duplicate JDBC adapter 추가, 외부 protocol runtime 미검증 |
+| pfw-broker-capability | 부분 구현 | `specs/evidence/20260709_03/broker-contract-test.sanitized.json`, `specs/evidence/20260713_01/reliability-module-tests.log` | report/matrix/evidence 정합성 | worker와 결정적 adapter 통과, 실 broker·JDBC 재기동 미검증 |
+| pfw-file-transfer-capability | 부분 구현 | `specs/evidence/20260709_03/filetransfer-contract-test.sanitized.json`, `specs/evidence/20260713_01/reliability-module-tests.log` | report/matrix/evidence 정합성 | LOCAL adapter/engine 통과, 외부 protocol·JDBC 재기동 미검증 |
 | pfw-security-credential-capability | 부분 구현 | `specs/evidence/20260709_03/security-credential-contract-test.sanitized.json` | report/matrix/evidence 정합성 | Vault/KMS runtime 미검증 |
 | pfw-runtime-control-capability | 부분 구현 | `specs/evidence/20260709_03/runtime-worker-contract-test.sanitized.json` | report/matrix/evidence 정합성 | 다중 instance runtime 미검증 |
-| pfw-admin-status-capability | 부분 구현 | `specs/evidence/20260709_03/runtime-worker-contract-test.sanitized.json` | report/matrix/evidence 정합성 | ADM runtime API 연결 미검증 |
+| pfw-admin-status-capability | 부분 구현 | `specs/evidence/20260713_01/adm-reliability-tests.log`, `specs/evidence/20260713_01/adm-ui-js-syntax.log` | report/matrix/evidence 정합성 | reliability API/UI/seed 추가, 실제 DB runtime과 브라우저 클릭 미검증 |
 | profile-loading-standard | 완료 | `specs/evidence/20260708_03/profile-loading-result.sanitized.json` | report/matrix/evidence 정합성 | 기존 profile loading 증적 유지 |
 | packaged-dependencies-check | 완료 | `specs/evidence/20260708_05/packaged-dependencies-acc.sanitized.json` | report/matrix/evidence 정합성 | 기존 packaged dependencies 증적 유지 |
 | deploy-dry-run-standard | 부분 구현 | `specs/evidence/20260708_05/remote-deploy-dry-run.sanitized.json` | report/matrix/evidence 정합성 | dry-run 계획 검증 |
@@ -57,13 +57,13 @@
 | edu-module-deploy-alias-scan | 완료 | `specs/evidence/20260708_05/edu-module-deploy-alias-scan.sanitized.json` | report/matrix/evidence 정합성 | 기존 EDU deploy alias scan 증적 유지 |
 | bat-edu-package | 완료 | `specs/evidence/20260708_05/bat-test.log` | report/matrix/evidence 정합성 | 기존 BAT EDU sample/test 증적 유지 |
 | bat-job-log-policy | 완료 | `specs/evidence/20260708_05/bat-test.log` | report/matrix/evidence 정합성 | 기존 BAT job/log policy 테스트 증적 유지 |
-| sample-coverage-matrix | 완료 | `specs/evidence/20260710_01/sample-coverage-result.sanitized.json` | report/matrix/evidence 정합성 | 이번 작업 신규 PFW persistence sample coverage 반영 |
-| sample-placeholder-scan | 완료 | `specs/evidence/20260710_01/sample-placeholder-scan.sanitized.json` | report/matrix/evidence 정합성 | 이번 작업 sample placeholder scan 통과 |
-| evidence-path-existence-check | 완료 | `specs/evidence/20260710_01/evidence-path-existence-check.sanitized.json` | report/matrix/evidence 정합성 | evidence path gate 결과 |
+| sample-coverage-matrix | 완료 | `specs/evidence/20260713_01/sample-coverage-result.sanitized.json` | report/matrix/evidence 정합성 | XYZ/BAT reliability 샘플 포함 coverage 검사 통과 |
+| sample-placeholder-scan | 완료 | `specs/evidence/20260713_01/sample-placeholder-scan.sanitized.json` | report/matrix/evidence 정합성 | sample placeholder scan 통과 |
+| evidence-path-existence-check | 완료 | `specs/evidence/20260713_01/evidence-path-existence-check.sanitized.json` | report/matrix/evidence 정합성 | evidence path gate 결과 |
 | create-domain-profile-template | 완료 | `specs/evidence/20260708_05/garbage-file-scan.sanitized.json` | report/matrix/evidence 정합성 | 기존 create-domain profile template 증적 유지 |
 | runtime-smoke-summary | 완료 | `specs/evidence/20260707_02/runtime-smoke-summary.sanitized.json` | report/matrix/evidence 정합성 | 기존 runtime smoke summary 증적 유지 |
-| check-report-matrix-evidence-consistency | 완료 | `specs/evidence/20260710_01/report-matrix-evidence-consistency.sanitized.json` | report/matrix/evidence 정합성 | report/matrix/evidence consistency gate 결과 |
-| quality-gate | 완료 | `specs/evidence/20260710_01/quality-gate.log` | report/matrix/evidence 정합성 | 이번 작업 qualityGate 실행 로그 |
-| check-html-docs | 완료 | `specs/evidence/20260710_01/check-html-docs.log` | report/matrix/evidence 정합성 | HTML docs gate 실행 로그 |
-| check-feature-evidence | 완료 | `specs/evidence/20260710_01/check-feature-evidence.log` | report/matrix/evidence 정합성 | feature evidence gate 실행 로그 |
-| check-utf8 | 완료 | `specs/evidence/20260710_01/check-utf8-mojibake.log` | report/matrix/evidence 정합성 | UTF-8 및 mojibake gate 실행 로그 |
+| check-report-matrix-evidence-consistency | 완료 | `specs/evidence/20260713_01/report-matrix-evidence-consistency.sanitized.json` | report/matrix/evidence 정합성 | report/matrix/evidence consistency gate 결과 |
+| quality-gate | 완료 | `specs/evidence/20260713_01/quality-gate.log` | report/matrix/evidence 정합성 | 이번 작업 qualityGate 실행 로그 |
+| check-html-docs | 완료 | `specs/evidence/20260713_01/check-html-docs.log` | report/matrix/evidence 정합성 | HTML docs gate 실행 로그 |
+| check-feature-evidence | 완료 | `specs/evidence/20260713_01/check-feature-evidence.log` | report/matrix/evidence 정합성 | feature evidence gate 실행 로그 |
+| check-utf8 | 완료 | `specs/evidence/20260713_01/check-utf8-mojibake.log` | report/matrix/evidence 정합성 | UTF-8 및 mojibake gate 실행 로그 |

@@ -7,10 +7,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class XyzIdempotencyEducationSampleTest {
 
     @Test
-    void duplicateKeyReturnsDuplicateResult() {
+    void duplicateKeyReplaysStoredResultThroughPfwEngine() {
         XyzIdempotencyEducationSample sample = new XyzIdempotencyEducationSample();
 
         assertThat(sample.handle("K")).isEqualTo("PROCESSED");
-        assertThat(sample.handle("K")).isEqualTo("DUPLICATE");
+        assertThat(sample.handle("K")).isEqualTo("REPLAYED");
     }
 }

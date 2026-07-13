@@ -25,4 +25,12 @@ public record CpfBrokerResult(
     public static CpfBrokerResult failed(String messageId, String brokerName, String detail) {
         return new CpfBrokerResult("FAILED", messageId, brokerName, null, Instant.now(), detail);
     }
+
+    public static CpfBrokerResult published(String messageId, String brokerName, String partitionKey) {
+        return new CpfBrokerResult("PUBLISHED", messageId, brokerName, partitionKey, Instant.now(), null);
+    }
+
+    public static CpfBrokerResult consumed(String messageId, String brokerName, String detail) {
+        return new CpfBrokerResult("CONSUMED", messageId, brokerName, null, Instant.now(), detail);
+    }
 }

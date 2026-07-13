@@ -1,0 +1,258 @@
+{
+    "generatedAt":  "2026-07-13T12:54:11.0377670+09:00",
+    "status":  "DONE",
+    "rows":  [
+                 {
+                     "profile":  "local",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-acc.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-mbr.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "EXS",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-exs.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-adm.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-bat.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "BIZADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-bizadm.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-xyz.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-acc.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-mbr.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "EXS",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-exs.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-adm.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-bat.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "BIZADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-bizadm.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-xyz.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-acc.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-mbr.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "EXS",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-exs.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-adm.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-bat.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "BIZADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-bizadm.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-xyz.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-acc.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-mbr.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "EXS",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-exs.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-adm.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-bat.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "BIZADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-bizadm.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-xyz.env"
+                 }
+             ]
+}

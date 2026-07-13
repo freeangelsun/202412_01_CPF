@@ -55,7 +55,8 @@ $result = [ordered]@{
 
 function Save-SmokeResult {
     $result.finishedAt = (Get-Date).ToString("o")
-    $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+    $json = $result | ConvertTo-Json -Depth 20
+    [System.IO.File]::WriteAllText($resultPath, $json, [System.Text.UTF8Encoding]::new($false))
 }
 
 function Add-Log {
@@ -401,6 +402,87 @@ SELECT COUNT(*)
 FROM cmnDB.cmn_fixed_length_layout
 WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
 "@)
+    $result.checks.pfwReliabilityTableCount = [int] (Invoke-Scalar -StepName "pfwReliabilityTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'pfwDB'
+  AND table_name IN (
+      'pfw_idempotency_record',
+      'pfw_broker_outbox',
+      'pfw_broker_inbox',
+      'pfw_broker_dlq',
+      'pfw_file_transfer_history',
+      'pfw_unknown_result'
+  );
+"@)
+    $result.checks.pfwReliabilityCommonColumnCount = [int] (Invoke-Scalar -StepName "pfwReliabilityCommonColumnCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.columns
+WHERE table_schema = 'pfwDB'
+  AND table_name IN (
+      'pfw_idempotency_record',
+      'pfw_broker_outbox',
+      'pfw_broker_inbox',
+      'pfw_broker_dlq',
+      'pfw_file_transfer_history',
+      'pfw_unknown_result'
+  )
+  AND column_name IN ('created_by', 'created_at', 'updated_by', 'updated_at');
+"@)
+    $result.checks.pfwReliabilityIndexCount = [int] (Invoke-Scalar -StepName "pfwReliabilityIndexCount" -SqlText @"
+SELECT COUNT(DISTINCT index_name)
+FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND table_name IN (
+      'pfw_idempotency_record',
+      'pfw_broker_outbox',
+      'pfw_broker_inbox',
+      'pfw_broker_dlq',
+      'pfw_file_transfer_history',
+      'pfw_unknown_result'
+  )
+  AND index_name IN (
+      'uk_pfw_idempotency_record_key',
+      'ix_pfw_idempotency_record_status',
+      'uk_pfw_broker_outbox_message',
+      'ix_pfw_broker_outbox_status',
+      'ix_pfw_broker_outbox_tx',
+      'ix_pfw_broker_outbox_topic',
+      'uk_pfw_broker_inbox_message',
+      'ix_pfw_broker_inbox_idempotency',
+      'ix_pfw_broker_inbox_status',
+      'uk_pfw_broker_dlq_message',
+      'ix_pfw_broker_dlq_status',
+      'ix_pfw_broker_dlq_topic',
+      'uk_pfw_file_transfer_history_id',
+      'ix_pfw_file_transfer_duplicate',
+      'ix_pfw_file_transfer_tx',
+      'ix_pfw_file_transfer_status',
+      'uk_pfw_unknown_result_id',
+      'ix_pfw_unknown_result_status',
+      'ix_pfw_unknown_result_tx',
+      'ix_pfw_unknown_result_external'
+  );
+"@)
+    $result.checks.admReliabilityMenuCount = [int] (Invoke-Scalar -StepName "admReliabilityMenuCount" -SqlText @"
+SELECT COUNT(*)
+FROM admDB.adm_menu
+WHERE menu_id = 'RELIABILITY'
+  AND use_yn = 'Y';
+"@)
+    $result.checks.admReliabilityButtonCount = [int] (Invoke-Scalar -StepName "admReliabilityButtonCount" -SqlText @"
+SELECT COUNT(*)
+FROM admDB.adm_button
+WHERE button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RESOLVE')
+  AND use_yn = 'Y';
+"@)
+    $result.checks.admReliabilityRoleApiCount = [int] (Invoke-Scalar -StepName "admReliabilityRoleApiCount" -SqlText @"
+SELECT COUNT(*)
+FROM admDB.adm_role_api_permission rap
+JOIN admDB.adm_api_permission ap ON ap.api_permission_id = rap.api_permission_id
+WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RESOLVE')
+  AND rap.role_id IN ('ADM_ADMIN', 'ADM_DEV_OPERATOR', 'ADM_OPERATOR', 'ADM_BIZ_OPERATOR', 'ADM_VIEWER');
+"@)
 
     if ($result.checks.batCenterCutTableCount -ne 4) {
         throw "bat_center_cut_* table count mismatch. actual=$($result.checks.batCenterCutTableCount)"
@@ -437,6 +519,24 @@ WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
     }
     if ($result.checks.cmnFixedLengthSeedCount -lt 1) {
         throw "BANK01_BALANCE_REQ_V1 fixed-length layout seed is missing."
+    }
+    if ($result.checks.pfwReliabilityTableCount -ne 6) {
+        throw "PFW reliability table count mismatch. actual=$($result.checks.pfwReliabilityTableCount)"
+    }
+    if ($result.checks.pfwReliabilityCommonColumnCount -ne 24) {
+        throw "PFW reliability common column count mismatch. actual=$($result.checks.pfwReliabilityCommonColumnCount)"
+    }
+    if ($result.checks.pfwReliabilityIndexCount -ne 20) {
+        throw "PFW reliability index count mismatch. actual=$($result.checks.pfwReliabilityIndexCount)"
+    }
+    if ($result.checks.admReliabilityMenuCount -ne 1) {
+        throw "ADM reliability menu count mismatch. actual=$($result.checks.admReliabilityMenuCount)"
+    }
+    if ($result.checks.admReliabilityButtonCount -ne 3) {
+        throw "ADM reliability button count mismatch. actual=$($result.checks.admReliabilityButtonCount)"
+    }
+    if ($result.checks.admReliabilityRoleApiCount -ne 15) {
+        throw "ADM reliability role API count mismatch. actual=$($result.checks.admReliabilityRoleApiCount)"
     }
 
     $result.status = $StatusDone

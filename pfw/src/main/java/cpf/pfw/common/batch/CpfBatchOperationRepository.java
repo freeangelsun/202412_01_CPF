@@ -2,6 +2,7 @@ package cpf.pfw.common.batch;
 
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
+import cpf.pfw.common.logging.file.CpfFileLogWriter;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,12 +28,15 @@ import java.util.Map;
 public class CpfBatchOperationRepository {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
     private final ObjectProvider<DataSource> dataSourceProvider;
+    private final CpfFileLogWriter fileLogWriter;
 
     public CpfBatchOperationRepository(
             @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            CpfFileLogWriter fileLogWriter) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.dataSourceProvider = dataSourceProvider;
+        this.fileLogWriter = fileLogWriter;
     }
 
     public boolean available() {
@@ -588,10 +592,11 @@ public class CpfBatchOperationRepository {
             long jobInstanceId = jobExecution.getJobInstance().getInstanceId();
             String relativePath = businessDate == null || jobInstanceId < 1
                     ? null
-                    : CpfBatchJobLogPath.relativePath(
-                            jobExecution.getJobInstance().getJobName(),
-                            jobInstanceId,
-                            businessDate).toString().replace('\\', '/');
+                    : fileLogWriter.relativeToLogRoot(fileLogWriter.batchJobLogPath(
+                            CpfBatchJobLogPath.relativePath(
+                                    jobExecution.getJobInstance().getJobName(),
+                                    jobInstanceId,
+                                    businessDate))).toString().replace('\\', '/');
             jdbc().update("""
                     UPDATE pfw_batch_execution
                     SET spring_batch_job_instance_id = ?,

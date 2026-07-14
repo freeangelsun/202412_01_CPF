@@ -1,0 +1,103 @@
+{
+    "status":  "완료",
+    "checkedAt":  "2026-07-13T19:31:34.6338159+09:00",
+    "trackedRawLogCount":  0,
+    "sanitizedEvidenceCount":  3,
+    "checks":  [
+                   {
+                       "id":  "GITIGNORE_logs/",
+                       "passed":  true,
+                       "detail":  "logs/"
+                   },
+                   {
+                       "id":  "GITIGNORE_**/logs/",
+                       "passed":  true,
+                       "detail":  "**/logs/"
+                   },
+                   {
+                       "id":  "GITIGNORE_*.log",
+                       "passed":  true,
+                       "detail":  "*.log"
+                   },
+                   {
+                       "id":  "GITIGNORE_*.log.*",
+                       "passed":  true,
+                       "detail":  "*.log.*"
+                   },
+                   {
+                       "id":  "GITIGNORE_!specs/evidence/**/*.sanitized.log",
+                       "passed":  true,
+                       "detail":  "!specs/evidence/**/*.sanitized.log"
+                   },
+                   {
+                       "id":  "TRACKED_RAW_LOGS",
+                       "passed":  true,
+                       "detail":  "count=0"
+                   },
+                   {
+                       "id":  "LEGACY_LOGBACK_REFERENCE",
+                       "passed":  true,
+                       "detail":  "count=0"
+                   },
+                   {
+                       "id":  "LEGACY_BATCH_SINGLE_FILE",
+                       "passed":  true,
+                       "detail":  "count=0"
+                   },
+                   {
+                       "id":  "DUPLICATE_MODULE_LOG_ROOT",
+                       "passed":  true,
+                       "detail":  "count=0"
+                   },
+                   {
+                       "id":  "NO_TRANSACTION_APPENDER",
+                       "passed":  true,
+                       "detail":  "shared logback"
+                   },
+                   {
+                       "id":  "DAILY_INSTANCE_FILENAME",
+                       "passed":  true,
+                       "detail":  "shared logback"
+                   },
+                   {
+                       "id":  "RETENTION",
+                       "passed":  true,
+                       "detail":  "shared logback"
+                   },
+                   {
+                       "id":  "ARCHIVE_COMPRESSION",
+                       "passed":  true,
+                       "detail":  "shared logback"
+                   },
+                   {
+                       "id":  "PFW_LOG_CONFIG_CPF_LOG_ROOT",
+                       "passed":  true,
+                       "detail":  "CPF_LOG_ROOT"
+                   },
+                   {
+                       "id":  "PFW_LOG_CONFIG_CPF_LOG_TIMEZONE",
+                       "passed":  true,
+                       "detail":  "CPF_LOG_TIMEZONE"
+                   },
+                   {
+                       "id":  "PFW_LOG_CONFIG_CPF_LOG_MAX_HISTORY_DAYS",
+                       "passed":  true,
+                       "detail":  "CPF_LOG_MAX_HISTORY_DAYS"
+                   },
+                   {
+                       "id":  "PFW_LOG_CONFIG_CPF_INSTANCE_ID",
+                       "passed":  true,
+                       "detail":  "CPF_INSTANCE_ID"
+                   },
+                   {
+                       "id":  "PFW_LOG_CONFIG_CPF_ENV",
+                       "passed":  true,
+                       "detail":  "CPF_ENV"
+                   },
+                   {
+                       "id":  "NEW_SANITIZED_EVIDENCE",
+                       "passed":  true,
+                       "detail":  "count=3"
+                   }
+               ]
+}

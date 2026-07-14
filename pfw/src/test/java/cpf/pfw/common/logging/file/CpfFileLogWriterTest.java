@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,43 @@ class CpfFileLogWriterTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void writesSameStableTransactionIdToOneBusinessDateFile() throws Exception {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.framework.module-id", "ACC")
+                .withProperty("cpf.framework.instance-id", "acc-local-01");
+        CpfFileLogWriter writer = new CpfFileLogWriter(environment);
+        var first = cpf.pfw.common.logging.TransactionLogRecord.builder()
+                .transactionId("20260713120000000ACCaccAP010000001")
+                .businessTransactionId("ACC01TST0001")
+                .moduleId("ACC")
+                .logType("SUCCESS")
+                .startTime(LocalDateTime.of(2026, 7, 13, 12, 0))
+                .build();
+        var second = cpf.pfw.common.logging.TransactionLogRecord.builder()
+                .transactionId("20260713120100000ACCaccAP010000002")
+                .businessTransactionId("ACC01TST0001")
+                .moduleId("ACC")
+                .logType("SUCCESS")
+                .startTime(LocalDateTime.of(2026, 7, 13, 12, 1))
+                .build();
+
+        writer.writeTransaction(first, Map.of(), null);
+        writer.writeTransaction(second, Map.of(), null);
+
+        Path transactionFile = instanceRoot("acc").resolve(
+                "transactions/20260713/ACC01TST0001_20260713.log");
+        assertThat(transactionFile).exists();
+        assertThat(Files.readAllLines(transactionFile)).hasSize(2);
+        assertThat(Files.readString(transactionFile))
+                .contains("ACC01TST0001")
+                .contains(first.getTransactionId())
+                .contains(second.getTransactionId());
+        assertThat(instanceRoot("acc").resolve("transactions/20260713/NO_TRANSACTION_20260713.log"))
+                .doesNotExist();
+    }
 
     @Test
     void writeEventMasksSensitiveValuesByKeyAndContent() throws Exception {
@@ -36,14 +74,14 @@ class CpfFileLogWriterTest {
                 "X-Api-Key", "api-key-raw",
                 "nested", Map.of("credential", "credential-raw")));
 
-        Path logFile = singleLogFile(tempDir.resolve("acc"), "cpf-acc-integration-*.log");
+        Path logFile = singleLogFile(instanceRoot("acc").resolve("integration"), "cpf-acc-integration-*.log");
         String content = Files.readString(logFile);
 
         assertThat(content)
                 .contains("\"password\":\"***\"")
                 .contains("\"Authorization\":\"***\"")
                 .contains("\"X-Api-Key\":\"***\"")
-                .contains("credential=***")
+                .contains("\"credential\":\"***\"")
                 .doesNotContain("plainSecret")
                 .doesNotContain("token-raw-value")
                 .doesNotContain("api-key-raw")
@@ -61,8 +99,8 @@ class CpfFileLogWriterTest {
 
         writer.writeEvent(null, "transaction", Map.of("eventType", "MODULE_ID_PRIORITY_CHECK"));
 
-        assertThat(logFiles(tempDir.resolve("acc"), "cpf-acc-transaction-*.log")).hasSize(1);
-        assertThat(tempDir.resolve("cmn")).doesNotExist();
+        assertThat(logFiles(instanceRoot("acc").resolve("application"), "cpf-acc-transaction-*.log")).hasSize(1);
+        assertThat(tempDir.resolve("local/cmn")).doesNotExist();
     }
 
     @Test
@@ -83,7 +121,7 @@ class CpfFileLogWriterTest {
         secondDayWriter.writeEvent("XYZ", "application", secondDayWriter.newBaseEvent("XYZ", "application"));
 
         List<Path> files;
-        try (var stream = Files.list(tempDir.resolve("xyz"))) {
+        try (var stream = Files.list(instanceRoot("xyz").resolve("application"))) {
             files = stream.filter(Files::isRegularFile).toList();
         }
         assertThat(files).hasSize(2);
@@ -114,7 +152,7 @@ class CpfFileLogWriterTest {
                 Clock.fixed(Instant.parse("2026-07-14T10:00:00Z"), ZoneId.of("Asia/Seoul")));
 
         firstDayWriter.writeEvent("ADM", "audit", Map.of("eventType", "FIRST_DAY"));
-        Path firstDayLog = singleLogFile(tempDir.resolve("adm"), "*.2026-07-13.log");
+        Path firstDayLog = singleLogFile(instanceRoot("adm").resolve("audit"), "*.2026-07-13.log");
         secondDayWriter.writeEvent("ADM", "audit", Map.of("eventType", "SECOND_DAY"));
 
         Path archived = firstDayLog.resolveSibling(firstDayLog.getFileName() + ".gz");
@@ -160,5 +198,11 @@ class CpfFileLogWriterTest {
         try (var stream = Files.newDirectoryStream(directory, glob)) {
             return java.util.stream.StreamSupport.stream(stream.spliterator(), false).toList();
         }
+    }
+
+    private Path instanceRoot(String moduleCode) {
+        return tempDir.resolve("local")
+                .resolve(moduleCode)
+                .resolve(moduleCode + "-local-01");
     }
 }

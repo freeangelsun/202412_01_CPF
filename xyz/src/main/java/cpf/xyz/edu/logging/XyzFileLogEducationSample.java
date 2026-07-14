@@ -1,6 +1,7 @@
 package cpf.xyz.edu.logging;
 
 import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import cpf.pfw.common.logging.TransactionLogRecord;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,13 +33,24 @@ public class XyzFileLogEducationSample {
     /**
      * 온라인 업무 처리 결과를 전역 거래 ID와 세그먼트 ID로 연결해 기록합니다.
      */
-    public void writeTransactionLog(String transactionGlobalId, String transactionSegmentId) {
-        Map<String, Object> event = baseEvent("transaction", "EDU_TRANSACTION");
-        event.put("status", "SUCCESS");
-        event.put("transactionGlobalId", transactionGlobalId);
-        event.put("transactionSegmentId", transactionSegmentId);
-        event.put("apiPath", "/api/v1/xyz/edu/logging");
-        fileLogWriter.writeEvent("XYZ", "transaction", event);
+    public void writeTransactionLog(
+            String transactionId,
+            String transactionGlobalId,
+            String transactionSegmentId) {
+        TransactionLogRecord record = TransactionLogRecord.builder()
+                .transactionId(transactionGlobalId)
+                .businessTransactionId(transactionId)
+                .spanId(transactionSegmentId)
+                .moduleId("XYZ")
+                .logType("SUCCESS")
+                .httpMethod("POST")
+                .uri("/api/v1/xyz/edu/logging")
+                .httpStatus(200)
+                .responseCode("00000000")
+                .startTime(fileLogWriter.currentLogDate().atStartOfDay())
+                .durationMs(12L)
+                .build();
+        fileLogWriter.writeTransaction(record, Map.of("education.sample", "XYZ_FILE_LOG"), null);
     }
 
     /**

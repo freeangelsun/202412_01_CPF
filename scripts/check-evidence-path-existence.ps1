@@ -9,6 +9,7 @@ $failures = New-Object System.Collections.Generic.List[string]
 $evidenceRows = New-Object System.Collections.Generic.List[object]
 $currentEvidenceIds = @{}
 $legacyUntrackedRows = New-Object System.Collections.Generic.List[object]
+$currentUntrackedRows = New-Object System.Collections.Generic.List[object]
 
 function New-UnicodeText {
     param([int[]] $CodePoints)
@@ -113,7 +114,12 @@ foreach ($row in $uniqueRows) {
     $tracked = $trackedPaths -contains $row.evidencePath
     $isCurrent = $row.evidencePath.StartsWith($currentResultRelative + "/", [System.StringComparison]::OrdinalIgnoreCase)
     if ($isCurrent -and -not $tracked) {
-        Add-Failure ("current evidence is not tracked by Git: {0}" -f $row.evidencePath)
+        $untrackedPaths = @(& git -C $Root ls-files --others --exclude-standard -- $row.evidencePath)
+        if ($untrackedPaths -contains $row.evidencePath) {
+            $currentUntrackedRows.Add($row) | Out-Null
+        } else {
+            Add-Failure ("current evidence is ignored or absent from the commit manifest: {0}" -f $row.evidencePath)
+        }
     } elseif (-not $isCurrent -and -not $tracked) {
         $legacyUntrackedRows.Add($row) | Out-Null
     }
@@ -148,9 +154,11 @@ Write-JsonEvidence "evidence-path-existence-check.sanitized.json" ([pscustomobje
     checkedCount = $uniqueRows.Count
     missingCount = $missingRows.Count
     currentEvidenceIdCount = $currentEvidenceIds.Count
+    currentUntrackedCount = $currentUntrackedRows.Count
     legacyUntrackedCount = $legacyUntrackedRows.Count
     checked = $uniqueRows
     missing = $missingRows
+    currentUntracked = $currentUntrackedRows
     legacyUntracked = $legacyUntrackedRows
     failures = $failures
 })

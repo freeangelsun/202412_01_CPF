@@ -6,6 +6,7 @@ import cpf.adm.opr.service.AdmBatchJobLogService;
 import cpf.adm.opr.service.AdmReliabilityService;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
+import cpf.pfw.common.logging.fallback.TransactionLogRecoveryWorker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,14 +33,17 @@ public class AdmReliabilityController {
     private final AdmReliabilityService reliabilityService;
     private final AdmBatchJobLogService batchJobLogService;
     private final AdmAuditLogService auditLogService;
+    private final TransactionLogRecoveryWorker transactionLogRecoveryWorker;
 
     public AdmReliabilityController(
             AdmReliabilityService reliabilityService,
             AdmBatchJobLogService batchJobLogService,
-            AdmAuditLogService auditLogService) {
+            AdmAuditLogService auditLogService,
+            TransactionLogRecoveryWorker transactionLogRecoveryWorker) {
         this.reliabilityService = reliabilityService;
         this.batchJobLogService = batchJobLogService;
         this.auditLogService = auditLogService;
+        this.transactionLogRecoveryWorker = transactionLogRecoveryWorker;
     }
 
     @GetMapping("/idempotency")
@@ -158,6 +162,43 @@ public class AdmReliabilityController {
                 jobName,
                 jobInstanceId,
                 maxRecords));
+    }
+
+    @GetMapping("/transaction-log-recovery")
+    @CpfTransaction(id = "ADM01REL0011", name = "ADMTransactionLogRecoveryStatus")
+    @Operation(
+            operationId = "getAdmTransactionLogRecoveryStatus",
+            summary = "DB 거래 로그 복구 상태 조회",
+            description = "PFW durable journal의 pending, processing, poison, 용량과 복구 worker 상태를 조회합니다.")
+    public ResponseEntity<TransactionLogRecoveryWorker.WorkerSnapshot> transactionLogRecoveryStatus() {
+        return ResponseEntity.ok(transactionLogRecoveryWorker.snapshot());
+    }
+
+    @PostMapping("/transaction-log-recovery/run")
+    @CpfTransaction(id = "ADM05REL0012", name = "ADMTransactionLogRecoveryRun")
+    @Operation(
+            operationId = "runAdmTransactionLogRecovery",
+            summary = "DB 거래 로그 복구 즉시 실행",
+            description = "감사 사유를 확인하고 현재 재시도 가능한 durable journal을 즉시 재적재합니다.")
+    public ResponseEntity<TransactionLogRecoveryWorker.RecoveryResult> runTransactionLogRecovery(
+            @RequestBody AdmReliabilityActionRequest request,
+            HttpServletRequest servletRequest) {
+        String operatorId = requestUser(servletRequest, request.requestUser());
+        String reason = auditLogService.requireReason(request.reason());
+        TransactionLogRecoveryWorker.WorkerSnapshot before = transactionLogRecoveryWorker.snapshot();
+        TransactionLogRecoveryWorker.RecoveryResult result = transactionLogRecoveryWorker.recoverPending();
+        auditLogService.record(
+                TransactionContext.getOrCreateTransactionId(),
+                operatorId,
+                "TRANSACTION_LOG_RECOVERY_RUN",
+                "pfw_transaction_log_recovery",
+                "PENDING",
+                reason,
+                String.valueOf(before),
+                String.valueOf(transactionLogRecoveryWorker.snapshot()),
+                "DB 거래 로그 durable journal 즉시 복구",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/unknown-results/{unknownId}/resolve")

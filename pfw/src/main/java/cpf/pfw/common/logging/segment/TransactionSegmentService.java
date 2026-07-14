@@ -5,7 +5,6 @@ import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.TransactionHeader;
-import cpf.pfw.mapper.common.logging.TransactionSegmentMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,10 +21,10 @@ import java.util.function.Supplier;
 public class TransactionSegmentService {
     private static final Logger log = LoggerFactory.getLogger(TransactionSegmentService.class);
 
-    private final TransactionSegmentMapper mapper;
+    private final TransactionSegmentPersistenceService persistenceService;
 
-    public TransactionSegmentService(TransactionSegmentMapper mapper) {
-        this.mapper = mapper;
+    public TransactionSegmentService(TransactionSegmentPersistenceService persistenceService) {
+        this.persistenceService = persistenceService;
     }
 
     public TransactionSegmentScope start(
@@ -89,7 +88,7 @@ public class TransactionSegmentService {
         record.setUpdatedBy(record.getCreatedBy());
 
         try {
-            mapper.insertSegment(record);
+            persistenceService.insert(record);
         } catch (RuntimeException ex) {
             log.warn("Failed to persist transaction segment start. transactionGlobalId={}, segmentId={}",
                     record.getTransactionGlobalId(), record.getTransactionSegmentId(), ex);
@@ -137,7 +136,7 @@ public class TransactionSegmentService {
             record.setFailureMessageMasked(SensitiveDataMasker.mask(failureMessage, 1000));
             record.setResponseHeaderSnapshotMasked(CpfHeaderAuditLogger.toJson(CpfHeaderPropagator.currentSnapshot(TransactionContext.currentHeader()).responseHeaders()));
             record.setUpdatedBy(requestUser());
-            mapper.updateSegmentEnd(record);
+            persistenceService.updateEnd(record);
         } catch (RuntimeException ex) {
             log.warn("Failed to persist transaction segment end. transactionGlobalId={}, segmentId={}",
                     record.getTransactionGlobalId(), record.getTransactionSegmentId(), ex);

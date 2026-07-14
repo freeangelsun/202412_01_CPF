@@ -169,7 +169,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260713_02').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260713_03').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '21')
@@ -218,7 +218,7 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
             "${prefix}_INSTANCE_ID".toString(),
             "${prefix}_WAS_ID".toString(),
             "${prefix}_SERVER_PORT".toString(),
-            "${prefix}_LOG_BASE_PATH".toString(),
+            'CPF_LOG_ROOT',
             "${prefix}_DATASOURCE_MODE".toString(),
             "${prefix}_DATASOURCE_URL".toString(),
             "${prefix}_DATASOURCE_USERNAME".toString(),
@@ -240,6 +240,10 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
     }
     if ((values[datasourcePasswordKey] ?: '').toLowerCase(Locale.ROOT).contains('cpf_local_pw')) {
         failures << "${prefix}_DATASOURCE_PASSWORD must not contain a local default password."
+    }
+    def logRoot = values['CPF_LOG_ROOT'] ?: ''
+    if (logRoot && (!new File(logRoot).isAbsolute() || logRoot.replace('\\', '/').split('/').contains('..'))) {
+        failures << 'CPF_LOG_ROOT must be an absolute path without parent traversal.'
     }
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
@@ -399,7 +403,8 @@ tasks.register('checkSampleStandard', Exec) {
 tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
     description = 'CPF_NEW_REQUEST.md must remain unchanged after the work baseline is captured.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-cpf-request-protection.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('initializeCpfRequestProtection', Exec) {
@@ -423,25 +428,29 @@ tasks.register('checkServiceCallBoundary', Exec) {
 tasks.register('checkArchitectureOwnership', Exec) {
     group = 'verification'
     description = 'PFW/CMN/business ownership rules and capability placement must stay aligned.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-architecture-ownership.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-architecture-ownership.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkSpringEventUsage', Exec) {
     group = 'verification'
     description = 'Spring Event usage must remain limited to hook, telemetry, cache, and audit support.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-spring-event-usage.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-spring-event-usage.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkProfileLoading', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-profile-loading.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-profile-loading.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkRuntimeConfigStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-runtime-config-standard.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-runtime-config-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkLogManagementStandard', Exec) {
@@ -461,14 +470,16 @@ tasks.register('checkOpenApiSourceCoverage', Exec) {
 tasks.register('checkSampleCoverage', Exec) {
     group = 'verification'
     description = 'CPF education sample coverage matrix and source evidence must be consistent.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sample-coverage.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-sample-coverage.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkEvidencePathExistence', Exec) {
     group = 'verification'
     description = 'CPF reports and matrices must not point to missing evidence files.'
     mustRunAfter 'checkRuntimeConfigStandard', 'checkSampleCoverage', 'remoteDeployDryRun'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-evidence-path-existence.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-evidence-path-existence.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDeployEnv') {
@@ -594,7 +605,8 @@ tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
     mustRunAfter 'checkEvidencePathExistence'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-report-matrix-evidence-consistency.ps1'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-report-matrix-evidence-consistency.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('openApiSmoke', Exec) {

@@ -5,6 +5,7 @@ import cpf.pfw.common.batch.CpfBatchFileLogWriter;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
+import cpf.pfw.common.logging.file.CpfLogPathPolicy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.ObjectProvider;
@@ -89,8 +90,9 @@ public class BatHealthController {
     @Operation(operationId = "getBatLoggingDiagnostics", summary = "BAT JobInstance 로그 설정 진단")
     public ResponseEntity<Map<String, Object>> loggingDiagnostics() {
         Map<String, Object> response = new LinkedHashMap<>();
-        String basePath = environment.getProperty("cpf.logging.file.base-path", "logs");
-        Path logDirectory = Path.of(basePath, "bat").toAbsolutePath().normalize();
+        CpfLogPathPolicy pathPolicy = new CpfLogPathPolicy(environment);
+        Path basePath = pathPolicy.logRoot();
+        Path logDirectory = pathPolicy.batchJobLogPath(Path.of("bat"));
         Path jobsDirectory = logDirectory.resolve("jobs");
 
         response.put("application", "bat");
@@ -105,7 +107,9 @@ public class BatHealthController {
         response.put("properties", Map.of(
                 "cpf.logging.file.enabled", environment.getProperty("cpf.logging.file.enabled", "true"),
                 "cpf.logging.file.batch-enabled", environment.getProperty("cpf.logging.file.batch-enabled", "true"),
-                "cpf.logging.file.base-path", basePath,
+                "cpf.logging.file.base-path", basePath.toString(),
+                "cpf.environment", pathPolicy.environmentCode(),
+                "cpf.framework.instance-id", pathPolicy.instanceId(),
                 "cpf.logging.file.timezone", environment.getProperty("cpf.logging.file.timezone", "Asia/Seoul"),
                 "server.port", environment.getProperty("server.port", "8093"),
                 "cpf.framework.module-id", environment.getProperty("cpf.framework.module-id", "BAT"),
@@ -114,7 +118,7 @@ public class BatHealthController {
         response.put("logDirectory", logDirectory.toString());
         response.put("jobInstanceLogRoot", jobsDirectory.toString());
         response.put("jobInstanceLogPattern",
-                "bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log");
+                "{environment}/bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log");
         response.put("logDirectoryExists", Files.exists(logDirectory));
         response.put("logDirectoryWritable", isWritableDirectory(logDirectory));
         response.put("jobInstanceLogCount", countLogFiles(jobsDirectory));

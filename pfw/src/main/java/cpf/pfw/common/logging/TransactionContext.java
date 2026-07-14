@@ -8,6 +8,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,6 +77,7 @@ public final class TransactionContext {
     public static final String ATTR_PARENT_SPAN_ID = "parentSpanId";
     public static final String ATTR_SEQUENCE_NO = "transactionSequenceNo";
     public static final String ATTR_HEADER = "transactionHeader";
+    public static final String ATTR_BUSINESS_DATE = "transactionBusinessDate";
 
     private static final String MDC_TRANSACTION_ID = "transactionId";
     private static final String MDC_TRACE_ID = "traceId";
@@ -115,6 +118,7 @@ public final class TransactionContext {
         setAttribute(ATTR_PARENT_SPAN_ID, hasText(parentSpanId) ? parentSpanId : null);
         setAttribute(ATTR_SEQUENCE_NO, 0);
         setAttribute(ATTR_HEADER, transactionHeader);
+        setAttribute(ATTR_BUSINESS_DATE, resolveBusinessDate(resolvedTransactionId));
 
         putMdc(resolvedTransactionId, resolvedTraceId, resolvedSpanId);
     }
@@ -174,6 +178,14 @@ public final class TransactionContext {
     public static TransactionHeader currentHeader() {
         Object value = getAttribute(ATTR_HEADER);
         return value instanceof TransactionHeader transactionHeader ? transactionHeader : null;
+    }
+
+    /**
+     * 거래가 시작될 때 확정한 업무일자를 반환합니다.
+     */
+    public static LocalDate currentBusinessDate() {
+        Object value = getAttribute(ATTR_BUSINESS_DATE);
+        return value instanceof LocalDate localDate ? localDate : null;
     }
 
     public static void replaceCurrentHeader(TransactionHeader transactionHeader) {
@@ -316,6 +328,30 @@ public final class TransactionContext {
     public static void putBusinessTransaction(String businessTransactionId, String businessTransactionName) {
         putIfHasText(MDC_BUSINESS_TRANSACTION_ID, businessTransactionId);
         putIfHasText(MDC_BUSINESS_TRANSACTION_NAME, businessTransactionName);
+    }
+
+    private static LocalDate resolveBusinessDate(String transactionGlobalId) {
+        if (hasText(transactionGlobalId) && transactionGlobalId.length() >= 8) {
+            try {
+                return LocalDate.parse(transactionGlobalId.substring(0, 8), DateTimeFormatter.BASIC_ISO_DATE);
+            } catch (RuntimeException ignored) {
+                // 외부에서 잘못된 ID가 들어오더라도 context 초기화 자체는 중단하지 않습니다.
+            }
+        }
+        return LocalDate.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    /**
+     * 현재 요청에서 실행 중인 고정 업무 거래 ID를 반환합니다.
+     *
+     * <p>전역 거래 추적 키와 구분해 거래 종류별 파일명을 결정할 때 사용합니다.</p>
+     */
+    public static String currentBusinessTransactionId() {
+        return MDC.get(MDC_BUSINESS_TRANSACTION_ID);
+    }
+
+    public static String currentBusinessTransactionName() {
+        return MDC.get(MDC_BUSINESS_TRANSACTION_NAME);
     }
 
     /**

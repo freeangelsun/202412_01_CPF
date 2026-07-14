@@ -78,6 +78,7 @@
       <tr><td>V22</td><td><code>V22__pfw_reliability_persistence.sql</code></td><td>멱등 처리, Broker outbox/inbox/DLQ, 파일전송 이력, 결과 미확정 테이블을 추가합니다.</td></tr>
       <tr><td>V23</td><td><code>V23__adm_reliability_operations.sql</code></td><td>ADM Reliability 메뉴, 조회/replay/수동확정 버튼과 역할별 API 권한을 추가합니다.</td></tr>
       <tr><td>V24</td><td><code>V24__batch_job_instance_log_linkage.sql</code></td><td><code>pfw_batch_execution</code>에 Spring Batch JobInstance, 업무일자, run/rerun, 원 실행, restart 횟수, 거래/segment, Job 로그 상대 경로 연결 컬럼과 index를 추가합니다.</td></tr>
+      <tr><td>V25</td><td><code>V25__transaction_log_durable_recovery.sql</code></td><td><code>pfw_transaction_log.RECOVERY_EVENT_ID</code>와 unique index를 추가해 durable journal 재적재의 중복을 차단합니다.</td></tr>
       </tbody>
     </table>
   </section>

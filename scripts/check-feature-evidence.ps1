@@ -589,7 +589,7 @@ Test-RequiredText "scripts/runtime-status.ps1" "finalRuntimeUsable" "RUNTIME_STA
 Test-RequiredText "scripts/runtime-diagnostics.ps1" "runtime-diagnostics-result.json" "RUNTIME_DIAGNOSTICS_RESULT_JSON"
 Test-RequiredText "scripts/runtime-diagnostics.ps1" "finalRuntimeUsable" "RUNTIME_DIAGNOSTICS_FINAL_USABLE_FIELD"
 Test-RequiredText "scripts/check-packaged-runtime-resources.ps1" "D:/logs" "PACKAGED_CHECK_FORBIDDEN_D_LOGS"
-Test-RequiredText "scripts/check-packaged-runtime-resources.ps1" "CPF_LOGGING_FILE_BASE_PATH:logs" "PACKAGED_CHECK_LOG_BASE_MARKER"
+Test-RequiredText "scripts/check-packaged-runtime-resources.ps1" "logging-root-contract" "PACKAGED_CHECK_LOG_ROOT_MARKER"
 Test-RequiredText "scripts/check-profile-loading.ps1" "application-pfw-" "PROFILE_LOADING_PFW_PROFILE"
 Test-RequiredText "scripts/check-profile-loading.ps1" "application-cmn-" "PROFILE_LOADING_CMN_PROFILE"
 Test-RequiredText "scripts/check-profile-loading.ps1" "MODULE_PREFIX_RUNTIME" "PROFILE_LOADING_MODULE_PREFIX"

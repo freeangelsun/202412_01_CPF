@@ -19,7 +19,8 @@ $logRoot = if ([string]::IsNullOrWhiteSpace($env:CPF_LOG_ROOT)) {
 } else {
     [System.IO.Path]::GetFullPath($env:CPF_LOG_ROOT)
 }
-$batchLogRoot = Join-Path $logRoot "bat/jobs"
+$environmentCode = if ([string]::IsNullOrWhiteSpace($env:CPF_ENV)) { "local" } else { $env:CPF_ENV.Trim().ToLowerInvariant() }
+$batchLogRoot = Join-Path $logRoot ("{0}/bat/jobs" -f $environmentCode)
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"

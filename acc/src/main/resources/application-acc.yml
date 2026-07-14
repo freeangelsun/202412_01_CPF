@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${ACC_MODULE_ID:ACC}
+    instance-id: ${ACC_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:acc-local-01}}}
     was-id: ${ACC_WAS_ID:${WAS_ID:accAP01}}
   service-call:
     registry-mode: ${ACC_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

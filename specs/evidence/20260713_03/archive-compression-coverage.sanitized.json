@@ -1,0 +1,19 @@
+{
+    "generatedAt":  "2026-07-13T19:23:04.0646277+09:00",
+    "status":  "완료",
+    "requiredFiles":  [
+                          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveService.java",
+                          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
+                          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java",
+                          "pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java",
+                          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java",
+                          "xyz/src/main/java/cpf/xyz/edu/archive/XyzArchiveEducationSample.java",
+                          "bat/src/main/java/cpf/bat/edu/archive/BatArchiveCompressionEducationSample.java",
+                          "exs/src/main/java/cpf/exs/edu/archive/ExsArchiveEducationSample.java"
+                      ],
+    "missingFiles":  [
+
+                     ],
+    "tarStatus":  "부분 구현",
+    "tarReason":  "TAR support remains partial because the Java standard library has no built-in TAR implementation."
+}

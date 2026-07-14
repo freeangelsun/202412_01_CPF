@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${XYZ_MODULE_ID:XYZ}
+    instance-id: ${XYZ_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:xyz-local-01}}}
     was-id: ${XYZ_WAS_ID:${WAS_ID:xyzAP01}}
   service-call:
     registry-mode: ${XYZ_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

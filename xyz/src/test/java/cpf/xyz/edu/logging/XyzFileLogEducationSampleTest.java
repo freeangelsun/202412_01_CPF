@@ -22,6 +22,8 @@ class XyzFileLogEducationSampleTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.framework.module-id", "xyz")
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
+                .withProperty("cpf.environment", "local")
+                .withProperty("cpf.framework.instance-id", "xyz-edu-01")
                 .withProperty("cpf.logging.file.timezone", "Asia/Seoul")
                 .withProperty("cpf.logging.file.archive-compress-enabled", "false");
         Clock clock = Clock.fixed(Instant.parse("2026-07-13T07:30:00Z"), ZoneId.of("Asia/Seoul"));
@@ -30,24 +32,29 @@ class XyzFileLogEducationSampleTest {
 
         // 각 로그 유형을 호출해 하나의 파일에 서로 다른 유형이 섞이지 않는지 확인합니다.
         sample.writeApplicationLog("교육 애플리케이션 준비 완료");
-        sample.writeTransactionLog("20260713163000000XYZedu0010000001", "SEG-XYZ-1");
+        sample.writeTransactionLog(
+                "XYZ_EDU_FILE_LOG",
+                "20260713163000000XYZedu0010000001",
+                "SEG-XYZ-1");
         sample.writeErrorLog("XYZ-EDU-001", "password=should-not-remain");
         sample.writeMaskingGuardExample("plain-password", "Bearer plain-token");
 
-        Path moduleRoot = tempDir.resolve("xyz");
+        Path moduleRoot = tempDir.resolve("local/xyz/xyz-edu-01");
         assertThat(moduleRoot).isDirectory();
         java.util.List<String> fileNames;
-        try (var paths = Files.list(moduleRoot)) {
-            fileNames = paths.map(path -> path.getFileName().toString()).toList();
+        try (var paths = Files.walk(moduleRoot)) {
+            fileNames = paths.filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .toList();
         }
         assertThat(fileNames)
                 .anyMatch(name -> name.matches("cpf-xyz-application-.+\\.2026-07-13\\.log"))
-                .anyMatch(name -> name.matches("cpf-xyz-transaction-.+\\.2026-07-13\\.log"))
-                .anyMatch(name -> name.matches("cpf-xyz-error-.+\\.2026-07-13\\.log"));
+                .anyMatch(name -> name.matches("cpf-xyz-error-.+\\.2026-07-13\\.log"))
+                .contains("XYZ_EDU_FILE_LOG_20260713.log");
 
         String allLogs;
-        try (var paths = Files.list(moduleRoot)) {
-            allLogs = paths.map(path -> {
+        try (var paths = Files.walk(moduleRoot)) {
+            allLogs = paths.filter(Files::isRegularFile).map(path -> {
                         try {
                             return Files.readString(path);
                         } catch (Exception ex) {
@@ -57,8 +64,10 @@ class XyzFileLogEducationSampleTest {
                     .reduce("", String::concat);
         }
         assertThat(allLogs)
-                .contains("APPLICATION_STATE", "EDU_TRANSACTION", "EDU_FAILURE", "MASKING_GUARD")
+                .contains("APPLICATION_STATE", "ONLINE_TRANSACTION", "EDU_FAILURE", "MASKING_GUARD")
                 .contains("\"logType\":\"application\"", "\"logType\":\"transaction\"", "\"logType\":\"error\"")
+                .contains("\"transactionId\":\"XYZ_EDU_FILE_LOG\"")
+                .contains("\"transactionGlobalId\":\"20260713163000000XYZedu0010000001\"")
                 .contains("\"password\":\"***\"", "\"authorization\":\"***\"")
                 .doesNotContain("plain-password", "plain-token", "should-not-remain");
     }

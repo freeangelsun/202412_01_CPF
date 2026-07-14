@@ -15,7 +15,9 @@ public final class ServerInstanceIdentity {
         String hostName = resolveHostName();
         String processId = resolveProcessId();
         String threadName = Thread.currentThread().getName();
-        String configured = System.getenv("SERVER_INSTANCE_ID");
+        String configured = firstText(
+                System.getenv("CPF_INSTANCE_ID"),
+                System.getenv("SERVER_INSTANCE_ID"));
         String serverInstanceId = hasText(configured) ? configured : hostName + ":" + processId;
         return new Identity(serverInstanceId, hostName, processId, threadName);
     }
@@ -39,6 +41,10 @@ public final class ServerInstanceIdentity {
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private static String firstText(String first, String second) {
+        return hasText(first) ? first : second;
     }
 
     public record Identity(

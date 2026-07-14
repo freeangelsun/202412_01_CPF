@@ -421,7 +421,7 @@ cpf:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   logging:
     file:
-      base-path: ${Dollar}{CPF_LOG_ROOT:./logs}
+      base-path: ${Dollar}{CPF_LOG_ROOT:}
       timezone: ${Dollar}{CPF_LOG_TIMEZONE:Asia/Seoul}
       max-history-days: ${Dollar}{CPF_LOG_MAX_HISTORY_DAYS:30}
       archive-compress-enabled: ${Dollar}{CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
@@ -464,7 +464,7 @@ $readme = @"
 
 - 실제 반영 전 `settings.gradle`, `specs/sql`, ADM 메뉴/API/버튼 seed, OpenAPI 문서를 함께 검토합니다.
 - Controller, Facade, Service, Repository, DTO, Mapper XML, SQL의 모듈 코드와 테이블 prefix를 일치시킵니다.
-- 운영 로그는 `${Dollar}{CPF_LOG_ROOT}/{moduleCode}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log` 규칙을 사용합니다.
+- 운영 로그는 `${Dollar}{CPF_LOG_ROOT}/{environment}/{moduleCode}/{instanceId}/{category}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log` 규칙을 사용합니다.
 "@
 
 $serviceTest = @"
@@ -593,7 +593,7 @@ ${ModuleUpper}_MODULE_ID=$ModuleUpper
 ${ModuleUpper}_INSTANCE_ID=${ModuleUpper}-${profileName}-01
 ${ModuleUpper}_WAS_ID=${profileName}-was-01
 ${ModuleUpper}_SERVER_PORT=8080
-${ModuleUpper}_LOG_BASE_PATH=./logs/$module
+CPF_LOG_ROOT=C:/cpf/runtime/logs
 ${ModuleUpper}_DATASOURCE_MODE=url
 ${ModuleUpper}_DATASOURCE_URL=jdbc:mariadb://localhost:3306/${module}DB
 ${ModuleUpper}_DATASOURCE_USERNAME=${module}_app

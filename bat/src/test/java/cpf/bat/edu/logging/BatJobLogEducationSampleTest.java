@@ -17,7 +17,7 @@ class BatJobLogEducationSampleTest {
                 .replace('\\', '/');
 
         assertThat(path)
-                .endsWith("/logs/bat/jobs/20260713/CPF_EDU_JOB/cpf-bat-CPF_EDU_JOB-100-20260713.log");
+                .endsWith("/logs/local/bat/jobs/20260713/CPF_EDU_JOB/cpf-bat-CPF_EDU_JOB-100-20260713.log");
     }
 
     @Test

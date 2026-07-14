@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${ADM_MODULE_ID:ADM}
+    instance-id: ${ADM_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:adm-local-01}}}
     was-id: ${ADM_WAS_ID:${WAS_ID:admAP01}}
   service-call:
     registry-mode: ${ADM_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

@@ -189,13 +189,19 @@ try {
         $previousWasId = [Environment]::GetEnvironmentVariable("WAS_ID", "Process")
         $previousServerInstance = [Environment]::GetEnvironmentVariable("SERVER_INSTANCE_ID", "Process")
         $previousModuleId = [Environment]::GetEnvironmentVariable("CPF_MODULE_ID", "Process")
-        $previousLogBase = [Environment]::GetEnvironmentVariable("CPF_LOGGING_FILE_BASE_PATH", "Process")
+        $previousCpfModuleCode = [Environment]::GetEnvironmentVariable("CPF_MODULE_CODE", "Process")
+        $previousCpfInstanceId = [Environment]::GetEnvironmentVariable("CPF_INSTANCE_ID", "Process")
+        $previousCpfEnvironment = [Environment]::GetEnvironmentVariable("CPF_ENV", "Process")
+        $previousLogRoot = [Environment]::GetEnvironmentVariable("CPF_LOG_ROOT", "Process")
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
             [Environment]::SetEnvironmentVariable("WAS_ID", ($module.moduleLower + "AP01"), "Process")
             [Environment]::SetEnvironmentVariable("SERVER_INSTANCE_ID", ($module.moduleLower + "-local-01"), "Process")
             [Environment]::SetEnvironmentVariable("CPF_MODULE_ID", $module.module, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_LOGGING_FILE_BASE_PATH", "logs", "Process")
+            [Environment]::SetEnvironmentVariable("CPF_MODULE_CODE", $module.module, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_INSTANCE_ID", ($module.moduleLower + "-local-01"), "Process")
+            [Environment]::SetEnvironmentVariable("CPF_ENV", "local", "Process")
+            [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", (Join-Path $Root "logs"), "Process")
 
             $process = Start-Process `
                 -FilePath "java" `
@@ -210,7 +216,10 @@ try {
             [Environment]::SetEnvironmentVariable("WAS_ID", $previousWasId, "Process")
             [Environment]::SetEnvironmentVariable("SERVER_INSTANCE_ID", $previousServerInstance, "Process")
             [Environment]::SetEnvironmentVariable("CPF_MODULE_ID", $previousModuleId, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_LOGGING_FILE_BASE_PATH", $previousLogBase, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_MODULE_CODE", $previousCpfModuleCode, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_INSTANCE_ID", $previousCpfInstanceId, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_ENV", $previousCpfEnvironment, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", $previousLogRoot, "Process")
         }
 
         $moduleResult.processStarted = $true

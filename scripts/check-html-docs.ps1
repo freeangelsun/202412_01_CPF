@@ -337,9 +337,13 @@ if (-not (Test-Path -LiteralPath $specsRoot)) {
     throw "specs directory not found: $specsRoot"
 }
 
-# 상세 가이드는 HTML로 관리합니다. specs 하위 Markdown 문서가 생기면 문서 체계가 다시 흩어지므로 실패 처리합니다.
+# 상세 가이드는 HTML로 관리합니다. 정제 증적은 문서가 아니므로 evidence 하위 파일은 검사에서 제외합니다.
 Get-ChildItem -LiteralPath $specsRoot -Recurse -File -Filter "*.md" | ForEach-Object {
-    if ($_.Name -ne "sample-coverage-matrix.md") {
+    $evidenceRoot = Join-Path $specsRoot "evidence"
+    $isEvidenceFile = $_.FullName.StartsWith(
+        $evidenceRoot,
+        [System.StringComparison]::OrdinalIgnoreCase)
+    if (-not $isEvidenceFile -and $_.Name -ne "sample-coverage-matrix.md") {
         Add-Failure "specs markdown document remains: $($_.FullName.Substring($Root.Length))"
     }
 }

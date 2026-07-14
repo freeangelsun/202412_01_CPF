@@ -1,5 +1,7 @@
 package cpf.pfw.common.logging.file;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cpf.pfw.common.logging.SensitiveDataMasker;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
 import cpf.pfw.common.logging.TransactionContext;
@@ -30,11 +32,12 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -43,19 +46,17 @@ import java.util.zip.GZIPOutputStream;
  * CPF 구조화 파일 로그를 공통 규격으로 기록합니다.
  *
  * <p>DB 로그는 운영 조회와 통계의 기준이고, 파일 로그는 장애 상황에서 인스턴스별로 빠르게 검색할 수 있는
- * 보조 증적입니다. 모든 실행 모듈은
- * {@code ${CPF_LOG_ROOT}/{moduleCode}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log}
- * 규칙을 공유합니다.</p>
+ * 보조 증적입니다. 일반 로그는 환경·실행 모듈·인스턴스 경로로 분리하고, 온라인 거래 로그는
+ * {@code transactions/{businessDate}/{transactionId}_{businessDate}.log} 규칙을 사용합니다.</p>
  */
 @Component
 public class CpfFileLogWriter {
     private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
-    private static final String DEFAULT_PATTERN = "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log";
-    private static final DateTimeFormatter FILE_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
-
     private final Environment environment;
     private final Clock clock;
     private final ZoneId logZoneId;
+    private final CpfLogPathPolicy pathPolicy;
+    private final ObjectMapper objectMapper;
     private final Map<Path, Object> fileLocks = new ConcurrentHashMap<>();
     private final Set<String> retentionChecked = ConcurrentHashMap.newKeySet();
 
@@ -71,6 +72,8 @@ public class CpfFileLogWriter {
         this.environment = environment;
         this.logZoneId = resolveZoneId(environment);
         this.clock = clock.withZone(logZoneId);
+        this.pathPolicy = new CpfLogPathPolicy(environment);
+        this.objectMapper = new ObjectMapper();
         initializeLogRoot();
     }
 
@@ -81,25 +84,24 @@ public class CpfFileLogWriter {
         if (record == null || !enabled("transaction")) {
             return;
         }
-        if (!hasText(record.getTransactionId())) {
+        if (!hasText(record.getTransactionId()) || !hasText(record.getBusinessTransactionId())) {
             long missingCount = CpfTransactionContextAnomalyMonitor.recordMissing("CpfFileLogWriter.writeTransaction");
             Map<String, Object> anomaly = baseEvent(record.getModuleId(), "error", policy, details);
             anomaly.put("eventType", "CONTEXT_MISSING");
             anomaly.put("status", "ERROR");
             anomaly.put("boundary", "ONLINE_TRANSACTION");
+            anomaly.put("missingTransactionGlobalId", !hasText(record.getTransactionId()));
+            anomaly.put("missingTransactionId", !hasText(record.getBusinessTransactionId()));
             anomaly.put("missingContextCount", missingCount);
             append(record.getModuleId(), "error", anomaly);
             return;
         }
-        String logType = "FAILURE".equalsIgnoreCase(record.getLogType()) ? "error" : "transaction";
-        if (!enabled(logType)) {
-            return;
-        }
 
-        Map<String, Object> event = baseEvent(record.getModuleId(), logType, policy, details);
+        Map<String, Object> event = baseEvent(record.getModuleId(), "transaction", policy, details);
         event.put("eventType", "ONLINE_TRANSACTION");
+        event.put("transactionId", record.getBusinessTransactionId());
         event.put("transactionGlobalId", record.getTransactionId());
-        event.put("transactionSegmentId", firstText(detail(details, "transactionSegment.id"), record.getSpanId()));
+        event.put("segmentId", firstText(detail(details, "transactionSegment.id"), record.getSpanId()));
         event.put("parentSegmentId", firstText(detail(details, "parentSegment.id"), record.getParentSpanId()));
         event.put("transactionRole", "MAIN");
         event.put("direction", "INBOUND");
@@ -116,7 +118,15 @@ public class CpfFileLogWriter {
         event.put("spanId", record.getSpanId());
         event.put("requestHeadersMasked", detail(details, "resolvedHeaders"));
         event.put("responseHeadersMasked", detail(details, "responseHeaders"));
-        append(record.getModuleId(), logType, event);
+        LocalDate transactionBusinessDate = record.getStartTime() != null
+                ? record.getStartTime().toLocalDate()
+                : defaultBusinessDate();
+        appendTransaction(record.getBusinessTransactionId(), transactionBusinessDate, event);
+        if ("FAILURE".equalsIgnoreCase(record.getLogType()) && enabled("error")) {
+            Map<String, Object> errorEvent = new LinkedHashMap<>(event);
+            errorEvent.put("logType", "error");
+            append(record.getModuleId(), "error", errorEvent);
+        }
     }
 
     /**
@@ -143,8 +153,14 @@ public class CpfFileLogWriter {
         event.put("eventType", attributeText(attributes, "eventType", "INTEGRATION"));
         event.put("sourceModuleCode", normalizeModuleCode(sourceModuleCode));
         event.put("targetModuleCode", normalizeModuleCode(targetModuleCode));
-        event.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
-        event.put("transactionSegmentId", firstText(TransactionSegmentContext.currentSegmentId(), TransactionContext.currentSpanId()));
+        String transactionGlobalId = TransactionContext.currentTransactionId();
+        String transactionId = firstText(
+                attributeText(attributes, "transactionId", null),
+                attributeText(attributes, "businessTransactionId", null),
+                TransactionContext.currentBusinessTransactionId());
+        event.put("transactionId", transactionId);
+        event.put("transactionGlobalId", transactionGlobalId);
+        event.put("segmentId", firstText(TransactionSegmentContext.currentSegmentId(), TransactionContext.currentSpanId()));
         event.put("parentSegmentId", TransactionContext.currentParentSpanId());
         event.put("transactionRole", "EXTERNAL");
         event.put("direction", defaultText(direction, "OUTBOUND"));
@@ -160,6 +176,11 @@ public class CpfFileLogWriter {
             attributes.forEach((key, value) -> event.put(key, sanitizeValue(key, value)));
         }
         append(sourceModuleCode, "integration", event);
+        if (hasText(transactionId) && hasText(transactionGlobalId)) {
+            appendTransaction(transactionId, defaultBusinessDate(), event);
+        } else {
+            CpfTransactionContextAnomalyMonitor.recordMissing("CpfFileLogWriter.writeIntegration");
+        }
     }
 
     public Map<String, Object> newBaseEvent(String moduleCode, String logType) {
@@ -174,29 +195,46 @@ public class CpfFileLogWriter {
     }
 
     /**
-     * BAT JobInstance처럼 일반 파일명과 다른 표준 경로가 필요한 로그를 안전하게 기록합니다.
-     * 상대 경로만 허용하며 로그 root 이탈은 차단합니다.
+     * BAT JobInstance처럼 환경 공용 논리 경로가 필요한 로그를 안전하게 기록합니다.
+     * 전달 경로는 환경 root 아래의 상대경로로만 해석합니다.
      */
     public void writeEventAtRelativePath(Path relativePath, Map<String, Object> event) {
         if (relativePath == null || event == null || !enabled("file")) {
             return;
         }
-        Path root = logRoot();
-        Path normalizedRelative = relativePath.normalize();
-        if (normalizedRelative.isAbsolute() || normalizedRelative.startsWith("..")) {
-            throw new IllegalArgumentException("로그 상대 경로가 CPF_LOG_ROOT를 벗어날 수 없습니다.");
-        }
-        Path target = root.resolve(normalizedRelative).normalize();
-        if (!target.startsWith(root)) {
-            throw new IllegalArgumentException("로그 경로가 CPF_LOG_ROOT를 벗어났습니다.");
-        }
-        appendToPath(target, sanitizeMap(event));
+        appendToPath(pathPolicy.batchJobLogPath(relativePath), sanitizeMap(event));
     }
 
     public Path logRoot() {
-        return Path.of(environment.getProperty("cpf.logging.file.base-path", "./logs"))
-                .toAbsolutePath()
-                .normalize();
+        return pathPolicy.logRoot();
+    }
+
+    public Path instanceRoot() {
+        return pathPolicy.instanceRoot();
+    }
+
+    public String environmentCode() {
+        return pathPolicy.environmentCode();
+    }
+
+    public String runtimeModuleCode() {
+        return pathPolicy.runtimeModuleCode();
+    }
+
+    public String instanceId() {
+        return pathPolicy.instanceId();
+    }
+
+    public Path recoveryPath(Path relativePath) {
+        return pathPolicy.recoveryPath(relativePath);
+    }
+
+    public Path batchJobLogPath(Path relativePath) {
+        return pathPolicy.batchJobLogPath(relativePath);
+    }
+
+    public Path relativeToLogRoot(Path path) {
+        return pathPolicy.relativeToLogRoot(path);
     }
 
     public ZoneId logZoneId() {
@@ -212,10 +250,12 @@ public class CpfFileLogWriter {
             return;
         }
         try {
-            Path moduleRoot = logRoot().resolve(moduleCode().toLowerCase(Locale.ROOT));
-            Files.createDirectories(moduleRoot);
-            if (!Files.isDirectory(moduleRoot) || !Files.isWritable(moduleRoot)) {
-                throw new IOException("로그 디렉터리에 쓸 수 없습니다: " + moduleRoot);
+            Path root = logRoot();
+            Files.createDirectories(root);
+            Path probe = Files.createTempFile(root, ".cpf-log-write-probe-", ".tmp");
+            Files.deleteIfExists(probe);
+            if (!Files.isDirectory(root) || !Files.isWritable(root)) {
+                throw new IOException("로그 디렉터리에 쓸 수 없습니다: " + root);
             }
         } catch (Exception ex) {
             boolean failFast = environment.getProperty(
@@ -241,6 +281,8 @@ public class CpfFileLogWriter {
         event.put("timestamp", now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         event.put("timezone", logZoneId.getId());
         event.put("businessDate", now.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
+        event.put("environment", pathPolicy.environmentCode());
+        event.put("runtimeModuleCode", pathPolicy.runtimeModuleCode());
         event.put("level", policy != null ? defaultText(policy.fileLogLevel(), "INFO") : defaultText(TransactionContext.currentDynamicLogLevel(), "INFO"));
         event.put("logType", logType);
         event.put("moduleCode", normalizeModuleCode(moduleCode));
@@ -248,9 +290,9 @@ public class CpfFileLogWriter {
         event.put("targetModuleCode", null);
         event.put("traceBoostPolicyId", traceBoostPolicyId(policy, details));
         event.put("logLevelApplied", policy != null ? policy.fileLogLevel() : TransactionContext.currentDynamicLogLevel());
-        event.put("serverId", environment.getProperty("cpf.framework.was-id", normalizeModuleCode(moduleCode).toLowerCase(Locale.ROOT) + "AP01"));
-        event.put("instanceId", identity.serverInstanceId());
-        event.put("serverInstanceId", identity.serverInstanceId());
+        event.put("serverId", environment.getProperty("cpf.framework.was-id", pathPolicy.instanceId()));
+        event.put("instanceId", pathPolicy.instanceId());
+        event.put("serverInstanceId", pathPolicy.instanceId());
         event.put("hostName", identity.hostName());
         event.put("hostIp", hostIp());
         event.put("port", environment.getProperty("server.port", "N/A"));
@@ -272,10 +314,22 @@ public class CpfFileLogWriter {
         appendToPath(resolveLogPath(moduleCode, logType), event);
     }
 
+    private void appendTransaction(String transactionId, LocalDate businessDate, Map<String, Object> event) {
+        if (!enabled("file") || !enabled("transaction")) {
+            return;
+        }
+        appendToPath(pathPolicy.transactionLogPath(transactionId, businessDate), sanitizeMap(event));
+    }
+
+    private LocalDate defaultBusinessDate() {
+        LocalDate contextDate = TransactionContext.currentBusinessDate();
+        return contextDate != null ? contextDate : currentLogDate();
+    }
+
     private void appendToPath(Path logPath, Map<String, Object> event) {
         try {
             Files.createDirectories(logPath.getParent());
-            Object lock = fileLocks.computeIfAbsent(logPath.getParent(), ignored -> new Object());
+            Object lock = fileLocks.computeIfAbsent(logPath, ignored -> new Object());
             synchronized (lock) {
                 restoreCompressedLog(logPath);
                 Files.writeString(
@@ -284,7 +338,7 @@ public class CpfFileLogWriter {
                         StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE,
                         StandardOpenOption.APPEND);
-                applyRetentionOnce(logPath.getParent(), logPath);
+                applyRetentionOnce(logPath);
             }
         } catch (IOException ex) {
             // 파일 로그 실패가 업무 응답 실패로 전파되지 않도록 표준 로그만 남깁니다.
@@ -293,27 +347,14 @@ public class CpfFileLogWriter {
     }
 
     private Path resolveLogPath(String moduleCode, String logType) {
-        String normalizedModule = normalizeModuleCode(moduleCode).toLowerCase(Locale.ROOT);
-        String normalizedType = normalizeLogType(logType);
-        String instanceId = sanitizePathToken(ServerInstanceIdentity.current().serverInstanceId(), "local-01");
-        String date = currentLogDate().format(FILE_DATE_FORMATTER);
-        String pattern = environment.getProperty("cpf.logging.file.file-pattern", DEFAULT_PATTERN)
-                .replace("{moduleCode}", normalizedModule)
-                .replace("{logType}", normalizedType)
-                .replace("{instanceId}", instanceId)
-                .replace("{date}", date);
-        Path path = logRoot().resolve(normalizedModule).resolve(pattern).normalize();
-        if (!path.startsWith(logRoot())) {
-            throw new IllegalArgumentException("로그 파일 패턴이 CPF_LOG_ROOT를 벗어났습니다.");
-        }
-        return path;
+        return pathPolicy.generalLogPath(moduleCode, normalizeLogType(logType), currentLogDate());
     }
 
-    private void applyRetentionOnce(Path directory, Path activeLogPath) throws IOException {
+    private void applyRetentionOnce(Path activeLogPath) throws IOException {
         int maxHistoryDays = Math.max(1,
                 environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30));
-        String key = directory.toAbsolutePath().normalize() + "|" + currentLogDate();
-        if (!retentionChecked.add(key) || !Files.isDirectory(directory)) {
+        String key = pathPolicy.instanceRoot() + "|" + currentLogDate();
+        if (!retentionChecked.add(key) || !Files.isDirectory(logRoot())) {
             return;
         }
         Instant cutoff = currentLogDate()
@@ -321,7 +362,7 @@ public class CpfFileLogWriter {
                 .atStartOfDay(logZoneId)
                 .toInstant();
         List<Path> candidates;
-        try (var files = Files.list(directory)) {
+        try (var files = Files.walk(logRoot())) {
             candidates = files.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
                     .toList();
@@ -331,20 +372,85 @@ public class CpfFileLogWriter {
                 Files.deleteIfExists(candidate);
                 continue;
             }
-            if (archiveCompressionEnabled(directory)
+            if (archiveCompressionEnabled()
                     && candidate.getFileName().toString().endsWith(".log")
-                    && !candidate.equals(activeLogPath)) {
+                    && !candidate.equals(activeLogPath)
+                    && Files.getLastModifiedTime(candidate).toInstant().isBefore(
+                    currentLogDate().atStartOfDay(logZoneId).toInstant())) {
                 compressLog(candidate);
+            }
+        }
+        applyTotalSizeCap(activeLogPath);
+    }
+
+    private boolean archiveCompressionEnabled() {
+        return environment.getProperty(
+                "cpf.logging.file.archive-compress-enabled",
+                Boolean.class,
+                true);
+    }
+
+    private void applyTotalSizeCap(Path activeLogPath) throws IOException {
+        long capBytes = parseSize(environment.getProperty("cpf.logging.file.total-size-cap", "2GB"));
+        if (capBytes < 1) {
+            return;
+        }
+        List<Path> files;
+        try (var stream = Files.walk(logRoot())) {
+            files = stream.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
+                    .sorted(Comparator.comparing(this::lastModified))
+                    .toList();
+        }
+        long total = 0L;
+        for (Path file : files) {
+            total += Files.size(file);
+        }
+        for (Path file : files) {
+            if (total <= capBytes) {
+                break;
+            }
+            if (file.equals(activeLogPath)) {
+                continue;
+            }
+            long size = Files.size(file);
+            if (Files.deleteIfExists(file)) {
+                total -= size;
             }
         }
     }
 
-    private boolean archiveCompressionEnabled(Path directory) {
-        boolean configured = environment.getProperty(
-                "cpf.logging.file.archive-compress-enabled",
-                Boolean.class,
-                true);
-        return configured && directory.getParent() != null && directory.getParent().equals(logRoot());
+    private Instant lastModified(Path path) {
+        try {
+            return Files.getLastModifiedTime(path).toInstant();
+        } catch (IOException ex) {
+            return Instant.MAX;
+        }
+    }
+
+    private long parseSize(String value) {
+        if (!hasText(value)) {
+            return 0L;
+        }
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        long multiplier = 1L;
+        if (normalized.endsWith("KB")) {
+            multiplier = 1024L;
+            normalized = normalized.substring(0, normalized.length() - 2);
+        } else if (normalized.endsWith("MB")) {
+            multiplier = 1024L * 1024L;
+            normalized = normalized.substring(0, normalized.length() - 2);
+        } else if (normalized.endsWith("GB")) {
+            multiplier = 1024L * 1024L * 1024L;
+            normalized = normalized.substring(0, normalized.length() - 2);
+        } else if (normalized.endsWith("B")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        try {
+            return Math.multiplyExact(Long.parseLong(normalized.trim()), multiplier);
+        } catch (ArithmeticException | NumberFormatException ex) {
+            throw new IllegalArgumentException("cpf.logging.file.total-size-cap 형식이 올바르지 않습니다: " + value, ex);
+        }
     }
 
     private void restoreCompressedLog(Path logPath) throws IOException {
@@ -421,12 +527,6 @@ public class CpfFileLogWriter {
     private String normalizeLogType(String logType) {
         String value = defaultText(logType, "application");
         return value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String sanitizePathToken(String value, String fallback) {
-        String resolved = hasText(value) ? value.trim() : fallback;
-        String sanitized = resolved.replaceAll("[^A-Za-z0-9._-]", "_");
-        return sanitized.isBlank() ? fallback : sanitized;
     }
 
     private static ZoneId resolveZoneId(Environment environment) {
@@ -526,37 +626,11 @@ public class CpfFileLogWriter {
     }
 
     private String toJson(Map<String, Object> event) {
-        StringBuilder builder = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, Object> entry : event.entrySet()) {
-            if (!first) {
-                builder.append(',');
-            }
-            first = false;
-            builder.append('"').append(escape(entry.getKey())).append('"').append(':');
-            appendJsonValue(builder, entry.getValue());
+        try {
+            return objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("CPF 구조화 로그 JSON 직렬화에 실패했습니다.", ex);
         }
-        builder.append('}');
-        return builder.toString();
-    }
-
-    private void appendJsonValue(StringBuilder builder, Object value) {
-        if (value == null) {
-            builder.append("null");
-        } else if (value instanceof Number || value instanceof Boolean) {
-            builder.append(value);
-        } else {
-            builder.append('"').append(escape(String.valueOf(value))).append('"');
-        }
-    }
-
-    private String escape(String value) {
-        return value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n")
-                .replace("\t", "\\t");
     }
 
     private String defaultText(String value, String fallback) {
@@ -565,6 +639,10 @@ public class CpfFileLogWriter {
 
     private String firstText(String first, String second) {
         return hasText(first) ? first : second;
+    }
+
+    private String firstText(String first, String second, String third) {
+        return hasText(first) ? first : (hasText(second) ? second : third);
     }
 
     private boolean hasText(String value) {

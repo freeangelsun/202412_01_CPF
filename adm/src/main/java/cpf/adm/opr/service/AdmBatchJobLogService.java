@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cpf.pfw.common.batch.CpfBatchJobLogPath;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.logging.file.CpfLogPathPolicy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +33,14 @@ public class AdmBatchJobLogService {
     private static final int MAX_RECORDS = 500;
 
     private final Path logRoot;
+    private final Path jobsRoot;
+    private final CpfLogPathPolicy pathPolicy;
     private final ObjectMapper objectMapper;
 
     public AdmBatchJobLogService(Environment environment, ObjectMapper objectMapper) {
-        this.logRoot = Path.of(environment.getProperty("cpf.logging.file.base-path", "./logs"))
-                .toAbsolutePath()
-                .normalize();
+        this.pathPolicy = new CpfLogPathPolicy(environment);
+        this.logRoot = pathPolicy.logRoot();
+        this.jobsRoot = pathPolicy.batchJobLogPath(Path.of("bat", "jobs"));
         this.objectMapper = objectMapper;
     }
 
@@ -46,7 +49,6 @@ public class AdmBatchJobLogService {
             String jobName,
             Long jobInstanceId,
             int limit) {
-        Path jobsRoot = logRoot.resolve("bat/jobs").normalize();
         if (!Files.isDirectory(jobsRoot, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
         }
@@ -83,7 +85,7 @@ public class AdmBatchJobLogService {
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException(ex.getMessage());
         }
-        Path candidate = logRoot.resolve(relativePath).normalize();
+        Path candidate = pathPolicy.batchJobLogPath(relativePath);
         Path safeFile = requireSafeRegularFile(candidate);
         int safeMaxRecords = Math.max(1, Math.min(maxRecords, MAX_RECORDS));
         try {

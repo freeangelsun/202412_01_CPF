@@ -1,0 +1,17 @@
+{
+    "CPF_EVIDENCE_VERSION":  1,
+    "EVIDENCE_ID":  "CPF-LOG-RUNTIME-CLEANUP-20260713-03",
+    "STATUS":  "완료",
+    "EXECUTED_AT":  "2026-07-13T18:34:33.8770001+09:00",
+    "START_COMMIT":  "255dd6ee752e6c8434eb4bd47c2524dca71cd196",
+    "BRANCH":  "master",
+    "COMMAND":  "Remove verified \u003cWORKSPACE\u003e/logs after sanitized manifest",
+    "EXIT_CODE":  0,
+    "PROFILE":  "local",
+    "SANITIZED":  "Y",
+    "SECRET_SCAN":  "PASS",
+    "target":  "\u003cWORKSPACE\u003e/logs",
+    "deletedFileCount":  8,
+    "deletedDirectoryCount":  19,
+    "remainingTargetExists":  false
+}

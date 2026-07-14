@@ -1,0 +1,15 @@
+{
+    "cpfEvidenceVersion":  1,
+    "evidenceId":  "request-baseline",
+    "status":  "완료",
+    "executedAt":  "2026-07-13T17:50:44.6218539+09:00",
+    "startCommit":  "255dd6ee752e6c8434eb4bd47c2524dca71cd196",
+    "branch":  "master",
+    "requestSha256":  "5889860EE0C94F2DD3FE030DE5F9EDC82992AF740DB36998437A7F15D469341E",
+    "requestGitBlob":  "12665f46d50fc8177f6f2fe00f4f006259e0178b",
+    "headRequestExists":  true,
+    "headRequestSha256":  "DCA3897E9663AA1E550D421A36F76D8BCB218BF86D03B0C00117D8036192211B",
+    "headRequestByteEqual":  false,
+    "baselineRelativePath":  "specs\\evidence\\20260713_03/cpf-new-request.baseline.md",
+    "note":  "현재 워크트리 요청서를 작업 시작 기준으로 고정했으며 시작 commit과의 차이는 사용자 사전 갱신분으로 분리 기록한다."
+}

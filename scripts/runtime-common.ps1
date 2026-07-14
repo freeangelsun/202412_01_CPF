@@ -52,7 +52,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "acc/build/libs"
             jarPattern = "acc-*.jar"
-            logDir = "logs/acc"
         },
         [ordered]@{
             module = "MBR"
@@ -62,7 +61,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "mbr/build/libs"
             jarPattern = "mbr-*.jar"
-            logDir = "logs/mbr"
         },
         [ordered]@{
             module = "ADM"
@@ -72,7 +70,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "adm/build/libs"
             jarPattern = "adm-*.jar"
-            logDir = "logs/adm"
         },
         [ordered]@{
             module = "EXS"
@@ -82,7 +79,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "exs/build/libs"
             jarPattern = "exs-*.jar"
-            logDir = "logs/exs"
         },
         [ordered]@{
             module = "BAT"
@@ -92,7 +88,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/bat/api/health"
             jarDir = "bat/build/libs"
             jarPattern = "bat-*.jar"
-            logDir = "logs/bat"
         }
     )
 }
@@ -357,11 +352,17 @@ function Get-CpfRuntimeLogFiles {
         [switch] $IncludeTail
     )
 
-    $logDir = Join-Path $Root $Module.logDir
+    $environmentCode = if ([string]::IsNullOrWhiteSpace($env:CPF_ENV)) { "local" } else { $env:CPF_ENV.Trim().ToLowerInvariant() }
+    $instanceId = if ([string]::IsNullOrWhiteSpace($env:CPF_INSTANCE_ID)) {
+        $Module.moduleLower + "-" + $environmentCode + "-01"
+    } else {
+        $env:CPF_INSTANCE_ID.Trim()
+    }
+    $logDir = Join-Path $Root ("logs/{0}/{1}/{2}" -f $environmentCode, $Module.moduleLower, $instanceId)
     if (-not (Test-Path -LiteralPath $logDir)) {
         return @()
     }
-    return @(Get-ChildItem -LiteralPath $logDir -File -ErrorAction SilentlyContinue |
+    return @(Get-ChildItem -LiteralPath $logDir -File -Recurse -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 8 |
         ForEach-Object {

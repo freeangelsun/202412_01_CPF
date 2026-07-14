@@ -16,10 +16,22 @@ import java.util.Map;
 public class BatJobLogEducationSample {
 
     public Path logPath(Path cpfLogRoot, String jobName, long jobInstanceId, LocalDate businessDate) {
+        return logPath(cpfLogRoot, "local", jobName, jobInstanceId, businessDate);
+    }
+
+    public Path logPath(
+            Path cpfLogRoot,
+            String environment,
+            String jobName,
+            long jobInstanceId,
+            LocalDate businessDate) {
         // PFW 표준 경로 정책을 직접 호출해 운영 코드와 샘플의 규칙이 어긋나지 않게 합니다.
         Path relativePath = CpfBatchJobLogPath.relativePath(jobName, jobInstanceId, businessDate);
-        // CPF_LOG_ROOT 아래 상대 경로만 결합하며 업무 코드가 임의 파일명을 만들지 않습니다.
-        return cpfLogRoot.toAbsolutePath().normalize().resolve(relativePath).normalize();
+        // 환경 디렉터리를 먼저 결합해 local/dev/stg/prod 실행 결과가 섞이지 않게 합니다.
+        return cpfLogRoot.toAbsolutePath().normalize()
+                .resolve(environment.toLowerCase(java.util.Locale.ROOT))
+                .resolve(relativePath)
+                .normalize();
     }
 
     public boolean restartUsesSameFile(

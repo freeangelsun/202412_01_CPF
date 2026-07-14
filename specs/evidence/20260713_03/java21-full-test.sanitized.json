@@ -1,0 +1,104 @@
+{
+    "cpfEvidenceVersion":  1,
+    "evidenceId":  "java21-full-test",
+    "status":  "완료",
+    "recordedAt":  "2026-07-13T19:09:43.9510457+09:00",
+    "startCommit":  "255dd6ee752e6c8434eb4bd47c2524dca71cd196",
+    "branch":  "master",
+    "command":  "JAVA_HOME=\u003cJDK21\u003e CPF_LOG_ROOT=\u003cWORKSPACE\u003e/build/test-runtime-logs GradleWrapperMain test --rerun-tasks",
+    "exitCode":  0,
+    "javaVersion":  "21",
+    "gradleVersion":  "8.11.1",
+    "durationSeconds":  459,
+    "modules":  [
+                    {
+                        "module":  "acc",
+                        "suites":  2,
+                        "tests":  3,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "adm",
+                        "suites":  15,
+                        "tests":  35,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "bat",
+                        "suites":  29,
+                        "tests":  34,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "bizadm",
+                        "suites":  9,
+                        "tests":  12,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "build",
+                        "suites":  1,
+                        "tests":  1,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "cmn",
+                        "suites":  13,
+                        "tests":  17,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  1
+                    },
+                    {
+                        "module":  "exs",
+                        "suites":  12,
+                        "tests":  15,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "mbr",
+                        "suites":  8,
+                        "tests":  19,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  0
+                    },
+                    {
+                        "module":  "pfw",
+                        "suites":  48,
+                        "tests":  130,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  1
+                    },
+                    {
+                        "module":  "xyz",
+                        "suites":  29,
+                        "tests":  42,
+                        "failures":  0,
+                        "errors":  0,
+                        "skipped":  2
+                    }
+                ],
+    "totals":  {
+                   "suites":  166,
+                   "tests":  308,
+                   "failures":  0,
+                   "errors":  0,
+                   "skipped":  4
+               },
+    "sanitized":  "Y",
+    "secretScan":  "PASS"
+}

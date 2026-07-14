@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260713_03")
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,17 +36,6 @@ function Add-Failure {
 function Join-RootPath {
     param([string] $RelativePath)
     return Join-Path $Root $RelativePath
-}
-
-function Write-Utf8Text {
-    param(
-        [string] $RelativePath,
-        [string[]] $Lines
-    )
-    New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-    $path = Join-Path $ResultDir $RelativePath
-    $safeLines = @($Lines | Where-Object { $null -ne $_ })
-    [System.IO.File]::WriteAllLines($path, [string[]] $safeLines, [System.Text.UTF8Encoding]::new($false))
 }
 
 function Write-JsonEvidence {
@@ -93,12 +82,16 @@ function Get-GitFiles {
     return @($output | Where-Object { $null -ne $_ })
 }
 
-# 요청서에 명시된 로컬 파일 목록 증적을 먼저 남긴다.
-Write-Utf8Text "git-files.txt" (Get-GitFiles @())
-Write-Utf8Text "config-files.txt" (Get-GitFiles @("*application*.yml", "*application*.yaml", "*application*.properties"))
-Write-Utf8Text "deploy-config-files.txt" (Get-GitFiles @("deploy/env/*", "deploy/inventory/*"))
-Write-Utf8Text "deploy-script-files-after-cleanup.txt" (Get-GitFiles @("scripts/deploy/*"))
-Write-Utf8Text "evidence-files.txt" (Get-GitFiles @("specs/evidence/**"))
+# 요청서에 명시된 파일 목록은 raw txt를 흩어 놓지 않고 하나의 정제 JSON으로 보관합니다.
+Write-JsonEvidence "runtime-config-inventory.sanitized.json" ([pscustomobject]@{
+    generatedAt = (Get-Date).ToString("o")
+    status = "DONE"
+    gitFiles = Get-GitFiles @()
+    configFiles = Get-GitFiles @("*application*.yml", "*application*.yaml", "*application*.properties")
+    deployConfigFiles = Get-GitFiles @("deploy/env/*", "deploy/inventory/*")
+    deployScriptFilesAfterCleanup = Get-GitFiles @("scripts/deploy/*")
+    evidenceFiles = Get-GitFiles @("specs/evidence/**")
+})
 
 $staleFiles = @(
     "acc/src/main/resources/application-local.yml",
@@ -169,7 +162,7 @@ foreach ($profile in $profiles) {
             ("{0}_INSTANCE_ID" -f $prefix),
             ("{0}_WAS_ID" -f $prefix),
             ("{0}_SERVER_PORT" -f $prefix),
-            ("{0}_LOG_BASE_PATH" -f $prefix),
+            "CPF_LOG_ROOT",
             ("{0}_DATASOURCE_MODE" -f $prefix),
             ("{0}_DATASOURCE_URL" -f $prefix),
             ("{0}_DATASOURCE_USERNAME" -f $prefix),
@@ -195,6 +188,7 @@ foreach ($profile in $profiles) {
         $mode = [string] $values[$modeKey]
         $port = [int] $values[$portKey]
         $password = [string] $values[$passwordKey]
+        $logRoot = [string] $values["CPF_LOG_ROOT"]
 
         if ($mode -and $mode.ToLowerInvariant() -notin @("url", "jndi")) {
             Add-Failure ("DATASOURCE_MODE must be url or jndi: {0}" -f $relativePath)
@@ -204,6 +198,9 @@ foreach ($profile in $profiles) {
         }
         if ($password -match "(?i)password123|admin123|secret-change-me") {
             Add-Failure ("raw default password pattern remains: {0}" -f $relativePath)
+        }
+        if ($logRoot -and (-not [System.IO.Path]::IsPathRooted($logRoot) -or $logRoot -match '(^|[/\\])\.\.([/\\]|$)')) {
+            Add-Failure ("CPF_LOG_ROOT must be an absolute path without parent traversal: {0}" -f $relativePath)
         }
         if ($missingKeys.Count -gt 0) {
             Add-Failure ("deploy env missing keys: {0} :: {1}" -f $relativePath, ($missingKeys -join ", "))

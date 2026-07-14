@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${EXS_MODULE_ID:EXS}
+    instance-id: ${EXS_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:exs-local-01}}}
     was-id: ${EXS_WAS_ID:${WAS_ID:exsAP01}}
   service-call:
     registry-mode: ${EXS_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

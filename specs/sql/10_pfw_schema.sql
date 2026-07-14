@@ -6,6 +6,7 @@ USE pfwDB;
 CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
     LOG_IDX BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 로그 순번',
+    RECOVERY_EVENT_ID VARCHAR(64) NULL COMMENT 'DB 로그 복구 이벤트 중복 방지 ID',
     TRANSACTION_ID VARCHAR(100) NULL COMMENT '전역 거래 ID',
     TRACE_ID VARCHAR(100) NULL COMMENT '분산 추적 ID',
     SPAN_ID VARCHAR(100) NULL COMMENT '현재 span ID',
@@ -83,6 +84,7 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (LOG_IDX),
+    UNIQUE KEY uk_pfw_transaction_log_recovery_event (RECOVERY_EVENT_ID),
     INDEX ix_pfw_transaction_log_date (LOG_DATE),
     INDEX ix_pfw_transaction_log_transaction_id (TRANSACTION_ID),
     INDEX ix_pfw_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),

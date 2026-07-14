@@ -49,8 +49,9 @@ public class CpfBatchAutoConfiguration {
     @ConditionalOnMissingBean
     public CpfBatchOperationRepository cpfBatchOperationRepository(
             @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
-        return new CpfBatchOperationRepository(jdbcTemplateProvider, dataSourceProvider);
+            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            CpfFileLogWriter fileLogWriter) {
+        return new CpfBatchOperationRepository(jdbcTemplateProvider, dataSourceProvider, fileLogWriter);
     }
 
     @Bean

@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TransactionLogRecord {
     private Long logIdx;
+    private String recoveryEventId;
     private String transactionId;
     private String traceId;
     private String spanId;

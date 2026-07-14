@@ -28,10 +28,13 @@ mybatis:
   type-aliases-package: cpf.pfw.common.logging
 
 cpf:
+  environment: ${CPF_ENV:local}
+  repository-root: ${CPF_REPOSITORY_ROOT:}
   framework:
     # PFW는 라이브러리이므로 실행 모듈 ID를 PFW로 고정하지 않습니다.
-    module-id: ${CPF_APP_MODULE_ID:${CPF_MODULE_ID:APP}}
-    was-id: ${CPF_APP_WAS_ID:${WAS_ID:appAP01}}
+    module-id: ${CPF_MODULE_CODE:${CPF_APP_MODULE_ID:${CPF_MODULE_ID:APP}}}
+    instance-id: ${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:}}
+    was-id: ${CPF_APP_WAS_ID:${WAS_ID:${CPF_INSTANCE_ID:appAP01}}}
     transaction-id:
       sequence-digits: 7
   http-client:
@@ -58,6 +61,14 @@ cpf:
       base-url: ${CPF_SERVICE_EXS_URL:${CPF_SERVICE_EXS_URL:http://localhost:8092}}
       description: EXS service
   logging:
+    db-fallback:
+      enabled: ${CPF_DB_LOG_FALLBACK_ENABLED:true}
+      max-spool-bytes: ${CPF_DB_LOG_FALLBACK_MAX_BYTES:268435456}
+      recovery-interval-ms: ${CPF_DB_LOG_RECOVERY_INTERVAL_MS:30000}
+      recovery-batch-size: ${CPF_DB_LOG_RECOVERY_BATCH_SIZE:50}
+      max-attempts: ${CPF_DB_LOG_RECOVERY_MAX_ATTEMPTS:10}
+      initial-backoff-ms: ${CPF_DB_LOG_RECOVERY_INITIAL_BACKOFF_MS:1000}
+      max-backoff-ms: ${CPF_DB_LOG_RECOVERY_MAX_BACKOFF_MS:300000}
     db:
       enabled: ${CPF_LOGGING_DB_ENABLED:true}
       transaction-enabled: ${CPF_LOGGING_DB_TRANSACTION_ENABLED:true}
@@ -67,14 +78,16 @@ cpf:
       batch-enabled: ${CPF_LOGGING_DB_BATCH_ENABLED:true}
     file:
       enabled: ${CPF_LOGGING_FILE_ENABLED:true}
-      base-path: ${CPF_LOG_ROOT:${CPF_LOGGING_FILE_BASE_PATH:./logs}}
+      # EnvironmentPostProcessor가 local 저장소 절대경로를 계산하며 dev/stg/prod는 CPF_LOG_ROOT를 강제합니다.
+      # 일반 파일명은 cpf-{moduleCode}-{logType}-{instanceId}.{date}.log 규칙을 사용합니다.
+      # 온라인 거래 파일은 transactions/{businessDate}/{transactionId}_{businessDate}.log 규칙을 사용합니다.
+      base-path: ${CPF_LOG_ROOT:}
       timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
       max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
       total-size-cap: ${CPF_LOG_TOTAL_SIZE_CAP:2GB}
       archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
       initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:false}
       json-line-enabled: ${CPF_LOGGING_FILE_JSON_LINE_ENABLED:true}
-      file-pattern: ${CPF_LOGGING_FILE_PATTERN:cpf-{moduleCode}-{logType}-{instanceId}.{date}.log}
       application-enabled: ${CPF_LOGGING_FILE_APPLICATION_ENABLED:true}
       transaction-enabled: ${CPF_LOGGING_FILE_TRANSACTION_ENABLED:true}
       integration-enabled: ${CPF_LOGGING_FILE_INTEGRATION_ENABLED:true}

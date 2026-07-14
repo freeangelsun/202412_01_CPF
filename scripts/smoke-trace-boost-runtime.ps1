@@ -119,9 +119,13 @@ try {
     $result.history.status = $(if (@($history.items).Count -gt 0) { $StatusDone } else { $StatusPartial })
     $result.history.count = @($history.items).Count
 
-    $admLog = Join-Path $Root "logs/adm/cpf-adm-transaction.log"
-    $result.fileLog.path = $admLog.Substring($Root.Length).TrimStart('\', '/')
-    if (Test-Path -LiteralPath $admLog) {
+    $admLogRoot = Join-Path $Root "logs/local/adm/adm-local-01"
+    $admLog = Get-ChildItem -LiteralPath $admLogRoot -Recurse -File -Filter "*.log" -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Where-Object { [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8).Contains($traceBoostPolicyId) } |
+        Select-Object -First 1 -ExpandProperty FullName
+    $result.fileLog.path = $(if ($admLog) { $admLog.Substring($Root.Length).TrimStart('\', '/') } else { $null })
+    if ($admLog -and (Test-Path -LiteralPath $admLog)) {
         $content = [System.IO.File]::ReadAllText($admLog, [System.Text.Encoding]::UTF8)
         $result.fileLog.containsTraceBoostPolicyId = -not [string]::IsNullOrWhiteSpace($traceBoostPolicyId) -and $content.Contains($traceBoostPolicyId)
         $result.fileLog.status = $(if ($result.fileLog.containsTraceBoostPolicyId) { $StatusDone } else { $StatusPartial })

@@ -5,6 +5,15 @@
 
 <mapper namespace="cpf.pfw.mapper.common.logging.TransactionLogMapper">
 
+    <!-- durable fallback 재적재가 이미 완료됐는지 중복 방지 키로 확인합니다. -->
+    <select id="existsRecoveryEvent" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM pfw_transaction_log
+            WHERE RECOVERY_EVENT_ID = #{recoveryEventId}
+        )
+    </select>
+
     <!-- pfw_transaction_log 테이블에 거래 요약 로그를 저장합니다. -->
     <insert id="insertTransactionLog"
             parameterType="cpf.pfw.common.logging.TransactionLogRecord"
@@ -13,6 +22,7 @@
             keyColumn="LOG_IDX">
         INSERT INTO pfw_transaction_log (
             LOG_DATE,
+            RECOVERY_EVENT_ID,
             TRANSACTION_ID,
             TRACE_ID,
             SPAN_ID,
@@ -91,6 +101,7 @@
             UPDATED_AT
         ) VALUES (
             IFNULL(DATE(#{startTime}), CURDATE()),
+            #{recoveryEventId},
             #{transactionId},
             #{traceId},
             #{spanId},

@@ -7,6 +7,7 @@ import cpf.pfw.mapper.common.logging.TransactionLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.Map;
 
@@ -23,17 +24,22 @@ public class TransactionLogService {
 
     private final TransactionLogMapper logMapper;
 
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details) {
         saveTransactionLog(record, details, null);
     }
 
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
         if (record == null) {
             return;
         }
         if (logPolicy != null && !logPolicy.dbLogEnabled()) {
+            return;
+        }
+        if (record.getRecoveryEventId() != null
+                && !record.getRecoveryEventId().isBlank()
+                && logMapper.existsRecoveryEvent(record.getRecoveryEventId())) {
             return;
         }
 

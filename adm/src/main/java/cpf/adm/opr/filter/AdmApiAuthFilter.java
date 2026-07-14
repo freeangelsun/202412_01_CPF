@@ -66,6 +66,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/reliability", "RELIABILITY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/broker/dlq", "RELIABILITY_REPLAY");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/unknown-results", "RELIABILITY_RESOLVE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/transaction-log-recovery", "RELIABILITY_RECOVERY_RUN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transactions", "TRANSACTION_META_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");

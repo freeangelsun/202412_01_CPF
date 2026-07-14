@@ -151,7 +151,7 @@ class CpfBatchFileLogWriterTest {
     }
 
     private Path logPath(long jobInstanceId, String businessDate) {
-        return tempDir.resolve(CpfBatchJobLogPath.relativePath(
+        return tempDir.resolve("local").resolve(CpfBatchJobLogPath.relativePath(
                 "CPF_BAT_SMOKE_JOB",
                 jobInstanceId,
                 java.time.LocalDate.parse(businessDate, java.time.format.DateTimeFormatter.BASIC_ISO_DATE)));

@@ -47,7 +47,8 @@ try {
     } else {
         [System.IO.Path]::GetFullPath($env:CPF_LOG_ROOT)
     }
-    $batLogRoot = Join-Path $logRoot "bat/jobs"
+    $environmentCode = if ([string]::IsNullOrWhiteSpace($env:CPF_ENV)) { "local" } else { $env:CPF_ENV.Trim().ToLowerInvariant() }
+    $batLogRoot = Join-Path $logRoot ("{0}/bat/jobs" -f $environmentCode)
     $batLog = Get-ChildItem -LiteralPath $batLogRoot -Recurse -File -Filter "cpf-bat-*.log" `
             -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTimeUtc -Descending |

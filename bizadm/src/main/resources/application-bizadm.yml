@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${BIZADM_MODULE_ID:BIZADM}
+    instance-id: ${BIZADM_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:bizadm-local-01}}}
     was-id: ${BIZADM_WAS_ID:${WAS_ID:bizadmAP01}}
   service-call:
     registry-mode: ${BIZADM_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

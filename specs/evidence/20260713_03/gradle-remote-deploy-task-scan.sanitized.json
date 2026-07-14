@@ -1,0 +1,56 @@
+{
+    "generatedAt":  "2026-07-13T19:29:08.4839722+09:00",
+    "status":  "DONE",
+    "tasks":  [
+                  {
+                      "task":  "checkDeployEnv",
+                      "present":  true
+                  },
+                  {
+                      "task":  "checkDeployInventory",
+                      "present":  true
+                  },
+                  {
+                      "task":  "checkPackagedDependencies",
+                      "present":  true
+                  },
+                  {
+                      "task":  "remoteDeployDryRun",
+                      "present":  true
+                  },
+                  {
+                      "task":  "remoteDeploy",
+                      "present":  true
+                  },
+                  {
+                      "task":  "rollbackDeploy",
+                      "present":  true
+                  },
+                  {
+                      "task":  "checkRuntimeConfigStandard",
+                      "present":  true
+                  },
+                  {
+                      "task":  "checkSampleCoverage",
+                      "present":  true
+                  },
+                  {
+                      "task":  "checkEvidencePathExistence",
+                      "present":  true
+                  }
+              ],
+    "allowedModules":  [
+                           "ACC",
+                           "MBR",
+                           "EXS",
+                           "ADM",
+                           "BAT",
+                           "BIZADM",
+                           "XYZ"
+                       ],
+    "forbiddenModules":  [
+                             "EDU",
+                             "PFW",
+                             "CMN"
+                         ]
+}

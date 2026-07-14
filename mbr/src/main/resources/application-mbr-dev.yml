@@ -6,6 +6,7 @@ server:
 cpf:
   framework:
     module-id: ${MBR_MODULE_ID:MBR}
+    instance-id: ${MBR_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:mbr-dev-01}}}
     was-id: ${MBR_WAS_ID:${WAS_ID:mbrAP01}}
 
 spring:

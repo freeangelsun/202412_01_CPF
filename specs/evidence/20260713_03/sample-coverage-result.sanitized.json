@@ -1,0 +1,55 @@
+{
+    "generatedAt":  "2026-07-13T19:23:04.0658508+09:00",
+    "status":  "완료",
+    "requiredSampleCount":  240,
+    "matrixSampleCount":  247,
+    "statusSummary":  [
+                          {
+                              "status":  "완료",
+                              "count":  212
+                          },
+                          {
+                              "status":  "미검증",
+                              "count":  22
+                          },
+                          {
+                              "status":  "부분 구현",
+                              "count":  13
+                          }
+                      ],
+    "moduleSummary":  [
+                          {
+                              "module":  "ADM",
+                              "count":  10
+                          },
+                          {
+                              "module":  "BAT",
+                              "count":  39
+                          },
+                          {
+                              "module":  "BIZADM",
+                              "count":  6
+                          },
+                          {
+                              "module":  "CMN",
+                              "count":  19
+                          },
+                          {
+                              "module":  "EXS",
+                              "count":  22
+                          },
+                          {
+                              "module":  "PFW",
+                              "count":  63
+                          },
+                          {
+                              "module":  "XYZ",
+                              "count":  88
+                          }
+                      ],
+    "actualSampleCount":  91,
+    "actualSampleTestCount":  91,
+    "failures":  [
+
+                 ]
+}

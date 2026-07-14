@@ -137,6 +137,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\smoke-openapi.ps1</c
   </section>
 
   <section>
+    <h2>DB 거래 로그 복구</h2>
+    <ol>
+      <li><code>GET /adm/api/reliability/transaction-log-recovery</code>에서 pending, processing, poison, spool 사용량과 health를 확인합니다.</li>
+      <li>PFW DB 연결과 <code>pfw_transaction_log.RECOVERY_EVENT_ID</code> V25 적용 여부를 먼저 복구합니다.</li>
+      <li><code>RELIABILITY_RECOVERY_RUN</code> 권한으로 감사 사유를 입력해 <code>POST /adm/api/reliability/transaction-log-recovery/run</code>을 실행합니다.</li>
+      <li>pending 감소, recovered 누적 증가, poison 잔존 여부와 같은 <code>transactionGlobalId</code>의 ADM timeline을 확인합니다.</li>
+      <li>poison 레코드는 원문을 직접 수정하지 않고 실패 원인을 제거한 뒤 승인된 별도 재처리 절차로 다룹니다. spool 파일에는 민감정보 원문을 기록하지 않습니다.</li>
+    </ol>
+  </section>
+
+  <section>
     <h2>DB 점검 기준</h2>
     <table>
       <thead>

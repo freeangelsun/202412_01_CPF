@@ -233,6 +233,7 @@ USE pfwDB;
 CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
     LOG_IDX BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 로그 순번',
+    RECOVERY_EVENT_ID VARCHAR(64) NULL COMMENT 'DB 로그 복구 이벤트 중복 방지 ID',
     TRANSACTION_ID VARCHAR(100) NULL COMMENT '전역 거래 ID',
     TRACE_ID VARCHAR(100) NULL COMMENT '분산 추적 ID',
     SPAN_ID VARCHAR(100) NULL COMMENT '현재 span ID',
@@ -310,6 +311,7 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (LOG_IDX),
+    UNIQUE KEY uk_pfw_transaction_log_recovery_event (RECOVERY_EVENT_ID),
     INDEX ix_pfw_transaction_log_date (LOG_DATE),
     INDEX ix_pfw_transaction_log_transaction_id (TRANSACTION_ID),
     INDEX ix_pfw_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),
@@ -3845,6 +3847,7 @@ VALUES
     ('RELIABILITY_READ', 'RELIABILITY', 'READ', '신뢰성 처리 조회', 'GET', '/adm/api/reliability/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY_REPLAY', 'RELIABILITY', 'REPLAY', 'DLQ 재처리', 'POST', '/adm/api/reliability/broker/dlq/*/replay', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY_RESOLVE', 'RELIABILITY', 'RESOLVE', '결과 미확정 수동 처리', 'POST', '/adm/api/reliability/unknown-results/*/resolve', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RELIABILITY_RECOVERY_RUN', 'RELIABILITY', 'RECOVERY_RUN', 'DB 거래 로그 복구 실행', 'POST', '/adm/api/reliability/transaction-log-recovery/run', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_READ', 'NOTIFICATION', 'READ', '알림 조회', 'GET', '/adm/api/notifications/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_WRITE', 'NOTIFICATION', 'WRITE', '알림 등록/수정', 'POST', '/adm/api/notifications/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_DISABLE', 'NOTIFICATION', 'DISABLE', '알림 비활성화', 'PUT', '/adm/api/notifications/rules/*/disable', 30, 'Y', 'SYSTEM', 'SYSTEM'),

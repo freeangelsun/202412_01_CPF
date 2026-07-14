@@ -52,3 +52,5 @@ specs/evidence/**
 !specs/evidence/**/*.sanitized.log
 !specs/evidence/**/*.sanitized.json
 !specs/evidence/**/cpf-new-request.baseline.sha256
+!specs/evidence/**/cpf-new-request.baseline.md
+!specs/evidence/**/cpf-new-request.baseline.gitblob

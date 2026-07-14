@@ -76,13 +76,15 @@
 
   <section>
     <h2>실행 모듈 로그 표준</h2>
-    <p>ACC, MBR, EXS, ADM, BAT, BIZADM, XYZ는 <code>${CPF_LOG_ROOT}/{moduleCode}</code>만 사용합니다. PFW와 CMN은 독립 로그 디렉터리를 만들지 않고 자신을 실행한 모듈에 귀속됩니다.</p>
+    <p>ACC, MBR, EXS, ADM, BAT, BIZADM, XYZ는 <code>${CPF_LOG_ROOT}/{environment}/{runtimeModuleCode}/{instanceId}</code>만 사용합니다. PFW와 CMN은 별도 root를 만들지 않고 실행 모듈 인스턴스 아래 <code>framework/pfw</code>, <code>common/cmn</code>에 기록됩니다. 업무 모듈의 <code>*/logs</code>와 <code>*_LOG_BASE_PATH</code>는 허용하지 않습니다.</p>
     <table>
       <thead><tr><th>구분</th><th>표준</th><th>검증</th></tr></thead>
       <tbody>
-      <tr><td>일반 로그</td><td><code>cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log</code></td><td><code>CpfFileLogWriterTest</code>에서 Asia/Seoul 기준 일자 전환과 인스턴스 파일명을 확인합니다.</td></tr>
+      <tr><td>일반 로그</td><td><code>{category}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log</code></td><td><code>CpfFileLogWriterTest</code>에서 Asia/Seoul 기준 일자 전환과 인스턴스 파일명을 확인합니다.</td></tr>
+      <tr><td>온라인 거래 로그</td><td><code>transactions/{businessDate}/{transactionId}_{businessDate}.log</code>에 같은 업무 거래 ID의 서로 다른 <code>transactionGlobalId</code> 이벤트를 JSON Lines로 모읍니다.</td><td><code>CpfFileLogRuntimeEvidenceTest</code>가 파일명에 전역 ID를 쓰지 않는지와 자정 경계용 고정 업무일자 정책을 확인합니다.</td></tr>
       <tr><td>보관</td><td><code>CPF_LOG_MAX_HISTORY_DAYS</code>, <code>CPF_LOG_ARCHIVE_COMPRESS_ENABLED</code>로 보관 일수와 gzip 압축을 제어합니다.</td><td>지난 일자 압축과 늦은 로그 병합을 Clock 주입 테스트로 확인합니다.</td></tr>
-      <tr><td>BAT JobInstance</td><td><code>bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log</code></td><td><code>CpfBatchFileLogWriterTest</code>에서 다른 인스턴스 분리, restart 동일 파일, 업무일자 고정, JSON Lines를 확인합니다.</td></tr>
+      <tr><td>BAT JobInstance</td><td><code>${CPF_LOG_ROOT}/{environment}/bat/jobs/{businessDate}/{jobName}/cpf-bat-{jobName}-{jobInstanceId}-{businessDate}.log</code></td><td><code>CpfBatchFileLogWriterTest</code>에서 다른 JobInstance 분리, restart 동일 논리 파일, 업무일자 고정, JSON Lines를 확인합니다.</td></tr>
+      <tr><td>DB 로그 장애</td><td>거래 로그는 PFW <code>REQUIRES_NEW</code>로 저장하며 DB 장애 시 인스턴스의 <code>recovery/transaction-db</code> journal에 마스킹 후 보존합니다.</td><td><code>TransactionLogFallbackStoreTest</code>가 중복 방지, 복구 cleanup, poison 격리와 민감정보 차단을 확인합니다.</td></tr>
       <tr><td>컨텍스트 누락</td><td>거래 ID 없는 온라인 거래 로그는 <code>NO_TRANSACTION</code> 파일로 보내지 않고 <code>CONTEXT_MISSING</code> 오류와 누적 계수로 남깁니다.</td><td><code>CpfTransactionContextAnomalyMonitorTest</code>와 ADM health 진단을 확인합니다.</td></tr>
       </tbody>
     </table>

@@ -1,0 +1,19 @@
+{
+    "cpfEvidenceVersion":  1,
+    "evidenceId":  "legacy-log-cleanup-after",
+    "status":  "완료",
+    "executedAt":  "2026-07-13T17:55:25.4258228+09:00",
+    "startCommit":  "255dd6ee752e6c8434eb4bd47c2524dca71cd196",
+    "deletedTargets":  [
+                           "logs",
+                           "acc/logs",
+                           "mbr/logs"
+                       ],
+    "deletedFileCount":  823,
+    "deletedBytes":  169963817,
+    "remainingTargets":  [
+
+                         ],
+    "sanitized":  true,
+    "secretScan":  "PASS"
+}

@@ -30,6 +30,10 @@ CPF는 Java 21과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크
 | `acc`, `mbr`, `bizadm`, `exs` | 계정, 회원, 업무 관리자, 외부 연계 업무 샘플 모듈입니다. |
 | `xyz` | 개발자 교육용 EDU 샘플 모듈입니다. Controller, Service, Repository, Mapper, Test 예제를 제공합니다. |
 
+## 로그 저장 기준
+
+PFW가 로그 경로와 저장 엔진을 소유합니다. local은 저장소 위치를 기준으로 절대 `<repository>/logs`를 계산하고, dev/stg/prod는 절대 `CPF_LOG_ROOT`와 고유 `CPF_INSTANCE_ID`가 없으면 기동하지 않습니다. 실행 로그는 `${CPF_LOG_ROOT}/{environment}/{runtimeModuleCode}/{instanceId}` 아래에 두며 업무 모듈별 `*/logs` 폴더와 `*_LOG_BASE_PATH` 설정은 사용하지 않습니다. 상세 파일 규칙, DB 로그 rollback 격리와 durable recovery 절차는 [개발 가이드](specs/개발_가이드.html), [관리자 가이드](specs/관리자_가이드.html), [운영 매뉴얼](specs/운영_매뉴얼.html)을 따릅니다.
+
 ## 기본 검증
 
 ```powershell

@@ -105,7 +105,7 @@ Add-Check "RETENTION" ($logback -match '<maxHistory>\$\{MAX_HISTORY\}</maxHistor
 Add-Check "ARCHIVE_COMPRESSION" ($logback -match '\.log\.gz</fileNamePattern>') "shared logback"
 
 $pfwConfig = Get-Content -LiteralPath (Join-Path $Root "pfw/src/main/resources/application-pfw.yml") -Raw -Encoding UTF8
-foreach ($marker in @("CPF_LOG_ROOT", "CPF_LOG_TIMEZONE", "CPF_LOG_MAX_HISTORY_DAYS", "{instanceId}", "{date}")) {
+foreach ($marker in @("CPF_LOG_ROOT", "CPF_LOG_TIMEZONE", "CPF_LOG_MAX_HISTORY_DAYS", "CPF_INSTANCE_ID", "CPF_ENV")) {
     Add-Check "PFW_LOG_CONFIG_$marker" ($pfwConfig.Contains($marker)) $marker
 }
 

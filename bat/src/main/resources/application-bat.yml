@@ -3,6 +3,7 @@
 cpf:
   framework:
     module-id: ${BAT_MODULE_ID:BAT}
+    instance-id: ${BAT_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:bat-local-01}}}
     was-id: ${BAT_WAS_ID:${WAS_ID:batWK01}}
   service-call:
     registry-mode: ${BAT_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}

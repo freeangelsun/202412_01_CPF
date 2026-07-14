@@ -14,7 +14,7 @@ $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$resultPath = Join-Path $ResultDir "packaged-runtime-resource-check.json"
+$resultPath = Join-Path $ResultDir "packaged-runtime-resource-check.sanitized.json"
 $selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
 $textExtensions = @(".xml", ".yml", ".yaml", ".properties")
 $forbiddenPatterns = @("D:/logs", "D:\logs", "C:/logs", "C:\logs")
@@ -140,12 +140,9 @@ foreach ($module in $selectedModules) {
 
     $requiredMarkers = @(
         [ordered]@{ name = "module-port-env"; text = $module.portEnv },
-        [ordered]@{ name = "logging-base-path-default"; text = "CPF_LOGGING_FILE_BASE_PATH:logs" }
+        [ordered]@{ name = "logging-root-contract"; text = "CPF_LOG_ROOT" },
+        [ordered]@{ name = "logging-module-path"; text = "cpf.logging.runtime-module-path" }
     )
-    if ($module.module -eq "ACC") {
-        $requiredMarkers += [ordered]@{ name = "acc-logback-env-log-path"; text = 'CPF_LOGGING_FILE_BASE_PATH:-logs' }
-        $requiredMarkers += [ordered]@{ name = "acc-transaction-file-log"; text = "transactions/%d{yyyy-MM-dd}" }
-    }
 
     foreach ($marker in $requiredMarkers) {
         $found = $combinedText.IndexOf([string] $marker.text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0

@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface TransactionLogMapper {
 
+    boolean existsRecoveryEvent(@Param("recoveryEventId") String recoveryEventId);
+
     void insertTransactionLog(TransactionLogRecord record);
 
     /**
@@ -22,4 +24,3 @@ public interface TransactionLogMapper {
                                     @Param("detailValue") String detailValue,
                                     @Param("auditUser") String auditUser);
 }
-

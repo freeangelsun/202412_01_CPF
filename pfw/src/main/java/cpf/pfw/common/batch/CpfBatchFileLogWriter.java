@@ -37,21 +37,36 @@ public class CpfBatchFileLogWriter {
     private final CpfFileLogWriter fileLogWriter;
     private final TransactionIdGenerator transactionIdGenerator;
     private final Clock clock;
+    private final CpfBatchLockManager writerLockManager;
+    private final int writerLeaseSeconds;
 
     public CpfBatchFileLogWriter(CpfFileLogWriter fileLogWriter) {
         this(
                 fileLogWriter,
                 new TransactionIdGenerator("BAT", "batWK01", 7, Clock.system(fileLogWriter.logZoneId())),
-                Clock.system(fileLogWriter.logZoneId()));
+                Clock.system(fileLogWriter.logZoneId()),
+                null,
+                30);
     }
 
     public CpfBatchFileLogWriter(
             CpfFileLogWriter fileLogWriter,
             TransactionIdGenerator transactionIdGenerator,
             Clock clock) {
+        this(fileLogWriter, transactionIdGenerator, clock, null, 30);
+    }
+
+    public CpfBatchFileLogWriter(
+            CpfFileLogWriter fileLogWriter,
+            TransactionIdGenerator transactionIdGenerator,
+            Clock clock,
+            CpfBatchLockManager writerLockManager,
+            int writerLeaseSeconds) {
         this.fileLogWriter = fileLogWriter;
         this.transactionIdGenerator = transactionIdGenerator;
         this.clock = clock.withZone(fileLogWriter.logZoneId());
+        this.writerLockManager = writerLockManager;
+        this.writerLeaseSeconds = Math.max(30, writerLeaseSeconds);
     }
 
     public void writeBatch(String eventType, JobExecution jobExecution, StepExecution stepExecution) {
@@ -93,9 +108,68 @@ public class CpfBatchFileLogWriter {
         event.put("logLevelApplied", contextValue(jobExecution, "cpf.logPolicy.job.fileLogLevel"));
         appendStepFields(event, jobExecution, stepExecution);
 
-        fileLogWriter.writeEventAtRelativePath(
+        writeWithOwnership(
                 CpfBatchJobLogPath.relativePath(jobInstance.getJobName(), jobInstanceId, businessDate),
+                jobInstance.getJobName(),
+                jobInstanceId,
+                jobExecution,
                 event);
+    }
+
+    /**
+     * 공유 로그 파일은 DB lease를 획득한 단일 writer만 기록합니다.
+     *
+     * <p>PFW DB가 없는 로컬 실행은 JVM 단일 writer 모드로 동작합니다. 다른 인스턴스가 lease를
+     * 보유한 경우에는 이벤트를 버리지 않고 인스턴스별 fragment에 기록해 운영 병합 대상으로 남깁니다.</p>
+     */
+    private void writeWithOwnership(
+            java.nio.file.Path logicalPath,
+            String jobName,
+            long jobInstanceId,
+            JobExecution execution,
+            Map<String, Object> event) {
+        if (writerLockManager == null || !writerLockManager.available()) {
+            event.put("writerOwnershipMode", "LOCAL_SINGLE_WRITER");
+            event.put("logicalFile", logicalPath.toString().replace('\\', '/'));
+            fileLogWriter.writeEventAtRelativePath(logicalPath, event);
+            return;
+        }
+
+        String ownerId = ServerInstanceIdentity.current().serverInstanceId()
+                + ':' + parameterOrContext(execution, "workerInstanceId", "worker")
+                + ':' + executionId(execution);
+        String lockKey = "batch:file:" + CpfBatchJobLogPath.sanitize(jobName) + ':' + jobInstanceId;
+        boolean acquired = writerLockManager.acquire(
+                lockKey,
+                jobName,
+                logicalPath.toString(),
+                ownerId,
+                writerLeaseSeconds);
+        event.put("writerLockKey", lockKey);
+        event.put("writerOwnerId", ownerId);
+        event.put("logicalFile", logicalPath.toString().replace('\\', '/'));
+        if (!acquired) {
+            event.put("writerOwnershipMode", "DEGRADED_FRAGMENT");
+            event.put("writerConflict", true);
+            fileLogWriter.writeEventAtRelativePath(fragmentPath(logicalPath, ownerId), event);
+            return;
+        }
+
+        try {
+            event.put("writerOwnershipMode", "DB_LEASE");
+            event.put("writerConflict", false);
+            fileLogWriter.writeEventAtRelativePath(logicalPath, event);
+        } finally {
+            writerLockManager.release(lockKey, ownerId);
+        }
+    }
+
+    private java.nio.file.Path fragmentPath(java.nio.file.Path logicalPath, String ownerId) {
+        String fileName = logicalPath.getFileName().toString();
+        String safeOwner = CpfBatchJobLogPath.sanitize(ownerId);
+        return logicalPath.getParent()
+                .resolve("fragments")
+                .resolve(fileName.replaceFirst("\\.log$", "") + '-' + safeOwner + ".fragment.log");
     }
 
     /**

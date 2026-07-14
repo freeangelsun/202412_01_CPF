@@ -4,9 +4,9 @@ import cpf.adm.opr.dto.AdmReliabilityActionRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmBatchJobLogService;
 import cpf.adm.opr.service.AdmReliabilityService;
+import cpf.pfw.api.logging.CpfTraceRecoveryPort;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.fallback.TransactionLogRecoveryWorker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,17 +33,17 @@ public class AdmReliabilityController {
     private final AdmReliabilityService reliabilityService;
     private final AdmBatchJobLogService batchJobLogService;
     private final AdmAuditLogService auditLogService;
-    private final TransactionLogRecoveryWorker transactionLogRecoveryWorker;
+    private final CpfTraceRecoveryPort traceRecoveryPort;
 
     public AdmReliabilityController(
             AdmReliabilityService reliabilityService,
             AdmBatchJobLogService batchJobLogService,
             AdmAuditLogService auditLogService,
-            TransactionLogRecoveryWorker transactionLogRecoveryWorker) {
+            CpfTraceRecoveryPort traceRecoveryPort) {
         this.reliabilityService = reliabilityService;
         this.batchJobLogService = batchJobLogService;
         this.auditLogService = auditLogService;
-        this.transactionLogRecoveryWorker = transactionLogRecoveryWorker;
+        this.traceRecoveryPort = traceRecoveryPort;
     }
 
     @GetMapping("/idempotency")
@@ -170,8 +170,8 @@ public class AdmReliabilityController {
             operationId = "getAdmTransactionLogRecoveryStatus",
             summary = "DB 거래 로그 복구 상태 조회",
             description = "PFW durable journal의 pending, processing, poison, 용량과 복구 worker 상태를 조회합니다.")
-    public ResponseEntity<TransactionLogRecoveryWorker.WorkerSnapshot> transactionLogRecoveryStatus() {
-        return ResponseEntity.ok(transactionLogRecoveryWorker.snapshot());
+    public ResponseEntity<CpfTraceRecoveryPort.TraceRecoveryStatus> transactionLogRecoveryStatus() {
+        return ResponseEntity.ok(traceRecoveryPort.status());
     }
 
     @PostMapping("/transaction-log-recovery/run")
@@ -180,13 +180,13 @@ public class AdmReliabilityController {
             operationId = "runAdmTransactionLogRecovery",
             summary = "DB 거래 로그 복구 즉시 실행",
             description = "감사 사유를 확인하고 현재 재시도 가능한 durable journal을 즉시 재적재합니다.")
-    public ResponseEntity<TransactionLogRecoveryWorker.RecoveryResult> runTransactionLogRecovery(
+    public ResponseEntity<CpfTraceRecoveryPort.TraceRecoveryRunResult> runTransactionLogRecovery(
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
         String operatorId = requestUser(servletRequest, request.requestUser());
         String reason = auditLogService.requireReason(request.reason());
-        TransactionLogRecoveryWorker.WorkerSnapshot before = transactionLogRecoveryWorker.snapshot();
-        TransactionLogRecoveryWorker.RecoveryResult result = transactionLogRecoveryWorker.recoverPending();
+        CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
+        CpfTraceRecoveryPort.TraceRecoveryRunResult result = traceRecoveryPort.recoverReadyEvents();
         auditLogService.record(
                 TransactionContext.getOrCreateTransactionId(),
                 operatorId,
@@ -195,8 +195,37 @@ public class AdmReliabilityController {
                 "PENDING",
                 reason,
                 String.valueOf(before),
-                String.valueOf(transactionLogRecoveryWorker.snapshot()),
-                "DB 거래 로그 durable journal 즉시 복구",
+                String.valueOf(traceRecoveryPort.status()),
+                "DB 거래·구간 로그 durable journal 즉시 복구",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/transaction-log-recovery/poison/{target}/{recoveryEventId}/retry")
+    @CpfTransaction(id = "ADM05REL0013", name = "ADMTraceRecoveryPoisonRetry")
+    @Operation(
+            operationId = "retryAdmTraceRecoveryPoison",
+            summary = "추적 로그 poison 재시도 승인",
+            description = "감사 사유와 운영 권한을 확인한 뒤 거래 또는 구간 poison 이벤트를 pending 대기열로 이동합니다.")
+    public ResponseEntity<CpfTraceRecoveryPort.PoisonRetryResult> retryRecoveryPoison(
+            @PathVariable CpfTraceRecoveryPort.RecoveryTarget target,
+            @PathVariable String recoveryEventId,
+            @RequestBody AdmReliabilityActionRequest request,
+            HttpServletRequest servletRequest) {
+        String operatorId = requestUser(servletRequest, request.requestUser());
+        String reason = auditLogService.requireReason(request.reason());
+        CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
+        CpfTraceRecoveryPort.PoisonRetryResult result = traceRecoveryPort.retryPoison(target, recoveryEventId);
+        auditLogService.record(
+                TransactionContext.getOrCreateTransactionId(),
+                operatorId,
+                "TRACE_RECOVERY_POISON_RETRY",
+                "PFW_TRACE_RECOVERY",
+                recoveryEventId,
+                reason,
+                String.valueOf(before),
+                String.valueOf(traceRecoveryPort.status()),
+                "추적 로그 poison 재시도 승인",
                 servletRequest.getRemoteAddr());
         return ResponseEntity.ok(result);
     }

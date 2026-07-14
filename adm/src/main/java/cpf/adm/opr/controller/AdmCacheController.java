@@ -32,14 +32,14 @@ public class AdmCacheController {
 
     @GetMapping("/summary")
     @CpfTransaction(id = "ADM01OPR0010", name = "ADMCacheSummary")
-    @Operation(summary = "Cache summary", description = "Returns CMN cache counts and samples.")
+    @Operation(operationId = "admCacheSummary", summary = "Cache summary", description = "Returns CMN cache counts and samples.")
     public ResponseEntity<Map<String, Object>> summary() {
         return safeResponse(cacheOperationService::summary);
     }
 
     @PostMapping("/refresh")
     @CpfTransaction(id = "ADM05OPR0011", name = "ADMCacheRefresh")
-    @Operation(summary = "Refresh cache", description = "Refreshes CODE, MESSAGE, RESPONSE_CODE, CONFIG, or ALL cache targets.")
+    @Operation(operationId = "admCacheRefresh", summary = "Refresh cache", description = "Refreshes CODE, MESSAGE, RESPONSE_CODE, CONFIG, or ALL cache targets.")
     public ResponseEntity<Map<String, Object>> refresh(
             @RequestParam(defaultValue = "ALL") String target,
             @RequestParam String reason,

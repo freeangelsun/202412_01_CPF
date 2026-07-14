@@ -24,7 +24,7 @@ public class TransactionController {
     @CpfTransaction(id = "ACC09TST0001", name = "ACCSuccessSample")
     @CpfWorkflow(id = "ACC09TST9001", name = "ACCSuccessWorkflow")
     @CpfWorkflowStep(name = "ACCSuccessStep")
-    @Operation(summary = "Successful transaction sample", description = "Writes a SUCCESS/COMPLETED transaction log sample.")
+    @Operation(operationId = "accTransactionHandleSuccessfulTransaction", summary = "Successful transaction sample", description = "Writes a SUCCESS/COMPLETED transaction log sample.")
     public ResponseEntity<String> handleSuccessfulTransaction(@RequestParam String menuId, @RequestParam String execUser) {
         return ResponseEntity.ok("Transaction processed successfully.");
     }
@@ -36,7 +36,7 @@ public class TransactionController {
             name = "ACCFailureStep",
             failurePolicy = CpfWorkflowFailurePolicy.COMPENSATE,
             compensationTransactionId = "ACC09TST0005")
-    @Operation(summary = "Failed transaction sample", description = "Triggers COMPENSATING workflow metadata for log verification.")
+    @Operation(operationId = "accTransactionHandleFailedTransaction", summary = "Failed transaction sample", description = "Triggers COMPENSATING workflow metadata for log verification.")
     public ResponseEntity<String> handleFailedTransaction(@RequestParam String menuId, @RequestParam String execUser) {
         throw new RuntimeException("Simulated transaction failure.");
     }
@@ -48,14 +48,14 @@ public class TransactionController {
             name = "ACCCompensationStep",
             compensation = true,
             compensationTargetTransactionId = "ACC09TST0002")
-    @Operation(summary = "Compensation transaction sample", description = "Writes a compensation transaction log sample.")
+    @Operation(operationId = "accTransactionHandleCompensationTransaction", summary = "Compensation transaction sample", description = "Writes a compensation transaction log sample.")
     public ResponseEntity<String> handleCompensationTransaction(@RequestParam String menuId, @RequestParam String execUser) {
         return ResponseEntity.ok("Compensation transaction processed successfully.");
     }
 
     @GetMapping("/standard-exception")
     @CpfTransaction(id = "ACC09TST0006", name = "PFWStandardExceptionSample")
-    @Operation(summary = "Standard exception sample", description = "Throws validation, business, or external exceptions for handler/log tests.")
+    @Operation(operationId = "accTransactionThrowStandardException", summary = "Standard exception sample", description = "Throws validation, business, or external exceptions for handler/log tests.")
     public ResponseEntity<String> throwStandardException(@RequestParam(defaultValue = "validation") String type) {
         if ("business".equalsIgnoreCase(type)) {
             throw new CpfBusinessException("Business exception sample. type=" + type);

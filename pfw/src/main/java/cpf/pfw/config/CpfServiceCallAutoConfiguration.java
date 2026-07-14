@@ -12,6 +12,10 @@ import cpf.pfw.common.servicecall.CpfServiceHealthChecker;
 import cpf.pfw.common.servicecall.CpfServiceInstanceRegistry;
 import cpf.pfw.common.servicecall.CpfServiceRegistry;
 import cpf.pfw.common.servicecall.CpfServiceRegistryRepository;
+import cpf.pfw.api.servicecall.CpfServiceRegistryQueryPort;
+import cpf.pfw.common.servicecall.CpfServiceRegistryQueryFacade;
+import cpf.pfw.common.logging.segment.TransactionSegmentService;
+import cpf.pfw.common.reconciliation.CpfReconciliationPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -35,6 +39,12 @@ public class CpfServiceCallAutoConfiguration {
             @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
             @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfServiceRegistryRepository(jdbcTemplateProvider, dataSourceProvider);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfServiceRegistryQueryPort cpfServiceRegistryQueryPort(CpfServiceRegistryRepository repository) {
+        return new CpfServiceRegistryQueryFacade(repository);
     }
 
     @Bean
@@ -100,8 +110,15 @@ public class CpfServiceCallAutoConfiguration {
     public CpfServiceCallEngine cpfServiceCallEngine(
             CpfEndpointResolver endpointResolver,
             CpfServiceCallLogWriter logWriter,
-            CpfServiceCallProperties properties) {
-        return new CpfServiceCallEngine(endpointResolver, logWriter, properties);
+            CpfServiceCallProperties properties,
+            ObjectProvider<TransactionSegmentService> segmentServiceProvider,
+            ObjectProvider<CpfReconciliationPort> reconciliationPortProvider) {
+        return new CpfServiceCallEngine(
+                endpointResolver,
+                logWriter,
+                properties,
+                segmentServiceProvider.getIfAvailable(),
+                reconciliationPortProvider.getIfAvailable());
     }
 
     @Bean

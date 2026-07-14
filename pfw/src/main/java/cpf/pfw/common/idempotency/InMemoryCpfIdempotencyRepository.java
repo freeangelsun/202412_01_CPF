@@ -49,12 +49,16 @@ public class InMemoryCpfIdempotencyRepository implements CpfIdempotencyPort {
             String idempotencyKey,
             String requestHash,
             String payloadHash,
+            Instant now,
             Instant expiresAt) {
         String recordKey = key(scope, idempotencyKey);
         boolean[] restarted = {false};
         records.computeIfPresent(recordKey, (ignored, current) -> {
             CpfIdempotencyStatus status = CpfIdempotencyStatus.from(current.status());
             boolean retryable = status == CpfIdempotencyStatus.EXPIRED
+                    || (status == CpfIdempotencyStatus.PROCESSING
+                    && current.expiresAt() != null
+                    && !current.expiresAt().isAfter(now))
                     || ((status == CpfIdempotencyStatus.FAILED || status == CpfIdempotencyStatus.UNKNOWN)
                     && current.retryAllowed());
             if (!retryable

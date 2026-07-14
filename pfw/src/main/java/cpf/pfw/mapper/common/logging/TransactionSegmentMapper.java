@@ -10,5 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 public interface TransactionSegmentMapper {
     void insertSegment(TransactionSegmentRecord record);
 
-    void updateSegmentEnd(TransactionSegmentRecord record);
+    int updateSegmentEnd(TransactionSegmentRecord record);
+
+    int countByTransactionSegmentId(String transactionSegmentId);
 }

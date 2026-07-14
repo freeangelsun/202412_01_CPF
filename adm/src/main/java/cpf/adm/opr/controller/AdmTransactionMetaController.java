@@ -34,7 +34,7 @@ public class AdmTransactionMetaController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01TRN0010", name = "ADMTransactionMetaList")
-    @Operation(summary = "거래 메타 목록 조회", description = "@CpfTransaction 기반으로 등록된 온라인 거래 메타를 조회합니다.")
+    @Operation(operationId = "admTransactionMetaFindTransactions", summary = "거래 메타 목록 조회", description = "@CpfTransaction 기반으로 등록된 온라인 거래 메타를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTransactions(
             @RequestParam(required = false) String moduleCode,
             @RequestParam(required = false) String activeYn,
@@ -45,14 +45,14 @@ public class AdmTransactionMetaController {
 
     @GetMapping("/{transactionId}")
     @CpfTransaction(id = "ADM01TRN0011", name = "ADMTransactionMetaDetail")
-    @Operation(summary = "거래 메타 상세 조회", description = "단일 업무 거래 ID의 Controller/API mapping 메타를 조회합니다.")
+    @Operation(operationId = "admTransactionMetaFindTransaction", summary = "거래 메타 상세 조회", description = "단일 업무 거래 ID의 Controller/API mapping 메타를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTransaction(@PathVariable String transactionId) {
         return ResponseEntity.ok(transactionMetaService.findTransaction(transactionId));
     }
 
     @PostMapping("/scan")
     @CpfTransaction(id = "ADM05TRN0012", name = "ADMTransactionMetaScan")
-    @Operation(summary = "거래 메타 재스캔", description = "현재 기동 중인 Spring MVC mapping을 스캔해 pfw_transaction_meta를 upsert합니다.")
+    @Operation(operationId = "admTransactionMetaScan", summary = "거래 메타 재스캔", description = "현재 기동 중인 Spring MVC mapping을 스캔해 pfw_transaction_meta를 upsert합니다.")
     public ResponseEntity<CpfTransactionMetaScanResult> scan(
             @RequestParam String reason,
             @RequestParam(defaultValue = "ADM") String requestUser,
@@ -76,7 +76,7 @@ public class AdmTransactionMetaController {
 
     @PostMapping("/{transactionId}/inactive")
     @CpfTransaction(id = "ADM04TRN0013", name = "ADMTransactionMetaInactive")
-    @Operation(summary = "거래 메타 비활성화", description = "더 이상 사용하지 않는 거래 메타를 inactive 처리합니다.")
+    @Operation(operationId = "admTransactionMetaInactivate", summary = "거래 메타 비활성화", description = "더 이상 사용하지 않는 거래 메타를 inactive 처리합니다.")
     public ResponseEntity<Map<String, Object>> inactivate(
             @PathVariable String transactionId,
             @RequestParam String reason,

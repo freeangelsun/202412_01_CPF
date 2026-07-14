@@ -29,6 +29,7 @@ public interface CpfIdempotencyPort {
             String idempotencyKey,
             String requestHash,
             String payloadHash,
+            Instant now,
             Instant expiresAt);
 
     void expire(String scope, String idempotencyKey);

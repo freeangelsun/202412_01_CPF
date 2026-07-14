@@ -1,0 +1,31 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-SEVEN-BOOTJAR-CLASS-VERSION-20260714
+STATUS=완료
+EXECUTED_AT=2026-07-14T13:00:29.0891458+09:00
+START_COMMIT=fb6b17850aa915c8ff0db034833e2fe1343fc322
+BRANCH=master
+COMMAND=bootJar Application.class major version inspection
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=c1c4d71adf28650bf689baeb420e3b712c5245058b1d5f498fdee63d5a162d44
+--- SANITIZED_OUTPUT ---
+
+Module Jar                                  MainClass                                           ClassMajor JavaRelease
+------ ---                                  ---------                                           ---------- -----------
+acc    acc-0.0.1-cpf.acc-SNAPSHOT.jar       BOOT-INF/classes/cpf/acc/AccApplication.class               65          21
+adm    adm-0.0.1-cpf.adm-SNAPSHOT.jar       BOOT-INF/classes/cpf/adm/AdmApplication.class               65          21
+bat    bat-0.0.1-cpf.bat-SNAPSHOT.jar       BOOT-INF/classes/cpf/bat/BatApplication.class               65          21
+bizadm bizadm-0.0.1-cpf.bizadm-SNAPSHOT.jar BOOT-INF/classes/cpf/bizadm/BizAdmApplication.class         65          21
+exs    exs-0.0.1-cpf.exs-SNAPSHOT.jar       BOOT-INF/classes/cpf/exs/ExsApplication.class               65          21
+mbr    mbr-1.0.0.jar                        BOOT-INF/classes/cpf/mbr/MbrApplication.class               65          21
+xyz    xyz-0.0.1-cpf.xyz-SNAPSHOT.jar       BOOT-INF/classes/cpf/xyz/XyzApplication.class               65          21

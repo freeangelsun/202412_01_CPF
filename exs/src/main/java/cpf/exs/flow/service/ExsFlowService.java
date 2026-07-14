@@ -1,5 +1,7 @@
 package cpf.exs.flow.service;
 
+import cpf.cmn.contract.reference.ExternalExchangeRequest;
+import cpf.cmn.contract.reference.ExternalExchangeResponse;
 import cpf.cmn.utils.TextUtils;
 import cpf.exs.operation.repository.ExsOperationRepository;
 import cpf.exs.operation.repository.ExsOperationRepository.ExchangeLogWrite;
@@ -36,27 +38,35 @@ public class ExsFlowService {
     /**
      * 외부 수신 요청을 원장에 저장합니다.
      */
-    public Map<String, Object> receiveInbound(String transactionGlobalId, ExchangeRequest request, String requestUri) {
+    public ExternalExchangeResponse receiveInbound(
+            String transactionGlobalId,
+            ExternalExchangeRequest request,
+            String requestUri) {
         return saveExchange(transactionGlobalId, request, "INBOUND", "POST", requestUri);
     }
 
     /**
      * 외부 송신 요청을 원장에 저장합니다.
      */
-    public Map<String, Object> sendOutbound(String transactionGlobalId, ExchangeRequest request, String requestUri) {
+    public ExternalExchangeResponse sendOutbound(
+            String transactionGlobalId,
+            ExternalExchangeRequest request,
+            String requestUri) {
         return saveExchange(transactionGlobalId, request, "OUTBOUND", "POST", requestUri);
     }
 
-    private Map<String, Object> saveExchange(
+    private ExternalExchangeResponse saveExchange(
             String transactionGlobalId,
-            ExchangeRequest request,
+            ExternalExchangeRequest request,
             String direction,
             String httpMethod,
             String requestUri) {
-        ExchangeRequest resolved = request == null ? new ExchangeRequest(null, null, null, null, null) : request;
+        ExternalExchangeRequest resolved = request == null
+                ? new ExternalExchangeRequest(null, null, null, null, null)
+                : request;
         String externalTransactionId = TextUtils.defaultIfBlank(resolved.externalTransactionId(), "EXT-" + Instant.now().toEpochMilli());
         String messageSummary = summarize(resolved.messageSummary());
-        return operationRepository.saveExchangeLog(new ExchangeLogWrite(
+        Map<String, Object> saved = operationRepository.saveExchangeLog(new ExchangeLogWrite(
                 transactionGlobalId,
                 TransactionSegmentContext.currentSegmentId(),
                 externalTransactionId,
@@ -85,6 +95,13 @@ public class ExsFlowService {
                 0,
                 TextUtils.defaultIfBlank(resolved.endpointCode(), "EXS_MESSAGE"),
                 SensitiveDataMasker.mask(messageSummary, 1000)));
+        return new ExternalExchangeResponse(
+                String.valueOf(saved.get("transactionGlobalId")),
+                value(saved.get("transactionSegmentId")),
+                String.valueOf(saved.get("externalTransactionId")),
+                String.valueOf(saved.get("direction")),
+                String.valueOf(saved.get("preSavedYn")),
+                String.valueOf(saved.get("status")));
     }
 
     private String summarize(String messageSummary) {
@@ -92,11 +109,7 @@ public class ExsFlowService {
         return value.length() <= 1000 ? value : value.substring(0, 1000);
     }
 
-    public record ExchangeRequest(
-            String externalTransactionId,
-            String institutionCode,
-            String channelCode,
-            String endpointCode,
-            String messageSummary) {
+    private String value(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

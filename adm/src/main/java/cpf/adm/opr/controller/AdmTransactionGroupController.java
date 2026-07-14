@@ -28,21 +28,21 @@ public class AdmTransactionGroupController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01TRG0001", name = "ADMTransactionGroupList")
-    @Operation(summary = "거래 그룹 목록", description = "transactionGlobalId 기준으로 복합 거래 그룹, 전체 수행시간, 실패 구간, 사용자/운영자/회원/고객 검색 조건을 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindGroups", summary = "거래 그룹 목록", description = "transactionGlobalId 기준으로 복합 거래 그룹, 전체 수행시간, 실패 구간, 사용자/운영자/회원/고객 검색 조건을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findGroups(@RequestParam Map<String, String> criteria) {
         return ResponseEntity.ok(transactionGroupService.findGroups(criteria));
     }
 
     @GetMapping("/{transactionGlobalId}")
     @CpfTransaction(id = "ADM01TRG0002", name = "ADMTransactionGroupDetail")
-    @Operation(summary = "거래 그룹 상세", description = "transactionGlobalId 기준 segment, timeline, header snapshot, EXS 송수신 로그를 함께 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindDetail", summary = "거래 그룹 상세", description = "transactionGlobalId 기준 segment, timeline, header snapshot, EXS 송수신 로그를 함께 조회합니다.")
     public ResponseEntity<Map<String, Object>> findDetail(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(transactionGroupService.findDetail(transactionGlobalId));
     }
 
     @GetMapping("/{transactionGlobalId}/segments")
     @CpfTransaction(id = "ADM01TRG0003", name = "ADMTransactionGroupSegments")
-    @Operation(summary = "거래 구간 목록", description = "거래 그룹에 포함된 segment flat 목록을 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindSegments", summary = "거래 구간 목록", description = "거래 그룹에 포함된 segment flat 목록을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findSegments(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(Map.of(
                 "transactionGlobalId", transactionGlobalId,
@@ -51,7 +51,7 @@ public class AdmTransactionGroupController {
 
     @GetMapping("/{transactionGlobalId}/timeline")
     @CpfTransaction(id = "ADM01TRG0004", name = "ADMTransactionGroupTimeline")
-    @Operation(summary = "거래 timeline", description = "parentSegmentId와 callDepth를 포함한 timeline 구간 목록을 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindTimeline", summary = "거래 timeline", description = "parentSegmentId와 callDepth를 포함한 timeline 구간 목록을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTimeline(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(Map.of(
                 "transactionGlobalId", transactionGlobalId,
@@ -60,14 +60,14 @@ public class AdmTransactionGroupController {
 
     @GetMapping("/{transactionGlobalId}/headers")
     @CpfTransaction(id = "ADM01TRG0005", name = "ADMTransactionGroupHeaders")
-    @Operation(summary = "거래 헤더 snapshot", description = "구간별 마스킹된 요청/응답/확장 헤더 snapshot을 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindHeaders", summary = "거래 헤더 snapshot", description = "구간별 마스킹된 요청/응답/확장 헤더 snapshot을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findHeaders(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(transactionGroupService.findHeaders(transactionGlobalId));
     }
 
     @GetMapping("/{transactionGlobalId}/external-logs")
     @CpfTransaction(id = "ADM01TRG0006", name = "ADMTransactionGroupExternalLogs")
-    @Operation(summary = "외부연계 송수신 로그", description = "EXS 원장 로그를 우선 조회하고, 원장이 없으면 pfw_transaction_segment의 external 후보를 fallback으로 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindExternalLogs", summary = "외부연계 송수신 로그", description = "EXS 원장 로그를 우선 조회하고, 원장이 없으면 pfw_transaction_segment의 external 후보를 fallback으로 조회합니다.")
     public ResponseEntity<Map<String, Object>> findExternalLogs(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(transactionGroupService.findExternalLogs(transactionGlobalId));
     }

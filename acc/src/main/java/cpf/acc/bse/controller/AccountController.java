@@ -40,7 +40,7 @@ public class AccountController {
 
     @GetMapping
     @CpfTransaction(id = "ACC01BSE0001", name = "ACCAccountList")
-    @Operation(summary = "ACC account list", description = "Reads sample accounts from the ACC database.")
+    @Operation(operationId = "accountGetAllAccounts", summary = "ACC account list", description = "Reads sample accounts from the ACC database.")
     public ResponseEntity<Map<String, Object>> getAllAccounts() {
         List<AccAccount> accounts = accAccountService.getAllAccounts();
 
@@ -56,7 +56,7 @@ public class AccountController {
     @CpfTransaction(id = "ACC08BSE0001", name = "MBRMemberDetail")
     @CpfWorkflow(id = "ACC08BSE9001", name = "MBRMemberDetailWorkflow")
     @CpfWorkflowStep(name = "CallMBRMemberDetail", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
-    @Operation(summary = "MBR member detail", description = "Calls MBR through PFW CpfWebClient and propagates CPF headers.")
+    @Operation(operationId = "accountGetMbrMemberDetail", summary = "MBR member detail", description = "Calls MBR through PFW CpfWebClient and propagates CPF headers.")
     public ResponseEntity<Map<String, Object>> getMbrMemberDetail(
             @RequestParam(name = "memberId")
             @Positive(message = "memberId must be positive")

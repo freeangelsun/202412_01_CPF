@@ -47,7 +47,7 @@ public class AdmDynamicLogLevelController {
 
     @GetMapping("/rules")
     @CpfTransaction(id = "ADM01OPR0020", name = "ADMDynamicLogRuleList")
-    @Operation(summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
+    @Operation(operationId = "admDynamicLogLevelFindRules", summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
     public ResponseEntity<Map<String, Object>> findRules() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("runtimeRules", dynamicLogLevelService.findActiveRules());
@@ -58,7 +58,7 @@ public class AdmDynamicLogLevelController {
 
     @PutMapping("/rules")
     @CpfTransaction(id = "ADM05OPR0021", name = "ADMDynamicLogRuleRegister")
-    @Operation(summary = "Register dynamic log rule", description = "Registers a temporary log-level rule by transaction id or business transaction id.")
+    @Operation(operationId = "admDynamicLogLevelRegister", summary = "Register dynamic log rule", description = "Registers a temporary log-level rule by transaction id or business transaction id.")
     public ResponseEntity<DynamicLogLevelRule> register(
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String transactionId,
@@ -93,7 +93,7 @@ public class AdmDynamicLogLevelController {
 
     @DeleteMapping("/rules/{ruleId}")
     @CpfTransaction(id = "ADM04OPR0022", name = "ADMDynamicLogRuleRemove")
-    @Operation(summary = "Remove dynamic log rule", description = "Removes a dynamic log-level rule by rule id.")
+    @Operation(operationId = "admDynamicLogLevelRemove", summary = "Remove dynamic log rule", description = "Removes a dynamic log-level rule by rule id.")
     public ResponseEntity<Map<String, Object>> remove(
             @PathVariable String ruleId,
             @RequestParam String reason,

@@ -36,28 +36,28 @@ public class XyzBatchEducationController {
 
     @PostMapping("/tasklet/run")
     @CpfTransaction(id = "XYZ13EDU0001", name = "XYZBatchTaskletRun")
-    @Operation(summary = "Tasklet Job 실행 샘플", description = "PFW 공통 배치 API를 통해 단건 처리 Job을 실행합니다.")
+    @Operation(operationId = "xyzBatchEducationRunTasklet", summary = "Tasklet Job 실행 샘플", description = "PFW 공통 배치 API를 통해 단건 처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runTasklet(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_TASKLET_JOB", requestUser, "Tasklet Job 교육 실행"));
     }
 
     @PostMapping("/chunk/run")
     @CpfTransaction(id = "XYZ13EDU0002", name = "XYZBatchChunkRun")
-    @Operation(summary = "Chunk Job 실행 샘플", description = "PFW 공통 배치 API를 통해 대용량 chunk 처리 Job을 실행합니다.")
+    @Operation(operationId = "xyzBatchEducationRunChunk", summary = "Chunk Job 실행 샘플", description = "PFW 공통 배치 API를 통해 대용량 chunk 처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runChunk(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_CHUNK_JOB", requestUser, "Chunk Job 교육 실행"));
     }
 
     @PostMapping("/retry/run")
     @CpfTransaction(id = "XYZ13EDU0003", name = "XYZBatchRetryRun")
-    @Operation(summary = "실패 재처리 Job 실행 샘플", description = "PFW 공통 배치 API를 통해 실패 재처리 Job을 실행합니다.")
+    @Operation(operationId = "xyzBatchEducationRunRetry", summary = "실패 재처리 Job 실행 샘플", description = "PFW 공통 배치 API를 통해 실패 재처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runRetry(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_RETRY_JOB", requestUser, "Retry Job 교육 실행"));
     }
 
     @GetMapping("/retry-policy")
     @CpfTransaction(id = "XYZ13EDU0004", name = "XYZBatchRetryPolicy")
-    @Operation(summary = "skip/retry 정책 설명", description = "배치 실패 재처리와 skip/retry 기준을 설명합니다.")
+    @Operation(operationId = "xyzBatchEducationRetryPolicy", summary = "skip/retry 정책 설명", description = "배치 실패 재처리와 skip/retry 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> retryPolicy() {
         return ResponseEntity.ok(Map.of(
                 "when", "외부 API 일시 오류, 잠금 경합, 네트워크 순간 장애처럼 재시도 가치가 있는 오류에 사용합니다.",
@@ -68,7 +68,7 @@ public class XyzBatchEducationController {
 
     @GetMapping("/lock-policy")
     @CpfTransaction(id = "XYZ13EDU0005", name = "XYZBatchLockPolicy")
-    @Operation(summary = "중복 실행 방지 lock 설명", description = "동일 job/parameter 중복 실행을 막는 운영 기준을 설명합니다.")
+    @Operation(operationId = "xyzBatchEducationLockPolicy", summary = "중복 실행 방지 lock 설명", description = "동일 job/parameter 중복 실행을 막는 운영 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> lockPolicy() {
         return ResponseEntity.ok(Map.of(
                 "lockTable", "pfw_batch_lock",
@@ -80,7 +80,7 @@ public class XyzBatchEducationController {
 
     @GetMapping("/checkpoint-restart")
     @CpfTransaction(id = "XYZ13EDU0006", name = "XYZBatchCheckpointRestart")
-    @Operation(summary = "checkpoint/restart 설명", description = "대용량 배치의 재시작 기준과 checkpoint 저장 원칙을 설명합니다.")
+    @Operation(operationId = "xyzBatchEducationCheckpointRestart", summary = "checkpoint/restart 설명", description = "대용량 배치의 재시작 기준과 checkpoint 저장 원칙을 설명합니다.")
     public ResponseEntity<Map<String, Object>> checkpointRestart() {
         return ResponseEntity.ok(Map.of(
                 "checkpoint", "마지막 정상 처리 key, 파일 offset, page 조건을 JobExecutionContext 또는 업무 재처리 테이블에 저장합니다.",
@@ -90,7 +90,7 @@ public class XyzBatchEducationController {
 
     @GetMapping("/adm-link")
     @CpfTransaction(id = "XYZ13EDU0007", name = "XYZBatchAdmLink")
-    @Operation(summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
+    @Operation(operationId = "xyzBatchEducationAdmLink", summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> admLink() {
         return ResponseEntity.ok(Map.of(
                 "metadata", List.of("BATCH_*", "pfw_batch_job", "pfw_batch_schedule", "pfw_batch_job_relation", "pfw_batch_execution_target", "pfw_batch_execution", "pfw_batch_step_execution", "pfw_batch_operation_log"),
@@ -101,7 +101,7 @@ public class XyzBatchEducationController {
 
     @GetMapping("/schedule-policy")
     @CpfTransaction(id = "XYZ13EDU0008", name = "XYZBatchSchedulePolicy")
-    @Operation(summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
+    @Operation(operationId = "xyzBatchEducationSchedulePolicy", summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> schedulePolicy() {
         return ResponseEntity.ok(Map.of(
                 "businessDayOnly", "pfw_batch_schedule.business_day_only_yn='Y'이면 pfw_business_day_calendar 기준 영업일만 수행 후보가 됩니다.",

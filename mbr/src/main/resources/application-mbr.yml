@@ -25,3 +25,9 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+cpf:
+  mbr:
+    reference:
+      # AUTO는 동일 JVM의 ACC 파사드를 우선 사용하고, 없으면 원격 프록시를 사용합니다.
+      acc-call-mode: ${MBR_ACC_CALL_MODE:AUTO}

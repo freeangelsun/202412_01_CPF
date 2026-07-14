@@ -118,26 +118,35 @@ public class CpfWebClient {
      * blocking POST 호출을 수행합니다.
      */
     public <T> T post(String serviceId, String path, Object requestBody, Class<T> responseType) {
-        ServiceCallRequest request = request(serviceId, "POST", normalizePath(path));
+        return post(request(serviceId, "POST", normalizePath(path)), requestBody, responseType);
+    }
+
+    /**
+     * timeout, retry, 외부키 같은 호출 속성을 명시한 표준 요청으로 POST를 수행합니다.
+     */
+    public <T> T post(ServiceCallRequest request, Object requestBody, Class<T> responseType) {
+        ServiceCallRequest effective = requirePostRequest(request);
         CpfServiceCallEngine engine = serviceCallEngine();
         if (engine != null && engine.isEnabled()) {
             ServiceCallResult<T> result = invokeThroughEngineOrFallback(
                     engine,
-                    request,
+                    effective,
                     target -> webClient(target)
                             .post()
-                            .uri(normalizePath(path))
+                            .uri(effective.requestPath())
+                            .headers(headers -> effective.headers().forEach(headers::set))
                             .bodyValue(requestBody)
                             .retrieve()
                             .bodyToMono(responseType)
-                            .block(timeout(request, target)));
+                            .block(timeout(effective, target)));
             if (result != null) {
                 return requireSuccess(result);
             }
         }
-        return service(serviceId)
+        return service(effective.serviceId())
                 .post()
-                .uri(normalizePath(path))
+                .uri(effective.requestPath())
+                .headers(headers -> effective.headers().forEach(headers::set))
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(responseType)
@@ -152,26 +161,38 @@ public class CpfWebClient {
             String path,
             Object requestBody,
             ParameterizedTypeReference<T> responseType) {
-        ServiceCallRequest request = request(serviceId, "POST", normalizePath(path));
+        return post(request(serviceId, "POST", normalizePath(path)), requestBody, responseType);
+    }
+
+    /**
+     * generic 응답과 호출 속성을 함께 사용하는 표준 POST를 수행합니다.
+     */
+    public <T> T post(
+            ServiceCallRequest request,
+            Object requestBody,
+            ParameterizedTypeReference<T> responseType) {
+        ServiceCallRequest effective = requirePostRequest(request);
         CpfServiceCallEngine engine = serviceCallEngine();
         if (engine != null && engine.isEnabled()) {
             ServiceCallResult<T> result = invokeThroughEngineOrFallback(
                     engine,
-                    request,
+                    effective,
                     target -> webClient(target)
                             .post()
-                            .uri(normalizePath(path))
+                            .uri(effective.requestPath())
+                            .headers(headers -> effective.headers().forEach(headers::set))
                             .bodyValue(requestBody)
                             .retrieve()
                             .bodyToMono(responseType)
-                            .block(timeout(request, target)));
+                            .block(timeout(effective, target)));
             if (result != null) {
                 return requireSuccess(result);
             }
         }
-        return service(serviceId)
+        return service(effective.serviceId())
                 .post()
-                .uri(normalizePath(path))
+                .uri(effective.requestPath())
+                .headers(headers -> effective.headers().forEach(headers::set))
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(responseType)
@@ -214,6 +235,22 @@ public class CpfWebClient {
                 .httpMethod(method)
                 .requestPath(path)
                 .build();
+    }
+
+    private ServiceCallRequest requirePostRequest(ServiceCallRequest request) {
+        if (request == null || request.serviceId() == null || request.serviceId().isBlank()) {
+            throw new IllegalArgumentException("서비스 호출 serviceId는 필수입니다.");
+        }
+        return new ServiceCallRequest(
+                request.serviceId().trim(),
+                request.endpointCode(),
+                request.instanceId(),
+                "POST",
+                normalizePath(request.requestPath()),
+                request.timeoutMillis(),
+                request.retryCount(),
+                request.headers(),
+                request.attributes());
     }
 
     private URI relativeUri(Function<UriBuilder, URI> uriFunction) {

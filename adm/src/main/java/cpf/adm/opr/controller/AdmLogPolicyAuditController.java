@@ -27,7 +27,7 @@ public class AdmLogPolicyAuditController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01LGP0018", name = "ADMLogPolicyAuditList")
-    @Operation(summary = "로그 정책 감사 목록 조회", description = "정책 변경, override 등록/중지, cache refresh 이력을 pfw_log_policy_audit 기준으로 조회합니다.")
+    @Operation(operationId = "admLogPolicyAuditFindPolicyAudits", summary = "로그 정책 감사 목록 조회", description = "정책 변경, override 등록/중지, cache refresh 이력을 pfw_log_policy_audit 기준으로 조회합니다.")
     public ResponseEntity<Map<String, Object>> findPolicyAudits(
             @RequestParam(required = false) String operatorId,
             @RequestParam(required = false) String actionType,

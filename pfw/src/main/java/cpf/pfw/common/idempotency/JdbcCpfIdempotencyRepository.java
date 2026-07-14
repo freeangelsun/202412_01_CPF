@@ -91,6 +91,7 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
             String idempotencyKey,
             String requestHash,
             String payloadHash,
+            Instant now,
             Instant expiresAt) {
         int updated = jdbcTemplate.update("""
                 UPDATE pfw_idempotency_record
@@ -105,14 +106,18 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
                   AND idempotency_key = ?
                   AND request_hash = ?
                   AND payload_hash = ?
-                  AND record_status IN ('FAILED', 'UNKNOWN', 'EXPIRED')
-                  AND (retry_allowed_yn = 'Y' OR record_status = 'EXPIRED')
+                  AND (
+                      (record_status IN ('FAILED', 'UNKNOWN') AND retry_allowed_yn = 'Y')
+                      OR record_status = 'EXPIRED'
+                      OR (record_status = 'PROCESSING' AND expires_at <= ?)
+                  )
                 """,
                 timestamp(expiresAt),
                 scope,
                 idempotencyKey,
                 requestHash,
-                payloadHash);
+                payloadHash,
+                timestamp(now));
         return updated == 1;
     }
 

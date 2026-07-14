@@ -77,7 +77,7 @@ class JdbcCpfIdempotencyRepositoryTest {
     @Test
     void restartUsesConditionalAtomicUpdate() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(1);
         JdbcCpfIdempotencyRepository repository = new JdbcCpfIdempotencyRepository(jdbcTemplate);
 
@@ -86,6 +86,7 @@ class JdbcCpfIdempotencyRepositoryTest {
                 "idem-004",
                 "request-hash",
                 "payload-hash",
+                Instant.now(),
                 Instant.now().plusSeconds(60));
 
         assertThat(restarted).isTrue();

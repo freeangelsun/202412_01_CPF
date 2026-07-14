@@ -18,7 +18,7 @@ public class XyzEducationController {
 
     @GetMapping
     @CpfTransaction(id = "XYZ01EDU0099", name = "XYZEducationCatalog")
-    @Operation(summary = "XYZ 교육 카탈로그", description = "개발자가 상황별로 참고할 수 있는 EDU 샘플 API 그룹을 조회합니다.")
+    @Operation(operationId = "xyzEducationCatalog", summary = "XYZ 교육 카탈로그", description = "개발자가 상황별로 참고할 수 있는 EDU 샘플 API 그룹을 조회합니다.")
     public ResponseEntity<Map<String, Object>> catalog() {
         return ResponseEntity.ok(Map.of(
                 "purpose", "CPF 프레임워크 표준 기능을 학습하기 위한 교육 API입니다.",

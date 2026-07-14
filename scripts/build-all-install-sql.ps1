@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
@@ -28,9 +28,9 @@ $(Read-Utf8 $path)
 $cleanup = @"
 
 -- ============================================================================
--- CPF table cleanup
+-- CPF 현행 테이블 정리
 -- ============================================================================
--- Recreate the current CPF standard tables for local install and smoke check.
+-- 로컬 설치와 smoke 검증을 위해 CPF 현행 표준 테이블을 다시 생성합니다.
 
 DROP TABLE IF EXISTS exsDB.exs_retry_log;
 DROP TABLE IF EXISTS exsDB.exs_control_policy;

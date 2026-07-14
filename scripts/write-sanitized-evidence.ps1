@@ -70,7 +70,12 @@ if (-not [string]::IsNullOrWhiteSpace($SourceLog)) {
     $payload = Sanitize-Text ([System.IO.File]::ReadAllText($sourcePath, [System.Text.Encoding]::UTF8))
 }
 
-$javaVersionOutput = @(& java --version 2>&1 | ForEach-Object { $_.ToString() })
+$javaCommand = if ($env:JAVA_HOME -and (Test-Path -LiteralPath (Join-Path $env:JAVA_HOME "bin/java.exe"))) {
+    Join-Path $env:JAVA_HOME "bin/java.exe"
+} else {
+    "java"
+}
+$javaVersionOutput = @(& $javaCommand --version 2>&1 | ForEach-Object { $_.ToString() })
 $javaVersion = Sanitize-Text (($javaVersionOutput | Select-Object -First 1) -join " ")
 $wrapperProperties = Join-Path $Root "gradle/wrapper/gradle-wrapper.properties"
 $gradleVersion = "unknown"

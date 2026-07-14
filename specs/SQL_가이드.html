@@ -79,6 +79,8 @@
       <tr><td>V23</td><td><code>V23__adm_reliability_operations.sql</code></td><td>ADM Reliability 메뉴, 조회/replay/수동확정 버튼과 역할별 API 권한을 추가합니다.</td></tr>
       <tr><td>V24</td><td><code>V24__batch_job_instance_log_linkage.sql</code></td><td><code>pfw_batch_execution</code>에 Spring Batch JobInstance, 업무일자, run/rerun, 원 실행, restart 횟수, 거래/segment, Job 로그 상대 경로 연결 컬럼과 index를 추가합니다.</td></tr>
       <tr><td>V25</td><td><code>V25__transaction_log_durable_recovery.sql</code></td><td><code>pfw_transaction_log.RECOVERY_EVENT_ID</code>와 unique index를 추가해 durable journal 재적재의 중복을 차단합니다.</td></tr>
+      <tr><td>V26</td><td><code>V26__trace_recovery_and_service_call_timeline.sql</code></td><td>segment에 selected instance, attempt, retry/failover/circuit, 하위 HTTP 상태, unknown 결과 식별자를 추가합니다.</td></tr>
+      <tr><td>V27</td><td><code>V27__broker_claim_retry_and_actual_replay.sql</code></td><td>Broker outbox claim lease, 시도 횟수, 다음 재시도 시각과 실제 DLQ replay 재큐잉을 위한 컬럼·인덱스를 추가합니다.</td></tr>
       </tbody>
     </table>
   </section>
@@ -89,9 +91,9 @@
       <thead><tr><th>테이블</th><th>역할</th><th>운영 조회</th></tr></thead>
       <tbody>
       <tr><td><code>pfw_idempotency_record</code></td><td>scope/key/hash, 상태, 저장 응답, TTL과 재시도 허용 여부를 보관합니다.</td><td><code>GET /adm/api/reliability/idempotency</code></td></tr>
-      <tr><td><code>pfw_broker_outbox</code></td><td>업무 transaction 이후 발행할 메시지와 worker claim·발행 결과를 보관합니다.</td><td><code>GET /adm/api/reliability/broker/outbox</code></td></tr>
+      <tr><td><code>pfw_broker_outbox</code></td><td>업무 transaction 이후 발행할 메시지, worker lease, attempt/maxAttempts, backoff와 실제 replay 재큐잉 상태를 보관합니다.</td><td><code>GET /adm/api/reliability/broker/outbox</code></td></tr>
       <tr><td><code>pfw_broker_inbox</code></td><td>messageId와 idempotencyKey로 소비 중복을 차단합니다.</td><td><code>GET /adm/api/reliability/broker/inbox</code></td></tr>
-      <tr><td><code>pfw_broker_dlq</code></td><td>실패 사유, replay 상태·횟수·시각을 보관합니다.</td><td><code>GET /adm/api/reliability/broker/dlq</code></td></tr>
+      <tr><td><code>pfw_broker_dlq</code></td><td>실패 사유, replay 상태·횟수·시각을 보관합니다. replay 요청은 상태만 바꾸지 않고 inbox 중복표시 해제와 outbox PENDING 전환을 함께 수행합니다.</td><td><code>GET /adm/api/reliability/broker/dlq</code></td></tr>
       <tr><td><code>pfw_file_transfer_history</code></td><td>transactionGlobalId, segment, endpoint, checksum, duplicate key와 결과를 보관합니다.</td><td><code>GET /adm/api/reliability/file-transfers</code></td></tr>
       <tr><td><code>pfw_unknown_result</code></td><td>외부 결과 미확정 상태와 자동·수동 reconciliation 정보를 보관합니다.</td><td><code>GET /adm/api/reliability/unknown-results</code></td></tr>
       </tbody>
@@ -106,8 +108,8 @@
       <tr><th>테이블</th><th>핵심 컬럼</th><th>조회 기준</th></tr>
       </thead>
       <tbody>
-      <tr><td><code>pfw_transaction_segment</code></td><td><code>transaction_global_id</code>, <code>transaction_segment_id</code>, <code>parent_segment_id</code>, <code>transaction_role</code>, <code>module_code</code>, <code>duration_ms</code>, <code>status</code>, <code>external_institution_code</code>, <code>external_transaction_id</code></td><td>ADM <code>/adm/api/transaction-groups</code>가 전체 묶음, segment 목록, timeline, header snapshot, external logs를 조회합니다.</td></tr>
-      <tr><td>index</td><td><code>ix_pfw_transaction_segment_global</code>, <code>ix_pfw_transaction_segment_parent</code>, <code>ix_pfw_transaction_segment_status</code>, <code>ix_pfw_transaction_segment_external</code></td><td>거래 묶음, parent tree, 실패 우선 검색, 외부기관 연계 검색에 사용합니다.</td></tr>
+      <tr><td><code>pfw_transaction_segment</code></td><td>기본 parent/role 정보와 <code>selected_instance_id</code>, <code>attempt_no</code>, <code>retry_yn</code>, <code>failover_yn</code>, <code>circuit_state</code>, <code>result_state</code>, <code>unknown_result_id</code></td><td>ADM <code>/adm/api/transaction-groups</code>가 전체 묶음, attempt timeline, header snapshot, external logs를 조회합니다.</td></tr>
+      <tr><td>index</td><td><code>ix_pfw_transaction_segment_global</code>, <code>..._parent</code>, <code>..._instance</code>, <code>..._attempt</code>, <code>..._unknown</code></td><td>거래 tree, 선택 인스턴스, 재시도 순서, unknown reconciliation 검색에 사용합니다.</td></tr>
       <tr><td>smoke</td><td><code>specs/sql/99_smoke_check.sql</code></td><td>설치 후 테이블 존재와 row count를 조회합니다. 실제 runtime 검증은 <code>scripts/smoke-composite-transaction-runtime.ps1</code>와 <code>scripts/smoke-adm-transaction-group-runtime.ps1</code>를 사용합니다.</td></tr>
       </tbody>
     </table>
@@ -132,7 +134,7 @@
     <h2>검증 명령</h2>
     <pre><code>powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-sql-standard.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1
-mysql --ssl=0 --default-character-set=utf8mb4 -u root -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
+mariadb --ssl=0 --default-character-set=utf8mb4 -u &lt;검증계정&gt; -p &lt; specs/sql/00_all_install_and_smoke.sql</code></pre>
     <p>실제 MariaDB에서 실행하지 않은 검증은 완료가 아니라 미검증으로 기록합니다.</p>
   </section>
 </main>

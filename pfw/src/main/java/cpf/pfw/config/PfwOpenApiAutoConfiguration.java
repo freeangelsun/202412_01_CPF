@@ -2,10 +2,17 @@ package cpf.pfw.config;
 
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
+import cpf.pfw.common.logging.CpfTransaction;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.DateTimeSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,7 +57,8 @@ public class PfwOpenApiAutoConfiguration {
                                 .email("cpf-framework@example.com")))
                 .externalDocs(new ExternalDocumentation()
                         .description("CPF 프레임워크 문서")
-                        .url("/docs"));
+                        .url("/docs"))
+                .components(new Components().addSchemas("CpfErrorResponse", cpfErrorResponseSchema()));
     }
 
     @Bean
@@ -125,6 +133,15 @@ public class PfwOpenApiAutoConfiguration {
     @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
+            CpfTransaction transaction = handlerMethod.getMethodAnnotation(CpfTransaction.class);
+            if (transaction == null) {
+                transaction = handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
+            }
+            if (transaction == null) {
+                addHeader(operation, "X-Trace-Id", false, "선택 분산 추적 ID입니다. 없으면 CPF가 생성할 수 있습니다.");
+                addHeader(operation, "X-Correlation-Id", false, "외부 시스템과 함께 보는 선택 상관관계 ID입니다.");
+                return operation;
+            }
             addHeader(
                     operation,
                     "X-Transaction-Id",
@@ -175,6 +192,52 @@ public class PfwOpenApiAutoConfiguration {
             }
             return operation;
         };
+    }
+
+    @Bean
+    public OperationCustomizer cpfStandardErrorResponseCustomizer() {
+        return (operation, handlerMethod) -> {
+            ApiResponses responses = operation.getResponses();
+            if (responses == null) {
+                responses = new ApiResponses();
+                operation.setResponses(responses);
+            }
+            addErrorResponse(responses, "400", "요청 형식 또는 필수값 오류");
+            addErrorResponse(responses, "401", "인증 정보 누락 또는 만료");
+            addErrorResponse(responses, "403", "요청 권한 부족");
+            addErrorResponse(responses, "404", "대상 리소스 없음");
+            addErrorResponse(responses, "409", "중복 또는 현재 상태 충돌");
+            addErrorResponse(responses, "429", "호출 한도 초과");
+            addErrorResponse(responses, "500", "서버 내부 처리 오류");
+            addErrorResponse(responses, "503", "일시적 서비스 사용 불가");
+            return operation;
+        };
+    }
+
+    private Schema<?> cpfErrorResponseSchema() {
+        return new ObjectSchema()
+                .description("CPF 표준 오류 응답입니다. 내부 예외와 민감정보는 노출하지 않습니다.")
+                .addProperty("messageId", new StringSchema().description("오류 메시지 식별자"))
+                .addProperty("transactionId", new StringSchema().description("트랜잭션 글로벌 ID"))
+                .addProperty("traceId", new StringSchema().description("분산 추적 ID"))
+                .addProperty("statusCode", new StringSchema().description("CPF 표준 응답코드"))
+                .addProperty("messageCode", new StringSchema().description("다국어 메시지코드"))
+                .addProperty("message", new StringSchema().description("외부 공개 오류 메시지"))
+                .addProperty("messageContent", new StringSchema().description("외부 공개 오류 메시지 본문"))
+                .addProperty("errorDetail", new ObjectSchema().description("노출 가능한 정제 오류 부가정보"))
+                .addProperty("timestamp", new DateTimeSchema().description("오류 발생 일시"));
+    }
+
+    private void addErrorResponse(ApiResponses responses, String statusCode, String description) {
+        if (responses.containsKey(statusCode)) {
+            return;
+        }
+        io.swagger.v3.oas.models.media.MediaType mediaType = new io.swagger.v3.oas.models.media.MediaType()
+                .schema(new Schema<>().$ref("#/components/schemas/CpfErrorResponse"));
+        responses.addApiResponse(statusCode, new ApiResponse()
+                .description(description)
+                .content(new io.swagger.v3.oas.models.media.Content()
+                        .addMediaType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE, mediaType)));
     }
 
     String generatedOperationId(org.springframework.web.method.HandlerMethod handlerMethod) {

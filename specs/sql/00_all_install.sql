@@ -39,9 +39,9 @@ CREATE DATABASE IF NOT EXISTS exsDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 -- ============================================================================
--- CPF table cleanup
+-- CPF 현행 테이블 정리
 -- ============================================================================
--- Recreate the current CPF standard tables for local install and smoke check.
+-- 로컬 설치와 smoke 검증을 위해 CPF 현행 표준 테이블을 다시 생성합니다.
 
 DROP TABLE IF EXISTS exsDB.exs_retry_log;
 DROP TABLE IF EXISTS exsDB.exs_control_policy;
@@ -383,6 +383,14 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     caller_service VARCHAR(100) NULL COMMENT '호출 서비스 ID',
     external_institution_code VARCHAR(50) NULL COMMENT '외부기관 코드',
     external_transaction_id VARCHAR(120) NULL COMMENT '외부기관 거래 ID',
+    selected_instance_id VARCHAR(100) NULL COMMENT '선택된 하위 서비스 인스턴스 ID',
+    attempt_no INT NULL COMMENT '서비스 호출 시도 순번',
+    retry_yn CHAR(1) NULL COMMENT '재시도 여부',
+    failover_yn CHAR(1) NULL COMMENT '다른 인스턴스로 전환한 여부',
+    circuit_state VARCHAR(20) NULL COMMENT '호출 시점 circuit 상태',
+    downstream_http_status INT NULL COMMENT '하위 서비스 HTTP 상태',
+    result_state VARCHAR(30) NULL COMMENT '호출 결과 상태',
+    unknown_result_id VARCHAR(100) NULL COMMENT '결과 미확정 관리 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
@@ -400,7 +408,10 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     INDEX ix_pfw_transaction_segment_user (user_id_masked, started_at),
     INDEX ix_pfw_transaction_segment_operator (operator_id_masked, started_at),
     INDEX ix_pfw_transaction_segment_client (client_app_id, caller_service, started_at),
-    INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
+    INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id),
+    INDEX ix_pfw_transaction_segment_instance (selected_instance_id, started_at),
+    INDEX ix_pfw_transaction_segment_attempt (transaction_global_id, attempt_no),
+    INDEX ix_pfw_transaction_segment_unknown (unknown_result_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
 
 CREATE TABLE IF NOT EXISTS pfw_service (
@@ -1341,6 +1352,10 @@ CREATE TABLE IF NOT EXISTS pfw_broker_outbox (
     attribute_json MEDIUMTEXT NULL COMMENT '메시지 속성 직렬화 값',
     outbox_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'Outbox 처리 상태',
     worker_id VARCHAR(120) NULL COMMENT '처리 worker ID',
+    attempt_count INT NOT NULL DEFAULT 0 COMMENT '발행 시도 횟수',
+    max_attempts INT NOT NULL DEFAULT 5 COMMENT '최대 발행 시도 횟수',
+    next_attempt_at DATETIME(3) NULL COMMENT '다음 발행 가능 일시',
+    lease_until DATETIME(3) NULL COMMENT 'worker 점유 만료 일시',
     broker_name VARCHAR(80) NULL COMMENT '전송 대상 broker 이름',
     partition_key VARCHAR(200) NULL COMMENT '전송 partition key',
     failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
@@ -1354,6 +1369,8 @@ CREATE TABLE IF NOT EXISTS pfw_broker_outbox (
     PRIMARY KEY (outbox_id),
     UNIQUE KEY uk_pfw_broker_outbox_message (message_id),
     INDEX ix_pfw_broker_outbox_status (outbox_status, outbox_id),
+    INDEX ix_pfw_broker_outbox_ready (outbox_status, next_attempt_at, outbox_id),
+    INDEX ix_pfw_broker_outbox_lease (outbox_status, lease_until),
     INDEX ix_pfw_broker_outbox_tx (transaction_global_id, segment_id),
     INDEX ix_pfw_broker_outbox_topic (topic, occurred_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker Outbox';

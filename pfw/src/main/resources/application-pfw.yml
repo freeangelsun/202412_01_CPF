@@ -41,6 +41,16 @@ cpf:
     connect-timeout-millis: ${CPF_PFW_HTTP_CONNECT_TIMEOUT_MS:${CPF_HTTP_CONNECT_TIMEOUT_MS:3000}}
     read-timeout-millis: ${CPF_PFW_HTTP_READ_TIMEOUT_MS:${CPF_HTTP_READ_TIMEOUT_MS:5000}}
     max-in-memory-size-kb: ${CPF_PFW_HTTP_MAX_IN_MEMORY_SIZE_KB:${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}}
+  service-call:
+    enabled: ${CPF_SERVICE_CALL_ENABLED:true}
+    default-timeout-millis: ${CPF_SERVICE_CALL_TIMEOUT_MS:3000}
+    default-retry-count: ${CPF_SERVICE_CALL_RETRY_COUNT:1}
+    max-retry-count: ${CPF_SERVICE_CALL_MAX_RETRY_COUNT:3}
+    retry-backoff-millis: ${CPF_SERVICE_CALL_RETRY_BACKOFF_MS:100}
+    max-retry-backoff-millis: ${CPF_SERVICE_CALL_MAX_RETRY_BACKOFF_MS:2000}
+    circuit-open-failure-threshold: ${CPF_SERVICE_CALL_CIRCUIT_FAILURE_THRESHOLD:3}
+    circuit-open-retry-after-millis: ${CPF_SERVICE_CALL_CIRCUIT_RETRY_AFTER_MS:30000}
+    fallback-to-configured-endpoint: ${CPF_SERVICE_CALL_CONFIG_FALLBACK_ENABLED:true}
   services:
     acc:
       base-url: ${CPF_SERVICE_ACC_URL:${CPF_SERVICE_ACC_URL:http://localhost:8080}}
@@ -69,6 +79,15 @@ cpf:
       max-attempts: ${CPF_DB_LOG_RECOVERY_MAX_ATTEMPTS:10}
       initial-backoff-ms: ${CPF_DB_LOG_RECOVERY_INITIAL_BACKOFF_MS:1000}
       max-backoff-ms: ${CPF_DB_LOG_RECOVERY_MAX_BACKOFF_MS:300000}
+      processing-lease-ms: ${CPF_DB_LOG_RECOVERY_PROCESSING_LEASE_MS:120000}
+    segment-fallback:
+      max-spool-bytes: ${CPF_SEGMENT_LOG_FALLBACK_MAX_BYTES:268435456}
+      recovery-interval-ms: ${CPF_SEGMENT_LOG_RECOVERY_INTERVAL_MS:30000}
+      recovery-batch-size: ${CPF_SEGMENT_LOG_RECOVERY_BATCH_SIZE:100}
+      max-attempts: ${CPF_SEGMENT_LOG_RECOVERY_MAX_ATTEMPTS:10}
+      initial-backoff-ms: ${CPF_SEGMENT_LOG_RECOVERY_INITIAL_BACKOFF_MS:1000}
+      max-backoff-ms: ${CPF_SEGMENT_LOG_RECOVERY_MAX_BACKOFF_MS:300000}
+      processing-lease-ms: ${CPF_SEGMENT_LOG_RECOVERY_PROCESSING_LEASE_MS:120000}
     db:
       enabled: ${CPF_LOGGING_DB_ENABLED:true}
       transaction-enabled: ${CPF_LOGGING_DB_TRANSACTION_ENABLED:true}

@@ -31,8 +31,8 @@
       <tr><th>도구</th><th>권장 기준</th><th>확인 방법</th></tr>
       </thead>
       <tbody>
-      <tr><td>JDK</td><td>Java 21</td><td><code>java -version</code></td></tr>
-      <tr><td>Gradle</td><td>저장소의 wrapper 사용</td><td><code>.\gradlew.bat --version</code></td></tr>
+      <tr><td>JDK</td><td>Java 21 배포 기준, Java 25 개발 호환</td><td><code>java -version</code>과 <code>JAVA_HOME</code>을 함께 확인합니다.</td></tr>
+      <tr><td>Gradle</td><td>저장소의 Gradle 9.1 wrapper 사용</td><td><code>.\gradlew.bat --version</code></td></tr>
       <tr><td>MariaDB</td><td>로컬 개발용 MariaDB 10.x 이상</td><td><code>mysql --version</code></td></tr>
       <tr><td>PowerShell</td><td>Windows PowerShell 또는 PowerShell 7</td><td><code>$PSVersionTable.PSVersion</code></td></tr>
       <tr><td>브라우저</td><td>ADM 화면과 Swagger 확인용</td><td><code>http://localhost:8090</code> 접속</td></tr>
@@ -42,6 +42,7 @@
 
   <section>
     <h2>빌드와 정적 검증</h2>
+    <p>컴파일은 JDK 선택과 관계없이 <code>--release 21</code>로 고정합니다. Java 21은 배포 호환 기준이고 Java 25는 개발·테스트 호환 기준이므로, 도구 체인을 변경할 때 두 JDK의 <code>cleanTest qualityGate</code>를 모두 확인합니다. Java 25 호환 기준은 Lombok 1.18.46과 Byte Buddy/agent 1.18.7입니다.</p>
     <p>의존성이 이미 내려받아진 환경에서는 offline 검증을 먼저 실행합니다. 네트워크가 필요한 신규 의존성은 별도 승인 후 online 빌드로 확인합니다.</p>
     <pre><code>.\gradlew.bat :pfw:test --offline
 .\gradlew.bat :adm:test --offline

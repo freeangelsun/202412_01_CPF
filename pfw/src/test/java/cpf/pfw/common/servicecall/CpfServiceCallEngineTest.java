@@ -1,10 +1,16 @@
 package cpf.pfw.common.servicecall;
 
+import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
+import cpf.pfw.common.logging.segment.TransactionSegmentScope;
+import cpf.pfw.common.logging.segment.TransactionSegmentService;
+import cpf.pfw.common.reconciliation.CpfReconciliationPort;
+import cpf.pfw.common.reconciliation.CpfUnknownResultRecord;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -124,6 +130,102 @@ class CpfServiceCallEngineTest {
         assertThat(result.status()).isEqualTo("FAILED");
         assertThat(result.failureCode()).isEqualTo("CIRCUIT_OPEN");
         verify(logWriter, never()).markFailure(any(), any(), anyLong(), any(), org.mockito.ArgumentMatchers.anyInt());
+    }
+
+    @Test
+    void recordsAttemptSegmentAndRegistersUnknownResultOnTimeout() {
+        CpfEndpointResolver resolver = mock(CpfEndpointResolver.class);
+        CpfServiceCallLogWriter logWriter = mock(CpfServiceCallLogWriter.class);
+        TransactionSegmentService segmentService = mock(TransactionSegmentService.class);
+        TransactionSegmentScope scope = mock(TransactionSegmentScope.class);
+        TransactionSegmentRecord segment = new TransactionSegmentRecord();
+        CpfReconciliationPort reconciliationPort = mock(CpfReconciliationPort.class);
+        CpfServiceCallProperties properties = new CpfServiceCallProperties();
+        properties.setDefaultRetryCount(0);
+        properties.setRetryBackoffMillis(0);
+        ServiceCallResolvedTarget target = target("MBR-1", "http://localhost:8081");
+        when(resolver.resolve(any(), any())).thenReturn(target);
+        when(logWriter.isCircuitOpen(any(), anyLong())).thenReturn(false);
+        when(segmentService.start(any(), any(), any(), any(), any(), any(), any())).thenReturn(scope);
+        when(scope.record()).thenReturn(segment);
+        when(scope.transactionGlobalId()).thenReturn("GLOBAL-001");
+        when(scope.transactionSegmentId()).thenReturn("SEG-001");
+        when(reconciliationPort.register(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        CpfServiceCallEngine engine = new CpfServiceCallEngine(
+                resolver,
+                logWriter,
+                properties,
+                segmentService,
+                reconciliationPort);
+
+        ServiceCallResult<String> result = engine.invoke(
+                ServiceCallRequest.builder("MBR")
+                        .endpointCode("MBR_API")
+                        .attribute("sourceModuleCode", "ACC")
+                        .attribute("externalKey", "EXT-001")
+                        .build(),
+                () -> {
+                    throw new IllegalStateException("하위 호출 timeout", new TimeoutException("timeout"));
+                });
+
+        assertThat(result.status()).isEqualTo("UNKNOWN");
+        assertThat(segment.getSelectedInstanceId()).isEqualTo("MBR-1");
+        assertThat(segment.getAttemptNo()).isEqualTo(1);
+        assertThat(segment.getResultState()).isEqualTo("UNKNOWN");
+        assertThat(segment.getUnknownResultId()).isNotBlank();
+        verify(scope).fail(org.mockito.ArgumentMatchers.eq("IllegalStateException"), any());
+        verify(reconciliationPort).register(org.mockito.ArgumentMatchers.argThat((CpfUnknownResultRecord row) ->
+                "GLOBAL-001".equals(row.transactionGlobalId())
+                        && "SEG-001".equals(row.segmentId())
+                        && "EXT-001".equals(row.externalKey())));
+    }
+
+    @Test
+    void recordsRetryAndFailoverOnSecondAttemptSegment() {
+        CpfEndpointResolver resolver = mock(CpfEndpointResolver.class);
+        CpfServiceCallLogWriter logWriter = mock(CpfServiceCallLogWriter.class);
+        TransactionSegmentService segmentService = mock(TransactionSegmentService.class);
+        TransactionSegmentScope firstScope = mock(TransactionSegmentScope.class);
+        TransactionSegmentScope secondScope = mock(TransactionSegmentScope.class);
+        TransactionSegmentRecord firstRecord = new TransactionSegmentRecord();
+        TransactionSegmentRecord secondRecord = new TransactionSegmentRecord();
+        CpfServiceCallProperties properties = new CpfServiceCallProperties();
+        properties.setDefaultRetryCount(1);
+        properties.setRetryBackoffMillis(0);
+        ServiceCallResolvedTarget first = target("MBR-1", "http://localhost:18081");
+        ServiceCallResolvedTarget second = target("MBR-2", "http://localhost:28081");
+        when(resolver.resolve(any(), any())).thenReturn(first, second);
+        when(logWriter.isCircuitOpen(any(), anyLong())).thenReturn(false);
+        when(segmentService.start(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(firstScope, secondScope);
+        when(firstScope.record()).thenReturn(firstRecord);
+        when(secondScope.record()).thenReturn(secondRecord);
+        CpfServiceCallEngine engine = new CpfServiceCallEngine(
+                resolver,
+                logWriter,
+                properties,
+                segmentService,
+                null);
+        AtomicInteger calls = new AtomicInteger();
+
+        ServiceCallResult<String> result = engine.invoke(
+                ServiceCallRequest.builder("MBR").retryCount(1).build(),
+                target -> {
+                    if (calls.incrementAndGet() == 1) {
+                        throw new IllegalStateException("first failed");
+                    }
+                    return "OK";
+                });
+
+        assertThat(result.status()).isEqualTo("SUCCESS");
+        assertThat(firstRecord.getAttemptNo()).isEqualTo(1);
+        assertThat(firstRecord.getFailoverYn()).isEqualTo("N");
+        assertThat(secondRecord.getAttemptNo()).isEqualTo(2);
+        assertThat(secondRecord.getRetryYn()).isEqualTo("Y");
+        assertThat(secondRecord.getFailoverYn()).isEqualTo("Y");
+        assertThat(secondRecord.getSelectedInstanceId()).isEqualTo("MBR-2");
+        verify(firstScope).fail(any(), any());
+        verify(secondScope).success();
     }
 
     @Test

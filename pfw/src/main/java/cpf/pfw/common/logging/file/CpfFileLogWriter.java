@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -52,6 +54,8 @@ import java.util.zip.GZIPOutputStream;
 @Component
 public class CpfFileLogWriter {
     private static final Logger log = LoggerFactory.getLogger(CpfFileLogWriter.class);
+    private static final Pattern ISO_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{4}-\\d{2}-\\d{2})(?!\\d)");
+    private static final Pattern BASIC_LOG_DATE_PATTERN = Pattern.compile("(?<!\\d)(\\d{8})(?!\\d)");
     private final Environment environment;
     private final Clock clock;
     private final ZoneId logZoneId;
@@ -368,15 +372,14 @@ public class CpfFileLogWriter {
                     .toList();
         }
         for (Path candidate : candidates) {
-            if (Files.getLastModifiedTime(candidate).toInstant().isBefore(cutoff)) {
+            if (logicalLogInstant(candidate).isBefore(cutoff)) {
                 Files.deleteIfExists(candidate);
                 continue;
             }
             if (archiveCompressionEnabled()
                     && candidate.getFileName().toString().endsWith(".log")
                     && !candidate.equals(activeLogPath)
-                    && Files.getLastModifiedTime(candidate).toInstant().isBefore(
-                    currentLogDate().atStartOfDay(logZoneId).toInstant())) {
+                    && isPreviousLogDate(candidate)) {
                 compressLog(candidate);
             }
         }
@@ -426,6 +429,37 @@ public class CpfFileLogWriter {
         } catch (IOException ex) {
             return Instant.MAX;
         }
+    }
+
+    /**
+     * 로그 파일명에 포함된 업무일자를 우선 사용하고, 표준 일자를 찾지 못한 파일만 수정시각으로 판단합니다.
+     */
+    private Instant logicalLogInstant(Path path) {
+        LocalDate logicalDate = extractLogDate(path);
+        return logicalDate != null
+                ? logicalDate.atStartOfDay(logZoneId).toInstant()
+                : lastModified(path);
+    }
+
+    private boolean isPreviousLogDate(Path path) {
+        LocalDate logicalDate = extractLogDate(path);
+        if (logicalDate != null) {
+            return logicalDate.isBefore(currentLogDate());
+        }
+        return lastModified(path).isBefore(currentLogDate().atStartOfDay(logZoneId).toInstant());
+    }
+
+    private LocalDate extractLogDate(Path path) {
+        String fileName = path.getFileName().toString();
+        Matcher isoMatcher = ISO_LOG_DATE_PATTERN.matcher(fileName);
+        if (isoMatcher.find()) {
+            return LocalDate.parse(isoMatcher.group(1), DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+        Matcher basicMatcher = BASIC_LOG_DATE_PATTERN.matcher(fileName);
+        if (basicMatcher.find()) {
+            return LocalDate.parse(basicMatcher.group(1), DateTimeFormatter.BASIC_ISO_DATE);
+        }
+        return null;
     }
 
     private long parseSize(String value) {

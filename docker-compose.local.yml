@@ -8,7 +8,7 @@ services:
     ports:
       - "${CPF_MARIADB_PORT:-3306}:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: ${CPF_MARIADB_ROOT_PASSWORD:-cpf_local_root_pw}
+      MARIADB_ROOT_PASSWORD: ${CPF_MARIADB_ROOT_PASSWORD:?CPF_MARIADB_ROOT_PASSWORD 환경변수를 설정해야 합니다.}
       MARIADB_CHARACTER_SET_SERVER: utf8mb4
       MARIADB_COLLATION_SERVER: utf8mb4_unicode_ci
     volumes:

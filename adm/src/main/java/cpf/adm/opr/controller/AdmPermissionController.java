@@ -46,21 +46,21 @@ public class AdmPermissionController {
 
     @GetMapping("/roles")
     @CpfTransaction(id = "ADM01PER0014", name = "ADMRoleManagementList")
-    @Operation(summary = "역할 관리 목록 조회", description = "ADM 역할의 유형, 사용 여부, 등록/수정 시각을 조회합니다.")
+    @Operation(operationId = "admPermissionFindRoles", summary = "역할 관리 목록 조회", description = "ADM 역할의 유형, 사용 여부, 등록/수정 시각을 조회합니다.")
     public ResponseEntity<List<AdmRoleManagement>> findRoles() {
         return ResponseEntity.ok(permissionService.findRoles());
     }
 
     @GetMapping("/roles/{roleId}")
     @CpfTransaction(id = "ADM01PER0015", name = "ADMRoleManagementDetail")
-    @Operation(summary = "역할 상세 조회", description = "ADM 역할 상세 정보를 조회합니다.")
+    @Operation(operationId = "admPermissionFindRole", summary = "역할 상세 조회", description = "ADM 역할 상세 정보를 조회합니다.")
     public ResponseEntity<AdmRoleManagement> findRole(@PathVariable String roleId) {
         return ResponseEntity.ok(permissionService.findRole(roleId));
     }
 
     @PostMapping("/roles")
     @CpfTransaction(id = "ADM02PER0016", name = "ADMRoleCreate")
-    @Operation(summary = "역할 등록", description = "ADM 역할을 등록하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionCreateRole", summary = "역할 등록", description = "ADM 역할을 등록하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmRoleManagement> createRole(
             @RequestBody AdmRoleSaveRequest request,
             HttpServletRequest servletRequest) {
@@ -73,7 +73,7 @@ public class AdmPermissionController {
 
     @PutMapping("/roles/{roleId}")
     @CpfTransaction(id = "ADM03PER0017", name = "ADMRoleUpdate")
-    @Operation(summary = "역할 수정", description = "ADM 역할을 수정하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateRole", summary = "역할 수정", description = "ADM 역할을 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmRoleManagement> updateRole(
             @PathVariable String roleId,
             @RequestBody AdmRoleSaveRequest request,
@@ -88,7 +88,7 @@ public class AdmPermissionController {
 
     @PutMapping("/roles/{roleId}/status")
     @CpfTransaction(id = "ADM03PER0018", name = "ADMRoleStatusUpdate")
-    @Operation(summary = "역할 사용 여부 변경", description = "ADM 역할 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateRoleStatus", summary = "역할 사용 여부 변경", description = "ADM 역할 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmRoleManagement> updateRoleStatus(
             @PathVariable String roleId,
             @RequestBody AdmStatusUpdateRequest request,
@@ -103,21 +103,21 @@ public class AdmPermissionController {
 
     @GetMapping("/menus")
     @CpfTransaction(id = "ADM01PER0019", name = "ADMMenuManagementList")
-    @Operation(summary = "메뉴 관리 목록 조회", description = "ADM 메뉴 계층과 사용 여부를 조회합니다.")
+    @Operation(operationId = "admPermissionFindManagedMenus", summary = "메뉴 관리 목록 조회", description = "ADM 메뉴 계층과 사용 여부를 조회합니다.")
     public ResponseEntity<List<AdmMenuManagement>> findManagedMenus() {
         return ResponseEntity.ok(permissionService.findManagedMenus());
     }
 
     @GetMapping("/menus/{menuId}")
     @CpfTransaction(id = "ADM01PER0020", name = "ADMMenuManagementDetail")
-    @Operation(summary = "메뉴 상세 조회", description = "ADM 메뉴 상세 정보를 조회합니다.")
+    @Operation(operationId = "admPermissionFindManagedMenu", summary = "메뉴 상세 조회", description = "ADM 메뉴 상세 정보를 조회합니다.")
     public ResponseEntity<AdmMenuManagement> findManagedMenu(@PathVariable String menuId) {
         return ResponseEntity.ok(permissionService.findManagedMenu(menuId));
     }
 
     @PostMapping("/menus")
     @CpfTransaction(id = "ADM02PER0021", name = "ADMMenuCreate")
-    @Operation(summary = "메뉴 등록", description = "ADM 메뉴를 등록하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionCreateMenu", summary = "메뉴 등록", description = "ADM 메뉴를 등록하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmMenuManagement> createMenu(
             @RequestBody AdmMenuSaveRequest request,
             HttpServletRequest servletRequest) {
@@ -130,7 +130,7 @@ public class AdmPermissionController {
 
     @PutMapping("/menus/{menuId}")
     @CpfTransaction(id = "ADM03PER0022", name = "ADMMenuUpdate")
-    @Operation(summary = "메뉴 수정", description = "ADM 메뉴를 수정하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateMenu", summary = "메뉴 수정", description = "ADM 메뉴를 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmMenuManagement> updateMenu(
             @PathVariable String menuId,
             @RequestBody AdmMenuSaveRequest request,
@@ -145,7 +145,7 @@ public class AdmPermissionController {
 
     @PutMapping("/menus/{menuId}/status")
     @CpfTransaction(id = "ADM03PER0023", name = "ADMMenuStatusUpdate")
-    @Operation(summary = "메뉴 사용 여부 변경", description = "ADM 메뉴 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateMenuStatus", summary = "메뉴 사용 여부 변경", description = "ADM 메뉴 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmMenuManagement> updateMenuStatus(
             @PathVariable String menuId,
             @RequestBody AdmStatusUpdateRequest request,
@@ -160,21 +160,21 @@ public class AdmPermissionController {
 
     @GetMapping("/buttons")
     @CpfTransaction(id = "ADM01PER0024", name = "ADMButtonManagementList")
-    @Operation(summary = "버튼 관리 목록 조회", description = "ADM 메뉴별 버튼/행위와 연결 API 패턴을 조회합니다.")
+    @Operation(operationId = "admPermissionFindButtons", summary = "버튼 관리 목록 조회", description = "ADM 메뉴별 버튼/행위와 연결 API 패턴을 조회합니다.")
     public ResponseEntity<List<AdmButton>> findButtons(@RequestParam(required = false) String menuId) {
         return ResponseEntity.ok(permissionService.findButtons(menuId));
     }
 
     @GetMapping("/buttons/{buttonId}")
     @CpfTransaction(id = "ADM01PER0025", name = "ADMButtonManagementDetail")
-    @Operation(summary = "버튼 상세 조회", description = "ADM 버튼/행위 상세 정보를 조회합니다.")
+    @Operation(operationId = "admPermissionFindButton", summary = "버튼 상세 조회", description = "ADM 버튼/행위 상세 정보를 조회합니다.")
     public ResponseEntity<AdmButton> findButton(@PathVariable String buttonId) {
         return ResponseEntity.ok(permissionService.findButton(buttonId));
     }
 
     @PostMapping("/buttons")
     @CpfTransaction(id = "ADM02PER0026", name = "ADMButtonCreate")
-    @Operation(summary = "버튼 등록", description = "ADM 버튼/행위를 등록하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionCreateButton", summary = "버튼 등록", description = "ADM 버튼/행위를 등록하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmButton> createButton(
             @RequestBody AdmButtonSaveRequest request,
             HttpServletRequest servletRequest) {
@@ -187,7 +187,7 @@ public class AdmPermissionController {
 
     @PutMapping("/buttons/{buttonId}")
     @CpfTransaction(id = "ADM03PER0027", name = "ADMButtonUpdate")
-    @Operation(summary = "버튼 수정", description = "ADM 버튼/행위를 수정하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateButton", summary = "버튼 수정", description = "ADM 버튼/행위를 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmButton> updateButton(
             @PathVariable String buttonId,
             @RequestBody AdmButtonSaveRequest request,
@@ -202,7 +202,7 @@ public class AdmPermissionController {
 
     @PutMapping("/buttons/{buttonId}/status")
     @CpfTransaction(id = "ADM03PER0028", name = "ADMButtonStatusUpdate")
-    @Operation(summary = "버튼 사용 여부 변경", description = "ADM 버튼/행위 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateButtonStatus", summary = "버튼 사용 여부 변경", description = "ADM 버튼/행위 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmButton> updateButtonStatus(
             @PathVariable String buttonId,
             @RequestBody AdmStatusUpdateRequest request,
@@ -217,21 +217,21 @@ public class AdmPermissionController {
 
     @GetMapping("/api-permissions")
     @CpfTransaction(id = "ADM01PER0029", name = "ADMApiPermissionList")
-    @Operation(summary = "API 권한 목록 조회", description = "ADM API 권한과 실제 API 경로 패턴을 조회합니다.")
+    @Operation(operationId = "admPermissionFindApiPermissions", summary = "API 권한 목록 조회", description = "ADM API 권한과 실제 API 경로 패턴을 조회합니다.")
     public ResponseEntity<List<AdmApiPermission>> findApiPermissions() {
         return ResponseEntity.ok(permissionService.findApiPermissions());
     }
 
     @GetMapping("/api-permissions/{apiPermissionId}")
     @CpfTransaction(id = "ADM01PER0030", name = "ADMApiPermissionDetail")
-    @Operation(summary = "API 권한 상세 조회", description = "ADM API 권한 상세 정보를 조회합니다.")
+    @Operation(operationId = "admPermissionFindApiPermission", summary = "API 권한 상세 조회", description = "ADM API 권한 상세 정보를 조회합니다.")
     public ResponseEntity<AdmApiPermission> findApiPermission(@PathVariable String apiPermissionId) {
         return ResponseEntity.ok(permissionService.findApiPermission(apiPermissionId));
     }
 
     @PostMapping("/api-permissions")
     @CpfTransaction(id = "ADM02PER0031", name = "ADMApiPermissionCreate")
-    @Operation(summary = "API 권한 등록", description = "ADM API 권한을 등록하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionCreateApiPermission", summary = "API 권한 등록", description = "ADM API 권한을 등록하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmApiPermission> createApiPermission(
             @RequestBody AdmApiPermissionSaveRequest request,
             HttpServletRequest servletRequest) {
@@ -244,7 +244,7 @@ public class AdmPermissionController {
 
     @PutMapping("/api-permissions/{apiPermissionId}")
     @CpfTransaction(id = "ADM03PER0032", name = "ADMApiPermissionUpdate")
-    @Operation(summary = "API 권한 수정", description = "ADM API 권한을 수정하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateApiPermission", summary = "API 권한 수정", description = "ADM API 권한을 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmApiPermission> updateApiPermission(
             @PathVariable String apiPermissionId,
             @RequestBody AdmApiPermissionSaveRequest request,
@@ -259,7 +259,7 @@ public class AdmPermissionController {
 
     @PutMapping("/api-permissions/{apiPermissionId}/status")
     @CpfTransaction(id = "ADM03PER0033", name = "ADMApiPermissionStatusUpdate")
-    @Operation(summary = "API 권한 사용 여부 변경", description = "ADM API 권한 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateApiPermissionStatus", summary = "API 권한 사용 여부 변경", description = "ADM API 권한 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmApiPermission> updateApiPermissionStatus(
             @PathVariable String apiPermissionId,
             @RequestBody AdmStatusUpdateRequest request,
@@ -274,14 +274,14 @@ public class AdmPermissionController {
 
     @GetMapping("/api-matrix")
     @CpfTransaction(id = "ADM01PER0034", name = "ADMApiPermissionMatrix")
-    @Operation(summary = "API 권한 매트릭스 조회", description = "역할별 ADM API 권한 허용 여부를 조회합니다.")
+    @Operation(operationId = "admPermissionFindApiPermissionMatrix", summary = "API 권한 매트릭스 조회", description = "역할별 ADM API 권한 허용 여부를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findApiPermissionMatrix() {
         return ResponseEntity.ok(permissionService.findApiPermissionMatrix());
     }
 
     @PutMapping("/roles/{roleId}/api-permissions/{apiPermissionId}")
     @CpfTransaction(id = "ADM03PER0035", name = "ADMRoleApiPermissionUpdate")
-    @Operation(summary = "역할별 API 권한 변경", description = "역할별 API 권한 허용 여부를 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateRoleApiPermission", summary = "역할별 API 권한 변경", description = "역할별 API 권한 허용 여부를 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateRoleApiPermission(
             @PathVariable String roleId,
             @PathVariable String apiPermissionId,
@@ -298,21 +298,21 @@ public class AdmPermissionController {
 
     @GetMapping("/menu-matrix")
     @CpfTransaction(id = "ADM01PER0010", name = "ADMMenuPermissionMatrix")
-    @Operation(summary = "메뉴 권한 매트릭스 조회", description = "역할별 ADM 메뉴 조회/쓰기/삭제 권한을 조회합니다.")
+    @Operation(operationId = "admPermissionFindMenuMatrix", summary = "메뉴 권한 매트릭스 조회", description = "역할별 ADM 메뉴 조회/쓰기/삭제 권한을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMenuMatrix() {
         return ResponseEntity.ok(permissionService.findMenuPermissions());
     }
 
     @GetMapping("/button-matrix")
     @CpfTransaction(id = "ADM01PER0011", name = "ADMButtonPermissionMatrix")
-    @Operation(summary = "버튼 권한 매트릭스 조회", description = "역할별 ADM 버튼/행위 권한을 조회합니다.")
+    @Operation(operationId = "admPermissionFindButtonMatrix", summary = "버튼 권한 매트릭스 조회", description = "역할별 ADM 버튼/행위 권한을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findButtonMatrix() {
         return ResponseEntity.ok(permissionService.findButtonPermissions());
     }
 
     @PutMapping("/roles/{roleId}/menus/{menuId}")
     @CpfTransaction(id = "ADM03PER0012", name = "ADMMenuPermissionUpdate")
-    @Operation(summary = "메뉴 권한 변경", description = "역할별 메뉴 권한을 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateMenuPermission", summary = "메뉴 권한 변경", description = "역할별 메뉴 권한을 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateMenuPermission(
             @PathVariable String roleId,
             @PathVariable String menuId,
@@ -338,7 +338,7 @@ public class AdmPermissionController {
 
     @PutMapping("/roles/{roleId}/buttons/{buttonId}")
     @CpfTransaction(id = "ADM03PER0013", name = "ADMButtonPermissionUpdate")
-    @Operation(summary = "버튼 권한 변경", description = "역할별 버튼/행위 권한을 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admPermissionUpdateButtonPermission", summary = "버튼 권한 변경", description = "역할별 버튼/행위 권한을 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateButtonPermission(
             @PathVariable String roleId,
             @PathVariable String buttonId,

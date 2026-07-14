@@ -35,7 +35,7 @@ public class AdmAuthController {
 
     @PostMapping("/login")
     @CpfTransaction(id = "ADM06OPR0040", name = "ADMLogin")
-    @Operation(summary = "ADM 로그인", description = "운영자를 인증하고 Bearer 토큰 세션을 발급합니다.")
+    @Operation(operationId = "admAuthLogin", summary = "ADM 로그인", description = "운영자를 인증하고 Bearer 토큰 세션을 발급합니다.")
     public ResponseEntity<AdmLoginResponse> login(@RequestBody AdmLoginRequest request) {
         AdmOperator operator = operatorService.authenticate(request);
         List<AdmMenu> menus = operatorService.findMenusForRoles(operator.roleIds());
@@ -44,7 +44,7 @@ public class AdmAuthController {
 
     @GetMapping("/me")
     @CpfTransaction(id = "ADM01OPR0041", name = "ADMCurrentOperator")
-    @Operation(summary = "현재 운영자 조회", description = "현재 세션의 운영자와 권한 메뉴를 조회합니다.")
+    @Operation(operationId = "admAuthMe", summary = "현재 운영자 조회", description = "현재 세션의 운영자와 권한 메뉴를 조회합니다.")
     public ResponseEntity<Map<String, Object>> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         String token = bearerToken(authorization);
         return sessionService.findValidSession(token)
@@ -57,7 +57,7 @@ public class AdmAuthController {
 
     @PostMapping("/logout")
     @CpfTransaction(id = "ADM06OPR0042", name = "ADMLogout")
-    @Operation(summary = "ADM 로그아웃", description = "현재 Bearer 토큰 세션을 폐기합니다.")
+    @Operation(operationId = "admAuthLogout", summary = "ADM 로그아웃", description = "현재 Bearer 토큰 세션을 폐기합니다.")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         sessionService.revoke(bearerToken(authorization));
         return ResponseEntity.ok(Map.of("loggedOut", true));

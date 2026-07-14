@@ -40,14 +40,14 @@ public class AdmDownloadController {
 
     @GetMapping("/policies")
     @CpfTransaction(id = "ADM01DWN0001", name = "ADMDownloadPolicyList")
-    @Operation(summary = "다운로드 정책 조회", description = "ADM 화면에서 사용할 다운로드 유형과 마스킹 정책을 조회합니다.")
+    @Operation(operationId = "admDownloadFindPolicies", summary = "다운로드 정책 조회", description = "ADM 화면에서 사용할 다운로드 유형과 마스킹 정책을 조회합니다.")
     public ResponseEntity<List<DownloadPolicy>> findPolicies() {
         return ResponseEntity.ok(downloadService.findPolicies());
     }
 
     @GetMapping("/audit-logs")
     @CpfTransaction(id = "ADM01DWN0002", name = "ADMDownloadAuditLogList")
-    @Operation(summary = "다운로드 감사 로그 조회", description = "운영자의 파일 다운로드 이력과 감사 사유를 조회합니다.")
+    @Operation(operationId = "admDownloadFindDownloadAuditLogs", summary = "다운로드 감사 로그 조회", description = "운영자의 파일 다운로드 이력과 감사 사유를 조회합니다.")
     public ResponseEntity<List<DownloadAuditLog>> findDownloadAuditLogs(
             @RequestParam(required = false) String downloadType,
             @RequestParam(required = false) String adminId,
@@ -57,7 +57,7 @@ public class AdmDownloadController {
 
     @PostMapping("/csv")
     @CpfTransaction(id = "ADM02DWN0003", name = "ADMDownloadCsv")
-    @Operation(summary = "CSV 다운로드", description = "거래 로그, 오류 로그, 배치 이력, 알림 발송 이력을 CSV로 다운로드합니다.")
+    @Operation(operationId = "admDownloadDownloadCsv", summary = "CSV 다운로드", description = "거래 로그, 오류 로그, 배치 이력, 알림 발송 이력을 CSV로 다운로드합니다.")
     public ResponseEntity<byte[]> downloadCsv(@RequestBody DownloadRequest request, HttpServletRequest servletRequest) {
         DownloadResult result = downloadService.downloadCsv(
                 request,

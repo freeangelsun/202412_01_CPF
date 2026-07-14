@@ -15,6 +15,8 @@ public record TransactionLogFallbackEnvelope(
         Instant firstFailedAt,
         Instant nextAttemptAt,
         String lastFailureType,
+        String claimedBy,
+        Instant claimedAt,
         TransactionLogRecord record,
         Map<String, String> details,
         LogPolicyDecision logPolicy) {
@@ -29,6 +31,36 @@ public record TransactionLogFallbackEnvelope(
                 firstFailedAt,
                 retryAt,
                 failureType,
+                null,
+                null,
+                record,
+                details,
+                logPolicy);
+    }
+
+    public TransactionLogFallbackEnvelope claimed(String workerId, Instant claimedTime) {
+        return new TransactionLogFallbackEnvelope(
+                recoveryEventId,
+                attemptCount,
+                firstFailedAt,
+                nextAttemptAt,
+                lastFailureType,
+                workerId,
+                claimedTime,
+                record,
+                details,
+                logPolicy);
+    }
+
+    public TransactionLogFallbackEnvelope released(Instant retryAt, String failureType) {
+        return new TransactionLogFallbackEnvelope(
+                recoveryEventId,
+                attemptCount,
+                firstFailedAt,
+                retryAt,
+                failureType,
+                null,
+                null,
                 record,
                 details,
                 logPolicy);

@@ -37,6 +37,14 @@
             caller_service,
             external_institution_code,
             external_transaction_id,
+            selected_instance_id,
+            attempt_no,
+            retry_yn,
+            failover_yn,
+            circuit_state,
+            downstream_http_status,
+            result_state,
+            unknown_result_id,
             created_by,
             created_at,
             updated_by,
@@ -71,11 +79,21 @@
             #{callerService},
             #{externalInstitutionCode},
             #{externalTransactionId},
+            #{selectedInstanceId},
+            #{attemptNo},
+            #{retryYn},
+            #{failoverYn},
+            #{circuitState},
+            #{downstreamHttpStatus},
+            #{resultState},
+            #{unknownResultId},
             IFNULL(#{createdBy}, 'PFW'),
             NOW(6),
             IFNULL(#{updatedBy}, 'PFW'),
             NOW(6)
         )
+        ON DUPLICATE KEY UPDATE
+            transaction_segment_id = VALUES(transaction_segment_id)
     </insert>
 
     <!-- 구간 종료 시 성공/실패 상태와 수행시간을 확정합니다. -->
@@ -90,9 +108,24 @@
                response_header_snapshot_masked = #{responseHeaderSnapshotMasked},
                external_institution_code = #{externalInstitutionCode},
                external_transaction_id = #{externalTransactionId},
+               selected_instance_id = #{selectedInstanceId},
+               attempt_no = #{attemptNo},
+               retry_yn = #{retryYn},
+               failover_yn = #{failoverYn},
+               circuit_state = #{circuitState},
+               downstream_http_status = #{downstreamHttpStatus},
+               result_state = #{resultState},
+               unknown_result_id = #{unknownResultId},
                updated_by = IFNULL(#{updatedBy}, 'PFW'),
                updated_at = NOW(6)
          WHERE transaction_segment_id = #{transactionSegmentId}
     </update>
+
+    <!-- 복구 시 END 이벤트가 START 이벤트보다 먼저 처리되지 않도록 존재 여부를 확인합니다. -->
+    <select id="countByTransactionSegmentId" resultType="int">
+        SELECT COUNT(*)
+          FROM pfw_transaction_segment
+         WHERE transaction_segment_id = #{transactionSegmentId}
+    </select>
 
 </mapper>

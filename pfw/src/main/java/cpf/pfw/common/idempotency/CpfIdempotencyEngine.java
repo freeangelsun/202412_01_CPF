@@ -87,6 +87,7 @@ public class CpfIdempotencyEngine {
                 command.idempotencyKey(),
                 command.requestHash(),
                 command.payloadHash(),
+                clock.instant(),
                 expiresAt)) {
             throw new CpfIdempotencyException(
                     "CPF-IDEMPOTENCY-RETRY-NOT-ALLOWED",

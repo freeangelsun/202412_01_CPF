@@ -18,7 +18,9 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -48,8 +50,12 @@ public class TransactionLogFallbackStore {
     private final Path processingDirectory;
     private final Path poisonDirectory;
     private final String spoolRelativeDirectory;
+    private final String workerId;
     private final long maxSpoolBytes;
     private final AtomicLong enqueueFailureCount = new AtomicLong();
+    private final AtomicLong staleReclaimedCount = new AtomicLong();
+    private final AtomicLong malformedPoisonCount = new AtomicLong();
+    private final AtomicLong poisonRetryCount = new AtomicLong();
 
     @Autowired
     public TransactionLogFallbackStore(
@@ -73,6 +79,7 @@ public class TransactionLogFallbackStore {
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root)
                 .toString()
                 .replace('\\', '/');
+        this.workerId = environment.getProperty("cpf.framework.instance-id", "pfw-local");
         this.maxSpoolBytes = environment.getProperty(
                 "cpf.logging.db-fallback.max-spool-bytes",
                 Long.class,
@@ -106,6 +113,8 @@ public class TransactionLogFallbackStore {
                 now,
                 now,
                 failure == null ? "UNKNOWN" : failure.getClass().getSimpleName(),
+                null,
+                null,
                 record,
                 details,
                 logPolicy);
@@ -128,11 +137,47 @@ public class TransactionLogFallbackStore {
         return listJsonFiles(pendingDirectory);
     }
 
+    /**
+     * 현재 실행 가능한 항목만 오래된 실패 순서로 반환합니다.
+     * 아직 재시도 시각이 되지 않은 항목은 batch quota를 소비하지 않습니다.
+     */
+    public synchronized List<Path> eligiblePendingFiles(Instant now, int limit) {
+        List<EligibleFile> eligible = new ArrayList<>();
+        for (Path pending : listJsonFiles(pendingDirectory)) {
+            try {
+                TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
+                        pending.toFile(),
+                        TransactionLogFallbackEnvelope.class);
+                if (envelope.nextAttemptAt() == null || !envelope.nextAttemptAt().isAfter(now)) {
+                    eligible.add(new EligibleFile(pending, envelope.firstFailedAt(), envelope.recoveryEventId()));
+                }
+            } catch (IOException ex) {
+                moveMalformedToPoison(pending);
+            }
+        }
+        return eligible.stream()
+                .sorted(Comparator
+                        .comparing(EligibleFile::firstFailedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .thenComparing(EligibleFile::recoveryEventId, Comparator.nullsFirst(String::compareTo)))
+                .limit(Math.max(1, limit))
+                .map(EligibleFile::path)
+                .toList();
+    }
+
     public synchronized TransactionLogFallbackEnvelope claim(Path pendingFile) throws IOException {
         Path source = requireDirectChild(pendingDirectory, pendingFile);
         Path processing = processingDirectory.resolve(source.getFileName());
         moveAtomically(source, processing, false);
-        return objectMapper.readValue(processing.toFile(), TransactionLogFallbackEnvelope.class);
+        try {
+            TransactionLogFallbackEnvelope claimed = objectMapper
+                    .readValue(processing.toFile(), TransactionLogFallbackEnvelope.class)
+                    .claimed(workerId, clock.instant());
+            writeAtomically(processing, objectMapper.writeValueAsBytes(claimed), true);
+            return claimed;
+        } catch (IOException ex) {
+            restoreClaimAfterReadFailure(processing);
+            throw ex;
+        }
     }
 
     public synchronized void complete(String recoveryEventId) throws IOException {
@@ -152,6 +197,50 @@ public class TransactionLogFallbackStore {
         Files.deleteIfExists(processing);
     }
 
+    /**
+     * 운영자 승인과 감사 기록을 거친 poison 항목을 재시도 대기열로 되돌립니다.
+     */
+    public synchronized boolean retryPoison(String recoveryEventId) throws IOException {
+        Path poison = poisonPath(recoveryEventId);
+        if (!Files.isRegularFile(poison)) {
+            return false;
+        }
+        TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
+                poison.toFile(),
+                TransactionLogFallbackEnvelope.class);
+        TransactionLogFallbackEnvelope approved = envelope.released(clock.instant(), "POISON_RETRY_APPROVED");
+        writeAtomically(pendingPath(recoveryEventId), objectMapper.writeValueAsBytes(approved), false);
+        Files.delete(poison);
+        poisonRetryCount.incrementAndGet();
+        return true;
+    }
+
+    /**
+     * lease 시간이 지난 processing 파일만 회수해 정상 처리 중인 claim을 보호합니다.
+     */
+    public synchronized int reclaimStaleProcessing(Instant now, Duration leaseTimeout) {
+        int reclaimed = 0;
+        Instant staleBefore = now.minus(leaseTimeout);
+        for (Path processing : listJsonFiles(processingDirectory)) {
+            try {
+                TransactionLogFallbackEnvelope envelope = objectMapper.readValue(
+                        processing.toFile(),
+                        TransactionLogFallbackEnvelope.class);
+                if (envelope.claimedAt() != null && envelope.claimedAt().isAfter(staleBefore)) {
+                    continue;
+                }
+                TransactionLogFallbackEnvelope released = envelope.released(now, "STALE_PROCESSING_RECLAIMED");
+                writeAtomically(pendingPath(envelope.recoveryEventId()), objectMapper.writeValueAsBytes(released), false);
+                Files.deleteIfExists(processing);
+                reclaimed++;
+                staleReclaimedCount.incrementAndGet();
+            } catch (IOException ex) {
+                moveMalformedToPoison(processing);
+            }
+        }
+        return reclaimed;
+    }
+
     public synchronized FallbackSnapshot snapshot() {
         return new FallbackSnapshot(
                 pendingFiles().size(),
@@ -160,6 +249,9 @@ public class TransactionLogFallbackStore {
                 spoolSizeBytes(),
                 maxSpoolBytes,
                 enqueueFailureCount.get(),
+                staleReclaimedCount.get(),
+                malformedPoisonCount.get(),
+                poisonRetryCount.get(),
                 spoolRelativeDirectory);
     }
 
@@ -245,17 +337,29 @@ public class TransactionLogFallbackStore {
     }
 
     private void restoreInterruptedClaims() {
-        for (Path processing : listJsonFiles(processingDirectory)) {
-            Path pending = pendingDirectory.resolve(processing.getFileName());
-            try {
-                if (Files.exists(pending)) {
-                    Files.deleteIfExists(processing);
-                } else {
-                    moveAtomically(processing, pending, false);
-                }
-            } catch (IOException ex) {
-                enqueueFailureCount.incrementAndGet();
+        reclaimStaleProcessing(clock.instant(), Duration.ZERO);
+    }
+
+    private void restoreClaimAfterReadFailure(Path processing) {
+        Path pending = pendingDirectory.resolve(processing.getFileName());
+        try {
+            if (Files.exists(pending)) {
+                Files.deleteIfExists(processing);
+            } else {
+                moveAtomically(processing, pending, false);
             }
+        } catch (IOException restoreFailure) {
+            enqueueFailureCount.incrementAndGet();
+        }
+    }
+
+    private void moveMalformedToPoison(Path source) {
+        try {
+            Path target = poisonDirectory.resolve(source.getFileName());
+            moveAtomically(source, target, true);
+            malformedPoisonCount.incrementAndGet();
+        } catch (IOException moveFailure) {
+            enqueueFailureCount.incrementAndGet();
         }
     }
 
@@ -345,6 +449,9 @@ public class TransactionLogFallbackStore {
             long spoolBytes,
             long maxSpoolBytes,
             long enqueueFailureCount,
+            long staleReclaimedCount,
+            long malformedPoisonCount,
+            long poisonRetryCount,
             String spoolDirectory) {
         public String health() {
             if (enqueueFailureCount > 0 || spoolBytes >= maxSpoolBytes) {
@@ -355,5 +462,8 @@ public class TransactionLogFallbackStore {
             }
             return "UP";
         }
+    }
+
+    private record EligibleFile(Path path, Instant firstFailedAt, String recoveryEventId) {
     }
 }

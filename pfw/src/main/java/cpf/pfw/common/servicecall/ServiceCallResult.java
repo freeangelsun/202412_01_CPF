@@ -50,4 +50,21 @@ public record ServiceCallResult<T>(
             String failureMessage) {
         return failure(target, null, durationMillis, 1, failureCode, failureMessage);
     }
+
+    public static <T> ServiceCallResult<T> unknown(
+            ServiceCallResolvedTarget target,
+            Long durationMillis,
+            Integer attemptCount,
+            String failureCode,
+            String failureMessage) {
+        return new ServiceCallResult<>(
+                "UNKNOWN",
+                target,
+                null,
+                null,
+                durationMillis,
+                attemptCount,
+                failureCode,
+                failureMessage);
+    }
 }

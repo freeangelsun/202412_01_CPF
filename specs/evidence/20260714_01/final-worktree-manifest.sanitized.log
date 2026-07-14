@@ -1,0 +1,350 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-FINAL-WORKTREE-MANIFEST-20260714
+STATUS=완료
+EXECUTED_AT=2026-07-14T13:13:43.1429040+09:00
+START_COMMIT=fb6b17850aa915c8ff0db034833e2fe1343fc322
+BRANCH=master
+COMMAND=powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-final-worktree-manifest.ps1
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+REQUEST_SHA256=e241d448c026acd564d7970fac1af004e9e779bc9186fa135c849cbd6f01a8d9
+REQUEST_GIT_BLOB=beb533ed23529f695e4cc48c9dad5001010ef4d0
+CHANGED_FILE_COUNT=325
+SELF_HASH_POLICY=output file uses SELF_REFERENTIAL
+LOG_SHA256=89f51e9020f4fa03be1f7af310d887f1fdfa21646b9b9927787c33b8153b2249
+--- WORKTREE_FILES ---
+STATUS= M	PATH=.vscode/settings.json	SHA256=99db7668e76737e73c0aaacac175459a3325507f038b117fc563014e71493c15
+STATUS= M	PATH=acc/src/main/java/cpf/acc/bse/controller/AccCompositeEducationController.java	SHA256=d3e27afb9f2f7c6ee76d6e552c75a5ed4ebd7d0e5eab6d9fd2723406204e7ee2
+STATUS= M	PATH=acc/src/main/java/cpf/acc/bse/controller/AccountController.java	SHA256=138978e89316414ad0ddbf329e86786dc1e3f1d8f23e859bc5cfb8fd600fd532
+STATUS= M	PATH=acc/src/main/java/cpf/acc/config/AccMyBatisConfig.java	SHA256=1e04828cdd141421b1658a174d409059c2b5809bbe7bf9d44e2c149b87b5185c
+STATUS=??	PATH=acc/src/main/java/cpf/acc/reference/controller/AccReferenceController.java	SHA256=50913a3207a8dfec0143ad6cb280ffca2944d7f3c4a0ca0dbfde37ee9c27d37f
+STATUS=??	PATH=acc/src/main/java/cpf/acc/reference/service/AccMemberExternalFacadeService.java	SHA256=1004208bea3b4c0e78708d34d20f2a4178b4b581696aeacdfdc6129960476249
+STATUS= M	PATH=acc/src/main/java/cpf/acc/tst/controller/CmnCoderController.java	SHA256=fb34b4c6cd9e3cc10709d8001b8e101ec1f8c42b368d91840f549702fbd8be1b
+STATUS= M	PATH=acc/src/main/java/cpf/acc/tst/controller/CmnManagementController.java	SHA256=5e9043e41a221ea91a9368bd9d4e812d9430f9fc6cdb5f978bc3b99a2a5db8ea
+STATUS= M	PATH=acc/src/main/java/cpf/acc/tst/controller/StandardHeaderE2eController.java	SHA256=f124347fce1f96102984e33a78813eb0de7a22c3acf78848dbac09433f32e742
+STATUS= M	PATH=acc/src/main/java/cpf/acc/tst/controller/TransactionController.java	SHA256=af6cd47eeb415d5e51f25994a82b8896f46e2970620cf81124967c9e0094df4a
+STATUS=??	PATH=acc/src/test/java/cpf/acc/reference/service/AccMemberExternalFacadeServiceTest.java	SHA256=e4fccc4c301ec0f38f2fea36a3deee7860302b5a0a2f740d6679c5e85b93d586
+STATUS= D	PATH=adm/src/main/java/cpf/adm/edu/AdmEducationCoverageCatalog.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/main/java/cpf/adm/edu/batch/AdmBatchEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/main/java/cpf/adm/edu/operation/AdmOperationEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/main/java/cpf/adm/edu/runtime/AdmRuntimeEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmAuditLogController.java	SHA256=b1b2d8f9f2ffef42e6bffbeaef71bc0d70fe5d954d8e8e2dcb042b711cd919f2
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmAuthController.java	SHA256=4e79112eb5efda5626a253ed548e5edcc93b257ceb5c478e9a4b5c14f2c89fbb
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java	SHA256=18be44e48bbabcbeaa8c82ec099f5f49e6f39c0155cf8c6047512c9afff97be7
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmCacheController.java	SHA256=081dacbd81f04807a4b51e0b738ed2cd1beb51399cc654745f62611953af930f
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmCenterCutController.java	SHA256=78e71bb3a9a2712a029be8a35155d0e4a33c32b2bf5a015d5252edcd10e0a77e
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmCodeController.java	SHA256=39ca12d3777017eda398e48c8cd55fa3e81647101bd6be87e5dfea2467dc0df3
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmConfigController.java	SHA256=70b09a7a676f95bc03049e692e0e56653b6a5b06399422deac080e79ba657f58
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java	SHA256=9974a715963d28db0566f1553a7bab8462f92d100832959590c5bbea3ba4e680
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmDynamicLogLevelController.java	SHA256=3bec4c585955e51de9d27e57d6798e502a9030aff712a1bf5a9120f6d3f85e56
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmLogController.java	SHA256=297556e9a6a51285aa9e19611b0d2f085f270148f8dddd4f879fb295d63a0a78
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyAuditController.java	SHA256=6189e91cdfafed30dbd76ffb304541447a9bcadec0bb6b14195327153caa18c0
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyController.java	SHA256=b43a63f724c93722d7eaf7af73f90c48197d64410d955b0fb08898d2721e1db8
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java	SHA256=838b2a0b2fa5e4f22fc391e4e2ac416bb74713ac9f14468f0908c6d81f83317b
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmMessageController.java	SHA256=f7203045d7c42bbe85011874bb8d71c3e108a23e81ae8c67f5148cd92e607a9a
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java	SHA256=5b612eb7820ab0d1df07fa900265638876d32f62308b295ba07be00843c66ff0
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmOperatorController.java	SHA256=af420129775419d17c8792d5f8b92bb10159b1e1ef1859a8f25cff55bf924d03
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmPageController.java	SHA256=040bceefeaf40ae0c6358487abf165de757f60c71883456c684270c1b725bc97
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java	SHA256=47f8ecd35a46f9b1b4745042f3b60074b025ad68aab6b1a657af4a6b6d4a198b
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmReliabilityController.java	SHA256=00810d520295fc796f3a58b9f97b5af9df03fbc073b7f56792988ee4a5b56d83
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmResponseCodeController.java	SHA256=f1e9b151959f2ac9f7c8c1af0e4685f441d680182c0902697ff02bfabfb981bb
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmSecurityController.java	SHA256=819cea04b9b5eab622fd522cb2f2c0ef16e12e5df26ea511a4786d70a55281e3
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmServiceRegistryController.java	SHA256=b22ed8968120995430e4bd4ca0a20e30224fa8c07efee1e536e5c4c382bc07c4
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmTransactionGroupController.java	SHA256=a796a80b5fe63e6194c103783adc6edae2e1ce099a2aa12da94b26f5f7b518da
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/controller/AdmTransactionMetaController.java	SHA256=adca96efe2a37c3252ea706fbd3ffa22aa1e9292f5173641df25ab45f5ab5eb9
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/service/AdmReliabilityService.java	SHA256=d08104b4618e52b26887ec2c328e118ad2c1a74d79100d9c21d87e1978aab5c5
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/service/AdmServiceRegistryService.java	SHA256=1f483523f25f4d156cef014048a90fe05078d7c1ec22631a3307cb5d35778f4f
+STATUS= M	PATH=adm/src/main/java/cpf/adm/opr/service/AdmTransactionGroupService.java	SHA256=24c4e59eb307f7c3725f334bba81a57d10461b1810fd52f5f48b4b2fa958ce5b
+STATUS= D	PATH=adm/src/test/java/cpf/adm/edu/AdmEducationCoverageCatalogTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/test/java/cpf/adm/edu/batch/AdmBatchEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/test/java/cpf/adm/edu/operation/AdmOperationEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=adm/src/test/java/cpf/adm/edu/runtime/AdmRuntimeEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=adm/src/test/java/cpf/adm/opr/service/AdmReliabilityServiceTest.java	SHA256=5f30878c238bf9dee672f72adf2c39858da7ad3482361d8ba48b436c354f2d1f
+STATUS= M	PATH=bat/src/main/java/cpf/bat/edu/servicecall/BatServiceCallEngineEducationSample.java	SHA256=9c5e51190c8e7490644f80dd5db0107742ae237273528b07b4ef549a39002aac
+STATUS= M	PATH=bat/src/test/java/cpf/bat/edu/servicecall/BatServiceCallEngineEducationSampleTest.java	SHA256=9cd8420381664900f274046f98584ec929cbf9699c8a7adfb1b11d9806c6a644
+STATUS= M	PATH=bizadm/src/main/java/cpf/bizadm/auth/controller/BizAdmAuthController.java	SHA256=a351233755311770869d6e72b7f54d19345d2b7f2020b980c792f88129af0b18
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/api/BizAdmApiPermissionEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/audit/BizAdmAuditEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/auth/BizAdmMenuPermissionEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/BizAdmEducationCoverageCatalog.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/button/BizAdmButtonPermissionEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/download/BizAdmDownloadAuditEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/main/java/cpf/bizadm/edu/masking/BizAdmMaskingPolicyEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=bizadm/src/main/java/cpf/bizadm/operation/controller/BizAdmOperationController.java	SHA256=fbf7f397e7cd085fe70179a75903e50463fac8f0bd6b3dbe383cb4e03f96877f
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/api/BizAdmApiPermissionEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/audit/BizAdmAuditEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/auth/BizAdmMenuPermissionEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/BizAdmEducationCoverageCatalogTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/button/BizAdmButtonPermissionEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/download/BizAdmDownloadAuditEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=bizadm/src/test/java/cpf/bizadm/edu/masking/BizAdmMaskingPolicyEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=build.gradle	SHA256=6f5bd39e9ba05f2e6231c90191d4eaf271f972715f098810d74fb4652d76c0b2
+STATUS= M	PATH=cmn/src/main/java/cpf/cmn/config/CmnMyBatisConfig.java	SHA256=21463ff2844020c5525e42936a0708bf3486f4cd3820d94de716d0e49a6712c0
+STATUS=??	PATH=cmn/src/main/java/cpf/cmn/contract/reference/AccMemberExternalFacade.java	SHA256=344be24261f9fdb98598e52b8ee43be58333aa551d5847de5cecae16881c9ad6
+STATUS=??	PATH=cmn/src/main/java/cpf/cmn/contract/reference/AccMemberExternalRequest.java	SHA256=6f4e2a42f859c3ba5f0c1a505cfaf756313eb44a817a381b44045fc9ea9dad0f
+STATUS=??	PATH=cmn/src/main/java/cpf/cmn/contract/reference/AccMemberExternalResponse.java	SHA256=c2993ee01bae6736d69c9c0958f80843f6454531d5357fb7e56582b616fe0f89
+STATUS=??	PATH=cmn/src/main/java/cpf/cmn/contract/reference/ExternalExchangeRequest.java	SHA256=271cb65b29210887de1c14b5ece900603f3a247dd3af18932d5c36d01a6557a1
+STATUS=??	PATH=cmn/src/main/java/cpf/cmn/contract/reference/ExternalExchangeResponse.java	SHA256=dba964efcadb8c7ffd01a424f33ea75d3ae2bae741988f5fbf2973ac3e15ffbc
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/CmnEducationCoverageCatalog.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/converter/CmnConverterEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/file/CmnFileRuleEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/fixedlength/CmnFixedLengthFormatterEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/fixedlength/CmnFixedLengthLayoutEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/fixedlength/CmnFixedLengthParserEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/fixedlength/CmnFixedLengthRoundTripEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/masking/CmnMaskingEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/message/CmnMessageCodeEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/main/java/cpf/cmn/edu/validation/CmnValidationEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/CmnEducationCoverageCatalogTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/converter/CmnConverterEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/file/CmnFileRuleEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/fixedlength/CmnFixedLengthFormatterEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/fixedlength/CmnFixedLengthLayoutEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/fixedlength/CmnFixedLengthParserEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/fixedlength/CmnFixedLengthRoundTripEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/masking/CmnMaskingEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/message/CmnMessageCodeEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=cmn/src/test/java/cpf/cmn/edu/validation/CmnValidationEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=CPF_EVIDENCE_INDEX.md	SHA256=6096f402e87d6ae4374f3f93e4438a4fb522ae8589215af9a5fea00dcc09ab16
+STATUS= M	PATH=CPF_GAP_MATRIX.md	SHA256=93c5c83658f7a1d3e49f54a7ac5464b64bcc751051265d707b20cdc3c5daf257
+STATUS= M	PATH=CPF_NEW_REQUEST.md	SHA256=e241d448c026acd564d7970fac1af004e9e779bc9186fa135c849cbd6f01a8d9
+STATUS= M	PATH=CPF_STABILIZATION_REPORT.md	SHA256=593113c54191545d81ce62c9097dffc3df48b05dc1a0e87e994b99f2162b54c9
+STATUS= M	PATH=docker-compose.local.yml	SHA256=f52eaa25647ba9ef7222c011bc0be237d1aed9fba79cb948c654b7a3298dbdf9
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/archive/ExsArchiveEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/auth/ExsAuthEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/endpoint/ExsEndpointEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/ExsEducationCoverageCatalog.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/filetransfer/ExsInstitutionFileSendEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/fixedlength/ExsFixedLengthReceiveAdapterEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/fixedlength/ExsFixedLengthSendAdapterEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/ledger/ExsLedgerEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/reconciliation/ExsReconciliationEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/retry/ExsRetryEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/main/java/cpf/exs/edu/unknown/ExsUnknownResultEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=exs/src/main/java/cpf/exs/flow/controller/ExsFlowController.java	SHA256=4373d897c2ec40f1f0a4fb60edb9f93e29d00dd1d724e291dcd8083ffba6b51c
+STATUS= M	PATH=exs/src/main/java/cpf/exs/flow/service/ExsFlowService.java	SHA256=51a0b6f065f0207a3ce63f5c45d3b6a7182a21714bc313a4c32c89fa58110bdf
+STATUS= M	PATH=exs/src/main/java/cpf/exs/operation/controller/ExsAdminOperationController.java	SHA256=c7e7e6ece4feadde192c80fbac359a584c459364dd1f993122652223f030b80d
+STATUS= M	PATH=exs/src/main/java/cpf/exs/operation/controller/ExsCompositeEducationController.java	SHA256=c74e009da561d8cc9f9068078486e491279e2afc5d641f5cb0d2a7c569a12f48
+STATUS= M	PATH=exs/src/main/java/cpf/exs/operation/controller/ExsOperationController.java	SHA256=298dd6f34be3f463377ff757f2faea092b8f4ed62f71db08b2e7b864ff95e094
+STATUS= M	PATH=exs/src/main/java/cpf/exs/operation/repository/ExsOperationRepository.java	SHA256=8d90a351288179f6eb1fac8b8f283ed6f1efb1d00a58308a11384e80fb1a8a71
+STATUS= M	PATH=exs/src/main/java/cpf/exs/operation/service/ExsOperationService.java	SHA256=0d76fb2f714275b3d5b7223aaac50f4b4303e8109814d96e8528d7dfc77fc9b8
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/archive/ExsArchiveEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/auth/ExsAuthEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/endpoint/ExsEndpointEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/ExsEducationCoverageCatalogTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/filetransfer/ExsInstitutionFileSendEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/fixedlength/ExsFixedLengthReceiveAdapterEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/fixedlength/ExsFixedLengthSendAdapterEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/ledger/ExsLedgerEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/reconciliation/ExsReconciliationEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/retry/ExsRetryEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=exs/src/test/java/cpf/exs/edu/unknown/ExsUnknownResultEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=gradle/wrapper/gradle-wrapper.jar	SHA256=498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17
+STATUS= M	PATH=gradle/wrapper/gradle-wrapper.properties	SHA256=6009cea91ce8dbcc62cb2ea6dec6ddd4c87b65fc326872f5abfc7e77fd24aa36
+STATUS= D	PATH=info/db.info	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=mbr/src/main/java/cpf/mbr/bse/controller/MbrAuthController.java	SHA256=7f947f1b59ea58f37f790a4ec7c514db5108051c60272dca15db0e0db5584488
+STATUS= M	PATH=mbr/src/main/java/cpf/mbr/bse/controller/MbrCompositeEducationController.java	SHA256=b442a12698e5663b40715378dd8004c5958b35a2e60cd03979c522c67545369a
+STATUS= M	PATH=mbr/src/main/java/cpf/mbr/bse/controller/MbrController.java	SHA256=b593a5b8d2b212343b685e34877a693157f5c8973c5ad49444d6063d0ac42f84
+STATUS=??	PATH=mbr/src/main/java/cpf/mbr/reference/controller/MbrReferenceController.java	SHA256=ee2baf636b7d921bd7b431f295efbed92de940d0eb50609c15ee15b502df4285
+STATUS=??	PATH=mbr/src/main/java/cpf/mbr/reference/service/MbrAccReferenceClient.java	SHA256=29d3d596abacd429f0af958636f144cf84122422c66f4c06774dcd89a91c38b0
+STATUS= M	PATH=mbr/src/main/resources/application-mbr.yml	SHA256=c199cc805962de5168741ed2479ceb22da9433522814ae50cadffe26ba1a1eca
+STATUS=??	PATH=mbr/src/test/java/cpf/mbr/reference/service/MbrAccReferenceClientTest.java	SHA256=9d86c1822ac0dd95e0beaa7d954a09fd8a62b8907caf55cbe301472cc8deccd0
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java	SHA256=78b694aa2ec114cee7b50bdee1f01d85232de404fac4a21860f8b3a7370416c2
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java	SHA256=7ef1a54cb0a3651e7ff5e2f99f9e03bbd6b68958a8125e04b494a1ba559b1c11
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java	SHA256=dcd2ec1c96278318fb97f264cc1f3f2ef21fa965b037bf6d9da684aa74404875
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java	SHA256=27c5923e38641eca265e94fa2181185482b7bc20b04bdebaf701cbb766dd38d1
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/archive/PfwArchiveAdvancedEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/archive/PfwArchiveEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/archive/PfwArchiveHistoryEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/audit/PfwAuditContextEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java	SHA256=f885c66cbd95830ab9657bb243225369e4993a36cfb594ced89d9d1b3d1aee09
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/broker/JdbcCpfBrokerReliabilityRepository.java	SHA256=93e98f046d66ba608f7ac62f8bbd679632eeb0067aab79206601be0547d9650f
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/broker/PfwBrokerEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/broker/PfwBrokerReliabilityEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/filetransfer/DeterministicCpfRemoteFileTransferAdapter.java	SHA256=b6eb29d6e4c74520865728a16d00cf6fd03dbdc50e4c1523cff3666fb5157f37
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/filetransfer/PfwFileTransferAdvancedEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/filetransfer/PfwFileTransferEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/http/CpfWebClient.java	SHA256=e66a5f56cbbdc3c013a775067445866802ad2f9612f8f06ee54189615689bae8
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyEngine.java	SHA256=e41545c37475a6bcddb9834096db1f47ee98339945c0b85e8351e553e4f8706b
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyPort.java	SHA256=9a1e3d79264dbcb76ba05d3afe49baf5c72a9336720e2c49441df3e721d33f16
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/idempotency/InMemoryCpfIdempotencyRepository.java	SHA256=1e050c3112dc30b3898a00794e8cd83975a6661c81c203dbd157daaa82f0d740
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/idempotency/JdbcCpfIdempotencyRepository.java	SHA256=30c4dd75dc3f6c299731da09020ff5e21f8113cb6515bb25ac1a41feb0acb9f2
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java	SHA256=03bbe7039761e3c3011e1cabf0631202cfd8f8bc8cf1d1cf8b087d2ca42ec7ec
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/PfwTransactionLogRecoveryEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogFallbackEnvelope.java	SHA256=528b79b0b912fc14c0dbf87eedc247a6610f03b40cb90bd5303f52157e4ef48a
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogFallbackStore.java	SHA256=3c2608ebe68e9bdc36ebdad14ca59d92872c40a934366bfa5fdf6633cba21fbb
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java	SHA256=475e07802757c370774f7a8babbb434266f6598b9397eb0ddb685b925639fa0c
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStore.java	SHA256=dc068a802e5ba6f223473599cc48db61f15677e1012fa27bb4674ed19bb6f83f
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java	SHA256=aaba2fd121d810485acf85c03737bbca4c54a3b47893e3aea42f5b472e1e1184
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryWorker.java	SHA256=fe38040f855a04de85bda6abc8894339a6a5120d4a37ee483e0f1309fa407b14
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/file/CpfFileLogWriter.java	SHA256=581bcc0610614bf494551233b3fe551cd6aab5bb40a697d1a5cad70c7f8a302a
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/logging/segment/CpfTransactionTimelineQueryFacade.java	SHA256=ad460446693df1227f39c238b7d8cd398df175c27435db77df1e0d552a393251
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentPersistenceService.java	SHA256=aef7a11c4b4b29baf77811e86ad4611593699bf2b52d55cf907e477df008bf51
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentRecord.java	SHA256=150afcaea2a8f7aa6fdebe22f7c5c6d57ba4dfd634272210854d0c0baf341f8f
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/masking/PfwMaskingPolicyEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacade.java	SHA256=091d0512df53da8c83c4e1f98831ab049ce2c8a994bb9a00a74aae3ecf4edd3d
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/runtime/PfwRuntimeEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/runtime/PfwRuntimeWorkerEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/security/PfwSecurityCryptoEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/security/PfwSecurityEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallEngine.java	SHA256=d606a1ad47ecbfd01c2bbc4de170f77b08a6979bc2f874d28b86b7ff2b683dd9
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallProperties.java	SHA256=edd1be69998437f9721fe20ab50c36f567aab1ef0849a6d7097c931ddf7f1ddb
+STATUS=??	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceRegistryQueryFacade.java	SHA256=dd19c99255e1689641ba089124636cc36c7f472a14c881c783efaca23a7d24a4
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/PfwServiceCallAdvancedEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/PfwServiceCallEducationSample.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/servicecall/ServiceCallResult.java	SHA256=8187ef76050c24f283e713ce3f40253bc35975a475eb96640d1a4ea1bb0c4ad7
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptor.java	SHA256=db11a2e08c271a5164740c4e10ac9df78fabc27fabf49245dcd27b2bc957a9c8
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/config/CpfBatchAutoConfiguration.java	SHA256=4a5dae79f5278fdf4cff8eb090369d87639fe6d446ae52db779b0f95f0b569bb
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/config/CpfServiceCallAutoConfiguration.java	SHA256=370e4a5f2ee01e9a5d7959ab6032e0427316200813145e0c5a3612259aaf050f
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java	SHA256=ca54e11123142554b2c73b8b7ae35d1eeab21ad57dcc43c9b49c10f5e9f607be
+STATUS= M	PATH=pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionSegmentMapper.java	SHA256=51ccc1e58fd150dc1e144efd2491704027e17fdcb251b8933453af3c93b0bbf0
+STATUS= M	PATH=pfw/src/main/resources/application-pfw.yml	SHA256=c381f3c0bfb83c40fef4503b03b51e253f195ab095dad2cb5b3ed0bb8d375b87
+STATUS= M	PATH=pfw/src/main/resources/mybatis/mapper/pfw/logging/TransactionSegmentMapper.xml	SHA256=21ea553ab1a974c50a377757280210c1ebae6f9f8412b8f327f8094446e9d024
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/archive/PfwArchiveAdvancedEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/archive/PfwArchiveEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/archive/PfwArchiveHistoryEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/audit/PfwAuditContextEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/batch/CpfBatchFileLogWriterTest.java	SHA256=20df2428c76186fe194f93618545b082a4005b08078c02424d418991d2f1c18b
+STATUS=??	PATH=pfw/src/test/java/cpf/pfw/common/batch/CpfBatchLockManagerTest.java	SHA256=28d41d24b3509c293804ba3741560e879c612854deb74d6ee1feb55a0d774deb
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/broker/JdbcCpfBrokerReliabilityRepositoryTest.java	SHA256=ec48aca9b3585aeeb57db8d6f78807e2d1662162a145ea57e25a560b42d3c022
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/broker/PfwBrokerEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/broker/PfwBrokerReliabilityEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS=??	PATH=pfw/src/test/java/cpf/pfw/common/filetransfer/DeterministicCpfRemoteFileTransferAdapterTest.java	SHA256=de3cb56c48b308b528d14ecbc9a80179eb577967e354c09dfcbfe687d38ef520
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/filetransfer/PfwFileTransferAdvancedEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/filetransfer/PfwFileTransferEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/idempotency/CpfIdempotencyEngineTest.java	SHA256=533ff7e08b298083fd6f7c5198f3e106d9f0200f74fab96da81606d12c2fddc4
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/idempotency/JdbcCpfIdempotencyRepositoryTest.java	SHA256=bc8b3f887a179349df192c43c4f65d54f08dcdad0583e03ddb9a6713bfe401b5
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/logging/fallback/PfwTransactionLogRecoveryEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/logging/fallback/TransactionLogFallbackStoreTest.java	SHA256=7d827932ed4a9d243a9d211d8109cd9195fba574fe71e6654793297531262915
+STATUS=??	PATH=pfw/src/test/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStoreTest.java	SHA256=a3b791d2891fac09ec39e6a0602e74133b12ae9258451c63dfb4df26ad1057ca
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/masking/PfwMaskingPolicyEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS=??	PATH=pfw/src/test/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacadeTest.java	SHA256=a9dbc8a855dcc51cdf15f465996876c9951c60bdc6ff5dd48bcc94a99deceeeb
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/runtime/PfwRuntimeEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/runtime/PfwRuntimeWorkerEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/security/PfwSecurityCryptoEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/security/PfwSecurityEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/common/servicecall/CpfServiceCallEngineTest.java	SHA256=b4c95d4d3b187e54d5e97cd38c11ef9fc1ccd4a7a346fbdb62014128e6278bf5
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/servicecall/PfwServiceCallAdvancedEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS= D	PATH=pfw/src/test/java/cpf/pfw/common/servicecall/PfwServiceCallEducationSampleTest.java	SHA256=DELETED_OR_MISSING
+STATUS=??	PATH=pfw/src/test/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptorTest.java	SHA256=bf5253eac71421c067d5454250069d8063499cc5c23f831f77fc21137debc249
+STATUS= M	PATH=pfw/src/test/java/cpf/pfw/config/PfwOpenApiAutoConfigurationTest.java	SHA256=54582f0a503502b993ce15ea2003c745f09c08d516b43168ece1a5c2d9a60053
+STATUS= M	PATH=README.md	SHA256=3f1f94ec75c71bdde08442f380eba6e805efdbdccd3eec52b1102da0fd1e3499
+STATUS= M	PATH=scripts/build-all-install-sql.ps1	SHA256=2220328648e4df60c4726b039e17684747da7f0e60bfab0e5479ec1adbe41d72
+STATUS=??	PATH=scripts/build-sample-coverage-matrix.ps1	SHA256=d5ddb1e1f2ace3d6884c832105fec15e6e0433f6bf5b6f28c18abc7aef796695
+STATUS= M	PATH=scripts/check-architecture-ownership.ps1	SHA256=2b423053c8c3830a1a81b51f0a1642e4f4f59e0a22c485c31c0c02b9fbbeeb74
+STATUS= M	PATH=scripts/check-cpf-request-protection.ps1	SHA256=c7e24c732922d887449cff454341c672a9b50abefe5cc5687b1faf4c1b84f3a8
+STATUS= M	PATH=scripts/check-evidence-path-existence.ps1	SHA256=077f5b6cd24850813799b6b0bce8cba8653e9b09852b5e471f37f87ccb1a8397
+STATUS= M	PATH=scripts/check-openapi-source-coverage.ps1	SHA256=e444cbbb2bfad94ebd4911cfda30c5b8d66a8c623b2cb297f6be5f75543102a2
+STATUS= M	PATH=scripts/check-report-matrix-evidence-consistency.ps1	SHA256=d246aef271b91520b43375d2051a3d578d2b1d31dc8966bfbd90ef8003d5899a
+STATUS= M	PATH=scripts/check-runtime-config-standard.ps1	SHA256=53c6a9667eab49c116b00ba5028a61a12f787fe4b8fa7031700753d6f9783430
+STATUS= M	PATH=scripts/check-sample-coverage.ps1	SHA256=185277281b9bfc902aad256608dad7ae5a727e323d7e05395f0e971263171762
+STATUS= M	PATH=scripts/check-sample-standard.ps1	SHA256=875df113a7ee9806cf371a4953c22cae9ad641f1ca11de123d7a86c5e0d541d8
+STATUS=??	PATH=scripts/ensure-explicit-openapi-operation-ids.ps1	SHA256=ddb3222345e7a5221203efa69110c9d5de03035955487bcc1c9d1836b524f296
+STATUS=??	PATH=scripts/export-final-worktree-manifest.ps1	SHA256=44f64fcd80306c0518816e486011d7448f9768969fbb3e31ab73d3019993cba9
+STATUS= M	PATH=scripts/smoke-create-domain.ps1	SHA256=c9d693cfddd28ea4fb364e28a1ec46d1968585c03451d332c68ecf40087b5097
+STATUS= M	PATH=scripts/smoke-openapi.ps1	SHA256=ab8d9ad2003ae28164092105406ab4a16832ff9dc7cf1a64c7fe81a52e798860
+STATUS= M	PATH=scripts/write-sanitized-evidence.ps1	SHA256=759420213b78acbf81e810cfacea454141310d0ef260d6a5fa993e4686418328
+STATUS=??	PATH=specs/evidence/20260714_01/architecture-ownership-scan.sanitized.json	SHA256=83848a53a7d3133664f833dbc0c2a1abd25d8c55708b467637003df0dba61ff3
+STATUS=??	PATH=specs/evidence/20260714_01/cpf-new-request.baseline.gitblob	SHA256=957d39ed23666386793346e4e84eb38d205d429bdfb84e43949e39695cc63be0
+STATUS=??	PATH=specs/evidence/20260714_01/cpf-new-request.baseline.md	SHA256=e241d448c026acd564d7970fac1af004e9e779bc9186fa135c849cbd6f01a8d9
+STATUS=??	PATH=specs/evidence/20260714_01/cpf-new-request.baseline.sha256	SHA256=a8952f4364c86ebf0c9b4dfac43e061400d2ab3de2af277bd45cc1471a8b1f4c
+STATUS=??	PATH=specs/evidence/20260714_01/cpf-new-request-protection.sanitized.json	SHA256=c487579c8067bca817e68fb7b5fb8a2443070f222736e705b97b6687813aa06f
+STATUS=??	PATH=specs/evidence/20260714_01/datasource-mode-scan.sanitized.json	SHA256=8250e789a8bfa1d2db965bea1df47a64e59bd00ef2676436b61fb54dbc5ec6f8
+STATUS=??	PATH=specs/evidence/20260714_01/deleted-empty-directories.sanitized.json	SHA256=9d0d88b56443b1001e4103f47b6ec23d2934d6ce565aebe0c4615d5ba610e21e
+STATUS=??	PATH=specs/evidence/20260714_01/deleted-files.sanitized.json	SHA256=54dd66d63a473d970e007e70effe11636856b29e082dc5f43ed13ece6d18e21a
+STATUS=??	PATH=specs/evidence/20260714_01/deploy-env-acc-dev.sanitized.json	SHA256=abb5cfccee210fb0915b580dcfa8b96d2240c4cd06c0bbb7dddf0def5fdfffb3
+STATUS=??	PATH=specs/evidence/20260714_01/deploy-inventory-acc-dev.sanitized.json	SHA256=21b5a7aa8c6087b64207fbd8d4c8055badb9e10f8abdb96910f891f4c6def613
+STATUS=??	PATH=specs/evidence/20260714_01/edu-module-deploy-alias-scan.sanitized.json	SHA256=a2283f4bc1eeed5b04409c30e5053be70d43ac699bd673c430a1295cca5879fb
+STATUS=??	PATH=specs/evidence/20260714_01/edu-sample-clean-test.sanitized.log	SHA256=774c1bf7bd2b01226f6a0934d29009a5272477a65e776860e24568a25343d577
+STATUS=??	PATH=specs/evidence/20260714_01/edu-sample-final.sanitized.log	SHA256=fd99433331609956f3ad9dbd655b731da77e78f21008c3f8e9619bb6b2395148
+STATUS=??	PATH=specs/evidence/20260714_01/edu-sample-module-test.sanitized.log	SHA256=11a23dfb2b00c230d29de3c23e1cc255225e79541635b5f8d675e5a1d76c3f3e
+STATUS=??	PATH=specs/evidence/20260714_01/edu-sample-test.sanitized.log	SHA256=189e4cbbce52592e19e06f11abb4cd864fc3b853aec7b46f28ee37c971c5b3d0
+STATUS=??	PATH=specs/evidence/20260714_01/edu-test.sanitized.log	SHA256=d72e3b621c4b8a05e7b87a1c4a3a16cdb2ac5e523c4052ea7f47c4126b6ea618
+STATUS=??	PATH=specs/evidence/20260714_01/empty-directory-scan.sanitized.json	SHA256=7ebfb6138a9da467980ba9d15fc2cd0813edcae681bdedea195f3e1bf3516d2b
+STATUS=??	PATH=specs/evidence/20260714_01/evidence-path-existence-check.sanitized.json	SHA256=f2b18caeeed6b7ab2092f4e12a7cae68209e4050f425e497b0326ee1b6d3904a
+STATUS=??	PATH=specs/evidence/20260714_01/final-worktree-manifest.sanitized.log	SHA256=SELF_REFERENTIAL
+STATUS=??	PATH=specs/evidence/20260714_01/focused-core-tests-final.sanitized.log	SHA256=71612a4c0adfdde72116bd771e381e3988ae9a9fcce6ad449f5d7ac5a7303e2c
+STATUS=??	PATH=specs/evidence/20260714_01/garbage-file-scan.sanitized.json	SHA256=0707d97abdcaf5abdc434b4dab2ef984363eb4988bae021936dcc27d453cae3b
+STATUS=??	PATH=specs/evidence/20260714_01/gradle9-remote-deploy-warning-check.sanitized.log	SHA256=d666effaa84bee52236b37f56acff874488a22e1ab877d03dbbb4e00f2f79816
+STATUS=??	PATH=specs/evidence/20260714_01/gradle-remote-deploy-task-scan.sanitized.json	SHA256=9ab50a2201a34b5a383e5485ef0045a36a457e0c538b881bc276bd3418a3d37f
+STATUS=??	PATH=specs/evidence/20260714_01/java21-full-test-final.sanitized.log	SHA256=b89be48533ba917706f1815b52cda12e9b5f7bcbd5e1fa71e61efead83648261
+STATUS=??	PATH=specs/evidence/20260714_01/java21-seven-bootjar-final.sanitized.log	SHA256=7dbec3ef3bb838eec123349873a4e4290a8729096dac26931ab77cf48fa4921c
+STATUS=??	PATH=specs/evidence/20260714_01/java25-gradle89-pfw-test-final.sanitized.log	SHA256=99f148a205c73a348280bb25b4b823a27a5d609e569f4465a8a59f69ad537bd4
+STATUS=??	PATH=specs/evidence/20260714_01/java25-gradle910-bytebuddy-compat-failure.sanitized.log	SHA256=f93d024c95fc4c6815f19672d4a5907728c94cdda8f67baedeca240bb538be16
+STATUS=??	PATH=specs/evidence/20260714_01/java25-gradle910-lombok-compat-failure.sanitized.log	SHA256=8a478bbebcd43d336ffe74640966a2509c809b1fbfcab2aa99b2165bea5e9976
+STATUS=??	PATH=specs/evidence/20260714_01/java25-gradle910-pfw-test-success.sanitized.log	SHA256=84bafe8d307d12c3beae58c23dd7b774f1dd40c8d4af721e62366e73c06e31f8
+STATUS=??	PATH=specs/evidence/20260714_01/java25-pfw-test-final.sanitized.log	SHA256=20521ef4615acd79f8b07ff460221d2adf25468c2f4e80eebe34fb6c68ec6697
+STATUS=??	PATH=specs/evidence/20260714_01/local-port-duplicate-scan.sanitized.json	SHA256=b01a107081dc590766596767aeb5fc7428432a3dfc9c2e20072437f11669d487
+STATUS=??	PATH=specs/evidence/20260714_01/log-management-standard.sanitized.json	SHA256=15cded7769bfb927b6de531f37445537eae2aebce55789cd6e3db5f09fc5a534
+STATUS=??	PATH=specs/evidence/20260714_01/mariadb-full-install.sanitized.log	SHA256=ca7d91b566146c3c19dbe0e110789ce6a453ac6436ed71eb06b8eef29597b2dc
+STATUS=??	PATH=specs/evidence/20260714_01/mariadb-preflight.sanitized.log	SHA256=130668ef9c37b4d9d6a1ab4abb6b62b0c926f6746080cc60dc2f75e03616192d
+STATUS=??	PATH=specs/evidence/20260714_01/openapi-source-coverage.sanitized.json	SHA256=45f1bd130a58e1b46de066ba75d42e8ca9cd375c808425cb541ec89840332021
+STATUS=??	PATH=specs/evidence/20260714_01/packaged-dependencies-acc.sanitized.json	SHA256=c4e76aed24a912b0e3df056d4ef40882ba23122340143f650b7809e10f0b7b16
+STATUS=??	PATH=specs/evidence/20260714_01/profile-loading-result.sanitized.json	SHA256=7889dd7a81e307f6e3fb76d1fef3478bf39c34d8da4796655523a39d85560547
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-final.sanitized.log	SHA256=a30ae915153b7152c161df90f1ca541e9c8e506bab23eb845b24996458fa2869
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-final-postfix-java25.sanitized.log	SHA256=728581dc3e44933b60b205e5572a32e2418e6e0c70bada9c9130a726d2781ae9
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-gradle910-java21.sanitized.log	SHA256=8f37e5ab622c26eb7850f46e97886bfacc40b28db628df2f896aab32b1f0a73b
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-gradle910-java21-release21.sanitized.log	SHA256=1c557cd0d1fc03c77a566685edbf1d8225f5fb72a99da8f40293a4c308288e5a
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-gradle910-java25.sanitized.log	SHA256=26d573988fc87a7c4fd017b434bb08e399ff594adddc611caccc3b1c43e8ddde
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-gradle910-java25-release21.sanitized.log	SHA256=f5fe2fbb39c5491e81d8f39f10b82b91fad06d4cabb9d7faf96af5c63f477e17
+STATUS=??	PATH=specs/evidence/20260714_01/quality-gate-manifest-format-failure.sanitized.log	SHA256=6b28a08db0987038f6f000caf4d3145d1ade441af244008858a0d03f7c969dbd
+STATUS=??	PATH=specs/evidence/20260714_01/remote-deploy-dry-run.sanitized.json	SHA256=4e52bc553896d0b97b48065b5655cb930ce943a60cf546c3a64a3dc5c5a56c27
+STATUS=??	PATH=specs/evidence/20260714_01/remote-deploy-dry-run-acc-dev.sanitized.json	SHA256=4e52bc553896d0b97b48065b5655cb930ce943a60cf546c3a64a3dc5c5a56c27
+STATUS=??	PATH=specs/evidence/20260714_01/report-matrix-evidence-consistency.sanitized.json	SHA256=486ba6b5de4fd83161c0939f0bf6e498b54876227b4d7869e0f1097f1dc44855
+STATUS=??	PATH=specs/evidence/20260714_01/request-baseline.sanitized.json	SHA256=50b9378a18de16c5f6c631c82459454d6a7471e591cc0fe814f9afbe237c86b8
+STATUS=??	PATH=specs/evidence/20260714_01/retained-empty-directories.sanitized.json	SHA256=396b325eecdf4b58a6dfc282b03900ab6282803896b83b4e099de454a8e8fd05
+STATUS=??	PATH=specs/evidence/20260714_01/retained-review-required-files.sanitized.json	SHA256=6bace577ad1a61afc86d0c8d65c541a8de71a405396350284c0a860472c62e98
+STATUS=??	PATH=specs/evidence/20260714_01/runtime-config-inventory.sanitized.json	SHA256=256c35d79f28e7ac24a965c74ea9f266b928c4e9bd0d026bebff14a59387d868
+STATUS=??	PATH=specs/evidence/20260714_01/sample-coverage-result.sanitized.json	SHA256=bcdf0030d72fce94aa83f676e476049d47b2287d0e7d9aa29654bcee4dbd3270
+STATUS=??	PATH=specs/evidence/20260714_01/seven-bootjar-class-version.sanitized.log	SHA256=2ed77aa5a02a6734317ebabaa7c0144799d4a9708f936246f0252ba3b3ee33df
+STATUS=??	PATH=specs/evidence/20260714_01/seven-bootjar-gradle910-java25.sanitized.log	SHA256=669ddc5cf94d44cfb3c122775604d6dcecddf8759bedc777b93af188b5854caf
+STATUS=??	PATH=specs/evidence/20260714_01/seven-bootjar-gradle910-java25-release21.sanitized.log	SHA256=04409fb02f897b38b534929023fde54ba2bdab8419ed5e04726218f620d2ae28
+STATUS=??	PATH=specs/evidence/20260714_01/spring-event-usage-scan.sanitized.json	SHA256=6bf7de83fc7a10f622b8559cfde9d0a40a0fa58f1bdd351a497e80855bd49fc2
+STATUS=??	PATH=specs/evidence/20260714_01/static-gates-final.sanitized.log	SHA256=3b65f542626aacdfa3311d5ea2c0a95800882d584368d635905f0ba2e4577865
+STATUS= M	PATH=specs/sample-coverage-matrix.md	SHA256=5e05aeac0b13d39361076103619a91128fd45ad51c1eb23a9864a83393face0a
+STATUS= M	PATH=specs/sql/00_all_install.sql	SHA256=aedf8e25c764009e1b4b7af35667f3b0f87acfb291e3b3a3611f9663ed1296b8
+STATUS= M	PATH=specs/sql/00_all_install_and_smoke.sql	SHA256=2b525d1c37674f6aaf1656d32f115038d7811f4f665e3f644797e4d6f6c96fcf
+STATUS= M	PATH=specs/sql/10_pfw_schema.sql	SHA256=c92a5f1774417d1c48b17709064b8712285fe429ec26a392c9409a06d927037a
+STATUS= M	PATH=specs/sql/99_smoke_check.sql	SHA256=8237fa3b7b11535642c7c9c41712e0d7c8a308f2b3d8a2eb893373744e48ae24
+STATUS= M	PATH=specs/sql/migration/flyway/V1__cpf_baseline_install.sql	SHA256=aedf8e25c764009e1b4b7af35667f3b0f87acfb291e3b3a3611f9663ed1296b8
+STATUS=??	PATH=specs/sql/migration/flyway/V26__trace_recovery_and_service_call_timeline.sql	SHA256=e353d84e2697b6fcc0bb60bdf7dfdf619f69eea903702d96abc46e99e1722e5b
+STATUS=??	PATH=specs/sql/migration/flyway/V27__broker_claim_retry_and_actual_replay.sql	SHA256=5bb1e1b66ebe40c7b1e4e81a7bce3d14f1a967d99ceabf4d0bad6a5bcc50b4d0
+STATUS= M	PATH=specs/SQL_가이드.html	SHA256=3c46bc3c884c3dbd5c89df8d859a40791a8c142af10e66ccae5b18a4842745f7
+STATUS= M	PATH=specs/개발_가이드.html	SHA256=c9c66d33526a78f094e6decc0197735f6b6bfc824c53036ba2dc205ee4fa0442
+STATUS= M	PATH=specs/관리자_가이드.html	SHA256=8734c98b3bf1d0fd7f973ade8e0b30edb12755dc0fbf18bf6fd4e7455dfac404
+STATUS= M	PATH=specs/기능_구현_매트릭스.html	SHA256=81a8ed778cd2105a1ea76085f8177fe069d2e1016c52a1b6095443a59f855bab
+STATUS= M	PATH=specs/로컬_개발환경_구성_가이드.html	SHA256=a60a1c1e4959e5057f91cae3f0aa17a73051e48f7f0afe03b844fbead75bb10d
+STATUS= M	PATH=specs/아키텍처_가이드.html	SHA256=6cffbe8d67e5de954232f8cec86eb3730ede5873d8e6c2355f8bdeeff42f53c7
+STATUS= M	PATH=specs/프레임워크_구성_가이드.html	SHA256=fa197c41ac293ce6d9b7638b1158a4e08da2586b7f5f04d8bf08d10f9c08a634
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/archive/XyzArchiveEducationSample.java	SHA256=8bd55b0c064a311509641c654183ffbb31d1bc07afc2dc67648c63a4bb542915
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzBatchEducationController.java	SHA256=597bae67a4513ffee724006dce2b2e9673c8494379c789f66004fad561035228
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzCenterCutEducationController.java	SHA256=cdf62e66fb337601958135344aef95170780e08e0c5bae4ffbca6925e88eae5e
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzCmnBusinessEducationController.java	SHA256=80ff4387956b205af4eda48ad591001b9391379ee458457e8ce7229aac6b0427
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzCmnEducationController.java	SHA256=398ae53d79b8438eb46f52ef2f74ca1084d6a75623d2733860aa771c1943b95f
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzCompositeTransactionEducationController.java	SHA256=3f49851a53996fbb77bc741c4aeec6e9ab748f09b5852f49870053c5ffded423
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzCrudEducationController.java	SHA256=9d29e7d933ee5bbb25aaa4932434f367b0ac4d7e1abd0c011d678b78a0c70c4f
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzDynamicLogEducationController.java	SHA256=06d1d977f7e6114bccc988f652e79ca3d320a7ebe19e7ee224a1fad6dbf41d20
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzEducationController.java	SHA256=749f90150d8af90a2f5233ba06167cf2b73e860a3a11578c4d81773010e03135
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzExceptionEducationController.java	SHA256=09d3c531b2a6ea8e48c5b79e87a1a1e91de164e08b029138265c1efff9a2317a
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzFileExchangeEducationController.java	SHA256=b0628d8ca822e492628eca8dbb9d4dc8e7d7d0b41fb8869f999c70a2b2538f9f
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzMessagingEducationController.java	SHA256=ce7d9436be40595090dd0082fa6ae10246d10cd31822fc40b781fada5b0ff65c
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzQueryEducationController.java	SHA256=995b462034a6557694cf587a9f331bf655cf56dd7aa8701ec18f04b233955077
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzSecurityEducationController.java	SHA256=d93af71ff2280fe74fdca74c982e843a9a665fbe110c1cc42e1e1c72d5b59b32
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzServiceCallEducationController.java	SHA256=0c34b2629bc909a1869c9b3828fd920e0aeeb8c985b3c337816e33998e14074d
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzTelegramEducationController.java	SHA256=24bdef1e21c68cc684297bda83b387b54d3b84bf138b8743cce4a08fe2265762
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzTransactionEducationController.java	SHA256=d6d6ecea4d31f9289783b0070d9c55cc23a3f96d4149cd322d40b7694062ffb8
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/controller/XyzUtilityEducationController.java	SHA256=2606da684f60fd87dd79ee43dffaab23ad13eecf4c9ccb17798eeedf0e2b021d
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/filetransfer/XyzSftpTransferPlanEducationSample.java	SHA256=6b40a282881ada91b353fd7acc2ea34f4ea35d2b013af88f01276ae9c0484d74
+STATUS= M	PATH=xyz/src/main/java/cpf/xyz/edu/servicecall/XyzServiceCallEngineEducationSample.java	SHA256=33a20876a16a1af72ccf1b2e7e9e5dad4d5ac24e10028099c99e8a2050a770d4
+STATUS= M	PATH=xyz/src/test/java/cpf/xyz/edu/filetransfer/XyzSftpTransferPlanEducationSampleTest.java	SHA256=7ccacb38a55637d018fdaddfc2329fccab253b227072783fffda552bfa801755
+STATUS= M	PATH=xyz/src/test/java/cpf/xyz/edu/servicecall/XyzServiceCallEngineEducationSampleTest.java	SHA256=f21ee25f608d35d9d6b6761fd096d37edc583712165290cc612da776b2588228

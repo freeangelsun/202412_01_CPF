@@ -48,14 +48,14 @@ public class AdmOperatorController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01OPR0030", name = "ADMOperatorList")
-    @Operation(summary = "List operators", description = "Returns ADM operators and account status.")
+    @Operation(operationId = "admOperatorFindOperators", summary = "List operators", description = "Returns ADM operators and account status.")
     public ResponseEntity<List<AdmOperator>> findOperators() {
         return ResponseEntity.ok(operatorService.findOperators());
     }
 
     @PostMapping
     @CpfTransaction(id = "ADM02OPR0031", name = "ADMOperatorCreate")
-    @Operation(summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
+    @Operation(operationId = "admOperatorCreateOperator", summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
     public ResponseEntity<AdmOperator> createOperator(@RequestBody AdmOperatorCreateRequest request, HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.createOperator(request);
@@ -72,7 +72,7 @@ public class AdmOperatorController {
 
     @PostMapping("/{operatorId}/password")
     @CpfTransaction(id = "ADM03OPR0032", name = "ADMOperatorPasswordChange")
-    @Operation(summary = "Change operator password", description = "Changes an operator password after policy validation.")
+    @Operation(operationId = "admOperatorChangePassword", summary = "Change operator password", description = "Changes an operator password after policy validation.")
     public ResponseEntity<AdmOperator> changePassword(
             @PathVariable String operatorId,
             @RequestBody AdmPasswordChangeRequest request,
@@ -92,14 +92,14 @@ public class AdmOperatorController {
 
     @GetMapping("/password-policy")
     @CpfTransaction(id = "ADM01OPR0036", name = "ADMPasswordPolicy")
-    @Operation(summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
+    @Operation(operationId = "admOperatorPasswordPolicy", summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
     public ResponseEntity<Map<String, Object>> passwordPolicy() {
         return ResponseEntity.ok(operatorService.passwordPolicy());
     }
 
     @PostMapping("/{operatorId}/password/reset")
     @CpfTransaction(id = "ADM03OPR0037", name = "ADMOperatorPasswordReset")
-    @Operation(summary = "비밀번호 초기화", description = "운영자 비밀번호를 초기화하고 필요 시 다음 로그인 강제 변경을 설정합니다.")
+    @Operation(operationId = "admOperatorResetPassword", summary = "비밀번호 초기화", description = "운영자 비밀번호를 초기화하고 필요 시 다음 로그인 강제 변경을 설정합니다.")
     public ResponseEntity<AdmOperator> resetPassword(
             @PathVariable String operatorId,
             @RequestBody AdmOperatorPasswordResetRequest request,
@@ -126,7 +126,7 @@ public class AdmOperatorController {
 
     @PostMapping("/{operatorId}/unlock")
     @CpfTransaction(id = "ADM03OPR0038", name = "ADMOperatorUnlock")
-    @Operation(summary = "운영자 잠금 해제", description = "운영자 계정 잠금과 로그인 실패 횟수를 초기화합니다.")
+    @Operation(operationId = "admOperatorUnlockOperator", summary = "운영자 잠금 해제", description = "운영자 계정 잠금과 로그인 실패 횟수를 초기화합니다.")
     public ResponseEntity<AdmOperator> unlockOperator(
             @PathVariable String operatorId,
             @RequestBody AdmSessionRevokeRequest request,
@@ -153,7 +153,7 @@ public class AdmOperatorController {
 
     @PutMapping("/{operatorId}/roles")
     @CpfTransaction(id = "ADM03OPR0039", name = "ADMOperatorRoleUpdate")
-    @Operation(summary = "운영자 역할 변경", description = "운영자에게 부여된 ADM 역할을 변경합니다.")
+    @Operation(operationId = "admOperatorUpdateRoles", summary = "운영자 역할 변경", description = "운영자에게 부여된 ADM 역할을 변경합니다.")
     public ResponseEntity<AdmOperator> updateRoles(
             @PathVariable String operatorId,
             @RequestBody AdmOperatorRoleUpdateRequest request,
@@ -180,21 +180,21 @@ public class AdmOperatorController {
 
     @GetMapping("/password-policy/validate")
     @CpfTransaction(id = "ADM06OPR0033", name = "ADMPasswordPolicyValidate")
-    @Operation(summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
+    @Operation(operationId = "admOperatorValidatePassword", summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
     public ResponseEntity<Map<String, Object>> validatePassword(@RequestParam String operatorId, @RequestParam String password) {
         return ResponseEntity.ok(operatorService.validatePassword(operatorId, password));
     }
 
     @GetMapping("/sessions")
     @CpfTransaction(id = "ADM01OPR0043", name = "ADMSessionList")
-    @Operation(summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
+    @Operation(operationId = "admOperatorFindSessions", summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSessions(@RequestParam(required = false) String operatorId) {
         return ResponseEntity.ok(sessionService.findSessions(operatorId));
     }
 
     @PostMapping("/sessions/{sessionId}/revoke")
     @CpfTransaction(id = "ADM03OPR0044", name = "ADMSessionRevoke")
-    @Operation(summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
+    @Operation(operationId = "admOperatorRevokeSession", summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
     public ResponseEntity<Map<String, Object>> revokeSession(
             @PathVariable String sessionId,
             @RequestBody AdmSessionRevokeRequest request,
@@ -217,7 +217,7 @@ public class AdmOperatorController {
 
     @PostMapping("/sessions/cleanup-expired")
     @CpfTransaction(id = "ADM03OPR0045", name = "ADMSessionCleanupExpired")
-    @Operation(summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
+    @Operation(operationId = "admOperatorCleanupExpiredSessions", summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
     public ResponseEntity<Map<String, Object>> cleanupExpiredSessions(
             @RequestBody AdmSessionRevokeRequest request,
             HttpServletRequest servletRequest) {
@@ -239,14 +239,14 @@ public class AdmOperatorController {
 
     @GetMapping("/roles")
     @CpfTransaction(id = "ADM01OPR0034", name = "ADMRoleList")
-    @Operation(summary = "List roles", description = "Returns ADM roles.")
+    @Operation(operationId = "admOperatorFindRoles", summary = "List roles", description = "Returns ADM roles.")
     public ResponseEntity<List<AdmRole>> findRoles() {
         return ResponseEntity.ok(operatorService.findRoles());
     }
 
     @GetMapping("/menus")
     @CpfTransaction(id = "ADM01OPR0035", name = "ADMMenuList")
-    @Operation(summary = "List menus", description = "Returns ADM menus.")
+    @Operation(operationId = "admOperatorFindMenus", summary = "List menus", description = "Returns ADM menus.")
     public ResponseEntity<List<AdmMenu>> findMenus() {
         return ResponseEntity.ok(operatorService.findMenus());
     }

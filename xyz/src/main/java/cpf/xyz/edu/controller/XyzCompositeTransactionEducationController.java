@@ -21,7 +21,7 @@ public class XyzCompositeTransactionEducationController {
 
     @GetMapping("/composite-sample")
     @CpfTransaction(id = "XYZ09EDU0001", name = "XYZCompositeTransactionSample")
-    @Operation(summary = "복합 거래 trace 샘플 안내", description = "ACC/MBR/EXS 복합 거래 샘플 API와 ADM 조회 API를 개발자용으로 안내합니다.")
+    @Operation(operationId = "xyzCompositeTransactionEducationCompositeSample", summary = "복합 거래 trace 샘플 안내", description = "ACC/MBR/EXS 복합 거래 샘플 API와 ADM 조회 API를 개발자용으로 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(
                 "purpose", "transactionGlobalId 기준으로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",

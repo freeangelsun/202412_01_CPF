@@ -1,0 +1,138 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-QUALITY-GATE-MANIFEST-FORMAT-FAILURE-20260714
+STATUS=실패
+EXECUTED_AT=2026-07-14T13:08:27.8233013+09:00
+START_COMMIT=fb6b17850aa915c8ff0db034833e2fe1343fc322
+BRANCH=master
+COMMAND=gradlew.bat qualityGate --no-daemon
+EXIT_CODE=1
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=최초 worktree manifest가 공통 정제 로그 메타데이터를 누락해 로그 관리 gate에서 실패했습니다.
+REPRODUCE_COMMAND=
+LOG_SHA256=0c2dcecd088d8f8199e4d65ba42897557b12064fcbce16281b5f99f30186e2ed
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-21 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-21/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-21/bin/java.exe" goto execute 
+
+<WORKSPACE>>set CLASSPATH=<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar 
+
+<WORKSPACE>>"D:\Java\jdk-21/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain qualityGate --no-daemon 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :checkArchitectureOwnership
+Architecture ownership scan statusCode=NEEDS_REVIEW failures=0 warnings=2 evidence=<WORKSPACE>\specs\evidence\20260714_01\architecture-ownership-scan.sanitized.json
+REVIEW [CMN_PFW_PORT_MIGRATION_CANDIDATE] cmn/src/main/java/cpf/cmn/fle/service/CmnFileExchangeService.java
+REVIEW [CMN_PFW_PORT_MIGRATION_CANDIDATE] cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService.java
+
+> Task :checkCpfRequestProtection
+CPF request protection check passed.
+
+> Task :checkDeployEnv
+> Task :checkDeployInventory
+
+> Task :checkRuntimeConfigStandard
+runtime config standard check passed: <WORKSPACE>\specs\evidence\20260714_01
+
+> Task :checkSampleCoverage
+Sample coverage status=DONE samples=47 matrix=47 evidence=<WORKSPACE>\specs\evidence\20260714_01\sample-coverage-result.sanitized.json
+
+> Task :pfw:compileJava
+> Task :cmn:compileJava
+> Task :acc:compileJava
+> Task :acc:processResources
+> Task :acc:classes
+> Task :acc:resolveMainClassName
+> Task :cmn:processResources
+> Task :cmn:classes
+> Task :cmn:jar
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+> Task :acc:bootJar
+> Task :checkPackagedDependencies
+> Task :remoteDeployDryRun
+
+> Task :checkEvidencePathExistence
+evidence path existence check passed: <WORKSPACE>\specs\evidence\20260714_01
+
+> Task :checkFeatureEvidence
+Feature evidence check passed.
+
+> Task :checkHtmlDocs
+HTML docs check passed.
+
+> Task :checkJavaFormat
+Java format check passed.
+
+> Task :checkLegacyName
+Legacy name marker check passed.
+
+> Task :checkLogManagementStandard FAILED
+specs\evidence\20260714_01\final-worktree-manifest.sanitized.log �ʼ� ��Ÿ������ ����: JAVA_VERSION
+��ġ <WORKSPACE>\scripts\check-log-management-standard.ps1:40 ����:13
++             throw "$RelativePath �ʼ� ��Ÿ������ ����: $key"
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (specs\evidence\...��: JAVA_VERSION:String) [], RuntimeException
+    + FullyQualifiedErrorId : specs\evidence\20260714_01\final-worktree-manifest.sanitized.log �ʼ� ��Ÿ������ ����: JA
+VA_VERSI    ON
+ 
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':checkLogManagementStandard'.
+> Process 'command 'powershell'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2m 23s
+24 actionable tasks: 24 executed
+
+<WORKSPACE>>if 1 EQU 0 goto mainEnd 
+
+<WORKSPACE>>rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of 
+
+<WORKSPACE>>rem the _cmd.exe /c_ return code! 
+
+<WORKSPACE>>set EXIT_CODE=1 
+
+<WORKSPACE>>if 1 EQU 0 set EXIT_CODE=1 
+
+<WORKSPACE>>if not "" == "" exit 1 
+
+<WORKSPACE>>exit /b 1 

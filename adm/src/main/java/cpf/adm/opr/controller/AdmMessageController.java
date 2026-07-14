@@ -37,21 +37,21 @@ public class AdmMessageController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01MSG0010", name = "ADMMessageList")
-    @Operation(summary = "공통 메시지 목록 조회", description = "pfw_message 기준 메시지를 locale별로 조회합니다.")
+    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "pfw_message 기준 메시지를 locale별로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMessages() {
         return ResponseEntity.ok(messageCacheService.getAllMessages());
     }
 
     @GetMapping("/{messageId}")
     @CpfTransaction(id = "ADM01MSG0011", name = "ADMMessageDetail")
-    @Operation(summary = "공통 메시지 상세 조회", description = "메시지 ID로 pfw_message 상세 정보를 조회합니다.")
+    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 pfw_message 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findMessage(@PathVariable Long messageId) {
         return ResponseEntity.ok(messageCacheService.getMessageById(messageId));
     }
 
     @PostMapping
     @CpfTransaction(id = "ADM02MSG0012", name = "ADMMessageCreate")
-    @Operation(summary = "공통 메시지 등록", description = "pfw_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageCreateMessage", summary = "공통 메시지 등록", description = "pfw_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createMessage(
             @Valid @RequestBody CommonMessageRequest request,
             HttpServletRequest servletRequest) {
@@ -73,7 +73,7 @@ public class AdmMessageController {
 
     @PutMapping("/{messageId}")
     @CpfTransaction(id = "ADM03MSG0013", name = "ADMMessageUpdate")
-    @Operation(summary = "공통 메시지 수정", description = "pfw_message를 수정하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageUpdateMessage", summary = "공통 메시지 수정", description = "pfw_message를 수정하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateMessage(
             @PathVariable Long messageId,
             @Valid @RequestBody CommonMessageRequest request,
@@ -97,7 +97,7 @@ public class AdmMessageController {
 
     @DeleteMapping("/{messageId}")
     @CpfTransaction(id = "ADM04MSG0014", name = "ADMMessageDisable")
-    @Operation(summary = "공통 메시지 비활성", description = "pfw_message를 비활성화하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageDeleteMessage", summary = "공통 메시지 비활성", description = "pfw_message를 비활성화하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteMessage(
             @PathVariable Long messageId,
             @RequestParam String reason,

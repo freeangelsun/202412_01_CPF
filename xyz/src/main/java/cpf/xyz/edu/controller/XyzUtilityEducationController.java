@@ -24,7 +24,7 @@ public class XyzUtilityEducationController {
 
     @GetMapping("/utils")
     @CpfTransaction(id = "XYZ09EDU0004", name = "XYZCommonUtilitySample")
-    @Operation(summary = "CMN utility sample", description = "Shows date, id, and masking utility usage.")
+    @Operation(operationId = "xyzUtilityEducationUseCommonUtils", summary = "CMN utility sample", description = "Shows date, id, and masking utility usage.")
     public ResponseEntity<Map<String, Object>> useCommonUtils(@RequestParam(defaultValue = "Sample User") String name) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("today", DateTimeUtils.today());
@@ -38,7 +38,7 @@ public class XyzUtilityEducationController {
 
     @GetMapping("/headers")
     @CpfTransaction(id = "XYZ09EDU0008", name = "XYZCurrentHeaderSample")
-    @Operation(summary = "Current header sample", description = "Shows transaction and workflow propagation headers.")
+    @Operation(operationId = "xyzUtilityEducationGetCurrentHeaders", summary = "Current header sample", description = "Shows transaction and workflow propagation headers.")
     public ResponseEntity<Map<String, Object>> getCurrentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionId", TransactionContext.getOrCreateTransactionId());

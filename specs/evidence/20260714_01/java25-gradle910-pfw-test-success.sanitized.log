@@ -1,0 +1,77 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-JAVA25-GRADLE910-PFW-TEST-20260714-03
+STATUS=미검증
+EXECUTED_AT=2026-07-14T12:33:57.3984897+09:00
+START_COMMIT=fb6b17850aa915c8ff0db034833e2fe1343fc322
+BRANCH=master
+COMMAND=gradlew.bat :pfw:cleanTest :pfw:test --no-daemon
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=126
+FAILURES=0
+ERRORS=0
+SKIPPED=1
+REASON=Java 25/Gradle 9.1.0 PFW 테스트 명령은 성공했으나 외부 환경형 테스트 1건이 건너뛰어 전체 완료로 선언하지 않습니다.
+REPRODUCE_COMMAND=JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot gradlew.bat :pfw:cleanTest :pfw:test --no-daemon
+LOG_SHA256=665f2d24fa01d2cbbda28f961020940a473835314a5642130e101e01af0f9533
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot/bin/java.exe" goto execute 
+
+<WORKSPACE>>set CLASSPATH=<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain :pfw:cleanTest :pfw:test --no-daemon 
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/11096/.gradle/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0/lib/native-platform-0.22-milestone-28.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:cleanTest
+> Task :pfw:compileJava UP-TO-DATE
+> Task :pfw:processResources UP-TO-DATE
+> Task :pfw:classes UP-TO-DATE
+> Task :pfw:compileTestJava
+> Task :pfw:processTestResources NO-SOURCE
+> Task :pfw:testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :pfw:test
+
+BUILD SUCCESSFUL in 58s
+5 actionable tasks: 3 executed, 2 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

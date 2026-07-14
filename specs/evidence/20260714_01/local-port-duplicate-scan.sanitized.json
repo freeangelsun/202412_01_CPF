@@ -1,0 +1,51 @@
+{
+    "generatedAt":  "2026-07-14T13:06:50.8173223+09:00",
+    "status":  "DONE",
+    "localPorts":  [
+                       {
+                           "profile":  "local",
+                           "module":  "ACC",
+                           "port":  8080,
+                           "source":  "deploy/env/local-acc.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "MBR",
+                           "port":  8081,
+                           "source":  "deploy/env/local-mbr.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "EXS",
+                           "port":  8092,
+                           "source":  "deploy/env/local-exs.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "ADM",
+                           "port":  8090,
+                           "source":  "deploy/env/local-adm.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "BAT",
+                           "port":  8093,
+                           "source":  "deploy/env/local-bat.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "BIZADM",
+                           "port":  8091,
+                           "source":  "deploy/env/local-bizadm.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "XYZ",
+                           "port":  8099,
+                           "source":  "deploy/env/local-xyz.env"
+                       }
+                   ],
+    "duplicates":  [
+
+                   ]
+}

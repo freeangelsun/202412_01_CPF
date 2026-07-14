@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * PFW broker outbox/inbox/DLQ/replay 테이블을 사용하는 JDBC reference adapter입니다.
@@ -55,6 +56,17 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) {
+        jdbcTemplate.update("""
+                UPDATE pfw_broker_outbox
+                SET outbox_status = 'PENDING',
+                    worker_id = NULL,
+                    claimed_at = NULL,
+                    lease_until = NULL,
+                    updated_by = 'PFW_BROKER_RECOVERY',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE outbox_status = 'CLAIMED'
+                  AND lease_until <= CURRENT_TIMESTAMP(3)
+                """);
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
                 SELECT message_id AS messageId,
                        topic,
@@ -71,44 +83,93 @@ public class JdbcCpfBrokerReliabilityRepository
                        occurred_at AS occurredAt
                 FROM pfw_broker_outbox
                 WHERE outbox_status = 'PENDING'
+                  AND (next_attempt_at IS NULL OR next_attempt_at <= CURRENT_TIMESTAMP(3))
                 ORDER BY outbox_id
                 LIMIT ?
                 """, safeLimit(limit));
-        if (!rows.isEmpty()) {
-            jdbcTemplate.update("""
+        List<CpfBrokerEnvelope> claimed = new ArrayList<>(rows.size());
+        for (Map<String, Object> row : rows) {
+            int updated = jdbcTemplate.update("""
                     UPDATE pfw_broker_outbox
                     SET outbox_status = 'CLAIMED',
                         worker_id = ?,
                         claimed_at = CURRENT_TIMESTAMP(3),
+                        lease_until = TIMESTAMPADD(SECOND, 30, CURRENT_TIMESTAMP(3)),
                         updated_by = 'PFW_BROKER',
                         updated_at = CURRENT_TIMESTAMP
-                    WHERE outbox_status = 'PENDING'
-                    ORDER BY outbox_id
-                    LIMIT ?
-                    """, workerId, rows.size());
+                    WHERE message_id = ?
+                      AND outbox_status = 'PENDING'
+                      AND (next_attempt_at IS NULL OR next_attempt_at <= CURRENT_TIMESTAMP(3))
+                    """, workerId, string(row, "messageId"));
+            if (updated == 1) {
+                claimed.add(mapEnvelope(row));
+            }
         }
-        return rows.stream().map(this::mapEnvelope).toList();
+        return List.copyOf(claimed);
     }
 
     @Override
     public void markPublished(String messageId, CpfBrokerResult result) {
+        boolean published = "PUBLISHED".equalsIgnoreCase(result.status())
+                || "SUCCESS".equalsIgnoreCase(result.status())
+                || "ACCEPTED".equalsIgnoreCase(result.status());
         jdbcTemplate.update("""
                 UPDATE pfw_broker_outbox
-                SET outbox_status = ?,
+                SET attempt_count = attempt_count + 1,
+                    outbox_status = CASE
+                        WHEN ? = 'Y' THEN 'PUBLISHED'
+                        WHEN attempt_count + 1 >= max_attempts THEN 'FAILED'
+                        ELSE 'PENDING'
+                    END,
+                    next_attempt_at = CASE
+                        WHEN ? = 'Y' OR attempt_count + 1 >= max_attempts THEN NULL
+                        ELSE TIMESTAMPADD(SECOND, LEAST(300, POW(2, attempt_count) * 5), CURRENT_TIMESTAMP(3))
+                    END,
+                    worker_id = NULL,
+                    lease_until = NULL,
                     broker_name = ?,
                     partition_key = ?,
-                    published_at = ?,
+                    published_at = CASE WHEN ? = 'Y' THEN ? ELSE NULL END,
                     failure_message = ?,
                     updated_by = 'PFW_BROKER',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE message_id = ?
                 """,
-                result.status(),
+                published ? "Y" : "N",
+                published ? "Y" : "N",
                 result.brokerName(),
                 result.partitionKey(),
+                published ? "Y" : "N",
                 Timestamp.from(result.processedAt()),
                 result.detail(),
                 messageId);
+        if (published) {
+            jdbcTemplate.update("""
+                    UPDATE pfw_broker_dlq
+                    SET replay_status = 'COMPLETED',
+                        replay_completed_at = CURRENT_TIMESTAMP(3),
+                        updated_by = 'PFW_BROKER',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE message_id = ? AND replay_status = 'REQUESTED'
+                    """, messageId);
+            return;
+        }
+        jdbcTemplate.update("""
+                INSERT INTO pfw_broker_dlq (
+                    message_id, topic, transaction_global_id, segment_id, failure_reason,
+                    replay_status, created_by, updated_by
+                )
+                SELECT message_id, topic, transaction_global_id, segment_id, failure_message,
+                       'WAITING', 'PFW_BROKER', 'PFW_BROKER'
+                FROM pfw_broker_outbox
+                WHERE message_id = ? AND outbox_status = 'FAILED'
+                ON DUPLICATE KEY UPDATE
+                    failure_reason = VALUES(failure_reason),
+                    replay_status = 'FAILED',
+                    replay_completed_at = CURRENT_TIMESTAMP(3),
+                    updated_by = 'PFW_BROKER',
+                    updated_at = CURRENT_TIMESTAMP
+                """, messageId);
     }
 
     @Override
@@ -185,7 +246,7 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     public CpfBrokerResult replay(String messageId) {
-        jdbcTemplate.update("""
+        int requested = jdbcTemplate.update("""
                 UPDATE pfw_broker_dlq
                 SET replay_status = 'REQUESTED',
                     replay_requested_at = CURRENT_TIMESTAMP(3),
@@ -193,7 +254,29 @@ public class JdbcCpfBrokerReliabilityRepository
                     updated_by = 'PFW_BROKER',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE message_id = ?
+                  AND replay_status IN ('WAITING', 'FAILED')
                 """, messageId);
+        if (requested != 1) {
+            return CpfBrokerResult.failed(messageId, "PFW_REPLAY", "재처리 가능한 DLQ가 없습니다.");
+        }
+        jdbcTemplate.update("DELETE FROM pfw_broker_inbox WHERE message_id = ?", messageId);
+        int requeued = jdbcTemplate.update("""
+                UPDATE pfw_broker_outbox
+                SET outbox_status = 'PENDING',
+                    worker_id = NULL,
+                    attempt_count = 0,
+                    next_attempt_at = NULL,
+                    lease_until = NULL,
+                    claimed_at = NULL,
+                    published_at = NULL,
+                    failure_message = NULL,
+                    updated_by = 'PFW_REPLAY',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE message_id = ?
+                """, messageId);
+        if (requeued != 1) {
+            throw new IllegalStateException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
+        }
         return CpfBrokerResult.accepted(messageId, "PFW_REPLAY", messageId);
     }
 
@@ -219,15 +302,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 timestamp(to),
                 timestamp(to),
                 safeLimit(limit));
-        return rows.stream()
-                .map(row -> new CpfBrokerResult(
-                        string(row, "replayStatus"),
-                        string(row, "messageId"),
-                        "PFW_REPLAY",
-                        string(row, "topic"),
-                        instant(row, "replayRequestedAt"),
-                        string(row, "failureReason")))
-                .toList();
+        return rows.stream().map(row -> replay(string(row, "messageId"))).toList();
     }
 
     @Override

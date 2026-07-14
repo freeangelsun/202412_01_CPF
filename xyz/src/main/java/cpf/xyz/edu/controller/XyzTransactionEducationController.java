@@ -28,7 +28,7 @@ public class XyzTransactionEducationController {
 
     @PostMapping("/transaction/single")
     @CpfTransaction(id = "XYZ05EDU0001", name = "XYZSingleTransaction")
-    @Operation(summary = "단일 트랜잭션 교육", description = "XYZ 교육 서비스에서 하나의 트랜잭션으로 등록 흐름을 실행합니다.")
+    @Operation(operationId = "xyzTransactionEducationRunSingleTransactionEducation", summary = "단일 트랜잭션 교육", description = "XYZ 교육 서비스에서 하나의 트랜잭션으로 등록 흐름을 실행합니다.")
     public ResponseEntity<String> runSingleTransactionEducation() {
         return ResponseEntity.ok(crudEducationService.runSingleTransactionEducation());
     }
@@ -37,7 +37,7 @@ public class XyzTransactionEducationController {
     @CpfTransaction(id = "XYZ05EDU0002", name = "XYZSeparatedTransaction")
     @CpfWorkflow(id = "XYZ05EDU9001", name = "XYZSeparatedTransactionWorkflow")
     @CpfWorkflowStep(name = "XYZSeparatedTransactionStep", failurePolicy = CpfWorkflowFailurePolicy.MANUAL)
-    @Operation(summary = "분리 트랜잭션 교육", description = "REQUIRES_NEW 감사 로직과 감사 이후 실패 흐름을 확인합니다.")
+    @Operation(operationId = "xyzTransactionEducationRunSeparatedTransactionEducation", summary = "분리 트랜잭션 교육", description = "REQUIRES_NEW 감사 로직과 감사 이후 실패 흐름을 확인합니다.")
     public ResponseEntity<Map<String, Object>> runSeparatedTransactionEducation(
             @RequestParam(defaultValue = "false") boolean failAfterAudit) {
 

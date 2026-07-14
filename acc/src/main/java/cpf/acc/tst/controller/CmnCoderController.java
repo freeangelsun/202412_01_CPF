@@ -2,6 +2,7 @@ package cpf.acc.tst.controller;
 
 import cpf.cmn.cde.service.CodeCacheService;
 import cpf.pfw.common.logging.CpfTransaction;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +45,7 @@ public class CmnCoderController {
      */
     @GetMapping("/detail")
     @CpfTransaction(id = "ACC09TST0004", name = "ACC 공통 코드 단건 조회")
+@Operation(operationId = "accCmnCoderGetCodeByKey", summary = "정보 조회")
     public Map<String, Object> getCodeByKey(@RequestParam("codeKey") String codeKey) {
         return codeCacheService.getCodeByKey(codeKey);
     }

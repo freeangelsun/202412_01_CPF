@@ -108,6 +108,10 @@ public class ExsOperationRepository {
     }
 
     public List<Map<String, Object>> findTransactions(int limit) {
+        return findTransactions(null, limit);
+    }
+
+    public List<Map<String, Object>> findTransactions(String transactionGlobalId, int limit) {
         return jdbc().queryForList("""
                 SELECT transaction_log_id AS transactionLogId,
                        transaction_global_id AS transactionGlobalId,
@@ -139,12 +143,19 @@ public class ExsOperationRepository {
                        timeout_ms AS timeoutMs,
                        retry_count AS retryCount
                   FROM exs_transaction_log
+                 WHERE (:transactionGlobalId IS NULL OR transaction_global_id = :transactionGlobalId)
                  ORDER BY transaction_log_id DESC
                  LIMIT :limit
-                """, new MapSqlParameterSource("limit", limit));
+                """, new MapSqlParameterSource()
+                .addValue("transactionGlobalId", normalizeNullable(transactionGlobalId))
+                .addValue("limit", limit));
     }
 
     public List<Map<String, Object>> findMessages(int limit) {
+        return findMessages(null, limit);
+    }
+
+    public List<Map<String, Object>> findMessages(String transactionGlobalId, int limit) {
         return jdbc().queryForList("""
                 SELECT message_log_id AS messageLogId,
                        transaction_global_id AS transactionGlobalId,
@@ -162,9 +173,12 @@ public class ExsOperationRepository {
                        failure_message_masked AS failureMessageMasked,
                        created_at AS createdAt
                   FROM exs_message_log
+                 WHERE (:transactionGlobalId IS NULL OR transaction_global_id = :transactionGlobalId)
                  ORDER BY message_log_id DESC
                  LIMIT :limit
-                """, new MapSqlParameterSource("limit", limit));
+                """, new MapSqlParameterSource()
+                .addValue("transactionGlobalId", normalizeNullable(transactionGlobalId))
+                .addValue("limit", limit));
     }
 
     public void upsertToken(TokenWrite row) {
@@ -555,6 +569,10 @@ public class ExsOperationRepository {
                     "EXS transaction manager가 비활성화되어 추적 로그를 저장할 수 없습니다.");
         }
         return new TransactionTemplate(transactionManager);
+    }
+
+    private String normalizeNullable(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public record TokenWrite(

@@ -33,14 +33,14 @@ public class AdmCenterCutController {
 
     @GetMapping("/jobs")
     @CpfTransaction(id = "ADM01CTC0010", name = "ADMCenterCutJobList")
-    @Operation(summary = "Center-Cut Job 목록 조회", description = "등록된 Center-Cut Job 메타와 연결된 배치 Job 정보를 조회합니다.")
+    @Operation(operationId = "admCenterCutFindJobs", summary = "Center-Cut Job 목록 조회", description = "등록된 Center-Cut Job 메타와 연결된 배치 Job 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findJobs() {
         return ResponseEntity.ok(centerCutOperationService.findJobs());
     }
 
     @GetMapping("/jobs/{centerCutJobId}")
     @CpfTransaction(id = "ADM01CTC0020", name = "ADMCenterCutJobDetail")
-    @Operation(summary = "Center-Cut Job 상세 조회", description = "Job 메타, 파라미터, 요약, target/result 일부를 함께 조회합니다.")
+    @Operation(operationId = "admCenterCutFindJobDetail", summary = "Center-Cut Job 상세 조회", description = "Job 메타, 파라미터, 요약, target/result 일부를 함께 조회합니다.")
     public ResponseEntity<Map<String, Object>> findJobDetail(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId) {
@@ -49,7 +49,7 @@ public class AdmCenterCutController {
 
     @GetMapping("/jobs/{centerCutJobId}/parameters")
     @CpfTransaction(id = "ADM01CTC0030", name = "ADMCenterCutJobParameters")
-    @Operation(summary = "Center-Cut Job 파라미터 조회", description = "Center-Cut Job 실행에 사용하는 파라미터를 조회합니다. 암호화 값은 마스킹합니다.")
+    @Operation(operationId = "admCenterCutFindParameters", summary = "Center-Cut Job 파라미터 조회", description = "Center-Cut Job 실행에 사용하는 파라미터를 조회합니다. 암호화 값은 마스킹합니다.")
     public ResponseEntity<List<Map<String, Object>>> findParameters(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId) {
@@ -58,7 +58,7 @@ public class AdmCenterCutController {
 
     @GetMapping("/jobs/{centerCutJobId}/summary")
     @CpfTransaction(id = "ADM01CTC0040", name = "ADMCenterCutSummary")
-    @Operation(summary = "Center-Cut 처리 요약 조회", description = "대기, 처리중, 성공, 실패, 스킵, 재시도 요청, 중지 요청 건수를 조회합니다.")
+    @Operation(operationId = "admCenterCutFindSummary", summary = "Center-Cut 처리 요약 조회", description = "대기, 처리중, 성공, 실패, 스킵, 재시도 요청, 중지 요청 건수를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findSummary(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId) {
@@ -67,7 +67,7 @@ public class AdmCenterCutController {
 
     @GetMapping("/jobs/{centerCutJobId}/targets")
     @CpfTransaction(id = "ADM01CTC0050", name = "ADMCenterCutTargets")
-    @Operation(summary = "Center-Cut target 목록 조회", description = "업무 target 상태, 실패 사유, parent/child transactionGlobalId를 조회합니다.")
+    @Operation(operationId = "admCenterCutFindTargets", summary = "Center-Cut target 목록 조회", description = "업무 target 상태, 실패 사유, parent/child transactionGlobalId를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findTargets(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId,
@@ -80,7 +80,7 @@ public class AdmCenterCutController {
 
     @GetMapping("/jobs/{centerCutJobId}/results")
     @CpfTransaction(id = "ADM01CTC0060", name = "ADMCenterCutResults")
-    @Operation(summary = "Center-Cut result 목록 조회", description = "업무 result 상태, 메시지, parent/child transactionGlobalId를 조회합니다. payload 원문은 마스킹합니다.")
+    @Operation(operationId = "admCenterCutFindResults", summary = "Center-Cut result 목록 조회", description = "업무 result 상태, 메시지, parent/child transactionGlobalId를 조회합니다. payload 원문은 마스킹합니다.")
     public ResponseEntity<List<Map<String, Object>>> findResults(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId,
@@ -93,7 +93,7 @@ public class AdmCenterCutController {
 
     @GetMapping("/results/{resultId}")
     @CpfTransaction(id = "ADM01CTC0070", name = "ADMCenterCutResultDetail")
-    @Operation(summary = "Center-Cut result 상세 조회", description = "result 단건 상세를 조회합니다. payload 원문은 응답하지 않습니다.")
+    @Operation(operationId = "admCenterCutFindResultDetail", summary = "Center-Cut result 상세 조회", description = "result 단건 상세를 조회합니다. payload 원문은 응답하지 않습니다.")
     public ResponseEntity<Map<String, Object>> findResultDetail(
             @Parameter(description = "Center-Cut result ID", example = "1")
             @PathVariable String resultId) {

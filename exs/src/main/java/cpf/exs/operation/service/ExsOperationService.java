@@ -74,8 +74,16 @@ public class ExsOperationService {
         return operationRepository.findTransactions(boundedLimit(limit));
     }
 
+    public List<Map<String, Object>> findTransactions(String transactionGlobalId, int limit) {
+        return operationRepository.findTransactions(transactionGlobalId, boundedLimit(limit));
+    }
+
     public List<Map<String, Object>> findMessages(int limit) {
         return operationRepository.findMessages(boundedLimit(limit));
+    }
+
+    public List<Map<String, Object>> findMessages(String transactionGlobalId, int limit) {
+        return operationRepository.findMessages(transactionGlobalId, boundedLimit(limit));
     }
 
     /**

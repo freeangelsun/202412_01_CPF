@@ -38,21 +38,21 @@ public class AdmConfigController {
 
     @GetMapping
     @CpfTransaction(id = "ADM01CFG0010", name = "ADMConfigList")
-    @Operation(summary = "공통 설정 목록 조회", description = "pfw_config 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
+    @Operation(operationId = "admConfigFindConfigs", summary = "공통 설정 목록 조회", description = "pfw_config 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
     public ResponseEntity<List<Map<String, Object>>> findConfigs() {
         return ResponseEntity.ok(configCacheService.getAllConfigs().stream().map(this::maskSecret).toList());
     }
 
     @GetMapping("/{configId}")
     @CpfTransaction(id = "ADM01CFG0011", name = "ADMConfigDetail")
-    @Operation(summary = "공통 설정 상세 조회", description = "설정 ID로 pfw_config 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
+    @Operation(operationId = "admConfigFindConfig", summary = "공통 설정 상세 조회", description = "설정 ID로 pfw_config 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
     public ResponseEntity<Map<String, Object>> findConfig(@PathVariable Long configId) {
         return ResponseEntity.ok(maskSecret(configCacheService.getConfigById(configId)));
     }
 
     @PostMapping
     @CpfTransaction(id = "ADM02CFG0012", name = "ADMConfigCreate")
-    @Operation(summary = "공통 설정 등록", description = "pfw_config에 신규 설정을 등록하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigCreateConfig", summary = "공통 설정 등록", description = "pfw_config에 신규 설정을 등록하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createConfig(
             @Valid @RequestBody CommonConfigRequest request,
             HttpServletRequest servletRequest) {
@@ -74,7 +74,7 @@ public class AdmConfigController {
 
     @PutMapping("/{configId}")
     @CpfTransaction(id = "ADM03CFG0013", name = "ADMConfigUpdate")
-    @Operation(summary = "공통 설정 수정", description = "pfw_config를 수정하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigUpdateConfig", summary = "공통 설정 수정", description = "pfw_config를 수정하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateConfig(
             @PathVariable Long configId,
             @Valid @RequestBody CommonConfigRequest request,
@@ -98,7 +98,7 @@ public class AdmConfigController {
 
     @DeleteMapping("/{configId}")
     @CpfTransaction(id = "ADM04CFG0014", name = "ADMConfigDisable")
-    @Operation(summary = "공통 설정 비활성", description = "pfw_config를 비활성화하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigDeleteConfig", summary = "공통 설정 비활성", description = "pfw_config를 비활성화하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteConfig(
             @PathVariable Long configId,
             @RequestParam String reason,

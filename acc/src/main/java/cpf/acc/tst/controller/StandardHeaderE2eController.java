@@ -29,7 +29,7 @@ public class StandardHeaderE2eController {
 
     @GetMapping("/standard-header-e2e")
     @CpfTransaction(id = "ACC09TST0007", name = "ACCStandardHeaderE2e")
-    @Operation(
+    @Operation(operationId = "accStandardHeaderE2eVerifyStandardHeaderE2e",
             summary = "표준 헤더 runtime E2E smoke",
             description = "현재 거래 컨텍스트의 표준/확장 헤더를 mock downstream으로 전파하고 로그 저장 여부를 검증할 수 있게 합니다.")
     public ResponseEntity<Map<String, Object>> verifyStandardHeaderE2e(

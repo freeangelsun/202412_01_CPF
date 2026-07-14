@@ -7,6 +7,7 @@ import cpf.cmn.cfg.service.ConfigCacheService;
 import cpf.cmn.msg.dto.CommonMessageRequest;
 import cpf.cmn.msg.service.MessageCacheService;
 import cpf.pfw.common.logging.CpfTransaction;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +64,7 @@ public class CmnManagementController {
      */
     @GetMapping("/codes")
     @CpfTransaction(id = "ACC09TST0010", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementGetCodes", summary = "정보 조회")
     public ResponseEntity<Map<String, Object>> getCodes(
             @RequestParam(name = "codeId", required = false) Long codeId,
             @RequestParam(name = "codeKey", required = false) String codeKey) {
@@ -90,6 +92,7 @@ public class CmnManagementController {
      */
     @PostMapping("/codes")
     @CpfTransaction(id = "ACC09TST0011", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementCreateCode", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> createCode(@Valid @RequestBody CommonCodeRequest request) {
         // CPF 기능 설명입니다.
         return ok("code created", codeCacheService.createCode(request));
@@ -104,6 +107,7 @@ public class CmnManagementController {
      */
     @PutMapping("/codes")
     @CpfTransaction(id = "ACC09TST0012", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementUpdateCode", summary = "정보 변경")
     public ResponseEntity<Map<String, Object>> updateCode(
             @RequestParam("codeId") Long codeId,
             @Valid @RequestBody CommonCodeRequest request) {
@@ -119,6 +123,7 @@ public class CmnManagementController {
      */
     @DeleteMapping("/codes")
     @CpfTransaction(id = "ACC09TST0013", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementDeleteCode", summary = "정보 삭제")
     public ResponseEntity<Map<String, Object>> deleteCode(@RequestParam("codeId") Long codeId) {
         // CPF 기능 설명입니다.
         return ok("code deleted", codeCacheService.deleteCode(codeId));
@@ -131,6 +136,7 @@ public class CmnManagementController {
      */
     @PostMapping("/codes/refresh")
     @CpfTransaction(id = "ACC09TST0014", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementRefreshCodes", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> refreshCodes() {
         // CPF 기능 설명입니다.
         return ok("code cache refreshed", codeCacheService.refreshCodesAndPublish());
@@ -147,6 +153,7 @@ public class CmnManagementController {
      */
     @GetMapping("/messages")
     @CpfTransaction(id = "ACC09TST0020", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementGetMessages", summary = "정보 조회")
     public ResponseEntity<Map<String, Object>> getMessages(
             @RequestParam(name = "messageId", required = false) Long messageId,
             @RequestParam(name = "messageKey", required = false) String messageKey,
@@ -178,6 +185,7 @@ public class CmnManagementController {
      */
     @PostMapping("/messages")
     @CpfTransaction(id = "ACC09TST0021", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementCreateMessage", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> createMessage(@Valid @RequestBody CommonMessageRequest request) {
         return ok("message created", messageCacheService.createMessage(request));
     }
@@ -191,6 +199,7 @@ public class CmnManagementController {
      */
     @PutMapping("/messages")
     @CpfTransaction(id = "ACC09TST0022", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementUpdateMessage", summary = "정보 변경")
     public ResponseEntity<Map<String, Object>> updateMessage(
             @RequestParam("messageId") Long messageId,
             @Valid @RequestBody CommonMessageRequest request) {
@@ -205,6 +214,7 @@ public class CmnManagementController {
      */
     @DeleteMapping("/messages")
     @CpfTransaction(id = "ACC09TST0023", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementDeleteMessage", summary = "정보 삭제")
     public ResponseEntity<Map<String, Object>> deleteMessage(@RequestParam("messageId") Long messageId) {
         return ok("message deleted", messageCacheService.deleteMessage(messageId));
     }
@@ -216,6 +226,7 @@ public class CmnManagementController {
      */
     @PostMapping("/messages/refresh")
     @CpfTransaction(id = "ACC09TST0024", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementRefreshMessages", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> refreshMessages() {
         return ok("message cache refreshed", messageCacheService.refreshMessagesAndPublish());
     }
@@ -229,6 +240,7 @@ public class CmnManagementController {
      */
     @GetMapping("/configs")
     @CpfTransaction(id = "ACC09TST0030", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementGetConfigs", summary = "정보 조회")
     public ResponseEntity<Map<String, Object>> getConfigs(
             @RequestParam(name = "configId", required = false) Long configId,
             @RequestParam(name = "configKey", required = false) String configKey) {
@@ -253,6 +265,7 @@ public class CmnManagementController {
      */
     @PostMapping("/configs")
     @CpfTransaction(id = "ACC09TST0031", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementCreateConfig", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> createConfig(@Valid @RequestBody CommonConfigRequest request) {
         return ok("config created", configCacheService.createConfig(request));
     }
@@ -266,6 +279,7 @@ public class CmnManagementController {
      */
     @PutMapping("/configs")
     @CpfTransaction(id = "ACC09TST0032", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementUpdateConfig", summary = "정보 변경")
     public ResponseEntity<Map<String, Object>> updateConfig(
             @RequestParam("configId") Long configId,
             @Valid @RequestBody CommonConfigRequest request) {
@@ -280,6 +294,7 @@ public class CmnManagementController {
      */
     @DeleteMapping("/configs")
     @CpfTransaction(id = "ACC09TST0033", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementDeleteConfig", summary = "정보 삭제")
     public ResponseEntity<Map<String, Object>> deleteConfig(@RequestParam("configId") Long configId) {
         return ok("config deleted", configCacheService.deleteConfig(configId));
     }
@@ -291,6 +306,7 @@ public class CmnManagementController {
      */
     @PostMapping("/configs/refresh")
     @CpfTransaction(id = "ACC09TST0034", name = "CPF 처리 기준입니다.")
+@Operation(operationId = "accCmnManagementRefreshConfigs", summary = "요청 처리")
     public ResponseEntity<Map<String, Object>> refreshConfigs() {
         return ok("config cache refreshed", configCacheService.refreshConfigsAndPublish());
     }
@@ -307,4 +323,3 @@ public class CmnManagementController {
         return value != null && !value.isBlank();
     }
 }
-

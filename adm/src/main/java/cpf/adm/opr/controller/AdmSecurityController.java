@@ -35,14 +35,14 @@ public class AdmSecurityController {
 
     @GetMapping("/ip-allowlist")
     @CpfTransaction(id = "ADM01SEC0010", name = "ADMIpAllowlist")
-    @Operation(summary = "IP 허용 목록 조회", description = "ADM 접속 허용 IP/CIDR 목록을 조회합니다.")
+    @Operation(operationId = "admSecurityFindIpAllowlist", summary = "IP 허용 목록 조회", description = "ADM 접속 허용 IP/CIDR 목록을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findIpAllowlist() {
         return ResponseEntity.ok(securityService.findIpAllowlist());
     }
 
     @PostMapping("/ip-allowlist")
     @CpfTransaction(id = "ADM03SEC0011", name = "ADMIpAllowlistSave")
-    @Operation(summary = "IP 허용 목록 저장", description = "ADM 접속 허용 IP/CIDR 목록을 등록 또는 수정합니다.")
+    @Operation(operationId = "admSecuritySaveIpAllowlist", summary = "IP 허용 목록 저장", description = "ADM 접속 허용 IP/CIDR 목록을 등록 또는 수정합니다.")
     public ResponseEntity<Map<String, Object>> saveIpAllowlist(
             @RequestBody AdmIpAllowlistRequest request,
             HttpServletRequest servletRequest) {
@@ -55,14 +55,14 @@ public class AdmSecurityController {
 
     @GetMapping("/mfa")
     @CpfTransaction(id = "ADM01SEC0012", name = "ADMMfaList")
-    @Operation(summary = "MFA 상태 조회", description = "ADM 운영자 MFA 등록/검증 상태를 조회합니다.")
+    @Operation(operationId = "admSecurityFindMfaStates", summary = "MFA 상태 조회", description = "ADM 운영자 MFA 등록/검증 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMfaStates() {
         return ResponseEntity.ok(securityService.findMfaStates());
     }
 
     @PostMapping("/mfa/{operatorId}/register")
     @CpfTransaction(id = "ADM03SEC0013", name = "ADMMfaRegister")
-    @Operation(summary = "MFA 등록", description = "운영자 MFA secret 참조를 등록합니다.")
+    @Operation(operationId = "admSecurityRegisterMfa", summary = "MFA 등록", description = "운영자 MFA secret 참조를 등록합니다.")
     public ResponseEntity<Map<String, Object>> registerMfa(
             @PathVariable String operatorId,
             @RequestBody AdmMfaOtpRequest request,
@@ -76,7 +76,7 @@ public class AdmSecurityController {
 
     @PostMapping("/mfa/{operatorId}/verify")
     @CpfTransaction(id = "ADM03SEC0014", name = "ADMMfaVerify")
-    @Operation(summary = "MFA 검증", description = "운영자 MFA 검증 상태를 활성화합니다.")
+    @Operation(operationId = "admSecurityVerifyMfa", summary = "MFA 검증", description = "운영자 MFA 검증 상태를 활성화합니다.")
     public ResponseEntity<Map<String, Object>> verifyMfa(
             @PathVariable String operatorId,
             @RequestBody AdmMfaOtpRequest request,
@@ -90,7 +90,7 @@ public class AdmSecurityController {
 
     @PostMapping("/mfa/{operatorId}/disable")
     @CpfTransaction(id = "ADM03SEC0015", name = "ADMMfaDisable")
-    @Operation(summary = "MFA 해제", description = "운영자 MFA를 비활성화합니다.")
+    @Operation(operationId = "admSecurityDisableMfa", summary = "MFA 해제", description = "운영자 MFA를 비활성화합니다.")
     public ResponseEntity<Map<String, Object>> disableMfa(
             @PathVariable String operatorId,
             @RequestParam String reason,

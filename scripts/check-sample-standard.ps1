@@ -1,11 +1,10 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
 $ErrorActionPreference = "Stop"
 
-# 운영 모듈에는 일반 sample 패키지와 SampleController/SampleService가 남으면 안 됩니다.
-# 단, CPF 공식 EDU 샘플은 각 모듈의 edu 하위 기능 패키지에 EducationSample 이름으로 둘 수 있습니다.
+# 범용 EDU는 XYZ와 BAT만 소유합니다. 다른 모듈은 엔진, 포트, reference adapter와 테스트 fixture만 둡니다.
 $operationRoots = @(
     "pfw/src/main/java",
     "cmn/src/main/java",
@@ -16,11 +15,6 @@ $operationRoots = @(
     "acc/src/main/java"
 )
 $educationRoots = @(
-    "pfw/src/main/java/cpf/pfw/common",
-    "cmn/src/main/java/cpf/cmn/edu",
-    "adm/src/main/java/cpf/adm/edu",
-    "bizadm/src/main/java/cpf/bizadm/edu",
-    "exs/src/main/java/cpf/exs/edu",
     "bat/src/main/java/cpf/bat/edu",
     "xyz/src/main/java/cpf/xyz/edu"
 )
@@ -55,6 +49,10 @@ foreach ($rootPath in $operationRoots) {
         $text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
 
         $isEduSource = Test-EduSourcePath $relative
+
+        if (-not $isEduSource -and ($_.Name -match 'EducationSample' -or $text -match '(?m)^\s*package\s+cpf\.(pfw|cmn|adm|bizadm|exs|mbr|acc)\.edu(\.|;)')) {
+            $failures.Add("XYZ/BAT 외 모듈의 범용 EDU 소유권 위반: $relative")
+        }
 
         if (-not $isEduSource -and $_.Name -match '(?i)Sample(Controller|Service)\.java$') {
             $failures.Add("운영 모듈 SampleController/SampleService 잔존: $relative")

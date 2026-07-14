@@ -32,42 +32,42 @@ public class BizAdmOperationController {
 
     @GetMapping("/admin-users")
     @CpfTransaction(id = "BIZ01ADM1001", name = "BizAdmAdminUserList")
-    @Operation(summary = "업무 관리자 사용자 조회", description = "bizadm_admin_user 기준 업무 관리자 사용자를 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindAdminUsers", summary = "업무 관리자 사용자 조회", description = "bizadm_admin_user 기준 업무 관리자 사용자를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findAdminUsers() {
         return ResponseEntity.ok(operationService.findAdminUsers());
     }
 
     @GetMapping("/menus")
     @CpfTransaction(id = "BIZ01MNU1001", name = "BizAdmMenuList")
-    @Operation(summary = "업무 관리자 메뉴 조회", description = "업무 관리자 메뉴와 모듈 구분을 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindMenus", summary = "업무 관리자 메뉴 조회", description = "업무 관리자 메뉴와 모듈 구분을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMenus() {
         return ResponseEntity.ok(operationService.findMenus());
     }
 
     @GetMapping("/roles")
     @CpfTransaction(id = "BIZ01ROL1001", name = "BizAdmRoleList")
-    @Operation(summary = "업무 관리자 역할 조회", description = "업무 관리자 역할과 쓰기 허용 여부를 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindRoles", summary = "업무 관리자 역할 조회", description = "업무 관리자 역할과 쓰기 허용 여부를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findRoles() {
         return ResponseEntity.ok(operationService.findRoles());
     }
 
     @GetMapping("/permissions")
     @CpfTransaction(id = "BIZ01PER1001", name = "BizAdmPermissionList")
-    @Operation(summary = "업무 관리자 권한 조회", description = "역할, 메뉴, 버튼 기준 업무 권한 매트릭스를 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindPermissions", summary = "업무 관리자 권한 조회", description = "역할, 메뉴, 버튼 기준 업무 권한 매트릭스를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findPermissions() {
         return ResponseEntity.ok(operationService.findPermissions());
     }
 
     @GetMapping("/customers")
     @CpfTransaction(id = "BIZ01CUS1001", name = "BizAdmCustomerList")
-    @Operation(summary = "고객 조회", description = "고객 목록을 마스킹 기준으로 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindCustomers", summary = "고객 조회", description = "고객 목록을 마스킹 기준으로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCustomers() {
         return ResponseEntity.ok(operationService.findCustomers());
     }
 
     @PostMapping("/masking/unmask")
     @CpfTransaction(id = "BIZ02MSK1001", name = "BizAdmUnmask")
-    @Operation(summary = "고객 마스킹 해제", description = "감사 사유를 필수로 받아 고객 원문 정보를 조회하고 마스킹 감사 이력을 남깁니다.")
+    @Operation(operationId = "bizadmOperationUnmaskCustomers", summary = "고객 마스킹 해제", description = "감사 사유를 필수로 받아 고객 원문 정보를 조회하고 마스킹 감사 이력을 남깁니다.")
     public ResponseEntity<List<Map<String, Object>>> unmaskCustomers(
             @RequestParam String reason,
             @RequestParam(defaultValue = "BIZADM_OPERATOR") String requestUser) {
@@ -76,28 +76,28 @@ public class BizAdmOperationController {
 
     @GetMapping("/products")
     @CpfTransaction(id = "BIZ01PRD1001", name = "BizAdmProductList")
-    @Operation(summary = "상품 조회", description = "업무 상품 기준정보를 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindProducts", summary = "상품 조회", description = "업무 상품 기준정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findProducts() {
         return ResponseEntity.ok(operationService.findProducts());
     }
 
     @GetMapping("/orders")
     @CpfTransaction(id = "BIZ01ORD1001", name = "BizAdmOrderList")
-    @Operation(summary = "주문 조회", description = "업무 주문과 고객/상품 연결 정보를 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindOrders", summary = "주문 조회", description = "업무 주문과 고객/상품 연결 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findOrders() {
         return ResponseEntity.ok(operationService.findOrders());
     }
 
     @GetMapping("/settings")
     @CpfTransaction(id = "BIZ01SET1001", name = "BizAdmSettingList")
-    @Operation(summary = "업무 설정 조회", description = "업무 모듈 적용 설정을 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindSettings", summary = "업무 설정 조회", description = "업무 모듈 적용 설정을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSettings() {
         return ResponseEntity.ok(operationService.findSettings());
     }
 
     @GetMapping("/downloads")
     @CpfTransaction(id = "BIZ01DWN1001", name = "BizAdmDownloadPolicyList")
-    @Operation(summary = "다운로드 정책 조회", description = "업무 다운로드 정책 설정을 조회합니다.")
+    @Operation(operationId = "bizadmOperationFindDownloadPolicies", summary = "다운로드 정책 조회", description = "업무 다운로드 정책 설정을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findDownloadPolicies() {
         return ResponseEntity.ok(operationService.findDownloadPolicies());
     }

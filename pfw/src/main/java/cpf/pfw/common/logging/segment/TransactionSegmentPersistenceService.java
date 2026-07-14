@@ -1,5 +1,6 @@
 package cpf.pfw.common.logging.segment;
 
+import cpf.pfw.common.logging.fallback.TransactionSegmentFallbackStore;
 import cpf.pfw.mapper.common.logging.TransactionSegmentMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,18 +16,71 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class TransactionSegmentPersistenceService {
     private final TransactionSegmentMapper mapper;
+    private final TransactionSegmentFallbackStore fallbackStore;
 
-    public TransactionSegmentPersistenceService(TransactionSegmentMapper mapper) {
+    public TransactionSegmentPersistenceService(
+            TransactionSegmentMapper mapper,
+            TransactionSegmentFallbackStore fallbackStore) {
         this.mapper = mapper;
+        this.fallbackStore = fallbackStore;
     }
 
     @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void insert(TransactionSegmentRecord record) {
-        mapper.insertSegment(record);
+        try {
+            mapper.insertSegment(record);
+        } catch (RuntimeException ex) {
+            preserveStart(record, ex);
+            throw ex;
+        }
     }
 
     @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void updateEnd(TransactionSegmentRecord record) {
-        mapper.updateSegmentEnd(record);
+        try {
+            if (mapper.updateSegmentEnd(record) == 0) {
+                throw new IllegalStateException("종료할 거래 구간 시작 레코드가 없습니다.");
+            }
+        } catch (RuntimeException ex) {
+            preserveEnd(record, ex);
+            throw ex;
+        }
+    }
+
+    /**
+     * recovery worker 전용 시작 저장입니다. 실패 시 journal을 다시 만들지 않습니다.
+     */
+    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    public void insertRecovered(TransactionSegmentRecord record) {
+        mapper.insertSegment(record);
+    }
+
+    /**
+     * recovery worker 전용 종료 저장입니다. START가 아직 없으면 재시도 대상으로 남깁니다.
+     */
+    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    public void updateEndRecovered(TransactionSegmentRecord record) {
+        if (mapper.countByTransactionSegmentId(record.getTransactionSegmentId()) == 0) {
+            throw new IllegalStateException("거래 구간 START 복구가 완료되지 않았습니다.");
+        }
+        if (mapper.updateSegmentEnd(record) == 0) {
+            throw new IllegalStateException("거래 구간 END 복구 대상을 찾지 못했습니다.");
+        }
+    }
+
+    private void preserveStart(TransactionSegmentRecord record, RuntimeException original) {
+        try {
+            fallbackStore.enqueueStart(record, original);
+        } catch (RuntimeException fallbackFailure) {
+            original.addSuppressed(fallbackFailure);
+        }
+    }
+
+    private void preserveEnd(TransactionSegmentRecord record, RuntimeException original) {
+        try {
+            fallbackStore.enqueueEnd(record, original);
+        } catch (RuntimeException fallbackFailure) {
+            original.addSuppressed(fallbackFailure);
+        }
     }
 }

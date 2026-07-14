@@ -3,6 +3,9 @@ package cpf.pfw.common.idempotency;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -98,6 +101,32 @@ class CpfIdempotencyEngineTest {
             release.countDown();
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    void expiredProcessingRecordRestartsAfterProcessFailure() {
+        Instant now = Instant.parse("2026-07-14T00:00:00Z");
+        InMemoryCpfIdempotencyRepository repository = new InMemoryCpfIdempotencyRepository();
+        CpfIdempotencyCommand command = command("K6", "P1");
+        repository.reserve(new CpfIdempotencyRecord(
+                command.scope(),
+                command.idempotencyKey(),
+                command.requestHash(),
+                command.payloadHash(),
+                CpfIdempotencyStatus.PROCESSING.name(),
+                null,
+                false,
+                now.minusSeconds(120),
+                null,
+                now.minusSeconds(1)));
+        CpfIdempotencyEngine engine = new CpfIdempotencyEngine(
+                repository,
+                Clock.fixed(now, ZoneOffset.UTC));
+
+        CpfIdempotencyExecutionResult restarted = engine.execute(command, () -> "RESTARTED");
+
+        assertThat(restarted.replayed()).isFalse();
+        assertThat(restarted.response()).isEqualTo("RESTARTED");
     }
 
     private CpfIdempotencyEngine engine() {

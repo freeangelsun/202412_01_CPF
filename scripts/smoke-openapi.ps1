@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $AccBaseUrl = "http://localhost:8080",
@@ -139,18 +139,23 @@ if (-not $SkipAdm) {
 
 if (-not $SkipAcc) {
     Invoke-JsonSmoke -ServiceName "ACC" -BaseUrl $AccBaseUrl -RequiredTags @(
-        "ACC-EDU Composite Transaction"
+        "ACC-EDU Composite Transaction",
+        "ACC Reference"
     ) -RequiredPaths @(
         "/acc/edu/composite/member-then-external",
         "/acc/edu/composite/member-calls-external",
-        "/acc/edu/composite/member-then-external-failure"
+        "/acc/edu/composite/member-then-external-failure",
+        "/api/v1/acc/reference/member-external"
     ) | Out-Null
 }
 
 if (-not $SkipMbr) {
     Invoke-JsonSmoke -ServiceName "MBR" -BaseUrl $MbrBaseUrl -RequiredTags @(
         "MBR-Auth",
-        "MBR-EDU Composite Transaction"
+        "MBR-EDU Composite Transaction",
+        "MBR Reference"
+    ) -RequiredPaths @(
+        "/api/v1/mbr/reference/member-acc-exs"
     ) | Out-Null
 }
 
@@ -176,6 +181,7 @@ if (-not $SkipExs) {
         "EXS-Flow",
         "EXS-EDU Composite Transaction"
     ) -RequiredPaths @(
+        "/api/exs/outbound",
         "/api/exs/edu/external-transfer",
         "/api/exs/edu/external-transfer/failure"
     ) | Out-Null

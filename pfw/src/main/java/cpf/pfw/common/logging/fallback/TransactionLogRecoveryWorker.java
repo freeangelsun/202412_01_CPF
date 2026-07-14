@@ -38,6 +38,7 @@ public class TransactionLogRecoveryWorker {
     private final int maxAttempts;
     private final long initialBackoffMs;
     private final long maxBackoffMs;
+    private final Duration processingLeaseTimeout;
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicLong recoveredCount = new AtomicLong();
     private final AtomicLong failedAttemptCount = new AtomicLong();
@@ -69,6 +70,8 @@ public class TransactionLogRecoveryWorker {
                 "cpf.logging.db-fallback.initial-backoff-ms", Long.class, 1_000L), 1_000L);
         this.maxBackoffMs = positive(environment.getProperty(
                 "cpf.logging.db-fallback.max-backoff-ms", Long.class, 300_000L), 300_000L);
+        this.processingLeaseTimeout = Duration.ofMillis(positive(environment.getProperty(
+                "cpf.logging.db-fallback.processing-lease-ms", Long.class, 120_000L), 120_000L));
     }
 
     @Scheduled(fixedDelayString = "${cpf.logging.db-fallback.recovery-interval-ms:30000}")
@@ -87,19 +90,12 @@ public class TransactionLogRecoveryWorker {
         int recovered = 0;
         int failed = 0;
         try {
-            for (Path pending : store.pendingFiles()) {
-                if (claimed >= batchSize) {
-                    break;
-                }
-                claimed++;
+            store.reclaimStaleProcessing(clock.instant(), processingLeaseTimeout);
+            for (Path pending : store.eligiblePendingFiles(clock.instant(), batchSize)) {
                 TransactionLogFallbackEnvelope envelope = null;
                 try {
                     envelope = store.claim(pending);
-                    Instant now = clock.instant();
-                    if (envelope.nextAttemptAt() != null && envelope.nextAttemptAt().isAfter(now)) {
-                        store.retry(envelope);
-                        continue;
-                    }
+                    claimed++;
                     logService.saveTransactionLog(
                             envelope.record(),
                             new LinkedHashMap<>(envelope.details()),
@@ -128,6 +124,14 @@ public class TransactionLogRecoveryWorker {
                 recoveredCount.get(),
                 failedAttemptCount.get(),
                 store.snapshot());
+    }
+
+    public boolean retryPoison(String recoveryEventId) {
+        try {
+            return store.retryPoison(recoveryEventId);
+        } catch (IOException ex) {
+            throw new IllegalStateException("poison 거래 로그를 재시도 대기열로 이동할 수 없습니다.", ex);
+        }
     }
 
     private void handleFailure(TransactionLogFallbackEnvelope envelope, Exception failure) {

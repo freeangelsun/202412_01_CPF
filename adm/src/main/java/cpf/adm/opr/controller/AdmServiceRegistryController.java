@@ -29,7 +29,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/services")
     @CpfTransaction(id = "ADM01SVC0010", name = "ADMServiceRegistryServices")
-    @Operation(summary = "서비스 목록 조회", description = "PFW 서비스 호출 엔진에 등록된 서비스 기본 정보를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindServices", summary = "서비스 목록 조회", description = "PFW 서비스 호출 엔진에 등록된 서비스 기본 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findServices(
             @Parameter(description = "서비스 ID", example = "MBR")
             @RequestParam(required = false) String serviceId,
@@ -42,7 +42,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/endpoints")
     @CpfTransaction(id = "ADM01SVC0020", name = "ADMServiceRegistryEndpoints")
-    @Operation(summary = "서비스 endpoint 조회", description = "서비스별 endpoint, base URL, timeout/retry 기본값을 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindEndpoints", summary = "서비스 endpoint 조회", description = "서비스별 endpoint, base URL, timeout/retry 기본값을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findEndpoints(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String endpointCode,
@@ -53,7 +53,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/instances")
     @CpfTransaction(id = "ADM01SVC0030", name = "ADMServiceRegistryInstances")
-    @Operation(summary = "서비스 instance 조회", description = "endpoint별 instance와 현재 운영 상태를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindInstances", summary = "서비스 instance 조회", description = "endpoint별 instance와 현재 운영 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findInstances(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String endpointCode,
@@ -64,7 +64,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/health")
     @CpfTransaction(id = "ADM01SVC0040", name = "ADMServiceRegistryHealth")
-    @Operation(summary = "서비스 health 조회", description = "서비스 instance health check 결과를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindHealth", summary = "서비스 health 조회", description = "서비스 instance health check 결과를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findHealth(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String endpointCode,
@@ -74,7 +74,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/routing-policies")
     @CpfTransaction(id = "ADM01SVC0050", name = "ADMServiceRegistryRoutingPolicies")
-    @Operation(summary = "라우팅 정책 조회", description = "서비스 호출 엔진이 사용하는 routing/failover/health policy를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindRoutingPolicies", summary = "라우팅 정책 조회", description = "서비스 호출 엔진이 사용하는 routing/failover/health policy를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findRoutingPolicies(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String endpointCode,
@@ -85,7 +85,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/circuit-states")
     @CpfTransaction(id = "ADM01SVC0060", name = "ADMServiceRegistryCircuitStates")
-    @Operation(summary = "Circuit 상태 조회", description = "서비스/endpoint/instance별 circuit breaker 상태를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindCircuitStates", summary = "Circuit 상태 조회", description = "서비스/endpoint/instance별 circuit breaker 상태를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCircuitStates(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String endpointCode,
@@ -95,7 +95,7 @@ public class AdmServiceRegistryController {
 
     @GetMapping("/call-history")
     @CpfTransaction(id = "ADM01SVC0070", name = "ADMServiceRegistryCallHistory")
-    @Operation(summary = "서비스 호출 이력 조회", description = "PFW 서비스 호출 엔진이 기록한 호출 이력을 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindCallHistory", summary = "서비스 호출 이력 조회", description = "PFW 서비스 호출 엔진이 기록한 호출 이력을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCallHistory(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String transactionGlobalId,

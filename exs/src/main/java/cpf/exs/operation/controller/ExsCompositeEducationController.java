@@ -40,7 +40,7 @@ public class ExsCompositeEducationController {
 
     @PostMapping("/external-transfer")
     @CpfTransaction(id = "EXS09EDU0001", name = "EXSCompositeExternalTransfer")
-    @Operation(summary = "EXS 외부기관 mock 호출", description = "전달된 transactionGlobalId를 유지하고 EXTERNAL segment와 EXS 송신 로그를 남깁니다.")
+    @Operation(operationId = "exsCompositeEducationExternalTransfer", summary = "EXS 외부기관 mock 호출", description = "전달된 transactionGlobalId를 유지하고 EXTERNAL segment와 EXS 송신 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> externalTransfer(@RequestBody(required = false) Map<String, Object> request) {
         Map<String, Object> body = request == null ? Map.of() : request;
         try (TransactionSegmentScope scope = segmentService.start(
@@ -76,7 +76,7 @@ public class ExsCompositeEducationController {
 
     @PostMapping("/external-transfer/failure")
     @CpfTransaction(id = "EXS09EDU0002", name = "EXSCompositeExternalTransferFailure")
-    @Operation(summary = "EXS 외부기관 실패 mock 호출", description = "EXS 송신 실패 원장을 남기고 호출자에게 502 실패 응답을 반환합니다.")
+    @Operation(operationId = "exsCompositeEducationExternalTransferFailure", summary = "EXS 외부기관 실패 mock 호출", description = "EXS 송신 실패 원장을 남기고 호출자에게 502 실패 응답을 반환합니다.")
     public ResponseEntity<Map<String, Object>> externalTransferFailure(@RequestBody(required = false) Map<String, Object> request) {
         Map<String, Object> body = request == null ? Map.of() : request;
         try (TransactionSegmentScope scope = segmentService.start(

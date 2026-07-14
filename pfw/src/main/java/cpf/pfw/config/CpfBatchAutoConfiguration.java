@@ -84,11 +84,15 @@ public class CpfBatchAutoConfiguration {
     @ConditionalOnMissingBean
     public CpfBatchFileLogWriter cpfBatchFileLogWriter(
             CpfFileLogWriter fileLogWriter,
-            TransactionIdGenerator transactionIdGenerator) {
+            TransactionIdGenerator transactionIdGenerator,
+            CpfBatchLockManager batchLockManager,
+            @Value("${cpf.batch.file-log.writer-lease-seconds:30}") int writerLeaseSeconds) {
         return new CpfBatchFileLogWriter(
                 fileLogWriter,
                 transactionIdGenerator,
-                Clock.system(fileLogWriter.logZoneId()));
+                Clock.system(fileLogWriter.logZoneId()),
+                batchLockManager,
+                writerLeaseSeconds);
     }
 
     @Bean

@@ -58,8 +58,16 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         }
 
         try {
+            // API 유형과 무관하게 민감정보를 확장 헤더로 우회 전파하는 요청은 차단합니다.
+            validateExtensionHeaders(request);
+
+            CpfTransaction transaction = resolveTransactionAnnotation(handlerMethod);
+            if (transaction == null) {
+                // 운영 조회, health, callback처럼 업무 거래로 선언하지 않은 API에는 거래 헤더를 강제하지 않습니다.
+                return true;
+            }
             validateRequiredHeaders(request);
-            validateTransactionMetadata(handlerMethod);
+            validateTransactionMetadata(transaction);
         } catch (CpfFrameworkException ex) {
             writeFrameworkError(response, ex);
             return false;
@@ -90,6 +98,12 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                     Map.of("0", CpfHeaderNames.TRANSACTION_ID, "1", request.getRequestURI()));
         }
 
+    }
+
+    /**
+     * CPF 확장 헤더 이름과 민감정보 우회 전파 금지 규칙을 모든 Controller 요청에 적용합니다.
+     */
+    private void validateExtensionHeaders(HttpServletRequest request) {
         List<String> invalidExtensionHeaders = inboundHeaderValidator.invalidExtensionHeaders(request);
         if (!invalidExtensionHeaders.isEmpty()) {
             String headerNames = String.join(", ", invalidExtensionHeaders);
@@ -104,14 +118,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
     /**
      * Controller 또는 메서드에 선언된 거래 메타 정보가 표준 형식을 만족하는지 확인합니다.
      */
-    private void validateTransactionMetadata(HandlerMethod handlerMethod) {
-        CpfTransaction transaction = resolveTransactionAnnotation(handlerMethod);
-        if (transaction == null) {
-            throw new CpfFrameworkException(
-                    CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    "@CpfTransaction 거래 메타 정보가 필요합니다.",
-                    Map.of("0", "@CpfTransaction"));
-        }
+    private void validateTransactionMetadata(CpfTransaction transaction) {
         if (!BUSINESS_TRANSACTION_ID_PATTERN.matcher(transaction.id()).matches()) {
             throw new CpfFrameworkException(
                     CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,

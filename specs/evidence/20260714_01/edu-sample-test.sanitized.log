@@ -1,0 +1,90 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=EDU_SAMPLE_TEST_20260714_01
+STATUS=실패
+EXECUTED_AT=2026-07-14T11:03:37.1353418+09:00
+START_COMMIT=fb6b17850aa915c8ff0db034833e2fe1343fc322
+BRANCH=master
+COMMAND=.\gradlew.bat :xyz:test :bat:test --tests '*EducationSampleTest' --rerun-tasks --no-daemon
+EXIT_CODE=1
+JAVA_VERSION=java 21.0.7 2025-04-15 LTS
+GRADLE_VERSION=8.11.1
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=70
+FAILURES=0
+ERRORS=0
+SKIPPED=2
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=8b05ae0f913b6c6e0b8664806788e593643ef9f852b2fae75d3f904d21c0eb18
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-21 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-21/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-21/bin/java.exe" goto execute 
+
+<WORKSPACE>>set CLASSPATH=<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar 
+
+<WORKSPACE>>"D:\Java\jdk-21/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain :xyz:test :bat:test --tests *EducationSampleTest --rerun-tasks --no-daemon 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:compileJava
+> Task :cmn:compileJava
+> Task :cmn:processResources
+> Task :cmn:classes
+> Task :cmn:jar
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+> Task :xyz:compileJava
+> Task :xyz:processResources
+> Task :xyz:classes
+> Task :xyz:compileTestJava
+> Task :xyz:processTestResources
+> Task :xyz:testClasses
+gradlew.bat : Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because boot
+strap classpath has been appended
+At line:2 char:128
++ ... t.raw.log'; & .\gradlew.bat :xyz:test :bat:test --tests '*EducationSa ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Java HotSpot(TM...s been appended:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> Task :xyz:test
+> Task :bat:compileJava
+> Task :bat:processResources
+> Task :bat:classes
+> Task :bat:compileTestJava
+> Task :bat:processTestResources NO-SOURCE
+> Task :bat:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpat
+h has been appended
+> Task :bat:test
+
+BUILD SUCCESSFUL in 2m 9s
+15 actionable tasks: 15 executed
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

@@ -1,6 +1,6 @@
 # CPF CoreFlow Platform
 
-CPF는 Java 21과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크입니다. 목표는 신규 업무 모듈을 만들 때 PFW 코어, 프로젝트 공통, 운영 콘솔, 배치, 외부 연계, EDU 샘플을 같은 규칙으로 제공하는 것입니다.
+CPF는 Java 21 배포 기준과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크입니다. Gradle 9.1 wrapper와 Java 21 release 컴파일을 사용하며 Java 25에서도 compile/test/bootJar/qualityGate를 검증합니다. 목표는 신규 업무 모듈을 만들 때 PFW 코어, 프로젝트 공통, 운영 콘솔, 배치, 외부 연계, EDU 샘플을 같은 규칙으로 제공하는 것입니다.
 
 ## 먼저 볼 문서
 
@@ -11,7 +11,7 @@ CPF는 Java 21과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크
 | `CPF_STABILIZATION_REPORT.md` | 최근 작업 결과, 검증 결과, 미검증/보류 항목 리포트입니다. |
 | `CPF_GAP_MATRIX.md` | 남은 gap과 우선순위 매트릭스입니다. |
 | `CPF_EVIDENCE_INDEX.md` | 검증 증적 파일 목록입니다. |
-| specs/sample-coverage-matrix.md | XYZ/BAT/CMN/EXS/PFW/ADM/BIZADM 교육 샘플의 sampleId, source/test/evidence/status 매트릭스입니다. |
+| specs/sample-coverage-matrix.md | 범용 EDU 소유자인 XYZ/BAT 샘플의 source/test/evidence/status 매트릭스입니다. PFW는 engine/port 계약 테스트, CMN은 helper 단위 테스트를 소유합니다. |
 | `specs/index.html` | 상세 가이드 진입점입니다. |
 | `specs/개발_가이드.html` | 업무 개발, validation, transaction, service-call, EDU 샘플 안내입니다. |
 | `specs/관리자_가이드.html` | ADM 운영, 권한, 로그, 배치, 캐시, 보안 운영 안내입니다. |
@@ -24,15 +24,20 @@ CPF는 Java 21과 Spring Boot 3.4 기반의 업무 개발 표준 프레임워크
 | 모듈 | 책임 |
 | --- | --- |
 | `pfw` | 프레임워크 코어입니다. 표준 헤더, 거래 ID, 거래/파일 로그, 응답/예외, OpenAPI, HTTP client, service-call, broker/file-transfer/security/runtime port, 배치 공통 API, 메시지/코드/설정 코어를 제공합니다. |
-| `cmn` | 프로젝트 공통 영역입니다. CPF를 사용하는 프로젝트에서 업무 공통 helper, fixture, EDU 보조 샘플을 확장하는 공간입니다. 기술 engine은 PFW port를 우선 사용합니다. |
+| `cmn` | 프로젝트 공통 영역입니다. CPF를 사용하는 프로젝트에서 업무 공통 helper와 규칙을 확장합니다. 범용 EDU와 기술 engine을 소유하지 않고 PFW public port를 사용합니다. |
 | `adm` | 운영 콘솔입니다. 운영자 권한, 메뉴/버튼/API 권한, 회원 운영, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안 운영 기능을 제공합니다. |
 | `bat` | Spring Batch worker 모듈입니다. `BatApplication` standalone bootJar로 동작하고 PFW batch 공통 API와 배치 운영 메타를 사용합니다. |
-| `acc`, `mbr`, `bizadm`, `exs` | 계정, 회원, 업무 관리자, 외부 연계 업무 샘플 모듈입니다. |
+| `mbr`, `acc`, `exs` | 회원 진입, 계정 reference domain, 외부 연계 reference domain을 소유합니다. 기준 호출은 `MBR → ACC → EXS`이며 Local Facade와 Remote Proxy 모두 PFW Service Call Engine 경계를 따릅니다. |
+| `bizadm` | 업무 운영자용 reference 모듈입니다. ADM 프레임워크 운영 권한과 분리합니다. |
 | `xyz` | 개발자 교육용 EDU 샘플 모듈입니다. Controller, Service, Repository, Mapper, Test 예제를 제공합니다. |
 
 ## 로그 저장 기준
 
 PFW가 로그 경로와 저장 엔진을 소유합니다. local은 저장소 위치를 기준으로 절대 `<repository>/logs`를 계산하고, dev/stg/prod는 절대 `CPF_LOG_ROOT`와 고유 `CPF_INSTANCE_ID`가 없으면 기동하지 않습니다. 실행 로그는 `${CPF_LOG_ROOT}/{environment}/{runtimeModuleCode}/{instanceId}` 아래에 두며 업무 모듈별 `*/logs` 폴더와 `*_LOG_BASE_PATH` 설정은 사용하지 않습니다. 상세 파일 규칙, DB 로그 rollback 격리와 durable recovery 절차는 [개발 가이드](specs/개발_가이드.html), [관리자 가이드](specs/관리자_가이드.html), [운영 매뉴얼](specs/운영_매뉴얼.html)을 따릅니다.
+
+## 선택형 로컬 인프라
+
+`docker-compose.local.yml`은 MariaDB/Redis/Kafka가 필요한 로컬 검증에만 쓰는 선택형 harness이며 운영 전제가 아닙니다. MariaDB profile은 고정 비밀번호가 없으므로 `CPF_MARIADB_ROOT_PASSWORD`를 직접 설정해야 합니다. Docker가 없으면 설치된 MariaDB와 in-memory/deterministic adapter를 사용하고, 실행하지 않은 broker·DB 검증은 미검증으로 기록합니다.
 
 ## 기본 검증
 

@@ -1,6 +1,7 @@
 package cpf.cmn.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
@@ -17,7 +18,10 @@ import javax.sql.DataSource;
  * 공통 코드, 메시지, 캐시 이벤트, 업무 공통 기능 Mapper를 같은 SqlSessionFactory로 연결합니다.
  */
 @Configuration
-@MapperScan(basePackages = "cpf.cmn", sqlSessionFactoryRef = "cmnSqlSessionFactory")
+@MapperScan(
+        basePackages = "cpf.cmn",
+        annotationClass = Mapper.class,
+        sqlSessionFactoryRef = "cmnSqlSessionFactory")
 public class CmnMyBatisConfig {
 
     private final DataSource cmnDataSource;

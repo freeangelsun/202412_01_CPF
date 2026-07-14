@@ -24,6 +24,11 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CpfBatchFileLogWriterTest {
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
@@ -111,7 +116,45 @@ class CpfBatchFileLogWriterTest {
         assertThat(logPath(61L, "20260714")).exists();
     }
 
+    @Test
+    void writesLogicalFileOnlyWhileDatabaseLeaseIsOwned() throws Exception {
+        CpfBatchLockManager lockManager = mock(CpfBatchLockManager.class);
+        when(lockManager.available()).thenReturn(true);
+        when(lockManager.acquire(anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(true);
+        CpfBatchFileLogWriter writer = writer(Instant.parse("2026-07-13T00:00:00Z"), lockManager);
+
+        writer.writeBatch("BATCH_JOB_STARTED", execution(70L, 401L, "20260713", null, "0"), null);
+
+        Path file = logPath(70L, "20260713");
+        assertThat(file).exists();
+        assertThat(Files.readString(file)).contains("\"writerOwnershipMode\":\"DB_LEASE\"");
+        verify(lockManager).release(anyString(), anyString());
+    }
+
+    @Test
+    void preservesEventInFragmentWhenAnotherServerOwnsLease() throws Exception {
+        CpfBatchLockManager lockManager = mock(CpfBatchLockManager.class);
+        when(lockManager.available()).thenReturn(true);
+        when(lockManager.acquire(anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(false);
+        CpfBatchFileLogWriter writer = writer(Instant.parse("2026-07-13T00:00:00Z"), lockManager);
+
+        writer.writeBatch("BATCH_JOB_STARTED", execution(71L, 402L, "20260713", null, "0"), null);
+
+        assertThat(logPath(71L, "20260713")).doesNotExist();
+        Path fragmentDir = logPath(71L, "20260713").getParent().resolve("fragments");
+        try (var fragments = Files.list(fragmentDir)) {
+            Path fragment = fragments.findFirst().orElseThrow();
+            assertThat(Files.readString(fragment))
+                    .contains("\"writerOwnershipMode\":\"DEGRADED_FRAGMENT\"")
+                    .contains("\"writerConflict\":true");
+        }
+    }
+
     private CpfBatchFileLogWriter writer(Instant instant) {
+        return writer(instant, null);
+    }
+
+    private CpfBatchFileLogWriter writer(Instant instant, CpfBatchLockManager lockManager) {
         Clock clock = Clock.fixed(instant, SEOUL);
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
@@ -120,7 +163,7 @@ class CpfBatchFileLogWriterTest {
                 .withProperty("cpf.framework.was-id", "batWK01");
         CpfFileLogWriter fileLogWriter = new CpfFileLogWriter(environment, clock);
         TransactionIdGenerator idGenerator = new TransactionIdGenerator("BAT", "batWK01", 7, clock);
-        return new CpfBatchFileLogWriter(fileLogWriter, idGenerator, clock);
+        return new CpfBatchFileLogWriter(fileLogWriter, idGenerator, clock, lockManager, 30);
     }
 
     private JobExecution execution(

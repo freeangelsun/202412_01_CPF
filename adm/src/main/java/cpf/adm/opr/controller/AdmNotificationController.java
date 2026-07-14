@@ -40,7 +40,7 @@ public class AdmNotificationController {
      */
     @GetMapping("/rules")
     @CpfTransaction(id = "ADM01NTF0010", name = "ADMNotificationRuleList")
-    @Operation(summary = "운영 알림 규칙 조회", description = "PFW 운영 알림 규칙을 최근 등록 순서로 조회합니다.")
+    @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회", description = "PFW 운영 알림 규칙을 최근 등록 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationRuleResponse>> findRules(
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(notificationService.findRules(limit));
@@ -51,7 +51,7 @@ public class AdmNotificationController {
      */
     @GetMapping("/rules/{ruleId}")
     @CpfTransaction(id = "ADM01NTF0014", name = "ADMNotificationRuleDetail")
-    @Operation(summary = "운영 알림 규칙 상세 조회", description = "운영 알림 규칙 단건을 조회합니다.")
+    @Operation(operationId = "admNotificationFindRule", summary = "운영 알림 규칙 상세 조회", description = "운영 알림 규칙 단건을 조회합니다.")
     public ResponseEntity<AdmNotificationRuleResponse> findRule(@PathVariable long ruleId) {
         return ResponseEntity.ok(notificationService.findRule(ruleId));
     }
@@ -61,7 +61,7 @@ public class AdmNotificationController {
      */
     @PostMapping("/rules")
     @CpfTransaction(id = "ADM02NTF0012", name = "ADMNotificationRuleSave")
-    @Operation(summary = "운영 알림 규칙 등록/수정", description = "이벤트 유형, 세부 유형, 채널 기준으로 운영 알림 규칙을 등록하거나 갱신합니다.")
+    @Operation(operationId = "admNotificationSaveRule", summary = "운영 알림 규칙 등록/수정", description = "이벤트 유형, 세부 유형, 채널 기준으로 운영 알림 규칙을 등록하거나 갱신합니다.")
     public ResponseEntity<AdmNotificationRuleResponse> saveRule(
             @RequestBody AdmNotificationRuleRequest request,
             HttpServletRequest servletRequest) {
@@ -74,7 +74,7 @@ public class AdmNotificationController {
      */
     @PutMapping("/rules/{ruleId}")
     @CpfTransaction(id = "ADM03NTF0015", name = "ADMNotificationRuleUpdate")
-    @Operation(summary = "운영 알림 규칙 수정", description = "운영 알림 규칙 단건을 수정하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admNotificationUpdateRule", summary = "운영 알림 규칙 수정", description = "운영 알림 규칙 단건을 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmNotificationRuleResponse> updateRule(
             @PathVariable long ruleId,
             @RequestBody AdmNotificationRuleRequest request,
@@ -88,7 +88,7 @@ public class AdmNotificationController {
      */
     @PutMapping("/rules/{ruleId}/disable")
     @CpfTransaction(id = "ADM03NTF0013", name = "ADMNotificationRuleDisable")
-    @Operation(summary = "운영 알림 규칙 비활성", description = "운영 알림 규칙의 사용 여부를 N으로 변경하고 감사 로그를 남깁니다.")
+    @Operation(operationId = "admNotificationDisableRule", summary = "운영 알림 규칙 비활성", description = "운영 알림 규칙의 사용 여부를 N으로 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmNotificationRuleResponse> disableRule(
             @PathVariable long ruleId,
             @RequestParam String reason,
@@ -103,7 +103,7 @@ public class AdmNotificationController {
      */
     @GetMapping("/delivery-logs")
     @CpfTransaction(id = "ADM01NTF0011", name = "ADMNotificationDeliveryLogList")
-    @Operation(summary = "운영 알림 발송 이력 조회", description = "PFW 운영 알림 발송 로그를 최근 요청 순서로 조회합니다.")
+    @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회", description = "PFW 운영 알림 발송 로그를 최근 요청 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDeliveryLogs(
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(notificationService.findDeliveryLogs(limit));
@@ -114,7 +114,7 @@ public class AdmNotificationController {
      */
     @PostMapping("/rules/{ruleId}/test-send")
     @CpfTransaction(id = "ADM02NTF0016", name = "ADMNotificationTestSend")
-    @Operation(summary = "운영 알림 테스트 발송", description = "mock sender로 알림 발송을 시뮬레이션하고 발송 이력과 감사 로그를 남깁니다.")
+    @Operation(operationId = "admNotificationSendTest", summary = "운영 알림 테스트 발송", description = "mock sender로 알림 발송을 시뮬레이션하고 발송 이력과 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> sendTest(
             @PathVariable long ruleId,
             @RequestBody AdmNotificationTestSendRequest request,

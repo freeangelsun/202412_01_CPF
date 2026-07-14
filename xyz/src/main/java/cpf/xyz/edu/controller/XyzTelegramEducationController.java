@@ -31,7 +31,7 @@ public class XyzTelegramEducationController {
 
     @PostMapping("/fixed-length/parse")
     @CpfTransaction(id = "XYZ09EDU0012", name = "XYZFixedLengthParse")
-    @Operation(summary = "Fixed length parse sample", description = "Parses a fixed length string to DTO and map.")
+    @Operation(operationId = "xyzTelegramEducationParseFixedLengthTelegram", summary = "Fixed length parse sample", description = "Parses a fixed length string to DTO and map.")
     public ResponseEntity<Map<String, Object>> parseFixedLengthTelegram(@RequestParam(required = false) String telegram) {
         String sampleTelegram = TextUtils.hasText(telegram) ? telegram : telegramService.writeFromDto(defaultTelegramDto());
         CmnTelegramParseResult parseResult = telegramService.parseToMap(sampleTelegram, telegramService.schemaFromDto(XyzFixedLengthMemberTelegram.class));
@@ -46,7 +46,7 @@ public class XyzTelegramEducationController {
 
     @PostMapping("/fixed-length/write")
     @CpfTransaction(id = "XYZ09EDU0013", name = "XYZFixedLengthWrite")
-    @Operation(summary = "Fixed length write sample", description = "Writes a DTO to a fixed length string.")
+    @Operation(operationId = "xyzTelegramEducationWriteFixedLengthTelegram", summary = "Fixed length write sample", description = "Writes a DTO to a fixed length string.")
     public ResponseEntity<Map<String, Object>> writeFixedLengthTelegram(
             @RequestBody(required = false) XyzFixedLengthMemberTelegram request) {
         XyzFixedLengthMemberTelegram dto = request == null ? defaultTelegramDto() : request;
@@ -62,7 +62,7 @@ public class XyzTelegramEducationController {
 
     @PostMapping("/fixed-length/marshal")
     @CpfTransaction(id = "XYZ09EDU0018", name = "XYZFixedLengthMarshal")
-    @Operation(summary = "Fixed length marshal sample", description = "Alias for fixed-length write.")
+    @Operation(operationId = "xyzTelegramEducationMarshalFixedLengthTelegram", summary = "Fixed length marshal sample", description = "Alias for fixed-length write.")
     public ResponseEntity<Map<String, Object>> marshalFixedLengthTelegram(
             @RequestBody(required = false) XyzFixedLengthMemberTelegram request) {
         return writeFixedLengthTelegram(request);
@@ -70,7 +70,7 @@ public class XyzTelegramEducationController {
 
     @PostMapping("/fixed-length/unmarshal")
     @CpfTransaction(id = "XYZ09EDU0019", name = "XYZFixedLengthUnmarshal")
-    @Operation(summary = "Fixed length unmarshal sample", description = "Alias for fixed-length parse.")
+    @Operation(operationId = "xyzTelegramEducationUnmarshalFixedLengthTelegram", summary = "Fixed length unmarshal sample", description = "Alias for fixed-length parse.")
     public ResponseEntity<Map<String, Object>> unmarshalFixedLengthTelegram(@RequestParam(required = false) String telegram) {
         return parseFixedLengthTelegram(telegram);
     }

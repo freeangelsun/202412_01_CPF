@@ -1,5 +1,7 @@
 package cpf.exs.flow.controller;
 
+import cpf.cmn.contract.reference.ExternalExchangeRequest;
+import cpf.cmn.contract.reference.ExternalExchangeResponse;
 import cpf.exs.flow.service.ExsFlowService;
 import cpf.pfw.common.logging.CpfTransaction;
 import cpf.pfw.common.logging.TransactionContext;
@@ -15,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
 
 /**
  * EXS 대외 수신/송신 표준 API입니다.
@@ -36,20 +36,20 @@ public class ExsFlowController {
 
     @PostMapping("/inbound")
     @CpfTransaction(id = "EXS02INB1001", name = "ExsInbound")
-    @Operation(summary = "대외 수신 선저장", description = "X-Transaction-Id를 검증하고 대외 수신 거래/전문 로그를 DB에 선저장합니다.")
-    public ResponseEntity<Map<String, Object>> receiveInbound(
+    @Operation(operationId = "receiveExsInbound", summary = "대외 수신 선저장", description = "X-Transaction-Id를 검증하고 대외 수신 거래/전문 로그를 DB에 선저장합니다.")
+    public ResponseEntity<ExternalExchangeResponse> receiveInbound(
             @RequestHeader(TransactionContext.HEADER_TRANSACTION_ID) String transactionGlobalId,
-            @RequestBody(required = false) ExsFlowService.ExchangeRequest request,
+            @RequestBody(required = false) ExternalExchangeRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(flowService.receiveInbound(validateTransactionId(transactionGlobalId), request, servletRequest.getRequestURI()));
     }
 
     @PostMapping("/outbound")
     @CpfTransaction(id = "EXS02OUT1001", name = "ExsOutbound")
-    @Operation(summary = "대외 송신 선저장", description = "X-Transaction-Id를 검증하고 대외 송신 거래/전문 로그를 DB에 선저장합니다.")
-    public ResponseEntity<Map<String, Object>> sendOutbound(
+    @Operation(operationId = "sendExsOutbound", summary = "대외 송신 선저장", description = "X-Transaction-Id를 검증하고 대외 송신 거래/전문 로그를 DB에 선저장합니다.")
+    public ResponseEntity<ExternalExchangeResponse> sendOutbound(
             @RequestHeader(TransactionContext.HEADER_TRANSACTION_ID) String transactionGlobalId,
-            @RequestBody(required = false) ExsFlowService.ExchangeRequest request,
+            @RequestBody(required = false) ExternalExchangeRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(flowService.sendOutbound(validateTransactionId(transactionGlobalId), request, servletRequest.getRequestURI()));
     }

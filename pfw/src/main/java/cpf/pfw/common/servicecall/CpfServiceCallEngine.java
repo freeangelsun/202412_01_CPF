@@ -1,10 +1,20 @@
 package cpf.pfw.common.servicecall;
 
+import cpf.pfw.common.logging.segment.TransactionSegmentDirection;
+import cpf.pfw.common.logging.segment.TransactionSegmentRole;
+import cpf.pfw.common.logging.segment.TransactionSegmentScope;
+import cpf.pfw.common.logging.segment.TransactionSegmentService;
+import cpf.pfw.common.reconciliation.CpfReconciliationPort;
+import cpf.pfw.common.reconciliation.CpfUnknownResultRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -16,17 +26,32 @@ import java.util.function.Supplier;
  * 호출 함수가 수행하고, 엔진은 선택된 {@link ServiceCallResolvedTarget}을 호출 함수에 전달합니다.</p>
  */
 public class CpfServiceCallEngine {
+    private static final Logger log = LoggerFactory.getLogger(CpfServiceCallEngine.class);
+
     private final CpfEndpointResolver endpointResolver;
     private final CpfServiceCallLogWriter logWriter;
     private final CpfServiceCallProperties properties;
+    private final TransactionSegmentService segmentService;
+    private final CpfReconciliationPort reconciliationPort;
 
     public CpfServiceCallEngine(
             CpfEndpointResolver endpointResolver,
             CpfServiceCallLogWriter logWriter,
             CpfServiceCallProperties properties) {
+        this(endpointResolver, logWriter, properties, null, null);
+    }
+
+    public CpfServiceCallEngine(
+            CpfEndpointResolver endpointResolver,
+            CpfServiceCallLogWriter logWriter,
+            CpfServiceCallProperties properties,
+            TransactionSegmentService segmentService,
+            CpfReconciliationPort reconciliationPort) {
         this.endpointResolver = endpointResolver;
         this.logWriter = logWriter;
         this.properties = properties;
+        this.segmentService = segmentService;
+        this.reconciliationPort = reconciliationPort;
     }
 
     public boolean isEnabled() {
@@ -56,6 +81,7 @@ public class CpfServiceCallEngine {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             ServiceCallResolvedTarget target = endpointResolver.resolve(requested, excludedInstanceIds);
             ServiceCallRequest effectiveRequest = applyTargetDefaults(requested, target);
+            TransactionSegmentScope scope = startAttempt(effectiveRequest, target, attempt, !excludedInstanceIds.isEmpty());
             if (logWriter.isCircuitOpen(target, properties.getCircuitOpenRetryAfterMillis())) {
                 logWriter.write(
                         effectiveRequest,
@@ -65,6 +91,8 @@ public class CpfServiceCallEngine {
                         0,
                         "CIRCUIT_OPEN",
                         "서비스 호출 circuit이 OPEN 상태입니다.");
+                failScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), "OPEN", null,
+                        "FAILED", null, "CIRCUIT_OPEN", "서비스 호출 circuit이 OPEN 상태입니다.");
                 return ServiceCallResult.failure(target, null, 0L, attempt, "CIRCUIT_OPEN", "서비스 호출 circuit이 OPEN 상태입니다.");
             }
 
@@ -74,6 +102,7 @@ public class CpfServiceCallEngine {
                 long elapsed = elapsedMillis(started);
                 logWriter.write(effectiveRequest, target, "SUCCESS", 200, elapsed, null, null);
                 logWriter.markSuccess(target, 200, elapsed);
+                successScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), 200);
                 return ServiceCallResult.success(target, response, 200, elapsed, attempt);
             } catch (RuntimeException ex) {
                 long elapsed = elapsedMillis(started);
@@ -82,10 +111,22 @@ public class CpfServiceCallEngine {
                 String failureMessage = safeMessage(ex);
                 logWriter.write(effectiveRequest, target, "FAILED", httpStatus, elapsed, failureCode, failureMessage);
                 logWriter.markFailure(target, httpStatus, elapsed, failureMessage, properties.getCircuitOpenFailureThreshold());
-                lastFailure = ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
+                boolean unknown = isUnknownResult(ex);
+                String unknownId = unknown && attempt >= maxAttempts
+                        ? registerUnknown(effectiveRequest, scope, target, failureCode, failureMessage)
+                        : null;
+                String resultState = unknown && attempt >= maxAttempts ? "UNKNOWN" : "FAILED";
+                failScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), "CLOSED", httpStatus,
+                        resultState, unknownId, failureCode, failureMessage);
+                lastFailure = unknown && attempt >= maxAttempts
+                        ? ServiceCallResult.unknown(target, elapsed, attempt, failureCode, failureMessage)
+                        : ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
                 excludeForFailover(target, excludedInstanceIds);
                 if (!target.failoverEnabled() && attempt >= maxAttempts) {
                     return lastFailure;
+                }
+                if (attempt < maxAttempts) {
+                    backoff(attempt);
                 }
             }
         }
@@ -183,6 +224,137 @@ public class CpfServiceCallEngine {
 
     private long elapsedMillis(long started) {
         return (System.nanoTime() - started) / 1_000_000;
+    }
+
+    private TransactionSegmentScope startAttempt(
+            ServiceCallRequest request,
+            ServiceCallResolvedTarget target,
+            int attempt,
+            boolean failover) {
+        if (segmentService == null) {
+            return null;
+        }
+        String sourceModule = textAttribute(request, "sourceModuleCode", "PFW");
+        TransactionSegmentScope scope = segmentService.start(
+                TransactionSegmentRole.EXTERNAL,
+                TransactionSegmentDirection.OUTBOUND,
+                sourceModule,
+                sourceModule,
+                request.serviceId().toUpperCase(),
+                request.requestPath(),
+                "Service Call " + request.serviceId() + " attempt " + attempt);
+        scope.record().setSelectedInstanceId(target.instanceId());
+        scope.record().setAttemptNo(attempt);
+        scope.record().setRetryYn(attempt > 1 ? "Y" : "N");
+        scope.record().setFailoverYn(failover ? "Y" : "N");
+        scope.record().setCircuitState("CLOSED");
+        scope.record().setResultState("RUNNING");
+        return scope;
+    }
+
+    private void successScope(
+            TransactionSegmentScope scope,
+            ServiceCallResolvedTarget target,
+            int attempt,
+            boolean failover,
+            Integer httpStatus) {
+        if (scope == null) {
+            return;
+        }
+        scope.record().setSelectedInstanceId(target.instanceId());
+        scope.record().setAttemptNo(attempt);
+        scope.record().setRetryYn(attempt > 1 ? "Y" : "N");
+        scope.record().setFailoverYn(failover ? "Y" : "N");
+        scope.record().setCircuitState("CLOSED");
+        scope.record().setDownstreamHttpStatus(httpStatus);
+        scope.record().setResultState("SUCCESS");
+        scope.success();
+    }
+
+    private void failScope(
+            TransactionSegmentScope scope,
+            ServiceCallResolvedTarget target,
+            int attempt,
+            boolean failover,
+            String circuitState,
+            Integer httpStatus,
+            String resultState,
+            String unknownId,
+            String failureCode,
+            String failureMessage) {
+        if (scope == null) {
+            return;
+        }
+        scope.record().setSelectedInstanceId(target != null ? target.instanceId() : null);
+        scope.record().setAttemptNo(attempt);
+        scope.record().setRetryYn(attempt > 1 ? "Y" : "N");
+        scope.record().setFailoverYn(failover ? "Y" : "N");
+        scope.record().setCircuitState(circuitState);
+        scope.record().setDownstreamHttpStatus(httpStatus);
+        scope.record().setResultState(resultState);
+        scope.record().setUnknownResultId(unknownId);
+        scope.fail(failureCode, failureMessage);
+    }
+
+    private String registerUnknown(
+            ServiceCallRequest request,
+            TransactionSegmentScope scope,
+            ServiceCallResolvedTarget target,
+            String failureCode,
+            String failureMessage) {
+        String unknownId = UUID.randomUUID().toString();
+        if (reconciliationPort == null) {
+            return unknownId;
+        }
+        try {
+            reconciliationPort.register(new CpfUnknownResultRecord(
+                    unknownId,
+                    "SERVICE_CALL",
+                    "CHECK_PENDING",
+                    scope != null ? scope.transactionGlobalId() : textAttribute(request, "transactionGlobalId", null),
+                    scope != null ? scope.transactionSegmentId() : null,
+                    textAttribute(request, "externalKey", target != null ? target.instanceId() : null),
+                    failureCode,
+                    failureMessage,
+                    "POLL_OR_MANUAL_RECONCILIATION",
+                    Instant.now(),
+                    null));
+        } catch (RuntimeException ex) {
+            log.error("서비스 호출 unknown 결과 등록에 실패했습니다. unknownId={}", unknownId, ex);
+        }
+        return unknownId;
+    }
+
+    private boolean isUnknownResult(RuntimeException failure) {
+        Throwable current = failure;
+        while (current != null) {
+            String name = current.getClass().getName().toLowerCase();
+            if (name.contains("timeout") || name.contains("timedout")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void backoff(int attempt) {
+        long initial = Math.max(0L, properties.getRetryBackoffMillis());
+        long maximum = Math.max(initial, properties.getMaxRetryBackoffMillis());
+        long delay = Math.min(maximum, initial * (1L << Math.min(Math.max(0, attempt - 1), 20)));
+        if (delay <= 0) {
+            return;
+        }
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("서비스 호출 retry 대기가 중단되었습니다.", ex);
+        }
+    }
+
+    private String textAttribute(ServiceCallRequest request, String key, String fallback) {
+        Object value = request.attributes().get(key);
+        return value == null || String.valueOf(value).isBlank() ? fallback : String.valueOf(value).trim();
     }
 
     private String defaultIfBlank(String value, String fallback) {

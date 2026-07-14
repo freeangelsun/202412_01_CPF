@@ -1,6 +1,7 @@
 package cpf.acc.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
@@ -18,6 +19,7 @@ import javax.sql.DataSource;
 @Configuration
 @MapperScan(
         basePackages = "cpf.acc",
+        annotationClass = Mapper.class,
         sqlSessionFactoryRef = "accSqlSessionFactory"
 )
 public class AccMyBatisConfig {
@@ -62,4 +64,3 @@ public class AccMyBatisConfig {
         return new SqlSessionTemplate(accSqlSessionFactory);
     }
 }
-

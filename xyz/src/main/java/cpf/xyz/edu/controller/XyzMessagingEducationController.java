@@ -41,7 +41,7 @@ public class XyzMessagingEducationController {
 
     @PostMapping("/messaging/publish")
     @CpfTransaction(id = "XYZ09EDU0010", name = "XYZMessagePublish")
-    @Operation(summary = "메시지 발행 샘플", description = "CMN 메시지 추상화 계층을 통해 메시지 봉투를 발행합니다.")
+    @Operation(operationId = "xyzMessagingEducationPublishMessage", summary = "메시지 발행 샘플", description = "CMN 메시지 추상화 계층을 통해 메시지 봉투를 발행합니다.")
     public ResponseEntity<Map<String, Object>> publishMessage(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination,
             @RequestParam(defaultValue = "XYZ-EDU-SAMPLE") String key,
@@ -64,7 +64,7 @@ public class XyzMessagingEducationController {
 
     @GetMapping("/messaging/recent")
     @CpfTransaction(id = "XYZ09EDU0011", name = "XYZMessageRecent")
-    @Operation(summary = "최근 메시지 조회 샘플", description = "현재 활성화된 메시지 어댑터의 최근 메시지를 조회합니다.")
+    @Operation(operationId = "xyzMessagingEducationFindRecentMessages", summary = "최근 메시지 조회 샘플", description = "현재 활성화된 메시지 어댑터의 최근 메시지를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findRecentMessages(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination) {
         Map<String, Object> response = new LinkedHashMap<>();

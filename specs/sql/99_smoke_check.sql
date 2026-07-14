@@ -4,6 +4,23 @@
 SELECT 'pfwDB.pfw_transaction_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log;
 SELECT 'pfwDB.pfw_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log_detail;
 SELECT 'pfwDB.pfw_transaction_segment' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_segment;
+SELECT 'pfwDB.pfw_transaction_segment.timeline_columns' AS check_name, COUNT(*) AS column_count
+FROM information_schema.columns
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_transaction_segment'
+  AND column_name IN (
+      'selected_instance_id', 'attempt_no', 'retry_yn', 'failover_yn',
+      'circuit_state', 'downstream_http_status', 'result_state', 'unknown_result_id'
+  );
+SELECT 'pfwDB.pfw_transaction_segment.timeline_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
+FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_transaction_segment'
+  AND index_name IN (
+      'ix_pfw_transaction_segment_instance',
+      'ix_pfw_transaction_segment_attempt',
+      'ix_pfw_transaction_segment_unknown'
+  );
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;
@@ -38,6 +55,16 @@ SELECT 'pfwDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM p
 SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
 SELECT 'pfwDB.pfw_notification_rule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_rule;
 SELECT 'pfwDB.pfw_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_delivery_log;
+SELECT 'pfwDB.pfw_broker_outbox.reliability_columns' AS check_name, COUNT(*) AS column_count
+FROM information_schema.columns
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_broker_outbox'
+  AND column_name IN ('attempt_count', 'max_attempts', 'next_attempt_at', 'lease_until');
+SELECT 'pfwDB.pfw_broker_outbox.reliability_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
+FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_broker_outbox'
+  AND index_name IN ('ix_pfw_broker_outbox_ready', 'ix_pfw_broker_outbox_lease');
 
 SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence;
 SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;

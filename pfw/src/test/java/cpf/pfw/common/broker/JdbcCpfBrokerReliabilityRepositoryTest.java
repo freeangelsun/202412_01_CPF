@@ -39,6 +39,7 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         when(jdbcTemplate.queryForList(anyString(), anyInt()))
                 .thenReturn(List.of(claimedOutboxRow()));
+        when(jdbcTemplate.update(anyString(), eq("worker-1"), eq("msg-002"))).thenReturn(1);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
         List<CpfBrokerEnvelope> claimed = repository.claimPending("worker-1", 10);
@@ -46,7 +47,7 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         assertThat(claimed).hasSize(1);
         assertThat(claimed.get(0).message().messageId()).isEqualTo("msg-002");
         assertThat(claimed.get(0).attributes()).containsEntry("a", "b");
-        verify(jdbcTemplate).update(anyString(), eq("worker-1"), eq(1));
+        verify(jdbcTemplate).update(anyString(), eq("worker-1"), eq("msg-002"));
     }
 
     @Test
@@ -62,12 +63,13 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
     @Test
     void replayMarksDlqAsRequested() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.update(anyString(), eq("msg-004"))).thenReturn(1);
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
         CpfBrokerResult result = repository.replay("msg-004");
 
         assertThat(result.status()).isEqualTo("ACCEPTED");
-        verify(jdbcTemplate).update(anyString(), eq("msg-004"));
+        verify(jdbcTemplate, org.mockito.Mockito.times(3)).update(anyString(), eq("msg-004"));
     }
 
     private Map<String, Object> claimedOutboxRow() {

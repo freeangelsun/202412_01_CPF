@@ -137,6 +137,7 @@
       </thead>
       <tbody>
       <tr><td>기본 품질</td><td><code>.\gradlew.bat qualityGate --offline</code></td><td>compile, test, UTF-8, mojibake, SQL 표준, HTML 문서, 기능 증거를 묶어 확인합니다.</td></tr>
+      <tr><td>JDK 호환</td><td><code>JAVA_HOME</code>을 Java 21과 Java 25로 바꾸어 <code>cleanTest qualityGate</code> 실행</td><td>배포 class 기준은 <code>--release 21</code>로 유지하고 두 런타임의 회귀를 확인합니다.</td></tr>
       <tr><td>BAT runtime</td><td><code>scripts/smoke-bat-runtime.ps1</code></td><td>BAT 앱을 jar로 기동하고 health, 정상/실패 Job, Spring Batch와 CPF 메타 연결을 검증합니다.</td></tr>
       <tr><td>ADM runtime</td><td><code>scripts/smoke-adm-runtime.ps1</code></td><td>앱 기동, health, OpenAPI, 배치 API, 거래 메타 scan/list/detail, cleanup을 실제 process로 확인합니다.</td></tr>
       <tr><td>거래 메타 runtime</td><td><code>scripts/smoke-transaction-meta-runtime.ps1</code></td><td>이미 기동 중인 ADM 또는 ADM runtime smoke 내부에서 거래 메타 E2E를 확인합니다.</td></tr>

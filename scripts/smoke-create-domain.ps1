@@ -211,10 +211,10 @@ subprojects {
     }
 
     dependencies {
-        compileOnly 'org.projectlombok:lombok:1.18.32'
-        annotationProcessor 'org.projectlombok:lombok:1.18.32'
-        testCompileOnly 'org.projectlombok:lombok:1.18.32'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+        compileOnly 'org.projectlombok:lombok:1.18.46'
+        annotationProcessor 'org.projectlombok:lombok:1.18.46'
+        testCompileOnly 'org.projectlombok:lombok:1.18.46'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }

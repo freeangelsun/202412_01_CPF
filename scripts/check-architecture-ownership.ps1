@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
@@ -109,6 +109,28 @@ foreach ($module in $modules) {
                 Add-Finding $warnings "BUSINESS_BROKER_ADAPTER_REVIEW" $relativePath "Business module has broker adapter candidate." "Keep common broker port in PFW and verify this is only a business adapter."
             }
         }
+    }
+}
+
+# 직전 검수에서 확인된 ADM 핵심 경계는 회귀를 허용하지 않습니다.
+$admBoundaryTargets = @(
+    "adm/src/main/java/cpf/adm/opr/controller/AdmReliabilityController.java",
+    "adm/src/main/java/cpf/adm/opr/service/AdmReliabilityService.java",
+    "adm/src/main/java/cpf/adm/opr/service/AdmServiceRegistryService.java",
+    "adm/src/main/java/cpf/adm/opr/service/AdmTransactionGroupService.java"
+)
+foreach ($relativePath in $admBoundaryTargets) {
+    $absolutePath = Join-Path $Root $relativePath
+    if (-not (Test-Path -LiteralPath $absolutePath)) {
+        Add-Finding $failures "ADM_PFW_BOUNDARY_TARGET_MISSING" $relativePath "경계 검증 대상 파일이 없습니다." "삭제 또는 이동 사유를 gate와 함께 갱신하세요."
+        continue
+    }
+    $text = [System.IO.File]::ReadAllText($absolutePath, [System.Text.Encoding]::UTF8)
+    if (Test-Text $text 'TransactionLogRecoveryWorker|TransactionSegmentMapper|@Qualifier\("pfwJdbcTemplate"\)|\bJdbcTemplate\b') {
+        Add-Finding $failures "ADM_NO_PFW_INTERNAL_ACCESS" $relativePath "ADM 핵심 운영 코드가 PFW 내부 worker 또는 JDBC에 직접 접근합니다." "PFW public query/command port 또는 facade를 사용하세요."
+    }
+    if (Test-Text $text '(?i)(FROM|JOIN|UPDATE|INSERT\s+INTO|DELETE\s+FROM)\s+pfw_[a-z0-9_]+') {
+        Add-Finding $failures "ADM_NO_PFW_TABLE_SQL" $relativePath "ADM 핵심 운영 코드에 PFW table SQL이 있습니다." "SQL 소유권을 PFW facade로 이동하세요."
     }
 }
 

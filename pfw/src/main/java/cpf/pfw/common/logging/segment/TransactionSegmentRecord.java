@@ -40,6 +40,14 @@ public class TransactionSegmentRecord {
     private String callerService;
     private String externalInstitutionCode;
     private String externalTransactionId;
+    private String selectedInstanceId;
+    private Integer attemptNo;
+    private String retryYn;
+    private String failoverYn;
+    private String circuitState;
+    private Integer downstreamHttpStatus;
+    private String resultState;
+    private String unknownResultId;
     private String createdBy;
     private String updatedBy;
 
@@ -313,6 +321,70 @@ public class TransactionSegmentRecord {
 
     public void setExternalTransactionId(String externalTransactionId) {
         this.externalTransactionId = externalTransactionId;
+    }
+
+    public String getSelectedInstanceId() {
+        return selectedInstanceId;
+    }
+
+    public void setSelectedInstanceId(String selectedInstanceId) {
+        this.selectedInstanceId = selectedInstanceId;
+    }
+
+    public Integer getAttemptNo() {
+        return attemptNo;
+    }
+
+    public void setAttemptNo(Integer attemptNo) {
+        this.attemptNo = attemptNo;
+    }
+
+    public String getRetryYn() {
+        return retryYn;
+    }
+
+    public void setRetryYn(String retryYn) {
+        this.retryYn = retryYn;
+    }
+
+    public String getFailoverYn() {
+        return failoverYn;
+    }
+
+    public void setFailoverYn(String failoverYn) {
+        this.failoverYn = failoverYn;
+    }
+
+    public String getCircuitState() {
+        return circuitState;
+    }
+
+    public void setCircuitState(String circuitState) {
+        this.circuitState = circuitState;
+    }
+
+    public Integer getDownstreamHttpStatus() {
+        return downstreamHttpStatus;
+    }
+
+    public void setDownstreamHttpStatus(Integer downstreamHttpStatus) {
+        this.downstreamHttpStatus = downstreamHttpStatus;
+    }
+
+    public String getResultState() {
+        return resultState;
+    }
+
+    public void setResultState(String resultState) {
+        this.resultState = resultState;
+    }
+
+    public String getUnknownResultId() {
+        return unknownResultId;
+    }
+
+    public void setUnknownResultId(String unknownResultId) {
+        this.unknownResultId = unknownResultId;
     }
 
     public String getCreatedBy() {

@@ -16,7 +16,7 @@ if ([string]::IsNullOrWhiteSpace($Username)) {
     $Username = "cpf_pfw_migration"
 }
 if ([string]::IsNullOrWhiteSpace($Password)) {
-    $Password = "cpf_local_pw"
+    throw "PFW_DB_MIGRATION_PASSWORD 환경변수 또는 -Password 인수가 필요합니다."
 }
 if ([string]::IsNullOrWhiteSpace($ResultPath)) {
     $resultDir = Join-Path $Root "build/runtime-smoke"

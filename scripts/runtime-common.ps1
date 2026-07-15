@@ -47,6 +47,7 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "ACC"
             moduleLower = "acc"
+            wasId = "accAP01"
             port = 8080
             portEnv = "ACC_SERVER_PORT"
             healthPath = "/v3/api-docs"
@@ -56,6 +57,7 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "MBR"
             moduleLower = "mbr"
+            wasId = "mbrAP01"
             port = 8081
             portEnv = "MBR_SERVER_PORT"
             healthPath = "/v3/api-docs"
@@ -65,6 +67,7 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "ADM"
             moduleLower = "adm"
+            wasId = "admAP01"
             port = 8090
             portEnv = "ADM_SERVER_PORT"
             healthPath = "/v3/api-docs"
@@ -74,6 +77,7 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "EXS"
             moduleLower = "exs"
+            wasId = "exsAP01"
             port = 8092
             portEnv = "EXS_SERVER_PORT"
             healthPath = "/v3/api-docs"
@@ -83,11 +87,32 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "BAT"
             moduleLower = "bat"
+            wasId = "batWK01"
             port = 8093
             portEnv = "BAT_SERVER_PORT"
             healthPath = "/bat/api/health"
             jarDir = "bat/build/libs"
             jarPattern = "bat-*.jar"
+        },
+        [ordered]@{
+            module = "BIZADM"
+            moduleLower = "bizadm"
+            wasId = "bizAP01"
+            port = 8091
+            portEnv = "BIZADM_SERVER_PORT"
+            healthPath = "/v3/api-docs"
+            jarDir = "bizadm/build/libs"
+            jarPattern = "bizadm-*.jar"
+        },
+        [ordered]@{
+            module = "XYZ"
+            moduleLower = "xyz"
+            wasId = "xyzAP01"
+            port = 8099
+            portEnv = "XYZ_SERVER_PORT"
+            healthPath = "/v3/api-docs"
+            jarDir = "xyz/build/libs"
+            jarPattern = "xyz-*.jar"
         }
     )
 }

@@ -13,7 +13,7 @@
       <h1>CPF ADM</h1>
       <p>프레임워크 운영 콘솔</p>
     </div>
-    <nav v-if="authenticated">
+    <nav v-if="authenticated && !passwordChangeRequired">
       <button type="button" v-for="menu in visibleMenus" :key="menu.id" @click="activeMenu = menu.id">{{ menu.label }}</button>
       <button type="button" @click="logout">로그아웃</button>
     </nav>
@@ -28,12 +28,28 @@
           <label>비밀번호 <input v-model="loginForm.password" type="password" autocomplete="current-password"></label>
           <button type="button" @click="login">로그인</button>
         </div>
-        <p class="hint">초기 샘플 계정은 로컬 검증용입니다. 운영 환경에서는 seed 비밀번호를 반드시 교체해야 합니다.</p>
+        <p class="hint">최초 운영자는 승인된 bootstrap 환경변수로 생성하며, 초기 비밀번호는 저장소와 화면에 제공하지 않습니다.</p>
         <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
       </div>
     </section>
 
-    <template v-if="authenticated">
+    <section class="login-panel" v-if="authenticated && passwordChangeRequired">
+      <div class="panel">
+        <div class="panel-title"><h2>비밀번호 변경</h2></div>
+        <p class="hint">초기 비밀번호이거나 만료된 비밀번호입니다. 다른 ADM 기능을 사용하기 전에 비밀번호를 변경해야 합니다.</p>
+        <div class="filters login-form">
+          <label>현재 비밀번호 <input v-model="forcedPasswordForm.currentPassword" type="password" autocomplete="current-password"></label>
+          <label>새 비밀번호 <input v-model="forcedPasswordForm.newPassword" type="password" autocomplete="new-password"></label>
+          <label>새 비밀번호 확인 <input v-model="forcedPasswordForm.newPasswordConfirm" type="password" autocomplete="new-password"></label>
+          <label>변경 사유 <input v-model="forcedPasswordForm.reason" type="text"></label>
+          <button type="button" @click="changeOwnPassword">변경 후 다시 로그인</button>
+          <button type="button" @click="logout">로그아웃</button>
+        </div>
+        <pre class="detail" v-if="authMessage">{{ authMessage }}</pre>
+      </div>
+    </section>
+
+    <template v-if="authenticated && !passwordChangeRequired">
       <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
 
       <section class="summary-grid">

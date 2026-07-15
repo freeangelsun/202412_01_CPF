@@ -1,5 +1,6 @@
 package cpf.adm;
 
+import cpf.adm.config.AdmBootstrapProperties;
 import cpf.adm.config.AdmPasswordPolicyProperties;
 import cpf.adm.config.AdmSecurityProperties;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * <p>PFW/CMN 공통 모듈을 함께 스캔하고, ADM 운영 화면과 배치 스케줄러를 제공합니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "cpf.adm"})
-@EnableConfigurationProperties({AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})
+@EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})
 @EnableScheduling
 public class AdmApplication {
 

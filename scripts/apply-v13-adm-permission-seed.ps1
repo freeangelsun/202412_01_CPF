@@ -17,7 +17,7 @@ if ([string]::IsNullOrWhiteSpace($Username)) {
     $Username = "cpf_adm_app"
 }
 if ([string]::IsNullOrWhiteSpace($Password)) {
-    $Password = "cpf_local_pw"
+    throw "ADM_DB_PASSWORD 환경변수 또는 -Password 인수가 필요합니다."
 }
 if ([string]::IsNullOrWhiteSpace($SqlPath)) {
     $SqlPath = Join-Path $Root "specs/sql/migration/flyway/V13__adm_runtime_policy_permission_seed.sql"

@@ -38,7 +38,7 @@ public class AdmJdbcConfig {
     @Value("${spring.datasource.mbr.username:cpf_mbr_app}")
     private String mbrUsername;
 
-    @Value("${spring.datasource.mbr.password:cpf_local_pw}")
+    @Value("${spring.datasource.mbr.password:}")
     private String mbrPassword;
 
     @Value("${spring.datasource.mbr.driver-class-name:org.mariadb.jdbc.Driver}")
@@ -50,7 +50,7 @@ public class AdmJdbcConfig {
     @Value("${spring.datasource.xyz.username:cpf_xyz_app}")
     private String xyzUsername;
 
-    @Value("${spring.datasource.xyz.password:cpf_local_pw}")
+    @Value("${spring.datasource.xyz.password:}")
     private String xyzPassword;
 
     @Value("${spring.datasource.xyz.driver-class-name:org.mariadb.jdbc.Driver}")
@@ -62,7 +62,7 @@ public class AdmJdbcConfig {
     @Value("${spring.datasource.exs.username:cpf_exs_app}")
     private String exsUsername;
 
-    @Value("${spring.datasource.exs.password:cpf_local_pw}")
+    @Value("${spring.datasource.exs.password:}")
     private String exsPassword;
 
     @Value("${spring.datasource.exs.driver-class-name:org.mariadb.jdbc.Driver}")

@@ -1,0 +1,227 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-JAVA25-FULL-TEST-20260714-02
+STATUS=미검증
+EXECUTED_AT=2026-07-14T15:38:14.8393370+09:00
+START_COMMIT=d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d
+BRANCH=master
+COMMAND=.\gradlew.bat cleanTest test --no-daemon --console=plain
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=290
+FAILURES=0
+ERRORS=0
+SKIPPED=4
+REASON=전체 테스트는 성공했으나 외부 DB 또는 명시적 runtime 환경이 필요한 테스트 4개가 skip됨
+REPRODUCE_COMMAND=.\gradlew.bat cleanTest test --no-daemon --console=plain
+LOG_SHA256=06e705807585c245c287e34e94991ae365a1f100b92e97df45c594d7fa7b92ee
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot\ 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" goto execute 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" cleanTest test --no-daemon --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :cleanTest UP-TO-DATE
+> Task :acc:cleanTest
+> Task :adm:cleanTest
+> Task :bat:cleanTest
+> Task :bizadm:cleanTest
+> Task :cmn:cleanTest
+> Task :exs:cleanTest
+> Task :mbr:cleanTest
+> Task :pfw:cleanTest
+> Task :xyz:cleanTest
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :pfw:compileJava
+> Task :cmn:compileJava UP-TO-DATE
+> Task :acc:compileJava UP-TO-DATE
+> Task :acc:processResources UP-TO-DATE
+> Task :acc:classes UP-TO-DATE
+> Task :acc:compileTestJava UP-TO-DATE
+> Task :acc:processTestResources NO-SOURCE
+> Task :acc:testClasses UP-TO-DATE
+> Task :cmn:processResources UP-TO-DATE
+> Task :cmn:classes UP-TO-DATE
+> Task :cmn:jar UP-TO-DATE
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+gradlew.bat : WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+At line:2 char:132
++ ... t.raw.log'; & .\gradlew.bat cleanTest test --no-daemon --console=plai ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: A term...has been called:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+WARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:/C:/Users
+/11096/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.130.Final/d4a1809fd03b560c82f7e35228e524fed96926f3/
+netty-common-4.1.130.Final.jar)
+WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+> Task :acc:test
+
+2026-07-14T15:35:48.844+09:00 level=DEBUG environment=local runtimeModule=ACC instance=acc-local-01 thread=SpringApplicationShutdownHook transactionId= transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@3936df72, started on Tue Jul 14 15:34:58 KST 2026 exception=
+2026-07-14T15:35:49.632+09:00 level=INFO  environment=local runtimeModule=ACC instance=acc-local-01 thread=scheduling-1 transactionId= transactionGlobalId= traceId= segmentId= logger=com.zaxxer.hikari.HikariDataSource message=HikariPool-3 - Starting... exception=
+2026-07-14T15:35:49.640+09:00 level=WARN  environment=local runtimeModule=ACC instance=acc-local-01 thread=scheduling-1 transactionId= transactionGlobalId= traceId= segmentId= logger=o.m.jdbc.message.server.ErrorPacket message=Error: 1045-28000: Access denied for user 'cpf_pfw_app'@'localhost' (using password: *** exception=
+2026-07-14T15:35:50.646+09:00 level=WARN  environment=local runtimeModule=ACC instance=acc-local-01 thread=scheduling-1 transactionId= transactionGlobalId= traceId= segmentId= logger=c.c.r.service.CacheRefreshEventListener message=CMN cache refresh event polling skipped. reason=\n### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection\n### The error may exist in class path resource [mybatis/mapper/cmn/ref/CacheRefreshEventMapper.xml]\n### The error may involve cpf.cmn.ref.mapper.CacheRefreshEventMapper.findEventsAfter\n### The error occurred while executing a query\n### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection exception=
+2026-07-14T15:35:51.007+09:00 level=DEBUG environment=local runtimeModule=ACC instance=acc-local-01 thread=SpringApplicationShutdownHook transactionId= transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@7083e548, started on Tue Jul 14 15:35:24 KST 2026 exception=
+
+> Task :adm:compileJava UP-TO-DATE
+> Task :adm:processResources UP-TO-DATE
+> Task :adm:classes UP-TO-DATE
+> Task :adm:compileTestJava UP-TO-DATE
+> Task :adm:processTestResources NO-SOURCE
+> Task :adm:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :adm:test
+> Task :bat:compileJava UP-TO-DATE
+> Task :bat:processResources UP-TO-DATE
+> Task :bat:classes UP-TO-DATE
+> Task :bat:compileTestJava UP-TO-DATE
+> Task :bat:processTestResources NO-SOURCE
+> Task :bat:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :bat:test
+> Task :bizadm:compileJava UP-TO-DATE
+> Task :bizadm:processResources UP-TO-DATE
+> Task :bizadm:classes UP-TO-DATE
+> Task :bizadm:compileTestJava UP-TO-DATE
+> Task :bizadm:processTestResources NO-SOURCE
+> Task :bizadm:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :bizadm:test
+> Task :cmn:compileTestJava
+> Task :cmn:processTestResources NO-SOURCE
+> Task :cmn:testClasses
+> Task :cmn:test
+> Task :exs:compileJava UP-TO-DATE
+> Task :exs:processResources UP-TO-DATE
+> Task :exs:classes UP-TO-DATE
+> Task :exs:compileTestJava UP-TO-DATE
+> Task :exs:processTestResources NO-SOURCE
+> Task :exs:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :exs:test
+> Task :mbr:compileJava UP-TO-DATE
+> Task :mbr:processResources UP-TO-DATE
+> Task :mbr:classes UP-TO-DATE
+> Task :mbr:compileTestJava UP-TO-DATE
+> Task :mbr:processTestResources NO-SOURCE
+> Task :mbr:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :mbr:test
+
+2026-07-14T15:37:13.719+09:00 level=DEBUG environment=local runtimeModule=MBR instance=mbr-local-01 thread=SpringApplicationShutdownHook transactionId= transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@4f3356c0, started on Tue Jul 14 15:36:45 KST 2026 exception=
+2026-07-14T15:37:13.765+09:00 level=DEBUG environment=local runtimeModule=MBR instance=mbr-local-01 thread=SpringApplicationShutdownHook transactionId= transactionGlobalId= traceId= segmentId= logger=o.s.w.c.s.GenericWebApplicationContext message=Closing org.springframework.web.context.support.GenericWebApplicationContext@79e2aa2d, started on Tue Jul 14 15:37:01 KST 2026 exception=
+
+> Task :pfw:compileTestJava UP-TO-DATE
+> Task :pfw:processTestResources NO-SOURCE
+> Task :pfw:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :pfw:test
+> Task :xyz:compileJava UP-TO-DATE
+> Task :xyz:processResources UP-TO-DATE
+> Task :xyz:classes UP-TO-DATE
+> Task :xyz:compileTestJava UP-TO-DATE
+> Task :xyz:processTestResources UP-TO-DATE
+> Task :xyz:testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has bee
+n appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$
+Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80
+cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUn
+safe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :xyz:test
+
+BUILD SUCCESSFUL in 3m 58s
+49 actionable tasks: 22 executed, 27 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

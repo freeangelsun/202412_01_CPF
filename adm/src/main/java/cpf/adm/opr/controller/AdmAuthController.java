@@ -51,6 +51,7 @@ public class AdmAuthController {
                 .map(session -> ResponseEntity.ok(Map.<String, Object>of(
                         "operatorId", session.operatorId(),
                         "roleIds", session.roleIds(),
+                        "passwordChangeRequired", session.passwordChangeRequired(),
                         "menus", operatorService.findMenusForRoles(session.roleIds()))))
                 .orElseGet(() -> ResponseEntity.status(401).body(Map.of("message", "유효하지 않은 ADM 세션입니다.")));
     }

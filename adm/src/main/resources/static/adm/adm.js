@@ -38,7 +38,13 @@ if (!window.Vue) {
         authorizedMenus: [],
         authMessage: "",
         uiMessage: "",
-        loginForm: { operatorId: "admin", password: "Adm!n12345" },
+        loginForm: { operatorId: "admin", password: "" },
+        forcedPasswordForm: {
+          currentPassword: "",
+          newPassword: "",
+          newPasswordConfirm: "",
+          reason: "최초 로그인 비밀번호 변경"
+        },
         /*
         menus: [
           { id: "logs", menuId: "LOG_LIST", label: "거래 로그" },
@@ -762,6 +768,9 @@ if (!window.Vue) {
       authenticated() {
         return !!this.token;
       },
+      passwordChangeRequired() {
+        return this.currentOperator.passwordChangeRequired === true;
+      },
       visibleMenus() {
         if (!this.authorizedMenus.length) {
           return this.menus;
@@ -945,11 +954,18 @@ if (!window.Vue) {
         this.authorizedMenus = data.menus || [];
         localStorage.setItem("admAccessToken", this.token);
         this.authMessage = "";
+        if (this.passwordChangeRequired) {
+          this.setMessage("비밀번호 변경이 필요합니다.");
+          return;
+        }
         this.setMessage("로그인되었습니다.");
-        this.loadInitialData();
+        await this.loadInitialData();
       },
       async loadInitialData() {
         await this.loadMe();
+        if (!this.authenticated || this.passwordChangeRequired) {
+          return;
+        }
         await Promise.allSettled([
           this.searchLogs(),
           this.loadTransactionGroups(),
@@ -979,6 +995,37 @@ if (!window.Vue) {
         const data = await this.getJson("/adm/api/auth/me") || {};
         this.currentOperator = data.operatorId ? data : {};
         this.authorizedMenus = data.menus || [];
+      },
+      async changeOwnPassword() {
+        const form = this.forcedPasswordForm;
+        if (!form.currentPassword || !form.newPassword || !form.newPasswordConfirm) {
+          this.authMessage = "현재 비밀번호와 새 비밀번호, 확인값을 모두 입력하세요.";
+          return;
+        }
+        if (form.newPassword !== form.newPasswordConfirm) {
+          this.authMessage = "새 비밀번호와 확인값이 일치하지 않습니다.";
+          return;
+        }
+        if (!this.requireReason(form.reason)) {
+          this.authMessage = this.uiMessage;
+          return;
+        }
+        const operatorId = this.currentOperator.operatorId;
+        const result = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/password`, "POST", {
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+          newPasswordConfirm: form.newPasswordConfirm,
+          requestUser: operatorId,
+          reason: form.reason
+        });
+        if (!result?.operatorId) {
+          this.authMessage = result?.message || "비밀번호 변경에 실패했습니다.";
+          return;
+        }
+        this.forcedPasswordForm.currentPassword = "";
+        this.forcedPasswordForm.newPassword = "";
+        this.forcedPasswordForm.newPasswordConfirm = "";
+        this.clearToken("비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인하세요.");
       },
       async logout() {
         await this.sendJson("/adm/api/auth/logout", "POST");

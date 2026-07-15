@@ -120,6 +120,51 @@ public class AdmOperatorService {
         return findOperator(operatorId);
     }
 
+    /**
+     * 환경변수로 승인된 최초 운영자 계정을 한 번만 생성합니다.
+     *
+     * <p>이미 같은 운영자가 있으면 비밀번호와 역할을 변경하지 않습니다. DB가 없는 로컬 fallback도
+     * 같은 idempotency 규칙을 적용합니다.</p>
+     *
+     * @return 새 계정을 생성했으면 {@code true}, 이미 존재하면 {@code false}
+     */
+    public boolean bootstrapOperator(String operatorIdValue, String operatorNameValue, String password) {
+        String operatorId = TextUtils.requireText(operatorIdValue, "operatorId");
+        String operatorName = TextUtils.requireText(operatorNameValue, "operatorName");
+        passwordPolicyService.requireValid(operatorId, password);
+        String passwordHash = hashPassword(password);
+        try {
+            int inserted = admJdbcTemplate.update("""
+                    INSERT INTO adm_operator (
+                        OPERATOR_ID, OPERATOR_NAME, PASSWORD_HASH, LOCKED_YN, FAIL_COUNT,
+                        PASSWORD_CHANGED_AT, PASSWORD_CHANGE_REQUIRED_YN, USE_YN, CREATED_BY, UPDATED_BY
+                    )
+                    SELECT ?, ?, ?, 'N', 0, CURRENT_TIMESTAMP, 'Y', 'Y', 'BOOTSTRAP', 'BOOTSTRAP'
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM adm_operator WHERE OPERATOR_ID = ?
+                    )
+                    """, operatorId, operatorName, passwordHash, operatorId);
+            if (inserted > 0) {
+                replaceRoles(operatorId, List.of("ADM_ADMIN"), "BOOTSTRAP");
+            }
+            return inserted > 0;
+        } catch (DataAccessException ex) {
+            log.debug("ADM bootstrap DB 처리를 건너뜁니다. operatorId={}, reason={}", operatorId, ex.getMessage());
+            OperatorState state = new OperatorState(
+                    operatorId,
+                    operatorName,
+                    passwordHash,
+                    List.of("ADM_ADMIN"),
+                    false,
+                    0,
+                    true,
+                    LocalDateTime.now(),
+                    DateTimeUtils.nowDateTimeMillis(),
+                    DateTimeUtils.nowDateTimeMillis());
+            return operators.putIfAbsent(operatorId, state) == null;
+        }
+    }
+
     public AdmOperator authenticate(AdmLoginRequest request) {
         String operatorId = TextUtils.requireText(request.operatorId(), "operatorId");
         String password = TextUtils.requireText(request.password(), "password");
@@ -154,19 +199,34 @@ public class AdmOperatorService {
     }
 
     public AdmOperator changePassword(String operatorId, AdmPasswordChangeRequest request) {
-        passwordPolicyService.requireValid(operatorId, request.newPassword());
-        String hash = hashPassword(request.newPassword());
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String newPassword = TextUtils.requireText(request.newPassword(), "newPassword");
+        String currentPassword = TextUtils.requireText(request.currentPassword(), "currentPassword");
+        String newPasswordConfirm = TextUtils.requireText(request.newPasswordConfirm(), "newPasswordConfirm");
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new CpfValidationException("새 비밀번호와 확인값이 일치하지 않습니다.");
+        }
+        passwordPolicyService.requireValid(operatorId, newPassword);
+        String hash = hashPassword(newPassword);
+        String reason = TextUtils.requireText(request.reason(), "reason");
         try {
+            OperatorState before = loadOperatorState(operatorId);
+            if (!matchesPassword(currentPassword, before.passwordHash)) {
+                throw new CpfValidationException("현재 비밀번호가 일치하지 않습니다.");
+            }
+            requirePasswordNotReused(operatorId, newPassword, before);
+            admJdbcTemplate.update("""
+                    INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
+                    VALUES (?, ?, ?, ?, ?)
+                    """, operatorId, before.passwordHash, reason, operatorId, operatorId);
             int updated = admJdbcTemplate.update("""
                     UPDATE adm_operator
                     SET PASSWORD_HASH = ?, PASSWORD_CHANGED_AT = CURRENT_TIMESTAMP,
                         PASSWORD_CHANGE_REQUIRED_YN = 'N', FAIL_COUNT = 0, LOCKED_YN = 'N',
                         UPDATED_BY = ?, UPDATED_AT = CURRENT_TIMESTAMP
-                    WHERE OPERATOR_ID = ? AND USE_YN = 'Y'
-                    """, hash, requestUser, operatorId);
+                    WHERE OPERATOR_ID = ? AND PASSWORD_HASH = ? AND USE_YN = 'Y'
+                    """, hash, operatorId, operatorId, before.passwordHash);
             if (updated == 0) {
-                throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
+                throw new CpfValidationException("비밀번호가 동시에 변경되었습니다. 다시 로그인한 뒤 재시도하세요.");
             }
             return findOperator(operatorId);
         } catch (DataAccessException ex) {
@@ -174,13 +234,20 @@ public class AdmOperatorService {
             if (state == null) {
                 throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
-            state.passwordHash = hash;
-            state.passwordChangedAt = LocalDateTime.now();
-            state.passwordChangeRequired = false;
-            state.failedLoginCount = 0;
-            state.locked = false;
-            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
-            return toResponse(state);
+            synchronized (state) {
+                if (!matchesPassword(currentPassword, state.passwordHash)) {
+                    throw new CpfValidationException("현재 비밀번호가 일치하지 않습니다.");
+                }
+                requirePasswordNotReused(newPassword, state);
+                rememberPassword(state, state.passwordHash);
+                state.passwordHash = hash;
+                state.passwordChangedAt = LocalDateTime.now();
+                state.passwordChangeRequired = false;
+                state.failedLoginCount = 0;
+                state.locked = false;
+                state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+                return toResponse(state);
+            }
         }
     }
 
@@ -190,6 +257,7 @@ public class AdmOperatorService {
         String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
         try {
             OperatorState before = loadOperatorState(operatorId);
+            requirePasswordNotReused(operatorId, request.newPassword(), before);
             admJdbcTemplate.update("""
                     INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
                     VALUES (?, ?, ?, ?, ?)
@@ -214,13 +282,17 @@ public class AdmOperatorService {
             if (state == null) {
                 throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
-            state.passwordHash = hash;
-            state.passwordChangedAt = LocalDateTime.now();
-            state.passwordChangeRequired = request.forceChange();
-            state.failedLoginCount = 0;
-            state.locked = false;
-            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
-            return toResponse(state);
+            synchronized (state) {
+                requirePasswordNotReused(request.newPassword(), state);
+                rememberPassword(state, state.passwordHash);
+                state.passwordHash = hash;
+                state.passwordChangedAt = LocalDateTime.now();
+                state.passwordChangeRequired = request.forceChange();
+                state.failedLoginCount = 0;
+                state.locked = false;
+                state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+                return toResponse(state);
+            }
         }
     }
 
@@ -407,6 +479,41 @@ public class AdmOperatorService {
         return toResponse(state);
     }
 
+    private void requirePasswordNotReused(String operatorId, String newPassword, OperatorState current) {
+        if (matchesPassword(newPassword, current.passwordHash)) {
+            throw new CpfValidationException("최근 사용한 비밀번호는 다시 사용할 수 없습니다.");
+        }
+        int historyLimit = Math.max(0, passwordPolicyService.historyCount() - 1);
+        if (historyLimit == 0) {
+            return;
+        }
+        List<String> historyHashes = admJdbcTemplate.queryForList("""
+                SELECT PASSWORD_HASH
+                FROM adm_password_history
+                WHERE OPERATOR_ID = ?
+                ORDER BY created_at DESC, HISTORY_ID DESC
+                LIMIT ?
+                """, String.class, operatorId, historyLimit);
+        if (historyHashes.stream().anyMatch(historyHash -> matchesPassword(newPassword, historyHash))) {
+            throw new CpfValidationException("최근 사용한 비밀번호는 다시 사용할 수 없습니다.");
+        }
+    }
+
+    private void requirePasswordNotReused(String newPassword, OperatorState state) {
+        if (matchesPassword(newPassword, state.passwordHash)
+                || state.passwordHistoryHashes.stream().anyMatch(historyHash -> matchesPassword(newPassword, historyHash))) {
+            throw new CpfValidationException("최근 사용한 비밀번호는 다시 사용할 수 없습니다.");
+        }
+    }
+
+    private void rememberPassword(OperatorState state, String passwordHash) {
+        state.passwordHistoryHashes.add(0, passwordHash);
+        int retainedHistory = Math.max(0, passwordPolicyService.historyCount() - 1);
+        while (state.passwordHistoryHashes.size() > retainedHistory) {
+            state.passwordHistoryHashes.remove(state.passwordHistoryHashes.size() - 1);
+        }
+    }
+
     private AdmOperator toResponse(OperatorState state) {
         return new AdmOperator(state.operatorId, state.operatorName, state.roleIds, state.locked,
                 passwordPolicyService.isExpired(state.passwordChangedAt), state.passwordChangeRequired,
@@ -436,9 +543,6 @@ public class AdmOperatorService {
         fallbackMenus.add(new AdmMenu("PERMISSION", null, "권한 관리", "/adm#permissions", 140));
         fallbackMenus.add(new AdmMenu("OPERATOR", null, "운영자 관리", "/adm#operators", 150));
 
-        operators.put("admin", new OperatorState("admin", "Local Administrator", hashPassword("Adm!n12345"),
-                List.of("ADM_ADMIN"), false, 0, true, LocalDateTime.now().minusDays(91),
-                DateTimeUtils.nowDateTimeMillis(), DateTimeUtils.nowDateTimeMillis()));
     }
 
     private List<String> parseRoleIds(String roleIds) {
@@ -533,6 +637,7 @@ public class AdmOperatorService {
         private boolean passwordChangeRequired;
         private LocalDateTime passwordChangedAt;
         private String updatedAt;
+        private final List<String> passwordHistoryHashes = new ArrayList<>();
 
         private OperatorState(String operatorId, String operatorName, String passwordHash, List<String> roleIds,
                               boolean locked, int failedLoginCount, boolean passwordChangeRequired,

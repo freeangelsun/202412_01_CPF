@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT"),
+    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
     [string] $ResultDir = "",
     [int] $StartupTimeoutSeconds = 150,
     [int] $HttpTimeoutSeconds = 3,
@@ -13,7 +13,9 @@ $RequiredPortEnvMarkers = @(
     "MBR_SERVER_PORT",
     "ADM_SERVER_PORT",
     "EXS_SERVER_PORT",
-    "BAT_SERVER_PORT"
+    "BAT_SERVER_PORT",
+    "BIZADM_SERVER_PORT",
+    "XYZ_SERVER_PORT"
 )
 
 $ErrorActionPreference = "Stop"
@@ -195,7 +197,7 @@ try {
         $previousLogRoot = [Environment]::GetEnvironmentVariable("CPF_LOG_ROOT", "Process")
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
-            [Environment]::SetEnvironmentVariable("WAS_ID", ($module.moduleLower + "AP01"), "Process")
+            [Environment]::SetEnvironmentVariable("WAS_ID", $module.wasId, "Process")
             [Environment]::SetEnvironmentVariable("SERVER_INSTANCE_ID", ($module.moduleLower + "-local-01"), "Process")
             [Environment]::SetEnvironmentVariable("CPF_MODULE_ID", $module.module, "Process")
             [Environment]::SetEnvironmentVariable("CPF_MODULE_CODE", $module.module, "Process")

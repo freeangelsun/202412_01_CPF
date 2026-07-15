@@ -115,10 +115,21 @@ class CmnSequenceServiceConcurrencyTest {
     private DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
-        dataSource.setUrl(System.getenv().getOrDefault("CMN_BUSINESS_DB_URL", "jdbc:mariadb://localhost:3306/cmnDB"));
-        dataSource.setUsername(System.getenv().getOrDefault("CMN_BUSINESS_DB_USERNAME", "cpf_cmn_app"));
-        dataSource.setPassword(System.getenv().getOrDefault("CMN_BUSINESS_DB_PASSWORD", "cpf_local_pw"));
+        dataSource.setUrl(requiredEnvironment("CMN_BUSINESS_DB_URL"));
+        dataSource.setUsername(requiredEnvironment("CMN_BUSINESS_DB_USERNAME"));
+        dataSource.setPassword(requiredEnvironment("CMN_BUSINESS_DB_PASSWORD"));
         return dataSource;
+    }
+
+    /**
+     * 실 DB 테스트가 임의의 로컬 계정이나 비밀번호를 추정하지 않도록 필수 환경변수를 확인합니다.
+     */
+    private String requiredEnvironment(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException(name + " 환경변수가 필요합니다.");
+        }
+        return value;
     }
 
     private static <T> ObjectProvider<T> provider(T value) {

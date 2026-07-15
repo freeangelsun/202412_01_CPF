@@ -64,11 +64,19 @@ public class AdmPasswordPolicyService {
         return properties.getMaxFailCount();
     }
 
+    /**
+     * 현재 비밀번호를 포함해 재사용을 금지할 최근 비밀번호 개수를 반환합니다.
+     */
+    public int historyCount() {
+        return Math.max(1, properties.getHistoryCount());
+    }
+
     public Map<String, Object> currentPolicy() {
         return Map.of(
                 "minLength", properties.getMinLength(),
                 "requiredCategoryCount", properties.getRequiredCategoryCount(),
                 "maxFailCount", properties.getMaxFailCount(),
+                "historyCount", historyCount(),
                 "expireDays", properties.getExpireDays());
     }
 

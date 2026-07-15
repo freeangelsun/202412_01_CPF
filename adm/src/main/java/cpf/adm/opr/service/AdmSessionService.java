@@ -63,7 +63,13 @@ public class AdmSessionService {
         String token = newToken();
         LocalDateTime issuedAt = LocalDateTime.now();
         LocalDateTime expiresAt = issuedAt.plusSeconds(properties.getSessionTtlSeconds());
-        AdmSession session = new AdmSession(token, operator.operatorId(), operator.roleIds(), issuedAt, expiresAt);
+        AdmSession session = new AdmSession(
+                token,
+                operator.operatorId(),
+                operator.roleIds(),
+                operator.passwordChangeRequired() || operator.passwordExpired(),
+                issuedAt,
+                expiresAt);
         sessions.put(token, session);
         persistSession(session);
         return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus);
@@ -103,6 +109,39 @@ public class AdmSessionService {
         if (token != null) {
             sessions.remove(token);
             revokeDbSession(token);
+        }
+    }
+
+    /**
+     * 비밀번호 변경이나 관리자 초기화가 완료된 운영자의 기존 세션을 모두 폐기합니다.
+     *
+     * @param operatorId 세션을 폐기할 운영자 ID
+     * @return 메모리와 DB에서 폐기한 세션 수의 최댓값
+     */
+    public int revokeOperatorSessions(String operatorId) {
+        if (operatorId == null || operatorId.isBlank()) {
+            return 0;
+        }
+        int memoryRevoked = 0;
+        for (Map.Entry<String, AdmSession> entry : sessions.entrySet()) {
+            if (operatorId.equals(entry.getValue().operatorId()) && sessions.remove(entry.getKey(), entry.getValue())) {
+                memoryRevoked++;
+            }
+        }
+        try {
+            int dbRevoked = admJdbcTemplate.update("""
+                    UPDATE adm_operator_session
+                    SET REVOKED_YN = 'Y',
+                        UPDATED_BY = ?,
+                        UPDATED_AT = CURRENT_TIMESTAMP
+                    WHERE OPERATOR_ID = ?
+                      AND REVOKED_YN = 'N'
+                    """, operatorId, operatorId);
+            return Math.max(memoryRevoked, dbRevoked);
+        } catch (DataAccessException ex) {
+            log.debug("ADM 운영자 세션 일괄 폐기 DB 처리를 건너뜁니다. operatorId={}, reason={}",
+                    operatorId, ex.getMessage());
+            return memoryRevoked;
         }
     }
 
@@ -211,12 +250,15 @@ public class AdmSessionService {
     private Optional<AdmSession> findDbSession(String token) {
         try {
             return admJdbcTemplate.query("""
-                            SELECT OPERATOR_ID, ROLE_IDS, ISSUED_AT, EXPIRE_AT
-                            FROM adm_operator_session
-                            WHERE TOKEN_HASH = ?
-                              AND REVOKED_YN = 'N'
-                              AND EXPIRE_AT > CURRENT_TIMESTAMP
-                            ORDER BY EXPIRE_AT DESC
+                            SELECT s.OPERATOR_ID, s.ROLE_IDS, s.ISSUED_AT, s.EXPIRE_AT,
+                                   o.PASSWORD_CHANGE_REQUIRED_YN
+                            FROM adm_operator_session s
+                            JOIN adm_operator o ON o.OPERATOR_ID = s.OPERATOR_ID
+                            WHERE s.TOKEN_HASH = ?
+                              AND s.REVOKED_YN = 'N'
+                              AND s.EXPIRE_AT > CURRENT_TIMESTAMP
+                              AND o.USE_YN = 'Y'
+                            ORDER BY s.EXPIRE_AT DESC
                             LIMIT 1
                             """,
                     rs -> {
@@ -224,10 +266,11 @@ public class AdmSessionService {
                             return Optional.<AdmSession>empty();
                         }
                         AdmSession session = new AdmSession(
-                                token,
-                                rs.getString("OPERATOR_ID"),
-                                parseRoleIds(rs.getString("ROLE_IDS")),
-                                rs.getTimestamp("ISSUED_AT").toLocalDateTime(),
+                                 token,
+                                 rs.getString("OPERATOR_ID"),
+                                 parseRoleIds(rs.getString("ROLE_IDS")),
+                                 "Y".equals(rs.getString("PASSWORD_CHANGE_REQUIRED_YN")),
+                                 rs.getTimestamp("ISSUED_AT").toLocalDateTime(),
                                 rs.getTimestamp("EXPIRE_AT").toLocalDateTime());
                         sessions.put(token, session);
                         return Optional.of(session);

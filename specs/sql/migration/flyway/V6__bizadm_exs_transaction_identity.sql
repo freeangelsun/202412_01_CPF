@@ -9,17 +9,8 @@ CREATE DATABASE IF NOT EXISTS exsDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-CREATE USER IF NOT EXISTS 'cpf_bizadm_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_exs_migration'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_bizadm_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-CREATE USER IF NOT EXISTS 'cpf_exs_app'@'localhost' IDENTIFIED BY 'cpf_local_pw';
-
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON bizadmDB.* TO 'cpf_bizadm_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON exsDB.* TO 'cpf_exs_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON bizadmDB.* TO 'cpf_bizadm_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON exsDB.* TO 'cpf_exs_app'@'localhost';
-
-FLUSH PRIVILEGES;
+-- 계정과 권한은 application migration과 분리된 02_create_service_users.sql에서 관리합니다.
+-- Flyway 실행 계정에 전역 사용자 생성 권한을 부여하지 않아 최소 권한 원칙을 유지합니다.
 
 USE pfwDB;
 

@@ -1,7 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
-    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM"),
+    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
     [int] $StartupTimeoutSeconds = 150,
     [switch] $StartServices,
     [switch] $StopAfterRun

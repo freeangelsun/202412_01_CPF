@@ -1,0 +1,232 @@
+{
+    "startedAt":  "2026-07-14T16:01:19.1369167+09:00",
+    "status":  "완료",
+    "modules":  [
+                    {
+                        "module":  "ACC",
+                        "port":  8080,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "acc\\build\\libs\\acc-0.0.1-cpf.acc-SNAPSHOT.jar"
+                                         },
+                        "pid":  13976,
+                        "jar":  "acc\\build\\libs\\acc-0.0.1-cpf.acc-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-acc.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-acc.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8080/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "MBR",
+                        "port":  8081,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "mbr\\build\\libs\\mbr-1.0.0.jar"
+                                         },
+                        "pid":  25812,
+                        "jar":  "mbr\\build\\libs\\mbr-1.0.0.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-mbr.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-mbr.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8081/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "EXS",
+                        "port":  8092,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "exs\\build\\libs\\exs-0.0.1-cpf.exs-SNAPSHOT.jar"
+                                         },
+                        "pid":  31880,
+                        "jar":  "exs\\build\\libs\\exs-0.0.1-cpf.exs-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-exs.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-exs.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8092/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "ADM",
+                        "port":  8090,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "adm\\build\\libs\\adm-0.0.1-cpf.adm-SNAPSHOT.jar"
+                                         },
+                        "pid":  25508,
+                        "jar":  "adm\\build\\libs\\adm-0.0.1-cpf.adm-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-adm.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-adm.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8090/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "BAT",
+                        "port":  8093,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "bat\\build\\libs\\bat-0.0.1-cpf.bat-SNAPSHOT.jar"
+                                         },
+                        "pid":  25112,
+                        "jar":  "bat\\build\\libs\\bat-0.0.1-cpf.bat-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-bat.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-bat.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8093/bat/api/health",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "BIZADM",
+                        "port":  8091,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "bizadm\\build\\libs\\bizadm-0.0.1-cpf.bizadm-SNAPSHOT.jar"
+                                         },
+                        "pid":  27832,
+                        "jar":  "bizadm\\build\\libs\\bizadm-0.0.1-cpf.bizadm-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-bizadm.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-bizadm.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8091/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    },
+                    {
+                        "module":  "XYZ",
+                        "port":  8099,
+                        "status":  "완료",
+                        "alreadyListening":  false,
+                        "startedByHarness":  true,
+                        "bootJarBuildRequired":  false,
+                        "bootJarBuildStatus":  "SKIPPED",
+                        "jarFallbackUsed":  false,
+                        "processStarted":  true,
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "bootJarBuild":  {
+                                             "required":  false,
+                                             "status":  "SKIPPED",
+                                             "reason":  "use existing bootJar",
+                                             "jar":  "xyz\\build\\libs\\xyz-0.0.1-cpf.xyz-SNAPSHOT.jar"
+                                         },
+                        "pid":  11148,
+                        "jar":  "xyz\\build\\libs\\xyz-0.0.1-cpf.xyz-SNAPSHOT.jar",
+                        "stdout":  "build\\runtime-smoke\\runtime-xyz.out.log",
+                        "stderr":  "build\\runtime-smoke\\runtime-xyz.err.log",
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8099/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   }
+                    }
+                ],
+    "stateFile":  "build\\runtime-smoke\\runtime-services.json",
+    "finishedAt":  "2026-07-14T16:04:47.6326218+09:00"
+}

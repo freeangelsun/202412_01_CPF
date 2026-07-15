@@ -1,24 +1,39 @@
 # CPF GAP 매트릭스
 
-작성 시각: 2026-07-14 13:02 KST
+생성 시각: 2026-07-15 10:08:25 +09:00
 
-상태값은 `완료`, `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`만 사용한다. 외부 runtime을 실행하지 않은 항목은 source와 unit test가 있어도 완료로 올리지 않는다.
+`완료`가 아닌 항목만 표시하며, 외부 환경 선행조건은 완료로 승격하지 않습니다.
 
-| 영역 | 상태 | 이번 구현·검증 | 증적 | 남은 GAP | 다음 조치 |
-|---|---|---|---|---|---|
-| Architecture / Ownership | 재확인 필요 | ADM → PFW public port 경계, 업무 모듈 간 Controller/Repository/Mapper 직접 접근 금지 gate, Spring Event 금지 사용 0건 | `specs/evidence/20260714_01/architecture-ownership-scan.sanitized.json`, `specs/evidence/20260714_01/spring-event-usage-scan.sanitized.json` | CMN 파일교환·메시지 bridge 2건이 호환 migration candidate | PFW adapter + CMN compatibility facade로 단계 이전 |
-| Transaction / Segment Recovery | 부분 구현 | eligible ordering, lease, stale reclaim, poison, capacity, segment durable fallback과 공개 recovery/timeline facade | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | MariaDB 장애·복구와 ADM tree runtime 미검증 | DB profile로 rollback/fallback/recovery 교차 검증 |
-| Service Call / MSA | 부분 구현 | typed MBR → ACC → EXS, Local Facade/Remote Proxy, attempt segment, retry/failover/circuit/unknown | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | 3개 프로세스 HTTP·다중 instance runtime 미검증 | 앱 3개를 기동해 파일/DB/ADM correlation 검증 |
-| Idempotency | 부분 구현 | expired PROCESSING restart, same key replay/conflict, JDBC/in-memory atomic restart | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | MariaDB unique race와 process restart 미검증 | 실제 DB 동시성·재기동 테스트 |
-| Broker / Outbox / Inbox / DLQ | 부분 구현 | claim lease, stale reclaim, retry/backoff/max attempts, DLQ, inbox duplicate prevention, actual replay | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | 실 Kafka/MQ와 MariaDB multi-worker 미검증 | broker test container + DB 재기동 검증 |
-| Unknown / Reconciliation | 부분 구현 | service call unknown 상태와 reconciliation 연결, DLQ actual replay 경계 구현 | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | callback/polling/manual resolve의 실제 DB runtime 미검증 | 외부 callback·polling 통합 시나리오 추가 |
-| File Log | 부분 구현 | 업무일자 기반 retention/gzip, late write restore, 민감정보 masking 회귀 테스트 | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log`, `specs/evidence/20260713_03/runtime-log-manifest.sanitized.json` | 전체 앱·다중 인스턴스 runtime 미검증 | 7개 앱 기동 후 로그 root/manifest 검증 |
-| BAT Shared Writer | 부분 구현 | JobInstance logical file, DB lease, stale takeover, fragment degraded mode | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | 실제 shared storage multi-server runtime 미검증 | 공유 storage + 2 process 동시 append 검증 |
-| FileTransfer / Archive | 부분 구현 | LOCAL 정책 엔진과 SFTP/FTP/FTPS/SCP/SSH deterministic reference adapter | `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log` | 실 protocol server와 대용량 runtime 미검증 | protocol별 test server smoke |
-| EDU | 완료 | 소유권을 XYZ/BAT로 정리하고 47 sample class, 53 test, skipped 0, matrix 47 rows 일치 | `specs/evidence/20260714_01/edu-sample-final.sanitized.log`, `specs/evidence/20260714_01/sample-coverage-result.sanitized.json` | DB 환경형 EDU 4건은 전체 test에서 조건부 건너뜀 | MariaDB profile로 DB EDU 별도 완료 증적 생성 |
-| OpenAPI | 부분 구현 | mapping 297, explicit operationId 319, duplicate/missing 0, 공통 error/header policy 보강 | `specs/evidence/20260714_01/openapi-source-coverage.sanitized.json` | 7개 `/v3/api-docs` runtime 미검증 | 앱 기동 후 JSON schema 품질 gate 실행 |
-| MariaDB / SQL / Flyway | 미검증 | V26/V27, split SQL, V1, all-install, smoke 정적 동기화와 SQL gate 통과 | `specs/evidence/20260714_01/mariadb-preflight.sanitized.log`, `specs/evidence/20260714_01/mariadb-full-install.sanitized.log` | 인증정보 환경변수 부재로 full install·Flyway 미실행 | 검증 계정 주입 후 신규 schema와 재실행 검증 |
-| ADM Runtime / Browser | 부분 구현 | PFW public port 기반 recovery/timeline/reliability/service registry와 source test·bootJar 확인 | `specs/evidence/20260714_01/java21-full-test-final.sanitized.log`, `specs/evidence/20260714_01/java21-seven-bootjar-final.sanitized.log` | 권한별 HTTP status, DB 조회, 브라우저 클릭 미검증 | ADM DB profile과 browser smoke 실행 |
-| Profile / bootJar | 완료 | local/dev/stg/prod 정적 계약, Java 25에서 실행 모듈 7개 bootJar, Java 21 class major 65 확인 | `specs/evidence/20260714_01/profile-loading-result.sanitized.json`, `specs/evidence/20260714_01/seven-bootjar-gradle910-java25-release21.sanitized.log`, `specs/evidence/20260714_01/seven-bootjar-class-version.sanitized.log` | real remote deploy/JNDI runtime은 별도 범위 | 승인된 target에서 deploy/rollback smoke |
-| Java 25 | 미검증 | Gradle 9.1.0, Lombok 1.18.46, Byte Buddy 1.18.7로 compile/test/bootJar/qualityGate 성공, release 21 산출물 확인 | `specs/evidence/20260714_01/quality-gate-gradle910-java25-release21.sanitized.log`, `specs/evidence/20260714_01/seven-bootjar-class-version.sanitized.log` | 전체 275건 중 환경형 4건 skipped, 대표 앱 runtime 미실행 | MariaDB profile 대표 runtime과 skipped 4건 실행 |
-| Evidence / Quality | 미검증 | 요청서 보호, UTF-8, SQL, ownership, OpenAPI, sample 정적 gate, 7 bootJar, Java 21/25 76-task qualityGate 명령 통과 | `specs/evidence/20260714_01/static-gates-final.sanitized.log`, `specs/evidence/20260714_01/quality-gate-gradle910-java21-release21.sanitized.log`, `specs/evidence/20260714_01/quality-gate-gradle910-java25-release21.sanitized.log` | 각 JDK 전체 275건 중 환경형 4건 skipped | MariaDB profile로 4건을 실행한 뒤 전체 완료 판정 |
+| check id | 상태 | 현재 증적 | 남은 GAP |
+|---|---|---|---|
+| edu-mapper-db-slice | 미검증 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | MariaDB EDU mapper slice가 현재 전체 테스트에서 환경 선행조건으로 건너뜀. fixture: xyz_edu_query_fixture.sql |
+| mariadb-full-install | 미검증 | `specs/evidence/20260714_02/mariadb-full-install-result.sanitized.json` | CLI는 확인했으나 root·migration·app 비밀번호 환경변수가 없어 DB 접속과 설치 SQL 실행은 시도하지 않음. 재현: scripts/smoke-mariadb-full-install.ps1 |
+| adm-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 프로세스·포트·OpenAPI는 확인했으나 DB 로그인과 운영 API 실데이터 조회는 미검증 |
+| adm-permission-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 필터·서비스 권한 테스트는 통과했으나 DB 계정별 200/403 런타임은 미검증 |
+| adm-browser-click | 미검증 | `없음` | ADM bootstrap 자격증명과 DB 연결이 없어 실제 로그인·브라우저 클릭은 미실행 |
+| standard-header-e2e | 부분 구현 | `specs/evidence/20260714_02/standard-header-e2e-result.sanitized.json` | 수신·금지 헤더 차단·하위 호출 전파는 완료, DB 로그·ADM 조회는 자격증명 부재로 미검증. 재현: scripts/smoke-standard-header-e2e.ps1 |
+| complex-transaction-trace | 부분 구현 | `specs/evidence/20260714_02/composite-transaction-runtime-result.sanitized.json`, `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 복합거래 소스·단위 테스트는 통과했으나 현재 런타임은 DB 인증 실패로 HTTP 500을 반환함 |
+| transaction-segment-log | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | segment·timeline·fallback 단위 테스트는 통과했으나 MariaDB 행과 ADM tree 연계는 미검증 |
+| adm-transaction-group-list | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 기동은 완료했으나 DB 기반 거래 그룹 목록 실데이터 조회는 미검증 |
+| adm-transaction-timeline | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | timeline 소스·테스트는 확인했으나 ADM DB 런타임은 미검증 |
+| composite-runtime-smoke | 부분 구현 | `specs/evidence/20260714_02/composite-transaction-runtime-result.sanitized.json` | 실제 호출은 수행했으나 DB 인증 실패로 완료 조건을 검증하지 못함 |
+| adm-transaction-group-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 애플리케이션은 기동했으나 DB 기반 거래 그룹 API 시나리오는 미검증 |
+| redis-kafka-mq-broker | 미검증 | `없음` | 실 Redis·Kafka·RabbitMQ broker가 제공되지 않아 미실행 |
+| broker-real-integration | 미검증 | `없음` | 실 broker 장애·fallback·재처리 통합 시나리오는 미실행 |
+| trace-boost-runtime | 미검증 | `없음` | 운영 DB·권한을 사용하는 trace boost 실런타임은 미실행 |
+| bat-trace-boost-runtime | 미검증 | `없음` | BAT trace boost 실런타임은 미실행 |
+| runtime-closure | 미검증 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-stop-services-result.sanitized.json` | 기동·상태·종료는 확인했으나 DB 의존 개별 runtime smoke 전체 묶음은 완료하지 못함 |
+| adm-operation-console-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 프로세스와 UI 소스는 확인했으나 DB 기반 운영 콘솔 시나리오는 미검증 |
+| bat-log-bean-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | BAT 로그 bean·listener 테스트는 통과했으나 JobRepository DB 런타임은 미검증 |
+| exs-timeout-retry-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | timeout/retry 단위 테스트는 통과했으나 외부 테스트 서버 런타임은 미검증 |
+| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260714_02/service-call-engine-runtime-success.sanitized.json`, `specs/evidence/20260714_02/service-call-engine-failover.sanitized.json`, `specs/evidence/20260714_02/service-call-engine-circuit-transition.sanitized.json`, `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 성공·retry·failover·circuit 계약과 단위 테스트는 통과, DB 복합거래 런타임은 미완료 |
+| adm-service-registry-runtime | 부분 구현 | `specs/evidence/20260714_02/service-registry-runtime-result.sanitized.json`, `specs/evidence/20260714_02/adm-service-registry-ui-static-smoke.sanitized.json` | registry source/SQL과 ADM UI 계약은 통과했으나 DB 실데이터 runtime은 미검증 |
+| pfw-broker-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | PFW broker port·adapter와 outbox/inbox/DLQ 단위 테스트 통과, 실 broker는 미검증 |
+| pfw-file-transfer-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | PFW 파일전송 engine·gateway 테스트 통과, 실 SFTP/FTP/SCP 서버는 미검증 |
+| pfw-security-credential-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 보안·credential 계약 테스트 통과, 실 Vault/KMS는 미검증 |
+| pfw-runtime-control-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | worker·lock·재처리 계약 테스트 통과, 다중 인스턴스는 미검증 |
+| pfw-admin-status-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | ADM 공개 port와 상태 조회 테스트 통과, DB 운영화면 실데이터는 미검증 |
+| deploy-dry-run-standard | 부분 구현 | `specs/evidence/20260714_02/runtime-config-inventory.sanitized.json` | 배포 명세·dry-run 소스 계약은 확인했으나 원격 대상 실행은 미검증 |
+| bat-edu-package | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | BAT EDU 소스와 테스트는 포함됐으나 DB 기반 center-cut 테스트 1건이 건너뜀 |
+| bat-job-log-policy | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | JobInstance 로그 경로·lease 테스트는 통과, 공유 스토리지 다중 프로세스는 미검증 |
+| runtime-smoke-summary | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | 7개 기동과 OpenAPI는 완료했으나 DB·broker·browser 포함 전체 runtime bundle은 미완료 |

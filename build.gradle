@@ -14,6 +14,15 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 
+    java {
+        // CPF의 소스·컴파일·배포 바이트코드 기준을 Java 25 LTS 하나로 고정합니다.
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
+    }
+
     dependencyManagement {
         imports {
             mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.13'
@@ -32,8 +41,8 @@ subprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        // Java 25 개발 환경에서도 Java 21에서 실행 가능한 배포 산출물을 생성합니다.
-        options.release = 21
+        // 실행 JDK와 무관하게 Java 25 API 및 class major 69 산출물만 허용합니다.
+        options.release = 25
         options.encoding = 'UTF-8'
     }
 }
@@ -177,7 +186,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260714_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260714_02').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -246,8 +255,8 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
     if (values[datasourceModeKey] && !['url', 'jndi'].contains(values[datasourceModeKey].toLowerCase(Locale.ROOT))) {
         failures << "${prefix}_DATASOURCE_MODE must be url or jndi."
     }
-    if ((values[datasourcePasswordKey] ?: '').toLowerCase(Locale.ROOT).contains('cpf_local_pw')) {
-        failures << "${prefix}_DATASOURCE_PASSWORD must not contain a local default password."
+    if ((values[datasourcePasswordKey] ?: '').toLowerCase(Locale.ROOT).contains('local_pw')) {
+        failures << "${prefix}_DATASOURCE_PASSWORD must not contain a local default password marker."
     }
     def logRoot = values['CPF_LOG_ROOT'] ?: ''
     if (logRoot && (!new File(logRoot).isAbsolute() || logRoot.replace('\\', '/').split('/').contains('..'))) {
@@ -384,10 +393,20 @@ tasks.register('checkJavaFormat', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
 }
 
-tasks.register('checkHtmlDocs', Exec) {
+tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
-    description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-html-docs.ps1'
+    description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
+    dependsOn subprojects.collect { "${it.path}:classes" }
+    dependsOn ':acc:bootJar', ':adm:bootJar', ':bat:bootJar', ':bizadm:bootJar', ':exs:bootJar', ':mbr:bootJar', ':xyz:bootJar'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
+}
+
+tasks.register('checkDocxStandard', Exec) {
+    group = 'verification'
+    description = 'Checks the nine canonical DOCX packages and rejects legacy specs HTML.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-docx-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkTransactionIdStandard', Exec) {
@@ -645,5 +664,5 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkHtmlDocs', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
 }

@@ -118,7 +118,12 @@ Export-One -Sources @("build/runtime-smoke/exs-timeout-retry-runtime-result.json
 Export-One -Sources @("build/runtime-smoke/cmn-fixed-length-advanced-result.json") -TargetName "cmn-fixed-length-advanced-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/create-domain-result.json") -TargetName "create-domain-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/service-registry-runtime-result.json") -TargetName "service-registry-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/service-registry-health-runtime.sanitized.json") -TargetName "service-registry-health-runtime.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/service-call-engine-runtime-success.sanitized.json") -TargetName "service-call-engine-runtime-success.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/service-call-engine-failover.sanitized.json") -TargetName "service-call-engine-failover.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/service-call-engine-circuit-transition.sanitized.json") -TargetName "service-call-engine-circuit-transition.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/adm-service-registry-runtime-result.json") -TargetName "adm-service-registry-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/adm-service-registry-ui-static-smoke.sanitized.json") -TargetName "adm-service-registry-ui-static-smoke.sanitized.json" -Kind "json"
 Export-One -Sources @("build/sql-smoke/mariadb-full-install-result.json") -TargetName "mariadb-full-install-result.sanitized.json" -Kind "json"
 Export-One -Sources @(
     "build/runtime-smoke/run-local-services-composite-rerun.sanitized.log",

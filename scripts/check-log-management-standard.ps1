@@ -35,6 +35,18 @@ function Test-SanitizedEvidence([string]$RelativePath) {
             $values[$Matches[1]] = $Matches[2]
         }
     }
+    # 작업 시작 상태와 요청서 baseline은 실행 로그가 아니라 변경 전 스냅샷이므로
+    # 테스트 건수와 본문 해시를 요구하는 런타임 로그 계약에서 제외합니다.
+    if ($values["EVIDENCE_ID"] -like "CPF-START-WORKTREE-*") {
+        foreach ($key in @("CPF_EVIDENCE_VERSION", "EVIDENCE_ID", "STATUS", "EXECUTED_AT", "START_COMMIT",
+                "BRANCH", "COMMAND", "EXIT_CODE", "JAVA_VERSION", "GRADLE_VERSION", "PROFILE",
+                "SANITIZED", "SECRET_SCAN")) {
+            if (-not $values.ContainsKey($key)) {
+                throw "$RelativePath 시작 스냅샷 메타데이터 누락: $key"
+            }
+        }
+        return
+    }
     foreach ($key in $required) {
         if (-not $values.ContainsKey($key)) {
             throw "$RelativePath 필수 메타데이터 누락: $key"

@@ -3,7 +3,7 @@ package cpf.adm.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * CPF 기능 설명입니다.
+ * ADM 운영자 비밀번호 길이, 복잡도, 만료, 잠금, 재사용 금지 정책을 구성합니다.
  */
 @ConfigurationProperties(prefix = "cpf.adm.password-policy")
 public class AdmPasswordPolicyProperties {
@@ -53,4 +53,3 @@ public class AdmPasswordPolicyProperties {
         this.historyCount = historyCount;
     }
 }
-

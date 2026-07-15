@@ -73,7 +73,7 @@ function New-CpfRuntimeDiagnostic {
 function Invoke-CpfRuntimeDiagnostics {
     param(
         [string] $Root = "",
-        [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT"),
+        [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
         [string] $ResultDir = "",
         [string] $ErrorMessage = ""
     )

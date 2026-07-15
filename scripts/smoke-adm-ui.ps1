@@ -222,7 +222,8 @@ const { test, expect } = require("@playwright/test");
 test("ADM UI basic click flow", async ({ page }) => {
   const baseUrl = process.env.ADM_BASE_URL || "http://localhost:8090";
   const username = process.env.ADM_UI_SMOKE_USERNAME || "admin";
-  const password = process.env.ADM_UI_SMOKE_PASSWORD || "Adm!n12345";
+  const password = process.env.ADM_UI_SMOKE_PASSWORD;
+  if (!password) throw new Error("ADM_UI_SMOKE_PASSWORD is required");
   const screenshotPath = process.env.ADM_UI_SMOKE_SCREENSHOT || "adm-ui-click-smoke.png";
 
   await page.goto(`${baseUrl}/adm`, { waitUntil: "domcontentloaded" });
@@ -267,7 +268,7 @@ test("ADM UI basic click flow", async ({ page }) => {
 $spec | Set-Content -LiteralPath $specPath -Encoding UTF8
 
 if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
-    $AdmPassword = "Adm!n12345"
+    throw "CPF_ADM_SMOKE_PASSWORD 환경변수 또는 -AdmPassword 인수가 필요합니다."
 }
 
 $previousAdmBaseUrl = $env:ADM_BASE_URL

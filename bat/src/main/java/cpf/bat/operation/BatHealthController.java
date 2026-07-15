@@ -27,7 +27,7 @@ import java.util.Map;
  * BAT 단독 기동 상태와 smoke Job 실행 결과를 확인하는 운영 API입니다.
  */
 @RestController
-@Tag(name = "BAT 운영", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
+@Tag(name = "BAT-Operations", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
 public class BatHealthController {
     private final JdbcTemplate pfwJdbcTemplate;
     private final Environment environment;

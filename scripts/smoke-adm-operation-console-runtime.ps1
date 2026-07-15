@@ -85,7 +85,7 @@ try {
     }
 
     if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
-        $AdmPassword = "Adm!n12345"
+        throw "CPF_ADM_SMOKE_PASSWORD 환경변수 또는 -AdmPassword 인수가 필요합니다."
     }
 
     $health = Invoke-AdmJson -Method Get -Path "/adm/api/health"

@@ -5,3 +5,4 @@ cpf.pfw.config.CpfBatchAutoConfiguration
 cpf.pfw.config.CpfTransactionMetaAutoConfiguration
 cpf.pfw.config.CpfServiceCallAutoConfiguration
 cpf.pfw.config.CpfLogRecoveryAutoConfiguration
+cpf.pfw.config.CpfCenterCutAutoConfiguration

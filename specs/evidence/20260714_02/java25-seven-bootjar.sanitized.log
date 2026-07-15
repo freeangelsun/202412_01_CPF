@@ -1,0 +1,100 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-JAVA25-SEVEN-BOOTJAR-20260714-02
+STATUS=완료
+EXECUTED_AT=2026-07-14T15:39:30.0183729+09:00
+START_COMMIT=d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d
+BRANCH=master
+COMMAND=.\gradlew.bat :acc:bootJar :mbr:bootJar :exs:bootJar :adm:bootJar :bat:bootJar :bizadm:bootJar :xyz:bootJar --no-daemon --console=plain
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=7
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=4ff4d4ce347e22bd8890b715c81fdfb93838a35ca86be0367202f9a7202fdf63
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot\ 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" goto execute 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" :acc:bootJar :mbr:bootJar :exs:bootJar :adm:bootJar :bat:bootJar :bizadm:bootJar :xyz:bootJar --no-daemon --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:compileJava UP-TO-DATE
+> Task :cmn:compileJava UP-TO-DATE
+> Task :acc:compileJava UP-TO-DATE
+> Task :acc:processResources UP-TO-DATE
+> Task :acc:classes UP-TO-DATE
+> Task :acc:resolveMainClassName UP-TO-DATE
+> Task :cmn:processResources UP-TO-DATE
+> Task :cmn:classes UP-TO-DATE
+> Task :cmn:jar UP-TO-DATE
+> Task :pfw:processResources UP-TO-DATE
+> Task :pfw:classes UP-TO-DATE
+> Task :pfw:jar UP-TO-DATE
+> Task :acc:bootJar
+> Task :mbr:compileJava UP-TO-DATE
+> Task :mbr:processResources UP-TO-DATE
+> Task :mbr:classes UP-TO-DATE
+> Task :mbr:resolveMainClassName UP-TO-DATE
+> Task :mbr:bootJar
+> Task :exs:compileJava UP-TO-DATE
+> Task :exs:processResources UP-TO-DATE
+> Task :exs:classes UP-TO-DATE
+> Task :exs:resolveMainClassName UP-TO-DATE
+> Task :exs:bootJar
+> Task :adm:compileJava UP-TO-DATE
+> Task :adm:processResources UP-TO-DATE
+> Task :adm:classes UP-TO-DATE
+> Task :adm:resolveMainClassName
+> Task :adm:bootJar
+> Task :bat:compileJava UP-TO-DATE
+> Task :bat:processResources UP-TO-DATE
+> Task :bat:classes UP-TO-DATE
+> Task :bat:resolveMainClassName UP-TO-DATE
+> Task :bat:bootJar
+> Task :bizadm:compileJava UP-TO-DATE
+> Task :bizadm:processResources UP-TO-DATE
+> Task :bizadm:classes UP-TO-DATE
+> Task :bizadm:resolveMainClassName UP-TO-DATE
+> Task :bizadm:bootJar
+> Task :xyz:compileJava UP-TO-DATE
+> Task :xyz:processResources UP-TO-DATE
+> Task :xyz:classes UP-TO-DATE
+> Task :xyz:resolveMainClassName
+> Task :xyz:bootJar
+
+BUILD SUCCESSFUL in 50s
+34 actionable tasks: 9 executed, 25 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

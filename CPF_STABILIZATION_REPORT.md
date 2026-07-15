@@ -1,257 +1,272 @@
-# CPF 안정화 작업 보고서
+# CPF 최종 통합 안정화 보고서
 
-작성일: 2026-07-14
-입력 요청서: `CPF_NEW_REQUEST.md`
-최종 목표: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-상태 기준: 완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요
+## 1. 결론
 
-## 1. 시작 commit과 종료 worktree
+이번 작업은 Java 25 단일 기준, PFW 기술 소유권, 안전한 ADM 초기 계정, 7개 실행 모듈 기동, OpenAPI 런타임, 표준 헤더 전파, 주제영역 생성기, DOCX 정본화와 품질 게이트를 중심으로 수행했다.
 
-| 항목 | 결과 |
+현재 저장소는 **로컬 소스·단위 테스트·패키징·비 DB 런타임 기준으로 안정화됐으나 전체 최종 완료 상태는 아니다.** MariaDB 검증 자격증명, 실 Redis/Kafka/RabbitMQ, 실제 파일전송 서버, ADM 로그인용 bootstrap 환경과 브라우저 검증이 제공되지 않아 해당 항목은 `미검증` 또는 `부분 구현`으로 남겼다.
+
+## 2. 기준 정보
+
+| 항목 | 값 |
 |---|---|
-| 시작 HEAD | `fb6b17850aa915c8ff0db034833e2fe1343fc322` |
-| 종료 HEAD | `fb6b17850aa915c8ff0db034833e2fe1343fc322` |
-| branch | `master` |
-| Git commit/push/branch 생성 | 수행하지 않음 |
-| 기준 evidence | `specs/evidence/20260714_01` |
-| 요청 전 사용자 변경 | `CPF_NEW_REQUEST.md`, `CPF_STABILIZATION_REPORT.md` |
+| Repository root | `D:/WORK_CPF/202412_01_CPF` |
+| Branch | `master` |
+| 시작 HEAD | `d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d` |
+| 요청서 | `CPF_NEW_REQUEST.md` |
+| 요청서 SHA-256 | `BCCF457FABD14C9BE6D37563CC3A1E14AAA65525C9CD2C595CE23CEE3719A84C` |
+| 요청서 git blob | `149c59dfddede5d1653817e603c1106f2e0f68ff` |
+| 기준 evidence | `specs/evidence/20260714_02` |
+| 최종 작업트리 manifest | `specs/evidence/20260714_02/final-worktree-manifest.sanitized.log` |
+| Java/Gradle | Java 25 / Gradle 9.1.0 |
+| 상태 정본 | `specs/기능_구현_매트릭스.json` |
 
-종료 worktree는 요청된 구현·삭제·문서·증적 변경을 포함한 미커밋 상태다. 전체 목록은 20절의 최종 manifest 증적에 기록한다.
-작업 중 사용자가 `.vscode/settings.json`을 Java 25로, Gradle wrapper를 9.1.0으로 갱신한 변경을 감지해 보존했고, 이후 검증은 이 최종 도구 체인에 맞춰 다시 수행했다.
+요청서 원본과 시작 baseline은 수정하지 않았다. 요청서 내부에 작업 시작 전부터 존재한 깨진 문자열은 요청서 보호 원칙 때문에 교정 대상에서 제외했다.
 
-## 2. 요청서 보호
+## 3. 구현 결과
 
-| 검증 | 상태 | 결과 |
+### Java 25
+
+- 모든 Gradle 하위 프로젝트의 toolchain, source, target, `--release`를 25로 통일했다.
+- 9개 모듈 클래스와 7개 실행 JAR의 class major 69를 검사하는 `checkJava25Standard`를 추가했다.
+- `.vscode/settings.json`의 개인 PC JDK 절대 경로를 제거했다.
+- 주제영역 생성기도 Java 25 모듈을 생성하고 class major 69까지 검사한다.
+
+### 아키텍처와 소유권
+
+- PFW는 broker, file transfer, transaction, logging, reliability 같은 기술 engine과 port를 소유한다.
+- CMN의 기존 메시지 bridge와 파일교환 서비스는 PFW port를 호출하는 호환 facade로 축소했다.
+- XYZ EDU 메시징·파일전송 예제는 PFW port를 직접 학습하도록 변경했다.
+- CMN은 프로젝트 공통 규칙과 업무 공통 helper 역할을 유지한다.
+- 타 주제영역 Repository/Mapper 직접 접근과 핵심 처리의 임의 Spring Event 사용을 정적 gate로 차단한다.
+
+### ADM 초기 계정과 비밀번호
+
+- 고정 관리자 ID·고정 평문 비밀번호 seed를 제거했다.
+- bootstrap은 명시적 enable, 운영환경 승인, 환경변수 비밀번호를 요구한다.
+- 첫 로그인 세션은 비밀번호 변경 전까지 본인 비밀번호 변경·로그아웃·정책 조회만 허용한다.
+- 현재 비밀번호 확인, 새 비밀번호 확인, 정책 검사, 현재/이력 재사용 차단, optimistic update, 변경 이력, 감사 로그, 세션 전체 폐기를 구현했다.
+- 관리자 reset도 비밀번호 이력 재사용을 차단한다.
+- ADM UI는 강제 변경 상태에서 다른 메뉴를 잠그고 현재/신규/확인/사유를 받는다.
+
+### PFW broker와 파일교환
+
+- `CpfBrokerBridgePort`와 Kafka/RabbitMQ 선택 adapter를 PFW에 배치했다.
+- 연결되지 않은 broker는 로컬 handler 또는 명시적 fallback 결과로 처리한다.
+- `CpfFileExchangeGateway`는 검증, 임시 파일, checksum, 이동, 이력 record와 원격 명령 계획을 PFW 경계로 제공한다.
+- 실 broker와 실 SFTP/FTP/FTPS/SCP/SSH 서버 통합은 외부 환경 미제공으로 미검증이다.
+
+### 런타임과 표준 헤더
+
+- ACC, MBR, EXS, ADM, BAT, BIZADM, XYZ 7개 실행 모듈을 Java 25 JAR로 실제 기동했다.
+- 7개 포트, PID, HTTP health/OpenAPI probe와 종료 후 포트 폐쇄를 확인했다.
+- 표준 헤더 E2E에서 수신, 허용 확장 헤더, 금지 확장 헤더 차단, 하위 호출 전파를 확인했다.
+- 거래 ID는 `yyyyMMddHHmmssSSS + module(3) + wasId(7) + sequence(7)` 규격으로 현재 일자를 사용한다.
+- DB 로그 행과 ADM 조회는 DB 자격증명 미제공으로 미검증이다.
+
+### 생성기와 문서
+
+- `scripts/create-domain.ps1` 생성 결과를 임시 경로에서 test, bootJar, class major 69까지 검증했다.
+- 생성 테스트에서 Java 25 동적 agent 의존을 제거하고 독립 test double을 사용했다.
+- 공식 HTML 가이드 13개를 제거하고 9개 DOCX 정본으로 전환했다.
+- README는 아키텍처, 기동, DB, 헤더, 로그, EDU, 생성기, 검증 진입점으로 재작성했다.
+
+## 4. 전수 inventory
+
+| 분류 | 현재 수량 | 근거 |
+|---|---:|---|
+| 전체 inventory asset | 3,201 | `specs/evidence/20260714_02/cpf-inventory.sanitized.json` |
+| Gradle module | 9 | 동일 증적 |
+| public port | 29 | 동일 증적 |
+| controller | 61 | 동일 증적 |
+| EDU source | 65 | 동일 증적 |
+| Flyway migration | 27 | 동일 증적 |
+| 샘플 capability 매핑 | 47/47 | `specs/evidence/20260714_02/sample-coverage-result.sanitized.json` |
+| 실행 모듈 bootJar | 7 | `specs/evidence/20260714_02/java25-seven-bootjar.sanitized.log` |
+| 공식 DOCX | 9 | `specs/evidence/20260714_02/docx-standard.sanitized.json` |
+| 공식 HTML | 0 | 최종 DOCX gate |
+
+## 5. 실행 검증 결과
+
+### Gradle
+
+| 검증 | 결과 | 증적 |
 |---|---|---|
-| SHA-256 | 완료 | `E241D448C026ACD564D7970FAC1AF004E9E779BC9186FA135C849CBD6F01A8D9` |
-| git blob | 완료 | `beb533ed23529f695e4cc48c9dad5001010ef4d0` |
-| baseline copy | 완료 | `specs/evidence/20260714_01/cpf-new-request.baseline.md` |
-| baseline metadata | 완료 | `specs/evidence/20260714_01/request-baseline.sanitized.json` |
-| 종료 byte 비교 | 완료 | SHA-256과 git blob이 시작값과 동일 |
+| `clean test` / 최종 quality gate | 130 suites, 290 tests, failures 0, errors 0, skipped 4 | `specs/evidence/20260714_02/quality-gate.sanitized.log` |
+| 7개 `bootJar` | 성공 | `specs/evidence/20260714_02/java25-seven-bootjar.sanitized.log` |
+| class major | 9개 module class와 7개 JAR 모두 69 | `specs/evidence/20260714_02/java25-standard.sanitized.json` |
+| PFW 파일 로그 runtime | 성공 | `specs/evidence/20260714_02/pfw-file-log-runtime.sanitized.log` |
 
-요청서는 읽기 전용 입력으로 유지했고 baseline을 재생성하거나 요청서 본문을 수정하지 않았다.
+건너뛴 4건은 CMN MariaDB 채번 동시성, PFW 파일 로그 환경형 test, XYZ center-cut DB adapter, XYZ mapper DB slice다. PFW 파일 로그는 별도 runtime으로 통과했지만 JUnit 전체 결과의 skip 수치는 그대로 기록했다.
 
-## 3. 직접 변경한 source, test, SQL, config, script
+주제영역 생성기 smoke에서 생성된 임시 모듈의 test 1건은 별도 Gradle 실행과 `create-domain-result.sanitized.json`으로 검증했으며, 위 저장소 JUnit XML 합계에는 포함하지 않았다.
 
-- PFW 공개 경계: recovery query/command, transaction timeline query, service registry query, reliability operation 포트와 facade를 추가했다.
-- durable recovery: transaction fallback의 eligible ordering·lease·stale reclaim·poison·capacity를 보강하고 segment fallback/store/worker를 추가했다.
-- Service Call Engine: attempt별 segment, selected instance, retry/failover/circuit/unknown/reconciliation 결과를 확장했다.
-- reference flow: CMN typed contract를 기준으로 MBR → ACC → EXS Local Facade/Remote Proxy 구조를 추가했다.
-- idempotency: 만료된 PROCESSING 레코드를 원자적으로 재시작하도록 port와 JDBC/in-memory adapter를 수정했다.
-- broker: claim lease, retry/backoff/max attempts, DLQ 이동, inbox 중복 제거, 상태 변경이 아닌 actual replay를 구현했다.
-- BAT: JobInstance 논리 파일에 DB lease 기반 single writer와 충돌 시 fragment degraded mode를 적용했다.
-- FileTransfer: SFTP/FTP/FTPS/SCP/SSH 계약을 검증하는 결정적 reference adapter를 추가했다.
-- 거래 헤더: `@CpfTransaction` API에만 업무 필수 헤더를 강제하고 모든 Controller에서 민감 확장 헤더 우회 전파를 차단했다.
-- MyBatis: CMN/ACC의 광범위 package scan을 `@Mapper` 인터페이스로 제한해 공개 계약의 가짜 Mapper 등록을 방지했다.
-- 파일 로그: OS 수정시각 대신 파일명의 업무일자를 기준으로 보존·압축하고 지연 기록 시 gzip을 복원하도록 수정했다.
-- OpenAPI: 공개 mapping의 명시 operationId, 공통 오류 schema/response, API 유형별 header policy를 보강했다.
-- EDU: 범용 샘플을 XYZ/BAT로 집중하고 PFW/CMN/ACC/MBR/EXS/ADM/BIZADM의 중복 EducationSample을 제거했다.
-- SQL: V26 trace recovery/timeline과 V27 broker claim/retry/replay를 추가하고 split SQL, V1, 단일 설치 파일, smoke를 동기화했다.
-- 설정/정리: Docker MariaDB root password 기본값을 제거하고 stale `info/db.info`를 삭제했다.
-- 도구 체인: Gradle 9.1.0과 Java 25를 지원하도록 Lombok 1.18.46, Byte Buddy/agent 1.18.7을 적용했다.
-- 배포 호환: Java 25에서 빌드해도 Java 21에서 실행 가능한 산출물을 만들도록 모든 Java 컴파일을 `--release 21`, UTF-8로 고정했다.
-- Gradle 10 대비: `remoteDeployDryRun`의 실행 시점 `Task.project` 접근을 구성 시점 task provider로 변경했고 `--warning-mode all` 재실행에서 deprecation을 제거했다.
+### 7개 애플리케이션과 OpenAPI
 
-## 4. 직접 실행한 명령
+| 모듈 | 포트 | 상태 | OpenAPI paths/tags |
+|---|---:|---|---:|
+| ACC | 8080 | 완료 | 19 / 7 |
+| MBR | 8081 | 완료 | 14 / 4 |
+| EXS | 8092 | 완료 | 19 / 4 |
+| ADM | 8090 | 완료 | 143 / 25 |
+| BAT | 8093 | 완료 | 3 / 1 |
+| BIZADM | 8091 | 완료 | 15 / 2 |
+| XYZ | 8099 | 완료 | 61 / 17 |
 
-```text
-.\gradlew.bat cleanTest test --no-daemon
-.\gradlew.bat :acc:bootJar :adm:bootJar :bat:bootJar :bizadm:bootJar :exs:bootJar :mbr:bootJar :xyz:bootJar --no-daemon
-.\gradlew.bat :pfw:test --tests <reliability focused groups> --no-daemon
-.\gradlew.bat :xyz:cleanTest :xyz:test --tests '*EducationSampleTest' :bat:cleanTest :bat:test --tests '*EducationSampleTest' --no-daemon
-.\gradlew.bat checkUtf8 checkMojibake checkLegacyName checkSqlStandard checkJavaFormat checkTransactionIdStandard checkSecuritySeedStandard checkSampleStandard checkCpfRequestProtection checkServiceCallBoundary checkArchitectureOwnership checkSpringEventUsage checkProfileLoading checkRuntimeConfigStandard checkLogManagementStandard checkOpenApiSourceCoverage checkSampleCoverage --no-daemon
-$env:JAVA_HOME='D:\Java\jdk-21'; .\gradlew.bat cleanTest qualityGate --no-daemon
-$env:JAVA_HOME='D:\Java\jdk-25.0.3.9-hotspot'; .\gradlew.bat cleanTest qualityGate --no-daemon
-.\gradlew.bat :acc:bootJar :adm:bootJar :bat:bootJar :bizadm:bootJar :exs:bootJar :mbr:bootJar :xyz:bootJar --no-daemon
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-all-install-sql.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-final-worktree-manifest.ps1
+증적은 `runtime-start-services-result.sanitized.json`, `runtime-status-result.sanitized.json`, `openapi-runtime-result.sanitized.json`, `runtime-stop-services-result.sanitized.json`에 있다.
+
+### 실패 후 수정과 재검증
+
+| 최초 실패 | 원인 | 조치 | 최종 결과 |
+|---|---|---|---|
+| 생성 모듈 smoke | Windows `.bat` 실행 권한과 Java 25 Mockito agent | wrapper JAR 직접 실행, test double 전환 | test·bootJar·major 69 완료 |
+| BIZADM 기동 | `wasId` 7자 규격 위반 | `bizAP01`로 표준화 | 기동 완료 |
+| XYZ 기동 | center-cut 기본 bean 부재 | PFW conditional auto-configuration 추가 | 기동 완료 |
+| BAT OpenAPI tag 판독 | PowerShell 5.1 응답 인코딩 | 안정적인 ASCII tag와 한글 description 분리 | OpenAPI 완료 |
+| BAT runtime status | DB DOWN 진단으로 응답이 3초 초과 | probe timeout을 10초로 조정 | 7개 status 완료 |
+| 표준 헤더 mock capture | 백그라운드 job 상대 경로 해석 | 결과 경로 절대화 | 하위 수신 헤더 완료 |
+| 첫 quality gate | 매트릭스의 fixture·재현 명령 3개 누락 | 상태 정본에 정확한 파일명과 명령 추가 | 두 번째 quality gate 완료 |
+| 복합거래 smoke | `cpf_pfw_app` DB 인증 실패 | 임의 비밀번호 사용 금지, 실패 증적 보존 | 미검증 |
+
+## 6. MariaDB 검증
+
+`scripts/smoke-mariadb-full-install.ps1`을 실행했다. MariaDB CLI는 발견됐지만 `CPF_DB_ROOT_PASSWORD`, `CPF_DB_MIGRATION_PASSWORD`, `CPF_DB_APP_PASSWORD`가 없어 접속 자체를 시도하지 않았다.
+
+| 검증 | 상태 | 설명 |
+|---|---|---|
+| CLI 발견 | 완료 | 로컬 MariaDB client 확인 |
+| 인증정보 선행조건 | 미검증 | 세 비밀번호 환경변수 미제공 |
+| `00_all_install_and_smoke.sql` | 미검증 | DB 접속 미시도 |
+| FK/index/seed 재실행 | 미검증 | DB 접속 미시도 |
+| migration/app 권한 분리 | 미검증 | DB 접속 미시도 |
+| Flyway upgrade | 미검증 | DB 접속 미시도 |
+
+재현 명령은 비밀번호 값을 셸 기록이나 문서에 남기지 않은 환경에서 다음과 같다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1 -RequireRun
 ```
 
-환경 준비 후 재현 명령은 `scripts/smoke-mariadb-full-install.ps1`, `scripts/smoke-standard-header-e2e.ps1`이다. 이번 작업에서는 실행하지 않았으며 성공으로 보고하지 않았다.
+EDU mapper DB slice는 `xyz_edu_query_fixture.sql`을 사용한다. 표준 변수는 `CPF_XYZ_EDU_MAPPER_DB_USERNAME`이며 기존 `CPF_XYZ_EDU_MAPPER_DB_USER`는 호환 입력으로만 유지한다.
 
-## 5. 성공
+## 7. 표준 헤더 검증
 
-- Java 21 + Gradle 9.1.0 전체 실행: 76 tasks, 275 tests, failures 0, errors 0, skipped 4.
-- Java 25 + Gradle 9.1.0 전체 실행: 76 tasks, 275 tests, failures 0, errors 0, skipped 4.
-- 두 JDK의 `cleanTest qualityGate`는 모두 `BUILD SUCCESSFUL`이지만 환경형 4건의 건너뜀 때문에 종합 상태는 미검증으로 기록했다.
-- 신뢰성 핵심: 13 suites, 50 tests, failures/errors/skipped 0.
-- XYZ/BAT EDU: 47 sample classes, 53 tests, failures/errors/skipped 0.
-- Java 25에서 7개 실행 모듈 bootJar가 성공했고, 각 jar의 Application class major가 모두 65(Java 21)임을 확인했다.
-- 정적 gate 17개 성공: UTF-8, mojibake, SQL, Java format, request protection, ownership, Spring Event, profile, log, OpenAPI, sample 포함.
-- OpenAPI source: mappings 297, explicit operationId 319, missing/duplicate 0.
-- ownership: failures 0, review candidates 2.
+실행 명령:
 
-핵심 증적은 `specs/evidence/20260714_01/focused-core-tests-final.sanitized.log`, `specs/evidence/20260714_01/edu-sample-final.sanitized.log`, `specs/evidence/20260714_01/quality-gate-gradle910-java21-release21.sanitized.log`, `specs/evidence/20260714_01/quality-gate-gradle910-java25-release21.sanitized.log`, `specs/evidence/20260714_01/seven-bootjar-class-version.sanitized.log`이다.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-standard-header-e2e.ps1 -SkipLogLookup
+```
 
-## 6. 실패
-
-- Java 25 초기 재현은 Gradle 8.11.1에서 `Type T not present`, Gradle 8.9에서 class major 69 미지원으로 실패했다.
-- Gradle 9.1.0 전환 후에는 Lombok 1.18.32가 javac 25에서 실패했고, Lombok을 올린 다음에는 구형 Byte Buddy가 Java 25 mock instrumentation을 거부했다.
-- Lombok 1.18.46과 Byte Buddy 1.18.7로 보강한 최종 Java 25 실행은 전체 qualityGate까지 통과했다. 초기 실패 증적은 원인 추적용으로 유지한다.
-- 첫 `qualityGate`는 신규 manifest 증적의 표준 메타데이터 누락으로 실패했다. 생성기를 보강한 뒤 두 번째 실행은 통과했고 최초 실패는 표준 정제 증적으로 보존했다.
-- 구현 중 발견한 ACC context와 파일 로그 일자 테스트 실패는 원인을 수정한 뒤 재실행하여 통과했다. 최종 판정에는 재실행 결과를 사용하고 원시 실행 로그는 작업 종료 시 정리했다.
-
-## 7. 미실행 또는 환경 부재
-
-- MariaDB 인증정보 환경변수 없음: full install, Flyway upgrade, seed idempotency, DB recovery 미검증.
-- 앱 runtime DB profile 없음: 7개 `/v3/api-docs`, ADM 권한별 200/403, 브라우저 클릭 미검증.
-- Kafka/MQ, SFTP/FTP/SCP/SSH 실 서버, 공유 storage, Vault/KMS 없음: 실 adapter runtime 미검증.
-- 전체 275개 테스트 중 CMN sequence DB, PFW runtime file evidence, XYZ center-cut DB, XYZ mapper DB 4건이 조건부 건너뜀이다.
-
-## 8. 요청서와 다르게 적용한 대안
-
-- CMN의 기존 파일교환·메시지 bridge는 즉시 삭제하면 호환 API가 깨지므로 이번에는 migration candidate로 유지했다. 새 기술 capability와 reference adapter 소유권은 PFW로 고정했다.
-- 실제 원격 protocol 서버 대신 동일 정책 엔진을 호출하는 deterministic adapter로 path/checksum/temp/atomic/credential 계약을 검증했다.
-- BAT 공유 storage가 없어 DB lease + local fragment harness로 single writer 충돌과 degraded mode를 검증했다.
-- PFW DB가 없는 업무 앱도 기동하도록 timeline public facade는 optional `pfwJdbcTemplate`을 사용하고 unavailable 결과를 반환한다.
-
-## 9. 대안의 사유, 장단점, 영향
-
-- 호환 facade 유지의 장점은 기존 호출자 무중단이고 단점은 CMN 기술 구현 후보 2건이 남는 점이다.
-- deterministic adapter는 재현성이 높지만 wire protocol·서버 권한·네트워크 장애를 검증하지 못한다.
-- optional datasource facade는 앱 기동 독립성을 높이지만 실제 데이터 조회 완료 판정에는 DB runtime이 별도로 필요하다.
-- DB lease/fragment 방식은 이벤트 손실을 막지만 실제 NFS/object storage의 atomicity와 성능은 후속 runtime 검증 대상이다.
-
-## 10. 미처리 원인 분류
-
-| 분류 | 항목 |
-|---|---|
-| 환경 | MariaDB credential, Kafka/MQ, 원격 파일 서버, 브라우저 기동 |
-| 도구 경고 | Byte Buddy의 `sun.misc.Unsafe` 제거 예정 경고와 Java 25 native-access 경고 |
-| 호환성 | CMN 기술 bridge 즉시 제거 보류 |
-| runtime | multi-process MBR → ACC → EXS, DB timeline, ADM 통합 조회 |
-| 운영 인프라 | shared storage, Vault/KMS, 다중 WAS |
-
-## 11. 다음 실행 가능한 조치
-
-1. 비추적 환경변수로 MariaDB 검증 계정을 주입하고 `00_all_install_and_smoke.sql` 2회 실행 및 Flyway V22→V27 upgrade를 수행한다.
-2. 동일 DB profile로 7개 앱을 기동해 `/v3/api-docs`, MBR → ACC → EXS, ADM timeline/recovery를 검증한다.
-3. Kafka 또는 MQ test container와 SFTP/FTP test server를 붙여 실제 adapter 장애·재시작·DLQ replay를 검증한다.
-4. Byte Buddy Unsafe와 Gradle native-access 경고가 해소되는 후속 버전을 추적한다.
-5. CMN migration candidate 두 클래스를 PFW adapter + CMN compatibility facade로 단계 이전한다.
-
-## 12. EDU coverage
-
-- 소유권: 일반/실패/복합/외부연계 EDU는 XYZ, 배치/center-cut EDU는 BAT가 소유한다.
-- PFW는 engine/port/reference adapter와 contract/unit test, CMN은 parser/formatter/converter/helper와 unit test만 소유한다.
-- `specs/sample-coverage-matrix.md`는 47개 샘플 모두 source/test/evidence를 연결한다.
-- mapper DB 교육 fixture는 `xyz_edu_query_fixture.sql`을 정본으로 사용한다.
-- DB 계정 환경변수는 `CPF_XYZ_EDU_MAPPER_DB_USERNAME`을 표준으로 하고 기존 `CPF_XYZ_EDU_MAPPER_DB_USER`는 호환 입력으로만 인식한다.
-
-## 13. OpenAPI runtime
-
-- source 완료: tag/operation/operationId, 공통 `CpfErrorResponse`, 400/401/403/404/409/429/500/503, 업무 거래와 운영 API의 header policy를 보강했다.
-- runtime 미검증: DB profile 없이 앱 7개를 기동하지 않아 `/v3/api-docs` JSON과 Swagger UI를 실행하지 않았다.
-- 증적: `specs/evidence/20260714_01/openapi-source-coverage.sanitized.json`.
-
-## 14. MSA와 Reliability runtime
-
-- source/test: MBR → ACC → EXS typed contract, Local Facade, Remote Proxy, registry/health selection, attempt segment, retry/failover/circuit/unknown을 구현했다.
-- durable: transaction/segment fallback의 lease·stale reclaim·poison·capacity와 actual broker replay를 검증했다.
-- 미검증: 세 프로세스 HTTP 호출, 다중 인스턴스 failover, DB timeline과 ADM 상호 추적.
-
-## 15. MariaDB
-
-- 서비스 실행, client 12.3, TCP port를 preflight에서 확인했다.
-- credential present 여부는 absent로만 기록했고 값은 수집하지 않았다.
-- V26/V27, split SQL, V1 baseline, `00_all_install.sql`, `00_all_install_and_smoke.sql`, smoke SQL은 정적으로 동기화했다.
-- 실제 DB 작업은 미검증이며 증적은 `specs/evidence/20260714_01/mariadb-preflight.sanitized.log`, `specs/evidence/20260714_01/mariadb-full-install.sanitized.log`이다.
-
-## 16. ADM
-
-- ADM은 PFW 내부 worker/table/JdbcTemplate 대신 public recovery/timeline/service-registry/reliability port만 호출한다.
-- recovery status/run/poison retry, timeline/group query, DLQ replay의 서버 권한·감사 경계를 유지했다.
-- source/unit/bootJar는 확인했으나 DB 연결 runtime, 권한별 HTTP status, 브라우저 UX는 미검증이다.
-
-## 17. BAT, FileTransfer, Broker
-
-- BAT: DB lease single writer, stale takeover, same JobInstance logical file, fragment degraded mode를 구현·테스트했다.
-- FileTransfer: LOCAL 정책 엔진과 SFTP/FTP/FTPS/SCP/SSH deterministic reference adapter를 구현·테스트했다.
-- Broker: outbox lease, retry/backoff/max attempts, DLQ, inbox duplicate prevention, actual replay를 구현·테스트했다.
-- 실제 shared storage, wire protocol, Kafka/MQ runtime은 미검증이다.
-
-## 18. cleanup
-
-- root `info/db.info`는 runtime·문서 참조가 없는 stale 정보 파일로 확인해 삭제했다.
-- `docker-compose.local.yml`의 MariaDB root password 기본값을 제거하고 필수 환경변수로 전환했다.
-- 범용 EducationSample 중복 파일과 대응 중복 테스트를 삭제하고 XYZ/BAT 정본으로 통합했다.
-- 검증 중간 원시 로그는 `build/evidence-raw`에서만 임시 생성하고, 작업 종료 시 삭제한다. 재현 가치가 있는 성공·실패 결과만 비밀정보 검사를 거친 정제 증적으로 `specs/evidence/20260714_01`에 보존한다.
-
-## 19. report, gap, evidence, matrix 정합성
-
-다음 표의 상태는 `CPF_EVIDENCE_INDEX.md`와 `specs/기능_구현_매트릭스.html`에 동일하게 유지한다.
-
-| check id | 상태 | 비고 |
+| 구간 | 상태 | 결과 |
 |---|---|---|
-| edu-mapper-db-slice | 완료 | 기존 DB slice 증적 유지 |
-| mariadb-full-install | 미검증 | credential absent |
-| adm-runtime | 부분 구현 | source/test 완료, runtime 미검증 |
-| adm-permission-runtime | 부분 구현 | server test 완료, HTTP runtime 미검증 |
-| openapi-runtime | 부분 구현 | source gate 완료, runtime 미검증 |
-| adm-browser-click | 미검증 | 앱/브라우저 미기동 |
-| standard-header-e2e | 완료 | 기존 E2E 증적 유지 |
-| complex-transaction-trace | 완료 | 기존 runtime 증적 유지 |
-| transaction-segment-log | 완료 | 기존 runtime + 신규 fallback test |
-| adm-transaction-group-list | 완료 | 기존 runtime 증적 유지 |
-| adm-transaction-timeline | 완료 | 기존 runtime 증적 유지 |
-| cmn-fixed-length-engine | 완료 | 기존 test 증적 유지 |
-| composite-runtime-smoke | 완료 | 기존 runtime 증적 유지 |
-| adm-transaction-group-runtime | 완료 | 기존 runtime 증적 유지 |
-| redis-kafka-mq-broker | 미검증 | 실 broker 없음 |
-| broker-real-integration | 미검증 | 실 adapter runtime 없음 |
-| file-log-standard | 부분 구현 | 신규 일자 정책 test, 전체 runtime 미검증 |
-| trace-boost-runtime | 미검증 | 미실행 |
-| bat-trace-boost-runtime | 미검증 | 미실행 |
-| runtime-start-services | 미검증 | 미실행 |
-| packaged-runtime-resources | 완료 | 기존 package 증적 + 신규 bootJar |
-| runtime-status-diagnostics | 미검증 | 미실행 |
-| runtime-closure | 미검증 | 미실행 |
-| adm-operation-console-runtime | 완료 | 기존 runtime 증적 유지 |
-| adm-log-policy-ui-static | 완료 | 기존 static 증적 유지 |
-| bat-log-bean-runtime | 미검증 | 앱 미기동 |
-| exs-timeout-retry-runtime | 완료 | 기존 test 증적 유지 |
-| cmn-fixed-length-advanced | 완료 | 기존 test 증적 유지 |
-| create-domain-smoke | 완료 | 기존 smoke 증적 유지 |
-| pfw-service-call-engine | 부분 구현 | focused test 완료, multi-process 미검증 |
-| adm-service-registry-runtime | 완료 | 기존 runtime 증적 유지 |
-| architecture-ownership-scan | 재확인 필요 | 위반 0, migration candidate 2 |
-| spring-event-usage-scan | 완료 | 허용 5, 검토/금지 0 |
-| pfw-broker-capability | 부분 구현 | focused test 완료, real broker 미검증 |
-| pfw-file-transfer-capability | 부분 구현 | reference adapter 완료, real server 미검증 |
-| pfw-security-credential-capability | 부분 구현 | contract 존재, Vault/KMS 미검증 |
-| pfw-runtime-control-capability | 부분 구현 | contract 존재, multi-instance 미검증 |
-| pfw-admin-status-capability | 부분 구현 | public port 완료, DB/browser 미검증 |
-| profile-loading-standard | 완료 | 정적 계약 통과 |
-| packaged-dependencies-check | 완료 | 기존 증적 유지 |
-| deploy-dry-run-standard | 부분 구현 | real deploy 제외 |
-| garbage-file-cleanup | 완료 | 기존 정리 증적 유지 |
-| empty-directory-scan | 완료 | 기존 증적 유지 |
-| deploy-env-standard | 완료 | 기존 증적 유지 |
-| deploy-inventory-standard | 완료 | 기존 증적 유지 |
-| gradle-deploy-task-standard | 완료 | 기존 증적 유지 |
-| datasource-mode-standard | 완료 | 기존 증적 유지 |
-| local-port-duplicate-scan | 완료 | 기존 증적 유지 |
-| edu-module-deploy-alias-scan | 완료 | 기존 증적 유지 |
-| bat-edu-package | 완료 | 53 tests, skipped 0 |
-| bat-job-log-policy | 완료 | lease/fragment test 통과 |
-| sample-coverage-matrix | 완료 | 47 rows 일치 |
-| sample-placeholder-scan | 완료 | 기존 증적 유지 |
-| evidence-path-existence-check | 완료 | 최종 gate 대상 |
-| create-domain-profile-template | 완료 | 기존 증적 유지 |
-| runtime-smoke-summary | 완료 | 기존 runtime 증적 유지 |
-| check-report-matrix-evidence-consistency | 완료 | 최종 gate 대상 |
-| quality-gate | 미검증 | Java 21/25의 76-task gate 명령 성공, 각각 275 tests 중 환경형 4건 skipped |
-| check-html-docs | 완료 | 최종 gate 대상 |
-| check-feature-evidence | 완료 | 최종 gate 대상 |
-| check-utf8 | 완료 | UTF-8/mojibake 통과 |
+| inbound 필수/권장 헤더 | 완료 | ACC 실호출 200 |
+| `X-Cpf-Ext-*` 허용 헤더 | 완료 | downstream 전파 확인 |
+| token/api-key 확장 헤더 | 완료 | 400 거부 확인 |
+| 거래 ID 업무일자 | 완료 | 실행일 `20260714`과 prefix 일치 |
+| DB log/detail | 미검증 | DB 자격증명 없음 |
+| ADM header/data 분리 조회 | 미검증 | ADM 로그인·DB 선행조건 없음 |
 
-## 20. 사용자 commit 대상 전체 manifest
+## 8. 공식 문서
 
-- 수정/신규/삭제/staged/untracked를 `git status --short`, `git diff --name-status`, `git diff --cached --name-status`, `git ls-files --others --exclude-standard`로 수집한다.
-- staged 파일은 0건이며 Codex는 commit하지 않았다.
-- 요청서 자체는 사용자 시작 변경으로 보존한다.
-- 전체 `git diff --check`는 보호 대상 요청서의 기존 Markdown 줄바꿈 공백 2건 때문에 실패하고, 요청서를 제외한 검사는 통과했다. 요청서 hash 보호 원칙에 따라 해당 공백은 수정하지 않았다.
-- 작업 중 외부 갱신된 Java 25 IDE 설정과 Gradle 9.1.0 wrapper는 보존하고 최종 검증 기준으로 사용했다.
-- 전체 경로 목록과 hash는 최종 `specs/evidence/20260714_01/final-worktree-manifest.sanitized.log`에 기록한다.
-- manifest에는 상태, 경로, SHA-256, 요청서 SHA-256·Git blob, 시작 commit, 최종 도구 체인을 기록하고 파일 자체는 `SELF_REFERENTIAL` 정책으로 표시한다.
-- accidental/unrelated 변경은 최종 보호·diff 검사에서 별도 확인한다.
+| 문서 | 경로 |
+|---|---|
+| 프레임워크 소개/아키텍처 | `specs/CPF_프레임워크_소개_및_아키텍처.docx` |
+| 개발자 가이드 | `specs/CPF_개발자_가이드.docx` |
+| 운영자 ADM 가이드 | `specs/CPF_운영자_ADM_가이드.docx` |
+| 설치/DB/SQL/Flyway | `specs/CPF_설치_DB_SQL_Flyway_가이드.docx` |
+| 배치/센터컷/스케줄러 | `specs/CPF_배치_센터컷_스케줄러_가이드.docx` |
+| 외부연계/파일전송/전문 | `specs/CPF_외부연계_파일전송_전문_가이드.docx` |
+| EDU 카탈로그/실습 | `specs/CPF_EDU_샘플_카탈로그_및_실습가이드.docx` |
+| 기능 구현 검증 매트릭스 | `specs/CPF_기능_구현_검증_매트릭스.docx` |
+| 전체 테스트 검증 리포트 | `specs/CPF_전체_테스트_검증_리포트.docx` |
+
+## 9. 기능별 상태 ledger
+
+아래 표는 `specs/기능_구현_매트릭스.json`과 `CPF_EVIDENCE_INDEX.md`에서 동일 상태로 관리한다.
+
+<!-- CPF_LEDGER_BEGIN -->
+| check id | 상태 | 핵심 증적 | 판정 |
+|---|---|---|---|
+| edu-mapper-db-slice | 미검증 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | MariaDB EDU mapper slice가 현재 전체 테스트에서 환경 선행조건으로 건너뜀. fixture: xyz_edu_query_fixture.sql |
+| mariadb-full-install | 미검증 | `specs/evidence/20260714_02/mariadb-full-install-result.sanitized.json` | CLI는 확인했으나 root·migration·app 비밀번호 환경변수가 없어 DB 접속과 설치 SQL 실행은 시도하지 않음. 재현: scripts/smoke-mariadb-full-install.ps1 |
+| adm-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 프로세스·포트·OpenAPI는 확인했으나 DB 로그인과 운영 API 실데이터 조회는 미검증 |
+| adm-permission-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 필터·서비스 권한 테스트는 통과했으나 DB 계정별 200/403 런타임은 미검증 |
+| openapi-runtime | 완료 | `specs/evidence/20260714_02/openapi-runtime-result.sanitized.json`, `specs/evidence/20260714_02/openapi-source-coverage.sanitized.json` | 7개 실행 모듈의 OpenAPI JSON을 실제 기동 상태에서 확인함 |
+| adm-browser-click | 미검증 | `없음` | ADM bootstrap 자격증명과 DB 연결이 없어 실제 로그인·브라우저 클릭은 미실행 |
+| standard-header-e2e | 부분 구현 | `specs/evidence/20260714_02/standard-header-e2e-result.sanitized.json` | 수신·금지 헤더 차단·하위 호출 전파는 완료, DB 로그·ADM 조회는 자격증명 부재로 미검증. 재현: scripts/smoke-standard-header-e2e.ps1 |
+| complex-transaction-trace | 부분 구현 | `specs/evidence/20260714_02/composite-transaction-runtime-result.sanitized.json`, `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 복합거래 소스·단위 테스트는 통과했으나 현재 런타임은 DB 인증 실패로 HTTP 500을 반환함 |
+| transaction-segment-log | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | segment·timeline·fallback 단위 테스트는 통과했으나 MariaDB 행과 ADM tree 연계는 미검증 |
+| adm-transaction-group-list | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 기동은 완료했으나 DB 기반 거래 그룹 목록 실데이터 조회는 미검증 |
+| adm-transaction-timeline | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | timeline 소스·테스트는 확인했으나 ADM DB 런타임은 미검증 |
+| cmn-fixed-length-engine | 완료 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 고정길이 전문 parser·formatter 테스트가 Java 25 전체 테스트에서 통과함 |
+| composite-runtime-smoke | 부분 구현 | `specs/evidence/20260714_02/composite-transaction-runtime-result.sanitized.json` | 실제 호출은 수행했으나 DB 인증 실패로 완료 조건을 검증하지 못함 |
+| adm-transaction-group-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 애플리케이션은 기동했으나 DB 기반 거래 그룹 API 시나리오는 미검증 |
+| redis-kafka-mq-broker | 미검증 | `없음` | 실 Redis·Kafka·RabbitMQ broker가 제공되지 않아 미실행 |
+| broker-real-integration | 미검증 | `없음` | 실 broker 장애·fallback·재처리 통합 시나리오는 미실행 |
+| file-log-standard | 완료 | `specs/evidence/20260714_02/pfw-file-log-runtime.sanitized.log`, `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json` | PFW 파일 로그 런타임과 7개 모듈 로그 경로 생성을 확인함 |
+| trace-boost-runtime | 미검증 | `없음` | 운영 DB·권한을 사용하는 trace boost 실런타임은 미실행 |
+| bat-trace-boost-runtime | 미검증 | `없음` | BAT trace boost 실런타임은 미실행 |
+| runtime-start-services | 완료 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ACC·MBR·EXS·ADM·BAT·BIZADM·XYZ 7개 프로세스가 포트와 HTTP 프로브를 통과함 |
+| packaged-runtime-resources | 완료 | `specs/evidence/20260714_02/packaged-runtime-resource-check.sanitized.json` | 7개 bootJar의 표준 설정·로그 리소스 패키징 검사를 통과함 |
+| runtime-status-diagnostics | 완료 | `specs/evidence/20260714_02/runtime-status-result.sanitized.json`, `specs/evidence/20260714_02/runtime-stop-services-result.sanitized.json` | 7개 모듈 상태 완료 후 종료와 포트 폐쇄를 확인함 |
+| runtime-closure | 미검증 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-stop-services-result.sanitized.json` | 기동·상태·종료는 확인했으나 DB 의존 개별 runtime smoke 전체 묶음은 완료하지 못함 |
+| adm-operation-console-runtime | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | ADM 프로세스와 UI 소스는 확인했으나 DB 기반 운영 콘솔 시나리오는 미검증 |
+| adm-log-policy-ui-static | 완료 | `specs/evidence/20260714_02/adm-log-policy-ui-static-result.sanitized.json` | 로그 정책·배치·센터컷·실행 사유 UI/API marker 정적 계약을 통과함 |
+| bat-log-bean-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | BAT 로그 bean·listener 테스트는 통과했으나 JobRepository DB 런타임은 미검증 |
+| exs-timeout-retry-runtime | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | timeout/retry 단위 테스트는 통과했으나 외부 테스트 서버 런타임은 미검증 |
+| cmn-fixed-length-advanced | 완료 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 반복 그룹·인코딩·길이 검증을 포함한 전문 테스트가 통과함 |
+| create-domain-smoke | 완료 | `specs/evidence/20260714_02/create-domain-result.sanitized.json` | 임시 주제영역 생성 후 test·bootJar·Java class major 69를 확인함 |
+| pfw-service-call-engine | 부분 구현 | `specs/evidence/20260714_02/service-call-engine-runtime-success.sanitized.json`, `specs/evidence/20260714_02/service-call-engine-failover.sanitized.json`, `specs/evidence/20260714_02/service-call-engine-circuit-transition.sanitized.json`, `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 성공·retry·failover·circuit 계약과 단위 테스트는 통과, DB 복합거래 런타임은 미완료 |
+| adm-service-registry-runtime | 부분 구현 | `specs/evidence/20260714_02/service-registry-runtime-result.sanitized.json`, `specs/evidence/20260714_02/adm-service-registry-ui-static-smoke.sanitized.json` | registry source/SQL과 ADM UI 계약은 통과했으나 DB 실데이터 runtime은 미검증 |
+| architecture-ownership-scan | 완료 | `specs/evidence/20260714_02/architecture-ownership-scan.sanitized.json` | PFW 기술 소유권과 CMN 호환 facade 경계 검사에서 실패·경고 0건 |
+| spring-event-usage-scan | 완료 | `specs/evidence/20260714_02/spring-event-usage-scan.sanitized.json` | 핵심 흐름의 금지 Spring Event 사용 0건 |
+| pfw-broker-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | PFW broker port·adapter와 outbox/inbox/DLQ 단위 테스트 통과, 실 broker는 미검증 |
+| pfw-file-transfer-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | PFW 파일전송 engine·gateway 테스트 통과, 실 SFTP/FTP/SCP 서버는 미검증 |
+| pfw-security-credential-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | 보안·credential 계약 테스트 통과, 실 Vault/KMS는 미검증 |
+| pfw-runtime-control-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | worker·lock·재처리 계약 테스트 통과, 다중 인스턴스는 미검증 |
+| pfw-admin-status-capability | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | ADM 공개 port와 상태 조회 테스트 통과, DB 운영화면 실데이터는 미검증 |
+| profile-loading-standard | 완료 | `specs/evidence/20260714_02/profile-loading-result.sanitized.json` | local/dev/stg/prod profile 정적 계약을 통과함 |
+| packaged-dependencies-check | 완료 | `specs/evidence/20260714_02/packaged-runtime-resource-check.sanitized.json` | 7개 bootJar 의존성과 공통 리소스 포함을 확인함 |
+| deploy-dry-run-standard | 부분 구현 | `specs/evidence/20260714_02/runtime-config-inventory.sanitized.json` | 배포 명세·dry-run 소스 계약은 확인했으나 원격 대상 실행은 미검증 |
+| garbage-file-cleanup | 완료 | `specs/evidence/20260714_02/garbage-file-scan.sanitized.json`, `specs/evidence/20260714_02/deleted-files.sanitized.json` | 추적 대상 가비지와 삭제 목록 검사를 통과함 |
+| empty-directory-scan | 완료 | `specs/evidence/20260714_02/empty-directory-scan.sanitized.json` | 관리 대상 빈 디렉터리 검사를 통과함 |
+| deploy-env-standard | 완료 | `specs/evidence/20260714_02/runtime-config-inventory.sanitized.json` | 배포 환경 파일 정적 표준 검사를 통과함 |
+| deploy-inventory-standard | 완료 | `specs/evidence/20260714_02/runtime-config-inventory.sanitized.json` | dev/stg/prod inventory 정적 표준 검사를 통과함 |
+| gradle-deploy-task-standard | 완료 | `specs/evidence/20260714_02/gradle-remote-deploy-task-scan.sanitized.json` | Gradle 배포 task 표준 검사를 통과함 |
+| datasource-mode-standard | 완료 | `specs/evidence/20260714_02/datasource-mode-scan.sanitized.json` | datasource mode 정적 검사를 통과함 |
+| local-port-duplicate-scan | 완료 | `specs/evidence/20260714_02/local-port-duplicate-scan.sanitized.json` | 로컬 기본 포트 중복 0건 |
+| edu-module-deploy-alias-scan | 완료 | `specs/evidence/20260714_02/edu-module-deploy-alias-scan.sanitized.json` | EDU 모듈 배포 alias 위반 0건 |
+| bat-edu-package | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | BAT EDU 소스와 테스트는 포함됐으나 DB 기반 center-cut 테스트 1건이 건너뜀 |
+| bat-job-log-policy | 부분 구현 | `specs/evidence/20260714_02/java25-full-test.sanitized.log` | JobInstance 로그 경로·lease 테스트는 통과, 공유 스토리지 다중 프로세스는 미검증 |
+| sample-coverage-matrix | 완료 | `specs/evidence/20260714_02/sample-coverage-result.sanitized.json` | 공개 capability 대비 EDU 샘플 47/47 매핑을 확인함 |
+| sample-placeholder-scan | 완료 | `specs/evidence/20260714_02/sample-coverage-result.sanitized.json` | 샘플 표준·placeholder 검사를 통과함 |
+| evidence-path-existence-check | 완료 | `specs/evidence/20260714_02/evidence-path-existence-check.sanitized.json` | 최종 문서가 참조하는 증적 경로 검사에서 누락과 실패 0건을 확인함 |
+| create-domain-profile-template | 완료 | `specs/evidence/20260714_02/create-domain-result.sanitized.json` | 생성 모듈의 profile·test·bootJar 템플릿을 실제 생성 결과로 확인함 |
+| runtime-smoke-summary | 부분 구현 | `specs/evidence/20260714_02/runtime-start-services-result.sanitized.json`, `specs/evidence/20260714_02/runtime-status-result.sanitized.json` | 7개 기동과 OpenAPI는 완료했으나 DB·broker·browser 포함 전체 runtime bundle은 미완료 |
+| check-report-matrix-evidence-consistency | 완료 | `specs/evidence/20260714_02/report-matrix-evidence-consistency.sanitized.json` | 61개 check ID의 report·matrix·evidence 상태 일치 검사 통과 |
+| quality-gate | 완료 | `specs/evidence/20260714_02/quality-gate.sanitized.log` | Java 25 기준 79개 Gradle 작업과 저장소 JUnit 290개 테스트를 포함한 qualityGate 통과, failures 0, errors 0, skipped 4. 생성 모듈 smoke 테스트는 별도 증적으로 관리함 |
+| check-docx-standard | 완료 | `specs/evidence/20260714_02/docx-standard.sanitized.json`, `specs/evidence/20260714_02/docx-word-open.sanitized.json` | 공식 DOCX 9개의 OpenXML 구조와 실제 Word 열기를 모두 확인함 |
+| check-feature-evidence | 완료 | `specs/evidence/20260714_02/check-feature-evidence.sanitized.log` | 필수 source·SQL·EDU·문서·재현 명령 증적 gate 통과 |
+| check-utf8 | 완료 | `specs/evidence/20260714_02/check-utf8.sanitized.log` | 저장소 텍스트 UTF-8과 mojibake 검사 통과 |
+<!-- CPF_LEDGER_END -->
+
+## 10. 남은 리스크와 다음 조치
+
+1. 보안 채널로 MariaDB root·migration·app 검증 변수를 주입한 뒤 full install, 재실행, FK/index/권한, Flyway, DB 의존 테스트 3건을 실행한다.
+2. ADM bootstrap 환경과 DB를 준비해 최초 로그인, 강제 비밀번호 변경, 권한별 200/403, 운영 로그 header/data 탭을 브라우저로 검증한다.
+3. Redis/Kafka/RabbitMQ와 SFTP/FTP/FTPS/SCP/SSH 테스트 서버에서 fallback, DLQ/replay, 대용량 전송을 실행한다.
+4. 다중 프로세스·공유 스토리지에서 BAT lease, JobRepository, 로그 writer를 검증한다.
+5. 위 외부환경 검증이 끝난 뒤 현재 `부분 구현`과 `미검증`만 상태 승격한다.
+
+## 11. 항상 지켜야 할 기준 점검
+
+| 기준 | 이번 반영 |
+|---|---|
+| 문서·소스·SQL·OpenAPI·EDU 일치 | inventory·feature·matrix gate로 검사 |
+| README는 진입점, 상세는 공식 가이드 | 반영 |
+| 변경 시 관련 가이드 동시 현행화 | DOCX 재생성과 ledger 동기화로 반영 |
+| 신규 주석·SQL COMMENT 한글 | 정적 검사 대상 |
+| EDU는 자세한 학습 주석과 실제 engine 호출 | sample standard와 coverage gate 대상 |
+| 실행하지 않은 검증 성공 보고 금지 | DB·broker·browser·protocol을 미검증으로 유지 |
+| 민감정보 원문 금지 | evidence sanitization과 seed gate 적용 |
+| 요청서 무수정 | 시작 hash/blob과 최종 보호 gate로 확인 |

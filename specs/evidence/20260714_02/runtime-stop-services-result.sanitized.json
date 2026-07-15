@@ -1,0 +1,43 @@
+{
+    "startedAt":  "2026-07-14T16:12:46.2924151+09:00",
+    "status":  "완료",
+    "modules":  [
+                    {
+                        "module":  "ACC",
+                        "pid":  13976,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "MBR",
+                        "pid":  25812,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "EXS",
+                        "pid":  31880,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "ADM",
+                        "pid":  25508,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "BAT",
+                        "pid":  25112,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "BIZADM",
+                        "pid":  27832,
+                        "status":  "완료"
+                    },
+                    {
+                        "module":  "XYZ",
+                        "pid":  11148,
+                        "status":  "완료"
+                    }
+                ],
+    "rule":  "stop only PIDs recorded by this harness; do not kill arbitrary port owners",
+    "finishedAt":  "2026-07-14T16:12:50.2139351+09:00"
+}

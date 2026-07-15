@@ -153,47 +153,8 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO adm_operator (
-    OPERATOR_ID,
-    OPERATOR_NAME,
-    PASSWORD_HASH,
-    LOCKED_YN,
-    FAIL_COUNT,
-    PASSWORD_CHANGED_AT,
-    PASSWORD_EXPIRE_AT,
-    PASSWORD_CHANGE_REQUIRED_YN,
-    USE_YN,
-    created_by,
-    updated_by
-) VALUES (
-    'admin',
-    '로컬 관리자',
-    'PBKDF2$120000$AQIDBAUGBwgJCgsMDQ4PEA==$cjgjgGQwgcZ0+fFaA8Z4qBJkZfszRZ73BSBIMXAJkqI=',
-    'N',
-    0,
-    DATE_SUB(NOW(), INTERVAL 91 DAY),
-    DATE_ADD(NOW(), INTERVAL 90 DAY),
-    'Y',
-    'Y',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    OPERATOR_NAME = VALUES(OPERATOR_NAME),
-    PASSWORD_HASH = VALUES(PASSWORD_HASH),
-    LOCKED_YN = VALUES(LOCKED_YN),
-    FAIL_COUNT = VALUES(FAIL_COUNT),
-    PASSWORD_EXPIRE_AT = VALUES(PASSWORD_EXPIRE_AT),
-    PASSWORD_CHANGE_REQUIRED_YN = VALUES(PASSWORD_CHANGE_REQUIRED_YN),
-    USE_YN = VALUES(USE_YN),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO adm_operator_role (OPERATOR_ID, ROLE_ID, created_by, updated_by)
-VALUES ('admin', 'ADM_ADMIN', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+-- 최초 운영자는 CPF_ADM_BOOTSTRAP_* 환경변수를 명시한 애플리케이션 bootstrap에서만 생성합니다.
+-- SQL seed에는 재사용 가능한 비밀번호 해시나 자동 활성 관리자 계정을 두지 않습니다.
 
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_ADMIN', MENU_ID, 'Y', 'Y', 'Y', 'SYSTEM', 'SYSTEM'

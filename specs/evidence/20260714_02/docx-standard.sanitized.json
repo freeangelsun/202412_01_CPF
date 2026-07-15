@@ -1,0 +1,160 @@
+{
+    "generatedAt":  "2026-07-15T10:02:35.7663827+09:00",
+    "startCommit":  "d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d",
+    "status":  "완료",
+    "documentCount":  9,
+    "htmlCount":  0,
+    "wordOpenExecuted":  false,
+    "documents":  [
+                      {
+                          "file":  "specs/CPF_프레임워크_소개_및_아키텍처.docx",
+                          "bytes":  13120,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  10,
+                                          "heading2":  18,
+                                          "heading3":  1,
+                                          "tables":  18,
+                                          "paragraphs":  416,
+                                          "koreanCharacters":  3525
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_개발자_가이드.docx",
+                          "bytes":  18547,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  10,
+                                          "heading2":  27,
+                                          "heading3":  1,
+                                          "tables":  27,
+                                          "paragraphs":  640,
+                                          "koreanCharacters":  5182
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_운영자_ADM_가이드.docx",
+                          "bytes":  14824,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  8,
+                                          "heading2":  19,
+                                          "heading3":  1,
+                                          "tables":  20,
+                                          "paragraphs":  468,
+                                          "koreanCharacters":  4287
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_설치_DB_SQL_Flyway_가이드.docx",
+                          "bytes":  11932,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  9,
+                                          "heading2":  18,
+                                          "heading3":  1,
+                                          "tables":  17,
+                                          "paragraphs":  375,
+                                          "koreanCharacters":  2556
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_배치_센터컷_스케줄러_가이드.docx",
+                          "bytes":  11158,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  8,
+                                          "heading2":  17,
+                                          "heading3":  1,
+                                          "tables":  17,
+                                          "paragraphs":  310,
+                                          "koreanCharacters":  2364
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_외부연계_파일전송_전문_가이드.docx",
+                          "bytes":  15613,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  9,
+                                          "heading2":  19,
+                                          "heading3":  2,
+                                          "tables":  18,
+                                          "paragraphs":  480,
+                                          "koreanCharacters":  3877
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_EDU_샘플_카탈로그_및_실습가이드.docx",
+                          "bytes":  14901,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  8,
+                                          "heading2":  9,
+                                          "heading3":  1,
+                                          "tables":  12,
+                                          "paragraphs":  877,
+                                          "koreanCharacters":  3324
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_기능_구현_검증_매트릭스.docx",
+                          "bytes":  8684,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  6,
+                                          "heading2":  1,
+                                          "heading3":  1,
+                                          "tables":  2,
+                                          "paragraphs":  275,
+                                          "koreanCharacters":  1523
+                                      },
+                          "failures":  [
+
+                                       ]
+                      },
+                      {
+                          "file":  "specs/CPF_전체_테스트_검증_리포트.docx",
+                          "bytes":  18976,
+                          "status":  "완료",
+                          "metrics":  {
+                                          "heading1":  8,
+                                          "heading2":  12,
+                                          "heading3":  10,
+                                          "tables":  13,
+                                          "paragraphs":  1001,
+                                          "koreanCharacters":  5860
+                                      },
+                          "failures":  [
+
+                                       ]
+                      }
+                  ],
+    "wordOpenResults":  [
+
+                        ],
+    "failures":  [
+
+                 ]
+}

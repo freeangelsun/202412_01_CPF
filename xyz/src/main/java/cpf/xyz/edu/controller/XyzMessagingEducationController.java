@@ -1,15 +1,13 @@
 package cpf.xyz.edu.controller;
 
-import cpf.cmn.mqe.core.CmnMessageConsumer;
-import cpf.cmn.mqe.core.CmnMessageEnvelope;
-import cpf.cmn.mqe.core.CmnMessagePublishResult;
-import cpf.cmn.mqe.core.CmnMessagePublisher;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
+import cpf.pfw.common.broker.CpfBrokerBridgeMessage;
+import cpf.pfw.common.broker.CpfBrokerBridgePort;
+import cpf.pfw.common.broker.CpfBrokerBridgeResult;
 import cpf.pfw.common.logging.CpfTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,16 +25,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RequestMapping("/xyz/edu")
 @Tag(name = "XYZ-EDU 05. Messaging", description = "Kafka, RabbitMQ, 인메모리 메시지 어댑터 교육 샘플")
 public class XyzMessagingEducationController {
-    private final CmnMessagePublisher messagePublisher;
-    private final CmnMessageConsumer messageConsumer;
-    private final List<CmnMessageEnvelope> consumedMessages = new CopyOnWriteArrayList<>();
+    private final CpfBrokerBridgePort brokerBridgePort;
+    private final List<CpfBrokerBridgeMessage> consumedMessages = new CopyOnWriteArrayList<>();
 
-    public XyzMessagingEducationController(
-            @Qualifier("cmnMessageBridgeService") CmnMessagePublisher messagePublisher,
-            @Qualifier("cmnMessageBridgeService") CmnMessageConsumer messageConsumer) {
-        this.messagePublisher = messagePublisher;
-        this.messageConsumer = messageConsumer;
-        this.messageConsumer.subscribe("cpf.xyz.edu.event", consumedMessages::add);
+    public XyzMessagingEducationController(CpfBrokerBridgePort brokerBridgePort) {
+        this.brokerBridgePort = brokerBridgePort;
+        this.brokerBridgePort.subscribe("cpf.xyz.edu.event", consumedMessages::add);
     }
 
     @PostMapping("/messaging/publish")
@@ -51,13 +45,13 @@ public class XyzMessagingEducationController {
                 ? Map.of("sampleId", IdUtils.temporaryId("XYZ"), "message", "XYZ 교육 메시지 샘플", "createdAt", DateTimeUtils.nowDateTimeMillis())
                 : payload;
 
-        CmnMessagePublishResult publishResult = messagePublisher.publish(destination, key, resolvedPayload, Map.of(
+        CpfBrokerBridgeResult publishResult = brokerBridgePort.publish(destination, key, resolvedPayload, Map.of(
                 "X-Edu-Sample", "Y",
                 "X-Edu-Source", "XYZ"));
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("publishResult", publishResult);
-        response.put("recentMessages", messageConsumer.findRecentMessages(destination, 10));
+        response.put("recentMessages", brokerBridgePort.findRecent(destination, 10));
         response.put("consumedMessages", consumedMessages);
         return ResponseEntity.ok(response);
     }
@@ -68,9 +62,9 @@ public class XyzMessagingEducationController {
     public ResponseEntity<Map<String, Object>> findRecentMessages(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("recentMessages", messageConsumer.findRecentMessages(destination, 50));
+        response.put("recentMessages", brokerBridgePort.findRecent(destination, 50));
         response.put("consumedMessages", consumedMessages);
-        response.put("guide", "운영 어댑터는 Kafka 또는 RabbitMQ listener를 통해 CmnMessageEnvelope를 소비해야 합니다.");
+        response.put("guide", "운영 adapter는 PFW broker bridge port와 Kafka 또는 RabbitMQ listener를 연결합니다.");
         return ResponseEntity.ok(response);
     }
 }

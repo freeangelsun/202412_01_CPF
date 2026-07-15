@@ -157,13 +157,34 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!hasPermission(session.get(), request.getMethod(), path)) {
+        AdmSession authenticatedSession = session.get();
+        request.setAttribute("adm.operatorId", authenticatedSession.operatorId());
+
+        boolean selfPasswordChange = isSelfPasswordChange(authenticatedSession, request.getMethod(), path);
+        if (authenticatedSession.passwordChangeRequired()
+                && !isPasswordChangeOnlyRequest(authenticatedSession, request.getMethod(), path)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, "비밀번호를 먼저 변경해야 합니다.");
+            return;
+        }
+
+        if (!selfPasswordChange && !hasPermission(authenticatedSession, request.getMethod(), path)) {
             writeJson(response, HttpServletResponse.SC_FORBIDDEN, "ADM 권한이 필요한 작업입니다.");
             return;
         }
 
-        request.setAttribute("adm.operatorId", session.get().operatorId());
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPasswordChangeOnlyRequest(AdmSession session, String method, String path) {
+        return isSelfPasswordChange(session, method, path)
+                || (HttpMethod.GET.matches(method) && path.equals("/adm/api/auth/me"))
+                || (HttpMethod.POST.matches(method) && path.equals("/adm/api/auth/logout"))
+                || (HttpMethod.GET.matches(method) && path.equals("/adm/api/operators/password-policy"));
+    }
+
+    private boolean isSelfPasswordChange(AdmSession session, String method, String path) {
+        return HttpMethod.POST.matches(method)
+                && path.equals("/adm/api/operators/" + session.operatorId() + "/password");
     }
 
     private boolean hasPermission(AdmSession session, String method, String path) {

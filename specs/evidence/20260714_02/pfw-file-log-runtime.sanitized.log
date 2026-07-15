@@ -1,0 +1,64 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-20260714-02-PFW-FILE-LOG-RUNTIME
+STATUS=완료
+EXECUTED_AT=2026-07-14T14:35:47.2573234+09:00
+START_COMMIT=d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d
+BRANCH=master
+COMMAND=:pfw:test CpfFileLogRuntimeEvidenceTest
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=1
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=9785f00a346da271ddf87795d87c861e19a2044639f563f99a566d55af0f1dce
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot\ 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" goto execute 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" --no-daemon :pfw:test --tests cpf.pfw.common.logging.file.CpfFileLogRuntimeEvidenceTest --rerun-tasks 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:compileJava
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:compileTestJava
+> Task :pfw:processTestResources NO-SOURCE
+> Task :pfw:testClasses
+> Task :pfw:test
+
+BUILD SUCCESSFUL in 1m 9s
+4 actionable tasks: 4 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

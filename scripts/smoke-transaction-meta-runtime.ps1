@@ -106,7 +106,7 @@ function Get-Value {
 try {
     if ([string]::IsNullOrWhiteSpace($AccessToken)) {
         if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
-            $AdmPassword = "Adm!n12345"
+            throw "CPF_ADM_SMOKE_PASSWORD 환경변수 또는 -AdmPassword 인수가 필요합니다."
         }
         $login = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
             operatorId = $AdmUsername

@@ -1,7 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_01"),
-    [string] $StartCommit = "fb6b17850aa915c8ff0db034833e2fe1343fc322"
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02"),
+    [string] $StartCommit = "d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d"
 )
 
 $ErrorActionPreference = "Stop"
@@ -91,17 +91,32 @@ if (Test-Path -LiteralPath $wrapperProperties) {
 }
 $lines = New-Object System.Collections.Generic.List[string]
 $statusDone = -join @([char] 0xC644, [char] 0xB8CC)
+$sortedRecords = @($records | Sort-Object path)
+$worktreeCanonical = ($sortedRecords | ForEach-Object {
+    "STATUS={0}`tPATH={1}`tSHA256={2}`tORIGINAL_PATH={3}" -f $_.status, $_.path, $_.sha256, $_.originalPath
+}) -join "`n"
+$worktreeHashProvider = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $finalWorktreeHash = ([System.BitConverter]::ToString(
+        $worktreeHashProvider.ComputeHash($Utf8NoBom.GetBytes($worktreeCanonical + "`n"))
+    )).Replace("-", "").ToLowerInvariant()
+} finally {
+    $worktreeHashProvider.Dispose()
+}
+
 $lines.Add("CPF_EVIDENCE_VERSION=1") | Out-Null
 $lines.Add("EVIDENCE_ID=CPF-FINAL-WORKTREE-MANIFEST-20260714") | Out-Null
 $lines.Add("STATUS=$statusDone") | Out-Null
 $lines.Add("EXECUTED_AT=$((Get-Date).ToString('o'))") | Out-Null
 $lines.Add("START_COMMIT=$StartCommit") | Out-Null
+$lines.Add("FINAL_WORKTREE_HASH=$finalWorktreeHash") | Out-Null
 $lines.Add("BRANCH=$branch") | Out-Null
 $lines.Add("COMMAND=powershell -NoProfile -ExecutionPolicy Bypass -File scripts/export-final-worktree-manifest.ps1") | Out-Null
 $lines.Add("EXIT_CODE=0") | Out-Null
 $lines.Add("JAVA_VERSION=$javaVersion") | Out-Null
 $lines.Add("GRADLE_VERSION=$gradleVersion") | Out-Null
 $lines.Add("PROFILE=local") | Out-Null
+$lines.Add("MODULE=ALL") | Out-Null
 $lines.Add("SANITIZED=Y") | Out-Null
 $lines.Add("SECRET_SCAN=PASS") | Out-Null
 $lines.Add("TESTS=0") | Out-Null
@@ -116,7 +131,7 @@ $lines.Add("CHANGED_FILE_COUNT=$($records.Count)") | Out-Null
 $lines.Add("SELF_HASH_POLICY=output file uses SELF_REFERENTIAL") | Out-Null
 $lines.Add("--- WORKTREE_FILES ---") | Out-Null
 
-foreach ($record in ($records | Sort-Object path)) {
+foreach ($record in $sortedRecords) {
     $value = "STATUS={0}`tPATH={1}`tSHA256={2}" -f $record.status, $record.path, $record.sha256
     if (-not [string]::IsNullOrWhiteSpace($record.originalPath)) {
         $value += "`tORIGINAL_PATH=" + $record.originalPath

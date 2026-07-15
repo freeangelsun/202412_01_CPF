@@ -1,0 +1,104 @@
+{
+    "startedAt":  "2026-07-14T16:12:01.2540534+09:00",
+    "validationMode":  "source-sql-contract",
+    "checks":  [
+                   {
+                       "name":  "PFW_SERVICE_CALL_ENGINE",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallEngine.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_SERVICE_REGISTRY",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceRegistry.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_ENDPOINT_REGISTRY",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfEndpointRegistry.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_INSTANCE_REGISTRY",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceInstanceRegistry.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_ENDPOINT_RESOLVER",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfEndpointResolver.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_ROUTING_RESOLVER",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfRoutingPolicyResolver.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_HEALTH_AWARE_SELECTOR",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfHealthAwareInstanceSelector.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_REMOTE_FACADE_PROXY_SUPPORT",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfRemoteFacadeProxySupport.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_SERVICE_CALL_LOG_WRITER",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallLogWriter.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_SERVICE_HEALTH_CHECKER",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceHealthChecker.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_SERVICE_CALL_PROPERTIES",
+                       "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallProperties.java",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "PFW_SERVICE_CALL_AUTO_CONFIGURATION",
+                       "path":  "pfw/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+                       "text":  "CpfServiceCallAutoConfiguration",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "SQL_PFW_SERVICE",
+                       "path":  "specs/sql/10_pfw_schema.sql",
+                       "text":  "CREATE TABLE IF NOT EXISTS pfw_service",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "SQL_PFW_SERVICE_ENDPOINT",
+                       "path":  "specs/sql/10_pfw_schema.sql",
+                       "text":  "CREATE TABLE IF NOT EXISTS pfw_service_endpoint",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "SQL_PFW_SERVICE_INSTANCE",
+                       "path":  "specs/sql/10_pfw_schema.sql",
+                       "text":  "CREATE TABLE IF NOT EXISTS pfw_service_instance",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "SQL_PFW_SERVICE_CALL_HISTORY",
+                       "path":  "specs/sql/10_pfw_schema.sql",
+                       "text":  "CREATE TABLE IF NOT EXISTS pfw_service_call_history",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "SQL_SERVICE_REGISTRY_SEED",
+                       "path":  "specs/sql/50_framework_seed_data.sql",
+                       "text":  "MBR_API",
+                       "exists":  true
+                   },
+                   {
+                       "name":  "FLYWAY_PFW_SERVICE_CALL_REGISTRY",
+                       "path":  "specs/sql/migration/flyway/V21__pfw_service_call_registry.sql",
+                       "exists":  true
+                   }
+               ],
+    "status":  "DONE",
+    "finishedAt":  "2026-07-14T16:12:01.3010907+09:00"
+}

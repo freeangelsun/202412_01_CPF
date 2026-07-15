@@ -29,7 +29,8 @@ $StatusNotImplemented = New-UnicodeText @(0xBBF8, 0xAD6C, 0xD604)
 $StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
 $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
-$TransactionId = "20260702103000000ACClocal010000001"
+$TransactionTimestamp = (Get-Date).ToString("yyyyMMddHHmmssfff")
+$TransactionId = "$TransactionTimestamp" + "ACC" + "local01" + "0000001"
 $TraceId = "TRACE-STANDARD-HEADER-E2E"
 
 if ([string]::IsNullOrWhiteSpace($DbHost)) {
@@ -46,6 +47,7 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+$ResultDir = (Resolve-Path -LiteralPath $ResultDir).Path
 $resultPath = Join-Path $ResultDir "standard-header-e2e-result.json"
 $mockCapturePath = Join-Path $ResultDir "standard-header-e2e-downstream.json"
 $mockUrl = "http://127.0.0.1:$MockDownstreamPort/cpf-standard-header-e2e"
@@ -390,7 +392,8 @@ function Test-MockDownstreamCapture {
         return
     }
 
-    $capture = Get-Content -LiteralPath $mockCapturePath -Raw | ConvertFrom-Json
+    $captureText = [System.IO.File]::ReadAllText($mockCapturePath, [System.Text.Encoding]::UTF8)
+    $capture = $captureText | ConvertFrom-Json
     $result.mockDownstream.capture = $capture
     $missing = @()
     foreach ($name in @(

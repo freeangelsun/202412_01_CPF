@@ -81,7 +81,7 @@ Assert-Contains `
     "테스트 거래 로그의 LOG_DATE는 START_TIME 기준이어야 합니다."
 
 Assert-Contains `
-    "specs/index.html" `
+    "README.md" `
     "X-Transaction-Id[\s\S]*34" `
     "개발 가이드에 34자리 트랜잭션 ID 규격 설명이 필요합니다."
 

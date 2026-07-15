@@ -5,6 +5,33 @@ param(
 $ErrorActionPreference = "Stop"
 
 $failures = New-Object System.Collections.Generic.List[string]
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+function Read-SearchableContent {
+    param([string] $FullPath)
+
+    if ([System.IO.Path]::GetExtension($FullPath) -ne ".docx") {
+        return [System.IO.File]::ReadAllText($FullPath, [System.Text.Encoding]::UTF8)
+    }
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($FullPath)
+    try {
+        $entry = $archive.GetEntry("word/document.xml")
+        if ($null -eq $entry) {
+            return ""
+        }
+        $stream = $entry.Open()
+        $reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::UTF8, $true)
+        try {
+            return $reader.ReadToEnd()
+        } finally {
+            $reader.Dispose()
+            $stream.Dispose()
+        }
+    } finally {
+        $archive.Dispose()
+    }
+}
 
 function Test-RequiredFile {
     param(
@@ -31,7 +58,7 @@ function Test-RequiredText {
         return
     }
 
-    $content = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
+    $content = Read-SearchableContent $fullPath
     if ($content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
         $failures.Add("missing feature evidence text [$Name]: $Path :: $Text")
     }
@@ -62,7 +89,7 @@ function Test-ForbiddenText {
         return
     }
 
-    $content = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
+    $content = Read-SearchableContent $fullPath
     if ($content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
         $failures.Add("forbidden feature evidence text remains [$Name]: $Path :: $Text")
     }
@@ -73,6 +100,12 @@ function New-UnicodeText {
 
     return -join ($CodePoints | ForEach-Object { [char] $_ })
 }
+
+$architectureGuideFileName = "CPF_" + (New-UnicodeText @(0xD504, 0xB808, 0xC784, 0xC6CC, 0xD06C, 0x5F, 0xC18C, 0xAC1C, 0x5F, 0xBC0F, 0x5F, 0xC544, 0xD0A4, 0xD14D, 0xCC98)) + ".docx"
+$devGuideFileName = "CPF_" + (New-UnicodeText @(0xAC1C, 0xBC1C, 0xC790, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".docx"
+$operatorGuideFileName = "CPF_" + (New-UnicodeText @(0xC6B4, 0xC601, 0xC790, 0x5F, 0x41, 0x44, 0x4D, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".docx"
+$batchGuideFileName = "CPF_" + (New-UnicodeText @(0xBC30, 0xCE58, 0x5F, 0xC13C, 0xD130, 0xCEF7, 0x5F, 0xC2A4, 0xCF00, 0xC904, 0xB7EC, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".docx"
+$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".md"
 
 function Test-RequiredTextInSpecs {
     param(
@@ -87,11 +120,13 @@ function Test-RequiredTextInSpecs {
     }
 
     $found = $false
-    Get-ChildItem -LiteralPath $specsRoot -Recurse -File -Filter "*.html" | ForEach-Object {
+    Get-ChildItem -LiteralPath $specsRoot -Recurse -File | Where-Object {
+        $_.Extension -in @(".md", ".json", ".docx") -and $_.FullName -notmatch '[\\/]evidence[\\/]'
+    } | ForEach-Object {
         if ($found) {
             return
         }
-        $content = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+        $content = Read-SearchableContent $_.FullName
         if ($content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
             $found = $true
         }
@@ -108,9 +143,13 @@ function Test-SpecHtmlDocuments {
         return
     }
 
-    $htmlFiles = @(Get-ChildItem -LiteralPath $specsRoot -File -Filter "*.html")
-    if ($htmlFiles.Count -lt 6) {
-        $failures.Add("not enough specs html documents: expected at least 6, actual $($htmlFiles.Count)")
+    $docxFiles = @(Get-ChildItem -LiteralPath $specsRoot -File -Filter "*.docx")
+    if ($docxFiles.Count -ne 9) {
+        $failures.Add("canonical DOCX count mismatch: expected 9, actual $($docxFiles.Count)")
+    }
+    $htmlFiles = @(Get-ChildItem -LiteralPath $specsRoot -Recurse -File -Filter "*.html")
+    if ($htmlFiles.Count -ne 0) {
+        $failures.Add("legacy specs HTML remains: $($htmlFiles.Count)")
     }
 }
 
@@ -265,6 +304,7 @@ Test-RequiredFile "bat/src/main/java/cpf/bat/operation/BatSmokeOperationService.
 Test-RequiredFile "bat/src/main/java/cpf/bat/operation/BatHealthController.java" "BAT_HEALTH_CONTROLLER"
 Test-RequiredFile "bat/src/test/java/cpf/bat/operation/BatSmokeOperationServiceTest.java" "BAT_OPERATION_TEST"
 Test-RequiredFile "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java" "PFW_CENTER_CUT_SERVICE"
+Test-RequiredFile "pfw/src/main/java/cpf/pfw/config/CpfCenterCutAutoConfiguration.java" "PFW_CENTER_CUT_AUTO_CONFIGURATION"
 Test-RequiredFile "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java" "PFW_CENTER_CUT_TARGET_PROVIDER"
 Test-RequiredFile "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java" "PFW_CENTER_CUT_HANDLER"
 Test-RequiredFile "pfw/src/test/java/cpf/pfw/common/batch/centercut/CpfCenterCutServiceTest.java" "PFW_CENTER_CUT_TEST"
@@ -474,12 +514,12 @@ Test-RequiredText "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderNames.java" 
 Test-RequiredText "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderPropagator.java" "appendSegmentHeaders" "PFW_TRANSACTION_SEGMENT_HEADER_PROPAGATION"
 Test-RequiredText "pfw/src/test/java/cpf/pfw/common/header/CpfHeaderPropagatorTest.java" "outboundHeadersContainCurrentTransactionSegment" "PFW_TRANSACTION_SEGMENT_HEADER_TEST"
 Test-RequiredFile "README.md" "README"
-Test-RequiredFile "specs/index.html" "DOC_INDEX"
-Test-RequiredTextInSpecs "cpf-local-dev-guide" "DOC_LOCAL_DEV_GUIDE"
-Test-RequiredTextInSpecs "cpf-standard-header-guide" "DOC_STANDARD_HEADER_GUIDE"
-Test-RequiredTextInSpecs "cpf-db-standard-guide" "DOC_DB_STANDARD_GUIDE"
-Test-RequiredTextInSpecs "cpf-architecture-guide" "DOC_ARCHITECTURE_GUIDE"
-Test-RequiredTextInSpecs "cpf-transaction-guide" "DOC_TRANSACTION_GUIDE"
+Test-RequiredFile "specs/$architectureGuideFileName" "DOC_ARCHITECTURE"
+Test-RequiredTextInSpecs "CPF_LOG_ROOT" "DOC_LOCAL_DEV_GUIDE"
+Test-RequiredTextInSpecs "X-Transaction-Id" "DOC_STANDARD_HEADER_GUIDE"
+Test-RequiredTextInSpecs "DB SQL Flyway" "DOC_DB_STANDARD_GUIDE"
+Test-RequiredTextInSpecs "Local Facade" "DOC_ARCHITECTURE_GUIDE"
+Test-RequiredTextInSpecs "transactionGlobalId" "DOC_TRANSACTION_GUIDE"
 Test-RequiredTextInSpecs "inboundHeaders" "DOC_HEADER_INBOUND"
 Test-RequiredTextInSpecs "CpfRestClientInterceptor" "DOC_HEADER_REST_INTERCEPTOR"
 Test-RequiredTextInSpecs "cpf-pfw-cmn-boundary" "DOC_PFW_CMN_BOUNDARY"
@@ -521,10 +561,8 @@ Test-RequiredText "adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java" "
 Test-RequiredText "adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java" "/adm/api/log-policy-audits" "ADM_AUTH_LOG_POLICY_AUDIT_API"
 Test-RequiredText "pfw/src/test/java/cpf/pfw/common/logging/policy/LogPolicyCacheTest.java" "expiredOverrideFallsBackToDbPolicy" "LOG_POLICY_EXPIRED_OVERRIDE_TEST"
 Test-RequiredText "pfw/src/test/java/cpf/pfw/common/logging/policy/LogPolicyCacheTest.java" "cpfDefaultIsUsedWhenDbPolicyAndApplicationDefaultAreMissing" "LOG_POLICY_CPF_DEFAULT_TEST"
-Test-RequiredText "specs/index.html" "batch-development-guide" "DOC_BATCH_GUIDE_LINK"
-Test-RequiredText "specs/index.html" "operation-runbook" "DOC_OPERATION_RUNBOOK_LINK"
-Test-RequiredText "README.md" "batch-development-guide" "README_BATCH_GUIDE_LINK"
-Test-RequiredText "README.md" "operation-runbook" "README_OPERATION_MANUAL_LINK"
+Test-RequiredText "README.md" $batchGuideFileName "README_BATCH_GUIDE_LINK"
+Test-RequiredText "README.md" $operatorGuideFileName "README_OPERATION_MANUAL_LINK"
 Test-RequiredText "README.md" "scripts/smoke-log-policy-runtime.ps1" "README_LOG_POLICY_RUNTIME_SMOKE"
 Test-RequiredTextInSpecs "scripts/smoke-log-policy-runtime.ps1" "DOC_LOG_POLICY_RUNTIME_SMOKE"
 Test-SpecHtmlDocuments
@@ -683,8 +721,6 @@ $canonicalFixtureName = "xyz_edu_query_fixture.sql"
 $canonicalFixturePath = "xyz/src/test/resources/sql/$canonicalFixtureName"
 $legacyFixtureName = "xyz_edu_query_" + "mapper_fixture.sql"
 $legacyFixturePath = "xyz/src/test/resources/fixture/$legacyFixtureName"
-$devGuideFileName = (New-UnicodeText @(0xAC1C, 0xBC1C, 0x5F, 0xAC00, 0xC774, 0xB4DC)) + ".html"
-$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".html"
 Test-RequiredText "specs/$featureMatrixFileName" "adm-permission-runtime" "ADM_PERMISSION_RUNTIME_MATRIX"
 Test-RequiredText "specs/$featureMatrixFileName" "scripts/smoke-mariadb-full-install.ps1" "MATRIX_MARIADB_FULL_INSTALL_SMOKE"
 Test-RequiredText "specs/$featureMatrixFileName" "scripts/smoke-standard-header-e2e.ps1" "MATRIX_STANDARD_HEADER_E2E_SMOKE"

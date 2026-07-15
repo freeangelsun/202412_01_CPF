@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02")
 )
 
 $ErrorActionPreference = "Stop"
@@ -133,7 +133,7 @@ $script:RequiredCheckIds = @(
     "runtime-smoke-summary",
     "check-report-matrix-evidence-consistency",
     "quality-gate",
-    "check-html-docs",
+    "check-docx-standard",
     "check-feature-evidence",
     "check-utf8"
 )
@@ -198,37 +198,21 @@ function Get-MatrixCheckStatusMap {
         return $map
     }
 
-    $text = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
-    $rows = [System.Text.RegularExpressions.Regex]::Matches(
-        $text,
-        "(<tr\b[^>]*data-check-id\s*=\s*[""'][^""']+[""'][^>]*>)(.*?)</tr>",
-        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
-    )
-
-    foreach ($row in $rows) {
-        $checkId = Get-AttributeValue $row.Groups[1].Value "data-check-id"
+    try {
+        $payload = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
+    } catch {
+        Add-Failure "feature matrix json parse failed: $Path"
+        return $map
+    }
+    foreach ($item in @($payload.items)) {
+        $checkId = [string] $item.checkId
+        $status = [string] $item.status
         if ([string]::IsNullOrWhiteSpace($checkId)) {
             Add-Failure "feature matrix check id is blank"
             continue
         }
-
-        $statusCell = [System.Text.RegularExpressions.Regex]::Match(
-            $row.Groups[2].Value,
-            "(<td\b[^>]*class\s*=\s*[""'][^""']*\bstatus\b[^""']*[""'][^>]*>)(.*?)</td>",
-            [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
-        )
-        if (-not $statusCell.Success) {
-            Add-Failure "feature matrix status cell missing: $checkId"
-            continue
-        }
-
-        $dataStatus = Get-AttributeValue $statusCell.Groups[1].Value "data-status"
-        $displayStatus = ConvertTo-PlainText $statusCell.Groups[2].Value
-        Test-AllowedStatus $dataStatus "feature-matrix:$checkId"
-        if ($dataStatus -ne $displayStatus) {
-            Add-Failure "feature matrix status marker mismatch [$checkId]: data-status=[$dataStatus], display=[$displayStatus]"
-        }
-        $map[$checkId] = $dataStatus
+        Test-AllowedStatus $status "feature-matrix:$checkId"
+        $map[$checkId] = $status
     }
     return $map
 }
@@ -320,7 +304,7 @@ function Test-EvidenceFile {
 
 $reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.md"
 $evidenceIndexPath = Join-Path $Root "CPF_EVIDENCE_INDEX.md"
-$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".html"
+$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".json"
 $matrixPath = Join-Path (Join-Path $Root "specs") $featureMatrixFileName
 
 $reportMap = Get-MarkdownCheckStatusMap $reportPath "stabilization-report"

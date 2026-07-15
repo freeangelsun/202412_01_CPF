@@ -1,6 +1,6 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02")
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,7 +66,8 @@ $sourceFiles = @(
     "CPF_STABILIZATION_REPORT.md",
     "CPF_EVIDENCE_INDEX.md",
     "CPF_GAP_MATRIX.md",
-    "specs/sample-coverage-matrix.md"
+    "specs/sample-coverage-matrix.md",
+    ("specs/" + (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".md")
 )
 
 foreach ($sourceFile in $sourceFiles) {
@@ -79,17 +80,6 @@ foreach ($sourceFile in $sourceFiles) {
     foreach ($match in [System.Text.RegularExpressions.Regex]::Matches($text, '\x60([^`]+)\x60')) {
         Add-EvidencePath $sourceFile $match.Groups[1].Value
     }
-}
-
-$featureMatrixName = -join ([int[]](0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4) | ForEach-Object { [char] $_ }) + ".html"
-$featureMatrixPath = Join-Path (Join-Path $Root "specs") $featureMatrixName
-if (Test-Path -LiteralPath $featureMatrixPath) {
-    $html = Read-Utf8Text $featureMatrixPath
-    foreach ($match in [System.Text.RegularExpressions.Regex]::Matches($html, 'specs[\\/]+evidence[\\/]+[^<"`''\s]+')) {
-        Add-EvidencePath ("specs/" + $featureMatrixName) $match.Value
-    }
-} else {
-    Add-Failure ("feature matrix missing: specs/{0}" -f $featureMatrixName)
 }
 
 $uniqueRows = @($evidenceRows | Sort-Object evidencePath, sourceFile -Unique)

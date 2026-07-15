@@ -6,6 +6,7 @@
     [string] $XyzBaseUrl = "http://localhost:8099",
     [string] $BizAdmBaseUrl = "http://localhost:8091",
     [string] $ExsBaseUrl = "http://localhost:8092",
+    [string] $BatBaseUrl = "http://localhost:8093",
     [string] $ResultDir = "",
     [switch] $SkipAdm,
     [switch] $SkipAcc,
@@ -13,6 +14,7 @@
     [switch] $SkipXyz,
     [switch] $SkipBizAdm,
     [switch] $SkipExs,
+    [switch] $SkipBat,
     [switch] $RequireRuntime
 )
 
@@ -184,6 +186,16 @@ if (-not $SkipExs) {
         "/api/exs/outbound",
         "/api/exs/edu/external-transfer",
         "/api/exs/edu/external-transfer/failure"
+    ) | Out-Null
+}
+
+if (-not $SkipBat) {
+    Invoke-JsonSmoke -ServiceName "BAT" -BaseUrl $BatBaseUrl -RequiredTags @(
+        "BAT-Operations"
+    ) -RequiredPaths @(
+        "/bat/api/health",
+        "/bat/api/diagnostics/logging",
+        "/bat/api/smoke/jobs/{jobId}/run"
     ) | Out-Null
 }
 

@@ -475,23 +475,31 @@ import $BasePackage.repository.${ModuleName}Repository;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ${ModuleName}ServiceTest {
-    private final ${ModuleName}Repository repository = mock(${ModuleName}Repository.class);
+    private final AtomicReference<${ModuleName}SearchRequest> capturedRequest = new AtomicReference<>();
+    private final ${ModuleName}Repository repository = new ${ModuleName}Repository(null) {
+        @Override
+        public Map<String, Object> search(${ModuleName}SearchRequest request) {
+            // DB 없이도 Service가 정규화한 최종 조건을 검증할 수 있도록 요청을 보관합니다.
+            capturedRequest.set(request);
+            return Map.of("items", java.util.List.of(), "criteria", request);
+        }
+    };
     private final ${ModuleName}Service service = new ${ModuleName}Service(repository);
 
     @Test
     void searchNormalizesPagingAndSort() {
-        when(repository.search(any())).thenReturn(Map.of("items", java.util.List.of(), "criteria", Map.of()));
-
         Map<String, Object> result = service.search(new ${ModuleName}SearchRequest("keyword", "unsafe_column", "ASC", -1, 999));
 
         assertThat(result).containsKey("items");
+        assertThat(capturedRequest.get().sortBy()).isEqualTo("created_at");
+        assertThat(capturedRequest.get().sortDirection()).isEqualTo("ASC");
+        assertThat(capturedRequest.get().page()).isZero();
+        assertThat(capturedRequest.get().size()).isEqualTo(200);
     }
 }
 "@

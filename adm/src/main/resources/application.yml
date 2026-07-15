@@ -56,6 +56,12 @@ cpf:
     module-id: ADM
     was-id: ${WAS_ID:admAP01}
   adm:
+    bootstrap:
+      enabled: ${CPF_ADM_BOOTSTRAP_ENABLED:false}
+      allow-prod: ${CPF_ADM_BOOTSTRAP_ALLOW_PROD:false}
+      operator-id: ${CPF_ADM_BOOTSTRAP_OPERATOR_ID:admin}
+      operator-name: ${CPF_ADM_BOOTSTRAP_OPERATOR_NAME:CPF 관리자}
+      password: ${CPF_ADM_BOOTSTRAP_PASSWORD:}
     security:
       enabled: ${CPF_ADM_SECURITY_ENABLED:${CPF_ADM_SECURITY_ENABLED:true}}
       session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:${CPF_ADM_SESSION_TTL_SECONDS:3600}}

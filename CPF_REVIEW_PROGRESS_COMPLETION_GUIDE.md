@@ -111,7 +111,8 @@ CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
 CPF_STABILIZATION_REPORT.md
 CPF_GAP_MATRIX.md
 CPF_EVIDENCE_INDEX.md
-specs/기능_구현_매트릭스.html
+specs/기능_구현_매트릭스.json
+specs/기능_구현_매트릭스.md
 specs/sample-coverage-matrix.md
 ```
 
@@ -1048,7 +1049,7 @@ qualityGate 필수 후보:
 
 ```text
 check-feature-evidence
-check-html-docs
+check-docx-standard
 check-report-matrix-evidence-consistency
 check-evidence-path-existence
 check-sample-coverage

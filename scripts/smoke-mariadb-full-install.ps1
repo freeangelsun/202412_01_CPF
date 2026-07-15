@@ -4,6 +4,8 @@ param(
     [string] $Port = $env:CPF_DB_PORT,
     [string] $RootUsername = $env:CPF_DB_ROOT_USERNAME,
     [string] $RootPassword = $env:CPF_DB_ROOT_PASSWORD,
+    [string] $MigrationPassword = $env:CPF_DB_MIGRATION_PASSWORD,
+    [string] $AppPassword = $env:CPF_DB_APP_PASSWORD,
     [string] $ClientPath = $env:CPF_MARIADB_CLI,
     [string] $ResultDir = "",
     [switch] $RequireRun
@@ -46,6 +48,7 @@ $result = [ordered]@{
     port = $Port
     username = $RootUsername
     passwordProvided = -not [string]::IsNullOrWhiteSpace($RootPassword)
+    servicePasswordsProvided = (-not [string]::IsNullOrWhiteSpace($MigrationPassword)) -and (-not [string]::IsNullOrWhiteSpace($AppPassword))
     client = $null
     sqlFiles = @()
     steps = [ordered]@{}
@@ -73,9 +76,21 @@ function ConvertTo-SafeMessage {
         return $Message
     }
     if (-not [string]::IsNullOrWhiteSpace($RootPassword)) {
-        return $Message.Replace($RootPassword, "****")
+        $Message = $Message.Replace($RootPassword, "****")
+    }
+    if (-not [string]::IsNullOrWhiteSpace($MigrationPassword)) {
+        $Message = $Message.Replace($MigrationPassword, "****")
+    }
+    if (-not [string]::IsNullOrWhiteSpace($AppPassword)) {
+        $Message = $Message.Replace($AppPassword, "****")
     }
     return $Message
+}
+
+function ConvertTo-MariaDbStringLiteral {
+    param([string] $Value)
+
+    return "'" + $Value.Replace("'", "''") + "'"
 }
 
 function Join-ProcessArguments {
@@ -203,7 +218,8 @@ function Invoke-MariaDbText {
 function Invoke-MariaDbFile {
     param(
         [string] $StepName,
-        [string] $RelativePath
+        [string] $RelativePath,
+        [switch] $WithServicePasswords
     )
 
     $path = Join-Path $Root $RelativePath
@@ -214,7 +230,12 @@ function Invoke-MariaDbFile {
     Add-Log "SQL start: $RelativePath"
     $result.sqlFiles += $RelativePath
     $sourcePath = ((Resolve-Path -LiteralPath $path).Path).Replace("\", "/")
-    $output = Invoke-MariaDbText -StepName $StepName -SqlText "SOURCE $sourcePath;`n"
+    $prefix = ""
+    if ($WithServicePasswords) {
+        $prefix = "SET @cpf_migration_password = $(ConvertTo-MariaDbStringLiteral $MigrationPassword);`n" +
+                "SET @cpf_app_password = $(ConvertTo-MariaDbStringLiteral $AppPassword);`n"
+    }
+    $output = Invoke-MariaDbText -StepName $StepName -SqlText ($prefix + "SOURCE $sourcePath;`n")
     $result.steps[$StepName] = [ordered]@{
         status = $StatusDone
         file = $RelativePath
@@ -263,7 +284,18 @@ try {
         exit 0
     }
 
-    Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "specs/sql/00_all_install_and_smoke.sql" | Out-Null
+    if ([string]::IsNullOrWhiteSpace($MigrationPassword) -or [string]::IsNullOrWhiteSpace($AppPassword)) {
+        $result.status = $StatusNotVerified
+        $result.reason = "CPF_DB_MIGRATION_PASSWORD and CPF_DB_APP_PASSWORD are required for service account provisioning."
+        Save-SmokeResult
+        if ($RequireRun) {
+            throw $result.reason
+        }
+        Write-Host "MariaDB full install smoke skipped: service account passwords not provided. result=$resultPath"
+        exit 0
+    }
+
+    Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "specs/sql/00_all_install_and_smoke.sql" -WithServicePasswords | Out-Null
     Invoke-MariaDbFile -StepName "smokeCheck" -RelativePath "specs/sql/99_smoke_check.sql" | Out-Null
     Invoke-MariaDbFile -StepName "frameworkSeedRepeat" -RelativePath "specs/sql/50_framework_seed_data.sql" | Out-Null
 

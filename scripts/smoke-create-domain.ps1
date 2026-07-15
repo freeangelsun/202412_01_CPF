@@ -190,7 +190,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
-ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '21')
+ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
         .toString()
         .toInteger()
 
@@ -222,14 +222,19 @@ subprojects {
 "@
     [System.IO.File]::WriteAllText((Join-Path $verificationDir "settings.gradle"), $settings, $Utf8NoBom)
     [System.IO.File]::WriteAllText((Join-Path $verificationDir "build.gradle"), $rootBuild, $Utf8NoBom)
-    $gradleWrapper = Join-Path $Root "gradlew.bat"
+    $gradleWrapperJar = Join-Path $Root "gradle/wrapper/gradle-wrapper.jar"
+    $javaExecutable = if ($env:JAVA_HOME -and (Test-Path -LiteralPath (Join-Path $env:JAVA_HOME "bin/java.exe"))) {
+        Join-Path $env:JAVA_HOME "bin/java.exe"
+    } else {
+        (Get-Command java -ErrorAction Stop).Source
+    }
     $compileLogPath = Join-Path $ResultDir "create-domain-compile.log"
-    # 중첩 PowerShell의 Process.Start는 로컬 보안 정책에 따라 cmd.exe 실행이 차단될 수 있다.
-    # 현재 프로세스에서 래퍼를 직접 실행하면 동일한 Gradle 검증을 수행하면서 종료 코드를 정확히 보존한다.
+    # 회사 단말 정책이 중첩 PowerShell의 배치 파일 실행을 차단할 수 있으므로
+    # wrapper jar를 Java 25 프로세스로 직접 실행해 플랫폼별 shell 차이를 제거합니다.
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $compileOutputLines = @(& $gradleWrapper -p $verificationDir `
+        $compileOutputLines = @(& $javaExecutable "-Dorg.gradle.appname=gradlew" -jar $gradleWrapperJar -p $verificationDir `
                 ":${ModuleCode}:test" ":${ModuleCode}:bootJar" `
                 --offline --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
         $compileExitCode = $LASTEXITCODE
@@ -248,6 +253,28 @@ subprojects {
     if ($compileExitCode -ne 0) {
         throw "generated domain compile/test/bootJar failed. log=$compileLogPath"
     }
+
+    $applicationClass = Join-Path $previewDir "build/classes/java/main/cpf/$ModuleCode/${ModuleName}Application.class"
+    if (-not (Test-Path -LiteralPath $applicationClass -PathType Leaf)) {
+        throw "generated domain application class is missing. path=$applicationClass"
+    }
+    $classBytes = [System.IO.File]::ReadAllBytes($applicationClass)
+    if ($classBytes.Length -lt 8) {
+        throw "generated domain application class is invalid. path=$applicationClass"
+    }
+    $classMajor = ([int]$classBytes[6] * 256) + [int]$classBytes[7]
+    if ($classMajor -ne 69) {
+        throw "generated domain class major must be 69. actual=$classMajor"
+    }
+    $bootJar = Get-ChildItem -LiteralPath (Join-Path $previewDir "build/libs") -File -Filter "*.jar" |
+        Where-Object { $_.Name -notlike "*-plain.jar" } |
+        Select-Object -First 1
+    if ($null -eq $bootJar) {
+        throw "generated domain bootJar is missing."
+    }
+    $result.compile.classMajor = $classMajor
+    $result.compile.bootJar = $bootJar.FullName.Substring($Root.Length).TrimStart('\', '/')
+    $result.compile.javaExecutable = "JAVA_HOME/bin/java"
 
     $result.status = $StatusDone
     $result.finishedAt = (Get-Date).ToString("o")

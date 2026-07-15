@@ -3,11 +3,7 @@ package cpf.adm.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * ADM 인증과 세션의 공통 보안 설정입니다.
  */
 @ConfigurationProperties(prefix = "cpf.adm.security")
 public class AdmSecurityProperties {
@@ -30,4 +26,3 @@ public class AdmSecurityProperties {
         this.sessionTtlSeconds = sessionTtlSeconds;
     }
 }
-

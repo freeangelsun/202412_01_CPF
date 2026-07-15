@@ -13,6 +13,7 @@ import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmSessionService;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.exception.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -72,21 +73,29 @@ public class AdmOperatorController {
 
     @PostMapping("/{operatorId}/password")
     @CpfTransaction(id = "ADM03OPR0032", name = "ADMOperatorPasswordChange")
-    @Operation(operationId = "admOperatorChangePassword", summary = "Change operator password", description = "Changes an operator password after policy validation.")
+    @Operation(
+            operationId = "admOperatorChangePassword",
+            summary = "본인 비밀번호 변경",
+            description = "현재 비밀번호와 새 비밀번호 확인값, 비밀번호 정책과 최근 사용 이력을 검증한 뒤 본인 비밀번호를 변경합니다.")
     public ResponseEntity<AdmOperator> changePassword(
             @PathVariable String operatorId,
             @RequestBody AdmPasswordChangeRequest request,
             HttpServletRequest servletRequest) {
+        String authenticatedOperatorId = requestUser(servletRequest, null);
+        if (authenticatedOperatorId == null || !authenticatedOperatorId.equals(operatorId)) {
+            throw new CpfValidationException("본인 계정의 비밀번호만 변경할 수 있습니다.");
+        }
         String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.changePassword(operatorId, request);
         auditLogService.record(
                 TransactionContext.getOrCreateTransactionId(),
-                requestUser(servletRequest, request.requestUser()),
+                authenticatedOperatorId,
                 "OPERATOR_PASSWORD_CHANGE",
                 "adm_operator",
                 operatorId,
                 reason,
                 servletRequest.getRemoteAddr());
+        sessionService.revokeOperatorSessions(operatorId);
         return ResponseEntity.ok(operator);
     }
 
@@ -121,6 +130,7 @@ public class AdmOperatorController {
                 String.valueOf(operator),
                 "비밀번호 초기화",
                 servletRequest.getRemoteAddr());
+        sessionService.revokeOperatorSessions(operatorId);
         return ResponseEntity.ok(operator);
     }
 

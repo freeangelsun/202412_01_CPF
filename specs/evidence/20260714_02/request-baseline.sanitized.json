@@ -1,0 +1,15 @@
+{
+    "cpfEvidenceVersion":  1,
+    "evidenceId":  "CPF-REQUEST-BASELINE-20260714-02",
+    "status":  "완료",
+    "executedAt":  "2026-07-14T14:02:46.6067814+09:00",
+    "startCommit":  "d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d",
+    "branch":  "master",
+    "requestPath":  "CPF_NEW_REQUEST.md",
+    "baselinePath":  "specs/evidence/20260714_02/cpf-new-request.baseline.md",
+    "sha256":  "bccf457fabd14c9be6d37563cc3a1e14aaa65525c9cd2c595ce23cee3719a84c",
+    "gitBlob":  "149c59dfddede5d1653817e603c1106f2e0f68ff",
+    "requestModifiedDuringCapture":  false,
+    "sanitized":  true,
+    "secretScan":  "PASS"
+}

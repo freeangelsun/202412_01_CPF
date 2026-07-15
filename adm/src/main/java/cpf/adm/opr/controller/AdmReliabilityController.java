@@ -5,7 +5,7 @@ import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmBatchJobLogService;
 import cpf.adm.opr.service.AdmReliabilityService;
 import cpf.pfw.api.logging.CpfTraceRecoveryPort;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +47,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/idempotency")
-    @CpfTransaction(id = "ADM01REL0001", name = "ADMReliabilityIdempotencyList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0001", name = "ADMReliabilityIdempotencyList")
     @Operation(operationId = "findAdmIdempotencyRecords", summary = "멱등 처리 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> idempotency(
             @RequestParam(required = false) String scope,
@@ -58,7 +58,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/broker/outbox")
-    @CpfTransaction(id = "ADM01REL0002", name = "ADMReliabilityOutboxList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0002", name = "ADMReliabilityOutboxList")
     @Operation(operationId = "findAdmBrokerOutbox", summary = "Broker outbox 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> outbox(
             @RequestParam(required = false) String status,
@@ -69,7 +69,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/broker/inbox")
-    @CpfTransaction(id = "ADM01REL0003", name = "ADMReliabilityInboxList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0003", name = "ADMReliabilityInboxList")
     @Operation(operationId = "findAdmBrokerInbox", summary = "Broker inbox 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> inbox(
             @RequestParam(required = false) String status,
@@ -79,7 +79,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/broker/dlq")
-    @CpfTransaction(id = "ADM01REL0004", name = "ADMReliabilityDlqList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0004", name = "ADMReliabilityDlqList")
     @Operation(operationId = "findAdmBrokerDlq", summary = "Broker DLQ 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> dlq(
             @RequestParam(required = false) String status,
@@ -90,7 +90,7 @@ public class AdmReliabilityController {
     }
 
     @PostMapping("/broker/dlq/{messageId}/replay")
-    @CpfTransaction(id = "ADM05REL0005", name = "ADMReliabilityDlqReplay")
+    @CpfOnlineTransaction(id = "OADM-REL-05-0005", name = "ADMReliabilityDlqReplay")
     @Operation(
             operationId = "requestAdmBrokerDlqReplay",
             summary = "Broker DLQ 재처리 요청",
@@ -111,7 +111,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/file-transfers")
-    @CpfTransaction(id = "ADM01REL0006", name = "ADMReliabilityFileTransferList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0006", name = "ADMReliabilityFileTransferList")
     @Operation(operationId = "findAdmFileTransferHistory", summary = "파일전송 이력 조회")
     public ResponseEntity<List<Map<String, Object>>> fileTransfers(
             @RequestParam(required = false) String status,
@@ -122,7 +122,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/unknown-results")
-    @CpfTransaction(id = "ADM01REL0007", name = "ADMReliabilityUnknownResultList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0007", name = "ADMReliabilityUnknownResultList")
     @Operation(operationId = "findAdmUnknownResults", summary = "결과 미확정 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> unknownResults(
             @RequestParam(required = false) String type,
@@ -133,7 +133,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/batch-job-logs")
-    @CpfTransaction(id = "ADM01REL0009", name = "ADMReliabilityBatchJobLogList")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0009", name = "ADMReliabilityBatchJobLogList")
     @Operation(
             operationId = "findAdmBatchJobInstanceLogs",
             summary = "BAT JobInstance 로그 목록 조회",
@@ -147,7 +147,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/batch-job-logs/{businessDate}/{jobName}/{jobInstanceId}")
-    @CpfTransaction(id = "ADM01REL0010", name = "ADMReliabilityBatchJobLogDetail")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0010", name = "ADMReliabilityBatchJobLogDetail")
     @Operation(
             operationId = "getAdmBatchJobInstanceLog",
             summary = "BAT JobInstance 로그 상세 조회",
@@ -165,7 +165,7 @@ public class AdmReliabilityController {
     }
 
     @GetMapping("/transaction-log-recovery")
-    @CpfTransaction(id = "ADM01REL0011", name = "ADMTransactionLogRecoveryStatus")
+    @CpfOnlineTransaction(id = "OADM-REL-01-0011", name = "ADMTransactionLogRecoveryStatus")
     @Operation(
             operationId = "getAdmTransactionLogRecoveryStatus",
             summary = "DB 거래 로그 복구 상태 조회",
@@ -175,7 +175,7 @@ public class AdmReliabilityController {
     }
 
     @PostMapping("/transaction-log-recovery/run")
-    @CpfTransaction(id = "ADM05REL0012", name = "ADMTransactionLogRecoveryRun")
+    @CpfOnlineTransaction(id = "OADM-REL-05-0012", name = "ADMTransactionLogRecoveryRun")
     @Operation(
             operationId = "runAdmTransactionLogRecovery",
             summary = "DB 거래 로그 복구 즉시 실행",
@@ -202,7 +202,7 @@ public class AdmReliabilityController {
     }
 
     @PostMapping("/transaction-log-recovery/poison/{target}/{recoveryEventId}/retry")
-    @CpfTransaction(id = "ADM05REL0013", name = "ADMTraceRecoveryPoisonRetry")
+    @CpfOnlineTransaction(id = "OADM-REL-05-0013", name = "ADMTraceRecoveryPoisonRetry")
     @Operation(
             operationId = "retryAdmTraceRecoveryPoison",
             summary = "추적 로그 poison 재시도 승인",
@@ -231,7 +231,7 @@ public class AdmReliabilityController {
     }
 
     @PostMapping("/unknown-results/{unknownId}/resolve")
-    @CpfTransaction(id = "ADM05REL0008", name = "ADMReliabilityUnknownResultResolve")
+    @CpfOnlineTransaction(id = "OADM-REL-05-0008", name = "ADMReliabilityUnknownResultResolve")
     @Operation(
             operationId = "resolveAdmUnknownResult",
             summary = "결과 미확정 수동 처리",

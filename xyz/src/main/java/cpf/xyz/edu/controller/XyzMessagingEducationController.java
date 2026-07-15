@@ -5,7 +5,7 @@ import cpf.cmn.utils.IdUtils;
 import cpf.pfw.common.broker.CpfBrokerBridgeMessage;
 import cpf.pfw.common.broker.CpfBrokerBridgePort;
 import cpf.pfw.common.broker.CpfBrokerBridgeResult;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ public class XyzMessagingEducationController {
     }
 
     @PostMapping("/messaging/publish")
-    @CpfTransaction(id = "XYZ09EDU0010", name = "XYZMessagePublish")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0010", name = "XYZMessagePublish")
     @Operation(operationId = "xyzMessagingEducationPublishMessage", summary = "메시지 발행 샘플", description = "CMN 메시지 추상화 계층을 통해 메시지 봉투를 발행합니다.")
     public ResponseEntity<Map<String, Object>> publishMessage(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination,
@@ -57,7 +57,7 @@ public class XyzMessagingEducationController {
     }
 
     @GetMapping("/messaging/recent")
-    @CpfTransaction(id = "XYZ09EDU0011", name = "XYZMessageRecent")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0051", name = "XYZMessageRecent")
     @Operation(operationId = "xyzMessagingEducationFindRecentMessages", summary = "최근 메시지 조회 샘플", description = "현재 활성화된 메시지 어댑터의 최근 메시지를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findRecentMessages(
             @RequestParam(defaultValue = "cpf.xyz.edu.event") String destination) {

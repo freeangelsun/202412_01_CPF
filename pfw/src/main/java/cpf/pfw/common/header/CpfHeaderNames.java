@@ -8,6 +8,8 @@ package cpf.pfw.common.header;
  */
 public final class CpfHeaderNames {
     public static final String TRANSACTION_ID = "X-Transaction-Id";
+    public static final String STANDARD_EXECUTION_ID = "X-Cpf-Standard-Execution-Id";
+    public static final String PROTOCOL_VERSION = "X-Cpf-Protocol-Version";
     public static final String PARENT_TRANSACTION_ID = "X-Parent-Transaction-Id";
     public static final String ORIGINAL_TRANSACTION_ID = "X-Original-Transaction-Id";
     public static final String ROOT_TRANSACTION_ID = "X-Root-Transaction-Id";

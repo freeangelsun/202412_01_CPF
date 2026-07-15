@@ -1,0 +1,41 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-ATTACHMENT-EDU-RUNTIME-20260715-01
+STATUS=완료
+EXECUTED_AT=2026-07-15T16:08:47.7189254+09:00
+START_COMMIT=0d206c683aab840dbab4639f2797dd7fd718cefd
+BRANCH=master
+COMMAND=powershell -File scripts/smoke-attachment-edu-runtime.ps1
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=c6e025c9dff1fe2a3188b27eb2aecc29c87b6d402b1e9b57ae6bb1955b20d731
+--- SANITIZED_OUTPUT ---
+{
+    "startedAt":  "2026-07-15T16:08:13.9465758+09:00",
+    "status":  "완료",
+    "baseUrl":  "http://127.0.0.1:8099",
+    "store":  {
+                  "statusCode":  200,
+                  "storageKey":  "EDU/c02a7338eab643bd95440f7c25fdd7e3.txt",
+                  "originalFileName":  "cpf-attachment-runtime.txt",
+                  "contentType":  "text/plain; charset=UTF-8",
+                  "fileSize":  31,
+                  "checksumSha256":  "cb537a0c48d7d093b461864f2e0006742e29e3a6422ac4354f64ade465f56a38"
+              },
+    "verify":  {
+                   "statusCode":  200,
+                   "fileSize":  31,
+                   "checksumSha256":  "cb537a0c48d7d093b461864f2e0006742e29e3a6422ac4354f64ade465f56a38",
+                   "checksumMatched":  true
+               },
+    "finishedAt":  "2026-07-15T16:08:22.4180659+09:00"
+}

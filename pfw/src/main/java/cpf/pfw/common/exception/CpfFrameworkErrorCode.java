@@ -9,7 +9,7 @@ public enum CpfFrameworkErrorCode implements CpfErrorDefinition {
     MISSING_TRANSACTION_HEADER("EPFW900001", "MPFW900001", HttpStatus.BAD_REQUEST,
             "Required transaction header is missing.", "PFW transaction header validation failed. header={0}, uri={1}"),
     INVALID_TRANSACTION_METADATA("EPFW900002", "MPFW900002", HttpStatus.INTERNAL_SERVER_ERROR,
-            "Transaction metadata is invalid.", "PFW @CpfTransaction metadata validation failed. transactionId={0}"),
+            "Transaction metadata is invalid.", "PFW 표준 실행 메타데이터 검증에 실패했습니다. executionId={0}"),
     SERVICE_ENDPOINT_NOT_FOUND("EPFW900003", "MPFW900003", HttpStatus.INTERNAL_SERVER_ERROR,
             "Service endpoint configuration was not found.", "PFW service endpoint configuration was not found. serviceId={0}"),
     DYNAMIC_LOG_RULE_INVALID("EPFW900004", "MPFW900004", HttpStatus.BAD_REQUEST,

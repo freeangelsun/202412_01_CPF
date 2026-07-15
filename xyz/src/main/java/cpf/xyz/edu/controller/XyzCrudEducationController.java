@@ -1,6 +1,6 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.xyz.edu.dto.XyzCrudEducationRequest;
 import cpf.xyz.edu.dto.XyzCrudEducationResponse;
 import cpf.xyz.edu.dto.XyzCrudEducationStatusRequest;
@@ -48,7 +48,7 @@ public class XyzCrudEducationController {
      * 검색, 상태, 정렬, limit을 받는 목록 조회 샘플입니다.
      */
     @GetMapping({"/items", "/crud-items"})
-    @CpfTransaction(id = "XYZ01EDU0001", name = "XYZ교육CRUD목록조회")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-01-0001", name = "XYZ교육CRUD목록조회")
     @Operation(operationId = "xyzCrudEducationFindEducationItems", summary = "CRUD 교육 항목 목록 조회", description = "DB Mapper 기반 목록 조회, 검색, 상태 필터, 정렬 whitelist, limit 제한을 확인합니다.")
     public ResponseEntity<List<XyzCrudEducationResponse>> findEducationItems(
             @RequestParam(required = false) String keyword,
@@ -62,7 +62,7 @@ public class XyzCrudEducationController {
      * PathVariable 기반 상세 조회 샘플입니다.
      */
     @GetMapping("/items/{educationItemId}")
-    @CpfTransaction(id = "XYZ01EDU0002", name = "XYZ교육CRUD상세조회")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-01-0002", name = "XYZ교육CRUD상세조회")
     @Operation(operationId = "xyzCrudEducationGetEducationItemByPath", summary = "CRUD 교육 항목 상세 조회", description = "PathVariable 검증과 NotFound 예외 처리 흐름을 확인합니다.")
     public ResponseEntity<XyzCrudEducationResponse> getEducationItemByPath(
             @PathVariable @Min(1) Long educationItemId) {
@@ -73,7 +73,7 @@ public class XyzCrudEducationController {
      * 기존 `/crud-items/detail` 경로와의 호환을 위한 상세 조회 샘플입니다.
      */
     @GetMapping("/crud-items/detail")
-    @CpfTransaction(id = "XYZ01EDU0003", name = "XYZ교육CRUD상세조회호환")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-01-0003", name = "XYZ교육CRUD상세조회호환")
     @Operation(operationId = "xyzCrudEducationGetEducationItem", summary = "CRUD 교육 항목 상세 조회 호환", description = "기존 RequestParam 기반 상세 조회 경로를 유지합니다.")
     public ResponseEntity<XyzCrudEducationResponse> getEducationItem(
             @RequestParam @Min(1) Long educationItemId) {
@@ -84,7 +84,7 @@ public class XyzCrudEducationController {
      * Bean Validation이 적용된 등록 샘플입니다.
      */
     @PostMapping({"/items", "/crud-items"})
-    @CpfTransaction(id = "XYZ02EDU0001", name = "XYZ교육CRUD등록")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-02-0001", name = "XYZ교육CRUD등록")
     @Operation(operationId = "xyzCrudEducationCreateEducationItem", summary = "CRUD 교육 항목 등록", description = "요청 DTO 검증 후 DB Mapper insert를 수행합니다.")
     public ResponseEntity<XyzCrudEducationResponse> createEducationItem(
             @Valid @RequestBody XyzCrudEducationRequest request) {
@@ -95,7 +95,7 @@ public class XyzCrudEducationController {
      * RESTful PathVariable 기반 수정 샘플입니다.
      */
     @PutMapping("/items/{educationItemId}")
-    @CpfTransaction(id = "XYZ03EDU0001", name = "XYZ교육CRUD수정")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-03-0001", name = "XYZ교육CRUD수정")
     @Operation(operationId = "xyzCrudEducationUpdateEducationItemByPath", summary = "CRUD 교육 항목 수정", description = "PathVariable과 Body DTO를 함께 받아 DB Mapper update를 수행합니다.")
     public ResponseEntity<XyzCrudEducationResponse> updateEducationItemByPath(
             @PathVariable @Min(1) Long educationItemId,
@@ -107,7 +107,7 @@ public class XyzCrudEducationController {
      * 기존 `/crud-items` 수정 경로와의 호환 샘플입니다.
      */
     @PutMapping("/crud-items")
-    @CpfTransaction(id = "XYZ03EDU0002", name = "XYZ교육CRUD수정호환")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-03-0002", name = "XYZ교육CRUD수정호환")
     @Operation(operationId = "xyzCrudEducationUpdateEducationItem", summary = "CRUD 교육 항목 수정 호환", description = "기존 RequestParam 기반 수정 경로를 유지합니다.")
     public ResponseEntity<XyzCrudEducationResponse> updateEducationItem(
             @RequestParam @Min(1) Long educationItemId,
@@ -119,7 +119,7 @@ public class XyzCrudEducationController {
      * 상태 변경 전용 PATCH 샘플입니다.
      */
     @PatchMapping("/items/{educationItemId}/status")
-    @CpfTransaction(id = "XYZ03EDU0003", name = "XYZ교육CRUD상태변경")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-03-0003", name = "XYZ교육CRUD상태변경")
     @Operation(operationId = "xyzCrudEducationChangeEducationItemStatus", summary = "CRUD 교육 항목 상태 변경", description = "상태 변경 전용 DTO 검증 후 DB Mapper update를 수행합니다.")
     public ResponseEntity<XyzCrudEducationResponse> changeEducationItemStatus(
             @PathVariable @Min(1) Long educationItemId,
@@ -131,7 +131,7 @@ public class XyzCrudEducationController {
      * 논리 삭제 샘플입니다.
      */
     @DeleteMapping({"/items/{educationItemId}", "/crud-items/{educationItemId}"})
-    @CpfTransaction(id = "XYZ04EDU0001", name = "XYZ교육CRUD삭제")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-04-0001", name = "XYZ교육CRUD삭제")
     @Operation(operationId = "xyzCrudEducationDeleteEducationItemByPath", summary = "CRUD 교육 항목 논리 삭제", description = "실제 삭제 대신 use_yn=N, status=CLOSED로 전환하는 논리 삭제 기준을 확인합니다.")
     public ResponseEntity<Map<String, Object>> deleteEducationItemByPath(
             @PathVariable @Min(1) Long educationItemId,
@@ -144,7 +144,7 @@ public class XyzCrudEducationController {
      * 기존 `/crud-items?educationItemId=` 삭제 경로와의 호환 샘플입니다.
      */
     @DeleteMapping("/crud-items")
-    @CpfTransaction(id = "XYZ04EDU0002", name = "XYZ교육CRUD삭제호환")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-04-0002", name = "XYZ교육CRUD삭제호환")
     @Operation(operationId = "xyzCrudEducationDeleteEducationItem", summary = "CRUD 교육 항목 논리 삭제 호환", description = "기존 RequestParam 기반 삭제 경로를 유지합니다.")
     public ResponseEntity<Map<String, Object>> deleteEducationItem(
             @RequestParam @Min(1) Long educationItemId,

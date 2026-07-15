@@ -28,44 +28,44 @@ class LoggingAspectMetadataTest {
     @Test
     void resolveResponseMetadata_ShouldUseResolverForSuccessResponse() throws Exception {
         CpfResponseCodeResolver resolver = mock(CpfResponseCodeResolver.class);
-        when(resolver.resolve(eq("SACC000000"), eq(Locale.KOREAN), eq(Map.of()), isNull())).thenReturn(
-                new CpfResolvedResponse(200, "SACC000000", "MACC000000", "success", "ACC success", null, null));
+        when(resolver.resolve(eq("SXYZ000000"), eq(Locale.KOREAN), eq(Map.of()), isNull())).thenReturn(
+                new CpfResolvedResponse(200, "SXYZ000000", "MXYZ000000", "success", "XYZ success", null, null));
         LoggingAspect aspect = aspect(resolver);
 
         Object metadata = invoke(
                 aspect,
                 "resolveResponseMetadata",
                 new Class<?>[] {Object.class, String.class},
-                ResponseEntity.ok(new SampleBody("SACC000000", null, null)),
-                "ACC");
+                ResponseEntity.ok(new SampleBody("SXYZ000000", null, null)),
+                "XYZ");
 
-        assertThat(value(metadata, "responseCode")).isEqualTo("SACC000000");
-        assertThat(value(metadata, "messageCode")).isEqualTo("MACC000000");
+        assertThat(value(metadata, "responseCode")).isEqualTo("SXYZ000000");
+        assertThat(value(metadata, "messageCode")).isEqualTo("MXYZ000000");
         assertThat(value(metadata, "messageContent")).isEqualTo("success");
-        assertThat(value(metadata, "internalMessage")).isEqualTo("ACC success");
+        assertThat(value(metadata, "internalMessage")).isEqualTo("XYZ success");
     }
 
     @Test
     void resolveErrorMetadata_ShouldUseResolverForResponseCodeException() throws Exception {
         CpfResponseCodeResolver resolver = mock(CpfResponseCodeResolver.class);
         Map<String, Object> args = Map.of("0", "accountId");
-        when(resolver.resolve(eq("EACC010001"), eq(Locale.KOREAN), eq(args), eq("invalid accountId"))).thenReturn(
-                new CpfResolvedResponse(400, "EACC010001", "MACC010001", "accountId is invalid.", "ACC invalid accountId", "EACC010001", "invalid accountId"));
+        when(resolver.resolve(eq("EXYZ010001"), eq(Locale.KOREAN), eq(args), eq("invalid accountId"))).thenReturn(
+                new CpfResolvedResponse(400, "EXYZ010001", "MXYZ010001", "accountId is invalid.", "XYZ invalid accountId", "EXYZ010001", "invalid accountId"));
         LoggingAspect aspect = aspect(resolver);
 
         Object metadata = invoke(
                 aspect,
                 "resolveErrorMetadata",
                 new Class<?>[] {Throwable.class, Locale.class},
-                new CpfBusinessException("EACC010001", "invalid accountId", args),
+                new CpfBusinessException("EXYZ010001", "invalid accountId", args),
                 Locale.KOREAN);
 
         assertThat(value(metadata, "httpStatus")).isEqualTo(400);
-        assertThat(value(metadata, "responseCode")).isEqualTo("EACC010001");
-        assertThat(value(metadata, "messageCode")).isEqualTo("MACC010001");
-        assertThat(value(metadata, "errorCode")).isEqualTo("EACC010001");
+        assertThat(value(metadata, "responseCode")).isEqualTo("EXYZ010001");
+        assertThat(value(metadata, "messageCode")).isEqualTo("MXYZ010001");
+        assertThat(value(metadata, "errorCode")).isEqualTo("EXYZ010001");
         assertThat(value(metadata, "externalMessage")).isEqualTo("accountId is invalid.");
-        assertThat(value(metadata, "internalMessage")).isEqualTo("ACC invalid accountId");
+        assertThat(value(metadata, "internalMessage")).isEqualTo("XYZ invalid accountId");
     }
 
     @SuppressWarnings("unchecked")

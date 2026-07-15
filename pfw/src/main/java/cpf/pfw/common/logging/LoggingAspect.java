@@ -6,6 +6,7 @@ import cpf.pfw.common.exception.CpfException;
 import cpf.pfw.common.exception.CpfMessageResolver;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.header.CpfHeaderAuditLogger;
 import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.header.CpfHeaderSnapshot;
@@ -95,7 +96,7 @@ public class LoggingAspect {
         String parentSpanId = TransactionContext.currentParentSpanId();
         int sequenceNo = TransactionContext.nextSequenceNo();
         TransactionHeader transactionHeader = TransactionContext.currentHeader();
-        CpfTransaction cpfTransaction = resolveCpfTransaction(joinPoint);
+        OnlineExecutionMetadata onlineExecution = resolveOnlineExecution(joinPoint);
 
         String moduleId = resolveModuleId(joinPoint);
         String controller = joinPoint.getSignature().toShortString();
@@ -110,8 +111,8 @@ public class LoggingAspect {
                 request != null ? clientIp(request) : null,
                 "N/A");
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
-        String businessTransactionId = cpfTransaction != null ? cpfTransaction.id() : "UNKNOWN";
-        String businessTransactionName = cpfTransaction != null ? cpfTransaction.name() : controller;
+        String businessTransactionId = onlineExecution != null ? onlineExecution.id() : "UNKNOWN";
+        String businessTransactionName = onlineExecution != null ? onlineExecution.name() : controller;
         LogPolicyDecision logPolicy = resolveOnlineLogPolicy(businessTransactionId);
         if (!logPolicy.requestBodySave()) {
             requestBody = null;
@@ -595,8 +596,16 @@ public class LoggingAspect {
         }
     }
 
-    private CpfTransaction resolveCpfTransaction(ProceedingJoinPoint joinPoint) {
-        return resolveAnnotation(joinPoint, CpfTransaction.class);
+    private OnlineExecutionMetadata resolveOnlineExecution(ProceedingJoinPoint joinPoint) {
+        CpfOnlineTransaction standard = resolveAnnotation(joinPoint, CpfOnlineTransaction.class);
+        if (standard != null) {
+            return new OnlineExecutionMetadata(standard.id(), standard.name());
+        }
+        CpfTransaction legacy = resolveAnnotation(joinPoint, CpfTransaction.class);
+        return legacy == null ? null : new OnlineExecutionMetadata(legacy.id(), legacy.name());
+    }
+
+    private record OnlineExecutionMetadata(String id, String name) {
     }
 
     private CpfWorkflowMetadata resolveWorkflowMetadata(
@@ -770,8 +779,17 @@ public class LoggingAspect {
         if (declaringType.contains(".mbr.")) {
             return "MBR";
         }
-        if (declaringType.contains(".acc.")) {
-            return "ACC";
+        if (declaringType.contains(".bza.")) {
+            return "BZA";
+        }
+        if (declaringType.contains(".xyz.")) {
+            return "XYZ";
+        }
+        if (declaringType.contains(".adm.")) {
+            return "ADM";
+        }
+        if (declaringType.contains(".bat.")) {
+            return "BAT";
         }
         if (declaringType.contains(".cmn.")) {
             return "CMN";

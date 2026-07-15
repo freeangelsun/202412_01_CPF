@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * CPF 배치 공통 API 자동 구성입니다.
  *
- * <p>Spring Batch를 실제로 사용하는 모듈에서만 활성화됩니다. ACC/MBR처럼 배치를 쓰지 않는 모듈에는
+ * <p>Spring Batch를 실제로 사용하는 모듈에서만 활성화됩니다. MBR/BZA처럼 배치를 쓰지 않는 모듈에는
  * Spring Batch 런타임 의존성을 전파하지 않아 다중 datasource 자동설정 충돌을 막습니다.</p>
  */
 @Configuration(proxyBeanMethods = false)

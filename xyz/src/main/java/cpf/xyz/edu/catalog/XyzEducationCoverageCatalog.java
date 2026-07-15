@@ -76,7 +76,15 @@ public final class XyzEducationCoverageCatalog {
             "XYZ-EDU-VALID-003",
             "XYZ-EDU-VALID-004",
             "XYZ-EDU-OPER-001",
-            "XYZ-EDU-OPER-002"
+            "XYZ-EDU-OPER-002",
+            "XYZ-EDU-AI-001",
+            "XYZ-EDU-AI-002",
+            "XYZ-EDU-AI-003",
+            "XYZ-EDU-AI-004",
+            "XYZ-EDU-AI-005",
+            "XYZ-EDU-AI-006",
+            "XYZ-EDU-ATTACH-001",
+            "XYZ-EDU-ATTACH-002"
     )));
 
     private XyzEducationCoverageCatalog() {

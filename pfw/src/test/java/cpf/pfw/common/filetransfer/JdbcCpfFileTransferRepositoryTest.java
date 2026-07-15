@@ -27,7 +27,7 @@ class JdbcCpfFileTransferRepositoryTest {
                 .thenReturn(1);
         JdbcCpfFileTransferRepository repository = new JdbcCpfFileTransferRepository(jdbcTemplate);
 
-        assertThat(repository.alreadyProcessed("EXS", "file-key", "sha256:1")).isTrue();
+        assertThat(repository.alreadyProcessed("BZA", "file-key", "sha256:1")).isTrue();
     }
 
     @Test
@@ -47,10 +47,10 @@ class JdbcCpfFileTransferRepositoryTest {
     @Test
     void findHistoryMapsResultRows() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForList(anyString(), eq("EXS"), eq("EXS"), isNull(), isNull(), isNull(), isNull(), eq(10)))
+        when(jdbcTemplate.queryForList(anyString(), eq("BZA"), eq("BZA"), isNull(), isNull(), isNull(), isNull(), eq(10)))
                 .thenReturn(List.of(Map.of(
                         "transferStatus", "SUCCESS",
-                        "endpointCode", "EXS",
+                        "endpointCode", "BZA",
                         "localPath", "/tmp/a.dat",
                         "remotePath", "/remote/a.dat",
                         "checksum", "sha256:1",
@@ -59,7 +59,7 @@ class JdbcCpfFileTransferRepositoryTest {
                         "resultDetail", "OK")));
         JdbcCpfFileTransferRepository repository = new JdbcCpfFileTransferRepository(jdbcTemplate);
 
-        List<CpfFileTransferResult> history = repository.findHistory("EXS", null, null, 10);
+        List<CpfFileTransferResult> history = repository.findHistory("BZA", null, null, 10);
 
         assertThat(history).hasSize(1);
         assertThat(history.get(0).status()).isEqualTo("SUCCESS");
@@ -70,7 +70,7 @@ class JdbcCpfFileTransferRepositoryTest {
         return new CpfFileTransferRequest(
                 "202607100001",
                 "SEG-1",
-                "EXS",
+                "BZA",
                 "UPLOAD",
                 "/tmp/a.dat",
                 "/remote/a.dat",

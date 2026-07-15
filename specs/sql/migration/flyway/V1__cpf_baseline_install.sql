@@ -19,10 +19,6 @@ CREATE DATABASE IF NOT EXISTS admDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-CREATE DATABASE IF NOT EXISTS accDB
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_unicode_ci;
-
 CREATE DATABASE IF NOT EXISTS xyzDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
@@ -31,11 +27,7 @@ CREATE DATABASE IF NOT EXISTS mbrDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-CREATE DATABASE IF NOT EXISTS bizadmDB
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_unicode_ci;
-
-CREATE DATABASE IF NOT EXISTS exsDB
+CREATE DATABASE IF NOT EXISTS bzaDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 -- ============================================================================
@@ -43,29 +35,24 @@ CREATE DATABASE IF NOT EXISTS exsDB
 -- ============================================================================
 -- 로컬 설치와 smoke 검증을 위해 CPF 현행 표준 테이블을 다시 생성합니다.
 
-DROP TABLE IF EXISTS exsDB.exs_retry_log;
-DROP TABLE IF EXISTS exsDB.exs_control_policy;
-DROP TABLE IF EXISTS exsDB.exs_message_log;
-DROP TABLE IF EXISTS exsDB.exs_transaction_log;
-DROP TABLE IF EXISTS exsDB.exs_route_rule;
-DROP TABLE IF EXISTS exsDB.exs_token_event_history;
-DROP TABLE IF EXISTS exsDB.exs_token_store;
-DROP TABLE IF EXISTS exsDB.exs_auth_profile;
-DROP TABLE IF EXISTS exsDB.exs_endpoint;
-DROP TABLE IF EXISTS exsDB.exs_channel;
-DROP TABLE IF EXISTS exsDB.exs_institution;
-
-DROP TABLE IF EXISTS bizadmDB.bizadm_masking_audit;
-DROP TABLE IF EXISTS bizadmDB.bizadm_project_setting;
-DROP TABLE IF EXISTS bizadmDB.bizadm_order;
-DROP TABLE IF EXISTS bizadmDB.bizadm_product;
-DROP TABLE IF EXISTS bizadmDB.bizadm_customer;
-DROP TABLE IF EXISTS bizadmDB.bizadm_permission;
-DROP TABLE IF EXISTS bizadmDB.bizadm_role;
-DROP TABLE IF EXISTS bizadmDB.bizadm_menu;
-DROP TABLE IF EXISTS bizadmDB.bizadm_refresh_token;
-DROP TABLE IF EXISTS bizadmDB.bizadm_login_history;
-DROP TABLE IF EXISTS bizadmDB.bizadm_admin_user;
+DROP TABLE IF EXISTS bzaDB.bza_approval_history;
+DROP TABLE IF EXISTS bzaDB.bza_approval_line;
+DROP TABLE IF EXISTS bzaDB.bza_approval_document;
+DROP TABLE IF EXISTS bzaDB.bza_business_audit;
+DROP TABLE IF EXISTS bzaDB.bza_user_role;
+DROP TABLE IF EXISTS bzaDB.bza_employee;
+DROP TABLE IF EXISTS bzaDB.bza_organization;
+DROP TABLE IF EXISTS bzaDB.bza_masking_audit;
+DROP TABLE IF EXISTS bzaDB.bza_project_setting;
+DROP TABLE IF EXISTS bzaDB.bza_order;
+DROP TABLE IF EXISTS bzaDB.bza_product;
+DROP TABLE IF EXISTS bzaDB.bza_customer;
+DROP TABLE IF EXISTS bzaDB.bza_permission;
+DROP TABLE IF EXISTS bzaDB.bza_role;
+DROP TABLE IF EXISTS bzaDB.bza_menu;
+DROP TABLE IF EXISTS bzaDB.bza_refresh_token;
+DROP TABLE IF EXISTS bzaDB.bza_login_history;
+DROP TABLE IF EXISTS bzaDB.bza_admin_user;
 
 DROP TABLE IF EXISTS mbrDB.mbr_refresh_token;
 DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
@@ -75,8 +62,6 @@ DROP TABLE IF EXISTS mbrDB.mbr_member;
 
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
-
-DROP TABLE IF EXISTS accDB.acc_account;
 
 DROP TABLE IF EXISTS admDB.adm_download_audit_log;
 DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
@@ -159,6 +144,8 @@ DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
 DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
+DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 -- ============================================================================
@@ -174,15 +161,11 @@ SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_cmn_migration'@'localhost' ID
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_adm_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
-PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_xyz_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bizadm_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
-PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_exs_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bza_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_pfw_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
@@ -191,35 +174,27 @@ SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_cmn_app'@'localhost' IDENTIFI
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_adm_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
-PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_xyz_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bizadm_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
-PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_exs_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bza_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = NULL;
 
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON pfwDB.* TO 'cpf_pfw_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON cmnDB.* TO 'cpf_cmn_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON admDB.* TO 'cpf_adm_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON accDB.* TO 'cpf_acc_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON xyzDB.* TO 'cpf_xyz_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON mbrDB.* TO 'cpf_mbr_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON bizadmDB.* TO 'cpf_bizadm_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON exsDB.* TO 'cpf_exs_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON bzaDB.* TO 'cpf_bza_migration'@'localhost';
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON pfwDB.* TO 'cpf_pfw_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON cmnDB.* TO 'cpf_cmn_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON admDB.* TO 'cpf_adm_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON accDB.* TO 'cpf_acc_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON xyzDB.* TO 'cpf_xyz_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON mbrDB.* TO 'cpf_mbr_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON bizadmDB.* TO 'cpf_bizadm_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON exsDB.* TO 'cpf_exs_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON bzaDB.* TO 'cpf_bza_app'@'localhost';
 
 FLUSH PRIVILEGES;
 -- ============================================================================
@@ -614,6 +589,35 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
     INDEX ix_pfw_transaction_meta_policy (log_policy_key, active_yn),
     INDEX ix_pfw_transaction_meta_scan (active_yn, last_scanned_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온라인 거래 메타';
+
+CREATE TABLE IF NOT EXISTS pfw_standard_execution (
+    standard_execution_id VARCHAR(20) NOT NULL COMMENT 'CPF 온라인·배치 표준 실행 ID',
+    execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
+    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE 또는 BATCH',
+    owner_domain VARCHAR(20) NOT NULL COMMENT '실행 소유 주제영역',
+    source_module VARCHAR(20) NOT NULL COMMENT '발견 소스 모듈',
+    source_class VARCHAR(255) NOT NULL COMMENT '선언 클래스명',
+    source_method VARCHAR(150) NOT NULL COMMENT '선언 메서드명',
+    endpoint VARCHAR(500) NULL COMMENT '연결 API 또는 배치 endpoint',
+    operation_id VARCHAR(150) NULL COMMENT '연결 OpenAPI operation ID',
+    source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
+    registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
+    first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
+    last_discovered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 발견일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (standard_execution_id),
+    INDEX ix_pfw_standard_execution_type (execution_type, registration_status),
+    INDEX ix_pfw_standard_execution_owner (owner_domain, source_module),
+    INDEX ix_pfw_standard_execution_source (source_class, source_method),
+    CONSTRAINT ck_pfw_standard_execution_id CHECK (
+        standard_execution_id REGEXP '^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[0-9]{4}$'
+        AND RIGHT(standard_execution_id, 4) <> '0000'
+    ),
+    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'BATCH'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 표준 온라인·배치 실행 카탈로그';
 
 CREATE TABLE IF NOT EXISTS pfw_log_policy (
     policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
@@ -2133,26 +2137,7 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_result (
 -- specs/sql/40_business_modules_schema.sql
 -- ============================================================================
 -- 업무/교육 샘플 스키마입니다.
--- ACC 계정 샘플과 MBR 회원 샘플은 각 업무 DB에만 배치합니다.
-
-USE accDB;
-
-CREATE TABLE IF NOT EXISTS acc_account (
-    account_id INT NOT NULL AUTO_INCREMENT COMMENT '계정 순번',
-    account_no VARCHAR(30) NOT NULL COMMENT '계정 번호',
-    account_name VARCHAR(100) NOT NULL COMMENT '계정명',
-    account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '계정 상태',
-    balance DECIMAL(18,2) NOT NULL DEFAULT 0 COMMENT '잔액',
-    description TEXT NULL COMMENT '계정 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (account_id),
-    UNIQUE KEY uk_acc_account_no (account_no),
-    INDEX ix_acc_account_status (account_status),
-    INDEX ix_acc_account_name (account_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 샘플';
+-- 기본 업무 스키마는 XYZ 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
 
 USE xyzDB;
 
@@ -2336,9 +2321,9 @@ CREATE TABLE IF NOT EXISTS mbr_refresh_token (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 refresh token hash 저장소';
 
-USE bizadmDB;
+USE bzaDB;
 
-CREATE TABLE IF NOT EXISTS bizadm_admin_user (
+CREATE TABLE IF NOT EXISTS bza_admin_user (
     admin_user_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 사용자 순번',
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
@@ -2355,14 +2340,14 @@ CREATE TABLE IF NOT EXISTS bizadm_admin_user (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (admin_user_id),
-    UNIQUE KEY uk_bizadm_admin_user_login (admin_login_id),
-    INDEX ix_bizadm_admin_user_role (role_code, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 사용자';
+    UNIQUE KEY uk_bza_admin_user_login (admin_login_id),
+    INDEX ix_bza_admin_user_role (role_code, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 사용자';
 
-CREATE TABLE IF NOT EXISTS bizadm_login_history (
+CREATE TABLE IF NOT EXISTS bza_login_history (
     login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 로그인 이력 순번',
     admin_user_id BIGINT NULL COMMENT '업무 관리자 사용자 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
     failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
@@ -2377,18 +2362,18 @@ CREATE TABLE IF NOT EXISTS bizadm_login_history (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (login_history_id),
-    INDEX ix_bizadm_login_history_user_time (admin_user_id, created_at),
-    INDEX ix_bizadm_login_history_result_time (login_result, created_at),
-    INDEX ix_bizadm_login_history_global (transaction_global_id),
-    CONSTRAINT fk_bizadm_login_history_user
-        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+    INDEX ix_bza_login_history_user_time (admin_user_id, created_at),
+    INDEX ix_bza_login_history_result_time (login_result, created_at),
+    INDEX ix_bza_login_history_global (transaction_global_id),
+    CONSTRAINT fk_bza_login_history_user
+        FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 로그인 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 로그인 이력';
 
-CREATE TABLE IF NOT EXISTS bizadm_refresh_token (
+CREATE TABLE IF NOT EXISTS bza_refresh_token (
     refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 관리자 refresh token 순번',
     admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'BIZADM' COMMENT '로그인 도메인',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'BZA' COMMENT '로그인 도메인',
     refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
     transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
     expire_at DATETIME NOT NULL COMMENT '만료 일시',
@@ -2399,17 +2384,22 @@ CREATE TABLE IF NOT EXISTS bizadm_refresh_token (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (refresh_token_id),
-    UNIQUE KEY uk_bizadm_refresh_token_hash (refresh_token_hash),
-    INDEX ix_bizadm_refresh_token_user (admin_user_id, revoked_yn, expire_at),
-    CONSTRAINT fk_bizadm_refresh_token_user
-        FOREIGN KEY (admin_user_id) REFERENCES bizadm_admin_user(admin_user_id)
+    UNIQUE KEY uk_bza_refresh_token_hash (refresh_token_hash),
+    INDEX ix_bza_refresh_token_user (admin_user_id, revoked_yn, expire_at),
+    CONSTRAINT fk_bza_refresh_token_user
+        FOREIGN KEY (admin_user_id) REFERENCES bza_admin_user(admin_user_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 관리자 refresh token hash 저장소';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 관리자 refresh token hash 저장소';
 
-CREATE TABLE IF NOT EXISTS bizadm_menu (
+CREATE TABLE IF NOT EXISTS bza_menu (
     menu_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 메뉴 순번',
     menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
     menu_name VARCHAR(120) NOT NULL COMMENT '업무 메뉴명',
+    parent_menu_code VARCHAR(80) NULL COMMENT '상위 업무 메뉴 코드',
+    module_code VARCHAR(20) NOT NULL DEFAULT 'BZA' COMMENT '소유 업무 모듈 코드',
+    route_path VARCHAR(300) NULL COMMENT '화면 이동 경로',
+    icon_code VARCHAR(80) NULL COMMENT '화면 아이콘 코드',
+    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
     api_path VARCHAR(300) NULL COMMENT '연결 API 경로',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
@@ -2418,39 +2408,282 @@ CREATE TABLE IF NOT EXISTS bizadm_menu (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (menu_id),
-    UNIQUE KEY uk_bizadm_menu_code (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 메뉴';
+    UNIQUE KEY uk_bza_menu_code (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 메뉴';
 
-CREATE TABLE IF NOT EXISTS bizadm_role (
+CREATE TABLE IF NOT EXISTS bza_role (
     role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 역할 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
     role_name VARCHAR(120) NOT NULL COMMENT '업무 역할명',
     write_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '쓰기 허용 여부',
+    data_scope VARCHAR(30) NOT NULL DEFAULT 'OWN' COMMENT '기본 데이터 접근 범위',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (role_id),
-    UNIQUE KEY uk_bizadm_role_code (role_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 역할';
+    UNIQUE KEY uk_bza_role_code (role_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 역할';
 
-CREATE TABLE IF NOT EXISTS bizadm_permission (
+CREATE TABLE IF NOT EXISTS bza_permission (
     permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
     menu_code VARCHAR(80) NOT NULL COMMENT '업무 메뉴 코드',
     button_code VARCHAR(80) NOT NULL COMMENT '버튼/행위 코드',
+    permission_type VARCHAR(30) NOT NULL DEFAULT 'BUTTON' COMMENT '권한 유형 SCREEN, BUTTON, API',
+    http_method VARCHAR(10) NULL COMMENT 'API HTTP 메서드',
+    api_pattern VARCHAR(300) NULL COMMENT 'API 경로 패턴',
+    domain_code VARCHAR(30) NULL COMMENT '적용 업무 영역 코드',
+    environment_code VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT '적용 환경 코드',
+    data_scope VARCHAR(30) NOT NULL DEFAULT 'ROLE' COMMENT '권한 데이터 범위',
     allow_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (permission_id),
-    UNIQUE KEY uk_bizadm_permission (role_code, menu_code, button_code),
-    INDEX ix_bizadm_permission_menu (menu_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 업무 권한';
+    UNIQUE KEY uk_bza_permission (role_code, menu_code, button_code),
+    INDEX ix_bza_permission_menu (menu_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 권한';
 
-CREATE TABLE IF NOT EXISTS bizadm_customer (
+CREATE TABLE IF NOT EXISTS bza_organization (
+    organization_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '조직 순번',
+    organization_code VARCHAR(50) NOT NULL COMMENT '조직 코드',
+    parent_organization_code VARCHAR(50) NULL COMMENT '상위 조직 코드',
+    organization_name VARCHAR(120) NOT NULL COMMENT '조직명',
+    organization_type VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '조직 정렬 순서',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (organization_id),
+    UNIQUE KEY uk_bza_organization_code (organization_code),
+    INDEX ix_bza_organization_parent (parent_organization_code, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직';
+
+CREATE TABLE IF NOT EXISTS bza_employee (
+    employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 순번',
+    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
+    admin_user_id BIGINT NULL COMMENT '연결 업무 관리자 사용자 순번',
+    organization_code VARCHAR(50) NOT NULL COMMENT '소속 조직 코드',
+    employee_name VARCHAR(100) NOT NULL COMMENT '직원명',
+    position_code VARCHAR(50) NULL COMMENT '직급 코드',
+    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
+    manager_employee_no VARCHAR(50) NULL COMMENT '상위 관리자 직원 번호',
+    employment_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '재직 상태',
+    join_date DATE NULL COMMENT '입사일',
+    leave_date DATE NULL COMMENT '퇴사일',
+    email VARCHAR(200) NULL COMMENT '업무 이메일',
+    mobile_no VARCHAR(50) NULL COMMENT '업무 휴대폰 번호',
+    delegated_approver_no VARCHAR(50) NULL COMMENT '대리 결재자 직원 번호',
+    absence_from DATE NULL COMMENT '부재 시작일',
+    absence_to DATE NULL COMMENT '부재 종료일',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (employee_id),
+    UNIQUE KEY uk_bza_employee_no (employee_no),
+    UNIQUE KEY uk_bza_employee_admin_user (admin_user_id),
+    INDEX ix_bza_employee_organization (organization_code, employment_status),
+    CONSTRAINT fk_bza_employee_admin_user FOREIGN KEY (admin_user_id)
+        REFERENCES bza_admin_user(admin_user_id) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_organization FOREIGN KEY (organization_code)
+        REFERENCES bza_organization(organization_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 프로필';
+
+CREATE TABLE IF NOT EXISTS bza_user_role (
+    user_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 역할 부여 순번',
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
+    effective_from DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 적용 시작일시',
+    effective_to DATETIME NULL COMMENT '권한 적용 종료일시',
+    grant_reason VARCHAR(500) NOT NULL COMMENT '권한 부여 사유',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (user_role_id),
+    UNIQUE KEY uk_bza_user_role (admin_user_id, role_code, effective_from),
+    INDEX ix_bza_user_role_effective (admin_user_id, use_yn, effective_to),
+    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id)
+        REFERENCES bza_admin_user(admin_user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 역할 부여';
+
+CREATE TABLE IF NOT EXISTS bza_business_audit (
+    audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 감사 순번',
+    transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    actor_id VARCHAR(100) NOT NULL COMMENT '처리 사용자 ID',
+    action_type VARCHAR(50) NOT NULL COMMENT '업무 행위 유형',
+    target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
+    target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
+    reason VARCHAR(500) NOT NULL COMMENT '업무 처리 사유',
+    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
+    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (audit_id),
+    INDEX ix_bza_business_audit_target (target_type, target_id, created_at),
+    INDEX ix_bza_business_audit_actor (actor_id, created_at),
+    INDEX ix_bza_business_audit_transaction (transaction_global_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 감사';
+
+CREATE TABLE IF NOT EXISTS bza_notification (
+    notification_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 알림 순번',
+    recipient_login_id VARCHAR(100) NOT NULL COMMENT '수신 BZA 로그인 ID',
+    notification_type VARCHAR(40) NOT NULL COMMENT '업무 알림 유형',
+    title VARCHAR(200) NOT NULL COMMENT '업무 알림 제목',
+    message_body VARCHAR(2000) NOT NULL COMMENT '업무 알림 내용',
+    reference_type VARCHAR(80) NULL COMMENT '참조 업무 유형',
+    reference_id VARCHAR(120) NULL COMMENT '참조 업무 ID',
+    read_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '읽음 여부',
+    read_at DATETIME NULL COMMENT '읽음 일시',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (notification_id),
+    INDEX ix_bza_notification_recipient (recipient_login_id, read_yn, use_yn, created_at),
+    INDEX ix_bza_notification_reference (reference_type, reference_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 알림';
+
+CREATE TABLE IF NOT EXISTS bza_attachment (
+    attachment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '첨부파일 순번',
+    attachment_group_id VARCHAR(80) NOT NULL COMMENT '첨부파일 그룹 ID',
+    original_file_name VARCHAR(255) NOT NULL COMMENT '원본 파일명',
+    stored_file_name VARCHAR(255) NOT NULL COMMENT '저장 파일명',
+    storage_key VARCHAR(500) NOT NULL COMMENT '저장소 상대 key',
+    content_type VARCHAR(120) NOT NULL COMMENT '파일 Content-Type',
+    file_size BIGINT NOT NULL COMMENT '파일 크기 byte',
+    checksum_sha256 CHAR(64) NOT NULL COMMENT '파일 SHA-256 checksum',
+    scan_status VARCHAR(40) NOT NULL DEFAULT 'PENDING' COMMENT '보안 검사 상태',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (attachment_id),
+    UNIQUE KEY uk_bza_attachment_storage_key (storage_key),
+    INDEX ix_bza_attachment_group (attachment_group_id, use_yn, created_at),
+    INDEX ix_bza_attachment_checksum (checksum_sha256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 첨부파일 메타';
+
+CREATE TABLE IF NOT EXISTS bza_saved_search (
+    saved_search_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '저장 검색 순번',
+    owner_login_id VARCHAR(100) NOT NULL COMMENT '저장 검색 소유 로그인 ID',
+    screen_code VARCHAR(80) NOT NULL COMMENT '적용 화면 코드',
+    search_name VARCHAR(120) NOT NULL COMMENT '저장 검색명',
+    criteria_json LONGTEXT NOT NULL COMMENT '검색 조건 JSON',
+    shared_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공유 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (saved_search_id),
+    UNIQUE KEY uk_bza_saved_search_owner (owner_login_id, screen_code, search_name),
+    INDEX ix_bza_saved_search_screen (screen_code, shared_yn, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 저장 검색';
+
+CREATE TABLE IF NOT EXISTS bza_download_audit (
+    download_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '다운로드 감사 순번',
+    actor_id VARCHAR(100) NOT NULL COMMENT '다운로드 처리 로그인 ID',
+    download_code VARCHAR(80) NOT NULL COMMENT '다운로드 기능 코드',
+    reason VARCHAR(500) NOT NULL COMMENT '다운로드 사유',
+    filter_json LONGTEXT NULL COMMENT '다운로드 검색 조건 JSON',
+    row_count BIGINT NOT NULL DEFAULT 0 COMMENT '다운로드 결과 건수',
+    result_status VARCHAR(40) NOT NULL COMMENT '다운로드 결과 상태',
+    file_name VARCHAR(255) NULL COMMENT '다운로드 파일명',
+    masking_applied_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '마스킹 적용 여부',
+    transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (download_audit_id),
+    INDEX ix_bza_download_audit_actor (actor_id, created_at),
+    INDEX ix_bza_download_audit_transaction (transaction_global_id),
+    INDEX ix_bza_download_audit_status (result_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 다운로드 감사';
+
+CREATE TABLE IF NOT EXISTS bza_approval_document (
+    approval_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 문서 순번',
+    approval_no VARCHAR(50) NOT NULL COMMENT '결재 문서 번호',
+    approval_type VARCHAR(50) NOT NULL COMMENT '결재 유형',
+    business_domain VARCHAR(30) NOT NULL COMMENT '요청 업무 영역',
+    title VARCHAR(200) NOT NULL COMMENT '결재 제목',
+    requester_employee_no VARCHAR(50) NOT NULL COMMENT '요청자 직원 번호',
+    approval_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT '결재 상태',
+    approval_mode VARCHAR(30) NOT NULL DEFAULT 'SEQUENTIAL' COMMENT '결재 방식',
+    current_step_no INT NOT NULL DEFAULT 0 COMMENT '현재 결재 단계',
+    due_at DATETIME NULL COMMENT '결재 기한',
+    payload_json LONGTEXT NULL COMMENT '결재 업무 데이터 JSON',
+    attachment_group_id VARCHAR(100) NULL COMMENT '첨부파일 그룹 ID',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (approval_id),
+    UNIQUE KEY uk_bza_approval_document_no (approval_no),
+    INDEX ix_bza_approval_document_status (approval_status, due_at),
+    INDEX ix_bza_approval_document_requester (requester_employee_no, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 문서';
+
+CREATE TABLE IF NOT EXISTS bza_approval_line (
+    approval_line_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재선 순번',
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    step_no INT NOT NULL COMMENT '결재 단계',
+    approver_employee_no VARCHAR(50) NOT NULL COMMENT '결재자 직원 번호',
+    decision_rule VARCHAR(30) NOT NULL DEFAULT 'ALL_APPROVE' COMMENT '단계 승인 규칙',
+    decision_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '결재자 결정 상태',
+    delegated_from_employee_no VARCHAR(50) NULL COMMENT '위임 원 결재자 직원 번호',
+    decision_comment VARCHAR(1000) NULL COMMENT '결재 의견',
+    decided_at DATETIME NULL COMMENT '결정 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (approval_line_id),
+    UNIQUE KEY uk_bza_approval_line (approval_id, step_no, approver_employee_no),
+    INDEX ix_bza_approval_line_approver (approver_employee_no, decision_status),
+    CONSTRAINT fk_bza_approval_line_document FOREIGN KEY (approval_id)
+        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재선';
+
+CREATE TABLE IF NOT EXISTS bza_approval_history (
+    approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    action_type VARCHAR(30) NOT NULL COMMENT '결재 행위 유형',
+    actor_employee_no VARCHAR(50) NOT NULL COMMENT '처리 직원 번호',
+    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 행위 방지 키',
+    reason VARCHAR(500) NOT NULL COMMENT '결재 행위 사유',
+    before_status VARCHAR(30) NULL COMMENT '변경 전 상태',
+    after_status VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
+    comment_text VARCHAR(1000) NULL COMMENT '결재 의견',
+    transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (approval_history_id),
+    UNIQUE KEY uk_bza_approval_history_idempotency (idempotency_key),
+    INDEX ix_bza_approval_history_document (approval_id, created_at),
+    CONSTRAINT fk_bza_approval_history_document FOREIGN KEY (approval_id)
+        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 상태 변경 이력';
+
+CREATE TABLE IF NOT EXISTS bza_customer (
     customer_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고객 샘플 순번',
     customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
     customer_name VARCHAR(100) NOT NULL COMMENT '고객명',
@@ -2462,11 +2695,11 @@ CREATE TABLE IF NOT EXISTS bizadm_customer (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (customer_id),
-    UNIQUE KEY uk_bizadm_customer_no (customer_no),
-    INDEX ix_bizadm_customer_status (customer_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 고객';
+    UNIQUE KEY uk_bza_customer_no (customer_no),
+    INDEX ix_bza_customer_status (customer_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 고객';
 
-CREATE TABLE IF NOT EXISTS bizadm_product (
+CREATE TABLE IF NOT EXISTS bza_product (
     product_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '상품 샘플 순번',
     product_code VARCHAR(50) NOT NULL COMMENT '상품 코드',
     product_name VARCHAR(120) NOT NULL COMMENT '상품명',
@@ -2476,10 +2709,10 @@ CREATE TABLE IF NOT EXISTS bizadm_product (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (product_id),
-    UNIQUE KEY uk_bizadm_product_code (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 상품';
+    UNIQUE KEY uk_bza_product_code (product_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 상품';
 
-CREATE TABLE IF NOT EXISTS bizadm_order (
+CREATE TABLE IF NOT EXISTS bza_order (
     order_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '주문 샘플 순번',
     order_no VARCHAR(50) NOT NULL COMMENT '주문 번호',
     customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
@@ -2491,12 +2724,12 @@ CREATE TABLE IF NOT EXISTS bizadm_order (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (order_id),
-    UNIQUE KEY uk_bizadm_order_no (order_no),
-    INDEX ix_bizadm_order_customer (customer_no),
-    INDEX ix_bizadm_order_product (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 주문';
+    UNIQUE KEY uk_bza_order_no (order_no),
+    INDEX ix_bza_order_customer (customer_no),
+    INDEX ix_bza_order_product (product_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 주문';
 
-CREATE TABLE IF NOT EXISTS bizadm_project_setting (
+CREATE TABLE IF NOT EXISTS bza_project_setting (
     setting_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 설정 순번',
     setting_key VARCHAR(120) NOT NULL COMMENT '업무 설정 키',
     setting_value VARCHAR(1000) NULL COMMENT '업무 설정 값',
@@ -2507,10 +2740,10 @@ CREATE TABLE IF NOT EXISTS bizadm_project_setting (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (setting_id),
-    UNIQUE KEY uk_bizadm_project_setting_key (setting_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 프로젝트 설정';
+    UNIQUE KEY uk_bza_project_setting_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 프로젝트 설정';
 
-CREATE TABLE IF NOT EXISTS bizadm_masking_audit (
+CREATE TABLE IF NOT EXISTS bza_masking_audit (
     masking_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '마스킹 감사 샘플 순번',
     target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
     target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
@@ -2522,224 +2755,9 @@ CREATE TABLE IF NOT EXISTS bizadm_masking_audit (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (masking_audit_id),
-    INDEX ix_bizadm_masking_audit_target (target_type, target_id, created_at),
-    INDEX ix_bizadm_masking_audit_operator (operator_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BIZADM 마스킹 감사';
-
-USE exsDB;
-
-CREATE TABLE IF NOT EXISTS exs_institution (
-    institution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외기관 순번',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    institution_name VARCHAR(120) NOT NULL COMMENT '대외기관명',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '연계 허용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (institution_id),
-    UNIQUE KEY uk_exs_institution_code (institution_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외기관';
-
-CREATE TABLE IF NOT EXISTS exs_channel (
-    channel_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 채널 순번',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
-    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (channel_id),
-    UNIQUE KEY uk_exs_channel_code (institution_code, channel_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 채널';
-
-CREATE TABLE IF NOT EXISTS exs_endpoint (
-    endpoint_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 endpoint 순번',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT '대외 endpoint 코드',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    http_method VARCHAR(10) NOT NULL COMMENT 'HTTP 메서드',
-    endpoint_uri VARCHAR(500) NOT NULL COMMENT '대외 endpoint URI',
-    timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '호출 timeout 밀리초',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '기본 재시도 횟수',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'endpoint 사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (endpoint_id),
-    UNIQUE KEY uk_exs_endpoint_code (endpoint_code),
-    INDEX ix_exs_endpoint_institution (institution_code, enabled_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 endpoint';
-
-CREATE TABLE IF NOT EXISTS exs_auth_profile (
-    auth_profile_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 인증 프로파일 순번',
-    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    auth_type VARCHAR(30) NOT NULL COMMENT '인증 유형',
-    secret_ref VARCHAR(300) NULL COMMENT 'secret 참조 경로',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '인증 프로파일 사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (auth_profile_id),
-    UNIQUE KEY uk_exs_auth_profile_code (auth_profile_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 인증 프로파일';
-
-CREATE TABLE IF NOT EXISTS exs_token_store (
-    token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 토큰 순번',
-    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
-    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
-    token_hash VARCHAR(300) NULL COMMENT '대외 token hash',
-    masked_token VARCHAR(200) NULL COMMENT '마스킹 token 표시값',
-    token_status VARCHAR(30) NOT NULL COMMENT '토큰 상태',
-    issued_at DATETIME NULL COMMENT '발급 일시',
-    expire_at DATETIME NULL COMMENT '토큰 만료일시',
-    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (token_id),
-    UNIQUE KEY uk_exs_token_store_key (auth_profile_code, token_key),
-    INDEX ix_exs_token_store_expire (expire_at),
-    INDEX ix_exs_token_store_hash (token_hash)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 토큰 저장소';
-
-CREATE TABLE IF NOT EXISTS exs_token_event_history (
-    token_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 token 이벤트 순번',
-    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
-    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
-    event_type VARCHAR(50) NOT NULL COMMENT 'token 이벤트 유형',
-    reason VARCHAR(500) NULL COMMENT '이벤트 사유',
-    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (token_event_id),
-    INDEX ix_exs_token_event_profile_time (auth_profile_code, created_at),
-    INDEX ix_exs_token_event_global (transaction_global_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 token 이벤트 이력';
-
-CREATE TABLE IF NOT EXISTS exs_route_rule (
-    route_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 라우팅 규칙 순번',
-    route_code VARCHAR(80) NOT NULL COMMENT '대외 라우팅 규칙 코드',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
-    endpoint_code VARCHAR(80) NOT NULL COMMENT '대외 endpoint 코드',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '라우팅 사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (route_id),
-    UNIQUE KEY uk_exs_route_rule_code (route_code),
-    INDEX ix_exs_route_rule_target (institution_code, channel_code, enabled_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 라우팅 규칙';
-
-CREATE TABLE IF NOT EXISTS exs_transaction_log (
-    transaction_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 거래 로그 순번',
-    transaction_global_id VARCHAR(34) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT 'CPF 거래 구간 ID',
-    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
-    endpoint_code VARCHAR(80) NULL COMMENT '대외 endpoint 코드',
-    api_path VARCHAR(500) NULL COMMENT '요청 API 경로',
-    module_id VARCHAR(3) NOT NULL COMMENT '처리 모듈 ID',
-    was_id VARCHAR(7) NOT NULL COMMENT '처리 WAS ID',
-    server_instance_id VARCHAR(160) NULL COMMENT '처리 서버 인스턴스 ID',
-    request_at DATETIME(3) NOT NULL COMMENT '요청 수신/송신 일시',
-    response_at DATETIME(3) NULL COMMENT '응답 수신/송신 일시',
-    elapsed_ms BIGINT NULL COMMENT '처리 시간 밀리초',
-    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
-    http_method VARCHAR(10) NULL COMMENT 'HTTP 메서드',
-    request_uri VARCHAR(500) NULL COMMENT '요청 URI',
-    request_header_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 헤더',
-    response_header_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 헤더',
-    request_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 payload',
-    response_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 payload',
-    status VARCHAR(30) NOT NULL COMMENT '처리 상태',
-    result_code VARCHAR(50) NULL COMMENT '처리 결과 코드',
-    http_status INT NULL COMMENT 'HTTP 상태 코드',
-    error_code VARCHAR(100) NULL COMMENT '오류 코드',
-    error_message VARCHAR(1000) NULL COMMENT '마스킹된 오류 메시지',
-    retryable_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재처리 가능 여부',
-    timeout_ms INT NULL COMMENT 'timeout 밀리초',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재시도 횟수',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (transaction_log_id),
-    INDEX ix_exs_transaction_log_global (transaction_global_id),
-    INDEX ix_exs_transaction_log_segment (transaction_segment_id),
-    INDEX ix_exs_transaction_log_global_segment (transaction_global_id, transaction_segment_id),
-    INDEX ix_exs_transaction_log_external (external_transaction_id),
-    INDEX ix_exs_transaction_log_target_time (institution_code, channel_code, request_at),
-    INDEX ix_exs_transaction_log_status_time (status, request_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 거래 로그';
-
-CREATE TABLE IF NOT EXISTS exs_message_log (
-    message_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 송수신 로그 순번',
-    transaction_global_id VARCHAR(34) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT 'CPF 거래 구간 ID',
-    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
-    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
-    message_code VARCHAR(80) NULL COMMENT '대외 전문 코드',
-    message_summary VARCHAR(1000) NULL COMMENT '마스킹된 전문 요약',
-    request_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 요청 전문',
-    response_payload_masked MEDIUMTEXT NULL COMMENT '마스킹된 응답 전문',
-    payload_store_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '원문 별도 저장 여부',
-    payload_ref VARCHAR(300) NULL COMMENT '원문 저장 참조',
-    status VARCHAR(30) NOT NULL DEFAULT 'PRE_SAVED' COMMENT '전문 처리 상태',
-    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
-    failure_message_masked VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (message_log_id),
-    INDEX ix_exs_message_log_global (transaction_global_id, created_at),
-    INDEX ix_exs_message_log_segment (transaction_segment_id, created_at),
-    INDEX ix_exs_message_log_external (external_transaction_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 송수신 로그';
-
-CREATE TABLE IF NOT EXISTS exs_control_policy (
-    control_policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 통제 정책 순번',
-    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
-    control_type VARCHAR(30) NOT NULL COMMENT '통제 유형',
-    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '연계 허용 여부',
-    reason VARCHAR(500) NULL COMMENT '통제 사유',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (control_policy_id),
-    UNIQUE KEY uk_exs_control_policy (institution_code, control_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 통제 정책';
-
-CREATE TABLE IF NOT EXISTS exs_retry_log (
-    retry_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 재처리 로그 순번',
-    transaction_global_id VARCHAR(34) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
-    retry_status VARCHAR(30) NOT NULL COMMENT '재처리 상태',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
-    last_error_message VARCHAR(1000) NULL COMMENT '마스킹된 마지막 오류 메시지',
-    next_retry_at DATETIME NULL COMMENT '다음 재처리 예정 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (retry_log_id),
-    INDEX ix_exs_retry_log_global (transaction_global_id, retry_status),
-    INDEX ix_exs_retry_log_next (next_retry_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 재처리 로그';
+    INDEX ix_bza_masking_audit_target (target_type, target_id, created_at),
+    INDEX ix_bza_masking_audit_operator (operator_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 마스킹 감사';
 -- ============================================================================
 -- specs/sql/50_framework_seed_data.sql
 -- ============================================================================
@@ -2769,7 +2787,8 @@ VALUES
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'PFW', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ACC', '계정 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'XYZ', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
@@ -2823,9 +2842,9 @@ INSERT INTO pfw_message (
     ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MACC000000', 'ko', 'FIXED', '성공', 'ACC 요청이 정상 처리되었습니다.', 0, NULL, 'ACC 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MACC010001', 'ko', 'INDEXED', '계정 요청 값이 올바르지 않습니다.', 'ACC 파라미터 검증에 실패했습니다. field={0}', 1, '["accountId"]', 'ACC 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MACC010002', 'ko', 'INDEXED', '계정 정보를 찾을 수 없습니다.', 'ACC 조회 대상이 없습니다. target={0}', 1, '["account"]', 'ACC 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR000000', 'ko', 'FIXED', '성공', 'MBR 요청이 정상 처리되었습니다.', 0, NULL, 'MBR 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR010001', 'ko', 'FIXED', '회원이 생성되었습니다.', 'MBR 회원 데이터가 생성되었습니다.', 0, NULL, 'MBR 생성 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR010002', 'ko', 'FIXED', '회원이 수정되었습니다.', 'MBR 회원 데이터가 수정되었습니다.', 0, NULL, 'MBR 수정 메시지', 'SYSTEM', 'SYSTEM'),
@@ -2869,9 +2888,9 @@ INSERT INTO pfw_response_code (
     ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
     ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
     ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
-    ('SACC000000', 'MACC000000', 'S', 'ACC', '00', '0000', 200, 'ACC 성공', 'SYSTEM', 'SYSTEM'),
-    ('EACC010001', 'MACC010001', 'E', 'ACC', '01', '0001', 400, 'ACC 파라미터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EACC010002', 'MACC010002', 'E', 'ACC', '01', '0002', 404, 'ACC 미존재', 'SYSTEM', 'SYSTEM'),
+    ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
     ('SMBR000000', 'MMBR000000', 'S', 'MBR', '00', '0000', 200, 'MBR 성공', 'SYSTEM', 'SYSTEM'),
     ('SMBR010001', 'MMBR010001', 'S', 'MBR', '01', '0001', 200, 'MBR 생성 성공', 'SYSTEM', 'SYSTEM'),
     ('SMBR010002', 'MMBR010002', 'S', 'MBR', '01', '0002', 200, 'MBR 수정 성공', 'SYSTEM', 'SYSTEM'),
@@ -3334,9 +3353,9 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO pfw_service (
     service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
 ) VALUES
-    ('ACC', '계정 서비스', 'INTERNAL', 'ACC', 'CPF 계정 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA', '업무 백오피스 서비스', 'INTERNAL', 'BZA', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('EXS', '외부 연계 서비스', 'INTERNAL', 'EXS', 'CPF 외부 연계 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('XYZ', '온라인 교육 서비스', 'INTERNAL', 'XYZ', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3352,9 +3371,9 @@ INSERT INTO pfw_service_endpoint (
     endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
     default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
 ) VALUES
-    ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8080', '/acc', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_API', 'BZA', 'BZA API Endpoint', 'HTTP', 'http://localhost:8091', '/api/bza', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('EXS_API', 'EXS', 'EXS API Endpoint', 'HTTP', 'http://localhost:8092', '/api/exs', 5000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('XYZ_API', 'XYZ', 'XYZ API Endpoint', 'HTTP', 'http://localhost:8099', '/xyz', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3373,9 +3392,9 @@ INSERT INTO pfw_service_instance (
     instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
     port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
 ) VALUES
-    ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8080', 'localhost', 8080, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BZA-local-01', 'BZA', 'BZA_API', 'BZA local instance', 'http://localhost:8091', 'localhost', 8091, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('EXS-local-01', 'EXS', 'EXS_API', 'EXS local instance', 'http://localhost:8092', 'localhost', 8092, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('XYZ-local-01', 'XYZ', 'XYZ_API', 'XYZ local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3396,9 +3415,9 @@ INSERT INTO pfw_service_routing_policy (
     service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
     health_check_required_yn, active_yn, priority, created_by, updated_by
 ) VALUES
-    ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('BZA', 'BZA_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
-    ('EXS', 'EXS_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('XYZ', 'XYZ_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3413,9 +3432,9 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO pfw_service_circuit_state (
     service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by
 ) VALUES
-    ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('BZA', 'BZA_API', 'BZA-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('EXS', 'EXS_API', 'EXS-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('XYZ', 'XYZ_API', 'XYZ-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3430,10 +3449,10 @@ INSERT INTO pfw_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
-SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'BZA', 'BZA_API', 'BZA-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM pfw_service_health_status
-    WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
+    WHERE service_id = 'BZA' AND endpoint_code = 'BZA_API' AND instance_id = 'BZA-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO pfw_service_health_status (
@@ -3450,10 +3469,10 @@ INSERT INTO pfw_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
-SELECT 'EXS', 'EXS_API', 'EXS-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'XYZ', 'XYZ_API', 'XYZ-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM pfw_service_health_status
-    WHERE service_id = 'EXS' AND endpoint_code = 'EXS_API' AND instance_id = 'EXS-local-01' AND created_by = 'SYSTEM'
+    WHERE service_id = 'XYZ' AND endpoint_code = 'XYZ_API' AND instance_id = 'XYZ-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO pfw_service_health_status (
@@ -3657,7 +3676,7 @@ INSERT INTO cmn_fixed_length_layout (
     60,
     0,
     'Y',
-    'EXS 대외 잔액조회 요청 교육용 고정길이 전문 layout',
+    '외부기관 잔액조회 요청 교육용 고정길이 전문 layout',
     'SYSTEM',
     'SYSTEM'
 )
@@ -3800,6 +3819,8 @@ INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER,
 VALUES
     ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 24, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -3832,6 +3853,13 @@ VALUES
     ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('STANDARD_EXECUTION_READ', 'STANDARD_EXECUTION', 'READ', '표준 실행 조회', 'GET', '/adm/api/standard-executions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_READ', 'REMOTE_LOG', 'READ', '로그 아티팩트 조회', 'GET', '/adm/api/remote-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '로그 아티팩트 다운로드', 'GET', '/adm/api/remote-logs/*/download', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_BUNDLE_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '동기 로그 ZIP 다운로드', 'POST', '/adm/api/remote-logs/bundles', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_BUNDLE_CREATE', 'REMOTE_LOG', 'CREATE', '비동기 로그 ZIP 작업 등록', 'POST', '/adm/api/remote-logs/bundle-jobs', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_BUNDLE_TOKEN', 'REMOTE_LOG', 'ISSUE', '로그 ZIP 다운로드 token 발급', 'POST', '/adm/api/remote-logs/bundle-jobs/*/download-tokens', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_JOB_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '비동기 로그 ZIP 다운로드', 'GET', '/adm/api/remote-logs/bundle-jobs/*/download', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_READ', 'TRANSACTION_META', 'READ', '거래 메타 조회', 'GET', '/adm/api/transactions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_SCAN', 'TRANSACTION_META', 'SCAN', '거래 메타 스캔', 'POST', '/adm/api/transactions/scan', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -3946,7 +3974,7 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        CASE WHEN MENU_ID IN ('TRANSACTION_META', 'MESSAGE', 'CODE', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
@@ -3964,7 +3992,7 @@ SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
        CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -3975,7 +4003,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -4016,7 +4044,7 @@ INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_b
 SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
            WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH') THEN 'Y'
-           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
            ELSE 'N'
        END,
        'SYSTEM', 'SYSTEM'
@@ -4249,22 +4277,6 @@ ON DUPLICATE KEY UPDATE
     completed_at = VALUES(completed_at),
     last_error_message = VALUES(last_error_message),
     use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-USE accDB;
-
-INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)
-VALUES
-    (1, '100-000-000001', 'ACC 샘플 계정 1', 'ACTIVE', 100000.00, 'ACC 계정 샘플 1', 'SYSTEM', 'SYSTEM'),
-    (2, '100-000-000002', 'ACC 샘플 계정 2', 'ACTIVE', 250000.00, 'ACC 계정 샘플 2', 'SYSTEM', 'SYSTEM'),
-    (3, '100-000-000003', 'ACC 휴면 계정', 'DORMANT', 0.00, 'ACC 휴면 계정 샘플', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    account_no = VALUES(account_no),
-    account_name = VALUES(account_name),
-    account_status = VALUES(account_status),
-    balance = VALUES(balance),
-    description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
@@ -4535,18 +4547,17 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-USE bizadmDB;
+USE bzaDB;
 
-INSERT INTO bizadm_admin_user (
+INSERT INTO bza_admin_user (
     admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
     login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by
 ) VALUES (
-    'biz-admin', '업무 관리자 샘플', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 'BIZ_MANAGER', 'Y', 'N',
-    0, 'N', NULL, NULL, 'SYSTEM', 'SYSTEM'
+    'bza-admin', '업무 관리자 샘플', NULL, 'BZA_MANAGER', 'Y', 'N',
+    0, 'Y', NULL, NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     admin_name = VALUES(admin_name),
-    password_hash = VALUES(password_hash),
     role_code = VALUES(role_code),
     use_yn = VALUES(use_yn),
     lock_yn = VALUES(lock_yn),
@@ -4556,26 +4567,41 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_login_history (
+INSERT INTO bza_login_history (
     admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent,
     transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
 )
-SELECT admin_user_id, 'BIZADM', 'biz-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
-       '20260615120000000BIZbizAP010000001', 'BIZ', 'bizAP01', 'local-bizadm:seed', 'SYSTEM', 'SYSTEM'
-FROM bizadm_admin_user
-WHERE admin_login_id = 'biz-admin'
+SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user
+WHERE admin_login_id = 'bza-admin'
   AND NOT EXISTS (
       SELECT 1
-      FROM bizadm_login_history
-      WHERE admin_login_id = 'biz-admin'
-        AND transaction_global_id = '20260615120000000BIZbizAP010000001'
+      FROM bza_login_history
+      WHERE admin_login_id = 'bza-admin'
+        AND transaction_global_id = '20260715120000000BZAbzaAP010000001'
   );
 
-INSERT INTO bizadm_menu (
-    menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
-) VALUES (
-    'BIZ_CUSTOMER', '고객 업무 관리', '/api/bizadm/customers', 10, 'Y', 'SYSTEM', 'SYSTEM'
-)
+INSERT INTO bza_menu (
+    menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('DASHBOARD', '업무 대시보드', 'BZA', '/bza', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('USER', '백오피스 사용자', 'BZA', '/bza#users', '/api/bza/admin-users', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ORGANIZATION', '조직 관리', 'BZA', '/bza#organizations', '/api/bza/backoffice/organizations', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EMPLOYEE', '직원 관리', 'BZA', '/bza#employees', '/api/bza/backoffice/employees', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ROLE', '역할 관리', 'BZA', '/bza#roles', '/api/bza/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MENU', '메뉴 관리', 'BZA', '/bza#menus', '/api/bza/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION', '권한 관리', 'BZA', '/bza#permissions', '/api/bza/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('APPROVAL', '결재 관리', 'BZA', '/bza#approvals', '/api/bza/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CUSTOMER', '고객 업무 관리', 'BZA', '/bza#customers', '/api/bza/customers', 90, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PRODUCT', '상품 관리', 'BZA', '/bza#products', '/api/bza/products', 100, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ORDER', '주문 관리', 'BZA', '/bza#orders', '/api/bza/orders', 110, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SETTING', '업무 설정', 'BZA', '/bza#settings', '/api/bza/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DOWNLOAD', '다운로드 감사', 'BZA', '/bza#downloads', '/api/bza/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION', '업무 알림', 'BZA', '/bza#notifications', '/api/bza/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ATTACHMENT', '첨부파일', 'BZA', '/bza#attachments', '/api/bza/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     menu_name = VALUES(menu_name),
     api_path = VALUES(api_path),
@@ -4584,10 +4610,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_role (
-    role_code, role_name, write_allowed_yn, use_yn, created_by, updated_by
+INSERT INTO bza_role (
+    role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
 ) VALUES (
-    'BIZ_MANAGER', '업무 관리자', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
+    'BZA_MANAGER', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     role_name = VALUES(role_name),
@@ -4596,18 +4622,45 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_permission (
-    role_code, menu_code, button_code, allow_yn, created_by, updated_by
+INSERT INTO bza_permission (
+    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
+    data_scope, allow_yn, created_by, updated_by
 ) VALUES
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'READ', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'WRITE', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'DOWNLOAD', 'Y', 'SYSTEM', 'SYSTEM')
+    ('BZA_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'USER', 'READ', 'API', 'GET', '/api/bza/admin-users/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'USER', 'WRITE', 'API', 'POST', '/api/bza/admin-users', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/backoffice/organizations/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORGANIZATION', 'WRITE', 'API', 'POST', '/api/bza/backoffice/organizations', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/backoffice/employees/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'EMPLOYEE', 'WRITE', 'API', 'POST', '/api/bza/backoffice/employees', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ROLE', 'READ', 'API', 'GET', '/api/bza/roles/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ROLE', 'WRITE', 'API', 'POST', '/api/bza/roles', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'MENU', 'READ', 'API', 'GET', '/api/bza/menus/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'MENU', 'WRITE', 'API', 'POST', '/api/bza/menus', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PERMISSION', 'READ', 'API', 'GET', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'CUSTOMER', 'READ', 'API', 'GET', '/api/bza/customers/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'CUSTOMER', 'UNMASK', 'API', 'POST', '/api/bza/masking/unmask', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PRODUCT', 'READ', 'API', 'GET', '/api/bza/products/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORDER', 'READ', 'API', 'GET', '/api/bza/orders/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/bza/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/bza/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/bza/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'NOTIFICATION', 'READ', 'API', 'GET', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'NOTIFICATION', 'WRITE', 'API', 'POST', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'READ', 'API', 'GET', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'WRITE', 'API', 'POST', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'DOWNLOAD', 'API', 'GET', '/api/bza/attachments/*/download', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SAVED_SEARCH', 'READ', 'API', 'GET', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     allow_yn = VALUES(allow_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_customer (
+INSERT INTO bza_customer (
     customer_no, customer_name, email, mobile_no, customer_status, created_by, updated_by
 ) VALUES (
     'CUST000001', '샘플 고객', 'customer@example.com', '010-0000-0001', 'ACTIVE', 'SYSTEM', 'SYSTEM'
@@ -4620,7 +4673,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_product (
+INSERT INTO bza_product (
     product_code, product_name, use_yn, created_by, updated_by
 ) VALUES (
     'PRD_SAMPLE', '샘플 상품', 'Y', 'SYSTEM', 'SYSTEM'
@@ -4631,7 +4684,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_order (
+INSERT INTO bza_order (
     order_no, customer_no, product_code, order_amount, order_status, created_by, updated_by
 ) VALUES (
     'ORD000001', 'CUST000001', 'PRD_SAMPLE', 10000.00, 'REQUESTED', 'SYSTEM', 'SYSTEM'
@@ -4644,10 +4697,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_project_setting (
+INSERT INTO bza_project_setting (
     setting_key, setting_value, description, use_yn, created_by, updated_by
 ) VALUES (
-    'bizadm.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+    'bza.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
@@ -4656,163 +4709,66 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_masking_audit (
+INSERT INTO bza_masking_audit (
     target_type, target_id, operator_id, reason, result_type, created_by, updated_by
 )
 SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM bizadm_masking_audit
+    FROM bza_masking_audit
     WHERE target_type = 'CUSTOMER'
       AND target_id = 'CUST000001'
       AND operator_id = 'biz-admin'
       AND reason = '업무 관리자 샘플 원문보기 감사'
 );
 
-USE exsDB;
-
-INSERT INTO exs_institution (
-    institution_code, institution_name, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01', '샘플 대외기관', 'Y', 'SYSTEM', 'SYSTEM'
-)
+INSERT INTO bza_organization (
+    organization_code, parent_organization_code, organization_name, organization_type,
+    sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('HQ', NULL, '본사', 'COMPANY', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
-    institution_name = VALUES(institution_name),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+    parent_organization_code = VALUES(parent_organization_code),
+    organization_name = VALUES(organization_name),
+    organization_type = VALUES(organization_type),
+    sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO exs_channel (
-    institution_code, channel_code, direction, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01', 'OPENAPI', 'OUTBOUND', 'Y', 'SYSTEM', 'SYSTEM'
+INSERT INTO bza_employee (
+    employee_no, admin_user_id, organization_code, employee_name, position_code,
+    job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by
 )
+SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
+       'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user WHERE admin_login_id = 'bza-admin'
 ON DUPLICATE KEY UPDATE
-    direction = VALUES(direction),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+    admin_user_id = VALUES(admin_user_id), organization_code = VALUES(organization_code),
+    employee_name = VALUES(employee_name), position_code = VALUES(position_code),
+    job_title_code = VALUES(job_title_code), employment_status = VALUES(employment_status),
+    email = VALUES(email), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO exs_endpoint (
-    endpoint_code, institution_code, http_method, endpoint_uri, timeout_ms, retry_count, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01_BALANCE', 'BANK01', 'POST', 'https://example.invalid/balance', 3000, 2, 'Y', 'SYSTEM', 'SYSTEM'
+INSERT INTO bza_notification (
+    recipient_login_id, notification_type, title, message_body,
+    reference_type, reference_id, read_yn, use_yn, created_by, updated_by
 )
-ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    http_method = VALUES(http_method),
-    endpoint_uri = VALUES(endpoint_uri),
-    timeout_ms = VALUES(timeout_ms),
-    retry_count = VALUES(retry_count),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_auth_profile (
-    auth_profile_code, institution_code, auth_type, secret_ref, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01_OAUTH', 'BANK01', 'OAUTH2', 'vault://cpf/exs/bank01/oauth', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    auth_type = VALUES(auth_type),
-    secret_ref = VALUES(secret_ref),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_token_store (
-    auth_profile_code, token_key, token_hash, masked_token, token_status, issued_at, expire_at,
-    transaction_global_id, server_instance_id, created_by, updated_by
-) VALUES (
-    'BANK01_OAUTH', 'access-token', 'HASH_ONLY_SAMPLE_NO_TOKEN_RAW', 'sample****token', 'VALID', NOW(), DATE_ADD(NOW(), INTERVAL 1 HOUR),
-    '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    token_hash = VALUES(token_hash),
-    masked_token = VALUES(masked_token),
-    token_status = VALUES(token_status),
-    issued_at = VALUES(issued_at),
-    expire_at = VALUES(expire_at),
-    transaction_global_id = VALUES(transaction_global_id),
-    server_instance_id = VALUES(server_instance_id),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_token_event_history (
-    auth_profile_code, token_key, event_type, reason, transaction_global_id, server_instance_id, created_by, updated_by
-)
-SELECT 'BANK01_OAUTH', 'access-token', 'TOKEN_REFRESH', 'SQL seed token 상태 샘플', '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
+SELECT 'bza-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
+       'APPROVAL', 'BZA-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_token_event_history
-    WHERE auth_profile_code = 'BANK01_OAUTH'
-      AND token_key = 'access-token'
-      AND event_type = 'TOKEN_REFRESH'
-      AND transaction_global_id = '20260615120000000EXSexsAP010000001'
+    SELECT 1 FROM bza_notification
+     WHERE recipient_login_id = 'bza-admin'
+       AND reference_type = 'APPROVAL'
+       AND reference_id = 'BZA-SAMPLE-001'
 );
 
-INSERT INTO exs_route_rule (
-    route_code, institution_code, channel_code, endpoint_code, enabled_yn, created_by, updated_by
+INSERT INTO bza_saved_search (
+    owner_login_id, screen_code, search_name, criteria_json,
+    shared_yn, use_yn, created_by, updated_by
 ) VALUES (
-    'BANK01_BALANCE_ROUTE', 'BANK01', 'OPENAPI', 'BANK01_BALANCE', 'Y', 'SYSTEM', 'SYSTEM'
+    'bza-admin', 'APPROVAL', '진행 중 결재', '{"approvalStatus":"IN_REVIEW"}',
+    'N', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    channel_code = VALUES(channel_code),
-    endpoint_code = VALUES(endpoint_code),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-SET @sample_exs_transaction_id = '20260615120000000EXSexsAP010000001';
-
-INSERT INTO exs_transaction_log (
-    transaction_global_id, external_transaction_id, institution_code, channel_code, endpoint_code,
-    module_id, was_id, server_instance_id, request_at, response_at, elapsed_ms, direction,
-    http_method, request_uri, status, result_code, error_code, error_message, retryable_yn,
-    created_by, updated_by
-)
-SELECT
-    @sample_exs_transaction_id, 'EXT-20260615-0001', 'BANK01', 'OPENAPI', 'BANK01_BALANCE',
-    'EXS', 'exsAP01', 'local-dev:sql-seed', @sample_start_time, @sample_end_time, 12, 'OUTBOUND',
-    'POST', 'https://example.invalid/balance', 'SUCCESS', '0000', NULL, NULL, 'N',
-    'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_transaction_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-);
-
-INSERT INTO exs_message_log (
-    transaction_global_id, external_transaction_id, direction, message_summary, payload_store_yn, payload_ref, created_by, updated_by
-)
-SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'OUTBOUND', '샘플 대외 송신 전문 요약', 'N', NULL, 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_message_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-      AND direction = 'OUTBOUND'
-);
-
-INSERT INTO exs_control_policy (
-    institution_code, control_type, enabled_yn, reason, created_by, updated_by
-) VALUES (
-    'BANK01', 'SEND_BLOCK', 'N', '샘플 기관 정상 송신 허용', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    enabled_yn = VALUES(enabled_yn),
-    reason = VALUES(reason),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_retry_log (
-    transaction_global_id, external_transaction_id, retry_status, retry_count, last_error_message, next_retry_at, created_by, updated_by
-)
-SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'NOT_REQUIRED', 0, NULL, NULL, 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_retry_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-      AND retry_status = 'NOT_REQUIRED'
-);
+    criteria_json = VALUES(criteria_json), shared_yn = VALUES(shared_yn), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;

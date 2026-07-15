@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $BatBaseUrl = "http://localhost:8093",
     [int] $StartupTimeoutSeconds = 120,

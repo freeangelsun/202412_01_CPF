@@ -1,6 +1,7 @@
 package cpf.pfw.common.transaction;
 
 import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -16,7 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Spring MVC mapping과 {@link CpfTransaction}을 스캔해 PFW 거래 메타를 갱신합니다.
+ * Spring MVC mapping과 CPF 온라인 실행 annotation을 스캔해 PFW 거래 메타를 갱신합니다.
  *
  * <p>거래 메타 scan은 운영 편의 기능이므로 DB 미적용, 권한 부족, 부분 mapping 오류가
  * 있어도 서비스 기동 자체를 실패시키지 않습니다. 실패 상태는 결과와 로그로 남기고 ADM에서
@@ -61,7 +62,7 @@ public class CpfTransactionMetaScanner {
     public List<CpfTransactionMeta> detect() {
         List<CpfTransactionMeta> metas = new ArrayList<>();
         handlerMapping.getHandlerMethods().forEach((info, handlerMethod) -> {
-            CpfTransaction transaction = findTransaction(handlerMethod);
+            OnlineMetadata transaction = findTransaction(handlerMethod);
             if (transaction == null) {
                 return;
             }
@@ -78,16 +79,25 @@ public class CpfTransactionMetaScanner {
                 .toList();
     }
 
-    private CpfTransaction findTransaction(HandlerMethod handlerMethod) {
+    private OnlineMetadata findTransaction(HandlerMethod handlerMethod) {
+        CpfOnlineTransaction standard = AnnotatedElementUtils.findMergedAnnotation(
+                handlerMethod.getMethod(), CpfOnlineTransaction.class);
+        if (standard == null) {
+            standard = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), CpfOnlineTransaction.class);
+        }
+        if (standard != null) {
+            return new OnlineMetadata(standard.id(), standard.name());
+        }
         CpfTransaction methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getMethod(), CpfTransaction.class);
         if (methodAnnotation != null) {
-            return methodAnnotation;
+            return new OnlineMetadata(methodAnnotation.id(), methodAnnotation.name());
         }
-        return AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), CpfTransaction.class);
+        CpfTransaction typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), CpfTransaction.class);
+        return typeAnnotation == null ? null : new OnlineMetadata(typeAnnotation.id(), typeAnnotation.name());
     }
 
     private CpfTransactionMeta toMeta(
-            CpfTransaction transaction,
+            OnlineMetadata transaction,
             RequestMappingInfo info,
             HandlerMethod handlerMethod,
             String httpMethod,
@@ -134,6 +144,9 @@ public class CpfTransactionMetaScanner {
     }
 
     private String moduleCode(String transactionId, String controllerClass) {
+        if (transactionId != null && transactionId.matches("^[OB][A-Z]{3}-.*")) {
+            return transactionId.substring(1, 4);
+        }
         if (transactionId != null && transactionId.length() >= 3) {
             return transactionId.substring(0, 3).toUpperCase();
         }
@@ -142,9 +155,15 @@ public class CpfTransactionMetaScanner {
     }
 
     private String domainCode(String transactionId) {
+        if (transactionId != null && transactionId.matches("^[OB][A-Z]{3}-[A-Z0-9]{3}-.*")) {
+            return transactionId.substring(5, 8);
+        }
         if (transactionId != null && transactionId.length() >= 8) {
             return transactionId.substring(5, 8).toUpperCase();
         }
         return null;
+    }
+
+    private record OnlineMetadata(String id, String name) {
     }
 }

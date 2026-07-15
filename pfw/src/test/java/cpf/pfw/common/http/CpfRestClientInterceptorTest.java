@@ -79,7 +79,7 @@ class CpfRestClientInterceptorTest {
 
             @Override
             public URI getURI() {
-                return URI.create("http://localhost:8092/api/exs/accounts");
+                return URI.create("http://localhost:8091/api/bza/approvals");
             }
 
             @Override
@@ -100,10 +100,10 @@ class CpfRestClientInterceptorTest {
         var attributes = org.mockito.ArgumentCaptor.forClass(Map.class);
         verify(writer, times(2)).writeIntegration(
                 isNull(),
-                eq("EXS"),
+                eq("BZA"),
                 eq("OUTBOUND"),
                 eq("GET"),
-                eq("/api/exs/accounts"),
+                eq("/api/bza/approvals"),
                 any(),
                 any(),
                 any(),

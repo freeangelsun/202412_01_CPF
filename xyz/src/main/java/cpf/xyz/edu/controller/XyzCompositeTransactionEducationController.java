@@ -1,6 +1,6 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +20,14 @@ import java.util.Map;
 public class XyzCompositeTransactionEducationController {
 
     @GetMapping("/composite-sample")
-    @CpfTransaction(id = "XYZ09EDU0001", name = "XYZCompositeTransactionSample")
-    @Operation(operationId = "xyzCompositeTransactionEducationCompositeSample", summary = "복합 거래 trace 샘플 안내", description = "ACC/MBR/EXS 복합 거래 샘플 API와 ADM 조회 API를 개발자용으로 안내합니다.")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0040", name = "XYZCompositeTransactionSample")
+    @Operation(operationId = "xyzCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "XYZ에서 PFW Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(
                 "purpose", "transactionGlobalId 기준으로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",
                 "patterns", List.of(
-                        "POST /acc/edu/composite/member-then-external?memberId=1",
-                        "POST /acc/edu/composite/member-calls-external?memberId=1"),
+                        "XYZ Service Call Engine 샘플에서 MBR_MEMBER_SUMMARY endpoint를 호출",
+                        "동일 X-Transaction-Id를 전달해 호출 구간을 하나의 타임라인으로 연결"),
                 "admApis", List.of(
                         "GET /adm/api/transaction-groups",
                         "GET /adm/api/transaction-groups/{transactionGlobalId}",

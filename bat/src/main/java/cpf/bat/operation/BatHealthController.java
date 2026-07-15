@@ -3,7 +3,7 @@ package cpf.bat.operation;
 import cpf.bat.job.BatSmokeJobConfig;
 import cpf.pfw.common.batch.CpfBatchFileLogWriter;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.ServerInstanceIdentity;
 import cpf.pfw.common.logging.file.CpfLogPathPolicy;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,7 +73,7 @@ public class BatHealthController {
     }
 
     @PostMapping("/bat/api/smoke/jobs/{jobId}/run")
-    @CpfTransaction(id = "BAT02OPR0002", name = "BATSmokeJobRun")
+    @CpfOnlineTransaction(id = "OBAT-OPR-02-0002", name = "BATSmokeJobRun")
     @Operation(operationId = "runBatSmokeJob", summary = "BAT smoke Job 수동 실행")
     public ResponseEntity<Map<String, Object>> runSmokeJob(@PathVariable String jobId) {
         Map<String, Object> result = operationService.run(jobId, "BAT smoke API 수동 실행");
@@ -86,7 +86,7 @@ public class BatHealthController {
     }
 
     @GetMapping("/bat/api/diagnostics/logging")
-    @CpfTransaction(id = "BAT01OPR0003", name = "BATLoggingDiagnostics")
+    @CpfOnlineTransaction(id = "OBAT-OPR-01-0003", name = "BATLoggingDiagnostics")
     @Operation(operationId = "getBatLoggingDiagnostics", summary = "BAT JobInstance 로그 설정 진단")
     public ResponseEntity<Map<String, Object>> loggingDiagnostics() {
         Map<String, Object> response = new LinkedHashMap<>();

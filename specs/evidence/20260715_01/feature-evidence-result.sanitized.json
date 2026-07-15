@@ -1,0 +1,73 @@
+{
+    "generatedAt":  "2026-07-15T16:06:59.9559065+09:00",
+    "status":  "DONE",
+    "checkCount":  13,
+    "failureCount":  0,
+    "checks":  [
+                   {
+                       "id":  "BASELINE_MODULES",
+                       "passed":  true,
+                       "evidence":  "settings.gradle"
+                   },
+                   {
+                       "id":  "REMOVED_MODULE_DIRECTORIES",
+                       "passed":  true,
+                       "evidence":  "acc, exs"
+                   },
+                   {
+                       "id":  "PFW_STANDARD_EXECUTION",
+                       "passed":  true,
+                       "evidence":  "pfw/common/execution"
+                   },
+                   {
+                       "id":  "PFW_PASSWORD_PORT",
+                       "passed":  true,
+                       "evidence":  "pfw/common/security/password"
+                   },
+                   {
+                       "id":  "ADM_STANDARD_EXECUTION_API",
+                       "passed":  true,
+                       "evidence":  "AdmStandardExecutionController.java"
+                   },
+                   {
+                       "id":  "PFW_REMOTE_LOG_PORT",
+                       "passed":  true,
+                       "evidence":  "PFW remote log port and ADM API"
+                   },
+                   {
+                       "id":  "BZA_APPLICATION",
+                       "passed":  true,
+                       "evidence":  "bza application and UI"
+                   },
+                   {
+                       "id":  "BZA_AUTHORIZATION",
+                       "passed":  true,
+                       "evidence":  "BZA server authorization"
+                   },
+                   {
+                       "id":  "BZA_APPROVAL",
+                       "passed":  true,
+                       "evidence":  "BZA approval source and SQL"
+                   },
+                   {
+                       "id":  "BZA_FLYWAY",
+                       "passed":  true,
+                       "evidence":  "V29 and V30"
+                   },
+                   {
+                       "id":  "XYZ_SERVICE_CALL_EDU",
+                       "passed":  true,
+                       "evidence":  "XYZ Service Call EDU"
+                   },
+                   {
+                       "id":  "BAT_OPTIONAL_RUNTIME",
+                       "passed":  true,
+                       "evidence":  "BAT optional runtime"
+                   },
+                   {
+                       "id":  "INSTALL_SQL",
+                       "passed":  true,
+                       "evidence":  "all-in-one SQL"
+                   }
+               ]
+}

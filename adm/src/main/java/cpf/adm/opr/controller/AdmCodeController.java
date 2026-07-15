@@ -3,7 +3,7 @@ package cpf.adm.opr.controller;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.cmn.cde.dto.CommonCodeRequest;
 import cpf.cmn.cde.service.CodeCacheService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,21 +36,21 @@ public class AdmCodeController {
     }
 
     @GetMapping
-    @CpfTransaction(id = "ADM01CDE0010", name = "ADMCodeList")
+    @CpfOnlineTransaction(id = "OADM-CDE-01-0010", name = "ADMCodeList")
     @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "pfw_code 기준 코드 그룹과 코드를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCodes() {
         return ResponseEntity.ok(codeCacheService.getAllCodes());
     }
 
     @GetMapping("/{codeId}")
-    @CpfTransaction(id = "ADM01CDE0011", name = "ADMCodeDetail")
+    @CpfOnlineTransaction(id = "OADM-CDE-01-0011", name = "ADMCodeDetail")
     @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 pfw_code 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId) {
         return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
     }
 
     @PostMapping
-    @CpfTransaction(id = "ADM02CDE0012", name = "ADMCodeCreate")
+    @CpfOnlineTransaction(id = "OADM-CDE-02-0012", name = "ADMCodeCreate")
     @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록", description = "pfw_code에 신규 코드를 등록하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createCode(
             @Valid @RequestBody CommonCodeRequest request,
@@ -72,7 +72,7 @@ public class AdmCodeController {
     }
 
     @PutMapping("/{codeId}")
-    @CpfTransaction(id = "ADM03CDE0013", name = "ADMCodeUpdate")
+    @CpfOnlineTransaction(id = "OADM-CDE-03-0013", name = "ADMCodeUpdate")
     @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정", description = "pfw_code를 수정하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateCode(
             @PathVariable Long codeId,
@@ -96,7 +96,7 @@ public class AdmCodeController {
     }
 
     @DeleteMapping("/{codeId}")
-    @CpfTransaction(id = "ADM04CDE0014", name = "ADMCodeDisable")
+    @CpfOnlineTransaction(id = "OADM-CDE-04-0014", name = "ADMCodeDisable")
     @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성", description = "pfw_code를 비활성화하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteCode(
             @PathVariable Long codeId,

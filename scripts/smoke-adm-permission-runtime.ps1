@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [int] $StartupTimeoutSeconds = 120,

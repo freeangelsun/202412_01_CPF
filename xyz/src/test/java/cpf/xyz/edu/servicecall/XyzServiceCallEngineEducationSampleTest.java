@@ -24,12 +24,12 @@ class XyzServiceCallEngineEducationSampleTest {
         when(engine.invoke(any(ServiceCallRequest.class), any(Function.class))).thenReturn(expected);
         XyzServiceCallEngineEducationSample sample = new XyzServiceCallEngineEducationSample(engine);
 
-        ServiceCallResult<String> result = sample.callAccountSummary("A-1", target -> "OK");
+        ServiceCallResult<String> result = sample.callMemberSummary("M-1", target -> "OK");
 
         ArgumentCaptor<ServiceCallRequest> requestCaptor = ArgumentCaptor.forClass(ServiceCallRequest.class);
         verify(engine).invoke(requestCaptor.capture(), any(Function.class));
         assertThat(result).isSameAs(expected);
-        assertThat(requestCaptor.getValue().serviceId()).isEqualTo("ACC");
+        assertThat(requestCaptor.getValue().serviceId()).isEqualTo("MBR");
         assertThat(requestCaptor.getValue().attributes()).containsEntry("sourceModuleCode", "XYZ");
     }
 }

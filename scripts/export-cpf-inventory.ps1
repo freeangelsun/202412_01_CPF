@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01")
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,7 +16,7 @@ function Get-Owner {
     param([string] $RelativePath)
 
     $first = ($RelativePath -split "/")[0].ToUpperInvariant()
-    if (@("PFW", "CMN", "ACC", "MBR", "XYZ", "ADM", "BIZADM", "EXS", "BAT") -contains $first) {
+    if (@("PFW", "CMN", "MBR", "XYZ", "ADM", "BZA", "BAT") -contains $first) {
         return $first
     }
     return "ROOT"
@@ -72,7 +72,7 @@ function New-Asset {
 }
 
 $assets = New-Object System.Collections.Generic.List[object]
-$moduleNames = @("pfw", "cmn", "acc", "mbr", "xyz", "adm", "bizadm", "exs", "bat")
+$moduleNames = @("pfw", "cmn", "mbr", "xyz", "adm", "bza", "bat")
 foreach ($moduleName in $moduleNames) {
     $modulePath = Join-Path $Root $moduleName
     if (Test-Path -LiteralPath $modulePath -PathType Container) {

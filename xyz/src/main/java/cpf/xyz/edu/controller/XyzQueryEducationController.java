@@ -1,7 +1,7 @@
 package cpf.xyz.edu.controller;
 
 import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.xyz.edu.dto.XyzQueryEducationItem;
 import cpf.xyz.edu.dto.XyzQueryKeysetResponse;
@@ -40,7 +40,7 @@ public class XyzQueryEducationController {
      * 단건 조회 샘플입니다.
      */
     @GetMapping("/items/{itemId}")
-    @CpfTransaction(id = "XYZ01QRY0001", name = "XYZ조회EDU단건조회")
+    @CpfOnlineTransaction(id = "OXYZ-QRY-01-0001", name = "XYZ조회EDU단건조회")
     @Operation(operationId = "xyzQueryEducationGetItem", summary = "조회 EDU 단건 조회", description = "PathVariable, readOnly 트랜잭션, NotFound 예외 처리 기준을 확인합니다.")
     public ResponseEntity<XyzQueryEducationItem> getItem(@PathVariable Long itemId) {
         return ResponseEntity.ok(queryEducationService.getItem(itemId));
@@ -50,7 +50,7 @@ public class XyzQueryEducationController {
      * 목록 조회 샘플입니다.
      */
     @GetMapping("/items")
-    @CpfTransaction(id = "XYZ01QRY0002", name = "XYZ조회EDU목록조회")
+    @CpfOnlineTransaction(id = "OXYZ-QRY-01-0002", name = "XYZ조회EDU목록조회")
     @Operation(operationId = "xyzQueryEducationFindItems", summary = "조회 EDU 목록 조회", description = "검색 조건 정규화, 정렬 whitelist, limit 제한 기준을 확인합니다.")
     public ResponseEntity<List<XyzQueryEducationItem>> findItems(
             @RequestParam(required = false) String keyword,
@@ -64,7 +64,7 @@ public class XyzQueryEducationController {
      * offset 페이징 샘플입니다.
      */
     @GetMapping("/items/page")
-    @CpfTransaction(id = "XYZ01QRY0003", name = "XYZ조회EDU오프셋페이징")
+    @CpfOnlineTransaction(id = "OXYZ-QRY-01-0003", name = "XYZ조회EDU오프셋페이징")
     @Operation(operationId = "xyzQueryEducationFindOffsetPage", summary = "조회 EDU offset 페이징", description = "page, size, total, hasNext 응답 포맷을 확인합니다.")
     public ResponseEntity<XyzQueryPageResponse<XyzQueryEducationItem>> findOffsetPage(
             @RequestParam(required = false) String keyword,
@@ -79,7 +79,7 @@ public class XyzQueryEducationController {
      * keyset 페이징 샘플입니다.
      */
     @GetMapping("/items/keyset")
-    @CpfTransaction(id = "XYZ01QRY0004", name = "XYZ조회EDU키셋페이징")
+    @CpfOnlineTransaction(id = "OXYZ-QRY-01-0004", name = "XYZ조회EDU키셋페이징")
     @Operation(operationId = "xyzQueryEducationFindKeysetPage", summary = "조회 EDU keyset 페이징", description = "cursorId, nextCursorId, hasNext 응답 포맷을 확인합니다.")
     public ResponseEntity<XyzQueryKeysetResponse<XyzQueryEducationItem>> findKeysetPage(
             @RequestParam(required = false) Long cursorId,
@@ -91,7 +91,7 @@ public class XyzQueryEducationController {
      * 표준 헤더 컨텍스트와 하위 호출 전파 헤더를 확인하는 샘플입니다.
      */
     @GetMapping("/headers")
-    @CpfTransaction(id = "XYZ01QRY0005", name = "XYZ조회EDU헤더컨텍스트")
+    @CpfOnlineTransaction(id = "OXYZ-QRY-01-0005", name = "XYZ조회EDU헤더컨텍스트")
     @Operation(operationId = "xyzQueryEducationCurrentHeaders", summary = "조회 EDU 헤더 컨텍스트", description = "TransactionContext 조회 API와 하위 호출 전파 헤더를 확인합니다.")
     public ResponseEntity<Map<String, Object>> currentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();

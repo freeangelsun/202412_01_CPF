@@ -9,13 +9,15 @@ class XyzEducationCoverageCatalogTest {
     @Test
     void requiredSampleIdsContainOnlineEducationAreas() {
         assertThat(XyzEducationCoverageCatalog.requiredSampleIds())
-                .hasSize(63)
+                .hasSize(71)
                 .contains(
                         "XYZ-EDU-CRUD-001",
                         "XYZ-EDU-LIST-007",
                         "XYZ-EDU-CALL-003",
                         "XYZ-EDU-HEADER-004",
                         "XYZ-EDU-VALID-004",
-                        "XYZ-EDU-OPER-002");
+                        "XYZ-EDU-OPER-002",
+                        "XYZ-EDU-AI-006",
+                        "XYZ-EDU-ATTACH-002");
     }
 }

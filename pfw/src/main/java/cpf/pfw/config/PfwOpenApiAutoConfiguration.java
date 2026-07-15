@@ -3,6 +3,8 @@ package cpf.pfw.config;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
+import cpf.pfw.common.header.CpfHeaderNames;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -78,18 +80,10 @@ public class PfwOpenApiAutoConfiguration {
     }
 
     @Bean
-    public GroupedOpenApi cpfAccBseApiGroup() {
+    public GroupedOpenApi cpfBzaApiGroup() {
         return GroupedOpenApi.builder()
-                .group("ACC-BSE Account")
-                .pathsToMatch("/accounts/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi cpfAccTstApiGroup() {
-        return GroupedOpenApi.builder()
-                .group("ACC-TST Common Sample")
-                .pathsToMatch("/acc/**", "/cpf/codes/**")
+                .group("BZA Backoffice")
+                .pathsToMatch("/bza/**")
                 .build();
     }
 
@@ -133,8 +127,12 @@ public class PfwOpenApiAutoConfiguration {
     @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
+            CpfOnlineTransaction standard = handlerMethod.getMethodAnnotation(CpfOnlineTransaction.class);
+            if (standard == null) {
+                standard = handlerMethod.getBeanType().getAnnotation(CpfOnlineTransaction.class);
+            }
             CpfTransaction transaction = handlerMethod.getMethodAnnotation(CpfTransaction.class);
-            if (transaction == null) {
+            if (standard == null && transaction == null) {
                 transaction = handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
             }
             if (transaction == null) {
@@ -147,6 +145,11 @@ public class PfwOpenApiAutoConfiguration {
                     "X-Transaction-Id",
                     true,
                     "트랜잭션 글로벌 ID입니다. yyyyMMddHHmmssSSS + moduleId 3자리 + wasId 7자리 + sequence 7자리 형식입니다.");
+            if (standard != null) {
+                addHeader(operation, CpfHeaderNames.STANDARD_EXECUTION_ID, false,
+                        "호출 대상 표준 실행 ID입니다. 내부 호출은 필수이며 대상 값 " + standard.id() + "와 일치해야 합니다.");
+                addHeader(operation, CpfHeaderNames.PROTOCOL_VERSION, false, "CPF 호출 규격 버전입니다. 현재 버전은 1.0입니다.");
+            }
             addHeader(operation, "X-Trace-Id", false, "분산 추적 ID입니다. 없으면 CPF가 생성합니다.");
             addHeader(operation, "X-Span-Id", false, "현재 호출 span ID입니다. CPF가 응답 헤더로 반환합니다.");
             addHeader(operation, "X-Parent-Span-Id", false, "상위 호출 span ID입니다. 서비스 간 호출 전파에 사용합니다.");

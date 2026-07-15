@@ -22,6 +22,7 @@ WHERE table_schema = 'pfwDB'
       'ix_pfw_transaction_segment_unknown'
   );
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
+SELECT 'pfwDB.pfw_standard_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;
 SELECT 'pfwDB.pfw_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_audit;
@@ -87,7 +88,6 @@ SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
-SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
 SELECT 'xyzDB.xyz_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_target;
 SELECT 'xyzDB.xyz_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_result;
 SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
@@ -95,29 +95,28 @@ SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.m
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
 SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
 
-SELECT 'bizadmDB.bizadm_admin_user' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_admin_user;
-SELECT 'bizadmDB.bizadm_login_history' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_login_history;
-SELECT 'bizadmDB.bizadm_refresh_token' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_refresh_token;
-SELECT 'bizadmDB.bizadm_menu' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_menu;
-SELECT 'bizadmDB.bizadm_role' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_role;
-SELECT 'bizadmDB.bizadm_permission' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_permission;
-SELECT 'bizadmDB.bizadm_customer' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_customer;
-SELECT 'bizadmDB.bizadm_product' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_product;
-SELECT 'bizadmDB.bizadm_order' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_order;
-SELECT 'bizadmDB.bizadm_project_setting' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_project_setting;
-SELECT 'bizadmDB.bizadm_masking_audit' AS check_name, COUNT(*) AS row_count FROM bizadmDB.bizadm_masking_audit;
-
-SELECT 'exsDB.exs_institution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_institution;
-SELECT 'exsDB.exs_channel' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_channel;
-SELECT 'exsDB.exs_endpoint' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_endpoint;
-SELECT 'exsDB.exs_auth_profile' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_auth_profile;
-SELECT 'exsDB.exs_token_store' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_token_store;
-SELECT 'exsDB.exs_token_event_history' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_token_event_history;
-SELECT 'exsDB.exs_route_rule' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_route_rule;
-SELECT 'exsDB.exs_transaction_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_transaction_log;
-SELECT 'exsDB.exs_message_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_message_log;
-SELECT 'exsDB.exs_control_policy' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_control_policy;
-SELECT 'exsDB.exs_retry_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_retry_log;
+SELECT 'bzaDB.bza_admin_user' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_admin_user;
+SELECT 'bzaDB.bza_login_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_login_history;
+SELECT 'bzaDB.bza_refresh_token' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_refresh_token;
+SELECT 'bzaDB.bza_menu' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_menu;
+SELECT 'bzaDB.bza_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_role;
+SELECT 'bzaDB.bza_permission' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_permission;
+SELECT 'bzaDB.bza_customer' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_customer;
+SELECT 'bzaDB.bza_product' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_product;
+SELECT 'bzaDB.bza_order' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_order;
+SELECT 'bzaDB.bza_project_setting' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_project_setting;
+SELECT 'bzaDB.bza_masking_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_masking_audit;
+SELECT 'bzaDB.bza_organization' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_organization;
+SELECT 'bzaDB.bza_employee' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee;
+SELECT 'bzaDB.bza_user_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_user_role;
+SELECT 'bzaDB.bza_business_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_business_audit;
+SELECT 'bzaDB.bza_notification' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_notification;
+SELECT 'bzaDB.bza_attachment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_attachment;
+SELECT 'bzaDB.bza_saved_search' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_saved_search;
+SELECT 'bzaDB.bza_download_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_download_audit;
+SELECT 'bzaDB.bza_approval_document' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_document;
+SELECT 'bzaDB.bza_approval_line' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_line;
+SELECT 'bzaDB.bza_approval_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_history;
 
 SELECT TRANSACTION_ID, LOG_DATE, DATE(START_TIME) AS start_date, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
        API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
@@ -225,13 +224,36 @@ ORDER BY login_history_id DESC
 LIMIT 5;
 
 SELECT admin_login_id, role_code, use_yn, lock_yn, login_fail_count
-FROM bizadmDB.bizadm_admin_user
+FROM bzaDB.bza_admin_user
 ORDER BY admin_user_id
 LIMIT 5;
 
 SELECT login_domain, admin_login_id, login_result, transaction_global_id, module_id, was_id, server_instance_id
-FROM bizadmDB.bizadm_login_history
+FROM bzaDB.bza_login_history
 ORDER BY login_history_id DESC
+LIMIT 5;
+
+SELECT organization_code, parent_organization_code, organization_name, organization_type, use_yn
+FROM bzaDB.bza_organization
+ORDER BY sort_order, organization_code;
+
+SELECT employee_no, organization_code, employee_name, position_code, employment_status, use_yn
+FROM bzaDB.bza_employee
+ORDER BY employee_no;
+
+SELECT recipient_login_id, notification_type, title, read_yn, reference_type, reference_id
+FROM bzaDB.bza_notification
+ORDER BY notification_id DESC
+LIMIT 5;
+
+SELECT owner_login_id, screen_code, search_name, shared_yn, use_yn
+FROM bzaDB.bza_saved_search
+ORDER BY saved_search_id DESC
+LIMIT 5;
+
+SELECT actor_id, download_code, result_status, file_name, masking_applied_yn, transaction_global_id
+FROM bzaDB.bza_download_audit
+ORDER BY download_audit_id DESC
 LIMIT 5;
 
 SELECT member_id, service_code, role_code, role_name, use_yn
@@ -239,36 +261,14 @@ FROM mbrDB.mbr_member_role
 ORDER BY member_role_id
 LIMIT 5;
 
-SELECT auth_profile_code, token_key, token_status, masked_token, transaction_global_id, server_instance_id
-FROM exsDB.exs_token_store
-ORDER BY token_id
-LIMIT 5;
-
-SELECT auth_profile_code, token_key, event_type, transaction_global_id, server_instance_id
-FROM exsDB.exs_token_event_history
-ORDER BY token_event_id DESC
-LIMIT 5;
-
-SELECT transaction_global_id, transaction_segment_id, external_transaction_id, institution_code,
-       api_path, status, result_code, http_status, error_code, error_message
-FROM exsDB.exs_transaction_log
-ORDER BY transaction_log_id DESC
-LIMIT 5;
-
-SELECT transaction_global_id, transaction_segment_id, external_transaction_id, direction,
-       message_code, status, failure_code, failure_message_masked
-FROM exsDB.exs_message_log
-ORDER BY message_log_id DESC
-LIMIT 5;
-
 SELECT response_code, message_code, result_type, http_status
 FROM pfwDB.pfw_response_code
-WHERE response_code IN ('SPFW000000', 'EPFW010004', 'SACC000000', 'EACC010001', 'SMBR000000', 'EMBR010002')
+WHERE response_code IN ('SPFW000000', 'EPFW010004', 'SMBR000000', 'EMBR010002')
 ORDER BY response_code;
 
 SELECT message_code, locale, message_format_type, external_message, internal_message
 FROM pfwDB.pfw_message
-WHERE message_code IN ('MCMN000001', 'MPFW010004', 'MACC010001', 'MMBR010102', 'MXYZ090001')
+WHERE message_code IN ('MCMN000001', 'MPFW010004', 'MMBR010102', 'MXYZ090001')
 ORDER BY message_code, locale;
 
 SELECT 'pfwDB.pfw_service' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service;
@@ -281,15 +281,15 @@ SELECT 'pfwDB.pfw_service_call_history' AS check_name, COUNT(*) AS row_count FRO
 
 SELECT service_id, service_name, service_type, owner_module_code, use_yn
 FROM pfwDB.pfw_service
-WHERE service_id IN ('ACC', 'MBR', 'EXS', 'BAT', 'ADM')
+WHERE service_id IN ('MBR', 'XYZ', 'BAT', 'ADM', 'BZA')
 ORDER BY service_id;
 
 SELECT endpoint_code, service_id, base_url, default_timeout_ms, default_retry_count, use_yn
 FROM pfwDB.pfw_service_endpoint
-WHERE endpoint_code IN ('ACC_API', 'MBR_API', 'EXS_API', 'BAT_API', 'ADM_API')
+WHERE endpoint_code IN ('MBR_API', 'XYZ_API', 'BAT_API', 'ADM_API', 'BZA_API')
 ORDER BY endpoint_code;
 
 SELECT instance_id, service_id, endpoint_code, instance_status, active_yn
 FROM pfwDB.pfw_service_instance
-WHERE instance_id IN ('ACC-local-01', 'MBR-local-01', 'EXS-local-01', 'BAT-local-01', 'ADM-local-01')
+WHERE instance_id IN ('MBR-local-01', 'XYZ-local-01', 'BAT-local-01', 'ADM-local-01', 'BZA-local-01')
 ORDER BY instance_id;

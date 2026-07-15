@@ -6,3 +6,5 @@ cpf.pfw.config.CpfTransactionMetaAutoConfiguration
 cpf.pfw.config.CpfServiceCallAutoConfiguration
 cpf.pfw.config.CpfLogRecoveryAutoConfiguration
 cpf.pfw.config.CpfCenterCutAutoConfiguration
+cpf.pfw.config.CpfSecurityAutoConfiguration
+cpf.pfw.config.CpfAttachmentAutoConfiguration

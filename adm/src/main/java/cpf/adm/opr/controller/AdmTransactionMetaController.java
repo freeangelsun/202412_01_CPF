@@ -2,7 +2,7 @@ package cpf.adm.opr.controller;
 
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmTransactionMetaService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.transaction.CpfTransactionMetaScanResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,8 +33,8 @@ public class AdmTransactionMetaController {
     }
 
     @GetMapping
-    @CpfTransaction(id = "ADM01TRN0010", name = "ADMTransactionMetaList")
-    @Operation(operationId = "admTransactionMetaFindTransactions", summary = "거래 메타 목록 조회", description = "@CpfTransaction 기반으로 등록된 온라인 거래 메타를 조회합니다.")
+    @CpfOnlineTransaction(id = "OADM-TRN-01-0010", name = "ADMTransactionMetaList")
+    @Operation(operationId = "admTransactionMetaFindTransactions", summary = "거래 메타 목록 조회", description = "@CpfOnlineTransaction 기반으로 등록된 온라인 거래 메타를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTransactions(
             @RequestParam(required = false) String moduleCode,
             @RequestParam(required = false) String activeYn,
@@ -44,14 +44,14 @@ public class AdmTransactionMetaController {
     }
 
     @GetMapping("/{transactionId}")
-    @CpfTransaction(id = "ADM01TRN0011", name = "ADMTransactionMetaDetail")
+    @CpfOnlineTransaction(id = "OADM-TRN-01-0011", name = "ADMTransactionMetaDetail")
     @Operation(operationId = "admTransactionMetaFindTransaction", summary = "거래 메타 상세 조회", description = "단일 업무 거래 ID의 Controller/API mapping 메타를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTransaction(@PathVariable String transactionId) {
         return ResponseEntity.ok(transactionMetaService.findTransaction(transactionId));
     }
 
     @PostMapping("/scan")
-    @CpfTransaction(id = "ADM05TRN0012", name = "ADMTransactionMetaScan")
+    @CpfOnlineTransaction(id = "OADM-TRN-05-0012", name = "ADMTransactionMetaScan")
     @Operation(operationId = "admTransactionMetaScan", summary = "거래 메타 재스캔", description = "현재 기동 중인 Spring MVC mapping을 스캔해 pfw_transaction_meta를 upsert합니다.")
     public ResponseEntity<CpfTransactionMetaScanResult> scan(
             @RequestParam String reason,
@@ -75,7 +75,7 @@ public class AdmTransactionMetaController {
     }
 
     @PostMapping("/{transactionId}/inactive")
-    @CpfTransaction(id = "ADM04TRN0013", name = "ADMTransactionMetaInactive")
+    @CpfOnlineTransaction(id = "OADM-TRN-04-0013", name = "ADMTransactionMetaInactive")
     @Operation(operationId = "admTransactionMetaInactivate", summary = "거래 메타 비활성화", description = "더 이상 사용하지 않는 거래 메타를 inactive 처리합니다.")
     public ResponseEntity<Map<String, Object>> inactivate(
             @PathVariable String transactionId,

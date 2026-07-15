@@ -211,20 +211,32 @@ public class CpfWebClientConfig {
         if (normalizedPath.contains("/mbr/")) {
             return "MBR";
         }
-        if (normalizedPath.contains("/acc/")) {
-            return "ACC";
-        }
         if (normalizedPath.contains("/adm/")) {
             return "ADM";
         }
-        if (normalizedPath.contains("/api/exs/") || port == 8092) {
-            return "EXS";
+        if (normalizedPath.contains("/api/bza/") || normalizedPath.contains("/bza/")) {
+            return "BZA";
+        }
+        if (normalizedPath.contains("/xyz/")) {
+            return "XYZ";
+        }
+        if (normalizedPath.contains("/bat/")) {
+            return "BAT";
         }
         if (port == 8081) {
             return "MBR";
         }
-        if (port == 8080) {
-            return "ACC";
+        if (port == 8090) {
+            return "ADM";
+        }
+        if (port == 8091) {
+            return "BZA";
+        }
+        if (port == 8093) {
+            return "BAT";
+        }
+        if (port == 8099) {
+            return "XYZ";
         }
         return hasText(host) ? host.toUpperCase(Locale.ROOT) : "UNKNOWN";
     }

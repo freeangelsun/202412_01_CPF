@@ -1,0 +1,19 @@
+# BZA 공통 실행 설정입니다.
+
+cpf:
+  framework:
+    module-id: ${BZA_MODULE_ID:BZA}
+    instance-id: ${BZA_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:bza-local-01}}}
+    was-id: ${BZA_WAS_ID:${WAS_ID:bzaAP01}}
+  service-call:
+    registry-mode: ${BZA_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+  bza:
+    bootstrap:
+      enabled: ${CPF_BZA_BOOTSTRAP_ENABLED:false}
+      login-id: ${CPF_BZA_BOOTSTRAP_LOGIN_ID:}
+      operator-name: ${CPF_BZA_BOOTSTRAP_OPERATOR_NAME:}
+      password: ${CPF_BZA_BOOTSTRAP_PASSWORD:}
+      role-code: ${CPF_BZA_BOOTSTRAP_ROLE_CODE:BZA_MANAGER}
+
+logging:
+  config: classpath:log/cpf-logback-spring.xml

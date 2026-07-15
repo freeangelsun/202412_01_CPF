@@ -161,7 +161,7 @@ class CpfServiceCallEngineTest {
         ServiceCallResult<String> result = engine.invoke(
                 ServiceCallRequest.builder("MBR")
                         .endpointCode("MBR_API")
-                        .attribute("sourceModuleCode", "ACC")
+                        .attribute("sourceModuleCode", "XYZ")
                         .attribute("externalKey", "EXT-001")
                         .build(),
                 () -> {

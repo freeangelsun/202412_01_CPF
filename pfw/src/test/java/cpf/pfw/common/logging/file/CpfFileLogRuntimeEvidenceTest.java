@@ -41,16 +41,16 @@ class CpfFileLogRuntimeEvidenceTest {
         LocalDate businessDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String date = businessDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        CpfFileLogWriter firstWriter = writer(logRoot, "acc-runtime-probe-01");
-        CpfFileLogWriter secondWriter = writer(logRoot, "acc-runtime-probe-02");
-        String transactionId = "ACC01LOG0001";
-        String firstGlobalId = date + "120000000ACCaccAP010000001";
-        String secondGlobalId = date + "120100000ACCaccAP010000002";
+        CpfFileLogWriter firstWriter = writer(logRoot, "xyz-runtime-probe-01");
+        CpfFileLogWriter secondWriter = writer(logRoot, "xyz-runtime-probe-02");
+        String transactionId = "XYZ01LOG0001";
+        String firstGlobalId = date + "120000000XYZxyzAP010000001";
+        String secondGlobalId = date + "120100000XYZxyzAP010000002";
 
-        writeBaseEvent(firstWriter, "ACC", "application", "RUNTIME_PROBE_APPLICATION");
+        writeBaseEvent(firstWriter, "XYZ", "application", "RUNTIME_PROBE_APPLICATION");
         writeBaseEvent(firstWriter, "PFW", "application", "RUNTIME_PROBE_FRAMEWORK");
         writeBaseEvent(firstWriter, "CMN", "application", "RUNTIME_PROBE_COMMON");
-        writeBaseEvent(secondWriter, "ACC", "application", "RUNTIME_PROBE_SECOND_INSTANCE");
+        writeBaseEvent(secondWriter, "XYZ", "application", "RUNTIME_PROBE_SECOND_INSTANCE");
 
         firstWriter.writeTransaction(record(firstGlobalId, transactionId, businessDate, "SUCCESS"), Map.of(), null);
         firstWriter.writeTransaction(record(secondGlobalId, transactionId, businessDate, "FAILURE"), Map.of(), null);
@@ -58,8 +58,8 @@ class CpfFileLogRuntimeEvidenceTest {
         TransactionContext.initialize(firstGlobalId, "runtime-probe-trace", null, firstGlobalId);
         TransactionContext.putBusinessTransaction(transactionId, "파일 로그 런타임 검증");
         firstWriter.writeIntegration(
-                "ACC",
-                "EXS",
+                "XYZ",
+                "BZA",
                 "OUTBOUND",
                 "GET",
                 "/runtime-probe",
@@ -70,7 +70,7 @@ class CpfFileLogRuntimeEvidenceTest {
                 null,
                 Map.of("eventType", "RUNTIME_PROBE_INTEGRATION"));
 
-        MockEnvironment fallbackEnvironment = environment(logRoot, "acc-runtime-probe-01");
+        MockEnvironment fallbackEnvironment = environment(logRoot, "xyz-runtime-probe-01");
         TransactionLogFallbackStore fallbackStore = new TransactionLogFallbackStore(
                 new ObjectMapper().findAndRegisterModules(),
                 firstWriter,
@@ -81,8 +81,8 @@ class CpfFileLogRuntimeEvidenceTest {
                 null,
                 new IllegalStateException("runtime probe DB failure"));
 
-        Path firstInstance = logRoot.resolve("local/acc/acc-runtime-probe-01");
-        Path secondInstance = logRoot.resolve("local/acc/acc-runtime-probe-02");
+        Path firstInstance = logRoot.resolve("local/xyz/xyz-runtime-probe-01");
+        Path secondInstance = logRoot.resolve("local/xyz/xyz-runtime-probe-02");
         Path transactionFile = firstInstance.resolve(
                 "transactions/" + date + '/' + transactionId + '_' + date + ".log");
         assertThat(firstInstance.resolve("application")).isDirectory();
@@ -122,7 +122,7 @@ class CpfFileLogRuntimeEvidenceTest {
         return new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", root.toString())
                 .withProperty("cpf.environment", "local")
-                .withProperty("cpf.framework.module-id", "ACC")
+                .withProperty("cpf.framework.module-id", "XYZ")
                 .withProperty("cpf.framework.instance-id", instanceId)
                 .withProperty("cpf.logging.file.archive-compress-enabled", "false");
     }
@@ -137,7 +137,7 @@ class CpfFileLogRuntimeEvidenceTest {
                 .traceId("runtime-probe-trace")
                 .spanId("runtime-probe-span")
                 .sequenceNo(1)
-                .moduleId("ACC")
+                .moduleId("XYZ")
                 .businessTransactionId(transactionId)
                 .businessTransactionName("파일 로그 런타임 검증")
                 .logType(status)

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $profiles = @("local", "dev", "stg", "prod")
-$modules = @("acc", "mbr", "exs", "adm", "bat", "bizadm", "xyz")
+$modules = @("mbr", "adm", "bat", "bza", "xyz")
 $failures = New-Object System.Collections.Generic.List[object]
 $checks = New-Object System.Collections.Generic.List[object]
 

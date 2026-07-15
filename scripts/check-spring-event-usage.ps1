@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
@@ -41,9 +41,6 @@ function Test-AllowedSpringEventUsage {
         return $true
     }
     if ($RelativePath -eq "pfw/src/main/java/cpf/pfw/config/CpfTransactionMetaAutoConfiguration.java") {
-        return $true
-    }
-    if ($RelativePath -eq "acc/src/main/java/cpf/acc/common/exception/GlobalExceptionHandler.java" -and $Text -match "TransactionLogEvent") {
         return $true
     }
     return $false

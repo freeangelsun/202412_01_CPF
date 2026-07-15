@@ -28,12 +28,12 @@ class TransactionIdGeneratorTest {
                 Instant.parse("2026-06-11T05:12:34.567Z"),
                 ZoneId.of("Asia/Seoul"));
         // CPF 기능 설명입니다.
-        TransactionIdGenerator generator = new TransactionIdGenerator("ACC", "accAP01", 7, clock);
+        TransactionIdGenerator generator = new TransactionIdGenerator("XYZ", "xyzAP01", 7, clock);
 
         // CPF 기능 설명입니다.
-        assertThat(generator.generate()).isEqualTo("20260611141234567ACCaccAP010000001");
+        assertThat(generator.generate()).isEqualTo("20260611141234567XYZxyzAP010000001");
         // CPF 기능 설명입니다.
-        assertThat(generator.generate()).isEqualTo("20260611141234567ACCaccAP010000002");
+        assertThat(generator.generate()).isEqualTo("20260611141234567XYZxyzAP010000002");
     }
 
     /**
@@ -49,8 +49,8 @@ class TransactionIdGeneratorTest {
         TransactionIdGenerator generator = new TransactionIdGenerator("MBR", "mbrAP01", 7, clock);
 
         // CPF 기능 설명입니다.
-        assertThat(generator.generateOrUse("20260611141234567ACCaccAP010000001"))
-                .isEqualTo("20260611141234567ACCaccAP010000001");
+        assertThat(generator.generateOrUse("20260611141234567XYZxyzAP010000001"))
+                .isEqualTo("20260611141234567XYZxyzAP010000001");
         // CPF 기능 설명입니다.
         assertThat(generator.generateOrUse("TRX-TEST-001"))
                 .isEqualTo("20260611141234567MBRmbrAP010000001");

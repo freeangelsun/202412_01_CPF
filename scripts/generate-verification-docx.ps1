@@ -1,7 +1,8 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [ValidateSet("all", "matrix", "report")]
-    [string] $DocumentKind = "all"
+    [string] $DocumentKind = "all",
+    [switch] $MetadataOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -151,6 +152,62 @@ function Write-ZipEntryText {
     }
 }
 
+function Update-DocumentCommitMetadata {
+    param(
+        [string] $TargetPath,
+        [string] $Commit
+    )
+
+    $archive = [System.IO.Compression.ZipFile]::Open($TargetPath, [System.IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $coreXml = Read-ZipEntryText -Archive $archive -Name "docProps/core.xml"
+        $commitText = "Commit $Commit"
+        if ($coreXml -match '(?i)Commit\s+[0-9a-f]{40}') {
+            $coreXml = [regex]::Replace($coreXml, '(?i)Commit\s+[0-9a-f]{40}', $commitText)
+        } elseif ($coreXml -match '</cp:coreProperties>') {
+            $coreXml = [regex]::Replace(
+                    $coreXml,
+                    '</cp:coreProperties>',
+                    '<dc:subject>' + (ConvertTo-XmlText $commitText) + '</dc:subject></cp:coreProperties>')
+        } else {
+            throw "DOCX core metadata root를 찾을 수 없습니다. path=$TargetPath"
+        }
+        Write-ZipEntryText -Archive $archive -Name "docProps/core.xml" -Text $coreXml
+    } finally {
+        $archive.Dispose()
+    }
+}
+
+function Update-ManagedDocumentSection {
+    param(
+        [string] $TargetPath,
+        [string] $SectionId,
+        [string[]] $Content
+    )
+
+    if (-not (Test-Path -LiteralPath $TargetPath -PathType Leaf)) {
+        throw "관리 구간을 갱신할 DOCX가 없습니다. path=$TargetPath"
+    }
+    $begin = "<!-- CPF_MANAGED_SECTION_BEGIN:$SectionId -->"
+    $end = "<!-- CPF_MANAGED_SECTION_END:$SectionId -->"
+    $managed = $begin + ($Content -join "") + $end
+    $archive = [System.IO.Compression.ZipFile]::Open($TargetPath, [System.IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $documentXml = Read-ZipEntryText -Archive $archive -Name "word/document.xml"
+        $pattern = [regex]::Escape($begin) + '[\s\S]*?' + [regex]::Escape($end)
+        if ([regex]::IsMatch($documentXml, $pattern)) {
+            $documentXml = [regex]::Replace($documentXml, $pattern, $managed)
+        } elseif ($documentXml -match '<w:sectPr\b') {
+            $documentXml = [regex]::Replace($documentXml, '<w:sectPr\b', $managed + '<w:sectPr', 1)
+        } else {
+            throw "DOCX 관리 구간을 삽입할 section 설정을 찾지 못했습니다. path=$TargetPath"
+        }
+        Write-ZipEntryText -Archive $archive -Name "word/document.xml" -Text $documentXml
+    } finally {
+        $archive.Dispose()
+    }
+}
+
 function Update-VerificationDocument {
     param(
         [string] $TargetPath,
@@ -235,6 +292,95 @@ function Update-VerificationDocument {
 
 $commit = (& git -C $Root rev-parse HEAD).Trim()
 $specs = Join-Path $Root "specs"
+if ($MetadataOnly) {
+    Get-ChildItem -LiteralPath $specs -File -Filter "CPF_*.docx" | ForEach-Object {
+        Update-DocumentCommitMetadata -TargetPath $_.FullName -Commit $commit
+        Write-Host "DOCX commit metadata 갱신 완료: $($_.FullName)"
+    }
+    exit 0
+}
+
+$managedGuideDefinitions = @(
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_개발자_가이드.docx"
+        SectionId = "BZA_SUPPORT_AND_ATTACHMENT_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "PFW 첨부 저장과 BZA 운영 지원" -Style "Heading1"),
+            (New-WmlParagraph -Text "PFW는 CpfAttachmentStoragePort와 LocalCpfAttachmentStorageAdapter로 저장소 기술 계약을 제공하고 BZA는 알림, 첨부 메타, 저장 검색, 다운로드 감사, 역할 비교와 권한 시뮬레이션 업무를 소유한다."),
+            (New-WmlParagraph -Text "prod profile에서는 CPF_ATTACHMENT_ROOT가 필수이며 object storage 또는 보안 파일 서버 adapter는 CpfAttachmentStoragePort 구현으로 교체한다."),
+            (New-WmlParagraph -Text "쓰기·결재·다운로드 감사 주체는 요청 JSON이 아니라 BzaApiAuthFilter가 설정한 bza.operatorId를 사용한다."),
+            (New-WmlTable -Rows @(
+                @("구분", "정본 경로"),
+                @("PFW port", "pfw/src/main/java/cpf/pfw/common/attachment"),
+                @("BZA API", "bza/src/main/java/cpf/bza/support"),
+                @("EDU", "xyz/src/main/java/cpf/xyz/edu/attachment"),
+                @("단위 테스트", "LocalCpfAttachmentStorageAdapterTest, BzaSupportServiceTest, XyzAttachmentEducationSampleTest"),
+                @("DB 변경", "specs/sql/migration/flyway/V31__bza_operation_support.sql")
+            ))
+        )
+    },
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_운영자_ADM_가이드.docx"
+        SectionId = "BZA_SUPPORT_OPERATIONS_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "BZA 운영 지원 기능" -Style "Heading1"),
+            (New-WmlParagraph -Text "BZA 운영자는 대시보드, 내 알림, 첨부파일, 저장 검색, 다운로드 감사, 역할 권한 비교와 권한 시뮬레이션을 사용한다."),
+            (New-WmlParagraph -Text "알림 등록·읽음, 첨부 업로드·다운로드, 저장 검색 변경과 권한 시뮬레이션은 서버 권한과 감사 사유를 요구한다."),
+            (New-WmlParagraph -Text "첨부 다운로드는 checksum과 scan_status를 확인하며 PASSED_LOCAL_POLICY는 로컬 확장자·경로 정책 통과를 뜻하고 외부 악성코드 검사 완료를 뜻하지 않는다."),
+            (New-WmlParagraph -Text "실 object storage, 악성코드 검사와 보존 정책은 운영 adapter와 배포 secret 설정으로 연결하고 미연동 상태를 완료로 보고하지 않는다." -Style "Note")
+        )
+    },
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_운영자_ADM_가이드.docx"
+        SectionId = "REMOTE_LOG_ASYNC_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "원격 로그 검색과 비동기 ZIP 운영" -Style "Heading1"),
+            (New-WmlParagraph -Text "ADM 원격 로그는 환경, 모듈, 서비스, 인스턴스, 표준 온라인·배치 ID, 거래·구간 ID, Spring Batch 실행 ID, scheduler ID, 수정 시각, 크기, 압축과 활성 상태로 검색한다."),
+            (New-WmlParagraph -Text "선택 ZIP은 동기 다운로드와 비동기 작업을 구분한다. 비동기 작업은 등록 운영자에게만 노출되며 완료 후 짧은 유효기간의 1회성 token을 발급한다. 같은 파일을 다시 받으려면 새 token을 발급해야 한다."),
+            (New-WmlParagraph -Text "모든 생성, token 발급과 다운로드에는 서버 권한과 감사 사유가 필요하다. 조회 전용 권한보다 구체적인 다운로드 거부 권한이 우선한다."),
+            (New-WmlParagraph -Text "기본 InMemoryCpfRemoteLogBundleJobAdapter는 단일 ADM 인스턴스용이다. 운영 cluster에서는 CpfRemoteLogBundleJobPort를 공유 queue·저장소·분산 rate limit 구현으로 교체한다." -Style "Note")
+        )
+    },
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_설치_DB_SQL_Flyway_가이드.docx"
+        SectionId = "BZA_SUPPORT_SQL_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "BZA 운영 지원 DB 변경" -Style "Heading1"),
+            (New-WmlParagraph -Text "V31__bza_operation_support.sql은 bza_notification, bza_attachment, bza_saved_search, bza_download_audit를 추가한다."),
+            (New-WmlParagraph -Text "신규 설치는 40_business_modules_schema.sql과 V1 baseline에 포함되고 기존 설치 업그레이드는 V31을 적용한다. 00_all_install.sql과 00_all_install_and_smoke.sql은 build-all-install-sql.ps1로 재생성한다."),
+            (New-WmlParagraph -Text "모든 신규 테이블은 bza_ prefix, created_by, created_at, updated_by, updated_at과 한글 COMMENT를 가진다."),
+            (New-WmlParagraph -Text "실 MariaDB 검증은 접속 자격정보가 제공된 환경에서 smoke-mariadb-full-install.ps1 -RequireRun으로 별도 수행한다." -Style "Note")
+        )
+    },
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_프레임워크_소개_및_아키텍처.docx"
+        SectionId = "ATTACHMENT_OWNERSHIP_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "첨부파일 capability 소유권" -Style "Heading1"),
+            (New-WmlParagraph -Text "PFW는 경로, 확장자, 크기, checksum과 저장 adapter 교체 지점을 소유한다. BZA는 업무 첨부 그룹, 메타, 권한, 감사와 다운로드 정책을 소유한다."),
+            (New-WmlParagraph -Text "BZA는 PFW port만 호출하며 PFW는 bzaDB repository를 참조하지 않는다. 이 경계는 타 주제영역 DB·Repository·Mapper 직접 접근 금지 원칙과 같다.")
+        )
+    },
+    [pscustomobject]@{
+        Path = Join-Path $specs "CPF_EDU_샘플_카탈로그_및_실습가이드.docx"
+        SectionId = "ATTACHMENT_EDU_20260715"
+        Content = @(
+            (New-WmlParagraph -Text "XYZ 첨부파일 EDU" -Style "Heading1"),
+            (New-WmlTable -Rows @(
+                @("sample ID", "API", "학습 목적"),
+                @("XYZ-EDU-ATTACH-001", "POST /xyz/edu/attachments/text", "PFW 저장 port, 파일명·확장자·크기·경로 검증과 SHA-256"),
+                @("XYZ-EDU-ATTACH-002", "POST /xyz/edu/attachments/verify", "저장 key 재조회와 checksum 무결성 검증")
+            )),
+            (New-WmlParagraph -Text "소스는 xyz/src/main/java/cpf/xyz/edu/attachment, 테스트는 xyz/src/test/java/cpf/xyz/edu/attachment에 있다."),
+            (New-WmlParagraph -Text "실습에서는 txt 저장 성공, exe 확장자 거부, checksum 일치와 경로 이탈 거부를 확인한다.")
+        )
+    }
+)
+foreach ($guide in $managedGuideDefinitions) {
+    Update-ManagedDocumentSection -TargetPath $guide.Path -SectionId $guide.SectionId -Content $guide.Content
+    Update-DocumentCommitMetadata -TargetPath $guide.Path -Commit $commit
+    Write-Host "공식 DOCX 관리 구간 갱신 완료: $($guide.Path)"
+}
 $templatePath = Join-Path $specs "CPF_개발자_가이드.docx"
 $definitions = @(
     [pscustomobject]@{

@@ -99,7 +99,7 @@ if ($LASTEXITCODE -notin @(0, 1)) {
 Add-Check "LEGACY_BATCH_SINGLE_FILE" ($legacyBatchLogReferences.Count -eq 0) "count=$($legacyBatchLogReferences.Count)"
 
 $duplicateLogRoots = @(& rg -n --glob "application*.yml" --glob "application*.yaml" `
-        '(?:\./)?(?:acc|adm|bat|bizadm|exs|mbr|xyz)[\\/]logs' $Root 2>$null)
+        '(?:\./)?(?:acc|adm|bat|bza|exs|mbr|xyz)[\\/]logs' $Root 2>$null)
 if ($LASTEXITCODE -notin @(0, 1)) {
     throw "중복 로그 root 검색에 실패했습니다."
 }

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $EvidenceDir = "",
     [string] $RuntimeDir = "",
@@ -113,9 +113,9 @@ Export-One -Sources @("build/runtime-smoke/trace-boost-runtime-result.json") -Ta
 Export-One -Sources @("build/runtime-smoke/bat-trace-boost-runtime-result.json") -TargetName "bat-trace-boost-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/bat-log-bean-runtime-result.json") -TargetName "bat-log-bean-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/adm-operation-console-runtime-result.json") -TargetName "adm-operation-console-runtime-result.sanitized.json" -Kind "json"
-Export-One -Sources @("build/runtime-smoke/adm-log-policy-ui-static-result.json") -TargetName "adm-log-policy-ui-static-result.sanitized.json" -Kind "json"
-Export-One -Sources @("build/runtime-smoke/exs-timeout-retry-runtime-result.json") -TargetName "exs-timeout-retry-runtime-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/adm-log-policy-ui-static-result.sanitized.json") -TargetName "adm-log-policy-ui-static-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/cmn-fixed-length-advanced-result.json") -TargetName "cmn-fixed-length-advanced-result.sanitized.json" -Kind "json"
+Export-One -Sources @("build/runtime-smoke/attachment-edu-runtime-result.json") -TargetName "attachment-edu-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/create-domain-result.json") -TargetName "create-domain-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/service-registry-runtime-result.json") -TargetName "service-registry-runtime-result.sanitized.json" -Kind "json"
 Export-One -Sources @("build/runtime-smoke/service-registry-health-runtime.sanitized.json") -TargetName "service-registry-health-runtime.sanitized.json" -Kind "json"

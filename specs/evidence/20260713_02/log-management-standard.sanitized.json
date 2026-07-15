@@ -1,6 +1,6 @@
 {
     "status":  "완료",
-    "checkedAt":  "2026-07-13T16:42:09.2985945+09:00",
+    "checkedAt":  "2026-07-15T16:10:08.9226395+09:00",
     "trackedRawLogCount":  0,
     "sanitizedEvidenceCount":  13,
     "checks":  [
@@ -85,14 +85,14 @@
                        "detail":  "CPF_LOG_MAX_HISTORY_DAYS"
                    },
                    {
-                       "id":  "PFW_LOG_CONFIG_{instanceId}",
+                       "id":  "PFW_LOG_CONFIG_CPF_INSTANCE_ID",
                        "passed":  true,
-                       "detail":  "{instanceId}"
+                       "detail":  "CPF_INSTANCE_ID"
                    },
                    {
-                       "id":  "PFW_LOG_CONFIG_{date}",
+                       "id":  "PFW_LOG_CONFIG_CPF_ENV",
                        "passed":  true,
-                       "detail":  "{date}"
+                       "detail":  "CPF_ENV"
                    },
                    {
                        "id":  "NEW_SANITIZED_EVIDENCE",

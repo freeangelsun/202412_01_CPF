@@ -5,7 +5,7 @@ import cpf.adm.opr.dto.AdmMemberSaveRequest;
 import cpf.adm.opr.dto.AdmMemberStatusRequest;
 import cpf.adm.opr.service.AdmAuditLogService;
 import cpf.adm.opr.service.AdmMemberOperationService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,7 +43,7 @@ public class AdmMemberController {
     }
 
     @GetMapping
-    @CpfTransaction(id = "ADM01MBR0010", name = "ADMMemberList")
+    @CpfOnlineTransaction(id = "OADM-MBR-01-0010", name = "ADMMemberList")
     @Operation(operationId = "admMemberFindMembers", summary = "회원 목록 조회", description = "회원번호, 고객번호, 로그인 ID, 이름, 이메일, 휴대폰, 상태, 채널, 권한 조건으로 회원을 검색합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMembers(
             @RequestParam(required = false) String memberNo,
@@ -61,14 +61,14 @@ public class AdmMemberController {
     }
 
     @GetMapping("/{memberId}")
-    @CpfTransaction(id = "ADM01MBR0011", name = "ADMMemberDetail")
+    @CpfOnlineTransaction(id = "OADM-MBR-01-0011", name = "ADMMemberDetail")
     @Operation(operationId = "admMemberFindMemberDetail", summary = "회원 상세 조회", description = "회원 기본정보, 권한, 로그인 이력, 거래 로그, 감사 로그를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findMemberDetail(@PathVariable long memberId) {
         return ResponseEntity.ok(memberOperationService.findMemberDetail(memberId));
     }
 
     @PostMapping
-    @CpfTransaction(id = "ADM02MBR0012", name = "ADMMemberCreate")
+    @CpfOnlineTransaction(id = "OADM-MBR-02-0012", name = "ADMMemberCreate")
     @Operation(operationId = "admMemberCreateMember", summary = "회원 등록", description = "ADM에서 회원을 등록하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> createMember(
             @RequestBody AdmMemberSaveRequest request,
@@ -81,7 +81,7 @@ public class AdmMemberController {
     }
 
     @PutMapping("/{memberId}")
-    @CpfTransaction(id = "ADM03MBR0013", name = "ADMMemberUpdate")
+    @CpfOnlineTransaction(id = "OADM-MBR-03-0013", name = "ADMMemberUpdate")
     @Operation(operationId = "admMemberUpdateMember", summary = "회원 수정", description = "ADM에서 회원 기본정보를 수정하고 변경 전/후 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> updateMember(
             @PathVariable long memberId,
@@ -96,7 +96,7 @@ public class AdmMemberController {
     }
 
     @PutMapping("/{memberId}/status")
-    @CpfTransaction(id = "ADM03MBR0014", name = "ADMMemberStatusUpdate")
+    @CpfOnlineTransaction(id = "OADM-MBR-03-0014", name = "ADMMemberStatusUpdate")
     @Operation(operationId = "admMemberUpdateStatus", summary = "회원 상태 변경", description = "회원 상태, 잠금 여부, 탈퇴 여부를 변경합니다.")
     public ResponseEntity<Map<String, Object>> updateStatus(
             @PathVariable long memberId,
@@ -111,7 +111,7 @@ public class AdmMemberController {
     }
 
     @PostMapping("/{memberId}/roles")
-    @CpfTransaction(id = "ADM02MBR0015", name = "ADMMemberRoleGrant")
+    @CpfOnlineTransaction(id = "OADM-MBR-02-0015", name = "ADMMemberRoleGrant")
     @Operation(operationId = "admMemberGrantRole", summary = "회원 권한 부여", description = "회원 역할이나 서비스 접근 권한을 부여하거나 갱신합니다.")
     public ResponseEntity<Map<String, Object>> grantRole(
             @PathVariable long memberId,
@@ -125,7 +125,7 @@ public class AdmMemberController {
     }
 
     @DeleteMapping("/{memberId}/roles/{roleCode}")
-    @CpfTransaction(id = "ADM04MBR0016", name = "ADMMemberRoleRevoke")
+    @CpfOnlineTransaction(id = "OADM-MBR-04-0016", name = "ADMMemberRoleRevoke")
     @Operation(operationId = "admMemberRevokeRole", summary = "회원 권한 회수", description = "회원 역할이나 서비스 접근 권한을 비활성화하고 변경 이력을 남깁니다.")
     public ResponseEntity<Map<String, Object>> revokeRole(
             @PathVariable long memberId,

@@ -11,16 +11,14 @@ pluginManagement {
 
 rootProject.name = 'cpf-coreflow-platform-framework'
 
-include 'pfw', 'cmn', 'acc', 'mbr', 'xyz', 'adm', 'bizadm', 'exs', 'bat'
-// Additional business modules can be added here when needed.
-// include 'cbw', 'exs', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
+include 'pfw', 'cmn', 'mbr', 'xyz', 'adm', 'bza', 'bat'
+// 추가 업무 모듈은 create-domain 생성기를 사용한 뒤 명시적으로 등록합니다.
+// include 'cbw', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
 
 project(':pfw').projectDir = file('pfw')
 project(':cmn').projectDir = file('cmn')
-project(':acc').projectDir = file('acc')
 project(':mbr').projectDir = file('mbr')
 project(':xyz').projectDir = file('xyz')
 project(':adm').projectDir = file('adm')
-project(':bizadm').projectDir = file('bizadm')
-project(':exs').projectDir = file('exs')
+project(':bza').projectDir = file('bza')
 project(':bat').projectDir = file('bat')

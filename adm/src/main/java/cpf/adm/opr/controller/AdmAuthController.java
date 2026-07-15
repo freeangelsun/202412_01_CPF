@@ -6,7 +6,7 @@ import cpf.adm.opr.dto.AdmMenu;
 import cpf.adm.opr.dto.AdmOperator;
 import cpf.adm.opr.service.AdmOperatorService;
 import cpf.adm.opr.service.AdmSessionService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
@@ -34,7 +34,7 @@ public class AdmAuthController {
     }
 
     @PostMapping("/login")
-    @CpfTransaction(id = "ADM06OPR0040", name = "ADMLogin")
+    @CpfOnlineTransaction(id = "OADM-OPR-06-0040", name = "ADMLogin")
     @Operation(operationId = "admAuthLogin", summary = "ADM 로그인", description = "운영자를 인증하고 Bearer 토큰 세션을 발급합니다.")
     public ResponseEntity<AdmLoginResponse> login(@RequestBody AdmLoginRequest request) {
         AdmOperator operator = operatorService.authenticate(request);
@@ -43,7 +43,7 @@ public class AdmAuthController {
     }
 
     @GetMapping("/me")
-    @CpfTransaction(id = "ADM01OPR0041", name = "ADMCurrentOperator")
+    @CpfOnlineTransaction(id = "OADM-OPR-01-0041", name = "ADMCurrentOperator")
     @Operation(operationId = "admAuthMe", summary = "현재 운영자 조회", description = "현재 세션의 운영자와 권한 메뉴를 조회합니다.")
     public ResponseEntity<Map<String, Object>> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         String token = bearerToken(authorization);
@@ -57,7 +57,7 @@ public class AdmAuthController {
     }
 
     @PostMapping("/logout")
-    @CpfTransaction(id = "ADM06OPR0042", name = "ADMLogout")
+    @CpfOnlineTransaction(id = "OADM-OPR-06-0042", name = "ADMLogout")
     @Operation(operationId = "admAuthLogout", summary = "ADM 로그아웃", description = "현재 Bearer 토큰 세션을 폐기합니다.")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         sessionService.revoke(bearerToken(authorization));

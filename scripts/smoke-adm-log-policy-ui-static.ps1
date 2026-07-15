@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = ""
 )
@@ -10,7 +10,7 @@ $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$resultPath = Join-Path $ResultDir "adm-log-policy-ui-static-result.json"
+$resultPath = Join-Path $ResultDir "adm-log-policy-ui-static-result.sanitized.json"
 $admJsPath = Join-Path $Root "adm/src/main/resources/static/adm/adm.js"
 $admHtmlPath = Join-Path $Root "adm/src/main/resources/static/adm/index.html"
 $result = [ordered]@{
@@ -33,7 +33,7 @@ try {
         batchTargets = $admJs.Contains("/adm/api/batch/execution-targets")
         batchLocks = $admJs.Contains("/adm/api/batch/locks")
         batchGhost = $admJs.Contains("/adm/api/batch/ghost-candidates")
-        exsLedger = $admJs.Contains("/api/exs/transactions") -and $admJs.Contains("/api/exs/operations/retries")
+        legacyExternalApiRemoved = -not $admJs.Contains("/api/exs/") -and -not $admJs.Contains("/api/acc/")
         centerCutLink = $admJs.Contains("/adm/api/center-cut/jobs")
         reasonGuard = $admJs.Contains("requireReason")
         operationConsoleMenus = $admJs.Contains("id: `"batch`"") -or $admJs.Contains("id: ""batch""")

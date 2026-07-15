@@ -1,0 +1,89 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=edu-sample-final
+STATUS=완료
+EXECUTED_AT=2026-07-15T15:48:52.3469293+09:00
+START_COMMIT=0d206c683aab840dbab4639f2797dd7fd718cefd
+BRANCH=master
+COMMAND=.\gradlew.bat :xyz:test :bat:test --rerun-tasks --no-daemon --console=plain
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=84
+FAILURES=0
+ERRORS=0
+SKIPPED=2
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=c195c797ea30698c32811dfac578ebe4ac315592aab837475317b3c48b31bf2f
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot\ 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" goto execute 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" :xyz:test :bat:test --rerun-tasks --no-daemon --console=plain 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:compileJava
+> Task :cmn:compileJava
+> Task :cmn:processResources
+> Task :cmn:classes
+> Task :cmn:jar
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+> Task :xyz:compileJava
+> Task :xyz:processResources
+> Task :xyz:classes
+> Task :xyz:compileTestJava
+> Task :xyz:processTestResources
+> Task :xyz:testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :xyz:test
+> Task :bat:compileJava
+> Task :bat:processResources
+> Task :bat:classes
+> Task :bat:compileTestJava
+> Task :bat:processTestResources NO-SOURCE
+> Task :bat:testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction (file:/C:/Users/11096/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.7/8d80cadfcb9dfe1c9a04cc5c3064b4625bba9fa/byte-buddy-1.18.7.jar)
+WARNING: Please consider reporting this to the maintainers of class net.bytebuddy.dynamic.loading.ClassInjector$UsingUnsafe$Dispatcher$CreationAction
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+> Task :bat:test
+
+BUILD SUCCESSFUL in 2m 4s
+15 actionable tasks: 15 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
+
+<WORKSPACE>>if 0 EQU 0 goto mainEnd 
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" endlocal

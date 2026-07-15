@@ -1,1577 +1,2250 @@
-# CPF 최종 통합 구현·전수 검증·문서 정본화 완료 요청서
+# CPF 차기 최종 통합 개발·정리·검증 요청서
 
-## 1. 작업 성격
+## 0. 기준과 작업 금지사항
 
-이번 작업은 작은 마일스톤이나 부분 보강 작업이 아니다.
-
-**CPF 정본 목표에 남아 있는 모든 구현·연결·검증·문서·운영·샘플·생성기·정리 작업을 한 번의 작업에서 최대한 완료하여, 이후에는 외부 운영환경 최종 확인과 소수 결함 수정만 남기는 최종 통합 완료 후보 작업**이다.
-
-작업 시간이 오래 걸려도 된다. 작업량이 많다는 이유로 범위를 축소하거나 다음 요청으로 임의 이월하지 않는다. Codex가 접근 가능한 source, test, SQL, script, local runtime, deterministic harness, DOCX, evidence, quality gate 작업은 이번 작업에서 모두 수행한다.
-
-## 2. 저장소와 기준
+### 기준 저장소
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 본 요청서 작성 기준 최신 commit: `d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d`
-- 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 검색 보조: `CPF_FINAL_TARGET_REQUIREMENTS_01.md` ~ `CPF_FINAL_TARGET_REQUIREMENTS_05.md`
-- 운영·완료 판정 기준: `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
-- 결과·상태:
-  - `CPF_STABILIZATION_REPORT.md`
-  - `CPF_GAP_MATRIX.md`
-  - `CPF_EVIDENCE_INDEX.md`
-- 샘플 기준: `specs/sample-coverage-matrix.md`
-- 현재 기능 matrix: `specs/기능_구현_매트릭스.html`
-  - 이번 작업에서 기계 검증 가능한 Markdown/JSON과 사용자용 DOCX로 이전하고 HTML은 최종 삭제한다.
+- 이번 검수 기준 commit: `0d206c683aab840dbab4639f2797dd7fd718cefd`
+- Commit message: `20260715_01`
 
-작업 시작 전에 최신 `master`를 다시 확인한다. 최신 commit이 위 기준과 다르면 그 이후 commit을 먼저 검수하고 실제 시작 commit을 report, evidence, handoff에 기록한다.
+### 정본과 필수 참조
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`가 유일한 최상위 목표 정본이다. `_01`~`_05`는 검색을 위한 분할 보조파일이며 목표 축소 근거가 아니다.
+- 최상위 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
+- 검색 보조: `CPF_FINAL_TARGET_REQUIREMENTS_01.md`~`05.md`
+- 완료 판정: `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
+- 현재 결과: `CPF_STABILIZATION_REPORT.md`
+- gap: `CPF_GAP_MATRIX.md`
+- evidence: `CPF_EVIDENCE_INDEX.md`
+- 기능 matrix
+- sample coverage matrix
+- source/test/sql/Flyway/all_install
+- runtime/browser/MariaDB/broker/multi-instance evidence
 
-## 3. 최종 목표
+`CPF_FINAL_TARGET_REQUIREMENTS.md`가 정본이며 `_01`~`_05`는 검색 보조다. 원본 목표를 확인하지 않고 작업 범위를 축소하거나 기존 구현 수준을 최종 목표로 간주하지 않는다.
 
-CPF는 금융권을 포함한 범용 업무 시스템을 구축·운영·감사·확장·검증·상용화할 수 있는 상용 솔루션급 Core Business Platform Framework다.
+### 금지
 
-최종 목표에 반드시 포함한다.
+- Git commit 금지
+- Git push 금지
+- branch 생성 금지
+- force push 금지
+- 민감정보 원문 기록 금지
+- 실행하지 않은 검증을 완료로 기록 금지
+- 문서량을 채우기 위한 문서 생성 금지
+- 신규 HTML 문서 작성·수정 지양
+- PDF 생성 금지
+- CoverageCatalog 또는 sampleId만으로 EDU 완료 처리 금지
+- source만 존재하는 기능을 완료 처리 금지
+- 정적 UI marker만으로 브라우저 완료 처리 금지
+- 실제 DB·broker·remote server를 실행하지 않고 runtime 완료 처리 금지
 
-- MSA-first, modular-monolith 호환
-- 동일 서비스 다중 인스턴스
-- Local Facade / Remote Facade Proxy
-- Service Call Engine
-- registry, health, instance selection
+### 허용 상태
+
+- 완료
+- 부분 구현
+- 미구현
+- 미검증
+- 실패
+- 재확인 필요
+
+---
+
+# 1. 이번 GitHub master 직접 검수 결과
+
+## 1.1 검증 사실
+
+최신 master는 `0d206c683aab840dbab4639f2797dd7fd718cefd`다.
+
+해당 commit은 대규모 변경이다.
+
+- additions: 40,644
+- deletions: 4,364
+- total changes: 45,008
+- ADM bootstrap·비밀번호 변경·session 관련 source/test 추가
+- PFW broker·file transfer ownership 이동
+- Java 25 gate 추가
+- DOCX 9개 추가
+- README 재작성
+- HTML 일부 삭제
+- evidence·matrix·report 동기화
+
+`CPF_STABILIZATION_REPORT.md`에는 다음이 기록되어 있다.
+
+- qualityGate 79개 Gradle task
+- JUnit 290 tests
+- failures 0
+- errors 0
+- skipped 4
+- 7개 bootJar 기동
+- Java 25 class major 69
+- DOCX 구조·Word 열기
+- report/matrix/evidence consistency
+
+그러나 이 수치는 이번 검수에서 직접 명령을 다시 실행한 것이 아니라 repository에 기록된 evidence와 Codex 결과다. 따라서 `Codex 주장 및 저장소 evidence 확인`으로 분류하며, 외부환경 검증은 별도다.
+
+## 1.2 확인된 미완료·미검증
+
+현재 report 자체가 다음을 미검증 또는 부분 구현으로 남기고 있다.
+
+- MariaDB full install 최신 commit 실검증
+- DB 권한 분리
+- Flyway 실제 적용
+- DB 기반 ADM 로그인·화면
+- DB 기반 transaction timeline
+- DB 기반 scheduler·batch·center-cut
+- 실 Redis
+- 실 Kafka
+- 실 RabbitMQ
+- 실 SFTP/FTP/FTPS/SCP/SSH
+- 다중 프로세스·공유 스토리지 BAT
+- trace boost runtime
+- remote deploy runtime
+- browser click E2E
+
+따라서 전체 CPF는 최종 완료가 아니다.
+
+## 1.3 저장소 구조상 확인된 gap
+
+### BIZADM이 그대로 존재
+
+현재 repository와 `settings.gradle`에는 다음이 남아 있다.
+
+- `bizadm` module
+- `cpf.bizadm` package
+- `BizAdmApplication`
+- `application-bizadm*.yml`
+- `CPF-BIZADM`
+- `CPF_BIZADM_*`
+- README의 BIZADM 표기
+
+사용자가 확정한 최종 이름은 `BZA`다. 이름 변경은 아직 구현되지 않았다.
+
+### 초기 배포 대상과 다른 업무 모듈이 잔존
+
+현재 settings와 repository에는 다음이 포함되어 있다.
+
+- `acc`
+- `exs`
+- `bat`
+- `bizadm`
+
+사용자가 원하는 최초 기본 구성은 다음이다.
+
+- library: PFW, CMN
+- 기본 실행: ADM, BZA, MBR, XYZ
+- 선택 실행: BAT
+- ACC, EXS 등은 생성기로 필요할 때 생성
+
+현 repository는 이 목표와 다르다.
+
+### 작업 문서가 최상위에 잔존
+
+- `CPF_NEW_REQUEST.md`
+- `CPF_CODEX_HANDOFF.md`
+
+최종 제품 저장소에는 작업 요청서·handoff가 정식 진입 문서처럼 남아 있으면 안 된다.
+
+### README가 아직 최종 제품 안내서가 아님
+
+현재 README는 개선됐지만 다음 문제가 있다.
+
+- 최상단에 정본·완료 판정 문서를 바로 제시
+- qualityGate·evidence·작업 검증 설명 비중이 큼
+- ACC·EXS·BIZADM 중심 architecture
+- ADM을 회원 운영까지 담당한다고 설명
+- BZA가 아닌 BIZADM 사용
+- 최초 배포 target과 불일치
+- CPF의 제품 가치보다 개발·검증 절차 비중이 큼
+
+README는 전면 재정리 대상이다.
+
+### ADM ownership 혼합
+
+ADM Controller inventory에 `AdmMemberController`가 존재한다.
+
+ADM은 프레임워크 관리 콘솔이고 회원 업무 운영은 BZA 또는 MBR 업무영역이다. 실제 source와 service가 ADM에서 MBR public port를 조회하는 reference인지, 회원 업무를 직접 소유하는지 전수 확인하고 ownership을 분리해야 한다.
+
+### BZA 기능 부족
+
+현재 BIZADM에는 인증 관련 source가 보이나 다음은 직접 확인되지 않았다.
+
+- 완성된 백오피스 main UI
+- 메뉴 관리 UI
+- 역할 관리 UI
+- 버튼·API 권한 UI
+- 직원·조직 UI
+- 결재선
+- 결재 요청·승인·반려
+- audit UI
+- download audit UI
+- 공통 업무 화면 scaffold
+- 상용 수준 디자인
+
+현재 resources에도 static UI directory가 확인되지 않았으므로 BZA 제품 화면은 미구현 또는 재확인 필요다.
+
+### BZA 인증 보안 gap
+
+직접 확인한 `BizAdmAuthService`에는 다음이 존재한다.
+
+- PBKDF2 password matching
+- JWT access token
+- refresh token hash DB 저장
+- login history
+- logout revoke
+
+하지만 다음 문제가 있다.
+
+- source에 local default JWT secret 문자열 존재
+- HS256 단일 secret 중심
+- refresh token rotation 없음
+- refresh token reuse detection 없음
+- refresh 시 신규 refresh token 미발급
+- token family 없음
+- device/session 관리 부족
+- password change·reset·history의 BZA 구현 확인 필요
+- bootstrap·최초 변경 흐름 확인 필요
+- MFA·step-up 없음
+- browser cookie/BFF 보안 미확인
+
+### ADM 비밀번호 hash
+
+ADM은 직접 확인 결과:
+
+- PBKDF2WithHmacSHA256
+- random salt
+- work factor 120,000
+- password history
+- current password 검증
+- 변경 후 session 처리 코드
+
+를 가진다.
+
+하지만 단순 SHA-256으로 변경하면 안 된다. 다음 요청에서 보안 기준을 상향한다.
+
+### SQL 정리 필요
+
+현재 `specs/sql`에는 다음이 존재한다.
+
+- `40_business_modules_schema.sql`
+- ACC·EXS·BIZADM 관련 schema 포함 가능성
+- `archive` directory
+- split SQL
+- all_install
+- Flyway
+
+초기 배포 target 변경 후 SQL·Flyway·all_install·smoke가 함께 정리되어야 한다. 적용된 Flyway migration은 checksum과 기존 설치 호환성을 고려하지 않고 삭제하면 안 된다.
+
+### script 과다 가능성
+
+현재 commit에서 많은 일회성 export·sync·check·smoke script가 추가됐다. 최종 제품에 필요한 script와 작업 증적 생성용 일회성 script를 분리해야 한다.
+
+---
+
+# 2. 최종 목표
+
+이번 요청은 다음을 목표로 한다.
+
+1. CPF를 최초 배포 가능한 상용 framework baseline으로 정리
+2. ADM을 프레임워크 관리 콘솔로 완성
+3. BIZADM을 BZA로 완전 전환
+4. BZA를 범용 업무 백오피스 기반으로 완성
+5. 표준 온라인·배치 실행 ID 체계 구현
+6. 표준 ID를 로그·ADM·배치·OpenAPI와 자동 연결
+7. BZA 결재 capability와 reference scenario 구현
+8. XYZ·BAT 범용 EDU 대폭 확대
+9. 초기 배포 모듈 슬림화
+10. domain generator 완성
+11. README를 공식 제품 안내서로 전면 재작성
+12. 불필요 source·SQL·script·문서·evidence 정리
+13. MariaDB·browser·multi-instance·외부 infrastructure 검증
+14. 최종 qualityGate와 self-review
+
+이번 작업은 “기능을 추가한 뒤 문서만 갱신”하는 작업이 아니다. 실제 source·UI·SQL·runtime·browser·evidence가 완성돼야 한다.
+
+---
+
+# 3. 필수 완료 범위 A — BIZADM을 BZA로 완전 전환
+
+## 3.1 명칭 전환
+
+다음을 전수 변경한다.
+
+- module directory: `bizadm` → `bza`
+- Gradle project: `:bizadm` → `:bza`
+- package: `cpf.bizadm` → `cpf.bza`
+- application class: `BizAdmApplication` → `BzaApplication`
+- artifact·bootJar
+- application name
+- registry service name
+- log module code
+- profile yml
+- environment prefix
+- port inventory
+- deploy inventory
+- SQL schema·table·column prefix
+- Flyway location
+- API path
+- OpenAPI tag·operationId
+- menu·permission code
+- script parameter
+- DOCX
+- README
+- evidence
+- generator template
+- qualityGate
+
+최종 repository에서 대소문자를 포함해 `bizadm`, `BIZADM`, `BizAdm` 잔존을 검사한다.
+
+정식 외부 배포 이력이 없으므로 불필요한 호환 alias를 남기지 않는다. 기존 DB migration 호환이 필요한 부분만 migration으로 처리한다.
+
+## 3.2 BZA module code
+
+- module code: `BZA`
+- owner domain code: `BZA`
+- environment prefix: `BZA_`
+- JWT issuer·audience 등도 최종 naming과 일치
+- 표준 ID의 BZA 공통 기능 DOMAIN은 `BZA`
+
+---
+
+# 4. 필수 완료 범위 B — 비밀번호·로그인·세션 보안
+
+## 4.1 비밀번호 저장
+
+단순 SHA-256, SHA-512 같은 fast hash를 사용하지 않는다.
+
+우선순위:
+
+1. Argon2id
+2. FIPS 요구 시 PBKDF2-HMAC-SHA256
+3. 프로젝트 환경에서 검증된 password hashing library
+
+PBKDF2를 사용할 경우:
+
+- 충분한 iteration
+- unique random salt
+- algorithm identifier
+- work factor 저장
+- hash version 저장
+- 재로그인 시 rehash upgrade
+- constant-time comparison
+- password history
+- raw password logging 금지
+- hash·salt API 노출 금지
+- DB dump·audit에 hash 노출 최소화
+- pepper 적용 여부 검토
+- pepper는 DB와 분리된 secret provider 사용
+
+현재 ADM PBKDF2 120,000은 검토 후 상향하고 기존 hash를 로그인 시 점진적으로 재해시한다.
+
+ADM과 BZA가 같은 PFW security password port를 사용하도록 ownership을 정리한다. ADM·BZA가 각각 password engine을 복제하지 않는다.
+
+## 4.2 로그인
+
+ADM과 BZA 모두:
+
+- login ID
+- password
+- 활성 상태
+- 잠금 상태
+- 실패 횟수
+- 실패 시 지연·rate limit
+- 최대 실패 후 잠금
+- 마지막 로그인
+- client IP
+- user agent
+- transactionGlobalId
+- login audit
+- generic failure message
+- credential stuffing 방어
+- brute-force 방어
+- session fixation 방지
+- CSRF 적용
+- secure cookie
+- SameSite
+- HttpOnly
+- HTTPS secure flag
+- CORS allowlist
+- security header
+- open redirect 차단
+
+## 4.3 초기 bootstrap
+
+- bootstrap은 명시적으로 enable된 경우만
+- 초기 사용자 ID·비밀번호 source/SQL/README/DOCX 금지
+- secret provider 또는 환경변수
+- local/dev/stg/prod 정책 분리
+- prod 자동 bootstrap 기본 금지
+- idempotent
+- 최초 로그인 강제 비밀번호 변경
+- 초기 비밀번호 만료
+- bootstrap 종료 후 secret 폐기 안내
+- bootstrap audit
+- 비밀번호 변경 전 일반 메뉴 접근 차단
+
+## 4.4 비밀번호 기능
+
+- 사용자 본인 변경
+- current password 검증
+- new/confirm 일치
+- 복잡도
+- 최소 길이
+- 최대 길이
+- username 포함 방지
+- 공통·유출 비밀번호 차단 적용 검토
+- history 재사용 금지
+- 만료
+- 최초 변경 강제
+- 관리자 reset
+- reset 시 임시 비밀번호 원문 저장 금지
+- reset 후 강제 변경
+- 변경·reset 후 기존 session·refresh token 전부 폐기
+- 변경 audit
+- 관리자 reset 사유
+- 동일 사용자의 동시 변경 경쟁 제어
+
+## 4.5 Access·Refresh Token
+
+BZA와 ADM token 정책을 공통 PFW capability로 정리한다.
+
+필수:
+
+- 짧은 access token TTL
+- refresh token rotation
+- refresh token family
+- 이전 refresh token 재사용 탐지
+- reuse 탐지 시 family 전부 revoke
+- refresh token hash 저장
+- access token 원문 저장 금지
+- token 원문 로그 금지
+- logout revoke
+- password 변경 시 revoke
+- 계정 잠금·비활성 시 revoke
+- issuer
+- audience
+- subject
+- jti
+- issuedAt
+- expiresAt
+- key ID
+- signing key rotation
+- HS256 고정 secret 제거 검토
+- secret provider
+- local default secret 제거
+- session/device 목록
+- 개별 session 종료
+- 전체 session 종료
+- idle timeout
+- absolute timeout
+
+---
+
+# 5. 필수 완료 범위 C — ADM 프레임워크 관리 콘솔
+
+ADM은 회원·계좌 같은 업무 운영 콘솔이 아니다. CPF framework와 platform runtime을 관리한다.
+
+## 5.1 ADM 메뉴
+
+최소 메뉴:
+
+```text
+ADM
+├─ 대시보드
+├─ 표준 실행 관리
+├─ 거래 관제
+├─ 서비스·인스턴스
+├─ 로그
+├─ 배치·Scheduler
+├─ Center-cut
+├─ Worker·Lock·Lease
+├─ 신뢰성
+├─ Broker·DLQ·Replay
+├─ File Transfer·Archive
+├─ 보안·권한
+├─ 감사
+├─ 설정·로그레벨
+├─ Alert
+└─ 시스템·OpenAPI·버전
+```
+
+## 5.2 상용 UI 디자인
+
+ADM은 단일 긴 HTML이나 개발자 도구처럼 보이지 않게 한다.
+
+필수:
+
+- 공통 design system
+- 좌측 navigation
+- top header
+- environment indicator
+- production warning
+- breadcrumb
+- 사용자 메뉴
+- notification
+- dashboard card
+- chart
+- table
+- search panel
+- filter chip
+- status badge
+- pagination
+- column chooser
+- column width·order 저장
+- detail drawer 또는 page
+- tab
+- timeline
+- tree
+- dependency graph
+- loading skeleton
+- empty state
+- error state
+- partial success
+- toast
+- confirmation modal
+- dangerous action modal
+- keyboard·focus
+- responsive layout
+- accessibility 기본
+- date/time 표준
+- timezone
+- duration format
+- transaction ID copy
+- deep link
+- browser back/forward
+- route guard
+- 권한 기반 메뉴·버튼 표시
+- URL 직접 접근 서버 403
+
+화면을 예쁘게만 꾸미지 말고 운영자가 장애를 찾고 조치할 수 있도록 정보 구조를 설계한다.
+
+## 5.3 ADM 대시보드
+
+- 서비스 정상·경고·장애
+- instance online·offline·stale
+- 거래량
+- 성공률
+- 오류율
+- P95·P99
+- timeout
+- retry
+- failover
+- circuit open
+- UNKNOWN
+- reconciliation
+- recovery
+- poison
+- outbox
+- inbox
+- DLQ
+- scheduler 지연
+- 배치 실패
+- ghost batch
+- stale worker
+- center-cut
+- file transfer
+- log storage
+- credential 만료
+- 운영자 조치
+- download audit
+
+모든 dashboard card와 chart는 상세 목록으로 drill-down한다.
+
+## 5.4 ADM ownership 정리
+
+`AdmMemberController`를 포함한 업무 데이터 기능을 전수 검토한다.
+
+- 프레임워크 운영 기능이면 ADM에 유지
+- 회원 업무 운영이면 BZA 또는 MBR ownership으로 이동
+- ADM이 MBR DB·repository·mapper를 직접 조회하면 제거
+- ADM이 MBR public facade 상태를 관제하는 기능이면 framework 관제 목적을 명시
+- 업무용 CRUD·상태 변경은 ADM에서 제거
+
+---
+
+# 6. 필수 완료 범위 D — 표준 온라인·배치 ID
+
+## 6.1 최종 ID 형식
+
+```text
+[O|B][DOMAIN 3]-[BUSINESS 3]-[SUB 2]-[SEQ 4]
+```
+
+정확히 16자.
+
+정규식:
+
+```regex
+^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[0-9]{4}$
+```
+
+예:
+
+```text
+OMBR-MEM-QY-0001
+OBZA-USR-QY-0001
+OBZA-APR-AP-0001
+BMBR-MEM-SY-0001
+BACC-SET-CL-0001
+```
+
+구간:
+
+- `O`: online
+- `B`: batch
+- DOMAIN: 주제영역 3자리
+- BUSINESS: 업무기능군 3자리
+- SUB: 세부 행위 2자리
+- SEQ: 0001~9999
+
+## 6.2 ID code catalog
+
+DOMAIN·BUSINESS·SUB는 DB·source·ADM에서 동일한 code catalog를 사용한다.
+
+SUB 예:
+
+- QY 조회
+- DT 상세
+- RG 등록
+- MD 수정
+- DL 삭제
+- AP 승인
+- RJ 반려
+- CN 취소
+- VF 검증
+- DW 다운로드
+- UL 업로드
+- SY 동기화
+- CL 마감
+- RC 대사
+- IM 적재
+- OT 추출
+- PG 정리
+- AR 보관
+- RT 재처리
+- AG 집계
+
+코드 충돌을 금지한다.
+
+## 6.3 주제영역 ownership
+
+해당 주제영역 source가 다른 주제영역 ID를 소유하면 오류다.
+
+예:
+
+- MBR source → `OMBR-*`, `BMBR-*`
+- BZA 공통 source → `OBZA-*`, `BBZA-*`
+- XYZ EDU → `OXYZ-*`
+- BAT EDU → `BBAT-*`
+
+BZA가 MBR 업무 백오피스 기능을 제공하는 경우:
+
+- owner domain: MBR
+- source module: BZA
+- 해당 package·menu·ownership manifest에 MBR이 명시적으로 허용돼야 함
+- BZA가 임의의 domain ID를 사용할 수 없음
+
+다른 주제영역 호출은 target ID 참조로 처리하며 source annotation ownership과 혼동하지 않는다.
+
+## 6.4 Source annotation
+
+온라인·배치 source에 annotation 또는 동등한 compile-time metadata를 선언한다.
+
+예:
+
+```java
+@CpfOnlineTransaction(
+    id = "OMBR-MEM-QY-0001",
+    name = "회원 목록 조회"
+)
+```
+
+```java
+@CpfBatchJob(
+    id = "BMBR-MEM-SY-0001",
+    name = "회원 동기화"
+)
+```
+
+annotation은 자동 inventory와 runtime context에 사용한다.
+
+annotation만 정본으로 삼지 않는다.
+
+```text
+annotation
++ Controller mapping
++ Facade/Port
++ OpenAPI operationId
++ Batch Job/Step metadata
++ build manifest
++ ADM catalog
+```
+
+을 상호 검증한다.
+
+## 6.5 자동 등록 시점
+
+권장 흐름:
+
+1. 개발자가 annotation에 ID 선언
+2. compile·test에서 규격과 ownership 검증
+3. build 시 module execution manifest 생성
+4. application startup 시 PFW registration port를 통해 ADM catalog에 idempotent upsert
+5. runtime 호출 시 log·metric·audit와 연결
+6. ADM에서 운영 metadata 보완
+
+runtime 최초 호출만을 등록 수단으로 사용하지 않는다. 호출되지 않은 거래도 build/startup 시 등록돼야 한다.
+
+## 6.6 ADM 표준 실행 관리
+
+메뉴:
+
+- 전체 실행 ID
+- 온라인 거래
+- 배치
+- 미등록·자동 발견
+- Source 변경
+- 중복·충돌
+- 배치 의존관계
+- 표준화 현황
+
+목록 필수 컬럼:
+
+- standardExecutionId
+- 이름
+- O/B
+- owner domain
+- source module
+- business
+- sub
+- sequence
+- 등록 상태
+- class·method 또는 Job
+- endpoint
+- operationId
+- version
+- commit
+- 최초 등록
+- 마지막 발견
+- 마지막 호출·실행
+- 담당자
+- binding 상태
+
+기능:
+
+- 다음 sequence 추천
+- ID 실시간 미리보기
+- 중복 검사
+- annotation 예제 복사
+- 자동 발견 source 등록
+- 기존 ID와 연결
+- source binding 수정
+- alias
+- 폐기
+- exception 승인
+- 담당자 지정
+- source change 확인
+- 로그·거래·배치로 이동
+- 등록률 통계
+
+## 6.7 미등록 처리
+
+표준 ID가 없더라도 runtime 로그와 실행 이력을 버리지 않는다.
+
+ADM 표시:
+
+- ID: 미등록
+- 상태: AUTO_DISCOVERED 또는 MAPPING_REQUIRED
+- endpoint·class·Job·Step 표시
+- 로그·오류·metric·runtime 정상 표시
+- 신규 등록
+- 기존 정의 연결
+- 예외 승인
+
+신규·변경 source는 ID annotation이 없으면 qualityGate 실패한다. 기존 legacy는 만료일 있는 예외만 허용한다.
+
+---
+
+# 7. 필수 완료 범위 E — 표준 ID와 로그·관제 자동 연계
+
+## 7.1 온라인 로그
+
+구조화 필드:
+
+- standardTransactionId
+- transactionGlobalId
+- transactionId
+- segmentId
+- parentSegmentId
+- sourceModule
+- targetModule
+- sourceInstanceId
 - selectedInstanceId
-- timeout, retry, backoff, failover, circuit breaker
-- transactionGlobalId, transactionId, segment, parent-child, timeline
-- 표준·확장 header propagation
-- 파일 로그와 DB 로그
-- 업무 rollback 독립 로그 저장
-- durable fallback, recovery, poison, reconciliation
-- security, authentication, token, permission, menu/button/API permission
-- audit, before/after, masking, download audit
-- idempotency
-- outbox/inbox
-- broker publish/consume, retry, DLQ, actual replay
-- unknown result, callback, polling, manual resolve, compensation
+- traceId
+- spanId
+- operationId
+- status
+- resultCode
+- failureStage
+- duration
+- retryCount
+- failoverCount
+- circuitState
+
+## 7.2 배치 로그
+
+- standardBatchId
+- JobInstanceId
+- JobExecutionId
+- StepExecutionId
+- businessDate
+- schedulerId
+- workerId
+- lockKey
+- leaseOwner
+- instanceId
+- transactionGlobalId
+- status
+- readCount
+- writeCount
+- skipCount
+- retryCount
+- commitCount
+- rollbackCount
+- checkpoint
+- ghostState
+
+## 7.3 연결 범위
+
+표준 ID는 다음에 자동 전파된다.
+
+- file log
+- DB log
+- segment
+- timeline
+- metric
+- audit
+- alert
+- scheduler execution
+- JobInstance
+- JobExecution
+- StepExecution
+- remote log artifact
+- recovery
+- poison
+- outbox
+- inbox
+- DLQ
+- reconciliation
 - file transfer
-- SFTP/FTP/FTPS/SCP/SSH 표준 port와 adapter
-- archive/compression
-- scheduler, worker, Spring Batch, center-cut
-- ADM framework operations
-- BIZADM business operations
-- SQL, Flyway, all_install, all_install_and_smoke, smoke
-- Java 25
-- bootJar + embedded Tomcat + `java -jar`
-- local/dev/stg/prod
-- 기능별 EDU
-- Swagger/OpenAPI
-- 주제영역 생성기
-- evidence 기반 완료 판정
-- 상세 사용자·개발자·운영자 DOCX 가이드
-- 다음 Codex 세션을 위한 완전한 인수인계 문서
+- download audit
 
-요청서에 이름이 직접 적히지 않았더라도 정본, public port, engine, Controller, SQL, ADM, 생성기, matrix, source에 존재하는 공개 기능은 자동으로 찾아 이번 범위에 포함한다.
+업무 개발자가 로그 문장마다 ID를 수동 입력하지 않는다.
 
-## 4. Codex 작업 판단 원칙
+## 7.4 내부 헤더 strict validation
 
-본 요청서는 목표, ownership, 완료 기준, 금지사항을 정의한다. 클래스명, package 분할, 테이블 세부 구조, worker 알고리즘, 테스트 harness 등 세부 구현 방식은 절대 고정안이 아니다.
+CPF 내부 HTTP 호출은 표준을 지키지 않으면 오류 처리한다.
 
-Codex가 더 안전하고 확장 가능하며 정본 목표에 부합하는 대안을 발견하면 적용할 수 있다.
+- standardExecutionId 누락
+- 형식 오류
+- 미등록 ID
+- 폐기 ID
+- endpoint·operationId 불일치
+- source domain 불일치
+- source·target module 불일치
+- transactionGlobalId 누락·형식 오류
+- protocol version 오류
+- 허용되지 않은 확장 header
+- token claim·header 불일치
 
-다만 반드시 다음을 지킨다.
+외부 요청은 ingress에서 endpoint binding으로 standard ID를 결정하고 CPF context를 생성한다. 외부 client에게 내부 header 전체를 요구하지 않는다.
 
-- 목표 범위 축소 금지
-- 미구현 요구 삭제 금지
-- 완료 기준 완화 금지
-- 구현 편의를 위한 ownership·계층 위반 금지
-- 요청 방식과 다르게 처리한 경우 report와 handoff에 다음을 기록:
-  - 변경 이유
-  - 선택한 대안
-  - 장점
-  - 단점과 위험
-  - 영향 파일
-  - DB migration·API·호환성 영향
-  - 남은 gap
-  - 후속 검증
-- 같은 방법이 반복 실패하면 같은 시도만 반복하지 말고 원인을 분류하고 대안을 적용
-- 외부 환경 부재는 source·test·local harness·EDU·OpenAPI·SQL 개발을 미루는 사유가 아님
-- 실제 외부환경 실행만 불가능한 경우에 한해 `미검증`
-- “시간 부족”, “작업량이 큼”, “다음 요청에서 처리”만으로 미처리 금지
-- Codex 환경에서 해결 가능한 실패가 있으면 최종 보고서 작성 전에 수정·재실행
+---
 
-## 5. 상태값과 완료 판정
+# 8. 필수 완료 범위 F — ADM 원격 로그 관리
 
-허용 상태값:
-
-- `완료`
-- `부분 구현`
-- `미구현`
-- `미검증`
-- `실패`
-- `재확인 필요`
-
-기능별 완료 묶음:
+구조:
 
 ```text
-정본 요구
-+ 설계·ownership
-+ source 구현
-+ 계층 연결
-+ SQL/Flyway/all_install
-+ unit test
-+ contract test
-+ integration test
-+ XYZ/BAT EDU
-+ EDU test
-+ REST이면 OpenAPI
-+ 필요한 runtime
-+ 파일/DB/ADM evidence
-+ sample coverage
-+ 기능 matrix
-+ report/gap/evidence 정합성
+ADM
+→ PFW RemoteLogArtifactPort
+→ Registry
+→ 대상 실행 인스턴스 LogArtifactAdapter
+→ allowlisted log root
 ```
 
-다음은 완료 근거가 아니다.
+필수 검색:
 
-- class 존재
-- source만 구현
-- test 한 개 통과
-- mock만 사용
-- `CoverageCatalog`
-- sampleId만 등록
-- Map/List 기반 가짜 EDU
-- PFW 내부 샘플 wrapper
-- Swagger annotation만 존재
-- `/v3/api-docs` 미검증
-- DB 기능인데 실제 DB row 없음
-- replay 상태만 변경하고 실제 재처리 없음
-- 과거 commit의 stale evidence
-- skip된 테스트
-- Java 25에서 실행했지만 다른 버전 bytecode를 생성한 결과
+- environment
+- module
+- service
+- instance
+- standardTransactionId
+- standardBatchId
+- transactionGlobalId
+- transactionId
+- segmentId
+- JobInstanceId
+- JobExecutionId
+- StepExecutionId
+- schedulerId
+- time range
+- log type
+- file name
+- active/archive
+- size
+- compression
 
-# 6. 작업 시작 보호와 전수 inventory
+목록 컬럼:
 
-## 6.1 요청서 보호
+- environment
+- module
+- service
+- instance
+- online status
+- standard ID
+- transactionGlobalId 또는 JobInstanceId
+- file name
+- safe relative path
+- size
+- modified time
+- compressed
+- checksum
+- active
+- retention expiry
+- masking policy
+- downloadable
 
-작업 시작 즉시:
+상세:
 
-- 시작 HEAD
-- branch
-- `git status --short`
-- 요청서 SHA-256
-- 요청서 git blob
-- 시작 commit의 요청서 blob
-- baseline copy
-- baseline metadata
-- 신규 non-overwrite evidence 디렉터리
+- metadata
+- first/last log time
+- last N lines
+- time range preview
+- keyword search
+- error highlight
+- standard ID highlight
+- masking
+- streaming
+- active log snapshot
 
-를 기록한다.
+다운로드:
 
-`CPF_NEW_REQUEST.md`는 작업 중 수정하지 않는다. baseline을 재생성·덮어쓰기하지 않는다.
+- single
+- selected ZIP
+- transactionGlobalId multi-instance ZIP
+- standardBatchId·JobInstanceId worker ZIP
+- gzip original
+- checksum manifest
+- partial success
+- failed instance list
+- async download job
+- expiry
+- redownload
+- audit
 
-## 6.2 전수 inventory
+보안:
 
-코드 수정 전에 다음을 전수 inventory로 만든다.
+- absolute path 금지
+- traversal
+- symlink·junction
+- extension allowlist
+- size limit
+- time limit
+- concurrency
+- rate limit
+- timeout
+- mTLS/service token
+- secret provider
+- reason
+- permission
+- masking
+- Content-Disposition 검증
 
-- 모든 Gradle module
-- 모든 package
-- 모든 public port/interface
-- 모든 engine/facade/adapter
-- 모든 Controller와 mapping
-- 모든 service/repository/mapper
-- 모든 SQL table/index/constraint/sequence
-- 모든 Flyway migration
-- 모든 `application*.yml`
-- 모든 deploy env/inventory
-- 모든 script
-- 모든 EDU class/test
-- 모든 ADM menu/page/API
-- 모든 가이드·README·HTML·MD·DOCX
-- 모든 evidence directory
-- 모든 root file/folder
-- 모든 생성기 template
-- 모든 runtime app
-- 모든 외부 연계 port
-- 모든 기술 기능과 업무 reference 기능
+---
 
-각 항목을 기능 capability와 연결한다.
+# 9. 필수 완료 범위 G — 배치·Scheduler·Ghost·Dependency
 
-```text
-capability
-→ owner
-→ source
-→ configuration
-→ SQL
-→ API
-→ EDU
-→ test
-→ runtime
-→ evidence
-→ guide
-→ status
-```
+## 9.1 배치 표준 정의
 
-요청서에 빠진 기능을 inventory에서 발견하면 자동으로 작업 범위에 추가한다.
+배치 목록과 상세에 다음이 필요하다.
 
-# 7. 아키텍처·표준 설계 전수 정비
+- standardBatchId
+- 배치명
+- owner domain
+- source module
+- actual Job name
+- source class
+- Step structure
+- scheduler
+- businessDate
+- restartable
+- rerun
+- failed-item retry
+- batchType
+- lock
+- lease
+- ghost policy
+- max runtime
+- SLA
+- alert
+- 담당자
 
-## 7.1 ownership
+## 9.2 Scheduler
 
-### PFW
+- scheduler ID
+- target standardBatchId
+- cron
+- timezone
+- next run preview
+- effective dates
+- active
+- misfire
+- concurrency
+- lock timeout
+- max runtime
+- parameter template
+- notification
+- pause
+- resume
+- immediate run
+- one-time run
+- dry-run
+- audit
 
-PFW가 소유:
+## 9.3 선행·후행·Trigger
 
-- Service Call Engine
-- HTTP client
-- timeout/retry/backoff/circuit/failover
-- registry/health
-- transactionGlobalId/transactionId/segment/timeline/header
-- logging, recovery
-- 기본 security/audit/masking
-- idempotency
-- outbox/inbox/broker
-- unknown/reconciliation
-- file transfer
-- archive/compression
-- credential/secret provider port
-- runtime worker
-- architecture rules
-
-### CMN
-
-CMN이 소유:
-
-- 프로젝트 공통 code/message
-- 프로젝트 오류·상태 확장
-- fixed-length layout/parser/formatter
-- validation/converter/helper
-- 업무 공통 fixture와 규칙
-
-CMN은 기술 engine을 소유하지 않는다.
-
-### 업무/실행 모듈
-
-- MBR: 대표 진입·복합 거래
-- ACC: 내부 업무 reference domain
-- EXS: 외부연계 reference domain
-- BAT: 배치·center-cut 실행과 EDU
-- BIZADM: 업무 운영
-- ADM: framework 운영
-- XYZ: 일반·온라인 EDU
+모든 관계는 `standardBatchId`로 설정한다.
 
 금지:
 
-- PFW → 업무 주제영역 의존
-- CMN → 업무 구현체 의존
-- 업무 주제영역 간 Repository/Mapper 접근
+- raw class name
+- raw Job Bean name
+- source path
 - Controller 직접 호출
-- URL 직접 조합
-- EXS 등 업무 module의 기술 engine 소유
-- 신규 module의 ACC/MBR/EXS 의존
-- ADM의 PFW 내부 worker/repository/table 직접 접근
-- 핵심 거래를 Spring Event만으로 처리
+- 코드 내부 임의 dependency
 
-기존 CMN migration candidate를 최종 정리한다. 호환 facade가 필요하면 CMN에는 얇은 compatibility facade만 두고 실행 engine·adapter는 PFW로 이전한다.
+필드:
 
-## 7.2 계층·package·네이밍 표준
-
-전체 source를 전수 검사하고 정비한다.
-
-- package naming
-- class/interface/record/enum naming
-- Controller/Service/Facade/Port/Adapter/Repository/Mapper suffix
-- DTO request/response/search/page naming
-- configuration/properties naming
-- exception/error code naming
-- event/command/query naming
-- test naming
-- EDU naming
-- operationId naming
-- transactionId naming
-- moduleCode
-- profile
-- environment variable
-- log category
-- SQL object naming
-- Flyway filename
-- script filename
-- evidence id
-
-자동 생성된 의미 없는 설명과 이름을 제거한다.
-
-금지 예:
-
-- `정보 조회`
-- `요청 처리`
-- `Sample1`
-- `TestController`
-- `CommonUtil`
-- 의미 없는 `Map<String,Object>`
-- package와 역할 불일치
-- 동일 capability의 상이한 용어 혼용
-
-## 7.3 DB 표준
-
-전체 SQL/Flyway/MyBatis/JPA/JDBC를 전수 검사한다.
-
-필수 표준:
-
-- table prefix와 module ownership
-- table/column/index/constraint/sequence 이름
-- PK/UK/FK
-- NOT NULL/default
-- timestamp/timezone
-- status/code
+- predecessorStandardBatchId
+- successorStandardBatchId
+- triggerCondition
+- businessDatePolicy
+- parameterMapping
+- timeout
+- failurePolicy
+- manualOverridePolicy
 - version
-- created/updated user/time
-- soft delete 사용 기준
-- business key
-- transactionGlobalId/segmentId
-- audit
-- masking metadata
-- comment
-- charset/collation
-- bigint/varchar/decimal/date/time 타입
-- JSON 사용 기준
-- reserved word 회피
-- index prefix 길이
-- multi-instance claim/lease 컬럼
-- retry/nextAttemptAt
-- poison/recovery
-- idempotency key/hash
-- outbox/inbox/DLQ
-- download audit
-- file transfer checksum/history
-- batch JobInstance/Execution correlation
+- effective dates
 
-다음을 동기화한다.
+기능:
+
+- single predecessor
+- multi predecessor
+- fan-in
+- fan-out
+- success condition
+- completed condition
+- failure trigger
+- file arrival
+- data ready
+- manual approval
+- cycle detection
+- orphan detection
+- graph
+- 현재 충족 상태
+- 참조한 JobExecution
+- manual override reason·audit
+
+## 9.4 JobInstance·Execution·Step
+
+목록·상세에 다음을 포함한다.
+
+- JobInstanceId
+- JobExecutionId
+- StepExecutionId
+- standardBatchId
+- businessDate
+- status
+- start/end
+- duration
+- attempt
+- instance
+- worker
+- transactionGlobalId
+- parameter
+- progress
+- read/write/filter/skip
+- commit/rollback
+- retry
+- checkpoint
+- exit code
+- exit message
+- error
+- logs
+- lock·lease
+- restart point
+
+운영 액션:
+
+- manual run
+- pause
+- resume
+- graceful stop
+- forced stop
+- restart
+- rerun
+- step restart
+- failed-item retry
+- compensation
+- stale lock release
+- log download
+
+## 9.5 Ghost
+
+판정 신호:
+
+- heartbeat timeout
+- lease expiry
+- stale lock
+- registry offline
+- process/port absence
+- log inactivity
+- DB state unchanged
+- worker claim expiry
+- scheduler state mismatch
+
+상태:
+
+- 정상
+- 지연
+- 고스트 의심
+- 고스트 확정
+- 복구 중
+- 복구 완료
+- 수동 확인 필요
+
+조치:
+
+- recheck
+- health check
+- log collection
+- confirm ghost
+- release lock·lease
+- reclaim PROCESSING item
+- reconcile JobExecution·StepExecution
+- restart from checkpoint
+- fail
+- compensate
+- quarantine
+- owner assignment
+- audit
+
+단일 timeout만으로 자동 확정하지 않는다.
+
+---
+
+# 10. 필수 완료 범위 H — BZA 범용 백오피스
+
+## 10.1 BZA 역할
+
+BZA는 주제업무 영역 백오피스 기반이다.
+
+BZA가 제공하는 공통 기능:
+
+- 백오피스 사용자
+- 직원 profile
+- 조직
+- 직급·직책
+- 역할
+- 메뉴
+- 화면
+- 버튼
+- API 권한
+- data scope
+- 업무 감사
+- download audit
+- 공통 CRUD scaffold
+- approval
+- notification
+- attachment
+- saved search
+- dashboard
+
+특정 업무는 generated domain과 연결하며 BZA core가 MBR repository에 직접 의존하지 않는다.
+
+## 10.2 BZA UI
+
+로그인부터 운영까지 완성한다.
+
+- login
+- first password change
+- dashboard
+- navigation
+- user menu
+- my profile
+- password change
+- session list
+- logout
+- user list·detail
+- role list·detail
+- menu tree editor
+- permission matrix
+- button·API permission
+- employee·department
+- approval
+- audit
+- download audit
+- code/message lookup
+- notification
+- common business page scaffold
+
+ADM과 동일 design system을 공유하되 BZA는 업무 백오피스에 맞는 정보구조를 갖는다.
+
+## 10.3 사용자·직원
+
+- BackofficeUser
+- EmployeeProfile
+- Department
+- Position
+- JobTitle
+- manager
+- employment status
+- join/leave date
+- contact
+- user-account binding
+- role
+- delegated approver
+- absence period
+- use/lock
+- audit
+
+외부 HR·directory와 연계할 수 있도록 port를 제공한다. 기본 설치는 BZA 자체 DB adapter를 제공한다.
+
+## 10.4 메뉴·권한
+
+- menu tree
+- route
+- icon
+- order
+- active
+- role assignment
+- user override 적용 여부
+- screen permission
+- button permission
+- API permission
+- environment
+- domain
+- data scope
+- effective permission
+- role compare
+- permission simulation
+- before/after
+- audit
+
+UI 숨김만으로 권한을 처리하지 않고 API server에서 반드시 검사한다.
+
+---
+
+# 11. 필수 완료 범위 I — BZA 결재 capability
+
+## 11.1 결재 기능
+
+- approval template
+- approval line
+- request
+- draft
+- submit
+- review
+- agree
+- approve
+- reject
+- withdraw
+- cancel
+- resubmit
+- delegate
+- substitute approver
+- parallel
+- sequential
+- all approve
+- any approve
+- maker-checker
+- same-person prohibition
+- due date
+- reminder
+- escalation
+- attachment
+- comment
+- before/after diff
+- optimistic lock
+- duplicate action prevention
+- audit
+- transactionGlobalId
+- notification
+- statistics
+
+## 11.2 결재선 설정
+
+등록된 BZA 직원과 연결한다.
+
+- employee
+- department
+- position
+- manager
+- role
+- amount threshold
+- risk level
+- business domain
+- request type
+- condition
+- effective dates
+- absence
+- delegation
+- fallback approver
+
+## 11.3 상태
+
+예:
+
+- DRAFT
+- SUBMITTED
+- IN_REVIEW
+- APPROVED
+- REJECTED
+- WITHDRAWN
+- CANCELED
+- EXPIRED
+
+상태전이는 state machine과 optimistic lock으로 보호한다.
+
+## 11.4 Reference scenario
+
+특정 MBR·ACC 업무에 종속되지 않는 중립 sample 하나를 BZA reference로 제공한다.
+
+예:
+
+```text
+기준정보 변경 요청
+→ 담당자 검토
+→ 팀장 승인
+→ 적용
+```
+
+BZA core와 reference data를 분리한다.
+
+- reference seed 제거 가능
+- BZA core는 reference에 의존하지 않음
+- 사용하지 않는 프로젝트는 reference만 제거 가능
+- 기능 자체는 configuration으로 disable 가능
+
+BZA에 `edu` package를 만들지 않는다.
+
+---
+
+# 12. 필수 완료 범위 J — 초기 배포 모듈 슬림화
+
+## 12.1 최종 baseline
+
+### library
+
+- PFW
+- CMN
+
+### 기본 실행
+
+- ADM
+- BZA
+- MBR
+- XYZ
+
+### 선택 실행
+
+- BAT
+
+### 기본 repository에서 제거 또는 template화
+
+- ACC
+- EXS
+- 기타 업무 domain
+
+## 12.2 ACC·EXS 제거 전 검수
+
+무조건 삭제하지 않는다.
+
+다음 중요한 구현을 inventory한다.
+
+- Service Call sample
+- Remote Facade Proxy
+- failover
+- external integration
+- file transfer
+- broker
+- fixed-length
+- unknown·reconciliation
+- tests
+- SQL
+- OpenAPI
+- runtime smoke
+
+소유권에 따라 이동한다.
+
+- 기술 engine·port → PFW
+- 공통 helper → CMN
+- 온라인 EDU → XYZ
+- 배치 EDU → BAT
+- 백오피스 공통 → BZA
+- 업무 reference → MBR 또는 generator template
+- 불필요 sample → 삭제
+
+이동 후 ACC·EXS 의존이 남지 않아야 한다.
+
+## 12.3 BAT
+
+BAT는 source와 bootJar를 유지하되 optional deployment로 관리한다.
+
+- default startup에 포함하지 않을 수 있음
+- batch 필요 프로젝트가 선택
+- BAT EDU와 기본 batch runtime 제공
+- SQL도 optional package와 core metadata 분리
+
+---
+
+# 13. 필수 완료 범위 K — Domain Generator
+
+`create-domain`은 ACC·EXS 제거 후 실제 domain 생성의 정식 수단이다.
+
+입력:
+
+- moduleCode
+- domainName
+- domainIdCode 3자리
+- basePackage
+- port
+- tablePrefix
+- online 여부
+- batch 여부
+- BZA menu 연계 여부
+
+생성:
+
+- Gradle module
+- source
+- Controller
+- Facade
+- Port
+- local adapter
+- remote proxy
+- standard ID annotation
+- OpenAPI
+- profile yml
+- bootJar
+- SQL
+- Flyway
+- smoke
+- test
+- ADM catalog manifest
+- registry
+- BZA menu registration candidate
+- log
+- permission
+- ownership gate
+- README snippet가 아닌 공식 generator guide 반영
+
+실제 LNG 같은 domain을 생성해:
+
+- compile
+- test
+- bootJar
+- Java 25
+- OpenAPI
+- startup
+- registry
+- ADM catalog
+- standard ID
+- log
+- SQL merge
+- ownership
+
+를 검증하고 생성 결과를 삭제한다.
+
+---
+
+# 14. 필수 완료 범위 L — XYZ·BAT EDU 확대
+
+## 14.1 필수 XYZ EDU
+
+- JWT create·validate
+- OAuth Authorization Server
+- Authorization Code + PKCE
+- Client Credentials
+- Resource Server
+- Access Token
+- Refresh Token
+- Refresh Rotation
+- Reuse Detection
+- Revocation
+- Introspection
+- JWKS
+- Key Rotation
+- OIDC
+- BFF
+- API Key
+- HMAC
+- mTLS
+- Webhook sender
+- Webhook receiver
+- async 202 job
+- SSE
+- WebSocket
+- gRPC
+- GraphQL
+- idempotency
+- outbox
+- inbox
+- DLQ
+- replay
+- saga·compensation
+- CloudEvents format
+- AsyncAPI example
+- timeout·retry·failover·circuit
+- bulkhead
+- rate limit
+- load shedding
+- deadline propagation
+- CRUD
+- validation
+- optimistic lock
+- keyset pagination
+- ETag
+- JSON Patch
+- Problem Details
+- Bulk API
+- import validation
+- async export
+- field encryption
+- tokenization
+- retention
+- feature flag
+- leader election
+- request deduplication
+- request coalescing
+- quota
+- maintenance mode
+- graceful drain
+- cancellation
+- API composition
+- CQRS read model
+- audit reconstruction
+- approval client example
+- notification port
+- template
+- one-time download token
+- object versioning
+- search port
+- time-series
+- state machine
+- localization
+- money
+- business calendar
+- sequence
+- reference cache
+- structured log
+- trace
+- metric
+- health
+- dynamic log level
+- file upload
+- streaming download
+- range request
+- checksum
+- archive
+- path security
+- contract test
+- fake external server
+- OpenAPI client
+
+## 14.2 AI EDU 착수
+
+외부 provider 자격정보 없이도 contract와 deterministic adapter를 구현한다.
+
+- LLM provider port
+- structured output
+- JSON schema validation
+- streaming
+- tool calling
+- masking
+- prompt injection defense
+- output validation
+- timeout
+- retry
+- circuit
+- model fallback
+- token usage metric
+- embeddings port
+- vector store port
+- simple RAG
+- source citation
+- async AI job
+- human approval
+- ADM observability
+
+실 provider runtime은 자격정보 없으면 미검증으로 남긴다.
+
+## 14.3 BAT EDU
+
+- tasklet
+- chunk
+- partition
+- parallel worker
+- checkpoint
+- restart
+- ghost
+- lock
+- lease
+- stale worker
+- file import
+- DB export
+- bulk API
+- rate limit
+- reconciliation
+- archive
+- purge
+- statistics
+- dependency chain
+- conditional step
+- cutoff
+- business date
+- SLA
+- expected finish
+
+## 14.4 EDU 완료 묶음
+
+각 sample:
+
+- real PFW/CMN capability
+- sampleId
+- source
+- configuration
+- OpenAPI
+- normal test
+- failure test
+- security test
+- runtime smoke
+- transactionGlobalId
+- standard execution ID
+- log
+- masking
+- audit
+- ADM 확인
+- sample coverage
+- DOCX catalog 최소 갱신
+- evidence
+
+---
+
+# 15. 필수 완료 범위 M — README 전면 재작성
+
+README는 작업·검수 문서가 아니다.
+
+## 15.1 목적
+
+CPF를 처음 접하는 개발자·아키텍트·운영자에게 다음을 설명한다.
+
+- CPF가 무엇인가
+- 어떤 문제를 해결하는가
+- 어떤 시스템을 만들 수 있는가
+- 어떤 핵심 기능을 제공하는가
+- 모듈이 어떻게 나뉘는가
+- 어떻게 실행하는가
+
+## 15.2 첫 화면
+
+```text
+CPF
+Core Business Platform Framework
+
+금융권을 포함한 범용 업무 시스템을
+구축·운영·감사·확장·검증할 수 있는
+MSA-first Core Business Platform Framework
+```
+
+첫 화면에서 바로 보여야 할 내용:
+
+- MSA-first
+- modular-monolith compatible
+- multi-instance
+- Java 25
+- transaction trace
+- reliability
+- security
+- batch
+- ADM
+- BZA
+- EDU
+- generator
+
+## 15.3 구성
+
+1. CPF 소개
+2. 핵심 가치
+3. architecture
+4. module map
+5. online transaction flow
+6. Service Call Engine
+7. transactionGlobalId·segment·timeline
+8. security·permission·audit·masking
+9. idempotency·outbox·inbox·DLQ
+10. unknown·reconciliation
+11. file transfer·archive
+12. batch·center-cut
+13. ADM
+14. BZA
+15. XYZ·BAT EDU
+16. domain generator
+17. quick start
+18. OpenAPI
+19. official guides
+20. verified status summary
+
+## 15.4 제외
+
+- Codex
+- request SHA
+- handoff
+- WIP
+- 작업 재개 방법
+- milestone
+- 임시 evidence 장문
+- 중간 gap
+- 이번 변경 파일 목록
+
+검증 상태는 짧은 summary만 제공하고 상세는 공식 report로 연결한다.
+
+## 15.5 architecture
+
+ACC·EXS·BIZADM 중심 diagram을 제거한다.
+
+baseline:
+
+```text
+Client
+→ MBR / generated domains
+→ PFW Service Call
+→ generated local/remote domain
+ADM → framework runtime
+BZA → business backoffice
+XYZ → online EDU
+BAT → optional batch runtime
+PFW/CMN → library
+```
+
+---
+
+# 16. 필수 완료 범위 N — 저장소 정리
+
+## 16.1 문서
+
+삭제·이관 후보:
+
+- `CPF_NEW_REQUEST.md`
+- `CPF_CODEX_HANDOFF.md`
+- WIP
+- 이전 요청서
+- 작업 재개 문서
+- 중복 목표 문서
+- stale report
+- raw temporary log
+- 실패 변환 파일
+- 임시 HTML
+
+정본과 공식 운영 문서는 유지한다.
+
+새 문서를 대량 생성하지 않는다.
+
+최소 문서:
+
+- README
+- 정본
+- completion guide
+- final report
+- gap
+- evidence index
+- 기능 matrix
+- sample coverage
+- 공식 DOCX
+
+## 16.2 SQL
+
+전수 inventory:
 
 - split SQL
 - Flyway
-- V1 baseline
-- `00_all_install.sql`
-- `00_all_install_and_smoke.sql`
-- `99_smoke_check.sql`
+- all_install
+- all_install_and_smoke
+- smoke
+- archive
+- test data
 - seed
-- 생성기 SQL template
-- 문서
+- removed module SQL
+- duplicate SQL
+
+원칙:
+
+- 적용된 Flyway migration 무단 삭제 금지
+- 기존 설치 checksum 고려
+- baseline module과 optional module 분리
+- ACC·EXS·BIZADM SQL 제거 또는 migration
+- BZA rename migration
+- all_install 재생성
+- full install 재실행
+- repeat install
+- Flyway migrate
+- FK/index/comment
+- app/migration 권한
 - smoke
 
-신규 SQL 변경 후 과거 evidence만으로 완료 처리하지 않는다.
+`archive` SQL이 실제 필요 없으면 제거하고, 보존 이유가 있으면 공식 기준을 명확히 한다.
 
-# 8. Java 25 단일 기준 전환
+## 16.3 Script
 
-CPF의 유일한 Java 기준은 **Java 25 LTS**다.
+script별로 분류한다.
 
-다른 Java 버전을 지원 대상, fallback, 기본값, 배포 bytecode, 완료 근거, 문서 병기 대상으로 유지하지 않는다.
+- product operation
+- install
+- start/stop
+- test
+- smoke
+- generator
+- qualityGate
+- one-time evidence
+- obsolete
+- duplicate
 
-필수:
+삭제 후보:
 
-- Gradle Wrapper Java 25 공식 지원 버전
-- Gradle wrapper jar/scripts/properties 정합성
-- `JAVA_HOME` 개인 경로를 저장소에 hardcode하지 않음
-- `.vscode/settings.json`의 특정 PC 드라이브/JDK 경로 제거
-- Java toolchain 25
-- compile release 25
-- source/target 25
-- bootJar Application class major 69
-- 모든 module class major 검사
-- generated domain class major 69
-- Java 25 compile
-- Java 25 test
-- Java 25 7개 bootJar
-- Java 25 qualityGate
-- Java 25 representative runtime
-- README/DOCX/report/matrix/evidence 모두 Java 25만 기술
-- 구버전 이름을 가진 현재 evidence는 작업 이력 보존이 꼭 필요한 최소 파일만 historical/obsolete로 분류하고 현재 완료 근거에서 제외
-- current evidence 파일명에도 Java 25 단일 기준 반영
-- qualityGate가 class major 69가 아니면 실패
+- 호출되지 않는 script
+- 일회성 export
+- 이전 request 전용
+- HTML 전용
+- stale path
+- 중복 check
+- 폐기 module 전용
+- 임시 probe
 
-Lombok, Byte Buddy, agent, Spring Boot, MyBatis, test library, Gradle plugin 등 Java 25 compatibility를 검증한다.
+남는 script는:
 
-경고를 단순 무시하지 않는다.
+- 목적
+- input
+- output
+- exit code
+- secret handling
+- usage
+- referenced guide
 
-- native access
-- Unsafe
-- illegal reflective access
-- deprecated Gradle API
-- agent dynamic loading
-- plugin incompatibility
+가 명확해야 한다.
 
-현재 안전하게 제거 가능한 경고는 제거한다. 라이브러리 upstream 제약이면 원인, 영향, 대안, 추적 버전을 report와 handoff에 기록한다.
+## 16.4 Source·test
 
-# 9. MSA·Service Call·복합 거래 최종 완성
+- unused class
+- dead controller
+- placeholder
+- duplicated engine
+- wrong ownership
+- ACC·EXS sample
+- BIZADM residue
+- empty package
+- stale test
+- disabled test
+- ignored test
+- generated temporary source
 
-대표 흐름:
+를 정리한다.
 
-```text
-MBR → ACC → EXS
-```
+---
 
-필수:
+# 17. 필수 완료 범위 O — MariaDB·Browser·Runtime 검증
 
-- same JVM Local Facade
-- separate process Remote Facade Proxy
-- public typed contract
-- registry persistence
-- health probe
-- candidate filtering
-- instance selection
-- selectedInstanceId
-- timeout
-- retry
-- exponential/fixed backoff 정책
-- retryable/non-retryable 분류
-- circuit open/half-open/closed
-- failover
-- attempt별 transaction segment
-- caller summary log
-- callee own log
-- transactionGlobalId
-- source/target transactionId
-- standard/extension headers
-- request/response masking summary
-- final status
-- unknown
-- reconciliation
-- graceful shutdown
-- rolling restart
-- multi-instance competition
+## 17.1 MariaDB
 
-필수 runtime:
+기설치 MariaDB에 접근 가능한 경우 신규 빈 schema로 실행한다.
 
-1. 정상
-2. business error
-3. validation error
-4. system error
-5. timeout
-6. retry success
-7. retry exhausted
-8. first instance down → second success
-9. health down instance 제외
-10. circuit open
-11. half-open probe
-12. all candidates fail
-13. unknown
-14. reconciliation success/failure
-15. caller rollback after callee success
-16. two ACC instances
-17. two EXS instances
-18. multi-process header propagation
-19. file log correlation
-20. DB timeline
-21. ADM integrated query
+- full install
+- repeat install
+- account creation
+- permission
+- app user DML
+- migration user DDL
+- forbidden DDL
+- FK
+- index
+- comments
+- seed
+- smoke
+- Flyway migrate
+- BZA rename migration
+- standard execution catalog
+- approval
+- transaction log
+- batch
+- ghost
+- remote log audit
 
-# 10. transaction·segment·timeline·로그·recovery
+접속 불가면 설치하지 말고 preflight·재현 명령·미검증 상태를 남긴다.
 
-## 10.1 추적 모델
+## 17.2 Browser
 
-전체 온라인·batch·broker·file transfer에 공통 적용:
+ADM·BZA 실제 browser E2E:
 
-- transactionId
-- transactionGlobalId
-- segmentId
-- parentSegmentId
-- eventId
-- sequence
-- attemptNo
-- selectedInstanceId
-- serverInstanceId
-- workerInstanceId
-- sourceModule/transaction
-- targetModule/transaction
-- start/end/duration
-- status/result/error/failureStage
-- retry/failover/circuit
-- traceId/spanId
-- business key
-- reconciliation key
-
-## 10.2 파일 로그
-
-- 절대 log root
-- local은 repository 기반 절대경로 계산
-- dev/stg/prod는 외부 절대경로 필수
-- OS 특정 path hardcode 금지
-- module/instance 분리
-- transactionId + businessDate file
-- transactionGlobalId는 record key
-- JSON Lines
-- masking
-- gzip/retention/size cap
-- late write
-- path traversal/symlink 방지
-- PFW/CMN 로그는 실행 module 귀속
-- logger additivity 중복 여부 실검증
-- multi-instance active file 충돌 방지
-- disk pressure/health/metric
-
-## 10.3 DB 로그와 fallback
-
-업무 rollback과 독립:
-
-- `REQUIRES_NEW` 또는 동등한 독립 저장
-- transaction/segment/timeline 전체 durable recovery
-- DB 장애 시 journal
-- atomic temp
-- stale temp cleanup
-- pending/processing/poison
-- claim/lease
-- eligible ordering
-- future retry file이 quota를 소비하지 않음
-- claim 후 read 실패 복원
-- stale processing reclaim
-- process restart
-- concurrent worker
-- duplicate event
-- partial recovery
-- parent-child ordering
-- retry/backoff
-- spool capacity
-- disk pressure
-- masking
-- DB unique race
-- recovery success cleanup
-- poison manual retry
-- ADM status/command
-- 권한·감사 사유
-
-필수 실제 DB 시나리오:
-
-- business rollback 후 log 유지
-- segment start/end 유지
-- DB down → journal
-- DB up → recovery
-- duplicate replay
-- partial failure
-- worker restart
-- two workers
-- poison
-- ADM tree reconstruction
-
-# 11. Reliability 기능 최종 완성
-
-## 11.1 Idempotency
-
-- REST
-- Service Call
-- Broker
-- FileTransfer
-- BAT/center-cut
-
-시나리오:
-
-- same key/same payload
-- same key/different payload
-- concurrent race
-- PROCESSING timeout
-- restart
-- FAILED retry
-- UNKNOWN retry
-- EXPIRED
-- final response replay
-- payload hash
-- MariaDB unique race
-- audit/ADM
-
-## 11.2 Outbox/Inbox/Broker
-
-- business transaction + outbox atomicity
-- publisher claim/lease
-- stale reclaim
-- retry/backoff/max attempts
-- broker publish
-- consumer
-- inbox duplicate
-- consumer rollback
-- DLQ
-- poison
-- actual replay
-- replay idempotency
-- multi-worker
-- restart
-- transactionGlobalId/segment
-- ADM list/detail/replay
-- permission/audit
-
-real Kafka/MQ가 없으면 production port·adapter와 local/test-container/deterministic harness까지 완성한다. 설치가 불가능하면 real runtime만 `미검증`.
-
-## 11.3 Unknown/Reconciliation/Compensation
-
-- timeout unknown
-- external key
-- callback
-- duplicate callback
-- polling
-- manual resolve
-- final success/failure
-- compensation
-- replay와 reconciliation 경쟁
-- optimistic lock
-- audit reason
-- before/after
-- ADM
-- EDU
-
-# 12. Security·ADM·BIZADM 최종 완성
-
-## 12.1 인증·권한
-
+- bootstrap
 - login
-- token
-- expiration/refresh/logout
-- password hash
-- account lock
-- password policy
-- password history
-- failed attempts
-- session/token invalidation
-- menu/button/API permission
-- server-side enforcement
-- module/role/user mapping
-- spoofing 방지
-- CSRF/CORS 적용 기준
+- first password change
+- logout
+- session expiry
+- lock
+- unlock
+- reset
+- role
+- menu
+- button
+- API 403
+- standard execution catalog
+- transaction list·detail
+- remote log
+- batch
+- scheduler
+- ghost
+- BZA employee
+- permission
+- approval
 - audit
-
-## 12.2 ADM 초기 접속과 비밀번호 변경
-
-초기 접속을 사용자가 알 수 있도록 적절한 운영자 DOCX 가이드와 README에 안내한다.
-
-단, 보안상 고정 평문 비밀번호를 source, SQL, Git, README, DOCX에 직접 넣지 않는다.
-
-표준 bootstrap 방식:
-
-- 기본 관리자 ID 또는 생성 규칙은 문서화 가능
-- 초기 비밀번호는 환경변수/secret/one-time bootstrap으로 주입
-- 값은 문서에 기록하지 않고 설정 변수명과 생성·확인 절차만 안내
-- 최초 로그인 시 강제 비밀번호 변경
-- UI에서 비밀번호 변경 가능
-- 현재 비밀번호 확인
-- 새 비밀번호 정책 검증
-- 확인 입력
-- password history
-- 변경 audit
-- token/session 강제 만료
-- 관리자 reset 절차
-- 분실 시 운영 복구 절차
-- 초기 계정 seed idempotency
-- prod에서 기본 계정 자동 활성화 금지 또는 명시적 승인 필요
-
-현재 고정 default password가 존재하면 제거하고 안전한 bootstrap으로 migration한다.
-
-필수 UI/runtime 테스트:
-
-- 초기 관리자 생성
-- 로그인
-- 최초 변경 강제
-- 비밀번호 변경 성공
-- 정책 위반
-- 기존 비밀번호 오류
-- 재사용 금지
-- 변경 후 기존 token 무효화
-- 권한별 메뉴
-- 계정 잠금/해제
-- 관리자 reset
-- audit 확인
-
-## 12.3 운영 기능
-
-ADM에 다음을 완성:
-
-- transaction timeline
-- recovery
-- broker/DLQ/replay
-- reconciliation
-- file transfer
-- batch/center-cut
-- scheduler/worker
-- service registry/health
-- instance
-- logs
-- permissions
-- audit
-- masking
 - download audit
-- credential provider status
-- configuration
-- dynamic log level
-- notification
-- search/paging/sort/export
+- empty
+- error
+- timeout
+- partial success
+- console error 0
+- dead button 0
+- broken link 0
+- mojibake 0
 
-BIZADM과 ADM의 책임을 분리한다.
+## 17.3 Multi-instance
 
-# 13. FileTransfer·Archive·Credential
+최소 2개 instance:
 
-## 13.1 FileTransfer
+- registry
+- selectedInstanceId
+- transaction propagation
+- standard ID
+- failover
+- circuit
+- remote log bundle
+- batch lease
+- worker claim
+- ghost false positive
+- graceful shutdown
 
-- LOCAL
+## 17.4 External infrastructure
+
+가능한 환경에서:
+
+- Redis
+- Kafka
+- RabbitMQ
 - SFTP
 - FTP
 - FTPS
 - SCP
 - SSH
-- port/adapter
-- credential provider
-- host key verification
-- passive/active mode 기준
-- standard ports
-- timeout/retry
-- checksum
-- allowed root
-- path traversal
-- symlink escape
-- unique temp
-- atomic rename
-- overwrite policy
-- duplicate reservation
-- partial cleanup
-- restart/resume 가능 범위
-- history
-- unknown/reconciliation
-- audit
-- ADM
-- EDU
 
-실 서버가 없으면 protocol별 embedded/test server 또는 deterministic harness를 구현한다.
+를 실제 검증한다.
 
-## 13.2 Archive/Compression
+환경 미제공 시 source·contract·deterministic adapter는 검증하되 실 runtime 완료로 올리지 않는다.
 
-- ZIP
-- GZIP
-- TAR 지원 여부
-- entry traversal
-- zip bomb/size limit
-- charset
-- duplicate entry
-- password/encryption 지원 여부
-- checksum
-- streaming
-- cleanup
-- history
-- EDU/test
+---
 
-## 13.3 Credential
+# 18. OpenAPI
 
-- environment
-- file provider
-- encrypted local provider
-- Vault/KMS port
-- cert/key metadata
-- expiration
-- rotation
-- masking
-- audit
-- health
-- ADM
-- secret 원문 금지
-
-# 14. BAT·Scheduler·Worker·Center-cut
-
-- Spring Batch
-- JobRepository
-- JobInstance/JobExecution/StepExecution
-- scheduler
-- worker
-- pause/resume/stop/restart/rerun
-- center-cut target/item/result
-- compensation
-- unknown/reconciliation
-- multi-instance claim/lease
-- stale worker
-- graceful shutdown
-- JobInstance logical log
-- businessDate
-- shared storage
-- degraded fragment mode
-- ADM
-- permission/audit
-- EDU
-
-실 shared storage가 없으면 process-level multi-worker harness와 DB lease를 완성한다.
-
-# 15. 모든 프레임워크 기능 EDU 완성
-
-## 15.1 EDU ownership
-
-- 일반·온라인 EDU: XYZ
-- 배치·center-cut EDU: BAT
-- PFW: engine/port/reference adapter + unit/contract test
-- CMN: parser/formatter/helper + unit test
-- ACC/MBR/EXS/ADM/BIZADM: 범용 EDU 없음
-
-## 15.2 EDU 전수 inventory
-
-PFW/CMN의 모든 public capability를 찾아 각각 EDU를 만든다.
-
-최소 대상:
-
-- transaction/header
-- segment/timeline
-- file log
-- DB log/recovery
-- service call
-- registry/health
-- timeout/retry/failover/circuit
-- idempotency
-- outbox/inbox
-- broker/DLQ/replay
-- unknown/reconciliation
-- file transfer protocols
-- archive/compression
-- security/auth/permission
-- audit/masking/download audit
-- code/message/config
-- fixed-length
-- validation/converter
-- scheduler/worker
-- batch/center-cut
-- runtime control
-- credential
-- notification
-- ADM query
-- domain generator usage
-
-## 15.3 EDU 품질
-
-각 EDU는 실제 engine/port를 호출한다.
-
-금지:
-
-- fake Map/List
-- hardcoded success
-- PFW 기능 재구현
-- wrapper-only
-- raw URL WebClient
-- Controller direct call
-- 타 업무 module dependency
-- sampleId-only
-
-시나리오:
-
-- normal
-- validation error
-- business error
-- system error
-- boundary
-- duplicate
-- concurrency
-- timeout
-- retry
-- retry exhausted
-- failover
-- circuit
-- rollback
-- unknown
-- reconciliation
-- restart
-- multi-instance
-- permission denied
-- masking
-- audit
-- file log
-- DB
-- ADM
-
-각 기능에 적용되지 않는 시나리오는 N/A 이유를 기록한다.
-
-## 15.4 EDU 완료 묶음
-
-```text
-capability source
-+ engine/port test
-+ XYZ/BAT sample
-+ sample test
-+ runtime smoke
-+ OpenAPI
-+ SQL
-+ file/DB/ADM evidence
-+ sample coverage
-+ guide
-```
-
-전체 EDU 검증 리포트를 별도 DOCX로 생성한다.
-
-# 16. Swagger/OpenAPI 전수 완성
-
-전체 Controller를 전수 점검한다.
-
-필수:
+모든 REST API:
 
 - `@Tag`
 - `@Operation`
-- 의미 있는 summary
-- 상세 description
-- 고유 explicit operationId
-- request/response DTO
-- schema description/example
-- pagination/search/sort
+- unique operationId
+- request schema
+- response schema
+- examples
 - standard error
-- 400/401/403/404/409/429/500/503
-- header policy
+- 400
+- 401
+- 403
+- 404
+- 409
+- 429
+- 500
+- 503
+- standard headers
+- standard execution ID
 - transactionGlobalId
 - permission
 - masking
 - audit
-- download audit
-- timeout/unknown/replay/recovery 설명
-- security requirement
-
-의미 없는 자동 문구를 제거한다.
-
-- `정보 조회`
-- `요청 처리`
-- `정보 변경`
-- `정보 삭제`
-
-API 역할에 맞게 작성한다.
-
-7개 앱을 기동하고 `/v3/api-docs`를 저장한다.
-
-검증:
-
-- operationId duplicate 0
-- explicit missing 0
-- schema resolve
-- broken `$ref` 0
-- required header policy
-- error response
-- security
-- examples
-- Swagger UI
-- runtime vs source mapping
-- current commit evidence
-
-# 17. 주제영역 생성기 최종 완성
-
-`scripts/create-domain.ps1`과 관련 script/template를 최종 완성한다.
-
-생성 입력:
-
-- moduleCode
-- moduleName
-- basePackage
-- port
-- tablePrefix
-- profile
-- applicationName
-- instanceId
-- DB schema/table
-- registry metadata
-
-생성 결과에 반드시 포함:
-
-- Gradle module
-- settings.gradle 연결
-- source
-- application main
-- controller
-- service
-- facade contract
-- local facade
-- remote proxy
-- PFW Service Call Engine 사용
-- configuration/properties
-- local/dev/stg/prod yml
-- log configuration
-- absolute log root standard
-- deploy env/inventory
-- bootJar
-- SQL split
-- Flyway
-- all_install integration
-- smoke
-- OpenAPI
-- ADM registry/permission/menu metadata
-- health
-- transaction/header/logging
-- test
-- ownership test
-- package/naming test
-- generated README section
-- cleanup/rollback option
-
-생성기는 기존 ACC/MBR/EXS 기술 engine을 복제하거나 의존하지 않는다.
-
-최종 검증:
-
-1. 완전히 새로운 임의 module 생성
-2. 예: LNG 또는 다른 미사용 코드
-3. Java 25 compile
-4. test
-5. bootJar
-6. class major 69
-7. local runtime
-8. `/v3/api-docs`
-9. transaction/header/log
-10. SQL/Flyway
-11. MariaDB 가능 시 install
-12. ADM registry
-13. service call
-14. multi-instance
-15. ownership
-16. qualityGate
-17. 생성 모듈 삭제 후 repository 원복
-18. 생성·삭제 과정이 기존 module/source/config/SQL에 영향 없음
-
-사용자가 바로 실행할 수 있는 단일 PowerShell 진입 명령과 DOCX 가이드를 제공한다.
-
-# 18. MariaDB·설치·실검증
-
-MariaDB 설치·삭제·업그레이드 금지. 사용자 PC의 기설치 MariaDB만 사용한다.
-
-비파괴 preflight:
-
-- service
-- client
-- version
-- host/port
-- credential env present
-- target schema 미변경
-
-권장 변수:
-
-- `CPF_DB_HOST`
-- `CPF_DB_PORT`
-- `CPF_DB_USER`
-- `CPF_DB_PASSWORD`
-- `CPF_DB_ADMIN_DATABASE`
-
-값은 evidence에 기록하지 않는다.
-
-접속 가능 시 신규 검증 schema에서:
-
-- split SQL
-- all_install
-- all_install_and_smoke
-- smoke
-- repeat install
-- Flyway baseline/latest
-- older version → latest
-- seed
-- ADM bootstrap
-- full runtime
-- rollback log
-- recovery
-- broker
-- idempotency race
-- batch JobRepository
-- domain generator SQL
-- cleanup
-
-접속 불가 시:
-
-- password guessing 금지
-- passwordless root 반복 금지
-- 재설치 금지
-- source/test/local harness 완료
-- 정확한 재현 명령
-- `미검증`
-
-# 19. 문서 정본화: DOCX 전환과 HTML 삭제
-
-## 19.1 원칙
-
-기존 가이드가 약하고 분산돼 있으므로 이번 작업에서 사용자용 공식 문서를 **DOCX Word 문서로 전면 정본화**한다.
-
-문서 분량은 제한하지 않는다. 수백 페이지·수만 줄이 되어도 좋다. 단순 분량 채우기는 금지하며 실제 source, SQL, runtime, 운영 절차를 정확히 설명한다.
-
-모든 DOCX:
-
-- 표지
-- 문서명
-- 버전
-- 작성일
-- 기준 commit
-- 문서 상태
-- 변경 이력
-- 자동 목차 또는 Word TOC field
-- Heading 1/2/3 스타일
-- 페이지 번호
-- header/footer
-- 표/코드블록/주의사항 스타일
-- cross-reference
-- 용어집
-- 색인 또는 기능 찾아보기
-- appendix
-- 깨진 한글/폰트/표 없음
-- opening/rendering 검증
-- 내용 누락 검증
-
-## 19.2 최종 DOCX 문서 구성
-
-중복 가이드는 통합해서 다음과 같이 정리한다.
-
-1. `specs/CPF_프레임워크_소개_및_아키텍처.docx`
-2. `specs/CPF_개발자_가이드.docx`
-3. `specs/CPF_운영자_ADM_가이드.docx`
-4. `specs/CPF_설치_DB_SQL_Flyway_가이드.docx`
-5. `specs/CPF_배치_센터컷_스케줄러_가이드.docx`
-6. `specs/CPF_외부연계_파일전송_전문_가이드.docx`
-7. `specs/CPF_EDU_샘플_카탈로그_및_실습가이드.docx`
-8. `specs/CPF_기능_구현_검증_매트릭스.docx`
-9. `specs/CPF_전체_테스트_검증_리포트.docx`
-
-필요하면 문서를 추가할 수 있지만 중복 문서를 양산하지 않는다.
-
-## 19.3 기계 검증 자료
-
-DOCX는 사용자 문서다. qualityGate와 자동 비교를 위해 다음 machine-readable 파일을 유지 또는 생성한다.
-
-- `specs/기능_구현_매트릭스.md`
-- `specs/기능_구현_매트릭스.json`
-- `specs/sample-coverage-matrix.md`
-- evidence JSON/LOG
-
-DOCX 내용과 Markdown/JSON의 핵심 상태가 불일치하면 qualityGate 실패.
-
-## 19.4 HTML 전면 삭제
-
-DOCX 생성, 내용 이관, 링크 변경, 검증 완료 후 기존 `specs/**/*.html`을 전부 삭제한다.
-
-숨은 HTML, 생성기 HTML template, README link도 전수 검색한다.
-
-삭제 전:
-
-- 유효 내용 DOCX 이관
-- script/README/reference 수정
-- `check-html-docs.ps1` 제거 또는 DOCX 검사 script로 대체
-- qualityGate 갱신
-- broken link scan
-- DOCX opening/content/TOC 검사
-
-최종 repository의 공식 가이드 HTML은 0개여야 한다.
-
-# 20. README 전면 재작성
-
-`README.md`는 프로젝트의 얼굴이자 프레임워크 브로셔다.
-
-현재보다 훨씬 상세하고 보기 좋게 전면 재작성한다.
-
-필수 목차:
-
-- CPF 소개
-- 누구를 위한 제품인지
-- 핵심 가치
-- 주요 기능 요약
-- architecture diagram
-- module map
-- MSA/modular monolith
-- Java 25
-- quick start
-- prerequisites
-- clone/build/test
-- local runtime
-- MariaDB
-- ADM 접속
-- 관리자 bootstrap과 비밀번호 변경
-- Swagger/OpenAPI
-- EDU sample
-- domain generator
-- profiles
-- deployment
-- logs
-- security
-- batch/center-cut
-- file transfer
-- broker/reliability
-- directory layout
-- documentation list
-- verification/evidence
-- troubleshooting
-- contribution/development rules
-- current verified status
-- limitations and external validations
-
-README에는 secret 값이나 고정 초기 비밀번호를 쓰지 않는다.
-
-README의 모든 command, path, link를 실제 검증한다.
-
-# 21. 전수 테스트와 최종 검증 리포트
-
-이번 작업 종료 전 지금까지 개발된 **전체 프레임워크 기능을 기능 하나하나 전수 검증**한다.
-
-## 21.1 테스트 계층
-
-- compile
-- unit
-- contract
-- architecture
-- repository/mapper
-- DB slice
-- integration
-- EDU
-- OpenAPI source
-- OpenAPI runtime
-- bootJar
-- packaged resource
-- local runtime
-- multi-process
-- multi-instance
-- browser
-- MariaDB
-- broker harness
-- file protocol harness
-- batch
-- generator
-- security
-- performance baseline
-- cleanup
-- documentation
-
-## 21.2 기능별 테스트 ledger
-
-각 기능마다:
-
-```text
-기능 ID
-기능명
-정본 요구
-owner
-source
-test classes
-test count
-EDU
-API
-SQL
-runtime command
-expected
-actual
-file evidence
-DB evidence
-ADM evidence
-status
-failure
-fix
-rerun
-remaining risk
-```
-
-## 21.3 실패 처리
-
-- 최초 실패 보존
-- 원인 분석
-- source/config/SQL/test 수정
-- focused rerun
-- full regression
-- 최종 결과
-- regression 영향
-
-Codex 환경에서 수정 가능한 실패가 남은 상태로 종료하지 않는다.
-
-## 21.4 최종 리포트
-
-`specs/CPF_전체_테스트_검증_리포트.docx`와 `CPF_STABILIZATION_REPORT.md`를 모두 작성한다.
-
-DOCX 리포트는 사람이 읽는 상세 보고서, Markdown report는 machine-review 중심 상태 보고서다.
-
-# 22. QualityGate 최종 강화
-
-다음을 실패시킨다.
-
-- Java 25가 아닌 toolchain/release/class major
-- 개인 PC JDK absolute path
-- non-Java25 README/guide/current evidence
-- ownership 위반
-- cross-domain Repository/Mapper
-- Controller direct call
-- URL direct composition
-- ADM direct PFW internals
-- Spring Event 핵심거래 사용
-- DB naming violation
-- table/column/comment/index mismatch
-- split/Flyway/all_install mismatch
-- operationId missing/duplicate
-- meaningless OpenAPI summary
-- runtime OpenAPI schema error
-- EDU outside XYZ/BAT
-- public capability without EDU
-- fake EDU
-- EDU without tests
-- sample matrix mismatch
-- source/test/SQL/OpenAPI/evidence bundle missing
-- skip 완료 처리
-- stale evidence
-- evidence commit mismatch
-- status value violation
-- DOCX missing
-- DOCX TOC/heading/open failure
-- DOCX-machine matrix mismatch
-- HTML residual
-- broken documentation link
-- hardcoded default password
-- secret
-- raw log/evidence
-- garbage/orphan/empty directory
-- generator failure
-- generated module ownership violation
-- report/gap/evidence/matrix/handoff mismatch
-- changed/untracked manifest omission
-
-# 23. 가비지·불필요 파일·폴더 최종 정리
-
-작업 완료 후 전 repository를 전수 조사한다.
-
-분류:
-
-- 유지
-- 통합 후 삭제
-- 정제 후 유지
-- 삭제
-- 재확인 필요
-
-대상:
-
+- idempotency
+- async result
+- partial success
+
+ADM·BZA·MBR·XYZ와 generated domain runtime `/v3/api-docs`를 검증한다.
+
+---
+
+# 19. QualityGate 보강
+
+다음을 자동 검사한다.
+
+## 19.1 Naming·ownership
+
+- BIZADM residue
+- ACC·EXS residue
+- forbidden domain dependency
+- ADM business ownership violation
+- BZA framework ownership violation
+- PFW business dependency
+- CMN business implementation dependency
+- Spring Event misuse
+
+## 19.2 Standard execution ID
+
+- 16-char regex
+- O/B position
+- domain code
+- business code
+- sub code
+- sequence 0000
+- duplicate
+- annotation missing
+- module/domain mismatch
+- BZA allowed domain manifest
+- online ID on batch
+- batch ID on online
+- OpenAPI mapping
+- Job mapping
+- startup manifest
+- runtime log propagation
+- legacy exception expiry
+
+## 19.3 Security
+
+- raw SHA password hash 금지
+- plaintext password
+- default JWT secret
+- hardcoded secret
+- token logging
+- refresh rotation
+- password work factor
+- weak bootstrap
+- missing audit
+- missing 403 test
+
+## 19.4 UI
+
+- dead route
+- dead button
+- missing API mapping
+- missing menu permission
+- duplicate menu
+- broken asset
+- console error evidence
+- accessibility baseline
+
+## 19.5 Repository cleanup
+
+- obsolete script
+- WIP
+- handoff
+- request docs
 - HTML
-- stale guides
-- duplicate Markdown
-- old request/report candidate
-- backup/copy/tmp
-- build/out/generated
-- raw logs
+- empty dir
+- build output
+- runtime log
 - stale evidence
-- old Gradle problems report
-- IDE personal settings
-- `.vscode` 개인 경로
-- orphan source/test
-- orphan SQL/Flyway
-- unused script
-- duplicate smoke/check
-- empty directory
-- obsolete profile
-- legacy env variable
-- unused Docker file
-- generated domain residue
-- deleted feature references
-- broken links
+- removed module references
+- unused SQL
+- all_install mismatch
 
-삭제 전에 참조 검색과 유효 내용 이관을 수행한다.
+---
 
-삭제 후:
+# 20. 문서·Evidence 최소화
 
-- compile
-- test
-- bootJar
-- runtime
-- qualityGate
-- documentation link
-- secret scan
-- `git diff --check`
+이번 작업은 문서 생산량을 늘리지 않는다.
 
-을 다시 실행한다.
+최소 갱신:
 
-# 24. 정본·report·matrix·evidence 최종 정합성
-
-실제 결과에 맞춰 갱신:
-
-- `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- `_01`~`_05`
-- `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
+- README
 - `CPF_STABILIZATION_REPORT.md`
 - `CPF_GAP_MATRIX.md`
 - `CPF_EVIDENCE_INDEX.md`
-- 기능 matrix MD/JSON/DOCX
+- 기능 matrix
 - sample coverage
-- README
-- DOCX guides
-- handoff
+- 기존 공식 DOCX 중 실제 내용이 변경된 문서만 갱신
 
-정본을 수정하면:
+신규 HTML 금지.
 
-- 목표 축소 금지
-- 변경 전후 diff
-- 변경 사유
-- `_01`~`_05` 재생성
-- 병합 bytes/hash
-- 목차·검색성
-- 중복 제거
+추가 DOCX는 기존 공식 DOCX에 흡수할 수 없을 때만 만든다.
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`가 현재 25MB 이상으로 매우 크므로 중복·병합 흔적을 분석한다. 정본 의미를 손상시키지 않고 중복 내용을 구조화·정리할 수 있으면 정리하되, 삭제한 요구사항과 이관 위치를 manifest로 남긴다.
+raw evidence를 무제한 저장하지 않는다.
 
-# 25. Codex 인수인계 문서
+evidence는:
 
-작업 마지막에 `CPF_CODEX_HANDOFF.md`를 완성한다.
-
-새 계정·새 PC·새 Codex 세션이 과거 대화 없이 즉시 이어갈 수 있어야 한다.
-
-필수:
-
-- repository/branch/HEAD
-- final tree
-- request hash
-- canonical documents
-- architecture decisions
-- module ownership
-- Java 25
+- sanitized
+- reproducible
+- branch/SHA
+- timestamp
 - environment
-- completed capabilities
-- partial/unverified/failed
-- source/test/SQL/evidence paths
-- commands
-- runtime ports
-- admin bootstrap
-- secret variable names
-- known warnings
-- failed approaches
-- do-not-repeat
-- remaining actions
-- first 10 commands
-- final manifest
-- next priorities
+- command
+- exit code
+- result
+- secret removed
 
-민감정보 값은 기록하지 않는다.
+를 갖는다.
 
-# 26. Evidence
+---
 
-신규 non-overwrite evidence 디렉터리.
+# 21. 완료 판정
 
-최소 metadata:
+다음이 모두 충족되어야 최종 완료 후보다.
 
-```text
-CPF_EVIDENCE_VERSION
-EVIDENCE_ID
-STATUS
-EXECUTED_AT
-START_COMMIT
-FINAL_WORKTREE_HASH
-BRANCH
-COMMAND
-EXIT_CODE
-JAVA_VERSION
-GRADLE_VERSION
-PROFILE
-MODULE
-TESTS
-FAILURES
-ERRORS
-SKIPPED
-SANITIZED
-SECRET_SCAN
-LOG_SHA256
-```
+- BZA rename
+- BZA UI·security·approval
+- ADM framework console
+- standard online/batch ID
+- source annotation
+- startup catalog registration
+- log·metric·audit propagation
+- remote log
+- scheduler·dependency
+- ghost
+- initial deployment modules
+- ACC·EXS cleanup
+- generator
+- XYZ·BAT EDU
+- README
+- SQL cleanup
+- script cleanup
+- MariaDB
+- browser
+- multi-instance
+- OpenAPI
+- qualityGate
+- matrix·evidence consistency
 
-runtime 추가:
+외부 infrastructure 미제공 항목은 `미검증`으로 남긴다.
 
-- ports
-- pid
-- start/end
-- request
-- response status
-- transactionGlobalId
-- file path/hash
-- DB row count
-- ADM result
-- OpenAPI path/hash
-- cleanup
+---
 
-push 후 최종 master 기준으로 post-push verification을 할 수 있도록 final expected manifest와 commit-binding 정보를 제공한다.
+# 22. 작업 순서 권고
 
-# 27. 실행 순서
+## Phase 1 — 전수 inventory와 migration plan
 
-Codex는 다음 순서로 진행한다.
+- latest master SHA
+- module dependency
+- BIZADM references
+- ACC·EXS assets
+- ADM ownership
+- SQL
+- scripts
+- EDU
+- UI
+- security
+- standard ID existing work
 
-1. 최신 master와 요청서 보호
-2. 전수 inventory
-3. 정본 대비 gap 확정
-4. Java 25 단일 기준
-5. architecture/naming/DB standard
-6. core source 구현
-7. SQL/Flyway
-8. unit/contract
-9. EDU
-10. OpenAPI
-11. runtime harness
-12. MariaDB 가능 시 DB
-13. ADM/browser
-14. domain generator
-15. DOCX/README
-16. HTML 삭제
-17. garbage cleanup
-18. full test
-19. qualityGate
-20. 실패 수정·재실행
-21. gap 재스캔
-22. report/matrix/evidence
-23. handoff
-24. final manifest
-25. 최종 자체 감사
+삭제 전에 이동·보존 대상을 확정한다.
 
-# 28. 최종 자체 감사 체크리스트
+## Phase 2 — PFW 공통 기반
 
-- [ ] 정본의 모든 capability를 inventory 했는가
-- [ ] 요청서에 없던 gap도 처리했는가
-- [ ] Java 25 class major 69인가
-- [ ] 다른 Java 버전이 현재 기준 문서·설정에 없는가
-- [ ] 모든 public capability에 EDU가 있는가
-- [ ] 모든 EDU가 실제 engine/port를 호출하는가
-- [ ] 모든 EDU test가 실행됐는가
-- [ ] 모든 REST API OpenAPI가 runtime 검증됐는가
-- [ ] DB/SQL/Flyway가 일치하는가
-- [ ] naming/ownership 규칙 위반이 없는가
-- [ ] MBR → ACC → EXS runtime이 검증됐는가
-- [ ] recovery/idempotency/broker/unknown이 실제 처리되는가
-- [ ] ADM 초기 접속과 비밀번호 변경 UI가 검증됐는가
-- [ ] domain generator 결과가 즉시 실행 가능한가
-- [ ] 생성기가 기존 프로젝트를 훼손하지 않는가
-- [ ] DOCX 문서에 목차가 있고 열리는가
-- [ ] 기존 HTML이 모두 삭제됐는가
-- [ ] README가 최신이고 command/link가 검증됐는가
-- [ ] garbage/orphan/empty directory가 없는가
-- [ ] skip을 완료 처리하지 않았는가
-- [ ] stale evidence가 없는가
-- [ ] 전체 기능 테스트 리포트가 있는가
-- [ ] 다음 Codex 세션이 handoff만 보고 이어갈 수 있는가
-- [ ] report/gap/matrix/evidence/docx/handoff가 일치하는가
-- [ ] 변경·신규·삭제 전체 manifest가 있는가
+- password port
+- session/token
+- standard execution ID
+- annotation
+- build manifest
+- startup registration
+- runtime context
+- header validation
+- remote log port
+- approval support port 중 공통 영역
 
-체크하지 못한 항목은 이유, 시도, 대안, 재현 명령을 바로 아래 기록한다.
+## Phase 3 — ADM
 
-# 29. 작업 금지
+- catalog
+- dashboard
+- transaction
+- service
+- log
+- batch
+- scheduler
+- ghost
+- reliability
+- security
+- design
 
-- Codex Git commit 금지
-- Codex push 금지
-- branch 생성 금지
-- force push/rebase/history rewrite 금지
-- 요청서 변경 금지
-- baseline 재생성 금지
-- 민감정보 원문 기록 금지
-- 고정 평문 관리자 비밀번호 기록 금지
-- MariaDB 설치·삭제·업그레이드 금지
-- 실행하지 않은 검증 완료 처리 금지
-- 목표 축소 금지
-- 기능 삭제로 완료 만들기 금지
-- 가짜 EDU 금지
-- 문서 분량 채우기 금지
-- 신규 HTML 금지
-- PDF 생성 금지
-- 외부 운영 인프라 강제 접속 금지
-- 대량 삭제 전 참조·이관 확인 없이 삭제 금지
+## Phase 4 — BZA
 
-# 30. 최종 완료 판단
+- rename
+- auth
+- user·employee
+- organization
+- role·menu·permission
+- approval
+- UI
+- audit
 
-이번 작업 후 `완료` 후보가 되려면 다음이 실제로 확인돼야 한다.
+## Phase 5 — module cleanup·generator
 
-1. Java 25 단일 기준과 class major 69
-2. architecture/ownership/naming/DB 표준
-3. 모든 공개 capability source·test
-4. 모든 framework capability XYZ/BAT EDU
-5. EDU test와 sample coverage
-6. Service Call/MSA multi-process
-7. transaction/segment/timeline/file/DB/recovery
-8. idempotency/broker/DLQ/replay/unknown/reconciliation
-9. security/permission/audit/masking/download
-10. ADM 초기 로그인·비밀번호 변경 UI
-11. BAT/scheduler/worker/center-cut
-12. FileTransfer protocol/Archive
-13. SQL/Flyway/all_install
-14. OpenAPI runtime
-15. domain generator 즉시 사용
-16. DOCX 정본 가이드와 README
-17. HTML 0개
-18. garbage/orphan 제거
-19. 전체 기능 전수 테스트
-20. 상세 검증 DOCX/Markdown report
-21. evidence 정합성
-22. Codex handoff
+- ACC·EXS migration
+- default module set
+- optional BAT
+- generator
+- SQL
+- deploy
+- scripts
 
-외부 환경이 정말 없는 항목만 `미검증`으로 허용한다. 그 외 Codex 환경에서 구현·검증 가능한 항목은 이번 작업에서 끝낸다.
+## Phase 6 — EDU·README
 
-CPF 전체 최종 완료를 과대 선언하지 않는다. 실제 evidence가 충족된 범위만 완료로 기록한다.
+- XYZ/BAT EDU
+- README
+- official guide minimal update
+
+## Phase 7 — runtime verification
+
+- test
+- bootJar
+- Java 25
+- MariaDB
+- browser
+- multi-instance
+- OpenAPI
+- broker·file server if available
+- qualityGate
+- self-review
+
+---
+
+# 23. 최종 보고 형식
+
+최종 보고는 과장 없이 다음만 제공한다.
+
+1. 실제 변경 요약
+2. 완료
+3. 부분 구현
+4. 미구현
+5. 미검증
+6. 실패
+7. 재확인 필요
+8. 실행한 검증
+9. 실행하지 못한 검증
+10. 주요 evidence
+11. 삭제·이동한 파일
+12. 남은 위험
+13. 작업트리 상태
+
+Codex 성공 보고만으로 완료 처리하지 않는다.
+
+커밋·push는 하지 않는다.

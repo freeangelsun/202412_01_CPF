@@ -1,10 +1,10 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
-$modules = @("acc", "mbr", "xyz", "bizadm", "exs", "bat", "adm")
+$modules = @("mbr", "xyz", "bza", "bat", "adm")
 
 function Add-Failure {
     param([string] $Message)

@@ -12,6 +12,8 @@ import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfNotFoundException;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.security.password.CpfPasswordHashingPort;
+import cpf.pfw.common.security.password.CpfPasswordVerification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,15 +21,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -43,19 +39,18 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class AdmOperatorService {
     private static final Logger log = LoggerFactory.getLogger(AdmOperatorService.class);
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int PBKDF2_ITERATIONS = 120_000;
-    private static final int PBKDF2_KEY_LENGTH = 256;
-
     private final AdmPasswordPolicyService passwordPolicyService;
+    private final CpfPasswordHashingPort passwordHashingPort;
     private final JdbcTemplate admJdbcTemplate;
     private final ConcurrentMap<String, OperatorState> operators = new ConcurrentHashMap<>();
     private final List<AdmRole> fallbackRoles = new ArrayList<>();
     private final List<AdmMenu> fallbackMenus = new ArrayList<>();
 
     public AdmOperatorService(AdmPasswordPolicyService passwordPolicyService,
+                              CpfPasswordHashingPort passwordHashingPort,
                               @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
         this.passwordPolicyService = passwordPolicyService;
+        this.passwordHashingPort = passwordHashingPort;
         this.admJdbcTemplate = admJdbcTemplate;
         seedFallback();
     }
@@ -173,7 +168,8 @@ public class AdmOperatorService {
             if (state.locked) {
                 throw new CpfValidationException("잠긴 운영자 계정입니다. operatorId=" + operatorId);
             }
-            if (!matchesPassword(password, state.passwordHash)) {
+            CpfPasswordVerification verification = verifyPassword(password, state.passwordHash);
+            if (!verification.matched()) {
                 int failed = state.failedLoginCount + 1;
                 boolean locked = failed >= passwordPolicyService.maxFailCount();
                 admJdbcTemplate.update("""
@@ -191,6 +187,13 @@ public class AdmOperatorService {
                         UPDATED_AT = CURRENT_TIMESTAMP
                     WHERE OPERATOR_ID = ?
                     """, operatorId);
+            if (verification.rehashRequired()) {
+                admJdbcTemplate.update("""
+                        UPDATE adm_operator
+                        SET PASSWORD_HASH = ?, UPDATED_BY = 'PFW_PASSWORD_UPGRADE', UPDATED_AT = CURRENT_TIMESTAMP
+                        WHERE OPERATOR_ID = ? AND PASSWORD_HASH = ?
+                        """, hashPassword(password), operatorId, state.passwordHash);
+            }
             return toResponse(state.withFailedLoginCount(0));
         } catch (DataAccessException ex) {
             log.debug("ADM 운영자 DB 인증을 건너뜁니다. operatorId={}, reason={}", operatorId, ex.getMessage());
@@ -466,7 +469,8 @@ public class AdmOperatorService {
         if (state == null || state.locked) {
             throw new CpfValidationException("운영자 인증에 실패했습니다.");
         }
-        if (!matchesPassword(password, state.passwordHash)) {
+        CpfPasswordVerification verification = verifyPassword(password, state.passwordHash);
+        if (!verification.matched()) {
             state.failedLoginCount++;
             if (state.failedLoginCount >= passwordPolicyService.maxFailCount()) {
                 state.locked = true;
@@ -475,6 +479,9 @@ public class AdmOperatorService {
             throw new CpfValidationException("운영자 인증에 실패했습니다.");
         }
         state.failedLoginCount = 0;
+        if (verification.rehashRequired()) {
+            state.passwordHash = hashPassword(password);
+        }
         state.updatedAt = DateTimeUtils.nowDateTimeMillis();
         return toResponse(state);
     }
@@ -529,6 +536,8 @@ public class AdmOperatorService {
 
         fallbackMenus.add(new AdmMenu("DASHBOARD", null, "대시보드", "/adm", 10));
         fallbackMenus.add(new AdmMenu("LOG_LIST", null, "온라인 거래 로그", "/adm#logs", 20));
+        fallbackMenus.add(new AdmMenu("STANDARD_EXECUTION", null, "표준 실행 카탈로그", "/adm#standard-executions", 23));
+        fallbackMenus.add(new AdmMenu("REMOTE_LOG", null, "원격 로그 관리", "/adm#remote-logs", 24));
         fallbackMenus.add(new AdmMenu("AUDIT_LOG", null, "감사 로그", "/adm#audit-logs", 30));
         fallbackMenus.add(new AdmMenu("MEMBER", null, "회원 관리", "/adm#members", 40));
         fallbackMenus.add(new AdmMenu("BATCH", null, "배치 관제", "/adm#batch", 50));
@@ -574,14 +583,14 @@ public class AdmOperatorService {
         }
         if (roleIds.contains("ADM_BIZ_OPERATOR")) {
             return fallbackMenus.stream()
-                    .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
+                    .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
                     .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                             menu.path(), menu.sortOrder(), true, List.of("MEMBER", "BATCH", "CACHE").contains(menu.menuId()), "MEMBER".equals(menu.menuId())))
                     .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
                     .toList();
         }
         return fallbackMenus.stream()
-                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
+                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
                 .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                         menu.path(), menu.sortOrder(), true, false, false))
                 .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
@@ -597,32 +606,24 @@ public class AdmOperatorService {
     }
 
     private String hashPassword(String password) {
+        char[] rawPassword = password.toCharArray();
         try {
-            byte[] salt = new byte[16];
-            SECURE_RANDOM.nextBytes(salt);
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATIONS, PBKDF2_KEY_LENGTH);
-            byte[] hash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
-            return "PBKDF2$" + PBKDF2_ITERATIONS + "$" + Base64.getEncoder().encodeToString(salt) + "$"
-                    + Base64.getEncoder().encodeToString(hash);
-        } catch (Exception ex) {
-            throw new IllegalStateException("운영자 비밀번호 해시에 실패했습니다.", ex);
+            return passwordHashingPort.hash(rawPassword);
+        } finally {
+            java.util.Arrays.fill(rawPassword, '\0');
         }
     }
 
     private boolean matchesPassword(String rawPassword, String storedHash) {
+        return verifyPassword(rawPassword, storedHash).matched();
+    }
+
+    private CpfPasswordVerification verifyPassword(String rawPassword, String storedHash) {
+        char[] passwordChars = rawPassword.toCharArray();
         try {
-            String[] parts = storedHash.split("\\$");
-            if (parts.length != 4 || !"PBKDF2".equals(parts[0])) {
-                return false;
-            }
-            int iterations = Integer.parseInt(parts[1]);
-            byte[] salt = Base64.getDecoder().decode(parts[2]);
-            byte[] expectedHash = Base64.getDecoder().decode(parts[3]);
-            KeySpec spec = new PBEKeySpec(rawPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
-            byte[] actualHash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
-            return MessageDigest.isEqual(expectedHash, actualHash);
-        } catch (Exception ex) {
-            return false;
+            return passwordHashingPort.verify(passwordChars, storedHash);
+        } finally {
+            java.util.Arrays.fill(passwordChars, '\0');
         }
     }
 

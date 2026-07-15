@@ -20,17 +20,17 @@ public class XyzServiceCallEngineEducationSample {
         this.serviceCallEngine = serviceCallEngine;
     }
 
-    public ServiceCallResult<String> callAccountSummary(
-            String accountNo,
+    public ServiceCallResult<String> callMemberSummary(
+            String memberNo,
             Function<ServiceCallResolvedTarget, String> remoteAdapter) {
-        ServiceCallRequest request = ServiceCallRequest.builder("ACC")
-                .endpointCode("ACC_ACCOUNT_SUMMARY")
+        ServiceCallRequest request = ServiceCallRequest.builder("MBR")
+                .endpointCode("MBR_MEMBER_SUMMARY")
                 .httpMethod("GET")
-                .requestPath("/accounts/" + accountNo)
+                .requestPath("/api/v1/mbr/members/" + memberNo)
                 .timeoutMillis(3000)
                 .retryCount(2)
                 .attribute("sourceModuleCode", "XYZ")
-                .attribute("externalKey", accountNo)
+                .attribute("externalKey", memberNo)
                 .build();
         return serviceCallEngine.invoke(request, remoteAdapter);
     }

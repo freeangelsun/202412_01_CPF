@@ -1,28 +1,24 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01")
 )
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("acc", "mbr", "exs", "adm", "bat", "bizadm", "xyz")
-$moduleCodes = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ")
+$modules = @("mbr", "adm", "bat", "bza", "xyz")
+$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "XYZ")
 $profiles = @("local", "dev", "stg", "prod")
 $prefixByModule = @{
-    acc = "ACC"
     mbr = "MBR"
-    exs = "EXS"
     adm = "ADM"
     bat = "BAT"
-    bizadm = "BIZADM"
+    bza = "BZA"
     xyz = "XYZ"
 }
 $expectedLocalPorts = @{
-    ACC = 8080
     MBR = 8081
     ADM = 8090
-    BIZADM = 8091
-    EXS = 8092
+    BZA = 8091
     BAT = 8093
     XYZ = 8099
 }
@@ -94,19 +90,13 @@ Write-JsonEvidence "runtime-config-inventory.sanitized.json" ([pscustomobject]@{
 })
 
 $staleFiles = @(
-    "acc/src/main/resources/application-local.yml",
-    "acc/src/main/resources/application-dev.yml",
-    "acc/src/main/resources/application-prod.yml",
-    "acc/src/main/resources/application-test.yml",
     "cmn/src/main/resources/application-cmn-test.yml",
     "bat/src/main/resources/application-bat-worker.yml",
     "scripts/deploy/check-packaged-dependencies.ps1",
-    "scripts/deploy/deploy-acc.ps1",
     "scripts/deploy/deploy-adm.ps1",
     "scripts/deploy/deploy-bat.ps1",
-    "scripts/deploy/deploy-bizadm.ps1",
+    "scripts/deploy/deploy-bza.ps1",
     "scripts/deploy/deploy-edu.ps1",
-    "scripts/deploy/deploy-exs.ps1",
     "scripts/deploy/deploy-mbr.ps1",
     "scripts/deploy/deploy-module.ps1",
     "scripts/deploy/deploy-module.sh",
@@ -332,7 +322,6 @@ $emptyTargets = @(
     "bat/src/test/java/cpf/bat/edu",
     "xyz/src/main/java/cpf/xyz/edu",
     "xyz/src/test/java/cpf/xyz/edu",
-    "exs/src/main/java/cpf/exs",
     "cmn/src/main/java/cpf/cmn",
     "pfw/src/main/java/cpf/pfw",
     "specs/evidence"

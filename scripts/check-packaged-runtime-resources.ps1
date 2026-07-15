@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("ACC", "MBR", "ADM", "EXS", "BAT"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
     [string] $ResultDir = "",
     [switch] $NoExitOnFailure
 )
@@ -62,7 +62,7 @@ function Add-ArchiveTextEntries {
             continue
         }
 
-        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/(pfw|cmn|acc|mbr|adm|exs|bat)-.*\.jar$') {
+        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/(pfw|cmn|mbr|adm|bza|xyz|bat)-.*\.jar$') {
             $memory = [System.IO.MemoryStream]::new()
             try {
                 $entryStream = $entry.Open()

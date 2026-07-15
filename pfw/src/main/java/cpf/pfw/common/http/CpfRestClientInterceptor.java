@@ -107,14 +107,17 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
         if (path.contains("/mbr/") || port == 8081) {
             return "MBR";
         }
-        if (path.contains("/acc/") || port == 8080) {
-            return "ACC";
-        }
         if (path.contains("/adm/") || port == 8090) {
             return "ADM";
         }
-        if (path.contains("/api/exs/") || port == 8092) {
-            return "EXS";
+        if (path.contains("/api/bza/") || path.contains("/bza/") || port == 8091) {
+            return "BZA";
+        }
+        if (path.contains("/bat/") || port == 8093) {
+            return "BAT";
+        }
+        if (path.contains("/xyz/") || port == 8099) {
+            return "XYZ";
         }
         return hasText(request.getURI().getHost()) ? request.getURI().getHost().toUpperCase(Locale.ROOT) : "UNKNOWN";
     }

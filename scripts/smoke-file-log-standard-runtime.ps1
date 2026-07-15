@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $AccBaseUrl = "http://localhost:8080",
+    [string] $XyzBaseUrl = "http://localhost:8099",
     [string] $ResultDir = "",
     [string] $LogBasePath = "",
     [int] $TimeoutSec = 20,
@@ -41,11 +41,11 @@ function Save-Result {
 function New-SmokeHeaders {
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
     return @{
-        "X-Transaction-Id" = "$timestamp" + "ACC" + "flog001" + "0000001"
+        "X-Transaction-Id" = "$timestamp" + "XYZ" + "flog001" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "ACC"
-        "X-Channel-Code" = "ACC"
+        "X-Original-Channel-Code" = "XYZ"
+        "X-Channel-Code" = "XYZ"
         "X-Client-App-Id" = "cpf-file-log-smoke"
         "X-Client-Version" = "1.0.0"
         "X-User-Id" = "runtime-smoke"
@@ -127,12 +127,12 @@ function Test-LogFile {
 
 try {
     try {
-        if (-not (Test-EndpointListening -BaseUrl $AccBaseUrl)) {
-            throw "ACC runtime port is not listening. baseUrl=$AccBaseUrl"
+        if (-not (Test-EndpointListening -BaseUrl $XyzBaseUrl)) {
+            throw "XYZ runtime port is not listening. baseUrl=$XyzBaseUrl"
         }
         $response = Invoke-WebRequest `
-            -Method Post `
-            -Uri "$AccBaseUrl/acc/edu/composite/member-then-external?memberId=1" `
+            -Method Get `
+            -Uri "$XyzBaseUrl/xyz/edu/query/headers" `
             -Headers (New-SmokeHeaders) `
             -TimeoutSec $TimeoutSec `
             -UseBasicParsing
@@ -144,16 +144,14 @@ try {
     } catch {
         $result.runtimeProbe.status = $StatusNotVerified
         $result.runtimeProbe.error = $_.Exception.Message
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8092) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "XYZ" -Ports @(8099) -ErrorMessage $_.Exception.Message
         if ($RequireRuntime) { throw }
     }
 
     $tx = [string] $result.transactionGlobalId
     $runtimeVerified = $result.runtimeProbe.status -eq $StatusDone
-    $result.files += Test-LogFile -Module "ACC" -LogType "transaction" -TransactionGlobalId $tx -Required $runtimeVerified
-    $result.files += Test-LogFile -Module "ACC" -LogType "integration" -TransactionGlobalId $tx -Required $runtimeVerified
-    $result.files += Test-LogFile -Module "EXS" -LogType "transaction" -TransactionGlobalId $tx -Required $false
-    $result.files += Test-LogFile -Module "EXS" -LogType "integration" -TransactionGlobalId $tx -Required $false
+    $result.files += Test-LogFile -Module "XYZ" -LogType "transaction" -TransactionGlobalId $tx -Required $runtimeVerified
+    $result.files += Test-LogFile -Module "XYZ" -LogType "integration" -TransactionGlobalId $tx -Required $false
     $result.files += Test-LogFile -Module "BAT" -LogType "batch" -TransactionGlobalId "" -Required $false
 
     $grepLines = New-Object System.Collections.Generic.List[string]
@@ -176,7 +174,7 @@ try {
     $result.error = $_.Exception.Message
     $diagnosticsProperty = $result.runtimeProbe.PSObject.Properties["diagnostics"]
     if ($null -eq $diagnosticsProperty -or $null -eq $diagnosticsProperty.Value) {
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "ACC" -Ports @(8080, 8081, 8092) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "XYZ" -Ports @(8099) -ErrorMessage $_.Exception.Message
     }
     Save-Result
     throw

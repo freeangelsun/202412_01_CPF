@@ -18,27 +18,27 @@ class CmnCpfResponseCodeResolverTest {
         MessageCacheService messageCacheService = mock(MessageCacheService.class);
         CmnCpfResponseCodeResolver resolver = new CmnCpfResponseCodeResolver(responseCodeCacheService, messageCacheService);
 
-        when(responseCodeCacheService.getResponseCode("EACC010001")).thenReturn(Map.of(
-                "response_code", "EACC010001",
-                "message_code", "MACC010001",
+        when(responseCodeCacheService.getResponseCode("EXYZ010001")).thenReturn(Map.of(
+                "response_code", "EXYZ010001",
+                "message_code", "MXYZ010001",
                 "result_type", "E",
                 "http_status", 400));
-        when(messageCacheService.getMessageByKeyAndLocale("MACC010001", "ko")).thenReturn(Map.of(
+        when(messageCacheService.getMessageByKeyAndLocale("MXYZ010001", "ko")).thenReturn(Map.of(
                 "external_message", "{0} is invalid.",
-                "internal_message", "ACC validation failed. field={0}"));
+                "internal_message", "XYZ validation failed. field={0}"));
 
         CpfResolvedResponse resolved = resolver.resolve(
-                "EACC010001",
+                "EXYZ010001",
                 Locale.KOREAN,
                 Map.of("0", "accountId"),
                 "invalid accountId");
 
         assertThat(resolved.httpStatus()).isEqualTo(400);
-        assertThat(resolved.responseCode()).isEqualTo("EACC010001");
-        assertThat(resolved.messageCode()).isEqualTo("MACC010001");
+        assertThat(resolved.responseCode()).isEqualTo("EXYZ010001");
+        assertThat(resolved.messageCode()).isEqualTo("MXYZ010001");
         assertThat(resolved.externalMessage()).isEqualTo("accountId is invalid.");
-        assertThat(resolved.internalMessage()).isEqualTo("ACC validation failed. field=accountId");
-        assertThat(resolved.errorCode()).isEqualTo("EACC010001");
+        assertThat(resolved.internalMessage()).isEqualTo("XYZ validation failed. field=accountId");
+        assertThat(resolved.errorCode()).isEqualTo("EXYZ010001");
         assertThat(resolved.errorMessage()).isEqualTo("invalid accountId");
     }
 }

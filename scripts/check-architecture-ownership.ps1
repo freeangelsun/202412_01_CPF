@@ -5,9 +5,9 @@
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("pfw", "cmn", "acc", "mbr", "xyz", "bizadm", "exs", "bat", "adm")
-$businessModules = @("acc", "mbr", "xyz", "bizadm", "exs", "bat")
-$implementationModules = @("acc", "mbr", "xyz", "bizadm", "exs", "bat", "adm")
+$modules = @("pfw", "cmn", "mbr", "xyz", "bza", "bat", "adm")
+$businessModules = @("mbr", "xyz", "bza", "bat")
+$implementationModules = @("mbr", "xyz", "bza", "bat", "adm")
 
 $failures = New-Object System.Collections.Generic.List[object]
 $warnings = New-Object System.Collections.Generic.List[object]
@@ -92,9 +92,6 @@ foreach ($module in $modules) {
                 if (Test-Text $text "import\s+cpf\.$targetModule\..*(controller|repository|mapper).*;") {
                     Add-Finding $failures "BUSINESS_NO_CROSS_DOMAIN_INTERNAL_IMPORT" $relativePath "Business module imports cpf.$targetModule Controller/Repository/Mapper directly." "Use PFW Service Call Engine, CMN helper, public facade, or DB boundary separation."
                 }
-            }
-            if ($module -ne "exs" -and (Test-Text $text "import\s+cpf\.exs\.")) {
-                Add-Finding $failures "BUSINESS_NO_EXS_TECH_REUSE" $relativePath "Business module imports EXS internal class as reusable technology." "Move shared technology candidate to PFW/CMN capability and keep EXS as adapter."
             }
             if (Test-Text $text "WebClient\s*\.\s*builder\s*\(|new\s+RestTemplate\s*\(|RestClient\s*\.\s*create\s*\(") {
                 Add-Finding $failures "BUSINESS_NO_RAW_HTTP_CLIENT" $relativePath "Business module creates raw HTTP client." "Use CpfWebClient or PFW Service Call Engine."
@@ -201,11 +198,8 @@ $fixedLengthFiles = @(Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*
         $_.FullName -notmatch "\\build\\" -and
         ([System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8) -match "FixedLength|fixed-length|고정길이")
     })
-if ($fixedLengthFiles.Count -gt 0) {
-    $nonExsFixedLength = @($fixedLengthFiles | Where-Object { (Get-RelativePath $_.FullName) -notmatch "^exs/" })
-    if ($nonExsFixedLength.Count -eq 0) {
-        Add-Finding $warnings "FIXED_LENGTH_EXS_ONLY_REVIEW" "exs/src/main/java" "Fixed-length parser/formatter candidate appears to be EXS-only." "Move to CMN helper or PFW/CMN common capability."
-    }
+if ($fixedLengthFiles.Count -gt 0 -and -not ($fixedLengthFiles | Where-Object { (Get-RelativePath $_.FullName) -match "^cmn/" })) {
+    Add-Finding $warnings "FIXED_LENGTH_CMN_OWNERSHIP_REVIEW" "cmn/src/main/java" "고정길이 공통 helper가 CMN에 없습니다." "재사용 가능한 parser와 formatter는 CMN이 소유해야 합니다."
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null

@@ -9,10 +9,8 @@ $operationRoots = @(
     "pfw/src/main/java",
     "cmn/src/main/java",
     "adm/src/main/java",
-    "bizadm/src/main/java",
-    "mbr/src/main/java",
-    "exs/src/main/java",
-    "acc/src/main/java"
+    "bza/src/main/java",
+    "mbr/src/main/java"
 )
 $educationRoots = @(
     "bat/src/main/java/cpf/bat/edu",
@@ -50,7 +48,7 @@ foreach ($rootPath in $operationRoots) {
 
         $isEduSource = Test-EduSourcePath $relative
 
-        if (-not $isEduSource -and ($_.Name -match 'EducationSample' -or $text -match '(?m)^\s*package\s+cpf\.(pfw|cmn|adm|bizadm|exs|mbr|acc)\.edu(\.|;)')) {
+        if (-not $isEduSource -and ($_.Name -match 'EducationSample' -or $text -match '(?m)^\s*package\s+cpf\.(pfw|cmn|adm|bza|mbr)\.edu(\.|;)')) {
             $failures.Add("XYZ/BAT 외 모듈의 범용 EDU 소유권 위반: $relative")
         }
 

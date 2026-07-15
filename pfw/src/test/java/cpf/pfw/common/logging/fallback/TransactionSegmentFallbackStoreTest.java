@@ -74,8 +74,8 @@ class TransactionSegmentFallbackStoreTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.environment", "local")
-                .withProperty("cpf.framework.module-id", "ACC")
-                .withProperty("cpf.framework.instance-id", "acc-segment-test-01");
+                .withProperty("cpf.framework.module-id", "XYZ")
+                .withProperty("cpf.framework.instance-id", "xyz-segment-test-01");
         properties.forEach(environment::setProperty);
         CpfFileLogWriter fileLogWriter = new CpfFileLogWriter(environment);
         TransactionSegmentFallbackStore store = new TransactionSegmentFallbackStore(
@@ -91,7 +91,7 @@ class TransactionSegmentFallbackStoreTest {
         record.setTransactionGlobalId("GLOBAL-001");
         record.setRootTransactionGlobalId("GLOBAL-001");
         record.setTransactionRole("SUB");
-        record.setModuleCode("ACC");
+        record.setModuleCode("XYZ");
         record.setDirection("OUTBOUND");
         record.setSequenceNo(1);
         record.setStartedAt(LocalDateTime.of(2026, 7, 14, 9, 0));

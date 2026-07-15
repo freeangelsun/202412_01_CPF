@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $DbUrl = $env:CPF_XYZ_CENTER_CUT_DB_URL,
     [string] $DbUsername = $env:CPF_XYZ_CENTER_CUT_DB_USERNAME,

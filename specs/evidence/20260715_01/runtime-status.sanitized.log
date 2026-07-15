@@ -1,0 +1,356 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-RUNTIME-STATUS-20260715-01
+STATUS=완료
+EXECUTED_AT=2026-07-15T16:09:04.0555263+09:00
+START_COMMIT=0d206c683aab840dbab4639f2797dd7fd718cefd
+BRANCH=master
+COMMAND=powershell -File scripts/runtime-status.ps1
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=009c7dca68c3c43dc75e3dcb161bfa1607167f4236130733a0d48788bb7daa62
+--- SANITIZED_OUTPUT ---
+{
+    "checkedAt":  "2026-07-15T16:08:23.1316571+09:00",
+    "status":  "완료",
+    "modules":  [
+                    {
+                        "module":  "MBR",
+                        "port":  8081,
+                        "status":  "완료",
+                        "listening":  true,
+                        "portOpened":  true,
+                        "pid":  25044,
+                        "processAlive":  true,
+                        "processName":  "java",
+                        "processStillAliveAfterProbe":  true,
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8081/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   },
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\framework\\pfw\\cpf-pfw-recovery-mbr-local-01.2026-07-15.log",
+                                             "bytes":  24744,
+                                             "lastWriteTime":  "2026-07-15T16:05:03.5416627+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\recovery\\transaction-db\\poison\\7085d2e1e71d4fe97ba289e9db0c15f31775b1f8b04162501bbebeeffa7d5632.json",
+                                             "bytes":  8617,
+                                             "lastWriteTime":  "2026-07-15T16:05:03.4974577+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\recovery\\transaction-db\\poison\\f2299cc501a4d7c172e065b23f86e7bac1878b9bceedc1f9ab01f084a710b56a.json",
+                                             "bytes":  8618,
+                                             "lastWriteTime":  "2026-07-15T15:58:00.0263127+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\recovery\\transaction-db\\poison\\661a4c14d2a39f172a5e05199e6561ef52ec1a6c37ac729a015241b773e291ba.json",
+                                             "bytes":  8618,
+                                             "lastWriteTime":  "2026-07-15T15:55:26.6593183+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\application\\cpf-MBR-application-mbr-local-01.2026-07-15.log",
+                                             "bytes":  1971393,
+                                             "lastWriteTime":  "2026-07-15T15:51:15.0639859+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\error\\cpf-MBR-error-mbr-local-01.2026-07-15.log",
+                                             "bytes":  14510,
+                                             "lastWriteTime":  "2026-07-15T15:51:10.5945805+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\transactions\\20260715\\OMBR-BSE-01-0002_20260715.log",
+                                             "bytes":  8084,
+                                             "lastWriteTime":  "2026-07-15T15:51:10.5905795+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\mbr\\mbr-local-01\\framework\\pfw\\cpf-pfw-framework-mbr-local-01.2026-07-15.log",
+                                             "bytes":  166181,
+                                             "lastWriteTime":  "2026-07-15T15:51:10.5755865+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    },
+                    {
+                        "module":  "ADM",
+                        "port":  8090,
+                        "status":  "완료",
+                        "listening":  true,
+                        "portOpened":  true,
+                        "pid":  28252,
+                        "processAlive":  true,
+                        "processName":  "java",
+                        "processStillAliveAfterProbe":  true,
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8090/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   },
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\framework\\pfw\\cpf-pfw-recovery-adm-local-01.2026-07-15.log",
+                                             "bytes":  7630,
+                                             "lastWriteTime":  "2026-07-15T16:00:13.8433789+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\recovery\\transaction-db\\poison\\48c80fc5dc8817848144ec554d4d022cdee52c9dfb1aa4bce183c8ab3ff786eb.json",
+                                             "bytes":  8018,
+                                             "lastWriteTime":  "2026-07-15T16:00:13.8093543+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\application\\cpf-ADM-application-adm-local-01.2026-07-15.log",
+                                             "bytes":  1727954,
+                                             "lastWriteTime":  "2026-07-15T14:52:54.6764003+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\common\\cmn\\cpf-cmn-common-adm-local-01.2026-07-15.log",
+                                             "bytes":  325767,
+                                             "lastWriteTime":  "2026-07-15T14:52:54.6694327+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\framework\\pfw\\cpf-pfw-framework-adm-local-01.2026-07-15.log",
+                                             "bytes":  15661,
+                                             "lastWriteTime":  "2026-07-15T14:51:59.2446755+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\transactions\\20260715\\UNKNOWN_20260715.log",
+                                             "bytes":  1914,
+                                             "lastWriteTime":  "2026-07-15T13:57:33.4227759+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\adm\\adm-local-01\\error\\cpf-ADM-error-adm-local-01.2026-07-15.log",
+                                             "bytes":  16703,
+                                             "lastWriteTime":  "2026-07-15T13:47:19.1139759+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    },
+                    {
+                        "module":  "BZA",
+                        "port":  8091,
+                        "status":  "완료",
+                        "listening":  true,
+                        "portOpened":  true,
+                        "pid":  25484,
+                        "processAlive":  true,
+                        "processName":  "java",
+                        "processStillAliveAfterProbe":  true,
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8091/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   },
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\framework\\pfw\\cpf-pfw-recovery-bza-local-01.2026-07-15.log",
+                                             "bytes":  7569,
+                                             "lastWriteTime":  "2026-07-15T16:00:35.3050297+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\recovery\\transaction-db\\poison\\974beffd70b0623fb658919e51781a4b78d8b40b3f8f8d8c72e8e7813319ae10.json",
+                                             "bytes":  8029,
+                                             "lastWriteTime":  "2026-07-15T16:00:35.2622451+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\application\\cpf-BZA-application-bza-local-01.2026-07-15.log",
+                                             "bytes":  1063807,
+                                             "lastWriteTime":  "2026-07-15T14:52:52.1027932+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\common\\cmn\\cpf-cmn-common-bza-local-01.2026-07-15.log",
+                                             "bytes":  306958,
+                                             "lastWriteTime":  "2026-07-15T14:52:52.0913830+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\framework\\pfw\\cpf-pfw-framework-bza-local-01.2026-07-15.log",
+                                             "bytes":  15574,
+                                             "lastWriteTime":  "2026-07-15T14:52:20.8523772+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\transactions\\20260715\\UNKNOWN_20260715.log",
+                                             "bytes":  1908,
+                                             "lastWriteTime":  "2026-07-15T13:57:38.0156712+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\bza\\bza-local-01\\error\\cpf-BZA-error-bza-local-01.2026-07-15.log",
+                                             "bytes":  0,
+                                             "lastWriteTime":  "2026-07-15T13:30:23.5095886+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    },
+                    {
+                        "module":  "XYZ",
+                        "port":  8099,
+                        "status":  "완료",
+                        "listening":  true,
+                        "portOpened":  true,
+                        "pid":  19224,
+                        "processAlive":  true,
+                        "processName":  "java",
+                        "processStillAliveAfterProbe":  true,
+                        "health":  {
+                                       "uri":  "http://127.0.0.1:8099/v3/api-docs",
+                                       "statusCode":  200,
+                                       "success":  true
+                                   },
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  "",
+                        "logFiles":  [
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\transactions\\20260715\\OXYZ-EDU-17-0002_20260715.log",
+                                             "bytes":  4072,
+                                             "lastWriteTime":  "2026-07-15T16:08:22.3980657+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\recovery\\transaction-db\\pending\\c67f82d3b8b0e0a5c08ac869e4d3f64a3b7f17d66180063d0e11cfb3b60211ba.json",
+                                             "bytes":  8934,
+                                             "lastWriteTime":  "2026-07-15T16:08:22.3800493+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\transactions\\20260715\\OXYZ-EDU-17-0001_20260715.log",
+                                             "bytes":  6192,
+                                             "lastWriteTime":  "2026-07-15T16:08:18.2159043+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\recovery\\transaction-db\\pending\\900f7e1017506a2a6812f16a1cab7cd0b7dcbd7e0e3840120ceac919d77aca13.json",
+                                             "bytes":  8886,
+                                             "lastWriteTime":  "2026-07-15T16:08:18.1905321+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\framework\\pfw\\cpf-pfw-recovery-xyz-local-01.2026-07-15.log",
+                                             "bytes":  16018,
+                                             "lastWriteTime":  "2026-07-15T16:08:00.3730877+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\recovery\\transaction-db\\pending\\8af683cd784592b2ed782e4d1ba638818089c01d2c204bc2960f4a7b10233227.json",
+                                             "bytes":  8934,
+                                             "lastWriteTime":  "2026-07-15T16:08:00.3469199+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\recovery\\transaction-db\\pending\\e24d80d4f1d177fbf71085556283e3775e74bc7f248dc2c1c102bab421bd53d3.json",
+                                             "bytes":  9368,
+                                             "lastWriteTime":  "2026-07-15T16:07:59.2996524+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         },
+                                         {
+                                             "path":  "logs\\local\\xyz\\xyz-local-01\\recovery\\transaction-db\\pending\\7ea9000ee052e99dc43195fbb2300b0ac98b6d809761d699e3c39b340ace6b88.json",
+                                             "bytes":  8886,
+                                             "lastWriteTime":  "2026-07-15T16:07:28.0184147+09:00",
+                                             "tail":  [
+
+                                                      ]
+                                         }
+                                     ]
+                    }
+                ],
+    "finishedAt":  "2026-07-15T16:08:24.0381424+09:00"
+}

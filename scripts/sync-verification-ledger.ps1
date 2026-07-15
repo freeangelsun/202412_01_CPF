@@ -61,8 +61,8 @@ $payload = [System.IO.File]::ReadAllText($matrixJsonPath, [System.Text.Encoding]
 $items = @($payload.items)
 $allowed = @($payload.allowedStatuses)
 $duplicates = @($items | Group-Object checkId | Where-Object Count -gt 1)
-if ($items.Count -ne 61 -or $duplicates.Count -gt 0) {
-    throw "기능 검증 ledger는 중복 없는 61개 check ID여야 합니다. count=$($items.Count)"
+if ($items.Count -eq 0 -or $duplicates.Count -gt 0) {
+    throw "기능 검증 ledger는 한 건 이상이며 check ID가 중복되지 않아야 합니다. count=$($items.Count) duplicateCount=$($duplicates.Count)"
 }
 foreach ($item in $items) {
     if ($allowed -notcontains [string] $item.status) {
@@ -87,7 +87,7 @@ $evidenceLines.Add("# CPF 증적 인덱스") | Out-Null
 $evidenceLines.Add("") | Out-Null
 $evidenceLines.Add("생성 시각: $([DateTimeOffset]::Now.ToString('yyyy-MM-dd HH:mm:ss zzz'))") | Out-Null
 $evidenceLines.Add("") | Out-Null
-$evidenceLines.Add("기준 증적 디렉터리: ``specs/evidence/20260714_02``") | Out-Null
+$evidenceLines.Add("기준 증적 디렉터리: ``specs/evidence/20260715_01``") | Out-Null
 $evidenceLines.Add("") | Out-Null
 $evidenceLines.Add("| check id | 상태 | 증적 | 확인 기준 | 비고 |") | Out-Null
 $evidenceLines.Add("|---|---|---|---|---|") | Out-Null

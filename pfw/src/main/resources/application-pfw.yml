@@ -33,6 +33,11 @@ cpf:
   framework:
     # PFW는 라이브러리이므로 실행 모듈 ID를 PFW로 고정하지 않습니다.
     module-id: ${CPF_MODULE_CODE:${CPF_APP_MODULE_ID:${CPF_MODULE_ID:APP}}}
+    attachment:
+      # local은 OS 임시 디렉터리를 사용하고 prod는 CPF_ATTACHMENT_ROOT를 반드시 주입합니다.
+      root: ${CPF_ATTACHMENT_ROOT:}
+      max-bytes: ${CPF_ATTACHMENT_MAX_BYTES:10485760}
+      allowed-extensions: ${CPF_ATTACHMENT_ALLOWED_EXTENSIONS:txt,csv,json,xml,pdf,png,jpg,jpeg,gif,zip}
     instance-id: ${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:}}
     was-id: ${CPF_APP_WAS_ID:${WAS_ID:${CPF_INSTANCE_ID:appAP01}}}
     transaction-id:
@@ -59,9 +64,6 @@ cpf:
     rabbit:
       exchange: ${CPF_PFW_RABBIT_EXCHANGE:cpf.exchange}
   services:
-    acc:
-      base-url: ${CPF_SERVICE_ACC_URL:${CPF_SERVICE_ACC_URL:http://localhost:8080}}
-      description: ACC service
     mbr:
       base-url: ${CPF_SERVICE_MBR_URL:${CPF_SERVICE_MBR_URL:http://localhost:8081}}
       description: MBR service
@@ -74,9 +76,12 @@ cpf:
     adm:
       base-url: ${CPF_SERVICE_ADM_URL:${CPF_SERVICE_ADM_URL:http://localhost:8090}}
       description: ADM service
-    exs:
-      base-url: ${CPF_SERVICE_EXS_URL:${CPF_SERVICE_EXS_URL:http://localhost:8092}}
-      description: EXS service
+    bza:
+      base-url: ${CPF_SERVICE_BZA_URL:http://localhost:8091}
+      description: BZA 업무 백오피스 서비스
+    xyz:
+      base-url: ${CPF_SERVICE_XYZ_URL:http://localhost:8099}
+      description: XYZ 온라인 교육 서비스
   logging:
     db-fallback:
       enabled: ${CPF_DB_LOG_FALLBACK_ENABLED:true}
@@ -124,6 +129,12 @@ cpf:
       enabled: ${CPF_LOGGING_MASKING_ENABLED:true}
     dynamic-level:
       enabled: ${CPF_DYNAMIC_LOG_LEVEL_ENABLED:true}
+  remote-log:
+    bundle-job:
+      # 기본 adapter는 단일 ADM 인스턴스용이며 운영 cluster에서는 분산 queue adapter로 교체합니다.
+      max-requests-per-minute: ${CPF_REMOTE_LOG_BUNDLE_MAX_REQUESTS_PER_MINUTE:10}
+      max-active-jobs: ${CPF_REMOTE_LOG_BUNDLE_MAX_ACTIVE_JOBS:4}
+      download-token-ttl-seconds: ${CPF_REMOTE_LOG_DOWNLOAD_TOKEN_TTL_SECONDS:300}
 
 ---
 # prod에서는 DB 접속정보 기본값을 제거하고 배포 환경에서 반드시 주입합니다.

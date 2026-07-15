@@ -1,10 +1,19 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true)]
     [string] $ModuleCode,
     [string] $Root = "",
     [string] $ModuleName = "",
+    [string] $DomainIdCode = "",
     [string] $BasePackage = "",
     [string] $TablePrefix = "",
+    [ValidateRange(1024, 65535)]
+    [int] $Port = 8080,
+    [ValidateSet("Y", "N")]
+    [string] $Online = "Y",
+    [ValidateSet("Y", "N")]
+    [string] $Batch = "N",
+    [ValidateSet("Y", "N")]
+    [string] $BzaMenu = "Y",
     [string] $OutputDir = "",
     [switch] $DryRun,
     [switch] $GeneratePatch,
@@ -64,6 +73,20 @@ function Test-TextExists {
 $module = Normalize-Code $ModuleCode
 $ModuleUpper = $module.ToUpperInvariant()
 $Dollar = '$'
+if ([string]::IsNullOrWhiteSpace($DomainIdCode)) {
+    $DomainIdCode = if ($ModuleUpper.Length -ge 3) {
+        $ModuleUpper.Substring(0, 3)
+    } else {
+        $ModuleUpper.PadRight(3, 'X')
+    }
+}
+$DomainIdCode = $DomainIdCode.Trim().ToUpperInvariant()
+if ($DomainIdCode -notmatch '^[A-Z0-9]{3}$') {
+    throw "DomainIdCode must be exactly three upper alpha numeric characters."
+}
+$OnlineEnabled = $Online -eq "Y"
+$BatchEnabled = $Batch -eq "Y"
+$BzaMenuEnabled = $BzaMenu -eq "Y"
 if ([string]::IsNullOrWhiteSpace($ModuleName)) {
     $ModuleName = $module
 }
@@ -100,8 +123,13 @@ $plan = [ordered]@{
     dryRun = [bool] $DryRun
     moduleCode = $ModuleUpper
     moduleName = $ModuleName
+    domainIdCode = $DomainIdCode
     basePackage = $BasePackage
     tablePrefix = $TablePrefix
+    port = $Port
+    online = $OnlineEnabled
+    batch = $BatchEnabled
+    bzaMenu = $BzaMenuEnabled
     outputDir = $OutputDir
     generatePatch = [bool] ($GeneratePatch -or $Apply)
     applyMode = [bool] $Apply
@@ -132,6 +160,9 @@ $plan = [ordered]@{
         "deploy/inventory/stg-services.json candidate",
         "deploy/inventory/prod-services.template.json candidate",
         "module smoke script candidate",
+        "standard execution catalog manifest",
+        "service registry manifest",
+        "BZA menu registration candidate",
         "README.md and specs guide link candidate"
     )
 }
@@ -158,7 +189,7 @@ package $BasePackage.controller;
 import $BasePackage.dto.${ModuleName}SearchRequest;
 import $BasePackage.facade.${ModuleName}Facade;
 import $BasePackage.validation.${ModuleName}SearchValidator;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -184,7 +215,7 @@ public class ${ModuleName}Controller {
     private final ${ModuleName}SearchValidator validator;
 
     @GetMapping
-    @CpfTransaction(id = "${ModuleUpper}01SRH0010", name = "${ModuleName}Search")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}-${DomainIdCode}-QY-0001", name = "${ModuleName}Search", ownerDomain = "$DomainIdCode")
     @Operation(
             operationId = "search${ModuleName}",
             summary = "${ModuleName} 목록 조회",
@@ -222,11 +253,96 @@ public class ${ModuleName}Facade {
 }
 "@
 
+$queryPortSource = @"
+package $BasePackage.port;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+
+import java.util.Map;
+
+/**
+ * ${ModuleName} 조회 구현을 local 또는 remote adapter로 교체하기 위한 업무 포트입니다.
+ */
+public interface ${ModuleName}QueryPort {
+    Map<String, Object> search(${ModuleName}SearchRequest request);
+}
+"@
+
+$localAdapter = @"
+package $BasePackage.adapter.local;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+import $BasePackage.port.${ModuleName}QueryPort;
+import $BasePackage.repository.${ModuleName}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+/**
+ * 같은 주제영역 DB를 사용하는 기본 local adapter입니다.
+ */
+@Primary
+@Component
+@RequiredArgsConstructor
+public class Local${ModuleName}QueryAdapter implements ${ModuleName}QueryPort {
+    private final ${ModuleName}Repository repository;
+
+    @Override
+    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+        return repository.search(request);
+    }
+}
+"@
+
+$remoteProxy = @"
+package $BasePackage.adapter.remote;
+
+import $BasePackage.dto.${ModuleName}SearchRequest;
+import $BasePackage.port.${ModuleName}QueryPort;
+import cpf.pfw.common.http.CpfWebClient;
+import org.springframework.core.ParameterizedTypeReference;
+
+import java.util.Map;
+
+/**
+ * 분리 배포된 ${ModuleName} 서비스에 PFW 표준 서비스 호출 경계로 접근하는 remote proxy입니다.
+ *
+ * <p>프로젝트 설정에서 remote 모드를 선택할 때만 Bean으로 등록합니다.</p>
+ */
+public class Remote${ModuleName}QueryProxy implements ${ModuleName}QueryPort {
+    private final CpfWebClient webClient;
+
+    public Remote${ModuleName}QueryProxy(CpfWebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    @Override
+    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+        return webClient.get(
+                "$ModuleUpper",
+                uriBuilder -> {
+                    uriBuilder.path("/api/v1/$module")
+                            .queryParam("sortBy", request.sortBy())
+                            .queryParam("sortDirection", request.sortDirection())
+                            .queryParam("page", request.page())
+                            .queryParam("size", request.size());
+                    if (request.keyword() != null && !request.keyword().isBlank()) {
+                        uriBuilder.queryParam("keyword", request.keyword());
+                    }
+                    return uriBuilder.build();
+                },
+                new ParameterizedTypeReference<Map<String, Object>>() { });
+    }
+}
+"@
+
 $service = @"
 package $BasePackage.service;
 
 import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.repository.${ModuleName}Repository;
+import $BasePackage.port.${ModuleName}QueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -239,11 +355,11 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ${ModuleName}Service {
-    private final ${ModuleName}Repository repository;
+    private final ${ModuleName}QueryPort queryPort;
 
     @Transactional(readOnly = true)
     public Map<String, Object> search(${ModuleName}SearchRequest request) {
-        return repository.search(request.normalized());
+        return queryPort.search(request.normalized());
     }
 }
 "@
@@ -355,6 +471,53 @@ $mapperXml = @"
 </mapper>
 "@
 
+$batchDependency = if ($BatchEnabled) {
+    "    implementation 'org.springframework.boot:spring-boot-starter-batch'"
+} else {
+    ""
+}
+
+$batchConfig = @"
+package $BasePackage.batch;
+
+import cpf.pfw.common.execution.CpfBatchJob;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+
+/**
+ * ${ModuleName} 주제영역의 표준 Tasklet 배치 골격입니다.
+ */
+@Configuration
+public class ${ModuleName}BatchConfig {
+
+    @Bean
+    @CpfBatchJob(id = "B${DomainIdCode}-${DomainIdCode}-TS-0001", name = "${ModuleName}표준배치", ownerDomain = "$DomainIdCode")
+    public Job ${module}StandardJob(JobRepository jobRepository, Step ${module}StandardStep) {
+        return new JobBuilder("${ModuleUpper}_STANDARD_JOB", jobRepository)
+                .start(${module}StandardStep)
+                .build();
+    }
+
+    @Bean
+    public Step ${module}StandardStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager) {
+        return new StepBuilder("${ModuleUpper}_STANDARD_STEP", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    // 실제 업무 로직은 재시작 가능성과 멱등성을 보장하는 서비스에 위임합니다.
+                    return org.springframework.batch.repeat.RepeatStatus.FINISHED;
+                }, transactionManager)
+                .build();
+    }
+}
+"@
+
 $buildGradle = @"
 plugins {
     id 'java'
@@ -376,6 +539,7 @@ dependencies {
     implementation project(':cmn')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+$batchDependency
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
@@ -471,6 +635,7 @@ $serviceTest = @"
 package $BasePackage.service;
 
 import $BasePackage.dto.${ModuleName}SearchRequest;
+import $BasePackage.adapter.local.Local${ModuleName}QueryAdapter;
 import $BasePackage.repository.${ModuleName}Repository;
 import org.junit.jupiter.api.Test;
 
@@ -489,7 +654,7 @@ class ${ModuleName}ServiceTest {
             return Map.of("items", java.util.List.of(), "criteria", request);
         }
     };
-    private final ${ModuleName}Service service = new ${ModuleName}Service(repository);
+    private final ${ModuleName}Service service = new ${ModuleName}Service(new Local${ModuleName}QueryAdapter(repository));
 
     @Test
     void searchNormalizesPagingAndSort() {
@@ -506,7 +671,7 @@ class ${ModuleName}ServiceTest {
 
 $smokeScript = @"
 param(
-    [string] `$BaseUrl = "http://localhost:8080",
+    [string] `$BaseUrl = "http://localhost:$Port",
     [int] `$TimeoutSec = 20
 )
 
@@ -518,6 +683,23 @@ if ([int] `$response.StatusCode -lt 200 -or [int] `$response.StatusCode -ge 300)
 }
 Write-Host "${ModuleName} smoke passed. uri=`$uri"
 "@
+
+if (-not $OnlineEnabled) {
+    $smokeScript = @"
+param(
+    [string] `$BaseUrl = "http://localhost:$Port",
+    [int] `$TimeoutSec = 20
+)
+
+`$ErrorActionPreference = "Stop"
+`$uri = "`$BaseUrl/actuator/health"
+`$response = Invoke-WebRequest -Method Get -Uri `$uri -TimeoutSec `$TimeoutSec -UseBasicParsing
+if ([int] `$response.StatusCode -ne 200) {
+    throw "${ModuleName} health smoke failed. status=`$(`$response.StatusCode)"
+}
+Write-Host "${ModuleName} health smoke passed. uri=`$uri"
+"@
+}
 
 $applyOrder = @"
 # ${ModuleName} 주제영역 반영 순서
@@ -542,21 +724,103 @@ $settingsPatch = @"
 "@
 
 $pfwSeed = @"
--- ${ModuleName} PFW module registry seed 후보입니다.
-INSERT INTO pfw_module_registry (module_code, module_name, module_type, active_yn, created_by, updated_by)
-VALUES ('$ModuleUpper', '${ModuleName}', 'BUSINESS', 'Y', 'create-domain', 'create-domain')
-ON DUPLICATE KEY UPDATE module_name = VALUES(module_name), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+-- ${ModuleName} PFW 서비스 레지스트리 seed 후보입니다.
+INSERT INTO pfw_service (
+    service_id, service_name, service_type, owner_module_code, description,
+    use_yn, created_by, updated_by
+) VALUES (
+    '$ModuleUpper', '${ModuleName} 서비스', 'INTERNAL', '$ModuleUpper',
+    '${ModuleName} 주제영역 서비스 호출 대상', 'Y', 'create-domain', 'create-domain'
+)
+ON DUPLICATE KEY UPDATE
+    service_name = VALUES(service_name),
+    owner_module_code = VALUES(owner_module_code),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO pfw_service_endpoint (
+    endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
+    default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
+) VALUES (
+    '${ModuleUpper}_API', '$ModuleUpper', '${ModuleName} API Endpoint', 'HTTP',
+    'http://localhost:$Port', '/api/v1/$module', 3000, 0, 'Y', 'create-domain', 'create-domain'
+)
+ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_name = VALUES(endpoint_name),
+    base_url = VALUES(base_url),
+    context_path = VALUES(context_path),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
 "@
 
 $admSeed = @"
--- ${ModuleName} ADM 메뉴/API/버튼 권한 seed 후보입니다.
+-- ${ModuleName} 표준 실행 카탈로그 바로가기 메뉴 seed 후보입니다.
 INSERT INTO adm_menu (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('${ModuleUpper}_ROOT', 'BIZ_ROOT', '${ModuleName}', '/adm/${module}', 900, 'Y', 'create-domain', 'create-domain')
+VALUES ('${ModuleUpper}_STANDARD_EXECUTION', 'STANDARD_EXECUTION', '${ModuleName} 실행 정의', '/adm#standard-executions', 900, 'Y', 'create-domain', 'create-domain')
 ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), menu_path = VALUES(menu_path), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+"@
 
-INSERT INTO adm_api_permission (api_permission_id, api_path, http_method, permission_code, use_yn, created_by, updated_by)
-VALUES ('${ModuleUpper}_SEARCH', '/api/v1/${module}', 'GET', '${ModuleUpper}_READ', 'Y', 'create-domain', 'create-domain')
-ON DUPLICATE KEY UPDATE api_path = VALUES(api_path), http_method = VALUES(http_method), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+$bzaSeed = @"
+-- ${ModuleName} BZA 업무 메뉴 seed 후보입니다.
+INSERT INTO bza_menu (
+    menu_code, menu_name, parent_menu_code, module_code, route_path,
+    environment_code, api_path, sort_order, use_yn, created_by, updated_by
+) VALUES (
+    '${ModuleUpper}_ROOT', '${ModuleName}', NULL, '$ModuleUpper', '/bza/domain/$module',
+    'ALL', '/api/v1/$module', 900, 'Y', 'create-domain', 'create-domain'
+)
+ON DUPLICATE KEY UPDATE
+    menu_name = VALUES(menu_name),
+    module_code = VALUES(module_code),
+    route_path = VALUES(route_path),
+    api_path = VALUES(api_path),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+"@
+
+$onlineJson = $OnlineEnabled.ToString().ToLowerInvariant()
+$batchJson = $BatchEnabled.ToString().ToLowerInvariant()
+$bzaMenuJson = $BzaMenuEnabled.ToString().ToLowerInvariant()
+$domainManifest = @"
+{
+  "moduleCode": "$ModuleUpper",
+  "domainName": "$ModuleName",
+  "domainIdCode": "$DomainIdCode",
+  "basePackage": "$BasePackage",
+  "port": $Port,
+  "tablePrefix": "$TablePrefix",
+  "onlineEnabled": $onlineJson,
+  "batchEnabled": $batchJson,
+  "bzaMenuEnabled": $bzaMenuJson,
+  "serviceId": "$ModuleUpper",
+  "onlineStandardId": "O${DomainIdCode}-${DomainIdCode}-QY-0001",
+  "batchStandardId": "B${DomainIdCode}-${DomainIdCode}-TS-0001"
+}
+"@
+
+$executionCatalogManifest = @"
+[
+  {
+    "standardExecutionId": "O${DomainIdCode}-${DomainIdCode}-QY-0001",
+    "executionType": "ONLINE",
+    "ownerDomain": "$DomainIdCode",
+    "sourceModule": "$ModuleUpper",
+    "sourceClass": "$BasePackage.controller.${ModuleName}Controller",
+    "enabled": $onlineJson
+  },
+  {
+    "standardExecutionId": "B${DomainIdCode}-${DomainIdCode}-TS-0001",
+    "executionType": "BATCH",
+    "ownerDomain": "$DomainIdCode",
+    "sourceModule": "$ModuleUpper",
+    "sourceClass": "$BasePackage.batch.${ModuleName}BatchConfig",
+    "enabled": $batchJson
+  }
+]
 "@
 
 $smokeSql = @"
@@ -569,6 +833,7 @@ WHERE table_schema = DATABASE()
 
 $profileApplicationFiles = [ordered]@{}
 foreach ($profileName in @("local", "dev", "stg", "prod")) {
+    $profileWasId = "${DomainIdCode}$($profileName.Substring(0, 1).ToUpperInvariant())001"
     $profileApplicationFiles["src/main/resources/application-${module}-${profileName}.yml"] = @"
 # ${ModuleName} ${profileName} profile 설정입니다.
 spring:
@@ -577,18 +842,18 @@ spring:
       on-profile: $profileName
 
 server:
-  port: ${Dollar}{$($ModuleUpper)_SERVER_PORT:8080}
+  port: ${Dollar}{$($ModuleUpper)_SERVER_PORT:$Port}
 
 cpf:
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
     instance-id: ${Dollar}{$($ModuleUpper)_INSTANCE_ID:${ModuleUpper}01}
-    was-id: ${Dollar}{$($ModuleUpper)_WAS_ID:${profileName}-01}
+    was-id: ${Dollar}{$($ModuleUpper)_WAS_ID:$profileWasId}
   datasource:
     mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
     url: ${Dollar}{$($ModuleUpper)_DATASOURCE_URL:jdbc:mariadb://localhost:3306/${module}DB}
     username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:${module}_app}
-    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:__REPLACE_BY_ENV__}
+    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
     jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
 "@
 }
@@ -599,13 +864,13 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
 SPRING_PROFILES_ACTIVE=$profileName
 ${ModuleUpper}_MODULE_ID=$ModuleUpper
 ${ModuleUpper}_INSTANCE_ID=${ModuleUpper}-${profileName}-01
-${ModuleUpper}_WAS_ID=${profileName}-was-01
-${ModuleUpper}_SERVER_PORT=8080
+${ModuleUpper}_WAS_ID=${DomainIdCode}$($profileName.Substring(0, 1).ToUpperInvariant())001
+${ModuleUpper}_SERVER_PORT=$Port
 CPF_LOG_ROOT=C:/cpf/runtime/logs
 ${ModuleUpper}_DATASOURCE_MODE=url
 ${ModuleUpper}_DATASOURCE_URL=jdbc:mariadb://localhost:3306/${module}DB
 ${ModuleUpper}_DATASOURCE_USERNAME=${module}_app
-${ModuleUpper}_DATASOURCE_PASSWORD=__REPLACE_BY_ENV__
+${ModuleUpper}_DATASOURCE_PASSWORD=__SET_BY_SECRET_PROVIDER__
 ${ModuleUpper}_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpf$($ModuleUpper)DataSource
 "@
 }
@@ -623,7 +888,7 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
       "sshHostEnvKey": "${ModuleUpper}_SSH_HOST",
       "sshUserEnvKey": "${ModuleUpper}_SSH_USER",
       "deployBase": "/opt/cpf/$module",
-      "healthUrl": "http://localhost:8080/actuator/health",
+      "healthUrl": "http://localhost:$Port/actuator/health",
       "serviceName": "cpf-$module",
       "portEnvKey": "${ModuleUpper}_SERVER_PORT",
       "profile": "$profileName",
@@ -639,12 +904,16 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
+    "manifest/domain-manifest.json" = $domainManifest
+    "manifest/standard-execution-catalog.json" = $executionCatalogManifest
     "src/main/resources/application.yml" = $applicationYml
     "src/main/resources/application-${module}.yml" = $applicationModuleYml
     "src/main/resources/mybatis/mapper/${module}/${ModuleName}Mapper.xml" = $mapperXml
     "src/main/java/$packagePath/${ModuleName}Application.java" = $applicationJava
-    "src/main/java/$packagePath/controller/${ModuleName}Controller.java" = $controller
     "src/main/java/$packagePath/facade/${ModuleName}Facade.java" = $facade
+    "src/main/java/$packagePath/port/${ModuleName}QueryPort.java" = $queryPortSource
+    "src/main/java/$packagePath/adapter/local/Local${ModuleName}QueryAdapter.java" = $localAdapter
+    "src/main/java/$packagePath/adapter/remote/Remote${ModuleName}QueryProxy.java" = $remoteProxy
     "src/main/java/$packagePath/service/${ModuleName}Service.java" = $service
     "src/main/java/$packagePath/repository/${ModuleName}Repository.java" = $repository
     "src/main/java/$packagePath/dto/${ModuleName}SearchRequest.java" = $dto
@@ -652,6 +921,13 @@ $files = [ordered]@{
     "src/test/java/$packagePath/service/${ModuleName}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript
     "sql/Vxx__${module}_domain.sql" = $sql
+}
+
+if ($OnlineEnabled) {
+    $files["src/main/java/$packagePath/controller/${ModuleName}Controller.java"] = $controller
+}
+if ($BatchEnabled) {
+    $files["src/main/java/$packagePath/batch/${ModuleName}BatchConfig.java"] = $batchConfig
 }
 
 foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
@@ -684,6 +960,9 @@ if ($GeneratePatch -or $Apply) {
         "patch-candidates/sql/migration/Vxx__${module}_domain.sql" = $sql
         "patch-candidates/README.${module}.candidate.md" = $readme
         "patch-candidates/smoke-${module}.ps1" = $smokeScript
+    }
+    if ($BzaMenuEnabled) {
+        $patchFiles["patch-candidates/sql/70_bza_menu_seed.${module}.candidate.sql"] = $bzaSeed
     }
 
     foreach ($entry in $patchFiles.GetEnumerator()) {

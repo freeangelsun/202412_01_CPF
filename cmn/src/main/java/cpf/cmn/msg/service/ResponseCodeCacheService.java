@@ -148,10 +148,10 @@ public class ResponseCodeCacheService {
     private void requireFormat(CommonResponseCodeRequest request) {
         String responseCode = request.getResponseCode();
         if (responseCode == null || !responseCode.matches("[SE][A-Z]{3}[0-9]{2}[0-9]{4}")) {
-            throw new IllegalArgumentException("responseCode format must be {S|E}{MODULE}{GROUP}{SEQ}, for example EACC010001.");
+            throw new IllegalArgumentException("responseCode 형식은 {S|E}{MODULE}{GROUP}{SEQ}입니다. 예: EXYZ010001");
         }
         if (request.getMessageCode() == null || !request.getMessageCode().matches("M[A-Z]{3}[0-9]{2}[0-9]{4}")) {
-            throw new IllegalArgumentException("messageCode format must be M{MODULE}{GROUP}{SEQ}, for example MACC010001.");
+            throw new IllegalArgumentException("messageCode 형식은 M{MODULE}{GROUP}{SEQ}입니다. 예: MXYZ010001");
         }
         if (!String.valueOf(responseCode.charAt(0)).equals(request.getResultType())) {
             throw new IllegalArgumentException("resultType must match the first character of responseCode.");
@@ -167,4 +167,3 @@ public class ResponseCodeCacheService {
         }
     }
 }
-

@@ -2,7 +2,7 @@ package cpf.adm.opr.controller;
 
 import cpf.adm.opr.service.AdmCacheOperationService;
 import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,14 +31,14 @@ public class AdmCacheController {
     }
 
     @GetMapping("/summary")
-    @CpfTransaction(id = "ADM01OPR0010", name = "ADMCacheSummary")
+    @CpfOnlineTransaction(id = "OADM-OPR-01-0010", name = "ADMCacheSummary")
     @Operation(operationId = "admCacheSummary", summary = "Cache summary", description = "Returns CMN cache counts and samples.")
     public ResponseEntity<Map<String, Object>> summary() {
         return safeResponse(cacheOperationService::summary);
     }
 
     @PostMapping("/refresh")
-    @CpfTransaction(id = "ADM05OPR0011", name = "ADMCacheRefresh")
+    @CpfOnlineTransaction(id = "OADM-OPR-05-0011", name = "ADMCacheRefresh")
     @Operation(operationId = "admCacheRefresh", summary = "Refresh cache", description = "Refreshes CODE, MESSAGE, RESPONSE_CODE, CONFIG, or ALL cache targets.")
     public ResponseEntity<Map<String, Object>> refresh(
             @RequestParam(defaultValue = "ALL") String target,

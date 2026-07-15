@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
@@ -84,6 +84,49 @@ Assert-Contains `
     "README.md" `
     "X-Transaction-Id[\s\S]*34" `
     "개발 가이드에 34자리 트랜잭션 ID 규격 설명이 필요합니다."
+
+# 런타임 기동 시 표준 실행 카탈로그가 중복 ID를 거부하므로 빌드 단계에서도 같은 결함을 차단합니다.
+$executionIdPattern = '^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-(?!0000)[0-9]{4}$'
+$executionAnnotations = New-Object System.Collections.Generic.List[object]
+$moduleDirectories = Get-ChildItem -LiteralPath $Root -Directory | Where-Object {
+    Test-Path -LiteralPath (Join-Path $_.FullName "src/main/java")
+}
+
+foreach ($moduleDirectory in $moduleDirectories) {
+    $javaRoot = Join-Path $moduleDirectory.FullName "src/main/java"
+    foreach ($javaFile in Get-ChildItem -LiteralPath $javaRoot -Recurse -File -Filter "*.java") {
+        $source = [System.IO.File]::ReadAllText($javaFile.FullName, [System.Text.UTF8Encoding]::new($false, $true))
+        $annotations = [regex]::Matches(
+            $source,
+            '@Cpf(?:OnlineTransaction|BatchJob)\s*\((?<body>[\s\S]*?)\)',
+            [System.Text.RegularExpressions.RegexOptions]::CultureInvariant
+        )
+
+        foreach ($annotation in $annotations) {
+            $idMatch = [regex]::Match($annotation.Groups['body'].Value, '\bid\s*=\s*"(?<id>[^"]+)"')
+            $relativePath = $javaFile.FullName.Substring($Root.Length) -replace '^[\\/]+', '' -replace '\\', '/'
+            if (-not $idMatch.Success) {
+                $failures.Add("$relativePath - 표준 실행 애노테이션의 id는 문자열 리터럴로 선언해야 합니다.")
+                continue
+            }
+
+            $executionId = $idMatch.Groups['id'].Value
+            if ($executionId -notmatch $executionIdPattern) {
+                $failures.Add("$relativePath - 표준 실행 ID 형식 오류: $executionId")
+            }
+
+            $executionAnnotations.Add([pscustomobject]@{
+                Id = $executionId
+                Path = $relativePath
+            })
+        }
+    }
+}
+
+foreach ($duplicate in $executionAnnotations | Group-Object -Property Id | Where-Object Count -gt 1) {
+    $locations = ($duplicate.Group | ForEach-Object Path | Sort-Object -Unique) -join ', '
+    $failures.Add("표준 실행 ID 중복: $($duplicate.Name) ($locations)")
+}
 
 if ($failures.Count -gt 0) {
     $failures | Sort-Object | ForEach-Object { Write-Host $_ }

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $JdbcUrl = $env:ADM_DB_URL,
     [string] $Username = $env:ADM_DB_MIGRATION_USERNAME,

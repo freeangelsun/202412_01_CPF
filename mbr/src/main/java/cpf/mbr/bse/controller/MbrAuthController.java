@@ -1,7 +1,7 @@
 package cpf.mbr.bse.controller;
 
 import cpf.mbr.bse.service.MbrAuthService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +32,7 @@ public class MbrAuthController {
     }
 
     @PostMapping("/login")
-    @CpfTransaction(id = "MBR02AUT0001", name = "MBRMemberLogin")
+    @CpfOnlineTransaction(id = "OMBR-AUT-02-0001", name = "MBRMemberLogin")
     @Operation(operationId = "mbrAuthLogin", summary = "회원 로그인", description = "MBR 전용 JWT access token과 hash 저장형 refresh token을 발급합니다.")
     public ResponseEntity<MbrAuthService.LoginResult> login(
             @RequestBody MbrAuthService.LoginRequest request,
@@ -41,28 +41,28 @@ public class MbrAuthController {
     }
 
     @PostMapping("/refresh")
-    @CpfTransaction(id = "MBR02AUT0002", name = "MBRTokenRefresh")
+    @CpfOnlineTransaction(id = "OMBR-AUT-02-0002", name = "MBRTokenRefresh")
     @Operation(operationId = "mbrAuthRefresh", summary = "회원 token 재발급", description = "회원 refresh token을 hash로 검증한 뒤 access token을 재발급합니다.")
     public ResponseEntity<MbrAuthService.LoginResult> refresh(@RequestBody MbrAuthService.RefreshRequest request) {
         return ResponseEntity.ok(authService.refresh(request));
     }
 
     @PostMapping("/logout")
-    @CpfTransaction(id = "MBR02AUT0003", name = "MBRMemberLogout")
+    @CpfOnlineTransaction(id = "OMBR-AUT-02-0003", name = "MBRMemberLogout")
     @Operation(operationId = "mbrAuthLogout", summary = "회원 로그아웃", description = "refresh token hash 상태를 폐기 처리합니다.")
     public ResponseEntity<Map<String, Object>> logout(@RequestBody(required = false) MbrAuthService.RefreshRequest request) {
         return ResponseEntity.ok(authService.logout(request));
     }
 
     @GetMapping("/me")
-    @CpfTransaction(id = "MBR01AUT0004", name = "MBRCurrentMember")
+    @CpfOnlineTransaction(id = "OMBR-AUT-01-0004", name = "MBRCurrentMember")
     @Operation(operationId = "mbrAuthMe", summary = "현재 회원", description = "MBR access token의 loginDomain을 검증한 뒤 현재 회원 정보를 반환합니다.")
     public ResponseEntity<Map<String, Object>> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return ResponseEntity.ok(authService.currentMember(authorization));
     }
 
     @GetMapping("/login-history")
-    @CpfTransaction(id = "MBR01AUT0005", name = "MBRLoginHistory")
+    @CpfOnlineTransaction(id = "OMBR-AUT-01-0005", name = "MBRLoginHistory")
     @Operation(operationId = "mbrAuthLoginHistories", summary = "회원 로그인 이력", description = "성공/실패, 실패 사유, transactionGlobalId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> loginHistories(@RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(authService.loginHistories(limit));

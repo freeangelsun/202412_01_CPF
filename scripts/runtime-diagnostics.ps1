@@ -1,8 +1,8 @@
-param(
+﻿param(
     [Alias("Root")]
     [string] $DiagnosticsRoot = "",
     [Alias("Modules")]
-    [string[]] $DiagnosticsModules = @("ACC", "MBR", "EXS", "ADM", "BAT"),
+    [string[]] $DiagnosticsModules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
     [Alias("ResultDir")]
     [string] $DiagnosticsResultDir = "",
     [Alias("ErrorMessage")]
@@ -73,7 +73,7 @@ function New-CpfRuntimeDiagnostic {
 function Invoke-CpfRuntimeDiagnostics {
     param(
         [string] $Root = "",
-        [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
+        [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
         [string] $ResultDir = "",
         [string] $ErrorMessage = ""
     )

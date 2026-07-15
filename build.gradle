@@ -51,16 +51,14 @@ tasks.register('runLocalServices') {
     group = 'application'
     description = 'CPF verification or deployment task.'
 
-    dependsOn ':mbr:classes', ':acc:classes', ':xyz:classes', ':adm:classes', ':bizadm:classes', ':exs:classes'
+    dependsOn ':mbr:classes', ':xyz:classes', ':adm:classes', ':bza:classes'
 
     doLast {
         def services = [
                 [name: 'MBR', project: project(':mbr'), mainClass: 'cpf.mbr.MbrApplication'],
-                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccApplication'],
                 [name: 'XYZ', project: project(':xyz'), mainClass: 'cpf.xyz.XyzApplication'],
                 [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication'],
-                [name: 'BIZADM', project: project(':bizadm'), mainClass: 'cpf.bizadm.BizAdmApplication'],
-                [name: 'EXS', project: project(':exs'), mainClass: 'cpf.exs.ExsApplication']
+                [name: 'BZA', project: project(':bza'), mainClass: 'cpf.bza.BzaApplication']
         ]
         def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
         if (!requestedServiceText.isBlank()) {
@@ -81,7 +79,7 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('Default ports: MBR(8081), ACC(8080), XYZ(8099), ADM(8090), BIZADM(8091), EXS(8092)')
+        logger.lifecycle('Default ports: MBR(8081), XYZ(8099), ADM(8090), BZA(8091)')
         logger.lifecycle('PFW and CMN are library modules and are not started as standalone services.')
 
         services.each { service ->
@@ -155,18 +153,16 @@ void stopLocalServiceProcesses(List processes) {
 }
 
 ext.cpfServiceModules = [
-        ACC   : 'acc',
         MBR   : 'mbr',
-        EXS   : 'exs',
         ADM   : 'adm',
         BAT   : 'bat',
-        BIZADM: 'bizadm',
+        BZA   : 'bza',
         XYZ   : 'xyz'
 ]
 ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
 
 String cpfRequestedModule() {
-    return (findProperty('cpfModule') ?: 'ACC').toString().trim().toUpperCase(Locale.ROOT)
+    return (findProperty('cpfModule') ?: 'MBR').toString().trim().toUpperCase(Locale.ROOT)
 }
 
 String cpfModuleProjectName(String moduleCode) {
@@ -186,7 +182,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260714_02').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260715_01').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -397,7 +393,7 @@ tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
-    dependsOn ':acc:bootJar', ':adm:bootJar', ':bat:bootJar', ':bizadm:bootJar', ':exs:bootJar', ':mbr:bootJar', ':xyz:bootJar'
+    dependsOn ':adm:bootJar', ':bat:bootJar', ':bza:bootJar', ':mbr:bootJar', ':xyz:bootJar'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
@@ -653,6 +649,20 @@ tasks.register('admUiSmoke', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
+tasks.register('admLogPolicyUiStaticSmoke', Exec) {
+    group = 'verification'
+    description = 'ADM 로그 정책 화면과 운영 API 연결을 정적으로 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-adm-log-policy-ui-static.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('bzaUiSmoke', Exec) {
+    group = 'verification'
+    description = 'BZA 메뉴, 권한, 인증 저장소와 API 연결을 정적으로 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-bza-ui.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('admRuntimeSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
@@ -664,5 +674,5 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
 }

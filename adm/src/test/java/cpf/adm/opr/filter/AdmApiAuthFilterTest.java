@@ -11,9 +11,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,11 +65,36 @@ class AdmApiAuthFilterTest {
         assertThat(chain.getRequest()).isNotNull();
     }
 
+    @Test
+    void 구체다운로드거부권한이넓은조회허용보다우선한다() throws Exception {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        when(jdbcTemplate.queryForList(anyString(), any(Object[].class))).thenReturn(List.of(
+                Map.of("API_PATH", "/adm/api/remote-logs/**", "HTTP_METHOD", "GET", "ALLOW_YN", "Y"),
+                Map.of("API_PATH", "/adm/api/remote-logs/bundle-jobs/*/download",
+                        "HTTP_METHOD", "GET", "ALLOW_YN", "N")));
+        AdmSession session = new AdmSession(
+                TOKEN, "viewer", List.of("ADM_VIEWER"), false,
+                LocalDateTime.now(), LocalDateTime.now().plusHours(1));
+        AdmApiAuthFilter filter = filter(session, jdbcTemplate);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(
+                request("GET", "/adm/api/remote-logs/bundle-jobs/job-01/download"),
+                response,
+                new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(403);
+    }
+
     private AdmApiAuthFilter filter(AdmSession session) {
+        return filter(session, mock(JdbcTemplate.class));
+    }
+
+    private AdmApiAuthFilter filter(AdmSession session, JdbcTemplate jdbcTemplate) {
         AdmSecurityProperties properties = new AdmSecurityProperties();
         AdmSessionService sessionService = mock(AdmSessionService.class);
         when(sessionService.findValidSession(TOKEN)).thenReturn(Optional.of(session));
-        return new AdmApiAuthFilter(properties, sessionService, mock(JdbcTemplate.class));
+        return new AdmApiAuthFilter(properties, sessionService, jdbcTemplate);
     }
 
     private AdmSession forcedSession() {

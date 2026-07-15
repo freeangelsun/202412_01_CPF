@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $HostName = $env:CPF_DB_HOST,
     [string] $Port = $env:CPF_DB_PORT,
@@ -298,6 +298,9 @@ try {
     Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "specs/sql/00_all_install_and_smoke.sql" -WithServicePasswords | Out-Null
     Invoke-MariaDbFile -StepName "smokeCheck" -RelativePath "specs/sql/99_smoke_check.sql" | Out-Null
     Invoke-MariaDbFile -StepName "frameworkSeedRepeat" -RelativePath "specs/sql/50_framework_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "cmnSeedRepeat" -RelativePath "specs/sql/55_cmn_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "admSeedRepeat" -RelativePath "specs/sql/60_adm_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "testDataRepeat" -RelativePath "specs/sql/70_test_data.sql" | Out-Null
 
     $result.checks.batCenterCutTableCount = [int] (Invoke-Scalar -StepName "batCenterCutTableCount" -SqlText @"
 SELECT COUNT(*)
@@ -386,37 +389,41 @@ WHERE table_schema = 'pfwDB'
       'ix_pfw_transaction_segment_client'
   );
 "@)
-    $result.checks.exsLedgerRequiredColumnCount = [int] (Invoke-Scalar -StepName "exsLedgerRequiredColumnCount" -SqlText @"
+    $result.checks.standardExecutionTableCount = [int] (Invoke-Scalar -StepName "standardExecutionTableCount" -SqlText @"
 SELECT COUNT(*)
-FROM information_schema.columns
-WHERE table_schema = 'exsDB'
-  AND table_name = 'exs_transaction_log'
-  AND column_name IN (
-      'transaction_segment_id',
-      'api_path',
-      'request_header_masked',
-      'response_header_masked',
-      'request_payload_masked',
-      'response_payload_masked',
-      'http_status',
-      'timeout_ms',
-      'retry_count'
+FROM information_schema.tables
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_standard_execution';
+"@)
+    $result.checks.standardExecutionIndexCount = [int] (Invoke-Scalar -StepName "standardExecutionIndexCount" -SqlText @"
+SELECT COUNT(DISTINCT index_name)
+FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND table_name = 'pfw_standard_execution'
+  AND index_name IN (
+      'uk_pfw_standard_execution_source',
+      'ix_pfw_standard_execution_owner',
+      'ix_pfw_standard_execution_status'
   );
 "@)
-    $result.checks.exsMessageRequiredColumnCount = [int] (Invoke-Scalar -StepName "exsMessageRequiredColumnCount" -SqlText @"
+    $result.checks.bzaTableCount = [int] (Invoke-Scalar -StepName "bzaTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'bzaDB'
+  AND table_name IN (
+      'bza_admin_user', 'bza_login_history', 'bza_refresh_token', 'bza_menu',
+      'bza_role', 'bza_permission', 'bza_organization', 'bza_employee',
+      'bza_user_role', 'bza_business_audit', 'bza_approval_document',
+      'bza_approval_line', 'bza_approval_history', 'bza_customer', 'bza_product',
+      'bza_order', 'bza_project_setting', 'bza_masking_audit'
+  );
+"@)
+    $result.checks.bzaCommonColumnCount = [int] (Invoke-Scalar -StepName "bzaCommonColumnCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.columns
-WHERE table_schema = 'exsDB'
-  AND table_name = 'exs_message_log'
-  AND column_name IN (
-      'transaction_segment_id',
-      'message_code',
-      'request_payload_masked',
-      'response_payload_masked',
-      'status',
-      'failure_code',
-      'failure_message_masked'
-  );
+WHERE table_schema = 'bzaDB'
+  AND table_name LIKE 'bza\_%'
+  AND column_name IN ('created_by', 'created_at', 'updated_by', 'updated_at');
 "@)
     $result.checks.cmnFixedLengthTableCount = [int] (Invoke-Scalar -StepName "cmnFixedLengthTableCount" -SqlText @"
 SELECT COUNT(*)
@@ -540,11 +547,17 @@ WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RE
     if ($result.checks.transactionSegmentIndexCount -ne 8) {
         throw "pfw_transaction_segment required index count mismatch. actual=$($result.checks.transactionSegmentIndexCount)"
     }
-    if ($result.checks.exsLedgerRequiredColumnCount -ne 9) {
-        throw "exs_transaction_log required column count mismatch. actual=$($result.checks.exsLedgerRequiredColumnCount)"
+    if ($result.checks.standardExecutionTableCount -ne 1) {
+        throw "pfw_standard_execution table is missing."
     }
-    if ($result.checks.exsMessageRequiredColumnCount -ne 7) {
-        throw "exs_message_log required column count mismatch. actual=$($result.checks.exsMessageRequiredColumnCount)"
+    if ($result.checks.standardExecutionIndexCount -ne 3) {
+        throw "pfw_standard_execution required index count mismatch. actual=$($result.checks.standardExecutionIndexCount)"
+    }
+    if ($result.checks.bzaTableCount -ne 18) {
+        throw "BZA baseline table count mismatch. actual=$($result.checks.bzaTableCount)"
+    }
+    if ($result.checks.bzaCommonColumnCount -ne 72) {
+        throw "BZA common audit column count mismatch. actual=$($result.checks.bzaCommonColumnCount)"
     }
     if ($result.checks.cmnFixedLengthTableCount -ne 4) {
         throw "cmn_fixed_length_* table count mismatch. actual=$($result.checks.cmnFixedLengthTableCount)"

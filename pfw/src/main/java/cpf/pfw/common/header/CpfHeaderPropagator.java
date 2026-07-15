@@ -64,6 +64,8 @@ public final class CpfHeaderPropagator {
             boolean outbound) {
         String transactionId = TransactionContext.getOrCreateTransactionId();
         putIfHasText(headers, CpfHeaderNames.TRANSACTION_ID, transactionId);
+        putIfHasText(headers, CpfHeaderNames.STANDARD_EXECUTION_ID, TransactionContext.currentBusinessTransactionId());
+        headers.put(CpfHeaderNames.PROTOCOL_VERSION, "1.0");
         putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_ID, outbound
                 ? transactionId
                 : headerValue(transactionHeader, TransactionHeader::getParentTransactionId));

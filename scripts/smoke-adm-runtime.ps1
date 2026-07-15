@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [int] $StartupTimeoutSeconds = 120,
@@ -536,7 +536,7 @@ try {
     $result.health.status = "PASSED"
     $result.health.response = $health
 
-    & (Join-Path $Root "scripts/smoke-openapi.ps1") -AdmBaseUrl $AdmBaseUrl -SkipMbr -SkipXyz -SkipBizAdm -SkipExs
+    & (Join-Path $Root "scripts/smoke-openapi.ps1") -AdmBaseUrl $AdmBaseUrl -SkipMbr -SkipXyz -SkipBza -SkipBat
     $result.openapi.status = "PASSED"
     $result.openapi.path = "$AdmBaseUrl/v3/api-docs"
 

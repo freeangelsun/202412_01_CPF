@@ -65,8 +65,7 @@ if (!window.Vue) {
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
-          { id: "bizadm", menuId: "BIZADM", label: "업무관리" },
-          { id: "exs", menuId: "EXS", label: "대외연계" },
+          { id: "bza", menuId: "BZA", label: "업무관리" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" }
         ],
         */
@@ -91,8 +90,7 @@ if (!window.Vue) {
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
-          { id: "bizadm", menuId: "BIZADM", label: "업무관리" },
-          { id: "exs", menuId: "EXS", label: "대외연계" },
+          { id: "bza", menuId: "BZA", label: "업무관리" },
           { id: "operators", menuId: "OPERATOR", label: "운영자" }
         ],
         */
@@ -100,6 +98,8 @@ if (!window.Vue) {
           { id: "logs", menuId: "LOG_LIST", label: "\uAC70\uB798 \uB85C\uADF8" },
           { id: "transactionGroups", menuId: "LOG_LIST", label: "\uAC70\uB798 \uADF8\uB8F9" },
           { id: "transactions", menuId: "TRANSACTION_META", label: "\uAC70\uB798 \uBA54\uD0C0" },
+          { id: "standardExecutions", menuId: "STANDARD_EXECUTION", label: "\uD45C\uC900 \uC2E4\uD589" },
+          { id: "remoteLogs", menuId: "REMOTE_LOG", label: "\uC6D0\uACA9 \uB85C\uADF8" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "\uAC10\uC0AC \uB85C\uADF8" },
           { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "\uC11C\uBE44\uC2A4 \uD638\uCD9C" },
           { id: "reliability", menuId: "RELIABILITY", label: "\uC2E0\uB8B0\uC131 \uCC98\uB9AC" },
@@ -117,8 +117,6 @@ if (!window.Vue) {
           { id: "permissions", menuId: "PERMISSION", label: "\uAD8C\uD55C" },
           { id: "password", menuId: "PASSWORD", label: "\uBE44\uBC00\uBC88\uD638" },
           { id: "security", menuId: "SECURITY", label: "\uBCF4\uC548" },
-          { id: "bizadm", menuId: "BIZADM", label: "\uC5C5\uBB34\uAD00\uB9AC" },
-          { id: "exs", menuId: "EXS", label: "\uB300\uC678\uC5F0\uACC4" },
           { id: "operators", menuId: "OPERATOR", label: "\uC6B4\uC601\uC790" }
         ],
         logSearch: {
@@ -162,6 +160,34 @@ if (!window.Vue) {
           extensionHeaderValue: ""
         },
         transactionSearch: { moduleCode: "", activeYn: "Y", transactionId: "", selectedTransactionId: "", reason: "거래 메타 운영" },
+        standardExecutionSearch: { type: "", ownerDomain: "", keyword: "", selectedId: "" },
+        remoteLogSearch: {
+          environment: "",
+          module: "",
+          service: "",
+          instance: "",
+          logType: "",
+          fileName: "",
+          standardTransactionId: "",
+          standardBatchId: "",
+          transactionGlobalId: "",
+          transactionId: "",
+          segmentId: "",
+          jobInstanceId: "",
+          jobExecutionId: "",
+          stepExecutionId: "",
+          schedulerId: "",
+          modifiedFrom: "",
+          modifiedTo: "",
+          minSize: "",
+          maxSize: "",
+          compressed: "",
+          active: "",
+          limit: 100,
+          lastLines: 200,
+          keyword: "",
+          reason: "운영 로그 확인"
+        },
         logSort: { key: "LOG_IDX", direction: "desc" },
         logPage: { page: 1, size: 10 },
         logDetailTab: "요약",
@@ -738,6 +764,8 @@ if (!window.Vue) {
         transactionGroupResult: { items: [] },
         transactionGroupDetail: {},
         transactionResult: {},
+        standardExecutionResult: { items: [], summary: {} },
+        standardExecutionDetail: {},
         auditLogs: [],
         logDetail: {},
         memberResult: { items: [] },
@@ -760,8 +788,13 @@ if (!window.Vue) {
         securityResult: {},
         serviceRegistryResult: {},
         reliabilityResult: {},
-        bizAdmResult: {},
-        exsResult: {}
+        remoteLogResult: [],
+        remoteLogPreview: {},
+        selectedRemoteLog: null,
+        remoteLogSelectedIds: [],
+        remoteLogDiagnostics: {},
+        remoteLogBundleJob: {},
+        remoteLogBundleGrant: {}
       };
     },
     computed: {
@@ -970,6 +1003,8 @@ if (!window.Vue) {
           this.searchLogs(),
           this.loadTransactionGroups(),
           this.loadTransactions(),
+          this.loadStandardExecutions(),
+          this.loadRemoteLogs(),
           this.loadAuditLogs(),
           this.loadServiceRegistry(),
           this.searchMembers(),
@@ -986,9 +1021,7 @@ if (!window.Vue) {
           this.loadConfigs(),
           this.loadCacheSummary(),
           this.loadPermissions(),
-          this.loadSecurity(),
-          this.loadBizAdmOperations(),
-          this.loadExsOperations()
+          this.loadSecurity()
         ]);
       },
       async loadMe() {
@@ -1158,6 +1191,144 @@ if (!window.Vue) {
       async loadTransactions() {
         const params = this.buildParams(this.transactionSearch);
         this.transactionResult = await this.getJson(`/adm/api/transactions?${params.toString()}`);
+      },
+      async loadStandardExecutions() {
+        const params = this.buildParams(this.standardExecutionSearch);
+        params.delete("selectedId");
+        this.standardExecutionResult = await this.getJson(`/adm/api/standard-executions?${params.toString()}`);
+      },
+      async loadStandardExecutionDetail(standardExecutionId) {
+        if (!standardExecutionId) return;
+        this.standardExecutionSearch.selectedId = standardExecutionId;
+        this.standardExecutionDetail = await this.getJson(`/adm/api/standard-executions/${encodeURIComponent(standardExecutionId)}`);
+      },
+      async loadRemoteLogs() {
+        const params = this.buildParams(this.remoteLogSearch);
+        for (const key of ["lastLines", "keyword", "reason"]) params.delete(key);
+        this.remoteLogResult = await this.getJson(`/adm/api/remote-logs?${params.toString()}`);
+        const visibleIds = new Set(this.remoteLogResult.map(item => item.artifactId));
+        this.remoteLogSelectedIds = this.remoteLogSelectedIds.filter(id => visibleIds.has(id));
+      },
+      async loadRemoteLogDiagnostics() {
+        this.remoteLogDiagnostics = await this.getJson('/adm/api/remote-logs/diagnostics');
+      },
+      async previewRemoteLog(item) {
+        if (!item?.artifactId) return;
+        this.selectedRemoteLog = item;
+        const params = this.buildParams({
+          lastLines: this.remoteLogSearch.lastLines,
+          keyword: this.remoteLogSearch.keyword
+        });
+        this.remoteLogPreview = await this.getJson(`/adm/api/remote-logs/${encodeURIComponent(item.artifactId)}/preview?${params.toString()}`);
+      },
+      async downloadRemoteLog() {
+        if (!this.selectedRemoteLog?.artifactId || !this.requireReason(this.remoteLogSearch.reason)) return;
+        const params = this.buildParams({ reason: this.remoteLogSearch.reason });
+        const response = await fetch(
+          `/adm/api/remote-logs/${encodeURIComponent(this.selectedRemoteLog.artifactId)}/download?${params.toString()}`,
+          { headers: this.apiHeaders() }
+        );
+        if (!response.ok) {
+          await this.parseResponse(response);
+          return;
+        }
+        const blobUrl = URL.createObjectURL(await response.blob());
+        const anchor = document.createElement("a");
+        anchor.href = blobUrl;
+        anchor.download = this.selectedRemoteLog.fileName || "cpf-log-artifact.log";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(blobUrl);
+        this.setMessage("로그 아티팩트를 다운로드했습니다.");
+      },
+      async downloadRemoteLogBundle() {
+        if (this.remoteLogSelectedIds.length === 0 || !this.requireReason(this.remoteLogSearch.reason)) return;
+        const response = await fetch('/adm/api/remote-logs/bundles', {
+          method: 'POST',
+          headers: this.apiHeaders(),
+          body: JSON.stringify({ artifactIds: this.remoteLogSelectedIds, reason: this.remoteLogSearch.reason })
+        });
+        if (!response.ok) {
+          await this.parseResponse(response);
+          return;
+        }
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const fileName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+          ? decodeURIComponent(disposition.match(/filename\*=UTF-8''([^;]+)/i)[1])
+          : 'cpf-remote-logs.zip';
+        const blobUrl = URL.createObjectURL(await response.blob());
+        const anchor = document.createElement('a');
+        anchor.href = blobUrl;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(blobUrl);
+        const failed = Number(response.headers.get('X-CPF-Partial-Failure-Count') || 0);
+        this.setMessage(failed > 0 ? `로그 ZIP을 생성했지만 ${failed}건은 실패했습니다.` : '선택 로그 ZIP을 다운로드했습니다.');
+      },
+      async createRemoteLogBundleJob() {
+        if (this.remoteLogSelectedIds.length === 0 || !this.requireReason(this.remoteLogSearch.reason)) return;
+        this.remoteLogBundleGrant = {};
+        this.remoteLogBundleJob = await this.sendJson('/adm/api/remote-logs/bundle-jobs', 'POST', {
+          artifactIds: this.remoteLogSelectedIds,
+          reason: this.remoteLogSearch.reason
+        });
+        this.setMessage('비동기 로그 ZIP 작업을 등록했습니다.');
+        await this.pollRemoteLogBundleJob();
+      },
+      async loadRemoteLogBundleJob() {
+        if (!this.remoteLogBundleJob?.jobId) return;
+        this.remoteLogBundleJob = await this.getJson(
+          `/adm/api/remote-logs/bundle-jobs/${encodeURIComponent(this.remoteLogBundleJob.jobId)}`
+        );
+      },
+      async pollRemoteLogBundleJob() {
+        for (let attempt = 0; attempt < 60; attempt += 1) {
+          await this.loadRemoteLogBundleJob();
+          if (['COMPLETED', 'FAILED'].includes(this.remoteLogBundleJob.status)) {
+            const failedCount = this.remoteLogBundleJob.failedArtifactIds?.length || 0;
+            this.setMessage(this.remoteLogBundleJob.status === 'COMPLETED'
+              ? `비동기 로그 ZIP 생성이 완료되었습니다. 부분 실패 ${failedCount}건`
+              : `비동기 로그 ZIP 생성에 실패했습니다: ${this.remoteLogBundleJob.errorMessage || '원인 미상'}`);
+            return;
+          }
+          await new Promise(resolve => window.setTimeout(resolve, 1000));
+        }
+        this.setMessage('비동기 로그 ZIP 작업이 계속 처리 중입니다. 상태 새로고침으로 확인하세요.');
+      },
+      async downloadRemoteLogBundleJob() {
+        if (this.remoteLogBundleJob?.status !== 'COMPLETED' || !this.requireReason(this.remoteLogSearch.reason)) return;
+        const jobId = encodeURIComponent(this.remoteLogBundleJob.jobId);
+        this.remoteLogBundleGrant = await this.sendJson(
+          `/adm/api/remote-logs/bundle-jobs/${jobId}/download-tokens`,
+          'POST',
+          { reason: this.remoteLogSearch.reason }
+        );
+        const params = this.buildParams({
+          token: this.remoteLogBundleGrant.token,
+          reason: this.remoteLogSearch.reason
+        });
+        const response = await fetch(`/adm/api/remote-logs/bundle-jobs/${jobId}/download?${params.toString()}`, {
+          headers: this.apiHeaders()
+        });
+        if (!response.ok) {
+          await this.parseResponse(response);
+          return;
+        }
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+        const blobUrl = URL.createObjectURL(await response.blob());
+        const anchor = document.createElement('a');
+        anchor.href = blobUrl;
+        anchor.download = encodedName ? decodeURIComponent(encodedName) : 'cpf-remote-logs-async.zip';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(blobUrl);
+        this.remoteLogBundleGrant = {};
+        this.setMessage('비동기 로그 ZIP을 1회성 token으로 다운로드했습니다.');
       },
       async scanTransactions() {
         if (!this.requireReason(this.transactionSearch.reason)) return;
@@ -1744,7 +1915,7 @@ if (!window.Vue) {
       },
       validateResponseCodeForm() {
         const code = this.responseCodeForm.responseCode || "";
-        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) return "응답코드는 EACC010001 또는 SACC000000 형식이어야 합니다.";
+        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) return "응답코드는 EXYZ010001 또는 SXYZ000000 형식이어야 합니다.";
         if (code[0] !== this.responseCodeForm.resultType) return "결과 유형은 응답코드 첫 글자와 같아야 합니다.";
         if (code.substring(1, 4) !== this.responseCodeForm.moduleId) return "모듈 ID는 응답코드 2~4번째 자리와 같아야 합니다.";
         if (code.substring(4, 6) !== this.responseCodeForm.responseGroup) return "응답 그룹은 응답코드 5~6번째 자리와 같아야 합니다.";
@@ -1974,91 +2145,6 @@ if (!window.Vue) {
           reason: this.securityForm.reason
         });
         this.setMessage("MFA 검증을 요청했습니다.");
-      },
-      async loadBizAdmOperations() {
-        const [
-          adminUsers,
-          roles,
-          menus,
-          permissions,
-          customers,
-          products,
-          orders,
-          settings,
-          downloads
-        ] = await Promise.allSettled([
-          this.getJson("/api/bizadm/admin-users"),
-          this.getJson("/api/bizadm/roles"),
-          this.getJson("/api/bizadm/menus"),
-          this.getJson("/api/bizadm/permissions"),
-          this.getJson("/api/bizadm/customers"),
-          this.getJson("/api/bizadm/products"),
-          this.getJson("/api/bizadm/orders"),
-          this.getJson("/api/bizadm/settings"),
-          this.getJson("/api/bizadm/downloads")
-        ]);
-        this.bizAdmResult = {
-          adminUsers: this.settledValue(adminUsers),
-          roles: this.settledValue(roles),
-          menus: this.settledValue(menus),
-          permissions: this.settledValue(permissions),
-          customers: this.settledValue(customers),
-          products: this.settledValue(products),
-          orders: this.settledValue(orders),
-          settings: this.settledValue(settings),
-          downloads: this.settledValue(downloads)
-        };
-        this.setMessage("BIZADM 업무 관리자 API wrapper를 조회했습니다.");
-      },
-      async loadExsOperations() {
-        const [
-          institutions,
-          channels,
-          endpoints,
-          authProfiles,
-          tokenStatus,
-          routes,
-          transactions,
-          messages,
-          policyStatus,
-          retryStatus,
-          tokens,
-          tokenEvents,
-          retries,
-          controlPolicies
-        ] = await Promise.allSettled([
-          this.getJson("/api/exs/institutions"),
-          this.getJson("/api/exs/channels"),
-          this.getJson("/api/exs/endpoints"),
-          this.getJson("/api/exs/auth-profiles"),
-          this.getJson("/api/exs/tokens"),
-          this.getJson("/api/exs/routes"),
-          this.getJson("/api/exs/transactions"),
-          this.getJson("/api/exs/messages"),
-          this.getJson("/api/exs/control-policies"),
-          this.getJson("/api/exs/retries"),
-          this.getJson("/api/exs/operations/tokens"),
-          this.getJson("/api/exs/operations/token-events?limit=50"),
-          this.getJson("/api/exs/operations/retries?limit=50"),
-          this.getJson("/api/exs/operations/control-policies")
-        ]);
-        this.exsResult = {
-          institutions: this.settledValue(institutions),
-          channels: this.settledValue(channels),
-          endpoints: this.settledValue(endpoints),
-          authProfiles: this.settledValue(authProfiles),
-          tokenStatus: this.settledValue(tokenStatus),
-          routes: this.settledValue(routes),
-          transactions: this.settledValue(transactions),
-          messages: this.settledValue(messages),
-          policyStatus: this.settledValue(policyStatus),
-          retryStatus: this.settledValue(retryStatus),
-          tokens: this.settledValue(tokens),
-          tokenEvents: this.settledValue(tokenEvents),
-          retries: this.settledValue(retries),
-          controlPolicies: this.settledValue(controlPolicies)
-        };
-        this.setMessage("EXS 대외연계 API wrapper를 조회했습니다.");
       },
       settledValue(result) {
         if (result.status === "fulfilled") {

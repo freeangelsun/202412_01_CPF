@@ -4,6 +4,7 @@ import cpf.adm.config.AdmPasswordPolicyProperties;
 import cpf.adm.opr.dto.AdmLoginRequest;
 import cpf.adm.opr.dto.AdmPasswordChangeRequest;
 import cpf.pfw.common.exception.CpfValidationException;
+import cpf.pfw.common.security.password.CpfPbkdf2PasswordHasher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -32,6 +33,7 @@ class AdmOperatorPasswordChangeTest {
         properties.setHistoryCount(3);
         operatorService = new AdmOperatorService(
                 new AdmPasswordPolicyService(properties),
+                new CpfPbkdf2PasswordHasher(210_000, 256, new char[0]),
                 new OfflineJdbcTemplate());
         assertThat(operatorService.bootstrapOperator(OPERATOR_ID, "CPF 관리자", INITIAL_PASSWORD)).isTrue();
     }

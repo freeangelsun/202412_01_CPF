@@ -1,0 +1,104 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-BASELINE-QUALITY-GATE-20260715-01
+STATUS=실패
+EXECUTED_AT=2026-07-15T11:40:09.0020776+09:00
+START_COMMIT=0d206c683aab840dbab4639f2797dd7fd718cefd
+BRANCH=master
+COMMAND=.\gradlew.bat qualityGate -PcpfResultDir=specs/evidence/20260715_01 --no-daemon
+EXIT_CODE=1
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=4485d4b4b524842a07c8b9b1898948db5a8311d30247723d210692a1cb98abda
+--- SANITIZED_OUTPUT ---
+
+<WORKSPACE>>if "Windows_NT" == "Windows_NT" setlocal
+
+<WORKSPACE>>set DIRNAME=<WORKSPACE>\ 
+
+<WORKSPACE>>if "<WORKSPACE>\" == "" set DIRNAME=. 
+
+<WORKSPACE>>set APP_BASE_NAME=gradlew 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>for %i in ("<WORKSPACE>\") do set APP_HOME=%~fi 
+
+<WORKSPACE>>set APP_HOME=<WORKSPACE>\ 
+
+<WORKSPACE>>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+<WORKSPACE>>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+<WORKSPACE>>set JAVA_HOME=D:\Java\jdk-25.0.3.9-hotspot\ 
+
+<WORKSPACE>>set JAVA_EXE=D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe 
+
+<WORKSPACE>>if exist "D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" goto execute 
+
+<WORKSPACE>>"D:\Java\jdk-25.0.3.9-hotspot\/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "<WORKSPACE>\\gradle\wrapper\gradle-wrapper.jar" qualityGate -PcpfResultDir=specs/evidence/20260715_01 --no-daemon 
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :checkArchitectureOwnership
+Architecture ownership scan statusCode=DONE failures=0 warnings=0 evidence=<WORKSPACE>\specs\evidence\20260715_01\architecture-ownership-scan.sanitized.json
+
+> Task :checkCpfRequestProtection
+CPF request protection check passed.
+
+> Task :checkDeployEnv
+> Task :checkDeployInventory
+
+> Task :checkDocxStandard FAILED
+gradlew.bat : <WORKSPACE>\scripts\check-docx-standard.ps1 : CPF_�����ӿ�ũ_�Ұ�_��_��Ű��ó.docx : current com
+mit metad
+At line:2 char:108
++ ... aw -Force}; & .\gradlew.bat qualityGate -PcpfResultDir=specs/evidence ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\WORK_CPF\202...nt commit metad:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ata is missing
+��ġ <WORKSPACE>\scripts\check-docx-standard.ps1:196 ����:34
++     $failures | ForEach-Object { Write-Error $_ }
++                                  ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,check-docx-standard.ps1
+ 
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':checkDocxStandard'.
+> Process 'command 'powershell'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 38s
+5 actionable tasks: 5 executed
+
+<WORKSPACE>>if 1 EQU 0 goto mainEnd 
+
+<WORKSPACE>>rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of 
+
+<WORKSPACE>>rem the _cmd.exe /c_ return code! 
+
+<WORKSPACE>>set EXIT_CODE=1 
+
+<WORKSPACE>>if 1 EQU 0 set EXIT_CODE=1 
+
+<WORKSPACE>>if not "" == "" exit 1 
+
+<WORKSPACE>>exit /b 1 

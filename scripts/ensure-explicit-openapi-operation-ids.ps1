@@ -5,7 +5,7 @@
 )
 
 $ErrorActionPreference = "Stop"
-$moduleCodes = @("acc", "adm", "bat", "bizadm", "exs", "mbr", "xyz")
+$moduleCodes = @("adm", "bat", "bza", "mbr", "xyz")
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Get-AnnotationRanges {

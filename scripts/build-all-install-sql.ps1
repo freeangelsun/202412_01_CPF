@@ -32,29 +32,24 @@ $cleanup = @"
 -- ============================================================================
 -- 로컬 설치와 smoke 검증을 위해 CPF 현행 표준 테이블을 다시 생성합니다.
 
-DROP TABLE IF EXISTS exsDB.exs_retry_log;
-DROP TABLE IF EXISTS exsDB.exs_control_policy;
-DROP TABLE IF EXISTS exsDB.exs_message_log;
-DROP TABLE IF EXISTS exsDB.exs_transaction_log;
-DROP TABLE IF EXISTS exsDB.exs_route_rule;
-DROP TABLE IF EXISTS exsDB.exs_token_event_history;
-DROP TABLE IF EXISTS exsDB.exs_token_store;
-DROP TABLE IF EXISTS exsDB.exs_auth_profile;
-DROP TABLE IF EXISTS exsDB.exs_endpoint;
-DROP TABLE IF EXISTS exsDB.exs_channel;
-DROP TABLE IF EXISTS exsDB.exs_institution;
-
-DROP TABLE IF EXISTS bizadmDB.bizadm_masking_audit;
-DROP TABLE IF EXISTS bizadmDB.bizadm_project_setting;
-DROP TABLE IF EXISTS bizadmDB.bizadm_order;
-DROP TABLE IF EXISTS bizadmDB.bizadm_product;
-DROP TABLE IF EXISTS bizadmDB.bizadm_customer;
-DROP TABLE IF EXISTS bizadmDB.bizadm_permission;
-DROP TABLE IF EXISTS bizadmDB.bizadm_role;
-DROP TABLE IF EXISTS bizadmDB.bizadm_menu;
-DROP TABLE IF EXISTS bizadmDB.bizadm_refresh_token;
-DROP TABLE IF EXISTS bizadmDB.bizadm_login_history;
-DROP TABLE IF EXISTS bizadmDB.bizadm_admin_user;
+DROP TABLE IF EXISTS bzaDB.bza_approval_history;
+DROP TABLE IF EXISTS bzaDB.bza_approval_line;
+DROP TABLE IF EXISTS bzaDB.bza_approval_document;
+DROP TABLE IF EXISTS bzaDB.bza_business_audit;
+DROP TABLE IF EXISTS bzaDB.bza_user_role;
+DROP TABLE IF EXISTS bzaDB.bza_employee;
+DROP TABLE IF EXISTS bzaDB.bza_organization;
+DROP TABLE IF EXISTS bzaDB.bza_masking_audit;
+DROP TABLE IF EXISTS bzaDB.bza_project_setting;
+DROP TABLE IF EXISTS bzaDB.bza_order;
+DROP TABLE IF EXISTS bzaDB.bza_product;
+DROP TABLE IF EXISTS bzaDB.bza_customer;
+DROP TABLE IF EXISTS bzaDB.bza_permission;
+DROP TABLE IF EXISTS bzaDB.bza_role;
+DROP TABLE IF EXISTS bzaDB.bza_menu;
+DROP TABLE IF EXISTS bzaDB.bza_refresh_token;
+DROP TABLE IF EXISTS bzaDB.bza_login_history;
+DROP TABLE IF EXISTS bzaDB.bza_admin_user;
 
 DROP TABLE IF EXISTS mbrDB.mbr_refresh_token;
 DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
@@ -64,8 +59,6 @@ DROP TABLE IF EXISTS mbrDB.mbr_member;
 
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
-
-DROP TABLE IF EXISTS accDB.acc_account;
 
 DROP TABLE IF EXISTS admDB.adm_download_audit_log;
 DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
@@ -148,6 +141,8 @@ DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
 DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
+DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 "@

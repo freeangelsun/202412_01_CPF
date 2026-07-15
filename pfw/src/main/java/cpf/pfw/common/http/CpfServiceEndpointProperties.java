@@ -17,7 +17,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "cpf")
 public class CpfServiceEndpointProperties {
 
-    /** Map keyed by service id such as {@code mbr}, {@code acc}, {@code cmn}, and {@code adm}. */
+    /** mbr, bza, xyz, adm 같은 서비스 ID를 키로 사용하는 endpoint 설정입니다. */
     private Map<String, ServiceEndpoint> services = new LinkedHashMap<>();
 
     @Getter

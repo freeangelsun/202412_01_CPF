@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $AppBaseUrl = "http://localhost:8080",
+    [string] $AppBaseUrl = "http://localhost:8099",
     [string] $TargetUrl = "",
     [int] $MockDownstreamPort = 19080,
     [string] $ResultDir = "",
@@ -30,7 +30,7 @@ $StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
 $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
 $TransactionTimestamp = (Get-Date).ToString("yyyyMMddHHmmssfff")
-$TransactionId = "$TransactionTimestamp" + "ACC" + "local01" + "0000001"
+$TransactionId = "$TransactionTimestamp" + "XYZ" + "local01" + "0000001"
 $TraceId = "TRACE-STANDARD-HEADER-E2E"
 
 if ([string]::IsNullOrWhiteSpace($DbHost)) {
@@ -53,7 +53,7 @@ $mockCapturePath = Join-Path $ResultDir "standard-header-e2e-downstream.json"
 $mockUrl = "http://127.0.0.1:$MockDownstreamPort/cpf-standard-header-e2e"
 if ([string]::IsNullOrWhiteSpace($TargetUrl)) {
     $encodedMockUrl = [System.Uri]::EscapeDataString($mockUrl)
-    $TargetUrl = "$AppBaseUrl/acc/tran/standard-header-e2e?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
+    $TargetUrl = "$AppBaseUrl/xyz/edu/headers/propagation?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
 }
 
 $result = [ordered]@{
@@ -236,7 +236,7 @@ function New-StandardHeaders {
         "X-Transaction-Id" = $TransactionId
         "X-Request-Type" = "ONLINE"
         "X-Original-Channel-Code" = "MOBILE"
-        "X-Channel-Code" = "ACC"
+        "X-Channel-Code" = "XYZ"
         "X-Trace-Id" = $TraceId
         "X-Parent-Span-Id" = "SPAN-PARENT-E2E"
         "X-Client-App-Id" = "cpf-smoke-client"
@@ -506,7 +506,7 @@ try {
         Test-MockDownstreamCapture
     }
 
-    $blockedUrl = "$AppBaseUrl/acc/tran/success?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke"
+    $blockedUrl = "$AppBaseUrl/xyz/edu/headers/propagation?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke&mockUrl=$([System.Uri]::EscapeDataString($mockUrl))"
     $blockedProbe = Invoke-Probe -Name "blockedExtensionHeaderRejected" -Headers $blockedHeaders -ExpectedStatusRange @(400, 401, 403, 422) -Uri $blockedUrl
 
     Start-Sleep -Milliseconds 500

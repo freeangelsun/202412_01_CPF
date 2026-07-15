@@ -57,7 +57,7 @@ class CpfCapabilityContractTest {
                 "20260708120000000MBRlocal010000001",
                 "SEG-1",
                 "MBR",
-                "EXS",
+                "BZA",
                 "IDEMP-1",
                 Instant.parse("2026-07-08T03:00:00Z"),
                 message,
@@ -94,7 +94,7 @@ class CpfCapabilityContractTest {
     void fileTransferContractUsesCredentialReferenceOnly() {
         CpfCredentialRef credentialRef = new CpfCredentialRef("partner", "SFTP_PARTNER_01", "v1", "partner-prod-key");
         CpfFileTransferEndpoint endpoint = new CpfFileTransferEndpoint(
-                "EXS_SFTP_PARTNER",
+                "BZA_SFTP_PARTNER",
                 "SFTP",
                 "sftp.partner.example",
                 22,
@@ -103,7 +103,7 @@ class CpfCapabilityContractTest {
                 Duration.ofSeconds(10),
                 Map.of("renamePolicy", "temp-then-rename"));
         CpfFileTransferRequest request = new CpfFileTransferRequest(
-                "20260708120000000EXSlocal010000001",
+                "20260708120000000BZAlocal010000001",
                 "SEG-1",
                 endpoint.endpointCode(),
                 "UPLOAD",

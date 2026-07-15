@@ -7,6 +7,7 @@
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$Root = (Resolve-Path -LiteralPath $Root).Path
 
 function New-UnicodeText {
     param([int[]] $CodePoints)
@@ -49,8 +50,13 @@ function Invoke-CreateDomain {
         "-Root", $Root,
         "-ModuleCode", $ModuleCode,
         "-ModuleName", $ModuleName,
+        "-DomainIdCode", $ModuleCode.ToUpperInvariant(),
         "-BasePackage", "cpf.$ModuleCode",
-        "-TablePrefix", $ModuleCode
+        "-TablePrefix", $ModuleCode,
+        "-Port", "8188",
+        "-Online", "Y",
+        "-Batch", "Y",
+        "-BzaMenu", "Y"
     )
     if ($DryRun) {
         $arguments += "-DryRun"
@@ -75,6 +81,7 @@ $result = [ordered]@{
     requiredFiles = @()
     requiredPatchFiles = @()
     compile = [ordered]@{}
+    cleanup = [ordered]@{}
 }
 
 try {
@@ -89,11 +96,17 @@ try {
     $required = @(
         "build.gradle",
         "README.md",
+        "manifest/domain-manifest.json",
+        "manifest/standard-execution-catalog.json",
         "src/main/resources/application.yml",
         "src/main/resources/application-${ModuleCode}.yml",
         "src/main/java/cpf/$ModuleCode/${ModuleName}Application.java",
         "src/main/java/cpf/$ModuleCode/controller/${ModuleName}Controller.java",
         "src/main/java/cpf/$ModuleCode/facade/${ModuleName}Facade.java",
+        "src/main/java/cpf/$ModuleCode/port/${ModuleName}QueryPort.java",
+        "src/main/java/cpf/$ModuleCode/adapter/local/Local${ModuleName}QueryAdapter.java",
+        "src/main/java/cpf/$ModuleCode/adapter/remote/Remote${ModuleName}QueryProxy.java",
+        "src/main/java/cpf/$ModuleCode/batch/${ModuleName}BatchConfig.java",
         "src/main/java/cpf/$ModuleCode/service/${ModuleName}Service.java",
         "src/main/java/cpf/$ModuleCode/repository/${ModuleName}Repository.java",
         "src/main/java/cpf/$ModuleCode/dto/${ModuleName}SearchRequest.java",
@@ -133,6 +146,7 @@ try {
         "patch-candidates/sql/40_business_modules_schema.${ModuleCode}.candidate.sql",
         "patch-candidates/sql/50_framework_seed.${ModuleCode}.candidate.sql",
         "patch-candidates/sql/60_adm_seed.${ModuleCode}.candidate.sql",
+        "patch-candidates/sql/70_bza_menu_seed.${ModuleCode}.candidate.sql",
         "patch-candidates/sql/99_smoke_check.${ModuleCode}.candidate.sql",
         "patch-candidates/sql/migration/Vxx__${ModuleCode}_domain.sql",
         "patch-candidates/smoke-${ModuleCode}.ps1"
@@ -275,6 +289,20 @@ subprojects {
     $result.compile.classMajor = $classMajor
     $result.compile.bootJar = $bootJar.FullName.Substring($Root.Length).TrimStart('\', '/')
     $result.compile.javaExecutable = "JAVA_HOME/bin/java"
+
+    # 검증 산출물은 저장소에 남기지 않고 결과 메타데이터와 컴파일 로그만 증적으로 보존합니다.
+    foreach ($temporaryDirectory in @($previewDir, $verificationDir)) {
+        if (Test-Path -LiteralPath $temporaryDirectory) {
+            $resolvedTemporary = [System.IO.Path]::GetFullPath($temporaryDirectory)
+            $allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $Root "build"))
+            if (-not $resolvedTemporary.StartsWith($allowedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+                throw "생성기 임시 폴더가 build 경로 밖에 있어 정리할 수 없습니다. path=$resolvedTemporary"
+            }
+            Remove-Item -LiteralPath $resolvedTemporary -Recurse -Force
+        }
+    }
+    $result.cleanup.previewRemoved = -not (Test-Path -LiteralPath $previewDir)
+    $result.cleanup.verificationRemoved = -not (Test-Path -LiteralPath $verificationDir)
 
     $result.status = $StatusDone
     $result.finishedAt = (Get-Date).ToString("o")

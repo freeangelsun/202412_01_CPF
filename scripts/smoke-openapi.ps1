@@ -1,24 +1,21 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
-    [string] $AccBaseUrl = "http://localhost:8080",
     [string] $MbrBaseUrl = "http://localhost:8081",
     [string] $XyzBaseUrl = "http://localhost:8099",
-    [string] $BizAdmBaseUrl = "http://localhost:8091",
-    [string] $ExsBaseUrl = "http://localhost:8092",
+    [string] $BzaBaseUrl = "http://localhost:8091",
     [string] $BatBaseUrl = "http://localhost:8093",
     [string] $ResultDir = "",
     [switch] $SkipAdm,
-    [switch] $SkipAcc,
     [switch] $SkipMbr,
     [switch] $SkipXyz,
-    [switch] $SkipBizAdm,
-    [switch] $SkipExs,
+    [switch] $SkipBza,
     [switch] $SkipBat,
     [switch] $RequireRuntime
 )
 
 $ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.Net.Http
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build/runtime-smoke"
@@ -35,7 +32,10 @@ $result = [ordered]@{
 
 function Save-Result {
     $result.finishedAt = (Get-Date).ToString("o")
-    $result | ConvertTo-Json -Depth 50 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+    [System.IO.File]::WriteAllText(
+        $resultPath,
+        ($result | ConvertTo-Json -Depth 50),
+        [System.Text.UTF8Encoding]::new($false))
 }
 
 function Test-ContainsPath {
@@ -48,6 +48,20 @@ function Test-ContainsPath {
         return $false
     }
     return $ApiDocs.paths.PSObject.Properties.Name -contains $Path
+}
+
+function Get-Utf8Json {
+    param([string] $Uri)
+
+    $client = New-Object System.Net.Http.HttpClient
+    try {
+        $client.Timeout = [TimeSpan]::FromSeconds(15)
+        $bytes = $client.GetByteArrayAsync($Uri).GetAwaiter().GetResult()
+        $text = [System.Text.Encoding]::UTF8.GetString($bytes)
+        return $text | ConvertFrom-Json
+    } finally {
+        $client.Dispose()
+    }
 }
 
 function Invoke-JsonSmoke {
@@ -71,7 +85,7 @@ function Invoke-JsonSmoke {
         $apiDocsUrl = "$BaseUrl/v3/api-docs"
         $swaggerUrl = "$BaseUrl/swagger-ui/index.html"
 
-        $apiDocs = Invoke-RestMethod -Method Get -Uri $apiDocsUrl -TimeoutSec 15
+        $apiDocs = Get-Utf8Json -Uri $apiDocsUrl
         $swagger = Invoke-WebRequest -Method Get -Uri $swaggerUrl -TimeoutSec 15 -UseBasicParsing
 
         if ($null -eq $apiDocs.openapi) {
@@ -128,36 +142,29 @@ if (-not $SkipAdm) {
         "ADM-Download",
         "ADM-Logs",
         "ADM-TransactionGroup",
-        "ADM-OPR Dynamic Log"
+        "ADM-OPR Dynamic Log",
+        "ADM-OPR Standard Execution",
+        "ADM-OPR Remote Log"
     ) -RequiredPaths @(
         "/adm/api/transaction-groups",
         "/adm/api/transaction-groups/{transactionGlobalId}",
         "/adm/api/transaction-groups/{transactionGlobalId}/segments",
         "/adm/api/transaction-groups/{transactionGlobalId}/timeline",
         "/adm/api/transaction-groups/{transactionGlobalId}/headers",
-        "/adm/api/transaction-groups/{transactionGlobalId}/external-logs"
-    ) | Out-Null
-}
-
-if (-not $SkipAcc) {
-    Invoke-JsonSmoke -ServiceName "ACC" -BaseUrl $AccBaseUrl -RequiredTags @(
-        "ACC-EDU Composite Transaction",
-        "ACC Reference"
-    ) -RequiredPaths @(
-        "/acc/edu/composite/member-then-external",
-        "/acc/edu/composite/member-calls-external",
-        "/acc/edu/composite/member-then-external-failure",
-        "/api/v1/acc/reference/member-external"
+        "/adm/api/transaction-groups/{transactionGlobalId}/external-logs",
+        "/adm/api/remote-logs/bundles",
+        "/adm/api/remote-logs/bundle-jobs",
+        "/adm/api/remote-logs/bundle-jobs/{jobId}",
+        "/adm/api/remote-logs/bundle-jobs/{jobId}/download-tokens",
+        "/adm/api/remote-logs/bundle-jobs/{jobId}/download",
+        "/adm/api/remote-logs/diagnostics"
     ) | Out-Null
 }
 
 if (-not $SkipMbr) {
     Invoke-JsonSmoke -ServiceName "MBR" -BaseUrl $MbrBaseUrl -RequiredTags @(
         "MBR-Auth",
-        "MBR-EDU Composite Transaction",
-        "MBR Reference"
-    ) -RequiredPaths @(
-        "/api/v1/mbr/reference/member-acc-exs"
+        "MBR-BSE Member"
     ) | Out-Null
 }
 
@@ -165,27 +172,37 @@ if (-not $SkipXyz) {
     Invoke-JsonSmoke -ServiceName "XYZ" -BaseUrl $XyzBaseUrl -RequiredTags @(
         "XYZ-EDU 00. Catalog",
         "XYZ-EDU 11. Security",
-        "XYZ-EDU 13. Batch"
-    ) | Out-Null
-}
-
-if (-not $SkipBizAdm) {
-    Invoke-JsonSmoke -ServiceName "BIZADM" -BaseUrl $BizAdmBaseUrl -RequiredTags @(
-        "BIZADM-Auth",
-        "BIZADM-Operations"
-    ) | Out-Null
-}
-
-if (-not $SkipExs) {
-    Invoke-JsonSmoke -ServiceName "EXS" -BaseUrl $ExsBaseUrl -RequiredTags @(
-        "EXS-Admin",
-        "EXS-Operations",
-        "EXS-Flow",
-        "EXS-EDU Composite Transaction"
+        "XYZ-EDU 13. Batch",
+        "XYZ-EDU 16. AI",
+        "XYZ-EDU 17. 첨부파일"
     ) -RequiredPaths @(
-        "/api/exs/outbound",
-        "/api/exs/edu/external-transfer",
-        "/api/exs/edu/external-transfer/failure"
+        "/xyz/edu/ai/structured",
+        "/xyz/edu/ai/rag",
+        "/xyz/edu/ai/jobs/{jobId}/approve",
+        "/xyz/edu/attachments/text",
+        "/xyz/edu/attachments/verify"
+    ) | Out-Null
+}
+
+if (-not $SkipBza) {
+    Invoke-JsonSmoke -ServiceName "BZA" -BaseUrl $BzaBaseUrl -RequiredTags @(
+        "BZA-Auth",
+        "BZA-Operations",
+        "BZA-Backoffice",
+        "BZA-Support"
+    ) -RequiredPaths @(
+        "/api/bza/auth/login",
+        "/api/bza/backoffice/organizations",
+        "/api/bza/backoffice/employees",
+        "/api/bza/backoffice/approvals",
+        "/api/bza/admin-users",
+        "/api/bza/roles",
+        "/api/bza/menus",
+        "/api/bza/permissions",
+        "/api/bza/notifications",
+        "/api/bza/attachments",
+        "/api/bza/saved-searches",
+        "/api/bza/permissions/simulate"
     ) | Out-Null
 }
 

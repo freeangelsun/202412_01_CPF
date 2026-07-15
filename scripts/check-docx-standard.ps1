@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
     [switch] $AllowLegacyHtml,
@@ -15,7 +15,7 @@ function U {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'specs/evidence/20260714_02'
+    $ResultDir = Join-Path $Root 'specs/evidence/20260715_01'
 }
 [System.IO.Directory]::CreateDirectory($ResultDir) | Out-Null
 

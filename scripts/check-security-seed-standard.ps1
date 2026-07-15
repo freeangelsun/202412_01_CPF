@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
@@ -24,7 +24,7 @@ foreach ($file in $sqlFiles) {
         }
 
         if ($line -match '(?i)\b(password|refresh_token|access_token|client_secret|api_key)\b' `
-                -and $line -match "'[^']*(Adm!n|BizAdm!|Member!|Bearer\s+|eyJ|secret-change-me)[^']*'") {
+                -and $line -match "'[^']*(Adm!n|Bza!|Member!|Bearer\s+|eyJ|secret-change-me)[^']*'") {
             $failures.Add("$($file.FullName):$lineNo raw credential-like literal is not allowed in SQL seed")
         }
     }

@@ -1,9 +1,6 @@
 package cpf.adm.opr.service;
 
 import cpf.pfw.api.logging.CpfTransactionTimelineQueryPort;
-import cpf.pfw.common.http.CpfWebClient;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,23 +10,17 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 /**
- * transactionGlobalId 기준으로 PFW 거래 tree와 EXS 원장을 공개 port/facade로 조합합니다.
+ * transactionGlobalId 기준으로 PFW 표준 거래 구간과 외부 호출 후보를 조합합니다.
  *
- * <p>ADM은 PFW 또는 EXS DB를 직접 조회하지 않습니다. PFW 데이터는 query port로,
- * EXS 원장은 표준 서비스 호출 엔진을 사용하는 Remote Facade Proxy로 조회합니다.</p>
+ * <p>ADM은 다른 주제영역 DB를 직접 조회하지 않고 PFW 공개 조회 포트만 사용합니다.
+ * 외부 연계 모듈이 추가되더라도 표준 구간 로그에 기록하면 ADM 구현 변경 없이 함께 조회됩니다.</p>
  */
 @Service
 public class AdmTransactionGroupService {
-    private static final String EXS_SERVICE_ID = "exs";
-
     private final CpfTransactionTimelineQueryPort timelineQueryPort;
-    private final CpfWebClient cpfWebClient;
 
-    public AdmTransactionGroupService(
-            CpfTransactionTimelineQueryPort timelineQueryPort,
-            CpfWebClient cpfWebClient) {
+    public AdmTransactionGroupService(CpfTransactionTimelineQueryPort timelineQueryPort) {
         this.timelineQueryPort = timelineQueryPort;
-        this.cpfWebClient = cpfWebClient;
     }
 
     public Map<String, Object> findGroups(Map<String, String> criteria) {
@@ -78,12 +69,11 @@ public class AdmTransactionGroupService {
 
     public Map<String, Object> findExternalLogs(String transactionGlobalId) {
         List<Map<String, Object>> items = findExternalLogs(transactionGlobalId, 100);
-        boolean exsLedgerUsed = items.stream().anyMatch(item -> String.valueOf(item.get("source")).startsWith("EXS_"));
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionGlobalId", transactionGlobalId);
         response.put("items", items);
-        response.put("source", exsLedgerUsed ? "EXS_REMOTE_FACADE" : "PFW_SEGMENT_FALLBACK");
-        response.put("fallbackUsed", !exsLedgerUsed);
+        response.put("source", "PFW_TRANSACTION_SEGMENT");
+        response.put("fallbackUsed", false);
         return response;
     }
 
@@ -91,50 +81,7 @@ public class AdmTransactionGroupService {
         if (!hasText(transactionGlobalId)) {
             return List.of();
         }
-        List<Map<String, Object>> external = new ArrayList<>();
-        try {
-            external.addAll(fetchExs("/api/exs/transactions", transactionGlobalId, limit, "EXS_TRANSACTION"));
-            external.addAll(fetchExs("/api/exs/messages", transactionGlobalId, limit, "EXS_MESSAGE"));
-        } catch (RuntimeException ignored) {
-            // EXS가 중단됐을 때도 PFW segment fallback으로 최소 추적을 제공합니다.
-        }
-        if (external.isEmpty()) {
-            external.addAll(timelineQueryPort.findExternalCandidates(transactionGlobalId, limit));
-        }
-        return external.stream().limit(limit).toList();
-    }
-
-    private List<Map<String, Object>> fetchExs(
-            String path,
-            String transactionGlobalId,
-            int limit,
-            String source) {
-        List<Map<String, Object>> rows = cpfWebClient.get(
-                EXS_SERVICE_ID,
-                builder -> builder.path(path)
-                        .queryParam("transactionGlobalId", transactionGlobalId)
-                        .queryParam("limit", boundedLimit(limit))
-                        .build(),
-                new ParameterizedTypeReference<List<Map<String, Object>>>() {
-                });
-        if (rows == null) {
-            return List.of();
-        }
-        return rows.stream().map(row -> normalizeExternalRow(row, source)).toList();
-    }
-
-    private Map<String, Object> normalizeExternalRow(Map<String, Object> row, String source) {
-        Map<String, Object> result = new LinkedHashMap<>(row);
-        result.put("source", source);
-        mask(result, "externalTransactionId", 500);
-        mask(result, "requestHeaderMasked", 4000);
-        mask(result, "responseHeaderMasked", 4000);
-        mask(result, "requestPayloadMasked", 4000);
-        mask(result, "responsePayloadMasked", 4000);
-        mask(result, "messageSummary", 1000);
-        mask(result, "failureMessageMasked", 1000);
-        mask(result, "errorMessage", 1000);
-        return result;
+        return timelineQueryPort.findExternalCandidates(transactionGlobalId, boundedLimit(limit));
     }
 
     private Map<String, Object> summarize(String transactionGlobalId, List<Map<String, Object>> segments) {
@@ -227,10 +174,6 @@ public class AdmTransactionGroupService {
     private String text(Map<String, Object> row, String key) {
         Object value = row.get(key);
         return value == null ? "" : String.valueOf(value);
-    }
-
-    private void mask(Map<String, Object> row, String key, int limit) {
-        row.computeIfPresent(key, (ignored, value) -> SensitiveDataMasker.mask(String.valueOf(value), limit));
     }
 
     private int boundedLimit(int limit) {

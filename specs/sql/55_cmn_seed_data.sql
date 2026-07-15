@@ -163,7 +163,7 @@ INSERT INTO cmn_fixed_length_layout (
     60,
     0,
     'Y',
-    'EXS 대외 잔액조회 요청 교육용 고정길이 전문 layout',
+    '외부기관 잔액조회 요청 교육용 고정길이 전문 layout',
     'SYSTEM',
     'SYSTEM'
 )

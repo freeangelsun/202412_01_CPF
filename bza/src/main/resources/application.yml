@@ -1,0 +1,34 @@
+spring:
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bza.yml
+      - optional:classpath:application-bza-${spring.profiles.active:local}.yml
+  application:
+    name: bza
+  profiles:
+    include: pfw, cmn
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+
+server:
+  port: ${BZA_SERVER_PORT:8091}
+
+cpf:
+  framework:
+    module-id: BZA
+    was-id: ${WAS_ID:bzaAP01}
+  bza:
+    security:
+      jwt-secret: ${CPF_BZA_JWT_SECRET:}
+    datasource:
+      enabled: ${CPF_BZA_DB_ENABLED:false}
+      url: ${BZA_DB_URL:jdbc:mariadb://localhost:3306/bzaDB}
+      username: ${BZA_DB_USERNAME:cpf_bza_app}
+      password: ${BZA_DB_PASSWORD:__REPLACE_BY_ENV__}
+      driver-class-name: org.mariadb.jdbc.Driver

@@ -1,7 +1,7 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $OutputPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/sample-coverage-matrix.md"),
-    [string] $EvidencePath = "specs/evidence/20260714_02/edu-sample-final.sanitized.log"
+    [string] $EvidencePath = "specs/evidence/20260715_01/edu-sample-final.sanitized.log"
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,7 +39,7 @@ foreach ($module in @("xyz", "bat")) {
 $header = @(
     "# CPF EDU 샘플 검증 매트릭스",
     "",
-    "> 범용 EDU 소유자는 XYZ와 BAT뿐입니다. PFW는 엔진/포트/계약 테스트, CMN은 helper/unit test, ACC/MBR/EXS/ADM/BIZADM은 reference/운영 코드만 소유합니다.",
+    "> 범용 EDU 소유자는 XYZ와 BAT입니다. PFW는 엔진·포트·계약 테스트, CMN은 공통 helper·단위 테스트, MBR·ADM·BZA는 업무 또는 운영 코드를 소유합니다.",
     "",
     "| sampleId | module | package | featureArea | sampleName | sourcePath | testPath | evidencePath | validationLevel | runtimeRequired | runtimeExecuted | status | notes |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|---|"

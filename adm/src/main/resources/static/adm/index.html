@@ -142,7 +142,7 @@
             <button type="button" @click="resetTransactionGroupSearch">초기화</button>
           </div>
         </div>
-        <p class="hint">transactionGlobalId 기준으로 ACC, MBR, EXS segment timeline과 표준/확장 헤더 snapshot, external logs를 함께 조회합니다. Authorization 원문, X-Api-Key 원문, token/secret/password/credential/signature 계열 값은 저장/표시하지 않습니다.</p>
+        <p class="hint">transactionGlobalId 기준으로 모든 실행 모듈의 구간 타임라인과 표준/확장 헤더 스냅샷, 외부 호출 로그를 함께 조회합니다. Authorization 원문, X-Api-Key 원문, token/secret/password/credential/signature 계열 값은 저장하거나 표시하지 않습니다.</p>
         <div class="filters">
           <label>시작 From <input v-model="transactionGroupSearch.startedAtFrom" type="datetime-local"></label>
           <label>시작 To <input v-model="transactionGroupSearch.startedAtTo" type="datetime-local"></label>
@@ -150,7 +150,7 @@
           <label>transactionSegmentId <input v-model="transactionGroupSearch.transactionSegmentId" type="text"></label>
           <label>상태 <select v-model="transactionGroupSearch.status"><option value="">전체</option><option>SUCCESS</option><option>FAILED</option><option>RUNNING</option></select></label>
           <label>실패 여부 <select v-model="transactionGroupSearch.failureYn"><option value="">전체</option><option>Y</option><option>N</option></select></label>
-          <label>모듈 <input v-model="transactionGroupSearch.moduleCode" type="text" placeholder="ACC"></label>
+          <label>모듈 <input v-model="transactionGroupSearch.moduleCode" type="text" placeholder="MBR"></label>
           <label>출발 모듈 <input v-model="transactionGroupSearch.sourceModuleCode" type="text"></label>
           <label>대상 모듈 <input v-model="transactionGroupSearch.targetModuleCode" type="text"></label>
           <label>역할 <input v-model="transactionGroupSearch.transactionRole" type="text" placeholder="MAIN/SHARED/EXTERNAL"></label>
@@ -242,6 +242,100 @@
           <label>사유 <input v-model="transactionSearch.reason" type="text"></label>
         </div>
         <pre class="detail">{{ pretty(transactionResult) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'standardExecutions'">
+        <div class="panel-title">
+          <h2>표준 실행 카탈로그</h2>
+          <button type="button" @click="loadStandardExecutions">조회</button>
+        </div>
+        <div class="filters">
+          <label>유형
+            <select v-model="standardExecutionSearch.type">
+              <option value="">전체</option>
+              <option value="ONLINE">온라인</option>
+              <option value="BATCH">배치</option>
+            </select>
+          </label>
+          <label>소유 업무 <input v-model="standardExecutionSearch.ownerDomain" type="text" placeholder="PFW"></label>
+          <label>검색어 <input v-model="standardExecutionSearch.keyword" type="text" placeholder="ID, 실행명, source, endpoint"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>표준 실행 ID</th><th>유형</th><th>실행명</th><th>소유 업무</th><th>Source 모듈</th><th>Endpoint</th></tr></thead>
+            <tbody>
+            <tr v-for="item in standardExecutionResult.items || []" :key="item.standardExecutionId" @click="loadStandardExecutionDetail(item.standardExecutionId)">
+              <td>{{ item.standardExecutionId }}</td>
+              <td>{{ item.executionType }}</td>
+              <td>{{ item.executionName }}</td>
+              <td>{{ item.ownerDomain }}</td>
+              <td>{{ item.sourceModule }}</td>
+              <td>{{ item.endpoint || '-' }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="detail">{{ pretty(standardExecutionDetail) }}</pre>
+      </section>
+
+      <section class="panel" v-show="activeMenu === 'remoteLogs'">
+        <div class="panel-title">
+          <h2>원격 로그 아티팩트</h2>
+          <div class="actions">
+            <button type="button" @click="loadRemoteLogs">조회</button>
+            <button type="button" v-if="canWrite('REMOTE_LOG')" :disabled="!selectedRemoteLog" @click="downloadRemoteLog">다운로드</button>
+            <button type="button" v-if="canWrite('REMOTE_LOG')" :disabled="remoteLogSelectedIds.length === 0" @click="downloadRemoteLogBundle">선택 ZIP ({{ remoteLogSelectedIds.length }})</button>
+            <button type="button" v-if="canWrite('REMOTE_LOG')" :disabled="remoteLogSelectedIds.length === 0" @click="createRemoteLogBundleJob">비동기 ZIP</button>
+            <button type="button" :disabled="!remoteLogBundleJob.jobId" @click="loadRemoteLogBundleJob">작업 상태</button>
+            <button type="button" v-if="canWrite('REMOTE_LOG')" :disabled="remoteLogBundleJob.status !== 'COMPLETED'" @click="downloadRemoteLogBundleJob">완료 ZIP 다운로드</button>
+            <button type="button" @click="loadRemoteLogDiagnostics">진단</button>
+          </div>
+        </div>
+        <div class="filters">
+          <label>환경 <input v-model="remoteLogSearch.environment" type="text" placeholder="local"></label>
+          <label>모듈 <input v-model="remoteLogSearch.module" type="text" placeholder="ADM"></label>
+          <label>서비스 <input v-model="remoteLogSearch.service" type="text" placeholder="ADM"></label>
+          <label>인스턴스 <input v-model="remoteLogSearch.instance" type="text"></label>
+          <label>로그 유형 <input v-model="remoteLogSearch.logType" type="text" placeholder="transaction"></label>
+          <label>파일명 <input v-model="remoteLogSearch.fileName" type="text"></label>
+          <label>표준 온라인 ID <input v-model="remoteLogSearch.standardTransactionId" type="text"></label>
+          <label>표준 배치 ID <input v-model="remoteLogSearch.standardBatchId" type="text"></label>
+          <label>거래 글로벌 ID <input v-model="remoteLogSearch.transactionGlobalId" type="text"></label>
+          <label>거래 ID <input v-model="remoteLogSearch.transactionId" type="text"></label>
+          <label>구간 ID <input v-model="remoteLogSearch.segmentId" type="text"></label>
+          <label>Job Instance ID <input v-model="remoteLogSearch.jobInstanceId" type="text"></label>
+          <label>Job Execution ID <input v-model="remoteLogSearch.jobExecutionId" type="text"></label>
+          <label>Step Execution ID <input v-model="remoteLogSearch.stepExecutionId" type="text"></label>
+          <label>Scheduler ID <input v-model="remoteLogSearch.schedulerId" type="text"></label>
+          <label>수정 시작 <input v-model="remoteLogSearch.modifiedFrom" type="text" placeholder="2026-07-15T00:00:00Z"></label>
+          <label>수정 종료 <input v-model="remoteLogSearch.modifiedTo" type="text" placeholder="2026-07-15T23:59:59Z"></label>
+          <label>최소 크기(byte) <input v-model.number="remoteLogSearch.minSize" type="number" min="0"></label>
+          <label>최대 크기(byte) <input v-model.number="remoteLogSearch.maxSize" type="number" min="0"></label>
+          <label>압축
+            <select v-model="remoteLogSearch.compressed"><option value="">전체</option><option :value="true">압축</option><option :value="false">원본</option></select>
+          </label>
+          <label>활성
+            <select v-model="remoteLogSearch.active"><option value="">전체</option><option :value="true">활성</option><option :value="false">보관</option></select>
+          </label>
+          <label>마지막 행 <input v-model.number="remoteLogSearch.lastLines" type="number" min="1" max="1000"></label>
+          <label>본문 검색 <input v-model="remoteLogSearch.keyword" type="text"></label>
+          <label>다운로드 사유 <input v-model="remoteLogSearch.reason" type="text"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>선택</th><th>환경</th><th>모듈</th><th>서비스</th><th>인스턴스</th><th>유형</th><th>파일명</th><th>크기</th><th>수정 시각</th><th>보존 만료</th><th>상태</th></tr></thead>
+            <tbody>
+            <tr v-for="item in remoteLogResult" :key="item.artifactId" @click="previewRemoteLog(item)">
+              <td><input v-model="remoteLogSelectedIds" :value="item.artifactId" type="checkbox" @click.stop></td>
+              <td>{{ item.environment }}</td><td>{{ item.module }}</td><td>{{ item.service }}</td><td>{{ item.instance }}</td><td>{{ item.logType }}</td>
+              <td>{{ item.fileName }}</td><td>{{ item.size }}</td><td>{{ item.modifiedAt }}</td><td>{{ item.retentionExpiresAt || '-' }}</td><td>{{ item.onlineStatus }} / {{ item.active ? '활성' : '보관' }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="detail">{{ pretty(remoteLogPreview) }}</pre>
+        <pre class="detail">{{ pretty(remoteLogBundleJob) }}</pre>
+        <pre class="detail">{{ pretty(remoteLogDiagnostics) }}</pre>
       </section>
 
       <section class="panel" v-show="activeMenu === 'reliability'">
@@ -748,38 +842,6 @@
         <pre class="detail">{{ pretty(securityResult) }}</pre>
       </section>
 
-      <section class="panel" v-show="activeMenu === 'bizadm'">
-        <div class="panel-title">
-          <h2>BIZADM 업무관리 wrapper</h2>
-          <div class="actions">
-            <button type="button" @click="loadBizAdmOperations">전체 조회</button>
-          </div>
-        </div>
-        <div class="filters">
-          <label>사용자 API <input readonly value="/api/bizadm/admin-users"></label>
-          <label>역할 API <input readonly value="/api/bizadm/roles"></label>
-          <label>권한 API <input readonly value="/api/bizadm/permissions"></label>
-          <label>업무 데이터 API <input readonly value="/api/bizadm/customers"></label>
-        </div>
-        <pre class="detail">{{ pretty(bizAdmResult) }}</pre>
-      </section>
-
-      <section class="panel" v-show="activeMenu === 'exs'">
-        <div class="panel-title">
-          <h2>EXS 대외연계 wrapper</h2>
-          <div class="actions">
-            <button type="button" @click="loadExsOperations">전체 조회</button>
-          </div>
-        </div>
-        <div class="filters">
-          <label>기관 API <input readonly value="/api/exs/institutions"></label>
-          <label>Endpoint API <input readonly value="/api/exs/endpoints"></label>
-          <label>Token API <input readonly value="/api/exs/operations/tokens"></label>
-          <label>재처리 API <input readonly value="/api/exs/operations/retries"></label>
-        </div>
-        <pre class="detail">{{ pretty(exsResult) }}</pre>
-      </section>
-
       <section class="panel" v-show="activeMenu === 'responseCodes'">
         <div class="panel-title">
           <h2>응답코드 관리</h2>
@@ -852,7 +914,7 @@
           <label>Trace 업무 거래 ID <input v-model="logPolicyForm.traceBoostBusinessTransactionId" type="text"></label>
           <label>Trace API 경로 <input v-model="logPolicyForm.traceBoostApiPath" type="text"></label>
           <label>Trace 상태 <input v-model="logPolicyForm.traceBoostStatus" type="text" placeholder="FAILED"></label>
-          <label>Trace 실패코드 <input v-model="logPolicyForm.traceBoostFailureCode" type="text" placeholder="EXS_TIMEOUT"></label>
+          <label>Trace 실패코드 <input v-model="logPolicyForm.traceBoostFailureCode" type="text" placeholder="SERVICE_TIMEOUT"></label>
           <label>Trace 지연 기준(ms) <input v-model.number="logPolicyForm.traceBoostDurationMsGreaterThan" type="number"></label>
           <label>Trace TTL(초) <input v-model.number="logPolicyForm.traceBoostTtlSeconds" type="number"></label>
           <label>시작 <input v-model="logPolicyForm.effectiveStartAt" type="datetime-local"></label>

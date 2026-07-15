@@ -1,7 +1,7 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
-    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ"),
     [int] $StartupTimeoutSeconds = 150,
     [switch] $StartServices,
     [switch] $StopAfterRun
@@ -28,7 +28,6 @@ $result = [ordered]@{
     batLogBean = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
     admOperationConsole = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
     admLogPolicyUiStatic = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
-    exsTimeoutRetry = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
     cmnFixedLengthAdvanced = [ordered]@{ status = Get-CpfRuntimeStatusText "NotVerified" }
 }
 
@@ -109,8 +108,7 @@ try {
     $result.batTraceBoost = Read-SmokeResult -Name "bat-trace-boost" -FileName "bat-trace-boost-runtime-result.json"
     $result.batLogBean = Read-SmokeResult -Name "bat-log-bean" -FileName "bat-log-bean-runtime-result.json"
     $result.admOperationConsole = Read-SmokeResult -Name "adm-operation-console" -FileName "adm-operation-console-runtime-result.json"
-    $result.admLogPolicyUiStatic = Read-SmokeResult -Name "adm-log-policy-ui-static" -FileName "adm-log-policy-ui-static-result.json"
-    $result.exsTimeoutRetry = Read-SmokeResult -Name "exs-timeout-retry" -FileName "exs-timeout-retry-runtime-result.json"
+    $result.admLogPolicyUiStatic = Read-SmokeResult -Name "adm-log-policy-ui-static" -FileName "adm-log-policy-ui-static-result.sanitized.json"
     $result.cmnFixedLengthAdvanced = Read-SmokeResult -Name "cmn-fixed-length-advanced" -FileName "cmn-fixed-length-advanced-result.json"
 
     $required = @(
@@ -123,7 +121,6 @@ try {
         $result.batLogBean,
         $result.admOperationConsole,
         $result.admLogPolicyUiStatic,
-        $result.exsTimeoutRetry,
         $result.cmnFixedLengthAdvanced
     )
     $bad = @($required | Where-Object { $_.status -eq (Get-CpfRuntimeStatusText "Failed") -or $_.status -eq (Get-CpfRuntimeStatusText "NotVerified") })

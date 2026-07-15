@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 
 $script:CpfRuntimeUtf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -45,16 +45,6 @@ function Get-CpfRuntimeResultDir {
 function Get-CpfRuntimeModuleMap {
     return @(
         [ordered]@{
-            module = "ACC"
-            moduleLower = "acc"
-            wasId = "accAP01"
-            port = 8080
-            portEnv = "ACC_SERVER_PORT"
-            healthPath = "/v3/api-docs"
-            jarDir = "acc/build/libs"
-            jarPattern = "acc-*.jar"
-        },
-        [ordered]@{
             module = "MBR"
             moduleLower = "mbr"
             wasId = "mbrAP01"
@@ -75,16 +65,6 @@ function Get-CpfRuntimeModuleMap {
             jarPattern = "adm-*.jar"
         },
         [ordered]@{
-            module = "EXS"
-            moduleLower = "exs"
-            wasId = "exsAP01"
-            port = 8092
-            portEnv = "EXS_SERVER_PORT"
-            healthPath = "/v3/api-docs"
-            jarDir = "exs/build/libs"
-            jarPattern = "exs-*.jar"
-        },
-        [ordered]@{
             module = "BAT"
             moduleLower = "bat"
             wasId = "batWK01"
@@ -95,14 +75,14 @@ function Get-CpfRuntimeModuleMap {
             jarPattern = "bat-*.jar"
         },
         [ordered]@{
-            module = "BIZADM"
-            moduleLower = "bizadm"
-            wasId = "bizAP01"
+            module = "BZA"
+            moduleLower = "bza"
+            wasId = "bzaAP01"
             port = 8091
-            portEnv = "BIZADM_SERVER_PORT"
+            portEnv = "BZA_SERVER_PORT"
             healthPath = "/v3/api-docs"
-            jarDir = "bizadm/build/libs"
-            jarPattern = "bizadm-*.jar"
+            jarDir = "bza/build/libs"
+            jarPattern = "bza-*.jar"
         },
         [ordered]@{
             module = "XYZ"

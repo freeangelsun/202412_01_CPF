@@ -1,0 +1,44 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CPF-MARIADB-INSTALL-20260715-01
+STATUS=미검증
+EXECUTED_AT=2026-07-15T13:55:56.9268191+09:00
+START_COMMIT=0d206c683aab840dbab4639f2797dd7fd718cefd
+BRANCH=master
+COMMAND=scripts/smoke-mariadb-full-install.ps1
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=MariaDB 인증 환경변수가 제공되지 않아 접속과 SQL 실행을 시도하지 않음
+REPRODUCE_COMMAND=scripts/smoke-mariadb-full-install.ps1 -RequireRun
+LOG_SHA256=b1d7700cf58534dd4e9ab97bdbd334d626261099e44dbb7f22a8052bfb0be792
+--- SANITIZED_OUTPUT ---
+{
+    "startedAt":  "2026-07-15T13:25:25.3738080+09:00",
+    "status":  "미검증",
+    "mode":  "MariaDB CLI",
+    "host":  "localhost",
+    "port":  "3306",
+    "username":  "root",
+    "passwordProvided":  false,
+    "servicePasswordsProvided":  false,
+    "client":  "C:\\Program Files\\MariaDB 12.3\\bin\\mariadb.exe",
+    "sqlFiles":  [
+
+                 ],
+    "steps":  {
+
+              },
+    "checks":  {
+
+               },
+    "logPath":  "specs\\evidence\\20260715_01\\mariadb-full-install.log",
+    "reason":  "CPF_DB_ROOT_PASSWORD or -RootPassword was not provided, so DB connection was not attempted.",
+    "finishedAt":  "2026-07-15T13:25:25.3967938+09:00"
+}

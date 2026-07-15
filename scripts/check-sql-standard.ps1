@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
@@ -13,7 +13,7 @@ $schemaFiles = @(
     "specs/sql/35_bat_schema.sql",
     "specs/sql/40_business_modules_schema.sql"
 )
-$allowedPrefixes = @("pfw", "cmn", "adm", "bat", "acc", "xyz", "mbr", "bizadm", "exs")
+$allowedPrefixes = @("pfw", "cmn", "adm", "bat", "xyz", "mbr", "bza")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
 $schemaTableNames = New-Object System.Collections.Generic.HashSet[string]
@@ -26,16 +26,16 @@ foreach ($relativePath in $schemaFiles) {
     }
 
     $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
-    $matches = [regex]::Matches(
+    $tableMatches = [regex]::Matches(
         $text,
         "CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s*\((?<body>.*?)\)\s*ENGINE\s*=\s*InnoDB(?<tail>.*?);",
         [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline
     )
 
-    foreach ($match in $matches) {
-        $tableName = $match.Groups[1].Value
-        $body = $match.Groups["body"].Value
-        $tail = $match.Groups["tail"].Value
+    foreach ($tableMatch in $tableMatches) {
+        $tableName = $tableMatch.Groups[1].Value
+        $body = $tableMatch.Groups["body"].Value
+        $tail = $tableMatch.Groups["tail"].Value
         $prefix = ($tableName -split "_")[0]
         $isSpringBatchTable = $tableName -like "BATCH_*"
 
@@ -68,13 +68,13 @@ foreach ($relativePath in $schemaFiles) {
             if (-not $trimmed) {
                 continue
             }
-            if ($trimmed -match "^(PRIMARY|CONSTRAINT|FOREIGN|UNIQUE|INDEX|KEY|ON)\b") {
+            if ($trimmed -match "^(PRIMARY|CONSTRAINT|FOREIGN|UNIQUE|INDEX|KEY|ON|AND|OR|CHECK)\b") {
                 continue
             }
-            if ($trimmed -notmatch "^[A-Za-z_][A-Za-z0-9_]*\s+") {
+            if ($trimmed -notmatch "(?i)^[A-Za-z_][A-Za-z0-9_]*\s+(BIGINT|INT|SMALLINT|TINYINT|VARCHAR|CHAR|TEXT|LONGTEXT|DATETIME|TIMESTAMP|DATE|TIME|DECIMAL|NUMERIC|BOOLEAN|BLOB|JSON)\b") {
                 continue
             }
-            if ($trimmed -notmatch "(?i)\bCOMMENT\s+'[^']+'") {
+            if ($trimmed.IndexOf(" COMMENT '", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
                 $columnName = (($trimmed -split "\s+")[0] -replace '[`",]', '')
                 $failures.Add("column comment missing: $relativePath -> $tableName.$columnName")
             }

@@ -1,0 +1,24 @@
+{
+    "generatedAt": "2026-07-15T16:06:48.168+0900",
+    "module": "MBR",
+    "env": "dev",
+    "status": "DONE",
+    "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/dev-services.json",
+    "target": {
+        "module": "MBR",
+        "hostAlias": "mbr-dev",
+        "sshHostEnvKey": "MBR_SSH_HOST",
+        "sshUserEnvKey": "MBR_SSH_USER",
+        "deployBase": "/apps/cpf/mbr",
+        "healthUrl": "http://${MBR_SSH_HOST}:${MBR_SERVER_PORT}/actuator/health",
+        "serviceName": "cpf-mbr",
+        "portEnvKey": "MBR_SERVER_PORT",
+        "profile": "dev",
+        "approvalRequired": false,
+        "rollbackEnabled": true,
+        "runtimeMode": "embedded-bootjar"
+    },
+    "failures": [
+        
+    ]
+}

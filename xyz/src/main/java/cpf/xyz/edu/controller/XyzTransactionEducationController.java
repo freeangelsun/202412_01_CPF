@@ -1,6 +1,6 @@
 package cpf.xyz.edu.controller;
 
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.workflow.CpfWorkflow;
 import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
 import cpf.pfw.common.workflow.CpfWorkflowStep;
@@ -27,15 +27,15 @@ public class XyzTransactionEducationController {
     }
 
     @PostMapping("/transaction/single")
-    @CpfTransaction(id = "XYZ05EDU0001", name = "XYZSingleTransaction")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-05-0001", name = "XYZSingleTransaction")
     @Operation(operationId = "xyzTransactionEducationRunSingleTransactionEducation", summary = "단일 트랜잭션 교육", description = "XYZ 교육 서비스에서 하나의 트랜잭션으로 등록 흐름을 실행합니다.")
     public ResponseEntity<String> runSingleTransactionEducation() {
         return ResponseEntity.ok(crudEducationService.runSingleTransactionEducation());
     }
 
     @PostMapping("/transaction/separated")
-    @CpfTransaction(id = "XYZ05EDU0002", name = "XYZSeparatedTransaction")
-    @CpfWorkflow(id = "XYZ05EDU9001", name = "XYZSeparatedTransactionWorkflow")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-05-0002", name = "XYZSeparatedTransaction")
+    @CpfWorkflow(id = "OXYZ-EDU-05-9001", name = "XYZSeparatedTransactionWorkflow")
     @CpfWorkflowStep(name = "XYZSeparatedTransactionStep", failurePolicy = CpfWorkflowFailurePolicy.MANUAL)
     @Operation(operationId = "xyzTransactionEducationRunSeparatedTransactionEducation", summary = "분리 트랜잭션 교육", description = "REQUIRES_NEW 감사 로직과 감사 이후 실패 흐름을 확인합니다.")
     public ResponseEntity<Map<String, Object>> runSeparatedTransactionEducation(

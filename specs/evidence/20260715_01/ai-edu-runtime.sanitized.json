@@ -1,0 +1,24 @@
+{
+  "evidenceId": "CPF-AI-EDU-RUNTIME-20260715-01",
+  "executedAt": "2026-07-15T14:52:29+09:00",
+  "status": "완료",
+  "target": "POST /xyz/edu/ai/structured",
+  "verification": {
+    "requiredHeaders": [
+      "X-Transaction-Id",
+      "X-Request-Type",
+      "X-Original-Channel-Code",
+      "X-Channel-Code"
+    ],
+    "transactionIdLength": 34,
+    "httpStatus": 200,
+    "model": "cpf-deterministic-primary",
+    "confidence": 1.0,
+    "toolCallCount": 1,
+    "citationCount": 0,
+    "totalTokens": 26,
+    "realProvider": false,
+    "answerPresent": true
+  },
+  "note": "외부 AI 제공자와 자격증명 없이 실행되는 결정론적 EDU 어댑터의 실제 런타임 검증 결과입니다. 실 AI 제공자 연동은 미검증입니다."
+}

@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ"),
     [string] $ResultDir = "",
     [int] $HttpTimeoutSeconds = 10,
     [switch] $NoExitOnFailure

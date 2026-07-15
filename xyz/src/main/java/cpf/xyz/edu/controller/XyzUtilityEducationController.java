@@ -3,7 +3,7 @@ package cpf.xyz.edu.controller;
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;
 import cpf.cmn.utils.MaskingUtils;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
 import cpf.pfw.common.workflow.CpfWorkflowContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class XyzUtilityEducationController {
 
     @GetMapping("/utils")
-    @CpfTransaction(id = "XYZ09EDU0004", name = "XYZCommonUtilitySample")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0004", name = "XYZCommonUtilitySample")
     @Operation(operationId = "xyzUtilityEducationUseCommonUtils", summary = "CMN utility sample", description = "Shows date, id, and masking utility usage.")
     public ResponseEntity<Map<String, Object>> useCommonUtils(@RequestParam(defaultValue = "Sample User") String name) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -37,7 +37,7 @@ public class XyzUtilityEducationController {
     }
 
     @GetMapping("/headers")
-    @CpfTransaction(id = "XYZ09EDU0008", name = "XYZCurrentHeaderSample")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0008", name = "XYZCurrentHeaderSample")
     @Operation(operationId = "xyzUtilityEducationGetCurrentHeaders", summary = "Current header sample", description = "Shows transaction and workflow propagation headers.")
     public ResponseEntity<Map<String, Object>> getCurrentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();

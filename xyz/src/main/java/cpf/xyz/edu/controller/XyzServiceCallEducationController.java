@@ -1,7 +1,7 @@
 package cpf.xyz.edu.controller;
 
 import cpf.pfw.common.http.CpfWebClient;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.workflow.CpfWorkflow;
 import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
 import cpf.pfw.common.workflow.CpfWorkflowStep;
@@ -41,8 +41,8 @@ public class XyzServiceCallEducationController {
     }
 
     @GetMapping("/service-call/mbr-detail")
-    @CpfTransaction(id = "XYZ08EDU0001", name = "XYZMbrDetailCall")
-    @CpfWorkflow(id = "XYZ08EDU9001", name = "회원 상세 내부 호출")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-08-0001", name = "XYZMbrDetailCall")
+    @CpfWorkflow(id = "OXYZ-EDU-08-9001", name = "회원 상세 내부 호출")
     @CpfWorkflowStep(name = "MBR 회원 상세 조회", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
     @Operation(operationId = "xyzServiceCallEducationCallMbrDetail", summary = "MBR 내부 호출 샘플", description = "CpfWebClient로 내부 서비스에 거래 헤더를 전파하는 흐름을 확인합니다.")
     public ResponseEntity<Map<String, Object>> callMbrDetail(@RequestParam Long memberId) {
@@ -62,7 +62,7 @@ public class XyzServiceCallEducationController {
     }
 
     @GetMapping("/webclient/external-get")
-    @CpfTransaction(id = "XYZ08EDU0010", name = "XYZExternalGet")
+    @CpfOnlineTransaction(id = "OXYZ-EDU-08-0010", name = "XYZExternalGet")
     @Operation(operationId = "xyzServiceCallEducationCallExternalWebsite", summary = "외부 API 호출 샘플", description = "WebClient timeout과 외부 응답 처리 방식을 확인합니다.")
     public ResponseEntity<Map<String, Object>> callExternalWebsite(
             @RequestParam(defaultValue = "https://postman-echo.com/get?source=cpf-xyz") String url) {

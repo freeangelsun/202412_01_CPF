@@ -22,7 +22,7 @@ public class CpfServiceEndpointRegistry {
     /**
      * Returns the base URL for a service id.
      *
-     * @param serviceId service id such as {@code mbr}, {@code acc}, or {@code cmn}
+     * @param serviceId 서비스 ID 예: {@code mbr}, {@code bza}, {@code xyz}
      * @return normalized base URL without trailing slash
      */
     public String baseUrl(String serviceId) {

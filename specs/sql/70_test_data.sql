@@ -91,22 +91,6 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-USE accDB;
-
-INSERT INTO acc_account (account_id, account_no, account_name, account_status, balance, description, created_by, updated_by)
-VALUES
-    (1, '100-000-000001', 'ACC 샘플 계정 1', 'ACTIVE', 100000.00, 'ACC 계정 샘플 1', 'SYSTEM', 'SYSTEM'),
-    (2, '100-000-000002', 'ACC 샘플 계정 2', 'ACTIVE', 250000.00, 'ACC 계정 샘플 2', 'SYSTEM', 'SYSTEM'),
-    (3, '100-000-000003', 'ACC 휴면 계정', 'DORMANT', 0.00, 'ACC 휴면 계정 샘플', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    account_no = VALUES(account_no),
-    account_name = VALUES(account_name),
-    account_status = VALUES(account_status),
-    balance = VALUES(balance),
-    description = VALUES(description),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
 USE mbrDB;
 
 INSERT INTO mbr_member (
@@ -374,18 +358,17 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-USE bizadmDB;
+USE bzaDB;
 
-INSERT INTO bizadm_admin_user (
+INSERT INTO bza_admin_user (
     admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
     login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by
 ) VALUES (
-    'biz-admin', '업무 관리자 샘플', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 'BIZ_MANAGER', 'Y', 'N',
-    0, 'N', NULL, NULL, 'SYSTEM', 'SYSTEM'
+    'bza-admin', '업무 관리자 샘플', NULL, 'BZA_MANAGER', 'Y', 'N',
+    0, 'Y', NULL, NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     admin_name = VALUES(admin_name),
-    password_hash = VALUES(password_hash),
     role_code = VALUES(role_code),
     use_yn = VALUES(use_yn),
     lock_yn = VALUES(lock_yn),
@@ -395,26 +378,41 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_login_history (
+INSERT INTO bza_login_history (
     admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent,
     transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
 )
-SELECT admin_user_id, 'BIZADM', 'biz-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
-       '20260615120000000BIZbizAP010000001', 'BIZ', 'bizAP01', 'local-bizadm:seed', 'SYSTEM', 'SYSTEM'
-FROM bizadm_admin_user
-WHERE admin_login_id = 'biz-admin'
+SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user
+WHERE admin_login_id = 'bza-admin'
   AND NOT EXISTS (
       SELECT 1
-      FROM bizadm_login_history
-      WHERE admin_login_id = 'biz-admin'
-        AND transaction_global_id = '20260615120000000BIZbizAP010000001'
+      FROM bza_login_history
+      WHERE admin_login_id = 'bza-admin'
+        AND transaction_global_id = '20260715120000000BZAbzaAP010000001'
   );
 
-INSERT INTO bizadm_menu (
-    menu_code, menu_name, api_path, sort_order, use_yn, created_by, updated_by
-) VALUES (
-    'BIZ_CUSTOMER', '고객 업무 관리', '/api/bizadm/customers', 10, 'Y', 'SYSTEM', 'SYSTEM'
-)
+INSERT INTO bza_menu (
+    menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('DASHBOARD', '업무 대시보드', 'BZA', '/bza', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('USER', '백오피스 사용자', 'BZA', '/bza#users', '/api/bza/admin-users', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ORGANIZATION', '조직 관리', 'BZA', '/bza#organizations', '/api/bza/backoffice/organizations', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EMPLOYEE', '직원 관리', 'BZA', '/bza#employees', '/api/bza/backoffice/employees', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ROLE', '역할 관리', 'BZA', '/bza#roles', '/api/bza/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MENU', '메뉴 관리', 'BZA', '/bza#menus', '/api/bza/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION', '권한 관리', 'BZA', '/bza#permissions', '/api/bza/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('APPROVAL', '결재 관리', 'BZA', '/bza#approvals', '/api/bza/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CUSTOMER', '고객 업무 관리', 'BZA', '/bza#customers', '/api/bza/customers', 90, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PRODUCT', '상품 관리', 'BZA', '/bza#products', '/api/bza/products', 100, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ORDER', '주문 관리', 'BZA', '/bza#orders', '/api/bza/orders', 110, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SETTING', '업무 설정', 'BZA', '/bza#settings', '/api/bza/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DOWNLOAD', '다운로드 감사', 'BZA', '/bza#downloads', '/api/bza/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION', '업무 알림', 'BZA', '/bza#notifications', '/api/bza/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ATTACHMENT', '첨부파일', 'BZA', '/bza#attachments', '/api/bza/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     menu_name = VALUES(menu_name),
     api_path = VALUES(api_path),
@@ -423,10 +421,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_role (
-    role_code, role_name, write_allowed_yn, use_yn, created_by, updated_by
+INSERT INTO bza_role (
+    role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
 ) VALUES (
-    'BIZ_MANAGER', '업무 관리자', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
+    'BZA_MANAGER', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     role_name = VALUES(role_name),
@@ -435,18 +433,45 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_permission (
-    role_code, menu_code, button_code, allow_yn, created_by, updated_by
+INSERT INTO bza_permission (
+    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
+    data_scope, allow_yn, created_by, updated_by
 ) VALUES
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'READ', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'WRITE', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BIZ_MANAGER', 'BIZ_CUSTOMER', 'DOWNLOAD', 'Y', 'SYSTEM', 'SYSTEM')
+    ('BZA_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'USER', 'READ', 'API', 'GET', '/api/bza/admin-users/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'USER', 'WRITE', 'API', 'POST', '/api/bza/admin-users', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/backoffice/organizations/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORGANIZATION', 'WRITE', 'API', 'POST', '/api/bza/backoffice/organizations', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/backoffice/employees/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'EMPLOYEE', 'WRITE', 'API', 'POST', '/api/bza/backoffice/employees', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ROLE', 'READ', 'API', 'GET', '/api/bza/roles/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ROLE', 'WRITE', 'API', 'POST', '/api/bza/roles', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'MENU', 'READ', 'API', 'GET', '/api/bza/menus/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'MENU', 'WRITE', 'API', 'POST', '/api/bza/menus', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PERMISSION', 'READ', 'API', 'GET', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'CUSTOMER', 'READ', 'API', 'GET', '/api/bza/customers/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'CUSTOMER', 'UNMASK', 'API', 'POST', '/api/bza/masking/unmask', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'PRODUCT', 'READ', 'API', 'GET', '/api/bza/products/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ORDER', 'READ', 'API', 'GET', '/api/bza/orders/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/bza/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/bza/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/bza/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'NOTIFICATION', 'READ', 'API', 'GET', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'NOTIFICATION', 'WRITE', 'API', 'POST', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'READ', 'API', 'GET', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'WRITE', 'API', 'POST', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'ATTACHMENT', 'DOWNLOAD', 'API', 'GET', '/api/bza/attachments/*/download', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SAVED_SEARCH', 'READ', 'API', 'GET', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BZA_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     allow_yn = VALUES(allow_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_customer (
+INSERT INTO bza_customer (
     customer_no, customer_name, email, mobile_no, customer_status, created_by, updated_by
 ) VALUES (
     'CUST000001', '샘플 고객', 'customer@example.com', '010-0000-0001', 'ACTIVE', 'SYSTEM', 'SYSTEM'
@@ -459,7 +484,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_product (
+INSERT INTO bza_product (
     product_code, product_name, use_yn, created_by, updated_by
 ) VALUES (
     'PRD_SAMPLE', '샘플 상품', 'Y', 'SYSTEM', 'SYSTEM'
@@ -470,7 +495,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_order (
+INSERT INTO bza_order (
     order_no, customer_no, product_code, order_amount, order_status, created_by, updated_by
 ) VALUES (
     'ORD000001', 'CUST000001', 'PRD_SAMPLE', 10000.00, 'REQUESTED', 'SYSTEM', 'SYSTEM'
@@ -483,10 +508,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_project_setting (
+INSERT INTO bza_project_setting (
     setting_key, setting_value, description, use_yn, created_by, updated_by
 ) VALUES (
-    'bizadm.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+    'bza.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
@@ -495,163 +520,66 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bizadm_masking_audit (
+INSERT INTO bza_masking_audit (
     target_type, target_id, operator_id, reason, result_type, created_by, updated_by
 )
 SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM bizadm_masking_audit
+    FROM bza_masking_audit
     WHERE target_type = 'CUSTOMER'
       AND target_id = 'CUST000001'
       AND operator_id = 'biz-admin'
       AND reason = '업무 관리자 샘플 원문보기 감사'
 );
 
-USE exsDB;
-
-INSERT INTO exs_institution (
-    institution_code, institution_name, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01', '샘플 대외기관', 'Y', 'SYSTEM', 'SYSTEM'
-)
+INSERT INTO bza_organization (
+    organization_code, parent_organization_code, organization_name, organization_type,
+    sort_order, use_yn, created_by, updated_by
+) VALUES
+    ('HQ', NULL, '본사', 'COMPANY', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
-    institution_name = VALUES(institution_name),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+    parent_organization_code = VALUES(parent_organization_code),
+    organization_name = VALUES(organization_name),
+    organization_type = VALUES(organization_type),
+    sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO exs_channel (
-    institution_code, channel_code, direction, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01', 'OPENAPI', 'OUTBOUND', 'Y', 'SYSTEM', 'SYSTEM'
+INSERT INTO bza_employee (
+    employee_no, admin_user_id, organization_code, employee_name, position_code,
+    job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by
 )
+SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
+       'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user WHERE admin_login_id = 'bza-admin'
 ON DUPLICATE KEY UPDATE
-    direction = VALUES(direction),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+    admin_user_id = VALUES(admin_user_id), organization_code = VALUES(organization_code),
+    employee_name = VALUES(employee_name), position_code = VALUES(position_code),
+    job_title_code = VALUES(job_title_code), employment_status = VALUES(employment_status),
+    email = VALUES(email), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO exs_endpoint (
-    endpoint_code, institution_code, http_method, endpoint_uri, timeout_ms, retry_count, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01_BALANCE', 'BANK01', 'POST', 'https://example.invalid/balance', 3000, 2, 'Y', 'SYSTEM', 'SYSTEM'
+INSERT INTO bza_notification (
+    recipient_login_id, notification_type, title, message_body,
+    reference_type, reference_id, read_yn, use_yn, created_by, updated_by
 )
-ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    http_method = VALUES(http_method),
-    endpoint_uri = VALUES(endpoint_uri),
-    timeout_ms = VALUES(timeout_ms),
-    retry_count = VALUES(retry_count),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_auth_profile (
-    auth_profile_code, institution_code, auth_type, secret_ref, enabled_yn, created_by, updated_by
-) VALUES (
-    'BANK01_OAUTH', 'BANK01', 'OAUTH2', 'vault://cpf/exs/bank01/oauth', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    auth_type = VALUES(auth_type),
-    secret_ref = VALUES(secret_ref),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_token_store (
-    auth_profile_code, token_key, token_hash, masked_token, token_status, issued_at, expire_at,
-    transaction_global_id, server_instance_id, created_by, updated_by
-) VALUES (
-    'BANK01_OAUTH', 'access-token', 'HASH_ONLY_SAMPLE_NO_TOKEN_RAW', 'sample****token', 'VALID', NOW(), DATE_ADD(NOW(), INTERVAL 1 HOUR),
-    '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    token_hash = VALUES(token_hash),
-    masked_token = VALUES(masked_token),
-    token_status = VALUES(token_status),
-    issued_at = VALUES(issued_at),
-    expire_at = VALUES(expire_at),
-    transaction_global_id = VALUES(transaction_global_id),
-    server_instance_id = VALUES(server_instance_id),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_token_event_history (
-    auth_profile_code, token_key, event_type, reason, transaction_global_id, server_instance_id, created_by, updated_by
-)
-SELECT 'BANK01_OAUTH', 'access-token', 'TOKEN_REFRESH', 'SQL seed token 상태 샘플', '20260615120000000EXSexsAP010000001', 'local-exs:seed', 'SYSTEM', 'SYSTEM'
+SELECT 'bza-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
+       'APPROVAL', 'BZA-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_token_event_history
-    WHERE auth_profile_code = 'BANK01_OAUTH'
-      AND token_key = 'access-token'
-      AND event_type = 'TOKEN_REFRESH'
-      AND transaction_global_id = '20260615120000000EXSexsAP010000001'
+    SELECT 1 FROM bza_notification
+     WHERE recipient_login_id = 'bza-admin'
+       AND reference_type = 'APPROVAL'
+       AND reference_id = 'BZA-SAMPLE-001'
 );
 
-INSERT INTO exs_route_rule (
-    route_code, institution_code, channel_code, endpoint_code, enabled_yn, created_by, updated_by
+INSERT INTO bza_saved_search (
+    owner_login_id, screen_code, search_name, criteria_json,
+    shared_yn, use_yn, created_by, updated_by
 ) VALUES (
-    'BANK01_BALANCE_ROUTE', 'BANK01', 'OPENAPI', 'BANK01_BALANCE', 'Y', 'SYSTEM', 'SYSTEM'
+    'bza-admin', 'APPROVAL', '진행 중 결재', '{"approvalStatus":"IN_REVIEW"}',
+    'N', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
-    institution_code = VALUES(institution_code),
-    channel_code = VALUES(channel_code),
-    endpoint_code = VALUES(endpoint_code),
-    enabled_yn = VALUES(enabled_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-SET @sample_exs_transaction_id = '20260615120000000EXSexsAP010000001';
-
-INSERT INTO exs_transaction_log (
-    transaction_global_id, external_transaction_id, institution_code, channel_code, endpoint_code,
-    module_id, was_id, server_instance_id, request_at, response_at, elapsed_ms, direction,
-    http_method, request_uri, status, result_code, error_code, error_message, retryable_yn,
-    created_by, updated_by
-)
-SELECT
-    @sample_exs_transaction_id, 'EXT-20260615-0001', 'BANK01', 'OPENAPI', 'BANK01_BALANCE',
-    'EXS', 'exsAP01', 'local-dev:sql-seed', @sample_start_time, @sample_end_time, 12, 'OUTBOUND',
-    'POST', 'https://example.invalid/balance', 'SUCCESS', '0000', NULL, NULL, 'N',
-    'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_transaction_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-);
-
-INSERT INTO exs_message_log (
-    transaction_global_id, external_transaction_id, direction, message_summary, payload_store_yn, payload_ref, created_by, updated_by
-)
-SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'OUTBOUND', '샘플 대외 송신 전문 요약', 'N', NULL, 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_message_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-      AND direction = 'OUTBOUND'
-);
-
-INSERT INTO exs_control_policy (
-    institution_code, control_type, enabled_yn, reason, created_by, updated_by
-) VALUES (
-    'BANK01', 'SEND_BLOCK', 'N', '샘플 기관 정상 송신 허용', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    enabled_yn = VALUES(enabled_yn),
-    reason = VALUES(reason),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO exs_retry_log (
-    transaction_global_id, external_transaction_id, retry_status, retry_count, last_error_message, next_retry_at, created_by, updated_by
-)
-SELECT @sample_exs_transaction_id, 'EXT-20260615-0001', 'NOT_REQUIRED', 0, NULL, NULL, 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM exs_retry_log
-    WHERE transaction_global_id = @sample_exs_transaction_id
-      AND retry_status = 'NOT_REQUIRED'
-);
+    criteria_json = VALUES(criteria_json), shared_yn = VALUES(shared_yn), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;

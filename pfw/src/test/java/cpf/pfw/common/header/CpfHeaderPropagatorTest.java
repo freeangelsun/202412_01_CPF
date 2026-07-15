@@ -71,7 +71,7 @@ class CpfHeaderPropagatorTest {
         TransactionHeader header = TransactionHeader.builder()
                 .requestType("ONLINE")
                 .originalChannelCode("MOBILE")
-                .channelCode("ACC")
+                .channelCode("XYZ")
                 .clientAppId("cpf-smoke-client")
                 .extensionHeaders(Map.of(
                         CpfHeaderNames.EXTENSION_1, "reserved-one",
@@ -79,10 +79,10 @@ class CpfHeaderPropagatorTest {
                 .build();
 
         TransactionContext.initialize(
-                "20260702103000000ACClocal010000001",
+                "20260702103000000XYZlocal010000001",
                 "TRACE-STANDARD-HEADER-E2E",
                 "SPAN-PARENT-E2E",
-                "20260702103000000ACClocal010000001",
+                "20260702103000000XYZlocal010000001",
                 header);
 
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
@@ -90,7 +90,7 @@ class CpfHeaderPropagatorTest {
         assertThat(TransactionContext.currentHeader()).isSameAs(header);
         assertThat(outbound)
                 .containsEntry(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MOBILE")
-                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "ACC")
+                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "XYZ")
                 .containsEntry(CpfHeaderNames.EXTENSION_1, "reserved-one")
                 .containsEntry("X-Cpf-Ext-Campaign-Id", "CMP-SMOKE");
     }
@@ -110,26 +110,26 @@ class CpfHeaderPropagatorTest {
     @Test
     void outboundHeadersContainCurrentTransactionSegment() {
         TransactionContext.initialize(
-                "20260703120000000ACCtrace010000001",
+                "20260703120000000XYZtrace010000001",
                 "TRACE-SEGMENT",
                 "PARENT-SPAN",
-                "20260703120000000ACCtrace010000001",
+                "20260703120000000XYZtrace010000001",
                 TransactionHeader.builder()
                         .requestType("ONLINE")
                         .originalChannelCode("APP")
-                        .channelCode("ACC")
+                        .channelCode("XYZ")
                         .build());
         TransactionSegmentContext.push(new TransactionSegmentContext.TransactionSegmentFrame(
-                "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12",
-                "20260703120000000ACCtrace010000001",
+                "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12",
+                "20260703120000000XYZtrace010000001",
                 0));
 
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
 
         assertThat(outbound)
-                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000ACCtrace010000001")
-                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12")
-                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000ACCtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000XYZtrace010000001")
+                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12")
                 .containsEntry(CpfHeaderNames.TRANSACTION_CALL_DEPTH, "0");
     }
 }

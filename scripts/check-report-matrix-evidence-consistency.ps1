@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260714_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01")
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,69 +74,23 @@ Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscusto
     note = "self evidence file initialized before consistency scanning"
 })
 
-$script:RequiredCheckIds = @(
-    "edu-mapper-db-slice",
-    "mariadb-full-install",
-    "adm-runtime",
-    "adm-permission-runtime",
-    "openapi-runtime",
-    "adm-browser-click",
-    "standard-header-e2e",
-    "complex-transaction-trace",
-    "transaction-segment-log",
-    "adm-transaction-group-list",
-    "adm-transaction-timeline",
-    "cmn-fixed-length-engine",
-    "composite-runtime-smoke",
-    "adm-transaction-group-runtime",
-    "redis-kafka-mq-broker",
-    "broker-real-integration",
-    "file-log-standard",
-    "trace-boost-runtime",
-    "bat-trace-boost-runtime",
-    "runtime-start-services",
-    "packaged-runtime-resources",
-    "runtime-status-diagnostics",
-    "runtime-closure",
-    "adm-operation-console-runtime",
-    "adm-log-policy-ui-static",
-    "bat-log-bean-runtime",
-    "exs-timeout-retry-runtime",
-    "cmn-fixed-length-advanced",
-    "create-domain-smoke",
-    "pfw-service-call-engine",
-    "adm-service-registry-runtime",
-    "architecture-ownership-scan",
-    "spring-event-usage-scan",
-    "pfw-broker-capability",
-    "pfw-file-transfer-capability",
-    "pfw-security-credential-capability",
-    "pfw-runtime-control-capability",
-    "pfw-admin-status-capability",
-    "profile-loading-standard",
-    "packaged-dependencies-check",
-    "deploy-dry-run-standard",
-    "garbage-file-cleanup",
-    "empty-directory-scan",
-    "deploy-env-standard",
-    "deploy-inventory-standard",
-    "gradle-deploy-task-standard",
-    "datasource-mode-standard",
-    "local-port-duplicate-scan",
-    "edu-module-deploy-alias-scan",
-    "bat-edu-package",
-    "bat-job-log-policy",
-    "sample-coverage-matrix",
-    "sample-placeholder-scan",
-    "evidence-path-existence-check",
-    "create-domain-profile-template",
-    "runtime-smoke-summary",
-    "check-report-matrix-evidence-consistency",
-    "quality-gate",
-    "check-docx-standard",
-    "check-feature-evidence",
-    "check-utf8"
-)
+$matrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".json"
+$requiredMatrixPath = Join-Path (Join-Path $Root "specs") $matrixFileName
+try {
+    $requiredMatrix = [System.IO.File]::ReadAllText($requiredMatrixPath, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
+    $script:RequiredCheckIds = @($requiredMatrix.items | ForEach-Object { [string] $_.checkId })
+} catch {
+    Add-Failure "feature matrix could not initialize required check ids: $requiredMatrixPath"
+    $script:RequiredCheckIds = @()
+}
+
+if ($script:RequiredCheckIds.Count -eq 0) {
+    Add-Failure "feature matrix has no required check ids"
+}
+$duplicateRequiredCheckIds = @($script:RequiredCheckIds | Group-Object | Where-Object Count -gt 1)
+if ($duplicateRequiredCheckIds.Count -gt 0) {
+    Add-Failure "feature matrix has duplicate required check ids"
+}
 
 function Test-AllowedStatus {
     param(
@@ -304,8 +258,7 @@ function Test-EvidenceFile {
 
 $reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.md"
 $evidenceIndexPath = Join-Path $Root "CPF_EVIDENCE_INDEX.md"
-$featureMatrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".json"
-$matrixPath = Join-Path (Join-Path $Root "specs") $featureMatrixFileName
+$matrixPath = $requiredMatrixPath
 
 $reportMap = Get-MarkdownCheckStatusMap $reportPath "stabilization-report"
 $evidenceMap = Get-MarkdownCheckStatusMap $evidenceIndexPath "evidence-index"

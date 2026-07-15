@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $LogDir = "",
@@ -78,7 +78,10 @@ function Save-BrowserResult {
     $Result.finishedAt = (Get-Date).ToString("o")
     New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
     $resultPath = Join-Path $LogDir "adm-ui-browser-smoke-result.json"
-    $Result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+    [System.IO.File]::WriteAllText(
+        $resultPath,
+        ($Result | ConvertTo-Json -Depth 20),
+        [System.Text.UTF8Encoding]::new($false))
     return $resultPath
 }
 
@@ -102,10 +105,6 @@ $requiredMarkers = @(
     "notifications",
     "downloads",
     "downloadLogDetail",
-    "bizadm",
-    "exs",
-    "/api/bizadm",
-    "/api/exs",
     "/adm/api/batch",
     "/adm/api/batch/jobs",
     "/adm/api/batch/schedules",
@@ -131,10 +130,14 @@ $requiredMarkers = @(
     "/adm/api/logs",
     "/adm/api/notifications",
     "/adm/api/downloads",
+    "/adm/api/remote-logs/bundle-jobs",
+    "downloadRemoteLogBundleJob",
+    "비동기 ZIP",
     "/adm/api/transaction-groups",
     "transactionGlobalId",
     "transactionSegmentId",
-    "segment timeline",
+    "Timeline",
+    "Segments",
     "External Logs",
     "standardHeaderValue",
     "extensionHeaderValue",
@@ -242,7 +245,7 @@ test("ADM UI basic click flow", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "\uAC70\uB798 \uADF8\uB8F9" })).toBeVisible();
   const transactionGroupPanel = page.locator('section[v-show="activeMenu === \'transactionGroups\'"]');
   await transactionGroupPanel.getByLabel("transactionGlobalId").fill(process.env.ADM_UI_SMOKE_TRANSACTION_ID || "");
-  await transactionGroupPanel.getByLabel("\uBAA8\uB4C8").fill(process.env.ADM_UI_SMOKE_MODULE_CODE || "EXS");
+  await transactionGroupPanel.getByLabel("\uBAA8\uB4C8").fill(process.env.ADM_UI_SMOKE_MODULE_CODE || "XYZ");
   await transactionGroupPanel.getByLabel("\uC2E4\uD328 \uC5EC\uBD80").selectOption(process.env.ADM_UI_SMOKE_FAILURE_YN || "");
   await transactionGroupPanel.getByLabel("\uD45C\uC900 \uD5E4\uB354 \uAC80\uC0C9").fill("X-Channel-Code");
   await transactionGroupPanel.getByRole("button", { name: "\uC870\uD68C" }).click();

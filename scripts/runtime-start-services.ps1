@@ -1,6 +1,6 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("ACC", "MBR", "EXS", "ADM", "BAT", "BIZADM", "XYZ"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ"),
     [string] $ResultDir = "",
     [int] $StartupTimeoutSeconds = 150,
     [int] $HttpTimeoutSeconds = 3,
@@ -9,12 +9,10 @@ param(
 )
 
 $RequiredPortEnvMarkers = @(
-    "ACC_SERVER_PORT",
     "MBR_SERVER_PORT",
     "ADM_SERVER_PORT",
-    "EXS_SERVER_PORT",
     "BAT_SERVER_PORT",
-    "BIZADM_SERVER_PORT",
+    "BZA_SERVER_PORT",
     "XYZ_SERVER_PORT"
 )
 
@@ -58,6 +56,7 @@ function New-ModuleStartResult {
         processStarted = $false
         portOpened = $false
         processStillAliveAfterProbe = $false
+        health = $null
         healthCheckPassed = $false
         finalRuntimeUsable = $false
         failureClassification = $null

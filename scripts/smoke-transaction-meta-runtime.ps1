@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $AdmUsername = "admin",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,

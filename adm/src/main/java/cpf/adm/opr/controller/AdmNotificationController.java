@@ -5,7 +5,7 @@ import cpf.adm.opr.dto.AdmNotificationRuleRequest;
 import cpf.adm.opr.dto.AdmNotificationRuleResponse;
 import cpf.adm.opr.dto.AdmNotificationTestSendRequest;
 import cpf.adm.opr.service.AdmNotificationService;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,7 +39,7 @@ public class AdmNotificationController {
      * 배치 실패, 보안 이벤트 같은 운영 알림 규칙을 조회합니다.
      */
     @GetMapping("/rules")
-    @CpfTransaction(id = "ADM01NTF0010", name = "ADMNotificationRuleList")
+    @CpfOnlineTransaction(id = "OADM-NTF-01-0010", name = "ADMNotificationRuleList")
     @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회", description = "PFW 운영 알림 규칙을 최근 등록 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationRuleResponse>> findRules(
             @RequestParam(defaultValue = "100") int limit) {
@@ -50,7 +50,7 @@ public class AdmNotificationController {
      * 운영 알림 규칙 상세를 조회합니다.
      */
     @GetMapping("/rules/{ruleId}")
-    @CpfTransaction(id = "ADM01NTF0014", name = "ADMNotificationRuleDetail")
+    @CpfOnlineTransaction(id = "OADM-NTF-01-0014", name = "ADMNotificationRuleDetail")
     @Operation(operationId = "admNotificationFindRule", summary = "운영 알림 규칙 상세 조회", description = "운영 알림 규칙 단건을 조회합니다.")
     public ResponseEntity<AdmNotificationRuleResponse> findRule(@PathVariable long ruleId) {
         return ResponseEntity.ok(notificationService.findRule(ruleId));
@@ -60,7 +60,7 @@ public class AdmNotificationController {
      * 운영 알림 규칙을 등록하거나 같은 이벤트 기준의 기존 규칙을 갱신합니다.
      */
     @PostMapping("/rules")
-    @CpfTransaction(id = "ADM02NTF0012", name = "ADMNotificationRuleSave")
+    @CpfOnlineTransaction(id = "OADM-NTF-02-0012", name = "ADMNotificationRuleSave")
     @Operation(operationId = "admNotificationSaveRule", summary = "운영 알림 규칙 등록/수정", description = "이벤트 유형, 세부 유형, 채널 기준으로 운영 알림 규칙을 등록하거나 갱신합니다.")
     public ResponseEntity<AdmNotificationRuleResponse> saveRule(
             @RequestBody AdmNotificationRuleRequest request,
@@ -73,7 +73,7 @@ public class AdmNotificationController {
      * 운영 알림 규칙을 ruleId 기준으로 수정합니다.
      */
     @PutMapping("/rules/{ruleId}")
-    @CpfTransaction(id = "ADM03NTF0015", name = "ADMNotificationRuleUpdate")
+    @CpfOnlineTransaction(id = "OADM-NTF-03-0015", name = "ADMNotificationRuleUpdate")
     @Operation(operationId = "admNotificationUpdateRule", summary = "운영 알림 규칙 수정", description = "운영 알림 규칙 단건을 수정하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmNotificationRuleResponse> updateRule(
             @PathVariable long ruleId,
@@ -87,7 +87,7 @@ public class AdmNotificationController {
      * 운영 알림 규칙을 비활성화합니다.
      */
     @PutMapping("/rules/{ruleId}/disable")
-    @CpfTransaction(id = "ADM03NTF0013", name = "ADMNotificationRuleDisable")
+    @CpfOnlineTransaction(id = "OADM-NTF-03-0013", name = "ADMNotificationRuleDisable")
     @Operation(operationId = "admNotificationDisableRule", summary = "운영 알림 규칙 비활성", description = "운영 알림 규칙의 사용 여부를 N으로 변경하고 감사 로그를 남깁니다.")
     public ResponseEntity<AdmNotificationRuleResponse> disableRule(
             @PathVariable long ruleId,
@@ -102,7 +102,7 @@ public class AdmNotificationController {
      * 운영 알림 발송 요청과 결과 이력을 조회합니다.
      */
     @GetMapping("/delivery-logs")
-    @CpfTransaction(id = "ADM01NTF0011", name = "ADMNotificationDeliveryLogList")
+    @CpfOnlineTransaction(id = "OADM-NTF-01-0011", name = "ADMNotificationDeliveryLogList")
     @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회", description = "PFW 운영 알림 발송 로그를 최근 요청 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDeliveryLogs(
             @RequestParam(defaultValue = "100") int limit) {
@@ -113,7 +113,7 @@ public class AdmNotificationController {
      * mock sender를 사용해 운영 알림 테스트 발송을 수행합니다.
      */
     @PostMapping("/rules/{ruleId}/test-send")
-    @CpfTransaction(id = "ADM02NTF0016", name = "ADMNotificationTestSend")
+    @CpfOnlineTransaction(id = "OADM-NTF-02-0016", name = "ADMNotificationTestSend")
     @Operation(operationId = "admNotificationSendTest", summary = "운영 알림 테스트 발송", description = "mock sender로 알림 발송을 시뮬레이션하고 발송 이력과 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> sendTest(
             @PathVariable long ruleId,

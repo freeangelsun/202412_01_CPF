@@ -4,7 +4,7 @@ import cpf.mbr.bse.dto.MbrDTO;
 import cpf.mbr.bse.service.MbrService;
 import cpf.mbr.common.response.BaseResponse;
 import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.logging.CpfTransaction;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -44,7 +44,7 @@ public class MbrController {
     private final MbrService mbrService;
 
     @GetMapping("/list")
-    @CpfTransaction(id = "MBR01BSE0001", name = "MBRMemberList")
+    @CpfOnlineTransaction(id = "OMBR-BSE-01-0001", name = "MBRMemberList")
     @Operation(operationId = "mbrApiGetList", summary = "회원 목록 조회", description = "MBR 샘플 회원 목록을 조회합니다.")
     public ResponseEntity<BaseResponse<List<MbrDTO>>> getList() {
         log.info("[MbrController] member list requested");
@@ -56,7 +56,7 @@ public class MbrController {
     }
 
     @GetMapping("/detail")
-    @CpfTransaction(id = "MBR01BSE0002", name = "MBRMemberDetail")
+    @CpfOnlineTransaction(id = "OMBR-BSE-01-0002", name = "MBRMemberDetail")
     @Operation(operationId = "mbrApiGetDetail", summary = "회원 상세 조회", description = "회원 내부 순번으로 회원 상세를 조회합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> getDetail(
             @RequestParam(name = "memberId")
@@ -73,7 +73,7 @@ public class MbrController {
     }
 
     @GetMapping("/search")
-    @CpfTransaction(id = "MBR01BSE0003", name = "MBRMemberSearch")
+    @CpfOnlineTransaction(id = "OMBR-BSE-01-0003", name = "MBRMemberSearch")
     @Operation(operationId = "mbrApiSearch", summary = "회원 검색", description = "회원명으로 회원을 검색합니다.")
     public ResponseEntity<BaseResponse<List<MbrDTO>>> search(
             @RequestParam(name = "name")
@@ -90,7 +90,7 @@ public class MbrController {
     }
 
     @PostMapping("/create")
-    @CpfTransaction(id = "MBR02BSE0001", name = "MBRMemberCreate")
+    @CpfOnlineTransaction(id = "OMBR-BSE-02-0001", name = "MBRMemberCreate")
     @Operation(operationId = "mbrApiCreate", summary = "회원 등록", description = "MBR 샘플 회원을 등록합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> create(@Valid @RequestBody MemberCreateRequest request) {
         log.info("[MbrController] member create requested. memberName={}", request.getMemberName());
@@ -102,7 +102,7 @@ public class MbrController {
     }
 
     @PutMapping("/update")
-    @CpfTransaction(id = "MBR03BSE0001", name = "MBRMemberUpdate")
+    @CpfOnlineTransaction(id = "OMBR-BSE-03-0001", name = "MBRMemberUpdate")
     @Operation(operationId = "mbrApiUpdate", summary = "회원 수정", description = "MBR 샘플 회원을 수정합니다.")
     public ResponseEntity<BaseResponse<MbrDTO>> update(@Valid @RequestBody MemberUpdateRequest request) {
         log.info("[MbrController] member update requested. memberId={}", request.getMemberId());
@@ -114,7 +114,7 @@ public class MbrController {
     }
 
     @DeleteMapping("/delete")
-    @CpfTransaction(id = "MBR04BSE0001", name = "MBRMemberDelete")
+    @CpfOnlineTransaction(id = "OMBR-BSE-04-0001", name = "MBRMemberDelete")
     @Operation(operationId = "mbrApiDelete", summary = "회원 삭제", description = "회원 내부 순번으로 샘플 회원을 삭제합니다.")
     public ResponseEntity<BaseResponse<Void>> delete(
             @RequestParam(name = "memberId")

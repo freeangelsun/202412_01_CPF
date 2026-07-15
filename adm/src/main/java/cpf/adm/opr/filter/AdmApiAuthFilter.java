@@ -41,6 +41,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/service-registry", "SERVICE_REGISTRY");
         MENU_BY_PATH_PREFIX.put("/adm/api/reliability", "RELIABILITY");
         MENU_BY_PATH_PREFIX.put("/adm/api/transactions", "TRANSACTION_META");
+        MENU_BY_PATH_PREFIX.put("/adm/api/standard-executions", "STANDARD_EXECUTION");
+        MENU_BY_PATH_PREFIX.put("/adm/api/remote-logs", "REMOTE_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
@@ -68,6 +70,10 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/unknown-results", "RELIABILITY_RESOLVE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/transaction-log-recovery", "RELIABILITY_RECOVERY_RUN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transactions", "TRANSACTION_META_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/standard-executions", "STANDARD_EXECUTION_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/remote-logs", "REMOTE_LOG_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundles", "REMOTE_LOG_BUNDLE_DOWNLOAD");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundle-jobs", "REMOTE_LOG_BUNDLE_CREATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/audit-logs", "AUDIT_LOG_READ");
@@ -237,28 +243,36 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         args.add("ANY");
         try {
             List<Map<String, Object>> permissions = admJdbcTemplate.queryForList("""
-                    SELECT a.API_PATH, COALESCE(MAX(ra.ALLOW_YN), 'N') AS ALLOW_YN
+                    SELECT a.API_PATH, a.HTTP_METHOD, COALESCE(MAX(ra.ALLOW_YN), 'N') AS ALLOW_YN
                     FROM adm_api_permission a
                     LEFT JOIN adm_role_api_permission ra
                            ON ra.API_PERMISSION_ID = a.API_PERMISSION_ID
                           AND ra.ROLE_ID IN (%s)
                     WHERE a.USE_YN = 'Y'
                       AND a.HTTP_METHOD IN (?, ?)
-                    GROUP BY a.API_PERMISSION_ID, a.API_PATH
+                    GROUP BY a.API_PERMISSION_ID, a.API_PATH, a.HTTP_METHOD
                     """.formatted(placeholders), args.toArray());
-            boolean matched = false;
-            boolean allowed = false;
+            int highestSpecificity = -1;
+            boolean allowedAtHighestSpecificity = false;
             for (Map<String, Object> permission : permissions) {
                 String apiPath = String.valueOf(permission.get("API_PATH"));
                 if (matchesApiPattern(apiPath, path)) {
-                    matched = true;
-                    allowed = allowed || "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
+                    String permissionMethod = String.valueOf(permission.get("HTTP_METHOD"));
+                    int specificity = apiPath.replace("*", "").length()
+                            + (method.equalsIgnoreCase(permissionMethod) ? 10_000 : 0);
+                    if (specificity > highestSpecificity) {
+                        highestSpecificity = specificity;
+                        allowedAtHighestSpecificity = "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
+                    } else if (specificity == highestSpecificity) {
+                        allowedAtHighestSpecificity = allowedAtHighestSpecificity
+                                || "Y".equals(String.valueOf(permission.get("ALLOW_YN")));
+                    }
                 }
             }
-            if (!matched) {
+            if (highestSpecificity < 0) {
                 return Optional.empty();
             }
-            return Optional.of(allowed);
+            return Optional.of(allowedAtHighestSpecificity);
         } catch (DataAccessException ex) {
             return Optional.empty();
         }
@@ -337,6 +351,19 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     }
 
     private String resolveButtonId(String method, String path) {
+        if (HttpMethod.POST.matches(method)
+                && path.startsWith("/adm/api/remote-logs/bundle-jobs/")
+                && path.endsWith("/download-tokens")) {
+            return "REMOTE_LOG_BUNDLE_TOKEN";
+        }
+        if (HttpMethod.GET.matches(method)
+                && path.startsWith("/adm/api/remote-logs/bundle-jobs/")
+                && path.endsWith("/download")) {
+            return "REMOTE_LOG_JOB_DOWNLOAD";
+        }
+        if (HttpMethod.GET.matches(method) && path.startsWith("/adm/api/remote-logs/") && path.endsWith("/download")) {
+            return "REMOTE_LOG_DOWNLOAD";
+        }
         if (HttpMethod.POST.matches(method) && path.endsWith("/password/reset")) {
             return "PASSWORD_RESET";
         }

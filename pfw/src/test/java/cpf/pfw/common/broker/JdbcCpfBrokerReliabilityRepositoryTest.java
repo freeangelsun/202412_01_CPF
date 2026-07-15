@@ -79,7 +79,7 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         row.put("messageKey", "key-1");
         row.put("transactionGlobalId", "202607100001");
         row.put("segmentId", "SEG-1");
-        row.put("producerModule", "ACC");
+        row.put("producerModule", "XYZ");
         row.put("consumerModule", "MBR");
         row.put("idempotencyKey", "idem-002");
         row.put("payload", "hello".getBytes(StandardCharsets.UTF_8));
@@ -101,7 +101,7 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         return new CpfBrokerEnvelope(
                 "202607100001",
                 "SEG-1",
-                "ACC",
+                "XYZ",
                 "MBR",
                 idempotencyKey,
                 Instant.parse("2026-07-10T01:00:00Z"),

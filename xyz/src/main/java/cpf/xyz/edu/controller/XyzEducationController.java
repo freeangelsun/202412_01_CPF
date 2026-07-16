@@ -17,7 +17,7 @@ import java.util.Map;
 public class XyzEducationController {
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OXYZ-EDU-01-0099", name = "XYZEducationCatalog")
+    @CpfOnlineTransaction(id = "OXYZAA0099", name = "XYZEducationCatalog")
     @Operation(operationId = "xyzEducationCatalog", summary = "XYZ 교육 카탈로그", description = "개발자가 상황별로 참고할 수 있는 EDU 샘플 API 그룹을 조회합니다.")
     public ResponseEntity<Map<String, Object>> catalog() {
         return ResponseEntity.ok(Map.of(

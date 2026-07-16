@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-16T16:00:18.684+0900",
+    "module": "GATEWAY",
+    "status": "DONE",
+    "artifact": "D:/WORK_CPF/202412_01_CPF/pfw-gateway-runtime/build/libs/pfw-gateway-runtime-1.0.0.jar",
+    "containsPfw": true,
+    "containsCmn": false,
+    "failures": [
+        
+    ]
+}

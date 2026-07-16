@@ -87,7 +87,7 @@ $evidenceLines.Add("# CPF 증적 인덱스") | Out-Null
 $evidenceLines.Add("") | Out-Null
 $evidenceLines.Add("생성 시각: $([DateTimeOffset]::Now.ToString('yyyy-MM-dd HH:mm:ss zzz'))") | Out-Null
 $evidenceLines.Add("") | Out-Null
-$evidenceLines.Add("기준 증적 디렉터리: ``specs/evidence/20260715_01``") | Out-Null
+$evidenceLines.Add("기준 증적 디렉터리: ``specs/evidence/20260716_01``") | Out-Null
 $evidenceLines.Add("") | Out-Null
 $evidenceLines.Add("| check id | 상태 | 증적 | 확인 기준 | 비고 |") | Out-Null
 $evidenceLines.Add("|---|---|---|---|---|") | Out-Null

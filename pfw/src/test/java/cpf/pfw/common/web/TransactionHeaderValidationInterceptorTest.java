@@ -1,8 +1,10 @@
 package cpf.pfw.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cpf.pfw.common.execution.CpfSharedApi;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
+import cpf.pfw.common.header.CpfHeaderNames;
 import cpf.pfw.common.logging.CpfTransaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -66,6 +68,69 @@ class TransactionHeaderValidationInterceptorTest {
                 .doesNotContain("errorDetailMessage");
     }
 
+    @Test
+    void allowsTrustedSharedApiCallFromDeclaredCaller() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
+        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "MBR01");
+
+        boolean allowed = interceptor.preHandle(
+                request,
+                new MockHttpServletResponse(),
+                handler("sharedApi"));
+
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void rejectsSharedApiWithoutCompleteCallerIdentity() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean allowed = interceptor.preHandle(request, response, handler("sharedApi"));
+
+        assertThat(allowed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(response.getContentAsString()).contains("\"statusCode\":\"EPFW900005\"");
+    }
+
+    @Test
+    void rejectsSharedApiFromPublicGatewayIngress() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
+        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "MBR01");
+        request.addHeader(CpfHeaderNames.INGRESS_TYPE, "PFW_GATEWAY");
+        request.addHeader(CpfHeaderNames.GATEWAY_INSTANCE_ID, "GW01");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean allowed = interceptor.preHandle(request, response, handler("sharedApi"));
+
+        assertThat(allowed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(403);
+    }
+
+    @Test
+    void rejectsSharedApiFromUndeclaredCpfService() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "XYZ");
+        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "XYZ01");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean allowed = interceptor.preHandle(request, response, handler("sharedApi"));
+
+        assertThat(allowed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(403);
+    }
+
     @SuppressWarnings("unchecked")
     private TransactionHeaderValidationInterceptor interceptor() {
         ObjectProvider<CpfResponseCodeResolver> provider = mock(ObjectProvider.class);
@@ -80,6 +145,16 @@ class TransactionHeaderValidationInterceptorTest {
         return new HandlerMethod(new SampleController(), SampleController.class.getDeclaredMethod(methodName));
     }
 
+    private MockHttpServletRequest standardRequest(String uri) {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", uri);
+        request.setRemoteAddr("127.0.0.1");
+        request.addHeader(CpfHeaderNames.TRANSACTION_ID, "20260615120000000MBRlocal010000001");
+        request.addHeader(CpfHeaderNames.REQUEST_TYPE, "ONLINE");
+        request.addHeader(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MBR");
+        request.addHeader(CpfHeaderNames.CHANNEL_CODE, "MBR");
+        return request;
+    }
+
     private static class SampleController {
         @SuppressWarnings("unused")
         public void operationQuery() {
@@ -88,6 +163,14 @@ class TransactionHeaderValidationInterceptorTest {
         @CpfTransaction(id = "PFW01API0002", name = "표준 헤더 검증 테스트")
         @SuppressWarnings("unused")
         public void businessTransaction() {
+        }
+
+        @CpfSharedApi(
+                id = "SPFWTS0001",
+                name = "내부 공유 API 검증 테스트",
+                allowedCallers = "MBR")
+        @SuppressWarnings("unused")
+        public void sharedApi() {
         }
     }
 }

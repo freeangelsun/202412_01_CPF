@@ -18,13 +18,21 @@ import java.util.Map;
  */
 public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
     private final CpfFileLogWriter fileLogWriter;
+    private final CpfLocalServiceIdentity localServiceIdentity;
 
     public CpfRestClientInterceptor() {
-        this(null);
+        this(null, null);
     }
 
     public CpfRestClientInterceptor(CpfFileLogWriter fileLogWriter) {
+        this(fileLogWriter, null);
+    }
+
+    public CpfRestClientInterceptor(
+            CpfFileLogWriter fileLogWriter,
+            CpfLocalServiceIdentity localServiceIdentity) {
         this.fileLogWriter = fileLogWriter;
+        this.localServiceIdentity = localServiceIdentity;
     }
 
     @Override
@@ -32,7 +40,7 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
             HttpRequest request,
             byte[] body,
             ClientHttpRequestExecution execution) throws IOException {
-        applyHeaders(request.getHeaders());
+        applyHeaders(request.getHeaders(), localServiceIdentity);
         long started = System.nanoTime();
         writeEvent(request, "OUTBOUND_REQUEST", null, "REQUESTED", null, null, started);
         try {
@@ -54,6 +62,11 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
     }
 
     public static void applyHeaders(HttpHeaders headers) {
+        applyHeaders(headers, null);
+    }
+
+    /** 거래 헤더를 전파하고, 설정된 경우 직전 호출 서비스 신원을 현재 서비스 기준으로 재생성합니다. */
+    public static void applyHeaders(HttpHeaders headers, CpfLocalServiceIdentity localServiceIdentity) {
         for (Map.Entry<String, String> header : CpfHeaderPropagator.outboundHeaders().entrySet()) {
             if (hasText(header.getValue()) && !headers.containsKey(header.getKey())) {
                 headers.add(header.getKey(), header.getValue());
@@ -63,6 +76,10 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
             if (hasText(header.getValue()) && !headers.containsKey(header.getKey())) {
                 headers.add(header.getKey(), header.getValue());
             }
+        }
+        if (localServiceIdentity != null) {
+            headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
+            headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
         }
     }
 

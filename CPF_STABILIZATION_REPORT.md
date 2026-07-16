@@ -1,169 +1,115 @@
-# CPF 최종 통합 안정화 보고서
+# CPF 통합 안정화 보고서
 
-## 0. 2026-07-16 요구사항 확장 기록 — 구현 판정 아님
+## 기준
 
-`CPF_FINAL_TARGET_REQUIREMENTS.md`와 `CPF_NEW_REQUEST.md`에 채널·거래 테스트·정책 파일 승격·ADM 전체 공통 승인결재·ADM/BAM 반응형·로그 원문/포맷·거래/채널 통계 및 CPF 전체 횡단 상용화 요구사항을 추가했다.
+- 작업일: `2026-07-16`
+- 기준 branch: `master`
+- 시작 commit: `0788fee1eb329f9ba971660d5958a309f544fcbf`
+- 요청서: `CPF_NEW_REQUEST.md`
+- 요청서 SHA-256: `fc44647df0ab15c6e4edecde68ef2703133da3853a7bb1289e7cae2f40fceaaa`
+- 최종 목표 SHA-256: `28564a5ae4553c4c7509fb61d7e1b0d02eb679b524e7d0e6e7c3bb1ff17dc774`
+- commit/push: 수행하지 않음
 
-이번 문서 갱신은 요구사항 정합성 보강이며 source, SQL, OpenAPI, browser, MariaDB, broker, multi-instance 실행을 새로 검증한 결과가 아니다.
+이번 작업은 최신 요청서의 O/S/B 표준 실행 ID, ACC 생성기 reference domain, PFW Gateway, BAT 온디맨드, S형 내부 공유 API, 배포·SQL·증적 기준을 구현하고 검증한 마일스톤입니다. 장기 최종 목표 전체를 완료한 것으로 판정하지 않습니다.
 
-따라서:
+## 수행 작업
 
-- 2026-07-15 evidence는 당시 범위의 역사적 근거다.
-- 신규 또는 확장된 요구사항에는 그대로 사용할 수 없다.
-- 기존 `완료` 항목 중 신규 정본과 직접 충돌하거나 문서 변경으로 stale가 된 항목은 `재확인 필요`로 재판정한다.
-- 신규 요구사항은 Codex 구현 후 최신 master에서 source/test/SQL/UI/runtime/evidence를 직접 확인해야 한다.
-- 아래 신규 ledger 행의 `없음`은 실패가 아니라 구현·직접 검증 전 상태를 의미한다.
+### 표준 실행과 PFW 코어
 
+- O/S/B 실행 ID를 `[유형 1][주제영역 3][기능 2][순번 4]` 10자리 규격으로 통일했습니다.
+- 구형 실행 ID 327건을 `pfw_standard_execution_alias`로 분리하고 Flyway V32 업그레이드를 추가했습니다.
+- `pfwJdbcTemplate` 소유권을 PFW 코어로 이동해 모든 실행 모듈이 동일한 표준 실행 카탈로그 저장 경계를 사용하게 했습니다.
+- DB 저장 실패를 조용히 삼키지 않고 메모리 fallback과 운영 경고 로그를 함께 남기도록 보강했습니다.
+- S형 공유 API의 실행 ID 일치, 허용 호출자, 내부 신원, 공개 Gateway 우회 차단 기준을 적용했습니다.
 
+### ACC reference domain과 생성기
 
-## 0.1 2026-07-16 기존 capability 정본 편입 기록 — 신규 완료 판정 아님
+- `acc`를 선택형 생성기 검증 reference domain으로 복원하고 build, profile, 배포 inventory, SQL/Flyway, OpenAPI를 연결했습니다.
+- ACC 전용 DataSource, JdbcTemplate, 트랜잭션 관리자, MyBatis factory/template을 명시해 다중 DataSource 선택 모호성을 제거했습니다.
+- 대표 계정 CRUD에 validation, 검색·정렬 whitelist, 낙관적 버전, 논리 삭제, 감사 사유, before/after 이력을 적용했습니다.
+- ACC Spring Batch `JobRepository`는 PFW DB를 사용하고 업무 Step은 ACC 트랜잭션 관리자를 사용하도록 분리했습니다.
+- 생성기는 위 DataSource·MyBatis·BatchRepository 경계, 자동 Job 실행 차단, bootJar/bootWar 구성을 함께 생성합니다.
 
-최신 master의 기존 상태 ledger와 XYZ/BAT sample coverage를 정본에 역추적한 결과, BZA identity/access, AI, remote log, attachment/download, batch dependency/ghost, generator/reference domain, evidence governance 등의 상세 목표를 추가했다.
+### Gateway·배치·공통 계약
 
-이 갱신은 기존 기능의 목표 보존과 회귀 방지 계약을 강화한 것이다.
+- `pfw-gateway-runtime`을 PFW 소유 선택형 실행 모듈로 추가하고 route snapshot, 실행 ID route, 권한 port, 내부 헤더 재생성, health/OpenAPI를 연결했습니다.
+- ACC와 Gateway를 local/dev/stg/prod 환경 파일, deploy inventory, runtime harness, Java 25·패키지 검사, remote deploy dry-run에 포함했습니다.
+- BAT 온디맨드 202 접수, 멱등 저장, worker 실행, 상태·step 조회, stop·restart·rerun 계약과 Flyway V34를 추가했습니다.
+- CMN facade contract와 MBR→ACC remote proxy, XYZ 외부 연계 EDU를 보강했습니다.
 
-- 기존 source를 새로 실행 검증한 결과가 아니다.
-- 기존 `완료` evidence가 강화된 계약 전체를 충족한다는 의미가 아니다.
-- 관련 capability는 최신 source·test·SQL·OpenAPI·UI·runtime evidence로 재확인한다.
-- 기존 구현을 삭제·축소하지 말고 부족한 계층을 보강한다.
+### SQL·증적·문서
 
-## 1. 실제 변경 요약
+- 분할 SQL, 단일 설치 SQL 2종, smoke, seed, Flyway V1/V32/V33/V34를 동기화했습니다.
+- ACC app 계정은 DML만, migration 계정은 DDL을 수행하도록 권한을 분리했습니다.
+- README를 현재 모듈 구조와 PFW/CMN 소유권, O/S/B, 선택형 ACC/Gateway, 생성 배치 DB 경계에 맞췄습니다.
+- 원시 로그는 정본 증적에서 제거하고 비밀정보가 없는 정제 JSON·로그만 유지했습니다.
+- 요청 지시에 따라 DOCX 9종은 이번 구조 안정화 단계에서 재생성하지 않았습니다.
 
-이번 작업은 초기 배포 기준을 `pfw`, `cmn`, `mbr`, `adm`, `bza`, `xyz`와 선택 실행 `bat`로 재정립했다. `BIZADM`은 `BZA`로 전환했고 `ACC`, `EXS`는 baseline 소스·설정·배포·SQL에서 제거했다.
+## 실행 검증
 
-PFW에는 비밀번호 hash port, 온라인·배치 표준 실행 ID와 시작 시 카탈로그 등록, AI provider·embedding·vector port, 첨부 저장 port, registry 기반 원격 로그 라우팅과 비동기 ZIP 작업 capability를 추가했다. ADM에는 표준 실행·원격 로그 조회·진단·비동기 ZIP 생성·1회성 다운로드 token API/UI를 연결했고 BZA에는 DB 인증, access/refresh token 회전, 조직·직원·사용자·역할·메뉴·권한 write, 결재·감사, 알림·첨부·저장 검색·다운로드 감사·권한 분석을 구성했다. 주제영역 생성기는 온라인·배치·BZA 메뉴·레지스트리 후보까지 생성하도록 확장했다.
+| 검증 | 결과 | 핵심 확인 |
+|---|---|---|
+| ACC/Gateway 집중 build·test | 완료 | ACC test·bootJar, Gateway test·bootJar 성공 |
+| PFW/ACC/ADM/BAT 회귀 | 완료 | PFW 카탈로그·DataSource 테스트, ACC 전체 테스트, ADM/BAT 컴파일 성공 |
+| 생성기 smoke | 완료 | 임시 PYM 생성, test, bootJar, bootWar, Java 25 검증 후 정리 |
+| MariaDB 전체 설치 | 완료 | all-install·smoke, seed 재실행, FK/index, 권한 분리 성공 |
+| ACC/Gateway 실기동 | 완료 | ACC `8082`, Gateway `8070`, health HTTP 200, 종료 정리 성공 |
+| OpenAPI runtime | 완료 범위 | ACC 4 paths/3 tags, Gateway 2 paths/1 tag 확인 |
+| ACC 실DB CRUD | 완료 | create/read/update/delete, 논리 삭제 1건, 감사 행위 3건 |
+| 거래·카탈로그 저장 | 완료 범위 | ACC 거래 로그 4건, O/S/B 표준 실행 카탈로그 8건 영속 등록 |
+| 배치 메타 소유권 | 완료 | `accDB.BATCH_*` 0개, `pfwDB.BATCH_*` 9개 |
+| 전체 Gradle test | 완료 | 152 suites, 342 tests, failures 0, errors 0, skipped 4 |
+| 전체 qualityGate | 완료 | 82 tasks, Java 25 major 69, SQL·UTF-8·mojibake·배포·증적 gate 성공 |
 
-## 2. 완료
+주요 정제 증적:
 
-- BIZADM 소스·설정·환경파일을 BZA로 전환하고 `bzaDB`, `bza_*` SQL을 기준으로 통일했다.
-- ACC·EXS 실행 모듈과 직접 참조를 초기 배포 baseline에서 제거했다.
-- PFW PBKDF2-HMAC-SHA256 버전 hash와 legacy 검증·재hash 계약을 ADM/BZA에서 사용한다.
-- BZA refresh token을 DB hash로 보관하고 조건부 폐기 후 회전해 동시 재사용을 차단한다.
-- BZA 로그인 이력은 `USER:READ` 서버 권한을 요구하고 정지·잠금 계정은 현재 사용자 API에서도 거부한다.
-- BZA 사용자·역할·메뉴·버튼/API 권한 등록·수정은 서버 `WRITE` 권한, PFW 비밀번호 hash, 감사 사유와 before/after 기록을 적용한다.
-- PFW AI port와 XYZ deterministic AI EDU에서 구조화 출력, streaming, tool call, injection 방어, retry·fallback, token 사용량, RAG·출처와 사람 승인을 테스트한다.
-- 온라인·배치 표준 실행 ID 322건의 형식과 전역 중복을 빌드 게이트에서 검사한다.
-- MBR·ADM·BZA·XYZ를 최신 JAR로 실제 기동해 네 포트와 `/v3/api-docs` HTTP 200을 확인했다.
-- OpenAPI 런타임 검증에서 ADM 154, MBR 11, BZA 35, XYZ 70개 path와 필수 tag/path를 확인했다.
-- XYZ AI EDU 구조화 응답 API를 CPF 필수 헤더와 34자리 거래 ID로 호출해 HTTP 200, tool call과 token 사용량을 확인했다.
-- 도메인 생성 결과를 별도 임시 경로에서 test, bootJar, Java class major 69까지 검증하고 임시 디렉터리를 정리했다.
-- 분할 SQL에서 `00_all_install.sql`, `00_all_install_and_smoke.sql`, Flyway V1 baseline을 재생성하고 SQL 정적 표준 검사를 통과했다.
-- 저장소 JUnit 137 suites, 316 tests는 failures 0, errors 0이며 환경형 4건은 skipped 상태를 유지한다.
+- `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json`
+- `specs/evidence/20260716_01/mariadb-full-install.sanitized.json`
+- `specs/evidence/20260716_01/create-domain-result.sanitized.json`
+- `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`
 
-## 3. 부분 구현
-
-- BZA는 조직·직원 등록/수정, 사용자·역할·메뉴·권한·고객·상품·주문·설정·다운로드 정책 조회, 결재 상태 전이와 감사를 제공한다. 실제 DB 데이터 기반 브라우저 업무 흐름은 미검증이다.
-- BZA UI는 실효 메뉴·버튼 권한을 반영하고 모든 조회 메뉴와 사용자·역할·메뉴·권한 등록·수정 dialog를 연결했다. 인증 후 browser 업무 흐름과 대량 작업 UX는 미검증이다.
-- ADM 원격 로그는 allowlist root, 경로 이탈·symlink·확장자·크기 제한, 마스킹 preview, registry node 라우팅, timeout·부분 실패 진단, 비동기 checksum ZIP, 소유자 격리, 요청 한도와 1회성 다운로드 token을 제공한다. 실 mTLS 원격 HTTP client와 공유 queue/rate-limit adapter를 사용한 다중 서버 E2E는 미검증이다.
-- 표준 실행 카탈로그는 DB 비가용 시 메모리로 기동하고 DB 가용 시 `pfw_standard_execution`에 등록한다. 실제 MariaDB 영속 등록은 미검증이다.
-- Spring Batch, scheduler, 선후행·trigger, lease, ghost 조치 API/UI와 EDU는 소스·단위 테스트 기준으로 제공한다. JobRepository 실 DB 시나리오는 미검증이다.
-- broker, 서비스 호출, 파일전송 capability와 deterministic adapter는 구현돼 있으나 실 외부 인프라 검증은 수행하지 않았다.
-
-## 4. 미구현
-
-- 원격 로그의 운영용 HTTP/mTLS node client와 Redis·DB 기반 공유 작업 queue·cluster rate-limit adapter.
-- 외부 object storage·백신 검사 첨부 adapter와 BZA 대량 편집 UX. 현재 로컬 첨부 adapter와 개별 업무 처리 기능은 완료했다.
-
-## 5. 미검증
-
-- MariaDB full install, 반복 설치, FK/index/comment/seed, app DML·DDL 금지, migration DDL, Flyway upgrade와 BZA migration.
-- ADM/BZA bootstrap, 로그인, 최초 비밀번호 변경, 잠금·해제, 200/403, 결재·감사·다운로드의 인증 후 브라우저 E2E.
-- Redis, Kafka, RabbitMQ와 SFTP, FTP, FTPS, SCP, SSH 실제 서버 통합.
-- 2개 이상 instance의 registry, failover, circuit, batch lease, worker claim, ghost 오탐, graceful shutdown.
-- Microsoft Word 애플리케이션을 통한 DOCX 실제 열기. OpenXML 구조 검사는 통과했다.
-
-## 6. 실패
-
-최종 미해결 실패는 없다. 작업 중 발견한 실패와 조치는 다음과 같다.
+## 작업 중 발견과 조치
 
 | 발견 | 원인 | 조치 |
 |---|---|---|
-| ADM·XYZ 기동 실패 | 표준 실행 ID 7개 중복 | 전체 322개 ID를 고유화하고 빌드 중복 검사를 추가 |
-| 런타임 하네스 중단 | 실패 결과의 `health` 미초기화 | 모든 모듈 결과 필드를 초기화하고 이후 모듈 검증을 계속 수행 |
-| ADM 기동 지연 | DB 비가용 시 카탈로그 항목별 연결 재시도 | 첫 DB 실패에서 메모리 카탈로그로 장애 격리, 회귀 테스트 추가 |
-| BZA OpenAPI 실패 | 검증 경로만 `/bza/api`로 작성 | 실제 정본 `/api/bza`로 스모크 계약 수정 |
-| UTF-8 gate 실패 | OpenAPI 결과 JSON BOM | 결과 생성기를 UTF-8 no BOM으로 변경 |
-| ADM UI static 실패 | 과거 `segment timeline` 단일 marker | 실제 `Timeline`, `Segments` 탭을 개별 검증 |
-| 최종 quality gate 증적 검사 실패 | ADM 로그 정책 결과 파일이 정제 증적 확장자 규칙과 불일치 | 생성기·런타임 요약·내보내기·Gradle task를 `*.sanitized.json`으로 통일하고 전체 gate 재통과 |
-| OpenAPI 한글 tag 오검출 | Windows PowerShell 5.1이 응답 본문을 시스템 코드페이지로 해석 | 응답 byte를 UTF-8로 직접 해석하도록 스모크를 수정하고 4개 서비스 재검증 |
-| 첨부 EDU 첫 수동 호출 500 | 필수 표준 헤더가 누락된 검증 명령 | 재현 스크립트에 표준 헤더를 고정하고 저장·재조회·checksum 일치 런타임 스모크를 추가 |
+| ACC 기동 시 JdbcTemplate 누락 | 다중 DataSource에 ACC 전용 JDBC bean 없음 | ACC 전용 JdbcTemplate과 qualifier 추가 |
+| ACC MyBatis template 모호성 | PFW·CMN template과 생성 Repository 주입 충돌 | ACC factory/template 및 Repository qualifier 추가 |
+| ACC가 `accDB.BATCH_*` 조회 | Spring Batch가 기본 primary DataSource를 메타 DB로 선택 | PFW BatchRepository 구성 및 자동 Job 실행 차단 |
+| Gateway health DOWN | IN_MEMORY 모드에서도 Rabbit health가 활성화 | broker 기본 모드에서 Rabbit health 비활성화 |
+| 표준 실행 카탈로그 DB 0건 | `pfwJdbcTemplate`이 ADM/BAT에만 존재 | PFW 코어로 bean 소유권 이동, ACC 8건 실등록 검증 |
+| CLI 경고가 검증 예외로 승격 | MariaDB SSL 경고가 PowerShell native error로 처리 | 경고와 SQL 결과를 분리해 DB 판정 재실행 |
 
-## 7. 재확인 필요
+최종 미해결 코드 실패는 없습니다. 전체 테스트와 품질 게이트 결과는 위 표와 정제 증적에 반영했습니다.
 
-- 운영 profile에서 BZA JWT secret, DB secret, bootstrap 승인 변수가 배포 secret manager를 통해 주입되는지 확인해야 한다.
-- 운영 로그 root를 공유 스토리지로 둘 경우 원격 로그 root allowlist와 보존 정책을 환경별로 검토해야 한다.
-- BZA 데이터 범위 권한이 조직 계층과 실제 조회 SQL에 적용되는 범위는 후속 업무 정책에 맞춰 확장해야 한다.
+## 남은 리스크
 
-- 2026-07-16 신규 정본 범위: channel registry/policy, O/S/B transaction test, policy package promotion, ADM 전체 공통 승인결재, 반응형·통계·raw/format log, configuration/secret/observability/schema/retention/DR/supply-chain/performance 전수 재확인
-- 기존 16자리 standard execution ID evidence와 신규 10자리 목표의 충돌 재확인
-- 변경된 요청서 hash, qualityGate, sample coverage, README/스펙, report/matrix/evidence consistency 재생성 필요
+- Gateway의 실제 MBR/ACC 대상 proxy, timeout, streaming, cancellation, 다중 인스턴스 route E2E는 미검증입니다.
+- external Tomcat/JNDI에서 ACC와 Gateway WAR 기동 parity는 미검증입니다.
+- BAT 실제 Job 실행, checkpoint/restart, 다중 worker JobRepository 시나리오는 미검증입니다.
+- MBR·ADM·BZA·XYZ·BAT를 포함한 최신 전체 서비스 동시 기동은 이번 마지막 변경 이후 재실행하지 않았습니다.
+- 운영 mTLS/service token, Redis/Kafka/RabbitMQ, 파일 서버/object storage, Vault/KMS, 장시간 부하·보안·DR은 외부 환경 검증이 필요합니다.
+- 인증 후 ADM/BZA browser E2E와 DOCX 최종 정본화는 후속 검증 범위입니다.
 
-## 8. 실행한 검증
+## 기준 준수
 
-| 검증 | 결과 | 증적 |
-|---|---|---|
-| 전체 Gradle test와 bootJar | 137 suites, 316 tests, failures 0, errors 0, skipped 4 | `specs/evidence/20260715_01/quality-gate.sanitized.log` |
-| MBR·ADM·BZA·XYZ 기동/status/종료 | 4개 모두 HTTP 200, 종료 완료 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log` |
-| OpenAPI 런타임 | 4개 서비스 통과 | `specs/evidence/20260715_01/openapi-runtime.sanitized.log` |
-| 도메인 생성기 | 생성·test·bootJar·major 69 통과 | `specs/evidence/20260715_01/create-domain.sanitized.log` |
-| BZA UI/JS 정적 스모크 | 권한 메뉴, API route, session storage, Node 문법 통과 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json` |
-| AI EDU·원격 로그 라우팅 | deterministic AI와 node routing·부분 실패 ZIP 단위 테스트 통과 | `specs/evidence/20260715_01/quality-gate.sanitized.log` |
-| AI EDU 실제 API | 필수 헤더·34자리 거래 ID로 구조화 응답 HTTP 200 확인 | `specs/evidence/20260715_01/ai-edu-runtime.sanitized.json` |
-| 첨부 EDU 실제 API | 표준 헤더로 저장·재조회 HTTP 200, 파일 크기·SHA-256 일치 확인 | `specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log` |
-| SQL 표준·합본 생성 | 통과 | `specs/evidence/20260715_01/quality-gate.sanitized.log` |
-| UTF-8·mojibake | 통과 | `specs/evidence/20260715_01/quality-gate.sanitized.log` |
+- 문서·소스·SQL·OpenAPI·EDU 상태를 같은 ledger 기준으로 동기화했습니다.
+- README는 제품 진입점으로 유지하고 상세 상태는 보고서와 매트릭스로 분리했습니다.
+- 신규 주석과 설명은 한글로 작성했습니다.
+- 실행하지 않은 외부 환경 검증은 완료로 기록하지 않았습니다.
+- `CPF_NEW_REQUEST.md`는 읽기 전용 요청 기준으로 사용했으며 수정하지 않았습니다.
+- 비밀번호·JWT·서비스 secret 원문을 소스·문서·증적에 저장하지 않았습니다.
 
-## 9. 실행하지 못한 검증
+## 기능별 판정
 
-MariaDB 인증 환경변수가 없어 DB 접속은 시도하지 않았다. 내장 브라우저가 현재 세션에 제공되지 않았고 ADM/BZA 인증정보도 없으므로 로그인 후 클릭 E2E를 실행하지 않았다. 외부 broker·파일 서버와 다중 instance 환경도 제공되지 않았다.
-
-MariaDB 재현 명령:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-install.ps1 -RequireRun
-```
-
-## 10. 주요 evidence
-
-- 기준 디렉터리: `specs/evidence/20260715_01`
-- 요청서 SHA-256: `c6d7ab01f45d2085dac270ff036d75d858e94d3feea674f9e1d2b6528557e454`
-- 시작 commit: `0d206c683aab840dbab4639f2797dd7fd718cefd`
-- quality gate: `quality-gate.sanitized.log`
-- runtime: `runtime-start-services.sanitized.log`, `runtime-status.sanitized.log`, `runtime-stop-services.sanitized.log`
-- OpenAPI: `openapi-runtime.sanitized.log`
-- AI EDU runtime: `ai-edu-runtime.sanitized.json`
-- MariaDB 미검증: `mariadb-full-install.sanitized.log`
-
-## 11. 삭제·이동한 파일
-
-- `bizadm/`을 제거하고 `bza/`로 전환했다.
-- `acc/`, `exs/`와 관련 배포 환경 파일, 직접 호출 샘플을 baseline에서 제거했다.
-- 구형 ACC·EXS·BIZADM runtime smoke와 복합 거래 wrapper 스크립트를 제거했다.
-- 생성기 스모크의 임시 source·verification 디렉터리는 성공 후 자동 삭제한다.
-- 사용자 변경인 `CPF_CODEX_HANDOFF.md` 삭제 상태와 `CPF_NEW_REQUEST.md` 수정은 되돌리지 않았다.
-
-## 12. 남은 위험
-
-가장 큰 위험은 소스·단위 테스트가 아니라 실제 운영 의존성 검증 공백이다. DB 인증, 실 broker·파일 서버, 2개 instance, 인증 후 브라우저를 준비하기 전까지 해당 기능을 운영 완료로 승격하면 안 된다. 원격 로그는 현재 로컬 adapter이므로 다중 서버 운영에서는 중앙 로그 수집 또는 secure remote adapter가 필요하다.
-
-## 13. 작업트리 상태
-
-- branch: `master`
-- commit/push: 수행하지 않음
-- 요청서: 읽기 전용으로 사용했으며 최종 SHA-256와 git blob이 작업 시작 기준과 일치함
-- 사용자 선행 변경과 이번 변경이 함께 있는 dirty worktree이며 사용자 변경을 되돌리지 않음
-
-## 기능별 상태 ledger
-
-상태 정본은 `specs/기능_구현_매트릭스.json`이며 아래 구간은 동기화 스크립트가 생성한다.
+아래 표는 `specs/기능_구현_매트릭스.json`에서 자동 생성합니다.
 
 <!-- CPF_LEDGER_BEGIN -->
 | check id | 상태 | 핵심 증적 | 판정 |
 |---|---|---|---|
-| baseline-module-layout | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기본 배포 pfw·cmn·mbr·adm·bza·xyz와 선택 bat 구성으로 settings·배포 설정을 통일함 |
+| baseline-module-layout | 완료 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | PFW·CMN·MBR·ADM·BZA·XYZ 기본 구성과 선택형 BAT·ACC·PFW Gateway 모듈을 settings 및 빌드 기준으로 확인함 |
 | bza-rename | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | BIZADM 소스·패키지·환경·DB 명칭을 BZA로 전환하고 legacy name gate를 통과함 |
-| acc-exs-cleanup | 완료 | `specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json` | ACC·EXS 모듈과 직접 참조를 baseline에서 제거함 |
-| architecture-ownership | 완료 | `specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json` | PFW 기술 코어, CMN 프로젝트 공통, ADM 프레임워크 운영, BZA 업무 운영 소유권 검사를 통과함 |
+| acc-exs-cleanup | 부분 구현 | `specs/evidence/20260716_01/acc-exs-capability-inventory.sanitized.json`, `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | 삭제 기능 inventory와 ACC reference·XYZ 외부 연계 EDU·MBR→ACC 계약을 복원했고 ACC embedded HTTP/DB CRUD를 실검증함. 49개 전체 기능 runtime E2E는 남음 |
+| architecture-ownership | 완료 | `specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json` | 최신 모듈 구조에서 타 주제영역 Repository·Mapper·DB 직접 접근 금지와 PFW/CMN 소유권 검사를 통과함 |
 | password-hashing | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함 |
 | bza-auth | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 로그인·잠금·비밀번호 변경·access token은 구현·테스트 완료, bzaDB 실로그인은 미검증 |
 | bza-refresh-rotation | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | refresh token hash 저장, 조건부 폐기, 회전과 동시 재사용 거부 테스트를 통과함 |
@@ -181,84 +127,71 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-i
 | remote-log-bundle-jobs | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함 |
 | attachment-storage | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log`, `specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log` | PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ EDU 단위 테스트와 저장·재조회 HTTP 런타임을 통과함 |
 | bza-operation-support | 부분 구현 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json`, `specs/evidence/20260715_01/quality-gate.sanitized.log` | BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증 |
-| standard-execution-id | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기존 16자리 검증은 역사적 근거이며 신규 정본의 O/S/B 10자리 ID와 alias/migration 전체를 다시 구현·검증해야 함 |
-| standard-execution-catalog | 부분 구현 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log`, `specs/evidence/20260715_01/quality-gate.sanitized.log` | 시작 스캔과 메모리 fallback 기동은 확인, pfw_standard_execution 실 DB 등록은 미검증 |
-| execution-log-propagation | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 표준 ID·transactionGlobalId의 로그 context 연계 테스트는 통과, 운영 DB·다중 instance는 미검증 |
-| batch-standard | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | Spring Batch port, 실행·step·lock·운영 API와 EDU는 구현, JobRepository 실 DB는 미검증 |
+| standard-execution-id | 완료 | `specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json`, `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | O/S/B 10자리 값 객체·annotation·중복 gate·327개 alias와 V28→V32 실 MariaDB 전환을 검증함 |
+| standard-execution-catalog | 부분 구현 | `specs/evidence/20260716_01/mariadb-full-install.sanitized.json`, `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | PFW 공통 pfwJdbcTemplate 소유권을 정리하고 ACC 시작 시 O/S/B 실행 메타 8건의 pfwDB 영속 등록을 실검증함. 전체 모듈 catalog·route·ADM 정합성 E2E는 남음 |
+| execution-log-propagation | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | ACC CRUD 호출 4건이 34자리 거래 ID와 O 실행 ID로 pfw_transaction_log에 적재됨을 확인함. Gateway→target 다구간 전파 E2E는 남음 |
+| batch-standard | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | ACC 배치 JobRepository를 PFW DB에 고정하고 accDB BATCH_* 0개, pfwDB BATCH_* 9개를 실검증함. 실제 Job 실행·restart는 BAT runtime에서 남음 |
 | scheduler-dependency | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 영업일·허용시간·시뮬레이션·선후행·trigger·실행대상 API/UI는 구현, DB 실행 시나리오는 미검증 |
 | batch-ghost | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | heartbeat 기반 ghost 후보·조치·운영 로그를 구현, 다중 worker 오탐 검증은 미실행 |
-| bat-runtime | 미검증 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | BAT compile·test·bootJar는 통과했으나 선택 실행 모듈 runtime과 DB job 실행은 이번에 미실행 |
-| domain-generator | 완료 | `specs/evidence/20260715_01/create-domain.sanitized.log` | 온라인·배치·BZA 메뉴·서비스 레지스트리 후보 생성 후 test·bootJar·major 69를 통과함 |
+| bat-runtime | 미검증 | `없음` | BAT test는 통과했으나 선택 runtime 기동과 MariaDB JobRepository 실행은 아직 수행하지 않음 |
+| domain-generator | 완료 | `specs/evidence/20260716_01/create-domain-result.sanitized.json` | 최신 생성기로 임시 PYM 모듈을 순수 생성해 전용 DataSource/MyBatis, PFW BatchRepository, 자동 Job 실행 차단, test·bootJar·bootWar·Java 25를 검증하고 정리함 |
 | xyz-edu | 완료 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json` | XYZ/BAT 공개 capability 대비 EDU 샘플 카탈로그 49/49 매핑을 통과함 |
 | bat-edu | 부분 구현 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json`, `specs/evidence/20260715_01/quality-gate.sanitized.log` | tasklet·chunk·retry·restart·idempotency·center-cut 샘플은 있으나 실 JobRepository 검증은 미실행 |
 | ai-edu | 완료 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json`, `specs/evidence/20260715_01/quality-gate.sanitized.log`, `specs/evidence/20260715_01/ai-edu-runtime.sanitized.json` | PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증 |
-| standard-header | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 헤더 검증·전파·로그 context 테스트와 EDU는 완료, 이번 세션 DB 로그·하위 E2E는 미실행 |
-| service-call-engine | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | timeout·retry·failover·circuit 단위 테스트는 통과, 다중 instance 실 runtime은 미검증 |
+| standard-header | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | 호출 서비스/인스턴스 재생성과 S형 ingress 차단 단위 테스트를 통과함. 실제 MBR→ACC HTTP 전파는 미검증 |
+| service-call-engine | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | MBR→ACC Remote Facade Proxy와 endpoint/실행 ID 계약 테스트를 추가함. 다중 인스턴스 runtime은 미검증 |
 | broker-capability | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증 |
 | broker-real-integration | 미검증 | `없음` | Redis·Kafka·RabbitMQ 서버가 제공되지 않아 실 장애·fallback·replay를 실행하지 않음 |
 | file-transfer-capability | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 파일 검증·checksum·임시파일·이동·이력·원격 명령 계획 테스트는 통과함 |
 | file-server-real-integration | 미검증 | `없음` | SFTP·FTP·FTPS·SCP·SSH 실 서버가 없어 전송 runtime은 실행하지 않음 |
-| mariadb-full-install | 미검증 | `specs/evidence/20260715_01/mariadb-full-install.sanitized.log` | CLI·서비스는 확인했으나 인증 환경변수가 없어 접속과 SQL 실행을 시도하지 않음 |
-| flyway-static | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | V1 baseline과 V28~V31 변경 파일, naming·순서 정적 검사를 통과함 |
-| sql-all-install | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 분할 SQL에서 두 단일 실행 합본과 Flyway baseline을 재생성하고 mismatch 검사를 통과함 |
-| runtime-baseline | 완료 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log`, `specs/evidence/20260715_01/runtime-status.sanitized.log`, `specs/evidence/20260715_01/runtime-stop-services.sanitized.log` | MBR·ADM·BZA·XYZ 프로세스·포트·HTTP 200과 종료를 실제 확인함 |
-| openapi-runtime | 완료 | `specs/evidence/20260715_01/openapi-runtime.sanitized.log` | ADM 154, MBR 11, BZA 35, XYZ 70개 path와 필수 tag/path를 검증함 |
+| mariadb-full-install | 완료 | `specs/evidence/20260716_01/mariadb-full-install.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | 실 MariaDB에서 전체 설치·smoke·seed 재실행·FK/index와 ACC app/migration 권한 분리, ACC CRUD·감사·로그·배치 메타 소유권을 검증함 |
+| flyway-static | 완료 | `specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json` | 기존 V28 checksum을 보존하고 V32 증분 migration을 격리 DB에 실제 적용해 327개 alias와 구형 fixture 전환을 검증함 |
+| sql-all-install | 완료 | `specs/evidence/20260716_01/mariadb-full-install.sanitized.json` | split SQL에서 SOURCE 없는 합본과 V1 baseline을 재생성하고 실 MariaDB 설치·재실행을 검증함 |
+| runtime-baseline | 부분 구현 | `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | 신규 ACC와 PFW Gateway embedded bootJar를 동시에 기동해 health 200과 종료 정리를 검증함. MBR·ADM·BZA·XYZ·BAT를 포함한 최신 전체 묶음 재기동은 남음 |
+| openapi-runtime | 부분 구현 | `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | ACC OpenAPI 4 paths/3 tags와 Gateway 2 paths/1 tag를 실제 /v3/api-docs에서 검증함. 전체 실행 모듈을 동일 최신 build로 재검증하는 단계는 남음 |
 | browser-public-http | 부분 구현 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log` | ADM·BZA HTML HTTP 200은 확인했으나 내장 browser가 없어 실제 렌더링·console 검증은 미실행 |
 | browser-auth-e2e | 미검증 | `없음` | DB·bootstrap 인증정보와 browser 연결이 없어 로그인 이후 E2E를 실행하지 않음 |
 | multi-instance-runtime | 미검증 | `없음` | 2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음 |
-| security-static | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 평문·raw SHA·기본 JWT secret·seed 보안과 secret scan을 통과함 |
+| security-static | 완료 | `specs/evidence/20260716_01/quality-gate.sanitized.log` | 평문 secret·보안 seed·민감 헤더 우회와 PFW 보안 정적 gate를 최신 source에서 통과함 |
 | bza-session-storage | 완료 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json` | BZA access·refresh token을 sessionStorage로 제한하고 localStorage 사용을 gate에서 차단함 |
 | bza-login-history-auth | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 로그인 이력 조회에 Bearer token과 USER:READ 서버 권한을 강제하는 테스트를 통과함 |
-| service-call-boundary | 완료 | `specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json` | 타 주제영역 Repository·Mapper·DB 직접 접근 금지 검사를 통과함 |
-| spring-event-usage | 완료 | `specs/evidence/20260715_01/spring-event-usage-scan.sanitized.json` | 핵심 처리의 금지 Spring Event 사용 검사를 통과함 |
-| profile-loading | 완료 | `specs/evidence/20260715_01/profile-loading-result.sanitized.json` | local·dev·stg·prod profile과 secret 기본값 금지 정적 계약을 통과함 |
-| deploy-inventory | 완료 | `specs/evidence/20260715_01/runtime-config-inventory.sanitized.json` | BZA 기준 dev·stg·prod inventory와 환경 파일 정적 검사를 통과함 |
-| sql-standard | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 검사를 통과함 |
-| utf8-mojibake | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 텍스트 UTF-8, PowerShell BOM/CRLF, mojibake와 생성 JSON no BOM 검사를 통과함 |
-| ui-static | 완료 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json`, `specs/evidence/20260715_01/adm-log-policy-ui-static-result.sanitized.json` | ADM 메뉴/API marker와 BZA 권한·전체 route·Node JS 문법 정적 스모크를 통과함 |
-| sample-coverage | 재확인 필요 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json` | 기존 49개 capability 범위는 통과했으나 신규 channel·approval·promotion·횡단 capability의 실제 EDU/sample/test가 추가된 후 재생성해야 함 |
+| service-call-boundary | 완료 | `specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json`, `specs/evidence/20260716_01/quality-gate.sanitized.log` | MBR→ACC가 CMN Facade Contract와 PFW Service Call Engine을 사용하며 타 주제영역 저장소 직접 참조 gate를 통과함 |
+| spring-event-usage | 완료 | `specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json` | 핵심 동기 처리의 금지 Spring Event 사용 0건을 확인함 |
+| profile-loading | 완료 | `specs/evidence/20260716_01/profile-loading-result.sanitized.json` | local/dev/stg/prod profile 로딩과 prod secret 기본값 금지 검사를 최신 모듈에서 통과함 |
+| deploy-inventory | 완료 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | ACC와 PFW Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함 |
+| sql-standard | 완료 | `specs/evidence/20260716_01/mariadb-full-install.sanitized.json`, `specs/evidence/20260716_01/quality-gate.sanitized.log` | prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 gate와 실 MariaDB 설치를 통과함 |
+| utf8-mojibake | 완료 | `specs/evidence/20260716_01/quality-gate.sanitized.log` | UTF-8, PowerShell BOM/CRLF와 mojibake 검사를 최신 변경 파일 포함 전체 gate에서 통과함 |
+| ui-static | 완료 | `specs/evidence/20260716_01/adm-log-policy-ui-static-result.sanitized.json`, `specs/evidence/20260716_01/bza-ui-static-result.sanitized.json` | ADM/BZA 정적 UI·JavaScript gate를 통과함. 실제 인증 후 browser E2E는 별도 미검증 |
+| sample-coverage | 완료 | `specs/evidence/20260716_01/sample-coverage-result.sanitized.json`, `specs/sample-coverage-matrix.md` | XYZ 외부 연계와 BAT 온디맨드를 포함한 EducationSample 51건의 source·test·matrix 정합성 gate를 통과함 |
 | generator-cleanup | 완료 | `specs/evidence/20260715_01/create-domain.sanitized.log` | 생성기 스모크 성공 후 임시 source·verification 디렉터리가 제거됨 |
-| evidence-sanitization | 완료 | `specs/evidence/20260715_01/log-management-standard.sanitized.json` | 최종 근거 로그에 실행 메타데이터·secret 제거·본문 SHA-256을 적용함 |
-| docx-openxml | 완료 | `specs/evidence/20260715_01/docx-standard.sanitized.json` | 공식 DOCX 9개의 OpenXML 구조 검사를 통과함. Word 애플리케이션 실제 열기는 미검증 |
-| readme-docs | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기존 문서 검증은 신규 패턴·승인결재·채널·정책 승격·횡단 기능 문서화 이전이므로 구현 후 재검증 필요 |
-| quality-gate | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기존 gate 결과는 신규 요구사항 이전 기준이며 approval 우회·snapshot·schema·retention·stale evidence 등 신규 규칙 추가 후 재실행 필요 |
-| request-protection | 재확인 필요 | `specs/evidence/20260715_01/cpf-new-request-protection.sanitized.json` | CPF_NEW_REQUEST.md를 의도적으로 갱신했으므로 기존 hash evidence는 stale이며 새 baseline으로 재생성해야 함 |
-| report-matrix-consistency | 재확인 필요 | `specs/evidence/20260715_01/report-matrix-evidence-consistency.sanitized.json` | 요구사항 확장과 신규 check ID 추가 후 report/gap/evidence/matrix를 다시 생성·검증해야 함 |
-| channel-registry-policy | 재확인 필요 | 없음 | 통합 채널 마스터, 거래별 허용 채널, client/service binding, immutable snapshot, ADM UI와 runtime 차단 검증 필요 |
-| transaction-test-console | 재확인 필요 | 없음 | O/S/B 테스트 콘솔, JUT, prod 강제 비활성, 권한·property·profile, 결과 포맷과 감사 검증 필요 |
-| policy-package-promotion | 재확인 필요 | 없음 | 환경 독립 정책 파일 Export/Import, 원본 보관, diff, 사전 등록, source matching, rollback 검증 필요 |
-| global-change-approval | 재확인 필요 | 없음 | ADM/BAM/BZA 전체 mutation inventory, 자동승인, 통합 결재함, 예약 적용, apply/rollback handler 검증 필요 |
-| adm-bam-responsive-statistics | 재확인 필요 | 없음 | 전 화면 반응형, 거래별·채널별·성공/오류 통계, 교차 통계와 로그 drill-down 검증 필요 |
-| log-raw-format | 재확인 필요 | 없음 | JSON/XML/text/fixed-length raw·formatted 조회, masking, 보안 원문 권한·감사·다운로드 검증 필요 |
-| configuration-secret-lifecycle | 재확인 필요 | 없음 | 설정 catalog/version/drift/last-known-good와 secret·credential·certificate·key rotation 구현 및 runtime 검증 필요 |
-| observability-alert-slo | 재확인 필요 | 없음 | metric·trace·health·SLI/SLO·alert·ack·runbook과 ADM/BAM 연계 검증 필요 |
-| resource-protection | 재확인 필요 | 없음 | bulkhead·rate limit·quota·backpressure·retry budget·pool limit·overload 보호 검증 필요 |
-| schema-versioning-migration | 재확인 필요 | 없음 | REST/event/file schema versioning, deprecation, compatibility, expand/contract, backfill·resume 검증 필요 |
-| retention-privacy-dr | 재확인 필요 | 없음 | retention·archive·purge·privacy·backup·restore·RPO/RTO·DR 절차와 복구 검증 필요 |
-| supply-chain-performance | 재확인 필요 | 없음 | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 필요 |
-| full-capability-inventory | 재확인 필요 | 없음 | PFW/CMN/업무/BAT/BZA/ADM/BAM/Gateway/DB/broker/file/UI 전체 owner·상태·source·test·evidence inventory 필요 |
-| implemented-capability-target-traceability | 재확인 필요 | 없음 | 기존 source·ledger·sample을 정본 section과 양방향 연결하고 최신 상태를 재판정해야 함 |
-| module-topology-authoritative | 재확인 필요 | 없음 | BZA 정식 명칭, ACC reference 유지, EXS 기능 inventory/이전, 기본·선택 실행 topology를 source·settings·deploy에서 재확인해야 함 |
-| standard-execution-contract-migration | 재확인 필요 | 없음 | 신규 10자리 O/S/B 계약과 기존 16자리 source/DB/log/OpenAPI alias·migration을 전수 확인해야 함 |
-| bza-iam-operational-contract | 재확인 필요 | 없음 | password/auth/refresh family/reuse/bootstrap/session/조직·직원·권한·saved search를 최신 DB·browser에서 재검증해야 함 |
-| ai-capability-target-contract | 재확인 필요 | 없음 | PFW AI/embedding/vector port와 XYZ deterministic EDU는 과거 근거가 있으나 보안·관측·실 provider 상태를 최신 기준으로 재검증해야 함 |
-| remote-log-attachment-download-contract | 재확인 필요 | 없음 | 원격 로그·비동기 ZIP·일회성 token·첨부 storage·download audit의 실 mTLS/object storage/browser E2E가 필요함 |
-| batch-dependency-ghost-contract | 재확인 필요 | 없음 | dependency graph·trigger·cycle/orphan·ghost 다중신호·JobRepository·multi-worker runtime을 재검증해야 함 |
-| generator-reference-domain-contract | 재확인 필요 | 없음 | create-domain의 전체 산출과 generated ACC/LNG clean generation, startup, registry, SQL, ownership을 최신 기준으로 재검증해야 함 |
-| cmn-telegram-contract | 재확인 필요 | 없음 | CMN fixed-length layout/parser/formatter와 XYZ 실제 소비 sample의 charset·byte length·round-trip을 재검증해야 함 |
-| ui-design-system-contract | 재확인 필요 | 없음 | ADM/BZA 공통 design system, 환경 표시, route guard, column preference, browser history와 접근성을 실제 browser에서 확인해야 함 |
-| evidence-governance-contract | 재확인 필요 | 없음 | evidence sanitization, request baseline hash, DOCX OpenXML/Word 구분, source-to-target consistency gate를 최신 요구로 재실행해야 함 |
+| evidence-sanitization | 완료 | `specs/evidence/20260716_01/log-management-standard.sanitized.json`, `specs/evidence/20260716_01/quality-gate.sanitized.log` | 최신 정본 증적을 sanitized 파일로 제한하고 실행 메타데이터·secret 제거·본문 SHA-256 규격을 gate에서 검증함 |
+| docx-openxml | 완료 | `specs/evidence/20260716_01/docx-standard.sanitized.json` | 공식 DOCX 9종의 OpenXML package 무결성을 확인함. 이번 구조 변경 freshness와 Word 실제 열기는 최종 정본화 단계로 보류 |
+| readme-docs | 부분 구현 | `README.md`, `specs/sample-coverage-matrix.md` | README를 ACC reference·Gateway·O/S/B·S형 공유 API 실제 구현에 맞췄고 샘플 매트릭스를 갱신함. DOCX 9종은 요청에 따라 최종 정본화 단계로 보류 |
+| quality-gate | 완료 | `specs/evidence/20260716_01/quality-gate.sanitized.log`, `specs/evidence/20260716_01/full-test.sanitized.log` | 최종 qualityGate 82 tasks가 성공했고 전체 152 suites, 342 tests, failures 0, errors 0, skipped 4를 정제 증적으로 기록함 |
+| request-protection | 완료 | `specs/evidence/20260716_01/cpf-new-request-protection.sanitized.json` | 요청서 SHA-256가 작업 시작 baseline과 일치하며 요청서를 수정하지 않음 |
+| report-matrix-consistency | 완료 | `specs/evidence/20260716_01/report-matrix-evidence-consistency.sanitized.json` | 88개 check ID의 report·기능 matrix·GAP·evidence index 상태와 evidence 파일 존재·민감정보 검사를 통과함 |
+| acc-reference-domain | 부분 구현 | `specs/evidence/20260716_01/acc-pure-generated-inventory.sanitized.json`, `specs/evidence/20260716_01/create-domain-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | ACC 생성기 reference domain, 대표 CRUD, SQL/Flyway, 배포 설정, local/remote Facade를 유지하고 embedded HTTP/DB CRUD·감사·OpenAPI를 실검증함. external Tomcat/JNDI parity는 미검증 |
+| shared-api-boundary | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | S형 ID 일치, 허용 호출 서비스, 호출 인스턴스, 외부 Gateway 우회 차단과 fail-closed 운영 확장 경계를 구현·단위 검증함. mTLS adapter runtime은 미검증 |
+| pfw-gateway-runtime | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | PFW 선택형 Gateway core/runtime, route snapshot, 권한 port와 proxy 단위 테스트를 구현하고 embedded health·OpenAPI를 실검증함. 실제 MBR/ACC target proxy·streaming·cancellation runtime은 미검증 |
+| batch-on-demand | 부분 구현 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json`, `specs/sample-coverage-matrix.md` | 온디맨드 접수·멱등·비동기 worker·상태·step·stop·restart·rerun API/SQL/EDU 테스트를 구현함. MariaDB JobRepository runtime은 미검증 |
+| channel-registry-policy | 재확인 필요 | `없음` | 통합 채널 master, 거래별 허용 채널, client/service identity binding과 immutable snapshot 전수 검증이 남음 |
+| transaction-test-console | 재확인 필요 | `없음` | O/S/B 테스트 콘솔, 운영 강제 비활성, 권한·감사·결과 포맷 runtime 검증이 남음 |
+| policy-package-promotion | 재확인 필요 | `없음` | 환경 독립 정책 export/import, diff, 승인, rollback runtime 검증이 남음 |
+| global-change-approval | 재확인 필요 | `없음` | ADM/BZA 전체 mutation 승인·예약 적용·rollback handler 전수 검증이 남음 |
+| adm-bam-responsive-statistics | 재확인 필요 | `없음` | ADM/BZA 반응형 화면, 거래·채널 통계와 drill-down browser 검증이 남음 |
+| log-raw-format | 재확인 필요 | `없음` | JSON/XML/text/fixed-length 원문·포맷·마스킹·원문 권한·다운로드 감사 browser/DB 검증이 남음 |
+| configuration-secret-lifecycle | 재확인 필요 | `없음` | 설정 버전·drift·last-known-good와 secret/certificate/key rotation 외부 adapter 검증이 남음 |
+| observability-alert-slo | 재확인 필요 | `없음` | metric·trace·health·SLI/SLO·alert·ack·runbook의 운영 연계 검증이 남음 |
+| resource-protection | 재확인 필요 | `없음` | bulkhead·rate limit·quota·backpressure·retry budget·pool 제한 검증이 남음 |
+| schema-versioning-migration | 부분 구현 | `specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json` | DB expand/migrate 기반 한 사례는 실검증했으나 REST/event/file schema 호환과 장기 backfill/resume 표준은 재확인 필요 |
+| retention-privacy-dr | 재확인 필요 | `없음` | retention·archive·purge·privacy·backup/restore·RPO/RTO·DR 실복구 검증이 남음 |
+| supply-chain-performance | 재확인 필요 | `없음` | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 재검증이 남음 |
+| full-capability-inventory | 부분 구현 | `specs/evidence/20260716_01/acc-exs-capability-inventory.sanitized.json`, `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | 이번 마일스톤 ACC/EXS/O-S-B/Gateway/BAT 범위 inventory는 완료했으나 25MB 최종 목표 전체 capability의 source 양방향 추적은 계속 필요 |
+| module-topology-authoritative | 완료 | `specs/evidence/20260716_01/feature-evidence-result.sanitized.json` | BZA 정식 업무 백오피스, ACC generator reference, BAT·Gateway 선택 실행, EXS 비runtime 대체 구조를 settings/빌드에서 확인함 |
+| standard-execution-contract-migration | 완료 | `specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json`, `specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json` | O/S/B 10자리 단일 기록과 구형 ID alias 조회 호환 migration을 실제 DB에서 검증함 |
+| generator-reference-domain-contract | 부분 구현 | `specs/evidence/20260716_01/acc-pure-generated-inventory.sanitized.json`, `specs/evidence/20260716_01/create-domain-result.sanitized.json`, `specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json` | 생성기 순수 산출물과 독립 PYM smoke, generated ACC embedded startup·CRUD·registry를 확인함. external Tomcat/JNDI E2E는 미검증 |
+| batch-dependency-ghost-contract | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기존 dependency/ghost 구현은 유지되며 이번에는 온디맨드 restart/rerun을 보강함. 다중 worker JobRepository runtime은 미검증 |
+| cmn-telegram-contract | 재확인 필요 | `없음` | CMN 전문 layout/parser/formatter와 XYZ charset·byte length·round-trip 최신 runtime 재검증이 남음 |
+| ui-design-system-contract | 재확인 필요 | `없음` | ADM/BZA 실제 browser 렌더링·접근성·반응형·history 검증이 남음 |
+| evidence-governance-contract | 부분 구현 | `specs/evidence/20260716_01/work-start.sanitized.json`, `specs/evidence/20260716_01/cpf-new-request-protection.sanitized.json`, `specs/evidence/20260716_01/quality-gate.sanitized.log` | 시작 SHA·정본/요청 hash, 정제 evidence 경로와 최신 qualityGate를 유지함. DOCX freshness와 최종 worktree manifest는 최종 배포 정본화 단계로 보류 |
 <!-- CPF_LEDGER_END -->
-
-## 항상 지켜야 할 기준 점검
-
-| 기준 | 판정 |
-|---|---|
-| 문서·소스·SQL·OpenAPI·EDU 정합성 | 정적 gate와 ledger 동기화로 확인 |
-| README는 짧은 진입점 | 반영 |
-| 관련 가이드 동시 현행화 | README·matrix·증적 인덱스·GAP·검증 리포트와 DOCX 재생성 완료 |
-| 신규 주석·설명 한글 | 반영 |
-| EDU와 실제 engine·test 연결 | sample coverage 49/49 통과 |
-| 실행하지 않은 검증 성공 보고 금지 | DB·browser·multi-instance·external을 미검증 유지 |
-| 민감정보 원문 금지 | 정제 evidence만 최종 근거로 사용 |
-| 요청서 무수정 | hash·git blob 보호 gate로 재확인 |

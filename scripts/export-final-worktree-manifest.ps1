@@ -1,6 +1,6 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01"),
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01"),
     [string] $StartCommit = "d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d"
 )
 

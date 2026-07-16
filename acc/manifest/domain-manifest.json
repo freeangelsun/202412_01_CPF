@@ -1,0 +1,14 @@
+{
+  "moduleCode": "ACC",
+  "domainName": "Account",
+  "domainIdCode": "ACC",
+  "basePackage": "cpf.acc",
+  "port": 8082,
+  "tablePrefix": "acc",
+  "onlineEnabled": true,
+  "batchEnabled": true,
+  "bzaMenuEnabled": true,
+  "serviceId": "ACC",
+  "onlineStandardId": "OACCQY0001",
+  "batchStandardId": "BACCTS0001"
+}

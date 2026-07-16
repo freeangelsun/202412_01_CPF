@@ -34,7 +34,7 @@ public class XyzDynamicLogEducationController {
     }
 
     @PutMapping("/admin/log-level")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0005", name = "XYZDynamicLogLevelRegister")
+    @CpfOnlineTransaction(id = "OXYZAA0019", name = "XYZDynamicLogLevelRegister")
     @Operation(operationId = "xyzDynamicLogEducationRegisterDynamicLogLevel", summary = "동적 로그 레벨 등록", description = "업무 거래 ID 또는 거래 ID 기준으로 임시 로그 레벨 규칙을 등록합니다.")
     public ResponseEntity<DynamicLogLevelRule> registerDynamicLogLevel(
             @RequestParam(required = false) String businessTransactionId,
@@ -56,14 +56,14 @@ public class XyzDynamicLogEducationController {
     }
 
     @GetMapping("/admin/log-level")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0006", name = "XYZDynamicLogLevelList")
+    @CpfOnlineTransaction(id = "OXYZAA0021", name = "XYZDynamicLogLevelList")
     @Operation(operationId = "xyzDynamicLogEducationFindDynamicLogLevelRules", summary = "동적 로그 레벨 조회", description = "현재 유효한 동적 로그 레벨 규칙을 조회합니다.")
     public ResponseEntity<List<DynamicLogLevelRule>> findDynamicLogLevelRules() {
         return ResponseEntity.ok(dynamicLogLevelService.findActiveRules());
     }
 
     @DeleteMapping("/admin/log-level")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0007", name = "XYZDynamicLogLevelRemove")
+    @CpfOnlineTransaction(id = "OXYZAA0022", name = "XYZDynamicLogLevelRemove")
     @Operation(operationId = "xyzDynamicLogEducationRemoveDynamicLogLevelRule", summary = "동적 로그 레벨 제거", description = "등록된 동적 로그 레벨 규칙을 ruleId 기준으로 제거합니다.")
     public ResponseEntity<Map<String, Object>> removeDynamicLogLevelRule(@RequestParam String ruleId) {
         Map<String, Object> response = new LinkedHashMap<>();

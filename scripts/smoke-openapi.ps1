@@ -5,12 +5,16 @@
     [string] $XyzBaseUrl = "http://localhost:8099",
     [string] $BzaBaseUrl = "http://localhost:8091",
     [string] $BatBaseUrl = "http://localhost:8093",
+    [string] $AccBaseUrl = "http://localhost:8082",
+    [string] $GatewayBaseUrl = "http://localhost:8070",
     [string] $ResultDir = "",
     [switch] $SkipAdm,
     [switch] $SkipMbr,
     [switch] $SkipXyz,
     [switch] $SkipBza,
     [switch] $SkipBat,
+    [switch] $IncludeAcc,
+    [switch] $IncludeGateway,
     [switch] $RequireRuntime
 )
 
@@ -213,6 +217,29 @@ if (-not $SkipBat) {
         "/bat/api/health",
         "/bat/api/diagnostics/logging",
         "/bat/api/smoke/jobs/{jobId}/run"
+    ) | Out-Null
+}
+
+# ACC와 Gateway는 선택 실행 모듈이므로 기본 smoke에는 강제하지 않고 명시적으로 요청한 경우만 검증합니다.
+if ($IncludeAcc) {
+    Invoke-JsonSmoke -ServiceName "ACC" -BaseUrl $AccBaseUrl -RequiredTags @(
+        "ACC 업무",
+        "ACC 계정",
+        "ACC 내부 공유 API"
+    ) -RequiredPaths @(
+        "/api/v1/acc",
+        "/api/v1/accounts",
+        "/api/v1/accounts/{accountId}",
+        "/internal/api/v1/accounts/{accountId}/summary"
+    ) | Out-Null
+}
+
+if ($IncludeGateway) {
+    Invoke-JsonSmoke -ServiceName "GATEWAY" -BaseUrl $GatewayBaseUrl -RequiredTags @(
+        "PFW Gateway"
+    ) -RequiredPaths @(
+        "/cpf/execute",
+        "/cpf/execute/{executionId}"
     ) | Out-Null
 }
 

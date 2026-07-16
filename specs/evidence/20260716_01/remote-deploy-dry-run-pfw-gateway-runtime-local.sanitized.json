@@ -1,0 +1,56 @@
+{
+    "generatedAt": "2026-07-16T16:00:18.695+0900",
+    "module": "GATEWAY",
+    "env": "local",
+    "deployMode": "dryRun",
+    "status": "DONE",
+    "realRemoteExecuted": false,
+    "artifact": "D:/WORK_CPF/202412_01_CPF/pfw-gateway-runtime/build/libs/pfw-gateway-runtime-1.0.0.jar",
+    "checksumSha256": "fa7759e1906da6d4e8d5127b57f88bff365a9928117cb12387539547584120fa",
+    "envEvidence": {
+        "generatedAt": "2026-07-16T16:00:18.672+0900",
+        "module": "GATEWAY",
+        "env": "local",
+        "status": "DONE",
+        "envFile": "deploy/env/local-pfw-gateway-runtime.env",
+        "keyCount": 12,
+        "failures": [
+            
+        ]
+    },
+    "inventoryEvidence": {
+        "generatedAt": "2026-07-16T16:00:18.677+0900",
+        "module": "GATEWAY",
+        "env": "local",
+        "status": "DONE",
+        "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/local-services.json",
+        "target": {
+            "module": "GATEWAY",
+            "hostAlias": "gateway-local",
+            "sshHostEnvKey": "GATEWAY_SSH_HOST",
+            "sshUserEnvKey": "GATEWAY_SSH_USER",
+            "deployBase": "build/deploy/pfw-gateway-runtime",
+            "healthUrl": "http://localhost:${GATEWAY_SERVER_PORT}/actuator/health",
+            "serviceName": "cpf-pfw-gateway",
+            "portEnvKey": "GATEWAY_SERVER_PORT",
+            "profile": "local",
+            "approvalRequired": false,
+            "rollbackEnabled": true,
+            "runtimeMode": "embedded-bootjar"
+        },
+        "failures": [
+            
+        ]
+    },
+    "javaJarCommandPlan": "java -jar D:/WORK_CPF/202412_01_CPF/pfw-gateway-runtime/build/libs/pfw-gateway-runtime-1.0.0.jar --spring.profiles.active=local",
+    "healthUrl": "http://localhost:${GATEWAY_SERVER_PORT}/actuator/health",
+    "runtimeMode": "embedded-bootjar",
+    "externalWasPlan": {
+        "mode": "external-tomcat-war",
+        "status": "CONFIG_PLAN_ONLY",
+        "datasource": "GATEWAY_DATASOURCE_MODE=jndi",
+        "jndiNameKey": "GATEWAY_DATASOURCE_JNDI_NAME",
+        "runtimeCheck": "External WAS and JNDI registration are not executed by this dry-run."
+    },
+    "rollbackExecuted": false
+}

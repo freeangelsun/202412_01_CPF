@@ -1,0 +1,18 @@
+[
+  {
+    "standardExecutionId": "OACCQY0001",
+    "executionType": "ONLINE",
+    "ownerDomain": "ACC",
+    "sourceModule": "ACC",
+    "sourceClass": "cpf.acc.controller.AccountController",
+    "enabled": true
+  },
+  {
+    "standardExecutionId": "BACCTS0001",
+    "executionType": "BATCH",
+    "ownerDomain": "ACC",
+    "sourceModule": "ACC",
+    "sourceClass": "cpf.acc.batch.AccountBatchConfig",
+    "enabled": true
+  }
+]

@@ -1,0 +1,54 @@
+{
+    "status":  "완료",
+    "dryRun":  true,
+    "moduleCode":  "ACC",
+    "moduleName":  "Account",
+    "domainIdCode":  "ACC",
+    "basePackage":  "cpf.acc",
+    "tablePrefix":  "acc",
+    "port":  8082,
+    "online":  true,
+    "batch":  true,
+    "bzaMenu":  true,
+    "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\acc",
+    "generatePatch":  false,
+    "applyMode":  false,
+    "conflicts":  [
+
+                  ],
+    "generatedFiles":  [
+
+                       ],
+    "patchFiles":  [
+
+                   ],
+    "patchCandidates":  [
+                            "settings.gradle include \u0027acc\u0027",
+                            "root build dependency registration if needed",
+                            "specs/sql/40_business_modules_schema.sql table candidate",
+                            "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                            "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                            "specs/sql/99_smoke_check.sql smoke candidate",
+                            "specs/sql/00_all_install.sql merge candidate",
+                            "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                            "specs/sql/migration/flyway/Vxx__acc_domain.sql candidate",
+                            "application-acc.yml candidate",
+                            "src/main/resources/application-acc-local.yml candidate",
+                            "src/main/resources/application-acc-dev.yml candidate",
+                            "src/main/resources/application-acc-stg.yml candidate",
+                            "src/main/resources/application-acc-prod.yml candidate",
+                            "deploy/env/local-acc.env candidate",
+                            "deploy/env/dev-acc.env candidate",
+                            "deploy/env/stg-acc.env candidate",
+                            "deploy/env/prod-acc.env candidate",
+                            "deploy/inventory/local-services.json candidate",
+                            "deploy/inventory/dev-services.json candidate",
+                            "deploy/inventory/stg-services.json candidate",
+                            "deploy/inventory/prod-services.template.json candidate",
+                            "module smoke script candidate",
+                            "standard execution catalog manifest",
+                            "service registry manifest",
+                            "BZA menu registration candidate",
+                            "README.md and specs guide link candidate"
+                        ]
+}

@@ -1,0 +1,19 @@
+{
+  "profile": "stg",
+  "services": [
+    {
+      "module": "ACC",
+      "hostAlias": "acc-stg",
+      "sshHostEnvKey": "ACC_SSH_HOST",
+      "sshUserEnvKey": "ACC_SSH_USER",
+      "deployBase": "/opt/cpf/acc",
+      "healthUrl": "http://localhost:8082/actuator/health",
+      "serviceName": "cpf-acc",
+      "portEnvKey": "ACC_SERVER_PORT",
+      "profile": "stg",
+      "runtimeMode": "embedded-bootjar",
+      "approvalRequired": true,
+      "rollbackEnabled": true
+    }
+  ]
+}

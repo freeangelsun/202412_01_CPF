@@ -19,6 +19,8 @@ $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build/runtime-smoke"
+} elseif (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
+    $ResultDir = Join-Path $Root $ResultDir
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "create-domain-result.json"
@@ -97,16 +99,20 @@ try {
         "build.gradle",
         "README.md",
         "manifest/domain-manifest.json",
+        "manifest/ownership.json",
         "manifest/standard-execution-catalog.json",
         "src/main/resources/application.yml",
         "src/main/resources/application-${ModuleCode}.yml",
         "src/main/java/cpf/$ModuleCode/${ModuleName}Application.java",
+        "src/main/java/cpf/$ModuleCode/config/${ModuleName}DataSourceConfig.java",
+        "src/main/java/cpf/$ModuleCode/config/${ModuleName}MyBatisConfig.java",
         "src/main/java/cpf/$ModuleCode/controller/${ModuleName}Controller.java",
         "src/main/java/cpf/$ModuleCode/facade/${ModuleName}Facade.java",
         "src/main/java/cpf/$ModuleCode/port/${ModuleName}QueryPort.java",
         "src/main/java/cpf/$ModuleCode/adapter/local/Local${ModuleName}QueryAdapter.java",
         "src/main/java/cpf/$ModuleCode/adapter/remote/Remote${ModuleName}QueryProxy.java",
         "src/main/java/cpf/$ModuleCode/batch/${ModuleName}BatchConfig.java",
+        "src/main/java/cpf/$ModuleCode/config/${ModuleName}BatchRepositoryConfig.java",
         "src/main/java/cpf/$ModuleCode/service/${ModuleName}Service.java",
         "src/main/java/cpf/$ModuleCode/repository/${ModuleName}Repository.java",
         "src/main/java/cpf/$ModuleCode/dto/${ModuleName}SearchRequest.java",
@@ -249,8 +255,8 @@ subprojects {
     try {
         $ErrorActionPreference = "Continue"
         $compileOutputLines = @(& $javaExecutable "-Dorg.gradle.appname=gradlew" -jar $gradleWrapperJar -p $verificationDir `
-                ":${ModuleCode}:test" ":${ModuleCode}:bootJar" `
-                --offline --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
+                ":${ModuleCode}:test" ":${ModuleCode}:bootJar" ":${ModuleCode}:bootWar" `
+                --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
         $compileExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -263,6 +269,7 @@ subprojects {
         logPath = $compileLogPath.Substring($Root.Length).TrimStart('\', '/')
         testTask = ":${ModuleCode}:test"
         bootJarTask = ":${ModuleCode}:bootJar"
+        bootWarTask = ":${ModuleCode}:bootWar"
     }
     if ($compileExitCode -ne 0) {
         throw "generated domain compile/test/bootJar failed. log=$compileLogPath"
@@ -286,8 +293,14 @@ subprojects {
     if ($null -eq $bootJar) {
         throw "generated domain bootJar is missing."
     }
+    $bootWar = Get-ChildItem -LiteralPath (Join-Path $previewDir "build/libs") -File -Filter "*.war" |
+        Select-Object -First 1
+    if ($null -eq $bootWar) {
+        throw "generated domain bootWar is missing."
+    }
     $result.compile.classMajor = $classMajor
     $result.compile.bootJar = $bootJar.FullName.Substring($Root.Length).TrimStart('\', '/')
+    $result.compile.bootWar = $bootWar.FullName.Substring($Root.Length).TrimStart('\', '/')
     $result.compile.javaExecutable = "JAVA_HOME/bin/java"
 
     # 검증 산출물은 저장소에 남기지 않고 결과 메타데이터와 컴파일 로그만 증적으로 보존합니다.

@@ -3,7 +3,9 @@ package cpf.pfw.common.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cpf.pfw.common.header.CpfHeaderNames;
 import cpf.pfw.common.header.CpfInboundHeaderValidator;
+import cpf.pfw.common.execution.CpfExecutionType;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
+import cpf.pfw.common.execution.CpfSharedApi;
 import cpf.pfw.common.execution.CpfStandardExecutionId;
 import cpf.pfw.common.exception.CpfErrorResponse;
 import cpf.pfw.common.exception.CpfFrameworkErrorCode;
@@ -15,6 +17,7 @@ import cpf.pfw.common.logging.CpfTransaction;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -23,8 +26,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
 /**
@@ -39,11 +47,31 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
     private final ObjectMapper objectMapper;
     private final CpfResponseCodeResolver responseCodeResolver;
     private final CpfInboundHeaderValidator inboundHeaderValidator;
+    private final CpfInternalServiceIdentityVerifier internalServiceIdentityVerifier;
 
+    @Autowired
+    public TransactionHeaderValidationInterceptor(
+            ObjectMapper objectMapper,
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
+            Environment environment,
+            ObjectProvider<CpfInternalServiceIdentityVerifier> identityVerifierProvider) {
+        this(objectMapper, responseCodeResolverProvider, environment, identityVerifierProvider.getIfAvailable());
+    }
+
+    /** 단위 테스트와 최소 구성에서 기본 내부 신원 정책을 사용하는 호환 생성자입니다. */
     public TransactionHeaderValidationInterceptor(
             ObjectMapper objectMapper,
             ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
             Environment environment) {
+        this(objectMapper, responseCodeResolverProvider, environment,
+                (CpfInternalServiceIdentityVerifier) null);
+    }
+
+    private TransactionHeaderValidationInterceptor(
+            ObjectMapper objectMapper,
+            ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
+            Environment environment,
+            CpfInternalServiceIdentityVerifier identityVerifier) {
         this.objectMapper = objectMapper;
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
         int transactionIdSequenceDigits = environment.getProperty(
@@ -51,6 +79,9 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                 Integer.class,
                 7);
         this.inboundHeaderValidator = new CpfInboundHeaderValidator(transactionIdSequenceDigits);
+        this.internalServiceIdentityVerifier = identityVerifier != null
+                ? identityVerifier
+                : defaultIdentityVerifier(environment);
     }
 
     @Override
@@ -71,6 +102,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             validateRequiredHeaders(request);
             validateTransactionMetadata(transaction);
             validateStandardExecutionHeader(request, transaction);
+            validateSharedApiIngress(request, transaction);
         } catch (CpfFrameworkException ex) {
             writeFrameworkError(response, ex);
             return false;
@@ -132,6 +164,13 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                             + transaction.id(),
                     Map.of("0", "executionId", "1", transaction.id()));
         }
+        if (transaction.standard()
+                && CpfStandardExecutionId.parse(transaction.id()).type() != transaction.executionType()) {
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "표준 실행 ID 유형과 선언된 실행 유형이 일치하지 않습니다. " + transaction.id(),
+                    Map.of("0", "executionType", "1", transaction.id()));
+        }
         if (transaction.name() == null || transaction.name().isBlank()) {
             throw new CpfFrameworkException(
                     CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
@@ -146,14 +185,30 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             standard = handlerMethod.getBeanType().getAnnotation(CpfOnlineTransaction.class);
         }
         if (standard != null) {
-            return new OnlineExecutionMetadata(standard.id(), standard.name(), true);
+            return new OnlineExecutionMetadata(
+                    standard.id(), standard.name(), true, CpfExecutionType.ONLINE, Set.of());
+        }
+        CpfSharedApi shared = handlerMethod.getMethodAnnotation(CpfSharedApi.class);
+        if (shared == null) {
+            shared = handlerMethod.getBeanType().getAnnotation(CpfSharedApi.class);
+        }
+        if (shared != null) {
+            Set<String> allowedCallers = Arrays.stream(shared.allowedCallers())
+                    .filter(this::hasText)
+                    .map(value -> value.trim().toUpperCase(Locale.ROOT))
+                    .collect(Collectors.toUnmodifiableSet());
+            return new OnlineExecutionMetadata(
+                    shared.id(), shared.name(), true, CpfExecutionType.SHARED, allowedCallers);
         }
         CpfTransaction methodAnnotation = handlerMethod.getMethodAnnotation(CpfTransaction.class);
         if (methodAnnotation != null) {
-            return new OnlineExecutionMetadata(methodAnnotation.id(), methodAnnotation.name(), false);
+            return new OnlineExecutionMetadata(
+                    methodAnnotation.id(), methodAnnotation.name(), false, null, Set.of());
         }
         CpfTransaction typeAnnotation = handlerMethod.getBeanType().getAnnotation(CpfTransaction.class);
-        return typeAnnotation == null ? null : new OnlineExecutionMetadata(typeAnnotation.id(), typeAnnotation.name(), false);
+        return typeAnnotation == null
+                ? null
+                : new OnlineExecutionMetadata(typeAnnotation.id(), typeAnnotation.name(), false, null, Set.of());
     }
 
     /** 내부 서비스 호출은 호출 대상과 표준 실행 ID가 정확히 일치해야 합니다. */
@@ -171,6 +226,87 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         }
     }
 
+    /**
+     * S형 공유 API를 공개 Gateway 또는 신원이 확인되지 않은 호출자가 우회 실행하지 못하게 차단합니다.
+     */
+    private void validateSharedApiIngress(HttpServletRequest request, OnlineExecutionMetadata transaction) {
+        if (transaction.executionType() != CpfExecutionType.SHARED) {
+            return;
+        }
+
+        String suppliedId = request.getHeader(CpfHeaderNames.STANDARD_EXECUTION_ID);
+        String callerService = normalize(request.getHeader(CpfHeaderNames.CALLER_SERVICE));
+        String callerInstance = normalize(request.getHeader(CpfHeaderNames.CALLER_INSTANCE_ID));
+        String ingressType = normalize(request.getHeader(CpfHeaderNames.INGRESS_TYPE));
+
+        if (!hasText(suppliedId)) {
+            throw accessDenied("S형 공유 API에는 표준 실행 ID 헤더가 필수입니다.");
+        }
+        if (!hasText(callerService) || !hasText(callerInstance)) {
+            throw accessDenied("S형 공유 API에는 호출 서비스와 호출 인스턴스 신원이 모두 필요합니다.");
+        }
+        if (hasGatewayIdentity(request)
+                || "PFW_GATEWAY".equalsIgnoreCase(ingressType)
+                || "EXTERNAL_GATEWAY".equalsIgnoreCase(ingressType)) {
+            throw accessDenied("S형 공유 API는 공개 Gateway 경로로 실행할 수 없습니다.");
+        }
+        if (!transaction.allowedCallers().isEmpty()
+                && !transaction.allowedCallers().contains(callerService.toUpperCase(Locale.ROOT))) {
+            throw accessDenied("허용되지 않은 CPF 서비스가 공유 API를 호출했습니다.");
+        }
+        if (!internalServiceIdentityVerifier.isTrusted(request, callerService, callerInstance)) {
+            throw accessDenied("CPF 내부 서비스 신원을 검증할 수 없습니다.");
+        }
+    }
+
+    private boolean hasGatewayIdentity(HttpServletRequest request) {
+        return hasText(request.getHeader(CpfHeaderNames.GATEWAY_INSTANCE_ID))
+                || hasText(request.getHeader(CpfHeaderNames.GATEWAY_ROUTE_ID))
+                || hasText(request.getHeader(CpfHeaderNames.GATEWAY_ROUTE_VERSION));
+    }
+
+    private CpfFrameworkException accessDenied(String detail) {
+        return new CpfFrameworkException(
+                CpfFrameworkErrorCode.INTERNAL_SERVICE_ACCESS_DENIED,
+                detail,
+                Map.of("0", detail));
+    }
+
+    /** 운영 프로필은 fail-closed하고 개발 프로필의 loopback 또는 명시한 peer만 허용합니다. */
+    private CpfInternalServiceIdentityVerifier defaultIdentityVerifier(Environment environment) {
+        Set<String> activeProfiles = Arrays.stream(environment.getActiveProfiles())
+                .map(value -> value.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toUnmodifiableSet());
+        boolean productionProfile = activeProfiles.contains("prod") || activeProfiles.contains("stg");
+        Set<String> trustedPeers = Arrays.stream(environment.getProperty(
+                        "cpf.framework.internal-api.trusted-peer-addresses", "").split(","))
+                .map(String::trim)
+                .filter(this::hasText)
+                .collect(Collectors.toUnmodifiableSet());
+
+        return (request, callerServiceId, callerInstanceId) -> {
+            if (hasClientCertificate(request) || trustedPeers.contains(request.getRemoteAddr())) {
+                return true;
+            }
+            return !productionProfile && isLoopback(request.getRemoteAddr());
+        };
+    }
+
+    private boolean hasClientCertificate(HttpServletRequest request) {
+        Object certificate = request.getAttribute("jakarta.servlet.request.X509Certificate");
+        return certificate instanceof X509Certificate[] certificates && certificates.length > 0;
+    }
+
+    private boolean isLoopback(String address) {
+        return "127.0.0.1".equals(address)
+                || "0:0:0:0:0:0:0:1".equals(address)
+                || "::1".equals(address);
+    }
+
+    private String normalize(String value) {
+        return hasText(value) ? value.trim() : null;
+    }
+
     private CpfFrameworkException invalidExecutionHeader(String expectedId, String detail) {
         return new CpfFrameworkException(
                 CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
@@ -182,7 +318,12 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         return value != null && !value.isBlank();
     }
 
-    private record OnlineExecutionMetadata(String id, String name, boolean standard) {
+    private record OnlineExecutionMetadata(
+            String id,
+            String name,
+            boolean standard,
+            CpfExecutionType executionType,
+            Set<String> allowedCallers) {
     }
 
     /**

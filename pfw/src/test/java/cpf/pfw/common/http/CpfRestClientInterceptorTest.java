@@ -66,6 +66,20 @@ class CpfRestClientInterceptorTest {
     }
 
     @Test
+    void configuredLocalServiceIdentityReplacesUntrustedCallerHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(CpfHeaderNames.CALLER_SERVICE, "EXTERNAL-SPOOF");
+        headers.set(CpfHeaderNames.CALLER_INSTANCE_ID, "EXTERNAL-01");
+
+        CpfRestClientInterceptor.applyHeaders(
+                headers,
+                new CpfLocalServiceIdentity("MBR", "MBR01"));
+
+        assertThat(headers.getFirst(CpfHeaderNames.CALLER_SERVICE)).isEqualTo("MBR");
+        assertThat(headers.getFirst(CpfHeaderNames.CALLER_INSTANCE_ID)).isEqualTo("MBR01");
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void restClientInterceptorWritesOutboundIntegrationEvents() throws Exception {
         CpfFileLogWriter writer = mock(CpfFileLogWriter.class);

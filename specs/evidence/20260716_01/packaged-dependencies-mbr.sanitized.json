@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-16T16:50:51.205+0900",
+    "module": "MBR",
+    "status": "DONE",
+    "artifact": "D:/WORK_CPF/202412_01_CPF/mbr/build/libs/mbr-1.0.0.jar",
+    "containsPfw": true,
+    "containsCmn": true,
+    "failures": [
+        
+    ]
+}

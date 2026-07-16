@@ -11,8 +11,15 @@ public record CpfExecutionDefinition(
         String sourceModule,
         String sourceClass,
         String sourceMethod,
+        String httpMethod,
         String endpoint,
         String operationId,
+        String description,
+        String requiredPermission,
+        boolean auditReasonRequired,
+        String visibility,
+        boolean directAllowed,
+        boolean gatewayAllowed,
         String sourceVersion,
         Instant discoveredAt) {
 
@@ -25,6 +32,29 @@ public record CpfExecutionDefinition(
             throw new IllegalArgumentException("표준 실행명은 필수입니다.");
         }
         ownerDomain = ownerDomain == null || ownerDomain.isBlank() ? parsed.domain() : ownerDomain;
+        httpMethod = httpMethod == null ? "" : httpMethod;
+        description = description == null ? "" : description;
+        requiredPermission = requiredPermission == null ? "" : requiredPermission;
+        visibility = visibility == null || visibility.isBlank() ? "INTERNAL" : visibility.trim().toUpperCase();
         discoveredAt = discoveredAt == null ? Instant.now() : discoveredAt;
+    }
+
+    /** 기존 저장소·테스트에서 사용하는 최소 생성자 호환 경계입니다. */
+    public CpfExecutionDefinition(
+            String standardExecutionId,
+            String executionName,
+            CpfExecutionType executionType,
+            String ownerDomain,
+            String sourceModule,
+            String sourceClass,
+            String sourceMethod,
+            String endpoint,
+            String operationId,
+            String sourceVersion,
+            Instant discoveredAt) {
+        this(standardExecutionId, executionName, executionType, ownerDomain, sourceModule,
+                sourceClass, sourceMethod, "", endpoint, operationId, "", "", false,
+                executionType == CpfExecutionType.ONLINE ? "PUBLIC" : "INTERNAL",
+                true, executionType == CpfExecutionType.ONLINE, sourceVersion, discoveredAt);
     }
 }

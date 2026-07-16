@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: acc
+  flyway:
+    # DDL migration은 app 계정이 아니라 별도 migration 절차에서 실행합니다.
+    enabled: ${ACC_FLYWAY_ENABLED:false}
+  batch:
+    # 등록된 Job은 ADM/BAT의 승인된 실행 요청으로만 시작하고 애플리케이션 기동 시 자동 실행하지 않습니다.
+    job:
+      enabled: false
+    # Spring Batch 메타 스키마는 pfwDB 설치 SQL이 관리하므로 app 계정으로 자동 생성하지 않습니다.
+    jdbc:
+      initialize-schema: never
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-acc.yml
+      - optional:classpath:application-acc-${spring.profiles.active:local}.yml
+
+cpf:
+  framework:
+    module-id: ${ACC_MODULE_ID:ACC}
+  logging:
+    file:
+      base-path: ${CPF_LOG_ROOT:}
+      timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
+      max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
+      archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
+      file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
+logging:
+  config: classpath:log/cpf-logback-spring.xml
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

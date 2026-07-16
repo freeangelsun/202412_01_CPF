@@ -6,7 +6,7 @@
 $ErrorActionPreference = "Stop"
 
 $profiles = @("local", "dev", "stg", "prod")
-$modules = @("mbr", "adm", "bat", "bza", "xyz")
+$modules = @("mbr", "adm", "bat", "bza", "xyz", "acc")
 $failures = New-Object System.Collections.Generic.List[object]
 $checks = New-Object System.Collections.Generic.List[object]
 
@@ -108,6 +108,31 @@ foreach ($module in $modules) {
 
     if ($joinedText -match "(?i)(private-key|access-token|refresh-token|client-secret)\s*:\s*[^`r`n\$\{]") {
         Add-Failure "MODULE_SECRET_LITERAL_$moduleUpper" "Module profile has a secret-like literal value."
+    }
+}
+
+# Gateway는 PFW가 소유하는 선택 실행 모듈이므로 업무 모듈 profile 파일을 복제하지 않습니다.
+# 대신 PFW profile import와 Gateway 전용 실행·DB 환경변수 계약을 별도로 검증합니다.
+$gatewayPath = Join-Path $Root "pfw-gateway-runtime/src/main/resources/application.yml"
+if (Test-File "pfw-gateway-runtime/src/main/resources/application.yml" "APPLICATION_YML_GATEWAY") {
+    $gatewayText = Read-Text $gatewayPath
+    foreach ($marker in @(
+        "application-pfw.yml",
+        'application-pfw-${SPRING_PROFILES_ACTIVE:local}.yml',
+        '${GATEWAY_MODULE_ID:PFW}',
+        '${GATEWAY_INSTANCE_ID:',
+        '${GATEWAY_WAS_ID:',
+        '${GATEWAY_SERVER_PORT:8070}',
+        '${GATEWAY_DATASOURCE_URL:',
+        '${GATEWAY_DATASOURCE_USERNAME:',
+        '${GATEWAY_DATASOURCE_PASSWORD:'
+    )) {
+        if ($gatewayText -notlike "*$marker*") {
+            Add-Failure "GATEWAY_RUNTIME_CONTRACT" "Gateway 설정 marker가 없습니다: $marker"
+        }
+    }
+    if (@($failures | Where-Object { $_.name -eq "GATEWAY_RUNTIME_CONTRACT" }).Count -eq 0) {
+        Add-Check "GATEWAY_RUNTIME_CONTRACT" "DONE" "PFW profile import와 Gateway 실행 환경변수 계약을 확인했습니다."
     }
 }
 

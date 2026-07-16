@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: pfw-gateway-runtime
+  datasource:
+    pfw:
+      url: ${GATEWAY_DATASOURCE_URL:jdbc:mariadb://localhost:3306/pfwDB}
+      username: ${GATEWAY_DATASOURCE_USERNAME:cpf_pfw_app}
+      password: ${GATEWAY_DATASOURCE_PASSWORD:}
+      driver-class-name: org.mariadb.jdbc.Driver
+  config:
+    import:
+      - optional:classpath:application-pfw.yml
+      - optional:file:${CPF_CONFIG_DIR:./config}/application-pfw.yml
+      - optional:file:${CPF_CONFIG_DIR:./config}/application-pfw-${SPRING_PROFILES_ACTIVE:local}.yml
+
+server:
+  port: ${GATEWAY_SERVER_PORT:8070}
+
+cpf:
+  framework:
+    module-id: ${GATEWAY_MODULE_ID:PFW}
+    instance-id: ${GATEWAY_INSTANCE_ID:pfw-gateway-local-01}
+    was-id: ${GATEWAY_WAS_ID:gwLC001}
+  gateway:
+    route-refresh-millis: ${GATEWAY_ROUTE_REFRESH_MILLIS:30000}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

@@ -1,0 +1,56 @@
+{
+    "generatedAt": "2026-07-16T16:50:51.219+0900",
+    "module": "MBR",
+    "env": "dev",
+    "deployMode": "dryRun",
+    "status": "DONE",
+    "realRemoteExecuted": false,
+    "artifact": "D:/WORK_CPF/202412_01_CPF/mbr/build/libs/mbr-1.0.0.jar",
+    "checksumSha256": "852a80a18e64268ca57f9332d45a486460118eca4fee5227638518766e392c30",
+    "envEvidence": {
+        "generatedAt": "2026-07-16T16:50:51.188+0900",
+        "module": "MBR",
+        "env": "dev",
+        "status": "DONE",
+        "envFile": "deploy/env/dev-mbr.env",
+        "keyCount": 11,
+        "failures": [
+            
+        ]
+    },
+    "inventoryEvidence": {
+        "generatedAt": "2026-07-16T16:50:51.195+0900",
+        "module": "MBR",
+        "env": "dev",
+        "status": "DONE",
+        "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/dev-services.json",
+        "target": {
+            "module": "MBR",
+            "hostAlias": "mbr-dev",
+            "sshHostEnvKey": "MBR_SSH_HOST",
+            "sshUserEnvKey": "MBR_SSH_USER",
+            "deployBase": "/apps/cpf/mbr",
+            "healthUrl": "http://${MBR_SSH_HOST}:${MBR_SERVER_PORT}/actuator/health",
+            "serviceName": "cpf-mbr",
+            "portEnvKey": "MBR_SERVER_PORT",
+            "profile": "dev",
+            "approvalRequired": false,
+            "rollbackEnabled": true,
+            "runtimeMode": "embedded-bootjar"
+        },
+        "failures": [
+            
+        ]
+    },
+    "javaJarCommandPlan": "java -jar D:/WORK_CPF/202412_01_CPF/mbr/build/libs/mbr-1.0.0.jar --spring.profiles.active=dev",
+    "healthUrl": "http://${MBR_SSH_HOST}:${MBR_SERVER_PORT}/actuator/health",
+    "runtimeMode": "embedded-bootjar",
+    "externalWasPlan": {
+        "mode": "external-tomcat-war",
+        "status": "CONFIG_PLAN_ONLY",
+        "datasource": "MBR_DATASOURCE_MODE=jndi",
+        "jndiNameKey": "MBR_DATASOURCE_JNDI_NAME",
+        "runtimeCheck": "External WAS and JNDI registration are not executed by this dry-run."
+    },
+    "rollbackExecuted": false
+}

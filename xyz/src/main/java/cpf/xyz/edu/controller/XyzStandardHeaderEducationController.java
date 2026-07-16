@@ -34,7 +34,7 @@ public class XyzStandardHeaderEducationController {
      * 현재 거래 컨텍스트의 전파 허용 헤더만 하위 시스템으로 보내고 수신 결과를 반환합니다.
      */
     @GetMapping("/propagation")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-15-0001", name = "XYZ표준헤더전파검증")
+    @CpfOnlineTransaction(id = "OXYZAA0057", name = "XYZ표준헤더전파검증")
     @Operation(
             operationId = "xyzStandardHeaderEducationVerifyPropagation",
             summary = "표준 거래 헤더 전파 검증",

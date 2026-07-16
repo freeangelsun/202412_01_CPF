@@ -22,6 +22,12 @@ springdoc:
   cache:
     disabled: false
 
+management:
+  health:
+    # 기본 IN_MEMORY broker에서는 classpath의 Rabbit client만으로 health가 DOWN이 되지 않게 합니다.
+    rabbit:
+      enabled: ${CPF_PFW_RABBIT_HEALTH_ENABLED:false}
+
 mybatis:
   config-location: classpath:mybatis/config/pfw-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/pfw/**/*.xml

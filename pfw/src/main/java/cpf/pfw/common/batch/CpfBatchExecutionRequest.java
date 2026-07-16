@@ -23,7 +23,10 @@ public record CpfBatchExecutionRequest(
         String requestUser,
         String reason,
         CpfBatchOperationType operationType,
-        boolean lockRequired) {
+        boolean lockRequired,
+        String standardBatchId,
+        String businessDate,
+        String idempotencyKey) {
 
     public static CpfBatchExecutionRequest run(
             String jobId,
@@ -38,7 +41,10 @@ public record CpfBatchExecutionRequest(
                 requestUser,
                 reason,
                 CpfBatchOperationType.RUN,
-                true);
+                true,
+                null,
+                null,
+                null);
     }
 
     public static CpfBatchExecutionRequest scheduledRun(
@@ -55,7 +61,10 @@ public record CpfBatchExecutionRequest(
                 requestUser,
                 reason,
                 CpfBatchOperationType.SCHEDULE_RUN,
-                true);
+                true,
+                null,
+                null,
+                null);
     }
 
     public static CpfBatchExecutionRequest retry(
@@ -70,7 +79,26 @@ public record CpfBatchExecutionRequest(
                 requestUser,
                 reason,
                 CpfBatchOperationType.RETRY,
-                true);
+                true,
+                null,
+                null,
+                null);
+    }
+
+    /** 실패한 Spring Batch 실행을 같은 JobInstance에서 이어서 재시작합니다. */
+    public static CpfBatchExecutionRequest restart(
+            long sourceExecutionId,
+            String requestUser,
+            String reason) {
+        return operation(sourceExecutionId, requestUser, reason, CpfBatchOperationType.RESTART);
+    }
+
+    /** 기존 실행의 업무 파라미터를 복제해 별도의 신규 JobInstance로 재수행합니다. */
+    public static CpfBatchExecutionRequest rerun(
+            long sourceExecutionId,
+            String requestUser,
+            String reason) {
+        return operation(sourceExecutionId, requestUser, reason, CpfBatchOperationType.RERUN);
     }
 
     public static CpfBatchExecutionRequest stop(
@@ -85,7 +113,24 @@ public record CpfBatchExecutionRequest(
                 requestUser,
                 reason,
                 CpfBatchOperationType.STOP,
-                false);
+                false,
+                null,
+                null,
+                null);
+    }
+
+    /** 온라인 접수 API가 표준 배치 ID와 멱등 정보를 보존해 실행할 때 사용합니다. */
+    public static CpfBatchExecutionRequest onDemand(
+            String standardBatchId,
+            String jobId,
+            String businessDate,
+            String idempotencyKey,
+            String jobParameters,
+            String requestUser,
+            String reason) {
+        return new CpfBatchExecutionRequest(
+                jobId, null, null, jobParameters, requestUser, reason,
+                CpfBatchOperationType.RUN, true, standardBatchId, businessDate, idempotencyKey);
     }
 
     public String normalizedJobParameters() {
@@ -109,5 +154,15 @@ public record CpfBatchExecutionRequest(
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private static CpfBatchExecutionRequest operation(
+            long sourceExecutionId,
+            String requestUser,
+            String reason,
+            CpfBatchOperationType operationType) {
+        return new CpfBatchExecutionRequest(
+                null, null, sourceExecutionId, null, requestUser, reason,
+                operationType, true, null, null, null);
     }
 }

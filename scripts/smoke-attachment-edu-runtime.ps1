@@ -78,7 +78,7 @@ try {
         -Method POST `
         -Uri "$BaseUrl/xyz/edu/attachments/text" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 21) `
-        -ExecutionId "OXYZ-EDU-17-0001" `
+        -ExecutionId "OXYZAA0065" `
         -Body ([ordered]@{
             groupId = "EDU"
             fileName = "cpf-attachment-runtime.txt"
@@ -89,7 +89,7 @@ try {
         -Method POST `
         -Uri "$BaseUrl/xyz/edu/attachments/verify" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 22) `
-        -ExecutionId "OXYZ-EDU-17-0002" `
+        -ExecutionId "OXYZAA0066" `
         -Body ([ordered]@{
             storageKey = $store.body.storageKey
             expectedChecksumSha256 = $store.body.checksumSha256

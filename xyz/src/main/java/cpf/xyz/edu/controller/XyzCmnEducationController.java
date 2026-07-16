@@ -43,7 +43,7 @@ public class XyzCmnEducationController {
     }
 
     @GetMapping("/cache")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0001", name = "XYZCmnCacheLookup")
+    @CpfOnlineTransaction(id = "OXYZAA0015", name = "XYZCmnCacheLookup")
     @Operation(operationId = "xyzCmnEducationGetCacheSamples", summary = "CMN cache lookup", description = "Looks up code, message, response code, and config cache entries.")
     public ResponseEntity<Map<String, Object>> getCacheSamples(
             @RequestParam(defaultValue = "USER_STATUS") String codeKey,
@@ -60,7 +60,7 @@ public class XyzCmnEducationController {
     }
 
     @GetMapping("/cache/response-code")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0011", name = "XYZResponseCodeCacheSample")
+    @CpfOnlineTransaction(id = "OXYZAA0026", name = "XYZResponseCodeCacheSample")
     @Operation(operationId = "xyzCmnEducationGetResponseCodeCacheSample", summary = "Response code cache sample", description = "Shows response_code and linked message_code resolution data.")
     public ResponseEntity<Map<String, Object>> getResponseCodeCacheSample(
             @RequestParam(defaultValue = "EXYZ010001") String responseCode,
@@ -78,7 +78,7 @@ public class XyzCmnEducationController {
     }
 
     @GetMapping("/cache/message-format")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0012", name = "XYZMessageFormatSample")
+    @CpfOnlineTransaction(id = "OXYZAA0027", name = "XYZMessageFormatSample")
     @Operation(operationId = "xyzCmnEducationGetMessageFormatSample", summary = "Message format sample", description = "Shows fixed and indexed message rows. Indexed messages use {0}, {1}, ... placeholders.")
     public ResponseEntity<Map<String, Object>> getMessageFormatSample(
             @RequestParam(defaultValue = "MXYZ090001") String indexedMessageCode,
@@ -93,7 +93,7 @@ public class XyzCmnEducationController {
     }
 
     @PostMapping("/cache/refresh")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0002", name = "XYZCmnCacheRefresh")
+    @CpfOnlineTransaction(id = "OXYZAA0016", name = "XYZCmnCacheRefresh")
     @Operation(operationId = "xyzCmnEducationRefreshCaches", summary = "CMN cache refresh", description = "Refreshes CMN caches and publishes refresh events.")
     public ResponseEntity<Map<String, Object>> refreshCaches() {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -105,7 +105,7 @@ public class XyzCmnEducationController {
     }
 
     @PostMapping("/cmn/code")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-02-0010", name = "XYZCmnCodeCreate")
+    @CpfOnlineTransaction(id = "OXYZAA0010", name = "XYZCmnCodeCreate")
     @Operation(operationId = "xyzCmnEducationCreateCommonCode", summary = "CMN code create sample", description = "Creates a sample common code row through CMN.")
     public ResponseEntity<Map<String, Object>> createCommonCode(
             @RequestParam(required = false) String codeKey,
@@ -123,7 +123,7 @@ public class XyzCmnEducationController {
     }
 
     @PostMapping("/cmn/message")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-02-0020", name = "XYZCmnMessageCreate")
+    @CpfOnlineTransaction(id = "OXYZAA0020", name = "XYZCmnMessageCreate")
     @Operation(operationId = "xyzCmnEducationCreateCommonMessage", summary = "CMN message create sample", description = "Creates a sample message row with external/internal templates.")
     public ResponseEntity<Map<String, Object>> createCommonMessage() {
         CommonMessageRequest request = new CommonMessageRequest();
@@ -141,7 +141,7 @@ public class XyzCmnEducationController {
     }
 
     @PostMapping("/cmn/config")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-02-0030", name = "XYZCmnConfigCreate")
+    @CpfOnlineTransaction(id = "OXYZAA0030", name = "XYZCmnConfigCreate")
     @Operation(operationId = "xyzCmnEducationCreateCommonConfig", summary = "CMN config create sample", description = "Creates a sample common config row through CMN.")
     public ResponseEntity<Map<String, Object>> createCommonConfig() {
         CommonConfigRequest request = new CommonConfigRequest();

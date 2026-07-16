@@ -40,21 +40,21 @@ public class AdmResponseCodeController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0040", name = "ADMResponseCodeList")
+    @CpfOnlineTransaction(id = "OADMOP0040", name = "ADMResponseCodeList")
     @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from pfw_response_code.")
     public ResponseEntity<Map<String, Object>> findAll() {
         return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
     }
 
     @GetMapping("/{responseCode}")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0042", name = "ADMResponseCodeDetail")
+    @CpfOnlineTransaction(id = "OADMOP0042", name = "ADMResponseCodeDetail")
     @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from pfw_response_code.")
     public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode) {
         return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
     }
 
     @PostMapping
-    @CpfOnlineTransaction(id = "OADM-OPR-02-0042", name = "ADMResponseCodeCreate")
+    @CpfOnlineTransaction(id = "OADMOP0044", name = "ADMResponseCodeCreate")
     @Operation(operationId = "admResponseCodeCreate", summary = "Create response code", description = "Creates a response code and refreshes responseCodeCache.")
     public ResponseEntity<Map<String, Object>> create(
             @Valid @RequestBody CommonResponseCodeRequest request,
@@ -67,7 +67,7 @@ public class AdmResponseCodeController {
     }
 
     @PutMapping("/{responseCode}")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0043", name = "ADMResponseCodeUpdate")
+    @CpfOnlineTransaction(id = "OADMOP0045", name = "ADMResponseCodeUpdate")
     @Operation(operationId = "admResponseCodeUpdate", summary = "Update response code", description = "Updates a response code and refreshes responseCodeCache.")
     public ResponseEntity<Map<String, Object>> update(
             @PathVariable String responseCode,
@@ -81,7 +81,7 @@ public class AdmResponseCodeController {
     }
 
     @DeleteMapping("/{responseCode}")
-    @CpfOnlineTransaction(id = "OADM-OPR-04-0044", name = "ADMResponseCodeDelete")
+    @CpfOnlineTransaction(id = "OADMOP0048", name = "ADMResponseCodeDelete")
     @Operation(operationId = "admResponseCodeDelete", summary = "Delete response code", description = "Deletes a response code and refreshes responseCodeCache.")
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable String responseCode,

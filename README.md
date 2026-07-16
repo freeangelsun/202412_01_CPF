@@ -8,9 +8,14 @@ CPF는 Java 25와 Spring Boot 3.4를 기준으로 온라인 API, 배치, 외부 
 
 ```mermaid
 flowchart LR
-    Client[Client / Channel] --> MBR[MBR reference business]
+    Client[Client / Channel] --> Gateway[PFW Gateway optional]
+    Client --> MBR[MBR reference business]
+    Gateway --> MBR
+    Gateway --> BZA[BZA business backoffice]
     MBR --> PFW[PFW framework core]
-    BZA[BZA business backoffice] --> PFW
+    MBR -->|S shared API| ACC[ACC generator reference]
+    ACC --> PFW
+    BZA --> PFW
     ADM[ADM framework console] --> PFW
     XYZ[XYZ online EDU] --> PFW
     BAT[BAT optional batch worker] --> PFW
@@ -34,16 +39,19 @@ flowchart LR
 | `adm` | bootJar | 프레임워크 운영 콘솔. 운영자·권한, 표준 실행, 로그, 배치, 캐시, 메시지, 코드, 설정, 보안과 복구 관제 |
 | `bza` | bootJar | 업무 백오피스. 사용자·직원·조직·업무 권한·결재·업무 감사 |
 | `mbr` | bootJar | 회원 주제영역 reference 업무 |
+| `acc` | bootJar/bootWar, 선택 | 생성기 결과를 지속 검증하는 중립적 계정 reference domain |
 | `xyz` | bootJar | 온라인·공통 기능 EDU와 검증 API |
 | `bat` | bootJar, 선택 | Spring Batch worker와 배치 EDU. 기본 실행 묶음에서는 선택 가능 |
+| `pfw-gateway-runtime` | bootJar, 선택 | PFW route snapshot과 Service Call Engine을 사용하는 단일 진입 runtime |
 
-ACC와 EXS는 초기 배포 baseline에서 제거했습니다. 새 업무 주제영역은 `scripts/create-domain.ps1`로 생성합니다.
+ACC는 기본 업무 배포 대상이 아니라 `scripts/create-domain.ps1` 산출물의 빌드·WAR·SQL·배포·공유 API 계약을 검증하는 reference domain입니다. EXS의 범용 외부 연계 기능은 PFW capability와 XYZ EDU로 이전하며 독립 업무 runtime으로 복원하지 않습니다. 새 업무 주제영역도 같은 생성기로 만듭니다.
 
 ## 주요 표준
 
 - 거래 ID 헤더 `X-Transaction-Id`: `yyyyMMddHHmmssSSS(17) + moduleId(3) + wasId(7) + sequence(7)`의 34자리.
-- 표준 온라인 ID: `O{DOM}-{BIZ}-{SUB}-{NNNN}`, 예: `OBZA-AUT-02-0001`.
-- 표준 배치 ID: `B{DOM}-{BIZ}-{SUB}-{NNNN}`, 예: `BBAT-OPS-SM-0001`.
+- 표준 실행 ID: `[유형 1][주제영역 3][기능 2][순번 4]`의 10자리 고정값이며 정규식은 `^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$`입니다.
+- `O`는 온라인 거래, `S`는 CPF 내부 공유 API, `B`는 배치·비동기 실행입니다. 예: `OMBRAC0001`, `SACCAC0001`, `BBATOD0001`.
+- 구형 하이픈 ID는 `pfw_standard_execution_alias` 조회 호환에만 사용하며 신규 헤더·로그·카탈로그 저장은 10자리 ID로 단일화합니다.
 - 표준 헤더: transaction, trace, span/segment, workflow, client/channel 정보 검증과 하위 호출 전파.
 - 공통 응답: 정상·오류 schema, validation, 내부 오류 노출 차단과 응답코드 관리.
 - 신뢰성: timeout, retry, endpoint failover, circuit breaker, idempotency, outbox/inbox/DLQ, unknown-result 복구.
@@ -80,6 +88,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-create-domain.
 | 모듈 | 기본 포트 | 시작 클래스 |
 |---|---:|---|
 | MBR | 8081 | `MbrApplication` |
+| ACC | 8082 | `AccountApplication` |
+| PFW Gateway | 8070 | `PfwGatewayApplication` |
 | ADM | 8090 | `AdmApplication` |
 | BZA | 8091 | `BzaApplication` |
 | BAT | 8093 | `BatApplication` |
@@ -95,6 +105,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/runtime-stop-service
 ```
 
 로컬 DB 계정과 BZA JWT secret이 준비되지 않으면 DB 기반 로그인·운영 API는 정상 동작하지 않습니다. 스크립트 결과가 성공인지와 각 업무 시나리오가 검증됐는지를 구분해 리포트합니다.
+
+ACC와 Gateway는 선택 실행 대상입니다. Gradle에서는 `-PcpfRunServices=MBR,ACC,GATEWAY`처럼 명시하며, 운영 배포 topology에서도 필요한 runtime만 활성화합니다.
+
+## 주제영역 간 공유 API
+
+동일 JVM은 CMN의 Facade Contract와 local adapter를 사용하고, 분리 배포는 remote facade proxy와 PFW Service Call Engine을 사용합니다. `@CpfSharedApi`가 선언된 `S` 실행은 공개 Gateway route에 포함되지 않으며 대상 서비스 ingress에서 다음을 다시 검증합니다.
+
+- `X-Cpf-Standard-Execution-Id`와 실제 handler의 `S` ID 일치
+- PFW가 현재 서비스 기준으로 재생성한 `X-Caller-Service`, `X-Caller-Instance-Id`
+- annotation의 허용 호출 서비스와 실제 호출자 일치
+- PFW/external Gateway 우회 호출 차단
+- local/dev/test loopback 또는 명시된 peer, 운영 mTLS/service-token 검증 adapter
+
+운영 프로필은 검증 adapter가 없으면 기본 거부합니다. 서비스 신원 확장은 `CpfInternalServiceIdentityVerifier`로 연결하며, 외부에서 받은 호출자 헤더를 신뢰해 그대로 전달하지 않습니다.
 
 ## MariaDB와 Flyway
 
@@ -144,7 +168,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-domain.ps1 `
   -GeneratePatch
 ```
 
-생성기는 Controller·Facade·Service·DTO·validation·Repository·Mapper뿐 아니라 업무 Port, local adapter, PFW service-call remote proxy, 표준 온라인/배치 ID manifest, SQL/Flyway 후보, ADM 카탈로그와 BZA 메뉴 후보, profile, 배포 inventory, smoke와 테스트를 만듭니다. `scripts/smoke-create-domain.ps1`은 임시 PYM 모듈을 생성해 test·bootJar·Java 25 class major 69를 확인한 뒤 임시 모듈을 삭제합니다.
+생성기는 Controller·Facade·Service·DTO·validation·Repository·Mapper뿐 아니라 업무 Port, local adapter, PFW service-call remote proxy, 표준 온라인/배치 ID manifest, SQL/Flyway 후보, ADM 카탈로그와 BZA 메뉴 후보, profile, 배포 inventory, smoke와 테스트를 만듭니다. `scripts/smoke-create-domain.ps1`은 임시 검증 모듈을 생성해 test·bootJar·bootWar·Java 25 class major 69를 확인한 뒤 임시 모듈을 삭제합니다.
+
+배치가 포함된 생성 모듈은 Spring Batch 원천 메타를 `pfwDB.BATCH_*`에 기록하고 업무 데이터는 해당 주제영역 DB의 전용 트랜잭션 관리자로 처리합니다. 생성된 Job은 애플리케이션 기동 시 자동 실행하지 않으며 승인된 운영 실행 경로에서만 시작합니다.
 
 ## EDU
 

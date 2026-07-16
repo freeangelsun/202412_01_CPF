@@ -1,12 +1,12 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01")
 )
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("mbr", "adm", "bat", "bza", "xyz")
-$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "XYZ")
+$modules = @("mbr", "adm", "bat", "bza", "xyz", "acc", "pfw-gateway-runtime")
+$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "XYZ", "ACC", "GATEWAY")
 $profiles = @("local", "dev", "stg", "prod")
 $prefixByModule = @{
     mbr = "MBR"
@@ -14,6 +14,8 @@ $prefixByModule = @{
     bat = "BAT"
     bza = "BZA"
     xyz = "XYZ"
+    acc = "ACC"
+    "pfw-gateway-runtime" = "GATEWAY"
 }
 $expectedLocalPorts = @{
     MBR = 8081
@@ -21,6 +23,8 @@ $expectedLocalPorts = @{
     BZA = 8091
     BAT = 8093
     XYZ = 8099
+    ACC = 8082
+    GATEWAY = 8070
 }
 $failures = New-Object System.Collections.Generic.List[string]
 
@@ -248,7 +252,7 @@ foreach ($profile in $profiles) {
                 Add-Failure ("inventory field missing: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $field)
             }
         }
-        if (($service.PSObject.Properties.Name -contains "runtimeMode") -and $service.runtimeMode -notin @("embedded-bootjar", "external-was")) {
+        if (($service.PSObject.Properties.Name -contains "runtimeMode") -and $service.runtimeMode -notin @("embedded-bootjar", "external-was", "external-tomcat-war")) {
             Add-Failure ("inventory runtimeMode invalid: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $service.runtimeMode)
         }
     }

@@ -43,7 +43,7 @@ public class XyzCmnBusinessEducationController {
     }
 
     @PostMapping("/sequence/issue")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-12-0001", name = "XYZ CMN 공통 채번 발급")
+    @CpfOnlineTransaction(id = "OXYZAA0044", name = "XYZ CMN 공통 채번 발급")
     @Operation(operationId = "xyzCmnBusinessEducationIssueSequence", summary = "CMN 공통 채번 발급", description = "cmn_sequence를 row lock으로 잠그고 중복 없는 업무 번호를 발급합니다.")
     public ResponseEntity<Map<String, Object>> issueSequence(
             @RequestParam(required = false) String sequenceKey,
@@ -76,7 +76,7 @@ public class XyzCmnBusinessEducationController {
     }
 
     @PostMapping("/notification-log")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-12-0002", name = "XYZ CMN 알림 로그 등록")
+    @CpfOnlineTransaction(id = "OXYZAA0045", name = "XYZ CMN 알림 로그 등록")
     @Operation(operationId = "xyzCmnBusinessEducationRegisterNotificationLog", summary = "CMN 알림 로그 등록", description = "메일, SMS, 푸시 같은 알림 요청 이력을 공통 포맷으로 저장합니다.")
     public ResponseEntity<Map<String, Object>> registerNotificationLog(
             @RequestParam(defaultValue = "EMAIL") String notificationType,
@@ -103,7 +103,7 @@ public class XyzCmnBusinessEducationController {
     }
 
     @PostMapping("/business-log")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-12-0003", name = "XYZ CMN 업무 로그 등록")
+    @CpfOnlineTransaction(id = "OXYZAA0046", name = "XYZ CMN 업무 로그 등록")
     @Operation(operationId = "xyzCmnBusinessEducationRegisterBusinessLog", summary = "CMN 공통 업무 로그 등록", description = "기술 거래 로그와 별도로 업무 의미가 있는 이벤트를 저장합니다.")
     public ResponseEntity<Map<String, Object>> registerBusinessLog(
             @RequestParam(defaultValue = "CMN_EDU") String businessArea,

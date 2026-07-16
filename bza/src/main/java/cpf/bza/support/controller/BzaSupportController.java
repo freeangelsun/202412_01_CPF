@@ -36,7 +36,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/dashboard")
-    @CpfOnlineTransaction(id = "OBZA-DSH-01-0001", name = "BzaDashboard")
+    @CpfOnlineTransaction(id = "OBZADS0001", name = "BzaDashboard")
     @Operation(operationId = "bzaSupportDashboard", summary = "업무 백오피스 대시보드",
             description = "사용자·직원·결재·알림·감사 핵심 건수를 인증 운영자 기준으로 반환합니다.")
     public ResponseEntity<Map<String, Object>> dashboard(
@@ -45,7 +45,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/notifications")
-    @CpfOnlineTransaction(id = "OBZA-NTF-01-0001", name = "BzaNotificationList")
+    @CpfOnlineTransaction(id = "OBZANT0001", name = "BzaNotificationList")
     @Operation(operationId = "bzaSupportFindNotifications", summary = "내 알림 조회")
     public ResponseEntity<List<Map<String, Object>>> notifications(
             @RequestParam(defaultValue = "false") boolean unreadOnly,
@@ -55,7 +55,7 @@ public class BzaSupportController {
     }
 
     @PostMapping("/notifications")
-    @CpfOnlineTransaction(id = "OBZA-NTF-02-0002", name = "BzaNotificationCreate")
+    @CpfOnlineTransaction(id = "OBZANT0002", name = "BzaNotificationCreate")
     @Operation(operationId = "bzaSupportCreateNotification", summary = "업무 알림 등록",
             description = "수신 운영자와 업무 참조 정보를 등록하고 사유 기반 업무 감사를 남깁니다.")
     public ResponseEntity<Map<String, Object>> createNotification(
@@ -65,7 +65,7 @@ public class BzaSupportController {
     }
 
     @PostMapping("/notifications/{notificationId}/read")
-    @CpfOnlineTransaction(id = "OBZA-NTF-03-0003", name = "BzaNotificationRead")
+    @CpfOnlineTransaction(id = "OBZANT0003", name = "BzaNotificationRead")
     @Operation(operationId = "bzaSupportReadNotification", summary = "업무 알림 읽음 처리")
     public ResponseEntity<Map<String, Object>> readNotification(
             @PathVariable long notificationId,
@@ -75,14 +75,14 @@ public class BzaSupportController {
     }
 
     @GetMapping("/attachments")
-    @CpfOnlineTransaction(id = "OBZA-ATC-01-0001", name = "BzaAttachmentList")
+    @CpfOnlineTransaction(id = "OBZAAT0001", name = "BzaAttachmentList")
     @Operation(operationId = "bzaSupportFindAttachments", summary = "첨부파일 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> attachments(@RequestParam String groupId) {
         return ResponseEntity.ok(supportService.findAttachments(groupId));
     }
 
     @PostMapping(value = "/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @CpfOnlineTransaction(id = "OBZA-ATC-02-0002", name = "BzaAttachmentUpload")
+    @CpfOnlineTransaction(id = "OBZAAT0002", name = "BzaAttachmentUpload")
     @Operation(operationId = "bzaSupportUploadAttachment", summary = "첨부파일 업로드",
             description = "PFW 첨부 저장 port의 경로·확장자·크기 검증과 SHA-256 계산 후 BZA 메타·감사를 기록합니다.")
     public ResponseEntity<Map<String, Object>> uploadAttachment(
@@ -100,7 +100,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/attachments/{attachmentId}/download")
-    @CpfOnlineTransaction(id = "OBZA-ATC-DL-0003", name = "BzaAttachmentDownload")
+    @CpfOnlineTransaction(id = "OBZAAT0003", name = "BzaAttachmentDownload")
     @Operation(operationId = "bzaSupportDownloadAttachment", summary = "첨부파일 다운로드",
             description = "사유·서버 권한·checksum·보안 검사 상태를 확인하고 다운로드 감사와 업무 감사를 기록합니다.")
     public ResponseEntity<byte[]> downloadAttachment(
@@ -120,7 +120,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/saved-searches")
-    @CpfOnlineTransaction(id = "OBZA-SCH-01-0001", name = "BzaSavedSearchList")
+    @CpfOnlineTransaction(id = "OBZASC0001", name = "BzaSavedSearchList")
     @Operation(operationId = "bzaSupportFindSavedSearches", summary = "저장 검색 조회")
     public ResponseEntity<List<Map<String, Object>>> savedSearches(
             @RequestParam(required = false) String screenCode,
@@ -129,7 +129,7 @@ public class BzaSupportController {
     }
 
     @PostMapping("/saved-searches")
-    @CpfOnlineTransaction(id = "OBZA-SCH-03-0002", name = "BzaSavedSearchSave")
+    @CpfOnlineTransaction(id = "OBZASC0002", name = "BzaSavedSearchSave")
     @Operation(operationId = "bzaSupportSaveSavedSearch", summary = "저장 검색 등록·수정",
             description = "검색 조건을 JSON object로 검증하고 소유자·화면·이름 기준으로 저장합니다.")
     public ResponseEntity<Map<String, Object>> saveSavedSearch(
@@ -139,7 +139,7 @@ public class BzaSupportController {
     }
 
     @PostMapping("/saved-searches/{savedSearchId}/disable")
-    @CpfOnlineTransaction(id = "OBZA-SCH-04-0003", name = "BzaSavedSearchDisable")
+    @CpfOnlineTransaction(id = "OBZASC0003", name = "BzaSavedSearchDisable")
     @Operation(operationId = "bzaSupportDisableSavedSearch", summary = "저장 검색 비활성화")
     public ResponseEntity<Map<String, Object>> disableSavedSearch(
             @PathVariable long savedSearchId,
@@ -149,7 +149,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/download-audits")
-    @CpfOnlineTransaction(id = "OBZA-DWN-01-0002", name = "BzaDownloadAuditList")
+    @CpfOnlineTransaction(id = "OBZADW0002", name = "BzaDownloadAuditList")
     @Operation(operationId = "bzaSupportFindDownloadAudits", summary = "다운로드 감사 조회")
     public ResponseEntity<List<Map<String, Object>>> downloadAudits(
             @RequestParam(defaultValue = "100") int limit) {
@@ -157,7 +157,7 @@ public class BzaSupportController {
     }
 
     @GetMapping("/permissions/compare")
-    @CpfOnlineTransaction(id = "OBZA-PER-01-0003", name = "BzaRolePermissionCompare")
+    @CpfOnlineTransaction(id = "OBZAPE0003", name = "BzaRolePermissionCompare")
     @Operation(operationId = "bzaSupportCompareRolePermissions", summary = "역할 권한 비교",
             description = "두 역할의 화면·버튼·API·데이터 범위 규칙을 같은 권한 키로 정렬해 차이를 반환합니다.")
     public ResponseEntity<List<Map<String, Object>>> compareRoles(
@@ -167,7 +167,7 @@ public class BzaSupportController {
     }
 
     @PostMapping("/permissions/simulate")
-    @CpfOnlineTransaction(id = "OBZA-PER-02-0004", name = "BzaPermissionSimulation")
+    @CpfOnlineTransaction(id = "OBZAPE0004", name = "BzaPermissionSimulation")
     @Operation(operationId = "bzaSupportSimulatePermission", summary = "권한 시뮬레이션",
             description = "역할·메뉴·행위·HTTP 경로·환경·업무 범위를 대입해 일치 규칙과 최종 허용 여부를 감사와 함께 반환합니다.")
     public ResponseEntity<Map<String, Object>> simulatePermission(

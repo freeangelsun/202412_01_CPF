@@ -5,9 +5,9 @@
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("pfw", "cmn", "mbr", "xyz", "bza", "bat", "adm")
-$businessModules = @("mbr", "xyz", "bza", "bat")
-$implementationModules = @("mbr", "xyz", "bza", "bat", "adm")
+$modules = @("pfw", "cmn", "mbr", "xyz", "bza", "bat", "adm", "acc", "pfw-gateway-runtime")
+$businessModules = @("mbr", "xyz", "bza", "bat", "acc")
+$implementationModules = @("mbr", "xyz", "bza", "bat", "adm", "acc")
 
 $failures = New-Object System.Collections.Generic.List[object]
 $warnings = New-Object System.Collections.Generic.List[object]
@@ -80,6 +80,14 @@ foreach ($module in $modules) {
                     Add-Finding $warnings "CMN_PFW_PORT_MIGRATION_CANDIDATE" $relativePath "CMN has technology engine code kept for compatibility." "Move broker/file-transfer execution to PFW port adapter and keep CMN as envelope/rule/helper."
                 } else {
                     Add-Finding $warnings "CMN_TECH_ENGINE_REVIEW" $relativePath "CMN has broker/file-transfer technical implementation candidate." "Move technical engine to PFW port if needed; keep CMN as project common rule/helper."
+                }
+            }
+        }
+
+        if ($module -eq "pfw-gateway-runtime") {
+            foreach ($targetModule in $implementationModules) {
+                if (Test-Text $text "import\s+cpf\.$targetModule\.") {
+                    Add-Finding $failures "GATEWAY_NO_BUSINESS_DEPENDENCY" $relativePath "Gateway runtime imports cpf.$targetModule implementation." "Gateway는 PFW route·policy port만 사용하고 업무 구현을 직접 참조하지 마세요."
                 }
             }
         }

@@ -86,7 +86,8 @@ Assert-Contains `
     "개발 가이드에 34자리 트랜잭션 ID 규격 설명이 필요합니다."
 
 # 런타임 기동 시 표준 실행 카탈로그가 중복 ID를 거부하므로 빌드 단계에서도 같은 결함을 차단합니다.
-$executionIdPattern = '^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-(?!0000)[0-9]{4}$'
+$executionIdPattern = '^[OSB][A-Z]{3}[A-Z0-9]{2}(?!0000)[0-9]{4}$'
+$legacyExecutionIdPattern = '[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[0-9]{4}'
 $executionAnnotations = New-Object System.Collections.Generic.List[object]
 $moduleDirectories = Get-ChildItem -LiteralPath $Root -Directory | Where-Object {
     Test-Path -LiteralPath (Join-Path $_.FullName "src/main/java")
@@ -98,7 +99,7 @@ foreach ($moduleDirectory in $moduleDirectories) {
         $source = [System.IO.File]::ReadAllText($javaFile.FullName, [System.Text.UTF8Encoding]::new($false, $true))
         $annotations = [regex]::Matches(
             $source,
-            '@Cpf(?:OnlineTransaction|BatchJob)\s*\((?<body>[\s\S]*?)\)',
+            '@Cpf(?<type>OnlineTransaction|SharedApi|BatchJob)\s*\((?<body>[\s\S]*?)\)',
             [System.Text.RegularExpressions.RegexOptions]::CultureInvariant
         )
 
@@ -115,10 +116,52 @@ foreach ($moduleDirectory in $moduleDirectories) {
                 $failures.Add("$relativePath - 표준 실행 ID 형식 오류: $executionId")
             }
 
+            $expectedPrefix = switch ($annotation.Groups['type'].Value) {
+                'OnlineTransaction' { 'O' }
+                'SharedApi' { 'S' }
+                'BatchJob' { 'B' }
+            }
+            if (-not $executionId.StartsWith($expectedPrefix, [StringComparison]::Ordinal)) {
+                $failures.Add("$relativePath - 애노테이션 유형과 실행 ID prefix가 다릅니다: $executionId")
+            }
+
             $executionAnnotations.Add([pscustomobject]@{
                 Id = $executionId
                 Path = $relativePath
             })
+        }
+    }
+}
+
+# 신규 소스와 SQL에 구형 하이픈 ID가 다시 들어오면 alias 정책과 관계없이 빌드를 차단합니다.
+$legacyScanRoots = @('pfw', 'cmn', 'mbr', 'xyz', 'adm', 'bza', 'bat', 'acc', 'pfw-gateway-runtime', 'specs/sql')
+foreach ($relativeRoot in $legacyScanRoots) {
+    $scanRoot = Join-Path $Root $relativeRoot
+    if (-not (Test-Path -LiteralPath $scanRoot)) {
+        continue
+    }
+    foreach ($file in Get-ChildItem -LiteralPath $scanRoot -Recurse -File | Where-Object {
+            $_.Extension -in @('.java', '.xml', '.yml', '.yaml', '.sql', '.json', '.gradle') -and
+            $_.FullName -notmatch '[\\/]build[\\/]' -and
+            $_.FullName -notmatch '[\\/]src[\\/]test[\\/]' -and
+            $_.FullName -notmatch '[\\/]evidence[\\/]' -and
+            $_.Name -notin @('V32__standard_execution_id_v2.sql', '52_standard_execution_alias_seed.sql')
+        }) {
+        $content = [IO.File]::ReadAllText($file.FullName, [Text.Encoding]::UTF8)
+        if ($file.Extension -eq '.sql') {
+            # 합본 설치 SQL에는 조회 호환을 위한 구형 ID alias seed가 의도적으로 포함됩니다.
+            # alias INSERT 구간만 검사 대상에서 제거하고 그 밖의 SQL에서 구형 ID가 재사용되면 계속 실패시킵니다.
+            $content = [regex]::Replace(
+                $content,
+                'INSERT\s+INTO\s+pfw_standard_execution_alias\s*\([\s\S]*?updated_at\s*=\s*CURRENT_TIMESTAMP\s*;',
+                '',
+                [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        }
+        $legacyMatches = [regex]::Matches($content, $legacyExecutionIdPattern)
+        if ($legacyMatches.Count -gt 0) {
+            $relativePath = $file.FullName.Substring($Root.Length).TrimStart('\', '/') -replace '\\', '/'
+            $ids = @($legacyMatches | ForEach-Object Value | Sort-Object -Unique) -join ', '
+            $failures.Add("$relativePath - 구형 표준 실행 ID 사용: $ids")
         }
     }
 }

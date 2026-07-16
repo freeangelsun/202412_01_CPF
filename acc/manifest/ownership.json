@@ -1,0 +1,8 @@
+{
+  "moduleCode": "ACC",
+  "ownerDomain": "ACC",
+  "ownedPackages": ["cpf.acc"],
+  "ownedTablePrefixes": ["acc_"],
+  "forbiddenDependencies": ["other-domain-repository", "other-domain-mapper"],
+  "crossDomainContract": "PFW Service Call Engine 또는 CMN Facade Contract"
+}

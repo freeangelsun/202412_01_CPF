@@ -35,28 +35,28 @@ public class XyzBatchEducationController {
     }
 
     @PostMapping("/tasklet/run")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0001", name = "XYZBatchTaskletRun")
+    @CpfOnlineTransaction(id = "OXYZAA0047", name = "XYZBatchTaskletRun")
     @Operation(operationId = "xyzBatchEducationRunTasklet", summary = "Tasklet Job 실행 샘플", description = "PFW 공통 배치 API를 통해 단건 처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runTasklet(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_TASKLET_JOB", requestUser, "Tasklet Job 교육 실행"));
     }
 
     @PostMapping("/chunk/run")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0002", name = "XYZBatchChunkRun")
+    @CpfOnlineTransaction(id = "OXYZAA0048", name = "XYZBatchChunkRun")
     @Operation(operationId = "xyzBatchEducationRunChunk", summary = "Chunk Job 실행 샘플", description = "PFW 공통 배치 API를 통해 대용량 chunk 처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runChunk(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_CHUNK_JOB", requestUser, "Chunk Job 교육 실행"));
     }
 
     @PostMapping("/retry/run")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0003", name = "XYZBatchRetryRun")
+    @CpfOnlineTransaction(id = "OXYZAA0049", name = "XYZBatchRetryRun")
     @Operation(operationId = "xyzBatchEducationRunRetry", summary = "실패 재처리 Job 실행 샘플", description = "PFW 공통 배치 API를 통해 실패 재처리 Job을 실행합니다.")
     public ResponseEntity<Map<String, Object>> runRetry(@RequestParam(defaultValue = "XYZ_EDU") String requestUser) {
         return ResponseEntity.ok(runJob("CPF_EDU_RETRY_JOB", requestUser, "Retry Job 교육 실행"));
     }
 
     @GetMapping("/retry-policy")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0004", name = "XYZBatchRetryPolicy")
+    @CpfOnlineTransaction(id = "OXYZAA0050", name = "XYZBatchRetryPolicy")
     @Operation(operationId = "xyzBatchEducationRetryPolicy", summary = "skip/retry 정책 설명", description = "배치 실패 재처리와 skip/retry 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> retryPolicy() {
         return ResponseEntity.ok(Map.of(
@@ -67,7 +67,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/lock-policy")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0005", name = "XYZBatchLockPolicy")
+    @CpfOnlineTransaction(id = "OXYZAA0052", name = "XYZBatchLockPolicy")
     @Operation(operationId = "xyzBatchEducationLockPolicy", summary = "중복 실행 방지 lock 설명", description = "동일 job/parameter 중복 실행을 막는 운영 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> lockPolicy() {
         return ResponseEntity.ok(Map.of(
@@ -79,7 +79,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/checkpoint-restart")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0006", name = "XYZBatchCheckpointRestart")
+    @CpfOnlineTransaction(id = "OXYZAA0053", name = "XYZBatchCheckpointRestart")
     @Operation(operationId = "xyzBatchEducationCheckpointRestart", summary = "checkpoint/restart 설명", description = "대용량 배치의 재시작 기준과 checkpoint 저장 원칙을 설명합니다.")
     public ResponseEntity<Map<String, Object>> checkpointRestart() {
         return ResponseEntity.ok(Map.of(
@@ -89,7 +89,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/adm-link")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0007", name = "XYZBatchAdmLink")
+    @CpfOnlineTransaction(id = "OXYZAA0054", name = "XYZBatchAdmLink")
     @Operation(operationId = "xyzBatchEducationAdmLink", summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> admLink() {
         return ResponseEntity.ok(Map.of(
@@ -100,7 +100,7 @@ public class XyzBatchEducationController {
     }
 
     @GetMapping("/schedule-policy")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-13-0008", name = "XYZBatchSchedulePolicy")
+    @CpfOnlineTransaction(id = "OXYZAA0055", name = "XYZBatchSchedulePolicy")
     @Operation(operationId = "xyzBatchEducationSchedulePolicy", summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> schedulePolicy() {
         return ResponseEntity.ok(Map.of(

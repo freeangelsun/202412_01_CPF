@@ -73,7 +73,7 @@ public class BatHealthController {
     }
 
     @PostMapping("/bat/api/smoke/jobs/{jobId}/run")
-    @CpfOnlineTransaction(id = "OBAT-OPR-02-0002", name = "BATSmokeJobRun")
+    @CpfOnlineTransaction(id = "OBATOP0002", name = "BATSmokeJobRun")
     @Operation(operationId = "runBatSmokeJob", summary = "BAT smoke Job 수동 실행")
     public ResponseEntity<Map<String, Object>> runSmokeJob(@PathVariable String jobId) {
         Map<String, Object> result = operationService.run(jobId, "BAT smoke API 수동 실행");
@@ -86,7 +86,7 @@ public class BatHealthController {
     }
 
     @GetMapping("/bat/api/diagnostics/logging")
-    @CpfOnlineTransaction(id = "OBAT-OPR-01-0003", name = "BATLoggingDiagnostics")
+    @CpfOnlineTransaction(id = "OBATOP0003", name = "BATLoggingDiagnostics")
     @Operation(operationId = "getBatLoggingDiagnostics", summary = "BAT JobInstance 로그 설정 진단")
     public ResponseEntity<Map<String, Object>> loggingDiagnostics() {
         Map<String, Object> response = new LinkedHashMap<>();

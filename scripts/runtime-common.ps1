@@ -75,6 +75,16 @@ function Get-CpfRuntimeModuleMap {
             jarPattern = "bat-*.jar"
         },
         [ordered]@{
+            module = "ACC"
+            moduleLower = "acc"
+            wasId = "accLC01"
+            port = 8082
+            portEnv = "ACC_SERVER_PORT"
+            healthPath = "/actuator/health"
+            jarDir = "acc/build/libs"
+            jarPattern = "acc-*.jar"
+        },
+        [ordered]@{
             module = "BZA"
             moduleLower = "bza"
             wasId = "bzaAP01"
@@ -93,6 +103,16 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "xyz/build/libs"
             jarPattern = "xyz-*.jar"
+        },
+        [ordered]@{
+            module = "GATEWAY"
+            moduleLower = "pfw-gateway-runtime"
+            wasId = "gwLC001"
+            port = 8070
+            portEnv = "GATEWAY_SERVER_PORT"
+            healthPath = "/actuator/health"
+            jarDir = "pfw-gateway-runtime/build/libs"
+            jarPattern = "pfw-gateway-runtime-*.jar"
         }
     )
 }

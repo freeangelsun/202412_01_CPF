@@ -389,15 +389,22 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온라인 거래 메타';
 
 CREATE TABLE IF NOT EXISTS pfw_standard_execution (
-    standard_execution_id VARCHAR(20) NOT NULL COMMENT 'CPF 온라인·배치 표준 실행 ID',
+    standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
     execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
-    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE 또는 BATCH',
+    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
     owner_domain VARCHAR(20) NOT NULL COMMENT '실행 소유 주제영역',
     source_module VARCHAR(20) NOT NULL COMMENT '발견 소스 모듈',
     source_class VARCHAR(255) NOT NULL COMMENT '선언 클래스명',
     source_method VARCHAR(150) NOT NULL COMMENT '선언 메서드명',
+    http_method VARCHAR(10) NULL COMMENT 'HTTP 진입 method',
     endpoint VARCHAR(500) NULL COMMENT '연결 API 또는 배치 endpoint',
     operation_id VARCHAR(150) NULL COMMENT '연결 OpenAPI operation ID',
+    description VARCHAR(1000) NULL COMMENT '실행 기능 설명',
+    required_permission VARCHAR(150) NULL COMMENT '필수 실행 권한 코드',
+    audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 PFW Gateway 호출 허용 여부',
     source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
     registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
     first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
@@ -411,11 +418,63 @@ CREATE TABLE IF NOT EXISTS pfw_standard_execution (
     INDEX ix_pfw_standard_execution_owner (owner_domain, source_module),
     INDEX ix_pfw_standard_execution_source (source_class, source_method),
     CONSTRAINT ck_pfw_standard_execution_id CHECK (
-        standard_execution_id REGEXP '^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[0-9]{4}$'
+        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
         AND RIGHT(standard_execution_id, 4) <> '0000'
     ),
-    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'BATCH'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 표준 온라인·배치 실행 카탈로그';
+    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW O·S·B 표준 실행 카탈로그';
+
+CREATE TABLE IF NOT EXISTS pfw_standard_execution_alias (
+    legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
+    standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
+    migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
+    retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (legacy_execution_id),
+    UNIQUE KEY uk_pfw_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_pfw_standard_execution_alias_current CHECK (
+        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 구형 실행 ID 조회 호환 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
+    execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
+    standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',
+    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 접수 방지 멱등 키',
+    transaction_global_id VARCHAR(100) NOT NULL COMMENT '온라인 접수 거래 글로벌 ID',
+    business_date CHAR(8) NOT NULL COMMENT '배치 업무 기준일 YYYYMMDD',
+    request_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT 'REQUESTED, RUNNING, COMPLETED, FAILED, RESTARTED, STOPPING 등 접수 상태',
+    parameters_json LONGTEXT NULL COMMENT '검증된 배치 업무 파라미터 JSON',
+    request_reason VARCHAR(500) NOT NULL COMMENT '실행 감사 사유',
+    request_user VARCHAR(100) NOT NULL COMMENT '실행 요청자',
+    pfw_execution_id BIGINT NULL COMMENT 'PFW 배치 실행 메타 ID',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    result_json LONGTEXT NULL COMMENT '마스킹된 실행 결과 JSON',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '민감정보가 제거된 실패 메시지',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '접수일시',
+    completed_at DATETIME(3) NULL COMMENT '완료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (execution_request_id),
+    UNIQUE KEY uk_pfw_batch_on_demand_idempotency (standard_batch_id, idempotency_key),
+    INDEX ix_pfw_batch_on_demand_status (request_status, requested_at),
+    INDEX ix_pfw_batch_on_demand_transaction (transaction_global_id),
+    INDEX ix_pfw_batch_on_demand_spring (spring_batch_execution_id),
+    CONSTRAINT ck_pfw_batch_on_demand_id CHECK (
+        standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
+        AND RIGHT(standard_batch_id, 4) <> '0000'
+    ),
+    CONSTRAINT ck_pfw_batch_on_demand_status CHECK (
+        request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED',
+                           'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED')
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온디맨드 배치 온라인 접수';
 
 CREATE TABLE IF NOT EXISTS pfw_log_policy (
     policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',

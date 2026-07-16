@@ -29,7 +29,7 @@ public class BatSmokeJobConfig {
     public static final String CENTER_CUT_STEP_ID = "CPF_BAT_CENTER_CUT_STEP";
 
     @Bean
-    @CpfBatchJob(id = "BBAT-OPS-SM-0001", name = "BAT기동검증배치", ownerDomain = "BAT")
+    @CpfBatchJob(id = "BBATOP0003", name = "BAT기동검증배치", ownerDomain = "BAT")
     public Job cpfBatSmokeJob(
             JobRepository jobRepository,
             Step cpfBatSmokeStep,
@@ -53,7 +53,7 @@ public class BatSmokeJobConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BBAT-OPS-FL-0001", name = "BAT실패검증배치", ownerDomain = "BAT")
+    @CpfBatchJob(id = "BBATOP0001", name = "BAT실패검증배치", ownerDomain = "BAT")
     public Job cpfBatFailJob(
             JobRepository jobRepository,
             Step cpfBatFailStep,
@@ -77,7 +77,7 @@ public class BatSmokeJobConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BBAT-OPS-HB-0001", name = "BAT하트비트검증배치", ownerDomain = "BAT")
+    @CpfBatchJob(id = "BBATOP0002", name = "BAT하트비트검증배치", ownerDomain = "BAT")
     public Job cpfBatHeartbeatJob(
             JobRepository jobRepository,
             Step cpfBatHeartbeatStep,
@@ -101,7 +101,7 @@ public class BatSmokeJobConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BBAT-CUT-CL-0001", name = "BAT센터컷검증배치", ownerDomain = "BAT")
+    @CpfBatchJob(id = "BBATCU0001", name = "BAT센터컷검증배치", ownerDomain = "BAT")
     public Job cpfBatCenterCutJob(
             JobRepository jobRepository,
             Step cpfBatCenterCutStep,

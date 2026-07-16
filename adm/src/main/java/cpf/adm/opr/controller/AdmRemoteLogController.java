@@ -55,7 +55,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-RLG-QY-0001", name = "ADM원격로그목록조회")
+    @CpfOnlineTransaction(id = "OADMRL0006", name = "ADM원격로그목록조회")
     @Operation(operationId = "admRemoteLogSearch", summary = "로그 아티팩트 목록 조회",
             description = "절대경로를 노출하지 않고 허용된 로그 root 아래의 파일 메타데이터만 조회합니다.")
     public ResponseEntity<List<CpfRemoteLogArtifact>> search(
@@ -89,7 +89,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping("/{artifactId}/preview")
-    @CpfOnlineTransaction(id = "OADM-RLG-QY-0002", name = "ADM원격로그미리보기")
+    @CpfOnlineTransaction(id = "OADMRL0007", name = "ADM원격로그미리보기")
     @Operation(operationId = "admRemoteLogPreview", summary = "로그 아티팩트 미리보기",
             description = "마스킹을 다시 적용한 마지막 N개 로그 행과 검색 결과를 반환합니다.")
     public ResponseEntity<CpfRemoteLogPreview> preview(
@@ -100,7 +100,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping("/{artifactId}/download")
-    @CpfOnlineTransaction(id = "OADM-RLG-DL-0001", name = "ADM원격로그다운로드")
+    @CpfOnlineTransaction(id = "OADMRL0002", name = "ADM원격로그다운로드")
     @Operation(operationId = "admRemoteLogDownload", summary = "로그 아티팩트 다운로드",
             description = "권한이 확인된 단일 로그 아티팩트를 안전한 파일명으로 다운로드합니다.")
     public ResponseEntity<FileSystemResource> download(
@@ -125,7 +125,7 @@ public class AdmRemoteLogController {
     }
 
     @PostMapping("/bundles")
-    @CpfOnlineTransaction(id = "OADM-RLG-DL-0002", name = "ADM원격로그묶음다운로드")
+    @CpfOnlineTransaction(id = "OADMRL0003", name = "ADM원격로그묶음다운로드")
     @Operation(operationId = "admRemoteLogBundleDownload", summary = "선택 로그 ZIP 다운로드",
             description = "여러 인스턴스의 선택 로그를 checksum manifest가 포함된 ZIP으로 만들고 부분 실패 건수를 헤더로 반환합니다.")
     public ResponseEntity<FileSystemResource> bundle(
@@ -151,7 +151,7 @@ public class AdmRemoteLogController {
     }
 
     @PostMapping("/bundle-jobs")
-    @CpfOnlineTransaction(id = "OADM-RLG-CR-0001", name = "ADM원격로그비동기묶음요청")
+    @CpfOnlineTransaction(id = "OADMRL0001", name = "ADM원격로그비동기묶음요청")
     @Operation(operationId = "admRemoteLogBundleJobCreate", summary = "비동기 로그 ZIP 작업 등록",
             description = "선택 로그 ZIP 생성을 queue에 등록하고 소유 운영자에게만 노출되는 작업 ID를 반환합니다.")
     public ResponseEntity<CpfRemoteLogBundleJob> createBundleJob(
@@ -167,7 +167,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping("/bundle-jobs/{jobId}")
-    @CpfOnlineTransaction(id = "OADM-RLG-QY-0004", name = "ADM원격로그비동기묶음상태조회")
+    @CpfOnlineTransaction(id = "OADMRL0009", name = "ADM원격로그비동기묶음상태조회")
     @Operation(operationId = "admRemoteLogBundleJobFind", summary = "비동기 로그 ZIP 작업 상태 조회",
             description = "현재 운영자가 등록한 작업의 queue, 실행, 완료, 실패 상태와 부분 실패 정보를 조회합니다.")
     public ResponseEntity<CpfRemoteLogBundleJob> findBundleJob(
@@ -177,7 +177,7 @@ public class AdmRemoteLogController {
     }
 
     @PostMapping("/bundle-jobs/{jobId}/download-tokens")
-    @CpfOnlineTransaction(id = "OADM-RLG-IS-0001", name = "ADM원격로그다운로드토큰발급")
+    @CpfOnlineTransaction(id = "OADMRL0005", name = "ADM원격로그다운로드토큰발급")
     @Operation(operationId = "admRemoteLogBundleDownloadTokenIssue", summary = "1회성 다운로드 token 발급",
             description = "완료된 비동기 ZIP 작업에 대해 짧은 유효기간의 1회성 token을 발급합니다. 재다운로드는 새 token을 발급해야 합니다.")
     public ResponseEntity<CpfRemoteLogDownloadGrant> issueDownloadToken(
@@ -194,7 +194,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping("/bundle-jobs/{jobId}/download")
-    @CpfOnlineTransaction(id = "OADM-RLG-DW-0001", name = "ADM원격로그비동기묶음다운로드")
+    @CpfOnlineTransaction(id = "OADMRL0004", name = "ADM원격로그비동기묶음다운로드")
     @Operation(operationId = "admRemoteLogBundleJobDownload", summary = "비동기 로그 ZIP 다운로드",
             description = "현재 운영자에게 발급된 유효한 1회성 token을 소비해 ZIP 파일을 다운로드합니다.")
     public ResponseEntity<FileSystemResource> downloadBundleJob(
@@ -222,7 +222,7 @@ public class AdmRemoteLogController {
     }
 
     @GetMapping("/diagnostics")
-    @CpfOnlineTransaction(id = "OADM-RLG-QY-0003", name = "ADM원격로그진단조회")
+    @CpfOnlineTransaction(id = "OADMRL0008", name = "ADM원격로그진단조회")
     @Operation(operationId = "admRemoteLogDiagnostics", summary = "원격 로그 adapter 진단",
             description = "adapter 종류, timeout과 마지막 instance별 부분 실패를 확인합니다. service token 원문은 노출하지 않습니다.")
     public ResponseEntity<Map<String, Object>> diagnostics() {

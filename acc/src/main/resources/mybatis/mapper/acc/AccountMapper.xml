@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cpf.acc.mapper.AccountMapper">
+  <!-- Account 조회: 정렬 컬럼은 DTO whitelist를 통과한 값만 사용합니다. -->
+  <select id="search" resultType="map">
+    SELECT acc_id,
+           acc_name,
+           status_code,
+           created_by,
+           created_at,
+           updated_by,
+           updated_at
+    FROM acc_sample
+    WHERE deleted_yn = 'N'
+    <if test="keyword != null and keyword != ''">
+      AND acc_name LIKE CONCAT('%', #{keyword}, '%')
+    </if>
+    ORDER BY ${sortBy} ${sortDirection}
+    LIMIT #{size} OFFSET #{offset}
+  </select>
+</mapper>

@@ -7,6 +7,7 @@ import cpf.pfw.common.exception.CpfMessageResolver;
 import cpf.pfw.common.exception.CpfResolvedResponse;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
+import cpf.pfw.common.execution.CpfSharedApi;
 import cpf.pfw.common.header.CpfHeaderAuditLogger;
 import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.header.CpfHeaderSnapshot;
@@ -600,6 +601,10 @@ public class LoggingAspect {
         CpfOnlineTransaction standard = resolveAnnotation(joinPoint, CpfOnlineTransaction.class);
         if (standard != null) {
             return new OnlineExecutionMetadata(standard.id(), standard.name());
+        }
+        CpfSharedApi shared = resolveAnnotation(joinPoint, CpfSharedApi.class);
+        if (shared != null) {
+            return new OnlineExecutionMetadata(shared.id(), shared.name());
         }
         CpfTransaction legacy = resolveAnnotation(joinPoint, CpfTransaction.class);
         return legacy == null ? null : new OnlineExecutionMetadata(legacy.id(), legacy.name());

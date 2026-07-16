@@ -1,392 +1,543 @@
 {
-  "schemaVersion": 3,
-  "generatedAt": "2026-07-15T16:05:00+09:00",
-  "source": "CPF_NEW_REQUEST.md + current source/test/runtime evidence",
-  "allowedStatuses": ["완료", "부분 구현", "미구현", "미검증", "실패", "재확인 필요"],
-  "items": [
-    {
-      "checkId": "baseline-module-layout",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "기본 배포 pfw·cmn·mbr·adm·bza·xyz와 선택 bat 구성으로 settings·배포 설정을 통일함"
-    },
-    {
-      "checkId": "bza-rename",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "BIZADM 소스·패키지·환경·DB 명칭을 BZA로 전환하고 legacy name gate를 통과함"
-    },
-    {
-      "checkId": "acc-exs-cleanup",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json",
-      "note": "ACC·EXS 모듈과 직접 참조를 baseline에서 제거함"
-    },
-    {
-      "checkId": "architecture-ownership",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json",
-      "note": "PFW 기술 코어, CMN 프로젝트 공통, ADM 프레임워크 운영, BZA 업무 운영 소유권 검사를 통과함"
-    },
-    {
-      "checkId": "password-hashing",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
-    },
-    {
-      "checkId": "bza-auth",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "로그인·잠금·비밀번호 변경·access token은 구현·테스트 완료, bzaDB 실로그인은 미검증"
-    },
-    {
-      "checkId": "bza-refresh-rotation",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "refresh token hash 저장, 조건부 폐기, 회전과 동시 재사용 거부 테스트를 통과함"
-    },
-    {
-      "checkId": "bza-bootstrap",
-      "status": "미검증",
-      "evidence": "specs/evidence/20260715_01/mariadb-full-install.sanitized.log",
-      "note": "명시적 enable·승인·환경변수 기반 구현은 있으나 DB bootstrap 런타임은 미실행"
-    },
-    {
-      "checkId": "bza-permission-server",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "메뉴·행위 권한을 서버 필터에서 검사하고 로그인 이력 USER:READ 권한 테스트를 통과함"
-    },
-    {
-      "checkId": "bza-ui",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
-      "note": "권한 기반 조회 메뉴와 사용자·역할·메뉴·권한 등록·수정 dialog를 연결했으나 인증 후 실제 browser E2E는 미검증"
-    },
-    {
-      "checkId": "bza-organization-employee",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "조직·직원 조회 및 감사 사유 필수 등록·수정 API와 테스트는 완료, DB 런타임은 미검증"
-    },
-    {
-      "checkId": "bza-approval",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "순차·병렬 결재선, 상태 전이, 낙관적 잠금, idempotency와 감사 테스트는 완료, DB E2E는 미검증"
-    },
-    {
-      "checkId": "bza-audit",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "BZA 업무 변경 before·after·reason 감사 적재와 조회를 구현했으나 실 DB 행은 미검증"
-    },
-    {
-      "checkId": "adm-framework-console",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/runtime-start-services.sanitized.log, specs/evidence/20260715_01/openapi-runtime.sanitized.log",
-      "note": "ADM 154개 OpenAPI path와 UI를 기동 확인, DB 기반 운영 데이터·인증 후 화면은 미검증"
-    },
-    {
-      "checkId": "adm-permission",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "메뉴·버튼·API 권한 서비스 테스트는 통과했으나 계정별 200/403 런타임은 미검증"
-    },
-    {
-      "checkId": "adm-log-console",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/openapi-runtime.sanitized.log",
-      "note": "거래·상세·감사·배치·운영 로그 API/UI는 제공하나 MariaDB 실데이터 조회는 미검증"
-    },
-    {
-      "checkId": "remote-log-local",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "allowlist root, 경로 이탈·symlink·확장자·크기 제한, SHA-256, 마스킹 preview와 다운로드 테스트를 통과함"
-    },
-    {
-      "checkId": "remote-log-multi-instance",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "registry·node client·service credential port, timeout·부분 실패, 라우팅 ID와 checksum ZIP 테스트는 완료했으나 실 mTLS HTTP adapter와 다중 서버 E2E는 미검증"
-    },
-    {
-      "checkId": "remote-log-bundle-jobs",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함"
-    },
-    {
-      "checkId": "attachment-storage",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
-      "note": "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ EDU 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
-    },
-    {
-      "checkId": "bza-operation-support",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증"
-    },
-    {
-      "checkId": "standard-execution-id",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "온라인·배치 ID 322건의 16자 형식, 유형, 0000 금지와 전역 중복 검사를 통과함"
-    },
-    {
-      "checkId": "standard-execution-catalog",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/runtime-start-services.sanitized.log, specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "시작 스캔과 메모리 fallback 기동은 확인, pfw_standard_execution 실 DB 등록은 미검증"
-    },
-    {
-      "checkId": "execution-log-propagation",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "표준 ID·transactionGlobalId의 로그 context 연계 테스트는 통과, 운영 DB·다중 instance는 미검증"
-    },
-    {
-      "checkId": "batch-standard",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "Spring Batch port, 실행·step·lock·운영 API와 EDU는 구현, JobRepository 실 DB는 미검증"
-    },
-    {
-      "checkId": "scheduler-dependency",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "영업일·허용시간·시뮬레이션·선후행·trigger·실행대상 API/UI는 구현, DB 실행 시나리오는 미검증"
-    },
-    {
-      "checkId": "batch-ghost",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "heartbeat 기반 ghost 후보·조치·운영 로그를 구현, 다중 worker 오탐 검증은 미실행"
-    },
-    {
-      "checkId": "bat-runtime",
-      "status": "미검증",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "BAT compile·test·bootJar는 통과했으나 선택 실행 모듈 runtime과 DB job 실행은 이번에 미실행"
-    },
-    {
-      "checkId": "domain-generator",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/create-domain.sanitized.log",
-      "note": "온라인·배치·BZA 메뉴·서비스 레지스트리 후보 생성 후 test·bootJar·major 69를 통과함"
-    },
-    {
-      "checkId": "xyz-edu",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json",
-      "note": "XYZ/BAT 공개 capability 대비 EDU 샘플 카탈로그 49/49 매핑을 통과함"
-    },
-    {
-      "checkId": "bat-edu",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "tasklet·chunk·retry·restart·idempotency·center-cut 샘플은 있으나 실 JobRepository 검증은 미실행"
-    },
-    {
-      "checkId": "ai-edu",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/ai-edu-runtime.sanitized.json",
-      "note": "PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
-    },
-    {
-      "checkId": "standard-header",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "헤더 검증·전파·로그 context 테스트와 EDU는 완료, 이번 세션 DB 로그·하위 E2E는 미실행"
-    },
-    {
-      "checkId": "service-call-engine",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "timeout·retry·failover·circuit 단위 테스트는 통과, 다중 instance 실 runtime은 미검증"
-    },
-    {
-      "checkId": "broker-capability",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
-    },
-    {
-      "checkId": "broker-real-integration",
-      "status": "미검증",
-      "evidence": "없음",
-      "note": "Redis·Kafka·RabbitMQ 서버가 제공되지 않아 실 장애·fallback·replay를 실행하지 않음"
-    },
-    {
-      "checkId": "file-transfer-capability",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "파일 검증·checksum·임시파일·이동·이력·원격 명령 계획 테스트는 통과함"
-    },
-    {
-      "checkId": "file-server-real-integration",
-      "status": "미검증",
-      "evidence": "없음",
-      "note": "SFTP·FTP·FTPS·SCP·SSH 실 서버가 없어 전송 runtime은 실행하지 않음"
-    },
-    {
-      "checkId": "mariadb-full-install",
-      "status": "미검증",
-      "evidence": "specs/evidence/20260715_01/mariadb-full-install.sanitized.log",
-      "note": "CLI·서비스는 확인했으나 인증 환경변수가 없어 접속과 SQL 실행을 시도하지 않음"
-    },
-    {
-      "checkId": "flyway-static",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "V1 baseline과 V28~V31 변경 파일, naming·순서 정적 검사를 통과함"
-    },
-    {
-      "checkId": "sql-all-install",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "분할 SQL에서 두 단일 실행 합본과 Flyway baseline을 재생성하고 mismatch 검사를 통과함"
-    },
-    {
-      "checkId": "runtime-baseline",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/runtime-start-services.sanitized.log, specs/evidence/20260715_01/runtime-status.sanitized.log, specs/evidence/20260715_01/runtime-stop-services.sanitized.log",
-      "note": "MBR·ADM·BZA·XYZ 프로세스·포트·HTTP 200과 종료를 실제 확인함"
-    },
-    {
-      "checkId": "openapi-runtime",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/openapi-runtime.sanitized.log",
-      "note": "ADM 154, MBR 11, BZA 35, XYZ 70개 path와 필수 tag/path를 검증함"
-    },
-    {
-      "checkId": "browser-public-http",
-      "status": "부분 구현",
-      "evidence": "specs/evidence/20260715_01/runtime-start-services.sanitized.log",
-      "note": "ADM·BZA HTML HTTP 200은 확인했으나 내장 browser가 없어 실제 렌더링·console 검증은 미실행"
-    },
-    {
-      "checkId": "browser-auth-e2e",
-      "status": "미검증",
-      "evidence": "없음",
-      "note": "DB·bootstrap 인증정보와 browser 연결이 없어 로그인 이후 E2E를 실행하지 않음"
-    },
-    {
-      "checkId": "multi-instance-runtime",
-      "status": "미검증",
-      "evidence": "없음",
-      "note": "2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음"
-    },
-    {
-      "checkId": "security-static",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "평문·raw SHA·기본 JWT secret·seed 보안과 secret scan을 통과함"
-    },
-    {
-      "checkId": "bza-session-storage",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
-      "note": "BZA access·refresh token을 sessionStorage로 제한하고 localStorage 사용을 gate에서 차단함"
-    },
-    {
-      "checkId": "bza-login-history-auth",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "로그인 이력 조회에 Bearer token과 USER:READ 서버 권한을 강제하는 테스트를 통과함"
-    },
-    {
-      "checkId": "service-call-boundary",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/architecture-ownership-scan.sanitized.json",
-      "note": "타 주제영역 Repository·Mapper·DB 직접 접근 금지 검사를 통과함"
-    },
-    {
-      "checkId": "spring-event-usage",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/spring-event-usage-scan.sanitized.json",
-      "note": "핵심 처리의 금지 Spring Event 사용 검사를 통과함"
-    },
-    {
-      "checkId": "profile-loading",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/profile-loading-result.sanitized.json",
-      "note": "local·dev·stg·prod profile과 secret 기본값 금지 정적 계약을 통과함"
-    },
-    {
-      "checkId": "deploy-inventory",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/runtime-config-inventory.sanitized.json",
-      "note": "BZA 기준 dev·stg·prod inventory와 환경 파일 정적 검사를 통과함"
-    },
-    {
-      "checkId": "sql-standard",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 검사를 통과함"
-    },
-    {
-      "checkId": "utf8-mojibake",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "텍스트 UTF-8, PowerShell BOM/CRLF, mojibake와 생성 JSON no BOM 검사를 통과함"
-    },
-    {
-      "checkId": "ui-static",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/adm-log-policy-ui-static-result.sanitized.json",
-      "note": "ADM 메뉴/API marker와 BZA 권한·전체 route·Node JS 문법 정적 스모크를 통과함"
-    },
-    {
-      "checkId": "sample-coverage",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json",
-      "note": "공개 capability 대비 EDU sample 49/49과 placeholder 검사를 통과함"
-    },
-    {
-      "checkId": "generator-cleanup",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/create-domain.sanitized.log",
-      "note": "생성기 스모크 성공 후 임시 source·verification 디렉터리가 제거됨"
-    },
-    {
-      "checkId": "evidence-sanitization",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/log-management-standard.sanitized.json",
-      "note": "최종 근거 로그에 실행 메타데이터·secret 제거·본문 SHA-256을 적용함"
-    },
-    {
-      "checkId": "docx-openxml",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/docx-standard.sanitized.json",
-      "note": "공식 DOCX 9개의 OpenXML 구조 검사를 통과함. Word 애플리케이션 실제 열기는 미검증"
-    },
-    {
-      "checkId": "readme-docs",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "README를 현재 모듈·기동·DB·ID·생성기 진입점으로 재작성하고 상세 문서로 연결함"
-    },
-    {
-      "checkId": "quality-gate",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "최종 qualityGate에서 compile·test·SQL·UTF-8·소유권·보안·UI·evidence 검사를 통과함"
-    },
-    {
-      "checkId": "request-protection",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/cpf-new-request-protection.sanitized.json",
-      "note": "CPF_NEW_REQUEST.md SHA-256와 git blob이 작업 시작 baseline과 일치함"
-    },
-    {
-      "checkId": "report-matrix-consistency",
-      "status": "완료",
-      "evidence": "specs/evidence/20260715_01/report-matrix-evidence-consistency.sanitized.json",
-      "note": "64개 check ID의 보고서·matrix·evidence index 상태 정합성 검사를 통과함"
-    }
-  ]
+    "schemaVersion":  3,
+    "generatedAt":  "2026-07-16T16:53:33.2449140+09:00",
+    "source":  "CPF_NEW_REQUEST.md + CPF_FINAL_TARGET_REQUIREMENTS.md + 20260716 source/test/MariaDB/ACC/Gateway runtime evidence",
+    "allowedStatuses":  [
+                            "완료",
+                            "부분 구현",
+                            "미구현",
+                            "미검증",
+                            "실패",
+                            "재확인 필요"
+                        ],
+    "items":  [
+                  {
+                      "checkId":  "baseline-module-layout",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "PFW·CMN·MBR·ADM·BZA·XYZ 기본 구성과 선택형 BAT·ACC·PFW Gateway 모듈을 settings 및 빌드 기준으로 확인함"
+                  },
+                  {
+                      "checkId":  "bza-rename",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "BIZADM 소스·패키지·환경·DB 명칭을 BZA로 전환하고 legacy name gate를 통과함"
+                  },
+                  {
+                      "checkId":  "acc-exs-cleanup",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "삭제 기능 inventory와 ACC reference·XYZ 외부 연계 EDU·MBR→ACC 계약을 복원했고 ACC embedded HTTP/DB CRUD를 실검증함. 49개 전체 기능 runtime E2E는 남음"
+                  },
+                  {
+                      "checkId":  "architecture-ownership",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json",
+                      "note":  "최신 모듈 구조에서 타 주제영역 Repository·Mapper·DB 직접 접근 금지와 PFW/CMN 소유권 검사를 통과함"
+                  },
+                  {
+                      "checkId":  "password-hashing",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "bza-auth",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "로그인·잠금·비밀번호 변경·access token은 구현·테스트 완료, bzaDB 실로그인은 미검증"
+                  },
+                  {
+                      "checkId":  "bza-refresh-rotation",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "refresh token hash 저장, 조건부 폐기, 회전과 동시 재사용 거부 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "bza-bootstrap",
+                      "status":  "미검증",
+                      "evidence":  "specs/evidence/20260715_01/mariadb-full-install.sanitized.log",
+                      "note":  "명시적 enable·승인·환경변수 기반 구현은 있으나 DB bootstrap 런타임은 미실행"
+                  },
+                  {
+                      "checkId":  "bza-permission-server",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "메뉴·행위 권한을 서버 필터에서 검사하고 로그인 이력 USER:READ 권한 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "bza-ui",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
+                      "note":  "권한 기반 조회 메뉴와 사용자·역할·메뉴·권한 등록·수정 dialog를 연결했으나 인증 후 실제 browser E2E는 미검증"
+                  },
+                  {
+                      "checkId":  "bza-organization-employee",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "조직·직원 조회 및 감사 사유 필수 등록·수정 API와 테스트는 완료, DB 런타임은 미검증"
+                  },
+                  {
+                      "checkId":  "bza-approval",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "순차·병렬 결재선, 상태 전이, 낙관적 잠금, idempotency와 감사 테스트는 완료, DB E2E는 미검증"
+                  },
+                  {
+                      "checkId":  "bza-audit",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "BZA 업무 변경 before·after·reason 감사 적재와 조회를 구현했으나 실 DB 행은 미검증"
+                  },
+                  {
+                      "checkId":  "adm-framework-console",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/runtime-start-services.sanitized.log, specs/evidence/20260715_01/openapi-runtime.sanitized.log",
+                      "note":  "ADM 154개 OpenAPI path와 UI를 기동 확인, DB 기반 운영 데이터·인증 후 화면은 미검증"
+                  },
+                  {
+                      "checkId":  "adm-permission",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "메뉴·버튼·API 권한 서비스 테스트는 통과했으나 계정별 200/403 런타임은 미검증"
+                  },
+                  {
+                      "checkId":  "adm-log-console",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/openapi-runtime.sanitized.log",
+                      "note":  "거래·상세·감사·배치·운영 로그 API/UI는 제공하나 MariaDB 실데이터 조회는 미검증"
+                  },
+                  {
+                      "checkId":  "remote-log-local",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "allowlist root, 경로 이탈·symlink·확장자·크기 제한, SHA-256, 마스킹 preview와 다운로드 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "remote-log-multi-instance",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "registry·node client·service credential port, timeout·부분 실패, 라우팅 ID와 checksum ZIP 테스트는 완료했으나 실 mTLS HTTP adapter와 다중 서버 E2E는 미검증"
+                  },
+                  {
+                      "checkId":  "remote-log-bundle-jobs",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "attachment-storage",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
+                      "note":  "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ EDU 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
+                  },
+                  {
+                      "checkId":  "bza-operation-support",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증"
+                  },
+                  {
+                      "checkId":  "standard-execution-id",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "O/S/B 10자리 값 객체·annotation·중복 gate·327개 alias와 V28→V32 실 MariaDB 전환을 검증함"
+                  },
+                  {
+                      "checkId":  "standard-execution-catalog",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "PFW 공통 pfwJdbcTemplate 소유권을 정리하고 ACC 시작 시 O/S/B 실행 메타 8건의 pfwDB 영속 등록을 실검증함. 전체 모듈 catalog·route·ADM 정합성 E2E는 남음"
+                  },
+                  {
+                      "checkId":  "execution-log-propagation",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "ACC CRUD 호출 4건이 34자리 거래 ID와 O 실행 ID로 pfw_transaction_log에 적재됨을 확인함. Gateway→target 다구간 전파 E2E는 남음"
+                  },
+                  {
+                      "checkId":  "batch-standard",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "ACC 배치 JobRepository를 PFW DB에 고정하고 accDB BATCH_* 0개, pfwDB BATCH_* 9개를 실검증함. 실제 Job 실행·restart는 BAT runtime에서 남음"
+                  },
+                  {
+                      "checkId":  "scheduler-dependency",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "영업일·허용시간·시뮬레이션·선후행·trigger·실행대상 API/UI는 구현, DB 실행 시나리오는 미검증"
+                  },
+                  {
+                      "checkId":  "batch-ghost",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "heartbeat 기반 ghost 후보·조치·운영 로그를 구현, 다중 worker 오탐 검증은 미실행"
+                  },
+                  {
+                      "checkId":  "bat-runtime",
+                      "status":  "미검증",
+                      "evidence":  "없음",
+                      "note":  "BAT test는 통과했으나 선택 runtime 기동과 MariaDB JobRepository 실행은 아직 수행하지 않음"
+                  },
+                  {
+                      "checkId":  "domain-generator",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/create-domain-result.sanitized.json",
+                      "note":  "최신 생성기로 임시 PYM 모듈을 순수 생성해 전용 DataSource/MyBatis, PFW BatchRepository, 자동 Job 실행 차단, test·bootJar·bootWar·Java 25를 검증하고 정리함"
+                  },
+                  {
+                      "checkId":  "xyz-edu",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json",
+                      "note":  "XYZ/BAT 공개 capability 대비 EDU 샘플 카탈로그 49/49 매핑을 통과함"
+                  },
+                  {
+                      "checkId":  "bat-edu",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "tasklet·chunk·retry·restart·idempotency·center-cut 샘플은 있으나 실 JobRepository 검증은 미실행"
+                  },
+                  {
+                      "checkId":  "ai-edu",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/ai-edu-runtime.sanitized.json",
+                      "note":  "PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
+                  },
+                  {
+                      "checkId":  "standard-header",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "호출 서비스/인스턴스 재생성과 S형 ingress 차단 단위 테스트를 통과함. 실제 MBR→ACC HTTP 전파는 미검증"
+                  },
+                  {
+                      "checkId":  "service-call-engine",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "MBR→ACC Remote Facade Proxy와 endpoint/실행 ID 계약 테스트를 추가함. 다중 인스턴스 runtime은 미검증"
+                  },
+                  {
+                      "checkId":  "broker-capability",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
+                  },
+                  {
+                      "checkId":  "broker-real-integration",
+                      "status":  "미검증",
+                      "evidence":  "없음",
+                      "note":  "Redis·Kafka·RabbitMQ 서버가 제공되지 않아 실 장애·fallback·replay를 실행하지 않음"
+                  },
+                  {
+                      "checkId":  "file-transfer-capability",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "파일 검증·checksum·임시파일·이동·이력·원격 명령 계획 테스트는 통과함"
+                  },
+                  {
+                      "checkId":  "file-server-real-integration",
+                      "status":  "미검증",
+                      "evidence":  "없음",
+                      "note":  "SFTP·FTP·FTPS·SCP·SSH 실 서버가 없어 전송 runtime은 실행하지 않음"
+                  },
+                  {
+                      "checkId":  "mariadb-full-install",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "실 MariaDB에서 전체 설치·smoke·seed 재실행·FK/index와 ACC app/migration 권한 분리, ACC CRUD·감사·로그·배치 메타 소유권을 검증함"
+                  },
+                  {
+                      "checkId":  "flyway-static",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
+                      "note":  "기존 V28 checksum을 보존하고 V32 증분 migration을 격리 DB에 실제 적용해 327개 alias와 구형 fixture 전환을 검증함"
+                  },
+                  {
+                      "checkId":  "sql-all-install",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json",
+                      "note":  "split SQL에서 SOURCE 없는 합본과 V1 baseline을 재생성하고 실 MariaDB 설치·재실행을 검증함"
+                  },
+                  {
+                      "checkId":  "runtime-baseline",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "신규 ACC와 PFW Gateway embedded bootJar를 동시에 기동해 health 200과 종료 정리를 검증함. MBR·ADM·BZA·XYZ·BAT를 포함한 최신 전체 묶음 재기동은 남음"
+                  },
+                  {
+                      "checkId":  "openapi-runtime",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "ACC OpenAPI 4 paths/3 tags와 Gateway 2 paths/1 tag를 실제 /v3/api-docs에서 검증함. 전체 실행 모듈을 동일 최신 build로 재검증하는 단계는 남음"
+                  },
+                  {
+                      "checkId":  "browser-public-http",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/runtime-start-services.sanitized.log",
+                      "note":  "ADM·BZA HTML HTTP 200은 확인했으나 내장 browser가 없어 실제 렌더링·console 검증은 미실행"
+                  },
+                  {
+                      "checkId":  "browser-auth-e2e",
+                      "status":  "미검증",
+                      "evidence":  "없음",
+                      "note":  "DB·bootstrap 인증정보와 browser 연결이 없어 로그인 이후 E2E를 실행하지 않음"
+                  },
+                  {
+                      "checkId":  "multi-instance-runtime",
+                      "status":  "미검증",
+                      "evidence":  "없음",
+                      "note":  "2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음"
+                  },
+                  {
+                      "checkId":  "security-static",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "평문 secret·보안 seed·민감 헤더 우회와 PFW 보안 정적 gate를 최신 source에서 통과함"
+                  },
+                  {
+                      "checkId":  "bza-session-storage",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
+                      "note":  "BZA access·refresh token을 sessionStorage로 제한하고 localStorage 사용을 gate에서 차단함"
+                  },
+                  {
+                      "checkId":  "bza-login-history-auth",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "로그인 이력 조회에 Bearer token과 USER:READ 서버 권한을 강제하는 테스트를 통과함"
+                  },
+                  {
+                      "checkId":  "service-call-boundary",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "MBR→ACC가 CMN Facade Contract와 PFW Service Call Engine을 사용하며 타 주제영역 저장소 직접 참조 gate를 통과함"
+                  },
+                  {
+                      "checkId":  "spring-event-usage",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json",
+                      "note":  "핵심 동기 처리의 금지 Spring Event 사용 0건을 확인함"
+                  },
+                  {
+                      "checkId":  "profile-loading",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/profile-loading-result.sanitized.json",
+                      "note":  "local/dev/stg/prod profile 로딩과 prod secret 기본값 금지 검사를 최신 모듈에서 통과함"
+                  },
+                  {
+                      "checkId":  "deploy-inventory",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "ACC와 PFW Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함"
+                  },
+                  {
+                      "checkId":  "sql-standard",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 gate와 실 MariaDB 설치를 통과함"
+                  },
+                  {
+                      "checkId":  "utf8-mojibake",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "UTF-8, PowerShell BOM/CRLF와 mojibake 검사를 최신 변경 파일 포함 전체 gate에서 통과함"
+                  },
+                  {
+                      "checkId":  "ui-static",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/adm-log-policy-ui-static-result.sanitized.json, specs/evidence/20260716_01/bza-ui-static-result.sanitized.json",
+                      "note":  "ADM/BZA 정적 UI·JavaScript gate를 통과함. 실제 인증 후 browser E2E는 별도 미검증"
+                  },
+                  {
+                      "checkId":  "sample-coverage",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/sample-coverage-result.sanitized.json, specs/sample-coverage-matrix.md",
+                      "note":  "XYZ 외부 연계와 BAT 온디맨드를 포함한 EducationSample 51건의 source·test·matrix 정합성 gate를 통과함"
+                  },
+                  {
+                      "checkId":  "generator-cleanup",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260715_01/create-domain.sanitized.log",
+                      "note":  "생성기 스모크 성공 후 임시 source·verification 디렉터리가 제거됨"
+                  },
+                  {
+                      "checkId":  "evidence-sanitization",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/log-management-standard.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "최신 정본 증적을 sanitized 파일로 제한하고 실행 메타데이터·secret 제거·본문 SHA-256 규격을 gate에서 검증함"
+                  },
+                  {
+                      "checkId":  "docx-openxml",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/docx-standard.sanitized.json",
+                      "note":  "공식 DOCX 9종의 OpenXML package 무결성을 확인함. 이번 구조 변경 freshness와 Word 실제 열기는 최종 정본화 단계로 보류"
+                  },
+                  {
+                      "checkId":  "readme-docs",
+                      "status":  "부분 구현",
+                      "evidence":  "README.md, specs/sample-coverage-matrix.md",
+                      "note":  "README를 ACC reference·Gateway·O/S/B·S형 공유 API 실제 구현에 맞췄고 샘플 매트릭스를 갱신함. DOCX 9종은 요청에 따라 최종 정본화 단계로 보류"
+                  },
+                  {
+                      "checkId":  "quality-gate",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/quality-gate.sanitized.log, specs/evidence/20260716_01/full-test.sanitized.log",
+                      "note":  "최종 qualityGate 82 tasks가 성공했고 전체 152 suites, 342 tests, failures 0, errors 0, skipped 4를 정제 증적으로 기록함"
+                  },
+                  {
+                      "checkId":  "request-protection",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/cpf-new-request-protection.sanitized.json",
+                      "note":  "요청서 SHA-256가 작업 시작 baseline과 일치하며 요청서를 수정하지 않음"
+                  },
+                  {
+                      "checkId":  "report-matrix-consistency",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/report-matrix-evidence-consistency.sanitized.json",
+                      "note":  "88개 check ID의 report·기능 matrix·GAP·evidence index 상태와 evidence 파일 존재·민감정보 검사를 통과함"
+                  },
+                  {
+                      "checkId":  "acc-reference-domain",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-pure-generated-inventory.sanitized.json, specs/evidence/20260716_01/create-domain-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "ACC 생성기 reference domain, 대표 CRUD, SQL/Flyway, 배포 설정, local/remote Facade를 유지하고 embedded HTTP/DB CRUD·감사·OpenAPI를 실검증함. external Tomcat/JNDI parity는 미검증"
+                  },
+                  {
+                      "checkId":  "shared-api-boundary",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "S형 ID 일치, 허용 호출 서비스, 호출 인스턴스, 외부 Gateway 우회 차단과 fail-closed 운영 확장 경계를 구현·단위 검증함. mTLS adapter runtime은 미검증"
+                  },
+                  {
+                      "checkId":  "pfw-gateway-runtime",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "PFW 선택형 Gateway core/runtime, route snapshot, 권한 port와 proxy 단위 테스트를 구현하고 embedded health·OpenAPI를 실검증함. 실제 MBR/ACC target proxy·streaming·cancellation runtime은 미검증"
+                  },
+                  {
+                      "checkId":  "batch-on-demand",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/sample-coverage-matrix.md",
+                      "note":  "온디맨드 접수·멱등·비동기 worker·상태·step·stop·restart·rerun API/SQL/EDU 테스트를 구현함. MariaDB JobRepository runtime은 미검증"
+                  },
+                  {
+                      "checkId":  "channel-registry-policy",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "통합 채널 master, 거래별 허용 채널, client/service identity binding과 immutable snapshot 전수 검증이 남음"
+                  },
+                  {
+                      "checkId":  "transaction-test-console",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "O/S/B 테스트 콘솔, 운영 강제 비활성, 권한·감사·결과 포맷 runtime 검증이 남음"
+                  },
+                  {
+                      "checkId":  "policy-package-promotion",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "환경 독립 정책 export/import, diff, 승인, rollback runtime 검증이 남음"
+                  },
+                  {
+                      "checkId":  "global-change-approval",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "ADM/BZA 전체 mutation 승인·예약 적용·rollback handler 전수 검증이 남음"
+                  },
+                  {
+                      "checkId":  "adm-bam-responsive-statistics",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "ADM/BZA 반응형 화면, 거래·채널 통계와 drill-down browser 검증이 남음"
+                  },
+                  {
+                      "checkId":  "log-raw-format",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "JSON/XML/text/fixed-length 원문·포맷·마스킹·원문 권한·다운로드 감사 browser/DB 검증이 남음"
+                  },
+                  {
+                      "checkId":  "configuration-secret-lifecycle",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "설정 버전·drift·last-known-good와 secret/certificate/key rotation 외부 adapter 검증이 남음"
+                  },
+                  {
+                      "checkId":  "observability-alert-slo",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "metric·trace·health·SLI/SLO·alert·ack·runbook의 운영 연계 검증이 남음"
+                  },
+                  {
+                      "checkId":  "resource-protection",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "bulkhead·rate limit·quota·backpressure·retry budget·pool 제한 검증이 남음"
+                  },
+                  {
+                      "checkId":  "schema-versioning-migration",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
+                      "note":  "DB expand/migrate 기반 한 사례는 실검증했으나 REST/event/file schema 호환과 장기 backfill/resume 표준은 재확인 필요"
+                  },
+                  {
+                      "checkId":  "retention-privacy-dr",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "retention·archive·purge·privacy·backup/restore·RPO/RTO·DR 실복구 검증이 남음"
+                  },
+                  {
+                      "checkId":  "supply-chain-performance",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 재검증이 남음"
+                  },
+                  {
+                      "checkId":  "full-capability-inventory",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "이번 마일스톤 ACC/EXS/O-S-B/Gateway/BAT 범위 inventory는 완료했으나 25MB 최종 목표 전체 capability의 source 양방향 추적은 계속 필요"
+                  },
+                  {
+                      "checkId":  "module-topology-authoritative",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+                      "note":  "BZA 정식 업무 백오피스, ACC generator reference, BAT·Gateway 선택 실행, EXS 비runtime 대체 구조를 settings/빌드에서 확인함"
+                  },
+                  {
+                      "checkId":  "standard-execution-contract-migration",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json",
+                      "note":  "O/S/B 10자리 단일 기록과 구형 ID alias 조회 호환 migration을 실제 DB에서 검증함"
+                  },
+                  {
+                      "checkId":  "generator-reference-domain-contract",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/acc-pure-generated-inventory.sanitized.json, specs/evidence/20260716_01/create-domain-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+                      "note":  "생성기 순수 산출물과 독립 PYM smoke, generated ACC embedded startup·CRUD·registry를 확인함. external Tomcat/JNDI E2E는 미검증"
+                  },
+                  {
+                      "checkId":  "batch-dependency-ghost-contract",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
+                      "note":  "기존 dependency/ghost 구현은 유지되며 이번에는 온디맨드 restart/rerun을 보강함. 다중 worker JobRepository runtime은 미검증"
+                  },
+                  {
+                      "checkId":  "cmn-telegram-contract",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "CMN 전문 layout/parser/formatter와 XYZ charset·byte length·round-trip 최신 runtime 재검증이 남음"
+                  },
+                  {
+                      "checkId":  "ui-design-system-contract",
+                      "status":  "재확인 필요",
+                      "evidence":  "없음",
+                      "note":  "ADM/BZA 실제 browser 렌더링·접근성·반응형·history 검증이 남음"
+                  },
+                  {
+                      "checkId":  "evidence-governance-contract",
+                      "status":  "부분 구현",
+                      "evidence":  "specs/evidence/20260716_01/work-start.sanitized.json, specs/evidence/20260716_01/cpf-new-request-protection.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
+                      "note":  "시작 SHA·정본/요청 hash, 정제 evidence 경로와 최신 qualityGate를 유지함. DOCX freshness와 최종 worktree manifest는 최종 배포 정본화 단계로 보류"
+                  }
+              ]
 }

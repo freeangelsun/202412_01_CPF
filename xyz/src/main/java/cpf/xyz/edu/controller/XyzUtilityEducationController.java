@@ -23,7 +23,7 @@ import java.util.Map;
 public class XyzUtilityEducationController {
 
     @GetMapping("/utils")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0004", name = "XYZCommonUtilitySample")
+    @CpfOnlineTransaction(id = "OXYZAA0018", name = "XYZCommonUtilitySample")
     @Operation(operationId = "xyzUtilityEducationUseCommonUtils", summary = "CMN utility sample", description = "Shows date, id, and masking utility usage.")
     public ResponseEntity<Map<String, Object>> useCommonUtils(@RequestParam(defaultValue = "Sample User") String name) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -37,7 +37,7 @@ public class XyzUtilityEducationController {
     }
 
     @GetMapping("/headers")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0008", name = "XYZCurrentHeaderSample")
+    @CpfOnlineTransaction(id = "OXYZAA0023", name = "XYZCurrentHeaderSample")
     @Operation(operationId = "xyzUtilityEducationGetCurrentHeaders", summary = "Current header sample", description = "Shows transaction and workflow propagation headers.")
     public ResponseEntity<Map<String, Object>> getCurrentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();

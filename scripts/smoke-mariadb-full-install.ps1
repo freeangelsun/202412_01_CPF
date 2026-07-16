@@ -298,6 +298,7 @@ try {
     Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "specs/sql/00_all_install_and_smoke.sql" -WithServicePasswords | Out-Null
     Invoke-MariaDbFile -StepName "smokeCheck" -RelativePath "specs/sql/99_smoke_check.sql" | Out-Null
     Invoke-MariaDbFile -StepName "frameworkSeedRepeat" -RelativePath "specs/sql/50_framework_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "executionAliasSeedRepeat" -RelativePath "specs/sql/52_standard_execution_alias_seed.sql" | Out-Null
     Invoke-MariaDbFile -StepName "cmnSeedRepeat" -RelativePath "specs/sql/55_cmn_seed_data.sql" | Out-Null
     Invoke-MariaDbFile -StepName "admSeedRepeat" -RelativePath "specs/sql/60_adm_seed_data.sql" | Out-Null
     Invoke-MariaDbFile -StepName "testDataRepeat" -RelativePath "specs/sql/70_test_data.sql" | Out-Null
@@ -401,10 +402,47 @@ FROM information_schema.statistics
 WHERE table_schema = 'pfwDB'
   AND table_name = 'pfw_standard_execution'
   AND index_name IN (
-      'uk_pfw_standard_execution_source',
+      'ix_pfw_standard_execution_type',
       'ix_pfw_standard_execution_owner',
-      'ix_pfw_standard_execution_status'
+      'ix_pfw_standard_execution_source'
   );
+"@)
+    $result.checks.standardExecutionAliasCount = [int] (Invoke-Scalar -StepName "standardExecutionAliasCount" -SqlText @"
+SELECT COUNT(*) FROM pfwDB.pfw_standard_execution_alias;
+"@)
+    $result.checks.batchOnDemandTableCount = [int] (Invoke-Scalar -StepName "batchOnDemandTableCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.tables
+WHERE table_schema = 'pfwDB' AND table_name = 'pfw_batch_on_demand_request';
+"@)
+    $result.checks.accTableCount = [int] (Invoke-Scalar -StepName "accTableCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.tables
+WHERE table_schema = 'accDB' AND table_name IN ('acc_account', 'acc_account_change_log');
+"@)
+    $result.checks.accCommonColumnCount = [int] (Invoke-Scalar -StepName "accCommonColumnCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.columns
+WHERE table_schema = 'accDB'
+  AND table_name IN ('acc_account', 'acc_account_change_log')
+  AND column_name IN ('created_by', 'created_at', 'updated_by', 'updated_at');
+"@)
+    $result.checks.accForeignKeyCount = [int] (Invoke-Scalar -StepName "accForeignKeyCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.referential_constraints
+WHERE constraint_schema = 'accDB' AND constraint_name = 'fk_acc_account_change_target';
+"@)
+    $result.checks.accServiceSeedCount = [int] (Invoke-Scalar -StepName "accServiceSeedCount" -SqlText @"
+SELECT COUNT(*) FROM pfwDB.pfw_service
+WHERE service_id = 'ACC' AND use_yn = 'Y';
+"@)
+    $result.checks.accAppDmlGrantCount = [int] (Invoke-Scalar -StepName "accAppDmlGrantCount" -SqlText @"
+SELECT (Select_priv = 'Y') + (Insert_priv = 'Y') + (Update_priv = 'Y') + (Delete_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_acc_app' AND Host = 'localhost' AND LOWER(Db) = LOWER('accDB');
+"@)
+    $result.checks.accAppDdlGrantCount = [int] (Invoke-Scalar -StepName "accAppDdlGrantCount" -SqlText @"
+SELECT (Create_priv = 'Y') + (Alter_priv = 'Y') + (Drop_priv = 'Y') + (Index_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_acc_app' AND Host = 'localhost' AND LOWER(Db) = LOWER('accDB');
+"@)
+    $result.checks.accMigrationDdlGrantCount = [int] (Invoke-Scalar -StepName "accMigrationDdlGrantCount" -SqlText @"
+SELECT (Create_priv = 'Y') + (Alter_priv = 'Y') + (Drop_priv = 'Y') + (Index_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_acc_migration' AND Host = 'localhost' AND LOWER(Db) = LOWER('accDB');
 "@)
     $result.checks.bzaTableCount = [int] (Invoke-Scalar -StepName "bzaTableCount" -SqlText @"
 SELECT COUNT(*)
@@ -424,6 +462,10 @@ FROM information_schema.columns
 WHERE table_schema = 'bzaDB'
   AND table_name LIKE 'bza\_%'
   AND column_name IN ('created_by', 'created_at', 'updated_by', 'updated_at');
+"@)
+    $result.checks.bzaAllTableCount = [int] (Invoke-Scalar -StepName "bzaAllTableCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.tables
+WHERE table_schema = 'bzaDB' AND table_name LIKE 'bza\_%';
 "@)
     $result.checks.cmnFixedLengthTableCount = [int] (Invoke-Scalar -StepName "cmnFixedLengthTableCount" -SqlText @"
 SELECT COUNT(*)
@@ -553,11 +595,29 @@ WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RE
     if ($result.checks.standardExecutionIndexCount -ne 3) {
         throw "pfw_standard_execution required index count mismatch. actual=$($result.checks.standardExecutionIndexCount)"
     }
+    if ($result.checks.standardExecutionAliasCount -ne 327) {
+        throw "standard execution alias seed count mismatch. actual=$($result.checks.standardExecutionAliasCount)"
+    }
+    if ($result.checks.batchOnDemandTableCount -ne 1) {
+        throw "pfw_batch_on_demand_request table is missing."
+    }
+    if ($result.checks.accTableCount -ne 2 -or $result.checks.accCommonColumnCount -ne 8) {
+        throw "ACC reference table/common column mismatch. tables=$($result.checks.accTableCount) columns=$($result.checks.accCommonColumnCount)"
+    }
+    if ($result.checks.accForeignKeyCount -ne 1 -or $result.checks.accServiceSeedCount -ne 1) {
+        throw "ACC FK or service registry seed is missing."
+    }
+    if ($result.checks.accAppDmlGrantCount -ne 4 -or $result.checks.accAppDdlGrantCount -ne 0) {
+        throw "ACC app account privilege separation failed."
+    }
+    if ($result.checks.accMigrationDdlGrantCount -ne 4) {
+        throw "ACC migration account DDL privileges are incomplete."
+    }
     if ($result.checks.bzaTableCount -ne 18) {
         throw "BZA baseline table count mismatch. actual=$($result.checks.bzaTableCount)"
     }
-    if ($result.checks.bzaCommonColumnCount -ne 72) {
-        throw "BZA common audit column count mismatch. actual=$($result.checks.bzaCommonColumnCount)"
+    if ($result.checks.bzaCommonColumnCount -ne ($result.checks.bzaAllTableCount * 4)) {
+        throw "BZA common audit column count mismatch. tables=$($result.checks.bzaAllTableCount) columns=$($result.checks.bzaCommonColumnCount)"
     }
     if ($result.checks.cmnFixedLengthTableCount -ne 4) {
         throw "cmn_fixed_length_* table count mismatch. actual=$($result.checks.cmnFixedLengthTableCount)"

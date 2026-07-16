@@ -25,7 +25,7 @@ public class XyzCenterCutEducationController {
     }
 
     @PostMapping("/run")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-14-0001", name = "XYZCenterCut업무DBAdapter실행")
+    @CpfOnlineTransaction(id = "OXYZAA0056", name = "XYZCenterCut업무DBAdapter실행")
     @Operation(operationId = "xyzCenterCutEducationRun",
             summary = "업무 DB 기반 center-cut 샘플 실행",
             description = "xyz_center_cut_sample_target을 조회하고 item별 성공/실패 결과를 xyz_center_cut_sample_result에 기록합니다.")

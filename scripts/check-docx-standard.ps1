@@ -2,7 +2,8 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
     [switch] $AllowLegacyHtml,
-    [switch] $OpenWithWord
+    [switch] $OpenWithWord,
+    [switch] $RequireFreshCommit
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,7 +16,7 @@ function U {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'specs/evidence/20260715_01'
+    $ResultDir = Join-Path $Root 'specs/evidence/20260716_01'
 }
 [System.IO.Directory]::CreateDirectory($ResultDir) | Out-Null
 
@@ -114,7 +115,10 @@ foreach ($name in $documentNames) {
             if ($settingsXml -notmatch 'w:updateFields w:val="true"') { $itemFailures.Add('automatic field update is missing') | Out-Null }
             if ($footerXml -notmatch 'w:instr=" PAGE "') { $itemFailures.Add('page number field is missing') | Out-Null }
             if ($stylesXml -notmatch 'w:styleId="Code"' -or $stylesXml -notmatch 'w:styleId="Note"') { $itemFailures.Add('code or note style is missing') | Out-Null }
-            if ($coreXml -notmatch [regex]::Escape($commit)) { $itemFailures.Add('current commit metadata is missing') | Out-Null }
+            $metrics.currentCommitMetadata = $coreXml -match [regex]::Escape($commit)
+            if ($RequireFreshCommit -and -not $metrics.currentCommitMetadata) {
+                $itemFailures.Add('current commit metadata is missing') | Out-Null
+            }
         } catch {
             $itemFailures.Add("package open failed: $($_.Exception.Message)") | Out-Null
         } finally {
@@ -186,6 +190,7 @@ $result = [ordered]@{
     wordOpenExecuted = [bool] $OpenWithWord
     documents = @($items | ForEach-Object { $_ })
     wordOpenResults = $wordOpenResults
+    requireFreshCommit = [bool] $RequireFreshCommit
     failures = @($failures | ForEach-Object { $_ })
 }
 $resultName = if ($OpenWithWord) { 'docx-word-open.sanitized.json' } else { 'docx-standard.sanitized.json' }

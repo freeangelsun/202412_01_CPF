@@ -1,0 +1,258 @@
+{
+    "generatedAt":  "2026-07-16T16:50:46.2864758+09:00",
+    "status":  "DONE",
+    "rows":  [
+                 {
+                     "profile":  "local",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-mbr.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-adm.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-bat.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "BZA",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-bza.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-xyz.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-acc.env"
+                 },
+                 {
+                     "profile":  "local",
+                     "module":  "GATEWAY",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/local-pfw-gateway-runtime.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-mbr.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-adm.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-bat.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "BZA",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-bza.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-xyz.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-acc.env"
+                 },
+                 {
+                     "profile":  "dev",
+                     "module":  "GATEWAY",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/dev-pfw-gateway-runtime.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-mbr.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-adm.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-bat.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "BZA",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-bza.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-xyz.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "ACC",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-acc.env"
+                 },
+                 {
+                     "profile":  "stg",
+                     "module":  "GATEWAY",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/stg-pfw-gateway-runtime.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "MBR",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-mbr.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "ADM",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-adm.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "BAT",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-bat.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "BZA",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-bza.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "XYZ",
+                     "mode":  "url",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-xyz.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "ACC",
+                     "mode":  "jndi",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-acc.env"
+                 },
+                 {
+                     "profile":  "prod",
+                     "module":  "GATEWAY",
+                     "mode":  "jndi",
+                     "urlKeyPresent":  true,
+                     "jndiKeyPresent":  true,
+                     "passwordMasked":  "***",
+                     "source":  "deploy/env/prod-pfw-gateway-runtime.env"
+                 }
+             ]
+}

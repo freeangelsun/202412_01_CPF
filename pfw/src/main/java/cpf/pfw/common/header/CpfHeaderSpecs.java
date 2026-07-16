@@ -17,7 +17,7 @@ import java.util.Set;
 public final class CpfHeaderSpecs {
     private static final List<CpfHeaderSpec> ALL = List.of(
             spec(CpfHeaderNames.TRANSACTION_ID, CpfHeaderCategory.REQUIRED, "CPF 거래 글로벌 ID", "클라이언트 또는 PFW", "수신 인터셉터", true, true, "TRANSACTION_ID", 64, true, false, "요약"),
-            spec(CpfHeaderNames.STANDARD_EXECUTION_ID, CpfHeaderCategory.RECOMMENDED, "CPF 온라인·배치 표준 실행 ID", "호출 서비스 또는 PFW", "수신 인터셉터", true, true, "BUSINESS_TRANSACTION_ID", 20, true, false, "요약"),
+            spec(CpfHeaderNames.STANDARD_EXECUTION_ID, CpfHeaderCategory.RECOMMENDED, "CPF O·S·B 10자리 표준 실행 ID", "호출 서비스 또는 PFW", "수신 인터셉터", true, true, "BUSINESS_TRANSACTION_ID", 10, true, false, "요약"),
             spec(CpfHeaderNames.PROTOCOL_VERSION, CpfHeaderCategory.RECOMMENDED, "CPF 서비스 호출 규격 버전", "호출 서비스 또는 PFW", "수신 인터셉터", true, true, null, 20, true, false, "호출"),
             spec(CpfHeaderNames.PARENT_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "직전 상위 거래 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "PARENT_TRANSACTION_ID", 64, true, false, "추적"),
             spec(CpfHeaderNames.ORIGINAL_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "최초 유입 거래 ID", "최초 유입 서비스", "PFW 헤더 추출기", true, false, "ORIGINAL_TRANSACTION_ID", 64, true, false, "추적"),
@@ -64,6 +64,10 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.CLIENT_VERSION, CpfHeaderCategory.RECOMMENDED, "클라이언트 버전", "클라이언트", "PFW 헤더 추출기", true, false, "CLIENT_VERSION", 40, true, false, "호출"),
             spec(CpfHeaderNames.CALLER_SERVICE, CpfHeaderCategory.RECOMMENDED, "호출 서비스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_SERVICE", 80, true, false, "호출"),
             spec(CpfHeaderNames.CALLER_INSTANCE_ID, CpfHeaderCategory.OPTIONAL, "호출 인스턴스 ID", "상위 서비스", "PFW 헤더 추출기", true, false, "CALLER_INSTANCE_ID", 120, true, false, "호출"),
+            spec(CpfHeaderNames.GATEWAY_INSTANCE_ID, CpfHeaderCategory.INTERNAL_ONLY, "요청을 처리한 PFW Gateway 인스턴스 ID", "PFW Gateway", "대상 서비스 ingress", true, true, null, 120, true, false, "호출"),
+            spec(CpfHeaderNames.GATEWAY_ROUTE_ID, CpfHeaderCategory.INTERNAL_ONLY, "Gateway가 선택한 표준 실행 route ID", "PFW Gateway", "대상 서비스 ingress", true, true, null, 10, true, false, "호출"),
+            spec(CpfHeaderNames.GATEWAY_ROUTE_VERSION, CpfHeaderCategory.INTERNAL_ONLY, "적용된 Gateway route snapshot 버전", "PFW Gateway", "대상 서비스 ingress", true, false, null, 100, true, false, "호출"),
+            spec(CpfHeaderNames.INGRESS_TYPE, CpfHeaderCategory.INTERNAL_ONLY, "DIRECT, PFW_GATEWAY 또는 EXTERNAL_GATEWAY 유입 유형", "신뢰 ingress", "대상 서비스 ingress", true, false, null, 30, true, false, "호출"),
             spec(CpfHeaderNames.USER_AGENT, CpfHeaderCategory.RECOMMENDED, "User-Agent", "클라이언트", "PFW 헤더 추출기", false, false, "USER_AGENT", 500, true, true, "호출"),
             spec(CpfHeaderNames.LOCALE, CpfHeaderCategory.RECOMMENDED, "언어/지역 코드", "클라이언트", "PFW 헤더 추출기", true, false, "LOCALE", 20, true, false, "호출"),
             spec(CpfHeaderNames.SCREEN_ID, CpfHeaderCategory.OPTIONAL, "화면 ID", "클라이언트", "PFW 헤더 추출기", true, false, "SCREEN_ID", 80, true, false, "호출"),

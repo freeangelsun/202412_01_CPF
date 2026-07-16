@@ -1,0 +1,1324 @@
+{
+    "generatedAt":  "2026-07-16T13:58:05.2939229+09:00",
+    "mode":  "DRY_RUN",
+    "status":  "완료",
+    "legacyIdCount":  327,
+    "currentIdCount":  327,
+    "changedFileCount":  0,
+    "changedFiles":  [
+
+                     ],
+    "remainingLegacyIds":  [
+
+                           ],
+    "mappings":  [
+                     {
+                         "legacyId":  "BADM-RLG-EX-0001",
+                         "currentId":  "BADMRL0001"
+                     },
+                     {
+                         "legacyId":  "BBAT-CUT-CL-0001",
+                         "currentId":  "BBATCU0001"
+                     },
+                     {
+                         "legacyId":  "BBAT-OPS-FL-0001",
+                         "currentId":  "BBATOP0001"
+                     },
+                     {
+                         "legacyId":  "BBAT-OPS-HB-0001",
+                         "currentId":  "BBATOP0002"
+                     },
+                     {
+                         "legacyId":  "BBAT-OPS-SM-0001",
+                         "currentId":  "BBATOP0003"
+                     },
+                     {
+                         "legacyId":  "BXYZ-EDU-CH-0001",
+                         "currentId":  "BXYZAA0001"
+                     },
+                     {
+                         "legacyId":  "BXYZ-EDU-RT-0001",
+                         "currentId":  "BXYZAA0002"
+                     },
+                     {
+                         "legacyId":  "BXYZ-EDU-TS-0001",
+                         "currentId":  "BXYZAA0003"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0010",
+                         "currentId":  "OADMBA0010"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0012",
+                         "currentId":  "OADMBA0012"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0013",
+                         "currentId":  "OADMBA0013"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0014",
+                         "currentId":  "OADMBA0014"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0015",
+                         "currentId":  "OADMBA0015"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0016",
+                         "currentId":  "OADMBA0016"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0023",
+                         "currentId":  "OADMBA0023"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0024",
+                         "currentId":  "OADMBA0024"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0025",
+                         "currentId":  "OADMBA0025"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0027",
+                         "currentId":  "OADMBA0027"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0028",
+                         "currentId":  "OADMBA0028"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0029",
+                         "currentId":  "OADMBA0029"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0030",
+                         "currentId":  "OADMBA0030"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0032",
+                         "currentId":  "OADMBA0032"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-01-0034",
+                         "currentId":  "OADMBA0034"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-02-0011",
+                         "currentId":  "OADMBA0011"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-02-0017",
+                         "currentId":  "OADMBA0017"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-02-0018",
+                         "currentId":  "OADMBA0018"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-02-0019",
+                         "currentId":  "OADMBA0019"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-02-0026",
+                         "currentId":  "OADMBA0026"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-03-0020",
+                         "currentId":  "OADMBA0020"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-03-0021",
+                         "currentId":  "OADMBA0021"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-03-0022",
+                         "currentId":  "OADMBA0022"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-03-0031",
+                         "currentId":  "OADMBA0031"
+                     },
+                     {
+                         "legacyId":  "OADM-BAT-03-0033",
+                         "currentId":  "OADMBA0033"
+                     },
+                     {
+                         "legacyId":  "OADM-CDE-01-0010",
+                         "currentId":  "OADMCD0010"
+                     },
+                     {
+                         "legacyId":  "OADM-CDE-01-0011",
+                         "currentId":  "OADMCD0011"
+                     },
+                     {
+                         "legacyId":  "OADM-CDE-02-0012",
+                         "currentId":  "OADMCD0012"
+                     },
+                     {
+                         "legacyId":  "OADM-CDE-03-0013",
+                         "currentId":  "OADMCD0013"
+                     },
+                     {
+                         "legacyId":  "OADM-CDE-04-0014",
+                         "currentId":  "OADMCD0014"
+                     },
+                     {
+                         "legacyId":  "OADM-CFG-01-0010",
+                         "currentId":  "OADMCF0010"
+                     },
+                     {
+                         "legacyId":  "OADM-CFG-01-0011",
+                         "currentId":  "OADMCF0011"
+                     },
+                     {
+                         "legacyId":  "OADM-CFG-02-0012",
+                         "currentId":  "OADMCF0012"
+                     },
+                     {
+                         "legacyId":  "OADM-CFG-03-0013",
+                         "currentId":  "OADMCF0013"
+                     },
+                     {
+                         "legacyId":  "OADM-CFG-04-0014",
+                         "currentId":  "OADMCF0014"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0010",
+                         "currentId":  "OADMCT0010"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0020",
+                         "currentId":  "OADMCT0020"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0030",
+                         "currentId":  "OADMCT0030"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0040",
+                         "currentId":  "OADMCT0040"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0050",
+                         "currentId":  "OADMCT0050"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0060",
+                         "currentId":  "OADMCT0060"
+                     },
+                     {
+                         "legacyId":  "OADM-CTC-01-0070",
+                         "currentId":  "OADMCT0070"
+                     },
+                     {
+                         "legacyId":  "OADM-DWN-01-0001",
+                         "currentId":  "OADMDW0001"
+                     },
+                     {
+                         "legacyId":  "OADM-DWN-01-0002",
+                         "currentId":  "OADMDW0002"
+                     },
+                     {
+                         "legacyId":  "OADM-DWN-02-0003",
+                         "currentId":  "OADMDW0003"
+                     },
+                     {
+                         "legacyId":  "OADM-EXE-01-0001",
+                         "currentId":  "OADMEX0001"
+                     },
+                     {
+                         "legacyId":  "OADM-EXE-01-0002",
+                         "currentId":  "OADMEX0002"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-01-0010",
+                         "currentId":  "OADMLG0010"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-01-0011",
+                         "currentId":  "OADMLG0011"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-01-0018",
+                         "currentId":  "OADMLG0018"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-01-0020",
+                         "currentId":  "OADMLG0020"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-01-0021",
+                         "currentId":  "OADMLG0021"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-03-0012",
+                         "currentId":  "OADMLG0012"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-03-0013",
+                         "currentId":  "OADMLG0013"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-03-0014",
+                         "currentId":  "OADMLG0014"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-03-0016",
+                         "currentId":  "OADMLG0016"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-03-0018",
+                         "currentId":  "OADMLG0019"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-04-0015",
+                         "currentId":  "OADMLG0015"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-04-0017",
+                         "currentId":  "OADMLG0017"
+                     },
+                     {
+                         "legacyId":  "OADM-LGP-04-0019",
+                         "currentId":  "OADMLG0022"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-01-0010",
+                         "currentId":  "OADMMB0010"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-01-0011",
+                         "currentId":  "OADMMB0011"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-02-0012",
+                         "currentId":  "OADMMB0012"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-02-0015",
+                         "currentId":  "OADMMB0015"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-03-0013",
+                         "currentId":  "OADMMB0013"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-03-0014",
+                         "currentId":  "OADMMB0014"
+                     },
+                     {
+                         "legacyId":  "OADM-MBR-04-0016",
+                         "currentId":  "OADMMB0016"
+                     },
+                     {
+                         "legacyId":  "OADM-MSG-01-0010",
+                         "currentId":  "OADMMS0010"
+                     },
+                     {
+                         "legacyId":  "OADM-MSG-01-0011",
+                         "currentId":  "OADMMS0011"
+                     },
+                     {
+                         "legacyId":  "OADM-MSG-02-0012",
+                         "currentId":  "OADMMS0012"
+                     },
+                     {
+                         "legacyId":  "OADM-MSG-03-0013",
+                         "currentId":  "OADMMS0013"
+                     },
+                     {
+                         "legacyId":  "OADM-MSG-04-0014",
+                         "currentId":  "OADMMS0014"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-01-0010",
+                         "currentId":  "OADMNT0010"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-01-0011",
+                         "currentId":  "OADMNT0011"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-01-0014",
+                         "currentId":  "OADMNT0014"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-02-0012",
+                         "currentId":  "OADMNT0012"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-02-0016",
+                         "currentId":  "OADMNT0016"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-03-0013",
+                         "currentId":  "OADMNT0013"
+                     },
+                     {
+                         "legacyId":  "OADM-NTF-03-0015",
+                         "currentId":  "OADMNT0015"
+                     },
+                     {
+                         "legacyId":  "OADM-OBS-01-0010",
+                         "currentId":  "OADMOB0010"
+                     },
+                     {
+                         "legacyId":  "OADM-OBS-01-0011",
+                         "currentId":  "OADMOB0011"
+                     },
+                     {
+                         "legacyId":  "OADM-OBS-01-0012",
+                         "currentId":  "OADMOB0012"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0001",
+                         "currentId":  "OADMOP0001"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0002",
+                         "currentId":  "OADMOP0002"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0010",
+                         "currentId":  "OADMOP0010"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0020",
+                         "currentId":  "OADMOP0020"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0030",
+                         "currentId":  "OADMOP0030"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0034",
+                         "currentId":  "OADMOP0034"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0035",
+                         "currentId":  "OADMOP0035"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0036",
+                         "currentId":  "OADMOP0036"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0040",
+                         "currentId":  "OADMOP0040"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0041",
+                         "currentId":  "OADMOP0041"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0042",
+                         "currentId":  "OADMOP0042"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0043",
+                         "currentId":  "OADMOP0043"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-01-0050",
+                         "currentId":  "OADMOP0050"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-02-0031",
+                         "currentId":  "OADMOP0031"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-02-0042",
+                         "currentId":  "OADMOP0044"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0032",
+                         "currentId":  "OADMOP0032"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0037",
+                         "currentId":  "OADMOP0037"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0038",
+                         "currentId":  "OADMOP0038"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0039",
+                         "currentId":  "OADMOP0039"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0043",
+                         "currentId":  "OADMOP0045"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0044",
+                         "currentId":  "OADMOP0046"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-03-0045",
+                         "currentId":  "OADMOP0047"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-04-0022",
+                         "currentId":  "OADMOP0022"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-04-0044",
+                         "currentId":  "OADMOP0048"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-05-0011",
+                         "currentId":  "OADMOP0011"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-05-0021",
+                         "currentId":  "OADMOP0021"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-06-0033",
+                         "currentId":  "OADMOP0033"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-06-0040",
+                         "currentId":  "OADMOP0049"
+                     },
+                     {
+                         "legacyId":  "OADM-OPR-06-0042",
+                         "currentId":  "OADMOP0051"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0010",
+                         "currentId":  "OADMPE0010"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0011",
+                         "currentId":  "OADMPE0011"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0014",
+                         "currentId":  "OADMPE0014"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0015",
+                         "currentId":  "OADMPE0015"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0019",
+                         "currentId":  "OADMPE0019"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0020",
+                         "currentId":  "OADMPE0020"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0024",
+                         "currentId":  "OADMPE0024"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0025",
+                         "currentId":  "OADMPE0025"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0029",
+                         "currentId":  "OADMPE0029"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0030",
+                         "currentId":  "OADMPE0030"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-01-0034",
+                         "currentId":  "OADMPE0034"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-02-0016",
+                         "currentId":  "OADMPE0016"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-02-0021",
+                         "currentId":  "OADMPE0021"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-02-0026",
+                         "currentId":  "OADMPE0026"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-02-0031",
+                         "currentId":  "OADMPE0031"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0012",
+                         "currentId":  "OADMPE0012"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0013",
+                         "currentId":  "OADMPE0013"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0017",
+                         "currentId":  "OADMPE0017"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0018",
+                         "currentId":  "OADMPE0018"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0022",
+                         "currentId":  "OADMPE0022"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0023",
+                         "currentId":  "OADMPE0023"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0027",
+                         "currentId":  "OADMPE0027"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0028",
+                         "currentId":  "OADMPE0028"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0032",
+                         "currentId":  "OADMPE0032"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0033",
+                         "currentId":  "OADMPE0033"
+                     },
+                     {
+                         "legacyId":  "OADM-PER-03-0035",
+                         "currentId":  "OADMPE0035"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0001",
+                         "currentId":  "OADMRE0001"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0002",
+                         "currentId":  "OADMRE0002"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0003",
+                         "currentId":  "OADMRE0003"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0004",
+                         "currentId":  "OADMRE0004"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0006",
+                         "currentId":  "OADMRE0006"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0007",
+                         "currentId":  "OADMRE0007"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0009",
+                         "currentId":  "OADMRE0009"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0010",
+                         "currentId":  "OADMRE0010"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-01-0011",
+                         "currentId":  "OADMRE0011"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-05-0005",
+                         "currentId":  "OADMRE0005"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-05-0008",
+                         "currentId":  "OADMRE0008"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-05-0012",
+                         "currentId":  "OADMRE0012"
+                     },
+                     {
+                         "legacyId":  "OADM-REL-05-0013",
+                         "currentId":  "OADMRE0013"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-CR-0001",
+                         "currentId":  "OADMRL0001"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-DL-0001",
+                         "currentId":  "OADMRL0002"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-DL-0002",
+                         "currentId":  "OADMRL0003"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-DW-0001",
+                         "currentId":  "OADMRL0004"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-IS-0001",
+                         "currentId":  "OADMRL0005"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-QY-0001",
+                         "currentId":  "OADMRL0006"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-QY-0002",
+                         "currentId":  "OADMRL0007"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-QY-0003",
+                         "currentId":  "OADMRL0008"
+                     },
+                     {
+                         "legacyId":  "OADM-RLG-QY-0004",
+                         "currentId":  "OADMRL0009"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-01-0010",
+                         "currentId":  "OADMSE0010"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-01-0012",
+                         "currentId":  "OADMSE0012"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-03-0011",
+                         "currentId":  "OADMSE0011"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-03-0013",
+                         "currentId":  "OADMSE0013"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-03-0014",
+                         "currentId":  "OADMSE0014"
+                     },
+                     {
+                         "legacyId":  "OADM-SEC-03-0015",
+                         "currentId":  "OADMSE0015"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0010",
+                         "currentId":  "OADMSV0010"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0020",
+                         "currentId":  "OADMSV0020"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0030",
+                         "currentId":  "OADMSV0030"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0040",
+                         "currentId":  "OADMSV0040"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0050",
+                         "currentId":  "OADMSV0050"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0060",
+                         "currentId":  "OADMSV0060"
+                     },
+                     {
+                         "legacyId":  "OADM-SVC-01-0070",
+                         "currentId":  "OADMSV0070"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0001",
+                         "currentId":  "OADMTR0001"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0002",
+                         "currentId":  "OADMTR0002"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0003",
+                         "currentId":  "OADMTR0003"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0004",
+                         "currentId":  "OADMTR0004"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0005",
+                         "currentId":  "OADMTR0005"
+                     },
+                     {
+                         "legacyId":  "OADM-TRG-01-0006",
+                         "currentId":  "OADMTR0006"
+                     },
+                     {
+                         "legacyId":  "OADM-TRN-01-0010",
+                         "currentId":  "OADMTR0010"
+                     },
+                     {
+                         "legacyId":  "OADM-TRN-01-0011",
+                         "currentId":  "OADMTR0011"
+                     },
+                     {
+                         "legacyId":  "OADM-TRN-04-0013",
+                         "currentId":  "OADMTR0013"
+                     },
+                     {
+                         "legacyId":  "OADM-TRN-05-0012",
+                         "currentId":  "OADMTR0012"
+                     },
+                     {
+                         "legacyId":  "OBAT-OPR-01-0003",
+                         "currentId":  "OBATOP0003"
+                     },
+                     {
+                         "legacyId":  "OBAT-OPR-02-0002",
+                         "currentId":  "OBATOP0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-ADM-01-1001",
+                         "currentId":  "OBZAAD1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ADM-03-1002",
+                         "currentId":  "OBZAAD1002"
+                     },
+                     {
+                         "legacyId":  "OBZA-APR-01-0001",
+                         "currentId":  "OBZAAP0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-APR-01-0003",
+                         "currentId":  "OBZAAP0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-APR-02-0002",
+                         "currentId":  "OBZAAP0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-APR-05-0004",
+                         "currentId":  "OBZAAP0004"
+                     },
+                     {
+                         "legacyId":  "OBZA-ATC-01-0001",
+                         "currentId":  "OBZAAT0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ATC-02-0002",
+                         "currentId":  "OBZAAT0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-ATC-DL-0003",
+                         "currentId":  "OBZAAT0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUD-01-0001",
+                         "currentId":  "OBZAUD0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-01-0004",
+                         "currentId":  "OBZAAU0004"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-01-0005",
+                         "currentId":  "OBZAAU0005"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-01-0007",
+                         "currentId":  "OBZAAU0007"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-02-0001",
+                         "currentId":  "OBZAAU0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-02-0002",
+                         "currentId":  "OBZAAU0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-02-0003",
+                         "currentId":  "OBZAAU0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-03-0006",
+                         "currentId":  "OBZAAU0006"
+                     },
+                     {
+                         "legacyId":  "OBZA-AUT-04-0008",
+                         "currentId":  "OBZAAU0008"
+                     },
+                     {
+                         "legacyId":  "OBZA-CUS-01-1001",
+                         "currentId":  "OBZACU1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-DSH-01-0001",
+                         "currentId":  "OBZADS0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-DWN-01-0002",
+                         "currentId":  "OBZADW0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-DWN-01-1001",
+                         "currentId":  "OBZADW1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-EMP-01-0001",
+                         "currentId":  "OBZAEM0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-EMP-03-0002",
+                         "currentId":  "OBZAEM0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-MNU-01-1001",
+                         "currentId":  "OBZAMN1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-MNU-03-1002",
+                         "currentId":  "OBZAMN1002"
+                     },
+                     {
+                         "legacyId":  "OBZA-MSK-02-1001",
+                         "currentId":  "OBZAMS1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-NTF-01-0001",
+                         "currentId":  "OBZANT0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-NTF-02-0002",
+                         "currentId":  "OBZANT0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-NTF-03-0003",
+                         "currentId":  "OBZANT0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-ORD-01-1001",
+                         "currentId":  "OBZAOR1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ORG-01-0001",
+                         "currentId":  "OBZAOR0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ORG-03-0002",
+                         "currentId":  "OBZAOR0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-PER-01-0002",
+                         "currentId":  "OBZAPE0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-PER-01-0003",
+                         "currentId":  "OBZAPE0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-PER-01-1001",
+                         "currentId":  "OBZAPE1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-PER-02-0004",
+                         "currentId":  "OBZAPE0004"
+                     },
+                     {
+                         "legacyId":  "OBZA-PER-03-1002",
+                         "currentId":  "OBZAPE1002"
+                     },
+                     {
+                         "legacyId":  "OBZA-PRD-01-1001",
+                         "currentId":  "OBZAPR1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ROL-01-1001",
+                         "currentId":  "OBZARO1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-ROL-03-1002",
+                         "currentId":  "OBZARO1002"
+                     },
+                     {
+                         "legacyId":  "OBZA-SCH-01-0001",
+                         "currentId":  "OBZASC0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-SCH-03-0002",
+                         "currentId":  "OBZASC0002"
+                     },
+                     {
+                         "legacyId":  "OBZA-SCH-04-0003",
+                         "currentId":  "OBZASC0003"
+                     },
+                     {
+                         "legacyId":  "OBZA-SET-01-1001",
+                         "currentId":  "OBZASE1001"
+                     },
+                     {
+                         "legacyId":  "OBZA-USR-QY-0000",
+                         "currentId":  "OBZAUS0001"
+                     },
+                     {
+                         "legacyId":  "OBZA-USR-QY-0001",
+                         "currentId":  "OBZAUS0002"
+                     },
+                     {
+                         "legacyId":  "OMBR-AUT-01-0004",
+                         "currentId":  "OMBRAU0004"
+                     },
+                     {
+                         "legacyId":  "OMBR-AUT-01-0005",
+                         "currentId":  "OMBRAU0005"
+                     },
+                     {
+                         "legacyId":  "OMBR-AUT-02-0001",
+                         "currentId":  "OMBRAU0001"
+                     },
+                     {
+                         "legacyId":  "OMBR-AUT-02-0002",
+                         "currentId":  "OMBRAU0002"
+                     },
+                     {
+                         "legacyId":  "OMBR-AUT-02-0003",
+                         "currentId":  "OMBRAU0003"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-01-0001",
+                         "currentId":  "OMBRMB0001"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-01-0002",
+                         "currentId":  "OMBRMB0002"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-01-0003",
+                         "currentId":  "OMBRMB0003"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-02-0001",
+                         "currentId":  "OMBRMB0004"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-03-0001",
+                         "currentId":  "OMBRMB0005"
+                     },
+                     {
+                         "legacyId":  "OMBR-BSE-04-0001",
+                         "currentId":  "OMBRMB0006"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-01-0001",
+                         "currentId":  "OXYZAA0001"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-01-0002",
+                         "currentId":  "OXYZAA0002"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-01-0003",
+                         "currentId":  "OXYZAA0003"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-01-0099",
+                         "currentId":  "OXYZAA0099"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-02-0001",
+                         "currentId":  "OXYZAA0004"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-02-0010",
+                         "currentId":  "OXYZAA0010"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-02-0020",
+                         "currentId":  "OXYZAA0020"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-02-0030",
+                         "currentId":  "OXYZAA0030"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-03-0001",
+                         "currentId":  "OXYZAA0005"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-03-0002",
+                         "currentId":  "OXYZAA0006"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-03-0003",
+                         "currentId":  "OXYZAA0007"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-04-0001",
+                         "currentId":  "OXYZAA0008"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-04-0002",
+                         "currentId":  "OXYZAA0009"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-05-0001",
+                         "currentId":  "OXYZAA0011"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-05-0002",
+                         "currentId":  "OXYZAA0012"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-05-9001",
+                         "currentId":  "OXYZAA9001"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-08-0001",
+                         "currentId":  "OXYZAA0013"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-08-0010",
+                         "currentId":  "OXYZAA0014"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-08-9001",
+                         "currentId":  "OXYZAA9002"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0001",
+                         "currentId":  "OXYZAA0015"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0002",
+                         "currentId":  "OXYZAA0016"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0003",
+                         "currentId":  "OXYZAA0017"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0004",
+                         "currentId":  "OXYZAA0018"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0005",
+                         "currentId":  "OXYZAA0019"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0006",
+                         "currentId":  "OXYZAA0021"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0007",
+                         "currentId":  "OXYZAA0022"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0008",
+                         "currentId":  "OXYZAA0023"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0009",
+                         "currentId":  "OXYZAA0024"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0010",
+                         "currentId":  "OXYZAA0025"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0011",
+                         "currentId":  "OXYZAA0026"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0012",
+                         "currentId":  "OXYZAA0027"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0013",
+                         "currentId":  "OXYZAA0028"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0015",
+                         "currentId":  "OXYZAA0029"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0016",
+                         "currentId":  "OXYZAA0031"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0017",
+                         "currentId":  "OXYZAA0032"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0018",
+                         "currentId":  "OXYZAA0033"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0019",
+                         "currentId":  "OXYZAA0034"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0020",
+                         "currentId":  "OXYZAA0035"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0030",
+                         "currentId":  "OXYZAA0036"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0031",
+                         "currentId":  "OXYZAA0037"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0032",
+                         "currentId":  "OXYZAA0038"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0033",
+                         "currentId":  "OXYZAA0039"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0034",
+                         "currentId":  "OXYZAA0040"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0035",
+                         "currentId":  "OXYZAA0041"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0036",
+                         "currentId":  "OXYZAA0042"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0040",
+                         "currentId":  "OXYZAA0043"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0051",
+                         "currentId":  "OXYZAA0051"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0060",
+                         "currentId":  "OXYZAA0060"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0072",
+                         "currentId":  "OXYZAA0072"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0073",
+                         "currentId":  "OXYZAA0073"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-09-0080",
+                         "currentId":  "OXYZAA0080"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-12-0001",
+                         "currentId":  "OXYZAA0044"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-12-0002",
+                         "currentId":  "OXYZAA0045"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-12-0003",
+                         "currentId":  "OXYZAA0046"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0001",
+                         "currentId":  "OXYZAA0047"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0002",
+                         "currentId":  "OXYZAA0048"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0003",
+                         "currentId":  "OXYZAA0049"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0004",
+                         "currentId":  "OXYZAA0050"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0005",
+                         "currentId":  "OXYZAA0052"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0006",
+                         "currentId":  "OXYZAA0053"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0007",
+                         "currentId":  "OXYZAA0054"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-13-0008",
+                         "currentId":  "OXYZAA0055"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-14-0001",
+                         "currentId":  "OXYZAA0056"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-15-0001",
+                         "currentId":  "OXYZAA0057"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0001",
+                         "currentId":  "OXYZAA0058"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0002",
+                         "currentId":  "OXYZAA0059"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0003",
+                         "currentId":  "OXYZAA0061"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0004",
+                         "currentId":  "OXYZAA0062"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0005",
+                         "currentId":  "OXYZAA0063"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-16-0006",
+                         "currentId":  "OXYZAA0064"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-17-0001",
+                         "currentId":  "OXYZAA0065"
+                     },
+                     {
+                         "legacyId":  "OXYZ-EDU-17-0002",
+                         "currentId":  "OXYZAA0066"
+                     },
+                     {
+                         "legacyId":  "OXYZ-QRY-01-0001",
+                         "currentId":  "OXYZQR0001"
+                     },
+                     {
+                         "legacyId":  "OXYZ-QRY-01-0002",
+                         "currentId":  "OXYZQR0002"
+                     },
+                     {
+                         "legacyId":  "OXYZ-QRY-01-0003",
+                         "currentId":  "OXYZQR0003"
+                     },
+                     {
+                         "legacyId":  "OXYZ-QRY-01-0004",
+                         "currentId":  "OXYZQR0004"
+                     },
+                     {
+                         "legacyId":  "OXYZ-QRY-01-0005",
+                         "currentId":  "OXYZQR0005"
+                     }
+                 ]
+}

@@ -13,7 +13,9 @@ $RequiredPortEnvMarkers = @(
     "ADM_SERVER_PORT",
     "BAT_SERVER_PORT",
     "BZA_SERVER_PORT",
-    "XYZ_SERVER_PORT"
+    "XYZ_SERVER_PORT",
+    "ACC_SERVER_PORT",
+    "GATEWAY_SERVER_PORT"
 )
 
 $ErrorActionPreference = "Stop"
@@ -194,6 +196,7 @@ try {
         $previousCpfInstanceId = [Environment]::GetEnvironmentVariable("CPF_INSTANCE_ID", "Process")
         $previousCpfEnvironment = [Environment]::GetEnvironmentVariable("CPF_ENV", "Process")
         $previousLogRoot = [Environment]::GetEnvironmentVariable("CPF_LOG_ROOT", "Process")
+        $previousActiveProfile = [Environment]::GetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "Process")
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
             [Environment]::SetEnvironmentVariable("WAS_ID", $module.wasId, "Process")
@@ -203,6 +206,7 @@ try {
             [Environment]::SetEnvironmentVariable("CPF_INSTANCE_ID", ($module.moduleLower + "-local-01"), "Process")
             [Environment]::SetEnvironmentVariable("CPF_ENV", "local", "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", (Join-Path $Root "logs"), "Process")
+            [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "local", "Process")
 
             $process = Start-Process `
                 -FilePath "java" `
@@ -221,6 +225,7 @@ try {
             [Environment]::SetEnvironmentVariable("CPF_INSTANCE_ID", $previousCpfInstanceId, "Process")
             [Environment]::SetEnvironmentVariable("CPF_ENV", $previousCpfEnvironment, "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", $previousLogRoot, "Process")
+            [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", $previousActiveProfile, "Process")
         }
 
         $moduleResult.processStarted = $true

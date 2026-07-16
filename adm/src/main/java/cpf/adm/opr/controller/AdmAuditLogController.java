@@ -24,7 +24,7 @@ public class AdmAuditLogController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0050", name = "ADMAuditLogList")
+    @CpfOnlineTransaction(id = "OADMOP0050", name = "ADMAuditLogList")
     @Operation(operationId = "admAuditLogFindAuditLogs", summary = "List audit logs", description = "Returns recent ADM operator audit logs.")
     public ResponseEntity<Map<String, Object>> findAuditLogs(
             @RequestParam(required = false) String operatorId,

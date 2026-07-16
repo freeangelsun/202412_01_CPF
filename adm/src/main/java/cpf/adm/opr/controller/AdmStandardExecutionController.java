@@ -31,7 +31,7 @@ public class AdmStandardExecutionController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-EXE-01-0001", name = "ADMStandardExecutionList")
+    @CpfOnlineTransaction(id = "OADMEX0001", name = "ADMStandardExecutionList")
     @Operation(operationId = "admStandardExecutionFindAll", summary = "표준 실행 목록 조회",
             description = "기동 시 source annotation에서 발견한 온라인·배치 표준 실행 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findAll(
@@ -51,7 +51,7 @@ public class AdmStandardExecutionController {
     }
 
     @GetMapping("/{standardExecutionId}")
-    @CpfOnlineTransaction(id = "OADM-EXE-01-0002", name = "ADMStandardExecutionDetail")
+    @CpfOnlineTransaction(id = "OADMEX0002", name = "ADMStandardExecutionDetail")
     @Operation(operationId = "admStandardExecutionFindOne", summary = "표준 실행 상세 조회",
             description = "표준 실행 ID에 연결된 source, endpoint, OpenAPI operation 정보를 조회합니다.")
     public ResponseEntity<CpfExecutionDefinition> findOne(@PathVariable String standardExecutionId) {

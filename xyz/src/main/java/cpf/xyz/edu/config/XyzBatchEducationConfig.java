@@ -28,7 +28,7 @@ public class XyzBatchEducationConfig {
     private static final Logger log = LoggerFactory.getLogger(XyzBatchEducationConfig.class);
 
     @Bean
-    @CpfBatchJob(id = "BXYZ-EDU-TS-0001", name = "XYZTasklet교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BXYZAA0003", name = "XYZTasklet교육배치", ownerDomain = "XYZ")
     public Job cpfEduTaskletJob(JobRepository jobRepository, Step cpfEduTaskletStep) {
         return new JobBuilder("CPF_EDU_TASKLET_JOB", jobRepository)
                 .start(cpfEduTaskletStep)
@@ -50,7 +50,7 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BXYZ-EDU-CH-0001", name = "XYZChunk교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BXYZAA0001", name = "XYZChunk교육배치", ownerDomain = "XYZ")
     public Job cpfEduChunkJob(JobRepository jobRepository, Step cpfEduChunkStep) {
         return new JobBuilder("CPF_EDU_CHUNK_JOB", jobRepository)
                 .start(cpfEduChunkStep)
@@ -77,7 +77,7 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BXYZ-EDU-RT-0001", name = "XYZ재시도교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BXYZAA0002", name = "XYZ재시도교육배치", ownerDomain = "XYZ")
     public Job cpfEduRetryJob(JobRepository jobRepository, Step cpfEduRetryStep) {
         return new JobBuilder("CPF_EDU_RETRY_JOB", jobRepository)
                 .start(cpfEduRetryStep)

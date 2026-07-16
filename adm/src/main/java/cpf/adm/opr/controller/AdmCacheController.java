@@ -31,14 +31,14 @@ public class AdmCacheController {
     }
 
     @GetMapping("/summary")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0010", name = "ADMCacheSummary")
+    @CpfOnlineTransaction(id = "OADMOP0010", name = "ADMCacheSummary")
     @Operation(operationId = "admCacheSummary", summary = "Cache summary", description = "Returns CMN cache counts and samples.")
     public ResponseEntity<Map<String, Object>> summary() {
         return safeResponse(cacheOperationService::summary);
     }
 
     @PostMapping("/refresh")
-    @CpfOnlineTransaction(id = "OADM-OPR-05-0011", name = "ADMCacheRefresh")
+    @CpfOnlineTransaction(id = "OADMOP0011", name = "ADMCacheRefresh")
     @Operation(operationId = "admCacheRefresh", summary = "Refresh cache", description = "Refreshes CODE, MESSAGE, RESPONSE_CODE, CONFIG, or ALL cache targets.")
     public ResponseEntity<Map<String, Object>> refresh(
             @RequestParam(defaultValue = "ALL") String target,

@@ -57,6 +57,9 @@ DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role;
 DROP TABLE IF EXISTS mbrDB.mbr_member;
 
+DROP TABLE IF EXISTS accDB.acc_account_change_log;
+DROP TABLE IF EXISTS accDB.acc_account;
+
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
 
@@ -141,6 +144,8 @@ DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
 DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_on_demand_request;
+DROP TABLE IF EXISTS pfwDB.pfw_standard_execution_alias;
 DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
@@ -156,6 +161,7 @@ $installFiles = @(
     "35_bat_schema.sql",
     "40_business_modules_schema.sql",
     "50_framework_seed_data.sql",
+    "52_standard_execution_alias_seed.sql",
     "55_cmn_seed_data.sql",
     "60_adm_seed_data.sql",
     "70_test_data.sql"

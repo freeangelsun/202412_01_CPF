@@ -13,6 +13,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestClient;
@@ -52,7 +53,8 @@ public class CpfWebClientConfig {
             CpfHttpClientProperties httpClientProperties,
             CpfServiceEndpointRegistry endpointRegistry,
             ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
-            ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider) {
+            ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
+            Environment environment) {
 
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, httpClientProperties.getConnectTimeoutMillis())
@@ -66,7 +68,7 @@ public class CpfWebClientConfig {
         WebClient.Builder builder = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(exchangeStrategies)
-                .filter(transactionHeaderPropagationFilter())
+                .filter(transactionHeaderPropagationFilter(CpfLocalServiceIdentity.from(environment)))
                 .filter(integrationFileLogFilter(fileLogWriterProvider));
 
         return new CpfWebClient(builder, endpointRegistry, serviceCallEngineProvider);
@@ -74,8 +76,12 @@ public class CpfWebClientConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public CpfRestClientInterceptor cpfRestClientInterceptor(ObjectProvider<CpfFileLogWriter> fileLogWriterProvider) {
-        return new CpfRestClientInterceptor(fileLogWriterProvider.getIfAvailable());
+    public CpfRestClientInterceptor cpfRestClientInterceptor(
+            ObjectProvider<CpfFileLogWriter> fileLogWriterProvider,
+            Environment environment) {
+        return new CpfRestClientInterceptor(
+                fileLogWriterProvider.getIfAvailable(),
+                CpfLocalServiceIdentity.from(environment));
     }
 
     @Bean
@@ -101,7 +107,7 @@ public class CpfWebClientConfig {
     /**
      * 하위 서비스 호출 전에 CPF 표준 거래 헤더와 워크플로 헤더를 추가합니다.
      */
-    private ExchangeFilterFunction transactionHeaderPropagationFilter() {
+    private ExchangeFilterFunction transactionHeaderPropagationFilter(CpfLocalServiceIdentity localServiceIdentity) {
         return (request, next) -> {
             ClientRequest.Builder requestBuilder = ClientRequest.from(request);
 
@@ -115,6 +121,11 @@ public class CpfWebClientConfig {
                     requestBuilder.header(header.getKey(), header.getValue());
                 }
             }
+            // 외부 입력의 호출자 값을 다음 hop으로 넘기지 않고 실제 현재 서비스 신원으로 재생성합니다.
+            requestBuilder.headers(headers -> {
+                headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
+                headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
+            });
 
             return next.exchange(requestBuilder.build());
         };

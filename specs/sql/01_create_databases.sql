@@ -24,3 +24,8 @@ CREATE DATABASE IF NOT EXISTS mbrDB
 CREATE DATABASE IF NOT EXISTS bzaDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
+
+-- ACC는 생성기 회귀 검증과 중립 업무 reference를 위한 선택 데이터베이스입니다.
+CREATE DATABASE IF NOT EXISTS accDB
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;

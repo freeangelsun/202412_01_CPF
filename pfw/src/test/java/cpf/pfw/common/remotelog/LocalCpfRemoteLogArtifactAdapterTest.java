@@ -62,12 +62,12 @@ class LocalCpfRemoteLogArtifactAdapterTest {
         Path logFile = tempDir.resolve("local/adm/admAP01/batch/cpf-adm-batch.log");
         Files.createDirectories(logFile.getParent());
         Files.writeString(logFile, """
-                {"standardBatchId":"BADM-RLG-EX-0001","jobInstanceId":"1001","schedulerId":"SCH-01"}
+                {"standardBatchId":"BADMRL0001","jobInstanceId":"1001","schedulerId":"SCH-01"}
                 """, StandardCharsets.UTF_8);
 
         var artifacts = adapter.search(new CpfRemoteLogArtifactSearch(
                 "local", "ADM", "ADM", "admAP01", "batch", "cpf-adm",
-                null, "BADM-RLG-EX-0001", null, null, null,
+                null, "BADMRL0001", null, null, null,
                 "1001", null, null, "SCH-01",
                 Instant.now().minusSeconds(60), Instant.now().plusSeconds(60),
                 1L, 10_000L, false, null, 10));

@@ -23,6 +23,8 @@ WHERE table_schema = 'pfwDB'
   );
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
 SELECT 'pfwDB.pfw_standard_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution;
+SELECT 'pfwDB.pfw_standard_execution_alias' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution_alias;
+SELECT 'pfwDB.pfw_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_on_demand_request;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;
 SELECT 'pfwDB.pfw_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_audit;
@@ -94,6 +96,9 @@ SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_me
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
 SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
+
+SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
+SELECT 'accDB.acc_account_change_log' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account_change_log;
 
 SELECT 'bzaDB.bza_admin_user' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_admin_user;
 SELECT 'bzaDB.bza_login_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_login_history;

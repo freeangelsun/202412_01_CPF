@@ -16,4 +16,16 @@ public @interface CpfOnlineTransaction {
     String name();
 
     String ownerDomain() default "";
+
+    String description() default "";
+
+    String requiredPermission() default "";
+
+    boolean auditReasonRequired() default false;
+
+    String visibility() default "PUBLIC";
+
+    boolean directAllowed() default true;
+
+    boolean gatewayAllowed() default true;
 }

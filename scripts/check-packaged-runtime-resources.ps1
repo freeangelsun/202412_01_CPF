@@ -62,7 +62,7 @@ function Add-ArchiveTextEntries {
             continue
         }
 
-        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/(pfw|cmn|mbr|adm|bza|xyz|bat)-.*\.jar$') {
+        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/(pfw|cmn|mbr|adm|bza|xyz|bat|acc)-.*\.jar$') {
             $memory = [System.IO.MemoryStream]::new()
             try {
                 $entryStream = $entry.Open()

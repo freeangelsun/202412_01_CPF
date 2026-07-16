@@ -48,14 +48,14 @@ public class AdmOperatorController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0030", name = "ADMOperatorList")
+    @CpfOnlineTransaction(id = "OADMOP0030", name = "ADMOperatorList")
     @Operation(operationId = "admOperatorFindOperators", summary = "List operators", description = "Returns ADM operators and account status.")
     public ResponseEntity<List<AdmOperator>> findOperators() {
         return ResponseEntity.ok(operatorService.findOperators());
     }
 
     @PostMapping
-    @CpfOnlineTransaction(id = "OADM-OPR-02-0031", name = "ADMOperatorCreate")
+    @CpfOnlineTransaction(id = "OADMOP0031", name = "ADMOperatorCreate")
     @Operation(operationId = "admOperatorCreateOperator", summary = "Create operator", description = "Creates an ADM operator after password policy validation.")
     public ResponseEntity<AdmOperator> createOperator(@RequestBody AdmOperatorCreateRequest request, HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
@@ -72,7 +72,7 @@ public class AdmOperatorController {
     }
 
     @PostMapping("/{operatorId}/password")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0032", name = "ADMOperatorPasswordChange")
+    @CpfOnlineTransaction(id = "OADMOP0032", name = "ADMOperatorPasswordChange")
     @Operation(
             operationId = "admOperatorChangePassword",
             summary = "본인 비밀번호 변경",
@@ -100,14 +100,14 @@ public class AdmOperatorController {
     }
 
     @GetMapping("/password-policy")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0036", name = "ADMPasswordPolicy")
+    @CpfOnlineTransaction(id = "OADMOP0036", name = "ADMPasswordPolicy")
     @Operation(operationId = "admOperatorPasswordPolicy", summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
     public ResponseEntity<Map<String, Object>> passwordPolicy() {
         return ResponseEntity.ok(operatorService.passwordPolicy());
     }
 
     @PostMapping("/{operatorId}/password/reset")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0037", name = "ADMOperatorPasswordReset")
+    @CpfOnlineTransaction(id = "OADMOP0037", name = "ADMOperatorPasswordReset")
     @Operation(operationId = "admOperatorResetPassword", summary = "비밀번호 초기화", description = "운영자 비밀번호를 초기화하고 필요 시 다음 로그인 강제 변경을 설정합니다.")
     public ResponseEntity<AdmOperator> resetPassword(
             @PathVariable String operatorId,
@@ -135,7 +135,7 @@ public class AdmOperatorController {
     }
 
     @PostMapping("/{operatorId}/unlock")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0038", name = "ADMOperatorUnlock")
+    @CpfOnlineTransaction(id = "OADMOP0038", name = "ADMOperatorUnlock")
     @Operation(operationId = "admOperatorUnlockOperator", summary = "운영자 잠금 해제", description = "운영자 계정 잠금과 로그인 실패 횟수를 초기화합니다.")
     public ResponseEntity<AdmOperator> unlockOperator(
             @PathVariable String operatorId,
@@ -162,7 +162,7 @@ public class AdmOperatorController {
     }
 
     @PutMapping("/{operatorId}/roles")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0039", name = "ADMOperatorRoleUpdate")
+    @CpfOnlineTransaction(id = "OADMOP0039", name = "ADMOperatorRoleUpdate")
     @Operation(operationId = "admOperatorUpdateRoles", summary = "운영자 역할 변경", description = "운영자에게 부여된 ADM 역할을 변경합니다.")
     public ResponseEntity<AdmOperator> updateRoles(
             @PathVariable String operatorId,
@@ -189,21 +189,21 @@ public class AdmOperatorController {
     }
 
     @GetMapping("/password-policy/validate")
-    @CpfOnlineTransaction(id = "OADM-OPR-06-0033", name = "ADMPasswordPolicyValidate")
+    @CpfOnlineTransaction(id = "OADMOP0033", name = "ADMPasswordPolicyValidate")
     @Operation(operationId = "admOperatorValidatePassword", summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
     public ResponseEntity<Map<String, Object>> validatePassword(@RequestParam String operatorId, @RequestParam String password) {
         return ResponseEntity.ok(operatorService.validatePassword(operatorId, password));
     }
 
     @GetMapping("/sessions")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0043", name = "ADMSessionList")
+    @CpfOnlineTransaction(id = "OADMOP0043", name = "ADMSessionList")
     @Operation(operationId = "admOperatorFindSessions", summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSessions(@RequestParam(required = false) String operatorId) {
         return ResponseEntity.ok(sessionService.findSessions(operatorId));
     }
 
     @PostMapping("/sessions/{sessionId}/revoke")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0044", name = "ADMSessionRevoke")
+    @CpfOnlineTransaction(id = "OADMOP0046", name = "ADMSessionRevoke")
     @Operation(operationId = "admOperatorRevokeSession", summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
     public ResponseEntity<Map<String, Object>> revokeSession(
             @PathVariable String sessionId,
@@ -226,7 +226,7 @@ public class AdmOperatorController {
     }
 
     @PostMapping("/sessions/cleanup-expired")
-    @CpfOnlineTransaction(id = "OADM-OPR-03-0045", name = "ADMSessionCleanupExpired")
+    @CpfOnlineTransaction(id = "OADMOP0047", name = "ADMSessionCleanupExpired")
     @Operation(operationId = "admOperatorCleanupExpiredSessions", summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
     public ResponseEntity<Map<String, Object>> cleanupExpiredSessions(
             @RequestBody AdmSessionRevokeRequest request,
@@ -248,14 +248,14 @@ public class AdmOperatorController {
     }
 
     @GetMapping("/roles")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0034", name = "ADMRoleList")
+    @CpfOnlineTransaction(id = "OADMOP0034", name = "ADMRoleList")
     @Operation(operationId = "admOperatorFindRoles", summary = "List roles", description = "Returns ADM roles.")
     public ResponseEntity<List<AdmRole>> findRoles() {
         return ResponseEntity.ok(operatorService.findRoles());
     }
 
     @GetMapping("/menus")
-    @CpfOnlineTransaction(id = "OADM-OPR-01-0035", name = "ADMMenuList")
+    @CpfOnlineTransaction(id = "OADMOP0035", name = "ADMMenuList")
     @Operation(operationId = "admOperatorFindMenus", summary = "List menus", description = "Returns ADM menus.")
     public ResponseEntity<List<AdmMenu>> findMenus() {
         return ResponseEntity.ok(operatorService.findMenus());

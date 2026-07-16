@@ -30,13 +30,13 @@ class CpfExecutionCatalogRepositoryTest {
         CpfExecutionCatalogRepository repository = new CpfExecutionCatalogRepository(provider);
 
         repository.upsertAll(List.of(
-                definition("OXYZ-EDU-01-0001"),
-                definition("OXYZ-EDU-01-0002")));
+                definition("OXYZAA0001"),
+                definition("OXYZAA0002")));
 
         verify(jdbcTemplate, times(1)).update(anyString(), any(Object[].class));
         assertThat(repository.findAll())
                 .extracting(CpfExecutionDefinition::standardExecutionId)
-                .containsExactly("OXYZ-EDU-01-0001", "OXYZ-EDU-01-0002");
+                .containsExactly("OXYZAA0001", "OXYZAA0002");
     }
 
     private CpfExecutionDefinition definition(String id) {

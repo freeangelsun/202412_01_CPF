@@ -1,0 +1,24 @@
+{
+    "generatedAt": "2026-07-16T16:00:18.677+0900",
+    "module": "GATEWAY",
+    "env": "local",
+    "status": "DONE",
+    "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/local-services.json",
+    "target": {
+        "module": "GATEWAY",
+        "hostAlias": "gateway-local",
+        "sshHostEnvKey": "GATEWAY_SSH_HOST",
+        "sshUserEnvKey": "GATEWAY_SSH_USER",
+        "deployBase": "build/deploy/pfw-gateway-runtime",
+        "healthUrl": "http://localhost:${GATEWAY_SERVER_PORT}/actuator/health",
+        "serviceName": "cpf-pfw-gateway",
+        "portEnvKey": "GATEWAY_SERVER_PORT",
+        "profile": "local",
+        "approvalRequired": false,
+        "rollbackEnabled": true,
+        "runtimeMode": "embedded-bootjar"
+    },
+    "failures": [
+        
+    ]
+}

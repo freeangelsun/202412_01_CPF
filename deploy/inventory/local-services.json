@@ -70,6 +70,34 @@
                          "approvalRequired":  false,
                          "rollbackEnabled":  true,
                          "runtimeMode":  "embedded-bootjar"
+                     },
+                     {
+                         "module":  "ACC",
+                         "hostAlias":  "acc-local",
+                         "sshHostEnvKey":  "ACC_SSH_HOST",
+                         "sshUserEnvKey":  "ACC_SSH_USER",
+                         "deployBase":  "build/deploy/acc",
+                         "healthUrl":  "http://localhost:${ACC_SERVER_PORT}/actuator/health",
+                         "serviceName":  "cpf-acc",
+                         "portEnvKey":  "ACC_SERVER_PORT",
+                         "profile":  "local",
+                         "approvalRequired":  false,
+                         "rollbackEnabled":  true,
+                         "runtimeMode":  "embedded-bootjar"
+                     },
+                     {
+                         "module":  "GATEWAY",
+                         "hostAlias":  "gateway-local",
+                         "sshHostEnvKey":  "GATEWAY_SSH_HOST",
+                         "sshUserEnvKey":  "GATEWAY_SSH_USER",
+                         "deployBase":  "build/deploy/pfw-gateway-runtime",
+                         "healthUrl":  "http://localhost:${GATEWAY_SERVER_PORT}/actuator/health",
+                         "serviceName":  "cpf-pfw-gateway",
+                         "portEnvKey":  "GATEWAY_SERVER_PORT",
+                         "profile":  "local",
+                         "approvalRequired":  false,
+                         "rollbackEnabled":  true,
+                         "runtimeMode":  "embedded-bootjar"
                      }
                  ]
 }

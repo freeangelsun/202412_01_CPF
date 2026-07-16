@@ -83,6 +83,36 @@ public class CpfWebClient {
     }
 
     /**
+     * 표준 실행 ID, endpoint code, timeout과 retry를 명시한 내부 GET 호출을 수행합니다.
+     */
+    public <T> T get(ServiceCallRequest request, Class<T> responseType) {
+        ServiceCallRequest effective = requireGetRequest(request);
+        CpfServiceCallEngine engine = serviceCallEngine();
+        if (engine != null && engine.isEnabled()) {
+            ServiceCallResult<T> result = invokeThroughEngineOrFallback(
+                    engine,
+                    effective,
+                    target -> webClient(target)
+                            .get()
+                            .uri(effective.requestPath())
+                            .headers(headers -> effective.headers().forEach(headers::set))
+                            .retrieve()
+                            .bodyToMono(responseType)
+                            .block(timeout(effective, target)));
+            if (result != null) {
+                return requireSuccess(result);
+            }
+        }
+        return service(effective.serviceId())
+                .get()
+                .uri(effective.requestPath())
+                .headers(headers -> effective.headers().forEach(headers::set))
+                .retrieve()
+                .bodyToMono(responseType)
+                .block();
+    }
+
+    /**
      * generic 응답 타입을 사용하는 blocking GET 호출을 수행합니다.
      */
     public <T> T get(
@@ -251,6 +281,16 @@ public class CpfWebClient {
                 request.retryCount(),
                 request.headers(),
                 request.attributes());
+    }
+
+    private ServiceCallRequest requireGetRequest(ServiceCallRequest request) {
+        if (request == null || request.serviceId() == null || request.serviceId().isBlank()) {
+            throw new IllegalArgumentException("서비스 호출 serviceId는 필수입니다.");
+        }
+        return new ServiceCallRequest(
+                request.serviceId().trim(), request.endpointCode(), request.instanceId(), "GET",
+                normalizePath(request.requestPath()), request.timeoutMillis(), request.retryCount(),
+                request.headers(), request.attributes());
     }
 
     private URI relativeUri(Function<UriBuilder, URI> uriFunction) {

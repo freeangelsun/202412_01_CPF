@@ -51,14 +51,18 @@ tasks.register('runLocalServices') {
     group = 'application'
     description = 'CPF verification or deployment task.'
 
-    dependsOn ':mbr:classes', ':xyz:classes', ':adm:classes', ':bza:classes'
+    dependsOn ':mbr:classes', ':xyz:classes', ':adm:classes', ':bza:classes',
+            ':bat:classes', ':acc:classes', ':pfw-gateway-runtime:classes'
 
     doLast {
         def services = [
                 [name: 'MBR', project: project(':mbr'), mainClass: 'cpf.mbr.MbrApplication'],
                 [name: 'XYZ', project: project(':xyz'), mainClass: 'cpf.xyz.XyzApplication'],
                 [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication'],
-                [name: 'BZA', project: project(':bza'), mainClass: 'cpf.bza.BzaApplication']
+                [name: 'BZA', project: project(':bza'), mainClass: 'cpf.bza.BzaApplication', defaultEnabled: true],
+                [name: 'BAT', project: project(':bat'), mainClass: 'cpf.bat.BatApplication', defaultEnabled: false],
+                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccountApplication', defaultEnabled: false],
+                [name: 'GATEWAY', project: project(':pfw-gateway-runtime'), mainClass: 'cpf.pfw.gateway.PfwGatewayApplication', defaultEnabled: false]
         ]
         def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
         if (!requestedServiceText.isBlank()) {
@@ -70,6 +74,8 @@ tasks.register('runLocalServices') {
             if (services.isEmpty()) {
                 throw new GradleException("Unsupported cpfRunServices value: ${requestedServiceText}")
             }
+        } else {
+            services = services.findAll { it.get('defaultEnabled', true) }
         }
         def javaExecutable = new File(
                 System.getProperty('java.home'),
@@ -79,7 +85,7 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('Default ports: MBR(8081), XYZ(8099), ADM(8090), BZA(8091)')
+        logger.lifecycle('Default ports: MBR(8081), XYZ(8099), ADM(8090), BZA(8091), BAT(8093), ACC(8082), GATEWAY(8070)')
         logger.lifecycle('PFW and CMN are library modules and are not started as standalone services.')
 
         services.each { service ->
@@ -157,7 +163,9 @@ ext.cpfServiceModules = [
         ADM   : 'adm',
         BAT   : 'bat',
         BZA   : 'bza',
-        XYZ   : 'xyz'
+        XYZ   : 'xyz',
+        ACC   : 'acc',
+        GATEWAY: 'pfw-gateway-runtime'
 ]
 ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
 
@@ -182,7 +190,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260715_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260716_01').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -292,8 +300,8 @@ Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
                 failures << "Inventory field is missing: ${key}"
             }
         }
-        if (service.runtimeMode && !['embedded-bootjar', 'external-was'].contains(service.runtimeMode)) {
-            failures << "runtimeMode must be embedded-bootjar or external-was."
+        if (service.runtimeMode && !['embedded-bootjar', 'external-was', 'external-tomcat-war'].contains(service.runtimeMode)) {
+            failures << "runtimeMode must be embedded-bootjar, external-was, or external-tomcat-war."
         }
     }
     def result = [
@@ -328,7 +336,7 @@ Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
     if (!containsPfw) {
         failures << 'bootJar does not contain PFW jar.'
     }
-    if (moduleLower != 'bat' && !containsCmn) {
+    if (!(moduleCode in ['BAT', 'GATEWAY']) && !containsCmn) {
         failures << 'bootJar does not contain CMN jar.'
     }
     def result = [
@@ -393,14 +401,14 @@ tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
-    dependsOn ':adm:bootJar', ':bat:bootJar', ':bza:bootJar', ':mbr:bootJar', ':xyz:bootJar'
+    dependsOn ':adm:bootJar', ':bat:bootJar', ':bza:bootJar', ':mbr:bootJar', ':xyz:bootJar', ':acc:bootJar', ':pfw-gateway-runtime:bootJar'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
 
 tasks.register('checkDocxStandard', Exec) {
     group = 'verification'
-    description = 'Checks the nine canonical DOCX packages and rejects legacy specs HTML.'
+    description = 'Checks the nine canonical DOCX package integrity; freshness is a separate final-publication gate.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-docx-standard.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -553,7 +561,7 @@ tasks.register('remoteDeployDryRun') {
         def target = inventoryResult.target
         def javaPlan = "java -jar ${jarFile.path.replace('\\', '/')} --spring.profiles.active=${env}"
         def externalWasPlan = [
-                mode        : 'external-was',
+                mode        : 'external-tomcat-war',
                 status      : 'CONFIG_PLAN_ONLY',
                 datasource  : "${moduleCode}_DATASOURCE_MODE=jndi",
                 jndiNameKey : "${moduleCode}_DATASOURCE_JNDI_NAME",

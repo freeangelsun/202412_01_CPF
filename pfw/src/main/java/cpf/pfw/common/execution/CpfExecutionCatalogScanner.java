@@ -82,6 +82,19 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         if (online != null) {
             definitions.add(definition(
                     online.id(), online.name(), CpfExecutionType.ONLINE, online.ownerDomain(),
+                    online.description(), online.requiredPermission(), online.auditReasonRequired(),
+                    online.visibility(), online.directAllowed(), online.gatewayAllowed(),
+                    sourceModule, sourceVersion, beanType, method));
+        }
+        CpfSharedApi shared = AnnotatedElementUtils.findMergedAnnotation(method, CpfSharedApi.class);
+        if (shared == null) {
+            shared = AnnotatedElementUtils.findMergedAnnotation(beanType, CpfSharedApi.class);
+        }
+        if (shared != null) {
+            definitions.add(definition(
+                    shared.id(), shared.name(), CpfExecutionType.SHARED, shared.ownerDomain(),
+                    shared.description(), shared.requiredPermission(), shared.auditReasonRequired(),
+                    "INTERNAL", true, false,
                     sourceModule, sourceVersion, beanType, method));
         }
         CpfBatchJob batch = AnnotatedElementUtils.findMergedAnnotation(method, CpfBatchJob.class);
@@ -91,6 +104,8 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         if (batch != null) {
             definitions.add(definition(
                     batch.id(), batch.name(), CpfExecutionType.BATCH, batch.ownerDomain(),
+                    batch.description(), batch.requiredPermission(), batch.auditReasonRequired(),
+                    "INTERNAL", false, false,
                     sourceModule, sourceVersion, beanType, method));
         }
     }
@@ -100,6 +115,12 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
             String name,
             CpfExecutionType type,
             String ownerDomain,
+            String description,
+            String requiredPermission,
+            boolean auditReasonRequired,
+            String visibility,
+            boolean directAllowed,
+            boolean gatewayAllowed,
             String sourceModule,
             String sourceVersion,
             Class<?> beanType,
@@ -111,9 +132,14 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         String endpoint = combinePaths(firstPath(typeMapping), firstPath(mapping));
         Operation operation = AnnotatedElementUtils.findMergedAnnotation(method, Operation.class);
         String operationId = operation == null ? "" : operation.operationId();
+        String resolvedDescription = description == null || description.isBlank()
+                ? operation == null ? "" : operation.description()
+                : description;
         return new CpfExecutionDefinition(
                 parsed.value(), name, type, resolvedOwner, sourceModule,
-                beanType.getName(), method.getName(), endpoint, operationId, sourceVersion, Instant.now());
+                beanType.getName(), method.getName(), firstHttpMethod(mapping), endpoint, operationId,
+                resolvedDescription, requiredPermission, auditReasonRequired, visibility,
+                directAllowed, gatewayAllowed, sourceVersion, Instant.now());
     }
 
     private String firstPath(RequestMapping mapping) {
@@ -129,5 +155,9 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         return combined.length() > 1 && combined.endsWith("/")
                 ? combined.substring(0, combined.length() - 1)
                 : combined;
+    }
+
+    private String firstHttpMethod(RequestMapping mapping) {
+        return mapping == null || mapping.method().length == 0 ? "" : mapping.method()[0].name();
     }
 }

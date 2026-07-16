@@ -29,7 +29,7 @@ public class XyzAiEducationController {
     }
 
     @PostMapping("/structured")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0001", name = "XYZAI구조화응답")
+    @CpfOnlineTransaction(id = "OXYZAA0058", name = "XYZAI구조화응답")
     @Operation(operationId = "xyzAiEducationStructured", summary = "AI 구조화 응답",
             description = "입력 마스킹과 injection 방어 후 JSON schema를 검증하고 retry·model fallback·token 사용량을 반환합니다.")
     public ResponseEntity<XyzAiEducationSample.AiResult> structured(
@@ -38,7 +38,7 @@ public class XyzAiEducationController {
     }
 
     @PostMapping("/stream")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0002", name = "XYZAI스트리밍")
+    @CpfOnlineTransaction(id = "OXYZAA0059", name = "XYZAI스트리밍")
     @Operation(operationId = "xyzAiEducationStream", summary = "AI streaming 응답",
             description = "deterministic provider의 순서화된 chunk와 마지막 완료 marker를 반환합니다.")
     public ResponseEntity<List<CpfAiProviderPort.CpfAiChunk>> stream(
@@ -47,7 +47,7 @@ public class XyzAiEducationController {
     }
 
     @PostMapping("/rag")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0003", name = "XYZAIRAG")
+    @CpfOnlineTransaction(id = "OXYZAA0061", name = "XYZAIRAG")
     @Operation(operationId = "xyzAiEducationRag", summary = "AI RAG와 출처",
             description = "embedding·vector store port로 CPF 문서를 검색하고 점수가 포함된 출처를 응답에 연결합니다.")
     public ResponseEntity<XyzAiEducationSample.AiResult> rag(@RequestBody Map<String, String> request) {
@@ -55,7 +55,7 @@ public class XyzAiEducationController {
     }
 
     @PostMapping("/jobs")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0004", name = "XYZAI승인대기등록")
+    @CpfOnlineTransaction(id = "OXYZAA0062", name = "XYZAI승인대기등록")
     @Operation(operationId = "xyzAiEducationSubmitJob", summary = "AI 사람 승인 대기 등록",
             description = "영향도 높은 AI 요청을 즉시 실행하지 않고 승인 대기 작업으로 등록합니다.")
     public ResponseEntity<XyzAiEducationSample.AiJob> submit(
@@ -65,7 +65,7 @@ public class XyzAiEducationController {
     }
 
     @PostMapping("/jobs/{jobId}/approve")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0005", name = "XYZAI승인실행")
+    @CpfOnlineTransaction(id = "OXYZAA0063", name = "XYZAI승인실행")
     @Operation(operationId = "xyzAiEducationApproveJob", summary = "AI 승인 후 실행",
             description = "승인자와 사유를 기록한 뒤 승인 대기 AI 작업을 한 번만 실행합니다.")
     public ResponseEntity<XyzAiEducationSample.AiJob> approve(
@@ -76,7 +76,7 @@ public class XyzAiEducationController {
     }
 
     @GetMapping("/metrics")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-16-0006", name = "XYZAIMetric조회")
+    @CpfOnlineTransaction(id = "OXYZAA0064", name = "XYZAIMetric조회")
     @Operation(operationId = "xyzAiEducationMetrics", summary = "AI 관제 지표",
             description = "ADM observability 연계 대상으로 요청·fallback·token·승인 대기 건수를 반환합니다.")
     public ResponseEntity<Map<String, Long>> metrics() {

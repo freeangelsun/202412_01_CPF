@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-16T16:00:18.672+0900",
+    "module": "GATEWAY",
+    "env": "local",
+    "status": "DONE",
+    "envFile": "deploy/env/local-pfw-gateway-runtime.env",
+    "keyCount": 12,
+    "failures": [
+        
+    ]
+}

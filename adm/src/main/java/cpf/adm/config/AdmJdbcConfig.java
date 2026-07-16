@@ -76,11 +76,6 @@ public class AdmJdbcConfig {
         return new JdbcTemplate(admDataSource);
     }
 
-    @Bean(name = "pfwJdbcTemplate")
-    public JdbcTemplate pfwJdbcTemplate(@Qualifier("pfwDataSource") DataSource pfwDataSource) {
-        return new JdbcTemplate(pfwDataSource);
-    }
-
     @Bean(name = "mbrAdmDataSource")
     public DataSource mbrAdmDataSource() {
         return DataSourceBuilder.create()

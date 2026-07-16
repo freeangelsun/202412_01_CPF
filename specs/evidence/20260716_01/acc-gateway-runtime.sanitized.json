@@ -1,0 +1,148 @@
+{
+    "evidenceVersion":  1,
+    "evidenceId":  "ACC_GATEWAY_RUNTIME_20260716_01",
+    "generatedAt":  "2026-07-16T16:42:23.7954113+09:00",
+    "startCommit":  "0788fee1eb329f9ba971660d5958a309f544fcbf",
+    "branch":  "master",
+    "requestSha256":  "FC44647DF0AB15C6E4EDECDE68EF2703133DA3853A7BB1289E7CAE2F40FCEAAA",
+    "targetSha256":  "28564A5AE4553C4C7509FB61D7E1B0D02EB679B524E7D0E6E7C3BB1FF17DC774",
+    "status":  "완료",
+    "profile":  "local",
+    "sanitized":  true,
+    "secretScan":  "PASS",
+    "modules":  [
+                    {
+                        "module":  "ACC",
+                        "status":  "완료",
+                        "port":  8082,
+                        "bootJarBuildStatus":  "BUILT",
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  ""
+                    },
+                    {
+                        "module":  "GATEWAY",
+                        "status":  "완료",
+                        "port":  8070,
+                        "bootJarBuildStatus":  "BUILT",
+                        "portOpened":  true,
+                        "processStillAliveAfterProbe":  true,
+                        "healthCheckPassed":  true,
+                        "finalRuntimeUsable":  true,
+                        "failureClassification":  null,
+                        "failureRootCause":  ""
+                    }
+                ],
+    "runtimeStatus":  [
+                          {
+                              "module":  "ACC",
+                              "port":  8082,
+                              "status":  "완료",
+                              "listening":  true,
+                              "processAlive":  true,
+                              "healthStatusCode":  200,
+                              "healthCheckPassed":  true,
+                              "finalRuntimeUsable":  true
+                          },
+                          {
+                              "module":  "GATEWAY",
+                              "port":  8070,
+                              "status":  "완료",
+                              "listening":  true,
+                              "processAlive":  true,
+                              "healthStatusCode":  200,
+                              "healthCheckPassed":  true,
+                              "finalRuntimeUsable":  true
+                          }
+                      ],
+    "openapi":  {
+                    "startedAt":  "2026-07-16T16:39:59.7150321+09:00",
+                    "status":  "PASSED",
+                    "requireRuntime":  true,
+                    "services":  [
+                                     {
+                                         "service":  "ACC",
+                                         "baseUrl":  "http://localhost:8082",
+                                         "status":  "PASSED",
+                                         "requiredTags":  [
+                                                              "ACC 업무",
+                                                              "ACC 계정",
+                                                              "ACC 내부 공유 API"
+                                                          ],
+                                         "requiredPaths":  [
+                                                               "/api/v1/acc",
+                                                               "/api/v1/accounts",
+                                                               "/api/v1/accounts/{accountId}",
+                                                               "/internal/api/v1/accounts/{accountId}/summary"
+                                                           ],
+                                         "missingTags":  [
+
+                                                         ],
+                                         "missingPaths":  [
+
+                                                          ],
+                                         "openapi":  "3.1.0",
+                                         "pathCount":  4,
+                                         "tagCount":  3
+                                     },
+                                     {
+                                         "service":  "GATEWAY",
+                                         "baseUrl":  "http://localhost:8070",
+                                         "status":  "PASSED",
+                                         "requiredTags":  [
+                                                              "PFW Gateway"
+                                                          ],
+                                         "requiredPaths":  [
+                                                               "/cpf/execute",
+                                                               "/cpf/execute/{executionId}"
+                                                           ],
+                                         "missingTags":  [
+
+                                                         ],
+                                         "missingPaths":  [
+
+                                                          ],
+                                         "openapi":  "3.1.0",
+                                         "pathCount":  2,
+                                         "tagCount":  1
+                                     }
+                                 ],
+                    "finishedAt":  "2026-07-16T16:40:01.2272482+09:00"
+                },
+    "accCrudAndDatabase":  {
+                               "checkedAt":  "2026-07-16T16:40:33.0353779+09:00",
+                               "status":  "완료",
+                               "module":  "ACC",
+                               "operations":  [
+                                                  "CREATE",
+                                                  "READ",
+                                                  "UPDATE",
+                                                  "DELETE"
+                                              ],
+                               "logicalDeletedAccountCount":  1,
+                               "accountAuditActionCount":  3,
+                               "accCatalogExecutionCount":  8,
+                               "transactionLogCount":  4,
+                               "batchMetadataTableCountInAccDb":  0,
+                               "batchMetadataTableCountInPfwDb":  9,
+                               "auditReasonProvided":  true,
+                               "secretsStored":  false
+                           },
+    "stop":  [
+                 {
+                     "module":  "ACC",
+                     "status":  "완료",
+                     "reason":  null
+                 },
+                 {
+                     "module":  "GATEWAY",
+                     "status":  "완료",
+                     "reason":  null
+                 }
+             ],
+    "externalTomcatVerified":  false,
+    "gatewayTargetProxyE2eVerified":  false
+}

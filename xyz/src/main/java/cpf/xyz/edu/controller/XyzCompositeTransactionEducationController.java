@@ -20,7 +20,7 @@ import java.util.Map;
 public class XyzCompositeTransactionEducationController {
 
     @GetMapping("/composite-sample")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0040", name = "XYZCompositeTransactionSample")
+    @CpfOnlineTransaction(id = "OXYZAA0043", name = "XYZCompositeTransactionSample")
     @Operation(operationId = "xyzCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "XYZ에서 PFW Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(

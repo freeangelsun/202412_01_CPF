@@ -33,14 +33,14 @@ public class BzaOperationController {
     }
 
     @GetMapping("/admin-users")
-    @CpfOnlineTransaction(id = "OBZA-ADM-01-1001", name = "BzaAdminUserList")
+    @CpfOnlineTransaction(id = "OBZAAD1001", name = "BzaAdminUserList")
     @Operation(operationId = "bzaOperationFindAdminUsers", summary = "업무 관리자 사용자 조회", description = "bza_admin_user 기준 업무 관리자 사용자를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findAdminUsers() {
         return ResponseEntity.ok(operationService.findAdminUsers());
     }
 
     @PostMapping("/admin-users")
-    @CpfOnlineTransaction(id = "OBZA-ADM-03-1002", name = "BzaAdminUserSave")
+    @CpfOnlineTransaction(id = "OBZAAD1002", name = "BzaAdminUserSave")
     @Operation(operationId = "bzaOperationSaveAdminUser", summary = "업무 관리자 사용자 등록·수정",
             description = "사용자 계정과 역할·잠금·강제 비밀번호 변경 상태를 저장하고 변경 감사를 남깁니다.")
     public ResponseEntity<Map<String, Object>> saveAdminUser(
@@ -50,14 +50,14 @@ public class BzaOperationController {
     }
 
     @GetMapping("/menus")
-    @CpfOnlineTransaction(id = "OBZA-MNU-01-1001", name = "BzaMenuList")
+    @CpfOnlineTransaction(id = "OBZAMN1001", name = "BzaMenuList")
     @Operation(operationId = "bzaOperationFindMenus", summary = "업무 관리자 메뉴 조회", description = "업무 관리자 메뉴와 모듈 구분을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMenus() {
         return ResponseEntity.ok(operationService.findMenus());
     }
 
     @PostMapping("/menus")
-    @CpfOnlineTransaction(id = "OBZA-MNU-03-1002", name = "BzaMenuSave")
+    @CpfOnlineTransaction(id = "OBZAMN1002", name = "BzaMenuSave")
     @Operation(operationId = "bzaOperationSaveMenu", summary = "업무 관리자 메뉴 등록·수정",
             description = "메뉴 트리, 화면 route, 아이콘, API 경로와 적용 환경을 저장하고 변경 감사를 남깁니다.")
     public ResponseEntity<Map<String, Object>> saveMenu(
@@ -67,14 +67,14 @@ public class BzaOperationController {
     }
 
     @GetMapping("/roles")
-    @CpfOnlineTransaction(id = "OBZA-ROL-01-1001", name = "BzaRoleList")
+    @CpfOnlineTransaction(id = "OBZARO1001", name = "BzaRoleList")
     @Operation(operationId = "bzaOperationFindRoles", summary = "업무 관리자 역할 조회", description = "업무 관리자 역할과 쓰기 허용 여부를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findRoles() {
         return ResponseEntity.ok(operationService.findRoles());
     }
 
     @PostMapping("/roles")
-    @CpfOnlineTransaction(id = "OBZA-ROL-03-1002", name = "BzaRoleSave")
+    @CpfOnlineTransaction(id = "OBZARO1002", name = "BzaRoleSave")
     @Operation(operationId = "bzaOperationSaveRole", summary = "업무 관리자 역할 등록·수정",
             description = "역할의 쓰기 허용 여부와 기본 데이터 범위를 저장하고 변경 감사를 남깁니다.")
     public ResponseEntity<Map<String, Object>> saveRole(
@@ -84,14 +84,14 @@ public class BzaOperationController {
     }
 
     @GetMapping("/permissions")
-    @CpfOnlineTransaction(id = "OBZA-PER-01-1001", name = "BzaPermissionList")
+    @CpfOnlineTransaction(id = "OBZAPE1001", name = "BzaPermissionList")
     @Operation(operationId = "bzaOperationFindPermissions", summary = "업무 관리자 권한 조회", description = "역할, 메뉴, 버튼 기준 업무 권한 매트릭스를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findPermissions() {
         return ResponseEntity.ok(operationService.findPermissions());
     }
 
     @PostMapping("/permissions")
-    @CpfOnlineTransaction(id = "OBZA-PER-03-1002", name = "BzaPermissionSave")
+    @CpfOnlineTransaction(id = "OBZAPE1002", name = "BzaPermissionSave")
     @Operation(operationId = "bzaOperationSavePermission", summary = "업무 관리자 권한 등록·수정",
             description = "역할별 화면·버튼·API 권한과 환경·업무·데이터 범위를 저장하고 변경 감사를 남깁니다.")
     public ResponseEntity<Map<String, Object>> savePermission(
@@ -101,14 +101,14 @@ public class BzaOperationController {
     }
 
     @GetMapping("/customers")
-    @CpfOnlineTransaction(id = "OBZA-CUS-01-1001", name = "BzaCustomerList")
+    @CpfOnlineTransaction(id = "OBZACU1001", name = "BzaCustomerList")
     @Operation(operationId = "bzaOperationFindCustomers", summary = "고객 조회", description = "고객 목록을 마스킹 기준으로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCustomers() {
         return ResponseEntity.ok(operationService.findCustomers());
     }
 
     @PostMapping("/masking/unmask")
-    @CpfOnlineTransaction(id = "OBZA-MSK-02-1001", name = "BzaUnmask")
+    @CpfOnlineTransaction(id = "OBZAMS1001", name = "BzaUnmask")
     @Operation(operationId = "bzaOperationUnmaskCustomers", summary = "고객 마스킹 해제", description = "감사 사유를 필수로 받아 고객 원문 정보를 조회하고 마스킹 감사 이력을 남깁니다.")
     public ResponseEntity<List<Map<String, Object>>> unmaskCustomers(
             @RequestParam String reason,
@@ -117,28 +117,28 @@ public class BzaOperationController {
     }
 
     @GetMapping("/products")
-    @CpfOnlineTransaction(id = "OBZA-PRD-01-1001", name = "BzaProductList")
+    @CpfOnlineTransaction(id = "OBZAPR1001", name = "BzaProductList")
     @Operation(operationId = "bzaOperationFindProducts", summary = "상품 조회", description = "업무 상품 기준정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findProducts() {
         return ResponseEntity.ok(operationService.findProducts());
     }
 
     @GetMapping("/orders")
-    @CpfOnlineTransaction(id = "OBZA-ORD-01-1001", name = "BzaOrderList")
+    @CpfOnlineTransaction(id = "OBZAOR1001", name = "BzaOrderList")
     @Operation(operationId = "bzaOperationFindOrders", summary = "주문 조회", description = "업무 주문과 고객/상품 연결 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findOrders() {
         return ResponseEntity.ok(operationService.findOrders());
     }
 
     @GetMapping("/settings")
-    @CpfOnlineTransaction(id = "OBZA-SET-01-1001", name = "BzaSettingList")
+    @CpfOnlineTransaction(id = "OBZASE1001", name = "BzaSettingList")
     @Operation(operationId = "bzaOperationFindSettings", summary = "업무 설정 조회", description = "업무 모듈 적용 설정을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSettings() {
         return ResponseEntity.ok(operationService.findSettings());
     }
 
     @GetMapping("/downloads")
-    @CpfOnlineTransaction(id = "OBZA-DWN-01-1001", name = "BzaDownloadPolicyList")
+    @CpfOnlineTransaction(id = "OBZADW1001", name = "BzaDownloadPolicyList")
     @Operation(operationId = "bzaOperationFindDownloadPolicies", summary = "다운로드 정책 조회", description = "업무 다운로드 정책 설정을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findDownloadPolicies() {
         return ResponseEntity.ok(operationService.findDownloadPolicies());

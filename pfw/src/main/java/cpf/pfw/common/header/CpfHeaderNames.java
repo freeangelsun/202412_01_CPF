@@ -55,6 +55,10 @@ public final class CpfHeaderNames {
     public static final String CLIENT_VERSION = "X-Client-Version";
     public static final String CALLER_SERVICE = "X-Caller-Service";
     public static final String CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
+    public static final String GATEWAY_INSTANCE_ID = "X-Cpf-Gateway-Instance-Id";
+    public static final String GATEWAY_ROUTE_ID = "X-Cpf-Gateway-Route-Id";
+    public static final String GATEWAY_ROUTE_VERSION = "X-Cpf-Gateway-Route-Version";
+    public static final String INGRESS_TYPE = "X-Cpf-Ingress-Type";
     public static final String USER_AGENT = "User-Agent";
     public static final String LOCALE = "X-Locale";
     public static final String SCREEN_ID = "X-Screen-Id";

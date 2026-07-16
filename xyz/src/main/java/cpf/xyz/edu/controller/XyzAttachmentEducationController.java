@@ -23,7 +23,7 @@ public class XyzAttachmentEducationController {
     }
 
     @PostMapping("/text")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-17-0001", name = "XYZ첨부파일저장")
+    @CpfOnlineTransaction(id = "OXYZAA0065", name = "XYZ첨부파일저장")
     @Operation(operationId = "xyzAttachmentEducationStoreText", summary = "교육용 UTF-8 첨부 저장",
             description = "PFW 저장 port의 파일명·확장자·크기·경로 검증과 SHA-256 계산 결과를 확인합니다.")
     public ResponseEntity<CpfStoredAttachment> storeText(
@@ -32,7 +32,7 @@ public class XyzAttachmentEducationController {
     }
 
     @PostMapping("/verify")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-17-0002", name = "XYZ첨부파일검증")
+    @CpfOnlineTransaction(id = "OXYZAA0066", name = "XYZ첨부파일검증")
     @Operation(operationId = "xyzAttachmentEducationVerify", summary = "교육용 첨부 checksum 검증",
             description = "저장 key로 본문을 다시 읽어 예상 SHA-256과 일치하는지 확인합니다.")
     public ResponseEntity<XyzAttachmentEducationSample.AttachmentVerification> verify(

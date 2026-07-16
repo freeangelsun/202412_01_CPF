@@ -30,7 +30,7 @@ public class AdmObservabilityController {
     }
 
     @GetMapping("/transactions/{transactionGlobalId}")
-    @CpfOnlineTransaction(id = "OADM-OBS-01-0010", name = "ADMObservabilityByTransaction")
+    @CpfOnlineTransaction(id = "OADMOB0010", name = "ADMObservabilityByTransaction")
     @Operation(operationId = "traceAdmByTransactionGlobalId", summary = "거래 글로벌 ID 통합 추적", description = "transactionGlobalId 기준으로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> traceByTransactionGlobalId(
             @PathVariable String transactionGlobalId,
@@ -39,7 +39,7 @@ public class AdmObservabilityController {
     }
 
     @GetMapping("/traces/{traceId}")
-    @CpfOnlineTransaction(id = "OADM-OBS-01-0011", name = "ADMObservabilityByTrace")
+    @CpfOnlineTransaction(id = "OADMOB0011", name = "ADMObservabilityByTrace")
     @Operation(operationId = "traceAdmByTraceId", summary = "Trace ID 통합 추적", description = "traceId 기준으로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> traceByTraceId(
             @PathVariable String traceId,
@@ -48,7 +48,7 @@ public class AdmObservabilityController {
     }
 
     @GetMapping("/business-transactions/{businessTransactionId}")
-    @CpfOnlineTransaction(id = "OADM-OBS-01-0012", name = "ADMObservabilityByBusinessTransaction")
+    @CpfOnlineTransaction(id = "OADMOB0012", name = "ADMObservabilityByBusinessTransaction")
     @Operation(operationId = "traceAdmByBusinessTransactionId", summary = "업무 거래 ID 통합 추적", description = "businessTransactionId 기준으로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> traceByBusinessTransactionId(
             @PathVariable String businessTransactionId,

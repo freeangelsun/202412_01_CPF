@@ -30,6 +30,11 @@ CREATE DATABASE IF NOT EXISTS mbrDB
 CREATE DATABASE IF NOT EXISTS bzaDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
+
+-- ACC는 생성기 회귀 검증과 중립 업무 reference를 위한 선택 데이터베이스입니다.
+CREATE DATABASE IF NOT EXISTS accDB
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
 -- ============================================================================
 -- CPF 현행 테이블 정리
 -- ============================================================================
@@ -59,6 +64,9 @@ DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
 DROP TABLE IF EXISTS mbrDB.mbr_member_role;
 DROP TABLE IF EXISTS mbrDB.mbr_member;
+
+DROP TABLE IF EXISTS accDB.acc_account_change_log;
+DROP TABLE IF EXISTS accDB.acc_account;
 
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
 DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
@@ -144,6 +152,8 @@ DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
 DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
 DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_on_demand_request;
+DROP TABLE IF EXISTS pfwDB.pfw_standard_execution_alias;
 DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
@@ -167,6 +177,8 @@ SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_migration'@'localhost' ID
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bza_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
+PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_pfw_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
@@ -180,6 +192,8 @@ SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_app'@'localhost' IDENTIFI
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_bza_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
+PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = NULL;
 
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON pfwDB.* TO 'cpf_pfw_migration'@'localhost';
@@ -188,6 +202,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON 
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON xyzDB.* TO 'cpf_xyz_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON mbrDB.* TO 'cpf_mbr_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON bzaDB.* TO 'cpf_bza_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON accDB.* TO 'cpf_acc_migration'@'localhost';
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON pfwDB.* TO 'cpf_pfw_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON cmnDB.* TO 'cpf_cmn_app'@'localhost';
@@ -195,6 +210,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON admDB.* TO 'cpf_adm_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON xyzDB.* TO 'cpf_xyz_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON mbrDB.* TO 'cpf_mbr_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON bzaDB.* TO 'cpf_bza_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON accDB.* TO 'cpf_acc_app'@'localhost';
 
 FLUSH PRIVILEGES;
 -- ============================================================================
@@ -591,15 +607,22 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온라인 거래 메타';
 
 CREATE TABLE IF NOT EXISTS pfw_standard_execution (
-    standard_execution_id VARCHAR(20) NOT NULL COMMENT 'CPF 온라인·배치 표준 실행 ID',
+    standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
     execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
-    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE 또는 BATCH',
+    execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
     owner_domain VARCHAR(20) NOT NULL COMMENT '실행 소유 주제영역',
     source_module VARCHAR(20) NOT NULL COMMENT '발견 소스 모듈',
     source_class VARCHAR(255) NOT NULL COMMENT '선언 클래스명',
     source_method VARCHAR(150) NOT NULL COMMENT '선언 메서드명',
+    http_method VARCHAR(10) NULL COMMENT 'HTTP 진입 method',
     endpoint VARCHAR(500) NULL COMMENT '연결 API 또는 배치 endpoint',
     operation_id VARCHAR(150) NULL COMMENT '연결 OpenAPI operation ID',
+    description VARCHAR(1000) NULL COMMENT '실행 기능 설명',
+    required_permission VARCHAR(150) NULL COMMENT '필수 실행 권한 코드',
+    audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위',
+    direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 PFW Gateway 호출 허용 여부',
     source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
     registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
     first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
@@ -613,11 +636,63 @@ CREATE TABLE IF NOT EXISTS pfw_standard_execution (
     INDEX ix_pfw_standard_execution_owner (owner_domain, source_module),
     INDEX ix_pfw_standard_execution_source (source_class, source_method),
     CONSTRAINT ck_pfw_standard_execution_id CHECK (
-        standard_execution_id REGEXP '^[OB][A-Z]{3}-[A-Z0-9]{3}-[A-Z0-9]{2}-[0-9]{4}$'
+        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
         AND RIGHT(standard_execution_id, 4) <> '0000'
     ),
-    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'BATCH'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 표준 온라인·배치 실행 카탈로그';
+    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW O·S·B 표준 실행 카탈로그';
+
+CREATE TABLE IF NOT EXISTS pfw_standard_execution_alias (
+    legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
+    standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
+    migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
+    retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (legacy_execution_id),
+    UNIQUE KEY uk_pfw_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_pfw_standard_execution_alias_current CHECK (
+        standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 구형 실행 ID 조회 호환 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
+    execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
+    standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',
+    idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 접수 방지 멱등 키',
+    transaction_global_id VARCHAR(100) NOT NULL COMMENT '온라인 접수 거래 글로벌 ID',
+    business_date CHAR(8) NOT NULL COMMENT '배치 업무 기준일 YYYYMMDD',
+    request_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT 'REQUESTED, RUNNING, COMPLETED, FAILED, RESTARTED, STOPPING 등 접수 상태',
+    parameters_json LONGTEXT NULL COMMENT '검증된 배치 업무 파라미터 JSON',
+    request_reason VARCHAR(500) NOT NULL COMMENT '실행 감사 사유',
+    request_user VARCHAR(100) NOT NULL COMMENT '실행 요청자',
+    pfw_execution_id BIGINT NULL COMMENT 'PFW 배치 실행 메타 ID',
+    spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
+    result_json LONGTEXT NULL COMMENT '마스킹된 실행 결과 JSON',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '민감정보가 제거된 실패 메시지',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '접수일시',
+    completed_at DATETIME(3) NULL COMMENT '완료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (execution_request_id),
+    UNIQUE KEY uk_pfw_batch_on_demand_idempotency (standard_batch_id, idempotency_key),
+    INDEX ix_pfw_batch_on_demand_status (request_status, requested_at),
+    INDEX ix_pfw_batch_on_demand_transaction (transaction_global_id),
+    INDEX ix_pfw_batch_on_demand_spring (spring_batch_execution_id),
+    CONSTRAINT ck_pfw_batch_on_demand_id CHECK (
+        standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
+        AND RIGHT(standard_batch_id, 4) <> '0000'
+    ),
+    CONSTRAINT ck_pfw_batch_on_demand_status CHECK (
+        request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED',
+                           'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED')
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온디맨드 배치 온라인 접수';
 
 CREATE TABLE IF NOT EXISTS pfw_log_policy (
     policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
@@ -2758,6 +2833,42 @@ CREATE TABLE IF NOT EXISTS bza_masking_audit (
     INDEX ix_bza_masking_audit_target (target_type, target_id, created_at),
     INDEX ix_bza_masking_audit_operator (operator_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 마스킹 감사';
+
+-- ACC는 create-domain 생성기 결과를 실제 CRUD로 검증하는 선택 reference domain입니다.
+CREATE TABLE IF NOT EXISTS accDB.acc_account (
+    account_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 식별자',
+    account_no VARCHAR(50) NOT NULL COMMENT '업무 계정번호',
+    account_name VARCHAR(150) NOT NULL COMMENT '계정명',
+    email VARCHAR(200) NULL COMMENT '마스킹 대상 이메일',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '계정 상태 코드',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (account_id),
+    UNIQUE KEY uk_acc_account_no (account_no),
+    INDEX ix_acc_account_search (status_code, deleted_yn, account_id),
+    CONSTRAINT ck_acc_account_deleted CHECK (deleted_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 중립 계정 reference';
+
+CREATE TABLE IF NOT EXISTS accDB.acc_account_change_log (
+    account_change_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 변경 로그 순번',
+    account_id BIGINT NOT NULL COMMENT '변경 계정 식별자',
+    action_code VARCHAR(30) NOT NULL COMMENT 'CREATE, UPDATE 또는 DELETE 행위 코드',
+    before_value LONGTEXT NULL COMMENT '마스킹된 변경 전 값',
+    after_value LONGTEXT NULL COMMENT '마스킹된 변경 후 값',
+    audit_reason VARCHAR(500) NOT NULL COMMENT '변경 감사 사유',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (account_change_log_id),
+    INDEX ix_acc_account_change_target (account_id, created_at),
+    CONSTRAINT fk_acc_account_change_target FOREIGN KEY (account_id)
+        REFERENCES accDB.acc_account (account_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 변경 감사 이력';
 -- ============================================================================
 -- specs/sql/50_framework_seed_data.sql
 -- ============================================================================
@@ -2840,6 +2951,7 @@ INSERT INTO pfw_message (
     ('MPFW900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'PFW @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'PFW 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'PFW 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'PFW endpoint 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MPFW900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'PFW 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'PFW 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MPFW990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
@@ -2886,6 +2998,7 @@ INSERT INTO pfw_response_code (
     ('EPFW900002', 'MPFW900002', 'E', 'PFW', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
     ('EPFW900003', 'MPFW900003', 'E', 'PFW', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
     ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
+    ('EPFW900005', 'MPFW900005', 'E', 'PFW', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
     ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
     ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
@@ -3357,6 +3470,7 @@ INSERT INTO pfw_service (
     ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('XYZ', '온라인 교육 서비스', 'INTERNAL', 'XYZ', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ACC', '계정 Reference 서비스', 'INTERNAL', 'ACC', '생성기 검증과 MBR 연계에 사용하는 계정 reference 서비스', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     service_name = VALUES(service_name),
@@ -3375,6 +3489,7 @@ INSERT INTO pfw_service_endpoint (
     ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('XYZ_API', 'XYZ', 'XYZ API Endpoint', 'HTTP', 'http://localhost:8099', '/xyz', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8082', '/internal/api/v1/accounts', 3000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     service_id = VALUES(service_id),
@@ -3396,6 +3511,7 @@ INSERT INTO pfw_service_instance (
     ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('XYZ-local-01', 'XYZ', 'XYZ_API', 'XYZ local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8082', 'localhost', 8082, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     service_id = VALUES(service_id),
@@ -3419,6 +3535,7 @@ INSERT INTO pfw_service_routing_policy (
     ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('XYZ', 'XYZ_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     routing_mode = VALUES(routing_mode),
@@ -3436,6 +3553,7 @@ INSERT INTO pfw_service_circuit_state (
     ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('XYZ', 'XYZ_API', 'XYZ-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     circuit_state = VALUES(circuit_state),
@@ -3489,6 +3607,16 @@ INSERT INTO pfw_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
+SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+WHERE NOT EXISTS (
+    SELECT 1 FROM pfw_service_health_status
+    WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
+);
+
+INSERT INTO pfw_service_health_status (
+    service_id, endpoint_code, instance_id, health_status, http_status,
+    response_time_ms, failure_message, checked_at, created_by, updated_by
+)
 SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM pfw_service_health_status
@@ -3506,6 +3634,347 @@ ON DUPLICATE KEY UPDATE
     parameter_value = VALUES(parameter_value),
     encrypted_yn = VALUES(encrypted_yn),
     use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP;
+-- ============================================================================
+-- specs/sql/52_standard_execution_alias_seed.sql
+-- ============================================================================
+-- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
+USE pfwDB;
+
+INSERT INTO pfw_standard_execution_alias (
+    legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
+) VALUES
+    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BBAT-OPS-SM-0001', 'BBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BXYZ-EDU-CH-0001', 'BXYZAA0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BXYZ-EDU-RT-0001', 'BXYZAA0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('BXYZ-EDU-TS-0001', 'BXYZAA0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0010', 'OADMBA0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0012', 'OADMBA0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0013', 'OADMBA0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0014', 'OADMBA0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0015', 'OADMBA0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0016', 'OADMBA0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0023', 'OADMBA0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0024', 'OADMBA0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0025', 'OADMBA0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0027', 'OADMBA0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0028', 'OADMBA0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0029', 'OADMBA0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0030', 'OADMBA0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0032', 'OADMBA0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-01-0034', 'OADMBA0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-02-0011', 'OADMBA0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-02-0017', 'OADMBA0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-02-0018', 'OADMBA0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-02-0019', 'OADMBA0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-02-0026', 'OADMBA0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-03-0020', 'OADMBA0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-03-0021', 'OADMBA0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-03-0022', 'OADMBA0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-03-0031', 'OADMBA0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-BAT-03-0033', 'OADMBA0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CDE-01-0010', 'OADMCD0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CDE-01-0011', 'OADMCD0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CDE-02-0012', 'OADMCD0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CDE-03-0013', 'OADMCD0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CDE-04-0014', 'OADMCD0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CFG-01-0010', 'OADMCF0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CFG-01-0011', 'OADMCF0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CFG-02-0012', 'OADMCF0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CFG-03-0013', 'OADMCF0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CFG-04-0014', 'OADMCF0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0010', 'OADMCT0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0020', 'OADMCT0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0030', 'OADMCT0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0040', 'OADMCT0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0050', 'OADMCT0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0060', 'OADMCT0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-CTC-01-0070', 'OADMCT0070', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-DWN-01-0001', 'OADMDW0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-DWN-01-0002', 'OADMDW0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-DWN-02-0003', 'OADMDW0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-EXE-01-0001', 'OADMEX0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-EXE-01-0002', 'OADMEX0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-01-0010', 'OADMLG0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-01-0011', 'OADMLG0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-01-0018', 'OADMLG0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-01-0020', 'OADMLG0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-01-0021', 'OADMLG0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-03-0012', 'OADMLG0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-03-0013', 'OADMLG0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-03-0014', 'OADMLG0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-03-0016', 'OADMLG0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-03-0018', 'OADMLG0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MSG-03-0013', 'OADMMS0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-MSG-04-0014', 'OADMMS0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-01-0010', 'OADMNT0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-01-0011', 'OADMNT0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-01-0014', 'OADMNT0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-02-0012', 'OADMNT0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-02-0016', 'OADMNT0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-03-0013', 'OADMNT0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-NTF-03-0015', 'OADMNT0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OBS-01-0010', 'OADMOB0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OBS-01-0011', 'OADMOB0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OBS-01-0012', 'OADMOB0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0001', 'OADMOP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0002', 'OADMOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0010', 'OADMOP0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0020', 'OADMOP0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0030', 'OADMOP0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0034', 'OADMOP0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0035', 'OADMOP0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0036', 'OADMOP0036', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0040', 'OADMOP0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0041', 'OADMOP0041', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0042', 'OADMOP0042', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0043', 'OADMOP0043', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-01-0050', 'OADMOP0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-02-0031', 'OADMOP0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-02-0042', 'OADMOP0044', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0032', 'OADMOP0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0037', 'OADMOP0037', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0038', 'OADMOP0038', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0039', 'OADMOP0039', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0043', 'OADMOP0045', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0044', 'OADMOP0046', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-03-0045', 'OADMOP0047', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-04-0022', 'OADMOP0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-04-0044', 'OADMOP0048', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-05-0011', 'OADMOP0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-05-0021', 'OADMOP0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-06-0033', 'OADMOP0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-06-0040', 'OADMOP0049', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-OPR-06-0042', 'OADMOP0051', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0010', 'OADMPE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0011', 'OADMPE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0014', 'OADMPE0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0015', 'OADMPE0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0019', 'OADMPE0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0020', 'OADMPE0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0024', 'OADMPE0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0025', 'OADMPE0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0029', 'OADMPE0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0030', 'OADMPE0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-01-0034', 'OADMPE0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-02-0016', 'OADMPE0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-02-0021', 'OADMPE0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-02-0026', 'OADMPE0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-02-0031', 'OADMPE0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0012', 'OADMPE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0013', 'OADMPE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0017', 'OADMPE0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0018', 'OADMPE0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0022', 'OADMPE0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0023', 'OADMPE0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0027', 'OADMPE0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0028', 'OADMPE0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0032', 'OADMPE0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0033', 'OADMPE0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-PER-03-0035', 'OADMPE0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0001', 'OADMRE0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0002', 'OADMRE0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0003', 'OADMRE0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0004', 'OADMRE0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0006', 'OADMRE0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0007', 'OADMRE0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0009', 'OADMRE0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0010', 'OADMRE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-01-0011', 'OADMRE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-05-0005', 'OADMRE0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-05-0008', 'OADMRE0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-05-0012', 'OADMRE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-REL-05-0013', 'OADMRE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-CR-0001', 'OADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-DL-0001', 'OADMRL0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-DL-0002', 'OADMRL0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-DW-0001', 'OADMRL0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-IS-0001', 'OADMRL0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-QY-0001', 'OADMRL0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-QY-0002', 'OADMRL0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-QY-0003', 'OADMRL0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-RLG-QY-0004', 'OADMRL0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-01-0010', 'OADMSE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-01-0012', 'OADMSE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-03-0011', 'OADMSE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-03-0013', 'OADMSE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-03-0014', 'OADMSE0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SEC-03-0015', 'OADMSE0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0010', 'OADMSV0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0020', 'OADMSV0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0030', 'OADMSV0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0040', 'OADMSV0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0050', 'OADMSV0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0060', 'OADMSV0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-SVC-01-0070', 'OADMSV0070', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0001', 'OADMTR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0002', 'OADMTR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0003', 'OADMTR0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0004', 'OADMTR0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0005', 'OADMTR0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRG-01-0006', 'OADMTR0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRN-01-0010', 'OADMTR0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRN-01-0011', 'OADMTR0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRN-04-0013', 'OADMTR0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OADM-TRN-05-0012', 'OADMTR0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBAT-OPR-01-0003', 'OBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBAT-OPR-02-0002', 'OBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ADM-01-1001', 'OBZAAD1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ADM-03-1002', 'OBZAAD1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-APR-01-0001', 'OBZAAP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-APR-01-0003', 'OBZAAP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-APR-02-0002', 'OBZAAP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-APR-05-0004', 'OBZAAP0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ATC-01-0001', 'OBZAAT0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ATC-02-0002', 'OBZAAT0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ATC-DL-0003', 'OBZAAT0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUD-01-0001', 'OBZAUD0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-01-0004', 'OBZAAU0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-01-0005', 'OBZAAU0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-01-0007', 'OBZAAU0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-02-0001', 'OBZAAU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-02-0002', 'OBZAAU0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-02-0003', 'OBZAAU0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-03-0006', 'OBZAAU0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-AUT-04-0008', 'OBZAAU0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-CUS-01-1001', 'OBZACU1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-DSH-01-0001', 'OBZADS0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-DWN-01-0002', 'OBZADW0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-DWN-01-1001', 'OBZADW1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-EMP-01-0001', 'OBZAEM0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-EMP-03-0002', 'OBZAEM0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-MNU-01-1001', 'OBZAMN1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-MNU-03-1002', 'OBZAMN1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-MSK-02-1001', 'OBZAMS1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-NTF-01-0001', 'OBZANT0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-NTF-02-0002', 'OBZANT0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-NTF-03-0003', 'OBZANT0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ORD-01-1001', 'OBZAOR1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ORG-01-0001', 'OBZAOR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ORG-03-0002', 'OBZAOR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PER-01-0002', 'OBZAPE0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PER-01-0003', 'OBZAPE0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PER-01-1001', 'OBZAPE1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PER-02-0004', 'OBZAPE0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PER-03-1002', 'OBZAPE1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-PRD-01-1001', 'OBZAPR1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ROL-01-1001', 'OBZARO1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-ROL-03-1002', 'OBZARO1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-SCH-01-0001', 'OBZASC0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-SCH-03-0002', 'OBZASC0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-SCH-04-0003', 'OBZASC0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-01-0001', 'OXYZAA0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-01-0002', 'OXYZAA0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-01-0003', 'OXYZAA0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-01-0099', 'OXYZAA0099', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-02-0001', 'OXYZAA0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-02-0010', 'OXYZAA0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-02-0020', 'OXYZAA0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-02-0030', 'OXYZAA0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-03-0001', 'OXYZAA0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-03-0002', 'OXYZAA0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-03-0003', 'OXYZAA0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-04-0001', 'OXYZAA0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-04-0002', 'OXYZAA0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-05-0001', 'OXYZAA0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-05-0002', 'OXYZAA0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-05-9001', 'OXYZAA9001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-08-0001', 'OXYZAA0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-08-0010', 'OXYZAA0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-08-9001', 'OXYZAA9002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0001', 'OXYZAA0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0002', 'OXYZAA0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0003', 'OXYZAA0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0004', 'OXYZAA0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0005', 'OXYZAA0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0006', 'OXYZAA0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0007', 'OXYZAA0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0008', 'OXYZAA0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0009', 'OXYZAA0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0010', 'OXYZAA0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0011', 'OXYZAA0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0012', 'OXYZAA0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0013', 'OXYZAA0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0015', 'OXYZAA0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0016', 'OXYZAA0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0017', 'OXYZAA0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0018', 'OXYZAA0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0019', 'OXYZAA0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0020', 'OXYZAA0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0030', 'OXYZAA0036', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0031', 'OXYZAA0037', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0032', 'OXYZAA0038', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0033', 'OXYZAA0039', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0034', 'OXYZAA0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0035', 'OXYZAA0041', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0036', 'OXYZAA0042', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0040', 'OXYZAA0043', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0051', 'OXYZAA0051', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0060', 'OXYZAA0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0072', 'OXYZAA0072', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0073', 'OXYZAA0073', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-09-0080', 'OXYZAA0080', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-12-0001', 'OXYZAA0044', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-12-0002', 'OXYZAA0045', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-12-0003', 'OXYZAA0046', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0001', 'OXYZAA0047', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0002', 'OXYZAA0048', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0003', 'OXYZAA0049', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0004', 'OXYZAA0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0005', 'OXYZAA0052', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0006', 'OXYZAA0053', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0007', 'OXYZAA0054', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-13-0008', 'OXYZAA0055', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-14-0001', 'OXYZAA0056', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-15-0001', 'OXYZAA0057', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0001', 'OXYZAA0058', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0002', 'OXYZAA0059', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0003', 'OXYZAA0061', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0004', 'OXYZAA0062', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0005', 'OXYZAA0063', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-16-0006', 'OXYZAA0064', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-17-0001', 'OXYZAA0065', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-EDU-17-0002', 'OXYZAA0066', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-QRY-01-0001', 'OXYZQR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-QRY-01-0002', 'OXYZQR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-QRY-01-0003', 'OXYZQR0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-QRY-01-0004', 'OXYZQR0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
+    ('OXYZ-QRY-01-0005', 'OXYZQR0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED')
+ON DUPLICATE KEY UPDATE
+    standard_execution_id = VALUES(standard_execution_id),
+    migration_reason = VALUES(migration_reason),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
@@ -4601,7 +5070,8 @@ INSERT INTO bza_menu (
     ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION', '업무 알림', 'BZA', '/bza#notifications', '/api/bza/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ATTACHMENT', '첨부파일', 'BZA', '/bza#attachments', '/api/bza/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
+    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ACC_ROOT', 'ACC Reference', 'ACC', '/bza/domain/acc', '/api/v1/accounts', 900, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     menu_name = VALUES(menu_name),
     api_path = VALUES(api_path),
@@ -4801,6 +5271,8 @@ WHERE table_schema = 'pfwDB'
   );
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
 SELECT 'pfwDB.pfw_standard_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution;
+SELECT 'pfwDB.pfw_standard_execution_alias' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution_alias;
+SELECT 'pfwDB.pfw_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_on_demand_request;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;
 SELECT 'pfwDB.pfw_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_audit;
@@ -4872,6 +5344,9 @@ SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_me
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
 SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
+
+SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
+SELECT 'accDB.acc_account_change_log' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account_change_log;
 
 SELECT 'bzaDB.bza_admin_user' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_admin_user;
 SELECT 'bzaDB.bza_login_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_login_history;

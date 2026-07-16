@@ -35,7 +35,7 @@ public class CpfTransactionMetaAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean(RequestMappingHandlerMapping.class)
     public CpfTransactionMetaScanner cpfTransactionMetaScanner(
-            RequestMappingHandlerMapping handlerMapping,
+            @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
             CpfTransactionMetaRepository repository) {
         return new CpfTransactionMetaScanner(handlerMapping, repository);
     }

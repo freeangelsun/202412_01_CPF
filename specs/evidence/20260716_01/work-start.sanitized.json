@@ -1,0 +1,14 @@
+{
+    "startedAt":  "2026-07-16T13:49:18.3214553+09:00",
+    "branch":  "master",
+    "startCommit":  "0788fee1eb329f9ba971660d5958a309f544fcbf",
+    "remoteMaster":  "0788fee1eb329f9ba971660d5958a309f544fcbf",
+    "worktree":  "clean",
+    "finalTargetSha256":  "28564a5ae4553c4c7509fb61d7e1b0d02eb679b524e7d0e6e7c3bb1ff17dc774",
+    "finalTargetBlob":  "7e4e0d94227401deaa32f873c8b68c72fabea59f",
+    "requestSha256":  "fc44647df0ab15c6e4edecde68ef2703133da3853a7bb1289e7cae2f40fceaaa",
+    "requestBlob":  "201896f060f9b5e328d313346381be16724b08df",
+    "completionGuideSha256":  "2b2951eed176ca8ddabce2e5555af097c49849f26b32b6b139c915b17dd34f42",
+    "githubDirectCheck":  "git ls-remote origin refs/heads/master",
+    "githubDirectCheckStatus":  "MATCH"
+}

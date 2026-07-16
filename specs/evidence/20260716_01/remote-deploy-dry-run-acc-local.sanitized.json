@@ -1,0 +1,56 @@
+{
+    "generatedAt": "2026-07-16T15:59:47.689+0900",
+    "module": "ACC",
+    "env": "local",
+    "deployMode": "dryRun",
+    "status": "DONE",
+    "realRemoteExecuted": false,
+    "artifact": "D:/WORK_CPF/202412_01_CPF/acc/build/libs/acc-0.0.1-SNAPSHOT.jar",
+    "checksumSha256": "2ee5a7c7d14dd16a626ac546784e7609f2ed5086196ff052865f253ee7e44f44",
+    "envEvidence": {
+        "generatedAt": "2026-07-16T15:59:47.639+0900",
+        "module": "ACC",
+        "env": "local",
+        "status": "DONE",
+        "envFile": "deploy/env/local-acc.env",
+        "keyCount": 11,
+        "failures": [
+            
+        ]
+    },
+    "inventoryEvidence": {
+        "generatedAt": "2026-07-16T15:59:47.652+0900",
+        "module": "ACC",
+        "env": "local",
+        "status": "DONE",
+        "inventory": "D:/WORK_CPF/202412_01_CPF/deploy/inventory/local-services.json",
+        "target": {
+            "module": "ACC",
+            "hostAlias": "acc-local",
+            "sshHostEnvKey": "ACC_SSH_HOST",
+            "sshUserEnvKey": "ACC_SSH_USER",
+            "deployBase": "build/deploy/acc",
+            "healthUrl": "http://localhost:${ACC_SERVER_PORT}/actuator/health",
+            "serviceName": "cpf-acc",
+            "portEnvKey": "ACC_SERVER_PORT",
+            "profile": "local",
+            "approvalRequired": false,
+            "rollbackEnabled": true,
+            "runtimeMode": "embedded-bootjar"
+        },
+        "failures": [
+            
+        ]
+    },
+    "javaJarCommandPlan": "java -jar D:/WORK_CPF/202412_01_CPF/acc/build/libs/acc-0.0.1-SNAPSHOT.jar --spring.profiles.active=local",
+    "healthUrl": "http://localhost:${ACC_SERVER_PORT}/actuator/health",
+    "runtimeMode": "embedded-bootjar",
+    "externalWasPlan": {
+        "mode": "external-tomcat-war",
+        "status": "CONFIG_PLAN_ONLY",
+        "datasource": "ACC_DATASOURCE_MODE=jndi",
+        "jndiNameKey": "ACC_DATASOURCE_JNDI_NAME",
+        "runtimeCheck": "External WAS and JNDI registration are not executed by this dry-run."
+    },
+    "rollbackExecuted": false
+}

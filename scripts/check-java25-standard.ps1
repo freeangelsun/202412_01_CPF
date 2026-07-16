@@ -1,6 +1,6 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260715_01"),
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01"),
     [switch] $RequireClasses,
     [switch] $RequireBootJars
 )
@@ -8,8 +8,8 @@
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $ExpectedMajor = 69
-$Modules = @("pfw", "cmn", "mbr", "xyz", "adm", "bza", "bat")
-$BootModules = @("adm", "bat", "bza", "mbr", "xyz")
+$Modules = @("pfw", "cmn", "mbr", "xyz", "adm", "bza", "bat", "acc", "pfw-gateway-runtime")
+$BootModules = @("adm", "bat", "bza", "mbr", "xyz", "acc", "pfw-gateway-runtime")
 $failures = New-Object System.Collections.Generic.List[string]
 $classRows = New-Object System.Collections.Generic.List[object]
 $bootRows = New-Object System.Collections.Generic.List[object]

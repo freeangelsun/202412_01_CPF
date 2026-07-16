@@ -36,21 +36,21 @@ public class AdmMessageController {
     }
 
     @GetMapping
-    @CpfOnlineTransaction(id = "OADM-MSG-01-0010", name = "ADMMessageList")
+    @CpfOnlineTransaction(id = "OADMMS0010", name = "ADMMessageList")
     @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "pfw_message 기준 메시지를 locale별로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMessages() {
         return ResponseEntity.ok(messageCacheService.getAllMessages());
     }
 
     @GetMapping("/{messageId}")
-    @CpfOnlineTransaction(id = "OADM-MSG-01-0011", name = "ADMMessageDetail")
+    @CpfOnlineTransaction(id = "OADMMS0011", name = "ADMMessageDetail")
     @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 pfw_message 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findMessage(@PathVariable Long messageId) {
         return ResponseEntity.ok(messageCacheService.getMessageById(messageId));
     }
 
     @PostMapping
-    @CpfOnlineTransaction(id = "OADM-MSG-02-0012", name = "ADMMessageCreate")
+    @CpfOnlineTransaction(id = "OADMMS0012", name = "ADMMessageCreate")
     @Operation(operationId = "admMessageCreateMessage", summary = "공통 메시지 등록", description = "pfw_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createMessage(
             @Valid @RequestBody CommonMessageRequest request,
@@ -72,7 +72,7 @@ public class AdmMessageController {
     }
 
     @PutMapping("/{messageId}")
-    @CpfOnlineTransaction(id = "OADM-MSG-03-0013", name = "ADMMessageUpdate")
+    @CpfOnlineTransaction(id = "OADMMS0013", name = "ADMMessageUpdate")
     @Operation(operationId = "admMessageUpdateMessage", summary = "공통 메시지 수정", description = "pfw_message를 수정하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateMessage(
             @PathVariable Long messageId,
@@ -96,7 +96,7 @@ public class AdmMessageController {
     }
 
     @DeleteMapping("/{messageId}")
-    @CpfOnlineTransaction(id = "OADM-MSG-04-0014", name = "ADMMessageDisable")
+    @CpfOnlineTransaction(id = "OADMMS0014", name = "ADMMessageDisable")
     @Operation(operationId = "admMessageDeleteMessage", summary = "공통 메시지 비활성", description = "pfw_message를 비활성화하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteMessage(
             @PathVariable Long messageId,

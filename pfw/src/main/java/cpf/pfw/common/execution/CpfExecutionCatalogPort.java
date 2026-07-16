@@ -11,4 +11,9 @@ public interface CpfExecutionCatalogPort {
     List<CpfExecutionDefinition> findAll();
 
     Optional<CpfExecutionDefinition> findById(String standardExecutionId);
+
+    /** 신규 ID 또는 구형 alias를 현재 실행 정의로 해석합니다. */
+    default Optional<CpfExecutionDefinition> resolve(String executionId) {
+        return findById(executionId);
+    }
 }

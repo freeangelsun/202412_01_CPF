@@ -56,8 +56,14 @@ public class CpfBatchLauncher {
 
     public CpfBatchExecutionResult run(CpfBatchExecutionRequest request) {
         CpfBatchOperationType operationType = request.operationType() == null ? CpfBatchOperationType.RUN : request.operationType();
+        if (operationType == CpfBatchOperationType.RESTART) {
+            return restart(request);
+        }
+        if (operationType == CpfBatchOperationType.RERUN) {
+            return rerun(request);
+        }
         if (operationType == CpfBatchOperationType.RETRY) {
-            return retry(request);
+            return retryCompatible(request);
         }
         if (operationType == CpfBatchOperationType.STOP) {
             return stop(request);
@@ -173,47 +179,57 @@ public class CpfBatchLauncher {
         }
     }
 
-    private CpfBatchExecutionResult retry(CpfBatchExecutionRequest request) {
+    private CpfBatchExecutionResult restart(CpfBatchExecutionRequest request) {
+        if (request.sourceExecutionId() == null) {
+            throw new IllegalArgumentException("재시작 기준 실행 ID는 필수입니다.");
+        }
+        Map<String, Object> source = repository.findExecution(request.sourceExecutionId());
+        String jobId = String.valueOf(source.get("job_id"));
+        String user = request.normalizedRequestUser("PFW_BATCH");
+        Object springExecutionId = source.get("spring_batch_execution_id");
+        publish(CpfBatchEventType.RETRY_REQUESTED, jobId, request.sourceExecutionId(), TransactionContext.getOrCreateTransactionId(),
+                "배치 재시작 요청", Map.of());
+
+        if (jobOperator == null || springExecutionId == null) {
+            return result(false, jobId, null, null, "RESTART_NOT_AVAILABLE",
+                    "Spring Batch 재시작에 필요한 실행 정보가 없습니다.");
+        }
+        try {
+            long restartedId = jobOperator.restart(Long.parseLong(String.valueOf(springExecutionId)));
+            CpfBatchExecutionRequest restartRequest = CpfBatchExecutionRequest.run(
+                    jobId, String.valueOf(source.get("job_parameters")), user, request.reason());
+            Identity identity = ServerInstanceIdentity.current();
+            String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
+            long pfwExecutionId = repository.startExecution(
+                    restartRequest, "RESTARTED", restartedId, identity.serverInstanceId(),
+                    identity.serverInstanceId(), identity.serverInstanceId(), transactionGlobalId, user);
+            repository.recordOperation(jobId, pfwExecutionId, "RESTART", user, request.reason(), String.valueOf(source),
+                    "SPRING_BATCH_EXECUTION_ID=" + restartedId, "S", "RESTARTED");
+            return result(true, jobId, pfwExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");
+        } catch (Exception ex) {
+            repository.recordOperation(jobId, request.sourceExecutionId(), "RESTART_FAILED", user,
+                    request.reason(), String.valueOf(source), null, "F", ex.getClass().getSimpleName());
+            return result(false, jobId, null, toLong(springExecutionId), "RESTART_FAILED",
+                    "Spring Batch 재시작을 요청할 수 없습니다.");
+        }
+    }
+
+    private CpfBatchExecutionResult rerun(CpfBatchExecutionRequest request) {
         if (request.sourceExecutionId() == null) {
             throw new IllegalArgumentException("재수행 기준 실행 ID는 필수입니다.");
         }
         Map<String, Object> source = repository.findExecution(request.sourceExecutionId());
         String jobId = String.valueOf(source.get("job_id"));
         String parameters = String.valueOf(source.get("job_parameters"));
-        String user = request.normalizedRequestUser("PFW_BATCH");
-        Object springExecutionId = source.get("spring_batch_execution_id");
-        publish(CpfBatchEventType.RETRY_REQUESTED, jobId, request.sourceExecutionId(), TransactionContext.getOrCreateTransactionId(),
-                "배치 재수행 요청", Map.of());
+        CpfBatchExecutionRequest rerunRequest = CpfBatchExecutionRequest.run(
+                jobId, parameters, request.normalizedRequestUser("PFW_BATCH"), request.reason());
+        return launch(rerunRequest, CpfBatchOperationType.RERUN);
+    }
 
-        if (jobOperator != null && springExecutionId != null) {
-            try {
-                long restartedId = jobOperator.restart(Long.parseLong(String.valueOf(springExecutionId)));
-                CpfBatchExecutionRequest retryRequest = CpfBatchExecutionRequest.run(jobId, parameters, user, request.reason());
-                Identity identity = ServerInstanceIdentity.current();
-                String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
-                long pfwExecutionId = repository.startExecution(
-                        retryRequest, "RESTARTED", restartedId, identity.serverInstanceId(),
-                        identity.serverInstanceId(), identity.serverInstanceId(), transactionGlobalId,
-                        user);
-                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "RUNNING", jobId, pfwExecutionId, user);
-                repository.completeExecution(
-                        pfwExecutionId,
-                        "RESTARTED",
-                        restartedId,
-                        identity.serverInstanceId(),
-                        null,
-                        jobExplorer == null ? null : jobExplorer.getJobExecution(restartedId),
-                        user);
-                repository.recordWorkerHeartbeat(identity.serverInstanceId(), identity, "IDLE", null, null, user);
-                repository.recordOperation(jobId, pfwExecutionId, "RETRY", user, request.reason(), String.valueOf(source),
-                        "SPRING_BATCH_EXECUTION_ID=" + restartedId, "S", "RESTARTED");
-                return result(true, jobId, pfwExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");
-            } catch (Exception ignored) {
-                // restart가 불가능하면 동일 파라미터 신규 실행 흐름으로 전환합니다.
-            }
-        }
-
-        return launch(CpfBatchExecutionRequest.run(jobId, parameters, user, request.reason()), CpfBatchOperationType.RETRY);
+    /** 기존 RETRY API의 동작은 재시작 우선, 불가능하면 신규 재수행으로 유지합니다. */
+    private CpfBatchExecutionResult retryCompatible(CpfBatchExecutionRequest request) {
+        CpfBatchExecutionResult restarted = restart(request);
+        return restarted.executed() ? restarted : rerun(request);
     }
 
     private CpfBatchExecutionResult stop(CpfBatchExecutionRequest request) {
@@ -253,7 +269,9 @@ public class CpfBatchLauncher {
                 .addString("cpfRequestUser", user)
                 .addString("cpfRequestReason", request.normalizedReason("배치 실행 요청"))
                 .addString("transactionGlobalId", transactionGlobalId)
-                .addString("businessDate", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE))
+                .addString("businessDate", hasText(request.businessDate())
+                        ? request.businessDate().trim()
+                        : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE))
                 .addString("serverInstanceId", workerInstanceId)
                 .addString("workerInstanceId", workerInstanceId)
                 .addString("selectedInstanceId", workerInstanceId)
@@ -262,6 +280,12 @@ public class CpfBatchLauncher {
                 .addLong("restartAttempt", 0L)
                 .addLong(CpfBatchHeartbeatService.PARAM_PFW_EXECUTION_ID, pfwExecutionId)
                 .addLong("requestTime", requestTime);
+        if (hasText(request.standardBatchId())) {
+            builder.addString("standardBatchId", request.standardBatchId().trim());
+        }
+        if (hasText(request.idempotencyKey())) {
+            builder.addString("idempotencyKey", request.idempotencyKey().trim());
+        }
         if (TransactionContext.parentTransactionId() != null) {
             builder.addString("parentTransactionGlobalId", TransactionContext.parentTransactionId());
         }
@@ -280,6 +304,10 @@ public class CpfBatchLauncher {
                 .filter(job -> jobId.equals(job.getName()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private String failureMessage(JobExecution execution) {

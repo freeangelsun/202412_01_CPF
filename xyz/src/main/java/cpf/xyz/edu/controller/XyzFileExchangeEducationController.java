@@ -34,7 +34,7 @@ public class XyzFileExchangeEducationController {
     }
 
     @PostMapping("/file-exchange/local/write")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0080", name = "XYZLocalFileWrite")
+    @CpfOnlineTransaction(id = "OXYZAA0080", name = "XYZLocalFileWrite")
     @Operation(operationId = "xyzFileExchangeEducationWriteLocalFile", summary = "로컬 파일 쓰기 샘플", description = "허용된 EDU 경로에 텍스트 파일을 쓰고 파일 목록을 조회합니다.")
     public ResponseEntity<Map<String, Object>> writeLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path,
@@ -48,7 +48,7 @@ public class XyzFileExchangeEducationController {
     }
 
     @GetMapping("/file-exchange/local/read")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0015", name = "XYZLocalFileRead")
+    @CpfOnlineTransaction(id = "OXYZAA0029", name = "XYZLocalFileRead")
     @Operation(operationId = "xyzFileExchangeEducationReadLocalFile", summary = "로컬 파일 읽기 샘플", description = "파일 연계 서비스가 관리하는 로컬 텍스트 파일을 읽습니다.")
     public ResponseEntity<Map<String, Object>> readLocalFile(
             @RequestParam(defaultValue = "edu/sample.txt") String path) {
@@ -59,7 +59,7 @@ public class XyzFileExchangeEducationController {
     }
 
     @PostMapping("/file-exchange/transfer-plan")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0016", name = "XYZFileTransferPlan")
+    @CpfOnlineTransaction(id = "OXYZAA0031", name = "XYZFileTransferPlan")
     @Operation(operationId = "xyzFileExchangeEducationBuildFileTransferPlan", summary = "파일 전송 계획 샘플", description = "SCP/SFTP 같은 원격 파일 전송 요청 구조와 감사 이력 기준을 확인합니다.")
     public ResponseEntity<CpfFileTransferResult> buildFileTransferPlan(
             @RequestParam(defaultValue = "SCP") CpfFileTransferProtocol protocol,
@@ -80,7 +80,7 @@ public class XyzFileExchangeEducationController {
     }
 
     @PostMapping("/remote/ssh/command-plan")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0017", name = "XYZSshCommandPlan")
+    @CpfOnlineTransaction(id = "OXYZAA0032", name = "XYZSshCommandPlan")
     @Operation(operationId = "xyzFileExchangeEducationBuildSshCommandPlan", summary = "SSH 명령 계획 샘플", description = "원격 서버 명령 실행 요청과 이력 저장 구조를 확인합니다.")
     public ResponseEntity<CpfRemoteCommandPlan> buildSshCommandPlan(
             @RequestParam(defaultValue = "localhost") String host,
@@ -95,7 +95,7 @@ public class XyzFileExchangeEducationController {
     }
 
     @GetMapping("/file-exchange/history")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0020", name = "XYZFileExchangeHistory")
+    @CpfOnlineTransaction(id = "OXYZAA0035", name = "XYZFileExchangeHistory")
     @Operation(operationId = "xyzFileExchangeEducationFindFileExchangeHistory", summary = "파일 연계 이력 조회", description = "최근 파일 연계 요청과 처리 결과 이력을 조회합니다.")
     public ResponseEntity<List<CpfFileExchangeHistoryRecord>> findFileExchangeHistory() {
         return ResponseEntity.ok(fileExchangeGateway.findRecentHistory());

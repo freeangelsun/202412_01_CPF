@@ -16,4 +16,10 @@ public @interface CpfBatchJob {
     String name();
 
     String ownerDomain() default "";
+
+    String description() default "";
+
+    String requiredPermission() default "";
+
+    boolean auditReasonRequired() default true;
 }

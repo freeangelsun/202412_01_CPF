@@ -52,7 +52,7 @@ public class XyzSecurityEducationController {
     }
 
     @GetMapping("/security/crypto/basic")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0030", name = "XYZBasicCrypto")
+    @CpfOnlineTransaction(id = "OXYZAA0036", name = "XYZBasicCrypto")
     @Operation(operationId = "xyzSecurityEducationBasicCrypto", summary = "Basic crypto sample", description = "Shows Base64, SHA-256, HMAC, and random token utilities.")
     public ResponseEntity<Map<String, Object>> basicCrypto(@RequestParam(defaultValue = "CPF CoreFlow Platform Framework") String text) {
         String encoded = cryptoService.base64Encode(text);
@@ -73,7 +73,7 @@ public class XyzSecurityEducationController {
     }
 
     @PostMapping("/security/crypto/aes-gcm")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0031", name = "XYZAesGcm")
+    @CpfOnlineTransaction(id = "OXYZAA0037", name = "XYZAesGcm")
     @Operation(operationId = "xyzSecurityEducationAesGcm", summary = "AES-GCM sample", description = "Encrypts and decrypts text with the CMN crypto service.")
     public ResponseEntity<Map<String, Object>> aesGcm(@RequestParam(defaultValue = "sample plain text") String plainText) {
         String cipherText = cryptoService.aesGcmEncrypt(plainText, secret);
@@ -86,7 +86,7 @@ public class XyzSecurityEducationController {
     }
 
     @PostMapping("/security/password/hash")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0032", name = "XYZPasswordHash")
+    @CpfOnlineTransaction(id = "OXYZAA0038", name = "XYZPasswordHash")
     @Operation(operationId = "xyzSecurityEducationPasswordHash", summary = "Password hash sample", description = "Creates and verifies a PBKDF2 password hash.")
     public ResponseEntity<Map<String, Object>> passwordHash(@RequestParam(defaultValue = "Sample!2345") String password) {
         String hash = cryptoService.pbkdf2Hash(password);
@@ -97,7 +97,7 @@ public class XyzSecurityEducationController {
     }
 
     @PostMapping("/security/jwt/create")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0033", name = "XYZJwtCreate")
+    @CpfOnlineTransaction(id = "OXYZAA0039", name = "XYZJwtCreate")
     @Operation(operationId = "xyzSecurityEducationCreateJwt", summary = "JWT create sample", description = "Creates an HS256 JWT with CPF defaults.")
     public ResponseEntity<Map<String, Object>> createJwt(@RequestParam(defaultValue = "M000000001") String subject) {
         Map<String, Object> claims = Map.of("memberNo", subject, "scope", "member:read account:read", "channel", "XYZ-EDU");
@@ -110,14 +110,14 @@ public class XyzSecurityEducationController {
     }
 
     @PostMapping("/security/jwt/validate")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0034", name = "XYZJwtValidate")
+    @CpfOnlineTransaction(id = "OXYZAA0040", name = "XYZJwtValidate")
     @Operation(operationId = "xyzSecurityEducationValidateJwt", summary = "JWT validate sample", description = "Validates signature, expiry, issuer, and audience.")
     public ResponseEntity<CmnJwtValidationResult> validateJwt(@RequestParam String token) {
         return ResponseEntity.ok(jwtService.validateHs256Token(token, secret, issuer, audience));
     }
 
     @GetMapping("/security/jwt/claims")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0035", name = "XYZJwtClaims")
+    @CpfOnlineTransaction(id = "OXYZAA0041", name = "XYZJwtClaims")
     @Operation(operationId = "xyzSecurityEducationReadJwtClaims", summary = "JWT claims sample", description = "Reads claims without signature validation for education only.")
     public ResponseEntity<Map<String, Object>> readJwtClaims(@RequestParam String token) {
         Map<String, Object> response = new LinkedHashMap<>();
@@ -128,7 +128,7 @@ public class XyzSecurityEducationController {
     }
 
     @GetMapping("/security/oauth/introspect")
-    @CpfOnlineTransaction(id = "OXYZ-EDU-09-0036", name = "XYZOAuthBearerIntrospect")
+    @CpfOnlineTransaction(id = "OXYZAA0042", name = "XYZOAuthBearerIntrospect")
     @Operation(operationId = "xyzSecurityEducationIntrospectBearer", summary = "OAuth bearer introspection sample", description = "Extracts and validates a Bearer JWT from Authorization header.")
     public ResponseEntity<CmnOAuthTokenIntrospectionResult> introspectBearer(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {

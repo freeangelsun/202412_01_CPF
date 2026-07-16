@@ -1,6 +1,6 @@
 # CPF GAP 매트릭스
 
-생성 시각: 2026-07-15 16:09:47 +09:00
+생성 시각: 2026-07-16 요구사항 확장 갱신
 
 `완료`가 아닌 항목만 표시하며, 외부 환경 선행조건은 완료로 승격하지 않습니다.
 
@@ -34,3 +34,22 @@
 | browser-public-http | 부분 구현 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log` | ADM·BZA HTML HTTP 200은 확인했으나 내장 browser가 없어 실제 렌더링·console 검증은 미실행 |
 | browser-auth-e2e | 미검증 | `없음` | DB·bootstrap 인증정보와 browser 연결이 없어 로그인 이후 E2E를 실행하지 않음 |
 | multi-instance-runtime | 미검증 | `없음` | 2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음 |
+| standard-execution-id | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 기존 16자리 ID 검증은 역사적 근거이며 신규 O/S/B 10자리 ID, alias, migration, OpenAPI·catalog·log 전환을 다시 구현·검증해야 함 |
+| sample-coverage | 재확인 필요 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json` | 신규 channel·approval·promotion·횡단 capability의 실제 XYZ/BAT EDU, test, evidence 추가 후 matrix 재생성 필요 |
+| readme-docs | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 신규 CPF 패턴과 운영 기능을 README·스펙·개발·운영 가이드에 실제 구현과 일치하게 반영 후 재검증 필요 |
+| quality-gate | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 신규 전역 gate 규칙 추가 및 최신 source/test/SQL/UI/evidence 기준 재실행 필요 |
+| request-protection | 재확인 필요 | `specs/evidence/20260715_01/cpf-new-request-protection.sanitized.json` | CPF_NEW_REQUEST.md 변경 후 새 baseline hash와 보호 evidence 생성 필요 |
+| report-matrix-consistency | 재확인 필요 | `specs/evidence/20260715_01/report-matrix-evidence-consistency.sanitized.json` | 신규 check ID와 상태를 기능 matrix까지 반영한 뒤 consistency evidence 재생성 필요 |
+| channel-registry-policy | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, source/runtime 직접 검증 미수행 | 통합 채널 마스터, 거래별 허용 채널, client/service binding, immutable snapshot, ADM UI와 runtime 차단 검증 필요 |
+| transaction-test-console | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, source/runtime 직접 검증 미수행 | O/S/B 테스트 콘솔, JUT, prod 강제 비활성, 권한·property·profile, 결과 포맷과 감사 검증 필요 |
+| policy-package-promotion | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, source/runtime 직접 검증 미수행 | 환경 독립 정책 파일 Export/Import, 원본 보관, diff, 사전 등록, source matching, rollback 검증 필요 |
+| global-change-approval | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, source/runtime 직접 검증 미수행 | ADM/BAM/BZA 전체 mutation inventory, 자동승인, 통합 결재함, 예약 적용, apply/rollback handler 검증 필요 |
+| adm-bam-responsive-statistics | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, browser 직접 검증 미수행 | 전 화면 반응형, 거래별·채널별·성공/오류 통계, 교차 통계와 로그 drill-down 검증 필요 |
+| log-raw-format | 재확인 필요 | `CPF_NEW_REQUEST.md` 요구사항 정의, MariaDB/browser 직접 검증 미수행 | JSON/XML/text/fixed-length raw·formatted 조회, masking, 보안 원문 권한·감사·다운로드 검증 필요 |
+| configuration-secret-lifecycle | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | 설정 catalog/version/drift/last-known-good와 secret·credential·certificate·key rotation 구현 및 runtime 검증 필요 |
+| observability-alert-slo | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | metric·trace·health·SLI/SLO·alert·ack·runbook과 ADM/BAM 연계 검증 필요 |
+| resource-protection | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | bulkhead·rate limit·quota·backpressure·retry budget·pool limit·overload 보호 검증 필요 |
+| schema-versioning-migration | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | REST/event/file schema versioning, deprecation, compatibility, expand/contract, backfill·resume 검증 필요 |
+| retention-privacy-dr | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | retention·archive·purge·privacy·backup·restore·RPO/RTO·DR 절차와 복구 검증 필요 |
+| supply-chain-performance | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 필요 |
+| full-capability-inventory | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 프레임워크 전수 검토 요구사항 정의 | PFW/CMN/업무/BAT/BZA/ADM/BAM/Gateway/DB/broker/file/UI 전체 owner·상태·source·test·evidence inventory 필요 |

@@ -1149,7 +1149,235 @@ qualityGate 설계 문제
 
 ---
 
-# 22. 빠른 검수 체크리스트
+
+# 22. 요구사항 선제 발굴과 CPF 전체 공통기능 검수
+
+## 22.1 사용자의 질문을 신규 요구사항의 유일한 출발점으로 삼지 않는다
+
+CPF 검수자와 요청서 작성자는 사용자가 개별 기능을 질문할 때마다 그 기능만 추가하는 방식으로 작업하지 않는다.
+
+다음 전체 영역을 주기적으로 전수 검토한다.
+
+```text
+PFW
+CMN
+모든 업무 주제영역
+BAT
+BZA
+ADM
+BAM
+Gateway
+DB/SQL/Flyway
+broker
+file/attachment
+scheduler/worker
+security/audit
+configuration/secret
+observability/alert
+deployment/DR
+generator/EDU/OpenAPI
+qualityGate/evidence/docs
+```
+
+상용 프레임워크에 일반적으로 필요하며 CPF 정본 목표와 일치하는 누락 기능은 사용자가 직접 지적하지 않았더라도 다음 요청서에 반영한다.
+
+단, 임의의 유행 기능을 무조건 추가하지 않는다.
+
+```text
+CPF 최종 목표와의 관련성
+재사용성
+PFW/CMN ownership
+금융권·운영 환경의 필요성
+현재 구현과 연결 가능성
+검증 가능성
+```
+
+을 판단한다.
+
+## 22.2 새 요구사항 추가 시 기존 완료 상태 재판정
+
+새 요구사항이 기존 기능의 계약·ID 형식·보안·운영·UI·완료 기준을 확장하면 과거 evidence는 새 범위의 완료 근거가 아니다.
+
+예:
+
+```text
+기존 실행 ID 16자리 evidence
+→ 신규 정본 10자리 요구
+→ 기존 evidence는 역사적 근거
+→ 신규 범위는 재확인 필요
+```
+
+요구사항만 추가하고 report/gap/evidence index를 그대로 두지 않는다.
+
+최소 다음을 확인한다.
+
+- 기존 완료 판정과 신규 요구 충돌
+- 이전 evidence의 기준 commit
+- source 변경 전후
+- SQL 변경 전후
+- OpenAPI/UI 변경 전후
+- sample coverage 대상 capability 변경
+- qualityGate 규칙 변경
+- request protection hash 변경
+
+신규 구현 전에는 완료로 올리지 않고 `재확인 필요`, `부분 구현`, `미구현`, `미검증`으로 기록한다.
+
+## 22.3 ADM/BAM/BZA 전체 mutation inventory
+
+ADM/BAM/BZA의 모든 등록·수정·삭제·상태 변경·운영 실행 API와 버튼을 inventory한다.
+
+각 action에 다음을 기록한다.
+
+```text
+menu
+API
+action
+target
+riskLevel
+approvalRequired
+autoApprovalCondition
+effectiveMode
+applyHandler
+rollbackHandler
+audit
+test
+evidence
+status
+```
+
+특정 메뉴에만 승인결재를 붙이지 않는다.
+
+최소 검토 대상:
+
+- channel
+- execution policy
+- service/instance
+- route
+- scheduler/batch/worker
+- file
+- broker/DLQ
+- reconciliation/compensation
+- error/message
+- masking/audit
+- permission/menu/role
+- configuration/secret metadata
+- data correction
+- emergency control
+
+## 22.4 자동승인 검수
+
+자동승인은 다음이 모두 충족돼야 한다.
+
+```text
+허용 profile
+AND auto-approval property
+AND requestType 정책
+AND 수정 권한
+AND 승인 권한
+AND 자동승인 사용 권한
+AND self-approval 정책
+AND 위험도 제한
+```
+
+`prod` 일반 자동승인은 기본 금지한다.
+
+자동승인도 다음 상태와 증적을 남겨야 한다.
+
+```text
+REQUESTED
+AUTO_APPROVED
+SCHEDULED/APPLYING
+APPLIED 또는 APPLY_FAILED
+```
+
+화면의 체크박스만 확인하지 않고 API, DB 상태, apply handler, audit를 확인한다.
+
+## 22.5 적용 시점과 실행 snapshot 검수
+
+승인된 변경의 적용 방식이 명시돼야 한다.
+
+- 즉시
+- 다음 실행
+- 지정 일시
+- 현재 실행 완료 후
+- 재기동 후
+- 신규 instance부터
+- 수동 적용
+
+batch, scheduler, worker, center-cut, broker, file, reconciliation, saga, 운영 재처리는 실행 시작 시 사용한 definition/parameter/policy/instance profile version과 approvalRequestId를 기록한다.
+
+현재 실행 중인 작업의 설정이 승인 후 중간 변경되면 완료가 아니다.
+
+## 22.6 채널·정책 성능 검수
+
+거래별 채널 정책은 DB 정본으로 관리할 수 있으나 매 request마다 DB·Redis·ADM API를 호출하면 안 된다.
+
+확인:
+
+- immutable snapshot
+- Map/bitmap lookup
+- atomic swap
+- loaded version/checksum
+- last-known-good
+- multi-instance drift
+- load failure
+- stale policy
+- request당 query count
+
+## 22.7 CPF 전체 횡단 기능 검수
+
+기능별 검수 외에 다음 횡단 영역을 점검한다.
+
+- configuration lifecycle
+- secret/key/certificate rotation
+- service identity
+- data scope permission
+- audit integrity
+- metric/trace/alert/SLO
+- resource protection
+- cache
+- time/business date
+- API/event/file schema version
+- DB migration/backfill
+- retention/purge/privacy
+- backup/restore/DR
+- deployment/graceful shutdown/rollback
+- failure injection/recovery
+- supply-chain security
+- performance/capacity
+- accessibility/browser
+- feature flag/kill switch
+- support bundle
+- docs/runbook
+
+구현을 직접 확인하지 못하면 `재확인 필요` 또는 `미검증`이다.
+
+## 22.8 문서 갱신 시점
+
+요구사항 변경 시 즉시 갱신:
+
+- `CPF_NEW_REQUEST.md`
+- `CPF_FINAL_TARGET_REQUIREMENTS.md`의 정본 보강
+- `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
+- 필요 시 report/gap/evidence index의 재확인 상태
+
+구현 후 실제 결과로 갱신:
+
+- `CPF_STABILIZATION_REPORT.md`
+- `CPF_GAP_MATRIX.md`
+- `CPF_EVIDENCE_INDEX.md`
+- 기능 matrix
+- sample coverage
+- README
+- OpenAPI
+- SQL/Flyway/all_install
+- runtime/browser evidence
+
+DOCX/PDF 정본화는 기능과 구조가 안정된 최종 단계에서 수행한다.
+
+---
+
+# 23. 빠른 검수 체크리스트
 
 ```text
 [ ] CPF_FINAL_TARGET_REQUIREMENTS.md 직접 확인 여부 분리
@@ -1174,11 +1402,21 @@ qualityGate 설계 문제
 [ ] ownership 위반 확인
 [ ] Spring Event 남용 확인
 [ ] Java 25 toolchain/evidence 확인
+[ ] 신규 요구와 기존 완료 상태 충돌 확인
+[ ] ADM/BAM/BZA mutation endpoint 전수 inventory
+[ ] 승인 대상 API의 공통 approval orchestration 확인
+[ ] 자동승인 profile/property/권한/self-approval 확인
+[ ] 적용 시점·설정 version·실행 snapshot 확인
+[ ] channel/client/service identity binding 확인
+[ ] 정책 snapshot의 request당 DB/원격 조회 없음 확인
+[ ] configuration/secret/observability/retention/DR 횡단 검토
+[ ] API/event/file schema compatibility 확인
+[ ] 성능·용량·공급망 보안 검증 여부 확인
 ```
 
 ---
 
-# 23. 마지막 원칙
+# 24. 마지막 원칙
 
 CPF 작업은 빠르게 가되 완료 판정은 엄격하게 한다.
 

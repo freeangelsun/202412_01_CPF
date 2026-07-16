@@ -1,6 +1,6 @@
 # CPF 증적 인덱스
 
-생성 시각: 2026-07-15 16:09:47 +09:00
+생성 시각: 2026-07-16 요구사항 확장 갱신
 
 기준 증적 디렉터리: `specs/evidence/20260715_01`
 
@@ -27,7 +27,7 @@
 | remote-log-bundle-jobs | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함 |
 | attachment-storage | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log`, `specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log` | report/matrix/evidence 정합성 | PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ EDU 단위 테스트와 저장·재조회 HTTP 런타임을 통과함 |
 | bza-operation-support | 부분 구현 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json`, `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증 |
-| standard-execution-id | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 온라인·배치 ID 322건의 16자 형식, 유형, 0000 금지와 전역 중복 검사를 통과함 |
+| standard-execution-id | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 신규 10자리 O/S/B 계약과 migration 직접 검증 | 기존 16자리 evidence는 역사적 근거로만 유지 |
 | standard-execution-catalog | 부분 구현 | `specs/evidence/20260715_01/runtime-start-services.sanitized.log`, `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 시작 스캔과 메모리 fallback 기동은 확인, pfw_standard_execution 실 DB 등록은 미검증 |
 | execution-log-propagation | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 표준 ID·transactionGlobalId의 로그 context 연계 테스트는 통과, 운영 DB·다중 instance는 미검증 |
 | batch-standard | 부분 구현 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | Spring Batch port, 실행·step·lock·운영 API와 EDU는 구현, JobRepository 실 DB는 미검증 |
@@ -62,11 +62,24 @@
 | sql-standard | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 검사를 통과함 |
 | utf8-mojibake | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 텍스트 UTF-8, PowerShell BOM/CRLF, mojibake와 생성 JSON no BOM 검사를 통과함 |
 | ui-static | 완료 | `specs/evidence/20260715_01/bza-ui-static-result.sanitized.json`, `specs/evidence/20260715_01/adm-log-policy-ui-static-result.sanitized.json` | report/matrix/evidence 정합성 | ADM 메뉴/API marker와 BZA 권한·전체 route·Node JS 문법 정적 스모크를 통과함 |
-| sample-coverage | 완료 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json` | report/matrix/evidence 정합성 | 공개 capability 대비 EDU sample 49/49과 placeholder 검사를 통과함 |
+| sample-coverage | 재확인 필요 | `specs/evidence/20260715_01/sample-coverage-result.sanitized.json` | 신규 capability EDU/source/test/evidence 검증 | 기존 49/49는 이전 capability 범위의 역사적 근거 |
 | generator-cleanup | 완료 | `specs/evidence/20260715_01/create-domain.sanitized.log` | report/matrix/evidence 정합성 | 생성기 스모크 성공 후 임시 source·verification 디렉터리가 제거됨 |
 | evidence-sanitization | 완료 | `specs/evidence/20260715_01/log-management-standard.sanitized.json` | report/matrix/evidence 정합성 | 최종 근거 로그에 실행 메타데이터·secret 제거·본문 SHA-256을 적용함 |
 | docx-openxml | 완료 | `specs/evidence/20260715_01/docx-standard.sanitized.json` | report/matrix/evidence 정합성 | 공식 DOCX 9개의 OpenXML 구조 검사를 통과함. Word 애플리케이션 실제 열기는 미검증 |
-| readme-docs | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | README를 현재 모듈·기동·DB·ID·생성기 진입점으로 재작성하고 상세 문서로 연결함 |
-| quality-gate | 완료 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | report/matrix/evidence 정합성 | 최종 qualityGate에서 compile·test·SQL·UTF-8·소유권·보안·UI·evidence 검사를 통과함 |
-| request-protection | 완료 | `specs/evidence/20260715_01/cpf-new-request-protection.sanitized.json` | report/matrix/evidence 정합성 | CPF_NEW_REQUEST.md SHA-256와 git blob이 작업 시작 baseline과 일치함 |
-| report-matrix-consistency | 완료 | `specs/evidence/20260715_01/report-matrix-evidence-consistency.sanitized.json` | report/matrix/evidence 정합성 | 64개 check ID의 보고서·matrix·evidence index 상태 정합성 검사를 통과함 |
+| readme-docs | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 신규 패턴·운영 기능 문서와 실제 구현 정합성 | 이전 문서 evidence는 신규 요구사항 이전 기준 |
+| quality-gate | 재확인 필요 | `specs/evidence/20260715_01/quality-gate.sanitized.log` | 신규 gate 규칙과 최신 master 재실행 | 이전 로그는 신규 요구사항을 검사하지 않음 |
+| request-protection | 재확인 필요 | `specs/evidence/20260715_01/cpf-new-request-protection.sanitized.json` | 변경된 CPF_NEW_REQUEST.md 새 baseline hash 검증 | 기존 hash는 의도적 요청서 변경으로 stale |
+| report-matrix-consistency | 재확인 필요 | `specs/evidence/20260715_01/report-matrix-evidence-consistency.sanitized.json` | 신규 check ID 포함 report/matrix/evidence 재검증 | 기존 consistency evidence는 변경 전 기준 |
+| channel-registry-policy | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | 통합 채널 마스터, 거래별 허용 채널, client/service binding, immutable snapshot, ADM UI와 runtime 차단 검증 필요 |
+| transaction-test-console | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | O/S/B 테스트 콘솔, JUT, prod 강제 비활성, 권한·property·profile, 결과 포맷과 감사 검증 필요 |
+| policy-package-promotion | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | 환경 독립 정책 파일 Export/Import, 원본 보관, diff, 사전 등록, source matching, rollback 검증 필요 |
+| global-change-approval | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | ADM/BAM/BZA 전체 mutation inventory, 자동승인, 통합 결재함, 예약 적용, apply/rollback handler 검증 필요 |
+| adm-bam-responsive-statistics | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | 전 화면 반응형, 거래별·채널별·성공/오류 통계, 교차 통계와 로그 drill-down 검증 필요 |
+| log-raw-format | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | JSON/XML/text/fixed-length raw·formatted 조회, masking, 보안 원문 권한·감사·다운로드 검증 필요 |
+| configuration-secret-lifecycle | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | 설정 catalog/version/drift/last-known-good와 secret·credential·certificate·key rotation 구현 및 runtime 검증 필요 |
+| observability-alert-slo | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | metric·trace·health·SLI/SLO·alert·ack·runbook과 ADM/BAM 연계 검증 필요 |
+| resource-protection | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | bulkhead·rate limit·quota·backpressure·retry budget·pool limit·overload 보호 검증 필요 |
+| schema-versioning-migration | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | REST/event/file schema versioning, deprecation, compatibility, expand/contract, backfill·resume 검증 필요 |
+| retention-privacy-dr | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | retention·archive·purge·privacy·backup·restore·RPO/RTO·DR 절차와 복구 검증 필요 |
+| supply-chain-performance | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 필요 |
+| full-capability-inventory | 재확인 필요 | `없음` | source/test/SQL/OpenAPI/UI/runtime/evidence 직접 검증 | PFW/CMN/업무/BAT/BZA/ADM/BAM/Gateway/DB/broker/file/UI 전체 owner·상태·source·test·evidence inventory 필요 |

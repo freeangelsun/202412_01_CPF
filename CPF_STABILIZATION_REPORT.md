@@ -15,6 +15,18 @@
 - 아래 신규 ledger 행의 `없음`은 실패가 아니라 구현·직접 검증 전 상태를 의미한다.
 
 
+
+## 0.1 2026-07-16 기존 capability 정본 편입 기록 — 신규 완료 판정 아님
+
+최신 master의 기존 상태 ledger와 XYZ/BAT sample coverage를 정본에 역추적한 결과, BZA identity/access, AI, remote log, attachment/download, batch dependency/ghost, generator/reference domain, evidence governance 등의 상세 목표를 추가했다.
+
+이 갱신은 기존 기능의 목표 보존과 회귀 방지 계약을 강화한 것이다.
+
+- 기존 source를 새로 실행 검증한 결과가 아니다.
+- 기존 `완료` evidence가 강화된 계약 전체를 충족한다는 의미가 아니다.
+- 관련 capability는 최신 source·test·SQL·OpenAPI·UI·runtime evidence로 재확인한다.
+- 기존 구현을 삭제·축소하지 말고 부족한 계층을 보강한다.
+
 ## 1. 실제 변경 요약
 
 이번 작업은 초기 배포 기준을 `pfw`, `cmn`, `mbr`, `adm`, `bza`, `xyz`와 선택 실행 `bat`로 재정립했다. `BIZADM`은 `BZA`로 전환했고 `ACC`, `EXS`는 baseline 소스·설정·배포·SQL에서 제거했다.
@@ -225,6 +237,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-mariadb-full-i
 | retention-privacy-dr | 재확인 필요 | 없음 | retention·archive·purge·privacy·backup·restore·RPO/RTO·DR 절차와 복구 검증 필요 |
 | supply-chain-performance | 재확인 필요 | 없음 | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 필요 |
 | full-capability-inventory | 재확인 필요 | 없음 | PFW/CMN/업무/BAT/BZA/ADM/BAM/Gateway/DB/broker/file/UI 전체 owner·상태·source·test·evidence inventory 필요 |
+| implemented-capability-target-traceability | 재확인 필요 | 없음 | 기존 source·ledger·sample을 정본 section과 양방향 연결하고 최신 상태를 재판정해야 함 |
+| module-topology-authoritative | 재확인 필요 | 없음 | BZA 정식 명칭, ACC reference 유지, EXS 기능 inventory/이전, 기본·선택 실행 topology를 source·settings·deploy에서 재확인해야 함 |
+| standard-execution-contract-migration | 재확인 필요 | 없음 | 신규 10자리 O/S/B 계약과 기존 16자리 source/DB/log/OpenAPI alias·migration을 전수 확인해야 함 |
+| bza-iam-operational-contract | 재확인 필요 | 없음 | password/auth/refresh family/reuse/bootstrap/session/조직·직원·권한·saved search를 최신 DB·browser에서 재검증해야 함 |
+| ai-capability-target-contract | 재확인 필요 | 없음 | PFW AI/embedding/vector port와 XYZ deterministic EDU는 과거 근거가 있으나 보안·관측·실 provider 상태를 최신 기준으로 재검증해야 함 |
+| remote-log-attachment-download-contract | 재확인 필요 | 없음 | 원격 로그·비동기 ZIP·일회성 token·첨부 storage·download audit의 실 mTLS/object storage/browser E2E가 필요함 |
+| batch-dependency-ghost-contract | 재확인 필요 | 없음 | dependency graph·trigger·cycle/orphan·ghost 다중신호·JobRepository·multi-worker runtime을 재검증해야 함 |
+| generator-reference-domain-contract | 재확인 필요 | 없음 | create-domain의 전체 산출과 generated ACC/LNG clean generation, startup, registry, SQL, ownership을 최신 기준으로 재검증해야 함 |
+| cmn-telegram-contract | 재확인 필요 | 없음 | CMN fixed-length layout/parser/formatter와 XYZ 실제 소비 sample의 charset·byte length·round-trip을 재검증해야 함 |
+| ui-design-system-contract | 재확인 필요 | 없음 | ADM/BZA 공통 design system, 환경 표시, route guard, column preference, browser history와 접근성을 실제 browser에서 확인해야 함 |
+| evidence-governance-contract | 재확인 필요 | 없음 | evidence sanitization, request baseline hash, DOCX OpenXML/Word 구분, source-to-target consistency gate를 최신 요구로 재실행해야 함 |
 <!-- CPF_LEDGER_END -->
 
 ## 항상 지켜야 할 기준 점검

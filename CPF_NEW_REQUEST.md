@@ -5,8 +5,15 @@
 - repository: `https://github.com/freeangelsun/202412_01_CPF`
 - branch: `master`
 - 작업 시작 시 최신 master SHA를 기록한다.
-- 최상위 정본은 `CPF_FINAL_TARGET_REQUIREMENTS.md` 단일 파일이다.
-- 분할 보조 목표 파일은 사용하지 않으며 모든 목표 확인과 완료 판정은 원본 정본 전체를 기준으로 한다.
+- 최상위 정본은 `CPF_FINAL_TARGET_REQUIREMENTS.md`다.
+- `CPF_FINAL_TARGET_REQUIREMENTS.md` 단일 파일이 CPF 전체 목표의 최상위 정본이며, 프로젝트 진행에 따라 계속 보강·갱신되는 살아 있는 기준서다.
+- 모든 Codex 구현·수정·검수·gap 분석·완료 판정·다음 요청서 작성은 작업 시작 전에 최신  `CPF_FINAL_TARGET_REQUIREMENTS.md` 전체 기준을 확인한 뒤 수행한다.
+- 작업 시작 보고에는 최소한 기준 branch, 시작 commit SHA, 정본 blob SHA 또는 동등한 파일 식별값을 기록한다.
+- 이전 세션의 기억, 로컬의 오래된 복사본, 일부 발췌, 검색 결과만으로 정본 전체를 확인했다고 처리하지 않는다. 파일이 커도 구간 조회·검색·스크립트 분석을 병행하되 최종 범위와 완료 판정은 최신 원본 전체를 기준으로 한다.
+- 최신 GitHub 정본을 직접 확인하지 못했으면 `GitHub 직접 확인 미수행`, 최신 로컬 정본을 확인하지 못했으면 `로컬 직접 확인 미수행`으로 명시하고 완료 판정을 하지 않는다.
+- 작업 중 또는 완료 검수 전에 `master`나 정본이 갱신됐으면 최신 commit과 정본을 다시 확인하고, 변경된 목표에 따라 구현 범위·테스트·SQL·OpenAPI·UI·EDU·evidence·report 상태를 재대조한다.
+- `CPF_NEW_REQUEST.md`, report, gap, matrix, evidence, README, 구현 source는 정본보다 하위 기준이다. 서로 충돌하면 정본 목표를 낮추지 말고 충돌을 gap 또는 재확인 대상으로 기록한다.
+- 삭제된 `CPF_FINAL_TARGET_REQUIREMENTS_01.md`~`05.md` 분할 보조본을 전제로 검색·범위 축소·완료 판정을 하지 않는다.
 - 운영 완료 기준은 `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`를 따른다.
 - 이번 요청의 시작 기준은 최신 master와 이 요청서다.
 - 이번 요청은 최신 master 검수에서 확인된 ACC 삭제, EXS 기능 대체 미입증, 생성기 자동 통합 부족, qualityGate 약화, runtime 미검증을 보완하고, 지금까지 협의한 Gateway·ADM·헬스·배포·패키지 표준을 함께 구현하는 대형 마일스톤이다.
@@ -4260,6 +4267,72 @@ README는 왜 CPF를 사용하는지 제품 관점에서 설명한다.
 
 ---
 
+
+## 1.11 기존 구현 capability 정본 역추적·회귀 방지
+
+최신 source와 다음 상태 자료를 역으로 대조한다.
+
+- `CPF_STABILIZATION_REPORT.md`
+- `CPF_GAP_MATRIX.md`
+- `CPF_EVIDENCE_INDEX.md`
+- `specs/기능_구현_매트릭스.json`
+- `specs/기능_구현_매트릭스.md`
+- `specs/sample-coverage-matrix.md`
+- 기존 source/test/SQL/OpenAPI/UI/evidence
+
+목표:
+
+1. source에는 있는데 정본에 없던 capability를 정본 section에 연결한다.
+2. 정본에는 있는데 source가 없는 기능은 상태를 낮추지 않고 gap으로 남긴다.
+3. rename·module cleanup·package 이동에서 기존 기능이 사라지지 않게 한다.
+4. 현재 구현 수준에 맞춰 목표를 축소하지 않는다.
+5. 동일 capability를 새 engine으로 중복 생성하지 않는다.
+
+필수 inventory:
+
+- module topology와 ACC reference/EXS 기능 이전/BZA rename
+- 10자리 O/S/B 실행 ID와 legacy migration
+- execution catalog/startup registration
+- standard header/context
+- PFW error/message envelope
+- BZA password/auth/token/session/bootstrap
+- BZA 조직·직원·role/menu/button/API/data scope
+- BZA approval/audit/notification/attachment/saved search
+- PFW AI provider/embedding/vector와 XYZ AI EDU
+- remote log와 async ZIP/one-time token
+- attachment/file storage와 download audit
+- Spring Batch/scheduler dependency/ghost
+- center-cut
+- create-domain generated ACC/LNG
+- CMN fixed-length
+- broker/outbox/inbox/DLQ
+- file transfer/archive
+- Gateway/registry/health/Tomcat/local all-run
+- UI design system/browser
+- evidence sanitization/request protection/DOCX 구분
+
+각 capability에 다음을 기록한다.
+
+```text
+requirement section
+owner
+source
+consumer
+test
+SQL/config
+OpenAPI
+ADM/BAM/BZA
+EDU
+runtime evidence
+현재 상태
+남은 gap
+```
+
+`기능이 source에 있으니 완료` 또는 `정본에 없으니 삭제 가능`으로 판단하지 않는다.
+
+이번 마일스톤에서 직접 수정되는 capability는 실제 보강·검증한다. 직접 수정되지 않는 capability도 regression gate와 inventory로 보존 여부를 확인하고, 미검증은 그대로 남긴다.
+
+
 # 2. 품질 게이트 복구 및 강화
 
 ## 2.1 check-feature-evidence 복구
@@ -4290,6 +4363,18 @@ README는 왜 CPF를 사용하는지 제품 관점에서 설명한다.
 ## 2.2 반드시 탐지할 오류
 
 다음 전역 누락도 탐지한다.
+다음 기존 capability 회귀도 탐지한다.
+
+- source capability가 정본 section과 연결되지 않음
+- ACC reference domain 무단 삭제
+- EXS 기능 inventory·대체 evidence 없는 삭제
+- BZA auth/token/권한 기능의 rename·cleanup 회귀
+- PFW AI/remote log/attachment port의 consumer·EDU 단절
+- batch dependency·ghost·center-cut 상태/테스트 누락
+- generator 산출물을 수작업 patch하여 통과
+- 16자리 legacy 실행 ID의 신규 source 사용
+- evidence 정제·request baseline 보호 기능 제거
+
 
 - mutation API 승인 우회
 - runtime 설정 version·적용 instance 불일치

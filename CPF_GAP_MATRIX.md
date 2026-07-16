@@ -1,6 +1,6 @@
 # CPF GAP 매트릭스
 
-생성 시각: 2026-07-16 요구사항 확장 갱신
+생성 시각: 2026-07-16 기존 capability 정본 편입 갱신
 
 `완료`가 아닌 항목만 표시하며, 외부 환경 선행조건은 완료로 승격하지 않습니다.
 
@@ -53,3 +53,14 @@
 | retention-privacy-dr | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | retention·archive·purge·privacy·backup·restore·RPO/RTO·DR 절차와 복구 검증 필요 |
 | supply-chain-performance | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 횡단 요구사항 정의 | SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 필요 |
 | full-capability-inventory | 재확인 필요 | `CPF_NEW_REQUEST.md` 전체 프레임워크 전수 검토 요구사항 정의 | PFW/CMN/업무/BAT/BZA/ADM/BAM/Gateway/DB/broker/file/UI 전체 owner·상태·source·test·evidence inventory 필요 |
+| implemented-capability-target-traceability | 재확인 필요 | `없음` | 기존 source·ledger·sample을 정본 section과 양방향 연결하고 최신 상태를 재판정해야 함 |
+| module-topology-authoritative | 재확인 필요 | `없음` | BZA 정식 명칭, ACC reference 유지, EXS 기능 inventory/이전, 기본·선택 실행 topology를 source·settings·deploy에서 재확인해야 함 |
+| standard-execution-contract-migration | 재확인 필요 | `없음` | 신규 10자리 O/S/B 계약과 기존 16자리 source/DB/log/OpenAPI alias·migration을 전수 확인해야 함 |
+| bza-iam-operational-contract | 재확인 필요 | `없음` | password/auth/refresh family/reuse/bootstrap/session/조직·직원·권한·saved search를 최신 DB·browser에서 재검증해야 함 |
+| ai-capability-target-contract | 재확인 필요 | `없음` | PFW AI/embedding/vector port와 XYZ deterministic EDU는 과거 근거가 있으나 보안·관측·실 provider 상태를 최신 기준으로 재검증해야 함 |
+| remote-log-attachment-download-contract | 재확인 필요 | `없음` | 원격 로그·비동기 ZIP·일회성 token·첨부 storage·download audit의 실 mTLS/object storage/browser E2E가 필요함 |
+| batch-dependency-ghost-contract | 재확인 필요 | `없음` | dependency graph·trigger·cycle/orphan·ghost 다중신호·JobRepository·multi-worker runtime을 재검증해야 함 |
+| generator-reference-domain-contract | 재확인 필요 | `없음` | create-domain의 전체 산출과 generated ACC/LNG clean generation, startup, registry, SQL, ownership을 최신 기준으로 재검증해야 함 |
+| cmn-telegram-contract | 재확인 필요 | `없음` | CMN fixed-length layout/parser/formatter와 XYZ 실제 소비 sample의 charset·byte length·round-trip을 재검증해야 함 |
+| ui-design-system-contract | 재확인 필요 | `없음` | ADM/BZA 공통 design system, 환경 표시, route guard, column preference, browser history와 접근성을 실제 browser에서 확인해야 함 |
+| evidence-governance-contract | 재확인 필요 | `없음` | evidence sanitization, request baseline hash, DOCX OpenXML/Word 구분, source-to-target consistency gate를 최신 요구로 재실행해야 함 |

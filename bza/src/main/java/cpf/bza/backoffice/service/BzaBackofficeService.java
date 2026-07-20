@@ -21,7 +21,7 @@ import java.util.UUID;
 
 /** BZA 조직·직원·실효 권한·결재 상태 전이를 담당합니다. */
 @Service
-public class BzaBackofficeService {
+public class BzaBackofficeService extends cpf.bza.common.base.BzaBaseService {
     private static final Set<String> APPROVAL_ACTIONS = Set.of(
             "SUBMIT", "APPROVE", "AGREE", "REJECT", "WITHDRAW", "CANCEL", "RESUBMIT");
 

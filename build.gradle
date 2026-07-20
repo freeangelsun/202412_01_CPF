@@ -4,7 +4,19 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
-allprojects {
+def cpfPlatformProperties = new Properties()
+file('gradle/cpf-platform.properties').withInputStream { cpfPlatformProperties.load(it) }
+ext.cpfPlatformVersion = cpfPlatformProperties.getProperty('platformVersion')
+ext.cpfCompatibleRange = cpfPlatformProperties.getProperty('compatibleRange')
+
+if (ext.cpfPlatformVersion == null || ext.cpfPlatformVersion.isBlank()) {
+    throw new GradleException('gradle/cpf-platform.properties의 platformVersion은 필수입니다.')
+}
+
+allprojects { targetProject ->
+    def componentVersion = cpfPlatformProperties.getProperty("component.${targetProject.name}", 'inherit')
+    version = componentVersion == 'inherit' ? rootProject.ext.cpfPlatformVersion : componentVersion
+
     repositories {
         mavenCentral()
     }
@@ -21,6 +33,8 @@ subprojects {
         }
         sourceCompatibility = JavaVersion.VERSION_25
         targetCompatibility = JavaVersion.VERSION_25
+        withSourcesJar()
+        withJavadocJar()
     }
 
     dependencyManagement {
@@ -44,6 +58,215 @@ subprojects {
         // 실행 JDK와 무관하게 Java 25 API 및 class major 69 산출물만 허용합니다.
         options.release = 25
         options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.encoding = 'UTF-8'
+        options.charSet = 'UTF-8'
+        options.docEncoding = 'UTF-8'
+        options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    }
+
+    tasks.named('processResources').configure {
+        doLast {
+            def metadataDir = new File(destinationDir, 'META-INF')
+            metadataDir.mkdirs()
+            new File(metadataDir, 'cpf-platform.properties').setText(
+                            "platformVersion=${rootProject.ext.cpfPlatformVersion}\n" +
+                            "componentVersion=${project.version}\n" +
+                            "compatibleRange=${rootProject.ext.cpfCompatibleRange}\n" +
+                            "component=${project.name}\n",
+                    'UTF-8')
+        }
+    }
+
+    tasks.withType(AbstractArchiveTask).configureEach {
+        archiveBaseName = "cpf-${project.name}"
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
+    tasks.withType(Jar).configureEach {
+        manifest {
+            attributes(
+                    'Implementation-Title': "cpf-${project.name}",
+                    'Implementation-Version': project.version,
+                    'CPF-Platform-Version': rootProject.ext.cpfPlatformVersion,
+                    'CPF-Compatible-Range': rootProject.ext.cpfCompatibleRange,
+                    'Git-Commit': providers.exec {
+                        commandLine 'git', 'rev-parse', 'HEAD'
+                        ignoreExitValue = true
+                    }.standardOutput.asText.get().trim(),
+                    'Build-Number': System.getenv('BUILD_NUMBER') ?: 'local',
+                    'Build-Time': System.getenv('SOURCE_DATE_EPOCH') ?: 'reproducible-build',
+                    'Artifact-Checksum': 'external-sha256'
+            )
+        }
+    }
+}
+
+tasks.register('verifyVersionConsistency') {
+    group = 'verification'
+    description = '모든 CPF 모듈과 생성기의 제품 버전 정합성을 검사합니다.'
+    doLast {
+        def expected = rootProject.ext.cpfPlatformVersion.toString()
+        if (!(expected ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
+            throw new GradleException("CPF platform version format is invalid: ${expected}")
+        }
+        ['pfw', 'cmn'].each { lockedComponent ->
+            if (project(":${lockedComponent}").version.toString() != expected) {
+                throw new GradleException("${lockedComponent} component must stay platform-locked: ${project(":${lockedComponent}").version}")
+            }
+        }
+        subprojects.each { component ->
+            def configured = cpfPlatformProperties.getProperty("component.${component.name}", 'inherit')
+            def effective = configured == 'inherit' ? expected : configured
+            if (component.version.toString() != effective) {
+                throw new GradleException("CPF component version mismatch: ${component.path}=${component.version}, expected=${effective}")
+            }
+            if (!(effective ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
+                throw new GradleException("CPF component version format is invalid: ${component.path}=${effective}")
+            }
+        }
+        def generatorText = file('scripts/create-domain.ps1').getText('UTF-8')
+        if (generatorText.contains("version = '0.0.1-SNAPSHOT'")) {
+            throw new GradleException('도메인 생성기에 구형 고정 버전이 남아 있습니다.')
+        }
+        logger.lifecycle("CPF version consistency passed: ${expected}")
+    }
+}
+
+void cpfWriteVersionProperty(String key, String value) {
+    def manifest = file('gradle/cpf-platform.properties')
+    def lines = manifest.readLines('UTF-8')
+    def replaced = false
+    lines = lines.collect { line ->
+        if (line.startsWith("${key}=")) {
+            replaced = true
+            return "${key}=${value}"
+        }
+        return line
+    }
+    if (!replaced) {
+        lines << "${key}=${value}"
+    }
+    manifest.setText(lines.join(System.lineSeparator()) + System.lineSeparator(), 'UTF-8')
+}
+
+List<Integer> cpfParseSemanticVersion(String versionText) {
+    def matcher = versionText =~ /^(\d+)\.(\d+)\.(\d+)/
+    if (!matcher.find()) {
+        throw new GradleException("Semantic version cannot be parsed: ${versionText}")
+    }
+    return [matcher.group(1).toInteger(), matcher.group(2).toInteger(), matcher.group(3).toInteger()]
+}
+
+tasks.register('bumpComponentVersion') {
+    group = 'release'
+    description = '승인된 구성요소의 독립 patch/minor/major 개발 버전을 계산해 정본에 반영합니다.'
+    doLast {
+        def component = (findProperty('component') ?: '').toString().trim()
+        def level = (findProperty('level') ?: '').toString().trim().toLowerCase(Locale.ROOT)
+        if (!subprojects*.name.contains(component)) {
+            throw new GradleException("Unknown component: ${component}")
+        }
+        if (component in ['pfw', 'cmn']) {
+            throw new GradleException("PFW와 CMN은 platform-locked component이므로 독립 version bump를 허용하지 않습니다.")
+        }
+        if (!(level in ['patch', 'minor', 'major'])) {
+            throw new GradleException('level은 patch, minor 또는 major 중 하나여야 합니다.')
+        }
+        def current = project(":${component}").version.toString()
+        def parts = cpfParseSemanticVersion(current)
+        if (level == 'major') {
+            parts = [parts[0] + 1, 0, 0]
+        } else if (level == 'minor') {
+            parts = [parts[0], parts[1] + 1, 0]
+        } else {
+            parts = [parts[0], parts[1], parts[2] + 1]
+        }
+        def next = "${parts[0]}.${parts[1]}.${parts[2]}-SNAPSHOT"
+        cpfWriteVersionProperty("component.${component}", next)
+        logger.lifecycle("Component version updated: ${component} ${current} -> ${next}")
+    }
+}
+
+tasks.register('prepareReleaseCandidate') {
+    group = 'release'
+    description = '현재 CPF platform 개발 버전을 지정한 RC 버전으로 전환합니다.'
+    doLast {
+        def rc = (findProperty('rc') ?: '').toString().trim()
+        if (!(rc ==~ /[1-9]\d*/)) {
+            throw new GradleException('rc는 1 이상의 정수여야 합니다.')
+        }
+        def base = rootProject.ext.cpfPlatformVersion.toString().replaceFirst(/-(?:SNAPSHOT|rc\.\d+)$/, '')
+        cpfParseSemanticVersion(base)
+        cpfWriteVersionProperty('platformVersion', "${base}-rc.${rc}")
+        logger.lifecycle("Release candidate prepared: ${base}-rc.${rc}")
+    }
+}
+
+tasks.register('prepareRelease') {
+    group = 'release'
+    description = '현재 CPF platform SNAPSHOT 또는 RC 버전을 최종 버전으로 전환합니다.'
+    doLast {
+        def current = rootProject.ext.cpfPlatformVersion.toString()
+        if (!(current.endsWith('-SNAPSHOT') || current ==~ /.*-rc\.\d+$/)) {
+            throw new GradleException("Only SNAPSHOT or RC can be prepared as final release: ${current}")
+        }
+        def finalVersion = current.replaceFirst(/-(?:SNAPSHOT|rc\.\d+)$/, '')
+        cpfParseSemanticVersion(finalVersion)
+        cpfWriteVersionProperty('platformVersion', finalVersion)
+        logger.lifecycle("Final release version prepared: ${finalVersion}")
+    }
+}
+
+tasks.register('aggregateJavadoc') {
+    group = 'documentation'
+    description = '모든 CPF 모듈의 JavaDoc을 생성합니다.'
+    dependsOn subprojects.collect { "${it.path}:javadoc" }
+}
+
+tasks.register('generateReleaseMetadata') {
+    group = 'distribution'
+    description = '현재 CPF 산출물의 checksum, SBOM-lite와 provenance metadata를 생성합니다.'
+    dependsOn subprojects.collect { "${it.path}:assemble" }
+    doLast {
+        def outputDir = file("${buildDir}/release/${rootProject.ext.cpfPlatformVersion}")
+        outputDir.mkdirs()
+        def artifacts = subprojects.collectMany { module ->
+            def libDir = new File(module.buildDir, 'libs')
+            libDir.exists() ? libDir.listFiles().findAll { it.isFile() && it.name =~ /\.(jar|war)$/ } : []
+        }.sort { it.name }
+        def artifactRows = artifacts.collect { artifact ->
+            def digest = java.security.MessageDigest.getInstance('SHA-256')
+            artifact.withInputStream { stream ->
+                byte[] buffer = new byte[8192]
+                int read
+                while ((read = stream.read(buffer)) > 0) {
+                    digest.update(buffer, 0, read)
+                }
+            }
+            def sha256 = digest.digest().encodeHex().toString()
+            new File(outputDir, "${artifact.name}.sha256").setText("${sha256}  ${artifact.name}\n", 'UTF-8')
+            [name: artifact.name, sha256: sha256, size: artifact.length()]
+        }
+        def gitSha = providers.exec {
+            commandLine 'git', 'rev-parse', 'HEAD'
+            ignoreExitValue = true
+        }.standardOutput.asText.get().trim()
+        def json = new groovy.json.JsonBuilder([
+                schemaVersion: 1,
+                platformVersion: rootProject.ext.cpfPlatformVersion,
+                compatibleRange: rootProject.ext.cpfCompatibleRange,
+                gitCommit: gitSha,
+                signatureStatus: 'NOT_SIGNED_NO_APPROVED_KEY',
+                artifacts: artifactRows
+        ]).toPrettyString()
+        new File(outputDir, 'cpf-release-manifest.json').setText(json + '\n', 'UTF-8')
+        new File(outputDir, 'cpf-sbom-lite.json').setText(json + '\n', 'UTF-8')
+        new File(outputDir, 'cpf-provenance.json').setText(json + '\n', 'UTF-8')
+        logger.lifecycle("CPF release metadata generated: ${outputDir}")
     }
 }
 
@@ -330,8 +553,8 @@ Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
     new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
         entries = zip.entries().collect { it.name }
     }
-    def containsPfw = entries.any { it ==~ /BOOT-INF\/lib\/pfw-.*\.jar/ }
-    def containsCmn = entries.any { it ==~ /BOOT-INF\/lib\/cmn-.*\.jar/ }
+    def containsPfw = entries.any { it ==~ /BOOT-INF\/lib\/cpf-pfw-.*\.jar/ }
+    def containsCmn = entries.any { it ==~ /BOOT-INF\/lib\/cpf-cmn-.*\.jar/ }
     def failures = []
     if (!containsPfw) {
         failures << 'bootJar does not contain PFW jar.'
@@ -433,15 +656,16 @@ tasks.register('checkSampleStandard', Exec) {
 
 tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
-    description = 'CPF_NEW_REQUEST.md must remain unchanged after the work baseline is captured.'
+    description = 'CPF_CURRENT_WORK_REQUEST.md must remain unchanged after the work baseline is captured.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('initializeCpfRequestProtection', Exec) {
     group = 'verification'
-    description = 'Initialize CPF_NEW_REQUEST.md protection baseline explicitly before protected work starts.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-cpf-request-protection.ps1', '-InitializeBaseline'
+    description = 'Initialize CPF_CURRENT_WORK_REQUEST.md protection baseline explicitly before protected work starts.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path, '-InitializeBaseline'
 }
 
 tasks.register('checkFeatureEvidence', Exec) {
@@ -673,6 +897,13 @@ tasks.register('admUiSmoke', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
+tasks.register('checkBaseHierarchy', Exec) {
+    group = 'verification'
+    description = 'Controller와 Service의 PFW·주제영역 Base 3단 확장 계층을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-base-hierarchy.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('checkDomainGenerator', Exec) {
     group = 'verification'
     description = '신규 업무 모듈 생성 결과의 feature-first 구조와 Java 25 산출물을 검증합니다.'
@@ -692,6 +923,13 @@ tasks.register('checkRepositoryHygiene', Exec) {
     description = '추적 중인 생성 중간물, runtime 산출물, 후보·최종 중복과 백업 파일을 차단합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-repository-hygiene.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkDocumentLinks', Exec) {
+    group = 'verification'
+    description = 'README와 HTML/Markdown 문서의 내부 파일 링크를 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-document-links.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('admLogPolicyUiStaticSmoke', Exec) {
@@ -719,5 +957,5 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'exportArchitectureInventory', 'checkDomainGenerator', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'exportArchitectureInventory', 'checkDomainGenerator', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
 }

@@ -1,31 +1,26 @@
 package cpf.bat.edu.servicecall;
 
-import cpf.pfw.common.servicecall.CpfServiceCallEngine;
-import cpf.pfw.common.servicecall.ServiceCallRequest;
-import cpf.pfw.common.servicecall.ServiceCallResult;
+import cpf.pfw.common.servicecall.CpfPolicyId;
 import org.junit.jupiter.api.Test;
 
-import java.util.function.Function;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@SuppressWarnings("unchecked")
 class BatServiceCallEngineEducationSampleTest {
 
     @Test
-    void serviceCallSampleInvokesActualPfwEngine() {
-        CpfServiceCallEngine engine = mock(CpfServiceCallEngine.class);
-        ServiceCallResult<String> expected = ServiceCallResult.success(null, "GOLD", 200, 1L, 1);
-        when(engine.invoke(any(ServiceCallRequest.class), any(Function.class))).thenReturn(expected);
-        BatServiceCallEngineEducationSample sample = new BatServiceCallEngineEducationSample(engine);
+    void serviceCallSampleUsesTypedClientAndDefaultPolicy() {
+        AtomicReference<CpfPolicyId> policyId = new AtomicReference<>();
+        BatMemberGradeClient client = (request, options) -> {
+            policyId.set(options.policyId());
+            return new BatMemberGradeResponse(request.memberNo(), "GOLD");
+        };
+        BatServiceCallEngineEducationSample sample = new BatServiceCallEngineEducationSample(client);
 
-        ServiceCallResult<String> result = sample.callMemberGrade("M-1", target -> "GOLD");
+        BatMemberGradeResponse result = sample.callMemberGrade("M-1");
 
-        assertThat(result).isSameAs(expected);
-        verify(engine).invoke(any(ServiceCallRequest.class), any(Function.class));
+        assertThat(result.gradeCode()).isEqualTo("GOLD");
+        assertThat(policyId.get()).isEqualTo(CpfPolicyId.DEFAULT_QUERY);
     }
 }

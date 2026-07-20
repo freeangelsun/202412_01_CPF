@@ -1,5 +1,6 @@
 package cpf.pfw.config;
 
+import cpf.pfw.common.version.CpfPlatformVersion;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import cpf.pfw.common.logging.CpfTransaction;
@@ -52,7 +53,7 @@ public class PfwOpenApiAutoConfiguration {
         return new OpenAPI()
                 .info(new Info()
                         .title("CPF " + applicationName + " API")
-                        .version(environment.getProperty("cpf.openapi.version", "v1"))
+                        .version(environment.getProperty("cpf.openapi.version", CpfPlatformVersion.componentVersion()))
                         .description("CoreFlow Platform Framework 표준 API 문서입니다.")
                         .contact(new Contact()
                                 .name("CPF Framework Team")
@@ -88,10 +89,10 @@ public class PfwOpenApiAutoConfiguration {
     }
 
     @Bean
-    public GroupedOpenApi cpfXyzEduApiGroup() {
+    public GroupedOpenApi cpfXyzReferenceApiGroup() {
         return GroupedOpenApi.builder()
-                .group("XYZ-EDU Education")
-                .pathsToMatch("/xyz/edu/**")
+                .group("XYZ Reference Samples")
+                .pathsToMatch("/api/xyz/reference/**", "/xyz/edu/**")
                 .build();
     }
 

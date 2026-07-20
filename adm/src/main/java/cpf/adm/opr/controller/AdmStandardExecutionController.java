@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/standard-executions")
 @Tag(name = "ADM-OPR Standard Execution", description = "CPF 온라인·배치 표준 실행 ID 카탈로그")
-public class AdmStandardExecutionController {
+public class AdmStandardExecutionController extends cpf.adm.common.base.AdmBaseController {
     private final CpfExecutionCatalogPort catalogPort;
 
     public AdmStandardExecutionController(CpfExecutionCatalogPort catalogPort) {

@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/audit-logs")
 @Tag(name = "ADM-OPR Audit Logs", description = "Operator audit log query APIs")
-public class AdmAuditLogController {
+public class AdmAuditLogController extends cpf.adm.common.base.AdmBaseController {
     private final AdmAuditLogService auditLogService;
 
     public AdmAuditLogController(AdmAuditLogService auditLogService) {

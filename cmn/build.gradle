@@ -4,8 +4,6 @@ plugins {
 }
 
 group = 'cpf.cmn'
-version = '0.0.1-cpf.cmn-SNAPSHOT'
-
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion) // 루트 CPF Java 목표와 같은 버전으로 컴파일합니다.

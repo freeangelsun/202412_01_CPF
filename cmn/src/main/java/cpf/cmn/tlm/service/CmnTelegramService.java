@@ -32,7 +32,7 @@ import java.util.Map;
  * CPF 기능 설명입니다.
  */
 @Service
-public class CmnTelegramService {
+public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
     private final CmnMessageCodec codec;

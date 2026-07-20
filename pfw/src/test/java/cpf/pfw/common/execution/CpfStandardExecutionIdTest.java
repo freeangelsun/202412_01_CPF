@@ -36,4 +36,14 @@ class CpfStandardExecutionIdTest {
         assertThat(CpfStandardExecutionId.isLegacy("OMBR-BSE-01-0001")).isTrue();
         assertThat(CpfStandardExecutionId.isValid("OMBR-BSE-01-0001")).isFalse();
     }
+
+    @Test
+    void 배치실행유형을표준형식으로해석한다() {
+        CpfStandardExecutionId batch = CpfStandardExecutionId.parse("BBATOD0001");
+
+        assertThat(batch.type()).isEqualTo(CpfExecutionType.BATCH);
+        assertThat(batch.domain()).isEqualTo("BAT");
+        assertThat(batch.feature()).isEqualTo("OD");
+        assertThat(batch.sequence()).isEqualTo(1);
+    }
 }

@@ -23,7 +23,7 @@ import java.util.Map;
  * 설정 조회, 등록, 수정, 삭제 후 캐시 초기화와 refresh 이벤트 발행을 함께 처리합니다.
  */
 @Service
-public class ConfigCacheService {
+public class ConfigCacheService extends cpf.cmn.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigCacheService.class);
     private static final String CACHE_NAME = "configCache";
 

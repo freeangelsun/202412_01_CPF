@@ -10,7 +10,7 @@ import java.util.Map;
  * ADM reliability API와 PFW 공개 운영 포트를 연결하는 얇은 어댑터입니다.
  */
 @Service
-public class AdmReliabilityService {
+public class AdmReliabilityService extends cpf.adm.common.base.AdmBaseService {
     private final CpfReliabilityOperationsPort operationsPort;
 
     public AdmReliabilityService(CpfReliabilityOperationsPort operationsPort) {

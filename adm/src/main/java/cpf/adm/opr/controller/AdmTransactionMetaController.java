@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/transactions")
 @Tag(name = "ADM-OPR Transaction Meta", description = "CPF 온라인 거래 메타 조회와 scan API")
-public class AdmTransactionMetaController {
+public class AdmTransactionMetaController extends cpf.adm.common.base.AdmBaseController {
     private final AdmTransactionMetaService transactionMetaService;
     private final AdmAuditLogService auditLogService;
 

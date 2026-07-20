@@ -26,7 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/messages")
 @Tag(name = "ADM-PFW Messages", description = "PFW 공통 메시지 관리 API")
-public class AdmMessageController {
+public class AdmMessageController extends cpf.adm.common.base.AdmBaseController {
     private final MessageCacheService messageCacheService;
     private final AdmAuditLogService auditLogService;
 

@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/log-policy-audits")
 @Tag(name = "ADM-LogPolicyAudit", description = "PFW 로그 정책 감사 조회 API")
-public class AdmLogPolicyAuditController {
+public class AdmLogPolicyAuditController extends cpf.adm.common.base.AdmBaseController {
     private final AdmObservabilityService observabilityService;
 
     public AdmLogPolicyAuditController(AdmObservabilityService observabilityService) {

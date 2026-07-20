@@ -17,7 +17,7 @@ import java.util.Map;
  * ADM 보안 운영 메타를 조회하고 변경합니다.
  */
 @Service
-public class AdmSecurityOperationService {
+public class AdmSecurityOperationService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmSecurityOperationService.class);
 
     private final JdbcTemplate admJdbcTemplate;

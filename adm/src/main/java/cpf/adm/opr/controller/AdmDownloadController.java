@@ -31,7 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/adm/api/downloads")
 @Tag(name = "ADM-Download", description = "ADM 공통 다운로드와 다운로드 감사 API")
-public class AdmDownloadController {
+public class AdmDownloadController extends cpf.adm.common.base.AdmBaseController {
     private final AdmDownloadService downloadService;
 
     public AdmDownloadController(AdmDownloadService downloadService) {

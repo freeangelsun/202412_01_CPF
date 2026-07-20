@@ -13,7 +13,9 @@
     [ValidateSet("Y", "N")]
     [string] $Batch = "N",
     [ValidateSet("Y", "N")]
-    [string] $BzaMenu = "Y",
+    [string] $BzaMenu = "N",
+    [ValidateSet("Y", "N")]
+    [string] $ProductionProfile = "N",
     [string] $OutputDir = "",
     [switch] $DryRun,
     [switch] $GeneratePatch,
@@ -87,6 +89,7 @@ if ($DomainIdCode -notmatch '^[A-Z0-9]{3}$') {
 $OnlineEnabled = $Online -eq "Y"
 $BatchEnabled = $Batch -eq "Y"
 $BzaMenuEnabled = $BzaMenu -eq "Y"
+$ProductionProfileEnabled = $ProductionProfile -eq "Y"
 if ([string]::IsNullOrWhiteSpace($ModuleName)) {
     $ModuleName = $module
 }
@@ -138,41 +141,14 @@ $plan = [ordered]@{
     online = $OnlineEnabled
     batch = $BatchEnabled
     bzaMenu = $BzaMenuEnabled
+    productionProfile = $ProductionProfileEnabled
     outputDir = $OutputDir
-    generatePatch = [bool] ($GeneratePatch -or $Apply)
+    generatePatch = $false
     applyMode = [bool] $Apply
     conflicts = @($conflicts)
     generatedFiles = @()
     patchFiles = @()
-    patchCandidates = @(
-        "settings.gradle include '$module'",
-        "root build dependency registration if needed",
-        "specs/sql/40_business_modules_schema.sql table candidate",
-        "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
-        "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
-        "specs/sql/99_smoke_check.sql smoke candidate",
-        "specs/sql/00_all_install.sql merge candidate",
-        "specs/sql/00_all_install_and_smoke.sql merge candidate",
-        "specs/sql/migration/flyway/Vxx__${module}_domain.sql candidate",
-        "application-${module}.yml candidate",
-        "src/main/resources/application-${module}-local.yml candidate",
-        "src/main/resources/application-${module}-dev.yml candidate",
-        "src/main/resources/application-${module}-stg.yml candidate",
-        "src/main/resources/application-${module}-prod.yml candidate",
-        "deploy/env/local-${module}.env candidate",
-        "deploy/env/dev-${module}.env candidate",
-        "deploy/env/stg-${module}.env candidate",
-        "deploy/env/prod-${module}.env candidate",
-        "deploy/inventory/local-services.json candidate",
-        "deploy/inventory/dev-services.json candidate",
-        "deploy/inventory/stg-services.json candidate",
-        "deploy/inventory/prod-services.template.json candidate",
-        "module smoke script candidate",
-        "standard execution catalog manifest",
-        "service registry manifest",
-        "BZA menu registration candidate",
-        "README.md and specs guide link candidate"
-    )
+    patchCandidates = @()
 }
 
 if ($conflicts.Count -gt 0) {
@@ -191,23 +167,94 @@ $javaRoot = Join-Path $OutputDir "src/main/java/$featurePackagePath"
 $resourceRoot = Join-Path $OutputDir "src/main/resources"
 $testRoot = Join-Path $OutputDir "src/test/java/$featurePackagePath"
 
+$moduleBaseController = @"
+package $BasePackage.common.base;
+
+import cpf.pfw.common.base.CpfBaseController;
+
+/**
+ * $ModuleUpper Controller가 공유하는 주제영역 확장점입니다.
+ *
+ * <p>route와 Spring stereotype을 두지 않으며 주제영역 공통 정책만 제한적으로 추가합니다.</p>
+ */
+public abstract class ${ModuleClassName}BaseController extends CpfBaseController {
+}
+"@
+
+$moduleBaseService = @"
+package $BasePackage.common.base;
+
+import cpf.pfw.common.base.CpfBaseService;
+
+/**
+ * $ModuleUpper Service가 공유하는 주제영역 확장점입니다.
+ */
+public abstract class ${ModuleClassName}BaseService extends CpfBaseService {
+}
+"@
+
+$moduleFacadeContract = @"
+package $BasePackage.common.contract;
+
+import cpf.pfw.common.base.CpfApplicationFacade;
+
+/** $ModuleUpper Application Facade의 주제영역 계약입니다. */
+public interface ${ModuleClassName}ApplicationFacade extends CpfApplicationFacade {
+}
+"@
+
+$moduleRepositoryContract = @"
+package $BasePackage.common.contract;
+
+import cpf.pfw.common.base.CpfRepositoryPort;
+
+/**
+ * $ModuleUpper Repository Port가 공통으로 확장하는 주제영역 계약입니다.
+ *
+ * @param <T> model 형식
+ * @param <ID> 식별자 형식
+ */
+public interface ${ModuleClassName}RepositoryPort<T, ID> extends CpfRepositoryPort<T, ID> {
+}
+"@
+
+$moduleRequestContract = @"
+package $BasePackage.common.contract;
+
+import cpf.pfw.common.base.CpfRequest;
+
+/** $ModuleUpper 요청 DTO의 주제영역 계약입니다. */
+public interface ${ModuleClassName}Request extends CpfRequest {
+}
+"@
+
+$moduleResponseContract = @"
+package $BasePackage.common.contract;
+
+import cpf.pfw.common.base.CpfResponse;
+
+/** $ModuleUpper 응답 DTO의 주제영역 계약입니다. */
+public interface ${ModuleClassName}Response extends CpfResponse {
+}
+"@
+
 $controller = @"
 package $FeaturePackage.controller;
 
+$([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
 import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
-import cpf.pfw.common.base.BaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * ${ModuleName} 조회 API를 제공합니다.
@@ -217,11 +264,17 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/$module/reference")
-@RequiredArgsConstructor
 @Tag(name = "$ModuleUpper 생성 참조", description = "생성기 기본 골격과 대표 업무 기능의 경계를 확인하는 참조 API")
-public class ${FeatureClassPrefix}Controller extends BaseController {
+public class ${FeatureClassPrefix}Controller extends ${ModuleClassName}BaseController {
     private final ${FeatureClassPrefix}Facade facade;
     private final ${FeatureClassPrefix}SearchValidator validator;
+
+    public ${FeatureClassPrefix}Controller(
+            ${FeatureClassPrefix}Facade facade,
+            ${FeatureClassPrefix}SearchValidator validator) {
+        this.facade = Objects.requireNonNull(facade, "facade는 필수입니다.");
+        this.validator = Objects.requireNonNull(validator, "validator는 필수입니다.");
+    }
 
     @GetMapping
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0001", name = "${ModuleName}Search", ownerDomain = "$DomainIdCode")
@@ -239,12 +292,13 @@ public class ${FeatureClassPrefix}Controller extends BaseController {
 $facade = @"
 package $FeaturePackage.facade;
 
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'ApplicationFacade;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.service.${FeatureClassPrefix}Service;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Controller와 업무 서비스를 분리하는 진입 Facade입니다.
@@ -252,9 +306,12 @@ import java.util.Map;
  * <p>여러 서비스 조합, 외부 호출, 거래 단위 조정이 필요하면 Facade에서 처리합니다.</p>
  */
 @Component
-@RequiredArgsConstructor
-public class ${FeatureClassPrefix}Facade {
+public class ${FeatureClassPrefix}Facade implements ${ModuleClassName}ApplicationFacade {
     private final ${FeatureClassPrefix}Service service;
+
+    public ${FeatureClassPrefix}Facade(${FeatureClassPrefix}Service service) {
+        this.service = Objects.requireNonNull(service, "service는 필수입니다.");
+    }
 
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return service.search(request);
@@ -265,6 +322,7 @@ public class ${FeatureClassPrefix}Facade {
 $queryPortSource = @"
 package $FeaturePackage.port;
 
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'RepositoryPort;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 
 import java.util.Map;
@@ -272,7 +330,7 @@ import java.util.Map;
 /**
  * ${ModuleName} 조회 구현을 local 또는 remote adapter로 교체하기 위한 업무 포트입니다.
  */
-public interface ${FeatureClassPrefix}QueryPort {
+public interface ${FeatureClassPrefix}QueryPort extends ${ModuleClassName}RepositoryPort<Map<String, Object>, String> {
     Map<String, Object> search(${FeatureClassPrefix}SearchRequest request);
 }
 "@
@@ -283,20 +341,21 @@ package $FeaturePackage.adapter.local;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 같은 주제영역 DB를 사용하는 기본 local adapter입니다.
  */
-@Primary
 @Component
-@RequiredArgsConstructor
 public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
     private final ${FeatureClassPrefix}Repository repository;
+
+    public Local${FeatureClassPrefix}QueryAdapter(${FeatureClassPrefix}Repository repository) {
+        this.repository = Objects.requireNonNull(repository, "repository는 필수입니다.");
+    }
 
     @Override
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
@@ -314,6 +373,7 @@ import cpf.pfw.common.http.CpfWebClient;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 분리 배포된 ${ModuleName} 서비스에 PFW 표준 서비스 호출 경계로 접근하는 remote proxy입니다.
@@ -324,7 +384,7 @@ public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPref
     private final CpfWebClient webClient;
 
     public Remote${FeatureClassPrefix}QueryProxy(CpfWebClient webClient) {
-        this.webClient = webClient;
+        this.webClient = Objects.requireNonNull(webClient, "webClient는 필수입니다.");
     }
 
     @Override
@@ -350,22 +410,25 @@ public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPref
 $service = @"
 package $FeaturePackage.service;
 
+$([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseService;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
-import cpf.pfw.common.base.BaseService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * ${ModuleName} 조회 업무를 처리합니다.
  */
 @Service
-@RequiredArgsConstructor
-public class ${FeatureClassPrefix}Service extends BaseService {
+public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService {
     private final ${FeatureClassPrefix}QueryPort queryPort;
+
+    public ${FeatureClassPrefix}Service(${FeatureClassPrefix}QueryPort queryPort) {
+        this.queryPort = Objects.requireNonNull(queryPort, "queryPort는 필수입니다.");
+    }
 
     @Transactional(readOnly = true)
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
@@ -383,6 +446,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * MyBatis mapper 호출을 캡슐화하는 업무 저장소입니다.
@@ -393,7 +457,7 @@ public class ${FeatureClassPrefix}Repository {
 
     public ${FeatureClassPrefix}Repository(
             @Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate) {
-        this.sqlSessionTemplate = sqlSessionTemplate;
+        this.sqlSessionTemplate = Objects.requireNonNull(sqlSessionTemplate, "sqlSessionTemplate은 필수입니다.");
     }
 
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
@@ -479,16 +543,14 @@ public class ${ModuleName}BatchRepositoryConfig extends DefaultBatchConfiguratio
         return pfwTransactionManager;
     }
 
-    @Override
-    protected String getDatabaseType() {
-        return "MYSQL";
-    }
 }
 "@
 
 $dto = @"
 package $FeaturePackage.dto;
 
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Request;'))
+import cpf.pfw.common.base.CpfQuery;
 import java.util.Set;
 
 /**
@@ -501,7 +563,7 @@ public record ${FeatureClassPrefix}SearchRequest(
         String sortBy,
         String sortDirection,
         Integer page,
-        Integer size) {
+        Integer size) implements ${ModuleClassName}Request, CpfQuery {
     private static final Set<String> SORT_COLUMNS = Set.of("created_at", "updated_at", "${TablePrefix}_id");
 
     public ${FeatureClassPrefix}SearchRequest normalized() {
@@ -625,7 +687,6 @@ plugins {
 }
 
 group = '$BasePackage'
-version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
@@ -635,7 +696,6 @@ java {
 
 dependencies {
     implementation project(':pfw')
-    implementation project(':cmn')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
@@ -649,6 +709,12 @@ $batchDependency
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    archiveBaseName = "cpf-$ModuleCode"
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
 }
 
 tasks.named('bootJar') {
@@ -673,7 +739,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  *
  * <p>모듈 부트스트랩만 소유하며 업무 기능은 feature package에 둡니다.</p>
  */
-@SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "$BasePackage"})
+@SpringBootApplication
 public class ${ModuleClassName}Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
@@ -694,7 +760,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -711,7 +776,6 @@ import javax.sql.DataSource;
 public class ${ModuleName}DataSourceConfig {
 
     @Bean
-    @Primary
     public DataSource ${module}DataSource(Environment environment) throws NamingException {
         String mode = environment.getProperty("cpf.datasource.mode", "url");
         if ("jndi".equalsIgnoreCase(mode)) {
@@ -722,7 +786,7 @@ public class ${ModuleName}DataSourceConfig {
                 .url(environment.getRequiredProperty("cpf.datasource.url"))
                 .username(environment.getRequiredProperty("cpf.datasource.username"))
                 .password(environment.getRequiredProperty("cpf.datasource.password"))
-                .driverClassName("org.mariadb.jdbc.Driver")
+                .driverClassName(environment.getRequiredProperty("cpf.datasource.driver-class-name"))
                 .build();
     }
 
@@ -730,7 +794,6 @@ public class ${ModuleName}DataSourceConfig {
      * ${ModuleName} 저장소가 다른 주제영역 DB를 선택하지 않도록 전용 JDBC 접근 객체를 제공합니다.
      */
     @Bean(name = "${module}JdbcTemplate")
-    @Primary
     public JdbcTemplate ${module}JdbcTemplate(
             @Qualifier("${module}DataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
@@ -740,7 +803,6 @@ public class ${ModuleName}DataSourceConfig {
      * ${ModuleName} 서비스와 배치가 동일한 업무 트랜잭션 경계를 사용하도록 합니다.
      */
     @Bean(name = "${module}TransactionManager")
-    @Primary
     public PlatformTransactionManager ${module}TransactionManager(
             @Qualifier("${module}DataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
@@ -766,8 +828,6 @@ spring:
     import:
       - optional:classpath:application-pfw.yml
       - optional:classpath:application-pfw-${Dollar}{spring.profiles.active:local}.yml
-      - optional:classpath:application-cmn.yml
-      - optional:classpath:application-cmn-${Dollar}{spring.profiles.active:local}.yml
       - optional:classpath:application-$module.yml
       - optional:classpath:application-$module-${Dollar}{spring.profiles.active:local}.yml
 
@@ -802,6 +862,7 @@ cpf:
     mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
     jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
     url: ${Dollar}{$($ModuleUpper)_DATASOURCE_URL:jdbc:mariadb://localhost:3306/${module}DB}
+    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:org.mariadb.jdbc.Driver}
     username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
     password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
   logging:
@@ -838,8 +899,7 @@ $serviceTest = @"
 package $FeaturePackage.service;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.adapter.local.Local${FeatureClassPrefix}QueryAdapter;
-import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
+import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -849,16 +909,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ${FeatureClassPrefix}ServiceTest {
     private final AtomicReference<${FeatureClassPrefix}SearchRequest> capturedRequest = new AtomicReference<>();
-    private final ${FeatureClassPrefix}Repository repository = new ${FeatureClassPrefix}Repository(null) {
-        @Override
-        public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
-            // DB 없이도 Service가 정규화한 최종 조건을 검증할 수 있도록 요청을 보관합니다.
-            capturedRequest.set(request);
-            return Map.of("items", java.util.List.of(), "criteria", request);
-        }
+    private final ${FeatureClassPrefix}QueryPort queryPort = request -> {
+        // DB adapter를 우회하지 않고 port 계약을 대역으로 사용해 Service 경계만 검증합니다.
+        capturedRequest.set(request);
+        return Map.of("items", java.util.List.of(), "criteria", request);
     };
-    private final ${FeatureClassPrefix}Service service =
-            new ${FeatureClassPrefix}Service(new Local${FeatureClassPrefix}QueryAdapter(repository));
+    private final ${FeatureClassPrefix}Service service = new ${FeatureClassPrefix}Service(queryPort);
 
     @Test
     void searchNormalizesPagingAndSort() {
@@ -1144,6 +1200,12 @@ $files = [ordered]@{
     "src/main/resources/application-${module}.yml" = $applicationModuleYml
     "src/main/resources/mybatis/mapper/${module}/reference/${FeatureClassPrefix}Mapper.xml" = $mapperXml
     "src/main/java/$packagePath/${ModuleClassName}Application.java" = $applicationJava
+    "src/main/java/$packagePath/common/base/${ModuleClassName}BaseController.java" = $moduleBaseController
+    "src/main/java/$packagePath/common/base/${ModuleClassName}BaseService.java" = $moduleBaseService
+    "src/main/java/$packagePath/common/contract/${ModuleClassName}ApplicationFacade.java" = $moduleFacadeContract
+    "src/main/java/$packagePath/common/contract/${ModuleClassName}RepositoryPort.java" = $moduleRepositoryContract
+    "src/main/java/$packagePath/common/contract/${ModuleClassName}Request.java" = $moduleRequestContract
+    "src/main/java/$packagePath/common/contract/${ModuleClassName}Response.java" = $moduleResponseContract
     "src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java" = $dataSourceConfig
     "src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java" = $myBatisConfig
     "src/main/java/$featurePackagePath/facade/${FeatureClassPrefix}Facade.java" = $facade
@@ -1167,8 +1229,10 @@ if ($BatchEnabled) {
     $files["src/main/java/$packagePath/config/${ModuleName}BatchRepositoryConfig.java"] = $batchRepositoryConfig
 }
 
-foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
-    $files[$entry.Key] = $entry.Value
+if ($ProductionProfileEnabled) {
+    foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
+        $files[$entry.Key] = $entry.Value
+    }
 }
 
 foreach ($entry in $files.GetEnumerator()) {
@@ -1180,48 +1244,8 @@ foreach ($entry in $files.GetEnumerator()) {
     $plan.generatedFiles += $path.Substring($Root.Length).TrimStart('\', '/')
 }
 
-if ($GeneratePatch -or $Apply) {
-    # 적용 후보와 검증 보고서는 제품 모듈이 아니라 build 보고서 영역에 격리합니다.
-    $patchBaseDir = if ($Apply) {
-        Join-Path $Root "build/reports/create-domain/$module"
-    } else {
-        $OutputDir
-    }
-    $patchFiles = [ordered]@{
-        "patch-candidates/apply-order.md" = $applyOrder
-        "patch-candidates/settings.gradle.patch" = $settingsPatch
-        "patch-candidates/sql/40_business_modules_schema.${module}.candidate.sql" = $sql
-        "patch-candidates/sql/50_framework_seed.${module}.candidate.sql" = $pfwSeed
-        "patch-candidates/sql/60_adm_seed.${module}.candidate.sql" = $admSeed
-        "patch-candidates/sql/99_smoke_check.${module}.candidate.sql" = $smokeSql
-        "patch-candidates/sql/migration/Vxx__${module}_domain.sql" = $sql
-        "patch-candidates/README.${module}.candidate.md" = $readme
-        "patch-candidates/smoke-${module}.ps1" = $smokeScript
-    }
-    if ($BzaMenuEnabled) {
-        $patchFiles["patch-candidates/sql/70_bza_menu_seed.${module}.candidate.sql"] = $bzaSeed
-    }
-
-    foreach ($entry in $patchFiles.GetEnumerator()) {
-        $path = Join-Path $patchBaseDir $entry.Key
-        Write-Utf8 -Path $path -Content $entry.Value
-        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
-    }
-    foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
-        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
-        Write-Utf8 -Path $path -Content $entry.Value
-        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
-    }
-    foreach ($entry in $deployEnvFiles.GetEnumerator()) {
-        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
-        Write-Utf8 -Path $path -Content $entry.Value
-        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
-    }
-    foreach ($entry in $deployInventoryFiles.GetEnumerator()) {
-        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
-        Write-Utf8 -Path $path -Content $entry.Value
-        $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
-    }
+if ($GeneratePatch) {
+    Write-Warning "GeneratePatch는 1.0.0부터 중간 후보 파일을 생성하지 않습니다. SQL과 배포 설정은 승인된 별도 절차로 반영하세요."
 }
 
 if ($Apply) {

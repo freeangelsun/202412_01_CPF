@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AdmDynamicLogLevelSyncService {
+public class AdmDynamicLogLevelSyncService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmDynamicLogLevelSyncService.class);
 
     private final AdmDynamicLogLevelBroadcastService broadcastService;

@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/cache")
 @Tag(name = "ADM-OPR Cache", description = "CMN cache summary and refresh APIs")
-public class AdmCacheController {
+public class AdmCacheController extends cpf.adm.common.base.AdmBaseController {
     private final AdmCacheOperationService cacheOperationService;
     private final AdmAuditLogService auditLogService;
 

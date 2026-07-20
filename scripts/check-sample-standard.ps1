@@ -14,7 +14,7 @@ $operationRoots = @(
 )
 $educationRoots = @(
     "bat/src/main/java/cpf/bat/edu",
-    "xyz/src/main/java/cpf/xyz/edu"
+    "xyz/src/main/java/cpf/xyz"
 )
 $failures = New-Object System.Collections.Generic.List[string]
 

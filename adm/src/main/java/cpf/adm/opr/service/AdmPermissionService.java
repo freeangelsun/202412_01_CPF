@@ -29,7 +29,7 @@ import java.util.Map;
  * ADM 역할, 메뉴, 버튼, API 권한 매트릭스를 조회하고 변경합니다.
  */
 @Service
-public class AdmPermissionService {
+public class AdmPermissionService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmPermissionService.class);
 
     private final JdbcTemplate admJdbcTemplate;

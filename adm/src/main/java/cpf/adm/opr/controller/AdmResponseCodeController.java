@@ -30,7 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/response-codes")
 @Tag(name = "ADM-OPR Response Codes", description = "pfw_response_code management API")
-public class AdmResponseCodeController {
+public class AdmResponseCodeController extends cpf.adm.common.base.AdmBaseController {
     private final ResponseCodeCacheService responseCodeCacheService;
     private final AdmAuditLogService auditLogService;
 

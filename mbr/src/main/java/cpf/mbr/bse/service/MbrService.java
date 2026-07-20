@@ -27,7 +27,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(transactionManager = "mbrTransactionManager")
-public class MbrService {
+public class MbrService extends cpf.mbr.common.base.MbrBaseService {
     private static final DateTimeFormatter MEMBER_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final MemberMapper memberMapper;

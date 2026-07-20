@@ -6,8 +6,6 @@ plugins {
 }
 
 group = 'cpf.pfw.gateway'
-version = '1.0.0'
-
 dependencies {
     implementation project(':pfw')
     implementation 'org.springframework.boot:spring-boot-starter-web'

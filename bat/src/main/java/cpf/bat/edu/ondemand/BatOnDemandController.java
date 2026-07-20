@@ -1,6 +1,6 @@
 package cpf.bat.edu.ondemand;
 
-import cpf.pfw.common.base.BaseController;
+import cpf.bat.common.base.BatBaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bat/api/v1/edu/on-demand")
 @Tag(name = "BAT EDU 온디맨드", description = "표준 배치 ID를 202로 접수하고 실제 Spring Batch 실행을 추적합니다.")
-public class BatOnDemandController extends BaseController {
+public class BatOnDemandController extends BatBaseController {
     private final BatOnDemandService service;
 
     public BatOnDemandController(BatOnDemandService service) {

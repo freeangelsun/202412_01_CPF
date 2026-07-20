@@ -13,7 +13,7 @@ import java.util.Map;
  * BAT smoke API가 PFW Batch 공통 실행 Facade를 통해 Job을 실행하도록 연결합니다.
  */
 @Service
-public class BatSmokeOperationService {
+public class BatSmokeOperationService extends cpf.bat.common.base.BatBaseService {
     private static final String REQUEST_USER = "BAT_SMOKE";
 
     private final CpfBatchLauncher batchLauncher;

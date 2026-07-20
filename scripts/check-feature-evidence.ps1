@@ -127,10 +127,10 @@ Add-Check "MBR_ACC_FACADE_CONTRACT" `
     $facadeFiles
 
 $externalFiles = @(
-    "xyz/src/main/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorController.java",
-    "xyz/src/main/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSample.java",
-    "xyz/src/test/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorControllerTest.java",
-    "xyz/src/test/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSampleTest.java",
+    "xyz/src/main/java/cpf/xyz/external/XyzNeutralExternalSimulatorController.java",
+    "xyz/src/main/java/cpf/xyz/external/XyzExternalIntegrationEducationSample.java",
+    "xyz/src/test/java/cpf/xyz/external/XyzNeutralExternalSimulatorControllerTest.java",
+    "xyz/src/test/java/cpf/xyz/external/XyzExternalIntegrationEducationSampleTest.java",
     "$resultDirRelative/acc-exs-capability-inventory.sanitized.json"
 )
 Add-Check "ACC_EXS_CAPABILITY_RESTORE" (Test-Files $externalFiles) $externalFiles

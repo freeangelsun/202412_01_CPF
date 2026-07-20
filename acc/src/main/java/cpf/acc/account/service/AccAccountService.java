@@ -5,7 +5,7 @@ import cpf.acc.account.dto.AccAccountResponse;
 import cpf.acc.account.dto.AccAccountSearchCriteria;
 import cpf.acc.account.dto.AccAccountUpdateRequest;
 import cpf.acc.account.port.AccAccountRepository;
-import cpf.pfw.common.base.BaseService;
+import cpf.acc.common.base.AccBaseService;
 import cpf.pfw.common.exception.CpfBusinessException;
 import cpf.pfw.common.exception.CpfErrorCode;
 import cpf.pfw.common.exception.CpfNotFoundException;
@@ -18,7 +18,7 @@ import java.util.List;
 
 /** 계정 등록·조회·수정·논리 삭제의 트랜잭션 경계를 소유합니다. */
 @Service
-public class AccAccountService extends BaseService {
+public class AccAccountService extends AccBaseService {
     private final AccAccountRepository repository;
 
     public AccAccountService(AccAccountRepository repository) {

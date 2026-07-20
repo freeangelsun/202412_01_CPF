@@ -2,7 +2,7 @@ package cpf.mbr.integration.account;
 
 import cpf.cmn.api.account.AccountSummary;
 import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.pfw.common.base.BaseController;
+import cpf.mbr.common.base.MbrBaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/mbr/api/v1/account-integration")
 @Tag(name = "MBR ACC 통합", description = "주제영역 경계를 지키는 MBR→ACC 서비스 호출 예제")
-public class MbrAccountIntegrationController extends BaseController {
+public class MbrAccountIntegrationController extends MbrBaseController {
     private final AccountSummaryFacade accountSummaryFacade;
 
     public MbrAccountIntegrationController(AccountSummaryFacade accountSummaryFacade) {

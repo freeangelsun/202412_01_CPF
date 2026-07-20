@@ -34,7 +34,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/batch")
 @Tag(name = "ADM-Batch", description = "CPF 배치 관제와 운영 API")
-public class AdmBatchController {
+public class AdmBatchController extends cpf.adm.common.base.AdmBaseController {
     private final AdmBatchOperationService batchOperationService;
     private final PfwBatchScheduler batchScheduler;
     private final AdmAuditLogService auditLogService;

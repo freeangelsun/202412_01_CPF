@@ -23,7 +23,7 @@ import java.util.Set;
  * 업무 관리자 기능은 ADM 공통 운영자 기능과 분리하되, ADM 화면에서 함께 관제할 수 있도록 동일한 응답 구조와 감사 기준을 사용합니다.</p>
  */
 @Service
-public class BzaOperationService {
+public class BzaOperationService extends cpf.bza.common.base.BzaBaseService {
     private static final Set<String> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "DELETE", "ALL");
 
     private final BzaOperationRepository repository;

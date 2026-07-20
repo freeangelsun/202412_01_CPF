@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cpf.pfw.common.batch.CpfBatchExecutionRequest;
 import cpf.pfw.common.batch.CpfBatchExecutionResult;
 import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.pfw.common.base.BaseService;
+import cpf.bat.common.base.BatBaseService;
 import cpf.pfw.common.exception.CpfNotFoundException;
 import cpf.pfw.common.exception.CpfValidationException;
 import cpf.pfw.common.logging.TransactionContext;
@@ -25,7 +25,7 @@ import java.util.UUID;
 
 /** 202 접수, 멱등 저장, worker 실행, 상태·step 조회를 연결합니다. */
 @Service
-public class BatOnDemandService extends BaseService {
+public class BatOnDemandService extends BatBaseService {
     private static final Map<String, String> JOB_ALLOWLIST = Map.of(
             BatOnDemandJobConfig.STANDARD_BATCH_ID, BatOnDemandJobConfig.JOB_NAME);
 

@@ -13,7 +13,7 @@ import java.util.Map;
  * CPF 기능 설명입니다.
  */
 @Service
-public class CmnOAuthBearerTokenService {
+public class CmnOAuthBearerTokenService extends cpf.cmn.common.base.CmnBaseService {
     private final CmnJwtService jwtService;
 
     public CmnOAuthBearerTokenService(CmnJwtService jwtService) {

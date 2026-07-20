@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/auth")
 @Tag(name = "ADM-OPR Auth", description = "ADM 운영자 인증과 세션 API")
-public class AdmAuthController {
+public class AdmAuthController extends cpf.adm.common.base.AdmBaseController {
     private final AdmOperatorService operatorService;
     private final AdmSessionService sessionService;
 

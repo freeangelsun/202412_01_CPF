@@ -1,17 +1,24 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_02"),
+    [string] $ResultDir = $env:CPF_RESULT_DIR,
     [switch] $InitializeBaseline
 )
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$RequestPath = Join-Path $Root "CPF_NEW_REQUEST.md"
-$BaselinePath = Join-Path $ResultDir "cpf-new-request.baseline.sha256"
-$ResultPath = Join-Path $ResultDir "cpf-new-request-protection.sanitized.json"
+$RequestFileName = "CPF_CURRENT_WORK_REQUEST.md"
+$RequestPath = Join-Path $Root $RequestFileName
+
+# 회차별 증적 경로를 명시해 과거 기준 해시를 현재 요청서 검증에 재사용하지 않도록 차단합니다.
+if ([string]::IsNullOrWhiteSpace($ResultDir)) {
+    throw "ResultDir is required. Use Gradle task with -PcpfResultDir=<evidence-directory>."
+}
+
+$BaselinePath = Join-Path $ResultDir "cpf-current-work-request.baseline.sha256"
+$ResultPath = Join-Path $ResultDir "cpf-current-work-request-protection.sanitized.json"
 
 if (-not (Test-Path -LiteralPath $RequestPath)) {
-    throw "CPF_NEW_REQUEST.md file is missing."
+    throw "$RequestFileName file is missing."
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
@@ -25,7 +32,7 @@ if ($InitializeBaseline) {
         generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
         status = "DONE"
         mode = "INITIALIZE_BASELINE"
-        requestFile = "CPF_NEW_REQUEST.md"
+        requestFile = $RequestFileName
         baselineHash = $currentHash
         currentHash = $currentHash
         policy = "Baseline is initialized only by explicit command. qualityGate runs check-only mode."
@@ -41,14 +48,14 @@ if (-not (Test-Path -LiteralPath $BaselinePath)) {
         generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
         status = "FAILED"
         mode = "CHECK_ONLY"
-        requestFile = "CPF_NEW_REQUEST.md"
+        requestFile = $RequestFileName
         baselineHash = ""
         currentHash = $currentHash
         policy = "Baseline is missing. Run explicit initialization before protected work starts."
     }
     $json = $result | ConvertTo-Json -Depth 5
     [System.IO.File]::WriteAllText($ResultPath, $json, $Utf8NoBom)
-    Write-Error "CPF_NEW_REQUEST.md baseline is missing. Run scripts/check-cpf-request-protection.ps1 -InitializeBaseline before protected work starts."
+    Write-Error "$RequestFileName baseline is missing. Run initializeCpfRequestProtection with the same cpfResultDir before protected work starts."
     exit 1
 }
 
@@ -58,17 +65,17 @@ $result = [ordered]@{
     generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
     status = $status
     mode = "CHECK_ONLY"
-    requestFile = "CPF_NEW_REQUEST.md"
+    requestFile = $RequestFileName
     baselineHash = $baselineHash
     currentHash = $currentHash
-    policy = "CPF_NEW_REQUEST.md is read-only request input for this work."
+    policy = "$RequestFileName is read-only request input for this work."
 }
 
 $json = $result | ConvertTo-Json -Depth 5
 [System.IO.File]::WriteAllText($ResultPath, $json, $Utf8NoBom)
 
 if ($status -ne "DONE") {
-    Write-Error "CPF_NEW_REQUEST.md changed after baseline. See $ResultPath"
+    Write-Error "$RequestFileName changed after baseline. See $ResultPath"
     exit 1
 }
 

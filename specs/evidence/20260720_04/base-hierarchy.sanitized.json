@@ -1,0 +1,931 @@
+{
+    "generatedAt":  "2026-07-20T16:16:54.4762341+09:00",
+    "status":  "완료",
+    "checkedCount":  115,
+    "failureCount":  0,
+    "checked":  [
+                    {
+                        "module":  "acc",
+                        "kind":  "controller",
+                        "path":  "acc/src/main/java/cpf/acc/account/controller/AccAccountController.java",
+                        "className":  "AccAccountController",
+                        "expectedBase":  "AccBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "acc",
+                        "kind":  "controller",
+                        "path":  "acc/src/main/java/cpf/acc/account/controller/AccAccountSharedController.java",
+                        "className":  "AccAccountSharedController",
+                        "expectedBase":  "AccBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "acc",
+                        "kind":  "service",
+                        "path":  "acc/src/main/java/cpf/acc/account/service/AccAccountService.java",
+                        "className":  "AccAccountService",
+                        "expectedBase":  "AccBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "acc",
+                        "kind":  "controller",
+                        "path":  "acc/src/main/java/cpf/acc/reference/controller/AccountReferenceController.java",
+                        "className":  "AccountReferenceController",
+                        "expectedBase":  "AccBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "acc",
+                        "kind":  "service",
+                        "path":  "acc/src/main/java/cpf/acc/reference/service/AccountReferenceService.java",
+                        "className":  "AccountReferenceService",
+                        "expectedBase":  "AccBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmAuditLogController.java",
+                        "className":  "AdmAuditLogController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmAuthController.java",
+                        "className":  "AdmAuthController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmBatchController.java",
+                        "className":  "AdmBatchController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmCacheController.java",
+                        "className":  "AdmCacheController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmCenterCutController.java",
+                        "className":  "AdmCenterCutController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmChannelController.java",
+                        "className":  "AdmChannelController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmCodeController.java",
+                        "className":  "AdmCodeController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmConfigController.java",
+                        "className":  "AdmConfigController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
+                        "className":  "AdmDownloadController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmDynamicLogLevelController.java",
+                        "className":  "AdmDynamicLogLevelController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmHealthController.java",
+                        "className":  "AdmHealthController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmLogController.java",
+                        "className":  "AdmLogController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyAuditController.java",
+                        "className":  "AdmLogPolicyAuditController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyController.java",
+                        "className":  "AdmLogPolicyController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmMemberController.java",
+                        "className":  "AdmMemberController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmMessageController.java",
+                        "className":  "AdmMessageController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java",
+                        "className":  "AdmNotificationController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java",
+                        "className":  "AdmObservabilityController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmOperatorController.java",
+                        "className":  "AdmOperatorController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmPageController.java",
+                        "className":  "AdmPageController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java",
+                        "className":  "AdmPermissionController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmReliabilityController.java",
+                        "className":  "AdmReliabilityController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmRemoteLogController.java",
+                        "className":  "AdmRemoteLogController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmResponseCodeController.java",
+                        "className":  "AdmResponseCodeController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmSecurityController.java",
+                        "className":  "AdmSecurityController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmServiceRegistryController.java",
+                        "className":  "AdmServiceRegistryController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmStandardExecutionController.java",
+                        "className":  "AdmStandardExecutionController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmSystemInfoController.java",
+                        "className":  "AdmSystemInfoController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmTransactionGroupController.java",
+                        "className":  "AdmTransactionGroupController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "controller",
+                        "path":  "adm/src/main/java/cpf/adm/opr/controller/AdmTransactionMetaController.java",
+                        "className":  "AdmTransactionMetaController",
+                        "expectedBase":  "AdmBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmAuditLogService.java",
+                        "className":  "AdmAuditLogService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmBatchJobLogService.java",
+                        "className":  "AdmBatchJobLogService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmBatchOperationService.java",
+                        "className":  "AdmBatchOperationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmCacheOperationService.java",
+                        "className":  "AdmCacheOperationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmCenterCutOperationService.java",
+                        "className":  "AdmCenterCutOperationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmDownloadService.java",
+                        "className":  "AdmDownloadService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmDynamicLogLevelBroadcastService.java",
+                        "className":  "AdmDynamicLogLevelBroadcastService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmDynamicLogLevelSyncService.java",
+                        "className":  "AdmDynamicLogLevelSyncService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmLogPolicyService.java",
+                        "className":  "AdmLogPolicyService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmLogQueryService.java",
+                        "className":  "AdmLogQueryService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmMemberOperationService.java",
+                        "className":  "AdmMemberOperationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmNotificationService.java",
+                        "className":  "AdmNotificationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmObservabilityService.java",
+                        "className":  "AdmObservabilityService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmOperatorService.java",
+                        "className":  "AdmOperatorService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmPasswordPolicyService.java",
+                        "className":  "AdmPasswordPolicyService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmPermissionService.java",
+                        "className":  "AdmPermissionService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmReliabilityService.java",
+                        "className":  "AdmReliabilityService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmSecurityOperationService.java",
+                        "className":  "AdmSecurityOperationService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmServiceRegistryService.java",
+                        "className":  "AdmServiceRegistryService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmSessionService.java",
+                        "className":  "AdmSessionService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmTransactionGroupService.java",
+                        "className":  "AdmTransactionGroupService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/AdmTransactionMetaService.java",
+                        "className":  "AdmTransactionMetaService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/PfwBatchExecutionTargetService.java",
+                        "className":  "PfwBatchExecutionTargetService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "adm",
+                        "kind":  "service",
+                        "path":  "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduleService.java",
+                        "className":  "PfwBatchScheduleService",
+                        "expectedBase":  "AdmBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bat",
+                        "kind":  "controller",
+                        "path":  "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandController.java",
+                        "className":  "BatOnDemandController",
+                        "expectedBase":  "BatBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bat",
+                        "kind":  "service",
+                        "path":  "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandService.java",
+                        "className":  "BatOnDemandService",
+                        "expectedBase":  "BatBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bat",
+                        "kind":  "controller",
+                        "path":  "bat/src/main/java/cpf/bat/operation/BatHealthController.java",
+                        "className":  "BatHealthController",
+                        "expectedBase":  "BatBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bat",
+                        "kind":  "service",
+                        "path":  "bat/src/main/java/cpf/bat/operation/BatSmokeOperationService.java",
+                        "className":  "BatSmokeOperationService",
+                        "expectedBase":  "BatBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "controller",
+                        "path":  "bza/src/main/java/cpf/bza/auth/controller/BzaAuthController.java",
+                        "className":  "BzaAuthController",
+                        "expectedBase":  "BzaBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "service",
+                        "path":  "bza/src/main/java/cpf/bza/auth/service/BzaAuthService.java",
+                        "className":  "BzaAuthService",
+                        "expectedBase":  "BzaBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "controller",
+                        "path":  "bza/src/main/java/cpf/bza/backoffice/controller/BzaBackofficeController.java",
+                        "className":  "BzaBackofficeController",
+                        "expectedBase":  "BzaBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "controller",
+                        "path":  "bza/src/main/java/cpf/bza/backoffice/controller/BzaPageController.java",
+                        "className":  "BzaPageController",
+                        "expectedBase":  "BzaBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "service",
+                        "path":  "bza/src/main/java/cpf/bza/backoffice/service/BzaBackofficeService.java",
+                        "className":  "BzaBackofficeService",
+                        "expectedBase":  "BzaBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "controller",
+                        "path":  "bza/src/main/java/cpf/bza/operation/controller/BzaOperationController.java",
+                        "className":  "BzaOperationController",
+                        "expectedBase":  "BzaBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "service",
+                        "path":  "bza/src/main/java/cpf/bza/operation/service/BzaOperationService.java",
+                        "className":  "BzaOperationService",
+                        "expectedBase":  "BzaBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "controller",
+                        "path":  "bza/src/main/java/cpf/bza/support/controller/BzaSupportController.java",
+                        "className":  "BzaSupportController",
+                        "expectedBase":  "BzaBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "bza",
+                        "kind":  "service",
+                        "path":  "bza/src/main/java/cpf/bza/support/service/BzaSupportService.java",
+                        "className":  "BzaSupportService",
+                        "expectedBase":  "BzaBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/biz/log/CmnBusinessLogService.java",
+                        "className":  "CmnBusinessLogService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogService.java",
+                        "className":  "CmnNotificationLogService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceService.java",
+                        "className":  "CmnSequenceService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/cde/service/CodeCacheService.java",
+                        "className":  "CodeCacheService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/cfg/service/ConfigCacheService.java",
+                        "className":  "ConfigCacheService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/fle/service/CmnFileExchangeService.java",
+                        "className":  "CmnFileExchangeService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/mqe/service/CmnMessageBridgeService.java",
+                        "className":  "CmnMessageBridgeService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/msg/service/MessageCacheService.java",
+                        "className":  "MessageCacheService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/msg/service/ResponseCodeCacheService.java",
+                        "className":  "ResponseCodeCacheService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/sec/crypto/CmnCryptoService.java",
+                        "className":  "CmnCryptoService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtService.java",
+                        "className":  "CmnJwtService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthBearerTokenService.java",
+                        "className":  "CmnOAuthBearerTokenService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "cmn",
+                        "kind":  "service",
+                        "path":  "cmn/src/main/java/cpf/cmn/tlm/service/CmnTelegramService.java",
+                        "className":  "CmnTelegramService",
+                        "expectedBase":  "CmnBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "mbr",
+                        "kind":  "controller",
+                        "path":  "mbr/src/main/java/cpf/mbr/bse/controller/MbrAuthController.java",
+                        "className":  "MbrAuthController",
+                        "expectedBase":  "MbrBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "mbr",
+                        "kind":  "controller",
+                        "path":  "mbr/src/main/java/cpf/mbr/bse/controller/MbrController.java",
+                        "className":  "MbrController",
+                        "expectedBase":  "MbrBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "mbr",
+                        "kind":  "service",
+                        "path":  "mbr/src/main/java/cpf/mbr/bse/service/MbrAuthService.java",
+                        "className":  "MbrAuthService",
+                        "expectedBase":  "MbrBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "mbr",
+                        "kind":  "service",
+                        "path":  "mbr/src/main/java/cpf/mbr/bse/service/MbrService.java",
+                        "className":  "MbrService",
+                        "expectedBase":  "MbrBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "mbr",
+                        "kind":  "controller",
+                        "path":  "mbr/src/main/java/cpf/mbr/integration/account/MbrAccountIntegrationController.java",
+                        "className":  "MbrAccountIntegrationController",
+                        "expectedBase":  "MbrBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/ai/controller/XyzAiEducationController.java",
+                        "className":  "XyzAiEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/attachment/controller/XyzAttachmentEducationController.java",
+                        "className":  "XyzAttachmentEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/batch/controller/XyzBatchEducationController.java",
+                        "className":  "XyzBatchEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/catalog/controller/XyzEducationController.java",
+                        "className":  "XyzEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "service",
+                        "path":  "xyz/src/main/java/cpf/xyz/centercut/application/XyzCenterCutEducationService.java",
+                        "className":  "XyzCenterCutEducationService",
+                        "expectedBase":  "XyzBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/centercut/controller/XyzCenterCutEducationController.java",
+                        "className":  "XyzCenterCutEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/cmn/controller/XyzCmnBusinessEducationController.java",
+                        "className":  "XyzCmnBusinessEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/cmn/controller/XyzCmnEducationController.java",
+                        "className":  "XyzCmnEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "service",
+                        "path":  "xyz/src/main/java/cpf/xyz/crud/application/XyzCrudEducationService.java",
+                        "className":  "XyzCrudEducationService",
+                        "expectedBase":  "XyzBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/crud/controller/XyzCrudEducationController.java",
+                        "className":  "XyzCrudEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/external/XyzNeutralExternalSimulatorController.java",
+                        "className":  "XyzNeutralExternalSimulatorController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/failure/controller/XyzExceptionEducationController.java",
+                        "className":  "XyzExceptionEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/filetransfer/controller/XyzFileExchangeEducationController.java",
+                        "className":  "XyzFileExchangeEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/header/controller/XyzStandardHeaderEducationController.java",
+                        "className":  "XyzStandardHeaderEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/logging/controller/XyzDynamicLogEducationController.java",
+                        "className":  "XyzDynamicLogEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/messaging/controller/XyzMessagingEducationController.java",
+                        "className":  "XyzMessagingEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "service",
+                        "path":  "xyz/src/main/java/cpf/xyz/query/application/XyzQueryEducationService.java",
+                        "className":  "XyzQueryEducationService",
+                        "expectedBase":  "XyzBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/query/controller/XyzQueryEducationController.java",
+                        "className":  "XyzQueryEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/security/controller/XyzSecurityEducationController.java",
+                        "className":  "XyzSecurityEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/servicecall/controller/XyzServiceCallEducationController.java",
+                        "className":  "XyzServiceCallEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/telegram/controller/XyzTelegramEducationController.java",
+                        "className":  "XyzTelegramEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "service",
+                        "path":  "xyz/src/main/java/cpf/xyz/transaction/application/XyzTransactionEducationAuditService.java",
+                        "className":  "XyzTransactionEducationAuditService",
+                        "expectedBase":  "XyzBaseService",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/transaction/controller/XyzCompositeTransactionEducationController.java",
+                        "className":  "XyzCompositeTransactionEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/transaction/controller/XyzTransactionEducationController.java",
+                        "className":  "XyzTransactionEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    },
+                    {
+                        "module":  "xyz",
+                        "kind":  "controller",
+                        "path":  "xyz/src/main/java/cpf/xyz/utility/controller/XyzUtilityEducationController.java",
+                        "className":  "XyzUtilityEducationController",
+                        "expectedBase":  "XyzBaseController",
+                        "passed":  true
+                    }
+                ],
+    "failures":  [
+
+                 ]
+}

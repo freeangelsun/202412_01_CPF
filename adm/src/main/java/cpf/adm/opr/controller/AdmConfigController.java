@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/configs")
 @Tag(name = "ADM-PFW Configs", description = "PFW 공통 설정 관리 API")
-public class AdmConfigController {
+public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
     private final ConfigCacheService configCacheService;
     private final AdmAuditLogService auditLogService;
 

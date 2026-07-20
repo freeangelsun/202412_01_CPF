@@ -3,7 +3,7 @@ package cpf.acc.reference.controller;
 import cpf.acc.reference.dto.AccountReferenceSearchRequest;
 import cpf.acc.reference.facade.AccountReferenceFacade;
 import cpf.acc.reference.validation.AccountReferenceSearchValidator;
-import cpf.pfw.common.base.BaseController;
+import cpf.acc.common.base.AccBaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +25,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/acc/reference")
 @RequiredArgsConstructor
 @Tag(name = "ACC 생성 참조", description = "생성기 기본 골격과 대표 업무 기능의 경계를 확인하는 참조 API")
-public class AccountReferenceController extends BaseController {
+public class AccountReferenceController extends AccBaseController {
     private final AccountReferenceFacade facade;
     private final AccountReferenceSearchValidator validator;
 

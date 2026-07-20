@@ -33,7 +33,7 @@ import java.util.Map;
  * 사용하지 않기 때문에 다중 WAS와 재기동 상황에서도 token 폐기/이력 추적 기준을 유지할 수 있습니다.</p>
  */
 @Service
-public class BzaAuthService {
+public class BzaAuthService extends cpf.bza.common.base.BzaBaseService {
     private static final String LOGIN_DOMAIN = "BZA";
     private static final String ISSUER = "CPF-BZA";
     private static final String AUDIENCE = "CPF-BZA";

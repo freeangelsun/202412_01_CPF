@@ -2,7 +2,7 @@ package cpf.acc.reference.service;
 
 import cpf.acc.reference.dto.AccountReferenceSearchRequest;
 import cpf.acc.reference.port.AccountReferenceQueryPort;
-import cpf.pfw.common.base.BaseService;
+import cpf.acc.common.base.AccBaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-public class AccountReferenceService extends BaseService {
+public class AccountReferenceService extends AccBaseService {
     private final AccountReferenceQueryPort queryPort;
 
     @Transactional(readOnly = true)

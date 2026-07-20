@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/logs")
 @Tag(name = "ADM-Logs", description = "PFW 거래 로그 조회와 상세 포맷팅 API")
-public class AdmLogController {
+public class AdmLogController extends cpf.adm.common.base.AdmBaseController {
     private final AdmLogQueryService logQueryService;
 
     public AdmLogController(AdmLogQueryService logQueryService) {

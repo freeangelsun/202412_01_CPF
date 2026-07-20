@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/health")
 @Tag(name = "ADM-Health", description = "ADM health and smoke readiness API")
-public class AdmHealthController {
+public class AdmHealthController extends cpf.adm.common.base.AdmBaseController {
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate pfwJdbcTemplate;
     private final JdbcTemplate mbrJdbcTemplate;

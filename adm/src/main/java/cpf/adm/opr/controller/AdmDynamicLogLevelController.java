@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/log-level")
 @Tag(name = "ADM-OPR Dynamic Log", description = "Temporary transaction log-level control APIs")
-public class AdmDynamicLogLevelController {
+public class AdmDynamicLogLevelController extends cpf.adm.common.base.AdmBaseController {
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
     private final AdmDynamicLogLevelRuleStore ruleStore;
     private final AdmAuditLogService auditLogService;

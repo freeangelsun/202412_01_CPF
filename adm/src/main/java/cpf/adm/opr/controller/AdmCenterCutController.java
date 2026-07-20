@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/center-cut")
 @Tag(name = "ADM-CenterCut", description = "Center-Cut job, target, result 운영 관제 API")
-public class AdmCenterCutController {
+public class AdmCenterCutController extends cpf.adm.common.base.AdmBaseController {
     private final AdmCenterCutOperationService centerCutOperationService;
 
     public AdmCenterCutController(AdmCenterCutOperationService centerCutOperationService) {

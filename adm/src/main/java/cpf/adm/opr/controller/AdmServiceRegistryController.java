@@ -20,7 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/service-registry")
 @Tag(name = "ADM-ServiceRegistry", description = "PFW 서비스 호출 엔진 레지스트리 운영 조회 API")
-public class AdmServiceRegistryController {
+public class AdmServiceRegistryController extends cpf.adm.common.base.AdmBaseController {
     private final AdmServiceRegistryService serviceRegistryService;
 
     public AdmServiceRegistryController(AdmServiceRegistryService serviceRegistryService) {

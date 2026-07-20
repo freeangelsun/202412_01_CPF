@@ -134,7 +134,7 @@ try {
         "--no-daemon",
         "--console=plain",
         "--tests",
-        "cpf.xyz.edu.centercut.XyzCenterCutAdapterTest",
+        "cpf.xyz.centercut.XyzCenterCutAdapterTest",
         "--rerun-tasks"
     )
 

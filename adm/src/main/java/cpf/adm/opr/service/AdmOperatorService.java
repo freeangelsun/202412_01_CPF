@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentMap;
  * DB가 정상 연결되면 DB 기준 운영자와 권한을 우선 사용합니다.</p>
  */
 @Service
-public class AdmOperatorService {
+public class AdmOperatorService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmOperatorService.class);
     private final AdmPasswordPolicyService passwordPolicyService;
     private final CpfPasswordHashingPort passwordHashingPort;

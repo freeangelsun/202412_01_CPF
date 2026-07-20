@@ -45,13 +45,11 @@ logs/
 *.log
 *.log.*
 
-# 검증 증적 디렉터리에는 정제된 결과와 요청서 기준 해시만 포함합니다.
+# 검증 증적 디렉터리에는 정제된 결과와 현재 요청서 기준 해시만 포함합니다.
 !specs/evidence/
 specs/evidence/**
 !specs/evidence/**/
 !specs/evidence/**/*.sanitized.log
 !specs/evidence/**/*.sanitized.json
 !specs/evidence/**/*.sanitized.png
-!specs/evidence/**/cpf-new-request.baseline.sha256
-!specs/evidence/**/cpf-new-request.baseline.md
-!specs/evidence/**/cpf-new-request.baseline.gitblob
+!specs/evidence/**/cpf-current-work-request.baseline.sha256

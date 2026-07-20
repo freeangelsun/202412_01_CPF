@@ -5,8 +5,6 @@ plugins {
 }
 
 group = 'cpf.xyz'
-version = '0.0.1-cpf.xyz-SNAPSHOT'
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
@@ -18,17 +16,17 @@ repositories {
 }
 
 dependencies {
-    // XYZ는 개발자가 참고하는 EDU 샘플 모듈이므로 PFW/CMN 사용법을 직접 보여줍니다.
+    // XYZ는 참조 업무 도메인이며 내부 sample 기능으로 PFW/CMN 사용법을 보여줍니다.
     implementation project(':pfw')
     implementation project(':cmn')
 
-    // EDU REST API를 제공합니다.
+    // 참조 업무와 교육 sample REST API를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // 업무 DB 기반 EDU adapter가 JdbcTemplate으로 실제 테이블을 다루는 방법을 보여줍니다.
+    // 업무 DB 기반 sample adapter가 JdbcTemplate으로 실제 테이블을 다루는 방법을 보여줍니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
-    // 배치 유형별 EDU 샘플과 ADM 배치 관제 연동 예제를 제공합니다.
+    // 배치 유형별 sample과 ADM 배치 관제 연동 예제를 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
     // 로컬 교육 실행에서 MariaDB를 사용할 수 있게 합니다.

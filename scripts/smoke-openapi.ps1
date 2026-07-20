@@ -181,17 +181,17 @@ if (-not $SkipMbr) {
 
 if (-not $SkipXyz) {
     Invoke-JsonSmoke -ServiceName "XYZ" -BaseUrl $XyzBaseUrl -RequiredTags @(
-        "XYZ-EDU 00. Catalog",
-        "XYZ-EDU 11. Security",
-        "XYZ-EDU 13. Batch",
-        "XYZ-EDU 16. AI",
-        "XYZ-EDU 17. 첨부파일"
+        "XYZ Reference 00. Catalog",
+        "XYZ Reference 11. Security",
+        "XYZ Reference 13. Batch",
+        "XYZ Reference 16. AI",
+        "XYZ Reference 17. 첨부파일"
     ) -RequiredPaths @(
-        "/xyz/edu/ai/structured",
-        "/xyz/edu/ai/rag",
-        "/xyz/edu/ai/jobs/{jobId}/approve",
-        "/xyz/edu/attachments/text",
-        "/xyz/edu/attachments/verify"
+        "/api/xyz/reference/ai/structured",
+        "/api/xyz/reference/ai/rag",
+        "/api/xyz/reference/ai/jobs/{jobId}/approve",
+        "/api/xyz/reference/attachments/text",
+        "/api/xyz/reference/attachments/verify"
     ) | Out-Null
 }
 
@@ -230,11 +230,11 @@ if (-not $SkipBat) {
 # ACC와 Gateway는 선택 실행 모듈이므로 기본 smoke에는 강제하지 않고 명시적으로 요청한 경우만 검증합니다.
 if ($IncludeAcc) {
     Invoke-JsonSmoke -ServiceName "ACC" -BaseUrl $AccBaseUrl -RequiredTags @(
-        "ACC 업무",
+        "ACC 생성 참조",
         "ACC 계정",
         "ACC 내부 공유 API"
     ) -RequiredPaths @(
-        "/api/v1/acc",
+        "/api/v1/acc/reference",
         "/api/v1/accounts",
         "/api/v1/accounts/{accountId}",
         "/internal/api/v1/accounts/{accountId}/summary"

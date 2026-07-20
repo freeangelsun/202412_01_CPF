@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/security")
 @Tag(name = "ADM-Security", description = "ADM 보안 운영 API")
-public class AdmSecurityController {
+public class AdmSecurityController extends cpf.adm.common.base.AdmBaseController {
     private final AdmSecurityOperationService securityService;
     private final AdmAuditLogService auditLogService;
 

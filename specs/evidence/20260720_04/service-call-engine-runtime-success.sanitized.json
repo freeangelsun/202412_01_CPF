@@ -1,0 +1,18 @@
+{
+    "startedAt":  "2026-07-20T14:42:17.7822388+09:00",
+    "runRuntimeRequested":  true,
+    "validationMode":  "source-unit-and-multi-service-runtime",
+    "checks":  [
+                   "service-call-engine-source-contract",
+                   "gateway-to-acc-runtime"
+               ],
+    "status":  "DONE",
+    "runtime":  {
+                    "statusCode":  200,
+                    "standardExecutionId":  "OACCQY0001",
+                    "routeHeader":  "OACCQY0001",
+                    "selectedInstanceHeaderPresent":  true,
+                    "responsePresent":  true
+                },
+    "finishedAt":  "2026-07-20T14:42:18.4417060+09:00"
+}

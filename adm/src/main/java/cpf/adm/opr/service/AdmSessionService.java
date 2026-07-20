@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentMap;
  * 메모리 fallback으로 ADM 화면 확인이 가능하도록 합니다.</p>
  */
 @Service
-public class AdmSessionService {
+public class AdmSessionService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmSessionService.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 

@@ -19,7 +19,7 @@ import java.sql.Statement;
  * 알림 요청과 결과를 기록할 수 있도록 최소 공통 로그를 제공합니다.</p>
  */
 @Service
-public class CmnNotificationLogService {
+public class CmnNotificationLogService extends cpf.cmn.common.base.CmnBaseService {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     @Autowired

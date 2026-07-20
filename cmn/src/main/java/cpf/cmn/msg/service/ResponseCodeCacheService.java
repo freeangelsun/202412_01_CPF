@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ResponseCodeCacheService {
+public class ResponseCodeCacheService extends cpf.cmn.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCodeCacheService.class);
     public static final String CACHE_NAME = "responseCodeCache";
 

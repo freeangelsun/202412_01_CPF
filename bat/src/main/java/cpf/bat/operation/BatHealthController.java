@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @RestController
 @Tag(name = "BAT-Operations", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
-public class BatHealthController {
+public class BatHealthController extends cpf.bat.common.base.BatBaseController {
     private final JdbcTemplate pfwJdbcTemplate;
     private final Environment environment;
     private final BatSmokeOperationService operationService;

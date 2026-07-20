@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza")
 @Tag(name = "BZA-Support", description = "BZA 대시보드, 알림, 첨부, 저장 검색, 다운로드 감사, 권한 분석 API")
-public class BzaSupportController {
+public class BzaSupportController extends cpf.bza.common.base.BzaBaseController {
     private final BzaSupportService supportService;
 
     public BzaSupportController(BzaSupportService supportService) {

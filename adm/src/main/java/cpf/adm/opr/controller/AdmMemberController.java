@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/members")
 @Tag(name = "ADM-Member", description = "ADM 회원 관리와 회원 권한 관리 API")
-public class AdmMemberController {
+public class AdmMemberController extends cpf.adm.common.base.AdmBaseController {
     private final AdmMemberOperationService memberOperationService;
     private final AdmAuditLogService auditLogService;
 

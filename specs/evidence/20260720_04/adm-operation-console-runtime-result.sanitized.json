@@ -1,0 +1,90 @@
+{
+    "startedAt":  "2026-07-20T14:40:36.5952232+09:00",
+    "status":  "완료",
+    "baseUrl":  "http://127.0.0.1:8090",
+    "checkedEndpoints":  [
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/transaction-groups?limit=5",
+                                 "itemCount":  0
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/log-policies?limit=5",
+                                 "itemCount":  3
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/log-policies/runtime-state?limit=5",
+                                 "itemCount":  0
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/log-policies/history?limit=5",
+                                 "itemCount":  5
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/jobs",
+                                 "itemCount":  6
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/schedules",
+                                 "itemCount":  2
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/relations",
+                                 "itemCount":  2
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/execution-targets?limit=5",
+                                 "itemCount":  1
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/workers",
+                                 "itemCount":  2
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/batch/locks",
+                                 "itemCount":  0
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/cache/summary",
+                                 "itemCount":  null
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/messages",
+                                 "itemCount":  32
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/codes",
+                                 "itemCount":  42
+                             },
+                             {
+                                 "method":  "GET",
+                                 "path":  "/adm/api/configs",
+                                 "itemCount":  12
+                             }
+                         ],
+    "portListening":  true,
+    "health":  {
+                   "status":  "UP",
+                   "service":  "ADM",
+                   "checkedAt":  "2026-07-20T14:40:36.679719+09:00",
+                   "checks":  {
+                                  "admDB":  "UP",
+                                  "pfwDB":  "UP",
+                                  "mbrDB":  "UP"
+                              },
+                   "transactionContextMissingCount":  0
+               },
+    "finishedAt":  "2026-07-20T14:40:37.6041924+09:00"
+}

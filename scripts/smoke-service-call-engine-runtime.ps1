@@ -30,6 +30,24 @@ function Test-Contains {
     }
 }
 
+function New-RuntimeHeaders {
+    $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
+    return @{
+        "X-Transaction-Id" = "$timestamp" + "PFWgwsmk01" + "0000001"
+        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
+        "X-Request-Type" = "SMOKE"
+        "X-Cpf-Standard-Execution-Id" = "OACCQY0001"
+        "X-Original-Channel-Code" = "ADM"
+        "X-Channel-Code" = "ADM"
+        "X-Client-App-Id" = "cpf-service-call-smoke"
+        "X-Client-Version" = "1.0.0"
+        "X-User-Id" = "runtime-smoke"
+        "X-Operator-Id" = "runtime-smoke"
+        "X-Audit-Reason" = "CPF service-call runtime verification"
+        "Authorization" = "Bearer runtime-smoke-placeholder"
+    }
+}
+
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     runRuntimeRequested = [bool] $RunRuntime
@@ -57,9 +75,44 @@ try {
     $result.checks += "service-call-engine-source-contract"
     $result.status = "DONE"
     if ($RunRuntime) {
-        $result.runtimeNote = "This script verifies the runtime code path source contract. Real multi-service HTTP runtime must be verified by starting services separately."
-        if ($RequireRuntime) {
-            throw "real multi-service HTTP runtime was requested as required, but this smoke script only performs source/unit contract verification."
+        try {
+            $response = Invoke-WebRequest `
+                -Method Post `
+                -Uri "http://127.0.0.1:8070/cpf/execute/OACCQY0001" `
+                -Headers (New-RuntimeHeaders) `
+                -TimeoutSec 15 `
+                -UseBasicParsing
+            $routeId = [string] $response.Headers["X-Cpf-Gateway-Route-Id"]
+            $instanceId = [string] $response.Headers["X-Cpf-Gateway-Instance-Id"]
+            $body = if ([string]::IsNullOrWhiteSpace($response.Content)) {
+                $null
+            } else {
+                $response.Content | ConvertFrom-Json
+            }
+            $result.runtime = [ordered]@{
+                statusCode = [int] $response.StatusCode
+                standardExecutionId = "OACCQY0001"
+                routeHeader = $routeId
+                selectedInstanceHeaderPresent = -not [string]::IsNullOrWhiteSpace($instanceId)
+                responsePresent = $null -ne $body
+            }
+            if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300 `
+                    -or $routeId -ne "OACCQY0001" `
+                    -or [string]::IsNullOrWhiteSpace($instanceId) `
+                    -or $null -eq $body) {
+                throw "Gateway to ACC service-call runtime verification failed."
+            }
+            $result.validationMode = "source-unit-and-multi-service-runtime"
+            $result.checks += "gateway-to-acc-runtime"
+        } catch {
+            $result.runtime = [ordered]@{
+                status = "NOT_VERIFIED"
+                error = $_.Exception.Message
+            }
+            if ($RequireRuntime) {
+                throw
+            }
+            $result.status = "PARTIAL"
         }
     }
 } catch {

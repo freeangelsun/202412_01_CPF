@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/mbr/auth")
 @Tag(name = "MBR-Auth", description = "회원 로그인, refresh token, 현재 회원, 로그인 이력 API")
-public class MbrAuthController {
+public class MbrAuthController extends cpf.mbr.common.base.MbrBaseController {
     private final MbrAuthService authService;
 
     public MbrAuthController(MbrAuthService authService) {

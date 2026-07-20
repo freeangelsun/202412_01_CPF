@@ -2,7 +2,7 @@ package cpf.acc.account.controller;
 
 import cpf.cmn.api.account.AccountSummary;
 import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.pfw.common.base.BaseController;
+import cpf.acc.common.base.AccBaseController;
 import cpf.pfw.common.execution.CpfSharedApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/internal/api/v1/accounts")
 @Tag(name = "ACC 내부 공유 API", description = "외부 Gateway에 공개하지 않는 CPF 주제영역 간 계정 계약")
-public class AccAccountSharedController extends BaseController {
+public class AccAccountSharedController extends AccBaseController {
     private final AccountSummaryFacade facade;
 
     public AccAccountSharedController(AccountSummaryFacade facade) {

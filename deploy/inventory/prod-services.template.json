@@ -58,20 +58,6 @@
                          "runtimeMode":  "embedded-bootjar"
                      },
                      {
-                         "module":  "XYZ",
-                         "hostAlias":  "xyz-prod",
-                         "sshHostEnvKey":  "XYZ_SSH_HOST",
-                         "sshUserEnvKey":  "XYZ_SSH_USER",
-                         "deployBase":  "/apps/cpf/xyz",
-                         "healthUrl":  "http://${XYZ_SSH_HOST}:${XYZ_SERVER_PORT}/actuator/health",
-                         "serviceName":  "cpf-xyz",
-                         "portEnvKey":  "XYZ_SERVER_PORT",
-                         "profile":  "prod",
-                         "approvalRequired":  true,
-                         "rollbackEnabled":  true,
-                         "runtimeMode":  "embedded-bootjar"
-                     },
-                     {
                          "module":  "ACC",
                          "hostAlias":  "acc-prod",
                          "sshHostEnvKey":  "ACC_SSH_HOST",

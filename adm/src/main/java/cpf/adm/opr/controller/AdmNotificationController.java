@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/notifications")
 @Tag(name = "ADM-Notification", description = "운영 알림 규칙과 발송 이력 조회 API")
-public class AdmNotificationController {
+public class AdmNotificationController extends cpf.adm.common.base.AdmBaseController {
     private final AdmNotificationService notificationService;
 
     public AdmNotificationController(AdmNotificationService notificationService) {

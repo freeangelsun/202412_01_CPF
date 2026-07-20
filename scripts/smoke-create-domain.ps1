@@ -60,8 +60,9 @@ function Invoke-CreateDomain {
         "-TablePrefix", $ModuleCode,
         "-Port", "8188",
         "-Online", "Y",
-        "-Batch", "Y",
-        "-BzaMenu", "Y"
+        "-Batch", "N",
+        "-BzaMenu", "N",
+        "-ProductionProfile", "N"
     )
     if ($DryRun) {
         $arguments += "-DryRun"
@@ -82,9 +83,8 @@ $result = [ordered]@{
     moduleCode = $ModuleCode
     dryRun = [ordered]@{}
     generate = [ordered]@{}
-    generatePatch = [ordered]@{}
     requiredFiles = @()
-    requiredPatchFiles = @()
+    forbiddenFiles = @()
     compile = [ordered]@{}
     cleanup = [ordered]@{}
 }
@@ -108,6 +108,12 @@ try {
         "src/main/resources/application.yml",
         "src/main/resources/application-${ModuleCode}.yml",
         "src/main/java/cpf/$ModuleCode/${moduleClassName}Application.java",
+        "src/main/java/cpf/$ModuleCode/common/base/${moduleClassName}BaseController.java",
+        "src/main/java/cpf/$ModuleCode/common/base/${moduleClassName}BaseService.java",
+        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}ApplicationFacade.java",
+        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}RepositoryPort.java",
+        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}Request.java",
+        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}Response.java",
         "src/main/java/cpf/$ModuleCode/config/${ModuleName}DataSourceConfig.java",
         "src/main/java/cpf/$ModuleCode/config/${ModuleName}MyBatisConfig.java",
         "src/main/java/$featurePath/controller/${featureClassPrefix}Controller.java",
@@ -115,8 +121,6 @@ try {
         "src/main/java/$featurePath/port/${featureClassPrefix}QueryPort.java",
         "src/main/java/$featurePath/adapter/local/Local${featureClassPrefix}QueryAdapter.java",
         "src/main/java/$featurePath/adapter/remote/Remote${featureClassPrefix}QueryProxy.java",
-        "src/main/java/$featurePath/batch/${featureClassPrefix}BatchConfig.java",
-        "src/main/java/cpf/$ModuleCode/config/${ModuleName}BatchRepositoryConfig.java",
         "src/main/java/$featurePath/service/${featureClassPrefix}Service.java",
         "src/main/java/$featurePath/repository/${featureClassPrefix}Repository.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
@@ -138,38 +142,22 @@ try {
         }
     }
 
-    if (Test-Path -LiteralPath $previewDir) {
-        Remove-Item -LiteralPath $previewDir -Recurse -Force
-    }
-    $result.generatePatch = Invoke-CreateDomain -GeneratePatch
-
-    foreach ($relative in $required) {
-        $path = Join-Path $previewDir $relative
-        $exists = Test-Path -LiteralPath $path
-        if (-not $exists) {
-            throw "create-domain generate-patch base file is missing. path=$path"
-        }
-    }
-    $requiredPatch = @(
-        "patch-candidates/apply-order.md",
-        "patch-candidates/settings.gradle.patch",
-        "patch-candidates/sql/40_business_modules_schema.${ModuleCode}.candidate.sql",
-        "patch-candidates/sql/50_framework_seed.${ModuleCode}.candidate.sql",
-        "patch-candidates/sql/60_adm_seed.${ModuleCode}.candidate.sql",
-        "patch-candidates/sql/70_bza_menu_seed.${ModuleCode}.candidate.sql",
-        "patch-candidates/sql/99_smoke_check.${ModuleCode}.candidate.sql",
-        "patch-candidates/sql/migration/Vxx__${ModuleCode}_domain.sql",
-        "patch-candidates/smoke-${ModuleCode}.ps1"
+    $forbidden = @(
+        "patch-candidates",
+        "src/main/java/$featurePath/batch",
+        "src/main/java/cpf/$ModuleCode/config/${ModuleName}BatchRepositoryConfig.java",
+        "src/main/resources/application-${ModuleCode}-prod.yml",
+        "deploy"
     )
-    foreach ($relative in $requiredPatch) {
+    foreach ($relative in $forbidden) {
         $path = Join-Path $previewDir $relative
         $exists = Test-Path -LiteralPath $path
-        $result.requiredPatchFiles += [ordered]@{
+        $result.forbiddenFiles += [ordered]@{
             path = $path.Substring($Root.Length).TrimStart('\', '/')
             exists = $exists
         }
-        if (-not $exists) {
-            throw "create-domain patch candidate is missing. path=$path"
+        if ($exists) {
+            throw "create-domain default output contains a forbidden path. path=$path"
         }
     }
 
@@ -202,9 +190,8 @@ pluginManagement {
 }
 
 rootProject.name = 'cpf-generated-domain-verification'
-include 'pfw', 'cmn', '$ModuleCode'
+include 'pfw', '$ModuleCode'
 project(':pfw').projectDir = file('${rootForGradle}/pfw')
-project(':cmn').projectDir = file('${rootForGradle}/cmn')
 project(':$ModuleCode').projectDir = file('$previewForGradle')
 "@
     $rootBuild = @"
@@ -219,6 +206,8 @@ ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_
         .toInteger()
 
 allprojects {
+    version = '1.0.0-SNAPSHOT'
+
     repositories {
         mavenCentral()
     }

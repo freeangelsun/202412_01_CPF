@@ -172,7 +172,7 @@ foreach ($group in ($sorted | Group-Object capability | Sort-Object Name)) {
 
 $head = (& git -C $Root rev-parse HEAD).Trim()
 $branch = (& git -C $Root branch --show-current).Trim()
-$requestSha = (Get-FileHash -LiteralPath (Join-Path $Root "CPF_NEW_REQUEST.md") -Algorithm SHA256).Hash.ToLowerInvariant()
+$requestSha = (Get-FileHash -LiteralPath (Join-Path $Root "CPF_CURRENT_WORK_REQUEST.md") -Algorithm SHA256).Hash.ToLowerInvariant()
 $inventory = [ordered]@{
     cpfInventoryVersion = 1
     generatedAt = (Get-Date).ToString("o")

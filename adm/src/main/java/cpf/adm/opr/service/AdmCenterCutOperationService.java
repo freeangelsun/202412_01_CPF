@@ -22,7 +22,7 @@ import java.util.Map;
  * 반환해 민감정보 노출 가능성을 낮춥니다.</p>
  */
 @Service
-public class AdmCenterCutOperationService {
+public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmCenterCutOperationService.class);
     private static final String XYZ_CENTER_CUT_SAMPLE_JOB_ID = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB";
     private static final int DEFAULT_LIMIT = 100;

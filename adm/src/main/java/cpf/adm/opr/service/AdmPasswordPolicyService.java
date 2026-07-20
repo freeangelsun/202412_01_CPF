@@ -14,7 +14,7 @@ import java.util.Map;
  * ADM 운영자 비밀번호 정책을 검증합니다.
  */
 @Service
-public class AdmPasswordPolicyService {
+public class AdmPasswordPolicyService extends cpf.adm.common.base.AdmBaseService {
     private final AdmPasswordPolicyProperties properties;
 
     public AdmPasswordPolicyService(AdmPasswordPolicyProperties properties) {

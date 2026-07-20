@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * ADM에서 BAT JobInstance 로그를 원본 경로 노출 없이 조회하는 서비스입니다.
  */
 @Service
-public class AdmBatchJobLogService {
+public class AdmBatchJobLogService extends cpf.adm.common.base.AdmBaseService {
     private static final Pattern FILE_PATTERN = Pattern.compile("cpf-bat-(.+)-(\\d+)-(\\d{8})\\.log");
     private static final int MAX_RECORDS = 500;
 

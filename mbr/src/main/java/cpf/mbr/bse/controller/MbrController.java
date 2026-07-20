@@ -37,7 +37,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "MBR-BSE Member", description = "회원 목록, 상세, 검색, 등록, 수정, 삭제 샘플 API")
-public class MbrController {
+public class MbrController extends cpf.mbr.common.base.MbrBaseController {
 
     private static final String REQUESTER_ID = "SYSTEM";
 

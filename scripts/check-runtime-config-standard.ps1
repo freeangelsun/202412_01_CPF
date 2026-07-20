@@ -140,7 +140,12 @@ $inventoryChecks = New-Object System.Collections.Generic.List[object]
 $portRows = New-Object System.Collections.Generic.List[object]
 $datasourceRows = New-Object System.Collections.Generic.List[object]
 foreach ($profile in $profiles) {
-    foreach ($module in $modules) {
+    $profileModules = if ($profile -eq "prod") {
+        @($modules | Where-Object { $_ -ne "xyz" })
+    } else {
+        $modules
+    }
+    foreach ($module in $profileModules) {
         $prefix = $prefixByModule[$module]
         $relativePath = "deploy/env/$profile-$module.env"
         $path = Join-RootPath $relativePath
@@ -241,7 +246,12 @@ foreach ($profile in $profiles) {
     }
 
     $inventory = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
-    foreach ($moduleCode in $moduleCodes) {
+    $expectedModuleCodes = if ($profile -eq "prod") {
+        @($moduleCodes | Where-Object { $_ -ne "XYZ" })
+    } else {
+        $moduleCodes
+    }
+    foreach ($moduleCode in $expectedModuleCodes) {
         $service = @($inventory.services) | Where-Object { $_.module -eq $moduleCode } | Select-Object -First 1
         if ($null -eq $service) {
             Add-Failure ("inventory service missing: {0} :: {1}" -f $relativePath, $moduleCode)
@@ -260,11 +270,21 @@ foreach ($profile in $profiles) {
     if ($null -ne $eduService) {
         Add-Failure ("EDU inventory service must not exist: {0}" -f $relativePath)
     }
+    if ($profile -eq "prod") {
+        $xyzService = @($inventory.services) | Where-Object { $_.module -eq "XYZ" } | Select-Object -First 1
+        if ($null -ne $xyzService) {
+            Add-Failure ("XYZ reference service must not be included in the default production inventory: {0}" -f $relativePath)
+        }
+    }
     $inventoryChecks.Add([pscustomobject]@{
         file = $relativePath
         serviceCount = @($inventory.services).Count
         status = "DONE"
     }) | Out-Null
+}
+
+if (Test-Path -LiteralPath (Join-RootPath "deploy/env/prod-xyz.env")) {
+    Add-Failure "XYZ reference production env must not exist in the default deployment set."
 }
 
 $buildGradlePath = Join-RootPath "build.gradle"
@@ -324,8 +344,8 @@ $emptyTargets = @(
     "deploy/inventory",
     "bat/src/main/java/cpf/bat/edu",
     "bat/src/test/java/cpf/bat/edu",
-    "xyz/src/main/java/cpf/xyz/edu",
-    "xyz/src/test/java/cpf/xyz/edu",
+    "xyz/src/main/java/cpf/xyz",
+    "xyz/src/test/java/cpf/xyz",
     "cmn/src/main/java/cpf/cmn",
     "pfw/src/main/java/cpf/pfw",
     "specs/evidence"

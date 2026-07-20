@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Service
 @Transactional(transactionManager = "mbrTransactionManager")
-public class MbrAuthService {
+public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
     private static final String LOGIN_DOMAIN = "MBR";
     private static final String ISSUER = "CPF-MBR";
     private static final String AUDIENCE = "CPF-MBR";

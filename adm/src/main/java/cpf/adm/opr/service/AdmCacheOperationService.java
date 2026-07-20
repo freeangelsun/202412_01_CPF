@@ -15,7 +15,7 @@ import java.util.Map;
  * 운영자가 코드, 메시지, 응답코드, 설정 캐시 상태를 확인하고 refresh 요청을 수행할 수 있게 합니다.
  */
 @Service
-public class AdmCacheOperationService {
+public class AdmCacheOperationService extends cpf.adm.common.base.AdmBaseService {
     private final CodeCacheService codeCacheService;
     private final MessageCacheService messageCacheService;
     private final ResponseCodeCacheService responseCodeCacheService;

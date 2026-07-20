@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/adm/api/channels")
 @Tag(name = "ADM-OPR Channel Policy", description = "채널 레지스트리, 실행 정책, 불변 스냅샷과 정책 패키지 관리")
-public class AdmChannelController {
+public class AdmChannelController extends cpf.adm.common.base.AdmBaseController {
     private final CpfChannelPolicyService channelPolicyService;
     private final AdmAuditLogService auditLogService;
 

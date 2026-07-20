@@ -53,7 +53,7 @@ $mockCapturePath = Join-Path $ResultDir "standard-header-e2e-downstream.json"
 $mockUrl = "http://127.0.0.1:$MockDownstreamPort/cpf-standard-header-e2e"
 if ([string]::IsNullOrWhiteSpace($TargetUrl)) {
     $encodedMockUrl = [System.Uri]::EscapeDataString($mockUrl)
-    $TargetUrl = "$AppBaseUrl/xyz/edu/headers/propagation?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
+    $TargetUrl = "$AppBaseUrl/api/xyz/reference/headers/propagation?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
 }
 
 $result = [ordered]@{
@@ -506,7 +506,7 @@ try {
         Test-MockDownstreamCapture
     }
 
-    $blockedUrl = "$AppBaseUrl/xyz/edu/headers/propagation?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke&mockUrl=$([System.Uri]::EscapeDataString($mockUrl))"
+    $blockedUrl = "$AppBaseUrl/api/xyz/reference/headers/propagation?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke&mockUrl=$([System.Uri]::EscapeDataString($mockUrl))"
     $blockedProbe = Invoke-Probe -Name "blockedExtensionHeaderRejected" -Headers $blockedHeaders -ExpectedStatusRange @(400, 401, 403, 422) -Uri $blockedUrl
 
     Start-Sleep -Milliseconds 500

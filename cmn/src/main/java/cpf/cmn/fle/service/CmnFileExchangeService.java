@@ -24,7 +24,7 @@ import java.util.List;
  * credential 참조, 기술 이력 저장은 PFW가 담당합니다.</p>
  */
 @Service
-public class CmnFileExchangeService {
+public class CmnFileExchangeService extends cpf.cmn.common.base.CmnBaseService {
     private final CpfFileExchangeGateway gateway;
 
     public CmnFileExchangeService(CpfFileExchangeGateway gateway) {

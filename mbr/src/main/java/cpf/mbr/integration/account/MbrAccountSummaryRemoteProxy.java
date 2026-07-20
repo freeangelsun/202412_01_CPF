@@ -2,9 +2,8 @@ package cpf.mbr.integration.account;
 
 import cpf.cmn.api.account.AccountSummary;
 import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.pfw.common.header.CpfHeaderNames;
+import cpf.pfw.common.execution.CpfStandardExecutionId;
 import cpf.pfw.common.http.CpfWebClient;
-import cpf.pfw.common.servicecall.ServiceCallRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(prefix = "cpf.mbr.account", name = "mode", havingValue = "remote", matchIfMissing = true)
 public class MbrAccountSummaryRemoteProxy implements AccountSummaryFacade {
-    private static final String STANDARD_EXECUTION_ID = "SACCAC0001";
+    private static final CpfStandardExecutionId STANDARD_EXECUTION_ID =
+            CpfStandardExecutionId.parse("SACCAC0001");
     private final CpfWebClient webClient;
 
     public MbrAccountSummaryRemoteProxy(CpfWebClient webClient) {
@@ -23,17 +23,10 @@ public class MbrAccountSummaryRemoteProxy implements AccountSummaryFacade {
 
     @Override
     public AccountSummary findSummary(long accountId) {
-        ServiceCallRequest request = ServiceCallRequest.builder("ACC")
-                .endpointCode("ACC_ACCOUNT_SUMMARY")
-                .httpMethod("GET")
-                .requestPath("/internal/api/v1/accounts/" + accountId + "/summary")
-                .timeoutMillis(3000)
-                .retryCount(1)
-                .header(CpfHeaderNames.STANDARD_EXECUTION_ID, STANDARD_EXECUTION_ID)
-                .attribute("sourceModuleCode", "MBR")
-                .attribute("standardExecutionId", STANDARD_EXECUTION_ID)
-                .attribute("externalKey", String.valueOf(accountId))
-                .build();
-        return webClient.get(request, AccountSummary.class);
+        return webClient.get(
+                STANDARD_EXECUTION_ID,
+                "ACC",
+                uri -> uri.path("/internal/api/v1/accounts/{accountId}/summary").build(accountId),
+                AccountSummary.class);
     }
 }

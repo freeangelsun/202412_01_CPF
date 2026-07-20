@@ -34,7 +34,7 @@ import java.util.Objects;
  * ADM 화면은 이 서비스를 통해 CSV 파일을 내려받습니다.</p>
  */
 @Service
-public class AdmDownloadService {
+public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
     private static final int DEFAULT_LIMIT = 1000;
     private static final int MAX_LIMIT = 10000;
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");

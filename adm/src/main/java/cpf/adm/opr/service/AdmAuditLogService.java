@@ -21,7 +21,7 @@ import java.util.Map;
  * 변경 전/후 데이터를 함께 남겨 사후 추적이 가능하게 합니다.</p>
  */
 @Service
-public class AdmAuditLogService {
+public class AdmAuditLogService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmAuditLogService.class);
 
     private final JdbcTemplate admJdbcTemplate;

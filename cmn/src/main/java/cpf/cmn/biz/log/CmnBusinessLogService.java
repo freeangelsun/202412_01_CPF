@@ -20,7 +20,7 @@ import java.sql.Statement;
  * CMN 업무 로그는 업무 의미 중심으로 사용합니다.</p>
  */
 @Service
-public class CmnBusinessLogService {
+public class CmnBusinessLogService extends cpf.cmn.common.base.CmnBaseService {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     @Autowired

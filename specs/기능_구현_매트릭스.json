@@ -1,7 +1,7 @@
 {
     "schemaVersion":  3,
-    "generatedAt":  "2026-07-20T10:00:00+09:00",
-    "source":  "CPF_NEW_REQUEST.md + CPF_FINAL_TARGET_REQUIREMENTS.md + 20260716_02 source/test/MariaDB/ADM/ACC/Gateway/BAT runtime evidence",
+    "generatedAt":  "2026-07-20T15:50:38.9606015+09:00",
+    "source":  "CPF_CURRENT_WORK_REQUEST.md + CPF_FINAL_TARGET_REQUIREMENTS.md + 20260720_04 source/test/MariaDB/multi-runtime evidence",
     "allowedStatuses":  [
                             "완료",
                             "부분 구현",
@@ -14,8 +14,8 @@
                   {
                       "checkId":  "baseline-module-layout",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json",
-                      "note":  "PFW·CMN·MBR·ADM·BZA·XYZ 기본 구성과 선택형 BAT·ACC·PFW Gateway 모듈을 settings 및 빌드 기준으로 확인함"
+                      "evidence":  "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+                      "note":  "PFW·CMN·MBR·ADM·BZA·BAT·ACC·XYZ·PFW Gateway의 모듈 구성과 공통 3단 Base 계층을 최신 source 기준으로 검증함"
                   },
                   {
                       "checkId":  "bza-rename",
@@ -32,8 +32,8 @@
                   {
                       "checkId":  "architecture-ownership",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json",
-                      "note":  "최신 모듈 구조에서 타 주제영역 Repository·Mapper·DB 직접 접근 금지와 PFW/CMN 소유권 검사를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+                      "note":  "타 주제영역 Repository·Mapper·DB 직접 접근 금지, PFW 기술 AOP 단일 소유권과 PFW Base→주제영역 Base→기능 계층 검사를 통과함"
                   },
                   {
                       "checkId":  "password-hashing",
@@ -92,8 +92,8 @@
                   {
                       "checkId":  "adm-framework-console",
                       "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json, specs/evidence/20260716_02/openapi-runtime-result.sanitized.json, specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json",
-                      "note":  "ADM DB health, 운영 API, 권한 200/403, OpenAPI 160 paths, 인증 후 채널 화면을 실기동 검증함. BZA와 전체 화면 browser E2E는 별도 추적함"
+                      "evidence":  "specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-forced-password-change.sanitized.json",
+                      "note":  "ADM 인증·강제 비밀번호 변경·운영 콘솔 API와 OpenAPI 161개 경로를 실 DB 런타임에서 검증함. 브라우저 클릭은 로컬 브라우저 자동화 정책으로 미검증임"
                   },
                   {
                       "checkId":  "adm-permission",
@@ -129,7 +129,7 @@
                       "checkId":  "attachment-storage",
                       "status":  "완료",
                       "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
-                      "note":  "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ EDU 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
+                      "note":  "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ 기준 업무 샘플의 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
                   },
                   {
                       "checkId":  "bza-operation-support",
@@ -176,20 +176,20 @@
                   {
                       "checkId":  "bat-runtime",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "BAT bootJar를 MariaDB PFW JobRepository로 기동해 온디맨드 접수 202, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
+                      "evidence":  "specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+                      "note":  "BAT를 MariaDB PFW JobRepository로 기동해 온디맨드 접수, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
                   },
                   {
                       "checkId":  "domain-generator",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/remove-domain-smoke.sanitized.json",
-                      "note":  "최신 생성기로 임시 PYM 모듈을 순수 생성해 전용 DataSource/MyBatis, PFW BatchRepository, 자동 Job 실행 차단, test·bootJar·bootWar·Java 25를 검증하고 정리함"
+                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
+                      "note":  "최소 옵션 생성 결과의 독립 DataSource, PFW Base→도메인 Base→기능 계층, null·정렬 방어, test·bootJar·bootWar·Java 25 산출물을 검증함"
                   },
                   {
-                      "checkId":  "xyz-edu",
+                      "checkId":  "xyz-reference-samples",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/architecture-inventory.sanitized.json",
-                      "note":  "XYZ 공식 EDU를 capability-first package로 정리하고 공개 capability 대비 source·test·문서 매핑 gate를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/sample-coverage-result.sanitized.json, specs/evidence/20260720_04/architecture-inventory.sanitized.json",
+                      "note":  "XYZ를 비운영 기본 reference business domain으로 정리하고 50개 공식 샘플의 source·test·문서 coverage를 검증함"
                   },
                   {
                       "checkId":  "bat-edu",
@@ -205,15 +205,15 @@
                   },
                   {
                       "checkId":  "standard-header",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
-                      "note":  "호출 서비스/인스턴스 재생성과 S형 ingress 차단 단위 테스트를 통과함. 실제 MBR→ACC HTTP 전파는 미검증"
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/standard-header-e2e-result.sanitized.json",
+                      "note":  "XYZ 실제 HTTP 호출에서 표준 헤더 수신·하위 호출 전파·DB 거래 로그 연결을 E2E로 검증함"
                   },
                   {
                       "checkId":  "service-call-engine",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
-                      "note":  "MBR→ACC Remote Facade Proxy와 endpoint/실행 ID 계약 테스트를 추가함. 다중 인스턴스 runtime은 미검증"
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+                      "note":  "typed 기본 API와 Gateway→ACC 표준 실행 ID 라우팅, 선택 인스턴스 헤더, 실제 HTTP 200 응답을 검증함"
                   },
                   {
                       "checkId":  "broker-capability",
@@ -242,8 +242,8 @@
                   {
                       "checkId":  "mariadb-full-install",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/mariadb-full-install.sanitized.log",
-                      "note":  "실 MariaDB에서 7단계 전체 설치·smoke·seed 재실행과 FK/index/app·migration 권한 38개 검사를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log",
+                      "note":  "실 MariaDB에서 전체 설치·smoke·seed 재실행과 FK·index·app/migration 권한 38개 검사를 통과함"
                   },
                   {
                       "checkId":  "flyway-static",
@@ -259,27 +259,27 @@
                   },
                   {
                       "checkId":  "runtime-baseline",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "ADM을 별도 실기동하고 ACC·PFW Gateway·BAT 3개 서비스를 함께 기동해 health·업무 호출·종료를 확인함. MBR·BZA·XYZ 포함 전체 동시 기동은 남음"
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/runtime-start-services-result.sanitized.json, specs/evidence/20260720_04/runtime-stop-services-result.sanitized.json",
+                      "note":  "MBR·ADM·BZA·XYZ·ACC·Gateway·BAT 7개 최신 bootJar를 동시에 기동해 health와 프로세스 생존을 확인한 뒤 기록 PID만 정상 종료함"
                   },
                   {
                       "checkId":  "openapi-runtime",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json",
-                      "note":  "ADM 최신 실행본의 OpenAPI 3.1, 160 paths, 28 tags와 채널·로그·배치 필수 API를 실검증함. 나머지 실행 모듈의 동일 최신 build 검증은 남음"
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
+                      "note":  "ADM·MBR·XYZ·BZA·BAT·ACC·Gateway의 OpenAPI 3.1 필수 tag/path를 실제 기동 상태에서 모두 검증함"
                   },
                   {
                       "checkId":  "browser-public-http",
                       "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json, specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png",
-                      "note":  "인증된 ADM 화면에서 채널 정책 메뉴를 실제 클릭하고 6개 행 렌더링과 console error 0건을 확인함. BZA 및 전체 ADM 화면은 남음"
+                      "evidence":  "specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json, specs/evidence/20260720_04/bza-ui-static-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
+                      "note":  "ADM·BZA UI 정적 계약과 실행 앱 HTTP는 검증했으나 시스템 브라우저 자동화 파이프 차단 및 전용 Chromium 인증서 체인 오류로 실제 렌더링 클릭은 미검증임"
                   },
                   {
                       "checkId":  "browser-auth-e2e",
                       "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json, specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png",
-                      "note":  "ADM 인증 후 채널 정책 메뉴 click·render를 Edge headless에서 검증함. BZA 인증과 ADM 전체 메뉴·반응형 E2E는 남음"
+                      "evidence":  "specs/evidence/20260720_04/adm-forced-password-change.sanitized.json, specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json",
+                      "note":  "ADM 로그인·강제 비밀번호 변경·인증 운영 API는 실검증했으나 인증 후 브라우저 메뉴 클릭은 환경 제약으로 미검증임"
                   },
                   {
                       "checkId":  "multi-instance-runtime",
@@ -308,8 +308,8 @@
                   {
                       "checkId":  "service-call-boundary",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
-                      "note":  "MBR→ACC가 CMN Facade Contract와 PFW Service Call Engine을 사용하며 타 주제영역 저장소 직접 참조 gate를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json",
+                      "note":  "타 주제영역 저장소 직접 참조 없이 PFW Service Call Engine과 typed client를 사용하는 경계를 정적·실 HTTP로 검증함"
                   },
                   {
                       "checkId":  "spring-event-usage",
@@ -332,14 +332,14 @@
                   {
                       "checkId":  "sql-standard",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json, specs/evidence/20260716_01/quality-gate.sanitized.log",
-                      "note":  "prefix·공통 컬럼·COMMENT·FK·index·seed·합본 정적 gate와 실 MariaDB 설치를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log, specs/evidence/20260720_04/quality-gate.sanitized.log",
+                      "note":  "실 MariaDB 전체 설치·smoke·seed 재실행·FK·index·계정 권한 38개 검사와 SQL 정적 gate를 최신 source에서 통과함"
                   },
                   {
                       "checkId":  "utf8-mojibake",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/quality-gate.sanitized.log",
-                      "note":  "UTF-8, PowerShell BOM/CRLF와 mojibake 검사를 최신 변경 파일 포함 전체 gate에서 통과함"
+                      "evidence":  "specs/evidence/20260720_04/quality-gate.sanitized.log",
+                      "note":  "UTF-8, PowerShell UTF-8 BOM·CRLF, mojibake 검사를 전체 source와 최신 증적에 대해 통과함"
                   },
                   {
                       "checkId":  "ui-static",
@@ -356,8 +356,8 @@
                   {
                       "checkId":  "generator-cleanup",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/remove-domain-smoke.sanitized.json, specs/evidence/20260716_02/repository-hygiene.sanitized.json",
-                      "note":  "순수 생성·빌드 후 remove-domain dry-run/실삭제를 확인하고 임시 source·verification·candidate 산출물 재유입 금지 gate를 통과함"
+                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
+                      "note":  "생성 결과를 임시 검증 영역에 격리하고 기본 patch/profile/deploy 잔재를 만들지 않으며 저장소 가비지 gate를 통과함"
                   },
                   {
                       "checkId":  "evidence-sanitization",
@@ -380,14 +380,14 @@
                   {
                       "checkId":  "quality-gate",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/quality-gate.sanitized.log, specs/evidence/20260716_02/full-test.sanitized.log",
-                      "note":  "최종 qualityGate 87 tasks와 전체 154 suites, 354 tests가 성공했고 failures 0, errors 0, skipped 4를 정제 증적으로 기록함"
+                      "evidence":  "specs/evidence/20260720_04/quality-gate.sanitized.log, specs/evidence/20260720_04/full-test-release.sanitized.log",
+                      "note":  "최종 qualityGate 증적은 90 tasks(38 executed, 52 up-to-date)로 성공했고, 클린 실행에서 집계한 전체 156 suites, 359 tests는 failures 0, errors 0, skipped 4임"
                   },
                   {
                       "checkId":  "request-protection",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json",
-                      "note":  "요청서 SHA-256가 작업 시작 baseline과 일치하며 요청서를 수정하지 않음"
+                      "evidence":  "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json",
+                      "note":  "CPF_CURRENT_WORK_REQUEST.md SHA-256가 작업 baseline과 일치하며 요청 입력이 변경되지 않았음을 최신 gate에서 검증함"
                   },
                   {
                       "checkId":  "report-matrix-consistency",
@@ -512,8 +512,8 @@
                   {
                       "checkId":  "generator-reference-domain-contract",
                       "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/remove-domain-smoke.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "생성기 순수 PYM 산출물의 test·bootJar·bootWar와 제거를 확인하고 ACC embedded reference 호출을 실검증함. external Tomcat/JNDI E2E는 미검증"
+                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+                      "note":  "생성 모듈의 test·bootJar·bootWar와 ACC reference HTTP 호출을 검증함. 외부 Tomcat/JNDI 실배포는 미검증임"
                   },
                   {
                       "checkId":  "batch-dependency-ghost-contract",
@@ -535,9 +535,9 @@
                   },
                   {
                       "checkId":  "evidence-governance-contract",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/work-start.sanitized.json, specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json, specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json, specs/evidence/20260716_02/quality-gate.sanitized.log",
-                      "note":  "시작 SHA·요청 hash, 정제 evidence 경로와 파일 존재 검사를 유지함. DOCX freshness와 최종 배포 정본화는 요청서 기준 후속 단계로 보류"
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json, specs/evidence/20260720_04/evidence-path-existence-check.sanitized.json, specs/evidence/20260720_04/quality-gate.sanitized.log",
+                      "note":  "시작 SHA·활성 요청서 hash 보호, current sanitized evidence 경로·고유 ID·본문 hash·secret scan을 최신 gate에서 검증함"
                   },
                   {
                       "checkId":  "package-structure-standard",
@@ -560,20 +560,44 @@
                   {
                       "checkId":  "acc-generator-output-cleanup",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/remove-domain-smoke.sanitized.json, specs/evidence/20260716_02/repository-hygiene.sanitized.json",
-                      "note":  "ACC patch-candidates·중복 deploy/SQL·생성 결과를 제거하고 reference source와 generator verification 산출물을 분리함"
+                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
+                      "note":  "ACC를 generator conformance reference로 유지하고 patch-candidates·중복 deploy/SQL·임시 생성 산출물 재유입을 차단함"
                   },
                   {
-                      "checkId":  "xyz-edu-package-standard",
+                      "checkId":  "xyz-reference-package-standard",
                       "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/sample-coverage-result.sanitized.json",
-                      "note":  "XYZ EDU를 capability-first package로 이동하고 source·test·mapper 대응과 공식 샘플 coverage를 검증함"
+                      "evidence":  "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/sample-coverage-result.sanitized.json",
+                      "note":  "cpf.xyz.\u003ccapability\u003e feature-first 패키지와 /api/xyz/reference canonical API를 적용하고 기존 /xyz/edu 호환 alias를 분리 검증함"
                   },
                   {
                       "checkId":  "bat-job-package-standard",
                       "status":  "완료",
                       "evidence":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
                       "note":  "BAT actual job을 JobDefinition별 vertical slice로, EDU를 학습 유형별 package로 정리하고 온디맨드 JobRepository runtime을 검증함"
+                  },
+                  {
+                      "checkId":  "base-hierarchy",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+                      "note":  "115개 Controller·Service가 PFW Base/Contract→주제영역 Base/Contract→기능 구현의 3단 계층을 따르는지 검사함"
+                  },
+                  {
+                      "checkId":  "platform-version-artifacts",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/release-metadata-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
+                      "note":  "1.0.0-SNAPSHOT 정본, cpf-* 산출물 36개, sources·Javadoc JAR 각 9개, checksum 36개와 SBOM-lite·provenance 생성을 검증함"
+                  },
+                  {
+                      "checkId":  "logging-ownership",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json",
+                      "note":  "기술 거래 로깅 Aspect는 PFW 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함"
+                  },
+                  {
+                      "checkId":  "document-links",
+                      "status":  "완료",
+                      "evidence":  "specs/evidence/20260720_04/document-link-check.sanitized.json",
+                      "note":  "추적 중인 README·Markdown·HTML 14개에서 로컬 파일 링크 9개를 해석하고 broken link 0건을 확인함"
                   }
               ]
 }

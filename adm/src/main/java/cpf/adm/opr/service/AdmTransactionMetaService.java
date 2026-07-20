@@ -13,7 +13,7 @@ import java.util.Map;
  * ADM 거래 메타 운영 서비스입니다.
  */
 @Service
-public class AdmTransactionMetaService {
+public class AdmTransactionMetaService extends cpf.adm.common.base.AdmBaseService {
     private final CpfTransactionMetaRepository repository;
     private final ObjectProvider<CpfTransactionMetaScanner> scannerProvider;
 

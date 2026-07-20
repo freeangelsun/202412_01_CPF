@@ -22,10 +22,10 @@ $requiredTargets = @(
     "acc/src/main/java/cpf/acc/account/facade/AccAccountSummaryFacade.java",
     "mbr/src/main/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxy.java",
     "mbr/src/test/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxyTest.java",
-    "xyz/src/main/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSample.java",
-    "xyz/src/main/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorController.java",
-    "xyz/src/test/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSampleTest.java",
-    "xyz/src/test/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorControllerTest.java",
+    "xyz/src/main/java/cpf/xyz/external/XyzExternalIntegrationEducationSample.java",
+    "xyz/src/main/java/cpf/xyz/external/XyzNeutralExternalSimulatorController.java",
+    "xyz/src/test/java/cpf/xyz/external/XyzExternalIntegrationEducationSampleTest.java",
+    "xyz/src/test/java/cpf/xyz/external/XyzNeutralExternalSimulatorControllerTest.java",
     "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallEngine.java",
     "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentService.java"
 )

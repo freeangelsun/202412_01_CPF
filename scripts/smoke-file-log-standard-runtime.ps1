@@ -132,7 +132,7 @@ try {
         }
         $response = Invoke-WebRequest `
             -Method Get `
-            -Uri "$XyzBaseUrl/xyz/edu/query/headers" `
+            -Uri "$XyzBaseUrl/api/xyz/reference/query/headers" `
             -Headers (New-SmokeHeaders) `
             -TimeoutSec $TimeoutSec `
             -UseBasicParsing

@@ -23,7 +23,7 @@ import java.util.Map;
  * ADM 회원 관리 기능에서 mbrDB 회원과 권한 정보를 조회/변경합니다.
  */
 @Service
-public class AdmMemberOperationService {
+public class AdmMemberOperationService extends cpf.adm.common.base.AdmBaseService {
     private static final DateTimeFormatter MEMBER_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final JdbcTemplate mbrJdbcTemplate;

@@ -71,9 +71,9 @@ if ($selfRecord) {
     }) | Out-Null
 }
 
-$requestPath = Join-Path $Root "CPF_NEW_REQUEST.md"
+$requestPath = Join-Path $Root "CPF_CURRENT_WORK_REQUEST.md"
 $requestSha256 = Get-Sha256 $requestPath
-$requestGitBlob = (& git -C $Root hash-object -- "CPF_NEW_REQUEST.md").Trim()
+$requestGitBlob = (& git -C $Root hash-object -- "CPF_CURRENT_WORK_REQUEST.md").Trim()
 $branch = (& git -C $Root branch --show-current).Trim()
 $javaCommand = if ($env:JAVA_HOME -and (Test-Path -LiteralPath (Join-Path $env:JAVA_HOME "bin/java.exe"))) {
     Join-Path $env:JAVA_HOME "bin/java.exe"

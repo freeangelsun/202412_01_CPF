@@ -27,7 +27,7 @@ import java.util.Map;
  * 발송 이력 적재는 이 서비스에서 일관되게 처리합니다.</p>
  */
 @Service
-public class AdmNotificationService {
+public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
     private final JdbcTemplate pfwJdbcTemplate;
     private final AdmAuditLogService auditLogService;
     private final NotificationSender notificationSender;

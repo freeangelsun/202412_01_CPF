@@ -39,7 +39,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/remote-logs")
 @Tag(name = "ADM-OPR Remote Log", description = "실행 인스턴스 로그 아티팩트 조회, 미리보기, 다운로드")
-public class AdmRemoteLogController {
+public class AdmRemoteLogController extends cpf.adm.common.base.AdmBaseController {
 
     private final CpfRemoteLogArtifactPort remoteLogArtifactPort;
     private final CpfRemoteLogBundleJobPort remoteLogBundleJobPort;

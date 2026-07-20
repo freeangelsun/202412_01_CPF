@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * <p>스케줄러가 어떤 실행 대상을 만들었고, 실제 실행 이력과 어떻게 연결됐는지 ADM에서 조회할 수 있게 합니다.</p>
  */
 @Service
-public class PfwBatchExecutionTargetService {
+public class PfwBatchExecutionTargetService extends cpf.adm.common.base.AdmBaseService {
     private final JdbcTemplate pfwJdbcTemplate;
 
     public PfwBatchExecutionTargetService(@Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate) {

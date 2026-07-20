@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
-public class AdmDynamicLogLevelBroadcastService {
+public class AdmDynamicLogLevelBroadcastService extends cpf.adm.common.base.AdmBaseService {
     public static final String DESTINATION = "cpf.adm.dynamic-log-level";
 
     private static final Logger log = LoggerFactory.getLogger(AdmDynamicLogLevelBroadcastService.class);

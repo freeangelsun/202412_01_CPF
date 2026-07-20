@@ -29,7 +29,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/reliability")
 @Tag(name = "ADM-OPR Reliability", description = "PFW reliability capability 운영 조회와 수동 처리 API")
-public class AdmReliabilityController {
+public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseController {
     private final AdmReliabilityService reliabilityService;
     private final AdmBatchJobLogService batchJobLogService;
     private final AdmAuditLogService auditLogService;

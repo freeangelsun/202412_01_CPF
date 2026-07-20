@@ -76,7 +76,7 @@ function Invoke-CpfAttachmentJson {
 try {
     $store = Invoke-CpfAttachmentJson `
         -Method POST `
-        -Uri "$BaseUrl/xyz/edu/attachments/text" `
+        -Uri "$BaseUrl/api/xyz/reference/attachments/text" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 21) `
         -ExecutionId "OXYZAA0065" `
         -Body ([ordered]@{
@@ -87,7 +87,7 @@ try {
 
     $verify = Invoke-CpfAttachmentJson `
         -Method POST `
-        -Uri "$BaseUrl/xyz/edu/attachments/verify" `
+        -Uri "$BaseUrl/api/xyz/reference/attachments/verify" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 22) `
         -ExecutionId "OXYZAA0066" `
         -Body ([ordered]@{

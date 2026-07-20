@@ -7,14 +7,15 @@
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $expectedSamples = @(
-    Get-ChildItem -LiteralPath (Join-Path $Root "xyz/src/main/java/cpf/xyz/edu") -Recurse -File -Filter "*EducationSample.java"
+    Get-ChildItem -LiteralPath (Join-Path $Root "xyz/src/main/java/cpf/xyz") -Recurse -File -Filter "*EducationSample.java"
     Get-ChildItem -LiteralPath (Join-Path $Root "bat/src/main/java/cpf/bat/edu") -Recurse -File -Filter "*EducationSample.java"
 )
 $forbiddenSamples = @(
     Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
         Where-Object {
             $_.FullName -notmatch '\\build\\' -and
-            $_.FullName -notmatch '\\(xyz|bat)\\src\\main\\java\\cpf\\(xyz|bat)\\edu\\'
+            $_.FullName -notmatch '\\xyz\\src\\main\\java\\cpf\\xyz\\' -and
+            $_.FullName -notmatch '\\bat\\src\\main\\java\\cpf\\bat\\edu\\'
         }
 )
 foreach ($file in $forbiddenSamples) {

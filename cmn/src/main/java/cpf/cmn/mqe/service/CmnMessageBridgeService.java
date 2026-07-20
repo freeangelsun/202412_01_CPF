@@ -24,7 +24,7 @@ import java.util.Map;
  * 거래 header 전파, 발행 adapter와 최근 메시지 저장은 PFW가 소유합니다.</p>
  */
 @Service
-public class CmnMessageBridgeService implements CmnMessagePublisher, CmnMessageConsumer {
+public class CmnMessageBridgeService extends cpf.cmn.common.base.CmnBaseService implements CmnMessagePublisher, CmnMessageConsumer {
     private final CmnMessagingProperties properties;
     private final CpfBrokerBridgePort brokerBridgePort;
 

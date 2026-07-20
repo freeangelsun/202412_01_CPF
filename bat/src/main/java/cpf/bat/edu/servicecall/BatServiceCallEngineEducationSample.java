@@ -1,34 +1,20 @@
 package cpf.bat.edu.servicecall;
 
-import cpf.pfw.common.servicecall.CpfServiceCallEngine;
-import cpf.pfw.common.servicecall.ServiceCallRequest;
-import cpf.pfw.common.servicecall.ServiceCallResolvedTarget;
-import cpf.pfw.common.servicecall.ServiceCallResult;
-
-import java.util.function.Function;
+import java.util.Objects;
 
 /**
- * BAT가 배치 처리 중 PFW Service Call Engine을 사용하는 교육 샘플입니다.
+ * BAT가 배치 처리 중 typed client를 사용하는 기본 교육 샘플입니다.
  */
 public class BatServiceCallEngineEducationSample {
-    private final CpfServiceCallEngine serviceCallEngine;
+    private final BatMemberGradeClient memberGradeClient;
 
-    public BatServiceCallEngineEducationSample(CpfServiceCallEngine serviceCallEngine) {
-        this.serviceCallEngine = serviceCallEngine;
+    /** typed client를 주입합니다. */
+    public BatServiceCallEngineEducationSample(BatMemberGradeClient memberGradeClient) {
+        this.memberGradeClient = Objects.requireNonNull(memberGradeClient, "memberGradeClient는 필수입니다.");
     }
 
-    public ServiceCallResult<String> callMemberGrade(
-            String memberNo,
-            Function<ServiceCallResolvedTarget, String> remoteAdapter) {
-        ServiceCallRequest request = ServiceCallRequest.builder("MBR")
-                .endpointCode("MBR_MEMBER_GRADE")
-                .httpMethod("GET")
-                .requestPath("/mbr/members/" + memberNo + "/grade")
-                .timeoutMillis(5000)
-                .retryCount(1)
-                .attribute("sourceModuleCode", "BAT")
-                .attribute("externalKey", memberNo)
-                .build();
-        return serviceCallEngine.invoke(request, remoteAdapter);
+    /** 제품 기본 정책으로 회원등급을 조회합니다. */
+    public BatMemberGradeResponse callMemberGrade(String memberNo) {
+        return memberGradeClient.execute(new BatMemberGradeRequest(memberNo));
     }
 }

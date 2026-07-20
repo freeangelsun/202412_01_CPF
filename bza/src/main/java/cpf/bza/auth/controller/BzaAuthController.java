@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza/auth")
 @Tag(name = "BZA-Auth", description = "업무 관리자 로그인, refresh token, 현재 사용자, 로그인 이력 API")
-public class BzaAuthController {
+public class BzaAuthController extends cpf.bza.common.base.BzaBaseController {
     private final BzaAuthService authService;
 
     public BzaAuthController(BzaAuthService authService) {

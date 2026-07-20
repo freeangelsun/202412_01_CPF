@@ -12,7 +12,7 @@ import java.util.Map;
  * <p>ADM은 PFW 테이블이나 저장소를 직접 조회하지 않고 공개 Query Port만 사용합니다.</p>
  */
 @Service
-public class AdmServiceRegistryService {
+public class AdmServiceRegistryService extends cpf.adm.common.base.AdmBaseService {
     private final CpfServiceRegistryQueryPort queryPort;
 
     public AdmServiceRegistryService(CpfServiceRegistryQueryPort queryPort) {

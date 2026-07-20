@@ -313,7 +313,7 @@ $managedGuideDefinitions = @(
                 @("구분", "정본 경로"),
                 @("PFW port", "pfw/src/main/java/cpf/pfw/common/attachment"),
                 @("BZA API", "bza/src/main/java/cpf/bza/support"),
-                @("EDU", "xyz/src/main/java/cpf/xyz/edu/attachment"),
+                @("EDU", "xyz/src/main/java/cpf/xyz/attachment"),
                 @("단위 테스트", "LocalCpfAttachmentStorageAdapterTest, BzaSupportServiceTest, XyzAttachmentEducationSampleTest"),
                 @("DB 변경", "specs/sql/migration/flyway/V31__bza_operation_support.sql")
             ))
@@ -368,10 +368,10 @@ $managedGuideDefinitions = @(
             (New-WmlParagraph -Text "XYZ 첨부파일 EDU" -Style "Heading1"),
             (New-WmlTable -Rows @(
                 @("sample ID", "API", "학습 목적"),
-                @("XYZ-EDU-ATTACH-001", "POST /xyz/edu/attachments/text", "PFW 저장 port, 파일명·확장자·크기·경로 검증과 SHA-256"),
-                @("XYZ-EDU-ATTACH-002", "POST /xyz/edu/attachments/verify", "저장 key 재조회와 checksum 무결성 검증")
+                @("XYZ Reference-ATTACH-001", "POST /api/xyz/reference/attachments/text", "PFW 저장 port, 파일명·확장자·크기·경로 검증과 SHA-256"),
+                @("XYZ Reference-ATTACH-002", "POST /api/xyz/reference/attachments/verify", "저장 key 재조회와 checksum 무결성 검증")
             )),
-            (New-WmlParagraph -Text "소스는 xyz/src/main/java/cpf/xyz/edu/attachment, 테스트는 xyz/src/test/java/cpf/xyz/edu/attachment에 있다."),
+            (New-WmlParagraph -Text "소스는 xyz/src/main/java/cpf/xyz/attachment, 테스트는 xyz/src/test/java/cpf/xyz/attachment에 있다."),
             (New-WmlParagraph -Text "실습에서는 txt 저장 성공, exe 확장자 거부, checksum 일치와 경로 이탈 거부를 확인한다.")
         )
     }

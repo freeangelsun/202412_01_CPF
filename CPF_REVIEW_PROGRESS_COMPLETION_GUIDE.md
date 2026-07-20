@@ -652,39 +652,40 @@ report/index/gap matrix
 
 ---
 
-# 12. EDU 샘플 기능별 패키지 기준
+# 12. 기준 업무·EDU 샘플 기능별 패키지 기준
 
 EDU 샘플은 한 패키지에 몰아넣지 않는다.
 
-개발자가 기능별로 쉽게 찾고 참고할 수 있도록 `edu` 하위에 기능별 package를 나눠 구성한다.
+개발자가 기능별로 쉽게 찾고 참고할 수 있도록 capability별 package를 나눠 구성한다.
 
 `catalog` 패키지는 sampleId 목록 관리와 coverage tracking 용도로만 사용한다.
 
 실제 개발자 참조 샘플은 기능별 package 하위에 둔다.
 
-## 12.1 XYZ EDU
+## 12.1 XYZ 기준 업무 샘플
 
-XYZ는 별도 EDU 서비스가 아니라 XYZ 내부 교육 샘플 패키지를 가진다.
+XYZ는 별도 EDU 서비스나 `edu` 최상위 패키지를 만들지 않는다.
+실제 업무 모듈과 같은 feature-first 구조로 PFW 기능을 사용하는 기준 구현을 제공한다.
 
 ```text
-xyz/src/main/java/cpf/xyz/edu/crud
-xyz/src/main/java/cpf/xyz/edu/query
-xyz/src/main/java/cpf/xyz/edu/pagination
-xyz/src/main/java/cpf/xyz/edu/detail
-xyz/src/main/java/cpf/xyz/edu/transaction
-xyz/src/main/java/cpf/xyz/edu/servicecall
-xyz/src/main/java/cpf/xyz/edu/facade
-xyz/src/main/java/cpf/xyz/edu/header
-xyz/src/main/java/cpf/xyz/edu/idempotency
-xyz/src/main/java/cpf/xyz/edu/failure
-xyz/src/main/java/cpf/xyz/edu/security
-xyz/src/main/java/cpf/xyz/edu/audit
-xyz/src/main/java/cpf/xyz/edu/validation
-xyz/src/main/java/cpf/xyz/edu/telegram
-xyz/src/main/java/cpf/xyz/edu/messaging
-xyz/src/main/java/cpf/xyz/edu/filetransfer
-xyz/src/main/java/cpf/xyz/edu/archive
-xyz/src/main/java/cpf/xyz/edu/operation
+xyz/src/main/java/cpf/xyz/crud
+xyz/src/main/java/cpf/xyz/query
+xyz/src/main/java/cpf/xyz/pagination
+xyz/src/main/java/cpf/xyz/detail
+xyz/src/main/java/cpf/xyz/transaction
+xyz/src/main/java/cpf/xyz/servicecall
+xyz/src/main/java/cpf/xyz/header
+xyz/src/main/java/cpf/xyz/idempotency
+xyz/src/main/java/cpf/xyz/failure
+xyz/src/main/java/cpf/xyz/security
+xyz/src/main/java/cpf/xyz/audit
+xyz/src/main/java/cpf/xyz/validation
+xyz/src/main/java/cpf/xyz/telegram
+xyz/src/main/java/cpf/xyz/messaging
+xyz/src/main/java/cpf/xyz/filetransfer
+xyz/src/main/java/cpf/xyz/archive
+xyz/src/main/java/cpf/xyz/attachment
+xyz/src/main/java/cpf/xyz/ai
 ```
 
 ## 12.2 BAT EDU
@@ -1195,7 +1196,7 @@ start commit SHA
 - 최신 `master`인지
 - 로컬 checkout이 최신인지
 - 정본이 작업 시작 이후 변경됐는지
-- `CPF_NEW_REQUEST.md`가 최신 정본과 충돌하지 않는지
+- `CPF_CURRENT_WORK_REQUEST.md`가 최신 정본과 충돌하지 않는지
 - 기존 report·gap·matrix·evidence가 정본 변경으로 stale해지지 않았는지
 - 삭제된 분할 보조본을 참조하지 않는지
 
@@ -1435,7 +1436,7 @@ batch, scheduler, worker, center-cut, broker, file, reconciliation, saga, 운영
 
 요구사항 변경 시 즉시 갱신:
 
-- `CPF_NEW_REQUEST.md`
+- `CPF_CURRENT_WORK_REQUEST.md`
 - `CPF_FINAL_TARGET_REQUIREMENTS.md`의 정본 보강
 - `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`
 - 필요 시 report/gap/evidence index의 재확인 상태
@@ -1525,7 +1526,7 @@ rename, module 제거, package 이동 전에 기능 inventory를 작성한다.
 
 - BZA password hash, auth, refresh rotation, bootstrap, permission
 - BZA organization/employee/approval/audit/operation support
-- AI provider/embedding/vector와 XYZ EDU
+- AI provider/embedding/vector와 XYZ 기준 업무 샘플
 - remote log local/multi-instance/bundle job
 - attachment storage
 - execution catalog/log propagation

@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/observability")
 @Tag(name = "ADM-Observability", description = "ADM 거래, 오류, 감사 통합 추적 API")
-public class AdmObservabilityController {
+public class AdmObservabilityController extends cpf.adm.common.base.AdmBaseController {
     private final AdmObservabilityService observabilityService;
 
     public AdmObservabilityController(AdmObservabilityService observabilityService) {

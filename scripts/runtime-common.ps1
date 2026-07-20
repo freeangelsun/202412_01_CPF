@@ -52,7 +52,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "MBR_SERVER_PORT"
             healthPath = "/v3/api-docs"
             jarDir = "mbr/build/libs"
-            jarPattern = "mbr-*.jar"
+            jarPattern = "cpf-mbr-*.jar"
         },
         [ordered]@{
             module = "ADM"
@@ -62,7 +62,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "ADM_SERVER_PORT"
             healthPath = "/v3/api-docs"
             jarDir = "adm/build/libs"
-            jarPattern = "adm-*.jar"
+            jarPattern = "cpf-adm-*.jar"
         },
         [ordered]@{
             module = "BAT"
@@ -72,7 +72,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "BAT_SERVER_PORT"
             healthPath = "/bat/api/health"
             jarDir = "bat/build/libs"
-            jarPattern = "bat-*.jar"
+            jarPattern = "cpf-bat-*.jar"
         },
         [ordered]@{
             module = "ACC"
@@ -82,7 +82,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "ACC_SERVER_PORT"
             healthPath = "/actuator/health"
             jarDir = "acc/build/libs"
-            jarPattern = "acc-*.jar"
+            jarPattern = "cpf-acc-*.jar"
         },
         [ordered]@{
             module = "BZA"
@@ -92,7 +92,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "BZA_SERVER_PORT"
             healthPath = "/v3/api-docs"
             jarDir = "bza/build/libs"
-            jarPattern = "bza-*.jar"
+            jarPattern = "cpf-bza-*.jar"
         },
         [ordered]@{
             module = "XYZ"
@@ -102,7 +102,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "XYZ_SERVER_PORT"
             healthPath = "/v3/api-docs"
             jarDir = "xyz/build/libs"
-            jarPattern = "xyz-*.jar"
+            jarPattern = "cpf-xyz-*.jar"
         },
         [ordered]@{
             module = "GATEWAY"
@@ -112,7 +112,7 @@ function Get-CpfRuntimeModuleMap {
             portEnv = "GATEWAY_SERVER_PORT"
             healthPath = "/actuator/health"
             jarDir = "pfw-gateway-runtime/build/libs"
-            jarPattern = "pfw-gateway-runtime-*.jar"
+            jarPattern = "cpf-pfw-gateway-runtime-*.jar"
         }
     )
 }

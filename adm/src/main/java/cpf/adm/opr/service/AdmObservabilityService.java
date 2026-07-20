@@ -19,7 +19,7 @@ import java.util.Map;
  * 감사 책임과 보존 정책을 명확히 유지합니다.</p>
  */
 @Service
-public class AdmObservabilityService {
+public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService {
     private final JdbcTemplate pfwJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
 

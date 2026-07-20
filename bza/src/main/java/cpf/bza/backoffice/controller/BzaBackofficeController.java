@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza/backoffice")
 @Tag(name = "BZA-Backoffice", description = "BZA 조직·직원·실효 권한·결재·업무 감사 API")
-public class BzaBackofficeController {
+public class BzaBackofficeController extends cpf.bza.common.base.BzaBaseController {
     private final BzaBackofficeService backofficeService;
 
     public BzaBackofficeController(BzaBackofficeService backofficeService) {

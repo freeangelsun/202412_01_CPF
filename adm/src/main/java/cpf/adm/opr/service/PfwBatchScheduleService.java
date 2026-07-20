@@ -29,7 +29,7 @@ import java.util.Map;
  * 자동 스케줄러가 같은 기준으로 동작하도록 유지합니다.</p>
  */
 @Service
-public class PfwBatchScheduleService {
+public class PfwBatchScheduleService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(PfwBatchScheduleService.class);
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 

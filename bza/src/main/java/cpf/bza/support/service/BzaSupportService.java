@@ -27,7 +27,7 @@ import java.util.Set;
 
 /** BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·권한 분석을 담당합니다. */
 @Service
-public class BzaSupportService {
+public class BzaSupportService extends cpf.bza.common.base.BzaBaseService {
     private static final Set<String> DOWNLOADABLE_SCAN_STATUSES = Set.of("CLEAN", "PASSED_LOCAL_POLICY");
 
     private final BzaSupportRepository repository;

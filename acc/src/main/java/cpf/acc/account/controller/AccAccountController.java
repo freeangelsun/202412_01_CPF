@@ -5,7 +5,7 @@ import cpf.acc.account.dto.AccAccountResponse;
 import cpf.acc.account.dto.AccAccountSearchCriteria;
 import cpf.acc.account.dto.AccAccountUpdateRequest;
 import cpf.acc.account.service.AccAccountService;
-import cpf.pfw.common.base.BaseController;
+import cpf.acc.common.base.AccBaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/accounts")
 @Tag(name = "ACC 계정", description = "생성 도메인의 CRUD·검색·동시성·감사 표준을 검증하는 reference API")
-public class AccAccountController extends BaseController {
+public class AccAccountController extends AccBaseController {
     private final AccAccountService service;
 
     public AccAccountController(AccAccountService service) {

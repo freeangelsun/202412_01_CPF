@@ -1,0 +1,15 @@
+{
+    "generatedAt":  "2026-07-20T16:18:10.3126665+09:00",
+    "status":  "DONE",
+    "ownership":  {
+                      "general":  "XYZ",
+                      "batch":  "BAT"
+                  },
+    "sampleCount":  50,
+    "matrixRowCount":  50,
+    "forbiddenSampleCount":  0,
+    "failureCount":  0,
+    "failures":  [
+
+                 ]
+}

@@ -58,7 +58,7 @@ function Get-StructuralPathRule {
     if ($path -match '^acc/src/(main|test)/java/cpf/acc/(controller|service|repository|dto|facade|port|adapter|validation)/') {
         return 'ACC_FEATURE_SLICE_REQUIRED'
     }
-    if ($path -match '^xyz/src/(main|test)/java/cpf/xyz/edu/(controller|dto|service|repository|mapper|facade|operation|config)/') {
+    if ($path -match '^xyz/src/(main|test)/java/cpf/xyz/(controller|dto|service|repository|mapper|facade|operation)/') {
         return 'XYZ_EDU_CAPABILITY_SLICE_REQUIRED'
     }
     if ($path -match '^bat/src/(main|test)/java/cpf/bat/edu/[^/]+\.java$' -or
@@ -137,6 +137,9 @@ foreach ($module in $modules) {
         }
 
         if ($businessModules -contains $module) {
+            if ($text -match '(?m)^\s*@(Aspect|Around|Before|After|AfterReturning|AfterThrowing)\b') {
+                Add-Finding $failures "BUSINESS_NO_TECHNICAL_LOGGING_ASPECT" $relativePath "업무 주제영역에 기술 공통 AOP 구현이 있습니다." "거래·성능·오류 로그 Aspect는 PFW가 소유하고 업무 모듈은 annotation 또는 extension port만 사용하세요."
+            }
             foreach ($targetModule in $businessModules) {
                 if ($targetModule -eq $module) {
                     continue
@@ -149,7 +152,7 @@ foreach ($module in $modules) {
                 Add-Finding $failures "BUSINESS_NO_RAW_HTTP_CLIENT" $relativePath "Business module creates raw HTTP client." "Use CpfWebClient or PFW Service Call Engine."
             }
             if (Test-Text $text "https?://") {
-                if ($relativePath -match "^xyz/src/main/java/cpf/xyz/edu/" -and $text -match "CPF-ARCH-ALLOW-DIRECT-URL:\s*EDU_ONLY") {
+                if ($relativePath -match "^xyz/src/main/java/cpf/xyz/" -and $text -match "CPF-ARCH-ALLOW-DIRECT-URL:\s*EDU_ONLY") {
                     continue
                 }
                 Add-Finding $warnings "BUSINESS_DIRECT_URL_REVIEW" $relativePath "Business source has URL literal." "Check whether this is education-only or should use registry/service-call."
@@ -164,7 +167,7 @@ foreach ($module in $modules) {
 # 과거 잘못된 구조를 fixture로 고정해 gate 규칙이 약화되는 회귀를 막습니다.
 $regressionFixtures = @(
     @{ path = 'acc/src/main/java/cpf/acc/controller/AccountController.java'; rule = 'ACC_FEATURE_SLICE_REQUIRED' },
-    @{ path = 'xyz/src/main/java/cpf/xyz/edu/controller/XyzCrudEducationController.java'; rule = 'XYZ_EDU_CAPABILITY_SLICE_REQUIRED' },
+    @{ path = 'xyz/src/main/java/cpf/xyz/controller/XyzCrudEducationController.java'; rule = 'XYZ_EDU_CAPABILITY_SLICE_REQUIRED' },
     @{ path = 'bat/src/main/java/cpf/bat/edu/BatTaskletEducationSample.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' },
     @{ path = 'bat/src/main/java/cpf/bat/job/BatSmokeJobConfig.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' }
 )

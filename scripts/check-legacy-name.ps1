@@ -13,7 +13,7 @@ $skipDirectories = @(
     "\logs\", "\node_modules\", "\vendor\"
 )
 $skipFileNames = @(
-    "CPF_NEW_REQUEST.md",
+    "CPF_CURRENT_WORK_REQUEST.md",
     "CPF_REQUEST.md",
     "CPF_CODEX_REQUEST_20260618_01.md",
     "CPF_STABILIZATION_REPORT.html",

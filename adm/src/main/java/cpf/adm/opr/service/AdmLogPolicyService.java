@@ -29,7 +29,7 @@ import java.util.Optional;
  * 별도 운영 보강에서 확장합니다.</p>
  */
 @Service
-public class AdmLogPolicyService {
+public class AdmLogPolicyService extends cpf.adm.common.base.AdmBaseService {
     private final JdbcTemplate pfwJdbcTemplate;
     private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
 

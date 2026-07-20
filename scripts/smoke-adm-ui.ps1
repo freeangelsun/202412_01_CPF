@@ -60,7 +60,12 @@ function Get-ToolStatus {
         [string[]] $VersionArguments = @()
     )
 
-    $command = Get-Command $Name -ErrorAction SilentlyContinue
+    $commandName = if ($env:OS -eq "Windows_NT" -and $Name -in @("npm", "npx")) {
+        "$Name.cmd"
+    } else {
+        $Name
+    }
+    $command = Get-Command $commandName -ErrorAction SilentlyContinue
     if ($null -eq $command) {
         return New-Status -Available $false
     }
@@ -192,15 +197,19 @@ $result.environment.chromedriver = Get-ToolStatus -Name "chromedriver"
 $result.environment.geckodriver = Get-ToolStatus -Name "geckodriver"
 
 if ($result.environment.npx.available) {
-    $result.environment.playwright = Invoke-Tool -Path $result.environment.npx.path -Arguments @("playwright", "--version")
+    # 실제 실행 단계가 Playwright 설치·실행 가능 여부를 판정한다.
+    # npx 버전 확인 뒤 같은 패키지를 다시 조회하면 Windows npm 임시 캐시 잠금이 간헐적으로 발생한다.
+    $result.environment.playwright = New-Status `
+        -Available $true `
+        -Path $result.environment.npx.path `
+        -Output "resolved at execution time" `
+        -ExitCode 0
 } else {
     $result.environment.playwright = New-Status -Available $false -Output "npx is not available."
 }
 
 $browserToolMissing = -not $result.environment.node.available `
-    -or -not $result.environment.npm.available `
-    -or -not $result.environment.npx.available `
-    -or -not $result.environment.playwright.available
+    -or -not $result.environment.npm.available
 
 if ($browserToolMissing) {
     $result.browserClick.status = "SKIPPED"
@@ -214,7 +223,10 @@ if ($browserToolMissing) {
 }
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
-$specPath = Join-Path $LogDir "adm-ui-click-smoke.spec.js"
+$LogDir = (Resolve-Path -LiteralPath $LogDir).Path
+$runnerDir = Join-Path $Root "build/runtime-smoke/playwright-runner"
+New-Item -ItemType Directory -Force -Path $runnerDir | Out-Null
+$specPath = Join-Path $runnerDir "adm-ui-click-smoke.spec.js"
 $screenshotPath = Join-Path $LogDir "adm-ui-click-smoke.png"
 $playwrightLogPath = Join-Path $LogDir "adm-ui-click-smoke.log"
 
@@ -222,6 +234,8 @@ $spec = @'
 const { test, expect } = require("@playwright/test");
 
 // ADM_UI_BROWSER_CLICK_FLOW
+test.use({ channel: "msedge" });
+
 test("ADM UI basic click flow", async ({ page }) => {
   const baseUrl = process.env.ADM_BASE_URL || "http://localhost:8090";
   const username = process.env.ADM_UI_SMOKE_USERNAME || "admin";
@@ -285,17 +299,36 @@ try {
     $env:ADM_UI_SMOKE_PASSWORD = $AdmPassword
     $env:ADM_UI_SMOKE_SCREENSHOT = $screenshotPath
 
-    $npxPath = $result.environment.npx.path
+    $playwrightPath = Join-Path $runnerDir "node_modules/.bin/playwright.cmd"
+    if (-not (Test-Path -LiteralPath $playwrightPath)) {
+        $installOutput = & $result.environment.npm.path `
+            "install" `
+            "--prefix" $runnerDir `
+            "--no-save" `
+            "--package-lock=false" `
+            "--no-audit" `
+            "--no-fund" `
+            "@playwright/test@1.61.1" 2>&1
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $playwrightPath)) {
+            throw "ADM UI Playwright runner installation failed: $(($installOutput | Out-String).Trim())"
+        }
+    }
     $playwrightArguments = @(
-        "playwright",
         "test",
-        $specPath,
+        (Split-Path -Leaf $specPath),
         "--reporter=list",
-        "--trace=on",
-        "--screenshot=on"
+        "--trace=on"
     )
-    $playwrightOutput = & $npxPath @playwrightArguments 2>&1
-    $playwrightExitCode = $LASTEXITCODE
+    if (Test-Path -LiteralPath $playwrightLogPath) {
+        Remove-Item -LiteralPath $playwrightLogPath -Force
+    }
+    Push-Location $runnerDir
+    try {
+        $playwrightOutput = & $playwrightPath @playwrightArguments 2>&1
+        $playwrightExitCode = $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
     $playwrightOutput | Set-Content -LiteralPath $playwrightLogPath -Encoding UTF8
 
     $result.browserClick.exitCode = $playwrightExitCode

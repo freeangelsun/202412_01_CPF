@@ -16,7 +16,7 @@ import java.util.StringJoiner;
  * 외부 연계 모듈이 추가되더라도 표준 구간 로그에 기록하면 ADM 구현 변경 없이 함께 조회됩니다.</p>
  */
 @Service
-public class AdmTransactionGroupService {
+public class AdmTransactionGroupService extends cpf.adm.common.base.AdmBaseService {
     private final CpfTransactionTimelineQueryPort timelineQueryPort;
 
     public AdmTransactionGroupService(CpfTransactionTimelineQueryPort timelineQueryPort) {

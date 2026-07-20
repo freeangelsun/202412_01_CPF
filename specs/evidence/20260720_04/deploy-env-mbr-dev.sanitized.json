@@ -1,0 +1,11 @@
+{
+    "generatedAt": "2026-07-20T16:18:12.525+0900",
+    "module": "MBR",
+    "env": "dev",
+    "status": "DONE",
+    "envFile": "deploy/env/dev-mbr.env",
+    "keyCount": 11,
+    "failures": [
+
+    ]
+}

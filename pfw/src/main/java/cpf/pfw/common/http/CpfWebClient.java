@@ -1,5 +1,7 @@
 package cpf.pfw.common.http;
 
+import cpf.pfw.common.execution.CpfStandardExecutionId;
+import cpf.pfw.common.header.CpfHeaderNames;
 import cpf.pfw.common.servicecall.CpfServiceCallEngine;
 import cpf.pfw.common.servicecall.CpfServiceCallException;
 import cpf.pfw.common.servicecall.ServiceCallRequest;
@@ -80,6 +82,37 @@ public class CpfWebClient {
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
+    }
+
+    /**
+     * 표준 실행 ID를 계약 키로 사용하는 typed GET adapter 호출을 수행합니다.
+     *
+     * <p>업무 서비스는 generated client 또는 facade를 사용하고, remote adapter만 이 메서드에서
+     * transport URI를 조립합니다. timeout과 retry는 중앙 정책 및 endpoint metadata가 결정합니다.</p>
+     *
+     * @param executionId 표준 실행 ID
+     * @param serviceId 대상 서비스 ID
+     * @param uriFunction adapter 전용 상대 URI 생성기
+     * @param responseType 응답 형식
+     * @param <T> 응답 형식
+     * @return 호출 응답
+     */
+    public <T> T get(
+            CpfStandardExecutionId executionId,
+            String serviceId,
+            Function<UriBuilder, URI> uriFunction,
+            Class<T> responseType) {
+        if (executionId == null) {
+            throw new IllegalArgumentException("표준 실행 ID는 필수입니다.");
+        }
+        URI relativeUri = relativeUri(uriFunction);
+        ServiceCallRequest request = ServiceCallRequest.builder(serviceId)
+                .endpointCode(executionId.value())
+                .httpMethod("GET")
+                .requestPath(relativeUri.toString())
+                .header(CpfHeaderNames.STANDARD_EXECUTION_ID, executionId.value())
+                .build();
+        return get(request, responseType);
     }
 
     /**

@@ -88,7 +88,13 @@ if ($RequireBootJars) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     foreach ($module in $BootModules) {
         $libRoot = Join-Path $Root "$module/build/libs"
-        $jars = if (Test-Path -LiteralPath $libRoot) { @(Get-ChildItem -LiteralPath $libRoot -File -Filter "*.jar" | Where-Object { $_.Name -notmatch '-plain\.jar$' } | Sort-Object LastWriteTime -Descending) } else { @() }
+        $jars = if (Test-Path -LiteralPath $libRoot) {
+            @(Get-ChildItem -LiteralPath $libRoot -File -Filter "*.jar" |
+                Where-Object { $_.Name -notmatch '-(?:plain|sources|javadoc)\.jar$' } |
+                Sort-Object LastWriteTime -Descending)
+        } else {
+            @()
+        }
         if ($jars.Count -eq 0) {
             $failures.Add("bootJar is missing for module: $module") | Out-Null
             continue

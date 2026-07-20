@@ -23,7 +23,7 @@ import java.util.HexFormat;
  * Base64, HMAC, AES-GCM, PBKDF2, 난수 생성처럼 여러 업무 모듈이 공유하는 보안 기능을 제공합니다.
  */
 @Service
-public class CmnCryptoService {
+public class CmnCryptoService extends cpf.cmn.common.base.CmnBaseService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int AES_GCM_IV_BYTES = 12;
     private static final int AES_GCM_TAG_BITS = 128;

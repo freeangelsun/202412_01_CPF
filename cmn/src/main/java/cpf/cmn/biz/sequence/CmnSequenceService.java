@@ -23,7 +23,7 @@ import java.util.Map;
  * 업무 처리 실패 후 이미 발급된 번호는 감사 추적을 위해 유지하며, 번호 gap은 허용하는 정책을 기본으로 둡니다.</p>
  */
 @Service
-public class CmnSequenceService {
+public class CmnSequenceService extends cpf.cmn.common.base.CmnBaseService {
     private static final String DEFAULT_REQUEST_USER = "CMN";
     private static final String DEFAULT_SEQUENCE_KIND = "DEFAULT";
     private static final String DEFAULT_CHANNEL_CODE = "ALL";

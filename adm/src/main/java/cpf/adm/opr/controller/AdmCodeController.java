@@ -26,7 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/codes")
 @Tag(name = "ADM-PFW Codes", description = "PFW 공통 코드 관리 API")
-public class AdmCodeController {
+public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
     private final CodeCacheService codeCacheService;
     private final AdmAuditLogService auditLogService;
 

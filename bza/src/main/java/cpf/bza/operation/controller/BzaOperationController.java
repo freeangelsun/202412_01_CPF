@@ -25,7 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza")
 @Tag(name = "BZA-Operations", description = "업무 관리자 사용자, 메뉴, 권한, 고객, 상품, 주문, 설정 운영 API")
-public class BzaOperationController {
+public class BzaOperationController extends cpf.bza.common.base.BzaBaseController {
     private final BzaOperationService operationService;
 
     public BzaOperationController(BzaOperationService operationService) {

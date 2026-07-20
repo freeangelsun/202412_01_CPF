@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/transaction-groups")
 @Tag(name = "ADM-TransactionGroup", description = "transactionGlobalId 그룹, 구간, 타임라인, 헤더, 외부 호출 조회 API")
-public class AdmTransactionGroupController {
+public class AdmTransactionGroupController extends cpf.adm.common.base.AdmBaseController {
     private final AdmTransactionGroupService transactionGroupService;
 
     public AdmTransactionGroupController(AdmTransactionGroupService transactionGroupService) {

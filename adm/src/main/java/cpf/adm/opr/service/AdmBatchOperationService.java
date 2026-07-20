@@ -29,7 +29,7 @@ import java.util.Map;
  * ADM은 운영자가 보는 조회, 영업일, 관계, 수행 대상, 감사 연결 기능을 담당합니다.</p>
  */
 @Service
-public class AdmBatchOperationService {
+public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmBatchOperationService.class);
 
     private final JdbcTemplate pfwJdbcTemplate;

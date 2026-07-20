@@ -19,7 +19,7 @@ import java.util.Map;
  * 민감정보 마스킹, 고정길이 필드 분해 결과를 함께 반환합니다.</p>
  */
 @Service
-public class AdmLogQueryService {
+public class AdmLogQueryService extends cpf.adm.common.base.AdmBaseService {
     private final JdbcTemplate pfwJdbcTemplate;
     private final ObjectMapper objectMapper;
 

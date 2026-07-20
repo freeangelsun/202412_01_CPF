@@ -19,7 +19,7 @@ import java.util.Map;
  * 현재 프레임워크 기본 구현은 HS256 서명 방식을 제공하며, 운영 환경에서는 secret을 환경변수나 Vault/KMS로 주입합니다.
  */
 @Service
-public class CmnJwtService {
+public class CmnJwtService extends cpf.cmn.common.base.CmnBaseService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 

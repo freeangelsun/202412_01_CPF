@@ -5,8 +5,6 @@ plugins {
 }
 
 group = 'cpf.adm'
-version = '0.0.1-cpf.adm-SNAPSHOT'
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)

@@ -1,0 +1,253 @@
+{
+    "startedAt":  "2026-07-20T16:16:58.4473810+09:00",
+    "moduleCode":  "pym",
+    "dryRun":  {
+                   "status":  "완료",
+                   "dryRun":  true,
+                   "moduleCode":  "PYM",
+                   "moduleName":  "Lending",
+                   "domainIdCode":  "PYM",
+                   "basePackage":  "cpf.pym",
+                   "tablePrefix":  "pym",
+                   "port":  8188,
+                   "online":  true,
+                   "batch":  false,
+                   "bzaMenu":  false,
+                   "productionProfile":  false,
+                   "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                   "generatePatch":  false,
+                   "applyMode":  false,
+                   "conflicts":  [
+
+                                 ],
+                   "generatedFiles":  [
+
+                                      ],
+                   "patchFiles":  [
+
+                                  ],
+                   "patchCandidates":  [
+
+                                       ]
+               },
+    "generate":  {
+                     "status":  "완료",
+                     "dryRun":  false,
+                     "moduleCode":  "PYM",
+                     "moduleName":  "Lending",
+                     "domainIdCode":  "PYM",
+                     "basePackage":  "cpf.pym",
+                     "tablePrefix":  "pym",
+                     "port":  8188,
+                     "online":  true,
+                     "batch":  false,
+                     "bzaMenu":  false,
+                     "productionProfile":  false,
+                     "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                     "generatePatch":  false,
+                     "applyMode":  false,
+                     "conflicts":  [
+
+                                   ],
+                     "generatedFiles":  [
+                                            "build\\domain-generator\\pym\\build.gradle",
+                                            "build\\domain-generator\\pym\\README.md",
+                                            "build\\domain-generator\\pym\\manifest\\domain-manifest.json",
+                                            "build\\domain-generator\\pym\\manifest\\ownership.json",
+                                            "build\\domain-generator\\pym\\manifest\\standard-execution-catalog.json",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\reference\\LendingReferenceMapper.xml",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\PymApplication.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\base\\PymBaseController.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\base\\PymBaseService.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymApplicationFacade.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymRepositoryPort.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymRequest.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymResponse.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingDataSourceConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingMyBatisConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\facade\\LendingReferenceFacade.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\port\\LendingReferenceQueryPort.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\local\\LocalLendingReferenceQueryAdapter.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\remote\\RemoteLendingReferenceQueryProxy.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\service\\LendingReferenceService.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\repository\\LendingReferenceRepository.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\dto\\LendingReferenceSearchRequest.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\validation\\LendingReferenceSearchValidator.java",
+                                            "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\reference\\service\\LendingReferenceServiceTest.java",
+                                            "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                                            "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\controller\\LendingReferenceController.java",
+                                            "build\\domain-generator\\pym\\manifest\\generator-ownership.json"
+                                        ],
+                     "patchFiles":  [
+
+                                    ],
+                     "patchCandidates":  [
+
+                                         ]
+                 },
+    "requiredFiles":  [
+                          {
+                              "path":  "build\\domain-generator\\pym\\build.gradle",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\README.md",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\domain-manifest.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\ownership.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\generator-ownership.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\standard-execution-catalog.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\PymApplication.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\base\\PymBaseController.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\base\\PymBaseService.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymApplicationFacade.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymRepositoryPort.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymRequest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\common\\contract\\PymResponse.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingDataSourceConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingMyBatisConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\controller\\LendingReferenceController.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\facade\\LendingReferenceFacade.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\port\\LendingReferenceQueryPort.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\local\\LocalLendingReferenceQueryAdapter.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\remote\\RemoteLendingReferenceQueryProxy.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\service\\LendingReferenceService.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\repository\\LendingReferenceRepository.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\dto\\LendingReferenceSearchRequest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\validation\\LendingReferenceSearchValidator.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\reference\\service\\LendingReferenceServiceTest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\reference\\LendingReferenceMapper.xml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                              "exists":  true
+                          }
+                      ],
+    "forbiddenFiles":  [
+                           {
+                               "path":  "build\\domain-generator\\pym\\patch-candidates",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\batch",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingBatchRepositoryConfig.java",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-prod.yml",
+                               "exists":  false
+                           },
+                           {
+                               "path":  "build\\domain-generator\\pym\\deploy",
+                               "exists":  false
+                           }
+                       ],
+    "compile":  {
+                    "status":  "완료",
+                    "exitCode":  0,
+                    "logPath":  "specs\\evidence\\20260720_04\\create-domain-compile.sanitized.log",
+                    "testTask":  ":pym:test",
+                    "bootJarTask":  ":pym:bootJar",
+                    "bootWarTask":  ":pym:bootWar",
+                    "classMajor":  69,
+                    "bootJar":  "build\\domain-generator\\pym\\build\\libs\\cpf-pym-1.0.0-SNAPSHOT.jar",
+                    "bootWar":  "build\\domain-generator\\pym\\build\\libs\\cpf-pym-1.0.0-SNAPSHOT.war",
+                    "javaExecutable":  "JAVA_HOME/bin/java"
+                },
+    "cleanup":  {
+                    "previewRemoved":  true,
+                    "verificationRemoved":  true
+                },
+    "status":  "완료",
+    "finishedAt":  "2026-07-20T16:17:51.9804888+09:00"
+}

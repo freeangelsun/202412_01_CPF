@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/operators")
 @Tag(name = "ADM-OPR Operators", description = "Operator, role, and menu management APIs")
-public class AdmOperatorController {
+public class AdmOperatorController extends cpf.adm.common.base.AdmBaseController {
     private final AdmOperatorService operatorService;
     private final AdmSessionService sessionService;
     private final AdmAuditLogService auditLogService;

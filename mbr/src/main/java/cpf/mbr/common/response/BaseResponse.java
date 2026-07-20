@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Standard API response body for MBR.
- */
+/** MBR API가 사용하는 표준 응답 본문입니다. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,16 +23,16 @@ public class BaseResponse<T> implements Serializable {
     private String transactionId;
     private String traceId;
 
-    /** Response code such as SMBR000000 or EMBR010002. */
+    /** SMBR000000 또는 EMBR010002 형식의 응답 코드입니다. */
     private String statusCode;
 
-    /** Message code such as MMBR000000 or MMBR010102. */
+    /** MMBR000000 또는 MMBR010102 형식의 메시지 코드입니다. */
     private String messageCode;
 
-    /** Backward compatible message field. */
+    /** 기존 클라이언트 호환을 위한 메시지 필드입니다. */
     private String message;
 
-    /** Explicit message content field for the common response standard. */
+    /** 공통 응답 표준이 명시적으로 제공하는 메시지 내용입니다. */
     private String messageContent;
 
     private T data;
@@ -42,36 +40,37 @@ public class BaseResponse<T> implements Serializable {
     private LocalDateTime timestamp;
 
     public static <T> BaseResponse<T> ok(ResponseCode code, T data) {
-        return BaseResponse.<T>base(code, code.getMessage())
-                .data(data)
-                .build();
+        BaseResponse<T> response = BaseResponse.base(code, code.getMessage());
+        response.data = data;
+        return response;
     }
 
     public static <T> BaseResponse<T> ok(ResponseCode code) {
-        return BaseResponse.<T>base(code, code.getMessage()).build();
+        return BaseResponse.base(code, code.getMessage());
     }
 
     public static <T> BaseResponse<T> error(ResponseCode code, String errorMessage) {
         String resolvedMessage = errorMessage != null ? errorMessage : code.getMessage();
-        return BaseResponse.<T>base(code, resolvedMessage).build();
+        return BaseResponse.base(code, resolvedMessage);
     }
 
     public static <T> BaseResponse<T> error(ResponseCode code, ErrorDetail errorDetail) {
-        return BaseResponse.<T>base(code, code.getMessage())
-                .errorDetail(errorDetail)
-                .build();
+        BaseResponse<T> response = BaseResponse.base(code, code.getMessage());
+        response.errorDetail = errorDetail;
+        return response;
     }
 
-    private static <T> BaseResponseBuilder<T> base(ResponseCode code, String message) {
-        return BaseResponse.<T>builder()
-                .messageId(generateMessageId())
-                .transactionId(TransactionContext.getOrCreateTransactionId())
-                .traceId(TransactionContext.getOrCreateTraceId())
-                .statusCode(code.getCode())
-                .messageCode(code.getMessageCode())
-                .message(message)
-                .messageContent(message)
-                .timestamp(LocalDateTime.now());
+    private static <T> BaseResponse<T> base(ResponseCode code, String message) {
+        BaseResponse<T> response = new BaseResponse<>();
+        response.messageId = generateMessageId();
+        response.transactionId = TransactionContext.getOrCreateTransactionId();
+        response.traceId = TransactionContext.getOrCreateTraceId();
+        response.statusCode = code.getCode();
+        response.messageCode = code.getMessageCode();
+        response.message = message;
+        response.messageContent = message;
+        response.timestamp = LocalDateTime.now();
+        return response;
     }
 
     private static String generateMessageId() {

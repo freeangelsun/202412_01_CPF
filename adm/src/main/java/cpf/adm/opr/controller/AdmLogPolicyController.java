@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/log-policies")
 @Tag(name = "ADM-OPR Log Policy", description = "PFW 로그 정책과 임시 override 관리 API")
-public class AdmLogPolicyController {
+public class AdmLogPolicyController extends cpf.adm.common.base.AdmBaseController {
     private final AdmLogPolicyService logPolicyService;
 
     public AdmLogPolicyController(AdmLogPolicyService logPolicyService) {

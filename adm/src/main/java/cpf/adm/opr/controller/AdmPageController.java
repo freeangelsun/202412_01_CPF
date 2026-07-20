@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * CPF 기능 설명입니다.
  */
 @Controller
-public class AdmPageController {
+public class AdmPageController extends cpf.adm.common.base.AdmBaseController {
 
     /**
      * CPF 기능 설명입니다.

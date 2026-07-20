@@ -35,7 +35,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/permissions")
 @Tag(name = "ADM-OPR Permissions", description = "ADM 메뉴/버튼 권한 관리 API")
-public class AdmPermissionController {
+public class AdmPermissionController extends cpf.adm.common.base.AdmBaseController {
     private final AdmPermissionService permissionService;
     private final AdmAuditLogService auditLogService;
 

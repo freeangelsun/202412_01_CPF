@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $evidenceRows = New-Object System.Collections.Generic.List[object]
 $currentEvidenceIds = @{}
+$currentStartCommits = @{}
 $legacyUntrackedRows = New-Object System.Collections.Generic.List[object]
 $currentUntrackedRows = New-Object System.Collections.Generic.List[object]
 
@@ -85,7 +86,7 @@ foreach ($sourceFile in $sourceFiles) {
 $uniqueRows = @($evidenceRows | Sort-Object evidencePath, sourceFile -Unique)
 $missingRows = New-Object System.Collections.Generic.List[object]
 $currentResultRelative = $ResultDir.Substring($Root.Length).TrimStart("\", "/").Replace("\", "/")
-$startCommit = (& git -C $Root rev-parse HEAD).Trim()
+$headCommit = (& git -C $Root rev-parse HEAD).Trim()
 foreach ($row in $uniqueRows) {
     $fullPath = Join-Path $Root ($row.evidencePath.Replace("/", "\"))
     if (-not (Test-Path -LiteralPath $fullPath)) {
@@ -124,8 +125,15 @@ foreach ($row in $uniqueRows) {
         $content = Read-Utf8Text $fullPath
         $commitMatch = [regex]::Match($content, '(?m)^START_COMMIT=([^\r\n]+)$')
         $idMatch = [regex]::Match($content, '(?m)^EVIDENCE_ID=([^\r\n]+)$')
-        if (-not $commitMatch.Success -or $commitMatch.Groups[1].Value -ne $startCommit) {
-            Add-Failure ("current evidence start commit is stale or missing: {0}" -f $row.evidencePath)
+        if (-not $commitMatch.Success -or $commitMatch.Groups[1].Value -notmatch '^[0-9a-fA-F]{40}$') {
+            Add-Failure ("current evidence start commit is missing or invalid: {0}" -f $row.evidencePath)
+        } else {
+            $evidenceStartCommit = $commitMatch.Groups[1].Value.ToLowerInvariant()
+            $currentStartCommits[$evidenceStartCommit] = $true
+            & git -C $Root merge-base --is-ancestor $evidenceStartCommit $headCommit 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Add-Failure ("current evidence start commit is not an ancestor of HEAD: {0}" -f $row.evidencePath)
+            }
         }
         if (-not $idMatch.Success) {
             Add-Failure ("current evidence id is missing: {0}" -f $row.evidencePath)
@@ -138,12 +146,17 @@ foreach ($row in $uniqueRows) {
     }
 }
 
+if ($currentStartCommits.Count -gt 1) {
+    Add-Failure ("current sanitized logs use different start commits: {0}" -f (($currentStartCommits.Keys | Sort-Object) -join ", "))
+}
+
 Write-JsonEvidence "evidence-path-existence-check.sanitized.json" ([pscustomobject]@{
     generatedAt = (Get-Date).ToString("o")
     status = $(if ($failures.Count -eq 0) { $statusDone } else { $statusFailed })
     checkedCount = $uniqueRows.Count
     missingCount = $missingRows.Count
     currentEvidenceIdCount = $currentEvidenceIds.Count
+    currentStartCommits = @($currentStartCommits.Keys | Sort-Object)
     currentUntrackedCount = $currentUntrackedRows.Count
     legacyUntrackedCount = $legacyUntrackedRows.Count
     checked = $uniqueRows

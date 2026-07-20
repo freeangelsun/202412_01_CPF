@@ -47,8 +47,9 @@ logging:
   level:
     root: INFO
     cpf: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.jdbc.core: DEBUG
+    # 로그인·회원 요청의 민감 필드와 SQL bind 값이 local 로그에도 노출되지 않게 합니다.
+    org.springframework.web: INFO
+    org.springframework.jdbc.core: INFO
     org.apache.ibatis: DEBUG
   config: classpath:log/cpf-logback-spring.xml
 

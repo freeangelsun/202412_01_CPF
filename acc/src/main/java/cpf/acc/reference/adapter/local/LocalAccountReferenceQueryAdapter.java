@@ -1,8 +1,8 @@
-package cpf.acc.adapter.local;
+package cpf.acc.reference.adapter.local;
 
-import cpf.acc.dto.AccountSearchRequest;
-import cpf.acc.port.AccountQueryPort;
-import cpf.acc.repository.AccountRepository;
+import cpf.acc.reference.dto.AccountReferenceSearchRequest;
+import cpf.acc.reference.port.AccountReferenceQueryPort;
+import cpf.acc.reference.repository.AccountReferenceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -15,11 +15,11 @@ import java.util.Map;
 @Primary
 @Component
 @RequiredArgsConstructor
-public class LocalAccountQueryAdapter implements AccountQueryPort {
-    private final AccountRepository repository;
+public class LocalAccountReferenceQueryAdapter implements AccountReferenceQueryPort {
+    private final AccountReferenceRepository repository;
 
     @Override
-    public Map<String, Object> search(AccountSearchRequest request) {
+    public Map<String, Object> search(AccountReferenceSearchRequest request) {
         return repository.search(request);
     }
 }

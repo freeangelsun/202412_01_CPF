@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.query.dto;
 
 /**
  * 조회 EDU 샘플에서 사용하는 읽기 전용 항목 DTO입니다.

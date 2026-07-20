@@ -52,11 +52,55 @@ function Get-JavaFiles {
     return @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter "*.java")
 }
 
+function Get-StructuralPathRule {
+    param([string] $RelativePath)
+    $path = $RelativePath.Replace('\', '/')
+    if ($path -match '^acc/src/(main|test)/java/cpf/acc/(controller|service|repository|dto|facade|port|adapter|validation)/') {
+        return 'ACC_FEATURE_SLICE_REQUIRED'
+    }
+    if ($path -match '^xyz/src/(main|test)/java/cpf/xyz/edu/(controller|dto|service|repository|mapper|facade|operation|config)/') {
+        return 'XYZ_EDU_CAPABILITY_SLICE_REQUIRED'
+    }
+    if ($path -match '^bat/src/(main|test)/java/cpf/bat/edu/[^/]+\.java$' -or
+            $path -match '^bat/src/(main|test)/java/cpf/bat/edu/job/' -or
+            $path -match '^bat/src/(main|test)/java/cpf/bat/job/[^/]+\.java$' -or
+            $path -match '^bat/src/(main|test)/java/cpf/bat/centercut/') {
+        return 'BAT_JOB_DEFINITION_SLICE_REQUIRED'
+    }
+    return $null
+}
+
 foreach ($module in $modules) {
     foreach ($file in (Get-JavaFiles $module)) {
         $checkedFiles++
         $relativePath = Get-RelativePath $file.FullName
         $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
+
+        $structuralRule = Get-StructuralPathRule $relativePath
+        if ($null -ne $structuralRule) {
+            Add-Finding $failures $structuralRule $relativePath `
+                    "기능 또는 JobDefinition 소유 경계 밖의 계층형 package에 있습니다." `
+                    "owner feature 또는 owner job package 안으로 이동하고 source/test/resource를 함께 맞추세요."
+        }
+
+        $sourceMarker = if ($relativePath -match '/src/main/java/') { '/src/main/java/' } else { '/src/test/java/' }
+        $declaredPackage = [regex]::Match($text, '(?m)^package\s+([a-zA-Z0-9_.]+);')
+        if ($declaredPackage.Success) {
+            $suffix = $relativePath.Substring($relativePath.IndexOf($sourceMarker) + $sourceMarker.Length)
+            $expectedPackage = $suffix.Substring(0, $suffix.LastIndexOf('/')).Replace('/', '.')
+            if ($declaredPackage.Groups[1].Value -ne $expectedPackage) {
+                Add-Finding $failures "SOURCE_PACKAGE_PATH_MISMATCH" $relativePath `
+                        "선언 package가 경로와 다릅니다. declared=$($declaredPackage.Groups[1].Value) expected=$expectedPackage" `
+                        "source와 test package 경로를 같은 feature 구조로 이동하세요."
+            }
+        }
+
+        if ($text -match 'import\s+[^;]*\.repository\.[^;]+;' -and
+                $text -match '(?m)^\s*(public\s+)?class\s+\w*Controller\b') {
+            Add-Finding $failures "CONTROLLER_NO_REPOSITORY_IMPORT" $relativePath `
+                    "Controller가 Repository를 직접 import합니다." `
+                    "Controller는 application service 또는 facade를 통해 접근하세요."
+        }
 
         if ($module -eq "pfw") {
             foreach ($targetModule in $implementationModules) {
@@ -114,6 +158,30 @@ foreach ($module in $modules) {
                 Add-Finding $warnings "BUSINESS_BROKER_ADAPTER_REVIEW" $relativePath "Business module has broker adapter candidate." "Keep common broker port in PFW and verify this is only a business adapter."
             }
         }
+    }
+}
+
+# 과거 잘못된 구조를 fixture로 고정해 gate 규칙이 약화되는 회귀를 막습니다.
+$regressionFixtures = @(
+    @{ path = 'acc/src/main/java/cpf/acc/controller/AccountController.java'; rule = 'ACC_FEATURE_SLICE_REQUIRED' },
+    @{ path = 'xyz/src/main/java/cpf/xyz/edu/controller/XyzCrudEducationController.java'; rule = 'XYZ_EDU_CAPABILITY_SLICE_REQUIRED' },
+    @{ path = 'bat/src/main/java/cpf/bat/edu/BatTaskletEducationSample.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' },
+    @{ path = 'bat/src/main/java/cpf/bat/job/BatSmokeJobConfig.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' }
+)
+$fixtureResults = @()
+foreach ($fixture in $regressionFixtures) {
+    $detected = Get-StructuralPathRule $fixture.path
+    $passed = $detected -eq $fixture.rule
+    $fixtureResults += [ordered]@{
+        path = $fixture.path
+        expectedRule = $fixture.rule
+        detectedRule = $detected
+        passed = $passed
+    }
+    if (-not $passed) {
+        Add-Finding $failures "ARCHITECTURE_REGRESSION_FIXTURE_MISSED" $fixture.path `
+                "과거 구조 오류 fixture를 탐지하지 못했습니다." `
+                "구조 규칙과 fixture를 함께 복구하세요."
     }
 }
 
@@ -231,6 +299,7 @@ $result = [pscustomobject]@{
     failures = @($failures.ToArray())
     reviewCandidates = @($warnings.ToArray())
     requiredCapabilities = $requiredCapabilityFiles
+    regressionFixtures = $fixtureResults
 }
 $json = $result | ConvertTo-Json -Depth 8
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)

@@ -73,7 +73,9 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
             String failureMessage) {
         jdbcTemplate.update("""
                 UPDATE pfw_batch_on_demand_request
-                SET request_status = ?, pfw_execution_id = ?, spring_batch_execution_id = ?,
+                SET request_status = ?,
+                    pfw_execution_id = COALESCE(?, pfw_execution_id),
+                    spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
                     result_json = ?, failure_code = ?, failure_message = ?,
                     completed_at = CURRENT_TIMESTAMP(3), updated_by = 'BAT_WORKER', updated_at = CURRENT_TIMESTAMP
                 WHERE execution_request_id = ?

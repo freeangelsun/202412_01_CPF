@@ -1,6 +1,9 @@
 package cpf.bat.operation;
 
-import cpf.bat.job.BatSmokeJobConfig;
+import cpf.bat.job.centercut.BatCenterCutJobConfig;
+import cpf.bat.job.failure.BatFailureJobConfig;
+import cpf.bat.job.heartbeat.BatHeartbeatJobConfig;
+import cpf.bat.job.smoke.BatSmokeJobConfig;
 import cpf.pfw.common.batch.CpfBatchFileLogWriter;
 import cpf.pfw.common.batch.CpfBatchRuntimeListener;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
@@ -65,9 +68,9 @@ public class BatHealthController {
         response.put("smoke", registry.snapshot());
         response.put("supportedJobs", new String[] {
                 BatSmokeJobConfig.SMOKE_JOB_ID,
-                BatSmokeJobConfig.HEARTBEAT_JOB_ID,
-                BatSmokeJobConfig.FAIL_JOB_ID,
-                BatSmokeJobConfig.CENTER_CUT_JOB_ID
+                BatHeartbeatJobConfig.JOB_ID,
+                BatFailureJobConfig.JOB_ID,
+                BatCenterCutJobConfig.JOB_ID
         });
         return ResponseEntity.ok(response);
     }
@@ -77,7 +80,7 @@ public class BatHealthController {
     @Operation(operationId = "runBatSmokeJob", summary = "BAT smoke Job 수동 실행")
     public ResponseEntity<Map<String, Object>> runSmokeJob(@PathVariable String jobId) {
         Map<String, Object> result = operationService.run(jobId, "BAT smoke API 수동 실행");
-        if (BatSmokeJobConfig.FAIL_JOB_ID.equals(jobId)) {
+        if (BatFailureJobConfig.JOB_ID.equals(jobId)) {
             registry.recordFailure(result);
         } else {
             registry.recordSuccess(result);
@@ -102,7 +105,7 @@ public class BatHealthController {
         response.put("jobListenerWiring", Map.of(
                 "smokeJob", BatSmokeJobConfig.SMOKE_JOB_ID,
                 "smokeStep", BatSmokeJobConfig.SMOKE_STEP_ID,
-                "centerCutJob", BatSmokeJobConfig.CENTER_CUT_JOB_ID,
+                "centerCutJob", BatCenterCutJobConfig.JOB_ID,
                 "requiredListenerBean", "cpfBatchRuntimeListener"));
         response.put("properties", Map.of(
                 "cpf.logging.file.enabled", environment.getProperty("cpf.logging.file.enabled", "true"),

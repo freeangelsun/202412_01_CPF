@@ -1,6 +1,7 @@
 package cpf.bat.operation;
 
-import cpf.bat.job.BatSmokeJobConfig;
+import cpf.bat.job.smoke.BatSmokeJobConfig;
+import cpf.bat.job.failure.BatFailureJobConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -44,7 +45,7 @@ public class BatStartupSmokeRunner implements ApplicationRunner {
 
         if (runFailureOnStartup) {
             Map<String, Object> failure = operationService.run(
-                    BatSmokeJobConfig.FAIL_JOB_ID,
+                    BatFailureJobConfig.JOB_ID,
                     "BAT startup smoke 실패 Job 실행");
             registry.recordFailure(failure);
             log.info("BAT startup smoke failure result={}", failure);

@@ -440,6 +440,86 @@ CREATE TABLE IF NOT EXISTS pfw_standard_execution_alias (
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 구형 실행 ID 조회 호환 이력';
 
+CREATE TABLE IF NOT EXISTS pfw_channel_policy_version (
+    version_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채널 정책 스냅샷 버전',
+    change_type VARCHAR(30) NOT NULL COMMENT 'CHANNEL 또는 EXECUTION_POLICY 변경 유형',
+    target_key VARCHAR(100) NOT NULL COMMENT '변경 대상 채널 또는 정책 키',
+    change_reason VARCHAR(500) NOT NULL COMMENT '운영 변경 사유',
+    applied_by VARCHAR(100) NOT NULL COMMENT '적용 운영자',
+    applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '적용일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (version_id),
+    INDEX ix_pfw_channel_policy_version_target (change_type, target_key, version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 채널 정책 변경 버전';
+
+CREATE TABLE IF NOT EXISTS pfw_channel_registry (
+    channel_code VARCHAR(30) NOT NULL COMMENT 'CPF 통합 채널 코드',
+    channel_name VARCHAR(100) NOT NULL COMMENT '채널명',
+    channel_type VARCHAR(30) NOT NULL COMMENT 'CLIENT, OPERATOR 또는 SYSTEM 유형',
+    trust_level VARCHAR(30) NOT NULL COMMENT 'EXTERNAL 또는 INTERNAL 신뢰 수준',
+    client_channel_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '최초 유입 클라이언트 채널 여부',
+    internal_channel_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '내부 호출 채널 여부',
+    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '인증 필수 여부',
+    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '요청 서명 필수 여부',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
+    description VARCHAR(500) NULL COMMENT '채널 설명',
+    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (channel_code),
+    INDEX ix_pfw_channel_registry_active (active_yn, channel_type),
+    CONSTRAINT ck_pfw_channel_registry_client CHECK (client_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_registry_internal CHECK (internal_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_registry_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_registry_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_registry_active CHECK (active_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 통합 채널 레지스트리';
+
+CREATE TABLE IF NOT EXISTS pfw_channel_execution_policy (
+    policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
+    standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
+    original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
+    caller_channel_code VARCHAR(30) NOT NULL COMMENT '현재 호출 채널 코드 또는 ANY',
+    request_type VARCHAR(30) NOT NULL DEFAULT '*' COMMENT '요청 유형 또는 전체 유형 *',
+    allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '실행 허용 여부',
+    authentication_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책별 인증 필수 여부',
+    signature_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '정책별 요청 서명 필수 여부',
+    max_tps INT NOT NULL DEFAULT 0 COMMENT '0이면 제한하지 않는 최대 초당 요청 수',
+    effective_from DATETIME(3) NULL COMMENT '정책 적용 시작일시',
+    effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
+    active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
+    policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (policy_key),
+    INDEX ix_pfw_channel_execution_policy_lookup (
+        standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn
+    ),
+    INDEX ix_pfw_channel_execution_policy_effective (active_yn, effective_from, effective_to),
+    CONSTRAINT fk_pfw_channel_execution_policy_original FOREIGN KEY (original_channel_code)
+        REFERENCES pfw_channel_registry(channel_code),
+    CONSTRAINT fk_pfw_channel_execution_policy_caller FOREIGN KEY (caller_channel_code)
+        REFERENCES pfw_channel_registry(channel_code),
+    CONSTRAINT ck_pfw_channel_execution_policy_execution CHECK (
+        standard_execution_id = '*'
+        OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
+    ),
+    CONSTRAINT ck_pfw_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_pfw_channel_execution_policy_period CHECK (
+        effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 표준 실행별 최초·호출 채널 정책';
+
 CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
     execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
     standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',

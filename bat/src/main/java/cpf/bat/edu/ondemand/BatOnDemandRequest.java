@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** 온라인에서 접수하는 온디맨드 배치 실행 요청입니다. */
@@ -16,6 +18,13 @@ public record BatOnDemandRequest(
         Map<String, Object> parameters) {
 
     public BatOnDemandRequest {
-        parameters = parameters == null ? Map.of() : Map.copyOf(parameters);
+        parameters = immutableNullableMap(parameters);
+    }
+
+    private static Map<String, Object> immutableNullableMap(Map<String, Object> source) {
+        if (source == null || source.isEmpty()) {
+            return Map.of();
+        }
+        return Collections.unmodifiableMap(new LinkedHashMap<>(source));
     }
 }

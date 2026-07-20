@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * CPF 공통 예외를 표준 오류 응답으로 변환합니다.
@@ -70,6 +71,41 @@ public class CpfGlobalExceptionHandler {
         return ResponseEntity.status(resolvedResponse.httpStatus())
                 .headers(headers)
                 .body(response);
+    }
+
+    /**
+     * 존재하지 않는 정적 리소스와 URL은 운영 장애로 오인되지 않도록 404 표준 응답으로 분리합니다.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<CpfErrorResponse> handleNoResourceFound(
+            NoResourceFoundException ex,
+            HttpServletRequest request) {
+        CpfResolvedResponse resolvedResponse = responseCodeResolver.resolve(
+                CpfErrorCode.NOT_FOUND,
+                request.getLocale(),
+                java.util.Map.of("0", request.getRequestURI()),
+                null);
+
+        log.info("Resource not found. method={}, uri={}", ex.getHttpMethod(), request.getRequestURI());
+        CpfErrorResponse response = CpfErrorResponse.of(
+                resolvedResponse,
+                resolvedResponse.externalMessage(),
+                "ResourceNotFound",
+                null);
+        return ResponseEntity.status(resolvedResponse.httpStatus())
+                .headers(errorHeaders(resolvedResponse, "ResourceNotFound"))
+                .body(response);
+    }
+
+    private HttpHeaders errorHeaders(CpfResolvedResponse response, String errorType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Error-Code", response.errorCode());
+        headers.add("X-Message-Code", response.messageCode());
+        headers.add("X-Cpf-Response-Code", response.responseCode());
+        headers.add("X-Cpf-Response-Message-Code", response.messageCode());
+        headers.add("X-Cpf-Message-Code", response.messageCode());
+        headers.add("X-Error-Type", errorType);
+        return headers;
     }
 
     /**

@@ -7,12 +7,13 @@
 )
 
 $ErrorActionPreference = "Stop"
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 if ([string]::IsNullOrWhiteSpace($LogDir)) {
     $LogDir = Join-Path $Root "build/runtime-smoke"
 }
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
-$resultPath = Join-Path $LogDir "adm-center-cut-runtime-smoke-result.json"
+$resultPath = Join-Path $LogDir "adm-center-cut-runtime-smoke-result.sanitized.json"
 
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -23,7 +24,7 @@ $result = [ordered]@{
 
 function Save-Result {
     $result.finishedAt = (Get-Date).ToString("o")
-    $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+    [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20), $Utf8NoBom)
 }
 
 function New-SmokeHeaders {

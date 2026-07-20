@@ -1,0 +1,16 @@
+{
+    "status":  "PASSED",
+    "checkedAt":  "2026-07-16T19:16:22.2541183+09:00",
+    "browser":  "Microsoft Edge headless CDP",
+    "url":  "http://127.0.0.1:8090/adm/",
+    "authenticated":  true,
+    "operatorSummary":  "서비스\nADM | 포트\n8090 | 공통 모듈\nPFW / CMN | 운영자\nadmin",
+    "clickedMenu":  "채널 정책",
+    "channelPanelVisible":  true,
+    "channelHeading":  "통합 채널 정책",
+    "channelRows":  6,
+    "consoleErrors":  [
+
+                      ],
+    "screenshot":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+}

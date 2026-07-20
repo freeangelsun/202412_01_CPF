@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.ai.controller;
 
 import cpf.pfw.common.ai.CpfAiProviderPort;
 import cpf.pfw.common.execution.CpfOnlineTransaction;

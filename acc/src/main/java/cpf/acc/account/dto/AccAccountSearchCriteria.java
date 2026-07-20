@@ -25,7 +25,7 @@ public record AccAccountSearchCriteria(
             "updatedAt", "updated_at");
 
     public AccAccountSearchCriteria normalized() {
-        String normalizedSort = SORT_COLUMNS.containsKey(sortBy) ? sortBy : "accountId";
+        String normalizedSort = sortBy != null && SORT_COLUMNS.containsKey(sortBy) ? sortBy : "accountId";
         String normalizedDirection = "ASC".equalsIgnoreCase(sortDirection) ? "ASC" : "DESC";
         int normalizedPage = page == null || page < 0 ? 0 : page;
         int normalizedSize = size == null || size < 1 ? 20 : Math.min(size, 200);

@@ -1,4 +1,4 @@
-package cpf.acc.batch;
+package cpf.acc.reference.batch;
 
 import cpf.pfw.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
@@ -15,7 +15,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * Account 주제영역의 표준 Tasklet 배치 골격입니다.
  */
 @Configuration
-public class AccountBatchConfig {
+public class AccountReferenceBatchConfig {
 
     @Bean
     @CpfBatchJob(id = "BACCTS0001", name = "Account표준배치", ownerDomain = "ACC")

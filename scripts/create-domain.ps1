@@ -93,6 +93,9 @@ if ([string]::IsNullOrWhiteSpace($ModuleName)) {
 if ([string]::IsNullOrWhiteSpace($BasePackage)) {
     $BasePackage = "cpf.$module"
 }
+$ModuleClassName = $module.Substring(0, 1).ToUpperInvariant() + $module.Substring(1).ToLowerInvariant()
+$FeaturePackage = "$BasePackage.reference"
+$FeatureClassPrefix = "${ModuleName}Reference"
 if ([string]::IsNullOrWhiteSpace($TablePrefix)) {
     $TablePrefix = $module
 }
@@ -107,6 +110,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDir)) {
 $targetModuleDir = Join-Path $Root $module
 $settingsPath = Join-Path $Root "settings.gradle"
 $packagePath = $BasePackage.Replace('.', '/')
+$featurePackagePath = $FeaturePackage.Replace('.', '/')
 $conflicts = New-Object System.Collections.Generic.List[string]
 
 if (Test-Path -LiteralPath $targetModuleDir) {
@@ -183,16 +187,16 @@ if ($DryRun -or $conflicts.Count -gt 0) {
     exit 0
 }
 
-$javaRoot = Join-Path $OutputDir "src/main/java/$packagePath"
+$javaRoot = Join-Path $OutputDir "src/main/java/$featurePackagePath"
 $resourceRoot = Join-Path $OutputDir "src/main/resources"
-$testRoot = Join-Path $OutputDir "src/test/java/$packagePath"
+$testRoot = Join-Path $OutputDir "src/test/java/$featurePackagePath"
 
 $controller = @"
-package $BasePackage.controller;
+package $FeaturePackage.controller;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.facade.${ModuleName}Facade;
-import $BasePackage.validation.${ModuleName}SearchValidator;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
+import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
 import cpf.pfw.common.base.BaseController;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
@@ -212,20 +216,20 @@ import java.util.Map;
  * 실제 업무 처리는 Facade와 Service에 위임합니다.</p>
  */
 @RestController
-@RequestMapping("/api/v1/$module")
+@RequestMapping("/api/v1/$module/reference")
 @RequiredArgsConstructor
-@Tag(name = "$ModuleUpper 업무", description = "${ModuleName} 주제영역 조회 API")
-public class ${ModuleName}Controller extends BaseController {
-    private final ${ModuleName}Facade facade;
-    private final ${ModuleName}SearchValidator validator;
+@Tag(name = "$ModuleUpper 생성 참조", description = "생성기 기본 골격과 대표 업무 기능의 경계를 확인하는 참조 API")
+public class ${FeatureClassPrefix}Controller extends BaseController {
+    private final ${FeatureClassPrefix}Facade facade;
+    private final ${FeatureClassPrefix}SearchValidator validator;
 
     @GetMapping
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0001", name = "${ModuleName}Search", ownerDomain = "$DomainIdCode")
     @Operation(
-            operationId = "search${ModuleName}",
-            summary = "${ModuleName} 목록 조회",
+            operationId = "search${ModuleName}Reference",
+            summary = "${ModuleName} 생성 참조 목록 조회",
             description = "검색어, 페이징, 정렬 whitelist를 적용해 목록을 조회합니다.")
-    public ResponseEntity<Map<String, Object>> search(${ModuleName}SearchRequest request) {
+    public ResponseEntity<Map<String, Object>> search(${FeatureClassPrefix}SearchRequest request) {
         validator.validate(request);
         return ok(facade.search(request));
     }
@@ -233,10 +237,10 @@ public class ${ModuleName}Controller extends BaseController {
 "@
 
 $facade = @"
-package $BasePackage.facade;
+package $FeaturePackage.facade;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.service.${ModuleName}Service;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.service.${FeatureClassPrefix}Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -249,36 +253,36 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class ${ModuleName}Facade {
-    private final ${ModuleName}Service service;
+public class ${FeatureClassPrefix}Facade {
+    private final ${FeatureClassPrefix}Service service;
 
-    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return service.search(request);
     }
 }
 "@
 
 $queryPortSource = @"
-package $BasePackage.port;
+package $FeaturePackage.port;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 
 import java.util.Map;
 
 /**
  * ${ModuleName} 조회 구현을 local 또는 remote adapter로 교체하기 위한 업무 포트입니다.
  */
-public interface ${ModuleName}QueryPort {
-    Map<String, Object> search(${ModuleName}SearchRequest request);
+public interface ${FeatureClassPrefix}QueryPort {
+    Map<String, Object> search(${FeatureClassPrefix}SearchRequest request);
 }
 "@
 
 $localAdapter = @"
-package $BasePackage.adapter.local;
+package $FeaturePackage.adapter.local;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.port.${ModuleName}QueryPort;
-import $BasePackage.repository.${ModuleName}Repository;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -291,21 +295,21 @@ import java.util.Map;
 @Primary
 @Component
 @RequiredArgsConstructor
-public class Local${ModuleName}QueryAdapter implements ${ModuleName}QueryPort {
-    private final ${ModuleName}Repository repository;
+public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
+    private final ${FeatureClassPrefix}Repository repository;
 
     @Override
-    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return repository.search(request);
     }
 }
 "@
 
 $remoteProxy = @"
-package $BasePackage.adapter.remote;
+package $FeaturePackage.adapter.remote;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.port.${ModuleName}QueryPort;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import cpf.pfw.common.http.CpfWebClient;
 import org.springframework.core.ParameterizedTypeReference;
 
@@ -316,19 +320,19 @@ import java.util.Map;
  *
  * <p>프로젝트 설정에서 remote 모드를 선택할 때만 Bean으로 등록합니다.</p>
  */
-public class Remote${ModuleName}QueryProxy implements ${ModuleName}QueryPort {
+public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPrefix}QueryPort {
     private final CpfWebClient webClient;
 
-    public Remote${ModuleName}QueryProxy(CpfWebClient webClient) {
+    public Remote${FeatureClassPrefix}QueryProxy(CpfWebClient webClient) {
         this.webClient = webClient;
     }
 
     @Override
-    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return webClient.get(
                 "$ModuleUpper",
                 uriBuilder -> {
-                    uriBuilder.path("/api/v1/$module")
+                    uriBuilder.path("/api/v1/$module/reference")
                             .queryParam("sortBy", request.sortBy())
                             .queryParam("sortDirection", request.sortDirection())
                             .queryParam("page", request.page())
@@ -344,10 +348,10 @@ public class Remote${ModuleName}QueryProxy implements ${ModuleName}QueryPort {
 "@
 
 $service = @"
-package $BasePackage.service;
+package $FeaturePackage.service;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.port.${ModuleName}QueryPort;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import cpf.pfw.common.base.BaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -360,20 +364,20 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-public class ${ModuleName}Service extends BaseService {
-    private final ${ModuleName}QueryPort queryPort;
+public class ${FeatureClassPrefix}Service extends BaseService {
+    private final ${FeatureClassPrefix}QueryPort queryPort;
 
     @Transactional(readOnly = true)
-    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return queryPort.search(request.normalized());
     }
 }
 "@
 
 $repository = @"
-package $BasePackage.repository;
+package $FeaturePackage.repository;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -384,17 +388,18 @@ import java.util.Map;
  * MyBatis mapper 호출을 캡슐화하는 업무 저장소입니다.
  */
 @Repository
-public class ${ModuleName}Repository {
+public class ${FeatureClassPrefix}Repository {
     private final SqlSessionTemplate sqlSessionTemplate;
 
-    public ${ModuleName}Repository(
+    public ${FeatureClassPrefix}Repository(
             @Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
-    public Map<String, Object> search(${ModuleName}SearchRequest request) {
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return Map.of(
-                "items", sqlSessionTemplate.selectList("${BasePackage}.mapper.${ModuleName}Mapper.search", request),
+                "items", sqlSessionTemplate.selectList(
+                        "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper.search", request),
                 "criteria", request);
     }
 }
@@ -482,7 +487,7 @@ public class ${ModuleName}BatchRepositoryConfig extends DefaultBatchConfiguratio
 "@
 
 $dto = @"
-package $BasePackage.dto;
+package $FeaturePackage.dto;
 
 import java.util.Set;
 
@@ -491,7 +496,7 @@ import java.util.Set;
  *
  * <p>정렬 컬럼은 whitelist로 제한해 SQL Injection을 차단합니다.</p>
  */
-public record ${ModuleName}SearchRequest(
+public record ${FeatureClassPrefix}SearchRequest(
         String keyword,
         String sortBy,
         String sortDirection,
@@ -499,12 +504,13 @@ public record ${ModuleName}SearchRequest(
         Integer size) {
     private static final Set<String> SORT_COLUMNS = Set.of("created_at", "updated_at", "${TablePrefix}_id");
 
-    public ${ModuleName}SearchRequest normalized() {
-        String normalizedSortBy = SORT_COLUMNS.contains(sortBy) ? sortBy : "created_at";
+    public ${FeatureClassPrefix}SearchRequest normalized() {
+        String normalizedSortBy = sortBy != null && SORT_COLUMNS.contains(sortBy) ? sortBy : "created_at";
         String normalizedDirection = "ASC".equalsIgnoreCase(sortDirection) ? "ASC" : "DESC";
         int normalizedPage = page == null || page < 0 ? 0 : page;
         int normalizedSize = size == null || size < 1 ? 20 : Math.min(size, 200);
-        return new ${ModuleName}SearchRequest(keyword, normalizedSortBy, normalizedDirection, normalizedPage, normalizedSize);
+        return new ${FeatureClassPrefix}SearchRequest(
+                keyword, normalizedSortBy, normalizedDirection, normalizedPage, normalizedSize);
     }
 
     public int offset() {
@@ -516,9 +522,9 @@ public record ${ModuleName}SearchRequest(
 "@
 
 $validator = @"
-package $BasePackage.validation;
+package $FeaturePackage.validation;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import cpf.pfw.common.exception.CpfValidationException;
 import org.springframework.stereotype.Component;
 
@@ -526,8 +532,8 @@ import org.springframework.stereotype.Component;
  * ${ModuleName} 조회 API 입력값을 검증합니다.
  */
 @Component
-public class ${ModuleName}SearchValidator {
-    public void validate(${ModuleName}SearchRequest request) {
+public class ${FeatureClassPrefix}SearchValidator {
+    public void validate(${FeatureClassPrefix}SearchRequest request) {
         if (request == null) {
             throw new CpfValidationException("${ModuleName} 조회 조건은 필수입니다.");
         }
@@ -541,7 +547,7 @@ public class ${ModuleName}SearchValidator {
 $mapperXml = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="$BasePackage.mapper.${ModuleName}Mapper">
+<mapper namespace="$FeaturePackage.mapper.${FeatureClassPrefix}Mapper">
   <!-- ${ModuleName} 조회: 정렬 컬럼은 DTO whitelist를 통과한 값만 사용합니다. -->
   <select id="search" resultType="map">
     SELECT ${TablePrefix}_id,
@@ -569,7 +575,7 @@ $batchDependency = if ($BatchEnabled) {
 }
 
 $batchConfig = @"
-package $BasePackage.batch;
+package $FeaturePackage.batch;
 
 import cpf.pfw.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
@@ -586,7 +592,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * ${ModuleName} 주제영역의 표준 Tasklet 배치 골격입니다.
  */
 @Configuration
-public class ${ModuleName}BatchConfig {
+public class ${FeatureClassPrefix}BatchConfig {
 
     @Bean
     @CpfBatchJob(id = "B${DomainIdCode}TS0001", name = "${ModuleName}표준배치", ownerDomain = "$DomainIdCode")
@@ -663,18 +669,20 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
- * ${ModuleName} 주제영역 실행 애플리케이션입니다.
+ * $ModuleUpper 주제영역 실행 애플리케이션입니다.
+ *
+ * <p>모듈 부트스트랩만 소유하며 업무 기능은 feature package에 둡니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "$BasePackage"})
-public class ${ModuleName}Application extends SpringBootServletInitializer {
+public class ${ModuleClassName}Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        SpringApplication.run(${ModuleName}Application.class, args);
+        SpringApplication.run(${ModuleClassName}Application.class, args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(${ModuleName}Application.class);
+        return application.sources(${ModuleClassName}Application.class);
     }
 }
 "@
@@ -827,11 +835,11 @@ $readme = @"
 "@
 
 $serviceTest = @"
-package $BasePackage.service;
+package $FeaturePackage.service;
 
-import $BasePackage.dto.${ModuleName}SearchRequest;
-import $BasePackage.adapter.local.Local${ModuleName}QueryAdapter;
-import $BasePackage.repository.${ModuleName}Repository;
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.adapter.local.Local${FeatureClassPrefix}QueryAdapter;
+import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -839,21 +847,23 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ${ModuleName}ServiceTest {
-    private final AtomicReference<${ModuleName}SearchRequest> capturedRequest = new AtomicReference<>();
-    private final ${ModuleName}Repository repository = new ${ModuleName}Repository(null) {
+class ${FeatureClassPrefix}ServiceTest {
+    private final AtomicReference<${FeatureClassPrefix}SearchRequest> capturedRequest = new AtomicReference<>();
+    private final ${FeatureClassPrefix}Repository repository = new ${FeatureClassPrefix}Repository(null) {
         @Override
-        public Map<String, Object> search(${ModuleName}SearchRequest request) {
+        public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
             // DB 없이도 Service가 정규화한 최종 조건을 검증할 수 있도록 요청을 보관합니다.
             capturedRequest.set(request);
             return Map.of("items", java.util.List.of(), "criteria", request);
         }
     };
-    private final ${ModuleName}Service service = new ${ModuleName}Service(new Local${ModuleName}QueryAdapter(repository));
+    private final ${FeatureClassPrefix}Service service =
+            new ${FeatureClassPrefix}Service(new Local${FeatureClassPrefix}QueryAdapter(repository));
 
     @Test
     void searchNormalizesPagingAndSort() {
-        Map<String, Object> result = service.search(new ${ModuleName}SearchRequest("keyword", "unsafe_column", "ASC", -1, 999));
+        Map<String, Object> result = service.search(
+                new ${FeatureClassPrefix}SearchRequest("keyword", "unsafe_column", "ASC", -1, 999));
 
         assertThat(result).containsKey("items");
         assertThat(capturedRequest.get().sortBy()).isEqualTo("created_at");
@@ -871,7 +881,7 @@ param(
 )
 
 `$ErrorActionPreference = "Stop"
-`$uri = "`$BaseUrl/api/v1/$module?keyword=sample&page=0&size=20&sortBy=created_at&sortDirection=DESC"
+`$uri = "`$BaseUrl/api/v1/$module/reference?keyword=sample&page=0&size=20&sortBy=created_at&sortDirection=DESC"
 `$response = Invoke-WebRequest -Method Get -Uri `$uri -TimeoutSec `$TimeoutSec -UseBasicParsing
 if ([int] `$response.StatusCode -lt 200 -or [int] `$response.StatusCode -ge 300) {
     throw "${ModuleName} smoke failed. status=`$(`$response.StatusCode)"
@@ -1004,7 +1014,7 @@ $executionCatalogManifest = @"
     "executionType": "ONLINE",
     "ownerDomain": "$DomainIdCode",
     "sourceModule": "$ModuleUpper",
-    "sourceClass": "$BasePackage.controller.${ModuleName}Controller",
+    "sourceClass": "$FeaturePackage.controller.${FeatureClassPrefix}Controller",
     "enabled": $onlineJson
   },
   {
@@ -1012,7 +1022,7 @@ $executionCatalogManifest = @"
     "executionType": "BATCH",
     "ownerDomain": "$DomainIdCode",
     "sourceModule": "$ModuleUpper",
-    "sourceClass": "$BasePackage.batch.${ModuleName}BatchConfig",
+    "sourceClass": "$FeaturePackage.batch.${FeatureClassPrefix}BatchConfig",
     "enabled": $batchJson
   }
 ]
@@ -1132,38 +1142,32 @@ $files = [ordered]@{
     "manifest/standard-execution-catalog.json" = $executionCatalogManifest
     "src/main/resources/application.yml" = $applicationYml
     "src/main/resources/application-${module}.yml" = $applicationModuleYml
-    "src/main/resources/mybatis/mapper/${module}/${ModuleName}Mapper.xml" = $mapperXml
-    "src/main/java/$packagePath/${ModuleName}Application.java" = $applicationJava
+    "src/main/resources/mybatis/mapper/${module}/reference/${FeatureClassPrefix}Mapper.xml" = $mapperXml
+    "src/main/java/$packagePath/${ModuleClassName}Application.java" = $applicationJava
     "src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java" = $dataSourceConfig
     "src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java" = $myBatisConfig
-    "src/main/java/$packagePath/facade/${ModuleName}Facade.java" = $facade
-    "src/main/java/$packagePath/port/${ModuleName}QueryPort.java" = $queryPortSource
-    "src/main/java/$packagePath/adapter/local/Local${ModuleName}QueryAdapter.java" = $localAdapter
-    "src/main/java/$packagePath/adapter/remote/Remote${ModuleName}QueryProxy.java" = $remoteProxy
-    "src/main/java/$packagePath/service/${ModuleName}Service.java" = $service
-    "src/main/java/$packagePath/repository/${ModuleName}Repository.java" = $repository
-    "src/main/java/$packagePath/dto/${ModuleName}SearchRequest.java" = $dto
-    "src/main/java/$packagePath/validation/${ModuleName}SearchValidator.java" = $validator
-    "src/test/java/$packagePath/service/${ModuleName}ServiceTest.java" = $serviceTest
+    "src/main/java/$featurePackagePath/facade/${FeatureClassPrefix}Facade.java" = $facade
+    "src/main/java/$featurePackagePath/port/${FeatureClassPrefix}QueryPort.java" = $queryPortSource
+    "src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java" = $localAdapter
+    "src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}QueryProxy.java" = $remoteProxy
+    "src/main/java/$featurePackagePath/service/${FeatureClassPrefix}Service.java" = $service
+    "src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java" = $repository
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchRequest.java" = $dto
+    "src/main/java/$featurePackagePath/validation/${FeatureClassPrefix}SearchValidator.java" = $validator
+    "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript
     "sql/Vxx__${module}_domain.sql" = $sql
 }
 
 if ($OnlineEnabled) {
-    $files["src/main/java/$packagePath/controller/${ModuleName}Controller.java"] = $controller
+    $files["src/main/java/$featurePackagePath/controller/${FeatureClassPrefix}Controller.java"] = $controller
 }
 if ($BatchEnabled) {
-    $files["src/main/java/$packagePath/batch/${ModuleName}BatchConfig.java"] = $batchConfig
+    $files["src/main/java/$featurePackagePath/batch/${FeatureClassPrefix}BatchConfig.java"] = $batchConfig
     $files["src/main/java/$packagePath/config/${ModuleName}BatchRepositoryConfig.java"] = $batchRepositoryConfig
 }
 
 foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
-    $files[$entry.Key] = $entry.Value
-}
-foreach ($entry in $deployEnvFiles.GetEnumerator()) {
-    $files[$entry.Key] = $entry.Value
-}
-foreach ($entry in $deployInventoryFiles.GetEnumerator()) {
     $files[$entry.Key] = $entry.Value
 }
 
@@ -1177,6 +1181,12 @@ foreach ($entry in $files.GetEnumerator()) {
 }
 
 if ($GeneratePatch -or $Apply) {
+    # 적용 후보와 검증 보고서는 제품 모듈이 아니라 build 보고서 영역에 격리합니다.
+    $patchBaseDir = if ($Apply) {
+        Join-Path $Root "build/reports/create-domain/$module"
+    } else {
+        $OutputDir
+    }
     $patchFiles = [ordered]@{
         "patch-candidates/apply-order.md" = $applyOrder
         "patch-candidates/settings.gradle.patch" = $settingsPatch
@@ -1193,22 +1203,22 @@ if ($GeneratePatch -or $Apply) {
     }
 
     foreach ($entry in $patchFiles.GetEnumerator()) {
-        $path = Join-Path $OutputDir $entry.Key
+        $path = Join-Path $patchBaseDir $entry.Key
         Write-Utf8 -Path $path -Content $entry.Value
         $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
     }
     foreach ($entry in $profileApplicationFiles.GetEnumerator()) {
-        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
+        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
         Write-Utf8 -Path $path -Content $entry.Value
         $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
     }
     foreach ($entry in $deployEnvFiles.GetEnumerator()) {
-        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
+        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
         Write-Utf8 -Path $path -Content $entry.Value
         $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
     }
     foreach ($entry in $deployInventoryFiles.GetEnumerator()) {
-        $path = Join-Path $OutputDir ("patch-candidates/" + $entry.Key)
+        $path = Join-Path $patchBaseDir ("patch-candidates/" + $entry.Key)
         Write-Utf8 -Path $path -Content $entry.Value
         $plan.patchFiles += $path.Substring($Root.Length).TrimStart('\', '/')
     }
@@ -1226,6 +1236,42 @@ if ($Apply) {
     }
 }
 
-$resultPath = Join-Path $OutputDir "create-domain-result.json"
+# 제거 도구는 생성 당시 checksum과 현재 파일을 비교해 사용자 변경을 보호합니다.
+$ownedFiles = @()
+foreach ($relativePath in @($plan.generatedFiles)) {
+    $absolutePath = Join-Path $Root $relativePath
+    if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
+        continue
+    }
+    $moduleRelativePath = $absolutePath.Substring($OutputDir.Length).TrimStart('\', '/')
+    $ownedFiles += [ordered]@{
+        path = $moduleRelativePath.Replace('\', '/')
+        sha256 = (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+}
+$generatorOwnership = [ordered]@{
+    generatorVersion = "2.0"
+    generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
+    moduleCode = $ModuleUpper
+    moduleDirectory = $module
+    outputDirectory = $OutputDir
+    createdFiles = $ownedFiles
+    modifiedGlobalFiles = @(
+        [ordered]@{
+            path = "settings.gradle"
+            managedLines = @("include '$module'", "project(':$module').projectDir = file('$module')")
+        }
+    )
+    databaseRemovalPolicy = "운영 DB 객체는 자동 삭제하지 않으며 별도 승인 migration으로 처리합니다."
+}
+$ownershipPath = Join-Path $OutputDir "manifest/generator-ownership.json"
+Write-Utf8 -Path $ownershipPath -Content ($generatorOwnership | ConvertTo-Json -Depth 20)
+$plan.generatedFiles += $ownershipPath.Substring($Root.Length).TrimStart('\', '/')
+
+$resultPath = if ($Apply) {
+    Join-Path $Root "build/reports/create-domain/$module/create-domain-result.json"
+} else {
+    Join-Path $OutputDir "create-domain-result.json"
+}
 Write-Utf8 -Path $resultPath -Content ($plan | ConvertTo-Json -Depth 20)
 $plan | ConvertTo-Json -Depth 20

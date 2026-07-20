@@ -1614,3 +1614,81 @@ Codex 보고는 완료 근거가 아니라 검수 대상이다.
 ```
 
 이 기준을 만족하지 못하면 `완료`가 아니라 `부분 구현`, `미검증`, `미구현`, `실패`, `재확인 필요` 중 하나로 판정한다.
+
+# 26. README 제품 문서·패키지 구조·가비지 정리 검수
+
+## 26.1 문서 역할
+
+README에는 작업 상태를 기록하지 않는다.
+
+```text
+최종 목표      CPF_FINAL_TARGET_REQUIREMENTS.md
+현재 상태      CPF_STABILIZATION_REPORT.md
+남은 gap       CPF_GAP_MATRIX.md
+증적 index     CPF_EVIDENCE_INDEX.md
+실행 증적      specs/evidence/<작업일자_회차>/
+제품 안내      README.md
+```
+
+## 26.2 README 검수
+
+확인:
+
+- 작업 일지·SHA·test count·gap·완료율이 없는지
+- 제품 개요와 주요 기능이 충분히 상세한지
+- module·package·API 명칭이 최신 source와 일치하는지
+- 실제 지원하지 않는 기능을 완료로 표현하지 않았는지
+- 설치·build·run 명령이 실제 지원되는지
+- root와 module README가 중복되지 않는지
+
+## 26.3 package 검수
+
+module 유형별 표준을 적용한다.
+
+- PFW capability
+- CMN 공통 기능
+- 업무 feature
+- ADM/BZA 운영 기능
+- XYZ official EDU/developer lab
+- BAT JobDefinition
+
+모든 class의 owner를 확인하고 기능 전용 class가 top-level controller/service/repository/dto에 흩어져 있지 않은지 검사한다.
+
+## 26.4 cleanup 검수
+
+repository 전체에서 다음을 확인하고 안전한 항목은 실제 삭제한다.
+
+- build/bin/out/target
+- logs/tmp/temp/work
+- patch-candidates
+- create-domain-result
+- candidate/final 중복
+- old/bak/copy
+- 0 byte placeholder
+- 불필요한 gitkeep
+- 빈 package
+- orphan source/test/resource
+- stale import/config/SQL/menu/catalog
+- 중복 README/SQL/deploy/manifest
+- stale evidence/generated artifact
+
+## 26.5 완료 전 절차
+
+```text
+구현
+→ ownership 재확인
+→ package/file 이동
+→ 가비지·빈 directory 삭제
+→ 잔존 참조 검색
+→ gitignore 확인
+→ module build
+→ 전체 qualityGate
+→ final manifest
+```
+
+## 26.6 상태 판정
+
+구조 문제를 gate가 잡지 못한 기존 `architecture-ownership`, `sample-coverage`, `generator-cleanup` 완료 상태는 신규 기준으로 재판정한다.
+
+---
+

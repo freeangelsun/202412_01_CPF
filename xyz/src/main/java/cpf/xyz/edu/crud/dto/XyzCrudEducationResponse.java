@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.crud.dto;
 
 /**
  * XYZ CRUD 교육 항목 응답 DTO입니다.

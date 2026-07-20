@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.security.controller;
 
 import cpf.cmn.sec.crypto.CmnCryptoService;
 import cpf.cmn.sec.token.CmnJwtCreateRequest;

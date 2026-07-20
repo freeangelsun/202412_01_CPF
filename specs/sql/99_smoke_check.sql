@@ -24,6 +24,9 @@ WHERE table_schema = 'pfwDB'
 SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
 SELECT 'pfwDB.pfw_standard_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution;
 SELECT 'pfwDB.pfw_standard_execution_alias' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution_alias;
+SELECT 'pfwDB.pfw_channel_policy_version' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_policy_version;
+SELECT 'pfwDB.pfw_channel_registry' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_registry;
+SELECT 'pfwDB.pfw_channel_execution_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_execution_policy;
 SELECT 'pfwDB.pfw_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_on_demand_request;
 SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
 SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;

@@ -1,0 +1,55 @@
+{
+    "startedAt":  "2026-07-16T19:17:57.7606662+09:00",
+    "status":  "PASSED",
+    "requireRuntime":  true,
+    "services":  [
+                     {
+                         "service":  "ADM",
+                         "baseUrl":  "http://127.0.0.1:8090",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "ADM-Health",
+                                              "ADM-Batch",
+                                              "ADM-CenterCut",
+                                              "ADM-Notification",
+                                              "ADM-Download",
+                                              "ADM-Logs",
+                                              "ADM-TransactionGroup",
+                                              "ADM-OPR Dynamic Log",
+                                              "ADM-OPR Standard Execution",
+                                              "ADM-OPR Remote Log",
+                                              "ADM-OPR Channel Policy"
+                                          ],
+                         "requiredPaths":  [
+                                               "/adm/api/transaction-groups",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/segments",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/timeline",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/headers",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/external-logs",
+                                               "/adm/api/remote-logs/bundles",
+                                               "/adm/api/remote-logs/bundle-jobs",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}/download-tokens",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}/download",
+                                               "/adm/api/remote-logs/diagnostics",
+                                               "/adm/api/channels",
+                                               "/adm/api/channels/refresh",
+                                               "/adm/api/channels/{channelCode}",
+                                               "/adm/api/channels/policies/{policyKey}",
+                                               "/adm/api/channels/package",
+                                               "/adm/api/channels/package/import"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  160,
+                         "tagCount":  28
+                     }
+                 ],
+    "finishedAt":  "2026-07-16T19:17:58.2280959+09:00"
+}

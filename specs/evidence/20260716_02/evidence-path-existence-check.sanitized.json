@@ -1,0 +1,970 @@
+{
+    "generatedAt":  "2026-07-20T10:11:30.3473397+09:00",
+    "status":  "완료",
+    "checkedCount":  139,
+    "missingCount":  0,
+    "currentEvidenceIdCount":  0,
+    "currentUntrackedCount":  0,
+    "legacyUntrackedCount":  98,
+    "checked":  [
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/ai-edu-runtime.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/ai-edu-runtime.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/mariadb-full-install.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/mariadb-full-install.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/mariadb-full-install.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/openapi-runtime.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/openapi-runtime.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/openapi-runtime.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/docx-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/docx-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/mariadb-full-install.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-center-cut-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/boot-artifacts.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/bza-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/bza-ui-static-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/cpf-new-request.baseline.sha256"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/create-domain-compile.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/datasource-mode-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/deleted-empty-directories.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/deleted-files.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/deleted-files.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/deploy-env-mbr-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/deploy-inventory-mbr-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/docx-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/edu-module-deploy-alias-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/empty-directory-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/empty-directory-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/full-test.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/full-test.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/garbage-file-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/gradle-remote-deploy-task-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/java25-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/local-port-duplicate-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/log-management-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/log-management-standard.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/openapi-source-coverage.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/packaged-dependencies-mbr.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/profile-loading-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/remote-deploy-dry-run.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/remote-deploy-dry-run-mbr-dev.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/repository-hygiene.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/repository-hygiene.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/retained-empty-directories.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/retained-review-required-files.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/runtime-config-inventory.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/spring-event-usage-scan.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_GAP_MATRIX.md",
+                        "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                    },
+                    {
+                        "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                        "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                    }
+                ],
+    "missing":  [
+
+                ],
+    "currentUntracked":  [
+
+                         ],
+    "legacyUntracked":  [
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-center-cut-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser.sanitized.png"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/boot-artifacts.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/bza-ui-static-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/bza-ui-static-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/cpf-new-request.baseline.sha256"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/cpf-new-request-protection.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/create-domain-compile.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/create-domain-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/datasource-mode-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/deleted-empty-directories.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/deleted-files.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/deleted-files.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/deploy-env-mbr-dev.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/deploy-inventory-mbr-dev.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/docx-standard.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/edu-module-deploy-alias-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/empty-directory-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/empty-directory-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/full-test.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/full-test.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/garbage-file-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/gradle-remote-deploy-task-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/java25-standard.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/local-port-duplicate-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/log-management-standard.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/log-management-standard.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/openapi-runtime-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/openapi-source-coverage.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/packaged-dependencies-mbr.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/profile-loading-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/quality-gate.sanitized.log"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/remote-deploy-dry-run.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/remote-deploy-dry-run-mbr-dev.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/remove-domain-smoke.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/repository-hygiene.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/repository-hygiene.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/retained-empty-directories.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/retained-review-required-files.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/runtime-config-inventory.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/spring-event-usage-scan.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_GAP_MATRIX.md",
+                                "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                            },
+                            {
+                                "sourceFile":  "CPF_STABILIZATION_REPORT.md",
+                                "evidencePath":  "specs/evidence/20260716_02/work-start.sanitized.json"
+                            }
+                        ],
+    "failures":  [
+
+                 ]
+}

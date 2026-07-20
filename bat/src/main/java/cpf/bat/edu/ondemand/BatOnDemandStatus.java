@@ -1,6 +1,8 @@
 package cpf.bat.edu.ondemand;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** 온디맨드 접수와 Spring Batch 실행을 연결하는 상태 응답입니다. */
@@ -20,6 +22,13 @@ public record BatOnDemandStatus(
         Instant completedAt) {
 
     public BatOnDemandStatus {
-        result = result == null ? Map.of() : Map.copyOf(result);
+        result = immutableNullableMap(result);
+    }
+
+    private static Map<String, Object> immutableNullableMap(Map<String, Object> source) {
+        if (source == null || source.isEmpty()) {
+            return Map.of();
+        }
+        return Collections.unmodifiableMap(new LinkedHashMap<>(source));
     }
 }

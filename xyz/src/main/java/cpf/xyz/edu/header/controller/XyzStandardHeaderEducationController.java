@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.header.controller;
 
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.header.CpfHeaderPropagator;

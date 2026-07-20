@@ -1,5 +1,6 @@
-package cpf.bat.job;
+package cpf.bat.job.smoke;
 
+import cpf.bat.job.failure.BatFailTasklet;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.repeat.RepeatStatus;
 

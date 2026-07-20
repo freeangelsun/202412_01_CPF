@@ -7,6 +7,7 @@
 )
 
 $ErrorActionPreference = "Stop"
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $sequence = 0
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -26,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($ResultPath)) {
 
 function Save-Result {
     $result.finishedAt = (Get-Date).ToString("o")
-    $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $ResultPath -Encoding UTF8
+    [IO.File]::WriteAllText($ResultPath, ($result | ConvertTo-Json -Depth 20), $Utf8NoBom)
 }
 
 function New-Headers {

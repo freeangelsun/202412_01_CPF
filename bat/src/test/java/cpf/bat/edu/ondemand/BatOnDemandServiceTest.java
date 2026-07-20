@@ -80,6 +80,33 @@ class BatOnDemandServiceTest {
                 request.operationType() == cpf.pfw.common.batch.CpfBatchOperationType.RERUN));
     }
 
+    @Test
+    void 재시작거절이기존실행ID를지우지않아재수행할수있다() {
+        when(launcher.run(any()))
+                .thenReturn(CpfBatchExecutionResult.of(
+                        true, BatOnDemandJobConfig.JOB_NAME, 51L, 61L,
+                        "COMPLETED", "완료", Map.of()))
+                .thenReturn(CpfBatchExecutionResult.of(
+                        false, BatOnDemandJobConfig.JOB_NAME, null, null,
+                        "NOT_RESTARTABLE", "완료 실행은 재시작할 수 없습니다.", Map.of()))
+                .thenReturn(CpfBatchExecutionResult.of(
+                        true, BatOnDemandJobConfig.JOB_NAME, 52L, 62L,
+                        "COMPLETED", "재수행 완료", Map.of()));
+
+        BatOnDemandStatus submitted = service.submit(new BatOnDemandRequest(
+                BatOnDemandJobConfig.STANDARD_BATCH_ID, "20260720", "RESTART-REJECTED",
+                "재시작 거절 후 재수행 검증", "tester", Map.of()));
+
+        BatOnDemandStatus rejected = service.restart(
+                submitted.executionRequestId(), "operator", "완료 실행 재시작 정책 확인");
+        BatOnDemandStatus rerun = service.rerun(
+                submitted.executionRequestId(), "operator", "신규 인스턴스로 재수행");
+
+        assertThat(rejected.pfwExecutionId()).isEqualTo(51L);
+        assertThat(rerun.pfwExecutionId()).isEqualTo(52L);
+        assertThat(rerun.springBatchExecutionId()).isEqualTo(62L);
+    }
+
     private static final class MemoryRepository implements BatOnDemandRepository {
         private final Map<String, BatOnDemandStatus> byRequest = new LinkedHashMap<>();
         private final Map<String, String> requestByKey = new LinkedHashMap<>();
@@ -117,8 +144,10 @@ class BatOnDemandServiceTest {
             BatOnDemandStatus current = byRequest.get(executionRequestId);
             byRequest.put(executionRequestId, new BatOnDemandStatus(
                     current.executionRequestId(), current.standardBatchId(), current.idempotencyKey(),
-                    current.transactionGlobalId(), current.businessDate(), status, pfwExecutionId,
-                    springExecutionId, Map.of("json", resultJson), failureCode, failureMessage,
+                    current.transactionGlobalId(), current.businessDate(), status,
+                    pfwExecutionId == null ? current.pfwExecutionId() : pfwExecutionId,
+                    springExecutionId == null ? current.springBatchExecutionId() : springExecutionId,
+                    Map.of("json", resultJson), failureCode, failureMessage,
                     current.requestedAt(), Instant.now()));
         }
     }

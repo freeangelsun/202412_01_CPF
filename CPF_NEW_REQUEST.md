@@ -6,6 +6,12 @@
 - branch: `master`
 - 작업 시작 시 최신 master SHA를 기록한다.
 - 최상위 정본은 `CPF_FINAL_TARGET_REQUIREMENTS.md`다.
+- CPF 최종 목표와 상용 제품 수준의 요구사항은 `CPF_FINAL_TARGET_REQUIREMENTS.md`에서만 판단한다.
+- 현재 source·SQL·API·UI·runtime의 실제 검증 결과와 최신 상태는 `CPF_STABILIZATION_REPORT.md`에서 확인한다.
+- 최종 목표와 현재 검증 결과 사이의 남은 차이는 `CPF_GAP_MATRIX.md`에서 확인한다.
+- 기능별 정제 증적은 `specs/evidence/<작업일자_회차>/`에 보관하고 `CPF_EVIDENCE_INDEX.md`에서 추적한다.
+- 실행하지 않은 검증, 다른 commit/profile/environment의 증적, 정적 marker만 있는 결과는 성공 또는 완료로 기록하지 않는다.
+- `README.md`는 작업 상태·검수 결과·남은 gap을 관리하는 문서가 아니다. README에는 완성된 CPF 제품을 전제로 한 프레임워크 소개, 기술 스펙, 주요 기능, 아키텍처, 설치·실행·개발·운영 사용법만 작성한다.
 - `CPF_FINAL_TARGET_REQUIREMENTS.md` 단일 파일이 CPF 전체 목표의 최상위 정본이며, 프로젝트 진행에 따라 계속 보강·갱신되는 살아 있는 기준서다.
 - 모든 Codex 구현·수정·검수·gap 분석·완료 판정·다음 요청서 작성은 작업 시작 전에 최신  `CPF_FINAL_TARGET_REQUIREMENTS.md` 전체 기준을 확인한 뒤 수행한다.
 - 작업 시작 보고에는 최소한 기준 branch, 시작 commit SHA, 정본 blob SHA 또는 동등한 파일 식별값을 기록한다.
@@ -35,6 +41,1016 @@
 - 기존에 더 나은 표준 구현이 있으면 새 체계를 중복 생성하지 말고 기존 구조를 확장한다.
 
 ---
+
+
+# 0. 최신 master 직접 검수 결과와 이번 전체 작업의 우선순위
+
+## 0.1 기준
+
+- repository: `freeangelsun/202412_01_CPF`
+- branch: `master`
+- 검수 시작 commit: `ff4661e673dab9a2f417e75f8ad64fb712c96fa6`
+- commit message: `20260716_05`
+- 최상위 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
+- 최신 요청서 blob SHA: `201896f060f9b5e328d313346381be16724b08df`
+- 최신 정본 blob SHA: `7e4e0d94227401deaa32f873c8b68c72fabea59f`
+
+이번 요청서는 기존 `CPF_NEW_REQUEST.md`의 전체 요구를 유지하면서 최신 master 직접 검수에서 확인된 구조 문제와 미검증 범위를 통합한 교체용 전체 요청서다.
+
+Codex는 작업 시작 전에 다시 최신 master와 정본 전체를 확인한다. 시작 SHA가 위 기준과 달라졌으면 최신 변경을 먼저 대조하고 이 요청서의 요구를 누락 없이 병합한다.
+
+Git commit, push, branch 생성은 하지 않는다.
+
+## 0.2 검증 사실
+
+최신 master에서 다음을 직접 확인했다.
+
+### ACC
+
+ACC는 루트 monorepo의 Gradle subproject로 생성됐다. 그러나 다음 문제가 존재한다.
+
+- `acc/account/...` vertical slice와 `acc/controller`, `dto`, `facade`, `port`, `repository`, `service`, `validation` 계층형 package가 동시에 존재한다.
+- 같은 Account 업무가 두 구조로 중복 구현된 것으로 보인다.
+- `acc/patch-candidates/**`가 제품 module 내부에 커밋됐다.
+- `acc/deploy/**`와 `acc/patch-candidates/deploy/**`가 중복된다.
+- `acc/sql/**`과 patch candidate SQL이 중복된다.
+- `acc/create-domain-result.json`이 module root에 영구 산출물로 존재한다.
+- 생성기 중간 산출물, 적용 후보, 최종 제품 산출물이 명확히 분리되지 않았다.
+- `AccountApplication`이라는 이름은 module code `ACC`와 업무명 account의 경계를 혼동시킬 수 있다.
+- `acc/batch`, DataSource, MyBatis, CRUD, Local/Remote adapter가 생성됐으나 MBR과 동일한 업무 module 표준인지 전수 비교가 필요하다.
+
+따라서 ACC build·CRUD·health 성공은 인정 가능한 실행 근거지만, 생성기와 module 구조 품질의 완료 근거는 아니다.
+
+### XYZ
+
+최신 master의 `xyz/src/main/java/cpf/xyz`는 `XyzApplication.java`와 `edu`만 남아 있으나 `edu` 아래에 다음이 함께 존재한다.
+
+- 기능 package: `ai`, `archive`, `attachment`, `audit`, `crud`, `filetransfer`, `idempotency`, `messaging`, `servicecall`, `telegram`, `transaction` 등
+- 계층 package: `controller`, `dto`, `facade`, `mapper`, `repository`, `service`, `validation`, `config`
+- 범위가 모호한 package: `detail`, `failure`, `operation`, `query`, `catalog`
+
+공식 EDU 기능별 vertical slice와 계층별 공용 바구니가 혼재한다. 개발자가 하나의 샘플 기능을 이해하기 위해 여러 최상위 package를 오가야 할 가능성이 있으며, official EDU와 향후 개발자별 학습 package의 경계도 아직 정의·구현되지 않았다.
+
+### BAT
+
+최신 master의 BAT에는 다음 최상위 package가 있다.
+
+- `centercut`
+- `config`
+- `edu`
+- `job`
+- `operation`
+
+BAT EDU에는 capability별 package가 있으나 `BatTaskletEducationSample.java`가 `cpf.bat.edu` 바로 아래에 존재하고, `edu.job`, `edu.logging`, `edu.restart`, `edu.retry`, `edu.transaction`처럼 하나의 실행 가능한 sample job이 여러 capability package로 분산된 구조다.
+
+실제 업무 batch도 `JobDefinition`별 vertical slice인지, `job`과 `operation`에 여러 잡 class가 혼재하는지 전수 검수가 필요하다.
+
+### 상태·quality gate 불일치
+
+최신 report는 다음을 완료로 기록한다.
+
+- `architecture-ownership`
+- `xyz-edu`
+- `sample-coverage`
+- `generator-cleanup`
+- `module-topology-authoritative`
+
+하지만 위 실제 구조 문제를 quality gate가 탐지하지 못했다.
+
+특히:
+
+- `generator-cleanup` 완료인데 `acc/patch-candidates/**`와 생성 결과 JSON이 master에 존재한다.
+- `sample-coverage` 51건 완료는 source/test path 대응만 확인한 것으로 보이며, 기능별 vertical slice·실제 PFW/CMN 사용·OpenAPI·runtime·학습 완결성을 보장하지 않는다.
+- `architecture-ownership` 완료는 module 의존 금지만 확인했을 가능성이 높고 package ownership과 기능 응집도까지 검증하지 않는다.
+
+따라서 관련 상태는 최신 구조 보정과 신규 evidence 전까지 `재확인 필요` 또는 `부분 구현`으로 재판정해야 한다.
+
+## 0.3 Codex 주장과 직접 확인을 분리한다
+
+Codex가 보고한 다음 수치는 기존 evidence와 source를 확인하되 보고만으로 완료 처리하지 않는다.
+
+- 전체 152 suites, 342 tests
+- skip 4
+- qualityGate 82 tasks
+- ACC CRUD·감사·거래 로그·카탈로그 건수
+- ACC/Gateway health HTTP 200
+- MariaDB 전체 설치와 권한 분리
+
+이번 검수 환경에서는 해당 명령을 직접 재실행하지 않았다. 최신 evidence 파일, command, exit code, commit SHA, profile, DB schema, 실행 시각을 확인해 재판정한다.
+
+# 0A. 이번 대형 마일스톤 목표
+
+이번 작업은 단순 package rename이나 cleanup이 아니다.
+
+목표는 다음 네 가지다.
+
+1. CPF 전체 package·module·file placement 표준 확정
+2. ACC 생성기와 안전한 제거 기능을 제품 수준으로 완성
+3. XYZ/BAT 공식 EDU를 개발자가 실제 학습 가능한 기능/잡 단위로 재구성
+4. 기존 전체 요청의 상용 운영 기능을 계속 구현하면서 구조·테스트·SQL·OpenAPI·evidence 정합성을 강화
+
+기존 전체 요구를 취소하거나 후순위로 밀기 위한 구조 정리 작업으로 사용하지 않는다.
+
+# 0B. 필수 완료 범위 1 — CPF 전체 package·module architecture 전수 검수와 실제 정돈
+
+## 0B.1 전체 class inventory
+
+다음 module의 `src/main`, `src/test`, `resources`, SQL, script, deploy, manifest를 전수 inventory한다.
+
+- pfw
+- cmn
+- adm
+- bza
+- mbr
+- acc
+- bat
+- xyz
+- pfw-gateway-runtime
+- 생성기로 만든 임시 검증 domain
+- root scripts/specs/deploy
+
+각 Java/Kotlin/Groovy class와 resource에 다음을 기록한다.
+
+```text
+module
+package/path
+class/file
+기능 또는 업무
+owner
+public/internal
+consumer
+test
+SQL/config
+OpenAPI
+EDU
+유지/이동/통합/삭제 후보
+이유
+```
+
+파일 수가 많다는 이유로 샘플링하지 않는다.
+
+## 0B.2 module 유형별 표준
+
+모든 module에 동일한 모양을 강제하지 않는다. 다음 유형별 표준을 각각 정의하고 적용한다.
+
+### PFW
+
+capability 중심 package:
+
+```text
+cpf.pfw.<capability>
+├─ api 또는 contract
+├─ application
+├─ port
+├─ engine
+├─ policy
+├─ adapter
+├─ config
+└─ support
+```
+
+PFW가 업무 주제영역 package나 model에 의존하지 않는다.
+
+### CMN
+
+공통 기능 중심 package:
+
+```text
+cpf.cmn.message
+cpf.cmn.error
+cpf.cmn.fixedlength
+cpf.cmn.validation
+cpf.cmn.converter
+cpf.cmn.code
+cpf.cmn.fixture
+```
+
+무제한 `util`, `common`, `helper` package에 class를 쌓지 않는다.
+
+### 업무 주제영역
+
+MBR, ACC, 생성 domain은 업무 기능 vertical slice를 기본으로 한다.
+
+```text
+cpf.<domain>.<feature>
+├─ api 또는 controller
+├─ application 또는 service
+├─ domain
+├─ dto
+├─ facade
+├─ port
+├─ adapter
+├─ repository
+├─ validation
+└─ config
+```
+
+module 전체에 진짜 공통인 bootstrap/config/support만 feature 밖에 둘 수 있다.
+
+다음과 같이 서로 다른 기능을 계층별 최상위 package에 혼합하지 않는다.
+
+```text
+cpf.<domain>.controller
+cpf.<domain>.service
+cpf.<domain>.repository
+cpf.<domain>.dto
+```
+
+### ADM/BZA
+
+운영·백오피스 기능별 vertical slice를 원칙으로 한다.
+
+예:
+
+```text
+cpf.adm.approval
+cpf.adm.channel
+cpf.adm.transactionlog
+cpf.adm.batch
+cpf.adm.registry
+
+cpf.bza.identity
+cpf.bza.organization
+cpf.bza.permission
+cpf.bza.approval
+cpf.bza.notification
+```
+
+기존 `opr` 같은 대형 package가 모든 기능을 수용하고 있다면 기능별 분리 가능성과 영향도를 검토한다. 무리한 일괄 이동으로 runtime을 깨지 말고 단계적으로 정돈하되 신규 기능은 확정 표준을 따른다.
+
+## 0B.3 package와 file naming
+
+- package는 소문자 영문
+- 기능·업무 의미를 드러내는 이름 사용
+- `manager`, `handler`, `helper`, `util`, `common`, `impl` 남용 금지
+- class suffix는 역할과 일치
+- application class는 module 이름과 일치
+- DTO는 request/response/command/query/result 구분
+- repository interface와 adapter 구현을 구분
+- Local Facade와 Remote Proxy 이름을 명확히 구분
+- generated class와 hand-written class를 구분 가능하게 함
+- 같은 업무 개념을 두 package tree에 중복 구현하지 않음
+
+## 0B.4 source/test/resources 대응
+
+- test package는 source 기능/잡 package 구조와 대응
+- feature 전용 config·fixture·mapper는 feature 소유 위치에 배치
+- module 공통 config만 최상위 config에 배치
+- MyBatis mapper namespace와 Java package 정합성
+- OpenAPI operationId와 source owner 정합성
+- SQL table prefix와 module owner 정합성
+- generated resource와 운영 resource 분리
+
+## 0B.5 불필요 파일·빈 디렉터리·가비지 전수 정리
+
+패키지 이동과 module 정리는 class 이동만으로 끝내지 않는다. CPF repository 전체에서 불필요 파일, 빈 디렉터리, 중복 산출물, stale generated artifact를 전수 확인하고 실제 삭제한다.
+
+검수 대상:
+
+- root와 모든 module의 `build`, `bin`, `out`, `target`
+- `logs`, `log`, `tmp`, `temp`, `work`
+- `patch-candidates`
+- `create-domain-result*.json`
+- generator 중간 산출물
+- 적용 완료된 candidate file
+- verification temp
+- local credential/config
+- IDE cache와 개인 환경 파일
+- stale evidence
+- 오래된 smoke output
+- 중복 README
+- 중복 SQL/Flyway
+- 중복 deploy inventory
+- 중복 manifest
+- 중복 OpenAPI snapshot
+- 백업·사본·`*.old`·`*.bak`·`*.copy`
+- 0 byte placeholder
+- 사용되지 않는 `.gitkeep`
+- 이동 후 남은 빈 package/directory
+- orphan Java class
+- orphan test
+- orphan mapper/resource
+- 참조되지 않는 yml/property
+- 삭제된 module·package의 잔존 import·설정·SQL·menu·catalog·route
+- 사용하지 않는 generated source
+- 같은 기능의 구버전·신버전 중복 구현
+- commit할 필요가 없는 local 실행 결과
+
+정리 원칙:
+
+1. 기능을 먼저 inventory하고 대체 위치와 consumer를 확인한다.
+2. 필요한 source·SQL·API·evidence를 가비지로 오판해 삭제하지 않는다.
+3. 이동이 끝난 old package와 빈 directory는 남기지 않는다.
+4. 최종 제품 산출물만 repository의 표준 위치에 유지한다.
+5. 생성 과정의 report·diff·candidate·temporary file은 `build/reports/**` 또는 정제 evidence staging으로 이동하고 제품 module에 남기지 않는다.
+6. 생성 결과 요약이 evidence로 필요하면 민감정보를 제거한 최종 summary만 `specs/evidence/<작업일자_회차>/`에 보관한다.
+7. `.gitignore`를 보강해 동일 가비지가 다시 추적되지 않게 한다.
+8. module별로 필요 없는 README를 생성하지 않는다. 공통 설명은 root README와 상세 spec으로 통합한다.
+9. 삭제 후 source/test/resources/SQL/deploy/OpenAPI/catalog의 잔존 참조를 검색한다.
+10. 삭제 후 module별 build와 전체 build를 다시 수행한다.
+
+### 빈 디렉터리
+
+Git은 일반 빈 디렉터리를 추적하지 않지만 `.gitkeep`, placeholder, 생성기 산출물 때문에 의미 없는 디렉터리가 남을 수 있다.
+
+- 제품 구조상 필요하지 않은 빈 디렉터리는 모두 삭제한다.
+- 단순 미래 확장 목적의 빈 package를 미리 만들지 않는다.
+- `.gitkeep`은 runtime 저장소 등 실제로 배포 구조상 필요한 경우만 허용한다.
+- 허용한 `.gitkeep`은 왜 필요한지 인접 문서나 build/deploy contract로 증명한다.
+- package 이동 후 기존 package tree가 비어 있으면 삭제한다.
+
+### 작업 종료 전 상시 cleanup
+
+이번 작업뿐 아니라 이후 모든 Codex 작업의 마지막 단계에 repository cleanup을 수행한다.
+
+```text
+구현 완료
+→ package/file ownership 재확인
+→ 불필요 파일·빈 디렉터리·중복 산출물 삭제
+→ 잔존 참조 검색
+→ .gitignore 확인
+→ module build
+→ 전체 qualityGate
+→ final worktree manifest
+```
+
+변경 파일 목록에는 생성·수정 파일뿐 아니라 삭제 파일과 삭제 이유도 포함한다.
+
+### 자동 gate
+
+qualityGate에서 최소 다음을 탐지한다.
+
+- 추적 중인 build/bin/log/tmp
+- `patch-candidates` 잔존
+- module root의 generator result
+- duplicate candidate/final file
+- `.old`, `.bak`, `.copy`
+- 허용 근거 없는 `.gitkeep`
+- 삭제된 package의 잔존 import
+- source 없는 test
+- test 없는 공식 EDU
+- orphan mapper/resource
+- 중복 SQL·deploy·manifest
+- stale generated artifact
+- root와 module README의 동일 내용 중복
+- 불필요한 빈 package marker
+
+단순 경고로 끝내지 않고 이번 범위에서 안전하게 삭제 가능한 항목은 실제 삭제한다.
+
+
+# 0C. 필수 완료 범위 2 — ACC reference domain과 create-domain 재설계
+
+## 0C.1 ACC 최종 구조
+
+ACC는 독립 Git project가 아니라 CPF monorepo의 업무 domain subproject다.
+
+- root `settings.gradle`에 포함
+- root wrapper 사용
+- `:acc:compileJava`
+- `:acc:test`
+- `:acc:bootJar`
+- 전체 build
+- embedded/external Tomcat 확장
+- Local/Remote Facade
+- PFW Service Call Engine
+- registry/health
+- OpenAPI
+- SQL/Flyway/all_install
+- ADM catalog
+- BZA menu candidate
+
+ACC의 기본 골격은 MBR과 동일한 업무 domain 표준을 따른다.
+
+현재 존재하는 다음 두 구조를 분석하고 하나의 명확한 account feature slice로 통합한다.
+
+```text
+cpf.acc.account.*
+cpf.acc.controller/service/repository/dto/facade/port/validation
+```
+
+중복 Controller, Service, Repository, Facade, DTO와 execution ID, API를 정리한다.
+
+## 0C.2 생성기 산출물 구분
+
+생성기는 다음을 구분한다.
+
+### 최종 제품 산출물
+
+- module source/test/resources
+- build.gradle
+- profile config
+- SQL/Flyway
+- final manifest
+- registry/catalog metadata
+- final deploy inventory
+- smoke
+- OpenAPI
+- README가 필요하면 최소 module 안내
+
+### 생성 작업 산출물
+
+- patch candidate
+- apply plan
+- diff
+- create result
+- checksum
+- dry-run report
+- verification temp
+
+작업 산출물은 module root에 영구 제품 파일처럼 남기지 않는다.
+
+권장 위치:
+
+```text
+build/reports/create-domain/<module>/
+specs/evidence/<runId>/create-domain/
+```
+
+`acc/patch-candidates/**`는 최종 통합이 끝났다면 제거하거나 표준 evidence 위치로 이동한다.
+
+## 0C.3 전역 환경 원자적 적용
+
+생성 시 다음을 하나의 transaction-like 작업으로 관리한다.
+
+- settings.gradle
+- root build
+- profile/port
+- deploy inventory
+- runtime harness
+- SQL split
+- Flyway
+- all_install
+- all_install_and_smoke
+- smoke_check
+- OpenAPI aggregation
+- registry
+- ADM catalog
+- BZA menu candidate
+- qualityGate
+- architecture test
+
+일부만 성공한 상태를 완료로 남기지 않는다.
+
+## 0C.4 remove-domain
+
+다음 명령 또는 동등 기능을 제공한다.
+
+```text
+remove-domain --moduleCode=ACC --dry-run
+remove-domain --moduleCode=ACC
+```
+
+생성 manifest에는 최소 다음을 기록한다.
+
+- generatorVersion
+- moduleCode
+- base commit
+- generatedAt
+- created files
+- modified global files
+- inserted blocks
+- before/after checksum
+- applied SQL/catalog candidates
+
+삭제 시:
+
+- 생성기가 만든 파일만 삭제
+- 전역 파일의 생성기 block만 제거
+- 사용자 수정 파일 checksum 변경 시 자동 삭제 금지
+- 다른 module 참조 시 차단
+- 운영 DB table 자동 DROP 금지
+- DB 제거는 별도 승인·백업·migration 정책
+- dry-run에서 영향도 출력
+- 제거 후 전체 build/test/qualityGate
+- 잔존 package·SQL·menu·route·registry·execution ID 검사
+
+## 0C.5 생성기 실검증
+
+깨끗한 temporary worktree에서:
+
+1. 임의 LNG 생성
+2. ACC 생성
+3. module별 compile/test/bootJar
+4. 전체 build
+5. startup/health
+6. OpenAPI
+7. registry/catalog
+8. MariaDB install
+9. ownership
+10. remove dry-run
+11. 실제 remove
+12. 전체 회귀 build
+13. 잔존 참조 0
+
+생성 결과를 직접 patch해서 통과시키지 않는다. 실패하면 template 또는 공통 기반을 수정하고 처음부터 재생성한다.
+
+# 0D. 필수 완료 범위 3 — XYZ 공식 EDU와 개발자 학습 공간
+
+## 0D.1 XYZ 역할
+
+XYZ는 CPF 온라인·일반 기능의 공식 학습·검증 application이다.
+
+두 영역을 지원한다.
+
+```text
+cpf.xyz.edu.<capability>
+cpf.xyz.<developerId>.<learningFeature>
+```
+
+또는 표준화된 `lab.<developerId>` 구조를 선택할 수 있으나, 사용자가 요구한 개발자별 학습 공간과 official EDU의 구분이 명확해야 한다.
+
+## 0D.2 공식 EDU
+
+`cpf.xyz.edu`는 CPF 공식 제품 산출물이다.
+
+개발자가 사용하는 모든 공개 PFW/CMN capability는 실제 official sample을 가져야 한다.
+
+각 sample은 기능별 vertical slice로 완결한다.
+
+```text
+cpf.xyz.edu.<capability>
+├─ api
+├─ application
+├─ domain 또는 model
+├─ dto
+├─ port
+├─ adapter
+├─ validation
+├─ config
+└─ support
+```
+
+특정 capability에 해당하는 Controller, Service, DTO, Mapper, Repository는 그 capability package 안으로 이동한다.
+
+현재 존재하는 다음 계층 package를 전수 해체·분류한다.
+
+- `edu.controller`
+- `edu.dto`
+- `edu.facade`
+- `edu.mapper`
+- `edu.repository`
+- `edu.service`
+- `edu.validation`
+- `edu.config`
+
+각 class가 어느 official sample 소유인지 결정한다. 실제 XYZ 전체 공통인 class만 명확한 공통 package에 남긴다.
+
+## 0D.3 학습 가능한 sample 기준
+
+각 sample은 단순 helper method가 아니라 개발자가 복사·응용 가능한 흐름을 보여준다.
+
+- Controller/API 또는 명확한 entry point
+- Application service
+- request/response
+- PFW/CMN port 호출
+- 필요한 adapter
+- 정상 흐름
+- validation failure
+- security/permission
+- audit/masking
+- timeout/retry/failure
+- transactionGlobalId/header
+- OpenAPI
+- test
+- 실행 방법과 설명
+- runtime evidence
+
+REST가 아닌 capability는 적합한 runner/test/API를 제공하되 학습 목적과 검증 entry point가 명확해야 한다.
+
+## 0D.4 개발자별 학습 package
+
+- developer ID naming rule
+- 예약 package 이름
+- 다른 개발자 package 참조 금지
+- 업무 domain 내부 class 참조 금지
+- PFW/CMN public port 사용
+- API/table/permission/catalog namespace 충돌 방지
+- local/dev 선택 활성화
+- stg 제한
+- prod 기본 비활성 또는 배포 제외
+- official sample coverage와 분리
+- 전체 build를 깨뜨리지 않도록 선택 compilation/profile 전략 검토
+
+개발자 학습 package 생성 helper와 remove helper를 착수한다.
+
+## 0D.5 EDU coverage
+
+PFW/CMN public capability inventory와 XYZ/BAT official sample을 양방향 대조한다.
+
+CoverageCatalog의 sampleId만으로 완료 처리하지 않는다.
+
+완료 조건:
+
+```text
+public capability
++ actual sample class
++ sample test
++ 실제 port/engine 사용
++ OpenAPI 또는 실행 entry
++ runtime evidence
++ guide
++ matrix
+```
+
+# 0E. 필수 완료 범위 4 — BAT JobDefinition 중심 구조
+
+## 0E.1 actual batch
+
+runtime `JobInstance`가 아니라 source `JobDefinition`별 package를 사용한다.
+
+```text
+cpf.bat.job.<jobName>
+├─ <JobName>JobConfig
+├─ step
+├─ tasklet 또는 reader/processor/writer
+├─ listener
+├─ application
+├─ domain
+├─ dto
+├─ adapter
+├─ repository
+├─ validation
+└─ operation
+```
+
+동일 잡의 class를 `job`, `operation`, `logging` 같은 최상위 계층 package로 분산하지 않는다.
+
+BAT 전체 공통인 다음만 외부에 둘 수 있다.
+
+- application bootstrap
+- JobRepository 공통 구성
+- 공통 parameter/context adapter
+- 공통 운영 support
+- BAT 기본 center-cut 구현
+
+## 0E.2 BAT official EDU
+
+공식 sample은 다음 중 하나로 완결한다.
+
+```text
+cpf.bat.edu.<sampleJob>
+cpf.bat.edu.<capability>.<sampleJob>
+```
+
+예:
+
+```text
+cpf.bat.edu.tasklet.basic
+cpf.bat.edu.chunk.customer
+cpf.bat.edu.restart.checkpoint
+cpf.bat.edu.centercut.basic
+```
+
+현재 `cpf.bat.edu.BatTaskletEducationSample`은 명확한 tasklet sample package로 이동한다.
+
+`edu.job`, `edu.logging`, `edu.transaction` 등에 분산된 class가 동일 sample job의 일부라면 sample job package로 통합한다.
+
+## 0E.3 실제 Spring Batch 검증
+
+단위 helper test만으로 완료하지 않는다.
+
+MariaDB JobRepository에서 다음을 실검증한다.
+
+- tasklet
+- chunk
+- reader/processor/writer
+- parameter validation
+- duplicate guard
+- 실패
+- checkpoint
+- restart
+- rerun
+- stop
+- partial rollback
+- retry/skip
+- execution/step 상태
+- transactionGlobalId
+- parameter/definition version
+- 승인 적용
+- 다중 worker 또는 lease
+- ghost suspected/confirmed/recovery
+
+## 0E.4 ADM 연계
+
+잡 정의와 실행 instance를 구분한다.
+
+잡 정의 화면:
+
+- standardExecutionId
+- package/class
+- owner
+- version
+- parameter schema
+- schedule
+- dependency
+- overlap
+- concurrency
+- restart/rerun
+- SLA
+- approval
+- active
+
+실행 instance 화면:
+
+- jobInstanceId
+- jobExecutionId
+- businessDate
+- parameter snapshot/version
+- start/end/duration
+- step/progress
+- selectedInstanceId
+- transactionGlobalId
+- retry/restart
+- error
+- approvalRequestId
+
+# 0F. 필수 완료 범위 5 — package architecture gate
+
+ArchUnit과 script qualityGate를 함께 사용한다.
+
+최소 탐지:
+
+- PFW가 업무 domain 참조
+- CMN이 업무 구현 참조
+- 업무 domain 간 내부 class 참조
+- XYZ/BAT EDU가 MBR/ACC/BZA/ADM 내부 class 참조
+- 업무 feature class가 금지된 top-level controller/service/repository/dto에 위치
+- XYZ official sample의 class가 capability 밖 계층 바구니에 위치
+- BAT 잡 class가 owner job package 밖에 위치
+- developer package 간 참조
+- generated domain nested Gradle root
+- patch-candidates/create result가 제품 module root에 커밋
+- source/test package 불일치
+- duplicate Controller/Service/Repository
+- orphan class
+- 빈 package
+- public capability인데 official EDU 없음
+- sampleId만 있고 sample/test 없음
+- package 이동 후 OpenAPI/catalog ID 불일치
+- 작업 상태·commit·test 결과를 README에 기록
+- README 주요 기능 설명 부족 또는 source와 불일치
+- 불필요 파일·빈 디렉터리 marker·중복 산출물 잔존
+- generator candidate와 final artifact 동시 추적
+
+기존 `check-architecture-ownership.ps1`, `check-sample-standard.ps1`, `check-sample-coverage.ps1`을 보강한다.
+
+기존 gate가 통과했던 잘못된 구조를 regression fixture로 추가한다.
+
+# 0G. 필수 완료 범위 6 — 기존 전체 요청의 운영 기능 계속 구현
+
+구조 정리에만 작업을 소진하지 않는다.
+
+기존 전체 요청서에서 아직 완료되지 않은 다음을 계속 실제 구현한다.
+
+- 통합 채널 registry
+- 거래별 original/caller channel policy
+- 고성능 immutable policy snapshot
+- JUT
+- O/S/B ADM 거래 테스트
+- 정책 package export/import
+- 사전 등록과 source matching
+- ADM 전체 공통 변경관리·승인결재
+- 자동승인·수동승인
+- 예약 적용·다음 실행·재기동 후 적용
+- 실행 snapshot/version
+- ADM/BAM 성공·오류·거래·채널·교차 통계
+- raw/formatted 로그
+- 반응형 UI
+- configuration/secret lifecycle
+- observability/alert/SLO
+- schema versioning/migration
+- retention/privacy/DR
+- supply-chain security/performance
+
+이번 마일스톤에서는 package 구조 보정과 직접 연결되는 기능 및 이미 source가 있는 기능을 우선 실제 구현한다. 문서만 보강하고 끝내지 않는다.
+
+# 0H. 필수 완료 범위 7 — Codex 보고 항목의 재검증
+
+## 0H.1 ACC/Gateway
+
+- ACC health
+- Gateway health
+- ACC CRUD
+- audit
+- transaction log
+- execution catalog
+- OpenAPI
+- process/port cleanup
+
+추가 실검증:
+
+- Gateway→ACC 실제 proxy
+- Gateway→MBR 실제 proxy
+- timeout
+- retry
+- circuit
+- failover
+- selectedInstanceId
+- header propagation
+- channel policy
+- streaming
+- cancellation
+- route snapshot swap
+- 다중 ACC instance
+
+## 0H.2 external Tomcat/JNDI
+
+ACC와 Gateway를 포함해 지원 대상 WAR/application의 parity를 검증한다.
+
+- build
+- deploy
+- JNDI DataSource
+- context path
+- health
+- OpenAPI
+- transaction
+- graceful stop
+
+실행 환경이 없으면 재현 명령과 preflight를 남기고 `미검증` 처리한다.
+
+## 0H.3 broker·Vault·multi-server
+
+실 인프라가 없으면 임의 설치하지 않는다.
+
+- broker
+- secret/Vault
+- mTLS
+- multi-server
+- object storage
+- 외부 SFTP
+
+preflight와 deterministic adapter 결과를 분리하고 실 연동은 `미검증`으로 유지한다.
+
+## 0H.4 browser E2E
+
+ADM/BZA 실제 로그인 이후:
+
+- menu/permission
+- responsive viewport
+- channel policy
+- approval
+- batch
+- logs
+- statistics
+- file upload/import
+- error state
+- console error
+- direct URL 403
+- session expiry
+
+viewport:
+
+- 1440×900
+- 1024×768
+- 768×1024
+- 390×844
+
+# 0I. SQL·Flyway·all_install
+
+구조 이동과 generator 변경에 따라 다음을 모두 재생성·검증한다.
+
+- split SQL
+- Flyway
+- `00_all_install.sql`
+- `00_all_install_and_smoke.sql`
+- `99_smoke_check.sql`
+- generator candidate SQL 제거
+- ACC final SQL 단일 정본
+- BAT JobRepository PFW DB
+- seed idempotency
+- empty schema install
+- second run
+- FK/index/privilege
+- cleanup strategy
+
+신규 SQL 변경 후 기존 evidence만 사용하지 않는다.
+
+# 0J. OpenAPI·EDU·문서
+
+모든 REST API:
+
+- `@Tag`
+- `@Operation`
+- unique operationId
+- request/response schema
+- standard error
+- required header
+- permission
+- audit/masking
+- transactionGlobalId/channel 설명
+
+package 이동 후 OpenAPI coverage를 다시 생성한다.
+
+README와 상세 스펙은 최종 source 구조와 실제 제공 기능에 일치하게 갱신한다.
+
+`README.md`에는 이번 작업에서 무엇을 바꿨는지, 어떤 검증을 실행했는지, 어떤 gap이 남았는지를 기록하지 않는다. 그런 내용은 각각 `CPF_STABILIZATION_REPORT.md`, `CPF_GAP_MATRIX.md`, `CPF_EVIDENCE_INDEX.md`, `specs/evidence/<작업일자_회차>/`에서 관리한다.
+
+README는 CPF가 이미 완성된 상용 프레임워크 제품인 것처럼 읽히는 공식 제품 소개·기술 스펙 문서 형태로 작성한다. 단, 실제 구현되지 않거나 검증되지 않은 기능을 구현 완료라고 허위 표기하지 않는다.
+
+README에서 주요 기능은 단순 기능명 나열이 아니라 다음을 포함해 상세히 설명한다.
+
+- 기능이 해결하는 문제
+- 핵심 동작
+- PFW/CMN/업무 module ownership
+- Local/Remote/MSA 동작
+- 운영·보안·감사 특성
+- 개발자가 사용하는 방식
+- ADM/BAM/BZA에서 관리·관제하는 방식
+- 관련 EDU와 확장 지점
+
+module별 README는 반드시 필요한 경우만 둔다. root README와 같은 설명을 반복하지 않는다. ACC README는 별도 project 안내가 아니라 CPF monorepo 안의 reference domain 역할과 module build/run 진입점만 제공한다.
+
+DOCX/PDF는 최종 정본화 단계 전까지 반복 생성하지 않는다.
+
+# 0K. 상태·evidence 재판정
+
+최소 다음 상태를 재검토한다.
+
+- architecture-ownership
+- xyz-edu
+- bat-edu
+- sample-coverage
+- generator-cleanup
+- module-topology-authoritative
+- acc-reference-domain
+- full-capability-inventory
+- quality-gate
+- report-matrix-consistency
+- readme-docs
+
+구조 보정 전 완료 상태를 그대로 유지하지 않는다.
+
+evidence에는:
+
+- commit SHA
+- profile
+- command
+- exit code
+- timestamp
+- DB/schema
+- service/port
+- sanitized output
+- checksum
+
+을 기록한다.
+
+# 0L. 최종 제출물
+
+한 번에 다음을 제출한다.
+
+1. 변경 요약
+2. 시작/종료 SHA
+3. 전체 package/class ownership inventory
+4. module 유형별 package 표준
+5. 실제 이동·통합·삭제 파일 목록
+6. ACC 생성기 before/after
+7. remove-domain dry-run/실행 결과
+8. XYZ official EDU coverage
+9. 개발자 학습 package 표준
+10. BAT job/sample 구조
+11. architecture gate 결과
+12. compile/test/bootJar 결과
+13. MariaDB install/restart 결과
+14. Gateway proxy E2E
+15. browser E2E
+16. OpenAPI 결과
+17. sample coverage
+18. SQL 정합성
+19. report/gap/matrix/evidence 정합성
+20. README 제품 문서 검토 결과
+21. 불필요 파일·빈 디렉터리·중복 산출물 삭제 목록
+22. 가비지 재유입 방지 gate 결과
+23. 남은 미검증·gap
+
+변경 파일 목록은 반드시 제공한다. 생성·수정·이동·삭제를 구분하고 삭제 파일에는 삭제 이유를 기록한다.
+
+# 0M. 완료 금지 조건
+
+다음 중 하나라도 해당하면 전체 완료로 기록하지 않는다.
+
+- ACC 중복 구조 잔존
+- `patch-candidates`가 제품 module에 잔존
+- 생성기 제거 기능 없음 또는 미검증
+- XYZ 계층형 EDU package 혼재
+- BAT 잡 class가 owner job package 밖에 혼재
+- public capability official EDU 누락
+- sampleId/catalog만 존재
+- package gate가 구조 문제를 탐지하지 못함
+- 신규 SQL 미실행
+- Gateway 실제 proxy 미검증
+- BAT restart 미검증
+- browser E2E 미검증
+- report와 source 상태 불일치
+- README에 작업 일지·검증 결과·남은 gap·commit 정보 기록
+- README가 주요 기능명을 나열만 하고 제품 기능과 사용법을 설명하지 않음
+- 불필요 파일·빈 디렉터리·중복 candidate/final 산출물 잔존
+- 이동 후 old package·orphan resource·stale import 잔존
+- 가비지 재유입 방지 qualityGate 없음
+- stale evidence 사용
+- 실행하지 않은 검증을 완료로 기록
+
+---
+
 
 # 1. 필수 완료 범위
 
@@ -4628,6 +5644,19 @@ Gateway 기본 운영형은 embedded/external Tomcat parity가 가능한 Servlet
 
 # 7. 문서와 상태 갱신
 
+문서 역할을 혼합하지 않는다.
+
+```text
+CPF_FINAL_TARGET_REQUIREMENTS.md  최종 목표와 제품 요구사항
+CPF_STABILIZATION_REPORT.md       최신 직접 검증 결과와 현재 상태
+CPF_GAP_MATRIX.md                 목표와 현재 상태의 남은 차이
+CPF_EVIDENCE_INDEX.md             정제 증적 index
+specs/evidence/<작업일자_회차>/   실제 실행 증적
+README.md                         완성 제품 소개·기술 스펙·기능·사용 안내
+```
+
+README를 report나 gap의 요약본으로 만들지 않는다.
+
 필수 갱신:
 
 - `CPF_STABILIZATION_REPORT.md`
@@ -4636,7 +5665,7 @@ Gateway 기본 운영형은 embedded/external Tomcat parity가 가능한 Servlet
 - `specs/기능_구현_매트릭스.json`
 - `specs/기능_구현_매트릭스.md`
 - `specs/sample-coverage-matrix.md`
-- `README.md`
+- `README.md` — 실제 제품 기능·아키텍처·사용법 변경이 있을 때만 제품 문서로 갱신하며 작업 상태는 기록하지 않음
 
 `CPF_STABILIZATION_REPORT.md`는 초기화하거나 기존 실패·미검증·이력을 삭제하지 않는다.
 
@@ -4645,46 +5674,125 @@ Gateway 기본 운영형은 embedded/external Tomcat parity가 가능한 Servlet
 - 오래된 중복 설명은 정리할 수 있으나 과거 미검증·실패와 근거를 지워 완료처럼 보이게 하지 않는다.
 - report, gap, evidence index, 기능 matrix, sample coverage의 상태를 일치시킨다.
 
-`README.md`는 개발 진행 보고서가 아니라 완성 제품의 공식 소개 문서로 재작성한다.
+`README.md`는 개발 진행 보고서가 아니라 **완성된 상용 CPF 제품의 공식 소개·PR·기술 개요 문서**로 작성한다.
 
-README에서 제거:
+README는 고객, 아키텍트, 개발자, 운영자가 처음 repository를 열었을 때 CPF가 어떤 제품이고 무엇을 제공하며 어떻게 적용하는지 이해할 수 있어야 한다.
 
-- 최종 목표 목록
-- 현재 개발 중·다음 작업·미구현·gap·완료율
-- Codex 요청·검수 과정·커밋별 작업 일지
+### README에서 절대 작성하지 않을 내용
+
+- 이번 Codex 작업 범위
+- 이번에 수정한 파일
+- 작업 시작/종료 SHA
+- commit별 변경 이력
+- 테스트 suite/task 건수
+- health HTTP 결과
+- 현재 개발 중인 기능
+- 다음 작업 목록
+- 미구현·미검증·gap 목록
+- 완료율
+- 검수 과정
 - 내부 evidence 경로의 장황한 나열
+- 특정 작업일자의 실행 결과
 - 반복되는 정본화 계획
+- “이번 작업에서 추가했다”, “현재 보완 중이다” 같은 작업 일지 표현
 
-README에 유지·정리:
+해당 정보의 정본 위치:
 
-- CPF 제품 개요
-- 핵심 기능
-- 기술 사양
-- 아키텍처
-- 모듈 역할
-- `O/S/B` 표준 실행 ID 개념
-- 자연어 URI와 ID 호출 모델
-- `S` 내부 공유 API 정책
-- 표준 오류 처리
-- security/audit/masking
-- 배치·비동기·Gateway·ADM·BAM
-- 채널 레지스트리와 거래별 채널 정책
-- original/current channel과 caller/target service
+```text
+최종 목표              CPF_FINAL_TARGET_REQUIREMENTS.md
+현재 검증 결과         CPF_STABILIZATION_REPORT.md
+남은 차이              CPF_GAP_MATRIX.md
+증적 index             CPF_EVIDENCE_INDEX.md
+실제 정제 증적         specs/evidence/<작업일자_회차>/
+```
+
+### README 권장 구성
+
+1. CPF 제품명과 한 문장 가치 제안
+2. 제품 개요와 적용 대상
+3. 핵심 설계 원칙
+4. 전체 아키텍처와 runtime topology
+5. module 구성과 역할
+6. 주요 기능
+7. 개발자 사용 모델
+8. 운영·관제 모델
+9. 보안·감사·권한
+10. 설치·실행·배포
+11. 확장·주제영역 생성
+12. 공식 EDU와 개발자 학습 환경
+13. 기술 사양
+14. 상세 spec 문서 진입점
+
+### 주요 기능 상세 설명
+
+다음 기능은 이름만 나열하지 말고 제품 기능 관점에서 충분히 상세히 설명한다.
+
+- MSA-first와 modular-monolith 호환
+- 다중 instance와 registry/health
+- Local Facade와 Remote Facade Proxy
+- Service Call Engine
+- timeout/retry/circuit/failover
+- selectedInstanceId와 route snapshot
+- O/S/B 표준 실행 ID
+- 자연어 URI·ID header·ID URI 호출
+- transactionGlobalId·segment·timeline
+- standard/extended header propagation
+- channel registry와 거래별 channel policy
+- original/current channel
+- caller/target service identity
 - JUT 개발·테스트 채널
-- 고성능 policy snapshot
-- 거래 테스트 콘솔
-- 정책 파일 Export/Import와 환경 승격
-- 사전 등록·source matching
+- Gateway optional data plane
+- security·permission·audit·masking
+- 표준 오류·message catalog
+- idempotency
+- outbox/inbox
+- broker·DLQ·replay
+- unknown result·reconciliation
+- Saga·compensation
+- file transfer·SFTP/FTP/FTPS/SCP/SSH
+- attachment·secure download
+- archive·compression
+- scheduler·worker·Spring Batch
+- center-cut
+- batch dependency·restart·rerun·ghost
+- policy package export/import
+- preregistration·source matching
 - 공통 승인결재
-- 로그 원본/포맷 조회
-- 거래·채널 성공/오류 통계
-- Saga·compensation·idempotency·outbox/inbox·unknown/reconciliation 등 CPF 구현 패턴
-- embedded/external Tomcat
-- local/dev/stg/prod 실행·배포
-- domain/feature-first 개발 구조
-- 실제 확인된 설치·실행 명령
+- 자동승인·수동승인·예약 적용
+- ADM/BAM/BZA
+- raw/formatted log
+- 거래·채널·성공·오류 통계
+- OpenAPI
+- create-domain/remove-domain
+- XYZ/BAT official EDU
+- configuration·secret·observability·alert
+- schema migration·retention·backup/DR
+- Java 25·bootJar·embedded/external Tomcat
 
-README는 완제품 문서처럼 간결하고 전문적으로 작성하되, 미구현·미검증 기능을 사실과 다르게 구현 완료라고 단정하지 않는다. 구현 상태와 gap은 report/matrix에서만 관리한다.
+각 기능 설명은 가능한 경우 다음 형식을 따른다.
+
+```text
+목적
+동작 방식
+주요 구성요소
+개발자 사용 방법
+운영자 관리 방법
+보안·감사
+확장 지점
+관련 EDU/spec
+```
+
+### README 표현 원칙
+
+- 제품 홍보 문구와 기술 설명의 균형을 맞춘다.
+- 완성 제품을 소개하는 전문적이고 정돈된 문체를 사용한다.
+- 내부 작업 지시나 검수자의 메모처럼 작성하지 않는다.
+- 실제 source와 contract에 없는 기능을 과장하지 않는다.
+- 현재 상태와 gap은 README에 쓰지 않고 상태 문서에서만 관리한다.
+- 명령은 실제 지원하고 검증 가능한 설치·build·run 명령만 제공한다.
+- module별 중복 README를 남발하지 않는다.
+- README의 package/module/API 명칭은 최종 source와 일치해야 한다.
+
 
 기술 스펙과 개발·운영 가이드는 CPF가 제공하는 패턴과 capability를 체계적으로 설명한다.
 

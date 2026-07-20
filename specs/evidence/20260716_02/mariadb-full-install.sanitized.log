@@ -1,0 +1,36 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=mariadb-full-install-20260716-02
+STATUS=완료
+EXECUTED_AT=2026-07-16T19:35:34.7871351+09:00
+START_COMMIT=ff4661e673dab9a2f417e75f8ad64fb712c96fa6
+BRANCH=master
+COMMAND=scripts/smoke-mariadb-full-install.ps1 -RequireExecution -TestServiceAccounts
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=38
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=5df30cb47a5d101fd0d32877d386db8fd300a69e782ed386ab668aa05f4c042f
+--- SANITIZED_OUTPUT ---
+CPF MariaDB full install smoke
+[2026-07-16T18:32:22.1109029+09:00] SQL start: specs/sql/00_all_install_and_smoke.sql
+[2026-07-16T18:32:24.0344063+09:00] SQL completed: specs/sql/00_all_install_and_smoke.sql
+[2026-07-16T18:32:24.0354065+09:00] SQL start: specs/sql/99_smoke_check.sql
+[2026-07-16T18:32:24.1681887+09:00] SQL completed: specs/sql/99_smoke_check.sql
+[2026-07-16T18:32:24.1711894+09:00] SQL start: specs/sql/50_framework_seed_data.sql
+[2026-07-16T18:32:24.2743385+09:00] SQL completed: specs/sql/50_framework_seed_data.sql
+[2026-07-16T18:32:24.2772991+09:00] SQL start: specs/sql/52_standard_execution_alias_seed.sql
+[2026-07-16T18:32:24.3590735+09:00] SQL completed: specs/sql/52_standard_execution_alias_seed.sql
+[2026-07-16T18:32:24.3703553+09:00] SQL start: specs/sql/55_cmn_seed_data.sql
+[2026-07-16T18:32:24.4633661+09:00] SQL completed: specs/sql/55_cmn_seed_data.sql
+[2026-07-16T18:32:24.4663048+09:00] SQL start: specs/sql/60_adm_seed_data.sql
+[2026-07-16T18:32:24.5758357+09:00] SQL completed: specs/sql/60_adm_seed_data.sql
+[2026-07-16T18:32:24.5788379+09:00] SQL start: specs/sql/70_test_data.sql
+[2026-07-16T18:32:24.6829249+09:00] SQL completed: specs/sql/70_test_data.sql

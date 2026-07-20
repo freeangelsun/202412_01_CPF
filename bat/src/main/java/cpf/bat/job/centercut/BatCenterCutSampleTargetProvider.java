@@ -1,4 +1,4 @@
-package cpf.bat.centercut;
+package cpf.bat.job.centercut;
 
 import cpf.pfw.common.batch.centercut.CenterCutTargetProvider;
 import cpf.pfw.common.batch.centercut.CpfCenterCutResult;

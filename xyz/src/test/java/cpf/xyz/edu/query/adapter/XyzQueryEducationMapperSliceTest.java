@@ -1,8 +1,7 @@
-package cpf.xyz.edu.repository;
+package cpf.xyz.edu.query.adapter;
 
-import cpf.xyz.edu.dto.XyzQueryEducationCriteria;
-import cpf.xyz.edu.dto.XyzQueryEducationItem;
-import cpf.xyz.edu.mapper.XyzQueryEducationMapper;
+import cpf.xyz.edu.query.dto.XyzQueryEducationCriteria;
+import cpf.xyz.edu.query.dto.XyzQueryEducationItem;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,8 @@ class XyzQueryEducationMapperSliceTest {
 
     @Test
     void mapperXmlDoesNotUseUnsafeStringSubstitutionForSort() throws Exception {
-        Resource mapperXml = new ClassPathResource("mybatis/mapper/xyz/edu/XyzQueryEducationMapper.xml");
+        Resource mapperXml = new ClassPathResource(
+                "mybatis/mapper/xyz/edu/query/XyzQueryEducationMapper.xml");
         String xml = mapperXml.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(xml)
@@ -156,7 +156,7 @@ class XyzQueryEducationMapperSliceTest {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         Resource[] mapperLocations = new PathMatchingResourcePatternResolver()
-                .getResources("classpath*:mybatis/mapper/xyz/edu/XyzQueryEducationMapper.xml");
+                .getResources("classpath*:mybatis/mapper/xyz/edu/query/XyzQueryEducationMapper.xml");
         factoryBean.setMapperLocations(mapperLocations);
         SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
         if (sqlSessionFactory == null) {

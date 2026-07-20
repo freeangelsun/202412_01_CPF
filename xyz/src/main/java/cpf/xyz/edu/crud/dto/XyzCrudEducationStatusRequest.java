@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.crud.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

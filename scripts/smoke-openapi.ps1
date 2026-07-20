@@ -25,7 +25,7 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build/runtime-smoke"
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-$resultPath = Join-Path $ResultDir "openapi-runtime-result.json"
+$resultPath = Join-Path $ResultDir "openapi-runtime-result.sanitized.json"
 
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -148,7 +148,8 @@ if (-not $SkipAdm) {
         "ADM-TransactionGroup",
         "ADM-OPR Dynamic Log",
         "ADM-OPR Standard Execution",
-        "ADM-OPR Remote Log"
+        "ADM-OPR Remote Log",
+        "ADM-OPR Channel Policy"
     ) -RequiredPaths @(
         "/adm/api/transaction-groups",
         "/adm/api/transaction-groups/{transactionGlobalId}",
@@ -161,7 +162,13 @@ if (-not $SkipAdm) {
         "/adm/api/remote-logs/bundle-jobs/{jobId}",
         "/adm/api/remote-logs/bundle-jobs/{jobId}/download-tokens",
         "/adm/api/remote-logs/bundle-jobs/{jobId}/download",
-        "/adm/api/remote-logs/diagnostics"
+        "/adm/api/remote-logs/diagnostics",
+        "/adm/api/channels",
+        "/adm/api/channels/refresh",
+        "/adm/api/channels/{channelCode}",
+        "/adm/api/channels/policies/{policyKey}",
+        "/adm/api/channels/package",
+        "/adm/api/channels/package/import"
     ) | Out-Null
 }
 

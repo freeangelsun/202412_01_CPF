@@ -1,4 +1,4 @@
-package cpf.xyz.edu.operation;
+package cpf.xyz.edu.batch;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.filetransfer.controller;
 
 import cpf.pfw.common.filetransfer.CpfFileExchangeGateway;
 import cpf.pfw.common.filetransfer.CpfFileExchangeHistoryRecord;

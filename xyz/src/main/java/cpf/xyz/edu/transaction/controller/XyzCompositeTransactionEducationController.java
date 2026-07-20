@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.transaction.controller;
 
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;

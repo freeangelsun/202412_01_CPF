@@ -1,7 +1,7 @@
-package cpf.acc.facade;
+package cpf.acc.reference.facade;
 
-import cpf.acc.dto.AccountSearchRequest;
-import cpf.acc.service.AccountService;
+import cpf.acc.reference.dto.AccountReferenceSearchRequest;
+import cpf.acc.reference.service.AccountReferenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +14,10 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class AccountFacade {
-    private final AccountService service;
+public class AccountReferenceFacade {
+    private final AccountReferenceService service;
 
-    public Map<String, Object> search(AccountSearchRequest request) {
+    public Map<String, Object> search(AccountReferenceSearchRequest request) {
         return service.search(request);
     }
 }

@@ -1,0 +1,407 @@
+{
+    "startedAt":  "2026-07-20T10:04:39.7850855+09:00",
+    "moduleCode":  "pym",
+    "dryRun":  {
+                   "status":  "완료",
+                   "dryRun":  true,
+                   "moduleCode":  "PYM",
+                   "moduleName":  "Lending",
+                   "domainIdCode":  "PYM",
+                   "basePackage":  "cpf.pym",
+                   "tablePrefix":  "pym",
+                   "port":  8188,
+                   "online":  true,
+                   "batch":  true,
+                   "bzaMenu":  true,
+                   "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                   "generatePatch":  false,
+                   "applyMode":  false,
+                   "conflicts":  [
+
+                                 ],
+                   "generatedFiles":  [
+
+                                      ],
+                   "patchFiles":  [
+
+                                  ],
+                   "patchCandidates":  [
+                                           "settings.gradle include \u0027pym\u0027",
+                                           "root build dependency registration if needed",
+                                           "specs/sql/40_business_modules_schema.sql table candidate",
+                                           "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                           "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                           "specs/sql/99_smoke_check.sql smoke candidate",
+                                           "specs/sql/00_all_install.sql merge candidate",
+                                           "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                           "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                           "application-pym.yml candidate",
+                                           "src/main/resources/application-pym-local.yml candidate",
+                                           "src/main/resources/application-pym-dev.yml candidate",
+                                           "src/main/resources/application-pym-stg.yml candidate",
+                                           "src/main/resources/application-pym-prod.yml candidate",
+                                           "deploy/env/local-pym.env candidate",
+                                           "deploy/env/dev-pym.env candidate",
+                                           "deploy/env/stg-pym.env candidate",
+                                           "deploy/env/prod-pym.env candidate",
+                                           "deploy/inventory/local-services.json candidate",
+                                           "deploy/inventory/dev-services.json candidate",
+                                           "deploy/inventory/stg-services.json candidate",
+                                           "deploy/inventory/prod-services.template.json candidate",
+                                           "module smoke script candidate",
+                                           "standard execution catalog manifest",
+                                           "service registry manifest",
+                                           "BZA menu registration candidate",
+                                           "README.md and specs guide link candidate"
+                                       ]
+               },
+    "generate":  {
+                     "status":  "완료",
+                     "dryRun":  false,
+                     "moduleCode":  "PYM",
+                     "moduleName":  "Lending",
+                     "domainIdCode":  "PYM",
+                     "basePackage":  "cpf.pym",
+                     "tablePrefix":  "pym",
+                     "port":  8188,
+                     "online":  true,
+                     "batch":  true,
+                     "bzaMenu":  true,
+                     "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                     "generatePatch":  false,
+                     "applyMode":  false,
+                     "conflicts":  [
+
+                                   ],
+                     "generatedFiles":  [
+                                            "build\\domain-generator\\pym\\build.gradle",
+                                            "build\\domain-generator\\pym\\README.md",
+                                            "build\\domain-generator\\pym\\manifest\\domain-manifest.json",
+                                            "build\\domain-generator\\pym\\manifest\\ownership.json",
+                                            "build\\domain-generator\\pym\\manifest\\standard-execution-catalog.json",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\reference\\LendingReferenceMapper.xml",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\PymApplication.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingDataSourceConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingMyBatisConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\facade\\LendingReferenceFacade.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\port\\LendingReferenceQueryPort.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\local\\LocalLendingReferenceQueryAdapter.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\remote\\RemoteLendingReferenceQueryProxy.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\service\\LendingReferenceService.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\repository\\LendingReferenceRepository.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\dto\\LendingReferenceSearchRequest.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\validation\\LendingReferenceSearchValidator.java",
+                                            "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\reference\\service\\LendingReferenceServiceTest.java",
+                                            "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                                            "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\controller\\LendingReferenceController.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\batch\\LendingReferenceBatchConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingBatchRepositoryConfig.java",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-local.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-dev.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-stg.yml",
+                                            "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-prod.yml",
+                                            "build\\domain-generator\\pym\\manifest\\generator-ownership.json"
+                                        ],
+                     "patchFiles":  [
+
+                                    ],
+                     "patchCandidates":  [
+                                             "settings.gradle include \u0027pym\u0027",
+                                             "root build dependency registration if needed",
+                                             "specs/sql/40_business_modules_schema.sql table candidate",
+                                             "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                             "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                             "specs/sql/99_smoke_check.sql smoke candidate",
+                                             "specs/sql/00_all_install.sql merge candidate",
+                                             "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                             "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                             "application-pym.yml candidate",
+                                             "src/main/resources/application-pym-local.yml candidate",
+                                             "src/main/resources/application-pym-dev.yml candidate",
+                                             "src/main/resources/application-pym-stg.yml candidate",
+                                             "src/main/resources/application-pym-prod.yml candidate",
+                                             "deploy/env/local-pym.env candidate",
+                                             "deploy/env/dev-pym.env candidate",
+                                             "deploy/env/stg-pym.env candidate",
+                                             "deploy/env/prod-pym.env candidate",
+                                             "deploy/inventory/local-services.json candidate",
+                                             "deploy/inventory/dev-services.json candidate",
+                                             "deploy/inventory/stg-services.json candidate",
+                                             "deploy/inventory/prod-services.template.json candidate",
+                                             "module smoke script candidate",
+                                             "standard execution catalog manifest",
+                                             "service registry manifest",
+                                             "BZA menu registration candidate",
+                                             "README.md and specs guide link candidate"
+                                         ]
+                 },
+    "generatePatch":  {
+                          "status":  "완료",
+                          "dryRun":  false,
+                          "moduleCode":  "PYM",
+                          "moduleName":  "Lending",
+                          "domainIdCode":  "PYM",
+                          "basePackage":  "cpf.pym",
+                          "tablePrefix":  "pym",
+                          "port":  8188,
+                          "online":  true,
+                          "batch":  true,
+                          "bzaMenu":  true,
+                          "outputDir":  "D:\\WORK_CPF\\202412_01_CPF\\build\\domain-generator\\pym",
+                          "generatePatch":  true,
+                          "applyMode":  false,
+                          "conflicts":  [
+
+                                        ],
+                          "generatedFiles":  [
+                                                 "build\\domain-generator\\pym\\build.gradle",
+                                                 "build\\domain-generator\\pym\\README.md",
+                                                 "build\\domain-generator\\pym\\manifest\\domain-manifest.json",
+                                                 "build\\domain-generator\\pym\\manifest\\ownership.json",
+                                                 "build\\domain-generator\\pym\\manifest\\standard-execution-catalog.json",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\reference\\LendingReferenceMapper.xml",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\PymApplication.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingDataSourceConfig.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingMyBatisConfig.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\facade\\LendingReferenceFacade.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\port\\LendingReferenceQueryPort.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\local\\LocalLendingReferenceQueryAdapter.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\remote\\RemoteLendingReferenceQueryProxy.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\service\\LendingReferenceService.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\repository\\LendingReferenceRepository.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\dto\\LendingReferenceSearchRequest.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\validation\\LendingReferenceSearchValidator.java",
+                                                 "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\reference\\service\\LendingReferenceServiceTest.java",
+                                                 "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                                                 "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\controller\\LendingReferenceController.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\batch\\LendingReferenceBatchConfig.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingBatchRepositoryConfig.java",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-local.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-dev.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-stg.yml",
+                                                 "build\\domain-generator\\pym\\src\\main\\resources\\application-pym-prod.yml",
+                                                 "build\\domain-generator\\pym\\manifest\\generator-ownership.json"
+                                             ],
+                          "patchFiles":  [
+                                             "build\\domain-generator\\pym\\patch-candidates\\apply-order.md",
+                                             "build\\domain-generator\\pym\\patch-candidates\\settings.gradle.patch",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\40_business_modules_schema.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\50_framework_seed.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\60_adm_seed.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\99_smoke_check.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\migration\\Vxx__pym_domain.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\README.pym.candidate.md",
+                                             "build\\domain-generator\\pym\\patch-candidates\\smoke-pym.ps1",
+                                             "build\\domain-generator\\pym\\patch-candidates\\sql\\70_bza_menu_seed.pym.candidate.sql",
+                                             "build\\domain-generator\\pym\\patch-candidates\\src\\main\\resources\\application-pym-local.yml",
+                                             "build\\domain-generator\\pym\\patch-candidates\\src\\main\\resources\\application-pym-dev.yml",
+                                             "build\\domain-generator\\pym\\patch-candidates\\src\\main\\resources\\application-pym-stg.yml",
+                                             "build\\domain-generator\\pym\\patch-candidates\\src\\main\\resources\\application-pym-prod.yml",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\env\\local-pym.env",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\env\\dev-pym.env",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\env\\stg-pym.env",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\env\\prod-pym.env",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\inventory\\local-services.json.pym.candidate.json",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\inventory\\dev-services.json.pym.candidate.json",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\inventory\\stg-services.json.pym.candidate.json",
+                                             "build\\domain-generator\\pym\\patch-candidates\\deploy\\inventory\\prod-services.template.json.pym.candidate.json"
+                                         ],
+                          "patchCandidates":  [
+                                                  "settings.gradle include \u0027pym\u0027",
+                                                  "root build dependency registration if needed",
+                                                  "specs/sql/40_business_modules_schema.sql table candidate",
+                                                  "specs/sql/50_framework_seed_data.sql PFW registry seed candidate",
+                                                  "specs/sql/60_adm_seed_data.sql ADM menu/API/button seed candidate",
+                                                  "specs/sql/99_smoke_check.sql smoke candidate",
+                                                  "specs/sql/00_all_install.sql merge candidate",
+                                                  "specs/sql/00_all_install_and_smoke.sql merge candidate",
+                                                  "specs/sql/migration/flyway/Vxx__pym_domain.sql candidate",
+                                                  "application-pym.yml candidate",
+                                                  "src/main/resources/application-pym-local.yml candidate",
+                                                  "src/main/resources/application-pym-dev.yml candidate",
+                                                  "src/main/resources/application-pym-stg.yml candidate",
+                                                  "src/main/resources/application-pym-prod.yml candidate",
+                                                  "deploy/env/local-pym.env candidate",
+                                                  "deploy/env/dev-pym.env candidate",
+                                                  "deploy/env/stg-pym.env candidate",
+                                                  "deploy/env/prod-pym.env candidate",
+                                                  "deploy/inventory/local-services.json candidate",
+                                                  "deploy/inventory/dev-services.json candidate",
+                                                  "deploy/inventory/stg-services.json candidate",
+                                                  "deploy/inventory/prod-services.template.json candidate",
+                                                  "module smoke script candidate",
+                                                  "standard execution catalog manifest",
+                                                  "service registry manifest",
+                                                  "BZA menu registration candidate",
+                                                  "README.md and specs guide link candidate"
+                                              ]
+                      },
+    "requiredFiles":  [
+                          {
+                              "path":  "build\\domain-generator\\pym\\build.gradle",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\README.md",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\domain-manifest.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\ownership.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\generator-ownership.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\manifest\\standard-execution-catalog.json",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\application-pym.yml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\PymApplication.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingDataSourceConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingMyBatisConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\controller\\LendingReferenceController.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\facade\\LendingReferenceFacade.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\port\\LendingReferenceQueryPort.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\local\\LocalLendingReferenceQueryAdapter.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\adapter\\remote\\RemoteLendingReferenceQueryProxy.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\batch\\LendingReferenceBatchConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\config\\LendingBatchRepositoryConfig.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\service\\LendingReferenceService.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\repository\\LendingReferenceRepository.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\dto\\LendingReferenceSearchRequest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\java\\cpf\\pym\\reference\\validation\\LendingReferenceSearchValidator.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\test\\java\\cpf\\pym\\reference\\service\\LendingReferenceServiceTest.java",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\src\\main\\resources\\mybatis\\mapper\\pym\\reference\\LendingReferenceMapper.xml",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\smoke\\smoke-pym.ps1",
+                              "exists":  true
+                          },
+                          {
+                              "path":  "build\\domain-generator\\pym\\sql\\Vxx__pym_domain.sql",
+                              "exists":  true
+                          }
+                      ],
+    "requiredPatchFiles":  [
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\apply-order.md",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\settings.gradle.patch",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\40_business_modules_schema.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\50_framework_seed.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\60_adm_seed.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\70_bza_menu_seed.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\99_smoke_check.pym.candidate.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\sql\\migration\\Vxx__pym_domain.sql",
+                                   "exists":  true
+                               },
+                               {
+                                   "path":  "build\\domain-generator\\pym\\patch-candidates\\smoke-pym.ps1",
+                                   "exists":  true
+                               }
+                           ],
+    "compile":  {
+                    "status":  "완료",
+                    "exitCode":  0,
+                    "logPath":  "specs\\evidence\\20260716_02\\create-domain-compile.sanitized.log",
+                    "testTask":  ":pym:test",
+                    "bootJarTask":  ":pym:bootJar",
+                    "bootWarTask":  ":pym:bootWar",
+                    "classMajor":  69,
+                    "bootJar":  "build\\domain-generator\\pym\\build\\libs\\pym-0.0.1-SNAPSHOT.jar",
+                    "bootWar":  "build\\domain-generator\\pym\\build\\libs\\pym-0.0.1-SNAPSHOT.war",
+                    "javaExecutable":  "JAVA_HOME/bin/java"
+                },
+    "cleanup":  {
+                    "previewRemoved":  true,
+                    "verificationRemoved":  true
+                },
+    "status":  "완료",
+    "finishedAt":  "2026-07-20T10:05:32.7415874+09:00"
+}

@@ -1,0 +1,144 @@
+{
+    "cpfEvidenceVersion":  1,
+    "evidenceId":  "CPF-JAVA25-STANDARD-20260714-02",
+    "status":  "완료",
+    "executedAt":  "2026-07-20T10:06:29.8540693+09:00",
+    "startCommit":  "ff4661e673dab9a2f417e75f8ad64fb712c96fa6",
+    "branch":  "master",
+    "command":  "scripts/check-java25-standard.ps1",
+    "exitCode":  0,
+    "javaVersion":  [
+                        "openjdk 25.0.3 2026-04-21 LTS",
+                        "OpenJDK Runtime Environment Temurin-25.0.3+9 (build 25.0.3+9-LTS)",
+                        "OpenJDK 64-Bit Server VM Temurin-25.0.3+9 (build 25.0.3+9-LTS, mixed mode, sharing)"
+                    ],
+    "expectedMajor":  69,
+    "modules":  [
+                    {
+                        "module":  "pfw",
+                        "classCount":  377,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "cmn",
+                        "classCount":  96,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "mbr",
+                        "classCount":  33,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "xyz",
+                        "classCount":  88,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "adm",
+                        "classCount":  124,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "bza",
+                        "classCount":  40,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "bat",
+                        "classCount":  60,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "acc",
+                        "classCount":  25,
+                        "majors":  [
+                                       69
+                                   ]
+                    },
+                    {
+                        "module":  "pfw-gateway-runtime",
+                        "classCount":  6,
+                        "majors":  [
+                                       69
+                                   ]
+                    }
+                ],
+    "bootJars":  [
+                     {
+                         "module":  "adm",
+                         "jar":  "adm/build/libs/adm-0.0.1-cpf.adm-SNAPSHOT.jar",
+                         "classCount":  124,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "bat",
+                         "jar":  "bat/build/libs/bat-0.0.1-cpf.bat-SNAPSHOT.jar",
+                         "classCount":  60,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "bza",
+                         "jar":  "bza/build/libs/bza-0.0.1-cpf.bza-SNAPSHOT.jar",
+                         "classCount":  40,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "mbr",
+                         "jar":  "mbr/build/libs/mbr-1.0.0.jar",
+                         "classCount":  33,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "xyz",
+                         "jar":  "xyz/build/libs/xyz-0.0.1-cpf.xyz-SNAPSHOT.jar",
+                         "classCount":  88,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "acc",
+                         "jar":  "acc/build/libs/acc-0.0.1-SNAPSHOT.jar",
+                         "classCount":  25,
+                         "majors":  [
+                                        69
+                                    ]
+                     },
+                     {
+                         "module":  "pfw-gateway-runtime",
+                         "jar":  "pfw-gateway-runtime/build/libs/pfw-gateway-runtime-1.0.0.jar",
+                         "classCount":  6,
+                         "majors":  [
+                                        69
+                                    ]
+                     }
+                 ],
+    "failures":  [
+
+                 ],
+    "sanitized":  true,
+    "secretScan":  "PASS"
+}

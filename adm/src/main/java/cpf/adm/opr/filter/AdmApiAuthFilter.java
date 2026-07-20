@@ -42,6 +42,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/reliability", "RELIABILITY");
         MENU_BY_PATH_PREFIX.put("/adm/api/transactions", "TRANSACTION_META");
         MENU_BY_PATH_PREFIX.put("/adm/api/standard-executions", "STANDARD_EXECUTION");
+        MENU_BY_PATH_PREFIX.put("/adm/api/channels", "CHANNEL_POLICY");
         MENU_BY_PATH_PREFIX.put("/adm/api/remote-logs", "REMOTE_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
@@ -71,6 +72,10 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/reliability/transaction-log-recovery", "RELIABILITY_RECOVERY_RUN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transactions", "TRANSACTION_META_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/standard-executions", "STANDARD_EXECUTION_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/channels", "CHANNEL_POLICY_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/channels/refresh", "CHANNEL_POLICY_REFRESH");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/channels/package/import", "CHANNEL_POLICY_IMPORT");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/channels", "CHANNEL_POLICY_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/remote-logs", "REMOTE_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundles", "REMOTE_LOG_BUNDLE_DOWNLOAD");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundle-jobs", "REMOTE_LOG_BUNDLE_CREATE");

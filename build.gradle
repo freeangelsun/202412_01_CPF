@@ -61,7 +61,7 @@ tasks.register('runLocalServices') {
                 [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication'],
                 [name: 'BZA', project: project(':bza'), mainClass: 'cpf.bza.BzaApplication', defaultEnabled: true],
                 [name: 'BAT', project: project(':bat'), mainClass: 'cpf.bat.BatApplication', defaultEnabled: false],
-                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccountApplication', defaultEnabled: false],
+                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccApplication', defaultEnabled: false],
                 [name: 'GATEWAY', project: project(':pfw-gateway-runtime'), mainClass: 'cpf.pfw.gateway.PfwGatewayApplication', defaultEnabled: false]
         ]
         def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
@@ -190,7 +190,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260716_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260716_02').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -447,7 +447,23 @@ tasks.register('initializeCpfRequestProtection', Exec) {
 tasks.register('checkFeatureEvidence', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-feature-evidence.ps1'
+    dependsOn 'exportCapabilityInventory'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-feature-evidence.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('exportCapabilityInventory', Exec) {
+    group = 'verification'
+    description = '삭제 전 ACC/EXS 기능 disposition과 현재 대체 구현을 다시 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/export-acc-exs-capability-inventory.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('exportArchitectureInventory', Exec) {
+    group = 'verification'
+    description = '전체 모듈의 source, test, resource, SQL, script 소유권 인벤토리를 생성하고 누락을 검사합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/export-architecture-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkServiceCallBoundary', Exec) {
@@ -657,6 +673,27 @@ tasks.register('admUiSmoke', Exec) {
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
+tasks.register('checkDomainGenerator', Exec) {
+    group = 'verification'
+    description = '신규 업무 모듈 생성 결과의 feature-first 구조와 Java 25 산출물을 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-create-domain.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkDomainRemoval', Exec) {
+    group = 'verification'
+    description = '생성 모듈 제거의 dry-run, 사용자 변경 차단, 실제 정리를 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-remove-domain.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkRepositoryHygiene', Exec) {
+    group = 'verification'
+    description = '추적 중인 생성 중간물, runtime 산출물, 후보·최종 중복과 백업 파일을 차단합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-repository-hygiene.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('admLogPolicyUiStaticSmoke', Exec) {
     group = 'verification'
     description = 'ADM 로그 정책 화면과 운영 API 연결을 정적으로 검증합니다.'
@@ -682,5 +719,5 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+    dependsOn 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'exportArchitectureInventory', 'checkDomainGenerator', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
 }

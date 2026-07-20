@@ -1,15 +1,16 @@
-package cpf.xyz.edu.service;
+package cpf.xyz.edu.crud.application;
 
+import cpf.xyz.edu.transaction.application.XyzTransactionEducationAuditService;
 import cpf.cmn.utils.IdUtils;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfBusinessException;
 import cpf.pfw.common.exception.CpfNotFoundException;
 import cpf.pfw.common.exception.CpfValidationException;
-import cpf.xyz.edu.dto.XyzCrudEducationRequest;
-import cpf.xyz.edu.dto.XyzCrudEducationResponse;
-import cpf.xyz.edu.dto.XyzCrudEducationStatusRequest;
-import cpf.xyz.edu.dto.XyzQueryEducationItem;
-import cpf.xyz.edu.repository.XyzQueryEducationRepository;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationRequest;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationResponse;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationStatusRequest;
+import cpf.xyz.edu.query.dto.XyzQueryEducationItem;
+import cpf.xyz.edu.query.adapter.XyzQueryEducationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

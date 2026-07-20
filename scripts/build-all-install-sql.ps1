@@ -145,6 +145,9 @@ DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
 DROP TABLE IF EXISTS pfwDB.pfw_service;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_on_demand_request;
+DROP TABLE IF EXISTS pfwDB.pfw_channel_execution_policy;
+DROP TABLE IF EXISTS pfwDB.pfw_channel_registry;
+DROP TABLE IF EXISTS pfwDB.pfw_channel_policy_version;
 DROP TABLE IF EXISTS pfwDB.pfw_standard_execution_alias;
 DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
@@ -168,9 +171,9 @@ $installFiles = @(
 )
 
 $header = @"
--- CPF all install SQL.
--- This file contains the full SQL body and does not use SOURCE commands.
--- Rebuild this file from split SQL files with scripts/build-all-install-sql.ps1.
+-- CPF 전체 설치 SQL입니다.
+-- 이 파일은 SOURCE 명령 없이 모든 SQL 본문을 포함합니다.
+-- 분리 SQL을 변경한 뒤 scripts/build-all-install-sql.ps1로 다시 생성합니다.
 "@
 
 $installBody = $header + (Section "01_create_databases.sql") + $cleanup

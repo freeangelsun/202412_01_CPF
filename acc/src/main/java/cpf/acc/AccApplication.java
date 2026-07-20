@@ -6,17 +6,19 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
- * Account 주제영역 실행 애플리케이션입니다.
+ * ACC 주제영역 실행 애플리케이션입니다.
+ *
+ * <p>모듈 부트스트랩만 소유하며 업무 기능은 {@code cpf.acc.<feature>} 슬라이스에 둡니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "cpf.acc"})
-public class AccountApplication extends SpringBootServletInitializer {
+public class AccApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        SpringApplication.run(AccountApplication.class, args);
+        SpringApplication.run(AccApplication.class, args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(AccountApplication.class);
+        return application.sources(AccApplication.class);
     }
 }

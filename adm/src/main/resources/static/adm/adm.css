@@ -150,7 +150,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 36px;
   border: 1px solid #cbd3df;
@@ -158,6 +159,30 @@ select {
   padding: 7px 9px;
   color: #1d2430;
   background: #ffffff;
+}
+
+textarea {
+  resize: vertical;
+  font-family: Consolas, "Malgun Gothic", monospace;
+  line-height: 1.45;
+}
+
+.policy-editor,
+.package-editor {
+  margin-top: 16px;
+}
+
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.inline-check input,
+.filters label input[type="checkbox"] {
+  width: 18px;
+  min-height: 18px;
 }
 
 button {

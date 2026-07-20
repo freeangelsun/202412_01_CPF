@@ -1,8 +1,8 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.centercut.controller;
 
 import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.xyz.edu.dto.XyzCenterCutExecutionResponse;
-import cpf.xyz.edu.service.XyzCenterCutEducationService;
+import cpf.xyz.edu.centercut.dto.XyzCenterCutExecutionResponse;
+import cpf.xyz.edu.centercut.application.XyzCenterCutEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

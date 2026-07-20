@@ -7,12 +7,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** CPF 공통 오류 응답 본문입니다. 내부 예외 상세는 포함하지 않습니다. */
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -75,4 +70,3 @@ public class CpfErrorResponse {
         private String fieldName;
     }
 }
-

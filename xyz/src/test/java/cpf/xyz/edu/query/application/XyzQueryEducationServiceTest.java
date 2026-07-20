@@ -1,10 +1,10 @@
-package cpf.xyz.edu.service;
+package cpf.xyz.edu.query.application;
 
 import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.xyz.edu.dto.XyzQueryEducationItem;
-import cpf.xyz.edu.dto.XyzQueryKeysetResponse;
-import cpf.xyz.edu.dto.XyzQueryPageResponse;
-import cpf.xyz.edu.repository.XyzQueryEducationRepository;
+import cpf.xyz.edu.query.dto.XyzQueryEducationItem;
+import cpf.xyz.edu.query.dto.XyzQueryKeysetResponse;
+import cpf.xyz.edu.query.dto.XyzQueryPageResponse;
+import cpf.xyz.edu.query.adapter.XyzQueryEducationRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,7 +1,7 @@
-package cpf.xyz.edu.mapper;
+package cpf.xyz.edu.query.adapter;
 
-import cpf.xyz.edu.dto.XyzQueryEducationCriteria;
-import cpf.xyz.edu.dto.XyzQueryEducationItem;
+import cpf.xyz.edu.query.dto.XyzQueryEducationCriteria;
+import cpf.xyz.edu.query.dto.XyzQueryEducationItem;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

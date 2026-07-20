@@ -1,4 +1,4 @@
-package cpf.xyz.edu.config;
+package cpf.xyz.edu.batch.config;
 
 import org.springframework.batch.core.configuration.support.DefaultBatchConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;

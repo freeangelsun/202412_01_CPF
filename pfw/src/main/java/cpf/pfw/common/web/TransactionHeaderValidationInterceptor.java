@@ -23,6 +23,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ import java.util.regex.Pattern;
  */
 @Component
 public class TransactionHeaderValidationInterceptor implements HandlerInterceptor {
+    private static final Logger log = LoggerFactory.getLogger(TransactionHeaderValidationInterceptor.class);
 
     private static final Pattern LEGACY_TRANSACTION_ID_PATTERN =
             Pattern.compile("^[A-Z]{3}[0-9]{2}[A-Z0-9]{3}[0-9]{4}$");
@@ -217,7 +220,8 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             return;
         }
         String suppliedId = request.getHeader(CpfHeaderNames.STANDARD_EXECUTION_ID);
-        boolean internalCall = hasText(request.getHeader(CpfHeaderNames.CALLER_SERVICE));
+        boolean internalCall = hasText(request.getHeader(CpfHeaderNames.CALLER_SERVICE))
+                && hasText(request.getHeader(CpfHeaderNames.CALLER_INSTANCE_ID));
         if (internalCall && !hasText(suppliedId)) {
             throw invalidExecutionHeader(transaction.id(), "내부 호출에는 표준 실행 ID 헤더가 필수입니다.");
         }
@@ -336,6 +340,11 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                 ex.getMessageArguments(),
                 ex.getDetail());
         String externalMessage = resolvedResponse.externalMessage();
+        log.warn(
+                "거래 헤더 검증을 차단했습니다. statusCode={}, exceptionType={}, detail={}",
+                resolvedResponse.responseCode(),
+                ex.getClass().getSimpleName(),
+                cpf.pfw.common.logging.SensitiveDataMasker.mask(ex.getDetail()));
         CpfErrorResponse errorResponse = CpfErrorResponse.of(
                 resolvedResponse,
                 externalMessage,

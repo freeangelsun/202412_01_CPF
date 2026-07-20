@@ -47,6 +47,16 @@ class AccAccountServiceTest {
         assertThat(repository.lastCriteria.size()).isEqualTo(200);
     }
 
+    @Test
+    void 검색조건이없으면안전한기본값을사용한다() {
+        service.search(null);
+
+        assertThat(repository.lastCriteria.sortColumn()).isEqualTo("account_id");
+        assertThat(repository.lastCriteria.sortDirection()).isEqualTo("DESC");
+        assertThat(repository.lastCriteria.page()).isZero();
+        assertThat(repository.lastCriteria.size()).isEqualTo(20);
+    }
+
     private static final class MemoryRepository implements AccAccountRepository {
         private AccAccountResponse account;
         private AccAccountSearchCriteria lastCriteria;

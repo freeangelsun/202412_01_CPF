@@ -1,10 +1,15 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_02")
 )
 
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$ResultDir = [IO.Path]::GetFullPath($ResultDir)
+if (-not $ResultDir.StartsWith($Root, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "ResultDir는 저장소 내부 경로여야 합니다. path=$ResultDir"
+}
+$resultDirRelative = $ResultDir.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/')
 $checks = [System.Collections.Generic.List[object]]::new()
 
 function Test-File([string] $RelativePath) {
@@ -39,15 +44,13 @@ Add-Check "MODULE_TOPOLOGY" `
     @("settings.gradle")
 
 $accGeneratedFiles = @(
-    "acc/create-domain-result.json",
-    "acc/src/main/java/cpf/acc/AccountApplication.java",
+    "acc/src/main/java/cpf/acc/AccApplication.java",
     "acc/src/main/resources/application.yml",
     "acc/manifest/ownership.json",
-    "acc/src/main/java/cpf/acc/adapter/local/LocalAccountQueryAdapter.java",
-    "acc/src/main/java/cpf/acc/adapter/remote/RemoteAccountQueryProxy.java",
-    "specs/evidence/20260716_01/acc-generator-dry-run.sanitized.json",
-    "specs/evidence/20260716_01/acc-generator-apply.sanitized.json",
-    "specs/evidence/20260716_01/acc-pure-generated-inventory.sanitized.json"
+    "acc/src/main/java/cpf/acc/reference/adapter/local/LocalAccountReferenceQueryAdapter.java",
+    "acc/src/main/java/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy.java",
+    "$resultDirRelative/create-domain-result.sanitized.json",
+    "$resultDirRelative/remove-domain-smoke.sanitized.json"
 )
 Add-Check "ACC_GENERATOR_REFERENCE" (Test-Files $accGeneratedFiles) $accGeneratedFiles
 
@@ -128,14 +131,17 @@ $externalFiles = @(
     "xyz/src/main/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSample.java",
     "xyz/src/test/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorControllerTest.java",
     "xyz/src/test/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSampleTest.java",
-    "specs/evidence/20260716_01/acc-exs-capability-inventory.sanitized.json"
+    "$resultDirRelative/acc-exs-capability-inventory.sanitized.json"
 )
 Add-Check "ACC_EXS_CAPABILITY_RESTORE" (Test-Files $externalFiles) $externalFiles
 
 $generatorFiles = @(
     "scripts/create-domain.ps1",
+    "scripts/remove-domain.ps1",
     "scripts/smoke-create-domain.ps1",
-    "specs/evidence/20260716_01/create-domain-result.sanitized.json"
+    "scripts/smoke-remove-domain.ps1",
+    "$resultDirRelative/create-domain-result.sanitized.json",
+    "$resultDirRelative/remove-domain-smoke.sanitized.json"
 )
 Add-Check "DOMAIN_GENERATOR_SMOKE" `
     ((Test-Files $generatorFiles) -and

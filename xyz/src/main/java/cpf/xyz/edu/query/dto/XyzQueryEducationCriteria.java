@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.query.dto;
 
 /**
  * 조회 EDU 샘플의 Mapper 조건 DTO입니다.

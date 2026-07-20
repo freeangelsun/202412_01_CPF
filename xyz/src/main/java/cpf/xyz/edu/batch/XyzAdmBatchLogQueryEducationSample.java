@@ -1,4 +1,4 @@
-package cpf.xyz.edu.operation;
+package cpf.xyz.edu.batch;
 
 import cpf.pfw.common.batch.CpfBatchJobLogPath;
 import org.springframework.web.util.UriComponentsBuilder;

@@ -2,9 +2,7 @@ package cpf.adm.opr.dto;
 
 import java.util.List;
 
-/**
- * ADM operator creation request.
- */
+/** ADM 운영자 생성 요청입니다. */
 public record AdmOperatorCreateRequest(
         String operatorId,
         String operatorName,

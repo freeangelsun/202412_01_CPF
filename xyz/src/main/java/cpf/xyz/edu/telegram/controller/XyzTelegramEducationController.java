@@ -1,10 +1,10 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.telegram.controller;
 
 import cpf.cmn.tlm.core.CmnTelegramParseResult;
 import cpf.cmn.tlm.service.CmnTelegramService;
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.xyz.edu.dto.XyzFixedLengthMemberTelegram;
+import cpf.xyz.edu.telegram.dto.XyzFixedLengthMemberTelegram;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

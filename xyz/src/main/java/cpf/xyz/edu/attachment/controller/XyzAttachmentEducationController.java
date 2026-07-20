@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.attachment.controller;
 
 import cpf.pfw.common.attachment.CpfStoredAttachment;
 import cpf.pfw.common.execution.CpfOnlineTransaction;

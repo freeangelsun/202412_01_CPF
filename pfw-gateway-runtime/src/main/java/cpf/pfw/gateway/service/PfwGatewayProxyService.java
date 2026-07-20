@@ -1,5 +1,7 @@
 package cpf.pfw.gateway.service;
 
+import cpf.pfw.channel.application.CpfChannelPolicyService;
+import cpf.pfw.channel.model.CpfChannelPolicyDecision;
 import cpf.pfw.common.gateway.CpfGatewayAuthorizationPort;
 import cpf.pfw.common.gateway.CpfGatewayRoute;
 import cpf.pfw.common.header.CpfHeaderNames;
@@ -35,22 +37,35 @@ public class PfwGatewayProxyService {
     private final PfwGatewayRouteSnapshot snapshot;
     private final CpfEndpointResolver endpointResolver;
     private final CpfGatewayAuthorizationPort authorizationPort;
+    private final CpfChannelPolicyService channelPolicyService;
     private final RestClient restClient;
 
     public PfwGatewayProxyService(
             PfwGatewayRouteSnapshot snapshot,
             CpfEndpointResolver endpointResolver,
             CpfGatewayAuthorizationPort authorizationPort,
+            CpfChannelPolicyService channelPolicyService,
             RestClient restClient) {
         this.snapshot = snapshot;
         this.endpointResolver = endpointResolver;
         this.authorizationPort = authorizationPort;
+        this.channelPolicyService = channelPolicyService;
         this.restClient = restClient;
     }
 
     public ResponseEntity<byte[]> execute(String executionId, HttpHeaders inboundHeaders, byte[] body) {
         CpfGatewayRoute route = snapshot.resolve(executionId);
         Map<String, String> trustedHeaders = trustedHeaders(inboundHeaders);
+        CpfChannelPolicyDecision channelDecision = channelPolicyService.evaluate(
+                route.standardExecutionId(),
+                inboundHeaders.getFirst(CpfHeaderNames.ORIGINAL_CHANNEL_CODE),
+                inboundHeaders.getFirst(CpfHeaderNames.CHANNEL_CODE),
+                inboundHeaders.getFirst(CpfHeaderNames.REQUEST_TYPE),
+                hasAuthentication(inboundHeaders),
+                inboundHeaders.containsKey(CpfHeaderNames.REQUEST_SIGNATURE));
+        if (!channelDecision.allowed()) {
+            throw new SecurityException("Gateway 채널 정책에서 요청을 거부했습니다. reason=" + channelDecision.reason());
+        }
         if (!authorizationPort.isAllowed(route, trustedHeaders)) {
             throw new SecurityException("Gateway route 실행 권한이 없습니다. permission=" + route.requiredPermission());
         }
@@ -105,6 +120,11 @@ public class PfwGatewayProxyService {
             }
         });
         return Map.copyOf(result);
+    }
+
+    private boolean hasAuthentication(HttpHeaders headers) {
+        return headers.containsKey(CpfHeaderNames.AUTHORIZATION)
+                || headers.containsKey(CpfHeaderNames.API_KEY);
     }
 
     private HttpMethod httpMethod(String value) {

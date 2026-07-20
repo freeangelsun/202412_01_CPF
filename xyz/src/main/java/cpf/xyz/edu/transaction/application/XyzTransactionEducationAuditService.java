@@ -1,4 +1,4 @@
-package cpf.xyz.edu.service;
+package cpf.xyz.edu.transaction.application;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

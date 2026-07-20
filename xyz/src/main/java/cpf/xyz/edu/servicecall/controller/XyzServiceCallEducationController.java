@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.servicecall.controller;
 
 import cpf.pfw.common.http.CpfWebClient;
 import cpf.pfw.common.execution.CpfOnlineTransaction;

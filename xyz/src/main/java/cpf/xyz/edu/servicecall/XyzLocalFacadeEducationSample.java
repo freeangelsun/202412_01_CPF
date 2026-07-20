@@ -1,4 +1,4 @@
-package cpf.xyz.edu.facade;
+package cpf.xyz.edu.servicecall;
 
 /**
  * Controller 직접 호출 대신 facade 경계를 사용하는 샘플입니다.

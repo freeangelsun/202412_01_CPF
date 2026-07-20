@@ -1,4 +1,4 @@
-package cpf.bat.edu;
+package cpf.bat.edu.tasklet.basic;
 
 import org.junit.jupiter.api.Test;
 

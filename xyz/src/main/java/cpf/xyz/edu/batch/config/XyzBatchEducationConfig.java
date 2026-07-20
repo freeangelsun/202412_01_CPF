@@ -1,4 +1,4 @@
-package cpf.xyz.edu.config;
+package cpf.xyz.edu.batch.config;
 
 import cpf.pfw.common.execution.CpfBatchJob;
 import org.slf4j.Logger;

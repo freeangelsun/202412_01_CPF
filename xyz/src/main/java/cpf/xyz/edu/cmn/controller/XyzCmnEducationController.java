@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.cmn.controller;
 
 import cpf.cmn.cde.dto.CommonCodeRequest;
 import cpf.cmn.cde.service.CodeCacheService;

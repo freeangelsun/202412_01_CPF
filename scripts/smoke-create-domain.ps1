@@ -23,9 +23,12 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-$resultPath = Join-Path $ResultDir "create-domain-result.json"
+$resultPath = Join-Path $ResultDir "create-domain-result.sanitized.json"
 $previewDir = Join-Path $Root "build/domain-generator/$ModuleCode"
 $verificationDir = Join-Path $Root "build/domain-generator-verification/$ModuleCode"
+$moduleClassName = $ModuleCode.Substring(0, 1).ToUpperInvariant() + $ModuleCode.Substring(1).ToLowerInvariant()
+$featureClassPrefix = "${ModuleName}Reference"
+$featurePath = "cpf/$ModuleCode/reference"
 
 function Save-Result {
     param([object] $Result)
@@ -100,25 +103,26 @@ try {
         "README.md",
         "manifest/domain-manifest.json",
         "manifest/ownership.json",
+        "manifest/generator-ownership.json",
         "manifest/standard-execution-catalog.json",
         "src/main/resources/application.yml",
         "src/main/resources/application-${ModuleCode}.yml",
-        "src/main/java/cpf/$ModuleCode/${ModuleName}Application.java",
+        "src/main/java/cpf/$ModuleCode/${moduleClassName}Application.java",
         "src/main/java/cpf/$ModuleCode/config/${ModuleName}DataSourceConfig.java",
         "src/main/java/cpf/$ModuleCode/config/${ModuleName}MyBatisConfig.java",
-        "src/main/java/cpf/$ModuleCode/controller/${ModuleName}Controller.java",
-        "src/main/java/cpf/$ModuleCode/facade/${ModuleName}Facade.java",
-        "src/main/java/cpf/$ModuleCode/port/${ModuleName}QueryPort.java",
-        "src/main/java/cpf/$ModuleCode/adapter/local/Local${ModuleName}QueryAdapter.java",
-        "src/main/java/cpf/$ModuleCode/adapter/remote/Remote${ModuleName}QueryProxy.java",
-        "src/main/java/cpf/$ModuleCode/batch/${ModuleName}BatchConfig.java",
+        "src/main/java/$featurePath/controller/${featureClassPrefix}Controller.java",
+        "src/main/java/$featurePath/facade/${featureClassPrefix}Facade.java",
+        "src/main/java/$featurePath/port/${featureClassPrefix}QueryPort.java",
+        "src/main/java/$featurePath/adapter/local/Local${featureClassPrefix}QueryAdapter.java",
+        "src/main/java/$featurePath/adapter/remote/Remote${featureClassPrefix}QueryProxy.java",
+        "src/main/java/$featurePath/batch/${featureClassPrefix}BatchConfig.java",
         "src/main/java/cpf/$ModuleCode/config/${ModuleName}BatchRepositoryConfig.java",
-        "src/main/java/cpf/$ModuleCode/service/${ModuleName}Service.java",
-        "src/main/java/cpf/$ModuleCode/repository/${ModuleName}Repository.java",
-        "src/main/java/cpf/$ModuleCode/dto/${ModuleName}SearchRequest.java",
-        "src/main/java/cpf/$ModuleCode/validation/${ModuleName}SearchValidator.java",
-        "src/test/java/cpf/$ModuleCode/service/${ModuleName}ServiceTest.java",
-        "src/main/resources/mybatis/mapper/$ModuleCode/${ModuleName}Mapper.xml",
+        "src/main/java/$featurePath/service/${featureClassPrefix}Service.java",
+        "src/main/java/$featurePath/repository/${featureClassPrefix}Repository.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
+        "src/main/java/$featurePath/validation/${featureClassPrefix}SearchValidator.java",
+        "src/test/java/$featurePath/service/${featureClassPrefix}ServiceTest.java",
+        "src/main/resources/mybatis/mapper/$ModuleCode/reference/${featureClassPrefix}Mapper.xml",
         "smoke/smoke-${ModuleCode}.ps1",
         "sql/Vxx__${ModuleCode}_domain.sql"
     )
@@ -248,7 +252,8 @@ subprojects {
     } else {
         (Get-Command java -ErrorAction Stop).Source
     }
-    $compileLogPath = Join-Path $ResultDir "create-domain-compile.log"
+    $compileRawLogPath = Join-Path $Root "build/runtime-smoke/create-domain-compile.raw.log"
+    $compileLogPath = Join-Path $ResultDir "create-domain-compile.sanitized.log"
     # 회사 단말 정책이 중첩 PowerShell의 배치 파일 실행을 차단할 수 있으므로
     # wrapper jar를 Java 25 프로세스로 직접 실행해 플랫폼별 shell 차이를 제거합니다.
     $previousErrorActionPreference = $ErrorActionPreference
@@ -262,9 +267,19 @@ subprojects {
         $ErrorActionPreference = $previousErrorActionPreference
     }
     $compileOutput = ($compileOutputLines -join "`n") + "`n"
-    [System.IO.File]::WriteAllText($compileLogPath, $compileOutput, $Utf8NoBom)
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $compileRawLogPath) | Out-Null
+    [System.IO.File]::WriteAllText($compileRawLogPath, $compileOutput, $Utf8NoBom)
+    $compileStatus = if ($compileExitCode -eq 0) { $StatusDone } else { $StatusFailed }
+    & (Join-Path $Root "scripts/write-sanitized-evidence.ps1") `
+        -EvidenceId "CREATE_DOMAIN_COMPILE" `
+        -Status $compileStatus `
+        -Command ".\gradlew.bat :${ModuleCode}:test :${ModuleCode}:bootJar :${ModuleCode}:bootWar" `
+        -OutputPath $compileLogPath `
+        -ExitCode $compileExitCode `
+        -SourceLog $compileRawLogPath `
+        -Root $Root
     $result.compile = [ordered]@{
-        status = if ($compileExitCode -eq 0) { $StatusDone } else { $StatusFailed }
+        status = $compileStatus
         exitCode = $compileExitCode
         logPath = $compileLogPath.Substring($Root.Length).TrimStart('\', '/')
         testTask = ":${ModuleCode}:test"
@@ -275,7 +290,7 @@ subprojects {
         throw "generated domain compile/test/bootJar failed. log=$compileLogPath"
     }
 
-    $applicationClass = Join-Path $previewDir "build/classes/java/main/cpf/$ModuleCode/${ModuleName}Application.class"
+    $applicationClass = Join-Path $previewDir "build/classes/java/main/cpf/$ModuleCode/${moduleClassName}Application.class"
     if (-not (Test-Path -LiteralPath $applicationClass -PathType Leaf)) {
         throw "generated domain application class is missing. path=$applicationClass"
     }

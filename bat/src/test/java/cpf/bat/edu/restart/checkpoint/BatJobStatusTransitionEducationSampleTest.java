@@ -1,4 +1,4 @@
-package cpf.bat.edu.job;
+package cpf.bat.edu.restart.checkpoint;
 
 import org.junit.jupiter.api.Test;
 

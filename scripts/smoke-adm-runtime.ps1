@@ -6,6 +6,7 @@
     [string] $LogDir = "",
     [string] $AdmUsername = "admin",
     [string] $AdmPassword = $env:CPF_ADM_SMOKE_PASSWORD,
+    [string] $AdmChangedPassword = $env:CPF_ADM_SMOKE_CHANGED_PASSWORD,
     [switch] $IncludePermissionWriteSmoke,
     [string] $PermissionResultPath = "",
     [switch] $BuildBeforeRun,
@@ -13,8 +14,10 @@
 )
 
 $ErrorActionPreference = "Stop"
-    $result = [ordered]@{
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
+    status = "NOT_VERIFIED"
     admBaseUrl = $AdmBaseUrl
     process = [ordered]@{}
     health = [ordered]@{}
@@ -34,16 +37,18 @@ if ([string]::IsNullOrWhiteSpace($LogDir)) {
     $LogDir = Join-Path $Root "build/runtime-smoke"
 }
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
-$stdoutLog = Join-Path $LogDir "adm-bootRun.out.log"
-$stderrLog = Join-Path $LogDir "adm-bootRun.err.log"
-$resultPath = Join-Path $LogDir "adm-runtime-smoke-result.json"
+$processLogDir = Join-Path $Root "build/runtime-smoke/process"
+New-Item -ItemType Directory -Force -Path $processLogDir | Out-Null
+$stdoutLog = Join-Path $processLogDir "adm-bootRun.out.log"
+$stderrLog = Join-Path $processLogDir "adm-bootRun.err.log"
+$resultPath = Join-Path $LogDir "adm-runtime-smoke-result.sanitized.json"
 if ([string]::IsNullOrWhiteSpace($PermissionResultPath)) {
-    $PermissionResultPath = Join-Path $LogDir "adm-permission-runtime-result.json"
+    $PermissionResultPath = Join-Path $LogDir "adm-permission-runtime-result.sanitized.json"
 }
 
 function Save-SmokeResult {
     $result.finishedAt = (Get-Date).ToString("o")
-    $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+    [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20), $Utf8NoBom)
 }
 
 function ConvertFrom-Utf8JsonResponse {
@@ -155,7 +160,7 @@ function Save-PermissionSmokeResult {
     param([object] $PermissionResult)
 
     $PermissionResult.finishedAt = (Get-Date).ToString("o")
-    $PermissionResult | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $PermissionResultPath -Encoding UTF8
+    [IO.File]::WriteAllText($PermissionResultPath, ($PermissionResult | ConvertTo-Json -Depth 20), $Utf8NoBom)
 }
 
 function Invoke-AdmPermissionWriteSmoke {
@@ -177,7 +182,7 @@ function Invoke-AdmPermissionWriteSmoke {
     $reasonStamp = Get-Date -Format "yyyyMMddHHmmssfff"
     $reason = "ADM permission runtime smoke $reasonStamp"
     $viewerOperatorId = "smoke_viewer_runtime"
-    $viewerPassword = "SmokeRuntime!20260701"
+    $viewerPassword = "SmokeRuntime!$reasonStamp"
     $apiPermissionId = "API_PERMISSION_WRITE_PUT"
 
     try {
@@ -216,13 +221,23 @@ function Invoke-AdmPermissionWriteSmoke {
                 requestUser = "runtime-smoke"
                 reason = "$reason - create viewer operator"
             }
+            $resetViewer = Invoke-SmokeForStatus -Method Post -Uri "$AdmBaseUrl/adm/api/operators/$viewerOperatorId/password/reset" -Headers $AdminHeaders -Body @{
+                newPassword = $viewerPassword
+                forceChange = $false
+                requestUser = "runtime-smoke"
+                reason = "$reason - prepare newly created viewer operator"
+            }
             $permissionResult.writes.viewerOperatorReady = [ordered]@{
                 mode = "CREATED"
-                statusCode = $createViewer.statusCode
+                createStatusCode = $createViewer.statusCode
+                resetStatusCode = $resetViewer.statusCode
                 operatorId = $viewerOperatorId
             }
             if ($createViewer.statusCode -lt 200 -or $createViewer.statusCode -ge 300) {
                 throw "viewer operator create failed. status=$($createViewer.statusCode)"
+            }
+            if ($resetViewer.statusCode -lt 200 -or $resetViewer.statusCode -ge 300) {
+                throw "new viewer operator password reset failed. status=$($resetViewer.statusCode)"
             }
         }
 
@@ -443,7 +458,7 @@ function Invoke-AdmBootJarBuild {
         throw "Gradle wrapper was not found: $gradle"
     }
 
-    $buildLog = Join-Path $LogDir "adm-bootJar-before-smoke.log"
+    $buildLog = Join-Path $processLogDir "adm-bootJar-before-smoke.log"
     $result.process.buildBeforeRun = [ordered]@{
         requested = $true
         command = ".\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain"
@@ -451,7 +466,7 @@ function Invoke-AdmBootJarBuild {
     }
 
     $buildOutput = & $gradle ":adm:bootJar" "--offline" "--no-daemon" "--console=plain" 2>&1
-    $buildOutput | Set-Content -LiteralPath $buildLog -Encoding UTF8
+    [IO.File]::WriteAllText($buildLog, (($buildOutput | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine), $Utf8NoBom)
     $result.process.buildBeforeRun.exitCode = $LASTEXITCODE
     if ($LASTEXITCODE -ne 0) {
         throw "ADM bootJar build before runtime smoke failed. Check log: $buildLog"
@@ -536,21 +551,69 @@ try {
     $result.health.status = "PASSED"
     $result.health.response = $health
 
-    & (Join-Path $Root "scripts/smoke-openapi.ps1") -AdmBaseUrl $AdmBaseUrl -SkipMbr -SkipXyz -SkipBza -SkipBat
+    & (Join-Path $Root "scripts/smoke-openapi.ps1") `
+        -AdmBaseUrl $AdmBaseUrl `
+        -ResultDir $LogDir `
+        -SkipMbr -SkipXyz -SkipBza -SkipBat `
+        -RequireRuntime
+    if ($LASTEXITCODE -ne 0) {
+        throw "ADM OpenAPI 런타임 검증에 실패했습니다."
+    }
     $result.openapi.status = "PASSED"
     $result.openapi.path = "$AdmBaseUrl/v3/api-docs"
 
-    if ([string]::IsNullOrWhiteSpace($AdmPassword)) {
-        throw "CPF_ADM_SMOKE_PASSWORD 환경변수 또는 -AdmPassword 인수가 필요합니다."
+    if ([string]::IsNullOrWhiteSpace($AdmPassword) -and [string]::IsNullOrWhiteSpace($AdmChangedPassword)) {
+        throw "CPF_ADM_SMOKE_PASSWORD 또는 CPF_ADM_SMOKE_CHANGED_PASSWORD 환경변수가 필요합니다."
     }
-    $login = Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
+
+    # 최초 bootstrap 직후와 비밀번호 변경을 마친 재실행 환경을 모두 검증합니다.
+    $effectiveAdmPassword = $AdmPassword
+    $loginAttempt = Invoke-SmokeForStatus -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
         operatorId = $AdmUsername
-        password = $AdmPassword
+        password = $effectiveAdmPassword
     }
-    if ([string]::IsNullOrWhiteSpace($login.accessToken)) {
-        throw "ADM login response does not contain accessToken."
+    if (($loginAttempt.statusCode -lt 200 -or $loginAttempt.statusCode -ge 300) `
+            -and -not [string]::IsNullOrWhiteSpace($AdmChangedPassword)) {
+        $effectiveAdmPassword = $AdmChangedPassword
+        $loginAttempt = Invoke-SmokeForStatus -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
+            operatorId = $AdmUsername
+            password = $effectiveAdmPassword
+        }
     }
+    if ($loginAttempt.statusCode -lt 200 -or $loginAttempt.statusCode -ge 300 `
+            -or [string]::IsNullOrWhiteSpace($loginAttempt.body.accessToken)) {
+        throw "ADM 로그인에 실패했습니다. status=$($loginAttempt.statusCode)"
+    }
+
+    $login = $loginAttempt.body
     $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+    if ($login.operator.passwordChangeRequired -eq $true) {
+        if ([string]::IsNullOrWhiteSpace($AdmChangedPassword) -or $AdmChangedPassword -eq $effectiveAdmPassword) {
+            throw "최초 ADM 비밀번호 변경을 위해 서로 다른 CPF_ADM_SMOKE_CHANGED_PASSWORD 값이 필요합니다."
+        }
+        $changeAttempt = Invoke-SmokeForStatus -Method Post `
+            -Uri "$AdmBaseUrl/adm/api/operators/$AdmUsername/password" `
+            -Headers $headers `
+            -Body @{
+                currentPassword = $effectiveAdmPassword
+                newPassword = $AdmChangedPassword
+                newPasswordConfirm = $AdmChangedPassword
+                requestUser = $AdmUsername
+                reason = "ADM 런타임 스모크 최초 비밀번호 변경"
+            }
+        if ($changeAttempt.statusCode -lt 200 -or $changeAttempt.statusCode -ge 300) {
+            throw "ADM 최초 비밀번호 변경에 실패했습니다. status=$($changeAttempt.statusCode)"
+        }
+        $effectiveAdmPassword = $AdmChangedPassword
+        $login = Invoke-SmokeJson -Method Post -Uri "$AdmBaseUrl/adm/api/auth/login" -Body @{
+            operatorId = $AdmUsername
+            password = $effectiveAdmPassword
+        }
+        $headers = @{ Authorization = "Bearer $($login.accessToken)" }
+        $result.admOperationApi.initialPasswordChanged = $true
+    } else {
+        $result.admOperationApi.initialPasswordChanged = $false
+    }
     $admOperationEndpoints = @(
         "/adm/api/operators",
         "/adm/api/operators/roles",
@@ -566,7 +629,9 @@ try {
         "/adm/api/cache/summary",
         "/adm/api/messages",
         "/adm/api/codes",
-        "/adm/api/configs"
+        "/adm/api/configs",
+        "/adm/api/channels",
+        "/adm/api/channels/package"
     )
     $checkedAdmOperationEndpoints = New-Object System.Collections.Generic.List[string]
     foreach ($endpoint in $admOperationEndpoints) {
@@ -577,7 +642,7 @@ try {
     $result.admOperationApi.checkedEndpoints = $checkedAdmOperationEndpoints
 
     if ($IncludePermissionWriteSmoke) {
-        $permissionResult = Invoke-AdmPermissionWriteSmoke -AdminHeaders $headers -AdminPassword $AdmPassword
+        $permissionResult = Invoke-AdmPermissionWriteSmoke -AdminHeaders $headers -AdminPassword $effectiveAdmPassword
         $result.permissionWriteApi.status = $permissionResult.status
         $result.permissionWriteApi.resultPath = $PermissionResultPath
         $result.permissionWriteApi.checked = @(
@@ -649,11 +714,11 @@ try {
     & (Join-Path $Root "scripts/smoke-adm-center-cut-runtime.ps1") `
         -AdmBaseUrl $AdmBaseUrl `
         -AdmUsername $AdmUsername `
-        -AdmPassword $AdmPassword `
+        -AdmPassword $effectiveAdmPassword `
         -LogDir $LogDir
-    $result.centerCutApi.dedicatedSmokeResultPath = Join-Path $LogDir "adm-center-cut-runtime-smoke-result.json"
+    $result.centerCutApi.dedicatedSmokeResultPath = Join-Path $LogDir "adm-center-cut-runtime-smoke-result.sanitized.json"
 
-    $transactionMetaResultPath = Join-Path $LogDir "transaction-meta-runtime-smoke-result.json"
+    $transactionMetaResultPath = Join-Path $LogDir "transaction-meta-runtime-smoke-result.sanitized.json"
     & (Join-Path $Root "scripts/smoke-transaction-meta-runtime.ps1") `
         -AdmBaseUrl $AdmBaseUrl `
         -AccessToken $login.accessToken `
@@ -680,7 +745,9 @@ try {
             throw $result.browserClick.reason
         }
     }
+    $result.status = "PASSED"
 } catch {
+    $result.status = "FAILED"
     $result.error = $_.Exception.Message
     Save-SmokeResult
     throw

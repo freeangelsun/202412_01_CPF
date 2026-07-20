@@ -1,4 +1,4 @@
-package cpf.xyz.edu.facade;
+package cpf.xyz.edu.servicecall;
 
 import org.junit.jupiter.api.Test;
 

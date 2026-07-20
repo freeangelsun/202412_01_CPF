@@ -1,0 +1,45 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CREATE_DOMAIN_COMPILE
+STATUS=완료
+EXECUTED_AT=2026-07-20T10:05:31.7471508+09:00
+START_COMMIT=ff4661e673dab9a2f417e75f8ad64fb712c96fa6
+BRANCH=master
+COMMAND=.\gradlew.bat :pym:test :pym:bootJar :pym:bootWar
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=5956b4af4fc3e71ada1ecbc1e8c62a79554a0a34ad9f7c73e6dcb47eff9a4c09
+--- SANITIZED_OUTPUT ---
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :pfw:compileJava
+> Task :cmn:compileJava
+> Task :cmn:processResources
+> Task :cmn:classes
+> Task :cmn:jar
+> Task :pfw:processResources
+> Task :pfw:classes
+> Task :pfw:jar
+> Task :pym:compileJava
+> Task :pym:processResources
+> Task :pym:classes
+> Task :pym:resolveMainClassName
+> Task :pym:bootJar
+> Task :pym:bootWar
+> Task :pym:compileTestJava
+> Task :pym:processTestResources NO-SOURCE
+> Task :pym:testClasses
+> Task :pym:test
+
+BUILD SUCCESSFUL in 47s
+13 actionable tasks: 13 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

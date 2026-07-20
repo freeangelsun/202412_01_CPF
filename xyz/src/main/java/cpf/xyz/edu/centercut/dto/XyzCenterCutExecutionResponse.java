@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.centercut.dto;
 
 import java.util.List;
 import java.util.Map;

@@ -1,10 +1,10 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.crud.controller;
 
 import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.xyz.edu.dto.XyzCrudEducationRequest;
-import cpf.xyz.edu.dto.XyzCrudEducationResponse;
-import cpf.xyz.edu.dto.XyzCrudEducationStatusRequest;
-import cpf.xyz.edu.service.XyzCrudEducationService;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationRequest;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationResponse;
+import cpf.xyz.edu.crud.dto.XyzCrudEducationStatusRequest;
+import cpf.xyz.edu.crud.application.XyzCrudEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

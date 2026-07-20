@@ -8,6 +8,14 @@ spring:
       password: ${PFW_DB_PASSWORD:__REPLACE_BY_ENV__}
       driver-class-name: org.mariadb.jdbc.Driver
 
+server:
+  error:
+    # 처리되지 않은 예외의 내부 메시지와 스택은 HTTP 응답에 포함하지 않습니다.
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
 springdoc:
   api-docs:
     enabled: ${CPF_OPENAPI_ENABLED:${CPF_OPENAPI_ENABLED:true}}
@@ -141,6 +149,13 @@ cpf:
       max-requests-per-minute: ${CPF_REMOTE_LOG_BUNDLE_MAX_REQUESTS_PER_MINUTE:10}
       max-active-jobs: ${CPF_REMOTE_LOG_BUNDLE_MAX_ACTIVE_JOBS:4}
       download-token-ttl-seconds: ${CPF_REMOTE_LOG_DOWNLOAD_TOKEN_TTL_SECONDS:300}
+
+# Spring Boot debug 모드가 활성화되더라도 요청 DTO와 SQL bind 값은 로그에 출력하지 않습니다.
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.jdbc.core: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
 
 ---
 # prod에서는 DB 접속정보 기본값을 제거하고 배포 환경에서 반드시 주입합니다.

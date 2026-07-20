@@ -1,6 +1,7 @@
 package cpf.pfw.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.execution.CpfSharedApi;
 import cpf.pfw.common.exception.CpfResponseCodeResolver;
 import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
@@ -66,6 +67,35 @@ class TransactionHeaderValidationInterceptorTest {
         assertThat(response.getContentAsString())
                 .contains("\"statusCode\":\"EPFW900001\"")
                 .doesNotContain("errorDetailMessage");
+    }
+
+    @Test
+    void allowsExternalOnlineCallWithCallerLabelButWithoutInternalInstanceIdentity() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/api/v1/online");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "external-smoke-client");
+
+        boolean allowed = interceptor.preHandle(
+                request,
+                new MockHttpServletResponse(),
+                handler("onlineApi"));
+
+        assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void rejectsInternalOnlineCallWithoutStandardExecutionId() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletRequest request = standardRequest("/api/v1/online");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
+        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "MBR01");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean allowed = interceptor.preHandle(request, response, handler("onlineApi"));
+
+        assertThat(allowed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(500);
+        assertThat(response.getContentAsString()).contains("\"statusCode\":\"EPFW900002\"");
     }
 
     @Test
@@ -163,6 +193,11 @@ class TransactionHeaderValidationInterceptorTest {
         @CpfTransaction(id = "PFW01API0002", name = "표준 헤더 검증 테스트")
         @SuppressWarnings("unused")
         public void businessTransaction() {
+        }
+
+        @CpfOnlineTransaction(id = "OPFWTS0001", name = "온라인 실행 헤더 검증 테스트")
+        @SuppressWarnings("unused")
+        public void onlineApi() {
         }
 
         @CpfSharedApi(

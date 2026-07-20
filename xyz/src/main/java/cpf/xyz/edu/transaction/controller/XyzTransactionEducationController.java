@@ -1,10 +1,10 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.transaction.controller;
 
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.workflow.CpfWorkflow;
 import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
 import cpf.pfw.common.workflow.CpfWorkflowStep;
-import cpf.xyz.edu.service.XyzCrudEducationService;
+import cpf.xyz.edu.crud.application.XyzCrudEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

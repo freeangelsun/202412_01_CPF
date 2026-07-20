@@ -1,0 +1,43 @@
+{
+    "startedAt":  "2026-07-16T18:56:12.1335713+09:00",
+    "admBaseUrl":  "http://localhost:8090",
+    "login":  {
+                  "status":  "PASSED"
+              },
+    "centerCutApi":  {
+                         "status":  "PASSED",
+                         "checkedEndpoints":  [
+                                                  "/adm/api/center-cut/jobs",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/parameters",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
+                                                  "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20"
+                                              ],
+                         "summary":  {
+                                         "centerCutJobId":  "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+                                         "adapterType":  "XYZ_SAMPLE",
+                                         "totalCount":  4,
+                                         "readyCount":  4,
+                                         "runningCount":  0,
+                                         "successCount":  0,
+                                         "failedCount":  0,
+                                         "skippedCount":  0,
+                                         "retryRequestedCount":  0,
+                                         "stopRequestedCount":  0,
+                                         "lastStartedAt":  null,
+                                         "lastCompletedAt":  null,
+                                         "resultTotalCount":  0,
+                                         "resultSuccessCount":  null,
+                                         "resultFailedCount":  null,
+                                         "resultLastCreatedAt":  null
+                                     },
+                         "targetCount":  1,
+                         "resultCount":  1,
+                         "hasParentTransactionGlobalId":  true,
+                         "hasChildTransactionGlobalId":  true,
+                         "hasFailureReason":  true,
+                         "rawPayloadExposed":  false
+                     },
+    "finishedAt":  "2026-07-16T18:56:13.3544217+09:00"
+}

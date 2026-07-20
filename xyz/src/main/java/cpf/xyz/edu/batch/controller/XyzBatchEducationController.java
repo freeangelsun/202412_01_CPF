@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.batch.controller;
 
 import cpf.pfw.common.batch.CpfBatchExecutionRequest;
 import cpf.pfw.common.batch.CpfBatchExecutionResult;

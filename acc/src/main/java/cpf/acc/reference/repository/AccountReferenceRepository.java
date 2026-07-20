@@ -1,6 +1,6 @@
-package cpf.acc.repository;
+package cpf.acc.reference.repository;
 
-import cpf.acc.dto.AccountSearchRequest;
+import cpf.acc.reference.dto.AccountReferenceSearchRequest;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -8,20 +8,21 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 
 /**
- * MyBatis mapper 호출을 캡슐화하는 업무 저장소입니다.
+ * MyBatis Mapper 호출을 캡슐화하는 ACC 기준 조회 저장소입니다.
  */
 @Repository
-public class AccountRepository {
+public class AccountReferenceRepository {
     private final SqlSessionTemplate sqlSessionTemplate;
 
-    public AccountRepository(
+    public AccountReferenceRepository(
             @Qualifier("accSqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
-    public Map<String, Object> search(AccountSearchRequest request) {
+    public Map<String, Object> search(AccountReferenceSearchRequest request) {
         return Map.of(
-                "items", sqlSessionTemplate.selectList("cpf.acc.mapper.AccountMapper.search", request),
+                "items", sqlSessionTemplate.selectList(
+                        "cpf.acc.reference.mapper.AccountReferenceMapper.search", request),
                 "criteria", request);
     }
 }

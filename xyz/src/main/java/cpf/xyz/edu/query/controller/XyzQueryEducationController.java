@@ -1,12 +1,12 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.query.controller;
 
 import cpf.pfw.common.header.CpfHeaderPropagator;
 import cpf.pfw.common.execution.CpfOnlineTransaction;
 import cpf.pfw.common.logging.TransactionContext;
-import cpf.xyz.edu.dto.XyzQueryEducationItem;
-import cpf.xyz.edu.dto.XyzQueryKeysetResponse;
-import cpf.xyz.edu.dto.XyzQueryPageResponse;
-import cpf.xyz.edu.service.XyzQueryEducationService;
+import cpf.xyz.edu.query.dto.XyzQueryEducationItem;
+import cpf.xyz.edu.query.dto.XyzQueryKeysetResponse;
+import cpf.xyz.edu.query.dto.XyzQueryPageResponse;
+import cpf.xyz.edu.query.application.XyzQueryEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

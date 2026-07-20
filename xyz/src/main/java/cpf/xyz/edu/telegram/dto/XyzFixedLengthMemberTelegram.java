@@ -1,4 +1,4 @@
-package cpf.xyz.edu.dto;
+package cpf.xyz.edu.telegram.dto;
 
 import cpf.cmn.tlm.core.CmnTelegramField;
 import cpf.cmn.tlm.core.CmnTelegramFieldType;

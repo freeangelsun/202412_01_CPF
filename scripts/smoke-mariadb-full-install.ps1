@@ -37,8 +37,8 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-$resultPath = Join-Path $ResultDir "mariadb-full-install-result.json"
-$logPath = Join-Path $ResultDir "mariadb-full-install.log"
+$resultPath = Join-Path $ResultDir "mariadb-full-install-result.sanitized.json"
+$logPath = Join-Path $ResultDir "mariadb-full-install.sanitized.log"
 
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -414,6 +414,29 @@ SELECT COUNT(*) FROM pfwDB.pfw_standard_execution_alias;
 SELECT COUNT(*) FROM information_schema.tables
 WHERE table_schema = 'pfwDB' AND table_name = 'pfw_batch_on_demand_request';
 "@)
+    $result.checks.channelPolicyTableCount = [int] (Invoke-Scalar -StepName "channelPolicyTableCount" -SqlText @"
+SELECT COUNT(*) FROM information_schema.tables
+WHERE table_schema = 'pfwDB'
+  AND table_name IN ('pfw_channel_policy_version', 'pfw_channel_registry', 'pfw_channel_execution_policy');
+"@)
+    $result.checks.channelRegistrySeedCount = [int] (Invoke-Scalar -StepName "channelRegistrySeedCount" -SqlText @"
+SELECT COUNT(*) FROM pfwDB.pfw_channel_registry
+WHERE channel_code IN ('ANY', 'WEB', 'MOBILE', 'ADM', 'BATCH') AND active_yn = 'Y';
+"@)
+    $result.checks.channelPolicySeedCount = [int] (Invoke-Scalar -StepName "channelPolicySeedCount" -SqlText @"
+SELECT COUNT(*) FROM pfwDB.pfw_channel_execution_policy
+WHERE policy_key = 'PFW.DEFAULT' AND active_yn = 'Y';
+"@)
+    $result.checks.channelPolicyIndexCount = [int] (Invoke-Scalar -StepName "channelPolicyIndexCount" -SqlText @"
+SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics
+WHERE table_schema = 'pfwDB'
+  AND index_name IN (
+      'ix_pfw_channel_policy_version_target',
+      'ix_pfw_channel_registry_active',
+      'ix_pfw_channel_execution_policy_lookup',
+      'ix_pfw_channel_execution_policy_effective'
+  );
+"@)
     $result.checks.accTableCount = [int] (Invoke-Scalar -StepName "accTableCount" -SqlText @"
 SELECT COUNT(*) FROM information_schema.tables
 WHERE table_schema = 'accDB' AND table_name IN ('acc_account', 'acc_account_change_log');
@@ -564,6 +587,21 @@ JOIN admDB.adm_api_permission ap ON ap.api_permission_id = rap.api_permission_id
 WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RESOLVE')
   AND rap.role_id IN ('ADM_ADMIN', 'ADM_DEV_OPERATOR', 'ADM_OPERATOR', 'ADM_BIZ_OPERATOR', 'ADM_VIEWER');
 "@)
+    $result.checks.admChannelPolicyMenuCount = [int] (Invoke-Scalar -StepName "admChannelPolicyMenuCount" -SqlText @"
+SELECT COUNT(*) FROM admDB.adm_menu
+WHERE menu_id = 'CHANNEL_POLICY' AND use_yn = 'Y';
+"@)
+    $result.checks.admChannelPolicyButtonCount = [int] (Invoke-Scalar -StepName "admChannelPolicyButtonCount" -SqlText @"
+SELECT COUNT(*) FROM admDB.adm_button
+WHERE button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_POLICY_REFRESH', 'CHANNEL_POLICY_IMPORT')
+  AND use_yn = 'Y';
+"@)
+    $result.checks.admChannelPolicyRoleApiCount = [int] (Invoke-Scalar -StepName "admChannelPolicyRoleApiCount" -SqlText @"
+SELECT COUNT(*) FROM admDB.adm_role_api_permission rap
+JOIN admDB.adm_api_permission ap ON ap.api_permission_id = rap.api_permission_id
+WHERE ap.button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_POLICY_REFRESH', 'CHANNEL_POLICY_IMPORT')
+  AND rap.role_id IN ('ADM_ADMIN', 'ADM_DEV_OPERATOR', 'ADM_OPERATOR', 'ADM_BIZ_OPERATOR', 'ADM_VIEWER');
+"@)
 
     if ($result.checks.batCenterCutTableCount -ne 4) {
         throw "bat_center_cut_* table count mismatch. actual=$($result.checks.batCenterCutTableCount)"
@@ -600,6 +638,15 @@ WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RE
     }
     if ($result.checks.batchOnDemandTableCount -ne 1) {
         throw "pfw_batch_on_demand_request table is missing."
+    }
+    if ($result.checks.channelPolicyTableCount -ne 3) {
+        throw "PFW channel policy table count mismatch. actual=$($result.checks.channelPolicyTableCount)"
+    }
+    if ($result.checks.channelRegistrySeedCount -ne 5 -or $result.checks.channelPolicySeedCount -ne 1) {
+        throw "PFW channel policy seed mismatch. channels=$($result.checks.channelRegistrySeedCount) policies=$($result.checks.channelPolicySeedCount)"
+    }
+    if ($result.checks.channelPolicyIndexCount -ne 4) {
+        throw "PFW channel policy index count mismatch. actual=$($result.checks.channelPolicyIndexCount)"
     }
     if ($result.checks.accTableCount -ne 2 -or $result.checks.accCommonColumnCount -ne 8) {
         throw "ACC reference table/common column mismatch. tables=$($result.checks.accTableCount) columns=$($result.checks.accCommonColumnCount)"
@@ -642,6 +689,12 @@ WHERE ap.button_id IN ('RELIABILITY_READ', 'RELIABILITY_REPLAY', 'RELIABILITY_RE
     }
     if ($result.checks.admReliabilityRoleApiCount -ne 15) {
         throw "ADM reliability role API count mismatch. actual=$($result.checks.admReliabilityRoleApiCount)"
+    }
+    if ($result.checks.admChannelPolicyMenuCount -ne 1 -or $result.checks.admChannelPolicyButtonCount -ne 4) {
+        throw "ADM channel policy menu/button seed mismatch. menu=$($result.checks.admChannelPolicyMenuCount) buttons=$($result.checks.admChannelPolicyButtonCount)"
+    }
+    if ($result.checks.admChannelPolicyRoleApiCount -ne 20) {
+        throw "ADM channel policy role API count mismatch. actual=$($result.checks.admChannelPolicyRoleApiCount)"
     }
 
     $result.status = $StatusDone

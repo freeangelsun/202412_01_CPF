@@ -1,4 +1,4 @@
-package cpf.bat.job;
+package cpf.bat.job.heartbeat;
 
 import cpf.pfw.common.batch.CpfBatchHeartbeatService;
 import org.slf4j.Logger;

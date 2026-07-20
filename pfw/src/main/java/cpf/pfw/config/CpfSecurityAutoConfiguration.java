@@ -1,5 +1,8 @@
 package cpf.pfw.config;
 
+import cpf.pfw.channel.adapter.JdbcCpfChannelRegistryAdapter;
+import cpf.pfw.channel.api.CpfChannelRegistryPort;
+import cpf.pfw.channel.application.CpfChannelPolicyService;
 import cpf.pfw.common.execution.CpfExecutionCatalogPort;
 import cpf.pfw.common.execution.CpfExecutionCatalogRepository;
 import cpf.pfw.common.execution.CpfExecutionCatalogScanner;
@@ -59,6 +62,19 @@ public class CpfSecurityAutoConfiguration {
             Environment environment,
             CpfExecutionCatalogPort catalogPort) {
         return new CpfExecutionCatalogScanner(applicationContext, environment, catalogPort);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfChannelRegistryPort cpfChannelRegistryPort(
+            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+        return new JdbcCpfChannelRegistryAdapter(jdbcTemplateProvider);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfChannelPolicyService cpfChannelPolicyService(CpfChannelRegistryPort registryPort) {
+        return new CpfChannelPolicyService(registryPort);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package cpf.xyz.edu.config;
+package cpf.xyz.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -18,7 +18,7 @@ import javax.sql.DataSource;
  * 조회합니다. 실제 업무 모듈에서는 같은 패턴으로 자기 업무 DB datasource와 Mapper 위치를 분리하면 됩니다.</p>
  */
 @Configuration
-@MapperScan(basePackages = "cpf.xyz.edu.mapper", sqlSessionFactoryRef = "xyzEduSqlSessionFactory")
+@MapperScan(basePackages = "cpf.xyz.edu.query.adapter", sqlSessionFactoryRef = "xyzEduSqlSessionFactory")
 public class XyzEducationMyBatisConfig {
     private final DataSource cmnDataSource;
 

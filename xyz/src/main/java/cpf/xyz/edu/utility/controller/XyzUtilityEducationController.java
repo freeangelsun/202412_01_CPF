@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.utility.controller;
 
 import cpf.cmn.utils.DateTimeUtils;
 import cpf.cmn.utils.IdUtils;

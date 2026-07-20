@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.logging.controller;
 
 import cpf.pfw.common.logging.DynamicLogLevelRequest;
 import cpf.pfw.common.logging.DynamicLogLevelRule;

@@ -1,0 +1,253 @@
+{
+    "generatedAt":  "2026-07-20T10:06:20.449+09:00",
+    "status":  "DONE",
+    "currentCommit":  "ff4661e673dab9a2f417e75f8ad64fb712c96fa6",
+    "legacyInventoryCommit":  "befbc44dd4dfe396a4366788b4844d641324fb31",
+    "legacyFileCount":  49,
+    "items":  [
+                  {
+                      "legacyPath":  "acc/build.gradle",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/AccApplication.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/controller/AccCompositeEducationController.java",
+                      "disposition":  "ACC reference domain과 MBR→ACC 공유 계약으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/controller/AccountController.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/dto/MbrMemberDetailResponse.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/entity/AccAccount.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/mapper/AccAccountMapper.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/service/AccAccountService.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/service/AccCompositeTransactionService.java",
+                      "disposition":  "ACC reference domain과 MBR→ACC 공유 계약으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/service/ExsExchangeClientService.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/bse/service/MbrMemberClientService.java",
+                      "disposition":  "ACC reference domain과 MBR→ACC 공유 계약으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/common/aop/CpfValidationAspect.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/common/exception/GlobalExceptionHandler.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/config/AccDataSourceConfig.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/config/AccMyBatisConfig.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/reference/controller/AccReferenceController.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/reference/service/AccMemberExternalFacadeService.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/tst/controller/CmnCoderController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/tst/controller/CmnManagementController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/tst/controller/StandardHeaderE2eController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/java/cpf/acc/tst/controller/TransactionController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application-acc-dev.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application-acc-local.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application-acc-prod.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application-acc-stg.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application-acc.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/application.yml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/mybatis/config/acc-mybatis-config.xml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/main/resources/mybatis/mapper/acc/bse/AccAccountMapper.xml",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/test/java/cpf/acc/AccApplicationTests.java",
+                      "disposition":  "ACC reference domain으로 복원"
+                  },
+                  {
+                      "legacyPath":  "acc/src/test/java/cpf/acc/reference/service/AccMemberExternalFacadeServiceTest.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "acc/src/test/java/cpf/acc/tst/controller/AccTransactionControllerTest.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/build.gradle",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/ExsApplication.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/config/ExsDataSourceConfig.java",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/flow/controller/ExsFlowController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/flow/service/ExsFlowService.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/operation/controller/ExsAdminOperationController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/operation/controller/ExsCompositeEducationController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/operation/controller/ExsOperationController.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/operation/repository/ExsOperationRepository.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/java/cpf/exs/operation/service/ExsOperationService.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application-exs-dev.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application-exs-local.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application-exs-prod.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application-exs-stg.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application-exs.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/main/resources/application.yml",
+                      "disposition":  "업무 특화 실행 모듈 폐기"
+                  },
+                  {
+                      "legacyPath":  "exs/src/test/java/cpf/exs/operation/service/ExsOperationServiceTest.java",
+                      "disposition":  "XYZ EDU로 이동"
+                  }
+              ],
+    "targetChecks":  [
+                         {
+                             "path":  "acc/src/main/java/cpf/acc/account/controller/AccAccountController.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "acc/src/main/java/cpf/acc/account/controller/AccAccountSharedController.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "acc/src/main/java/cpf/acc/account/facade/AccAccountSummaryFacade.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "mbr/src/main/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxy.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "mbr/src/test/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxyTest.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "xyz/src/main/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSample.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "xyz/src/main/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorController.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "xyz/src/test/java/cpf/xyz/edu/external/XyzExternalIntegrationEducationSampleTest.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "xyz/src/test/java/cpf/xyz/edu/external/XyzNeutralExternalSimulatorControllerTest.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallEngine.java",
+                             "exists":  true
+                         },
+                         {
+                             "path":  "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentService.java",
+                             "exists":  true
+                         }
+                     ],
+    "missingTargetCount":  0,
+    "note":  "삭제 전 기능 disposition은 역사 inventory를 유지하고, 현재 대체 source와 test 존재를 이번 commit에서 다시 검증했습니다."
+}

@@ -1,4 +1,4 @@
-package cpf.xyz.edu.controller;
+package cpf.xyz.edu.failure.controller;
 
 import cpf.cmn.utils.TextUtils;
 import cpf.pfw.common.exception.CpfBusinessException;

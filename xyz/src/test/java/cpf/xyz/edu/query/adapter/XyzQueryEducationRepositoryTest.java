@@ -1,7 +1,7 @@
-package cpf.xyz.edu.repository;
+package cpf.xyz.edu.query.adapter;
 
-import cpf.xyz.edu.dto.XyzQueryEducationCriteria;
-import cpf.xyz.edu.mapper.XyzQueryEducationMapper;
+import cpf.xyz.edu.query.dto.XyzQueryEducationCriteria;
+import cpf.xyz.edu.query.adapter.XyzQueryEducationMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

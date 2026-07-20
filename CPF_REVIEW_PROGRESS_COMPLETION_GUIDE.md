@@ -1,3 +1,33 @@
+# 2026-07-20 전체 요구사항 실구현 검수 보정
+
+- 기준 SHA: `42c0fda82e0f3061e839f69cad25bbfa9df2aa0f`
+- 최상위 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
+- 정본 도메인: 133개
+- 최신 제출 inventory: 1,118개 파일
+
+검수 순서:
+
+1. 133개 도메인 상세 requirement inventory
+2. repository 전체 implementation inventory
+3. 양방향 traceability
+4. source·SQL·API·security·operation·test·runtime·evidence 판정
+5. 과대 완료와 stale evidence 하향
+6. 모든 미완료를 하나의 Codex 요청서로 구성
+7. 구현 후 evidence 생성
+8. matrix·GAP·report·README 정합화
+9. 문서 갱신 뒤 final consistency 재실행
+
+파일·class·catalog·정적 검색·일부 test는 완료 근거가 아니다.
+
+각 gate는 candidate, classified, passed, failed, skipped,
+unclassified, allowlisted, stale를 제출한다.
+
+기존 역할과 같은 새 파일을 만들지 않는다.
+중복·stale 문서는 내용을 정본에 통합하고 삭제한다.
+Markdown table, heading, code fence, link와 UTF-8을 자동 검사한다.
+
+---
+
 # 2026-07-20 검수 운영 보정
 
 # 2026-07-20 운영·아키텍처 보정 규칙

@@ -1,603 +1,3305 @@
 {
-    "schemaVersion":  3,
-    "generatedAt":  "2026-07-20T15:50:38.9606015+09:00",
-    "source":  "CPF_CURRENT_WORK_REQUEST.md + CPF_FINAL_TARGET_REQUIREMENTS.md + 20260720_04 source/test/MariaDB/multi-runtime evidence",
-    "allowedStatuses":  [
-                            "완료",
-                            "부분 구현",
-                            "미구현",
-                            "미검증",
-                            "실패",
-                            "재확인 필요"
-                        ],
-    "items":  [
-                  {
-                      "checkId":  "baseline-module-layout",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-                      "note":  "PFW·CMN·MBR·ADM·BZA·BAT·ACC·XYZ·PFW Gateway의 모듈 구성과 공통 3단 Base 계층을 최신 source 기준으로 검증함"
-                  },
-                  {
-                      "checkId":  "bza-rename",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "BIZADM 소스·패키지·환경·DB 명칭을 BZA로 전환하고 legacy name gate를 통과함"
-                  },
-                  {
-                      "checkId":  "acc-exs-cleanup",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json, specs/evidence/20260716_02/repository-hygiene.sanitized.json",
-                      "note":  "삭제 기능 49건의 유지·대체·제거 판정을 기록하고 ACC reference, XYZ 외부 연계 EDU, MBR→ACC 계약을 복원했으며 가비지와 소유권 gate를 통과함"
-                  },
-                  {
-                      "checkId":  "architecture-ownership",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-                      "note":  "타 주제영역 Repository·Mapper·DB 직접 접근 금지, PFW 기술 AOP 단일 소유권과 PFW Base→주제영역 Base→기능 계층 검사를 통과함"
-                  },
-                  {
-                      "checkId":  "password-hashing",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "bza-auth",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "로그인·잠금·비밀번호 변경·access token은 구현·테스트 완료, bzaDB 실로그인은 미검증"
-                  },
-                  {
-                      "checkId":  "bza-refresh-rotation",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "refresh token hash 저장, 조건부 폐기, 회전과 동시 재사용 거부 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "bza-bootstrap",
-                      "status":  "미검증",
-                      "evidence":  "specs/evidence/20260715_01/mariadb-full-install.sanitized.log",
-                      "note":  "명시적 enable·승인·환경변수 기반 구현은 있으나 DB bootstrap 런타임은 미실행"
-                  },
-                  {
-                      "checkId":  "bza-permission-server",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "메뉴·행위 권한을 서버 필터에서 검사하고 로그인 이력 USER:READ 권한 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "bza-ui",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
-                      "note":  "권한 기반 조회 메뉴와 사용자·역할·메뉴·권한 등록·수정 dialog를 연결했으나 인증 후 실제 browser E2E는 미검증"
-                  },
-                  {
-                      "checkId":  "bza-organization-employee",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "조직·직원 조회 및 감사 사유 필수 등록·수정 API와 테스트는 완료, DB 런타임은 미검증"
-                  },
-                  {
-                      "checkId":  "bza-approval",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "순차·병렬 결재선, 상태 전이, 낙관적 잠금, idempotency와 감사 테스트는 완료, DB E2E는 미검증"
-                  },
-                  {
-                      "checkId":  "bza-audit",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "BZA 업무 변경 before·after·reason 감사 적재와 조회를 구현했으나 실 DB 행은 미검증"
-                  },
-                  {
-                      "checkId":  "adm-framework-console",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-forced-password-change.sanitized.json",
-                      "note":  "ADM 인증·강제 비밀번호 변경·운영 콘솔 API와 OpenAPI 161개 경로를 실 DB 런타임에서 검증함. 브라우저 클릭은 로컬 브라우저 자동화 정책으로 미검증임"
-                  },
-                  {
-                      "checkId":  "adm-permission",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json",
-                      "note":  "관리자 읽기 200, 조회 역할의 허용 조회 200과 금지 쓰기 403, 권한 변경 감사 사유와 before/after를 실제 ADM API에서 검증함"
-                  },
-                  {
-                      "checkId":  "adm-log-console",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/openapi-runtime.sanitized.log",
-                      "note":  "거래·상세·감사·배치·운영 로그 API/UI는 제공하나 MariaDB 실데이터 조회는 미검증"
-                  },
-                  {
-                      "checkId":  "remote-log-local",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "allowlist root, 경로 이탈·symlink·확장자·크기 제한, SHA-256, 마스킹 preview와 다운로드 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "remote-log-multi-instance",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "registry·node client·service credential port, timeout·부분 실패, 라우팅 ID와 checksum ZIP 테스트는 완료했으나 실 mTLS HTTP adapter와 다중 서버 E2E는 미검증"
-                  },
-                  {
-                      "checkId":  "remote-log-bundle-jobs",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "attachment-storage",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
-                      "note":  "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ 기준 업무 샘플의 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
-                  },
-                  {
-                      "checkId":  "bza-operation-support",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증"
-                  },
-                  {
-                      "checkId":  "standard-execution-id",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
-                      "note":  "O/S/B 10자리 값 객체·annotation·중복 gate·327개 alias와 V28→V32 실 MariaDB 전환을 검증함"
-                  },
-                  {
-                      "checkId":  "standard-execution-catalog",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "PFW 공통 pfwJdbcTemplate 소유권과 O/S/B 실행 메타 영속화를 검증하고 Gateway가 OACCQY0001로 ACC를 실제 호출함. 전체 모듈 catalog·ADM 정합성 E2E는 남음"
-                  },
-                  {
-                      "checkId":  "execution-log-propagation",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json, specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json",
-                      "note":  "34자리 거래 ID, O 실행 ID와 transactionGlobalId 조회를 확인하고 Gateway→ACC에서 실행 ID·route·Gateway instance 헤더 전파를 실검증함. 다중 인스턴스 timeline은 남음"
-                  },
-                  {
-                      "checkId":  "batch-standard",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "Spring Batch JobRepository를 PFW DB에 고정하고 BAT 실제 Job 완료·step 조회·restart·rerun과 종료 정리를 실검증함"
-                  },
-                  {
-                      "checkId":  "scheduler-dependency",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "영업일·허용시간·시뮬레이션·선후행·trigger·실행대상 API/UI는 구현, DB 실행 시나리오는 미검증"
-                  },
-                  {
-                      "checkId":  "batch-ghost",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "heartbeat 기반 ghost 후보·조치·운영 로그를 구현, 다중 worker 오탐 검증은 미실행"
-                  },
-                  {
-                      "checkId":  "bat-runtime",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "BAT를 MariaDB PFW JobRepository로 기동해 온디맨드 접수, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
-                  },
-                  {
-                      "checkId":  "domain-generator",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
-                      "note":  "최소 옵션 생성 결과의 독립 DataSource, PFW Base→도메인 Base→기능 계층, null·정렬 방어, test·bootJar·bootWar·Java 25 산출물을 검증함"
-                  },
-                  {
-                      "checkId":  "xyz-reference-samples",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/sample-coverage-result.sanitized.json, specs/evidence/20260720_04/architecture-inventory.sanitized.json",
-                      "note":  "XYZ를 비운영 기본 reference business domain으로 정리하고 50개 공식 샘플의 source·test·문서 coverage를 검증함"
-                  },
-                  {
-                      "checkId":  "bat-edu",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "tasklet·chunk·retry·restart·idempotency·center-cut·온디맨드 EDU를 유지하고 실제 PFW JobRepository 실행까지 검증함"
-                  },
-                  {
-                      "checkId":  "ai-edu",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/ai-edu-runtime.sanitized.json",
-                      "note":  "PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
-                  },
-                  {
-                      "checkId":  "standard-header",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/standard-header-e2e-result.sanitized.json",
-                      "note":  "XYZ 실제 HTTP 호출에서 표준 헤더 수신·하위 호출 전파·DB 거래 로그 연결을 E2E로 검증함"
-                  },
-                  {
-                      "checkId":  "service-call-engine",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "typed 기본 API와 Gateway→ACC 표준 실행 ID 라우팅, 선택 인스턴스 헤더, 실제 HTTP 200 응답을 검증함"
-                  },
-                  {
-                      "checkId":  "broker-capability",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
-                  },
-                  {
-                      "checkId":  "broker-real-integration",
-                      "status":  "미검증",
-                      "evidence":  "없음",
-                      "note":  "Redis·Kafka·RabbitMQ 서버가 제공되지 않아 실 장애·fallback·replay를 실행하지 않음"
-                  },
-                  {
-                      "checkId":  "file-transfer-capability",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "파일 검증·checksum·임시파일·이동·이력·원격 명령 계획 테스트는 통과함"
-                  },
-                  {
-                      "checkId":  "file-server-real-integration",
-                      "status":  "미검증",
-                      "evidence":  "없음",
-                      "note":  "SFTP·FTP·FTPS·SCP·SSH 실 서버가 없어 전송 runtime은 실행하지 않음"
-                  },
-                  {
-                      "checkId":  "mariadb-full-install",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log",
-                      "note":  "실 MariaDB에서 전체 설치·smoke·seed 재실행과 FK·index·app/migration 권한 38개 검사를 통과함"
-                  },
-                  {
-                      "checkId":  "flyway-static",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
-                      "note":  "기존 V28 checksum을 보존하고 V32 증분 migration을 격리 DB에 실제 적용해 327개 alias와 구형 fixture 전환을 검증함"
-                  },
-                  {
-                      "checkId":  "sql-all-install",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/mariadb-full-install.sanitized.log",
-                      "note":  "split SQL에서 SOURCE 없는 합본과 V1 baseline을 재생성하고 실 MariaDB 설치·재실행을 검증함"
-                  },
-                  {
-                      "checkId":  "runtime-baseline",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/runtime-start-services-result.sanitized.json, specs/evidence/20260720_04/runtime-stop-services-result.sanitized.json",
-                      "note":  "MBR·ADM·BZA·XYZ·ACC·Gateway·BAT 7개 최신 bootJar를 동시에 기동해 health와 프로세스 생존을 확인한 뒤 기록 PID만 정상 종료함"
-                  },
-                  {
-                      "checkId":  "openapi-runtime",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
-                      "note":  "ADM·MBR·XYZ·BZA·BAT·ACC·Gateway의 OpenAPI 3.1 필수 tag/path를 실제 기동 상태에서 모두 검증함"
-                  },
-                  {
-                      "checkId":  "browser-public-http",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json, specs/evidence/20260720_04/bza-ui-static-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
-                      "note":  "ADM·BZA UI 정적 계약과 실행 앱 HTTP는 검증했으나 시스템 브라우저 자동화 파이프 차단 및 전용 Chromium 인증서 체인 오류로 실제 렌더링 클릭은 미검증임"
-                  },
-                  {
-                      "checkId":  "browser-auth-e2e",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260720_04/adm-forced-password-change.sanitized.json, specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json",
-                      "note":  "ADM 로그인·강제 비밀번호 변경·인증 운영 API는 실검증했으나 인증 후 브라우저 메뉴 클릭은 환경 제약으로 미검증임"
-                  },
-                  {
-                      "checkId":  "multi-instance-runtime",
-                      "status":  "미검증",
-                      "evidence":  "없음",
-                      "note":  "2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음"
-                  },
-                  {
-                      "checkId":  "security-static",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/quality-gate.sanitized.log",
-                      "note":  "평문 secret·보안 seed·민감 헤더 우회와 PFW 보안 정적 gate를 최신 source에서 통과함"
-                  },
-                  {
-                      "checkId":  "bza-session-storage",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
-                      "note":  "BZA access·refresh token을 sessionStorage로 제한하고 localStorage 사용을 gate에서 차단함"
-                  },
-                  {
-                      "checkId":  "bza-login-history-auth",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "로그인 이력 조회에 Bearer token과 USER:READ 서버 권한을 강제하는 테스트를 통과함"
-                  },
-                  {
-                      "checkId":  "service-call-boundary",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json",
-                      "note":  "타 주제영역 저장소 직접 참조 없이 PFW Service Call Engine과 typed client를 사용하는 경계를 정적·실 HTTP로 검증함"
-                  },
-                  {
-                      "checkId":  "spring-event-usage",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json",
-                      "note":  "핵심 동기 처리의 금지 Spring Event 사용 0건을 확인함"
-                  },
-                  {
-                      "checkId":  "profile-loading",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/profile-loading-result.sanitized.json",
-                      "note":  "local/dev/stg/prod profile 로딩과 prod secret 기본값 금지 검사를 최신 모듈에서 통과함"
-                  },
-                  {
-                      "checkId":  "deploy-inventory",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
-                      "note":  "ACC와 PFW Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함"
-                  },
-                  {
-                      "checkId":  "sql-standard",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log, specs/evidence/20260720_04/quality-gate.sanitized.log",
-                      "note":  "실 MariaDB 전체 설치·smoke·seed 재실행·FK·index·계정 권한 38개 검사와 SQL 정적 gate를 최신 source에서 통과함"
-                  },
-                  {
-                      "checkId":  "utf8-mojibake",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/quality-gate.sanitized.log",
-                      "note":  "UTF-8, PowerShell UTF-8 BOM·CRLF, mojibake 검사를 전체 source와 최신 증적에 대해 통과함"
-                  },
-                  {
-                      "checkId":  "ui-static",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json, specs/evidence/20260716_02/bza-ui-static-result.sanitized.json, specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json",
-                      "note":  "ADM/BZA 정적 UI·JavaScript와 ADM HTML/JS model 정합성 gate를 통과함. 실제 인증 후 전 화면 browser E2E는 별도 추적함"
-                  },
-                  {
-                      "checkId":  "sample-coverage",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/sample-coverage-matrix.md",
-                      "note":  "XYZ 외부 연계와 BAT 온디맨드를 포함한 공식 EDU source·test·matrix 정합성 gate를 통과함"
-                  },
-                  {
-                      "checkId":  "generator-cleanup",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
-                      "note":  "생성 결과를 임시 검증 영역에 격리하고 기본 patch/profile/deploy 잔재를 만들지 않으며 저장소 가비지 gate를 통과함"
-                  },
-                  {
-                      "checkId":  "evidence-sanitization",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/log-management-standard.sanitized.json, specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json, specs/evidence/20260716_02/quality-gate.sanitized.log",
-                      "note":  "최신 정본 증적을 sanitized 파일로 제한하고 실행 메타데이터·secret 제거·본문 SHA-256 규격을 gate에서 검증함"
-                  },
-                  {
-                      "checkId":  "docx-openxml",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/docx-standard.sanitized.json",
-                      "note":  "공식 DOCX 9종의 OpenXML package 무결성을 확인함. 이번 구조 변경 freshness와 Word 실제 열기는 최종 정본화 단계로 보류"
-                  },
-                  {
-                      "checkId":  "readme-docs",
-                      "status":  "부분 구현",
-                      "evidence":  "README.md, specs/sample-coverage-matrix.md",
-                      "note":  "README를 ACC reference·Gateway·O/S/B·S형 공유 API 실제 구현에 맞췄고 샘플 매트릭스를 갱신함. DOCX 9종은 요청에 따라 최종 정본화 단계로 보류"
-                  },
-                  {
-                      "checkId":  "quality-gate",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/quality-gate.sanitized.log, specs/evidence/20260720_04/full-test-release.sanitized.log",
-                      "note":  "최종 qualityGate 증적은 90 tasks(38 executed, 52 up-to-date)로 성공했고, 클린 실행에서 집계한 전체 156 suites, 359 tests는 failures 0, errors 0, skipped 4임"
-                  },
-                  {
-                      "checkId":  "request-protection",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json",
-                      "note":  "CPF_CURRENT_WORK_REQUEST.md SHA-256가 작업 baseline과 일치하며 요청 입력이 변경되지 않았음을 최신 gate에서 검증함"
-                  },
-                  {
-                      "checkId":  "report-matrix-consistency",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json",
-                      "note":  "기능 ledger의 report·matrix·GAP·evidence index 상태와 증적 파일 존재·민감정보 검사를 동일 정본으로 검증함"
-                  },
-                  {
-                      "checkId":  "acc-reference-domain",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "ACC 생성기 reference, 대표 CRUD, SQL/Flyway, 배포 설정과 local/remote Facade를 유지하고 Gateway→ACC reference 조회를 실검증함. external Tomcat/JNDI parity는 미검증"
-                  },
-                  {
-                      "checkId":  "shared-api-boundary",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
-                      "note":  "S형 ID 일치, 허용 호출 서비스, 호출 인스턴스, 외부 Gateway 우회 차단과 fail-closed 운영 확장 경계를 구현·단위 검증함. mTLS adapter runtime은 미검증"
-                  },
-                  {
-                      "checkId":  "pfw-gateway-runtime",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "PFW 선택형 Gateway의 route snapshot·권한·채널 정책과 실제 ACC target proxy 200, 실행 ID·route·instance 헤더를 실검증함. streaming·cancellation·다중 인스턴스는 미검증"
-                  },
-                  {
-                      "checkId":  "batch-on-demand",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json, specs/sample-coverage-matrix.md",
-                      "note":  "온디맨드 접수·멱등·비동기 worker·상태·step·stop·restart·rerun API/SQL/EDU를 구현하고 MariaDB JobRepository에서 실검증함"
-                  },
-                  {
-                      "checkId":  "channel-registry-policy",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json, specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "DB-first 채널 master·거래 허용 정책·identity binding·불변 snapshot·export/import를 구현하고 SQL, ADM API/UI, Gateway 실제 호출로 검증함"
-                  },
-                  {
-                      "checkId":  "transaction-test-console",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "O/S/B 테스트 콘솔, 운영 강제 비활성, 권한·감사·결과 포맷 runtime 검증이 남음"
-                  },
-                  {
-                      "checkId":  "policy-package-promotion",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "환경 독립 정책 export/import, diff, 승인, rollback runtime 검증이 남음"
-                  },
-                  {
-                      "checkId":  "global-change-approval",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "ADM/BZA 전체 mutation 승인·예약 적용·rollback handler 전수 검증이 남음"
-                  },
-                  {
-                      "checkId":  "adm-bam-responsive-statistics",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "ADM/BZA 반응형 화면, 거래·채널 통계와 drill-down browser 검증이 남음"
-                  },
-                  {
-                      "checkId":  "log-raw-format",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "JSON/XML/text/fixed-length 원문·포맷·마스킹·원문 권한·다운로드 감사 browser/DB 검증이 남음"
-                  },
-                  {
-                      "checkId":  "configuration-secret-lifecycle",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "설정 버전·drift·last-known-good와 secret/certificate/key rotation 외부 adapter 검증이 남음"
-                  },
-                  {
-                      "checkId":  "observability-alert-slo",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "metric·trace·health·SLI/SLO·alert·ack·runbook의 운영 연계 검증이 남음"
-                  },
-                  {
-                      "checkId":  "resource-protection",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "bulkhead·rate limit·quota·backpressure·retry budget·pool 제한 검증이 남음"
-                  },
-                  {
-                      "checkId":  "schema-versioning-migration",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
-                      "note":  "DB expand/migrate 기반 한 사례는 실검증했으나 REST/event/file schema 호환과 장기 backfill/resume 표준은 재확인 필요"
-                  },
-                  {
-                      "checkId":  "retention-privacy-dr",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "retention·archive·purge·privacy·backup/restore·RPO/RTO·DR 실복구 검증이 남음"
-                  },
-                  {
-                      "checkId":  "supply-chain-performance",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 재검증이 남음"
-                  },
-                  {
-                      "checkId":  "full-capability-inventory",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/feature-evidence-result.sanitized.json",
-                      "note":  "9개 모듈 1,078개 파일 ownership과 ACC/EXS capability를 inventory화했으나 최종 목표 전체 요구사항의 source 양방향 추적은 계속 필요"
-                  },
-                  {
-                      "checkId":  "module-topology-authoritative",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/architecture-inventory.sanitized.json",
-                      "note":  "BZA 정식 업무 백오피스, ACC generator reference, BAT·Gateway 선택 실행, EXS 비runtime 대체 구조를 settings/빌드에서 확인함"
-                  },
-                  {
-                      "checkId":  "standard-execution-contract-migration",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json",
-                      "note":  "O/S/B 10자리 단일 기록과 구형 ID alias 조회 호환 migration을 실제 DB에서 검증함"
-                  },
-                  {
-                      "checkId":  "generator-reference-domain-contract",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "생성 모듈의 test·bootJar·bootWar와 ACC reference HTTP 호출을 검증함. 외부 Tomcat/JNDI 실배포는 미검증임"
-                  },
-                  {
-                      "checkId":  "batch-dependency-ghost-contract",
-                      "status":  "부분 구현",
-                      "evidence":  "specs/evidence/20260715_01/quality-gate.sanitized.log",
-                      "note":  "기존 dependency/ghost 구현은 유지되며 이번에는 온디맨드 restart/rerun을 보강함. 다중 worker JobRepository runtime은 미검증"
-                  },
-                  {
-                      "checkId":  "cmn-telegram-contract",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "CMN 전문 layout/parser/formatter와 XYZ charset·byte length·round-trip 최신 runtime 재검증이 남음"
-                  },
-                  {
-                      "checkId":  "ui-design-system-contract",
-                      "status":  "재확인 필요",
-                      "evidence":  "없음",
-                      "note":  "ADM/BZA 실제 browser 렌더링·접근성·반응형·history 검증이 남음"
-                  },
-                  {
-                      "checkId":  "evidence-governance-contract",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json, specs/evidence/20260720_04/evidence-path-existence-check.sanitized.json, specs/evidence/20260720_04/quality-gate.sanitized.log",
-                      "note":  "시작 SHA·활성 요청서 hash 보호, current sanitized evidence 경로·고유 ID·본문 hash·secret scan을 최신 gate에서 검증함"
-                  },
-                  {
-                      "checkId":  "package-structure-standard",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json",
-                      "note":  "ACC·XYZ·BAT를 포함한 9개 모듈의 package/class ownership을 inventory화하고 주제영역 저장소 직접 접근과 package 규칙 gate를 통과함"
-                  },
-                  {
-                      "checkId":  "repository-garbage-cleanup",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/repository-hygiene.sanitized.json, specs/evidence/20260716_02/deleted-files.sanitized.json, specs/evidence/20260716_02/empty-directory-scan.sanitized.json",
-                      "note":  "patch-candidates·생성 결과·중복 candidate·빈 디렉터리를 정리하고 금지 산출물 재유입 gate를 통과함"
-                  },
-                  {
-                      "checkId":  "readme-product-document",
-                      "status":  "완료",
-                      "evidence":  "README.md, acc/README.md",
-                      "note":  "README를 작업 일지 없이 제품 가치·아키텍처·모듈·채널·Gateway·거래·오류·신뢰성·배치·운영·개발·EDU·기술 사양 문서로 정리하고 ACC README를 모듈 진입점으로 제한함"
-                  },
-                  {
-                      "checkId":  "acc-generator-output-cleanup",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
-                      "note":  "ACC를 generator conformance reference로 유지하고 patch-candidates·중복 deploy/SQL·임시 생성 산출물 재유입을 차단함"
-                  },
-                  {
-                      "checkId":  "xyz-reference-package-standard",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/sample-coverage-result.sanitized.json",
-                      "note":  "cpf.xyz.\u003ccapability\u003e feature-first 패키지와 /api/xyz/reference canonical API를 적용하고 기존 /xyz/edu 호환 alias를 분리 검증함"
-                  },
-                  {
-                      "checkId":  "bat-job-package-standard",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-                      "note":  "BAT actual job을 JobDefinition별 vertical slice로, EDU를 학습 유형별 package로 정리하고 온디맨드 JobRepository runtime을 검증함"
-                  },
-                  {
-                      "checkId":  "base-hierarchy",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-                      "note":  "115개 Controller·Service가 PFW Base/Contract→주제영역 Base/Contract→기능 구현의 3단 계층을 따르는지 검사함"
-                  },
-                  {
-                      "checkId":  "platform-version-artifacts",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/release-metadata-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
-                      "note":  "1.0.0-SNAPSHOT 정본, cpf-* 산출물 36개, sources·Javadoc JAR 각 9개, checksum 36개와 SBOM-lite·provenance 생성을 검증함"
-                  },
-                  {
-                      "checkId":  "logging-ownership",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json",
-                      "note":  "기술 거래 로깅 Aspect는 PFW 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함"
-                  },
-                  {
-                      "checkId":  "document-links",
-                      "status":  "완료",
-                      "evidence":  "specs/evidence/20260720_04/document-link-check.sanitized.json",
-                      "note":  "추적 중인 README·Markdown·HTML 14개에서 로컬 파일 링크 9개를 해석하고 broken link 0건을 확인함"
-                  }
-              ]
+  "schemaVersion": 3,
+  "generatedAt": "2026-07-20T15:50:38.9606015+09:00",
+  "source": "CPF_CURRENT_WORK_REQUEST.md + CPF_FINAL_TARGET_REQUIREMENTS.md + 20260720_04 source/test/MariaDB/multi-runtime evidence",
+  "allowedStatuses": [
+    "완료",
+    "부분 구현",
+    "미구현",
+    "미검증",
+    "실패",
+    "재확인 필요"
+  ],
+  "items": [
+    {
+      "checkId": "baseline-module-layout",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+      "note": "PFW·CMN·MBR·ADM·BZA·BAT·ACC·XYZ·PFW Gateway의 모듈 구성과 공통 3단 Base 계층을 최신 source 기준으로 검증함"
+    },
+    {
+      "checkId": "bza-rename",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "BIZADM 소스·패키지·환경·DB 명칭을 BZA로 전환하고 legacy name gate를 통과함"
+    },
+    {
+      "checkId": "acc-exs-cleanup",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json, specs/evidence/20260716_02/repository-hygiene.sanitized.json",
+      "note": "삭제 기능 49건의 유지·대체·제거 판정을 기록하고 ACC reference, XYZ 외부 연계 EDU, MBR→ACC 계약을 복원했으며 가비지와 소유권 gate를 통과함"
+    },
+    {
+      "checkId": "architecture-ownership",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+      "note": "타 주제영역 Repository·Mapper·DB 직접 접근 금지, PFW 기술 AOP 단일 소유권과 PFW Base→주제영역 Base→기능 계층 검사를 통과함"
+    },
+    {
+      "checkId": "password-hashing",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
+    },
+    {
+      "checkId": "bza-auth",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "로그인·잠금·비밀번호 변경·access token은 구현·테스트 완료, bzaDB 실로그인은 미검증"
+    },
+    {
+      "checkId": "bza-refresh-rotation",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "refresh token hash 저장, 조건부 폐기, 회전과 동시 재사용 거부 테스트를 통과함"
+    },
+    {
+      "checkId": "bza-bootstrap",
+      "status": "미검증",
+      "evidence": "specs/evidence/20260715_01/mariadb-full-install.sanitized.log",
+      "note": "명시적 enable·승인·환경변수 기반 구현은 있으나 DB bootstrap 런타임은 미실행"
+    },
+    {
+      "checkId": "bza-permission-server",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "메뉴·행위 권한을 서버 필터에서 검사하고 로그인 이력 USER:READ 권한 테스트를 통과함"
+    },
+    {
+      "checkId": "bza-ui",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
+      "note": "권한 기반 조회 메뉴와 사용자·역할·메뉴·권한 등록·수정 dialog를 연결했으나 인증 후 실제 browser E2E는 미검증"
+    },
+    {
+      "checkId": "bza-organization-employee",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "조직·직원 조회 및 감사 사유 필수 등록·수정 API와 테스트는 완료, DB 런타임은 미검증"
+    },
+    {
+      "checkId": "bza-approval",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "순차·병렬 결재선, 상태 전이, 낙관적 잠금, idempotency와 감사 테스트는 완료, DB E2E는 미검증"
+    },
+    {
+      "checkId": "bza-audit",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "BZA 업무 변경 before·after·reason 감사 적재와 조회를 구현했으나 실 DB 행은 미검증"
+    },
+    {
+      "checkId": "adm-framework-console",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-forced-password-change.sanitized.json",
+      "note": "ADM 인증·강제 비밀번호 변경·운영 콘솔 API와 OpenAPI 161개 경로를 실 DB 런타임에서 검증함. 브라우저 클릭은 로컬 브라우저 자동화 정책으로 미검증임"
+    },
+    {
+      "checkId": "adm-permission",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/adm-permission-runtime-result.sanitized.json",
+      "note": "관리자 읽기 200, 조회 역할의 허용 조회 200과 금지 쓰기 403, 권한 변경 감사 사유와 before/after를 실제 ADM API에서 검증함"
+    },
+    {
+      "checkId": "adm-log-console",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/openapi-runtime.sanitized.log",
+      "note": "거래·상세·감사·배치·운영 로그 API/UI는 제공하나 MariaDB 실데이터 조회는 미검증"
+    },
+    {
+      "checkId": "remote-log-local",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "allowlist root, 경로 이탈·symlink·확장자·크기 제한, SHA-256, 마스킹 preview와 다운로드 테스트를 통과함"
+    },
+    {
+      "checkId": "remote-log-multi-instance",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "registry·node client·service credential port, timeout·부분 실패, 라우팅 ID와 checksum ZIP 테스트는 완료했으나 실 mTLS HTTP adapter와 다중 서버 E2E는 미검증"
+    },
+    {
+      "checkId": "remote-log-bundle-jobs",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "비동기 ZIP 작업 상태, 소유자 격리, 요청 한도, 부분 실패, 만료, 1회성 다운로드 token과 재발급을 구현하고 단위·ADM UI 정적 테스트를 통과함"
+    },
+    {
+      "checkId": "attachment-storage",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
+      "note": "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ 기준 업무 샘플의 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
+    },
+    {
+      "checkId": "bza-operation-support",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·역할 비교·권한 시뮬레이션 API/UI와 테스트는 완료, 인증 후 DB browser E2E는 미검증"
+    },
+    {
+      "checkId": "standard-execution-id",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+      "note": "O/S/B 10자리 값 객체·annotation·중복 gate·327개 alias와 V28→V32 실 MariaDB 전환을 검증함"
+    },
+    {
+      "checkId": "standard-execution-catalog",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "PFW 공통 pfwJdbcTemplate 소유권과 O/S/B 실행 메타 영속화를 검증하고 Gateway가 OACCQY0001로 ACC를 실제 호출함. 전체 모듈 catalog·ADM 정합성 E2E는 남음"
+    },
+    {
+      "checkId": "execution-log-propagation",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json, specs/evidence/20260716_02/transaction-meta-runtime-smoke-result.sanitized.json",
+      "note": "34자리 거래 ID, O 실행 ID와 transactionGlobalId 조회를 확인하고 Gateway→ACC에서 실행 ID·route·Gateway instance 헤더 전파를 실검증함. 다중 인스턴스 timeline은 남음"
+    },
+    {
+      "checkId": "batch-standard",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "Spring Batch JobRepository를 PFW DB에 고정하고 BAT 실제 Job 완료·step 조회·restart·rerun과 종료 정리를 실검증함"
+    },
+    {
+      "checkId": "scheduler-dependency",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "영업일·허용시간·시뮬레이션·선후행·trigger·실행대상 API/UI는 구현, DB 실행 시나리오는 미검증"
+    },
+    {
+      "checkId": "batch-ghost",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "heartbeat 기반 ghost 후보·조치·운영 로그를 구현, 다중 worker 오탐 검증은 미실행"
+    },
+    {
+      "checkId": "bat-runtime",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+      "note": "BAT를 MariaDB PFW JobRepository로 기동해 온디맨드 접수, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
+    },
+    {
+      "checkId": "domain-generator",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
+      "note": "최소 옵션 생성 결과의 독립 DataSource, PFW Base→도메인 Base→기능 계층, null·정렬 방어, test·bootJar·bootWar·Java 25 산출물을 검증함"
+    },
+    {
+      "checkId": "xyz-reference-samples",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/sample-coverage-result.sanitized.json, specs/evidence/20260720_04/architecture-inventory.sanitized.json",
+      "note": "XYZ를 비운영 기본 reference business domain으로 정리하고 50개 공식 샘플의 source·test·문서 coverage를 검증함"
+    },
+    {
+      "checkId": "bat-edu",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "tasklet·chunk·retry·restart·idempotency·center-cut·온디맨드 EDU를 유지하고 실제 PFW JobRepository 실행까지 검증함"
+    },
+    {
+      "checkId": "ai-edu",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/ai-edu-runtime.sanitized.json",
+      "note": "PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
+    },
+    {
+      "checkId": "standard-header",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/standard-header-e2e-result.sanitized.json",
+      "note": "XYZ 실제 HTTP 호출에서 표준 헤더 수신·하위 호출 전파·DB 거래 로그 연결을 E2E로 검증함"
+    },
+    {
+      "checkId": "service-call-engine",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+      "note": "typed 기본 API와 Gateway→ACC 표준 실행 ID 라우팅, 선택 인스턴스 헤더, 실제 HTTP 200 응답을 검증함"
+    },
+    {
+      "checkId": "broker-capability",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
+    },
+    {
+      "checkId": "broker-real-integration",
+      "status": "미검증",
+      "evidence": "없음",
+      "note": "Redis·Kafka·RabbitMQ 서버가 제공되지 않아 실 장애·fallback·replay를 실행하지 않음"
+    },
+    {
+      "checkId": "file-transfer-capability",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "파일 검증·checksum·임시파일·이동·이력·원격 명령 계획 테스트는 통과함"
+    },
+    {
+      "checkId": "file-server-real-integration",
+      "status": "미검증",
+      "evidence": "없음",
+      "note": "SFTP·FTP·FTPS·SCP·SSH 실 서버가 없어 전송 runtime은 실행하지 않음"
+    },
+    {
+      "checkId": "mariadb-full-install",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log",
+      "note": "실 MariaDB에서 전체 설치·smoke·seed 재실행과 FK·index·app/migration 권한 38개 검사를 통과함"
+    },
+    {
+      "checkId": "flyway-static",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
+      "note": "기존 V28 checksum을 보존하고 V32 증분 migration을 격리 DB에 실제 적용해 327개 alias와 구형 fixture 전환을 검증함"
+    },
+    {
+      "checkId": "sql-all-install",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/mariadb-full-install.sanitized.log",
+      "note": "split SQL에서 SOURCE 없는 합본과 V1 baseline을 재생성하고 실 MariaDB 설치·재실행을 검증함"
+    },
+    {
+      "checkId": "runtime-baseline",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/runtime-start-services-result.sanitized.json, specs/evidence/20260720_04/runtime-stop-services-result.sanitized.json",
+      "note": "MBR·ADM·BZA·XYZ·ACC·Gateway·BAT 7개 최신 bootJar를 동시에 기동해 health와 프로세스 생존을 확인한 뒤 기록 PID만 정상 종료함"
+    },
+    {
+      "checkId": "openapi-runtime",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
+      "note": "ADM·MBR·XYZ·BZA·BAT·ACC·Gateway의 OpenAPI 3.1 필수 tag/path를 실제 기동 상태에서 모두 검증함"
+    },
+    {
+      "checkId": "browser-public-http",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json, specs/evidence/20260720_04/bza-ui-static-result.sanitized.json, specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
+      "note": "ADM·BZA UI 정적 계약과 실행 앱 HTTP는 검증했으나 시스템 브라우저 자동화 파이프 차단 및 전용 Chromium 인증서 체인 오류로 실제 렌더링 클릭은 미검증임"
+    },
+    {
+      "checkId": "browser-auth-e2e",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260720_04/adm-forced-password-change.sanitized.json, specs/evidence/20260720_04/adm-operation-console-runtime-result.sanitized.json, specs/evidence/20260720_04/adm-ui-browser-smoke-result.sanitized.json",
+      "note": "ADM 로그인·강제 비밀번호 변경·인증 운영 API는 실검증했으나 인증 후 브라우저 메뉴 클릭은 환경 제약으로 미검증임"
+    },
+    {
+      "checkId": "multi-instance-runtime",
+      "status": "미검증",
+      "evidence": "없음",
+      "note": "2개 instance registry·failover·lease·worker claim·graceful shutdown 환경을 실행하지 않음"
+    },
+    {
+      "checkId": "security-static",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/quality-gate.sanitized.log",
+      "note": "평문 secret·보안 seed·민감 헤더 우회와 PFW 보안 정적 gate를 최신 source에서 통과함"
+    },
+    {
+      "checkId": "bza-session-storage",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/bza-ui-static-result.sanitized.json",
+      "note": "BZA access·refresh token을 sessionStorage로 제한하고 localStorage 사용을 gate에서 차단함"
+    },
+    {
+      "checkId": "bza-login-history-auth",
+      "status": "완료",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "로그인 이력 조회에 Bearer token과 USER:READ 서버 권한을 강제하는 테스트를 통과함"
+    },
+    {
+      "checkId": "service-call-boundary",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json",
+      "note": "타 주제영역 저장소 직접 참조 없이 PFW Service Call Engine과 typed client를 사용하는 경계를 정적·실 HTTP로 검증함"
+    },
+    {
+      "checkId": "spring-event-usage",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/spring-event-usage-scan.sanitized.json",
+      "note": "핵심 동기 처리의 금지 Spring Event 사용 0건을 확인함"
+    },
+    {
+      "checkId": "profile-loading",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/profile-loading-result.sanitized.json",
+      "note": "local/dev/stg/prod profile 로딩과 prod secret 기본값 금지 검사를 최신 모듈에서 통과함"
+    },
+    {
+      "checkId": "deploy-inventory",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
+      "note": "ACC와 PFW Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함"
+    },
+    {
+      "checkId": "sql-standard",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/mariadb-full-install-result.sanitized.json, specs/evidence/20260720_04/mariadb-full-install.sanitized.log, specs/evidence/20260720_04/quality-gate.sanitized.log",
+      "note": "실 MariaDB 전체 설치·smoke·seed 재실행·FK·index·계정 권한 38개 검사와 SQL 정적 gate를 최신 source에서 통과함"
+    },
+    {
+      "checkId": "utf8-mojibake",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/quality-gate.sanitized.log",
+      "note": "UTF-8, PowerShell UTF-8 BOM·CRLF, mojibake 검사를 전체 source와 최신 증적에 대해 통과함"
+    },
+    {
+      "checkId": "ui-static",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/adm-log-policy-ui-static-result.sanitized.json, specs/evidence/20260716_02/bza-ui-static-result.sanitized.json, specs/evidence/20260716_02/adm-ui-model-consistency.sanitized.json",
+      "note": "ADM/BZA 정적 UI·JavaScript와 ADM HTML/JS model 정합성 gate를 통과함. 실제 인증 후 전 화면 browser E2E는 별도 추적함"
+    },
+    {
+      "checkId": "sample-coverage",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/sample-coverage-matrix.md",
+      "note": "XYZ 외부 연계와 BAT 온디맨드를 포함한 공식 EDU source·test·matrix 정합성 gate를 통과함"
+    },
+    {
+      "checkId": "generator-cleanup",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
+      "note": "생성 결과를 임시 검증 영역에 격리하고 기본 patch/profile/deploy 잔재를 만들지 않으며 저장소 가비지 gate를 통과함"
+    },
+    {
+      "checkId": "evidence-sanitization",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/log-management-standard.sanitized.json, specs/evidence/20260716_02/evidence-path-existence-check.sanitized.json, specs/evidence/20260716_02/quality-gate.sanitized.log",
+      "note": "최신 정본 증적을 sanitized 파일로 제한하고 실행 메타데이터·secret 제거·본문 SHA-256 규격을 gate에서 검증함"
+    },
+    {
+      "checkId": "docx-openxml",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/docx-standard.sanitized.json",
+      "note": "공식 DOCX 9종의 OpenXML package 무결성을 확인함. 이번 구조 변경 freshness와 Word 실제 열기는 최종 정본화 단계로 보류"
+    },
+    {
+      "checkId": "readme-docs",
+      "status": "부분 구현",
+      "evidence": "README.md, specs/sample-coverage-matrix.md",
+      "note": "README를 ACC reference·Gateway·O/S/B·S형 공유 API 실제 구현에 맞췄고 샘플 매트릭스를 갱신함. DOCX 9종은 요청에 따라 최종 정본화 단계로 보류"
+    },
+    {
+      "checkId": "quality-gate",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/quality-gate.sanitized.log, specs/evidence/20260720_04/full-test-release.sanitized.log",
+      "note": "최종 qualityGate 증적은 90 tasks(38 executed, 52 up-to-date)로 성공했고, 클린 실행에서 집계한 전체 156 suites, 359 tests는 failures 0, errors 0, skipped 4임"
+    },
+    {
+      "checkId": "request-protection",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json",
+      "note": "CPF_CURRENT_WORK_REQUEST.md SHA-256가 작업 baseline과 일치하며 요청 입력이 변경되지 않았음을 최신 gate에서 검증함"
+    },
+    {
+      "checkId": "report-matrix-consistency",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/report-matrix-evidence-consistency.sanitized.json",
+      "note": "기능 ledger의 report·matrix·GAP·evidence index 상태와 증적 파일 존재·민감정보 검사를 동일 정본으로 검증함"
+    },
+    {
+      "checkId": "acc-reference-domain",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_02/create-domain-result.sanitized.json, specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "ACC 생성기 reference, 대표 CRUD, SQL/Flyway, 배포 설정과 local/remote Facade를 유지하고 Gateway→ACC reference 조회를 실검증함. external Tomcat/JNDI parity는 미검증"
+    },
+    {
+      "checkId": "shared-api-boundary",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_01/feature-evidence-result.sanitized.json",
+      "note": "S형 ID 일치, 허용 호출 서비스, 호출 인스턴스, 외부 Gateway 우회 차단과 fail-closed 운영 확장 경계를 구현·단위 검증함. mTLS adapter runtime은 미검증"
+    },
+    {
+      "checkId": "pfw-gateway-runtime",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "PFW 선택형 Gateway의 route snapshot·권한·채널 정책과 실제 ACC target proxy 200, 실행 ID·route·instance 헤더를 실검증함. streaming·cancellation·다중 인스턴스는 미검증"
+    },
+    {
+      "checkId": "batch-on-demand",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json, specs/sample-coverage-matrix.md",
+      "note": "온디맨드 접수·멱등·비동기 worker·상태·step·stop·restart·rerun API/SQL/EDU를 구현하고 MariaDB JobRepository에서 실검증함"
+    },
+    {
+      "checkId": "channel-registry-policy",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/adm-runtime-smoke-result.sanitized.json, specs/evidence/20260716_02/adm-channel-ui-browser-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "DB-first 채널 master·거래 허용 정책·identity binding·불변 snapshot·export/import를 구현하고 SQL, ADM API/UI, Gateway 실제 호출로 검증함"
+    },
+    {
+      "checkId": "transaction-test-console",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "O/S/B 테스트 콘솔, 운영 강제 비활성, 권한·감사·결과 포맷 runtime 검증이 남음"
+    },
+    {
+      "checkId": "policy-package-promotion",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "환경 독립 정책 export/import, diff, 승인, rollback runtime 검증이 남음"
+    },
+    {
+      "checkId": "global-change-approval",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "ADM/BZA 전체 mutation 승인·예약 적용·rollback handler 전수 검증이 남음"
+    },
+    {
+      "checkId": "adm-bam-responsive-statistics",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "ADM/BZA 반응형 화면, 거래·채널 통계와 drill-down browser 검증이 남음"
+    },
+    {
+      "checkId": "log-raw-format",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "JSON/XML/text/fixed-length 원문·포맷·마스킹·원문 권한·다운로드 감사 browser/DB 검증이 남음"
+    },
+    {
+      "checkId": "configuration-secret-lifecycle",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "설정 버전·drift·last-known-good와 secret/certificate/key rotation 외부 adapter 검증이 남음"
+    },
+    {
+      "checkId": "observability-alert-slo",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "metric·trace·health·SLI/SLO·alert·ack·runbook의 운영 연계 검증이 남음"
+    },
+    {
+      "checkId": "resource-protection",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "bulkhead·rate limit·quota·backpressure·retry budget·pool 제한 검증이 남음"
+    },
+    {
+      "checkId": "schema-versioning-migration",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json",
+      "note": "DB expand/migrate 기반 한 사례는 실검증했으나 REST/event/file schema 호환과 장기 backfill/resume 표준은 재확인 필요"
+    },
+    {
+      "checkId": "retention-privacy-dr",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "retention·archive·purge·privacy·backup/restore·RPO/RTO·DR 실복구 검증이 남음"
+    },
+    {
+      "checkId": "supply-chain-performance",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "SBOM·dependency/license/secret scan과 대표 경로 성능·용량 benchmark 재검증이 남음"
+    },
+    {
+      "checkId": "full-capability-inventory",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/feature-evidence-result.sanitized.json",
+      "note": "9개 모듈 1,078개 파일 ownership과 ACC/EXS capability를 inventory화했으나 최종 목표 전체 요구사항의 source 양방향 추적은 계속 필요"
+    },
+    {
+      "checkId": "module-topology-authoritative",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/architecture-inventory.sanitized.json",
+      "note": "BZA 정식 업무 백오피스, ACC generator reference, BAT·Gateway 선택 실행, EXS 비runtime 대체 구조를 settings/빌드에서 확인함"
+    },
+    {
+      "checkId": "standard-execution-contract-migration",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_01/standard-execution-v32-upgrade.sanitized.json, specs/evidence/20260716_01/standard-execution-id-migration-apply.sanitized.json",
+      "note": "O/S/B 10자리 단일 기록과 구형 ID alias 조회 호환 migration을 실제 DB에서 검증함"
+    },
+    {
+      "checkId": "generator-reference-domain-contract",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
+      "note": "생성 모듈의 test·bootJar·bootWar와 ACC reference HTTP 호출을 검증함. 외부 Tomcat/JNDI 실배포는 미검증임"
+    },
+    {
+      "checkId": "batch-dependency-ghost-contract",
+      "status": "부분 구현",
+      "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
+      "note": "기존 dependency/ghost 구현은 유지되며 이번에는 온디맨드 restart/rerun을 보강함. 다중 worker JobRepository runtime은 미검증"
+    },
+    {
+      "checkId": "cmn-telegram-contract",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "CMN 전문 layout/parser/formatter와 XYZ charset·byte length·round-trip 최신 runtime 재검증이 남음"
+    },
+    {
+      "checkId": "ui-design-system-contract",
+      "status": "재확인 필요",
+      "evidence": "없음",
+      "note": "ADM/BZA 실제 browser 렌더링·접근성·반응형·history 검증이 남음"
+    },
+    {
+      "checkId": "evidence-governance-contract",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/cpf-current-work-request-protection.sanitized.json, specs/evidence/20260720_04/evidence-path-existence-check.sanitized.json, specs/evidence/20260720_04/quality-gate.sanitized.log",
+      "note": "시작 SHA·활성 요청서 hash 보호, current sanitized evidence 경로·고유 ID·본문 hash·secret scan을 최신 gate에서 검증함"
+    },
+    {
+      "checkId": "package-structure-standard",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json",
+      "note": "ACC·XYZ·BAT를 포함한 9개 모듈의 package/class ownership을 inventory화하고 주제영역 저장소 직접 접근과 package 규칙 gate를 통과함"
+    },
+    {
+      "checkId": "repository-garbage-cleanup",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/repository-hygiene.sanitized.json, specs/evidence/20260716_02/deleted-files.sanitized.json, specs/evidence/20260716_02/empty-directory-scan.sanitized.json",
+      "note": "patch-candidates·생성 결과·중복 candidate·빈 디렉터리를 정리하고 금지 산출물 재유입 gate를 통과함"
+    },
+    {
+      "checkId": "readme-product-document",
+      "status": "완료",
+      "evidence": "README.md, acc/README.md",
+      "note": "README를 작업 일지 없이 제품 가치·아키텍처·모듈·채널·Gateway·거래·오류·신뢰성·배치·운영·개발·EDU·기술 사양 문서로 정리하고 ACC README를 모듈 진입점으로 제한함"
+    },
+    {
+      "checkId": "acc-generator-output-cleanup",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/repository-hygiene.sanitized.json",
+      "note": "ACC를 generator conformance reference로 유지하고 patch-candidates·중복 deploy/SQL·임시 생성 산출물 재유입을 차단함"
+    },
+    {
+      "checkId": "xyz-reference-package-standard",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/sample-coverage-result.sanitized.json",
+      "note": "cpf.xyz.<capability> feature-first 패키지와 /api/xyz/reference canonical API를 적용하고 기존 /xyz/edu 호환 alias를 분리 검증함"
+    },
+    {
+      "checkId": "bat-job-package-standard",
+      "status": "완료",
+      "evidence": "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
+      "note": "BAT actual job을 JobDefinition별 vertical slice로, EDU를 학습 유형별 package로 정리하고 온디맨드 JobRepository runtime을 검증함"
+    },
+    {
+      "checkId": "base-hierarchy",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/base-hierarchy.sanitized.json",
+      "note": "115개 Controller·Service가 PFW Base/Contract→주제영역 Base/Contract→기능 구현의 3단 계층을 따르는지 검사함"
+    },
+    {
+      "checkId": "platform-version-artifacts",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/release-metadata-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
+      "note": "1.0.0-SNAPSHOT 정본, cpf-* 산출물 36개, sources·Javadoc JAR 각 9개, checksum 36개와 SBOM-lite·provenance 생성을 검증함"
+    },
+    {
+      "checkId": "logging-ownership",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json",
+      "note": "기술 거래 로깅 Aspect는 PFW 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함"
+    },
+    {
+      "checkId": "document-links",
+      "status": "완료",
+      "evidence": "specs/evidence/20260720_04/document-link-check.sanitized.json",
+      "note": "추적 중인 README·Markdown·HTML 14개에서 로컬 파일 링크 9개를 해석하고 broken link 0건을 확인함"
+    },
+    {
+      "checkId": "target-arch-mission",
+      "requirementDomain": "ARCH-MISSION",
+      "title": "CPF 최종 목표/상용 솔루션 원칙",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/build.gradle",
+          "cmn/build.gradle",
+          "adm/build.gradle",
+          "bza/build.gradle"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-arch-msa",
+      "requirementDomain": "ARCH-MSA",
+      "title": "MSA-first 및 Modular Monolith 호환",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 80,
+        "test": 20,
+        "sql": 0,
+        "script": 1,
+        "resource": 9,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-arch-boundary",
+      "requirementDomain": "ARCH-BOUNDARY",
+      "title": "주제영역 경계/Bounded Context",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 76,
+        "test": 15,
+        "sql": 2,
+        "script": 8,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-arch-layer",
+      "requirementDomain": "ARCH-LAYER",
+      "title": "계층/패키지/의존성 규칙",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 64,
+        "test": 16,
+        "sql": 1,
+        "script": 2,
+        "resource": 10,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/base/BaseController.java",
+          "pfw/src/main/java/cpf/pfw/common/base/BaseService.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-facade-local",
+      "requirementDomain": "FACADE-LOCAL",
+      "title": "Local Facade 표준",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 19,
+        "test": 7,
+        "sql": 0,
+        "script": 0,
+        "resource": 8,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapter.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-facade-remote",
+      "requirementDomain": "FACADE-REMOTE",
+      "title": "Remote Facade Proxy/Port-Adapter",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 114,
+        "test": 19,
+        "sql": 1,
+        "script": 7,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-call",
+      "requirementDomain": "PFW-CALL",
+      "title": "CpfWebClient/CpfRestClient Service Call Engine",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 42,
+        "test": 8,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfHttpClientProperties.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfRestClientInterceptor.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-registry",
+      "requirementDomain": "PFW-REGISTRY",
+      "title": "Service/Endpoint/Instance Registry",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 17,
+        "test": 1,
+        "sql": 4,
+        "script": 4,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "pfw/src/main/java/cpf/pfw/channel/api/CpfChannelRegistryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-routing",
+      "requirementDomain": "PFW-ROUTING",
+      "title": "LB mode/direct instance/discovery routing",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 10,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRoute.java",
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-health",
+      "requirementDomain": "PFW-HEALTH",
+      "title": "Liveness/Readiness/Dependency Health",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 10,
+        "test": 2,
+        "sql": 0,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerHealthPort.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferHealthPort.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfHealthCheckPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-resilience",
+      "requirementDomain": "PFW-RESILIENCE",
+      "title": "Timeout/Retry/Circuit/Bulkhead/Backpressure",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 3,
+        "test": 2,
+        "sql": 1,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferRetryPolicy.java",
+          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSample.java",
+          "bat/src/main/java/cpf/bat/edu/retry/BatRetryEducationSample.java",
+          "bat/src/test/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSampleTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-deadline",
+      "requirementDomain": "PFW-DEADLINE",
+      "title": "Request Deadline/Timeout Budget",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-header",
+      "requirementDomain": "PFW-HEADER",
+      "title": "표준/확장 헤더",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 22,
+        "test": 8,
+        "sql": 1,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/header/CpfExtensionHeaderPolicy.java",
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderAuditLogger.java",
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderCategory.java",
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderExtractor.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-context",
+      "requirementDomain": "PFW-CONTEXT",
+      "title": "TransactionContext/MDC/Thread Context",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filter/TransactionContextFilter.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/CpfTransactionContextAnomalyMonitor.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/TransactionContext.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentContext.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-txid",
+      "requirementDomain": "PFW-TXID",
+      "title": "transactionGlobalId/segment/timeline",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 18,
+        "test": 2,
+        "sql": 3,
+        "script": 2,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStore.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-role",
+      "requirementDomain": "PFW-ROLE",
+      "title": "transactionRole/direction/source-target",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 17,
+        "test": 6,
+        "sql": 0,
+        "script": 2,
+        "resource": 71,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutTarget.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/policy/LogPolicyTargetType.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentDirection.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-opsdb",
+      "requirementDomain": "PFW-OPSDB",
+      "title": "PFW 운영 DB 공유/장애모드",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 26,
+        "test": 9,
+        "sql": 4,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationType.java",
+          "pfw/src/main/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacade.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-logdb",
+      "requirementDomain": "PFW-LOGDB",
+      "title": "DB 로그/Segment 로그",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 51,
+        "test": 14,
+        "sql": 0,
+        "script": 0,
+        "resource": 2,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-filelog",
+      "requirementDomain": "PFW-FILELOG",
+      "title": "cpf-{moduleCode}-{logType}.log 파일 로그",
+      "status": "미검증",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 52,
+        "test": 15,
+        "sql": 0,
+        "script": 0,
+        "resource": 3,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-logfail",
+      "requirementDomain": "PFW-LOGFAIL",
+      "title": "로그 실패/fail-open/local spool",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 52,
+        "test": 14,
+        "sql": 2,
+        "script": 0,
+        "resource": 2,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-trace",
+      "requirementDomain": "PFW-TRACE",
+      "title": "Trace Boost/동적 로그 레벨",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 13,
+        "test": 1,
+        "sql": 2,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRequest.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRule.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-mask",
+      "requirementDomain": "PFW-MASK",
+      "title": "마스킹/민감정보 보호",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderMasker.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/SensitiveDataMasker.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthMaskingRule.java",
+          "cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-error",
+      "requirementDomain": "PFW-ERROR",
+      "title": "오류/예외/응답 표준",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 49,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfResponse.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfBusinessException.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfDynamicErrorCode.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfErrorCode.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-valid",
+      "requirementDomain": "PFW-VALID",
+      "title": "Validation Framework",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 11,
+        "test": 5,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfValidationException.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java",
+          "pfw/src/main/java/cpf/pfw/common/header/CpfInboundHeaderValidator.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialValidationResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-idemp",
+      "requirementDomain": "PFW-IDEMP",
+      "title": "Idempotency 표준",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 14,
+        "test": 5,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerIdempotencyPort.java",
+          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyCommand.java",
+          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyEngine.java",
+          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyException.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-state",
+      "requirementDomain": "PFW-STATE",
+      "title": "상태 전이 State Machine",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 8,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflow.java",
+          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowContext.java",
+          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowFailurePolicy.java",
+          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowHeaders.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-lock",
+      "requirementDomain": "PFW-LOCK",
+      "title": "Optimistic/Distributed Lock",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 6,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLockManager.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfDistributedLockPort.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireRequest.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-pfw-sched",
+      "requirementDomain": "PFW-SCHED",
+      "title": "Scheduler 표준",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 3,
+        "test": 0,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "adm/src/main/java/cpf/adm/opr/dto/PfwBatchScheduleCandidate.java",
+          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduler.java",
+          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduleService.java",
+          "specs/sql/migration/flyway/V4__batch_schedule_repository_notification.sql"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-code",
+      "requirementDomain": "CMN-CODE",
+      "title": "공통코드/참조데이터",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 26,
+        "test": 3,
+        "sql": 1,
+        "script": 0,
+        "resource": 3,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfDynamicErrorCode.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfErrorCode.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfFrameworkErrorCode.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfResponseCodeResolver.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-msg",
+      "requirementDomain": "CMN-MSG",
+      "title": "공통 메시지/다국어/오류 메시지",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 34,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerMessage.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerMessageHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfMessageFormatter.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-id",
+      "requirementDomain": "CMN-ID",
+      "title": "채번/분산 ID",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 4,
+        "test": 3,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
+          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceIssueRequest.java",
+          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceIssueResult.java",
+          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceService.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-file",
+      "requirementDomain": "CMN-FILE",
+      "title": "파일/다운로드/업로드/Object Storage",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 54,
+        "test": 14,
+        "sql": 1,
+        "script": 3,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfFileTransferStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/CpfAttachmentContent.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/CpfAttachmentStoragePort.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/CpfStoredAttachment.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-fixed",
+      "requirementDomain": "CMN-FIXED",
+      "title": "고정길이 전문 parser/formatter/layout",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 24,
+        "test": 2,
+        "sql": 1,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfMessageFormatter.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthAlignment.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldSpec.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldType.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-calendar",
+      "requirementDomain": "CMN-CALENDAR",
+      "title": "영업일/휴일/기관 캘린더",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "adm/src/main/java/cpf/adm/opr/dto/AdmBusinessDayRequest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-cmn-template",
+      "requirementDomain": "CMN-TEMPLATE",
+      "title": "템플릿/알림",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 12,
+        "test": 0,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogRequest.java",
+          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogResult.java",
+          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogService.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-auth",
+      "requirementDomain": "ADM-AUTH",
+      "title": "ADM 인증/세션/계정 생명주기",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 23,
+        "test": 6,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthBearerTokenService.java",
+          "cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthTokenIntrospectionResult.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmAuthController.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-rbac",
+      "requirementDomain": "ADM-RBAC",
+      "title": "RBAC/ABAC/권한 메타",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 17,
+        "test": 3,
+        "sql": 2,
+        "script": 3,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentRole.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java",
+          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermissionRoleUpdateRequest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-audit",
+      "requirementDomain": "ADM-AUDIT",
+      "title": "감사/보안 이벤트/부인방지",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderAuditLogger.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmAuditLogController.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyAuditController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-tx",
+      "requirementDomain": "ADM-TX",
+      "title": "거래 그룹 목록/상세",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 129,
+        "test": 34,
+        "sql": 10,
+        "script": 7,
+        "resource": 3,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchJobLogPath.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-timeline",
+      "requirementDomain": "ADM-TIMELINE",
+      "title": "통합 Timeline",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 14,
+        "test": 1,
+        "sql": 3,
+        "script": 0,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStore.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryWorker.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-service",
+      "requirementDomain": "ADM-SERVICE",
+      "title": "Service Instance/Routing/Health 관제",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 136,
+        "test": 42,
+        "sql": 5,
+        "script": 10,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/channel/application/CpfChannelPolicyService.java",
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/aop/ServiceAccessAspect.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-log",
+      "requirementDomain": "ADM-LOG",
+      "title": "로그 정책/Trace Boost 화면",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 43,
+        "test": 6,
+        "sql": 2,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRequest.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRule.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-batch",
+      "requirementDomain": "ADM-BATCH",
+      "title": "Batch/Worker/Heartbeat/Ghost 관제",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 57,
+        "test": 10,
+        "sql": 8,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchExecutionRequest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-center",
+      "requirementDomain": "ADM-CENTER",
+      "title": "Center-Cut 관제",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 25,
+        "test": 11,
+        "sql": 3,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-exs",
+      "requirementDomain": "ADM-EXS",
+      "title": "대외연계 관제",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 10,
+        "test": 3,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfExternalServiceException.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-comp",
+      "requirementDomain": "ADM-COMP",
+      "title": "Compensation/Manual Recovery 관제",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 6,
+        "test": 0,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-incident",
+      "requirementDomain": "ADM-INCIDENT",
+      "title": "Incident/Alert/Runbook",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-adm-ux",
+      "requirementDomain": "ADM-UX",
+      "title": "ADM UX/검색/다운로드/대시보드",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 1,
+        "sql": 1,
+        "script": 0,
+        "resource": 5,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadPolicy.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-core",
+      "requirementDomain": "BAT-CORE",
+      "title": "BAT standalone worker/application",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 14,
+        "test": 1,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchHeartbeatService.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerConsumerWorker.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerPublisherWorker.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfFrameworkErrorCode.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-job",
+      "requirementDomain": "BAT-JOB",
+      "title": "Job/Step/Parameter/Dependency",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 25,
+        "test": 8,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfJobSupport.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfStepSupport.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchJobLogPath.java",
+          "pfw/src/main/java/cpf/pfw/common/execution/CpfBatchJob.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-item",
+      "requirementDomain": "BAT-ITEM",
+      "title": "Batch item claim/retry/skip/rerun",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 6,
+        "test": 4,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferRetryPolicy.java",
+          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutItemProcessingEducationSample.java",
+          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSample.java",
+          "bat/src/main/java/cpf/bat/edu/retry/BatRetryEducationSample.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-call-sync",
+      "requirementDomain": "BAT-CALL-SYNC",
+      "title": "BAT → 주제영역 동기 호출",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 43,
+        "test": 9,
+        "sql": 0,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-call-async",
+      "requirementDomain": "BAT-CALL-ASYNC",
+      "title": "BAT → Event/Outbox 비동기 호출",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 11,
+        "test": 1,
+        "sql": 0,
+        "script": 1,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-bat-shared",
+      "requirementDomain": "BAT-SHARED",
+      "title": "BAT → SHARED/온라인 Facade 재사용",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 13,
+        "test": 4,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/execution/CpfSharedApi.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-center-core",
+      "requirementDomain": "CENTER-CORE",
+      "title": "Center-Cut 기본 구현",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 25,
+        "test": 11,
+        "sql": 3,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-center-adv",
+      "requirementDomain": "CENTER-ADV",
+      "title": "Center-Cut 고급 패턴",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 26,
+        "test": 11,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-inst",
+      "requirementDomain": "EXS-INST",
+      "title": "기관/Endpoint/Profile",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 0,
+        "sql": 0,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java",
+          "pfw/src/main/java/cpf/pfw/common/servicecall/CpfEndpointRegistry.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-rest",
+      "requirementDomain": "EXS-REST",
+      "title": "EXS REST 송수신",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 12,
+        "test": 5,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/CpfExternalServiceException.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfHttpClientProperties.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfRestClientInterceptor.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-fixed",
+      "requirementDomain": "EXS-FIXED",
+      "title": "EXS 고정길이 전문 송수신",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 23,
+        "test": 2,
+        "sql": 1,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthAlignment.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldSpec.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldType.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFormatResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-sec",
+      "requirementDomain": "EXS-SEC",
+      "title": "EXS OAuth/JWT/mTLS/인증서",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 12,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfCredentialStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogServiceCredentialPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-unknown",
+      "requirementDomain": "EXS-UNKNOWN",
+      "title": "Unknown Result 처리",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 35,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveResult.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchExecutionResult.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-recon",
+      "requirementDomain": "EXS-RECON",
+      "title": "대외 Reconciliation",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 3,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfReconciliationPort.java",
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfUnknownResultRecord.java",
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepository.java",
+          "pfw/src/test/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-exs-file",
+      "requirementDomain": "EXS-FILE",
+      "title": "SFTP/File Transfer 연계 후보",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 30,
+        "test": 6,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfFileTransferStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfDuplicatePreventionPort.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumPolicy.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-event-core",
+      "requirementDomain": "EVENT-CORE",
+      "title": "Event/Message Envelope",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 46,
+        "test": 1,
+        "sql": 0,
+        "script": 1,
+        "resource": 2,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-event-outbox",
+      "requirementDomain": "EVENT-OUTBOX",
+      "title": "Outbox/Inbox",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 3,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerInboxPort.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerOutboxPort.java",
+          "xyz/src/main/java/cpf/xyz/messaging/XyzOutboxInboxEducationSample.java",
+          "xyz/src/test/java/cpf/xyz/messaging/XyzOutboxInboxEducationSampleTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-event-broker",
+      "requirementDomain": "EVENT-BROKER",
+      "title": "Kafka/MQ/Redis real broker",
+      "status": "미검증",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 30,
+        "test": 4,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfBrokerStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-event-dlq",
+      "requirementDomain": "EVENT-DLQ",
+      "title": "DLQ/Replay/Poison Message",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 4,
+        "test": 0,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqPort.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayRequest.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayResult.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerReplayPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-saga-core",
+      "requirementDomain": "SAGA-CORE",
+      "title": "Saga/분산 거래 표준",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-saga-comp",
+      "requirementDomain": "SAGA-COMP",
+      "title": "Compensation",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-saga-manual",
+      "requirementDomain": "SAGA-MANUAL",
+      "title": "Manual Recovery/Adjustment",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 6,
+        "test": 0,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-authn",
+      "requirementDomain": "SEC-AUTHN",
+      "title": "인증/AuthN",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 18,
+        "test": 5,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtCreateRequest.java",
+          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtService.java",
+          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtValidationResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-authz",
+      "requirementDomain": "SEC-AUTHZ",
+      "title": "권한/AuthZ/RBAC/ABAC",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 18,
+        "test": 3,
+        "sql": 2,
+        "script": 3,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentRole.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-secret",
+      "requirementDomain": "SEC-SECRET",
+      "title": "Secret/Vault/Key Rotation",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/security/CpfSecretProviderPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-cert",
+      "requirementDomain": "SEC-CERT",
+      "title": "Certificate/mTLS 관리",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-privacy",
+      "requirementDomain": "SEC-PRIVACY",
+      "title": "개인정보/Privacy/Data Classification",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderMasker.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/SensitiveDataMasker.java",
+          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthMaskingRule.java",
+          "cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-download",
+      "requirementDomain": "SEC-DOWNLOAD",
+      "title": "Download Governance",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 1,
+        "sql": 1,
+        "script": 5,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadPolicy.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-app",
+      "requirementDomain": "SEC-APP",
+      "title": "Application Security 기본 통제",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 23,
+        "test": 3,
+        "sql": 1,
+        "script": 1,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialRef.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialStatus.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sec-approval",
+      "requirementDomain": "SEC-APPROVAL",
+      "title": "Approval/Dual Control/Break-glass",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-metric",
+      "requirementDomain": "OPS-METRIC",
+      "title": "Metrics/Observability",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 3,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java",
+          "adm/src/main/java/cpf/adm/opr/service/AdmObservabilityService.java",
+          "adm/src/test/java/cpf/adm/opr/service/AdmObservabilityServiceTest.java",
+          "bat/src/main/java/cpf/bat/edu/tasklet/basic/BatJobParameterValidationEducationSample.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-slo",
+      "requirementDomain": "OPS-SLO",
+      "title": "SLI/SLO/Error Budget",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 4,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfZipSlipGuard.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java",
+          "cmn/src/main/java/cpf/cmn/biz/log/CmnBusinessLogRequest.java",
+          "cmn/src/main/java/cpf/cmn/biz/log/CmnBusinessLogResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-alert",
+      "requirementDomain": "OPS-ALERT",
+      "title": "Alert Rule Engine",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-incident",
+      "requirementDomain": "OPS-INCIDENT",
+      "title": "Incident Management",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-runbook",
+      "requirementDomain": "OPS-RUNBOOK",
+      "title": "Runbook/자동 진단",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "scripts/runtime-diagnostics.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-self",
+      "requirementDomain": "OPS-SELF",
+      "title": "Self-healing",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 6,
+        "test": 0,
+        "sql": 2,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-topology",
+      "requirementDomain": "OPS-TOPOLOGY",
+      "title": "Topology/Dependency Map/Service Catalog",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-maint",
+      "requirementDomain": "OPS-MAINT",
+      "title": "Maintenance Mode/Drain",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-config",
+      "requirementDomain": "OPS-CONFIG",
+      "title": "Config/Policy/Runtime Override",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 82,
+        "test": 14,
+        "sql": 4,
+        "script": 3,
+        "resource": 4,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/channel/application/CpfChannelPolicyService.java",
+          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelExecutionPolicy.java",
+          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyDecision.java",
+          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyPackage.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-drift",
+      "requirementDomain": "OPS-DRIFT",
+      "title": "Config Drift/Policy Versioning",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/version/CpfPlatformVersion.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-capacity",
+      "requirementDomain": "OPS-CAPACITY",
+      "title": "Performance/Capacity/Resource Governance",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 2,
+        "sql": 0,
+        "script": 1,
+        "resource": 71,
+        "examples": [
+          "pfw/src/main/resources/application-pfw-dev.yml",
+          "pfw/src/main/resources/application-pfw-local.yml",
+          "pfw/src/main/resources/application-pfw-prod.yml",
+          "pfw/src/main/resources/application-pfw-stg.yml"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-ops-dr",
+      "requirementDomain": "OPS-DR",
+      "title": "DR/Backup/Restore/Archive",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 11,
+        "test": 5,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveEntry.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveFormat.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchivePolicy.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rel-build",
+      "requirementDomain": "REL-BUILD",
+      "title": "Build/Artifact/Provenance",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 9,
+        "test": 4,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/build.gradle",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumPolicy.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rel-deploy",
+      "requirementDomain": "REL-DEPLOY",
+      "title": "Deployment/Rollback/Feature Flag",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "bat/src/main/java/cpf/bat/edu/transaction/BatPartialRollbackEducationSample.java",
+          "bat/src/test/java/cpf/bat/edu/transaction/BatPartialRollbackEducationSampleTest.java",
+          "deploy/inventory/dev-services.json",
+          "deploy/inventory/local-services.json"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rel-mig",
+      "requirementDomain": "REL-MIG",
+      "title": "DB Migration/Flyway/Expand-Contract",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 3,
+        "sql": 35,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
+          "pfw/src/test/java/cpf/pfw/common/base/CpfBaseContractTest.java",
+          "pfw/src/test/java/cpf/pfw/common/capability/CpfCapabilityContractTest.java",
+          "xyz/src/test/java/cpf/xyz/catalog/XyzReferenceIdentityContractTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rel-compat",
+      "requirementDomain": "REL-COMPAT",
+      "title": "API/Event/전문 호환성",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/version/CpfPlatformVersion.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-db-sql",
+      "requirementDomain": "DB-SQL",
+      "title": "SQL 표준/MyBatis/Index",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 15,
+        "test": 4,
+        "sql": 51,
+        "script": 3,
+        "resource": 18,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
+          "pfw/src/main/java/cpf/pfw/config/PfwMyBatisConfig.java",
+          "pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionLogMapper.java",
+          "pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionSegmentMapper.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-db-install",
+      "requirementDomain": "DB-INSTALL",
+      "title": "MariaDB 신규 빈 DB Full Install",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 2,
+        "sql": 4,
+        "script": 34,
+        "resource": 0,
+        "examples": [
+          "acc/smoke/smoke-acc.ps1",
+          "bat/src/main/java/cpf/bat/job/centercut/BatCenterCutSmokeTasklet.java",
+          "bat/src/main/java/cpf/bat/job/heartbeat/BatHeartbeatSmokeTasklet.java",
+          "bat/src/main/java/cpf/bat/job/smoke/BatSmokeJobConfig.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-db-perf",
+      "requirementDomain": "DB-PERF",
+      "title": "DB 성능/Partition/Retention",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 2,
+        "examples": [
+          "adm/src/main/resources/static/adm/index.html",
+          "bza/src/main/resources/static/bza/index.html"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-db-multi",
+      "requirementDomain": "DB-MULTI",
+      "title": "Multi Datasource/Read Replica",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 2,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/config/PfwDataSourceConfig.java",
+          "pfw/src/test/java/cpf/pfw/config/PfwDataSourceConfigTest.java",
+          "cmn/src/main/java/cpf/cmn/config/CmnBusinessDataSourceConfig.java",
+          "cmn/src/main/java/cpf/cmn/config/CmnDataSourceConfig.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-data-lineage",
+      "requirementDomain": "DATA-LINEAGE",
+      "title": "Data Lineage/Quality/Reconciliation",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 5,
+        "test": 3,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfReconciliationPort.java",
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfUnknownResultRecord.java",
+          "pfw/src/main/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepository.java",
+          "pfw/src/test/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-data-retention",
+      "requirementDomain": "DATA-RETENTION",
+      "title": "Retention/Purge/Legal Hold/Archive",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 11,
+        "test": 5,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveEntry.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveFormat.java",
+          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchivePolicy.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-api-contract",
+      "requirementDomain": "API-CONTRACT",
+      "title": "API Contract/OpenAPI/Developer Portal",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 147,
+        "test": 11,
+        "sql": 0,
+        "script": 3,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/BaseController.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfBaseController.java",
+          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
+          "pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-api-gateway",
+      "requirementDomain": "API-GATEWAY",
+      "title": "Gateway/L4/WAF/Service Mesh 연계",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 9,
+        "test": 4,
+        "sql": 0,
+        "script": 1,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileExchangeGateway.java",
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRoute.java",
+          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-api-limit",
+      "requirementDomain": "API-LIMIT",
+      "title": "Rate Limit/Quota/Abuse Detection",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-api-paging",
+      "requirementDomain": "API-PAGING",
+      "title": "Pagination/Search/Sort/Download Guard",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 12,
+        "test": 2,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogArtifactSearch.java",
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
+          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sample-acc",
+      "requirementDomain": "SAMPLE-ACC",
+      "title": "ACC 실전형 샘플",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 26,
+        "test": 6,
+        "sql": 0,
+        "script": 0,
+        "resource": 7,
+        "examples": [
+          "acc/build.gradle",
+          "acc/README.md",
+          "acc/manifest/domain-manifest.json",
+          "acc/manifest/ownership.json"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sample-mbr",
+      "requirementDomain": "SAMPLE-MBR",
+      "title": "MBR 실전형 샘플",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 20,
+        "test": 9,
+        "sql": 0,
+        "script": 0,
+        "resource": 8,
+        "examples": [
+          "mbr/build.gradle",
+          "mbr/src/main/java/cpf/mbr/MbrApplication.java",
+          "mbr/src/main/java/cpf/mbr/bse/controller/MbrAuthController.java",
+          "mbr/src/main/java/cpf/mbr/bse/controller/MbrController.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sample-bizadm",
+      "requirementDomain": "SAMPLE-BIZADM",
+      "title": "BIZADM 업무관리 샘플",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 19,
+        "test": 5,
+        "sql": 0,
+        "script": 0,
+        "resource": 9,
+        "examples": [
+          "bza/build.gradle",
+          "bza/src/main/java/cpf/bza/BzaApplication.java",
+          "bza/src/main/java/cpf/bza/auth/controller/BzaAuthController.java",
+          "bza/src/main/java/cpf/bza/auth/filter/BzaApiAuthFilter.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sample-edu",
+      "requirementDomain": "SAMPLE-EDU",
+      "title": "EDU 교육 샘플",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 101,
+        "test": 61,
+        "sql": 4,
+        "script": 4,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/edu/PfwEducationCoverageCatalog.java",
+          "pfw/src/test/java/cpf/pfw/common/edu/PfwEducationCoverageCatalogTest.java",
+          "adm/src/main/java/cpf/adm/opr/dto/PfwBatchScheduleCandidate.java",
+          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduler.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-sample-xyz",
+      "requirementDomain": "SAMPLE-XYZ",
+      "title": "XYZ 신규 주제영역 샘플",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 77,
+        "test": 36,
+        "sql": 0,
+        "script": 0,
+        "resource": 7,
+        "examples": [
+          "xyz/build.gradle",
+          "xyz/src/main/java/cpf/xyz/XyzApplication.java",
+          "xyz/src/main/java/cpf/xyz/ai/XyzAiEducationSample.java",
+          "xyz/src/main/java/cpf/xyz/ai/controller/XyzAiEducationController.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-onboard-domain",
+      "requirementDomain": "ONBOARD-DOMAIN",
+      "title": "신규 주제영역 온보딩",
+      "status": "실패",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 1,
+        "sql": 0,
+        "script": 5,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
+          "mbr/src/test/java/cpf/mbr/common/logging/TransactionIdGeneratorTest.java",
+          "acc/manifest/domain-manifest.json",
+          "acc/manifest/ownership.json"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-devex-quick",
+      "requirementDomain": "DEVEX-QUICK",
+      "title": "Developer Quickstart/Local Dev",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 9,
+        "test": 4,
+        "sql": 0,
+        "script": 0,
+        "resource": 8,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-devex-codegen",
+      "requirementDomain": "DEVEX-CODEGEN",
+      "title": "Scaffold/Code Generation Governance",
+      "status": "실패",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 1,
+        "sql": 0,
+        "script": 4,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
+          "mbr/src/test/java/cpf/mbr/common/logging/TransactionIdGeneratorTest.java",
+          "scripts/create-domain.ps1",
+          "scripts/remove-domain.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-devex-comment",
+      "requirementDomain": "DEVEX-COMMENT",
+      "title": "한글 주석/설정 주석 표준",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rule-arch",
+      "requirementDomain": "RULE-ARCH",
+      "title": "Architecture Rule Check",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 3,
+        "resource": 0,
+        "examples": [
+          "scripts/check-architecture-ownership.ps1",
+          "scripts/check-base-hierarchy.ps1",
+          "scripts/export-architecture-inventory.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rule-sec",
+      "requirementDomain": "RULE-SEC",
+      "title": "Security/Secret/URL Scan",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 26,
+        "test": 3,
+        "sql": 1,
+        "script": 1,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/execution/CpfExecutionCatalogScanner.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java",
+          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialRef.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-rule-quality",
+      "requirementDomain": "RULE-QUALITY",
+      "title": "Static Analysis/Dependency/License",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 1,
+        "script": 2,
+        "resource": 7,
+        "examples": [
+          "adm/src/main/resources/static/adm/adm.css",
+          "adm/src/main/resources/static/adm/adm.js",
+          "adm/src/main/resources/static/adm/index.html",
+          "adm/src/main/resources/static/adm/vendor/vue.global.prod.js"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-unit",
+      "requirementDomain": "TEST-UNIT",
+      "title": "Unit/Slice/Integration Test",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 158,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/test/java/cpf/pfw/channel/application/CpfChannelPolicyServiceTest.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-contract",
+      "requirementDomain": "TEST-CONTRACT",
+      "title": "Contract/Compatibility Test",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 2,
+        "test": 158,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
+          "pfw/src/test/java/cpf/pfw/channel/application/CpfChannelPolicyServiceTest.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java",
+          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-runtime",
+      "requirementDomain": "TEST-RUNTIME",
+      "title": "Runtime Smoke",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 30,
+        "test": 6,
+        "sql": 4,
+        "script": 41,
+        "resource": 1,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchRuntimeListener.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchRuntimeProgress.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfDistributedLockPort.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-browser",
+      "requirementDomain": "TEST-BROWSER",
+      "title": "Browser Click E2E",
+      "status": "미검증",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 2,
+        "test": 0,
+        "sql": 0,
+        "script": 8,
+        "resource": 0,
+        "examples": [
+          "pfw/build.gradle",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireRequest.java",
+          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireResult.java",
+          "cmn/build.gradle"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-broker",
+      "requirementDomain": "TEST-BROKER",
+      "title": "Real Broker/Multi-instance Test",
+      "status": "미검증",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 30,
+        "test": 4,
+        "sql": 1,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/admin/CpfBrokerStatusQuery.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeHandler.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-fault",
+      "requirementDomain": "TEST-FAULT",
+      "title": "Fault Injection/Chaos Smoke",
+      "status": "미검증",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 7,
+        "test": 1,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfMessageResolver.java",
+          "pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfResponseCodeResolver.java",
+          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowFailurePolicy.java",
+          "bat/src/main/java/cpf/bat/job/failure/BatFailTasklet.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-test-evidence",
+      "requirementDomain": "TEST-EVIDENCE",
+      "title": "Evidence Index/Consistency Gate",
+      "status": "재확인 필요",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 1,
+        "sql": 0,
+        "script": 5,
+        "resource": 0,
+        "examples": [
+          "pfw/src/test/java/cpf/pfw/common/logging/file/CpfFileLogRuntimeEvidenceTest.java",
+          "scripts/check-evidence-path-existence.ps1",
+          "scripts/check-feature-evidence.ps1",
+          "scripts/check-report-matrix-evidence-consistency.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-doc-gov",
+      "requirementDomain": "DOC-GOV",
+      "title": "문서 최소화/정본화 후순위",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 51,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderSpecs.java",
+          "acc/README.md",
+          "scripts/check-document-links.ps1",
+          "specs/sql/00_all_install.sql"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-doc-product",
+      "requirementDomain": "DOC-PRODUCT",
+      "title": "제품화 문서/설치/운영/개발자 문서",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 19,
+        "test": 7,
+        "sql": 7,
+        "script": 4,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java",
+          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationType.java",
+          "pfw/src/main/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacade.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-prod-edition",
+      "requirementDomain": "PROD-EDITION",
+      "title": "상용화/Edition/License 후보",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-prod-multitenant",
+      "requirementDomain": "PROD-MULTITENANT",
+      "title": "Multi-tenant/Multi-customer 후보",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-prod-plugin",
+      "requirementDomain": "PROD-PLUGIN",
+      "title": "Plugin/Adapter/Marketplace 후보",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 13,
+        "test": 10,
+        "sql": 0,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
+          "pfw/src/main/java/cpf/pfw/common/filetransfer/DeterministicCpfRemoteFileTransferAdapter.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-prod-package",
+      "requirementDomain": "PROD-PACKAGE",
+      "title": "산업군별 패키지 후보",
+      "status": "미구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 2,
+        "test": 0,
+        "sql": 0,
+        "script": 1,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyPackage.java",
+          "adm/src/main/java/cpf/adm/opr/dto/AdmChannelPackageImportRequest.java",
+          "scripts/check-packaged-runtime-resources.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-req-gov",
+      "requirementDomain": "REQ-GOV",
+      "title": "요건 ID/우선순위/추적성",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "scripts/build-sample-coverage-matrix.ps1",
+          "scripts/check-report-matrix-evidence-consistency.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-req-review",
+      "requirementDomain": "REQ-REVIEW",
+      "title": "ChatGPT 검수/완료 불인정 기준",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 1,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": [
+          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogPreview.java"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-req-codex",
+      "requirementDomain": "REQ-CODEX",
+      "title": "Codex 요청서 작성 기준",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 0,
+        "resource": 0,
+        "examples": []
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    },
+    {
+      "checkId": "target-req-gap",
+      "requirementDomain": "REQ-GAP",
+      "title": "Future Requirement Gap Intake",
+      "status": "부분 구현",
+      "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+      "inventorySignal": {
+        "source": 0,
+        "test": 0,
+        "sql": 0,
+        "script": 2,
+        "resource": 0,
+        "examples": [
+          "scripts/build-sample-coverage-matrix.ps1",
+          "scripts/check-report-matrix-evidence-consistency.ps1"
+        ]
+      },
+      "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
+    }
+  ],
+  "reviewMetadata": {
+    "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
+    "reviewedAt": "2026-07-20T09:39:17",
+    "targetDomainCount": 133,
+    "inventoryFileCount": 1118,
+    "method": "target domain + architecture inventory + direct findings",
+    "warning": "경로 존재는 완료 근거가 아님"
+  }
 }

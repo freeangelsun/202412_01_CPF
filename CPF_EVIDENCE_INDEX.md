@@ -104,3 +104,37 @@
 | platform-version-artifacts | 완료 | `specs/evidence/20260720_04/release-metadata-result.sanitized.json`, `specs/evidence/20260720_04/full-test-release.sanitized.log` | report/matrix/evidence 정합성 | 1.0.0-SNAPSHOT 정본, cpf-* 산출물 36개, sources·Javadoc JAR 각 9개, checksum 36개와 SBOM-lite·provenance 생성을 검증함 |
 | logging-ownership | 완료 | `specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json` | report/matrix/evidence 정합성 | 기술 거래 로깅 Aspect는 PFW 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함 |
 | document-links | 완료 | `specs/evidence/20260720_04/document-link-check.sanitized.json` | report/matrix/evidence 정합성 | 추적 중인 README·Markdown·HTML 14개에서 로컬 파일 링크 9개를 해석하고 broken link 0건을 확인함 |
+
+## 2026-07-20 정본 133개 도메인 Evidence 보정
+
+기준 SHA: `42c0fda82e0f3061e839f69cad25bbfa9df2aa0f`
+
+기존 evidence 범위 제한:
+
+- `create-domain-result.sanitized.json`: PYM이며 ACC lifecycle 근거 아님
+- `remove-domain-smoke.sanitized.json`: LNG/TMP이며 ACC 제거 근거 아님
+- `base-hierarchy.sanitized.json`: Controller·Service 중심
+- `log-management-standard.sanitized.json`: 설정·gitignore 중심
+- `adm-ui-browser-smoke-result.sanitized.json`: static pass이며 browser 완료 아님
+- `architecture-inventory.sanitized.json`: 경로·owner 신호이며 기능 완결성 아님
+- `garbage-file-scan.sanitized.json`: stale가 남음
+
+신규 필수 evidence:
+
+- 133-domain requirement inventory
+- repository implementation inventory
+- 양방향 traceability
+- ACC lifecycle·generator capability matrix
+- full layer taxonomy
+- PFW extension API inventory
+- external integration failure/recovery
+- SQL canonical source/vendor portability
+- actual file/DB log parity
+- 2 Batch Worker crash/lease/takeover
+- ADM/BZA frontend build/browser E2E
+- EDU completeness
+- semantic garbage
+- final document consistency
+
+모든 evidence는 basis SHA, command, profile, DB, process/instance,
+start/end, requirement ID, result, sanitization, body hash와 stale 여부를 포함한다.

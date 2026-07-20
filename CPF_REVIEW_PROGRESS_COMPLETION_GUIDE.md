@@ -1,3 +1,24 @@
+# 2026-07-20 검수 운영 보정
+
+# 2026-07-20 운영·아키텍처 보정 규칙
+
+이 보정은 기존 문서의 상충 문구보다 우선한다.
+
+- 현재 개발 버전은 `1.0.0-SNAPSHOT`, 1차 공식 완성은 `1.0.0`
+- MBR·ACC·BZA·XYZ는 동급 업무 주제영역
+- BZA는 독립 Business Backoffice Subject Area
+- ACC의 generator reference는 개발 검증 역할이며 runtime 계층이 아님
+- XYZ module/artifact/topology에는 EDU를 사용하지 않음
+- CMN은 shared common contract/utility이며 runtime 거래 hub가 아님
+- 외부 요청은 필요 시 PFW Gateway, 내부 주제영역 호출은 동일 facade contract의 local/remote adapter
+- Codex는 작업 전 최신 origin/master 확인
+- 작업 완료는 검증·commit·master merge·origin/master push·원격 SHA 확인까지
+- 과거 `commit/push/branch 금지`, `사용자가 직접 commit/push` 지시는 폐기
+- force가 불가피하면 원격 SHA와 제3자 commit을 확인하고 `--force-with-lease`를 사용
+- 신규 요구 때문에 기반을 바꾸기 전에 ownership/API/SQL/migration/consumer/evidence/회귀 영향을 분석
+- 문서는 기존 정본에 흡수하며 완료된 요청서·분석서·보정서는 삭제
+
+
 # 0. CPF 최상위 목표
 
 CPF(CoreFlow Platform Framework)는 단순 공통 유틸, 샘플 프로젝트, 개발 표준 문서가 아니다.
@@ -1075,9 +1096,11 @@ CPF_GAP_MATRIX.md 반영
 요청서에는 Codex 실행 제한을 포함한다.
 
 ```text
-Git commit 금지
-Git push 금지
-branch 생성 금지
+작업 전 최신 origin/master 확인 필수
+검증 성공 후 commit·merge·origin/master push 필수
+작업 branch만 push하고 종료 금지
+원격 master SHA 재확인 필수
+force 필요 시 --force-with-lease와 원격 변경 보존 필수
 민감정보 원문 기록 금지
 실행하지 않은 검증 완료 기록 금지
 문서량 채우기식 문서화 금지
@@ -1615,80 +1638,128 @@ Codex 보고는 완료 근거가 아니라 검수 대상이다.
 
 이 기준을 만족하지 못하면 `완료`가 아니라 `부분 구현`, `미검증`, `미구현`, `실패`, `재확인 필요` 중 하나로 판정한다.
 
-# 26. README 제품 문서·패키지 구조·가비지 정리 검수
+---
 
-## 26.1 문서 역할
+## 2026-07-20 generator·Base 계층·logging·XYZ 추가 판정 기준
 
-README에는 작업 상태를 기록하지 않는다.
+### Generator 완료 조건
 
-```text
-최종 목표      CPF_FINAL_TARGET_REQUIREMENTS.md
-현재 상태      CPF_STABILIZATION_REPORT.md
-남은 gap       CPF_GAP_MATRIX.md
-증적 index     CPF_EVIDENCE_INDEX.md
-실행 증적      specs/evidence/<작업일자_회차>/
-제품 안내      README.md
-```
+`domain-generator=완료`는 다음을 모두 확인한 경우에만 가능하다.
 
-## 26.2 README 검수
+- 기본 생성은 최소 module과 대표 feature 1개
+- expected file manifest와 실제 파일 일치
+- zero-byte/placeholder/빈 package/patch-candidates 없음
+- platform version 상속
+- canonical 실행 ID formatter 사용
+- local profile 외 profile은 option
+- batch/BZA/ADM/prod/deploy 후보는 option
+- generator→build/test/runtime→remover→잔존 0건
+- 사용자 작성 파일 보호 negative test
+- ACC 자체 lifecycle은 disposable worktree에서 별도 검증
+- modular-monolith 다중 DataSource/bean collision 검증
+- DB vendor 하드코딩 없음
 
-확인:
+### BaseController/BaseService 완료 조건
 
-- 작업 일지·SHA·test count·gap·완료율이 없는지
-- 제품 개요와 주요 기능이 충분히 상세한지
-- module·package·API 명칭이 최신 source와 일치하는지
-- 실제 지원하지 않는 기능을 완료로 표현하지 않았는지
-- 설치·build·run 명령이 실제 지원되는지
-- root와 module README가 중복되지 않는지
+- `CpfBaseController → ModuleBaseController → FeatureController`
+- `CpfBaseService → ModuleBaseService → FeatureService`
+- 모든 controller/service scanner와 명시적 예외 allowlist
+- module base는 추상 class이며 route/bean을 만들지 않음
+- DTO/entity/repository/mapper/port/adapter에는 상속 강제 금지
+- Spring bean/AOP/transaction/OpenAPI/runtime 회귀 확인
+- generator template과 기존 module source가 동일 기준
 
-## 26.3 package 검수
+### Logging ownership 완료 조건
 
-module 유형별 표준을 적용한다.
+- 공통 logging `@Aspect`와 engine은 PFW에 단일 소유
+- domain `@Aspect` 0건 또는 승인된 업무 이벤트 전용 예외
+- domain은 PFW annotation/port/provider 사용
+- 동일 join point 이중 로그 0건
+- masking 이전 원문 기록 0건
+- 비동기 queue failure와 fallback 검증
+- 파일/DB 로그 transactionGlobalId·segment 일치
 
-- PFW capability
-- CMN 공통 기능
-- 업무 feature
-- ADM/BZA 운영 기능
-- XYZ official EDU/developer lab
-- BAT JobDefinition
+### XYZ 완료 조건
 
-모든 class의 owner를 확인하고 기능 전용 class가 top-level controller/service/repository/dto에 흩어져 있지 않은지 검사한다.
-
-## 26.4 cleanup 검수
-
-repository 전체에서 다음을 확인하고 안전한 항목은 실제 삭제한다.
-
-- build/bin/out/target
-- logs/tmp/temp/work
-- patch-candidates
-- create-domain-result
-- candidate/final 중복
-- old/bak/copy
-- 0 byte placeholder
-- 불필요한 gitkeep
-- 빈 package
-- orphan source/test/resource
-- stale import/config/SQL/menu/catalog
-- 중복 README/SQL/deploy/manifest
-- stale evidence/generated artifact
-
-## 26.5 완료 전 절차
-
-```text
-구현
-→ ownership 재확인
-→ package/file 이동
-→ 가비지·빈 directory 삭제
-→ 잔존 참조 검색
-→ gitignore 확인
-→ module build
-→ 전체 qualityGate
-→ final manifest
-```
-
-## 26.6 상태 판정
-
-구조 문제를 gate가 잡지 못한 기존 `architecture-ownership`, `sample-coverage`, `generator-cleanup` 완료 상태는 신규 기준으로 재판정한다.
+- 일반 업무 package 표준을 따름
+- source/build/test/runtime sample은 유지
+- production 기본 inventory·자동 배포·secret·DB·route·menu seed에서 제외
+- 다른 production module의 XYZ dependency 0건
+- 명시적 demo/reference option에서만 배포 가능
 
 ---
 
+## 2026-07-20 Framework 사용성·Base Contract·JavaDoc 완료 기준
+
+### 공통 capability 기본 API 완료
+
+- 기본 사용은 업무 입력 + typed contract/거래 ID만 요구
+- 1~3줄 기본 사용 예제
+- timeout/retry/circuit/bulkhead 등은 중앙 policy default
+- transport adapter, raw URI, HTTP method, framework target object를 업무 코드에 노출하지 않음
+- local/remote 동일 typed client
+- source module/trace/instance/channel 자동 파생
+- raw override는 상한·권한·감사·production 제한
+- basic/advanced sample 분리
+- effective policy ADM 조회
+- negative/timeout/target-down/unknown-result test
+
+### 계층별 Base Contract 완료
+
+- Controller와 Service는 PFW base→domain base→feature 3단 구조
+- Facade, DAO/Repository, DTO, Model, Mapper, Client, Adapter, Batch에도 canonical contract/support 존재
+- DTO/Mapper/Repository에는 무리한 concrete class 상속을 강제하지 않고 interface/capability/composition을 사용
+- source scanner와 예외 allowlist
+- generator와 기존 module 동시 보정
+- Spring bean/AOP/transaction/serialization/OpenAPI 회귀
+
+### JavaDoc 완료
+
+- public/protected API·SPI 100%
+- parameter/return/exception/nullability/thread-safety/idempotency/security/policy 설명
+- meaningful comment; 기계적 한 줄 반복 금지
+- doclint와 missing JavaDoc gate
+- aggregate JavaDoc, sourcesJar, javadocJar
+- sample snippet compile test
+- offline JavaDoc distribution
+- 생성 HTML repository commit 금지
+- OpenAPI·JavaDoc·sample·transaction catalog 정합성
+
+---
+
+## 2026-07-20 3단 확장·Override·Property 완료 기준
+
+### 3단 확장 체계
+
+- 모든 개발 계층에 PFW Contract와 Domain Contract가 존재
+- Feature 구현은 Domain Contract를 사용
+- concrete inheritance가 부적합한 경우 interface/support composition 사용
+- 3단계 초과 금지
+- scanner와 예외 allowlist
+- generator와 기존 source 일치
+- EDU/reference sample 일치
+
+### Overload·Override
+
+- 기본 API는 업무 입력 중심
+- 고급 기능은 typed options 또는 named policy
+- overload ambiguity 없음
+- raw Map/Object/varargs 금지
+- 공통 template 순서 보호
+- security/audit/transaction/masking 우회 불가
+- hook JavaDoc와 test harness
+- local/remote 동일 동작
+- deprecated migration과 compile compatibility
+
+### Property
+
+- 변경 가능한 운영 default 전수 property화
+- 거래 ID 문법·header·error schema·보안 invariant는 source contract 유지
+- `@ConfigurationProperties`와 Bean Validation
+- 한글 주석에 목적·기본값·단위·범위·운영 영향·reload·예시 포함
+- profile은 차이만 override
+- secret 원문 0건
+- orphan/unused/undocumented/duplicate property 0건
+- generated configuration metadata
+- ADM effective config와 origin/version/audit
+- invalid reload rollback과 multi-instance consistency

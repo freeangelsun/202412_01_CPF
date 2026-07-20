@@ -1,4 +1,0 @@
---- a/settings.gradle
-+++ b/settings.gradle
-@@
-+include 'acc'

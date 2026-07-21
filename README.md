@@ -97,18 +97,28 @@ flowchart TB
 
 ## Official Modules
 
-| Module | SystemCode | Responsibility |
-|---|---:|---|
-| `cpf-core` | `PFW` | 기술 공통 Contract, Runtime capability, 확장 SPI |
-| `cpf-gateway` | `GWY` | 외부 진입, 라우팅, 보안 정책과 장애 격리 |
-| `cpf-common` | `CMN` | 고객 업무 공통 기능과 공통 업무 모델 |
-| `cpf-admin` | `ADM` | 플랫폼 운영, 관제, 보안, 감사와 제어 |
-| `cpf-biz-admin` | `BZA` | 고객 업무 관리자 화면과 업무 운영 기능 |
-| `cpf-batch` | `BAT` | Batch, Scheduler, Agent, Worker와 Center-Cut |
-| `cpf-member` | `MBR` | 회원 업무 주제영역 |
-| `cpf-account` | `ACC` | 계좌 업무 주제영역과 Generator lifecycle 기준 |
-| `cpf-reference` | `REF` | 참조 구현과 EDU 업무 주제영역 |
-| `cpf-external` | `EXS` | 외부 기관, 전문, 파일, 메시징과 복구 |
+CPF의 공식 Module은 제품 내 역할과 프로젝트 적용 방식에 따라 다음과 같이 구분합니다.
+
+- **필수 기반 Module**은 CPF의 공통 Runtime과 운영 기반을 구성하며 기본적으로 함께 적용합니다.
+- **선택 기능 Module**은 프로젝트에서 해당 기능이 필요한 경우 적용합니다.
+- **생성형 업무 Module**은 Generator 표준 구조를 따르는 업무 주제영역입니다. 제공 Module 중 필요한 것만 선택하여 사용하거나, 같은 구조로 새로운 업무 Module을 추가할 수 있습니다.
+
+공식 제공 Module이라는 의미와 모든 프로젝트에서 반드시 실행해야 한다는 의미는 다릅니다. 필수 기반 Module은 기본 구성에 포함하고, 선택 기능과 생성형 업무 Module은 업무 범위와 배포 구조에 맞게 구성합니다.
+
+| Module | SystemCode | 구분 | 적용 방식 | Responsibility |
+|---|---:|---|---|---|
+| `cpf-core` | `PFW` | 필수 기반 | 기본 적용 | 기술 공통 Contract, Runtime capability, 확장 SPI |
+| `cpf-gateway` | `GWY` | 선택 기능 | 외부 진입점이 필요한 경우 적용 | 외부 진입, 라우팅, 보안 정책과 장애 격리 |
+| `cpf-common` | `CMN` | 필수 기반 | 기본 적용 | 고객 업무 공통 기능과 공통 업무 모델 |
+| `cpf-admin` | `ADM` | 필수 기반 | 기본 적용 | 플랫폼 운영, 관제, 보안, 감사와 제어 |
+| `cpf-biz-admin` | `BZA` | 선택 기능 | 업무 관리자 기능이 필요한 경우 적용 | 고객 업무 관리자 화면과 업무 운영 기능 |
+| `cpf-batch` | `BAT` | 선택 기능 | Batch·Worker·Center-Cut이 필요한 경우 적용 | Batch, Scheduler, Agent, Worker와 Center-Cut |
+| `cpf-member` | `MBR` | 생성형 업무 | 필요 시 선택 사용·확장 | Generator 표준 구조를 따르는 회원 업무 주제영역 |
+| `cpf-account` | `ACC` | 생성형 업무 | 필요 시 선택 사용·확장 | Generator 표준 구조를 따르는 계좌 업무 주제영역 |
+| `cpf-reference` | `REF` | 선택 기능 | 참조·교육 용도로 필요 시 적용 | 참조 구현과 EDU 업무 주제영역 |
+| `cpf-external` | `EXS` | 생성형 업무 | 필요 시 선택 사용·확장 | Generator 표준 구조를 따르는 대외 업무 주제영역 |
+
+> `cpf-member`, `cpf-account`, `cpf-external`은 Generator 표준 구조를 따르는 공식 제공 업무 Module입니다. 프로젝트에서는 필요한 Module만 채택할 수 있으며, `cpf-tools`의 Generator를 이용해 추가 업무 주제영역을 같은 구조로 생성할 수 있습니다. `cpf-reference`는 기능 이해와 검증을 위한 참조·교육 Module로 필요에 따라 적용합니다.
 
 ## Core Capabilities
 

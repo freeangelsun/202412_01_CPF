@@ -5,7 +5,9 @@ import cpf.adm.config.AdmPasswordPolicyProperties;
 import cpf.adm.config.AdmSecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -16,9 +18,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = {"cpf.pfw", "cpf.cmn", "cpf.adm"})
 @EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})
 @EnableScheduling
-public class AdmApplication {
+public class AdmApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(AdmApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(AdmApplication.class);
     }
 }

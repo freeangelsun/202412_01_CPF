@@ -45,6 +45,11 @@ logs/
 *.log
 *.log.*
 
+### Frontend build cache ###
+**/node_modules/
+**/coverage/
+**/.vite/
+
 # 검증 증적 디렉터리에는 정제된 결과와 현재 요청서 기준 해시만 포함합니다.
 !specs/evidence/
 specs/evidence/**

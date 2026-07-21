@@ -1,0 +1,15 @@
+﻿CPF MariaDB full install smoke
+[2026-07-20T21:10:34.9841825+09:00] SQL start: specs/sql/00_all_install_and_smoke.sql
+[2026-07-20T21:10:36.8857556+09:00] SQL completed: specs/sql/00_all_install_and_smoke.sql
+[2026-07-20T21:10:36.8867397+09:00] SQL start: specs/sql/99_smoke_check.sql
+[2026-07-20T21:10:37.0306169+09:00] SQL completed: specs/sql/99_smoke_check.sql
+[2026-07-20T21:10:37.0316172+09:00] SQL start: specs/sql/50_framework_seed_data.sql
+[2026-07-20T21:10:37.1635216+09:00] SQL completed: specs/sql/50_framework_seed_data.sql
+[2026-07-20T21:10:37.1646535+09:00] SQL start: specs/sql/52_standard_execution_alias_seed.sql
+[2026-07-20T21:10:37.2779276+09:00] SQL completed: specs/sql/52_standard_execution_alias_seed.sql
+[2026-07-20T21:10:37.2799194+09:00] SQL start: specs/sql/55_cmn_seed_data.sql
+[2026-07-20T21:10:37.3953707+09:00] SQL completed: specs/sql/55_cmn_seed_data.sql
+[2026-07-20T21:10:37.3973432+09:00] SQL start: specs/sql/60_adm_seed_data.sql
+[2026-07-20T21:10:37.5303228+09:00] SQL completed: specs/sql/60_adm_seed_data.sql
+[2026-07-20T21:10:37.5333197+09:00] SQL start: specs/sql/70_test_data.sql
+[2026-07-20T21:10:37.6951237+09:00] SQL completed: specs/sql/70_test_data.sql

@@ -13,8 +13,8 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "adm-service-registry-ui-static-smoke.sanitized.json"
 $logPath = Join-Path $ResultDir "adm-service-registry-ui-static-smoke.log"
 
-$jsPath = Join-Path $Root "adm/src/main/resources/static/adm/adm.js"
-$htmlPath = Join-Path $Root "adm/src/main/resources/static/adm/index.html"
+$jsPath = Join-Path $Root "adm/frontend/src/App.vue"
+$htmlPath = Join-Path $Root "adm/frontend/src/App.vue"
 $js = [System.IO.File]::ReadAllText($jsPath, [System.Text.Encoding]::UTF8)
 $html = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
 

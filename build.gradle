@@ -690,6 +690,28 @@ tasks.register('exportArchitectureInventory', Exec) {
             'scripts/export-architecture-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
+tasks.register('exportCpfInventory', Exec) {
+    group = 'verification'
+    description = '현재 저장소의 source, test, SQL, API, 설정과 문서 inventory를 생성합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/export-cpf-inventory.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('exportRequirementTraceability', Exec) {
+    group = 'verification'
+    description = '정본 13,300개 REQ-ID와 구현 자산의 양방향 추적성을 검증합니다.'
+    dependsOn 'exportCpfInventory', 'exportArchitectureInventory'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/export-requirement-traceability.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkFullLayerTaxonomy', Exec) {
+    group = 'verification'
+    description = '전체 Java 타입의 계층 역할과 확장 방식을 분류하고 미분류 타입을 차단합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-full-layer-taxonomy.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('checkServiceCallBoundary', Exec) {
     group = 'verification'
     description = 'CPF service call engine boundary rules must prevent direct URL, controller, and cross-domain repository access.'
@@ -911,6 +933,46 @@ tasks.register('checkDomainGenerator', Exec) {
             'scripts/smoke-create-domain.ps1', '-ResultDir', cpfResultDir().path
 }
 
+tasks.register('checkDomainCapabilityMatrix', Exec) {
+    group = 'verification'
+    description = '신규 업무 모듈 생성기의 DB, Batch, External, UI capability 조합과 미선택 산출물 0건을 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-domain-capability-matrix.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkSqlCanonical', Exec) {
+    group = 'verification'
+    description = 'SQL 정본 위치, Flyway 버전, 생성기 DB 벤더 지원을 검사합니다.'
+    workingDir rootDir
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            file('scripts/check-sql-canonical.ps1').absolutePath,
+            '-Root', rootDir.absolutePath,
+            '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkAccLifecycle', Exec) {
+    group = 'verification'
+    description = 'ACC 스냅샷, 삭제, 순수 생성, 패키징, 제거, 재생성 parity를 격리 환경에서 검증합니다.'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-acc-lifecycle.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
+    group = 'verification'
+    description = '서로 다른 BAT worker 프로세스 2개의 claim, drain, crash, lease takeover를 MariaDB에서 검증합니다.'
+    dependsOn ':bat:bootJar'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/smoke-bat-two-worker-runtime.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('checkModernFrontend', Exec) {
+    group = 'verification'
+    description = 'ADM/BZA Vue SFC, TypeScript, lockfile, legacy 제거와 JAR/WAR 포함을 검증합니다.'
+    dependsOn ':adm:frontendVerify', ':bza:frontendVerify', ':adm:bootJar', ':adm:bootWar', ':bza:bootJar', ':bza:bootWar'
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/check-modern-frontend.ps1', '-ResultDir', cpfResultDir().path
+}
+
 tasks.register('checkDomainRemoval', Exec) {
     group = 'verification'
     description = '생성 모듈 제거의 dry-run, 사용자 변경 차단, 실제 정리를 검증합니다.'
@@ -957,5 +1019,6 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'exportArchitectureInventory', 'checkDomainGenerator', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+    dependsOn ':adm:frontendVerify', ':bza:frontendVerify', 'checkModernFrontend'
+    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
 }

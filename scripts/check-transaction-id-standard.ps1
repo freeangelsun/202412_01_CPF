@@ -66,7 +66,7 @@ Assert-Contains `
     "PFW was-id 기본값이 7자리여야 합니다."
 
 Assert-Contains `
-    "adm/src/main/resources/static/adm/adm.js" `
+    "adm/frontend/src/shared/transaction.ts" `
     "createTransactionGlobalId" `
     "ADM 정적 화면 API 호출용 트랜잭션 ID 생성기가 필요합니다."
 

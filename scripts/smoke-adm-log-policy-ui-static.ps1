@@ -11,8 +11,8 @@ $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $resultPath = Join-Path $ResultDir "adm-log-policy-ui-static-result.sanitized.json"
-$admJsPath = Join-Path $Root "adm/src/main/resources/static/adm/adm.js"
-$admHtmlPath = Join-Path $Root "adm/src/main/resources/static/adm/index.html"
+$admJsPath = Join-Path $Root "adm/frontend/src/App.vue"
+$admHtmlPath = Join-Path $Root "adm/frontend/src/App.vue"
 $result = [ordered]@{
     checkedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"

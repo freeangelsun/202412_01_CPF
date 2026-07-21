@@ -9,6 +9,7 @@
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$Root = (Resolve-Path -LiteralPath $Root).Path
 
 function New-UnicodeText { param([int[]] $CodePoints) return -join ($CodePoints | ForEach-Object { [char] $_ }) }
 $StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
@@ -16,8 +17,16 @@ $StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
 $StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
 $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
-if ([string]::IsNullOrWhiteSpace($ResultDir)) { $ResultDir = Join-Path $Root "build/runtime-smoke" }
-if ([string]::IsNullOrWhiteSpace($LogBasePath)) { $LogBasePath = Join-Path $Root "logs" }
+if ([string]::IsNullOrWhiteSpace($ResultDir)) {
+    $ResultDir = Join-Path $Root "build/runtime-smoke"
+} elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
+    $ResultDir = Join-Path $Root $ResultDir
+}
+if ([string]::IsNullOrWhiteSpace($LogBasePath)) {
+    $LogBasePath = Join-Path $Root "logs"
+} elseif (-not [IO.Path]::IsPathRooted($LogBasePath)) {
+    $LogBasePath = Join-Path $Root $LogBasePath
+}
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 . (Join-Path $Root "scripts/runtime-diagnostics.ps1")
 $resultPath = Join-Path $ResultDir "file-log-standard-result.json"
@@ -85,13 +94,33 @@ function Test-LogFile {
         [string] $TransactionGlobalId,
         [bool] $Required
     )
-    $path = Join-Path $LogBasePath "$($Module.ToLowerInvariant())/cpf-$($Module.ToLowerInvariant())-$LogType.log"
+    $moduleLower = $Module.ToLowerInvariant()
+    $candidates = @(Get-ChildItem -LiteralPath $LogBasePath -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+        $relative = $_.FullName.Substring($LogBasePath.Length).TrimStart('\', '/').Replace('\', '/')
+        if ($LogType -eq 'transaction') {
+            return $relative -match "^[^/]+/$moduleLower/[^/]+/transactions/[0-9]{8}/.+\.log$"
+        }
+        if ($LogType -eq 'batch') {
+            return $relative -match "^[^/]+/$moduleLower/jobs/[0-9]{8}/[^/]+/.+\.log$"
+        }
+        return $relative -match "^[^/]+/$moduleLower/[^/]+/.+/cpf-[^-]+-$LogType-.+\.log$"
+    })
+    $path = $null
+    if (-not [string]::IsNullOrWhiteSpace($TransactionGlobalId)) {
+        $path = $candidates | Where-Object {
+            [IO.File]::ReadAllText($_.FullName, [Text.Encoding]::UTF8).Contains($TransactionGlobalId)
+        } | Select-Object -First 1
+    }
+    if ($null -eq $path) {
+        $path = $candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    }
     $item = [ordered]@{
         moduleCode = $Module.ToUpperInvariant()
         logType = $LogType
-        path = $path.Substring($Root.Length).TrimStart('\', '/')
+        path = $(if ($null -ne $path) { $path.FullName.Substring($Root.Length).TrimStart('\', '/') } else { $null })
+        candidateCount = $candidates.Count
         required = $Required
-        exists = Test-Path -LiteralPath $path
+        exists = $null -ne $path
         containsTransactionGlobalId = $false
         requiredFieldsPresent = @()
         missingFields = @()
@@ -101,9 +130,12 @@ function Test-LogFile {
         $item.status = $(if ($Required) { $StatusFailed } else { $StatusNotVerified })
         return $item
     }
-    $content = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+    $content = [System.IO.File]::ReadAllText($path.FullName, [System.Text.Encoding]::UTF8)
     $item.containsTransactionGlobalId = -not [string]::IsNullOrWhiteSpace($TransactionGlobalId) -and $content.Contains($TransactionGlobalId)
-    $lastLine = Read-LastLine -Path $path
+    $lastLine = @([System.IO.File]::ReadAllLines($path.FullName, [System.Text.Encoding]::UTF8) | Where-Object {
+        [string]::IsNullOrWhiteSpace($TransactionGlobalId) -or $_.Contains($TransactionGlobalId)
+    } | Select-Object -Last 1)
+    $lastLine = if ($lastLine.Count -gt 0) { $lastLine[0] } else { Read-LastLine -Path $path.FullName }
     $json = $null
     if (-not [string]::IsNullOrWhiteSpace($lastLine)) {
         try { $json = $lastLine | ConvertFrom-Json } catch { $json = $null }
@@ -139,7 +171,15 @@ try {
         $body = $response.Content | ConvertFrom-Json
         $result.runtimeProbe.status = $StatusDone
         $result.runtimeProbe.httpStatus = [int] $response.StatusCode
-        $result.transactionGlobalId = $body.transactionGlobalId
+        $transactionProperty = $body.PSObject.Properties['transactionGlobalId']
+        $legacyProperty = $body.PSObject.Properties['transactionId']
+        $result.transactionGlobalId = if ($null -ne $transactionProperty) {
+            [string] $transactionProperty.Value
+        } elseif ($null -ne $legacyProperty) {
+            [string] $legacyProperty.Value
+        } else {
+            throw '헤더 조회 응답에 transactionGlobalId 또는 transactionId가 없습니다.'
+        }
         Start-Sleep -Seconds 2
     } catch {
         $result.runtimeProbe.status = $StatusNotVerified

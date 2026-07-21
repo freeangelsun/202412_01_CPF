@@ -158,6 +158,17 @@ foreach ($ownedFile in @($ownership.createdFiles)) {
 }
 Remove-Item -LiteralPath $ownershipPath -Force
 
+# 생성 모듈의 compile/test/package 산출물은 사용자 소스가 아니므로 실제 제거 시 함께 정리합니다.
+$moduleBuildDir = Join-Path $moduleDir 'build'
+if (Test-Path -LiteralPath $moduleBuildDir -PathType Container) {
+    $resolvedModuleBuildDir = [IO.Path]::GetFullPath($moduleBuildDir)
+    $resolvedModuleDir = [IO.Path]::GetFullPath($moduleDir).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    if (-not $resolvedModuleBuildDir.StartsWith($resolvedModuleDir, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "모듈 build 경로가 제거 허용 범위를 벗어났습니다. path=$resolvedModuleBuildDir"
+    }
+    Remove-Item -LiteralPath $resolvedModuleBuildDir -Recurse -Force
+}
+
 $settingsPath = Join-Path $Root 'settings.gradle'
 $settingsText = [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
 $escapedModule = [regex]::Escape($module)

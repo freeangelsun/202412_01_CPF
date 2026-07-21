@@ -10,8 +10,11 @@ $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$htmlPath = Join-Path $Root "bza/src/main/resources/static/bza/index.html"
-$scriptPath = Join-Path $Root "bza/src/main/resources/static/bza/bza.js"
+$htmlPath = Join-Path $Root "bza/frontend/src/App.vue"
+$scriptPath = Join-Path $Root "bza/frontend/src/features/console.ts"
+$helperPath = Join-Path $Root "bza/frontend/src/shared/html.ts"
+$packageLockPath = Join-Path $Root "bza/frontend/package-lock.json"
+$generatedIndexPath = Join-Path $Root "bza/build/generated/frontend/static/bza/index.html"
 $resultPath = Join-Path $ResultDir "bza-ui-static-result.sanitized.json"
 $result = [ordered]@{
     checkedAt = [DateTimeOffset]::Now.ToString("o")
@@ -22,7 +25,8 @@ $result = [ordered]@{
 
 try {
     $html = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
-    $script = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8)
+    $script = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8) `
+        + [System.IO.File]::ReadAllText($helperPath, [System.Text.Encoding]::UTF8)
     $markers = [ordered]@{
         loginAccessibility = $html.Contains('aria-labelledby="loginTitle"') -and $html.Contains('aria-live="polite"')
         passwordAutocomplete = $html.Contains('autocomplete="current-password"')
@@ -61,14 +65,23 @@ try {
         businessAudit = $script.Contains("/api/bza/backoffice/audits")
         outputEscaping = $script.Contains("function escapeHtml")
         legacyNameRemoved = -not $script.Contains("BIZADM") -and -not $html.Contains("BIZADM")
+        vueSfcTypeScript = $html.Contains('<script setup lang="ts">')
+        packageLock = Test-Path -LiteralPath $packageLockPath
+        productionBuild = Test-Path -LiteralPath $generatedIndexPath
+        noGlobalVue = -not $script.Contains("window.Vue") -and -not $script.Contains("vue.global")
     }
     foreach ($key in $markers.Keys) {
         $result.markers[$key] = [bool] $markers[$key]
     }
 
-    $node = Get-Command node -ErrorAction SilentlyContinue
-    if ($node) {
-        $nodeOutput = @(& $node.Source --check $scriptPath 2>&1 | ForEach-Object { $_.ToString() })
+    $npm = Get-Command $(if ($env:OS -eq "Windows_NT") { "npm.cmd" } else { "npm" }) -ErrorAction SilentlyContinue
+    if ($npm) {
+        Push-Location (Join-Path $Root "bza/frontend")
+        try {
+            $nodeOutput = @(& $npm.Source run typecheck 2>&1 | ForEach-Object { $_.ToString() })
+        } finally {
+            Pop-Location
+        }
         $result.nodeSyntax.available = $true
         $result.nodeSyntax.passed = ($LASTEXITCODE -eq 0)
         $result.nodeSyntax.output = ($nodeOutput -join "`n")

@@ -1,0 +1,32 @@
+{
+    "startedAt":  "2026-07-20T20:04:01.0522508+09:00",
+    "status":  "DONE",
+    "workerRegistration":  {
+                               "status":  "DONE",
+                               "workerCount":  2,
+                               "distinctProcessCount":  2,
+                               "distinctInstanceCount":  2
+                           },
+    "distribution":  {
+                         "status":  "DONE",
+                         "distinctWorkerCount":  2,
+                         "leaseCount":  4,
+                         "duplicateClaimCount":  0,
+                         "duplicateSpringExecutionCount":  0
+                     },
+    "drain":  {
+                  "status":  "DONE",
+                  "drainingWorkerNewClaimCount":  0
+              },
+    "crashTakeover":  {
+                          "status":  "DONE",
+                          "ownerChanged":  true,
+                          "takeoverCount":  1,
+                          "attemptNo":  2
+                      },
+    "mismatch":  {
+                     "status":  "DONE",
+                     "rejectedCount":  2
+                 },
+    "endedAt":  "2026-07-20T20:04:55.0320843+09:00"
+}

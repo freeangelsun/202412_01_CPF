@@ -16,6 +16,9 @@ function Get-Owner {
     param([string] $RelativePath)
 
     $first = ($RelativePath -split "/")[0].ToUpperInvariant()
+    if ($first -eq "PFW-GATEWAY-RUNTIME") {
+        return "PFW"
+    }
     if (@("PFW", "CMN", "MBR", "XYZ", "ADM", "BZA", "BAT") -contains $first) {
         return $first
     }
@@ -28,7 +31,7 @@ function Get-Capability {
     $text = $Value.ToLowerInvariant()
     $rules = [ordered]@{
         "transaction-header" = "transaction|header|trace|segment|timeline"
-        "service-call" = "servicecall|webclient|restclient|registry|routing|health"
+        "service-call" = "servicecall|webclient|restclient|registry|routing|health|deadline"
         "logging-recovery" = "logging|logwriter|fallback|recovery|journal|spool"
         "idempotency" = "idempot"
         "broker-event" = "broker|outbox|inbox|dlq|event"
@@ -36,6 +39,9 @@ function Get-Capability {
         "file-transfer" = "filetransfer|sftp|ftp|ftps|scp|ssh"
         "archive" = "archive|compression|gzip|zip|tar"
         "security" = "security|auth|permission|mask|credential|password|session|token"
+        "operations" = "incident|alert|runbook|topology|maintenance|selfhealing|slo|metric"
+        "product-governance" = "tenant|edition|license|plugin|marketplace|industry|package"
+        "api-governance" = "ratelimit|quota|abuse|pagination|paging"
         "batch-center-cut" = "batch|center|scheduler|worker|job"
         "fixed-length" = "fixedlength|telegram|layout|parser|formatter"
         "code-message-config" = "code|message|config|notification"
@@ -72,7 +78,7 @@ function New-Asset {
 }
 
 $assets = New-Object System.Collections.Generic.List[object]
-$moduleNames = @("pfw", "cmn", "mbr", "xyz", "adm", "bza", "bat")
+$moduleNames = @("pfw", "pfw-gateway-runtime", "cmn", "mbr", "xyz", "adm", "bza", "bat", "acc")
 foreach ($moduleName in $moduleNames) {
     $modulePath = Join-Path $Root $moduleName
     if (Test-Path -LiteralPath $modulePath -PathType Container) {
@@ -86,6 +92,9 @@ $javaFiles = @(Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*.java" 
 foreach ($file in $javaFiles) {
     $relative = Get-RelativePath $file.FullName
     $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
+    if ($relative -match '/src/test/') {
+        $assets.Add((New-Asset "test-source" $relative $file.BaseName "java-test-source")) | Out-Null
+    }
     $packageMatch = [regex]::Match($text, '(?m)^\s*package\s+([^;]+);')
     if ($packageMatch.Success) {
         $assets.Add((New-Asset "java-package" $relative $packageMatch.Groups[1].Value)) | Out-Null
@@ -96,14 +105,14 @@ foreach ($file in $javaFiles) {
         $kind = $typeMatch.Groups[1].Value
         $name = $typeMatch.Groups[2].Value
         $assetType = "java-public-type"
-        if ($kind -eq "interface" -and $name -match '(Port|Facade|Contract)$') { $assetType = "public-port" }
+        if ($relative -match '/src/test/') { $assetType = "test-source" }
+        elseif ($kind -eq "interface" -and $name -match '(Port|Facade|Contract)$') { $assetType = "public-port" }
         elseif ($name -match 'Controller$') { $assetType = "controller" }
         elseif ($name -match 'Service$') { $assetType = "service" }
         elseif ($name -match 'Repository$') { $assetType = "repository" }
         elseif ($name -match 'Mapper$') { $assetType = "mapper" }
         elseif ($name -match '(Engine|Facade|Adapter|Worker)$') { $assetType = "engine-facade-adapter" }
         elseif ($relative -match '/edu/') { $assetType = "education-source" }
-        elseif ($relative -match '/test/') { $assetType = "test-source" }
         $assets.Add((New-Asset $assetType $relative $name $kind)) | Out-Null
     }
 

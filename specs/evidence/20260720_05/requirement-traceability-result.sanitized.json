@@ -1,0 +1,13 @@
+{
+    "generatedAt":  "2026-07-20T19:08:53.2337145+09:00",
+    "status":  "DONE",
+    "basisSha":  "b32cc8ae5ccb798f3b1e6720c678e3838d01b460",
+    "domainCount":  133,
+    "requirementCount":  13300,
+    "implementationAssetCount":  944,
+    "duplicateRequirementCount":  0,
+    "missingFieldCount":  0,
+    "untracedDomainCount":  0,
+    "inventoryPath":  "specs/evidence/20260720_05/requirement-inventory.sanitized.json",
+    "traceabilityPath":  "specs/evidence/20260720_05/requirement-traceability.sanitized.json"
+}

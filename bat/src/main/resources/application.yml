@@ -32,6 +32,18 @@ cpf:
     module-id: BAT
     was-id: ${WAS_ID:batWK01}
   bat:
+    worker:
+      # 기본 비활성으로 기존 BAT 기동을 보존하며 worker profile 또는 환경변수로 명시적으로 활성화합니다.
+      enabled: ${CPF_BAT_WORKER_ENABLED:false}
+      worker-id: ${CPF_BAT_WORKER_ID:}
+      version: ${CPF_BAT_WORKER_VERSION:${CPF_PLATFORM_VERSION:unknown}}
+      capabilities: ${CPF_BAT_WORKER_CAPABILITIES:*}
+      max-concurrency: ${CPF_BAT_WORKER_MAX_CONCURRENCY:1}
+      queue-capacity: ${CPF_BAT_WORKER_QUEUE_CAPACITY:1}
+      poll-interval-ms: ${CPF_BAT_WORKER_POLL_INTERVAL_MS:1000}
+      heartbeat-interval-ms: ${CPF_BAT_WORKER_HEARTBEAT_INTERVAL_MS:2000}
+      lease-seconds: ${CPF_BAT_WORKER_LEASE_SECONDS:30}
+      recover-expired-lease: ${CPF_BAT_WORKER_RECOVER_EXPIRED_LEASE:true}
     smoke:
       run-on-startup: ${CPF_BAT_SMOKE_RUN_ON_STARTUP:false}
       run-failure-on-startup: ${CPF_BAT_SMOKE_RUN_FAILURE_ON_STARTUP:false}

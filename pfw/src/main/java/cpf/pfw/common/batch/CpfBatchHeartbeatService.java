@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
  */
 public class CpfBatchHeartbeatService {
     public static final String PARAM_PFW_EXECUTION_ID = "cpfPfwExecutionId";
+    public static final String PARAM_WORKER_LEASE_TOKEN = "cpfWorkerLeaseToken";
 
     private final CpfBatchOperationRepository repository;
     private final int heartbeatIntervalSeconds;
@@ -63,6 +64,11 @@ public class CpfBatchHeartbeatService {
         String workerId = workerId(jobExecution);
         String status = jobExecution.getStatus().name();
         repository.recordWorkerHeartbeat(workerId, ServerInstanceIdentity.current(), "IDLE", null, null, requestUser(jobExecution));
+        // 독립 BAT worker는 lease token을 보유한 agent만 실행 상태를 확정해야 합니다.
+        // listener가 직접 완료 처리하면 만료된 worker의 늦은 응답이 takeover 결과를 덮을 수 있습니다.
+        if (hasWorkerLeaseToken(jobExecution)) {
+            return;
+        }
         repository.completeExecution(
                 executionId,
                 status,
@@ -71,6 +77,14 @@ public class CpfBatchHeartbeatService {
                 failureMessage(jobExecution),
                 jobExecution,
                 requestUser(jobExecution));
+    }
+
+    private boolean hasWorkerLeaseToken(JobExecution jobExecution) {
+        if (jobExecution == null || jobExecution.getJobParameters() == null) {
+            return false;
+        }
+        String leaseToken = jobExecution.getJobParameters().getString(PARAM_WORKER_LEASE_TOKEN);
+        return leaseToken != null && !leaseToken.isBlank();
     }
 
     public void recordStepStarted(StepExecution stepExecution) {

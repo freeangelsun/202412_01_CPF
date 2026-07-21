@@ -1,0 +1,24 @@
+# 독립 BAT worker profile입니다. 서로 다른 worker ID와 instance ID로 여러 프로세스를 실행합니다.
+spring:
+  config:
+    activate:
+      on-profile: bat-worker
+  task:
+    scheduling:
+      # polling이 DB 잠금 대기로 지연돼도 heartbeat와 lease 갱신이 독립적으로 실행됩니다.
+      pool:
+        size: ${CPF_BAT_SCHEDULER_POOL_SIZE:4}
+
+cpf:
+  bat:
+    worker:
+      enabled: true
+      worker-id: ${CPF_BAT_WORKER_ID}
+      version: ${CPF_BAT_WORKER_VERSION:${CPF_PLATFORM_VERSION:unknown}}
+      capabilities: ${CPF_BAT_WORKER_CAPABILITIES:*}
+      max-concurrency: ${CPF_BAT_WORKER_MAX_CONCURRENCY:2}
+      queue-capacity: ${CPF_BAT_WORKER_QUEUE_CAPACITY:2}
+      poll-interval-ms: ${CPF_BAT_WORKER_POLL_INTERVAL_MS:1000}
+      heartbeat-interval-ms: ${CPF_BAT_WORKER_HEARTBEAT_INTERVAL_MS:2000}
+      lease-seconds: ${CPF_BAT_WORKER_LEASE_SECONDS:30}
+      recover-expired-lease: true

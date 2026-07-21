@@ -1,0 +1,97 @@
+{
+    "startedAt":  "2026-07-20T20:56:33.5171254+09:00",
+    "status":  "DONE",
+    "combinations":  [
+                         {
+                             "code":  "DCN",
+                             "database":  "N",
+                             "databaseVendor":  "mariadb",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  25,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "DBY",
+                             "database":  "Y",
+                             "databaseVendor":  "mariadb",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  30,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "BTY",
+                             "database":  "Y",
+                             "databaseVendor":  "mariadb",
+                             "batch":  "Y",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  32,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "EXY",
+                             "database":  "Y",
+                             "databaseVendor":  "mariadb",
+                             "batch":  "N",
+                             "external":  "Y",
+                             "ui":  "N",
+                             "generatedFileCount":  31,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "UIY",
+                             "database":  "Y",
+                             "databaseVendor":  "mariadb",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "Y",
+                             "generatedFileCount":  32,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "PGY",
+                             "database":  "Y",
+                             "databaseVendor":  "postgresql",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  30,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "ORY",
+                             "database":  "Y",
+                             "databaseVendor":  "oracle",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  30,
+                             "status":  "DONE"
+                         },
+                         {
+                             "code":  "SQY",
+                             "database":  "Y",
+                             "databaseVendor":  "sqlserver",
+                             "batch":  "N",
+                             "external":  "N",
+                             "ui":  "N",
+                             "generatedFileCount":  30,
+                             "status":  "DONE"
+                         }
+                     ],
+    "compile":  {
+                    "status":  "DONE",
+                    "exitCode":  0,
+                    "taskCount":  24
+                },
+    "parity":  {
+                   "status":  "DONE",
+                   "firstSha256":  "72e87b3b3e284b03b6bd80633162d1c8890d27bc09069aaabeab975a9d598b0f",
+                   "secondSha256":  "72e87b3b3e284b03b6bd80633162d1c8890d27bc09069aaabeab975a9d598b0f"
+               },
+    "endedAt":  "2026-07-20T21:02:07.0746405+09:00"
+}

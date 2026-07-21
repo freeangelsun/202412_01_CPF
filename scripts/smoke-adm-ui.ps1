@@ -14,8 +14,10 @@ if ([string]::IsNullOrWhiteSpace($LogDir)) {
     $LogDir = Join-Path $Root "build/runtime-smoke"
 }
 
-$indexPath = Join-Path $Root "adm/src/main/resources/static/adm/index.html"
-$scriptPath = Join-Path $Root "adm/src/main/resources/static/adm/adm.js"
+$indexPath = Join-Path $Root "adm/frontend/src/App.vue"
+$scriptPath = Join-Path $Root "adm/frontend/src/App.vue"
+$packageLockPath = Join-Path $Root "adm/frontend/package-lock.json"
+$generatedIndexPath = Join-Path $Root "adm/build/generated/frontend/static/adm/index.html"
 $failures = New-Object System.Collections.Generic.List[string]
 
 function Add-Failure {
@@ -94,12 +96,21 @@ if (-not (Test-Path -LiteralPath $indexPath)) {
     throw "ADM index.html not found: $indexPath"
 }
 if (-not (Test-Path -LiteralPath $scriptPath)) {
-    throw "ADM adm.js not found: $scriptPath"
+    throw "ADM App.vue를 찾지 못했습니다: $scriptPath"
+}
+if (-not (Test-Path -LiteralPath $packageLockPath)) {
+    throw "ADM package-lock.json을 찾지 못했습니다: $packageLockPath"
 }
 
 $index = [System.IO.File]::ReadAllText($indexPath, [System.Text.Encoding]::UTF8)
 $script = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8)
 $combined = "$index`n$script"
+if ($combined.Contains("window.Vue") -or $combined.Contains("vue.global")) {
+    Add-Failure "ADM frontend에 Vue Global Build 참조가 남아 있습니다."
+}
+if (-not (Test-Path -LiteralPath $generatedIndexPath)) {
+    Add-Failure "ADM production frontend build 산출물이 없습니다."
+}
 
 # Static smoke checks core ADM UI menu, button, and API route markers.
 $requiredMarkers = @(
@@ -179,8 +190,9 @@ $result = [ordered]@{
     staticUi = [ordered]@{
         status = "PASSED"
         checkedFiles = @(
-            "adm/src/main/resources/static/adm/index.html",
-            "adm/src/main/resources/static/adm/adm.js"
+            "adm/frontend/src/App.vue",
+            "adm/frontend/package-lock.json",
+            "adm/build/generated/frontend/static/adm/index.html"
         )
     }
     environment = [ordered]@{}

@@ -1,0 +1,206 @@
+{
+    "startedAt":  "2026-07-20T21:18:55.3496808+09:00",
+    "status":  "PASSED",
+    "requireRuntime":  true,
+    "services":  [
+                     {
+                         "service":  "ADM",
+                         "baseUrl":  "http://localhost:8090",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "ADM-Health",
+                                              "ADM-Batch",
+                                              "ADM-CenterCut",
+                                              "ADM-Notification",
+                                              "ADM-Download",
+                                              "ADM-Logs",
+                                              "ADM-TransactionGroup",
+                                              "ADM-OPR Dynamic Log",
+                                              "ADM-OPR Standard Execution",
+                                              "ADM-OPR Remote Log",
+                                              "ADM-OPR Channel Policy"
+                                          ],
+                         "requiredPaths":  [
+                                               "/adm/api/transaction-groups",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/segments",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/timeline",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/headers",
+                                               "/adm/api/transaction-groups/{transactionGlobalId}/external-logs",
+                                               "/adm/api/remote-logs/bundles",
+                                               "/adm/api/remote-logs/bundle-jobs",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}/download-tokens",
+                                               "/adm/api/remote-logs/bundle-jobs/{jobId}/download",
+                                               "/adm/api/remote-logs/diagnostics",
+                                               "/adm/api/channels",
+                                               "/adm/api/channels/refresh",
+                                               "/adm/api/channels/{channelCode}",
+                                               "/adm/api/channels/policies/{policyKey}",
+                                               "/adm/api/channels/package",
+                                               "/adm/api/channels/package/import"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  161,
+                         "tagCount":  29
+                     },
+                     {
+                         "service":  "MBR",
+                         "baseUrl":  "http://localhost:8081",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "MBR-Auth",
+                                              "MBR-BSE Member"
+                                          ],
+                         "requiredPaths":  [
+
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  12,
+                         "tagCount":  3
+                     },
+                     {
+                         "service":  "XYZ",
+                         "baseUrl":  "http://localhost:8099",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "XYZ Reference 00. Catalog",
+                                              "XYZ Reference 11. Security",
+                                              "XYZ Reference 13. Batch",
+                                              "XYZ Reference 16. AI",
+                                              "XYZ Reference 17. 첨부파일"
+                                          ],
+                         "requiredPaths":  [
+                                               "/api/xyz/reference/ai/structured",
+                                               "/api/xyz/reference/ai/rag",
+                                               "/api/xyz/reference/ai/jobs/{jobId}/approve",
+                                               "/api/xyz/reference/attachments/text",
+                                               "/api/xyz/reference/attachments/verify"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  142,
+                         "tagCount":  21
+                     },
+                     {
+                         "service":  "BZA",
+                         "baseUrl":  "http://localhost:8091",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "BZA-Auth",
+                                              "BZA-Operations",
+                                              "BZA-Backoffice",
+                                              "BZA-Support"
+                                          ],
+                         "requiredPaths":  [
+                                               "/api/bza/auth/login",
+                                               "/api/bza/backoffice/organizations",
+                                               "/api/bza/backoffice/employees",
+                                               "/api/bza/backoffice/approvals",
+                                               "/api/bza/admin-users",
+                                               "/api/bza/roles",
+                                               "/api/bza/menus",
+                                               "/api/bza/permissions",
+                                               "/api/bza/notifications",
+                                               "/api/bza/attachments",
+                                               "/api/bza/saved-searches",
+                                               "/api/bza/permissions/simulate"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  35,
+                         "tagCount":  4
+                     },
+                     {
+                         "service":  "BAT",
+                         "baseUrl":  "http://localhost:8093",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "BAT-Operations"
+                                          ],
+                         "requiredPaths":  [
+                                               "/bat/api/health",
+                                               "/bat/api/diagnostics/logging",
+                                               "/bat/api/smoke/jobs/{jobId}/run"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  10,
+                         "tagCount":  3
+                     },
+                     {
+                         "service":  "ACC",
+                         "baseUrl":  "http://localhost:8082",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "ACC 생성 참조",
+                                              "ACC 계정",
+                                              "ACC 내부 공유 API"
+                                          ],
+                         "requiredPaths":  [
+                                               "/api/v1/acc/reference",
+                                               "/api/v1/accounts",
+                                               "/api/v1/accounts/{accountId}",
+                                               "/internal/api/v1/accounts/{accountId}/summary"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  4,
+                         "tagCount":  3
+                     },
+                     {
+                         "service":  "GATEWAY",
+                         "baseUrl":  "http://localhost:8070",
+                         "status":  "PASSED",
+                         "requiredTags":  [
+                                              "PFW Gateway"
+                                          ],
+                         "requiredPaths":  [
+                                               "/cpf/execute",
+                                               "/cpf/execute/{executionId}"
+                                           ],
+                         "missingTags":  [
+
+                                         ],
+                         "missingPaths":  [
+
+                                          ],
+                         "openapi":  "3.1.0",
+                         "pathCount":  2,
+                         "tagCount":  1
+                     }
+                 ],
+    "finishedAt":  "2026-07-20T21:18:58.9880255+09:00"
+}

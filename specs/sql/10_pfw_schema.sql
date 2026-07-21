@@ -978,6 +978,11 @@ CREATE TABLE IF NOT EXISTS pfw_batch_worker (
     host_name VARCHAR(150) NULL COMMENT '호스트명',
     process_id VARCHAR(80) NULL COMMENT '프로세스 ID',
     thread_name VARCHAR(160) NULL COMMENT '스레드명',
+    worker_version VARCHAR(80) NOT NULL DEFAULT 'unknown' COMMENT 'worker 배포 버전',
+    capabilities_json LONGTEXT NULL COMMENT 'worker 지원 Job 및 capability JSON',
+    max_concurrency INT NOT NULL DEFAULT 1 COMMENT 'worker 최대 동시 실행 수',
+    queue_capacity INT NOT NULL DEFAULT 1 COMMENT 'worker 내부 대기열 허용 수',
+    control_status VARCHAR(30) NOT NULL DEFAULT 'RUNNING' COMMENT 'RUNNING, DRAINING, STOPPED 제어 상태',
     worker_status VARCHAR(30) NOT NULL DEFAULT 'IDLE' COMMENT 'worker 상태',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
@@ -991,6 +996,7 @@ CREATE TABLE IF NOT EXISTS pfw_batch_worker (
     PRIMARY KEY (worker_id),
     INDEX ix_pfw_batch_worker_server (server_instance_id, active_yn),
     INDEX ix_pfw_batch_worker_status (worker_status, last_heartbeat_at),
+    INDEX ix_pfw_batch_worker_control (control_status, active_yn, last_heartbeat_at),
     INDEX ix_pfw_batch_worker_current_job (current_job_id, current_execution_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker heartbeat';
 
@@ -1010,6 +1016,8 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     batch_instance_id VARCHAR(100) NULL COMMENT '배치 인스턴스 ID',
     server_instance_id VARCHAR(160) NULL COMMENT '실행 서버 인스턴스 ID',
     worker_id VARCHAR(160) NULL COMMENT '실행 worker ID',
+    required_worker_version VARCHAR(80) NULL COMMENT '실행에 필요한 worker 버전',
+    required_capability VARCHAR(120) NULL COMMENT '실행에 필요한 worker capability',
     transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
     parent_transaction_global_id VARCHAR(100) NULL COMMENT '온라인 호출 또는 상위 배치 거래 ID',
     transaction_segment_id VARCHAR(120) NULL COMMENT '배치 Job 거래 구간 ID',
@@ -1043,6 +1051,7 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     INDEX ix_pfw_batch_execution_spring (spring_batch_execution_id),
     INDEX ix_pfw_batch_execution_job_instance (spring_batch_job_instance_id, business_date),
     INDEX ix_pfw_batch_execution_worker (worker_id, execution_status, start_time),
+    INDEX ix_pfw_batch_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
     INDEX ix_pfw_batch_execution_transaction (transaction_global_id),
     INDEX ix_pfw_batch_execution_parent_transaction (parent_transaction_global_id),
     INDEX ix_pfw_batch_execution_segment (transaction_segment_id, parent_segment_id),
@@ -1056,6 +1065,36 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
         FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
+
+CREATE TABLE IF NOT EXISTS pfw_batch_execution_lease (
+    lease_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 lease 순번',
+    execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
+    worker_id VARCHAR(160) NOT NULL COMMENT '현재 lease 소유 worker ID',
+    lease_token VARCHAR(80) NOT NULL COMMENT 'lease 갱신·완료 검증 토큰',
+    lease_status VARCHAR(30) NOT NULL DEFAULT 'CLAIMED' COMMENT 'CLAIMED, RUNNING, RELEASED, EXPIRED 상태',
+    claimed_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 claim 일시',
+    lease_until DATETIME(3) NOT NULL COMMENT 'lease 만료 일시',
+    last_heartbeat_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '마지막 lease heartbeat 일시',
+    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'claim 시도 회차',
+    takeover_count INT NOT NULL DEFAULT 0 COMMENT '만료 후 다른 worker 인수 횟수',
+    released_at DATETIME(3) NULL COMMENT '정상 또는 실패 완료 일시',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실행 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (lease_id),
+    UNIQUE KEY uk_pfw_batch_execution_lease_execution (execution_id),
+    UNIQUE KEY uk_pfw_batch_execution_lease_token (lease_token),
+    INDEX ix_pfw_batch_execution_lease_owner (worker_id, lease_status, lease_until),
+    INDEX ix_pfw_batch_execution_lease_expire (lease_status, lease_until),
+    CONSTRAINT fk_pfw_batch_execution_lease_execution
+        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_pfw_batch_execution_lease_worker
+        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+        ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker 실행 claim과 lease';
 
 CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
     target_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 수행 대상 순번',

@@ -1,0 +1,46 @@
+{
+    "checkedAt":  "2026-07-20T20:41:22.4799157+09:00",
+    "status":  "완료",
+    "markers":  {
+                    "loginAccessibility":  true,
+                    "passwordAutocomplete":  true,
+                    "sessionOnlyTokenStorage":  true,
+                    "serverPermissionAwareMenu":  true,
+                    "refreshRotationClient":  true,
+                    "passwordChange":  true,
+                    "sessionManagement":  true,
+                    "organization":  true,
+                    "employee":  true,
+                    "approval":  true,
+                    "role":  true,
+                    "menu":  true,
+                    "permission":  true,
+                    "writeEditors":  true,
+                    "authenticatedAuditActor":  true,
+                    "notification":  true,
+                    "attachment":  true,
+                    "savedSearch":  true,
+                    "permissionAnalysis":  true,
+                    "customer":  true,
+                    "product":  true,
+                    "order":  true,
+                    "setting":  true,
+                    "downloadAudit":  true,
+                    "businessAudit":  true,
+                    "outputEscaping":  true,
+                    "legacyNameRemoved":  true,
+                    "vueSfcTypeScript":  true,
+                    "packageLock":  true,
+                    "productionBuild":  true,
+                    "noGlobalVue":  true
+                },
+    "nodeSyntax":  {
+                       "available":  true,
+                       "passed":  true,
+                       "output":  "\n\u003e cpf-bza-frontend@1.0.0 typecheck\n\u003e vue-tsc --noEmit\n"
+                   },
+    "missingMarkers":  [
+
+                       ],
+    "finishedAt":  "2026-07-20T20:41:26.1102918+09:00"
+}

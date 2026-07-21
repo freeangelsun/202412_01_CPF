@@ -109,6 +109,7 @@ DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_target;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
+DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_lease;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_job_relation;
 DROP TABLE IF EXISTS pfwDB.pfw_batch_worker;

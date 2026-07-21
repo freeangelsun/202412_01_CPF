@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.13'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
+    id 'war'
 }
 
 group = 'cpf.adm'
@@ -31,10 +32,62 @@ dependencies {
 
     // MariaDB 운영 DB에 연결합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+def frontendDir = layout.projectDirectory.dir('frontend')
+def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
+def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
+
+sourceSets.main.resources.srcDir(frontendOutputDir)
+
+tasks.register('frontendInstall', Exec) {
+    group = 'frontend'
+    description = 'ADM frontend의 package-lock 기준 의존성을 설치합니다.'
+    workingDir frontendDir
+    commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
+    outputs.file(frontendInstallMarker)
+    doLast {
+        frontendInstallMarker.asFile.setText('package-lock 기반 설치 완료\n', 'UTF-8')
+    }
+}
+
+['Lint': 'lint', 'Typecheck': 'typecheck', 'Test': 'test'].each { taskSuffix, npmScript ->
+    tasks.register("frontend${taskSuffix}", Exec) {
+        group = 'verification'
+        dependsOn 'frontendInstall'
+        workingDir frontendDir
+        commandLine npmExecutable, 'run', npmScript
+        inputs.dir(frontendDir.dir('src'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'))
+    }
+}
+
+tasks.register('frontendBuild', Exec) {
+    group = 'build'
+    description = 'ADM Vue frontend를 Spring Boot 정적 리소스로 빌드합니다.'
+    dependsOn 'frontendInstall'
+    workingDir frontendDir
+    commandLine npmExecutable, 'run', 'build'
+    inputs.dir(frontendDir.dir('src'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'))
+    outputs.dir(frontendOutputDir.map { it.dir('static/adm') })
+}
+
+tasks.register('frontendVerify') {
+    group = 'verification'
+    description = 'ADM frontend lint, typecheck, test와 production build를 검증합니다.'
+    dependsOn 'frontendLint', 'frontendTypecheck', 'frontendTest', 'frontendBuild'
+}
+
+tasks.named('processResources') {
+    dependsOn 'frontendBuild'
 }

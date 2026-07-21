@@ -11,7 +11,15 @@
     [ValidateSet("Y", "N")]
     [string] $Online = "Y",
     [ValidateSet("Y", "N")]
+    [string] $Database = "Y",
+    [ValidateSet("mariadb", "postgresql", "oracle", "sqlserver")]
+    [string] $DatabaseVendor = "mariadb",
+    [ValidateSet("Y", "N")]
     [string] $Batch = "N",
+    [ValidateSet("Y", "N")]
+    [string] $External = "Y",
+    [ValidateSet("Y", "N")]
+    [string] $Ui = "N",
     [ValidateSet("Y", "N")]
     [string] $BzaMenu = "N",
     [ValidateSet("Y", "N")]
@@ -72,6 +80,19 @@ function Test-TextExists {
     return $content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
 }
 
+function Test-SqlIdentifierPrefixExists {
+    param(
+        [string] $Path,
+        [string] $Prefix
+    )
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+    $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+    $pattern = '(?i)(?<![a-z0-9_])' + [regex]::Escape($Prefix) + '_'
+    return [regex]::IsMatch($content, $pattern)
+}
+
 $module = Normalize-Code $ModuleCode
 $ModuleUpper = $module.ToUpperInvariant()
 $Dollar = '$'
@@ -87,9 +108,47 @@ if ($DomainIdCode -notmatch '^[A-Z0-9]{3}$') {
     throw "DomainIdCode must be exactly three upper alpha numeric characters."
 }
 $OnlineEnabled = $Online -eq "Y"
+$DatabaseEnabled = $Database -eq "Y"
+$DatabaseVendor = $DatabaseVendor.ToLowerInvariant()
 $BatchEnabled = $Batch -eq "Y"
+$ExternalEnabled = $External -eq "Y"
+$UiEnabled = $Ui -eq "Y"
 $BzaMenuEnabled = $BzaMenu -eq "Y"
 $ProductionProfileEnabled = $ProductionProfile -eq "Y"
+$databaseVendorProfile = switch ($DatabaseVendor) {
+    "mariadb" {
+        [ordered]@{
+            flyway = "org.flywaydb:flyway-mysql"
+            driverDependency = "org.mariadb.jdbc:mariadb-java-client"
+            driverClass = "org.mariadb.jdbc.Driver"
+            localUrl = "jdbc:mariadb://localhost:3306/${module}DB"
+        }
+    }
+    "postgresql" {
+        [ordered]@{
+            flyway = "org.flywaydb:flyway-database-postgresql"
+            driverDependency = "org.postgresql:postgresql"
+            driverClass = "org.postgresql.Driver"
+            localUrl = "jdbc:postgresql://localhost:5432/${module}db"
+        }
+    }
+    "oracle" {
+        [ordered]@{
+            flyway = "org.flywaydb:flyway-database-oracle"
+            driverDependency = "com.oracle.database.jdbc:ojdbc11"
+            driverClass = "oracle.jdbc.OracleDriver"
+            localUrl = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"
+        }
+    }
+    "sqlserver" {
+        [ordered]@{
+            flyway = "org.flywaydb:flyway-sqlserver"
+            driverDependency = "com.microsoft.sqlserver:mssql-jdbc"
+            driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+            localUrl = "jdbc:sqlserver://localhost:1433;databaseName=${module}DB;encrypt=true;trustServerCertificate=true"
+        }
+    }
+}
 if ([string]::IsNullOrWhiteSpace($ModuleName)) {
     $ModuleName = $module
 }
@@ -122,7 +181,8 @@ if (Test-Path -LiteralPath $targetModuleDir) {
 if (Test-TextExists -Path $settingsPath -Text "include '$module'") {
     $conflicts.Add("settings.gradle already includes module: $module")
 }
-if (Test-TextExists -Path (Join-Path $Root "specs/sql/40_business_modules_schema.sql") -Text "$TablePrefix`_") {
+if ($DatabaseEnabled -and
+        (Test-SqlIdentifierPrefixExists -Path (Join-Path $Root "specs/sql/40_business_modules_schema.sql") -Prefix $TablePrefix)) {
     $conflicts.Add("table prefix already appears in business schema: $TablePrefix")
 }
 if (Test-Path -LiteralPath (Join-Path $Root "$module/src/main/java/$packagePath")) {
@@ -139,7 +199,11 @@ $plan = [ordered]@{
     tablePrefix = $TablePrefix
     port = $Port
     online = $OnlineEnabled
+    database = $DatabaseEnabled
+    databaseVendor = $DatabaseVendor
     batch = $BatchEnabled
+    external = $ExternalEnabled
+    ui = $UiEnabled
     bzaMenu = $BzaMenuEnabled
     productionProfile = $ProductionProfileEnabled
     outputDir = $OutputDir
@@ -341,6 +405,7 @@ package $FeaturePackage.adapter.local;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -350,6 +415,7 @@ import java.util.Objects;
  * 같은 주제영역 DB를 사용하는 기본 local adapter입니다.
  */
 @Component
+@ConditionalOnProperty(name = "cpf.$module.reference.mode", havingValue = "local", matchIfMissing = true)
 public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
     private final ${FeatureClassPrefix}Repository repository;
 
@@ -364,13 +430,16 @@ public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPre
 }
 "@
 
+$remoteMatchIfMissing = if (-not $DatabaseEnabled) { ", matchIfMissing = true" } else { "" }
 $remoteProxy = @"
 package $FeaturePackage.adapter.remote;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import cpf.pfw.common.http.CpfWebClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
@@ -380,6 +449,8 @@ import java.util.Objects;
  *
  * <p>프로젝트 설정에서 remote 모드를 선택할 때만 Bean으로 등록합니다.</p>
  */
+@Component
+@ConditionalOnProperty(name = "cpf.$module.reference.mode", havingValue = "remote"$remoteMatchIfMissing)
 public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPrefix}QueryPort {
     private final CpfWebClient webClient;
 
@@ -403,6 +474,28 @@ public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPref
                     return uriBuilder.build();
                 },
                 new ParameterizedTypeReference<Map<String, Object>>() { });
+    }
+}
+"@
+
+$inMemoryAdapter = @"
+package $FeaturePackage.adapter.memory;
+
+import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * DB와 외부 연동을 선택하지 않은 모듈이 즉시 기동될 수 있도록 제공하는 메모리 참조 adapter입니다.
+ */
+@Component
+public class InMemory${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
+    @Override
+    public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
+        return Map.of("items", List.of(), "criteria", request);
     }
 }
 "@
@@ -606,6 +699,15 @@ public class ${FeatureClassPrefix}SearchValidator {
 }
 "@
 
+$mapperKeywordPredicate = switch ($DatabaseVendor) {
+    "oracle" { "      AND ${TablePrefix}_name LIKE '%' || #{keyword} || '%'" }
+    default { "      AND ${TablePrefix}_name LIKE CONCAT('%', #{keyword}, '%')" }
+}
+$mapperPagingClause = switch ($DatabaseVendor) {
+    "oracle" { "    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY" }
+    "sqlserver" { "    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY" }
+    default { "    LIMIT #{size} OFFSET #{offset}" }
+}
 $mapperXml = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -622,10 +724,10 @@ $mapperXml = @"
     FROM ${TablePrefix}_sample
     WHERE deleted_yn = 'N'
     <if test="keyword != null and keyword != ''">
-      AND ${TablePrefix}_name LIKE CONCAT('%', #{keyword}, '%')
+$mapperKeywordPredicate
     </if>
     ORDER BY ${Dollar}{sortBy} ${Dollar}{sortDirection}
-    LIMIT #{size} OFFSET #{offset}
+$mapperPagingClause
   </select>
 </mapper>
 "@
@@ -636,6 +738,30 @@ $batchDependency = if ($BatchEnabled) {
     ""
 }
 
+$databaseDependencies = if ($DatabaseEnabled) {
+@"
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+    implementation 'org.flywaydb:flyway-core'
+    implementation '$($databaseVendorProfile.flyway)'
+    runtimeOnly '$($databaseVendorProfile.driverDependency)'
+"@
+} else {
+    ""
+}
+
+$batchTransactionImport = if ($DatabaseEnabled) { "" } else {
+    "import org.springframework.batch.support.transaction.ResourcelessTransactionManager;"
+}
+$batchTransactionBean = if ($DatabaseEnabled) { "" } else {
+@"
+    /** DB capability가 없는 Tasklet의 chunk 경계를 위한 비영속 트랜잭션 관리자입니다. */
+    @Bean(name = "${module}TransactionManager")
+    public PlatformTransactionManager ${module}TransactionManager() {
+        return new ResourcelessTransactionManager();
+    }
+
+"@
+}
 $batchConfig = @"
 package $FeaturePackage.batch;
 
@@ -649,6 +775,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+$batchTransactionImport
 
 /**
  * ${ModuleName} 주제영역의 표준 Tasklet 배치 골격입니다.
@@ -656,6 +783,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class ${FeatureClassPrefix}BatchConfig {
 
+$batchTransactionBean
     @Bean
     @CpfBatchJob(id = "B${DomainIdCode}TS0001", name = "${ModuleName}표준배치", ownerDomain = "$DomainIdCode")
     public Job ${module}StandardJob(JobRepository jobRepository, Step ${module}StandardStep) {
@@ -698,11 +826,8 @@ dependencies {
     implementation project(':pfw')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-mysql'
+$databaseDependencies
 $batchDependency
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
@@ -810,13 +935,18 @@ public class ${ModuleName}DataSourceConfig {
 }
 "@
 
+$databaseSpringYml = if ($DatabaseEnabled) {
+@"
+  flyway:
+    # DDL migration은 app 계정이 아니라 별도 migration 절차에서 실행합니다.
+    enabled: ${Dollar}{$($ModuleUpper)_FLYWAY_ENABLED:false}
+"@
+} else { "" }
 $applicationYml = @"
 spring:
   application:
     name: $module
-  flyway:
-    # DDL migration은 app 계정이 아니라 별도 migration 절차에서 실행합니다.
-    enabled: ${Dollar}{$($ModuleUpper)_FLYWAY_ENABLED:false}
+$databaseSpringYml
   batch:
     # 배치 Job은 운영 실행 요청으로만 시작하고 애플리케이션 기동 시 자동 실행하지 않습니다.
     job:
@@ -853,23 +983,35 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 "@
+$defaultReferenceMode = if ($DatabaseEnabled) { 'local' } elseif ($ExternalEnabled) { 'remote' } else { 'memory' }
+$moduleDataSourceYml = if ($DatabaseEnabled) {
+@"
+  datasource:
+    mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
+    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
+    vendor: ${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}
+    url: '${Dollar}{$($ModuleUpper)_DATASOURCE_URL:$($databaseVendorProfile.localUrl)}'
+    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:$($databaseVendorProfile.driverClass)}
+    username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
+    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
+"@
+} else { "" }
 $applicationModuleYml = @"
 # ${ModuleName} 주제영역 공통 설정입니다.
 cpf:
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
-  datasource:
-    mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
-    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
-    url: ${Dollar}{$($ModuleUpper)_DATASOURCE_URL:jdbc:mariadb://localhost:3306/${module}DB}
-    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:org.mariadb.jdbc.Driver}
-    username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
-    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
+$moduleDataSourceYml
+  ${module}:
+    reference:
+      mode: ${Dollar}{$($ModuleUpper)_REFERENCE_MODE:$defaultReferenceMode}
   logging:
     file:
       file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
 "@
-$sql = @"
+$sql = switch ($DatabaseVendor) {
+    "mariadb" {
+@"
 -- ${ModuleName} 업무 샘플 테이블입니다.
 CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
     ${TablePrefix}_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '${ModuleName} 식별자',
@@ -884,6 +1026,78 @@ CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
     INDEX ix_${TablePrefix}_sample_status (status_code, deleted_yn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='${ModuleName} 업무 샘플';
 "@
+    }
+    "postgresql" {
+@"
+-- ${ModuleName} 업무 샘플 테이블입니다.
+CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
+    ${TablePrefix}_id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    ${TablePrefix}_name VARCHAR(200) NOT NULL,
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
+    created_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
+COMMENT ON TABLE ${TablePrefix}_sample IS '${ModuleName} 업무 샘플';
+COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_id IS '${ModuleName} 식별자';
+COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_name IS '${ModuleName} 명칭';
+COMMENT ON COLUMN ${TablePrefix}_sample.status_code IS '상태 코드';
+COMMENT ON COLUMN ${TablePrefix}_sample.deleted_yn IS '논리 삭제 여부';
+COMMENT ON COLUMN ${TablePrefix}_sample.created_by IS '등록자';
+COMMENT ON COLUMN ${TablePrefix}_sample.created_at IS '등록일시';
+COMMENT ON COLUMN ${TablePrefix}_sample.updated_by IS '수정자';
+COMMENT ON COLUMN ${TablePrefix}_sample.updated_at IS '수정일시';
+"@
+    }
+    "oracle" {
+@"
+-- ${ModuleName} 업무 샘플 테이블입니다. Flyway version migration에서 한 번만 실행합니다.
+CREATE TABLE ${TablePrefix}_sample (
+    ${TablePrefix}_id NUMBER(19) GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    ${TablePrefix}_name VARCHAR2(200 CHAR) NOT NULL,
+    status_code VARCHAR2(30 CHAR) DEFAULT 'ACTIVE' NOT NULL,
+    deleted_yn CHAR(1 CHAR) DEFAULT 'N' NOT NULL,
+    created_by VARCHAR2(100 CHAR) DEFAULT '$ModuleUpper' NOT NULL,
+    created_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
+    updated_by VARCHAR2(100 CHAR) DEFAULT '$ModuleUpper' NOT NULL,
+    updated_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL
+);
+CREATE INDEX ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
+COMMENT ON TABLE ${TablePrefix}_sample IS '${ModuleName} 업무 샘플';
+COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_id IS '${ModuleName} 식별자';
+COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_name IS '${ModuleName} 명칭';
+COMMENT ON COLUMN ${TablePrefix}_sample.status_code IS '상태 코드';
+COMMENT ON COLUMN ${TablePrefix}_sample.deleted_yn IS '논리 삭제 여부';
+COMMENT ON COLUMN ${TablePrefix}_sample.created_by IS '등록자';
+COMMENT ON COLUMN ${TablePrefix}_sample.created_at IS '등록일시';
+COMMENT ON COLUMN ${TablePrefix}_sample.updated_by IS '수정자';
+COMMENT ON COLUMN ${TablePrefix}_sample.updated_at IS '수정일시';
+"@
+    }
+    "sqlserver" {
+@"
+-- ${ModuleName} 업무 샘플 테이블입니다.
+IF OBJECT_ID(N'${TablePrefix}_sample', N'U') IS NULL
+BEGIN
+    CREATE TABLE ${TablePrefix}_sample (
+        ${TablePrefix}_id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ${TablePrefix}_name NVARCHAR(200) NOT NULL,
+        status_code NVARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+        deleted_yn NCHAR(1) NOT NULL DEFAULT 'N',
+        created_by NVARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
+        created_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
+        updated_by NVARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
+        updated_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME()
+    );
+    CREATE INDEX ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
+END;
+-- 컬럼 의미: 식별자, 명칭, 상태, 논리삭제, 등록자/등록일시, 수정자/수정일시 순입니다.
+"@
+    }
+}
 
 $readme = @"
 # ${ModuleName} 주제영역 골격
@@ -893,6 +1107,58 @@ $readme = @"
 - 실제 반영 전 `settings.gradle`, `specs/sql`, ADM 메뉴/API/버튼 seed, OpenAPI 문서를 함께 검토합니다.
 - Controller, Facade, Service, Repository, DTO, Mapper XML, SQL의 모듈 코드와 테이블 prefix를 일치시킵니다.
 - 운영 로그는 `${Dollar}{CPF_LOG_ROOT}/{environment}/{moduleCode}/{instanceId}/{category}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log` 규칙을 사용합니다.
+"@
+
+$uiComponent = @"
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { search${FeatureClassPrefix} } from './${FeatureClassPrefix}Api'
+
+const loading = ref(false)
+const rows = ref<Record<string, unknown>[]>([])
+
+async function load(): Promise<void> {
+  loading.value = true
+  try {
+    rows.value = await search${FeatureClassPrefix}()
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
+</script>
+
+<template>
+  <section aria-labelledby="${module}-reference-title">
+    <h1 id="${module}-reference-title">${ModuleName} 참조 조회</h1>
+    <button type="button" :disabled="loading" @click="load">조회</button>
+    <p v-if="loading" role="status">조회 중</p>
+    <table v-else>
+      <caption>${ModuleName} 참조 결과</caption>
+      <tbody>
+        <tr v-for="(row, index) in rows" :key="index">
+          <td>{{ row }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</template>
+"@
+
+$uiApi = @"
+/** ${ModuleName} 참조 API를 호출하고 응답의 items만 화면에 전달합니다. */
+export async function search${FeatureClassPrefix}(): Promise<Record<string, unknown>[]> {
+  const response = await fetch('/api/v1/$module/reference?page=0&size=20&sortBy=created_at&sortDirection=DESC', {
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin',
+  })
+  if (!response.ok) {
+    throw new Error('${ModuleName} 참조 조회에 실패했습니다.')
+  }
+  const body = (await response.json()) as { items?: Record<string, unknown>[] }
+  return body.items ?? []
+}
 "@
 
 $serviceTest = @"
@@ -1044,7 +1310,10 @@ ON DUPLICATE KEY UPDATE
 "@
 
 $onlineJson = $OnlineEnabled.ToString().ToLowerInvariant()
+$databaseJson = $DatabaseEnabled.ToString().ToLowerInvariant()
 $batchJson = $BatchEnabled.ToString().ToLowerInvariant()
+$externalJson = $ExternalEnabled.ToString().ToLowerInvariant()
+$uiJson = $UiEnabled.ToString().ToLowerInvariant()
 $bzaMenuJson = $BzaMenuEnabled.ToString().ToLowerInvariant()
 $domainManifest = @"
 {
@@ -1055,7 +1324,11 @@ $domainManifest = @"
   "port": $Port,
   "tablePrefix": "$TablePrefix",
   "onlineEnabled": $onlineJson,
+  "databaseEnabled": $databaseJson,
+  "databaseVendor": "$DatabaseVendor",
   "batchEnabled": $batchJson,
+  "externalEnabled": $externalJson,
+  "uiEnabled": $uiJson,
   "bzaMenuEnabled": $bzaMenuJson,
   "serviceId": "$ModuleUpper",
   "onlineStandardId": "O${DomainIdCode}QY0001",
@@ -1114,13 +1387,23 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
     $profileDataSourceUrl = if ($profileName -eq "prod") {
         "${Dollar}{$($ModuleUpper)_DATASOURCE_URL}"
     } else {
-        "${Dollar}{$($ModuleUpper)_DATASOURCE_URL:jdbc:mariadb://localhost:3306/${module}DB}"
+        "${Dollar}{$($ModuleUpper)_DATASOURCE_URL:$($databaseVendorProfile.localUrl)}"
     }
     $profileDataSourceUsername = if ($profileName -eq "prod") {
         "${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME}"
     } else {
         "${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}"
     }
+    $profileDataSourceYml = if ($DatabaseEnabled) {
+@"
+  datasource:
+    mode: $profileDataSourceMode
+    url: $profileDataSourceUrl
+    username: $profileDataSourceUsername
+    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD}
+    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
+"@
+    } else { "" }
     $profileApplicationFiles["src/main/resources/application-${module}-${profileName}.yml"] = @"
 # ${ModuleName} ${profileName} profile 설정입니다.
 spring:
@@ -1136,19 +1419,24 @@ cpf:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
     instance-id: ${Dollar}{$($ModuleUpper)_INSTANCE_ID:${ModuleUpper}01}
     was-id: ${Dollar}{$($ModuleUpper)_WAS_ID:$profileWasId}
-  datasource:
-    mode: $profileDataSourceMode
-    url: $profileDataSourceUrl
-    username: $profileDataSourceUsername
-    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD}
-    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpf$($ModuleUpper)DataSource}
+$profileDataSourceYml
 "@
 }
 
 $deployEnvFiles = [ordered]@{}
 foreach ($profileName in @("local", "dev", "stg", "prod")) {
     $deployDataSourceMode = if ($profileName -eq "prod") { "jndi" } else { "url" }
-    $deployDataSourceUrl = if ($profileName -eq "prod") { "__SET_BY_SECRET_PROVIDER__" } else { "jdbc:mariadb://localhost:3306/${module}DB" }
+    $deployDataSourceUrl = if ($profileName -eq "prod") { "__SET_BY_SECRET_PROVIDER__" } else { $databaseVendorProfile.localUrl }
+    $deployDataSourceEnv = if ($DatabaseEnabled) {
+@"
+${ModuleUpper}_DATASOURCE_MODE=$deployDataSourceMode
+${ModuleUpper}_DATABASE_VENDOR=$DatabaseVendor
+${ModuleUpper}_DATASOURCE_URL=$deployDataSourceUrl
+${ModuleUpper}_DATASOURCE_USERNAME=cpf_${module}_app
+${ModuleUpper}_DATASOURCE_PASSWORD=__SET_BY_SECRET_PROVIDER__
+${ModuleUpper}_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpf$($ModuleUpper)DataSource
+"@
+    } else { "" }
     $deployEnvFiles["deploy/env/${profileName}-${module}.env"] = @"
 SPRING_PROFILES_ACTIVE=$profileName
 ${ModuleUpper}_MODULE_ID=$ModuleUpper
@@ -1156,11 +1444,7 @@ ${ModuleUpper}_INSTANCE_ID=${ModuleUpper}-${profileName}-01
 ${ModuleUpper}_WAS_ID=${DomainIdCode}$($profileName.Substring(0, 1).ToUpperInvariant())001
 ${ModuleUpper}_SERVER_PORT=$Port
 CPF_LOG_ROOT=C:/cpf/runtime/logs
-${ModuleUpper}_DATASOURCE_MODE=$deployDataSourceMode
-${ModuleUpper}_DATASOURCE_URL=$deployDataSourceUrl
-${ModuleUpper}_DATASOURCE_USERNAME=cpf_${module}_app
-${ModuleUpper}_DATASOURCE_PASSWORD=__SET_BY_SECRET_PROVIDER__
-${ModuleUpper}_DATASOURCE_JNDI_NAME=java:comp/env/jdbc/cpf$($ModuleUpper)DataSource
+$deployDataSourceEnv
 "@
 }
 
@@ -1198,7 +1482,6 @@ $files = [ordered]@{
     "manifest/standard-execution-catalog.json" = $executionCatalogManifest
     "src/main/resources/application.yml" = $applicationYml
     "src/main/resources/application-${module}.yml" = $applicationModuleYml
-    "src/main/resources/mybatis/mapper/${module}/reference/${FeatureClassPrefix}Mapper.xml" = $mapperXml
     "src/main/java/$packagePath/${ModuleClassName}Application.java" = $applicationJava
     "src/main/java/$packagePath/common/base/${ModuleClassName}BaseController.java" = $moduleBaseController
     "src/main/java/$packagePath/common/base/${ModuleClassName}BaseService.java" = $moduleBaseService
@@ -1206,19 +1489,32 @@ $files = [ordered]@{
     "src/main/java/$packagePath/common/contract/${ModuleClassName}RepositoryPort.java" = $moduleRepositoryContract
     "src/main/java/$packagePath/common/contract/${ModuleClassName}Request.java" = $moduleRequestContract
     "src/main/java/$packagePath/common/contract/${ModuleClassName}Response.java" = $moduleResponseContract
-    "src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java" = $dataSourceConfig
-    "src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java" = $myBatisConfig
     "src/main/java/$featurePackagePath/facade/${FeatureClassPrefix}Facade.java" = $facade
     "src/main/java/$featurePackagePath/port/${FeatureClassPrefix}QueryPort.java" = $queryPortSource
-    "src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java" = $localAdapter
-    "src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}QueryProxy.java" = $remoteProxy
     "src/main/java/$featurePackagePath/service/${FeatureClassPrefix}Service.java" = $service
-    "src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java" = $repository
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchRequest.java" = $dto
     "src/main/java/$featurePackagePath/validation/${FeatureClassPrefix}SearchValidator.java" = $validator
     "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript
-    "sql/Vxx__${module}_domain.sql" = $sql
+}
+
+if ($DatabaseEnabled) {
+    $files["src/main/resources/mybatis/mapper/${module}/reference/${FeatureClassPrefix}Mapper.xml"] = $mapperXml
+    $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
+    $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
+    $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java"] = $localAdapter
+    $files["src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java"] = $repository
+    $files["sql/Vxx__${module}_domain.sql"] = $sql
+}
+if ($ExternalEnabled) {
+    $files["src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}QueryProxy.java"] = $remoteProxy
+}
+if (-not $DatabaseEnabled -and -not $ExternalEnabled) {
+    $files["src/main/java/$featurePackagePath/adapter/memory/InMemory${FeatureClassPrefix}QueryAdapter.java"] = $inMemoryAdapter
+}
+if ($UiEnabled) {
+    $files["ui/src/features/reference/${FeatureClassPrefix}Page.vue"] = $uiComponent
+    $files["ui/src/features/reference/${FeatureClassPrefix}Api.ts"] = $uiApi
 }
 
 if ($OnlineEnabled) {
@@ -1274,11 +1570,20 @@ foreach ($relativePath in @($plan.generatedFiles)) {
     }
 }
 $generatorOwnership = [ordered]@{
-    generatorVersion = "2.0"
+    generatorVersion = "3.1"
     generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
     moduleCode = $ModuleUpper
     moduleDirectory = $module
     outputDirectory = $OutputDir
+    capabilities = [ordered]@{
+        online = $OnlineEnabled
+        database = $DatabaseEnabled
+        databaseVendor = $DatabaseVendor
+        batch = $BatchEnabled
+        external = $ExternalEnabled
+        ui = $UiEnabled
+        productionProfile = $ProductionProfileEnabled
+    }
     createdFiles = $ownedFiles
     modifiedGlobalFiles = @(
         [ordered]@{

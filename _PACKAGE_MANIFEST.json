@@ -1,0 +1,15 @@
+{
+  "name": "CPF Product Documentation Set",
+  "createdAt": "2026-07-21T17:50:36.957435+09:00",
+  "language": "ko-KR",
+  "format": "Markdown",
+  "intendedRootFiles": [
+    "README.md",
+    "cpf-docs/"
+  ],
+  "temporaryFiles": [
+    "PRE_CODEX_CLEANUP_CHECKLIST.md",
+    "_PACKAGE_README.txt"
+  ],
+  "documentCount": 16
+}

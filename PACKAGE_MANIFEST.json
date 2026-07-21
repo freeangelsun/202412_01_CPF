@@ -1,0 +1,15 @@
+{
+  "package": "CPF_CODEX_INTEGRATED_REQUEST_PACKAGE_20260721",
+  "created_at": "2026-07-21T17:07:54.667996+09:00",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baseline_candidate": "b32cc8ae5ccb798f3b1e6720c678e3838d01b460",
+  "intermediate_commit": "e35b7a0b4f2f7c94fb42f6767dc09c73ca2a3549",
+  "domain_count": 133,
+  "notes": [
+    "중간 Commit은 미검수 작업자 결과로 취급",
+    "AI 전용 기능을 기본 제품과 cpf-core에서 제거",
+    "Module/Package/SystemCode/Generator 전환을 최우선",
+    "이전 미완료와 Codex 중단 지점을 통합 요청"
+  ]
+}

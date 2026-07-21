@@ -2,7 +2,7 @@
 
 # Core Platform Framework
 
-### Enterprise Business Platform Framework for Financial and Mission-Critical Systems
+### Business Platform Framework for Reliable and Extensible Systems
 
 **Build once. Operate safely. Extend consistently.**
 
@@ -14,7 +14,7 @@
 ![Vue](https://img.shields.io/badge/Vue-3-42B883?logo=vuedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6?logo=typescript&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-MSA%20%7C%20Modular%20Monolith-5B5BD6)
-![License](https://img.shields.io/badge/License-Commercial%20%2F%20Non--commercial-lightgrey)
+![License](https://img.shields.io/badge/License-See%20License-lightgrey)
 
 </div>
 
@@ -22,11 +22,13 @@
 
 ## Overview
 
-**Core Platform Framework(CPF)**는 금융권을 포함한 고신뢰 업무 시스템을 일관된 구조로 구축하고 운영하기 위한 Java 기반 상용 Framework입니다.
+**Core Platform Framework(CPF)**는 다양한 업무 시스템을 일관된 구조로 개발하고 운영하기 위한 Java 기반 Framework입니다.
 
-CPF는 단순한 공통 라이브러리가 아닙니다. 온라인 거래, 주제영역 간 호출, 배치와 대량처리, 외부 시스템 연계, 파일과 전문, 메시징, 보안, 감사, 운영 관제, 장애 복구, 설치와 업그레이드를 하나의 제품 계약으로 제공합니다.
+온라인 거래, 주제영역 간 호출, 배치와 대량 처리, 외부 시스템 연계, 파일과 전문, 메시징, 보안, 감사, 운영 관제, 장애 복구, 설치와 업그레이드에 필요한 공통 구조와 실행 기반을 제공합니다.
 
-> CPF의 목표는 개발 속도만 높이는 것이 아니라, 시스템이 커진 이후에도 **추적 가능하고, 복구 가능하며, 감사 가능하고, 표준 방식으로 확장 가능한 상태**를 유지하는 것입니다.
+시스템의 규모와 구성 방식이 달라지더라도 동일한 개발 원칙과 운영 기준을 유지할 수 있도록 설계되었으며, MSA와 Modular Monolith 환경을 함께 지원합니다.
+
+CPF는 기능 구현뿐 아니라 거래 추적, 오류 처리, 재시도, 복구, 보안, 감사, 운영 제어와 확장 구조를 함께 관리합니다.
 
 ## Product Highlights
 
@@ -152,30 +154,25 @@ flowchart TB
 
 ```text
 cpf-core-platform-framework/
-├─ cpf-core/
-├─ cpf-gateway/
-├─ cpf-common/
-├─ cpf-admin/
-├─ cpf-biz-admin/
-├─ cpf-batch/
-├─ cpf-member/
-├─ cpf-account/
-├─ cpf-reference/
-├─ cpf-external/
-├─ cpf-docs/
-│  ├─ architecture/
-│  ├─ development/
-│  ├─ operations/
-│  ├─ security/
-│  ├─ api/
-│  └─ releases/
-├─ cpf-deployment/
-├─ cpf-tools/
-├─ specs/
-├─ build.gradle
-├─ settings.gradle
-└─ README.md
+├─ cpf-core/          기술 공통 Contract, Runtime 기능과 확장 SPI
+├─ cpf-gateway/       외부 진입, 인증 연계, Routing과 장애 격리
+├─ cpf-common/        여러 업무 주제영역에서 공유하는 업무 공통 기능
+├─ cpf-admin/         플랫폼 운영, 관제, 보안, 감사와 제어
+├─ cpf-biz-admin/     고객 업무 관리자 화면과 업무 운영 기능
+├─ cpf-batch/         Batch, Scheduler, Agent, Worker와 Center-Cut
+├─ cpf-member/        회원 업무 주제영역
+├─ cpf-account/       계좌 업무 주제영역과 Generator lifecycle 기준
+├─ cpf-reference/     기준정보, 참조 구현과 EDU 업무 주제영역
+├─ cpf-external/      외부기관, 전문, 파일, 메시징과 연계 복구
+├─ cpf-docs/          아키텍처, 개발, 운영, 보안, API와 Release 문서
+├─ cpf-deployment/    설치, 배포, 외부 WAS, Container와 운영 Script
+├─ cpf-tools/         Generator, Migration, 검증과 개발 지원 도구
+├─ build.gradle       공통 Build와 품질 검증 설정
+├─ settings.gradle    공식 Module 구성
+└─ README.md          제품 소개, 구조, 주요 기능과 시작 안내
 ```
+
+별도의 Root `specs/` 디렉터리는 두지 않습니다. 제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합하고, 자동 생성 자료와 실행 Evidence는 정해진 공식 위치에서 관리합니다.
 
 ## Quick Start
 
@@ -283,30 +280,26 @@ npm run build
 | Upgrade 담당자 | [Migration Guide](cpf-docs/releases/MIGRATION_GUIDE.md) |
 | Release 확인 | [Release Notes](cpf-docs/releases/RELEASE_NOTES.md) |
 
-## Quality Contract
+## Quality Principles
 
-CPF 기능은 Source 작성만으로 완료되지 않습니다.
+CPF의 기능은 Source 작성뿐 아니라 실제 연결과 실행 결과까지 함께 확인합니다.
 
-- Source와 실제 Consumer
-- API와 오류 Contract
+- Source와 실제 Consumer 연결
+- API Contract와 오류 처리
 - SQL, Migration과 Rollback
-- 정상·오류·경계·부분 실패
-- 멱등성·동시성·다중 인스턴스
-- 보안·권한·감사·마스킹
+- 정상, 오류, 경계와 부분 실패 처리
+- 멱등성, 동시성과 다중 인스턴스 대응
+- 보안, 권한, 감사와 마스킹
 - 운영 조회와 제어
-- Unit·Integration·Runtime·Browser 검증
+- Unit, Integration, Runtime과 Browser 검증
 - 최신 Commit과 일치하는 Evidence
-- 기존 기능 회귀 방지
+- 기존 기능의 회귀 방지
 
-## Documentation Policy
-
-Markdown을 문서 정본으로 관리합니다. DOCX, PDF와 HTML은 Release 시 Markdown에서 생성하는 배포 산출물입니다.
-
-README에는 작업 진행률, Gap, 검수 결과, 날짜별 작업 내역과 중간 Evidence를 기록하지 않습니다.
+각 기능은 구현, 설정, 데이터 구조, 테스트와 문서가 서로 일치하는 상태를 기준으로 관리합니다.
 
 ## License
 
-개인의 비상업적 학습·연구·실험 목적 사용은 허용됩니다. 그 외 사용은 **Team Pixel**의 사전 승인 또는 별도 계약이 필요합니다.
+개인의 학습, 연구와 실험 목적 사용은 허용됩니다. 그 외 용도로 사용하거나 배포하려면 **Team Pixel**의 사전 승인이 필요합니다.
 
 **Team Pixel**  
 `freeangelsun@gmail.com`

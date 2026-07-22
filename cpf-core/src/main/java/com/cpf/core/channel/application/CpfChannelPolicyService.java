@@ -1,11 +1,11 @@
-package cpf.pfw.channel.application;
+package com.cpf.core.channel.application;
 
-import cpf.pfw.channel.api.CpfChannelRegistryPort;
-import cpf.pfw.channel.model.CpfChannelDefinition;
-import cpf.pfw.channel.model.CpfChannelExecutionPolicy;
-import cpf.pfw.channel.model.CpfChannelPolicyDecision;
-import cpf.pfw.channel.model.CpfChannelPolicyPackage;
-import cpf.pfw.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.channel.api.CpfChannelRegistryPort;
+import com.cpf.core.channel.model.CpfChannelDefinition;
+import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
+import com.cpf.core.channel.model.CpfChannelPolicyDecision;
+import com.cpf.core.channel.model.CpfChannelPolicyPackage;
+import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
 
 import java.time.Instant;
 import java.util.Locale;
@@ -60,7 +60,7 @@ public class CpfChannelPolicyService {
                 .orElseGet(() -> denied(snapshot, "일치하는 채널 실행 정책이 없습니다."));
     }
 
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "cpfTransactionManager")
     public synchronized CpfChannelPolicySnapshot saveChannel(
             CpfChannelDefinition channel,
             String actor,
@@ -70,7 +70,7 @@ public class CpfChannelPolicyService {
         return refresh();
     }
 
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "cpfTransactionManager")
     public synchronized CpfChannelPolicySnapshot savePolicy(
             CpfChannelExecutionPolicy policy,
             String actor,
@@ -84,7 +84,7 @@ public class CpfChannelPolicyService {
         return CpfChannelPolicyPackage.from(snapshotReference.get());
     }
 
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "cpfTransactionManager")
     public synchronized CpfChannelPolicySnapshot importPackage(
             CpfChannelPolicyPackage policyPackage,
             boolean dryRun,

@@ -1,9 +1,9 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
-import cpf.adm.opr.dto.AdmLogPolicyRequest;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
+import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -84,10 +84,10 @@ class AdmLogPolicyServiceTest {
     }
 
     @Test
-    void findPoliciesReportsUnavailableWhenPfwTableIsMissing() {
+    void findPoliciesReportsUnavailableWhenCpfTableIsMissing() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("pfw_log_policy")))
-                .thenThrow(new DataAccessResourceFailureException("pfwDB 미적용"));
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("cpf_log_policy")))
+                .thenThrow(new DataAccessResourceFailureException("cpfDB 미적용"));
         AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
 
         Map<String, Object> result = service.findPolicies("ONLINE_TRANSACTION", "*", "Y", 10);

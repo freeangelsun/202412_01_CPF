@@ -1,19 +1,19 @@
-package cpf.bza.auth.service;
+package com.cpf.bizadmin.auth.service;
 
-import cpf.bza.auth.repository.BzaAuthRepository;
-import cpf.bza.auth.repository.BzaAuthRepository.BzaOperatorRow;
-import cpf.bza.auth.repository.BzaAuthRepository.LoginHistoryWrite;
-import cpf.bza.auth.repository.BzaAuthRepository.RefreshTokenRow;
-import cpf.bza.auth.repository.BzaAuthRepository.RefreshTokenWrite;
-import cpf.cmn.sec.crypto.CmnCryptoService;
-import cpf.cmn.sec.token.CmnJwtCreateRequest;
-import cpf.cmn.sec.token.CmnJwtService;
-import cpf.cmn.sec.token.CmnJwtValidationResult;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
-import cpf.pfw.common.security.password.CpfPasswordVerification;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenWrite;
+import com.cpf.common.sec.crypto.CmnCryptoService;
+import com.cpf.common.sec.token.CmnJwtCreateRequest;
+import com.cpf.common.sec.token.CmnJwtService;
+import com.cpf.common.sec.token.CmnJwtValidationResult;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
+import com.cpf.core.common.security.password.CpfPasswordVerification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ import java.util.Map;
  * 사용하지 않기 때문에 다중 WAS와 재기동 상황에서도 token 폐기/이력 추적 기준을 유지할 수 있습니다.</p>
  */
 @Service
-public class BzaAuthService extends cpf.bza.common.base.BzaBaseService {
+public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService {
     private static final String LOGIN_DOMAIN = "BZA";
     private static final String ISSUER = "CPF-BZA";
     private static final String AUDIENCE = "CPF-BZA";
@@ -226,7 +226,7 @@ public class BzaAuthService extends cpf.bza.common.base.BzaBaseService {
         return Map.of("sessionId", sessionId, "revokedYn", "Y");
     }
 
-    /** 현재 비밀번호를 확인한 뒤 PFW 공통 형식으로 비밀번호를 교체합니다. */
+    /** 현재 비밀번호를 확인한 뒤 CPF 공통 형식으로 비밀번호를 교체합니다. */
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String, Object> changePassword(String authorizationHeader, PasswordChangeRequest request) {
         CmnJwtValidationResult token = validateAccessToken(authorizationHeader);
@@ -324,7 +324,7 @@ public class BzaAuthService extends cpf.bza.common.base.BzaBaseService {
     }
 
     private void requireJwtSecret() {
-        if (jwtSecret == null || jwtSecret.length() < 32) {
+        if (jwtSecret == null || jwtSecret.length() < 32 || jwtSecret.startsWith("__REPLACE_")) {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "BZA JWT secret은 32자 이상 운영 환경변수로 설정해야 합니다.");

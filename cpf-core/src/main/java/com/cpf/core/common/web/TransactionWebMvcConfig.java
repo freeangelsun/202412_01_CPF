@@ -1,4 +1,4 @@
-package cpf.pfw.common.web;
+package com.cpf.core.common.web;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

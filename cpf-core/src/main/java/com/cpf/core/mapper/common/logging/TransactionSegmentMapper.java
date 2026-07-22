@@ -1,6 +1,6 @@
-package cpf.pfw.mapper.common.logging;
+package com.cpf.core.mapper.common.logging;
 
-import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
+import com.cpf.core.common.logging.segment.TransactionSegmentRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -1,10 +1,10 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.exception.CpfExternalServiceException;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.workflow.CpfWorkflowContext;
+import com.cpf.core.common.exception.CpfExternalServiceException;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.workflow.CpfWorkflowContext;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.ObjectProvider;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * 인메모리, Kafka, RabbitMQ 발행을 PFW port 뒤에 통합하는 기본 adapter입니다.
+ * 인메모리, Kafka, RabbitMQ 발행을 CPF port 뒤에 통합하는 기본 adapter입니다.
  *
  * <p>실제 원격 소비는 각 broker listener가 동일한 handler 계약으로 전달합니다. 로컬 profile은
  * 외부 설치 없이 같은 프로세스의 구독자에게 결정적으로 전달합니다.</p>
@@ -132,7 +132,7 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
                 if (template == null) {
                     throw new IllegalStateException("RabbitTemplate bean이 없습니다.");
                 }
-                String exchange = environment.getProperty("cpf.pfw.broker.rabbit.exchange", "cpf.exchange");
+                String exchange = environment.getProperty("cpf.broker.rabbit.exchange", "cpf.exchange");
                 template.convertAndSend(exchange, message.destination(), json, raw -> {
                     MessageProperties properties = raw.getMessageProperties();
                     message.headers().forEach(properties::setHeader);
@@ -182,21 +182,21 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
 
     private boolean enabled() {
         return environment.getProperty(
-                "cpf.pfw.broker.enabled",
+                "cpf.broker.enabled",
                 Boolean.class,
                 true);
     }
 
     private String brokerType() {
         String value = environment.getProperty(
-                "cpf.pfw.broker.type",
+                "cpf.broker.type",
                 "IN_MEMORY");
         return value.trim().toUpperCase(Locale.ROOT);
     }
 
     private int recentLimit() {
         return Math.max(1, environment.getProperty(
-                "cpf.pfw.broker.recent-message-limit",
+                "cpf.broker.recent-message-limit",
                 Integer.class,
                 DEFAULT_RECENT_LIMIT));
     }

@@ -1,6 +1,6 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,19 +14,19 @@ import java.util.Map;
 /**
  * ADM 운영 관제 화면에서 거래, 오류, 일반 감사, 정책 감사를 한 흐름으로 조회하는 서비스입니다.
  *
- * <p>PFW 거래 로그와 로그 정책 감사는 pfwDB, ADM 운영 행위 감사는 admDB에 있으므로
+ * <p>CPF 거래 로그와 로그 정책 감사는 cpfDB, ADM 운영 행위 감사는 admDB에 있으므로
  * 이 서비스가 운영자용 조회 모델로 묶어서 반환합니다. 실제 원천 테이블은 분리해 두어
  * 감사 책임과 보존 정책을 명확히 유지합니다.</p>
  */
 @Service
-public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService {
-    private final JdbcTemplate pfwJdbcTemplate;
+public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseService {
+    private final JdbcTemplate cpfJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
 
     public AdmObservabilityService(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.admJdbcTemplate = admJdbcTemplate;
     }
 
@@ -51,12 +51,12 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
             Long overrideId,
             int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
-        boolean available = tableAvailable(pfwJdbcTemplate, "pfw_log_policy_audit");
+        boolean available = tableAvailable(cpfJdbcTemplate, "cpf_log_policy_audit");
         response.put("available", available);
         response.put("items", available
                 ? queryPolicyAudits(operatorId, actionType, targetType, targetId, policyId, overrideId, limit)
                 : List.of());
-        response.put("source", "pfw_log_policy_audit");
+        response.put("source", "cpf_log_policy_audit");
         return response;
     }
 
@@ -117,7 +117,7 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
             String businessTransactionId,
             String logType,
             int limit) {
-        if (!tableAvailable(pfwJdbcTemplate, "pfw_transaction_log")) {
+        if (!tableAvailable(cpfJdbcTemplate, "cpf_transaction_log")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -125,7 +125,7 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
                        BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE,
                        EXEC_USER, CHANNEL_CODE, START_TIME, END_TIME, DURATION_MS
-                FROM pfw_transaction_log
+                FROM cpf_transaction_log
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -135,7 +135,7 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
         appendEquals(sql, args, "LOG_TYPE", logType);
         sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
         args.add(cappedLimit(limit));
-        return pfwJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
     private List<Map<String, Object>> queryAdmAuditLogs(
@@ -174,14 +174,14 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
             Long policyId,
             Long overrideId,
             int limit) {
-        if (!tableAvailable(pfwJdbcTemplate, "pfw_log_policy_audit")) {
+        if (!tableAvailable(cpfJdbcTemplate, "cpf_log_policy_audit")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
                 SELECT audit_id, policy_id, override_id, action_type, target_type, target_id,
                        reason, before_data, after_data, diff_data, operator_id, client_ip,
                        created_at, updated_at
-                FROM pfw_log_policy_audit
+                FROM cpf_log_policy_audit
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -199,15 +199,15 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
         }
         sql.append(" ORDER BY audit_id DESC LIMIT ?");
         args.add(cappedLimit(limit));
-        return pfwJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
     private List<Map<String, Object>> queryBatchExecutions(String transactionGlobalId, int limit) {
-        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(pfwJdbcTemplate, "pfw_batch_execution")) {
+        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(cpfJdbcTemplate, "cpf_batch_execution")) {
             return List.of();
         }
         try {
-            return pfwJdbcTemplate.queryForList("""
+            return cpfJdbcTemplate.queryForList("""
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                            spring_batch_execution_id, spring_batch_job_instance_id, business_date,
                            run_id, rerun_id, original_job_execution_id, restart_attempt,
@@ -216,7 +216,7 @@ public class AdmObservabilityService extends cpf.adm.common.base.AdmBaseService 
                            server_instance_id, worker_id, start_time, end_time, processed_count,
                            success_count, failure_count, progress_rate, current_step_name,
                            last_heartbeat_at, created_at
-                    FROM pfw_batch_execution
+                    FROM cpf_batch_execution
                     WHERE transaction_global_id = ?
                     ORDER BY execution_id DESC LIMIT ?
                     """, transactionGlobalId.trim(), cappedLimit(limit));

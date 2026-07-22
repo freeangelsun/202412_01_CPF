@@ -5,6 +5,12 @@
     [switch] $RequireRuntime
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
 . (Join-Path $PSScriptRoot "runtime-diagnostics.ps1")
@@ -63,7 +69,7 @@ try {
     $result.smokeJobRun = [ordered]@{
         executed = [bool] $runResult.executed
         jobId = [string] $runResult.jobId
-        pfwExecutionId = $runResult.pfwExecutionId
+        cpfExecutionId = $runResult.cpfExecutionId
         springBatchExecutionId = $runResult.springBatchExecutionId
         status = [string] $runResult.status
     }

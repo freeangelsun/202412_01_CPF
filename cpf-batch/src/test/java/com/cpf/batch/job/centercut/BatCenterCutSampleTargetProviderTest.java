@@ -1,8 +1,8 @@
-package cpf.bat.job.centercut;
+package com.cpf.batch.job.centercut;
 
-import cpf.pfw.common.batch.centercut.CpfCenterCutResult;
-import cpf.pfw.common.batch.centercut.CpfCenterCutService;
-import cpf.pfw.common.batch.centercut.CpfCenterCutStatus;
+import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
+import com.cpf.core.common.batch.centercut.CpfCenterCutService;
+import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

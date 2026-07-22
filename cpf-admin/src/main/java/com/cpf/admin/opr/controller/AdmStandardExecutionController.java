@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.execution.CpfExecutionCatalogPort;
-import cpf.pfw.common.execution.CpfExecutionDefinition;
-import cpf.pfw.common.execution.CpfExecutionType;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.execution.CpfExecutionCatalogPort;
+import com.cpf.core.common.execution.CpfExecutionDefinition;
+import com.cpf.core.common.execution.CpfExecutionType;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/standard-executions")
 @Tag(name = "ADM-OPR Standard Execution", description = "CPF 온라인·배치 표준 실행 ID 카탈로그")
-public class AdmStandardExecutionController extends cpf.adm.common.base.AdmBaseController {
+public class AdmStandardExecutionController extends com.cpf.admin.common.base.AdmBaseController {
     private final CpfExecutionCatalogPort catalogPort;
 
     public AdmStandardExecutionController(CpfExecutionCatalogPort catalogPort) {

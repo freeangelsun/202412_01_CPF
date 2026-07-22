@@ -1,19 +1,6 @@
-package cpf.cmn.fle.core;
+package com.cpf.common.fle.core;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 파일 교환 또는 원격 명령의 실행 여부와 결과를 운영 조회용으로 표현합니다. */
 public record CmnFileExchangeHistoryRecord(
         String exchangeId,
         String actionType,

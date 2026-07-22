@@ -4,7 +4,7 @@
     "executionType": "ONLINE",
     "ownerDomain": "ACC",
     "sourceModule": "ACC",
-    "sourceClass": "cpf.acc.reference.controller.AccountReferenceController",
+    "sourceClass": "com.cpf.account.reference.controller.AccountReferenceController",
     "enabled": true
   },
   {
@@ -12,7 +12,7 @@
     "executionType": "BATCH",
     "ownerDomain": "ACC",
     "sourceModule": "ACC",
-    "sourceClass": "cpf.acc.reference.batch.AccountReferenceBatchConfig",
+    "sourceClass": "com.cpf.account.reference.batch.AccountReferenceBatchConfig",
     "enabled": true
   }
 ]

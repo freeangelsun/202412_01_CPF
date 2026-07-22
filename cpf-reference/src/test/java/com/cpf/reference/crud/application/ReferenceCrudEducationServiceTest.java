@@ -1,12 +1,12 @@
-package cpf.xyz.crud.application;
+package com.cpf.reference.crud.application;
 
-import cpf.xyz.transaction.application.XyzTransactionEducationAuditService;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.xyz.crud.dto.XyzCrudEducationRequest;
-import cpf.xyz.crud.dto.XyzCrudEducationResponse;
-import cpf.xyz.crud.dto.XyzCrudEducationStatusRequest;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.adapter.XyzQueryEducationRepository;
+import com.cpf.reference.transaction.application.ReferenceTransactionEducationAuditService;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationRequest;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationResponse;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationStatusRequest;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,17 +18,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class XyzCrudEducationServiceTest {
+class ReferenceCrudEducationServiceTest {
 
     @Test
     void findEducationItemsUsesRepositoryAndConvertsToCrudResponse() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzTransactionEducationAuditService auditService = mock(XyzTransactionEducationAuditService.class);
-        XyzCrudEducationService service = new XyzCrudEducationService(repository, auditService);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceTransactionEducationAuditService auditService = mock(ReferenceTransactionEducationAuditService.class);
+        ReferenceCrudEducationService service = new ReferenceCrudEducationService(repository, auditService);
         when(repository.findItems("검색", "ACTIVE", "nameAsc", 10))
                 .thenReturn(List.of(item(91001L, "조회 샘플", "CRUD", "ACTIVE")));
 
-        List<XyzCrudEducationResponse> responses =
+        List<ReferenceCrudEducationResponse> responses =
                 service.findEducationItems("검색", "ACTIVE", "nameAsc", 10);
 
         assertThat(responses).hasSize(1);
@@ -38,16 +38,16 @@ class XyzCrudEducationServiceTest {
 
     @Test
     void createEducationItemInsertsThroughRepositoryAndReadsBack() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzTransactionEducationAuditService auditService = mock(XyzTransactionEducationAuditService.class);
-        XyzCrudEducationService service = new XyzCrudEducationService(repository, auditService);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceTransactionEducationAuditService auditService = mock(ReferenceTransactionEducationAuditService.class);
+        ReferenceCrudEducationService service = new ReferenceCrudEducationService(repository, auditService);
         when(repository.nextCrudItemId()).thenReturn(91010L);
         when(repository.normalizeRequestUser("tester")).thenReturn("tester");
         when(repository.normalizeCategoryCode("crud")).thenReturn("CRUD");
         when(repository.findById(91010L)).thenReturn(Optional.of(item(91010L, "등록 샘플", "CRUD", "ACTIVE")));
 
-        XyzCrudEducationResponse response = service.createEducationItem(
-                new XyzCrudEducationRequest("등록 샘플", "설명", "tester", "crud", "MBR-001"));
+        ReferenceCrudEducationResponse response = service.createEducationItem(
+                new ReferenceCrudEducationRequest("등록 샘플", "설명", "tester", "crud", "MBR-001"));
 
         verify(repository).insertCrudItem(91010L, "등록 샘플", "CRUD", "ACTIVE", "MBR-001", "tester");
         assertThat(response.educationItemId()).isEqualTo(91010L);
@@ -55,27 +55,27 @@ class XyzCrudEducationServiceTest {
 
     @Test
     void statusChangeUpdatesThroughRepository() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzTransactionEducationAuditService auditService = mock(XyzTransactionEducationAuditService.class);
-        XyzCrudEducationService service = new XyzCrudEducationService(repository, auditService);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceTransactionEducationAuditService auditService = mock(ReferenceTransactionEducationAuditService.class);
+        ReferenceCrudEducationService service = new ReferenceCrudEducationService(repository, auditService);
         when(repository.findById(91011L))
                 .thenReturn(Optional.of(item(91011L, "상태 샘플", "CRUD", "ACTIVE")))
                 .thenReturn(Optional.of(item(91011L, "상태 샘플", "CRUD", "INACTIVE")));
         when(repository.updateCrudItemStatus(91011L, "INACTIVE", "tester")).thenReturn(1);
         when(repository.normalizeRequestUser("tester")).thenReturn("tester");
 
-        XyzCrudEducationResponse response = service.changeEducationItemStatus(
+        ReferenceCrudEducationResponse response = service.changeEducationItemStatus(
                 91011L,
-                new XyzCrudEducationStatusRequest("INACTIVE", "tester"));
+                new ReferenceCrudEducationStatusRequest("INACTIVE", "tester"));
 
         assertThat(response.status()).isEqualTo("INACTIVE");
     }
 
     @Test
     void missingItemThrowsNotFound() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzTransactionEducationAuditService auditService = mock(XyzTransactionEducationAuditService.class);
-        XyzCrudEducationService service = new XyzCrudEducationService(repository, auditService);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceTransactionEducationAuditService auditService = mock(ReferenceTransactionEducationAuditService.class);
+        ReferenceCrudEducationService service = new ReferenceCrudEducationService(repository, auditService);
         when(repository.findById(99999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getEducationItem(99999L))
@@ -83,7 +83,7 @@ class XyzCrudEducationServiceTest {
                 .hasMessageContaining("educationItemId=99999");
     }
 
-    private XyzQueryEducationItem item(Long itemId, String itemName, String categoryCode, String statusCode) {
-        return new XyzQueryEducationItem(itemId, itemName, categoryCode, statusCode, "MBR-001", "2026-07-02T09:00:00");
+    private ReferenceQueryEducationItem item(Long itemId, String itemName, String categoryCode, String statusCode) {
+        return new ReferenceQueryEducationItem(itemId, itemName, categoryCode, statusCode, "MBR-001", "2026-07-02T09:00:00");
     }
 }

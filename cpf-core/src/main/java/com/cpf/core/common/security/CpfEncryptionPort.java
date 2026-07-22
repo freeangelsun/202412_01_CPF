@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 /**
  * payload 암복호화 port입니다.

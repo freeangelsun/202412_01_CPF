@@ -2,9 +2,23 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
-$modules = @("mbr", "xyz", "bza", "bat", "adm")
+$modules = @(
+    [ordered]@{ project = 'cpf-member'; package = 'member' },
+    [ordered]@{ project = 'cpf-reference'; package = 'reference' },
+    [ordered]@{ project = 'cpf-biz-admin'; package = 'bizadmin' },
+    [ordered]@{ project = 'cpf-batch'; package = 'batch' },
+    [ordered]@{ project = 'cpf-admin'; package = 'admin' },
+    [ordered]@{ project = 'cpf-account'; package = 'account' },
+    [ordered]@{ project = 'cpf-external'; package = 'external' }
+)
 
 function Add-Failure {
     param([string] $Message)
@@ -12,7 +26,7 @@ function Add-Failure {
 }
 
 foreach ($module in $modules) {
-    $sourceRoot = Join-Path $Root "$module/src/main/java"
+    $sourceRoot = Join-Path $Root "$($module.project)/src/main/java"
     if (-not (Test-Path -LiteralPath $sourceRoot)) {
         continue
     }
@@ -35,12 +49,12 @@ foreach ($module in $modules) {
         }
 
         foreach ($targetModule in $modules) {
-            if ($targetModule -eq $module) {
+            if ($targetModule.package -eq $module.package) {
                 continue
             }
-            $forbiddenImport = "import\s+cpf\.$targetModule\..*(controller|repository|mapper).*;"
+            $forbiddenImport = "import\s+com\.cpf\.$([regex]::Escape($targetModule.package))\..*(controller|repository|mapper).*;"
             if ($text -match $forbiddenImport) {
-                Add-Failure "cross-domain Controller/Repository/Mapper import is forbidden: $relativePath -> cpf.$targetModule"
+                Add-Failure "cross-domain Controller/Repository/Mapper import is forbidden: $relativePath -> com.cpf.$($targetModule.package)"
             }
         }
     }

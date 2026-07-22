@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ public class CpfBatchLoggingEventPublisher implements CpfBatchEventPublisher {
         log.info("CPF 배치 이벤트 fallback 발행. type={}, jobId={}, executionId={}, transactionGlobalId={}, message={}",
                 event.eventType(),
                 event.jobId(),
-                event.pfwExecutionId(),
+                event.cpfExecutionId(),
                 event.transactionGlobalId(),
                 event.message());
     }

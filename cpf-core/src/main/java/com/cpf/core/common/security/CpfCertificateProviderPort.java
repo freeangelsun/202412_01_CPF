@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 import java.security.cert.X509Certificate;
 import java.util.List;

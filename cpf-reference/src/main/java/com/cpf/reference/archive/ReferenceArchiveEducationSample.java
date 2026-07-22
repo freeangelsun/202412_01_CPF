@@ -1,27 +1,27 @@
-package cpf.xyz.archive;
+package com.cpf.reference.archive;
 
-import cpf.pfw.common.archive.CpfArchiveEntry;
-import cpf.pfw.common.archive.CpfArchivePolicy;
-import cpf.pfw.common.archive.CpfArchiveRequest;
-import cpf.pfw.common.archive.CpfArchiveResult;
-import cpf.pfw.common.archive.CpfArchiveService;
-import cpf.pfw.common.archive.LocalCpfArchiveService;
+import com.cpf.core.common.archive.CpfArchiveEntry;
+import com.cpf.core.common.archive.CpfArchivePolicy;
+import com.cpf.core.common.archive.CpfArchiveRequest;
+import com.cpf.core.common.archive.CpfArchiveResult;
+import com.cpf.core.common.archive.CpfArchiveService;
+import com.cpf.core.common.archive.LocalCpfArchiveService;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
 /**
- * XYZ 업무 파일을 PFW archive port로 압축하는 교육 샘플입니다.
+ * REF 업무 파일을 CPF archive port로 압축하는 교육 샘플입니다.
  */
-public class XyzArchiveEducationSample {
+public class ReferenceArchiveEducationSample {
     private final CpfArchiveService archiveService;
 
-    public XyzArchiveEducationSample() {
+    public ReferenceArchiveEducationSample() {
         this(new LocalCpfArchiveService());
     }
 
-    public XyzArchiveEducationSample(CpfArchiveService archiveService) {
+    public ReferenceArchiveEducationSample(CpfArchiveService archiveService) {
         this.archiveService = archiveService;
     }
 

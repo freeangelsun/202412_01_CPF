@@ -1,7 +1,7 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 /**
- * PFW broker 수신 port입니다.
+ * CPF broker 수신 port입니다.
  */
 public interface CpfBrokerConsumer {
 

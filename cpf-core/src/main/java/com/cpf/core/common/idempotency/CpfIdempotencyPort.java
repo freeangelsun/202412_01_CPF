@@ -1,10 +1,10 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import java.time.Instant;
 import java.util.Optional;
 
 /**
- * PFW 중복 처리 저장소 표준 포트입니다.
+ * CPF 중복 처리 저장소 표준 포트입니다.
  */
 public interface CpfIdempotencyPort {
 

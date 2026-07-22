@@ -1,19 +1,19 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmLoginRequest;
-import cpf.adm.opr.dto.AdmMenu;
-import cpf.adm.opr.dto.AdmOperator;
-import cpf.adm.opr.dto.AdmOperatorCreateRequest;
-import cpf.adm.opr.dto.AdmOperatorPasswordResetRequest;
-import cpf.adm.opr.dto.AdmOperatorRoleUpdateRequest;
-import cpf.adm.opr.dto.AdmPasswordChangeRequest;
-import cpf.adm.opr.dto.AdmRole;
-import cpf.cmn.utils.DateTimeUtils;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
-import cpf.pfw.common.security.password.CpfPasswordVerification;
+import com.cpf.admin.opr.dto.AdmLoginRequest;
+import com.cpf.admin.opr.dto.AdmMenu;
+import com.cpf.admin.opr.dto.AdmOperator;
+import com.cpf.admin.opr.dto.AdmOperatorCreateRequest;
+import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
+import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
+import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
+import com.cpf.admin.opr.dto.AdmRole;
+import com.cpf.common.utils.DateTimeUtils;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
+import com.cpf.core.common.security.password.CpfPasswordVerification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentMap;
  * DB가 정상 연결되면 DB 기준 운영자와 권한을 우선 사용합니다.</p>
  */
 @Service
-public class AdmOperatorService extends cpf.adm.common.base.AdmBaseService {
+public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmOperatorService.class);
     private final AdmPasswordPolicyService passwordPolicyService;
     private final CpfPasswordHashingPort passwordHashingPort;
@@ -190,7 +190,7 @@ public class AdmOperatorService extends cpf.adm.common.base.AdmBaseService {
             if (verification.rehashRequired()) {
                 admJdbcTemplate.update("""
                         UPDATE adm_operator
-                        SET PASSWORD_HASH = ?, UPDATED_BY = 'PFW_PASSWORD_UPGRADE', UPDATED_AT = CURRENT_TIMESTAMP
+                        SET PASSWORD_HASH = ?, UPDATED_BY = 'CPF_PASSWORD_UPGRADE', UPDATED_AT = CURRENT_TIMESTAMP
                         WHERE OPERATOR_ID = ? AND PASSWORD_HASH = ?
                         """, hashPassword(password), operatorId, state.passwordHash);
             }

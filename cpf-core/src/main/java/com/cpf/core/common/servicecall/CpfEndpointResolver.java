@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 import java.util.List;
 import java.util.Map;
@@ -34,9 +34,9 @@ public class CpfEndpointResolver {
     public ServiceCallResolvedTarget resolve(ServiceCallRequest request, Set<String> excludedInstanceIds) {
         String serviceId = requireText(request.serviceId(), "serviceId").toUpperCase();
         Map<String, Object> service = serviceRegistry.findService(serviceId)
-                .orElseThrow(() -> new IllegalStateException("PFW 서비스 레지스트리에 서비스가 없습니다. serviceId=" + serviceId));
+                .orElseThrow(() -> new IllegalStateException("CPF 서비스 레지스트리에 서비스가 없습니다. serviceId=" + serviceId));
         Map<String, Object> endpoint = endpointRegistry.findEndpoint(serviceId, request.endpointCode())
-                .orElseThrow(() -> new IllegalStateException("PFW 서비스 endpoint가 없습니다. serviceId=" + serviceId));
+                .orElseThrow(() -> new IllegalStateException("CPF 서비스 endpoint가 없습니다. serviceId=" + serviceId));
         String endpointCode = String.valueOf(endpoint.get("endpointCode"));
         Map<String, Object> policy = routingPolicyResolver.resolve(serviceId, endpointCode);
         List<Map<String, Object>> instances = instanceRegistry.findInstances(serviceId, endpointCode, null, 100);

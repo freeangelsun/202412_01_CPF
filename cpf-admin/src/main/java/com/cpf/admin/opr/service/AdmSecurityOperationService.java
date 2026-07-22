@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmIpAllowlistRequest;
-import cpf.adm.opr.dto.AdmMfaOtpRequest;
-import cpf.cmn.utils.TextUtils;
+import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
+import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
+import com.cpf.common.utils.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,7 +17,7 @@ import java.util.Map;
  * ADM 보안 운영 메타를 조회하고 변경합니다.
  */
 @Service
-public class AdmSecurityOperationService extends cpf.adm.common.base.AdmBaseService {
+public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmSecurityOperationService.class);
 
     private final JdbcTemplate admJdbcTemplate;

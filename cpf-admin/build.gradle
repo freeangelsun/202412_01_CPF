@@ -5,7 +5,7 @@ plugins {
     id 'war'
 }
 
-group = 'cpf.adm'
+group = 'com.cpf.admin'
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
@@ -17,14 +17,14 @@ repositories {
 }
 
 dependencies {
-    // ADM은 PFW 거래 로그와 CMN 공통 기능을 함께 사용합니다.
-    implementation project(':pfw')
-    implementation project(':cmn')
+    // ADM은 CPF 거래 로그와 CMN 공통 기능을 함께 사용합니다.
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
 
     // ADM REST API와 정적 관리 화면을 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // ADM/PFW/MBR 운영 DB를 JdbcTemplate으로 조회하고 변경합니다.
+    // ADM/CPF/MBR 운영 DB를 JdbcTemplate으로 조회하고 변경합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
     // Spring Batch 운영 기능을 ADM에서 수동 실행/재수행/중지할 수 있게 연결합니다.
@@ -44,6 +44,7 @@ tasks.named('test') {
 def frontendDir = layout.projectDirectory.dir('frontend')
 def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
 def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
 def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
 
 sourceSets.main.resources.srcDir(frontendOutputDir)
@@ -53,6 +54,7 @@ tasks.register('frontendInstall', Exec) {
     description = 'ADM frontend의 package-lock 기준 의존성을 설치합니다.'
     workingDir frontendDir
     commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
     inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
     outputs.file(frontendInstallMarker)
     doLast {

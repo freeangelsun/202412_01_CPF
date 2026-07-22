@@ -1,11 +1,11 @@
-package cpf.bza.support.service;
+package com.cpf.bizadmin.support.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.bza.support.repository.BzaSupportRepository;
-import cpf.pfw.common.attachment.CpfAttachmentContent;
-import cpf.pfw.common.attachment.CpfAttachmentStoragePort;
-import cpf.pfw.common.attachment.CpfStoredAttachment;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.bizadmin.support.repository.BzaSupportRepository;
+import com.cpf.core.common.attachment.CpfAttachmentContent;
+import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.common.attachment.CpfStoredAttachment;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

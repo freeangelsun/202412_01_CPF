@@ -1,11 +1,8 @@
-package cpf.pfw.common.workflow;
+package com.cpf.core.common.workflow;
 
 import java.util.Arrays;
 
-/**
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 워크플로 단계 실패 후 오케스트레이터가 취할 표준 처리 정책입니다. */
 public enum CpfWorkflowFailurePolicy {
     FAIL,
     RETRY,

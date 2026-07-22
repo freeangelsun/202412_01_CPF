@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 /**
  * 고정길이 필드의 padding 정렬 기준입니다.

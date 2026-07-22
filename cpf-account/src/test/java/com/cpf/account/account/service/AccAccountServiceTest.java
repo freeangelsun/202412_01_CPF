@@ -1,11 +1,11 @@
-package cpf.acc.account.service;
+package com.cpf.account.account.service;
 
-import cpf.acc.account.dto.AccAccountCreateRequest;
-import cpf.acc.account.dto.AccAccountResponse;
-import cpf.acc.account.dto.AccAccountSearchCriteria;
-import cpf.acc.account.dto.AccAccountUpdateRequest;
-import cpf.acc.account.port.AccAccountRepository;
-import cpf.pfw.common.exception.CpfBusinessException;
+import com.cpf.account.account.dto.AccAccountCreateRequest;
+import com.cpf.account.account.dto.AccAccountResponse;
+import com.cpf.account.account.dto.AccAccountSearchCriteria;
+import com.cpf.account.account.dto.AccAccountUpdateRequest;
+import com.cpf.account.account.port.AccAccountRepository;
+import com.cpf.core.common.exception.CpfBusinessException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

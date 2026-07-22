@@ -1,10 +1,10 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionIdGenerator;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
@@ -119,7 +119,7 @@ public class CpfBatchFileLogWriter {
     /**
      * 공유 로그 파일은 DB lease를 획득한 단일 writer만 기록합니다.
      *
-     * <p>PFW DB가 없는 로컬 실행은 JVM 단일 writer 모드로 동작합니다. 다른 인스턴스가 lease를
+     * <p>CPF DB가 없는 로컬 실행은 JVM 단일 writer 모드로 동작합니다. 다른 인스턴스가 lease를
      * 보유한 경우에는 이벤트를 버리지 않고 인스턴스별 fragment에 기록해 운영 병합 대상으로 남깁니다.</p>
      */
     private void writeWithOwnership(

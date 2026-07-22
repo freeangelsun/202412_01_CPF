@@ -1,8 +1,8 @@
-package cpf.cmn.cfg.service;
+package com.cpf.common.cfg.service;
 
-import cpf.cmn.cfg.dto.CommonConfigRequest;
-import cpf.cmn.cfg.mapper.ConfigMapper;
-import cpf.cmn.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.cfg.dto.CommonConfigRequest;
+import com.cpf.common.cfg.mapper.ConfigMapper;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 설정 캐시 서비스입니다.
+ * CPF 공통 설정 캐시 서비스입니다.
  * 설정 조회, 등록, 수정, 삭제 후 캐시 초기화와 refresh 이벤트 발행을 함께 처리합니다.
  */
 @Service
-public class ConfigCacheService extends cpf.cmn.common.base.CmnBaseService {
+public class ConfigCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigCacheService.class);
     private static final String CACHE_NAME = "configCache";
 

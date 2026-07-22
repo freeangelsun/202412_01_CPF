@@ -9,6 +9,12 @@
     [switch] $RequireRuntime
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -72,8 +78,8 @@ $result = [ordered]@{
 }
 
 try {
-    $controllerPath = Join-Path $Root "adm/src/main/java/cpf/adm/opr/controller/AdmServiceRegistryController.java"
-    $filterPath = Join-Path $Root "adm/src/main/java/cpf/adm/opr/filter/AdmApiAuthFilter.java"
+    $controllerPath = Join-Path $Root "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmServiceRegistryController.java"
+    $filterPath = Join-Path $Root "cpf-admin/src/main/java/com/cpf/admin/opr/filter/AdmApiAuthFilter.java"
     $result.probes.staticContract = [ordered]@{
         controllerExists = Test-Path -LiteralPath $controllerPath
         authFilterHasRoute = ([System.IO.File]::ReadAllText($filterPath, [System.Text.Encoding]::UTF8).Contains("/adm/api/service-registry"))

@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 /**
  * CPF 배치 운영 요청 유형입니다.

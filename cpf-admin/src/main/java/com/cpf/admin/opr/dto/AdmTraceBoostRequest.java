@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 /**
  * ADM 거래 단위 Trace Boost 요청입니다.

@@ -1,35 +1,35 @@
-package cpf.xyz.crud.application;
+package com.cpf.reference.crud.application;
 
-import cpf.xyz.transaction.application.XyzTransactionEducationAuditService;
-import cpf.cmn.utils.IdUtils;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfBusinessException;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.xyz.crud.dto.XyzCrudEducationRequest;
-import cpf.xyz.crud.dto.XyzCrudEducationResponse;
-import cpf.xyz.crud.dto.XyzCrudEducationStatusRequest;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.adapter.XyzQueryEducationRepository;
+import com.cpf.reference.transaction.application.ReferenceTransactionEducationAuditService;
+import com.cpf.common.utils.IdUtils;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfBusinessException;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationRequest;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationResponse;
+import com.cpf.reference.crud.dto.ReferenceCrudEducationStatusRequest;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
- * XYZ CRUD 교육 서비스입니다.
+ * REF CRUD 교육 서비스입니다.
  *
  * <p>이 서비스는 Controller, Service, Repository, Mapper, SQL fixture가 실제로 연결되는 최소 업무 흐름을 보여줍니다.
  * 신규 업무 모듈을 만들 때는 이 구조를 복사하되, ID 발급은 CMN 채번 또는 업무별 sequence 정책으로 승격합니다.</p>
  */
 @Service
-public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService {
-    private final XyzQueryEducationRepository repository;
-    private final XyzTransactionEducationAuditService auditService;
+public class ReferenceCrudEducationService extends com.cpf.reference.common.base.ReferenceBaseService {
+    private final ReferenceQueryEducationRepository repository;
+    private final ReferenceTransactionEducationAuditService auditService;
 
-    public XyzCrudEducationService(
-            XyzQueryEducationRepository repository,
-            XyzTransactionEducationAuditService auditService) {
+    public ReferenceCrudEducationService(
+            ReferenceQueryEducationRepository repository,
+            ReferenceTransactionEducationAuditService auditService) {
         this.repository = repository;
         this.auditService = auditService;
     }
@@ -38,7 +38,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      * CRUD 교육 항목 목록을 조회합니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public List<XyzCrudEducationResponse> findEducationItems(
+    public List<ReferenceCrudEducationResponse> findEducationItems(
             String keyword,
             String statusCode,
             String sort,
@@ -52,7 +52,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      * CRUD 교육 항목 단건을 조회합니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public XyzCrudEducationResponse getEducationItem(Long educationItemId) {
+    public ReferenceCrudEducationResponse getEducationItem(Long educationItemId) {
         return toCrudResponse(findExistingItem(educationItemId));
     }
 
@@ -60,7 +60,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      * CRUD 교육 항목을 등록합니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager")
-    public XyzCrudEducationResponse createEducationItem(XyzCrudEducationRequest request) {
+    public ReferenceCrudEducationResponse createEducationItem(ReferenceCrudEducationRequest request) {
         validateItemIdRangeRequest(request);
         Long itemId = repository.nextCrudItemId();
         String requestUser = repository.normalizeRequestUser(request.requestUser());
@@ -78,7 +78,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      * CRUD 교육 항목을 수정합니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager")
-    public XyzCrudEducationResponse updateEducationItem(Long educationItemId, XyzCrudEducationRequest request) {
+    public ReferenceCrudEducationResponse updateEducationItem(Long educationItemId, ReferenceCrudEducationRequest request) {
         findExistingItem(educationItemId);
         validateItemIdRangeRequest(request);
         int updatedRows = repository.updateCrudItem(
@@ -88,7 +88,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
                 TextUtils.defaultIfBlank(request.ownerMemberNo(), null),
                 repository.normalizeRequestUser(request.requestUser()));
         if (updatedRows != 1) {
-            throw new CpfNotFoundException("XYZ CRUD 교육 항목을 수정할 수 없습니다. educationItemId=" + educationItemId);
+            throw new CpfNotFoundException("REF CRUD 교육 항목을 수정할 수 없습니다. educationItemId=" + educationItemId);
         }
         return getEducationItem(educationItemId);
     }
@@ -97,16 +97,16 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      * CRUD 교육 항목 상태를 변경합니다.
      */
     @Transactional(transactionManager = "cmnTransactionManager")
-    public XyzCrudEducationResponse changeEducationItemStatus(
+    public ReferenceCrudEducationResponse changeEducationItemStatus(
             Long educationItemId,
-            XyzCrudEducationStatusRequest request) {
+            ReferenceCrudEducationStatusRequest request) {
         findExistingItem(educationItemId);
         int updatedRows = repository.updateCrudItemStatus(
                 educationItemId,
                 TextUtils.requireText(request.statusCode(), "statusCode"),
                 repository.normalizeRequestUser(request.requestUser()));
         if (updatedRows != 1) {
-            throw new CpfNotFoundException("XYZ CRUD 교육 항목 상태를 변경할 수 없습니다. educationItemId=" + educationItemId);
+            throw new CpfNotFoundException("REF CRUD 교육 항목 상태를 변경할 수 없습니다. educationItemId=" + educationItemId);
         }
         return getEducationItem(educationItemId);
     }
@@ -121,7 +121,7 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
                 educationItemId,
                 repository.normalizeRequestUser(requestUser));
         if (updatedRows != 1) {
-            throw new CpfNotFoundException("XYZ CRUD 교육 항목을 삭제할 수 없습니다. educationItemId=" + educationItemId);
+            throw new CpfNotFoundException("REF CRUD 교육 항목을 삭제할 수 없습니다. educationItemId=" + educationItemId);
         }
     }
 
@@ -130,8 +130,8 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      */
     @Transactional(transactionManager = "cmnTransactionManager")
     public String runSingleTransactionEducation() {
-        XyzCrudEducationResponse response = createEducationItem(new XyzCrudEducationRequest(
-                "SINGLE-" + IdUtils.temporaryId("XYZ"),
+        ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
+                "SINGLE-" + IdUtils.temporaryId("REF"),
                 "단일 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SINGLE",
@@ -144,8 +144,8 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
      */
     @Transactional(transactionManager = "cmnTransactionManager")
     public String runSeparatedTransactionEducation(boolean failAfterAudit) {
-        XyzCrudEducationResponse response = createEducationItem(new XyzCrudEducationRequest(
-                "SEPARATED-" + IdUtils.temporaryId("XYZ"),
+        ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
+                "SEPARATED-" + IdUtils.temporaryId("REF"),
                 "분리 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SEPARATED",
@@ -167,22 +167,22 @@ public class XyzCrudEducationService extends cpf.xyz.common.base.XyzBaseService 
         return auditService.getAuditMessages();
     }
 
-    private XyzQueryEducationItem findExistingItem(Long educationItemId) {
+    private ReferenceQueryEducationItem findExistingItem(Long educationItemId) {
         if (educationItemId == null || educationItemId <= 0) {
             throw new CpfValidationException("educationItemId는 1 이상의 값이어야 합니다. educationItemId=" + educationItemId);
         }
         return repository.findById(educationItemId)
-                .orElseThrow(() -> new CpfNotFoundException("XYZ CRUD 교육 항목을 찾을 수 없습니다. educationItemId=" + educationItemId));
+                .orElseThrow(() -> new CpfNotFoundException("REF CRUD 교육 항목을 찾을 수 없습니다. educationItemId=" + educationItemId));
     }
 
-    private void validateItemIdRangeRequest(XyzCrudEducationRequest request) {
+    private void validateItemIdRangeRequest(ReferenceCrudEducationRequest request) {
         if (request == null) {
             throw new CpfValidationException("CRUD 교육 요청 본문이 필요합니다.");
         }
     }
 
-    private XyzCrudEducationResponse toCrudResponse(XyzQueryEducationItem item) {
-        return new XyzCrudEducationResponse(
+    private ReferenceCrudEducationResponse toCrudResponse(ReferenceQueryEducationItem item) {
+        return new ReferenceCrudEducationResponse(
                 item.itemId(),
                 item.itemName(),
                 item.statusCode(),

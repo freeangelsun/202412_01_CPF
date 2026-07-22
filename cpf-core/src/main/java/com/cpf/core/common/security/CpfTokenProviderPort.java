@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 /**
  * OAuth/JWT token 발급 port입니다.

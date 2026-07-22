@@ -2,14 +2,20 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $utf8 = [System.Text.Encoding]::UTF8
 $sqlRoot = Join-Path $Root "specs\sql"
 $sqlFiles = Get-ChildItem -LiteralPath $sqlRoot -Recurse -File -Include *.sql
-$operatorServicePath = Join-Path $Root "adm\src\main\java\cpf\adm\opr\service\AdmOperatorService.java"
-$bootstrapPath = Join-Path $Root "adm\src\main\java\cpf\adm\opr\service\AdmBootstrapInitializer.java"
-$admConfigPath = Join-Path $Root "adm\src\main\resources\application.yml"
+$operatorServicePath = Join-Path $Root "cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmOperatorService.java"
+$bootstrapPath = Join-Path $Root "cpf-admin\src\main\java\com\cpf\admin\opr\service\AdmBootstrapInitializer.java"
+$admConfigPath = Join-Path $Root "cpf-admin\src\main\resources\application.yml"
 $admSeedPath = Join-Path $sqlRoot "60_adm_seed_data.sql"
 
 foreach ($file in $sqlFiles) {

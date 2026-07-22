@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch.centercut;
+package com.cpf.core.common.batch.centercut;
 
 /**
  * center-cut 대상과 처리 결과가 공통으로 사용하는 상태 코드입니다.

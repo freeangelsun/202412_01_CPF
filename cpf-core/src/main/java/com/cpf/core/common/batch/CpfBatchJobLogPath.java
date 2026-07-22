@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import java.nio.file.Path;
 import java.time.LocalDate;

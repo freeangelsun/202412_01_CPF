@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 /**
  * ADM menu and permission response.

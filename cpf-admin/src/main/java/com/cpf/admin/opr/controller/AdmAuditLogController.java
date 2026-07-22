@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/audit-logs")
 @Tag(name = "ADM-OPR Audit Logs", description = "Operator audit log query APIs")
-public class AdmAuditLogController extends cpf.adm.common.base.AdmBaseController {
+public class AdmAuditLogController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmAuditLogService auditLogService;
 
     public AdmAuditLogController(AdmAuditLogService auditLogService) {

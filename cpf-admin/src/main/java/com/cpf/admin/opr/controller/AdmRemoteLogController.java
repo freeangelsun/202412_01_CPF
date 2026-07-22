@@ -1,16 +1,16 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.remotelog.CpfRemoteLogArtifact;
-import cpf.pfw.common.remotelog.CpfRemoteLogBundle;
-import cpf.pfw.common.remotelog.CpfRemoteLogArtifactPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogArtifactSearch;
-import cpf.pfw.common.remotelog.CpfRemoteLogBundleJob;
-import cpf.pfw.common.remotelog.CpfRemoteLogBundleJobPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogDownloadGrant;
-import cpf.pfw.common.remotelog.CpfRemoteLogPreview;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.remotelog.CpfRemoteLogArtifact;
+import com.cpf.core.common.remotelog.CpfRemoteLogBundle;
+import com.cpf.core.common.remotelog.CpfRemoteLogArtifactPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogArtifactSearch;
+import com.cpf.core.common.remotelog.CpfRemoteLogBundleJob;
+import com.cpf.core.common.remotelog.CpfRemoteLogBundleJobPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogDownloadGrant;
+import com.cpf.core.common.remotelog.CpfRemoteLogPreview;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +35,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** ADM에서 PFW 로그 아티팩트 port를 통해 안전한 로그 조회와 다운로드를 제공합니다. */
+/** ADM에서 CPF 로그 아티팩트 port를 통해 안전한 로그 조회와 다운로드를 제공합니다. */
 @RestController
 @RequestMapping("/adm/api/remote-logs")
 @Tag(name = "ADM-OPR Remote Log", description = "실행 인스턴스 로그 아티팩트 조회, 미리보기, 다운로드")
-public class AdmRemoteLogController extends cpf.adm.common.base.AdmBaseController {
+public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseController {
 
     private final CpfRemoteLogArtifactPort remoteLogArtifactPort;
     private final CpfRemoteLogBundleJobPort remoteLogBundleJobPort;

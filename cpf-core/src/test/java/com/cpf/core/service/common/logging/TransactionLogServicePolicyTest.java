@@ -1,9 +1,9 @@
-package cpf.pfw.service.common.logging;
+package com.cpf.core.service.common.logging;
 
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.common.logging.policy.LogPolicyTargetType;
-import cpf.pfw.mapper.common.logging.TransactionLogMapper;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.policy.LogPolicyTargetType;
+import com.cpf.core.mapper.common.logging.TransactionLogMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;

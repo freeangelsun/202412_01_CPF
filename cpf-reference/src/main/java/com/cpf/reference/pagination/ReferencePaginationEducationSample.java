@@ -1,11 +1,11 @@
-package cpf.xyz.pagination;
+package com.cpf.reference.pagination;
 
 import java.util.List;
 
 /**
  * offset/keyset 조회 차이를 보여주는 pagination 샘플입니다.
  */
-public class XyzPaginationEducationSample {
+public class ReferencePaginationEducationSample {
 
     public List<Integer> offsetPage(List<Integer> ids, int offset, int size) {
         return ids.stream().skip(offset).limit(size).toList();

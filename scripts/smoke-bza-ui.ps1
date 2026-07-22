@@ -3,6 +3,12 @@
     [string] $ResultDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
 
@@ -10,11 +16,11 @@ $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$htmlPath = Join-Path $Root "bza/frontend/src/App.vue"
-$scriptPath = Join-Path $Root "bza/frontend/src/features/console.ts"
-$helperPath = Join-Path $Root "bza/frontend/src/shared/html.ts"
-$packageLockPath = Join-Path $Root "bza/frontend/package-lock.json"
-$generatedIndexPath = Join-Path $Root "bza/build/generated/frontend/static/bza/index.html"
+$htmlPath = Join-Path $Root "cpf-biz-admin/frontend/src/App.vue"
+$scriptPath = Join-Path $Root "cpf-biz-admin/frontend/src/features/console.ts"
+$helperPath = Join-Path $Root "cpf-biz-admin/frontend/src/shared/html.ts"
+$packageLockPath = Join-Path $Root "cpf-biz-admin/frontend/package-lock.json"
+$generatedIndexPath = Join-Path $Root "cpf-biz-admin/build/generated/frontend/static/bza/index.html"
 $resultPath = Join-Path $ResultDir "bza-ui-static-result.sanitized.json"
 $result = [ordered]@{
     checkedAt = [DateTimeOffset]::Now.ToString("o")
@@ -76,7 +82,7 @@ try {
 
     $npm = Get-Command $(if ($env:OS -eq "Windows_NT") { "npm.cmd" } else { "npm" }) -ErrorAction SilentlyContinue
     if ($npm) {
-        Push-Location (Join-Path $Root "bza/frontend")
+        Push-Location (Join-Path $Root "cpf-biz-admin/frontend")
         try {
             $nodeOutput = @(& $npm.Source run typecheck 2>&1 | ForEach-Object { $_.ToString() })
         } finally {

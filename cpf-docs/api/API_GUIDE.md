@@ -35,7 +35,7 @@
 
 | Header | Description |
 |---|---|
-| `X-Transaction-Id` | 전역 거래 식별자 |
+| `X-Transaction-Id` | 전역 거래 식별자. 기본 규격은 34자리이며 모든 내부 호출에 전달 |
 | `X-Trace-Id` | Trace 식별자 |
 | `X-Transaction-Segment-Id` | 호출 구간 식별자 |
 | `X-Channel-Code` | 인증된 Channel |
@@ -45,13 +45,24 @@
 
 Client가 임의 생성할 수 없는 Header는 Gateway에서 재작성합니다.
 
+`X-Transaction-Id`의 기본 구성은 `yyyyMMddHHmmssSSS`(17) + 모듈 ID(3) +
+WAS ID(7) + 일일 순번(7)입니다. 인바운드 값이 34자리 표준에 맞지 않으면
+신뢰 경계에서 새 ID를 생성하며, 정상 값은 하위 Local/Remote 호출과 로그에
+그대로 전달합니다. 업무 실행 ID(`OACC...`)는 API 기능을 식별하는 별도 값으로
+거래 ID 대신 사용하지 않습니다.
+
+`cpf-core`의 공식 3자리 시스템 코드는 `CPF`입니다. 따라서 코어가 직접 발급하는
+거래 ID의 모듈 구간은 `CPF`, 공통 성공·오류 코드는 `SCPF...`·`ECPF...`, 메시지
+코드는 `MCPF...`를 사용합니다. `CPF`는 `cpfDB`, `cpf_*` 테이블과 기술 capability
+명칭에만 유지하며 신규 시스템 코드로 발급하지 않습니다.
+
 ## 4. Response Envelope
 
 성공:
 
 ```json
 {
-  "transactionId": "OACC-TR-0001",
+  "transactionId": "20260722103045123ACCwas00010000001",
   "data": {
     "transferId": "TR202607210001",
     "status": "COMPLETED"
@@ -63,7 +74,7 @@ Client가 임의 생성할 수 없는 Header는 Gateway에서 재작성합니다
 
 ```json
 {
-  "transactionId": "OACC-TR-0001",
+  "transactionId": "20260722103045123ACCwas00010000001",
   "error": {
     "code": "ACC-TRANSFER-40901",
     "message": "출금 가능 잔액이 부족합니다.",

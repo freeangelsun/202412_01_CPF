@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
-import cpf.pfw.common.exception.CpfFrameworkErrorCode;
-import cpf.pfw.common.exception.CpfFrameworkException;
+import com.cpf.core.common.exception.CpfFrameworkErrorCode;
+import com.cpf.core.common.exception.CpfFrameworkException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -34,6 +34,12 @@ public class DynamicTransactionLogLevelService {
                     "동적 로그 레벨은 트랜잭션 ID 또는 업무 거래 ID 중 하나가 필요합니다.",
                     Map.of("requiredFields", "transactionId,businessTransactionId"));
         }
+        if (!hasText(request.getReason())) {
+            throw new CpfFrameworkException(
+                    CpfFrameworkErrorCode.DYNAMIC_LOG_RULE_INVALID,
+                    "동적 로그 레벨 변경에는 감사 사유가 필요합니다.",
+                    Map.of("requiredFields", "reason"));
+        }
 
         CpfLogLevel logLevel = request.getLogLevel() == null ? CpfLogLevel.DEBUG : request.getLogLevel();
         Duration ttl = request.getTtl() == null || request.getTtl().isNegative() || request.getTtl().isZero()
@@ -46,7 +52,7 @@ public class DynamicTransactionLogLevelService {
                 normalize(request.getBusinessTransactionId()),
                 normalize(request.getModuleId()),
                 logLevel,
-                request.getReason(),
+                request.getReason().trim(),
                 hasText(request.getRequestUser()) ? request.getRequestUser() : "SYSTEM",
                 now,
                 now.plus(ttl));

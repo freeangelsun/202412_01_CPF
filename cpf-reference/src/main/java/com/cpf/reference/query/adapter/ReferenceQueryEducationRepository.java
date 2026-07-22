@@ -1,8 +1,8 @@
-package cpf.xyz.query.adapter;
+package com.cpf.reference.query.adapter;
 
-import cpf.xyz.query.dto.XyzQueryEducationCriteria;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.adapter.XyzQueryEducationMapper;
+import com.cpf.reference.query.dto.ReferenceQueryEducationCriteria;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,27 +16,27 @@ import java.util.Optional;
  * 정렬은 whitelist 코드만 Mapper XML의 {@code choose} 분기로 전달해 SQL injection 위험을 줄입니다.</p>
  */
 @Repository
-public class XyzQueryEducationRepository {
+public class ReferenceQueryEducationRepository {
     public static final int MAX_PAGE_SIZE = 100;
     public static final String SORT_ID_ASC = "ID_ASC";
     public static final String SORT_NAME_ASC = "NAME_ASC";
     public static final String SORT_CREATED_DESC = "CREATED_DESC";
 
-    private final XyzQueryEducationMapper mapper;
+    private final ReferenceQueryEducationMapper mapper;
 
-    public XyzQueryEducationRepository(XyzQueryEducationMapper mapper) {
+    public ReferenceQueryEducationRepository(ReferenceQueryEducationMapper mapper) {
         this.mapper = mapper;
     }
 
-    public Optional<XyzQueryEducationItem> findById(Long itemId) {
+    public Optional<ReferenceQueryEducationItem> findById(Long itemId) {
         return Optional.ofNullable(mapper.findById(itemId));
     }
 
-    public List<XyzQueryEducationItem> findItems(String keyword, String statusCode, String sort, int limit) {
+    public List<ReferenceQueryEducationItem> findItems(String keyword, String statusCode, String sort, int limit) {
         return mapper.findItems(criteria(keyword, statusCode, sort, normalizeSize(limit), 0, null));
     }
 
-    public List<XyzQueryEducationItem> findOffsetPageItems(
+    public List<ReferenceQueryEducationItem> findOffsetPageItems(
             String keyword,
             String statusCode,
             String sort,
@@ -52,7 +52,7 @@ public class XyzQueryEducationRepository {
         return mapper.countOffsetPageItems(criteria(keyword, statusCode, SORT_ID_ASC, MAX_PAGE_SIZE, 0, null));
     }
 
-    public List<XyzQueryEducationItem> findKeysetPageItems(Long cursorId, int size) {
+    public List<ReferenceQueryEducationItem> findKeysetPageItems(Long cursorId, int size) {
         int limitPlusOne = normalizeSize(size) + 1;
         return mapper.findKeysetPageItems(criteria(null, null, SORT_ID_ASC, limitPlusOne, 0, cursorId));
     }
@@ -97,14 +97,14 @@ public class XyzQueryEducationRepository {
         return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
-    XyzQueryEducationCriteria criteria(
+    ReferenceQueryEducationCriteria criteria(
             String keyword,
             String statusCode,
             String sort,
             int limit,
             int offset,
             Long cursorId) {
-        return new XyzQueryEducationCriteria(
+        return new ReferenceQueryEducationCriteria(
                 normalizeText(keyword),
                 normalizeUpper(statusCode),
                 normalizeSortCode(sort),
@@ -130,7 +130,7 @@ public class XyzQueryEducationRepository {
 
     public String normalizeRequestUser(String value) {
         String normalized = normalizeText(value);
-        return normalized == null ? "XYZ_EDU" : normalized;
+        return normalized == null ? "REF_EDU" : normalized;
     }
 
     private String normalizeText(String value) {

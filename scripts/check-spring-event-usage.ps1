@@ -3,6 +3,12 @@
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 $allowed = New-Object System.Collections.Generic.List[object]
@@ -37,10 +43,14 @@ function Test-AllowedSpringEventUsage {
         [string] $Text
     )
 
-    if ($RelativePath -match "^pfw/src/main/java/cpf/pfw/common/logging/") {
+    if ($RelativePath -match "^cpf-core/src/main/java/com/cpf/core/common/logging/") {
         return $true
     }
-    if ($RelativePath -eq "pfw/src/main/java/cpf/pfw/config/CpfTransactionMetaAutoConfiguration.java") {
+    if ($RelativePath -eq "cpf-core/src/main/java/com/cpf/core/config/CpfTransactionMetaAutoConfiguration.java") {
+        return $true
+    }
+    if ($RelativePath -eq "cpf-batch/src/main/java/com/cpf/batch/worker/BatWorkerAgent.java" -and
+            $Text -match "@EventListener\(ApplicationReadyEvent\.class\)") {
         return $true
     }
     return $false

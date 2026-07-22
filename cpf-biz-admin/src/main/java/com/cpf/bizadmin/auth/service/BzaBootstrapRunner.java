@@ -1,7 +1,7 @@
-package cpf.bza.auth.service;
+package com.cpf.bizadmin.auth.service;
 
-import cpf.bza.auth.repository.BzaAuthRepository;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
+import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;

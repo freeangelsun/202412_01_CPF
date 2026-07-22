@@ -1,17 +1,17 @@
-package cpf.bat.edu.archive;
+package com.cpf.batch.edu.archive;
 
-import cpf.pfw.common.archive.CpfArchiveEntry;
-import cpf.pfw.common.archive.CpfArchivePolicy;
-import cpf.pfw.common.archive.CpfArchiveRequest;
-import cpf.pfw.common.archive.CpfArchiveResult;
-import cpf.pfw.common.archive.LocalCpfArchiveService;
+import com.cpf.core.common.archive.CpfArchiveEntry;
+import com.cpf.core.common.archive.CpfArchivePolicy;
+import com.cpf.core.common.archive.CpfArchiveRequest;
+import com.cpf.core.common.archive.CpfArchiveResult;
+import com.cpf.core.common.archive.LocalCpfArchiveService;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
 /**
- * 배치 결과 파일을 PFW archive capability로 압축하는 샘플입니다.
+ * 배치 결과 파일을 CPF archive capability로 압축하는 샘플입니다.
  */
 public class BatArchiveCompressionEducationSample {
 

@@ -1,4 +1,4 @@
-package cpf.bat.job.smoke;
+package com.cpf.batch.job.smoke;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

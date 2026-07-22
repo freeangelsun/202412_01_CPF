@@ -1,4 +1,4 @@
-package cpf.acc.reference.dto;
+package com.cpf.account.reference.dto;
 
 import java.util.Set;
 

@@ -1,6 +1,6 @@
-package cpf.cmn.ref.service;
+package com.cpf.common.ref.service;
 
-import cpf.cmn.ref.mapper.CacheRefreshEventMapper;
+import com.cpf.common.ref.mapper.CacheRefreshEventMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,12 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 캐시 변경을 다른 WAS에 알리기 위한 DB fallback 이벤트를 발행합니다. */
 @Service
 public class CacheRefreshEventPublisher {
     private static final Logger logger = LoggerFactory.getLogger(CacheRefreshEventPublisher.class);
@@ -29,33 +24,13 @@ public class CacheRefreshEventPublisher {
         this.cacheRefreshEventMapper = cacheRefreshEventMapper;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** 독립 트랜잭션으로 캐시 갱신 이벤트를 즉시 기록합니다. */
     @Transactional(transactionManager = "cmnTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void publish(String cacheName, String eventType, String eventKey, String requestUser) {
         publishNow(cacheName, eventType, eventKey, requestUser);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** 업무 트랜잭션 커밋 이후 이벤트를 기록해 롤백된 변경이 전파되지 않게 합니다. */
     public void publishAfterCommit(String cacheName, String eventType, String eventKey, String requestUser) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

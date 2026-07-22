@@ -1,15 +1,27 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01"),
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "cpf-docs/evidence/20260722_01"),
     [switch] $RequireClasses,
     [switch] $RequireBootJars
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $ExpectedMajor = 69
-$Modules = @("pfw", "cmn", "mbr", "xyz", "adm", "bza", "bat", "acc", "pfw-gateway-runtime")
-$BootModules = @("adm", "bat", "bza", "mbr", "xyz", "acc", "pfw-gateway-runtime")
+$Modules = @(
+    "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-admin",
+    "cpf-biz-admin", "cpf-batch", "cpf-account", "cpf-external", "cpf-gateway"
+)
+$BootModules = @(
+    "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-member",
+    "cpf-reference", "cpf-account", "cpf-external", "cpf-gateway"
+)
 $failures = New-Object System.Collections.Generic.List[string]
 $classRows = New-Object System.Collections.Generic.List[object]
 $bootRows = New-Object System.Collections.Generic.List[object]

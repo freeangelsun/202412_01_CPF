@@ -1,4 +1,4 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import java.util.List;
 

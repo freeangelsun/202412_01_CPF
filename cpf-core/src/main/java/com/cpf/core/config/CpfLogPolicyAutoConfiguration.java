@@ -1,9 +1,9 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.common.logging.policy.JdbcLogPolicyRepository;
-import cpf.pfw.common.logging.policy.LogPolicyCache;
-import cpf.pfw.common.logging.policy.LogPolicyRepository;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.common.logging.policy.JdbcLogPolicyRepository;
+import com.cpf.core.common.logging.policy.LogPolicyCache;
+import com.cpf.core.common.logging.policy.LogPolicyRepository;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 
 /**
- * PFW 로그 정책 resolver/cache 자동 구성입니다.
+ * CPF 로그 정책 resolver/cache 자동 구성입니다.
  */
 @Configuration(proxyBeanMethods = false)
 public class CpfLogPolicyAutoConfiguration {
@@ -23,8 +23,8 @@ public class CpfLogPolicyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LogPolicyRepository logPolicyRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new JdbcLogPolicyRepository(jdbcTemplateProvider, dataSourceProvider);
     }
 

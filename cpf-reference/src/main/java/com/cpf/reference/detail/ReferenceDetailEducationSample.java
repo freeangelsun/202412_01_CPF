@@ -1,11 +1,11 @@
-package cpf.xyz.detail;
+package com.cpf.reference.detail;
 
 import java.util.Map;
 
 /**
  * 상세 조회에서 권한 확인과 마스킹을 함께 수행하는 샘플입니다.
  */
-public class XyzDetailEducationSample {
+public class ReferenceDetailEducationSample {
 
     public Map<String, String> detail(boolean allowed, String email) {
         if (!allowed) {

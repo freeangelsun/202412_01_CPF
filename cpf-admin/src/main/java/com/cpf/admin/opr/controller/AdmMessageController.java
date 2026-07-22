@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.cmn.msg.dto.CommonMessageRequest;
-import cpf.cmn.msg.service.MessageCacheService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.msg.dto.CommonMessageRequest;
+import com.cpf.common.msg.service.MessageCacheService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,8 +25,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/adm/api/messages")
-@Tag(name = "ADM-PFW Messages", description = "PFW 공통 메시지 관리 API")
-public class AdmMessageController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-CPF Messages", description = "CPF 공통 메시지 관리 API")
+public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseController {
     private final MessageCacheService messageCacheService;
     private final AdmAuditLogService auditLogService;
 
@@ -37,21 +37,21 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMMS0010", name = "ADMMessageList")
-    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "pfw_message 기준 메시지를 locale별로 조회합니다.")
+    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "cpf_message 기준 메시지를 locale별로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMessages() {
         return ResponseEntity.ok(messageCacheService.getAllMessages());
     }
 
     @GetMapping("/{messageId}")
     @CpfOnlineTransaction(id = "OADMMS0011", name = "ADMMessageDetail")
-    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 pfw_message 상세 정보를 조회합니다.")
+    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 cpf_message 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findMessage(@PathVariable Long messageId) {
         return ResponseEntity.ok(messageCacheService.getMessageById(messageId));
     }
 
     @PostMapping
     @CpfOnlineTransaction(id = "OADMMS0012", name = "ADMMessageCreate")
-    @Operation(operationId = "admMessageCreateMessage", summary = "공통 메시지 등록", description = "pfw_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageCreateMessage", summary = "공통 메시지 등록", description = "cpf_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createMessage(
             @Valid @RequestBody CommonMessageRequest request,
             HttpServletRequest servletRequest) {
@@ -61,7 +61,7 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_CREATE",
-                "pfw_message",
+                "cpf_message",
                 String.valueOf(created.getOrDefault("messageId", request.getEffectiveMessageCode())),
                 reason,
                 null,
@@ -73,7 +73,7 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
 
     @PutMapping("/{messageId}")
     @CpfOnlineTransaction(id = "OADMMS0013", name = "ADMMessageUpdate")
-    @Operation(operationId = "admMessageUpdateMessage", summary = "공통 메시지 수정", description = "pfw_message를 수정하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageUpdateMessage", summary = "공통 메시지 수정", description = "cpf_message를 수정하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateMessage(
             @PathVariable Long messageId,
             @Valid @RequestBody CommonMessageRequest request,
@@ -85,7 +85,7 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_UPDATE",
-                "pfw_message",
+                "cpf_message",
                 String.valueOf(messageId),
                 reason,
                 String.valueOf(before),
@@ -97,7 +97,7 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
 
     @DeleteMapping("/{messageId}")
     @CpfOnlineTransaction(id = "OADMMS0014", name = "ADMMessageDisable")
-    @Operation(operationId = "admMessageDeleteMessage", summary = "공통 메시지 비활성", description = "pfw_message를 비활성화하고 메시지 캐시를 갱신합니다.")
+    @Operation(operationId = "admMessageDeleteMessage", summary = "공통 메시지 비활성", description = "cpf_message를 비활성화하고 메시지 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteMessage(
             @PathVariable Long messageId,
             @RequestParam String reason,
@@ -110,7 +110,7 @@ public class AdmMessageController extends cpf.adm.common.base.AdmBaseController 
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, requestUser),
                 "MESSAGE_DISABLE",
-                "pfw_message",
+                "cpf_message",
                 String.valueOf(messageId),
                 requiredReason,
                 String.valueOf(before),

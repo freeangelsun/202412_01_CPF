@@ -1,6 +1,6 @@
-package cpf.bza.auth.filter;
+package com.cpf.bizadmin.auth.filter;
 
-import cpf.bza.auth.service.BzaAuthService;
+import com.cpf.bizadmin.auth.service.BzaAuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockFilterChain;

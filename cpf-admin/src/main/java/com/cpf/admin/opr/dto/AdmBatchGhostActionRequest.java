@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 /**
  * 배치 ghost 후보에 대한 운영 조치 요청입니다.

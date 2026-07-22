@@ -1,4 +1,4 @@
-package cpf.xyz.query.dto;
+package com.cpf.reference.query.dto;
 
 /**
  * 조회 EDU 샘플에서 사용하는 읽기 전용 항목 DTO입니다.
@@ -10,7 +10,7 @@ package cpf.xyz.query.dto;
  * @param ownerMemberNo 예시 소유 회원 번호. MBR 테이블과 직접 조인하지 않고 값만 보관합니다.
  * @param createdAt ISO 형태로 변환한 생성 일시 문자열
  */
-public record XyzQueryEducationItem(
+public record ReferenceQueryEducationItem(
         Long itemId,
         String itemName,
         String categoryCode,

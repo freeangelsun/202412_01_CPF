@@ -2,3 +2,9 @@
 
 server:
   port: ${BAT_SERVER_PORT}
+
+cpf:
+  bat:
+    smoke:
+      run-on-startup: false
+      run-failure-on-startup: false

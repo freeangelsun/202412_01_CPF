@@ -1,8 +1,8 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.ServerInstanceIdentity.Identity;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.ServerInstanceIdentity.Identity;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -77,14 +77,14 @@ public class CpfBatchLauncher {
 
     private CpfBatchExecutionResult launch(CpfBatchExecutionRequest request, CpfBatchOperationType operationType) {
         String jobId = request.requiredJobId();
-        String user = request.normalizedRequestUser("PFW_BATCH");
+        String user = request.normalizedRequestUser("CPF_BATCH");
         String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
         Identity identity = ServerInstanceIdentity.current();
         String ownerId = identity.serverInstanceId();
         String workerId = ownerId;
         String lockKey = lockManager.lockKey(jobId, request.normalizedJobParameters());
         boolean locked = false;
-        long pfwExecutionId = -1L;
+        long cpfExecutionId = -1L;
 
         if (request.lockRequired() && !lockManager.acquire(lockKey, jobId, request.normalizedJobParameters(), ownerId, lockTtlSeconds)) {
             return notRun(jobId, "동일 Job/파라미터가 이미 실행 중입니다.", transactionGlobalId);
@@ -98,7 +98,7 @@ public class CpfBatchLauncher {
             publish(CpfBatchEventType.RUN_REQUESTED, jobId, null, transactionGlobalId, "배치 실행 요청", Map.of());
 
             if (jobLauncher == null || job == null) {
-                pfwExecutionId = repository.startExecution(
+                cpfExecutionId = repository.startExecution(
                         request,
                         "REQUESTED",
                         null,
@@ -108,15 +108,15 @@ public class CpfBatchLauncher {
                         transactionGlobalId,
                         user);
                 repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
-                repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
+                repository.recordOperation(jobId, cpfExecutionId, operationType.name(), user, request.reason(), null,
                         "Spring Batch 실행 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.", "S", "REQUESTED");
-                publish(CpfBatchEventType.EXECUTION_NOT_RUN, jobId, pfwExecutionId, transactionGlobalId,
+                publish(CpfBatchEventType.EXECUTION_NOT_RUN, jobId, cpfExecutionId, transactionGlobalId,
                         "Spring Batch 실행 인프라가 없어 요청만 기록했습니다.", Map.of());
-                return result(false, jobId, pfwExecutionId, null, "REQUESTED",
+                return result(false, jobId, cpfExecutionId, null, "REQUESTED",
                         "Spring Batch 실행 인프라 또는 Job bean이 없어 요청 이력만 기록했습니다.");
             }
 
-            pfwExecutionId = repository.startExecution(
+            cpfExecutionId = repository.startExecution(
                     request,
                     "RUNNING",
                     null,
@@ -125,12 +125,12 @@ public class CpfBatchLauncher {
                     workerId,
                     transactionGlobalId,
                     user);
-            repository.recordWorkerHeartbeat(workerId, identity, "RUNNING", jobId, pfwExecutionId, user);
-            JobExecution execution = jobLauncher.run(job, toJobParameters(request, transactionGlobalId, user, pfwExecutionId));
+            repository.recordWorkerHeartbeat(workerId, identity, "RUNNING", jobId, cpfExecutionId, user);
+            JobExecution execution = jobLauncher.run(job, toJobParameters(request, transactionGlobalId, user, cpfExecutionId));
             String executionStatus = execution.getStatus().name();
             String executionFailureMessage = failureMessage(execution);
             repository.completeExecution(
-                    pfwExecutionId,
+                    cpfExecutionId,
                     executionStatus,
                     execution.getId(),
                     workerId,
@@ -142,18 +142,18 @@ public class CpfBatchLauncher {
                     ? "배치 실행이 완료되었습니다."
                     : defaultIfBlank(executionFailureMessage, "배치 실행 완료 상태가 아닙니다. status=" + executionStatus);
             repository.recordWorkerHeartbeat(workerId, identity, "IDLE", null, null, user);
-            repository.recordOperation(jobId, pfwExecutionId, operationType.name(), user, request.reason(), null,
+            repository.recordOperation(jobId, cpfExecutionId, operationType.name(), user, request.reason(), null,
                     "SPRING_BATCH_EXECUTION_ID=" + execution.getId(), completed ? "S" : "F", executionStatus);
             publish(completed ? CpfBatchEventType.RUN_COMPLETED : CpfBatchEventType.RUN_FAILED,
                     jobId,
-                    pfwExecutionId,
+                    cpfExecutionId,
                     transactionGlobalId,
                     executionMessage,
                     Map.of("springBatchExecutionId", execution.getId()));
-            return result(true, jobId, pfwExecutionId, execution.getId(), executionStatus, executionMessage);
+            return result(true, jobId, cpfExecutionId, execution.getId(), executionStatus, executionMessage);
         } catch (Exception ex) {
-            if (pfwExecutionId < 1 && repository.available()) {
-                pfwExecutionId = repository.startExecution(
+            if (cpfExecutionId < 1 && repository.available()) {
+                cpfExecutionId = repository.startExecution(
                         request,
                         "FAILED",
                         null,
@@ -163,15 +163,15 @@ public class CpfBatchLauncher {
                         transactionGlobalId,
                         user);
             }
-            if (pfwExecutionId > 0) {
-                repository.completeExecution(pfwExecutionId, "FAILED", null, workerId, ex.getMessage(), null, user);
+            if (cpfExecutionId > 0) {
+                repository.completeExecution(cpfExecutionId, "FAILED", null, workerId, ex.getMessage(), null, user);
             }
-            repository.recordWorkerHeartbeat(workerId, identity, "ERROR", jobId, pfwExecutionId < 0 ? null : pfwExecutionId, user);
-            repository.recordOperation(jobId, pfwExecutionId < 0 ? null : pfwExecutionId, operationType.name() + "_FAILED",
+            repository.recordWorkerHeartbeat(workerId, identity, "ERROR", jobId, cpfExecutionId < 0 ? null : cpfExecutionId, user);
+            repository.recordOperation(jobId, cpfExecutionId < 0 ? null : cpfExecutionId, operationType.name() + "_FAILED",
                     user, request.reason(), null, ex.getMessage(), "F", ex.getMessage());
-            publish(CpfBatchEventType.RUN_FAILED, jobId, pfwExecutionId < 0 ? null : pfwExecutionId, transactionGlobalId,
+            publish(CpfBatchEventType.RUN_FAILED, jobId, cpfExecutionId < 0 ? null : cpfExecutionId, transactionGlobalId,
                     ex.getMessage(), Map.of());
-            return result(false, jobId, pfwExecutionId < 0 ? null : pfwExecutionId, null, "FAILED", ex.getMessage());
+            return result(false, jobId, cpfExecutionId < 0 ? null : cpfExecutionId, null, "FAILED", ex.getMessage());
         } finally {
             if (locked) {
                 lockManager.release(lockKey, ownerId);
@@ -185,7 +185,7 @@ public class CpfBatchLauncher {
         }
         Map<String, Object> source = repository.findExecution(request.sourceExecutionId());
         String jobId = String.valueOf(source.get("job_id"));
-        String user = request.normalizedRequestUser("PFW_BATCH");
+        String user = request.normalizedRequestUser("CPF_BATCH");
         Object springExecutionId = source.get("spring_batch_execution_id");
         publish(CpfBatchEventType.RETRY_REQUESTED, jobId, request.sourceExecutionId(), TransactionContext.getOrCreateTransactionId(),
                 "배치 재시작 요청", Map.of());
@@ -200,12 +200,12 @@ public class CpfBatchLauncher {
                     jobId, String.valueOf(source.get("job_parameters")), user, request.reason());
             Identity identity = ServerInstanceIdentity.current();
             String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
-            long pfwExecutionId = repository.startExecution(
+            long cpfExecutionId = repository.startExecution(
                     restartRequest, "RESTARTED", restartedId, identity.serverInstanceId(),
                     identity.serverInstanceId(), identity.serverInstanceId(), transactionGlobalId, user);
-            repository.recordOperation(jobId, pfwExecutionId, "RESTART", user, request.reason(), String.valueOf(source),
+            repository.recordOperation(jobId, cpfExecutionId, "RESTART", user, request.reason(), String.valueOf(source),
                     "SPRING_BATCH_EXECUTION_ID=" + restartedId, "S", "RESTARTED");
-            return result(true, jobId, pfwExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");
+            return result(true, jobId, cpfExecutionId, restartedId, "RESTARTED", "Spring Batch 재시작을 요청했습니다.");
         } catch (Exception ex) {
             repository.recordOperation(jobId, request.sourceExecutionId(), "RESTART_FAILED", user,
                     request.reason(), String.valueOf(source), null, "F", ex.getClass().getSimpleName());
@@ -222,7 +222,7 @@ public class CpfBatchLauncher {
         String jobId = String.valueOf(source.get("job_id"));
         String parameters = String.valueOf(source.get("job_parameters"));
         CpfBatchExecutionRequest rerunRequest = CpfBatchExecutionRequest.run(
-                jobId, parameters, request.normalizedRequestUser("PFW_BATCH"), request.reason());
+                jobId, parameters, request.normalizedRequestUser("CPF_BATCH"), request.reason());
         return launch(rerunRequest, CpfBatchOperationType.RERUN);
     }
 
@@ -239,7 +239,7 @@ public class CpfBatchLauncher {
         Map<String, Object> before = repository.findExecution(request.sourceExecutionId());
         String jobId = String.valueOf(before.get("job_id"));
         Object springExecutionId = before.get("spring_batch_execution_id");
-        String user = request.normalizedRequestUser("PFW_BATCH");
+        String user = request.normalizedRequestUser("CPF_BATCH");
         if (jobOperator != null && springExecutionId != null) {
             try {
                 jobOperator.stop(Long.parseLong(String.valueOf(springExecutionId)));
@@ -261,7 +261,7 @@ public class CpfBatchLauncher {
             CpfBatchExecutionRequest request,
             String transactionGlobalId,
             String user,
-            long pfwExecutionId) {
+            long cpfExecutionId) {
         String workerInstanceId = ServerInstanceIdentity.current().serverInstanceId();
         long requestTime = System.currentTimeMillis();
         JobParametersBuilder builder = new JobParametersBuilder()
@@ -278,7 +278,7 @@ public class CpfBatchLauncher {
                 .addString("runId", String.valueOf(requestTime))
                 .addString("rerunId", "0")
                 .addLong("restartAttempt", 0L)
-                .addLong(CpfBatchHeartbeatService.PARAM_PFW_EXECUTION_ID, pfwExecutionId)
+                .addLong(CpfBatchHeartbeatService.PARAM_CPF_EXECUTION_ID, cpfExecutionId)
                 .addLong("requestTime", requestTime);
         if (hasText(request.standardBatchId())) {
             builder.addString("standardBatchId", request.standardBatchId().trim());
@@ -320,17 +320,17 @@ public class CpfBatchLauncher {
     private CpfBatchExecutionResult result(
             boolean executed,
             String jobId,
-            Long pfwExecutionId,
+            Long cpfExecutionId,
             Long springBatchExecutionId,
             String status,
             String message) {
         Map<String, Object> detail = new LinkedHashMap<>();
         detail.put("jobId", jobId);
-        detail.put("executionId", pfwExecutionId);
+        detail.put("executionId", cpfExecutionId);
         detail.put("springBatchExecutionId", springBatchExecutionId);
         detail.put("status", status);
         detail.put("message", message);
-        return CpfBatchExecutionResult.of(executed, jobId, pfwExecutionId, springBatchExecutionId, status, message, detail);
+        return CpfBatchExecutionResult.of(executed, jobId, cpfExecutionId, springBatchExecutionId, status, message, detail);
     }
 
     private CpfBatchExecutionResult notRun(String jobId, String message, String transactionGlobalId) {

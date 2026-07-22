@@ -1,13 +1,8 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 코드 enum을 추가하지 않고도 업무별 메시지 키를 조합할 수 있는 오류 정의입니다. */
 public class CpfDynamicErrorCode implements CpfErrorDefinition {
     private final String statusCode;
     private final String messageCode;
@@ -31,14 +26,7 @@ public class CpfDynamicErrorCode implements CpfErrorDefinition {
         this.defaultInternalMessage = defaultInternalMessage;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** 업무 규칙 위반 상태를 사용하는 동적 오류 코드를 생성합니다. */
     public static CpfDynamicErrorCode business(
             String messageKeyPrefix,
             String defaultExternalMessage,
@@ -52,14 +40,7 @@ public class CpfDynamicErrorCode implements CpfErrorDefinition {
                 defaultInternalMessage);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** 중복 자원 상태를 사용하는 동적 오류 코드를 생성합니다. */
     public static CpfDynamicErrorCode duplicate(
             String messageKeyPrefix,
             String defaultExternalMessage,

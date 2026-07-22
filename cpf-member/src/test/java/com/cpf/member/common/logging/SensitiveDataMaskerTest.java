@@ -1,48 +1,31 @@
-package cpf.mbr.common.logging;
+package com.cpf.member.common.logging;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- */
+/** 로그에 기록되는 JSON·쿼리·인증 토큰의 민감정보 마스킹을 검증합니다. */
 class SensitiveDataMaskerTest {
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 공백이 포함된 JSON 비밀번호도 전체 마스킹되는지 확인합니다. */
     @Test
     void masksJsonStringValuesWithSpaces() {
-        // CPF 기능 설명입니다.
         String masked = SensitiveDataMasker.mask("{\"password\":\"abc def\", \"name\":\"tester\"}");
 
-        // CPF 기능 설명입니다.
         assertThat(masked).contains("\"password\":\"***\"");
-        // CPF 기능 설명입니다.
         assertThat(masked).doesNotContain("abc def");
-        // CPF 기능 설명입니다.
         assertThat(masked).contains("\"name\":\"tester\"");
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 계좌번호와 Bearer 토큰이 쿼리 문자열에서 노출되지 않는지 확인합니다. */
     @Test
     void masksQueryParametersAndBearerTokens() {
-        // CPF 기능 설명입니다.
         String masked = SensitiveDataMasker.mask("accountNo=1234567890&Authorization=Bearer abc.def.ghi");
 
-        // CPF 기능 설명입니다.
         assertThat(masked).contains("accountNo=***");
-        // CPF 기능 설명입니다.
         assertThat(masked).contains("Authorization=***");
-        // CPF 기능 설명입니다.
         assertThat(masked).doesNotContain("1234567890");
-        // CPF 기능 설명입니다.
         assertThat(masked).doesNotContain("abc.def.ghi");
     }
 }

@@ -1,4 +1,4 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
 import lombok.Getter;
 import lombok.Setter;

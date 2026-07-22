@@ -1,6 +1,6 @@
-package cpf.xyz.batch;
+package com.cpf.reference.batch;
 
-import cpf.pfw.common.batch.CpfBatchJobLogPath;
+import com.cpf.core.common.batch.CpfBatchJobLogPath;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
@@ -12,10 +12,10 @@ import java.util.Map;
  * ADM에서 BAT JobInstance 로그를 조회하는 교육 샘플입니다.
  *
  * <p>목록 API는 조건 검색에 사용하고 상세 API는 선택한 JobInstance의 JSON Lines 레코드를
- * 조회할 때 사용합니다. jobName 검증은 PFW 로그 경로 정책을 재사용해 경로 조작 문자열이
+ * 조회할 때 사용합니다. jobName 검증은 CPF 로그 경로 정책을 재사용해 경로 조작 문자열이
  * 운영 조회 URL로 전달되지 않게 합니다.</p>
  */
-public class XyzAdmBatchLogQueryEducationSample {
+public class ReferenceAdmBatchLogQueryEducationSample {
 
     public Map<String, String> queryUrls(LocalDate businessDate, String jobName, long jobInstanceId) {
         // 경로를 계산하는 호출 자체가 jobName과 식별자 규격을 검증합니다.

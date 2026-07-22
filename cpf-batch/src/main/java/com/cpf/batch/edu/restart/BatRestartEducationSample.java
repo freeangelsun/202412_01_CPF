@@ -1,4 +1,4 @@
-package cpf.bat.edu.restart;
+package com.cpf.batch.edu.restart;
 
 /**
  * checkpoint 기반 restart 위치를 계산하는 샘플입니다.

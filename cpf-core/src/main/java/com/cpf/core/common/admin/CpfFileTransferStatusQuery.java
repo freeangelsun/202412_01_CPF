@@ -1,4 +1,4 @@
-package cpf.pfw.common.admin;
+package com.cpf.core.common.admin;
 
 import java.time.Instant;
 

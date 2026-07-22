@@ -3,7 +3,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7' // Spring Boot BOM 기반으로 의존성 버전을 맞춘다.
 }
 
-group = 'cpf.cmn'
+group = 'com.cpf.common'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion) // 루트 CPF Java 목표와 같은 버전으로 컴파일합니다.
@@ -21,8 +21,8 @@ dependencyManagement {
 }
 
 dependencies {
-	// PFW 프레임워크 공통 기능을 CMN에서 재사용한다.
-	api project(':pfw')
+	// CPF 프레임워크 공통 기능을 CMN에서 재사용한다.
+	api project(':cpf-core')
 
 	// MyBatis 기반의 SQL 매퍼를 사용한다.
 	api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'

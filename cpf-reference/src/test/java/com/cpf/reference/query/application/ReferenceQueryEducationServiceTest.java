@@ -1,10 +1,10 @@
-package cpf.xyz.query.application;
+package com.cpf.reference.query.application;
 
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.dto.XyzQueryKeysetResponse;
-import cpf.xyz.query.dto.XyzQueryPageResponse;
-import cpf.xyz.query.adapter.XyzQueryEducationRepository;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.dto.ReferenceQueryKeysetResponse;
+import com.cpf.reference.query.dto.ReferenceQueryPageResponse;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,12 +15,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class XyzQueryEducationServiceTest {
+class ReferenceQueryEducationServiceTest {
 
     @Test
     void getItemThrowsCpfNotFoundWhenRepositoryReturnsEmpty() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzQueryEducationService service = new XyzQueryEducationService(repository);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceQueryEducationService service = new ReferenceQueryEducationService(repository);
         when(repository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getItem(999L))
@@ -30,18 +30,18 @@ class XyzQueryEducationServiceTest {
 
     @Test
     void offsetPageUsesNormalizedPageAndSizeAndCalculatesHasNext() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzQueryEducationService service = new XyzQueryEducationService(repository);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceQueryEducationService service = new ReferenceQueryEducationService(repository);
         when(repository.normalizePage(0)).thenReturn(1);
         when(repository.normalizeSize(2)).thenReturn(2);
         when(repository.countOffsetPageItems("query", "ACTIVE")).thenReturn(5L);
         when(repository.findOffsetPageItems("query", "ACTIVE", "idAsc", 1, 2))
                 .thenReturn(List.of(item(1L), item(2L)));
 
-        XyzQueryPageResponse<XyzQueryEducationItem> response =
+        ReferenceQueryPageResponse<ReferenceQueryEducationItem> response =
                 service.findOffsetPage("query", "ACTIVE", "idAsc", 0, 2);
 
-        assertThat(response.items()).extracting(XyzQueryEducationItem::itemId).containsExactly(1L, 2L);
+        assertThat(response.items()).extracting(ReferenceQueryEducationItem::itemId).containsExactly(1L, 2L);
         assertThat(response.page()).isEqualTo(1);
         assertThat(response.size()).isEqualTo(2);
         assertThat(response.total()).isEqualTo(5L);
@@ -50,20 +50,20 @@ class XyzQueryEducationServiceTest {
 
     @Test
     void keysetPageTrimsExtraRowAndReturnsNextCursor() {
-        XyzQueryEducationRepository repository = mock(XyzQueryEducationRepository.class);
-        XyzQueryEducationService service = new XyzQueryEducationService(repository);
+        ReferenceQueryEducationRepository repository = mock(ReferenceQueryEducationRepository.class);
+        ReferenceQueryEducationService service = new ReferenceQueryEducationService(repository);
         when(repository.normalizeSize(2)).thenReturn(2);
         when(repository.findKeysetPageItems(10L, 2))
                 .thenReturn(List.of(item(11L), item(12L), item(13L)));
 
-        XyzQueryKeysetResponse<XyzQueryEducationItem> response = service.findKeysetPage(10L, 2);
+        ReferenceQueryKeysetResponse<ReferenceQueryEducationItem> response = service.findKeysetPage(10L, 2);
 
-        assertThat(response.items()).extracting(XyzQueryEducationItem::itemId).containsExactly(11L, 12L);
+        assertThat(response.items()).extracting(ReferenceQueryEducationItem::itemId).containsExactly(11L, 12L);
         assertThat(response.nextCursorId()).isEqualTo(12L);
         assertThat(response.hasNext()).isTrue();
     }
 
-    private XyzQueryEducationItem item(Long itemId) {
-        return new XyzQueryEducationItem(itemId, "조회 샘플 " + itemId, "QUERY", "ACTIVE", "M000000001", "2026-06-29T09:00:00");
+    private ReferenceQueryEducationItem item(Long itemId) {
+        return new ReferenceQueryEducationItem(itemId, "조회 샘플 " + itemId, "QUERY", "ACTIVE", "M000000001", "2026-06-29T09:00:00");
     }
 }

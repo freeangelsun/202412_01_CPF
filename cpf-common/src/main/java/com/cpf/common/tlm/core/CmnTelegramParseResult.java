@@ -1,18 +1,9 @@
-package cpf.cmn.tlm.core;
+package com.cpf.common.tlm.core;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 고정길이 전문의 원문·필드별 값·JSON 변환값·길이 경고를 함께 제공합니다. */
 public record CmnTelegramParseResult(
         String originalText,
         int expectedLength,

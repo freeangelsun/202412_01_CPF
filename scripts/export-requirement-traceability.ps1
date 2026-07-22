@@ -4,6 +4,12 @@
     [string] $ResultDir
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Root = if ([string]::IsNullOrWhiteSpace($Root)) {
     (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -13,7 +19,7 @@ $Root = if ([string]::IsNullOrWhiteSpace($Root)) {
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $TargetPath = Join-Path $Root "CPF_FINAL_TARGET_REQUIREMENTS.md"
 $RequestPath = Join-Path $Root "CPF_CURRENT_WORK_REQUEST.md"
-$MatrixPath = Join-Path $Root "specs/기능_구현_매트릭스.json"
+$MatrixPath = Join-Path $Root "specs/generated/feature-implementation-matrix.json"
 $InventoryPath = Join-Path $ResultDir "cpf-inventory.sanitized.json"
 
 foreach ($requiredPath in @($TargetPath, $RequestPath, $MatrixPath, $InventoryPath)) {
@@ -27,12 +33,12 @@ function Get-DomainCapabilities {
 
     switch -Regex ($DomainId) {
         '^(ARCH|FACADE)-' { return @("application-core", "service-call", "documentation") }
-        '^PFW-(CALL|REGISTRY|ROUTING|HEALTH|RESILIENCE|DEADLINE)' { return @("service-call") }
-        '^PFW-(HEADER|CONTEXT|TXID|ROLE)' { return @("transaction-header") }
-        '^PFW-(OPSDB|LOGDB|FILELOG|LOGFAIL|TRACE)' { return @("logging-recovery", "database") }
-        '^PFW-MASK' { return @("security", "logging-recovery") }
-        '^PFW-(ERROR|VALID|STATE|LOCK|SCHED)' { return @("application-core", "batch-center-cut") }
-        '^PFW-IDEMP' { return @("idempotency") }
+        '^CPF-(CALL|REGISTRY|ROUTING|HEALTH|RESILIENCE|DEADLINE)' { return @("service-call") }
+        '^CPF-(HEADER|CONTEXT|TXID|ROLE)' { return @("transaction-header") }
+        '^CPF-(OPSDB|LOGDB|FILELOG|LOGFAIL|TRACE)' { return @("logging-recovery", "database") }
+        '^CPF-MASK' { return @("security", "logging-recovery") }
+        '^CPF-(ERROR|VALID|STATE|LOCK|SCHED)' { return @("application-core", "batch-center-cut") }
+        '^CPF-IDEMP' { return @("idempotency") }
         '^CMN-(CODE|MSG|TEMPLATE)' { return @("code-message-config") }
         '^CMN-ID' { return @("idempotency", "application-core") }
         '^CMN-FILE' { return @("file-transfer", "archive") }
@@ -80,7 +86,7 @@ function Convert-ModuleNames {
         if ([string]::IsNullOrWhiteSpace($moduleName)) { continue }
         $normalized = switch ($moduleName) {
             "BIZADM" { "BZA" }
-            "EDU" { "XYZ" }
+            "EDU" { "REF" }
             "EXS" { "ACC" }
             "전체" { "ROOT" }
             "전체 모듈" { "ROOT" }
@@ -218,7 +224,7 @@ foreach ($domainEntry in $requestDomains.GetEnumerator()) {
     $tokens = New-Object System.Collections.Generic.List[string]
     foreach ($token in @($domain.domainId -split '-')) {
         $normalized = $token.ToLowerInvariant()
-        if ($normalized.Length -ge 3 -and $normalized -notin @('pfw', 'cmn', 'adm', 'bat', 'ops', 'rel', 'req', 'sec', 'api', 'db')) {
+        if ($normalized.Length -ge 3 -and $normalized -notin @('cpf', 'cmn', 'adm', 'bat', 'ops', 'rel', 'req', 'sec', 'api', 'db')) {
             [void]$tokens.Add($normalized)
         }
     }
@@ -247,7 +253,7 @@ foreach ($domainEntry in $requestDomains.GetEnumerator()) {
                 capability = [string]$asset.capability
                 path = $path
                 name = [string]$asset.name
-                consumer = if ([string]$asset.owner -in @("PFW", "ROOT")) { "프레임워크 또는 정본" } else { "업무 주제영역" }
+                consumer = if ([string]$asset.owner -in @("CPF", "ROOT")) { "프레임워크 또는 정본" } else { "업무 주제영역" }
                 score = $score
             })
         }
@@ -315,7 +321,7 @@ foreach ($domainEntry in $requestDomains.GetEnumerator()) {
         scriptPaths = $scriptPaths
         documentPaths = $documentPaths
         runtimeEvidencePaths = $evidencePaths
-        consumerOwners = @($ranked | Where-Object { $_.owner -notin @("PFW", "ROOT") } | Select-Object -ExpandProperty owner -Unique | Sort-Object)
+        consumerOwners = @($ranked | Where-Object { $_.owner -notin @("CPF", "ROOT") } | Select-Object -ExpandProperty owner -Unique | Sort-Object)
         missingSignals = @($missingSignals.ToArray())
     })
 }
@@ -405,8 +411,8 @@ $result = [ordered]@{
     duplicateRequirementCount = $duplicateRequirements.Count
     missingFieldCount = $missingFieldCount
     untracedDomainCount = $untracedDomains.Count
-    inventoryPath = "specs/evidence/$([System.IO.Path]::GetFileName($ResultDir))/requirement-inventory.sanitized.json"
-    traceabilityPath = "specs/evidence/$([System.IO.Path]::GetFileName($ResultDir))/requirement-traceability.sanitized.json"
+    inventoryPath = "$($ResultDir.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/'))/requirement-inventory.sanitized.json"
+    traceabilityPath = "$($ResultDir.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/'))/requirement-traceability.sanitized.json"
 }
 [System.IO.File]::WriteAllText(
     (Join-Path $ResultDir "requirement-traceability-result.sanitized.json"),

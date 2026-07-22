@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 /**
  * 다운로드 유형별 운영 정책입니다.

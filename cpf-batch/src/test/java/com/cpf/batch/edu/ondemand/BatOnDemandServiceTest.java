@@ -1,8 +1,8 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.batch.CpfBatchExecutionResult;
-import cpf.pfw.common.batch.CpfBatchLauncher;
+import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.common.batch.CpfBatchLauncher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -30,7 +30,7 @@ class BatOnDemandServiceTest {
 
     @AfterEach
     void clearContext() {
-        cpf.pfw.common.logging.TransactionContext.clear();
+        com.cpf.core.common.logging.TransactionContext.clear();
     }
 
     @Test
@@ -45,7 +45,7 @@ class BatOnDemandServiceTest {
 
         BatOnDemandStatus completed = service.status(status.executionRequestId());
         assertThat(completed.requestStatus()).isEqualTo("COMPLETED");
-        assertThat(completed.pfwExecutionId()).isEqualTo(11L);
+        assertThat(completed.cpfExecutionId()).isEqualTo(11L);
         assertThat(completed.springBatchExecutionId()).isEqualTo(22L);
     }
 
@@ -75,9 +75,9 @@ class BatOnDemandServiceTest {
         service.rerun(submitted.executionRequestId(), "operator", "전체 신규 재수행");
 
         org.mockito.Mockito.verify(launcher).run(argThat(request ->
-                request.operationType() == cpf.pfw.common.batch.CpfBatchOperationType.RESTART));
+                request.operationType() == com.cpf.core.common.batch.CpfBatchOperationType.RESTART));
         org.mockito.Mockito.verify(launcher).run(argThat(request ->
-                request.operationType() == cpf.pfw.common.batch.CpfBatchOperationType.RERUN));
+                request.operationType() == com.cpf.core.common.batch.CpfBatchOperationType.RERUN));
     }
 
     @Test
@@ -102,8 +102,8 @@ class BatOnDemandServiceTest {
         BatOnDemandStatus rerun = service.rerun(
                 submitted.executionRequestId(), "operator", "신규 인스턴스로 재수행");
 
-        assertThat(rejected.pfwExecutionId()).isEqualTo(51L);
-        assertThat(rerun.pfwExecutionId()).isEqualTo(52L);
+        assertThat(rejected.cpfExecutionId()).isEqualTo(51L);
+        assertThat(rerun.cpfExecutionId()).isEqualTo(52L);
         assertThat(rerun.springBatchExecutionId()).isEqualTo(62L);
     }
 
@@ -133,19 +133,19 @@ class BatOnDemandServiceTest {
             BatOnDemandStatus current = byRequest.get(executionRequestId);
             byRequest.put(executionRequestId, new BatOnDemandStatus(
                     current.executionRequestId(), current.standardBatchId(), current.idempotencyKey(),
-                    current.transactionGlobalId(), current.businessDate(), "RUNNING", current.pfwExecutionId(),
+                    current.transactionGlobalId(), current.businessDate(), "RUNNING", current.cpfExecutionId(),
                     current.springBatchExecutionId(), current.result(), current.failureCode(), current.failureMessage(),
                     current.requestedAt(), current.completedAt()));
         }
 
         @Override
-        public void complete(String executionRequestId, String status, Long pfwExecutionId,
+        public void complete(String executionRequestId, String status, Long cpfExecutionId,
                              Long springExecutionId, String resultJson, String failureCode, String failureMessage) {
             BatOnDemandStatus current = byRequest.get(executionRequestId);
             byRequest.put(executionRequestId, new BatOnDemandStatus(
                     current.executionRequestId(), current.standardBatchId(), current.idempotencyKey(),
                     current.transactionGlobalId(), current.businessDate(), status,
-                    pfwExecutionId == null ? current.pfwExecutionId() : pfwExecutionId,
+                    cpfExecutionId == null ? current.cpfExecutionId() : cpfExecutionId,
                     springExecutionId == null ? current.springBatchExecutionId() : springExecutionId,
                     Map.of("json", resultJson), failureCode, failureMessage,
                     current.requestedAt(), Instant.now()));

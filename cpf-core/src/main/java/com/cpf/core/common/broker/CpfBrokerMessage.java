@@ -1,10 +1,10 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import java.util.Arrays;
 import java.util.Map;
 
 /**
- * PFW broker capability에서 사용하는 원천 메시지입니다.
+ * CPF broker capability에서 사용하는 원천 메시지입니다.
  *
  * <p>Kafka, MQ, Redis Stream 같은 실제 broker adapter는 이 계약을 기준으로
  * payload와 header를 해석합니다. 업무 모듈은 특정 broker API에 직접 의존하지 않고

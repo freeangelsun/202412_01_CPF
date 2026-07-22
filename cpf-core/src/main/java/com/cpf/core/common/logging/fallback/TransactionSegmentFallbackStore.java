@@ -1,9 +1,9 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.segment.TransactionSegmentRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -72,7 +72,7 @@ public class TransactionSegmentFallbackStore {
         this.processingDirectory = root.resolve("processing");
         this.poisonDirectory = root.resolve("poison");
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root).toString().replace('\\', '/');
-        this.workerId = environment.getProperty("cpf.framework.instance-id", "pfw-local");
+        this.workerId = environment.getProperty("cpf.framework.instance-id", "cpf-local");
         this.maxSpoolBytes = environment.getProperty(
                 "cpf.logging.segment-fallback.max-spool-bytes",
                 Long.class,

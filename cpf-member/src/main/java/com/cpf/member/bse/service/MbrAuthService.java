@@ -1,14 +1,14 @@
-package cpf.mbr.bse.service;
+package com.cpf.member.bse.service;
 
-import cpf.cmn.sec.crypto.CmnCryptoService;
-import cpf.cmn.sec.token.CmnJwtCreateRequest;
-import cpf.cmn.sec.token.CmnJwtService;
-import cpf.cmn.sec.token.CmnJwtValidationResult;
-import cpf.cmn.utils.TextUtils;
-import cpf.mbr.bse.entity.Member;
-import cpf.mbr.bse.mapper.MemberMapper;
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.common.sec.crypto.CmnCryptoService;
+import com.cpf.common.sec.token.CmnJwtCreateRequest;
+import com.cpf.common.sec.token.CmnJwtService;
+import com.cpf.common.sec.token.CmnJwtValidationResult;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.member.bse.entity.Member;
+import com.cpf.member.bse.mapper.MemberMapper;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Service
 @Transactional(transactionManager = "mbrTransactionManager")
-public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
+public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
     private static final String LOGIN_DOMAIN = "MBR";
     private static final String ISSUER = "CPF-MBR";
     private static final String AUDIENCE = "CPF-MBR";
@@ -49,7 +49,7 @@ public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
             CmnJwtService jwtService,
             CmnCryptoService cryptoService,
             MemberMapper memberMapper,
-            @Value("${cpf.mbr.security.jwt-secret:${CPF_MBR_JWT_SECRET:local-mbr-education-secret-change-me}}") String jwtSecret,
+            @Value("${cpf.mbr.security.jwt-secret:${CPF_MBR_JWT_SECRET:}}") String jwtSecret,
             @Value("${cpf.mbr.security.access-token-ttl-seconds:600}") long accessTokenTtlSeconds,
             @Value("${cpf.mbr.security.refresh-token-ttl-seconds:7200}") long refreshTokenTtlSeconds,
             @Value("${cpf.framework.module-id:MBR}") String moduleId,
@@ -154,6 +154,7 @@ public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
     }
 
     private String createAccessToken(Member member) {
+        requireJwtSecret();
         Map<String, Object> claims = new LinkedHashMap<>();
         claims.put("loginDomain", LOGIN_DOMAIN);
         claims.put("memberNo", member.getMemberNo());
@@ -173,6 +174,7 @@ public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
     }
 
     private CmnJwtValidationResult validateAccessToken(String authorizationHeader) {
+        requireJwtSecret();
         String token = bearerToken(authorizationHeader);
         CmnJwtValidationResult result = jwtService.validateHs256Token(token, jwtSecret, ISSUER, AUDIENCE);
         if (!result.valid()) {
@@ -189,6 +191,15 @@ public class MbrAuthService extends cpf.mbr.common.base.MbrBaseService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bearer token이 필요합니다.");
         }
         return authorizationHeader.substring("Bearer ".length()).trim();
+    }
+
+    /** 운영 환경에서 짧거나 누락된 JWT 비밀키로 토큰이 발급되는 것을 차단합니다. */
+    private void requireJwtSecret() {
+        if (jwtSecret == null || jwtSecret.length() < 32 || jwtSecret.startsWith("__REPLACE_")) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "MBR JWT secret은 32자 이상 운영 환경변수로 설정해야 합니다.");
+        }
     }
 
     private boolean canLogin(Member member) {

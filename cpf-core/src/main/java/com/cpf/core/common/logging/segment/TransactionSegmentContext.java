@@ -1,6 +1,6 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionHeader;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

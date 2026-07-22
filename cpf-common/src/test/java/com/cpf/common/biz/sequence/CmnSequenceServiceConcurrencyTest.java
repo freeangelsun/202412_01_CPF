@@ -1,4 +1,4 @@
-package cpf.cmn.biz.sequence;
+package com.cpf.common.biz.sequence;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

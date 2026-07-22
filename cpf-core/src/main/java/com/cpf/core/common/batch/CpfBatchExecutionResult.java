@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @param executed               실제 Spring Batch 실행 여부
  * @param jobId                  배치 Job ID
- * @param pfwExecutionId         CPF 운영 메타 실행 ID
+ * @param cpfExecutionId         CPF 운영 메타 실행 ID
  * @param springBatchExecutionId Spring Batch 실행 ID
  * @param status                 실행 상태
  * @param message                운영자에게 보여줄 요약 메시지
@@ -17,7 +17,7 @@ import java.util.Map;
 public record CpfBatchExecutionResult(
         boolean executed,
         String jobId,
-        Long pfwExecutionId,
+        Long cpfExecutionId,
         Long springBatchExecutionId,
         String status,
         String message,
@@ -30,7 +30,7 @@ public record CpfBatchExecutionResult(
     public static CpfBatchExecutionResult of(
             boolean executed,
             String jobId,
-            Long pfwExecutionId,
+            Long cpfExecutionId,
             Long springBatchExecutionId,
             String status,
             String message,
@@ -38,7 +38,7 @@ public record CpfBatchExecutionResult(
         return new CpfBatchExecutionResult(
                 executed,
                 jobId,
-                pfwExecutionId,
+                cpfExecutionId,
                 springBatchExecutionId,
                 status,
                 message,

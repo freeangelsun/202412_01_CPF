@@ -1,4 +1,4 @@
-package cpf.cmn.sec.token;
+package com.cpf.common.sec.token;
 
 import java.util.Map;
 

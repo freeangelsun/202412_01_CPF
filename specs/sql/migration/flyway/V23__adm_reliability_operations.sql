@@ -1,4 +1,4 @@
--- ADM에서 PFW reliability capability를 조회하고 수동 처리하기 위한 메뉴·버튼·API 권한입니다.
+-- ADM에서 CPF reliability capability를 조회하고 수동 처리하기 위한 메뉴·버튼·API 권한입니다.
 
 USE admDB;
 

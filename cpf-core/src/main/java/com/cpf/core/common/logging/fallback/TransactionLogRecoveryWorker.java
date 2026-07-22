@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.service.common.logging.TransactionLogService;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.service.common.logging.TransactionLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * durable journal의 PFW 거래 로그를 DB 복구 후 다시 적재합니다.
+ * durable journal의 CPF 거래 로그를 DB 복구 후 다시 적재합니다.
  *
  * <p>한 인스턴스 안에서 worker가 중복 실행되지 않도록 실행 잠금을 사용합니다.
  * 지수 backoff 횟수를 초과한 레코드는 poison 디렉터리로 격리하며, 재적재가
@@ -162,13 +162,13 @@ public class TransactionLogRecoveryWorker {
     }
 
     private void writeRecoveryEvent(int claimed, int recovered, int failed) {
-        Map<String, Object> event = fileLogWriter.newBaseEvent("PFW", "recovery");
+        Map<String, Object> event = fileLogWriter.newBaseEvent("CPF", "recovery");
         event.put("eventType", "TRANSACTION_DB_RECOVERY_RUN");
         event.put("claimedCount", claimed);
         event.put("recoveredCount", recovered);
         event.put("failedCount", failed);
         event.put("fallbackHealth", store.snapshot().health());
-        fileLogWriter.writeEvent("PFW", "recovery", event);
+        fileLogWriter.writeEvent("CPF", "recovery", event);
     }
 
     private int bounded(int value, int min, int max) {

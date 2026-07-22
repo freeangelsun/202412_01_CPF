@@ -1,6 +1,6 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF"),
     [string] $ResultDir = "",
     [int] $StartupTimeoutSeconds = 150,
     [int] $HttpTimeoutSeconds = 3,
@@ -8,14 +8,21 @@
     [switch] $NoExitOnFailure
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $RequiredPortEnvMarkers = @(
     "MBR_SERVER_PORT",
     "ADM_SERVER_PORT",
     "BAT_SERVER_PORT",
     "BZA_SERVER_PORT",
-    "XYZ_SERVER_PORT",
+    "REF_SERVER_PORT",
     "ACC_SERVER_PORT",
-    "GATEWAY_SERVER_PORT"
+    "EXS_SERVER_PORT",
+    "GWY_SERVER_PORT"
 )
 
 $ErrorActionPreference = "Stop"
@@ -96,7 +103,7 @@ function Invoke-BootJarBuildIfNeeded {
         }
     }
 
-    $task = ":" + $Module.moduleLower + ":bootJar"
+    $task = ":" + $Module.projectName + ":bootJar"
     $buildOutput = Join-Path $ResultDir ("runtime-" + $Module.moduleLower + "-bootjar.out.log")
     $buildError = Join-Path $ResultDir ("runtime-" + $Module.moduleLower + "-bootjar.err.log")
     $build = Start-Process `

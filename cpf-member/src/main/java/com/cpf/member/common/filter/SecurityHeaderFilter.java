@@ -1,4 +1,4 @@
-package cpf.mbr.common.filter;
+package com.cpf.member.common.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

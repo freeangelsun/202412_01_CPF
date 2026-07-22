@@ -1,8 +1,8 @@
-package cpf.pfw.common.gateway;
+package com.cpf.core.common.gateway;
 
-import cpf.pfw.common.execution.CpfExecutionDefinition;
+import com.cpf.core.common.execution.CpfExecutionDefinition;
 
-/** PFW Gateway가 immutable snapshot에 보관하는 경량 route입니다. */
+/** CPF Gateway가 immutable snapshot에 보관하는 경량 route입니다. */
 public record CpfGatewayRoute(
         String standardExecutionId,
         String serviceId,

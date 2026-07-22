@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * 구형 Controller Base 이름을 유지하는 호환 alias입니다.

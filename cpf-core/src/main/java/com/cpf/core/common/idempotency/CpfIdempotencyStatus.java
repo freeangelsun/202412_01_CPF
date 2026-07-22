@@ -1,7 +1,7 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 /**
- * PFW 멱등 처리의 표준 상태입니다.
+ * CPF 멱등 처리의 표준 상태입니다.
  */
 public enum CpfIdempotencyStatus {
     PROCESSING,

@@ -5,7 +5,7 @@ plugins {
     id 'war'
 }
 
-group = 'cpf.bza'
+group = 'com.cpf.bizadmin'
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    implementation project(':pfw')
-    implementation project(':cmn')
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
@@ -35,6 +35,7 @@ tasks.named('test') {
 def frontendDir = layout.projectDirectory.dir('frontend')
 def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
 def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
 def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
 
 sourceSets.main.resources.srcDir(frontendOutputDir)
@@ -44,6 +45,7 @@ tasks.register('frontendInstall', Exec) {
     description = 'BZA frontend의 package-lock 기준 의존성을 설치합니다.'
     workingDir frontendDir
     commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
     inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
     outputs.file(frontendInstallMarker)
     doLast {

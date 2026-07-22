@@ -1,7 +1,7 @@
-package cpf.bza.support.controller;
+package com.cpf.bizadmin.support.controller;
 
-import cpf.bza.support.service.BzaSupportService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.bizadmin.support.service.BzaSupportService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ContentDisposition;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza")
 @Tag(name = "BZA-Support", description = "BZA 대시보드, 알림, 첨부, 저장 검색, 다운로드 감사, 권한 분석 API")
-public class BzaSupportController extends cpf.bza.common.base.BzaBaseController {
+public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseController {
     private final BzaSupportService supportService;
 
     public BzaSupportController(BzaSupportService supportService) {
@@ -84,7 +84,7 @@ public class BzaSupportController extends cpf.bza.common.base.BzaBaseController 
     @PostMapping(value = "/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CpfOnlineTransaction(id = "OBZAAT0002", name = "BzaAttachmentUpload")
     @Operation(operationId = "bzaSupportUploadAttachment", summary = "첨부파일 업로드",
-            description = "PFW 첨부 저장 port의 경로·확장자·크기 검증과 SHA-256 계산 후 BZA 메타·감사를 기록합니다.")
+            description = "CPF 첨부 저장 port의 경로·확장자·크기 검증과 SHA-256 계산 후 BZA 메타·감사를 기록합니다.")
     public ResponseEntity<Map<String, Object>> uploadAttachment(
             @RequestParam String groupId,
             @RequestParam String reason,

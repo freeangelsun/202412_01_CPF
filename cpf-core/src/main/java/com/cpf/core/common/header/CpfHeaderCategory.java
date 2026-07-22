@@ -1,4 +1,4 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
 /**
  * CPF 표준 헤더를 운영 기준에 맞게 분류합니다.

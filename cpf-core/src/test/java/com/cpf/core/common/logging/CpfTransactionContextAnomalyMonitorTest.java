@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

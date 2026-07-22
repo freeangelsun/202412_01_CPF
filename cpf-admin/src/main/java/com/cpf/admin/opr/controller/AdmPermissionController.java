@@ -1,21 +1,21 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmApiPermission;
-import cpf.adm.opr.dto.AdmApiPermissionRoleUpdateRequest;
-import cpf.adm.opr.dto.AdmApiPermissionSaveRequest;
-import cpf.adm.opr.dto.AdmButton;
-import cpf.adm.opr.dto.AdmButtonPermissionUpdateRequest;
-import cpf.adm.opr.dto.AdmButtonSaveRequest;
-import cpf.adm.opr.dto.AdmMenuManagement;
-import cpf.adm.opr.dto.AdmMenuPermissionUpdateRequest;
-import cpf.adm.opr.dto.AdmMenuSaveRequest;
-import cpf.adm.opr.dto.AdmRoleManagement;
-import cpf.adm.opr.dto.AdmRoleSaveRequest;
-import cpf.adm.opr.dto.AdmStatusUpdateRequest;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmPermissionService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmApiPermission;
+import com.cpf.admin.opr.dto.AdmApiPermissionRoleUpdateRequest;
+import com.cpf.admin.opr.dto.AdmApiPermissionSaveRequest;
+import com.cpf.admin.opr.dto.AdmButton;
+import com.cpf.admin.opr.dto.AdmButtonPermissionUpdateRequest;
+import com.cpf.admin.opr.dto.AdmButtonSaveRequest;
+import com.cpf.admin.opr.dto.AdmMenuManagement;
+import com.cpf.admin.opr.dto.AdmMenuPermissionUpdateRequest;
+import com.cpf.admin.opr.dto.AdmMenuSaveRequest;
+import com.cpf.admin.opr.dto.AdmRoleManagement;
+import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
+import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmPermissionService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +35,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/permissions")
 @Tag(name = "ADM-OPR Permissions", description = "ADM 메뉴/버튼 권한 관리 API")
-public class AdmPermissionController extends cpf.adm.common.base.AdmBaseController {
+public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmPermissionService permissionService;
     private final AdmAuditLogService auditLogService;
 

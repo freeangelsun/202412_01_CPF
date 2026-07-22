@@ -1,6 +1,6 @@
-package cpf.acc.reference.batch;
+package com.cpf.account.reference.batch;
 
-import cpf.pfw.common.execution.CpfBatchJob;
+import com.cpf.core.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;

@@ -1,4 +1,4 @@
-package cpf.pfw.common.transaction;
+package com.cpf.core.common.transaction;
 
 /**
  * CPF 온라인 거래 메타 정의입니다.

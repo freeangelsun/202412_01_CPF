@@ -1,7 +1,7 @@
-package cpf.mbr.common.response;
+package com.cpf.member.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

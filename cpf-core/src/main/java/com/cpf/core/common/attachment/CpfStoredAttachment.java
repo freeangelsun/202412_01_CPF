@@ -1,4 +1,4 @@
-package cpf.pfw.common.attachment;
+package com.cpf.core.common.attachment;
 
 import java.time.Instant;
 

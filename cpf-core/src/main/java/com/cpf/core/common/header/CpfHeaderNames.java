@@ -1,4 +1,4 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
 /**
  * CPF 온라인 거래에서 사용하는 표준 HTTP 헤더명입니다.

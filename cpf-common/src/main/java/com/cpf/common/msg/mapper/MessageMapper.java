@@ -1,6 +1,6 @@
-package cpf.cmn.msg.mapper;
+package com.cpf.common.msg.mapper;
 
-import cpf.cmn.msg.dto.CommonMessageRequest;
+import com.cpf.common.msg.dto.CommonMessageRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 메시지 Mapper입니다.
+ * CPF 공통 메시지 Mapper입니다.
  */
 @Mapper
 public interface MessageMapper {

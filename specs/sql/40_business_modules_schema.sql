@@ -1,9 +1,9 @@
 -- 업무/교육 샘플 스키마입니다.
--- 기본 업무 스키마는 XYZ 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
+-- 기본 업무 스키마는 REF 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
 
-USE xyzDB;
+USE refDB;
 
-CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_target (
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_target (
     target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
     business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
@@ -17,17 +17,17 @@ CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_target (
     completed_at DATETIME NULL COMMENT '처리 완료 일시',
     last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (target_id),
-    UNIQUE KEY uk_xyz_center_cut_sample_target_business (center_cut_job_id, business_key),
-    INDEX ix_xyz_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
-    INDEX ix_xyz_center_cut_sample_target_global (parent_transaction_global_id, child_transaction_global_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='XYZ 센터컷 샘플 대상';
+    UNIQUE KEY uk_ref_center_cut_sample_target_business (center_cut_job_id, business_key),
+    INDEX ix_ref_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
+    INDEX ix_ref_center_cut_sample_target_global (parent_transaction_global_id, child_transaction_global_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 대상';
 
-CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_result (
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
     result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 샘플 결과 순번',
     target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
@@ -37,18 +37,18 @@ CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_result (
     result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
     parent_transaction_global_id VARCHAR(100) NULL COMMENT '부모 거래 글로벌 ID',
     child_transaction_global_id VARCHAR(100) NULL COMMENT '자식 거래 글로벌 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (result_id),
-    UNIQUE KEY uk_xyz_center_cut_sample_result_target (target_id),
-    INDEX ix_xyz_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
-    INDEX ix_xyz_center_cut_sample_result_global (parent_transaction_global_id, child_transaction_global_id),
-    CONSTRAINT fk_xyz_center_cut_sample_result_target
-        FOREIGN KEY (target_id) REFERENCES xyz_center_cut_sample_target(target_id)
+    UNIQUE KEY uk_ref_center_cut_sample_result_target (target_id),
+    INDEX ix_ref_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
+    INDEX ix_ref_center_cut_sample_result_global (parent_transaction_global_id, child_transaction_global_id),
+    CONSTRAINT fk_ref_center_cut_sample_result_target
+        FOREIGN KEY (target_id) REFERENCES ref_center_cut_sample_target(target_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='XYZ 센터컷 샘플 결과';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 결과';
 
 USE mbrDB;
 

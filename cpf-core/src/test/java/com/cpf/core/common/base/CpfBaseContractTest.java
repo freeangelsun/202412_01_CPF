@@ -1,13 +1,13 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** PFW canonical Base가 주제영역에 제공하는 최소 계약을 검증합니다. */
+/** CPF canonical Base가 주제영역에 제공하는 최소 계약을 검증합니다. */
 class CpfBaseContractTest {
 
     private final TestController controller = new TestController();

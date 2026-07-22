@@ -1,4 +1,4 @@
-package cpf.mbr.bse.entity;
+package com.cpf.member.bse.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

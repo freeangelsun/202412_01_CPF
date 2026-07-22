@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 /**
  * 원문 secret 대신 사용하는 credential 참조값입니다.

@@ -1,13 +1,13 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.pfw.common.logging.DynamicLogLevelRequest;
-import cpf.pfw.common.logging.DynamicLogLevelRule;
-import cpf.pfw.common.logging.DynamicTransactionLogLevelService;
-import cpf.pfw.common.logging.CpfLogLevel;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.adm.opr.service.AdmDynamicLogLevelRuleStore;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmDynamicLogLevelBroadcastService;
+import com.cpf.core.common.logging.DynamicLogLevelRequest;
+import com.cpf.core.common.logging.DynamicLogLevelRule;
+import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
+import com.cpf.core.common.logging.CpfLogLevel;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmDynamicLogLevelRuleStore;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmDynamicLogLevelBroadcastService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/log-level")
 @Tag(name = "ADM-OPR Dynamic Log", description = "Temporary transaction log-level control APIs")
-public class AdmDynamicLogLevelController extends cpf.adm.common.base.AdmBaseController {
+public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmBaseController {
     private final DynamicTransactionLogLevelService dynamicLogLevelService;
     private final AdmDynamicLogLevelRuleStore ruleStore;
     private final AdmAuditLogService auditLogService;
@@ -81,7 +81,7 @@ public class AdmDynamicLogLevelController extends cpf.adm.common.base.AdmBaseCon
         String operatorId = requestUser(servletRequest, requestUser);
         broadcastService.publishUpsert(rule, operatorId);
         auditLogService.record(
-                cpf.pfw.common.logging.TransactionContext.getOrCreateTransactionId(),
+                com.cpf.core.common.logging.TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "DYNAMIC_LOG_REGISTER",
                 "adm_dynamic_log_level_rule",
@@ -106,7 +106,7 @@ public class AdmDynamicLogLevelController extends cpf.adm.common.base.AdmBaseCon
         response.put("persistedDisabled", ruleStore.disable(ruleId, operatorId));
         broadcastService.publishDelete(ruleId, operatorId);
         auditLogService.record(
-                cpf.pfw.common.logging.TransactionContext.getOrCreateTransactionId(),
+                com.cpf.core.common.logging.TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "DYNAMIC_LOG_REMOVE",
                 "adm_dynamic_log_level_rule",

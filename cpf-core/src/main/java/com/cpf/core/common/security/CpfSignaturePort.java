@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 /**
  * 전자서명 생성/검증 port입니다.

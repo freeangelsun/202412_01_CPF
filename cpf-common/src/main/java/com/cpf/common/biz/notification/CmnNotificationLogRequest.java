@@ -1,4 +1,4 @@
-package cpf.cmn.biz.notification;
+package com.cpf.common.biz.notification;
 
 /**
  * CMN 공통 알림 로그 등록 요청입니다.

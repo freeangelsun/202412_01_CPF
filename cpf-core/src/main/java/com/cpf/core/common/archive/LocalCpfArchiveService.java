@@ -1,4 +1,4 @@
-package cpf.pfw.common.archive;
+package com.cpf.core.common.archive;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * 로컬 파일 시스템 기준 PFW 압축/해제 구현체입니다.
+ * 로컬 파일 시스템 기준 CPF 압축/해제 구현체입니다.
  */
 public class LocalCpfArchiveService implements CpfArchiveService {
 

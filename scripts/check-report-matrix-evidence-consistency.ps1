@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
@@ -74,8 +80,7 @@ Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscusto
     note = "self evidence file initialized before consistency scanning"
 })
 
-$matrixFileName = (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".json"
-$requiredMatrixPath = Join-Path (Join-Path $Root "specs") $matrixFileName
+$requiredMatrixPath = Join-Path $Root "specs/generated/feature-implementation-matrix.json"
 try {
     $requiredMatrix = [System.IO.File]::ReadAllText($requiredMatrixPath, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
     $script:RequiredCheckIds = @($requiredMatrix.items | ForEach-Object { [string] $_.checkId })

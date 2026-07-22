@@ -1,10 +1,10 @@
-package cpf.mbr.bse.service;
+package com.cpf.member.bse.service;
 
-import cpf.cmn.sec.crypto.CmnCryptoService;
-import cpf.cmn.sec.token.CmnJwtCreateRequest;
-import cpf.cmn.sec.token.CmnJwtService;
-import cpf.mbr.bse.entity.Member;
-import cpf.mbr.bse.mapper.MemberMapper;
+import com.cpf.common.sec.crypto.CmnCryptoService;
+import com.cpf.common.sec.token.CmnJwtCreateRequest;
+import com.cpf.common.sec.token.CmnJwtService;
+import com.cpf.member.bse.entity.Member;
+import com.cpf.member.bse.mapper.MemberMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,7 +37,7 @@ class MbrAuthServiceTest {
             jwtService,
             cryptoService,
             memberMapper,
-            "mbr-test-secret",
+            "mbr-unit-test-secret-at-least-32-characters",
             600,
             7200,
             "MBR",

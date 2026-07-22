@@ -1,4 +1,4 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import java.util.Optional;
 
@@ -10,6 +10,6 @@ public interface BatOnDemandRepository {
 
     void markRunning(String executionRequestId);
 
-    void complete(String executionRequestId, String status, Long pfwExecutionId, Long springExecutionId,
+    void complete(String executionRequestId, String status, Long cpfExecutionId, Long springExecutionId,
                   String resultJson, String failureCode, String failureMessage);
 }

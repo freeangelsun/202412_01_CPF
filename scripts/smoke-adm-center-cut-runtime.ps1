@@ -6,6 +6,12 @@
     [string] $LogDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -88,7 +94,7 @@ try {
     $result.login.status = "PASSED"
 
     $headers = @{ Authorization = "Bearer $($login.accessToken)" }
-    $jobId = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB"
+    $jobId = "CPF_REF_CENTER_CUT_SAMPLE_JOB"
     $endpoints = @(
         "/adm/api/center-cut/jobs",
         "/adm/api/center-cut/jobs/$jobId",

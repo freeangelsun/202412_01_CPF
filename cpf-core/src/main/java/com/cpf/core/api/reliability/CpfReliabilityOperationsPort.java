@@ -1,10 +1,10 @@
-package cpf.pfw.api.reliability;
+package com.cpf.core.api.reliability;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 신뢰성 상태 조회와 운영 명령을 제공하는 공개 포트입니다.
+ * CPF 신뢰성 상태 조회와 운영 명령을 제공하는 공개 포트입니다.
  */
 public interface CpfReliabilityOperationsPort {
     List<Map<String, Object>> findIdempotency(String scope, String status, String key, int limit);

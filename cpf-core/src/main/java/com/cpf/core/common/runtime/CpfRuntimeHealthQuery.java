@@ -1,4 +1,4 @@
-package cpf.pfw.common.runtime;
+package com.cpf.core.common.runtime;
 
 /**
  * runtime health 조회 조건입니다.

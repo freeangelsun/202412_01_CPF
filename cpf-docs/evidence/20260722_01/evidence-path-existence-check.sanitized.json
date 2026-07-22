@@ -1,0 +1,33 @@
+{
+    "generatedAt":  "2026-07-22T14:12:51.5953725+09:00",
+    "status":  "실패",
+    "checkedCount":  1,
+    "missingCount":  1,
+    "currentEvidenceIdCount":  0,
+    "currentStartCommits":  [
+
+                            ],
+    "currentUntrackedCount":  0,
+    "legacyUntrackedCount":  0,
+    "checked":  [
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260720_05"
+                    }
+                ],
+    "missing":  [
+                    {
+                        "sourceFile":  "CPF_EVIDENCE_INDEX.md",
+                        "evidencePath":  "specs/evidence/20260720_05"
+                    }
+                ],
+    "currentUntracked":  [
+
+                         ],
+    "legacyUntracked":  [
+
+                        ],
+    "failures":  [
+                     "evidence file missing: specs/evidence/20260720_05 referenced by CPF_EVIDENCE_INDEX.md"
+                 ]
+}

@@ -33,6 +33,15 @@
 9. 운영 승인
 10. staging rehearsal
 
+### cpf-core 시스템 코드 전환
+
+`cpf-core`의 공식 시스템 코드는 `CPF`입니다. 정식 출시 전 기준선을 재확정하면서
+DB는 `cpfDB`, 프레임워크 테이블은 `cpf_*`, 메시지와 응답 코드는
+`MCPF...`·`SCPF...`·`ECPF...`로 통일했습니다. 이전 개발 DB는 업그레이드
+대상으로 간주하지 않고 백업 후 폐기한 다음 현행 설치 SQL로 다시 구성합니다.
+정식 출시 이후에는 기준 migration을 수정하지 않고 새 버전의 expand-contract
+migration과 rollback을 추가합니다.
+
 ## 4. Module and Package Migration
 
 공식 구조:

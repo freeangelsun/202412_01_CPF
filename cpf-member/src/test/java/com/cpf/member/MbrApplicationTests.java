@@ -1,10 +1,9 @@
-package cpf.mbr;
+package com.cpf.member;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * CPF 기능 설명입니다.
  * 
  * @author CPF Team
  * @version 1.0.0
@@ -17,7 +16,5 @@ class MbrApplicationTests {
     
     @Test
     void contextLoads() {
-        // CPF 기능 설명입니다.
     }
 }
-

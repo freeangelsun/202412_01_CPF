@@ -1,4 +1,4 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 /**
  * broker 메시지 idempotency key 중복 여부를 확인하는 port입니다.

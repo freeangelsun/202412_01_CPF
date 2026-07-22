@@ -1,11 +1,11 @@
-package cpf.mbr.bse.controller;
+package com.cpf.member.bse.controller;
 
-import cpf.mbr.bse.service.MbrService;
-import cpf.mbr.common.exception.GlobalExceptionHandler;
-import cpf.mbr.common.filter.SecurityHeaderFilter;
-import cpf.pfw.common.exception.CpfGlobalExceptionHandler;
-import cpf.pfw.common.filter.TransactionContextFilter;
-import cpf.pfw.common.logging.TransactionIdGenerator;
+import com.cpf.member.bse.service.MbrService;
+import com.cpf.member.common.exception.GlobalExceptionHandler;
+import com.cpf.member.common.filter.SecurityHeaderFilter;
+import com.cpf.core.common.exception.CpfGlobalExceptionHandler;
+import com.cpf.core.common.filter.TransactionContextFilter;
+import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -91,15 +91,15 @@ class MbrControllerValidationTest {
     }
 
     /**
-     * CPF 필수 거래 헤더가 없으면 PFW 공통 오류로 응답합니다.
+     * CPF 필수 거래 헤더가 없으면 CPF 공통 오류로 응답합니다.
      */
     @Test
     void detailRejectsMissingRequiredBusinessHeaders() throws Exception {
         mockMvc.perform(get("/mbr/detail")
                         .param("memberId", "1"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.statusCode").value("EPFW900001"))
-                .andExpect(jsonPath("$.messageCode").value("MPFW900001"))
+                .andExpect(jsonPath("$.statusCode").value("ECPF900001"))
+                .andExpect(jsonPath("$.messageCode").value("MCPF900001"))
                 .andExpect(jsonPath("$.message").value(containsString("Required transaction header is missing.")));
     }
 

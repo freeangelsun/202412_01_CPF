@@ -1,14 +1,13 @@
-package cpf.acc.config;
+package com.cpf.account.config;
 
+import com.cpf.core.common.database.CpfDataSourceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jndi.JndiTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.naming.NamingException;
@@ -23,17 +22,7 @@ public class AccountDataSourceConfig {
     @Bean
     @Primary
     public DataSource accDataSource(Environment environment) throws NamingException {
-        String mode = environment.getProperty("cpf.datasource.mode", "url");
-        if ("jndi".equalsIgnoreCase(mode)) {
-            String jndiName = environment.getRequiredProperty("cpf.datasource.jndi-name");
-            return new JndiTemplate().lookup(jndiName, DataSource.class);
-        }
-        return DataSourceBuilder.create()
-                .url(environment.getRequiredProperty("cpf.datasource.url"))
-                .username(environment.getRequiredProperty("cpf.datasource.username"))
-                .password(environment.getRequiredProperty("cpf.datasource.password"))
-                .driverClassName("org.mariadb.jdbc.Driver")
-                .build();
+        return CpfDataSourceResolver.resolve(environment, "cpf.datasource");
     }
 
     /**

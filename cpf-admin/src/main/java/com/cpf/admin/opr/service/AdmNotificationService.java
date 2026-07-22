@@ -1,13 +1,13 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmNotificationDeliveryLogResponse;
-import cpf.adm.opr.dto.AdmNotificationRuleRequest;
-import cpf.adm.opr.dto.AdmNotificationRuleResponse;
-import cpf.adm.opr.dto.AdmNotificationTestSendRequest;
-import cpf.adm.opr.dto.NotificationSendResult;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
+import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
+import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
+import com.cpf.admin.opr.dto.NotificationSendResult;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,36 +27,36 @@ import java.util.Map;
  * 발송 이력 적재는 이 서비스에서 일관되게 처리합니다.</p>
  */
 @Service
-public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
-    private final JdbcTemplate pfwJdbcTemplate;
+public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseService {
+    private final JdbcTemplate cpfJdbcTemplate;
     private final AdmAuditLogService auditLogService;
     private final NotificationSender notificationSender;
 
     public AdmNotificationService(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             AdmAuditLogService auditLogService,
             NotificationSender notificationSender) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.auditLogService = auditLogService;
         this.notificationSender = notificationSender;
     }
 
     public List<AdmNotificationRuleResponse> findRules(int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
-        return pfwJdbcTemplate.query("""
+        return cpfJdbcTemplate.query("""
                 SELECT rule_id, event_type, event_sub_type, channel_code, template_code,
                        severity, receiver_group, use_yn, created_by, created_at, updated_by, updated_at
-                FROM pfw_notification_rule
+                FROM cpf_notification_rule
                 ORDER BY use_yn DESC, severity DESC, rule_id DESC
                 LIMIT ?
                 """, (rs, rowNum) -> toRule(rs), resolvedLimit);
     }
 
     public AdmNotificationRuleResponse findRule(long ruleId) {
-        return pfwJdbcTemplate.queryForObject("""
+        return cpfJdbcTemplate.queryForObject("""
                 SELECT rule_id, event_type, event_sub_type, channel_code, template_code,
                        severity, receiver_group, use_yn, created_by, created_at, updated_by, updated_at
-                FROM pfw_notification_rule
+                FROM cpf_notification_rule
                 WHERE rule_id = ?
                 """, (rs, rowNum) -> toRule(rs), ruleId);
     }
@@ -77,8 +77,8 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                 : findRuleMapById(ruleId);
 
         if (ruleId == null) {
-            pfwJdbcTemplate.update("""
-                    INSERT INTO pfw_notification_rule (
+            cpfJdbcTemplate.update("""
+                    INSERT INTO cpf_notification_rule (
                         event_type, event_sub_type, channel_code, template_code, severity,
                         receiver_group, use_yn, created_by, updated_by
                     )
@@ -101,8 +101,8 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                     requestUser,
                     requestUser);
         } else {
-            pfwJdbcTemplate.update("""
-                    UPDATE pfw_notification_rule
+            cpfJdbcTemplate.update("""
+                    UPDATE cpf_notification_rule
                     SET event_type = ?,
                         event_sub_type = ?,
                         channel_code = ?,
@@ -132,7 +132,7 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser,
                 before.isEmpty() ? "NOTIFICATION_RULE_CREATE" : "NOTIFICATION_RULE_UPDATE",
-                "pfw_notification_rule",
+                "cpf_notification_rule",
                 String.valueOf(after.get("rule_id")),
                 reason,
                 before.isEmpty() ? null : String.valueOf(before),
@@ -147,8 +147,8 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = defaultText(operatorId, "ADM");
         Map<String, Object> before = findRuleMapById(ruleId);
-        pfwJdbcTemplate.update("""
-                UPDATE pfw_notification_rule
+        cpfJdbcTemplate.update("""
+                UPDATE cpf_notification_rule
                 SET use_yn = 'N',
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -159,7 +159,7 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser,
                 "NOTIFICATION_RULE_DISABLE",
-                "pfw_notification_rule",
+                "cpf_notification_rule",
                 String.valueOf(ruleId),
                 auditReason,
                 String.valueOf(before),
@@ -171,11 +171,11 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
 
     public List<AdmNotificationDeliveryLogResponse> findDeliveryLogs(int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
-        return pfwJdbcTemplate.query("""
+        return cpfJdbcTemplate.query("""
                 SELECT delivery_id, rule_id, event_type, target_type, target_id,
                        receiver, delivery_status, delivery_message, requested_at, delivered_at,
                        created_at, updated_at
-                FROM pfw_notification_delivery_log
+                FROM cpf_notification_delivery_log
                 ORDER BY requested_at DESC, delivery_id DESC
                 LIMIT ?
                 """, (rs, rowNum) -> new AdmNotificationDeliveryLogResponse(
@@ -210,7 +210,7 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser,
                 "NOTIFICATION_TEST_SEND",
-                "pfw_notification_delivery_log",
+                "cpf_notification_delivery_log",
                 String.valueOf(deliveryId),
                 reason,
                 null,
@@ -230,8 +230,8 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
             AdmNotificationTestSendRequest request,
             NotificationSendResult sendResult,
             String requestUser) {
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_notification_delivery_log (
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_notification_delivery_log (
                     rule_id, event_type, target_type, target_id, receiver,
                     delivery_status, delivery_message, requested_at, delivered_at,
                     created_by, updated_by
@@ -248,7 +248,7 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
                 sendResult.deliveredAt(),
                 requestUser,
                 requestUser);
-        Long deliveryId = pfwJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        Long deliveryId = cpfJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         if (deliveryId == null) {
             throw new IllegalStateException("알림 발송 이력 ID를 확인할 수 없습니다.");
         }
@@ -257,10 +257,10 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
 
     private Map<String, Object> findRuleMapByBusinessKey(String eventType, String eventSubType, String channelCode) {
         try {
-            return pfwJdbcTemplate.queryForMap("""
+            return cpfJdbcTemplate.queryForMap("""
                     SELECT rule_id, event_type, event_sub_type, channel_code, template_code,
                            severity, receiver_group, use_yn, created_by, created_at, updated_by, updated_at
-                    FROM pfw_notification_rule
+                    FROM cpf_notification_rule
                     WHERE event_type = ?
                       AND channel_code = ?
                       AND ((? IS NULL AND event_sub_type IS NULL) OR event_sub_type = ?)
@@ -272,10 +272,10 @@ public class AdmNotificationService extends cpf.adm.common.base.AdmBaseService {
 
     private Map<String, Object> findRuleMapById(long ruleId) {
         try {
-            return pfwJdbcTemplate.queryForMap("""
+            return cpfJdbcTemplate.queryForMap("""
                     SELECT rule_id, event_type, event_sub_type, channel_code, template_code,
                            severity, receiver_group, use_yn, created_by, created_at, updated_by, updated_at
-                    FROM pfw_notification_rule
+                    FROM cpf_notification_rule
                     WHERE rule_id = ?
                     """, ruleId);
         } catch (EmptyResultDataAccessException ex) {

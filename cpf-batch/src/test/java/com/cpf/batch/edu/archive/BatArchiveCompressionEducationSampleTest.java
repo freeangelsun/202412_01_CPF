@@ -1,4 +1,4 @@
-package cpf.bat.edu.archive;
+package com.cpf.batch.edu.archive;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,7 +12,7 @@ class BatArchiveCompressionEducationSampleTest {
     Path tempDir;
 
     @Test
-    void batchResultFileCanBeZippedByPfwArchiveCapability() {
+    void batchResultFileCanBeZippedByCpfArchiveCapability() {
         assertThat(new BatArchiveCompressionEducationSample().zipResultFile(tempDir).status())
                 .isEqualTo("SUCCESS");
     }

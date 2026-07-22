@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
 /**
  * try-with-resources로 거래 구간의 시작과 종료를 안전하게 묶기 위한 scope입니다.

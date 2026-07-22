@@ -1,6 +1,6 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
-import cpf.pfw.channel.model.CpfChannelPolicyPackage;
+import com.cpf.core.channel.model.CpfChannelPolicyPackage;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

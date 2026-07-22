@@ -1,17 +1,8 @@
-package cpf.cmn.mqe.core;
+package com.cpf.common.mqe.core;
 
 import java.util.Map;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 브로커·목적지·거래 헤더·payload를 함께 전달하는 공통 메시지 봉투입니다. */
 public record CmnMessageEnvelope(
         String broker,
         String destination,

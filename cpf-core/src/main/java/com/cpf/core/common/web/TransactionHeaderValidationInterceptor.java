@@ -1,19 +1,19 @@
-package cpf.pfw.common.web;
+package com.cpf.core.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.header.CpfHeaderNames;
-import cpf.pfw.common.header.CpfInboundHeaderValidator;
-import cpf.pfw.common.execution.CpfExecutionType;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.execution.CpfSharedApi;
-import cpf.pfw.common.execution.CpfStandardExecutionId;
-import cpf.pfw.common.exception.CpfErrorResponse;
-import cpf.pfw.common.exception.CpfFrameworkErrorCode;
-import cpf.pfw.common.exception.CpfFrameworkException;
-import cpf.pfw.common.exception.CpfResolvedResponse;
-import cpf.pfw.common.exception.CpfResponseCodeResolver;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
-import cpf.pfw.common.logging.CpfTransaction;
+import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.common.header.CpfInboundHeaderValidator;
+import com.cpf.core.common.execution.CpfExecutionType;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.execution.CpfSharedApi;
+import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.common.exception.CpfErrorResponse;
+import com.cpf.core.common.exception.CpfFrameworkErrorCode;
+import com.cpf.core.common.exception.CpfFrameworkException;
+import com.cpf.core.common.exception.CpfResolvedResponse;
+import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
+import com.cpf.core.common.logging.CpfTransaction;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
@@ -114,7 +114,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
     }
 
     /**
-     * PFW 공통 거래 처리에 필요한 필수 업무 헤더가 누락되었는지 확인합니다.
+     * CPF 공통 거래 처리에 필요한 필수 업무 헤더가 누락되었는지 확인합니다.
      */
     private void validateRequiredHeaders(HttpServletRequest request) {
         List<String> missingHeaders = new ArrayList<>(inboundHeaderValidator.missingRequiredHeaders(request));
@@ -250,7 +250,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
             throw accessDenied("S형 공유 API에는 호출 서비스와 호출 인스턴스 신원이 모두 필요합니다.");
         }
         if (hasGatewayIdentity(request)
-                || "PFW_GATEWAY".equalsIgnoreCase(ingressType)
+                || "CPF_GATEWAY".equalsIgnoreCase(ingressType)
                 || "EXTERNAL_GATEWAY".equalsIgnoreCase(ingressType)) {
             throw accessDenied("S형 공유 API는 공개 Gateway 경로로 실행할 수 없습니다.");
         }
@@ -344,7 +344,7 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
                 "거래 헤더 검증을 차단했습니다. statusCode={}, exceptionType={}, detail={}",
                 resolvedResponse.responseCode(),
                 ex.getClass().getSimpleName(),
-                cpf.pfw.common.logging.SensitiveDataMasker.mask(ex.getDetail()));
+                com.cpf.core.common.logging.SensitiveDataMasker.mask(ex.getDetail()));
         CpfErrorResponse errorResponse = CpfErrorResponse.of(
                 resolvedResponse,
                 externalMessage,

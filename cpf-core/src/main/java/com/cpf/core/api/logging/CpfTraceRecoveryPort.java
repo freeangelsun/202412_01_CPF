@@ -1,7 +1,7 @@
-package cpf.pfw.api.logging;
+package com.cpf.core.api.logging;
 
 /**
- * 운영 모듈이 PFW 내부 worker나 저장소를 직접 참조하지 않고 추적 로그를 복구하는 공개 포트입니다.
+ * 운영 모듈이 CPF 내부 worker나 저장소를 직접 참조하지 않고 추적 로그를 복구하는 공개 포트입니다.
  */
 public interface CpfTraceRecoveryPort {
 

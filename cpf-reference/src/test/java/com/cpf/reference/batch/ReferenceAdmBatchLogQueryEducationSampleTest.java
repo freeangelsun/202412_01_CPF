@@ -1,4 +1,4 @@
-package cpf.xyz.batch;
+package com.cpf.reference.batch;
 
 import org.junit.jupiter.api.Test;
 
@@ -7,11 +7,11 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class XyzAdmBatchLogQueryEducationSampleTest {
+class ReferenceAdmBatchLogQueryEducationSampleTest {
 
     @Test
     void buildsSafeListAndDetailUrls() {
-        var urls = new XyzAdmBatchLogQueryEducationSample()
+        var urls = new ReferenceAdmBatchLogQueryEducationSample()
                 .queryUrls(LocalDate.of(2026, 7, 13), "CPF_BAT_SMOKE_JOB", 42L);
 
         assertThat(urls.get("listUrl"))
@@ -24,7 +24,7 @@ class XyzAdmBatchLogQueryEducationSampleTest {
 
     @Test
     void rejectsPathManipulationJobName() {
-        assertThatThrownBy(() -> new XyzAdmBatchLogQueryEducationSample()
+        assertThatThrownBy(() -> new ReferenceAdmBatchLogQueryEducationSample()
                 .queryUrls(LocalDate.of(2026, 7, 13), "../secret", 42L))
                 .isInstanceOf(IllegalArgumentException.class);
     }

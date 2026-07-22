@@ -1,4 +1,4 @@
-package cpf.pfw.common.security.password;
+package com.cpf.core.common.security.password;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;

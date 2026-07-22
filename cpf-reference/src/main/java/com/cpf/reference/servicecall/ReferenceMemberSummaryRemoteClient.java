@@ -1,7 +1,7 @@
-package cpf.xyz.servicecall;
+package com.cpf.reference.servicecall;
 
-import cpf.pfw.common.http.CpfWebClient;
-import cpf.pfw.common.servicecall.CpfServiceCallOptions;
+import com.cpf.core.common.http.CpfWebClient;
+import com.cpf.core.common.servicecall.CpfServiceCallOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -11,15 +11,15 @@ import java.util.Objects;
  * MBR remote 호출의 HTTP 세부정보를 캡슐화하는 adapter입니다.
  */
 @Component
-public class XyzMemberSummaryRemoteClient implements XyzMemberSummaryClient {
+public class ReferenceMemberSummaryRemoteClient implements ReferenceMemberSummaryClient {
     private final CpfWebClient webClient;
 
     /**
      * remote adapter를 생성합니다.
      *
-     * @param webClient PFW 서비스 호출 경계
+     * @param webClient CPF 서비스 호출 경계
      */
-    public XyzMemberSummaryRemoteClient(CpfWebClient webClient) {
+    public ReferenceMemberSummaryRemoteClient(CpfWebClient webClient) {
         this.webClient = Objects.requireNonNull(webClient, "webClient는 필수입니다.");
     }
 
@@ -31,8 +31,8 @@ public class XyzMemberSummaryRemoteClient implements XyzMemberSummaryClient {
      * @return typed 회원 요약
      */
     @Override
-    public XyzMemberSummaryResponse execute(
-            XyzMemberSummaryRequest request,
+    public ReferenceMemberSummaryResponse execute(
+            ReferenceMemberSummaryRequest request,
             CpfServiceCallOptions options) {
         Objects.requireNonNull(request, "request는 필수입니다.");
         Objects.requireNonNull(options, "options는 필수입니다.");
@@ -40,7 +40,7 @@ public class XyzMemberSummaryRemoteClient implements XyzMemberSummaryClient {
                 "MBR",
                 uri -> uri.path("/api/v1/mbr/members/{memberNo}/summary").build(request.memberNo()),
                 Map.class);
-        return new XyzMemberSummaryResponse(
+        return new ReferenceMemberSummaryResponse(
                 text(result, "memberNo", request.memberNo()),
                 text(result, "memberName", ""),
                 text(result, "statusCode", "UNKNOWN"));

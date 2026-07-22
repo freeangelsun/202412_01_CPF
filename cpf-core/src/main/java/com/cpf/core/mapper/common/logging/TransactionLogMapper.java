@@ -1,12 +1,10 @@
-package cpf.pfw.mapper.common.logging;
+package com.cpf.core.mapper.common.logging;
 
-import cpf.pfw.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.TransactionLogRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** CPF 거래 원장과 상세 로그를 저장하는 MyBatis 매퍼입니다. */
 @Mapper
 public interface TransactionLogMapper {
 
@@ -14,11 +12,7 @@ public interface TransactionLogMapper {
 
     void insertTransactionLog(TransactionLogRecord record);
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
+    /** 거래 원장에 연결되는 key/value 상세 항목을 저장합니다. */
     void insertTransactionLogDetail(@Param("logIdx") Long logIdx,
                                     @Param("detailKey") String detailKey,
                                     @Param("detailValue") String detailValue,

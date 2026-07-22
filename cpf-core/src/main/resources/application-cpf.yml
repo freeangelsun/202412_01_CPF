@@ -1,0 +1,162 @@
+# CPF 공통 설정입니다.
+
+spring:
+  datasource:
+    cpf:
+      mode: ${CPF_DB_MODE:url}
+      url: ${CPF_DB_URL:jdbc:mariadb://localhost:3306/cpfDB}
+      username: ${CPF_DB_USERNAME:cpf_app}
+      password: ${CPF_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}
+      driver-class-name: org.mariadb.jdbc.Driver
+
+server:
+  error:
+    # 처리되지 않은 예외의 내부 메시지와 스택은 HTTP 응답에 포함하지 않습니다.
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+springdoc:
+  api-docs:
+    enabled: ${CPF_OPENAPI_ENABLED:true}
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: ${CPF_SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    display-request-duration: true
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+  cache:
+    disabled: false
+
+management:
+  health:
+    # 기본 IN_MEMORY broker에서는 classpath의 Rabbit client만으로 health가 DOWN이 되지 않게 합니다.
+    rabbit:
+      enabled: ${CPF_RABBIT_HEALTH_ENABLED:false}
+
+mybatis:
+  config-location: classpath:mybatis/config/cpf-mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/cpf/**/*.xml
+  type-aliases-package: com.cpf.core.common.logging
+
+cpf:
+  environment: ${CPF_ENV:local}
+  repository-root: ${CPF_REPOSITORY_ROOT:}
+  framework:
+    # 실행 모듈은 자체 코드를 주입하며, cpf-core 단독 기본 시스템 코드는 CPF입니다.
+    module-id: ${CPF_MODULE_CODE:${CPF_APP_MODULE_ID:${CPF_MODULE_ID:CPF}}}
+    attachment:
+      # local은 OS 임시 디렉터리를 사용하고 prod는 CPF_ATTACHMENT_ROOT를 반드시 주입합니다.
+      root: ${CPF_ATTACHMENT_ROOT:}
+      max-bytes: ${CPF_ATTACHMENT_MAX_BYTES:10485760}
+      allowed-extensions: ${CPF_ATTACHMENT_ALLOWED_EXTENSIONS:txt,csv,json,xml,pdf,png,jpg,jpeg,gif,zip}
+    instance-id: ${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:}}
+    was-id: ${CPF_APP_WAS_ID:${WAS_ID:${CPF_INSTANCE_ID:appAP01}}}
+    transaction-id:
+      sequence-digits: 7
+  http-client:
+    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS:5000}
+    max-in-memory-size-kb: ${CPF_HTTP_MAX_IN_MEMORY_SIZE_KB:2048}
+  service-call:
+    enabled: ${CPF_SERVICE_CALL_ENABLED:true}
+    default-timeout-millis: ${CPF_SERVICE_CALL_TIMEOUT_MS:3000}
+    default-retry-count: ${CPF_SERVICE_CALL_RETRY_COUNT:1}
+    max-retry-count: ${CPF_SERVICE_CALL_MAX_RETRY_COUNT:3}
+    retry-backoff-millis: ${CPF_SERVICE_CALL_RETRY_BACKOFF_MS:100}
+    max-retry-backoff-millis: ${CPF_SERVICE_CALL_MAX_RETRY_BACKOFF_MS:2000}
+    circuit-open-failure-threshold: ${CPF_SERVICE_CALL_CIRCUIT_FAILURE_THRESHOLD:3}
+    circuit-open-retry-after-millis: ${CPF_SERVICE_CALL_CIRCUIT_RETRY_AFTER_MS:30000}
+    fallback-to-configured-endpoint: ${CPF_SERVICE_CALL_CONFIG_FALLBACK_ENABLED:true}
+  broker:
+    # 로컬 기본값은 외부 설치 없이 동일 프로세스 handler를 호출합니다.
+    enabled: ${CPF_BROKER_ENABLED:true}
+    type: ${CPF_BROKER_TYPE:IN_MEMORY}
+    recent-message-limit: ${CPF_BROKER_RECENT_LIMIT:200}
+    rabbit:
+      exchange: ${CPF_RABBIT_EXCHANGE:cpf.exchange}
+  filetransfer:
+    base-dir: ${CPF_FILETRANSFER_BASE_DIR:${java.io.tmpdir}/cpf-file-exchange}
+  services:
+    mbr:
+      base-url: ${CPF_SERVICE_MBR_URL:http://localhost:8081}
+      description: MBR service
+    cmn:
+      base-url: ${CPF_SERVICE_CMN_URL:http://localhost:8082}
+      description: CMN service
+    cpf:
+      base-url: ${CPF_SERVICE_CPF_URL:http://localhost:8083}
+      description: CPF service
+    adm:
+      base-url: ${CPF_SERVICE_ADM_URL:http://localhost:8090}
+      description: ADM service
+    bza:
+      base-url: ${CPF_SERVICE_BZA_URL:http://localhost:8091}
+      description: BZA 업무 백오피스 서비스
+    ref:
+      base-url: ${CPF_SERVICE_REF_URL:http://localhost:8099}
+      description: REF 온라인 교육 서비스
+  logging:
+    db-fallback:
+      enabled: ${CPF_DB_LOG_FALLBACK_ENABLED:true}
+      max-spool-bytes: ${CPF_DB_LOG_FALLBACK_MAX_BYTES:268435456}
+      recovery-interval-ms: ${CPF_DB_LOG_RECOVERY_INTERVAL_MS:30000}
+      recovery-batch-size: ${CPF_DB_LOG_RECOVERY_BATCH_SIZE:50}
+      max-attempts: ${CPF_DB_LOG_RECOVERY_MAX_ATTEMPTS:10}
+      initial-backoff-ms: ${CPF_DB_LOG_RECOVERY_INITIAL_BACKOFF_MS:1000}
+      max-backoff-ms: ${CPF_DB_LOG_RECOVERY_MAX_BACKOFF_MS:300000}
+      processing-lease-ms: ${CPF_DB_LOG_RECOVERY_PROCESSING_LEASE_MS:120000}
+    segment-fallback:
+      max-spool-bytes: ${CPF_SEGMENT_LOG_FALLBACK_MAX_BYTES:268435456}
+      recovery-interval-ms: ${CPF_SEGMENT_LOG_RECOVERY_INTERVAL_MS:30000}
+      recovery-batch-size: ${CPF_SEGMENT_LOG_RECOVERY_BATCH_SIZE:100}
+      max-attempts: ${CPF_SEGMENT_LOG_RECOVERY_MAX_ATTEMPTS:10}
+      initial-backoff-ms: ${CPF_SEGMENT_LOG_RECOVERY_INITIAL_BACKOFF_MS:1000}
+      max-backoff-ms: ${CPF_SEGMENT_LOG_RECOVERY_MAX_BACKOFF_MS:300000}
+      processing-lease-ms: ${CPF_SEGMENT_LOG_RECOVERY_PROCESSING_LEASE_MS:120000}
+    db:
+      enabled: ${CPF_LOGGING_DB_ENABLED:true}
+      transaction-enabled: ${CPF_LOGGING_DB_TRANSACTION_ENABLED:true}
+      integration-enabled: ${CPF_LOGGING_DB_INTEGRATION_ENABLED:true}
+      audit-enabled: ${CPF_LOGGING_DB_AUDIT_ENABLED:true}
+      error-enabled: ${CPF_LOGGING_DB_ERROR_ENABLED:true}
+      batch-enabled: ${CPF_LOGGING_DB_BATCH_ENABLED:true}
+    file:
+      enabled: ${CPF_LOGGING_FILE_ENABLED:true}
+      # EnvironmentPostProcessor가 local 저장소 절대경로를 계산하며 dev/stg/prod는 CPF_LOG_ROOT를 강제합니다.
+      # 일반 파일명은 cpf-{moduleCode}-{logType}-{instanceId}.{date}.log 규칙을 사용합니다.
+      # 온라인 거래 파일은 transactions/{businessDate}/{transactionId}_{businessDate}.log 규칙을 사용합니다.
+      base-path: ${CPF_LOG_ROOT:}
+      timezone: ${CPF_LOG_TIMEZONE:Asia/Seoul}
+      max-history-days: ${CPF_LOG_MAX_HISTORY_DAYS:30}
+      total-size-cap: ${CPF_LOG_TOTAL_SIZE_CAP:2GB}
+      archive-compress-enabled: ${CPF_LOG_ARCHIVE_COMPRESS_ENABLED:true}
+      initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:false}
+      json-line-enabled: ${CPF_LOGGING_FILE_JSON_LINE_ENABLED:true}
+      application-enabled: ${CPF_LOGGING_FILE_APPLICATION_ENABLED:true}
+      transaction-enabled: ${CPF_LOGGING_FILE_TRANSACTION_ENABLED:true}
+      integration-enabled: ${CPF_LOGGING_FILE_INTEGRATION_ENABLED:true}
+      audit-enabled: ${CPF_LOGGING_FILE_AUDIT_ENABLED:true}
+      error-enabled: ${CPF_LOGGING_FILE_ERROR_ENABLED:true}
+      batch-enabled: ${CPF_LOGGING_FILE_BATCH_ENABLED:true}
+    masking:
+      enabled: ${CPF_LOGGING_MASKING_ENABLED:true}
+    dynamic-level:
+      enabled: ${CPF_DYNAMIC_LOG_LEVEL_ENABLED:true}
+  remote-log:
+    bundle-job:
+      # 기본 adapter는 단일 ADM 인스턴스용이며 운영 cluster에서는 분산 queue adapter로 교체합니다.
+      max-requests-per-minute: ${CPF_REMOTE_LOG_BUNDLE_MAX_REQUESTS_PER_MINUTE:10}
+      max-active-jobs: ${CPF_REMOTE_LOG_BUNDLE_MAX_ACTIVE_JOBS:4}
+      download-token-ttl-seconds: ${CPF_REMOTE_LOG_DOWNLOAD_TOKEN_TTL_SECONDS:300}
+
+# Spring Boot debug 모드가 활성화되더라도 요청 DTO와 SQL bind 값은 로그에 출력하지 않습니다.
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.jdbc.core: INFO
+    org.springframework.boot.autoconfigure.logging: INFO

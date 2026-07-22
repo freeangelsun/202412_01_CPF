@@ -1,4 +1,4 @@
-package cpf.pfw.common.execution;
+package com.cpf.core.common.execution;
 
 import org.junit.jupiter.api.Test;
 

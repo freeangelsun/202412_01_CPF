@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.common.transaction.CpfTransactionMetaRepository;
-import cpf.pfw.common.transaction.CpfTransactionMetaScanResult;
-import cpf.pfw.common.transaction.CpfTransactionMetaScanner;
+import com.cpf.core.common.transaction.CpfTransactionMetaRepository;
+import com.cpf.core.common.transaction.CpfTransactionMetaScanResult;
+import com.cpf.core.common.transaction.CpfTransactionMetaScanner;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  * ADM 거래 메타 운영 서비스입니다.
  */
 @Service
-public class AdmTransactionMetaService extends cpf.adm.common.base.AdmBaseService {
+public class AdmTransactionMetaService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfTransactionMetaRepository repository;
     private final ObjectProvider<CpfTransactionMetaScanner> scannerProvider;
 

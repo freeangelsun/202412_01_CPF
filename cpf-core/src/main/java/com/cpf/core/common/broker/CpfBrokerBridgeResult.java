@@ -1,4 +1,4 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 /**
  * broker bridge 발행 결과입니다.

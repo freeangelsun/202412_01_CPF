@@ -1,7 +1,7 @@
-package cpf.xyz.query.adapter;
+package com.cpf.reference.query.adapter;
 
-import cpf.xyz.query.dto.XyzQueryEducationCriteria;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
+import com.cpf.reference.query.dto.ReferenceQueryEducationCriteria;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,16 +14,16 @@ import java.util.List;
  * 업무 예제는 MBR/BZA 같은 다른 주제영역 테이블을 직접 조인하지 않고, 필요한 식별자 값만 저장해 경계를 유지합니다.</p>
  */
 @Mapper
-public interface XyzQueryEducationMapper {
-    XyzQueryEducationItem findById(@Param("itemId") Long itemId);
+public interface ReferenceQueryEducationMapper {
+    ReferenceQueryEducationItem findById(@Param("itemId") Long itemId);
 
-    List<XyzQueryEducationItem> findItems(@Param("criteria") XyzQueryEducationCriteria criteria);
+    List<ReferenceQueryEducationItem> findItems(@Param("criteria") ReferenceQueryEducationCriteria criteria);
 
-    List<XyzQueryEducationItem> findOffsetPageItems(@Param("criteria") XyzQueryEducationCriteria criteria);
+    List<ReferenceQueryEducationItem> findOffsetPageItems(@Param("criteria") ReferenceQueryEducationCriteria criteria);
 
-    long countOffsetPageItems(@Param("criteria") XyzQueryEducationCriteria criteria);
+    long countOffsetPageItems(@Param("criteria") ReferenceQueryEducationCriteria criteria);
 
-    List<XyzQueryEducationItem> findKeysetPageItems(@Param("criteria") XyzQueryEducationCriteria criteria);
+    List<ReferenceQueryEducationItem> findKeysetPageItems(@Param("criteria") ReferenceQueryEducationCriteria criteria);
 
     Long nextCrudItemId();
 

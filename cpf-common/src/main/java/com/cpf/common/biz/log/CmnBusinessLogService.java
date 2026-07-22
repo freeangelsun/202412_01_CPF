@@ -1,6 +1,6 @@
-package cpf.cmn.biz.log;
+package com.cpf.common.biz.log;
 
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.utils.TextUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,11 +16,11 @@ import java.sql.Statement;
  * CMN 공통 업무 로그 서비스입니다.
  *
  * <p>업무 모듈 공통으로 남겨야 하는 상태 변경, 외부 연계 요청, 중요 이벤트를
- * 같은 테이블에 기록하도록 제공하는 샘플 서비스입니다. PFW 거래 로그는 기술 추적 중심이고,
+ * 같은 테이블에 기록하도록 제공하는 샘플 서비스입니다. CPF 거래 로그는 기술 추적 중심이고,
  * CMN 업무 로그는 업무 의미 중심으로 사용합니다.</p>
  */
 @Service
-public class CmnBusinessLogService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnBusinessLogService extends com.cpf.common.common.base.CmnBaseService {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     @Autowired

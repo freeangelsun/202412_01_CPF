@@ -1,4 +1,4 @@
-package cpf.bat.edu.servicecall;
+package com.cpf.batch.edu.servicecall;
 
 /**
  * 배치 내부에서 facade 경계를 먼저 두고 원격 전환 가능성을 열어두는 샘플입니다.

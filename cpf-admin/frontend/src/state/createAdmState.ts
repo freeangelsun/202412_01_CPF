@@ -206,7 +206,7 @@ export function createAdmState() {
           reason: "배치 운영 변경"
         },
         centerCutForm: {
-          centerCutJobId: "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+          centerCutJobId: "CPF_REF_CENTER_CUT_SAMPLE_JOB",
           statusCode: "",
           resultStatus: "",
           limit: 100
@@ -276,7 +276,7 @@ export function createAdmState() {
         operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
         messageForm: {
           messageId: null,
-          messageCode: "MPFW990099",
+          messageCode: "MCPF990099",
           locale: "ko",
           messageFormatType: "FIXED",
           externalMessage: "샘플 메시지",
@@ -317,14 +317,14 @@ export function createAdmState() {
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
         responseCodeForm: {
-          responseCode: "EXYZ010001",
-          messageCode: "MXYZ090001",
+          responseCode: "EREF010001",
+          messageCode: "MREF090001",
           resultType: "E",
-          moduleId: "XYZ",
+          moduleId: "REF",
           responseGroup: "01",
           sequenceNo: "0001",
           httpStatus: 400,
-          description: "XYZ sample response code",
+          description: "REF sample response code",
           useYn: "Y",
           requestUser: "admin-ui"
         },

@@ -1,7 +1,7 @@
-package cpf.bza.backoffice.service;
+package com.cpf.bizadmin.backoffice.service;
 
-import cpf.bza.backoffice.repository.BzaBackofficeRepository;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

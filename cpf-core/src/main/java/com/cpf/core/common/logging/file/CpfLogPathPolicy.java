@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.file;
+package com.cpf.core.common.logging.file;
 
 import org.springframework.core.env.Environment;
 
@@ -135,8 +135,8 @@ public final class CpfLogPathPolicy {
 
     private Path categoryDirectory(String ownerModuleCode, String logType) {
         Path root = instanceRoot();
-        if ("PFW".equals(ownerModuleCode)) {
-            return safeResolve(root, Path.of("framework", "pfw"));
+        if ("CPF".equals(ownerModuleCode) || "CPF".equals(ownerModuleCode)) {
+            return safeResolve(root, Path.of("framework", "cpf"));
         }
         if ("CMN".equals(ownerModuleCode)) {
             return safeResolve(root, Path.of("common", "cmn"));

@@ -1,4 +1,4 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import java.util.List;
 import java.util.Map;

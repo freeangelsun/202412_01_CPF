@@ -2,6 +2,12 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 $textExtensions = @(
@@ -9,39 +15,33 @@ $textExtensions = @(
     ".json", ".md", ".properties", ".ps1", ".sql", ".txt", ".xml", ".yml", ".yaml"
 )
 $skipDirectories = @(
-    "\.git\", "\.gradle\", "\.idea\", "\.vscode\", "\bin\", "\build\", "\out\",
+    "\.git\", "\.gradle\", "\.idea\", "\bin\", "\build\", "\out\",
     "\logs\", "\node_modules\", "\vendor\"
 )
 $skipFileNames = @(
     "CPF_CURRENT_WORK_REQUEST.md",
-    "CPF_REQUEST.md",
-    "CPF_CODEX_REQUEST_20260618_01.md",
-    "CPF_STABILIZATION_REPORT.html",
-    "CPF_STABILIZATION_REPORT.md",
-    "CPF_STABILIZATION_CHANGED_FILES.txt",
     "check-legacy-name.ps1"
 )
 $legacyPatterns = @(
-    "FPS",
-    "Fps",
-    "fps",
-    "X-Fps",
-    "X-FPS",
-    "x-fps",
-    "com.fps",
-    "kr.fps",
-    "package fps",
-    "import fps",
-    "source=fps",
-    "fpsDB",
-    "fps-db",
-    "fps_",
-    "_fps",
-    "@Fps",
-    "FpsWebClient",
-    "FpsTransaction",
-    "FpsWorkflow",
-    "FpsBusinessException"
+    '(?<![A-Za-z0-9])FPS(?![A-Za-z0-9])',
+    '(?<![A-Za-z0-9])fps(?![A-Za-z0-9])',
+    '\bFps[A-Z][A-Za-z0-9_]*',
+    '(?<![A-Za-z0-9])PFW(?![A-Za-z0-9])',
+    '(?<![A-Za-z0-9])pfw(?![A-Za-z0-9])',
+    '\bPfw[A-Z][A-Za-z0-9_]*',
+    '(?<![A-Za-z0-9])XYZ(?![A-Za-z0-9])',
+    '(?<![A-Za-z0-9])xyz(?![A-Za-z0-9])',
+    '\bXyz[A-Z][A-Za-z0-9_]*',
+    '(?m)^\s*(?:package|import)\s+cpf\.',
+    'within\(cpf\.\.',
+    'execution\(\*\s+cpf\.\.',
+    '(?:basePackages|scanBasePackages)\s*=\s*"cpf\.',
+    '(?:type|resultType|parameterType)="cpf\.',
+    'Class\.forName\("cpf\.',
+    'com\.com\.cpf',
+    '\bCpfCpf[A-Za-z0-9_]*',
+    'CPF_CPF_',
+    'cpf_cpf_'
 )
 
 $utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)
@@ -57,7 +57,12 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
     if ($skipFileNames -contains $_.Name) {
         return
     }
-    if ($relative -match '(?i)(^|[\\/])[^\\/]*fps[^\\/]*$') {
+    $hasLegacyPathSegment = [regex]::IsMatch(
+        $relative,
+        '(^|[\\/])(?:fps|pfw|xyz)(?:[\\/]|$)|(^|[\\/])(?:Fps|Pfw|Xyz)[A-Z0-9_]|(?:^|[-_.])(?:fps|pfw|xyz)(?:[-_.]|$)|[\\/]src[\\/](?:main|test)[\\/]java[\\/]cpf[\\/]',
+        [System.Text.RegularExpressions.RegexOptions]::None
+    )
+    if ($hasLegacyPathSegment) {
         $failures.Add("legacy path marker: $($_.FullName)")
         return
     }
@@ -68,7 +73,7 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
     $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
     $text = $utf8Strict.GetString($bytes)
     foreach ($pattern in $legacyPatterns) {
-        if ($text.Contains($pattern)) {
+        if ([regex]::IsMatch($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::None)) {
             $failures.Add("legacy marker '$pattern': $($_.FullName)")
             break
         }

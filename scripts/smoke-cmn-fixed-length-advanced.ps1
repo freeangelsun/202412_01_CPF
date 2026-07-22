@@ -6,6 +6,12 @@
     [switch] $SkipGradleTest
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
 
@@ -45,8 +51,8 @@ function Get-CmnSafeTail {
 }
 
 try {
-    $base = Join-Path $Root "cmn/src/main/java/cpf/cmn/message/fixedlength"
-    $testFile = Join-Path $Root "cmn/src/test/java/cpf/cmn/message/fixedlength/FixedLengthMessageParserFormatterTest.java"
+    $base = Join-Path $Root "cpf-common/src/main/java/com/cpf/common/message/fixedlength"
+    $testFile = Join-Path $Root "cpf-common/src/test/java/com/cpf/common/message/fixedlength/FixedLengthMessageParserFormatterTest.java"
     $requiredFiles = @(
         "FixedLengthLayoutSpec.java",
         "FixedLengthFieldSpec.java",
@@ -69,7 +75,7 @@ try {
         $result.gradleTest = [ordered]@{
             status = Get-CpfRuntimeStatusText "Done"
             mode = "external-direct-command"
-            command = ".\gradlew.bat :cmn:test --offline --no-daemon --console=plain --tests cpf.cmn.message.fixedlength.FixedLengthMessageParserFormatterTest"
+            command = ".\gradlew.bat :cpf-common:test --offline --no-daemon --console=plain --tests com.cpf.common.message.fixedlength.FixedLengthMessageParserFormatterTest"
             note = "direct Gradle command was executed outside this script because nested gradlew can be sandbox-limited"
         }
     } elseif (-not $SkipGradleTest) {
@@ -79,7 +85,7 @@ try {
         $previousErrorActionPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = "Continue"
-            $testOutput = & (Join-Path $Root "gradlew.bat") ":cmn:test" "--offline" "--no-daemon" "--console=plain" "--tests" "cpf.cmn.message.fixedlength.FixedLengthMessageParserFormatterTest" 2>&1
+            $testOutput = & (Join-Path $Root "gradlew.bat") ":cpf-common:test" "--offline" "--no-daemon" "--console=plain" "--tests" "com.cpf.common.message.fixedlength.FixedLengthMessageParserFormatterTest" 2>&1
             $exitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $previousErrorActionPreference

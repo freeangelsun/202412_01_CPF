@@ -1,7 +1,7 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
-import cpf.bat.common.base.BatBaseController;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.batch.common.base.BatBaseController;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

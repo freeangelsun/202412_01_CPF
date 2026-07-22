@@ -13,6 +13,12 @@
     [switch] $RequireBrowserClick
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $result = [ordered]@{
@@ -438,7 +444,7 @@ function Resolve-GradleExecutable {
 }
 
 function Resolve-AdmBootJar {
-    $libsDir = Join-Path $Root "adm/build/libs"
+    $libsDir = Join-Path $Root "cpf-admin/build/libs"
     if (-not (Test-Path -LiteralPath $libsDir)) {
         return $null
     }
@@ -461,11 +467,11 @@ function Invoke-AdmBootJarBuild {
     $buildLog = Join-Path $processLogDir "adm-bootJar-before-smoke.log"
     $result.process.buildBeforeRun = [ordered]@{
         requested = $true
-        command = ".\gradlew.bat :adm:bootJar --offline --no-daemon --console=plain"
+        command = ".\gradlew.bat :cpf-admin:bootJar --offline --no-daemon --console=plain"
         log = $buildLog
     }
 
-    $buildOutput = & $gradle ":adm:bootJar" "--offline" "--no-daemon" "--console=plain" 2>&1
+    $buildOutput = & $gradle ":cpf-admin:bootJar" "--offline" "--no-daemon" "--console=plain" 2>&1
     [IO.File]::WriteAllText($buildLog, (($buildOutput | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine), $Utf8NoBom)
     $result.process.buildBeforeRun.exitCode = $LASTEXITCODE
     if ($LASTEXITCODE -ne 0) {
@@ -482,7 +488,7 @@ try {
     } else {
         $result.process.buildBeforeRun = [ordered]@{
             requested = $false
-            reason = "Pass -BuildBeforeRun to build :adm:bootJar before starting ADM smoke."
+            reason = "Pass -BuildBeforeRun to build :cpf-admin:bootJar before starting ADM smoke."
         }
     }
 
@@ -513,7 +519,7 @@ try {
             }
             $startedProcess = Start-Process `
                 -FilePath $gradle `
-                -ArgumentList @("--offline", ":adm:bootRun") `
+                -ArgumentList @("--offline", ":cpf-admin:bootRun") `
                 -WorkingDirectory $Root `
                 -RedirectStandardOutput $stdoutLog `
                 -RedirectStandardError $stderrLog `
@@ -554,7 +560,7 @@ try {
     & (Join-Path $Root "scripts/smoke-openapi.ps1") `
         -AdmBaseUrl $AdmBaseUrl `
         -ResultDir $LogDir `
-        -SkipMbr -SkipXyz -SkipBza -SkipBat `
+        -SkipMbr -SkipReference -SkipBza -SkipBat `
         -RequireRuntime
     if ($LASTEXITCODE -ne 0) {
         throw "ADM OpenAPI 런타임 검증에 실패했습니다."
@@ -681,20 +687,20 @@ try {
 
     $centerCutEndpoints = @(
         "/adm/api/center-cut/jobs",
-        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
-        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/parameters",
-        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary",
-        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
-        "/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20"
+        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB",
+        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/parameters",
+        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/summary",
+        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/targets?limit=20",
+        "/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/results?limit=20"
     )
     $checkedCenterCutEndpoints = New-Object System.Collections.Generic.List[string]
     foreach ($endpoint in $centerCutEndpoints) {
         Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl$endpoint" -Headers $headers | Out-Null
         $checkedCenterCutEndpoints.Add($endpoint)
     }
-    $centerCutSummary = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/summary" -Headers $headers
-    $centerCutTargets = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/targets?limit=20" -Headers $headers)
-    $centerCutResults = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_XYZ_CENTER_CUT_SAMPLE_JOB/results?limit=20" -Headers $headers)
+    $centerCutSummary = Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/summary" -Headers $headers
+    $centerCutTargets = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/targets?limit=20" -Headers $headers)
+    $centerCutResults = @(Invoke-SmokeJson -Method Get -Uri "$AdmBaseUrl/adm/api/center-cut/jobs/CPF_REF_CENTER_CUT_SAMPLE_JOB/results?limit=20" -Headers $headers)
     $hasParentTransactionGlobalId = @($centerCutTargets | Where-Object { $_.parentTransactionGlobalId }).Count -gt 0
     $hasChildTransactionGlobalId = @($centerCutTargets | Where-Object { $_.childTransactionGlobalId }).Count -gt 0
     $hasFailureReason = @($centerCutTargets | Where-Object { $_.lastErrorMessage }).Count -gt 0

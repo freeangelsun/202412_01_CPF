@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 /**
  * 고정길이 전문 민감 필드 마스킹 규칙입니다.

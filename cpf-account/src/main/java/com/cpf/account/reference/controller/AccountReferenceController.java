@@ -1,10 +1,10 @@
-package cpf.acc.reference.controller;
+package com.cpf.account.reference.controller;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.acc.reference.facade.AccountReferenceFacade;
-import cpf.acc.reference.validation.AccountReferenceSearchValidator;
-import cpf.acc.common.base.AccBaseController;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.facade.AccountReferenceFacade;
+import com.cpf.account.reference.validation.AccountReferenceSearchValidator;
+import com.cpf.account.common.base.AccBaseController;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

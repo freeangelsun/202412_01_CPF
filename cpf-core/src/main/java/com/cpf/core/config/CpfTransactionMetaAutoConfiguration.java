@@ -1,7 +1,7 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.common.transaction.CpfTransactionMetaRepository;
-import cpf.pfw.common.transaction.CpfTransactionMetaScanner;
+import com.cpf.core.common.transaction.CpfTransactionMetaRepository;
+import com.cpf.core.common.transaction.CpfTransactionMetaScanner;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -26,8 +26,8 @@ public class CpfTransactionMetaAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfTransactionMetaRepository cpfTransactionMetaRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfTransactionMetaRepository(jdbcTemplateProvider, dataSourceProvider);
     }
 
@@ -61,7 +61,7 @@ public class CpfTransactionMetaAutoConfiguration {
         public void scanOnReady() {
             CpfTransactionMetaScanner scanner = scannerProvider.getIfAvailable();
             if (scanner != null) {
-                scanner.scanAndUpsert("PFW_STARTUP_SCAN");
+                scanner.scanAndUpsert("CPF_STARTUP_SCAN");
             }
         }
     }

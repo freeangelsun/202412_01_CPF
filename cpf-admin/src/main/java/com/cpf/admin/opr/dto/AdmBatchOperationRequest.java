@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 /**
  * ADM 배치 실행, 재수행, 중지, 스케줄 변경 요청입니다.

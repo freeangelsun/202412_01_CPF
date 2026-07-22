@@ -1,10 +1,10 @@
-package cpf.cmn.msg.service;
+package com.cpf.common.msg.service;
 
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
-import cpf.pfw.common.exception.CpfErrorDefinition;
-import cpf.pfw.common.exception.CpfMessageFormatter;
-import cpf.pfw.common.exception.CpfResolvedResponse;
-import cpf.pfw.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
+import com.cpf.core.common.exception.CpfErrorDefinition;
+import com.cpf.core.common.exception.CpfMessageFormatter;
+import com.cpf.core.common.exception.CpfResolvedResponse;
+import com.cpf.core.common.exception.CpfResponseCodeResolver;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * DB/cache backed response-code resolver used by PFW exception handling and logging.
+ * DB/cache backed response-code resolver used by CPF exception handling and logging.
  */
 @Primary
 @Component

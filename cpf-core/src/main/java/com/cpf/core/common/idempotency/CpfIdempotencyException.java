@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 /**
  * 멱등 key 충돌과 처리 중 중복을 업무 오류와 구분해 전달합니다.

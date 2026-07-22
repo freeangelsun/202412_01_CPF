@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 /**
  * 배치 이벤트 전파 어댑터입니다.

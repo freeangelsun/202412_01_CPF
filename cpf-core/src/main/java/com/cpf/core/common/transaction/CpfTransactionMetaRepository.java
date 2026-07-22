@@ -1,4 +1,4 @@
-package cpf.pfw.common.transaction;
+package com.cpf.core.common.transaction;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * PFW 온라인 거래 메타 저장소입니다.
+ * CPF 온라인 거래 메타 저장소입니다.
  *
- * <p>pfwDB가 아직 설치되지 않았거나 신규 테이블이 적용되지 않은 개발 환경에서도
+ * <p>cpfDB가 아직 설치되지 않았거나 신규 테이블이 적용되지 않은 개발 환경에서도
  * 애플리케이션 기동을 막지 않도록 쓰기 계열은 실패를 호출자에게 전파하지 않습니다.
  * ADM 조회 API처럼 운영자가 직접 호출하는 기능은 조회 결과에 available 상태를 노출해
  * DB 적용 여부를 분명히 확인할 수 있게 합니다.</p>
@@ -26,8 +26,8 @@ public class CpfTransactionMetaRepository {
     private final ObjectProvider<DataSource> dataSourceProvider;
 
     public CpfTransactionMetaRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.dataSourceProvider = dataSourceProvider;
     }
@@ -45,7 +45,7 @@ public class CpfTransactionMetaRepository {
                     SELECT COUNT(*)
                     FROM information_schema.tables
                     WHERE table_schema = DATABASE()
-                      AND table_name = 'pfw_transaction_meta'
+                      AND table_name = 'cpf_transaction_meta'
                     """, Integer.class);
             return count != null && count > 0;
         } catch (DataAccessException ex) {
@@ -57,11 +57,11 @@ public class CpfTransactionMetaRepository {
         if (!tableAvailable() || metas == null || metas.isEmpty()) {
             return 0;
         }
-        String user = defaultIfBlank(requestUser, "PFW_TRANSACTION_SCAN");
+        String user = defaultIfBlank(requestUser, "CPF_TRANSACTION_SCAN");
         int count = 0;
         for (CpfTransactionMeta meta : metas) {
             jdbc().update("""
-                    INSERT INTO pfw_transaction_meta (
+                    INSERT INTO cpf_transaction_meta (
                         transaction_id, transaction_name, module_code, domain_code,
                         http_method, api_path, controller_class, handler_method,
                         swagger_operation_id, log_policy_key, sensitive_yn, masking_policy_key,
@@ -88,7 +88,7 @@ public class CpfTransactionMetaRepository {
                     """,
                     required(meta.transactionId(), "transactionId"),
                     required(meta.transactionName(), "transactionName"),
-                    defaultIfBlank(meta.moduleCode(), "PFW"),
+                    defaultIfBlank(meta.moduleCode(), "CPF"),
                     blankToNull(meta.domainCode()),
                     defaultIfBlank(meta.httpMethod(), "ANY"),
                     defaultIfBlank(meta.apiPath(), "/"),
@@ -118,9 +118,9 @@ public class CpfTransactionMetaRepository {
         }
         String placeholders = String.join(",", ids.stream().map(id -> "?").toList());
         List<Object> args = new ArrayList<>(ids);
-        args.add(defaultIfBlank(requestUser, "PFW_TRANSACTION_SCAN"));
+        args.add(defaultIfBlank(requestUser, "CPF_TRANSACTION_SCAN"));
         return jdbc().update("""
-                UPDATE pfw_transaction_meta
+                UPDATE cpf_transaction_meta
                 SET active_yn = 'N',
                     last_scanned_at = CURRENT_TIMESTAMP(3),
                     updated_by = ?,
@@ -139,7 +139,7 @@ public class CpfTransactionMetaRepository {
                        controller_class, handler_method, swagger_operation_id, log_policy_key,
                        sensitive_yn, masking_policy_key, active_yn, first_detected_at, last_detected_at,
                        last_scanned_at, created_by, created_at, updated_by, updated_at
-                FROM pfw_transaction_meta
+                FROM cpf_transaction_meta
                 WHERE transaction_id = ?
                 """, transactionId.trim());
         if (rows.isEmpty()) {
@@ -157,7 +157,7 @@ public class CpfTransactionMetaRepository {
                        controller_class, handler_method, swagger_operation_id, log_policy_key,
                        sensitive_yn, masking_policy_key, active_yn, first_detected_at, last_detected_at,
                        last_scanned_at, created_by, created_at, updated_by, updated_at
-                FROM pfw_transaction_meta
+                FROM cpf_transaction_meta
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -184,7 +184,7 @@ public class CpfTransactionMetaRepository {
         int updated = 0;
         if (before.isPresent()) {
             updated = jdbc().update("""
-                    UPDATE pfw_transaction_meta
+                    UPDATE cpf_transaction_meta
                     SET active_yn = 'N',
                         updated_by = ?,
                         updated_at = CURRENT_TIMESTAMP
@@ -204,7 +204,7 @@ public class CpfTransactionMetaRepository {
         }
         DataSource dataSource = dataSourceProvider.getIfAvailable();
         if (dataSource == null) {
-            throw new IllegalStateException("pfwDataSource 또는 pfwJdbcTemplate이 필요합니다.");
+            throw new IllegalStateException("cpfDataSource 또는 cpfJdbcTemplate이 필요합니다.");
         }
         return new JdbcTemplate(dataSource);
     }

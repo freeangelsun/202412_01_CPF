@@ -1,9 +1,9 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmCacheOperationService;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.service.AdmCacheOperationService;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/cache")
 @Tag(name = "ADM-OPR Cache", description = "CMN cache summary and refresh APIs")
-public class AdmCacheController extends cpf.adm.common.base.AdmBaseController {
+public class AdmCacheController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmCacheOperationService cacheOperationService;
     private final AdmAuditLogService auditLogService;
 

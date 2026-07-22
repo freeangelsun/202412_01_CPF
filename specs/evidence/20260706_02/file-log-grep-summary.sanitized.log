@@ -1,6 +1,0 @@
-transactionGlobalId=
-미검증 logs\acc\cpf-acc-transaction.log containsTransactionGlobalId=False missingFields=
-미검증 logs\acc\cpf-acc-integration.log containsTransactionGlobalId=False missingFields=
-미검증 logs\exs\cpf-exs-transaction.log containsTransactionGlobalId=False missingFields=
-미검증 logs\exs\cpf-exs-integration.log containsTransactionGlobalId=False missingFields=
-미검증 logs\bat\cpf-bat-batch.log containsTransactionGlobalId=False missingFields=

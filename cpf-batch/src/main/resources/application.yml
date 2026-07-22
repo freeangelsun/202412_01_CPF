@@ -1,8 +1,8 @@
 spring:
   config:
     import:
-      - optional:classpath:application-pfw.yml
-      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
       - optional:classpath:application-cmn.yml
       - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
       - optional:classpath:application-bat.yml
@@ -11,7 +11,7 @@ spring:
     name: bat
   profiles:
     active: local
-    include: pfw
+    include: cpf
   batch:
     job:
       enabled: false
@@ -24,8 +24,8 @@ server:
 logging:
   level:
     root: INFO
-    cpf.pfw: INFO
-    cpf.bat: DEBUG
+    com.cpf.core: INFO
+    com.cpf.batch: DEBUG
 
 cpf:
   framework:
@@ -56,15 +56,3 @@ cpf:
     ghost-detection:
       enabled: ${CPF_BATCH_GHOST_DETECTION_ENABLED:true}
       interval-seconds: ${CPF_BATCH_GHOST_DETECTION_INTERVAL_SECONDS:30}
-
----
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-cpf:
-  bat:
-    smoke:
-      run-on-startup: false
-      run-failure-on-startup: false

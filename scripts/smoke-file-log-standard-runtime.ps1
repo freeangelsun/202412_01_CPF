@@ -1,11 +1,17 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $XyzBaseUrl = "http://localhost:8099",
+    [string] $ReferenceBaseUrl = "http://localhost:8099",
     [string] $ResultDir = "",
     [string] $LogBasePath = "",
     [int] $TimeoutSec = 20,
     [switch] $RequireRuntime
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -50,11 +56,11 @@ function Save-Result {
 function New-SmokeHeaders {
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
     return @{
-        "X-Transaction-Id" = "$timestamp" + "XYZ" + "flog001" + "0000001"
+        "X-Transaction-Id" = "$timestamp" + "REF" + "flog001" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "XYZ"
-        "X-Channel-Code" = "XYZ"
+        "X-Original-Channel-Code" = "REF"
+        "X-Channel-Code" = "REF"
         "X-Client-App-Id" = "cpf-file-log-smoke"
         "X-Client-Version" = "1.0.0"
         "X-User-Id" = "runtime-smoke"
@@ -159,12 +165,12 @@ function Test-LogFile {
 
 try {
     try {
-        if (-not (Test-EndpointListening -BaseUrl $XyzBaseUrl)) {
-            throw "XYZ runtime port is not listening. baseUrl=$XyzBaseUrl"
+        if (-not (Test-EndpointListening -BaseUrl $ReferenceBaseUrl)) {
+            throw "REF runtime port is not listening. baseUrl=$ReferenceBaseUrl"
         }
         $response = Invoke-WebRequest `
             -Method Get `
-            -Uri "$XyzBaseUrl/api/xyz/reference/query/headers" `
+            -Uri "$ReferenceBaseUrl/api/reference/query/headers" `
             -Headers (New-SmokeHeaders) `
             -TimeoutSec $TimeoutSec `
             -UseBasicParsing
@@ -184,14 +190,14 @@ try {
     } catch {
         $result.runtimeProbe.status = $StatusNotVerified
         $result.runtimeProbe.error = $_.Exception.Message
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "XYZ" -Ports @(8099) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "REF" -Ports @(8099) -ErrorMessage $_.Exception.Message
         if ($RequireRuntime) { throw }
     }
 
     $tx = [string] $result.transactionGlobalId
     $runtimeVerified = $result.runtimeProbe.status -eq $StatusDone
-    $result.files += Test-LogFile -Module "XYZ" -LogType "transaction" -TransactionGlobalId $tx -Required $runtimeVerified
-    $result.files += Test-LogFile -Module "XYZ" -LogType "integration" -TransactionGlobalId $tx -Required $false
+    $result.files += Test-LogFile -Module "REF" -LogType "transaction" -TransactionGlobalId $tx -Required $runtimeVerified
+    $result.files += Test-LogFile -Module "REF" -LogType "integration" -TransactionGlobalId $tx -Required $false
     $result.files += Test-LogFile -Module "BAT" -LogType "batch" -TransactionGlobalId "" -Required $false
 
     $grepLines = New-Object System.Collections.Generic.List[string]
@@ -214,7 +220,7 @@ try {
     $result.error = $_.Exception.Message
     $diagnosticsProperty = $result.runtimeProbe.PSObject.Properties["diagnostics"]
     if ($null -eq $diagnosticsProperty -or $null -eq $diagnosticsProperty.Value) {
-        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "XYZ" -Ports @(8099) -ErrorMessage $_.Exception.Message
+        $result.runtimeProbe.diagnostics = New-CpfRuntimeDiagnostic -Root $Root -Module "REF" -Ports @(8099) -ErrorMessage $_.Exception.Message
     }
     Save-Result
     throw

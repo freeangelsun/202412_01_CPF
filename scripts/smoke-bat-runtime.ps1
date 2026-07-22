@@ -7,6 +7,12 @@
     [switch] $AllowLegacyFallback
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
@@ -35,7 +41,7 @@ function Save-SmokeResult {
 }
 
 function Resolve-BatBootJar {
-    $libsDir = Join-Path $Root "bat/build/libs"
+    $libsDir = Join-Path $Root "cpf-batch/build/libs"
     if (-not (Test-Path -LiteralPath $libsDir)) {
         return $null
     }
@@ -119,8 +125,8 @@ function Assert-BatchResult {
     if ($Payload.status -ne $ExpectedStatus) {
         throw "$Name status mismatch. expected=$ExpectedStatus actual=$($Payload.status)"
     }
-    if ($null -eq $Payload.pfwExecutionId -or $Payload.pfwExecutionId -lt 1) {
-        throw "$Name pfwExecutionId was not created."
+    if ($null -eq $Payload.cpfExecutionId -or $Payload.cpfExecutionId -lt 1) {
+        throw "$Name cpfExecutionId was not created."
     }
     if ($null -eq $Payload.springBatchExecutionId -or $Payload.springBatchExecutionId -lt 1) {
         throw "$Name springBatchExecutionId was not created."
@@ -209,7 +215,7 @@ $previousServerInstanceId = $env:SERVER_INSTANCE_ID
 try {
     $bootJar = Resolve-BatBootJar
     if ($null -eq $bootJar) {
-        throw "BAT bootJar was not found. Run .\gradlew.bat :bat:bootJar --offline first."
+        throw "BAT bootJar was not found. Run .\gradlew.bat :cpf-batch:bootJar --offline first."
     }
 
     if (Test-Path -LiteralPath $stdoutLog) { Remove-Item -LiteralPath $stdoutLog -Force }

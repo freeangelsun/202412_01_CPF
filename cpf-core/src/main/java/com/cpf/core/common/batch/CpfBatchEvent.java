@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
  *
  * @param eventType           이벤트 유형
  * @param jobId               배치 Job ID
- * @param pfwExecutionId      CPF 운영 메타 실행 ID
+ * @param cpfExecutionId      CPF 운영 메타 실행 ID
  * @param transactionGlobalId 거래 글로벌 ID
  * @param message             이벤트 메시지
  * @param payload             추가 속성
@@ -18,7 +18,7 @@ import java.util.Map;
 public record CpfBatchEvent(
         CpfBatchEventType eventType,
         String jobId,
-        Long pfwExecutionId,
+        Long cpfExecutionId,
         String transactionGlobalId,
         String message,
         Map<String, Object> payload,
@@ -32,10 +32,10 @@ public record CpfBatchEvent(
     public static CpfBatchEvent now(
             CpfBatchEventType eventType,
             String jobId,
-            Long pfwExecutionId,
+            Long cpfExecutionId,
             String transactionGlobalId,
             String message,
             Map<String, Object> payload) {
-        return new CpfBatchEvent(eventType, jobId, pfwExecutionId, transactionGlobalId, message, payload, LocalDateTime.now());
+        return new CpfBatchEvent(eventType, jobId, cpfExecutionId, transactionGlobalId, message, payload, LocalDateTime.now());
     }
 }

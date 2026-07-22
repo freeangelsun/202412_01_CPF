@@ -1,11 +1,11 @@
-package cpf.xyz.crud.dto;
+package com.cpf.reference.crud.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * XYZ CRUD 교육 항목 등록/수정 요청 DTO입니다.
+ * REF CRUD 교육 항목 등록/수정 요청 DTO입니다.
  *
  * @param title 항목명
  * @param description 항목 설명
@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
  * @param categoryCode 교육 분류 코드
  * @param ownerMemberNo 예시 소유 회원 번호
  */
-public record XyzCrudEducationRequest(
+public record ReferenceCrudEducationRequest(
         @NotBlank(message = "항목명은 필수입니다.")
         @Size(max = 100, message = "항목명은 100자 이하로 입력해야 합니다.")
         String title,
@@ -30,7 +30,7 @@ public record XyzCrudEducationRequest(
         @Size(max = 50, message = "소유 회원 번호는 50자 이하로 입력해야 합니다.")
         String ownerMemberNo) {
 
-    public XyzCrudEducationRequest(String title, String description, String requestUser) {
+    public ReferenceCrudEducationRequest(String title, String description, String requestUser) {
         this(title, description, requestUser, null, null);
     }
 }

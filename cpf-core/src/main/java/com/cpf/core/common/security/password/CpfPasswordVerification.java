@@ -1,4 +1,4 @@
-package cpf.pfw.common.security.password;
+package com.cpf.core.common.security.password;
 
 /**
  * 비밀번호 검증 결과입니다.

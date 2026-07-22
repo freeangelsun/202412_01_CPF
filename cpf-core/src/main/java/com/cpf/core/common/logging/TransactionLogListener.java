@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
-import cpf.pfw.service.common.logging.TransactionLogService;
-import cpf.pfw.common.logging.fallback.TransactionLogFallbackStore;
+import com.cpf.core.service.common.logging.TransactionLogService;
+import com.cpf.core.common.logging.fallback.TransactionLogFallbackStore;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * 거래 로그 이벤트를 수신해 PFW 거래 로그 테이블에 저장합니다.
+ * 거래 로그 이벤트를 수신해 CPF 거래 로그 테이블에 저장합니다.
  */
 @Component
 @RequiredArgsConstructor

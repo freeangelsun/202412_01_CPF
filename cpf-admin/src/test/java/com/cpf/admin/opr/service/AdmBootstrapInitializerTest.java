@@ -1,7 +1,7 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.config.AdmBootstrapProperties;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.config.AdmBootstrapProperties;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.mock.env.MockEnvironment;

@@ -1,12 +1,12 @@
-package cpf.xyz.query.controller;
+package com.cpf.reference.query.controller;
 
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.dto.XyzQueryKeysetResponse;
-import cpf.xyz.query.dto.XyzQueryPageResponse;
-import cpf.xyz.query.application.XyzQueryEducationService;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.dto.ReferenceQueryKeysetResponse;
+import com.cpf.reference.query.dto.ReferenceQueryPageResponse;
+import com.cpf.reference.query.application.ReferenceQueryEducationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +27,12 @@ import java.util.Map;
  * 실제 업무에서는 같은 구조로 Controller, Service, Repository, Mapper, SQL, 테스트를 함께 작성합니다.</p>
  */
 @RestController
-@RequestMapping({"/api/xyz/reference/query", "/xyz/edu/query"})
-@Tag(name = "XYZ Reference 09. 조회 표준", description = "단건, 목록, offset 페이징, keyset 페이징, 검색, 정렬, 표준 헤더 전파 샘플")
-public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseController {
-    private final XyzQueryEducationService queryEducationService;
+@RequestMapping({"/api/reference/query", "/reference/edu/query"})
+@Tag(name = "REF Reference 09. 조회 표준", description = "단건, 목록, offset 페이징, keyset 페이징, 검색, 정렬, 표준 헤더 전파 샘플")
+public class ReferenceQueryEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
+    private final ReferenceQueryEducationService queryEducationService;
 
-    public XyzQueryEducationController(XyzQueryEducationService queryEducationService) {
+    public ReferenceQueryEducationController(ReferenceQueryEducationService queryEducationService) {
         this.queryEducationService = queryEducationService;
     }
 
@@ -40,9 +40,9 @@ public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseCont
      * 단건 조회 샘플입니다.
      */
     @GetMapping("/items/{itemId}")
-    @CpfOnlineTransaction(id = "OXYZQR0001", name = "XYZ조회EDU단건조회")
-    @Operation(operationId = "xyzQueryEducationGetItem", summary = "조회 EDU 단건 조회", description = "PathVariable, readOnly 트랜잭션, NotFound 예외 처리 기준을 확인합니다.")
-    public ResponseEntity<XyzQueryEducationItem> getItem(@PathVariable Long itemId) {
+    @CpfOnlineTransaction(id = "OREFQR0001", name = "REF조회EDU단건조회")
+    @Operation(operationId = "refQueryEducationGetItem", summary = "조회 EDU 단건 조회", description = "PathVariable, readOnly 트랜잭션, NotFound 예외 처리 기준을 확인합니다.")
+    public ResponseEntity<ReferenceQueryEducationItem> getItem(@PathVariable Long itemId) {
         return ResponseEntity.ok(queryEducationService.getItem(itemId));
     }
 
@@ -50,9 +50,9 @@ public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseCont
      * 목록 조회 샘플입니다.
      */
     @GetMapping("/items")
-    @CpfOnlineTransaction(id = "OXYZQR0002", name = "XYZ조회EDU목록조회")
-    @Operation(operationId = "xyzQueryEducationFindItems", summary = "조회 EDU 목록 조회", description = "검색 조건 정규화, 정렬 whitelist, limit 제한 기준을 확인합니다.")
-    public ResponseEntity<List<XyzQueryEducationItem>> findItems(
+    @CpfOnlineTransaction(id = "OREFQR0002", name = "REF조회EDU목록조회")
+    @Operation(operationId = "refQueryEducationFindItems", summary = "조회 EDU 목록 조회", description = "검색 조건 정규화, 정렬 whitelist, limit 제한 기준을 확인합니다.")
+    public ResponseEntity<List<ReferenceQueryEducationItem>> findItems(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String statusCode,
             @RequestParam(defaultValue = "idAsc") String sort,
@@ -64,9 +64,9 @@ public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseCont
      * offset 페이징 샘플입니다.
      */
     @GetMapping("/items/page")
-    @CpfOnlineTransaction(id = "OXYZQR0003", name = "XYZ조회EDU오프셋페이징")
-    @Operation(operationId = "xyzQueryEducationFindOffsetPage", summary = "조회 EDU offset 페이징", description = "page, size, total, hasNext 응답 포맷을 확인합니다.")
-    public ResponseEntity<XyzQueryPageResponse<XyzQueryEducationItem>> findOffsetPage(
+    @CpfOnlineTransaction(id = "OREFQR0003", name = "REF조회EDU오프셋페이징")
+    @Operation(operationId = "refQueryEducationFindOffsetPage", summary = "조회 EDU offset 페이징", description = "page, size, total, hasNext 응답 포맷을 확인합니다.")
+    public ResponseEntity<ReferenceQueryPageResponse<ReferenceQueryEducationItem>> findOffsetPage(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String statusCode,
             @RequestParam(defaultValue = "idAsc") String sort,
@@ -79,9 +79,9 @@ public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseCont
      * keyset 페이징 샘플입니다.
      */
     @GetMapping("/items/keyset")
-    @CpfOnlineTransaction(id = "OXYZQR0004", name = "XYZ조회EDU키셋페이징")
-    @Operation(operationId = "xyzQueryEducationFindKeysetPage", summary = "조회 EDU keyset 페이징", description = "cursorId, nextCursorId, hasNext 응답 포맷을 확인합니다.")
-    public ResponseEntity<XyzQueryKeysetResponse<XyzQueryEducationItem>> findKeysetPage(
+    @CpfOnlineTransaction(id = "OREFQR0004", name = "REF조회EDU키셋페이징")
+    @Operation(operationId = "refQueryEducationFindKeysetPage", summary = "조회 EDU keyset 페이징", description = "cursorId, nextCursorId, hasNext 응답 포맷을 확인합니다.")
+    public ResponseEntity<ReferenceQueryKeysetResponse<ReferenceQueryEducationItem>> findKeysetPage(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(queryEducationService.findKeysetPage(cursorId, size));
@@ -91,8 +91,8 @@ public class XyzQueryEducationController extends cpf.xyz.common.base.XyzBaseCont
      * 표준 헤더 컨텍스트와 하위 호출 전파 헤더를 확인하는 샘플입니다.
      */
     @GetMapping("/headers")
-    @CpfOnlineTransaction(id = "OXYZQR0005", name = "XYZ조회EDU헤더컨텍스트")
-    @Operation(operationId = "xyzQueryEducationCurrentHeaders", summary = "조회 EDU 헤더 컨텍스트", description = "TransactionContext 조회 API와 하위 호출 전파 헤더를 확인합니다.")
+    @CpfOnlineTransaction(id = "OREFQR0005", name = "REF조회EDU헤더컨텍스트")
+    @Operation(operationId = "refQueryEducationCurrentHeaders", summary = "조회 EDU 헤더 컨텍스트", description = "TransactionContext 조회 API와 하위 호출 전파 헤더를 확인합니다.")
     public ResponseEntity<Map<String, Object>> currentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionId", TransactionContext.currentTransactionId());

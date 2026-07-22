@@ -1,11 +1,11 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmNotificationDeliveryLogResponse;
-import cpf.adm.opr.dto.AdmNotificationRuleRequest;
-import cpf.adm.opr.dto.AdmNotificationRuleResponse;
-import cpf.adm.opr.dto.AdmNotificationTestSendRequest;
-import cpf.adm.opr.service.AdmNotificationService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
+import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
+import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
+import com.cpf.admin.opr.service.AdmNotificationService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/notifications")
 @Tag(name = "ADM-Notification", description = "운영 알림 규칙과 발송 이력 조회 API")
-public class AdmNotificationController extends cpf.adm.common.base.AdmBaseController {
+public class AdmNotificationController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmNotificationService notificationService;
 
     public AdmNotificationController(AdmNotificationService notificationService) {
@@ -40,7 +40,7 @@ public class AdmNotificationController extends cpf.adm.common.base.AdmBaseContro
      */
     @GetMapping("/rules")
     @CpfOnlineTransaction(id = "OADMNT0010", name = "ADMNotificationRuleList")
-    @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회", description = "PFW 운영 알림 규칙을 최근 등록 순서로 조회합니다.")
+    @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회", description = "CPF 운영 알림 규칙을 최근 등록 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationRuleResponse>> findRules(
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(notificationService.findRules(limit));
@@ -103,7 +103,7 @@ public class AdmNotificationController extends cpf.adm.common.base.AdmBaseContro
      */
     @GetMapping("/delivery-logs")
     @CpfOnlineTransaction(id = "OADMNT0011", name = "ADMNotificationDeliveryLogList")
-    @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회", description = "PFW 운영 알림 발송 로그를 최근 요청 순서로 조회합니다.")
+    @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회", description = "CPF 운영 알림 발송 로그를 최근 요청 순서로 조회합니다.")
     public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDeliveryLogs(
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(notificationService.findDeliveryLogs(limit));

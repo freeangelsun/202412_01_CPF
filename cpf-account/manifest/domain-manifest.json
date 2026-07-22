@@ -2,7 +2,7 @@
   "moduleCode": "ACC",
   "domainName": "Account",
   "domainIdCode": "ACC",
-  "basePackage": "cpf.acc",
+  "basePackage": "com.cpf.account",
   "port": 8082,
   "tablePrefix": "acc",
   "onlineEnabled": true,

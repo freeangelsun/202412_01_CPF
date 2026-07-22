@@ -1,8 +1,6 @@
-package cpf.pfw.common.workflow;
+package com.cpf.core.common.workflow;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** 워크플로와 보상 거래 메타데이터를 전파하는 표준 HTTP 헤더 모음입니다. */
 public final class CpfWorkflowHeaders {
     public static final String HEADER_WORKFLOW_ID = "X-Workflow-Id";
     public static final String HEADER_WORKFLOW_NAME = "X-Workflow-Name";

@@ -1,8 +1,8 @@
-package cpf.bza.operation.service;
+package com.cpf.bizadmin.operation.service;
 
-import cpf.bza.operation.repository.BzaOperationRepository;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
+import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

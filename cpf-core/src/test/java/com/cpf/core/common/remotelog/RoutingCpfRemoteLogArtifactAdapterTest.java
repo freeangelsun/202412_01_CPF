@@ -1,4 +1,4 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

@@ -1,4 +1,4 @@
-package cpf.pfw.common.execution;
+package com.cpf.core.common.execution;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.aop.support.AopUtils;

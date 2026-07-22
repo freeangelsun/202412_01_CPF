@@ -1,9 +1,9 @@
-package cpf.bat.job.centercut;
+package com.cpf.batch.job.centercut;
 
-import cpf.pfw.common.batch.centercut.CenterCutTargetProvider;
-import cpf.pfw.common.batch.centercut.CpfCenterCutResult;
-import cpf.pfw.common.batch.centercut.CpfCenterCutStatus;
-import cpf.pfw.common.batch.centercut.CpfCenterCutTarget;
+import com.cpf.core.common.batch.centercut.CenterCutTargetProvider;
+import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
+import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
+import com.cpf.core.common.batch.centercut.CpfCenterCutTarget;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

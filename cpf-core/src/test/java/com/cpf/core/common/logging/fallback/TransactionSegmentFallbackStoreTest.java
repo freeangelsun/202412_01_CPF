@@ -1,9 +1,9 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.logging.segment.TransactionSegmentPersistenceService;
-import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.segment.TransactionSegmentPersistenceService;
+import com.cpf.core.common.logging.segment.TransactionSegmentRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
@@ -74,8 +74,8 @@ class TransactionSegmentFallbackStoreTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.environment", "local")
-                .withProperty("cpf.framework.module-id", "XYZ")
-                .withProperty("cpf.framework.instance-id", "xyz-segment-test-01");
+                .withProperty("cpf.framework.module-id", "REF")
+                .withProperty("cpf.framework.instance-id", "ref-segment-test-01");
         properties.forEach(environment::setProperty);
         CpfFileLogWriter fileLogWriter = new CpfFileLogWriter(environment);
         TransactionSegmentFallbackStore store = new TransactionSegmentFallbackStore(
@@ -91,7 +91,7 @@ class TransactionSegmentFallbackStoreTest {
         record.setTransactionGlobalId("GLOBAL-001");
         record.setRootTransactionGlobalId("GLOBAL-001");
         record.setTransactionRole("SUB");
-        record.setModuleCode("XYZ");
+        record.setModuleCode("REF");
         record.setDirection("OUTBOUND");
         record.setSequenceNo(1);
         record.setStartedAt(LocalDateTime.of(2026, 7, 14, 9, 0));

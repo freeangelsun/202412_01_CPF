@@ -1,16 +1,16 @@
-package cpf.xyz.header;
+package com.cpf.reference.header;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzHeaderPropagationEducationSampleTest {
+class ReferenceHeaderPropagationEducationSampleTest {
 
     @Test
     void propagationContainsModuleInstanceAndClientVersion() {
-        assertThat(new XyzHeaderPropagationEducationSample().propagate("T-1", "XYZ", "xyz-local-01"))
-                .containsEntry("x-cpf-module-id", "XYZ")
-                .containsEntry("x-cpf-instance-id", "xyz-local-01")
+        assertThat(new ReferenceHeaderPropagationEducationSample().propagate("T-1", "REF", "ref-local-01"))
+                .containsEntry("x-cpf-module-id", "REF")
+                .containsEntry("x-cpf-instance-id", "ref-local-01")
                 .containsEntry("x-cpf-client-version", "edu-v1");
     }
 }

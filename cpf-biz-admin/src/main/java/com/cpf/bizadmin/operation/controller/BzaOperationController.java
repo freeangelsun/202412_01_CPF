@@ -1,7 +1,7 @@
-package cpf.bza.operation.controller;
+package com.cpf.bizadmin.operation.controller;
 
-import cpf.bza.operation.service.BzaOperationService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.bizadmin.operation.service.BzaOperationService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza")
 @Tag(name = "BZA-Operations", description = "업무 관리자 사용자, 메뉴, 권한, 고객, 상품, 주문, 설정 운영 API")
-public class BzaOperationController extends cpf.bza.common.base.BzaBaseController {
+public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBaseController {
     private final BzaOperationService operationService;
 
     public BzaOperationController(BzaOperationService operationService) {

@@ -1,9 +1,9 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.header.CpfHeaderNames;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;

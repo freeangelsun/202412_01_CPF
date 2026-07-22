@@ -1,7 +1,7 @@
-package cpf.mbr.bse.controller;
+package com.cpf.member.bse.controller;
 
-import cpf.mbr.bse.service.MbrAuthService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.member.bse.service.MbrAuthService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/mbr/auth")
 @Tag(name = "MBR-Auth", description = "회원 로그인, refresh token, 현재 회원, 로그인 이력 API")
-public class MbrAuthController extends cpf.mbr.common.base.MbrBaseController {
+public class MbrAuthController extends com.cpf.member.common.base.MbrBaseController {
     private final MbrAuthService authService;
 
     public MbrAuthController(MbrAuthService authService) {

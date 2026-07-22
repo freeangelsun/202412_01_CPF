@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import org.junit.jupiter.api.Test;
 

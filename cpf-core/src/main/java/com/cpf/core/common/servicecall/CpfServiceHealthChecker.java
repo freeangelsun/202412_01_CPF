@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

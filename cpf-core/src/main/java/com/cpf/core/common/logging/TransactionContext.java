@@ -1,8 +1,8 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
-import cpf.pfw.common.header.CpfHeaderNames;
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.segment.TransactionSegmentContext;
+import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.slf4j.MDC;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -413,7 +413,7 @@ public final class TransactionContext {
 
     private static String generateFallbackTransactionId() {
         long sequence = FALLBACK_SEQUENCE.updateAndGet(value -> value >= 9_999_999L ? 1L : value + 1L);
-        return LocalDateTime.now().format(FALLBACK_FORMAT) + "PFWlocal01" + String.format("%07d", sequence);
+        return LocalDateTime.now().format(FALLBACK_FORMAT) + "CPFlocal01" + String.format("%07d", sequence);
     }
 
     private static String generateSpanId() {

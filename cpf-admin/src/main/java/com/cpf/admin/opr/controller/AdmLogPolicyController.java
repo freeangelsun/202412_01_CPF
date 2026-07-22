@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmLogPolicyOverrideRequest;
-import cpf.adm.opr.dto.AdmLogPolicyRequest;
-import cpf.adm.opr.dto.AdmTraceBoostRequest;
-import cpf.adm.opr.service.AdmLogPolicyService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
+import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
+import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
+import com.cpf.admin.opr.service.AdmLogPolicyService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,8 +23,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/adm/api/log-policies")
-@Tag(name = "ADM-OPR Log Policy", description = "PFW 로그 정책과 임시 override 관리 API")
-public class AdmLogPolicyController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-OPR Log Policy", description = "CPF 로그 정책과 임시 override 관리 API")
+public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmLogPolicyService logPolicyService;
 
     public AdmLogPolicyController(AdmLogPolicyService logPolicyService) {
@@ -33,7 +33,7 @@ public class AdmLogPolicyController extends cpf.adm.common.base.AdmBaseControlle
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMLG0010", name = "ADMLogPolicyList")
-    @Operation(operationId = "admLogPolicyFindPolicies", summary = "로그 정책 목록 조회", description = "대상 유형, 대상 ID, 활성 여부 기준으로 PFW 로그 정책을 조회합니다.")
+    @Operation(operationId = "admLogPolicyFindPolicies", summary = "로그 정책 목록 조회", description = "대상 유형, 대상 ID, 활성 여부 기준으로 CPF 로그 정책을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findPolicies(
             @RequestParam(required = false) String targetType,
             @RequestParam(required = false) String targetId,
@@ -60,7 +60,7 @@ public class AdmLogPolicyController extends cpf.adm.common.base.AdmBaseControlle
 
     @PutMapping("/{policyId}")
     @CpfOnlineTransaction(id = "OADMLG0013", name = "ADMLogPolicyUpdate")
-    @Operation(operationId = "admLogPolicyUpdatePolicy", summary = "로그 정책 수정", description = "기본 로그 정책을 수정하고 pfw_log_policy_audit에 변경 이력을 남깁니다.")
+    @Operation(operationId = "admLogPolicyUpdatePolicy", summary = "로그 정책 수정", description = "기본 로그 정책을 수정하고 cpf_log_policy_audit에 변경 이력을 남깁니다.")
     public ResponseEntity<Map<String, Object>> updatePolicy(
             @PathVariable long policyId,
             @RequestBody AdmLogPolicyRequest request,

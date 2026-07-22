@@ -1,14 +1,14 @@
-package cpf.bat.operation;
+package com.cpf.batch.operation;
 
-import cpf.bat.job.centercut.BatCenterCutJobConfig;
-import cpf.bat.job.failure.BatFailureJobConfig;
-import cpf.bat.job.heartbeat.BatHeartbeatJobConfig;
-import cpf.bat.job.smoke.BatSmokeJobConfig;
-import cpf.pfw.common.batch.CpfBatchFileLogWriter;
-import cpf.pfw.common.batch.CpfBatchRuntimeListener;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.file.CpfLogPathPolicy;
+import com.cpf.batch.job.centercut.BatCenterCutJobConfig;
+import com.cpf.batch.job.failure.BatFailureJobConfig;
+import com.cpf.batch.job.heartbeat.BatHeartbeatJobConfig;
+import com.cpf.batch.job.smoke.BatSmokeJobConfig;
+import com.cpf.core.common.batch.CpfBatchFileLogWriter;
+import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.file.CpfLogPathPolicy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.ObjectProvider;
@@ -31,8 +31,8 @@ import java.util.Map;
  */
 @RestController
 @Tag(name = "BAT-Operations", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
-public class BatHealthController extends cpf.bat.common.base.BatBaseController {
-    private final JdbcTemplate pfwJdbcTemplate;
+public class BatHealthController extends com.cpf.batch.common.base.BatBaseController {
+    private final JdbcTemplate cpfJdbcTemplate;
     private final Environment environment;
     private final BatSmokeOperationService operationService;
     private final BatSmokeExecutionRegistry registry;
@@ -40,13 +40,13 @@ public class BatHealthController extends cpf.bat.common.base.BatBaseController {
     private final ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider;
 
     public BatHealthController(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             Environment environment,
             BatSmokeOperationService operationService,
             BatSmokeExecutionRegistry registry,
             ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider,
             ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.environment = environment;
         this.operationService = operationService;
         this.registry = registry;
@@ -130,7 +130,7 @@ public class BatHealthController extends cpf.bat.common.base.BatBaseController {
 
     private Map<String, Object> checkDatabase() {
         try {
-            Integer value = pfwJdbcTemplate.queryForObject("SELECT 1", Integer.class);
+            Integer value = cpfJdbcTemplate.queryForObject("SELECT 1", Integer.class);
             return Map.of("status", value != null && value == 1 ? "UP" : "UNKNOWN");
         } catch (Exception ex) {
             return Map.of("status", "DOWN", "message", ex.getClass().getSimpleName());

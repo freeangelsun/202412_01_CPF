@@ -1,14 +1,14 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.batch.CpfBatchExecutionRequest;
-import cpf.pfw.common.batch.CpfBatchExecutionResult;
-import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.bat.common.base.BatBaseService;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.batch.CpfBatchExecutionRequest;
+import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.batch.common.base.BatBaseService;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -88,12 +88,12 @@ public class BatOnDemandService extends BatBaseService {
 
     public BatOnDemandStatus stop(String executionRequestId, String requestUser, String reason) {
         BatOnDemandStatus status = status(executionRequestId);
-        if (status.pfwExecutionId() == null) {
+        if (status.cpfExecutionId() == null) {
             throw new CpfValidationException("아직 실행 ID가 없어 중지할 수 없습니다.");
         }
         CpfBatchExecutionResult result = batchLauncher.run(
-                CpfBatchExecutionRequest.stop(status.pfwExecutionId(), requestUser, reason));
-        repository.complete(executionRequestId, result.status(), result.pfwExecutionId(),
+                CpfBatchExecutionRequest.stop(status.cpfExecutionId(), requestUser, reason));
+        repository.complete(executionRequestId, result.status(), result.cpfExecutionId(),
                 result.springBatchExecutionId(), json(result.detail()), null, null);
         return status(executionRequestId);
     }
@@ -101,8 +101,8 @@ public class BatOnDemandService extends BatBaseService {
     public BatOnDemandStatus restart(String executionRequestId, String requestUser, String reason) {
         BatOnDemandStatus source = executableSource(executionRequestId, "재시작");
         CpfBatchExecutionResult result = batchLauncher.run(
-                CpfBatchExecutionRequest.restart(source.pfwExecutionId(), requestUser, reason));
-        repository.complete(executionRequestId, result.status(), result.pfwExecutionId(),
+                CpfBatchExecutionRequest.restart(source.cpfExecutionId(), requestUser, reason));
+        repository.complete(executionRequestId, result.status(), result.cpfExecutionId(),
                 result.springBatchExecutionId(), json(result.detail()),
                 result.executed() ? null : result.status(), result.executed() ? null : result.message());
         return status(executionRequestId);
@@ -111,8 +111,8 @@ public class BatOnDemandService extends BatBaseService {
     public BatOnDemandStatus rerun(String executionRequestId, String requestUser, String reason) {
         BatOnDemandStatus source = executableSource(executionRequestId, "재수행");
         CpfBatchExecutionResult result = batchLauncher.run(
-                CpfBatchExecutionRequest.rerun(source.pfwExecutionId(), requestUser, reason));
-        repository.complete(executionRequestId, result.status(), result.pfwExecutionId(),
+                CpfBatchExecutionRequest.rerun(source.cpfExecutionId(), requestUser, reason));
+        repository.complete(executionRequestId, result.status(), result.cpfExecutionId(),
                 result.springBatchExecutionId(), json(result.detail()),
                 result.executed() ? null : result.status(), result.executed() ? null : result.message());
         return status(executionRequestId);
@@ -125,7 +125,7 @@ public class BatOnDemandService extends BatBaseService {
             CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.onDemand(
                     request.standardBatchId(), jobName, request.businessDate(), request.idempotencyKey(),
                     json(request.parameters()), request.requestUser(), request.reason()));
-            repository.complete(requested.executionRequestId(), result.status(), result.pfwExecutionId(),
+            repository.complete(requested.executionRequestId(), result.status(), result.cpfExecutionId(),
                     result.springBatchExecutionId(), json(result.detail()), null, null);
         } catch (RuntimeException ex) {
             repository.complete(requested.executionRequestId(), "FAILED", null, null,
@@ -137,7 +137,7 @@ public class BatOnDemandService extends BatBaseService {
 
     private BatOnDemandStatus executableSource(String executionRequestId, String operationName) {
         BatOnDemandStatus source = status(executionRequestId);
-        if (source.pfwExecutionId() == null) {
+        if (source.cpfExecutionId() == null) {
             throw new CpfValidationException(operationName + " 기준 실행 ID가 없습니다.");
         }
         if ("REQUESTED".equals(source.requestStatus()) || "RUNNING".equals(source.requestStatus())) {

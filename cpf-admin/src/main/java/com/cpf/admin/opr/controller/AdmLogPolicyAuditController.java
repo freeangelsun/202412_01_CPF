@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmObservabilityService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmObservabilityService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * PFW 로그 정책 감사 로그 조회 API입니다.
+ * CPF 로그 정책 감사 로그 조회 API입니다.
  */
 @RestController
 @RequestMapping("/adm/api/log-policy-audits")
-@Tag(name = "ADM-LogPolicyAudit", description = "PFW 로그 정책 감사 조회 API")
-public class AdmLogPolicyAuditController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-LogPolicyAudit", description = "CPF 로그 정책 감사 조회 API")
+public class AdmLogPolicyAuditController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmObservabilityService observabilityService;
 
     public AdmLogPolicyAuditController(AdmObservabilityService observabilityService) {
@@ -27,7 +27,7 @@ public class AdmLogPolicyAuditController extends cpf.adm.common.base.AdmBaseCont
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMLG0018", name = "ADMLogPolicyAuditList")
-    @Operation(operationId = "admLogPolicyAuditFindPolicyAudits", summary = "로그 정책 감사 목록 조회", description = "정책 변경, override 등록/중지, cache refresh 이력을 pfw_log_policy_audit 기준으로 조회합니다.")
+    @Operation(operationId = "admLogPolicyAuditFindPolicyAudits", summary = "로그 정책 감사 목록 조회", description = "정책 변경, override 등록/중지, cache refresh 이력을 cpf_log_policy_audit 기준으로 조회합니다.")
     public ResponseEntity<Map<String, Object>> findPolicyAudits(
             @RequestParam(required = false) String operatorId,
             @RequestParam(required = false) String actionType,

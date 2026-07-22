@@ -1,25 +1,31 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/sample-coverage-matrix.md"),
+    [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/generated/sample-coverage-matrix.md"),
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $expectedSamples = @(
-    Get-ChildItem -LiteralPath (Join-Path $Root "xyz/src/main/java/cpf/xyz") -Recurse -File -Filter "*EducationSample.java"
-    Get-ChildItem -LiteralPath (Join-Path $Root "bat/src/main/java/cpf/bat/edu") -Recurse -File -Filter "*EducationSample.java"
+    Get-ChildItem -LiteralPath (Join-Path $Root "cpf-reference/src/main/java/com/cpf/reference") -Recurse -File -Filter "*EducationSample.java"
+    Get-ChildItem -LiteralPath (Join-Path $Root "cpf-batch/src/main/java/com/cpf/batch/edu") -Recurse -File -Filter "*EducationSample.java"
 )
 $forbiddenSamples = @(
     Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
         Where-Object {
             $_.FullName -notmatch '\\build\\' -and
-            $_.FullName -notmatch '\\xyz\\src\\main\\java\\cpf\\xyz\\' -and
-            $_.FullName -notmatch '\\bat\\src\\main\\java\\cpf\\bat\\edu\\'
+            $_.FullName -notmatch '\\cpf-reference\\src\\main\\java\\com\\cpf\\reference\\' -and
+            $_.FullName -notmatch '\\cpf-batch\\src\\main\\java\\com\\cpf\\batch\\edu\\'
         }
 )
 foreach ($file in $forbiddenSamples) {
-    $failures.Add("XYZ/BAT 외 범용 EDU 소스: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
+    $failures.Add("REF/BAT 외 범용 EDU 소스: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
 }
 
 if (-not (Test-Path -LiteralPath $MatrixPath)) {
@@ -43,7 +49,7 @@ foreach ($source in $expectedSamples) {
     }
 }
 
-$matrixSourcePaths = @([regex]::Matches($matrixText, '\|\s*((?:xyz|bat)/src/main/java/[^|]+EducationSample\.java)\s*\|') |
+$matrixSourcePaths = @([regex]::Matches($matrixText, '\|\s*((?:cpf-reference|cpf-batch)/src/main/java/[^|]+EducationSample\.java)\s*\|') |
     ForEach-Object { $_.Groups[1].Value.Trim() })
 foreach ($sourcePath in $matrixSourcePaths) {
     if (-not (Test-Path -LiteralPath (Join-Path $Root $sourcePath.Replace('/', '\')))) {
@@ -57,7 +63,7 @@ foreach ($duplicate in @($matrixSourcePaths | Group-Object | Where-Object Count 
     $failures.Add("매트릭스 중복 sourcePath: $($duplicate.Name)") | Out-Null
 }
 
-$evidenceMatches = @([regex]::Matches($matrixText, '\|\s*(specs/evidence/[^|]+)\s*\|') |
+$evidenceMatches = @([regex]::Matches($matrixText, '\|\s*(cpf-docs/evidence/[^|]+)\s*\|') |
     ForEach-Object { $_.Groups[1].Value.Trim() } | Select-Object -Unique)
 foreach ($evidencePath in $evidenceMatches) {
     if (-not (Test-Path -LiteralPath (Join-Path $Root $evidencePath.Replace('/', '\')))) {
@@ -69,7 +75,7 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $result = [ordered]@{
     generatedAt = [DateTimeOffset]::Now.ToString('o')
     status = if ($failures.Count -eq 0) { 'DONE' } else { 'FAILED' }
-    ownership = [ordered]@{ general = 'XYZ'; batch = 'BAT' }
+    ownership = [ordered]@{ general = 'REF'; batch = 'BAT' }
     sampleCount = $expectedSamples.Count
     matrixRowCount = $matrixSourcePaths.Count
     forbiddenSampleCount = $forbiddenSamples.Count

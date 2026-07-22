@@ -1,10 +1,10 @@
-package cpf.acc.account.facade;
+package com.cpf.account.account.facade;
 
-import cpf.acc.account.dto.AccAccountResponse;
-import cpf.acc.account.port.AccAccountRepository;
-import cpf.cmn.api.account.AccountSummary;
-import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.pfw.common.exception.CpfNotFoundException;
+import com.cpf.account.account.dto.AccAccountResponse;
+import com.cpf.account.account.port.AccAccountRepository;
+import com.cpf.common.api.account.AccountSummary;
+import com.cpf.common.api.account.AccountSummaryFacade;
+import com.cpf.core.common.exception.CpfNotFoundException;
 import org.springframework.stereotype.Component;
 
 /** ACC 소유 Repository를 통해 공유 계약을 구현하는 Local Facade Adapter입니다. */

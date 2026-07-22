@@ -1,11 +1,11 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * PFW DB 거래 로그 복구 worker의 주기 실행을 활성화합니다.
+ * CPF DB 거래 로그 복구 worker의 주기 실행을 활성화합니다.
  */
 @AutoConfiguration
 @EnableScheduling

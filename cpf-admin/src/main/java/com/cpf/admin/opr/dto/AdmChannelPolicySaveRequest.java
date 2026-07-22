@@ -1,4 +1,4 @@
-package cpf.adm.opr.dto;
+package com.cpf.admin.opr.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

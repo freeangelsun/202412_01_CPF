@@ -1,9 +1,9 @@
-package cpf.xyz.messaging;
+package com.cpf.reference.messaging;
 
-import cpf.pfw.common.broker.CpfBrokerEnvelope;
-import cpf.pfw.common.broker.CpfBrokerOutboxPort;
-import cpf.pfw.common.broker.CpfBrokerResult;
-import cpf.pfw.common.broker.DeterministicCpfBrokerPublisher;
+import com.cpf.core.common.broker.CpfBrokerEnvelope;
+import com.cpf.core.common.broker.CpfBrokerOutboxPort;
+import com.cpf.core.common.broker.CpfBrokerResult;
+import com.cpf.core.common.broker.DeterministicCpfBrokerPublisher;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -11,17 +11,17 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzOutboxInboxEducationSampleTest {
+class ReferenceOutboxInboxEducationSampleTest {
 
     @Test
-    void outboxIsPublishedThroughPfwWorker() {
+    void outboxIsPublishedThroughCpfWorker() {
         TestOutbox outbox = new TestOutbox();
-        XyzOutboxInboxEducationSample sample = new XyzOutboxInboxEducationSample(
+        ReferenceOutboxInboxEducationSample sample = new ReferenceOutboxInboxEducationSample(
                 outbox,
-                new DeterministicCpfBrokerPublisher("XYZ_EDU", envelope -> false));
-        CpfBrokerEnvelope envelope = new XyzBrokerPublishEducationSample().publishPlan("TX-1", "IDEM-1");
+                new DeterministicCpfBrokerPublisher("REF_EDU", envelope -> false));
+        CpfBrokerEnvelope envelope = new ReferenceBrokerPublishEducationSample().publishPlan("TX-1", "IDEM-1");
 
-        XyzOutboxInboxEducationSample.PublishScenario scenario = sample.publish(envelope, "xyz-worker-1");
+        ReferenceOutboxInboxEducationSample.PublishScenario scenario = sample.publish(envelope, "ref-worker-1");
 
         assertThat(scenario.accepted().status()).isEqualTo("ACCEPTED");
         assertThat(scenario.workerResult().successCount()).isEqualTo(1);
@@ -35,7 +35,7 @@ class XyzOutboxInboxEducationSampleTest {
         @Override
         public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
             pending.add(envelope);
-            return CpfBrokerResult.accepted(envelope.message().messageId(), "PFW_OUTBOX", envelope.message().key());
+            return CpfBrokerResult.accepted(envelope.message().messageId(), "CPF_OUTBOX", envelope.message().key());
         }
 
         @Override

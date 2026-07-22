@@ -1,4 +1,4 @@
-package cpf.mbr.common.response;
+package com.cpf.member.common.response;
 
 /**
  * MBR 표준 응답 코드입니다.

@@ -1,6 +1,6 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
-import cpf.pfw.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * 업무 처리 루프에서 이 서비스를 주기적으로 호출하는 방식으로 연결합니다.</p>
  */
 public class CpfBatchHeartbeatService {
-    public static final String PARAM_PFW_EXECUTION_ID = "cpfPfwExecutionId";
+    public static final String PARAM_CPF_EXECUTION_ID = "cpfCpfExecutionId";
     public static final String PARAM_WORKER_LEASE_TOKEN = "cpfWorkerLeaseToken";
 
     private final CpfBatchOperationRepository repository;
@@ -41,7 +41,7 @@ public class CpfBatchHeartbeatService {
     }
 
     public void recordJobStarted(JobExecution jobExecution) {
-        Long executionId = pfwExecutionId(jobExecution);
+        Long executionId = cpfExecutionId(jobExecution);
         if (executionId == null) {
             return;
         }
@@ -57,7 +57,7 @@ public class CpfBatchHeartbeatService {
     }
 
     public void recordJobFinished(JobExecution jobExecution) {
-        Long executionId = pfwExecutionId(jobExecution);
+        Long executionId = cpfExecutionId(jobExecution);
         if (executionId == null) {
             return;
         }
@@ -88,7 +88,7 @@ public class CpfBatchHeartbeatService {
     }
 
     public void recordStepStarted(StepExecution stepExecution) {
-        Long executionId = pfwExecutionId(stepExecution.getJobExecution());
+        Long executionId = cpfExecutionId(stepExecution.getJobExecution());
         if (executionId == null) {
             return;
         }
@@ -113,7 +113,7 @@ public class CpfBatchHeartbeatService {
     }
 
     public void recordStepFinished(StepExecution stepExecution) {
-        Long executionId = pfwExecutionId(stepExecution.getJobExecution());
+        Long executionId = cpfExecutionId(stepExecution.getJobExecution());
         if (executionId == null) {
             return;
         }
@@ -143,7 +143,7 @@ public class CpfBatchHeartbeatService {
             long skipCount,
             long retryCount,
             String detailMessage) {
-        Long executionId = pfwExecutionId(stepExecution.getJobExecution());
+        Long executionId = cpfExecutionId(stepExecution.getJobExecution());
         if (executionId == null) {
             return;
         }
@@ -195,11 +195,11 @@ public class CpfBatchHeartbeatService {
                 stepLog);
     }
 
-    private Long pfwExecutionId(JobExecution jobExecution) {
+    private Long cpfExecutionId(JobExecution jobExecution) {
         if (jobExecution == null || jobExecution.getJobParameters() == null) {
             return null;
         }
-        return jobExecution.getJobParameters().getLong(PARAM_PFW_EXECUTION_ID);
+        return jobExecution.getJobParameters().getLong(PARAM_CPF_EXECUTION_ID);
     }
 
     private String workerId(JobExecution jobExecution) {
@@ -211,7 +211,7 @@ public class CpfBatchHeartbeatService {
 
     private String requestUser(JobExecution jobExecution) {
         String user = jobExecution.getJobParameters().getString("cpfRequestUser");
-        return user == null || user.isBlank() ? "PFW_BATCH" : user;
+        return user == null || user.isBlank() ? "CPF_BATCH" : user;
     }
 
     private long elapsedMs(LocalDateTime startTime, LocalDateTime endTime) {

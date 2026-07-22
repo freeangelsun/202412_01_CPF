@@ -5,9 +5,9 @@ plugins {
     id 'io.spring.dependency-management'
 }
 
-group = 'cpf.pfw.gateway'
+group = 'com.cpf.gateway'
 dependencies {
-    implementation project(':pfw')
+    implementation project(':cpf-core')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

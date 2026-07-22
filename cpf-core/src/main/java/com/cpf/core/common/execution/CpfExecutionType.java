@@ -1,4 +1,4 @@
-package cpf.pfw.common.execution;
+package com.cpf.core.common.execution;
 
 /**
  * CPF 표준 실행 유형입니다.

@@ -3,8 +3,8 @@
 spring:
   config:
     import:
-      - optional:classpath:application-pfw.yml
-      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
       - optional:classpath:application-cmn.yml
       - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
       - optional:classpath:application-adm.yml
@@ -13,23 +13,29 @@ spring:
     name: adm
   profiles:
     active: local
-    include: pfw, cmn
+    include: cpf, cmn
   datasource:
     adm:
+      mode: ${ADM_DATASOURCE_MODE:url}
       driver-class-name: ${ADM_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}
       username: ${ADM_DB_USERNAME:cpf_adm_app}
       password: ${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
     mbr:
+      mode: ${MBR_DB_MODE:url}
       driver-class-name: ${MBR_DB_DRIVER:org.mariadb.jdbc.Driver}
       url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
       username: ${MBR_DB_USERNAME:cpf_mbr_app}
       password: ${MBR_DB_PASSWORD:__REPLACE_BY_ENV__}
-    xyz:
-      driver-class-name: ${XYZ_DB_DRIVER:org.mariadb.jdbc.Driver}
-      url: ${XYZ_DB_URL:jdbc:mariadb://localhost:3306/xyzDB}
-      username: ${XYZ_DB_USERNAME:cpf_xyz_app}
-      password: ${XYZ_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${MBR_DB_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}
+    ref:
+      mode: ${REF_DB_MODE:url}
+      driver-class-name: ${REF_DB_DRIVER:org.mariadb.jdbc.Driver}
+      url: ${REF_DB_URL:jdbc:mariadb://localhost:3306/refDB}
+      username: ${REF_DB_USERNAME:cpf_ref_app}
+      password: ${REF_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${REF_DB_JNDI_NAME:java:comp/env/jdbc/cpfReferenceDataSource}
   batch:
     job:
       enabled: false
@@ -42,9 +48,9 @@ server:
 logging:
   level:
     root: INFO
-    cpf.pfw: INFO
-    cpf.cmn: INFO
-    cpf.adm: DEBUG
+    com.cpf.core: INFO
+    com.cpf.common: INFO
+    com.cpf.admin: DEBUG
 
 cpf:
   framework:
@@ -58,37 +64,14 @@ cpf:
       operator-name: ${CPF_ADM_BOOTSTRAP_OPERATOR_NAME:CPF 관리자}
       password: ${CPF_ADM_BOOTSTRAP_PASSWORD:}
     security:
-      enabled: ${CPF_ADM_SECURITY_ENABLED:${CPF_ADM_SECURITY_ENABLED:true}}
-      session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:${CPF_ADM_SESSION_TTL_SECONDS:3600}}
+      enabled: ${CPF_ADM_SECURITY_ENABLED:true}
+      session-ttl-seconds: ${CPF_ADM_SESSION_TTL_SECONDS:3600}
       ip-allowlist: ${CPF_ADM_IP_ALLOWLIST:}
       mfa-enabled: ${CPF_ADM_MFA_ENABLED:false}
       session-cleanup-cron: ${CPF_ADM_SESSION_CLEANUP_CRON:0 */10 * * * *}
     password-policy:
-      expire-days: ${CPF_ADM_PASSWORD_EXPIRE_DAYS:${CPF_ADM_PASSWORD_EXPIRE_DAYS:90}}
-      min-length: ${CPF_ADM_PASSWORD_MIN_LENGTH:${CPF_ADM_PASSWORD_MIN_LENGTH:10}}
-      required-category-count: ${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:3}}
-      max-fail-count: ${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:5}}
-      history-count: ${CPF_ADM_PASSWORD_HISTORY_COUNT:${CPF_ADM_PASSWORD_HISTORY_COUNT:3}}
-
----
-# prod에서는 DB password 같은 secret 기본값을 두지 않고 배포 환경변수 또는 Vault/KMS 연동 값으로만 주입합니다.
-spring:
-  config:
-    activate:
-      on-profile: prod
-  datasource:
-    adm:
-      url: ${ADM_DB_URL}
-      username: ${ADM_DB_USERNAME}
-      password: ${ADM_DB_PASSWORD}
-    mbr:
-      url: ${MBR_DB_URL}
-      username: ${MBR_DB_USERNAME}
-      password: ${MBR_DB_PASSWORD}
-    xyz:
-      url: ${XYZ_DB_URL}
-      username: ${XYZ_DB_USERNAME}
-      password: ${XYZ_DB_PASSWORD}
-logging:
-  level:
-    cpf.adm: INFO
+      expire-days: ${CPF_ADM_PASSWORD_EXPIRE_DAYS:90}
+      min-length: ${CPF_ADM_PASSWORD_MIN_LENGTH:10}
+      required-category-count: ${CPF_ADM_PASSWORD_REQUIRED_CATEGORY_COUNT:3}
+      max-fail-count: ${CPF_ADM_PASSWORD_MAX_FAIL_COUNT:5}
+      history-count: ${CPF_ADM_PASSWORD_HISTORY_COUNT:3}

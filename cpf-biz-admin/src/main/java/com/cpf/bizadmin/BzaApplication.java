@@ -1,4 +1,4 @@
-package cpf.bza;
+package com.cpf.bizadmin;
 
 import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -8,13 +8,14 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
- * 업무/프로젝트 관리자 화면을 별도 모듈로 구현하는 기준 샘플 애플리케이션입니다.
+ * 고객 업무 운영 기능을 제공하는 BZA 실행 애플리케이션입니다.
  *
- * <p>샘플 API는 정적 교육 데이터를 반환하므로 DB가 없어도 기동할 수 있게 datasource와
- * MyBatis 자동설정을 제외합니다. 실제 프로젝트에서는 업무 DB를 붙인 뒤 제외 설정을 제거합니다.</p>
+ * <p>CPF 기술 공통과 CMN 고객 공통, BZA 인증·권한·업무 운영 컴포넌트를 함께 스캔합니다.
+ * BZA DB는 {@code cpf.bza.datasource.enabled=true}일 때 전용 설정이 생성하므로, 기본 datasource와
+ * 사용하지 않는 MyBatis 자동설정은 제외해 DB 미사용 개발 환경도 명확하게 기동할 수 있습니다.</p>
  */
 @SpringBootApplication(
-        scanBasePackages = "cpf",
+        scanBasePackages = {"com.cpf.core", "com.cpf.common", "com.cpf.bizadmin"},
         exclude = {DataSourceAutoConfiguration.class, MybatisAutoConfiguration.class})
 public class BzaApplication extends SpringBootServletInitializer {
 

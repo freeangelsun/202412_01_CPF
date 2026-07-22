@@ -2,13 +2,19 @@
     [Alias("Root")]
     [string] $DiagnosticsRoot = "",
     [Alias("Modules")]
-    [string[]] $DiagnosticsModules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
+    [string[]] $DiagnosticsModules = @("MBR", "ADM", "BZA", "REF", "BAT"),
     [Alias("ResultDir")]
     [string] $DiagnosticsResultDir = "",
     [Alias("ErrorMessage")]
     [string] $DiagnosticsErrorMessage = "",
     [switch] $NoExitOnFailure
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
@@ -73,7 +79,7 @@ function New-CpfRuntimeDiagnostic {
 function Invoke-CpfRuntimeDiagnostics {
     param(
         [string] $Root = "",
-        [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
+        [string[]] $Modules = @("MBR", "ADM", "BZA", "REF", "BAT"),
         [string] $ResultDir = "",
         [string] $ErrorMessage = ""
     )

@@ -3,6 +3,12 @@
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -11,7 +17,10 @@ if (-not [IO.Path]::IsPathRooted($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$modules = @('pfw', 'pfw-gateway-runtime', 'cmn', 'adm', 'bza', 'mbr', 'acc', 'bat', 'xyz')
+$modules = @(
+    'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
+    'cpf-member', 'cpf-account', 'cpf-batch', 'cpf-reference', 'cpf-external'
+)
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()
 

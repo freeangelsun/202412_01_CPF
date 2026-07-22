@@ -3,16 +3,23 @@
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 $moduleRules = [ordered]@{
-    acc = [ordered]@{ controller = "AccBaseController"; service = "AccBaseService" }
-    adm = [ordered]@{ controller = "AdmBaseController"; service = "AdmBaseService" }
-    bat = [ordered]@{ controller = "BatBaseController"; service = "BatBaseService" }
-    bza = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
-    cmn = [ordered]@{ controller = $null; service = "CmnBaseService" }
-    mbr = [ordered]@{ controller = "MbrBaseController"; service = "MbrBaseService" }
-    xyz = [ordered]@{ controller = "XyzBaseController"; service = "XyzBaseService" }
+    "cpf-account" = [ordered]@{ controller = "AccBaseController"; service = "AccBaseService" }
+    "cpf-admin" = [ordered]@{ controller = "AdmBaseController"; service = "AdmBaseService" }
+    "cpf-batch" = [ordered]@{ controller = "BatBaseController"; service = "BatBaseService" }
+    "cpf-biz-admin" = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
+    "cpf-common" = [ordered]@{ controller = $null; service = "CmnBaseService" }
+    "cpf-member" = [ordered]@{ controller = "MbrBaseController"; service = "MbrBaseService" }
+    "cpf-reference" = [ordered]@{ controller = "ReferenceBaseController"; service = "ReferenceBaseService" }
+    "cpf-external" = [ordered]@{ controller = "ExternalBaseController"; service = "ExternalBaseService" }
 }
 
 $checked = New-Object System.Collections.Generic.List[object]

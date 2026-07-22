@@ -25,3 +25,11 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+cpf:
+  mbr:
+    security:
+      # JWT secret은 저장소에 기본값을 두지 않고 환경변수 또는 secret provider로 주입합니다.
+      jwt-secret: ${CPF_MBR_JWT_SECRET:}
+      access-token-ttl-seconds: ${CPF_MBR_ACCESS_TOKEN_TTL_SECONDS:600}
+      refresh-token-ttl-seconds: ${CPF_MBR_REFRESH_TOKEN_TTL_SECONDS:7200}

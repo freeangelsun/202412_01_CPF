@@ -1,12 +1,8 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Map;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- */
+/** 업무 규칙 위반을 CPF 표준 응답 코드와 메시지 인자로 전달하는 예외입니다. */
 public class CpfBusinessException extends CpfException {
     public CpfBusinessException(String detail) {
         super(CpfErrorCode.BUSINESS_RULE_VIOLATION, detail);

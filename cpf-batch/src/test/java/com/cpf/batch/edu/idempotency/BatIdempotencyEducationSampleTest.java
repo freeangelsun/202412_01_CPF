@@ -1,4 +1,4 @@
-package cpf.bat.edu.idempotency;
+package com.cpf.batch.edu.idempotency;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ class BatIdempotencyEducationSampleTest {
     }
 
     @Test
-    void repeatedJobExecutionReplaysPfwStoredResult() {
+    void repeatedJobExecutionReplaysCpfStoredResult() {
         BatIdempotencyEducationSample sample = new BatIdempotencyEducationSample();
 
         assertThat(sample.runOnce("JOB", "20260713", "HASH").replayed()).isFalse();

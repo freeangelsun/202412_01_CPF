@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 /**
  * 업무 모듈이 사용하는 파일 전송 facade 계약입니다.

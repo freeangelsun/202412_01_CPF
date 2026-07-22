@@ -1,7 +1,7 @@
-package cpf.pfw.common.reliability;
+package com.cpf.core.common.reliability;
 
-import cpf.pfw.api.reliability.CpfReliabilityOperationsPort;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,7 +33,7 @@ class CpfReliabilityOperationsFacadeTest {
         facade.findOutbox("FAILED", "TX-1", "cpf.topic", 1000);
 
         verify(jdbcTemplate).queryForList(
-                contains("FROM pfw_broker_outbox"),
+                contains("FROM cpf_broker_outbox"),
                 eq(new Object[]{"FAILED", "TX-1", "cpf.topic", 500}));
     }
 
@@ -42,7 +42,7 @@ class CpfReliabilityOperationsFacadeTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ObjectProvider<JdbcTemplate> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(jdbcTemplate);
-        when(jdbcTemplate.queryForList(contains("FROM pfw_broker_dlq"), eq("M1")))
+        when(jdbcTemplate.queryForList(contains("FROM cpf_broker_dlq"), eq("M1")))
                 .thenReturn(List.of(Map.of("message_id", "M1", "replay_status", "REQUESTED")));
         when(jdbcTemplate.update(anyString(), any(), any())).thenReturn(0);
         CpfReliabilityOperationsFacade facade = new CpfReliabilityOperationsFacade(provider);
@@ -57,7 +57,7 @@ class CpfReliabilityOperationsFacadeTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ObjectProvider<JdbcTemplate> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(jdbcTemplate);
-        when(jdbcTemplate.queryForList(contains("FROM pfw_unknown_result"), eq("U1")))
+        when(jdbcTemplate.queryForList(contains("FROM cpf_unknown_result"), eq("U1")))
                 .thenReturn(
                         List.of(Map.of("unknown_id", "U1", "unknown_status", "CHECK_PENDING")),
                         List.of(Map.of("unknown_id", "U1", "unknown_status", "CONFIRMED_SUCCESS")));

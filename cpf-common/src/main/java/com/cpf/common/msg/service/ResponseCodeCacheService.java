@@ -1,9 +1,9 @@
-package cpf.cmn.msg.service;
+package com.cpf.common.msg.service;
 
-import cpf.cmn.msg.dto.CommonResponseCodeRequest;
-import cpf.cmn.msg.mapper.ResponseCodeMapper;
-import cpf.cmn.ref.service.CacheRefreshEventPublisher;
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.msg.dto.CommonResponseCodeRequest;
+import com.cpf.common.msg.mapper.ResponseCodeMapper;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.utils.TextUtils;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ResponseCodeCacheService extends cpf.cmn.common.base.CmnBaseService {
+public class ResponseCodeCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCodeCacheService.class);
     public static final String CACHE_NAME = "responseCodeCache";
 
@@ -148,10 +148,10 @@ public class ResponseCodeCacheService extends cpf.cmn.common.base.CmnBaseService
     private void requireFormat(CommonResponseCodeRequest request) {
         String responseCode = request.getResponseCode();
         if (responseCode == null || !responseCode.matches("[SE][A-Z]{3}[0-9]{2}[0-9]{4}")) {
-            throw new IllegalArgumentException("responseCode 형식은 {S|E}{MODULE}{GROUP}{SEQ}입니다. 예: EXYZ010001");
+            throw new IllegalArgumentException("responseCode 형식은 {S|E}{MODULE}{GROUP}{SEQ}입니다. 예: EREF010001");
         }
         if (request.getMessageCode() == null || !request.getMessageCode().matches("M[A-Z]{3}[0-9]{2}[0-9]{4}")) {
-            throw new IllegalArgumentException("messageCode 형식은 M{MODULE}{GROUP}{SEQ}입니다. 예: MXYZ010001");
+            throw new IllegalArgumentException("messageCode 형식은 M{MODULE}{GROUP}{SEQ}입니다. 예: MREF010001");
         }
         if (!String.valueOf(responseCode.charAt(0)).equals(request.getResultType())) {
             throw new IllegalArgumentException("resultType must match the first character of responseCode.");

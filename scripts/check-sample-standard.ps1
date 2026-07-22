@@ -2,19 +2,25 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
-# 범용 EDU는 XYZ와 BAT만 소유합니다. 다른 모듈은 엔진, 포트, reference adapter와 테스트 fixture만 둡니다.
+# 범용 EDU는 REF와 BAT만 소유합니다. 다른 모듈은 엔진, 포트, reference adapter와 테스트 fixture만 둡니다.
 $operationRoots = @(
-    "pfw/src/main/java",
-    "cmn/src/main/java",
-    "adm/src/main/java",
-    "bza/src/main/java",
-    "mbr/src/main/java"
+    "cpf-core/src/main/java",
+    "cpf-common/src/main/java",
+    "cpf-admin/src/main/java",
+    "cpf-biz-admin/src/main/java",
+    "cpf-member/src/main/java"
 )
 $educationRoots = @(
-    "bat/src/main/java/cpf/bat/edu",
-    "xyz/src/main/java/cpf/xyz"
+    "cpf-batch/src/main/java/com/cpf/batch/edu",
+    "cpf-reference/src/main/java/com/cpf/reference"
 )
 $failures = New-Object System.Collections.Generic.List[string]
 
@@ -48,8 +54,8 @@ foreach ($rootPath in $operationRoots) {
 
         $isEduSource = Test-EduSourcePath $relative
 
-        if (-not $isEduSource -and ($_.Name -match 'EducationSample' -or $text -match '(?m)^\s*package\s+cpf\.(pfw|cmn|adm|bza|mbr)\.edu(\.|;)')) {
-            $failures.Add("XYZ/BAT 외 모듈의 범용 EDU 소유권 위반: $relative")
+        if (-not $isEduSource -and ($_.Name -match 'EducationSample' -or $text -match '(?m)^\s*package\s+com\.cpf\.(core|common|admin|bizadmin|member)\.edu(\.|;)')) {
+            $failures.Add("REF/BAT 외 모듈의 범용 EDU 소유권 위반: $relative")
         }
 
         if (-not $isEduSource -and $_.Name -match '(?i)Sample(Controller|Service)\.java$') {

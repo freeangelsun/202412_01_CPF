@@ -1,6 +1,6 @@
-package cpf.cmn.cfg.mapper;
+package com.cpf.common.cfg.mapper;
 
-import cpf.cmn.cfg.dto.CommonConfigRequest;
+import com.cpf.common.cfg.dto.CommonConfigRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 설정 Mapper입니다.
+ * CPF 공통 설정 Mapper입니다.
  */
 @Mapper
 public interface ConfigMapper {

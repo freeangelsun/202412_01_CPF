@@ -1,4 +1,4 @@
-package cpf.bat.edu.centercut;
+package com.cpf.batch.edu.centercut;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 /**
  * Fully resolved response metadata derived from a response code and message code.

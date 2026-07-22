@@ -4,18 +4,18 @@
 
 ## 구조
 
-- `cpf.acc.account`: validation, 낙관적 버전, 논리 삭제와 변경 감사를 포함한 대표 계정 CRUD
-- `cpf.acc.reference`: 생성기 기준 조회, local adapter와 remote proxy를 포함한 reference 기능
-- `cpf.acc.config`: ACC 업무 DB와 PFW 배치 메타 DB 설정
+- `com.cpf.account.account`: validation, 낙관적 버전, 논리 삭제와 변경 감사를 포함한 대표 계정 CRUD
+- `com.cpf.account.reference`: 생성기 기준 조회, local adapter와 remote proxy를 포함한 reference 기능
+- `com.cpf.account.config`: ACC 업무 DB와 CPF 배치 메타 DB 설정
 - `manifest/standard-execution-catalog.json`: ACC O/S/B 표준 실행 카탈로그
 
-업무 데이터는 `accDB.acc_account*`가 소유하고 Spring Batch 원천 메타는 `pfwDB.BATCH_*`를 사용합니다. 다른 주제영역은 ACC Repository나 Mapper에 직접 접근하지 않고 CMN facade contract와 PFW Service Call Engine을 사용합니다.
+업무 데이터는 `accDB.acc_account*`가 소유하고 Spring Batch 원천 메타는 `cpfDB.BATCH_*`를 사용합니다. 다른 주제영역은 ACC Repository나 Mapper에 직접 접근하지 않고 CMN facade contract와 CPF Service Call Engine을 사용합니다.
 
 ## 빌드와 실행
 
 ```powershell
-.\gradlew.bat :acc:test :acc:bootJar :acc:bootWar --no-daemon
-.\gradlew.bat :acc:bootRun --args='--spring.profiles.active=local'
+.\gradlew.bat :cpf-account:test :cpf-account:bootJar :cpf-account:bootWar --no-daemon
+.\gradlew.bat :cpf-account:bootRun --args='--spring.profiles.active=local'
 ```
 
 신규 주제영역 생성과 제거는 루트의 `scripts/create-domain.ps1`, `scripts/remove-domain.ps1`을 사용합니다. 생성 결과를 제품 구조에 반영할 때는 SQL/Flyway, 표준 실행 카탈로그, ADM/BZA seed, profile, 배포 inventory와 OpenAPI를 함께 검토합니다.

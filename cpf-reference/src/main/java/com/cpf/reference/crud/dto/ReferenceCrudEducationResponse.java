@@ -1,7 +1,7 @@
-package cpf.xyz.crud.dto;
+package com.cpf.reference.crud.dto;
 
 /**
- * XYZ CRUD 교육 항목 응답 DTO입니다.
+ * REF CRUD 교육 항목 응답 DTO입니다.
  *
  * @param educationItemId 교육 항목 ID
  * @param title 항목명
@@ -11,7 +11,7 @@ package cpf.xyz.crud.dto;
  * @param categoryCode 분류 코드
  * @param ownerMemberNo 예시 소유 회원 번호
  */
-public record XyzCrudEducationResponse(
+public record ReferenceCrudEducationResponse(
         Long educationItemId,
         String title,
         String status,

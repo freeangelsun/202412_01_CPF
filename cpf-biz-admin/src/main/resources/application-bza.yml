@@ -6,7 +6,7 @@ cpf:
     instance-id: ${BZA_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:bza-local-01}}}
     was-id: ${BZA_WAS_ID:${WAS_ID:bzaAP01}}
   service-call:
-    registry-mode: ${BZA_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+    registry-mode: ${BZA_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
   bza:
     bootstrap:
       enabled: ${CPF_BZA_BOOTSTRAP_ENABLED:false}

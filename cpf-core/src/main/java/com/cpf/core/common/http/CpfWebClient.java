@@ -1,12 +1,12 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.execution.CpfStandardExecutionId;
-import cpf.pfw.common.header.CpfHeaderNames;
-import cpf.pfw.common.servicecall.CpfServiceCallEngine;
-import cpf.pfw.common.servicecall.CpfServiceCallException;
-import cpf.pfw.common.servicecall.ServiceCallRequest;
-import cpf.pfw.common.servicecall.ServiceCallResolvedTarget;
-import cpf.pfw.common.servicecall.ServiceCallResult;
+import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.common.servicecall.CpfServiceCallEngine;
+import com.cpf.core.common.servicecall.CpfServiceCallException;
+import com.cpf.core.common.servicecall.ServiceCallRequest;
+import com.cpf.core.common.servicecall.ServiceCallResolvedTarget;
+import com.cpf.core.common.servicecall.ServiceCallResult;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,7 +22,7 @@ import java.util.function.Function;
  * CPF 서비스 간 호출에 사용하는 WebClient 파사드입니다.
  *
  * <p>{@link #get(String, Function, Class)}와 {@link #post(String, String, Object, Class)} 계열 메서드는
- * PFW Service Call Engine을 우선 경유합니다. 레지스트리 DB가 아직 준비되지 않은 개발 환경에서는
+ * CPF Service Call Engine을 우선 경유합니다. 레지스트리 DB가 아직 준비되지 않은 개발 환경에서는
  * 기존 {@code cpf.services.*.base-url} 설정으로 fallback하여 로컬 기동성을 유지합니다.</p>
  */
 public class CpfWebClient {
@@ -361,7 +361,7 @@ public class CpfWebClient {
         return normalized.contains("레지스트리")
                 || normalized.contains("endpoint")
                 || normalized.contains("service endpoint")
-                || normalized.contains("pfw 서비스");
+                || normalized.contains("cpf 서비스");
     }
 
     private String normalizePath(String path) {

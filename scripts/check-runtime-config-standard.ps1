@@ -1,30 +1,68 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("mbr", "adm", "bat", "bza", "xyz", "acc", "pfw-gateway-runtime")
-$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "XYZ", "ACC", "GATEWAY")
+$modules = @("cpf-member", "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-reference", "cpf-account", "cpf-external", "cpf-gateway")
+$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "REF", "ACC", "EXS", "GWY")
 $profiles = @("local", "dev", "stg", "prod")
 $prefixByModule = @{
-    mbr = "MBR"
-    adm = "ADM"
-    bat = "BAT"
-    bza = "BZA"
-    xyz = "XYZ"
-    acc = "ACC"
-    "pfw-gateway-runtime" = "GATEWAY"
+    "cpf-member" = "MBR"
+    "cpf-admin" = "ADM"
+    "cpf-batch" = "BAT"
+    "cpf-biz-admin" = "BZA"
+    "cpf-reference" = "REF"
+    "cpf-account" = "ACC"
+    "cpf-external" = "EXS"
+    "cpf-gateway" = "GWY"
 }
 $expectedLocalPorts = @{
     MBR = 8081
     ADM = 8090
     BZA = 8091
     BAT = 8093
-    XYZ = 8099
+    REF = 8099
     ACC = 8082
-    GATEWAY = 8070
+    EXS = 8094
+    GWY = 8070
+}
+$schemaByModule = @{
+    MBR = "mbrDB"
+    ADM = "admDB"
+    BZA = "bzaDB"
+    BAT = "cpfDB"
+    REF = "refDB"
+    ACC = "accDB"
+    EXS = "exsDB"
+    GWY = "cpfDB"
+}
+$usernameByModule = @{
+    MBR = "cpf_mbr_app"
+    ADM = "cpf_adm_app"
+    BZA = "cpf_bza_app"
+    BAT = "cpf_app"
+    REF = "cpf_ref_app"
+    ACC = "cpf_acc_app"
+    EXS = "cpf_exs_app"
+    GWY = "cpf_app"
+}
+$jndiByModule = @{
+    MBR = "java:comp/env/jdbc/cpfMemberDataSource"
+    ADM = "java:comp/env/jdbc/cpfAdminDataSource"
+    BZA = "java:comp/env/jdbc/cpfBizAdminDataSource"
+    BAT = "java:comp/env/jdbc/cpfBatchDataSource"
+    REF = "java:comp/env/jdbc/cpfReferenceDataSource"
+    ACC = "java:comp/env/jdbc/cpfAccountDataSource"
+    EXS = "java:comp/env/jdbc/cpfExternalDataSource"
+    GWY = "java:comp/env/jdbc/cpfGatewayDataSource"
 }
 $failures = New-Object System.Collections.Generic.List[string]
 
@@ -75,11 +113,16 @@ function Read-EnvFile {
 
 function Get-GitFiles {
     param([string[]] $PathSpecs)
-    $output = & git -c "safe.directory=*" -C $Root ls-files @PathSpecs
-    if ($LASTEXITCODE -ne 0) {
-        throw "git ls-files failed: $($PathSpecs -join ' ')"
+    $arguments = @("ls-files", "--cached", "--others", "--exclude-standard", "--") + @($PathSpecs)
+    $output = @(& git -c "safe.directory=*" -c "core.quotepath=false" -C $Root @arguments 2>&1 |
+            ForEach-Object { $_.ToString() })
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "git ls-files failed: $($PathSpecs -join ' '), output=$($output -join ' ')"
     }
-    return @($output | Where-Object { $null -ne $_ })
+    return @($output |
+        Where-Object { $null -ne $_ -and (Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf) } |
+        Sort-Object -Unique)
 }
 
 # 요청서에 명시된 파일 목록은 raw txt를 흩어 놓지 않고 하나의 정제 JSON으로 보관합니다.
@@ -90,12 +133,11 @@ Write-JsonEvidence "runtime-config-inventory.sanitized.json" ([pscustomobject]@{
     configFiles = Get-GitFiles @("*application*.yml", "*application*.yaml", "*application*.properties")
     deployConfigFiles = Get-GitFiles @("deploy/env/*", "deploy/inventory/*")
     deployScriptFilesAfterCleanup = Get-GitFiles @("scripts/deploy/*")
-    evidenceFiles = Get-GitFiles @("specs/evidence/**")
+    evidenceFiles = Get-GitFiles @("cpf-docs/evidence/**")
 })
 
 $staleFiles = @(
-    "cmn/src/main/resources/application-cmn-test.yml",
-    "bat/src/main/resources/application-bat-worker.yml",
+    "cpf-common/src/main/resources/application-cmn-test.yml",
     "scripts/deploy/check-packaged-dependencies.ps1",
     "scripts/deploy/deploy-adm.ps1",
     "scripts/deploy/deploy-bat.ps1",
@@ -104,7 +146,7 @@ $staleFiles = @(
     "scripts/deploy/deploy-mbr.ps1",
     "scripts/deploy/deploy-module.ps1",
     "scripts/deploy/deploy-module.sh",
-    "scripts/deploy/deploy-xyz.ps1",
+    "scripts/deploy/deploy-ref.ps1",
     "scripts/deploy/remote-health-check.ps1",
     "scripts/deploy/remote-restart-module.ps1",
     "scripts/deploy/remote-start-module.ps1",
@@ -141,7 +183,7 @@ $portRows = New-Object System.Collections.Generic.List[object]
 $datasourceRows = New-Object System.Collections.Generic.List[object]
 foreach ($profile in $profiles) {
     $profileModules = if ($profile -eq "prod") {
-        @($modules | Where-Object { $_ -ne "xyz" })
+        @($modules | Where-Object { $_ -ne "cpf-reference" })
     } else {
         $modules
     }
@@ -162,12 +204,31 @@ foreach ($profile in $profiles) {
             ("{0}_WAS_ID" -f $prefix),
             ("{0}_SERVER_PORT" -f $prefix),
             "CPF_LOG_ROOT",
+            "CPF_DB_MODE",
+            "CPF_DB_URL",
+            "CPF_DB_USERNAME",
+            "CPF_DB_PASSWORD",
+            "CPF_DB_JNDI_NAME",
             ("{0}_DATASOURCE_MODE" -f $prefix),
             ("{0}_DATASOURCE_URL" -f $prefix),
             ("{0}_DATASOURCE_USERNAME" -f $prefix),
             ("{0}_DATASOURCE_PASSWORD" -f $prefix),
             ("{0}_DATASOURCE_JNDI_NAME" -f $prefix)
         )
+        if ($prefix -eq "MBR") {
+            $requiredKeys += @(
+                "CPF_MBR_JWT_SECRET",
+                "CPF_MBR_ACCESS_TOKEN_TTL_SECONDS",
+                "CPF_MBR_REFRESH_TOKEN_TTL_SECONDS"
+            )
+        }
+        if ($prefix -eq "BZA") {
+            $requiredKeys += @(
+                "CPF_BZA_JWT_SECRET",
+                "CPF_BZA_ACCESS_TOKEN_TTL_SECONDS",
+                "CPF_BZA_REFRESH_TOKEN_TTL_SECONDS"
+            )
+        }
 
         $missingKeys = @()
         $emptyKeys = @()
@@ -184,16 +245,52 @@ foreach ($profile in $profiles) {
         $jndiKey = "{0}_DATASOURCE_JNDI_NAME" -f $prefix
         $passwordKey = "{0}_DATASOURCE_PASSWORD" -f $prefix
         $portKey = "{0}_SERVER_PORT" -f $prefix
+        $moduleIdKey = "{0}_MODULE_ID" -f $prefix
         $mode = [string] $values[$modeKey]
         $port = [int] $values[$portKey]
         $password = [string] $values[$passwordKey]
         $logRoot = [string] $values["CPF_LOG_ROOT"]
 
+        if ($values.Contains($moduleIdKey) -and [string]$values[$moduleIdKey] -ne $prefix) {
+            Add-Failure ("module ID mismatch: {0} expected {1}, actual {2}" -f $relativePath, $prefix, $values[$moduleIdKey])
+        }
+        if ($profile -in @("local", "dev")) {
+            $expectedSchema = $schemaByModule[$prefix]
+            $expectedUsername = $usernameByModule[$prefix]
+            $usernameKey = "{0}_DATASOURCE_USERNAME" -f $prefix
+            if ($values.Contains($urlKey) -and
+                    [string]$values[$urlKey] -notmatch ("(?i)(?:/|databaseName=){0}(?:[;?]|$)" -f [regex]::Escape($expectedSchema))) {
+                Add-Failure ("module datasource schema mismatch: {0} expected {1}" -f $relativePath, $expectedSchema)
+            }
+            if ($values.Contains($usernameKey) -and [string]$values[$usernameKey] -ne $expectedUsername) {
+                Add-Failure ("module datasource username mismatch: {0} expected {1}" -f $relativePath, $expectedUsername)
+            }
+            if ($values.Contains("CPF_DB_URL") -and [string]$values["CPF_DB_URL"] -notmatch '(?i)(?:/|databaseName=)cpfDB(?:[;?]|$)') {
+                Add-Failure ("cpf-core datasource must target cpfDB: {0}" -f $relativePath)
+            }
+            if ($values.Contains("CPF_DB_USERNAME") -and [string]$values["CPF_DB_USERNAME"] -ne "cpf_app") {
+                Add-Failure ("cpf-core datasource username must be cpf_app: {0}" -f $relativePath)
+            }
+        }
+        if ($values.Contains($jndiKey) -and [string]$values[$jndiKey] -ne $jndiByModule[$prefix]) {
+            Add-Failure ("module datasource JNDI mismatch: {0} expected {1}" -f $relativePath, $jndiByModule[$prefix])
+        }
+        if ($values.Contains("CPF_DB_JNDI_NAME") -and [string]$values["CPF_DB_JNDI_NAME"] -ne "java:comp/env/jdbc/cpfCoreDataSource") {
+            Add-Failure ("cpf-core datasource JNDI mismatch: {0}" -f $relativePath)
+        }
+
         if ($mode -and $mode.ToLowerInvariant() -notin @("url", "jndi")) {
             Add-Failure ("DATASOURCE_MODE must be url or jndi: {0}" -f $relativePath)
         }
+        $cpfMode = [string] $values["CPF_DB_MODE"]
+        if ($cpfMode -and $cpfMode.ToLowerInvariant() -notin @("url", "jndi")) {
+            Add-Failure ("CPF_DB_MODE must be url or jndi: {0}" -f $relativePath)
+        }
         if ($profile -in @("local", "dev") -and $mode.ToLowerInvariant() -ne "url") {
             Add-Failure ("local/dev datasource mode must default to url: {0}" -f $relativePath)
+        }
+        if ($profile -in @("local", "dev") -and $cpfMode.ToLowerInvariant() -ne "url") {
+            Add-Failure ("local/dev cpf-core datasource mode must default to url: {0}" -f $relativePath)
         }
         if ($password -match "(?i)password123|admin123|secret-change-me") {
             Add-Failure ("raw default password pattern remains: {0}" -f $relativePath)
@@ -247,7 +344,7 @@ foreach ($profile in $profiles) {
 
     $inventory = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
     $expectedModuleCodes = if ($profile -eq "prod") {
-        @($moduleCodes | Where-Object { $_ -ne "XYZ" })
+        @($moduleCodes | Where-Object { $_ -ne "REF" })
     } else {
         $moduleCodes
     }
@@ -271,9 +368,9 @@ foreach ($profile in $profiles) {
         Add-Failure ("EDU inventory service must not exist: {0}" -f $relativePath)
     }
     if ($profile -eq "prod") {
-        $xyzService = @($inventory.services) | Where-Object { $_.module -eq "XYZ" } | Select-Object -First 1
-        if ($null -ne $xyzService) {
-            Add-Failure ("XYZ reference service must not be included in the default production inventory: {0}" -f $relativePath)
+        $refService = @($inventory.services) | Where-Object { $_.module -eq "REF" } | Select-Object -First 1
+        if ($null -ne $refService) {
+            Add-Failure ("REF reference service must not be included in the default production inventory: {0}" -f $relativePath)
         }
     }
     $inventoryChecks.Add([pscustomobject]@{
@@ -283,8 +380,8 @@ foreach ($profile in $profiles) {
     }) | Out-Null
 }
 
-if (Test-Path -LiteralPath (Join-RootPath "deploy/env/prod-xyz.env")) {
-    Add-Failure "XYZ reference production env must not exist in the default deployment set."
+if (Test-Path -LiteralPath (Join-RootPath "deploy/env/prod-cpf-reference.env")) {
+    Add-Failure "REF reference production env must not exist in the default deployment set."
 }
 
 $buildGradlePath = Join-RootPath "build.gradle"
@@ -342,13 +439,13 @@ $emptyTargets = @(
     "scripts/deploy",
     "deploy/env",
     "deploy/inventory",
-    "bat/src/main/java/cpf/bat/edu",
-    "bat/src/test/java/cpf/bat/edu",
-    "xyz/src/main/java/cpf/xyz",
-    "xyz/src/test/java/cpf/xyz",
-    "cmn/src/main/java/cpf/cmn",
-    "pfw/src/main/java/cpf/pfw",
-    "specs/evidence"
+    "cpf-batch/src/main/java/com/cpf/batch/edu",
+    "cpf-batch/src/test/java/com/cpf/batch/edu",
+    "cpf-reference/src/main/java/com/cpf/reference",
+    "cpf-reference/src/test/java/com/cpf/reference",
+    "cpf-common/src/main/java/com/cpf/common",
+    "cpf-core/src/main/java/com/cpf/core",
+    "cpf-docs/evidence"
 )
 $emptyDirs = New-Object System.Collections.Generic.List[object]
 $deletedEmptyDirs = New-Object System.Collections.Generic.List[object]
@@ -434,7 +531,7 @@ Write-JsonEvidence "gradle-remote-deploy-task-scan.sanitized.json" ([pscustomobj
     status = $(if (($deployTaskRows | Where-Object { -not $_.present }).Count -eq 0) { "DONE" } else { "FAILED" })
     tasks = $deployTaskRows
     allowedModules = $moduleCodes
-    forbiddenModules = @("EDU", "PFW", "CMN")
+    forbiddenModules = @("EDU", "CPF", "CMN")
 })
 Write-JsonEvidence "edu-module-deploy-alias-scan.sanitized.json" ([pscustomobject]@{
     generatedAt = (Get-Date).ToString("o")

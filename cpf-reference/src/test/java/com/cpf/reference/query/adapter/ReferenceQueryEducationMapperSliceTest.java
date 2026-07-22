@@ -1,7 +1,7 @@
-package cpf.xyz.query.adapter;
+package com.cpf.reference.query.adapter;
 
-import cpf.xyz.query.dto.XyzQueryEducationCriteria;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
+import com.cpf.reference.query.dto.ReferenceQueryEducationCriteria;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;
@@ -21,23 +21,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * XYZ 조회/CRUD EDU MyBatis XML을 실제 DB fixture로 검증하는 선택 실행 테스트입니다.
+ * REF 조회/CRUD EDU MyBatis XML을 실제 DB fixture로 검증하는 선택 실행 테스트입니다.
  *
  * <p>기본 Gradle test는 개발자 PC의 MariaDB를 임의로 건드리지 않도록 DB 구간을 skip합니다.
  * 안전한 테스트 스키마를 준비한 뒤 환경변수를 지정하면 Mapper XML과 SQL fixture를 실제로 실행합니다.</p>
  */
-class XyzQueryEducationMapperSliceTest {
-    private static final String ENABLED_ENV = "CPF_XYZ_EDU_MAPPER_SLICE_TEST";
-    private static final String DB_URL_ENV = "CPF_XYZ_EDU_MAPPER_DB_URL";
-    private static final String DB_USERNAME_ENV = "CPF_XYZ_EDU_MAPPER_DB_USERNAME";
-    private static final String LEGACY_DB_USER_ENV = "CPF_XYZ_EDU_MAPPER_DB_USER";
-    private static final String DB_PASSWORD_ENV = "CPF_XYZ_EDU_MAPPER_DB_PASSWORD";
-    private static final String DB_DRIVER_ENV = "CPF_XYZ_EDU_MAPPER_DB_DRIVER";
+class ReferenceQueryEducationMapperSliceTest {
+    private static final String ENABLED_ENV = "CPF_REF_EDU_MAPPER_SLICE_TEST";
+    private static final String DB_URL_ENV = "CPF_REF_EDU_MAPPER_DB_URL";
+    private static final String DB_USERNAME_ENV = "CPF_REF_EDU_MAPPER_DB_USERNAME";
+    private static final String LEGACY_DB_USER_ENV = "CPF_REF_EDU_MAPPER_DB_USER";
+    private static final String DB_PASSWORD_ENV = "CPF_REF_EDU_MAPPER_DB_PASSWORD";
+    private static final String DB_DRIVER_ENV = "CPF_REF_EDU_MAPPER_DB_DRIVER";
 
     @Test
     void mapperXmlDoesNotUseUnsafeStringSubstitutionForSort() throws Exception {
         Resource mapperXml = new ClassPathResource(
-                "mybatis/mapper/xyz/query/XyzQueryEducationMapper.xml");
+                "mybatis/mapper/ref/query/ReferenceQueryEducationMapper.xml");
         String xml = mapperXml.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(xml)
@@ -57,7 +57,7 @@ class XyzQueryEducationMapperSliceTest {
 
     @Test
     void fixtureSqlIsScopedToEduMapperTestData() throws Exception {
-        Resource fixtureSql = new ClassPathResource("sql/xyz_edu_query_fixture.sql");
+        Resource fixtureSql = new ClassPathResource("sql/ref_edu_query_fixture.sql");
         String sql = fixtureSql.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(fixtureSql.exists()).isTrue();
@@ -82,43 +82,43 @@ class XyzQueryEducationMapperSliceTest {
 
         SqlSessionFactory sqlSessionFactory = sqlSessionFactory(dataSource);
         try (SqlSession session = sqlSessionFactory.openSession(true)) {
-            XyzQueryEducationMapper mapper = session.getMapper(XyzQueryEducationMapper.class);
+            ReferenceQueryEducationMapper mapper = session.getMapper(ReferenceQueryEducationMapper.class);
 
-            XyzQueryEducationItem single = mapper.findById(90001L);
+            ReferenceQueryEducationItem single = mapper.findById(90001L);
             assertThat(single).isNotNull();
             assertThat(single.itemName()).isEqualTo("단건 조회 샘플");
 
-            List<XyzQueryEducationItem> list = mapper.findItems(criteria(null, "ACTIVE", "ID_ASC", 20, 0, null));
+            List<ReferenceQueryEducationItem> list = mapper.findItems(criteria(null, "ACTIVE", "ID_ASC", 20, 0, null));
             assertThat(list)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .contains(90001L, 90002L, 90003L, 90004L, 90005L, 90008L)
                     .doesNotContain(90007L);
 
-            List<XyzQueryEducationItem> searched = mapper.findItems(criteria("검색", "ACTIVE", "ID_ASC", 10, 0, null));
+            List<ReferenceQueryEducationItem> searched = mapper.findItems(criteria("검색", "ACTIVE", "ID_ASC", 10, 0, null));
             assertThat(searched)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .containsExactly(90003L);
 
-            List<XyzQueryEducationItem> sorted = mapper.findItems(criteria(null, "ACTIVE", "CREATED_DESC", 3, 0, null));
+            List<ReferenceQueryEducationItem> sorted = mapper.findItems(criteria(null, "ACTIVE", "CREATED_DESC", 3, 0, null));
             assertThat(sorted)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .containsExactly(90008L, 90005L, 90004L);
 
-            List<XyzQueryEducationItem> unsafeSortFallsBack = mapper.findItems(criteria(null, "ACTIVE", "item_name desc; drop table", 3, 0, null));
+            List<ReferenceQueryEducationItem> unsafeSortFallsBack = mapper.findItems(criteria(null, "ACTIVE", "item_name desc; drop table", 3, 0, null));
             assertThat(unsafeSortFallsBack)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .containsExactly(90001L, 90002L, 90003L);
 
-            List<XyzQueryEducationItem> offsetPage = mapper.findOffsetPageItems(criteria(null, "ACTIVE", "ID_ASC", 2, 2, null));
+            List<ReferenceQueryEducationItem> offsetPage = mapper.findOffsetPageItems(criteria(null, "ACTIVE", "ID_ASC", 2, 2, null));
             assertThat(offsetPage)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .containsExactly(90003L, 90004L);
             assertThat(mapper.countOffsetPageItems(criteria(null, "ACTIVE", "ID_ASC", 2, 0, null)))
                     .isEqualTo(6);
 
-            List<XyzQueryEducationItem> keysetPageWithLimitPlusOne = mapper.findKeysetPageItems(criteria(null, "ACTIVE", "ID_ASC", 3, 0, 90002L));
+            List<ReferenceQueryEducationItem> keysetPageWithLimitPlusOne = mapper.findKeysetPageItems(criteria(null, "ACTIVE", "ID_ASC", 3, 0, 90002L));
             assertThat(keysetPageWithLimitPlusOne)
-                    .extracting(XyzQueryEducationItem::itemId)
+                    .extracting(ReferenceQueryEducationItem::itemId)
                     .containsExactly(90003L, 90004L, 90005L);
 
             Long itemId = mapper.nextCrudItemId();
@@ -148,7 +148,7 @@ class XyzQueryEducationMapperSliceTest {
 
     private static void loadFixture(DataSource dataSource) throws Exception {
         try (Connection connection = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/xyz_edu_query_fixture.sql"));
+            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/ref_edu_query_fixture.sql"));
         }
     }
 
@@ -156,26 +156,26 @@ class XyzQueryEducationMapperSliceTest {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         Resource[] mapperLocations = new PathMatchingResourcePatternResolver()
-                .getResources("classpath*:mybatis/mapper/xyz/query/XyzQueryEducationMapper.xml");
+                .getResources("classpath*:mybatis/mapper/ref/query/ReferenceQueryEducationMapper.xml");
         factoryBean.setMapperLocations(mapperLocations);
         SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("EDU 조회 Mapper SqlSessionFactory를 생성하지 못했습니다.");
         }
-        if (!sqlSessionFactory.getConfiguration().hasMapper(XyzQueryEducationMapper.class)) {
-            sqlSessionFactory.getConfiguration().addMapper(XyzQueryEducationMapper.class);
+        if (!sqlSessionFactory.getConfiguration().hasMapper(ReferenceQueryEducationMapper.class)) {
+            sqlSessionFactory.getConfiguration().addMapper(ReferenceQueryEducationMapper.class);
         }
         return sqlSessionFactory;
     }
 
-    private static XyzQueryEducationCriteria criteria(
+    private static ReferenceQueryEducationCriteria criteria(
             String keyword,
             String statusCode,
             String sortCode,
             int limit,
             int offset,
             Long cursorId) {
-        return new XyzQueryEducationCriteria(keyword, statusCode, sortCode, limit, offset, cursorId);
+        return new ReferenceQueryEducationCriteria(keyword, statusCode, sortCode, limit, offset, cursorId);
     }
 
     private static String requiredEnv(String name) {

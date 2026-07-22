@@ -1,4 +1,4 @@
-package cpf.pfw.channel.model;
+package com.cpf.core.channel.model;
 
 /** 채널 정책 판단 결과와 적용된 스냅샷 버전을 함께 전달합니다. */
 public record CpfChannelPolicyDecision(

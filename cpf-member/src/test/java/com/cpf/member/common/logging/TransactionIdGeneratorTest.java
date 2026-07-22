@@ -1,6 +1,6 @@
-package cpf.mbr.common.logging;
+package com.cpf.member.common.logging;
 
-import cpf.pfw.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -10,48 +10,31 @@ import java.time.ZoneId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 거래 ID 생성 규격과 외부 거래 ID 재사용 조건을 검증합니다. */
 class TransactionIdGeneratorTest {
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 시각·시스템 코드·WAS ID·순번이 정해진 위치에 조합되는지 확인합니다. */
     @Test
     void generatesTransactionIdWithTimestampModuleWasAndSequence() {
-        // CPF 기능 설명입니다.
         Clock clock = Clock.fixed(
                 Instant.parse("2026-06-11T05:12:34.567Z"),
                 ZoneId.of("Asia/Seoul"));
-        // CPF 기능 설명입니다.
-        TransactionIdGenerator generator = new TransactionIdGenerator("XYZ", "xyzAP01", 7, clock);
+        TransactionIdGenerator generator = new TransactionIdGenerator("REF", "refAP01", 7, clock);
 
-        // CPF 기능 설명입니다.
-        assertThat(generator.generate()).isEqualTo("20260611141234567XYZxyzAP010000001");
-        // CPF 기능 설명입니다.
-        assertThat(generator.generate()).isEqualTo("20260611141234567XYZxyzAP010000002");
+        assertThat(generator.generate()).isEqualTo("20260611141234567REFrefAP010000001");
+        assertThat(generator.generate()).isEqualTo("20260611141234567REFrefAP010000002");
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 정규 거래 ID만 재사용하고 비표준 입력은 새 ID로 대체하는지 확인합니다. */
     @Test
     void reusesOnlyValidIncomingTransactionId() {
-        // CPF 기능 설명입니다.
         Clock clock = Clock.fixed(
                 Instant.parse("2026-06-11T05:12:34.567Z"),
                 ZoneId.of("Asia/Seoul"));
-        // CPF 기능 설명입니다.
         TransactionIdGenerator generator = new TransactionIdGenerator("MBR", "mbrAP01", 7, clock);
 
-        // CPF 기능 설명입니다.
-        assertThat(generator.generateOrUse("20260611141234567XYZxyzAP010000001"))
-                .isEqualTo("20260611141234567XYZxyzAP010000001");
-        // CPF 기능 설명입니다.
+        assertThat(generator.generateOrUse("20260611141234567REFrefAP010000001"))
+                .isEqualTo("20260611141234567REFrefAP010000001");
         assertThat(generator.generateOrUse("TRX-TEST-001"))
                 .isEqualTo("20260611141234567MBRmbrAP010000001");
     }

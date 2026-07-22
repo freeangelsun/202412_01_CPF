@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * 저장 기술과 분리된 주제영역 Repository Port의 공통 계약입니다.

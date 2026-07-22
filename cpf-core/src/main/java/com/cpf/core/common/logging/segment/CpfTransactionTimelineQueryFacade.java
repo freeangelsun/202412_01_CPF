@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
-import cpf.pfw.api.logging.CpfTransactionTimelineQueryPort;
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.core.api.logging.CpfTransactionTimelineQueryPort;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessException;
@@ -16,15 +16,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 소유 거래 구간 스키마를 조회하고 외부에는 테이블 독립적인 결과만 반환합니다.
+ * CPF 소유 거래 구간 스키마를 조회하고 외부에는 테이블 독립적인 결과만 반환합니다.
  */
 @Component
 public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimelineQueryPort {
     private final JdbcTemplate jdbcTemplate;
 
     public CpfTransactionTimelineQueryFacade(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
-        // PFW DB를 사용하지 않는 업무 앱에서도 공개 조회 포트 자체는 안전하게 기동되어야 합니다.
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+        // CPF DB를 사용하지 않는 업무 앱에서도 공개 조회 포트 자체는 안전하게 기동되어야 합니다.
         this.jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
     }
 
@@ -34,7 +34,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         int limit = limit(safeCriteria.get("limit"));
         String sort = sort(safeCriteria.get("sort"));
         if (!tableAvailable()) {
-            return new GroupQueryResult(false, List.of(), limit, sort, "PFW 거래 구간 저장소를 사용할 수 없습니다.");
+            return new GroupQueryResult(false, List.of(), limit, sort, "CPF 거래 구간 저장소를 사용할 수 없습니다.");
         }
         QueryParts query = buildGroupQuery(safeCriteria, limit, sort);
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(query.sql(), query.args().toArray()).stream()
@@ -91,7 +91,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        downstream_http_status AS downstreamHttpStatus,
                        result_state AS resultState,
                        unknown_result_id AS unknownResultId
-                  FROM pfw_transaction_segment
+                  FROM cpf_transaction_segment
                  WHERE transaction_global_id = ?
                  ORDER BY started_at, sequence_no, segment_id
                 """, transactionGlobalId.trim()).stream()
@@ -125,7 +125,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        started_at AS startedAt,
                        ended_at AS endedAt,
                        duration_ms AS durationMs
-                  FROM pfw_transaction_segment
+                  FROM cpf_transaction_segment
                  WHERE transaction_global_id = ?
                    AND (transaction_role = 'EXTERNAL' OR external_institution_code IS NOT NULL)
                  ORDER BY started_at, sequence_no
@@ -166,7 +166,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        MAX(external_transaction_id) AS externalTransactionId,
                        MAX(transaction_name) AS transactionName,
                        MAX(api_path) AS apiPath
-                  FROM pfw_transaction_segment
+                  FROM cpf_transaction_segment
                  WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -227,7 +227,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
 
     private Map<String, Object> maskExternalRow(Map<String, Object> row) {
         Map<String, Object> result = new LinkedHashMap<>(row);
-        result.put("source", "PFW_SEGMENT_FALLBACK");
+        result.put("source", "CPF_SEGMENT_FALLBACK");
         mask(result, "externalTransactionId", 500);
         mask(result, "failureMessageMasked", 1000);
         return result;
@@ -246,7 +246,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                     SELECT COUNT(*)
                       FROM information_schema.tables
                      WHERE table_schema = DATABASE()
-                       AND table_name = 'pfw_transaction_segment'
+                       AND table_name = 'cpf_transaction_segment'
                     """, Integer.class);
             return count != null && count > 0;
         } catch (DataAccessException ex) {

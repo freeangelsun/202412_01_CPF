@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * transport 세부정보를 업무 코드에서 숨기는 typed 서비스 Client 계약입니다.

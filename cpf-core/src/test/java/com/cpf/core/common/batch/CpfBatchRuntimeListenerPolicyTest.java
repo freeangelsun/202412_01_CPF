@@ -1,8 +1,8 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
-import cpf.pfw.common.logging.policy.LogPolicyTargetType;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.common.logging.policy.LogPolicyTargetType;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;

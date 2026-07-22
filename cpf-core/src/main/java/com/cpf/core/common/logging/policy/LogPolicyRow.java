@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging.policy;
+package com.cpf.core.common.logging.policy;
 
 /**
- * pfw_log_policy 또는 pfw_log_policy_override 조회 결과입니다.
+ * cpf_log_policy 또는 cpf_log_policy_override 조회 결과입니다.
  */
 public record LogPolicyRow(
         Long policyId,

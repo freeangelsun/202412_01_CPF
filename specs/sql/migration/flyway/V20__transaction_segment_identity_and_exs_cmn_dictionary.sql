@@ -1,18 +1,18 @@
 -- CPF V20 migration.
 -- 거래 segment 식별자 분리, EXS 송수신 로그 원장 확장, CMN 고정길이 전문 사전 착수 스키마입니다.
 
-ALTER TABLE pfwDB.pfw_transaction_segment
+ALTER TABLE cpfDB.cpf_transaction_segment
     ADD COLUMN IF NOT EXISTS user_id_masked VARCHAR(80) NULL COMMENT '마스킹된 사용자 ID' AFTER member_no_masked,
     ADD COLUMN IF NOT EXISTS operator_id_masked VARCHAR(80) NULL COMMENT '마스킹된 운영자 ID' AFTER user_id_masked,
     ADD COLUMN IF NOT EXISTS client_app_id VARCHAR(100) NULL COMMENT '클라이언트 애플리케이션 ID' AFTER original_channel_code,
     ADD COLUMN IF NOT EXISTS caller_service VARCHAR(100) NULL COMMENT '호출 서비스 ID' AFTER client_app_id;
 
-CREATE INDEX IF NOT EXISTS ix_pfw_transaction_segment_user
-    ON pfwDB.pfw_transaction_segment (user_id_masked, started_at);
-CREATE INDEX IF NOT EXISTS ix_pfw_transaction_segment_operator
-    ON pfwDB.pfw_transaction_segment (operator_id_masked, started_at);
-CREATE INDEX IF NOT EXISTS ix_pfw_transaction_segment_client
-    ON pfwDB.pfw_transaction_segment (client_app_id, caller_service, started_at);
+CREATE INDEX IF NOT EXISTS ix_cpf_transaction_segment_user
+    ON cpfDB.cpf_transaction_segment (user_id_masked, started_at);
+CREATE INDEX IF NOT EXISTS ix_cpf_transaction_segment_operator
+    ON cpfDB.cpf_transaction_segment (operator_id_masked, started_at);
+CREATE INDEX IF NOT EXISTS ix_cpf_transaction_segment_client
+    ON cpfDB.cpf_transaction_segment (client_app_id, caller_service, started_at);
 
 ALTER TABLE exsDB.exs_transaction_log
     ADD COLUMN IF NOT EXISTS transaction_segment_id VARCHAR(120) NULL COMMENT 'CPF 거래 구간 ID' AFTER transaction_global_id,

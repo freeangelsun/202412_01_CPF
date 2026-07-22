@@ -1,17 +1,9 @@
-package cpf.cmn.sec.token;
+package com.cpf.common.sec.token;
 
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** Bearer 토큰 검증 결과와 표준 클레임을 외부 호출자에게 제공합니다. */
 public record CmnOAuthTokenIntrospectionResult(
         boolean active,
         String tokenType,

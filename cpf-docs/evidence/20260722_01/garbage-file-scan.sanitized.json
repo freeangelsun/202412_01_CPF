@@ -1,0 +1,375 @@
+{
+    "generatedAt":  "2026-07-22T14:25:21.7364618+09:00",
+    "status":  "DONE",
+    "failureCount":  0,
+    "failures":  [
+
+                 ],
+    "staleFileCount":  15,
+    "deployScriptResidueCount":  0,
+    "envChecks":  [
+                      {
+                          "file":  "deploy/env/local-cpf-member.env",
+                          "keyCount":  19,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-admin.env",
+                          "keyCount":  26,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-batch.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-biz-admin.env",
+                          "keyCount":  20,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-reference.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-account.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-external.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/local-cpf-gateway.env",
+                          "keyCount":  17,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-member.env",
+                          "keyCount":  19,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-admin.env",
+                          "keyCount":  26,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-batch.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-biz-admin.env",
+                          "keyCount":  20,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-reference.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-account.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-external.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/dev-cpf-gateway.env",
+                          "keyCount":  17,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-member.env",
+                          "keyCount":  19,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-admin.env",
+                          "keyCount":  26,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-batch.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-biz-admin.env",
+                          "keyCount":  20,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-reference.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-account.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-external.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/stg-cpf-gateway.env",
+                          "keyCount":  17,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-member.env",
+                          "keyCount":  19,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-admin.env",
+                          "keyCount":  26,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-batch.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-biz-admin.env",
+                          "keyCount":  20,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-account.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-external.env",
+                          "keyCount":  16,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      },
+                      {
+                          "file":  "deploy/env/prod-cpf-gateway.env",
+                          "keyCount":  17,
+                          "missingKeys":  [
+
+                                          ],
+                          "emptyKeys":  [
+
+                                        ],
+                          "status":  "DONE"
+                      }
+                  ],
+    "inventoryChecks":  [
+                            {
+                                "file":  "deploy/inventory/local-services.json",
+                                "serviceCount":  8,
+                                "status":  "DONE"
+                            },
+                            {
+                                "file":  "deploy/inventory/dev-services.json",
+                                "serviceCount":  8,
+                                "status":  "DONE"
+                            },
+                            {
+                                "file":  "deploy/inventory/stg-services.json",
+                                "serviceCount":  8,
+                                "status":  "DONE"
+                            },
+                            {
+                                "file":  "deploy/inventory/prod-services.template.json",
+                                "serviceCount":  7,
+                                "status":  "DONE"
+                            }
+                        ]
+}

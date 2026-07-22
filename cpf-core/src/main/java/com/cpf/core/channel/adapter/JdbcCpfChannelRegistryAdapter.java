@@ -1,9 +1,9 @@
-package cpf.pfw.channel.adapter;
+package com.cpf.core.channel.adapter;
 
-import cpf.pfw.channel.api.CpfChannelRegistryPort;
-import cpf.pfw.channel.model.CpfChannelDefinition;
-import cpf.pfw.channel.model.CpfChannelExecutionPolicy;
-import cpf.pfw.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.channel.api.CpfChannelRegistryPort;
+import com.cpf.core.channel.model.CpfChannelDefinition;
+import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
+import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -17,14 +17,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** pfwDB를 정본으로 사용하고 DB 미구성 시 안전한 로컬 기본 정책을 제공하는 어댑터입니다. */
+/** cpfDB를 정본으로 사용하고 DB 미구성 시 안전한 로컬 기본 정책을 제공하는 어댑터입니다. */
 public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPort {
     private static final Logger log = LoggerFactory.getLogger(JdbcCpfChannelRegistryAdapter.class);
 
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     public JdbcCpfChannelRegistryAdapter(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
     }
 
@@ -40,7 +40,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
                     SELECT channel_code, channel_name, channel_type, trust_level,
                            client_channel_yn, internal_channel_yn, authentication_required_yn,
                            signature_required_yn, active_yn, description, policy_version
-                    FROM pfw_channel_registry
+                    FROM cpf_channel_registry
                     ORDER BY channel_code
                     """, rs -> {
                 CpfChannelDefinition definition = new CpfChannelDefinition(
@@ -56,7 +56,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
                     SELECT policy_key, standard_execution_id, original_channel_code, caller_channel_code,
                            request_type, allowed_yn, authentication_required_yn, signature_required_yn,
                            max_tps, effective_from, effective_to, active_yn, policy_version
-                    FROM pfw_channel_execution_policy
+                    FROM cpf_channel_execution_policy
                     ORDER BY policy_key
                     """, (rs, rowNum) -> new CpfChannelExecutionPolicy(
                     rs.getString("policy_key"), rs.getString("standard_execution_id"),
@@ -67,13 +67,13 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
                     instant(rs.getTimestamp("effective_to")), yes(rs.getString("active_yn")),
                     rs.getLong("policy_version")));
             Long version = jdbcTemplate.queryForObject(
-                    "SELECT COALESCE(MAX(version_id), 0) FROM pfw_channel_policy_version", Long.class);
+                    "SELECT COALESCE(MAX(version_id), 0) FROM cpf_channel_policy_version", Long.class);
             if (channels.isEmpty()) {
                 return CpfChannelPolicySnapshot.localDefault();
             }
             return new CpfChannelPolicySnapshot(version == null ? 0 : version, Instant.now(), channels, policies);
         } catch (DataAccessException ex) {
-            log.warn("PFW 채널 정책 DB 조회에 실패해 로컬 기본 스냅샷을 사용합니다.", ex);
+            log.warn("CPF 채널 정책 DB 조회에 실패해 로컬 기본 스냅샷을 사용합니다.", ex);
             return CpfChannelPolicySnapshot.localDefault();
         }
     }
@@ -83,7 +83,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
         JdbcTemplate jdbcTemplate = requiredJdbcTemplate();
         long version = nextVersion(jdbcTemplate, "CHANNEL", channel.channelCode(), actor, reason);
         jdbcTemplate.update("""
-                INSERT INTO pfw_channel_registry (
+                INSERT INTO cpf_channel_registry (
                     channel_code, channel_name, channel_type, trust_level, client_channel_yn,
                     internal_channel_yn, authentication_required_yn, signature_required_yn,
                     active_yn, description, policy_version, created_by, updated_by
@@ -107,7 +107,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
         JdbcTemplate jdbcTemplate = requiredJdbcTemplate();
         long version = nextVersion(jdbcTemplate, "EXECUTION_POLICY", policy.policyKey(), actor, reason);
         jdbcTemplate.update("""
-                INSERT INTO pfw_channel_execution_policy (
+                INSERT INTO cpf_channel_execution_policy (
                     policy_key, standard_execution_id, original_channel_code, caller_channel_code,
                     request_type, allowed_yn, authentication_required_yn, signature_required_yn,
                     max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by
@@ -132,7 +132,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
 
     private long nextVersion(JdbcTemplate jdbcTemplate, String targetType, String targetKey, String actor, String reason) {
         jdbcTemplate.update("""
-                INSERT INTO pfw_channel_policy_version (
+                INSERT INTO cpf_channel_policy_version (
                     change_type, target_key, change_reason, applied_by, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?)
                 """, targetType, targetKey, reason, actor, actor, actor);
@@ -146,7 +146,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     private JdbcTemplate requiredJdbcTemplate() {
         JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
         if (jdbcTemplate == null) {
-            throw new IllegalStateException("PFW 채널 정책 변경에는 pfwJdbcTemplate 구성이 필요합니다.");
+            throw new IllegalStateException("CPF 채널 정책 변경에는 cpfJdbcTemplate 구성이 필요합니다.");
         }
         return jdbcTemplate;
     }

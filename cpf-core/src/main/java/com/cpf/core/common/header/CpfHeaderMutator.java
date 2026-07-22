@@ -1,7 +1,7 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;

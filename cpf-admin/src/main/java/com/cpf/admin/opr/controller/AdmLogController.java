@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmLogQueryService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmLogQueryService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.dao.DataAccessException;
@@ -23,8 +23,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/adm/api/logs")
-@Tag(name = "ADM-Logs", description = "PFW 거래 로그 조회와 상세 포맷팅 API")
-public class AdmLogController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-Logs", description = "CPF 거래 로그 조회와 상세 포맷팅 API")
+public class AdmLogController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmLogQueryService logQueryService;
 
     public AdmLogController(AdmLogQueryService logQueryService) {
@@ -58,7 +58,7 @@ public class AdmLogController extends cpf.adm.common.base.AdmBaseController {
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("items", java.util.List.of());
-            response.put("message", "PFW 거래 로그 DB를 사용할 수 없습니다.");
+            response.put("message", "CPF 거래 로그 DB를 사용할 수 없습니다.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);
@@ -77,7 +77,7 @@ public class AdmLogController extends cpf.adm.common.base.AdmBaseController {
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("item", null);
-            response.put("message", "PFW 거래 로그 상세를 사용할 수 없습니다.");
+            response.put("message", "CPF 거래 로그 상세를 사용할 수 없습니다.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);

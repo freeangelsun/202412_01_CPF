@@ -1,6 +1,6 @@
-package cpf.bat.edu.logging;
+package com.cpf.batch.edu.logging;
 
-import cpf.pfw.common.batch.CpfBatchJobLogPath;
+import com.cpf.core.common.batch.CpfBatchJobLogPath;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -25,7 +25,7 @@ public class BatJobLogEducationSample {
             String jobName,
             long jobInstanceId,
             LocalDate businessDate) {
-        // PFW 표준 경로 정책을 직접 호출해 운영 코드와 샘플의 규칙이 어긋나지 않게 합니다.
+        // CPF 표준 경로 정책을 직접 호출해 운영 코드와 샘플의 규칙이 어긋나지 않게 합니다.
         Path relativePath = CpfBatchJobLogPath.relativePath(jobName, jobInstanceId, businessDate);
         // 환경 디렉터리를 먼저 결합해 local/dev/stg/prod 실행 결과가 섞이지 않게 합니다.
         return cpfLogRoot.toAbsolutePath().normalize()

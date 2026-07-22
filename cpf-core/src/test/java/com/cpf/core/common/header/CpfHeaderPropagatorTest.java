@@ -1,8 +1,8 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
-import cpf.pfw.common.logging.segment.TransactionSegmentContext;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -71,7 +71,7 @@ class CpfHeaderPropagatorTest {
         TransactionHeader header = TransactionHeader.builder()
                 .requestType("ONLINE")
                 .originalChannelCode("MOBILE")
-                .channelCode("XYZ")
+                .channelCode("REF")
                 .clientAppId("cpf-smoke-client")
                 .extensionHeaders(Map.of(
                         CpfHeaderNames.EXTENSION_1, "reserved-one",
@@ -79,10 +79,10 @@ class CpfHeaderPropagatorTest {
                 .build();
 
         TransactionContext.initialize(
-                "20260702103000000XYZlocal010000001",
+                "20260702103000000REFlocal010000001",
                 "TRACE-STANDARD-HEADER-E2E",
                 "SPAN-PARENT-E2E",
-                "20260702103000000XYZlocal010000001",
+                "20260702103000000REFlocal010000001",
                 header);
 
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
@@ -90,7 +90,7 @@ class CpfHeaderPropagatorTest {
         assertThat(TransactionContext.currentHeader()).isSameAs(header);
         assertThat(outbound)
                 .containsEntry(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MOBILE")
-                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "XYZ")
+                .containsEntry(CpfHeaderNames.CHANNEL_CODE, "REF")
                 .containsEntry(CpfHeaderNames.EXTENSION_1, "reserved-one")
                 .containsEntry("X-Cpf-Ext-Campaign-Id", "CMP-SMOKE");
     }
@@ -110,26 +110,26 @@ class CpfHeaderPropagatorTest {
     @Test
     void outboundHeadersContainCurrentTransactionSegment() {
         TransactionContext.initialize(
-                "20260703120000000XYZtrace010000001",
+                "20260703120000000REFtrace010000001",
                 "TRACE-SEGMENT",
                 "PARENT-SPAN",
-                "20260703120000000XYZtrace010000001",
+                "20260703120000000REFtrace010000001",
                 TransactionHeader.builder()
                         .requestType("ONLINE")
                         .originalChannelCode("APP")
-                        .channelCode("XYZ")
+                        .channelCode("REF")
                         .build());
         TransactionSegmentContext.push(new TransactionSegmentContext.TransactionSegmentFrame(
-                "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12",
-                "20260703120000000XYZtrace010000001",
+                "20260703120000000REFtrace010000001-SEG-0001-ABCDEF12",
+                "20260703120000000REFtrace010000001",
                 0));
 
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
 
         assertThat(outbound)
-                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000XYZtrace010000001")
-                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12")
-                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000XYZtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000REFtrace010000001")
+                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000REFtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000REFtrace010000001-SEG-0001-ABCDEF12")
                 .containsEntry(CpfHeaderNames.TRANSACTION_CALL_DEPTH, "0");
     }
 }

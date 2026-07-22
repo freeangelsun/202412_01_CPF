@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -16,10 +22,22 @@ function Get-Owner {
     param([string] $RelativePath)
 
     $first = ($RelativePath -split "/")[0].ToUpperInvariant()
-    if ($first -eq "PFW-GATEWAY-RUNTIME") {
-        return "PFW"
+    $officialCodes = @{
+        "CPF-CORE" = "CPF"
+        "CPF-GATEWAY" = "GWY"
+        "CPF-COMMON" = "CMN"
+        "CPF-ADMIN" = "ADM"
+        "CPF-BIZ-ADMIN" = "BZA"
+        "CPF-BATCH" = "BAT"
+        "CPF-MEMBER" = "MBR"
+        "CPF-ACCOUNT" = "ACC"
+        "CPF-REFERENCE" = "REF"
+        "CPF-EXTERNAL" = "EXS"
     }
-    if (@("PFW", "CMN", "MBR", "XYZ", "ADM", "BZA", "BAT") -contains $first) {
+    if ($officialCodes.ContainsKey($first)) {
+        return $officialCodes[$first]
+    }
+    if (@("CPF", "CMN", "MBR", "REF", "ADM", "BZA", "BAT", "ACC", "EXS", "GWY") -contains $first) {
         return $first
     }
     return "ROOT"
@@ -78,7 +96,10 @@ function New-Asset {
 }
 
 $assets = New-Object System.Collections.Generic.List[object]
-$moduleNames = @("pfw", "pfw-gateway-runtime", "cmn", "mbr", "xyz", "adm", "bza", "bat", "acc")
+$moduleNames = @(
+    "cpf-core", "cpf-gateway", "cpf-common", "cpf-admin", "cpf-biz-admin",
+    "cpf-batch", "cpf-member", "cpf-account", "cpf-reference", "cpf-external"
+)
 foreach ($moduleName in $moduleNames) {
     $modulePath = Join-Path $Root $moduleName
     if (Test-Path -LiteralPath $modulePath -PathType Container) {

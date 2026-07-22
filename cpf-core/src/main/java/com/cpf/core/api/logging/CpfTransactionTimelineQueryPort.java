@@ -1,10 +1,10 @@
-package cpf.pfw.api.logging;
+package com.cpf.core.api.logging;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * 운영 모듈이 PFW 거래 구간 테이블을 직접 조회하지 않도록 제공하는 공개 query port입니다.
+ * 운영 모듈이 CPF 거래 구간 테이블을 직접 조회하지 않도록 제공하는 공개 query port입니다.
  */
 public interface CpfTransactionTimelineQueryPort {
 

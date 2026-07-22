@@ -1,7 +1,7 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionContext;
 import lombok.Builder;
 import lombok.Data;
 

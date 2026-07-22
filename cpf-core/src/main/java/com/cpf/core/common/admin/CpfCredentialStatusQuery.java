@@ -1,4 +1,4 @@
-package cpf.pfw.common.admin;
+package com.cpf.core.common.admin;
 
 /**
  * ADM credential 관제 후보 조회 조건입니다.

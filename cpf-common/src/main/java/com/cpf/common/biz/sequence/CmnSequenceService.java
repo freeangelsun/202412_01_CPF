@@ -1,6 +1,6 @@
-package cpf.cmn.biz.sequence;
+package com.cpf.common.biz.sequence;
 
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.utils.TextUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +23,7 @@ import java.util.Map;
  * 업무 처리 실패 후 이미 발급된 번호는 감사 추적을 위해 유지하며, 번호 gap은 허용하는 정책을 기본으로 둡니다.</p>
  */
 @Service
-public class CmnSequenceService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnSequenceService extends com.cpf.common.common.base.CmnBaseService {
     private static final String DEFAULT_REQUEST_USER = "CMN";
     private static final String DEFAULT_SEQUENCE_KIND = "DEFAULT";
     private static final String DEFAULT_CHANNEL_CODE = "ALL";
@@ -179,7 +179,7 @@ public class CmnSequenceService extends cpf.cmn.common.base.CmnBaseService {
     private JdbcTemplate requireJdbcTemplate() {
         JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
         if (jdbcTemplate == null) {
-            throw new IllegalStateException("CMN 업무 공통 DB가 비활성화되어 있습니다. cpf.cmn.business-db.enabled=true 설정을 확인하세요.");
+            throw new IllegalStateException("CMN 업무 공통 DB가 비활성화되어 있습니다. com.cpf.common.business-db.enabled=true 설정을 확인하세요.");
         }
         return jdbcTemplate;
     }

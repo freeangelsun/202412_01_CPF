@@ -1,6 +1,6 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.util.Locale;

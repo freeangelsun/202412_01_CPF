@@ -1,7 +1,7 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.logging.segment.TransactionSegmentPersistenceService;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.segment.TransactionSegmentPersistenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,13 +158,13 @@ public class TransactionSegmentRecoveryWorker {
     }
 
     private void writeRecoveryEvent(int claimed, int recovered, int failed) {
-        Map<String, Object> event = fileLogWriter.newBaseEvent("PFW", "recovery");
+        Map<String, Object> event = fileLogWriter.newBaseEvent("CPF", "recovery");
         event.put("eventType", "TRANSACTION_SEGMENT_DB_RECOVERY_RUN");
         event.put("claimedCount", claimed);
         event.put("recoveredCount", recovered);
         event.put("failedCount", failed);
         event.put("fallbackHealth", store.snapshot().health());
-        fileLogWriter.writeEvent("PFW", "recovery", event);
+        fileLogWriter.writeEvent("CPF", "recovery", event);
     }
 
     private int bounded(int value, int min, int max) {

@@ -1,6 +1,6 @@
-package cpf.mbr.config;
+package com.cpf.member.config;
 
-import cpf.mbr.bse.mapper.MemberMapper;
+import com.cpf.member.bse.mapper.MemberMapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -33,7 +33,7 @@ public class MbrMyBatisConfig {
                 new PathMatchingResourcePatternResolver()
                         .getResources("classpath:mybatis/mapper/mbr/**/*.xml")
         );
-        sqlSessionFactoryBean.setTypeAliasesPackage("cpf.mbr.bse.entity");
+        sqlSessionFactoryBean.setTypeAliasesPackage("com.cpf.member.bse.entity");
 
         return sqlSessionFactoryBean.getObject();
     }

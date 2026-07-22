@@ -1,11 +1,11 @@
-package cpf.bza.operation.service;
+package com.cpf.bizadmin.operation.service;
 
-import cpf.bza.operation.repository.BzaOperationRepository;
-import cpf.cmn.utils.MaskingUtils;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
+import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
+import com.cpf.common.utils.MaskingUtils;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import java.util.Set;
  * 업무 관리자 기능은 ADM 공통 운영자 기능과 분리하되, ADM 화면에서 함께 관제할 수 있도록 동일한 응답 구조와 감사 기준을 사용합니다.</p>
  */
 @Service
-public class BzaOperationService extends cpf.bza.common.base.BzaBaseService {
+public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseService {
     private static final Set<String> HTTP_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "DELETE", "ALL");
 
     private final BzaOperationRepository repository;

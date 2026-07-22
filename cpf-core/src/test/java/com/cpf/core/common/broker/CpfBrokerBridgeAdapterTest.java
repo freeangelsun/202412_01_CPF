@@ -1,4 +1,4 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -19,8 +19,8 @@ class CpfBrokerBridgeAdapterTest {
     @Test
     void 인메모리_발행은_구독자와_최근이력에_같은_봉투를_전달한다() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.pfw.broker.type", "IN_MEMORY")
-                .withProperty("cpf.pfw.broker.enabled", "true");
+                .withProperty("cpf.broker.type", "IN_MEMORY")
+                .withProperty("cpf.broker.enabled", "true");
         CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(
                 environment,
                 new ObjectMapper(),
@@ -45,8 +45,8 @@ class CpfBrokerBridgeAdapterTest {
     @Test
     void 비활성화된_bridge는_발행과_이력기록을_수행하지_않는다() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.pfw.broker.type", "IN_MEMORY")
-                .withProperty("cpf.pfw.broker.enabled", "false");
+                .withProperty("cpf.broker.type", "IN_MEMORY")
+                .withProperty("cpf.broker.enabled", "false");
         CpfBrokerBridgeAdapter adapter = new CpfBrokerBridgeAdapter(
                 environment,
                 new ObjectMapper(),

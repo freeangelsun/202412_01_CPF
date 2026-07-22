@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * 주제영역 Application Facade가 구현하는 공통 계약입니다.

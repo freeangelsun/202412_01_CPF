@@ -1,12 +1,12 @@
-# XYZ/EDU 공통 실행 설정입니다.
+# REF/EDU 공통 실행 설정입니다.
 
 cpf:
   framework:
-    module-id: ${XYZ_MODULE_ID:XYZ}
-    instance-id: ${XYZ_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:xyz-local-01}}}
-    was-id: ${XYZ_WAS_ID:${WAS_ID:xyzAP01}}
+    module-id: ${REF_MODULE_ID:REF}
+    instance-id: ${REF_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:ref-local-01}}}
+    was-id: ${REF_WAS_ID:${WAS_ID:refAP01}}
   service-call:
-    registry-mode: ${XYZ_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+    registry-mode: ${REF_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
 
 logging:
   config: classpath:log/cpf-logback-spring.xml

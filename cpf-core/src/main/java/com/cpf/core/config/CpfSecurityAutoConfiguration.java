@@ -1,25 +1,25 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.channel.adapter.JdbcCpfChannelRegistryAdapter;
-import cpf.pfw.channel.api.CpfChannelRegistryPort;
-import cpf.pfw.channel.application.CpfChannelPolicyService;
-import cpf.pfw.common.execution.CpfExecutionCatalogPort;
-import cpf.pfw.common.execution.CpfExecutionCatalogRepository;
-import cpf.pfw.common.execution.CpfExecutionCatalogScanner;
-import cpf.pfw.common.security.password.CpfPasswordHashingPort;
-import cpf.pfw.common.security.password.CpfPbkdf2PasswordHasher;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.remotelog.CpfRemoteLogArtifactPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogBundleJobPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogNode;
-import cpf.pfw.common.remotelog.CpfRemoteLogNodeClientPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogNodeRegistryPort;
-import cpf.pfw.common.remotelog.CpfRemoteLogServiceCredentialPort;
-import cpf.pfw.common.remotelog.LocalCpfRemoteLogArtifactAdapter;
-import cpf.pfw.common.remotelog.LocalCpfRemoteLogNodeClient;
-import cpf.pfw.common.remotelog.LocalCpfRemoteLogNodeRegistry;
-import cpf.pfw.common.remotelog.InMemoryCpfRemoteLogBundleJobAdapter;
-import cpf.pfw.common.remotelog.RoutingCpfRemoteLogArtifactAdapter;
+import com.cpf.core.channel.adapter.JdbcCpfChannelRegistryAdapter;
+import com.cpf.core.channel.api.CpfChannelRegistryPort;
+import com.cpf.core.channel.application.CpfChannelPolicyService;
+import com.cpf.core.common.execution.CpfExecutionCatalogPort;
+import com.cpf.core.common.execution.CpfExecutionCatalogRepository;
+import com.cpf.core.common.execution.CpfExecutionCatalogScanner;
+import com.cpf.core.common.security.password.CpfPasswordHashingPort;
+import com.cpf.core.common.security.password.CpfPbkdf2PasswordHasher;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.remotelog.CpfRemoteLogArtifactPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogBundleJobPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogNode;
+import com.cpf.core.common.remotelog.CpfRemoteLogNodeClientPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogNodeRegistryPort;
+import com.cpf.core.common.remotelog.CpfRemoteLogServiceCredentialPort;
+import com.cpf.core.common.remotelog.LocalCpfRemoteLogArtifactAdapter;
+import com.cpf.core.common.remotelog.LocalCpfRemoteLogNodeClient;
+import com.cpf.core.common.remotelog.LocalCpfRemoteLogNodeRegistry;
+import com.cpf.core.common.remotelog.InMemoryCpfRemoteLogBundleJobAdapter;
+import com.cpf.core.common.remotelog.RoutingCpfRemoteLogArtifactAdapter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/** PFW 보안과 표준 실행 catalog 공통 capability 자동 구성입니다. */
+/** CPF 보안과 표준 실행 catalog 공통 capability 자동 구성입니다. */
 @AutoConfiguration
 public class CpfSecurityAutoConfiguration {
 
@@ -51,7 +51,7 @@ public class CpfSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfExecutionCatalogPort cpfExecutionCatalogPort(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
         return new CpfExecutionCatalogRepository(jdbcTemplateProvider);
     }
 
@@ -67,7 +67,7 @@ public class CpfSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfChannelRegistryPort cpfChannelRegistryPort(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
         return new JdbcCpfChannelRegistryAdapter(jdbcTemplateProvider);
     }
 

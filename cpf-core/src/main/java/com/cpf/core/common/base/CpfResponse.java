@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * CPF 응답 DTO가 선택적으로 구현하는 capability 계약입니다.

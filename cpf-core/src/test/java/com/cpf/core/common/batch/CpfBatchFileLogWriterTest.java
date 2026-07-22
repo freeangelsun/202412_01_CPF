@@ -1,9 +1,9 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.TransactionIdGenerator;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.batch.core.BatchStatus;

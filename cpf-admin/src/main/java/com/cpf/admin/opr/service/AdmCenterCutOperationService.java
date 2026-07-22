@@ -1,6 +1,6 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.utils.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,29 +17,29 @@ import java.util.Map;
 /**
  * ADM Center-Cut 운영 관제 조회 기능을 제공합니다.
  *
- * <p>ADM은 Center-Cut 업무 처리를 직접 실행하지 않고, PFW/BAT 메타와 업무 DB adapter 상태를
+ * <p>ADM은 Center-Cut 업무 처리를 직접 실행하지 않고, CPF/BAT 메타와 업무 DB adapter 상태를
  * 읽기 전용으로 조회합니다. 업무 payload 원문은 운영 화면에 노출하지 않고 길이와 마스킹 문구만
  * 반환해 민감정보 노출 가능성을 낮춥니다.</p>
  */
 @Service
-public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseService {
+public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmCenterCutOperationService.class);
-    private static final String XYZ_CENTER_CUT_SAMPLE_JOB_ID = "CPF_XYZ_CENTER_CUT_SAMPLE_JOB";
+    private static final String REF_CENTER_CUT_SAMPLE_JOB_ID = "CPF_REF_CENTER_CUT_SAMPLE_JOB";
     private static final int DEFAULT_LIMIT = 100;
     private static final int MAX_LIMIT = 500;
 
-    private final JdbcTemplate pfwJdbcTemplate;
-    private final JdbcTemplate xyzJdbcTemplate;
+    private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate refJdbcTemplate;
 
     public AdmCenterCutOperationService(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
-            @Qualifier("xyzJdbcTemplate") JdbcTemplate xyzJdbcTemplate) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
-        this.xyzJdbcTemplate = xyzJdbcTemplate;
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            @Qualifier("refJdbcTemplate") JdbcTemplate refJdbcTemplate) {
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
+        this.refJdbcTemplate = refJdbcTemplate;
     }
 
     public List<Map<String, Object>> findJobs() {
-        return queryOrEmpty(pfwJdbcTemplate, """
+        return queryOrEmpty(cpfJdbcTemplate, """
                 SELECT c.center_cut_job_id AS centerCutJobId,
                        c.batch_job_id AS batchJobId,
                        c.center_cut_job_name AS centerCutJobName,
@@ -54,7 +54,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                        j.job_name AS batchJobName,
                        j.job_type AS batchJobType
                 FROM bat_center_cut_job c
-                LEFT JOIN pfw_batch_job j ON j.job_id = c.batch_job_id
+                LEFT JOIN cpf_batch_job j ON j.job_id = c.batch_job_id
                 ORDER BY c.center_cut_job_id
                 """);
     }
@@ -72,7 +72,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
 
     public List<Map<String, Object>> findParameters(String centerCutJobId) {
         String resolvedJobId = TextUtils.requireText(centerCutJobId, "centerCutJobId");
-        return queryOrEmpty(pfwJdbcTemplate, """
+        return queryOrEmpty(cpfJdbcTemplate, """
                 SELECT parameter_id AS parameterId,
                        center_cut_job_id AS centerCutJobId,
                        parameter_key AS parameterKey,
@@ -97,8 +97,8 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
         result.put("centerCutJobId", resolvedJobId);
         result.put("adapterType", adapterType);
 
-        if ("XYZ_SAMPLE".equals(adapterType)) {
-            result.putAll(queryForMapOrEmpty(xyzJdbcTemplate, """
+        if ("REF_SAMPLE".equals(adapterType)) {
+            result.putAll(queryForMapOrEmpty(refJdbcTemplate, """
                     SELECT COUNT(*) AS totalCount,
                            SUM(CASE WHEN status_code = 'READY' THEN 1 ELSE 0 END) AS readyCount,
                            SUM(CASE WHEN status_code = 'RUNNING' THEN 1 ELSE 0 END) AS runningCount,
@@ -109,21 +109,21 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                            SUM(CASE WHEN status_code = 'STOP_REQUESTED' THEN 1 ELSE 0 END) AS stopRequestedCount,
                            MAX(started_at) AS lastStartedAt,
                            MAX(completed_at) AS lastCompletedAt
-                    FROM xyz_center_cut_sample_target
+                    FROM ref_center_cut_sample_target
                     WHERE center_cut_job_id = ?
                     """, resolvedJobId));
-            result.putAll(prefix("result", queryForMapOrEmpty(xyzJdbcTemplate, """
+            result.putAll(prefix("result", queryForMapOrEmpty(refJdbcTemplate, """
                     SELECT COUNT(*) AS totalCount,
                            SUM(CASE WHEN result_status = 'SUCCESS' THEN 1 ELSE 0 END) AS successCount,
                            SUM(CASE WHEN result_status = 'FAILED' THEN 1 ELSE 0 END) AS failedCount,
                            MAX(created_at) AS lastCreatedAt
-                    FROM xyz_center_cut_sample_result
+                    FROM ref_center_cut_sample_result
                     WHERE center_cut_job_id = ?
                     """, resolvedJobId)));
             return result;
         }
 
-        result.putAll(queryForMapOrEmpty(pfwJdbcTemplate, """
+        result.putAll(queryForMapOrEmpty(cpfJdbcTemplate, """
                 SELECT COUNT(*) AS totalCount,
                        SUM(CASE WHEN item_status = 'READY' THEN 1 ELSE 0 END) AS readyCount,
                        SUM(CASE WHEN item_status = 'RUNNING' THEN 1 ELSE 0 END) AS runningCount,
@@ -137,7 +137,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                 FROM bat_center_cut_item
                 WHERE center_cut_job_id = ?
                 """, resolvedJobId));
-        result.putAll(prefix("result", queryForMapOrEmpty(pfwJdbcTemplate, """
+        result.putAll(prefix("result", queryForMapOrEmpty(cpfJdbcTemplate, """
                 SELECT COUNT(*) AS totalCount,
                        SUM(CASE WHEN result_status = 'SUCCESS' THEN 1 ELSE 0 END) AS successCount,
                        SUM(CASE WHEN result_status = 'FAILED' THEN 1 ELSE 0 END) AS failedCount,
@@ -151,7 +151,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
     public List<Map<String, Object>> findTargets(String centerCutJobId, String statusCode, int limit) {
         String resolvedJobId = TextUtils.requireText(centerCutJobId, "centerCutJobId");
         int resolvedLimit = safeLimit(limit);
-        if ("XYZ_SAMPLE".equals(resolveAdapterType(resolvedJobId))) {
+        if ("REF_SAMPLE".equals(resolveAdapterType(resolvedJobId))) {
             List<Object> args = new ArrayList<>();
             args.add(resolvedJobId);
             String statusCondition = "";
@@ -160,7 +160,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                 args.add(statusCode.trim());
             }
             args.add(resolvedLimit);
-            return queryOrEmpty(xyzJdbcTemplate, """
+            return queryOrEmpty(refJdbcTemplate, """
                     SELECT target_id AS targetId,
                            center_cut_job_id AS centerCutJobId,
                            business_key AS businessKey,
@@ -179,7 +179,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                            CHAR_LENGTH(target_payload) AS targetPayloadLength,
                            created_at AS createdAt,
                            updated_at AS updatedAt
-                    FROM xyz_center_cut_sample_target
+                    FROM ref_center_cut_sample_target
                     WHERE center_cut_job_id = ?
                     """ + statusCondition + """
                     ORDER BY target_id
@@ -195,7 +195,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
             args.add(statusCode.trim());
         }
         args.add(resolvedLimit);
-        return queryOrEmpty(pfwJdbcTemplate, """
+        return queryOrEmpty(cpfJdbcTemplate, """
                 SELECT center_cut_item_id AS targetId,
                        center_cut_job_id AS centerCutJobId,
                        business_key AS businessKey,
@@ -225,7 +225,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
     public List<Map<String, Object>> findResults(String centerCutJobId, String resultStatus, int limit) {
         String resolvedJobId = TextUtils.requireText(centerCutJobId, "centerCutJobId");
         int resolvedLimit = safeLimit(limit);
-        if ("XYZ_SAMPLE".equals(resolveAdapterType(resolvedJobId))) {
+        if ("REF_SAMPLE".equals(resolveAdapterType(resolvedJobId))) {
             List<Object> args = new ArrayList<>();
             args.add(resolvedJobId);
             String statusCondition = "";
@@ -234,7 +234,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                 args.add(resultStatus.trim());
             }
             args.add(resolvedLimit);
-            return queryOrEmpty(xyzJdbcTemplate, """
+            return queryOrEmpty(refJdbcTemplate, """
                     SELECT result_id AS resultId,
                            target_id AS targetId,
                            center_cut_job_id AS centerCutJobId,
@@ -250,7 +250,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                            child_transaction_global_id AS childTransactionGlobalId,
                            created_at AS createdAt,
                            updated_at AS updatedAt
-                    FROM xyz_center_cut_sample_result
+                    FROM ref_center_cut_sample_result
                     WHERE center_cut_job_id = ?
                     """ + statusCondition + """
                     ORDER BY result_id
@@ -266,7 +266,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
             args.add(resultStatus.trim());
         }
         args.add(resolvedLimit);
-        return queryOrEmpty(pfwJdbcTemplate, """
+        return queryOrEmpty(cpfJdbcTemplate, """
                 SELECT r.center_cut_result_id AS resultId,
                        r.center_cut_item_id AS targetId,
                        r.center_cut_job_id AS centerCutJobId,
@@ -297,7 +297,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
             return Map.of("resultId", resultId, "found", false, "reason", "숫자형 resultId가 아닙니다.");
         }
 
-        Map<String, Object> xyzResult = queryForMapOrEmpty(xyzJdbcTemplate, """
+        Map<String, Object> refResult = queryForMapOrEmpty(refJdbcTemplate, """
                 SELECT result_id AS resultId,
                        target_id AS targetId,
                        center_cut_job_id AS centerCutJobId,
@@ -313,16 +313,16 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                        child_transaction_global_id AS childTransactionGlobalId,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM xyz_center_cut_sample_result
+                FROM ref_center_cut_sample_result
                 WHERE result_id = ?
                 """, resolvedResultId);
-        if (!xyzResult.isEmpty()) {
-            xyzResult.put("adapterType", "XYZ_SAMPLE");
-            xyzResult.put("found", true);
-            return xyzResult;
+        if (!refResult.isEmpty()) {
+            refResult.put("adapterType", "REF_SAMPLE");
+            refResult.put("found", true);
+            return refResult;
         }
 
-        Map<String, Object> batResult = queryForMapOrEmpty(pfwJdbcTemplate, """
+        Map<String, Object> batResult = queryForMapOrEmpty(cpfJdbcTemplate, """
                 SELECT r.center_cut_result_id AS resultId,
                        r.center_cut_item_id AS targetId,
                        r.center_cut_job_id AS centerCutJobId,
@@ -358,7 +358,7 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
     }
 
     private Map<String, Object> findJob(String centerCutJobId) {
-        return queryForMapOrEmpty(pfwJdbcTemplate, """
+        return queryForMapOrEmpty(cpfJdbcTemplate, """
                 SELECT c.center_cut_job_id AS centerCutJobId,
                        c.batch_job_id AS batchJobId,
                        c.center_cut_job_name AS centerCutJobName,
@@ -373,21 +373,21 @@ public class AdmCenterCutOperationService extends cpf.adm.common.base.AdmBaseSer
                        j.job_name AS batchJobName,
                        j.job_type AS batchJobType
                 FROM bat_center_cut_job c
-                LEFT JOIN pfw_batch_job j ON j.job_id = c.batch_job_id
+                LEFT JOIN cpf_batch_job j ON j.job_id = c.batch_job_id
                 WHERE c.center_cut_job_id = ?
                 """, centerCutJobId);
     }
 
     private String resolveAdapterType(String centerCutJobId) {
-        if (XYZ_CENTER_CUT_SAMPLE_JOB_ID.equals(centerCutJobId)) {
-            return "XYZ_SAMPLE";
+        if (REF_CENTER_CUT_SAMPLE_JOB_ID.equals(centerCutJobId)) {
+            return "REF_SAMPLE";
         }
         Map<String, String> parameterMap = parameterMap(centerCutJobId);
         String targetTable = parameterMap.getOrDefault("targettable", "");
         String resultTable = parameterMap.getOrDefault("resulttable", "");
-        if (targetTable.toLowerCase(Locale.ROOT).contains("xyz_center_cut_sample_target")
-                || resultTable.toLowerCase(Locale.ROOT).contains("xyz_center_cut_sample_result")) {
-            return "XYZ_SAMPLE";
+        if (targetTable.toLowerCase(Locale.ROOT).contains("ref_center_cut_sample_target")
+                || resultTable.toLowerCase(Locale.ROOT).contains("ref_center_cut_sample_result")) {
+            return "REF_SAMPLE";
         }
         return "BAT_STANDARD";
     }

@@ -1,4 +1,21 @@
-# CMN stg 공통 정책입니다. 실행 모듈 설정을 덮어쓰지 않습니다.
+# CMN stg 공통 정책입니다. DB 접속값과 secret은 배포 환경에서 주입합니다.
+
+spring:
+  datasource:
+    cmn:
+      mode: ${CMN_DB_MODE:${CPF_DB_MODE:url}}
+      url: ${CMN_DB_URL:${CPF_DB_URL}}
+      username: ${CMN_DB_USERNAME:${CPF_DB_USERNAME}}
+      password: ${CMN_DB_PASSWORD:${CPF_DB_PASSWORD}}
+      jndi-name: ${CMN_DB_JNDI_NAME:${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}}
+      driver-class-name: ${CMN_DB_DRIVER:org.mariadb.jdbc.Driver}
+    cmn-business:
+      mode: ${CMN_BUSINESS_DB_MODE:url}
+      url: ${CMN_BUSINESS_DB_URL}
+      username: ${CMN_BUSINESS_DB_USERNAME}
+      password: ${CMN_BUSINESS_DB_PASSWORD}
+      jndi-name: ${CMN_BUSINESS_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonDataSource}
+      driver-class-name: ${CMN_BUSINESS_DB_DRIVER:org.mariadb.jdbc.Driver}
 
 cpf:
   cmn:

@@ -1,27 +1,27 @@
-package cpf.xyz.servicecall;
+package com.cpf.reference.servicecall;
 
-import cpf.pfw.common.servicecall.CpfPolicyId;
-import cpf.pfw.common.servicecall.CpfServiceCallOptions;
+import com.cpf.core.common.servicecall.CpfPolicyId;
+import com.cpf.core.common.servicecall.CpfServiceCallOptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzServiceCallEngineEducationSampleTest {
+class ReferenceServiceCallEngineEducationSampleTest {
 
     @Test
     void basicSampleUsesTypedClientAndCentralDefaultPolicy() {
-        AtomicReference<XyzMemberSummaryRequest> capturedRequest = new AtomicReference<>();
+        AtomicReference<ReferenceMemberSummaryRequest> capturedRequest = new AtomicReference<>();
         AtomicReference<CpfServiceCallOptions> capturedOptions = new AtomicReference<>();
-        XyzMemberSummaryClient client = (request, options) -> {
+        ReferenceMemberSummaryClient client = (request, options) -> {
             capturedRequest.set(request);
             capturedOptions.set(options);
-            return new XyzMemberSummaryResponse(request.memberNo(), "홍*동", "ACTIVE");
+            return new ReferenceMemberSummaryResponse(request.memberNo(), "홍*동", "ACTIVE");
         };
-        XyzServiceCallEngineEducationSample sample = new XyzServiceCallEngineEducationSample(client);
+        ReferenceServiceCallEngineEducationSample sample = new ReferenceServiceCallEngineEducationSample(client);
 
-        XyzMemberSummaryResponse result = sample.callMemberSummary("M-1");
+        ReferenceMemberSummaryResponse result = sample.callMemberSummary("M-1");
 
         assertThat(result.statusCode()).isEqualTo("ACTIVE");
         assertThat(capturedRequest.get().memberNo()).isEqualTo("M-1");

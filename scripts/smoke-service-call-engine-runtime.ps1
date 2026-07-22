@@ -5,6 +5,12 @@
     [switch] $RequireRuntime
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -33,7 +39,7 @@ function Test-Contains {
 function New-RuntimeHeaders {
     $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
     return @{
-        "X-Transaction-Id" = "$timestamp" + "PFWgwsmk01" + "0000001"
+        "X-Transaction-Id" = "$timestamp" + "CPFgwsmk01" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
         "X-Cpf-Standard-Execution-Id" = "OACCQY0001"
@@ -56,10 +62,10 @@ $result = [ordered]@{
 }
 
 try {
-    $engineText = Read-Text "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceCallEngine.java"
-    $webClientText = Read-Text "pfw/src/main/java/cpf/pfw/common/http/CpfWebClient.java"
-    $repositoryText = Read-Text "pfw/src/main/java/cpf/pfw/common/servicecall/CpfServiceRegistryRepository.java"
-    $testText = Read-Text "pfw/src/test/java/cpf/pfw/common/servicecall/CpfServiceCallEngineTest.java"
+    $engineText = Read-Text "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfServiceCallEngine.java"
+    $webClientText = Read-Text "cpf-core/src/main/java/com/cpf/core/common/http/CpfWebClient.java"
+    $repositoryText = Read-Text "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfServiceRegistryRepository.java"
+    $testText = Read-Text "cpf-core/src/test/java/com/cpf/core/common/servicecall/CpfServiceCallEngineTest.java"
 
     Test-Contains $engineText "Function<ServiceCallResolvedTarget, T>" "target-aware runtime adapter"
     Test-Contains $engineText "isCircuitOpen" "circuit open check"

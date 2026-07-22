@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * PFW 거래 로그 요약 저장 객체입니다.
+ * CPF 거래 로그 요약 저장 객체입니다.
  *
  * <p>{@code LoggingAspect}가 요청, 응답, 실행 메타, 표준 거래 헤더를 수집하고
- * {@code TransactionLogService}가 {@code pfw_transaction_log}에 저장합니다.
+ * {@code TransactionLogService}가 {@code cpf_transaction_log}에 저장합니다.
  * 본문처럼 큰 데이터는 요약 로그와 상세 로그에 나누어 저장합니다.</p>
  */
 @Data

@@ -1,6 +1,6 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.api.logging.CpfTransactionTimelineQueryPort;
+import com.cpf.core.api.logging.CpfTransactionTimelineQueryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,13 +10,13 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 /**
- * transactionGlobalId 기준으로 PFW 표준 거래 구간과 외부 호출 후보를 조합합니다.
+ * transactionGlobalId 기준으로 CPF 표준 거래 구간과 외부 호출 후보를 조합합니다.
  *
- * <p>ADM은 다른 주제영역 DB를 직접 조회하지 않고 PFW 공개 조회 포트만 사용합니다.
+ * <p>ADM은 다른 주제영역 DB를 직접 조회하지 않고 CPF 공개 조회 포트만 사용합니다.
  * 외부 연계 모듈이 추가되더라도 표준 구간 로그에 기록하면 ADM 구현 변경 없이 함께 조회됩니다.</p>
  */
 @Service
-public class AdmTransactionGroupService extends cpf.adm.common.base.AdmBaseService {
+public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfTransactionTimelineQueryPort timelineQueryPort;
 
     public AdmTransactionGroupService(CpfTransactionTimelineQueryPort timelineQueryPort) {
@@ -72,7 +72,7 @@ public class AdmTransactionGroupService extends cpf.adm.common.base.AdmBaseServi
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionGlobalId", transactionGlobalId);
         response.put("items", items);
-        response.put("source", "PFW_TRANSACTION_SEGMENT");
+        response.put("source", "CPF_TRANSACTION_SEGMENT");
         response.put("fallbackUsed", false);
         return response;
     }

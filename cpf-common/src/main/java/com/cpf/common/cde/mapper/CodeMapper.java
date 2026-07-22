@@ -1,6 +1,6 @@
-package cpf.cmn.cde.mapper;
+package com.cpf.common.cde.mapper;
 
-import cpf.cmn.cde.dto.CommonCodeRequest;
+import com.cpf.common.cde.dto.CommonCodeRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 코드 Mapper입니다.
+ * CPF 공통 코드 Mapper입니다.
  */
 @Mapper
 public interface CodeMapper {

@@ -1,10 +1,10 @@
-package cpf.pfw.common.archive;
+package com.cpf.core.common.archive;
 
 import java.nio.file.Path;
 import java.util.List;
 
 /**
- * PFW 압축/보관 capability의 표준 port입니다.
+ * CPF 압축/보관 capability의 표준 port입니다.
  */
 public interface CpfArchiveService {
     CpfArchiveResult create(CpfArchiveRequest request);

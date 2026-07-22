@@ -4,6 +4,12 @@
     [string] $BaseUrl = "http://127.0.0.1:8099"
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
 
@@ -22,7 +28,7 @@ $result = [ordered]@{
 function New-CpfAttachmentTransactionId {
     param([int] $Sequence)
 
-    return "$(Get-Date -Format 'yyyyMMddHHmmssfff')XYZlocal01$($Sequence.ToString('0000000'))"
+    return "$(Get-Date -Format 'yyyyMMddHHmmssfff')REFlocal01$($Sequence.ToString('0000000'))"
 }
 
 function Invoke-CpfAttachmentJson {
@@ -76,9 +82,9 @@ function Invoke-CpfAttachmentJson {
 try {
     $store = Invoke-CpfAttachmentJson `
         -Method POST `
-        -Uri "$BaseUrl/api/xyz/reference/attachments/text" `
+        -Uri "$BaseUrl/api/reference/attachments/text" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 21) `
-        -ExecutionId "OXYZAA0065" `
+        -ExecutionId "OREFAA0065" `
         -Body ([ordered]@{
             groupId = "EDU"
             fileName = "cpf-attachment-runtime.txt"
@@ -87,9 +93,9 @@ try {
 
     $verify = Invoke-CpfAttachmentJson `
         -Method POST `
-        -Uri "$BaseUrl/api/xyz/reference/attachments/verify" `
+        -Uri "$BaseUrl/api/reference/attachments/verify" `
         -TransactionId (New-CpfAttachmentTransactionId -Sequence 22) `
-        -ExecutionId "OXYZAA0066" `
+        -ExecutionId "OREFAA0066" `
         -Body ([ordered]@{
             storageKey = $store.body.storageKey
             expectedChecksumSha256 = $store.body.checksumSha256

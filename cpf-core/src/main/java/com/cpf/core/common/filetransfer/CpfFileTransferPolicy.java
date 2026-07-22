@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 /**
  * temp/rename/archive/중복 방지 정책 후보입니다.

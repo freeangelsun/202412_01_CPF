@@ -1,18 +1,29 @@
 ﻿param(
-    [Parameter(Mandatory = $true)]
-    [string] $ModuleCode,
+    [string] $DomainName = "",
+    [Alias("ExpectedSystemCode")]
+    [string] $SystemCode = "",
+    [string] $ModuleCode = "",
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
     [switch] $DryRun
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
-$module = $ModuleCode.Trim().ToLowerInvariant()
-if ($module -notmatch '^[a-z][a-z0-9]{1,9}$') {
-    throw "ModuleCode는 영문으로 시작하는 2~10자리 영문·숫자여야 합니다."
+$requestedDomainName = if ([string]::IsNullOrWhiteSpace($DomainName)) { $ModuleCode } else { $DomainName }
+$module = $requestedDomainName.Trim().ToLowerInvariant()
+if ($module -notmatch '^[a-z][a-z0-9]{1,29}$') {
+    throw "DomainName은 영문으로 시작하는 2~30자리 영문·숫자여야 합니다."
 }
+$projectName = "cpf-$module"
+$normalizedSystemCode = if ([string]::IsNullOrWhiteSpace($SystemCode)) { "" } else { $SystemCode.Trim().ToUpperInvariant() }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build/reports/remove-domain/$module"
@@ -21,7 +32,7 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "remove-domain-result.json"
-$moduleDir = Join-Path $Root $module
+$moduleDir = Join-Path $Root $projectName
 $ownershipPath = Join-Path $moduleDir "manifest/generator-ownership.json"
 
 function Write-Result {
@@ -42,7 +53,9 @@ if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
         generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
         status = "FAILED"
         dryRun = [bool] $DryRun
-        moduleCode = $module.ToUpperInvariant()
+        systemCode = $normalizedSystemCode
+        domainName = $module
+        projectName = $projectName
         reason = "생성기 소유권 manifest가 없어 안전한 자동 제거가 불가능합니다."
         manifest = Get-RelativePath $ownershipPath
     }
@@ -51,8 +64,12 @@ if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
 }
 
 $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($ownership.moduleCode -ne $module.ToUpperInvariant()) {
-    throw "요청 모듈과 소유권 manifest의 moduleCode가 다릅니다."
+if ([string]$ownership.domainName -ne $module) {
+    throw "요청 DomainName과 소유권 manifest의 domainName이 다릅니다."
+}
+if (-not [string]::IsNullOrWhiteSpace($normalizedSystemCode) -and
+        [string]$ownership.systemCode -ne $normalizedSystemCode) {
+    throw "요청 SystemCode와 소유권 manifest의 systemCode가 다릅니다."
 }
 
 $ownedPaths = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
@@ -63,13 +80,13 @@ foreach ($ownedFile in @($ownership.createdFiles)) {
     [void] $ownedPaths.Add($relative)
     $absolute = Join-Path $moduleDir $relative
     if (-not (Test-Path -LiteralPath $absolute -PathType Leaf)) {
-        $missingFiles.Add("$module/$relative")
+        $missingFiles.Add("$projectName/$relative")
         continue
     }
     $currentHash = (Get-FileHash -LiteralPath $absolute -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($currentHash -ne ([string] $ownedFile.sha256).ToLowerInvariant()) {
         $changedFiles.Add([ordered]@{
-            path = "$module/$relative"
+            path = "$projectName/$relative"
             generatedSha256 = $ownedFile.sha256
             currentSha256 = $currentHash
         })
@@ -85,9 +102,9 @@ $userOwnedFiles = @(Get-ChildItem -LiteralPath $moduleDir -Recurse -File | Where
 # 다른 모듈·배포·SQL이 제거 대상 모듈을 참조하면 자동 제거를 차단합니다.
 $escapedReferenceModule = [regex]::Escape($module)
 $referencePatterns = @(
-    "cpf\.$escapedReferenceModule\.",
-    ('project\([''"]:' + $escapedReferenceModule + '[''"]\)'),
-    ('include\s+[''"]' + $escapedReferenceModule + '[''"]'),
+    "com\.cpf\.$escapedReferenceModule\.",
+    ('project\([''"]:cpf-' + $escapedReferenceModule + '[''"]\)'),
+    ('include\s+[''"]cpf-' + $escapedReferenceModule + '[''"]'),
     ('(?i)\bmodule\b\s*[:=]\s*[''"]?' + $escapedReferenceModule + '\b')
 )
 $references = New-Object System.Collections.Generic.List[object]
@@ -126,8 +143,11 @@ $result = [ordered]@{
     generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
     status = if ($blockReasons.Count -eq 0) { "READY" } else { "BLOCKED" }
     dryRun = [bool] $DryRun
-    moduleCode = $module.ToUpperInvariant()
-    moduleDirectory = $module
+    moduleCode = [string]$ownership.moduleCode
+    systemCode = [string]$ownership.systemCode
+    domainName = $module
+    projectName = $projectName
+    moduleDirectory = $projectName
     manifest = Get-RelativePath $ownershipPath
     generatedFileCount = $ownedPaths.Count
     changedGeneratedFiles = @($changedFiles.ToArray())
@@ -171,11 +191,11 @@ if (Test-Path -LiteralPath $moduleBuildDir -PathType Container) {
 
 $settingsPath = Join-Path $Root 'settings.gradle'
 $settingsText = [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
-$escapedModule = [regex]::Escape($module)
-$settingsText = [regex]::Replace($settingsText, "(?m)^\s*include\s+'$escapedModule'\s*\r?\n?", '')
+$escapedProjectName = [regex]::Escape($projectName)
+$settingsText = [regex]::Replace($settingsText, "(?m)^\s*include\s+'$escapedProjectName'\s*\r?\n?", '')
 $settingsText = [regex]::Replace(
         $settingsText,
-        "(?m)^\s*project\(':$escapedModule'\)\.projectDir\s*=\s*file\('$escapedModule'\)\s*\r?\n?",
+        "(?m)^\s*project\(':$escapedProjectName'\)\.projectDir\s*=\s*file\('$escapedProjectName'\)\s*\r?\n?",
         '')
 [System.IO.File]::WriteAllText($settingsPath, $settingsText, $Utf8NoBom)
 
@@ -191,4 +211,4 @@ if ((Test-Path -LiteralPath $moduleDir) -and @(Get-ChildItem -LiteralPath $modul
 $result.status = "DONE"
 $result.removedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
 Write-Result $result
-Write-Host "remove-domain completed. module=$module result=$resultPath"
+Write-Host "remove-domain completed. project=$projectName result=$resultPath"

@@ -1,4 +1,4 @@
-package cpf.cmn.config;
+package com.cpf.common.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.annotations.Mapper;
@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @MapperScan(
-        basePackages = "cpf.cmn",
+        basePackages = "com.cpf.common",
         annotationClass = Mapper.class,
         sqlSessionFactoryRef = "cmnSqlSessionFactory")
 public class CmnMyBatisConfig {

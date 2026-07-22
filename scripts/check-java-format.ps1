@@ -2,6 +2,12 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 # 포맷터 전체를 강제하지 못하는 환경에서도, 리뷰 전에 반드시 잡아야 하는 최소 기준만 검사합니다.
@@ -35,6 +41,12 @@ Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*.java" | ForEach-Objec
     }
     if ($text -match "(?m)^\s*(class|interface|enum|record)\s+\S+.*\}\s*(class|interface|enum|record)\s+") {
         $failures.Add("여러 type 선언이 한 줄에 붙어 있을 가능성: $relative")
+    }
+    if ($text -match "(?s)/\*\*\s*(?:\*\s*)*\*/") {
+        $failures.Add("내용이 없는 JavaDoc: $relative")
+    }
+    if ($text -match "CPF\s+(?:기능 설명|처리 기준)입니다\.") {
+        $failures.Add("의미 없는 임시 설명 문구: $relative")
     }
 
     for ($index = 0; $index -lt $lines.Count; $index++) {

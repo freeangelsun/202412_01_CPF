@@ -1,4 +1,4 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -13,7 +13,7 @@ public record BatOnDemandStatus(
         String transactionGlobalId,
         String businessDate,
         String requestStatus,
-        Long pfwExecutionId,
+        Long cpfExecutionId,
         Long springBatchExecutionId,
         Map<String, Object> result,
         String failureCode,

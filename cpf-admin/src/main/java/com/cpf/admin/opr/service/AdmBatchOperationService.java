@@ -1,11 +1,11 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.batch.CpfBatchExecutionRequest;
-import cpf.pfw.common.batch.CpfBatchExecutionResult;
-import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
-import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.batch.CpfBatchExecutionRequest;
+import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.common.batch.CpfBatchGhostDetectionService;
+import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
@@ -23,26 +23,26 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 배치 운영 메타와 Spring Batch 실행 기능을 연결합니다.
+ * CPF 배치 운영 메타와 Spring Batch 실행 기능을 연결합니다.
  *
- * <p>실행, 재수행, 중지는 PFW 공통 {@link CpfBatchLauncher}를 통해 처리합니다.
+ * <p>실행, 재수행, 중지는 CPF 공통 {@link CpfBatchLauncher}를 통해 처리합니다.
  * ADM은 운영자가 보는 조회, 영업일, 관계, 수행 대상, 감사 연결 기능을 담당합니다.</p>
  */
 @Service
-public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService {
+public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmBatchOperationService.class);
 
-    private final JdbcTemplate pfwJdbcTemplate;
+    private final JdbcTemplate cpfJdbcTemplate;
     private final CpfBatchLauncher batchLauncher;
     private final JobExplorer jobExplorer;
     private final CpfBatchGhostDetectionService ghostDetectionService;
 
     public AdmBatchOperationService(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             CpfBatchLauncher batchLauncher,
             ObjectProvider<JobExplorer> jobExplorerProvider,
             ObjectProvider<CpfBatchGhostDetectionService> ghostDetectionServiceProvider) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.batchLauncher = batchLauncher;
         this.jobExplorer = jobExplorerProvider.getIfAvailable();
         this.ghostDetectionService = ghostDetectionServiceProvider.getIfAvailable();
@@ -56,8 +56,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        SUM(CASE WHEN e.execution_status = 'COMPLETED' THEN 1 ELSE 0 END) AS success_count,
                        SUM(CASE WHEN e.execution_status IN ('FAILED', 'STOPPED') THEN 1 ELSE 0 END) AS failure_count,
                        AVG(TIMESTAMPDIFF(SECOND, e.start_time, e.end_time)) AS avg_duration_seconds
-                FROM pfw_batch_job j
-                LEFT JOIN pfw_batch_execution e ON e.job_id = j.job_id
+                FROM cpf_batch_job j
+                LEFT JOIN cpf_batch_execution e ON e.job_id = j.job_id
                 WHERE j.use_yn = 'Y'
                 GROUP BY j.job_id, j.job_name, j.job_type, j.description, j.restartable_yn, j.use_yn
                 ORDER BY j.job_id
@@ -73,7 +73,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        calendar_id, business_day_only_yn, holiday_policy,
                        available_start_time, available_end_time, run_date_pattern,
                        last_fire_at, next_fire_at, created_at, updated_at
-                FROM pfw_batch_schedule
+                FROM cpf_batch_schedule
                 WHERE job_id = ?
                 ORDER BY schedule_id
                 """, resolvedJobId));
@@ -90,7 +90,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        calendar_id, business_day_only_yn, holiday_policy,
                        available_start_time, available_end_time, run_date_pattern,
                        last_fire_at, next_fire_at, created_at, updated_at
-                FROM pfw_batch_schedule
+                FROM cpf_batch_schedule
                 ORDER BY job_id, schedule_id
                 """);
     }
@@ -110,7 +110,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
                            last_heartbeat_at, current_step_name,
                            error_message, requested_by, created_at, updated_at
-                    FROM pfw_batch_execution
+                    FROM cpf_batch_execution
                     WHERE job_id = ?
                     ORDER BY execution_id DESC
                     LIMIT ?
@@ -128,7 +128,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
                        last_heartbeat_at, current_step_name,
                        error_message, requested_by, created_at, updated_at
-                FROM pfw_batch_execution
+                FROM cpf_batch_execution
                 ORDER BY execution_id DESC
                 LIMIT ?
                 """, resolvedLimit);
@@ -137,14 +137,14 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     public Map<String, Object> findExecutionDetail(long executionId) {
         try {
             Map<String, Object> execution = findExecution(executionId);
-            List<Map<String, Object>> steps = pfwJdbcTemplate.queryForList("""
+            List<Map<String, Object>> steps = cpfJdbcTemplate.queryForList("""
                     SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id,
                            step_name, execution_status,
                            start_time, end_time, read_count, write_count, skip_count,
                            total_count, processed_count, success_count, failure_count, retry_count,
                            progress_rate, tps, avg_elapsed_ms, max_elapsed_ms, last_heartbeat_at,
                            error_message, step_log, created_at, updated_at
-                    FROM pfw_batch_step_execution
+                    FROM cpf_batch_step_execution
                     WHERE execution_id = ?
                     ORDER BY step_execution_id
                     """, executionId);
@@ -163,7 +163,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
         return queryOrEmpty("""
                 SELECT instance_id, instance_name, host_name, server_port, active_yn,
                        last_heartbeat_at, description, created_at, updated_at
-                FROM pfw_batch_instance
+                FROM cpf_batch_instance
                 ORDER BY active_yn DESC, instance_name
                 """);
     }
@@ -180,7 +180,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            ELSE 'ONLINE'
                        END AS heartbeat_state,
                        created_at, updated_at
-                FROM pfw_batch_worker
+                FROM cpf_batch_worker
                 ORDER BY active_yn DESC, last_heartbeat_at DESC, worker_id
                 """, timeoutSeconds);
     }
@@ -195,7 +195,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
                            s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                            s.error_message, s.step_log, s.created_at, s.updated_at
-                    FROM pfw_batch_step_execution s
+                    FROM cpf_batch_step_execution s
                     WHERE s.execution_id = ?
                     ORDER BY s.step_execution_id
                     LIMIT ?
@@ -209,8 +209,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
                            s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                            s.error_message, s.step_log, s.created_at, s.updated_at
-                    FROM pfw_batch_step_execution s
-                    JOIN pfw_batch_execution e ON e.execution_id = s.execution_id
+                    FROM cpf_batch_step_execution s
+                    JOIN cpf_batch_execution e ON e.execution_id = s.execution_id
                     WHERE e.job_id = ?
                     ORDER BY s.step_execution_id DESC
                     LIMIT ?
@@ -223,7 +223,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        s.total_count, s.processed_count, s.success_count, s.failure_count, s.retry_count,
                        s.progress_rate, s.tps, s.avg_elapsed_ms, s.max_elapsed_ms, s.last_heartbeat_at,
                        s.error_message, s.step_log, s.created_at, s.updated_at
-                FROM pfw_batch_step_execution s
+                FROM cpf_batch_step_execution s
                 ORDER BY s.step_execution_id DESC
                 LIMIT ?
                 """, resolvedLimit);
@@ -236,9 +236,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            r.related_job_id, rel.job_name AS related_job_name,
                            r.relation_type, r.trigger_condition, r.required_status,
                            r.sort_order, r.use_yn, r.created_at, r.updated_at
-                    FROM pfw_batch_job_relation r
-                    JOIN pfw_batch_job j ON j.job_id = r.job_id
-                    JOIN pfw_batch_job rel ON rel.job_id = r.related_job_id
+                    FROM cpf_batch_job_relation r
+                    JOIN cpf_batch_job j ON j.job_id = r.job_id
+                    JOIN cpf_batch_job rel ON rel.job_id = r.related_job_id
                     WHERE r.job_id = ?
                        OR r.related_job_id = ?
                     ORDER BY r.job_id, r.sort_order, r.related_job_id
@@ -249,9 +249,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        r.related_job_id, rel.job_name AS related_job_name,
                        r.relation_type, r.trigger_condition, r.required_status,
                        r.sort_order, r.use_yn, r.created_at, r.updated_at
-                FROM pfw_batch_job_relation r
-                JOIN pfw_batch_job j ON j.job_id = r.job_id
-                JOIN pfw_batch_job rel ON rel.job_id = r.related_job_id
+                FROM cpf_batch_job_relation r
+                JOIN cpf_batch_job j ON j.job_id = r.job_id
+                JOIN cpf_batch_job rel ON rel.job_id = r.related_job_id
                 ORDER BY r.job_id, r.sort_order, r.related_job_id
                 """);
     }
@@ -264,9 +264,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            t.target_instance_id, i.instance_name, t.business_date,
                            t.planned_run_at, t.dispatch_status, t.dispatch_reason,
                            t.created_at, t.updated_at
-                    FROM pfw_batch_execution_target t
-                    JOIN pfw_batch_job j ON j.job_id = t.job_id
-                    LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                    FROM cpf_batch_execution_target t
+                    JOIN cpf_batch_job j ON j.job_id = t.job_id
+                    LEFT JOIN cpf_batch_instance i ON i.instance_id = t.target_instance_id
                     WHERE t.job_id = ?
                       AND t.dispatch_status = ?
                     ORDER BY t.planned_run_at DESC, t.target_id DESC
@@ -279,9 +279,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            t.target_instance_id, i.instance_name, t.business_date,
                            t.planned_run_at, t.dispatch_status, t.dispatch_reason,
                            t.created_at, t.updated_at
-                    FROM pfw_batch_execution_target t
-                    JOIN pfw_batch_job j ON j.job_id = t.job_id
-                    LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                    FROM cpf_batch_execution_target t
+                    JOIN cpf_batch_job j ON j.job_id = t.job_id
+                    LEFT JOIN cpf_batch_instance i ON i.instance_id = t.target_instance_id
                     WHERE t.job_id = ?
                     ORDER BY t.planned_run_at DESC, t.target_id DESC
                     LIMIT ?
@@ -292,9 +292,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        t.target_instance_id, i.instance_name, t.business_date,
                        t.planned_run_at, t.dispatch_status, t.dispatch_reason,
                        t.created_at, t.updated_at
-                FROM pfw_batch_execution_target t
-                JOIN pfw_batch_job j ON j.job_id = t.job_id
-                LEFT JOIN pfw_batch_instance i ON i.instance_id = t.target_instance_id
+                FROM cpf_batch_execution_target t
+                JOIN cpf_batch_job j ON j.job_id = t.job_id
+                LEFT JOIN cpf_batch_instance i ON i.instance_id = t.target_instance_id
                 ORDER BY t.planned_run_at DESC, t.target_id DESC
                 LIMIT ?
                 """, resolvedLimit);
@@ -306,7 +306,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                     SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
                            CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
                            created_at, updated_at
-                    FROM pfw_batch_lock
+                    FROM cpf_batch_lock
                     WHERE job_id = ?
                     ORDER BY locked_at DESC
                     """, jobId.trim());
@@ -315,7 +315,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                 SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
                        CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
                        created_at, updated_at
-                FROM pfw_batch_lock
+                FROM cpf_batch_lock
                 ORDER BY locked_at DESC
                 """);
     }
@@ -323,7 +323,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     public Map<String, Object> releaseLock(String lockKey, String requestUser, String reason) {
         String resolvedLockKey = TextUtils.requireText(lockKey, "lockKey");
         Map<String, Object> before = findLock(resolvedLockKey);
-        int deleted = pfwJdbcTemplate.update("DELETE FROM pfw_batch_lock WHERE lock_key = ?", resolvedLockKey);
+        int deleted = cpfJdbcTemplate.update("DELETE FROM cpf_batch_lock WHERE lock_key = ?", resolvedLockKey);
         String operatorId = TextUtils.defaultIfBlank(requestUser, "ADM");
         recordOperation(String.valueOf(before.get("job_id")), null, "LOCK_RELEASE", operatorId, reason,
                 String.valueOf(before), "deleted=" + deleted);
@@ -353,10 +353,10 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                            WHEN w.last_heartbeat_at < TIMESTAMPADD(SECOND, -?, CURRENT_TIMESTAMP(3)) THEN 'worker heartbeat 제한 시간을 초과했습니다.'
                            ELSE '실행 중 상태가 장시간 종료되지 않았습니다.'
                        END AS detected_reason
-                FROM pfw_batch_execution e
-                JOIN pfw_batch_job j ON j.job_id = e.job_id
-                LEFT JOIN pfw_batch_worker w ON w.worker_id = e.worker_id
-                LEFT JOIN pfw_batch_ghost_event g
+                FROM cpf_batch_execution e
+                JOIN cpf_batch_job j ON j.job_id = e.job_id
+                LEFT JOIN cpf_batch_worker w ON w.worker_id = e.worker_id
+                LEFT JOIN cpf_batch_ghost_event g
                        ON g.execution_id = e.execution_id
                       AND g.ghost_status = 'DETECTED'
                 WHERE e.end_time IS NULL
@@ -377,8 +377,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
         String jobId = String.valueOf(before.get("job_id"));
         int releasedLocks = 0;
         if ("FAIL".equals(action)) {
-            pfwJdbcTemplate.update("""
-                    UPDATE pfw_batch_execution
+            cpfJdbcTemplate.update("""
+                    UPDATE cpf_batch_execution
                     SET execution_status = 'FAILED',
                         end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
                         error_message = COALESCE(error_message, 'ADM ghost 조치로 실패 처리되었습니다.'),
@@ -388,8 +388,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                     """, operatorId, executionId);
             releasedLocks = releaseLocksForExecution(before);
         } else if ("ABANDON".equals(action)) {
-            pfwJdbcTemplate.update("""
-                    UPDATE pfw_batch_execution
+            cpfJdbcTemplate.update("""
+                    UPDATE cpf_batch_execution
                     SET execution_status = 'ABANDONED',
                         end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
                         error_message = COALESCE(error_message, 'ADM ghost 조치로 폐기 처리되었습니다.'),
@@ -402,8 +402,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
             releasedLocks = releaseLocksForExecution(before);
         }
         Map<String, Object> after = findExecution(executionId);
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_batch_ghost_event (
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_batch_ghost_event (
                     execution_id, spring_batch_execution_id, job_id, server_instance_id, worker_id,
                     ghost_status, detected_reason, action_type, action_reason, action_by, action_at,
                     lock_released_yn, retryable_yn, before_data, after_data, created_by, updated_by
@@ -440,7 +440,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                     SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                            reason, before_data, after_data, result_type, result_message,
                            created_at, updated_at
-                    FROM pfw_batch_operation_log
+                    FROM cpf_batch_operation_log
                     WHERE execution_id = ?
                     ORDER BY operation_id DESC
                     LIMIT ?
@@ -451,7 +451,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                     SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                            reason, before_data, after_data, result_type, result_message,
                            created_at, updated_at
-                    FROM pfw_batch_operation_log
+                    FROM cpf_batch_operation_log
                     WHERE job_id = ?
                     ORDER BY operation_id DESC
                     LIMIT ?
@@ -461,7 +461,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                 SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                        reason, before_data, after_data, result_type, result_message,
                        created_at, updated_at
-                FROM pfw_batch_operation_log
+                FROM cpf_batch_operation_log
                 ORDER BY operation_id DESC
                 LIMIT ?
                 """, resolvedLimit);
@@ -488,7 +488,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
         String to = TextUtils.defaultIfBlank(toDate, LocalDate.now().plusMonths(1).toString());
         return queryOrEmpty("""
                 SELECT calendar_id, business_date, holiday_yn, business_day_yn, description, created_at, updated_at
-                FROM pfw_business_day_calendar
+                FROM cpf_business_day_calendar
                 WHERE calendar_id = ?
                   AND business_date BETWEEN ? AND ?
                 ORDER BY business_date
@@ -497,8 +497,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
 
     public Map<String, Object> registerJob(String jobId, String jobName, String jobType, String description, String requestUser) {
         String user = TextUtils.defaultIfBlank(requestUser, "ADM");
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_batch_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_batch_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
                 VALUES (?, ?, ?, ?, 'Y', 'Y', ?, ?)
                 ON DUPLICATE KEY UPDATE
                     job_name = VALUES(job_name),
@@ -527,8 +527,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
         String user = TextUtils.defaultIfBlank(requestUser, "ADM");
         String resolvedCalendarId = TextUtils.defaultIfBlank(calendarId, "DEFAULT");
         String resolvedDate = TextUtils.requireText(businessDate, "businessDate");
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_business_day_calendar (
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_business_day_calendar (
                     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
@@ -545,9 +545,9 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                 description,
                 user,
                 user);
-        return pfwJdbcTemplate.queryForMap("""
+        return cpfJdbcTemplate.queryForMap("""
                 SELECT calendar_id, business_date, holiday_yn, business_day_yn, description, created_at, updated_at
-                FROM pfw_business_day_calendar
+                FROM cpf_business_day_calendar
                 WHERE calendar_id = ?
                   AND business_date = ?
                 """, resolvedCalendarId, resolvedDate);
@@ -583,13 +583,13 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     }
 
     private Map<String, Object> toAdmExecutionResult(CpfBatchExecutionResult result) {
-        if (result.pfwExecutionId() != null && result.pfwExecutionId() > 0) {
-            return findExecutionDetail(result.pfwExecutionId());
+        if (result.cpfExecutionId() != null && result.cpfExecutionId() > 0) {
+            return findExecutionDetail(result.cpfExecutionId());
         }
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("executed", result.executed());
         response.put("jobId", result.jobId());
-        response.put("executionId", result.pfwExecutionId());
+        response.put("executionId", result.cpfExecutionId());
         response.put("springBatchExecutionId", result.springBatchExecutionId());
         response.put("status", result.status());
         response.put("message", result.message());
@@ -599,8 +599,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
 
     public Map<String, Object> updateScheduleEnabled(String scheduleId, boolean enabled, String requestUser, String reason) {
         Map<String, Object> before = findSchedule(scheduleId);
-        pfwJdbcTemplate.update("""
-                UPDATE pfw_batch_schedule
+        cpfJdbcTemplate.update("""
+                UPDATE cpf_batch_schedule
                 SET enabled_yn = ?,
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -613,7 +613,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     }
 
     private Map<String, Object> findExecution(long executionId) {
-        return pfwJdbcTemplate.queryForMap("""
+        return cpfJdbcTemplate.queryForMap("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                        spring_batch_execution_id, spring_batch_job_instance_id, business_date,
                        run_id, rerun_id, original_job_execution_id, restart_attempt,
@@ -625,17 +625,17 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
                        progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
                        last_heartbeat_at, current_step_name,
                        error_message, requested_by, created_at, updated_at
-                FROM pfw_batch_execution
+                FROM cpf_batch_execution
                 WHERE execution_id = ?
                 """, executionId);
     }
 
     private Map<String, Object> findLock(String lockKey) {
         try {
-            return pfwJdbcTemplate.queryForMap("""
+            return cpfJdbcTemplate.queryForMap("""
                     SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
                            created_at, updated_at
-                    FROM pfw_batch_lock
+                    FROM cpf_batch_lock
                     WHERE lock_key = ?
                     """, lockKey);
         } catch (DataAccessException ex) {
@@ -644,20 +644,20 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     }
 
     private Map<String, Object> findJob(String jobId) {
-        return pfwJdbcTemplate.queryForMap("""
+        return cpfJdbcTemplate.queryForMap("""
                 SELECT job_id, job_name, job_type, description, restartable_yn, use_yn, created_at, updated_at
-                FROM pfw_batch_job
+                FROM cpf_batch_job
                 WHERE job_id = ?
                 """, jobId);
     }
 
     private Map<String, Object> findSchedule(String scheduleId) {
-        return pfwJdbcTemplate.queryForMap("""
+        return cpfJdbcTemplate.queryForMap("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
                        calendar_id, business_day_only_yn, holiday_policy,
                        available_start_time, available_end_time, run_date_pattern,
                        last_fire_at, next_fire_at, created_at, updated_at
-                FROM pfw_batch_schedule
+                FROM cpf_batch_schedule
                 WHERE schedule_id = ?
                 """, scheduleId);
     }
@@ -665,7 +665,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
     private Map<String, Map<String, Object>> loadCalendarMap(String calendarId, LocalDate from, LocalDate to) {
         List<Map<String, Object>> rows = queryOrEmpty("""
                 SELECT calendar_id, business_date, holiday_yn, business_day_yn, description
-                FROM pfw_business_day_calendar
+                FROM cpf_business_day_calendar
                 WHERE calendar_id = ?
                   AND business_date BETWEEN ? AND ?
                 """, calendarId, from.toString(), to.toString());
@@ -757,7 +757,7 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
 
     private List<Map<String, Object>> queryOrEmpty(String sql, Object... args) {
         try {
-            return pfwJdbcTemplate.queryForList(sql, args);
+            return cpfJdbcTemplate.queryForList(sql, args);
         } catch (DataAccessException ex) {
             log.debug("배치 운영 조회를 건너뜁니다. reason={}", ex.getMessage());
             return List.of();
@@ -772,8 +772,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
             String reason,
             String beforeData,
             String afterData) {
-        pfwJdbcTemplate.update("""
-                INSERT INTO pfw_batch_operation_log (
+        cpfJdbcTemplate.update("""
+                INSERT INTO cpf_batch_operation_log (
                     job_id, execution_id, operation_type, operator_id, reason,
                     before_data, after_data, result_type, result_message, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, 'S', '요청 접수', ?, ?)
@@ -786,8 +786,8 @@ public class AdmBatchOperationService extends cpf.adm.common.base.AdmBaseService
         Object workerId = execution.get("worker_id");
         Object serverInstanceId = execution.get("server_instance_id");
         Object batchInstanceId = execution.get("batch_instance_id");
-        return pfwJdbcTemplate.update("""
-                DELETE FROM pfw_batch_lock
+        return cpfJdbcTemplate.update("""
+                DELETE FROM cpf_batch_lock
                 WHERE job_id = ?
                   AND (
                       owner_id = ?

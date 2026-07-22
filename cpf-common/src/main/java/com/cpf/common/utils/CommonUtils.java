@@ -1,4 +1,4 @@
-package cpf.cmn.utils;
+package com.cpf.common.utils;
 
 /**
  * CMN 공통 유틸 진입점 성격의 클래스입니다.

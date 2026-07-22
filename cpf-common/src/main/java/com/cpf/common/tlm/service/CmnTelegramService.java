@@ -1,14 +1,14 @@
-package cpf.cmn.tlm.service;
+package com.cpf.common.tlm.service;
 
-import cpf.cmn.mqe.service.CmnMessageCodec;
-import cpf.cmn.tlm.core.CmnTelegramAlign;
-import cpf.cmn.tlm.core.CmnTelegramField;
-import cpf.cmn.tlm.core.CmnTelegramFieldSpec;
-import cpf.cmn.tlm.core.CmnTelegramFieldType;
-import cpf.cmn.tlm.core.CmnTelegramParseResult;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfSystemException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.common.mqe.service.CmnMessageCodec;
+import com.cpf.common.tlm.core.CmnTelegramAlign;
+import com.cpf.common.tlm.core.CmnTelegramField;
+import com.cpf.common.tlm.core.CmnTelegramFieldSpec;
+import com.cpf.common.tlm.core.CmnTelegramFieldType;
+import com.cpf.common.tlm.core.CmnTelegramParseResult;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfSystemException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
@@ -20,19 +20,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * CPF 기능 설명입니다.
+ * 고정길이 전문과 DTO·Map·JSON 사이의 양방향 변환을 제공합니다.
  *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
+ * <p>스키마 길이, 필드 순서와 이름 중복, 자료형 변환을 검증하고 오류 위치를
+ * 필드 단위로 알려 운영 전문 분석과 EDU 샘플에서 같은 규칙을 사용할 수 있게 합니다.</p>
  */
 @Service
-public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnTelegramService extends com.cpf.common.common.base.CmnBaseService {
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
     private final CmnMessageCodec codec;
@@ -41,13 +42,7 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
         this.codec = codec;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** 전문 문자열을 스키마에 따라 원문 필드와 타입 필드 Map으로 분해합니다. */
     public CmnTelegramParseResult parseToMap(String telegram, List<CmnTelegramFieldSpec> schema) {
         List<CmnTelegramFieldSpec> fields = sortSchema(schema);
         int expectedLength = expectedLength(fields);
@@ -56,12 +51,12 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
 
         String normalizedTelegram = telegram == null ? "" : telegram;
         if (actualLength < expectedLength) {
-            warnings.add("CPF 처리 기준입니다."
+            warnings.add("전문 길이가 스키마보다 짧아 부족한 구간을 공백으로 채웠습니다. actual="
                     + actualLength + ", expected=" + expectedLength);
             normalizedTelegram = normalizedTelegram + " ".repeat(expectedLength - actualLength);
         }
         if (actualLength > expectedLength) {
-            warnings.add("CPF 처리 기준입니다."
+            warnings.add("전문 길이가 스키마보다 길어 초과 구간을 __remaining에 보관했습니다. actual="
                     + actualLength + ", expected=" + expectedLength);
         }
 
@@ -90,23 +85,13 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
                 List.copyOf(warnings));
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** DTO의 필드 선언을 스키마로 사용해 전문 문자열을 DTO로 변환합니다. */
     public <T> T parseToDto(String telegram, Class<T> dtoType) {
         CmnTelegramParseResult result = parseToMap(telegram, schemaFromDto(dtoType));
         return mapToDto(result.typedFields(), dtoType);
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** Map 값을 스키마 순서와 고정 길이에 맞춘 전문 문자열로 생성합니다. */
     public String writeFromMap(Map<String, ?> values, List<CmnTelegramFieldSpec> schema) {
         StringBuilder builder = new StringBuilder();
         for (CmnTelegramFieldSpec field : sortSchema(schema)) {
@@ -115,25 +100,19 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
         return builder.toString();
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** DTO 값을 어노테이션 스키마에 맞춘 전문 문자열로 생성합니다. */
     public String writeFromDto(Object dto) {
         if (dto == null) {
-            throw new CpfValidationException("CPF 처리 기준입니다.");
+            throw new CpfValidationException("전문으로 변환할 DTO는 null일 수 없습니다.");
         }
         return writeFromMap(valuesFromDto(dto), schemaFromDto(dto.getClass()));
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
+    /** record component 또는 일반 필드의 어노테이션에서 전문 스키마를 생성합니다. */
     public List<CmnTelegramFieldSpec> schemaFromDto(Class<?> dtoType) {
+        if (dtoType == null) {
+            throw new CpfValidationException("전문 스키마를 생성할 DTO 타입은 null일 수 없습니다.");
+        }
         List<CmnTelegramFieldSpec> schema = new ArrayList<>();
 
         if (dtoType.isRecord()) {
@@ -173,7 +152,7 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
                 case DATE -> TextUtils.hasText(value) ? LocalDate.parse(value.replace("-", ""), BASIC_DATE) : null;
             };
         } catch (RuntimeException ex) {
-            throw new CpfValidationException("CPF 처리 기준입니다."
+            throw new CpfValidationException("전문 필드 값을 지정한 자료형으로 변환하지 못했습니다. field="
                     + field.name() + ", value=" + raw + ", type=" + field.type());
         }
     }
@@ -188,7 +167,7 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
         };
 
         if (raw.length() > field.length()) {
-            throw new CpfValidationException("CPF 처리 기준입니다." + field.name()
+            throw new CpfValidationException("전문 필드 값이 고정 길이를 초과했습니다. field=" + field.name()
                     + ", length=" + field.length() + ", valueLength=" + raw.length());
         }
 
@@ -287,11 +266,25 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
 
     private List<CmnTelegramFieldSpec> sortSchema(List<CmnTelegramFieldSpec> schema) {
         if (schema == null || schema.isEmpty()) {
-            throw new CpfValidationException("CPF 처리 기준입니다.");
+            throw new CpfValidationException("전문 스키마에는 하나 이상의 필드가 필요합니다.");
         }
-        return schema.stream()
+        if (schema.stream().anyMatch(field -> field == null)) {
+            throw new CpfValidationException("전문 스키마에 null 필드를 포함할 수 없습니다.");
+        }
+        List<CmnTelegramFieldSpec> sorted = schema.stream()
                 .sorted(Comparator.comparingInt(CmnTelegramFieldSpec::order))
                 .toList();
+        Set<Integer> orders = new HashSet<>();
+        Set<String> names = new HashSet<>();
+        for (CmnTelegramFieldSpec field : sorted) {
+            if (!orders.add(field.order())) {
+                throw new CpfValidationException("전문 필드 순서가 중복되었습니다. order=" + field.order());
+            }
+            if (!names.add(field.name())) {
+                throw new CpfValidationException("전문 필드명이 중복되었습니다. field=" + field.name());
+            }
+        }
+        return sorted;
     }
 
     private int expectedLength(List<CmnTelegramFieldSpec> fields) {
@@ -342,7 +335,8 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
             }
             return values;
         } catch (ReflectiveOperationException ex) {
-            throw new CpfSystemException("CPF 처리 기준입니다.", ex);
+            throw new CpfSystemException("전문 DTO의 필드 값을 읽지 못했습니다. type="
+                    + dto.getClass().getName(), ex);
         }
     }
 
@@ -372,7 +366,8 @@ public class CmnTelegramService extends cpf.cmn.common.base.CmnBaseService {
             }
             return instance;
         } catch (ReflectiveOperationException ex) {
-            throw new CpfSystemException("CPF 처리 기준입니다.", ex);
+            throw new CpfSystemException("전문 필드 값을 DTO로 변환하지 못했습니다. type="
+                    + dtoType.getName(), ex);
         }
     }
 

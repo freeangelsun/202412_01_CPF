@@ -1,7 +1,7 @@
-package cpf.bat.job.smoke;
+package com.cpf.batch.job.smoke;
 
-import cpf.pfw.common.batch.CpfBatchRuntimeListener;
-import cpf.pfw.common.execution.CpfBatchJob;
+import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.core.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -15,7 +15,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * BAT 독립 실행 검증을 위한 최소 Job과 Step을 구성합니다.
  *
  * <p>이 Job은 운영 업무 배치가 아니라 BAT runtime, Spring Batch JobRepository,
- * PFW Batch 공통 API, CPF 운영 메타 연결을 검증하기 위한 기준 Job입니다.</p>
+ * CPF Batch 공통 API, CPF 운영 메타 연결을 검증하기 위한 기준 Job입니다.</p>
  */
 @Configuration
 public class BatSmokeJobConfig {

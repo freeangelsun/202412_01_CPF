@@ -2,18 +2,25 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 # 공식 설치 기준이 되는 현행 스키마 SQL만 검사합니다.
 # archive 폴더는 과거 전환용 자료이므로 공식 naming/comment gate 대상에서 제외합니다.
 $schemaFiles = @(
-    "specs/sql/10_pfw_schema.sql",
+    "specs/sql/10_cpf_schema.sql",
     "specs/sql/20_cmn_schema.sql",
     "specs/sql/30_adm_schema.sql",
     "specs/sql/35_bat_schema.sql",
-    "specs/sql/40_business_modules_schema.sql"
+    "specs/sql/40_business_modules_schema.sql",
+    "specs/sql/45_external_schema.sql"
 )
-$allowedPrefixes = @("pfw", "cmn", "adm", "bat", "xyz", "mbr", "bza")
+$allowedPrefixes = @("cpf", "cmn", "adm", "bat", "ref", "mbr", "bza", "acc", "exs")
 $commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
 $schemaTableNames = New-Object System.Collections.Generic.HashSet[string]
@@ -122,7 +129,34 @@ function Test-AllInstallContainsSchemaTables {
 
 Test-AllInstallContainsSchemaTables "specs/sql/00_all_install.sql"
 Test-AllInstallContainsSchemaTables "specs/sql/00_all_install_and_smoke.sql"
-Test-AllInstallContainsSchemaTables "specs/sql/migration/flyway/V1__cpf_baseline_install.sql"
+
+# V1은 정식 출시 전 CPF 명명 표준으로 다시 확정한 기준선입니다.
+# 공식 REF/EXS 확장은 V37 expand-contract migration에도 존재해야 합니다.
+$v37Path = Join-Path $Root "specs/sql/migration/flyway/V37__official_ref_external_expansion.sql"
+if (-not (Test-Path -LiteralPath $v37Path)) {
+    $failures.Add("official REF/EXS migration missing: specs/sql/migration/flyway/V37__official_ref_external_expansion.sql")
+} else {
+    $v37 = [System.IO.File]::ReadAllText($v37Path, [System.Text.Encoding]::UTF8)
+    foreach ($marker in @("ref_center_cut_sample_target", "ref_center_cut_sample_result", "exs_execution", "exs_reconciliation_log", "REF", "EXS")) {
+        if ($v37 -notmatch [regex]::Escape($marker)) {
+            $failures.Add("official REF/EXS migration marker missing: $marker")
+        }
+    }
+}
+
+# 현행 설치 스키마와 시드는 cpf-core 시스템 코드와 DB 객체명을 직접 사용해야 합니다.
+$cpfSchema = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/10_cpf_schema.sql"), [System.Text.Encoding]::UTF8)
+$cpfSeed = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/50_framework_seed_data.sql"), [System.Text.Encoding]::UTF8)
+foreach ($marker in @("cpfDB", "cpf_transaction_log", "cpf_message", "cpf_response_code")) {
+    if ($cpfSchema -notmatch [regex]::Escape($marker)) {
+        $failures.Add("cpf-core schema marker missing: $marker")
+    }
+}
+foreach ($marker in @("'CPF'", "MCPF", "SCPF", "ECPF")) {
+    if ($cpfSeed -notmatch [regex]::Escape($marker)) {
+        $failures.Add("cpf-core seed marker missing: $marker")
+    }
+}
 
 if ($failures.Count -gt 0) {
     $failures | Sort-Object | ForEach-Object { Write-Error $_ }

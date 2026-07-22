@@ -1,4 +1,4 @@
-package cpf.pfw.common.gateway;
+package com.cpf.core.common.gateway;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 import java.util.List;
 

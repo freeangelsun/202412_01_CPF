@@ -1,6 +1,6 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.pfw.common.logging.CpfTransactionContextAnomalyMonitor;
+import com.cpf.core.common.logging.CpfTransactionContextAnomalyMonitor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,23 +16,23 @@ import java.util.Map;
 /**
  * ADM 기동 검증과 smoke 자동화를 위한 health API입니다.
  *
- * <p>actuator 의존성을 강제하지 않고도 로컬/CI smoke가 ADM, PFW, MBR datasource
+ * <p>actuator 의존성을 강제하지 않고도 로컬/CI smoke가 ADM, CPF, MBR datasource
  * 연결 상태를 확인할 수 있게 합니다. 운영 보안상 민감한 접속 정보는 반환하지 않습니다.</p>
  */
 @RestController
 @RequestMapping("/adm/api/health")
 @Tag(name = "ADM-Health", description = "ADM health and smoke readiness API")
-public class AdmHealthController extends cpf.adm.common.base.AdmBaseController {
+public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseController {
     private final JdbcTemplate admJdbcTemplate;
-    private final JdbcTemplate pfwJdbcTemplate;
+    private final JdbcTemplate cpfJdbcTemplate;
     private final JdbcTemplate mbrJdbcTemplate;
 
     public AdmHealthController(
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             @Qualifier("mbrJdbcTemplate") JdbcTemplate mbrJdbcTemplate) {
         this.admJdbcTemplate = admJdbcTemplate;
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.mbrJdbcTemplate = mbrJdbcTemplate;
     }
 
@@ -44,7 +44,7 @@ public class AdmHealthController extends cpf.adm.common.base.AdmBaseController {
     public Map<String, Object> health() {
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
-        checks.put("pfwDB", checkDatabase(pfwJdbcTemplate));
+        checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
         checks.put("mbrDB", checkDatabase(mbrJdbcTemplate));
 
         boolean up = checks.values().stream().allMatch("UP"::equals);

@@ -1,17 +1,16 @@
-package cpf.bza.config;
+package com.cpf.bizadmin.config;
 
+import com.cpf.core.common.database.CpfDataSourceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 /**
@@ -21,30 +20,15 @@ import javax.sql.DataSource;
  * 로컬에서 DB 없이도 애플리케이션을 기동할 수 있도록 명시적으로 활성화한 경우에만 datasource를 생성합니다.</p>
  */
 @Configuration
-@EnableConfigurationProperties
 @ConditionalOnProperty(prefix = "cpf.bza.datasource", name = "enabled", havingValue = "true")
 public class BzaDataSourceConfig {
-
-    /**
-     * BZA DB 접속 속성을 바인딩합니다.
-     */
-    @Bean
-    @ConfigurationProperties("cpf.bza.datasource")
-    public DataSourceProperties bzaDataSourceProperties() {
-        return new DataSourceProperties();
-    }
 
     /**
      * BZA 업무 관리자 DB datasource입니다.
      */
     @Bean(name = "bzaDataSource")
-    public DataSource bzaDataSource(DataSourceProperties bzaDataSourceProperties) {
-        return DataSourceBuilder.create()
-                .driverClassName(bzaDataSourceProperties.getDriverClassName())
-                .url(bzaDataSourceProperties.getUrl())
-                .username(bzaDataSourceProperties.getUsername())
-                .password(bzaDataSourceProperties.getPassword())
-                .build();
+    public DataSource bzaDataSource(Environment environment) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "cpf.bza.datasource");
     }
 
     /**

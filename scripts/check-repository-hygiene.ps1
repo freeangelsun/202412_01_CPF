@@ -3,6 +3,12 @@
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
 $failures = New-Object System.Collections.Generic.List[object]
@@ -20,11 +26,11 @@ if ($LASTEXITCODE -ne 0) {
 foreach ($path in $tracked) {
     $normalized = $path.Replace('\', '/')
     if ($normalized -notmatch '/src/(main|test)/' -and
-            $normalized -notmatch '^specs/evidence/' -and
+            $normalized -notmatch '^cpf-docs/evidence/' -and
             $normalized -match '(^|/)(build|bin|out|target|logs?|tmp|temp|work)/') {
         Add-Failure 'TRACKED_RUNTIME_ARTIFACT' $normalized 'build·로그·임시 산출물은 제품 source로 추적하지 않습니다.'
     }
-    if ($normalized -notmatch '^specs/evidence/' -and
+    if ($normalized -notmatch '^cpf-docs/evidence/' -and
             ($normalized -match '(^|/)patch-candidates/' -or
             $normalized -match '(^|/)create-domain-result[^/]*\.json$')) {
         Add-Failure 'GENERATOR_WORK_ARTIFACT_IN_PRODUCT' $normalized '생성 후보와 결과는 build/reports 또는 정제 evidence에만 둡니다.'
@@ -41,7 +47,10 @@ foreach ($path in $tracked) {
     }
 }
 
-$moduleRoots = @('pfw', 'cmn', 'adm', 'bza', 'mbr', 'acc', 'bat', 'xyz', 'pfw-gateway-runtime')
+$moduleRoots = @(
+    'cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin', 'cpf-member',
+    'cpf-account', 'cpf-batch', 'cpf-reference', 'cpf-external', 'cpf-gateway'
+)
 foreach ($module in $moduleRoots) {
     $modulePath = Join-Path $Root $module
     if (-not (Test-Path -LiteralPath $modulePath -PathType Container)) {

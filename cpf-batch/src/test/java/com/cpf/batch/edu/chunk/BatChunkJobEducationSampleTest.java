@@ -1,4 +1,4 @@
-package cpf.bat.edu.chunk;
+package com.cpf.batch.edu.chunk;
 
 import org.junit.jupiter.api.Test;
 

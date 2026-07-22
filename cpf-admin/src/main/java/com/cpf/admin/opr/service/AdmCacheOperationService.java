@@ -1,10 +1,10 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.cde.service.CodeCacheService;
-import cpf.cmn.cfg.service.ConfigCacheService;
-import cpf.cmn.msg.service.MessageCacheService;
-import cpf.cmn.msg.service.ResponseCodeCacheService;
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.cde.service.CodeCacheService;
+import com.cpf.common.cfg.service.ConfigCacheService;
+import com.cpf.common.msg.service.MessageCacheService;
+import com.cpf.common.msg.service.ResponseCodeCacheService;
+import com.cpf.common.utils.TextUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -15,7 +15,7 @@ import java.util.Map;
  * 운영자가 코드, 메시지, 응답코드, 설정 캐시 상태를 확인하고 refresh 요청을 수행할 수 있게 합니다.
  */
 @Service
-public class AdmCacheOperationService extends cpf.adm.common.base.AdmBaseService {
+public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private final CodeCacheService codeCacheService;
     private final MessageCacheService messageCacheService;
     private final ResponseCodeCacheService responseCodeCacheService;
@@ -42,7 +42,7 @@ public class AdmCacheOperationService extends cpf.adm.common.base.AdmBaseService
         response.put("cacheNames", "codeCache, messageCache, responseCodeCache, configCache");
         response.put("codeSample", codeCacheService.getCodesByKey("USER_STATUS"));
         response.put("messageSample", messageCacheService.getMessageByKeyAndLocale("MCMN000001", "ko"));
-        response.put("responseCodeSample", responseCodeCacheService.getResponseCode("EPFW010004"));
+        response.put("responseCodeSample", responseCodeCacheService.getResponseCode("ECPF010004"));
         response.put("configSample", configCacheService.getConfigByKey("cpf.LOGIN.MAX_FAIL_COUNT"));
         return response;
     }

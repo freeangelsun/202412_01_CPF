@@ -4,7 +4,7 @@ plugins {
     id 'java'
 }
 
-group = 'cpf.bat'
+group = 'com.cpf.batch'
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':pfw')
+    implementation project(':cpf-core')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'

@@ -1,6 +1,6 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.api.reliability.CpfReliabilityOperationsPort;
+import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 class AdmReliabilityServiceTest {
 
     @Test
-    void delegatesReliabilityQueriesToPfwPublicPort() {
+    void delegatesReliabilityQueriesToCpfPublicPort() {
         CpfReliabilityOperationsPort port = mock(CpfReliabilityOperationsPort.class);
         when(port.findOutbox("FAILED", "TX-1", "cpf.topic", 1000))
                 .thenReturn(List.of(Map.of("messageId", "M1")));
@@ -28,7 +28,7 @@ class AdmReliabilityServiceTest {
     }
 
     @Test
-    void mapsPfwChangeResultWithoutLosingAuditReason() {
+    void mapsCpfChangeResultWithoutLosingAuditReason() {
         CpfReliabilityOperationsPort port = mock(CpfReliabilityOperationsPort.class);
         when(port.resolveUnknown("U1", "CONFIRMED_SUCCESS", "OP1", "외부 결과 확인"))
                 .thenReturn(new CpfReliabilityOperationsPort.ChangeResult(

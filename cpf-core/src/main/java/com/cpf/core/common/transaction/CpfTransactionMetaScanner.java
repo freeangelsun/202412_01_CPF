@@ -1,7 +1,7 @@
-package cpf.pfw.common.transaction;
+package com.cpf.core.common.transaction;
 
-import cpf.pfw.common.logging.CpfTransaction;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.CpfTransaction;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Spring MVC mapping과 CPF 온라인 실행 annotation을 스캔해 PFW 거래 메타를 갱신합니다.
+ * Spring MVC mapping과 CPF 온라인 실행 annotation을 스캔해 CPF 거래 메타를 갱신합니다.
  *
  * <p>거래 메타 scan은 운영 편의 기능이므로 DB 미적용, 권한 부족, 부분 mapping 오류가
  * 있어도 서비스 기동 자체를 실패시키지 않습니다. 실패 상태는 결과와 로그로 남기고 ADM에서
@@ -38,7 +38,7 @@ public class CpfTransactionMetaScanner {
 
     public CpfTransactionMetaScanResult scanAndUpsert(String requestUser) {
         if (!repository.tableAvailable()) {
-            return new CpfTransactionMetaScanResult(false, 0, 0, 0, List.of(), "pfw_transaction_meta 테이블을 사용할 수 없습니다.");
+            return new CpfTransactionMetaScanResult(false, 0, 0, 0, List.of(), "cpf_transaction_meta 테이블을 사용할 수 없습니다.");
         }
         try {
             List<CpfTransactionMeta> metas = detect();
@@ -151,7 +151,7 @@ public class CpfTransactionMetaScanner {
             return transactionId.substring(0, 3).toUpperCase();
         }
         String[] packages = controllerClass.split("\\.");
-        return packages.length > 1 ? packages[1].toUpperCase() : "PFW";
+        return packages.length > 1 ? packages[1].toUpperCase() : "CPF";
     }
 
     private String domainCode(String transactionId) {

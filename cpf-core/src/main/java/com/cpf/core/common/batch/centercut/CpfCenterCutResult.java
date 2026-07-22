@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch.centercut;
+package com.cpf.core.common.batch.centercut;
 
 /**
  * center-cut 단일 대상 처리 결과입니다.

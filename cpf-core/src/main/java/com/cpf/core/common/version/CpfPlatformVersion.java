@@ -1,4 +1,4 @@
-package cpf.pfw.common.version;
+package com.cpf.core.common.version;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +51,7 @@ public final class CpfPlatformVersion {
      * @return Gradle component 이름
      */
     public static String component() {
-        return PROPERTIES.getProperty("component", "pfw");
+        return PROPERTIES.getProperty("component", "cpf");
     }
 
     private static Properties load() {

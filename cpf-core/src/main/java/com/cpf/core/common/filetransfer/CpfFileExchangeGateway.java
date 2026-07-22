@@ -1,6 +1,6 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
-import cpf.pfw.common.security.CpfCredentialRef;
+import com.cpf.core.common.security.CpfCredentialRef;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * 로컬 파일 helper와 파일전송·원격 명령 계획을 PFW 기술 경계에서 제공하는 gateway입니다.
+ * 로컬 파일 helper와 파일전송·원격 명령 계획을 CPF 기술 경계에서 제공하는 gateway입니다.
  *
  * <p>운영 원격 전송은 {@link CpfFileTransferPort}의 protocol adapter가 담당합니다. 기본 gateway는
  * 외부 credential 없이 로컬 전송을 실제 실행하고 원격 요청은 안전한 계획으로만 반환합니다.</p>
@@ -34,7 +34,7 @@ public class CpfFileExchangeGateway {
 
     public CpfFileExchangeGateway(Environment environment) {
         String configured = environment.getProperty(
-                "cpf.pfw.file-exchange.base-dir",
+                "cpf.filetransfer.base-dir",
                 environment.getProperty(
                         "cpf.cmn.file-exchange.base-dir",
                         "${java.io.tmpdir}/cpf-file-exchange"));
@@ -161,7 +161,7 @@ public class CpfFileExchangeGateway {
                 0,
                 plan,
                 "",
-                "원격 명령은 credential provider와 승인된 PFW adapter가 있어야 실행됩니다.");
+                "원격 명령은 credential provider와 승인된 CPF adapter가 있어야 실행됩니다.");
         record("REMOTE_COMMAND", "SSH", "COMMAND", false, true, host,
                 command, null, requestUser, result.detail());
         return result;

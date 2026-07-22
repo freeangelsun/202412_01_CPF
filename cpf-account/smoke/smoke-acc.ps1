@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $BaseUrl = "http://localhost:8082",
     [int] $TimeoutSec = 20
 )

@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
 /**
  * 거래 구간의 처리 상태입니다.

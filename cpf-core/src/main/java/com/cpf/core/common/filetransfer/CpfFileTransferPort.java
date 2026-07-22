@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 /**
  * 실제 파일 전송 adapter가 구현해야 하는 port입니다.

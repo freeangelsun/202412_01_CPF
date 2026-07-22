@@ -1,4 +1,4 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

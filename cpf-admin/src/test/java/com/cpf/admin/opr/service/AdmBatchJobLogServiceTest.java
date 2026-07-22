@@ -1,4 +1,4 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

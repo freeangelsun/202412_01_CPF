@@ -1,26 +1,27 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
-import cpf.pfw.common.exception.DefaultCpfMessageResolver;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
-import cpf.pfw.common.exception.CpfException;
-import cpf.pfw.common.exception.CpfMessageResolver;
-import cpf.pfw.common.exception.CpfResolvedResponse;
-import cpf.pfw.common.exception.CpfResponseCodeResolver;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.execution.CpfSharedApi;
-import cpf.pfw.common.header.CpfHeaderAuditLogger;
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.header.CpfHeaderSnapshot;
-import cpf.pfw.common.header.CpfTrustedProxyPolicy;
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
-import cpf.pfw.common.logging.policy.LogPolicyTargetType;
-import cpf.pfw.common.workflow.CpfWorkflow;
-import cpf.pfw.common.workflow.CpfWorkflowContext;
-import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.CpfWorkflowMetadata;
-import cpf.pfw.common.workflow.CpfWorkflowStatus;
-import cpf.pfw.common.workflow.CpfWorkflowStep;
+import com.cpf.core.common.system.CpfSystemCodes;
+import com.cpf.core.common.exception.DefaultCpfMessageResolver;
+import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
+import com.cpf.core.common.exception.CpfException;
+import com.cpf.core.common.exception.CpfMessageResolver;
+import com.cpf.core.common.exception.CpfResolvedResponse;
+import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.execution.CpfSharedApi;
+import com.cpf.core.common.header.CpfHeaderAuditLogger;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.header.CpfHeaderSnapshot;
+import com.cpf.core.common.header.CpfTrustedProxyPolicy;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.common.logging.policy.LogPolicyTargetType;
+import com.cpf.core.common.workflow.CpfWorkflow;
+import com.cpf.core.common.workflow.CpfWorkflowContext;
+import com.cpf.core.common.workflow.CpfWorkflowFailurePolicy;
+import com.cpf.core.common.workflow.CpfWorkflowMetadata;
+import com.cpf.core.common.workflow.CpfWorkflowStatus;
+import com.cpf.core.common.workflow.CpfWorkflowStep;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,7 +86,7 @@ public class LoggingAspect {
         this.logPolicyResolverProvider = logPolicyResolverProvider;
     }
 
-    @Around("execution(* cpf..*Controller.*(..))")
+    @Around("execution(* com.cpf..*Controller.*(..))")
     public Object logTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
         LocalDateTime startTime = LocalDateTime.now();
         long startNanos = System.nanoTime();
@@ -777,35 +778,18 @@ public class LoggingAspect {
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
         String configuredModuleId = environment.getProperty("cpf.framework.module-id");
         if (hasText(configuredModuleId)) {
-            return configuredModuleId.replace("cpf-", "").toUpperCase();
+            return CpfSystemCodes.normalize(configuredModuleId, CpfSystemCodes.CORE);
         }
 
         String declaringType = joinPoint.getSignature().getDeclaringTypeName();
-        if (declaringType.contains(".mbr.")) {
-            return "MBR";
-        }
-        if (declaringType.contains(".bza.")) {
-            return "BZA";
-        }
-        if (declaringType.contains(".xyz.")) {
-            return "XYZ";
-        }
-        if (declaringType.contains(".adm.")) {
-            return "ADM";
-        }
-        if (declaringType.contains(".bat.")) {
-            return "BAT";
-        }
-        if (declaringType.contains(".cmn.")) {
-            return "CMN";
-        }
-        if (declaringType.contains(".pfw.")) {
-            return "PFW";
+        String inferredModuleId = CpfSystemCodes.inferFromTypeName(declaringType);
+        if (hasText(inferredModuleId)) {
+            return inferredModuleId;
         }
 
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
-            return appName.replace("cpf-", "").toUpperCase();
+            return CpfSystemCodes.normalize(appName, CpfSystemCodes.CORE);
         }
         return "N/A";
     }
@@ -845,7 +829,7 @@ public class LoggingAspect {
     private ResponseMetadata resolveResponseMetadata(Object result, String moduleId) {
         int httpStatus = resolveHttpStatus(result, 200);
         Object body = result instanceof ResponseEntity<?> responseEntity ? responseEntity.getBody() : result;
-        String normalizedModuleId = hasText(moduleId) && !"N/A".equals(moduleId) ? moduleId : "PFW";
+        String normalizedModuleId = hasText(moduleId) && !"N/A".equals(moduleId) ? moduleId : "CPF";
         String responseCode = bodyProperty(body, "statusCode");
         String normalizedResponseCode = firstText(responseCode, "S" + normalizedModuleId + "000000");
         CpfResolvedResponse resolved = responseCodeResolver.resolve(normalizedResponseCode, Locale.KOREAN, Map.of(), null);
@@ -909,10 +893,10 @@ public class LoggingAspect {
         int httpStatus = resolveErrorResponseCode(ex);
         return new ErrorMetadata(
                 httpStatus,
-                "EPFW990000",
-                "MPFW990000",
+                "ECPF990000",
+                "MCPF990000",
                 ex.getClass().getSimpleName(),
-                "CPF 처리 기준입니다.",
+                "요청 처리 중 내부 오류가 발생했습니다.",
                 internalMessage,
                 internalMessage);
     }

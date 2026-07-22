@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 /**
  * 고정길이 전문 필드의 논리 타입입니다.

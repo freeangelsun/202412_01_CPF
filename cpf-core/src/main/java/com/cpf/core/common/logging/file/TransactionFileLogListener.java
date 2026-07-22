@@ -1,6 +1,6 @@
-package cpf.pfw.common.logging.file;
+package com.cpf.core.common.logging.file;
 
-import cpf.pfw.common.logging.TransactionLogEvent;
+import com.cpf.core.common.logging.TransactionLogEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

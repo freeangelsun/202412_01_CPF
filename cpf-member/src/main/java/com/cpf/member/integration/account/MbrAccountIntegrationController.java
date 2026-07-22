@@ -1,9 +1,9 @@
-package cpf.mbr.integration.account;
+package com.cpf.member.integration.account;
 
-import cpf.cmn.api.account.AccountSummary;
-import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.mbr.common.base.MbrBaseController;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.common.api.account.AccountSummary;
+import com.cpf.common.api.account.AccountSummaryFacade;
+import com.cpf.member.common.base.MbrBaseController;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

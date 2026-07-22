@@ -1,10 +1,10 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
-import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
-import cpf.pfw.common.logging.segment.TransactionSegmentScope;
-import cpf.pfw.common.logging.segment.TransactionSegmentService;
-import cpf.pfw.common.reconciliation.CpfReconciliationPort;
-import cpf.pfw.common.reconciliation.CpfUnknownResultRecord;
+import com.cpf.core.common.logging.segment.TransactionSegmentRecord;
+import com.cpf.core.common.logging.segment.TransactionSegmentScope;
+import com.cpf.core.common.logging.segment.TransactionSegmentService;
+import com.cpf.core.common.reconciliation.CpfReconciliationPort;
+import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -161,7 +161,7 @@ class CpfServiceCallEngineTest {
         ServiceCallResult<String> result = engine.invoke(
                 ServiceCallRequest.builder("MBR")
                         .endpointCode("MBR_API")
-                        .attribute("sourceModuleCode", "XYZ")
+                        .attribute("sourceModuleCode", "REF")
                         .attribute("externalKey", "EXT-001")
                         .build(),
                 () -> {

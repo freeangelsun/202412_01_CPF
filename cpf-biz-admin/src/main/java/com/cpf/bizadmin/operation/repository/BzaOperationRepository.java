@@ -1,4 +1,4 @@
-package cpf.bza.operation.repository;
+package com.cpf.bizadmin.operation.repository;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;

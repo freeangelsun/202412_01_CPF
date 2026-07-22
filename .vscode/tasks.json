@@ -20,7 +20,7 @@
     {
       "label": "Gradle ACC 빌드",
       "type": "shell",
-      "command": ".\\gradlew.bat :acc:build -x test",
+      "command": ".\\gradlew.bat :cpf-account:build -x test",
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -32,7 +32,7 @@
     {
       "label": "Gradle CMN 빌드",
       "type": "shell",
-      "command": ".\\gradlew.bat :cmn:build -x test",
+      "command": ".\\gradlew.bat :cpf-common:build -x test",
       "presentation": {
         "echo": true,
         "reveal": "always",

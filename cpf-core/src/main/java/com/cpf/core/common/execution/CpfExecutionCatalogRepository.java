@@ -1,4 +1,4 @@
-package cpf.pfw.common.execution;
+package com.cpf.core.common.execution;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * PFW DB를 우선 사용하고 DB가 없는 로컬 환경에서는 현재 프로세스 catalog를 제공하는 저장소입니다.
+ * CPF DB를 우선 사용하고 DB가 없는 로컬 환경에서는 현재 프로세스 catalog를 제공하는 저장소입니다.
  */
 public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogPort {
     private static final Logger log = LoggerFactory.getLogger(CpfExecutionCatalogRepository.class);
@@ -25,7 +25,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
     private final ConcurrentMap<String, CpfExecutionDefinition> localCatalog = new ConcurrentHashMap<>();
 
     public CpfExecutionCatalogRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
     }
 
@@ -42,14 +42,14 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
         try {
             for (CpfExecutionDefinition definition : definitions) {
                 jdbcTemplate.update("""
-                        INSERT INTO pfw_standard_execution (
+                        INSERT INTO cpf_standard_execution (
                             standard_execution_id, execution_name, execution_type, owner_domain,
                             source_module, source_class, source_method, http_method, endpoint, operation_id,
                             description, required_permission, audit_reason_required_yn, visibility,
                             direct_allowed_yn, gateway_allowed_yn, source_version,
                             registration_status, first_registered_at, last_discovered_at,
                             created_by, updated_by
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'REGISTERED', CURRENT_TIMESTAMP, ?, 'PFW_STARTUP', 'PFW_STARTUP')
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'REGISTERED', CURRENT_TIMESTAMP, ?, 'CPF_STARTUP', 'CPF_STARTUP')
                         ON DUPLICATE KEY UPDATE
                             execution_name = VALUES(execution_name),
                             execution_type = VALUES(execution_type),
@@ -69,7 +69,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
                             source_version = VALUES(source_version),
                             registration_status = 'REGISTERED',
                             last_discovered_at = VALUES(last_discovered_at),
-                            updated_by = 'PFW_STARTUP',
+                            updated_by = 'CPF_STARTUP',
                             updated_at = CURRENT_TIMESTAMP
                         """,
                         definition.standardExecutionId(),
@@ -93,7 +93,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
             }
         } catch (DataAccessException ex) {
             // DB가 아직 설치되지 않은 로컬 기동에서도 서비스는 계속하되 운영자가 원인을 확인할 수 있게 경고를 남깁니다.
-            log.warn("PFW 표준 실행 카탈로그 DB 저장에 실패해 메모리 카탈로그를 유지합니다. count={}",
+            log.warn("CPF 표준 실행 카탈로그 DB 저장에 실패해 메모리 카탈로그를 유지합니다. count={}",
                     definitions.size(), ex);
         }
     }
@@ -108,7 +108,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
                                source_module, source_class, source_method, http_method, endpoint, operation_id,
                                description, required_permission, audit_reason_required_yn, visibility,
                                direct_allowed_yn, gateway_allowed_yn, source_version, last_discovered_at
-                        FROM pfw_standard_execution
+                        FROM cpf_standard_execution
                         WHERE registration_status <> 'RETIRED'
                         ORDER BY standard_execution_id
                         """, (rs, rowNum) -> new CpfExecutionDefinition(
@@ -132,7 +132,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
                         rs.getTimestamp("last_discovered_at").toInstant()));
             } catch (DataAccessException ex) {
                 // 설치 전 로컬 기동에서는 현재 프로세스에서 발견한 정보로 조회를 계속합니다.
-                log.warn("PFW 표준 실행 카탈로그 DB 조회에 실패해 메모리 카탈로그를 사용합니다.", ex);
+                log.warn("CPF 표준 실행 카탈로그 DB 조회에 실패해 메모리 카탈로그를 사용합니다.", ex);
             }
         }
         return localCatalog.values().stream()
@@ -162,7 +162,7 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
         try {
             List<String> currentIds = jdbcTemplate.queryForList("""
                     SELECT standard_execution_id
-                    FROM pfw_standard_execution_alias
+                    FROM cpf_standard_execution_alias
                     WHERE legacy_execution_id = ?
                     """, String.class, executionId);
             return currentIds.isEmpty() ? Optional.empty() : findById(currentIds.getFirst());

@@ -1,4 +1,4 @@
-package cpf.cmn.utils;
+package com.cpf.common.utils;
 
 import java.security.SecureRandom;
 import java.util.UUID;
@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * 업무에서 자주 쓰는 임시 식별자를 생성하는 유틸리티입니다.
  *
- * <p>글로벌 거래 ID는 PFW의 {@code TransactionIdGenerator}를 사용해야 합니다.
+ * <p>글로벌 거래 ID는 CPF의 {@code TransactionIdGenerator}를 사용해야 합니다.
  * 이 클래스는 업무 임시번호, 화면 요청번호, 샘플 데이터 식별자처럼 거래 ID가 아닌 보조 식별자에만 사용합니다.</p>
  */
 public final class IdUtils {

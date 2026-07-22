@@ -1,9 +1,9 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
 import java.time.LocalDateTime;
 
 /**
- * {@code pfw_transaction_segment}에 저장하는 구간 실행 기록입니다.
+ * {@code cpf_transaction_segment}에 저장하는 구간 실행 기록입니다.
  */
 public class TransactionSegmentRecord {
     private String transactionSegmentId;

@@ -1,10 +1,10 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import cpf.pfw.common.transaction.CpfTransactionMetaRepository;
-import cpf.pfw.common.transaction.CpfTransactionMetaScanner;
+import com.cpf.core.common.transaction.CpfTransactionMetaRepository;
+import com.cpf.core.common.transaction.CpfTransactionMetaScanner;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;

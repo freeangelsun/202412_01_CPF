@@ -1,6 +1,6 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionHeader;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Enumeration;

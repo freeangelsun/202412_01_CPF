@@ -1,4 +1,4 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

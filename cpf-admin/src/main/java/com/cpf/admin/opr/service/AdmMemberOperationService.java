@@ -1,11 +1,11 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmMemberRoleRequest;
-import cpf.adm.opr.dto.AdmMemberSaveRequest;
-import cpf.adm.opr.dto.AdmMemberStatusRequest;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.opr.dto.AdmMemberRoleRequest;
+import com.cpf.admin.opr.dto.AdmMemberSaveRequest;
+import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,19 +23,19 @@ import java.util.Map;
  * ADM 회원 관리 기능에서 mbrDB 회원과 권한 정보를 조회/변경합니다.
  */
 @Service
-public class AdmMemberOperationService extends cpf.adm.common.base.AdmBaseService {
+public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBaseService {
     private static final DateTimeFormatter MEMBER_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final JdbcTemplate mbrJdbcTemplate;
-    private final JdbcTemplate pfwJdbcTemplate;
+    private final JdbcTemplate cpfJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
 
     public AdmMemberOperationService(
             @Qualifier("mbrJdbcTemplate") JdbcTemplate mbrJdbcTemplate,
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
         this.mbrJdbcTemplate = mbrJdbcTemplate;
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.admJdbcTemplate = admJdbcTemplate;
     }
 
@@ -314,10 +314,10 @@ public class AdmMemberOperationService extends cpf.adm.common.base.AdmBaseServic
             return List.of();
         }
         try {
-            return pfwJdbcTemplate.queryForList("""
+            return cpfJdbcTemplate.queryForList("""
                     SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, BUSINESS_TRANSACTION_ID, URI,
                            RESPONSE_CODE, ERROR_CODE, LOG_TYPE, START_TIME, END_TIME, DURATION_MS
-                    FROM pfw_transaction_log
+                    FROM cpf_transaction_log
                     WHERE MEMBER_NO = ?
                     ORDER BY LOG_IDX DESC
                     LIMIT 50

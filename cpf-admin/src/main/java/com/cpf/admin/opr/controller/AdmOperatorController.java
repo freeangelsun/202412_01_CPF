@@ -1,19 +1,19 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmMenu;
-import cpf.adm.opr.dto.AdmOperator;
-import cpf.adm.opr.dto.AdmOperatorCreateRequest;
-import cpf.adm.opr.dto.AdmOperatorPasswordResetRequest;
-import cpf.adm.opr.dto.AdmOperatorRoleUpdateRequest;
-import cpf.adm.opr.dto.AdmPasswordChangeRequest;
-import cpf.adm.opr.dto.AdmRole;
-import cpf.adm.opr.dto.AdmSessionRevokeRequest;
-import cpf.adm.opr.service.AdmOperatorService;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmSessionService;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.opr.dto.AdmMenu;
+import com.cpf.admin.opr.dto.AdmOperator;
+import com.cpf.admin.opr.dto.AdmOperatorCreateRequest;
+import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
+import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
+import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
+import com.cpf.admin.opr.dto.AdmRole;
+import com.cpf.admin.opr.dto.AdmSessionRevokeRequest;
+import com.cpf.admin.opr.service.AdmOperatorService;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmSessionService;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.exception.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/operators")
 @Tag(name = "ADM-OPR Operators", description = "Operator, role, and menu management APIs")
-public class AdmOperatorController extends cpf.adm.common.base.AdmBaseController {
+public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmOperatorService operatorService;
     private final AdmSessionService sessionService;
     private final AdmAuditLogService auditLogService;

@@ -1,4 +1,4 @@
-package cpf.bat.edu.catalog;
+package com.cpf.batch.edu.catalog;
 
 import org.junit.jupiter.api.Test;
 

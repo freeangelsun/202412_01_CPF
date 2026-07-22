@@ -1,6 +1,6 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
-import cpf.pfw.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
 
 /** 독립 worker 프로세스의 안정적인 식별 정보를 제공합니다. */
 public record BatWorkerIdentity(

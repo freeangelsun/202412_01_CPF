@@ -1,12 +1,12 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.mqe.core.CmnMessageConsumer;
-import cpf.cmn.mqe.core.CmnMessageEnvelope;
-import cpf.cmn.mqe.core.CmnMessagePublisher;
-import cpf.cmn.ref.service.CacheRefreshEventPublisher;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.logging.DynamicLogLevelRule;
-import cpf.pfw.common.logging.DynamicTransactionLogLevelService;
+import com.cpf.common.mqe.core.CmnMessageConsumer;
+import com.cpf.common.mqe.core.CmnMessageEnvelope;
+import com.cpf.common.mqe.core.CmnMessagePublisher;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.logging.DynamicLogLevelRule;
+import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,8 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
-public class AdmDynamicLogLevelBroadcastService extends cpf.adm.common.base.AdmBaseService {
-    public static final String DESTINATION = "cpf.adm.dynamic-log-level";
+public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.base.AdmBaseService {
+    public static final String DESTINATION = "com.cpf.admin.dynamic-log-level";
 
     private static final Logger log = LoggerFactory.getLogger(AdmDynamicLogLevelBroadcastService.class);
 

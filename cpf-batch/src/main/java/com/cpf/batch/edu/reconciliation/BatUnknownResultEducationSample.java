@@ -1,4 +1,4 @@
-package cpf.bat.edu.reconciliation;
+package com.cpf.batch.edu.reconciliation;
 
 /**
  * 외부 호출 결과가 불명확할 때 대사 대상으로 분리하는 샘플입니다.

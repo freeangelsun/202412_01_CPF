@@ -6,6 +6,12 @@
     [switch] $RequireFreshCommit
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -16,7 +22,7 @@ function U {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'specs/evidence/20260716_01'
+    $ResultDir = Join-Path $Root 'build/quality-gate'
 }
 [System.IO.Directory]::CreateDirectory($ResultDir) | Out-Null
 

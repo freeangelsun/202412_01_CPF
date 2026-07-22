@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 import java.util.ArrayList;
 import java.util.Arrays;

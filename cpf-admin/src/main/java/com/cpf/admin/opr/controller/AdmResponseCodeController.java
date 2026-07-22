@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.cmn.msg.dto.CommonResponseCodeRequest;
-import cpf.cmn.msg.service.ResponseCodeCacheService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.msg.dto.CommonResponseCodeRequest;
+import com.cpf.common.msg.service.ResponseCodeCacheService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,8 +29,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/adm/api/response-codes")
-@Tag(name = "ADM-OPR Response Codes", description = "pfw_response_code management API")
-public class AdmResponseCodeController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-OPR Response Codes", description = "cpf_response_code management API")
+public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBaseController {
     private final ResponseCodeCacheService responseCodeCacheService;
     private final AdmAuditLogService auditLogService;
 
@@ -41,14 +41,14 @@ public class AdmResponseCodeController extends cpf.adm.common.base.AdmBaseContro
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMOP0040", name = "ADMResponseCodeList")
-    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from pfw_response_code.")
+    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from cpf_response_code.")
     public ResponseEntity<Map<String, Object>> findAll() {
         return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
     }
 
     @GetMapping("/{responseCode}")
     @CpfOnlineTransaction(id = "OADMOP0042", name = "ADMResponseCodeDetail")
-    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from pfw_response_code.")
+    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from cpf_response_code.")
     public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode) {
         return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
     }
@@ -105,7 +105,7 @@ public class AdmResponseCodeController extends cpf.adm.common.base.AdmBaseContro
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("result", Map.of());
-            response.put("message", "pfw_response_code operation failed. Check pfwDB schema and seed data.");
+            response.put("message", "cpf_response_code operation failed. Check cpfDB schema and seed data.");
             response.put("detail", ex.getMostSpecificCause().getMessage());
         }
         return ResponseEntity.ok(response);
@@ -127,7 +127,7 @@ public class AdmResponseCodeController extends cpf.adm.common.base.AdmBaseContro
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, requestUser),
                 actionType,
-                "pfw_response_code",
+                "cpf_response_code",
                 responseCode,
                 reason,
                 servletRequest.getRemoteAddr());

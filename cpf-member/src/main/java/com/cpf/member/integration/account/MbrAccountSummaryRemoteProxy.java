@@ -1,14 +1,14 @@
-package cpf.mbr.integration.account;
+package com.cpf.member.integration.account;
 
-import cpf.cmn.api.account.AccountSummary;
-import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.pfw.common.execution.CpfStandardExecutionId;
-import cpf.pfw.common.http.CpfWebClient;
+import com.cpf.common.api.account.AccountSummary;
+import com.cpf.common.api.account.AccountSummaryFacade;
+import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.common.http.CpfWebClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * MBR가 ACC 저장소를 직접 참조하지 않고 PFW Service Call Engine을 경유하도록 하는 Remote Facade Proxy입니다.
+ * MBR가 ACC 저장소를 직접 참조하지 않고 CPF Service Call Engine을 경유하도록 하는 Remote Facade Proxy입니다.
  */
 @Component
 @ConditionalOnProperty(prefix = "cpf.mbr.account", name = "mode", havingValue = "remote", matchIfMissing = true)

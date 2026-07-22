@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import java.time.Instant;
 

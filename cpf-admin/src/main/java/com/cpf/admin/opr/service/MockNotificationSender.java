@@ -1,7 +1,7 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmNotificationRuleResponse;
-import cpf.adm.opr.dto.NotificationSendResult;
+import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.NotificationSendResult;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import org.junit.jupiter.api.Test;
 

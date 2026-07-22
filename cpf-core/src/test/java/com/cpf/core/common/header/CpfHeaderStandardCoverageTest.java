@@ -1,6 +1,6 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionHeader;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.mock.web.MockHttpServletRequest;

@@ -1,4 +1,4 @@
-package cpf.cmn.config;
+package com.cpf.common.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;

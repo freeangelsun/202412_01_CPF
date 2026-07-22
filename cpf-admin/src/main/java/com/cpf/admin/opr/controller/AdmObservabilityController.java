@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmObservabilityService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmObservabilityService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/observability")
 @Tag(name = "ADM-Observability", description = "ADM 거래, 오류, 감사 통합 추적 API")
-public class AdmObservabilityController extends cpf.adm.common.base.AdmBaseController {
+public class AdmObservabilityController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmObservabilityService observabilityService;
 
     public AdmObservabilityController(AdmObservabilityService observabilityService) {

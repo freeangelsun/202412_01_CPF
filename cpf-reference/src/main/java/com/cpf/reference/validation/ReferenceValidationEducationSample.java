@@ -1,11 +1,11 @@
-package cpf.xyz.validation;
+package com.cpf.reference.validation;
 
 import java.util.Set;
 
 /**
  * DTO validation과 enum/status validation 기준 샘플입니다.
  */
-public class XyzValidationEducationSample {
+public class ReferenceValidationEducationSample {
     private static final Set<String> STATUSES = Set.of("READY", "ACTIVE", "STOPPED");
 
     public String validateStatus(String status) {

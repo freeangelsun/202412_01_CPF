@@ -1,6 +1,6 @@
-package cpf.bat.edu.servicecall;
+package com.cpf.batch.edu.servicecall;
 
-import cpf.pfw.common.base.CpfQuery;
+import com.cpf.core.common.base.CpfQuery;
 
 /** 배치 회원등급 조회 입력입니다. */
 public record BatMemberGradeRequest(String memberNo) implements CpfQuery {

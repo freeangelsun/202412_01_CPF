@@ -1,13 +1,13 @@
-package cpf.mbr.bse.service;
+package com.cpf.member.bse.service;
 
-import cpf.cmn.utils.TextUtils;
-import cpf.mbr.bse.dto.MbrDTO;
-import cpf.mbr.bse.entity.Member;
-import cpf.mbr.bse.mapper.MemberMapper;
-import cpf.mbr.common.exception.ApiException;
-import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.member.bse.dto.MbrDTO;
+import com.cpf.member.bse.entity.Member;
+import com.cpf.member.bse.mapper.MemberMapper;
+import com.cpf.member.common.exception.ApiException;
+import com.cpf.member.common.response.ResponseCode;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(transactionManager = "mbrTransactionManager")
-public class MbrService extends cpf.mbr.common.base.MbrBaseService {
+public class MbrService extends com.cpf.member.common.base.MbrBaseService {
     private static final DateTimeFormatter MEMBER_NO_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final MemberMapper memberMapper;

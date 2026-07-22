@@ -1,6 +1,6 @@
-package cpf.acc.reference.repository;
+package com.cpf.account.reference.repository;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -22,7 +22,7 @@ public class AccountReferenceRepository {
     public Map<String, Object> search(AccountReferenceSearchRequest request) {
         return Map.of(
                 "items", sqlSessionTemplate.selectList(
-                        "cpf.acc.reference.mapper.AccountReferenceMapper.search", request),
+                        "com.cpf.account.reference.mapper.AccountReferenceMapper.search", request),
                 "criteria", request);
     }
 }

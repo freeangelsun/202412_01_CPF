@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Properties;
 
-/** PFW 실행 메타의 jobId와 파라미터를 Spring Batch JobOperator에 전달합니다. */
+/** CPF 실행 메타의 jobId와 파라미터를 Spring Batch JobOperator에 전달합니다. */
 @Component
 public class SpringBatchWorkerJobDispatcher implements BatWorkerJobDispatcher {
     private final JobOperator jobOperator;
@@ -56,7 +56,7 @@ public class SpringBatchWorkerJobDispatcher implements BatWorkerJobDispatcher {
                 }
             });
         }
-        properties.setProperty("cpfPfwExecutionId", lease.executionId() + ",java.lang.Long,true");
+        properties.setProperty("cpfCpfExecutionId", lease.executionId() + ",java.lang.Long,true");
         properties.setProperty("cpfWorkerLeaseToken", lease.leaseToken());
         properties.setProperty("serverInstanceId", lease.workerId());
         properties.putIfAbsent("run.id", System.currentTimeMillis() + ",java.lang.Long,true");

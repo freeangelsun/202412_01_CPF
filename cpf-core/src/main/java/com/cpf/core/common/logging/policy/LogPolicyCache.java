@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.policy;
+package com.cpf.core.common.logging.policy;
 
 import org.springframework.core.env.Environment;
 

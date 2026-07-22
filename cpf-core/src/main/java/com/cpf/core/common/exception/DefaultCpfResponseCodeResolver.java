@@ -1,4 +1,4 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Locale;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class DefaultCpfResponseCodeResolver implements CpfResponseCodeResolver {
         if (responseCode != null && responseCode.length() >= 4) {
             return "M" + responseCode.substring(1);
         }
-        return "MPFW000000";
+        return "MCPF000000";
     }
 
     private String firstText(String first, String second) {

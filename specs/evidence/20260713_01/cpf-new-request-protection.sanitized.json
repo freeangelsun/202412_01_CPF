@@ -1,9 +1,0 @@
-{
-    "generatedAt":  "2026-07-13T12:58:05.978+09:00",
-    "status":  "DONE",
-    "mode":  "CHECK_ONLY",
-    "requestFile":  "CPF_NEW_REQUEST.md",
-    "baselineHash":  "a1357a212697f2ce31554ca5f28b33425f3611e47175eca662cd2065959d8637",
-    "currentHash":  "a1357a212697f2ce31554ca5f28b33425f3611e47175eca662cd2065959d8637",
-    "policy":  "CPF_NEW_REQUEST.md is read-only request input for this work."
-}

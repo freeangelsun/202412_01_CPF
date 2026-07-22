@@ -1,6 +1,6 @@
-package cpf.bat.edu.servicecall;
+package com.cpf.batch.edu.servicecall;
 
-import cpf.pfw.common.servicecall.CpfPolicyId;
+import com.cpf.core.common.servicecall.CpfPolicyId;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;

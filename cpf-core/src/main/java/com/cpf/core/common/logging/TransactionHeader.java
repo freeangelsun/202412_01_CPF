@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import lombok.Builder;
 import lombok.Value;

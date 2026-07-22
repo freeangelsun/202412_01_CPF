@@ -3,6 +3,12 @@
     [switch] $CheckMojibake
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 $textExtensions = @(
@@ -13,13 +19,7 @@ $skipDirectories = @(
     "\.git\", "\.gradle\", "\.idea\", "\.vscode\", "\bin\", "\build\", "\out\",
     "\logs\", "\node_modules\", "\vendor\"
 )
-$skipFileNames = @(
-    "CPF_CURRENT_WORK_REQUEST.md",
-    "CPF_REQUEST.md",
-    "CPF_CODEX_REQUEST_20260618_01.md",
-    "CPF_STABILIZATION_REPORT.md",
-    "CPF_STABILIZATION_CHANGED_FILES.txt"
-)
+$skipFileNames = @()
 $mojibakeLiteralChars = @(
     # UTF-8 한글이 잘못 디코딩될 때 자주 남는 Latin-1 계열 marker입니다.
     [char]0x00C2,
@@ -78,6 +78,10 @@ Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
         # 따라서 ps1만 UTF-8 BOM을 허용하고 Java, SQL, 문서 등 나머지 텍스트는 BOM을 금지합니다.
         if ($hasUtf8Bom -and $_.Extension.ToLowerInvariant() -ne ".ps1") {
             $failures.Add("utf-8 bom detected: $($_.FullName)")
+            return
+        }
+        if (-not $hasUtf8Bom -and $_.Extension.ToLowerInvariant() -eq ".ps1") {
+            $failures.Add("powershell utf-8 bom missing: $($_.FullName)")
             return
         }
         $text = $utf8Strict.GetString($bytes)

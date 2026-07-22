@@ -1,23 +1,17 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** ADM 운영 콘솔의 SPA 진입 화면을 제공합니다. */
 @Controller
-public class AdmPageController extends cpf.adm.common.base.AdmBaseController {
+public class AdmPageController extends com.cpf.admin.common.base.AdmBaseController {
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     */
+    /** 정적 ADM 애플리케이션으로 요청을 전달합니다. */
     @GetMapping({"/adm", "/adm/"})
-@Operation(operationId = "admPageAdminPage", summary = "정보 조회")
+    @Operation(operationId = "admPageAdminPage", summary = "ADM 운영 콘솔 화면 조회")
     public String adminPage() {
         return "forward:/adm/index.html";
     }

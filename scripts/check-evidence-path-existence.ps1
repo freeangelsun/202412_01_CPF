@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
@@ -43,7 +49,7 @@ function Add-EvidencePath {
         [string] $RelativePath
     )
     $normalized = $RelativePath.Replace("\", "/").Trim()
-    if ($normalized -notmatch '^specs/evidence/') {
+    if ($normalized -notmatch '^cpf-docs/evidence/') {
         return
     }
     $evidenceRows.Add([pscustomobject]@{
@@ -67,8 +73,8 @@ $sourceFiles = @(
     "CPF_STABILIZATION_REPORT.md",
     "CPF_EVIDENCE_INDEX.md",
     "CPF_GAP_MATRIX.md",
-    "specs/sample-coverage-matrix.md",
-    ("specs/" + (New-UnicodeText @(0xAE30, 0xB2A5, 0x5F, 0xAD6C, 0xD604, 0x5F, 0xB9E4, 0xD2B8, 0xB9AD, 0xC2A4)) + ".md")
+    "specs/generated/sample-coverage-matrix.md",
+    "specs/generated/feature-implementation-matrix.md"
 )
 
 foreach ($sourceFile in $sourceFiles) {

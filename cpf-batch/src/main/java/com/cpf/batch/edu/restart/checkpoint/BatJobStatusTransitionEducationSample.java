@@ -1,4 +1,4 @@
-package cpf.bat.edu.restart.checkpoint;
+package com.cpf.batch.edu.restart.checkpoint;
 
 import java.util.Set;
 

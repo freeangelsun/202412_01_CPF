@@ -1,4 +1,4 @@
-package cpf.pfw.common.attachment;
+package com.cpf.core.common.attachment;
 
 /** 저장소에서 읽은 첨부파일 본문과 무결성 정보입니다. */
 public record CpfAttachmentContent(

@@ -1,12 +1,18 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $DbUrl = $env:CPF_XYZ_CENTER_CUT_DB_URL,
-    [string] $DbUsername = $env:CPF_XYZ_CENTER_CUT_DB_USERNAME,
-    [string] $DbPassword = $env:CPF_XYZ_CENTER_CUT_DB_PASSWORD,
-    [string] $DbDriver = $env:CPF_XYZ_CENTER_CUT_DB_DRIVER,
+    [string] $DbUrl = $env:CPF_REF_CENTER_CUT_DB_URL,
+    [string] $DbUsername = $env:CPF_REF_CENTER_CUT_DB_USERNAME,
+    [string] $DbPassword = $env:CPF_REF_CENTER_CUT_DB_PASSWORD,
+    [string] $DbDriver = $env:CPF_REF_CENTER_CUT_DB_DRIVER,
     [string] $ResultDir = "",
     [switch] $RequireRun
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
@@ -24,7 +30,7 @@ $ProcessArgumentPasswordPolicy = New-UnicodeText @(0xD658, 0xACBD, 0xBCC0, 0xC21
 $MissingPasswordReason = New-UnicodeText @(0x0043, 0x0050, 0x0046, 0x005F, 0x0058, 0x0059, 0x005A, 0x005F, 0x0043, 0x0045, 0x004E, 0x0054, 0x0045, 0x0052, 0x005F, 0x0043, 0x0055, 0x0054, 0x005F, 0x0044, 0x0042, 0x005F, 0x0050, 0x0041, 0x0053, 0x0053, 0x0057, 0x004F, 0x0052, 0x0044, 0x0020, 0xB610, 0xB294, 0x0020, 0x0043, 0x0050, 0x0046, 0x005F, 0x0044, 0x0042, 0x005F, 0x0052, 0x004F, 0x004F, 0x0054, 0x005F, 0x0050, 0x0041, 0x0053, 0x0053, 0x0057, 0x004F, 0x0052, 0x0044, 0xAC00, 0x0020, 0xC5C6, 0xC5B4, 0x0020, 0x0044, 0x0042, 0x0020, 0x0061, 0x0064, 0x0061, 0x0070, 0x0074, 0x0065, 0x0072, 0x0020, 0x0073, 0x006D, 0x006F, 0x006B, 0x0065, 0xB97C, 0x0020, 0xC2E4, 0xD589, 0xD558, 0xC9C0, 0x0020, 0xC54A, 0xC558, 0xC2B5, 0xB2C8, 0xB2E4, 0x002E)
 
 if ([string]::IsNullOrWhiteSpace($DbUrl)) {
-    $DbUrl = "jdbc:mariadb://localhost:3306/xyzDB?createDatabaseIfNotExist=true"
+    $DbUrl = "jdbc:mariadb://localhost:3306/refDB?createDatabaseIfNotExist=true"
 }
 if ([string]::IsNullOrWhiteSpace($DbUsername)) {
     if (-not [string]::IsNullOrWhiteSpace($env:CPF_DB_ROOT_USERNAME)) {
@@ -58,10 +64,10 @@ $result = [ordered]@{
     logPath = $logPath
     checks = [ordered]@{
         processArgumentPassword = $ProcessArgumentPasswordPolicy
-        targetProvider = "XyzCenterCutTargetRepository"
-        handler = "XyzCenterCutHandler"
-        service = "XyzCenterCutEducationService"
-        fixture = "xyz_center_cut_fixture.sql"
+        targetProvider = "ReferenceCenterCutTargetRepository"
+        handler = "ReferenceCenterCutHandler"
+        service = "ReferenceCenterCutEducationService"
+        fixture = "ref_center_cut_fixture.sql"
     }
 }
 
@@ -129,12 +135,12 @@ try {
     $result.gradleCommand = $gradle
 
     $arguments = @(
-        ":xyz:test",
+        ":cpf-reference:test",
         "--offline",
         "--no-daemon",
         "--console=plain",
         "--tests",
-        "cpf.xyz.centercut.XyzCenterCutAdapterTest",
+        "com.cpf.reference.centercut.ReferenceCenterCutAdapterTest",
         "--rerun-tasks"
     )
 
@@ -144,19 +150,19 @@ try {
     }
 
     $previousEnv = @{
-        CPF_XYZ_CENTER_CUT_DB_TEST = $env:CPF_XYZ_CENTER_CUT_DB_TEST
-        CPF_XYZ_CENTER_CUT_DB_URL = $env:CPF_XYZ_CENTER_CUT_DB_URL
-        CPF_XYZ_CENTER_CUT_DB_USERNAME = $env:CPF_XYZ_CENTER_CUT_DB_USERNAME
-        CPF_XYZ_CENTER_CUT_DB_PASSWORD = $env:CPF_XYZ_CENTER_CUT_DB_PASSWORD
-        CPF_XYZ_CENTER_CUT_DB_DRIVER = $env:CPF_XYZ_CENTER_CUT_DB_DRIVER
+        CPF_REF_CENTER_CUT_DB_TEST = $env:CPF_REF_CENTER_CUT_DB_TEST
+        CPF_REF_CENTER_CUT_DB_URL = $env:CPF_REF_CENTER_CUT_DB_URL
+        CPF_REF_CENTER_CUT_DB_USERNAME = $env:CPF_REF_CENTER_CUT_DB_USERNAME
+        CPF_REF_CENTER_CUT_DB_PASSWORD = $env:CPF_REF_CENTER_CUT_DB_PASSWORD
+        CPF_REF_CENTER_CUT_DB_DRIVER = $env:CPF_REF_CENTER_CUT_DB_DRIVER
     }
 
     try {
-        $env:CPF_XYZ_CENTER_CUT_DB_TEST = "true"
-        $env:CPF_XYZ_CENTER_CUT_DB_URL = $DbUrl
-        $env:CPF_XYZ_CENTER_CUT_DB_USERNAME = $DbUsername
-        $env:CPF_XYZ_CENTER_CUT_DB_PASSWORD = $DbPassword
-        $env:CPF_XYZ_CENTER_CUT_DB_DRIVER = $DbDriver
+        $env:CPF_REF_CENTER_CUT_DB_TEST = "true"
+        $env:CPF_REF_CENTER_CUT_DB_URL = $DbUrl
+        $env:CPF_REF_CENTER_CUT_DB_USERNAME = $DbUsername
+        $env:CPF_REF_CENTER_CUT_DB_PASSWORD = $DbPassword
+        $env:CPF_REF_CENTER_CUT_DB_DRIVER = $DbDriver
 
         Push-Location $Root
         try {
@@ -181,10 +187,10 @@ try {
 
     if ($exitCode -eq 0 -and -not $result.logContainsRawPassword) {
         $result.status = $StatusDone
-        $result.reason = "XYZ center-cut DB adapter test passed and raw DB password was not found in the smoke log."
+        $result.reason = "REF center-cut DB adapter test passed and raw DB password was not found in the smoke log."
     } else {
         $result.status = $StatusFailed
-        $result.reason = "XYZ center-cut DB adapter test failed or smoke log contains raw DB password."
+        $result.reason = "REF center-cut DB adapter test failed or smoke log contains raw DB password."
     }
 
     Save-SmokeResult

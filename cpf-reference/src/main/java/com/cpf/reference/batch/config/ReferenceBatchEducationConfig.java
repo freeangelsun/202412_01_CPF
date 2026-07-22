@@ -1,6 +1,6 @@
-package cpf.xyz.batch.config;
+package com.cpf.reference.batch.config;
 
-import cpf.pfw.common.execution.CpfBatchJob;
+import com.cpf.core.common.execution.CpfBatchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -18,17 +18,17 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * XYZ 배치 교육용 Job 설정입니다.
+ * REF 배치 교육용 Job 설정입니다.
  *
- * <p>로컬 교육 환경에서는 {@link XyzBatchRepositoryConfig}가 PFW DB의 BATCH_* 테이블을
+ * <p>로컬 교육 환경에서는 {@link ReferenceBatchRepositoryConfig}가 CPF DB의 BATCH_* 테이블을
  * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 교육 예제로 동작합니다.</p>
  */
 @Configuration
-public class XyzBatchEducationConfig {
-    private static final Logger log = LoggerFactory.getLogger(XyzBatchEducationConfig.class);
+public class ReferenceBatchEducationConfig {
+    private static final Logger log = LoggerFactory.getLogger(ReferenceBatchEducationConfig.class);
 
     @Bean
-    @CpfBatchJob(id = "BXYZAA0003", name = "XYZTasklet교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BREFAA0003", name = "REFTasklet교육배치", ownerDomain = "REF")
     public Job cpfEduTaskletJob(JobRepository jobRepository, Step cpfEduTaskletStep) {
         return new JobBuilder("CPF_EDU_TASKLET_JOB", jobRepository)
                 .start(cpfEduTaskletStep)
@@ -38,7 +38,7 @@ public class XyzBatchEducationConfig {
     @Bean
     public Step cpfEduTaskletStep(
             JobRepository jobRepository,
-            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_TASKLET_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // Tasklet은 파일 정리, 단건 집계, 외부 시스템 상태 확인처럼 한 번에 끝나는 작업에 적합합니다.
@@ -50,7 +50,7 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BXYZAA0001", name = "XYZChunk교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BREFAA0001", name = "REFChunk교육배치", ownerDomain = "REF")
     public Job cpfEduChunkJob(JobRepository jobRepository, Step cpfEduChunkStep) {
         return new JobBuilder("CPF_EDU_CHUNK_JOB", jobRepository)
                 .start(cpfEduChunkStep)
@@ -60,7 +60,7 @@ public class XyzBatchEducationConfig {
     @Bean
     public Step cpfEduChunkStep(
             JobRepository jobRepository,
-            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
         List<Integer> educationItems = IntStream.rangeClosed(1, 25).boxed().toList();
         return new StepBuilder("CPF_EDU_CHUNK_STEP", jobRepository)
                 .<Integer, String>chunk(5, transactionManager)
@@ -77,7 +77,7 @@ public class XyzBatchEducationConfig {
     }
 
     @Bean
-    @CpfBatchJob(id = "BXYZAA0002", name = "XYZ재시도교육배치", ownerDomain = "XYZ")
+    @CpfBatchJob(id = "BREFAA0002", name = "REF재시도교육배치", ownerDomain = "REF")
     public Job cpfEduRetryJob(JobRepository jobRepository, Step cpfEduRetryStep) {
         return new JobBuilder("CPF_EDU_RETRY_JOB", jobRepository)
                 .start(cpfEduRetryStep)
@@ -87,7 +87,7 @@ public class XyzBatchEducationConfig {
     @Bean
     public Step cpfEduRetryStep(
             JobRepository jobRepository,
-            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_RETRY_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // 실제 업무에서는 실패 데이터를 별도 테이블에 적재하고, 재처리 가능 상태만 다시 수행합니다.

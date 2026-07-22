@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmServiceRegistryService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmServiceRegistryService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,8 +19,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/adm/api/service-registry")
-@Tag(name = "ADM-ServiceRegistry", description = "PFW 서비스 호출 엔진 레지스트리 운영 조회 API")
-public class AdmServiceRegistryController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-ServiceRegistry", description = "CPF 서비스 호출 엔진 레지스트리 운영 조회 API")
+public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmServiceRegistryService serviceRegistryService;
 
     public AdmServiceRegistryController(AdmServiceRegistryService serviceRegistryService) {
@@ -29,7 +29,7 @@ public class AdmServiceRegistryController extends cpf.adm.common.base.AdmBaseCon
 
     @GetMapping("/services")
     @CpfOnlineTransaction(id = "OADMSV0010", name = "ADMServiceRegistryServices")
-    @Operation(operationId = "admServiceRegistryFindServices", summary = "서비스 목록 조회", description = "PFW 서비스 호출 엔진에 등록된 서비스 기본 정보를 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindServices", summary = "서비스 목록 조회", description = "CPF 서비스 호출 엔진에 등록된 서비스 기본 정보를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findServices(
             @Parameter(description = "서비스 ID", example = "MBR")
             @RequestParam(required = false) String serviceId,
@@ -95,7 +95,7 @@ public class AdmServiceRegistryController extends cpf.adm.common.base.AdmBaseCon
 
     @GetMapping("/call-history")
     @CpfOnlineTransaction(id = "OADMSV0070", name = "ADMServiceRegistryCallHistory")
-    @Operation(operationId = "admServiceRegistryFindCallHistory", summary = "서비스 호출 이력 조회", description = "PFW 서비스 호출 엔진이 기록한 호출 이력을 조회합니다.")
+    @Operation(operationId = "admServiceRegistryFindCallHistory", summary = "서비스 호출 이력 조회", description = "CPF 서비스 호출 엔진이 기록한 호출 이력을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCallHistory(
             @RequestParam(required = false) String serviceId,
             @RequestParam(required = false) String transactionGlobalId,

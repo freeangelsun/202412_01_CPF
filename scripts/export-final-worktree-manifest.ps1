@@ -1,10 +1,21 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_01"),
-    [string] $StartCommit = "d16cd7a40062a1e77bd8cd3c6f6f7125cdc0708d"
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate"),
+    [string] $StartCommit = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
+$StartCommit = if ([string]::IsNullOrWhiteSpace($StartCommit)) {
+    (& git -C $Root rev-parse HEAD).Trim()
+} else {
+    $StartCommit.Trim()
+}
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $outputName = "final-worktree-manifest.sanitized.log"
 $outputPath = Join-Path $ResultDir $outputName

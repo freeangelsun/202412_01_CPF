@@ -1,7 +1,7 @@
-package cpf.xyz.common.base;
+package com.cpf.reference.common.base;
 
-import cpf.pfw.common.base.CpfBaseController;
+import com.cpf.core.common.base.CpfBaseController;
 
-/** XYZ reference 업무 Controller의 주제영역 공통 확장점입니다. */
-public abstract class XyzBaseController extends CpfBaseController {
+/** REF reference 업무 Controller의 주제영역 공통 확장점입니다. */
+public abstract class ReferenceBaseController extends CpfBaseController {
 }

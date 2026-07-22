@@ -1,4 +1,4 @@
-package cpf.pfw.common.workflow;
+package com.cpf.core.common.workflow;
 
 import lombok.Builder;
 import lombok.Value;
@@ -7,7 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * CPF 기능 설명입니다.
+ * 워크플로 실행과 보상 거래를 추적하기 위한 요청 단위 메타데이터입니다.
+ *
+ * <p>값이 존재하는 항목만 전파 헤더로 변환하여 기존 API와의 하위 호환성을 유지합니다.</p>
  */
 @Value
 @Builder(toBuilder = true)

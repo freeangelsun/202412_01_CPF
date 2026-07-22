@@ -1,7 +1,7 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.common.logging.DynamicLogLevelRule;
-import cpf.pfw.common.logging.CpfLogLevel;
+import com.cpf.core.common.logging.DynamicLogLevelRule;
+import com.cpf.core.common.logging.CpfLogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;

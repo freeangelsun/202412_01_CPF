@@ -1,0 +1,41 @@
+CPF_EVIDENCE_VERSION=1
+EVIDENCE_ID=CREATE_DOMAIN_COMPILE
+STATUS=완료
+EXECUTED_AT=2026-07-22T13:46:30.3260040+09:00
+START_COMMIT=7451c7247b18acd03f27b860bb617cd39a559389
+BRANCH=master
+COMMAND=.\gradlew.bat :cpf-lending:test :cpf-lending:bootJar :cpf-lending:bootWar
+EXIT_CODE=0
+JAVA_VERSION=openjdk 25.0.3 2026-04-21 LTS
+GRADLE_VERSION=9.1.0
+PROFILE=local
+SANITIZED=Y
+SECRET_SCAN=PASS
+TESTS=0
+FAILURES=0
+ERRORS=0
+SKIPPED=0
+REASON=
+REPRODUCE_COMMAND=
+LOG_SHA256=e5f4c80181a507fc992a62867913e6d8acda332ef1ab4e078ac62825ec8b3390
+--- SANITIZED_OUTPUT ---
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :cpf-core:compileJava
+> Task :cpf-core:processResources
+> Task :cpf-core:classes
+> Task :cpf-core:jar
+> Task :cpf-lending:compileJava
+> Task :cpf-lending:processResources
+> Task :cpf-lending:classes
+> Task :cpf-lending:resolveMainClassName
+> Task :cpf-lending:bootJar
+> Task :cpf-lending:bootWar
+> Task :cpf-lending:compileTestJava
+> Task :cpf-lending:processTestResources NO-SOURCE
+> Task :cpf-lending:testClasses
+> Task :cpf-lending:test
+
+BUILD SUCCESSFUL in 47s
+10 actionable tasks: 10 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

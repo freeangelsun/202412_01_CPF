@@ -1,4 +1,4 @@
-package cpf.pfw.common.runtime;
+package com.cpf.core.common.runtime;
 
 import java.time.Instant;
 

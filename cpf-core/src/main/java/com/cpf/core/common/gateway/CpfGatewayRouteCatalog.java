@@ -1,9 +1,9 @@
-package cpf.pfw.common.gateway;
+package com.cpf.core.common.gateway;
 
-import cpf.pfw.common.execution.CpfExecutionCatalogPort;
-import cpf.pfw.common.execution.CpfExecutionDefinition;
-import cpf.pfw.common.execution.CpfExecutionType;
-import cpf.pfw.common.execution.CpfStandardExecutionId;
+import com.cpf.core.common.execution.CpfExecutionCatalogPort;
+import com.cpf.core.common.execution.CpfExecutionDefinition;
+import com.cpf.core.common.execution.CpfExecutionType;
+import com.cpf.core.common.execution.CpfStandardExecutionId;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

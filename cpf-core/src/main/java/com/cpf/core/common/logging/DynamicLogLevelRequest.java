@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import java.time.Duration;
 
@@ -14,7 +14,7 @@ public class DynamicLogLevelRequest {
     private String moduleId;
     private CpfLogLevel logLevel = CpfLogLevel.DEBUG;
     private Duration ttl = Duration.ofMinutes(10);
-    private String reason = "CPF 처리 기준입니다.";
+    private String reason;
     private String requestUser = "SYSTEM";
 
     public String getTransactionId() {

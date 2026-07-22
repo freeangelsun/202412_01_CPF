@@ -1,0 +1,57 @@
+{
+    "generatedAt":  "2026-07-22T14:25:21.7470172+09:00",
+    "status":  "DONE",
+    "localPorts":  [
+                       {
+                           "profile":  "local",
+                           "module":  "MBR",
+                           "port":  8081,
+                           "source":  "deploy/env/local-cpf-member.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "ADM",
+                           "port":  8090,
+                           "source":  "deploy/env/local-cpf-admin.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "BAT",
+                           "port":  8093,
+                           "source":  "deploy/env/local-cpf-batch.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "BZA",
+                           "port":  8091,
+                           "source":  "deploy/env/local-cpf-biz-admin.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "REF",
+                           "port":  8099,
+                           "source":  "deploy/env/local-cpf-reference.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "ACC",
+                           "port":  8082,
+                           "source":  "deploy/env/local-cpf-account.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "EXS",
+                           "port":  8094,
+                           "source":  "deploy/env/local-cpf-external.env"
+                       },
+                       {
+                           "profile":  "local",
+                           "module":  "GWY",
+                           "port":  8070,
+                           "source":  "deploy/env/local-cpf-gateway.env"
+                       }
+                   ],
+    "duplicates":  [
+
+                   ]
+}

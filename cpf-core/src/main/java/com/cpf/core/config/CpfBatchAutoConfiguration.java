@@ -1,17 +1,17 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.common.batch.CpfBatchEventPublisher;
-import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
-import cpf.pfw.common.batch.CpfBatchHeartbeatService;
-import cpf.pfw.common.batch.CpfBatchFileLogWriter;
-import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.pfw.common.batch.CpfBatchLockManager;
-import cpf.pfw.common.batch.CpfBatchLoggingEventPublisher;
-import cpf.pfw.common.batch.CpfBatchOperationRepository;
-import cpf.pfw.common.batch.CpfBatchRuntimeListener;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.batch.CpfBatchEventPublisher;
+import com.cpf.core.common.batch.CpfBatchGhostDetectionService;
+import com.cpf.core.common.batch.CpfBatchHeartbeatService;
+import com.cpf.core.common.batch.CpfBatchFileLogWriter;
+import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.common.batch.CpfBatchLockManager;
+import com.cpf.core.common.batch.CpfBatchLoggingEventPublisher;
+import com.cpf.core.common.batch.CpfBatchOperationRepository;
+import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -48,8 +48,8 @@ public class CpfBatchAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfBatchOperationRepository cpfBatchOperationRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider,
             CpfFileLogWriter fileLogWriter) {
         return new CpfBatchOperationRepository(jdbcTemplateProvider, dataSourceProvider, fileLogWriter);
     }
@@ -57,8 +57,8 @@ public class CpfBatchAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfBatchLockManager cpfBatchLockManager(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfBatchLockManager(jdbcTemplateProvider, dataSourceProvider);
     }
 

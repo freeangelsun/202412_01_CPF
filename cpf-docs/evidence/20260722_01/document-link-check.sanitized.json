@@ -1,0 +1,180 @@
+{
+    "generatedAt":  "2026-07-22T13:36:04.3665994+09:00",
+    "status":  "완료",
+    "documentCount":  25,
+    "localLinkCount":  28,
+    "failureCount":  0,
+    "failures":  [
+
+                 ],
+    "checked":  [
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/api/API_GUIDE.md#3-standard-headers",
+                        "resolved":  "cpf-docs/api/API_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/development/GENERATOR_GUIDE.md",
+                        "resolved":  "cpf-docs/development/GENERATOR_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/README.md",
+                        "resolved":  "cpf-docs/README.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/architecture/ARCHITECTURE_GUIDE.md",
+                        "resolved":  "cpf-docs/architecture/ARCHITECTURE_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/development/DEVELOPER_GUIDE.md",
+                        "resolved":  "cpf-docs/development/DEVELOPER_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/development/GENERATOR_GUIDE.md",
+                        "resolved":  "cpf-docs/development/GENERATOR_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/development/EDU_GUIDE.md",
+                        "resolved":  "cpf-docs/development/EDU_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/operations/OPERATOR_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/OPERATOR_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/operations/INSTALLATION_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/INSTALLATION_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/operations/DEPLOYMENT_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/DEPLOYMENT_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/operations/RECOVERY_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/RECOVERY_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/security/SECURITY_GUIDE.md",
+                        "resolved":  "cpf-docs/security/SECURITY_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/api/API_GUIDE.md",
+                        "resolved":  "cpf-docs/api/API_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/releases/MIGRATION_GUIDE.md",
+                        "resolved":  "cpf-docs/releases/MIGRATION_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "README.md",
+                        "target":  "cpf-docs/releases/RELEASE_NOTES.md",
+                        "resolved":  "cpf-docs/releases/RELEASE_NOTES.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "architecture/ARCHITECTURE_GUIDE.md",
+                        "resolved":  "cpf-docs/architecture/ARCHITECTURE_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "development/DEVELOPER_GUIDE.md",
+                        "resolved":  "cpf-docs/development/DEVELOPER_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "development/GENERATOR_GUIDE.md",
+                        "resolved":  "cpf-docs/development/GENERATOR_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "development/EDU_GUIDE.md",
+                        "resolved":  "cpf-docs/development/EDU_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "operations/OPERATOR_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/OPERATOR_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "operations/INSTALLATION_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/INSTALLATION_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "operations/DEPLOYMENT_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/DEPLOYMENT_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "operations/RECOVERY_GUIDE.md",
+                        "resolved":  "cpf-docs/operations/RECOVERY_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "security/SECURITY_GUIDE.md",
+                        "resolved":  "cpf-docs/security/SECURITY_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "api/API_GUIDE.md",
+                        "resolved":  "cpf-docs/api/API_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "releases/MIGRATION_GUIDE.md",
+                        "resolved":  "cpf-docs/releases/MIGRATION_GUIDE.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/README.md",
+                        "target":  "releases/RELEASE_NOTES.md",
+                        "resolved":  "cpf-docs/releases/RELEASE_NOTES.md",
+                        "exists":  true
+                    },
+                    {
+                        "source":  "cpf-docs/releases/RELEASE_NOTES.md",
+                        "target":  "MIGRATION_GUIDE.md",
+                        "resolved":  "cpf-docs/releases/MIGRATION_GUIDE.md",
+                        "exists":  true
+                    }
+                ]
+}

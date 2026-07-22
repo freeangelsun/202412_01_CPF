@@ -1,7 +1,7 @@
 -- 거래 구간 durable recovery와 서비스 호출 시도별 관제를 위한 확장 컬럼입니다.
-USE pfwDB;
+USE cpfDB;
 
-ALTER TABLE pfw_transaction_segment
+ALTER TABLE cpf_transaction_segment
     ADD COLUMN IF NOT EXISTS selected_instance_id VARCHAR(100) NULL COMMENT '선택된 하위 서비스 인스턴스 ID' AFTER external_transaction_id,
     ADD COLUMN IF NOT EXISTS attempt_no INT NULL COMMENT '서비스 호출 시도 순번' AFTER selected_instance_id,
     ADD COLUMN IF NOT EXISTS retry_yn CHAR(1) NULL COMMENT '재시도 여부' AFTER attempt_no,
@@ -15,12 +15,12 @@ ALTER TABLE pfw_transaction_segment
 SET @cpf_has_segment_instance_index := (
     SELECT COUNT(*) FROM information_schema.statistics
      WHERE table_schema = DATABASE()
-       AND table_name = 'pfw_transaction_segment'
-       AND index_name = 'ix_pfw_transaction_segment_instance'
+       AND table_name = 'cpf_transaction_segment'
+       AND index_name = 'ix_cpf_transaction_segment_instance'
 );
 SET @cpf_segment_instance_sql := IF(
     @cpf_has_segment_instance_index = 0,
-    'CREATE INDEX ix_pfw_transaction_segment_instance ON pfw_transaction_segment (selected_instance_id, started_at)',
+    'CREATE INDEX ix_cpf_transaction_segment_instance ON cpf_transaction_segment (selected_instance_id, started_at)',
     'SELECT 1'
 );
 PREPARE cpf_segment_instance_stmt FROM @cpf_segment_instance_sql;
@@ -30,12 +30,12 @@ DEALLOCATE PREPARE cpf_segment_instance_stmt;
 SET @cpf_has_segment_attempt_index := (
     SELECT COUNT(*) FROM information_schema.statistics
      WHERE table_schema = DATABASE()
-       AND table_name = 'pfw_transaction_segment'
-       AND index_name = 'ix_pfw_transaction_segment_attempt'
+       AND table_name = 'cpf_transaction_segment'
+       AND index_name = 'ix_cpf_transaction_segment_attempt'
 );
 SET @cpf_segment_attempt_sql := IF(
     @cpf_has_segment_attempt_index = 0,
-    'CREATE INDEX ix_pfw_transaction_segment_attempt ON pfw_transaction_segment (transaction_global_id, attempt_no)',
+    'CREATE INDEX ix_cpf_transaction_segment_attempt ON cpf_transaction_segment (transaction_global_id, attempt_no)',
     'SELECT 1'
 );
 PREPARE cpf_segment_attempt_stmt FROM @cpf_segment_attempt_sql;
@@ -45,12 +45,12 @@ DEALLOCATE PREPARE cpf_segment_attempt_stmt;
 SET @cpf_has_segment_unknown_index := (
     SELECT COUNT(*) FROM information_schema.statistics
      WHERE table_schema = DATABASE()
-       AND table_name = 'pfw_transaction_segment'
-       AND index_name = 'ix_pfw_transaction_segment_unknown'
+       AND table_name = 'cpf_transaction_segment'
+       AND index_name = 'ix_cpf_transaction_segment_unknown'
 );
 SET @cpf_segment_unknown_sql := IF(
     @cpf_has_segment_unknown_index = 0,
-    'CREATE INDEX ix_pfw_transaction_segment_unknown ON pfw_transaction_segment (unknown_result_id)',
+    'CREATE INDEX ix_cpf_transaction_segment_unknown ON cpf_transaction_segment (unknown_result_id)',
     'SELECT 1'
 );
 PREPARE cpf_segment_unknown_stmt FROM @cpf_segment_unknown_sql;

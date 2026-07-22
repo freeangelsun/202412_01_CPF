@@ -1,12 +1,12 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.DownloadAuditLog;
-import cpf.adm.opr.dto.DownloadPolicy;
-import cpf.adm.opr.dto.DownloadRequest;
-import cpf.adm.opr.dto.DownloadResult;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.admin.opr.dto.DownloadAuditLog;
+import com.cpf.admin.opr.dto.DownloadPolicy;
+import com.cpf.admin.opr.dto.DownloadRequest;
+import com.cpf.admin.opr.dto.DownloadResult;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -34,20 +34,20 @@ import java.util.Objects;
  * ADM 화면은 이 서비스를 통해 CSV 파일을 내려받습니다.</p>
  */
 @Service
-public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
+public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService {
     private static final int DEFAULT_LIMIT = 1000;
     private static final int MAX_LIMIT = 10000;
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-    private final JdbcTemplate pfwJdbcTemplate;
+    private final JdbcTemplate cpfJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
     private final AdmAuditLogService auditLogService;
 
     public AdmDownloadService(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             AdmAuditLogService auditLogService) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.admJdbcTemplate = admJdbcTemplate;
         this.auditLogService = auditLogService;
     }
@@ -65,7 +65,7 @@ public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
         Long downloadId = null;
         try {
             QuerySpec querySpec = buildQuery(policy.downloadType(), request);
-            List<Map<String, Object>> rows = pfwJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
+            List<Map<String, Object>> rows = cpfJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
             String csv = toCsv(rows, mask);
             String fileName = fileName(policy.downloadType());
             downloadId = recordDownloadAudit(
@@ -185,7 +185,7 @@ public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
                        HOST_NAME, PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID,
                        LOG_TYPE, REQUEST_TYPE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
                        URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, START_TIME, END_TIME, DURATION_MS
-                FROM pfw_transaction_log
+                FROM cpf_transaction_log
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -205,7 +205,7 @@ public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
                 SELECT EXECUTION_ID, JOB_ID, INSTANCE_ID, START_TIME, END_TIME, STATUS, EXIT_CODE,
                        EXIT_MESSAGE, READ_COUNT, WRITE_COUNT, SKIP_COUNT, RETRY_COUNT,
                        REQUESTED_BY, REASON, CREATED_AT
-                FROM pfw_batch_execution
+                FROM cpf_batch_execution
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -223,7 +223,7 @@ public class AdmDownloadService extends cpf.adm.common.base.AdmBaseService {
         StringBuilder sql = new StringBuilder("""
                 SELECT DELIVERY_ID, RULE_ID, EVENT_TYPE, TARGET_TYPE, TARGET_ID, RECEIVER,
                        DELIVERY_STATUS, DELIVERY_MESSAGE, REQUESTED_AT, DELIVERED_AT, CREATED_AT
-                FROM pfw_notification_delivery_log
+                FROM cpf_notification_delivery_log
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();

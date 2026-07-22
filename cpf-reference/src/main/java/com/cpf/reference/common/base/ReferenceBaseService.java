@@ -1,7 +1,7 @@
-package cpf.xyz.common.base;
+package com.cpf.reference.common.base;
 
-import cpf.pfw.common.base.CpfBaseService;
+import com.cpf.core.common.base.CpfBaseService;
 
-/** XYZ reference 업무 Service의 주제영역 공통 확장점입니다. */
-public abstract class XyzBaseService extends CpfBaseService {
+/** REF reference 업무 Service의 주제영역 공통 확장점입니다. */
+public abstract class ReferenceBaseService extends CpfBaseService {
 }

@@ -1,14 +1,14 @@
-package cpf.xyz.cmn.controller;
+package com.cpf.reference.cmn.controller;
 
-import cpf.cmn.biz.log.CmnBusinessLogRequest;
-import cpf.cmn.biz.log.CmnBusinessLogService;
-import cpf.cmn.biz.notification.CmnNotificationLogRequest;
-import cpf.cmn.biz.notification.CmnNotificationLogService;
-import cpf.cmn.biz.sequence.CmnSequenceIssueRequest;
-import cpf.cmn.biz.sequence.CmnSequenceService;
-import cpf.cmn.utils.IdUtils;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.common.biz.log.CmnBusinessLogRequest;
+import com.cpf.common.biz.log.CmnBusinessLogService;
+import com.cpf.common.biz.notification.CmnNotificationLogRequest;
+import com.cpf.common.biz.notification.CmnNotificationLogService;
+import com.cpf.common.biz.sequence.CmnSequenceIssueRequest;
+import com.cpf.common.biz.sequence.CmnSequenceService;
+import com.cpf.common.utils.IdUtils;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +23,18 @@ import java.util.Map;
 /**
  * CMN 업무 공통 DB 기능을 체험하는 교육 API입니다.
  *
- * <p>PFW 메타 데이터가 아니라 여러 업무 모듈이 함께 쓰는 공통 채번, 알림 로그,
+ * <p>CPF 메타 데이터가 아니라 여러 업무 모듈이 함께 쓰는 공통 채번, 알림 로그,
  * 업무 로그 기능을 어떤 상황에서 호출하는지 보여줍니다.</p>
  */
 @RestController
-@RequestMapping({"/api/xyz/reference/cmn-business", "/xyz/edu/cmn-business"})
-@Tag(name = "XYZ Reference 12. CMN 업무 공통", description = "채번, 알림 로그, 공통 업무 로그 교육 샘플")
-public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBaseController {
+@RequestMapping({"/api/reference/cmn-business", "/reference/edu/cmn-business"})
+@Tag(name = "REF Reference 12. CMN 업무 공통", description = "채번, 알림 로그, 공통 업무 로그 교육 샘플")
+public class ReferenceCmnBusinessEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
     private final CmnSequenceService sequenceService;
     private final CmnNotificationLogService notificationLogService;
     private final CmnBusinessLogService businessLogService;
 
-    public XyzCmnBusinessEducationController(CmnSequenceService sequenceService,
+    public ReferenceCmnBusinessEducationController(CmnSequenceService sequenceService,
                                              CmnNotificationLogService notificationLogService,
                                              CmnBusinessLogService businessLogService) {
         this.sequenceService = sequenceService;
@@ -43,15 +43,15 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
     }
 
     @PostMapping("/sequence/issue")
-    @CpfOnlineTransaction(id = "OXYZAA0044", name = "XYZ CMN 공통 채번 발급")
-    @Operation(operationId = "xyzCmnBusinessEducationIssueSequence", summary = "CMN 공통 채번 발급", description = "cmn_sequence를 row lock으로 잠그고 중복 없는 업무 번호를 발급합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0044", name = "REF CMN 공통 채번 발급")
+    @Operation(operationId = "refCmnBusinessEducationIssueSequence", summary = "CMN 공통 채번 발급", description = "cmn_sequence를 row lock으로 잠그고 중복 없는 업무 번호를 발급합니다.")
     public ResponseEntity<Map<String, Object>> issueSequence(
             @RequestParam(required = false) String sequenceKey,
             @RequestParam(defaultValue = "CMN_EDU") String businessArea,
             @RequestParam(defaultValue = "ORDER") String businessKey,
             @RequestParam(defaultValue = "ORDER_NO") String sequenceKind,
             @RequestParam(defaultValue = "WEB") String channelCode,
-            @RequestParam(defaultValue = "XYZ_EDU") String requestUser,
+            @RequestParam(defaultValue = "REF_EDU") String requestUser,
             @RequestParam(defaultValue = "WEB") String requestChannel) {
 
         if (!sequenceService.isEnabled()) {
@@ -66,7 +66,7 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
                 TextUtils.normalizeCode(channelCode),
                 TextUtils.normalizeCode(requestChannel),
                 requestUser,
-                "XYZ-CMN-BIZ-" + IdUtils.uuid32().substring(0, 12),
+                "REF-CMN-BIZ-" + IdUtils.uuid32().substring(0, 12),
                 "TRACE-" + IdUtils.uuid32().substring(0, 12));
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -76,8 +76,8 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
     }
 
     @PostMapping("/notification-log")
-    @CpfOnlineTransaction(id = "OXYZAA0045", name = "XYZ CMN 알림 로그 등록")
-    @Operation(operationId = "xyzCmnBusinessEducationRegisterNotificationLog", summary = "CMN 알림 로그 등록", description = "메일, SMS, 푸시 같은 알림 요청 이력을 공통 포맷으로 저장합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0045", name = "REF CMN 알림 로그 등록")
+    @Operation(operationId = "refCmnBusinessEducationRegisterNotificationLog", summary = "CMN 알림 로그 등록", description = "메일, SMS, 푸시 같은 알림 요청 이력을 공통 포맷으로 저장합니다.")
     public ResponseEntity<Map<String, Object>> registerNotificationLog(
             @RequestParam(defaultValue = "EMAIL") String notificationType,
             @RequestParam(defaultValue = "developer@example.com") String receiver,
@@ -92,8 +92,8 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
                 receiver,
                 title,
                 "CMN 공통 알림 로그 교육 샘플 메시지입니다.",
-                "XYZ_EDU",
-                "XYZ-CMN-NOTI-" + IdUtils.uuid32().substring(0, 12),
+                "REF_EDU",
+                "REF-CMN-NOTI-" + IdUtils.uuid32().substring(0, 12),
                 "TRACE-" + IdUtils.uuid32().substring(0, 12));
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -103,8 +103,8 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
     }
 
     @PostMapping("/business-log")
-    @CpfOnlineTransaction(id = "OXYZAA0046", name = "XYZ CMN 업무 로그 등록")
-    @Operation(operationId = "xyzCmnBusinessEducationRegisterBusinessLog", summary = "CMN 공통 업무 로그 등록", description = "기술 거래 로그와 별도로 업무 의미가 있는 이벤트를 저장합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0046", name = "REF CMN 업무 로그 등록")
+    @Operation(operationId = "refCmnBusinessEducationRegisterBusinessLog", summary = "CMN 공통 업무 로그 등록", description = "기술 거래 로그와 별도로 업무 의미가 있는 이벤트를 저장합니다.")
     public ResponseEntity<Map<String, Object>> registerBusinessLog(
             @RequestParam(defaultValue = "CMN_EDU") String businessArea,
             @RequestParam(defaultValue = "ORDER_SAMPLE") String businessKey,
@@ -120,8 +120,8 @@ public class XyzCmnBusinessEducationController extends cpf.xyz.common.base.XyzBa
                 TextUtils.normalizeCode(logType),
                 "CMN 공통 업무 로그 교육 샘플입니다.",
                 "{\"status\":\"READY\"}",
-                "XYZ_EDU",
-                "XYZ-CMN-BLOG-" + IdUtils.uuid32().substring(0, 12),
+                "REF_EDU",
+                "REF-CMN-BLOG-" + IdUtils.uuid32().substring(0, 12),
                 "TRACE-" + IdUtils.uuid32().substring(0, 12));
 
         Map<String, Object> response = new LinkedHashMap<>();

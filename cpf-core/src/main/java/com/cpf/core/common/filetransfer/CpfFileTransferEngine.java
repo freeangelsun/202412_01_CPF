@@ -1,13 +1,13 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
-import cpf.pfw.common.reconciliation.CpfReconciliationPort;
-import cpf.pfw.common.reconciliation.CpfUnknownResultRecord;
+import com.cpf.core.common.reconciliation.CpfReconciliationPort;
+import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
 
 import java.time.Instant;
 import java.util.Objects;
 
 /**
- * 파일 전송 adapter 실행과 중복 방지, 이력, 결과 미확정 등록을 연결하는 PFW 표준 엔진입니다.
+ * 파일 전송 adapter 실행과 중복 방지, 이력, 결과 미확정 등록을 연결하는 CPF 표준 엔진입니다.
  */
 public class CpfFileTransferEngine {
     private final CpfFileTransferPort transferPort;

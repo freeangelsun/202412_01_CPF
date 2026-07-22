@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.cmn.utils.TextUtils;
+import com.cpf.common.utils.TextUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,18 +13,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 거래 로그를 ADM 운영 화면에 맞게 조회하고 포맷합니다.
+ * CPF 거래 로그를 ADM 운영 화면에 맞게 조회하고 포맷합니다.
  *
  * <p>운영자는 JSON 원문과 고정길이 전문을 같은 화면에서 봐야 하므로, 상세 로그 조회 시 JSON pretty print,
  * 민감정보 마스킹, 고정길이 필드 분해 결과를 함께 반환합니다.</p>
  */
 @Service
-public class AdmLogQueryService extends cpf.adm.common.base.AdmBaseService {
-    private final JdbcTemplate pfwJdbcTemplate;
+public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService {
+    private final JdbcTemplate cpfJdbcTemplate;
     private final ObjectMapper objectMapper;
 
-    public AdmLogQueryService(@Qualifier("pfwJdbcTemplate") JdbcTemplate pfwJdbcTemplate, ObjectMapper objectMapper) {
-        this.pfwJdbcTemplate = pfwJdbcTemplate;
+    public AdmLogQueryService(@Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate, ObjectMapper objectMapper) {
+        this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -72,7 +72,7 @@ public class AdmLogQueryService extends cpf.adm.common.base.AdmBaseService {
                     START_TIME,
                     END_TIME,
                     DURATION_MS
-                FROM pfw_transaction_log
+                FROM cpf_transaction_log
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -92,7 +92,7 @@ public class AdmLogQueryService extends cpf.adm.common.base.AdmBaseService {
         sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
         args.add(Math.max(1, Math.min(limit, 500)));
 
-        return pfwJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
     /**
@@ -100,11 +100,11 @@ public class AdmLogQueryService extends cpf.adm.common.base.AdmBaseService {
      */
     public Map<String, Object> getLogDetail(Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
-        Map<String, Object> summary = pfwJdbcTemplate.queryForMap(
-                "SELECT * FROM pfw_transaction_log WHERE LOG_IDX = ?",
+        Map<String, Object> summary = cpfJdbcTemplate.queryForMap(
+                "SELECT * FROM cpf_transaction_log WHERE LOG_IDX = ?",
                 logIdx);
-        List<Map<String, Object>> details = pfwJdbcTemplate.queryForList(
-                "SELECT DETAIL_KEY, DETAIL_VALUE, CREATED_AT FROM pfw_transaction_log_detail WHERE LOG_IDX = ? ORDER BY DETAIL_KEY",
+        List<Map<String, Object>> details = cpfJdbcTemplate.queryForList(
+                "SELECT DETAIL_KEY, DETAIL_VALUE, CREATED_AT FROM cpf_transaction_log_detail WHERE LOG_IDX = ? ORDER BY DETAIL_KEY",
                 logIdx);
 
         response.put("summary", summary);

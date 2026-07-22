@@ -1,11 +1,11 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
-import cpf.pfw.common.logging.segment.TransactionSegmentDirection;
-import cpf.pfw.common.logging.segment.TransactionSegmentRole;
-import cpf.pfw.common.logging.segment.TransactionSegmentScope;
-import cpf.pfw.common.logging.segment.TransactionSegmentService;
-import cpf.pfw.common.reconciliation.CpfReconciliationPort;
-import cpf.pfw.common.reconciliation.CpfUnknownResultRecord;
+import com.cpf.core.common.logging.segment.TransactionSegmentDirection;
+import com.cpf.core.common.logging.segment.TransactionSegmentRole;
+import com.cpf.core.common.logging.segment.TransactionSegmentScope;
+import com.cpf.core.common.logging.segment.TransactionSegmentService;
+import com.cpf.core.common.reconciliation.CpfReconciliationPort;
+import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -234,7 +234,7 @@ public class CpfServiceCallEngine {
         if (segmentService == null) {
             return null;
         }
-        String sourceModule = textAttribute(request, "sourceModuleCode", "PFW");
+        String sourceModule = textAttribute(request, "sourceModuleCode", "CPF");
         TransactionSegmentScope scope = segmentService.start(
                 TransactionSegmentRole.EXTERNAL,
                 TransactionSegmentDirection.OUTBOUND,

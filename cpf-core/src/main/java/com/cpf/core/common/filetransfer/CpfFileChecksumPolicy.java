@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 /**
  * 파일 checksum 검증 정책 후보입니다.

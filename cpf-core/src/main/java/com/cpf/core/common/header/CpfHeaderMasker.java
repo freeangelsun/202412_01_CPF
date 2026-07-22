@@ -1,6 +1,6 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

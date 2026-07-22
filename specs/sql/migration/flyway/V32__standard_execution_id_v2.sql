@@ -1,26 +1,26 @@
 -- 기존 실행 카탈로그 데이터를 명시적 매핑으로 전환한 뒤 O/S/B 10자리 규격을 적용합니다.
 -- 알려지지 않은 구형 ID가 있으면 신규 CHECK 제약 추가 단계에서 실패해 임의 절단을 방지합니다.
-USE pfwDB;
+USE cpfDB;
 
-ALTER TABLE pfw_standard_execution DROP CONSTRAINT IF EXISTS ck_pfw_standard_execution_id;
-ALTER TABLE pfw_standard_execution DROP CONSTRAINT IF EXISTS ck_pfw_standard_execution_type;
+ALTER TABLE cpf_standard_execution DROP CONSTRAINT IF EXISTS ck_cpf_standard_execution_id;
+ALTER TABLE cpf_standard_execution DROP CONSTRAINT IF EXISTS ck_cpf_standard_execution_type;
 
-CREATE TEMPORARY TABLE tmp_pfw_standard_execution_id_map (
+CREATE TEMPORARY TABLE tmp_cpf_standard_execution_id_map (
     legacy_execution_id VARCHAR(32) NOT NULL,
     standard_execution_id CHAR(10) NOT NULL,
     PRIMARY KEY (legacy_execution_id),
-    UNIQUE KEY uk_tmp_pfw_standard_execution_id_map_current (standard_execution_id)
+    UNIQUE KEY uk_tmp_cpf_standard_execution_id_map_current (standard_execution_id)
 ) ENGINE=InnoDB;
 
-INSERT INTO tmp_pfw_standard_execution_id_map (legacy_execution_id, standard_execution_id) VALUES
+INSERT INTO tmp_cpf_standard_execution_id_map (legacy_execution_id, standard_execution_id) VALUES
     ('BADM-RLG-EX-0001', 'BADMRL0001'),
     ('BBAT-CUT-CL-0001', 'BBATCU0001'),
     ('BBAT-OPS-FL-0001', 'BBATOP0001'),
     ('BBAT-OPS-HB-0001', 'BBATOP0002'),
     ('BBAT-OPS-SM-0001', 'BBATOP0003'),
-    ('BXYZ-EDU-CH-0001', 'BXYZAA0001'),
-    ('BXYZ-EDU-RT-0001', 'BXYZAA0002'),
-    ('BXYZ-EDU-TS-0001', 'BXYZAA0003'),
+    ('BREF-EDU-CH-0001', 'BREFAA0001'),
+    ('BREF-EDU-RT-0001', 'BREFAA0002'),
+    ('BREF-EDU-TS-0001', 'BREFAA0003'),
     ('OADM-BAT-01-0010', 'OADMBA0010'),
     ('OADM-BAT-01-0012', 'OADMBA0012'),
     ('OADM-BAT-01-0013', 'OADMBA0013'),
@@ -263,86 +263,86 @@ INSERT INTO tmp_pfw_standard_execution_id_map (legacy_execution_id, standard_exe
     ('OMBR-BSE-02-0001', 'OMBRMB0004'),
     ('OMBR-BSE-03-0001', 'OMBRMB0005'),
     ('OMBR-BSE-04-0001', 'OMBRMB0006'),
-    ('OXYZ-EDU-01-0001', 'OXYZAA0001'),
-    ('OXYZ-EDU-01-0002', 'OXYZAA0002'),
-    ('OXYZ-EDU-01-0003', 'OXYZAA0003'),
-    ('OXYZ-EDU-01-0099', 'OXYZAA0099'),
-    ('OXYZ-EDU-02-0001', 'OXYZAA0004'),
-    ('OXYZ-EDU-02-0010', 'OXYZAA0010'),
-    ('OXYZ-EDU-02-0020', 'OXYZAA0020'),
-    ('OXYZ-EDU-02-0030', 'OXYZAA0030'),
-    ('OXYZ-EDU-03-0001', 'OXYZAA0005'),
-    ('OXYZ-EDU-03-0002', 'OXYZAA0006'),
-    ('OXYZ-EDU-03-0003', 'OXYZAA0007'),
-    ('OXYZ-EDU-04-0001', 'OXYZAA0008'),
-    ('OXYZ-EDU-04-0002', 'OXYZAA0009'),
-    ('OXYZ-EDU-05-0001', 'OXYZAA0011'),
-    ('OXYZ-EDU-05-0002', 'OXYZAA0012'),
-    ('OXYZ-EDU-05-9001', 'OXYZAA9001'),
-    ('OXYZ-EDU-08-0001', 'OXYZAA0013'),
-    ('OXYZ-EDU-08-0010', 'OXYZAA0014'),
-    ('OXYZ-EDU-08-9001', 'OXYZAA9002'),
-    ('OXYZ-EDU-09-0001', 'OXYZAA0015'),
-    ('OXYZ-EDU-09-0002', 'OXYZAA0016'),
-    ('OXYZ-EDU-09-0003', 'OXYZAA0017'),
-    ('OXYZ-EDU-09-0004', 'OXYZAA0018'),
-    ('OXYZ-EDU-09-0005', 'OXYZAA0019'),
-    ('OXYZ-EDU-09-0006', 'OXYZAA0021'),
-    ('OXYZ-EDU-09-0007', 'OXYZAA0022'),
-    ('OXYZ-EDU-09-0008', 'OXYZAA0023'),
-    ('OXYZ-EDU-09-0009', 'OXYZAA0024'),
-    ('OXYZ-EDU-09-0010', 'OXYZAA0025'),
-    ('OXYZ-EDU-09-0011', 'OXYZAA0026'),
-    ('OXYZ-EDU-09-0012', 'OXYZAA0027'),
-    ('OXYZ-EDU-09-0013', 'OXYZAA0028'),
-    ('OXYZ-EDU-09-0015', 'OXYZAA0029'),
-    ('OXYZ-EDU-09-0016', 'OXYZAA0031'),
-    ('OXYZ-EDU-09-0017', 'OXYZAA0032'),
-    ('OXYZ-EDU-09-0018', 'OXYZAA0033'),
-    ('OXYZ-EDU-09-0019', 'OXYZAA0034'),
-    ('OXYZ-EDU-09-0020', 'OXYZAA0035'),
-    ('OXYZ-EDU-09-0030', 'OXYZAA0036'),
-    ('OXYZ-EDU-09-0031', 'OXYZAA0037'),
-    ('OXYZ-EDU-09-0032', 'OXYZAA0038'),
-    ('OXYZ-EDU-09-0033', 'OXYZAA0039'),
-    ('OXYZ-EDU-09-0034', 'OXYZAA0040'),
-    ('OXYZ-EDU-09-0035', 'OXYZAA0041'),
-    ('OXYZ-EDU-09-0036', 'OXYZAA0042'),
-    ('OXYZ-EDU-09-0040', 'OXYZAA0043'),
-    ('OXYZ-EDU-09-0051', 'OXYZAA0051'),
-    ('OXYZ-EDU-09-0060', 'OXYZAA0060'),
-    ('OXYZ-EDU-09-0072', 'OXYZAA0072'),
-    ('OXYZ-EDU-09-0073', 'OXYZAA0073'),
-    ('OXYZ-EDU-09-0080', 'OXYZAA0080'),
-    ('OXYZ-EDU-12-0001', 'OXYZAA0044'),
-    ('OXYZ-EDU-12-0002', 'OXYZAA0045'),
-    ('OXYZ-EDU-12-0003', 'OXYZAA0046'),
-    ('OXYZ-EDU-13-0001', 'OXYZAA0047'),
-    ('OXYZ-EDU-13-0002', 'OXYZAA0048'),
-    ('OXYZ-EDU-13-0003', 'OXYZAA0049'),
-    ('OXYZ-EDU-13-0004', 'OXYZAA0050'),
-    ('OXYZ-EDU-13-0005', 'OXYZAA0052'),
-    ('OXYZ-EDU-13-0006', 'OXYZAA0053'),
-    ('OXYZ-EDU-13-0007', 'OXYZAA0054'),
-    ('OXYZ-EDU-13-0008', 'OXYZAA0055'),
-    ('OXYZ-EDU-14-0001', 'OXYZAA0056'),
-    ('OXYZ-EDU-15-0001', 'OXYZAA0057'),
-    ('OXYZ-EDU-16-0001', 'OXYZAA0058'),
-    ('OXYZ-EDU-16-0002', 'OXYZAA0059'),
-    ('OXYZ-EDU-16-0003', 'OXYZAA0061'),
-    ('OXYZ-EDU-16-0004', 'OXYZAA0062'),
-    ('OXYZ-EDU-16-0005', 'OXYZAA0063'),
-    ('OXYZ-EDU-16-0006', 'OXYZAA0064'),
-    ('OXYZ-EDU-17-0001', 'OXYZAA0065'),
-    ('OXYZ-EDU-17-0002', 'OXYZAA0066'),
-    ('OXYZ-QRY-01-0001', 'OXYZQR0001'),
-    ('OXYZ-QRY-01-0002', 'OXYZQR0002'),
-    ('OXYZ-QRY-01-0003', 'OXYZQR0003'),
-    ('OXYZ-QRY-01-0004', 'OXYZQR0004'),
-    ('OXYZ-QRY-01-0005', 'OXYZQR0005');
+    ('OREF-EDU-01-0001', 'OREFAA0001'),
+    ('OREF-EDU-01-0002', 'OREFAA0002'),
+    ('OREF-EDU-01-0003', 'OREFAA0003'),
+    ('OREF-EDU-01-0099', 'OREFAA0099'),
+    ('OREF-EDU-02-0001', 'OREFAA0004'),
+    ('OREF-EDU-02-0010', 'OREFAA0010'),
+    ('OREF-EDU-02-0020', 'OREFAA0020'),
+    ('OREF-EDU-02-0030', 'OREFAA0030'),
+    ('OREF-EDU-03-0001', 'OREFAA0005'),
+    ('OREF-EDU-03-0002', 'OREFAA0006'),
+    ('OREF-EDU-03-0003', 'OREFAA0007'),
+    ('OREF-EDU-04-0001', 'OREFAA0008'),
+    ('OREF-EDU-04-0002', 'OREFAA0009'),
+    ('OREF-EDU-05-0001', 'OREFAA0011'),
+    ('OREF-EDU-05-0002', 'OREFAA0012'),
+    ('OREF-EDU-05-9001', 'OREFAA9001'),
+    ('OREF-EDU-08-0001', 'OREFAA0013'),
+    ('OREF-EDU-08-0010', 'OREFAA0014'),
+    ('OREF-EDU-08-9001', 'OREFAA9002'),
+    ('OREF-EDU-09-0001', 'OREFAA0015'),
+    ('OREF-EDU-09-0002', 'OREFAA0016'),
+    ('OREF-EDU-09-0003', 'OREFAA0017'),
+    ('OREF-EDU-09-0004', 'OREFAA0018'),
+    ('OREF-EDU-09-0005', 'OREFAA0019'),
+    ('OREF-EDU-09-0006', 'OREFAA0021'),
+    ('OREF-EDU-09-0007', 'OREFAA0022'),
+    ('OREF-EDU-09-0008', 'OREFAA0023'),
+    ('OREF-EDU-09-0009', 'OREFAA0024'),
+    ('OREF-EDU-09-0010', 'OREFAA0025'),
+    ('OREF-EDU-09-0011', 'OREFAA0026'),
+    ('OREF-EDU-09-0012', 'OREFAA0027'),
+    ('OREF-EDU-09-0013', 'OREFAA0028'),
+    ('OREF-EDU-09-0015', 'OREFAA0029'),
+    ('OREF-EDU-09-0016', 'OREFAA0031'),
+    ('OREF-EDU-09-0017', 'OREFAA0032'),
+    ('OREF-EDU-09-0018', 'OREFAA0033'),
+    ('OREF-EDU-09-0019', 'OREFAA0034'),
+    ('OREF-EDU-09-0020', 'OREFAA0035'),
+    ('OREF-EDU-09-0030', 'OREFAA0036'),
+    ('OREF-EDU-09-0031', 'OREFAA0037'),
+    ('OREF-EDU-09-0032', 'OREFAA0038'),
+    ('OREF-EDU-09-0033', 'OREFAA0039'),
+    ('OREF-EDU-09-0034', 'OREFAA0040'),
+    ('OREF-EDU-09-0035', 'OREFAA0041'),
+    ('OREF-EDU-09-0036', 'OREFAA0042'),
+    ('OREF-EDU-09-0040', 'OREFAA0043'),
+    ('OREF-EDU-09-0051', 'OREFAA0051'),
+    ('OREF-EDU-09-0060', 'OREFAA0060'),
+    ('OREF-EDU-09-0072', 'OREFAA0072'),
+    ('OREF-EDU-09-0073', 'OREFAA0073'),
+    ('OREF-EDU-09-0080', 'OREFAA0080'),
+    ('OREF-EDU-12-0001', 'OREFAA0044'),
+    ('OREF-EDU-12-0002', 'OREFAA0045'),
+    ('OREF-EDU-12-0003', 'OREFAA0046'),
+    ('OREF-EDU-13-0001', 'OREFAA0047'),
+    ('OREF-EDU-13-0002', 'OREFAA0048'),
+    ('OREF-EDU-13-0003', 'OREFAA0049'),
+    ('OREF-EDU-13-0004', 'OREFAA0050'),
+    ('OREF-EDU-13-0005', 'OREFAA0052'),
+    ('OREF-EDU-13-0006', 'OREFAA0053'),
+    ('OREF-EDU-13-0007', 'OREFAA0054'),
+    ('OREF-EDU-13-0008', 'OREFAA0055'),
+    ('OREF-EDU-14-0001', 'OREFAA0056'),
+    ('OREF-EDU-15-0001', 'OREFAA0057'),
+    ('OREF-EDU-16-0001', 'OREFAA0058'),
+    ('OREF-EDU-16-0002', 'OREFAA0059'),
+    ('OREF-EDU-16-0003', 'OREFAA0061'),
+    ('OREF-EDU-16-0004', 'OREFAA0062'),
+    ('OREF-EDU-16-0005', 'OREFAA0063'),
+    ('OREF-EDU-16-0006', 'OREFAA0064'),
+    ('OREF-EDU-17-0001', 'OREFAA0065'),
+    ('OREF-EDU-17-0002', 'OREFAA0066'),
+    ('OREF-QRY-01-0001', 'OREFQR0001'),
+    ('OREF-QRY-01-0002', 'OREFQR0002'),
+    ('OREF-QRY-01-0003', 'OREFQR0003'),
+    ('OREF-QRY-01-0004', 'OREFQR0004'),
+    ('OREF-QRY-01-0005', 'OREFQR0005');
 
-UPDATE pfw_standard_execution current_execution
-JOIN tmp_pfw_standard_execution_id_map id_map
+UPDATE cpf_standard_execution current_execution
+JOIN tmp_cpf_standard_execution_id_map id_map
   ON id_map.legacy_execution_id = current_execution.standard_execution_id
 SET current_execution.standard_execution_id = id_map.standard_execution_id,
     current_execution.execution_type = CASE LEFT(id_map.standard_execution_id, 1)
@@ -354,13 +354,13 @@ SET current_execution.standard_execution_id = id_map.standard_execution_id,
     current_execution.updated_at = CURRENT_TIMESTAMP;
 
 -- 길이 축소 전에 실행하므로 미매핑 구형 ID가 있으면 migration을 즉시 중단합니다.
-ALTER TABLE pfw_standard_execution
-    ADD CONSTRAINT ck_pfw_standard_execution_id CHECK (
+ALTER TABLE cpf_standard_execution
+    ADD CONSTRAINT ck_cpf_standard_execution_id CHECK (
         standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
         AND RIGHT(standard_execution_id, 4) <> '0000'
     );
 
-ALTER TABLE pfw_standard_execution
+ALTER TABLE cpf_standard_execution
     MODIFY standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
     MODIFY execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
     ADD COLUMN IF NOT EXISTS http_method VARCHAR(10) NULL COMMENT 'HTTP 진입 method' AFTER source_method,
@@ -369,34 +369,34 @@ ALTER TABLE pfw_standard_execution
     ADD COLUMN IF NOT EXISTS audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부' AFTER required_permission,
     ADD COLUMN IF NOT EXISTS visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위' AFTER audit_reason_required_yn,
     ADD COLUMN IF NOT EXISTS direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부' AFTER visibility,
-    ADD COLUMN IF NOT EXISTS gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 PFW Gateway 호출 허용 여부' AFTER direct_allowed_yn,
-    ADD CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'));
+    ADD COLUMN IF NOT EXISTS gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 CPF Gateway 호출 허용 여부' AFTER direct_allowed_yn,
+    ADD CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'));
 
-CREATE TABLE IF NOT EXISTS pfw_standard_execution_alias (
+CREATE TABLE IF NOT EXISTS cpf_standard_execution_alias (
     legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
     standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
     migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
     retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (legacy_execution_id),
-    UNIQUE KEY uk_pfw_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
-    CONSTRAINT ck_pfw_standard_execution_alias_current CHECK (
+    UNIQUE KEY uk_cpf_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (
         standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
     )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 구형 실행 ID 조회 호환 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 구형 실행 ID 조회 호환 이력';
 
-INSERT INTO pfw_standard_execution_alias (
+INSERT INTO cpf_standard_execution_alias (
     legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
 )
 SELECT legacy_execution_id, standard_execution_id, 'CPF O/S/B 10자리 표준 전환', 'FLYWAY_V32', 'FLYWAY_V32'
-FROM tmp_pfw_standard_execution_id_map
+FROM tmp_cpf_standard_execution_id_map
 ON DUPLICATE KEY UPDATE
     standard_execution_id = VALUES(standard_execution_id),
     migration_reason = VALUES(migration_reason),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-DROP TEMPORARY TABLE tmp_pfw_standard_execution_id_map;
+DROP TEMPORARY TABLE tmp_cpf_standard_execution_id_map;

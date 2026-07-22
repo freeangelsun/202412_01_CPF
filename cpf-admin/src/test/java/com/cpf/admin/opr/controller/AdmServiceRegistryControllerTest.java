@@ -1,6 +1,6 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmServiceRegistryService;
+import com.cpf.admin.opr.service.AdmServiceRegistryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 

@@ -1,1 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=cpf.pfw.config.CpfLogEnvironmentPostProcessor
+org.springframework.boot.env.EnvironmentPostProcessor=com.cpf.core.config.CpfLogEnvironmentPostProcessor

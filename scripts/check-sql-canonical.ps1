@@ -3,6 +3,12 @@
     [string] $ResultDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -20,6 +26,7 @@ $result = [ordered]@{
     canonicalRoot = 'specs/sql'
     moduleLocalSql = @()
     flywayVersions = @()
+    flywayChecksums = @()
     generatorDatabaseVendors = @()
 }
 
@@ -54,10 +61,39 @@ try {
         throw "Flyway migration 버전이 연속적이지 않습니다: actual=$($versions -join ',')"
     }
 
+    $checksumManifestPath = Join-Path $migrationDir 'checksums.sha256'
+    if (-not (Test-Path -LiteralPath $checksumManifestPath -PathType Leaf)) {
+        throw 'Flyway checksum manifest가 없습니다: specs/sql/migration/flyway/checksums.sha256'
+    }
+    $checksumRows = @()
+    foreach ($line in [IO.File]::ReadAllLines($checksumManifestPath, [Text.Encoding]::UTF8)) {
+        if ([string]::IsNullOrWhiteSpace($line) -or $line.TrimStart().StartsWith('#')) {
+            continue
+        }
+        if ($line -notmatch '^(?<sha>[a-f0-9]{64})\s+\*(?<file>V\d+__.+\.sql)$') {
+            throw "Flyway checksum manifest 행이 잘못되었습니다: $line"
+        }
+        $migrationPath = Join-Path $migrationDir $Matches.file
+        if (-not (Test-Path -LiteralPath $migrationPath -PathType Leaf)) {
+            throw "Flyway checksum 대상 파일이 없습니다: $($Matches.file)"
+        }
+        $actualSha = (Get-FileHash -LiteralPath $migrationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actualSha -ne $Matches.sha) {
+            throw "배포 migration checksum이 변경되었습니다: $($Matches.file)"
+        }
+        $checksumRows += [ordered]@{ file = $Matches.file; sha256 = $actualSha }
+    }
+    if ($checksumRows.Count -ne $versions.Count) {
+        throw "Flyway checksum manifest와 migration 파일 수가 다릅니다: manifest=$($checksumRows.Count), migration=$($versions.Count)"
+    }
+    $result.flywayChecksums = $checksumRows
+
     foreach ($required in @(
         '00_all_install.sql',
         '00_all_install_and_smoke.sql',
-        'migration/flyway/V1__cpf_baseline_install.sql'
+        'migration/flyway/V1__cpf_baseline_install.sql',
+        'migration/flyway/V37__official_ref_external_expansion.sql',
+        'migration/rollback/R37__official_ref_external_expansion.sql'
     )) {
         if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $Root 'specs/sql') $required))) {
             throw "SQL 정본 필수 파일이 없습니다: $required"

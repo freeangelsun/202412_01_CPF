@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 /**
  * 중앙 정책 레지스트리에서 해석하는 CPF 호출 정책 식별자입니다.

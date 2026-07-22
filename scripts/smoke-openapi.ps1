@@ -2,7 +2,7 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $AdmBaseUrl = "http://localhost:8090",
     [string] $MbrBaseUrl = "http://localhost:8081",
-    [string] $XyzBaseUrl = "http://localhost:8099",
+    [string] $ReferenceBaseUrl = "http://localhost:8099",
     [string] $BzaBaseUrl = "http://localhost:8091",
     [string] $BatBaseUrl = "http://localhost:8093",
     [string] $AccBaseUrl = "http://localhost:8082",
@@ -10,13 +10,19 @@
     [string] $ResultDir = "",
     [switch] $SkipAdm,
     [switch] $SkipMbr,
-    [switch] $SkipXyz,
+    [switch] $SkipReference,
     [switch] $SkipBza,
     [switch] $SkipBat,
     [switch] $IncludeAcc,
     [switch] $IncludeGateway,
     [switch] $RequireRuntime
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Net.Http
@@ -179,19 +185,17 @@ if (-not $SkipMbr) {
     ) | Out-Null
 }
 
-if (-not $SkipXyz) {
-    Invoke-JsonSmoke -ServiceName "XYZ" -BaseUrl $XyzBaseUrl -RequiredTags @(
-        "XYZ Reference 00. Catalog",
-        "XYZ Reference 11. Security",
-        "XYZ Reference 13. Batch",
-        "XYZ Reference 16. AI",
-        "XYZ Reference 17. 첨부파일"
+if (-not $SkipReference) {
+    Invoke-JsonSmoke -ServiceName "REF" -BaseUrl $ReferenceBaseUrl -RequiredTags @(
+        "REF Reference 00. Catalog",
+        "REF Reference 11. Security",
+        "REF Reference 13. Batch",
+        "REF Reference 17. 첨부파일"
     ) -RequiredPaths @(
-        "/api/xyz/reference/ai/structured",
-        "/api/xyz/reference/ai/rag",
-        "/api/xyz/reference/ai/jobs/{jobId}/approve",
-        "/api/xyz/reference/attachments/text",
-        "/api/xyz/reference/attachments/verify"
+        "/api/reference/attachments/text",
+        "/api/reference/attachments/verify",
+        "/api/reference/security/jwt/create",
+        "/api/reference/batch/tasklet/run"
     ) | Out-Null
 }
 
@@ -243,7 +247,7 @@ if ($IncludeAcc) {
 
 if ($IncludeGateway) {
     Invoke-JsonSmoke -ServiceName "GATEWAY" -BaseUrl $GatewayBaseUrl -RequiredTags @(
-        "PFW Gateway"
+        "CPF Gateway"
     ) -RequiredPaths @(
         "/cpf/execute",
         "/cpf/execute/{executionId}"

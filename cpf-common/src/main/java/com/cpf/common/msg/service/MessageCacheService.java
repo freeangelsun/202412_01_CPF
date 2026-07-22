@@ -1,8 +1,8 @@
-package cpf.cmn.msg.service;
+package com.cpf.common.msg.service;
 
-import cpf.cmn.msg.dto.CommonMessageRequest;
-import cpf.cmn.msg.mapper.MessageMapper;
-import cpf.cmn.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.msg.dto.CommonMessageRequest;
+import com.cpf.common.msg.mapper.MessageMapper;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 메시지 캐시 서비스입니다.
+ * CPF 공통 메시지 캐시 서비스입니다.
  * 메시지 조회, 등록, 수정, 삭제 후 캐시 초기화와 refresh 이벤트 발행을 함께 처리합니다.
  */
 @Service
-public class MessageCacheService extends cpf.cmn.common.base.CmnBaseService {
+public class MessageCacheService extends com.cpf.common.common.base.CmnBaseService {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageCacheService.class);
     private static final String CACHE_NAME = "messageCache";

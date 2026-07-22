@@ -1,7 +1,7 @@
-package cpf.bat.operation;
+package com.cpf.batch.operation;
 
-import cpf.pfw.common.batch.CpfBatchFileLogWriter;
-import cpf.pfw.common.batch.CpfBatchRuntimeListener;
+import com.cpf.core.common.batch.CpfBatchFileLogWriter;
+import com.cpf.core.common.batch.CpfBatchRuntimeListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;

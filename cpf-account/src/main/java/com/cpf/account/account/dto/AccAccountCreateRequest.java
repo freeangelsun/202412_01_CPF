@@ -1,4 +1,4 @@
-package cpf.acc.account.dto;
+package com.cpf.account.account.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

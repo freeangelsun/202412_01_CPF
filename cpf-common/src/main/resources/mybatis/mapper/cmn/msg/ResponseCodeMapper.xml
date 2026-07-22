@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="cpf.cmn.msg.mapper.ResponseCodeMapper">
+<mapper namespace="com.cpf.common.msg.mapper.ResponseCodeMapper">
 
     <sql id="responseCodeColumns">
         response_code,
@@ -23,7 +23,7 @@
     <select id="findAllResponseCodes" resultType="map">
         SELECT
             <include refid="responseCodeColumns"/>
-        FROM pfw_response_code
+        FROM cpf_response_code
         WHERE use_yn = 'Y'
         ORDER BY response_code
     </select>
@@ -31,14 +31,14 @@
     <select id="findResponseCode" resultType="map">
         SELECT
             <include refid="responseCodeColumns"/>
-        FROM pfw_response_code
+        FROM cpf_response_code
         WHERE response_code = #{responseCode}
           AND use_yn = 'Y'
         LIMIT 1
     </select>
 
-    <insert id="insertResponseCode" parameterType="cpf.cmn.msg.dto.CommonResponseCodeRequest">
-        INSERT INTO pfw_response_code (
+    <insert id="insertResponseCode" parameterType="com.cpf.common.msg.dto.CommonResponseCodeRequest">
+        INSERT INTO cpf_response_code (
             response_code,
             message_code,
             result_type,
@@ -70,7 +70,7 @@
     </insert>
 
     <update id="updateResponseCode">
-        UPDATE pfw_response_code
+        UPDATE cpf_response_code
         SET
             response_code = #{request.responseCode},
             message_code = #{request.messageCode},
@@ -87,7 +87,7 @@
     </update>
 
     <delete id="deleteResponseCode" parameterType="string">
-        DELETE FROM pfw_response_code
+        DELETE FROM cpf_response_code
         WHERE response_code = #{responseCode}
     </delete>
 

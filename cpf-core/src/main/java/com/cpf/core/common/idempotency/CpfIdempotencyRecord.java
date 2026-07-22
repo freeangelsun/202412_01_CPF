@@ -1,9 +1,9 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import java.time.Instant;
 
 /**
- * HTTP, Broker, Batch, FileTransfer가 함께 사용할 수 있는 PFW 중복 처리 기록입니다.
+ * HTTP, Broker, Batch, FileTransfer가 함께 사용할 수 있는 CPF 중복 처리 기록입니다.
  *
  * <p>동일 업무 범위(scope)와 idempotencyKey에 대해 요청 본문 hash를 함께 보관하여,
  * 같은 요청은 저장된 응답을 재사용하고 다른 요청은 충돌로 차단할 수 있게 합니다.</p>

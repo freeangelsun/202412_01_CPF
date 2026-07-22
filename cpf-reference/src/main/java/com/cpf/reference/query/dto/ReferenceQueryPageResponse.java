@@ -1,4 +1,4 @@
-package cpf.xyz.query.dto;
+package com.cpf.reference.query.dto;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * @param total   전체 건수
  * @param hasNext 다음 페이지 존재 여부
  */
-public record XyzQueryPageResponse<T>(
+public record ReferenceQueryPageResponse<T>(
         List<T> items,
         int page,
         int size,

@@ -1,4 +1,4 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,14 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** PFW DB에 온디맨드 접수와 최종 결과를 저장합니다. */
+/** CPF DB에 온디맨드 접수와 최종 결과를 저장합니다. */
 @Repository
 public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
     public JdbcBatOnDemandRepository(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbcTemplate,
             ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
@@ -32,7 +32,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
             BatOnDemandStatus requested, String parametersJson, String reason, String requestUser) {
         try {
             jdbcTemplate.update("""
-                    INSERT INTO pfw_batch_on_demand_request (
+                    INSERT INTO cpf_batch_on_demand_request (
                         execution_request_id, standard_batch_id, idempotency_key,
                         transaction_global_id, business_date, request_status,
                         parameters_json, request_reason, request_user, requested_at,
@@ -56,7 +56,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     @Override
     public void markRunning(String executionRequestId) {
         jdbcTemplate.update("""
-                UPDATE pfw_batch_on_demand_request
+                UPDATE cpf_batch_on_demand_request
                 SET request_status = 'RUNNING', updated_by = 'BAT_WORKER', updated_at = CURRENT_TIMESTAMP
                 WHERE execution_request_id = ? AND request_status = 'REQUESTED'
                 """, executionRequestId);
@@ -66,20 +66,20 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     public void complete(
             String executionRequestId,
             String status,
-            Long pfwExecutionId,
+            Long cpfExecutionId,
             Long springExecutionId,
             String resultJson,
             String failureCode,
             String failureMessage) {
         jdbcTemplate.update("""
-                UPDATE pfw_batch_on_demand_request
+                UPDATE cpf_batch_on_demand_request
                 SET request_status = ?,
-                    pfw_execution_id = COALESCE(?, pfw_execution_id),
+                    cpf_execution_id = COALESCE(?, cpf_execution_id),
                     spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
                     result_json = ?, failure_code = ?, failure_message = ?,
                     completed_at = CURRENT_TIMESTAMP(3), updated_by = 'BAT_WORKER', updated_at = CURRENT_TIMESTAMP
                 WHERE execution_request_id = ?
-                """, status, pfwExecutionId, springExecutionId, resultJson,
+                """, status, cpfExecutionId, springExecutionId, resultJson,
                 failureCode, failureMessage, executionRequestId);
     }
 
@@ -92,9 +92,9 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
         return jdbcTemplate.query("""
                 SELECT execution_request_id, standard_batch_id, idempotency_key,
                        transaction_global_id, business_date, request_status,
-                       pfw_execution_id, spring_batch_execution_id, result_json,
+                       cpf_execution_id, spring_batch_execution_id, result_json,
                        failure_code, failure_message, requested_at, completed_at
-                FROM pfw_batch_on_demand_request
+                FROM cpf_batch_on_demand_request
                 """ + where, (rs, rowNum) -> new BatOnDemandStatus(
                 rs.getString("execution_request_id"),
                 rs.getString("standard_batch_id"),
@@ -102,7 +102,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
                 rs.getString("transaction_global_id"),
                 rs.getString("business_date"),
                 rs.getString("request_status"),
-                nullableLong(rs, "pfw_execution_id"),
+                nullableLong(rs, "cpf_execution_id"),
                 nullableLong(rs, "spring_batch_execution_id"),
                 readMap(rs.getString("result_json")),
                 rs.getString("failure_code"),

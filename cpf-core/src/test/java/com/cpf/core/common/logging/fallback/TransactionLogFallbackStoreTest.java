@@ -1,9 +1,9 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.service.common.logging.TransactionLogService;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.service.common.logging.TransactionLogService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.env.MockEnvironment;
@@ -173,9 +173,9 @@ class TransactionLogFallbackStoreTest {
                 ? poisonEventId(fixture)
                 : "missing";
 
-        boolean xyzepted = worker.retryPoison(recoveryEventId);
+        boolean accepted = worker.retryPoison(recoveryEventId);
 
-        assertThat(xyzepted).isTrue();
+        assertThat(accepted).isTrue();
         assertThat(fixture.store.snapshot().poisonCount()).isZero();
         assertThat(fixture.store.snapshot().pendingCount()).isEqualTo(1);
         assertThat(fixture.store.snapshot().poisonRetryCount()).isEqualTo(1);
@@ -204,8 +204,8 @@ class TransactionLogFallbackStoreTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.environment", "local")
-                .withProperty("cpf.framework.module-id", "XYZ")
-                .withProperty("cpf.framework.instance-id", "xyz-test-01");
+                .withProperty("cpf.framework.module-id", "REF")
+                .withProperty("cpf.framework.instance-id", "ref-test-01");
         additionalProperties.forEach(environment::setProperty);
         CpfFileLogWriter fileLogWriter = new CpfFileLogWriter(environment);
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -223,10 +223,10 @@ class TransactionLogFallbackStoreTest {
 
     private TransactionLogRecord record(int sequenceNo) {
         return TransactionLogRecord.builder()
-                .transactionId("20260713120000000XYZxyzAP01000000" + sequenceNo)
+                .transactionId("20260713120000000REFrefAP01000000" + sequenceNo)
                 .spanId("SEG-000" + sequenceNo)
                 .sequenceNo(sequenceNo)
-                .businessTransactionId("XYZ01TST0001")
+                .businessTransactionId("REF01TST0001")
                 .businessTransactionName("fallback 검증 거래")
                 .logType("TRANSACTION")
                 .memberNo("MBR-0000123456")
@@ -238,7 +238,7 @@ class TransactionLogFallbackStoreTest {
 
     private String poisonEventId(TestFixture fixture) {
         try {
-            Path poisonDirectory = tempDir.resolve("local/XYZ/xyz-test-01/recovery/transaction-db/poison");
+            Path poisonDirectory = tempDir.resolve("local/REF/ref-test-01/recovery/transaction-db/poison");
             Path poison = Files.list(poisonDirectory).findFirst().orElseThrow();
             return poison.getFileName().toString().replace(".json", "");
         } catch (Exception ex) {

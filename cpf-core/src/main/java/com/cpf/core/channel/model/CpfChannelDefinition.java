@@ -1,4 +1,4 @@
-package cpf.pfw.channel.model;
+package com.cpf.core.channel.model;
 
 import java.util.Locale;
 

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: cpf-external
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-external.yml
+      - optional:classpath:application-external-${spring.profiles.active:local}.yml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

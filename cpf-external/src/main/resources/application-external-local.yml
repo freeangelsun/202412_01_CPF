@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    exs:
+      jdbc-url: ${EXS_DATASOURCE_URL:jdbc:mariadb://127.0.0.1:3306/exsDB?useUnicode=true&characterEncoding=utf8}
+      username: ${EXS_DATASOURCE_USERNAME:cpf_exs_app}
+      password: ${EXS_DATASOURCE_PASSWORD:}
+    cpf:
+      jdbc-url: ${CPF_DB_URL:jdbc:mariadb://127.0.0.1:3306/cpfDB?useUnicode=true&characterEncoding=utf8}
+      username: ${CPF_DB_USERNAME:cpf_app}
+      password: ${CPF_DB_PASSWORD:}

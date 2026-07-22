@@ -1,4 +1,4 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Locale;
 import java.util.Map;

@@ -2,6 +2,12 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 # 트랜잭션 글로벌 ID 표준이 코드, 설정, 문서에 동시에 반영되어 있는지 정적으로 검사합니다.
@@ -26,52 +32,57 @@ function Assert-Contains([string] $RelativePath, [string] $Pattern, [string] $Me
 }
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java" `
+    "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java" `
     "MODULE_ID_LENGTH\s*=\s*3" `
     "moduleId 3자리 상수가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java" `
+    "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java" `
     "WAS_ID_LENGTH\s*=\s*7" `
     "wasId 7자리 상수가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java" `
+    "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java" `
     "DEFAULT_SEQUENCE_DIGITS\s*=\s*7" `
     "sequence 7자리 기본값이 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/web/TransactionHeaderValidationInterceptor.java" `
+    "cpf-core/src/main/java/com/cpf/core/common/web/TransactionHeaderValidationInterceptor.java" `
     "inboundHeaderValidator\.missingRequiredHeaders" `
     "온라인 API 필수 헤더 검사가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/common/header/CpfInboundHeaderValidator.java" `
+    "cpf-core/src/main/java/com/cpf/core/common/header/CpfInboundHeaderValidator.java" `
     "TransactionIdGenerator\.isValid" `
     "X-Transaction-Id 형식 검사가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java" `
+    "cpf-core/src/main/java/com/cpf/core/config/CpfOpenApiAutoConfiguration.java" `
     '"X-Transaction-Id"[\s\S]*true[\s\S]*yyyyMMddHHmmssSSS' `
     "OpenAPI 헤더 설명에서 X-Transaction-Id 필수 표시가 필요합니다."
 
 Assert-Contains `
-    "pfw/src/main/resources/application-pfw.yml" `
-    "module-id:\s*\$\{[^\r\n]*:[A-Z0-9]{3}\}\}\}" `
-    "PFW module-id 기본값이 3자리여야 합니다."
+    "cpf-core/src/main/resources/application-cpf.yml" `
+    "module-id:\s*\$\{[^\r\n]*:CPF\}\}\}" `
+    "cpf-core module-id 기본값은 CPF여야 합니다."
 
 Assert-Contains `
-    "pfw/src/main/resources/application-pfw.yml" `
+    "cpf-core/src/main/java/com/cpf/core/common/system/CpfSystemCodes.java" `
+    'public\s+static\s+final\s+String\s+CORE\s*=\s*"CPF"' `
+    "cpf-core 공식 시스템 코드 상수가 CPF여야 합니다."
+
+Assert-Contains `
+    "cpf-core/src/main/resources/application-cpf.yml" `
     "was-id:\s*\$\{[^\r\n]*:[A-Za-z0-9]{7}\}\}\}" `
-    "PFW was-id 기본값이 7자리여야 합니다."
+    "CPF was-id 기본값이 7자리여야 합니다."
 
 Assert-Contains `
-    "adm/frontend/src/shared/transaction.ts" `
+    "cpf-admin/frontend/src/shared/transaction.ts" `
     "createTransactionGlobalId" `
     "ADM 정적 화면 API 호출용 트랜잭션 ID 생성기가 필요합니다."
 
 Assert-Contains `
-    "specs/sql/10_pfw_schema.sql" `
+    "specs/sql/10_cpf_schema.sql" `
     "SERVER_INSTANCE_ID\s+VARCHAR\(160\)" `
     "거래 로그 서버 인스턴스 컬럼이 필요합니다."
 
@@ -134,7 +145,11 @@ foreach ($moduleDirectory in $moduleDirectories) {
 }
 
 # 신규 소스와 SQL에 구형 하이픈 ID가 다시 들어오면 alias 정책과 관계없이 빌드를 차단합니다.
-$legacyScanRoots = @('pfw', 'cmn', 'mbr', 'xyz', 'adm', 'bza', 'bat', 'acc', 'pfw-gateway-runtime', 'specs/sql')
+$legacyScanRoots = @(
+    'cpf-core', 'cpf-common', 'cpf-member', 'cpf-reference', 'cpf-admin',
+    'cpf-biz-admin', 'cpf-batch', 'cpf-account', 'cpf-external', 'cpf-gateway',
+    'specs/sql'
+)
 foreach ($relativeRoot in $legacyScanRoots) {
     $scanRoot = Join-Path $Root $relativeRoot
     if (-not (Test-Path -LiteralPath $scanRoot)) {
@@ -153,7 +168,7 @@ foreach ($relativeRoot in $legacyScanRoots) {
             # alias INSERT 구간만 검사 대상에서 제거하고 그 밖의 SQL에서 구형 ID가 재사용되면 계속 실패시킵니다.
             $content = [regex]::Replace(
                 $content,
-                'INSERT\s+INTO\s+pfw_standard_execution_alias\s*\([\s\S]*?updated_at\s*=\s*CURRENT_TIMESTAMP\s*;',
+                'INSERT\s+INTO\s+cpf_standard_execution_alias\s*\([\s\S]*?updated_at\s*=\s*CURRENT_TIMESTAMP\s*;',
                 '',
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
         }

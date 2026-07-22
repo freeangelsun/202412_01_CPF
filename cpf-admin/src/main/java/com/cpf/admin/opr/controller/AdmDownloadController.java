@@ -1,11 +1,11 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.DownloadAuditLog;
-import cpf.adm.opr.dto.DownloadPolicy;
-import cpf.adm.opr.dto.DownloadRequest;
-import cpf.adm.opr.dto.DownloadResult;
-import cpf.adm.opr.service.AdmDownloadService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.dto.DownloadAuditLog;
+import com.cpf.admin.opr.dto.DownloadPolicy;
+import com.cpf.admin.opr.dto.DownloadRequest;
+import com.cpf.admin.opr.dto.DownloadResult;
+import com.cpf.admin.opr.service.AdmDownloadService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/adm/api/downloads")
 @Tag(name = "ADM-Download", description = "ADM 공통 다운로드와 다운로드 감사 API")
-public class AdmDownloadController extends cpf.adm.common.base.AdmBaseController {
+public class AdmDownloadController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmDownloadService downloadService;
 
     public AdmDownloadController(AdmDownloadService downloadService) {

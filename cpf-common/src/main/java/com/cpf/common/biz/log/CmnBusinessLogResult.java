@@ -1,4 +1,4 @@
-package cpf.cmn.biz.log;
+package com.cpf.common.biz.log;
 
 /**
  * CMN 공통 업무 로그 등록 결과입니다.

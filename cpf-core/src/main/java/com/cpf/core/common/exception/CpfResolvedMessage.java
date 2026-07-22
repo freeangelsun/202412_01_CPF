@@ -1,8 +1,6 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** 외부 응답용 메시지와 내부 운영용 메시지를 분리해 보관합니다. */
 public record CpfResolvedMessage(String externalMessage, String internalMessage) {
 }
 

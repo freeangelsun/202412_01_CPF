@@ -131,7 +131,7 @@ export const referenceMethods: Record<string, any> = {
       },
   validateResponseCodeForm() {
         const code = this.responseCodeForm.responseCode || "";
-        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) return "응답코드는 EXYZ010001 또는 SXYZ000000 형식이어야 합니다.";
+        if (!/^[SE][A-Z]{3}[0-9]{6}$/.test(code)) return "응답코드는 EREF010001 또는 SREF000000 형식이어야 합니다.";
         if (code[0] !== this.responseCodeForm.resultType) return "결과 유형은 응답코드 첫 글자와 같아야 합니다.";
         if (code.substring(1, 4) !== this.responseCodeForm.moduleId) return "모듈 ID는 응답코드 2~4번째 자리와 같아야 합니다.";
         if (code.substring(4, 6) !== this.responseCodeForm.responseGroup) return "응답 그룹은 응답코드 5~6번째 자리와 같아야 합니다.";

@@ -1,4 +1,4 @@
-package cpf.cmn.msg.dto;
+package com.cpf.common.msg.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -10,7 +10,7 @@ import lombok.Data;
 public class CommonMessageRequest {
     private Long messageId;
 
-    /** 표준 메시지 코드입니다. 예: MPFW900001 또는 MMBR010001 */
+    /** 표준 메시지 코드입니다. 예: MCPF900001 또는 MMBR010001 */
     private String messageCode;
 
     /** 기존 호출자 호환을 위한 메시지 키 별칭입니다. */

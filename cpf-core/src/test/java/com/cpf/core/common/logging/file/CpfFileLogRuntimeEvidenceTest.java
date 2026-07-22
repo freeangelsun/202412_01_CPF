@@ -1,9 +1,9 @@
-package cpf.pfw.common.logging.file;
+package com.cpf.core.common.logging.file;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.fallback.TransactionLogFallbackStore;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.fallback.TransactionLogFallbackStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -41,16 +41,16 @@ class CpfFileLogRuntimeEvidenceTest {
         LocalDate businessDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String date = businessDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        CpfFileLogWriter firstWriter = writer(logRoot, "xyz-runtime-probe-01");
-        CpfFileLogWriter secondWriter = writer(logRoot, "xyz-runtime-probe-02");
-        String transactionId = "XYZ01LOG0001";
-        String firstGlobalId = date + "120000000XYZxyzAP010000001";
-        String secondGlobalId = date + "120100000XYZxyzAP010000002";
+        CpfFileLogWriter firstWriter = writer(logRoot, "ref-runtime-probe-01");
+        CpfFileLogWriter secondWriter = writer(logRoot, "ref-runtime-probe-02");
+        String transactionId = "REF01LOG0001";
+        String firstGlobalId = date + "120000000REFrefAP010000001";
+        String secondGlobalId = date + "120100000REFrefAP010000002";
 
-        writeBaseEvent(firstWriter, "XYZ", "application", "RUNTIME_PROBE_APPLICATION");
-        writeBaseEvent(firstWriter, "PFW", "application", "RUNTIME_PROBE_FRAMEWORK");
+        writeBaseEvent(firstWriter, "REF", "application", "RUNTIME_PROBE_APPLICATION");
+        writeBaseEvent(firstWriter, "CPF", "application", "RUNTIME_PROBE_FRAMEWORK");
         writeBaseEvent(firstWriter, "CMN", "application", "RUNTIME_PROBE_COMMON");
-        writeBaseEvent(secondWriter, "XYZ", "application", "RUNTIME_PROBE_SECOND_INSTANCE");
+        writeBaseEvent(secondWriter, "REF", "application", "RUNTIME_PROBE_SECOND_INSTANCE");
 
         firstWriter.writeTransaction(record(firstGlobalId, transactionId, businessDate, "SUCCESS"), Map.of(), null);
         firstWriter.writeTransaction(record(secondGlobalId, transactionId, businessDate, "FAILURE"), Map.of(), null);
@@ -58,7 +58,7 @@ class CpfFileLogRuntimeEvidenceTest {
         TransactionContext.initialize(firstGlobalId, "runtime-probe-trace", null, firstGlobalId);
         TransactionContext.putBusinessTransaction(transactionId, "파일 로그 런타임 검증");
         firstWriter.writeIntegration(
-                "XYZ",
+                "REF",
                 "BZA",
                 "OUTBOUND",
                 "GET",
@@ -70,7 +70,7 @@ class CpfFileLogRuntimeEvidenceTest {
                 null,
                 Map.of("eventType", "RUNTIME_PROBE_INTEGRATION"));
 
-        MockEnvironment fallbackEnvironment = environment(logRoot, "xyz-runtime-probe-01");
+        MockEnvironment fallbackEnvironment = environment(logRoot, "ref-runtime-probe-01");
         TransactionLogFallbackStore fallbackStore = new TransactionLogFallbackStore(
                 new ObjectMapper().findAndRegisterModules(),
                 firstWriter,
@@ -81,12 +81,12 @@ class CpfFileLogRuntimeEvidenceTest {
                 null,
                 new IllegalStateException("runtime probe DB failure"));
 
-        Path firstInstance = logRoot.resolve("local/xyz/xyz-runtime-probe-01");
-        Path secondInstance = logRoot.resolve("local/xyz/xyz-runtime-probe-02");
+        Path firstInstance = logRoot.resolve("local/ref/ref-runtime-probe-01");
+        Path secondInstance = logRoot.resolve("local/ref/ref-runtime-probe-02");
         Path transactionFile = firstInstance.resolve(
                 "transactions/" + date + '/' + transactionId + '_' + date + ".log");
         assertThat(firstInstance.resolve("application")).isDirectory();
-        assertThat(firstInstance.resolve("framework/pfw")).isDirectory();
+        assertThat(firstInstance.resolve("framework/cpf")).isDirectory();
         assertThat(firstInstance.resolve("common/cmn")).isDirectory();
         assertThat(secondInstance.resolve("application")).isDirectory();
         assertThat(transactionFile).exists();
@@ -122,7 +122,7 @@ class CpfFileLogRuntimeEvidenceTest {
         return new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", root.toString())
                 .withProperty("cpf.environment", "local")
-                .withProperty("cpf.framework.module-id", "XYZ")
+                .withProperty("cpf.framework.module-id", "REF")
                 .withProperty("cpf.framework.instance-id", instanceId)
                 .withProperty("cpf.logging.file.archive-compress-enabled", "false");
     }
@@ -137,14 +137,14 @@ class CpfFileLogRuntimeEvidenceTest {
                 .traceId("runtime-probe-trace")
                 .spanId("runtime-probe-span")
                 .sequenceNo(1)
-                .moduleId("XYZ")
+                .moduleId("REF")
                 .businessTransactionId(transactionId)
                 .businessTransactionName("파일 로그 런타임 검증")
                 .logType(status)
                 .httpMethod("GET")
                 .uri("/runtime-probe")
                 .httpStatus("SUCCESS".equals(status) ? 200 : 500)
-                .responseCode("SUCCESS".equals(status) ? "CPF-CMN-0000" : "CPF-PFW-5000")
+                .responseCode("SUCCESS".equals(status) ? "CPF-CMN-0000" : "CPF-CPF-5000")
                 .errorCode("SUCCESS".equals(status) ? null : "RUNTIME_PROBE_FAILURE")
                 .errorMessage("SUCCESS".equals(status) ? null : "password=masked-value")
                 .startTime(LocalDateTime.of(businessDate, java.time.LocalTime.NOON))

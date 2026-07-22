@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmTransactionMetaService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.transaction.CpfTransactionMetaScanResult;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmTransactionMetaService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.transaction.CpfTransactionMetaScanResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/transactions")
 @Tag(name = "ADM-OPR Transaction Meta", description = "CPF 온라인 거래 메타 조회와 scan API")
-public class AdmTransactionMetaController extends cpf.adm.common.base.AdmBaseController {
+public class AdmTransactionMetaController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmTransactionMetaService transactionMetaService;
     private final AdmAuditLogService auditLogService;
 
@@ -52,7 +52,7 @@ public class AdmTransactionMetaController extends cpf.adm.common.base.AdmBaseCon
 
     @PostMapping("/scan")
     @CpfOnlineTransaction(id = "OADMTR0012", name = "ADMTransactionMetaScan")
-    @Operation(operationId = "admTransactionMetaScan", summary = "거래 메타 재스캔", description = "현재 기동 중인 Spring MVC mapping을 스캔해 pfw_transaction_meta를 upsert합니다.")
+    @Operation(operationId = "admTransactionMetaScan", summary = "거래 메타 재스캔", description = "현재 기동 중인 Spring MVC mapping을 스캔해 cpf_transaction_meta를 upsert합니다.")
     public ResponseEntity<CpfTransactionMetaScanResult> scan(
             @RequestParam String reason,
             @RequestParam(defaultValue = "ADM") String requestUser,
@@ -64,7 +64,7 @@ public class AdmTransactionMetaController extends cpf.adm.common.base.AdmBaseCon
                 TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "TRANSACTION_META_SCAN",
-                "pfw_transaction_meta",
+                "cpf_transaction_meta",
                 "ALL",
                 auditReason,
                 null,
@@ -89,7 +89,7 @@ public class AdmTransactionMetaController extends cpf.adm.common.base.AdmBaseCon
                 TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "TRANSACTION_META_INACTIVE",
-                "pfw_transaction_meta",
+                "cpf_transaction_meta",
                 transactionId,
                 auditReason,
                 String.valueOf(result.get("before")),

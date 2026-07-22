@@ -1,7 +1,7 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.common.logging.policy.LogPolicyResolver;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.policy.LogPolicyResolver;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;

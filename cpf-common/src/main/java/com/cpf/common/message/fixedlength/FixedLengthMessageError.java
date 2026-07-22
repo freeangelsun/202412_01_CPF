@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 /**
  * 고정길이 전문 처리 중 발생한 필드 단위 오류입니다.

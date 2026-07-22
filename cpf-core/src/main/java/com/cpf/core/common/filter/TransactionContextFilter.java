@@ -1,10 +1,10 @@
-package cpf.pfw.common.filter;
+package com.cpf.core.common.filter;
 
-import cpf.pfw.common.header.CpfHeaderExtractor;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
-import cpf.pfw.common.logging.TransactionIdGenerator;
-import cpf.pfw.common.workflow.CpfWorkflowContext;
+import com.cpf.core.common.header.CpfHeaderExtractor;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.workflow.CpfWorkflowContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

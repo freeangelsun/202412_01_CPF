@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 파일 전송 이력과 중복 방지를 담당하는 JDBC reference adapter입니다.
+ * CPF 파일 전송 이력과 중복 방지를 담당하는 JDBC reference adapter입니다.
  *
  * <p>LOCAL/SFTP/FTP/SCP/SSH adapter가 어떤 방식으로 실행되더라도 결과는 동일한 테이블에 남기며,
  * source/destination/checksum/business key 기반 중복 차단과 unknown 결과 후속 조사를 지원합니다.</p>
@@ -25,7 +25,7 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
     public boolean alreadyProcessed(String endpointCode, String fileKey, String checksum) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM pfw_file_transfer_history
+                FROM cpf_file_transfer_history
                 WHERE endpoint_code = ?
                   AND duplicate_key = ?
                   AND (? IS NULL OR checksum = ?)
@@ -44,11 +44,11 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
         String duplicateKey = duplicateKey(request);
         try {
             jdbcTemplate.update("""
-                    INSERT INTO pfw_file_transfer_history (
+                    INSERT INTO cpf_file_transfer_history (
                         transfer_id, transaction_global_id, segment_id, endpoint_code, transfer_operation,
                         local_path, remote_path, checksum, file_size, duplicate_key, transfer_status,
                         result_detail, completed_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PFW_FILE_TRANSFER', 'PFW_FILE_TRANSFER')
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_FILE_TRANSFER', 'CPF_FILE_TRANSFER')
                     """,
                     request.transactionGlobalId() + ":" + request.endpointCode() + ":" + duplicateKey,
                     request.transactionGlobalId(),
@@ -65,11 +65,11 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
                     Timestamp.from(result.completedAt()));
         } catch (DuplicateKeyException ex) {
             jdbcTemplate.update("""
-                    UPDATE pfw_file_transfer_history
+                    UPDATE cpf_file_transfer_history
                     SET transfer_status = ?,
                         result_detail = ?,
                         completed_at = ?,
-                        updated_by = 'PFW_FILE_TRANSFER',
+                        updated_by = 'CPF_FILE_TRANSFER',
                         updated_at = CURRENT_TIMESTAMP
                     WHERE transfer_id = ?
                     """,
@@ -91,7 +91,7 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
                        file_size AS fileSize,
                        completed_at AS completedAt,
                        result_detail AS resultDetail
-                FROM pfw_file_transfer_history
+                FROM cpf_file_transfer_history
                 WHERE (? IS NULL OR endpoint_code = ?)
                   AND (? IS NULL OR created_at >= ?)
                   AND (? IS NULL OR created_at <= ?)

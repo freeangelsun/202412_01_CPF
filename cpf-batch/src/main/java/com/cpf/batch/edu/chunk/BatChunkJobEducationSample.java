@@ -1,4 +1,4 @@
-package cpf.bat.edu.chunk;
+package com.cpf.batch.edu.chunk;
 
 import java.util.List;
 

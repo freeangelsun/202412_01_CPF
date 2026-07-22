@@ -3,22 +3,22 @@
 
 -- 과거 실험/초기 개발 DB 정리용 archive SQL입니다.
 -- 공식 CPF 신규 설치 흐름에서는 사용하지 않습니다.
--- 신규 기준본은 `pfw_*`, `cmn_*`, `adm_*`, `acc_*`, `mbr_*` 현행 테이블명만 사용합니다.
+-- 신규 기준본은 `cpf_*`, `cmn_*`, `adm_*`, `acc_*`, `mbr_*` 현행 테이블명만 사용합니다.
 
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
-DROP TABLE IF EXISTS pfwDB.TRAN_LOG_DTL;
-DROP TABLE IF EXISTS pfwDB.TRAN_LOG;
-DROP TABLE IF EXISTS pfwDB.code_table;
-DROP TABLE IF EXISTS pfwDB.message_table;
-DROP TABLE IF EXISTS pfwDB.response_code_table;
-DROP TABLE IF EXISTS pfwDB.config_table;
-DROP TABLE IF EXISTS pfwDB.cache_refresh_event;
-DROP TABLE IF EXISTS pfwDB.file_exchange_log;
-DROP TABLE IF EXISTS pfwDB.security_jwt_key;
-DROP TABLE IF EXISTS pfwDB.security_token_audit_log;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log_detail;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log;
+DROP TABLE IF EXISTS cpfDB.TRAN_LOG_DTL;
+DROP TABLE IF EXISTS cpfDB.TRAN_LOG;
+DROP TABLE IF EXISTS cpfDB.code_table;
+DROP TABLE IF EXISTS cpfDB.message_table;
+DROP TABLE IF EXISTS cpfDB.response_code_table;
+DROP TABLE IF EXISTS cpfDB.config_table;
+DROP TABLE IF EXISTS cpfDB.cache_refresh_event;
+DROP TABLE IF EXISTS cpfDB.file_exchange_log;
+DROP TABLE IF EXISTS cpfDB.security_jwt_key;
+DROP TABLE IF EXISTS cpfDB.security_token_audit_log;
 
 DROP TABLE IF EXISTS admDB.operator_user_role;
 DROP TABLE IF EXISTS admDB.operator_role_menu;

@@ -1,4 +1,4 @@
-package cpf.bat.edu.retry;
+package com.cpf.batch.edu.retry;
 
 import org.junit.jupiter.api.Test;
 

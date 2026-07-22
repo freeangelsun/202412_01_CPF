@@ -1,4 +1,4 @@
-package cpf.pfw.common.transaction;
+package com.cpf.core.common.transaction;
 
 import java.util.List;
 

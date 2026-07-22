@@ -1,4 +1,4 @@
-package cpf.adm.config;
+package com.cpf.admin.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -1,4 +1,4 @@
-package cpf.bza.auth.repository;
+package com.cpf.bizadmin.auth.repository;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;

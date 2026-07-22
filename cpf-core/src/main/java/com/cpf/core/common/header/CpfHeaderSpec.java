@@ -1,4 +1,4 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
 /**
  * CPF 표준 헤더 한 건에 대한 문서, 검증, 로그, DB 저장 기준입니다.

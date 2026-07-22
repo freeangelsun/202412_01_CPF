@@ -1,4 +1,4 @@
-package cpf.xyz.crud;
+package com.cpf.reference.crud;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * 온라인 업무 CRUD 처리 흐름을 보여주는 교육 샘플입니다.
  */
-public class XyzCrudEducationSample {
+public class ReferenceCrudEducationSample {
     private final Map<String, String> store = new LinkedHashMap<>();
 
     public String create(String id, String name) {

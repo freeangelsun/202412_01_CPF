@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.policy;
+package com.cpf.core.common.logging.policy;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessException;
@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * pfwDB의 로그 정책 테이블을 조회하는 JDBC 저장소입니다.
+ * cpfDB의 로그 정책 테이블을 조회하는 JDBC 저장소입니다.
  *
- * <p>pfwDB가 아직 설치되지 않은 개발 환경에서도 애플리케이션 기동을 막지 않도록
+ * <p>cpfDB가 아직 설치되지 않은 개발 환경에서도 애플리케이션 기동을 막지 않도록
  * 테이블 미존재, 연결 실패, 권한 오류는 빈 결과로 처리합니다. 정책 평가 계층은 이때
  * application.yml 기본값 또는 CPF 기본값으로 안전하게 fallback합니다.</p>
  */
@@ -33,7 +33,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
 
     @Override
     public Optional<LogPolicyRow> findActiveOverride(LogPolicyTargetType targetType, String targetId, LocalDateTime now) {
-        if (!tableAvailable("pfw_log_policy_override")) {
+        if (!tableAvailable("cpf_log_policy_override")) {
             return Optional.empty();
         }
         try {
@@ -46,7 +46,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
                     SELECT override_id, policy_id, target_type, target_id, log_level,
                            db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn,
                            response_body_log_yn, error_stack_log_yn, masking_policy_key
-                    FROM pfw_log_policy_override
+                    FROM cpf_log_policy_override
                     WHERE active_yn = 'Y'
                       AND target_type IN (%s)
                       AND target_id IN (?, '*')
@@ -63,7 +63,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
 
     @Override
     public Optional<LogPolicyRow> findActivePolicy(LogPolicyTargetType targetType, String targetId) {
-        if (!tableAvailable("pfw_log_policy")) {
+        if (!tableAvailable("cpf_log_policy")) {
             return Optional.empty();
         }
         try {
@@ -74,7 +74,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
                     SELECT policy_id, NULL AS override_id, target_type, target_id, log_level,
                            db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn,
                            response_body_log_yn, error_stack_log_yn, masking_policy_key
-                    FROM pfw_log_policy
+                    FROM cpf_log_policy
                     WHERE active_yn = 'Y'
                       AND target_type IN (%s)
                       AND target_id IN (?, '*')
@@ -111,7 +111,7 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
         }
         DataSource dataSource = dataSourceProvider.getIfAvailable();
         if (dataSource == null) {
-            throw new IllegalStateException("pfwDataSource 또는 pfwJdbcTemplate이 필요합니다.");
+            throw new IllegalStateException("cpfDataSource 또는 cpfJdbcTemplate이 필요합니다.");
         }
         return new JdbcTemplate(dataSource);
     }

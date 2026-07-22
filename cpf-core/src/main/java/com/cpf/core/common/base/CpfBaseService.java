@@ -1,6 +1,6 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.common.exception.CpfValidationException;
 
 /**
  * CPF 업무 Service가 사용하는 canonical 기술 확장점입니다.

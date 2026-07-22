@@ -1,21 +1,21 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.common.servicecall.CpfEndpointRegistry;
-import cpf.pfw.common.servicecall.CpfEndpointResolver;
-import cpf.pfw.common.servicecall.CpfHealthAwareInstanceSelector;
-import cpf.pfw.common.servicecall.CpfRemoteFacadeProxySupport;
-import cpf.pfw.common.servicecall.CpfRoutingPolicyResolver;
-import cpf.pfw.common.servicecall.CpfServiceCallEngine;
-import cpf.pfw.common.servicecall.CpfServiceCallLogWriter;
-import cpf.pfw.common.servicecall.CpfServiceCallProperties;
-import cpf.pfw.common.servicecall.CpfServiceHealthChecker;
-import cpf.pfw.common.servicecall.CpfServiceInstanceRegistry;
-import cpf.pfw.common.servicecall.CpfServiceRegistry;
-import cpf.pfw.common.servicecall.CpfServiceRegistryRepository;
-import cpf.pfw.api.servicecall.CpfServiceRegistryQueryPort;
-import cpf.pfw.common.servicecall.CpfServiceRegistryQueryFacade;
-import cpf.pfw.common.logging.segment.TransactionSegmentService;
-import cpf.pfw.common.reconciliation.CpfReconciliationPort;
+import com.cpf.core.common.servicecall.CpfEndpointRegistry;
+import com.cpf.core.common.servicecall.CpfEndpointResolver;
+import com.cpf.core.common.servicecall.CpfHealthAwareInstanceSelector;
+import com.cpf.core.common.servicecall.CpfRemoteFacadeProxySupport;
+import com.cpf.core.common.servicecall.CpfRoutingPolicyResolver;
+import com.cpf.core.common.servicecall.CpfServiceCallEngine;
+import com.cpf.core.common.servicecall.CpfServiceCallLogWriter;
+import com.cpf.core.common.servicecall.CpfServiceCallProperties;
+import com.cpf.core.common.servicecall.CpfServiceHealthChecker;
+import com.cpf.core.common.servicecall.CpfServiceInstanceRegistry;
+import com.cpf.core.common.servicecall.CpfServiceRegistry;
+import com.cpf.core.common.servicecall.CpfServiceRegistryRepository;
+import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.common.servicecall.CpfServiceRegistryQueryFacade;
+import com.cpf.core.common.logging.segment.TransactionSegmentService;
+import com.cpf.core.common.reconciliation.CpfReconciliationPort;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -36,8 +36,8 @@ public class CpfServiceCallAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfServiceRegistryRepository cpfServiceRegistryRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfServiceRegistryRepository(jdbcTemplateProvider, dataSourceProvider);
     }
 

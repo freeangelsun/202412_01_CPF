@@ -1,4 +1,4 @@
-package cpf.bat.edu.logging;
+package com.cpf.batch.edu.logging;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BatJobLogEducationSampleTest {
 
     @Test
-    void logPathUsesPfwJobInstancePolicy() {
+    void logPathUsesCpfJobInstancePolicy() {
         String path = new BatJobLogEducationSample()
                 .logPath(Path.of("logs"), "CPF_EDU_JOB", 100L, LocalDate.of(2026, 7, 13))
                 .toString()

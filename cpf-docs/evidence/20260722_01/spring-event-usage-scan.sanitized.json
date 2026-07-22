@@ -1,0 +1,53 @@
+{
+    "generatedAt":  "2026-07-22T15:05:06.7551921+09:00",
+    "status":  "DONE",
+    "checkedFiles":  757,
+    "allowedCount":  5,
+    "reviewCount":  0,
+    "forbiddenCount":  0,
+    "allowed":  [
+                    {
+                        "rule":  "SPRING_EVENT_ALLOWED_HOOK",
+                        "path":  "cpf-batch/src/main/java/com/cpf/batch/worker/BatWorkerAgent.java",
+                        "detail":  "Allowed hook/log/audit/meta support usage."
+                    },
+                    {
+                        "rule":  "SPRING_EVENT_ALLOWED_HOOK",
+                        "path":  "cpf-core/src/main/java/com/cpf/core/common/logging/LoggingAspect.java",
+                        "detail":  "Allowed hook/log/audit/meta support usage."
+                    },
+                    {
+                        "rule":  "SPRING_EVENT_ALLOWED_HOOK",
+                        "path":  "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionLogListener.java",
+                        "detail":  "Allowed hook/log/audit/meta support usage."
+                    },
+                    {
+                        "rule":  "SPRING_EVENT_ALLOWED_HOOK",
+                        "path":  "cpf-core/src/main/java/com/cpf/core/common/logging/file/TransactionFileLogListener.java",
+                        "detail":  "Allowed hook/log/audit/meta support usage."
+                    },
+                    {
+                        "rule":  "SPRING_EVENT_ALLOWED_HOOK",
+                        "path":  "cpf-core/src/main/java/com/cpf/core/config/CpfTransactionMetaAutoConfiguration.java",
+                        "detail":  "Allowed hook/log/audit/meta support usage."
+                    }
+                ],
+    "reviewCandidates":  [
+
+                         ],
+    "forbidden":  [
+
+                  ],
+    "eventClasses":  [
+                         {
+                             "rule":  "EVENT_CLASS",
+                             "path":  "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEvent.java",
+                             "detail":  "Class or record name ends with Event."
+                         },
+                         {
+                             "rule":  "EVENT_CLASS",
+                             "path":  "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionLogEvent.java",
+                             "detail":  "Class or record name ends with Event."
+                         }
+                     ]
+}

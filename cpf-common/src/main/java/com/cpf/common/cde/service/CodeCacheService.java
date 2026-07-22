@@ -1,8 +1,8 @@
-package cpf.cmn.cde.service;
+package com.cpf.common.cde.service;
 
-import cpf.cmn.cde.dto.CommonCodeRequest;
-import cpf.cmn.cde.mapper.CodeMapper;
-import cpf.cmn.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.cde.dto.CommonCodeRequest;
+import com.cpf.common.cde.mapper.CodeMapper;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 공통 코드 캐시 서비스입니다.
+ * CPF 공통 코드 캐시 서비스입니다.
  * 코드 조회, 등록, 수정, 삭제 후 캐시 초기화와 refresh 이벤트 발행을 함께 처리합니다.
  */
 @Service
-public class CodeCacheService extends cpf.cmn.common.base.CmnBaseService {
+public class CodeCacheService extends com.cpf.common.common.base.CmnBaseService {
 
     private static final Logger logger = LoggerFactory.getLogger(CodeCacheService.class);
     private static final String CACHE_NAME = "codeCache";

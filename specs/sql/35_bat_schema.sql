@@ -1,11 +1,11 @@
 -- BAT worker와 배치 실행 구현체가 소유하는 런타임 보조 스키마입니다.
--- PFW는 center-cut 표준 계약과 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
+-- CPF는 center-cut 표준 계약과 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
 
-USE pfwDB;
+USE cpfDB;
 
 CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    batch_job_id VARCHAR(100) NULL COMMENT '연결된 PFW 배치 Job ID',
+    batch_job_id VARCHAR(100) NULL COMMENT '연결된 CPF 배치 Job ID',
     center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
     provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
     handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     PRIMARY KEY (center_cut_job_id),
     INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn),
     CONSTRAINT fk_bat_center_cut_job_batch
-        FOREIGN KEY (batch_job_id) REFERENCES pfw_batch_job(job_id)
+        FOREIGN KEY (batch_job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
 

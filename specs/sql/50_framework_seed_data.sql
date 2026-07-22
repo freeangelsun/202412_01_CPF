@@ -1,9 +1,9 @@
 -- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
--- 대상 DB: pfwDB
+-- 대상 DB: cpfDB
 
-USE pfwDB;
+USE cpfDB;
 
-INSERT INTO pfw_channel_registry (
+INSERT INTO cpf_channel_registry (
     channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn,
     authentication_required_yn, signature_required_yn, active_yn, description,
     policy_version, created_by, updated_by
@@ -26,12 +26,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_channel_execution_policy (
+INSERT INTO cpf_channel_execution_policy (
     policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type,
     allowed_yn, authentication_required_yn, signature_required_yn, max_tps,
     effective_from, effective_to, active_yn, policy_version, created_by, updated_by
 ) VALUES (
-    'PFW.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
+    'CPF.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
@@ -47,7 +47,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
     (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -63,67 +63,67 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'PFW', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'XYZ', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', '재시도 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', '웹 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', '모바일 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', '배치 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', '관리자 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', '성공', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', '오류', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', '고정 메시지', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', '인덱스 파라미터 메시지', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'TRACE 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'DEBUG 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'INFO 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'WARN 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'ERROR 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', '전체 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', '코드 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', '메시지 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', '응답코드 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', '설정 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'TASKLET', 'Tasklet 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'REF', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', '재시도 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', '웹 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', '모바일 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', '배치 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', '관리자 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', '성공', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', '오류', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', '고정 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', '인덱스 파라미터 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'TRACE 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'DEBUG 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'INFO 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'WARN 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'ERROR 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', '전체 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', '코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', '메시지 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', '응답코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', '설정 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'TASKLET', 'Tasklet 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parent_id = VALUES(parent_id),
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_message (
+INSERT INTO cpf_message (
     message_code, locale, message_format_type, external_message, internal_message,
     parameter_count, parameter_sample, description, created_by, updated_by
 ) VALUES
-    ('MPFW000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'PFW 공통 요청이 정상 처리되었습니다.', 0, NULL, 'PFW 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'PFW 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'PFW 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'PFW 중복 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'PFW 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'PFW 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'PFW 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'PFW 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'PFW 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'PFW 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'PFW 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'PFW @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'PFW 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'PFW 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'PFW endpoint 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'PFW 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'PFW 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'CPF 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'CPF 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'CPF 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'CPF 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'CPF 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'CPF 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'CPF 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'CPF 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'CPF 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'CPF 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'CPF 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
@@ -137,7 +137,7 @@ INSERT INTO pfw_message (
     ('MMBR010104', 'ko', 'INDEXED', '중복된 회원 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'MBR 중복 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MXYZ090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=XYZ_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'XYZ 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -151,26 +151,26 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_response_code (
+INSERT INTO cpf_response_code (
     response_code, message_code, result_type, module_id, response_group, sequence_no,
     http_status, description, created_by, updated_by
 ) VALUES
-    ('SPFW000000', 'MPFW000000', 'S', 'PFW', '00', '0000', 200, 'PFW 공통 성공', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010001', 'MPFW010001', 'E', 'PFW', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010002', 'MPFW010002', 'E', 'PFW', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010003', 'MPFW010003', 'E', 'PFW', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010004', 'MPFW010004', 'E', 'PFW', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010005', 'MPFW010005', 'E', 'PFW', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010006', 'MPFW010006', 'E', 'PFW', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),
-    ('EPFW020001', 'MPFW020001', 'E', 'PFW', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),
-    ('EPFW030001', 'MPFW030001', 'E', 'PFW', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900001', 'MPFW900001', 'E', 'PFW', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900002', 'MPFW900002', 'E', 'PFW', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900003', 'MPFW900003', 'E', 'PFW', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900005', 'MPFW900005', 'E', 'PFW', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
+    ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010004', 'MCPF010004', 'E', 'CPF', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010005', 'MCPF010005', 'E', 'CPF', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010006', 'MCPF010006', 'E', 'CPF', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),
+    ('ECPF020001', 'MCPF020001', 'E', 'CPF', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),
+    ('ECPF030001', 'MCPF030001', 'E', 'CPF', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900001', 'MCPF900001', 'E', 'CPF', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900002', 'MCPF900002', 'E', 'CPF', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900003', 'MCPF900003', 'E', 'CPF', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900004', 'MCPF900004', 'E', 'CPF', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900005', 'MCPF900005', 'E', 'CPF', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
+    ('ECPF990000', 'MCPF990000', 'E', 'CPF', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
     ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
     ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
@@ -196,14 +196,14 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
 VALUES
     ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'PFW HTTP client 연결 timeout', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'PFW HTTP client 읽기 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'CPF HTTP client 연결 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'CPF HTTP client 읽기 timeout', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.SESSION_TTL_SECONDS', '3600', 'NUMBER', 'ADM 세션 TTL 초', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_EXPIRE_DAYS', '90', 'NUMBER', 'ADM 비밀번호 만료 일수', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
@@ -219,7 +219,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_log_policy (
+INSERT INTO cpf_log_policy (
     policy_key, policy_name, target_type, target_id, log_level,
     db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
     error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
@@ -246,7 +246,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_security_jwt_key (
+INSERT INTO cpf_security_jwt_key (
     KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
 ) VALUES (
     'local-cpf-hs256-001',
@@ -267,13 +267,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_cache_refresh_event (
+INSERT INTO cpf_cache_refresh_event (
     cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by
 )
 SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_cache_refresh_event
+    FROM cpf_cache_refresh_event
     WHERE cache_name = 'ALL'
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
@@ -291,7 +291,7 @@ INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
 SELECT 0
 WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
 
-INSERT INTO pfw_batch_instance (
+INSERT INTO cpf_batch_instance (
     instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
 ) VALUES (
     'local-batch-01',
@@ -300,7 +300,7 @@ INSERT INTO pfw_batch_instance (
     8099,
     'Y',
     NOW(3),
-    'XYZ EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스',
+    'REF EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스',
     'SYSTEM',
     'SYSTEM'
 )
@@ -314,7 +314,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_worker (
+INSERT INTO cpf_batch_worker (
     worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
     active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by
 ) VALUES (
@@ -346,7 +346,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -361,7 +361,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_schedule (
+INSERT INTO cpf_batch_schedule (
     schedule_id, job_id, cron_expression, calendar_id, business_day_only_yn,
     holiday_policy, available_start_time, available_end_time, run_date_pattern,
     timezone, enabled_yn, created_by, updated_by
@@ -382,7 +382,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job_relation (
+INSERT INTO cpf_batch_job_relation (
     job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -395,7 +395,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_execution (
+INSERT INTO cpf_batch_execution (
     job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id,
     worker_id, transaction_global_id, start_time, end_time,
     read_count, write_count, skip_count, requested_by, created_by, updated_by
@@ -408,7 +408,7 @@ SELECT
     'local-batch-01',
     'local-batch-01',
     'local-batch-01',
-    '20260615120000000XYZlocal010000001',
+    '20260615120000000REFlocal010000001',
     DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
     DATE_SUB(NOW(3), INTERVAL 9 MINUTE),
     1,
@@ -419,7 +419,7 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_batch_execution
+    FROM cpf_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -427,7 +427,7 @@ WHERE NOT EXISTS (
 
 SET @cpf_edu_execution_id = (
     SELECT execution_id
-    FROM pfw_batch_execution
+    FROM cpf_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -435,7 +435,7 @@ SET @cpf_edu_execution_id = (
     LIMIT 1
 );
 
-INSERT INTO pfw_batch_step_execution (
+INSERT INTO cpf_batch_step_execution (
     execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
     start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
@@ -443,12 +443,12 @@ SELECT @cpf_edu_execution_id, NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'C
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_batch_step_execution
+      FROM cpf_batch_step_execution
       WHERE execution_id = @cpf_edu_execution_id
         AND step_name = 'CPF_EDU_TASKLET_STEP'
   );
 
-INSERT INTO pfw_batch_execution_target (
+INSERT INTO cpf_batch_execution_target (
     execution_id, job_id, schedule_id, target_instance_id, business_date, planned_run_at,
     dispatch_status, dispatch_reason, created_by, updated_by
 )
@@ -466,13 +466,13 @@ SELECT
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_batch_execution_target
+      FROM cpf_batch_execution_target
       WHERE job_id = 'CPF_EDU_TASKLET_JOB'
         AND business_date = CURRENT_DATE
         AND target_instance_id = 'local-batch-01'
   );
 
-INSERT INTO pfw_business_day_calendar (
+INSERT INTO cpf_business_day_calendar (
     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
 ) VALUES
     ('DEFAULT', CURRENT_DATE, 'N', 'Y', '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
@@ -484,7 +484,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_notification_rule (
+INSERT INTO cpf_notification_rule (
     event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
 ) VALUES
     ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -497,33 +497,33 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_notification_delivery_log (
+INSERT INTO cpf_notification_delivery_log (
     rule_id, event_type, target_type, target_id, receiver, delivery_status, delivery_message, created_by, updated_by
 )
 SELECT
     rule_id,
     'BATCH_EXECUTION',
-    'pfw_batch_execution',
+    'cpf_batch_execution',
     CAST(@cpf_edu_execution_id AS CHAR),
     'ADM_BATCH_OPERATOR',
     'SKIPPED',
     '로컬 seed 알림 발송 로그 샘플입니다.',
     'SYSTEM',
     'SYSTEM'
-FROM pfw_notification_rule
+FROM cpf_notification_rule
 WHERE event_type = 'BATCH_EXECUTION'
   AND event_sub_type = 'FAILED'
   AND @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_notification_delivery_log
+      FROM cpf_notification_delivery_log
       WHERE event_type = 'BATCH_EXECUTION'
         AND target_id = CAST(@cpf_edu_execution_id AS CHAR)
         AND receiver = 'ADM_BATCH_OPERATOR'
   )
 LIMIT 1;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
@@ -544,13 +544,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF XYZ 업무 DB 센터컷 샘플 Job',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF REF 업무 DB 센터컷 샘플 Job',
     'TASKLET',
-    'XYZ 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
+    'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
     'Y',
     'Y',
     'SYSTEM',
@@ -577,7 +577,7 @@ INSERT INTO bat_center_cut_job (
     10,
     3,
     'Y',
-    'PFW 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
+    'CPF 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -597,15 +597,15 @@ INSERT INTO bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
 ) VALUES (
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF XYZ 업무 DB 센터컷 샘플 Job',
-    'xyzCenterCutTargetProvider',
-    'xyzCenterCutHandler',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF REF 업무 DB 센터컷 샘플 Job',
+    'refCenterCutTargetProvider',
+    'refCenterCutHandler',
     10,
     3,
     'Y',
-    'PFW 표준 계약과 XYZ 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
+    'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -633,12 +633,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service (
+INSERT INTO cpf_service (
     service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
 ) VALUES
     ('BZA', '업무 백오피스 서비스', 'INTERNAL', 'BZA', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ', '온라인 교육 서비스', 'INTERNAL', 'XYZ', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF', '온라인 교육 서비스', 'INTERNAL', 'REF', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ACC', '계정 Reference 서비스', 'INTERNAL', 'ACC', '생성기 검증과 MBR 연계에 사용하는 계정 reference 서비스', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
@@ -651,13 +651,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_endpoint (
+INSERT INTO cpf_service_endpoint (
     endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
     default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
 ) VALUES
     ('BZA_API', 'BZA', 'BZA API Endpoint', 'HTTP', 'http://localhost:8091', '/api/bza', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ_API', 'XYZ', 'XYZ API Endpoint', 'HTTP', 'http://localhost:8099', '/xyz', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF_API', 'REF', 'REF API Endpoint', 'HTTP', 'http://localhost:8099', '/ref', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8082', '/internal/api/v1/accounts', 3000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
@@ -673,13 +673,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_instance (
+INSERT INTO cpf_service_instance (
     instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
     port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
 ) VALUES
     ('BZA-local-01', 'BZA', 'BZA_API', 'BZA local instance', 'http://localhost:8091', 'localhost', 8091, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('XYZ-local-01', 'XYZ', 'XYZ_API', 'XYZ local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('REF-local-01', 'REF', 'REF_API', 'REF local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8082', 'localhost', 8082, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
@@ -697,13 +697,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_routing_policy (
+INSERT INTO cpf_service_routing_policy (
     service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
     health_check_required_yn, active_yn, priority, created_by, updated_by
 ) VALUES
     ('BZA', 'BZA_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
-    ('XYZ', 'XYZ_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('REF', 'REF_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
@@ -716,12 +716,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_circuit_state (
+INSERT INTO cpf_service_circuit_state (
     service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by
 ) VALUES
     ('BZA', 'BZA_API', 'BZA-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('XYZ', 'XYZ_API', 'XYZ-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('REF', 'REF_API', 'REF-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
@@ -733,73 +733,73 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'BZA', 'BZA_API', 'BZA-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'BZA' AND endpoint_code = 'BZA_API' AND instance_id = 'BZA-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'MBR', 'MBR_API', 'MBR-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'MBR' AND endpoint_code = 'MBR_API' AND instance_id = 'MBR-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
-SELECT 'XYZ', 'XYZ_API', 'XYZ-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'REF', 'REF_API', 'REF-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
-    WHERE service_id = 'XYZ' AND endpoint_code = 'XYZ_API' AND instance_id = 'XYZ-local-01' AND created_by = 'SYSTEM'
+    SELECT 1 FROM cpf_service_health_status
+    WHERE service_id = 'REF' AND endpoint_code = 'REF_API' AND instance_id = 'REF-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'xyz_center_cut_sample_target', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'xyz_center_cut_sample_result', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'ref_center_cut_sample_target', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'ref_center_cut_sample_result', 'N', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parameter_value = VALUES(parameter_value),
     encrypted_yn = VALUES(encrypted_yn),

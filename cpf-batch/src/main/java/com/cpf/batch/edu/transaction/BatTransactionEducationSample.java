@@ -1,4 +1,4 @@
-package cpf.bat.edu.transaction;
+package com.cpf.batch.edu.transaction;
 
 import java.util.List;
 

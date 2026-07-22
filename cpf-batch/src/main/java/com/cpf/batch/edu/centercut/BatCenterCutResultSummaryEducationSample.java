@@ -1,4 +1,4 @@
-package cpf.bat.edu.centercut;
+package com.cpf.batch.edu.centercut;
 
 /**
  * center-cut 성공/실패 건수 요약 샘플입니다.

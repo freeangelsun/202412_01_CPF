@@ -1,4 +1,4 @@
-package cpf.xyz.archive;
+package com.cpf.reference.archive;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -7,12 +7,12 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzArchiveEducationSampleTest {
+class ReferenceArchiveEducationSampleTest {
     @TempDir
     Path tempDir;
 
     @Test
-    void archiveSampleUsesPfwArchiveCapability() {
-        assertThat(new XyzArchiveEducationSample().createZip(tempDir).outputPath()).exists();
+    void archiveSampleUsesCpfArchiveCapability() {
+        assertThat(new ReferenceArchiveEducationSample().createZip(tempDir).outputPath()).exists();
     }
 }

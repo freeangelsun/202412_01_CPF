@@ -3,7 +3,7 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!-- MBR 회원 샘플 Mapper입니다. -->
-<mapper namespace="cpf.mbr.bse.mapper.MemberMapper">
+<mapper namespace="com.cpf.member.bse.mapper.MemberMapper">
 
     <sql id="memberColumns">
         id,

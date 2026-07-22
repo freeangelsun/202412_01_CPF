@@ -1,4 +1,4 @@
-package cpf.bat.edu.centercut;
+package com.cpf.batch.edu.centercut;
 
 /**
  * 실패 item 재처리 가능 여부를 판단하는 샘플입니다.

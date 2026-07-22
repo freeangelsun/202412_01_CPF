@@ -1,4 +1,4 @@
-package cpf.cmn.cde.dto;
+package com.cpf.common.cde.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

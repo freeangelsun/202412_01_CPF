@@ -1,9 +1,16 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
-    [string] $ModuleCode = "pym",
+    [string] $DomainName = "lending",
+    [string] $SystemCode = "LND",
     [string] $ModuleName = "Lending"
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -24,11 +31,13 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "create-domain-result.sanitized.json"
-$previewDir = Join-Path $Root "build/domain-generator/$ModuleCode"
-$verificationDir = Join-Path $Root "build/domain-generator-verification/$ModuleCode"
-$moduleClassName = $ModuleCode.Substring(0, 1).ToUpperInvariant() + $ModuleCode.Substring(1).ToLowerInvariant()
+$projectName = "cpf-$DomainName"
+$previewDir = Join-Path $Root "build/domain-generator/$projectName"
+$verificationDir = Join-Path $Root "build/domain-generator-verification/$projectName"
+$moduleClassName = $ModuleName
 $featureClassPrefix = "${ModuleName}Reference"
-$featurePath = "cpf/$ModuleCode/reference"
+$featurePath = "com/cpf/$DomainName/reference"
+$basePath = "com/cpf/$DomainName"
 
 function Save-Result {
     param([object] $Result)
@@ -53,11 +62,10 @@ function Invoke-CreateDomain {
         "-ExecutionPolicy", "Bypass",
         "-File", $runtimeScript,
         "-Root", $Root,
-        "-ModuleCode", $ModuleCode,
+        "-DomainName", $DomainName,
+        "-SystemCode", $SystemCode,
         "-ModuleName", $ModuleName,
-        "-DomainIdCode", $ModuleCode.ToUpperInvariant(),
-        "-BasePackage", "cpf.$ModuleCode",
-        "-TablePrefix", $ModuleCode,
+        "-TablePrefix", $DomainName,
         "-Port", "8188",
         "-Online", "Y",
         "-Batch", "N",
@@ -80,7 +88,9 @@ function Invoke-CreateDomain {
 
 $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
-    moduleCode = $ModuleCode
+    domainName = $DomainName
+    systemCode = $SystemCode
+    projectName = $projectName
     dryRun = [ordered]@{}
     generate = [ordered]@{}
     requiredFiles = @()
@@ -106,16 +116,16 @@ try {
         "manifest/generator-ownership.json",
         "manifest/standard-execution-catalog.json",
         "src/main/resources/application.yml",
-        "src/main/resources/application-${ModuleCode}.yml",
-        "src/main/java/cpf/$ModuleCode/${moduleClassName}Application.java",
-        "src/main/java/cpf/$ModuleCode/common/base/${moduleClassName}BaseController.java",
-        "src/main/java/cpf/$ModuleCode/common/base/${moduleClassName}BaseService.java",
-        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}ApplicationFacade.java",
-        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}RepositoryPort.java",
-        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}Request.java",
-        "src/main/java/cpf/$ModuleCode/common/contract/${moduleClassName}Response.java",
-        "src/main/java/cpf/$ModuleCode/config/${ModuleName}DataSourceConfig.java",
-        "src/main/java/cpf/$ModuleCode/config/${ModuleName}MyBatisConfig.java",
+        "src/main/resources/application-${DomainName}.yml",
+        "src/main/java/$basePath/${moduleClassName}Application.java",
+        "src/main/java/$basePath/common/base/${moduleClassName}BaseController.java",
+        "src/main/java/$basePath/common/base/${moduleClassName}BaseService.java",
+        "src/main/java/$basePath/common/contract/${moduleClassName}ApplicationFacade.java",
+        "src/main/java/$basePath/common/contract/${moduleClassName}RepositoryPort.java",
+        "src/main/java/$basePath/common/contract/${moduleClassName}Request.java",
+        "src/main/java/$basePath/common/contract/${moduleClassName}Response.java",
+        "src/main/java/$basePath/config/${ModuleName}DataSourceConfig.java",
+        "src/main/java/$basePath/config/${ModuleName}MyBatisConfig.java",
         "src/main/java/$featurePath/controller/${featureClassPrefix}Controller.java",
         "src/main/java/$featurePath/facade/${featureClassPrefix}Facade.java",
         "src/main/java/$featurePath/port/${featureClassPrefix}QueryPort.java",
@@ -126,9 +136,12 @@ try {
         "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
         "src/main/java/$featurePath/validation/${featureClassPrefix}SearchValidator.java",
         "src/test/java/$featurePath/service/${featureClassPrefix}ServiceTest.java",
-        "src/main/resources/mybatis/mapper/$ModuleCode/reference/${featureClassPrefix}Mapper.xml",
-        "smoke/smoke-${ModuleCode}.ps1",
-        "sql/Vxx__${ModuleCode}_domain.sql"
+        "src/main/resources/mybatis/mapper/$DomainName/reference/${featureClassPrefix}Mapper.xml",
+        "src/main/java/$featurePath/security/${ModuleName}OperationGuard.java",
+        "src/main/java/$featurePath/security/${ModuleName}OperationController.java",
+        "src/test/java/$featurePath/security/${ModuleName}OperationGuardTest.java",
+        "smoke/smoke-${DomainName}.ps1",
+        "sql/Vxx__${DomainName}_domain.sql"
     )
     foreach ($relative in $required) {
         $path = Join-Path $previewDir $relative
@@ -145,8 +158,10 @@ try {
     $forbidden = @(
         "patch-candidates",
         "src/main/java/$featurePath/batch",
-        "src/main/java/cpf/$ModuleCode/config/${ModuleName}BatchRepositoryConfig.java",
-        "src/main/resources/application-${ModuleCode}-prod.yml",
+        "src/main/java/$basePath/config/${ModuleName}BatchRepositoryConfig.java",
+        "src/main/java/$featurePath/messaging",
+        "src/main/java/$featurePath/file",
+        "src/main/resources/application-${DomainName}-prod.yml",
         "deploy"
     )
     foreach ($relative in $forbidden) {
@@ -190,9 +205,9 @@ pluginManagement {
 }
 
 rootProject.name = 'cpf-generated-domain-verification'
-include 'pfw', '$ModuleCode'
-project(':pfw').projectDir = file('${rootForGradle}/pfw')
-project(':$ModuleCode').projectDir = file('$previewForGradle')
+include 'cpf-core', '$projectName'
+project(':cpf-core').projectDir = file('${rootForGradle}/cpf-core')
+project(':$projectName').projectDir = file('$previewForGradle')
 "@
     $rootBuild = @"
 plugins {
@@ -249,7 +264,7 @@ subprojects {
     try {
         $ErrorActionPreference = "Continue"
         $compileOutputLines = @(& $javaExecutable "-Dorg.gradle.appname=gradlew" -jar $gradleWrapperJar -p $verificationDir `
-                ":${ModuleCode}:test" ":${ModuleCode}:bootJar" ":${ModuleCode}:bootWar" `
+                ":${projectName}:test" ":${projectName}:bootJar" ":${projectName}:bootWar" `
                 --no-daemon --console=plain 2>&1 | ForEach-Object { $_.ToString() })
         $compileExitCode = $LASTEXITCODE
     } finally {
@@ -262,7 +277,7 @@ subprojects {
     & (Join-Path $Root "scripts/write-sanitized-evidence.ps1") `
         -EvidenceId "CREATE_DOMAIN_COMPILE" `
         -Status $compileStatus `
-        -Command ".\gradlew.bat :${ModuleCode}:test :${ModuleCode}:bootJar :${ModuleCode}:bootWar" `
+        -Command ".\gradlew.bat :${projectName}:test :${projectName}:bootJar :${projectName}:bootWar" `
         -OutputPath $compileLogPath `
         -ExitCode $compileExitCode `
         -SourceLog $compileRawLogPath `
@@ -271,15 +286,15 @@ subprojects {
         status = $compileStatus
         exitCode = $compileExitCode
         logPath = $compileLogPath.Substring($Root.Length).TrimStart('\', '/')
-        testTask = ":${ModuleCode}:test"
-        bootJarTask = ":${ModuleCode}:bootJar"
-        bootWarTask = ":${ModuleCode}:bootWar"
+        testTask = ":${projectName}:test"
+        bootJarTask = ":${projectName}:bootJar"
+        bootWarTask = ":${projectName}:bootWar"
     }
     if ($compileExitCode -ne 0) {
         throw "generated domain compile/test/bootJar failed. log=$compileLogPath"
     }
 
-    $applicationClass = Join-Path $previewDir "build/classes/java/main/cpf/$ModuleCode/${moduleClassName}Application.class"
+    $applicationClass = Join-Path $previewDir "build/classes/java/main/$basePath/${moduleClassName}Application.class"
     if (-not (Test-Path -LiteralPath $applicationClass -PathType Leaf)) {
         throw "generated domain application class is missing. path=$applicationClass"
     }

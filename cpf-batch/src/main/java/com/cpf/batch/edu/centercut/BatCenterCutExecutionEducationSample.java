@@ -1,4 +1,4 @@
-package cpf.bat.edu.centercut;
+package com.cpf.batch.edu.centercut;
 
 /**
  * center-cut 실행 식별자를 생성하는 샘플입니다.

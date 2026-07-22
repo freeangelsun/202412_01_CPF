@@ -1,11 +1,11 @@
-package cpf.xyz.messaging.controller;
+package com.cpf.reference.messaging.controller;
 
-import cpf.cmn.utils.DateTimeUtils;
-import cpf.cmn.utils.IdUtils;
-import cpf.pfw.common.broker.CpfBrokerBridgeMessage;
-import cpf.pfw.common.broker.CpfBrokerBridgePort;
-import cpf.pfw.common.broker.CpfBrokerBridgeResult;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.common.utils.DateTimeUtils;
+import com.cpf.common.utils.IdUtils;
+import com.cpf.core.common.broker.CpfBrokerBridgeMessage;
+import com.cpf.core.common.broker.CpfBrokerBridgePort;
+import com.cpf.core.common.broker.CpfBrokerBridgeResult;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -22,32 +22,32 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
-@RequestMapping({"/api/xyz/reference", "/xyz/edu"})
-@Tag(name = "XYZ Reference 05. Messaging", description = "Kafka, RabbitMQ, 인메모리 메시지 어댑터 교육 샘플")
-public class XyzMessagingEducationController extends cpf.xyz.common.base.XyzBaseController {
+@RequestMapping({"/api/reference", "/reference/edu"})
+@Tag(name = "REF Reference 05. Messaging", description = "Kafka, RabbitMQ, 인메모리 메시지 어댑터 교육 샘플")
+public class ReferenceMessagingEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
     private final CpfBrokerBridgePort brokerBridgePort;
     private final List<CpfBrokerBridgeMessage> consumedMessages = new CopyOnWriteArrayList<>();
 
-    public XyzMessagingEducationController(CpfBrokerBridgePort brokerBridgePort) {
+    public ReferenceMessagingEducationController(CpfBrokerBridgePort brokerBridgePort) {
         this.brokerBridgePort = brokerBridgePort;
-        this.brokerBridgePort.subscribe("cpf.xyz.event", consumedMessages::add);
+        this.brokerBridgePort.subscribe("com.cpf.reference.event", consumedMessages::add);
     }
 
     @PostMapping("/messaging/publish")
-    @CpfOnlineTransaction(id = "OXYZAA0025", name = "XYZMessagePublish")
-    @Operation(operationId = "xyzMessagingEducationPublishMessage", summary = "메시지 발행 샘플", description = "CMN 메시지 추상화 계층을 통해 메시지 봉투를 발행합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0025", name = "REFMessagePublish")
+    @Operation(operationId = "refMessagingEducationPublishMessage", summary = "메시지 발행 샘플", description = "CMN 메시지 추상화 계층을 통해 메시지 봉투를 발행합니다.")
     public ResponseEntity<Map<String, Object>> publishMessage(
-            @RequestParam(defaultValue = "cpf.xyz.event") String destination,
-            @RequestParam(defaultValue = "XYZ Reference-SAMPLE") String key,
+            @RequestParam(defaultValue = "com.cpf.reference.event") String destination,
+            @RequestParam(defaultValue = "REF Reference-SAMPLE") String key,
             @RequestBody(required = false) Map<String, Object> payload) {
 
         Map<String, Object> resolvedPayload = payload == null || payload.isEmpty()
-                ? Map.of("sampleId", IdUtils.temporaryId("XYZ"), "message", "XYZ 교육 메시지 샘플", "createdAt", DateTimeUtils.nowDateTimeMillis())
+                ? Map.of("sampleId", IdUtils.temporaryId("REF"), "message", "REF 교육 메시지 샘플", "createdAt", DateTimeUtils.nowDateTimeMillis())
                 : payload;
 
         CpfBrokerBridgeResult publishResult = brokerBridgePort.publish(destination, key, resolvedPayload, Map.of(
                 "X-Edu-Sample", "Y",
-                "X-Edu-Source", "XYZ"));
+                "X-Edu-Source", "REF"));
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("publishResult", publishResult);
@@ -57,14 +57,14 @@ public class XyzMessagingEducationController extends cpf.xyz.common.base.XyzBase
     }
 
     @GetMapping("/messaging/recent")
-    @CpfOnlineTransaction(id = "OXYZAA0051", name = "XYZMessageRecent")
-    @Operation(operationId = "xyzMessagingEducationFindRecentMessages", summary = "최근 메시지 조회 샘플", description = "현재 활성화된 메시지 어댑터의 최근 메시지를 조회합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0051", name = "REFMessageRecent")
+    @Operation(operationId = "refMessagingEducationFindRecentMessages", summary = "최근 메시지 조회 샘플", description = "현재 활성화된 메시지 어댑터의 최근 메시지를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findRecentMessages(
-            @RequestParam(defaultValue = "cpf.xyz.event") String destination) {
+            @RequestParam(defaultValue = "com.cpf.reference.event") String destination) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("recentMessages", brokerBridgePort.findRecent(destination, 50));
         response.put("consumedMessages", consumedMessages);
-        response.put("guide", "운영 adapter는 PFW broker bridge port와 Kafka 또는 RabbitMQ listener를 연결합니다.");
+        response.put("guide", "운영 adapter는 CPF broker bridge port와 Kafka 또는 RabbitMQ listener를 연결합니다.");
         return ResponseEntity.ok(response);
     }
 }

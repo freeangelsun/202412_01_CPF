@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = "",
     [string] $DatabaseUsername = $env:CPF_RUNTIME_DB_USERNAME,
@@ -7,6 +7,12 @@ param(
     [int] $BatchWaitSeconds = 60,
     [switch] $BuildBeforeRun
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
@@ -127,12 +133,12 @@ function Restore-ProcessEnvironment {
 
 $environment = @{
     "DEBUG" = "false"
-    "PFW_DB_URL" = "jdbc:mariadb://localhost:3306/pfwDB"
-    "PFW_DB_USERNAME" = $DatabaseUsername
-    "PFW_DB_PASSWORD" = $DatabasePassword
-    "GATEWAY_DATASOURCE_URL" = "jdbc:mariadb://localhost:3306/pfwDB"
-    "GATEWAY_DATASOURCE_USERNAME" = $DatabaseUsername
-    "GATEWAY_DATASOURCE_PASSWORD" = $DatabasePassword
+    "CPF_DB_URL" = "jdbc:mariadb://localhost:3306/cpfDB"
+    "CPF_DB_USERNAME" = $DatabaseUsername
+    "CPF_DB_PASSWORD" = $DatabasePassword
+    "GWY_DATASOURCE_URL" = "jdbc:mariadb://localhost:3306/cpfDB"
+    "GWY_DATASOURCE_USERNAME" = $DatabaseUsername
+    "GWY_DATASOURCE_PASSWORD" = $DatabasePassword
     "ACC_DATASOURCE_URL" = "jdbc:mariadb://localhost:3306/accDB"
     "ACC_DATASOURCE_USERNAME" = $DatabaseUsername
     "ACC_DATASOURCE_PASSWORD" = $DatabasePassword
@@ -157,7 +163,7 @@ try {
     $previousEnvironment = Set-ProcessEnvironment -Values $environment
     & (Join-Path $Root "scripts/runtime-start-services.ps1") `
         -Root $Root `
-        -Modules @("ACC", "GATEWAY", "BAT") `
+        -Modules @("ACC", "GWY", "BAT") `
         -ResultDir $runtimeFullPath `
         -StartupTimeoutSeconds $StartupTimeoutSeconds `
         -BuildBeforeRun:$BuildBeforeRun `
@@ -179,7 +185,7 @@ try {
         throw "One or more ACC, Gateway, or BAT runtimes failed to start."
     }
 
-    $gatewayHeaders = New-ScenarioHeaders -ExecutionId "OACCQY0001" -Module "PFW" -WasId "gwsmk01"
+    $gatewayHeaders = New-ScenarioHeaders -ExecutionId "OACCQY0001" -Module "CPF" -WasId "gwsmk01"
     $gatewayResponse = Invoke-JsonStatus `
         -Method Post `
         -Uri "http://localhost:8070/cpf/execute/OACCQY0001" `
@@ -268,7 +274,7 @@ try {
         submitStatusCode = $submitResponse.statusCode
         executionRequestId = $executionRequestId
         terminalStatus = $terminal.requestStatus
-        pfwExecutionIdPresent = $null -ne $terminal.pfwExecutionId
+        cpfExecutionIdPresent = $null -ne $terminal.cpfExecutionId
         springBatchExecutionIdPresent = $null -ne $terminal.springBatchExecutionId
         stepCount = $stepCount
         restartStatusCode = $restartResponse.statusCode
@@ -287,7 +293,7 @@ try {
         if (Test-Path -LiteralPath (Join-Path $runtimeDir "runtime-services.json")) {
             & (Join-Path $Root "scripts/runtime-stop-services.ps1") `
                 -Root $Root `
-                -Modules @("ACC", "GATEWAY", "BAT") `
+                -Modules @("ACC", "GWY", "BAT") `
                 -ResultDir $runtimeDir
             $stopResult = Get-Content -LiteralPath (Join-Path $runtimeDir "runtime-stop-services-result.json") -Raw -Encoding UTF8 | ConvertFrom-Json
             $result.cleanup.status = $stopResult.status

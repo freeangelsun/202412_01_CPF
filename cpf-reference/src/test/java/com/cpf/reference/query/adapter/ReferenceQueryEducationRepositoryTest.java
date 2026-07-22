@@ -1,7 +1,7 @@
-package cpf.xyz.query.adapter;
+package com.cpf.reference.query.adapter;
 
-import cpf.xyz.query.dto.XyzQueryEducationCriteria;
-import cpf.xyz.query.adapter.XyzQueryEducationMapper;
+import com.cpf.reference.query.dto.ReferenceQueryEducationCriteria;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -13,62 +13,62 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class XyzQueryEducationRepositoryTest {
+class ReferenceQueryEducationRepositoryTest {
 
     @Test
     void findItemsNormalizesSortKeywordStatusAndLimit() {
-        XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
-        XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);
+        ReferenceQueryEducationMapper mapper = mock(ReferenceQueryEducationMapper.class);
+        ReferenceQueryEducationRepository repository = new ReferenceQueryEducationRepository(mapper);
         when(mapper.findItems(any())).thenReturn(List.of());
 
         repository.findItems("  query  ", " active ", "createdDesc", 500);
 
-        ArgumentCaptor<XyzQueryEducationCriteria> captor = ArgumentCaptor.forClass(XyzQueryEducationCriteria.class);
+        ArgumentCaptor<ReferenceQueryEducationCriteria> captor = ArgumentCaptor.forClass(ReferenceQueryEducationCriteria.class);
         verify(mapper).findItems(captor.capture());
         assertThat(captor.getValue().keyword()).isEqualTo("query");
         assertThat(captor.getValue().statusCode()).isEqualTo("ACTIVE");
-        assertThat(captor.getValue().sortCode()).isEqualTo(XyzQueryEducationRepository.SORT_CREATED_DESC);
-        assertThat(captor.getValue().limit()).isEqualTo(XyzQueryEducationRepository.MAX_PAGE_SIZE);
+        assertThat(captor.getValue().sortCode()).isEqualTo(ReferenceQueryEducationRepository.SORT_CREATED_DESC);
+        assertThat(captor.getValue().limit()).isEqualTo(ReferenceQueryEducationRepository.MAX_PAGE_SIZE);
     }
 
     @Test
     void unknownSortFallsBackToIdAsc() {
-        XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
-        XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);
+        ReferenceQueryEducationMapper mapper = mock(ReferenceQueryEducationMapper.class);
+        ReferenceQueryEducationRepository repository = new ReferenceQueryEducationRepository(mapper);
         when(mapper.findItems(any())).thenReturn(List.of());
 
         repository.findItems(null, null, "itemName; drop table", 10);
 
-        ArgumentCaptor<XyzQueryEducationCriteria> captor = ArgumentCaptor.forClass(XyzQueryEducationCriteria.class);
+        ArgumentCaptor<ReferenceQueryEducationCriteria> captor = ArgumentCaptor.forClass(ReferenceQueryEducationCriteria.class);
         verify(mapper).findItems(captor.capture());
-        assertThat(captor.getValue().sortCode()).isEqualTo(XyzQueryEducationRepository.SORT_ID_ASC);
+        assertThat(captor.getValue().sortCode()).isEqualTo(ReferenceQueryEducationRepository.SORT_ID_ASC);
     }
 
     @Test
     void nameAscAliasIsNormalizedToWhitelistCode() {
-        XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
-        XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);
+        ReferenceQueryEducationMapper mapper = mock(ReferenceQueryEducationMapper.class);
+        ReferenceQueryEducationRepository repository = new ReferenceQueryEducationRepository(mapper);
         when(mapper.findItems(any())).thenReturn(List.of());
 
         repository.findItems(null, null, "nameAsc", 10);
 
-        ArgumentCaptor<XyzQueryEducationCriteria> captor = ArgumentCaptor.forClass(XyzQueryEducationCriteria.class);
+        ArgumentCaptor<ReferenceQueryEducationCriteria> captor = ArgumentCaptor.forClass(ReferenceQueryEducationCriteria.class);
         verify(mapper).findItems(captor.capture());
-        assertThat(captor.getValue().sortCode()).isEqualTo(XyzQueryEducationRepository.SORT_NAME_ASC);
+        assertThat(captor.getValue().sortCode()).isEqualTo(ReferenceQueryEducationRepository.SORT_NAME_ASC);
     }
 
     @Test
     void keysetQueryRequestsOneMoreRowForHasNextDecision() {
-        XyzQueryEducationMapper mapper = mock(XyzQueryEducationMapper.class);
-        XyzQueryEducationRepository repository = new XyzQueryEducationRepository(mapper);
+        ReferenceQueryEducationMapper mapper = mock(ReferenceQueryEducationMapper.class);
+        ReferenceQueryEducationRepository repository = new ReferenceQueryEducationRepository(mapper);
         when(mapper.findKeysetPageItems(any())).thenReturn(List.of());
 
         repository.findKeysetPageItems(10L, 20);
 
-        ArgumentCaptor<XyzQueryEducationCriteria> captor = ArgumentCaptor.forClass(XyzQueryEducationCriteria.class);
+        ArgumentCaptor<ReferenceQueryEducationCriteria> captor = ArgumentCaptor.forClass(ReferenceQueryEducationCriteria.class);
         verify(mapper).findKeysetPageItems(captor.capture());
         assertThat(captor.getValue().cursorId()).isEqualTo(10L);
         assertThat(captor.getValue().limit()).isEqualTo(21);
-        assertThat(captor.getValue().sortCode()).isEqualTo(XyzQueryEducationRepository.SORT_ID_ASC);
+        assertThat(captor.getValue().sortCode()).isEqualTo(ReferenceQueryEducationRepository.SORT_ID_ASC);
     }
 }

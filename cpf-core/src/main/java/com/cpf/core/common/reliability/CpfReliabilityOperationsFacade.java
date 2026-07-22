@@ -1,7 +1,7 @@
-package cpf.pfw.common.reliability;
+package com.cpf.core.common.reliability;
 
-import cpf.pfw.api.reliability.CpfReliabilityOperationsPort;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.api.reliability.CpfReliabilityOperationsPort;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * PFW 신뢰성 테이블의 조회와 상태 변경을 소유하는 공개 파사드 구현입니다.
+ * CPF 신뢰성 테이블의 조회와 상태 변경을 소유하는 공개 파사드 구현입니다.
  */
 @Service
 public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsPort {
@@ -30,7 +30,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     public CpfReliabilityOperationsFacade(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
     }
 
@@ -42,7 +42,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         StringBuilder sql = new StringBuilder("""
                 SELECT idempotency_seq, scope, idempotency_key, request_hash, payload_hash,
                        record_status, retry_allowed_yn, completed_at, expires_at, created_at, updated_at
-                FROM pfw_idempotency_record
+                FROM cpf_idempotency_record
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -68,7 +68,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                        producer_module, consumer_module, idempotency_key, outbox_status, worker_id,
                        broker_name, partition_key, failure_message, occurred_at, claimed_at, published_at,
                        created_at, updated_at
-                FROM pfw_broker_outbox
+                FROM cpf_broker_outbox
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -88,7 +88,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         StringBuilder sql = new StringBuilder("""
                 SELECT inbox_id, message_id, idempotency_key, inbox_status, result_detail,
                        received_at, consumed_at, created_at, updated_at
-                FROM pfw_broker_inbox
+                FROM cpf_broker_inbox
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -112,7 +112,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 SELECT dlq_id, message_id, topic, transaction_global_id, segment_id, failure_reason,
                        replay_status, replay_count, replay_requested_at, replay_completed_at,
                        created_at, updated_at
-                FROM pfw_broker_dlq
+                FROM cpf_broker_dlq
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -137,7 +137,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 SELECT history_id, transfer_id, transaction_global_id, segment_id, endpoint_code,
                        transfer_operation, local_path, remote_path, checksum, file_size, duplicate_key,
                        transfer_status, result_detail, completed_at, created_at, updated_at
-                FROM pfw_file_transfer_history
+                FROM cpf_file_transfer_history
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -162,7 +162,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_global_id,
                        segment_id, external_key, failure_code, failure_message, next_action,
                        detected_at, resolved_at, resolved_by, audit_reason, created_at, updated_at
-                FROM pfw_unknown_result
+                FROM cpf_unknown_result
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -175,11 +175,11 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     }
 
     @Override
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "cpfTransactionManager")
     public ChangeResult requestDlqReplay(String messageId, String operatorId, String reason) {
-        Map<String, Object> before = findOne("pfw_broker_dlq", "message_id", messageId);
+        Map<String, Object> before = findOne("cpf_broker_dlq", "message_id", messageId);
         int updated = jdbc().update("""
-                UPDATE pfw_broker_dlq
+                UPDATE cpf_broker_dlq
                 SET replay_status = 'REQUESTED',
                     replay_requested_at = CURRENT_TIMESTAMP(3),
                     replay_count = replay_count + 1,
@@ -191,9 +191,9 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         if (updated != 1) {
             throw new CpfValidationException("DLQ가 없거나 현재 상태에서는 재처리를 요청할 수 없습니다.");
         }
-        jdbc().update("DELETE FROM pfw_broker_inbox WHERE message_id = ?", messageId);
+        jdbc().update("DELETE FROM cpf_broker_inbox WHERE message_id = ?", messageId);
         int requeued = jdbc().update("""
-                UPDATE pfw_broker_outbox
+                UPDATE cpf_broker_outbox
                 SET outbox_status = 'PENDING',
                     worker_id = NULL,
                     attempt_count = 0,
@@ -209,11 +209,11 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         if (requeued != 1) {
             throw new CpfValidationException("DLQ 원본 outbox가 없어 실제 재처리를 시작할 수 없습니다.");
         }
-        return new ChangeResult(before, findOne("pfw_broker_dlq", "message_id", messageId), required(reason, "reason"));
+        return new ChangeResult(before, findOne("cpf_broker_dlq", "message_id", messageId), required(reason, "reason"));
     }
 
     @Override
-    @Transactional(transactionManager = "pfwTransactionManager")
+    @Transactional(transactionManager = "cpfTransactionManager")
     public ChangeResult resolveUnknown(
             String unknownId,
             String targetStatus,
@@ -223,11 +223,11 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         if (!RESOLUTION_STATUSES.contains(normalizedStatus)) {
             throw new CpfValidationException("허용되지 않은 결과 미확정 상태입니다.");
         }
-        Map<String, Object> before = findOne("pfw_unknown_result", "unknown_id", unknownId);
+        Map<String, Object> before = findOne("cpf_unknown_result", "unknown_id", unknownId);
         boolean resolved = Set.of("CONFIRMED_SUCCESS", "CONFIRMED_FAILURE", "RESOLVED")
                 .contains(normalizedStatus);
         int updated = jdbc().update("""
-                UPDATE pfw_unknown_result
+                UPDATE cpf_unknown_result
                 SET unknown_status = ?,
                     resolved_at = CASE WHEN ? = 'Y' THEN CURRENT_TIMESTAMP(3) ELSE NULL END,
                     resolved_by = CASE WHEN ? = 'Y' THEN ? ELSE NULL END,
@@ -247,7 +247,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         if (updated != 1) {
             throw new CpfValidationException("결과 미확정 건이 없거나 이미 최종 처리됐습니다.");
         }
-        return new ChangeResult(before, findOne("pfw_unknown_result", "unknown_id", unknownId), reason.trim());
+        return new ChangeResult(before, findOne("cpf_unknown_result", "unknown_id", unknownId), reason.trim());
     }
 
     private Map<String, Object> findOne(String table, String keyColumn, String key) {
@@ -267,7 +267,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     private JdbcTemplate jdbc() {
         JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
         if (jdbcTemplate == null) {
-            throw new IllegalStateException("PFW 신뢰성 운영 기능에는 pfwJdbcTemplate이 필요합니다.");
+            throw new IllegalStateException("CPF 신뢰성 운영 기능에는 cpfJdbcTemplate이 필요합니다.");
         }
         return jdbcTemplate;
     }

@@ -1,6 +1,6 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

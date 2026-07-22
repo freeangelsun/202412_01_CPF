@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

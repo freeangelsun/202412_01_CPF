@@ -1,11 +1,11 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.config.AdmSecurityProperties;
-import cpf.adm.opr.dto.AdmLoginResponse;
-import cpf.adm.opr.dto.AdmMenu;
-import cpf.adm.opr.dto.AdmOperator;
-import cpf.adm.opr.dto.AdmSession;
-import cpf.cmn.sec.crypto.CmnCryptoService;
+import com.cpf.admin.config.AdmSecurityProperties;
+import com.cpf.admin.opr.dto.AdmLoginResponse;
+import com.cpf.admin.opr.dto.AdmMenu;
+import com.cpf.admin.opr.dto.AdmOperator;
+import com.cpf.admin.opr.dto.AdmSession;
+import com.cpf.common.sec.crypto.CmnCryptoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentMap;
  * 메모리 fallback으로 ADM 화면 확인이 가능하도록 합니다.</p>
  */
 @Service
-public class AdmSessionService extends cpf.adm.common.base.AdmBaseService {
+public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmSessionService.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 

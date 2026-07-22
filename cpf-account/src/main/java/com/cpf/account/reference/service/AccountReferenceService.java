@@ -1,8 +1,8 @@
-package cpf.acc.reference.service;
+package com.cpf.account.reference.service;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.acc.reference.port.AccountReferenceQueryPort;
-import cpf.acc.common.base.AccBaseService;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.port.AccountReferenceQueryPort;
+import com.cpf.account.common.base.AccBaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,14 +1,14 @@
-package cpf.xyz.servicecall;
+package com.cpf.reference.servicecall;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzLocalFacadeEducationSampleTest {
+class ReferenceLocalFacadeEducationSampleTest {
 
     @Test
     void facadeCallUsesFacadeBoundary() {
-        assertThat(new XyzLocalFacadeEducationSample().call("MemberFacade", "find").callType())
+        assertThat(new ReferenceLocalFacadeEducationSample().call("MemberFacade", "find").callType())
                 .isEqualTo("LOCAL_FACADE");
     }
 }

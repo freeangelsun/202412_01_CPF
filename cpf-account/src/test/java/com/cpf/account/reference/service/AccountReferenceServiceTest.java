@@ -1,8 +1,8 @@
-package cpf.acc.reference.service;
+package com.cpf.account.reference.service;
 
-import cpf.acc.reference.adapter.local.LocalAccountReferenceQueryAdapter;
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.acc.reference.repository.AccountReferenceRepository;
+import com.cpf.account.reference.adapter.local.LocalAccountReferenceQueryAdapter;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.repository.AccountReferenceRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

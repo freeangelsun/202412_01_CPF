@@ -1,6 +1,6 @@
-package cpf.cmn.utils;
+package com.cpf.common.utils;
 
-import cpf.cmn.dto.HeaderDTO;
+import com.cpf.common.dto.HeaderDTO;
 
 /**
  * 공통 유효성 검사 유틸리티입니다.

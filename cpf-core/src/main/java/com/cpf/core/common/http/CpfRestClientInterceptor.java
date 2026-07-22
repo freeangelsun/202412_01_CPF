@@ -1,8 +1,8 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.workflow.CpfWorkflowContext;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.workflow.CpfWorkflowContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -78,8 +78,8 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
             }
         }
         if (localServiceIdentity != null) {
-            headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
-            headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
+            headers.set(com.cpf.core.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
+            headers.set(com.cpf.core.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
         }
     }
 
@@ -133,8 +133,8 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
         if (path.contains("/bat/") || port == 8093) {
             return "BAT";
         }
-        if (path.contains("/xyz/") || port == 8099) {
-            return "XYZ";
+        if (path.contains("/ref/") || port == 8099) {
+            return "REF";
         }
         return hasText(request.getURI().getHost()) ? request.getURI().getHost().toUpperCase(Locale.ROOT) : "UNKNOWN";
     }

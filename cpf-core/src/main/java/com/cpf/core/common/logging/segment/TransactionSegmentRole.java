@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
 /**
  * 복합 거래 안에서 현재 구간이 맡는 역할입니다.

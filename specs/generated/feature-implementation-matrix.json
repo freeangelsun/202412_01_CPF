@@ -15,7 +15,7 @@
       "checkId": "baseline-module-layout",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-      "note": "PFW·CMN·MBR·ADM·BZA·BAT·ACC·XYZ·PFW Gateway의 모듈 구성과 공통 3단 Base 계층을 최신 source 기준으로 검증함"
+      "note": "CPF·CMN·MBR·ADM·BZA·BAT·ACC·REF·CPF Gateway의 모듈 구성과 공통 3단 Base 계층을 최신 source 기준으로 검증함"
     },
     {
       "checkId": "bza-rename",
@@ -27,19 +27,19 @@
       "checkId": "acc-exs-cleanup",
       "status": "완료",
       "evidence": "specs/evidence/20260716_02/acc-exs-capability-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json, specs/evidence/20260716_02/repository-hygiene.sanitized.json",
-      "note": "삭제 기능 49건의 유지·대체·제거 판정을 기록하고 ACC reference, XYZ 외부 연계 EDU, MBR→ACC 계약을 복원했으며 가비지와 소유권 gate를 통과함"
+      "note": "삭제 기능 49건의 유지·대체·제거 판정을 기록하고 ACC reference, REF 외부 연계 EDU, MBR→ACC 계약을 복원했으며 가비지와 소유권 gate를 통과함"
     },
     {
       "checkId": "architecture-ownership",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-      "note": "타 주제영역 Repository·Mapper·DB 직접 접근 금지, PFW 기술 AOP 단일 소유권과 PFW Base→주제영역 Base→기능 계층 검사를 통과함"
+      "note": "타 주제영역 Repository·Mapper·DB 직접 접근 금지, CPF 기술 AOP 단일 소유권과 CPF Base→주제영역 Base→기능 계층 검사를 통과함"
     },
     {
       "checkId": "password-hashing",
       "status": "완료",
       "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "PFW PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
+      "note": "CPF PBKDF2 버전 hash, legacy verify·rehash와 ADM/BZA 사용 테스트를 통과함"
     },
     {
       "checkId": "bza-auth",
@@ -129,7 +129,7 @@
       "checkId": "attachment-storage",
       "status": "완료",
       "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/attachment-edu-runtime.sanitized.log",
-      "note": "PFW 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, XYZ 기준 업무 샘플의 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
+      "note": "CPF 첨부 저장 port와 로컬 adapter의 경로·symlink·확장자·크기·content type·SHA-256 검증, REF 기준 업무 샘플의 단위 테스트와 저장·재조회 HTTP 런타임을 통과함"
     },
     {
       "checkId": "bza-operation-support",
@@ -147,7 +147,7 @@
       "checkId": "standard-execution-catalog",
       "status": "부분 구현",
       "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-      "note": "PFW 공통 pfwJdbcTemplate 소유권과 O/S/B 실행 메타 영속화를 검증하고 Gateway가 OACCQY0001로 ACC를 실제 호출함. 전체 모듈 catalog·ADM 정합성 E2E는 남음"
+      "note": "CPF 공통 cpfJdbcTemplate 소유권과 O/S/B 실행 메타 영속화를 검증하고 Gateway가 OACCQY0001로 ACC를 실제 호출함. 전체 모듈 catalog·ADM 정합성 E2E는 남음"
     },
     {
       "checkId": "execution-log-propagation",
@@ -159,7 +159,7 @@
       "checkId": "batch-standard",
       "status": "완료",
       "evidence": "specs/evidence/20260716_02/mariadb-full-install-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-      "note": "Spring Batch JobRepository를 PFW DB에 고정하고 BAT 실제 Job 완료·step 조회·restart·rerun과 종료 정리를 실검증함"
+      "note": "Spring Batch JobRepository를 CPF DB에 고정하고 BAT 실제 Job 완료·step 조회·restart·rerun과 종료 정리를 실검증함"
     },
     {
       "checkId": "scheduler-dependency",
@@ -177,37 +177,37 @@
       "checkId": "bat-runtime",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/gateway-bat-runtime-result.sanitized.json",
-      "note": "BAT를 MariaDB PFW JobRepository로 기동해 온디맨드 접수, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
+      "note": "BAT를 MariaDB CPF JobRepository로 기동해 온디맨드 접수, 완료, step, restart, rerun과 프로세스 정리를 실검증함"
     },
     {
       "checkId": "domain-generator",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/create-domain-result.sanitized.json, specs/evidence/20260720_04/full-test-release.sanitized.log",
-      "note": "최소 옵션 생성 결과의 독립 DataSource, PFW Base→도메인 Base→기능 계층, null·정렬 방어, test·bootJar·bootWar·Java 25 산출물을 검증함"
+      "note": "최소 옵션 생성 결과의 독립 DataSource, CPF Base→도메인 Base→기능 계층, null·정렬 방어, test·bootJar·bootWar·Java 25 산출물을 검증함"
     },
     {
-      "checkId": "xyz-reference-samples",
+      "checkId": "ref-reference-samples",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/sample-coverage-result.sanitized.json, specs/evidence/20260720_04/architecture-inventory.sanitized.json",
-      "note": "XYZ를 비운영 기본 reference business domain으로 정리하고 50개 공식 샘플의 source·test·문서 coverage를 검증함"
+      "note": "REF를 비운영 기본 reference business domain으로 정리하고 50개 공식 샘플의 source·test·문서 coverage를 검증함"
     },
     {
       "checkId": "bat-edu",
       "status": "완료",
       "evidence": "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-      "note": "tasklet·chunk·retry·restart·idempotency·center-cut·온디맨드 EDU를 유지하고 실제 PFW JobRepository 실행까지 검증함"
+      "note": "tasklet·chunk·retry·restart·idempotency·center-cut·온디맨드 EDU를 유지하고 실제 CPF JobRepository 실행까지 검증함"
     },
     {
       "checkId": "ai-edu",
       "status": "완료",
       "evidence": "specs/evidence/20260715_01/sample-coverage-result.sanitized.json, specs/evidence/20260715_01/quality-gate.sanitized.log, specs/evidence/20260715_01/ai-edu-runtime.sanitized.json",
-      "note": "PFW provider·embedding·vector port와 XYZ deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
+      "note": "CPF provider·embedding·vector port와 REF deterministic 구조화 출력·streaming·tool·RAG·fallback·token·사람 승인 테스트 및 표준 헤더를 포함한 HTTP 200 런타임 검증을 완료함. 실 provider는 외부 자격정보 항목으로 미검증"
     },
     {
       "checkId": "standard-header",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/standard-header-e2e-result.sanitized.json",
-      "note": "XYZ 실제 HTTP 호출에서 표준 헤더 수신·하위 호출 전파·DB 거래 로그 연결을 E2E로 검증함"
+      "note": "REF 실제 HTTP 호출에서 표준 헤더 수신·하위 호출 전파·DB 거래 로그 연결을 E2E로 검증함"
     },
     {
       "checkId": "service-call-engine",
@@ -219,7 +219,7 @@
       "checkId": "broker-capability",
       "status": "부분 구현",
       "evidence": "specs/evidence/20260715_01/quality-gate.sanitized.log",
-      "note": "PFW broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
+      "note": "CPF broker port, outbox·inbox·DLQ와 adapter 테스트는 통과, 실 broker는 미검증"
     },
     {
       "checkId": "broker-real-integration",
@@ -261,13 +261,13 @@
       "checkId": "runtime-baseline",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/runtime-start-services-result.sanitized.json, specs/evidence/20260720_04/runtime-stop-services-result.sanitized.json",
-      "note": "MBR·ADM·BZA·XYZ·ACC·Gateway·BAT 7개 최신 bootJar를 동시에 기동해 health와 프로세스 생존을 확인한 뒤 기록 PID만 정상 종료함"
+      "note": "MBR·ADM·BZA·REF·ACC·Gateway·BAT 7개 최신 bootJar를 동시에 기동해 health와 프로세스 생존을 확인한 뒤 기록 PID만 정상 종료함"
     },
     {
       "checkId": "openapi-runtime",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/openapi-runtime-result.sanitized.json",
-      "note": "ADM·MBR·XYZ·BZA·BAT·ACC·Gateway의 OpenAPI 3.1 필수 tag/path를 실제 기동 상태에서 모두 검증함"
+      "note": "ADM·MBR·REF·BZA·BAT·ACC·Gateway의 OpenAPI 3.1 필수 tag/path를 실제 기동 상태에서 모두 검증함"
     },
     {
       "checkId": "browser-public-http",
@@ -291,7 +291,7 @@
       "checkId": "security-static",
       "status": "완료",
       "evidence": "specs/evidence/20260716_01/quality-gate.sanitized.log",
-      "note": "평문 secret·보안 seed·민감 헤더 우회와 PFW 보안 정적 gate를 최신 source에서 통과함"
+      "note": "평문 secret·보안 seed·민감 헤더 우회와 CPF 보안 정적 gate를 최신 source에서 통과함"
     },
     {
       "checkId": "bza-session-storage",
@@ -309,7 +309,7 @@
       "checkId": "service-call-boundary",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json, specs/evidence/20260720_04/service-call-engine-runtime-success.sanitized.json",
-      "note": "타 주제영역 저장소 직접 참조 없이 PFW Service Call Engine과 typed client를 사용하는 경계를 정적·실 HTTP로 검증함"
+      "note": "타 주제영역 저장소 직접 참조 없이 CPF Service Call Engine과 typed client를 사용하는 경계를 정적·실 HTTP로 검증함"
     },
     {
       "checkId": "spring-event-usage",
@@ -327,7 +327,7 @@
       "checkId": "deploy-inventory",
       "status": "완료",
       "evidence": "specs/evidence/20260716_01/feature-evidence-result.sanitized.json, specs/evidence/20260716_01/acc-gateway-runtime.sanitized.json",
-      "note": "ACC와 PFW Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함"
+      "note": "ACC와 CPF Gateway를 local/dev/stg/prod env·inventory·runtime harness·remote deploy dry-run에 연결하고 local 선택 기동을 실검증함"
     },
     {
       "checkId": "sql-standard",
@@ -351,7 +351,7 @@
       "checkId": "sample-coverage",
       "status": "완료",
       "evidence": "specs/evidence/20260716_02/sample-coverage-result.sanitized.json, specs/sample-coverage-matrix.md",
-      "note": "XYZ 외부 연계와 BAT 온디맨드를 포함한 공식 EDU source·test·matrix 정합성 gate를 통과함"
+      "note": "REF 외부 연계와 BAT 온디맨드를 포함한 공식 EDU source·test·matrix 정합성 gate를 통과함"
     },
     {
       "checkId": "generator-cleanup",
@@ -408,10 +408,10 @@
       "note": "S형 ID 일치, 허용 호출 서비스, 호출 인스턴스, 외부 Gateway 우회 차단과 fail-closed 운영 확장 경계를 구현·단위 검증함. mTLS adapter runtime은 미검증"
     },
     {
-      "checkId": "pfw-gateway-runtime",
+      "checkId": "cpf-gateway",
       "status": "부분 구현",
       "evidence": "specs/evidence/20260716_02/feature-evidence-result.sanitized.json, specs/evidence/20260716_02/gateway-bat-runtime-result.sanitized.json",
-      "note": "PFW 선택형 Gateway의 route snapshot·권한·채널 정책과 실제 ACC target proxy 200, 실행 ID·route·instance 헤더를 실검증함. streaming·cancellation·다중 인스턴스는 미검증"
+      "note": "CPF 선택형 Gateway의 route snapshot·권한·채널 정책과 실제 ACC target proxy 200, 실행 ID·route·instance 헤더를 실검증함. streaming·cancellation·다중 인스턴스는 미검증"
     },
     {
       "checkId": "batch-on-demand",
@@ -525,7 +525,7 @@
       "checkId": "cmn-telegram-contract",
       "status": "재확인 필요",
       "evidence": "없음",
-      "note": "CMN 전문 layout/parser/formatter와 XYZ charset·byte length·round-trip 최신 runtime 재검증이 남음"
+      "note": "CMN 전문 layout/parser/formatter와 REF charset·byte length·round-trip 최신 runtime 재검증이 남음"
     },
     {
       "checkId": "ui-design-system-contract",
@@ -543,7 +543,7 @@
       "checkId": "package-structure-standard",
       "status": "완료",
       "evidence": "specs/evidence/20260716_02/architecture-inventory.sanitized.json, specs/evidence/20260716_02/architecture-ownership-scan.sanitized.json",
-      "note": "ACC·XYZ·BAT를 포함한 9개 모듈의 package/class ownership을 inventory화하고 주제영역 저장소 직접 접근과 package 규칙 gate를 통과함"
+      "note": "ACC·REF·BAT를 포함한 9개 모듈의 package/class ownership을 inventory화하고 주제영역 저장소 직접 접근과 package 규칙 gate를 통과함"
     },
     {
       "checkId": "repository-garbage-cleanup",
@@ -564,10 +564,10 @@
       "note": "ACC를 generator conformance reference로 유지하고 patch-candidates·중복 deploy/SQL·임시 생성 산출물 재유입을 차단함"
     },
     {
-      "checkId": "xyz-reference-package-standard",
+      "checkId": "ref-reference-package-standard",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/architecture-inventory.sanitized.json, specs/evidence/20260720_04/sample-coverage-result.sanitized.json",
-      "note": "cpf.xyz.<capability> feature-first 패키지와 /api/xyz/reference canonical API를 적용하고 기존 /xyz/edu 호환 alias를 분리 검증함"
+      "note": "com.cpf.reference.<capability> feature-first 패키지와 /api/ref/reference canonical API를 적용하고 기존 /ref/edu 호환 alias를 분리 검증함"
     },
     {
       "checkId": "bat-job-package-standard",
@@ -579,7 +579,7 @@
       "checkId": "base-hierarchy",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/base-hierarchy.sanitized.json",
-      "note": "115개 Controller·Service가 PFW Base/Contract→주제영역 Base/Contract→기능 구현의 3단 계층을 따르는지 검사함"
+      "note": "115개 Controller·Service가 CPF Base/Contract→주제영역 Base/Contract→기능 구현의 3단 계층을 따르는지 검사함"
     },
     {
       "checkId": "platform-version-artifacts",
@@ -591,7 +591,7 @@
       "checkId": "logging-ownership",
       "status": "완료",
       "evidence": "specs/evidence/20260720_04/architecture-ownership-scan.sanitized.json",
-      "note": "기술 거래 로깅 Aspect는 PFW 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함"
+      "note": "기술 거래 로깅 Aspect는 CPF 한 곳만 소유하고 업무 모듈의 중복 기술 Aspect가 없음을 검사함"
     },
     {
       "checkId": "document-links",
@@ -612,10 +612,10 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/build.gradle",
-          "cmn/build.gradle",
-          "adm/build.gradle",
-          "bza/build.gradle"
+          "cpf-core/build.gradle",
+          "cpf-common/build.gradle",
+          "cpf-admin/build.gradle",
+          "cpf-biz-admin/build.gradle"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -633,10 +633,10 @@
         "script": 1,
         "resource": 9,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java"
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/LocalCpfArchiveService.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfApplicationFacade.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -654,10 +654,10 @@
         "script": 8,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/reliability/CpfReliabilityOperationsPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -675,10 +675,10 @@
         "script": 2,
         "resource": 10,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/base/BaseController.java",
-          "pfw/src/main/java/cpf/pfw/common/base/BaseService.java"
+          "cpf-core/src/main/java/com/cpf/core/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/BaseController.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/BaseService.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -696,10 +696,10 @@
         "script": 0,
         "resource": 8,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapter.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/LocalCpfArchiveService.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfApplicationFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/LocalCpfFileTransferAdapter.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -717,17 +717,17 @@
         "script": 7,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/reliability/CpfReliabilityOperationsPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-call",
-      "requirementDomain": "PFW-CALL",
+      "checkId": "target-cpf-call",
+      "requirementDomain": "CPF-CALL",
       "title": "CpfWebClient/CpfRestClient Service Call Engine",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -738,17 +738,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfHttpClientProperties.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfRestClientInterceptor.java"
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfHttpClientProperties.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfLocalServiceIdentity.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfRestClientInterceptor.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-registry",
-      "requirementDomain": "PFW-REGISTRY",
+      "checkId": "target-cpf-registry",
+      "requirementDomain": "CPF-REGISTRY",
       "title": "Service/Endpoint/Instance Registry",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -759,17 +759,17 @@
         "script": 4,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
-          "pfw/src/main/java/cpf/pfw/channel/api/CpfChannelRegistryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java"
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/api/CpfChannelRegistryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointRegistry.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-routing",
-      "requirementDomain": "PFW-ROUTING",
+      "checkId": "target-cpf-routing",
+      "requirementDomain": "CPF-ROUTING",
       "title": "LB mode/direct instance/discovery routing",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -780,17 +780,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRoute.java",
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferEndpoint.java",
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java",
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointProperties.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-health",
-      "requirementDomain": "PFW-HEALTH",
+      "checkId": "target-cpf-health",
+      "requirementDomain": "CPF-HEALTH",
       "title": "Liveness/Readiness/Dependency Health",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -801,17 +801,17 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerHealthPort.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferHealthPort.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfHealthCheckPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerHealthPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHealthPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfHealthCheckPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-resilience",
-      "requirementDomain": "PFW-RESILIENCE",
+      "checkId": "target-cpf-resilience",
+      "requirementDomain": "CPF-RESILIENCE",
       "title": "Timeout/Retry/Circuit/Bulkhead/Backpressure",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -822,17 +822,17 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferRetryPolicy.java",
-          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSample.java",
-          "bat/src/main/java/cpf/bat/edu/retry/BatRetryEducationSample.java",
-          "bat/src/test/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSampleTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferRetryPolicy.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/centercut/BatCenterCutRetryEducationSample.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/retry/BatRetryEducationSample.java",
+          "cpf-batch/src/test/java/com/cpf/batch/edu/centercut/BatCenterCutRetryEducationSampleTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-deadline",
-      "requirementDomain": "PFW-DEADLINE",
+      "checkId": "target-cpf-deadline",
+      "requirementDomain": "CPF-DEADLINE",
       "title": "Request Deadline/Timeout Budget",
       "status": "미구현",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -847,8 +847,8 @@
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-header",
-      "requirementDomain": "PFW-HEADER",
+      "checkId": "target-cpf-header",
+      "requirementDomain": "CPF-HEADER",
       "title": "표준/확장 헤더",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -859,17 +859,17 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/header/CpfExtensionHeaderPolicy.java",
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderAuditLogger.java",
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderCategory.java",
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderExtractor.java"
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfExtensionHeaderPolicy.java",
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderAuditLogger.java",
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderCategory.java",
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderExtractor.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-context",
-      "requirementDomain": "PFW-CONTEXT",
+      "checkId": "target-cpf-context",
+      "requirementDomain": "CPF-CONTEXT",
       "title": "TransactionContext/MDC/Thread Context",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -880,17 +880,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filter/TransactionContextFilter.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/CpfTransactionContextAnomalyMonitor.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/TransactionContext.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentContext.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filter/TransactionContextFilter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/CpfTransactionContextAnomalyMonitor.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionContext.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentContext.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-txid",
-      "requirementDomain": "PFW-TXID",
+      "checkId": "target-cpf-txid",
+      "requirementDomain": "CPF-TXID",
       "title": "transactionGlobalId/segment/timeline",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -901,17 +901,17 @@
         "script": 2,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStore.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentFallbackStore.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-role",
-      "requirementDomain": "PFW-ROLE",
+      "checkId": "target-cpf-role",
+      "requirementDomain": "CPF-ROLE",
       "title": "transactionRole/direction/source-target",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -922,18 +922,18 @@
         "script": 2,
         "resource": 71,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutTarget.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/policy/LogPolicyTargetType.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentDirection.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutTargetProvider.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutTarget.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/policy/LogPolicyTargetType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentDirection.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-opsdb",
-      "requirementDomain": "PFW-OPSDB",
-      "title": "PFW 운영 DB 공유/장애모드",
+      "checkId": "target-cpf-opsdb",
+      "requirementDomain": "CPF-OPSDB",
+      "title": "CPF 운영 DB 공유/장애모드",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
       "inventorySignal": {
@@ -943,17 +943,17 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationType.java",
-          "pfw/src/main/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacade.java"
+          "cpf-core/src/main/java/com/cpf/core/api/reliability/CpfReliabilityOperationsPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchOperationRepository.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchOperationType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reliability/CpfReliabilityOperationsFacade.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-logdb",
-      "requirementDomain": "PFW-LOGDB",
+      "checkId": "target-cpf-logdb",
+      "requirementDomain": "CPF-LOGDB",
       "title": "DB 로그/Segment 로그",
       "status": "부분 구현",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -964,17 +964,17 @@
         "script": 0,
         "resource": 2,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLoggingEventPublisher.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/CpfLogLevel.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-filelog",
-      "requirementDomain": "PFW-FILELOG",
+      "checkId": "target-cpf-filelog",
+      "requirementDomain": "CPF-FILELOG",
       "title": "cpf-{moduleCode}-{logType}.log 파일 로그",
       "status": "미검증",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -985,17 +985,17 @@
         "script": 0,
         "resource": 3,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchFileLogWriter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLoggingEventPublisher.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-logfail",
-      "requirementDomain": "PFW-LOGFAIL",
+      "checkId": "target-cpf-logfail",
+      "requirementDomain": "CPF-LOGFAIL",
       "title": "로그 실패/fail-open/local spool",
       "status": "부분 구현",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1006,17 +1006,17 @@
         "script": 0,
         "resource": 2,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLoggingEventPublisher.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/CpfLogLevel.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-trace",
-      "requirementDomain": "PFW-TRACE",
+      "checkId": "target-cpf-trace",
+      "requirementDomain": "CPF-TRACE",
       "title": "Trace Boost/동적 로그 레벨",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1027,17 +1027,17 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRequest.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRule.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/CpfLogLevel.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/DynamicLogLevelRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/DynamicLogLevelRule.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-mask",
-      "requirementDomain": "PFW-MASK",
+      "checkId": "target-cpf-mask",
+      "requirementDomain": "CPF-MASK",
       "title": "마스킹/민감정보 보호",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1048,17 +1048,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderMasker.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/SensitiveDataMasker.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthMaskingRule.java",
-          "cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java"
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderMasker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/SensitiveDataMasker.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthMaskingRule.java",
+          "cpf-common/src/main/java/com/cpf/common/utils/MaskingUtils.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-error",
-      "requirementDomain": "PFW-ERROR",
+      "checkId": "target-cpf-error",
+      "requirementDomain": "CPF-ERROR",
       "title": "오류/예외/응답 표준",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1069,17 +1069,17 @@
         "script": 0,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfResponse.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfBusinessException.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfDynamicErrorCode.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfErrorCode.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfResponse.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfBusinessException.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfDynamicErrorCode.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfErrorCode.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-valid",
-      "requirementDomain": "PFW-VALID",
+      "checkId": "target-cpf-valid",
+      "requirementDomain": "CPF-VALID",
       "title": "Validation Framework",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1090,17 +1090,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfValidationException.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java",
-          "pfw/src/main/java/cpf/pfw/common/header/CpfInboundHeaderValidator.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialValidationResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfValidationException.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumValidationResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfInboundHeaderValidator.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialValidationResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-idemp",
-      "requirementDomain": "PFW-IDEMP",
+      "checkId": "target-cpf-idemp",
+      "requirementDomain": "CPF-IDEMP",
       "title": "Idempotency 표준",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1111,17 +1111,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerIdempotencyPort.java",
-          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyCommand.java",
-          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyEngine.java",
-          "pfw/src/main/java/cpf/pfw/common/idempotency/CpfIdempotencyException.java"
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerIdempotencyPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/idempotency/CpfIdempotencyCommand.java",
+          "cpf-core/src/main/java/com/cpf/core/common/idempotency/CpfIdempotencyEngine.java",
+          "cpf-core/src/main/java/com/cpf/core/common/idempotency/CpfIdempotencyException.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-state",
-      "requirementDomain": "PFW-STATE",
+      "checkId": "target-cpf-state",
+      "requirementDomain": "CPF-STATE",
       "title": "상태 전이 State Machine",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1132,17 +1132,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflow.java",
-          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowContext.java",
-          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowFailurePolicy.java",
-          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowHeaders.java"
+          "cpf-core/src/main/java/com/cpf/core/common/workflow/CpfWorkflow.java",
+          "cpf-core/src/main/java/com/cpf/core/common/workflow/CpfWorkflowContext.java",
+          "cpf-core/src/main/java/com/cpf/core/common/workflow/CpfWorkflowFailurePolicy.java",
+          "cpf-core/src/main/java/com/cpf/core/common/workflow/CpfWorkflowHeaders.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-lock",
-      "requirementDomain": "PFW-LOCK",
+      "checkId": "target-cpf-lock",
+      "requirementDomain": "CPF-LOCK",
       "title": "Optimistic/Distributed Lock",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1153,17 +1153,17 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLockManager.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfDistributedLockPort.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireRequest.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLockManager.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfDistributedLockPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-pfw-sched",
-      "requirementDomain": "PFW-SCHED",
+      "checkId": "target-cpf-sched",
+      "requirementDomain": "CPF-SCHED",
       "title": "Scheduler 표준",
       "status": "부분 구현",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
@@ -1174,9 +1174,9 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "adm/src/main/java/cpf/adm/opr/dto/PfwBatchScheduleCandidate.java",
-          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduler.java",
-          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduleService.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/CpfBatchScheduleCandidate.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/service/CpfBatchScheduler.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/service/CpfBatchScheduleService.java",
           "specs/sql/migration/flyway/V4__batch_schedule_repository_notification.sql"
         ]
       },
@@ -1195,10 +1195,10 @@
         "script": 0,
         "resource": 3,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfDynamicErrorCode.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfErrorCode.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfFrameworkErrorCode.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfResponseCodeResolver.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfDynamicErrorCode.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfErrorCode.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfFrameworkErrorCode.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfResponseCodeResolver.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1216,10 +1216,10 @@
         "script": 0,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerMessage.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerMessageHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfMessageFormatter.java"
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeMessage.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerMessage.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerMessageHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfMessageFormatter.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1237,10 +1237,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
-          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceIssueRequest.java",
-          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceIssueResult.java",
-          "cmn/src/main/java/cpf/cmn/biz/sequence/CmnSequenceService.java"
+          "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/sequence/CmnSequenceIssueRequest.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/sequence/CmnSequenceIssueResult.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/sequence/CmnSequenceService.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1258,10 +1258,10 @@
         "script": 3,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfFileTransferStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/CpfAttachmentContent.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/CpfAttachmentStoragePort.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/CpfStoredAttachment.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfFileTransferStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/CpfAttachmentContent.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/CpfAttachmentStoragePort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/CpfStoredAttachment.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1279,10 +1279,10 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfMessageFormatter.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthAlignment.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldSpec.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldType.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfMessageFormatter.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthAlignment.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthFieldSpec.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthFieldType.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1300,7 +1300,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "adm/src/main/java/cpf/adm/opr/dto/AdmBusinessDayRequest.java"
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmBusinessDayRequest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1318,10 +1318,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogRequest.java",
-          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogResult.java",
-          "cmn/src/main/java/cpf/cmn/biz/notification/CmnNotificationLogService.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmNotificationController.java"
+          "cpf-common/src/main/java/com/cpf/common/biz/notification/CmnNotificationLogRequest.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/notification/CmnNotificationLogResult.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/notification/CmnNotificationLogService.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmNotificationController.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1339,10 +1339,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
-          "cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthBearerTokenService.java",
-          "cmn/src/main/java/cpf/cmn/sec/token/CmnOAuthTokenIntrospectionResult.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmAuthController.java"
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cpf-common/src/main/java/com/cpf/common/sec/token/CmnOAuthBearerTokenService.java",
+          "cpf-common/src/main/java/com/cpf/common/sec/token/CmnOAuthTokenIntrospectionResult.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmAuthController.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1360,10 +1360,10 @@
         "script": 3,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentRole.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java",
-          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermissionRoleUpdateRequest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentRole.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmPermissionController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmApiPermission.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmApiPermissionRoleUpdateRequest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1381,10 +1381,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderAuditLogger.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmAuditLogController.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmLogPolicyAuditController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java"
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderAuditLogger.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmAuditLogController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmLogPolicyAuditController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadAuditLog.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1402,10 +1402,10 @@
         "script": 7,
         "resource": 3,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchFileLogWriter.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchJobLogPath.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchFileLogWriter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchJobLogPath.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1423,10 +1423,10 @@
         "script": 0,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTransactionTimelineQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentFallbackStore.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryWorker.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentFallbackStore.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentRecoveryWorker.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1444,10 +1444,10 @@
         "script": 10,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/channel/application/CpfChannelPolicyService.java",
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/aop/ServiceAccessAspect.java"
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/application/CpfChannelPolicyService.java",
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/aop/ServiceAccessAspect.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1465,10 +1465,10 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/CpfLogLevel.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRequest.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/DynamicLogLevelRule.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/CpfLogLevel.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/DynamicLogLevelRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/DynamicLogLevelRule.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1486,10 +1486,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchExecutionRequest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEvent.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventPublisher.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchExecutionRequest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1507,10 +1507,10 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutTargetProvider.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutService.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1528,10 +1528,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfExternalServiceException.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfExternalServiceException.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferEndpoint.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointProperties.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointRegistry.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1549,10 +1549,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1586,10 +1586,10 @@
         "script": 0,
         "resource": 5,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadPolicy.java"
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmDownloadController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadAuditLog.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadPolicy.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1607,10 +1607,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchHeartbeatService.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerConsumerWorker.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerPublisherWorker.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfFrameworkErrorCode.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchHeartbeatService.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerConsumerWorker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerPublisherWorker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfFrameworkErrorCode.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1628,10 +1628,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfJobSupport.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfStepSupport.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchJobLogPath.java",
-          "pfw/src/main/java/cpf/pfw/common/execution/CpfBatchJob.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfJobSupport.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfStepSupport.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchJobLogPath.java",
+          "cpf-core/src/main/java/com/cpf/core/common/execution/CpfBatchJob.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1649,10 +1649,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferRetryPolicy.java",
-          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutItemProcessingEducationSample.java",
-          "bat/src/main/java/cpf/bat/edu/centercut/BatCenterCutRetryEducationSample.java",
-          "bat/src/main/java/cpf/bat/edu/retry/BatRetryEducationSample.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferRetryPolicy.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/centercut/BatCenterCutItemProcessingEducationSample.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/centercut/BatCenterCutRetryEducationSample.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/retry/BatRetryEducationSample.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1670,10 +1670,10 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/servicecall/CpfServiceRegistryQueryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
+          "cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryQueryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfApplicationFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1691,10 +1691,10 @@
         "script": 1,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEvent.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventPublisher.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLoggingEventPublisher.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1712,10 +1712,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfApplicationFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/execution/CpfSharedApi.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfApplicationFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/execution/CpfSharedApi.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineQueryFacade.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1733,10 +1733,10 @@
         "script": 2,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutTargetProvider.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutService.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1754,10 +1754,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CenterCutTargetProvider.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutService.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CenterCutTargetProvider.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutService.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1775,10 +1775,10 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileTransferEndpoint.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointProperties.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfServiceEndpointRegistry.java",
-          "pfw/src/main/java/cpf/pfw/common/servicecall/CpfEndpointRegistry.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferEndpoint.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointProperties.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfServiceEndpointRegistry.java",
+          "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfEndpointRegistry.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1796,10 +1796,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/CpfExternalServiceException.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfHttpClientProperties.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfRestClientInterceptor.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/CpfExternalServiceException.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfHttpClientProperties.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfLocalServiceIdentity.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfRestClientInterceptor.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1817,10 +1817,10 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthAlignment.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldSpec.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFieldType.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthFormatResult.java"
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthAlignment.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthFieldSpec.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthFieldType.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthFormatResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1838,10 +1838,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfCredentialStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogServiceCredentialPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfCredentialStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogServiceCredentialPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCertificateProviderPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialProviderPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1859,10 +1859,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveResult.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchExecutionResult.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/centercut/CpfCenterCutResult.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchExecutionResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/centercut/CpfCenterCutResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1880,10 +1880,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfReconciliationPort.java",
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfUnknownResultRecord.java",
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepository.java",
-          "pfw/src/test/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/CpfReconciliationPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/CpfUnknownResultRecord.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/JdbcCpfReconciliationRepository.java",
+          "cpf-core/src/test/java/com/cpf/core/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1901,10 +1901,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfFileTransferStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfDuplicatePreventionPort.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumPolicy.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfFileTransferStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfDuplicatePreventionPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumPolicy.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumValidationResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1922,10 +1922,10 @@
         "script": 1,
         "resource": 2,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEvent.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventPublisher.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchEventType.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchLoggingEventPublisher.java"
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEvent.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventPublisher.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchEventType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchLoggingEventPublisher.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1943,10 +1943,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerInboxPort.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerOutboxPort.java",
-          "xyz/src/main/java/cpf/xyz/messaging/XyzOutboxInboxEducationSample.java",
-          "xyz/src/test/java/cpf/xyz/messaging/XyzOutboxInboxEducationSampleTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerInboxPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerOutboxPort.java",
+          "cpf-reference/src/main/java/com/cpf/reference/messaging/ReferenceOutboxInboxEducationSample.java",
+          "cpf-reference/src/test/java/com/cpf/reference/messaging/ReferenceOutboxInboxEducationSampleTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1964,10 +1964,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfBrokerStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfBrokerStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeMessage.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -1985,10 +1985,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqPort.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayRequest.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerDlqReplayResult.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerReplayPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqReplayRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqReplayResult.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerReplayPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2038,10 +2038,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2059,10 +2059,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
-          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtCreateRequest.java",
-          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtService.java",
-          "cmn/src/main/java/cpf/cmn/sec/token/CmnJwtValidationResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cpf-common/src/main/java/com/cpf/common/sec/token/CmnJwtCreateRequest.java",
+          "cpf-common/src/main/java/com/cpf/common/sec/token/CmnJwtService.java",
+          "cpf-common/src/main/java/com/cpf/common/sec/token/CmnJwtValidationResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2080,10 +2080,10 @@
         "script": 3,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/segment/TransactionSegmentRole.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmPermissionController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/AdmApiPermission.java"
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentRole.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmPermissionController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmApiPermission.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2101,7 +2101,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/security/CpfSecretProviderPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfSecretProviderPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2119,7 +2119,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCertificateProviderPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2137,10 +2137,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderMasker.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/SensitiveDataMasker.java",
-          "cmn/src/main/java/cpf/cmn/message/fixedlength/FixedLengthMaskingRule.java",
-          "cmn/src/main/java/cpf/cmn/utils/MaskingUtils.java"
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderMasker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/SensitiveDataMasker.java",
+          "cpf-common/src/main/java/com/cpf/common/message/fixedlength/FixedLengthMaskingRule.java",
+          "cpf-common/src/main/java/com/cpf/common/utils/MaskingUtils.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2158,10 +2158,10 @@
         "script": 5,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadPolicy.java"
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmDownloadController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadAuditLog.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadPolicy.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2179,10 +2179,10 @@
         "script": 1,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialRef.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialStatus.java"
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCertificateProviderPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialProviderPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialRef.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialStatus.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2216,10 +2216,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "adm/src/main/java/cpf/adm/opr/controller/AdmObservabilityController.java",
-          "adm/src/main/java/cpf/adm/opr/service/AdmObservabilityService.java",
-          "adm/src/test/java/cpf/adm/opr/service/AdmObservabilityServiceTest.java",
-          "bat/src/main/java/cpf/bat/edu/tasklet/basic/BatJobParameterValidationEducationSample.java"
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmObservabilityController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmObservabilityService.java",
+          "cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmObservabilityServiceTest.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/tasklet/basic/BatJobParameterValidationEducationSample.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2237,10 +2237,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfZipSlipGuard.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java",
-          "cmn/src/main/java/cpf/cmn/biz/log/CmnBusinessLogRequest.java",
-          "cmn/src/main/java/cpf/cmn/biz/log/CmnBusinessLogResult.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfZipSlipGuard.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfZipSlipGuardTest.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/log/CmnBusinessLogRequest.java",
+          "cpf-common/src/main/java/com/cpf/common/biz/log/CmnBusinessLogResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2308,10 +2308,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/logging/CpfTraceRecoveryPort.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/CpfTraceRecoveryFacade.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionLogRecoveryWorker.java",
-          "pfw/src/main/java/cpf/pfw/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
+          "cpf-core/src/main/java/com/cpf/core/api/logging/CpfTraceRecoveryPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/CpfTraceRecoveryFacade.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionLogRecoveryWorker.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/fallback/TransactionSegmentRecoveryEnvelope.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2361,10 +2361,10 @@
         "script": 3,
         "resource": 4,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/channel/application/CpfChannelPolicyService.java",
-          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelExecutionPolicy.java",
-          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyDecision.java",
-          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyPackage.java"
+          "cpf-core/src/main/java/com/cpf/core/channel/application/CpfChannelPolicyService.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/model/CpfChannelExecutionPolicy.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/model/CpfChannelPolicyDecision.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/model/CpfChannelPolicyPackage.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2382,7 +2382,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/version/CpfPlatformVersion.java"
+          "cpf-core/src/main/java/com/cpf/core/common/version/CpfPlatformVersion.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2400,10 +2400,10 @@
         "script": 1,
         "resource": 71,
         "examples": [
-          "pfw/src/main/resources/application-pfw-dev.yml",
-          "pfw/src/main/resources/application-pfw-local.yml",
-          "pfw/src/main/resources/application-pfw-prod.yml",
-          "pfw/src/main/resources/application-pfw-stg.yml"
+          "cpf-core/src/main/resources/application-cpf-dev.yml",
+          "cpf-core/src/main/resources/application-cpf-local.yml",
+          "cpf-core/src/main/resources/application-cpf-prod.yml",
+          "cpf-core/src/main/resources/application-cpf-stg.yml"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2421,10 +2421,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveEntry.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveFormat.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchivePolicy.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveChecksum.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveEntry.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveFormat.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchivePolicy.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2442,10 +2442,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/build.gradle",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumPolicy.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileChecksumValidationResult.java"
+          "cpf-core/build.gradle",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveChecksum.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumPolicy.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumValidationResult.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2463,8 +2463,8 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "bat/src/main/java/cpf/bat/edu/transaction/BatPartialRollbackEducationSample.java",
-          "bat/src/test/java/cpf/bat/edu/transaction/BatPartialRollbackEducationSampleTest.java",
+          "cpf-batch/src/main/java/com/cpf/batch/edu/transaction/BatPartialRollbackEducationSample.java",
+          "cpf-batch/src/test/java/com/cpf/batch/edu/transaction/BatPartialRollbackEducationSampleTest.java",
           "deploy/inventory/dev-services.json",
           "deploy/inventory/local-services.json"
         ]
@@ -2484,10 +2484,10 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
-          "pfw/src/test/java/cpf/pfw/common/base/CpfBaseContractTest.java",
-          "pfw/src/test/java/cpf/pfw/common/capability/CpfCapabilityContractTest.java",
-          "xyz/src/test/java/cpf/xyz/catalog/XyzReferenceIdentityContractTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfMapperContract.java",
+          "cpf-core/src/test/java/com/cpf/core/common/base/CpfBaseContractTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/capability/CpfCapabilityContractTest.java",
+          "cpf-reference/src/test/java/com/cpf/reference/catalog/ReferenceReferenceIdentityContractTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2505,7 +2505,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/version/CpfPlatformVersion.java"
+          "cpf-core/src/main/java/com/cpf/core/common/version/CpfPlatformVersion.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2523,10 +2523,10 @@
         "script": 3,
         "resource": 18,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
-          "pfw/src/main/java/cpf/pfw/config/PfwMyBatisConfig.java",
-          "pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionLogMapper.java",
-          "pfw/src/main/java/cpf/pfw/mapper/common/logging/TransactionSegmentMapper.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfMapperContract.java",
+          "cpf-core/src/main/java/com/cpf/core/config/CpfMyBatisConfig.java",
+          "cpf-core/src/main/java/com/cpf/core/mapper/common/logging/TransactionLogMapper.java",
+          "cpf-core/src/main/java/com/cpf/core/mapper/common/logging/TransactionSegmentMapper.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2545,9 +2545,9 @@
         "resource": 0,
         "examples": [
           "acc/smoke/smoke-acc.ps1",
-          "bat/src/main/java/cpf/bat/job/centercut/BatCenterCutSmokeTasklet.java",
-          "bat/src/main/java/cpf/bat/job/heartbeat/BatHeartbeatSmokeTasklet.java",
-          "bat/src/main/java/cpf/bat/job/smoke/BatSmokeJobConfig.java"
+          "cpf-batch/src/main/java/com/cpf/batch/job/centercut/BatCenterCutSmokeTasklet.java",
+          "cpf-batch/src/main/java/com/cpf/batch/job/heartbeat/BatHeartbeatSmokeTasklet.java",
+          "cpf-batch/src/main/java/com/cpf/batch/job/smoke/BatSmokeJobConfig.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2565,8 +2565,8 @@
         "script": 0,
         "resource": 2,
         "examples": [
-          "adm/src/main/resources/static/adm/index.html",
-          "bza/src/main/resources/static/bza/index.html"
+          "cpf-admin/src/main/resources/static/adm/index.html",
+          "cpf-biz-admin/src/main/resources/static/bza/index.html"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2584,10 +2584,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/config/PfwDataSourceConfig.java",
-          "pfw/src/test/java/cpf/pfw/config/PfwDataSourceConfigTest.java",
-          "cmn/src/main/java/cpf/cmn/config/CmnBusinessDataSourceConfig.java",
-          "cmn/src/main/java/cpf/cmn/config/CmnDataSourceConfig.java"
+          "cpf-core/src/main/java/com/cpf/core/config/CpfDataSourceConfig.java",
+          "cpf-core/src/test/java/com/cpf/core/config/CpfDataSourceConfigTest.java",
+          "cpf-common/src/main/java/com/cpf/common/config/CmnBusinessDataSourceConfig.java",
+          "cpf-common/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2605,10 +2605,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfReconciliationPort.java",
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/CpfUnknownResultRecord.java",
-          "pfw/src/main/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepository.java",
-          "pfw/src/test/java/cpf/pfw/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/CpfReconciliationPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/CpfUnknownResultRecord.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reconciliation/JdbcCpfReconciliationRepository.java",
+          "cpf-core/src/test/java/com/cpf/core/common/reconciliation/JdbcCpfReconciliationRepositoryTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2626,10 +2626,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveChecksum.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveEntry.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchiveFormat.java",
-          "pfw/src/main/java/cpf/pfw/common/archive/CpfArchivePolicy.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveChecksum.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveEntry.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchiveFormat.java",
+          "cpf-core/src/main/java/com/cpf/core/common/archive/CpfArchivePolicy.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2647,10 +2647,10 @@
         "script": 3,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/BaseController.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfBaseController.java",
-          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
-          "pfw/src/main/java/cpf/pfw/config/PfwOpenApiAutoConfiguration.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/BaseController.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfBaseController.java",
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfMapperContract.java",
+          "cpf-core/src/main/java/com/cpf/core/config/CpfOpenApiAutoConfiguration.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2668,10 +2668,10 @@
         "script": 1,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/CpfFileExchangeGateway.java",
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayAuthorizationPort.java",
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRoute.java",
-          "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java"
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileExchangeGateway.java",
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java",
+          "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2705,10 +2705,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogArtifactSearch.java",
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogDownloadGrant.java",
-          "adm/src/main/java/cpf/adm/opr/controller/AdmDownloadController.java",
-          "adm/src/main/java/cpf/adm/opr/dto/DownloadAuditLog.java"
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogArtifactSearch.java",
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogDownloadGrant.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmDownloadController.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/DownloadAuditLog.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2726,7 +2726,7 @@
         "script": 0,
         "resource": 7,
         "examples": [
-          "acc/build.gradle",
+          "cpf-account/build.gradle",
           "acc/README.md",
           "acc/manifest/domain-manifest.json",
           "acc/manifest/ownership.json"
@@ -2747,10 +2747,10 @@
         "script": 0,
         "resource": 8,
         "examples": [
-          "mbr/build.gradle",
-          "mbr/src/main/java/cpf/mbr/MbrApplication.java",
-          "mbr/src/main/java/cpf/mbr/bse/controller/MbrAuthController.java",
-          "mbr/src/main/java/cpf/mbr/bse/controller/MbrController.java"
+          "cpf-member/build.gradle",
+          "cpf-member/src/main/java/com/cpf/member/MbrApplication.java",
+          "cpf-member/src/main/java/com/cpf/member/bse/controller/MbrAuthController.java",
+          "cpf-member/src/main/java/com/cpf/member/bse/controller/MbrController.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2768,10 +2768,10 @@
         "script": 0,
         "resource": 9,
         "examples": [
-          "bza/build.gradle",
-          "bza/src/main/java/cpf/bza/BzaApplication.java",
-          "bza/src/main/java/cpf/bza/auth/controller/BzaAuthController.java",
-          "bza/src/main/java/cpf/bza/auth/filter/BzaApiAuthFilter.java"
+          "cpf-biz-admin/build.gradle",
+          "cpf-biz-admin/src/main/java/com/cpf/bizadmin/BzaApplication.java",
+          "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java",
+          "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/filter/BzaApiAuthFilter.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2789,18 +2789,18 @@
         "script": 4,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/edu/PfwEducationCoverageCatalog.java",
-          "pfw/src/test/java/cpf/pfw/common/edu/PfwEducationCoverageCatalogTest.java",
-          "adm/src/main/java/cpf/adm/opr/dto/PfwBatchScheduleCandidate.java",
-          "adm/src/main/java/cpf/adm/opr/service/PfwBatchScheduler.java"
+          "cpf-core/src/main/java/com/cpf/core/common/edu/CpfEducationCoverageCatalog.java",
+          "cpf-core/src/test/java/com/cpf/core/common/edu/CpfEducationCoverageCatalogTest.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/CpfBatchScheduleCandidate.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/service/CpfBatchScheduler.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
     },
     {
-      "checkId": "target-sample-xyz",
-      "requirementDomain": "SAMPLE-XYZ",
-      "title": "XYZ 신규 주제영역 샘플",
+      "checkId": "target-sample-ref",
+      "requirementDomain": "SAMPLE-REF",
+      "title": "REF 신규 주제영역 샘플",
       "status": "재확인 필요",
       "basisSha": "42c0fda82e0f3061e839f69cad25bbfa9df2aa0f",
       "inventorySignal": {
@@ -2810,10 +2810,10 @@
         "script": 0,
         "resource": 7,
         "examples": [
-          "xyz/build.gradle",
-          "xyz/src/main/java/cpf/xyz/XyzApplication.java",
-          "xyz/src/main/java/cpf/xyz/ai/XyzAiEducationSample.java",
-          "xyz/src/main/java/cpf/xyz/ai/controller/XyzAiEducationController.java"
+          "cpf-reference/build.gradle",
+          "cpf-reference/src/main/java/com/cpf/reference/ReferenceApplication.java",
+          "cpf-reference/src/main/java/com/cpf/reference/ai/ReferenceAiEducationSample.java",
+          "cpf-reference/src/main/java/com/cpf/reference/ai/controller/ReferenceAiEducationController.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2831,8 +2831,8 @@
         "script": 5,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
-          "mbr/src/test/java/cpf/mbr/common/logging/TransactionIdGeneratorTest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java",
+          "cpf-member/src/test/java/com/cpf/member/common/logging/TransactionIdGeneratorTest.java",
           "acc/manifest/domain-manifest.json",
           "acc/manifest/ownership.json"
         ]
@@ -2852,10 +2852,10 @@
         "script": 0,
         "resource": 8,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/archive/LocalCpfArchiveService.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/LocalCpfFileTransferAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/http/CpfLocalServiceIdentity.java"
+          "cpf-core/src/main/java/com/cpf/core/common/archive/LocalCpfArchiveService.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/LocalCpfFileTransferAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/http/CpfLocalServiceIdentity.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2873,8 +2873,8 @@
         "script": 4,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/logging/TransactionIdGenerator.java",
-          "mbr/src/test/java/cpf/mbr/common/logging/TransactionIdGeneratorTest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/logging/TransactionIdGenerator.java",
+          "cpf-member/src/test/java/com/cpf/member/common/logging/TransactionIdGeneratorTest.java",
           "scripts/create-domain.ps1",
           "scripts/remove-domain.ps1"
         ]
@@ -2930,10 +2930,10 @@
         "script": 1,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/execution/CpfExecutionCatalogScanner.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCertificateProviderPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialProviderPort.java",
-          "pfw/src/main/java/cpf/pfw/common/security/CpfCredentialRef.java"
+          "cpf-core/src/main/java/com/cpf/core/common/execution/CpfExecutionCatalogScanner.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCertificateProviderPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialProviderPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialRef.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2951,10 +2951,10 @@
         "script": 2,
         "resource": 7,
         "examples": [
-          "adm/src/main/resources/static/adm/adm.css",
-          "adm/src/main/resources/static/adm/adm.js",
-          "adm/src/main/resources/static/adm/index.html",
-          "adm/src/main/resources/static/adm/vendor/vue.global.prod.js"
+          "cpf-admin/src/main/resources/static/adm/adm.css",
+          "cpf-admin/src/main/resources/static/adm/adm.js",
+          "cpf-admin/src/main/resources/static/adm/index.html",
+          "cpf-admin/src/main/resources/static/adm/vendor/vue.global.prod.js"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2972,10 +2972,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/test/java/cpf/pfw/channel/application/CpfChannelPolicyServiceTest.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfZipSlipGuardTest.java"
+          "cpf-core/src/test/java/com/cpf/core/channel/application/CpfChannelPolicyServiceTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfArchiveChecksumTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfArchiveServiceTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfZipSlipGuardTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -2993,10 +2993,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/base/CpfMapperContract.java",
-          "pfw/src/test/java/cpf/pfw/channel/application/CpfChannelPolicyServiceTest.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveChecksumTest.java",
-          "pfw/src/test/java/cpf/pfw/common/archive/CpfArchiveServiceTest.java"
+          "cpf-core/src/main/java/com/cpf/core/common/base/CpfMapperContract.java",
+          "cpf-core/src/test/java/com/cpf/core/channel/application/CpfChannelPolicyServiceTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfArchiveChecksumTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/archive/CpfArchiveServiceTest.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3014,10 +3014,10 @@
         "script": 41,
         "resource": 1,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfRuntimeHealthStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchRuntimeListener.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchRuntimeProgress.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfDistributedLockPort.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfRuntimeHealthStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchRuntimeListener.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchRuntimeProgress.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfDistributedLockPort.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3035,10 +3035,10 @@
         "script": 8,
         "resource": 0,
         "examples": [
-          "pfw/build.gradle",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireRequest.java",
-          "pfw/src/main/java/cpf/pfw/common/runtime/CpfLockAcquireResult.java",
-          "cmn/build.gradle"
+          "cpf-core/build.gradle",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireResult.java",
+          "cpf-common/build.gradle"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3056,10 +3056,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/admin/CpfBrokerStatusQuery.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeHandler.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeMessage.java"
+          "cpf-core/src/main/java/com/cpf/core/common/admin/CpfBrokerStatusQuery.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeHandler.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeMessage.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3077,10 +3077,10 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfMessageResolver.java",
-          "pfw/src/main/java/cpf/pfw/common/exception/DefaultCpfResponseCodeResolver.java",
-          "pfw/src/main/java/cpf/pfw/common/workflow/CpfWorkflowFailurePolicy.java",
-          "bat/src/main/java/cpf/bat/job/failure/BatFailTasklet.java"
+          "cpf-core/src/main/java/com/cpf/core/common/exception/DefaultCpfMessageResolver.java",
+          "cpf-core/src/main/java/com/cpf/core/common/exception/DefaultCpfResponseCodeResolver.java",
+          "cpf-core/src/main/java/com/cpf/core/common/workflow/CpfWorkflowFailurePolicy.java",
+          "cpf-batch/src/main/java/com/cpf/batch/job/failure/BatFailTasklet.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3098,7 +3098,7 @@
         "script": 5,
         "resource": 0,
         "examples": [
-          "pfw/src/test/java/cpf/pfw/common/logging/file/CpfFileLogRuntimeEvidenceTest.java",
+          "cpf-core/src/test/java/com/cpf/core/common/logging/file/CpfFileLogRuntimeEvidenceTest.java",
           "scripts/check-evidence-path-existence.ps1",
           "scripts/check-feature-evidence.ps1",
           "scripts/check-report-matrix-evidence-consistency.ps1"
@@ -3119,7 +3119,7 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/header/CpfHeaderSpecs.java",
+          "cpf-core/src/main/java/com/cpf/core/common/header/CpfHeaderSpecs.java",
           "acc/README.md",
           "scripts/check-document-links.ps1",
           "specs/sql/00_all_install.sql"
@@ -3140,10 +3140,10 @@
         "script": 4,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/api/reliability/CpfReliabilityOperationsPort.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationRepository.java",
-          "pfw/src/main/java/cpf/pfw/common/batch/CpfBatchOperationType.java",
-          "pfw/src/main/java/cpf/pfw/common/reliability/CpfReliabilityOperationsFacade.java"
+          "cpf-core/src/main/java/com/cpf/core/api/reliability/CpfReliabilityOperationsPort.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchOperationRepository.java",
+          "cpf-core/src/main/java/com/cpf/core/common/batch/CpfBatchOperationType.java",
+          "cpf-core/src/main/java/com/cpf/core/common/reliability/CpfReliabilityOperationsFacade.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3193,10 +3193,10 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/attachment/LocalCpfAttachmentStorageAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/broker/CpfBrokerBridgeAdapter.java",
-          "pfw/src/main/java/cpf/pfw/common/filetransfer/DeterministicCpfRemoteFileTransferAdapter.java"
+          "cpf-core/src/main/java/com/cpf/core/channel/adapter/JdbcCpfChannelRegistryAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/attachment/LocalCpfAttachmentStorageAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerBridgeAdapter.java",
+          "cpf-core/src/main/java/com/cpf/core/common/filetransfer/DeterministicCpfRemoteFileTransferAdapter.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"
@@ -3214,8 +3214,8 @@
         "script": 1,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/channel/model/CpfChannelPolicyPackage.java",
-          "adm/src/main/java/cpf/adm/opr/dto/AdmChannelPackageImportRequest.java",
+          "cpf-core/src/main/java/com/cpf/core/channel/model/CpfChannelPolicyPackage.java",
+          "cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmChannelPackageImportRequest.java",
           "scripts/check-packaged-runtime-resources.ps1"
         ]
       },
@@ -3253,7 +3253,7 @@
         "script": 0,
         "resource": 0,
         "examples": [
-          "pfw/src/main/java/cpf/pfw/common/remotelog/CpfRemoteLogPreview.java"
+          "cpf-core/src/main/java/com/cpf/core/common/remotelog/CpfRemoteLogPreview.java"
         ]
       },
       "note": "정본 상세 카드와 실제 contract/runtime/evidence 재대조 후 최종 확정"

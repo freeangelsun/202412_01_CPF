@@ -1,7 +1,7 @@
-package cpf.bat.operation;
+package com.cpf.batch.operation;
 
-import cpf.bat.job.smoke.BatSmokeJobConfig;
-import cpf.bat.job.failure.BatFailureJobConfig;
+import com.cpf.batch.job.smoke.BatSmokeJobConfig;
+import com.cpf.batch.job.failure.BatFailureJobConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;

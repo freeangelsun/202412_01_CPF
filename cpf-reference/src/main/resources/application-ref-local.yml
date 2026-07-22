@@ -1,11 +1,11 @@
-# XYZ/EDU local profile 설정입니다.
+# REF/EDU local profile 설정입니다.
 
 server:
-  port: ${XYZ_SERVER_PORT:8099}
+  port: ${REF_SERVER_PORT:8099}
 
 spring:
   datasource:
-    xyz:
-      url: ${XYZ_DATASOURCE_URL:${XYZ_DB_URL:jdbc:mariadb://localhost:3306/xyzDB}}
-      username: ${XYZ_DATASOURCE_USERNAME:${XYZ_DB_USERNAME:cpf_xyz_app}}
-      password: ${XYZ_DATASOURCE_PASSWORD:${XYZ_DB_PASSWORD:__REPLACE_BY_ENV__}}
+    ref:
+      url: ${REF_DATASOURCE_URL:${REF_DB_URL:jdbc:mariadb://localhost:3306/refDB}}
+      username: ${REF_DATASOURCE_USERNAME:${REF_DB_USERNAME:cpf_ref_app}}
+      password: ${REF_DATASOURCE_PASSWORD:${REF_DB_PASSWORD:__REPLACE_BY_ENV__}}

@@ -1,7 +1,7 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmNotificationRuleResponse;
-import cpf.adm.opr.dto.NotificationSendResult;
+import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
+import com.cpf.admin.opr.dto.NotificationSendResult;
 
 /**
  * 운영 알림 발송 채널의 공통 인터페이스입니다.

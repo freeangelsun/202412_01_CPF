@@ -1,8 +1,8 @@
-package cpf.cmn.sec.crypto;
+package com.cpf.common.sec.crypto;
 
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfExternalServiceException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfExternalServiceException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -23,7 +23,7 @@ import java.util.HexFormat;
  * Base64, HMAC, AES-GCM, PBKDF2, 난수 생성처럼 여러 업무 모듈이 공유하는 보안 기능을 제공합니다.
  */
 @Service
-public class CmnCryptoService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int AES_GCM_IV_BYTES = 12;
     private static final int AES_GCM_TAG_BITS = 128;

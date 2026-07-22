@@ -1,7 +1,7 @@
-package cpf.bza.auth.controller;
+package com.cpf.bizadmin.auth.controller;
 
-import cpf.bza.auth.service.BzaAuthService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.bizadmin.auth.service.BzaAuthService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza/auth")
 @Tag(name = "BZA-Auth", description = "업무 관리자 로그인, refresh token, 현재 사용자, 로그인 이력 API")
-public class BzaAuthController extends cpf.bza.common.base.BzaBaseController {
+public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseController {
     private final BzaAuthService authService;
 
     public BzaAuthController(BzaAuthService authService) {
@@ -100,7 +100,7 @@ public class BzaAuthController extends cpf.bza.common.base.BzaBaseController {
     @PostMapping("/password/change")
     @CpfOnlineTransaction(id = "OBZAAU0006", name = "BzaPasswordChange")
     @Operation(operationId = "bzaAuthChangePassword", summary = "업무 관리자 본인 비밀번호 변경",
-            description = "현재 비밀번호를 검증하고 PFW 공통 hash 형식으로 변경한 뒤 기존 refresh token을 모두 폐기합니다.")
+            description = "현재 비밀번호를 검증하고 CPF 공통 hash 형식으로 변경한 뒤 기존 refresh token을 모두 폐기합니다.")
     public ResponseEntity<Map<String, Object>> changePassword(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestBody BzaAuthService.PasswordChangeRequest request) {

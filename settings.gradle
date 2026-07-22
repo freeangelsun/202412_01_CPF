@@ -9,21 +9,20 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'cpf-coreflow-platform-framework'
+rootProject.name = 'cpf-core-platform-framework'
 
-include 'pfw', 'cmn', 'mbr', 'xyz', 'adm', 'bza', 'bat'
-include 'pfw-gateway-runtime'
-// 추가 업무 모듈은 create-domain 생성기를 사용한 뒤 명시적으로 등록합니다.
-// include 'cbw', 'crd', 'lng', 'dai', 'pay', 'mkt', 'stm'
+include 'cpf-core', 'cpf-common', 'cpf-member', 'cpf-reference'
+include 'cpf-admin', 'cpf-biz-admin', 'cpf-batch', 'cpf-gateway', 'cpf-account', 'cpf-external'
+// 추가 업무 모듈은 create-domain 생성기로 만든 뒤 명시적으로 등록합니다.
+// include 'cpf-card', 'cpf-loan', 'cpf-payment'
 
-project(':pfw').projectDir = file('pfw')
-project(':cmn').projectDir = file('cmn')
-project(':mbr').projectDir = file('mbr')
-project(':xyz').projectDir = file('xyz')
-project(':adm').projectDir = file('adm')
-project(':bza').projectDir = file('bza')
-project(':bat').projectDir = file('bat')
-project(':pfw-gateway-runtime').projectDir = file('pfw-gateway-runtime')
-
-include 'acc'
-project(':acc').projectDir = file('acc')
+project(':cpf-core').projectDir = file('cpf-core')
+project(':cpf-common').projectDir = file('cpf-common')
+project(':cpf-member').projectDir = file('cpf-member')
+project(':cpf-reference').projectDir = file('cpf-reference')
+project(':cpf-admin').projectDir = file('cpf-admin')
+project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
+project(':cpf-batch').projectDir = file('cpf-batch')
+project(':cpf-gateway').projectDir = file('cpf-gateway')
+project(':cpf-account').projectDir = file('cpf-account')
+project(':cpf-external').projectDir = file('cpf-external')

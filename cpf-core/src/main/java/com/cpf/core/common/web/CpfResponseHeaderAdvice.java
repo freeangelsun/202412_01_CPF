@@ -1,4 +1,4 @@
-package cpf.pfw.common.web;
+package com.cpf.core.common.web;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;

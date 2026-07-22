@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.cmn.cde.dto.CommonCodeRequest;
-import cpf.cmn.cde.service.CodeCacheService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.cde.dto.CommonCodeRequest;
+import com.cpf.common.cde.service.CodeCacheService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,8 +25,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/adm/api/codes")
-@Tag(name = "ADM-PFW Codes", description = "PFW 공통 코드 관리 API")
-public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-CPF Codes", description = "CPF 공통 코드 관리 API")
+public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseController {
     private final CodeCacheService codeCacheService;
     private final AdmAuditLogService auditLogService;
 
@@ -37,21 +37,21 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMCD0010", name = "ADMCodeList")
-    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "pfw_code 기준 코드 그룹과 코드를 조회합니다.")
+    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "cpf_code 기준 코드 그룹과 코드를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCodes() {
         return ResponseEntity.ok(codeCacheService.getAllCodes());
     }
 
     @GetMapping("/{codeId}")
     @CpfOnlineTransaction(id = "OADMCD0011", name = "ADMCodeDetail")
-    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 pfw_code 상세 정보를 조회합니다.")
+    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 cpf_code 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId) {
         return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
     }
 
     @PostMapping
     @CpfOnlineTransaction(id = "OADMCD0012", name = "ADMCodeCreate")
-    @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록", description = "pfw_code에 신규 코드를 등록하고 코드 캐시를 갱신합니다.")
+    @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록", description = "cpf_code에 신규 코드를 등록하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createCode(
             @Valid @RequestBody CommonCodeRequest request,
             HttpServletRequest servletRequest) {
@@ -61,7 +61,7 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CODE_CREATE",
-                "pfw_code",
+                "cpf_code",
                 String.valueOf(created.getOrDefault("codeId", request.getCodeKey())),
                 reason,
                 null,
@@ -73,7 +73,7 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
 
     @PutMapping("/{codeId}")
     @CpfOnlineTransaction(id = "OADMCD0013", name = "ADMCodeUpdate")
-    @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정", description = "pfw_code를 수정하고 코드 캐시를 갱신합니다.")
+    @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정", description = "cpf_code를 수정하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateCode(
             @PathVariable Long codeId,
             @Valid @RequestBody CommonCodeRequest request,
@@ -85,7 +85,7 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CODE_UPDATE",
-                "pfw_code",
+                "cpf_code",
                 String.valueOf(codeId),
                 reason,
                 String.valueOf(before),
@@ -97,7 +97,7 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
 
     @DeleteMapping("/{codeId}")
     @CpfOnlineTransaction(id = "OADMCD0014", name = "ADMCodeDisable")
-    @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성", description = "pfw_code를 비활성화하고 코드 캐시를 갱신합니다.")
+    @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성", description = "cpf_code를 비활성화하고 코드 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteCode(
             @PathVariable Long codeId,
             @RequestParam String reason,
@@ -110,7 +110,7 @@ public class AdmCodeController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, requestUser),
                 "CODE_DISABLE",
-                "pfw_code",
+                "cpf_code",
                 String.valueOf(codeId),
                 requiredReason,
                 String.valueOf(before),

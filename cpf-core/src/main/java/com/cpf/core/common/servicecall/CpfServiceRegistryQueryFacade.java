@@ -1,12 +1,12 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
-import cpf.pfw.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * PFW 서비스 레지스트리 저장소를 공개 운영 조회 포트로 노출하는 파사드입니다.
+ * CPF 서비스 레지스트리 저장소를 공개 운영 조회 포트로 노출하는 파사드입니다.
  */
 public class CpfServiceRegistryQueryFacade implements CpfServiceRegistryQueryPort {
     private final CpfServiceRegistryRepository repository;

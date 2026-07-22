@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 /**
  * 실행 중인 배치의 진행 상태를 CPF 운영 메타에 반영하기 위한 값 객체입니다.

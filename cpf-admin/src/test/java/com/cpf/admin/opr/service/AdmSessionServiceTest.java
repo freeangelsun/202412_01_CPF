@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.config.AdmSecurityProperties;
-import cpf.adm.opr.dto.AdmOperator;
-import cpf.cmn.sec.crypto.CmnCryptoService;
+import com.cpf.admin.config.AdmSecurityProperties;
+import com.cpf.admin.opr.dto.AdmOperator;
+import com.cpf.common.sec.crypto.CmnCryptoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;

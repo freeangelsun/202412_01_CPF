@@ -1,4 +1,4 @@
-package cpf.bat.edu.reconciliation;
+package com.cpf.batch.edu.reconciliation;
 
 import org.junit.jupiter.api.Test;
 

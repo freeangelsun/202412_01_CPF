@@ -1,9 +1,6 @@
-package cpf.pfw.common.workflow;
+package com.cpf.core.common.workflow;
 
-/**
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 워크플로 및 보상 처리의 운영 추적 상태입니다. */
 public enum CpfWorkflowStatus {
     NONE,
     STARTED,

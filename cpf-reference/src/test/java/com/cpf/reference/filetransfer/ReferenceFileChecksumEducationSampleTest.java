@@ -1,12 +1,12 @@
-package cpf.xyz.filetransfer;
+package com.cpf.reference.filetransfer;
 
-import cpf.pfw.common.filetransfer.CpfDuplicatePreventionPort;
-import cpf.pfw.common.filetransfer.CpfFileTransferEndpoint;
-import cpf.pfw.common.filetransfer.CpfFileTransferEngine;
-import cpf.pfw.common.filetransfer.CpfFileTransferHistoryPort;
-import cpf.pfw.common.filetransfer.CpfFileTransferRequest;
-import cpf.pfw.common.filetransfer.CpfFileTransferResult;
-import cpf.pfw.common.filetransfer.LocalCpfFileTransferAdapter;
+import com.cpf.core.common.filetransfer.CpfDuplicatePreventionPort;
+import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
+import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
+import com.cpf.core.common.filetransfer.CpfFileTransferHistoryPort;
+import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
+import com.cpf.core.common.filetransfer.CpfFileTransferResult;
+import com.cpf.core.common.filetransfer.LocalCpfFileTransferAdapter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzFileChecksumEducationSampleTest {
+class ReferenceFileChecksumEducationSampleTest {
 
     @TempDir
     Path tempDir;
@@ -31,15 +31,15 @@ class XyzFileChecksumEducationSampleTest {
     }
 
     @Test
-    void localTransferUsesPfwEngineAndRecordsHistory() throws Exception {
+    void localTransferUsesCpfEngineAndRecordsHistory() throws Exception {
         Path source = tempDir.resolve("source.dat");
-        Files.writeString(source, "XYZ EDU FILE");
+        Files.writeString(source, "REF EDU FILE");
         MemoryHistory history = new MemoryHistory();
-        XyzFileChecksumEducationSample sample = sample(history);
+        ReferenceFileChecksumEducationSample sample = sample(history);
 
         CpfFileTransferResult result = sample.transfer(
                 new CpfFileTransferEndpoint(
-                        "XYZ_LOCAL",
+                        "REF_LOCAL",
                         "LOCAL",
                         "localhost",
                         0,
@@ -48,23 +48,23 @@ class XyzFileChecksumEducationSampleTest {
                         Duration.ofSeconds(5),
                         Map.of("overwriteYn", "N")),
                 new CpfFileTransferRequest(
-                        "TX-XYZ-1",
-                        "SEG-XYZ-1",
-                        "XYZ_LOCAL",
+                        "TX-REF-1",
+                        "SEG-REF-1",
+                        "REF_LOCAL",
                         "UPLOAD",
                         source.toString(),
                         "target.dat",
                         null,
                         Files.size(source),
-                        Map.of("businessKey", "XYZ-FILE-1")));
+                        Map.of("businessKey", "REF-FILE-1")));
 
         assertThat(result.status()).isEqualTo("SUCCESS");
         assertThat(history.results).hasSize(1);
-        assertThat(Files.readString(tempDir.resolve("remote/target.dat"))).isEqualTo("XYZ EDU FILE");
+        assertThat(Files.readString(tempDir.resolve("remote/target.dat"))).isEqualTo("REF EDU FILE");
     }
 
-    private XyzFileChecksumEducationSample sample(MemoryHistory history) {
-        return new XyzFileChecksumEducationSample(new CpfFileTransferEngine(
+    private ReferenceFileChecksumEducationSample sample(MemoryHistory history) {
+        return new ReferenceFileChecksumEducationSample(new CpfFileTransferEngine(
                 new LocalCpfFileTransferAdapter(),
                 history,
                 history,

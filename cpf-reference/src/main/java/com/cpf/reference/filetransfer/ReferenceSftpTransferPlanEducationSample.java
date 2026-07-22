@@ -1,33 +1,33 @@
-package cpf.xyz.filetransfer;
+package com.cpf.reference.filetransfer;
 
-import cpf.pfw.common.filetransfer.CpfFileTransferEndpoint;
-import cpf.pfw.common.filetransfer.CpfFileTransferEngine;
-import cpf.pfw.common.filetransfer.CpfFileTransferProtocol;
-import cpf.pfw.common.filetransfer.CpfFileTransferRequest;
-import cpf.pfw.common.filetransfer.CpfFileTransferResult;
-import cpf.pfw.common.security.CpfCredentialRef;
+import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
+import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
+import com.cpf.core.common.filetransfer.CpfFileTransferProtocol;
+import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
+import com.cpf.core.common.filetransfer.CpfFileTransferResult;
+import com.cpf.core.common.security.CpfCredentialRef;
 
 import java.time.Duration;
 import java.util.Map;
 
 /**
- * XYZ 업무 파일을 PFW 파일전송 엔진으로 송신하는 교육 샘플입니다.
+ * REF 업무 파일을 CPF 파일전송 엔진으로 송신하는 교육 샘플입니다.
  */
-public class XyzSftpTransferPlanEducationSample {
+public class ReferenceSftpTransferPlanEducationSample {
     private final CpfFileTransferEngine transferEngine;
 
-    public XyzSftpTransferPlanEducationSample(CpfFileTransferEngine transferEngine) {
+    public ReferenceSftpTransferPlanEducationSample(CpfFileTransferEngine transferEngine) {
         this.transferEngine = transferEngine;
     }
 
     public CpfFileTransferResult upload(String transactionGlobalId, String localPath) {
         CpfFileTransferEndpoint endpoint = new CpfFileTransferEndpoint(
-                "XYZ_BANK_A",
+                "REF_BANK_A",
                 CpfFileTransferProtocol.SFTP.name(),
                 "sftp.example.internal",
                 22,
                 "/recv",
-                new CpfCredentialRef("file-transfer", "xyz-bank-a", "latest", "XYZ BANK A"),
+                new CpfCredentialRef("file-transfer", "ref-bank-a", "latest", "REF BANK A"),
                 Duration.ofSeconds(30),
                 Map.of("environment", "education"));
         CpfFileTransferRequest request = new CpfFileTransferRequest(

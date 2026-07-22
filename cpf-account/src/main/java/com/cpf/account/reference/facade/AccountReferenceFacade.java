@@ -1,7 +1,7 @@
-package cpf.acc.reference.facade;
+package com.cpf.account.reference.facade;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.acc.reference.service.AccountReferenceService;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.service.AccountReferenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

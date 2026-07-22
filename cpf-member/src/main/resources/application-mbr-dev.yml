@@ -11,6 +11,8 @@ cpf:
 
 spring:
   datasource:
+    mode: ${MBR_DATASOURCE_MODE:url}
     url: ${MBR_DATASOURCE_URL:${MBR_DB_URL}}
     username: ${MBR_DATASOURCE_USERNAME:${MBR_DB_USERNAME}}
     password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD}}
+    jndi-name: ${MBR_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}

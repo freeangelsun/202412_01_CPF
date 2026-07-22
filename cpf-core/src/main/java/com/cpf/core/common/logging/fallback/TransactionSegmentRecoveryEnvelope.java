@@ -1,6 +1,6 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
-import cpf.pfw.common.logging.segment.TransactionSegmentRecord;
+import com.cpf.core.common.logging.segment.TransactionSegmentRecord;
 
 import java.time.Instant;
 

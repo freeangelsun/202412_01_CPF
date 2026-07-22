@@ -1,4 +1,4 @@
-package cpf.pfw.common.workflow;
+package com.cpf.core.common.workflow;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestAttributes;
@@ -8,7 +8,10 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * CPF 기능 설명입니다.
+ * 현재 HTTP 요청에 귀속된 워크플로 메타데이터를 관리합니다.
+ *
+ * <p>요청 헤더를 메타데이터로 변환하고 하위 HTTP 호출에 필요한 헤더만 다시
+ * 내보냅니다. 데이터는 요청 범위에만 저장되어 스레드 풀 사이에서 누출되지 않습니다.</p>
  */
 public final class CpfWorkflowContext {
     private static final String ATTR_WORKFLOW_METADATA = "cpfWorkflowMetadata";

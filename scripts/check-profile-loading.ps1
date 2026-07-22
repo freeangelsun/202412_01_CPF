@@ -3,10 +3,24 @@
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 $profiles = @("local", "dev", "stg", "prod")
-$modules = @("mbr", "adm", "bat", "bza", "xyz", "acc")
+$modules = @(
+    [ordered]@{ project = "cpf-member"; config = "mbr"; code = "MBR" },
+    [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM" },
+    [ordered]@{ project = "cpf-batch"; config = "bat"; code = "BAT" },
+    [ordered]@{ project = "cpf-biz-admin"; config = "bza"; code = "BZA" },
+    [ordered]@{ project = "cpf-reference"; config = "ref"; code = "REF" },
+    [ordered]@{ project = "cpf-account"; config = "acc"; code = "ACC" },
+    [ordered]@{ project = "cpf-external"; config = "external"; code = "EXS" }
+)
 $failures = New-Object System.Collections.Generic.List[object]
 $checks = New-Object System.Collections.Generic.List[object]
 
@@ -45,19 +59,19 @@ function Test-File {
 }
 
 foreach ($profile in $profiles) {
-    Test-File "pfw/src/main/resources/application-pfw-$profile.yml" "PFW_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
-    Test-File "cmn/src/main/resources/application-cmn-$profile.yml" "CMN_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
+    Test-File "cpf-core/src/main/resources/application-cpf-$profile.yml" "CPF_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
+    Test-File "cpf-common/src/main/resources/application-cmn-$profile.yml" "CMN_PROFILE_$($profile.ToUpperInvariant())" | Out-Null
 }
-Test-File "pfw/src/main/resources/application-pfw.yml" "PFW_PROFILE_BASE" | Out-Null
-Test-File "cmn/src/main/resources/application-cmn.yml" "CMN_PROFILE_BASE" | Out-Null
+Test-File "cpf-core/src/main/resources/application-cpf.yml" "CPF_PROFILE_BASE" | Out-Null
+Test-File "cpf-common/src/main/resources/application-cmn.yml" "CMN_PROFILE_BASE" | Out-Null
 
 $commonFiles = @(
-    "pfw/src/main/resources/application-pfw.yml",
-    "cmn/src/main/resources/application-cmn.yml"
+    "cpf-core/src/main/resources/application-cpf.yml",
+    "cpf-common/src/main/resources/application-cmn.yml"
 ) + ($profiles | ForEach-Object {
-    "pfw/src/main/resources/application-pfw-$_.yml"
+    "cpf-core/src/main/resources/application-cpf-$_.yml"
 }) + ($profiles | ForEach-Object {
-    "cmn/src/main/resources/application-cmn-$_.yml"
+    "cpf-common/src/main/resources/application-cmn-$_.yml"
 })
 
 foreach ($relativePath in $commonFiles) {
@@ -67,25 +81,26 @@ foreach ($relativePath in $commonFiles) {
     }
     $text = Read-Text $path
     if ($text -match "spring:\s*\r?\n\s*application:" -or $text -match "server:\s*\r?\n\s*port:" -or $text -match "profiles:\s*\r?\n\s*active:") {
-        Add-Failure "COMMON_CONFIG_DOES_NOT_OWN_RUNTIME_$relativePath" "PFW/CMN config must not force application name, server port, or active profile."
+        Add-Failure "COMMON_CONFIG_DOES_NOT_OWN_RUNTIME_$relativePath" "CPF/CMN config must not force application name, server port, or active profile."
     }
 }
 
 foreach ($module in $modules) {
-    $moduleUpper = $module.ToUpperInvariant()
-    $resourceRoot = "$module/src/main/resources"
+    $moduleUpper = $module.code
+    $moduleConfig = $module.config
+    $resourceRoot = "$($module.project)/src/main/resources"
     $applicationPath = Join-Path $Root "$resourceRoot/application.yml"
     if (-not (Test-File "$resourceRoot/application.yml" "APPLICATION_YML_$moduleUpper")) {
         continue
     }
     $applicationText = Read-Text $applicationPath
     $requiredImports = @(
-        "application-pfw.yml",
-        'application-pfw-${spring.profiles.active:local}.yml',
+        "application-cpf.yml",
+        'application-cpf-${spring.profiles.active:local}.yml',
         "application-cmn.yml",
         'application-cmn-${spring.profiles.active:local}.yml',
-        "application-$module.yml",
-        "application-$module-" + '${spring.profiles.active:local}' + ".yml"
+        "application-$moduleConfig.yml",
+        "application-$moduleConfig-" + '${spring.profiles.active:local}' + ".yml"
     )
     foreach ($import in $requiredImports) {
         if ($applicationText -notlike "*$import*") {
@@ -93,12 +108,12 @@ foreach ($module in $modules) {
         }
     }
 
-    Test-File "$resourceRoot/application-$module.yml" "MODULE_PROFILE_BASE_$moduleUpper" | Out-Null
+    Test-File "$resourceRoot/application-$moduleConfig.yml" "MODULE_PROFILE_BASE_$moduleUpper" | Out-Null
     foreach ($profile in $profiles) {
-        Test-File "$resourceRoot/application-$module-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
+        Test-File "$resourceRoot/application-$moduleConfig-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
     }
 
-    $moduleFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root $resourceRoot) -File -Filter "application-$module*.yml" -ErrorAction SilentlyContinue)
+    $moduleFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root $resourceRoot) -File -Filter "application-$moduleConfig*.yml" -ErrorAction SilentlyContinue)
     $joinedText = ($moduleFiles | ForEach-Object { Read-Text $_.FullName }) -join "`n"
     if ($joinedText -notmatch "\$\{$($moduleUpper)_MODULE_ID:" -or $joinedText -notmatch "\$\{$($moduleUpper)_SERVER_PORT") {
         Add-Failure "MODULE_PREFIX_RUNTIME_$moduleUpper" "Module profile must expose $($moduleUpper)_MODULE_ID and $($moduleUpper)_SERVER_PORT placeholders."
@@ -111,28 +126,28 @@ foreach ($module in $modules) {
     }
 }
 
-# Gateway는 PFW가 소유하는 선택 실행 모듈이므로 업무 모듈 profile 파일을 복제하지 않습니다.
-# 대신 PFW profile import와 Gateway 전용 실행·DB 환경변수 계약을 별도로 검증합니다.
-$gatewayPath = Join-Path $Root "pfw-gateway-runtime/src/main/resources/application.yml"
-if (Test-File "pfw-gateway-runtime/src/main/resources/application.yml" "APPLICATION_YML_GATEWAY") {
+# Gateway는 CPF가 소유하는 선택 실행 모듈이므로 업무 모듈 profile 파일을 복제하지 않습니다.
+# 대신 CPF profile import와 Gateway 전용 실행·DB 환경변수 계약을 별도로 검증합니다.
+$gatewayPath = Join-Path $Root "cpf-gateway/src/main/resources/application.yml"
+if (Test-File "cpf-gateway/src/main/resources/application.yml" "APPLICATION_YML_GATEWAY") {
     $gatewayText = Read-Text $gatewayPath
     foreach ($marker in @(
-        "application-pfw.yml",
-        'application-pfw-${SPRING_PROFILES_ACTIVE:local}.yml',
-        '${GATEWAY_MODULE_ID:PFW}',
-        '${GATEWAY_INSTANCE_ID:',
-        '${GATEWAY_WAS_ID:',
-        '${GATEWAY_SERVER_PORT:8070}',
-        '${GATEWAY_DATASOURCE_URL:',
-        '${GATEWAY_DATASOURCE_USERNAME:',
-        '${GATEWAY_DATASOURCE_PASSWORD:'
+        "application-cpf.yml",
+        'application-cpf-${SPRING_PROFILES_ACTIVE:local}.yml',
+        '${GWY_MODULE_ID:GWY}',
+        '${GWY_INSTANCE_ID:',
+        '${GWY_WAS_ID:',
+        '${GWY_SERVER_PORT:8070}',
+        '${GWY_DATASOURCE_URL:',
+        '${GWY_DATASOURCE_USERNAME:',
+        '${GWY_DATASOURCE_PASSWORD:'
     )) {
         if ($gatewayText -notlike "*$marker*") {
             Add-Failure "GATEWAY_RUNTIME_CONTRACT" "Gateway 설정 marker가 없습니다: $marker"
         }
     }
     if (@($failures | Where-Object { $_.name -eq "GATEWAY_RUNTIME_CONTRACT" }).Count -eq 0) {
-        Add-Check "GATEWAY_RUNTIME_CONTRACT" "DONE" "PFW profile import와 Gateway 실행 환경변수 계약을 확인했습니다."
+        Add-Check "GATEWAY_RUNTIME_CONTRACT" "DONE" "CPF profile import와 Gateway 실행 환경변수 계약을 확인했습니다."
     }
 }
 
@@ -142,7 +157,7 @@ $result = [pscustomobject]@{
     generatedAt = (Get-Date).ToString("o")
     status = $(if ($failures.Count -eq 0) { "DONE" } else { "FAILED" })
     failureCount = $failures.Count
-    checkedModules = $modules
+    checkedModules = @($modules | ForEach-Object { $_.project })
     checkedProfiles = $profiles
     failures = @($failures.ToArray())
     checks = @($checks.ToArray())

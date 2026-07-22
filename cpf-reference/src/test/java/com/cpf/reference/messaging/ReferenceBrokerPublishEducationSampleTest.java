@@ -1,14 +1,14 @@
-package cpf.xyz.messaging;
+package com.cpf.reference.messaging;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzBrokerPublishEducationSampleTest {
+class ReferenceBrokerPublishEducationSampleTest {
 
     @Test
-    void publishPlanUsesPfwBrokerEnvelope() {
-        assertThat(new XyzBrokerPublishEducationSample().publishPlan("T-1", "ID-1").message().topic())
-                .isEqualTo("cpf.xyz.changed");
+    void publishPlanUsesCpfBrokerEnvelope() {
+        assertThat(new ReferenceBrokerPublishEducationSample().publishPlan("T-1", "ID-1").message().topic())
+                .isEqualTo("com.cpf.reference.changed");
     }
 }

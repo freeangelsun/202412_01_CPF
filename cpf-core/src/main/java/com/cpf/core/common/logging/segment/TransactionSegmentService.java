@@ -1,10 +1,10 @@
-package cpf.pfw.common.logging.segment;
+package com.cpf.core.common.logging.segment;
 
-import cpf.pfw.common.header.CpfHeaderAuditLogger;
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.header.CpfHeaderAuditLogger;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -163,7 +163,7 @@ public class TransactionSegmentService {
     }
 
     private String requestUser() {
-        return firstText(TransactionContext.operatorId(), TransactionContext.userId(), "PFW");
+        return firstText(TransactionContext.operatorId(), TransactionContext.userId(), "CPF");
     }
 
     private String maskIdentity(String value) {

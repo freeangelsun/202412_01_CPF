@@ -1,10 +1,10 @@
-package cpf.mbr.bse.controller;
+package com.cpf.member.bse.controller;
 
-import cpf.mbr.bse.dto.MbrDTO;
-import cpf.mbr.bse.service.MbrService;
-import cpf.mbr.common.response.BaseResponse;
-import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.member.bse.dto.MbrDTO;
+import com.cpf.member.bse.service.MbrService;
+import com.cpf.member.common.response.BaseResponse;
+import com.cpf.member.common.response.ResponseCode;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "MBR-BSE Member", description = "회원 목록, 상세, 검색, 등록, 수정, 삭제 샘플 API")
-public class MbrController extends cpf.mbr.common.base.MbrBaseController {
+public class MbrController extends com.cpf.member.common.base.MbrBaseController {
 
     private static final String REQUESTER_ID = "SYSTEM";
 

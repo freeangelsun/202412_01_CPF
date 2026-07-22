@@ -1,16 +1,16 @@
-package cpf.bza.support.service;
+package com.cpf.bizadmin.support.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.bza.support.repository.BzaSupportRepository;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.attachment.CpfAttachmentContent;
-import cpf.pfw.common.attachment.CpfAttachmentStoragePort;
-import cpf.pfw.common.attachment.CpfStoredAttachment;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.bizadmin.support.repository.BzaSupportRepository;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.attachment.CpfAttachmentContent;
+import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.common.attachment.CpfStoredAttachment;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
@@ -27,7 +27,7 @@ import java.util.Set;
 
 /** BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·권한 분석을 담당합니다. */
 @Service
-public class BzaSupportService extends cpf.bza.common.base.BzaBaseService {
+public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseService {
     private static final Set<String> DOWNLOADABLE_SCAN_STATUSES = Set.of("CLEAN", "PASSED_LOCAL_POLICY");
 
     private final BzaSupportRepository repository;

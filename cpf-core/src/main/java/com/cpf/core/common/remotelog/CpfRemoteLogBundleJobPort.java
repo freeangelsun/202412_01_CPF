@@ -1,9 +1,9 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
 import java.util.List;
 import java.util.Map;
 
-/** 원격 로그 묶음의 비동기 생성·만료·재다운로드를 관리하는 PFW port입니다. */
+/** 원격 로그 묶음의 비동기 생성·만료·재다운로드를 관리하는 CPF port입니다. */
 public interface CpfRemoteLogBundleJobPort {
 
     CpfRemoteLogBundleJob submit(String ownerId, List<String> artifactIds);

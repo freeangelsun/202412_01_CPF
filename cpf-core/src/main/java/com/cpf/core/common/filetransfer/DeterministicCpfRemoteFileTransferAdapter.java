@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -11,7 +11,7 @@ import java.util.Set;
  *
  * <p>SFTP/FTP/FTPS/SCP/SSH의 네트워크 인증이나 wire protocol을 흉내 내지 않습니다. 대신 허용된
  * 로컬 경로와 프로토콜별 격리 디렉터리를 사용해 경로 검증, checksum, 임시 파일, 원자 이동,
- * 중복 파일 정책을 실제 PFW 전송 엔진과 함께 검증합니다.</p>
+ * 중복 파일 정책을 실제 CPF 전송 엔진과 함께 검증합니다.</p>
  */
 public class DeterministicCpfRemoteFileTransferAdapter implements CpfFileTransferPort {
     private static final Set<CpfFileTransferProtocol> SUPPORTED = Set.of(

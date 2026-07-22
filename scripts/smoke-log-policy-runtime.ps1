@@ -13,6 +13,12 @@
     [switch] $CheckOverrideFallback
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $sequence = 0
 $result = [ordered]@{
@@ -209,7 +215,7 @@ function Stop-AdmPortOwner {
 }
 
 function Resolve-AdmBootJar {
-    $libsDir = Join-Path $Root "adm/build/libs"
+    $libsDir = Join-Path $Root "cpf-admin/build/libs"
     if (-not (Test-Path -LiteralPath $libsDir)) {
         return $null
     }
@@ -500,7 +506,7 @@ try {
         if (Test-Path -LiteralPath $stderrLog) { Remove-Item -LiteralPath $stderrLog -Force }
         $bootJar = Resolve-AdmBootJar
         if ($null -eq $bootJar) {
-            throw "ADM boot jar was not found. Run :adm:bootJar first."
+            throw "ADM boot jar was not found. Run :cpf-admin:bootJar first."
         }
         $startedProcess = Start-Process `
             -FilePath "java.exe" `
@@ -901,13 +907,13 @@ try {
         $result.admObservability.auditLogQuery = [ordered]@{
             status = $auditLogQueryStatus
             httpStatus = $auditLogs.statusCode
-            note = "ADM generic audit API state only. pfw_log_policy_audit is still policy-domain audit storage."
+            note = "ADM generic audit API state only. cpf_log_policy_audit is still policy-domain audit storage."
         }
         $result.admObservability.policyAuditQuery = [ordered]@{
             status = $policyAuditQueryStatus
             httpStatus = $policyAuditLogs.statusCode
             count = @($policyAuditLogs.body.items).Count
-            source = "pfw_log_policy_audit"
+            source = "cpf_log_policy_audit"
         }
     }
 } catch {

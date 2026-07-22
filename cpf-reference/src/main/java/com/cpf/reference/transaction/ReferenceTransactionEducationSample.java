@@ -1,9 +1,9 @@
-package cpf.xyz.transaction;
+package com.cpf.reference.transaction;
 
 /**
  * 상태 전이와 transactionGlobalId 연결을 표현하는 샘플입니다.
  */
-public class XyzTransactionEducationSample {
+public class ReferenceTransactionEducationSample {
 
     public TransactionStep changeStatus(String transactionGlobalId, String beforeStatus, String afterStatus) {
         if (transactionGlobalId == null || transactionGlobalId.isBlank()) {

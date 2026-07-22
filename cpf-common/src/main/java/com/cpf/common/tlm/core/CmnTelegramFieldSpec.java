@@ -1,16 +1,8 @@
-package cpf.cmn.tlm.core;
+package com.cpf.common.tlm.core;
 
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.common.exception.CpfValidationException;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** 고정길이 전문 필드 하나의 위치·길이·자료형·채움 규칙을 표현합니다. */
 public record CmnTelegramFieldSpec(
         String name,
         int order,
@@ -24,13 +16,16 @@ public record CmnTelegramFieldSpec(
 
     public CmnTelegramFieldSpec {
         if (name == null || name.isBlank()) {
-            throw new CpfValidationException("CPF 처리 기준입니다.");
+            throw new CpfValidationException("전문 필드명은 비어 있을 수 없습니다.");
         }
         if (order <= 0) {
-            throw new CpfValidationException("CPF 처리 기준입니다." + name);
+            throw new CpfValidationException("전문 필드 순서는 1 이상이어야 합니다. field=" + name);
         }
         if (length <= 0) {
-            throw new CpfValidationException("CPF 처리 기준입니다." + name);
+            throw new CpfValidationException("전문 필드 길이는 1 이상이어야 합니다. field=" + name);
+        }
+        if (scale < 0) {
+            throw new CpfValidationException("전문 필드 소수 자릿수는 0 이상이어야 합니다. field=" + name);
         }
         type = type == null ? CmnTelegramFieldType.STRING : type;
         align = align == null ? CmnTelegramAlign.AUTO : align;

@@ -51,9 +51,9 @@
         </encoder>
     </appender>
 
-    <appender name="PFW_FRAMEWORK_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="CPF_FRAMEWORK_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${INSTANCE_DIR}/framework/pfw/cpf-pfw-framework-${INSTANCE_ID}.%d{yyyy-MM-dd,${LOG_TIMEZONE}}.log.gz</fileNamePattern>
+            <fileNamePattern>${INSTANCE_DIR}/framework/cpf/cpf-cpf-framework-${INSTANCE_ID}.%d{yyyy-MM-dd,${LOG_TIMEZONE}}.log.gz</fileNamePattern>
             <maxHistory>${MAX_HISTORY}</maxHistory>
             <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
@@ -77,10 +77,10 @@
         </encoder>
     </appender>
 
-    <logger name="cpf.pfw" level="INFO" additivity="true">
-        <appender-ref ref="PFW_FRAMEWORK_FILE" />
+    <logger name="com.cpf.core" level="INFO" additivity="true">
+        <appender-ref ref="CPF_FRAMEWORK_FILE" />
     </logger>
-    <logger name="cpf.cmn" level="INFO" additivity="true">
+    <logger name="com.cpf.common" level="INFO" additivity="true">
         <appender-ref ref="CMN_COMMON_FILE" />
     </logger>
 

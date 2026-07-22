@@ -1,4 +1,4 @@
-package cpf.pfw.common.security.password;
+package com.cpf.core.common.security.password;
 
 import org.junit.jupiter.api.Test;
 

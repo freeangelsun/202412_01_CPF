@@ -3,6 +3,12 @@
     [string] $ResultDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -24,23 +30,27 @@ function Test-ArchiveEntry([string] $ArchivePath, [string] $EntryPattern) {
 }
 
 $checks = [ordered]@{
-    admVueSfc = Test-Path -LiteralPath (Join-Path $Root 'adm/frontend/src/App.vue')
-    admTypeScriptFeatures = @(Get-ChildItem -LiteralPath (Join-Path $Root 'adm/frontend/src/features') -Recurse -File -Filter '*.ts').Count -ge 6
-    admPackageLock = Test-Path -LiteralPath (Join-Path $Root 'adm/frontend/package-lock.json')
-    bzaVueSfc = Test-Path -LiteralPath (Join-Path $Root 'bza/frontend/src/App.vue')
-    bzaTypeScriptFeatures = Test-Path -LiteralPath (Join-Path $Root 'bza/frontend/src/features/console.ts')
-    bzaPackageLock = Test-Path -LiteralPath (Join-Path $Root 'bza/frontend/package-lock.json')
-    legacyAdmScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'adm/src/main/resources/static/adm/adm.js'))
-    legacyBzaScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'bza/src/main/resources/static/bza/bza.js'))
-    globalVueRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'adm/src/main/resources/static/adm/vendor/vue.global.prod.js'))
-    admProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'adm/build/generated/frontend/static/adm/index.html')
-    bzaProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'bza/build/generated/frontend/static/bza/index.html')
+    admVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/App.vue')
+    admTypeScriptFeatures = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/features') -Recurse -File -Filter '*.ts').Count -ge 6
+    admPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/frontend/package-lock.json')
+    bzaVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src/App.vue')
+    bzaTypeScriptFeatures = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/src/features/console.ts')
+    bzaPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/frontend/package-lock.json')
+    legacyAdmScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/src/main/resources/static/adm/adm.js'))
+    legacyBzaScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/src/main/resources/static/bza/bza.js'))
+    globalVueRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/src/main/resources/static/adm/vendor/vue.global.prod.js'))
+    admProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/build/generated/frontend/static/adm/index.html')
+    bzaProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/build/generated/frontend/static/bza/index.html')
 }
 
 $archives = [ordered]@{}
-foreach ($module in @('adm', 'bza')) {
+foreach ($moduleInfo in @(
+        [ordered]@{ project = 'cpf-admin'; staticPath = 'adm' },
+        [ordered]@{ project = 'cpf-biz-admin'; staticPath = 'bza' }
+    )) {
+    $module = $moduleInfo.staticPath
     foreach ($extension in @('jar', 'war')) {
-        $archive = Get-ChildItem -LiteralPath (Join-Path $Root "$module/build/libs") -File -Filter "*.$extension" |
+        $archive = Get-ChildItem -LiteralPath (Join-Path $Root "$($moduleInfo.project)/build/libs") -File -Filter "*.$extension" |
             Sort-Object LastWriteTime -Descending | Select-Object -First 1
         $key = "$module-$extension"
         if ($null -eq $archive) {

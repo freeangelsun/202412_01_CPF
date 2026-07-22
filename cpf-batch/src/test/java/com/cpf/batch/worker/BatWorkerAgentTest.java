@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

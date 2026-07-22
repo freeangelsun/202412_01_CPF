@@ -1,4 +1,4 @@
-package cpf.acc.account.dto;
+package com.cpf.account.account.dto;
 
 import java.time.LocalDateTime;
 

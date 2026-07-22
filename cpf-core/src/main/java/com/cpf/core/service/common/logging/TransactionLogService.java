@@ -1,9 +1,9 @@
-package cpf.pfw.service.common.logging;
+package com.cpf.core.service.common.logging;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.mapper.common.logging.TransactionLogMapper;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.mapper.common.logging.TransactionLogMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +12,10 @@ import org.springframework.transaction.annotation.Propagation;
 import java.util.Map;
 
 /**
- * PFW 거래 요약 로그와 상세 로그를 저장합니다.
+ * CPF 거래 요약 로그와 상세 로그를 저장합니다.
  *
- * <p>요약 정보는 {@code pfw_transaction_log}, 요청/응답/오류 같은 본문성 데이터는
- * {@code pfw_transaction_log_detail}에 분리 저장합니다. 로그 정책이 함께 전달되면
+ * <p>요약 정보는 {@code cpf_transaction_log}, 요청/응답/오류 같은 본문성 데이터는
+ * {@code cpf_transaction_log_detail}에 분리 저장합니다. 로그 정책이 함께 전달되면
  * DB 저장 여부와 본문 저장 여부를 최종 저장 직전에 한 번 더 확인합니다.</p>
  */
 @Service
@@ -24,12 +24,12 @@ public class TransactionLogService {
 
     private final TransactionLogMapper logMapper;
 
-    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    @Transactional(transactionManager = "cpfTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details) {
         saveTransactionLog(record, details, null);
     }
 
-    @Transactional(transactionManager = "pfwTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    @Transactional(transactionManager = "cpfTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void saveTransactionLog(TransactionLogRecord record, Map<String, String> details, LogPolicyDecision logPolicy) {
         if (record == null) {
             return;

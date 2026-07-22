@@ -1,0 +1,98 @@
+{
+    "startedAt":  "2026-07-22T13:47:15.412+09:00",
+    "status":  "DONE",
+    "moduleCode":  "LNG",
+    "cleanDryRun":  {
+                        "generatedAt":  "2026-07-22T13:47:17.775+09:00",
+                        "status":  "READY",
+                        "dryRun":  true,
+                        "moduleCode":  "LNG",
+                        "systemCode":  "LNG",
+                        "domainName":  "lng",
+                        "projectName":  "cpf-lng",
+                        "moduleDirectory":  "cpf-lng",
+                        "manifest":  "cpf-lng/manifest/generator-ownership.json",
+                        "generatedFileCount":  34,
+                        "changedGeneratedFiles":  [
+
+                                                  ],
+                        "missingGeneratedFiles":  [
+
+                                                  ],
+                        "userOwnedFiles":  [
+
+                                           ],
+                        "externalReferences":  [
+
+                                               ],
+                        "blockReasons":  [
+
+                                         ],
+                        "databaseObjectsRemoved":  false,
+                        "databasePolicy":  "운영 DB 객체는 자동 DROP하지 않습니다. 백업과 승인 migration을 별도로 수행해야 합니다."
+                    },
+    "changedFileDryRun":  {
+                              "generatedAt":  "2026-07-22T13:47:19.162+09:00",
+                              "status":  "BLOCKED",
+                              "dryRun":  true,
+                              "moduleCode":  "LNG",
+                              "systemCode":  "LNG",
+                              "domainName":  "lng",
+                              "projectName":  "cpf-lng",
+                              "moduleDirectory":  "cpf-lng",
+                              "manifest":  "cpf-lng/manifest/generator-ownership.json",
+                              "generatedFileCount":  34,
+                              "changedGeneratedFiles":  [
+                                                            {
+                                                                "path":  "cpf-lng/src/main/java/com/cpf/lending/LendingApplication.java",
+                                                                "generatedSha256":  "f8ef4e67afa676b04c748b775a9dfb6916d0b99e0b4bd2cdccc39f2478b1a16e",
+                                                                "currentSha256":  "2126b267e3fe957af7853dace4878fc47f056104ed6d4b7f94cb40f94ad0dea7"
+                                                            }
+                                                        ],
+                              "missingGeneratedFiles":  [
+
+                                                        ],
+                              "userOwnedFiles":  [
+
+                                                 ],
+                              "externalReferences":  [
+
+                                                     ],
+                              "blockReasons":  [
+                                                   "생성 후 사용자가 수정한 파일이 있습니다."
+                                               ],
+                              "databaseObjectsRemoved":  false,
+                              "databasePolicy":  "운영 DB 객체는 자동 DROP하지 않습니다. 백업과 승인 migration을 별도로 수행해야 합니다."
+                          },
+    "actualRemove":  {
+                         "generatedAt":  "2026-07-22T13:47:22.122+09:00",
+                         "status":  "DONE",
+                         "dryRun":  false,
+                         "moduleCode":  "TMP",
+                         "systemCode":  "TMP",
+                         "domainName":  "tmp",
+                         "projectName":  "cpf-tmp",
+                         "moduleDirectory":  "cpf-tmp",
+                         "manifest":  "cpf-tmp/manifest/generator-ownership.json",
+                         "generatedFileCount":  32,
+                         "changedGeneratedFiles":  [
+
+                                                   ],
+                         "missingGeneratedFiles":  [
+
+                                                   ],
+                         "userOwnedFiles":  [
+
+                                            ],
+                         "externalReferences":  [
+
+                                                ],
+                         "blockReasons":  [
+
+                                          ],
+                         "databaseObjectsRemoved":  false,
+                         "databasePolicy":  "운영 DB 객체는 자동 DROP하지 않습니다. 백업과 승인 migration을 별도로 수행해야 합니다.",
+                         "removedAt":  "2026-07-22T13:47:22.507+09:00"
+                     },
+    "endedAt":  "2026-07-22T13:47:22.601+09:00"
+}

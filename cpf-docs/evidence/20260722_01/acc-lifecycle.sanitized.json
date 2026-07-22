@@ -1,0 +1,819 @@
+{
+    "startedAt":  "2026-07-22T14:04:28.2988901+09:00",
+    "status":  "DONE",
+    "snapshot":  {
+                     "fileCount":  82,
+                     "treeSha256":  "08b44ddbed9b2d5d3fe753e8030c20bd0ccd9c022dc12fb1448d21b98a8d2e2b",
+                     "files":  [
+                                   {
+                                       "path":  "build.gradle",
+                                       "sha256":  "d38c9e7e3cd940a7a5d335d1f8888c3ab8384c81ab887d2491e90a98125db193"
+                                   },
+                                   {
+                                       "path":  "README.md",
+                                       "sha256":  "18df598f840c3d32b2a44bf1cb88898840954bad80bfa7e3d3545d1c591e1e30"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/AccApplication.class",
+                                       "sha256":  "4698bd15acd89421b983e6cdba3268bc67311a47cc62df58e103ffd5c46deeb8"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/adapter/JdbcAccAccountRepository.class",
+                                       "sha256":  "b5a28e619399ee68fe667690ffe6c5d2a4aba99c50bad993b88f36fd9be136ae"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/controller/AccAccountController.class",
+                                       "sha256":  "4c73c1612aed655eb4b01a183b9c28702bad60c7559a68da9e45385e77a0459b"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/controller/AccAccountSharedController.class",
+                                       "sha256":  "40c323e33c0d41fb98503e8fbde6bffb66cbdcb27094623e3ca0c1cf09c8e4c5"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/dto/AccAccountCreateRequest.class",
+                                       "sha256":  "5d6ed92f543ed0f4c2513bea7c8d1911b269fe39efc629d9d3b42d8c43349234"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/dto/AccAccountResponse.class",
+                                       "sha256":  "4de2ef3db2cbd0d4b2e5e497319a71a5af7abb30ad7d8c2ba7ed363cf262146b"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/dto/AccAccountSearchCriteria.class",
+                                       "sha256":  "3741d746d3bdfbd6dc98978c4f61135924cb81411d3177a64e1a50186f7382f5"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/dto/AccAccountUpdateRequest.class",
+                                       "sha256":  "e112c4b8576bde3da974bc7c4428052c5fef4f57147ab916f3f855b500bb2a30"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/facade/AccAccountSummaryFacade.class",
+                                       "sha256":  "84b4ffe3eea961abe6ad04b52dc7bc559abab75d5df2301c49998cfe125ef2c2"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/port/AccAccountRepository.class",
+                                       "sha256":  "920b2e93e0de7dfe15c20c44873c4798be9121acbaa14d57e6927aabb9894395"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/account/service/AccAccountService.class",
+                                       "sha256":  "76c367ebd58ce40d9b95b5bfddad632c4da4a80fb4f66cc94da7545c578bf899"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/common/base/AccBaseController.class",
+                                       "sha256":  "ce75fd95239918a79dd30e9441926e5eacb8d59f6e5956859509e1b8676eba7a"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/common/base/AccBaseService.class",
+                                       "sha256":  "6e6a9b9eb1dfd565cca909e92d6703f1ecaa6d171ebbfbe5c3055b046387a0b7"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/config/AccountBatchRepositoryConfig.class",
+                                       "sha256":  "5ed82d8383cad22187553e3a97004751cef7fcc6b9a5e7899eb652a68f2a8d67"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/config/AccountDataSourceConfig.class",
+                                       "sha256":  "53da0e88788d4c935e99c9428e11af88a2bdbd9e4aa8503ce143558b7d4802ff"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/config/AccountMyBatisConfig.class",
+                                       "sha256":  "664cc59ec089dab28036b953d9a36439ef2aafd9cc82881707c55e3c8d181fc0"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/adapter/local/LocalAccountReferenceQueryAdapter.class",
+                                       "sha256":  "3e23ae820b255605740a24b24976f500d283b62051495e542bcdd331a5faf151"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy$1.class",
+                                       "sha256":  "831c60e59828bb54b5a189087fdbc6741e9723c667f70d082bfc92da88ab115c"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy.class",
+                                       "sha256":  "0ba5b69f28afa1165d5214fd8767b01a80c46733ae2a8fdbe79be253e3449409"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/batch/AccountReferenceBatchConfig.class",
+                                       "sha256":  "6af8083cd2f87d296cc5c631a3a7031f1b1b5fb64f6a21525b7f551faf4f1f24"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/controller/AccountReferenceController.class",
+                                       "sha256":  "5fa21b8fc32dfb4c3727a902225848881d31e54c865e49de325eb75a5ae226e7"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/dto/AccountReferenceSearchRequest.class",
+                                       "sha256":  "ee47ef95b64d790a35db7c0671fee32905ffe452d2806d0aec5676cb789316ab"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/facade/AccountReferenceFacade.class",
+                                       "sha256":  "007bdc8be6211277d2c7bde03e2859f7ab8df9891b0319d2016d58dce50b0acc"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/port/AccountReferenceQueryPort.class",
+                                       "sha256":  "d2596522b4b48b9935022f82db1d2e2e1d53c5c7d3ec16d35f4ac5bc3571d4a6"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/repository/AccountReferenceRepository.class",
+                                       "sha256":  "2f8c06754e254e433fa3e7546bb6406031e1b4fe1decdbd6a471b9aa50e29e49"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/service/AccountReferenceService.class",
+                                       "sha256":  "7c49797f4a1cb5025f7a3555b5393f992a162e59688589cbaa4f8ab2c66c3127"
+                                   },
+                                   {
+                                       "path":  "bin/main/cpf/acc/reference/validation/AccountReferenceSearchValidator.class",
+                                       "sha256":  "f9fd5105b316769ef4993543f5794ecc3203c0820dfc3064366f6beb185cce07"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/account/facade/AccAccountSummaryFacadeTest.class",
+                                       "sha256":  "0e17cc0decce16251e8981acae76ca70a77c3a4d4694969eb7809d00e1450d2a"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest$Change.class",
+                                       "sha256":  "7ca319041210658e36954562190c019e50bad28a2f3b44aa531c5a814c0a92ca"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest$MemoryRepository.class",
+                                       "sha256":  "d98b3e4d497c497dc2680e1fbb717d23250c8b4012e4c0cedee8a190c15b30bd"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest.class",
+                                       "sha256":  "35b5081b146ce8fcd340a1a1b8379828719336356b89db89fb095d34947e0bdc"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest$TestableConfig.class",
+                                       "sha256":  "08ef0e2cf007bfe6c37397cd993ce03f85681e8fe21431845c0f2908ca1a9465"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest.class",
+                                       "sha256":  "ec1cc355e7aa8a85acbade36d3553b6bd88a77b7b9b804f5916f798c2a143b26"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/config/AccountDataSourceConfigTest.class",
+                                       "sha256":  "921d2654bd9a546b1b585a1fc3e9d756b286a039b7f6ebdbed319c5538797c3d"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/config/AccountMyBatisConfigTest.class",
+                                       "sha256":  "6d8917afd67914e157d859c41e9de83001977abe0e1def40dcd222d79aab4b34"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest$1.class",
+                                       "sha256":  "9836c7020540f9cb21a751fec670f8b7591ddbd3d60cf0226c81d6437122467b"
+                                   },
+                                   {
+                                       "path":  "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest.class",
+                                       "sha256":  "879ae54d960eadcee1983056fa04d466044a0b0cd6d4195da6bc620b9c742e8b"
+                                   },
+                                   {
+                                       "path":  "manifest/domain-manifest.json",
+                                       "sha256":  "2f520c8ff0a2cb47b39948121f3812194cf4a29b6b19b30568acc48f5eb52124"
+                                   },
+                                   {
+                                       "path":  "manifest/ownership.json",
+                                       "sha256":  "05c590f14d3145ae6c9205a61f97b1037003ffc6da28210a5806d0ba72402493"
+                                   },
+                                   {
+                                       "path":  "manifest/standard-execution-catalog.json",
+                                       "sha256":  "08731594175a007dc6f9d6b54cde8a4969f598cdd2adc93afaca53276a1f9f04"
+                                   },
+                                   {
+                                       "path":  "smoke/smoke-acc.ps1",
+                                       "sha256":  "e5f23e4fcd84ea5beb92af3b2827fdfe8dff5bc9ed6b316e0a70e62a603e6aa2"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/AccApplication.java",
+                                       "sha256":  "31574d7016f7552e697ae7c757adbc37502ab5f4f1fef77a7d54885b1de64df3"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/adapter/JdbcAccAccountRepository.java",
+                                       "sha256":  "971562ff9438c721f4fe44f35e35a96fb4e0545d0e2754c5e3917eb77ac94e1c"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/controller/AccAccountController.java",
+                                       "sha256":  "b834e6a6d9ad8ad16fd9f4586591eac17d654e149d4da8818280b020921ca84b"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/controller/AccAccountSharedController.java",
+                                       "sha256":  "d0f9f801ff17afd7dc72742b68ee43ccb14fd2234e912bc885a4d3c82ec4bcfe"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/dto/AccAccountCreateRequest.java",
+                                       "sha256":  "c51e54f006339f3bf9e4a4a6d42761fe91d814a91ecd27db4a70d90bbc5ffecb"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/dto/AccAccountResponse.java",
+                                       "sha256":  "0e2b1515345141e35690bb589d76d219dfdf9dc7e5477371f7d879cde8664c43"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/dto/AccAccountSearchCriteria.java",
+                                       "sha256":  "dd80c3403a82842c8f3c2e8ef18dacb8583b6381d94e806755429885eb605f15"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/dto/AccAccountUpdateRequest.java",
+                                       "sha256":  "6b97f1182450ed4cb2fa379c66b4078be95e19bf9e12412dd556a1a2ab27f8a6"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/facade/AccAccountSummaryFacade.java",
+                                       "sha256":  "fb5d23b27ba787a0f2e49e41f1a1d8bcd85e36a52c3ad1cb206a74af8126a91c"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/port/AccAccountRepository.java",
+                                       "sha256":  "bf72519a135b87633b7d42aa5d7401f7c1cfde039aa1fe22c5d0417b7173cc75"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/account/service/AccAccountService.java",
+                                       "sha256":  "f23e8669631dc26f7f7530acd21f960ec15064832ee845cc69fcfc5fd54c510d"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/common/base/AccBaseController.java",
+                                       "sha256":  "f51bea99702cf67154a357be8b36bc440d24801751c3d39444f0a1d63bad306a"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/common/base/AccBaseService.java",
+                                       "sha256":  "42bfdb0aa1d5bbf5f88aa0131364cfa72ce915d28ca76c86e0fdf5d46c21281f"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/config/AccountBatchRepositoryConfig.java",
+                                       "sha256":  "d35e1741588d5c40e4a957e9d01caef9b9f9806769e57a1dfa4e049a3b19f06b"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/config/AccountDataSourceConfig.java",
+                                       "sha256":  "3ddf781ff951e05f5d554d045e479e2cbf43ee7491e84358b9626b83b2cec719"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/config/AccountMyBatisConfig.java",
+                                       "sha256":  "4ace71cf6c33e09b8c4a2be40499361aa5b0e7fc3d0fa617df8e79bf72bdec34"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/adapter/local/LocalAccountReferenceQueryAdapter.java",
+                                       "sha256":  "a96eaf8e33ef18fb523b9db2af99fca14354e60d9e3904329257f8da9333a86c"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/adapter/remote/RemoteAccountReferenceQueryProxy.java",
+                                       "sha256":  "c82ad5a08ea613040cda2e779052c01bcefcca552c45afb4fced0d685bc43382"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/batch/AccountReferenceBatchConfig.java",
+                                       "sha256":  "c0b8eb5bf54bfaa76f1298c9a3049d13cb8afc5a28e4c91990ae977775ce57a5"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/controller/AccountReferenceController.java",
+                                       "sha256":  "b85ee190b8d6eb957899f9a730c3cb9005c71a8d6bd05e6acb022abe7902bb1f"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/dto/AccountReferenceSearchRequest.java",
+                                       "sha256":  "5ab31fb9063cf609c2484ced3f3930d83c1d2299b23191175a1f40a19c1aeaed"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/facade/AccountReferenceFacade.java",
+                                       "sha256":  "cee5e7772a0eda0ee5e142dcf8baa51752c99b6b468504e3b6506a0cc9e0c517"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/port/AccountReferenceQueryPort.java",
+                                       "sha256":  "09ebc52e1ca95ffcdb6a6238560b0de8a56eb8774a6abf138ff5a32648db6a1c"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/repository/AccountReferenceRepository.java",
+                                       "sha256":  "65c6b746a52ce0affa0d76552fa0820d9d46f44bd42ec5b4a527a54eb5c59313"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/service/AccountReferenceService.java",
+                                       "sha256":  "d0d17704fb79a53b14a5bef5ad38b3f63dab725ee5766c68e0f67bb726139d04"
+                                   },
+                                   {
+                                       "path":  "src/main/java/com/cpf/account/reference/validation/AccountReferenceSearchValidator.java",
+                                       "sha256":  "04aada0b9862815263cb7be44d60e8f312f12240d783754147794d2ca144af3d"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application-acc-dev.yml",
+                                       "sha256":  "d6c3e11bd1673d40c546badba70f4626071991a702832d13201bfa138abb3909"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application-acc-local.yml",
+                                       "sha256":  "2afbdb6cbeb2a7a031c3d6c01bc11d86213094d0df7e09ebcf023353be03660a"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application-acc-prod.yml",
+                                       "sha256":  "c23fc973decc3e1f7abf3dd8599b4fad529e267da0b6ddfc9985e2fb56bd142e"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application-acc-stg.yml",
+                                       "sha256":  "07ceefd9e508036ed1f9eb2bae14a59fb29016084c9d3d27a8cee8b8182b54f2"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application-acc.yml",
+                                       "sha256":  "553c1a2310b35c96c245c5bac23bdf631654eef74b74697543e0ead42947f5d8"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/application.yml",
+                                       "sha256":  "000d17e0dc32f825d33bc33e3a5b2f78deed3313a92b0a392bf0e3c1cf43ec49"
+                                   },
+                                   {
+                                       "path":  "src/main/resources/mybatis/mapper/acc/reference/AccountReferenceMapper.xml",
+                                       "sha256":  "2b26b3fbf769037a2d7099fd12365c19039e2f20f0966344e10a981e764e5b16"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/account/facade/AccAccountSummaryFacadeTest.java",
+                                       "sha256":  "04c6c5468c2390975f20091fe13be2aeebe888c49f150894fa1e2ef566607dbd"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/account/service/AccAccountServiceTest.java",
+                                       "sha256":  "bc48c0f21a09ff3f2a426a76d820d1ff9531d2f761e96f44c419932a084baac4"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/config/AccountBatchRepositoryConfigTest.java",
+                                       "sha256":  "b8560d2b46929d1e4efcb2179c1fba4ad3660dc0b2b86a46c25d8a5fa4d90e22"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/config/AccountDataSourceConfigTest.java",
+                                       "sha256":  "01b21524ee6bb979ea301f3597ffe6fcfbaf8d65db478d0a01ed8ae235ffd508"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/config/AccountMyBatisConfigTest.java",
+                                       "sha256":  "03fa6bb167c5f1656e9d0553b0d77a0159fda3338601b83f8962bc0749d53893"
+                                   },
+                                   {
+                                       "path":  "src/test/java/com/cpf/account/reference/service/AccountReferenceServiceTest.java",
+                                       "sha256":  "b9d04ea3f14a2ede0a1eb13a13f84df63268268042056be650c313e2bbb5d9e8"
+                                   }
+                               ]
+                 },
+    "ownership":  [
+                      {
+                          "path":  "build.gradle",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "README.md",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/AccApplication.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/adapter/JdbcAccAccountRepository.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/controller/AccAccountController.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/controller/AccAccountSharedController.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/dto/AccAccountCreateRequest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/dto/AccAccountResponse.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/dto/AccAccountSearchCriteria.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/dto/AccAccountUpdateRequest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/facade/AccAccountSummaryFacade.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/port/AccAccountRepository.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/account/service/AccAccountService.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/common/base/AccBaseController.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/common/base/AccBaseService.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/config/AccountBatchRepositoryConfig.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/config/AccountDataSourceConfig.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/config/AccountMyBatisConfig.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/adapter/local/LocalAccountReferenceQueryAdapter.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy$1.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/batch/AccountReferenceBatchConfig.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/controller/AccountReferenceController.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/dto/AccountReferenceSearchRequest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/facade/AccountReferenceFacade.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/port/AccountReferenceQueryPort.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/repository/AccountReferenceRepository.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/service/AccountReferenceService.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/main/cpf/acc/reference/validation/AccountReferenceSearchValidator.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/account/facade/AccAccountSummaryFacadeTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest$Change.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest$MemoryRepository.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/account/service/AccAccountServiceTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest$TestableConfig.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/config/AccountDataSourceConfigTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/config/AccountMyBatisConfigTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest$1.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest.class",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "manifest/domain-manifest.json",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "manifest/ownership.json",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "manifest/standard-execution-catalog.json",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "smoke/smoke-acc.ps1",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/AccApplication.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/adapter/JdbcAccAccountRepository.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/controller/AccAccountController.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/controller/AccAccountSharedController.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/dto/AccAccountCreateRequest.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/dto/AccAccountResponse.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/dto/AccAccountSearchCriteria.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/dto/AccAccountUpdateRequest.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/facade/AccAccountSummaryFacade.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/port/AccAccountRepository.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/account/service/AccAccountService.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/common/base/AccBaseController.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/common/base/AccBaseService.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/config/AccountBatchRepositoryConfig.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/config/AccountDataSourceConfig.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/config/AccountMyBatisConfig.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/adapter/local/LocalAccountReferenceQueryAdapter.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/adapter/remote/RemoteAccountReferenceQueryProxy.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/batch/AccountReferenceBatchConfig.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/controller/AccountReferenceController.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/dto/AccountReferenceSearchRequest.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/facade/AccountReferenceFacade.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/port/AccountReferenceQueryPort.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/repository/AccountReferenceRepository.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/service/AccountReferenceService.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/java/com/cpf/account/reference/validation/AccountReferenceSearchValidator.java",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/main/resources/application-acc-dev.yml",
+                          "owner":  "operations-owned"
+                      },
+                      {
+                          "path":  "src/main/resources/application-acc-local.yml",
+                          "owner":  "operations-owned"
+                      },
+                      {
+                          "path":  "src/main/resources/application-acc-prod.yml",
+                          "owner":  "operations-owned"
+                      },
+                      {
+                          "path":  "src/main/resources/application-acc-stg.yml",
+                          "owner":  "operations-owned"
+                      },
+                      {
+                          "path":  "src/main/resources/application-acc.yml",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/resources/application.yml",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/main/resources/mybatis/mapper/acc/reference/AccountReferenceMapper.xml",
+                          "owner":  "generator-owned-candidate"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/account/facade/AccAccountSummaryFacadeTest.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/account/service/AccAccountServiceTest.java",
+                          "owner":  "business-owned"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/config/AccountBatchRepositoryConfigTest.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/config/AccountDataSourceConfigTest.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/config/AccountMyBatisConfigTest.java",
+                          "owner":  "user-owned-review"
+                      },
+                      {
+                          "path":  "src/test/java/com/cpf/account/reference/service/AccountReferenceServiceTest.java",
+                          "owner":  "generator-owned-candidate"
+                      }
+                  ],
+    "externalReferences":  [
+                               "build.gradle",
+                               "cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java",
+                               "cpf-docs/development/DEVELOPER_GUIDE.md",
+                               "cpf-docs/evidence/20260722_01/full-layer-taxonomy.sanitized.json",
+                               "scripts/smoke-acc-lifecycle.ps1",
+                               "settings.gradle"
+                           ],
+    "legacyRemovalProtection":  {
+                                    "status":  "DONE",
+                                    "exitCode":  1,
+                                    "reason":  "소유권 manifest 부재로 자동 제거 차단"
+                                },
+    "delete":  {
+                   "status":  "DONE",
+                   "residualCount":  0
+               },
+    "generate":  {
+                     "status":  "DONE",
+                     "fileCount":  46,
+                     "treeSha256":  "6f7f44a2d15295e8f3f26e34253e60fc55c1c4e2bb7ec9a53faebb00567838a8",
+                     "emptyDirectoryCount":  0,
+                     "placeholderCount":  0
+                 },
+    "verify":  {
+                   "status":  "DONE",
+                   "checkCount":  21,
+                   "failureCount":  0
+               },
+    "databaseInit":  {
+                         "status":  "READY",
+                         "applied":  false,
+                         "vendor":  "mariadb",
+                         "sql":  "cpf-account/sql/Vxx__account_domain.sql"
+                     },
+    "compile":  {
+                    "status":  "DONE",
+                    "exitCode":  0,
+                    "tasks":  [
+                                  ":cpf-account:test",
+                                  ":cpf-account:bootJar",
+                                  ":cpf-account:bootWar"
+                              ]
+                },
+    "remove":  {
+                   "status":  "DONE",
+                   "dryRunStatus":  "READY",
+                   "residualCount":  0
+               },
+    "parity":  {
+                   "status":  "DONE",
+                   "firstSha256":  "6f7f44a2d15295e8f3f26e34253e60fc55c1c4e2bb7ec9a53faebb00567838a8",
+                   "secondSha256":  "6f7f44a2d15295e8f3f26e34253e60fc55c1c4e2bb7ec9a53faebb00567838a8"
+               },
+    "comparison":  {
+                       "status":  "DONE",
+                       "commonFileCount":  20,
+                       "currentOnly":  [
+                                           "bin/main/cpf/acc/AccApplication.class",
+                                           "bin/main/cpf/acc/account/adapter/JdbcAccAccountRepository.class",
+                                           "bin/main/cpf/acc/account/controller/AccAccountController.class",
+                                           "bin/main/cpf/acc/account/controller/AccAccountSharedController.class",
+                                           "bin/main/cpf/acc/account/dto/AccAccountCreateRequest.class",
+                                           "bin/main/cpf/acc/account/dto/AccAccountResponse.class",
+                                           "bin/main/cpf/acc/account/dto/AccAccountSearchCriteria.class",
+                                           "bin/main/cpf/acc/account/dto/AccAccountUpdateRequest.class",
+                                           "bin/main/cpf/acc/account/facade/AccAccountSummaryFacade.class",
+                                           "bin/main/cpf/acc/account/port/AccAccountRepository.class",
+                                           "bin/main/cpf/acc/account/service/AccAccountService.class",
+                                           "bin/main/cpf/acc/common/base/AccBaseController.class",
+                                           "bin/main/cpf/acc/common/base/AccBaseService.class",
+                                           "bin/main/cpf/acc/config/AccountBatchRepositoryConfig.class",
+                                           "bin/main/cpf/acc/config/AccountDataSourceConfig.class",
+                                           "bin/main/cpf/acc/config/AccountMyBatisConfig.class",
+                                           "bin/main/cpf/acc/reference/adapter/local/LocalAccountReferenceQueryAdapter.class",
+                                           "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy$1.class",
+                                           "bin/main/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy.class",
+                                           "bin/main/cpf/acc/reference/batch/AccountReferenceBatchConfig.class",
+                                           "bin/main/cpf/acc/reference/controller/AccountReferenceController.class",
+                                           "bin/main/cpf/acc/reference/dto/AccountReferenceSearchRequest.class",
+                                           "bin/main/cpf/acc/reference/facade/AccountReferenceFacade.class",
+                                           "bin/main/cpf/acc/reference/port/AccountReferenceQueryPort.class",
+                                           "bin/main/cpf/acc/reference/repository/AccountReferenceRepository.class",
+                                           "bin/main/cpf/acc/reference/service/AccountReferenceService.class",
+                                           "bin/main/cpf/acc/reference/validation/AccountReferenceSearchValidator.class",
+                                           "bin/test/cpf/acc/account/facade/AccAccountSummaryFacadeTest.class",
+                                           "bin/test/cpf/acc/account/service/AccAccountServiceTest$Change.class",
+                                           "bin/test/cpf/acc/account/service/AccAccountServiceTest$MemoryRepository.class",
+                                           "bin/test/cpf/acc/account/service/AccAccountServiceTest.class",
+                                           "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest$TestableConfig.class",
+                                           "bin/test/cpf/acc/config/AccountBatchRepositoryConfigTest.class",
+                                           "bin/test/cpf/acc/config/AccountDataSourceConfigTest.class",
+                                           "bin/test/cpf/acc/config/AccountMyBatisConfigTest.class",
+                                           "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest$1.class",
+                                           "bin/test/cpf/acc/reference/service/AccountReferenceServiceTest.class",
+                                           "smoke/smoke-acc.ps1",
+                                           "src/main/java/com/cpf/account/AccApplication.java",
+                                           "src/main/java/com/cpf/account/account/adapter/JdbcAccAccountRepository.java",
+                                           "src/main/java/com/cpf/account/account/controller/AccAccountController.java",
+                                           "src/main/java/com/cpf/account/account/controller/AccAccountSharedController.java",
+                                           "src/main/java/com/cpf/account/account/dto/AccAccountCreateRequest.java",
+                                           "src/main/java/com/cpf/account/account/dto/AccAccountResponse.java",
+                                           "src/main/java/com/cpf/account/account/dto/AccAccountSearchCriteria.java",
+                                           "src/main/java/com/cpf/account/account/dto/AccAccountUpdateRequest.java",
+                                           "src/main/java/com/cpf/account/account/facade/AccAccountSummaryFacade.java",
+                                           "src/main/java/com/cpf/account/account/port/AccAccountRepository.java",
+                                           "src/main/java/com/cpf/account/account/service/AccAccountService.java",
+                                           "src/main/java/com/cpf/account/common/base/AccBaseController.java",
+                                           "src/main/java/com/cpf/account/common/base/AccBaseService.java",
+                                           "src/main/resources/application-acc-dev.yml",
+                                           "src/main/resources/application-acc-local.yml",
+                                           "src/main/resources/application-acc-prod.yml",
+                                           "src/main/resources/application-acc-stg.yml",
+                                           "src/main/resources/application-acc.yml",
+                                           "src/main/resources/mybatis/mapper/acc/reference/AccountReferenceMapper.xml",
+                                           "src/test/java/com/cpf/account/account/facade/AccAccountSummaryFacadeTest.java",
+                                           "src/test/java/com/cpf/account/account/service/AccAccountServiceTest.java",
+                                           "src/test/java/com/cpf/account/config/AccountBatchRepositoryConfigTest.java",
+                                           "src/test/java/com/cpf/account/config/AccountDataSourceConfigTest.java",
+                                           "src/test/java/com/cpf/account/config/AccountMyBatisConfigTest.java"
+                                       ],
+                       "generatedOnly":  [
+                                             "manifest/generator-ownership.json",
+                                             "smoke/smoke-account.ps1",
+                                             "sql/Vxx__account_domain.sql",
+                                             "src/main/java/com/cpf/account/AccountApplication.java",
+                                             "src/main/java/com/cpf/account/common/base/AccountBaseController.java",
+                                             "src/main/java/com/cpf/account/common/base/AccountBaseService.java",
+                                             "src/main/java/com/cpf/account/common/contract/AccountApplicationFacade.java",
+                                             "src/main/java/com/cpf/account/common/contract/AccountRepositoryPort.java",
+                                             "src/main/java/com/cpf/account/common/contract/AccountRequest.java",
+                                             "src/main/java/com/cpf/account/common/contract/AccountResponse.java",
+                                             "src/main/java/com/cpf/account/reference/file/AccountFileTransferService.java",
+                                             "src/main/java/com/cpf/account/reference/messaging/AccountEventPublisher.java",
+                                             "src/main/java/com/cpf/account/reference/messaging/AccountMessagingController.java",
+                                             "src/main/java/com/cpf/account/reference/security/AccountOperationController.java",
+                                             "src/main/java/com/cpf/account/reference/security/AccountOperationGuard.java",
+                                             "src/main/resources/application-account-dev.yml",
+                                             "src/main/resources/application-account-local.yml",
+                                             "src/main/resources/application-account-prod.yml",
+                                             "src/main/resources/application-account-stg.yml",
+                                             "src/main/resources/application-account.yml",
+                                             "src/main/resources/mybatis/mapper/account/reference/AccountReferenceMapper.xml",
+                                             "src/test/java/com/cpf/account/reference/file/AccountFileTransferServiceTest.java",
+                                             "src/test/java/com/cpf/account/reference/messaging/AccountEventPublisherTest.java",
+                                             "src/test/java/com/cpf/account/reference/security/AccountOperationGuardTest.java",
+                                             "ui/src/features/reference/AccountReferenceApi.ts",
+                                             "ui/src/features/reference/AccountReferencePage.vue"
+                                         ]
+                   },
+    "endedAt":  "2026-07-22T14:05:28.9141526+09:00"
+}

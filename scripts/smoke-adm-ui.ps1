@@ -8,16 +8,22 @@
     [switch] $RequireBrowserClick
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($LogDir)) {
     $LogDir = Join-Path $Root "build/runtime-smoke"
 }
 
-$indexPath = Join-Path $Root "adm/frontend/src/App.vue"
-$scriptPath = Join-Path $Root "adm/frontend/src/App.vue"
-$packageLockPath = Join-Path $Root "adm/frontend/package-lock.json"
-$generatedIndexPath = Join-Path $Root "adm/build/generated/frontend/static/adm/index.html"
+$indexPath = Join-Path $Root "cpf-admin/frontend/index.html"
+$sourceRoot = Join-Path $Root "cpf-admin/frontend/src"
+$packageLockPath = Join-Path $Root "cpf-admin/frontend/package-lock.json"
+$generatedIndexPath = Join-Path $Root "cpf-admin/build/generated/frontend/static/adm/index.html"
 $failures = New-Object System.Collections.Generic.List[string]
 
 function Add-Failure {
@@ -95,16 +101,24 @@ function Save-BrowserResult {
 if (-not (Test-Path -LiteralPath $indexPath)) {
     throw "ADM index.html not found: $indexPath"
 }
-if (-not (Test-Path -LiteralPath $scriptPath)) {
-    throw "ADM App.vue를 찾지 못했습니다: $scriptPath"
+if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
+    throw "ADM frontend 정본 소스 경로를 찾지 못했습니다: $sourceRoot"
 }
 if (-not (Test-Path -LiteralPath $packageLockPath)) {
     throw "ADM package-lock.json을 찾지 못했습니다: $packageLockPath"
 }
 
 $index = [System.IO.File]::ReadAllText($indexPath, [System.Text.Encoding]::UTF8)
-$script = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8)
-$combined = "$index`n$script"
+$sourceFiles = @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -File |
+    Where-Object { $_.Extension -in @(".ts", ".vue") } |
+    Sort-Object FullName)
+if ($sourceFiles.Count -eq 0) {
+    throw "ADM Vue/TypeScript 정본 소스를 찾지 못했습니다: $sourceRoot"
+}
+$source = ($sourceFiles | ForEach-Object {
+    [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+}) -join "`n"
+$combined = "$index`n$source"
 if ($combined.Contains("window.Vue") -or $combined.Contains("vue.global")) {
     Add-Failure "ADM frontend에 Vue Global Build 참조가 남아 있습니다."
 }
@@ -112,7 +126,7 @@ if (-not (Test-Path -LiteralPath $generatedIndexPath)) {
     Add-Failure "ADM production frontend build 산출물이 없습니다."
 }
 
-# Static smoke checks core ADM UI menu, button, and API route markers.
+# 정적 smoke는 분리된 feature module 전체에서 ADM 메뉴, 버튼, API 경로 계약을 확인합니다.
 $requiredMarkers = @(
     "batch",
     "logs",
@@ -136,7 +150,7 @@ $requiredMarkers = @(
     "/adm/api/batch/calendar",
     "/adm/api/batch/scheduler/run-once",
     "Center-Cut Job ID",
-    "CPF_XYZ_CENTER_CUT_SAMPLE_JOB",
+    "CPF_REF_CENTER_CUT_SAMPLE_JOB",
     "/adm/api/center-cut",
     "/adm/api/center-cut/jobs",
     "/adm/api/center-cut/results",
@@ -168,7 +182,7 @@ foreach ($marker in $requiredMarkers) {
 }
 
 $legacyPattern = ("F" + "PS") + "|" + ("F" + "ps") + "|" + ("f" + "ps")
-if ($script -match $legacyPattern) {
+if ($source -match $legacyPattern) {
     Add-Failure "ADM UI script still contains a legacy project name."
 }
 
@@ -190,9 +204,11 @@ $result = [ordered]@{
     staticUi = [ordered]@{
         status = "PASSED"
         checkedFiles = @(
-            "adm/frontend/src/App.vue",
-            "adm/frontend/package-lock.json",
-            "adm/build/generated/frontend/static/adm/index.html"
+            "cpf-admin/frontend/index.html",
+            "cpf-admin/frontend/src/**/*.vue",
+            "cpf-admin/frontend/src/**/*.ts",
+            "cpf-admin/frontend/package-lock.json",
+            "cpf-admin/build/generated/frontend/static/adm/index.html"
         )
     }
     environment = [ordered]@{}
@@ -271,7 +287,7 @@ test("ADM UI basic click flow", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "\uAC70\uB798 \uADF8\uB8F9" })).toBeVisible();
   const transactionGroupPanel = page.locator('section[v-show="activeMenu === \'transactionGroups\'"]');
   await transactionGroupPanel.getByLabel("transactionGlobalId").fill(process.env.ADM_UI_SMOKE_TRANSACTION_ID || "");
-  await transactionGroupPanel.getByLabel("\uBAA8\uB4C8").fill(process.env.ADM_UI_SMOKE_MODULE_CODE || "XYZ");
+  await transactionGroupPanel.getByLabel("\uBAA8\uB4C8").fill(process.env.ADM_UI_SMOKE_MODULE_CODE || "REF");
   await transactionGroupPanel.getByLabel("\uC2E4\uD328 \uC5EC\uBD80").selectOption(process.env.ADM_UI_SMOKE_FAILURE_YN || "");
   await transactionGroupPanel.getByLabel("\uD45C\uC900 \uD5E4\uB354 \uAC80\uC0C9").fill("X-Channel-Code");
   await transactionGroupPanel.getByRole("button", { name: "\uC870\uD68C" }).click();

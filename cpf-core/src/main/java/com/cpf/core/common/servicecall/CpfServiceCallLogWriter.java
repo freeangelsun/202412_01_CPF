@@ -1,9 +1,9 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 import java.util.Map;
 
 /**
- * 서비스 호출 이력과 health/circuit 상태를 pfwDB에 기록합니다.
+ * 서비스 호출 이력과 health/circuit 상태를 cpfDB에 기록합니다.
  */
 public class CpfServiceCallLogWriter {
     private final CpfServiceRegistryRepository repository;

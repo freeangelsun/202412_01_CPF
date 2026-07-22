@@ -1,6 +1,6 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
-import cpf.bat.common.base.BatBaseController;
+import com.cpf.batch.common.base.BatBaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

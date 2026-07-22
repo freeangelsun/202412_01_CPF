@@ -1,8 +1,8 @@
-package cpf.pfw.common.gateway;
+package com.cpf.core.common.gateway;
 
-import cpf.pfw.common.execution.CpfExecutionCatalogPort;
-import cpf.pfw.common.execution.CpfExecutionDefinition;
-import cpf.pfw.common.execution.CpfExecutionType;
+import com.cpf.core.common.execution.CpfExecutionCatalogPort;
+import com.cpf.core.common.execution.CpfExecutionDefinition;
+import com.cpf.core.common.execution.CpfExecutionType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -32,7 +32,7 @@ class CpfGatewayRouteCatalogTest {
     private CpfExecutionDefinition definition(
             String id, CpfExecutionType type, String visibility, boolean gatewayAllowed) {
         return new CpfExecutionDefinition(id, "테스트", type, "ACC", "ACC",
-                "cpf.acc.TestController", "execute", "POST", "/api/v1/test", "testOperation",
+                "com.cpf.account.TestController", "execute", "POST", "/api/v1/test", "testOperation",
                 "테스트 실행", "", false, visibility, true, gatewayAllowed, "test", Instant.now());
     }
 

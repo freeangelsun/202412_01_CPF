@@ -1,8 +1,8 @@
-package cpf.mbr.integration.account;
+package com.cpf.member.integration.account;
 
-import cpf.cmn.api.account.AccountSummary;
-import cpf.pfw.common.execution.CpfStandardExecutionId;
-import cpf.pfw.common.http.CpfWebClient;
+import com.cpf.common.api.account.AccountSummary;
+import com.cpf.core.common.execution.CpfStandardExecutionId;
+import com.cpf.core.common.http.CpfWebClient;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

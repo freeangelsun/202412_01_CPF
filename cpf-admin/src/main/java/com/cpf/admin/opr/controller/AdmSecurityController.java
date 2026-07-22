@@ -1,11 +1,11 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmIpAllowlistRequest;
-import cpf.adm.opr.dto.AdmMfaOtpRequest;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmSecurityOperationService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
+import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmSecurityOperationService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/security")
 @Tag(name = "ADM-Security", description = "ADM 보안 운영 API")
-public class AdmSecurityController extends cpf.adm.common.base.AdmBaseController {
+public class AdmSecurityController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmSecurityOperationService securityService;
     private final AdmAuditLogService auditLogService;
 

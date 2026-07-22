@@ -1,7 +1,7 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmApiPermissionSaveRequest;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.opr.dto.AdmApiPermissionSaveRequest;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

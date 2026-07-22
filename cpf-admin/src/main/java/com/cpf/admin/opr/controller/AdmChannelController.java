@@ -1,16 +1,16 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmChannelPackageImportRequest;
-import cpf.adm.opr.dto.AdmChannelPolicySaveRequest;
-import cpf.adm.opr.dto.AdmChannelSaveRequest;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.pfw.channel.application.CpfChannelPolicyService;
-import cpf.pfw.channel.model.CpfChannelDefinition;
-import cpf.pfw.channel.model.CpfChannelExecutionPolicy;
-import cpf.pfw.channel.model.CpfChannelPolicyPackage;
-import cpf.pfw.channel.model.CpfChannelPolicySnapshot;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmChannelPackageImportRequest;
+import com.cpf.admin.opr.dto.AdmChannelPolicySaveRequest;
+import com.cpf.admin.opr.dto.AdmChannelSaveRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.core.channel.application.CpfChannelPolicyService;
+import com.cpf.core.channel.model.CpfChannelDefinition;
+import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
+import com.cpf.core.channel.model.CpfChannelPolicyPackage;
+import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/adm/api/channels")
 @Tag(name = "ADM-OPR Channel Policy", description = "채널 레지스트리, 실행 정책, 불변 스냅샷과 정책 패키지 관리")
-public class AdmChannelController extends cpf.adm.common.base.AdmBaseController {
+public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseController {
     private final CpfChannelPolicyService channelPolicyService;
     private final AdmAuditLogService auditLogService;
 
@@ -50,7 +50,7 @@ public class AdmChannelController extends cpf.adm.common.base.AdmBaseController 
     @PostMapping("/refresh")
     @CpfOnlineTransaction(id = "OADMCH0002", name = "ADMChannelPolicyRefresh")
     @Operation(operationId = "admChannelRefreshSnapshot", summary = "채널 정책 스냅샷 갱신",
-            description = "pfwDB 정본을 다시 읽어 불변 스냅샷을 원자적으로 교체합니다.")
+            description = "cpfDB 정본을 다시 읽어 불변 스냅샷을 원자적으로 교체합니다.")
     public ResponseEntity<CpfChannelPolicySnapshot> refresh(
             @jakarta.validation.constraints.NotBlank String reason,
             String requestUser,
@@ -139,7 +139,7 @@ public class AdmChannelController extends cpf.adm.common.base.AdmBaseController 
             Object before,
             Object after) {
         auditLogService.record(TransactionContext.getOrCreateTransactionId(), actor, action,
-                "pfw_channel_policy", targetId, reason,
+                "cpf_channel_policy", targetId, reason,
                 String.valueOf(before), String.valueOf(after),
                 "snapshotVersion 변경", request.getRemoteAddr());
     }

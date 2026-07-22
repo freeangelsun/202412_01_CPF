@@ -1,10 +1,10 @@
-package cpf.pfw.channel.application;
+package com.cpf.core.channel.application;
 
-import cpf.pfw.channel.api.CpfChannelRegistryPort;
-import cpf.pfw.channel.model.CpfChannelDefinition;
-import cpf.pfw.channel.model.CpfChannelExecutionPolicy;
-import cpf.pfw.channel.model.CpfChannelPolicyPackage;
-import cpf.pfw.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.channel.api.CpfChannelRegistryPort;
+import com.cpf.core.channel.model.CpfChannelDefinition;
+import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
+import com.cpf.core.channel.model.CpfChannelPolicyPackage;
+import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

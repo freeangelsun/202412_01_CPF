@@ -6,6 +6,24 @@ server:
 spring:
   datasource:
     adm:
-      url: ${ADM_DATASOURCE_URL}
-      username: ${ADM_DATASOURCE_USERNAME}
-      password: ${ADM_DATASOURCE_PASSWORD}
+      mode: ${ADM_DATASOURCE_MODE:url}
+      url: ${ADM_DATASOURCE_URL:${ADM_DB_URL}}
+      username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME}}
+      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD}}
+      jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
+    mbr:
+      mode: ${MBR_DB_MODE:url}
+      url: ${MBR_DB_URL}
+      username: ${MBR_DB_USERNAME}
+      password: ${MBR_DB_PASSWORD}
+      jndi-name: ${MBR_DB_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}
+    ref:
+      mode: ${REF_DB_MODE:url}
+      url: ${REF_DB_URL}
+      username: ${REF_DB_USERNAME}
+      password: ${REF_DB_PASSWORD}
+      jndi-name: ${REF_DB_JNDI_NAME:java:comp/env/jdbc/cpfReferenceDataSource}
+
+logging:
+  level:
+    com.cpf.admin: INFO

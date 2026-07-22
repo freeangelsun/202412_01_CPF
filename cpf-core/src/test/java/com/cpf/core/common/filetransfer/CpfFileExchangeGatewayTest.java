@@ -1,4 +1,4 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -56,7 +56,7 @@ class CpfFileExchangeGatewayTest {
 
     private CpfFileExchangeGateway gateway() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.pfw.file-exchange.base-dir", tempDir.toString());
+                .withProperty("cpf.filetransfer.base-dir", tempDir.toString());
         return new CpfFileExchangeGateway(environment);
     }
 }

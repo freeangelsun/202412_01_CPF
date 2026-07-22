@@ -1,56 +1,30 @@
-package cpf.cmn.config;
+package com.cpf.common.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.jdbc.DataSourceBuilder;
+import com.cpf.core.common.database.CpfDataSourceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+/** CPF 기술 메타를 읽는 CMN 공통 데이터소스를 구성합니다. */
 @Configuration
 public class CmnDataSourceConfig {
 
-    @Value("${spring.datasource.cmn.url}")
-    private String url;
-
-    @Value("${spring.datasource.cmn.username}")
-    private String username;
-
-    @Value("${spring.datasource.cmn.password}")
-    private String password;
-
-    @Value("${spring.datasource.cmn.driver-class-name}")
-    private String driverClassName;
-
+    /** 배포 형태에 따라 URL 또는 JNDI 방식으로 cpfDB 연결을 생성합니다. */
     @Bean(name = "cmnDataSource")
-    public DataSource cmnDataSource() {
-        return DataSourceBuilder.create()
-                .url(url)
-                .username(username)
-                .password(password)
-                .driverClassName(driverClassName)
-                .build();
+    public DataSource cmnDataSource(Environment environment) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "spring.datasource.cmn");
     }
 
+    /** 코드·메시지·설정 조회와 캐시 이벤트 기록에 사용하는 트랜잭션 관리자입니다. */
     @Bean(name = "cmnTransactionManager")
     public PlatformTransactionManager cmnTransactionManager(@Qualifier("cmnDataSource") DataSource cmnDataSource) {
         return new DataSourceTransactionManager(cmnDataSource);
     }
-
-//    private final Environment env;
-//
-//    @Autowired
-//    public CmnDataSourceConfig(Environment env) {
-//        this.env = env;
-//    }
-//    @Bean(name = "cmnDataSource")
-//    public DataSource cmnDataSource() throws Exception {
-//        String jndiName = env.getProperty("spring.datasource.cmn.jndi-name");
-//        return (DataSource) new JndiTemplate().lookup(jndiName);
-//    }
-
 }
 

@@ -1,7 +1,7 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.exception.CpfFrameworkErrorCode;
-import cpf.pfw.common.exception.CpfFrameworkException;
+import com.cpf.core.common.exception.CpfFrameworkErrorCode;
+import com.cpf.core.common.exception.CpfFrameworkException;
 
 import java.util.Locale;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Resolves service ids to configured base URLs.
  *
- * <p>The actual endpoints are managed in {@code application-pfw.yml} under {@code cpf.services.*}.</p>
+ * <p>The actual endpoints are managed in {@code application-cpf.yml} under {@code cpf.services.*}.</p>
  */
 public class CpfServiceEndpointRegistry {
 
@@ -22,7 +22,7 @@ public class CpfServiceEndpointRegistry {
     /**
      * Returns the base URL for a service id.
      *
-     * @param serviceId 서비스 ID 예: {@code mbr}, {@code bza}, {@code xyz}
+     * @param serviceId 서비스 ID 예: {@code mbr}, {@code bza}, {@code ref}
      * @return normalized base URL without trailing slash
      */
     public String baseUrl(String serviceId) {

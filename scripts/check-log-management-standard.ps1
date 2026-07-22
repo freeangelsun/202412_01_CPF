@@ -1,7 +1,13 @@
 ﻿param(
     [string]$Root = (Split-Path -Parent $PSScriptRoot),
-    [string]$ResultDir = "specs/evidence/20260713_02"
+    [string]$ResultDir = "build/quality-gate"
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $checks = New-Object System.Collections.Generic.List[object]
@@ -73,15 +79,15 @@ function Test-SanitizedEvidence([string]$RelativePath) {
 }
 
 $gitignore = Get-Content -LiteralPath (Join-Path $Root ".gitignore") -Encoding UTF8
-foreach ($rule in @("logs/", "**/logs/", "*.log", "*.log.*", "!specs/evidence/**/*.sanitized.log")) {
+foreach ($rule in @("logs/", "**/logs/", "*.log", "*.log.*", "!cpf-docs/evidence/**/*.sanitized.log")) {
     Add-Check "GITIGNORE_$rule" ($gitignore -contains $rule) $rule
 }
 
-$rawLogs = Git-Lines @(
+$rawLogs = @(Git-Lines @(
     "ls-files", "--",
     ":(glob)logs/**", ":(glob)*/logs/**", ":(glob)**/*.log", ":(glob)**/*.log.*",
-    ":(exclude,glob)specs/evidence/**/*.sanitized.log"
-)
+    ":(exclude,glob)cpf-docs/evidence/**/*.sanitized.log"
+) | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) })
 Add-Check "TRACKED_RAW_LOGS" ($rawLogs.Count -eq 0) "count=$($rawLogs.Count)"
 
 $activeLogbackReferences = @(& rg -n --glob "application*.yml" --glob "application*.yaml" `
@@ -92,20 +98,20 @@ if ($LASTEXITCODE -notin @(0, 1)) {
 Add-Check "LEGACY_LOGBACK_REFERENCE" ($activeLogbackReferences.Count -eq 0) "count=$($activeLogbackReferences.Count)"
 
 $legacyBatchLogReferences = @(& rg -n 'cpf-bat-batch\.log' `
-        (Join-Path $Root "scripts") (Join-Path $Root "pfw") (Join-Path $Root "bat") (Join-Path $Root "adm") 2>$null)
+        (Join-Path $Root "scripts") (Join-Path $Root "cpf-core") (Join-Path $Root "cpf-batch") (Join-Path $Root "cpf-admin") 2>$null)
 if ($LASTEXITCODE -notin @(0, 1)) {
     throw "레거시 BAT 단일 로그 참조 검색에 실패했습니다."
 }
 Add-Check "LEGACY_BATCH_SINGLE_FILE" ($legacyBatchLogReferences.Count -eq 0) "count=$($legacyBatchLogReferences.Count)"
 
 $duplicateLogRoots = @(& rg -n --glob "application*.yml" --glob "application*.yaml" `
-        '(?:\./)?(?:acc|adm|bat|bza|exs|mbr|xyz)[\\/]logs' $Root 2>$null)
+        '(?:\./)?(?:cpf-account|cpf-admin|cpf-batch|cpf-biz-admin|cpf-external|cpf-member|cpf-reference)[\\/]logs' $Root 2>$null)
 if ($LASTEXITCODE -notin @(0, 1)) {
     throw "중복 로그 root 검색에 실패했습니다."
 }
 Add-Check "DUPLICATE_MODULE_LOG_ROOT" ($duplicateLogRoots.Count -eq 0) "count=$($duplicateLogRoots.Count)"
 
-$logbackPath = Join-Path $Root "pfw/src/main/resources/log/cpf-logback-spring.xml"
+$logbackPath = Join-Path $Root "cpf-core/src/main/resources/log/cpf-logback-spring.xml"
 $logback = Get-Content -LiteralPath $logbackPath -Raw -Encoding UTF8
 [xml]$logbackXml = $logback
 $siftingAppenders = @($logbackXml.SelectNodes('//appender[contains(@class, "SiftingAppender")]'))
@@ -116,9 +122,9 @@ Add-Check "DAILY_INSTANCE_FILENAME" ($logback -match 'cpf-\$\{MODULE_CODE\}-appl
 Add-Check "RETENTION" ($logback -match '<maxHistory>\$\{MAX_HISTORY\}</maxHistory>') "shared logback"
 Add-Check "ARCHIVE_COMPRESSION" ($logback -match '\.log\.gz</fileNamePattern>') "shared logback"
 
-$pfwConfig = Get-Content -LiteralPath (Join-Path $Root "pfw/src/main/resources/application-pfw.yml") -Raw -Encoding UTF8
+$cpfConfig = Get-Content -LiteralPath (Join-Path $Root "cpf-core/src/main/resources/application-cpf.yml") -Raw -Encoding UTF8
 foreach ($marker in @("CPF_LOG_ROOT", "CPF_LOG_TIMEZONE", "CPF_LOG_MAX_HISTORY_DAYS", "CPF_INSTANCE_ID", "CPF_ENV")) {
-    Add-Check "PFW_LOG_CONFIG_$marker" ($pfwConfig.Contains($marker)) $marker
+    Add-Check "CPF_LOG_CONFIG_$marker" ($cpfConfig.Contains($marker)) $marker
 }
 
 $newEvidenceRoot = if ([System.IO.Path]::IsPathRooted($ResultDir)) {

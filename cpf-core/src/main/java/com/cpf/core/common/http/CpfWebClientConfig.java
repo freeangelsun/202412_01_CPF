@@ -1,9 +1,9 @@
-package cpf.pfw.common.http;
+package com.cpf.core.common.http;
 
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.servicecall.CpfServiceCallEngine;
-import cpf.pfw.common.workflow.CpfWorkflowContext;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.servicecall.CpfServiceCallEngine;
+import com.cpf.core.common.workflow.CpfWorkflowContext;
 import io.netty.channel.ChannelOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -123,8 +123,8 @@ public class CpfWebClientConfig {
             }
             // 외부 입력의 호출자 값을 다음 hop으로 넘기지 않고 실제 현재 서비스 신원으로 재생성합니다.
             requestBuilder.headers(headers -> {
-                headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
-                headers.set(cpf.pfw.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
+                headers.set(com.cpf.core.common.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
+                headers.set(com.cpf.core.common.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
             });
 
             return next.exchange(requestBuilder.build());
@@ -228,8 +228,8 @@ public class CpfWebClientConfig {
         if (normalizedPath.contains("/api/bza/") || normalizedPath.contains("/bza/")) {
             return "BZA";
         }
-        if (normalizedPath.contains("/xyz/")) {
-            return "XYZ";
+        if (normalizedPath.contains("/ref/")) {
+            return "REF";
         }
         if (normalizedPath.contains("/bat/")) {
             return "BAT";
@@ -247,7 +247,7 @@ public class CpfWebClientConfig {
             return "BAT";
         }
         if (port == 8099) {
-            return "XYZ";
+            return "REF";
         }
         return hasText(host) ? host.toUpperCase(Locale.ROOT) : "UNKNOWN";
     }

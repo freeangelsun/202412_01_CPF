@@ -1,12 +1,12 @@
-package cpf.xyz.external;
+package com.cpf.reference.external;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzNeutralExternalSimulatorControllerTest {
-    private final XyzNeutralExternalSimulatorController controller = new XyzNeutralExternalSimulatorController();
+class ReferenceNeutralExternalSimulatorControllerTest {
+    private final ReferenceNeutralExternalSimulatorController controller = new ReferenceNeutralExternalSimulatorController();
 
     @Test
     void 정상과오류HTTP상태를결정적으로재현한다() {

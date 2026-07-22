@@ -1,6 +1,6 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
-import cpf.pfw.common.security.CpfCredentialRef;
+import com.cpf.core.common.security.CpfCredentialRef;
 
 import java.time.Duration;
 import java.util.Map;

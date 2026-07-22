@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * PFW 표준 멱등 실행 엔진입니다.
+ * CPF 표준 멱등 실행 엔진입니다.
  *
  * <p>DB unique key를 최종 동시성 경계로 사용하고, 동일 요청의 성공 응답은 재사용합니다.
  * 같은 key에 다른 요청이 들어오거나 기존 처리가 진행 중이면 실행하지 않습니다.</p>

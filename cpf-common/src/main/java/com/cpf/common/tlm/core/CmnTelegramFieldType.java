@@ -1,8 +1,6 @@
-package cpf.cmn.tlm.core;
+package com.cpf.common.tlm.core;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** 고정길이 전문 필드가 표현하는 논리 자료형입니다. */
 public enum CmnTelegramFieldType {
     STRING,
     NUMBER,

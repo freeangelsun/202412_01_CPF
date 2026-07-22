@@ -1,11 +1,11 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * 영속 outbox를 broker publisher port에 전달하는 PFW 표준 worker입니다.
+ * 영속 outbox를 broker publisher port에 전달하는 CPF 표준 worker입니다.
  *
  * <p>스케줄러는 runOnce를 반복 호출하며, 실제 다중 worker lock의 최종 책임은
  * CpfBrokerOutboxPort 구현체가 담당합니다.</p>

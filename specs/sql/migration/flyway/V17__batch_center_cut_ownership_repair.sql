@@ -1,11 +1,11 @@
-USE pfwDB;
+USE cpfDB;
 
--- V16에서 PFW에 임시 배치했던 center-cut 실행 메타를 BAT 소유 테이블로 이관합니다.
--- PFW는 표준 인터페이스와 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
+-- V16에서 CPF에 임시 배치했던 center-cut 실행 메타를 BAT 소유 테이블로 이관합니다.
+-- CPF는 표준 인터페이스와 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
 
 CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    batch_job_id VARCHAR(100) NULL COMMENT '연결된 PFW 배치 Job ID',
+    batch_job_id VARCHAR(100) NULL COMMENT '연결된 CPF 배치 Job ID',
     center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
     provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
     handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     PRIMARY KEY (center_cut_job_id),
     INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn),
     CONSTRAINT fk_bat_center_cut_job_batch
-        FOREIGN KEY (batch_job_id) REFERENCES pfw_batch_job(job_id)
+        FOREIGN KEY (batch_job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
 
@@ -96,7 +96,7 @@ INSERT INTO bat_center_cut_job (
 SELECT
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, created_at, updated_by, updated_at
-FROM pfw_center_cut_job
+FROM cpf_center_cut_job
 ON DUPLICATE KEY UPDATE
     batch_job_id = VALUES(batch_job_id),
     center_cut_job_name = VALUES(center_cut_job_name),
@@ -116,7 +116,7 @@ INSERT INTO bat_center_cut_parameter (
 SELECT
     parameter_id, center_cut_job_id, parameter_key, parameter_value, encrypted_yn,
     use_yn, created_by, created_at, updated_by, updated_at
-FROM pfw_center_cut_parameter
+FROM cpf_center_cut_parameter
 ON DUPLICATE KEY UPDATE
     parameter_value = VALUES(parameter_value),
     encrypted_yn = VALUES(encrypted_yn),
@@ -133,7 +133,7 @@ SELECT
     center_cut_item_id, center_cut_job_id, business_key, business_date, item_status,
     parent_transaction_global_id, child_transaction_global_id, item_payload, retry_count,
     last_error_message, created_by, created_at, updated_by, updated_at
-FROM pfw_center_cut_item
+FROM cpf_center_cut_item
 ON DUPLICATE KEY UPDATE
     item_status = VALUES(item_status),
     child_transaction_global_id = VALUES(child_transaction_global_id),
@@ -152,7 +152,7 @@ SELECT
     center_cut_result_id, center_cut_item_id, center_cut_job_id, result_status,
     result_payload, result_message, child_transaction_global_id,
     created_by, created_at, updated_by, updated_at
-FROM pfw_center_cut_result
+FROM cpf_center_cut_result
 ON DUPLICATE KEY UPDATE
     result_status = VALUES(result_status),
     result_payload = VALUES(result_payload),
@@ -161,7 +161,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = VALUES(updated_at);
 
-DROP TABLE IF EXISTS pfw_center_cut_result;
-DROP TABLE IF EXISTS pfw_center_cut_item;
-DROP TABLE IF EXISTS pfw_center_cut_parameter;
-DROP TABLE IF EXISTS pfw_center_cut_job;
+DROP TABLE IF EXISTS cpf_center_cut_result;
+DROP TABLE IF EXISTS cpf_center_cut_item;
+DROP TABLE IF EXISTS cpf_center_cut_parameter;
+DROP TABLE IF EXISTS cpf_center_cut_job;

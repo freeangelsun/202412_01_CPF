@@ -1,10 +1,10 @@
-package cpf.pfw.common.logging.policy;
+package com.cpf.core.common.logging.policy;
 
 import java.util.Arrays;
 import java.util.Locale;
 
 /**
- * PFW 로그 정책이 적용되는 대상 유형입니다.
+ * CPF 로그 정책이 적용되는 대상 유형입니다.
  *
  * <p>운영 표준 명칭은 {@code ONLINE_TRANSACTION}, {@code BATCH_JOB},
  * {@code BATCH_STEP}입니다. 기존 seed에 남아 있던 {@code TRANSACTION}은

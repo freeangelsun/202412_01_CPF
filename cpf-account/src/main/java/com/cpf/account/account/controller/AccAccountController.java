@@ -1,12 +1,12 @@
-package cpf.acc.account.controller;
+package com.cpf.account.account.controller;
 
-import cpf.acc.account.dto.AccAccountCreateRequest;
-import cpf.acc.account.dto.AccAccountResponse;
-import cpf.acc.account.dto.AccAccountSearchCriteria;
-import cpf.acc.account.dto.AccAccountUpdateRequest;
-import cpf.acc.account.service.AccAccountService;
-import cpf.acc.common.base.AccBaseController;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.account.account.dto.AccAccountCreateRequest;
+import com.cpf.account.account.dto.AccAccountResponse;
+import com.cpf.account.account.dto.AccAccountSearchCriteria;
+import com.cpf.account.account.dto.AccAccountUpdateRequest;
+import com.cpf.account.account.service.AccAccountService;
+import com.cpf.account.common.base.AccBaseController;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

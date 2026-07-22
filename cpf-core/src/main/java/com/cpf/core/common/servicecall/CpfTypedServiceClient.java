@@ -1,8 +1,8 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
-import cpf.pfw.common.base.CpfRequest;
-import cpf.pfw.common.base.CpfResponse;
-import cpf.pfw.common.base.CpfServiceClient;
+import com.cpf.core.common.base.CpfRequest;
+import com.cpf.core.common.base.CpfResponse;
+import com.cpf.core.common.base.CpfServiceClient;
 
 /**
  * local facade와 remote adapter가 동일하게 구현하는 typed 서비스 Client 계약입니다.

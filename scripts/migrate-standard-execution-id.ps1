@@ -4,6 +4,12 @@
     [switch] $Apply
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -22,8 +28,8 @@ function Resolve-FeatureCode {
     )
 
     $semanticCodes = @{
-        'XYZ:EDU' = 'AA'
-        'XYZ:QRY' = 'QR'
+        'REF:EDU' = 'AA'
+        'REF:QRY' = 'QR'
         'MBR:BSE' = 'MB'
         'MBR:AUT' = 'AU'
         'BZA:USR' = 'US'
@@ -42,7 +48,7 @@ function Get-TargetFiles {
     param([string] $BasePath)
 
     $allowedExtensions = @('.java', '.xml', '.yml', '.yaml', '.sql', '.json', '.ps1', '.gradle')
-    $roots = @('pfw', 'cmn', 'mbr', 'xyz', 'adm', 'bza', 'bat', 'scripts', 'specs/sql', 'deploy')
+    $roots = @('cpf', 'cmn', 'mbr', 'ref', 'adm', 'bza', 'bat', 'scripts', 'specs/sql', 'deploy')
     $files = foreach ($relativeRoot in $roots) {
         $path = Join-Path $BasePath $relativeRoot
         if (Test-Path -LiteralPath $path) {

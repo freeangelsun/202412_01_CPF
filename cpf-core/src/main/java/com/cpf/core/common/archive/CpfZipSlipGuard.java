@@ -1,4 +1,4 @@
-package cpf.pfw.common.archive;
+package com.cpf.core.common.archive;
 
 import java.nio.file.Path;
 

@@ -1,4 +1,4 @@
-package cpf.xyz.transaction.application;
+package com.cpf.reference.transaction.application;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * XYZ 트랜잭션 교육에서 감사성 보조 처리를 분리해서 보여주는 서비스입니다.
+ * REF 트랜잭션 교육에서 감사성 보조 처리를 분리해서 보여주는 서비스입니다.
  *
  * <p>실제 업무에서는 감사 로그를 DB에 적재하지만, EDU 모듈은 개발자가 트랜잭션 전파 방식을 빠르게
  * 확인할 수 있도록 메모리 목록에 메시지를 보관합니다. 이 클래스는 운영 저장소가 아니라 교육 전용
  * 동작을 명확히 드러내기 위해 edu 패키지 아래에만 둡니다.</p>
  */
 @Service
-public class XyzTransactionEducationAuditService extends cpf.xyz.common.base.XyzBaseService {
+public class ReferenceTransactionEducationAuditService extends com.cpf.reference.common.base.ReferenceBaseService {
     private final List<String> auditMessages = new ArrayList<>();
 
     /**

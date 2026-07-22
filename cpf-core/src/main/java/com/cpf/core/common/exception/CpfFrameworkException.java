@@ -1,9 +1,9 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Map;
 
 /**
- * PFW 프레임워크 계층에서 발생한 오류를 표준 응답코드로 전달하는 예외입니다.
+ * CPF 프레임워크 계층에서 발생한 오류를 표준 응답코드로 전달하는 예외입니다.
  */
 public class CpfFrameworkException extends CpfException {
 

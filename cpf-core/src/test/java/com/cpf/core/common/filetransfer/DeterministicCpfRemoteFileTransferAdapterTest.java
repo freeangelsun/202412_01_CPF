@@ -1,6 +1,6 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
-import cpf.pfw.common.security.CpfCredentialRef;
+import com.cpf.core.common.security.CpfCredentialRef;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,7 +32,7 @@ class DeterministicCpfRemoteFileTransferAdapterTest {
                 CpfFileTransferProtocol.SSH}) {
             CpfFileTransferEndpoint endpoint = endpoint(protocol);
             CpfFileTransferRequest request = new CpfFileTransferRequest(
-                    "20260714090000000XYZlocal010000001",
+                    "20260714090000000REFlocal010000001",
                     "SEG-" + protocol,
                     endpoint.endpointCode(),
                     "UPLOAD",

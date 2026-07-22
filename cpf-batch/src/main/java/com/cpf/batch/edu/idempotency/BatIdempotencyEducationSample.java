@@ -1,9 +1,9 @@
-package cpf.bat.edu.idempotency;
+package com.cpf.batch.edu.idempotency;
 
-import cpf.pfw.common.idempotency.CpfIdempotencyCommand;
-import cpf.pfw.common.idempotency.CpfIdempotencyEngine;
-import cpf.pfw.common.idempotency.CpfIdempotencyExecutionResult;
-import cpf.pfw.common.idempotency.InMemoryCpfIdempotencyRepository;
+import com.cpf.core.common.idempotency.CpfIdempotencyCommand;
+import com.cpf.core.common.idempotency.CpfIdempotencyEngine;
+import com.cpf.core.common.idempotency.CpfIdempotencyExecutionResult;
+import com.cpf.core.common.idempotency.InMemoryCpfIdempotencyRepository;
 
 import java.time.Duration;
 

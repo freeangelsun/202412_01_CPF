@@ -1,4 +1,4 @@
-package cpf.bat.edu.idempotency;
+package com.cpf.batch.edu.idempotency;
 
 import java.util.HashSet;
 import java.util.Set;

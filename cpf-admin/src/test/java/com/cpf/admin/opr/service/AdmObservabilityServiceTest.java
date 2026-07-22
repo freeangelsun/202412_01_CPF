@@ -1,4 +1,4 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,9 +17,9 @@ class AdmObservabilityServiceTest {
 
     @Test
     void traceReturnsEmptyBucketsWhenSourceTablesAreMissing() {
-        JdbcTemplate pfwJdbcTemplate = mock(JdbcTemplate.class);
+        JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
         JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
-        AdmObservabilityService service = new AdmObservabilityService(pfwJdbcTemplate, admJdbcTemplate);
+        AdmObservabilityService service = new AdmObservabilityService(cpfJdbcTemplate, admJdbcTemplate);
 
         Map<String, Object> result = service.traceByBusinessTransactionId("ADM03LGP0014", 20);
 
@@ -33,11 +33,11 @@ class AdmObservabilityServiceTest {
 
     @Test
     void policyAuditQueryReportsUnavailableWhenTableIsMissing() {
-        JdbcTemplate pfwJdbcTemplate = mock(JdbcTemplate.class);
+        JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
         JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
-        when(pfwJdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("pfw_log_policy_audit")))
+        when(cpfJdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("cpf_log_policy_audit")))
                 .thenReturn(0);
-        AdmObservabilityService service = new AdmObservabilityService(pfwJdbcTemplate, admJdbcTemplate);
+        AdmObservabilityService service = new AdmObservabilityService(cpfJdbcTemplate, admJdbcTemplate);
 
         Map<String, Object> result = service.findPolicyAudits(
                 null, null, "ONLINE_TRANSACTION", "ADM03LGP0014", null, null, 10);
@@ -45,7 +45,7 @@ class AdmObservabilityServiceTest {
         assertThat(result)
                 .containsEntry("available", false)
                 .containsEntry("items", List.of())
-                .containsEntry("source", "pfw_log_policy_audit");
+                .containsEntry("source", "cpf_log_policy_audit");
         verifyNoMoreInteractions(admJdbcTemplate);
     }
 }

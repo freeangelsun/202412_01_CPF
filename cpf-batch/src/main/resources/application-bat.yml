@@ -1,12 +1,22 @@
 # BAT 공통 실행 설정입니다.
 
+spring:
+  datasource:
+    cpf:
+      mode: ${BAT_DATASOURCE_MODE:${CPF_DB_MODE:url}}
+      url: ${BAT_DATASOURCE_URL:${CPF_DB_URL:jdbc:mariadb://localhost:3306/cpfDB}}
+      username: ${BAT_DATASOURCE_USERNAME:${CPF_DB_USERNAME:cpf_app}}
+      password: ${BAT_DATASOURCE_PASSWORD:${CPF_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${BAT_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBatchDataSource}
+      driver-class-name: org.mariadb.jdbc.Driver
+
 cpf:
   framework:
     module-id: ${BAT_MODULE_ID:BAT}
     instance-id: ${BAT_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:bat-local-01}}}
     was-id: ${BAT_WAS_ID:${WAS_ID:batWK01}}
   service-call:
-    registry-mode: ${BAT_SERVICE_REGISTRY_MODE:${CPF_PFW_SERVICE_REGISTRY_MODE:LOCAL}}
+    registry-mode: ${BAT_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
 
 logging:
   config: classpath:log/cpf-logback-spring.xml

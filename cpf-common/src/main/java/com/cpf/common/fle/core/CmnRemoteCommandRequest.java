@@ -1,10 +1,10 @@
-package cpf.cmn.fle.core;
+package com.cpf.common.fle.core;
 
 /**
  * 프로젝트 공통 원격 명령 요청 값입니다.
  *
  * <p>CPF-OWNERSHIP:CMN_PROJECT_HELPER</p>
- * <p>CMN은 요청 형태와 교육 샘플을 제공하고, 실제 SSH 실행 engine은 PFW runtime/filetransfer
+ * <p>CMN은 요청 형태와 교육 샘플을 제공하고, 실제 SSH 실행 engine은 CPF runtime/filetransfer
  * capability로 옮길 후보입니다.</p>
  *
  * @param host 원격 서버 호스트

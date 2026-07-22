@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 import org.junit.jupiter.api.Test;
 

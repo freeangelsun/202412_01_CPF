@@ -1,4 +1,4 @@
-package cpf.bat.edu.retry;
+package com.cpf.batch.edu.retry;
 
 /**
  * 일시 오류에 대한 retry 정책 샘플입니다.

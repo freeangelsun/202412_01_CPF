@@ -7,7 +7,7 @@
 -- CPF 초기 데이터베이스 생성 스크립트입니다.
 -- 데이터베이스 생성 권한이 있는 migration 계정 또는 root 계정으로 실행합니다.
 
-CREATE DATABASE IF NOT EXISTS pfwDB
+CREATE DATABASE IF NOT EXISTS cpfDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
@@ -19,7 +19,11 @@ CREATE DATABASE IF NOT EXISTS admDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-CREATE DATABASE IF NOT EXISTS xyzDB
+CREATE DATABASE IF NOT EXISTS refDB
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+CREATE DATABASE IF NOT EXISTS exsDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
@@ -68,8 +72,22 @@ DROP TABLE IF EXISTS mbrDB.mbr_member;
 DROP TABLE IF EXISTS accDB.acc_account_change_log;
 DROP TABLE IF EXISTS accDB.acc_account;
 
-DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
-DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
+DROP TABLE IF EXISTS refDB.ref_center_cut_sample_result;
+DROP TABLE IF EXISTS refDB.ref_center_cut_sample_target;
+
+DROP TABLE IF EXISTS exsDB.exs_token_event_history;
+DROP TABLE IF EXISTS exsDB.exs_reconciliation_log;
+DROP TABLE IF EXISTS exsDB.exs_retry_log;
+DROP TABLE IF EXISTS exsDB.exs_message_log;
+DROP TABLE IF EXISTS exsDB.exs_transaction_log;
+DROP TABLE IF EXISTS exsDB.exs_execution;
+DROP TABLE IF EXISTS exsDB.exs_control_policy;
+DROP TABLE IF EXISTS exsDB.exs_route_rule;
+DROP TABLE IF EXISTS exsDB.exs_token_store;
+DROP TABLE IF EXISTS exsDB.exs_auth_profile;
+DROP TABLE IF EXISTS exsDB.exs_endpoint;
+DROP TABLE IF EXISTS exsDB.exs_channel;
+DROP TABLE IF EXISTS exsDB.exs_institution;
 
 DROP TABLE IF EXISTS admDB.adm_download_audit_log;
 DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
@@ -101,67 +119,67 @@ DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence;
 
-DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
-DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
-DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_result;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_item;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_parameter;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_job;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_result;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_item;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_parameter;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_job;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_ghost_event;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_target;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_lease;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_job_relation;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_worker;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_instance;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_schedule;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_job;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_PARAMS;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_INSTANCE;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_SEQ;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
-DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
-DROP TABLE IF EXISTS pfwDB.pfw_dynamic_log_level_rule;
-DROP TABLE IF EXISTS pfwDB.pfw_config;
-DROP TABLE IF EXISTS pfwDB.pfw_response_code;
-DROP TABLE IF EXISTS pfwDB.pfw_message;
-DROP TABLE IF EXISTS pfwDB.pfw_code;
-DROP TABLE IF EXISTS pfwDB.pfw_unknown_result;
-DROP TABLE IF EXISTS pfwDB.pfw_file_transfer_history;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_dlq;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_inbox;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_outbox;
-DROP TABLE IF EXISTS pfwDB.pfw_idempotency_record;
-DROP TABLE IF EXISTS pfwDB.pfw_service_call_history;
-DROP TABLE IF EXISTS pfwDB.pfw_service_circuit_state;
-DROP TABLE IF EXISTS pfwDB.pfw_service_routing_policy;
-DROP TABLE IF EXISTS pfwDB.pfw_service_health_status;
-DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
-DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
-DROP TABLE IF EXISTS pfwDB.pfw_service;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_on_demand_request;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_execution_policy;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_registry;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_policy_version;
-DROP TABLE IF EXISTS pfwDB.pfw_standard_execution_alias;
-DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
+DROP TABLE IF EXISTS cpfDB.cpf_notification_delivery_log;
+DROP TABLE IF EXISTS cpfDB.cpf_notification_rule;
+DROP TABLE IF EXISTS cpfDB.cpf_business_day_calendar;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_result;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_item;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_parameter;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_job;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_result;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_item;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_parameter;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_job;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_ghost_event;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_target;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_operation_log;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_lock;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_step_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_lease;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_job_relation;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_worker;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_instance;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_schedule;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_job;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_PARAMS;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_INSTANCE;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_SEQ;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_SEQ;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_SEQ;
+DROP TABLE IF EXISTS cpfDB.cpf_cache_refresh_event;
+DROP TABLE IF EXISTS cpfDB.cpf_dynamic_log_level_rule;
+DROP TABLE IF EXISTS cpfDB.cpf_config;
+DROP TABLE IF EXISTS cpfDB.cpf_response_code;
+DROP TABLE IF EXISTS cpfDB.cpf_message;
+DROP TABLE IF EXISTS cpfDB.cpf_code;
+DROP TABLE IF EXISTS cpfDB.cpf_unknown_result;
+DROP TABLE IF EXISTS cpfDB.cpf_file_transfer_history;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_dlq;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_inbox;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_outbox;
+DROP TABLE IF EXISTS cpfDB.cpf_idempotency_record;
+DROP TABLE IF EXISTS cpfDB.cpf_service_call_history;
+DROP TABLE IF EXISTS cpfDB.cpf_service_circuit_state;
+DROP TABLE IF EXISTS cpfDB.cpf_service_routing_policy;
+DROP TABLE IF EXISTS cpfDB.cpf_service_health_status;
+DROP TABLE IF EXISTS cpfDB.cpf_service_instance;
+DROP TABLE IF EXISTS cpfDB.cpf_service_endpoint;
+DROP TABLE IF EXISTS cpfDB.cpf_service;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_segment;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_on_demand_request;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_execution_policy;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_registry;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_policy_version;
+DROP TABLE IF EXISTS cpfDB.cpf_standard_execution_alias;
+DROP TABLE IF EXISTS cpfDB.cpf_standard_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_meta;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log_detail;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log;
 -- ============================================================================
 -- specs/sql/02_create_service_users.sql
 -- ============================================================================
@@ -169,13 +187,15 @@ DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
 -- 실행 전 동일 MariaDB 세션에 @cpf_migration_password와 @cpf_app_password를 주입해야 합니다.
 -- 두 값이 없거나 빈 문자열이면 PREPARE 단계에서 실패하므로 저장소의 고정 비밀번호로 대체되지 않습니다.
 
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_pfw_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_cmn_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_adm_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_xyz_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_ref_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
+PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_exs_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
@@ -184,13 +204,15 @@ PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE c
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_migration'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_migration_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_pfw_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_cmn_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_adm_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
-SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_xyz_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_ref_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
+PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
+SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_exs_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_mbr_app'@'localhost' IDENTIFIED BY ", QUOTE(NULLIF(@cpf_app_password, '')));
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
@@ -200,32 +222,34 @@ SET @cpf_sql = CONCAT("CREATE OR REPLACE USER 'cpf_acc_app'@'localhost' IDENTIFI
 PREPARE cpf_user_stmt FROM @cpf_sql; EXECUTE cpf_user_stmt; DEALLOCATE PREPARE cpf_user_stmt;
 SET @cpf_sql = NULL;
 
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON pfwDB.* TO 'cpf_pfw_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON cpfDB.* TO 'cpf_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON cmnDB.* TO 'cpf_cmn_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON admDB.* TO 'cpf_adm_migration'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON xyzDB.* TO 'cpf_xyz_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON refDB.* TO 'cpf_ref_migration'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON exsDB.* TO 'cpf_exs_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON mbrDB.* TO 'cpf_mbr_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON bzaDB.* TO 'cpf_bza_migration'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES ON accDB.* TO 'cpf_acc_migration'@'localhost';
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON pfwDB.* TO 'cpf_pfw_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON cpfDB.* TO 'cpf_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON cmnDB.* TO 'cpf_cmn_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON admDB.* TO 'cpf_adm_app'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON xyzDB.* TO 'cpf_xyz_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON refDB.* TO 'cpf_ref_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON exsDB.* TO 'cpf_exs_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON mbrDB.* TO 'cpf_mbr_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON bzaDB.* TO 'cpf_bza_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON accDB.* TO 'cpf_acc_app'@'localhost';
 
 FLUSH PRIVILEGES;
 -- ============================================================================
--- specs/sql/10_pfw_schema.sql
+-- specs/sql/10_cpf_schema.sql
 -- ============================================================================
--- PFW 프레임워크 엔진 스키마입니다.
--- 거래로그, 시스템 코드/메시지, 응답코드, 설정, 캐시 이벤트, 보안 메타, 배치 운영 메타를 pfwDB에 배치합니다.
+-- CPF 프레임워크 엔진 스키마입니다.
+-- 거래로그, 시스템 코드/메시지, 응답코드, 설정, 캐시 이벤트, 보안 메타, 배치 운영 메타를 cpfDB에 배치합니다.
 
-USE pfwDB;
+USE cpfDB;
 
-CREATE TABLE IF NOT EXISTS pfw_transaction_log (
+CREATE TABLE IF NOT EXISTS cpf_transaction_log (
     LOG_DATE DATE NOT NULL COMMENT '로그 기준일',
     LOG_IDX BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 로그 순번',
     RECOVERY_EVENT_ID VARCHAR(64) NULL COMMENT 'DB 로그 복구 이벤트 중복 방지 ID',
@@ -301,48 +325,48 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_log (
     START_TIME DATETIME(3) NULL COMMENT '처리 시작 시각',
     END_TIME DATETIME(3) NULL COMMENT '처리 종료 시각',
     DURATION_MS BIGINT NULL COMMENT '처리 시간 밀리초',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (LOG_IDX),
-    UNIQUE KEY uk_pfw_transaction_log_recovery_event (RECOVERY_EVENT_ID),
-    INDEX ix_pfw_transaction_log_date (LOG_DATE),
-    INDEX ix_pfw_transaction_log_transaction_id (TRANSACTION_ID),
-    INDEX ix_pfw_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),
-    INDEX ix_pfw_transaction_log_trace_id (TRACE_ID),
-    INDEX ix_pfw_transaction_log_business_transaction_id (BUSINESS_TRANSACTION_ID),
-    INDEX ix_pfw_transaction_log_business_time (BUSINESS_TRANSACTION_ID, START_TIME),
-    INDEX ix_pfw_transaction_log_client_app (CLIENT_APP_ID, START_TIME),
-    INDEX ix_pfw_transaction_log_correlation (CORRELATION_ID, START_TIME),
-    INDEX ix_pfw_transaction_log_idempotency (IDEMPOTENCY_KEY),
-    INDEX ix_pfw_transaction_log_member_time (MEMBER_NO, START_TIME),
-    INDEX ix_pfw_transaction_log_customer_time (CUSTOMER_NO, START_TIME),
-    INDEX ix_pfw_transaction_log_channel_time (CHANNEL_CODE, START_TIME),
-    INDEX ix_pfw_transaction_log_module_time (MODULE_ID, START_TIME),
-    INDEX ix_pfw_transaction_log_server_time (SERVER_INSTANCE_ID, START_TIME),
-    INDEX ix_pfw_transaction_log_status_time (LOG_TYPE, RESPONSE_CODE, START_TIME),
-    INDEX ix_pfw_transaction_log_http_status_time (HTTP_STATUS, START_TIME)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 요약 로그';
+    UNIQUE KEY uk_cpf_transaction_log_recovery_event (RECOVERY_EVENT_ID),
+    INDEX ix_cpf_transaction_log_date (LOG_DATE),
+    INDEX ix_cpf_transaction_log_transaction_id (TRANSACTION_ID),
+    INDEX ix_cpf_transaction_log_transaction_time (TRANSACTION_ID, START_TIME, LOG_IDX),
+    INDEX ix_cpf_transaction_log_trace_id (TRACE_ID),
+    INDEX ix_cpf_transaction_log_business_transaction_id (BUSINESS_TRANSACTION_ID),
+    INDEX ix_cpf_transaction_log_business_time (BUSINESS_TRANSACTION_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_client_app (CLIENT_APP_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_correlation (CORRELATION_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_idempotency (IDEMPOTENCY_KEY),
+    INDEX ix_cpf_transaction_log_member_time (MEMBER_NO, START_TIME),
+    INDEX ix_cpf_transaction_log_customer_time (CUSTOMER_NO, START_TIME),
+    INDEX ix_cpf_transaction_log_channel_time (CHANNEL_CODE, START_TIME),
+    INDEX ix_cpf_transaction_log_module_time (MODULE_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_server_time (SERVER_INSTANCE_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_status_time (LOG_TYPE, RESPONSE_CODE, START_TIME),
+    INDEX ix_cpf_transaction_log_http_status_time (HTTP_STATUS, START_TIME)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 거래 요약 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_transaction_log_detail (
+CREATE TABLE IF NOT EXISTS cpf_transaction_log_detail (
     DETAIL_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 상세 로그 순번',
     LOG_IDX BIGINT NOT NULL COMMENT '거래 로그 순번',
     DETAIL_KEY VARCHAR(100) NOT NULL DEFAULT 'N/A' COMMENT '상세 항목 키',
     DETAIL_VALUE MEDIUMTEXT NOT NULL COMMENT '상세 항목 값',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (DETAIL_ID),
-    CONSTRAINT fk_pfw_transaction_log_detail_log
-        FOREIGN KEY (LOG_IDX) REFERENCES pfw_transaction_log(LOG_IDX)
+    CONSTRAINT fk_cpf_transaction_log_detail_log
+        FOREIGN KEY (LOG_IDX) REFERENCES cpf_transaction_log(LOG_IDX)
         ON DELETE CASCADE,
-    INDEX ix_pfw_transaction_log_detail_log_idx (LOG_IDX),
-    INDEX ix_pfw_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 거래 상세 로그';
+    INDEX ix_cpf_transaction_log_detail_log_idx (LOG_IDX),
+    INDEX ix_cpf_transaction_log_detail_log_key (LOG_IDX, DETAIL_KEY)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 거래 상세 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
+CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
     segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
     transaction_segment_id VARCHAR(120) NOT NULL COMMENT '거래 구간 ID',
     transaction_global_id VARCHAR(100) NOT NULL COMMENT '전체 거래 묶음 ID',
@@ -386,46 +410,46 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     downstream_http_status INT NULL COMMENT '하위 서비스 HTTP 상태',
     result_state VARCHAR(30) NULL COMMENT '호출 결과 상태',
     unknown_result_id VARCHAR(100) NULL COMMENT '결과 미확정 관리 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
     PRIMARY KEY (segment_id),
-    UNIQUE KEY uk_pfw_transaction_segment_id (transaction_segment_id),
-    INDEX ix_pfw_transaction_segment_global (transaction_global_id, started_at, segment_id),
-    INDEX ix_pfw_transaction_segment_parent (parent_segment_id),
-    INDEX ix_pfw_transaction_segment_module (module_code, started_at),
-    INDEX ix_pfw_transaction_segment_role (transaction_role, direction),
-    INDEX ix_pfw_transaction_segment_status (failure_yn, status, started_at),
-    INDEX ix_pfw_transaction_segment_duration (duration_ms),
-    INDEX ix_pfw_transaction_segment_customer (customer_no_masked, started_at),
-    INDEX ix_pfw_transaction_segment_member (member_no_masked, started_at),
-    INDEX ix_pfw_transaction_segment_user (user_id_masked, started_at),
-    INDEX ix_pfw_transaction_segment_operator (operator_id_masked, started_at),
-    INDEX ix_pfw_transaction_segment_client (client_app_id, caller_service, started_at),
-    INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id),
-    INDEX ix_pfw_transaction_segment_instance (selected_instance_id, started_at),
-    INDEX ix_pfw_transaction_segment_attempt (transaction_global_id, attempt_no),
-    INDEX ix_pfw_transaction_segment_unknown (unknown_result_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
+    UNIQUE KEY uk_cpf_transaction_segment_id (transaction_segment_id),
+    INDEX ix_cpf_transaction_segment_global (transaction_global_id, started_at, segment_id),
+    INDEX ix_cpf_transaction_segment_parent (parent_segment_id),
+    INDEX ix_cpf_transaction_segment_module (module_code, started_at),
+    INDEX ix_cpf_transaction_segment_role (transaction_role, direction),
+    INDEX ix_cpf_transaction_segment_status (failure_yn, status, started_at),
+    INDEX ix_cpf_transaction_segment_duration (duration_ms),
+    INDEX ix_cpf_transaction_segment_customer (customer_no_masked, started_at),
+    INDEX ix_cpf_transaction_segment_member (member_no_masked, started_at),
+    INDEX ix_cpf_transaction_segment_user (user_id_masked, started_at),
+    INDEX ix_cpf_transaction_segment_operator (operator_id_masked, started_at),
+    INDEX ix_cpf_transaction_segment_client (client_app_id, caller_service, started_at),
+    INDEX ix_cpf_transaction_segment_external (external_institution_code, external_transaction_id),
+    INDEX ix_cpf_transaction_segment_instance (selected_instance_id, started_at),
+    INDEX ix_cpf_transaction_segment_attempt (transaction_global_id, attempt_no),
+    INDEX ix_cpf_transaction_segment_unknown (unknown_result_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 복합 거래 구간 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_service (
+CREATE TABLE IF NOT EXISTS cpf_service (
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     service_name VARCHAR(150) NOT NULL COMMENT '서비스명',
     service_type VARCHAR(30) NOT NULL DEFAULT 'INTERNAL' COMMENT '서비스 유형',
     owner_module_code VARCHAR(20) NOT NULL COMMENT '소유 모듈 코드',
     description VARCHAR(500) NULL COMMENT '서비스 설명',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (service_id),
-    INDEX ix_pfw_service_owner (owner_module_code, use_yn),
-    INDEX ix_pfw_service_type (service_type, use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 레지스트리';
+    INDEX ix_cpf_service_owner (owner_module_code, use_yn),
+    INDEX ix_cpf_service_type (service_type, use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 레지스트리';
 
-CREATE TABLE IF NOT EXISTS pfw_service_endpoint (
+CREATE TABLE IF NOT EXISTS cpf_service_endpoint (
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_name VARCHAR(150) NOT NULL COMMENT 'Endpoint명',
@@ -435,18 +459,18 @@ CREATE TABLE IF NOT EXISTS pfw_service_endpoint (
     default_timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '기본 timeout 밀리초',
     default_retry_count INT NOT NULL DEFAULT 0 COMMENT '기본 retry 횟수',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (endpoint_code),
-    INDEX ix_pfw_service_endpoint_service (service_id, use_yn),
-    INDEX ix_pfw_service_endpoint_type (endpoint_type, use_yn),
-    CONSTRAINT fk_pfw_service_endpoint_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Endpoint 레지스트리';
+    INDEX ix_cpf_service_endpoint_service (service_id, use_yn),
+    INDEX ix_cpf_service_endpoint_type (endpoint_type, use_yn),
+    CONSTRAINT fk_cpf_service_endpoint_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Endpoint 레지스트리';
 
-CREATE TABLE IF NOT EXISTS pfw_service_instance (
+CREATE TABLE IF NOT EXISTS cpf_service_instance (
     instance_id VARCHAR(120) NOT NULL COMMENT '서비스 인스턴스 ID',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
@@ -458,20 +482,20 @@ CREATE TABLE IF NOT EXISTS pfw_service_instance (
     weight INT NOT NULL DEFAULT 100 COMMENT '라우팅 가중치',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (instance_id),
-    INDEX ix_pfw_service_instance_endpoint (service_id, endpoint_code, active_yn, instance_status),
-    INDEX ix_pfw_service_instance_weight (endpoint_code, weight),
-    CONSTRAINT fk_pfw_service_instance_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
-    CONSTRAINT fk_pfw_service_instance_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 인스턴스 레지스트리';
+    INDEX ix_cpf_service_instance_endpoint (service_id, endpoint_code, active_yn, instance_status),
+    INDEX ix_cpf_service_instance_weight (endpoint_code, weight),
+    CONSTRAINT fk_cpf_service_instance_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
+    CONSTRAINT fk_cpf_service_instance_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 인스턴스 레지스트리';
 
-CREATE TABLE IF NOT EXISTS pfw_service_health_status (
+CREATE TABLE IF NOT EXISTS cpf_service_health_status (
     health_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 health 이력 ID',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
@@ -481,23 +505,23 @@ CREATE TABLE IF NOT EXISTS pfw_service_health_status (
     response_time_ms BIGINT NULL COMMENT '응답 시간 밀리초',
     failure_message VARCHAR(1000) NULL COMMENT '실패 메시지',
     checked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '점검 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (health_id),
-    INDEX ix_pfw_service_health_target (service_id, endpoint_code, instance_id, checked_at),
-    INDEX ix_pfw_service_health_status (health_status, checked_at),
-    CONSTRAINT fk_pfw_service_health_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
-    CONSTRAINT fk_pfw_service_health_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code),
-    CONSTRAINT fk_pfw_service_health_instance
-        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+    INDEX ix_cpf_service_health_target (service_id, endpoint_code, instance_id, checked_at),
+    INDEX ix_cpf_service_health_status (health_status, checked_at),
+    CONSTRAINT fk_cpf_service_health_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
+    CONSTRAINT fk_cpf_service_health_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code),
+    CONSTRAINT fk_cpf_service_health_instance
+        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Health 상태 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Health 상태 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_service_routing_policy (
+CREATE TABLE IF NOT EXISTS cpf_service_routing_policy (
     policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '라우팅 정책 ID',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
@@ -507,20 +531,20 @@ CREATE TABLE IF NOT EXISTS pfw_service_routing_policy (
     health_check_required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Health check 필수 여부',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     priority INT NOT NULL DEFAULT 100 COMMENT '우선순위',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (policy_id),
-    UNIQUE KEY uk_pfw_service_routing_policy (service_id, endpoint_code, priority),
-    INDEX ix_pfw_service_routing_active (service_id, endpoint_code, active_yn, priority),
-    CONSTRAINT fk_pfw_service_routing_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
-    CONSTRAINT fk_pfw_service_routing_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 라우팅 정책';
+    UNIQUE KEY uk_cpf_service_routing_policy (service_id, endpoint_code, priority),
+    INDEX ix_cpf_service_routing_active (service_id, endpoint_code, active_yn, priority),
+    CONSTRAINT fk_cpf_service_routing_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
+    CONSTRAINT fk_cpf_service_routing_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 라우팅 정책';
 
-CREATE TABLE IF NOT EXISTS pfw_service_circuit_state (
+CREATE TABLE IF NOT EXISTS cpf_service_circuit_state (
     circuit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Circuit 상태 ID',
     service_id VARCHAR(40) NOT NULL COMMENT '서비스 ID',
     endpoint_code VARCHAR(80) NOT NULL COMMENT 'Endpoint 코드',
@@ -532,23 +556,23 @@ CREATE TABLE IF NOT EXISTS pfw_service_circuit_state (
     half_opened_at DATETIME(3) NULL COMMENT 'Half-open 일시',
     closed_at DATETIME(3) NULL COMMENT 'Close 일시',
     last_failure_message VARCHAR(1000) NULL COMMENT '마지막 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (circuit_id),
-    UNIQUE KEY uk_pfw_service_circuit_state (service_id, endpoint_code, instance_id),
-    INDEX ix_pfw_service_circuit_state (circuit_state, updated_at),
-    CONSTRAINT fk_pfw_service_circuit_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
-    CONSTRAINT fk_pfw_service_circuit_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code),
-    CONSTRAINT fk_pfw_service_circuit_instance
-        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+    UNIQUE KEY uk_cpf_service_circuit_state (service_id, endpoint_code, instance_id),
+    INDEX ix_cpf_service_circuit_state (circuit_state, updated_at),
+    CONSTRAINT fk_cpf_service_circuit_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
+    CONSTRAINT fk_cpf_service_circuit_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code),
+    CONSTRAINT fk_cpf_service_circuit_instance
+        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 Circuit 상태';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 Circuit 상태';
 
-CREATE TABLE IF NOT EXISTS pfw_service_call_history (
+CREATE TABLE IF NOT EXISTS cpf_service_call_history (
     call_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '서비스 호출 이력 ID',
     transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
     trace_id VARCHAR(100) NULL COMMENT 'Trace ID',
@@ -564,25 +588,25 @@ CREATE TABLE IF NOT EXISTS pfw_service_call_history (
     retry_count INT NULL COMMENT 'Retry 횟수',
     failure_code VARCHAR(100) NULL COMMENT '실패 코드',
     failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (call_id),
-    INDEX ix_pfw_service_call_history_tx (transaction_global_id, call_id),
-    INDEX ix_pfw_service_call_history_service (service_id, endpoint_code, created_at),
-    INDEX ix_pfw_service_call_history_status (call_status, created_at),
-    CONSTRAINT fk_pfw_service_call_history_service
-        FOREIGN KEY (service_id) REFERENCES pfw_service(service_id),
-    CONSTRAINT fk_pfw_service_call_history_endpoint
-        FOREIGN KEY (endpoint_code) REFERENCES pfw_service_endpoint(endpoint_code)
+    INDEX ix_cpf_service_call_history_tx (transaction_global_id, call_id),
+    INDEX ix_cpf_service_call_history_service (service_id, endpoint_code, created_at),
+    INDEX ix_cpf_service_call_history_status (call_status, created_at),
+    CONSTRAINT fk_cpf_service_call_history_service
+        FOREIGN KEY (service_id) REFERENCES cpf_service(service_id),
+    CONSTRAINT fk_cpf_service_call_history_endpoint
+        FOREIGN KEY (endpoint_code) REFERENCES cpf_service_endpoint(endpoint_code)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_service_call_history_instance
-        FOREIGN KEY (instance_id) REFERENCES pfw_service_instance(instance_id)
+    CONSTRAINT fk_cpf_service_call_history_instance
+        FOREIGN KEY (instance_id) REFERENCES cpf_service_instance(instance_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 서비스 호출 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
+CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
     transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 ID',
     transaction_name VARCHAR(150) NOT NULL COMMENT '업무 거래명',
     module_code VARCHAR(20) NOT NULL COMMENT '모듈 코드',
@@ -599,18 +623,18 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_meta (
     first_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 감지일시',
     last_detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 감지일시',
     last_scanned_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 스캔일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (transaction_id),
-    INDEX ix_pfw_transaction_meta_module (module_code, domain_code, active_yn),
-    INDEX ix_pfw_transaction_meta_path (http_method, api_path),
-    INDEX ix_pfw_transaction_meta_policy (log_policy_key, active_yn),
-    INDEX ix_pfw_transaction_meta_scan (active_yn, last_scanned_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온라인 거래 메타';
+    INDEX ix_cpf_transaction_meta_module (module_code, domain_code, active_yn),
+    INDEX ix_cpf_transaction_meta_path (http_method, api_path),
+    INDEX ix_cpf_transaction_meta_policy (log_policy_key, active_yn),
+    INDEX ix_cpf_transaction_meta_scan (active_yn, last_scanned_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 온라인 거래 메타';
 
-CREATE TABLE IF NOT EXISTS pfw_standard_execution (
+CREATE TABLE IF NOT EXISTS cpf_standard_execution (
     standard_execution_id CHAR(10) NOT NULL COMMENT 'CPF O·S·B 10자리 표준 실행 ID',
     execution_name VARCHAR(150) NOT NULL COMMENT '표준 실행명',
     execution_type VARCHAR(20) NOT NULL COMMENT '실행 유형 ONLINE, SHARED 또는 BATCH',
@@ -626,58 +650,58 @@ CREATE TABLE IF NOT EXISTS pfw_standard_execution (
     audit_reason_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '감사 사유 필수 여부',
     visibility VARCHAR(20) NOT NULL DEFAULT 'INTERNAL' COMMENT 'PUBLIC 또는 INTERNAL 노출 범위',
     direct_allowed_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '업무 URL 직접 호출 허용 여부',
-    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 PFW Gateway 호출 허용 여부',
+    gateway_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '공개 CPF Gateway 호출 허용 여부',
     source_version VARCHAR(100) NOT NULL COMMENT '소스 버전 또는 빌드 식별자',
     registration_status VARCHAR(30) NOT NULL DEFAULT 'REGISTERED' COMMENT '등록 상태',
     first_registered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최초 등록일시',
     last_discovered_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '최근 발견일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (standard_execution_id),
-    INDEX ix_pfw_standard_execution_type (execution_type, registration_status),
-    INDEX ix_pfw_standard_execution_owner (owner_domain, source_module),
-    INDEX ix_pfw_standard_execution_source (source_class, source_method),
-    CONSTRAINT ck_pfw_standard_execution_id CHECK (
+    INDEX ix_cpf_standard_execution_type (execution_type, registration_status),
+    INDEX ix_cpf_standard_execution_owner (owner_domain, source_module),
+    INDEX ix_cpf_standard_execution_source (source_class, source_method),
+    CONSTRAINT ck_cpf_standard_execution_id CHECK (
         standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
         AND RIGHT(standard_execution_id, 4) <> '0000'
     ),
-    CONSTRAINT ck_pfw_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW O·S·B 표준 실행 카탈로그';
+    CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF O·S·B 표준 실행 카탈로그';
 
-CREATE TABLE IF NOT EXISTS pfw_standard_execution_alias (
+CREATE TABLE IF NOT EXISTS cpf_standard_execution_alias (
     legacy_execution_id VARCHAR(32) NOT NULL COMMENT '조회 호환용 구형 실행 ID',
     standard_execution_id CHAR(10) NOT NULL COMMENT '현재 10자리 표준 실행 ID',
     migration_reason VARCHAR(300) NOT NULL COMMENT 'ID 전환 사유',
     retired_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '구형 ID 사용 종료일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (legacy_execution_id),
-    UNIQUE KEY uk_pfw_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
-    CONSTRAINT ck_pfw_standard_execution_alias_current CHECK (
+    UNIQUE KEY uk_cpf_standard_execution_alias_current (standard_execution_id, legacy_execution_id),
+    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (
         standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
     )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 구형 실행 ID 조회 호환 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 구형 실행 ID 조회 호환 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_channel_policy_version (
+CREATE TABLE IF NOT EXISTS cpf_channel_policy_version (
     version_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '채널 정책 스냅샷 버전',
     change_type VARCHAR(30) NOT NULL COMMENT 'CHANNEL 또는 EXECUTION_POLICY 변경 유형',
     target_key VARCHAR(100) NOT NULL COMMENT '변경 대상 채널 또는 정책 키',
     change_reason VARCHAR(500) NOT NULL COMMENT '운영 변경 사유',
     applied_by VARCHAR(100) NOT NULL COMMENT '적용 운영자',
     applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '적용일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (version_id),
-    INDEX ix_pfw_channel_policy_version_target (change_type, target_key, version_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 채널 정책 변경 버전';
+    INDEX ix_cpf_channel_policy_version_target (change_type, target_key, version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 채널 정책 변경 버전';
 
-CREATE TABLE IF NOT EXISTS pfw_channel_registry (
+CREATE TABLE IF NOT EXISTS cpf_channel_registry (
     channel_code VARCHAR(30) NOT NULL COMMENT 'CPF 통합 채널 코드',
     channel_name VARCHAR(100) NOT NULL COMMENT '채널명',
     channel_type VARCHAR(30) NOT NULL COMMENT 'CLIENT, OPERATOR 또는 SYSTEM 유형',
@@ -689,20 +713,20 @@ CREATE TABLE IF NOT EXISTS pfw_channel_registry (
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
     description VARCHAR(500) NULL COMMENT '채널 설명',
     policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (channel_code),
-    INDEX ix_pfw_channel_registry_active (active_yn, channel_type),
-    CONSTRAINT ck_pfw_channel_registry_client CHECK (client_channel_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_registry_internal CHECK (internal_channel_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_registry_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_registry_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_registry_active CHECK (active_yn IN ('Y', 'N'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 통합 채널 레지스트리';
+    INDEX ix_cpf_channel_registry_active (active_yn, channel_type),
+    CONSTRAINT ck_cpf_channel_registry_client CHECK (client_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_internal CHECK (internal_channel_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_registry_active CHECK (active_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 통합 채널 레지스트리';
 
-CREATE TABLE IF NOT EXISTS pfw_channel_execution_policy (
+CREATE TABLE IF NOT EXISTS cpf_channel_execution_policy (
     policy_key VARCHAR(100) NOT NULL COMMENT '채널 실행 정책 불변 키',
     standard_execution_id VARCHAR(10) NOT NULL COMMENT '10자리 표준 실행 ID 또는 전체 실행 *',
     original_channel_code VARCHAR(30) NOT NULL COMMENT '최초 채널 코드 또는 ANY',
@@ -716,33 +740,33 @@ CREATE TABLE IF NOT EXISTS pfw_channel_execution_policy (
     effective_to DATETIME(3) NULL COMMENT '정책 적용 종료일시',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '정책 사용 여부',
     policy_version BIGINT NOT NULL DEFAULT 0 COMMENT '마지막 적용 정책 버전',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (policy_key),
-    INDEX ix_pfw_channel_execution_policy_lookup (
+    INDEX ix_cpf_channel_execution_policy_lookup (
         standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn
     ),
-    INDEX ix_pfw_channel_execution_policy_effective (active_yn, effective_from, effective_to),
-    CONSTRAINT fk_pfw_channel_execution_policy_original FOREIGN KEY (original_channel_code)
-        REFERENCES pfw_channel_registry(channel_code),
-    CONSTRAINT fk_pfw_channel_execution_policy_caller FOREIGN KEY (caller_channel_code)
-        REFERENCES pfw_channel_registry(channel_code),
-    CONSTRAINT ck_pfw_channel_execution_policy_execution CHECK (
+    INDEX ix_cpf_channel_execution_policy_effective (active_yn, effective_from, effective_to),
+    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code)
+        REFERENCES cpf_channel_registry(channel_code),
+    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code)
+        REFERENCES cpf_channel_registry(channel_code),
+    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (
         standard_execution_id = '*'
         OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
     ),
-    CONSTRAINT ck_pfw_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
-    CONSTRAINT ck_pfw_channel_execution_policy_period CHECK (
+    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (
         effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to
     )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 표준 실행별 최초·호출 채널 정책';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 표준 실행별 최초·호출 채널 정책';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
+CREATE TABLE IF NOT EXISTS cpf_batch_on_demand_request (
     execution_request_id VARCHAR(36) NOT NULL COMMENT '온라인 접수 실행 요청 ID',
     standard_batch_id CHAR(10) NOT NULL COMMENT 'B 유형 10자리 표준 배치 ID',
     idempotency_key VARCHAR(120) NOT NULL COMMENT '중복 접수 방지 멱등 키',
@@ -752,7 +776,7 @@ CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
     parameters_json LONGTEXT NULL COMMENT '검증된 배치 업무 파라미터 JSON',
     request_reason VARCHAR(500) NOT NULL COMMENT '실행 감사 사유',
     request_user VARCHAR(100) NOT NULL COMMENT '실행 요청자',
-    pfw_execution_id BIGINT NULL COMMENT 'PFW 배치 실행 메타 ID',
+    cpf_execution_id BIGINT NULL COMMENT 'CPF 배치 실행 메타 ID',
     spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
     result_json LONGTEXT NULL COMMENT '마스킹된 실행 결과 JSON',
     failure_code VARCHAR(100) NULL COMMENT '실패 코드',
@@ -764,21 +788,21 @@ CREATE TABLE IF NOT EXISTS pfw_batch_on_demand_request (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (execution_request_id),
-    UNIQUE KEY uk_pfw_batch_on_demand_idempotency (standard_batch_id, idempotency_key),
-    INDEX ix_pfw_batch_on_demand_status (request_status, requested_at),
-    INDEX ix_pfw_batch_on_demand_transaction (transaction_global_id),
-    INDEX ix_pfw_batch_on_demand_spring (spring_batch_execution_id),
-    CONSTRAINT ck_pfw_batch_on_demand_id CHECK (
+    UNIQUE KEY uk_cpf_batch_on_demand_idempotency (standard_batch_id, idempotency_key),
+    INDEX ix_cpf_batch_on_demand_status (request_status, requested_at),
+    INDEX ix_cpf_batch_on_demand_transaction (transaction_global_id),
+    INDEX ix_cpf_batch_on_demand_spring (spring_batch_execution_id),
+    CONSTRAINT ck_cpf_batch_on_demand_id CHECK (
         standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'
         AND RIGHT(standard_batch_id, 4) <> '0000'
     ),
-    CONSTRAINT ck_pfw_batch_on_demand_status CHECK (
+    CONSTRAINT ck_cpf_batch_on_demand_status CHECK (
         request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED',
                            'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED')
     )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 온디맨드 배치 온라인 접수';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 온디맨드 배치 온라인 접수';
 
-CREATE TABLE IF NOT EXISTS pfw_log_policy (
+CREATE TABLE IF NOT EXISTS cpf_log_policy (
     policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 순번',
     policy_key VARCHAR(120) NOT NULL COMMENT '로그 정책 키',
     policy_name VARCHAR(150) NOT NULL COMMENT '로그 정책명',
@@ -796,17 +820,17 @@ CREATE TABLE IF NOT EXISTS pfw_log_policy (
     priority INT NOT NULL DEFAULT 100 COMMENT '정책 우선순위',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     description VARCHAR(500) NULL COMMENT '정책 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (policy_id),
-    UNIQUE KEY uk_pfw_log_policy_key (policy_key),
-    UNIQUE KEY uk_pfw_log_policy_target (target_type, target_id),
-    INDEX ix_pfw_log_policy_active (active_yn, target_type, priority)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책';
+    UNIQUE KEY uk_cpf_log_policy_key (policy_key),
+    UNIQUE KEY uk_cpf_log_policy_target (target_type, target_id),
+    INDEX ix_cpf_log_policy_active (active_yn, target_type, priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책';
 
-CREATE TABLE IF NOT EXISTS pfw_log_policy_override (
+CREATE TABLE IF NOT EXISTS cpf_log_policy_override (
     override_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 override 순번',
     policy_id BIGINT NULL COMMENT '기본 로그 정책 순번',
     target_type VARCHAR(30) NOT NULL COMMENT 'override 대상 유형',
@@ -824,20 +848,20 @@ CREATE TABLE IF NOT EXISTS pfw_log_policy_override (
     requested_by VARCHAR(100) NOT NULL COMMENT '요청자',
     approved_by VARCHAR(100) NULL COMMENT '승인자',
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (override_id),
-    INDEX ix_pfw_log_policy_override_target (target_type, target_id, active_yn),
-    INDEX ix_pfw_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
-    INDEX ix_pfw_log_policy_override_policy (policy_id, active_yn),
-    CONSTRAINT fk_pfw_log_policy_override_policy
-        FOREIGN KEY (policy_id) REFERENCES pfw_log_policy(policy_id)
+    INDEX ix_cpf_log_policy_override_target (target_type, target_id, active_yn),
+    INDEX ix_cpf_log_policy_override_period (effective_start_at, effective_end_at, active_yn),
+    INDEX ix_cpf_log_policy_override_policy (policy_id, active_yn),
+    CONSTRAINT fk_cpf_log_policy_override_policy
+        FOREIGN KEY (policy_id) REFERENCES cpf_log_policy(policy_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책 임시 override';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 임시 override';
 
-CREATE TABLE IF NOT EXISTS pfw_log_policy_audit (
+CREATE TABLE IF NOT EXISTS cpf_log_policy_audit (
     audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 정책 감사 순번',
     policy_id BIGINT NULL COMMENT '로그 정책 순번',
     override_id BIGINT NULL COMMENT '로그 정책 override 순번',
@@ -850,43 +874,43 @@ CREATE TABLE IF NOT EXISTS pfw_log_policy_audit (
     diff_data MEDIUMTEXT NULL COMMENT '변경 차이',
     operator_id VARCHAR(100) NOT NULL COMMENT '운영자 ID',
     client_ip VARCHAR(100) NULL COMMENT '클라이언트 IP',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (audit_id),
-    INDEX ix_pfw_log_policy_audit_target (target_type, target_id, created_at),
-    INDEX ix_pfw_log_policy_audit_operator (operator_id, created_at),
-    INDEX ix_pfw_log_policy_audit_policy (policy_id, created_at),
-    CONSTRAINT fk_pfw_log_policy_audit_policy
-        FOREIGN KEY (policy_id) REFERENCES pfw_log_policy(policy_id)
+    INDEX ix_cpf_log_policy_audit_target (target_type, target_id, created_at),
+    INDEX ix_cpf_log_policy_audit_operator (operator_id, created_at),
+    INDEX ix_cpf_log_policy_audit_policy (policy_id, created_at),
+    CONSTRAINT fk_cpf_log_policy_audit_policy
+        FOREIGN KEY (policy_id) REFERENCES cpf_log_policy(policy_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_log_policy_audit_override
-        FOREIGN KEY (override_id) REFERENCES pfw_log_policy_override(override_id)
+    CONSTRAINT fk_cpf_log_policy_audit_override
+        FOREIGN KEY (override_id) REFERENCES cpf_log_policy_override(override_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 로그 정책 감사 로그';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 로그 정책 감사 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_code (
+CREATE TABLE IF NOT EXISTS cpf_code (
     code_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '코드 순번',
     parent_id BIGINT NULL COMMENT '상위 코드 순번',
     code_key VARCHAR(80) NOT NULL COMMENT '코드 그룹 키',
     code_value VARCHAR(120) NOT NULL COMMENT '코드 값',
     description VARCHAR(500) NULL COMMENT '코드 설명',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (code_id),
-    CONSTRAINT fk_pfw_code_parent
-        FOREIGN KEY (parent_id) REFERENCES pfw_code(code_id)
+    CONSTRAINT fk_cpf_code_parent
+        FOREIGN KEY (parent_id) REFERENCES cpf_code(code_id)
         ON DELETE SET NULL,
-    UNIQUE KEY uk_pfw_code_key_value (code_key, code_value),
-    INDEX ix_pfw_code_parent (parent_id),
-    INDEX ix_pfw_code_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 공통 코드';
+    UNIQUE KEY uk_cpf_code_key_value (code_key, code_value),
+    INDEX ix_cpf_code_parent (parent_id),
+    INDEX ix_cpf_code_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 공통 코드';
 
-CREATE TABLE IF NOT EXISTS pfw_message (
+CREATE TABLE IF NOT EXISTS cpf_message (
     message_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 순번',
     message_code VARCHAR(20) NOT NULL COMMENT '메시지 코드',
     locale VARCHAR(10) NOT NULL DEFAULT 'ko' COMMENT '언어 코드',
@@ -897,17 +921,17 @@ CREATE TABLE IF NOT EXISTS pfw_message (
     parameter_sample VARCHAR(1000) NULL COMMENT '파라미터 예시',
     description VARCHAR(500) NULL COMMENT '메시지 설명',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (message_id),
-    UNIQUE KEY uk_pfw_message_code_locale (message_code, locale),
-    INDEX ix_pfw_message_code_use (message_code, use_yn),
-    INDEX ix_pfw_message_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 메시지';
+    UNIQUE KEY uk_cpf_message_code_locale (message_code, locale),
+    INDEX ix_cpf_message_code_use (message_code, use_yn),
+    INDEX ix_cpf_message_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 메시지';
 
-CREATE TABLE IF NOT EXISTS pfw_response_code (
+CREATE TABLE IF NOT EXISTS cpf_response_code (
     response_code VARCHAR(20) NOT NULL COMMENT 'CPF 응답 코드',
     message_code VARCHAR(20) NOT NULL COMMENT '연결 메시지 코드',
     result_type CHAR(1) NOT NULL COMMENT '결과 유형',
@@ -917,16 +941,16 @@ CREATE TABLE IF NOT EXISTS pfw_response_code (
     http_status INT NOT NULL COMMENT 'HTTP 상태 코드',
     description VARCHAR(500) NULL COMMENT '응답 코드 설명',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (response_code),
-    INDEX ix_pfw_response_code_message (message_code),
-    INDEX ix_pfw_response_code_module (module_id, result_type, response_group)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 응답 코드';
+    INDEX ix_cpf_response_code_message (message_code),
+    INDEX ix_cpf_response_code_module (module_id, result_type, response_group)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 응답 코드';
 
-CREATE TABLE IF NOT EXISTS pfw_config (
+CREATE TABLE IF NOT EXISTS cpf_config (
     config_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '설정 순번',
     config_key VARCHAR(150) NOT NULL COMMENT '설정 키',
     config_value VARCHAR(2000) NOT NULL COMMENT '설정 값',
@@ -934,16 +958,16 @@ CREATE TABLE IF NOT EXISTS pfw_config (
     description VARCHAR(500) NULL COMMENT '설정 설명',
     encrypted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '암호화 여부',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (config_id),
-    UNIQUE KEY uk_pfw_config_key (config_key),
-    INDEX ix_pfw_config_use (use_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 시스템 설정';
+    UNIQUE KEY uk_cpf_config_key (config_key),
+    INDEX ix_cpf_config_use (use_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 시스템 설정';
 
-CREATE TABLE IF NOT EXISTS pfw_cache_refresh_event (
+CREATE TABLE IF NOT EXISTS cpf_cache_refresh_event (
     event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '캐시 갱신 이벤트 순번',
     cache_name VARCHAR(50) NOT NULL COMMENT '캐시 이름',
     event_type VARCHAR(30) NOT NULL COMMENT '이벤트 유형',
@@ -951,16 +975,16 @@ CREATE TABLE IF NOT EXISTS pfw_cache_refresh_event (
     source_was_id VARCHAR(50) NULL COMMENT '이벤트 발행 WAS ID',
     published_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '발행자',
     published_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발행일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (event_id),
-    INDEX ix_pfw_cache_refresh_event_cache_id (cache_name, event_id),
-    INDEX ix_pfw_cache_refresh_event_time (published_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 캐시 갱신 DB fallback 이벤트';
+    INDEX ix_cpf_cache_refresh_event_cache_id (cache_name, event_id),
+    INDEX ix_cpf_cache_refresh_event_time (published_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 캐시 갱신 DB fallback 이벤트';
 
-CREATE TABLE IF NOT EXISTS pfw_file_exchange_log (
+CREATE TABLE IF NOT EXISTS cpf_file_exchange_log (
     EXCHANGE_ID VARCHAR(80) NOT NULL COMMENT '파일 교환 ID',
     TRANSACTION_ID VARCHAR(80) NULL COMMENT '전역 거래 ID',
     TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
@@ -975,32 +999,32 @@ CREATE TABLE IF NOT EXISTS pfw_file_exchange_log (
     TARGET_PATH VARCHAR(1000) NULL COMMENT '대상 경로',
     REQUEST_USER VARCHAR(50) NULL COMMENT '요청 사용자',
     MESSAGE VARCHAR(2000) NULL COMMENT '처리 메시지',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (EXCHANGE_ID),
-    INDEX ix_pfw_file_exchange_tx (TRANSACTION_ID, created_at),
-    INDEX ix_pfw_file_exchange_biz (BUSINESS_TRANSACTION_ID, created_at),
-    INDEX ix_pfw_file_exchange_host (HOST, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 파일 교환 로그';
+    INDEX ix_cpf_file_exchange_tx (TRANSACTION_ID, created_at),
+    INDEX ix_cpf_file_exchange_biz (BUSINESS_TRANSACTION_ID, created_at),
+    INDEX ix_cpf_file_exchange_host (HOST, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 교환 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_security_jwt_key (
+CREATE TABLE IF NOT EXISTS cpf_security_jwt_key (
     KEY_ID VARCHAR(80) NOT NULL COMMENT 'JWT key ID',
     ISSUER VARCHAR(100) NOT NULL COMMENT '토큰 발급자',
     ALGORITHM VARCHAR(20) NOT NULL DEFAULT 'HS256' COMMENT '서명 알고리즘',
     SECRET_REF VARCHAR(500) NOT NULL COMMENT 'Vault/KMS/환경변수 secret 참조',
     ACTIVE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     EXPIRE_AT DATETIME NULL COMMENT '만료일시',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (KEY_ID),
-    INDEX ix_pfw_security_jwt_key_issuer (ISSUER, ACTIVE_YN)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW JWT key 메타';
+    INDEX ix_cpf_security_jwt_key_issuer (ISSUER, ACTIVE_YN)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF JWT key 메타';
 
-CREATE TABLE IF NOT EXISTS pfw_security_token_audit_log (
+CREATE TABLE IF NOT EXISTS cpf_security_token_audit_log (
     TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
     TRANSACTION_ID VARCHAR(80) NULL COMMENT '전역 거래 ID',
     TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
@@ -1013,15 +1037,15 @@ CREATE TABLE IF NOT EXISTS pfw_security_token_audit_log (
     EXPIRE_AT DATETIME NULL COMMENT '만료일시',
     FAILURE_REASON VARCHAR(1000) NULL COMMENT '검증 실패 사유',
     CLIENT_IP VARCHAR(50) NULL COMMENT '클라이언트 IP',
-    created_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(50) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (TOKEN_AUDIT_ID),
-    INDEX ix_pfw_security_token_tx (TRANSACTION_ID),
-    INDEX ix_pfw_security_token_hash (TOKEN_HASH),
-    INDEX ix_pfw_security_token_subject_time (SUBJECT, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 보안 토큰 감사 로그';
+    INDEX ix_cpf_security_token_tx (TRANSACTION_ID),
+    INDEX ix_cpf_security_token_hash (TOKEN_HASH),
+    INDEX ix_cpf_security_token_subject_time (SUBJECT, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 보안 토큰 감사 로그';
 
 CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
     JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
@@ -1113,22 +1137,22 @@ CREATE TABLE IF NOT EXISTS BATCH_JOB_SEQ (
     ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 채번 값'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Spring Batch JobInstance 채번 테이블';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_job (
+CREATE TABLE IF NOT EXISTS cpf_batch_job (
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     job_name VARCHAR(150) NOT NULL COMMENT '배치 Job 이름',
     job_type VARCHAR(30) NOT NULL DEFAULT 'TASKLET' COMMENT '배치 Job 유형',
     description VARCHAR(500) NULL COMMENT '배치 설명',
     restartable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재시작 가능 여부',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (job_id),
-    INDEX ix_pfw_batch_job_use (use_yn, job_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Job 기준';
+    INDEX ix_cpf_batch_job_use (use_yn, job_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 Job 기준';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_schedule (
+CREATE TABLE IF NOT EXISTS cpf_batch_schedule (
     schedule_id VARCHAR(100) NOT NULL COMMENT '배치 스케줄 ID',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     cron_expression VARCHAR(100) NOT NULL COMMENT 'Cron 표현식',
@@ -1142,18 +1166,18 @@ CREATE TABLE IF NOT EXISTS pfw_batch_schedule (
     enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '스케줄 활성 여부',
     last_fire_at DATETIME NULL COMMENT '마지막 실행 예정 일시',
     next_fire_at DATETIME NULL COMMENT '다음 실행 예정 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (schedule_id),
-    INDEX ix_pfw_batch_schedule_job (job_id, enabled_yn),
-    CONSTRAINT fk_pfw_batch_schedule_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
+    INDEX ix_cpf_batch_schedule_job (job_id, enabled_yn),
+    CONSTRAINT fk_cpf_batch_schedule_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 스케줄';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 스케줄';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_job_relation (
+CREATE TABLE IF NOT EXISTS cpf_batch_job_relation (
     relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
     related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
@@ -1162,23 +1186,23 @@ CREATE TABLE IF NOT EXISTS pfw_batch_job_relation (
     required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED' COMMENT '필수 선행 상태',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '관계 표시 순서',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (relation_id),
-    UNIQUE KEY uk_pfw_batch_job_relation (job_id, related_job_id, relation_type),
-    INDEX ix_pfw_batch_job_relation_job (job_id, relation_type, use_yn),
-    INDEX ix_pfw_batch_job_relation_related (related_job_id, relation_type),
-    CONSTRAINT fk_pfw_batch_job_relation_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
+    UNIQUE KEY uk_cpf_batch_job_relation (job_id, related_job_id, relation_type),
+    INDEX ix_cpf_batch_job_relation_job (job_id, relation_type, use_yn),
+    INDEX ix_cpf_batch_job_relation_related (related_job_id, relation_type),
+    CONSTRAINT fk_cpf_batch_job_relation_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_pfw_batch_job_relation_related
-        FOREIGN KEY (related_job_id) REFERENCES pfw_batch_job(job_id)
+    CONSTRAINT fk_cpf_batch_job_relation_related
+        FOREIGN KEY (related_job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 선행/후행/트리거 관계';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 선행/후행/트리거 관계';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_instance (
+CREATE TABLE IF NOT EXISTS cpf_batch_instance (
     instance_id VARCHAR(100) NOT NULL COMMENT '배치 인스턴스 ID',
     instance_name VARCHAR(150) NOT NULL COMMENT '배치 인스턴스명',
     host_name VARCHAR(150) NULL COMMENT '호스트명',
@@ -1186,15 +1210,15 @@ CREATE TABLE IF NOT EXISTS pfw_batch_instance (
     active_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
     last_heartbeat_at DATETIME(3) NULL COMMENT '마지막 heartbeat 일시',
     description VARCHAR(500) NULL COMMENT '인스턴스 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (instance_id),
-    INDEX ix_pfw_batch_instance_active (active_yn, last_heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 서버 인스턴스';
+    INDEX ix_cpf_batch_instance_active (active_yn, last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 서버 인스턴스';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_worker (
+CREATE TABLE IF NOT EXISTS cpf_batch_worker (
     worker_id VARCHAR(160) NOT NULL COMMENT '배치 worker ID',
     server_instance_id VARCHAR(160) NOT NULL COMMENT '서버 인스턴스 ID',
     host_name VARCHAR(150) NULL COMMENT '호스트명',
@@ -1211,18 +1235,18 @@ CREATE TABLE IF NOT EXISTS pfw_batch_worker (
     current_job_id VARCHAR(100) NULL COMMENT '현재 실행 Job ID',
     current_execution_id BIGINT NULL COMMENT '현재 CPF 배치 실행 순번',
     description VARCHAR(500) NULL COMMENT 'worker 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (worker_id),
-    INDEX ix_pfw_batch_worker_server (server_instance_id, active_yn),
-    INDEX ix_pfw_batch_worker_status (worker_status, last_heartbeat_at),
-    INDEX ix_pfw_batch_worker_control (control_status, active_yn, last_heartbeat_at),
-    INDEX ix_pfw_batch_worker_current_job (current_job_id, current_execution_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker heartbeat';
+    INDEX ix_cpf_batch_worker_server (server_instance_id, active_yn),
+    INDEX ix_cpf_batch_worker_status (worker_status, last_heartbeat_at),
+    INDEX ix_cpf_batch_worker_control (control_status, active_yn, last_heartbeat_at),
+    INDEX ix_cpf_batch_worker_current_job (current_job_id, current_execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 worker heartbeat';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_execution (
+CREATE TABLE IF NOT EXISTS cpf_batch_execution (
     execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     schedule_id VARCHAR(100) NULL COMMENT '배치 스케줄 ID',
@@ -1263,32 +1287,32 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution (
     current_step_name VARCHAR(150) NULL COMMENT '현재 실행 중인 Step 이름',
     error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
     requested_by VARCHAR(100) NULL COMMENT '실행 요청자',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (execution_id),
-    INDEX ix_pfw_batch_execution_job_time (job_id, start_time),
-    INDEX ix_pfw_batch_execution_status (execution_status, start_time),
-    INDEX ix_pfw_batch_execution_spring (spring_batch_execution_id),
-    INDEX ix_pfw_batch_execution_job_instance (spring_batch_job_instance_id, business_date),
-    INDEX ix_pfw_batch_execution_worker (worker_id, execution_status, start_time),
-    INDEX ix_pfw_batch_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
-    INDEX ix_pfw_batch_execution_transaction (transaction_global_id),
-    INDEX ix_pfw_batch_execution_parent_transaction (parent_transaction_global_id),
-    INDEX ix_pfw_batch_execution_segment (transaction_segment_id, parent_segment_id),
-    INDEX ix_pfw_batch_execution_heartbeat (execution_status, last_heartbeat_at),
-    CONSTRAINT fk_pfw_batch_execution_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
-    CONSTRAINT fk_pfw_batch_execution_instance
-        FOREIGN KEY (batch_instance_id) REFERENCES pfw_batch_instance(instance_id)
+    INDEX ix_cpf_batch_execution_job_time (job_id, start_time),
+    INDEX ix_cpf_batch_execution_status (execution_status, start_time),
+    INDEX ix_cpf_batch_execution_spring (spring_batch_execution_id),
+    INDEX ix_cpf_batch_execution_job_instance (spring_batch_job_instance_id, business_date),
+    INDEX ix_cpf_batch_execution_worker (worker_id, execution_status, start_time),
+    INDEX ix_cpf_batch_execution_claim (execution_status, required_worker_version, required_capability, execution_id),
+    INDEX ix_cpf_batch_execution_transaction (transaction_global_id),
+    INDEX ix_cpf_batch_execution_parent_transaction (parent_transaction_global_id),
+    INDEX ix_cpf_batch_execution_segment (transaction_segment_id, parent_segment_id),
+    INDEX ix_cpf_batch_execution_heartbeat (execution_status, last_heartbeat_at),
+    CONSTRAINT fk_cpf_batch_execution_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id),
+    CONSTRAINT fk_cpf_batch_execution_instance
+        FOREIGN KEY (batch_instance_id) REFERENCES cpf_batch_instance(instance_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_execution_worker
-        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+    CONSTRAINT fk_cpf_batch_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES cpf_batch_worker(worker_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 실행 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 실행 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_execution_lease (
+CREATE TABLE IF NOT EXISTS cpf_batch_execution_lease (
     lease_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 실행 lease 순번',
     execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
     worker_id VARCHAR(160) NOT NULL COMMENT '현재 lease 소유 worker ID',
@@ -1306,19 +1330,19 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution_lease (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'BAT' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (lease_id),
-    UNIQUE KEY uk_pfw_batch_execution_lease_execution (execution_id),
-    UNIQUE KEY uk_pfw_batch_execution_lease_token (lease_token),
-    INDEX ix_pfw_batch_execution_lease_owner (worker_id, lease_status, lease_until),
-    INDEX ix_pfw_batch_execution_lease_expire (lease_status, lease_until),
-    CONSTRAINT fk_pfw_batch_execution_lease_execution
-        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+    UNIQUE KEY uk_cpf_batch_execution_lease_execution (execution_id),
+    UNIQUE KEY uk_cpf_batch_execution_lease_token (lease_token),
+    INDEX ix_cpf_batch_execution_lease_owner (worker_id, lease_status, lease_until),
+    INDEX ix_cpf_batch_execution_lease_expire (lease_status, lease_until),
+    CONSTRAINT fk_cpf_batch_execution_lease_execution
+        FOREIGN KEY (execution_id) REFERENCES cpf_batch_execution(execution_id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_pfw_batch_execution_lease_worker
-        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+    CONSTRAINT fk_cpf_batch_execution_lease_worker
+        FOREIGN KEY (worker_id) REFERENCES cpf_batch_worker(worker_id)
         ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 worker 실행 claim과 lease';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 worker 실행 claim과 lease';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
+CREATE TABLE IF NOT EXISTS cpf_batch_execution_target (
     target_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 수행 대상 순번',
     execution_id BIGINT NULL COMMENT '배치 실행 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
@@ -1328,28 +1352,28 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
     planned_run_at DATETIME(3) NULL COMMENT '예정 수행 일시',
     dispatch_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '배정 상태',
     dispatch_reason VARCHAR(500) NULL COMMENT '배정 또는 제외 사유',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (target_id),
-    INDEX ix_pfw_batch_execution_target_job (job_id, dispatch_status, planned_run_at),
-    INDEX ix_pfw_batch_execution_target_execution (execution_id),
-    INDEX ix_pfw_batch_execution_target_instance (target_instance_id, dispatch_status),
-    CONSTRAINT fk_pfw_batch_execution_target_execution
-        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+    INDEX ix_cpf_batch_execution_target_job (job_id, dispatch_status, planned_run_at),
+    INDEX ix_cpf_batch_execution_target_execution (execution_id),
+    INDEX ix_cpf_batch_execution_target_instance (target_instance_id, dispatch_status),
+    CONSTRAINT fk_cpf_batch_execution_target_execution
+        FOREIGN KEY (execution_id) REFERENCES cpf_batch_execution(execution_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_execution_target_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
-    CONSTRAINT fk_pfw_batch_execution_target_schedule
-        FOREIGN KEY (schedule_id) REFERENCES pfw_batch_schedule(schedule_id)
+    CONSTRAINT fk_cpf_batch_execution_target_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id),
+    CONSTRAINT fk_cpf_batch_execution_target_schedule
+        FOREIGN KEY (schedule_id) REFERENCES cpf_batch_schedule(schedule_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_execution_target_instance
-        FOREIGN KEY (target_instance_id) REFERENCES pfw_batch_instance(instance_id)
+    CONSTRAINT fk_cpf_batch_execution_target_instance
+        FOREIGN KEY (target_instance_id) REFERENCES cpf_batch_instance(instance_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 수행 대상/대기 인스턴스';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 수행 대상/대기 인스턴스';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
+CREATE TABLE IF NOT EXISTS cpf_batch_step_execution (
     step_execution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 Step 실행 순번',
     execution_id BIGINT NOT NULL COMMENT '배치 실행 순번',
     spring_batch_step_execution_id BIGINT NULL COMMENT 'Spring Batch StepExecution ID',
@@ -1373,40 +1397,40 @@ CREATE TABLE IF NOT EXISTS pfw_batch_step_execution (
     last_heartbeat_at DATETIME(3) NULL COMMENT 'Step 메타 마지막 heartbeat 일시',
     error_message MEDIUMTEXT NULL COMMENT '오류 메시지',
     step_log MEDIUMTEXT NULL COMMENT 'Step 로그',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (step_execution_id),
-    INDEX ix_pfw_batch_step_execution_parent (execution_id, step_name),
-    INDEX ix_pfw_batch_step_execution_spring (spring_batch_step_execution_id),
-    INDEX ix_pfw_batch_step_execution_worker (worker_id, start_time),
-    INDEX ix_pfw_batch_step_execution_heartbeat (execution_status, last_heartbeat_at),
-    CONSTRAINT fk_pfw_batch_step_execution_parent
-        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+    INDEX ix_cpf_batch_step_execution_parent (execution_id, step_name),
+    INDEX ix_cpf_batch_step_execution_spring (spring_batch_step_execution_id),
+    INDEX ix_cpf_batch_step_execution_worker (worker_id, start_time),
+    INDEX ix_cpf_batch_step_execution_heartbeat (execution_status, last_heartbeat_at),
+    CONSTRAINT fk_cpf_batch_step_execution_parent
+        FOREIGN KEY (execution_id) REFERENCES cpf_batch_execution(execution_id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_pfw_batch_step_execution_worker
-        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+    CONSTRAINT fk_cpf_batch_step_execution_worker
+        FOREIGN KEY (worker_id) REFERENCES cpf_batch_worker(worker_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 Step 실행 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 Step 실행 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_lock (
+CREATE TABLE IF NOT EXISTS cpf_batch_lock (
     lock_key VARCHAR(200) NOT NULL COMMENT '배치 잠금 키',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     job_parameters_hash VARCHAR(128) NOT NULL COMMENT 'Job 파라미터 해시',
     owner_id VARCHAR(100) NOT NULL COMMENT '잠금 소유자',
     locked_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '잠금 획득 일시',
     expire_at DATETIME(3) NOT NULL COMMENT '잠금 만료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (lock_key),
-    INDEX ix_pfw_batch_lock_job (job_id, job_parameters_hash),
-    INDEX ix_pfw_batch_lock_expire (expire_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 중복 실행 방지 잠금';
+    INDEX ix_cpf_batch_lock_job (job_id, job_parameters_hash),
+    INDEX ix_cpf_batch_lock_expire (expire_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 중복 실행 방지 잠금';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_operation_log (
+CREATE TABLE IF NOT EXISTS cpf_batch_operation_log (
     operation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 운영 로그 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
     execution_id BIGINT NULL COMMENT '배치 실행 순번',
@@ -1417,16 +1441,16 @@ CREATE TABLE IF NOT EXISTS pfw_batch_operation_log (
     after_data LONGTEXT NULL COMMENT '작업 후 데이터',
     result_type CHAR(1) NOT NULL DEFAULT 'S' COMMENT '결과 유형',
     result_message VARCHAR(1000) NULL COMMENT '결과 메시지',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (operation_id),
-    INDEX ix_pfw_batch_operation_job_time (job_id, created_at),
-    INDEX ix_pfw_batch_operation_execution (execution_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 운영 작업 로그';
+    INDEX ix_cpf_batch_operation_job_time (job_id, created_at),
+    INDEX ix_cpf_batch_operation_execution (execution_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 운영 작업 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_ghost_event (
+CREATE TABLE IF NOT EXISTS cpf_batch_ghost_event (
     ghost_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 ghost 이벤트 순번',
     execution_id BIGINT NULL COMMENT '배치 실행 순번',
     spring_batch_execution_id BIGINT NULL COMMENT 'Spring Batch JobExecution ID',
@@ -1444,40 +1468,40 @@ CREATE TABLE IF NOT EXISTS pfw_batch_ghost_event (
     retryable_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '재수행 가능 여부',
     before_data LONGTEXT NULL COMMENT '조치 전 데이터',
     after_data LONGTEXT NULL COMMENT '조치 후 데이터',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (ghost_event_id),
-    INDEX ix_pfw_batch_ghost_event_execution (execution_id, ghost_status),
-    INDEX ix_pfw_batch_ghost_event_job (job_id, detected_at),
-    INDEX ix_pfw_batch_ghost_event_worker (worker_id, detected_at),
-    CONSTRAINT fk_pfw_batch_ghost_event_execution
-        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+    INDEX ix_cpf_batch_ghost_event_execution (execution_id, ghost_status),
+    INDEX ix_cpf_batch_ghost_event_job (job_id, detected_at),
+    INDEX ix_cpf_batch_ghost_event_worker (worker_id, detected_at),
+    CONSTRAINT fk_cpf_batch_ghost_event_execution
+        FOREIGN KEY (execution_id) REFERENCES cpf_batch_execution(execution_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_ghost_event_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
-    CONSTRAINT fk_pfw_batch_ghost_event_worker
-        FOREIGN KEY (worker_id) REFERENCES pfw_batch_worker(worker_id)
+    CONSTRAINT fk_cpf_batch_ghost_event_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id),
+    CONSTRAINT fk_cpf_batch_ghost_event_worker
+        FOREIGN KEY (worker_id) REFERENCES cpf_batch_worker(worker_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 ghost 감지와 조치 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 ghost 감지와 조치 이력';
 
 
-CREATE TABLE IF NOT EXISTS pfw_business_day_calendar (
+CREATE TABLE IF NOT EXISTS cpf_business_day_calendar (
     calendar_id VARCHAR(50) NOT NULL COMMENT '캘린더 ID',
     business_date DATE NOT NULL COMMENT '기준 일자',
     holiday_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '휴일 여부',
     business_day_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '영업일 여부',
     description VARCHAR(500) NULL COMMENT '일자 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (calendar_id, business_date),
-    INDEX ix_pfw_business_day_calendar_date (business_date, business_day_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 영업일 캘린더';
+    INDEX ix_cpf_business_day_calendar_date (business_date, business_day_yn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 영업일 캘린더';
 
-CREATE TABLE IF NOT EXISTS pfw_notification_rule (
+CREATE TABLE IF NOT EXISTS cpf_notification_rule (
     rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
     event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
@@ -1486,16 +1510,16 @@ CREATE TABLE IF NOT EXISTS pfw_notification_rule (
     severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
     receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (rule_id),
-    UNIQUE KEY uk_pfw_notification_rule (event_type, event_sub_type, channel_code),
-    INDEX ix_pfw_notification_rule_use (use_yn, severity)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 규칙';
+    UNIQUE KEY uk_cpf_notification_rule (event_type, event_sub_type, channel_code),
+    INDEX ix_cpf_notification_rule_use (use_yn, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
 
-CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
+CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
     delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
     rule_id BIGINT NULL COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
@@ -1506,19 +1530,19 @@ CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
     delivery_message VARCHAR(2000) NULL COMMENT '발송 메시지',
     requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발송 요청 일시',
     delivered_at DATETIME(3) NULL COMMENT '발송 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (delivery_id),
-    INDEX ix_pfw_notification_delivery_target (target_type, target_id, requested_at),
-    INDEX ix_pfw_notification_delivery_status (delivery_status, requested_at),
-    CONSTRAINT fk_pfw_notification_delivery_rule
-        FOREIGN KEY (rule_id) REFERENCES pfw_notification_rule(rule_id)
+    INDEX ix_cpf_notification_delivery_target (target_type, target_id, requested_at),
+    INDEX ix_cpf_notification_delivery_status (delivery_status, requested_at),
+    CONSTRAINT fk_cpf_notification_delivery_rule
+        FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule(rule_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 발송 로그';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 발송 로그';
 
-CREATE TABLE IF NOT EXISTS pfw_idempotency_record (
+CREATE TABLE IF NOT EXISTS cpf_idempotency_record (
     idempotency_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '중복 처리 내부 순번',
     scope VARCHAR(40) NOT NULL COMMENT '중복 처리 적용 범위',
     idempotency_key VARCHAR(160) NOT NULL COMMENT '중복 처리 키',
@@ -1529,16 +1553,16 @@ CREATE TABLE IF NOT EXISTS pfw_idempotency_record (
     retry_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재요청 허용 여부',
     completed_at DATETIME(3) NULL COMMENT '처리 완료 일시',
     expires_at DATETIME(3) NULL COMMENT '만료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (idempotency_seq),
-    UNIQUE KEY uk_pfw_idempotency_record_key (scope, idempotency_key),
-    INDEX ix_pfw_idempotency_record_status (record_status, expires_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 중복 처리 기록';
+    UNIQUE KEY uk_cpf_idempotency_record_key (scope, idempotency_key),
+    INDEX ix_cpf_idempotency_record_status (record_status, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 중복 처리 기록';
 
-CREATE TABLE IF NOT EXISTS pfw_broker_outbox (
+CREATE TABLE IF NOT EXISTS cpf_broker_outbox (
     outbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Outbox 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
@@ -1564,20 +1588,20 @@ CREATE TABLE IF NOT EXISTS pfw_broker_outbox (
     occurred_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '업무 이벤트 발생 일시',
     claimed_at DATETIME(3) NULL COMMENT 'worker 점유 일시',
     published_at DATETIME(3) NULL COMMENT '발행 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (outbox_id),
-    UNIQUE KEY uk_pfw_broker_outbox_message (message_id),
-    INDEX ix_pfw_broker_outbox_status (outbox_status, outbox_id),
-    INDEX ix_pfw_broker_outbox_ready (outbox_status, next_attempt_at, outbox_id),
-    INDEX ix_pfw_broker_outbox_lease (outbox_status, lease_until),
-    INDEX ix_pfw_broker_outbox_tx (transaction_global_id, segment_id),
-    INDEX ix_pfw_broker_outbox_topic (topic, occurred_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker Outbox';
+    UNIQUE KEY uk_cpf_broker_outbox_message (message_id),
+    INDEX ix_cpf_broker_outbox_status (outbox_status, outbox_id),
+    INDEX ix_cpf_broker_outbox_ready (outbox_status, next_attempt_at, outbox_id),
+    INDEX ix_cpf_broker_outbox_lease (outbox_status, lease_until),
+    INDEX ix_cpf_broker_outbox_tx (transaction_global_id, segment_id),
+    INDEX ix_cpf_broker_outbox_topic (topic, occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Outbox';
 
-CREATE TABLE IF NOT EXISTS pfw_broker_inbox (
+CREATE TABLE IF NOT EXISTS cpf_broker_inbox (
     inbox_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Inbox 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     idempotency_key VARCHAR(160) NULL COMMENT '중복 처리 키',
@@ -1585,17 +1609,17 @@ CREATE TABLE IF NOT EXISTS pfw_broker_inbox (
     result_detail VARCHAR(1000) NULL COMMENT '소비 처리 결과 상세',
     received_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '수신 일시',
     consumed_at DATETIME(3) NULL COMMENT '소비 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (inbox_id),
-    UNIQUE KEY uk_pfw_broker_inbox_message (message_id),
-    INDEX ix_pfw_broker_inbox_idempotency (idempotency_key),
-    INDEX ix_pfw_broker_inbox_status (inbox_status, received_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker Inbox';
+    UNIQUE KEY uk_cpf_broker_inbox_message (message_id),
+    INDEX ix_cpf_broker_inbox_idempotency (idempotency_key),
+    INDEX ix_cpf_broker_inbox_status (inbox_status, received_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker Inbox';
 
-CREATE TABLE IF NOT EXISTS pfw_broker_dlq (
+CREATE TABLE IF NOT EXISTS cpf_broker_dlq (
     dlq_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'DLQ 내부 순번',
     message_id VARCHAR(120) NOT NULL COMMENT '메시지 ID',
     topic VARCHAR(160) NOT NULL COMMENT 'Broker topic 또는 queue',
@@ -1606,17 +1630,17 @@ CREATE TABLE IF NOT EXISTS pfw_broker_dlq (
     replay_count INT NOT NULL DEFAULT 0 COMMENT '재처리 요청 횟수',
     replay_requested_at DATETIME(3) NULL COMMENT '재처리 요청 일시',
     replay_completed_at DATETIME(3) NULL COMMENT '재처리 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (dlq_id),
-    UNIQUE KEY uk_pfw_broker_dlq_message (message_id),
-    INDEX ix_pfw_broker_dlq_status (replay_status, created_at),
-    INDEX ix_pfw_broker_dlq_topic (topic, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Broker DLQ';
+    UNIQUE KEY uk_cpf_broker_dlq_message (message_id),
+    INDEX ix_cpf_broker_dlq_status (replay_status, created_at),
+    INDEX ix_cpf_broker_dlq_topic (topic, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Broker DLQ';
 
-CREATE TABLE IF NOT EXISTS pfw_file_transfer_history (
+CREATE TABLE IF NOT EXISTS cpf_file_transfer_history (
     history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '파일 전송 이력 내부 순번',
     transfer_id VARCHAR(260) NOT NULL COMMENT '파일 전송 ID',
     transaction_global_id VARCHAR(100) NULL COMMENT '전역 거래 ID',
@@ -1631,18 +1655,18 @@ CREATE TABLE IF NOT EXISTS pfw_file_transfer_history (
     transfer_status VARCHAR(30) NOT NULL COMMENT '전송 상태',
     result_detail VARCHAR(1000) NULL COMMENT '전송 결과 상세',
     completed_at DATETIME(3) NULL COMMENT '전송 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (history_id),
-    UNIQUE KEY uk_pfw_file_transfer_history_id (transfer_id),
-    INDEX ix_pfw_file_transfer_duplicate (endpoint_code, duplicate_key(255), checksum),
-    INDEX ix_pfw_file_transfer_tx (transaction_global_id, segment_id),
-    INDEX ix_pfw_file_transfer_status (transfer_status, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 파일 전송 이력';
+    UNIQUE KEY uk_cpf_file_transfer_history_id (transfer_id),
+    INDEX ix_cpf_file_transfer_duplicate (endpoint_code, duplicate_key(255), checksum),
+    INDEX ix_cpf_file_transfer_tx (transaction_global_id, segment_id),
+    INDEX ix_cpf_file_transfer_status (transfer_status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 파일 전송 이력';
 
-CREATE TABLE IF NOT EXISTS pfw_unknown_result (
+CREATE TABLE IF NOT EXISTS cpf_unknown_result (
     unknown_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Unknown result 내부 순번',
     unknown_id VARCHAR(120) NOT NULL COMMENT 'Unknown result ID',
     unknown_type VARCHAR(40) NOT NULL COMMENT 'Unknown result 유형',
@@ -1657,16 +1681,16 @@ CREATE TABLE IF NOT EXISTS pfw_unknown_result (
     resolved_at DATETIME(3) NULL COMMENT '해결 일시',
     resolved_by VARCHAR(100) NULL COMMENT '해결 운영자',
     audit_reason VARCHAR(500) NULL COMMENT '수동 처리 감사 사유',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (unknown_seq),
-    UNIQUE KEY uk_pfw_unknown_result_id (unknown_id),
-    INDEX ix_pfw_unknown_result_status (unknown_type, unknown_status, detected_at),
-    INDEX ix_pfw_unknown_result_tx (transaction_global_id, segment_id),
-    INDEX ix_pfw_unknown_result_external (external_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW Unknown result 및 reconciliation 이력';
+    UNIQUE KEY uk_cpf_unknown_result_id (unknown_id),
+    INDEX ix_cpf_unknown_result_status (unknown_type, unknown_status, detected_at),
+    INDEX ix_cpf_unknown_result_tx (transaction_global_id, segment_id),
+    INDEX ix_cpf_unknown_result_external (external_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Unknown result 및 reconciliation 이력';
 -- ============================================================================
 -- specs/sql/20_cmn_schema.sql
 -- ============================================================================
@@ -2242,13 +2266,13 @@ CREATE TABLE IF NOT EXISTS adm_operation_log (
 -- specs/sql/35_bat_schema.sql
 -- ============================================================================
 -- BAT worker와 배치 실행 구현체가 소유하는 런타임 보조 스키마입니다.
--- PFW는 center-cut 표준 계약과 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
+-- CPF는 center-cut 표준 계약과 상태 기준을 제공하고, BAT는 기본 실행 메타와 sample 구현체를 소유합니다.
 
-USE pfwDB;
+USE cpfDB;
 
 CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    batch_job_id VARCHAR(100) NULL COMMENT '연결된 PFW 배치 Job ID',
+    batch_job_id VARCHAR(100) NULL COMMENT '연결된 CPF 배치 Job ID',
     center_cut_job_name VARCHAR(150) NOT NULL COMMENT '센터컷 Job 명',
     provider_key VARCHAR(100) NOT NULL COMMENT '대상 조회 Provider 식별자',
     handler_key VARCHAR(100) NOT NULL COMMENT '처리 Handler 식별자',
@@ -2263,7 +2287,7 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_job (
     PRIMARY KEY (center_cut_job_id),
     INDEX ix_bat_center_cut_job_batch (batch_job_id, use_yn),
     CONSTRAINT fk_bat_center_cut_job_batch
-        FOREIGN KEY (batch_job_id) REFERENCES pfw_batch_job(job_id)
+        FOREIGN KEY (batch_job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 Job 정의';
 
@@ -2335,11 +2359,11 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_result (
 -- specs/sql/40_business_modules_schema.sql
 -- ============================================================================
 -- 업무/교육 샘플 스키마입니다.
--- 기본 업무 스키마는 XYZ 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
+-- 기본 업무 스키마는 REF 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
 
-USE xyzDB;
+USE refDB;
 
-CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_target (
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_target (
     target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
     business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
@@ -2353,17 +2377,17 @@ CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_target (
     completed_at DATETIME NULL COMMENT '처리 완료 일시',
     last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (target_id),
-    UNIQUE KEY uk_xyz_center_cut_sample_target_business (center_cut_job_id, business_key),
-    INDEX ix_xyz_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
-    INDEX ix_xyz_center_cut_sample_target_global (parent_transaction_global_id, child_transaction_global_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='XYZ 센터컷 샘플 대상';
+    UNIQUE KEY uk_ref_center_cut_sample_target_business (center_cut_job_id, business_key),
+    INDEX ix_ref_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
+    INDEX ix_ref_center_cut_sample_target_global (parent_transaction_global_id, child_transaction_global_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 대상';
 
-CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_result (
+CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
     result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 샘플 결과 순번',
     target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
@@ -2373,18 +2397,18 @@ CREATE TABLE IF NOT EXISTS xyz_center_cut_sample_result (
     result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
     parent_transaction_global_id VARCHAR(100) NULL COMMENT '부모 거래 글로벌 ID',
     child_transaction_global_id VARCHAR(100) NULL COMMENT '자식 거래 글로벌 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'XYZ' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (result_id),
-    UNIQUE KEY uk_xyz_center_cut_sample_result_target (target_id),
-    INDEX ix_xyz_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
-    INDEX ix_xyz_center_cut_sample_result_global (parent_transaction_global_id, child_transaction_global_id),
-    CONSTRAINT fk_xyz_center_cut_sample_result_target
-        FOREIGN KEY (target_id) REFERENCES xyz_center_cut_sample_target(target_id)
+    UNIQUE KEY uk_ref_center_cut_sample_result_target (target_id),
+    INDEX ix_ref_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
+    INDEX ix_ref_center_cut_sample_result_global (parent_transaction_global_id, child_transaction_global_id),
+    CONSTRAINT fk_ref_center_cut_sample_result_target
+        FOREIGN KEY (target_id) REFERENCES ref_center_cut_sample_target(target_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='XYZ 센터컷 샘플 결과';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 결과';
 
 USE mbrDB;
 
@@ -2993,14 +3017,283 @@ CREATE TABLE IF NOT EXISTS accDB.acc_account_change_log (
         REFERENCES accDB.acc_account (account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 변경 감사 이력';
 -- ============================================================================
+-- specs/sql/45_external_schema.sql
+-- ============================================================================
+-- EXS 대외연계 스키마입니다.
+-- 기관·채널·endpoint 정책과 멱등 실행, 송수신 이력, 결과 불명 복구 원장을 EXS가 소유합니다.
+
+USE exsDB;
+
+CREATE TABLE IF NOT EXISTS exs_institution (
+    institution_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외기관 순번',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    institution_name VARCHAR(120) NOT NULL COMMENT '대외기관명',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '연계 허용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (institution_id),
+    UNIQUE KEY uk_exs_institution_code (institution_code),
+    CONSTRAINT ck_exs_institution_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외기관';
+
+CREATE TABLE IF NOT EXISTS exs_channel (
+    channel_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 채널 순번',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
+    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '채널 사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (channel_id),
+    UNIQUE KEY uk_exs_channel_code (institution_code, channel_code),
+    INDEX ix_exs_channel_enabled (enabled_yn, institution_code),
+    CONSTRAINT ck_exs_channel_direction CHECK (direction IN ('SEND', 'RECEIVE', 'BIDIRECTIONAL')),
+    CONSTRAINT ck_exs_channel_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 채널';
+
+CREATE TABLE IF NOT EXISTS exs_endpoint (
+    endpoint_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 endpoint 순번',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT '대외 endpoint 코드',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    service_id VARCHAR(100) NOT NULL COMMENT 'CPF 서비스 레지스트리 ID',
+    http_method VARCHAR(10) NOT NULL COMMENT 'HTTP 메서드',
+    endpoint_uri VARCHAR(500) NOT NULL COMMENT '대외 endpoint 상대 URI',
+    result_query_uri VARCHAR(500) NULL COMMENT '결과 불명 재조회 상대 URI',
+    auth_profile_code VARCHAR(80) NULL COMMENT '인증 프로파일 코드',
+    timeout_ms INT NOT NULL DEFAULT 3000 COMMENT '호출 제한 시간 밀리초',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '멱등 호출 재시도 횟수',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'endpoint 사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (endpoint_id),
+    UNIQUE KEY uk_exs_endpoint_code (endpoint_code),
+    INDEX ix_exs_endpoint_institution (institution_code, enabled_yn),
+    CONSTRAINT ck_exs_endpoint_timeout CHECK (timeout_ms BETWEEN 1 AND 120000),
+    CONSTRAINT ck_exs_endpoint_retry CHECK (retry_count BETWEEN 0 AND 10),
+    CONSTRAINT ck_exs_endpoint_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 endpoint';
+
+CREATE TABLE IF NOT EXISTS exs_auth_profile (
+    auth_profile_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 인증 프로파일 순번',
+    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    auth_type VARCHAR(30) NOT NULL COMMENT '인증 유형',
+    secret_ref VARCHAR(300) NULL COMMENT '외부 secret 참조 경로',
+    certificate_ref VARCHAR(300) NULL COMMENT '외부 인증서 참조 경로',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '인증 프로파일 사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (auth_profile_id),
+    UNIQUE KEY uk_exs_auth_profile_code (auth_profile_code),
+    INDEX ix_exs_auth_profile_institution (institution_code, enabled_yn),
+    CONSTRAINT ck_exs_auth_profile_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 인증 프로파일';
+
+CREATE TABLE IF NOT EXISTS exs_token_store (
+    token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 토큰 순번',
+    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
+    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    token_status VARCHAR(30) NOT NULL COMMENT '토큰 상태',
+    token_secret_ref VARCHAR(300) NULL COMMENT '토큰 원문 외부 secret 참조',
+    expire_at DATETIME(3) NULL COMMENT '토큰 만료일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (token_id),
+    UNIQUE KEY uk_exs_token_store_key (auth_profile_code, token_key),
+    INDEX ix_exs_token_store_expire (expire_at),
+    INDEX ix_exs_token_store_status (token_status, expire_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 토큰 메타';
+
+CREATE TABLE IF NOT EXISTS exs_token_event_history (
+    token_event_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 이벤트 순번',
+    auth_profile_code VARCHAR(80) NOT NULL COMMENT '대외 인증 프로파일 코드',
+    token_key VARCHAR(120) NOT NULL COMMENT '토큰 식별 키',
+    event_type VARCHAR(30) NOT NULL COMMENT '발급·갱신·폐기 이벤트 유형',
+    event_result VARCHAR(20) NOT NULL COMMENT '이벤트 결과',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (token_event_id),
+    INDEX ix_exs_token_event_profile (auth_profile_code, created_at),
+    INDEX ix_exs_token_event_result (event_result, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 토큰 이벤트 이력';
+
+CREATE TABLE IF NOT EXISTS exs_route_rule (
+    route_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 라우팅 규칙 순번',
+    route_code VARCHAR(80) NOT NULL COMMENT '대외 라우팅 규칙 코드',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT '대외 endpoint 코드',
+    priority_no INT NOT NULL DEFAULT 100 COMMENT '우선순위',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '라우팅 사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (route_id),
+    UNIQUE KEY uk_exs_route_rule_code (route_code),
+    INDEX ix_exs_route_rule_target (institution_code, channel_code, enabled_yn, priority_no),
+    CONSTRAINT ck_exs_route_rule_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 라우팅 규칙';
+
+CREATE TABLE IF NOT EXISTS exs_control_policy (
+    control_policy_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 통제 정책 순번',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    control_type VARCHAR(30) NOT NULL COMMENT '통제 유형',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '연계 허용 여부',
+    reason VARCHAR(500) NULL COMMENT '통제 사유',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (control_policy_id),
+    UNIQUE KEY uk_exs_control_policy (institution_code, control_type),
+    INDEX ix_exs_control_policy_enabled (enabled_yn, institution_code),
+    CONSTRAINT ck_exs_control_policy_enabled CHECK (enabled_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 기관별 송수신 통제 정책';
+
+CREATE TABLE IF NOT EXISTS exs_execution (
+    execution_seq BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 실행 순번',
+    execution_id VARCHAR(80) NOT NULL COMMENT '대외 실행 ID',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    endpoint_code VARCHAR(80) NOT NULL COMMENT '대외 endpoint 코드',
+    external_request_id VARCHAR(120) NOT NULL COMMENT '기관 요청 ID',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT '멱등 요청 키',
+    request_hash CHAR(64) NOT NULL COMMENT '정규화 요청 SHA-256',
+    execution_status VARCHAR(30) NOT NULL COMMENT '실행 상태',
+    response_json LONGTEXT NULL COMMENT '마스킹된 응답 JSON',
+    unknown_result_id VARCHAR(80) NULL COMMENT 'CPF 결과 불명 원장 ID',
+    failure_code VARCHAR(100) NULL COMMENT '실패 코드',
+    failure_message VARCHAR(1000) NULL COMMENT '마스킹된 실패 메시지',
+    recovery_operator_id VARCHAR(100) NULL COMMENT '복구 작업자 ID',
+    recovery_reason VARCHAR(1000) NULL COMMENT '복구 감사 사유',
+    recovered_at DATETIME(3) NULL COMMENT '복구 완료 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (execution_seq),
+    UNIQUE KEY uk_exs_execution_id (execution_id),
+    UNIQUE KEY uk_exs_execution_idempotency (idempotency_key),
+    UNIQUE KEY uk_exs_execution_external_request (institution_code, external_request_id),
+    INDEX ix_exs_execution_status_time (execution_status, created_at),
+    INDEX ix_exs_execution_unknown (unknown_result_id),
+    CONSTRAINT ck_exs_execution_status CHECK (execution_status IN ('REQUESTED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 멱등 대외 실행';
+
+CREATE TABLE IF NOT EXISTS exs_transaction_log (
+    transaction_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 거래 로그 순번',
+    transaction_global_id VARCHAR(100) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    transaction_segment_id VARCHAR(100) NULL COMMENT 'CPF 트랜잭션 구간 ID',
+    execution_id VARCHAR(80) NULL COMMENT '대외 실행 ID',
+    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
+    institution_code VARCHAR(50) NOT NULL COMMENT '대외기관 코드',
+    channel_code VARCHAR(50) NOT NULL COMMENT '대외 채널 코드',
+    endpoint_code VARCHAR(80) NULL COMMENT '대외 endpoint 코드',
+    module_id VARCHAR(3) NOT NULL DEFAULT 'EXS' COMMENT '처리 모듈 ID',
+    was_id VARCHAR(7) NOT NULL COMMENT '처리 WAS ID',
+    server_instance_id VARCHAR(160) NULL COMMENT '처리 서버 인스턴스 ID',
+    request_at DATETIME(3) NOT NULL COMMENT '요청 송수신 일시',
+    response_at DATETIME(3) NULL COMMENT '응답 송수신 일시',
+    elapsed_ms BIGINT NULL COMMENT '처리 시간 밀리초',
+    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
+    http_method VARCHAR(10) NULL COMMENT 'HTTP 메서드',
+    request_uri VARCHAR(500) NULL COMMENT '요청 URI',
+    status VARCHAR(30) NOT NULL COMMENT '처리 상태',
+    result_code VARCHAR(50) NULL COMMENT '처리 결과 코드',
+    error_code VARCHAR(100) NULL COMMENT '오류 코드',
+    error_message VARCHAR(1000) NULL COMMENT '마스킹된 오류 메시지',
+    retryable_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '재처리 가능 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (transaction_log_id),
+    INDEX ix_exs_transaction_log_global (transaction_global_id, transaction_segment_id),
+    INDEX ix_exs_transaction_log_external (external_transaction_id),
+    INDEX ix_exs_transaction_log_execution (execution_id),
+    INDEX ix_exs_transaction_log_target_time (institution_code, channel_code, request_at),
+    INDEX ix_exs_transaction_log_status_time (status, request_at),
+    CONSTRAINT ck_exs_transaction_log_retryable CHECK (retryable_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 거래 로그';
+
+CREATE TABLE IF NOT EXISTS exs_message_log (
+    message_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 송수신 로그 순번',
+    transaction_global_id VARCHAR(100) NOT NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    transaction_segment_id VARCHAR(100) NULL COMMENT 'CPF 트랜잭션 구간 ID',
+    execution_id VARCHAR(80) NULL COMMENT '대외 실행 ID',
+    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
+    direction VARCHAR(20) NOT NULL COMMENT '송수신 방향',
+    message_summary VARCHAR(1000) NULL COMMENT '마스킹된 전문 요약',
+    payload_store_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '원문 별도 저장 여부',
+    payload_ref VARCHAR(300) NULL COMMENT '암호화 원문 저장 참조',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (message_log_id),
+    INDEX ix_exs_message_log_global (transaction_global_id, transaction_segment_id, created_at),
+    INDEX ix_exs_message_log_external (external_transaction_id, created_at),
+    INDEX ix_exs_message_log_execution (execution_id, created_at),
+    CONSTRAINT ck_exs_message_log_payload_store CHECK (payload_store_yn IN ('Y', 'N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 송수신 로그';
+
+CREATE TABLE IF NOT EXISTS exs_retry_log (
+    retry_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대외 재처리 로그 순번',
+    execution_id VARCHAR(80) NOT NULL COMMENT '대외 실행 ID',
+    transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    external_transaction_id VARCHAR(120) NULL COMMENT '대외기관 거래 ID',
+    retry_status VARCHAR(30) NOT NULL COMMENT '재처리 상태',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
+    last_error_message VARCHAR(1000) NULL COMMENT '마스킹된 마지막 오류 메시지',
+    next_retry_at DATETIME(3) NULL COMMENT '다음 재처리 예정 일시',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (retry_log_id),
+    INDEX ix_exs_retry_log_execution (execution_id, retry_status),
+    INDEX ix_exs_retry_log_next (next_retry_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 대외 재처리 로그';
+
+CREATE TABLE IF NOT EXISTS exs_reconciliation_log (
+    reconciliation_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '정합성 확인 로그 순번',
+    execution_id VARCHAR(80) NOT NULL COMMENT '대외 실행 ID',
+    unknown_result_id VARCHAR(80) NOT NULL COMMENT 'CPF 결과 불명 원장 ID',
+    before_status VARCHAR(30) NOT NULL COMMENT '변경 전 상태',
+    after_status VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
+    operator_id VARCHAR(100) NOT NULL COMMENT '복구 작업자 ID',
+    audit_reason VARCHAR(1000) NOT NULL COMMENT '복구 감사 사유',
+    source_type VARCHAR(30) NOT NULL COMMENT '기관 조회 또는 수동 확정 구분',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (reconciliation_log_id),
+    INDEX ix_exs_reconciliation_execution (execution_id, created_at),
+    INDEX ix_exs_reconciliation_unknown (unknown_result_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='EXS 결과 불명 정합성 확인 이력';
+-- ============================================================================
 -- specs/sql/50_framework_seed_data.sql
 -- ============================================================================
 -- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
--- 대상 DB: pfwDB
+-- 대상 DB: cpfDB
 
-USE pfwDB;
+USE cpfDB;
 
-INSERT INTO pfw_channel_registry (
+INSERT INTO cpf_channel_registry (
     channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn,
     authentication_required_yn, signature_required_yn, active_yn, description,
     policy_version, created_by, updated_by
@@ -3023,12 +3316,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_channel_execution_policy (
+INSERT INTO cpf_channel_execution_policy (
     policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type,
     allowed_yn, authentication_required_yn, signature_required_yn, max_tps,
     effective_from, effective_to, active_yn, policy_version, created_by, updated_by
 ) VALUES (
-    'PFW.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
+    'CPF.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
@@ -3044,7 +3337,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
     (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -3060,67 +3353,67 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_code (parent_id, code_key, code_value, description, created_by, updated_by)
+INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, updated_by)
 VALUES
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'PFW', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'XYZ', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', '재시도 요청', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', '웹 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', '모바일 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', '배치 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', '관리자 채널', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', '성공', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', '오류', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', '고정 메시지', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', '인덱스 파라미터 메시지', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'TRACE 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'DEBUG 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'INFO 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'WARN 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'ERROR 로그', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', '전체 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', '코드 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', '메시지 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', '응답코드 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', '설정 캐시', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'TASKLET', 'Tasklet 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM pfw_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBR', '회원 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'REF', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'COMPENSATION', '보상 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'RETRY', '재시도 요청', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'WEB', '웹 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'MOBILE', '모바일 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'BATCH', '배치 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CHANNEL_CODE') p), 'CHANNEL_CODE', 'ADM', '관리자 채널', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'S', '성공', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'RESULT_TYPE') p), 'RESULT_TYPE', 'E', '오류', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'FIXED', '고정 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'MESSAGE_FORMAT_TYPE') p), 'MESSAGE_FORMAT_TYPE', 'INDEXED', '인덱스 파라미터 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'TRACE', 'TRACE 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'DEBUG', 'DEBUG 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'INFO', 'INFO 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'WARN', 'WARN 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'LOG_LEVEL') p), 'LOG_LEVEL', 'ERROR', 'ERROR 로그', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'ALL', '전체 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CODE', '코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'MESSAGE', '메시지 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'RESPONSE_CODE', '응답코드 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'CACHE_NAME') p), 'CACHE_NAME', 'CONFIG', '설정 캐시', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'TASKLET', 'Tasklet 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parent_id = VALUES(parent_id),
     description = VALUES(description),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_message (
+INSERT INTO cpf_message (
     message_code, locale, message_format_type, external_message, internal_message,
     parameter_count, parameter_sample, description, created_by, updated_by
 ) VALUES
-    ('MPFW000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'PFW 공통 요청이 정상 처리되었습니다.', 0, NULL, 'PFW 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'PFW 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'PFW 미존재 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'PFW 중복 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'PFW 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'PFW 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'PFW 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'PFW 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'PFW 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'PFW 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'PFW 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'PFW @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'PFW 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'PFW 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'PFW endpoint 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'PFW 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'PFW 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'PFW 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'PFW 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'PFW 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'PFW 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MPFW990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'PFW 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["memberId","abc"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["member"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010004', 'ko', 'INDEXED', '입력값을 확인해 주세요.', 'Bean Validation 검증에 실패했습니다. field={0}', 1, '["name"]', 'CPF 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010005', 'ko', 'FIXED', '인증이 필요합니다.', '인증되지 않은 요청입니다.', 0, NULL, 'CPF 인증 필요 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF010006', 'ko', 'INDEXED', '처리 권한이 없습니다.', '인가되지 않은 요청입니다. user={0}', 1, '["guest"]', 'CPF 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF020001', 'ko', 'INDEXED', '요청을 처리할 수 없습니다.', '업무 규칙 위반이 발생했습니다. rule={0}', 1, '["business-rule"]', 'CPF 업무 규칙 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF030001', 'ko', 'INDEXED', '일시적으로 처리할 수 없습니다.', '외부 또는 타 주제영역 연계 오류가 발생했습니다. service={0}', 1, '["mbr"]', 'CPF 외부 연계 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900001', 'ko', 'INDEXED', '필수 거래 헤더가 누락되었습니다.', 'CPF 거래 헤더 검증에 실패했습니다. header={0}, uri={1}', 2, '["X-Request-Type","/mbr/list"]', 'CPF 헤더 검증 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900002', 'ko', 'INDEXED', '거래 메타데이터 설정이 올바르지 않습니다.', 'CPF @CpfTransaction 메타데이터 검증에 실패했습니다. transactionId={0}', 1, '["MBR01BSE0001"]', 'CPF 메타데이터 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900003', 'ko', 'INDEXED', '서비스 접속 정보가 없습니다.', 'CPF 서비스 endpoint 설정을 찾을 수 없습니다. serviceId={0}', 1, '["mbr"]', 'CPF endpoint 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900004', 'ko', 'INDEXED', '동적 로그레벨 요청이 올바르지 않습니다.', 'CPF 동적 로그레벨 규칙 검증에 실패했습니다. reason={0}', 1, '["transactionId or businessTransactionId required"]', 'CPF 동적 로그 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'CPF 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'CPF 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'CPF 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'CPF 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MCPF990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'CPF 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
@@ -3134,7 +3427,7 @@ INSERT INTO pfw_message (
     ('MMBR010104', 'ko', 'INDEXED', '중복된 회원 데이터가 있습니다.', 'MBR 중복 데이터가 감지되었습니다. key={0}', 1, '["memberNo"]', 'MBR 중복 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR010105', 'ko', 'INDEXED', '회원 입력값 검증에 실패했습니다.', 'MBR 입력값 검증에 실패했습니다. field={0}', 1, '["name"]', 'MBR 검증 메시지', 'SYSTEM', 'SYSTEM'),
     ('MMBR990000', 'ko', 'INDEXED', '회원 처리 중 오류가 발생했습니다.', 'MBR 내부 서버 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'MBR 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MXYZ090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=XYZ_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'XYZ 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MREF090001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE', 2, '["회원번호","M0001"]', 'REF 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -3148,26 +3441,26 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_response_code (
+INSERT INTO cpf_response_code (
     response_code, message_code, result_type, module_id, response_group, sequence_no,
     http_status, description, created_by, updated_by
 ) VALUES
-    ('SPFW000000', 'MPFW000000', 'S', 'PFW', '00', '0000', 200, 'PFW 공통 성공', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010001', 'MPFW010001', 'E', 'PFW', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010002', 'MPFW010002', 'E', 'PFW', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010003', 'MPFW010003', 'E', 'PFW', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010004', 'MPFW010004', 'E', 'PFW', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010005', 'MPFW010005', 'E', 'PFW', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),
-    ('EPFW010006', 'MPFW010006', 'E', 'PFW', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),
-    ('EPFW020001', 'MPFW020001', 'E', 'PFW', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),
-    ('EPFW030001', 'MPFW030001', 'E', 'PFW', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900001', 'MPFW900001', 'E', 'PFW', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900002', 'MPFW900002', 'E', 'PFW', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900003', 'MPFW900003', 'E', 'PFW', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900004', 'MPFW900004', 'E', 'PFW', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW900005', 'MPFW900005', 'E', 'PFW', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990000', 'MPFW990000', 'E', 'PFW', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
-    ('EPFW990001', 'MPFW990001', 'E', 'PFW', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
+    ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010004', 'MCPF010004', 'E', 'CPF', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010005', 'MCPF010005', 'E', 'CPF', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),
+    ('ECPF010006', 'MCPF010006', 'E', 'CPF', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),
+    ('ECPF020001', 'MCPF020001', 'E', 'CPF', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),
+    ('ECPF030001', 'MCPF030001', 'E', 'CPF', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900001', 'MCPF900001', 'E', 'CPF', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900002', 'MCPF900002', 'E', 'CPF', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900003', 'MCPF900003', 'E', 'CPF', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900004', 'MCPF900004', 'E', 'CPF', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF900005', 'MCPF900005', 'E', 'CPF', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
+    ('ECPF990000', 'MCPF990000', 'E', 'CPF', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
+    ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
     ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
     ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
@@ -3193,14 +3486,14 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+INSERT INTO cpf_config (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
 VALUES
     ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'PFW HTTP client 연결 timeout', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'PFW HTTP client 읽기 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.CONNECT_TIMEOUT_MS', '3000', 'NUMBER', 'CPF HTTP client 연결 timeout', 'N', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HTTP.READ_TIMEOUT_MS', '5000', 'NUMBER', 'CPF HTTP client 읽기 timeout', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.SESSION_TTL_SECONDS', '3600', 'NUMBER', 'ADM 세션 TTL 초', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_EXPIRE_DAYS', '90', 'NUMBER', 'ADM 비밀번호 만료 일수', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
@@ -3216,7 +3509,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_log_policy (
+INSERT INTO cpf_log_policy (
     policy_key, policy_name, target_type, target_id, log_level,
     db_log_enabled_yn, file_log_enabled_yn, request_body_log_yn, response_body_log_yn,
     error_stack_log_yn, retention_days, sampling_rate, priority, active_yn,
@@ -3243,7 +3536,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_security_jwt_key (
+INSERT INTO cpf_security_jwt_key (
     KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by
 ) VALUES (
     'local-cpf-hs256-001',
@@ -3264,13 +3557,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_cache_refresh_event (
+INSERT INTO cpf_cache_refresh_event (
     cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by
 )
 SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_cache_refresh_event
+    FROM cpf_cache_refresh_event
     WHERE cache_name = 'ALL'
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
@@ -3288,7 +3581,7 @@ INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
 SELECT 0
 WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
 
-INSERT INTO pfw_batch_instance (
+INSERT INTO cpf_batch_instance (
     instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
 ) VALUES (
     'local-batch-01',
@@ -3297,7 +3590,7 @@ INSERT INTO pfw_batch_instance (
     8099,
     'Y',
     NOW(3),
-    'XYZ EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스',
+    'REF EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스',
     'SYSTEM',
     'SYSTEM'
 )
@@ -3311,7 +3604,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_worker (
+INSERT INTO cpf_batch_worker (
     worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
     active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by
 ) VALUES (
@@ -3343,7 +3636,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -3358,7 +3651,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_schedule (
+INSERT INTO cpf_batch_schedule (
     schedule_id, job_id, cron_expression, calendar_id, business_day_only_yn,
     holiday_policy, available_start_time, available_end_time, run_date_pattern,
     timezone, enabled_yn, created_by, updated_by
@@ -3379,7 +3672,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job_relation (
+INSERT INTO cpf_batch_job_relation (
     job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -3392,7 +3685,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_execution (
+INSERT INTO cpf_batch_execution (
     job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id,
     worker_id, transaction_global_id, start_time, end_time,
     read_count, write_count, skip_count, requested_by, created_by, updated_by
@@ -3405,7 +3698,7 @@ SELECT
     'local-batch-01',
     'local-batch-01',
     'local-batch-01',
-    '20260615120000000XYZlocal010000001',
+    '20260615120000000REFlocal010000001',
     DATE_SUB(NOW(3), INTERVAL 10 MINUTE),
     DATE_SUB(NOW(3), INTERVAL 9 MINUTE),
     1,
@@ -3416,7 +3709,7 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_batch_execution
+    FROM cpf_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -3424,7 +3717,7 @@ WHERE NOT EXISTS (
 
 SET @cpf_edu_execution_id = (
     SELECT execution_id
-    FROM pfw_batch_execution
+    FROM cpf_batch_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -3432,7 +3725,7 @@ SET @cpf_edu_execution_id = (
     LIMIT 1
 );
 
-INSERT INTO pfw_batch_step_execution (
+INSERT INTO cpf_batch_step_execution (
     execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
     start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
@@ -3440,12 +3733,12 @@ SELECT @cpf_edu_execution_id, NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'C
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_batch_step_execution
+      FROM cpf_batch_step_execution
       WHERE execution_id = @cpf_edu_execution_id
         AND step_name = 'CPF_EDU_TASKLET_STEP'
   );
 
-INSERT INTO pfw_batch_execution_target (
+INSERT INTO cpf_batch_execution_target (
     execution_id, job_id, schedule_id, target_instance_id, business_date, planned_run_at,
     dispatch_status, dispatch_reason, created_by, updated_by
 )
@@ -3463,13 +3756,13 @@ SELECT
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_batch_execution_target
+      FROM cpf_batch_execution_target
       WHERE job_id = 'CPF_EDU_TASKLET_JOB'
         AND business_date = CURRENT_DATE
         AND target_instance_id = 'local-batch-01'
   );
 
-INSERT INTO pfw_business_day_calendar (
+INSERT INTO cpf_business_day_calendar (
     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
 ) VALUES
     ('DEFAULT', CURRENT_DATE, 'N', 'Y', '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
@@ -3481,7 +3774,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_notification_rule (
+INSERT INTO cpf_notification_rule (
     event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by
 ) VALUES
     ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -3494,33 +3787,33 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_notification_delivery_log (
+INSERT INTO cpf_notification_delivery_log (
     rule_id, event_type, target_type, target_id, receiver, delivery_status, delivery_message, created_by, updated_by
 )
 SELECT
     rule_id,
     'BATCH_EXECUTION',
-    'pfw_batch_execution',
+    'cpf_batch_execution',
     CAST(@cpf_edu_execution_id AS CHAR),
     'ADM_BATCH_OPERATOR',
     'SKIPPED',
     '로컬 seed 알림 발송 로그 샘플입니다.',
     'SYSTEM',
     'SYSTEM'
-FROM pfw_notification_rule
+FROM cpf_notification_rule
 WHERE event_type = 'BATCH_EXECUTION'
   AND event_sub_type = 'FAILED'
   AND @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_notification_delivery_log
+      FROM cpf_notification_delivery_log
       WHERE event_type = 'BATCH_EXECUTION'
         AND target_id = CAST(@cpf_edu_execution_id AS CHAR)
         AND receiver = 'ADM_BATCH_OPERATOR'
   )
 LIMIT 1;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
@@ -3541,13 +3834,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_batch_job (
+INSERT INTO cpf_batch_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF XYZ 업무 DB 센터컷 샘플 Job',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF REF 업무 DB 센터컷 샘플 Job',
     'TASKLET',
-    'XYZ 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
+    'REF 업무 DB adapter를 통해 center-cut target/result 흐름을 검증하는 Job입니다.',
     'Y',
     'Y',
     'SYSTEM',
@@ -3574,7 +3867,7 @@ INSERT INTO bat_center_cut_job (
     10,
     3,
     'Y',
-    'PFW 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
+    'CPF 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -3594,15 +3887,15 @@ INSERT INTO bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
 ) VALUES (
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF_XYZ_CENTER_CUT_SAMPLE_JOB',
-    'CPF XYZ 업무 DB 센터컷 샘플 Job',
-    'xyzCenterCutTargetProvider',
-    'xyzCenterCutHandler',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF_REF_CENTER_CUT_SAMPLE_JOB',
+    'CPF REF 업무 DB 센터컷 샘플 Job',
+    'refCenterCutTargetProvider',
+    'refCenterCutHandler',
     10,
     3,
     'Y',
-    'PFW 표준 계약과 XYZ 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
+    'CPF 표준 계약과 REF 업무 DB adapter를 연결하는 center-cut 샘플 모수입니다.',
     'SYSTEM',
     'SYSTEM'
 )
@@ -3630,12 +3923,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service (
+INSERT INTO cpf_service (
     service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
 ) VALUES
     ('BZA', '업무 백오피스 서비스', 'INTERNAL', 'BZA', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR', '회원 서비스', 'INTERNAL', 'MBR', 'CPF 회원 업무 모듈 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ', '온라인 교육 서비스', 'INTERNAL', 'XYZ', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF', '온라인 교육 서비스', 'INTERNAL', 'REF', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ACC', '계정 Reference 서비스', 'INTERNAL', 'ACC', '생성기 검증과 MBR 연계에 사용하는 계정 reference 서비스', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
@@ -3648,13 +3941,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_endpoint (
+INSERT INTO cpf_service_endpoint (
     endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
     default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
 ) VALUES
     ('BZA_API', 'BZA', 'BZA API Endpoint', 'HTTP', 'http://localhost:8091', '/api/bza', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBR_API', 'MBR', 'MBR API Endpoint', 'HTTP', 'http://localhost:8081', '/mbr', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ_API', 'XYZ', 'XYZ API Endpoint', 'HTTP', 'http://localhost:8099', '/xyz', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF_API', 'REF', 'REF API Endpoint', 'HTTP', 'http://localhost:8099', '/ref', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ACC_API', 'ACC', 'ACC API Endpoint', 'HTTP', 'http://localhost:8082', '/internal/api/v1/accounts', 3000, 1, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
@@ -3670,13 +3963,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_instance (
+INSERT INTO cpf_service_instance (
     instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
     port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
 ) VALUES
     ('BZA-local-01', 'BZA', 'BZA_API', 'BZA local instance', 'http://localhost:8091', 'localhost', 8091, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR-local-01', 'MBR', 'MBR_API', 'MBR local instance', 'http://localhost:8081', 'localhost', 8081, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('XYZ-local-01', 'XYZ', 'XYZ_API', 'XYZ local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('REF-local-01', 'REF', 'REF_API', 'REF local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ACC-local-01', 'ACC', 'ACC_API', 'ACC local instance', 'http://localhost:8082', 'localhost', 8082, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
@@ -3694,13 +3987,13 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_routing_policy (
+INSERT INTO cpf_service_routing_policy (
     service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
     health_check_required_yn, active_yn, priority, created_by, updated_by
 ) VALUES
     ('BZA', 'BZA_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
-    ('XYZ', 'XYZ_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('REF', 'REF_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ACC', 'ACC_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
@@ -3713,12 +4006,12 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_circuit_state (
+INSERT INTO cpf_service_circuit_state (
     service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by
 ) VALUES
     ('BZA', 'BZA_API', 'BZA-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('MBR', 'MBR_API', 'MBR-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
-    ('XYZ', 'XYZ_API', 'XYZ-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+    ('REF', 'REF_API', 'REF-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ACC', 'ACC_API', 'ACC-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
@@ -3730,73 +4023,73 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'BZA', 'BZA_API', 'BZA-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'BZA' AND endpoint_code = 'BZA_API' AND instance_id = 'BZA-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'MBR', 'MBR_API', 'MBR-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'MBR' AND endpoint_code = 'MBR_API' AND instance_id = 'MBR-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
-SELECT 'XYZ', 'XYZ_API', 'XYZ-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'REF', 'REF_API', 'REF-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
-    WHERE service_id = 'XYZ' AND endpoint_code = 'XYZ_API' AND instance_id = 'XYZ-local-01' AND created_by = 'SYSTEM'
+    SELECT 1 FROM cpf_service_health_status
+    WHERE service_id = 'REF' AND endpoint_code = 'REF_API' AND instance_id = 'REF-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'ACC', 'ACC_API', 'ACC-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'ACC' AND endpoint_code = 'ACC_API' AND instance_id = 'ACC-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO pfw_service_health_status (
+INSERT INTO cpf_service_health_status (
     service_id, endpoint_code, instance_id, health_status, http_status,
     response_time_ms, failure_message, checked_at, created_by, updated_by
 )
 SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM pfw_service_health_status
+    SELECT 1 FROM cpf_service_health_status
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'xyz_center_cut_sample_target', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'xyz_center_cut_sample_result', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'defaultLimit', '10', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'targetTable', 'ref_center_cut_sample_target', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'resultTable', 'ref_center_cut_sample_result', 'N', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parameter_value = VALUES(parameter_value),
     encrypted_yn = VALUES(encrypted_yn),
@@ -3807,338 +4100,338 @@ ON DUPLICATE KEY UPDATE
 -- specs/sql/52_standard_execution_alias_seed.sql
 -- ============================================================================
 -- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
-USE pfwDB;
+USE cpfDB;
 
-INSERT INTO pfw_standard_execution_alias (
+INSERT INTO cpf_standard_execution_alias (
     legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by
 ) VALUES
-    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BBAT-OPS-SM-0001', 'BBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BXYZ-EDU-CH-0001', 'BXYZAA0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BXYZ-EDU-RT-0001', 'BXYZAA0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('BXYZ-EDU-TS-0001', 'BXYZAA0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0010', 'OADMBA0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0012', 'OADMBA0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0013', 'OADMBA0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0014', 'OADMBA0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0015', 'OADMBA0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0016', 'OADMBA0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0023', 'OADMBA0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0024', 'OADMBA0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0025', 'OADMBA0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0027', 'OADMBA0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0028', 'OADMBA0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0029', 'OADMBA0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0030', 'OADMBA0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0032', 'OADMBA0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-01-0034', 'OADMBA0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-02-0011', 'OADMBA0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-02-0017', 'OADMBA0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-02-0018', 'OADMBA0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-02-0019', 'OADMBA0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-02-0026', 'OADMBA0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-03-0020', 'OADMBA0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-03-0021', 'OADMBA0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-03-0022', 'OADMBA0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-03-0031', 'OADMBA0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-BAT-03-0033', 'OADMBA0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CDE-01-0010', 'OADMCD0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CDE-01-0011', 'OADMCD0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CDE-02-0012', 'OADMCD0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CDE-03-0013', 'OADMCD0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CDE-04-0014', 'OADMCD0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CFG-01-0010', 'OADMCF0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CFG-01-0011', 'OADMCF0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CFG-02-0012', 'OADMCF0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CFG-03-0013', 'OADMCF0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CFG-04-0014', 'OADMCF0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0010', 'OADMCT0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0020', 'OADMCT0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0030', 'OADMCT0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0040', 'OADMCT0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0050', 'OADMCT0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0060', 'OADMCT0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-CTC-01-0070', 'OADMCT0070', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-DWN-01-0001', 'OADMDW0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-DWN-01-0002', 'OADMDW0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-DWN-02-0003', 'OADMDW0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-EXE-01-0001', 'OADMEX0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-EXE-01-0002', 'OADMEX0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-01-0010', 'OADMLG0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-01-0011', 'OADMLG0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-01-0018', 'OADMLG0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-01-0020', 'OADMLG0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-01-0021', 'OADMLG0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-03-0012', 'OADMLG0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-03-0013', 'OADMLG0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-03-0014', 'OADMLG0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-03-0016', 'OADMLG0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-03-0018', 'OADMLG0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MSG-03-0013', 'OADMMS0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-MSG-04-0014', 'OADMMS0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-01-0010', 'OADMNT0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-01-0011', 'OADMNT0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-01-0014', 'OADMNT0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-02-0012', 'OADMNT0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-02-0016', 'OADMNT0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-03-0013', 'OADMNT0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-NTF-03-0015', 'OADMNT0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OBS-01-0010', 'OADMOB0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OBS-01-0011', 'OADMOB0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OBS-01-0012', 'OADMOB0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0001', 'OADMOP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0002', 'OADMOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0010', 'OADMOP0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0020', 'OADMOP0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0030', 'OADMOP0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0034', 'OADMOP0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0035', 'OADMOP0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0036', 'OADMOP0036', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0040', 'OADMOP0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0041', 'OADMOP0041', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0042', 'OADMOP0042', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0043', 'OADMOP0043', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-01-0050', 'OADMOP0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-02-0031', 'OADMOP0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-02-0042', 'OADMOP0044', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0032', 'OADMOP0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0037', 'OADMOP0037', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0038', 'OADMOP0038', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0039', 'OADMOP0039', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0043', 'OADMOP0045', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0044', 'OADMOP0046', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-03-0045', 'OADMOP0047', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-04-0022', 'OADMOP0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-04-0044', 'OADMOP0048', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-05-0011', 'OADMOP0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-05-0021', 'OADMOP0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-06-0033', 'OADMOP0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-06-0040', 'OADMOP0049', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-OPR-06-0042', 'OADMOP0051', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0010', 'OADMPE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0011', 'OADMPE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0014', 'OADMPE0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0015', 'OADMPE0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0019', 'OADMPE0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0020', 'OADMPE0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0024', 'OADMPE0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0025', 'OADMPE0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0029', 'OADMPE0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0030', 'OADMPE0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-01-0034', 'OADMPE0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-02-0016', 'OADMPE0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-02-0021', 'OADMPE0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-02-0026', 'OADMPE0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-02-0031', 'OADMPE0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0012', 'OADMPE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0013', 'OADMPE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0017', 'OADMPE0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0018', 'OADMPE0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0022', 'OADMPE0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0023', 'OADMPE0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0027', 'OADMPE0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0028', 'OADMPE0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0032', 'OADMPE0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0033', 'OADMPE0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-PER-03-0035', 'OADMPE0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0001', 'OADMRE0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0002', 'OADMRE0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0003', 'OADMRE0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0004', 'OADMRE0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0006', 'OADMRE0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0007', 'OADMRE0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0009', 'OADMRE0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0010', 'OADMRE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-01-0011', 'OADMRE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-05-0005', 'OADMRE0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-05-0008', 'OADMRE0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-05-0012', 'OADMRE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-REL-05-0013', 'OADMRE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-CR-0001', 'OADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-DL-0001', 'OADMRL0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-DL-0002', 'OADMRL0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-DW-0001', 'OADMRL0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-IS-0001', 'OADMRL0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-QY-0001', 'OADMRL0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-QY-0002', 'OADMRL0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-QY-0003', 'OADMRL0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-RLG-QY-0004', 'OADMRL0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-01-0010', 'OADMSE0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-01-0012', 'OADMSE0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-03-0011', 'OADMSE0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-03-0013', 'OADMSE0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-03-0014', 'OADMSE0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SEC-03-0015', 'OADMSE0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0010', 'OADMSV0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0020', 'OADMSV0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0030', 'OADMSV0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0040', 'OADMSV0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0050', 'OADMSV0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0060', 'OADMSV0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-SVC-01-0070', 'OADMSV0070', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0001', 'OADMTR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0002', 'OADMTR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0003', 'OADMTR0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0004', 'OADMTR0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0005', 'OADMTR0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRG-01-0006', 'OADMTR0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRN-01-0010', 'OADMTR0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRN-01-0011', 'OADMTR0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRN-04-0013', 'OADMTR0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OADM-TRN-05-0012', 'OADMTR0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBAT-OPR-01-0003', 'OBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBAT-OPR-02-0002', 'OBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ADM-01-1001', 'OBZAAD1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ADM-03-1002', 'OBZAAD1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-APR-01-0001', 'OBZAAP0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-APR-01-0003', 'OBZAAP0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-APR-02-0002', 'OBZAAP0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-APR-05-0004', 'OBZAAP0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ATC-01-0001', 'OBZAAT0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ATC-02-0002', 'OBZAAT0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ATC-DL-0003', 'OBZAAT0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUD-01-0001', 'OBZAUD0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-01-0004', 'OBZAAU0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-01-0005', 'OBZAAU0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-01-0007', 'OBZAAU0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-02-0001', 'OBZAAU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-02-0002', 'OBZAAU0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-02-0003', 'OBZAAU0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-03-0006', 'OBZAAU0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-AUT-04-0008', 'OBZAAU0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-CUS-01-1001', 'OBZACU1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-DSH-01-0001', 'OBZADS0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-DWN-01-0002', 'OBZADW0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-DWN-01-1001', 'OBZADW1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-EMP-01-0001', 'OBZAEM0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-EMP-03-0002', 'OBZAEM0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-MNU-01-1001', 'OBZAMN1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-MNU-03-1002', 'OBZAMN1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-MSK-02-1001', 'OBZAMS1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-NTF-01-0001', 'OBZANT0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-NTF-02-0002', 'OBZANT0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-NTF-03-0003', 'OBZANT0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ORD-01-1001', 'OBZAOR1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ORG-01-0001', 'OBZAOR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ORG-03-0002', 'OBZAOR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PER-01-0002', 'OBZAPE0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PER-01-0003', 'OBZAPE0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PER-01-1001', 'OBZAPE1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PER-02-0004', 'OBZAPE0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PER-03-1002', 'OBZAPE1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-PRD-01-1001', 'OBZAPR1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ROL-01-1001', 'OBZARO1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-ROL-03-1002', 'OBZARO1002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-SCH-01-0001', 'OBZASC0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-SCH-03-0002', 'OBZASC0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-SCH-04-0003', 'OBZASC0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-01-0001', 'OXYZAA0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-01-0002', 'OXYZAA0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-01-0003', 'OXYZAA0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-01-0099', 'OXYZAA0099', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-02-0001', 'OXYZAA0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-02-0010', 'OXYZAA0010', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-02-0020', 'OXYZAA0020', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-02-0030', 'OXYZAA0030', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-03-0001', 'OXYZAA0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-03-0002', 'OXYZAA0006', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-03-0003', 'OXYZAA0007', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-04-0001', 'OXYZAA0008', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-04-0002', 'OXYZAA0009', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-05-0001', 'OXYZAA0011', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-05-0002', 'OXYZAA0012', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-05-9001', 'OXYZAA9001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-08-0001', 'OXYZAA0013', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-08-0010', 'OXYZAA0014', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-08-9001', 'OXYZAA9002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0001', 'OXYZAA0015', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0002', 'OXYZAA0016', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0003', 'OXYZAA0017', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0004', 'OXYZAA0018', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0005', 'OXYZAA0019', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0006', 'OXYZAA0021', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0007', 'OXYZAA0022', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0008', 'OXYZAA0023', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0009', 'OXYZAA0024', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0010', 'OXYZAA0025', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0011', 'OXYZAA0026', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0012', 'OXYZAA0027', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0013', 'OXYZAA0028', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0015', 'OXYZAA0029', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0016', 'OXYZAA0031', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0017', 'OXYZAA0032', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0018', 'OXYZAA0033', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0019', 'OXYZAA0034', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0020', 'OXYZAA0035', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0030', 'OXYZAA0036', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0031', 'OXYZAA0037', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0032', 'OXYZAA0038', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0033', 'OXYZAA0039', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0034', 'OXYZAA0040', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0035', 'OXYZAA0041', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0036', 'OXYZAA0042', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0040', 'OXYZAA0043', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0051', 'OXYZAA0051', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0060', 'OXYZAA0060', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0072', 'OXYZAA0072', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0073', 'OXYZAA0073', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-09-0080', 'OXYZAA0080', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-12-0001', 'OXYZAA0044', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-12-0002', 'OXYZAA0045', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-12-0003', 'OXYZAA0046', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0001', 'OXYZAA0047', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0002', 'OXYZAA0048', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0003', 'OXYZAA0049', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0004', 'OXYZAA0050', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0005', 'OXYZAA0052', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0006', 'OXYZAA0053', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0007', 'OXYZAA0054', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-13-0008', 'OXYZAA0055', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-14-0001', 'OXYZAA0056', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-15-0001', 'OXYZAA0057', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0001', 'OXYZAA0058', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0002', 'OXYZAA0059', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0003', 'OXYZAA0061', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0004', 'OXYZAA0062', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0005', 'OXYZAA0063', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-16-0006', 'OXYZAA0064', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-17-0001', 'OXYZAA0065', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-EDU-17-0002', 'OXYZAA0066', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-QRY-01-0001', 'OXYZQR0001', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-QRY-01-0002', 'OXYZQR0002', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-QRY-01-0003', 'OXYZQR0003', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-QRY-01-0004', 'OXYZQR0004', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED'),
-    ('OXYZ-QRY-01-0005', 'OXYZQR0005', 'CPF O/S/B 10자리 표준 전환', 'PFW_SEED', 'PFW_SEED')
+    ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BBAT-OPS-SM-0001', 'BBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BREF-EDU-CH-0001', 'BREFAA0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BREF-EDU-RT-0001', 'BREFAA0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('BREF-EDU-TS-0001', 'BREFAA0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0010', 'OADMBA0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0012', 'OADMBA0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0013', 'OADMBA0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0014', 'OADMBA0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0015', 'OADMBA0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0016', 'OADMBA0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0023', 'OADMBA0023', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0024', 'OADMBA0024', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0025', 'OADMBA0025', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0027', 'OADMBA0027', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0028', 'OADMBA0028', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0029', 'OADMBA0029', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0030', 'OADMBA0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0032', 'OADMBA0032', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-01-0034', 'OADMBA0034', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-02-0011', 'OADMBA0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-02-0017', 'OADMBA0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-02-0018', 'OADMBA0018', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-02-0019', 'OADMBA0019', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-02-0026', 'OADMBA0026', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-03-0020', 'OADMBA0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-03-0021', 'OADMBA0021', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-03-0022', 'OADMBA0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-03-0031', 'OADMBA0031', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-BAT-03-0033', 'OADMBA0033', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CDE-01-0010', 'OADMCD0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CDE-01-0011', 'OADMCD0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CDE-02-0012', 'OADMCD0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CDE-03-0013', 'OADMCD0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CDE-04-0014', 'OADMCD0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CFG-01-0010', 'OADMCF0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CFG-01-0011', 'OADMCF0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CFG-02-0012', 'OADMCF0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CFG-03-0013', 'OADMCF0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CFG-04-0014', 'OADMCF0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0010', 'OADMCT0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0020', 'OADMCT0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0030', 'OADMCT0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0040', 'OADMCT0040', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0050', 'OADMCT0050', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0060', 'OADMCT0060', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-CTC-01-0070', 'OADMCT0070', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-DWN-01-0001', 'OADMDW0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-DWN-01-0002', 'OADMDW0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-DWN-02-0003', 'OADMDW0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-EXE-01-0001', 'OADMEX0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-EXE-01-0002', 'OADMEX0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-01-0010', 'OADMLG0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-01-0011', 'OADMLG0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-01-0018', 'OADMLG0018', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-01-0020', 'OADMLG0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-01-0021', 'OADMLG0021', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-03-0012', 'OADMLG0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-03-0013', 'OADMLG0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-03-0014', 'OADMLG0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-03-0016', 'OADMLG0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-03-0018', 'OADMLG0019', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-04-0015', 'OADMLG0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-04-0017', 'OADMLG0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-LGP-04-0019', 'OADMLG0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-01-0010', 'OADMMB0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-01-0011', 'OADMMB0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-02-0012', 'OADMMB0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-02-0015', 'OADMMB0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-03-0013', 'OADMMB0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-03-0014', 'OADMMB0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MBR-04-0016', 'OADMMB0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MSG-01-0010', 'OADMMS0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MSG-01-0011', 'OADMMS0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MSG-02-0012', 'OADMMS0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MSG-03-0013', 'OADMMS0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-MSG-04-0014', 'OADMMS0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-01-0010', 'OADMNT0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-01-0011', 'OADMNT0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-01-0014', 'OADMNT0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-02-0012', 'OADMNT0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-02-0016', 'OADMNT0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-03-0013', 'OADMNT0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-NTF-03-0015', 'OADMNT0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OBS-01-0010', 'OADMOB0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OBS-01-0011', 'OADMOB0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OBS-01-0012', 'OADMOB0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0001', 'OADMOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0002', 'OADMOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0010', 'OADMOP0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0020', 'OADMOP0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0030', 'OADMOP0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0034', 'OADMOP0034', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0035', 'OADMOP0035', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0036', 'OADMOP0036', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0040', 'OADMOP0040', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0041', 'OADMOP0041', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0042', 'OADMOP0042', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0043', 'OADMOP0043', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-01-0050', 'OADMOP0050', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-02-0031', 'OADMOP0031', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-02-0042', 'OADMOP0044', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0032', 'OADMOP0032', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0037', 'OADMOP0037', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0038', 'OADMOP0038', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0039', 'OADMOP0039', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0043', 'OADMOP0045', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0044', 'OADMOP0046', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-03-0045', 'OADMOP0047', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-04-0022', 'OADMOP0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-04-0044', 'OADMOP0048', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-05-0011', 'OADMOP0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-05-0021', 'OADMOP0021', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-06-0033', 'OADMOP0033', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-06-0040', 'OADMOP0049', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-OPR-06-0042', 'OADMOP0051', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0010', 'OADMPE0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0011', 'OADMPE0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0014', 'OADMPE0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0015', 'OADMPE0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0019', 'OADMPE0019', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0020', 'OADMPE0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0024', 'OADMPE0024', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0025', 'OADMPE0025', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0029', 'OADMPE0029', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0030', 'OADMPE0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-01-0034', 'OADMPE0034', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-02-0016', 'OADMPE0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-02-0021', 'OADMPE0021', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-02-0026', 'OADMPE0026', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-02-0031', 'OADMPE0031', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0012', 'OADMPE0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0013', 'OADMPE0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0017', 'OADMPE0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0018', 'OADMPE0018', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0022', 'OADMPE0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0023', 'OADMPE0023', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0027', 'OADMPE0027', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0028', 'OADMPE0028', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0032', 'OADMPE0032', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0033', 'OADMPE0033', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-PER-03-0035', 'OADMPE0035', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0001', 'OADMRE0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0002', 'OADMRE0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0003', 'OADMRE0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0004', 'OADMRE0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0006', 'OADMRE0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0007', 'OADMRE0007', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0009', 'OADMRE0009', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0010', 'OADMRE0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-01-0011', 'OADMRE0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-05-0005', 'OADMRE0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-05-0008', 'OADMRE0008', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-05-0012', 'OADMRE0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-REL-05-0013', 'OADMRE0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-CR-0001', 'OADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-DL-0001', 'OADMRL0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-DL-0002', 'OADMRL0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-DW-0001', 'OADMRL0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-IS-0001', 'OADMRL0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-QY-0001', 'OADMRL0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-QY-0002', 'OADMRL0007', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-QY-0003', 'OADMRL0008', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-RLG-QY-0004', 'OADMRL0009', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-01-0010', 'OADMSE0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-01-0012', 'OADMSE0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-03-0011', 'OADMSE0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-03-0013', 'OADMSE0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-03-0014', 'OADMSE0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SEC-03-0015', 'OADMSE0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0010', 'OADMSV0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0020', 'OADMSV0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0030', 'OADMSV0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0040', 'OADMSV0040', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0050', 'OADMSV0050', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0060', 'OADMSV0060', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-SVC-01-0070', 'OADMSV0070', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0001', 'OADMTR0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0002', 'OADMTR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0003', 'OADMTR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0004', 'OADMTR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0005', 'OADMTR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRG-01-0006', 'OADMTR0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRN-01-0010', 'OADMTR0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRN-01-0011', 'OADMTR0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRN-04-0013', 'OADMTR0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OADM-TRN-05-0012', 'OADMTR0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBAT-OPR-01-0003', 'OBATOP0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBAT-OPR-02-0002', 'OBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ADM-01-1001', 'OBZAAD1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ADM-03-1002', 'OBZAAD1002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-APR-01-0001', 'OBZAAP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-APR-01-0003', 'OBZAAP0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-APR-02-0002', 'OBZAAP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-APR-05-0004', 'OBZAAP0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ATC-01-0001', 'OBZAAT0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ATC-02-0002', 'OBZAAT0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ATC-DL-0003', 'OBZAAT0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUD-01-0001', 'OBZAUD0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-01-0004', 'OBZAAU0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-01-0005', 'OBZAAU0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-01-0007', 'OBZAAU0007', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-02-0001', 'OBZAAU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-02-0002', 'OBZAAU0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-02-0003', 'OBZAAU0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-03-0006', 'OBZAAU0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-AUT-04-0008', 'OBZAAU0008', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-CUS-01-1001', 'OBZACU1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-DSH-01-0001', 'OBZADS0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-DWN-01-0002', 'OBZADW0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-DWN-01-1001', 'OBZADW1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-EMP-01-0001', 'OBZAEM0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-EMP-03-0002', 'OBZAEM0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-MNU-01-1001', 'OBZAMN1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-MNU-03-1002', 'OBZAMN1002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-MSK-02-1001', 'OBZAMS1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-NTF-01-0001', 'OBZANT0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-NTF-02-0002', 'OBZANT0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-NTF-03-0003', 'OBZANT0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ORD-01-1001', 'OBZAOR1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ORG-01-0001', 'OBZAOR0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ORG-03-0002', 'OBZAOR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PER-01-0002', 'OBZAPE0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PER-01-0003', 'OBZAPE0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PER-01-1001', 'OBZAPE1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PER-02-0004', 'OBZAPE0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PER-03-1002', 'OBZAPE1002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-PRD-01-1001', 'OBZAPR1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ROL-01-1001', 'OBZARO1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-ROL-03-1002', 'OBZARO1002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-SCH-01-0001', 'OBZASC0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-SCH-03-0002', 'OBZASC0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-SCH-04-0003', 'OBZASC0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-SET-01-1001', 'OBZASE1001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-USR-QY-0000', 'OBZAUS0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OBZA-USR-QY-0001', 'OBZAUS0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-AUT-01-0004', 'OMBRAU0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-AUT-01-0005', 'OMBRAU0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-AUT-02-0001', 'OMBRAU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-AUT-02-0002', 'OMBRAU0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-AUT-02-0003', 'OMBRAU0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-01-0001', 'OMBRMB0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-01-0002', 'OMBRMB0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-01-0003', 'OMBRMB0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-02-0001', 'OMBRMB0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-03-0001', 'OMBRMB0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OMBR-BSE-04-0001', 'OMBRMB0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-01-0001', 'OREFAA0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-01-0002', 'OREFAA0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-01-0003', 'OREFAA0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-01-0099', 'OREFAA0099', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-02-0001', 'OREFAA0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-02-0010', 'OREFAA0010', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-02-0020', 'OREFAA0020', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-02-0030', 'OREFAA0030', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-03-0001', 'OREFAA0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-03-0002', 'OREFAA0006', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-03-0003', 'OREFAA0007', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-04-0001', 'OREFAA0008', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-04-0002', 'OREFAA0009', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-05-0001', 'OREFAA0011', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-05-0002', 'OREFAA0012', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-05-9001', 'OREFAA9001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-08-0001', 'OREFAA0013', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-08-0010', 'OREFAA0014', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-08-9001', 'OREFAA9002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0001', 'OREFAA0015', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0002', 'OREFAA0016', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0003', 'OREFAA0017', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0004', 'OREFAA0018', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0005', 'OREFAA0019', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0006', 'OREFAA0021', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0007', 'OREFAA0022', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0008', 'OREFAA0023', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0009', 'OREFAA0024', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0010', 'OREFAA0025', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0011', 'OREFAA0026', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0012', 'OREFAA0027', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0013', 'OREFAA0028', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0015', 'OREFAA0029', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0016', 'OREFAA0031', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0017', 'OREFAA0032', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0018', 'OREFAA0033', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0019', 'OREFAA0034', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0020', 'OREFAA0035', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0030', 'OREFAA0036', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0031', 'OREFAA0037', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0032', 'OREFAA0038', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0033', 'OREFAA0039', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0034', 'OREFAA0040', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0035', 'OREFAA0041', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0036', 'OREFAA0042', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0040', 'OREFAA0043', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0051', 'OREFAA0051', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0060', 'OREFAA0060', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0072', 'OREFAA0072', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0073', 'OREFAA0073', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-09-0080', 'OREFAA0080', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-12-0001', 'OREFAA0044', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-12-0002', 'OREFAA0045', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-12-0003', 'OREFAA0046', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0001', 'OREFAA0047', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0002', 'OREFAA0048', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0003', 'OREFAA0049', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0004', 'OREFAA0050', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0005', 'OREFAA0052', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0006', 'OREFAA0053', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0007', 'OREFAA0054', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-13-0008', 'OREFAA0055', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-14-0001', 'OREFAA0056', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-15-0001', 'OREFAA0057', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0001', 'OREFAA0058', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0002', 'OREFAA0059', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0003', 'OREFAA0061', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0004', 'OREFAA0062', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0005', 'OREFAA0063', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-16-0006', 'OREFAA0064', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-17-0001', 'OREFAA0065', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-EDU-17-0002', 'OREFAA0066', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-QRY-01-0001', 'OREFQR0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-QRY-01-0002', 'OREFQR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-QRY-01-0003', 'OREFQR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-QRY-01-0004', 'OREFQR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED')
 ON DUPLICATE KEY UPDATE
     standard_execution_id = VALUES(standard_execution_id),
     migration_reason = VALUES(migration_reason),
@@ -4428,6 +4721,128 @@ ON DUPLICATE KEY UPDATE
     enabled_yn = VALUES(enabled_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
+-- ============================================================================
+-- specs/sql/57_external_seed_data.sql
+-- ============================================================================
+-- EXS 로컬 검증용 기관·endpoint와 CPF 서비스 레지스트리 seed입니다.
+-- 운영 환경에서는 기관별 실제 URI와 인증 프로파일을 별도 승인 절차로 등록합니다.
+
+USE exsDB;
+
+INSERT INTO exs_institution (
+    institution_code, institution_name, enabled_yn, created_by, updated_by
+) VALUES (
+    'CPF-REF', 'CPF 참조 대외 시뮬레이터', 'Y', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    institution_name = VALUES(institution_name),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO exs_channel (
+    institution_code, channel_code, direction, enabled_yn, created_by, updated_by
+) VALUES (
+    'CPF-REF', 'REST', 'BIDIRECTIONAL', 'Y', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    direction = VALUES(direction),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO exs_endpoint (
+    endpoint_code, institution_code, service_id, http_method, endpoint_uri,
+    result_query_uri, timeout_ms, retry_count, enabled_yn, created_by, updated_by
+) VALUES (
+    'REF-EXTERNAL-SIMULATOR', 'CPF-REF', 'REF', 'POST',
+    '/api/reference/external-simulator/executions',
+    '/api/reference/external-simulator/results/{externalRequestId}',
+    3000, 0, 'Y', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    http_method = VALUES(http_method),
+    endpoint_uri = VALUES(endpoint_uri),
+    result_query_uri = VALUES(result_query_uri),
+    timeout_ms = VALUES(timeout_ms),
+    retry_count = VALUES(retry_count),
+    enabled_yn = VALUES(enabled_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO exs_control_policy (
+    institution_code, control_type, enabled_yn, reason, created_by, updated_by
+) VALUES (
+    'CPF-REF', 'SEND', 'Y', '로컬 대외 시뮬레이터 송신 허용', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    enabled_yn = VALUES(enabled_yn),
+    reason = VALUES(reason),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+USE cpfDB;
+
+INSERT INTO cpf_service (
+    service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by
+) VALUES (
+    'REF', 'CPF 참조 서비스', 'INTERNAL', 'REF', 'EXS 로컬 결과 불명 검증 대상', 'Y', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    service_name = VALUES(service_name),
+    owner_module_code = VALUES(owner_module_code),
+    description = VALUES(description),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO cpf_service_endpoint (
+    endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
+    default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
+) VALUES (
+    'REF-EXTERNAL-SIMULATOR', 'REF', 'REF 대외 시뮬레이터', 'HTTP',
+    'http://127.0.0.1:8099', '', 3000, 0, 'Y', 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_name = VALUES(endpoint_name),
+    endpoint_type = VALUES(endpoint_type),
+    base_url = VALUES(base_url),
+    context_path = VALUES(context_path),
+    default_timeout_ms = VALUES(default_timeout_ms),
+    default_retry_count = VALUES(default_retry_count),
+    use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO cpf_service_instance (
+    instance_id, service_id, endpoint_code, instance_name, base_url, host_name,
+    port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by
+) VALUES (
+    'REF-EXS-local-01', 'REF', 'REF-EXTERNAL-SIMULATOR', 'REF 대외 시뮬레이터 인스턴스',
+    'http://127.0.0.1:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    service_id = VALUES(service_id),
+    endpoint_code = VALUES(endpoint_code),
+    instance_name = VALUES(instance_name),
+    base_url = VALUES(base_url),
+    host_name = VALUES(host_name),
+    port_no = VALUES(port_no),
+    instance_status = VALUES(instance_status),
+    active_yn = VALUES(active_yn),
+    last_heartbeat_at = VALUES(last_heartbeat_at),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO cpf_service_routing_policy (
+    service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn,
+    health_check_required_yn, active_yn, priority, created_by, updated_by
+) VALUES (
+    'REF', 'REF-EXTERNAL-SIMULATOR', 'PRIMARY', 'WEIGHT', 'N', 'N', 'Y', 100, 'SEED', 'SEED'
+) ON DUPLICATE KEY UPDATE
+    routing_mode = VALUES(routing_mode),
+    load_balance_type = VALUES(load_balance_type),
+    failover_enabled_yn = VALUES(failover_enabled_yn),
+    health_check_required_yn = VALUES(health_check_required_yn),
+    active_yn = VALUES(active_yn),
+    priority = VALUES(priority),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
 -- ============================================================================
 -- specs/sql/60_adm_seed_data.sql
 -- ============================================================================
@@ -4830,9 +5245,9 @@ WHERE NOT EXISTS (
 -- ============================================================================
 -- 로컬 및 통합 검증용 테스트 데이터입니다.
 
-USE pfwDB;
+USE cpfDB;
 
-INSERT INTO pfw_file_exchange_log (
+INSERT INTO cpf_file_exchange_log (
     EXCHANGE_ID,
     TRANSACTION_ID,
     TRACE_ID,
@@ -4853,7 +5268,7 @@ INSERT INTO pfw_file_exchange_log (
     'FILE-LOCAL-SAMPLE-001',
     'TEST_TRANSACTION',
     'TEST_TRACE',
-    'XYZ08EDU0001',
+    'REF08EDU0001',
     'LOCAL_WRITE',
     'LOCAL',
     'WRITE',
@@ -4894,20 +5309,20 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-USE xyzDB;
+USE refDB;
 
-DELETE FROM xyz_center_cut_sample_result
-WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
+DELETE FROM ref_center_cut_sample_result
+WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB';
 
-INSERT INTO xyz_center_cut_sample_target (
+INSERT INTO ref_center_cut_sample_target (
     target_id, center_cut_job_id, business_key, business_date, target_payload,
     status_code, retry_count, parent_transaction_global_id, child_transaction_global_id,
     started_at, completed_at, last_error_message, use_yn, created_by, updated_by
 ) VALUES
-    ('XYZ-CENTER-CUT-001', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-002', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-003', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-004', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
+    ('REF-CENTER-CUT-001', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-002', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-003', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-004', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     target_payload = VALUES(target_payload),
     status_code = VALUES(status_code),
@@ -4980,13 +5395,13 @@ WHERE NOT EXISTS (
       AND user_agent = 'SQL-SEED'
 );
 
-USE pfwDB;
+USE cpfDB;
 
 SET @sample_transaction_id = '20260615120000000MBRlocal010000001';
 SET @sample_start_time = '2026-06-15 12:00:00.000';
 SET @sample_end_time = '2026-06-15 12:00:00.012';
 
-INSERT INTO pfw_transaction_log (
+INSERT INTO cpf_transaction_log (
     LOG_DATE,
     TRANSACTION_ID,
     TRACE_ID,
@@ -5051,7 +5466,7 @@ SELECT
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'xyz-education',
+    'ref-education',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
@@ -5071,16 +5486,16 @@ SELECT
     'sql-smoke',
     'GET',
     '/mbr/list',
-    'cpf.mbr.bse.controller.MbrController',
-    'cpf.mbr.bse.controller',
+    'com.cpf.member.bse.controller.MbrController',
+    'com.cpf.member.bse.controller',
     'MbrController',
     'getAllMembers',
     'MbrController.getAllMembers()',
     '{}',
     '{"memberNo":"M000000001","password":"masked"}',
-    '{"code":"SPFW000000","message":"정상 처리되었습니다."}',
+    '{"code":"SCPF000000","message":"정상 처리되었습니다."}',
     200,
-    'SPFW000000',
+    'SCPF000000',
     'SYSTEM',
     '127.0.0.1',
     'SQL-SEED',
@@ -5091,21 +5506,21 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_transaction_log
+    FROM cpf_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
 );
 
 SET @sample_log_idx = (
     SELECT LOG_IDX
-    FROM pfw_transaction_log
+    FROM cpf_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
     ORDER BY LOG_IDX
     LIMIT 1
 );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -5116,12 +5531,12 @@ SELECT @sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NO
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'headers'
   );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -5132,12 +5547,12 @@ SELECT @sample_log_idx, 'fixedTelegram', 'M000000001회원1              0000000
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'fixedTelegram'
   );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -5148,7 +5563,7 @@ SELECT @sample_log_idx, 'memo', 'ADM 로그 화면 smoke 검증용 거래 로그
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'memo'
   );
@@ -5421,76 +5836,76 @@ ON DUPLICATE KEY UPDATE
 -- CPF 초기 데이터베이스 smoke check입니다.
 -- 01_create_databases.sql부터 70_test_data.sql까지 실행한 뒤 수행합니다.
 
-SELECT 'pfwDB.pfw_transaction_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log;
-SELECT 'pfwDB.pfw_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_log_detail;
-SELECT 'pfwDB.pfw_transaction_segment' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_segment;
-SELECT 'pfwDB.pfw_transaction_segment.timeline_columns' AS check_name, COUNT(*) AS column_count
+SELECT 'cpfDB.cpf_transaction_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_log;
+SELECT 'cpfDB.cpf_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_log_detail;
+SELECT 'cpfDB.cpf_transaction_segment' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_segment;
+SELECT 'cpfDB.cpf_transaction_segment.timeline_columns' AS check_name, COUNT(*) AS column_count
 FROM information_schema.columns
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_transaction_segment'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_transaction_segment'
   AND column_name IN (
       'selected_instance_id', 'attempt_no', 'retry_yn', 'failover_yn',
       'circuit_state', 'downstream_http_status', 'result_state', 'unknown_result_id'
   );
-SELECT 'pfwDB.pfw_transaction_segment.timeline_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
+SELECT 'cpfDB.cpf_transaction_segment.timeline_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
 FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_transaction_segment'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_transaction_segment'
   AND index_name IN (
-      'ix_pfw_transaction_segment_instance',
-      'ix_pfw_transaction_segment_attempt',
-      'ix_pfw_transaction_segment_unknown'
+      'ix_cpf_transaction_segment_instance',
+      'ix_cpf_transaction_segment_attempt',
+      'ix_cpf_transaction_segment_unknown'
   );
-SELECT 'pfwDB.pfw_transaction_meta' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_transaction_meta;
-SELECT 'pfwDB.pfw_standard_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution;
-SELECT 'pfwDB.pfw_standard_execution_alias' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_standard_execution_alias;
-SELECT 'pfwDB.pfw_channel_policy_version' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_policy_version;
-SELECT 'pfwDB.pfw_channel_registry' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_registry;
-SELECT 'pfwDB.pfw_channel_execution_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_channel_execution_policy;
-SELECT 'pfwDB.pfw_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_on_demand_request;
-SELECT 'pfwDB.pfw_log_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy;
-SELECT 'pfwDB.pfw_log_policy_override' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_override;
-SELECT 'pfwDB.pfw_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_log_policy_audit;
-SELECT 'pfwDB.pfw_code' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_code;
-SELECT 'pfwDB.pfw_message' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_message;
-SELECT 'pfwDB.pfw_response_code' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_response_code;
-SELECT 'pfwDB.pfw_config' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_config;
-SELECT 'pfwDB.pfw_cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_cache_refresh_event;
-SELECT 'pfwDB.BATCH_JOB_INSTANCE' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_INSTANCE;
-SELECT 'pfwDB.BATCH_JOB_EXECUTION' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION;
-SELECT 'pfwDB.BATCH_JOB_EXECUTION_PARAMS' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION_PARAMS;
-SELECT 'pfwDB.BATCH_STEP_EXECUTION' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_STEP_EXECUTION;
-SELECT 'pfwDB.BATCH_JOB_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_SEQ;
-SELECT 'pfwDB.BATCH_JOB_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_JOB_EXECUTION_SEQ;
-SELECT 'pfwDB.BATCH_STEP_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM pfwDB.BATCH_STEP_EXECUTION_SEQ;
-SELECT 'pfwDB.pfw_batch_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job;
-SELECT 'pfwDB.pfw_batch_schedule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_schedule;
-SELECT 'pfwDB.pfw_batch_job_relation' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_job_relation;
-SELECT 'pfwDB.pfw_batch_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_instance;
-SELECT 'pfwDB.pfw_batch_worker' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_worker;
-SELECT 'pfwDB.pfw_batch_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution;
-SELECT 'pfwDB.pfw_batch_execution_target' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_execution_target;
-SELECT 'pfwDB.pfw_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_step_execution;
-SELECT 'pfwDB.pfw_batch_lock' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_lock;
-SELECT 'pfwDB.pfw_batch_operation_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_operation_log;
-SELECT 'pfwDB.pfw_batch_ghost_event' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_batch_ghost_event;
-SELECT 'pfwDB.bat_center_cut_job' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_job;
-SELECT 'pfwDB.bat_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_parameter;
-SELECT 'pfwDB.bat_center_cut_item' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_item;
-SELECT 'pfwDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM pfwDB.bat_center_cut_result;
-SELECT 'pfwDB.pfw_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_business_day_calendar;
-SELECT 'pfwDB.pfw_notification_rule' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_rule;
-SELECT 'pfwDB.pfw_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_notification_delivery_log;
-SELECT 'pfwDB.pfw_broker_outbox.reliability_columns' AS check_name, COUNT(*) AS column_count
+SELECT 'cpfDB.cpf_transaction_meta' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_meta;
+SELECT 'cpfDB.cpf_standard_execution' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_standard_execution;
+SELECT 'cpfDB.cpf_standard_execution_alias' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_standard_execution_alias;
+SELECT 'cpfDB.cpf_channel_policy_version' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_policy_version;
+SELECT 'cpfDB.cpf_channel_registry' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_registry;
+SELECT 'cpfDB.cpf_channel_execution_policy' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_execution_policy;
+SELECT 'cpfDB.cpf_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_on_demand_request;
+SELECT 'cpfDB.cpf_log_policy' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy;
+SELECT 'cpfDB.cpf_log_policy_override' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy_override;
+SELECT 'cpfDB.cpf_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy_audit;
+SELECT 'cpfDB.cpf_code' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_code;
+SELECT 'cpfDB.cpf_message' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_message;
+SELECT 'cpfDB.cpf_response_code' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_response_code;
+SELECT 'cpfDB.cpf_config' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_config;
+SELECT 'cpfDB.cpf_cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_cache_refresh_event;
+SELECT 'cpfDB.BATCH_JOB_INSTANCE' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_INSTANCE;
+SELECT 'cpfDB.BATCH_JOB_EXECUTION' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION;
+SELECT 'cpfDB.BATCH_JOB_EXECUTION_PARAMS' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION_PARAMS;
+SELECT 'cpfDB.BATCH_STEP_EXECUTION' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_STEP_EXECUTION;
+SELECT 'cpfDB.BATCH_JOB_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_SEQ;
+SELECT 'cpfDB.BATCH_JOB_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION_SEQ;
+SELECT 'cpfDB.BATCH_STEP_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_STEP_EXECUTION_SEQ;
+SELECT 'cpfDB.cpf_batch_job' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_job;
+SELECT 'cpfDB.cpf_batch_schedule' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_schedule;
+SELECT 'cpfDB.cpf_batch_job_relation' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_job_relation;
+SELECT 'cpfDB.cpf_batch_instance' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_instance;
+SELECT 'cpfDB.cpf_batch_worker' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_worker;
+SELECT 'cpfDB.cpf_batch_execution' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_execution;
+SELECT 'cpfDB.cpf_batch_execution_target' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_execution_target;
+SELECT 'cpfDB.cpf_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_step_execution;
+SELECT 'cpfDB.cpf_batch_lock' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_lock;
+SELECT 'cpfDB.cpf_batch_operation_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_operation_log;
+SELECT 'cpfDB.cpf_batch_ghost_event' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_ghost_event;
+SELECT 'cpfDB.bat_center_cut_job' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_job;
+SELECT 'cpfDB.bat_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_parameter;
+SELECT 'cpfDB.bat_center_cut_item' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_item;
+SELECT 'cpfDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_result;
+SELECT 'cpfDB.cpf_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_business_day_calendar;
+SELECT 'cpfDB.cpf_notification_rule' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_notification_rule;
+SELECT 'cpfDB.cpf_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_notification_delivery_log;
+SELECT 'cpfDB.cpf_broker_outbox.reliability_columns' AS check_name, COUNT(*) AS column_count
 FROM information_schema.columns
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_broker_outbox'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_broker_outbox'
   AND column_name IN ('attempt_count', 'max_attempts', 'next_attempt_at', 'lease_until');
-SELECT 'pfwDB.pfw_broker_outbox.reliability_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
+SELECT 'cpfDB.cpf_broker_outbox.reliability_indexes' AS check_name, COUNT(DISTINCT index_name) AS index_count
 FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_broker_outbox'
-  AND index_name IN ('ix_pfw_broker_outbox_ready', 'ix_pfw_broker_outbox_lease');
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_broker_outbox'
+  AND index_name IN ('ix_cpf_broker_outbox_ready', 'ix_cpf_broker_outbox_lease');
 
 SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence;
 SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
@@ -5513,8 +5928,13 @@ SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
 
-SELECT 'xyzDB.xyz_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_target;
-SELECT 'xyzDB.xyz_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM xyzDB.xyz_center_cut_sample_result;
+SELECT 'refDB.ref_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_target;
+SELECT 'refDB.ref_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_result;
+SELECT 'exsDB.exs_institution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_institution;
+SELECT 'exsDB.exs_endpoint' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_endpoint;
+SELECT 'exsDB.exs_control_policy' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_control_policy;
+SELECT 'exsDB.exs_execution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_execution;
+SELECT 'exsDB.exs_reconciliation_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_reconciliation_log;
 SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
 SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
 SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
@@ -5548,18 +5968,18 @@ SELECT 'bzaDB.bza_approval_history' AS check_name, COUNT(*) AS row_count FROM bz
 
 SELECT TRANSACTION_ID, LOG_DATE, DATE(START_TIME) AS start_date, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
        API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
-FROM pfwDB.pfw_transaction_log
+FROM cpfDB.cpf_transaction_log
 WHERE TRANSACTION_ID = '20260615120000000MBRlocal010000001'
 ORDER BY LOG_IDX
 LIMIT 1;
 
 SELECT COUNT(*) AS transaction_log_date_mismatch_count
-FROM pfwDB.pfw_transaction_log
+FROM cpfDB.cpf_transaction_log
 WHERE START_TIME IS NOT NULL
   AND LOG_DATE <> DATE(START_TIME);
 
 SELECT DETAIL_KEY, DETAIL_VALUE
-FROM pfwDB.pfw_transaction_log_detail
+FROM cpfDB.cpf_transaction_log_detail
 WHERE DETAIL_KEY IN ('headers', 'fixedTelegram')
 ORDER BY DETAIL_KEY;
 
@@ -5583,8 +6003,8 @@ WHERE layout_id = 'BANK01_BALANCE_REQ_V1'
 ORDER BY start_position;
 
 SELECT target_id, center_cut_job_id, business_key, status_code, parent_transaction_global_id, child_transaction_global_id
-FROM xyzDB.xyz_center_cut_sample_target
-WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB'
+FROM refDB.ref_center_cut_sample_target
+WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB'
 ORDER BY target_id;
 
 SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, IMMUTABLE_YN
@@ -5608,36 +6028,36 @@ WHERE API_PERMISSION_ID IN ('API_PERMISSION_READ', 'API_PERMISSION_WRITE_PUT', '
 ORDER BY ROLE_ID, API_PERMISSION_ID;
 
 SELECT schedule_id, job_id, business_day_only_yn, holiday_policy, available_start_time, available_end_time, run_date_pattern
-FROM pfwDB.pfw_batch_schedule
+FROM cpfDB.cpf_batch_schedule
 ORDER BY schedule_id;
 
 SELECT job_id, related_job_id, relation_type, trigger_condition, required_status
-FROM pfwDB.pfw_batch_job_relation
+FROM cpfDB.cpf_batch_job_relation
 ORDER BY job_id, related_job_id;
 
 SELECT job_id, schedule_id, target_instance_id, business_date, dispatch_status
-FROM pfwDB.pfw_batch_execution_target
+FROM cpfDB.cpf_batch_execution_target
 ORDER BY target_id
 LIMIT 5;
 
 SELECT worker_id, server_instance_id, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id
-FROM pfwDB.pfw_batch_worker
+FROM cpfDB.cpf_batch_worker
 ORDER BY worker_id
 LIMIT 5;
 
 SELECT execution_id, job_id, execution_status, spring_batch_execution_id, batch_instance_id, server_instance_id,
        worker_id, transaction_global_id, requested_by
-FROM pfwDB.pfw_batch_execution
+FROM cpfDB.cpf_batch_execution
 ORDER BY execution_id DESC
 LIMIT 5;
 
 SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status
-FROM pfwDB.pfw_batch_step_execution
+FROM cpfDB.cpf_batch_step_execution
 ORDER BY step_execution_id DESC
 LIMIT 5;
 
 SELECT ghost_event_id, execution_id, job_id, worker_id, ghost_status, action_type, lock_released_yn, retryable_yn
-FROM pfwDB.pfw_batch_ghost_event
+FROM cpfDB.cpf_batch_ghost_event
 ORDER BY ghost_event_id DESC
 LIMIT 5;
 
@@ -5690,34 +6110,58 @@ ORDER BY member_role_id
 LIMIT 5;
 
 SELECT response_code, message_code, result_type, http_status
-FROM pfwDB.pfw_response_code
-WHERE response_code IN ('SPFW000000', 'EPFW010004', 'SMBR000000', 'EMBR010002')
+FROM cpfDB.cpf_response_code
+WHERE response_code IN ('SCPF000000', 'ECPF010004', 'SMBR000000', 'EMBR010002')
 ORDER BY response_code;
 
 SELECT message_code, locale, message_format_type, external_message, internal_message
-FROM pfwDB.pfw_message
-WHERE message_code IN ('MCMN000001', 'MPFW010004', 'MMBR010102', 'MXYZ090001')
+FROM cpfDB.cpf_message
+WHERE message_code IN ('MCMN000001', 'MCPF010004', 'MMBR010102', 'MREF090001')
 ORDER BY message_code, locale;
 
-SELECT 'pfwDB.pfw_service' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service;
-SELECT 'pfwDB.pfw_service_endpoint' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_endpoint;
-SELECT 'pfwDB.pfw_service_instance' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_instance;
-SELECT 'pfwDB.pfw_service_health_status' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_health_status;
-SELECT 'pfwDB.pfw_service_routing_policy' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_routing_policy;
-SELECT 'pfwDB.pfw_service_circuit_state' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_circuit_state;
-SELECT 'pfwDB.pfw_service_call_history' AS check_name, COUNT(*) AS row_count FROM pfwDB.pfw_service_call_history;
+-- cpf-core 공식 시스템 코드와 구형 CPF 코드의 활성 상태를 확인합니다.
+SELECT code_key, code_value, description, use_yn
+FROM cpfDB.cpf_code
+WHERE code_key = 'MODULE' AND code_value IN ('CPF', 'CPF')
+ORDER BY code_value;
+
+SELECT module_id, use_yn, COUNT(*) AS response_code_count
+FROM cpfDB.cpf_response_code
+WHERE module_id IN ('CPF', 'CPF')
+GROUP BY module_id, use_yn
+ORDER BY module_id, use_yn;
+
+SELECT 'cpfDB.cpf_service' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service;
+SELECT 'cpfDB.cpf_service_endpoint' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_endpoint;
+SELECT 'cpfDB.cpf_service_instance' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_instance;
+SELECT 'cpfDB.cpf_service_health_status' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_health_status;
+SELECT 'cpfDB.cpf_service_routing_policy' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_routing_policy;
+SELECT 'cpfDB.cpf_service_circuit_state' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_circuit_state;
+SELECT 'cpfDB.cpf_service_call_history' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_service_call_history;
 
 SELECT service_id, service_name, service_type, owner_module_code, use_yn
-FROM pfwDB.pfw_service
-WHERE service_id IN ('MBR', 'XYZ', 'BAT', 'ADM', 'BZA')
+FROM cpfDB.cpf_service
+WHERE service_id IN ('MBR', 'REF', 'BAT', 'ADM', 'BZA', 'ACC')
 ORDER BY service_id;
 
 SELECT endpoint_code, service_id, base_url, default_timeout_ms, default_retry_count, use_yn
-FROM pfwDB.pfw_service_endpoint
-WHERE endpoint_code IN ('MBR_API', 'XYZ_API', 'BAT_API', 'ADM_API', 'BZA_API')
+FROM cpfDB.cpf_service_endpoint
+WHERE endpoint_code IN ('MBR_API', 'REF_API', 'REF-EXTERNAL-SIMULATOR', 'BAT_API', 'ADM_API', 'BZA_API', 'ACC_API')
 ORDER BY endpoint_code;
 
 SELECT instance_id, service_id, endpoint_code, instance_status, active_yn
-FROM pfwDB.pfw_service_instance
-WHERE instance_id IN ('MBR-local-01', 'XYZ-local-01', 'BAT-local-01', 'ADM-local-01', 'BZA-local-01')
+FROM cpfDB.cpf_service_instance
+WHERE instance_id IN ('MBR-local-01', 'REF-local-01', 'REF-EXS-local-01', 'BAT-local-01', 'ADM-local-01', 'BZA-local-01', 'ACC-local-01')
 ORDER BY instance_id;
+
+SELECT institution_code, institution_name, enabled_yn
+FROM exsDB.exs_institution
+ORDER BY institution_code;
+
+SELECT endpoint_code, institution_code, service_id, endpoint_uri, result_query_uri, timeout_ms, retry_count, enabled_yn
+FROM exsDB.exs_endpoint
+ORDER BY endpoint_code;
+
+SELECT institution_code, control_type, enabled_yn, reason
+FROM exsDB.exs_control_policy
+ORDER BY institution_code, control_type;

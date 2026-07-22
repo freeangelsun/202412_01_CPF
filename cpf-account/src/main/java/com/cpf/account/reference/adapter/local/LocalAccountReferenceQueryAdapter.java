@@ -1,8 +1,8 @@
-package cpf.acc.reference.adapter.local;
+package com.cpf.account.reference.adapter.local;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.acc.reference.port.AccountReferenceQueryPort;
-import cpf.acc.reference.repository.AccountReferenceRepository;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.port.AccountReferenceQueryPort;
+import com.cpf.account.reference.repository.AccountReferenceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

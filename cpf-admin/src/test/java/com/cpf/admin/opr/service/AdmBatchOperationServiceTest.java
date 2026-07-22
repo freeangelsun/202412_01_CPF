@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.pfw.common.batch.CpfBatchGhostDetectionService;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.common.batch.CpfBatchGhostDetectionService;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,21 +31,21 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings({"unchecked", "varargs"})
 class AdmBatchOperationServiceTest {
 
-    private final JdbcTemplate pfwJdbcTemplate = mock(JdbcTemplate.class);
+    private final JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
     private final CpfBatchLauncher batchLauncher = mock(CpfBatchLauncher.class);
     private final ObjectProvider<JobExplorer> jobExplorerProvider = new EmptyJobExplorerProvider();
     private final CpfBatchGhostDetectionService ghostDetectionService = mock(CpfBatchGhostDetectionService.class);
     private final ObjectProvider<CpfBatchGhostDetectionService> ghostDetectionServiceProvider =
             new FixedObjectProvider<>(ghostDetectionService);
     private final AdmBatchOperationService service =
-            new AdmBatchOperationService(pfwJdbcTemplate, batchLauncher, jobExplorerProvider, ghostDetectionServiceProvider);
+            new AdmBatchOperationService(cpfJdbcTemplate, batchLauncher, jobExplorerProvider, ghostDetectionServiceProvider);
 
     @Test
     void findWorkersUsesHeartbeatTimeoutWithSafeLowerBound() {
         // worker heartbeat 조회는 너무 작은 제한초가 들어와도 최소 30초 기준으로 stale 여부를 판단합니다.
         service.findWorkers(1);
 
-        verify(pfwJdbcTemplate).queryForList(contains("FROM pfw_batch_worker"), eq(30));
+        verify(cpfJdbcTemplate).queryForList(contains("FROM cpf_batch_worker"), eq(30));
     }
 
     @Test
@@ -53,7 +53,7 @@ class AdmBatchOperationServiceTest {
         service.findGhostCandidates(1);
 
         verify(ghostDetectionService).detectGhostCandidates(30);
-        verify(pfwJdbcTemplate).queryForList(contains("FROM pfw_batch_execution"), eq(30), eq(30));
+        verify(cpfJdbcTemplate).queryForList(contains("FROM cpf_batch_execution"), eq(30), eq(30));
     }
 
     @Test
@@ -62,9 +62,9 @@ class AdmBatchOperationServiceTest {
         Map<String, Object> lock = new LinkedHashMap<>();
         lock.put("lock_key", "batch:job:CPF_EDU_TASKLET_JOB:test");
         lock.put("job_id", "CPF_EDU_TASKLET_JOB");
-        when(pfwJdbcTemplate.queryForMap(contains("FROM pfw_batch_lock"), eq("batch:job:CPF_EDU_TASKLET_JOB:test")))
+        when(cpfJdbcTemplate.queryForMap(contains("FROM cpf_batch_lock"), eq("batch:job:CPF_EDU_TASKLET_JOB:test")))
                 .thenReturn(lock);
-        when(pfwJdbcTemplate.update("DELETE FROM pfw_batch_lock WHERE lock_key = ?", "batch:job:CPF_EDU_TASKLET_JOB:test"))
+        when(cpfJdbcTemplate.update("DELETE FROM cpf_batch_lock WHERE lock_key = ?", "batch:job:CPF_EDU_TASKLET_JOB:test"))
                 .thenReturn(1);
 
         Map<String, Object> result = service.releaseLock(
@@ -76,7 +76,7 @@ class AdmBatchOperationServiceTest {
                 .containsEntry("lockKey", "batch:job:CPF_EDU_TASKLET_JOB:test")
                 .containsEntry("released", true);
         assertThat(result.get("before")).isEqualTo(lock);
-        verify(pfwJdbcTemplate).update(contains("INSERT INTO pfw_batch_operation_log"),
+        verify(cpfJdbcTemplate).update(contains("INSERT INTO cpf_batch_operation_log"),
                 eq("CPF_EDU_TASKLET_JOB"),
                 isNull(),
                 eq("LOCK_RELEASE"),
@@ -94,7 +94,7 @@ class AdmBatchOperationServiceTest {
         assertThatThrownBy(() -> service.actGhostExecution(10L, "KILL_PROCESS", "adm-operator", "오입력"))
                 .isInstanceOf(CpfValidationException.class);
 
-        verifyNoInteractions(pfwJdbcTemplate);
+        verifyNoInteractions(cpfJdbcTemplate);
     }
 
     @Test
@@ -111,7 +111,7 @@ class AdmBatchOperationServiceTest {
         Map<String, Object> after = new LinkedHashMap<>(before);
         after.put("execution_status", "FAILED");
 
-        when(pfwJdbcTemplate.queryForMap(contains("FROM pfw_batch_execution"), eq(10L)))
+        when(cpfJdbcTemplate.queryForMap(contains("FROM cpf_batch_execution"), eq(10L)))
                 .thenReturn(before, after);
 
         Map<String, Object> result = service.actGhostExecution(
@@ -123,10 +123,10 @@ class AdmBatchOperationServiceTest {
         assertThat(result)
                 .containsEntry("actionType", "FAIL")
                 .containsEntry("execution", after);
-        verify(pfwJdbcTemplate).update(contains("UPDATE pfw_batch_execution"),
+        verify(cpfJdbcTemplate).update(contains("UPDATE cpf_batch_execution"),
                 eq("adm-operator"),
                 eq(10L));
-        verify(pfwJdbcTemplate).update(contains("INSERT INTO pfw_batch_ghost_event"),
+        verify(cpfJdbcTemplate).update(contains("INSERT INTO cpf_batch_ghost_event"),
                 eq(10L),
                 eq(77L),
                 eq("CPF_EDU_TASKLET_JOB"),

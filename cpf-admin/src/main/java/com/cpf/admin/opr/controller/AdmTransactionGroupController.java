@@ -1,7 +1,7 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmTransactionGroupService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.service.AdmTransactionGroupService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/transaction-groups")
 @Tag(name = "ADM-TransactionGroup", description = "transactionGlobalId 그룹, 구간, 타임라인, 헤더, 외부 호출 조회 API")
-public class AdmTransactionGroupController extends cpf.adm.common.base.AdmBaseController {
+public class AdmTransactionGroupController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmTransactionGroupService transactionGroupService;
 
     public AdmTransactionGroupController(AdmTransactionGroupService transactionGroupService) {
@@ -67,7 +67,7 @@ public class AdmTransactionGroupController extends cpf.adm.common.base.AdmBaseCo
 
     @GetMapping("/{transactionGlobalId}/external-logs")
     @CpfOnlineTransaction(id = "OADMTR0006", name = "ADMTransactionGroupExternalLogs")
-    @Operation(operationId = "admTransactionGroupFindExternalLogs", summary = "외부연계 송수신 로그", description = "pfw_transaction_segment에 기록된 표준 외부 호출 구간을 조회합니다.")
+    @Operation(operationId = "admTransactionGroupFindExternalLogs", summary = "외부연계 송수신 로그", description = "cpf_transaction_segment에 기록된 표준 외부 호출 구간을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findExternalLogs(@PathVariable String transactionGlobalId) {
         return ResponseEntity.ok(transactionGroupService.findExternalLogs(transactionGlobalId));
     }

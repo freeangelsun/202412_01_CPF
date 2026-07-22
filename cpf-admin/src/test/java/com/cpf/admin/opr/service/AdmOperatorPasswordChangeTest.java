@@ -1,10 +1,10 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.config.AdmPasswordPolicyProperties;
-import cpf.adm.opr.dto.AdmLoginRequest;
-import cpf.adm.opr.dto.AdmPasswordChangeRequest;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.security.password.CpfPbkdf2PasswordHasher;
+import com.cpf.admin.config.AdmPasswordPolicyProperties;
+import com.cpf.admin.opr.dto.AdmLoginRequest;
+import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.security.password.CpfPbkdf2PasswordHasher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;

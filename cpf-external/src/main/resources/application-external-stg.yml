@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: stg
+
+server:
+  port: ${EXS_SERVER_PORT}
+
+cpf:
+  framework:
+    instance-id: ${EXS_INSTANCE_ID}
+    was-id: ${EXS_WAS_ID}

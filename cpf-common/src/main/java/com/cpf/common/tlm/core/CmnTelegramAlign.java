@@ -1,22 +1,14 @@
-package cpf.cmn.tlm.core;
+package com.cpf.common.tlm.core;
 
-/**
- * CPF 기능 설명입니다.
- */
+/** 고정길이 전문 필드의 채움 문자 정렬 방식입니다. */
 public enum CmnTelegramAlign {
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 필드 유형에 따라 문자열은 왼쪽, 숫자는 오른쪽 정렬합니다. */
     AUTO,
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 값 뒤에 채움 문자를 추가합니다. */
     LEFT,
 
-    /**
-     * CPF 기능 설명입니다.
-     */
+    /** 값 앞에 채움 문자를 추가합니다. */
     RIGHT
 }
 

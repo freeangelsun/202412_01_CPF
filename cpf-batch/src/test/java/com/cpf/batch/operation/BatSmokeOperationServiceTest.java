@@ -1,9 +1,9 @@
-package cpf.bat.operation;
+package com.cpf.batch.operation;
 
-import cpf.pfw.common.batch.CpfBatchExecutionRequest;
-import cpf.pfw.common.batch.CpfBatchExecutionResult;
-import cpf.pfw.common.batch.CpfBatchLauncher;
-import cpf.pfw.common.batch.CpfBatchOperationRepository;
+import com.cpf.core.common.batch.CpfBatchExecutionRequest;
+import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.common.batch.CpfBatchOperationRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class BatSmokeOperationServiceTest {
 
     @Test
-    void runUsesPfwBatchLauncherAndLoadsExecutionDetail() {
+    void runUsesCpfBatchLauncherAndLoadsExecutionDetail() {
         CpfBatchLauncher launcher = mock(CpfBatchLauncher.class);
         CpfBatchOperationRepository repository = mock(CpfBatchOperationRepository.class);
         BatSmokeOperationService service = new BatSmokeOperationService(launcher, repository);
@@ -46,7 +46,7 @@ class BatSmokeOperationServiceTest {
         assertThat(captor.getValue().jobId()).isEqualTo("CPF_BAT_SMOKE_JOB");
         assertThat(captor.getValue().requestUser()).isEqualTo("BAT_SMOKE");
         assertThat(response)
-                .containsEntry("pfwExecutionId", 10L)
+                .containsEntry("cpfExecutionId", 10L)
                 .containsEntry("springBatchExecutionId", 20L)
                 .containsEntry("status", "COMPLETED");
         assertThat(response.get("detail")).isInstanceOf(Map.class);

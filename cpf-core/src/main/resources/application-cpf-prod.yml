@@ -1,0 +1,24 @@
+# CPF prod 공통 정책입니다. secret 원문과 업무 실행 주체 설정을 두지 않습니다.
+
+spring:
+  datasource:
+    cpf:
+      mode: ${CPF_DB_MODE:url}
+      url: ${CPF_DB_URL}
+      username: ${CPF_DB_USERNAME}
+      password: ${CPF_DB_PASSWORD}
+      jndi-name: ${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}
+
+cpf:
+  http-client:
+    connect-timeout-millis: ${CPF_HTTP_CONNECT_TIMEOUT_MS}
+    read-timeout-millis: ${CPF_HTTP_READ_TIMEOUT_MS}
+  service-call:
+    registry-mode: ${CPF_SERVICE_REGISTRY_MODE}
+  broker:
+    publish-timeout-millis: ${CPF_BROKER_PUBLISH_TIMEOUT_MS}
+  filetransfer:
+    timeout-millis: ${CPF_FILETRANSFER_TIMEOUT_MS}
+  logging:
+    file:
+      initialization-fail-fast: ${CPF_LOG_INIT_FAIL_FAST:true}

@@ -1,4 +1,4 @@
-package cpf.pfw.common.execution;
+package com.cpf.core.common.execution;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -30,13 +30,13 @@ class CpfExecutionCatalogRepositoryTest {
         CpfExecutionCatalogRepository repository = new CpfExecutionCatalogRepository(provider);
 
         repository.upsertAll(List.of(
-                definition("OXYZAA0001"),
-                definition("OXYZAA0002")));
+                definition("OREFAA0001"),
+                definition("OREFAA0002")));
 
         verify(jdbcTemplate, times(1)).update(anyString(), any(Object[].class));
         assertThat(repository.findAll())
                 .extracting(CpfExecutionDefinition::standardExecutionId)
-                .containsExactly("OXYZAA0001", "OXYZAA0002");
+                .containsExactly("OREFAA0001", "OREFAA0002");
     }
 
     private CpfExecutionDefinition definition(String id) {
@@ -44,8 +44,8 @@ class CpfExecutionCatalogRepositoryTest {
                 id,
                 "표준 실행 카탈로그 테스트",
                 CpfExecutionType.ONLINE,
-                "XYZ",
-                "XYZ",
+                "REF",
+                "REF",
                 getClass().getName(),
                 "databaseFailureStopsFurtherWritesAndKeepsLocalCatalog",
                 "/test/catalog",

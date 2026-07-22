@@ -1,11 +1,11 @@
-package cpf.cmn.sec.token;
+package com.cpf.common.sec.token;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.cmn.sec.crypto.CmnCryptoService;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfExternalServiceException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.common.sec.crypto.CmnCryptoService;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfExternalServiceException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -19,7 +19,7 @@ import java.util.Map;
  * 현재 프레임워크 기본 구현은 HS256 서명 방식을 제공하며, 운영 환경에서는 secret을 환경변수나 Vault/KMS로 주입합니다.
  */
 @Service
-public class CmnJwtService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 

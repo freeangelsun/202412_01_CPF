@@ -1,4 +1,4 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,19 +13,19 @@ class AdmHealthControllerTest {
 
     @Test
     void healthReturnsUpWhenAllDatabasesRespond() {
-        // smoke 자동화는 ADM, PFW, MBR datasource가 모두 응답할 때만 실제 준비 완료로 판단합니다.
+        // smoke 자동화는 ADM, CPF, MBR datasource가 모두 응답할 때만 실제 준비 완료로 판단합니다.
         JdbcTemplate adm = respondingTemplate();
-        JdbcTemplate pfw = respondingTemplate();
+        JdbcTemplate cpf = respondingTemplate();
         JdbcTemplate mbr = respondingTemplate();
 
-        Map<String, Object> result = new AdmHealthController(adm, pfw, mbr).health();
+        Map<String, Object> result = new AdmHealthController(adm, cpf, mbr).health();
 
         assertThat(result)
                 .containsEntry("status", "UP")
                 .containsEntry("service", "ADM");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "pfwDB", "UP",
+                "cpfDB", "UP",
                 "mbrDB", "UP"));
     }
 
@@ -33,15 +33,15 @@ class AdmHealthControllerTest {
     void healthReturnsDegradedWhenAnyDatabaseFails() {
         // 앱 프로세스가 떠 있어도 운영 datasource 중 하나가 실패하면 OpenAPI/API smoke 전 단계에서 구분합니다.
         JdbcTemplate adm = respondingTemplate();
-        JdbcTemplate pfw = failingTemplate();
+        JdbcTemplate cpf = failingTemplate();
         JdbcTemplate mbr = respondingTemplate();
 
-        Map<String, Object> result = new AdmHealthController(adm, pfw, mbr).health();
+        Map<String, Object> result = new AdmHealthController(adm, cpf, mbr).health();
 
         assertThat(result).containsEntry("status", "DEGRADED");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "pfwDB", "DOWN",
+                "cpfDB", "DOWN",
                 "mbrDB", "UP"));
     }
 

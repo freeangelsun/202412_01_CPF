@@ -50,11 +50,11 @@ logs/
 **/coverage/
 **/.vite/
 
-# 검증 증적 디렉터리에는 정제된 결과와 현재 요청서 기준 해시만 포함합니다.
-!specs/evidence/
-specs/evidence/**
-!specs/evidence/**/
-!specs/evidence/**/*.sanitized.log
-!specs/evidence/**/*.sanitized.json
-!specs/evidence/**/*.sanitized.png
-!specs/evidence/**/cpf-current-work-request.baseline.sha256
+# 공식 증적 디렉터리에는 정제된 결과와 현재 요청서 기준 해시만 포함합니다.
+!cpf-docs/evidence/
+cpf-docs/evidence/**
+!cpf-docs/evidence/**/
+!cpf-docs/evidence/**/*.sanitized.log
+!cpf-docs/evidence/**/*.sanitized.json
+!cpf-docs/evidence/**/*.sanitized.png
+!cpf-docs/evidence/**/cpf-current-work-request.baseline.sha256

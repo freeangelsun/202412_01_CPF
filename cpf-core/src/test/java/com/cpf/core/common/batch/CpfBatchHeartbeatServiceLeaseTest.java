@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
@@ -27,7 +27,7 @@ class CpfBatchHeartbeatServiceLeaseTest {
         service.recordJobFinished(execution);
 
         verify(repository).recordWorkerHeartbeat(
-                eq("worker-1"), any(), eq("IDLE"), isNull(), isNull(), eq("PFW_BATCH"));
+                eq("worker-1"), any(), eq("IDLE"), isNull(), isNull(), eq("CPF_BATCH"));
         verify(repository, never()).completeExecution(
                 anyLong(), anyString(), any(), anyString(), any(), any(), anyString());
     }
@@ -42,12 +42,12 @@ class CpfBatchHeartbeatServiceLeaseTest {
         service.recordJobFinished(execution);
 
         verify(repository).completeExecution(
-                eq(101L), eq("COMPLETED"), any(), eq("worker-1"), any(), eq(execution), eq("PFW_BATCH"));
+                eq(101L), eq("COMPLETED"), any(), eq("worker-1"), any(), eq(execution), eq("CPF_BATCH"));
     }
 
     private JobExecution execution(boolean includeLeaseToken) {
         JobParametersBuilder parameters = new JobParametersBuilder()
-                .addLong(CpfBatchHeartbeatService.PARAM_PFW_EXECUTION_ID, 101L)
+                .addLong(CpfBatchHeartbeatService.PARAM_CPF_EXECUTION_ID, 101L)
                 .addString("serverInstanceId", "worker-1");
         if (includeLeaseToken) {
             parameters.addString(CpfBatchHeartbeatService.PARAM_WORKER_LEASE_TOKEN, "lease-token-1");

@@ -1,4 +1,4 @@
-package cpf.cmn.msg.dto;
+package com.cpf.common.msg.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

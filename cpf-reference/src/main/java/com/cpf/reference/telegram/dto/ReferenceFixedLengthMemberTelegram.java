@@ -1,24 +1,13 @@
-package cpf.xyz.telegram.dto;
+package com.cpf.reference.telegram.dto;
 
-import cpf.cmn.tlm.core.CmnTelegramField;
-import cpf.cmn.tlm.core.CmnTelegramFieldType;
+import com.cpf.common.tlm.core.CmnTelegramField;
+import com.cpf.common.tlm.core.CmnTelegramFieldType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
-public record XyzFixedLengthMemberTelegram(
+/** 문자열·금액·불리언·일자를 포함한 고정길이 회원 전문 교육 DTO입니다. */
+public record ReferenceFixedLengthMemberTelegram(
         @CmnTelegramField(order = 1, length = 10, type = CmnTelegramFieldType.STRING)
         String memberNo,
 

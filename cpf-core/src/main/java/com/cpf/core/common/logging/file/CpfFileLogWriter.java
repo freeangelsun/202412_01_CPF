@@ -1,14 +1,14 @@
-package cpf.pfw.common.logging.file;
+package com.cpf.core.common.logging.file;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.ServerInstanceIdentity;
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.CpfTransactionContextAnomalyMonitor;
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
-import cpf.pfw.common.logging.segment.TransactionSegmentContext;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.CpfTransactionContextAnomalyMonitor;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -549,7 +549,7 @@ public class CpfFileLogWriter {
         if (hasText(appName)) {
             return normalizeModuleCode(appName.replace("cpf-", ""));
         }
-        return "PFW";
+        return "CPF";
     }
 
     private String normalizeModuleCode(String moduleCode) {

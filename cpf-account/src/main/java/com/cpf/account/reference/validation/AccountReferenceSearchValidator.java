@@ -1,7 +1,7 @@
-package cpf.acc.reference.validation;
+package com.cpf.account.reference.validation;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Component;
 
 /**

@@ -46,7 +46,7 @@
       <section class="summary-grid">
         <div class="metric"><span>서비스</span><strong>ADM</strong></div>
         <div class="metric"><span>포트</span><strong>8090</strong></div>
-        <div class="metric"><span>공통 모듈</span><strong>PFW / CMN</strong></div>
+        <div class="metric"><span>공통 모듈</span><strong>CPF / CMN</strong></div>
         <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
       </section>
 
@@ -248,7 +248,7 @@
               <option value="BATCH">배치</option>
             </select>
           </label>
-          <label>소유 업무 <input v-model="standardExecutionSearch.ownerDomain" type="text" placeholder="PFW"></label>
+          <label>소유 업무 <input v-model="standardExecutionSearch.ownerDomain" type="text" placeholder="CPF"></label>
           <label>검색어 <input v-model="standardExecutionSearch.keyword" type="text" placeholder="ID, 실행명, source, endpoint"></label>
         </div>
         <div class="table-wrap">
@@ -937,7 +937,7 @@
           <button type="button" @click="loadLogLevelRules">조회</button>
         </div>
         <div class="filters">
-          <label>업무 거래 ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="XYZ01EDU0001"></label>
+          <label>업무 거래 ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="REF01EDU0001"></label>
           <label>거래 ID <input v-model="logLevelForm.transactionId" type="text"></label>
           <label>레벨 <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
           <label>TTL 초 <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>

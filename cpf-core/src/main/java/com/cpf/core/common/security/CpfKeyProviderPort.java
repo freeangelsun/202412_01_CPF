@@ -1,4 +1,4 @@
-package cpf.pfw.common.security;
+package com.cpf.core.common.security;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;

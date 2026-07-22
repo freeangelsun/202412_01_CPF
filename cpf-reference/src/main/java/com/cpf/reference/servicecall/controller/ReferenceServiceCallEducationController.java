@@ -1,10 +1,10 @@
-package cpf.xyz.servicecall.controller;
+package com.cpf.reference.servicecall.controller;
 
-import cpf.pfw.common.http.CpfWebClient;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.workflow.CpfWorkflow;
-import cpf.pfw.common.workflow.CpfWorkflowFailurePolicy;
-import cpf.pfw.common.workflow.CpfWorkflowStep;
+import com.cpf.core.common.http.CpfWebClient;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.workflow.CpfWorkflow;
+import com.cpf.core.common.workflow.CpfWorkflowFailurePolicy;
+import com.cpf.core.common.workflow.CpfWorkflowStep;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,28 +24,28 @@ import java.util.Map;
  *
  * <p>CPF-ARCH-ALLOW-DIRECT-URL: EDU_ONLY</p>
  * <p>이 URL literal은 운영 호출이 아니라 WebClient timeout 교육 샘플의 기본값입니다.
- * 운영 업무 코드는 PFW Service Call Engine registry 기반 호출을 사용해야 합니다.</p>
+ * 운영 업무 코드는 CPF Service Call Engine registry 기반 호출을 사용해야 합니다.</p>
  */
 @RestController
-@RequestMapping({"/api/xyz/reference", "/xyz/edu"})
-@Tag(name = "XYZ Reference 03. 서비스 호출", description = "내부 서비스 호출과 외부 API 호출 표준 샘플")
-public class XyzServiceCallEducationController extends cpf.xyz.common.base.XyzBaseController {
+@RequestMapping({"/api/reference", "/reference/edu"})
+@Tag(name = "REF Reference 03. 서비스 호출", description = "내부 서비스 호출과 외부 API 호출 표준 샘플")
+public class ReferenceServiceCallEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
     private final CpfWebClient cpfWebClient;
     private final WebClient externalWebClient;
 
-    public XyzServiceCallEducationController(
+    public ReferenceServiceCallEducationController(
             CpfWebClient cpfWebClient,
             WebClient.Builder webClientBuilder,
-            @Value("${cpf.xyz.reference.external-base-url:https://postman-echo.com}") String externalBaseUrl) {
+            @Value("${cpf.ref.external-base-url:https://postman-echo.com}") String externalBaseUrl) {
         this.cpfWebClient = cpfWebClient;
         this.externalWebClient = webClientBuilder.clone().baseUrl(externalBaseUrl).build();
     }
 
     @GetMapping("/service-call/mbr-detail")
-    @CpfOnlineTransaction(id = "OXYZAA0013", name = "XYZMbrDetailCall")
-    @CpfWorkflow(id = "OXYZAA9002", name = "회원 상세 내부 호출")
+    @CpfOnlineTransaction(id = "OREFAA0013", name = "REFMbrDetailCall")
+    @CpfWorkflow(id = "OREFAA9002", name = "회원 상세 내부 호출")
     @CpfWorkflowStep(name = "MBR 회원 상세 조회", failurePolicy = CpfWorkflowFailurePolicy.VERIFY)
-    @Operation(operationId = "xyzServiceCallEducationCallMbrDetail", summary = "MBR 내부 호출 샘플", description = "CpfWebClient로 내부 서비스에 거래 헤더를 전파하는 흐름을 확인합니다.")
+    @Operation(operationId = "refServiceCallEducationCallMbrDetail", summary = "MBR 내부 호출 샘플", description = "CpfWebClient로 내부 서비스에 거래 헤더를 전파하는 흐름을 확인합니다.")
     public ResponseEntity<Map<String, Object>> callMbrDetail(@RequestParam Long memberId) {
         Map<String, Object> mbrResponse = cpfWebClient.get(
                 "mbr",
@@ -63,11 +63,11 @@ public class XyzServiceCallEducationController extends cpf.xyz.common.base.XyzBa
     }
 
     @GetMapping("/webclient/external-get")
-    @CpfOnlineTransaction(id = "OXYZAA0014", name = "XYZExternalGet")
-    @Operation(operationId = "xyzServiceCallEducationCallExternalWebsite", summary = "외부 API 호출 샘플", description = "WebClient timeout과 외부 응답 처리 방식을 확인합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0014", name = "REFExternalGet")
+    @Operation(operationId = "refServiceCallEducationCallExternalWebsite", summary = "외부 API 호출 샘플", description = "WebClient timeout과 외부 응답 처리 방식을 확인합니다.")
     public ResponseEntity<Map<String, Object>> callExternalWebsite() {
         String responseBody = externalWebClient.get()
-                .uri("/get?source=cpf-xyz")
+                .uri("/get?source=cpf-ref")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

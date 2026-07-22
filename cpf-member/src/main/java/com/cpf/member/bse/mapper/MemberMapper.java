@@ -1,6 +1,6 @@
-package cpf.mbr.bse.mapper;
+package com.cpf.member.bse.mapper;
 
-import cpf.mbr.bse.entity.Member;
+import com.cpf.member.bse.entity.Member;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

@@ -1,6 +1,6 @@
-USE pfwDB;
+USE cpfDB;
 
-CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
+CREATE TABLE IF NOT EXISTS cpf_transaction_segment (
     segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
     transaction_segment_id VARCHAR(120) NOT NULL COMMENT '거래 구간 ID',
     transaction_global_id VARCHAR(100) NOT NULL COMMENT '전체 거래 묶음 ID',
@@ -32,19 +32,19 @@ CREATE TABLE IF NOT EXISTS pfw_transaction_segment (
     original_channel_code VARCHAR(30) NULL COMMENT '최초 유입 채널 코드',
     external_institution_code VARCHAR(50) NULL COMMENT '외부기관 코드',
     external_transaction_id VARCHAR(120) NULL COMMENT '외부기관 거래 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
     PRIMARY KEY (segment_id),
-    UNIQUE KEY uk_pfw_transaction_segment_id (transaction_segment_id),
-    INDEX ix_pfw_transaction_segment_global (transaction_global_id, started_at, segment_id),
-    INDEX ix_pfw_transaction_segment_parent (parent_segment_id),
-    INDEX ix_pfw_transaction_segment_module (module_code, started_at),
-    INDEX ix_pfw_transaction_segment_role (transaction_role, direction),
-    INDEX ix_pfw_transaction_segment_status (failure_yn, status, started_at),
-    INDEX ix_pfw_transaction_segment_duration (duration_ms),
-    INDEX ix_pfw_transaction_segment_customer (customer_no_masked, started_at),
-    INDEX ix_pfw_transaction_segment_member (member_no_masked, started_at),
-    INDEX ix_pfw_transaction_segment_external (external_institution_code, external_transaction_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 복합 거래 구간 로그';
+    UNIQUE KEY uk_cpf_transaction_segment_id (transaction_segment_id),
+    INDEX ix_cpf_transaction_segment_global (transaction_global_id, started_at, segment_id),
+    INDEX ix_cpf_transaction_segment_parent (parent_segment_id),
+    INDEX ix_cpf_transaction_segment_module (module_code, started_at),
+    INDEX ix_cpf_transaction_segment_role (transaction_role, direction),
+    INDEX ix_cpf_transaction_segment_status (failure_yn, status, started_at),
+    INDEX ix_cpf_transaction_segment_duration (duration_ms),
+    INDEX ix_cpf_transaction_segment_customer (customer_no_masked, started_at),
+    INDEX ix_cpf_transaction_segment_member (member_no_masked, started_at),
+    INDEX ix_cpf_transaction_segment_external (external_institution_code, external_transaction_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 복합 거래 구간 로그';

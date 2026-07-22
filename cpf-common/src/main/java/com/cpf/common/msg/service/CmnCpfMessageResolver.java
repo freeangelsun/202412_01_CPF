@@ -1,21 +1,15 @@
-package cpf.cmn.msg.service;
+package com.cpf.common.msg.service;
 
-import cpf.pfw.common.exception.CpfErrorDefinition;
-import cpf.pfw.common.exception.CpfMessageResolver;
-import cpf.pfw.common.exception.CpfResolvedMessage;
+import com.cpf.core.common.exception.CpfErrorDefinition;
+import com.cpf.core.common.exception.CpfMessageResolver;
+import com.cpf.core.common.exception.CpfResolvedMessage;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** DB 캐시 메시지를 우선 사용하고 누락 시 오류 정의 기본값으로 대체합니다. */
 @Primary
 @Component
 public class CmnCpfMessageResolver implements CpfMessageResolver {
@@ -25,13 +19,7 @@ public class CmnCpfMessageResolver implements CpfMessageResolver {
         this.messageCacheService = messageCacheService;
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** Locale 언어 코드에 맞는 외부·내부 메시지를 해석합니다. */
     @Override
     public CpfResolvedMessage resolve(CpfErrorDefinition errorCode, Locale locale) {
         String language = locale == null || locale.getLanguage() == null || locale.getLanguage().isBlank()

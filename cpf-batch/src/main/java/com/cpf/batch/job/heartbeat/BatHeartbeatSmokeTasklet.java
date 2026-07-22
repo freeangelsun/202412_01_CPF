@@ -1,6 +1,6 @@
-package cpf.bat.job.heartbeat;
+package com.cpf.batch.job.heartbeat;
 
-import cpf.pfw.common.batch.CpfBatchHeartbeatService;
+import com.cpf.core.common.batch.CpfBatchHeartbeatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;

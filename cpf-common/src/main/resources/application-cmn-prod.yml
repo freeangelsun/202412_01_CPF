@@ -4,20 +4,24 @@
 spring:
   datasource:
     cmn:
-      url: ${CMN_DB_URL:${PFW_DB_URL}}
-      username: ${CMN_DB_USERNAME:${PFW_DB_USERNAME}}
-      password: ${CMN_DB_PASSWORD:${PFW_DB_PASSWORD}}
+      mode: ${CMN_DB_MODE:${CPF_DB_MODE:url}}
+      url: ${CMN_DB_URL:${CPF_DB_URL}}
+      username: ${CMN_DB_USERNAME:${CPF_DB_USERNAME}}
+      password: ${CMN_DB_PASSWORD:${CPF_DB_PASSWORD}}
+      jndi-name: ${CMN_DB_JNDI_NAME:${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}}
       driver-class-name: ${CMN_DB_DRIVER:org.mariadb.jdbc.Driver}
     cmn-business:
+      mode: ${CMN_BUSINESS_DB_MODE:url}
       url: ${CMN_BUSINESS_DB_URL}
       username: ${CMN_BUSINESS_DB_USERNAME}
       password: ${CMN_BUSINESS_DB_PASSWORD}
+      jndi-name: ${CMN_BUSINESS_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonDataSource}
       driver-class-name: ${CMN_BUSINESS_DB_DRIVER:org.mariadb.jdbc.Driver}
 
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
   mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
-  type-aliases-package: cpf.cmn
+  type-aliases-package: com.cpf.common
 
 cpf:
   cmn:

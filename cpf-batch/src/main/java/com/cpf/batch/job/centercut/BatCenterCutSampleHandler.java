@@ -1,8 +1,8 @@
-package cpf.bat.job.centercut;
+package com.cpf.batch.job.centercut;
 
-import cpf.pfw.common.batch.centercut.CenterCutHandler;
-import cpf.pfw.common.batch.centercut.CpfCenterCutResult;
-import cpf.pfw.common.batch.centercut.CpfCenterCutTarget;
+import com.cpf.core.common.batch.centercut.CenterCutHandler;
+import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
+import com.cpf.core.common.batch.centercut.CpfCenterCutTarget;
 import org.springframework.stereotype.Component;
 
 /**

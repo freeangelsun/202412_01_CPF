@@ -1,7 +1,7 @@
-package cpf.bat.operation;
+package com.cpf.batch.operation;
 
-import cpf.pfw.common.batch.centercut.CpfCenterCutService;
-import cpf.pfw.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.batch.centercut.CpfCenterCutService;
+import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -1,6 +1,6 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.pfw.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,10 +9,10 @@ import java.util.Map;
 /**
  * ADM 서비스 레지스트리 운영 조회 어댑터입니다.
  *
- * <p>ADM은 PFW 테이블이나 저장소를 직접 조회하지 않고 공개 Query Port만 사용합니다.</p>
+ * <p>ADM은 CPF 테이블이나 저장소를 직접 조회하지 않고 공개 Query Port만 사용합니다.</p>
  */
 @Service
-public class AdmServiceRegistryService extends cpf.adm.common.base.AdmBaseService {
+public class AdmServiceRegistryService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfServiceRegistryQueryPort queryPort;
 
     public AdmServiceRegistryService(CpfServiceRegistryQueryPort queryPort) {

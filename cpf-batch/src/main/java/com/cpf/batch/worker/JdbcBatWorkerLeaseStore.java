@@ -1,8 +1,8 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -26,8 +26,8 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     private final ObjectMapper objectMapper;
 
     public JdbcBatWorkerLeaseStore(
-            @Qualifier("pfwJdbcTemplate") JdbcTemplate jdbcTemplate,
-            @Qualifier("pfwTransactionManager") PlatformTransactionManager transactionManager,
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager,
             ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -37,7 +37,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     @Override
     public void register(BatWorkerIdentity identity, BatWorkerProperties properties) {
         jdbcTemplate.update("""
-                INSERT INTO pfw_batch_worker (
+                INSERT INTO cpf_batch_worker (
                     worker_id, server_instance_id, host_name, process_id, thread_name,
                     worker_version, capabilities_json, max_concurrency, queue_capacity,
                     control_status, worker_status, active_yn, last_heartbeat_at,
@@ -67,7 +67,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     @Override
     public String heartbeat(BatWorkerIdentity identity, String workerStatus, BatWorkerLease currentLease) {
         jdbcTemplate.update("""
-                UPDATE pfw_batch_worker
+                UPDATE cpf_batch_worker
                 SET worker_status = ?,
                     active_yn = 'Y',
                     last_heartbeat_at = CURRENT_TIMESTAMP(3),
@@ -82,7 +82,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
                 currentLease == null ? null : currentLease.executionId(),
                 identity.workerId());
         List<String> controls = jdbcTemplate.query(
-                "SELECT control_status FROM pfw_batch_worker WHERE worker_id = ?",
+                "SELECT control_status FROM cpf_batch_worker WHERE worker_id = ?",
                 (rs, rowNum) -> rs.getString(1), identity.workerId());
         return controls.isEmpty() ? "STOPPED" : controls.getFirst();
     }
@@ -92,7 +92,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
         Integer recovered = transactionTemplate.execute(status -> {
             List<Long> executionIds = jdbcTemplate.queryForList("""
                     SELECT execution_id
-                    FROM pfw_batch_execution_lease
+                    FROM cpf_batch_execution_lease
                     WHERE lease_status IN ('CLAIMED', 'RUNNING')
                       AND lease_until <= CURRENT_TIMESTAMP(3)
                     FOR UPDATE
@@ -102,13 +102,13 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
             }
             for (Long executionId : executionIds) {
                 jdbcTemplate.update("""
-                        UPDATE pfw_batch_execution
+                        UPDATE cpf_batch_execution
                         SET execution_status = 'READY', worker_id = NULL, server_instance_id = NULL,
                             error_message = 'worker lease 만료로 재대기 전환', updated_by = ?, updated_at = CURRENT_TIMESTAMP
                         WHERE execution_id = ? AND execution_status IN ('CLAIMED', 'STARTING', 'RUNNING')
                         """, requestUser, executionId);
                 jdbcTemplate.update("""
-                        UPDATE pfw_batch_execution_lease
+                        UPDATE cpf_batch_execution_lease
                         SET lease_status = 'EXPIRED', updated_by = ?, updated_at = CURRENT_TIMESTAMP
                         WHERE execution_id = ? AND lease_status IN ('CLAIMED', 'RUNNING')
                         """, requestUser, executionId);
@@ -126,8 +126,8 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
                     SELECT e.execution_id, e.job_id, e.job_parameters,
                            COALESCE(l.attempt_no, 0) AS previous_attempt,
                            COALESCE(l.takeover_count, 0) AS previous_takeover
-                    FROM pfw_batch_execution e
-                    LEFT JOIN pfw_batch_execution_lease l ON l.execution_id = e.execution_id
+                    FROM cpf_batch_execution e
+                    LEFT JOIN cpf_batch_execution_lease l ON l.execution_id = e.execution_id
                     WHERE e.execution_status IN ('READY', 'REQUESTED')
                       AND (e.required_worker_version IS NULL OR e.required_worker_version = ?)
                       AND (e.required_capability IS NULL OR ? = '*' OR FIND_IN_SET(e.required_capability, ?) > 0)
@@ -145,7 +145,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
             int previousTakeover = ((Number) row.get("previous_takeover")).intValue();
             String token = UUID.randomUUID().toString();
             jdbcTemplate.update("""
-                    INSERT INTO pfw_batch_execution_lease (
+                    INSERT INTO cpf_batch_execution_lease (
                         execution_id, worker_id, lease_token, lease_status, claimed_at, lease_until,
                         last_heartbeat_at, attempt_no, takeover_count, created_by, updated_by
                     ) VALUES (?, ?, ?, 'CLAIMED', CURRENT_TIMESTAMP(3),
@@ -159,7 +159,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
                     """, executionId, identity.workerId(), token, properties.leaseSeconds(),
                     previousAttempt + 1, previousTakeover);
             int updated = jdbcTemplate.update("""
-                    UPDATE pfw_batch_execution
+                    UPDATE cpf_batch_execution
                     SET execution_status = 'CLAIMED', worker_id = ?, server_instance_id = ?,
                         start_time = COALESCE(start_time, CURRENT_TIMESTAMP(3)),
                         last_heartbeat_at = CURRENT_TIMESTAMP(3), updated_by = 'BAT', updated_at = CURRENT_TIMESTAMP
@@ -184,7 +184,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     @Override
     public boolean markRunning(BatWorkerLease lease) {
         int leaseUpdated = jdbcTemplate.update("""
-                UPDATE pfw_batch_execution_lease
+                UPDATE cpf_batch_execution_lease
                 SET lease_status = 'RUNNING', last_heartbeat_at = CURRENT_TIMESTAMP(3), updated_at = CURRENT_TIMESTAMP
                 WHERE execution_id = ? AND worker_id = ? AND lease_token = ? AND lease_status = 'CLAIMED'
                 """, lease.executionId(), lease.workerId(), lease.leaseToken());
@@ -192,7 +192,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
             return false;
         }
         jdbcTemplate.update("""
-                UPDATE pfw_batch_execution
+                UPDATE cpf_batch_execution
                 SET execution_status = 'RUNNING', last_heartbeat_at = CURRENT_TIMESTAMP(3), updated_at = CURRENT_TIMESTAMP
                 WHERE execution_id = ? AND worker_id = ?
                 """, lease.executionId(), lease.workerId());
@@ -202,7 +202,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     @Override
     public boolean renew(BatWorkerLease lease, int leaseSeconds) {
         int updated = jdbcTemplate.update("""
-                UPDATE pfw_batch_execution_lease
+                UPDATE cpf_batch_execution_lease
                 SET lease_until = TIMESTAMPADD(SECOND, ?, CURRENT_TIMESTAMP(3)),
                     last_heartbeat_at = CURRENT_TIMESTAMP(3), updated_by = 'BAT', updated_at = CURRENT_TIMESTAMP
                 WHERE execution_id = ? AND worker_id = ? AND lease_token = ?
@@ -210,7 +210,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
                 """, leaseSeconds, lease.executionId(), lease.workerId(), lease.leaseToken());
         if (updated == 1) {
             jdbcTemplate.update("""
-                    UPDATE pfw_batch_execution
+                    UPDATE cpf_batch_execution
                     SET last_heartbeat_at = CURRENT_TIMESTAMP(3), updated_at = CURRENT_TIMESTAMP
                     WHERE execution_id = ? AND worker_id = ?
                     """, lease.executionId(), lease.workerId());
@@ -226,7 +226,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
             String failureMessage) {
         Integer updated = transactionTemplate.execute(status -> {
             int leaseUpdated = jdbcTemplate.update("""
-                    UPDATE pfw_batch_execution_lease
+                    UPDATE cpf_batch_execution_lease
                     SET lease_status = 'RELEASED', released_at = CURRENT_TIMESTAMP(3),
                         failure_message = ?, updated_by = 'BAT', updated_at = CURRENT_TIMESTAMP
                     WHERE execution_id = ? AND worker_id = ? AND lease_token = ?
@@ -238,7 +238,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
                 return 0;
             }
             return jdbcTemplate.update("""
-                    UPDATE pfw_batch_execution
+                    UPDATE cpf_batch_execution
                     SET execution_status = ?, spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
                         end_time = CURRENT_TIMESTAMP(3), error_message = ?, last_heartbeat_at = CURRENT_TIMESTAMP(3),
                         updated_by = 'BAT', updated_at = CURRENT_TIMESTAMP
@@ -252,7 +252,7 @@ public class JdbcBatWorkerLeaseStore implements BatWorkerLeaseStore {
     @Override
     public void markStopped(BatWorkerIdentity identity, String workerStatus) {
         jdbcTemplate.update("""
-                UPDATE pfw_batch_worker
+                UPDATE cpf_batch_worker
                 SET worker_status = ?, control_status = 'STOPPED', active_yn = 'N',
                     current_job_id = NULL, current_execution_id = NULL,
                     updated_by = 'BAT', updated_at = CURRENT_TIMESTAMP

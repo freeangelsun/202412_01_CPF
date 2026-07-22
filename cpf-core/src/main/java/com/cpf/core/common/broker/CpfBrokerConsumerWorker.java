@@ -1,9 +1,9 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import java.util.Objects;
 
 /**
- * inbox 중복 방지와 실패 메시지 DLQ 이동을 묶은 PFW consumer 실행 엔진입니다.
+ * inbox 중복 방지와 실패 메시지 DLQ 이동을 묶은 CPF consumer 실행 엔진입니다.
  */
 public class CpfBrokerConsumerWorker {
     private final CpfBrokerInboxPort inboxPort;

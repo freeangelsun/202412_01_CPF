@@ -1,4 +1,4 @@
-package cpf.bat.edu.servicecall;
+package com.cpf.batch.edu.servicecall;
 
 import org.junit.jupiter.api.Test;
 

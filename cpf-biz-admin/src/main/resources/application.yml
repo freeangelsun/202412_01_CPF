@@ -1,8 +1,8 @@
 spring:
   config:
     import:
-      - optional:classpath:application-pfw.yml
-      - optional:classpath:application-pfw-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
       - optional:classpath:application-cmn.yml
       - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
       - optional:classpath:application-bza.yml
@@ -10,7 +10,7 @@ spring:
   application:
     name: bza
   profiles:
-    include: pfw, cmn
+    include: cpf, cmn
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -26,9 +26,13 @@ cpf:
   bza:
     security:
       jwt-secret: ${CPF_BZA_JWT_SECRET:}
+      access-token-ttl-seconds: ${CPF_BZA_ACCESS_TOKEN_TTL_SECONDS:600}
+      refresh-token-ttl-seconds: ${CPF_BZA_REFRESH_TOKEN_TTL_SECONDS:7200}
     datasource:
       enabled: ${CPF_BZA_DB_ENABLED:false}
-      url: ${BZA_DB_URL:jdbc:mariadb://localhost:3306/bzaDB}
-      username: ${BZA_DB_USERNAME:cpf_bza_app}
-      password: ${BZA_DB_PASSWORD:__REPLACE_BY_ENV__}
+      mode: ${BZA_DATASOURCE_MODE:url}
+      url: ${BZA_DATASOURCE_URL:${BZA_DB_URL:jdbc:mariadb://localhost:3306/bzaDB}}
+      username: ${BZA_DATASOURCE_USERNAME:${BZA_DB_USERNAME:cpf_bza_app}}
+      password: ${BZA_DATASOURCE_PASSWORD:${BZA_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${BZA_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBizAdminDataSource}
       driver-class-name: org.mariadb.jdbc.Driver

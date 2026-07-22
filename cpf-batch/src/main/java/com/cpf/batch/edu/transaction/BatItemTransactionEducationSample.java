@@ -1,4 +1,4 @@
-package cpf.bat.edu.transaction;
+package com.cpf.batch.edu.transaction;
 
 /**
  * item 단위 트랜잭션 처리 결과 샘플입니다.

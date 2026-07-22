@@ -1,4 +1,4 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
 import jakarta.servlet.http.HttpServletRequest;
 

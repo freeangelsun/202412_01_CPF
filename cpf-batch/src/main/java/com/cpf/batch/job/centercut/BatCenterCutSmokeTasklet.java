@@ -1,8 +1,8 @@
-package cpf.bat.job.centercut;
+package com.cpf.batch.job.centercut;
 
-import cpf.pfw.common.batch.CpfBatchHeartbeatService;
-import cpf.pfw.common.batch.centercut.CpfCenterCutService;
-import cpf.pfw.common.batch.centercut.CpfCenterCutSummary;
+import com.cpf.core.common.batch.CpfBatchHeartbeatService;
+import com.cpf.core.common.batch.centercut.CpfCenterCutService;
+import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;

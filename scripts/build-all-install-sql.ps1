@@ -2,6 +2,12 @@
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $SqlRoot = Join-Path $Root "specs\sql"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -60,8 +66,22 @@ DROP TABLE IF EXISTS mbrDB.mbr_member;
 DROP TABLE IF EXISTS accDB.acc_account_change_log;
 DROP TABLE IF EXISTS accDB.acc_account;
 
-DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_result;
-DROP TABLE IF EXISTS xyzDB.xyz_center_cut_sample_target;
+DROP TABLE IF EXISTS refDB.ref_center_cut_sample_result;
+DROP TABLE IF EXISTS refDB.ref_center_cut_sample_target;
+
+DROP TABLE IF EXISTS exsDB.exs_token_event_history;
+DROP TABLE IF EXISTS exsDB.exs_reconciliation_log;
+DROP TABLE IF EXISTS exsDB.exs_retry_log;
+DROP TABLE IF EXISTS exsDB.exs_message_log;
+DROP TABLE IF EXISTS exsDB.exs_transaction_log;
+DROP TABLE IF EXISTS exsDB.exs_execution;
+DROP TABLE IF EXISTS exsDB.exs_control_policy;
+DROP TABLE IF EXISTS exsDB.exs_route_rule;
+DROP TABLE IF EXISTS exsDB.exs_token_store;
+DROP TABLE IF EXISTS exsDB.exs_auth_profile;
+DROP TABLE IF EXISTS exsDB.exs_endpoint;
+DROP TABLE IF EXISTS exsDB.exs_channel;
+DROP TABLE IF EXISTS exsDB.exs_institution;
 
 DROP TABLE IF EXISTS admDB.adm_download_audit_log;
 DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
@@ -93,80 +113,82 @@ DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
 DROP TABLE IF EXISTS cmnDB.cmn_sequence;
 
-DROP TABLE IF EXISTS pfwDB.pfw_notification_delivery_log;
-DROP TABLE IF EXISTS pfwDB.pfw_notification_rule;
-DROP TABLE IF EXISTS pfwDB.pfw_business_day_calendar;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_result;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_item;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_parameter;
-DROP TABLE IF EXISTS pfwDB.bat_center_cut_job;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_result;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_item;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_parameter;
-DROP TABLE IF EXISTS pfwDB.pfw_center_cut_job;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_ghost_event;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_target;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_operation_log;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_lock;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_step_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution_lease;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_job_relation;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_worker;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_instance;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_schedule;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_job;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_PARAMS;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_INSTANCE;
-DROP TABLE IF EXISTS pfwDB.BATCH_STEP_EXECUTION_SEQ;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_EXECUTION_SEQ;
-DROP TABLE IF EXISTS pfwDB.BATCH_JOB_SEQ;
-DROP TABLE IF EXISTS pfwDB.pfw_cache_refresh_event;
-DROP TABLE IF EXISTS pfwDB.pfw_dynamic_log_level_rule;
-DROP TABLE IF EXISTS pfwDB.pfw_config;
-DROP TABLE IF EXISTS pfwDB.pfw_response_code;
-DROP TABLE IF EXISTS pfwDB.pfw_message;
-DROP TABLE IF EXISTS pfwDB.pfw_code;
-DROP TABLE IF EXISTS pfwDB.pfw_unknown_result;
-DROP TABLE IF EXISTS pfwDB.pfw_file_transfer_history;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_dlq;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_inbox;
-DROP TABLE IF EXISTS pfwDB.pfw_broker_outbox;
-DROP TABLE IF EXISTS pfwDB.pfw_idempotency_record;
-DROP TABLE IF EXISTS pfwDB.pfw_service_call_history;
-DROP TABLE IF EXISTS pfwDB.pfw_service_circuit_state;
-DROP TABLE IF EXISTS pfwDB.pfw_service_routing_policy;
-DROP TABLE IF EXISTS pfwDB.pfw_service_health_status;
-DROP TABLE IF EXISTS pfwDB.pfw_service_instance;
-DROP TABLE IF EXISTS pfwDB.pfw_service_endpoint;
-DROP TABLE IF EXISTS pfwDB.pfw_service;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_segment;
-DROP TABLE IF EXISTS pfwDB.pfw_batch_on_demand_request;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_execution_policy;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_registry;
-DROP TABLE IF EXISTS pfwDB.pfw_channel_policy_version;
-DROP TABLE IF EXISTS pfwDB.pfw_standard_execution_alias;
-DROP TABLE IF EXISTS pfwDB.pfw_standard_execution;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_meta;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log_detail;
-DROP TABLE IF EXISTS pfwDB.pfw_transaction_log;
+DROP TABLE IF EXISTS cpfDB.cpf_notification_delivery_log;
+DROP TABLE IF EXISTS cpfDB.cpf_notification_rule;
+DROP TABLE IF EXISTS cpfDB.cpf_business_day_calendar;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_result;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_item;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_parameter;
+DROP TABLE IF EXISTS cpfDB.bat_center_cut_job;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_result;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_item;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_parameter;
+DROP TABLE IF EXISTS cpfDB.cpf_center_cut_job;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_ghost_event;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_target;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_operation_log;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_lock;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_step_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_lease;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_job_relation;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_worker;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_instance;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_schedule;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_job;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_CONTEXT;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_PARAMS;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_INSTANCE;
+DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_SEQ;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_SEQ;
+DROP TABLE IF EXISTS cpfDB.BATCH_JOB_SEQ;
+DROP TABLE IF EXISTS cpfDB.cpf_cache_refresh_event;
+DROP TABLE IF EXISTS cpfDB.cpf_dynamic_log_level_rule;
+DROP TABLE IF EXISTS cpfDB.cpf_config;
+DROP TABLE IF EXISTS cpfDB.cpf_response_code;
+DROP TABLE IF EXISTS cpfDB.cpf_message;
+DROP TABLE IF EXISTS cpfDB.cpf_code;
+DROP TABLE IF EXISTS cpfDB.cpf_unknown_result;
+DROP TABLE IF EXISTS cpfDB.cpf_file_transfer_history;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_dlq;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_inbox;
+DROP TABLE IF EXISTS cpfDB.cpf_broker_outbox;
+DROP TABLE IF EXISTS cpfDB.cpf_idempotency_record;
+DROP TABLE IF EXISTS cpfDB.cpf_service_call_history;
+DROP TABLE IF EXISTS cpfDB.cpf_service_circuit_state;
+DROP TABLE IF EXISTS cpfDB.cpf_service_routing_policy;
+DROP TABLE IF EXISTS cpfDB.cpf_service_health_status;
+DROP TABLE IF EXISTS cpfDB.cpf_service_instance;
+DROP TABLE IF EXISTS cpfDB.cpf_service_endpoint;
+DROP TABLE IF EXISTS cpfDB.cpf_service;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_segment;
+DROP TABLE IF EXISTS cpfDB.cpf_batch_on_demand_request;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_execution_policy;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_registry;
+DROP TABLE IF EXISTS cpfDB.cpf_channel_policy_version;
+DROP TABLE IF EXISTS cpfDB.cpf_standard_execution_alias;
+DROP TABLE IF EXISTS cpfDB.cpf_standard_execution;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_meta;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log_detail;
+DROP TABLE IF EXISTS cpfDB.cpf_transaction_log;
 "@
 
 $installFiles = @(
     "01_create_databases.sql",
     "02_create_service_users.sql",
-    "10_pfw_schema.sql",
+    "10_cpf_schema.sql",
     "20_cmn_schema.sql",
     "30_adm_schema.sql",
     "35_bat_schema.sql",
     "40_business_modules_schema.sql",
+    "45_external_schema.sql",
     "50_framework_seed_data.sql",
     "52_standard_execution_alias_seed.sql",
     "55_cmn_seed_data.sql",
+    "57_external_seed_data.sql",
     "60_adm_seed_data.sql",
     "70_test_data.sql"
 )
@@ -184,7 +206,6 @@ foreach ($file in $installFiles | Where-Object { $_ -ne "01_create_databases.sql
 $installBody = $installBody.TrimEnd() + [Environment]::NewLine
 
 Write-Utf8 (Join-Path $SqlRoot "00_all_install.sql") $installBody
-Write-Utf8 (Join-Path $SqlRoot "migration\flyway\V1__cpf_baseline_install.sql") $installBody
 
 $smokeBody = $installBody + (Section "99_smoke_check.sql").TrimEnd() + [Environment]::NewLine
 Write-Utf8 (Join-Path $SqlRoot "00_all_install_and_smoke.sql") $smokeBody

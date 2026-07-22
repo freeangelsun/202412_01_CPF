@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="cpf.cmn.cfg.mapper.ConfigMapper">
+<mapper namespace="com.cpf.common.cfg.mapper.ConfigMapper">
 
     <!-- CPF 설정 설명입니다. -->
     <select id="findAllConfigs" resultType="map">
@@ -18,7 +18,7 @@
             created_at,
             updated_by,
             updated_at
-        FROM pfw_config
+        FROM cpf_config
         ORDER BY config_key
     </select>
 
@@ -36,7 +36,7 @@
             created_at,
             updated_by,
             updated_at
-        FROM pfw_config
+        FROM cpf_config
         WHERE config_key = #{configKey}
     </select>
 
@@ -54,16 +54,16 @@
             created_at,
             updated_by,
             updated_at
-        FROM pfw_config
+        FROM cpf_config
         WHERE config_id = #{configId}
     </select>
 
     <!-- CPF 설정 설명입니다. -->
-    <insert id="insertConfig" parameterType="cpf.cmn.cfg.dto.CommonConfigRequest"
+    <insert id="insertConfig" parameterType="com.cpf.common.cfg.dto.CommonConfigRequest"
             useGeneratedKeys="true"
             keyProperty="configId"
             keyColumn="config_id">
-        INSERT INTO pfw_config (
+        INSERT INTO cpf_config (
             config_key,
             config_value,
             config_type,
@@ -90,7 +90,7 @@
 
     <!-- CPF 설정 설명입니다. -->
     <update id="updateConfig">
-        UPDATE pfw_config
+        UPDATE cpf_config
         SET
             config_key = #{request.configKey},
             config_value = #{request.configValue},
@@ -105,7 +105,7 @@
 
     <!-- CPF 설정 설명입니다. -->
     <delete id="deleteConfig" parameterType="long">
-        DELETE FROM pfw_config
+        DELETE FROM cpf_config
         WHERE config_id = #{configId}
     </delete>
 </mapper>

@@ -11,6 +11,12 @@
     [switch] $RequireRun
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 function New-UnicodeText {
@@ -178,7 +184,7 @@ function Invoke-MariaDbText {
         "--skip-column-names"
     )
     if (-not [string]::IsNullOrWhiteSpace($RootPassword)) {
-        $arguments += "--password=$RootPassword"
+        # 비밀번호는 프로세스 목록과 command line 증적에 노출하지 않고 자식 프로세스 환경으로만 전달합니다.
         $psi.EnvironmentVariables["MYSQL_PWD"] = $RootPassword
         $psi.EnvironmentVariables["MARIADB_PWD"] = $RootPassword
     }
@@ -303,50 +309,75 @@ try {
     Invoke-MariaDbFile -StepName "admSeedRepeat" -RelativePath "specs/sql/60_adm_seed_data.sql" | Out-Null
     Invoke-MariaDbFile -StepName "testDataRepeat" -RelativePath "specs/sql/70_test_data.sql" | Out-Null
 
+    $result.checks.cpfCoreModuleCodeCount = [int] (Invoke-Scalar -StepName "cpfCoreModuleCodeCount" -SqlText @"
+SELECT COUNT(*)
+FROM cpfDB.cpf_code
+WHERE code_key = 'MODULE' AND code_value = 'CPF' AND use_yn = 'Y';
+"@)
+    $result.checks.cpfCoreMessageCount = [int] (Invoke-Scalar -StepName "cpfCoreMessageCount" -SqlText @"
+SELECT COUNT(*)
+FROM cpfDB.cpf_message
+WHERE message_code LIKE 'MCPF%' AND locale = 'ko' AND use_yn = 'Y';
+"@)
+    $result.checks.cpfCoreResponseCodeCount = [int] (Invoke-Scalar -StepName "cpfCoreResponseCodeCount" -SqlText @"
+SELECT COUNT(*)
+FROM cpfDB.cpf_response_code
+WHERE module_id = 'CPF' AND response_code REGEXP '^[SE]CPF[0-9]{6}$' AND use_yn = 'Y';
+"@)
+    $result.checks.legacyCpfActiveSystemCodeCount = [int] (Invoke-Scalar -StepName "legacyCpfActiveSystemCodeCount" -SqlText @"
+SELECT
+    (SELECT COUNT(*) FROM cpfDB.cpf_code
+      WHERE code_key = 'MODULE' AND code_value = 'CPF' AND use_yn = 'Y')
+  + (SELECT COUNT(*) FROM cpfDB.cpf_message
+      WHERE message_code LIKE 'MCPF%' AND use_yn = 'Y')
+  + (SELECT COUNT(*) FROM cpfDB.cpf_response_code
+      WHERE module_id = 'CPF' AND use_yn = 'Y');
+"@)
+
     $result.checks.batCenterCutTableCount = [int] (Invoke-Scalar -StepName "batCenterCutTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
+WHERE table_schema = 'cpfDB'
   AND table_name IN ('bat_center_cut_job', 'bat_center_cut_parameter', 'bat_center_cut_item', 'bat_center_cut_result');
 "@)
-    $result.checks.legacyPfwCenterCutTableCount = [int] (Invoke-Scalar -StepName "legacyPfwCenterCutTableCount" -SqlText @"
+    $result.checks.legacyCpfCenterCutTableCount = [int] (Invoke-Scalar -StepName "legacyCpfCenterCutTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
-  AND table_name IN ('pfw_center_cut_job', 'pfw_center_cut_parameter', 'pfw_center_cut_item', 'pfw_center_cut_result');
+WHERE table_schema = 'cpfDB'
+  AND table_name IN ('cpf_center_cut_job', 'cpf_center_cut_parameter', 'cpf_center_cut_item', 'cpf_center_cut_result');
 "@)
     $result.checks.centerCutSeedCount = [int] (Invoke-Scalar -StepName "centerCutSeedCount" -SqlText @"
 SELECT COUNT(*)
-FROM pfwDB.bat_center_cut_job
+FROM cpfDB.bat_center_cut_job
 WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
 "@)
     $result.checks.centerCutParameterSeedCount = [int] (Invoke-Scalar -StepName "centerCutParameterSeedCount" -SqlText @"
 SELECT COUNT(*)
-FROM pfwDB.bat_center_cut_parameter
+FROM cpfDB.bat_center_cut_parameter
 WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
 "@)
-    $result.checks.xyzCenterCutTableCount = [int] (Invoke-Scalar -StepName "xyzCenterCutTableCount" -SqlText @"
+    $result.checks.refCenterCutTableCount = [int] (Invoke-Scalar -StepName "refCenterCutTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'xyzDB'
-  AND table_name IN ('xyz_center_cut_sample_target', 'xyz_center_cut_sample_result');
+WHERE table_schema = 'refDB'
+  AND table_name IN ('ref_center_cut_sample_target', 'ref_center_cut_sample_result');
 "@)
-    $result.checks.xyzCenterCutSeedCount = [int] (Invoke-Scalar -StepName "xyzCenterCutSeedCount" -SqlText @"
+    $result.checks.refCenterCutSeedCount = [int] (Invoke-Scalar -StepName "refCenterCutSeedCount" -SqlText @"
 SELECT COUNT(*)
-FROM xyzDB.xyz_center_cut_sample_target
-WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
+FROM refDB.ref_center_cut_sample_target
+WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB';
 "@)
     $result.checks.transactionSegmentTableCount = [int] (Invoke-Scalar -StepName "transactionSegmentTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_transaction_segment';
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_transaction_segment';
 "@)
     $result.checks.transactionSegmentRequiredColumnCount = [int] (Invoke-Scalar -StepName "transactionSegmentRequiredColumnCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.columns
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_transaction_segment'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_transaction_segment'
   AND column_name IN (
       'transaction_segment_id',
       'transaction_global_id',
@@ -377,64 +408,64 @@ WHERE table_schema = 'pfwDB'
     $result.checks.transactionSegmentIndexCount = [int] (Invoke-Scalar -StepName "transactionSegmentIndexCount" -SqlText @"
 SELECT COUNT(DISTINCT index_name)
 FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_transaction_segment'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_transaction_segment'
   AND index_name IN (
-      'uk_pfw_transaction_segment_id',
-      'ix_pfw_transaction_segment_global',
-      'ix_pfw_transaction_segment_parent',
-      'ix_pfw_transaction_segment_status',
-      'ix_pfw_transaction_segment_external',
-      'ix_pfw_transaction_segment_user',
-      'ix_pfw_transaction_segment_operator',
-      'ix_pfw_transaction_segment_client'
+      'uk_cpf_transaction_segment_id',
+      'ix_cpf_transaction_segment_global',
+      'ix_cpf_transaction_segment_parent',
+      'ix_cpf_transaction_segment_status',
+      'ix_cpf_transaction_segment_external',
+      'ix_cpf_transaction_segment_user',
+      'ix_cpf_transaction_segment_operator',
+      'ix_cpf_transaction_segment_client'
   );
 "@)
     $result.checks.standardExecutionTableCount = [int] (Invoke-Scalar -StepName "standardExecutionTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_standard_execution';
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_standard_execution';
 "@)
     $result.checks.standardExecutionIndexCount = [int] (Invoke-Scalar -StepName "standardExecutionIndexCount" -SqlText @"
 SELECT COUNT(DISTINCT index_name)
 FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
-  AND table_name = 'pfw_standard_execution'
+WHERE table_schema = 'cpfDB'
+  AND table_name = 'cpf_standard_execution'
   AND index_name IN (
-      'ix_pfw_standard_execution_type',
-      'ix_pfw_standard_execution_owner',
-      'ix_pfw_standard_execution_source'
+      'ix_cpf_standard_execution_type',
+      'ix_cpf_standard_execution_owner',
+      'ix_cpf_standard_execution_source'
   );
 "@)
     $result.checks.standardExecutionAliasCount = [int] (Invoke-Scalar -StepName "standardExecutionAliasCount" -SqlText @"
-SELECT COUNT(*) FROM pfwDB.pfw_standard_execution_alias;
+SELECT COUNT(*) FROM cpfDB.cpf_standard_execution_alias;
 "@)
     $result.checks.batchOnDemandTableCount = [int] (Invoke-Scalar -StepName "batchOnDemandTableCount" -SqlText @"
 SELECT COUNT(*) FROM information_schema.tables
-WHERE table_schema = 'pfwDB' AND table_name = 'pfw_batch_on_demand_request';
+WHERE table_schema = 'cpfDB' AND table_name = 'cpf_batch_on_demand_request';
 "@)
     $result.checks.channelPolicyTableCount = [int] (Invoke-Scalar -StepName "channelPolicyTableCount" -SqlText @"
 SELECT COUNT(*) FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
-  AND table_name IN ('pfw_channel_policy_version', 'pfw_channel_registry', 'pfw_channel_execution_policy');
+WHERE table_schema = 'cpfDB'
+  AND table_name IN ('cpf_channel_policy_version', 'cpf_channel_registry', 'cpf_channel_execution_policy');
 "@)
     $result.checks.channelRegistrySeedCount = [int] (Invoke-Scalar -StepName "channelRegistrySeedCount" -SqlText @"
-SELECT COUNT(*) FROM pfwDB.pfw_channel_registry
+SELECT COUNT(*) FROM cpfDB.cpf_channel_registry
 WHERE channel_code IN ('ANY', 'WEB', 'MOBILE', 'ADM', 'BATCH') AND active_yn = 'Y';
 "@)
     $result.checks.channelPolicySeedCount = [int] (Invoke-Scalar -StepName "channelPolicySeedCount" -SqlText @"
-SELECT COUNT(*) FROM pfwDB.pfw_channel_execution_policy
-WHERE policy_key = 'PFW.DEFAULT' AND active_yn = 'Y';
+SELECT COUNT(*) FROM cpfDB.cpf_channel_execution_policy
+WHERE policy_key = 'CPF.DEFAULT' AND active_yn = 'Y';
 "@)
     $result.checks.channelPolicyIndexCount = [int] (Invoke-Scalar -StepName "channelPolicyIndexCount" -SqlText @"
 SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
+WHERE table_schema = 'cpfDB'
   AND index_name IN (
-      'ix_pfw_channel_policy_version_target',
-      'ix_pfw_channel_registry_active',
-      'ix_pfw_channel_execution_policy_lookup',
-      'ix_pfw_channel_execution_policy_effective'
+      'ix_cpf_channel_policy_version_target',
+      'ix_cpf_channel_registry_active',
+      'ix_cpf_channel_execution_policy_lookup',
+      'ix_cpf_channel_execution_policy_effective'
   );
 "@)
     $result.checks.accTableCount = [int] (Invoke-Scalar -StepName "accTableCount" -SqlText @"
@@ -452,7 +483,7 @@ SELECT COUNT(*) FROM information_schema.referential_constraints
 WHERE constraint_schema = 'accDB' AND constraint_name = 'fk_acc_account_change_target';
 "@)
     $result.checks.accServiceSeedCount = [int] (Invoke-Scalar -StepName "accServiceSeedCount" -SqlText @"
-SELECT COUNT(*) FROM pfwDB.pfw_service
+SELECT COUNT(*) FROM cpfDB.cpf_service
 WHERE service_id = 'ACC' AND use_yn = 'Y';
 "@)
     $result.checks.accAppDmlGrantCount = [int] (Invoke-Scalar -StepName "accAppDmlGrantCount" -SqlText @"
@@ -506,66 +537,66 @@ SELECT COUNT(*)
 FROM cmnDB.cmn_fixed_length_layout
 WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
 "@)
-    $result.checks.pfwReliabilityTableCount = [int] (Invoke-Scalar -StepName "pfwReliabilityTableCount" -SqlText @"
+    $result.checks.cpfReliabilityTableCount = [int] (Invoke-Scalar -StepName "cpfReliabilityTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'pfwDB'
+WHERE table_schema = 'cpfDB'
   AND table_name IN (
-      'pfw_idempotency_record',
-      'pfw_broker_outbox',
-      'pfw_broker_inbox',
-      'pfw_broker_dlq',
-      'pfw_file_transfer_history',
-      'pfw_unknown_result'
+      'cpf_idempotency_record',
+      'cpf_broker_outbox',
+      'cpf_broker_inbox',
+      'cpf_broker_dlq',
+      'cpf_file_transfer_history',
+      'cpf_unknown_result'
   );
 "@)
-    $result.checks.pfwReliabilityCommonColumnCount = [int] (Invoke-Scalar -StepName "pfwReliabilityCommonColumnCount" -SqlText @"
+    $result.checks.cpfReliabilityCommonColumnCount = [int] (Invoke-Scalar -StepName "cpfReliabilityCommonColumnCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.columns
-WHERE table_schema = 'pfwDB'
+WHERE table_schema = 'cpfDB'
   AND table_name IN (
-      'pfw_idempotency_record',
-      'pfw_broker_outbox',
-      'pfw_broker_inbox',
-      'pfw_broker_dlq',
-      'pfw_file_transfer_history',
-      'pfw_unknown_result'
+      'cpf_idempotency_record',
+      'cpf_broker_outbox',
+      'cpf_broker_inbox',
+      'cpf_broker_dlq',
+      'cpf_file_transfer_history',
+      'cpf_unknown_result'
   )
   AND column_name IN ('created_by', 'created_at', 'updated_by', 'updated_at');
 "@)
-    $result.checks.pfwReliabilityIndexCount = [int] (Invoke-Scalar -StepName "pfwReliabilityIndexCount" -SqlText @"
+    $result.checks.cpfReliabilityIndexCount = [int] (Invoke-Scalar -StepName "cpfReliabilityIndexCount" -SqlText @"
 SELECT COUNT(DISTINCT index_name)
 FROM information_schema.statistics
-WHERE table_schema = 'pfwDB'
+WHERE table_schema = 'cpfDB'
   AND table_name IN (
-      'pfw_idempotency_record',
-      'pfw_broker_outbox',
-      'pfw_broker_inbox',
-      'pfw_broker_dlq',
-      'pfw_file_transfer_history',
-      'pfw_unknown_result'
+      'cpf_idempotency_record',
+      'cpf_broker_outbox',
+      'cpf_broker_inbox',
+      'cpf_broker_dlq',
+      'cpf_file_transfer_history',
+      'cpf_unknown_result'
   )
   AND index_name IN (
-      'uk_pfw_idempotency_record_key',
-      'ix_pfw_idempotency_record_status',
-      'uk_pfw_broker_outbox_message',
-      'ix_pfw_broker_outbox_status',
-      'ix_pfw_broker_outbox_tx',
-      'ix_pfw_broker_outbox_topic',
-      'uk_pfw_broker_inbox_message',
-      'ix_pfw_broker_inbox_idempotency',
-      'ix_pfw_broker_inbox_status',
-      'uk_pfw_broker_dlq_message',
-      'ix_pfw_broker_dlq_status',
-      'ix_pfw_broker_dlq_topic',
-      'uk_pfw_file_transfer_history_id',
-      'ix_pfw_file_transfer_duplicate',
-      'ix_pfw_file_transfer_tx',
-      'ix_pfw_file_transfer_status',
-      'uk_pfw_unknown_result_id',
-      'ix_pfw_unknown_result_status',
-      'ix_pfw_unknown_result_tx',
-      'ix_pfw_unknown_result_external'
+      'uk_cpf_idempotency_record_key',
+      'ix_cpf_idempotency_record_status',
+      'uk_cpf_broker_outbox_message',
+      'ix_cpf_broker_outbox_status',
+      'ix_cpf_broker_outbox_tx',
+      'ix_cpf_broker_outbox_topic',
+      'uk_cpf_broker_inbox_message',
+      'ix_cpf_broker_inbox_idempotency',
+      'ix_cpf_broker_inbox_status',
+      'uk_cpf_broker_dlq_message',
+      'ix_cpf_broker_dlq_status',
+      'ix_cpf_broker_dlq_topic',
+      'uk_cpf_file_transfer_history_id',
+      'ix_cpf_file_transfer_duplicate',
+      'ix_cpf_file_transfer_tx',
+      'ix_cpf_file_transfer_status',
+      'uk_cpf_unknown_result_id',
+      'ix_cpf_unknown_result_status',
+      'ix_cpf_unknown_result_tx',
+      'ix_cpf_unknown_result_external'
   );
 "@)
     $result.checks.admReliabilityMenuCount = [int] (Invoke-Scalar -StepName "admReliabilityMenuCount" -SqlText @"
@@ -603,50 +634,59 @@ WHERE ap.button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_P
   AND rap.role_id IN ('ADM_ADMIN', 'ADM_DEV_OPERATOR', 'ADM_OPERATOR', 'ADM_BIZ_OPERATOR', 'ADM_VIEWER');
 "@)
 
+    if ($result.checks.cpfCoreModuleCodeCount -ne 1) {
+        throw "cpf-core CPF module code seed mismatch. actual=$($result.checks.cpfCoreModuleCodeCount)"
+    }
+    if ($result.checks.cpfCoreMessageCount -ne 16 -or $result.checks.cpfCoreResponseCodeCount -ne 16) {
+        throw "cpf-core CPF message/response seed mismatch. messages=$($result.checks.cpfCoreMessageCount) responses=$($result.checks.cpfCoreResponseCodeCount)"
+    }
+    if ($result.checks.legacyCpfActiveSystemCodeCount -ne 0) {
+        throw "legacy CPF system code remains active. actual=$($result.checks.legacyCpfActiveSystemCodeCount)"
+    }
     if ($result.checks.batCenterCutTableCount -ne 4) {
         throw "bat_center_cut_* table count mismatch. actual=$($result.checks.batCenterCutTableCount)"
     }
-    if ($result.checks.legacyPfwCenterCutTableCount -ne 0) {
-        throw "legacy pfw_center_cut_* tables remain. actual=$($result.checks.legacyPfwCenterCutTableCount)"
+    if ($result.checks.legacyCpfCenterCutTableCount -ne 0) {
+        throw "legacy cpf_center_cut_* tables remain. actual=$($result.checks.legacyCpfCenterCutTableCount)"
     }
     if ($result.checks.centerCutSeedCount -lt 1) {
         throw "CPF_BAT_CENTER_CUT_JOB seed is missing."
     }
-    if ($result.checks.xyzCenterCutTableCount -ne 2) {
-        throw "xyz_center_cut_sample_* table count mismatch. actual=$($result.checks.xyzCenterCutTableCount)"
+    if ($result.checks.refCenterCutTableCount -ne 2) {
+        throw "ref_center_cut_sample_* table count mismatch. actual=$($result.checks.refCenterCutTableCount)"
     }
-    if ($result.checks.xyzCenterCutSeedCount -lt 4) {
-        throw "CPF_XYZ_CENTER_CUT_SAMPLE_JOB target seed is missing."
+    if ($result.checks.refCenterCutSeedCount -lt 4) {
+        throw "CPF_REF_CENTER_CUT_SAMPLE_JOB target seed is missing."
     }
     if ($result.checks.transactionSegmentTableCount -ne 1) {
-        throw "pfw_transaction_segment table is missing."
+        throw "cpf_transaction_segment table is missing."
     }
     if ($result.checks.transactionSegmentRequiredColumnCount -ne 24) {
-        throw "pfw_transaction_segment required column count mismatch. actual=$($result.checks.transactionSegmentRequiredColumnCount)"
+        throw "cpf_transaction_segment required column count mismatch. actual=$($result.checks.transactionSegmentRequiredColumnCount)"
     }
     if ($result.checks.transactionSegmentIndexCount -ne 8) {
-        throw "pfw_transaction_segment required index count mismatch. actual=$($result.checks.transactionSegmentIndexCount)"
+        throw "cpf_transaction_segment required index count mismatch. actual=$($result.checks.transactionSegmentIndexCount)"
     }
     if ($result.checks.standardExecutionTableCount -ne 1) {
-        throw "pfw_standard_execution table is missing."
+        throw "cpf_standard_execution table is missing."
     }
     if ($result.checks.standardExecutionIndexCount -ne 3) {
-        throw "pfw_standard_execution required index count mismatch. actual=$($result.checks.standardExecutionIndexCount)"
+        throw "cpf_standard_execution required index count mismatch. actual=$($result.checks.standardExecutionIndexCount)"
     }
     if ($result.checks.standardExecutionAliasCount -ne 327) {
         throw "standard execution alias seed count mismatch. actual=$($result.checks.standardExecutionAliasCount)"
     }
     if ($result.checks.batchOnDemandTableCount -ne 1) {
-        throw "pfw_batch_on_demand_request table is missing."
+        throw "cpf_batch_on_demand_request table is missing."
     }
     if ($result.checks.channelPolicyTableCount -ne 3) {
-        throw "PFW channel policy table count mismatch. actual=$($result.checks.channelPolicyTableCount)"
+        throw "CPF channel policy table count mismatch. actual=$($result.checks.channelPolicyTableCount)"
     }
     if ($result.checks.channelRegistrySeedCount -ne 5 -or $result.checks.channelPolicySeedCount -ne 1) {
-        throw "PFW channel policy seed mismatch. channels=$($result.checks.channelRegistrySeedCount) policies=$($result.checks.channelPolicySeedCount)"
+        throw "CPF channel policy seed mismatch. channels=$($result.checks.channelRegistrySeedCount) policies=$($result.checks.channelPolicySeedCount)"
     }
     if ($result.checks.channelPolicyIndexCount -ne 4) {
-        throw "PFW channel policy index count mismatch. actual=$($result.checks.channelPolicyIndexCount)"
+        throw "CPF channel policy index count mismatch. actual=$($result.checks.channelPolicyIndexCount)"
     }
     if ($result.checks.accTableCount -ne 2 -or $result.checks.accCommonColumnCount -ne 8) {
         throw "ACC reference table/common column mismatch. tables=$($result.checks.accTableCount) columns=$($result.checks.accCommonColumnCount)"
@@ -672,14 +712,14 @@ WHERE ap.button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_P
     if ($result.checks.cmnFixedLengthSeedCount -lt 1) {
         throw "BANK01_BALANCE_REQ_V1 fixed-length layout seed is missing."
     }
-    if ($result.checks.pfwReliabilityTableCount -ne 6) {
-        throw "PFW reliability table count mismatch. actual=$($result.checks.pfwReliabilityTableCount)"
+    if ($result.checks.cpfReliabilityTableCount -ne 6) {
+        throw "CPF reliability table count mismatch. actual=$($result.checks.cpfReliabilityTableCount)"
     }
-    if ($result.checks.pfwReliabilityCommonColumnCount -ne 24) {
-        throw "PFW reliability common column count mismatch. actual=$($result.checks.pfwReliabilityCommonColumnCount)"
+    if ($result.checks.cpfReliabilityCommonColumnCount -ne 24) {
+        throw "CPF reliability common column count mismatch. actual=$($result.checks.cpfReliabilityCommonColumnCount)"
     }
-    if ($result.checks.pfwReliabilityIndexCount -ne 20) {
-        throw "PFW reliability index count mismatch. actual=$($result.checks.pfwReliabilityIndexCount)"
+    if ($result.checks.cpfReliabilityIndexCount -ne 20) {
+        throw "CPF reliability index count mismatch. actual=$($result.checks.cpfReliabilityIndexCount)"
     }
     if ($result.checks.admReliabilityMenuCount -ne 1) {
         throw "ADM reliability menu count mismatch. actual=$($result.checks.admReliabilityMenuCount)"

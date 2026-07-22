@@ -1,8 +1,8 @@
-package cpf.adm.opr.filter;
+package com.cpf.admin.opr.filter;
 
-import cpf.adm.config.AdmSecurityProperties;
-import cpf.adm.opr.dto.AdmSession;
-import cpf.adm.opr.service.AdmSessionService;
+import com.cpf.admin.config.AdmSecurityProperties;
+import com.cpf.admin.opr.dto.AdmSession;
+import com.cpf.admin.opr.service.AdmSessionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;

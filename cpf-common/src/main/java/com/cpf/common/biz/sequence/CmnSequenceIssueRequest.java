@@ -1,4 +1,4 @@
-package cpf.cmn.biz.sequence;
+package com.cpf.common.biz.sequence;
 
 /**
  * CMN 공통 채번 발급 요청입니다.

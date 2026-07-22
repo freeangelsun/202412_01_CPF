@@ -1,12 +1,12 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmMemberRoleRequest;
-import cpf.adm.opr.dto.AdmMemberSaveRequest;
-import cpf.adm.opr.dto.AdmMemberStatusRequest;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmMemberOperationService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmMemberRoleRequest;
+import com.cpf.admin.opr.dto.AdmMemberSaveRequest;
+import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmMemberOperationService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/members")
 @Tag(name = "ADM-Member", description = "ADM 회원 관리와 회원 권한 관리 API")
-public class AdmMemberController extends cpf.adm.common.base.AdmBaseController {
+public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmMemberOperationService memberOperationService;
     private final AdmAuditLogService auditLogService;
 

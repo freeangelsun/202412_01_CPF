@@ -1,12 +1,12 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmLoginRequest;
-import cpf.adm.opr.dto.AdmLoginResponse;
-import cpf.adm.opr.dto.AdmMenu;
-import cpf.adm.opr.dto.AdmOperator;
-import cpf.adm.opr.service.AdmOperatorService;
-import cpf.adm.opr.service.AdmSessionService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.admin.opr.dto.AdmLoginRequest;
+import com.cpf.admin.opr.dto.AdmLoginResponse;
+import com.cpf.admin.opr.dto.AdmMenu;
+import com.cpf.admin.opr.dto.AdmOperator;
+import com.cpf.admin.opr.service.AdmOperatorService;
+import com.cpf.admin.opr.service.AdmSessionService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/adm/api/auth")
 @Tag(name = "ADM-OPR Auth", description = "ADM 운영자 인증과 세션 API")
-public class AdmAuthController extends cpf.adm.common.base.AdmBaseController {
+public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmOperatorService operatorService;
     private final AdmSessionService sessionService;
 

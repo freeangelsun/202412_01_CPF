@@ -1,8 +1,8 @@
-package cpf.xyz.header.controller;
+package com.cpf.reference.header.controller;
 
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.header.CpfHeaderPropagator;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.header.CpfHeaderPropagator;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.ParameterizedTypeReference;
@@ -20,13 +20,13 @@ import java.util.Map;
  * 표준 거래 헤더의 수신, 컨텍스트 적재, 하위 호출 전파를 한 번에 검증하는 EDU API입니다.
  */
 @RestController
-@RequestMapping({"/api/xyz/reference/headers", "/xyz/edu/headers"})
-@Tag(name = "XYZ Reference 14. Standard Header", description = "CPF 표준 거래 헤더 런타임 검증 예제")
-public class XyzStandardHeaderEducationController extends cpf.xyz.common.base.XyzBaseController {
+@RequestMapping({"/api/reference/headers", "/reference/edu/headers"})
+@Tag(name = "REF Reference 14. Standard Header", description = "CPF 표준 거래 헤더 런타임 검증 예제")
+public class ReferenceStandardHeaderEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
 
     private final WebClient.Builder webClientBuilder;
 
-    public XyzStandardHeaderEducationController(WebClient.Builder webClientBuilder) {
+    public ReferenceStandardHeaderEducationController(WebClient.Builder webClientBuilder) {
         this.webClientBuilder = webClientBuilder;
     }
 
@@ -34,9 +34,9 @@ public class XyzStandardHeaderEducationController extends cpf.xyz.common.base.Xy
      * 현재 거래 컨텍스트의 전파 허용 헤더만 하위 시스템으로 보내고 수신 결과를 반환합니다.
      */
     @GetMapping("/propagation")
-    @CpfOnlineTransaction(id = "OXYZAA0057", name = "XYZ표준헤더전파검증")
+    @CpfOnlineTransaction(id = "OREFAA0057", name = "REF표준헤더전파검증")
     @Operation(
-            operationId = "xyzStandardHeaderEducationVerifyPropagation",
+            operationId = "refStandardHeaderEducationVerifyPropagation",
             summary = "표준 거래 헤더 전파 검증",
             description = "수신된 표준 헤더와 허용된 확장 헤더를 하위 호출에 전파하고 거래 컨텍스트와 응답을 함께 반환합니다.")
     public ResponseEntity<Map<String, Object>> verifyPropagation(

@@ -1,10 +1,10 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
-import cpf.pfw.api.logging.CpfTraceRecoveryPort;
+import com.cpf.core.api.logging.CpfTraceRecoveryPort;
 import org.springframework.stereotype.Component;
 
 /**
- * 거래 요약과 거래 구간 복구 worker를 하나의 안정적인 PFW 공개 포트로 묶습니다.
+ * 거래 요약과 거래 구간 복구 worker를 하나의 안정적인 CPF 공개 포트로 묶습니다.
  */
 @Component
 public class CpfTraceRecoveryFacade implements CpfTraceRecoveryPort {

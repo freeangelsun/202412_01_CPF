@@ -1,12 +1,12 @@
-package cpf.pfw.common.web;
+package com.cpf.core.common.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.execution.CpfSharedApi;
-import cpf.pfw.common.exception.CpfResponseCodeResolver;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
-import cpf.pfw.common.header.CpfHeaderNames;
-import cpf.pfw.common.logging.CpfTransaction;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.execution.CpfSharedApi;
+import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
+import com.cpf.core.common.header.CpfHeaderNames;
+import com.cpf.core.common.logging.CpfTransaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.mock.env.MockEnvironment;
@@ -48,7 +48,7 @@ class TransactionHeaderValidationInterceptorTest {
         assertThat(allowed).isFalse();
         assertThat(response.getStatus()).isEqualTo(400);
         assertThat(response.getContentAsString())
-                .contains("\"statusCode\":\"EPFW900001\"")
+                .contains("\"statusCode\":\"ECPF900001\"")
                 .doesNotContain("should-not-be-propagated");
     }
 
@@ -65,7 +65,7 @@ class TransactionHeaderValidationInterceptorTest {
         assertThat(allowed).isFalse();
         assertThat(response.getStatus()).isEqualTo(400);
         assertThat(response.getContentAsString())
-                .contains("\"statusCode\":\"EPFW900001\"")
+                .contains("\"statusCode\":\"ECPF900001\"")
                 .doesNotContain("errorDetailMessage");
     }
 
@@ -95,14 +95,14 @@ class TransactionHeaderValidationInterceptorTest {
 
         assertThat(allowed).isFalse();
         assertThat(response.getStatus()).isEqualTo(500);
-        assertThat(response.getContentAsString()).contains("\"statusCode\":\"EPFW900002\"");
+        assertThat(response.getContentAsString()).contains("\"statusCode\":\"ECPF900002\"");
     }
 
     @Test
     void allowsTrustedSharedApiCallFromDeclaredCaller() throws Exception {
         TransactionHeaderValidationInterceptor interceptor = interceptor();
         MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
-        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SCPFTS0001");
         request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
         request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "MBR01");
 
@@ -118,7 +118,7 @@ class TransactionHeaderValidationInterceptorTest {
     void rejectsSharedApiWithoutCompleteCallerIdentity() throws Exception {
         TransactionHeaderValidationInterceptor interceptor = interceptor();
         MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
-        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SCPFTS0001");
         request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -126,17 +126,17 @@ class TransactionHeaderValidationInterceptorTest {
 
         assertThat(allowed).isFalse();
         assertThat(response.getStatus()).isEqualTo(403);
-        assertThat(response.getContentAsString()).contains("\"statusCode\":\"EPFW900005\"");
+        assertThat(response.getContentAsString()).contains("\"statusCode\":\"ECPF900005\"");
     }
 
     @Test
     void rejectsSharedApiFromPublicGatewayIngress() throws Exception {
         TransactionHeaderValidationInterceptor interceptor = interceptor();
         MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
-        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SCPFTS0001");
         request.addHeader(CpfHeaderNames.CALLER_SERVICE, "MBR");
         request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "MBR01");
-        request.addHeader(CpfHeaderNames.INGRESS_TYPE, "PFW_GATEWAY");
+        request.addHeader(CpfHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");
         request.addHeader(CpfHeaderNames.GATEWAY_INSTANCE_ID, "GW01");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -150,9 +150,9 @@ class TransactionHeaderValidationInterceptorTest {
     void rejectsSharedApiFromUndeclaredCpfService() throws Exception {
         TransactionHeaderValidationInterceptor interceptor = interceptor();
         MockHttpServletRequest request = standardRequest("/internal/api/v1/sample");
-        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SPFWTS0001");
-        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "XYZ");
-        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "XYZ01");
+        request.addHeader(CpfHeaderNames.STANDARD_EXECUTION_ID, "SCPFTS0001");
+        request.addHeader(CpfHeaderNames.CALLER_SERVICE, "REF");
+        request.addHeader(CpfHeaderNames.CALLER_INSTANCE_ID, "REF01");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         boolean allowed = interceptor.preHandle(request, response, handler("sharedApi"));
@@ -190,18 +190,18 @@ class TransactionHeaderValidationInterceptorTest {
         public void operationQuery() {
         }
 
-        @CpfTransaction(id = "PFW01API0002", name = "표준 헤더 검증 테스트")
+        @CpfTransaction(id = "CPF01API0002", name = "표준 헤더 검증 테스트")
         @SuppressWarnings("unused")
         public void businessTransaction() {
         }
 
-        @CpfOnlineTransaction(id = "OPFWTS0001", name = "온라인 실행 헤더 검증 테스트")
+        @CpfOnlineTransaction(id = "OCPFTS0001", name = "온라인 실행 헤더 검증 테스트")
         @SuppressWarnings("unused")
         public void onlineApi() {
         }
 
         @CpfSharedApi(
-                id = "SPFWTS0001",
+                id = "SCPFTS0001",
                 name = "내부 공유 API 검증 테스트",
                 allowedCallers = "MBR")
         @SuppressWarnings("unused")

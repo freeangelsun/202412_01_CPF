@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 /** claim된 배치 실행을 실제 Spring Batch Job에 전달하는 application port입니다. */
 public interface BatWorkerJobDispatcher {

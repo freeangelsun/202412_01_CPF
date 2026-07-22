@@ -1,10 +1,10 @@
-package cpf.pfw.common.logging.fallback;
+package com.cpf.core.common.logging.fallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.TransactionLogRecord;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
-import cpf.pfw.common.logging.policy.LogPolicyDecision;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.TransactionLogRecord;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.policy.LogPolicyDecision;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * PFW DB 거래 로그 저장 실패를 인스턴스별 durable journal에 보존합니다.
+ * CPF DB 거래 로그 저장 실패를 인스턴스별 durable journal에 보존합니다.
  *
  * <p>pending, processing, poison 디렉터리 간 원자적 이동으로 상태를 관리하고,
  * 민감정보를 마스킹한 JSON만 디스크에 기록합니다. 동일 이벤트는 전역 거래 ID,
@@ -79,7 +79,7 @@ public class TransactionLogFallbackStore {
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root)
                 .toString()
                 .replace('\\', '/');
-        this.workerId = environment.getProperty("cpf.framework.instance-id", "pfw-local");
+        this.workerId = environment.getProperty("cpf.framework.instance-id", "cpf-local");
         this.maxSpoolBytes = environment.getProperty(
                 "cpf.logging.db-fallback.max-spool-bytes",
                 Long.class,

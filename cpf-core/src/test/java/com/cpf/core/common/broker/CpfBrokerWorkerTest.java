@@ -1,4 +1,4 @@
-package cpf.pfw.common.broker;
+package com.cpf.core.common.broker;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,7 @@ class CpfBrokerWorkerTest {
         return new CpfBrokerEnvelope(
                 "TX-1",
                 "SEG-1",
-                "XYZ",
+                "REF",
                 "MBR",
                 "IDEM-" + messageId,
                 Instant.parse("2026-07-13T00:00:00Z"),
@@ -62,7 +62,7 @@ class CpfBrokerWorkerTest {
                         "payload".getBytes(StandardCharsets.UTF_8),
                         "text/plain",
                         Map.of("x-cpf-transaction-global-id", "TX-1")),
-                Map.of("sampleId", "XYZ-BROKER-RELIABILITY"));
+                Map.of("sampleId", "REF-BROKER-RELIABILITY"));
     }
 
     private static final class TestOutbox implements CpfBrokerOutboxPort {

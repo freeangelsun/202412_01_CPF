@@ -1,7 +1,7 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 /**
- * PFW file transfer capability가 인식하는 전송 프로토콜입니다.
+ * CPF file transfer capability가 인식하는 전송 프로토콜입니다.
  */
 public enum CpfFileTransferProtocol {
     LOCAL,

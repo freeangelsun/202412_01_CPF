@@ -1,7 +1,7 @@
-package cpf.pfw.config;
+package com.cpf.core.config;
 
-import cpf.pfw.common.attachment.CpfAttachmentStoragePort;
-import cpf.pfw.common.attachment.LocalCpfAttachmentStorageAdapter;
+import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
+import com.cpf.core.common.attachment.LocalCpfAttachmentStorageAdapter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** PFW 첨부파일 저장 port의 기본 로컬 adapter를 구성합니다. */
+/** CPF 첨부파일 저장 port의 기본 로컬 adapter를 구성합니다. */
 @AutoConfiguration
 public class CpfAttachmentAutoConfiguration {
 

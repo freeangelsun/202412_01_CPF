@@ -1,11 +1,11 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cpf.pfw.common.batch.CpfBatchJobLogPath;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.file.CpfLogPathPolicy;
+import com.cpf.core.common.batch.CpfBatchJobLogPath;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.file.CpfLogPathPolicy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * ADM에서 BAT JobInstance 로그를 원본 경로 노출 없이 조회하는 서비스입니다.
  */
 @Service
-public class AdmBatchJobLogService extends cpf.adm.common.base.AdmBaseService {
+public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Pattern FILE_PATTERN = Pattern.compile("cpf-bat-(.+)-(\\d+)-(\\d{8})\\.log");
     private static final int MAX_RECORDS = 500;
 

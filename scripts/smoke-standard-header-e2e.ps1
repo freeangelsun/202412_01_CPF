@@ -15,6 +15,12 @@
     [switch] $RequireRuntime
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 
 function New-UnicodeText {
@@ -30,7 +36,7 @@ $StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
 $StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
 
 $TransactionTimestamp = (Get-Date).ToString("yyyyMMddHHmmssfff")
-$TransactionId = "$TransactionTimestamp" + "XYZ" + "local01" + "0000001"
+$TransactionId = "$TransactionTimestamp" + "REF" + "local01" + "0000001"
 $TraceId = "TRACE-STANDARD-HEADER-E2E"
 
 if ([string]::IsNullOrWhiteSpace($DbHost)) {
@@ -53,7 +59,7 @@ $mockCapturePath = Join-Path $ResultDir "standard-header-e2e-downstream.json"
 $mockUrl = "http://127.0.0.1:$MockDownstreamPort/cpf-standard-header-e2e"
 if ([string]::IsNullOrWhiteSpace($TargetUrl)) {
     $encodedMockUrl = [System.Uri]::EscapeDataString($mockUrl)
-    $TargetUrl = "$AppBaseUrl/api/xyz/reference/headers/propagation?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
+    $TargetUrl = "$AppBaseUrl/api/reference/headers/propagation?menuId=STANDARD_HEADER_E2E&execUser=runtime-smoke&mockUrl=$encodedMockUrl"
 }
 
 $result = [ordered]@{
@@ -103,7 +109,7 @@ $result = [ordered]@{
     }
     admLookup = [ordered]@{
         status = $StatusNotVerified
-        reason = "This smoke validates the same log evidence directly from pfwDB. ADM runtime API can be added as a separate smoke."
+        reason = "This smoke validates the same log evidence directly from cpfDB. ADM runtime API can be added as a separate smoke."
     }
     sensitiveRawRecorded = $false
 }
@@ -236,7 +242,7 @@ function New-StandardHeaders {
         "X-Transaction-Id" = $TransactionId
         "X-Request-Type" = "ONLINE"
         "X-Original-Channel-Code" = "MOBILE"
-        "X-Channel-Code" = "XYZ"
+        "X-Channel-Code" = "REF"
         "X-Trace-Id" = $TraceId
         "X-Parent-Span-Id" = "SPAN-PARENT-E2E"
         "X-Client-App-Id" = "cpf-smoke-client"
@@ -433,7 +439,7 @@ function Test-LogLookup {
     }
 
     try {
-        $logIdxOutput = Invoke-MariaDbQuery "SELECT LOG_IDX FROM pfwDB.pfw_transaction_log WHERE TRANSACTION_ID='$TransactionId' AND TRACE_ID='$TraceId' ORDER BY LOG_IDX DESC LIMIT 1;"
+        $logIdxOutput = Invoke-MariaDbQuery "SELECT LOG_IDX FROM cpfDB.cpf_transaction_log WHERE TRANSACTION_ID='$TransactionId' AND TRACE_ID='$TraceId' ORDER BY LOG_IDX DESC LIMIT 1;"
         $logIdx = (($logIdxOutput -split "`r?`n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
         if ([string]::IsNullOrWhiteSpace($logIdx)) {
             $result.logLookup.status = $StatusNotVerified
@@ -441,7 +447,7 @@ function Test-LogLookup {
             return
         }
 
-        $detailOutput = Invoke-MariaDbQuery "SELECT DETAIL_KEY, DETAIL_VALUE FROM pfwDB.pfw_transaction_log_detail WHERE LOG_IDX=$logIdx ORDER BY DETAIL_KEY;"
+        $detailOutput = Invoke-MariaDbQuery "SELECT DETAIL_KEY, DETAIL_VALUE FROM cpfDB.cpf_transaction_log_detail WHERE LOG_IDX=$logIdx ORDER BY DETAIL_KEY;"
         $details = [ordered]@{}
         foreach ($line in ($detailOutput -split "`r?`n")) {
             if ([string]::IsNullOrWhiteSpace($line)) {
@@ -471,7 +477,7 @@ function Test-LogLookup {
         if ($missingDetails.Count -eq 0 -and $containsExtension -and -not $containsSensitiveRaw) {
             $result.logLookup.status = $StatusDone
             $result.admLookup.status = $StatusDone
-            $result.admLookup.reason = "pfwDB log lookup verified the evidence required for ADM log detail."
+            $result.admLookup.reason = "cpfDB log lookup verified the evidence required for ADM log detail."
         } else {
             $result.logLookup.status = $StatusFailed
         }
@@ -506,7 +512,7 @@ try {
         Test-MockDownstreamCapture
     }
 
-    $blockedUrl = "$AppBaseUrl/api/xyz/reference/headers/propagation?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke&mockUrl=$([System.Uri]::EscapeDataString($mockUrl))"
+    $blockedUrl = "$AppBaseUrl/api/reference/headers/propagation?menuId=STANDARD_HEADER_E2E_BLOCKED&execUser=runtime-smoke&mockUrl=$([System.Uri]::EscapeDataString($mockUrl))"
     $blockedProbe = Invoke-Probe -Name "blockedExtensionHeaderRejected" -Headers $blockedHeaders -ExpectedStatusRange @(400, 401, 403, 422) -Uri $blockedUrl
 
     Start-Sleep -Milliseconds 500

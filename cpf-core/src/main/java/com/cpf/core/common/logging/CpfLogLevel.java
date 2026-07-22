@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 /**
  * CPF 동적 거래 로그에서 사용할 수 있는 런타임 로그 레벨입니다.

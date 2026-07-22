@@ -1,27 +1,17 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * CPF 기능 설명입니다.
- *
- * CPF 기능 설명입니다.
- * CPF 기능 설명입니다.
- */
+/** CPF 공통 메시지의 이름 기반·순번 기반 치환식을 처리합니다. */
 public final class CpfMessageFormatter {
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
 
     private CpfMessageFormatter() {
     }
 
-    /**
-     * CPF 기능 설명입니다.
-     *
-     * CPF 기능 설명입니다.
-     * CPF 기능 설명입니다.
-     */
+    /** {@code {fieldName}} 형식의 이름 기반 자리표시자를 Map 값으로 치환합니다. */
     public static String format(String template, Map<String, Object> arguments) {
         if (template == null || template.isBlank() || arguments == null || arguments.isEmpty()) {
             return template;
@@ -43,10 +33,10 @@ public final class CpfMessageFormatter {
     }
 
     /**
-     * Formats indexed placeholders such as {@code {0}}, {@code {1}}.
+     * {@code {0}}, {@code {1}} 형식의 순번 기반 자리표시자를 치환합니다.
      *
-     * <p>This is the standard CPF message format for DB-managed common messages.
-     * The map based formatter remains supported for existing named placeholders.</p>
+     * <p>DB에서 관리하는 CPF 공통 메시지의 기본 형식이며, 기존 이름 기반 형식도
+     * 별도 오버로드로 계속 지원합니다.</p>
      */
     public static String format(String template, Object... arguments) {
         if (template == null || template.isBlank() || arguments == null || arguments.length == 0) {

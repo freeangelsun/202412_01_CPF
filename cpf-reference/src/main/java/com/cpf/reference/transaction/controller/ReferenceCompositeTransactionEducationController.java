@@ -1,6 +1,6 @@
-package cpf.xyz.transaction.controller;
+package com.cpf.reference.transaction.controller;
 
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -15,18 +15,18 @@ import java.util.Map;
  * 복합 거래 trace 샘플을 개발자에게 안내하는 EDU API입니다.
  */
 @RestController
-@RequestMapping({"/api/xyz/reference/transactions", "/xyz/edu/transactions"})
-@Tag(name = "XYZ Reference Composite Transaction", description = "복합 거래 trace 샘플 안내 API")
-public class XyzCompositeTransactionEducationController extends cpf.xyz.common.base.XyzBaseController {
+@RequestMapping({"/api/reference/transactions", "/reference/edu/transactions"})
+@Tag(name = "REF Reference Composite Transaction", description = "복합 거래 trace 샘플 안내 API")
+public class ReferenceCompositeTransactionEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
 
     @GetMapping("/composite-sample")
-    @CpfOnlineTransaction(id = "OXYZAA0043", name = "XYZCompositeTransactionSample")
-    @Operation(operationId = "xyzCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "XYZ에서 PFW Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
+    @CpfOnlineTransaction(id = "OREFAA0043", name = "REFCompositeTransactionSample")
+    @Operation(operationId = "refCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "REF에서 CPF Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(
                 "purpose", "transactionGlobalId 기준으로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",
                 "patterns", List.of(
-                        "XYZ Service Call Engine 샘플에서 MBR_MEMBER_SUMMARY endpoint를 호출",
+                        "REF Service Call Engine 샘플에서 MBR_MEMBER_SUMMARY endpoint를 호출",
                         "동일 X-Transaction-Id를 전달해 호출 구간을 하나의 타임라인으로 연결"),
                 "admApis", List.of(
                         "GET /adm/api/transaction-groups",

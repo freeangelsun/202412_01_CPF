@@ -1,10 +1,10 @@
-package cpf.bza.backoffice.service;
+package com.cpf.bizadmin.backoffice.service;
 
-import cpf.bza.backoffice.repository.BzaBackofficeRepository;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 /** BZA 조직·직원·실효 권한·결재 상태 전이를 담당합니다. */
 @Service
-public class BzaBackofficeService extends cpf.bza.common.base.BzaBaseService {
+public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseService {
     private static final Set<String> APPROVAL_ACTIONS = Set.of(
             "SUBMIT", "APPROVE", "AGREE", "REJECT", "WITHDRAW", "CANCEL", "RESUBMIT");
 

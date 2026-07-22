@@ -1,7 +1,7 @@
 -- V4: Spring Batch 표준 저장소와 CPF 배치 운영 보강 migration입니다.
 -- 기존 DB에 BATCH_* JobRepository 테이블, 영업일 스케줄 속성, 배치 관계/대상, 운영 알림 기준을 추가합니다.
 
-USE pfwDB;
+USE cpfDB;
 
 CREATE TABLE IF NOT EXISTS BATCH_JOB_INSTANCE (
     JOB_INSTANCE_ID BIGINT NOT NULL COMMENT 'Spring Batch JobInstance 순번',
@@ -105,7 +105,7 @@ INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
 SELECT 0
 WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
 
-ALTER TABLE pfw_batch_schedule
+ALTER TABLE cpf_batch_schedule
     ADD COLUMN IF NOT EXISTS calendar_id VARCHAR(50) NOT NULL DEFAULT 'DEFAULT' COMMENT '적용 영업일 캘린더 ID' AFTER cron_expression,
     ADD COLUMN IF NOT EXISTS business_day_only_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '영업일에만 수행 여부' AFTER calendar_id,
     ADD COLUMN IF NOT EXISTS holiday_policy VARCHAR(30) NOT NULL DEFAULT 'SKIP' COMMENT '휴일 처리 정책' AFTER business_day_only_yn,
@@ -113,7 +113,7 @@ ALTER TABLE pfw_batch_schedule
     ADD COLUMN IF NOT EXISTS available_end_time TIME NULL COMMENT '수행 가능 종료 시각' AFTER available_start_time,
     ADD COLUMN IF NOT EXISTS run_date_pattern VARCHAR(80) NULL COMMENT '수행 일자 패턴' AFTER available_end_time;
 
-CREATE TABLE IF NOT EXISTS pfw_batch_job_relation (
+CREATE TABLE IF NOT EXISTS cpf_batch_job_relation (
     relation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 관계 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '기준 배치 Job ID',
     related_job_id VARCHAR(100) NOT NULL COMMENT '연관 배치 Job ID',
@@ -122,23 +122,23 @@ CREATE TABLE IF NOT EXISTS pfw_batch_job_relation (
     required_status VARCHAR(30) NOT NULL DEFAULT 'COMPLETED' COMMENT '필수 선행 상태',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '관계 표시 순서',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (relation_id),
-    UNIQUE KEY uk_pfw_batch_job_relation (job_id, related_job_id, relation_type),
-    INDEX ix_pfw_batch_job_relation_job (job_id, relation_type, use_yn),
-    INDEX ix_pfw_batch_job_relation_related (related_job_id, relation_type),
-    CONSTRAINT fk_pfw_batch_job_relation_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id)
+    UNIQUE KEY uk_cpf_batch_job_relation (job_id, related_job_id, relation_type),
+    INDEX ix_cpf_batch_job_relation_job (job_id, relation_type, use_yn),
+    INDEX ix_cpf_batch_job_relation_related (related_job_id, relation_type),
+    CONSTRAINT fk_cpf_batch_job_relation_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_pfw_batch_job_relation_related
-        FOREIGN KEY (related_job_id) REFERENCES pfw_batch_job(job_id)
+    CONSTRAINT fk_cpf_batch_job_relation_related
+        FOREIGN KEY (related_job_id) REFERENCES cpf_batch_job(job_id)
         ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 선행/후행/트리거 관계';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 선행/후행/트리거 관계';
 
-CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
+CREATE TABLE IF NOT EXISTS cpf_batch_execution_target (
     target_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '배치 수행 대상 순번',
     execution_id BIGINT NULL COMMENT '배치 실행 순번',
     job_id VARCHAR(100) NOT NULL COMMENT '배치 Job ID',
@@ -148,28 +148,28 @@ CREATE TABLE IF NOT EXISTS pfw_batch_execution_target (
     planned_run_at DATETIME(3) NULL COMMENT '예정 수행 일시',
     dispatch_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '배정 상태',
     dispatch_reason VARCHAR(500) NULL COMMENT '배정 또는 제외 사유',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (target_id),
-    INDEX ix_pfw_batch_execution_target_job (job_id, dispatch_status, planned_run_at),
-    INDEX ix_pfw_batch_execution_target_execution (execution_id),
-    INDEX ix_pfw_batch_execution_target_instance (target_instance_id, dispatch_status),
-    CONSTRAINT fk_pfw_batch_execution_target_execution
-        FOREIGN KEY (execution_id) REFERENCES pfw_batch_execution(execution_id)
+    INDEX ix_cpf_batch_execution_target_job (job_id, dispatch_status, planned_run_at),
+    INDEX ix_cpf_batch_execution_target_execution (execution_id),
+    INDEX ix_cpf_batch_execution_target_instance (target_instance_id, dispatch_status),
+    CONSTRAINT fk_cpf_batch_execution_target_execution
+        FOREIGN KEY (execution_id) REFERENCES cpf_batch_execution(execution_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_execution_target_job
-        FOREIGN KEY (job_id) REFERENCES pfw_batch_job(job_id),
-    CONSTRAINT fk_pfw_batch_execution_target_schedule
-        FOREIGN KEY (schedule_id) REFERENCES pfw_batch_schedule(schedule_id)
+    CONSTRAINT fk_cpf_batch_execution_target_job
+        FOREIGN KEY (job_id) REFERENCES cpf_batch_job(job_id),
+    CONSTRAINT fk_cpf_batch_execution_target_schedule
+        FOREIGN KEY (schedule_id) REFERENCES cpf_batch_schedule(schedule_id)
         ON DELETE SET NULL,
-    CONSTRAINT fk_pfw_batch_execution_target_instance
-        FOREIGN KEY (target_instance_id) REFERENCES pfw_batch_instance(instance_id)
+    CONSTRAINT fk_cpf_batch_execution_target_instance
+        FOREIGN KEY (target_instance_id) REFERENCES cpf_batch_instance(instance_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 배치 수행 대상/대기 인스턴스';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 배치 수행 대상/대기 인스턴스';
 
-CREATE TABLE IF NOT EXISTS pfw_notification_rule (
+CREATE TABLE IF NOT EXISTS cpf_notification_rule (
     rule_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
     event_sub_type VARCHAR(80) NULL COMMENT '알림 이벤트 세부 유형',
@@ -178,16 +178,16 @@ CREATE TABLE IF NOT EXISTS pfw_notification_rule (
     severity VARCHAR(20) NOT NULL DEFAULT 'INFO' COMMENT '알림 심각도',
     receiver_group VARCHAR(100) NULL COMMENT '수신자 그룹',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (rule_id),
-    UNIQUE KEY uk_pfw_notification_rule (event_type, event_sub_type, channel_code),
-    INDEX ix_pfw_notification_rule_use (use_yn, severity)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 규칙';
+    UNIQUE KEY uk_cpf_notification_rule (event_type, event_sub_type, channel_code),
+    INDEX ix_cpf_notification_rule_use (use_yn, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 규칙';
 
-CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
+CREATE TABLE IF NOT EXISTS cpf_notification_delivery_log (
     delivery_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 발송 로그 순번',
     rule_id BIGINT NULL COMMENT '알림 규칙 순번',
     event_type VARCHAR(80) NOT NULL COMMENT '알림 이벤트 유형',
@@ -198,14 +198,14 @@ CREATE TABLE IF NOT EXISTS pfw_notification_delivery_log (
     delivery_message VARCHAR(2000) NULL COMMENT '발송 메시지',
     requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '발송 요청 일시',
     delivered_at DATETIME(3) NULL COMMENT '발송 완료 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '등록자',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'PFW' COMMENT '수정자',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'CPF' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (delivery_id),
-    INDEX ix_pfw_notification_delivery_target (target_type, target_id, requested_at),
-    INDEX ix_pfw_notification_delivery_status (delivery_status, requested_at),
-    CONSTRAINT fk_pfw_notification_delivery_rule
-        FOREIGN KEY (rule_id) REFERENCES pfw_notification_rule(rule_id)
+    INDEX ix_cpf_notification_delivery_target (target_type, target_id, requested_at),
+    INDEX ix_cpf_notification_delivery_status (delivery_status, requested_at),
+    CONSTRAINT fk_cpf_notification_delivery_rule
+        FOREIGN KEY (rule_id) REFERENCES cpf_notification_rule(rule_id)
         ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='PFW 운영 알림 발송 로그';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 운영 알림 발송 로그';

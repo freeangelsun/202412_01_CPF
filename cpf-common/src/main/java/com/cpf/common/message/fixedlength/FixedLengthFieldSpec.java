@@ -1,4 +1,4 @@
-package cpf.cmn.message.fixedlength;
+package com.cpf.common.message.fixedlength;
 
 /**
  * 고정길이 전문의 필드 정의입니다.

@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 /**
  * 서비스 호출 엔진 실행 결과입니다.

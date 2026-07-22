@@ -1,23 +1,22 @@
-package cpf.xyz.catalog;
+package com.cpf.reference.catalog;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzEducationCoverageCatalogTest {
+class ReferenceEducationCoverageCatalogTest {
 
     @Test
     void requiredSampleIdsContainOnlineEducationAreas() {
-        assertThat(XyzEducationCoverageCatalog.requiredSampleIds())
-                .hasSize(71)
+        assertThat(ReferenceEducationCoverageCatalog.requiredSampleIds())
+                .hasSize(65)
                 .contains(
-                        "XYZ Reference-CRUD-001",
-                        "XYZ Reference-LIST-007",
-                        "XYZ Reference-CALL-003",
-                        "XYZ Reference-HEADER-004",
-                        "XYZ Reference-VALID-004",
-                        "XYZ Reference-OPER-002",
-                        "XYZ Reference-AI-006",
-                        "XYZ Reference-ATTACH-002");
+                        "REF Reference-CRUD-001",
+                        "REF Reference-LIST-007",
+                        "REF Reference-CALL-003",
+                        "REF Reference-HEADER-004",
+                        "REF Reference-VALID-004",
+                        "REF Reference-OPER-002",
+                        "REF Reference-ATTACH-002");
     }
 }

@@ -1,6 +1,6 @@
-package cpf.acc.reference.port;
+package com.cpf.account.reference.port;
 
-import cpf.acc.reference.dto.AccountReferenceSearchRequest;
+import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
 
 import java.util.Map;
 

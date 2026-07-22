@@ -3,6 +3,12 @@
     [string] $ResultDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -13,8 +19,8 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "adm-service-registry-ui-static-smoke.sanitized.json"
 $logPath = Join-Path $ResultDir "adm-service-registry-ui-static-smoke.log"
 
-$jsPath = Join-Path $Root "adm/frontend/src/App.vue"
-$htmlPath = Join-Path $Root "adm/frontend/src/App.vue"
+$jsPath = Join-Path $Root "cpf-admin/frontend/src/App.vue"
+$htmlPath = Join-Path $Root "cpf-admin/frontend/src/App.vue"
 $js = [System.IO.File]::ReadAllText($jsPath, [System.Text.Encoding]::UTF8)
 $html = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
 

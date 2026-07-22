@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $EvidenceDir = "specs/evidence/20260720_04"
+    [string] $EvidenceDir = "cpf-docs/evidence/20260722_01"
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -51,9 +57,8 @@ function Set-MarkedSection {
     [System.IO.File]::WriteAllText($Path, $updated, $Utf8NoBom)
 }
 
-$matrixBaseName = ConvertFrom-UnicodeEscape '\uAE30\uB2A5_\uAD6C\uD604_\uB9E4\uD2B8\uB9AD\uC2A4'
-$matrixJsonPath = Join-Path $Root "specs/$matrixBaseName.json"
-$matrixMarkdownPath = Join-Path $Root "specs/$matrixBaseName.md"
+$matrixJsonPath = Join-Path $Root "specs/generated/feature-implementation-matrix.json"
+$matrixMarkdownPath = Join-Path $Root "specs/generated/feature-implementation-matrix.md"
 $evidenceIndexPath = Join-Path $Root "CPF_EVIDENCE_INDEX.md"
 $gapPath = Join-Path $Root "CPF_GAP_MATRIX.md"
 $reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.md"
@@ -74,7 +79,7 @@ foreach ($item in $items) {
 $matrixLines = New-Object System.Collections.Generic.List[string]
 $matrixLines.Add("# CPF 기능 구현 검증 매트릭스") | Out-Null
 $matrixLines.Add("") | Out-Null
-$matrixLines.Add("> 이 파일은 ``specs/$matrixBaseName.json``에서 생성되는 기계 검증 정본입니다.") | Out-Null
+$matrixLines.Add("> 이 파일은 ``specs/generated/feature-implementation-matrix.json``에서 생성되는 기계 검증 정본입니다.") | Out-Null
 $matrixLines.Add("") | Out-Null
 $matrixLines.Add("| check id | 상태 | 증적 | 비고 |") | Out-Null
 $matrixLines.Add("|---|---|---|---|") | Out-Null

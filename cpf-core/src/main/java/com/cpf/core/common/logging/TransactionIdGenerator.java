@@ -1,5 +1,6 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
+import com.cpf.core.common.system.CpfSystemCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 @Component
@@ -100,19 +100,15 @@ public class TransactionIdGenerator {
     private static String resolveModuleId(Environment environment) {
         String configured = environment.getProperty("cpf.framework.module-id");
         if (hasText(configured)) {
-            return configured.replace("cpf-", "");
+            return CpfSystemCodes.normalize(configured, CpfSystemCodes.CORE);
         }
 
-        String appName = environment.getProperty("spring.application.name", "PFW");
-        return appName.replace("cpf-", "");
+        String appName = environment.getProperty("spring.application.name", CpfSystemCodes.CORE);
+        return CpfSystemCodes.normalize(appName, CpfSystemCodes.CORE);
     }
 
     private static String normalizeModuleId(String value) {
-        String normalized = normalizeAlphaNumeric(value, "PFW").toUpperCase(Locale.ROOT);
-        if (normalized.length() >= MODULE_ID_LENGTH) {
-            return normalized.substring(0, MODULE_ID_LENGTH);
-        }
-        return String.format("%-" + MODULE_ID_LENGTH + "s", normalized).replace(' ', 'X');
+        return CpfSystemCodes.normalize(value, CpfSystemCodes.CORE);
     }
 
     private static String normalizeWasId(String value) {

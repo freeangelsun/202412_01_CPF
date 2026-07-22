@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * 외부 DB 없이 PFW 멱등 엔진을 교육·단위 테스트할 때 사용하는 결정적 reference adapter입니다.
+ * 외부 DB 없이 CPF 멱등 엔진을 교육·단위 테스트할 때 사용하는 결정적 reference adapter입니다.
  *
  * <p>운영 영속성 완료 근거로 사용하지 않으며 운영 profile은 JDBC adapter를 사용해야 합니다.</p>
  */

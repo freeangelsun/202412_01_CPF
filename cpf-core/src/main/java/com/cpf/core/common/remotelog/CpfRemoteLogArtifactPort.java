@@ -1,10 +1,10 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-/** ADM과 실행 인스턴스 로그 adapter 사이의 PFW 공통 port입니다. */
+/** ADM과 실행 인스턴스 로그 adapter 사이의 CPF 공통 port입니다. */
 public interface CpfRemoteLogArtifactPort {
 
     List<CpfRemoteLogArtifact> search(CpfRemoteLogArtifactSearch search);

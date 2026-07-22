@@ -1,6 +1,6 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.env.MockEnvironment;

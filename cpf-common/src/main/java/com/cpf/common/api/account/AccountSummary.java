@@ -1,4 +1,4 @@
-package cpf.cmn.api.account;
+package com.cpf.common.api.account;
 
 /**
  * ACC가 소유하고 다른 주제영역에 제공하는 계정 요약 계약입니다.

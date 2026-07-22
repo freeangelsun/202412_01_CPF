@@ -1,10 +1,10 @@
-package cpf.acc.account.adapter;
+package com.cpf.account.account.adapter;
 
-import cpf.acc.account.dto.AccAccountCreateRequest;
-import cpf.acc.account.dto.AccAccountResponse;
-import cpf.acc.account.dto.AccAccountSearchCriteria;
-import cpf.acc.account.dto.AccAccountUpdateRequest;
-import cpf.acc.account.port.AccAccountRepository;
+import com.cpf.account.account.dto.AccAccountCreateRequest;
+import com.cpf.account.account.dto.AccAccountResponse;
+import com.cpf.account.account.dto.AccAccountSearchCriteria;
+import com.cpf.account.account.dto.AccAccountUpdateRequest;
+import com.cpf.account.account.port.AccAccountRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

@@ -4,8 +4,25 @@
     [switch] $Fix
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
-$moduleCodes = @("adm", "bat", "bza", "mbr", "xyz")
+$modules = @(
+    [ordered]@{ project = "cpf-core"; code = "cpf" },
+    [ordered]@{ project = "cpf-common"; code = "cmn" },
+    [ordered]@{ project = "cpf-member"; code = "mbr" },
+    [ordered]@{ project = "cpf-admin"; code = "adm" },
+    [ordered]@{ project = "cpf-biz-admin"; code = "bza" },
+    [ordered]@{ project = "cpf-batch"; code = "bat" },
+    [ordered]@{ project = "cpf-account"; code = "acc" },
+    [ordered]@{ project = "cpf-reference"; code = "ref" },
+    [ordered]@{ project = "cpf-external"; code = "exs" },
+    [ordered]@{ project = "cpf-gateway"; code = "gwy" }
+)
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Get-AnnotationRanges {
@@ -119,13 +136,13 @@ function Get-MethodMappings {
 }
 
 $controllerFiles = New-Object System.Collections.Generic.List[object]
-foreach ($moduleCode in $moduleCodes) {
-    $sourceRoot = Join-Path $Root "$moduleCode/src/main/java"
+foreach ($module in $modules) {
+    $sourceRoot = Join-Path $Root "$($module.project)/src/main/java"
     if (-not (Test-Path -LiteralPath $sourceRoot)) {
         continue
     }
     Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter "*Controller.java" | ForEach-Object {
-        $controllerFiles.Add([pscustomobject]@{ module = $moduleCode; file = $_ }) | Out-Null
+        $controllerFiles.Add([pscustomobject]@{ module = $module.code; file = $_ }) | Out-Null
     }
 }
 

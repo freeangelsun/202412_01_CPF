@@ -1,8 +1,10 @@
 spring:
   datasource:
+    mode: ${MBR_DATASOURCE_MODE:url}
     url: ${MBR_DATASOURCE_URL:${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}}
     username: ${MBR_DATASOURCE_USERNAME:${MBR_DB_USERNAME:cpf_mbr_app}}
     password: ${MBR_DATASOURCE_PASSWORD:${MBR_DB_PASSWORD:__REPLACE_BY_ENV__}}
+    jndi-name: ${MBR_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -25,8 +27,8 @@ spring:
 mybatis:
   config-location: classpath:mybatis/config/mbr-mybatis-config.xml
   mapper-locations: classpath:mybatis/mapper/mbr/**/*.xml
-  type-aliases-package: cpf.mbr.bse.entity
-  type-handlers-package: cpf.mbr.handler
+  type-aliases-package: com.cpf.member.bse.entity
+  type-handlers-package: com.cpf.member.handler
   configuration:
     map-underscore-to-camel-case: true
     jdbc-type-for-null: NULL

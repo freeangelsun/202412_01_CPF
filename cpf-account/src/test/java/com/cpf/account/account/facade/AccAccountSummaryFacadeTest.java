@@ -1,7 +1,7 @@
-package cpf.acc.account.facade;
+package com.cpf.account.account.facade;
 
-import cpf.acc.account.dto.AccAccountResponse;
-import cpf.acc.account.port.AccAccountRepository;
+import com.cpf.account.account.dto.AccAccountResponse;
+import com.cpf.account.account.port.AccAccountRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

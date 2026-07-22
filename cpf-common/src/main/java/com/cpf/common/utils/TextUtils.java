@@ -1,4 +1,4 @@
-package cpf.cmn.utils;
+package com.cpf.common.utils;
 
 import java.util.Locale;
 

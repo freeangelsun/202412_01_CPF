@@ -1,4 +1,4 @@
-package cpf.pfw.common.base;
+package com.cpf.core.common.base;
 
 /**
  * 조회 의도를 표현하는 요청 DTO 계약입니다.

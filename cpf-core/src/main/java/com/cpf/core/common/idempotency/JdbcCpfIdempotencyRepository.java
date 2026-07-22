@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * PFW 공통 idempotency 테이블을 사용하는 JDBC reference adapter입니다.
+ * CPF 공통 idempotency 테이블을 사용하는 JDBC reference adapter입니다.
  *
- * <p>운영 DB에서는 {@code pfw_idempotency_record}의 unique key가 동시 요청 race를 최종 차단합니다.
+ * <p>운영 DB에서는 {@code cpf_idempotency_record}의 unique key가 동시 요청 race를 최종 차단합니다.
  * 애플리케이션은 먼저 reserve를 호출하고, 처리 결과가 확정되면 complete로 저장 응답과 상태를 남깁니다.</p>
  */
 public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
@@ -26,10 +26,10 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     public boolean reserve(CpfIdempotencyRecord record) {
         try {
             jdbcTemplate.update("""
-                    INSERT INTO pfw_idempotency_record (
+                    INSERT INTO cpf_idempotency_record (
                         scope, idempotency_key, request_hash, payload_hash, record_status,
                         retry_allowed_yn, expires_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'PFW_IDEMPOTENCY', 'PFW_IDEMPOTENCY')
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'CPF_IDEMPOTENCY', 'CPF_IDEMPOTENCY')
                     """,
                     record.scope(),
                     record.idempotencyKey(),
@@ -57,7 +57,7 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
                        created_at AS createdAt,
                        completed_at AS completedAt,
                        expires_at AS expiresAt
-                FROM pfw_idempotency_record
+                FROM cpf_idempotency_record
                 WHERE scope = ?
                   AND idempotency_key = ?
                 LIMIT 1
@@ -68,12 +68,12 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     @Override
     public void complete(String scope, String idempotencyKey, String status, String storedResponse, boolean retryAllowed) {
         jdbcTemplate.update("""
-                UPDATE pfw_idempotency_record
+                UPDATE cpf_idempotency_record
                 SET record_status = ?,
                     stored_response = ?,
                     retry_allowed_yn = ?,
                     completed_at = CURRENT_TIMESTAMP(3),
-                    updated_by = 'PFW_IDEMPOTENCY',
+                    updated_by = 'CPF_IDEMPOTENCY',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE scope = ?
                   AND idempotency_key = ?
@@ -94,13 +94,13 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
             Instant now,
             Instant expiresAt) {
         int updated = jdbcTemplate.update("""
-                UPDATE pfw_idempotency_record
+                UPDATE cpf_idempotency_record
                 SET record_status = 'PROCESSING',
                     stored_response = NULL,
                     retry_allowed_yn = 'N',
                     completed_at = NULL,
                     expires_at = ?,
-                    updated_by = 'PFW_IDEMPOTENCY',
+                    updated_by = 'CPF_IDEMPOTENCY',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE scope = ?
                   AND idempotency_key = ?
@@ -129,10 +129,10 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     @Override
     public int expireBefore(Instant now, int limit) {
         return jdbcTemplate.update("""
-                UPDATE pfw_idempotency_record
+                UPDATE cpf_idempotency_record
                 SET record_status = 'EXPIRED',
                     retry_allowed_yn = 'Y',
-                    updated_by = 'PFW_IDEMPOTENCY_CLEANUP',
+                    updated_by = 'CPF_IDEMPOTENCY_CLEANUP',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE record_status = 'PROCESSING'
                   AND expires_at IS NOT NULL

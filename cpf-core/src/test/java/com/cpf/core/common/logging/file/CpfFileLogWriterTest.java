@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.file;
+package com.cpf.core.common.logging.file;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,20 +26,20 @@ class CpfFileLogWriterTest {
     void writesSameStableTransactionIdToOneBusinessDateFile() throws Exception {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
-                .withProperty("cpf.framework.module-id", "XYZ")
-                .withProperty("cpf.framework.instance-id", "xyz-local-01");
+                .withProperty("cpf.framework.module-id", "REF")
+                .withProperty("cpf.framework.instance-id", "ref-local-01");
         CpfFileLogWriter writer = new CpfFileLogWriter(environment);
-        var first = cpf.pfw.common.logging.TransactionLogRecord.builder()
-                .transactionId("20260713120000000XYZxyzAP010000001")
-                .businessTransactionId("XYZ01TST0001")
-                .moduleId("XYZ")
+        var first = com.cpf.core.common.logging.TransactionLogRecord.builder()
+                .transactionId("20260713120000000REFrefAP010000001")
+                .businessTransactionId("REF01TST0001")
+                .moduleId("REF")
                 .logType("SUCCESS")
                 .startTime(LocalDateTime.of(2026, 7, 13, 12, 0))
                 .build();
-        var second = cpf.pfw.common.logging.TransactionLogRecord.builder()
-                .transactionId("20260713120100000XYZxyzAP010000002")
-                .businessTransactionId("XYZ01TST0001")
-                .moduleId("XYZ")
+        var second = com.cpf.core.common.logging.TransactionLogRecord.builder()
+                .transactionId("20260713120100000REFrefAP010000002")
+                .businessTransactionId("REF01TST0001")
+                .moduleId("REF")
                 .logType("SUCCESS")
                 .startTime(LocalDateTime.of(2026, 7, 13, 12, 1))
                 .build();
@@ -47,15 +47,15 @@ class CpfFileLogWriterTest {
         writer.writeTransaction(first, Map.of(), null);
         writer.writeTransaction(second, Map.of(), null);
 
-        Path transactionFile = instanceRoot("xyz").resolve(
-                "transactions/20260713/XYZ01TST0001_20260713.log");
+        Path transactionFile = instanceRoot("ref").resolve(
+                "transactions/20260713/REF01TST0001_20260713.log");
         assertThat(transactionFile).exists();
         assertThat(Files.readAllLines(transactionFile)).hasSize(2);
         assertThat(Files.readString(transactionFile))
-                .contains("XYZ01TST0001")
+                .contains("REF01TST0001")
                 .contains(first.getTransactionId())
                 .contains(second.getTransactionId());
-        assertThat(instanceRoot("xyz").resolve("transactions/20260713/NO_TRANSACTION_20260713.log"))
+        assertThat(instanceRoot("ref").resolve("transactions/20260713/NO_TRANSACTION_20260713.log"))
                 .doesNotExist();
     }
 
@@ -63,18 +63,18 @@ class CpfFileLogWriterTest {
     void writeEventMasksSensitiveValuesByKeyAndContent() throws Exception {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
-                .withProperty("cpf.framework.module-id", "XYZ")
+                .withProperty("cpf.framework.module-id", "REF")
                 .withProperty("server.port", "8080");
         CpfFileLogWriter writer = new CpfFileLogWriter(environment);
 
-        writer.writeEvent("XYZ", "integration", Map.of(
+        writer.writeEvent("REF", "integration", Map.of(
                 "eventType", "OUTBOUND_REQUEST",
                 "password", "plainSecret",
                 "Authorization", "Bearer token-raw-value",
                 "X-Api-Key", "api-key-raw",
                 "nested", Map.of("credential", "credential-raw")));
 
-        Path logFile = singleLogFile(instanceRoot("xyz").resolve("integration"), "cpf-xyz-integration-*.log");
+        Path logFile = singleLogFile(instanceRoot("ref").resolve("integration"), "cpf-ref-integration-*.log");
         String content = Files.readString(logFile);
 
         assertThat(content)
@@ -92,14 +92,14 @@ class CpfFileLogWriterTest {
     void writeEventUsesConfiguredModuleIdBeforeApplicationName() throws Exception {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
-                .withProperty("cpf.framework.module-id", "XYZ")
+                .withProperty("cpf.framework.module-id", "REF")
                 .withProperty("spring.application.name", "cpf-cmn")
                 .withProperty("server.port", "8080");
         CpfFileLogWriter writer = new CpfFileLogWriter(environment);
 
         writer.writeEvent(null, "transaction", Map.of("eventType", "MODULE_ID_PRIORITY_CHECK"));
 
-        assertThat(logFiles(instanceRoot("xyz").resolve("application"), "cpf-xyz-transaction-*.log")).hasSize(1);
+        assertThat(logFiles(instanceRoot("ref").resolve("application"), "cpf-ref-transaction-*.log")).hasSize(1);
         assertThat(tempDir.resolve("local/cmn")).doesNotExist();
     }
 
@@ -108,7 +108,7 @@ class CpfFileLogWriterTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.logging.file.timezone", "Asia/Seoul")
-                .withProperty("cpf.framework.module-id", "XYZ");
+                .withProperty("cpf.framework.module-id", "REF");
 
         CpfFileLogWriter firstDayWriter = new CpfFileLogWriter(
                 environment,
@@ -117,11 +117,11 @@ class CpfFileLogWriterTest {
                 environment,
                 Clock.fixed(Instant.parse("2026-07-13T15:00:01Z"), ZoneId.of("Asia/Seoul")));
 
-        firstDayWriter.writeEvent("XYZ", "application", firstDayWriter.newBaseEvent("XYZ", "application"));
-        secondDayWriter.writeEvent("XYZ", "application", secondDayWriter.newBaseEvent("XYZ", "application"));
+        firstDayWriter.writeEvent("REF", "application", firstDayWriter.newBaseEvent("REF", "application"));
+        secondDayWriter.writeEvent("REF", "application", secondDayWriter.newBaseEvent("REF", "application"));
 
         List<Path> files;
-        try (var stream = Files.list(instanceRoot("xyz").resolve("application"))) {
+        try (var stream = Files.list(instanceRoot("ref").resolve("application"))) {
             files = stream.filter(Files::isRegularFile).toList();
         }
         assertThat(files).hasSize(2);

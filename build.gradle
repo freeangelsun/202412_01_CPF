@@ -81,7 +81,7 @@ subprojects {
     }
 
     tasks.withType(AbstractArchiveTask).configureEach {
-        archiveBaseName = "cpf-${project.name}"
+        archiveBaseName = project.name
         preserveFileTimestamps = false
         reproducibleFileOrder = true
     }
@@ -89,7 +89,7 @@ subprojects {
     tasks.withType(Jar).configureEach {
         manifest {
             attributes(
-                    'Implementation-Title': "cpf-${project.name}",
+                    'Implementation-Title': project.name,
                     'Implementation-Version': project.version,
                     'CPF-Platform-Version': rootProject.ext.cpfPlatformVersion,
                     'CPF-Compatible-Range': rootProject.ext.cpfCompatibleRange,
@@ -113,7 +113,7 @@ tasks.register('verifyVersionConsistency') {
         if (!(expected ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
             throw new GradleException("CPF platform version format is invalid: ${expected}")
         }
-        ['pfw', 'cmn'].each { lockedComponent ->
+        ['cpf-core', 'cpf-common'].each { lockedComponent ->
             if (project(":${lockedComponent}").version.toString() != expected) {
                 throw new GradleException("${lockedComponent} component must stay platform-locked: ${project(":${lockedComponent}").version}")
             }
@@ -170,8 +170,8 @@ tasks.register('bumpComponentVersion') {
         if (!subprojects*.name.contains(component)) {
             throw new GradleException("Unknown component: ${component}")
         }
-        if (component in ['pfw', 'cmn']) {
-            throw new GradleException("PFW와 CMN은 platform-locked component이므로 독립 version bump를 허용하지 않습니다.")
+        if (component in ['cpf-core', 'cpf-common']) {
+            throw new GradleException("cpf-core와 cpf-common은 platform-locked component이므로 독립 version bump를 허용하지 않습니다.")
         }
         if (!(level in ['patch', 'minor', 'major'])) {
             throw new GradleException('level은 patch, minor 또는 major 중 하나여야 합니다.')
@@ -274,18 +274,19 @@ tasks.register('runLocalServices') {
     group = 'application'
     description = 'CPF verification or deployment task.'
 
-    dependsOn ':mbr:classes', ':xyz:classes', ':adm:classes', ':bza:classes',
-            ':bat:classes', ':acc:classes', ':pfw-gateway-runtime:classes'
+    dependsOn ':cpf-member:classes', ':cpf-reference:classes', ':cpf-admin:classes', ':cpf-biz-admin:classes',
+            ':cpf-batch:classes', ':cpf-account:classes', ':cpf-gateway:classes', ':cpf-external:classes'
 
     doLast {
         def services = [
-                [name: 'MBR', project: project(':mbr'), mainClass: 'cpf.mbr.MbrApplication'],
-                [name: 'XYZ', project: project(':xyz'), mainClass: 'cpf.xyz.XyzApplication'],
-                [name: 'ADM', project: project(':adm'), mainClass: 'cpf.adm.AdmApplication'],
-                [name: 'BZA', project: project(':bza'), mainClass: 'cpf.bza.BzaApplication', defaultEnabled: true],
-                [name: 'BAT', project: project(':bat'), mainClass: 'cpf.bat.BatApplication', defaultEnabled: false],
-                [name: 'ACC', project: project(':acc'), mainClass: 'cpf.acc.AccApplication', defaultEnabled: false],
-                [name: 'GATEWAY', project: project(':pfw-gateway-runtime'), mainClass: 'cpf.pfw.gateway.PfwGatewayApplication', defaultEnabled: false]
+                [name: 'MBR', project: project(':cpf-member'), mainClass: 'com.cpf.member.MbrApplication'],
+                 [name: 'REF', project: project(':cpf-reference'), mainClass: 'com.cpf.reference.ReferenceApplication'],
+                [name: 'ADM', project: project(':cpf-admin'), mainClass: 'com.cpf.admin.AdmApplication'],
+                [name: 'BZA', project: project(':cpf-biz-admin'), mainClass: 'com.cpf.bizadmin.BzaApplication', defaultEnabled: true],
+                [name: 'BAT', project: project(':cpf-batch'), mainClass: 'com.cpf.batch.BatApplication', defaultEnabled: false],
+                [name: 'ACC', project: project(':cpf-account'), mainClass: 'com.cpf.account.AccApplication', defaultEnabled: false],
+                [name: 'EXS', project: project(':cpf-external'), mainClass: 'com.cpf.external.ExternalApplication', defaultEnabled: false],
+                [name: 'GWY', project: project(':cpf-gateway'), mainClass: 'com.cpf.gateway.CpfGatewayApplication', defaultEnabled: false]
         ]
         def requestedServiceText = (project.findProperty('cpfRunServices') ?: System.getenv('CPF_RUN_LOCAL_SERVICES') ?: '').toString()
         if (!requestedServiceText.isBlank()) {
@@ -308,8 +309,8 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('Default ports: MBR(8081), XYZ(8099), ADM(8090), BZA(8091), BAT(8093), ACC(8082), GATEWAY(8070)')
-        logger.lifecycle('PFW and CMN are library modules and are not started as standalone services.')
+        logger.lifecycle('Default ports: MBR(8081), REF(8099), ADM(8090), BZA(8091), BAT(8093), ACC(8082), EXS(8094), GWY(8070)')
+        logger.lifecycle('cpf-core(CPF)와 cpf-common(CMN)은 라이브러리 모듈이므로 독립 서비스로 기동하지 않습니다.')
 
         services.each { service ->
             def classpath = service.project.sourceSets.main.runtimeClasspath.asPath
@@ -382,13 +383,14 @@ void stopLocalServiceProcesses(List processes) {
 }
 
 ext.cpfServiceModules = [
-        MBR   : 'mbr',
-        ADM   : 'adm',
-        BAT   : 'bat',
-        BZA   : 'bza',
-        XYZ   : 'xyz',
-        ACC   : 'acc',
-        GATEWAY: 'pfw-gateway-runtime'
+        MBR    : 'cpf-member',
+        ADM    : 'cpf-admin',
+        BAT    : 'cpf-batch',
+        BZA    : 'cpf-biz-admin',
+        REF    : 'cpf-reference',
+        ACC    : 'cpf-account',
+        EXS    : 'cpf-external',
+        GWY    : 'cpf-gateway'
 ]
 ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
 
@@ -413,7 +415,7 @@ String cpfRequestedEnv() {
 }
 
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'specs/evidence/20260716_02').toString())
+    return file((findProperty('cpfResultDir') ?: 'cpf-docs/evidence/20260722_01').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -463,6 +465,11 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
             "${prefix}_WAS_ID".toString(),
             "${prefix}_SERVER_PORT".toString(),
             'CPF_LOG_ROOT',
+            'CPF_DB_MODE',
+            'CPF_DB_URL',
+            'CPF_DB_USERNAME',
+            'CPF_DB_PASSWORD',
+            'CPF_DB_JNDI_NAME',
             "${prefix}_DATASOURCE_MODE".toString(),
             "${prefix}_DATASOURCE_URL".toString(),
             "${prefix}_DATASOURCE_USERNAME".toString(),
@@ -481,6 +488,9 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
     def datasourcePasswordKey = "${prefix}_DATASOURCE_PASSWORD".toString()
     if (values[datasourceModeKey] && !['url', 'jndi'].contains(values[datasourceModeKey].toLowerCase(Locale.ROOT))) {
         failures << "${prefix}_DATASOURCE_MODE must be url or jndi."
+    }
+    if (values['CPF_DB_MODE'] && !['url', 'jndi'].contains(values['CPF_DB_MODE'].toLowerCase(Locale.ROOT))) {
+        failures << 'CPF_DB_MODE must be url or jndi.'
     }
     if ((values[datasourcePasswordKey] ?: '').toLowerCase(Locale.ROOT).contains('local_pw')) {
         failures << "${prefix}_DATASOURCE_PASSWORD must not contain a local default password marker."
@@ -553,22 +563,22 @@ Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
     new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
         entries = zip.entries().collect { it.name }
     }
-    def containsPfw = entries.any { it ==~ /BOOT-INF\/lib\/cpf-pfw-.*\.jar/ }
-    def containsCmn = entries.any { it ==~ /BOOT-INF\/lib\/cpf-cmn-.*\.jar/ }
+    def containsCore = entries.any { it ==~ /BOOT-INF\/lib\/cpf-core-.*\.jar/ }
+    def containsCommon = entries.any { it ==~ /BOOT-INF\/lib\/cpf-common-.*\.jar/ }
     def failures = []
-    if (!containsPfw) {
-        failures << 'bootJar does not contain PFW jar.'
+    if (!containsCore) {
+        failures << 'bootJar에 cpf-core 의존성이 포함되지 않았습니다.'
     }
-    if (!(moduleCode in ['BAT', 'GATEWAY']) && !containsCmn) {
-        failures << 'bootJar does not contain CMN jar.'
+    if (!(moduleCode in ['BAT', 'GWY']) && !containsCommon) {
+        failures << 'bootJar에 cpf-common 의존성이 포함되지 않았습니다.'
     }
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
             module     : moduleCode,
             status     : failures.isEmpty() ? 'DONE' : 'FAILED',
             artifact   : jarFile.path.replace('\\', '/'),
-            containsPfw: containsPfw,
-            containsCmn: containsCmn,
+            containsCore: containsCore,
+            containsCommon: containsCommon,
             failures   : failures
     ]
     cpfWriteJson(new File(resultDir, "packaged-dependencies-${moduleLower}.sanitized.json"), result)
@@ -624,7 +634,7 @@ tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
-    dependsOn ':adm:bootJar', ':bat:bootJar', ':bza:bootJar', ':mbr:bootJar', ':xyz:bootJar', ':acc:bootJar', ':pfw-gateway-runtime:bootJar'
+    dependsOn ':cpf-admin:bootJar', ':cpf-batch:bootJar', ':cpf-biz-admin:bootJar', ':cpf-member:bootJar', ':cpf-reference:bootJar', ':cpf-account:bootJar', ':cpf-external:bootJar', ':cpf-gateway:bootJar'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
@@ -720,7 +730,7 @@ tasks.register('checkServiceCallBoundary', Exec) {
 
 tasks.register('checkArchitectureOwnership', Exec) {
     group = 'verification'
-    description = 'PFW/CMN/business ownership rules and capability placement must stay aligned.'
+    description = 'CPF/CMN/business ownership rules and capability placement must stay aligned.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-architecture-ownership.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -921,7 +931,7 @@ tasks.register('admUiSmoke', Exec) {
 
 tasks.register('checkBaseHierarchy', Exec) {
     group = 'verification'
-    description = 'Controller와 Service의 PFW·주제영역 Base 3단 확장 계층을 검사합니다.'
+    description = 'Controller와 Service의 CPF·주제영역 Base 3단 확장 계층을 검사합니다.'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-base-hierarchy.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -960,7 +970,7 @@ tasks.register('checkAccLifecycle', Exec) {
 tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
     group = 'verification'
     description = '서로 다른 BAT worker 프로세스 2개의 claim, drain, crash, lease takeover를 MariaDB에서 검증합니다.'
-    dependsOn ':bat:bootJar'
+    dependsOn ':cpf-batch:bootJar'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-bat-two-worker-runtime.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -968,7 +978,7 @@ tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
 tasks.register('checkModernFrontend', Exec) {
     group = 'verification'
     description = 'ADM/BZA Vue SFC, TypeScript, lockfile, legacy 제거와 JAR/WAR 포함을 검증합니다.'
-    dependsOn ':adm:frontendVerify', ':bza:frontendVerify', ':adm:bootJar', ':adm:bootWar', ':bza:bootJar', ':bza:bootWar'
+    dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', ':cpf-admin:bootJar', ':cpf-admin:bootWar', ':cpf-biz-admin:bootJar', ':cpf-biz-admin:bootWar'
     commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-modern-frontend.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -1019,6 +1029,6 @@ tasks.register('qualityGate') {
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
-    dependsOn ':adm:frontendVerify', ':bza:frontendVerify', 'checkModernFrontend'
+    dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
     dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
 }

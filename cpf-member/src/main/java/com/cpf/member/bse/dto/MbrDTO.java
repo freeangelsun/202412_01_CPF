@@ -1,4 +1,4 @@
-package cpf.mbr.bse.dto;
+package com.cpf.member.bse.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

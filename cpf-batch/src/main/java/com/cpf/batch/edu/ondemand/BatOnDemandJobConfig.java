@@ -1,6 +1,6 @@
-package cpf.bat.edu.ondemand;
+package com.cpf.batch.edu.ondemand;
 
-import cpf.pfw.common.execution.CpfBatchJob;
+import com.cpf.core.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;

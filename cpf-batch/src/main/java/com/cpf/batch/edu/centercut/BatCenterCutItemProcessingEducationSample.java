@@ -1,4 +1,4 @@
-package cpf.bat.edu.centercut;
+package com.cpf.batch.edu.centercut;
 
 /**
  * center-cut item 단위 처리 상태 샘플입니다.

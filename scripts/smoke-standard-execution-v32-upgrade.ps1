@@ -5,8 +5,14 @@
     [string] $Port = $(if ($env:CPF_DB_PORT) { $env:CPF_DB_PORT } else { "3306" }),
     [string] $Username = $(if ($env:CPF_DB_ROOT_USERNAME) { $env:CPF_DB_ROOT_USERNAME } else { "root" }),
     [string] $Password = $env:CPF_DB_ROOT_PASSWORD,
-    [string] $ResultDir = "specs/evidence/20260716_01"
+    [string] $ResultDir = "build/runtime-smoke"
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -82,25 +88,25 @@ try {
         (Join-Path $Root "specs/sql/migration/flyway/V28__standard_execution_catalog.sql"), [Text.Encoding]::UTF8)
     $v32 = [IO.File]::ReadAllText(
         (Join-Path $Root "specs/sql/migration/flyway/V32__standard_execution_id_v2.sql"), [Text.Encoding]::UTF8)
-    $v28 = $v28.Replace("USE pfwDB;", "USE $database;")
-    $v32 = $v32.Replace("USE pfwDB;", "USE $database;")
+    $v28 = $v28.Replace("USE cpfDB;", "USE $database;")
+    $v32 = $v32.Replace("USE cpfDB;", "USE $database;")
     $fixture = @"
 USE $database;
-INSERT INTO pfw_standard_execution (
+INSERT INTO cpf_standard_execution (
     standard_execution_id, execution_name, execution_type, owner_domain, source_module,
     source_class, source_method, endpoint, operation_id, source_version, created_by, updated_by
 ) VALUES
     ('BADM-RLG-EX-0001', '구형 배치', 'BATCH', 'ADM', 'ADM', 'LegacyBatch', 'run', NULL, NULL, 'legacy', 'TEST', 'TEST'),
-    ('OXYZ-QRY-01-0005', '구형 온라인', 'ONLINE', 'XYZ', 'XYZ', 'LegacyOnline', 'query', '/legacy', 'legacyQuery', 'legacy', 'TEST', 'TEST');
+    ('OREF-QRY-01-0005', '구형 온라인', 'ONLINE', 'REF', 'REF', 'LegacyOnline', 'query', '/legacy', 'legacyQuery', 'legacy', 'TEST', 'TEST');
 "@
     [void] (Invoke-Sql "DROP DATABASE IF EXISTS $database; CREATE DATABASE $database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`n$v28`n$fixture`n$v32")
     $output = Invoke-Sql @"
 USE $database;
-SELECT COUNT(*) FROM pfw_standard_execution
-WHERE standard_execution_id IN ('BADMRL0001', 'OXYZQR0005');
-SELECT COUNT(*) FROM pfw_standard_execution
+SELECT COUNT(*) FROM cpf_standard_execution
+WHERE standard_execution_id IN ('BADMRL0001', 'OREFQR0005');
+SELECT COUNT(*) FROM cpf_standard_execution
 WHERE standard_execution_id REGEXP '^[OB].*-.*$';
-SELECT COUNT(*) FROM pfw_standard_execution_alias;
+SELECT COUNT(*) FROM cpf_standard_execution_alias;
 "@
     $lines = @($output -split "`r?`n" | Where-Object { $_ -match '^\d+$' })
     $result.checks.migratedFixtureCount = [int] $lines[0]

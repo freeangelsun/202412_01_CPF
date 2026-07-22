@@ -1,4 +1,4 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
 import java.util.List;
 

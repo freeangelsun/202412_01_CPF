@@ -1,13 +1,13 @@
-package cpf.xyz.telegram;
+package com.cpf.reference.telegram;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XyzFixedLengthBusinessUseEducationSampleTest {
+class ReferenceFixedLengthBusinessUseEducationSampleTest {
 
     @Test
     void businessLayoutUsesCmnFixedLengthSpec() {
-        assertThat(new XyzFixedLengthBusinessUseEducationSample().layout().totalLength()).isEqualTo(12);
+        assertThat(new ReferenceFixedLengthBusinessUseEducationSample().layout().totalLength()).isEqualTo(12);
     }
 }

@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
@@ -11,7 +17,10 @@ if (-not [IO.Path]::IsPathRooted($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$modules = @('pfw', 'cmn', 'adm', 'bza', 'mbr', 'acc', 'bat', 'xyz', 'pfw-gateway-runtime')
+$modules = @(
+    'cpf-core', 'cpf-common', 'cpf-member', 'cpf-admin', 'cpf-biz-admin',
+    'cpf-batch', 'cpf-account', 'cpf-reference', 'cpf-external', 'cpf-gateway'
+)
 $trackedExtensions = @('.java', '.kt', '.groovy', '.xml', '.yml', '.yaml', '.properties', '.sql', '.json', '.js', '.css', '.html', '.md', '.ps1', '.gradle')
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()

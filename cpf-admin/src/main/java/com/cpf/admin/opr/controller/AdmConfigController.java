@@ -1,10 +1,10 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.cmn.cfg.dto.CommonConfigRequest;
-import cpf.cmn.cfg.service.ConfigCacheService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.cfg.dto.CommonConfigRequest;
+import com.cpf.common.cfg.service.ConfigCacheService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,8 +26,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/adm/api/configs")
-@Tag(name = "ADM-PFW Configs", description = "PFW 공통 설정 관리 API")
-public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-CPF Configs", description = "CPF 공통 설정 관리 API")
+public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseController {
     private final ConfigCacheService configCacheService;
     private final AdmAuditLogService auditLogService;
 
@@ -38,21 +38,21 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
 
     @GetMapping
     @CpfOnlineTransaction(id = "OADMCF0010", name = "ADMConfigList")
-    @Operation(operationId = "admConfigFindConfigs", summary = "공통 설정 목록 조회", description = "pfw_config 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
+    @Operation(operationId = "admConfigFindConfigs", summary = "공통 설정 목록 조회", description = "cpf_config 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
     public ResponseEntity<List<Map<String, Object>>> findConfigs() {
         return ResponseEntity.ok(configCacheService.getAllConfigs().stream().map(this::maskSecret).toList());
     }
 
     @GetMapping("/{configId}")
     @CpfOnlineTransaction(id = "OADMCF0011", name = "ADMConfigDetail")
-    @Operation(operationId = "admConfigFindConfig", summary = "공통 설정 상세 조회", description = "설정 ID로 pfw_config 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
+    @Operation(operationId = "admConfigFindConfig", summary = "공통 설정 상세 조회", description = "설정 ID로 cpf_config 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
     public ResponseEntity<Map<String, Object>> findConfig(@PathVariable Long configId) {
         return ResponseEntity.ok(maskSecret(configCacheService.getConfigById(configId)));
     }
 
     @PostMapping
     @CpfOnlineTransaction(id = "OADMCF0012", name = "ADMConfigCreate")
-    @Operation(operationId = "admConfigCreateConfig", summary = "공통 설정 등록", description = "pfw_config에 신규 설정을 등록하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigCreateConfig", summary = "공통 설정 등록", description = "cpf_config에 신규 설정을 등록하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createConfig(
             @Valid @RequestBody CommonConfigRequest request,
             HttpServletRequest servletRequest) {
@@ -62,7 +62,7 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CONFIG_CREATE",
-                "pfw_config",
+                "cpf_config",
                 String.valueOf(created.getOrDefault("configId", request.getConfigKey())),
                 reason,
                 null,
@@ -74,7 +74,7 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
 
     @PutMapping("/{configId}")
     @CpfOnlineTransaction(id = "OADMCF0013", name = "ADMConfigUpdate")
-    @Operation(operationId = "admConfigUpdateConfig", summary = "공통 설정 수정", description = "pfw_config를 수정하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigUpdateConfig", summary = "공통 설정 수정", description = "cpf_config를 수정하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<Map<String, Object>> updateConfig(
             @PathVariable Long configId,
             @Valid @RequestBody CommonConfigRequest request,
@@ -86,7 +86,7 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "CONFIG_UPDATE",
-                "pfw_config",
+                "cpf_config",
                 String.valueOf(configId),
                 reason,
                 String.valueOf(maskSecret(before)),
@@ -98,7 +98,7 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
 
     @DeleteMapping("/{configId}")
     @CpfOnlineTransaction(id = "OADMCF0014", name = "ADMConfigDisable")
-    @Operation(operationId = "admConfigDeleteConfig", summary = "공통 설정 비활성", description = "pfw_config를 비활성화하고 설정 캐시를 갱신합니다.")
+    @Operation(operationId = "admConfigDeleteConfig", summary = "공통 설정 비활성", description = "cpf_config를 비활성화하고 설정 캐시를 갱신합니다.")
     public ResponseEntity<List<Map<String, Object>>> deleteConfig(
             @PathVariable Long configId,
             @RequestParam String reason,
@@ -111,7 +111,7 @@ public class AdmConfigController extends cpf.adm.common.base.AdmBaseController {
                 TransactionContext.getOrCreateTransactionId(),
                 requestUser(servletRequest, requestUser),
                 "CONFIG_DISABLE",
-                "pfw_config",
+                "cpf_config",
                 String.valueOf(configId),
                 requiredReason,
                 String.valueOf(maskSecret(before)),

@@ -1,4 +1,4 @@
-package cpf.acc.config;
+package com.cpf.account.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -8,25 +8,25 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-/** ACC 배치 메타 저장소가 PFW DB와 트랜잭션 관리자를 사용하는지 검증합니다. */
+/** ACC 배치 메타 저장소가 CPF DB와 트랜잭션 관리자를 사용하는지 검증합니다. */
 class AccountBatchRepositoryConfigTest {
 
     @Test
-    void usesPfwBatchMetadataResources() {
-        DataSource pfwDataSource = mock(DataSource.class);
-        PlatformTransactionManager pfwTransactionManager = mock(PlatformTransactionManager.class);
-        TestableConfig config = new TestableConfig(pfwDataSource, pfwTransactionManager);
+    void usesCpfBatchMetadataResources() {
+        DataSource cpfDataSource = mock(DataSource.class);
+        PlatformTransactionManager cpfTransactionManager = mock(PlatformTransactionManager.class);
+        TestableConfig config = new TestableConfig(cpfDataSource, cpfTransactionManager);
 
-        assertThat(config.dataSource()).isSameAs(pfwDataSource);
-        assertThat(config.transactionManager()).isSameAs(pfwTransactionManager);
+        assertThat(config.dataSource()).isSameAs(cpfDataSource);
+        assertThat(config.transactionManager()).isSameAs(cpfTransactionManager);
         assertThat(config.databaseType()).isEqualTo("MYSQL");
     }
 
     private static final class TestableConfig extends AccountBatchRepositoryConfig {
         private TestableConfig(
-                DataSource pfwDataSource,
-                PlatformTransactionManager pfwTransactionManager) {
-            super(pfwDataSource, pfwTransactionManager);
+                DataSource cpfDataSource,
+                PlatformTransactionManager cpfTransactionManager) {
+            super(cpfDataSource, cpfTransactionManager);
         }
 
         private DataSource dataSource() {

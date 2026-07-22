@@ -1,4 +1,4 @@
-package cpf.bat.job.failure;
+package com.cpf.batch.job.failure;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;

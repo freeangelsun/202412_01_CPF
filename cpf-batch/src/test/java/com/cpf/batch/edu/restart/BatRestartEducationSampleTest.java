@@ -1,4 +1,4 @@
-package cpf.bat.edu.restart;
+package com.cpf.batch.edu.restart;
 
 import org.junit.jupiter.api.Test;
 

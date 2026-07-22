@@ -3,6 +3,12 @@
     [string] $ResultDir = ""
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -50,7 +56,7 @@ try {
         '-ModuleCode', 'lng',
         '-ModuleName', 'Lending',
         '-DomainIdCode', 'LNG',
-        '-BasePackage', 'cpf.lng',
+        '-BasePackage', 'com.cpf.lending',
         '-TablePrefix', 'lng',
         '-Port', '8188',
         '-Online', 'Y',
@@ -68,7 +74,7 @@ try {
     }
     $result.cleanDryRun = $cleanResult
 
-    $ownedFile = Join-Path $sandbox 'lng/src/main/java/cpf/lng/LngApplication.java'
+    $ownedFile = Join-Path $sandbox 'cpf-lng/src/main/java/com/cpf/lending/LendingApplication.java'
     Add-Content -LiteralPath $ownedFile -Value "// 사용자 변경 검증" -Encoding UTF8
     $changedDir = Join-Path $sandbox 'build/remove-domain-changed'
     [void] (Invoke-Tool -Script (Join-Path $sandbox 'scripts/remove-domain.ps1') -Arguments @(
@@ -82,13 +88,13 @@ try {
     # 원래 checksum으로 되돌린 뒤 실제 제거와 settings 정리를 검증합니다.
     [void] (Invoke-Tool -Script (Join-Path $sandbox 'scripts/create-domain.ps1') -Arguments @(
             '-Root', $sandbox, '-ModuleCode', 'tmp', '-ModuleName', 'Temporary', '-DomainIdCode', 'TMP',
-            '-BasePackage', 'cpf.tmp', '-TablePrefix', 'tmp', '-Port', '8189', '-Online', 'Y', '-Batch', 'N', '-Apply'))
+            '-BasePackage', 'com.cpf.temporary', '-TablePrefix', 'tmp', '-Port', '8189', '-Online', 'Y', '-Batch', 'N', '-Apply'))
     $actualDir = Join-Path $sandbox 'build/remove-domain-actual'
     [void] (Invoke-Tool -Script (Join-Path $sandbox 'scripts/remove-domain.ps1') -Arguments @(
             '-Root', $sandbox, '-ModuleCode', 'tmp', '-ResultDir', $actualDir))
     $actualResult = Get-Content -LiteralPath (Join-Path $actualDir 'remove-domain-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $settingsText = Get-Content -LiteralPath (Join-Path $sandbox 'settings.gradle') -Raw -Encoding UTF8
-    if ($actualResult.status -ne 'DONE' -or (Test-Path -LiteralPath (Join-Path $sandbox 'tmp')) -or $settingsText -match "include 'tmp'") {
+    if ($actualResult.status -ne 'DONE' -or (Test-Path -LiteralPath (Join-Path $sandbox 'cpf-tmp')) -or $settingsText -match "include 'cpf-tmp'") {
         throw "실제 제거 후 모듈 또는 settings 참조가 남았습니다."
     }
     $result.actualRemove = $actualResult

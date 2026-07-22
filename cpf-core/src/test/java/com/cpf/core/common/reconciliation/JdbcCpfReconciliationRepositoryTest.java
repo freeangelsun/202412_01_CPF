@@ -1,4 +1,4 @@
-package cpf.pfw.common.reconciliation;
+package com.cpf.core.common.reconciliation;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;

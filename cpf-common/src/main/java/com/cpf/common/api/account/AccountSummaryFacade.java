@@ -1,4 +1,4 @@
-package cpf.cmn.api.account;
+package com.cpf.common.api.account;
 
 /**
  * 주제영역 간 계정 요약 조회에 사용하는 중립 Facade Contract입니다.

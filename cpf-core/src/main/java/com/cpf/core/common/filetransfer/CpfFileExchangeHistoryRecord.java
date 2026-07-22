@@ -1,9 +1,9 @@
-package cpf.pfw.common.filetransfer;
+package com.cpf.core.common.filetransfer;
 
 import java.time.Instant;
 
 /**
- * 파일 helper, 전송, 원격 명령 계획을 같은 형식으로 추적하는 PFW 이력입니다.
+ * 파일 helper, 전송, 원격 명령 계획을 같은 형식으로 추적하는 CPF 이력입니다.
  */
 public record CpfFileExchangeHistoryRecord(
         String exchangeId,

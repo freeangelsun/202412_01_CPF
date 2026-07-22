@@ -1,9 +1,9 @@
-package cpf.acc.account.controller;
+package com.cpf.account.account.controller;
 
-import cpf.cmn.api.account.AccountSummary;
-import cpf.cmn.api.account.AccountSummaryFacade;
-import cpf.acc.common.base.AccBaseController;
-import cpf.pfw.common.execution.CpfSharedApi;
+import com.cpf.common.api.account.AccountSummary;
+import com.cpf.common.api.account.AccountSummaryFacade;
+import com.cpf.account.common.base.AccBaseController;
+import com.cpf.core.common.execution.CpfSharedApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

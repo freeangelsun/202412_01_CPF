@@ -1,9 +1,15 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string[]] $Modules = @("MBR", "ADM", "BZA", "XYZ", "BAT"),
+    [string[]] $Modules = @("MBR", "ADM", "BZA", "REF", "BAT"),
     [string] $ResultDir = "",
     [switch] $NoExitOnFailure
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
@@ -62,7 +68,7 @@ function Add-ArchiveTextEntries {
             continue
         }
 
-        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/cpf-(pfw|cmn|mbr|adm|bza|xyz|bat|acc)-.*\.jar$') {
+        if ($NestedDepth -lt 1 -and $entry.FullName -match 'BOOT-INF/lib/cpf-(core|common|member|admin|biz-admin|reference|batch|account|external|gateway)-.*\.jar$') {
             $memory = [System.IO.MemoryStream]::new()
             try {
                 $entryStream = $entry.Open()

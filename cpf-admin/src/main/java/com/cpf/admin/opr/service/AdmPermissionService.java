@@ -1,17 +1,17 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.opr.dto.AdmApiPermission;
-import cpf.adm.opr.dto.AdmApiPermissionSaveRequest;
-import cpf.adm.opr.dto.AdmButton;
-import cpf.adm.opr.dto.AdmButtonSaveRequest;
-import cpf.adm.opr.dto.AdmMenuManagement;
-import cpf.adm.opr.dto.AdmMenuSaveRequest;
-import cpf.adm.opr.dto.AdmRoleManagement;
-import cpf.adm.opr.dto.AdmRoleSaveRequest;
-import cpf.adm.opr.dto.AdmStatusUpdateRequest;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.opr.dto.AdmApiPermission;
+import com.cpf.admin.opr.dto.AdmApiPermissionSaveRequest;
+import com.cpf.admin.opr.dto.AdmButton;
+import com.cpf.admin.opr.dto.AdmButtonSaveRequest;
+import com.cpf.admin.opr.dto.AdmMenuManagement;
+import com.cpf.admin.opr.dto.AdmMenuSaveRequest;
+import com.cpf.admin.opr.dto.AdmRoleManagement;
+import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
+import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +29,7 @@ import java.util.Map;
  * ADM 역할, 메뉴, 버튼, API 권한 매트릭스를 조회하고 변경합니다.
  */
 @Service
-public class AdmPermissionService extends cpf.adm.common.base.AdmBaseService {
+public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmPermissionService.class);
 
     private final JdbcTemplate admJdbcTemplate;

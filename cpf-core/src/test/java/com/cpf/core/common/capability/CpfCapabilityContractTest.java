@@ -1,35 +1,35 @@
-package cpf.pfw.common.capability;
+package com.cpf.core.common.capability;
 
-import cpf.pfw.common.admin.CpfBrokerStatusQuery;
-import cpf.pfw.common.admin.CpfCredentialStatusQuery;
-import cpf.pfw.common.admin.CpfFileTransferStatusQuery;
-import cpf.pfw.common.admin.CpfRuntimeHealthStatusQuery;
-import cpf.pfw.common.broker.CpfBrokerEnvelope;
-import cpf.pfw.common.broker.CpfBrokerHistoryQuery;
-import cpf.pfw.common.broker.CpfBrokerHistoryRecord;
-import cpf.pfw.common.broker.CpfBrokerDlqReplayRequest;
-import cpf.pfw.common.broker.CpfBrokerDlqReplayResult;
-import cpf.pfw.common.broker.CpfBrokerMessage;
-import cpf.pfw.common.broker.CpfBrokerResult;
-import cpf.pfw.common.filetransfer.CpfFileChecksumPolicy;
-import cpf.pfw.common.filetransfer.CpfFileTransferHistoryQuery;
-import cpf.pfw.common.filetransfer.CpfFileTransferEndpoint;
-import cpf.pfw.common.filetransfer.CpfFileTransferPolicy;
-import cpf.pfw.common.filetransfer.CpfFileTransferProtocol;
-import cpf.pfw.common.filetransfer.CpfFileTransferRequest;
-import cpf.pfw.common.filetransfer.CpfFileTransferResult;
-import cpf.pfw.common.filetransfer.CpfFileTransferRetryPolicy;
-import cpf.pfw.common.runtime.CpfGhostDetectionResult;
-import cpf.pfw.common.runtime.CpfHeartbeatRequest;
-import cpf.pfw.common.runtime.CpfLockHandle;
-import cpf.pfw.common.runtime.CpfLockAcquireRequest;
-import cpf.pfw.common.runtime.CpfLockAcquireResult;
-import cpf.pfw.common.runtime.CpfRuntimeHealthStatus;
-import cpf.pfw.common.runtime.CpfWorkerControlRequest;
-import cpf.pfw.common.security.CpfCredentialRef;
-import cpf.pfw.common.security.CpfCredentialValidationResult;
-import cpf.pfw.common.security.CpfTokenRequest;
-import cpf.pfw.common.security.CpfTokenResult;
+import com.cpf.core.common.admin.CpfBrokerStatusQuery;
+import com.cpf.core.common.admin.CpfCredentialStatusQuery;
+import com.cpf.core.common.admin.CpfFileTransferStatusQuery;
+import com.cpf.core.common.admin.CpfRuntimeHealthStatusQuery;
+import com.cpf.core.common.broker.CpfBrokerEnvelope;
+import com.cpf.core.common.broker.CpfBrokerHistoryQuery;
+import com.cpf.core.common.broker.CpfBrokerHistoryRecord;
+import com.cpf.core.common.broker.CpfBrokerDlqReplayRequest;
+import com.cpf.core.common.broker.CpfBrokerDlqReplayResult;
+import com.cpf.core.common.broker.CpfBrokerMessage;
+import com.cpf.core.common.broker.CpfBrokerResult;
+import com.cpf.core.common.filetransfer.CpfFileChecksumPolicy;
+import com.cpf.core.common.filetransfer.CpfFileTransferHistoryQuery;
+import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
+import com.cpf.core.common.filetransfer.CpfFileTransferPolicy;
+import com.cpf.core.common.filetransfer.CpfFileTransferProtocol;
+import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
+import com.cpf.core.common.filetransfer.CpfFileTransferResult;
+import com.cpf.core.common.filetransfer.CpfFileTransferRetryPolicy;
+import com.cpf.core.common.runtime.CpfGhostDetectionResult;
+import com.cpf.core.common.runtime.CpfHeartbeatRequest;
+import com.cpf.core.common.runtime.CpfLockHandle;
+import com.cpf.core.common.runtime.CpfLockAcquireRequest;
+import com.cpf.core.common.runtime.CpfLockAcquireResult;
+import com.cpf.core.common.runtime.CpfRuntimeHealthStatus;
+import com.cpf.core.common.runtime.CpfWorkerControlRequest;
+import com.cpf.core.common.security.CpfCredentialRef;
+import com.cpf.core.common.security.CpfCredentialValidationResult;
+import com.cpf.core.common.security.CpfTokenRequest;
+import com.cpf.core.common.security.CpfTokenResult;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -143,7 +143,7 @@ class CpfCapabilityContractTest {
     }
 
     @Test
-    void runtimeAndAdminDtosStayInsidePfwCommonPackages() {
+    void runtimeAndAdminDtosStayInsideCpfCommonPackages() {
         CpfLockHandle lockHandle = new CpfLockHandle("job:daily-close", "BAT-1", Instant.now(), Instant.now().plusSeconds(30));
         CpfLockAcquireRequest acquireRequest = new CpfLockAcquireRequest("job:daily-close", "BAT-1", null);
         CpfLockAcquireResult acquireResult = new CpfLockAcquireResult(true, lockHandle, null);
@@ -164,9 +164,9 @@ class CpfCapabilityContractTest {
         assertThat(status.attributes()).containsEntry("heartbeatLagMs", "10");
         assertThat(ghostDetectionResult.candidates()).isEmpty();
         assertThat(workerControlRequest.action()).isEqualTo("STATUS");
-        assertThat(CpfBrokerStatusQuery.class.getPackageName()).startsWith("cpf.pfw.common.admin");
-        assertThat(CpfFileTransferStatusQuery.class.getPackageName()).startsWith("cpf.pfw.common.admin");
-        assertThat(CpfCredentialStatusQuery.class.getPackageName()).startsWith("cpf.pfw.common.admin");
-        assertThat(CpfRuntimeHealthStatusQuery.class.getPackageName()).startsWith("cpf.pfw.common.admin");
+        assertThat(CpfBrokerStatusQuery.class.getPackageName()).startsWith("com.cpf.core.common.admin");
+        assertThat(CpfFileTransferStatusQuery.class.getPackageName()).startsWith("com.cpf.core.common.admin");
+        assertThat(CpfCredentialStatusQuery.class.getPackageName()).startsWith("com.cpf.core.common.admin");
+        assertThat(CpfRuntimeHealthStatusQuery.class.getPackageName()).startsWith("com.cpf.core.common.admin");
     }
 }

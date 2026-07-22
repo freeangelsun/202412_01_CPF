@@ -1,7 +1,7 @@
-package cpf.pfw.common.header;
+package com.cpf.core.common.header;
 
-import cpf.pfw.common.logging.TransactionContext;
-import cpf.pfw.common.logging.TransactionHeader;
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionHeader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -13,7 +13,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * PFW 표준 헤더가 소스 레벨에서 같은 기준으로 해석되는지 확인하는 흐름 테스트입니다.
+ * CPF 표준 헤더가 소스 레벨에서 같은 기준으로 해석되는지 확인하는 흐름 테스트입니다.
  *
  * <p>이 테스트는 HTTP runtime, DB 로그 저장, ADM 화면 조회를 실행하지 않습니다.
  * 대신 수신 헤더 검증, 거래 컨텍스트 생성, trusted proxy 기반 IP 산정, 주체 헤더 의미 분리,

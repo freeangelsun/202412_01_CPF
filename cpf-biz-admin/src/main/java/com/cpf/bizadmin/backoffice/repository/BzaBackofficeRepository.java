@@ -1,4 +1,4 @@
-package cpf.bza.backoffice.repository;
+package com.cpf.bizadmin.backoffice.repository;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;

@@ -1,12 +1,12 @@
-package cpf.adm.opr.controller;
+package com.cpf.admin.opr.controller;
 
-import cpf.adm.opr.dto.AdmReliabilityActionRequest;
-import cpf.adm.opr.service.AdmAuditLogService;
-import cpf.adm.opr.service.AdmBatchJobLogService;
-import cpf.adm.opr.service.AdmReliabilityService;
-import cpf.pfw.api.logging.CpfTraceRecoveryPort;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.admin.opr.dto.AdmReliabilityActionRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmBatchJobLogService;
+import com.cpf.admin.opr.service.AdmReliabilityService;
+import com.cpf.core.api.logging.CpfTraceRecoveryPort;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,8 +28,8 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/adm/api/reliability")
-@Tag(name = "ADM-OPR Reliability", description = "PFW reliability capability 운영 조회와 수동 처리 API")
-public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseController {
+@Tag(name = "ADM-OPR Reliability", description = "CPF reliability capability 운영 조회와 수동 처리 API")
+public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmReliabilityService reliabilityService;
     private final AdmBatchJobLogService batchJobLogService;
     private final AdmAuditLogService auditLogService;
@@ -106,7 +106,7 @@ public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseControl
                 messageId,
                 operatorId,
                 reason);
-        recordAudit(servletRequest, operatorId, "BROKER_DLQ_REPLAY", "pfw_broker_dlq", messageId, result);
+        recordAudit(servletRequest, operatorId, "BROKER_DLQ_REPLAY", "cpf_broker_dlq", messageId, result);
         return ResponseEntity.ok(result);
     }
 
@@ -169,7 +169,7 @@ public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseControl
     @Operation(
             operationId = "getAdmTransactionLogRecoveryStatus",
             summary = "DB 거래 로그 복구 상태 조회",
-            description = "PFW durable journal의 pending, processing, poison, 용량과 복구 worker 상태를 조회합니다.")
+            description = "CPF durable journal의 pending, processing, poison, 용량과 복구 worker 상태를 조회합니다.")
     public ResponseEntity<CpfTraceRecoveryPort.TraceRecoveryStatus> transactionLogRecoveryStatus() {
         return ResponseEntity.ok(traceRecoveryPort.status());
     }
@@ -191,7 +191,7 @@ public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseControl
                 TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "TRANSACTION_LOG_RECOVERY_RUN",
-                "pfw_transaction_log_recovery",
+                "cpf_transaction_log_recovery",
                 "PENDING",
                 reason,
                 String.valueOf(before),
@@ -220,7 +220,7 @@ public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseControl
                 TransactionContext.getOrCreateTransactionId(),
                 operatorId,
                 "TRACE_RECOVERY_POISON_RETRY",
-                "PFW_TRACE_RECOVERY",
+                "CPF_TRACE_RECOVERY",
                 recoveryEventId,
                 reason,
                 String.valueOf(before),
@@ -247,7 +247,7 @@ public class AdmReliabilityController extends cpf.adm.common.base.AdmBaseControl
                 request.targetStatus(),
                 operatorId,
                 reason);
-        recordAudit(servletRequest, operatorId, "UNKNOWN_RESULT_RESOLVE", "pfw_unknown_result", unknownId, result);
+        recordAudit(servletRequest, operatorId, "UNKNOWN_RESULT_RESOLVE", "cpf_unknown_result", unknownId, result);
         return ResponseEntity.ok(result);
     }
 

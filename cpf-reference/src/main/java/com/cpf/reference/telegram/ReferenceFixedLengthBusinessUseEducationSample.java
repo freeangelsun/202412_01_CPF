@@ -1,14 +1,14 @@
-package cpf.xyz.telegram;
+package com.cpf.reference.telegram;
 
-import cpf.cmn.message.fixedlength.FixedLengthFieldSpec;
-import cpf.cmn.message.fixedlength.FixedLengthLayoutSpec;
+import com.cpf.common.message.fixedlength.FixedLengthFieldSpec;
+import com.cpf.common.message.fixedlength.FixedLengthLayoutSpec;
 
 import java.util.List;
 
 /**
- * XYZ 업무가 CMN 고정길이 layout을 사용하는 샘플입니다.
+ * REF 업무가 CMN 고정길이 layout을 사용하는 샘플입니다.
  */
-public class XyzFixedLengthBusinessUseEducationSample {
+public class ReferenceFixedLengthBusinessUseEducationSample {
 
     public FixedLengthLayoutSpec layout() {
         return FixedLengthLayoutSpec.utf8(12, List.of(

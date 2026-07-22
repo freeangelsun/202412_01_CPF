@@ -1,6 +1,6 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * PFW 서비스 레지스트리 테이블을 조회하고 호출 이력을 기록하는 JDBC 저장소입니다.
+ * CPF 서비스 레지스트리 테이블을 조회하고 호출 이력을 기록하는 JDBC 저장소입니다.
  *
- * <p>pfwDB가 아직 설치되지 않은 개발 환경에서는 빈 결과를 반환해 애플리케이션 기동을 막지 않습니다.
+ * <p>cpfDB가 아직 설치되지 않은 개발 환경에서는 빈 결과를 반환해 애플리케이션 기동을 막지 않습니다.
  * 운영 조회 API는 빈 결과와 tableAvailable 정보를 함께 보여 주어 미설치 상태를 명확하게 확인하게 합니다.</p>
  */
 public class CpfServiceRegistryRepository {
@@ -23,8 +23,8 @@ public class CpfServiceRegistryRepository {
     private final ObjectProvider<DataSource> dataSourceProvider;
 
     public CpfServiceRegistryRepository(
-            @Qualifier("pfwJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("pfwDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.dataSourceProvider = dataSourceProvider;
     }
@@ -51,7 +51,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findServices(String serviceId, String useYn, int limit) {
-        if (!tableAvailable("pfw_service")) {
+        if (!tableAvailable("cpf_service")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -63,7 +63,7 @@ public class CpfServiceRegistryRepository {
                        use_yn AS useYn,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service
+                FROM cpf_service
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -75,7 +75,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findEndpoints(String serviceId, String endpointCode, String useYn, int limit) {
-        if (!tableAvailable("pfw_service_endpoint")) {
+        if (!tableAvailable("cpf_service_endpoint")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -90,7 +90,7 @@ public class CpfServiceRegistryRepository {
                        use_yn AS useYn,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_endpoint
+                FROM cpf_service_endpoint
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -103,7 +103,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findInstances(String serviceId, String endpointCode, String status, int limit) {
-        if (!tableAvailable("pfw_service_instance")) {
+        if (!tableAvailable("cpf_service_instance")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -120,7 +120,7 @@ public class CpfServiceRegistryRepository {
                        last_heartbeat_at AS lastHeartbeatAt,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_instance
+                FROM cpf_service_instance
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -133,7 +133,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findHealthStatuses(String serviceId, String endpointCode, int limit) {
-        if (!tableAvailable("pfw_service_health_status")) {
+        if (!tableAvailable("cpf_service_health_status")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -148,7 +148,7 @@ public class CpfServiceRegistryRepository {
                        checked_at AS checkedAt,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_health_status
+                FROM cpf_service_health_status
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -160,7 +160,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findRoutingPolicies(String serviceId, String endpointCode, String activeYn, int limit) {
-        if (!tableAvailable("pfw_service_routing_policy")) {
+        if (!tableAvailable("cpf_service_routing_policy")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -175,7 +175,7 @@ public class CpfServiceRegistryRepository {
                        priority AS priority,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_routing_policy
+                FROM cpf_service_routing_policy
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -188,7 +188,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findCircuitStates(String serviceId, String endpointCode, int limit) {
-        if (!tableAvailable("pfw_service_circuit_state")) {
+        if (!tableAvailable("cpf_service_circuit_state")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -205,7 +205,7 @@ public class CpfServiceRegistryRepository {
                        last_failure_message AS lastFailureMessage,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_circuit_state
+                FROM cpf_service_circuit_state
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -217,7 +217,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public Optional<Map<String, Object>> findCircuitState(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("pfw_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return Optional.empty();
         }
         try {
@@ -233,7 +233,7 @@ public class CpfServiceRegistryRepository {
                            half_opened_at AS halfOpenedAt,
                            closed_at AS closedAt,
                            last_failure_message AS lastFailureMessage
-                    FROM pfw_service_circuit_state
+                    FROM cpf_service_circuit_state
                     WHERE service_id = ?
                       AND endpoint_code = ?
                       AND (instance_id = ? OR (? IS NULL AND instance_id IS NULL))
@@ -247,7 +247,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findCallHistory(String serviceId, String transactionGlobalId, int limit) {
-        if (!tableAvailable("pfw_service_call_history")) {
+        if (!tableAvailable("cpf_service_call_history")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -268,7 +268,7 @@ public class CpfServiceRegistryRepository {
                        failure_message AS failureMessage,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM pfw_service_call_history
+                FROM cpf_service_call_history
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -287,15 +287,15 @@ public class CpfServiceRegistryRepository {
             long durationMillis,
             String failureCode,
             String failureMessage) {
-        if (!tableAvailable("pfw_service_call_history")) {
+        if (!tableAvailable("cpf_service_call_history")) {
             return;
         }
         jdbc().update("""
-                INSERT INTO pfw_service_call_history (
+                INSERT INTO cpf_service_call_history (
                     transaction_global_id, trace_id, service_id, endpoint_code, instance_id,
                     http_method, request_path, call_status, http_status, duration_ms,
                     timeout_ms, retry_count, failure_code, failure_message, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PFW_SERVICE_CALL', 'PFW_SERVICE_CALL')
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
                 """,
                 TransactionContext.currentTransactionId(),
                 TransactionContext.currentTraceId(),
@@ -319,15 +319,15 @@ public class CpfServiceRegistryRepository {
             Integer httpStatus,
             long durationMillis,
             String failureMessage) {
-        if (!tableAvailable("pfw_service_health_status") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("cpf_service_health_status") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         try {
             jdbc().update("""
-                    INSERT INTO pfw_service_health_status (
+                    INSERT INTO cpf_service_health_status (
                         service_id, endpoint_code, instance_id, health_status, http_status,
                         response_time_ms, failure_message, checked_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), 'PFW_SERVICE_CALL', 'PFW_SERVICE_CALL')
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
                     """,
                     target.serviceId(),
                     target.endpointCode(),
@@ -343,22 +343,22 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitSuccess(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("pfw_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         try {
             jdbc().update("""
-                    INSERT INTO pfw_service_circuit_state (
+                    INSERT INTO cpf_service_circuit_state (
                         service_id, endpoint_code, instance_id, circuit_state,
                         failure_count, success_count, closed_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, 'CLOSED', 0, 1, CURRENT_TIMESTAMP(3), 'PFW_SERVICE_CALL', 'PFW_SERVICE_CALL')
+                    ) VALUES (?, ?, ?, 'CLOSED', 0, 1, CURRENT_TIMESTAMP(3), 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
                     ON DUPLICATE KEY UPDATE
                         circuit_state = 'CLOSED',
                         failure_count = 0,
                         success_count = success_count + 1,
                         closed_at = CURRENT_TIMESTAMP(3),
                         last_failure_message = NULL,
-                        updated_by = 'PFW_SERVICE_CALL',
+                        updated_by = 'CPF_SERVICE_CALL',
                         updated_at = CURRENT_TIMESTAMP
                     """, target.serviceId(), target.endpointCode(), target.instanceId());
         } catch (DataAccessException ignored) {
@@ -367,15 +367,15 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitHalfOpen(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("pfw_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         try {
             jdbc().update("""
-                    UPDATE pfw_service_circuit_state
+                    UPDATE cpf_service_circuit_state
                     SET circuit_state = 'HALF_OPEN',
                         half_opened_at = CURRENT_TIMESTAMP(3),
-                        updated_by = 'PFW_SERVICE_CALL',
+                        updated_by = 'CPF_SERVICE_CALL',
                         updated_at = CURRENT_TIMESTAMP
                     WHERE service_id = ?
                       AND endpoint_code = ?
@@ -388,7 +388,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitFailure(ServiceCallResolvedTarget target, String failureMessage, int threshold) {
-        if (!tableAvailable("pfw_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         int resolvedThreshold = Math.max(1, threshold);
@@ -399,19 +399,19 @@ public class CpfServiceRegistryRepository {
             int nextFailureCount = currentFailureCount + 1;
             String nextState = nextFailureCount >= resolvedThreshold ? "OPEN" : "CLOSED";
             jdbc().update("""
-                    INSERT INTO pfw_service_circuit_state (
+                    INSERT INTO cpf_service_circuit_state (
                         service_id, endpoint_code, instance_id, circuit_state,
                         failure_count, success_count, opened_at, last_failure_message, created_by, updated_by
                     ) VALUES (?, ?, ?, ?, ?, 0,
                         CASE WHEN ? = 'OPEN' THEN CURRENT_TIMESTAMP(3) ELSE NULL END,
-                        ?, 'PFW_SERVICE_CALL', 'PFW_SERVICE_CALL')
+                        ?, 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
                     ON DUPLICATE KEY UPDATE
                         circuit_state = VALUES(circuit_state),
                         failure_count = VALUES(failure_count),
                         success_count = 0,
                         opened_at = CASE WHEN VALUES(circuit_state) = 'OPEN' THEN CURRENT_TIMESTAMP(3) ELSE opened_at END,
                         last_failure_message = VALUES(last_failure_message),
-                        updated_by = 'PFW_SERVICE_CALL',
+                        updated_by = 'CPF_SERVICE_CALL',
                         updated_at = CURRENT_TIMESTAMP
                     """,
                     target.serviceId(),
@@ -427,15 +427,15 @@ public class CpfServiceRegistryRepository {
     }
 
     private void updateInstanceHealth(ServiceCallResolvedTarget target, String healthStatus) {
-        if (!tableAvailable("pfw_service_instance") || !hasText(target.instanceId())) {
+        if (!tableAvailable("cpf_service_instance") || !hasText(target.instanceId())) {
             return;
         }
         String instanceStatus = "UP".equalsIgnoreCase(healthStatus) ? "UP" : "DOWN";
         jdbc().update("""
-                UPDATE pfw_service_instance
+                UPDATE cpf_service_instance
                 SET instance_status = ?,
                     last_heartbeat_at = CURRENT_TIMESTAMP(3),
-                    updated_by = 'PFW_SERVICE_CALL',
+                    updated_by = 'CPF_SERVICE_CALL',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE instance_id = ?
                 """, instanceStatus, target.instanceId());
@@ -448,7 +448,7 @@ public class CpfServiceRegistryRepository {
         }
         DataSource dataSource = dataSourceProvider.getIfAvailable();
         if (dataSource == null) {
-            throw new IllegalStateException("pfwDataSource 또는 pfwJdbcTemplate이 필요합니다.");
+            throw new IllegalStateException("cpfDataSource 또는 cpfJdbcTemplate이 필요합니다.");
         }
         return new JdbcTemplate(dataSource);
     }

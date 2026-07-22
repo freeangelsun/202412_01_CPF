@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging.policy;
+package com.cpf.core.common.logging.policy;
 
 /**
  * 온라인 거래와 배치 런타임이 공통으로 사용하는 로그 정책 조회 진입점입니다.

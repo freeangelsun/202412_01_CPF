@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfValidationException;
-import cpf.pfw.common.logging.TransactionContext;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.common.logging.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,7 +21,7 @@ import java.util.Map;
  * 변경 전/후 데이터를 함께 남겨 사후 추적이 가능하게 합니다.</p>
  */
 @Service
-public class AdmAuditLogService extends cpf.adm.common.base.AdmBaseService {
+public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmAuditLogService.class);
 
     private final JdbcTemplate admJdbcTemplate;

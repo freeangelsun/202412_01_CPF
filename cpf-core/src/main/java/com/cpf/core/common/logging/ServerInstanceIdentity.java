@@ -1,4 +1,4 @@
-package cpf.pfw.common.logging;
+package com.cpf.core.common.logging;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;

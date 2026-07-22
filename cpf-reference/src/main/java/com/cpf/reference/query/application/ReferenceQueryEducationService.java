@@ -1,10 +1,10 @@
-package cpf.xyz.query.application;
+package com.cpf.reference.query.application;
 
-import cpf.pfw.common.exception.CpfNotFoundException;
-import cpf.xyz.query.dto.XyzQueryEducationItem;
-import cpf.xyz.query.dto.XyzQueryKeysetResponse;
-import cpf.xyz.query.dto.XyzQueryPageResponse;
-import cpf.xyz.query.adapter.XyzQueryEducationRepository;
+import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
+import com.cpf.reference.query.dto.ReferenceQueryKeysetResponse;
+import com.cpf.reference.query.dto.ReferenceQueryPageResponse;
+import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +17,10 @@ import java.util.List;
  * Repository는 검색/정렬/limit 정규화를 담당하며, Service는 트랜잭션 경계와 응답 조립을 담당합니다.</p>
  */
 @Service
-public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService {
-    private final XyzQueryEducationRepository repository;
+public class ReferenceQueryEducationService extends com.cpf.reference.common.base.ReferenceBaseService {
+    private final ReferenceQueryEducationRepository repository;
 
-    public XyzQueryEducationService(XyzQueryEducationRepository repository) {
+    public ReferenceQueryEducationService(ReferenceQueryEducationRepository repository) {
         this.repository = repository;
     }
 
@@ -31,7 +31,7 @@ public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService
      * 예외로 바꾸면 Controller의 오류 응답 포맷을 일관되게 유지할 수 있습니다.</p>
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public XyzQueryEducationItem getItem(Long itemId) {
+    public ReferenceQueryEducationItem getItem(Long itemId) {
         return repository.findById(itemId)
                 .orElseThrow(() -> new CpfNotFoundException("조회 EDU 항목을 찾을 수 없습니다. itemId=" + itemId));
     }
@@ -42,7 +42,7 @@ public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService
      * <p>정렬 값은 Repository에서 whitelist 코드로 변환한 뒤 Mapper XML의 choose 분기로만 처리합니다.</p>
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public List<XyzQueryEducationItem> findItems(String keyword, String statusCode, String sort, int limit) {
+    public List<ReferenceQueryEducationItem> findItems(String keyword, String statusCode, String sort, int limit) {
         return repository.findItems(keyword, statusCode, sort, limit);
     }
 
@@ -52,7 +52,7 @@ public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService
      * <p>관리자 목록처럼 전체 건수가 필요한 화면에 적합합니다. 대용량 실시간 목록은 keyset 방식을 우선 검토합니다.</p>
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public XyzQueryPageResponse<XyzQueryEducationItem> findOffsetPage(
+    public ReferenceQueryPageResponse<ReferenceQueryEducationItem> findOffsetPage(
             String keyword,
             String statusCode,
             String sort,
@@ -61,14 +61,14 @@ public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService
         int normalizedPage = repository.normalizePage(page);
         int normalizedSize = repository.normalizeSize(size);
         long total = repository.countOffsetPageItems(keyword, statusCode);
-        List<XyzQueryEducationItem> items = repository.findOffsetPageItems(
+        List<ReferenceQueryEducationItem> items = repository.findOffsetPageItems(
                 keyword,
                 statusCode,
                 sort,
                 normalizedPage,
                 normalizedSize);
         boolean hasNext = normalizedPage * (long) normalizedSize < total;
-        return new XyzQueryPageResponse<>(items, normalizedPage, normalizedSize, total, hasNext);
+        return new ReferenceQueryPageResponse<>(items, normalizedPage, normalizedSize, total, hasNext);
     }
 
     /**
@@ -77,12 +77,12 @@ public class XyzQueryEducationService extends cpf.xyz.common.base.XyzBaseService
      * <p>마지막으로 본 itemId 이후를 조회하고, 요청 크기보다 한 건 더 가져와 다음 페이지 존재 여부를 판단합니다.</p>
      */
     @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
-    public XyzQueryKeysetResponse<XyzQueryEducationItem> findKeysetPage(Long cursorId, int size) {
+    public ReferenceQueryKeysetResponse<ReferenceQueryEducationItem> findKeysetPage(Long cursorId, int size) {
         int normalizedSize = repository.normalizeSize(size);
-        List<XyzQueryEducationItem> page = repository.findKeysetPageItems(cursorId, normalizedSize);
+        List<ReferenceQueryEducationItem> page = repository.findKeysetPageItems(cursorId, normalizedSize);
         boolean hasNext = page.size() > normalizedSize;
-        List<XyzQueryEducationItem> items = hasNext ? page.subList(0, normalizedSize) : page;
+        List<ReferenceQueryEducationItem> items = hasNext ? page.subList(0, normalizedSize) : page;
         Long nextCursorId = items.isEmpty() ? cursorId : items.get(items.size() - 1).itemId();
-        return new XyzQueryKeysetResponse<>(items, nextCursorId, hasNext);
+        return new ReferenceQueryKeysetResponse<>(items, nextCursorId, hasNext);
     }
 }

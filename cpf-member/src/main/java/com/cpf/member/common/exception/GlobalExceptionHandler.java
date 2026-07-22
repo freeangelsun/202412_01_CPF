@@ -1,12 +1,12 @@
-package cpf.mbr.common.exception;
+package com.cpf.member.common.exception;
 
-import cpf.mbr.common.response.BaseResponse;
-import cpf.mbr.common.response.ResponseCode;
-import cpf.pfw.common.exception.CpfErrorResponse;
-import cpf.pfw.common.exception.CpfException;
-import cpf.pfw.common.exception.CpfResolvedResponse;
-import cpf.pfw.common.exception.CpfResponseCodeResolver;
-import cpf.pfw.common.exception.DefaultCpfResponseCodeResolver;
+import com.cpf.member.common.response.BaseResponse;
+import com.cpf.member.common.response.ResponseCode;
+import com.cpf.core.common.exception.CpfErrorResponse;
+import com.cpf.core.common.exception.CpfException;
+import com.cpf.core.common.exception.CpfResolvedResponse;
+import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
                 : responseCodeResolver.resolve(ex.getResponseCode(), java.util.Locale.KOREAN, ex.getMessageArguments(), ex.getDetail());
         String externalMessage = firstText(ex.getExternalMessage(), resolvedResponse.externalMessage());
 
-        log.warn("PFW Exception [{}] - Message: {}, Details: {}",
+        log.warn("CPF Exception [{}] - Message: {}, Details: {}",
                 resolvedResponse.messageCode(),
                 externalMessage,
                 ex.getDetail());

@@ -1,4 +1,4 @@
-package cpf.pfw.common.runtime;
+package com.cpf.core.common.runtime;
 
 /**
  * 분산 lock 획득 결과입니다.

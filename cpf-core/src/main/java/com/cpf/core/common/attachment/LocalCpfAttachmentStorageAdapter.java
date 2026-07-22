@@ -1,6 +1,6 @@
-package cpf.pfw.common.attachment;
+package com.cpf.core.common.attachment;
 
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.core.common.exception.CpfValidationException;
 
 import java.io.IOException;
 import java.nio.file.Files;

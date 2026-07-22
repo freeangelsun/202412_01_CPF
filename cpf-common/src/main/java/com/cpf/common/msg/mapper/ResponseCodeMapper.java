@@ -1,6 +1,6 @@
-package cpf.cmn.msg.mapper;
+package com.cpf.common.msg.mapper;
 
-import cpf.cmn.msg.dto.CommonResponseCodeRequest;
+import com.cpf.common.msg.dto.CommonResponseCodeRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

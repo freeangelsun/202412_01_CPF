@@ -1,7 +1,7 @@
-package cpf.pfw.common.remotelog;
+package com.cpf.core.common.remotelog;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
-import cpf.pfw.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;

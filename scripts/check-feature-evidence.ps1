@@ -1,7 +1,13 @@
 ﻿param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/evidence/20260716_02")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -39,109 +45,123 @@ function Add-Check([string] $Id, [bool] $Passed, [string[]] $Evidence) {
 
 $settings = [IO.File]::ReadAllText((Join-Path $Root "settings.gradle"), [Text.Encoding]::UTF8)
 Add-Check "MODULE_TOPOLOGY" `
-    ($settings -match "include\s+'pfw'.*'cmn'.*'mbr'.*'xyz'.*'adm'.*'bza'.*'bat'" -and
-     $settings -match "include\s+'pfw-gateway-runtime'" -and $settings -match "include\s+'acc'") `
+    (@(@('cpf-core','cpf-gateway','cpf-common','cpf-admin','cpf-biz-admin','cpf-batch','cpf-member','cpf-account','cpf-reference','cpf-external') |
+        Where-Object { $settings -notmatch ("(?m)include[^\r\n]*'" + [regex]::Escape($_) + "'") }).Count -eq 0) `
     @("settings.gradle")
 
 $accGeneratedFiles = @(
-    "acc/src/main/java/cpf/acc/AccApplication.java",
-    "acc/src/main/resources/application.yml",
-    "acc/manifest/ownership.json",
-    "acc/src/main/java/cpf/acc/reference/adapter/local/LocalAccountReferenceQueryAdapter.java",
-    "acc/src/main/java/cpf/acc/reference/adapter/remote/RemoteAccountReferenceQueryProxy.java",
-    "$resultDirRelative/create-domain-result.sanitized.json",
-    "$resultDirRelative/remove-domain-smoke.sanitized.json"
+    "cpf-account/src/main/java/com/cpf/account/AccApplication.java",
+    "cpf-account/src/main/resources/application.yml",
+    "cpf-account/manifest/ownership.json",
+    "cpf-account/src/main/java/com/cpf/account/reference/adapter/local/LocalAccountReferenceQueryAdapter.java",
+    "cpf-account/src/main/java/com/cpf/account/reference/adapter/remote/RemoteAccountReferenceQueryProxy.java",
+    "scripts/create-domain.ps1",
+    "scripts/initialize-domain-database.ps1",
+    "scripts/verify-domain.ps1",
+    "scripts/remove-domain.ps1"
 )
 Add-Check "ACC_GENERATOR_REFERENCE" (Test-Files $accGeneratedFiles) $accGeneratedFiles
 
 $accCrudFiles = @(
-    "acc/src/main/java/cpf/acc/account/controller/AccAccountController.java",
-    "acc/src/main/java/cpf/acc/account/service/AccAccountService.java",
-    "acc/src/main/java/cpf/acc/account/port/AccAccountRepository.java",
-    "acc/src/main/java/cpf/acc/account/adapter/JdbcAccAccountRepository.java",
-    "acc/src/test/java/cpf/acc/account/service/AccAccountServiceTest.java",
+    "cpf-account/src/main/java/com/cpf/account/account/controller/AccAccountController.java",
+    "cpf-account/src/main/java/com/cpf/account/account/service/AccAccountService.java",
+    "cpf-account/src/main/java/com/cpf/account/account/port/AccAccountRepository.java",
+    "cpf-account/src/main/java/com/cpf/account/account/adapter/JdbcAccAccountRepository.java",
+    "cpf-account/src/test/java/com/cpf/account/account/service/AccAccountServiceTest.java",
     "specs/sql/migration/flyway/V33__acc_reference_domain.sql"
 )
 Add-Check "ACC_REFERENCE_CRUD" `
     ((Test-Files $accCrudFiles) -and
-     (Test-Text "acc/src/main/java/cpf/acc/account/controller/AccAccountController.java" "OACCAC000[1-5]") -and
+     (Test-Text "cpf-account/src/main/java/com/cpf/account/account/controller/AccAccountController.java" "OACCAC000[1-5]") -and
      (Test-Text "specs/sql/40_business_modules_schema.sql" "CREATE TABLE IF NOT EXISTS accDB\.acc_account")) `
     $accCrudFiles
 
 $executionFiles = @(
-    "pfw/src/main/java/cpf/pfw/common/execution/CpfStandardExecutionId.java",
-    "pfw/src/main/java/cpf/pfw/common/execution/CpfOnlineTransaction.java",
-    "pfw/src/main/java/cpf/pfw/common/execution/CpfSharedApi.java",
-    "pfw/src/main/java/cpf/pfw/common/execution/CpfBatchJob.java",
-    "pfw/src/test/java/cpf/pfw/common/execution/CpfStandardExecutionIdTest.java",
+    "cpf-core/src/main/java/com/cpf/core/common/execution/CpfStandardExecutionId.java",
+    "cpf-core/src/main/java/com/cpf/core/common/execution/CpfOnlineTransaction.java",
+    "cpf-core/src/main/java/com/cpf/core/common/execution/CpfSharedApi.java",
+    "cpf-core/src/main/java/com/cpf/core/common/execution/CpfBatchJob.java",
+    "cpf-core/src/test/java/com/cpf/core/common/execution/CpfStandardExecutionIdTest.java",
     "specs/sql/migration/flyway/V32__standard_execution_id_v2.sql",
     "specs/sql/52_standard_execution_alias_seed.sql"
 )
 Add-Check "STANDARD_EXECUTION_OSB" `
     ((Test-Files $executionFiles) -and
-     (Test-Text "pfw/src/main/java/cpf/pfw/common/execution/CpfStandardExecutionId.java" "\(\[OSB\]\)") -and
-     (Test-Text "specs/sql/migration/flyway/V32__standard_execution_id_v2.sql" "tmp_pfw_standard_execution_id_map") -and
+     (Test-Text "cpf-core/src/main/java/com/cpf/core/common/execution/CpfStandardExecutionId.java" "\(\[OSB\]\)") -and
+     (Test-Text "specs/sql/migration/flyway/V32__standard_execution_id_v2.sql" "tmp_cpf_standard_execution_id_map") -and
      (Test-Text "specs/sql/52_standard_execution_alias_seed.sql" "ON DUPLICATE KEY UPDATE")) `
     $executionFiles
 
 $gatewayFiles = @(
-    "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java",
-    "pfw/src/test/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalogTest.java",
-    "pfw-gateway-runtime/src/main/java/cpf/pfw/gateway/controller/PfwGatewayController.java",
-    "pfw-gateway-runtime/src/main/java/cpf/pfw/gateway/service/PfwGatewayProxyService.java",
-    "pfw-gateway-runtime/src/test/java/cpf/pfw/gateway/controller/PfwGatewayControllerTest.java",
-    "pfw-gateway-runtime/build.gradle"
+    "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java",
+    "cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java",
+    "cpf-gateway/src/main/java/com/cpf/gateway/service/CpfGatewayProxyService.java",
+    "cpf-gateway/src/test/java/com/cpf/gateway/controller/CpfGatewayControllerTest.java",
+    "cpf-gateway/build.gradle"
 )
-Add-Check "PFW_GATEWAY_RUNTIME" `
+Add-Check "CPF_GATEWAY_RUNTIME" `
     ((Test-Files $gatewayFiles) -and
-     (Test-Text "pfw-gateway-runtime/src/main/java/cpf/pfw/gateway/controller/PfwGatewayController.java" "CpfHeaderNames\.STANDARD_EXECUTION_ID") -and
-     (Test-Text "pfw/src/main/java/cpf/pfw/common/gateway/CpfGatewayRouteCatalog.java" "executionType\(\).*ONLINE")) `
+     (Test-Text "cpf-gateway/src/main/java/com/cpf/gateway/controller/CpfGatewayController.java" "CpfHeaderNames\.STANDARD_EXECUTION_ID") -and
+     (Test-Text "cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java" "executionType\(\).*ONLINE")) `
     $gatewayFiles
 
 $batchFiles = @(
-    "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandController.java",
-    "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandService.java",
-    "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandJobConfig.java",
-    "bat/src/test/java/cpf/bat/edu/ondemand/BatOnDemandServiceTest.java",
+    "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandController.java",
+    "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandService.java",
+    "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandJobConfig.java",
+    "cpf-batch/src/test/java/com/cpf/batch/edu/ondemand/BatOnDemandServiceTest.java",
     "specs/sql/migration/flyway/V34__batch_on_demand_request.sql"
 )
 Add-Check "BAT_ON_DEMAND_EDU" `
     ((Test-Files $batchFiles) -and
-     (Test-Text "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandController.java" "HttpStatus\.ACCEPTED") -and
-     (Test-Text "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandController.java" "/restart") -and
-     (Test-Text "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandController.java" "/rerun") -and
-     (Test-Text "bat/src/main/java/cpf/bat/edu/ondemand/BatOnDemandJobConfig.java" "BBATOD0001")) `
+     (Test-Text "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandController.java" "HttpStatus\.ACCEPTED") -and
+     (Test-Text "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandController.java" "/restart") -and
+     (Test-Text "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandController.java" "/rerun") -and
+     (Test-Text "cpf-batch/src/main/java/com/cpf/batch/edu/ondemand/BatOnDemandJobConfig.java" "BBATOD0001")) `
     $batchFiles
 
 $facadeFiles = @(
-    "cmn/src/main/java/cpf/cmn/api/account/AccountSummaryFacade.java",
-    "acc/src/main/java/cpf/acc/account/facade/AccAccountSummaryFacade.java",
-    "acc/src/main/java/cpf/acc/account/controller/AccAccountSharedController.java",
-    "mbr/src/main/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxy.java",
-    "mbr/src/test/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxyTest.java"
+    "cpf-common/src/main/java/com/cpf/common/api/account/AccountSummaryFacade.java",
+    "cpf-account/src/main/java/com/cpf/account/account/facade/AccAccountSummaryFacade.java",
+    "cpf-account/src/main/java/com/cpf/account/account/controller/AccAccountSharedController.java",
+    "cpf-member/src/main/java/com/cpf/member/integration/account/MbrAccountSummaryRemoteProxy.java",
+    "cpf-member/src/test/java/com/cpf/member/integration/account/MbrAccountSummaryRemoteProxyTest.java"
 )
 Add-Check "MBR_ACC_FACADE_CONTRACT" `
     ((Test-Files $facadeFiles) -and
-     (Test-Text "acc/src/main/java/cpf/acc/account/controller/AccAccountSharedController.java" "SACCAC0001") -and
-     (Test-Text "mbr/src/main/java/cpf/mbr/integration/account/MbrAccountSummaryRemoteProxy.java" "CpfWebClient")) `
+     (Test-Text "cpf-account/src/main/java/com/cpf/account/account/controller/AccAccountSharedController.java" "SACCAC0001") -and
+     (Test-Text "cpf-member/src/main/java/com/cpf/member/integration/account/MbrAccountSummaryRemoteProxy.java" "CpfWebClient")) `
     $facadeFiles
 
 $externalFiles = @(
-    "xyz/src/main/java/cpf/xyz/external/XyzNeutralExternalSimulatorController.java",
-    "xyz/src/main/java/cpf/xyz/external/XyzExternalIntegrationEducationSample.java",
-    "xyz/src/test/java/cpf/xyz/external/XyzNeutralExternalSimulatorControllerTest.java",
-    "xyz/src/test/java/cpf/xyz/external/XyzExternalIntegrationEducationSampleTest.java",
-    "$resultDirRelative/acc-exs-capability-inventory.sanitized.json"
+    "cpf-external/src/main/java/com/cpf/external/execution/api/ExternalExecutionController.java",
+    "cpf-external/src/main/java/com/cpf/external/execution/application/ExternalExecutionService.java",
+    "cpf-external/src/test/java/com/cpf/external/execution/application/ExternalExecutionServiceTest.java",
+    "cpf-reference/src/main/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorController.java",
+    "cpf-reference/src/main/java/com/cpf/reference/external/ReferenceExternalIntegrationEducationSample.java",
+    "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorControllerTest.java",
+    "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceExternalIntegrationEducationSampleTest.java"
 )
 Add-Check "ACC_EXS_CAPABILITY_RESTORE" (Test-Files $externalFiles) $externalFiles
 
 $generatorFiles = @(
     "scripts/create-domain.ps1",
+    "scripts/initialize-domain-database.ps1",
+    "scripts/verify-domain.ps1",
     "scripts/remove-domain.ps1",
     "scripts/smoke-create-domain.ps1",
     "scripts/smoke-remove-domain.ps1",
-    "$resultDirRelative/create-domain-result.sanitized.json",
-    "$resultDirRelative/remove-domain-smoke.sanitized.json"
+    "scripts/smoke-domain-capability-matrix.ps1",
+    "scripts/smoke-acc-lifecycle.ps1",
+    "cpf-tools/generator/create-domain.ps1",
+    "cpf-tools/generator/initialize-domain-database.ps1",
+    "cpf-tools/generator/verify-domain.ps1",
+    "cpf-tools/generator/remove-domain.ps1",
+    "cpf-tools/generator/create-domain.sh",
+    "cpf-tools/generator/initialize-domain-database.sh",
+    "cpf-tools/generator/verify-domain.sh",
+    "cpf-tools/generator/remove-domain.sh"
 )
 Add-Check "DOMAIN_GENERATOR_SMOKE" `
     ((Test-Files $generatorFiles) -and

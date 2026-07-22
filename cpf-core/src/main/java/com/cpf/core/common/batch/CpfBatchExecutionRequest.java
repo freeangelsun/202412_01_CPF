@@ -1,10 +1,10 @@
-package cpf.pfw.common.batch;
+package com.cpf.core.common.batch;
 
 /**
  * CPF 공통 배치 실행 요청 모델입니다.
  *
  * <p>ADM, BAT, EDU 같은 호출자는 Spring Batch의 {@code JobLauncher}를 직접 다루지 않고
- * 이 요청 모델을 통해 PFW 표준 실행 계층에 작업을 위임합니다.</p>
+ * 이 요청 모델을 통해 CPF 표준 실행 계층에 작업을 위임합니다.</p>
  *
  * @param jobId             배치 Job ID
  * @param scheduleId        스케줄 실행인 경우 스케줄 ID

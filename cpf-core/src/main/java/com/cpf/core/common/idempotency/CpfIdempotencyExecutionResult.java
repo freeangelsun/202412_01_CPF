@@ -1,4 +1,4 @@
-package cpf.pfw.common.idempotency;
+package com.cpf.core.common.idempotency;
 
 /**
  * 멱등 실행 결과와 저장 응답 재사용 여부를 함께 전달합니다.

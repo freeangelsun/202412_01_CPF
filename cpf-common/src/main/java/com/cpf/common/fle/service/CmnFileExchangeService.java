@@ -1,30 +1,30 @@
-package cpf.cmn.fle.service;
+package com.cpf.common.fle.service;
 
-import cpf.cmn.fle.core.CmnFileExchangeHistoryRecord;
-import cpf.cmn.fle.core.CmnFileProtocol;
-import cpf.cmn.fle.core.CmnFileTransferDirection;
-import cpf.cmn.fle.core.CmnFileTransferRequest;
-import cpf.cmn.fle.core.CmnFileTransferResult;
-import cpf.cmn.fle.core.CmnRemoteCommandRequest;
-import cpf.cmn.fle.core.CmnRemoteCommandResult;
-import cpf.pfw.common.filetransfer.CpfFileExchangeGateway;
-import cpf.pfw.common.filetransfer.CpfFileExchangeHistoryRecord;
-import cpf.pfw.common.filetransfer.CpfFileTransferResult;
-import cpf.pfw.common.filetransfer.CpfRemoteCommandPlan;
+import com.cpf.common.fle.core.CmnFileExchangeHistoryRecord;
+import com.cpf.common.fle.core.CmnFileProtocol;
+import com.cpf.common.fle.core.CmnFileTransferDirection;
+import com.cpf.common.fle.core.CmnFileTransferRequest;
+import com.cpf.common.fle.core.CmnFileTransferResult;
+import com.cpf.common.fle.core.CmnRemoteCommandRequest;
+import com.cpf.common.fle.core.CmnRemoteCommandResult;
+import com.cpf.core.common.filetransfer.CpfFileExchangeGateway;
+import com.cpf.core.common.filetransfer.CpfFileExchangeHistoryRecord;
+import com.cpf.core.common.filetransfer.CpfFileTransferResult;
+import com.cpf.core.common.filetransfer.CpfRemoteCommandPlan;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.util.List;
 
 /**
- * CMN 프로젝트 공통 파일 API를 PFW file-exchange gateway에 연결하는 호환 facade입니다.
+ * CMN 프로젝트 공통 파일 API를 CPF file-exchange gateway에 연결하는 호환 facade입니다.
  *
  * <p>CPF-OWNERSHIP:CMN_PROJECT_HELPER</p>
  * <p>CMN은 기존 프로젝트 DTO와 기본 요청 규칙만 유지합니다. 경로 검증, 파일 I/O, protocol 실행 계획,
- * credential 참조, 기술 이력 저장은 PFW가 담당합니다.</p>
+ * credential 참조, 기술 이력 저장은 CPF가 담당합니다.</p>
  */
 @Service
-public class CmnFileExchangeService extends cpf.cmn.common.base.CmnBaseService {
+public class CmnFileExchangeService extends com.cpf.common.common.base.CmnBaseService {
     private final CpfFileExchangeGateway gateway;
 
     public CmnFileExchangeService(CpfFileExchangeGateway gateway) {

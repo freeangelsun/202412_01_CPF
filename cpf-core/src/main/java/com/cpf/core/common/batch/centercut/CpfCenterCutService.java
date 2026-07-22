@@ -1,4 +1,4 @@
-package cpf.pfw.common.batch.centercut;
+package com.cpf.core.common.batch.centercut;
 
 import java.time.Clock;
 import java.time.LocalDateTime;

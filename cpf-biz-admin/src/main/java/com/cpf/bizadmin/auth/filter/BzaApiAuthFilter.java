@@ -1,6 +1,6 @@
-package cpf.bza.auth.filter;
+package com.cpf.bizadmin.auth.filter;
 
-import cpf.bza.auth.service.BzaAuthService;
+import com.cpf.bizadmin.auth.service.BzaAuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

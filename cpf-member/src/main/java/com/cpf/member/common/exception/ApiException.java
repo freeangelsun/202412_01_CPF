@@ -1,6 +1,6 @@
-package cpf.mbr.common.exception;
+package com.cpf.member.common.exception;
 
-import cpf.mbr.common.response.ResponseCode;
+import com.cpf.member.common.response.ResponseCode;
 import lombok.Getter;
 
 /**

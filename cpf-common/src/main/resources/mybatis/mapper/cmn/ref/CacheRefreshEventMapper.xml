@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="cpf.cmn.ref.mapper.CacheRefreshEventMapper">
+<mapper namespace="com.cpf.common.ref.mapper.CacheRefreshEventMapper">
 
     <!--
         공통 캐시 변경 이벤트를 저장합니다.
         published_at은 동일 초 단위 이벤트 순서를 추적할 수 있도록 DATETIME(3)을 사용합니다.
     -->
     <insert id="insertEvent">
-        INSERT INTO pfw_cache_refresh_event (
+        INSERT INTO cpf_cache_refresh_event (
             cache_name,
             event_type,
             event_key,
@@ -33,7 +33,7 @@
     <!-- 현재까지 발행된 캐시 이벤트의 마지막 ID를 조회합니다. -->
     <select id="findMaxEventId" resultType="long">
         SELECT MAX(event_id)
-        FROM pfw_cache_refresh_event
+        FROM cpf_cache_refresh_event
     </select>
 
     <!-- 마지막으로 처리한 이벤트 이후의 캐시 이벤트 목록을 조회합니다. -->
@@ -46,7 +46,7 @@
             source_was_id AS sourceWasId,
             published_by AS publishedBy,
             published_at AS publishedAt
-        FROM pfw_cache_refresh_event
+        FROM cpf_cache_refresh_event
         WHERE event_id &gt; #{lastEventId}
         ORDER BY event_id
     </select>

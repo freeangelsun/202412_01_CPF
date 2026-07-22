@@ -1,4 +1,4 @@
-package cpf.xyz.query.dto;
+package com.cpf.reference.query.dto;
 
 /**
  * 조회 EDU 샘플의 Mapper 조건 DTO입니다.
@@ -13,7 +13,7 @@ package cpf.xyz.query.dto;
  * @param offset     offset 페이징 시작 위치
  * @param cursorId   keyset 페이징 기준 ID
  */
-public record XyzQueryEducationCriteria(
+public record ReferenceQueryEducationCriteria(
         String keyword,
         String statusCode,
         String sortCode,

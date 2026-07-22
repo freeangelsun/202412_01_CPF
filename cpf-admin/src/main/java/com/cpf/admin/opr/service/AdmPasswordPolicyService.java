@@ -1,8 +1,8 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
-import cpf.adm.config.AdmPasswordPolicyProperties;
-import cpf.cmn.utils.TextUtils;
-import cpf.pfw.common.exception.CpfValidationException;
+import com.cpf.admin.config.AdmPasswordPolicyProperties;
+import com.cpf.common.utils.TextUtils;
+import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ import java.util.Map;
  * ADM 운영자 비밀번호 정책을 검증합니다.
  */
 @Service
-public class AdmPasswordPolicyService extends cpf.adm.common.base.AdmBaseService {
+public class AdmPasswordPolicyService extends com.cpf.admin.common.base.AdmBaseService {
     private final AdmPasswordPolicyProperties properties;
 
     public AdmPasswordPolicyService(AdmPasswordPolicyProperties properties) {

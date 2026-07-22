@@ -5,6 +5,12 @@
     [switch] $MetadataOnly
 )
 
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 Add-Type -AssemblyName System.IO.Compression
@@ -305,16 +311,16 @@ $managedGuideDefinitions = @(
         Path = Join-Path $specs "CPF_개발자_가이드.docx"
         SectionId = "BZA_SUPPORT_AND_ATTACHMENT_20260715"
         Content = @(
-            (New-WmlParagraph -Text "PFW 첨부 저장과 BZA 운영 지원" -Style "Heading1"),
-            (New-WmlParagraph -Text "PFW는 CpfAttachmentStoragePort와 LocalCpfAttachmentStorageAdapter로 저장소 기술 계약을 제공하고 BZA는 알림, 첨부 메타, 저장 검색, 다운로드 감사, 역할 비교와 권한 시뮬레이션 업무를 소유한다."),
+            (New-WmlParagraph -Text "CPF 첨부 저장과 BZA 운영 지원" -Style "Heading1"),
+            (New-WmlParagraph -Text "CPF는 CpfAttachmentStoragePort와 LocalCpfAttachmentStorageAdapter로 저장소 기술 계약을 제공하고 BZA는 알림, 첨부 메타, 저장 검색, 다운로드 감사, 역할 비교와 권한 시뮬레이션 업무를 소유한다."),
             (New-WmlParagraph -Text "prod profile에서는 CPF_ATTACHMENT_ROOT가 필수이며 object storage 또는 보안 파일 서버 adapter는 CpfAttachmentStoragePort 구현으로 교체한다."),
             (New-WmlParagraph -Text "쓰기·결재·다운로드 감사 주체는 요청 JSON이 아니라 BzaApiAuthFilter가 설정한 bza.operatorId를 사용한다."),
             (New-WmlTable -Rows @(
                 @("구분", "정본 경로"),
-                @("PFW port", "pfw/src/main/java/cpf/pfw/common/attachment"),
-                @("BZA API", "bza/src/main/java/cpf/bza/support"),
-                @("EDU", "xyz/src/main/java/cpf/xyz/attachment"),
-                @("단위 테스트", "LocalCpfAttachmentStorageAdapterTest, BzaSupportServiceTest, XyzAttachmentEducationSampleTest"),
+                @("CPF port", "cpf-core/src/main/java/com/cpf/core/common/attachment"),
+                @("BZA API", "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support"),
+                @("EDU", "cpf-reference/src/main/java/com/cpf/reference/attachment"),
+                @("단위 테스트", "LocalCpfAttachmentStorageAdapterTest, BzaSupportServiceTest, ReferenceAttachmentEducationSampleTest"),
                 @("DB 변경", "specs/sql/migration/flyway/V31__bza_operation_support.sql")
             ))
         )
@@ -357,21 +363,21 @@ $managedGuideDefinitions = @(
         SectionId = "ATTACHMENT_OWNERSHIP_20260715"
         Content = @(
             (New-WmlParagraph -Text "첨부파일 capability 소유권" -Style "Heading1"),
-            (New-WmlParagraph -Text "PFW는 경로, 확장자, 크기, checksum과 저장 adapter 교체 지점을 소유한다. BZA는 업무 첨부 그룹, 메타, 권한, 감사와 다운로드 정책을 소유한다."),
-            (New-WmlParagraph -Text "BZA는 PFW port만 호출하며 PFW는 bzaDB repository를 참조하지 않는다. 이 경계는 타 주제영역 DB·Repository·Mapper 직접 접근 금지 원칙과 같다.")
+            (New-WmlParagraph -Text "CPF는 경로, 확장자, 크기, checksum과 저장 adapter 교체 지점을 소유한다. BZA는 업무 첨부 그룹, 메타, 권한, 감사와 다운로드 정책을 소유한다."),
+            (New-WmlParagraph -Text "BZA는 CPF port만 호출하며 CPF는 bzaDB repository를 참조하지 않는다. 이 경계는 타 주제영역 DB·Repository·Mapper 직접 접근 금지 원칙과 같다.")
         )
     },
     [pscustomobject]@{
         Path = Join-Path $specs "CPF_EDU_샘플_카탈로그_및_실습가이드.docx"
         SectionId = "ATTACHMENT_EDU_20260715"
         Content = @(
-            (New-WmlParagraph -Text "XYZ 첨부파일 EDU" -Style "Heading1"),
+            (New-WmlParagraph -Text "REF 첨부파일 EDU" -Style "Heading1"),
             (New-WmlTable -Rows @(
                 @("sample ID", "API", "학습 목적"),
-                @("XYZ Reference-ATTACH-001", "POST /api/xyz/reference/attachments/text", "PFW 저장 port, 파일명·확장자·크기·경로 검증과 SHA-256"),
-                @("XYZ Reference-ATTACH-002", "POST /api/xyz/reference/attachments/verify", "저장 key 재조회와 checksum 무결성 검증")
+                @("REF Reference-ATTACH-001", "POST /api/reference/attachments/text", "CPF 저장 port, 파일명·확장자·크기·경로 검증과 SHA-256"),
+                @("REF Reference-ATTACH-002", "POST /api/reference/attachments/verify", "저장 key 재조회와 checksum 무결성 검증")
             )),
-            (New-WmlParagraph -Text "소스는 xyz/src/main/java/cpf/xyz/attachment, 테스트는 xyz/src/test/java/cpf/xyz/attachment에 있다."),
+            (New-WmlParagraph -Text "소스는 cpf-reference/src/main/java/com/cpf/reference/attachment, 테스트는 cpf-reference/src/test/java/com/cpf/reference/attachment에 있다."),
             (New-WmlParagraph -Text "실습에서는 txt 저장 성공, exe 확장자 거부, checksum 일치와 경로 이탈 거부를 확인한다.")
         )
     }
@@ -387,7 +393,7 @@ $definitions = @(
         Kind = "matrix"
         Path = Join-Path $specs "CPF_기능_구현_검증_매트릭스.docx"
         Title = "CPF 기능 구현 검증 매트릭스"
-        Sources = @("specs/기능_구현_매트릭스.md")
+        Sources = @("specs/generated/feature-implementation-matrix.md")
     },
     [pscustomobject]@{
         Kind = "report"

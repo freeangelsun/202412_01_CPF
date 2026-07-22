@@ -1,9 +1,0 @@
-{
-    "generatedAt":  "2026-07-20T18:47:31.751+09:00",
-    "status":  "DONE",
-    "mode":  "INITIALIZE_BASELINE",
-    "requestFile":  "CPF_CURRENT_WORK_REQUEST.md",
-    "baselineHash":  "b158b8eec8bc0b1f5ee89d0af97ad2edcd31d840c437448d7b7c74283d8a7830",
-    "currentHash":  "b158b8eec8bc0b1f5ee89d0af97ad2edcd31d840c437448d7b7c74283d8a7830",
-    "policy":  "Baseline is initialized only by explicit command. qualityGate runs check-only mode."
-}

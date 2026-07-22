@@ -1,4 +1,4 @@
-package cpf.bat.worker;
+package com.cpf.batch.worker;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

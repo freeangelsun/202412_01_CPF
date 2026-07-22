@@ -1,6 +1,6 @@
-package cpf.pfw.common.exception;
+package com.cpf.core.common.exception;
 
-import cpf.pfw.common.logging.SensitiveDataMasker;
+import com.cpf.core.common.logging.SensitiveDataMasker;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

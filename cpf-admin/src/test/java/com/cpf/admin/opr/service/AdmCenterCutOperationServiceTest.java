@@ -1,4 +1,4 @@
-package cpf.adm.opr.service;
+package com.cpf.admin.opr.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,10 +10,10 @@ import static org.mockito.Mockito.mock;
 
 class AdmCenterCutOperationServiceTest {
 
-    private final JdbcTemplate pfwJdbcTemplate = mock(JdbcTemplate.class);
-    private final JdbcTemplate xyzJdbcTemplate = mock(JdbcTemplate.class);
+    private final JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
+    private final JdbcTemplate refJdbcTemplate = mock(JdbcTemplate.class);
     private final AdmCenterCutOperationService service =
-            new AdmCenterCutOperationService(pfwJdbcTemplate, xyzJdbcTemplate);
+            new AdmCenterCutOperationService(cpfJdbcTemplate, refJdbcTemplate);
 
     @Test
     void maskPayloadForDisplayKeepsOnlyLengthAndMaskedText() {

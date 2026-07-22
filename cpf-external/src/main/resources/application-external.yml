@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    exs:
+      driver-class-name: org.mariadb.jdbc.Driver
+      jdbc-url: ${EXS_DATASOURCE_URL}
+      username: ${EXS_DATASOURCE_USERNAME}
+      password: ${EXS_DATASOURCE_PASSWORD}
+    cpf:
+      driver-class-name: org.mariadb.jdbc.Driver
+      jdbc-url: ${CPF_DB_URL}
+      username: ${CPF_DB_USERNAME}
+      password: ${CPF_DB_PASSWORD}
+
+server:
+  port: ${EXS_SERVER_PORT:8094}
+
+cpf:
+  framework:
+    module-id: ${EXS_MODULE_ID:EXS}
+    was-id: ${EXS_WAS_ID:exsAP01}
+    instance-id: ${EXS_INSTANCE_ID:exs-local-01}
+  services:
+    # 기관별 실제 base URL은 CPF 서비스 레지스트리를 우선 사용합니다.
+    exs-simulator:
+      base-url: ${EXS_SIMULATOR_BASE_URL:http://127.0.0.1:8099}

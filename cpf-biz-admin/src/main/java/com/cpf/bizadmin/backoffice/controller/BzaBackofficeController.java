@@ -1,7 +1,7 @@
-package cpf.bza.backoffice.controller;
+package com.cpf.bizadmin.backoffice.controller;
 
-import cpf.bza.backoffice.service.BzaBackofficeService;
-import cpf.pfw.common.execution.CpfOnlineTransaction;
+import com.cpf.bizadmin.backoffice.service.BzaBackofficeService;
+import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/bza/backoffice")
 @Tag(name = "BZA-Backoffice", description = "BZA 조직·직원·실효 권한·결재·업무 감사 API")
-public class BzaBackofficeController extends cpf.bza.common.base.BzaBaseController {
+public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBaseController {
     private final BzaBackofficeService backofficeService;
 
     public BzaBackofficeController(BzaBackofficeService backofficeService) {

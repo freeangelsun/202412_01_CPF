@@ -1,8 +1,8 @@
 -- 로컬 및 통합 검증용 테스트 데이터입니다.
 
-USE pfwDB;
+USE cpfDB;
 
-INSERT INTO pfw_file_exchange_log (
+INSERT INTO cpf_file_exchange_log (
     EXCHANGE_ID,
     TRANSACTION_ID,
     TRACE_ID,
@@ -23,7 +23,7 @@ INSERT INTO pfw_file_exchange_log (
     'FILE-LOCAL-SAMPLE-001',
     'TEST_TRANSACTION',
     'TEST_TRACE',
-    'XYZ08EDU0001',
+    'REF08EDU0001',
     'LOCAL_WRITE',
     'LOCAL',
     'WRITE',
@@ -64,20 +64,20 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-USE xyzDB;
+USE refDB;
 
-DELETE FROM xyz_center_cut_sample_result
-WHERE center_cut_job_id = 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB';
+DELETE FROM ref_center_cut_sample_result
+WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB';
 
-INSERT INTO xyz_center_cut_sample_target (
+INSERT INTO ref_center_cut_sample_target (
     target_id, center_cut_job_id, business_key, business_date, target_payload,
     status_code, retry_count, parent_transaction_global_id, child_transaction_global_id,
     started_at, completed_at, last_error_message, use_yn, created_by, updated_by
 ) VALUES
-    ('XYZ-CENTER-CUT-001', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-002', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-003', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('XYZ-CENTER-CUT-004', 'CPF_XYZ_CENTER_CUT_SAMPLE_JOB', 'XYZ-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000XYZparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
+    ('REF-CENTER-CUT-001', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-002', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-003', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REF-CENTER-CUT-004', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000REFparent0000001', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     target_payload = VALUES(target_payload),
     status_code = VALUES(status_code),
@@ -150,13 +150,13 @@ WHERE NOT EXISTS (
       AND user_agent = 'SQL-SEED'
 );
 
-USE pfwDB;
+USE cpfDB;
 
 SET @sample_transaction_id = '20260615120000000MBRlocal010000001';
 SET @sample_start_time = '2026-06-15 12:00:00.000';
 SET @sample_end_time = '2026-06-15 12:00:00.012';
 
-INSERT INTO pfw_transaction_log (
+INSERT INTO cpf_transaction_log (
     LOG_DATE,
     TRANSACTION_ID,
     TRACE_ID,
@@ -221,7 +221,7 @@ SELECT
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'xyz-education',
+    'ref-education',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
@@ -241,16 +241,16 @@ SELECT
     'sql-smoke',
     'GET',
     '/mbr/list',
-    'cpf.mbr.bse.controller.MbrController',
-    'cpf.mbr.bse.controller',
+    'com.cpf.member.bse.controller.MbrController',
+    'com.cpf.member.bse.controller',
     'MbrController',
     'getAllMembers',
     'MbrController.getAllMembers()',
     '{}',
     '{"memberNo":"M000000001","password":"masked"}',
-    '{"code":"SPFW000000","message":"정상 처리되었습니다."}',
+    '{"code":"SCPF000000","message":"정상 처리되었습니다."}',
     200,
-    'SPFW000000',
+    'SCPF000000',
     'SYSTEM',
     '127.0.0.1',
     'SQL-SEED',
@@ -261,21 +261,21 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM pfw_transaction_log
+    FROM cpf_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
 );
 
 SET @sample_log_idx = (
     SELECT LOG_IDX
-    FROM pfw_transaction_log
+    FROM cpf_transaction_log
     WHERE TRANSACTION_ID = @sample_transaction_id
       AND BUSINESS_TRANSACTION_ID = 'MBR01BSE0001'
     ORDER BY LOG_IDX
     LIMIT 1
 );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -286,12 +286,12 @@ SELECT @sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NO
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'headers'
   );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -302,12 +302,12 @@ SELECT @sample_log_idx, 'fixedTelegram', 'M000000001회원1              0000000
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'fixedTelegram'
   );
 
-INSERT INTO pfw_transaction_log_detail (
+INSERT INTO cpf_transaction_log_detail (
     LOG_IDX,
     DETAIL_KEY,
     DETAIL_VALUE,
@@ -318,7 +318,7 @@ SELECT @sample_log_idx, 'memo', 'ADM 로그 화면 smoke 검증용 거래 로그
 WHERE @sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM pfw_transaction_log_detail
+      FROM cpf_transaction_log_detail
       WHERE LOG_IDX = @sample_log_idx
         AND DETAIL_KEY = 'memo'
   );

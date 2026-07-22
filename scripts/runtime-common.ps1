@@ -1,4 +1,12 @@
-﻿Set-StrictMode -Version Latest
+﻿
+
+# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
+Set-StrictMode -Version Latest
 
 $script:CpfRuntimeUtf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -47,72 +55,90 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "MBR"
             moduleLower = "mbr"
+            projectName = "cpf-member"
             wasId = "mbrAP01"
             port = 8081
             portEnv = "MBR_SERVER_PORT"
             healthPath = "/v3/api-docs"
-            jarDir = "mbr/build/libs"
-            jarPattern = "cpf-mbr-*.jar"
+            jarDir = "cpf-member/build/libs"
+            jarPattern = "cpf-member-*.jar"
         },
         [ordered]@{
             module = "ADM"
             moduleLower = "adm"
+            projectName = "cpf-admin"
             wasId = "admAP01"
             port = 8090
             portEnv = "ADM_SERVER_PORT"
             healthPath = "/v3/api-docs"
-            jarDir = "adm/build/libs"
-            jarPattern = "cpf-adm-*.jar"
+            jarDir = "cpf-admin/build/libs"
+            jarPattern = "cpf-admin-*.jar"
         },
         [ordered]@{
             module = "BAT"
             moduleLower = "bat"
+            projectName = "cpf-batch"
             wasId = "batWK01"
             port = 8093
             portEnv = "BAT_SERVER_PORT"
             healthPath = "/bat/api/health"
-            jarDir = "bat/build/libs"
-            jarPattern = "cpf-bat-*.jar"
+            jarDir = "cpf-batch/build/libs"
+            jarPattern = "cpf-batch-*.jar"
         },
         [ordered]@{
             module = "ACC"
             moduleLower = "acc"
+            projectName = "cpf-account"
             wasId = "accLC01"
             port = 8082
             portEnv = "ACC_SERVER_PORT"
             healthPath = "/actuator/health"
-            jarDir = "acc/build/libs"
-            jarPattern = "cpf-acc-*.jar"
+            jarDir = "cpf-account/build/libs"
+            jarPattern = "cpf-account-*.jar"
         },
         [ordered]@{
             module = "BZA"
             moduleLower = "bza"
+            projectName = "cpf-biz-admin"
             wasId = "bzaAP01"
             port = 8091
             portEnv = "BZA_SERVER_PORT"
             healthPath = "/v3/api-docs"
-            jarDir = "bza/build/libs"
-            jarPattern = "cpf-bza-*.jar"
+            jarDir = "cpf-biz-admin/build/libs"
+            jarPattern = "cpf-biz-admin-*.jar"
         },
         [ordered]@{
-            module = "XYZ"
-            moduleLower = "xyz"
-            wasId = "xyzAP01"
+            module = "REF"
+            moduleLower = "ref"
+            projectName = "cpf-reference"
+            wasId = "refAP01"
             port = 8099
-            portEnv = "XYZ_SERVER_PORT"
+            portEnv = "REF_SERVER_PORT"
             healthPath = "/v3/api-docs"
-            jarDir = "xyz/build/libs"
-            jarPattern = "cpf-xyz-*.jar"
+            jarDir = "cpf-reference/build/libs"
+            jarPattern = "cpf-reference-*.jar"
         },
         [ordered]@{
-            module = "GATEWAY"
-            moduleLower = "pfw-gateway-runtime"
+            module = "EXS"
+            moduleLower = "exs"
+            projectName = "cpf-external"
+            wasId = "exsAP01"
+            port = 8094
+            portEnv = "EXS_SERVER_PORT"
+            healthPath = "/actuator/health"
+            jarDir = "cpf-external/build/libs"
+            jarPattern = "cpf-external-*.jar"
+        },
+        [ordered]@{
+            module = "GWY"
+            moduleLower = "gwy"
+            projectName = "cpf-gateway"
             wasId = "gwLC001"
             port = 8070
-            portEnv = "GATEWAY_SERVER_PORT"
+            portEnv = "GWY_SERVER_PORT"
             healthPath = "/actuator/health"
-            jarDir = "pfw-gateway-runtime/build/libs"
-            jarPattern = "cpf-pfw-gateway-runtime-*.jar"
+            jarDir = "cpf-gateway/build/libs"
+            jarPattern = "cpf-gateway-*.jar"
         }
     )
 }
@@ -185,7 +211,7 @@ function Write-CpfRuntimeJson {
 
 function New-CpfRuntimeTransactionHeaders {
     param(
-        [string] $Module = "PFW",
+        [string] $Module = "CPF",
         [string] $WasId = "smoke01",
         [string] $RequestType = "SMOKE",
         [string] $ClientAppId = "cpf-runtime-smoke",
@@ -194,7 +220,7 @@ function New-CpfRuntimeTransactionHeaders {
         [string] $ChannelCode = ""
     )
 
-    $normalizedModule = if ([string]::IsNullOrWhiteSpace($Module)) { "PFW" } else { $Module.Trim().ToUpperInvariant() }
+    $normalizedModule = if ([string]::IsNullOrWhiteSpace($Module)) { "CPF" } else { $Module.Trim().ToUpperInvariant() }
     $normalizedWasId = if ([string]::IsNullOrWhiteSpace($WasId)) { "smoke01" } else { $WasId.Trim() }
     if ($normalizedWasId.Length -lt 7) {
         $normalizedWasId = $normalizedWasId.PadRight(7, "0")

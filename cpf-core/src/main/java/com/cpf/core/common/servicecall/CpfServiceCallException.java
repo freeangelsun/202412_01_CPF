@@ -1,4 +1,4 @@
-package cpf.pfw.common.servicecall;
+package com.cpf.core.common.servicecall;
 
 /**
  * CPF 서비스 호출 엔진에서 최종 실패로 판정한 호출 예외입니다.

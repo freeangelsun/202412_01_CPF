@@ -1,122 +1,32 @@
 # CPF EDU Guide
 
-## 1. Purpose
+## 목적
 
-EDU는 CPF의 기능을 실제 업무 시나리오로 학습하고 검증하기 위한 Reference implementation입니다.
+EDU는 CPF Public API·SPI·Generator·Runtime 운영 방식을 실제 Source와 Runtime으로 학습하는 정식 참조 경로다. Sample이 제품 구현을 대체하지 않으며, 기능 상태는 Source·Test·Evidence로 판정한다.
 
-EDU는 장식용 Sample이 아니며, 제품 API와 확장 방식의 실제 Consumer 역할을 합니다.
+## 기본 원칙
 
-## 2. Reference Domains
+- 교육·Reference Data는 운영 Product Seed와 분리한다.
+- EDU Profile에서만 Sample Menu·API·Data를 활성화할 수 있다.
+- 공식 Sample은 `cpf-core` Public API와 `cpf-common` 고객 확장 경로를 실제 사용한다.
+- 직접 만든 날짜·Paging·Header·Error·Retry·Cursor 구현으로 CPF 표준을 우회하지 않는다.
+- MBR·ACC·EXS는 최소 Transaction 검증 Domain이며 추정성 업무 원장을 제공하지 않는다.
+- `cpf-reference`는 Reference·EDU Owner다.
 
-- `cpf-member`: 회원 등록, 조회, 개인정보 마스킹과 권한
-- `cpf-account`: 계좌 CRUD, 잔액, 이체와 Generator lifecycle
-- `cpf-reference`: 검색, Paging, Sorting, Validation과 기준정보
-- `cpf-external`: REST, 전문, 파일, 메시징과 결과 불명 복구
-- `cpf-batch`: 동기·비동기 Batch, Worker와 Center-Cut
+## 필수 실습 흐름
 
-## 3. Recommended Learning Path
+1. Empty DB Install과 EDU Seed 분리 확인
+2. `cmnDB` 최소 Sample CRUD·Validation·Transaction
+3. List·Offset Page·Slice·Cursor와 Max+1 제한
+4. Local/Remote Domain Call과 TransactionGlobalId
+5. Timeout·Retry·Idempotency·Unknown Result
+6. 고정길이 전문 Encode·Decode·Validation·Masking
+7. File·Attachment·Compression·External Adapter
+8. Batch Job·Worker·Checkpoint
+9. Center-Cut Job·Item·Attempt·Failed-only Reprocess
+10. ADM/BZA 조회·권한·승인·감사
+11. Generator Create·Build·Run·Remove·Recreate
 
-1. 표준 Header와 오류
-2. Reference CRUD
-3. Member 개인정보와 권한
-4. Account Transaction과 멱등성
-5. Local/Remote 호출
-6. External timeout과 retry
-7. Outbox/Inbox와 DLQ
-8. Batch와 Worker
-9. ADM 거래 조회
-10. 장애 복구와 Reconciliation
+## 완료 조건
 
-## 4. CRUD Scenario
-
-포함 항목:
-
-- 등록
-- 단건 조회
-- 수정
-- 삭제 또는 상태 전환
-- 목록
-- Offset paging
-- Keyset paging
-- 검색 조건
-- 허용 정렬
-- Validation
-- 권한
-- Audit
-
-## 5. Service Call Scenario
-
-동일 기능을 다음 두 방식으로 호출합니다.
-
-- Modular Monolith Local Facade
-- Microservice Remote Adapter
-
-응답, 오류, Header, Audit와 Idempotency가 일치하는지 비교합니다.
-
-## 6. External Integration Scenario
-
-- 정상 REST
-- 응답 지연
-- Timeout
-- Target down
-- 5xx
-- 잘못된 전문
-- 중복 응답
-- 결과 불명
-- 결과 재조회
-- Reconciliation
-- 수동 복구
-
-## 7. Messaging Scenario
-
-- Outbox 저장
-- Broker 발행
-- Inbox 중복 방지
-- Consumer 실패
-- Retry
-- DLQ
-- Replay
-- Poison message 격리
-- 순서와 파티션
-
-## 8. File Scenario
-
-- 파일 생성
-- 압축
-- 암호화
-- SFTP 전송
-- 수신 확인
-- 재전송
-- checksum
-- 부분 실패
-- 보존과 삭제
-
-## 9. Batch Scenario
-
-- 단순 Job
-- Multi-step
-- Parameter
-- Dependency
-- Partition
-- Checkpoint
-- Restart
-- Retry와 Skip
-- 2개 Worker
-- Drain과 Takeover
-- Center-Cut
-
-## 10. Evidence
-
-각 EDU 시나리오는 다음을 제공합니다.
-
-- 실행 명령
-- Profile
-- 테스트 데이터
-- 기대 결과
-- HTTP 또는 메시지
-- DB 조회
-- 파일 로그
-- ADM 조회 경로
-- 오류와 복구 절차
-
-Sample test 통과만으로 제품 기능 완료를 주장하지 않습니다.
+각 실습은 명령, Source 경로, API, SQL, 예상 결과, 오류·경계 Case와 최신 Runtime Evidence를 가진다. 문서만 존재하거나 정적 Test만 통과하면 완료가 아니다.

@@ -1,60 +1,54 @@
-# CPF_GAP_MATRIX
+# CPF Gap Matrix
 
-## 1. 기준
-
-- 기준 Branch: `master`
-- 기준 중간 Commit: `e35b7a0b4f2f7c94fb42f6767dc09c73ca2a3549`
-- 직전 비교 Commit: `b32cc8ae5ccb798f3b1e6720c678e3838d01b460`
-- 현재 상태: **중간 Push 재검수 필요**
-- 중간 Commit의 작업자 완료 주장과 자동 생성 Evidence는 검수 확정이 아니다.
-
-## 2. 최우선 Gap
-
-| ID | 상태 | Gap | 완료 조건 |
+| ID | 상태 | 현재 Gap | 목표/완료 조건 |
 |---|---|---|---|
-| STRUCT-01 | 재확인 필요 | legacy Module명과 `cpf.*` Package 잔존 | 공식 `cpf-*`, `com.cpf.*` migration과 전체 build/runtime |
-| STRUCT-02 | 재확인 필요 | Root project name과 Repository Root 비정본 | 목표 명칭·공식 문서 위치·경로 보정 |
-| STRUCT-03 | 재확인 필요 | SystemCode와 DomainName 혼용 | Generator·Config·Route·SQL까지 분리 |
-| GEN-01 | 재확인 필요 | Generator 변경의 실제 parity 미확정 | ACC lifecycle, 4 DB Vendor, capability absence |
-| AI-01 | 재확인 필요 | AI 전용 PoC·Dependency 잔존 가능성 | 전체 검색·제거·범용 기능 재소유 |
-| AUDIT-01 | 재확인 필요 | `e35b7a0` 문서 완료와 실제 Source 정합성 미검수 | 요구→구현·구현→요구 양방향 검수 |
-| EVID-01 | 재확인 필요 | 대형 generated Evidence가 완료 근거로 혼재 | 파생 산출물 분리, Runtime Evidence 재확인 |
-| ROOT-01 | 재확인 필요 | Root에 관리 문서와 legacy Module 산재 | 공식 Repository 구조 정리 |
-| SQL-01 | 재확인 필요 | 중복 SQL 삭제와 canonical owner 영향 | 신규 설치·migration·rollback 실검증 |
-| LOG-01 | 부분 구현 | 파일 로그 smoke가 최신 경로 보정 중 중단 | 실제 파일/DB 로그 parity 성공 |
-| BAT-01 | 재확인 필요 | Worker 구현과 2-process 성공 주장 미검수 | lease/fencing/drain/takeover 실검증 |
-| UI-01 | 재확인 필요 | ADM/BZA 현대화와 packaging 주장 미검수 | lint/typecheck/test/build/archive/browser |
-| COMPAT-01 | 미구현 | Module·Package rename 호환·migration 계획 | consumer 영향·rollback·compat adapter |
-| PROD-01 | 부분 구현 | 설치·배포·공개 package 제품화 미완결 | 독립 설치·upgrade·rollback·release 검증 |
-
-## 3. 중단 작업 재검수 목록
-
-- requirement/implementation traceability
-- 전체 계층 taxonomy
-- ACC lifecycle
-- BAT Worker
-- ADM/BZA frontend
-- SQL canonicalization
-- DB Vendor generator
-- MariaDB full install
-- OpenAPI/runtime
-- file/DB logging
-- 외부연계 failure/recovery
-- EDU coverage
-- security/supply-chain
-- repository hygiene
-
-모든 항목은 실제 최신 Source에서 재실행하기 전까지 `재확인 필요`다.
-
-## 4. 133개 Requirement 상태 정책
-
-기존 Matrix의 완료 표시는 자동 승계하지 않는다.
-
-- 실제 Source·Consumer·Runtime·Evidence가 모두 확인된 항목만 `완료`
-- 구현은 있으나 일부 경계·복구·운영·문서가 빠지면 `부분 구현`
-- 실행 환경이 없어 직접 확인하지 못하면 `미검증`
-- 기능이 없으면 `미구현`
-- 실행 실패면 `실패`
-- 중간 Commit의 주장만 있으면 `재확인 필요`
-
-상세 133개 Catalog는 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 따른다.
+| BASE-01 | 완료 | 최신 WIP Push 보존 | master 두 Commit 확인 |
+| BASE-02 | 실패 | 관리 문서 기준선 e35 | 최신 master로 전면 갱신 |
+| STRUCT-01 | 부분 구현 | 공식 Module은 존재, 전체 Runtime 불명 | Clean Build·Startup |
+| STRUCT-02 | 부분 구현 | Package Rename 후 Reflection·Mapper 불명 | 전수 Contract Test |
+| STRUCT-03 | 부분 구현 | CPF SystemCode 일부 경로만 확인 | Header·Error·Seed·UI E2E |
+| LEGACY-01 | 재확인 필요 | PFW/XYZ 광역 치환 후 손상 가능 | Active 0 + Hash 무결성 |
+| CORE-01 | 부분 구현 | Core Package 과대·Public 경계 불명 | API/SPI/Internal |
+| CORE-02 | 미구현 | Utility·Config DX 정본 부족 | Cpf* API + Sample |
+| CORE-03 | 미구현 | List/Page/Slice/Cursor 표준 불명 | Types·Limit·Runtime |
+| COMMON-01 | 실패 | cmnDB 9 Table | Sample 1 Table |
+| COMMON-02 | 실패 | File/Message 기술 기능 혼재 | Core/External 재소유 |
+| COMMON-03 | 실패 | 채번 Framework화 | 제거 + BZA Sample |
+| FIXED-01 | 실패 | cmnDB Fixed-Length | Core Engine·External Adapter |
+| BZA-01 | 부분 구현 | 업무 원장성 Table 혼재 | Admin Owner 정리 |
+| BZA-02 | 미구현 | 채번 Custom Sample | 선택형 UI·Guide |
+| BATCH-01 | 실패 | Batch Table cpfDB 혼재 | batDB/bat_* Owner |
+| BATCH-02 | 부분 구현 | Worker Source·Evidence 후보 | 2-process E2E |
+| CUT-01 | 부분 구현 | Runner 책임·Parameter 불명 | Job/Item/Attempt E2E |
+| CUT-02 | 미구현/미검증 | Global TPS·Backpressure | Cluster Runtime |
+| CUT-03 | 미구현/미검증 | Failed-only Reprocess | History·Concurrency E2E |
+| AGENT-01 | 미구현/미검증 | Primary/Secondary | Failover·Fencing |
+| EXEC-01 | 부분 구현 | Java 중심 | Shell/File/Composite |
+| GWY-01 | 부분 구현 | Module 존재 | Route·Failover Runtime |
+| EXS-01 | 부분 구현 | Source·Schema 존재 | Institution Runtime |
+| MSG-01 | 부분 구현 | Contract 존재 | Real Broker·Replay |
+| FILE-01 | 부분 구현 | Contract/Code 혼재 | SFTP·File Watch E2E |
+| SQL-01 | 실패 | Install가 Drop 포함 | Install/Reset 분리 |
+| SQL-02 | 실패 | User/Grant 혼합 | Provision 분리 |
+| SQL-03 | 재확인 필요 | Flyway Rename·Checksum | Baseline Decision |
+| SQL-04 | 미검증 | Empty Install latest | MariaDB Evidence |
+| SQL-05 | 미검증 | Upgrade·Rollback | Rehearsal |
+| UI-01 | 부분 구현 | Vue Modernization | 구조·Production Build |
+| UI-02 | 미검증 | Web/WAS 분리 | Nginx + Java |
+| UI-03 | 미검증 | Browser | Login·Role·Control |
+| SEC-01 | 부분 구현 | Source·Guide | Runtime Permission |
+| SEC-02 | 미검증 | Masking·Audit | Browser·DB Evidence |
+| DOC-01 | 실패 | Request/Gap stale | 최신 기준 갱신 |
+| DOC-02 | 실패 | Premature DOCX | Markdown 정본 |
+| DOC-03 | 부분 구현 | Guide high-level | 실제 API·Screen 반영 |
+| ROOT-01 | 실패 | Work docs Root | cpf-docs 통합 |
+| EVID-01 | 재확인 필요 | Evidence freshness | Commit Metadata |
+| EVID-02 | 실패 | Static를 완료 근거로 사용 가능 | Runtime 분류 |
+| BUILD-01 | 미검증 | latest clean test | 전체 종료코드 |
+| BUILD-02 | 부분 구현 | qualityGate runtime 불포함 | Product Gate 추가 |
+| PS-01 | 실패 | Gradle `powershell` hardcode | `pwsh` resolver |
+| GEN-01 | 부분 구현 | Tool/Evidence 존재 | latest rerun |
+| GEN-02 | 미검증 | 4 Vendor Matrix latest | Clean Re-execution |
+| GEN-03 | 미검증 | ACC parity latest | DB/Runtime 포함 |
+| DEPLOY-01 | 미구현/미검증 | 실제 Target 없음 | Dry-run 아닌 Deploy |
+| DR-01 | 미검증 | Backup/Restore | Recovery Evidence |

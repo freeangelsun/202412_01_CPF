@@ -1,47 +1,36 @@
-# CPF_STABILIZATION_REPORT
+# CPF Stabilization Report
 
-## 1. 현재 판정
+## 기준
 
-`e35b7a0`은 대규모 변경과 Evidence를 포함한 중간 Push이지만 최종 완료 Commit으로 인정할 수 없다.
+- Repository: `freeangelsun/202412_01_CPF`
+- Branch: `master`
+- 기준 Commit: `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`
+- 상태: 대규모 Module·Package·DB 표준화 중단 지점의 WIP
+- 직접 실행: 이 문서 작성 환경에서는 Build·MariaDB·Runtime·Browser 직접 실행 미수행
 
-주요 이유:
+## 종합 판정
 
-- 변경량 대부분이 generated inventory·traceability다.
-- 작업자가 전체 133개 완료를 주장했으나 요구별 Source·Consumer·Runtime 대조가 끝나지 않았다.
-- Codex 작업 로그는 파일 로그 검증 하네스 수정 도중 중단됐다.
-- 공식 Module·Package·SystemCode migration이 선행되지 않았다.
-- 관리 문서 상태가 구현보다 먼저 완료로 변경됐을 가능성이 있다.
+**부분 구현**
 
-## 2. 보존 후보
+최신 Git에는 Module 표준화, 광범위한 `PFW → CPF`·Package 변경, Generator·Evidence·SQL·ADM/BZA·Batch 관련 구현이 존재한다. 그러나 Empty MariaDB 설치, 최종 DB Ownership, 전체 Module Runtime, Center-Cut, Agent Failover, ADM/BZA Browser, 독립 배포, Upgrade·Rollback과 최신 Evidence가 확인되지 않아 완료로 판정할 수 없다.
 
-다음은 폐기하지 말고 실제 검수 후 목표 구조로 이관할 후보다.
+## 사용자 확인 환경 상태
 
-- ACC generator lifecycle 개선
-- capability·DB Vendor Generator
-- BAT Worker lease·fencing·takeover
-- ADM/BZA Vue 3·TypeScript·Vite 전환
-- SQL canonical gate
-- traceability·taxonomy 도구
-- MariaDB install·OpenAPI runtime harness
-- file log smoke 개선
+- 회사 PC에서 기존 CPF Schema와 Table은 이미 삭제됨
+- 집 PC는 신규 MariaDB이며 CPF Object 없음
+- 다음 작업은 빈 DB 정본 재구축부터 수행
 
-## 3. 최우선 안정화 순서
+## 최우선 안정화 항목
 
-1. 중간 Commit 전수검수
-2. 공식 Module·Package·SystemCode 확정
-3. Generator 선행 수정
-4. Module·Package migration
-5. Consumer·Build·Config·SQL·Route 복구
-6. 중단 구현 검수·보완
-7. 이전 Gap 전체 구현
-8. Runtime·DB·Browser·복구 검증
-9. Root·문서·Evidence 정본화
-10. 최종 단일 Commit/Push
+1. 최종 Schema·Table·Constraint·Index·Meta Seed·Service User 표준 확정
+2. Install·Reset·Provision·Migration·Rollback·Seed·Verify 분리
+3. `cmnDB` 최소 Sample Table 1개 정책 적용
+4. 고정길이 전문 Core Ownership과 External 기관별 Adapter 분리
+5. Common 채번 제거 및 BZA 선택형 Customization Sample 전환
+6. Batch Physical Ownership·`batDB`·CenterCutRunner·Agent/Worker 정합성
+7. Source·SQL·Config·API·UI·Generator·Test·Guide 물리명 일치
+8. Empty Install부터 Runtime·Browser·Upgrade·Rollback Evidence 재생성
 
-## 4. AI 정리
+## 완료 금지
 
-기본 제품과 `cpf-core`에서 AI Provider·Prompt·Model·Embedding·Vector Store·추론 SDK·PoC를 제거한다. 범용 기능은 적정 Owner로 이동하고, 향후 AI는 선택 확장으로만 제공한다.
-
-## 5. 완료 판정
-
-현재 전체 상태는 `재확인 필요`다. 중간 Commit의 성공 보고를 근거로 진행률이나 전체 완료율을 산정하지 않는다.
+정적 검색, Class·Table 존재, 과거 Evidence, 일부 Test 통과 또는 Codex 보고만으로 완료 처리하지 않는다. 직접 확인하지 못한 항목은 `미검증` 또는 `재확인 필요`로 유지한다.

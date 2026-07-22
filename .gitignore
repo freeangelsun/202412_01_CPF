@@ -1,4 +1,4 @@
-HELP.md
+﻿HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -35,9 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/extensions.json
 
 ### CPF runtime logs ###
 logs/
@@ -50,7 +47,7 @@ logs/
 **/coverage/
 **/.vite/
 
-# 공식 증적 디렉터리에는 정제된 결과와 현재 요청서 기준 해시만 포함합니다.
+# 怨듭떇 利앹쟻 ?붾젆?곕━?먮뒗 ?뺤젣??寃곌낵? ?꾩옱 ?붿껌??湲곗? ?댁떆留??ы븿?⑸땲??
 !cpf-docs/evidence/
 cpf-docs/evidence/**
 !cpf-docs/evidence/**/
@@ -58,3 +55,4 @@ cpf-docs/evidence/**
 !cpf-docs/evidence/**/*.sanitized.json
 !cpf-docs/evidence/**/*.sanitized.png
 !cpf-docs/evidence/**/cpf-current-work-request.baseline.sha256
+

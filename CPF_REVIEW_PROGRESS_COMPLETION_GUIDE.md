@@ -1,10 +1,6 @@
-# CPF_REVIEW_PROGRESS_COMPLETION_GUIDE
+# CPF 검수·진행·완료 판정 Guide
 
-## 1. 검수 목적
-
-CPF의 작업자 보고와 실제 제품 상태를 분리하고, 요구사항→구현과 구현→요구사항 양방향 추적을 수행한다.
-
-## 2. 상태값
+## 1. 허용 상태
 
 - 완료
 - 부분 구현
@@ -13,58 +9,162 @@ CPF의 작업자 보고와 실제 제품 상태를 분리하고, 요구사항→
 - 실패
 - 재확인 필요
 
-## 3. 완료 불인정
+## 2. 완료의 최소 근거
 
-다음은 단독 완료 근거가 아니다.
+요구사항 하나가 완료되려면 적용 대상에 따라 다음이 연결돼야 한다.
 
-- 파일·Class·Package 존재
-- 정적 검색
+```text
+Requirement
+→ Owner Module
+→ Public API/SPI
+→ Source
+→ Consumer
+→ SQL/Migration
+→ Security/Audit
+→ Operations
+→ Unit/Integration
+→ Runtime/Browser
+→ Guide
+→ Evidence
+```
+
+## 3. 완료 근거가 아닌 것
+
+- Class 존재
+- Interface 존재
+- Table 존재
 - Swagger 노출
-- 일부 테스트
-- 자동 생성 Matrix·Inventory
+- Static Scan PASS
+- 단순 Heartbeat
+- 설정 문자열
+- Sample 등록
 - 과거 Evidence
-- Codex/Qwen 성공 보고
+- Codex 성공 보고
 - 문서의 완료 표시
-- 빈 로그·Mock만의 성공
-- 실행하지 않은 Browser/DB/Broker 검증
+- Quality Gate가 Runtime을 포함하지 않은 상태의 PASS
 
-## 4. 요구사항별 검수
+## 4. 검수 순서
 
-- Source와 계층 연결
-- Owner Module·Package
-- 실제 Consumer
-- API·오류·권한
-- SQL·Migration·Install·Rollback
-- 정상·오류·경계·부분 실패
-- retry·recovery·unknown result
-- idempotency·concurrency·multi-instance
-- security·audit·masking
-- operations
-- EDU·OpenAPI·JavaDoc
-- Unit·Integration·Runtime·Browser
-- 최신 Evidence
-- regression
+1. 최신 master
+2. 작업 요청
+3. Codex 보고
+4. Final Target
+5. 전체 Diff
+6. Source·Resource·SQL·Script·Frontend
+7. Consumer
+8. Runtime
+9. Evidence
+10. Regression
+11. Garbage
+12. 신규 Gap
 
-## 5. 작업자 문서와 검수자 판정
+## 5. 양방향 추적
 
-작업자는 직접 수행한 사실과 Evidence를 작성할 수 있다. 최종 완료·진행률·Gap 종료는 별도 전수검수 후 확정한다.
+### Requirement → Implementation
 
-## 6. 진행률
+- Source
+- API
+- SQL
+- Test
+- Runtime
+- Evidence
 
-최상위 Requirement를 중복 없이 집계한다. 같은 Gap을 다른 이름으로 반복 계산하지 않는다. `재확인 필요`와 `미검증`을 완료율에 포함하지 않는다.
+### Implementation → Requirement
 
-## 7. Evidence 신선도
+- Requirement ID
+- Owner
+- Consumer
+- Runtime Use
+- Operations
+- Security
+- Retention
 
-Evidence는 기준 Commit, 환경, 명령, 시각, 종료 코드, 민감정보 제거 여부가 확인돼야 한다. Source가 바뀌면 관련 Evidence는 stale로 표시한다.
+## 6. DB 검수
 
-## 8. 중간 Push 대응
+Table마다:
 
-작업 중간 Commit이 발생하면:
+- Schema
+- Owner
+- DDL
+- Index/Constraint
+- Repository
+- Service
+- API
+- UI
+- Consumer
+- Row Count
+- PII
+- Retention
+- Migration
+- Rollback
+- Runtime
 
-1. 이전 기준 Commit을 고정
-2. 변경 전체를 요구 단위로 분해
-3. 문서 완료와 Source 구현을 분리
-4. 유효 구현 보존
-5. 허위·과장 상태 하향
-6. 회귀·삭제·가비지 확인
-7. 다음 통합 요청서에 잔여 범위 포함
+실 DB 미접속이면 삭제 완료 처리하지 않는다. 빈 DB 신규 정본에서는 Owner 없는 Object를 생성하지 않는다.
+
+## 7. Evidence 등급
+
+### E1 Static
+
+Search·Inventory·AST·Architecture.
+
+### E2 Build
+
+Compile·Unit·Package.
+
+### E3 Integration
+
+DB·Container·Contract.
+
+### E4 Runtime
+
+실제 Process·HTTP·Broker·File.
+
+### E5 Operations
+
+Admin·Control·Recovery·Browser.
+
+`완료`에는 기능 성격에 맞는 E3~E5가 필요하다.
+
+## 8. Stale 판정
+
+다음 중 하나면 Stale:
+
+- Evidence Commit != Final Commit
+- Source/API/SQL 변경 후 재실행 안 함
+- 다른 Profile
+- 다른 DB Schema
+- 실행 명령 없음
+- Exit Code 없음
+- 환경 없음
+- 원문 Log 없음
+
+## 9. 회귀 검수
+
+- 기존 성공 API
+- Local/Remote
+- Header
+- Transaction ID
+- Log
+- Security
+- DB Install
+- Generator
+- Batch
+- ADM/BZA
+- OpenAPI
+- Deployment
+
+## 10. 최종 Gate
+
+- Worktree Clean
+- Full Build
+- Empty Install
+- Reinstall
+- Upgrade/Rollback
+- Runtime
+- Browser
+- Security
+- Docs
+- Evidence
+- No Garbage
+- No Secret
+- No Stale Name

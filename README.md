@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 # Core Platform Framework
 
@@ -22,30 +22,30 @@
 
 ## Overview
 
-**Core Platform Framework(CPF)**는 다양한 업무 시스템을 일관된 구조로 개발하고 운영하기 위한 Java 기반 Framework입니다.
+**Core Platform Framework(CPF)**???ㅼ뼇???낅Т ?쒖뒪?쒖쓣 ?쇨???援ъ“濡?媛쒕컻?섍퀬 ?댁쁺?섍린 ?꾪븳 Java 湲곕컲 Framework?낅땲??
 
-온라인 거래, 주제영역 간 호출, 배치와 대량 처리, 외부 시스템 연계, 파일과 전문, 메시징, 보안, 감사, 운영 관제, 장애 복구, 설치와 업그레이드에 필요한 공통 구조와 실행 기반을 제공합니다.
+?⑤씪??嫄곕옒, 二쇱젣?곸뿭 媛??몄텧, 諛곗튂? ???泥섎━, ?몃? ?쒖뒪???곌퀎, ?뚯씪怨??꾨Ц, 硫붿떆吏? 蹂댁븞, 媛먯궗, ?댁쁺 愿?? ?μ븷 蹂듦뎄, ?ㅼ튂? ?낃렇?덉씠?쒖뿉 ?꾩슂??怨듯넻 援ъ“? ?ㅽ뻾 湲곕컲???쒓났?⑸땲??
 
-시스템의 규모와 구성 방식이 달라지더라도 동일한 개발 원칙과 운영 기준을 유지할 수 있도록 설계되었으며, MSA와 Modular Monolith 환경을 함께 지원합니다.
+?쒖뒪?쒖쓽 洹쒕え? 援ъ꽦 諛⑹떇???щ씪吏?붾씪???숈씪??媛쒕컻 ?먯튃怨??댁쁺 湲곗????좎??????덈룄濡??ㅺ퀎?섏뿀?쇰ŉ, MSA? Modular Monolith ?섍꼍???④퍡 吏?먰빀?덈떎.
 
-CPF는 기능 구현뿐 아니라 거래 추적, 오류 처리, 재시도, 복구, 보안, 감사, 운영 제어와 확장 구조를 함께 관리합니다.
+CPF??湲곕뒫 援ы쁽肉??꾨땲??嫄곕옒 異붿쟻, ?ㅻ쪟 泥섎━, ?ъ떆?? 蹂듦뎄, 蹂댁븞, 媛먯궗, ?댁쁺 ?쒖뼱? ?뺤옣 援ъ“瑜??④퍡 愿由ы빀?덈떎.
 
 ## Product Highlights
 
 | Platform Engineering | Reliability & Operations |
 |---|---|
-| MSA와 Modular Monolith 동시 지원 | 다중 인스턴스, 재시도, 복구와 결과 불명 처리 |
-| 동일 JVM과 분리 WAS의 동일 업무 Contract | 거래 추적, 파일·DB 로그, 감사와 Trace Boost |
-| 표준 Gateway와 Local/Remote 호출 | Worker lease, fencing, drain과 takeover |
-| 신규 업무 주제영역 Generator | 운영 조회·제어·승인·재처리 |
-| OpenAPI, JavaDoc와 EDU | 설치·Migration·Upgrade·Rollback |
+| MSA? Modular Monolith ?숈떆 吏??| ?ㅼ쨷 ?몄뒪?댁뒪, ?ъ떆?? 蹂듦뎄? 寃곌낵 遺덈챸 泥섎━ |
+| ?숈씪 JVM怨?遺꾨━ WAS???숈씪 ?낅Т Contract | 嫄곕옒 異붿쟻, ?뚯씪쨌DB 濡쒓렇, 媛먯궗? Trace Boost |
+| ?쒖? Gateway? Local/Remote ?몄텧 | Worker lease, fencing, drain怨?takeover |
+| ?좉퇋 ?낅Т 二쇱젣?곸뿭 Generator | ?댁쁺 議고쉶쨌?쒖뼱쨌?뱀씤쨌?ъ쿂由?|
+| OpenAPI, JavaDoc? EDU | ?ㅼ튂쨌Migration쨌Upgrade쨌Rollback |
 
 | Security & Integration | Batch & Massive Processing |
 |---|---|
-| 인증, 권한, 마스킹, 감사와 Secret 관리 | Batch, Scheduler, Agent와 Worker |
-| mTLS, OAuth2, JWT와 API Key | Center-Cut, 분할 처리와 재시작 |
-| REST, 고정길이 전문과 파일 | 멱등성, checkpoint와 item 재처리 |
-| Outbox, Inbox, DLQ와 Reconciliation | 동기·비동기 업무 호출과 보상 |
+| ?몄쬆, 沅뚰븳, 留덉뒪?? 媛먯궗? Secret 愿由?| Batch, Scheduler, Agent? Worker |
+| mTLS, OAuth2, JWT? API Key | Center-Cut, 遺꾪븷 泥섎━? ?ъ떆??|
+| REST, 怨좎젙湲몄씠 ?꾨Ц怨??뚯씪 | 硫깅벑?? checkpoint? item ?ъ쿂由?|
+| Outbox, Inbox, DLQ? Reconciliation | ?숆린쨌鍮꾨룞湲??낅Т ?몄텧怨?蹂댁긽 |
 
 ## Architecture at a Glance
 
@@ -88,101 +88,98 @@ flowchart TB
 
 ### Runtime Principles
 
-- 외부 Client와 Channel은 `cpf-gateway`를 통해 진입합니다.
-- 내부 주제영역 간 호출은 Gateway를 재경유하지 않습니다.
-- 동일 JVM 호출과 Remote 호출은 동일한 업무 Contract를 공유합니다.
-- 기술 공통은 업무 Module을 참조하지 않습니다.
-- 상태 기반 기능은 멱등성, 동시성, 재시도, 결과 불명과 복구를 함께 설계합니다.
-- 모든 운영 조치는 권한, 승인, 감사와 실행 Evidence를 남깁니다.
+- ?몃? Client? Channel? `cpf-gateway`瑜??듯빐 吏꾩엯?⑸땲??
+- ?대? 二쇱젣?곸뿭 媛??몄텧? Gateway瑜??ш꼍?좏븯吏 ?딆뒿?덈떎.
+- ?숈씪 JVM ?몄텧怨?Remote ?몄텧? ?숈씪???낅Т Contract瑜?怨듭쑀?⑸땲??
+- 湲곗닠 怨듯넻? ?낅Т Module??李몄“?섏? ?딆뒿?덈떎.
+- ?곹깭 湲곕컲 湲곕뒫? 硫깅벑?? ?숈떆?? ?ъ떆?? 寃곌낵 遺덈챸怨?蹂듦뎄瑜??④퍡 ?ㅺ퀎?⑸땲??
+- 紐⑤뱺 ?댁쁺 議곗튂??沅뚰븳, ?뱀씤, 媛먯궗? ?ㅽ뻾 Evidence瑜??④퉩?덈떎.
 
 ## Official Modules
 
-CPF의 공식 Module은 기본 구성에 포함되는 **필수 Module**, 프로젝트 요구에 따라 적용하는 **선택 Module**, Generator 표준 구조를 따르는 **생성형 업무 Module**로 구분합니다.
+CPF??怨듭떇 Module? 湲곕낯 援ъ꽦???ы븿?섎뒗 **?꾩닔 Module**, ?꾨줈?앺듃 ?붽뎄???곕씪 ?곸슜?섎뒗 **?좏깮 Module**, Generator ?쒖? 援ъ“瑜??곕Ⅴ??**?앹꽦???낅Т Module**濡?援щ텇?⑸땲??
 
-| Module | Code | 유형 | 역할 |
+| Module | Code | ?좏삎 | ??븷 |
 |---|---:|---|---|
-| `cpf-core` | `CPF` | 필수 | 기술 공통·Runtime·확장 SPI |
-| `cpf-gateway` | `GWY` | 선택 | 외부 진입·라우팅·보안·장애 격리 |
-| `cpf-common` | `CMN` | 필수 | 업무 공통 기능·공통 모델 |
-| `cpf-admin` | `ADM` | 필수 | 플랫폼 운영·관제·보안·감사 |
-| `cpf-biz-admin` | `BZA` | 선택 | 업무 관리자·업무 운영 |
-| `cpf-batch` | `BAT` | 선택 | Batch·Scheduler·Worker·Center-Cut |
-| `cpf-member` | `MBR` | 생성형 | 회원 업무 주제영역 |
-| `cpf-account` | `ACC` | 생성형 | 계좌 업무 주제영역 |
-| `cpf-reference` | `REF` | 선택 | 참조 구현·EDU |
-| `cpf-external` | `EXS` | 생성형 | 대외 연계 주제영역 |
+| `cpf-core` | `CPF` | ?꾩닔 | 湲곗닠 怨듯넻쨌Runtime쨌?뺤옣 SPI |
+| `cpf-gateway` | `GWY` | ?좏깮 | ?몃? 吏꾩엯쨌?쇱슦?끒룸낫?댟룹옣??寃⑸━ |
+| `cpf-common` | `CMN` | ?꾩닔 | ?낅Т 怨듯넻 湲곕뒫쨌怨듯넻 紐⑤뜽 |
+| `cpf-admin` | `ADM` | ?꾩닔 | ?뚮옯???댁쁺쨌愿?쑣룸낫?댟룰컧??|
+| `cpf-biz-admin` | `BZA` | ?좏깮 | ?낅Т 愿由ъ옄쨌?낅Т ?댁쁺 |
+| `cpf-batch` | `BAT` | ?좏깮 | Batch쨌Scheduler쨌Worker쨌Center-Cut |
+| `cpf-member` | `MBR` | ?앹꽦??| ?뚯썝 ?낅Т 二쇱젣?곸뿭 |
+| `cpf-account` | `ACC` | ?앹꽦??| 怨꾩쥖 ?낅Т 二쇱젣?곸뿭 |
+| `cpf-reference` | `REF` | ?좏깮 | 李몄“ 援ы쁽쨌EDU |
+| `cpf-external` | `EXS` | ?앹꽦??| ????곌퀎 二쇱젣?곸뿭 |
 
-생성형 업무 Module은 필요한 Module만 선택하여 사용할 수 있으며, `cpf-tools`의 Generator를 이용해 동일한 표준 구조의 신규 업무 주제영역을 추가할 수 있습니다.
+?앹꽦???낅Т Module? ?꾩슂??Module留??좏깮?섏뿬 ?ъ슜?????덉쑝硫? `cpf-tools`??Generator瑜??댁슜???숈씪???쒖? 援ъ“???좉퇋 ?낅Т 二쇱젣?곸뿭??異붽??????덉뒿?덈떎.
 
 
 ## Core Capabilities
 
 ### Application Platform
 
-- 표준 요청·응답 Header와 거래 식별자
-- 업무 ID와 URI 기반 호출
-- Local Facade와 Remote Adapter
-- Validation, 오류 코드와 메시지 표준
-- Transaction, Idempotency와 상태 전이
-- Timeout budget, Retry, Circuit Breaker와 Bulkhead
-- OpenAPI, JavaDoc와 개발자 확장 SPI
+- ?쒖? ?붿껌쨌?묐떟 Header? 嫄곕옒 ?앸퀎??- ?낅Т ID? URI 湲곕컲 ?몄텧
+- Local Facade? Remote Adapter
+- Validation, ?ㅻ쪟 肄붾뱶? 硫붿떆吏 ?쒖?
+- Transaction, Idempotency? ?곹깭 ?꾩씠
+- Timeout budget, Retry, Circuit Breaker? Bulkhead
+- OpenAPI, JavaDoc? 媛쒕컻???뺤옣 SPI
 
-표준 온라인 요청은 `X-Transaction-Id`를 사용합니다. 기본 ID는
-`yyyyMMddHHmmssSSS`(17) + 모듈 ID(3) + WAS ID(7) + 일일 순번(7)의
-34자리이며, 상세 Header 신뢰 경계와 전달 규칙은
-[API Guide](cpf-docs/api/API_GUIDE.md#3-standard-headers)를 따릅니다.
+?쒖? ?⑤씪???붿껌? `X-Transaction-Id`瑜??ъ슜?⑸땲?? 湲곕낯 ID??`yyyyMMddHHmmssSSS`(17) + 紐⑤뱢 ID(3) + WAS ID(7) + ?쇱씪 ?쒕쾲(7)??34?먮━?대ŉ, ?곸꽭 Header ?좊ː 寃쎄퀎? ?꾨떖 洹쒖튃?
+[API Guide](cpf-docs/api/API_GUIDE.md#3-standard-headers)瑜??곕쫭?덈떎.
 
 ### Operations
 
-- 거래 그룹, 상세, 구간별 Timeline과 실패 지점 조회
-- 파일 로그와 DB 로그의 거래 단위 추적
-- 서비스·Endpoint·Instance Registry와 상태 조회
-- 동적 로그 레벨과 제한 시간 Trace Boost
-- Batch·Worker·Center-Cut 조회와 제어
-- 재처리, 보상, 결과 불명 확인과 수동 복구
-- 운영 조치 승인, 감사와 통계
+- 嫄곕옒 洹몃９, ?곸꽭, 援ш컙蹂?Timeline怨??ㅽ뙣 吏??議고쉶
+- ?뚯씪 濡쒓렇? DB 濡쒓렇??嫄곕옒 ?⑥쐞 異붿쟻
+- ?쒕퉬?ㅒ텲ndpoint쨌Instance Registry? ?곹깭 議고쉶
+- ?숈쟻 濡쒓렇 ?덈꺼怨??쒗븳 ?쒓컙 Trace Boost
+- Batch쨌Worker쨌Center-Cut 議고쉶? ?쒖뼱
+- ?ъ쿂由? 蹂댁긽, 寃곌낵 遺덈챸 ?뺤씤怨??섎룞 蹂듦뎄
+- ?댁쁺 議곗튂 ?뱀씤, 媛먯궗? ?듦퀎
 
 ### Security
 
-- AuthN, AuthZ, RBAC와 정책 기반 접근 제어
-- 개인정보 분류, 마스킹과 다운로드 통제
-- Secret 외부화와 Rotation
-- mTLS, OAuth2, JWT와 API Key
-- 관리자 Dual Control과 감사 추적
-- Dependency, SBOM, License와 Secret Scan
+- AuthN, AuthZ, RBAC? ?뺤콉 湲곕컲 ?묎렐 ?쒖뼱
+- 媛쒖씤?뺣낫 遺꾨쪟, 留덉뒪?밴낵 ?ㅼ슫濡쒕뱶 ?듭젣
+- Secret ?몃??붿? Rotation
+- mTLS, OAuth2, JWT? API Key
+- 愿由ъ옄 Dual Control怨?媛먯궗 異붿쟻
+- Dependency, SBOM, License? Secret Scan
 
 ### Integration & Data
 
-- REST와 고정길이 전문
-- 파일, 첨부, 압축과 SFTP
-- Outbox, Inbox, DLQ와 Replay
-- Saga, Compensation과 Reconciliation
-- MariaDB, PostgreSQL, Oracle과 SQL Server
-- 신규 설치, Migration, Upgrade와 Rollback
+- REST? 怨좎젙湲몄씠 ?꾨Ц
+- ?뚯씪, 泥⑤?, ?뺤텞怨?SFTP
+- Outbox, Inbox, DLQ? Replay
+- Saga, Compensation怨?Reconciliation
+- MariaDB, PostgreSQL, Oracle怨?SQL Server
+- ?좉퇋 ?ㅼ튂, Migration, Upgrade? Rollback
 
 ## Repository Layout
 
 ```text
 cpf-core-platform-framework/
-├─ cpf-core/          기술 공통 Contract, Runtime 기능과 확장 SPI
-├─ cpf-gateway/       외부 진입, 인증 연계, Routing과 장애 격리
-├─ cpf-common/        여러 업무 주제영역에서 공유하는 업무 공통 기능
-├─ cpf-admin/         플랫폼 운영, 관제, 보안, 감사와 제어
-├─ cpf-biz-admin/     고객 업무 관리자 화면과 업무 운영 기능
-├─ cpf-batch/         Batch, Scheduler, Agent, Worker와 Center-Cut
-├─ cpf-member/        회원 업무 주제영역
-├─ cpf-account/       계좌 업무 주제영역과 Generator lifecycle 기준
-├─ cpf-reference/     기준정보, 참조 구현과 EDU 업무 주제영역
-├─ cpf-external/      외부기관, 전문, 파일, 메시징과 연계 복구
-├─ cpf-docs/          아키텍처, 개발, 운영, 보안, API와 Release 문서
-├─ cpf-deployment/    설치, 배포, 외부 WAS, Container와 운영 Script
-├─ cpf-tools/         Generator, Migration, 검증과 개발 지원 도구
-├─ build.gradle       공통 Build와 품질 검증 설정
-├─ settings.gradle    공식 Module 구성
-└─ README.md          제품 소개, 구조, 주요 기능과 시작 안내
+?쒋? cpf-core/          湲곗닠 怨듯넻 Contract, Runtime 湲곕뒫怨??뺤옣 SPI
+?쒋? cpf-gateway/       ?몃? 吏꾩엯, ?몄쬆 ?곌퀎, Routing怨??μ븷 寃⑸━
+?쒋? cpf-common/        ?щ윭 ?낅Т 二쇱젣?곸뿭?먯꽌 怨듭쑀?섎뒗 ?낅Т 怨듯넻 湲곕뒫
+?쒋? cpf-admin/         ?뚮옯???댁쁺, 愿?? 蹂댁븞, 媛먯궗? ?쒖뼱
+?쒋? cpf-biz-admin/     怨좉컼 ?낅Т 愿由ъ옄 ?붾㈃怨??낅Т ?댁쁺 湲곕뒫
+?쒋? cpf-batch/         Batch, Scheduler, Agent, Worker? Center-Cut
+?쒋? cpf-member/        ?뚯썝 ?낅Т 二쇱젣?곸뿭
+?쒋? cpf-account/       怨꾩쥖 ?낅Т 二쇱젣?곸뿭怨?Generator lifecycle 湲곗?
+?쒋? cpf-reference/     湲곗??뺣낫, 李몄“ 援ы쁽怨?EDU ?낅Т 二쇱젣?곸뿭
+?쒋? cpf-external/      ?몃?湲곌?, ?꾨Ц, ?뚯씪, 硫붿떆吏뺢낵 ?곌퀎 蹂듦뎄
+?쒋? cpf-docs/          ?꾪궎?띿쿂, 媛쒕컻, ?댁쁺, 蹂댁븞, API? Release 臾몄꽌
+?쒋? cpf-deployment/    ?ㅼ튂, 諛고룷, ?몃? WAS, Container? ?댁쁺 Script
+?쒋? cpf-tools/         Generator, Migration, 寃利앷낵 媛쒕컻 吏???꾧뎄
+?쒋? build.gradle       怨듯넻 Build? ?덉쭏 寃利??ㅼ젙
+?쒋? settings.gradle    怨듭떇 Module 援ъ꽦
+?붴? README.md          ?쒗뭹 ?뚭컻, 援ъ“, 二쇱슂 湲곕뒫怨??쒖옉 ?덈궡
 ```
 
-별도의 Root `specs/` 디렉터리는 두지 않습니다. 제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합하고, 자동 생성 자료와 실행 Evidence는 정해진 공식 위치에서 관리합니다.
+蹂꾨룄??Root `specs/` ?붾젆?곕━???먯? ?딆뒿?덈떎. ?쒗뭹 Specification怨?Guide????븷???곕씪 `cpf-docs/` ?꾨옒???듯빀?섍퀬, ?먮룞 ?앹꽦 ?먮즺? ?ㅽ뻾 Evidence???뺥빐吏?怨듭떇 ?꾩튂?먯꽌 愿由ы빀?덈떎.
 
 ## Quick Start
 
@@ -191,9 +188,8 @@ cpf-core-platform-framework/
 - JDK 25
 - Git
 - Gradle Wrapper
-- MariaDB 10.6 이상
-- Node.js LTS와 npm — ADM/BZA Frontend 개발 시
-- Docker 또는 외부 WAS — 선택 사항
+- MariaDB 10.6 ?댁긽
+- Node.js LTS? npm ??ADM/BZA Frontend 媛쒕컻 ??- Docker ?먮뒗 ?몃? WAS ???좏깮 ?ы빆
 
 ### Build
 
@@ -211,13 +207,13 @@ Windows:
 
 ### Database Installation
 
-MariaDB 기준 설치 SQL과 Migration을 적용합니다.
+MariaDB 湲곗? ?ㅼ튂 SQL怨?Migration???곸슜?⑸땲??
 
 ```bash
 ./gradlew cpfInstallDb -PcpfDbVendor=mariadb -PcpfProfile=local
 ```
 
-설치 후 반드시 schema version, seed, 권한과 주요 테이블을 검증합니다.
+?ㅼ튂 ??諛섎뱶??schema version, seed, 沅뚰븳怨?二쇱슂 ?뚯씠釉붿쓣 寃利앺빀?덈떎.
 
 ```bash
 ./gradlew cpfVerifyDb -PcpfDbVendor=mariadb -PcpfProfile=local
@@ -231,7 +227,7 @@ MariaDB 기준 설치 SQL과 Migration을 적용합니다.
 ./gradlew :cpf-batch:bootRun --args='--spring.profiles.active=local'
 ```
 
-각 업무 Module은 동일 JVM 또는 독립 서비스로 실행할 수 있습니다.
+媛??낅Т Module? ?숈씪 JVM ?먮뒗 ?낅┰ ?쒕퉬?ㅻ줈 ?ㅽ뻾?????덉뒿?덈떎.
 
 ```bash
 ./gradlew :cpf-member:bootRun --args='--spring.profiles.active=local'
@@ -251,7 +247,7 @@ npm run test
 npm run build
 ```
 
-동일 절차를 `cpf-biz-admin/frontend`에도 적용합니다.
+?숈씪 ?덉감瑜?`cpf-biz-admin/frontend`?먮룄 ?곸슜?⑸땲??
 
 ## Create a New Business Domain
 
@@ -264,45 +260,43 @@ npm run build
   -Capabilities "database,batch,external,messaging,ui"
 ```
 
-생성 후에는 검증 명령을 실행합니다.
+?앹꽦 ?꾩뿉??寃利?紐낅졊???ㅽ뻾?⑸땲??
 
 ```powershell
 .\cpf-tools\generator\verify-domain.ps1 -DomainName "payment"
 ```
 
-자세한 내용은 [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md)를 참고합니다.
+?먯꽭???댁슜? [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md)瑜?李멸퀬?⑸땲??
 
 ## Documentation
 
 | Audience | Guide |
 |---|---|
-| 전체 문서 안내 | [Documentation Home](cpf-docs/README.md) |
-| 아키텍트·Tech Lead | [Architecture Guide](cpf-docs/architecture/ARCHITECTURE_GUIDE.md) |
-| Backend·Frontend 개발자 | [Developer Guide](cpf-docs/development/DEVELOPER_GUIDE.md) |
-| 신규 주제영역 개발자 | [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md) |
-| 예제 학습 | [EDU Guide](cpf-docs/development/EDU_GUIDE.md) |
-| 운영자 | [Operator Guide](cpf-docs/operations/OPERATOR_GUIDE.md) |
-| 설치 담당자 | [Installation Guide](cpf-docs/operations/INSTALLATION_GUIDE.md) |
-| 배포 담당자 | [Deployment Guide](cpf-docs/operations/DEPLOYMENT_GUIDE.md) |
-| 장애 대응 담당자 | [Recovery Guide](cpf-docs/operations/RECOVERY_GUIDE.md) |
-| 보안 담당자 | [Security Guide](cpf-docs/security/SECURITY_GUIDE.md) |
+| ?꾩껜 臾몄꽌 ?덈궡 | [Documentation Home](cpf-docs/README.md) |
+| ?꾪궎?랁듃쨌Tech Lead | [Architecture Guide](cpf-docs/architecture/ARCHITECTURE_GUIDE.md) |
+| Backend쨌Frontend 媛쒕컻??| [Developer Guide](cpf-docs/development/DEVELOPER_GUIDE.md) |
+| ?좉퇋 二쇱젣?곸뿭 媛쒕컻??| [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md) |
+| ?덉젣 ?숈뒿 | [EDU Guide](cpf-docs/development/EDU_GUIDE.md) |
+| ?댁쁺??| [Operator Guide](cpf-docs/operations/OPERATOR_GUIDE.md) |
+| ?ㅼ튂 ?대떦??| [Installation Guide](cpf-docs/operations/INSTALLATION_GUIDE.md) |
+| 諛고룷 ?대떦??| [Deployment Guide](cpf-docs/operations/DEPLOYMENT_GUIDE.md) |
+| ?μ븷 ????대떦??| [Recovery Guide](cpf-docs/operations/RECOVERY_GUIDE.md) |
+| 蹂댁븞 ?대떦??| [Security Guide](cpf-docs/security/SECURITY_GUIDE.md) |
 | API Consumer | [API Guide](cpf-docs/api/API_GUIDE.md) |
-| Upgrade 담당자 | [Migration Guide](cpf-docs/releases/MIGRATION_GUIDE.md) |
-| Release 확인 | [Release Notes](cpf-docs/releases/RELEASE_NOTES.md) |
+| Upgrade ?대떦??| [Migration Guide](cpf-docs/releases/MIGRATION_GUIDE.md) |
+| Release ?뺤씤 | [Release Notes](cpf-docs/releases/RELEASE_NOTES.md) |
 
 ## Quality Principles
 
-CPF의 기능은 Source 작성뿐 아니라 실제 연결과 실행 결과까지 함께 확인합니다.
+CPF??湲곕뒫? Source ?묒꽦肉??꾨땲???ㅼ젣 ?곌껐怨??ㅽ뻾 寃곌낵源뚯? ?④퍡 ?뺤씤?⑸땲??
 
-- Source와 실제 Consumer 연결
-- API Contract와 오류 처리
-- SQL, Migration과 Rollback
-- 정상, 오류, 경계와 부분 실패 처리
-- 멱등성, 동시성과 다중 인스턴스 대응
-- 보안, 권한, 감사와 마스킹
-- 운영 조회와 제어
-- Unit, Integration, Runtime과 Browser 검증
-- 최신 Commit과 일치하는 Evidence
-- 기존 기능의 회귀 방지
+- Source? ?ㅼ젣 Consumer ?곌껐
+- API Contract? ?ㅻ쪟 泥섎━
+- SQL, Migration怨?Rollback
+- ?뺤긽, ?ㅻ쪟, 寃쎄퀎? 遺遺??ㅽ뙣 泥섎━
+- 硫깅벑?? ?숈떆?깃낵 ?ㅼ쨷 ?몄뒪?댁뒪 ???- 蹂댁븞, 沅뚰븳, 媛먯궗? 留덉뒪??- ?댁쁺 議고쉶? ?쒖뼱
+- Unit, Integration, Runtime怨?Browser 寃利?- 理쒖떊 Commit怨??쇱튂?섎뒗 Evidence
+- 湲곗〈 湲곕뒫???뚭? 諛⑹?
 
-각 기능은 구현, 설정, 데이터 구조, 테스트와 문서가 서로 일치하는 상태를 기준으로 관리합니다.
+媛?湲곕뒫? 援ы쁽, ?ㅼ젙, ?곗씠??援ъ“, ?뚯뒪?몄? 臾몄꽌媛 ?쒕줈 ?쇱튂?섎뒗 ?곹깭瑜?湲곗??쇰줈 愿由ы빀?덈떎.
+

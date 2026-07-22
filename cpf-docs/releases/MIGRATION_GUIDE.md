@@ -1,175 +1,119 @@
-# CPF Migration Guide
+# CPF Database·Install·Migration Guide
 
-## 1. Purpose
+## 1. 책임 분리
 
-이 문서는 CPF Version Upgrade와 구조 변경을 안전하게 적용하고 Rollback하는 절차를 설명합니다.
+- Install
+- Reset
+- Provision
+- Migration
+- Rollback
+- Seed
+- Verify
 
-## 2. Compatibility Areas
+한 Script에 Drop·Create User·DDL·Seed를 혼합하지 않는다.
 
-- Java Public API
-- SPI
-- REST API
-- Message
-- File format
-- DB schema
-- Configuration
-- Module name
-- Package
-- SystemCode
-- Route
-- Queue·Topic
-- Admin menu·permission
+## 2. Empty Install
 
-## 3. Upgrade Planning
+- Drop 없음
+- Schema Allowlist
+- Charset/Collation
+- DDL
+- Index/Constraint
+- Seed
+- Idempotency
+- Verification
 
-1. 현재 Version과 Commit 확인
-2. Target Release Notes 검토
-3. Breaking change 식별
-4. DB·Config·Secret diff
-5. Consumer 영향 분석
-6. Migration dry-run
-7. backup
-8. rollback plan
-9. 운영 승인
-10. staging rehearsal
+## 3. Reset
 
-### cpf-core 시스템 코드 전환
-
-`cpf-core`의 공식 시스템 코드는 `CPF`입니다. 정식 출시 전 기준선을 재확정하면서
-DB는 `cpfDB`, 프레임워크 테이블은 `cpf_*`, 메시지와 응답 코드는
-`MCPF...`·`SCPF...`·`ECPF...`로 통일했습니다. 이전 개발 DB는 업그레이드
-대상으로 간주하지 않고 백업 후 폐기한 다음 현행 설치 SQL로 다시 구성합니다.
-정식 출시 이후에는 기준 migration을 수정하지 않고 새 버전의 expand-contract
-migration과 rollback을 추가합니다.
-
-## 4. Module and Package Migration
-
-공식 구조:
+개발·테스트 전용.
 
 ```text
-cpf-core        com.cpf.core
-cpf-gateway     com.cpf.gateway
-cpf-common      com.cpf.common
-cpf-admin       com.cpf.admin
-cpf-biz-admin   com.cpf.bizadmin
-cpf-batch       com.cpf.batch
-cpf-member      com.cpf.member
-cpf-account     com.cpf.account
-cpf-reference   com.cpf.reference
-cpf-external    com.cpf.external
+Dry Run default
+→ Target Display
+→ Exact Schema Allowlist
+→ Other Schema Check
+→ Explicit Apply
+→ Drop CPF Schemas
 ```
 
-문자열 치환만으로 완료하지 않습니다.
+Wildcard 금지.
 
-- Gradle coordinates
-- import
-- component scan
-- reflection
-- serialization
-- MyBatis
-- config prefix
-- route
-- SQL
-- frontend
-- script
-- tests
+## 4. Provision
 
-를 함께 검증합니다.
+- Migration User
+- App User
+- Read-only User
+- Service별 분리
+- Minimum Grant
+- Secret 외부 입력
+- Evidence Masking
 
-## 5. Database Migration
+## 5. Schema Ownership
 
-### Expand and Contract
+- cpfDB: Core Runtime
+- cmnDB: 1 Sample
+- admDB: Platform Admin
+- bzaDB: Business Admin
+- batDB: Batch Runtime
+- mbrDB/accDB: Minimal Reference
+- refDB: EDU
+- exsDB: External
 
-1. 새 Column·Table 추가
-2. 양 버전 호환 Application 배포
-3. Backfill
-4. 신규 Field 사용 전환
-5. 구 Field 읽기 중단
-6. 후속 Release에서 제거
+## 6. Flyway
 
-### Large Data
+- Applied Migration Immutable
+- Checksum
+- Gap 없음
+- Repeatable 구분
+- Baseline
+- Expand/Contract
+- Multi-version
+- Lock·Duration
+- Backfill
 
-- chunk
-- checkpoint
-- throttling
-- lock time
-- replication lag
-- restart
-- progress
-- rollback
+## 7. Pre-release Re-baseline
 
-## 6. Configuration Migration
+아직 정식 출시 전이고 모든 DB를 폐기한다면:
 
-모든 변경은 다음을 제공합니다.
+1. 기존 Lineage Inventory
+2. 공식 승인
+3. Old Migration Archive
+4. 단일 New Baseline
+5. Checksum Freeze
+6. Empty Install
+7. Upgrade Simulation
 
-- old key
-- new key
-- default
-- required 여부
-- value conversion
-- secret 여부
-- removal version
+임의 Rename로 Baseline을 바꾸지 않는다.
 
-Deprecated key는 경고와 migration 메시지를 제공합니다.
+## 8. Rollback
 
-## 7. Message and File Compatibility
+- Data Loss
+- Backup
+- Compatibility
+- Rows Affected
+- Validation
+- Forward-fix
+- Restore
 
-- Schema version
-- producer-first 또는 consumer-first 순서
-- unknown field
-- enum 추가
-- dual read/write
-- replay
-- retention
+## 9. Vendor
 
-## 8. Runtime Upgrade
+- MariaDB
+- PostgreSQL
+- Oracle
+- SQL Server
 
-1. DB compatible migration
-2. control plane
-3. business services
-4. batch workers
-5. gateway
-6. admin frontend
-7. smoke
-8. traffic open
+Identity, Sequence, CLOB, Boolean, Timestamp, Index를 검증한다.
 
-## 9. Rollback Decision
+## 10. Evidence
 
-Rollback 기준:
-
-- 핵심 거래 실패
-- data corruption 위험
-- unknown result 급증
-- latency 임계 초과
-- security regression
-- migration failure
-- worker duplicate
-
-DB destructive migration이 적용되었으면 Application rollback보다 forward-fix가 안전할 수 있습니다.
-
-## 10. Verification
-
-- build
-- startup
-- schema version
-- core transactions
-- local/remote
-- batch/worker
-- external
-- log/audit
-- admin
-- compatibility consumer
-- rollback smoke
-
-## 11. Migration Evidence
-
-- from/to version
-- Commit
-- environment
-- command
-- DB version
-- rows affected
-- duration
-- validation
-- rollback point
-- result
+- Schema
+- Object Count
+- Owner
+- Grant
+- Seed
+- Migration History
+- Duration
+- Reinstall
+- Upgrade
+- Rollback
+- Other Schema Intact

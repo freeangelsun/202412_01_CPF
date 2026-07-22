@@ -1,103 +1,222 @@
-# CPF API·Security Guide
+# CPF Security Guide
 
-## 1. Header
+## 1. Security Principles
 
-- Transaction
-- Trace
-- Segment
-- Channel
-- Caller
-- User
-- External
-- `X-Cpf-Ext-*`
+- Zero Trust 경계
+- 최소 권한
+- Defense in Depth
+- Secure by Default
+- Secret Separation
+- 개인정보 최소화
+- 모든 중요 조치 Audit
+- 운영과 개발 권한 분리
 
-Trust Boundary와 Allowlist를 적용한다.
+## 2. Authentication
 
-## 2. Transaction ID
+지원 방식:
 
-34자리 정본과 업무 실행 ID 정책을 혼동하지 않는다. Product Contract 하나를 확정하고 Source·UI·SQL·Guide를 일치시킨다.
+- OAuth2/OIDC
+- JWT
+- API Key
+- mTLS
+- 관리자 Session
+- 내부 Workload Identity
 
-## 3. Response
+Token은 issuer, audience, signature, expiry, nonce와 scope를 검증합니다.
 
-```json
-{
-  "transactionGlobalId": "...",
-  "code": "SUCCESS",
-  "message": "정상",
-  "data": {},
-  "meta": {}
-}
+## 3. Authorization
+
+- API 권한
+- 메뉴 권한
+- 버튼 권한
+- 데이터 범위
+- 다운로드 권한
+- 운영 조치 권한
+- 승인 권한
+- Masking 해제 권한
+
+관리자 Role 하나에 모든 권한을 부여하지 않습니다.
+
+## 4. Channel and Caller Trust
+
+외부에서 전달된 Channel, User, SystemCode와 권한 Header를 그대로 신뢰하지 않습니다.
+
+Gateway에서 인증된 정보만 내부 표준 Header로 생성합니다.
+
+공유 호출 유형은 내부 신뢰 구간에서만 허용하고 외부 진입을 차단합니다.
+
+## 5. Transport Security
+
+- TLS 1.2 이상
+- 강한 Cipher
+- hostname verification
+- mTLS
+- 인증서 체인
+- revocation 정책
+- certificate rotation
+- expiry alert
+
+인증서 Private Key는 Repository와 Evidence에 저장하지 않습니다.
+
+## 6. Secret Management
+
+- Environment 또는 Secret Manager
+- encryption at rest
+- least privilege
+- rotation
+- version
+- audit
+- emergency revoke
+
+YAML, Source, Test fixture, Log와 Screenshot에 원문 Secret을 포함하지 않습니다.
+
+## 7. Personal Data
+
+### Classification
+
+- Public
+- Internal
+- Confidential
+- Personal
+- Sensitive Personal
+- Credential
+
+### Controls
+
+- 수집 최소화
+- field-level masking
+- encryption
+- 접근 권한
+- 조회 Audit
+- 다운로드 승인
+- watermark
+- retention
+- deletion
+- non-production anonymization
+
+## 8. Logging Security
+
+금지:
+
+- Password
+- access token
+- refresh token
+- private key
+- full account number
+- resident registration number
+- card data
+- unmasked personal data
+
+Masking 전 원문을 다른 Logger에서 출력하지 않는지 검증합니다.
+
+## 9. Admin Security
+
+- MFA
+- session timeout
+- concurrent session policy
+- IP/network restriction
+- dual control
+- re-authentication
+- high-risk action approval
+- immutable audit
+- test API prod disable
+
+## 10. File Security
+
+- extension allowlist
+- MIME validation
+- magic number
+- size limit
+- antivirus
+- archive bomb protection
+- path traversal protection
+- quarantine
+- encryption
+- retention
+- secure delete
+
+## 11. API Security
+
+- input validation
+- rate limit
+- replay protection
+- idempotency
+- CORS allowlist
+- CSRF
+- SSRF prevention
+- output encoding
+- injection prevention
+- error information minimization
+
+## 12. Supply Chain
+
+- dependency lock
+- vulnerability scan
+- SBOM
+- license scan
+- artifact checksum
+- provenance
+- signed release
+- build isolation
+- secret scan
+
+## 13. Security Events
+
+- authentication failure
+- authorization denial
+- privilege change
+- masking bypass
+- bulk download
+- secret change
+- certificate change
+- admin control
+- suspicious replay
+- integrity failure
+
+보안 이벤트는 일반 거래 로그와 분리하여 보존합니다.
+
+## 14. Security Review Checklist
+
+```text
+[ ] Trust Boundary가 정의됐다.
+[ ] 인증과 권한이 실제 API에 연결됐다.
+[ ] 운영 화면과 API 권한이 일치한다.
+[ ] 개인정보 분류와 마스킹이 적용됐다.
+[ ] Secret이 외부화됐다.
+[ ] mTLS와 인증서 생명주기가 정의됐다.
+[ ] Audit가 변경 전후 값을 기록한다.
+[ ] 실패·우회·권한상승 Test가 있다.
+[ ] Dependency·SBOM·License·Secret Scan을 통과했다.
 ```
 
-## 4. Error
 
-- Code
-- Retryable
-- Unknown
-- Compensation
-- Field Error
-- User/Operator Message
-- Masked Detail
-- Cause ID
+## 13. 금융권 운영 통제
 
-## 5. Paging
+- 위험 조치 Dual Control
+- 역할 분리와 최소 권한
+- Break-glass는 시간 제한, 사유와 사후 Review
+- 관리자 Session 재인증
+- 대량 Download 승인, Watermark, 만료와 Audit
+- 개인정보 검색조건과 결과 Masking
+- 운영 Override의 scope, expiry와 rollback
 
-- List
-- Offset
-- Slice
-- Cursor
-- Limit
-- Sort Allowlist
-- Signed Cursor
+## 14. DB와 Seed
 
-## 6. Async
+기본 관리자 Password, Token, Private Key와 개인정보를 SQL Seed에 넣지 않습니다. Bootstrap Credential은 환경 Secret 또는 일회성 발급으로 제공하고 최초 로그인 강제 변경과 폐기를 검증합니다.
 
-- operationId
-- statusUri
-- acceptedAt
-- callback
-- polling
-- event
+Service User는 Schema Owner와 Runtime 최소 권한을 분리합니다. Reset/Provision은 정확한 Allowlist를 사용합니다.
 
-## 7. File
+## 15. Evidence Security
 
-- Multipart
-- Streaming
-- Size
-- Count
-- Content Type
-- Checksum
-- Permission
-- Audit
+Raw Log를 그대로 Commit하지 않습니다. Sanitized Evidence는 transaction/requirement 추적에 필요한 정보는 유지하고 Secret, Credential, PII와 내부 접속정보를 제거합니다. Sanitization Rule과 검토자를 기록합니다.
 
-## 8. Security
+## 16. Security 완료 조건
 
-- AuthN
-- AuthZ
-- RBAC
-- MFA
-- IP
-- mTLS
-- OAuth/JWT/API Key
-- CSRF
-- CSP
-- SSRF
-- PII
-- Masking
-- Secret
-- Audit
-- Rate Limit
-
-## 9. JavaDoc/OpenAPI
-
-- Purpose
-- Permission
-- Header
-- Request/Response
-- Error
-- Idempotency
-- Limits
-- Thread Safety
-- Security
-- Since
-- Deprecated
+- positive/negative AuthN/AuthZ
+- menu와 API permission parity
+- masking bypass 방지
+- approval/audit tamper test
+- secret scan와 dependency/SBOM
+- certificate rotation/revocation
+- download governance
+- multi-instance session/token behavior

@@ -1,35 +1,64 @@
 # CPF Evidence Index
 
-## 기준
+## 1. 현재 상태
 
-- 최신 검수 기준 Commit: `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`
-- 기존 Evidence 위치: `cpf-docs/evidence/20260722_01/`
-- 현재 판정: **재확인 필요**
+2026-07-22 Repository 정리에서 이전 PC·이전 DB·이전 Commit 기준 Evidence를 제거했다. 현재 Worktree에 실행 Evidence가 없다는 사실은 의도된 초기화 상태이며, 완료를 의미하지 않는다.
 
-## Stale 판정 원칙
+- 기준 검수 Commit: `8da2e6f395d72ce032e52ea16fef0d1d5f490c5b`
+- 실제 신규 Evidence 기준: 문서 Overlay Push 이후 작업 시작 HEAD
+- 현재 판정: **미구현** 또는 각 요구별 **미검증**
 
-`20260722_01` Evidence 이후 WIP Commit에서 Module·Package·SystemCode·DB Physical Name·SQL·Config가 광범위하게 변경됐다. 따라서 기존 Evidence는 과거 구현 확인 자료로만 사용하며 최신 제품 완료 Evidence로 자동 승계하지 않는다.
+## 2. 신규 Evidence 위치
 
-## 다음 Evidence Set 필수 범위
+```text
+cpf-docs/evidence/<yyyyMMdd_nn>/
+```
 
-새 Evidence Directory는 실제 작업 완료 시점의 Commit을 이름과 Metadata에 기록하고 다음을 포함한다.
+각 실행 묶음은 다음 Metadata를 가진다.
 
-- OS, JDK, Node, npm, PowerShell, MariaDB Version
-- Git Commit, Dirty 여부, 실행 시작·종료 시각
-- Empty DB 이전 Schema 목록과 CPF Object 부재 확인
-- Install·Provision·Seed·Verify 전체 명령과 원문 결과
-- 생성 Schema·Table·Index·Constraint·View·Procedure·Trigger 목록
-- Meta Seed 범주별 Count와 Consumer 확인
-- 다른 Schema 미손상 확인
-- 전체 Backend Build·Test
-- ADM/BZA lint·typecheck·unit·production build
-- 전체 Module Startup과 Health
-- Local/Remote Domain Call, Gateway, External, Batch, Center-Cut
-- Agent Claim·Lease·Fencing·Failover
-- ADM/BZA Browser E2E와 권한·승인·감사
-- Reinstall·Upgrade·Rollback·Recovery
-- Secret 제거·Masking 확인
+```text
+commit
+branch
+requirementIds
+command
+profile
+environment
+startTime
+endTime
+exitCode
+result
+rawArtifact
+sanitizedArtifact
+secretReview
+staleStatus
+```
 
-## Evidence 완료 조건
+## 3. 필수 Evidence 묶음
 
-명령, Profile, Environment, 기준 Commit, 결과, 민감정보 제거 여부가 없으면 Evidence로 인정하지 않는다. 직접 실행하지 않은 항목은 성공으로 기록하지 않는다.
+- Baseline, Environment와 Repository Hygiene
+- Compile, Unit, Integration와 Package
+- ADM/BZA npm ci, lint, typecheck, test와 production build
+- Historical Flyway Checksum와 Lockfile Integrity
+- Empty MariaDB Install, Seed와 Verify
+- 전체 Module Boot와 API Runtime
+- Batch, Center-Cut, Agent/Runner/Worker
+- Multi-instance, Lease, Fencing와 Failure Recovery
+- External Unknown Result와 Reconciliation
+- Browser E2E와 Split Deployment
+- Upgrade, Rollback, Backup와 Restore
+- Security Negative Test, Approval, Audit와 Secret Scan
+- Generator Lifecycle와 Reference Domain Regression
+- Guide/Link/Matrix/Evidence Consistency
+
+## 4. Stale 판정
+
+다음 중 하나면 Stale이다.
+
+- 기준 Commit 불일치
+- Source/SQL/Config 변경 후 미재실행
+- 다른 DB Schema/Seed 기준
+- 실행 명령 또는 환경 누락
+- 실패 로그를 성공으로 분류
+- 민감정보 제거 여부 불명
+
+Stale Evidence는 완료 근거로 사용하지 않는다.

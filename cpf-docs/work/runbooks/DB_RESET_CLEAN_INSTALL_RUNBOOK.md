@@ -1,175 +1,83 @@
-# 현재 환경 선행 조건
-
-- 회사 PC에서는 CPF Schema와 Table이 이미 삭제되었다.
-- 집 PC는 신규 MariaDB다.
-- 첫 검증은 Reset을 실행하지 않고 Empty Install부터 시작한다.
-- Reset 절차는 재설치·회귀 검증을 위한 두 번째 Cycle부터 사용한다.
-- Install은 Schema·Table·Constraint·Index·Service User·Grant·Product Meta Seed를 모두 생성해야 하며 Source·Mapper·API·UI·Generator와 명칭이 일치해야 한다.
-
 # CPF DB Reset·Clean Install Runbook
 
-## 1. 목적
+## 1. 현재 전제
 
-회사 PC와 집 PC의 MariaDB를 동일한 빈 CPF 환경으로 만들고 공식 Install Script의 재현성을 검증한다.
+회사 PC와 집 PC 모두 CPF Schema와 Table이 없는 상태다. 첫 실행은 Reset이 아니라 Empty Install이다.
 
-## 2. 사용자 준비
+## 2. 준비
 
-- MariaDB Server
-- MariaDB CLI
-- Admin 접속 가능
-- 다른 Application Schema 존재 여부 확인
-- Backup 필요 여부 확인
+- MariaDB Service 실행
+- 관리자 접속 확인
+- CPF Credential은 환경변수/Secret로 제공
+- 다른 Application Schema Inventory 확보
+- Repository 최신 HEAD 기록
 
-사용자가 CPF Schema/Table을 수동 생성하지 않는다.
-
-## 3. 사전 조회
-
-```sql
-SELECT VERSION();
-
-SELECT SCHEMA_NAME
-FROM information_schema.SCHEMATA
-ORDER BY SCHEMA_NAME;
-```
-
-현재 CPF 후보 Schema:
+## 3. 첫 Cycle: Empty Install
 
 ```text
-cpfDB
-cmnDB
-admDB
-bzaDB
-batDB
-mbrDB
-accDB
-refDB
-exsDB
+preflight
+→ provision service users/grants
+→ create allowlisted schemas
+→ create tables/constraints/indexes
+→ mandatory product seed
+→ optional sample seed when enabled
+→ verify schema/version/seed
+→ boot modules
+→ API/Batch/ADM/BZA smoke
 ```
 
-실제 Allowlist는 Source·Install 정본 검수 후 확정한다.
+Reset Script를 선행하지 않는다.
 
-## 4. Reset 안전장치
+## 4. Schema Allowlist
 
-Reset Script는 다음을 만족해야 한다.
+정확한 이름 배열만 허용한다. `%DB`, `cpf%` 같은 Pattern으로 Drop하지 않는다. 예상하지 않은 Schema가 발견되면 중단한다.
 
-- Default Dry Run
-- `-Apply` 명시
-- Host·Port·Database 목록 출력
-- Exact Case-sensitive Allowlist
-- System Schema 차단
-- Allowlist 외 Schema 차단
-- Wildcard 금지
-- User 확인
-- 결과 Log
-- Secret Masking
+## 5. cmnDB
 
-## 5. 금지 예
+`cmnDB`는 최소 Sample Table 1개만 생성한다. Sequence, Fixed-Length, 통합 Log, Notification과 다수 EDU Table을 만들지 않는다.
 
-```sql
-DROP DATABASE LIKE 'cpf%';
-```
+## 6. Seed
 
-```powershell
-Get-Databases | Where-Object Name -Like '*DB' | Remove
-```
+- Mandatory Product Meta와 Optional Sample/Test를 분리
+- password/token/private key/PII 금지
+- idempotent rerun
+- role/menu/API permission 정합성
+- batch/executor/agent/center-cut catalog Owner 확인
 
-## 6. 권장 실행 흐름
+## 7. 두 번째 Cycle
 
 ```text
-Clone
-→ Version 확인
-→ Reset Dry Run
-→ Allowlist 검토
-→ Apply
-→ Schema 0 확인
-→ Provision
-→ Install
-→ Verify
-→ Seed Re-run
-→ Backend Build
-→ Start
-→ API
-→ Frontend
-→ Browser
-→ Stop
-→ Reset/Reinstall
-→ Upgrade
-→ Rollback
+reset dry-run
+→ allowlist review
+→ reset apply
+→ reinstall
+→ seed rerun
+→ module boot
 ```
 
-## 7. DB 확인 SQL
+## 8. Upgrade/Rollback Cycle
 
-### Schema
+- baseline version install
+- representative data
+- upgrade migration
+- old/new application compatibility
+- rollback 또는 forward recovery
+- data integrity
 
-```sql
-SELECT SCHEMA_NAME
-FROM information_schema.SCHEMATA
-WHERE SCHEMA_NAME IN (
-  'cpfDB','cmnDB','admDB','bzaDB','batDB',
-  'mbrDB','accDB','refDB','exsDB'
-)
-ORDER BY SCHEMA_NAME;
-```
+## 9. 확인 SQL 범주
 
-### Table
+- schema/table inventory
+- PK/FK/UK/index/constraint
+- duplicate/orphan
+- product seed count/version
+- service user grants
+- legacy PFW/XYZ/잘못된 prefix
+- cmnDB table count
 
-```sql
-SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_ROWS
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA IN (...)
-ORDER BY TABLE_SCHEMA, TABLE_NAME;
-```
+## 10. DB 접근 불가
 
-### FK
+정본 Script, 실행 명령과 확인 SQL을 작성하되 상태를 `미검증` 또는 `재확인 필요`로 남긴다. 접속 가능한 환경에서 실제 실행하기 전 완료 처리하지 않는다.
 
-```sql
-SELECT TABLE_SCHEMA, TABLE_NAME, CONSTRAINT_NAME,
-       REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME
-FROM information_schema.KEY_COLUMN_USAGE
-WHERE REFERENCED_TABLE_SCHEMA IN (...);
-```
+## 11. Evidence
 
-### Index
-
-```sql
-SELECT TABLE_SCHEMA, TABLE_NAME, INDEX_NAME, NON_UNIQUE
-FROM information_schema.STATISTICS
-WHERE TABLE_SCHEMA IN (...)
-ORDER BY TABLE_SCHEMA, TABLE_NAME, INDEX_NAME;
-```
-
-### Grants
-
-```sql
-SHOW GRANTS FOR CURRENT_USER;
-```
-
-## 8. cmnDB 확인
-
-최종 신규 설치에서 `cmnDB` Table 수는 1이어야 한다.
-
-```sql
-SELECT TABLE_NAME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA='cmnDB';
-```
-
-## 9. 다른 Schema 보호
-
-Reset 전후 전체 Schema 목록 Hash 또는 Snapshot을 비교해 Allowlist 외 Schema가 변하지 않았음을 증명한다.
-
-## 10. Evidence
-
-- Server Version
-- Schema Before
-- Reset Plan
-- Apply Result
-- Schema After Reset
-- Install Result
-- Object Count
-- Seed Count
-- Grants
-- Other Schema Diff
-- Reinstall
-- Upgrade
-- Rollback
+Commit, command, profile, MariaDB version, masked host/port, start/end, exit code, schema diff, verify result, module runtime와 secret review를 남긴다.

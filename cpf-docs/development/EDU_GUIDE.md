@@ -1,32 +1,68 @@
 # CPF EDU Guide
 
-## 목적
+## 1. 목적
 
-EDU는 CPF Public API·SPI·Generator·Runtime 운영 방식을 실제 Source와 Runtime으로 학습하는 정식 참조 경로다. Sample이 제품 구현을 대체하지 않으며, 기능 상태는 Source·Test·Evidence로 판정한다.
+EDU는 제품 기능을 대신하는 Sample이 아니라 개발자가 CPF 공식 API, 구조, 실패 처리와 운영 방식을 실행하며 학습하는 교육 체계다.
 
-## 기본 원칙
+## 2. 원칙
 
-- 교육·Reference Data는 운영 Product Seed와 분리한다.
-- EDU Profile에서만 Sample Menu·API·Data를 활성화할 수 있다.
-- 공식 Sample은 `cpf-core` Public API와 `cpf-common` 고객 확장 경로를 실제 사용한다.
-- 직접 만든 날짜·Paging·Header·Error·Retry·Cursor 구현으로 CPF 표준을 우회하지 않는다.
-- MBR·ACC·EXS는 최소 Transaction 검증 Domain이며 추정성 업무 원장을 제공하지 않는다.
-- `cpf-reference`는 Reference·EDU Owner다.
+- Source/API/SQL이 실제 제품 Contract를 사용
+- 정상뿐 아니라 오류·경계·복구 Scenario 포함
+- 운영 Product Seed와 EDU/Test Data 분리
+- Sample을 Production 구현으로 간주하지 않음
+- 실행 명령, 기대 결과와 Cleanup 제공
+- 최신 Commit과 환경을 기록
 
-## 필수 실습 흐름
+## 3. 필수 학습 Track
 
-1. Empty DB Install과 EDU Seed 분리 확인
-2. `cmnDB` 최소 Sample CRUD·Validation·Transaction
-3. List·Offset Page·Slice·Cursor와 Max+1 제한
-4. Local/Remote Domain Call과 TransactionGlobalId
-5. Timeout·Retry·Idempotency·Unknown Result
-6. 고정길이 전문 Encode·Decode·Validation·Masking
-7. File·Attachment·Compression·External Adapter
-8. Batch Job·Worker·Checkpoint
-9. Center-Cut Job·Item·Attempt·Failed-only Reprocess
-10. ADM/BZA 조회·권한·승인·감사
-11. Generator Create·Build·Run·Remove·Recreate
+1. Header, transactionGlobalId와 Context
+2. Standard Error와 Validation
+3. Local/Remote Facade
+4. CRUD, Offset, Slice와 Cursor
+5. Idempotency와 Duplicate Request
+6. File/Attachment
+7. Fixed-Length Core Engine과 EXS Adapter
+8. Event, Outbox/Inbox와 DLQ
+9. Batch와 Center-Cut
+10. Agent/Worker Failure와 Recovery
+11. ADM/BZA Permission과 Audit
+12. Generator Create/Verify/Remove
 
-## 완료 조건
+## 4. Reference 역할
 
-각 실습은 명령, Source 경로, API, SQL, 예상 결과, 오류·경계 Case와 최신 Runtime Evidence를 가진다. 문서만 존재하거나 정적 Test만 통과하면 완료가 아니다.
+- `cpf-member`: 최소 업무 API와 Local/Remote 호출
+- `cpf-account`: Generator Lifecycle와 거래 경계
+- `cpf-reference`: 교육·참조 Scenario
+- `cpf-external`: 기관별 Adapter와 결과 불명
+- `cpf-common`: Sample Table 1개를 통한 DB/Paging/Transaction
+
+ACC/MBR는 검증에 필요한 최소 구조를 유지하며 전체 금융 원장을 추정 구현하지 않는다.
+
+## 5. Lab 구성
+
+각 Lab은 다음을 가진다.
+
+```text
+requirementId
+objective
+prerequisite
+source location
+command
+input
+expected result
+failure scenario
+cleanup
+evidence
+```
+
+## 6. Coverage Matrix
+
+EDU Coverage Matrix는 Script로 재생성하는 파생 산출물이다. Source와 Test가 변경되면 재생성하고 기준 Commit을 포함한다. Matrix 파일 존재만으로 Coverage 완료 처리하지 않는다.
+
+## 7. 완료 조건
+
+- clean environment에서 재현
+- DB/Runtime이 필요한 Lab은 실제 실행
+- Negative/Recovery 포함
+- Secret과 개인정보 없음
+- Guide, Source, Test와 결과 일치

@@ -8,14 +8,14 @@
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 시작 기준 Commit: `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`
+- 검수 기준 Commit: `8da2e6f395d72ce032e52ea16fef0d1d5f490c5b`
 - 직전 WIP Commit: `7251bd996a99ec61d9ea83559578ead0047d5f47`
 - 최상위 목표 정본: `CPF_FINAL_TARGET_REQUIREMENTS.md`
 - 검수 패키지: 본 요청서와 동봉된 Audit·Architecture·Guide 제안
 - 실행환경: 회사 PC 또는 집 PC의 신규 Clone
 - DB 상태: CPF Schema·Table이 없는 빈 MariaDB를 목표로 함
 
-현재 Commit은 최종 완료본이 아니라 대규모 구조·DB 표준화 중간 WIP다. 기존 성공 주장을 승계하지 말고 최신 Source·SQL·Runtime 기준으로 다시 판정한다.
+현재 `master`는 최종 완료본이 아니라 대규모 구조·DB 표준화와 Repository 정리 중간 WIP다. 기존 성공 주장을 승계하지 말고 최신 Source·SQL·Runtime 기준으로 다시 판정한다.
 
 
 ## 0.1 사용자 확인 현재 DB 상태와 필수 재구축 계약
@@ -92,7 +92,7 @@ mariadb --version
 
 필수:
 
-- HEAD가 `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`인지 확인
+- HEAD가 최신 `origin/master`와 일치하는지 확인한다. 문서 패키지 Push 이후 Commit은 `8da2e6f395d72ce032e52ea16fef0d1d5f490c5b`보다 새로울 수 있으므로 실제 HEAD를 기준선으로 기록한다.
 - 다른 Commit이면 최신 master Commit을 기준선으로 다시 기록
 - Worktree Dirty 여부
 - OS, JDK, Node, npm, PowerShell, MariaDB Version
@@ -108,6 +108,19 @@ mariadb --version
 - PowerShell 5.1 fallback은 명시적 호환 시험일 때만 사용
 - UTF-8·한글·BOM 회귀 테스트 제공
 
+## 2.1 정리 Commit 후 즉시 확인할 회귀
+
+다음은 현재 알려진 후속 정비 대상이다.
+
+- 삭제된 DOCX·Generated·Evidence를 여전히 강제하는 Gradle/Script Gate
+- `checkDocxStandard`, Sample Coverage, Evidence Path와 Report/Matrix Consistency Task의 책임 재분리
+- Root README와 Guide Link 무결성
+- `pwsh` 7 우선 Shell Resolver와 UTF-8 보존
+- Historical Flyway Checksum과 `package-lock.json` Integrity
+- 삭제된 Evidence를 성공 근거로 참조하는 문서·Script 제거
+
+이 항목들은 Gate를 단순 비활성화하는 방식으로 숨기지 않는다. 생성 책임과 실행 시점을 명확히 분리하고, 실제 제품 검증에 필요한 Gate는 새 Evidence 경로로 연결한다.
+
 ## 3. 최신 WIP 손상 검수
 
 광범위한 Rename이 있었으므로 구현 전에 전수 검수한다.
@@ -117,7 +130,7 @@ mariadb --version
 - `package-lock.json` Integrity
 - Checksum 파일
 - Flyway SHA-256
-- Binary DOCX
+- 남아 있는 Binary·Archive·Lockfile·Checksum
 - Compressed Artifact
 - 인증서·Key 파일
 - Base64·Hash 문자열
@@ -255,15 +268,16 @@ ArchUnit와 Gradle Dependency Gate로 강제한다.
 
 `cpf-docs/work`, `cpf-docs/review`, `cpf-docs/evidence` 등 역할별 정본 위치로 통합한다.
 
-### DOCX
+### DOCX·Generated·Evidence 정리 후속
 
-현재 `specs/`의 DOCX 9개는 최신 Source와 불일치 가능성을 검수한다.
+2026-07-22 Repository 정리 Commit에서 Stale DOCX 9개, 과거 환경 Evidence와 자동 생성 Matrix를 제거했다. 이 삭제를 되돌리지 않는다.
 
-- 현재 단계에서 최종 DOCX를 Quality Gate 필수 정본으로 강제하지 않음
-- Markdown을 구현 중 정본으로 사용
-- 기능·API·SQL·UI가 안정된 마지막 제품화 단계에서 DOCX/PDF 재생성
-- Stale DOCX는 Archive 또는 제거
-- Root/Specs에 날짜별 중복본 금지
+- 구현 중 정본은 Markdown과 실제 Source·SQL·API·Test다.
+- `checkDocxStandard`를 현재 개발 Quality Gate의 필수 조건으로 강제하지 않는다. 최종 발행 Gate로 분리한다.
+- Generated Matrix는 Source와 Evidence가 안정된 후 생성 Script로 다시 만든다.
+- Evidence는 새 기준 Commit과 빈 DB 환경에서 재생성한다.
+- 최종 기능·API·SQL·UI가 안정된 제품화 단계에서만 DOCX/PDF를 다시 생성한다.
+- 날짜별 복제본, 중복 README와 조기 Release Notes를 다시 만들지 않는다.
 
 ## 6. DB Ownership과 Physical Schema 재설계
 

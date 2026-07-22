@@ -1,36 +1,58 @@
 # CPF Stabilization Report
 
-## 기준
+## 1. 기준 상태
 
 - Repository: `freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 기준 Commit: `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`
-- 상태: 대규모 Module·Package·DB 표준화 중단 지점의 WIP
-- 직접 실행: 이 문서 작성 환경에서는 Build·MariaDB·Runtime·Browser 직접 실행 미수행
+- 정리 검수 기준 Commit: `8da2e6f395d72ce032e52ea16fef0d1d5f490c5b`
+- 적용 후 실제 작업 기준: 문서 Overlay Push 이후 최신 HEAD
+- DB: 회사·집 PC 모두 CPF Schema/Table이 없는 초기 상태
+- 종합 판정: **부분 구현**
 
-## 종합 판정
+## 2. 확인된 보존 범위
 
-**부분 구현**
+- 공식 `cpf-*` Module과 Java/Frontend Source는 정리 Commit에서 삭제되지 않음
+- 활성 설치 SQL, Flyway, Rollback과 Script는 보존됨
+- 핵심 요청·목표·Gap·검수 문서는 보존됨
+- Stale Evidence, Generated Matrix, 조기 DOCX, 중복 README, 조기 Release Notes는 의도적으로 제거됨
 
-최신 Git에는 Module 표준화, 광범위한 `PFW → CPF`·Package 변경, Generator·Evidence·SQL·ADM/BZA·Batch 관련 구현이 존재한다. 그러나 Empty MariaDB 설치, 최종 DB Ownership, 전체 Module Runtime, Center-Cut, Agent Failover, ADM/BZA Browser, 독립 배포, Upgrade·Rollback과 최신 Evidence가 확인되지 않아 완료로 판정할 수 없다.
+## 3. 즉시 안정화 대상
 
-## 사용자 확인 환경 상태
+- README UTF-8와 Link 정상화
+- 역할이 다른 Guide의 중복 내용 분리와 상세 내용 복구
+- 문서 기준 Commit과 최신 HEAD 정렬
+- 삭제 산출물을 참조하는 Quality Gate 재설계
+- PowerShell 7 우선과 UTF-8 보존
+- `package-lock.json`, Flyway Checksum, Hash/Binary Integrity
+- Rename 후 Package/Config/SQL/Route/Seed 전수 확인
+- 빈 MariaDB Empty Install과 Product Meta 재생성
 
-- 회사 PC에서 기존 CPF Schema와 Table은 이미 삭제됨
-- 집 PC는 신규 MariaDB이며 CPF Object 없음
-- 다음 작업은 빈 DB 정본 재구축부터 수행
+## 4. DB 안정화 계약
 
-## 최우선 안정화 항목
+기존 DB 잔존 상태에 의존하지 않는다. 정본 설치 구조로 다음을 생성한다.
 
-1. 최종 Schema·Table·Constraint·Index·Meta Seed·Service User 표준 확정
-2. Install·Reset·Provision·Migration·Rollback·Seed·Verify 분리
-3. `cmnDB` 최소 Sample Table 1개 정책 적용
-4. 고정길이 전문 Core Ownership과 External 기관별 Adapter 분리
-5. Common 채번 제거 및 BZA 선택형 Customization Sample 전환
-6. Batch Physical Ownership·`batDB`·CenterCutRunner·Agent/Worker 정합성
-7. Source·SQL·Config·API·UI·Generator·Test·Guide 물리명 일치
-8. Empty Install부터 Runtime·Browser·Upgrade·Rollback Evidence 재생성
+- 정확한 CPF Schema Allowlist
+- Service User와 최소 Grant
+- Table, Column, PK/FK/UK/Check/Index/Constraint
+- Mandatory Product Meta
+- Optional EDU/Sample/Test Seed 분리
+- Verification Query
+- Reinstall, Upgrade, Rollback과 Recovery
 
-## 완료 금지
+`cmnDB`는 Sample Table 1개만 유지하고, 고정길이 전문은 Core, 기관별 Adapter는 External, 업무 채번 Sample은 BZA가 담당한다.
 
-정적 검색, Class·Table 존재, 과거 Evidence, 일부 Test 통과 또는 Codex 보고만으로 완료 처리하지 않는다. 직접 확인하지 못한 항목은 `미검증` 또는 `재확인 필요`로 유지한다.
+## 5. 현재 미검증 범위
+
+- Clean Full Build와 Test
+- Frontend npm ci/lint/typecheck/test/build
+- Empty MariaDB Install
+- 전체 Module Boot와 API E2E
+- Center-Cut/Agent Multi-instance와 Failure Recovery
+- ADM/BZA Browser E2E
+- Split Deploy, Upgrade와 Rollback
+
+실행 전에는 모두 `미검증`으로 유지한다.
+
+## 6. 다음 완료 기준
+
+`CPF_CURRENT_WORK_REQUEST.md`의 Phase와 완료 금지 조건을 모두 적용하고, 최종 검수에서 Source·SQL·API·Test·Guide·Evidence가 같은 Commit을 가리킬 때만 안정화 완료로 판정한다.

@@ -112,7 +112,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         values.put("dueAt", request.dueAt());
         values.put("payloadJson", blankToNull(request.payloadJson()));
         values.put("attachmentGroupId", blankToNull(request.attachmentGroupId()));
-        values.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
         values.put("requestUser", user);
         long approvalId = repository.createApproval(values);
         for (ApprovalLineRequest line : lines) {
@@ -181,7 +181,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         history.put("beforeStatus", beforeStatus);
         history.put("afterStatus", transition.afterStatus());
         history.put("comment", blankToNull(request.comment()));
-        history.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        history.put("transactionId", TransactionContext.getOrCreateTransactionId());
         repository.insertApprovalHistory(history);
         audit(operator, "APPROVAL_" + action, "bza_approval_document", String.valueOf(approvalId),
                 reason, before, history);
@@ -269,7 +269,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
             Object before,
             Object after) {
         Map<String, Object> values = new LinkedHashMap<>();
-        values.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
         values.put("actorId", actor);
         values.put("actionType", action);
         values.put("targetType", targetType);

@@ -3,16 +3,20 @@ CREATE TABLE IF NOT EXISTS @CPF_TABLE_PREFIX@_sample_item (
     sample_key VARCHAR(100) NOT NULL UNIQUE,
     item_name VARCHAR(200) NOT NULL,
     status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    version_no BIGINT NOT NULL DEFAULT 0 CHECK (version_no >= 0),
+    version_no BIGINT NOT NULL DEFAULT 0,
     idempotency_key VARCHAR(100) NOT NULL UNIQUE,
-    transaction_global_id VARCHAR(64) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     transaction_sequence BIGINT NOT NULL DEFAULT 1,
     transaction_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' CHECK (deleted_yn IN ('Y', 'N')),
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
     created_by VARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
     created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by VARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_deleted CHECK (deleted_yn IN ('Y','N'))
 );
 CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_item_status
-    ON @CPF_TABLE_PREFIX@_sample_item (status_code, deleted_yn, sample_item_id);
+    ON @CPF_TABLE_PREFIX@_sample_item(status_code, deleted_yn, sample_item_id);
+CREATE INDEX IF NOT EXISTS ix_@CPF_TABLE_PREFIX@_sample_item_tx
+    ON @CPF_TABLE_PREFIX@_sample_item(transaction_id, transaction_sequence);

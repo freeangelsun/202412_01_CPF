@@ -251,7 +251,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
         row.put("loginIp", clientIp);
         row.put("userAgent", userAgent);
         row.put("failureReason", failureReason);
-        row.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        row.put("transactionId", TransactionContext.getOrCreateTransactionId());
         row.put("moduleId", moduleId);
         row.put("wasId", wasId);
         row.put("serverInstanceId", identity.serverInstanceId());
@@ -264,7 +264,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
         row.put("memberNo", member.getMemberNo());
         row.put("loginDomain", LOGIN_DOMAIN);
         row.put("refreshTokenHash", refreshHash);
-        row.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        row.put("transactionId", TransactionContext.getOrCreateTransactionId());
         row.put("expireAt", Timestamp.from(refreshExpireAt));
         return row;
     }

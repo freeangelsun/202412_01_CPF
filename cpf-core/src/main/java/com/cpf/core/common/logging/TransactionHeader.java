@@ -14,9 +14,6 @@ import java.util.Map;
 @Value
 @Builder(toBuilder = true)
 public class TransactionHeader {
-    String parentTransactionId;
-    String originalTransactionId;
-    String rootTransactionGlobalId;
     String transactionSegmentId;
     String parentSegmentId;
     String callDepth;

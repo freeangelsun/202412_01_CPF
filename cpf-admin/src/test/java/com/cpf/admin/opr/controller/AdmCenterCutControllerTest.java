@@ -33,7 +33,9 @@ class AdmCenterCutControllerTest {
         when(service.findTargets("CPF_REF_CENTER_CUT_SAMPLE_JOB", "FAILED", 20))
                 .thenReturn(List.of(Map.of(
                         "statusCode", "FAILED",
-                        "parentTransactionGlobalId", "20260615120000000REFbatAP010000001",
+                        "transactionId", "20260615120000000REFlocal010000001",
+                        "parentSegmentId", "SEG-REF-PARENT-0001",
+                        "transactionSegmentId", "CC-REF-SEG-0001",
                         "lastErrorMessage", "교육용 강제 실패")));
 
         ResponseEntity<List<Map<String, Object>>> response =

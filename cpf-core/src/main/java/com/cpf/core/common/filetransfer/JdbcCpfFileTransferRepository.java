@@ -48,8 +48,8 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
         String duplicateKey = duplicateKey(request);
         try {
             jdbcTemplate.update(sql.required("file-transfer-insert"),
-                    request.transactionGlobalId() + ":" + request.endpointCode() + ":" + duplicateKey,
-                    request.transactionGlobalId(),
+                    request.transactionId() + ":" + request.endpointCode() + ":" + duplicateKey,
+                    request.transactionId(),
                     request.segmentId(),
                     request.endpointCode(),
                     request.operation(),
@@ -66,7 +66,7 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
                     result.status(),
                     result.detail(),
                     Timestamp.from(result.completedAt()),
-                    request.transactionGlobalId() + ":" + request.endpointCode() + ":" + duplicateKey);
+                    request.transactionId() + ":" + request.endpointCode() + ":" + duplicateKey);
         }
     }
 

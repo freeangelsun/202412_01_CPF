@@ -19,5 +19,5 @@ public interface CpfServiceRegistryQueryPort {
 
     List<Map<String, Object>> findCircuitStates(String serviceId, String endpointCode, int limit);
 
-    List<Map<String, Object>> findCallHistory(String serviceId, String transactionGlobalId, int limit);
+    List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit);
 }

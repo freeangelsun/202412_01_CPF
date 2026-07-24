@@ -1,0 +1,58 @@
+{
+  "manifestVersion": 1,
+  "policy": "No cross-vendor fallback. Missing DDL or runtime SQL pack is a hard failure.",
+  "platform": {
+    "mariadb": {
+      "ddl": "implemented",
+      "runtimeSql": "existing-source-dependent",
+      "runtimeVerified": false
+    },
+    "mysql": {
+      "ddl": "not-implemented",
+      "runtimeSql": "not-implemented",
+      "runtimeVerified": false
+    },
+    "postgresql": {
+      "ddl": "not-implemented",
+      "runtimeSql": "not-implemented",
+      "runtimeVerified": false
+    },
+    "oracle": {
+      "ddl": "not-implemented",
+      "runtimeSql": "not-implemented",
+      "runtimeVerified": false
+    },
+    "sqlserver": {
+      "ddl": "not-implemented",
+      "runtimeSql": "not-implemented",
+      "runtimeVerified": false
+    }
+  },
+  "generatedDomain": {
+    "mariadb": {
+      "ddlTemplate": "implemented",
+      "mybatisTemplate": "implemented",
+      "runtimeVerified": false
+    },
+    "mysql": {
+      "ddlTemplate": "implemented",
+      "mybatisTemplate": "implemented",
+      "runtimeVerified": false
+    },
+    "postgresql": {
+      "ddlTemplate": "implemented",
+      "mybatisTemplate": "implemented",
+      "runtimeVerified": false
+    },
+    "oracle": {
+      "ddlTemplate": "implemented",
+      "mybatisTemplate": "implemented",
+      "runtimeVerified": false
+    },
+    "sqlserver": {
+      "ddlTemplate": "implemented",
+      "mybatisTemplate": "implemented",
+      "runtimeVerified": false
+    }
+  }
+}

@@ -44,15 +44,13 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     }
 
     @Override
-    public List<Map<String, Object>> findSegments(String transactionGlobalId) {
-        if (!hasText(transactionGlobalId) || !tableAvailable()) {
+    public List<Map<String, Object>> findSegments(String transactionId) {
+        if (!hasText(transactionId) || !tableAvailable()) {
             return List.of();
         }
         return jdbcTemplate.queryForList("""
                 SELECT transaction_segment_id AS transactionSegmentId,
-                       transaction_global_id AS transactionGlobalId,
-                       root_transaction_global_id AS rootTransactionGlobalId,
-                       parent_transaction_global_id AS parentTransactionGlobalId,
+                       transaction_id AS transactionId,
                        parent_segment_id AS parentSegmentId,
                        transaction_role AS transactionRole,
                        module_code AS moduleCode,
@@ -92,16 +90,16 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        result_state AS resultState,
                        unknown_result_id AS unknownResultId
                   FROM cpf_transaction_segment
-                 WHERE transaction_global_id = ?
+                 WHERE transaction_id = ?
                  ORDER BY started_at, sequence_no, segment_id
-                """, transactionGlobalId.trim()).stream()
+                """, transactionId.trim()).stream()
                 .map(this::maskSegmentRow)
                 .toList();
     }
 
     @Override
-    public List<Map<String, Object>> findExternalCandidates(String transactionGlobalId, int limit) {
-        if (!hasText(transactionGlobalId) || !tableAvailable()) {
+    public List<Map<String, Object>> findExternalCandidates(String transactionId, int limit) {
+        if (!hasText(transactionId) || !tableAvailable()) {
             return List.of();
         }
         return jdbcTemplate.queryForList("""
@@ -126,19 +124,18 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        ended_at AS endedAt,
                        duration_ms AS durationMs
                   FROM cpf_transaction_segment
-                 WHERE transaction_global_id = ?
+                 WHERE transaction_id = ?
                    AND (transaction_role = 'EXTERNAL' OR external_institution_code IS NOT NULL)
                  ORDER BY started_at, sequence_no
                  LIMIT ?
-                """, transactionGlobalId.trim(), boundedLimit(limit)).stream()
+                """, transactionId.trim(), boundedLimit(limit)).stream()
                 .map(this::maskExternalRow)
                 .toList();
     }
 
     private QueryParts buildGroupQuery(Map<String, String> criteria, int limit, String sort) {
         StringBuilder sql = new StringBuilder("""
-                SELECT transaction_global_id AS transactionGlobalId,
-                       MIN(root_transaction_global_id) AS rootTransactionGlobalId,
+                SELECT transaction_id AS transactionId,
                        MIN(started_at) AS startedAt,
                        MAX(ended_at) AS endedAt,
                        SUM(COALESCE(duration_ms, 0)) AS totalDurationMs,
@@ -170,7 +167,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                  WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        appendLike(sql, args, "transaction_global_id", criteria.get("transactionGlobalId"));
+        appendLike(sql, args, "transaction_id", criteria.get("transactionId"));
         appendLike(sql, args, "transaction_segment_id", first(criteria, "transactionSegmentId", "segmentId", "failedSegmentId"));
         appendLike(sql, args, "module_code", first(criteria, "includedModuleCode", "moduleCode"));
         appendEquals(sql, args, "source_module_code", criteria.get("sourceModuleCode"));
@@ -200,7 +197,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         appendDateTime(sql, args, "started_at", "<=", criteria.get("startedAtTo"));
         appendLong(sql, args, "duration_ms", ">=", criteria.get("durationMsFrom"));
         appendLong(sql, args, "duration_ms", "<=", criteria.get("durationMsTo"));
-        sql.append(" GROUP BY transaction_global_id");
+        sql.append(" GROUP BY transaction_id");
         if (hasText(criteria.get("originModuleCode"))) {
             sql.append(" HAVING originModuleCode = ?");
             args.add(criteria.get("originModuleCode").trim().toUpperCase());

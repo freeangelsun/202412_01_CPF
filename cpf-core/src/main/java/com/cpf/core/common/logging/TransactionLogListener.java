@@ -35,10 +35,10 @@ public class TransactionLogListener {
                         event.getDetails(),
                         event.getLogPolicy(),
                         e);
-                log.warn("DB 거래 로그 저장 실패를 durable journal에 보존했습니다. transactionGlobalId={}, created={}",
+                log.warn("DB 거래 로그 저장 실패를 durable journal에 보존했습니다. transactionId={}, created={}",
                         transactionId, created, e);
             } catch (RuntimeException fallbackFailure) {
-                log.error("DB 거래 로그와 durable journal 저장이 모두 실패했습니다. transactionGlobalId={}",
+                log.error("DB 거래 로그와 durable journal 저장이 모두 실패했습니다. transactionId={}",
                         transactionId, fallbackFailure);
             }
         }

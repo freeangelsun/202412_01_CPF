@@ -123,7 +123,7 @@ public class ReferenceBatchEducationController extends com.cpf.reference.common.
                 requestUser,
                 reason);
 
-        // 2. CPF Facade는 transactionGlobalId, 중복 실행 lock, bat_execution 기록,
+        // 2. CPF Facade는 transactionId, 중복 실행 lock, bat_execution 기록,
         //    Spring Batch executionId 연결, fallback 이벤트 발행을 한 번에 처리합니다.
         CpfBatchExecutionResult result = batchLauncher.run(request);
 

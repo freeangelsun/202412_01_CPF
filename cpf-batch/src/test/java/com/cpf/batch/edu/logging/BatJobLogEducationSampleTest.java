@@ -37,7 +37,7 @@ class BatJobLogEducationSampleTest {
                 "BAT-JOB-100",
                 100L,
                 200L))
-                .containsEntry("transactionGlobalId", "20260713120000000BATbatWK010000001")
+                .containsEntry("transactionId", "20260713120000000BATbatWK010000001")
                 .containsEntry("segmentId", "BAT-JOB-100")
                 .containsEntry("jobInstanceId", 100L)
                 .containsEntry("jobExecutionId", 200L);

@@ -29,7 +29,7 @@ class ReferenceCenterCutAdapterTest {
     private static final String DB_DRIVER_ENV = "CPF_REF_CENTER_CUT_DB_DRIVER";
 
     @Test
-    void handlerReturnsFailureForForceFailPayload() {
+    void handlerReturnsFailureWithSameTransactionAndSegmentContext() {
         ReferenceCenterCutHandler handler = new ReferenceCenterCutHandler();
         var target = new com.cpf.core.common.batch.centercut.CpfCenterCutTarget(
                 "REF-CENTER-CUT-FAIL",
@@ -37,15 +37,17 @@ class ReferenceCenterCutAdapterTest {
                 "REF-BUSINESS-FAIL",
                 java.time.LocalDate.of(2026, 7, 2),
                 "{\"forceFail\":true}",
-                "20260702100000000REFparent0000001",
-                "20260702100000000REFchild0000001",
+                "20260702100000000REFlocal010000001",
+                "SEG-REF-PARENT-0001",
+                "CC-REF-SEG-0001",
                 0,
                 CpfCenterCutStatus.READY);
 
         var result = handler.handle(target);
 
         assertThat(result.status()).isEqualTo(CpfCenterCutStatus.FAILED);
-        assertThat(result.childTransactionGlobalId()).isEqualTo("20260702100000000REFchild0000001");
+        assertThat(result.transactionSegmentId()).isEqualTo("CC-REF-SEG-0001");
+        assertThat(target.transactionId()).isEqualTo("20260702100000000REFlocal010000001");
     }
 
     @Test
@@ -60,7 +62,7 @@ class ReferenceCenterCutAdapterTest {
         ReferenceCenterCutHandler handler = new ReferenceCenterCutHandler();
         AtomicLong sequence = new AtomicLong();
         CpfCenterCutService service = new CpfCenterCutService(() ->
-                "20260702123000000REFcentcut" + String.format("%07d", sequence.incrementAndGet()));
+                "CC-REF-20260702123000000-" + String.format("%07d", sequence.incrementAndGet()));
 
         repository.resetSampleTargetsForSmoke();
         var summary = service.execute(ReferenceCenterCutConstants.JOB_ID, 10, repository, handler);
@@ -74,8 +76,9 @@ class ReferenceCenterCutAdapterTest {
         assertThat(repository.findResultSnapshots(ReferenceCenterCutConstants.JOB_ID))
                 .hasSize(4)
                 .allSatisfy(row -> {
-                    assertThat(row.get("parent_transaction_global_id")).isNotNull();
-                    assertThat(row.get("child_transaction_global_id")).isNotNull();
+                    assertThat(row.get("transaction_id")).isNotNull();
+                    assertThat(row.get("parent_segment_id")).isNotNull();
+                    assertThat(row.get("transaction_segment_id")).isNotNull();
                 });
     }
 

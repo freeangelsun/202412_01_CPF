@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS ref_sample_item (
     sort_order BIGINT NOT NULL DEFAULT 0,
     version_no BIGINT NOT NULL DEFAULT 0,
     deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    transaction_global_id VARCHAR(34) NULL,
+    transaction_id VARCHAR(34) NULL,
     idempotency_key VARCHAR(100) NULL,
     created_by VARCHAR(100) NOT NULL,
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS ref_sample_item (
     INDEX ix_ref_sample_item_status_sort (status_code, sort_order, sample_item_id),
     INDEX ix_ref_sample_item_category_sort (category_code, sort_order, sample_item_id),
     INDEX ix_ref_sample_item_name_sort (item_name, sample_item_id),
-    INDEX ix_ref_sample_item_transaction (transaction_global_id)
+    INDEX ix_ref_sample_item_transaction (transaction_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'REF Minimal Transaction Reference Sample';
 
 DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 90001 AND 90008;

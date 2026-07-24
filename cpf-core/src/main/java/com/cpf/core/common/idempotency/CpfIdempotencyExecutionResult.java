@@ -7,6 +7,6 @@ public record CpfIdempotencyExecutionResult(
         String status,
         String response,
         boolean replayed,
-        String transactionGlobalId,
+        String transactionId,
         String segmentId) {
 }

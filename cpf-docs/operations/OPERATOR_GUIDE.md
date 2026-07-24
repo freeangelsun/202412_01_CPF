@@ -23,7 +23,7 @@
 목록과 상세는 다음을 연결한다.
 
 - start/end/status/duration
-- transactionGlobalId와 segment
+- transactionId와 segment
 - caller/target/channel
 - standard/extension header 주요 검색조건
 - failure stage와 standard error

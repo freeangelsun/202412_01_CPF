@@ -186,7 +186,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
             Object before,
             Object after) {
         Map<String, Object> audit = new LinkedHashMap<>();
-        audit.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        audit.put("transactionId", TransactionContext.getOrCreateTransactionId());
         audit.put("actorId", actor);
         audit.put("actionType", action);
         audit.put("targetType", targetType);

@@ -39,6 +39,10 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    // Tests use the selected central Vendor Pack; module-local SQL fallback remains forbidden.
+    systemProperty 'cpf.db.vendor', 'mariadb'
+    systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
 }
 
 def frontendDir = layout.projectDirectory.dir('frontend')
@@ -91,5 +95,11 @@ tasks.register('frontendVerify') {
 }
 
 tasks.named('processResources') {
+    dependsOn 'frontendBuild'
+}
+
+tasks.named('sourcesJar') {
+    // sourceSets.main.resources includes the generated frontend directory.
+    // Gradle 9 requires this producer dependency to be explicit for reproducible archives.
     dependsOn 'frontendBuild'
 }

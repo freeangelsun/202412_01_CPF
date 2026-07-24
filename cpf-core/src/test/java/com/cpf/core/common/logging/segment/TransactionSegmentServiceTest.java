@@ -52,7 +52,7 @@ class TransactionSegmentServiceTest {
         verify(persistenceService, times(1)).updateEnd(startCaptor.getValue());
 
         TransactionSegmentRecord record = startCaptor.getValue();
-        assertThat(record.getTransactionGlobalId()).isEqualTo("20260722120000000CPFlocal010000001");
+        assertThat(record.getTransactionId()).isEqualTo("20260722120000000CPFlocal010000001");
         assertThat(record.getTransactionSegmentId()).contains("-SEG-0001-");
         assertThat(record.getModuleCode()).isEqualTo("REF");
         assertThat(record.getSourceModuleCode()).isEqualTo("REF");

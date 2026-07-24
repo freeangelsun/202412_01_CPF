@@ -31,15 +31,15 @@ public class ReferenceFileLogEducationSample {
     }
 
     /**
-     * 온라인 업무 처리 결과를 전역 거래 ID와 세그먼트 ID로 연결해 기록합니다.
+     * 온라인 업무 처리 결과를 표준 실행 정의 ID, 전역 transactionId, 세그먼트 ID로 연결해 기록합니다.
      */
     public void writeTransactionLog(
+            String standardExecutionId,
             String transactionId,
-            String transactionGlobalId,
             String transactionSegmentId) {
         TransactionLogRecord record = TransactionLogRecord.builder()
-                .transactionId(transactionGlobalId)
-                .businessTransactionId(transactionId)
+                .transactionId(transactionId)
+                .standardExecutionId(standardExecutionId)
                 .spanId(transactionSegmentId)
                 .moduleId("REF")
                 .logType("SUCCESS")

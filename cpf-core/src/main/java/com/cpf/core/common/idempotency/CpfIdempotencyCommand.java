@@ -10,7 +10,7 @@ public record CpfIdempotencyCommand(
         String idempotencyKey,
         String requestHash,
         String payloadHash,
-        String transactionGlobalId,
+        String transactionId,
         String segmentId,
         Duration ttl) {
 

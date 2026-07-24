@@ -138,7 +138,7 @@ public class CpfIdempotencyEngine {
                 status,
                 response,
                 replayed,
-                command.transactionGlobalId(),
+                command.transactionId(),
                 command.segmentId());
     }
 

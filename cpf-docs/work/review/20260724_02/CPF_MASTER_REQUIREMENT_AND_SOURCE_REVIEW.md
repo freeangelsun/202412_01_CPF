@@ -14,7 +14,7 @@
 
 과거 133 Requirement가 126으로 감소한 원인은 42 ID 제거 + 35 ID 신규 추가였다. 8개는 명시적 alias/split으로 Mapping할 수 있지만 34개는 제품 의미가 여전히 독립적이므로 복구했다. Overlay Canonical Catalog는 162개이며 향후 Mapping 없이 Count를 줄이지 않는다.
 
-Overlay는 중앙 Vendor Pack fail-fast 전환을 실제 사용 경로까지 노출하기 위해 `scripts/runtime-start-services.ps1`도 보강한다. 로컬 통합검증 Harness는 `CPF_DB_VENDOR`와 `CPF_DB_RESOURCE_ROOT`를 Java child process에 전달하지만, 이는 Runtime 검증 성공 근거가 아니며 실제 실행은 다음 Codex가 수행해야 한다.
+Overlay는 중앙 Vendor Pack fail-fast 전환을 실제 사용 경로까지 노출하기 위해 `cpf-tools/scripts/runtime-start-services.ps1`도 보강한다. 로컬 통합검증 Harness는 `CPF_DB_VENDOR`와 `CPF_DB_RESOURCE_ROOT`를 Java child process에 전달하지만, 이는 Runtime 검증 성공 근거가 아니며 실제 실행은 다음 Codex가 수행해야 한다.
 
 ## 3. 상태 집계
 

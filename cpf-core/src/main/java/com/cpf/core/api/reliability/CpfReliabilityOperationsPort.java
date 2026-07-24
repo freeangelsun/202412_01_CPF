@@ -9,15 +9,15 @@ import java.util.Map;
 public interface CpfReliabilityOperationsPort {
     List<Map<String, Object>> findIdempotency(String scope, String status, String key, int limit);
 
-    List<Map<String, Object>> findOutbox(String status, String transactionGlobalId, String topic, int limit);
+    List<Map<String, Object>> findOutbox(String status, String transactionId, String topic, int limit);
 
     List<Map<String, Object>> findInbox(String status, String key, int limit);
 
-    List<Map<String, Object>> findDlq(String status, String transactionGlobalId, String topic, int limit);
+    List<Map<String, Object>> findDlq(String status, String transactionId, String topic, int limit);
 
-    List<Map<String, Object>> findFileTransfers(String status, String transactionGlobalId, String endpointCode, int limit);
+    List<Map<String, Object>> findFileTransfers(String status, String transactionId, String endpointCode, int limit);
 
-    List<Map<String, Object>> findUnknownResults(String type, String status, String transactionGlobalId, int limit);
+    List<Map<String, Object>> findUnknownResults(String type, String status, String transactionId, int limit);
 
     ChangeResult requestDlqReplay(String messageId, String operatorId, String reason);
 

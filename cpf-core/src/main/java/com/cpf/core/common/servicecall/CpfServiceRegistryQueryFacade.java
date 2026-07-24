@@ -46,7 +46,7 @@ public class CpfServiceRegistryQueryFacade implements CpfServiceRegistryQueryPor
     }
 
     @Override
-    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionGlobalId, int limit) {
-        return repository.findCallHistory(serviceId, transactionGlobalId, limit);
+    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit) {
+        return repository.findCallHistory(serviceId, transactionId, limit);
     }
 }

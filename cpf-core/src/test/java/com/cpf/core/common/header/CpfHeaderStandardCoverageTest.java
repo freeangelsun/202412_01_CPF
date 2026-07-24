@@ -178,7 +178,7 @@ class CpfHeaderStandardCoverageTest {
     void outboundPolicyPropagatesBusinessHeadersButNeverSecuritySecrets() {
         Map<String, Boolean> expected = Map.of(
                 CpfHeaderNames.TRANSACTION_ID, true,
-                CpfHeaderNames.PARENT_TRANSACTION_ID, true,
+                CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, true,
                 CpfHeaderNames.TRACE_ID, true,
                 CpfHeaderNames.SPAN_ID, false,
                 CpfHeaderNames.CLIENT_VERSION, true,

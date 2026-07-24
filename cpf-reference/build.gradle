@@ -36,4 +36,7 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // REF tests consume the selected central Vendor Pack; module-local SQL/MyBatis fallback is forbidden.
+    systemProperty 'cpf.db.vendor', 'mariadb'
+    systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
 }

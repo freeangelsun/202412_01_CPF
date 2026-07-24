@@ -93,13 +93,13 @@ Module `src/main/resources`에 Vendor별 SQL/MyBatis Pack을 다시 복제하지
 Repository Root에서 선택 상태와 parity를 확인합니다.
 
 ```powershell
-pwsh -File scripts/select-db-vendor-resources.ps1 -Vendor mariadb
+pwsh -File cpf-tools/scripts/select-db-vendor-resources.ps1 -Vendor mariadb
 ```
 
 격리된 Runtime resource overlay가 필요한 경우 Source Tree를 덮어쓰지 않고 `build/` 아래에 생성합니다.
 
 ```powershell
-pwsh -File scripts/select-db-vendor-resources.ps1 -Vendor mariadb -AssembleOverlay -RequireExecutable
+pwsh -File cpf-tools/scripts/select-db-vendor-resources.ps1 -Vendor mariadb -AssembleOverlay -RequireExecutable
 ```
 
 Runtime은 선택된 Pack의 실제 `pack.json` root를 `cpf.db.resource-root`로 받아야 합니다.
@@ -111,12 +111,12 @@ Runtime은 선택된 Pack의 실제 `pack.json` root를 `cpf.db.resource-root`�
 Schema 설계 정본:
 
 ```text
-specs/sql/10_cpf_schema.sql
-specs/sql/20_cmn_schema.sql
-specs/sql/30_adm_schema.sql
-specs/sql/35_bat_schema.sql
-specs/sql/40_business_modules_schema.sql
-specs/sql/45_external_schema.sql
+cpf-tools/db/source/mariadb/10_cpf_schema.sql
+cpf-tools/db/source/mariadb/20_cmn_schema.sql
+cpf-tools/db/source/mariadb/30_adm_schema.sql
+cpf-tools/db/source/mariadb/35_bat_schema.sql
+cpf-tools/db/source/mariadb/40_business_modules_schema.sql
+cpf-tools/db/source/mariadb/45_external_schema.sql
 ```
 
 Lifecycle 책임:
@@ -136,7 +136,7 @@ rollback/recovery
 Split SQL 변경 후 Generated Bundle과 MariaDB 중앙 Pack mirror를 반드시 재생성합니다.
 
 ```powershell
-pwsh -File scripts/build-all-install-sql.ps1
+pwsh -File cpf-tools/scripts/build-all-install-sql.ps1
 ```
 
 `00_empty_install.sql`, `00_product_seed.sql`, `00_verify.sql` 같은 Generated 파일을
@@ -147,7 +147,7 @@ Split SQL과 별도의 설계 정본처럼 직접 편집하지 않습니다.
 첫 설치는 Reset을 선행 조건으로 요구하지 않습니다.
 
 Credential 값은 환경변수 또는 안전한 Secret 주입을 사용하고, Guide/Evidence에는 값 자체를 기록하지 않습니다.
-Initializer의 실제 인자는 `scripts/initialize-cpf-database.ps1`의 계약을 따릅니다.
+Initializer의 실제 인자는 `cpf-tools/scripts/initialize-cpf-database.ps1`의 계약을 따릅니다.
 
 예시:
 
@@ -157,7 +157,7 @@ $env:CPF_DB_HOST = "<host>"
 $env:CPF_DB_PORT = "<port>"
 $env:CPF_DB_ROOT_USERNAME = "<admin-user>"
 # Password 환경변수 값은 안전한 방식으로 별도 주입
-pwsh -File scripts/initialize-cpf-database.ps1 -RequireRun
+pwsh -File cpf-tools/scripts/initialize-cpf-database.ps1 -RequireRun
 ```
 
 Initializer는 최소 다음을 검증해야 합니다.
@@ -180,13 +180,13 @@ Reset은 첫 설치 경로가 아니라 재설치/복구 검증 경로입니다.
 먼저 Dry-run:
 
 ```powershell
-pwsh -File scripts/reset-cpf-databases.ps1
+pwsh -File cpf-tools/scripts/reset-cpf-databases.ps1
 ```
 
 Apply는 정확한 Allowlist와 명시적 Confirmation을 모두 요구합니다.
 
 ```powershell
-pwsh -File scripts/reset-cpf-databases.ps1 -Apply -Confirmation DROP_CPF_ALLOWLIST_ONLY
+pwsh -File cpf-tools/scripts/reset-cpf-databases.ps1 -Apply -Confirmation DROP_CPF_ALLOWLIST_ONLY
 ```
 
 Reset Script가 CPF Allowlist 밖의 Application Schema를 DROP하면 실패입니다.
@@ -231,7 +231,7 @@ Runtime 검증은 최소 다음을 포함합니다.
 - Gateway/API
 - Local/Remote Service Call
 - Registry/Health/Failover
-- 표준 Header/transactionGlobalId/Trace
+- 표준 Header/transactionId/Trace
 - DB Read/Write
 - File/DB Log
 - Broker/Outbox/Inbox/DLQ

@@ -7,13 +7,15 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.List;
 
@@ -36,8 +38,7 @@ class ReferenceQueryEducationMapperSliceTest {
 
     @Test
     void mapperXmlDoesNotUseUnsafeStringSubstitutionForSort() throws Exception {
-        Resource mapperXml = new ClassPathResource(
-                "mybatis/vendor/mariadb/mapper/ref/query/ReferenceQueryEducationMapper.xml");
+        Resource mapperXml = vendorMapperResource();
         String xml = mapperXml.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(xml)
@@ -133,6 +134,32 @@ class ReferenceQueryEducationMapperSliceTest {
         }
     }
 
+    private static Resource vendorMapperResource() throws Exception {
+        String resourceRoot = System.getProperty("cpf.db.resource-root");
+        if (resourceRoot == null || resourceRoot.isBlank()) {
+            throw new IllegalStateException("중앙 Vendor Pack 경로가 필요합니다. property=cpf.db.resource-root");
+        }
+
+        Path mapperRoot = Path.of(resourceRoot, "runtime", "ref", "mybatis");
+        if (!Files.isDirectory(mapperRoot)) {
+            throw new IllegalStateException("REF 중앙 MyBatis 디렉터리가 없습니다. path=" + mapperRoot);
+        }
+
+        List<Path> matches;
+        try (var paths = Files.walk(mapperRoot)) {
+            matches = paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().equals("ReferenceQueryEducationMapper.xml"))
+                    .toList();
+        }
+
+        if (matches.size() != 1) {
+            throw new IllegalStateException(
+                    "REF Query EDU Mapper는 중앙 Vendor Pack에 정확히 1개여야 합니다. count="
+                            + matches.size() + ", root=" + mapperRoot);
+        }
+        return new FileSystemResource(matches.get(0));
+    }
     private static DataSource testDataSource() {
         String url = requiredEnv(DB_URL_ENV);
         String user = requiredFirstEnv(DB_USERNAME_ENV, LEGACY_DB_USER_ENV);
@@ -155,9 +182,7 @@ class ReferenceQueryEducationMapperSliceTest {
     private static SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        Resource[] mapperLocations = new PathMatchingResourcePatternResolver()
-                .getResources(
-                        "classpath*:mybatis/vendor/mariadb/mapper/ref/query/ReferenceQueryEducationMapper.xml");
+        Resource[] mapperLocations = new Resource[] { vendorMapperResource() };
         factoryBean.setMapperLocations(mapperLocations);
         SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
         if (sqlSessionFactory == null) {

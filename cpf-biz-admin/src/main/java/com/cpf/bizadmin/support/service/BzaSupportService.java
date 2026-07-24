@@ -314,7 +314,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         values.put("resultStatus", status);
         values.put("fileName", fileName);
         values.put("maskingAppliedYn", maskingApplied ? "Y" : "N");
-        values.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
         repository.insertDownloadAudit(values);
     }
 
@@ -327,7 +327,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
             Object before,
             Object after) {
         Map<String, Object> values = new LinkedHashMap<>();
-        values.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
         values.put("actorId", actor);
         values.put("actionType", action);
         values.put("targetType", targetType);

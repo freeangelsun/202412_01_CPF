@@ -47,12 +47,12 @@ public class BatJobLogEducationSample {
     }
 
     public Map<String, Object> trackingFields(
-            String transactionGlobalId,
+            String transactionId,
             String segmentId,
             long jobInstanceId,
             long jobExecutionId) {
-        if (transactionGlobalId == null || transactionGlobalId.isBlank()) {
-            throw new IllegalArgumentException("transactionGlobalId는 필수입니다.");
+        if (transactionId == null || transactionId.isBlank()) {
+            throw new IllegalArgumentException("transactionId는 필수입니다.");
         }
         if (segmentId == null || segmentId.isBlank()) {
             throw new IllegalArgumentException("segmentId는 필수입니다.");
@@ -60,7 +60,7 @@ public class BatJobLogEducationSample {
         // LinkedHashMap을 사용해 교육 출력에서도 필드 순서가 안정적으로 보이게 합니다.
         Map<String, Object> fields = new LinkedHashMap<>();
         // 글로벌 거래 ID는 온라인 호출, 스케줄러, 하위 step을 하나의 추적 축으로 연결합니다.
-        fields.put("transactionGlobalId", transactionGlobalId);
+        fields.put("transactionId", transactionId);
         // segment ID는 Job 또는 Step 단위 처리 구간을 식별합니다.
         fields.put("segmentId", segmentId);
         // JobInstance ID는 BAT 로그 파일을 나누는 핵심 키입니다.

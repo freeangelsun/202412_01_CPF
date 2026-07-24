@@ -4,7 +4,7 @@
 
 | 역할 | 정본 |
 |---|---|
-| 최상위 제품 목표 | CPF_FINAL_TARGET_REQUIREMENTS.md |
+| 최상위 제품 목표 | cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md |
 | 현재 전체 작업 | cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md |
 | Gap | cpf-docs/review/CPF_GAP_MATRIX.md |
 | 검수/완료 기준 | cpf-docs/review/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md |
@@ -22,7 +22,7 @@
 Root 유지:
 
 - README.md
-- CPF_FINAL_TARGET_REQUIREMENTS.md
+- cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
 - settings.gradle
 - build.gradle
 - Wrapper

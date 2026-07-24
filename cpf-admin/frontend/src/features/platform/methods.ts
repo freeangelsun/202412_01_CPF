@@ -68,7 +68,7 @@ export const platformMethods: Record<string, any> = {
         });
         const historyParams = this.buildParams({
           serviceId: search.serviceId,
-          transactionGlobalId: search.transactionGlobalId,
+          transactionId: search.transactionId,
           limit: search.limit || 50
         });
         const [services, endpoints, instances, health, routingPolicies, circuits, callHistory] = await Promise.allSettled([
@@ -95,11 +95,11 @@ export const platformMethods: Record<string, any> = {
         const search = this.reliabilitySearch;
         const [idempotency, outbox, inbox, dlq, fileTransfers, unknownResults, batchJobLogs] = await Promise.allSettled([
           this.getJson(`/adm/api/reliability/idempotency?${this.buildParams({ scope: search.scope, status: search.status, key: search.key, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/broker/outbox?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/broker/outbox?${this.buildParams({ status: search.status, transactionId: search.transactionId, topic: search.topic, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/broker/inbox?${this.buildParams({ status: search.status, key: search.key, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/broker/dlq?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, topic: search.topic, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/file-transfers?${this.buildParams({ status: search.status, transactionGlobalId: search.transactionGlobalId, endpointCode: search.endpointCode, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionGlobalId: search.transactionGlobalId, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/broker/dlq?${this.buildParams({ status: search.status, transactionId: search.transactionId, topic: search.topic, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/file-transfers?${this.buildParams({ status: search.status, transactionId: search.transactionId, endpointCode: search.endpointCode, limit: search.limit }).toString()}`),
+          this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionId: search.transactionId, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/batch-job-logs?${this.buildParams({ businessDate: search.businessDate, jobName: search.jobName, jobInstanceId: search.jobInstanceId, limit: search.limit }).toString()}`)
         ]);
         this.reliabilityResult = {

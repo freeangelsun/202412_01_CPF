@@ -13,10 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BatCenterCutSampleTargetProviderTest {
 
     @Test
-    void sampleProviderSupportsCenterCutExecutionFlow() {
+    void sampleProviderSupportsSingleTransactionAndPerItemSegments() {
         AtomicLong sequence = new AtomicLong();
-        CpfCenterCutService service = new CpfCenterCutService(() -> "20260701120000000BATcentcut"
-                + String.format("%07d", sequence.incrementAndGet()));
+        CpfCenterCutService service = new CpfCenterCutService(() ->
+                "CC-BAT-20260701120000000-" + String.format("%07d", sequence.incrementAndGet()));
         BatCenterCutSampleTargetProvider provider = new BatCenterCutSampleTargetProvider();
         BatCenterCutSampleHandler handler = new BatCenterCutSampleHandler();
 
@@ -24,10 +24,14 @@ class BatCenterCutSampleTargetProviderTest {
 
         assertThat(summary.requestedCount()).isEqualTo(3);
         assertThat(summary.successCount()).isEqualTo(3);
+
         @SuppressWarnings("unchecked")
         List<CpfCenterCutResult> results = (List<CpfCenterCutResult>) provider.snapshot().get("results");
         assertThat(results)
                 .hasSize(3)
-                .allSatisfy(result -> assertThat(result.status()).isEqualTo(CpfCenterCutStatus.SUCCESS));
+                .allSatisfy(result -> {
+                    assertThat(result.status()).isEqualTo(CpfCenterCutStatus.SUCCESS);
+                    assertThat(result.transactionSegmentId()).startsWith("CC-BAT-");
+                });
     }
 }

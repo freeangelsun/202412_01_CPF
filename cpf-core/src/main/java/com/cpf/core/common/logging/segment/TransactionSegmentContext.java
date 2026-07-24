@@ -6,7 +6,10 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
- * 현재 스레드에서 실행 중인 거래 구간을 보관하고 하위 호출 헤더로 전파할 값을 제공합니다.
+ * 현재 스레드에서 실행 중인 거래 구간을 보관합니다.
+ *
+ * <p>CPF 2.x 식별 정책은 거래 흐름 전체에 transactionId 하나를 승계하고,
+ * 각 local/remote/async 구간만 transactionSegmentId/parentSegmentId로 분리합니다.</p>
  */
 public final class TransactionSegmentContext {
     private static final ThreadLocal<Deque<TransactionSegmentFrame>> FRAMES =
@@ -24,10 +27,11 @@ public final class TransactionSegmentContext {
         return frame != null ? frame.transactionSegmentId() : null;
     }
 
-    public static String rootTransactionGlobalId() {
+    public static String currentTransactionId() {
         TransactionSegmentFrame frame = currentFrame();
-        return frame != null ? frame.rootTransactionGlobalId() : null;
+        return frame != null ? frame.transactionId() : null;
     }
+
 
     public static int currentCallDepth() {
         TransactionSegmentFrame frame = currentFrame();
@@ -60,11 +64,15 @@ public final class TransactionSegmentContext {
         FRAMES.remove();
     }
 
+    /**
+     * 하위 구간은 호출자가 보낸 parentSegmentId를 부모로 사용합니다.
+     * 구형 transport가 transactionSegmentId만 보낸 경우를 한시적으로 허용합니다.
+     */
     public static String incomingParentSegmentId(TransactionHeader header) {
         if (header == null) {
             return null;
         }
-        return firstText(header.getTransactionSegmentId(), header.getParentSegmentId());
+        return firstText(header.getParentSegmentId(), header.getTransactionSegmentId());
     }
 
     public static int incomingCallDepth(TransactionHeader header) {
@@ -84,7 +92,8 @@ public final class TransactionSegmentContext {
 
     public record TransactionSegmentFrame(
             String transactionSegmentId,
-            String rootTransactionGlobalId,
+            String transactionId,
             int callDepth) {
+
     }
 }

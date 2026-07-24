@@ -22,6 +22,7 @@ import java.util.Map;
 @Component
 public class BatCenterCutSampleTargetProvider implements CenterCutTargetProvider {
     private static final String SAMPLE_JOB_ID = "CPF_BAT_CENTER_CUT_JOB";
+    private static final String SAMPLE_TRANSACTION_ID = "20260701110000000BATbatWK010000001";
 
     private final Map<String, CpfCenterCutTarget> targets = new LinkedHashMap<>();
     private final Map<String, CpfCenterCutResult> results = new LinkedHashMap<>();
@@ -40,35 +41,13 @@ public class BatCenterCutSampleTargetProvider implements CenterCutTargetProvider
     }
 
     @Override
-    public synchronized void markRunning(CpfCenterCutTarget target, String childTransactionGlobalId) {
-        targets.put(
-                target.targetId(),
-                new CpfCenterCutTarget(
-                        target.targetId(),
-                        target.centerCutJobId(),
-                        target.businessKey(),
-                        target.businessDate(),
-                        target.payload(),
-                        target.parentTransactionGlobalId(),
-                        childTransactionGlobalId,
-                        target.retryCount(),
-                        CpfCenterCutStatus.RUNNING));
+    public synchronized void markRunning(CpfCenterCutTarget target) {
+        targets.put(target.targetId(), target.withStatus(CpfCenterCutStatus.RUNNING));
     }
 
     @Override
     public synchronized void markResult(CpfCenterCutTarget target, CpfCenterCutResult result) {
-        targets.put(
-                target.targetId(),
-                new CpfCenterCutTarget(
-                        target.targetId(),
-                        target.centerCutJobId(),
-                        target.businessKey(),
-                        target.businessDate(),
-                        target.payload(),
-                        target.parentTransactionGlobalId(),
-                        result.childTransactionGlobalId(),
-                        target.retryCount(),
-                        result.status()));
+        targets.put(target.targetId(), target.withStatus(result.status()));
         results.put(target.targetId(), result);
     }
 
@@ -94,7 +73,8 @@ public class BatCenterCutSampleTargetProvider implements CenterCutTargetProvider
                 businessKey,
                 LocalDate.of(2026, 7, 1),
                 "{\"businessKey\":\"" + businessKey + "\"}",
-                "20260701110000000BATparent0000001",
+                SAMPLE_TRANSACTION_ID,
+                null,
                 null,
                 0,
                 CpfCenterCutStatus.READY);

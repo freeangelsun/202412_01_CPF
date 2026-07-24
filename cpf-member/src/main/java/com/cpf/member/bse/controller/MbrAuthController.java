@@ -63,7 +63,7 @@ public class MbrAuthController extends com.cpf.member.common.base.MbrBaseControl
 
     @GetMapping("/login-history")
     @CpfOnlineTransaction(id = "OMBRAU0005", name = "MBRLoginHistory")
-    @Operation(operationId = "mbrAuthLoginHistories", summary = "회원 로그인 이력", description = "성공/실패, 실패 사유, transactionGlobalId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
+    @Operation(operationId = "mbrAuthLoginHistories", summary = "회원 로그인 이력", description = "성공/실패, 실패 사유, transactionId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> loginHistories(@RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(authService.loginHistories(limit));
     }

@@ -104,11 +104,11 @@ public class BzaBackofficeRepository {
                 INSERT INTO bza_approval_document (
                     approval_no, approval_type, business_domain, title, requester_employee_no,
                     approval_status, approval_mode, current_step_no, due_at, payload_json,
-                    attachment_group_id, version_no, transaction_global_id, created_by, updated_by
+                    attachment_group_id, version_no, transaction_id, created_by, updated_by
                 ) VALUES (
                     :approvalNo, :approvalType, :businessDomain, :title, :requesterEmployeeNo,
                     'DRAFT', :approvalMode, 0, :dueAt, :payloadJson,
-                    :attachmentGroupId, 0, :transactionGlobalId, :requestUser, :requestUser
+                    :attachmentGroupId, 0, :transactionId, :requestUser, :requestUser
                 )
                 """, new MapSqlParameterSource(values), keyHolder, new String[]{"approval_id"});
         Number key = keyHolder.getKey();
@@ -151,7 +151,7 @@ public class BzaBackofficeRepository {
                        approval_status AS approvalStatus, approval_mode AS approvalMode,
                        current_step_no AS currentStepNo, due_at AS dueAt, payload_json AS payloadJson,
                        attachment_group_id AS attachmentGroupId, version_no AS versionNo,
-                       transaction_global_id AS transactionGlobalId, created_at AS createdAt, updated_at AS updatedAt
+                       transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
                   FROM bza_approval_document WHERE approval_id = :approvalId
                 """, new MapSqlParameterSource("approvalId", approvalId));
         return rows.stream().findFirst();
@@ -214,11 +214,11 @@ public class BzaBackofficeRepository {
             jdbc().update("""
                     INSERT INTO bza_approval_history (
                         approval_id, action_type, actor_employee_no, idempotency_key, reason,
-                        before_status, after_status, comment_text, transaction_global_id,
+                        before_status, after_status, comment_text, transaction_id,
                         created_by, updated_by
                     ) VALUES (
                         :approvalId, :actionType, :actorEmployeeNo, :idempotencyKey, :reason,
-                        :beforeStatus, :afterStatus, :comment, :transactionGlobalId,
+                        :beforeStatus, :afterStatus, :comment, :transactionId,
                         :actorEmployeeNo, :actorEmployeeNo
                     )
                     """, values);
@@ -232,7 +232,7 @@ public class BzaBackofficeRepository {
                 SELECT approval_history_id AS historyId, action_type AS actionType,
                        actor_employee_no AS actorEmployeeNo, reason, before_status AS beforeStatus,
                        after_status AS afterStatus, comment_text AS comment,
-                       transaction_global_id AS transactionGlobalId, created_at AS createdAt
+                       transaction_id AS transactionId, created_at AS createdAt
                   FROM bza_approval_history
                  WHERE approval_id = :approvalId ORDER BY approval_history_id
                 """, new MapSqlParameterSource("approvalId", approvalId));
@@ -241,10 +241,10 @@ public class BzaBackofficeRepository {
     public void insertBusinessAudit(Map<String, ?> values) {
         jdbc().update("""
                 INSERT INTO bza_business_audit (
-                    transaction_global_id, actor_id, action_type, target_type, target_id,
+                    transaction_id, actor_id, action_type, target_type, target_id,
                     reason, before_data, after_data, created_by, updated_by
                 ) VALUES (
-                    :transactionGlobalId, :actorId, :actionType, :targetType, :targetId,
+                    :transactionId, :actorId, :actionType, :targetType, :targetId,
                     :reason, :beforeData, :afterData, :actorId, :actorId
                 )
                 """, values);

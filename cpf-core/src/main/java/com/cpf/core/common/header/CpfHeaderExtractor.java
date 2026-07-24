@@ -29,8 +29,6 @@ public final class CpfHeaderExtractor {
         for (Map.Entry<String, String> entry : extractExtensionHeaders(request).entrySet()) {
             putIfAbsentHasText(headers, entry.getKey(), CpfHeaderMasker.mask(entry.getKey(), entry.getValue()));
         }
-        putIfHasText(headers, CpfHeaderNames.ROOT_TRANSACTION_ID,
-                CpfHeaderMasker.mask(CpfHeaderNames.ROOT_TRANSACTION_ID, request.getHeader(CpfHeaderNames.ROOT_TRANSACTION_ID)));
         putIfHasText(headers, CpfHeaderNames.TRANSACTION_SEGMENT_ID,
                 CpfHeaderMasker.mask(CpfHeaderNames.TRANSACTION_SEGMENT_ID, request.getHeader(CpfHeaderNames.TRANSACTION_SEGMENT_ID)));
         putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID,
@@ -42,9 +40,6 @@ public final class CpfHeaderExtractor {
 
     public static TransactionHeader toTransactionHeader(HttpServletRequest request, String wasId) {
         return TransactionHeader.builder()
-                .parentTransactionId(header(request, CpfHeaderNames.PARENT_TRANSACTION_ID))
-                .originalTransactionId(header(request, CpfHeaderNames.ORIGINAL_TRANSACTION_ID))
-                .rootTransactionGlobalId(header(request, CpfHeaderNames.ROOT_TRANSACTION_ID))
                 .transactionSegmentId(header(request, CpfHeaderNames.TRANSACTION_SEGMENT_ID))
                 .parentSegmentId(header(request, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID))
                 .callDepth(header(request, CpfHeaderNames.TRANSACTION_CALL_DEPTH))

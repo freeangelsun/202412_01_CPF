@@ -23,7 +23,7 @@ class CpfFileLogWriterTest {
     Path tempDir;
 
     @Test
-    void writesSameStableTransactionIdToOneBusinessDateFile() throws Exception {
+    void writesEachTransactionIdToItsOwnBusinessDateFile() throws Exception {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.framework.module-id", "REF")
@@ -47,18 +47,26 @@ class CpfFileLogWriterTest {
         writer.writeTransaction(first, Map.of(), null);
         writer.writeTransaction(second, Map.of(), null);
 
-        Path transactionFile = instanceRoot("ref").resolve(
-                "transactions/20260713/REF01TST0001_20260713.log");
-        assertThat(transactionFile).exists();
-        assertThat(Files.readAllLines(transactionFile)).hasSize(2);
-        assertThat(Files.readString(transactionFile))
+        Path firstTransactionFile = instanceRoot("ref").resolve(
+                "transactions/20260713/" + first.getTransactionId() + "_20260713.log");
+        Path secondTransactionFile = instanceRoot("ref").resolve(
+                "transactions/20260713/" + second.getTransactionId() + "_20260713.log");
+
+        assertThat(firstTransactionFile).exists();
+        assertThat(secondTransactionFile).exists();
+        assertThat(Files.readAllLines(firstTransactionFile)).hasSize(1);
+        assertThat(Files.readAllLines(secondTransactionFile)).hasSize(1);
+        assertThat(Files.readString(firstTransactionFile))
                 .contains("REF01TST0001")
                 .contains(first.getTransactionId())
-                .contains(second.getTransactionId());
+                .doesNotContain(second.getTransactionId());
+        assertThat(Files.readString(secondTransactionFile))
+                .contains("REF01TST0001")
+                .contains(second.getTransactionId())
+                .doesNotContain(first.getTransactionId());
         assertThat(instanceRoot("ref").resolve("transactions/20260713/NO_TRANSACTION_20260713.log"))
                 .doesNotExist();
     }
-
     @Test
     void writeEventMasksSensitiveValuesByKeyAndContent() throws Exception {
         MockEnvironment environment = new MockEnvironment()

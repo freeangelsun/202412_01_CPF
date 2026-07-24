@@ -7,7 +7,7 @@ package com.cpf.admin.opr.dto;
  */
 public record AdmTraceBoostRequest(
         Long policyId,
-        String transactionGlobalId,
+        String transactionId,
         String businessTransactionId,
         String apiPath,
         String status,

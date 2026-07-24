@@ -59,4 +59,8 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Unit tests use the same central Vendor Pack contract as product runtime.
+	// This does not enable module-local SQL fallback; it only makes the test bootstrap explicit.
+	systemProperty 'cpf.db.vendor', 'mariadb'
+	systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
 }

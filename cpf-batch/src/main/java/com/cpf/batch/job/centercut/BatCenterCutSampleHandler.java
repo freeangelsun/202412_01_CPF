@@ -17,7 +17,6 @@ public class BatCenterCutSampleHandler implements CenterCutHandler {
         return CpfCenterCutResult.success(
                 target,
                 "center-cut sample 대상 처리 완료",
-                resultPayload,
-                target.childTransactionGlobalId());
+                resultPayload);
     }
 }

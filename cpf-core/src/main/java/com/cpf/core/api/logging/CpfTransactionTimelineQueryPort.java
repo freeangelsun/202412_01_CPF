@@ -10,9 +10,9 @@ public interface CpfTransactionTimelineQueryPort {
 
     GroupQueryResult findGroups(Map<String, String> criteria);
 
-    List<Map<String, Object>> findSegments(String transactionGlobalId);
+    List<Map<String, Object>> findSegments(String transactionId);
 
-    List<Map<String, Object>> findExternalCandidates(String transactionGlobalId, int limit);
+    List<Map<String, Object>> findExternalCandidates(String transactionId, int limit);
 
     record GroupQueryResult(
             boolean available,

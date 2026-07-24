@@ -85,7 +85,11 @@ public final class CpfLogPathPolicy {
     }
 
     /**
-     * 온라인 거래 로그를 거래 종류와 업무일자로 분리합니다.
+     * 온라인/내부/외부 호출을 하나의 전역 거래 단위로 묶어 저장합니다.
+     *
+     * <p>파일명 키는 업무 거래ID가 아니라 {@code transactionId}입니다.
+     * 동일 거래의 segment가 모듈을 넘나들어도 같은 추적 키를 유지하므로
+     * DB 거래그룹/timeline과 파일 증적을 1:1로 교차 조회할 수 있습니다.</p>
      */
     public Path transactionLogPath(String transactionId, LocalDate businessDate) {
         String safeTransactionId = sanitizeToken(transactionId, null, 120);
@@ -135,7 +139,7 @@ public final class CpfLogPathPolicy {
 
     private Path categoryDirectory(String ownerModuleCode, String logType) {
         Path root = instanceRoot();
-        if ("CPF".equals(ownerModuleCode) || "CPF".equals(ownerModuleCode)) {
+        if ("CPF".equals(ownerModuleCode)) {
             return safeResolve(root, Path.of("framework", "cpf"));
         }
         if ("CMN".equals(ownerModuleCode)) {

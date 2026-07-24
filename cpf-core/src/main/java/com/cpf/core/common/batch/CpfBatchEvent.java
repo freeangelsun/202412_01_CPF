@@ -10,7 +10,7 @@ import java.util.Map;
  * @param eventType           이벤트 유형
  * @param jobId               배치 Job ID
  * @param cpfExecutionId      CPF 운영 메타 실행 ID
- * @param transactionGlobalId 거래 글로벌 ID
+ * @param transactionId 거래 글로벌 ID
  * @param message             이벤트 메시지
  * @param payload             추가 속성
  * @param occurredAt          발생 일시
@@ -19,7 +19,7 @@ public record CpfBatchEvent(
         CpfBatchEventType eventType,
         String jobId,
         Long cpfExecutionId,
-        String transactionGlobalId,
+        String transactionId,
         String message,
         Map<String, Object> payload,
         LocalDateTime occurredAt) {
@@ -33,9 +33,9 @@ public record CpfBatchEvent(
             CpfBatchEventType eventType,
             String jobId,
             Long cpfExecutionId,
-            String transactionGlobalId,
+            String transactionId,
             String message,
             Map<String, Object> payload) {
-        return new CpfBatchEvent(eventType, jobId, cpfExecutionId, transactionGlobalId, message, payload, LocalDateTime.now());
+        return new CpfBatchEvent(eventType, jobId, cpfExecutionId, transactionId, message, payload, LocalDateTime.now());
     }
 }

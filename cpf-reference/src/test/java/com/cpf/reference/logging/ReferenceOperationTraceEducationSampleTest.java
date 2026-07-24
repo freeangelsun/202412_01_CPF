@@ -9,6 +9,6 @@ class ReferenceOperationTraceEducationSampleTest {
     @Test
     void traceKeysContainAdmLink() {
         assertThat(new ReferenceOperationTraceEducationSample().traceKeys("T-1", "/api/v1/ref"))
-                .containsEntry("admLink", "/adm/opr/logs?transactionGlobalId=T-1");
+                .containsEntry("admLink", "/adm/opr/logs?transactionId=T-1");
     }
 }

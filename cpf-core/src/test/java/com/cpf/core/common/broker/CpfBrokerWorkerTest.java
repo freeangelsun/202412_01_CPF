@@ -61,7 +61,7 @@ class CpfBrokerWorkerTest {
                         messageId,
                         "payload".getBytes(StandardCharsets.UTF_8),
                         "text/plain",
-                        Map.of("x-cpf-transaction-global-id", "TX-1")),
+                        Map.of("x-cpf-transaction-id", "TX-1")),
                 Map.of("sampleId", "REF-BROKER-RELIABILITY"));
     }
 

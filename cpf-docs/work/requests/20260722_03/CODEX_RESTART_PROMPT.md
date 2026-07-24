@@ -21,9 +21,9 @@
 1. `git fetch origin`을 실행한다.
 2. `git status --short --branch`, `git rev-parse HEAD`, `git rev-parse origin/master`, `git log -5 --oneline --decorate`, `git diff --check`를 확인한다.
 3. Worktree가 Clean이고 Local이 Behind일 때만 `git pull --ff-only`를 사용한다. Dirty 또는 Diverged면 reset/revert/checkout/clean을 하지 말고 차이를 보고한다.
-4. `CPF_CURRENT_WORK_REQUEST.md` 전체를 읽는다.
-5. `CPF_FINAL_TARGET_REQUIREMENTS.md` 전체를 읽는다.
-6. `CPF_GAP_MATRIX.md`, `CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`, `CPF_STABILIZATION_REPORT.md`, `CPF_EVIDENCE_INDEX.md`를 읽는다.
+4. `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` 전체를 읽는다.
+5. `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` 전체를 읽는다.
+6. `cpf-docs/work/state/CPF_GAP_MATRIX.md`, `cpf-docs/governance/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md`, `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md`, `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md`를 읽는다.
 7. `cpf-docs/work/review/20260722_03`의 검수·Architecture Decision과 역할별 Architecture/Developer/API/Security/Installation/Migration/Deployment/Operator/Recovery/Generator/EDU Guide를 확인한다.
 8. 현재 HEAD, OS, JDK, Node, npm, PowerShell, MariaDB와 시작시각을 새 Evidence에 기록한다. Secret과 내부 접속정보는 마스킹한다.
 9. Windows에서는 PowerShell 7 `pwsh`를 우선 사용하고 PowerShell 5.1의 UTF-8 손상을 반복하지 않는다.
@@ -44,7 +44,7 @@
 - Source, SQL, API, UI, Test, Guide와 Evidence를 한 제품 상태로 맞춘다.
 - 실행하지 않은 검증은 성공으로 기록하지 않는다. DB나 Browser를 직접 확인할 수 없으면 `미검증` 또는 `재확인 필요`로 남기고 실행 명령과 확인 절차를 제출한다.
 
-작업 순서는 `CPF_CURRENT_WORK_REQUEST.md`의 Phase를 따르되, 먼저 Baseline/Encoding/Lockfile/Flyway/Quality Gate 회귀를 안정화하고 그 다음 Ownership, DB Empty Install, Runtime, ADM/BZA, Multi-instance/Recovery, Generator와 최종 문서·Evidence를 완성하라.
+작업 순서는 `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`의 Phase를 따르되, 먼저 Baseline/Encoding/Lockfile/Flyway/Quality Gate 회귀를 안정화하고 그 다음 Ownership, DB Empty Install, Runtime, ADM/BZA, Multi-instance/Recovery, Generator와 최종 문서·Evidence를 완성하라.
 
 완료 보고에는 요구사항별 상태, 변경 Source/SQL/API/UI, 실행 명령, 실제 결과, 실패·미검증, 회귀, Stale Evidence 정리와 남은 Gap을 포함하라. Codex 보고만으로 완료라고 주장하지 마라.
 

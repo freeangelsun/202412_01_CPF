@@ -24,18 +24,17 @@ public class ReferenceCompositeTransactionEducationController extends com.cpf.re
     @Operation(operationId = "refCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "REF에서 CPF Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(
-                "purpose", "transactionGlobalId 기준으로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",
+                "purpose", "transactionId 하나로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",
                 "patterns", List.of(
                         "REF Service Call Engine 샘플에서 MBR_MEMBER_SUMMARY endpoint를 호출",
-                        "동일 X-Transaction-Id를 전달해 호출 구간을 하나의 타임라인으로 연결"),
+                        "동일 X-Transaction-Id를 승계하고 각 호출 구간은 X-Transaction-Segment-Id로 분리"),
                 "admApis", List.of(
                         "GET /adm/api/transaction-groups",
-                        "GET /adm/api/transaction-groups/{transactionGlobalId}",
-                        "GET /adm/api/transaction-groups/{transactionGlobalId}/timeline"),
+                        "GET /adm/api/transaction-groups/{transactionId}",
+                        "GET /adm/api/transaction-groups/{transactionId}/timeline"),
                 "requiredHeaders", List.of(
                         "X-Transaction-Id",
                         "X-Transaction-Segment-Id",
-                        "X-Parent-Transaction-Segment-Id",
-                        "X-Root-Transaction-Id")));
+                        "X-Parent-Transaction-Segment-Id")));
     }
 }

@@ -35,10 +35,10 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     public List<CpfCenterCutTarget> findReadyTargets(String centerCutJobId, int limit) {
         String sql = """
                 SELECT target_id, center_cut_job_id, business_key, business_date, target_payload,
-                       parent_transaction_global_id, child_transaction_global_id, retry_count, status_code
+                       transaction_id, parent_segment_id, transaction_segment_id, retry_count, status_code
                 FROM ref_center_cut_sample_target
                 WHERE center_cut_job_id = ?
-                  AND status_code = 'READY'
+                  AND status_code IN ('READY', 'RETRY_REQUESTED')
                   AND use_yn = 'Y'
                 ORDER BY business_date ASC, target_id ASC
                 LIMIT ?
@@ -47,18 +47,25 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     }
 
     @Override
-    public void markRunning(CpfCenterCutTarget target, String childTransactionGlobalId) {
+    public void markRunning(CpfCenterCutTarget target) {
         int updated = jdbcTemplate.update("""
                 UPDATE ref_center_cut_sample_target
                 SET status_code = 'RUNNING',
-                    child_transaction_global_id = ?,
+                    transaction_id = ?,
+                    parent_segment_id = ?,
+                    transaction_segment_id = ?,
                     started_at = CURRENT_TIMESTAMP,
                     updated_by = 'REF_CENTER_CUT',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE target_id = ?
                   AND center_cut_job_id = ?
                   AND status_code IN ('READY', 'RETRY_REQUESTED')
-                """, childTransactionGlobalId, target.targetId(), target.centerCutJobId());
+                """,
+                target.transactionId(),
+                target.parentSegmentId(),
+                target.transactionSegmentId(),
+                target.targetId(),
+                target.centerCutJobId());
         if (updated == 0) {
             throw new IllegalStateException("center-cut 대상 상태를 RUNNING으로 변경하지 못했습니다. targetId=" + target.targetId());
         }
@@ -68,30 +75,44 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     public void markResult(CpfCenterCutTarget target, CpfCenterCutResult result) {
         String statusCode = result.status().name();
         String errorMessage = result.status() == CpfCenterCutStatus.FAILED ? result.message() : null;
+        String transactionSegmentId = hasText(result.transactionSegmentId())
+                ? result.transactionSegmentId()
+                : target.transactionSegmentId();
+
         jdbcTemplate.update("""
                 UPDATE ref_center_cut_sample_target
                 SET status_code = ?,
-                    child_transaction_global_id = ?,
+                    transaction_id = ?,
+                    parent_segment_id = ?,
+                    transaction_segment_id = ?,
                     completed_at = CURRENT_TIMESTAMP,
                     last_error_message = ?,
                     updated_by = 'REF_CENTER_CUT',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE target_id = ?
                   AND center_cut_job_id = ?
-                """, statusCode, result.childTransactionGlobalId(), errorMessage, target.targetId(), target.centerCutJobId());
+                """,
+                statusCode,
+                target.transactionId(),
+                target.parentSegmentId(),
+                transactionSegmentId,
+                errorMessage,
+                target.targetId(),
+                target.centerCutJobId());
 
         jdbcTemplate.update("""
                 INSERT INTO ref_center_cut_sample_result (
                     target_id, center_cut_job_id, business_key, result_status, result_payload,
-                    result_message, parent_transaction_global_id, child_transaction_global_id,
+                    result_message, transaction_id, parent_segment_id, transaction_segment_id,
                     created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'REF_CENTER_CUT', 'REF_CENTER_CUT')
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'REF_CENTER_CUT', 'REF_CENTER_CUT')
                 ON DUPLICATE KEY UPDATE
                     result_status = VALUES(result_status),
                     result_payload = VALUES(result_payload),
                     result_message = VALUES(result_message),
-                    parent_transaction_global_id = VALUES(parent_transaction_global_id),
-                    child_transaction_global_id = VALUES(child_transaction_global_id),
+                    transaction_id = VALUES(transaction_id),
+                    parent_segment_id = VALUES(parent_segment_id),
+                    transaction_segment_id = VALUES(transaction_segment_id),
                     updated_by = VALUES(updated_by),
                     updated_at = CURRENT_TIMESTAMP
                 """,
@@ -101,8 +122,9 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
                 statusCode,
                 result.resultPayload(),
                 result.message(),
-                target.parentTransactionGlobalId(),
-                result.childTransactionGlobalId());
+                target.transactionId(),
+                target.parentSegmentId(),
+                transactionSegmentId);
     }
 
     public Map<String, Long> countResultsByStatus(String centerCutJobId) {
@@ -125,7 +147,7 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
     public List<Map<String, Object>> findResultSnapshots(String centerCutJobId) {
         return jdbcTemplate.queryForList("""
                 SELECT target_id, business_key, result_status, result_message,
-                       parent_transaction_global_id, child_transaction_global_id
+                       transaction_id, parent_segment_id, transaction_segment_id
                 FROM ref_center_cut_sample_result
                 WHERE center_cut_job_id = ?
                 ORDER BY target_id
@@ -137,7 +159,7 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
         jdbcTemplate.update("""
                 UPDATE ref_center_cut_sample_target
                 SET status_code = 'READY',
-                    child_transaction_global_id = NULL,
+                    transaction_segment_id = NULL,
                     started_at = NULL,
                     completed_at = NULL,
                     last_error_message = NULL,
@@ -155,9 +177,14 @@ public class ReferenceCenterCutTargetRepository implements CenterCutTargetProvid
                 rs.getString("business_key"),
                 businessDate == null ? LocalDate.now() : businessDate.toLocalDate(),
                 rs.getString("target_payload"),
-                rs.getString("parent_transaction_global_id"),
-                rs.getString("child_transaction_global_id"),
+                rs.getString("transaction_id"),
+                rs.getString("parent_segment_id"),
+                rs.getString("transaction_segment_id"),
                 rs.getInt("retry_count"),
                 CpfCenterCutStatus.valueOf(rs.getString("status_code").toUpperCase(Locale.ROOT)));
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

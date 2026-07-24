@@ -65,7 +65,7 @@ class CpfCapabilityContractTest {
 
         assertThat(new String(envelope.message().payload(), java.nio.charset.StandardCharsets.UTF_8))
                 .isEqualTo("hello");
-        assertThat(envelope.transactionGlobalId()).hasSize(34);
+        assertThat(envelope.transactionId()).hasSize(34);
         assertThat(envelope.attributes()).containsEntry("retryPolicy", "standard");
         assertThat(CpfBrokerResult.accepted("MSG-1", "KAFKA", "0").status()).isEqualTo("ACCEPTED");
 
@@ -75,14 +75,14 @@ class CpfCapabilityContractTest {
                 "KAFKA",
                 message.topic(),
                 message.messageId(),
-                envelope.transactionGlobalId(),
+                envelope.transactionId(),
                 envelope.idempotencyKey(),
                 "SUCCESS",
                 null,
                 Map.of("partition", "0"));
-        CpfBrokerHistoryQuery query = new CpfBrokerHistoryQuery("KAFKA", message.topic(), null, envelope.transactionGlobalId(), "SUCCESS", null, null, 0);
+        CpfBrokerHistoryQuery query = new CpfBrokerHistoryQuery("KAFKA", message.topic(), null, envelope.transactionId(), "SUCCESS", null, null, 0);
         CpfBrokerDlqReplayRequest replayRequest = new CpfBrokerDlqReplayRequest(message.topic(), message.messageId(), "admin", "재처리 사유", null);
-        CpfBrokerDlqReplayResult replayResult = new CpfBrokerDlqReplayResult(message.messageId(), "SUCCESS", envelope.transactionGlobalId(), null, null);
+        CpfBrokerDlqReplayResult replayResult = new CpfBrokerDlqReplayResult(message.messageId(), "SUCCESS", envelope.transactionId(), null, null);
 
         assertThat(historyRecord.attributes()).containsEntry("partition", "0");
         assertThat(query.limit()).isEqualTo(100);
@@ -117,7 +117,7 @@ class CpfCapabilityContractTest {
         CpfFileTransferRetryPolicy retryPolicy = new CpfFileTransferRetryPolicy(0, null, true);
         CpfFileTransferPolicy transferPolicy = new CpfFileTransferPolicy(true, null, true, "/archive", null, retryPolicy);
         CpfFileChecksumPolicy checksumPolicy = new CpfFileChecksumPolicy(null, true, "sha256:demo");
-        CpfFileTransferHistoryQuery historyQuery = new CpfFileTransferHistoryQuery(endpoint.endpointCode(), CpfFileTransferProtocol.SFTP.name(), "SUCCESS", request.transactionGlobalId(), null, null, 0);
+        CpfFileTransferHistoryQuery historyQuery = new CpfFileTransferHistoryQuery(endpoint.endpointCode(), CpfFileTransferProtocol.SFTP.name(), "SUCCESS", request.transactionId(), null, null, 0);
 
         assertThat(endpoint.credentialRef().masked()).doesNotContain("partner-prod-key");
         assertThat(result.status()).isEqualTo("SUCCESS");

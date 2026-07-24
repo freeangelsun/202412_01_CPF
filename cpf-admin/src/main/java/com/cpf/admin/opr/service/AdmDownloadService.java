@@ -211,7 +211,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         StringBuilder sql = new StringBuilder("""
                 SELECT execution_id, job_id, schedule_id, execution_status,
                        spring_batch_execution_id, batch_instance_id, server_instance_id, worker_id,
-                       transaction_global_id, start_time, end_time, read_count, write_count,
+                       transaction_id, start_time, end_time, read_count, write_count,
                        skip_count, retry_count, error_message, requested_by, created_at
                 FROM bat_execution
                 WHERE 1 = 1

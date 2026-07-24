@@ -67,7 +67,7 @@ public class AdmCenterCutController extends com.cpf.admin.common.base.AdmBaseCon
 
     @GetMapping("/jobs/{centerCutJobId}/targets")
     @CpfOnlineTransaction(id = "OADMCT0050", name = "ADMCenterCutTargets")
-    @Operation(operationId = "admCenterCutFindTargets", summary = "Center-Cut target 목록 조회", description = "업무 target 상태, 실패 사유, parent/child transactionGlobalId를 조회합니다.")
+    @Operation(operationId = "admCenterCutFindTargets", summary = "Center-Cut target 목록 조회", description = "업무 target 상태, 실패 사유, parent/child transactionId를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findTargets(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_REF_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId,
@@ -80,7 +80,7 @@ public class AdmCenterCutController extends com.cpf.admin.common.base.AdmBaseCon
 
     @GetMapping("/jobs/{centerCutJobId}/results")
     @CpfOnlineTransaction(id = "OADMCT0060", name = "ADMCenterCutResults")
-    @Operation(operationId = "admCenterCutFindResults", summary = "Center-Cut result 목록 조회", description = "업무 result 상태, 메시지, parent/child transactionGlobalId를 조회합니다. payload 원문은 마스킹합니다.")
+    @Operation(operationId = "admCenterCutFindResults", summary = "Center-Cut result 목록 조회", description = "업무 result 상태, 메시지, parent/child transactionId를 조회합니다. payload 원문은 마스킹합니다.")
     public ResponseEntity<List<Map<String, Object>>> findResults(
             @Parameter(description = "Center-Cut Job ID", example = "CPF_REF_CENTER_CUT_SAMPLE_JOB")
             @PathVariable String centerCutJobId,

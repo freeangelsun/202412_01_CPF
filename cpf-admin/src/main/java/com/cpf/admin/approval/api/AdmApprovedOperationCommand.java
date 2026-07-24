@@ -14,7 +14,7 @@ package com.cpf.admin.approval.api;
  * @param targetType 대상 유형
  * @param targetId 대상 ID
  * @param payloadHash 승인한 Payload SHA-256
- * @param transactionGlobalId CPF 전역 거래 ID
+ * @param transactionId CPF transactionId
  */
 public record AdmApprovedOperationCommand(
         long approvalRequestId,
@@ -25,7 +25,7 @@ public record AdmApprovedOperationCommand(
         String targetType,
         String targetId,
         String payloadHash,
-        String transactionGlobalId) {
+        String transactionId) {
 
     public AdmApprovedOperationCommand {
         requireText(commandRequestId, "commandRequestId");

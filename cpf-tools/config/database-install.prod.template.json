@@ -1,0 +1,377 @@
+{
+  "profileVersion": 1,
+  "profileName": "production-template",
+  "environment": "production",
+  "description": "Production template. Replace host/database/schema/account names and provide passwords only through environment or an external secret provider. EXS is not a fixed platform module; create external/EXS with the Golden Generated Domain generator when required.",
+  "supportedVendors": [
+    "mariadb",
+    "mysql",
+    "postgresql",
+    "oracle",
+    "sqlserver"
+  ],
+  "policy": {
+    "promptForMissingValues": false,
+    "allowInlineDevDefaults": false,
+    "failClosedOnMissingVendorPack": true,
+    "failClosedOnPartialDatabase": true,
+    "autoDropDatabase": false,
+    "autoResetDatabase": false,
+    "allowMixedVendorConfiguration": true,
+    "allowMixedHostConfiguration": true
+  },
+  "modules": {
+    "core": {
+      "domainName": "core",
+      "systemCode": "CPF",
+      "moduleName": "cpf-core",
+      "enabled": true,
+      "required": true,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "mariadb",
+      "host": "${CPF_DB_HOST}",
+      "port": 0,
+      "databaseName": "cpfDB",
+      "schemaName": "cpfDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CPF_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CPF_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CPF_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "common": {
+      "domainName": "common",
+      "systemCode": "CMN",
+      "moduleName": "cpf-common",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cmnDB",
+      "vendor": "mariadb",
+      "host": "${CMN_DB_HOST}",
+      "port": 0,
+      "databaseName": "cmnDB",
+      "schemaName": "cmnDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CMN_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_cmn_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CMN_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_cmn_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_CMN_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "admin": {
+      "domainName": "admin",
+      "systemCode": "ADM",
+      "moduleName": "cpf-admin",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "admDB",
+      "vendor": "mariadb",
+      "host": "${ADM_DB_HOST}",
+      "port": 0,
+      "databaseName": "admDB",
+      "schemaName": "admDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ADM_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_adm_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ADM_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_adm_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ADM_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "bizAdmin": {
+      "domainName": "biz-admin",
+      "systemCode": "BZA",
+      "moduleName": "cpf-biz-admin",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "bzaDB",
+      "vendor": "mariadb",
+      "host": "${BZA_DB_HOST}",
+      "port": 0,
+      "databaseName": "bzaDB",
+      "schemaName": "bzaDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BZA_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_bza_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BZA_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_bza_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BZA_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "batch": {
+      "domainName": "batch",
+      "systemCode": "BAT",
+      "moduleName": "cpf-batch",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "batDB",
+      "vendor": "mariadb",
+      "host": "${BAT_DB_HOST}",
+      "port": 0,
+      "databaseName": "batDB",
+      "schemaName": "batDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BAT_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_bat_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BAT_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_bat_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_BAT_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "reference": {
+      "domainName": "reference",
+      "systemCode": "REF",
+      "moduleName": "cpf-reference",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "refDB",
+      "vendor": "mariadb",
+      "host": "${REF_DB_HOST}",
+      "port": 0,
+      "databaseName": "refDB",
+      "schemaName": "refDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_REF_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_ref_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_REF_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_ref_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_REF_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "member": {
+      "domainName": "member",
+      "systemCode": "MBR",
+      "moduleName": "cpf-member",
+      "enabled": true,
+      "required": false,
+      "transitional": true,
+      "logicalDatabase": "mbrDB",
+      "vendor": "mariadb",
+      "host": "${MBR_DB_HOST}",
+      "port": 0,
+      "databaseName": "mbrDB",
+      "schemaName": "mbrDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBR_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_mbr_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBR_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_mbr_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBR_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "account": {
+      "domainName": "account",
+      "systemCode": "ACC",
+      "moduleName": "cpf-account",
+      "enabled": true,
+      "required": false,
+      "transitional": true,
+      "logicalDatabase": "accDB",
+      "vendor": "mariadb",
+      "host": "${ACC_DB_HOST}",
+      "port": 0,
+      "databaseName": "accDB",
+      "schemaName": "accDB",
+      "clientPath": "",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ACC_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_acc_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ACC_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_acc_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_ACC_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    }
+  }
+}

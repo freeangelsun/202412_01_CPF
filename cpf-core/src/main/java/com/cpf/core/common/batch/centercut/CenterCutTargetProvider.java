@@ -9,7 +9,10 @@ public interface CenterCutTargetProvider {
 
     List<CpfCenterCutTarget> findReadyTargets(String centerCutJobId, int limit);
 
-    void markRunning(CpfCenterCutTarget target, String childTransactionGlobalId);
+    /**
+     * 서비스가 확정한 transactionId/segment 계층을 포함한 RUNNING 대상을 저장합니다.
+     */
+    void markRunning(CpfCenterCutTarget target);
 
     void markResult(CpfCenterCutTarget target, CpfCenterCutResult result);
 }

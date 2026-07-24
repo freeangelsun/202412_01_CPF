@@ -42,7 +42,7 @@ ADM은 HR 원장을 소유하지 않고 Operator Profile/Directory Port로 필�
 
 ## 6. API/OpenAPI/JavaDoc
 
-Public API는 요청 생성, 정책 조회/Simulation, Inbox 조회, Approve/Agree/Reject, Delegate, Cancel/Withdraw, History와 Runtime 상태를 제공한다. Controller만 문서화하지 말고 DTO 필드, Enum 의미, 오류코드, 권한, idempotency, transactionGlobalId를 OpenAPI/JavaDoc에 명시한다.
+Public API는 요청 생성, 정책 조회/Simulation, Inbox 조회, Approve/Agree/Reject, Delegate, Cancel/Withdraw, History와 Runtime 상태를 제공한다. Controller만 문서화하지 말고 DTO 필드, Enum 의미, 오류코드, 권한, idempotency, transactionId를 OpenAPI/JavaDoc에 명시한다.
 
 ## 7. 필수 Test
 

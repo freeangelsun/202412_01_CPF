@@ -7,11 +7,11 @@ import java.util.Map;
  */
 public class ReferenceOperationTraceEducationSample {
 
-    public Map<String, String> traceKeys(String transactionGlobalId, String uri) {
+    public Map<String, String> traceKeys(String transactionId, String uri) {
         return Map.of(
-                "transactionGlobalId", transactionGlobalId,
-                "traceId", "TRACE-" + transactionGlobalId,
+                "transactionId", transactionId,
+                "traceId", "TRACE-" + transactionId,
                 "uri", uri,
-                "admLink", "/adm/opr/logs?transactionGlobalId=" + transactionGlobalId);
+                "admLink", "/adm/opr/logs?transactionId=" + transactionId);
     }
 }

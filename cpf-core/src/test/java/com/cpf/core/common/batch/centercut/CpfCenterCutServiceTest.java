@@ -12,10 +12,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CpfCenterCutServiceTest {
 
     @Test
-    void executeMarksRunningAndStoresResultsWithChildTransactionId() {
+    void executeKeepsOneTransactionIdAndCreatesPerItemSegments() {
         AtomicLong sequence = new AtomicLong();
-        CpfCenterCutService service = new CpfCenterCutService(() -> "20260701120000000BATcentcut"
-                + String.format("%07d", sequence.incrementAndGet()));
+        CpfCenterCutService service = new CpfCenterCutService(() ->
+                "CC-20260701120000000-" + String.format("%07d", sequence.incrementAndGet()));
         MemoryProvider provider = new MemoryProvider(List.of(
                 target("T001", "ORDER-001"),
                 target("T002", "ORDER-002")));
@@ -24,19 +24,25 @@ class CpfCenterCutServiceTest {
                 "CPF_CENTER_CUT_SAMPLE_JOB",
                 10,
                 provider,
-                target -> CpfCenterCutResult.success(target, "처리 완료", "{\"ok\":true}", target.childTransactionGlobalId()));
+                target -> CpfCenterCutResult.success(target, "처리 완료", "{\"ok\":true}"));
 
         assertThat(summary.requestedCount()).isEqualTo(2);
         assertThat(summary.successCount()).isEqualTo(2);
         assertThat(provider.runningTargetIds).containsExactly("T001", "T002");
+        assertThat(provider.runningTargets)
+                .extracting(CpfCenterCutTarget::transactionId)
+                .containsOnly("20260701115959000BATbatWK010000001");
+        assertThat(provider.runningTargets)
+                .extracting(CpfCenterCutTarget::parentSegmentId)
+                .containsOnly("SEG-BAT-PARENT-0001");
         assertThat(provider.results)
-                .extracting(CpfCenterCutResult::childTransactionGlobalId)
-                .containsExactly("20260701120000000BATcentcut0000001", "20260701120000000BATcentcut0000002");
+                .extracting(CpfCenterCutResult::transactionSegmentId)
+                .containsExactly("CC-20260701120000000-0000001", "CC-20260701120000000-0000002");
     }
 
     @Test
-    void executeConvertsHandlerExceptionToFailedResult() {
-        CpfCenterCutService service = new CpfCenterCutService(() -> "20260701120000000BATcentcut0000001");
+    void executeConvertsHandlerExceptionToFailedResultWithoutChangingTransactionId() {
+        CpfCenterCutService service = new CpfCenterCutService(() -> "CC-20260701120000000-0000001");
         MemoryProvider provider = new MemoryProvider(List.of(target("T001", "ORDER-001")));
 
         CpfCenterCutSummary summary = service.execute(
@@ -51,6 +57,8 @@ class CpfCenterCutServiceTest {
         assertThat(provider.results).hasSize(1);
         assertThat(provider.results.get(0).status()).isEqualTo(CpfCenterCutStatus.FAILED);
         assertThat(provider.results.get(0).message()).isEqualTo("업무 처리 실패");
+        assertThat(provider.runningTargets.get(0).transactionId())
+                .isEqualTo("20260701115959000BATbatWK010000001");
     }
 
     private static CpfCenterCutTarget target(String targetId, String businessKey) {
@@ -60,7 +68,8 @@ class CpfCenterCutServiceTest {
                 businessKey,
                 LocalDate.of(2026, 7, 1),
                 "{\"businessKey\":\"" + businessKey + "\"}",
-                "20260701115959000BATparent0000001",
+                "20260701115959000BATbatWK010000001",
+                "SEG-BAT-PARENT-0001",
                 null,
                 0,
                 CpfCenterCutStatus.READY);
@@ -69,6 +78,7 @@ class CpfCenterCutServiceTest {
     private static final class MemoryProvider implements CenterCutTargetProvider {
         private final List<CpfCenterCutTarget> targets;
         private final List<String> runningTargetIds = new ArrayList<>();
+        private final List<CpfCenterCutTarget> runningTargets = new ArrayList<>();
         private final List<CpfCenterCutResult> results = new ArrayList<>();
 
         private MemoryProvider(List<CpfCenterCutTarget> targets) {
@@ -84,8 +94,9 @@ class CpfCenterCutServiceTest {
         }
 
         @Override
-        public void markRunning(CpfCenterCutTarget target, String childTransactionGlobalId) {
+        public void markRunning(CpfCenterCutTarget target) {
             runningTargetIds.add(target.targetId());
+            runningTargets.add(target);
         }
 
         @Override

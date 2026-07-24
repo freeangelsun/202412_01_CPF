@@ -30,11 +30,10 @@ class ReferenceFileLogEducationSampleTest {
         ReferenceFileLogEducationSample sample = new ReferenceFileLogEducationSample(
                 new CpfFileLogWriter(environment, clock));
 
-        // 각 로그 유형을 호출해 하나의 파일에 서로 다른 유형이 섞이지 않는지 확인합니다.
         sample.writeApplicationLog("교육 애플리케이션 준비 완료");
         sample.writeTransactionLog(
-                "REF_EDU_FILE_LOG",
-                "20260713163000000REFedu0010000001",
+                "OREF-LG-0001",
+                "20260713163000000REFedu01010000001",
                 "SEG-REF-1");
         sample.writeErrorLog("REF Reference-001", "password=should-not-remain");
         sample.writeMaskingGuardExample("plain-password", "Bearer plain-token");
@@ -47,10 +46,11 @@ class ReferenceFileLogEducationSampleTest {
                     .map(path -> path.getFileName().toString())
                     .toList();
         }
+
         assertThat(fileNames)
                 .anyMatch(name -> name.matches("cpf-ref-application-.+\\.2026-07-13\\.log"))
                 .anyMatch(name -> name.matches("cpf-ref-error-.+\\.2026-07-13\\.log"))
-                .contains("REF_EDU_FILE_LOG_20260713.log");
+                .contains("20260713163000000REFedu01010000001_20260713.log");
 
         String allLogs;
         try (var paths = Files.walk(moduleRoot)) {
@@ -63,12 +63,19 @@ class ReferenceFileLogEducationSampleTest {
                     })
                     .reduce("", String::concat);
         }
+
         assertThat(allLogs)
                 .contains("APPLICATION_STATE", "ONLINE_TRANSACTION", "EDU_FAILURE", "MASKING_GUARD")
                 .contains("\"logType\":\"application\"", "\"logType\":\"transaction\"", "\"logType\":\"error\"")
-                .contains("\"transactionId\":\"REF_EDU_FILE_LOG\"")
-                .contains("\"transactionGlobalId\":\"20260713163000000REFedu0010000001\"")
+                .contains("\"standardExecutionId\":\"OREF-LG-0001\"")
+                .contains("\"transactionId\":\"20260713163000000REFedu01010000001\"")
                 .contains("\"password\":\"***\"", "\"authorization\":\"***\"")
-                .doesNotContain("plain-password", "plain-token", "should-not-remain");
+                .doesNotContain(
+                        "plain-password",
+                        "plain-token",
+                        "should-not-remain",
+                        "transactionGlobalId",
+                        "\"rootTransactionId\"",
+                        "\"parentTransactionId\"");
     }
 }

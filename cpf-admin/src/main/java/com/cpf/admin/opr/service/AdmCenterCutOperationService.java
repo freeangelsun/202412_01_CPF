@@ -167,8 +167,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                            business_date AS businessDate,
                            status_code AS statusCode,
                            retry_count AS retryCount,
-                           parent_transaction_global_id AS parentTransactionGlobalId,
-                           child_transaction_global_id AS childTransactionGlobalId,
+                           transaction_id AS transactionId,
+                           parent_segment_id AS parentSegmentId,
+                           transaction_segment_id AS transactionSegmentId,
                            started_at AS startedAt,
                            completed_at AS completedAt,
                            last_error_message AS lastErrorMessage,
@@ -202,8 +203,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                        business_date AS businessDate,
                        item_status AS statusCode,
                        retry_count AS retryCount,
-                       parent_transaction_global_id AS parentTransactionGlobalId,
-                       child_transaction_global_id AS childTransactionGlobalId,
+                       transaction_id AS transactionId,
+                       parent_segment_id AS parentSegmentId,
+                       transaction_segment_id AS transactionSegmentId,
                        started_at AS startedAt,
                        completed_at AS completedAt,
                        last_error_message AS lastErrorMessage,
@@ -246,8 +248,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                                ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(result_payload), ']')
                            END AS resultPayloadMasked,
                            CHAR_LENGTH(result_payload) AS resultPayloadLength,
-                           parent_transaction_global_id AS parentTransactionGlobalId,
-                           child_transaction_global_id AS childTransactionGlobalId,
+                           transaction_id AS transactionId,
+                           parent_segment_id AS parentSegmentId,
+                           transaction_segment_id AS transactionSegmentId,
                            created_at AS createdAt,
                            updated_at AS updatedAt
                     FROM ref_center_cut_sample_result
@@ -278,8 +281,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                            ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(r.result_payload), ']')
                        END AS resultPayloadMasked,
                        CHAR_LENGTH(r.result_payload) AS resultPayloadLength,
-                       i.parent_transaction_global_id AS parentTransactionGlobalId,
-                       r.child_transaction_global_id AS childTransactionGlobalId,
+                       COALESCE(r.transaction_id, i.transaction_id) AS transactionId,
+                       COALESCE(r.parent_segment_id, i.parent_segment_id) AS parentSegmentId,
+                       COALESCE(r.transaction_segment_id, i.transaction_segment_id) AS transactionSegmentId,
                        r.created_at AS createdAt,
                        r.updated_at AS updatedAt
                 FROM bat_center_cut_result r
@@ -309,8 +313,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                            ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(result_payload), ']')
                        END AS resultPayloadMasked,
                        CHAR_LENGTH(result_payload) AS resultPayloadLength,
-                       parent_transaction_global_id AS parentTransactionGlobalId,
-                       child_transaction_global_id AS childTransactionGlobalId,
+                       transaction_id AS transactionId,
+                       parent_segment_id AS parentSegmentId,
+                       transaction_segment_id AS transactionSegmentId,
                        created_at AS createdAt,
                        updated_at AS updatedAt
                 FROM ref_center_cut_sample_result
@@ -334,8 +339,9 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                            ELSE CONCAT('[MASKED result payload length=', CHAR_LENGTH(r.result_payload), ']')
                        END AS resultPayloadMasked,
                        CHAR_LENGTH(r.result_payload) AS resultPayloadLength,
-                       i.parent_transaction_global_id AS parentTransactionGlobalId,
-                       r.child_transaction_global_id AS childTransactionGlobalId,
+                       COALESCE(r.transaction_id, i.transaction_id) AS transactionId,
+                       COALESCE(r.parent_segment_id, i.parent_segment_id) AS parentSegmentId,
+                       COALESCE(r.transaction_segment_id, i.transaction_segment_id) AS transactionSegmentId,
                        r.created_at AS createdAt,
                        r.updated_at AS updatedAt
                 FROM bat_center_cut_result r

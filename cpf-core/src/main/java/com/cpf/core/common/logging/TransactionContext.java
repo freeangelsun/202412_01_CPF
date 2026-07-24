@@ -19,9 +19,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class TransactionContext {
 
     public static final String HEADER_TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
-    public static final String HEADER_PARENT_TRANSACTION_ID = CpfHeaderNames.PARENT_TRANSACTION_ID;
-    public static final String HEADER_ORIGINAL_TRANSACTION_ID = CpfHeaderNames.ORIGINAL_TRANSACTION_ID;
-    public static final String HEADER_ROOT_TRANSACTION_ID = CpfHeaderNames.ROOT_TRANSACTION_ID;
     public static final String HEADER_TRANSACTION_SEGMENT_ID = CpfHeaderNames.TRANSACTION_SEGMENT_ID;
     public static final String HEADER_PARENT_TRANSACTION_SEGMENT_ID = CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID;
     public static final String HEADER_TRANSACTION_CALL_DEPTH = CpfHeaderNames.TRANSACTION_CALL_DEPTH;
@@ -82,8 +79,8 @@ public final class TransactionContext {
     private static final String MDC_TRANSACTION_ID = "transactionId";
     private static final String MDC_TRACE_ID = "traceId";
     private static final String MDC_SPAN_ID = "spanId";
-    private static final String MDC_BUSINESS_TRANSACTION_ID = "businessTransactionId";
-    private static final String MDC_BUSINESS_TRANSACTION_NAME = "businessTransactionName";
+    private static final String MDC_STANDARD_EXECUTION_ID = "standardExecutionId";
+    private static final String MDC_STANDARD_EXECUTION_NAME = "standardExecutionName";
     private static final String MDC_DYNAMIC_LOG_LEVEL = "dynamicLogLevel";
     private static final DateTimeFormatter FALLBACK_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     private static final AtomicLong FALLBACK_SEQUENCE = new AtomicLong();
@@ -203,18 +200,6 @@ public final class TransactionContext {
         return CpfHeaderPropagator.outboundHeaders();
     }
 
-    public static String parentTransactionId() {
-        TransactionHeader header = currentHeader();
-        return header != null ? header.getParentTransactionId() : null;
-    }
-
-    public static String originalTransactionId() {
-        TransactionHeader header = currentHeader();
-        return header != null && hasText(header.getOriginalTransactionId())
-                ? header.getOriginalTransactionId()
-                : currentTransactionId();
-    }
-
     public static String requestId() {
         TransactionHeader header = currentHeader();
         return header != null ? header.getRequestId() : null;
@@ -309,31 +294,34 @@ public final class TransactionContext {
         MDC.remove(MDC_TRANSACTION_ID);
         MDC.remove(MDC_TRACE_ID);
         MDC.remove(MDC_SPAN_ID);
-        MDC.remove(MDC_BUSINESS_TRANSACTION_ID);
-        MDC.remove(MDC_BUSINESS_TRANSACTION_NAME);
+        MDC.remove(MDC_STANDARD_EXECUTION_ID);
+        MDC.remove(MDC_STANDARD_EXECUTION_NAME);
         MDC.remove(MDC_DYNAMIC_LOG_LEVEL);
         TransactionSegmentContext.clear();
         FALLBACK_ATTRIBUTES.remove();
     }
 
     /**
-     * 업무 거래 ID와 거래명을 MDC에 저장합니다.
+     * 실행 정의 ID와 이름을 MDC에 저장합니다.
      *
-     * <p>로그 패턴과 APM 연동에서 동일한 값을 사용할 수 있도록
-     * {@code LoggingAspect}가 표준 온라인 실행 annotation을 해석한 뒤 호출합니다.</p>
-     *
-     * @param businessTransactionId   업무 거래 ID
-     * @param businessTransactionName 업무 거래명
+     * <p>{@code transactionId}는 실제 거래 실행 전체를 관통하는 34자리 전역 추적 ID이고,
+     * {@code standardExecutionId}는 O/S/B + SystemCode 기반 실행 정의 ID입니다.</p>
      */
-    public static void putBusinessTransaction(String businessTransactionId, String businessTransactionName) {
-        putIfHasText(MDC_BUSINESS_TRANSACTION_ID, businessTransactionId);
-        putIfHasText(MDC_BUSINESS_TRANSACTION_NAME, businessTransactionName);
+    public static void putStandardExecution(String standardExecutionId, String standardExecutionName) {
+        putIfHasText(MDC_STANDARD_EXECUTION_ID, standardExecutionId);
+        putIfHasText(MDC_STANDARD_EXECUTION_NAME, standardExecutionName);
     }
 
-    private static LocalDate resolveBusinessDate(String transactionGlobalId) {
-        if (hasText(transactionGlobalId) && transactionGlobalId.length() >= 8) {
+    /** @deprecated {@link #putStandardExecution(String, String)} 사용 */
+    @Deprecated
+    public static void putBusinessTransaction(String businessTransactionId, String businessTransactionName) {
+        putStandardExecution(businessTransactionId, businessTransactionName);
+    }
+
+    private static LocalDate resolveBusinessDate(String transactionId) {
+        if (hasText(transactionId) && transactionId.length() >= 8) {
             try {
-                return LocalDate.parse(transactionGlobalId.substring(0, 8), DateTimeFormatter.BASIC_ISO_DATE);
+                return LocalDate.parse(transactionId.substring(0, 8), DateTimeFormatter.BASIC_ISO_DATE);
             } catch (RuntimeException ignored) {
                 // 외부에서 잘못된 ID가 들어오더라도 context 초기화 자체는 중단하지 않습니다.
             }
@@ -341,17 +329,25 @@ public final class TransactionContext {
         return LocalDate.now(ZoneId.of("Asia/Seoul"));
     }
 
-    /**
-     * 현재 요청에서 실행 중인 고정 업무 거래 ID를 반환합니다.
-     *
-     * <p>전역 거래 추적 키와 구분해 거래 종류별 파일명을 결정할 때 사용합니다.</p>
-     */
-    public static String currentBusinessTransactionId() {
-        return MDC.get(MDC_BUSINESS_TRANSACTION_ID);
+    /** 현재 요청에서 실행 중인 표준 실행 정의 ID를 반환합니다. */
+    public static String currentStandardExecutionId() {
+        return MDC.get(MDC_STANDARD_EXECUTION_ID);
     }
 
+    public static String currentStandardExecutionName() {
+        return MDC.get(MDC_STANDARD_EXECUTION_NAME);
+    }
+
+    /** @deprecated {@link #currentStandardExecutionId()} 사용 */
+    @Deprecated
+    public static String currentBusinessTransactionId() {
+        return currentStandardExecutionId();
+    }
+
+    /** @deprecated {@link #currentStandardExecutionName()} 사용 */
+    @Deprecated
     public static String currentBusinessTransactionName() {
-        return MDC.get(MDC_BUSINESS_TRANSACTION_NAME);
+        return currentStandardExecutionName();
     }
 
     /**

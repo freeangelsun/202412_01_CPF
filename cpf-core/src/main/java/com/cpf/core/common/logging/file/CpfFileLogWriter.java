@@ -49,7 +49,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * <p>DB 로그는 운영 조회와 통계의 기준이고, 파일 로그는 장애 상황에서 인스턴스별로 빠르게 검색할 수 있는
  * 보조 증적입니다. 일반 로그는 환경·실행 모듈·인스턴스 경로로 분리하고, 온라인 거래 로그는
- * {@code transactions/{businessDate}/{transactionId}_{businessDate}.log} 규칙을 사용합니다.</p>
+ * {@code transactions/{businessDate}/{transactionId}_{businessDate}.log} 규칙을 사용합니다. 하나의 글로벌 거래에 속한 local/remote/integration/retry segment가 같은 파일 추적 키를 사용하므로 DB timeline과 파일 증적을 동일 키로 교차 조회할 수 있습니다.</p>
  */
 @Component
 public class CpfFileLogWriter {
@@ -88,14 +88,14 @@ public class CpfFileLogWriter {
         if (record == null || !enabled("transaction")) {
             return;
         }
-        if (!hasText(record.getTransactionId()) || !hasText(record.getBusinessTransactionId())) {
+        if (!hasText(record.getTransactionId()) || !hasText(record.getStandardExecutionId())) {
             long missingCount = CpfTransactionContextAnomalyMonitor.recordMissing("CpfFileLogWriter.writeTransaction");
             Map<String, Object> anomaly = baseEvent(record.getModuleId(), "error", policy, details);
             anomaly.put("eventType", "CONTEXT_MISSING");
             anomaly.put("status", "ERROR");
             anomaly.put("boundary", "ONLINE_TRANSACTION");
-            anomaly.put("missingTransactionGlobalId", !hasText(record.getTransactionId()));
-            anomaly.put("missingTransactionId", !hasText(record.getBusinessTransactionId()));
+            anomaly.put("missingTransactionId", !hasText(record.getTransactionId()));
+            anomaly.put("missingStandardExecutionId", !hasText(record.getStandardExecutionId()));
             anomaly.put("missingContextCount", missingCount);
             append(record.getModuleId(), "error", anomaly);
             return;
@@ -103,8 +103,8 @@ public class CpfFileLogWriter {
 
         Map<String, Object> event = baseEvent(record.getModuleId(), "transaction", policy, details);
         event.put("eventType", "ONLINE_TRANSACTION");
-        event.put("transactionId", record.getBusinessTransactionId());
-        event.put("transactionGlobalId", record.getTransactionId());
+        event.put("transactionId", record.getTransactionId());
+        event.put("standardExecutionId", record.getStandardExecutionId());
         event.put("segmentId", firstText(detail(details, "transactionSegment.id"), record.getSpanId()));
         event.put("parentSegmentId", firstText(detail(details, "parentSegment.id"), record.getParentSpanId()));
         event.put("transactionRole", "MAIN");
@@ -117,7 +117,7 @@ public class CpfFileLogWriter {
         event.put("failureMessageMasked", mask(record.getErrorMessage()));
         event.put("responseCode", record.getResponseCode());
         event.put("httpStatus", record.getHttpStatus());
-        event.put("businessTransactionId", record.getBusinessTransactionId());
+        event.put("standardExecutionId", record.getStandardExecutionId());
         event.put("traceId", record.getTraceId());
         event.put("spanId", record.getSpanId());
         event.put("requestHeadersMasked", detail(details, "resolvedHeaders"));
@@ -125,7 +125,7 @@ public class CpfFileLogWriter {
         LocalDate transactionBusinessDate = record.getStartTime() != null
                 ? record.getStartTime().toLocalDate()
                 : defaultBusinessDate();
-        appendTransaction(record.getBusinessTransactionId(), transactionBusinessDate, event);
+        appendTransaction(record.getTransactionId(), transactionBusinessDate, event);
         if ("FAILURE".equalsIgnoreCase(record.getLogType()) && enabled("error")) {
             Map<String, Object> errorEvent = new LinkedHashMap<>(event);
             errorEvent.put("logType", "error");
@@ -157,13 +157,13 @@ public class CpfFileLogWriter {
         event.put("eventType", attributeText(attributes, "eventType", "INTEGRATION"));
         event.put("sourceModuleCode", normalizeModuleCode(sourceModuleCode));
         event.put("targetModuleCode", normalizeModuleCode(targetModuleCode));
-        String transactionGlobalId = TransactionContext.currentTransactionId();
-        String transactionId = firstText(
-                attributeText(attributes, "transactionId", null),
+        String transactionId = TransactionContext.currentTransactionId();
+        String standardExecutionId = firstText(
+                attributeText(attributes, "standardExecutionId", null),
                 attributeText(attributes, "businessTransactionId", null),
-                TransactionContext.currentBusinessTransactionId());
+                TransactionContext.currentStandardExecutionId());
         event.put("transactionId", transactionId);
-        event.put("transactionGlobalId", transactionGlobalId);
+        event.put("standardExecutionId", standardExecutionId);
         event.put("segmentId", firstText(TransactionSegmentContext.currentSegmentId(), TransactionContext.currentSpanId()));
         event.put("parentSegmentId", TransactionContext.currentParentSpanId());
         event.put("transactionRole", "EXTERNAL");
@@ -180,7 +180,7 @@ public class CpfFileLogWriter {
             attributes.forEach((key, value) -> event.put(key, sanitizeValue(key, value)));
         }
         append(sourceModuleCode, "integration", event);
-        if (hasText(transactionId) && hasText(transactionGlobalId)) {
+        if (hasText(transactionId)) {
             appendTransaction(transactionId, defaultBusinessDate(), event);
         } else {
             CpfTransactionContextAnomalyMonitor.recordMissing("CpfFileLogWriter.writeIntegration");

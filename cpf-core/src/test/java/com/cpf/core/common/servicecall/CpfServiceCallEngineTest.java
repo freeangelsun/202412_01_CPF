@@ -148,7 +148,7 @@ class CpfServiceCallEngineTest {
         when(logWriter.isCircuitOpen(any(), anyLong())).thenReturn(false);
         when(segmentService.start(any(), any(), any(), any(), any(), any(), any())).thenReturn(scope);
         when(scope.record()).thenReturn(segment);
-        when(scope.transactionGlobalId()).thenReturn("GLOBAL-001");
+        when(scope.transactionId()).thenReturn("GLOBAL-001");
         when(scope.transactionSegmentId()).thenReturn("SEG-001");
         when(reconciliationPort.register(any())).thenAnswer(invocation -> invocation.getArgument(0));
         CpfServiceCallEngine engine = new CpfServiceCallEngine(
@@ -175,7 +175,7 @@ class CpfServiceCallEngineTest {
         assertThat(segment.getUnknownResultId()).isNotBlank();
         verify(scope).fail(org.mockito.ArgumentMatchers.eq("IllegalStateException"), any());
         verify(reconciliationPort).register(org.mockito.ArgumentMatchers.argThat((CpfUnknownResultRecord row) ->
-                "GLOBAL-001".equals(row.transactionGlobalId())
+                "GLOBAL-001".equals(row.transactionId())
                         && "SEG-001".equals(row.segmentId())
                         && "EXT-001".equals(row.externalKey())));
     }

@@ -2,7 +2,7 @@
 
 ## 1. 기존 요청서 리뷰
 
-기존 `CPF_CURRENT_WORK_REQUEST.md`는 다음 장점이 있다.
+기존 `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`는 다음 장점이 있다.
 
 - 중간 Push를 완료로 믿지 않는 원칙
 - 공식 Module·Package 전환

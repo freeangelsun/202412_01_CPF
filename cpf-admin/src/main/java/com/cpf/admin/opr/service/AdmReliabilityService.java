@@ -21,32 +21,32 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
         return operationsPort.findIdempotency(scope, status, key, limit);
     }
 
-    public List<Map<String, Object>> findOutbox(String status, String transactionGlobalId, String topic, int limit) {
-        return operationsPort.findOutbox(status, transactionGlobalId, topic, limit);
+    public List<Map<String, Object>> findOutbox(String status, String transactionId, String topic, int limit) {
+        return operationsPort.findOutbox(status, transactionId, topic, limit);
     }
 
     public List<Map<String, Object>> findInbox(String status, String key, int limit) {
         return operationsPort.findInbox(status, key, limit);
     }
 
-    public List<Map<String, Object>> findDlq(String status, String transactionGlobalId, String topic, int limit) {
-        return operationsPort.findDlq(status, transactionGlobalId, topic, limit);
+    public List<Map<String, Object>> findDlq(String status, String transactionId, String topic, int limit) {
+        return operationsPort.findDlq(status, transactionId, topic, limit);
     }
 
     public List<Map<String, Object>> findFileTransfers(
             String status,
-            String transactionGlobalId,
+            String transactionId,
             String endpointCode,
             int limit) {
-        return operationsPort.findFileTransfers(status, transactionGlobalId, endpointCode, limit);
+        return operationsPort.findFileTransfers(status, transactionId, endpointCode, limit);
     }
 
     public List<Map<String, Object>> findUnknownResults(
             String type,
             String status,
-            String transactionGlobalId,
+            String transactionId,
             int limit) {
-        return operationsPort.findUnknownResults(type, status, transactionGlobalId, limit);
+        return operationsPort.findUnknownResults(type, status, transactionId, limit);
     }
 
     public ChangeResult requestDlqReplay(String messageId, String operatorId, String reason) {

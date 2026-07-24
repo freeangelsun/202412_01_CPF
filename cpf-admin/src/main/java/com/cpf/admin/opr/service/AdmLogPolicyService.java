@@ -267,7 +267,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     public Map<String, Object> createTraceBoost(AdmTraceBoostRequest request, String operatorId, String clientIp) {
         String targetId = defaultIfBlank(
                 request.businessTransactionId(),
-                defaultIfBlank(request.transactionGlobalId(), request.apiPath(), "*"),
+                defaultIfBlank(request.transactionId(), request.apiPath(), "*"),
                 "*");
         long ttlSeconds = request.ttlSeconds() == null || request.ttlSeconds() < 60 ? 600 : Math.min(request.ttlSeconds(), 86_400);
         LocalDateTime startAt = LocalDateTime.now().minusSeconds(5);
@@ -295,7 +295,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         response.put("targetId", targetId);
         response.put("ttlSeconds", ttlSeconds);
         response.put("conditions", Map.of(
-                "transactionGlobalId", defaultIfBlank(request.transactionGlobalId(), ""),
+                "transactionId", defaultIfBlank(request.transactionId(), ""),
                 "businessTransactionId", defaultIfBlank(request.businessTransactionId(), ""),
                 "apiPath", defaultIfBlank(request.apiPath(), ""),
                 "status", defaultIfBlank(request.status(), ""),

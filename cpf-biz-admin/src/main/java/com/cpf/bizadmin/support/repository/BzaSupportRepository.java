@@ -167,11 +167,11 @@ public class BzaSupportRepository {
         jdbc().update("""
                 INSERT INTO bza_download_audit (
                     actor_id, download_code, reason, filter_json, row_count,
-                    result_status, file_name, masking_applied_yn, transaction_global_id,
+                    result_status, file_name, masking_applied_yn, transaction_id,
                     created_by, updated_by
                 ) VALUES (
                     :actorId, :downloadCode, :reason, :filterJson, :rowCount,
-                    :resultStatus, :fileName, :maskingAppliedYn, :transactionGlobalId,
+                    :resultStatus, :fileName, :maskingAppliedYn, :transactionId,
                     :actorId, :actorId
                 )
                 """, values);
@@ -193,10 +193,10 @@ public class BzaSupportRepository {
     public void insertBusinessAudit(Map<String, ?> values) {
         jdbc().update("""
                 INSERT INTO bza_business_audit (
-                    transaction_global_id, actor_id, action_type, target_type, target_id,
+                    transaction_id, actor_id, action_type, target_type, target_id,
                     reason, before_data, after_data, created_by, updated_by
                 ) VALUES (
-                    :transactionGlobalId, :actorId, :actionType, :targetType, :targetId,
+                    :transactionId, :actorId, :actionType, :targetType, :targetId,
                     :reason, :beforeData, :afterData, :actorId, :actorId
                 )
                 """, values);

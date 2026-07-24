@@ -88,8 +88,7 @@ class TransactionSegmentFallbackStoreTest {
     private TransactionSegmentRecord record() {
         TransactionSegmentRecord record = new TransactionSegmentRecord();
         record.setTransactionSegmentId("GLOBAL-001-SEG-0001");
-        record.setTransactionGlobalId("GLOBAL-001");
-        record.setRootTransactionGlobalId("GLOBAL-001");
+        record.setTransactionId("GLOBAL-001");
         record.setTransactionRole("SUB");
         record.setModuleCode("REF");
         record.setDirection("OUTBOUND");

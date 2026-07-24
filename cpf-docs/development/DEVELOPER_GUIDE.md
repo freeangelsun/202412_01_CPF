@@ -464,6 +464,6 @@ Source 변경에는 적용 가능한 SQL/Migration, Security/Audit, Operations, 
 
 회사/집 PC와 여러 Codex 계정이 번갈아 작업할 수 있으므로 작업 시작 시 Final Target, Requirement Continuity Ledger, Current Request, Decision Log, Continuity State와 실제 Git을 대조한다. 의미 있는 Checkpoint마다 Continuity State를 갱신한다.
 
-Java Public API/SPI와 운영/복구에 중요한 Class/Method에는 JavaDoc을 작성한다. 단순 구현 설명보다 입력 계약, 상태/동시성, 오류/복구, 보안 경계를 기록한다. REST API는 OpenAPI operationId, DTO field, 오류, 권한, idempotency와 transactionGlobalId를 Source와 일치시킨다.
+Java Public API/SPI와 운영/복구에 중요한 Class/Method에는 JavaDoc을 작성한다. 단순 구현 설명보다 입력 계약, 상태/동시성, 오류/복구, 보안 경계를 기록한다. REST API는 OpenAPI operationId, DTO field, 오류, 권한, idempotency와 transactionId를 Source와 일치시킨다.
 
 Windows 검증 Script는 PowerShell 7(`pwsh`)를 기본으로 사용한다.

@@ -127,8 +127,10 @@ CPF의 공식 Module은 기본 구성에 포함되는 **필수 Module**, 프로�
 - OpenAPI, JavaDoc와 개발자 확장 SPI
 
 표준 온라인 요청은 `X-Transaction-Id`를 사용합니다. 기본 ID는
-`yyyyMMddHHmmssSSS`(17) + 모듈 ID(3) + WAS ID(7) + 일일 순번(7)의
-34자리이며, 상세 Header 신뢰 경계와 전달 규칙은
+`yyyyMMddHHmmssSSS`(17) + SystemCode(3) + WAS ID(7) + 일일 순번(7)의
+34자리입니다. 선행 거래가 유효한 `transactionId`를 전달하면 그대로 승계하고,
+Scheduler/Batch/Worker/Center-Cut처럼 내부에서 독립 거래를 기동할 때만 Core가 새 ID를 생성합니다.
+상세 Header 신뢰 경계와 전달 규칙은
 [API Guide](cpf-docs/api/API_GUIDE.md#3-standard-headers)를 따릅니다.
 
 ### Operations
@@ -181,7 +183,7 @@ cpf-core-platform-framework/
 └─ README.md          제품 소개, 구조, 주요 기능과 시작 안내
 ```
 
-제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합합니다. 기존 `specs/`의 SQL·생성 산출물은 정본 위치와 생성 책임을 검수한 뒤 단계적으로 정리하며, 실행 Evidence는 `cpf-docs/evidence`에서 기준 Commit별로 관리합니다.
+제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합합니다. DB Source SQL은 `cpf-tools/db/source/<vendor>`, 배포/Runtime Vendor Pack은 `cpf-tools/db/vendor/<vendor>`, 실행 Tool은 `cpf-tools/scripts`가 소유합니다. 실행 Evidence는 `cpf-docs/evidence`에서 검증 기준과 함께 관리합니다.
 
 ## Quick Start
 
@@ -230,13 +232,12 @@ MariaDB 기준 정본 설치·Migration 명령은 Installation Guide와 현재 R
 ./gradlew :cpf-batch:bootRun --args='--spring.profiles.active=local'
 ```
 
-각 업무 Module은 동일 JVM 또는 독립 서비스로 실행할 수 있습니다.
+생성형 업무 Module은 동일 JVM 또는 독립 서비스로 실행할 수 있습니다. `cpf-member`는 Generator Golden Reference Instance이고 `cpf-reference`는 선택형 EDU입니다. 고객 업무 Domain은 Generator로 생성한 실제 Module 이름을 사용합니다.
 
 ```bash
 ./gradlew :cpf-member:bootRun --args='--spring.profiles.active=local'
-./gradlew :cpf-account:bootRun --args='--spring.profiles.active=local'
 ./gradlew :cpf-reference:bootRun --args='--spring.profiles.active=local'
-./gradlew :cpf-external:bootRun --args='--spring.profiles.active=local'
+./gradlew :cpf-payment:bootRun --args='--spring.profiles.active=local'
 ```
 
 ### Frontend
@@ -255,18 +256,19 @@ npm run build
 ## Create a New Business Domain
 
 ```powershell
-.\cpf-tools\generator\create-domain.ps1 `
+pwsh -File .\cpf-tools\scripts\create-domain.ps1 `
   -DomainName "payment" `
   -SystemCode "PAY" `
-  -BasePackage "com.cpf.payment" `
-  -DbVendor "mariadb" `
-  -Capabilities "database,batch,external,messaging,ui"
+  -DatabaseVendor "mariadb" `
+  -DryRun
 ```
 
 생성 후에는 검증 명령을 실행합니다.
 
 ```powershell
-.\cpf-tools\generator\verify-domain.ps1 -DomainName "payment"
+pwsh -File .\cpf-tools\scripts\verify-domain.ps1 `
+  -DomainName "payment" `
+  -SystemCode "PAY"
 ```
 
 자세한 내용은 [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md)를 참고합니다.
@@ -277,7 +279,7 @@ npm run build
 |---|---|
 | 아키텍트·Tech Lead | [Architecture Guide](cpf-docs/architecture/ARCHITECTURE_GUIDE.md) |
 | Backend·Frontend 개발자 | [Developer Guide](cpf-docs/development/DEVELOPER_GUIDE.md) |
-| 신규 도메인 개발자 | [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md) |
+| 신규 도메인 개발자 | [Generator Guide](cpf-docs/development/GENERATOR_GUIDE.md) / [Generator DB 실검증](cpf-docs/development/GENERATOR_DB_LIFECYCLE_TEST_GUIDE.md) |
 | 예제 학습 | [EDU Guide](cpf-docs/development/EDU_GUIDE.md) |
 | 운영자 | [Operator Guide](cpf-docs/operations/OPERATOR_GUIDE.md) |
 | 설치 담당자 | [Installation Guide](cpf-docs/operations/INSTALLATION_GUIDE.md) |

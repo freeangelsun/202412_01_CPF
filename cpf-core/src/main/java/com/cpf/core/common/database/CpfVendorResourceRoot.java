@@ -65,7 +65,7 @@ final class CpfVendorResourceRoot {
      *
      * <p>Module-local classpath Vendor SQL은 최종 제품 정본이 아니므로 이 메서드는
      * {@code cpf.db.resource-root}가 없으면 즉시 실패합니다. Local/DEV/Test도
-     * {@code scripts/select-db-vendor-resources.ps1} 또는 동등한 Bootstrap으로 중앙 Pack을
+     * {@code cpf-tools/scripts/select-db-vendor-resources.ps1} 또는 동등한 Bootstrap으로 중앙 Pack을
      * 명시해야 합니다.</p>
      *
      * @param environment Spring Environment

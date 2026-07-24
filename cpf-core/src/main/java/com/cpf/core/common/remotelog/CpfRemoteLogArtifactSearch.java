@@ -14,7 +14,6 @@ public record CpfRemoteLogArtifactSearch(
         String fileName,
         String standardTransactionId,
         String standardBatchId,
-        String transactionGlobalId,
         String transactionId,
         String segmentId,
         String jobInstanceId,
@@ -48,11 +47,11 @@ public record CpfRemoteLogArtifactSearch(
             String instance,
             String logType,
             String fileName,
-            String transactionGlobalId,
+            String transactionId,
             Boolean active,
             int limit) {
         this(environment, module, null, instance, logType, fileName,
-                null, null, transactionGlobalId, null, null,
+                null, null, transactionId, null,
                 null, null, null, null,
                 null, null, null, null, null, active, limit);
     }
@@ -61,7 +60,6 @@ public record CpfRemoteLogArtifactSearch(
         return Stream.of(
                         standardTransactionId,
                         standardBatchId,
-                        transactionGlobalId,
                         transactionId,
                         segmentId,
                         jobInstanceId,

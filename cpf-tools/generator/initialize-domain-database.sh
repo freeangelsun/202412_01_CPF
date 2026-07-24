@@ -22,4 +22,4 @@ done
 if [[ -n "${CPF_DOMAIN_DB_PASSWORD:-}" ]]; then
   args+=(-DatabasePassword "$CPF_DOMAIN_DB_PASSWORD")
 fi
-exec pwsh -NoProfile -File "$script_dir/../../scripts/initialize-domain-database.ps1" "${args[@]}"
+exec pwsh -NoProfile -File "$script_dir/../../cpf-tools/scripts/initialize-domain-database.ps1" "${args[@]}"

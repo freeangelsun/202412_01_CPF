@@ -29,13 +29,13 @@ public class AdmObservabilityController extends com.cpf.admin.common.base.AdmBas
         this.observabilityService = observabilityService;
     }
 
-    @GetMapping("/transactions/{transactionGlobalId}")
+    @GetMapping("/transactions/{transactionId}")
     @CpfOnlineTransaction(id = "OADMOB0010", name = "ADMObservabilityByTransaction")
-    @Operation(operationId = "traceAdmByTransactionGlobalId", summary = "거래 글로벌 ID 통합 추적", description = "transactionGlobalId 기준으로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 조회합니다.")
-    public ResponseEntity<Map<String, Object>> traceByTransactionGlobalId(
-            @PathVariable String transactionGlobalId,
+    @Operation(operationId = "traceAdmByTransactionId", summary = "거래 글로벌 ID 통합 추적", description = "transactionId 기준으로 거래 로그, 실패 로그, 일반 감사, 정책 감사, 배치 실행 연결 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> traceByTransactionId(
+            @PathVariable String transactionId,
             @RequestParam(defaultValue = "20") int limit) {
-        return ResponseEntity.ok(observabilityService.traceByTransactionGlobalId(transactionGlobalId, limit));
+        return ResponseEntity.ok(observabilityService.traceByTransactionId(transactionId, limit));
     }
 
     @GetMapping("/traces/{traceId}")

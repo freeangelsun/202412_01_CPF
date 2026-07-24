@@ -72,7 +72,7 @@ public class CpfBatchOperationRepository {
             String batchInstanceId,
             String serverInstanceId,
             String workerId,
-            String transactionGlobalId,
+            String transactionId,
             String requestUser) {
         if (!available()) {
             return -1L;
@@ -82,7 +82,7 @@ public class CpfBatchOperationRepository {
         jdbc().update("""
                 INSERT INTO bat_execution (
                     job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
-                    batch_instance_id, server_instance_id, worker_id, transaction_global_id,
+                    batch_instance_id, server_instance_id, worker_id, transaction_id,
                     start_time, end_time, read_count, write_count, skip_count,
                     error_message, requested_by, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3), NULL, 0, 0, 0, NULL, ?, ?, ?)
@@ -95,7 +95,7 @@ public class CpfBatchOperationRepository {
                 batchInstanceId,
                 serverInstanceId,
                 workerId,
-                transactionGlobalId,
+                transactionId,
                 user,
                 user,
                 user);
@@ -119,7 +119,7 @@ public class CpfBatchOperationRepository {
             String batchInstanceId,
             String serverInstanceId,
             String workerId,
-            String transactionGlobalId,
+            String transactionId,
             String errorMessage,
             JobExecution jobExecution) {
         long executionId = startExecution(
@@ -129,7 +129,7 @@ public class CpfBatchOperationRepository {
                 batchInstanceId,
                 serverInstanceId,
                 workerId,
-                transactionGlobalId,
+                transactionId,
                 request.normalizedRequestUser("CPF_BATCH"));
         completeExecution(executionId, status, springBatchExecutionId, workerId, errorMessage, jobExecution,
                 request.normalizedRequestUser("CPF_BATCH"));
@@ -183,7 +183,7 @@ public class CpfBatchOperationRepository {
         return jdbc().queryForMap("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                        spring_batch_execution_id, batch_instance_id, server_instance_id,
-                       worker_id, transaction_global_id,
+                       worker_id, transaction_id,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, requested_by, created_at, updated_at
                 FROM bat_execution
@@ -605,7 +605,6 @@ public class CpfBatchOperationRepository {
                         rerun_id = ?,
                         original_job_execution_id = ?,
                         restart_attempt = ?,
-                        parent_transaction_global_id = ?,
                         transaction_segment_id = ?,
                         parent_segment_id = ?,
                         job_log_relative_path = ?,
@@ -622,7 +621,6 @@ public class CpfBatchOperationRepository {
                             CpfBatchFileLogWriter.CONTEXT_ORIGINAL_JOB_EXECUTION_ID,
                             jobExecution.getJobParameters().getString("originalJobExecutionId"))),
                     executionContextLong(jobExecution, CpfBatchFileLogWriter.CONTEXT_RESTART_ATTEMPT, 0L),
-                    executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_PARENT_TRANSACTION_GLOBAL_ID, null),
                     executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_SEGMENT_ID, null),
                     executionContextValue(jobExecution, CpfBatchFileLogWriter.CONTEXT_PARENT_SEGMENT_ID, null),
                     relativePath,
@@ -692,7 +690,7 @@ public class CpfBatchOperationRepository {
             return jdbc().queryForMap("""
                     SELECT spring_batch_job_instance_id, business_date, run_id, rerun_id,
                            original_job_execution_id, restart_attempt,
-                           parent_transaction_global_id, transaction_segment_id, parent_segment_id,
+                           transaction_segment_id, parent_segment_id,
                            job_log_relative_path
                     FROM bat_execution
                     WHERE execution_id = ?

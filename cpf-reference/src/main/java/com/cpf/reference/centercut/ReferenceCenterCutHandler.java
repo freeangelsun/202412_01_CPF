@@ -20,14 +20,12 @@ public class ReferenceCenterCutHandler implements CenterCutHandler {
             return CpfCenterCutResult.failed(
                     target,
                     "REF center-cut 샘플에서 의도된 실패가 발생했습니다.",
-                    "{\"businessKey\":\"" + target.businessKey() + "\",\"processed\":false}",
-                    target.childTransactionGlobalId());
+                    "{\"businessKey\":\"" + target.businessKey() + "\",\"processed\":false}");
         }
 
         return CpfCenterCutResult.success(
                 target,
                 "REF center-cut 업무 대상 처리 완료",
-                "{\"businessKey\":\"" + target.businessKey() + "\",\"processed\":true}",
-                target.childTransactionGlobalId());
+                "{\"businessKey\":\"" + target.businessKey() + "\",\"processed\":true}");
     }
 }

@@ -69,7 +69,7 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
 
     @GetMapping("/login-history")
     @CpfOnlineTransaction(id = "OBZAAU0005", name = "BzaLoginHistory")
-    @Operation(operationId = "bzaAuthLoginHistories", summary = "업무 관리자 로그인 이력", description = "성공/실패, 실패 사유, transactionGlobalId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
+    @Operation(operationId = "bzaAuthLoginHistories", summary = "업무 관리자 로그인 이력", description = "성공/실패, 실패 사유, transactionId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> loginHistories(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestParam(defaultValue = "100") int limit) {

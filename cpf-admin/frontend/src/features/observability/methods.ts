@@ -51,8 +51,8 @@ export const observabilityMethods: Record<string, any> = {
         this.logDetail = data;
         this.setMessage(`거래 로그 ${this.logs.length}건을 조회했습니다.`);
       },
-  transactionGlobalIdOf(item) {
-        return item?.transaction_global_id || item?.transactionGlobalId || "";
+  transactionIdOf(item) {
+        return item?.transaction_id || item?.transactionId || "";
       },
   async loadTransactionGroups() {
         const params = this.buildParams({
@@ -64,18 +64,18 @@ export const observabilityMethods: Record<string, any> = {
         this.transactionGroupResult = data || { items: [] };
         this.setMessage(`거래 그룹 ${this.transactionGroups.length}건을 조회했습니다.`);
         const first = this.transactionGroups[0];
-        if (first && !this.transactionGroupDetail?.transactionGlobalId) {
-          await this.loadTransactionGroupDetail(this.transactionGlobalIdOf(first));
+        if (first && !this.transactionGroupDetail?.transactionId) {
+          await this.loadTransactionGroupDetail(this.transactionIdOf(first));
         }
       },
-  async loadTransactionGroupDetail(transactionGlobalId) {
-        if (!transactionGlobalId) return;
+  async loadTransactionGroupDetail(transactionId) {
+        if (!transactionId) return;
         const [detail, segments, timeline, headers, externalLogs] = await Promise.all([
-          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}`),
-          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/segments`),
-          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/timeline`),
-          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/headers`),
-          this.getJson(`/adm/api/transaction-groups/${transactionGlobalId}/external-logs`)
+          this.getJson(`/adm/api/transaction-groups/${transactionId}`),
+          this.getJson(`/adm/api/transaction-groups/${transactionId}/segments`),
+          this.getJson(`/adm/api/transaction-groups/${transactionId}/timeline`),
+          this.getJson(`/adm/api/transaction-groups/${transactionId}/headers`),
+          this.getJson(`/adm/api/transaction-groups/${transactionId}/external-logs`)
         ]);
         this.transactionGroupDetail = {
           ...detail,
@@ -85,7 +85,7 @@ export const observabilityMethods: Record<string, any> = {
           externalLogs
         };
         this.transactionGroupDetailTab = "요약";
-        this.setMessage(`거래 그룹 상세를 조회했습니다. transactionGlobalId=${transactionGlobalId}`);
+        this.setMessage(`거래 그룹 상세를 조회했습니다. transactionId=${transactionId}`);
       },
   moveTransactionGroupPage(delta) {
         this.transactionGroupPage.page = Math.min(
@@ -265,7 +265,7 @@ export const observabilityMethods: Record<string, any> = {
         if (!this.requireReason(this.logPolicyForm.reason)) return;
         this.logPolicyResult = await this.sendJson("/adm/api/log-policies/trace-boost", "POST", {
           policyId: this.logPolicyForm.policyId,
-          transactionGlobalId: this.logPolicyForm.traceBoostTransactionGlobalId,
+          transactionId: this.logPolicyForm.traceBoostTransactionId,
           businessTransactionId: this.logPolicyForm.traceBoostBusinessTransactionId || this.logPolicyForm.targetId,
           apiPath: this.logPolicyForm.traceBoostApiPath,
           status: this.logPolicyForm.traceBoostStatus,

@@ -133,11 +133,11 @@
             <button type="button" @click="resetTransactionGroupSearch">초기화</button>
           </div>
         </div>
-        <p class="hint">transactionGlobalId 기준으로 모든 실행 모듈의 구간 타임라인과 표준/확장 헤더 스냅샷, 외부 호출 로그를 함께 조회합니다. Authorization 원문, X-Api-Key 원문, token/secret/password/credential/signature 계열 값은 저장하거나 표시하지 않습니다.</p>
+        <p class="hint">transactionId 기준으로 모든 실행 모듈의 구간 타임라인과 표준/확장 헤더 스냅샷, 외부 호출 로그를 함께 조회합니다. Authorization 원문, X-Api-Key 원문, token/secret/password/credential/signature 계열 값은 저장하거나 표시하지 않습니다.</p>
         <div class="filters">
           <label>시작 From <input v-model="transactionGroupSearch.startedAtFrom" type="datetime-local"></label>
           <label>시작 To <input v-model="transactionGroupSearch.startedAtTo" type="datetime-local"></label>
-          <label>transactionGlobalId <input v-model="transactionGroupSearch.transactionGlobalId" type="text"></label>
+          <label>transactionId <input v-model="transactionGroupSearch.transactionId" type="text"></label>
           <label>transactionSegmentId <input v-model="transactionGroupSearch.transactionSegmentId" type="text"></label>
           <label>상태 <select v-model="transactionGroupSearch.status"><option value="">전체</option><option>SUCCESS</option><option>FAILED</option><option>RUNNING</option></select></label>
           <label>실패 여부 <select v-model="transactionGroupSearch.failureYn"><option value="">전체</option><option>Y</option><option>N</option></select></label>
@@ -192,8 +192,8 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="item in pagedTransactionGroups" :key="transactionGlobalIdOf(item)" @click="loadTransactionGroupDetail(transactionGlobalIdOf(item))">
-              <td>{{ item.transaction_global_id || item.transactionGlobalId }}</td>
+            <tr v-for="item in pagedTransactionGroups" :key="transactionIdOf(item)" @click="loadTransactionGroupDetail(transactionIdOf(item))">
+              <td>{{ item.transaction_id || item.transactionId }}</td>
               <td>{{ item.transaction_name || item.transactionName }}<br>{{ item.api_path || item.apiPath }}</td>
               <td>{{ item.origin_module_code || item.originModuleCode || '-' }}</td>
               <td>{{ item.module_flow_text || item.moduleFlowText }}</td>
@@ -364,7 +364,6 @@
           <label>파일명 <input v-model="remoteLogSearch.fileName" type="text"></label>
           <label>표준 온라인 ID <input v-model="remoteLogSearch.standardTransactionId" type="text"></label>
           <label>표준 배치 ID <input v-model="remoteLogSearch.standardBatchId" type="text"></label>
-          <label>거래 글로벌 ID <input v-model="remoteLogSearch.transactionGlobalId" type="text"></label>
           <label>거래 ID <input v-model="remoteLogSearch.transactionId" type="text"></label>
           <label>구간 ID <input v-model="remoteLogSearch.segmentId" type="text"></label>
           <label>Job Instance ID <input v-model="remoteLogSearch.jobInstanceId" type="text"></label>
@@ -416,7 +415,7 @@
           <label>Scope <input v-model="reliabilitySearch.scope" type="text"></label>
           <label>상태 <input v-model="reliabilitySearch.status" type="text"></label>
           <label>멱등 Key <input v-model="reliabilitySearch.key" type="text"></label>
-          <label>transactionGlobalId <input v-model="reliabilitySearch.transactionGlobalId" type="text"></label>
+          <label>transactionId <input v-model="reliabilitySearch.transactionId" type="text"></label>
           <label>Topic <input v-model="reliabilitySearch.topic" type="text"></label>
           <label>Endpoint <input v-model="reliabilitySearch.endpointCode" type="text"></label>
           <label>Unknown 유형 <input v-model="reliabilitySearch.type" type="text"></label>
@@ -580,7 +579,7 @@
           <div class="table-wrap">
             <table>
               <thead>
-              <tr><th>Target</th><th>업무키</th><th>업무일자</th><th>상태</th><th>재시도</th><th>Parent TID</th><th>Child TID</th><th>실패 사유</th></tr>
+              <tr><th>Target</th><th>업무키</th><th>업무일자</th><th>상태</th><th>재시도</th><th>Transaction ID</th><th>Parent Segment</th><th>Segment ID</th><th>실패 사유</th></tr>
               </thead>
               <tbody>
               <tr v-for="target in centerCutResult.targets || []" :key="target.targetId">
@@ -589,8 +588,9 @@
                 <td>{{ target.businessDate }}</td>
                 <td>{{ target.statusCode }}</td>
                 <td>{{ target.retryCount }}</td>
-                <td>{{ target.parentTransactionGlobalId }}</td>
-                <td>{{ target.childTransactionGlobalId }}</td>
+                <td>{{ target.transactionId }}</td>
+                <td>{{ target.parentSegmentId }}</td>
+                <td>{{ target.transactionSegmentId }}</td>
                 <td>{{ target.lastErrorMessage }}</td>
               </tr>
               </tbody>
@@ -599,7 +599,7 @@
           <div class="table-wrap">
             <table>
               <thead>
-              <tr><th>Result</th><th>Target</th><th>업무키</th><th>상태</th><th>메시지</th><th>Parent TID</th><th>Child TID</th><th>Payload</th></tr>
+              <tr><th>Result</th><th>Target</th><th>업무키</th><th>상태</th><th>메시지</th><th>Transaction ID</th><th>Parent Segment</th><th>Segment ID</th><th>Payload</th></tr>
               </thead>
               <tbody>
               <tr v-for="result in centerCutResult.results || []" :key="result.resultId" @click="loadCenterCutResultDetail(result.resultId)">
@@ -608,8 +608,9 @@
                 <td>{{ result.businessKey }}</td>
                 <td>{{ result.resultStatus }}</td>
                 <td>{{ result.resultMessage }}</td>
-                <td>{{ result.parentTransactionGlobalId }}</td>
-                <td>{{ result.childTransactionGlobalId }}</td>
+                <td>{{ result.transactionId }}</td>
+                <td>{{ result.parentSegmentId }}</td>
+                <td>{{ result.transactionSegmentId }}</td>
                 <td>{{ result.resultPayloadMasked }}</td>
               </tr>
               </tbody>
@@ -712,7 +713,7 @@
           <label>Service ID <input v-model="serviceRegistrySearch.serviceId" type="text" placeholder="MBR"></label>
           <label>Endpoint Code <input v-model="serviceRegistrySearch.endpointCode" type="text" placeholder="MBR_API"></label>
           <label>Instance Status <input v-model="serviceRegistrySearch.instanceStatus" type="text" placeholder="UP"></label>
-          <label>Transaction ID <input v-model="serviceRegistrySearch.transactionGlobalId" type="text"></label>
+          <label>Transaction ID <input v-model="serviceRegistrySearch.transactionId" type="text"></label>
           <label>Limit <input v-model.number="serviceRegistrySearch.limit" type="number"></label>
         </div>
         <div class="grid two">
@@ -976,7 +977,7 @@
           <label>응답 본문 <select v-model="logPolicyForm.responseBodyLogYn"><option>Y</option><option>N</option></select></label>
           <label>보존일 <input v-model.number="logPolicyForm.retentionDays" type="number"></label>
           <label>우선순위 <input v-model.number="logPolicyForm.priority" type="number"></label>
-          <label>Trace 거래 ID <input v-model="logPolicyForm.traceBoostTransactionGlobalId" type="text"></label>
+          <label>Trace 거래 ID <input v-model="logPolicyForm.traceBoostTransactionId" type="text"></label>
           <label>Trace 업무 거래 ID <input v-model="logPolicyForm.traceBoostBusinessTransactionId" type="text"></label>
           <label>Trace API 경로 <input v-model="logPolicyForm.traceBoostApiPath" type="text"></label>
           <label>Trace 상태 <input v-model="logPolicyForm.traceBoostStatus" type="text" placeholder="FAILED"></label>

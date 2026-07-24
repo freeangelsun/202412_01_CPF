@@ -35,7 +35,7 @@ class BatSmokeOperationServiceTest {
         when(repository.available()).thenReturn(true);
         when(repository.findExecutionDetail(10L)).thenReturn(Map.of(
                 "execution",
-                Map.of("transaction_global_id", "20260622120000000BATbatWK010000001"),
+                Map.of("transaction_id", "20260622120000000BATbatWK010000001"),
                 "steps",
                 java.util.List.of(Map.of("spring_batch_step_execution_id", 30L))));
 

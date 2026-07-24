@@ -43,7 +43,7 @@ public class AdmServiceRegistryService extends com.cpf.admin.common.base.AdmBase
         return queryPort.findCircuitStates(serviceId, endpointCode, limit);
     }
 
-    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionGlobalId, int limit) {
-        return queryPort.findCallHistory(serviceId, transactionGlobalId, limit);
+    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit) {
+        return queryPort.findCallHistory(serviceId, transactionId, limit);
     }
 }

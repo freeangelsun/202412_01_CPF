@@ -57,7 +57,7 @@ class TransactionIdGeneratorTest {
      * 공식 거래 ID는 34자리 기본 규격으로 검증합니다.
      */
     @Test
-    void validatesOfficialTransactionGlobalIdFormat() {
+    void validatesOfficialTransactionIdFormat() {
         assertThat(TransactionIdGenerator.isValid("20260615120000000MBRlocal010000001", 7)).isTrue();
         assertThat(TransactionIdGenerator.isValid("20260615120000000MBRlocal1000001", 7)).isFalse();
     }

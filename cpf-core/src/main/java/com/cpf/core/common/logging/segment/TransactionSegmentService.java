@@ -39,13 +39,7 @@ public class TransactionSegmentService {
         TransactionHeader header = TransactionContext.currentHeader();
         TransactionSegmentContext.TransactionSegmentFrame currentFrame = TransactionSegmentContext.currentFrame();
 
-        String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
-        String rootTransactionGlobalId = firstText(
-                TransactionSegmentContext.rootTransactionGlobalId(),
-                header != null ? header.getRootTransactionGlobalId() : null,
-                TransactionContext.originalTransactionId(),
-                transactionGlobalId);
-        String parentTransactionGlobalId = firstText(TransactionContext.parentTransactionId(), transactionGlobalId);
+        String transactionId = TransactionContext.getOrCreateTransactionId();
         String parentSegmentId = firstText(
                 currentFrame != null ? currentFrame.transactionSegmentId() : null,
                 TransactionSegmentContext.incomingParentSegmentId(header));
@@ -55,10 +49,8 @@ public class TransactionSegmentService {
         int sequenceNo = TransactionContext.nextSequenceNo();
 
         TransactionSegmentRecord record = new TransactionSegmentRecord();
-        record.setTransactionSegmentId(segmentId(transactionGlobalId, sequenceNo));
-        record.setTransactionGlobalId(transactionGlobalId);
-        record.setRootTransactionGlobalId(rootTransactionGlobalId);
-        record.setParentTransactionGlobalId(parentTransactionGlobalId);
+        record.setTransactionSegmentId(segmentId(transactionId, sequenceNo));
+        record.setTransactionId(transactionId);
         record.setParentSegmentId(parentSegmentId);
         record.setTransactionRole(roleName(role));
         record.setModuleCode(normalizeCode(moduleCode, "N/A"));
@@ -90,13 +82,13 @@ public class TransactionSegmentService {
         try {
             persistenceService.insert(record);
         } catch (RuntimeException ex) {
-            log.warn("Failed to persist transaction segment start. transactionGlobalId={}, segmentId={}",
-                    record.getTransactionGlobalId(), record.getTransactionSegmentId(), ex);
+            log.warn("Failed to persist transaction segment start. transactionId={}, segmentId={}",
+                    record.getTransactionId(), record.getTransactionSegmentId(), ex);
         }
 
         TransactionSegmentContext.push(new TransactionSegmentContext.TransactionSegmentFrame(
                 record.getTransactionSegmentId(),
-                record.getRootTransactionGlobalId(),
+                record.getTransactionId(),
                 record.getCallDepth()));
         return new TransactionSegmentScope(this, record);
     }
@@ -138,16 +130,16 @@ public class TransactionSegmentService {
             record.setUpdatedBy(requestUser());
             persistenceService.updateEnd(record);
         } catch (RuntimeException ex) {
-            log.warn("Failed to persist transaction segment end. transactionGlobalId={}, segmentId={}",
-                    record.getTransactionGlobalId(), record.getTransactionSegmentId(), ex);
+            log.warn("Failed to persist transaction segment end. transactionId={}, segmentId={}",
+                    record.getTransactionId(), record.getTransactionSegmentId(), ex);
         } finally {
             TransactionSegmentContext.pop(record.getTransactionSegmentId());
         }
     }
 
-    private String segmentId(String transactionGlobalId, int sequenceNo) {
+    private String segmentId(String transactionId, int sequenceNo) {
         String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
-        return SensitiveDataMasker.truncate(transactionGlobalId + "-SEG-" + String.format("%04d", sequenceNo) + "-" + suffix, 120);
+        return SensitiveDataMasker.truncate(transactionId + "-SEG-" + String.format("%04d", sequenceNo) + "-" + suffix, 120);
     }
 
     private String roleName(TransactionSegmentRole role) {

@@ -23,8 +23,8 @@ public final class TransactionSegmentScope implements AutoCloseable {
         return record.getTransactionSegmentId();
     }
 
-    public String transactionGlobalId() {
-        return record.getTransactionGlobalId();
+    public String transactionId() {
+        return record.getTransactionId();
     }
 
     public void success() {

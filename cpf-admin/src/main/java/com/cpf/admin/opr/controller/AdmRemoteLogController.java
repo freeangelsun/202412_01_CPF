@@ -67,8 +67,8 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
             @RequestParam(required = false) String fileName,
             @RequestParam(required = false) String standardTransactionId,
             @RequestParam(required = false) String standardBatchId,
-            @RequestParam(required = false) String transactionGlobalId,
             @RequestParam(required = false) String transactionId,
+
             @RequestParam(required = false) String segmentId,
             @RequestParam(required = false) String jobInstanceId,
             @RequestParam(required = false) String jobExecutionId,
@@ -83,7 +83,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(remoteLogArtifactPort.search(new CpfRemoteLogArtifactSearch(
                 environment, module, service, instance, logType, fileName,
-                standardTransactionId, standardBatchId, transactionGlobalId, transactionId, segmentId,
+                standardTransactionId, standardBatchId, transactionId, segmentId,
                 jobInstanceId, jobExecutionId, stepExecutionId, schedulerId,
                 modifiedFrom, modifiedTo, minSize, maxSize, compressed, active, limit)));
     }

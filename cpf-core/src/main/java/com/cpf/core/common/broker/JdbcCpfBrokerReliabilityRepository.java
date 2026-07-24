@@ -29,7 +29,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
         jdbcTemplate.update("""
                 INSERT INTO cpf_broker_outbox (
-                    message_id, topic, message_key, transaction_global_id, segment_id,
+                    message_id, topic, message_key, transaction_id, segment_id,
                     producer_module, consumer_module, idempotency_key, payload, content_type,
                     header_json, attribute_json, outbox_status, occurred_at, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, 'CPF_BROKER', 'CPF_BROKER')
@@ -41,7 +41,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 envelope.message().messageId(),
                 envelope.message().topic(),
                 envelope.message().key(),
-                envelope.transactionGlobalId(),
+                envelope.transactionId(),
                 envelope.segmentId(),
                 envelope.producerModule(),
                 envelope.consumerModule(),
@@ -71,7 +71,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 SELECT message_id AS messageId,
                        topic,
                        message_key AS messageKey,
-                       transaction_global_id AS transactionGlobalId,
+                       transaction_id AS transactionId,
                        segment_id AS segmentId,
                        producer_module AS producerModule,
                        consumer_module AS consumerModule,
@@ -156,10 +156,10 @@ public class JdbcCpfBrokerReliabilityRepository
         }
         jdbcTemplate.update("""
                 INSERT INTO cpf_broker_dlq (
-                    message_id, topic, transaction_global_id, segment_id, failure_reason,
+                    message_id, topic, transaction_id, segment_id, failure_reason,
                     replay_status, created_by, updated_by
                 )
-                SELECT message_id, topic, transaction_global_id, segment_id, failure_message,
+                SELECT message_id, topic, transaction_id, segment_id, failure_message,
                        'WAITING', 'CPF_BROKER', 'CPF_BROKER'
                 FROM cpf_broker_outbox
                 WHERE message_id = ? AND outbox_status = 'FAILED'
@@ -203,7 +203,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public CpfBrokerResult sendToDlq(CpfBrokerEnvelope envelope, String reason) {
         jdbcTemplate.update("""
                 INSERT INTO cpf_broker_dlq (
-                    message_id, topic, transaction_global_id, segment_id, failure_reason,
+                    message_id, topic, transaction_id, segment_id, failure_reason,
                     replay_status, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, 'WAITING', 'CPF_BROKER', 'CPF_BROKER')
                 ON DUPLICATE KEY UPDATE
@@ -214,7 +214,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 """,
                 envelope.message().messageId(),
                 envelope.message().topic(),
-                envelope.transactionGlobalId(),
+                envelope.transactionId(),
                 envelope.segmentId(),
                 reason);
         return CpfBrokerResult.failed(envelope.message().messageId(), "CPF_DLQ", reason);
@@ -226,7 +226,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 SELECT o.message_id AS messageId,
                        o.topic,
                        o.message_key AS messageKey,
-                       o.transaction_global_id AS transactionGlobalId,
+                       o.transaction_id AS transactionId,
                        o.segment_id AS segmentId,
                        o.producer_module AS producerModule,
                        o.consumer_module AS consumerModule,
@@ -329,7 +329,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 string(row, "contentType"),
                 decodeMap(string(row, "headerJson")));
         return new CpfBrokerEnvelope(
-                string(row, "transactionGlobalId"),
+                string(row, "transactionId"),
                 string(row, "segmentId"),
                 string(row, "producerModule"),
                 string(row, "consumerModule"),

@@ -93,7 +93,7 @@ class CpfBatchFileLogWriterTest {
             assertThat(json.path("businessDate").asText()).isEqualTo("20260713");
             assertThat(json.path("jobName").asText()).isEqualTo("CPF_BAT_SMOKE_JOB");
             assertThat(json.path("jobInstanceId").asLong()).isEqualTo(55L);
-            assertThat(json.path("transactionGlobalId").asText()).isNotBlank();
+            assertThat(json.path("transactionId").asText()).isNotBlank();
             assertThat(json.path("serverInstanceId").asText()).isNotBlank();
             assertThat(json.path("workerInstanceId").asText()).isNotBlank();
         }
@@ -173,7 +173,7 @@ class CpfBatchFileLogWriterTest {
             String originalExecutionId,
             String restartAttempt) {
         JobParametersBuilder parameters = new JobParametersBuilder()
-                .addString("transactionGlobalId", "20260713090000000BATbatWK010000001")
+                .addString("transactionId", "20260713090000000BATbatWK010000001")
                 .addString("runId", String.valueOf(jobExecutionId))
                 .addString("rerunId", restartAttempt)
                 .addString("workerInstanceId", "bat-worker-01");

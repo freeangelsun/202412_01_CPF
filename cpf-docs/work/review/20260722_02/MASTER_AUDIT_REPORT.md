@@ -56,7 +56,7 @@
 
 ### F-01. 현재 작업 요청서가 최신 기준선을 반영하지 못함 — 실패
 
-`CPF_CURRENT_WORK_REQUEST.md`, `CPF_GAP_MATRIX.md`, `CPF_STABILIZATION_REPORT.md`, `CPF_EVIDENCE_INDEX.md`는 여전히 과거 `e35b7a0`을 기준으로 작성돼 있다. 최신 WIP `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`의 구조·DB·정책을 반영하지 못한다.
+`cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`, `cpf-docs/work/state/CPF_GAP_MATRIX.md`, `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md`, `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md`는 여전히 과거 `e35b7a0`을 기준으로 작성돼 있다. 최신 WIP `a63380e6c736fa9c5ae7e425d0e301d21ef3b848`의 구조·DB·정책을 반영하지 못한다.
 
 특히 현재 요청서에는 `cpf-core` SystemCode를 `PFW`로 유지 권장하는 문구가 있어 최상위 목표와 충돌한다.
 
@@ -100,7 +100,7 @@ DB 실데이터를 직접 확인하지 못했으므로 운영 데이터 삭제 �
 
 ### F-03. 설치 SQL이 Install과 Destructive Reset을 혼합 — 실패
 
-`specs/sql/00_all_install.sql`은 신규 Schema 생성만 하는 설치 Script가 아니다.
+`cpf-tools/db/source/mariadb/00_all_install.sql`은 신규 Schema 생성만 하는 설치 Script가 아니다.
 
 - 약 129회의 `DROP TABLE IF EXISTS`
 - 16개의 `CREATE OR REPLACE USER`
@@ -254,11 +254,11 @@ Root `qualityGate`는 compile/test, frontend verify, 정적 Architecture·SQL·�
 Root에는 작업·검수·진행 문서가 남아 있다.
 
 ```text
-CPF_CURRENT_WORK_REQUEST.md
-CPF_GAP_MATRIX.md
-CPF_STABILIZATION_REPORT.md
-CPF_EVIDENCE_INDEX.md
-CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md
+cpf-docs/work/state/CPF_GAP_MATRIX.md
+cpf-docs/work/state/CPF_STABILIZATION_REPORT.md
+cpf-docs/evidence/CPF_EVIDENCE_INDEX.md
+cpf-docs/governance/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md
 ```
 
 정본 정책상 Root에는 제품 식별·Build·실행에 필요한 최소 파일과 최상위 목표만 두고, 작업·검수·Evidence는 `cpf-docs` 역할별 위치로 이동해야 한다.

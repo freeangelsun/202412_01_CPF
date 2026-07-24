@@ -15,7 +15,7 @@ EDU는 제품 기능을 대신하는 Sample이 아니라 개발자가 CPF 공식
 
 ## 3. 필수 학습 Track
 
-1. Header, transactionGlobalId와 Context
+1. Header, transactionId와 Context
 2. Standard Error와 Validation
 3. Local/Remote Facade
 4. CRUD, Offset, Slice와 Cursor

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 /**
- * transactionGlobalId 기준으로 CPF 표준 거래 구간과 외부 호출 후보를 조합합니다.
+ * transactionId 기준으로 CPF 표준 거래 구간과 외부 호출 후보를 조합합니다.
  *
  * <p>ADM은 다른 주제영역 DB를 직접 조회하지 않고 CPF 공개 조회 포트만 사용합니다.
  * 외부 연계 모듈이 추가되더라도 표준 구간 로그에 기록하면 ADM 구현 변경 없이 함께 조회됩니다.</p>
@@ -37,56 +37,56 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
         return response;
     }
 
-    public Map<String, Object> findDetail(String transactionGlobalId) {
-        List<Map<String, Object>> segments = findSegments(transactionGlobalId);
+    public Map<String, Object> findDetail(String transactionId) {
+        List<Map<String, Object>> segments = findSegments(transactionId);
         Map<String, Object> detail = new LinkedHashMap<>();
-        detail.put("transactionGlobalId", transactionGlobalId);
+        detail.put("transactionId", transactionId);
         detail.put("segments", segments);
         detail.put("timeline", timelineFromSegments(segments));
-        detail.put("summary", summarize(transactionGlobalId, segments));
+        detail.put("summary", summarize(transactionId, segments));
         detail.put("headers", headerSnapshots(segments));
-        detail.put("externalLogs", findExternalLogs(transactionGlobalId, 100));
+        detail.put("externalLogs", findExternalLogs(transactionId, 100));
         return detail;
     }
 
-    public List<Map<String, Object>> findSegments(String transactionGlobalId) {
-        if (!hasText(transactionGlobalId)) {
+    public List<Map<String, Object>> findSegments(String transactionId) {
+        if (!hasText(transactionId)) {
             return List.of();
         }
-        return timelineQueryPort.findSegments(transactionGlobalId.trim());
+        return timelineQueryPort.findSegments(transactionId.trim());
     }
 
-    public List<Map<String, Object>> findTimeline(String transactionGlobalId) {
-        return timelineFromSegments(findSegments(transactionGlobalId));
+    public List<Map<String, Object>> findTimeline(String transactionId) {
+        return timelineFromSegments(findSegments(transactionId));
     }
 
-    public Map<String, Object> findHeaders(String transactionGlobalId) {
+    public Map<String, Object> findHeaders(String transactionId) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("transactionGlobalId", transactionGlobalId);
-        response.put("headers", headerSnapshots(findSegments(transactionGlobalId)));
+        response.put("transactionId", transactionId);
+        response.put("headers", headerSnapshots(findSegments(transactionId)));
         return response;
     }
 
-    public Map<String, Object> findExternalLogs(String transactionGlobalId) {
-        List<Map<String, Object>> items = findExternalLogs(transactionGlobalId, 100);
+    public Map<String, Object> findExternalLogs(String transactionId) {
+        List<Map<String, Object>> items = findExternalLogs(transactionId, 100);
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("transactionGlobalId", transactionGlobalId);
+        response.put("transactionId", transactionId);
         response.put("items", items);
         response.put("source", "CPF_TRANSACTION_SEGMENT");
         response.put("fallbackUsed", false);
         return response;
     }
 
-    private List<Map<String, Object>> findExternalLogs(String transactionGlobalId, int limit) {
-        if (!hasText(transactionGlobalId)) {
+    private List<Map<String, Object>> findExternalLogs(String transactionId, int limit) {
+        if (!hasText(transactionId)) {
             return List.of();
         }
-        return timelineQueryPort.findExternalCandidates(transactionGlobalId, boundedLimit(limit));
+        return timelineQueryPort.findExternalCandidates(transactionId, boundedLimit(limit));
     }
 
-    private Map<String, Object> summarize(String transactionGlobalId, List<Map<String, Object>> segments) {
+    private Map<String, Object> summarize(String transactionId, List<Map<String, Object>> segments) {
         Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("transactionGlobalId", transactionGlobalId);
+        summary.put("transactionId", transactionId);
         summary.put("segmentCount", segments.size());
         summary.put("moduleFlowText", moduleFlowText(segments));
         summary.put("overallStatus", segments.stream().anyMatch(row -> "Y".equals(text(row, "failureYn")))

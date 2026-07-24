@@ -76,7 +76,7 @@ public class ReferenceCmnSampleEducationController
     }
 
     @GetMapping("/items/cursor")
-    @CpfOnlineTransaction(id = "OREFAA0047", name = "REFCMNSampleCursor조회")
+    @CpfOnlineTransaction(id = "OREFAA0100", name = "REFCMNSampleCursor조회")
     @Operation(operationId = "refCmnSampleCursorPage", summary = "CMN Sample count 없는 cursor slice 조회")
     public ResponseEntity<CmnSampleSlice> cursorPage(
             @RequestParam(required = false) @Min(0) Long afterId,
@@ -87,7 +87,7 @@ public class ReferenceCmnSampleEducationController
     }
 
     @PostMapping("/items")
-    @CpfOnlineTransaction(id = "OREFAA0048", name = "REFCMNSample등록")
+    @CpfOnlineTransaction(id = "OREFAA0101", name = "REFCMNSample등록")
     @Operation(operationId = "refCmnSampleCreate", summary = "CMN Sample 등록·중복 검증")
     public ResponseEntity<CmnSampleItem> create(@Valid @RequestBody CmnSampleItemRequest request) {
         requireEnabled();
@@ -95,7 +95,7 @@ public class ReferenceCmnSampleEducationController
     }
 
     @PutMapping("/items/{sampleItemId}")
-    @CpfOnlineTransaction(id = "OREFAA0049", name = "REFCMNSample수정")
+    @CpfOnlineTransaction(id = "OREFAA0102", name = "REFCMNSample수정")
     @Operation(operationId = "refCmnSampleUpdate", summary = "CMN Sample 낙관적 잠금 수정")
     public ResponseEntity<CmnSampleItem> update(
             @PathVariable @Min(1) long sampleItemId,
@@ -106,7 +106,7 @@ public class ReferenceCmnSampleEducationController
     }
 
     @DeleteMapping("/items/{sampleItemId}")
-    @CpfOnlineTransaction(id = "OREFAA0050", name = "REFCMNSample삭제")
+    @CpfOnlineTransaction(id = "OREFAA0103", name = "REFCMNSample삭제")
     @Operation(operationId = "refCmnSampleDelete", summary = "CMN Sample 낙관적 잠금 논리 삭제")
     public ResponseEntity<Map<String, Object>> delete(
             @PathVariable @Min(1) long sampleItemId,
@@ -120,7 +120,7 @@ public class ReferenceCmnSampleEducationController
     }
 
     @PostMapping("/transaction/rollback-verify")
-    @CpfOnlineTransaction(id = "OREFAA0051", name = "REFCMNSampleRollback")
+    @CpfOnlineTransaction(id = "OREFAA0104", name = "REFCMNSampleRollback")
     @Operation(operationId = "refCmnSampleRollbackVerify", summary = "CMN Sample transaction rollback 검증",
             description = "등록을 수행한 뒤 rollbackOnly로 되돌리고 같은 key의 row 수가 유지되는지 확인합니다.")
     public ResponseEntity<Map<String, Object>> verifyRollback(

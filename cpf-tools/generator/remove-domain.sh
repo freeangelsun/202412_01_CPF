@@ -15,4 +15,4 @@ while (($#)); do
   esac
 done
 
-exec pwsh -NoProfile -File "$script_dir/../../scripts/remove-domain.ps1" "${args[@]}"
+exec pwsh -NoProfile -File "$script_dir/../../cpf-tools/scripts/remove-domain.ps1" "${args[@]}"

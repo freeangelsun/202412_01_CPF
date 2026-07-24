@@ -246,13 +246,13 @@ public class CpfServiceRegistryRepository {
         }
     }
 
-    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionGlobalId, int limit) {
+    public List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit) {
         if (!tableAvailable("cpf_service_call_history")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
                 SELECT call_id AS callId,
-                       transaction_global_id AS transactionGlobalId,
+                       transaction_id AS transactionId,
                        trace_id AS traceId,
                        service_id AS serviceId,
                        endpoint_code AS endpointCode,
@@ -273,7 +273,7 @@ public class CpfServiceRegistryRepository {
                 """);
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "service_id", serviceId);
-        appendEquals(sql, args, "transaction_global_id", transactionGlobalId);
+        appendEquals(sql, args, "transaction_id", transactionId);
         sql.append(" ORDER BY call_id DESC LIMIT ?");
         args.add(safeLimit(limit));
         return jdbc().queryForList(sql.toString(), args.toArray());
@@ -292,7 +292,7 @@ public class CpfServiceRegistryRepository {
         }
         jdbc().update("""
                 INSERT INTO cpf_service_call_history (
-                    transaction_global_id, trace_id, service_id, endpoint_code, instance_id,
+                    transaction_id, trace_id, service_id, endpoint_code, instance_id,
                     http_method, request_path, call_status, http_status, duration_ms,
                     timeout_ms, retry_count, failure_code, failure_message, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')

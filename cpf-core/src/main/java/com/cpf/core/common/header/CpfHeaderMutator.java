@@ -18,8 +18,9 @@ import java.util.Set;
 public final class CpfHeaderMutator {
     private static final Set<String> RESTRICTED_HEADERS = Set.of(
             lower(CpfHeaderNames.TRANSACTION_ID),
-            lower(CpfHeaderNames.PARENT_TRANSACTION_ID),
-            lower(CpfHeaderNames.ORIGINAL_TRANSACTION_ID),
+            lower(CpfHeaderNames.TRANSACTION_SEGMENT_ID),
+            lower(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID),
+            lower(CpfHeaderNames.TRANSACTION_CALL_DEPTH),
             lower(CpfHeaderNames.TRACE_ID),
             lower(CpfHeaderNames.SPAN_ID),
             lower(CpfHeaderNames.PARENT_SPAN_ID),

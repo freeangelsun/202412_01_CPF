@@ -53,10 +53,10 @@ public class BatOnDemandService extends BatBaseService {
         if (jobName == null) {
             throw new CpfValidationException("허용되지 않은 standardBatchId입니다. id=" + request.standardBatchId());
         }
-        String transactionGlobalId = TransactionContext.getOrCreateTransactionId();
+        String transactionId = TransactionContext.getOrCreateTransactionId();
         BatOnDemandStatus requested = new BatOnDemandStatus(
                 UUID.randomUUID().toString(), request.standardBatchId(), request.idempotencyKey(),
-                transactionGlobalId, request.businessDate(), "REQUESTED", null, null,
+                transactionId, request.businessDate(), "REQUESTED", null, null,
                 Map.of(), null, null, Instant.now(), null);
         BatOnDemandStatus stored = repository.createOrFind(
                 requested, json(request.parameters()), request.reason(), request.requestUser());
@@ -120,7 +120,7 @@ public class BatOnDemandService extends BatBaseService {
 
     private void execute(BatOnDemandStatus requested, BatOnDemandRequest request, String jobName) {
         try {
-            TransactionContext.initialize(requested.transactionGlobalId(), null, null);
+            TransactionContext.initialize(requested.transactionId(), null, null);
             repository.markRunning(requested.executionRequestId());
             CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.onDemand(
                     request.standardBatchId(), jobName, request.businessDate(), request.idempotencyKey(),

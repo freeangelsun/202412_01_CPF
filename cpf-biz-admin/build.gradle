@@ -84,3 +84,9 @@ tasks.register('frontendVerify') {
 tasks.named('processResources') {
     dependsOn 'frontendBuild'
 }
+
+tasks.named('sourcesJar') {
+    // sourceSets.main.resources includes the generated frontend directory.
+    // Gradle 9 requires this producer dependency to be explicit for reproducible archives.
+    dependsOn 'frontendBuild'
+}

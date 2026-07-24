@@ -214,7 +214,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "폐기할 활성 세션을 찾을 수 없습니다.");
         }
         Map<String, Object> audit = new LinkedHashMap<>();
-        audit.put("transactionGlobalId", TransactionContext.getOrCreateTransactionId());
+        audit.put("transactionId", TransactionContext.getOrCreateTransactionId());
         audit.put("actorId", operator.loginId());
         audit.put("actionType", "SESSION_REVOKE");
         audit.put("targetType", "bza_refresh_token");

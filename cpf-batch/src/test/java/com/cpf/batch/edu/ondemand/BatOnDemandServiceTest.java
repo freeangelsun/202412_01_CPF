@@ -133,7 +133,7 @@ class BatOnDemandServiceTest {
             BatOnDemandStatus current = byRequest.get(executionRequestId);
             byRequest.put(executionRequestId, new BatOnDemandStatus(
                     current.executionRequestId(), current.standardBatchId(), current.idempotencyKey(),
-                    current.transactionGlobalId(), current.businessDate(), "RUNNING", current.cpfExecutionId(),
+                    current.transactionId(), current.businessDate(), "RUNNING", current.cpfExecutionId(),
                     current.springBatchExecutionId(), current.result(), current.failureCode(), current.failureMessage(),
                     current.requestedAt(), current.completedAt()));
         }
@@ -144,7 +144,7 @@ class BatOnDemandServiceTest {
             BatOnDemandStatus current = byRequest.get(executionRequestId);
             byRequest.put(executionRequestId, new BatOnDemandStatus(
                     current.executionRequestId(), current.standardBatchId(), current.idempotencyKey(),
-                    current.transactionGlobalId(), current.businessDate(), status,
+                    current.transactionId(), current.businessDate(), status,
                     cpfExecutionId == null ? current.cpfExecutionId() : cpfExecutionId,
                     springExecutionId == null ? current.springBatchExecutionId() : springExecutionId,
                     Map.of("json", resultJson), failureCode, failureMessage,

@@ -1,8 +1,2 @@
-SELECT SYS_CONTEXT('USERENV', 'SERVICE_NAME') AS service_name,
-       SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') AS current_schema,
-       CASE
-           WHEN SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') = UPPER('@CPF_SCHEMA_NAME@')
-           THEN 'DONE'
-           ELSE 'FAILED'
-       END AS schema_selection_status
-FROM dual;
+-- Oracle PDB/service is provisioned by DBA. This phase validates connectivity only.
+SELECT SYS_CONTEXT('USERENV','DB_NAME') AS db_name FROM dual;

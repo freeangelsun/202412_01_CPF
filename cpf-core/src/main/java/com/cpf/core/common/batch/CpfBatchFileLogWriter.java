@@ -5,6 +5,7 @@ import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.logging.TransactionIdGenerator;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
+import com.cpf.core.common.logging.segment.TransactionSegmentContext;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
@@ -27,8 +28,7 @@ import java.util.Map;
  */
 public class CpfBatchFileLogWriter {
     public static final String CONTEXT_BUSINESS_DATE = "cpf.batch.businessDate";
-    public static final String CONTEXT_TRANSACTION_GLOBAL_ID = "cpf.batch.transactionGlobalId";
-    public static final String CONTEXT_PARENT_TRANSACTION_GLOBAL_ID = "cpf.batch.parentTransactionGlobalId";
+    public static final String CONTEXT_TRANSACTION_ID = "cpf.batch.transactionId";
     public static final String CONTEXT_SEGMENT_ID = "cpf.batch.segmentId";
     public static final String CONTEXT_PARENT_SEGMENT_ID = "cpf.batch.parentSegmentId";
     public static final String CONTEXT_ORIGINAL_JOB_EXECUTION_ID = "cpf.batch.originalJobExecutionId";
@@ -74,7 +74,7 @@ public class CpfBatchFileLogWriter {
         JobInstance jobInstance = requireJobInstance(jobExecution);
         long jobInstanceId = requirePositive(jobInstance.getInstanceId(), "jobInstanceId");
         LocalDate businessDate = resolveBusinessDate(jobExecution);
-        String transactionGlobalId = resolveTransactionGlobalId(jobExecution);
+        String transactionId = resolveTransactionId(jobExecution);
         String jobSegmentId = resolveJobSegmentId(jobExecution, jobInstanceId);
         String workerInstanceId = parameterOrContext(jobExecution, "workerInstanceId",
                 ServerInstanceIdentity.current().serverInstanceId());
@@ -89,8 +89,7 @@ public class CpfBatchFileLogWriter {
         event.put("rerunId", parameterOrContext(jobExecution, "rerunId", "0"));
         event.put("originalJobExecutionId", contextValue(jobExecution, CONTEXT_ORIGINAL_JOB_EXECUTION_ID));
         event.put("restartAttempt", contextLong(jobExecution, CONTEXT_RESTART_ATTEMPT, 0L));
-        event.put("transactionGlobalId", transactionGlobalId);
-        event.put("parentTransactionGlobalId", contextValue(jobExecution, CONTEXT_PARENT_TRANSACTION_GLOBAL_ID));
+        event.put("transactionId", transactionId);
         event.put("segmentId", stepExecution == null ? jobSegmentId : stepSegmentId(stepExecution));
         event.put("parentSegmentId", stepExecution == null
                 ? contextValue(jobExecution, CONTEXT_PARENT_SEGMENT_ID)
@@ -179,14 +178,11 @@ public class CpfBatchFileLogWriter {
         JobInstance jobInstance = requireJobInstance(jobExecution);
         long jobInstanceId = requirePositive(jobInstance.getInstanceId(), "jobInstanceId");
         resolveBusinessDate(jobExecution);
-        resolveTransactionGlobalId(jobExecution);
+        resolveTransactionId(jobExecution);
         resolveJobSegmentId(jobExecution, jobInstanceId);
-        putIfAbsent(jobExecution, CONTEXT_PARENT_TRANSACTION_GLOBAL_ID,
-                firstText(parameter(jobExecution.getJobParameters(), "parentTransactionGlobalId"),
-                        TransactionContext.parentTransactionId()));
         putIfAbsent(jobExecution, CONTEXT_PARENT_SEGMENT_ID,
                 firstText(parameter(jobExecution.getJobParameters(), "parentSegmentId"),
-                        TransactionContext.currentSpanId()));
+                        TransactionSegmentContext.currentSegmentId()));
         putIfAbsent(jobExecution, CONTEXT_ORIGINAL_JOB_EXECUTION_ID,
                 parameter(jobExecution.getJobParameters(), "originalJobExecutionId"));
         if (!jobExecution.getExecutionContext().containsKey(CONTEXT_RESTART_ATTEMPT)) {
@@ -257,18 +253,18 @@ public class CpfBatchFileLogWriter {
         return resolved;
     }
 
-    private String resolveTransactionGlobalId(JobExecution execution) {
-        String current = contextValue(execution, CONTEXT_TRANSACTION_GLOBAL_ID);
+    private String resolveTransactionId(JobExecution execution) {
+        String current = contextValue(execution, CONTEXT_TRANSACTION_ID);
         if (current != null) {
             return current;
         }
         String resolved = firstText(
-                parameter(execution.getJobParameters(), "transactionGlobalId"),
+                parameter(execution.getJobParameters(), "transactionId"),
                 TransactionContext.currentTransactionId());
         if (resolved == null) {
             resolved = transactionIdGenerator.generate("BAT", "batWK01");
         }
-        execution.getExecutionContext().putString(CONTEXT_TRANSACTION_GLOBAL_ID, resolved);
+        execution.getExecutionContext().putString(CONTEXT_TRANSACTION_ID, resolved);
         return resolved;
     }
 

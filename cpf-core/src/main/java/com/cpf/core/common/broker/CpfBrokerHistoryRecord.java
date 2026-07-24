@@ -12,7 +12,7 @@ public record CpfBrokerHistoryRecord(
         String brokerName,
         String topic,
         String messageId,
-        String transactionGlobalId,
+        String transactionId,
         String idempotencyKey,
         String status,
         Instant recordedAt,

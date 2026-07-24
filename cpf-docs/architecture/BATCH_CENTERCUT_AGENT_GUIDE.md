@@ -27,7 +27,7 @@ Agent와 Runner를 한 Process에 둘 수 있지만 책임과 상태 모델을 �
 - immutable parameter snapshot와 hash
 - schedule/calendar/misfire policy snapshot
 - status, start/end, deadline
-- transactionGlobalId
+- transactionId
 
 ### Step와 Attempt
 
@@ -81,7 +81,7 @@ request
 - 대량 Target는 streaming/chunk/page 생성
 - 생성 중단 후 resume 가능
 - item마다 상태를 덮어쓰지 않고 attempt를 누적
-- parent/child transactionGlobalId 연결
+- parent/child transactionId 연결
 
 ## 6. Claim, Lease와 Fencing
 
@@ -129,7 +129,7 @@ Lease 만료만 보고 기존 실행을 무조건 재실행하지 않는다. Fen
 ## 10. ADM 기능
 
 - Job/Step/Item/Attempt 목록과 상세
-- transactionGlobalId timeline
+- transactionId timeline
 - Agent/Runner/Worker health와 lease
 - pause/resume/cancel/drain
 - reprocess eligibility preview

@@ -54,7 +54,7 @@ public class DeterministicCpfRemoteFileTransferAdapter implements CpfFileTransfe
                 endpoint.timeout(),
                 attributes);
         CpfFileTransferRequest localRequest = new CpfFileTransferRequest(
-                request.transactionGlobalId(),
+                request.transactionId(),
                 request.segmentId(),
                 request.endpointCode(),
                 request.operation(),

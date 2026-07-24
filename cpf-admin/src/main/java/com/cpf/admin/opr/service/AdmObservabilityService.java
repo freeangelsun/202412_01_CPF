@@ -33,8 +33,8 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         this.admJdbcTemplate = admJdbcTemplate;
     }
 
-    public Map<String, Object> traceByTransactionGlobalId(String transactionGlobalId, int limit) {
-        return trace("TRANSACTION_GLOBAL_ID", transactionGlobalId, transactionGlobalId, null, null, limit);
+    public Map<String, Object> traceByTransactionId(String transactionId, int limit) {
+        return trace("TRANSACTION_ID", transactionId, transactionId, null, null, limit);
     }
 
     public Map<String, Object> traceByTraceId(String traceId, int limit) {
@@ -66,15 +66,15 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     private Map<String, Object> trace(
             String queryType,
             String queryValue,
-            String transactionGlobalId,
+            String transactionId,
             String traceId,
             String businessTransactionId,
             int limit) {
         int cappedLimit = cappedLimit(limit);
         List<Map<String, Object>> transactionLogs = queryTransactionLogs(
-                transactionGlobalId, traceId, businessTransactionId, null, cappedLimit);
+                transactionId, traceId, businessTransactionId, null, cappedLimit);
         Map<String, Object> summary = transactionLogs.isEmpty() ? Map.of() : transactionLogs.getFirst();
-        String resolvedTransactionGlobalId = firstText(transactionGlobalId, stringValue(summary, "TRANSACTION_ID", "transactionId"));
+        String resolvedTransactionId = firstText(transactionId, stringValue(summary, "TRANSACTION_ID", "transactionId"));
         String resolvedTraceId = firstText(traceId, stringValue(summary, "TRACE_ID", "traceId"));
         String resolvedBusinessTransactionId = firstText(
                 businessTransactionId,
@@ -86,18 +86,18 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         response.put("queryValue", queryValue);
         response.put("transactionSummary", summary);
         response.put("resolvedKeys", resolvedKeys(
-                resolvedTransactionGlobalId,
+                resolvedTransactionId,
                 resolvedTraceId,
                 resolvedBusinessTransactionId));
         response.put("transactionLogs", transactionLogs);
         response.put("failureLogs", queryTransactionLogs(
-                resolvedTransactionGlobalId,
+                resolvedTransactionId,
                 resolvedTraceId,
                 resolvedBusinessTransactionId,
                 "FAILURE",
                 cappedLimit));
         response.put("auditLogs", queryAdmAuditLogs(
-                resolvedTransactionGlobalId,
+                resolvedTransactionId,
                 resolvedTraceId,
                 resolvedBusinessTransactionId,
                 cappedLimit));
@@ -109,13 +109,13 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 null,
                 null,
                 cappedLimit));
-        response.put("relatedBatchExecutions", queryBatchExecutions(resolvedTransactionGlobalId, cappedLimit));
+        response.put("relatedBatchExecutions", queryBatchExecutions(resolvedTransactionId, cappedLimit));
         response.put("counts", counts(response));
         return response;
     }
 
     private List<Map<String, Object>> queryTransactionLogs(
-            String transactionGlobalId,
+            String transactionId,
             String traceId,
             String businessTransactionId,
             String logType,
@@ -132,7 +132,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        appendLike(sql, args, "TRANSACTION_ID", transactionGlobalId);
+        appendLike(sql, args, "TRANSACTION_ID", transactionId);
         appendLike(sql, args, "TRACE_ID", traceId);
         appendLike(sql, args, "BUSINESS_TRANSACTION_ID", businessTransactionId);
         appendEquals(sql, args, "LOG_TYPE", logType);
@@ -142,7 +142,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private List<Map<String, Object>> queryAdmAuditLogs(
-            String transactionGlobalId,
+            String transactionId,
             String traceId,
             String businessTransactionId,
             int limit) {
@@ -157,7 +157,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        appendLike(sql, args, "TRANSACTION_ID", transactionGlobalId);
+        appendLike(sql, args, "TRANSACTION_ID", transactionId);
         appendLike(sql, args, "TRACE_ID", traceId);
         if (TextUtils.hasText(businessTransactionId)) {
             sql.append(" AND (TARGET_ID = ? OR TARGET_ID LIKE CONCAT('%', ?, '%'))");
@@ -205,8 +205,8 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
     }
 
-    private List<Map<String, Object>> queryBatchExecutions(String transactionGlobalId, int limit) {
-        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(batJdbcTemplate, "bat_execution")) {
+    private List<Map<String, Object>> queryBatchExecutions(String transactionId, int limit) {
+        if (!TextUtils.hasText(transactionId) || !tableAvailable(batJdbcTemplate, "bat_execution")) {
             return List.of();
         }
         try {
@@ -214,26 +214,25 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                            spring_batch_execution_id, spring_batch_job_instance_id, business_date,
                            run_id, rerun_id, original_job_execution_id, restart_attempt,
-                           transaction_global_id, parent_transaction_global_id,
-                           transaction_segment_id, parent_segment_id, job_log_relative_path, batch_instance_id,
+                           transaction_id, transaction_segment_id, parent_segment_id, job_log_relative_path, batch_instance_id,
                            server_instance_id, worker_id, start_time, end_time, processed_count,
                            success_count, failure_count, progress_rate, current_step_name,
                            last_heartbeat_at, created_at
                     FROM bat_execution
-                    WHERE transaction_global_id = ?
+                    WHERE transaction_id = ?
                     ORDER BY execution_id DESC LIMIT ?
-                    """, transactionGlobalId.trim(), cappedLimit(limit));
+                    """, transactionId.trim(), cappedLimit(limit));
         } catch (DataAccessException ex) {
             return List.of();
         }
     }
 
     private Map<String, Object> resolvedKeys(
-            String transactionGlobalId,
+            String transactionId,
             String traceId,
             String businessTransactionId) {
         Map<String, Object> keys = new LinkedHashMap<>();
-        keys.put("transactionGlobalId", transactionGlobalId);
+        keys.put("transactionId", transactionId);
         keys.put("traceId", traceId);
         keys.put("businessTransactionId", businessTransactionId);
         return keys;

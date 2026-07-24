@@ -10,7 +10,7 @@ public record BatOnDemandStatus(
         String executionRequestId,
         String standardBatchId,
         String idempotencyKey,
-        String transactionGlobalId,
+        String transactionId,
         String businessDate,
         String requestStatus,
         Long cpfExecutionId,

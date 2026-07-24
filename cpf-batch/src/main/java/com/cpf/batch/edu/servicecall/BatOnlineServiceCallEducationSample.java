@@ -7,9 +7,9 @@ import java.util.Map;
  */
 public class BatOnlineServiceCallEducationSample {
 
-    public Map<String, String> buildHeaders(String transactionGlobalId, String jobExecutionId) {
+    public Map<String, String> buildHeaders(String transactionId, String jobExecutionId) {
         return Map.of(
-                "x-cpf-transaction-global-id", transactionGlobalId,
+                "x-cpf-transaction-id", transactionId,
                 "x-cpf-batch-job-execution-id", jobExecutionId,
                 "x-cpf-client-module", "BAT");
     }

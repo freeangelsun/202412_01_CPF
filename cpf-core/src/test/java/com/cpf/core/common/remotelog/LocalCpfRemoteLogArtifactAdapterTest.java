@@ -26,7 +26,7 @@ class LocalCpfRemoteLogArtifactAdapterTest {
         LocalCpfRemoteLogArtifactAdapter adapter = new LocalCpfRemoteLogArtifactAdapter(writer, environment);
         Path logFile = tempDir.resolve("local/adm/admAP01/application/cpf-adm-application.log");
         Files.createDirectories(logFile.getParent());
-        Files.writeString(logFile, "{\"transactionGlobalId\":\"TX-001\",\"password\":\"secret\"}\n", StandardCharsets.UTF_8);
+        Files.writeString(logFile, "{\"transactionId\":\"TX-001\",\"password\":\"secret\"}\n", StandardCharsets.UTF_8);
 
         var artifacts = adapter.search(new CpfRemoteLogArtifactSearch(
                 "local", "ADM", "admAP01", "application", null, "TX-001", null, 10));
@@ -67,7 +67,7 @@ class LocalCpfRemoteLogArtifactAdapterTest {
 
         var artifacts = adapter.search(new CpfRemoteLogArtifactSearch(
                 "local", "ADM", "ADM", "admAP01", "batch", "cpf-adm",
-                null, "BADMRL0001", null, null, null,
+                null, "BADMRL0001", null, null,
                 "1001", null, null, "SCH-01",
                 Instant.now().minusSeconds(60), Instant.now().plusSeconds(60),
                 1L, 10_000L, false, null, 10));

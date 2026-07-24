@@ -1,273 +1,264 @@
-# CPF Generator Guide
+# CPF Generated Domain Guide
 
-## 1. Purpose
+## 1. 목적
 
-CPF Generator는 신규 업무 도메인을 공식 Module·Package·SystemCode·Config·SQL·Test·EDU 구조로 생성하고 검증합니다.
+CPF Generated Domain은 고객사의 신규 업무 주제영역을 사람이 복사해 만드는 방식이 아니라 **하나의 Golden Template + Metadata + 중앙 DB Vendor Template**으로 반복 생성하기 위한 제품 기능이다.
 
-## 2. Input Model
+`MBR`, `LNG`, `ING`, `PAY`, `INS`, `CRM`은 모두 예시일 뿐이며 Generator 코드에 특정 업무 Domain 목록을 하드코딩하지 않는다.
 
-필수 입력:
+## 2. 핵심 계약
 
-- `DomainName`: 읽을 수 있는 업무 이름
-- `SystemCode`: 3자리 대문자 내부 식별자
-- `BasePackage`: `com.cpf.<domain>`
-- `DbVendor`: MariaDB, PostgreSQL, Oracle, SQL Server
-- `Capabilities`: 필요한 기능 묶음
+생성형 Domain은 다음 Metadata만 다를 수 있다.
 
-선택 Capability:
-
-- `database`
-- `batch`
-- `external`
-- `messaging`
-- `file`
-- `ui`
-- `security`
-- `audit`
-- `local-call`
-- `remote-call`
-
-## 3. Lifecycle
-
-```mermaid
-flowchart LR
-    I[Input Validation] --> C[Create]
-    C --> D[DB Init]
-    D --> V[Verify]
-    V --> B[Build & Runtime]
-    B --> U[Use & Extend]
-    U --> X[Safe Delete]
-```
-
-- `create`: Module, Package, Build, Config, SQL, Test와 문서 생성
-- `db-init`: 선택 DB Vendor의 schema와 seed 적용
-- `verify`: 구조, 잔존, 충돌, build와 contract 검증
-- `delete`: 생성 소유 파일만 안전 삭제
-
-## 4. Create a Domain
-
-Windows:
-
-```powershell
-.\cpf-tools\generator\create-domain.ps1 `
-  -DomainName "payment" `
-  -SystemCode "PAY" `
-  -BasePackage "com.cpf.payment" `
-  -DbVendor "mariadb" `
-  -Capabilities "database,batch,external,messaging,ui"
-```
-
-Linux/macOS:
-
-```bash
-./cpf-tools/generator/create-domain.sh \
-  --domain-name payment \
-  --system-code PAY \
-  --base-package com.cpf.payment \
-  --db-vendor mariadb \
-  --capabilities database,batch,external,messaging,ui
-```
-
-## 5. Collision Validation
-
-생성 전에 다음을 검사합니다.
-
-- 예약 SystemCode
-- 기존 DomainName
-- `settings.gradle` 등록
-- Module 디렉터리
-- Java Package
-- Spring configuration prefix
-- Route
+- `DomainName`
+- `SystemCode` 3자리
+- Module/Package 이름
+- Schema/Database 이름
+- Table Prefix
 - Port
-- SQL schema와 Table prefix
-- Queue와 Topic
-- Frontend route와 menu code
-- ADM registry
-- 기존 Generator manifest
+- 선택 Capability
 
-충돌이 있으면 일부만 생성하지 않고 전체를 중단합니다.
+동일 Capability 조합이면 Controller/Facade/Service/Port/Adapter/Repository/Mapper/DTO/Test/DB 논리 구조는 이름을 normalize했을 때 동일해야 한다.
 
-## 6. Generated Structure
+기본 DB Sample은 `${TablePrefix}_sample_item` **1개**다. CPF 공통 기능을 사용하기 위해 각 업무 DB에 플랫폼 테이블을 복제하지 않는다.
+
+## 3. 기본 생성 결과
+
+DB를 사용하는 기본 생성형 Domain은 최소 다음을 포함한다.
 
 ```text
-cpf-payment/
+cpf-<domain>/
 ├─ build.gradle
-├─ src/main/java/com/cpf/payment/
-│  ├─ api/
-│  ├─ application/
-│  ├─ domain/
-│  ├─ port/
-│  ├─ adapter/
-│  ├─ validation/
-│  └─ config/
+├─ manifest/
+│  ├─ domain-manifest.json
+│  └─ generator-ownership.json
+├─ src/main/java/com/cpf/<domain>/
+│  ├─ common/base
+│  ├─ common/contract
+│  └─ reference/
+│     ├─ controller
+│     ├─ facade
+│     ├─ service
+│     ├─ port
+│     ├─ adapter/local
+│     ├─ adapter/remote
+│     ├─ repository
+│     ├─ dto
+│     └─ validation
 ├─ src/main/resources/
-│  ├─ application.yml
-│  ├─ db/migration/
-│  └─ openapi/
 ├─ src/test/
-├─ frontend/                capability 선택 시
-└─ GENERATOR_MANIFEST.json
+└─ sql/*.candidate.sql     # 중앙 제품 Metadata에 반영할 검토 후보
 ```
 
-선택하지 않은 Capability의 파일, Dependency, 설정과 빈 디렉터리가 남지 않아야 합니다.
+Batch, External, Messaging, File, UI 등은 명시 Capability일 때만 추가한다. 미선택 Capability의 빈 Package/Config/Dependency를 남기지 않는다.
 
-## 7. Database Vendor Matrix
+## 4. transactionId와 표준 Header
 
-```powershell
-.\cpf-tools\generator\verify-domain.ps1 `
-  -DomainName "payment" `
-  -VerifyVendors "mariadb,postgresql,oracle,sqlserver"
-```
+업무 Controller/DTO는 transport 식별자를 Body에 중복해서 받지 않는다.
 
-검증 항목:
+- `transactionId`: 동일 업무 흐름 전체에서 하나를 승계한다.
+- 외부/선행 호출이 유효한 transactionId를 주면 Core가 승계한다.
+- 내부 독립 기동이면 Core가 34자리 transactionId를 생성한다.
+- 세부 호출은 `segmentId`/`parentSegmentId`로 구분한다.
+- `standardExecutionId`는 `O<시스템><기능><일련번호>` 형태의 실행 **정의 ID**이며 transactionId와 별개다.
+- idempotency/user/operator/channel/trace/error/masking/audit는 CPF Core 공통 Filter/Context/Port 계약을 사용한다.
 
-- Driver와 Dependency
-- JDBC URL 형식
-- SQL dialect
-- Identity·Sequence
-- Timestamp와 Boolean
-- CLOB/BLOB
-- Index와 constraint
-- Flyway location
-- Build와 migration parse
+Generated Controller에 표준 Header 파싱/거래ID 생성/공통 오류 조립 코드를 반복 구현하면 Generator 결함으로 판정한다.
 
-## 8. Verify
+## 5. DB 정본
 
-```powershell
-.\cpf-tools\generator\verify-domain.ps1 -DomainName "payment"
-```
-
-필수 결과:
-
-- Module 등록
-- Package와 SystemCode 정합성
-- clean build
-- Unit test
-- OpenAPI 노출
-- 신규 설치 SQL
-- Local Facade
-- Remote Adapter
-- ADM 메뉴·권한 등록
-- 선택 Capability 존재
-- 미선택 Capability 잔존 0
-
-## 9. Safe Delete
-
-```powershell
-.\cpf-tools\generator\remove-domain.ps1 `
-  -DomainName "payment" `
-  -ExpectedSystemCode "PAY"
-```
-
-삭제 전:
-
-- Generator manifest 확인
-- 사용자 작성 파일 탐지
-- DB object 목록 출력
-- Consumer 탐지
-- Route·Topic·Menu 의존성 확인
-- 삭제 Plan 표시
-
-사용자 작성 파일 또는 외부 Consumer가 있으면 기본적으로 삭제를 중단합니다.
-
-## 10. Regeneration Parity
-
-공식 검증 기준은 `cpf-account`입니다.
+Generated Domain DDL/Seed/Mapper의 정본은 Generator Source 안의 문자열이 아니다.
 
 ```text
-snapshot
-→ delete
-→ residual scan
-→ create
-→ build
-→ test
-→ DB install
-→ Local/Remote runtime
-→ delete
-→ regenerate
-→ hash and semantic parity
+cpf-tools/db/vendor/<vendor>/domain-template/
+├─ provision/
+├─ install/
+├─ seed/
+├─ migration/
+├─ runtime/mybatis/
+├─ verify/
+└─ rollback/
 ```
 
-생성 시각과 UUID처럼 비결정 값은 parity 비교에서 제외합니다.
+`create-domain.ps1 -ProvisionDatabase`는 DB 작업을 직접 구현하지 않고 `initialize-domain-database.ps1`를 호출한다.
 
-## 11. Customization
-
-생성 후 업무 개발자는 다음 영역을 확장합니다.
-
-- `domain`
-- `application`
-- 고객 Adapter
-- 업무 Validation
-- API DTO
-- EDU scenario
-
-Generator가 관리하는 파일과 사용자 소유 파일을 manifest로 구분합니다.
-
-## 12. Troubleshooting
-
-### Module already exists
-
-- `settings.gradle`
-- 디렉터리
-- Generator manifest
-- ADM registry
-- SQL prefix
-
-를 함께 확인합니다.
-
-### Build succeeds but Runtime fails
-
-- component scan
-- configuration prefix
-- profile
-- datasource
-- migration
-- port
-- route
-
-를 확인합니다.
-
-### Delete leaves files
-
-Residual scan 결과를 확인하고 수동 삭제 전에 파일 Owner를 판단합니다.
-
-### Wrong package or SystemCode
-
-문자열 치환으로 수정하지 말고 삭제 후 올바른 입력으로 재생성합니다. 사용자 작성 코드는 diff를 검토하여 이관합니다.
-
-
-## 12. 확정 Generator 정책
-
-- `DomainName`은 읽을 수 있는 이름, `SystemCode`는 3자리 내부 식별자입니다.
-- 예약 Code, 기존 Registry, Module, Package, Config, Route, Menu, Schema, Table, Queue, Topic와 Log 충돌을 사전 검증합니다.
-- 공식 `cpf-*` 제품 Owner Module을 Generator로 재생성하지 않습니다.
-- 생성형 Reference는 MBR, ACC, REF와 신규 업무 도메인입니다.
-- 고객 업무 Table은 추정하여 대량 생성하지 않습니다.
-- 선택 Capability만 생성하고 미선택 기능의 Source/Config/SQL이 남지 않아야 합니다.
-- 생성 결과는 공식 Core Public API를 실제 사용해야 합니다.
-
-## 13. DB Lifecycle
+변경 순서는 항상 다음과 같다.
 
 ```text
-create
-→ db-init on empty schema
-→ verify
-→ build/test
-→ runtime smoke
-→ remove
-→ regenerate
-→ semantic/hash parity
+Vendor Domain Template
+→ initialize-domain-database
+→ Generated Repository/Mapper Contract
+→ Service/API/Test
+→ Runtime Evidence
 ```
 
-DB가 초기화된 회사·집 PC 양쪽에서 동일 결과가 나와야 합니다. MariaDB를 필수 실검증하고 다른 Vendor는 실제 Dialect/Migration/Runtime Evidence가 있을 때만 지원 완료로 표시합니다.
+## 6. 생성 Dry-Run
 
-## 14. 사용자 소유 파일 보호
+먼저 충돌만 검사한다.
 
-Manifest로 generated-owned와 user-owned를 구분합니다. Delete/Regenerate가 사용자 작성 Source를 삭제하거나 덮어쓰지 않도록 preview, backup 또는 명시적 conflict 처리를 제공합니다.
+```powershell
+pwsh -File .\cpf-tools\scripts\create-domain.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -DatabaseVendor "mariadb" `
+  -DryRun
+```
 
-## 11. Central Vendor Domain Template
+예약 SystemCode, 기존 Domain/Module/Package, Route, Port, Schema/Table Prefix, Manifest 충돌이 있으면 생성하지 않는다.
 
-Generated Domain은 MBR/ACC/REF/PAY/INS 고정 목록이 아니다. `DomainName`, `SystemCode`, `ModuleName`, `PackageName`, `SchemaName`, `TablePrefix` Metadata를 중앙 Vendor `domain-template`에 적용한다.
+## 7. Source + DB 생성
 
-신규 Domain 때문에 CPF Java switch/if를 수정하거나 Domain Module에 MariaDB/MySQL/PostgreSQL/Oracle/SQL Server SQL을 5벌 복제하면 설계 실패다. 기본 Reference DB 모델은 특정 업무 원장이 아니라 동일 논리 `*_sample_item`으로 CRUD/Search/Paging/Transaction/Local·Remote Call/Header/Error/Idempotency/Audit를 검증한다.
+Credential은 명령문에 직접 쓰지 말고 환경변수로 전달한다.
+
+```powershell
+$env:CPF_DOMAIN_DB_ADMIN_USERNAME = "root"
+$env:CPF_DOMAIN_DB_ADMIN_PASSWORD = "<local-secret>"
+$env:CPF_DOMAIN_DB_USERNAME       = "cpf_lng_migration"
+$env:CPF_DOMAIN_DB_PASSWORD       = "<local-secret>"
+
+pwsh -File .\cpf-tools\scripts\create-domain.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -DatabaseVendor "mariadb" `
+  -ProvisionDatabase `
+  -Apply
+```
+
+Generator는 Source/Manifest를 만든 뒤 중앙 Vendor Template을 이용해 Domain DB Provision → Install → Product Seed → Verify를 수행한다.
+
+## 8. 생성 결과 검증
+
+```powershell
+pwsh -File .\cpf-tools\scripts\verify-domain.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG"
+```
+
+검증 대상:
+
+- Module/Package/SystemCode/Manifest
+- Base/Facade/Port/Local/Remote/Repository 구조
+- 선택 Capability
+- Golden Sample Table/Mapper 계약
+- CRUD/Search/Paging/Validation
+- transactionId/idempotency/Core Header 계약
+- Build/Test
+
+## 9. DB 검증
+
+```powershell
+pwsh -File .\cpf-tools\scripts\initialize-domain-database.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -DatabaseVendor "mariadb" `
+  -Operation verify `
+  -Apply
+```
+
+실제 DB에서 `${TablePrefix}_sample_item`의 PK/UK/Index/Check와 Product Seed를 확인한다.
+
+## 10. CRUD Runtime Smoke
+
+생성 Domain WAS를 실행한 뒤 별도 터미널에서 lifecycle smoke를 수행한다.
+
+```powershell
+pwsh -File .\cpf-tools\scripts\smoke-generated-domain-lifecycle.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -Apply `
+  -ProvisionDatabase `
+  -RunHttpCrud `
+  -ServiceBaseUrl "http://localhost:8080"
+```
+
+Runtime Smoke는 동일 transactionId로 Create → Read → Update → Delete를 수행한다. 실제 WAS 포트는 생성 시 지정한 Port를 사용한다.
+
+## 11. Gateway 호출 방식
+
+Generated API는 일반 REST URL로 직접 호출할 수 있고, 외부 채널은 Gateway를 통해 `standardExecutionId`로 호출할 수 있다.
+
+- Header 방식: `X-Cpf-Standard-Execution-Id: OLNGQY0001`
+- URI 방식: `/cpf/execute/OLNGQY0001`
+
+둘은 실행 정의를 선택하는 방법일 뿐 transactionId를 대체하지 않는다. Gateway/Core가 transactionId를 생성 또는 승계하고 하위 호출에 전파한다.
+
+## 12. 안전 삭제
+
+삭제 전 반드시 Dry-Run한다.
+
+```powershell
+pwsh -File .\cpf-tools\scripts\remove-domain.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -DryRun
+```
+
+다른 Source/SQL/Config가 참조하거나 사용자 소유 파일이 있으면 제거가 차단된다.
+
+실제 Generated Source 제거:
+
+```powershell
+pwsh -File .\cpf-tools\scripts\remove-domain.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG"
+```
+
+이 명령은 업무 DB를 자동 DROP하지 않는다. DB 삭제는 백업/승인/명시 절차로 수행한다.
+
+## 13. 삭제 후 재생성 결정성
+
+```powershell
+pwsh -File .\cpf-tools\scripts\smoke-generated-domain-lifecycle.ps1 `
+  -DomainName "lng" `
+  -SystemCode "LNG" `
+  -Apply `
+  -RoundTrip `
+  -ConfirmGeneratedSourceRemoval
+```
+
+첫 생성과 재생성의 Generator-owned Source Hash가 다르면 실패한다.
+
+## 14. 서로 다른 Domain Parity
+
+두 Generated Domain을 같은 Capability로 생성한 후:
+
+```powershell
+pwsh -File .\cpf-tools\scripts\check-generated-domain-parity.ps1 `
+  -ReferenceDomain "lng" `
+  -CandidateDomain "ing"
+```
+
+DomainName/SystemCode/Module/Package/Schema/TablePrefix/Port를 normalize한 뒤 파일 구조와 내용 Hash를 비교한다.
+
+MBR은 최종적으로 이 Gate를 통과하는 checked-in Golden Reference Instance가 되어야 한다. 현재 수작업 MBR Source를 무조건 표준으로 간주하지 않는다.
+
+## 15. ACC/EXS 같은 기존 고정 Domain
+
+기존 고정 Domain에 실제 Consumer가 남아 있으면 DB나 Source를 먼저 삭제하지 않는다.
+
+```text
+Consumer Inventory
+→ 기능 Owner 이관
+→ Regression
+→ Generated Domain/Customer Adapter로 전환
+→ 고정 Module/Schema 제거
+```
+
+ACC나 EXS 이름을 Generator의 예약 Template로 하드코딩하지 않는다.
+
+## 16. 완료 판정
+
+다음이 모두 증명되어야 Generated Domain 기능을 `완료`로 판정한다.
+
+- arbitrary Domain 생성 성공
+- 실제 MariaDB bootstrap 성공
+- CRUD/Search/Paging/Validation/Optimistic Lock/Commit/Rollback 성공
+- Core Header/transactionId/Error/Idempotency 연결
+- Local/Remote 호출 parity
+- 생성→삭제→재생성 결정성
+- 두 임의 Domain normalized parity
+- 사용자 소유 파일 보호
+- Generated DB 자동 DROP 없음
+- 최신 Commit과 일치하는 실행 Evidence
+
+실행하지 않은 항목은 `미검증`이다.

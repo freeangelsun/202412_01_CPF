@@ -57,14 +57,14 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     @Override
     public List<Map<String, Object>> findOutbox(
             String status,
-            String transactionGlobalId,
+            String transactionId,
             String topic,
             int limit) {
         if (!available()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
-                SELECT outbox_id, message_id, topic, message_key, transaction_global_id, segment_id,
+                SELECT outbox_id, message_id, topic, message_key, transaction_id, segment_id,
                        producer_module, consumer_module, idempotency_key, outbox_status, worker_id,
                        broker_name, partition_key, failure_message, occurred_at, claimed_at, published_at,
                        created_at, updated_at
@@ -73,7 +73,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 """);
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "outbox_status", status);
-        appendEquals(sql, args, "transaction_global_id", transactionGlobalId);
+        appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "topic", topic);
         sql.append(" ORDER BY outbox_id DESC LIMIT ?");
         args.add(safeLimit(limit));
@@ -102,14 +102,14 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     @Override
     public List<Map<String, Object>> findDlq(
             String status,
-            String transactionGlobalId,
+            String transactionId,
             String topic,
             int limit) {
         if (!available()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
-                SELECT dlq_id, message_id, topic, transaction_global_id, segment_id, failure_reason,
+                SELECT dlq_id, message_id, topic, transaction_id, segment_id, failure_reason,
                        replay_status, replay_count, replay_requested_at, replay_completed_at,
                        created_at, updated_at
                 FROM cpf_broker_dlq
@@ -117,7 +117,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 """);
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "replay_status", status);
-        appendEquals(sql, args, "transaction_global_id", transactionGlobalId);
+        appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "topic", topic);
         sql.append(" ORDER BY dlq_id DESC LIMIT ?");
         args.add(safeLimit(limit));
@@ -127,14 +127,14 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     @Override
     public List<Map<String, Object>> findFileTransfers(
             String status,
-            String transactionGlobalId,
+            String transactionId,
             String endpointCode,
             int limit) {
         if (!available()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
-                SELECT history_id, transfer_id, transaction_global_id, segment_id, endpoint_code,
+                SELECT history_id, transfer_id, transaction_id, segment_id, endpoint_code,
                        transfer_operation, local_path, remote_path, checksum, file_size, duplicate_key,
                        transfer_status, result_detail, completed_at, created_at, updated_at
                 FROM cpf_file_transfer_history
@@ -142,7 +142,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 """);
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "transfer_status", status);
-        appendEquals(sql, args, "transaction_global_id", transactionGlobalId);
+        appendEquals(sql, args, "transaction_id", transactionId);
         appendEquals(sql, args, "endpoint_code", endpointCode);
         sql.append(" ORDER BY history_id DESC LIMIT ?");
         args.add(safeLimit(limit));
@@ -153,13 +153,13 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
     public List<Map<String, Object>> findUnknownResults(
             String type,
             String status,
-            String transactionGlobalId,
+            String transactionId,
             int limit) {
         if (!available()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
-                SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_global_id,
+                SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_id,
                        segment_id, external_key, failure_code, failure_message, next_action,
                        detected_at, resolved_at, resolved_by, audit_reason, created_at, updated_at
                 FROM cpf_unknown_result
@@ -168,7 +168,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         List<Object> args = new ArrayList<>();
         appendEquals(sql, args, "unknown_type", type);
         appendEquals(sql, args, "unknown_status", status);
-        appendEquals(sql, args, "transaction_global_id", transactionGlobalId);
+        appendEquals(sql, args, "transaction_id", transactionId);
         sql.append(" ORDER BY unknown_seq DESC LIMIT ?");
         args.add(safeLimit(limit));
         return jdbc().queryForList(sql.toString(), args.toArray());

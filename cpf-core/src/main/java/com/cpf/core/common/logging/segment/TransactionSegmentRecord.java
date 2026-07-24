@@ -7,9 +7,7 @@ import java.time.LocalDateTime;
  */
 public class TransactionSegmentRecord {
     private String transactionSegmentId;
-    private String transactionGlobalId;
-    private String rootTransactionGlobalId;
-    private String parentTransactionGlobalId;
+    private String transactionId;
     private String parentSegmentId;
     private String transactionRole;
     private String moduleCode;
@@ -59,29 +57,15 @@ public class TransactionSegmentRecord {
         this.transactionSegmentId = transactionSegmentId;
     }
 
-    public String getTransactionGlobalId() {
-        return transactionGlobalId;
+    public String getTransactionId() {
+        return transactionId;
     }
 
-    public void setTransactionGlobalId(String transactionGlobalId) {
-        this.transactionGlobalId = transactionGlobalId;
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
-    public String getRootTransactionGlobalId() {
-        return rootTransactionGlobalId;
-    }
 
-    public void setRootTransactionGlobalId(String rootTransactionGlobalId) {
-        this.rootTransactionGlobalId = rootTransactionGlobalId;
-    }
-
-    public String getParentTransactionGlobalId() {
-        return parentTransactionGlobalId;
-    }
-
-    public void setParentTransactionGlobalId(String parentTransactionGlobalId) {
-        this.parentTransactionGlobalId = parentTransactionGlobalId;
-    }
 
     public String getParentSegmentId() {
         return parentSegmentId;

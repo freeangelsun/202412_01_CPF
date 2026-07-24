@@ -12,7 +12,7 @@ pluginManagement {
 rootProject.name = 'cpf-core-platform-framework'
 
 include 'cpf-core', 'cpf-common', 'cpf-member', 'cpf-reference'
-include 'cpf-admin', 'cpf-biz-admin', 'cpf-batch', 'cpf-gateway', 'cpf-account', 'cpf-external'
+include 'cpf-admin', 'cpf-biz-admin', 'cpf-batch', 'cpf-gateway', 'cpf-account'
 // 추가 업무 모듈은 create-domain 생성기로 만든 뒤 명시적으로 등록합니다.
 // include 'cpf-card', 'cpf-loan', 'cpf-payment'
 
@@ -25,4 +25,3 @@ project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-batch').projectDir = file('cpf-batch')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-account').projectDir = file('cpf-account')
-project(':cpf-external').projectDir = file('cpf-external')

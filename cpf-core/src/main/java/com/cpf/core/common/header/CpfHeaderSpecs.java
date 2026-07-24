@@ -16,12 +16,9 @@ import java.util.Set;
  */
 public final class CpfHeaderSpecs {
     private static final List<CpfHeaderSpec> ALL = List.of(
-            spec(CpfHeaderNames.TRANSACTION_ID, CpfHeaderCategory.REQUIRED, "CPF 거래 글로벌 ID", "클라이언트 또는 CPF", "수신 인터셉터", true, true, "TRANSACTION_ID", 64, true, false, "요약"),
+            spec(CpfHeaderNames.TRANSACTION_ID, CpfHeaderCategory.REQUIRED, "CPF 거래 글로벌 ID", "클라이언트 또는 CPF", "수신 인터셉터", true, true, "TRANSACTION_ID", 34, true, false, "요약"),
             spec(CpfHeaderNames.STANDARD_EXECUTION_ID, CpfHeaderCategory.RECOMMENDED, "CPF O·S·B 10자리 표준 실행 ID", "호출 서비스 또는 CPF", "수신 인터셉터", true, true, "BUSINESS_TRANSACTION_ID", 10, true, false, "요약"),
             spec(CpfHeaderNames.PROTOCOL_VERSION, CpfHeaderCategory.RECOMMENDED, "CPF 서비스 호출 규격 버전", "호출 서비스 또는 CPF", "수신 인터셉터", true, true, null, 20, true, false, "호출"),
-            spec(CpfHeaderNames.PARENT_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "직전 상위 거래 ID", "상위 서비스", "CPF 헤더 추출기", true, false, "PARENT_TRANSACTION_ID", 64, true, false, "추적"),
-            spec(CpfHeaderNames.ORIGINAL_TRANSACTION_ID, CpfHeaderCategory.RECOMMENDED, "최초 유입 거래 ID", "최초 유입 서비스", "CPF 헤더 추출기", true, false, "ORIGINAL_TRANSACTION_ID", 64, true, false, "추적"),
-            spec(CpfHeaderNames.ROOT_TRANSACTION_ID, CpfHeaderCategory.INTERNAL_ONLY, "복합 거래 최초 거래 ID", "CPF", "CPF 구간 추적", true, false, null, 100, true, false, "추적"),
             spec(CpfHeaderNames.TRANSACTION_SEGMENT_ID, CpfHeaderCategory.INTERNAL_ONLY, "현재 거래 구간 ID", "CPF", "CPF 구간 추적", true, false, null, 120, true, false, "추적"),
             spec(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, CpfHeaderCategory.INTERNAL_ONLY, "상위 거래 구간 ID", "CPF", "CPF 구간 추적", true, false, null, 120, true, false, "추적"),
             spec(CpfHeaderNames.TRANSACTION_CALL_DEPTH, CpfHeaderCategory.INTERNAL_ONLY, "거래 구간 호출 깊이", "CPF", "CPF 구간 추적", true, false, null, 10, true, false, "추적"),

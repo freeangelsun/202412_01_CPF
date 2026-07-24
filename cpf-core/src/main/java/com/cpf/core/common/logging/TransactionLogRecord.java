@@ -93,4 +93,40 @@ public class TransactionLogRecord {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Long durationMs;
+
+    /**
+     * 표준 실행 정의 ID(O/S/B + SystemCode 기반)를 반환합니다.
+     * 기존 businessTransactionId 필드는 저장 호환성을 위해 남겨 두되 신규 코드는 이 명칭을 사용합니다.
+     */
+    public String getStandardExecutionId() {
+        return businessTransactionId;
+    }
+
+    public void setStandardExecutionId(String standardExecutionId) {
+        this.businessTransactionId = standardExecutionId;
+    }
+
+    public String getStandardExecutionName() {
+        return businessTransactionName;
+    }
+
+    public void setStandardExecutionName(String standardExecutionName) {
+        this.businessTransactionName = standardExecutionName;
+    }
+
+    /**
+     * 신규 Source/EDU는 공식 standardExecution 명칭을 사용하고,
+     * 내부 저장 필드는 기존 businessTransaction* 필드에 매핑해 호환성을 유지합니다.
+     */
+    public static class TransactionLogRecordBuilder {
+        public TransactionLogRecordBuilder standardExecutionId(String standardExecutionId) {
+            this.businessTransactionId = standardExecutionId;
+            return this;
+        }
+
+        public TransactionLogRecordBuilder standardExecutionName(String standardExecutionName) {
+            this.businessTransactionName = standardExecutionName;
+            return this;
+        }
+    }
 }

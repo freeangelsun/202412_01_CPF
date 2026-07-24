@@ -12,17 +12,17 @@ import java.util.Map;
  */
 public class ReferenceBrokerPublishEducationSample {
 
-    public CpfBrokerEnvelope publishPlan(String transactionGlobalId, String idempotencyKey) {
+    public CpfBrokerEnvelope publishPlan(String transactionId, String idempotencyKey) {
         CpfBrokerMessage message = new CpfBrokerMessage(
                 "REF-" + idempotencyKey,
                 "com.cpf.reference.changed",
                 idempotencyKey,
                 "{\"eventType\":\"REF_CHANGED\"}".getBytes(StandardCharsets.UTF_8),
                 "application/json",
-                Map.of("x-cpf-transaction-global-id", transactionGlobalId));
+                Map.of("x-cpf-transaction-id", transactionId));
         return new CpfBrokerEnvelope(
-                transactionGlobalId,
-                transactionGlobalId + "-BROKER",
+                transactionId,
+                transactionId + "-BROKER",
                 "REF",
                 "MBR",
                 idempotencyKey,

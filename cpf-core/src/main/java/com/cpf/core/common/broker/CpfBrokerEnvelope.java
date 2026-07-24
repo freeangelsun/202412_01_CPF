@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * broker 메시지의 거래 추적 envelope입니다.
+ * Broker 메시지의 CPF 거래 추적 envelope입니다.
  *
- * <p>transactionGlobalId와 segmentId를 broker 전달 단위에 항상 붙여 온라인 거래,
- * 배치, 외부연계가 같은 추적 기준으로 연결되게 합니다.</p>
+ * <p>{@code transactionId}는 최초 진입부터 local/remote/async/batch 후속 처리까지
+ * 동일 업무 흐름 전체가 승계하는 유일한 전역 거래 ID입니다. 세부 호출 계층은 segmentId로 구분합니다.</p>
  */
 public record CpfBrokerEnvelope(
-        String transactionGlobalId,
+        String transactionId,
         String segmentId,
         String producerModule,
         String consumerModule,
@@ -26,4 +26,5 @@ public record CpfBrokerEnvelope(
         occurredAt = occurredAt == null ? Instant.now() : occurredAt;
         attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
     }
+
 }

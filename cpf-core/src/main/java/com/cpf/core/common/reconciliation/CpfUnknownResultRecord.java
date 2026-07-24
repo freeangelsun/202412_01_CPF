@@ -9,7 +9,7 @@ public record CpfUnknownResultRecord(
         String unknownId,
         String unknownType,
         String unknownStatus,
-        String transactionGlobalId,
+        String transactionId,
         String segmentId,
         String externalKey,
         String failureCode,

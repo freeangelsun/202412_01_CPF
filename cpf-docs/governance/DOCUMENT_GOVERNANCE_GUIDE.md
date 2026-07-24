@@ -3,7 +3,7 @@
 ## 1. 정본 원칙
 
 - Root `README.md`: 유일한 제품 README
-- `CPF_FINAL_TARGET_REQUIREMENTS.md`: 최상위 목표
+- `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`: 최상위 목표
 - Architecture: 구조, Ownership와 계약
 - Developer/API/Security/Operations Guide: 역할별 사용법
 - Work/Review: 작업 요청, 검수와 진행

@@ -50,7 +50,6 @@ public final class CpfHeaderPropagator {
         Map<String, String> outbound = CpfHeaderMasker.maskHeaders(outboundHeaders());
         Map<String, String> response = new LinkedHashMap<>();
         putIfHasText(response, CpfHeaderNames.TRANSACTION_ID, TransactionContext.currentTransactionId());
-        putIfHasText(response, CpfHeaderNames.ROOT_TRANSACTION_ID, TransactionSegmentContext.rootTransactionGlobalId());
         putIfHasText(response, CpfHeaderNames.TRANSACTION_SEGMENT_ID, TransactionSegmentContext.currentSegmentId());
         putIfHasText(response, CpfHeaderNames.TRACE_ID, TransactionContext.currentTraceId());
         putIfHasText(response, CpfHeaderNames.SPAN_ID, TransactionContext.currentSpanId());
@@ -64,15 +63,8 @@ public final class CpfHeaderPropagator {
             boolean outbound) {
         String transactionId = TransactionContext.getOrCreateTransactionId();
         putIfHasText(headers, CpfHeaderNames.TRANSACTION_ID, transactionId);
-        putIfHasText(headers, CpfHeaderNames.STANDARD_EXECUTION_ID, TransactionContext.currentBusinessTransactionId());
+        putIfHasText(headers, CpfHeaderNames.STANDARD_EXECUTION_ID, TransactionContext.currentStandardExecutionId());
         headers.put(CpfHeaderNames.PROTOCOL_VERSION, "1.0");
-        putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_ID, outbound
-                ? transactionId
-                : headerValue(transactionHeader, TransactionHeader::getParentTransactionId));
-        putIfHasText(headers, CpfHeaderNames.ORIGINAL_TRANSACTION_ID, firstText(
-                headerValue(transactionHeader, TransactionHeader::getOriginalTransactionId),
-                headerValue(transactionHeader, TransactionHeader::getParentTransactionId),
-                transactionId));
         putIfHasText(headers, CpfHeaderNames.REQUEST_ID, headerValue(transactionHeader, TransactionHeader::getRequestId));
         putIfHasText(headers, CpfHeaderNames.EXTERNAL_REQUEST_ID, headerValue(transactionHeader, TransactionHeader::getExternalRequestId));
         putIfHasText(headers, CpfHeaderNames.CORRELATION_ID, headerValue(transactionHeader, TransactionHeader::getCorrelationId));
@@ -89,13 +81,16 @@ public final class CpfHeaderPropagator {
     }
 
     private static void appendSegmentHeaders(Map<String, String> headers) {
+        /*
+         * transactionId는 호출 구간이 바뀌어도 그대로 승계합니다.
+         * 하위 서비스는 전달받은 parent segment를 기준으로 자기 segmentId를 새로 생성하므로
+         * outbound에서 현재 segment를 child의 parentSegmentId로만 전달합니다.
+         */
         String currentSegmentId = TransactionSegmentContext.currentSegmentId();
-        putIfHasText(headers, CpfHeaderNames.ROOT_TRANSACTION_ID, TransactionSegmentContext.rootTransactionGlobalId());
-        putIfHasText(headers, CpfHeaderNames.TRANSACTION_SEGMENT_ID, currentSegmentId);
         putIfHasText(headers, CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, currentSegmentId);
         int callDepth = TransactionSegmentContext.currentCallDepth();
         if (callDepth >= 0) {
-            headers.put(CpfHeaderNames.TRANSACTION_CALL_DEPTH, String.valueOf(callDepth));
+            headers.put(CpfHeaderNames.TRANSACTION_CALL_DEPTH, String.valueOf(callDepth + 1));
         }
     }
 
@@ -166,12 +161,6 @@ public final class CpfHeaderPropagator {
         }
     }
 
-    private static String firstText(String first, String second, String third) {
-        if (hasText(first)) {
-            return first;
-        }
-        return hasText(second) ? second : third;
-    }
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();

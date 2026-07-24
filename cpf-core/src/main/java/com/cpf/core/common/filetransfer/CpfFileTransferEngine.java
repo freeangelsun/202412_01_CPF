@@ -75,7 +75,7 @@ public class CpfFileTransferEngine {
                 null,
                 "FILE_TRANSFER",
                 "CHECK_PENDING",
-                request.transactionGlobalId(),
+                request.transactionId(),
                 request.segmentId(),
                 duplicateKey(request),
                 "CPF-FILE-UNKNOWN",

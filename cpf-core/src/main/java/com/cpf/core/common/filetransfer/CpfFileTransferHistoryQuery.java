@@ -9,7 +9,7 @@ public record CpfFileTransferHistoryQuery(
         String endpointCode,
         String protocol,
         String status,
-        String transactionGlobalId,
+        String transactionId,
         Instant from,
         Instant to,
         int limit) {

@@ -8,7 +8,7 @@ import java.time.Instant;
 public record CpfBrokerDlqReplayResult(
         String messageId,
         String status,
-        String replayTransactionGlobalId,
+        String replayTransactionId,
         Instant completedAt,
         String detail) {
 

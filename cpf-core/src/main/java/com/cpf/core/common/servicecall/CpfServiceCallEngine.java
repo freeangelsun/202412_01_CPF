@@ -311,7 +311,7 @@ public class CpfServiceCallEngine {
                     unknownId,
                     "SERVICE_CALL",
                     "CHECK_PENDING",
-                    scope != null ? scope.transactionGlobalId() : textAttribute(request, "transactionGlobalId", null),
+                    scope != null ? scope.transactionId() : textAttribute(request, "transactionId", null),
                     scope != null ? scope.transactionSegmentId() : null,
                     textAttribute(request, "externalKey", target != null ? target.instanceId() : null),
                     failureCode,

@@ -1,4 +1,4 @@
-import { createTransactionGlobalId, defaultHeaders } from "../../shared/transaction";
+import { createTransactionId, defaultHeaders } from "../../shared/transaction";
 
 export const coreMethods: Record<string, any> = {
   pretty(value) {
@@ -30,7 +30,7 @@ export const coreMethods: Record<string, any> = {
   apiHeaders(extraHeaders = {}) {
         const headers: Record<string, string> = {
           ...defaultHeaders,
-          "X-Transaction-Id": createTransactionGlobalId(),
+          "X-Transaction-Id": createTransactionId(),
           ...extraHeaders
         };
         if (this.token) {

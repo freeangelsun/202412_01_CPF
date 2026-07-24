@@ -9,7 +9,7 @@ public record CpfBrokerHistoryQuery(
         String brokerName,
         String topic,
         String messageId,
-        String transactionGlobalId,
+        String transactionId,
         String status,
         Instant from,
         Instant to,

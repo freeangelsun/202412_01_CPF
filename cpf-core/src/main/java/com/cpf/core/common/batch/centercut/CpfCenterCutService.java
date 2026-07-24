@@ -1,5 +1,8 @@
 package com.cpf.core.common.batch.centercut;
 
+import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.common.logging.segment.TransactionSegmentContext;
+
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,18 +14,23 @@ import java.util.function.Supplier;
 
 /**
  * center-cut 대상 조회부터 결과 반영까지의 표준 실행 흐름을 제공합니다.
+ *
+ * <p>하나의 center-cut 업무 흐름은 transactionId 하나를 승계합니다. 각 item 실행은 별도
+ * transactionSegmentId로 구분하며, parentSegmentId는 호출/배치 상위 실행 segment를 가리킵니다.</p>
  */
 public class CpfCenterCutService {
-    private static final DateTimeFormatter CHILD_ID_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    private static final DateTimeFormatter SEGMENT_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
-    private final Supplier<String> childTransactionIdSupplier;
+    private final Supplier<String> transactionSegmentIdSupplier;
 
     public CpfCenterCutService() {
-        this(new LocalChildTransactionIdSupplier(Clock.systemDefaultZone()));
+        this(new LocalCenterCutSegmentIdSupplier(Clock.systemDefaultZone()));
     }
 
-    public CpfCenterCutService(Supplier<String> childTransactionIdSupplier) {
-        this.childTransactionIdSupplier = Objects.requireNonNull(childTransactionIdSupplier, "childTransactionIdSupplier");
+    public CpfCenterCutService(Supplier<String> transactionSegmentIdSupplier) {
+        this.transactionSegmentIdSupplier = Objects.requireNonNull(
+                transactionSegmentIdSupplier,
+                "transactionSegmentIdSupplier");
     }
 
     public CpfCenterCutSummary execute(
@@ -42,6 +50,9 @@ public class CpfCenterCutService {
             return CpfCenterCutSummary.empty(centerCutJobId);
         }
 
+        String executionTransactionId = TransactionContext.getOrCreateTransactionId();
+        String executionParentSegmentId = TransactionSegmentContext.currentSegmentId();
+
         int success = 0;
         int failed = 0;
         int skipped = 0;
@@ -49,10 +60,16 @@ public class CpfCenterCutService {
         int stopRequested = 0;
 
         for (CpfCenterCutTarget target : targets) {
-            String childTransactionGlobalId = resolveChildTransactionGlobalId(target);
-            CpfCenterCutTarget runningTarget = target.withChildTransactionGlobalId(childTransactionGlobalId);
-            provider.markRunning(runningTarget, childTransactionGlobalId);
-            CpfCenterCutResult result = handleSafely(runningTarget, handler, childTransactionGlobalId);
+            String transactionId = firstText(target.transactionId(), executionTransactionId);
+            String parentSegmentId = firstText(target.parentSegmentId(), executionParentSegmentId);
+            String transactionSegmentId = nextTransactionSegmentId();
+
+            CpfCenterCutTarget runningTarget = target
+                    .withExecutionContext(transactionId, parentSegmentId, transactionSegmentId)
+                    .withStatus(CpfCenterCutStatus.RUNNING);
+
+            provider.markRunning(runningTarget);
+            CpfCenterCutResult result = handleSafely(runningTarget, handler);
             provider.markResult(runningTarget, result);
 
             switch (result.status()) {
@@ -77,52 +94,58 @@ public class CpfCenterCutService {
 
     private CpfCenterCutResult handleSafely(
             CpfCenterCutTarget target,
-            CenterCutHandler handler,
-            String childTransactionGlobalId) {
+            CenterCutHandler handler) {
         try {
             CpfCenterCutResult result = handler.handle(target);
             if (result == null) {
-                return CpfCenterCutResult.failed(target, "center-cut handler가 결과를 반환하지 않았습니다.", null, childTransactionGlobalId);
+                return CpfCenterCutResult.failed(
+                        target,
+                        "center-cut handler가 결과를 반환하지 않았습니다.",
+                        null);
             }
-            if (result.childTransactionGlobalId() == null || result.childTransactionGlobalId().isBlank()) {
+            if (result.transactionSegmentId() == null || result.transactionSegmentId().isBlank()) {
                 return new CpfCenterCutResult(
                         result.targetId(),
                         result.status(),
                         result.message(),
                         result.resultPayload(),
-                        childTransactionGlobalId);
+                        target.transactionSegmentId());
             }
             return result;
         } catch (Exception ex) {
-            return CpfCenterCutResult.failed(target, ex.getMessage(), null, childTransactionGlobalId);
+            return CpfCenterCutResult.failed(target, ex.getMessage(), null);
         }
     }
 
-    private String resolveChildTransactionGlobalId(CpfCenterCutTarget target) {
-        if (target.childTransactionGlobalId() != null && !target.childTransactionGlobalId().isBlank()) {
-            return target.childTransactionGlobalId();
-        }
-        String generated = childTransactionIdSupplier.get();
+    private String nextTransactionSegmentId() {
+        String generated = transactionSegmentIdSupplier.get();
         if (generated == null || generated.isBlank()) {
-            throw new IllegalStateException("center-cut 자식 거래 ID를 생성하지 못했습니다.");
+            throw new IllegalStateException("center-cut transactionSegmentId를 생성하지 못했습니다.");
+        }
+        if (generated.length() > 120) {
+            throw new IllegalStateException("center-cut transactionSegmentId는 120자를 초과할 수 없습니다.");
         }
         return generated;
     }
 
-    private static final class LocalChildTransactionIdSupplier implements Supplier<String> {
+    private static String firstText(String first, String second) {
+        return first != null && !first.isBlank() ? first.trim() : second;
+    }
+
+    private static final class LocalCenterCutSegmentIdSupplier implements Supplier<String> {
         private final Clock clock;
         private final AtomicLong sequence = new AtomicLong();
 
-        private LocalChildTransactionIdSupplier(Clock clock) {
+        private LocalCenterCutSegmentIdSupplier(Clock clock) {
             this.clock = clock;
         }
 
         @Override
         public String get() {
             long next = sequence.incrementAndGet() % 10_000_000L;
-            return LocalDateTime.now(clock).format(CHILD_ID_TIME_FORMAT)
-                    + "BAT"
-                    + "centcut"
+            return "CC-"
+                    + LocalDateTime.now(clock).format(SEGMENT_TIME_FORMAT)
+                    + "-"
                     + String.format(Locale.ROOT, "%07d", next);
         }
     }

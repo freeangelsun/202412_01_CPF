@@ -77,7 +77,7 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
         row.put("messageId", "msg-002");
         row.put("topic", "cpf.topic");
         row.put("messageKey", "key-1");
-        row.put("transactionGlobalId", "202607100001");
+        row.put("transactionId", "202607100001");
         row.put("segmentId", "SEG-1");
         row.put("producerModule", "REF");
         row.put("consumerModule", "MBR");

@@ -11,7 +11,7 @@ class ReferenceTransactionEducationSampleTest {
         ReferenceTransactionEducationSample.TransactionStep step = new ReferenceTransactionEducationSample()
                 .changeStatus("T-001", "READY", "DONE");
 
-        assertThat(step.transactionGlobalId()).isEqualTo("T-001");
+        assertThat(step.transactionId()).isEqualTo("T-001");
         assertThat(step.action()).isEqualTo("COMMIT");
     }
 }

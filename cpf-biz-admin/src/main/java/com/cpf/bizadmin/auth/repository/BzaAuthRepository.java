@@ -98,7 +98,7 @@ public class BzaAuthRepository {
                     failure_reason,
                     client_ip,
                     user_agent,
-                    transaction_global_id,
+                    transaction_id,
                     module_id,
                     was_id,
                     server_instance_id,
@@ -113,7 +113,7 @@ public class BzaAuthRepository {
                     :failureReason,
                     :clientIp,
                     :userAgent,
-                    :transactionGlobalId,
+                    :transactionId,
                     :moduleId,
                     :wasId,
                     :serverInstanceId,
@@ -128,7 +128,7 @@ public class BzaAuthRepository {
                 .addValue("failureReason", row.failureReason())
                 .addValue("clientIp", row.clientIp())
                 .addValue("userAgent", row.userAgent())
-                .addValue("transactionGlobalId", row.transactionGlobalId())
+                .addValue("transactionId", row.transactionId())
                 .addValue("moduleId", row.moduleId())
                 .addValue("wasId", row.wasId())
                 .addValue("serverInstanceId", row.serverInstanceId()));
@@ -143,7 +143,7 @@ public class BzaAuthRepository {
                     admin_user_id,
                     login_domain,
                     refresh_token_hash,
-                    transaction_global_id,
+                    transaction_id,
                     expire_at,
                     revoked_yn,
                     created_by,
@@ -153,7 +153,7 @@ public class BzaAuthRepository {
                     :adminUserId,
                     :loginDomain,
                     :refreshTokenHash,
-                    :transactionGlobalId,
+                    :transactionId,
                     :expireAt,
                     'N',
                     'BZA_AUTH',
@@ -163,7 +163,7 @@ public class BzaAuthRepository {
                 .addValue("adminUserId", row.adminUserId())
                 .addValue("loginDomain", row.loginDomain())
                 .addValue("refreshTokenHash", row.refreshTokenHash())
-                .addValue("transactionGlobalId", row.transactionGlobalId())
+                .addValue("transactionId", row.transactionId())
                 .addValue("expireAt", Timestamp.from(row.expireAt())));
     }
 
@@ -177,7 +177,7 @@ public class BzaAuthRepository {
                        rt.login_domain,
                        rt.expire_at,
                        rt.revoked_yn,
-                       rt.transaction_global_id,
+                       rt.transaction_id,
                        u.admin_login_id
                   FROM bza_refresh_token rt
                   JOIN bza_admin_user u
@@ -213,10 +213,10 @@ public class BzaAuthRepository {
     public void insertBusinessAudit(Map<String, ?> values) {
         jdbc().update("""
                 INSERT INTO bza_business_audit (
-                    transaction_global_id, actor_id, action_type, target_type, target_id,
+                    transaction_id, actor_id, action_type, target_type, target_id,
                     reason, before_data, after_data, created_by, updated_by
                 ) VALUES (
-                    :transactionGlobalId, :actorId, :actionType, :targetType, :targetId,
+                    :transactionId, :actorId, :actionType, :targetType, :targetId,
                     :reason, :beforeData, :afterData, :actorId, :actorId
                 )
                 """, values);
@@ -309,7 +309,7 @@ public class BzaAuthRepository {
                 rs.getString("login_domain"),
                 toInstant(rs.getTimestamp("expire_at")),
                 "Y".equals(rs.getString("revoked_yn")),
-                rs.getString("transaction_global_id"));
+                rs.getString("transaction_id"));
     }
 
     private Instant toInstant(Timestamp timestamp) {
@@ -355,7 +355,7 @@ public class BzaAuthRepository {
             String loginDomain,
             Instant expiresAt,
             boolean revoked,
-            String transactionGlobalId) {
+            String transactionId) {
     }
 
     public record LoginHistoryWrite(
@@ -366,7 +366,7 @@ public class BzaAuthRepository {
             String failureReason,
             String clientIp,
             String userAgent,
-            String transactionGlobalId,
+            String transactionId,
             String moduleId,
             String wasId,
             String serverInstanceId) {
@@ -376,7 +376,7 @@ public class BzaAuthRepository {
             long adminUserId,
             String loginDomain,
             String refreshTokenHash,
-            String transactionGlobalId,
+            String transactionId,
             Instant expireAt) {
     }
 }

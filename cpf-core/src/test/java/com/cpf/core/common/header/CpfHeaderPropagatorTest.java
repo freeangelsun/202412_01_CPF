@@ -16,16 +16,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CpfHeaderPropagatorTest {
     @AfterEach
     void tearDown() {
+        TransactionSegmentContext.clear();
         TransactionContext.clear();
         RequestContextHolder.resetRequestAttributes();
     }
 
     @Test
-    void contextGettersAndOutboundHeadersUseResolvedTransactionContext() {
+    void contextGettersAndOutboundHeadersUseSingleTransactionId() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         TransactionHeader header = TransactionHeader.builder()
-                .originalTransactionId("20260615115900000MBRlocal010000009")
                 .requestId("REQ-1")
                 .correlationId("CORR-1")
                 .requestType("INQUIRY")
@@ -53,12 +53,11 @@ class CpfHeaderPropagatorTest {
 
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
 
-        assertThat(TransactionContext.originalTransactionId()).isEqualTo("20260615115900000MBRlocal010000009");
+        assertThat(TransactionContext.currentTransactionId()).isEqualTo("20260615120000000MBRlocal010000001");
         assertThat(TransactionContext.channelDetailCode()).isEqualTo("MOBILE");
         assertThat(TransactionContext.operatorId()).isEqualTo("op-1");
         assertThat(TransactionContext.clientTimezone()).isEqualTo("Asia/Seoul");
-        assertThat(outbound).containsEntry(CpfHeaderNames.PARENT_TRANSACTION_ID, "20260615120000000MBRlocal010000001");
-        assertThat(outbound).containsEntry(CpfHeaderNames.ORIGINAL_TRANSACTION_ID, "20260615115900000MBRlocal010000009");
+        assertThat(outbound).containsEntry(CpfHeaderNames.TRANSACTION_ID, "20260615120000000MBRlocal010000001");
         assertThat(outbound).containsEntry(CpfHeaderNames.TRACE_ID, "TRACE-1");
         assertThat(outbound).containsKey(CpfHeaderNames.PARENT_SPAN_ID);
         assertThat(outbound).doesNotContainKey(CpfHeaderNames.SPAN_ID);
@@ -89,6 +88,7 @@ class CpfHeaderPropagatorTest {
 
         assertThat(TransactionContext.currentHeader()).isSameAs(header);
         assertThat(outbound)
+                .containsEntry(CpfHeaderNames.TRANSACTION_ID, "20260702103000000REFlocal010000001")
                 .containsEntry(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MOBILE")
                 .containsEntry(CpfHeaderNames.CHANNEL_CODE, "REF")
                 .containsEntry(CpfHeaderNames.EXTENSION_1, "reserved-one")
@@ -108,7 +108,7 @@ class CpfHeaderPropagatorTest {
     }
 
     @Test
-    void outboundHeadersContainCurrentTransactionSegment() {
+    void outboundHeadersKeepTransactionIdAndPropagateCurrentSegmentAsParent() {
         TransactionContext.initialize(
                 "20260703120000000REFtrace010000001",
                 "TRACE-SEGMENT",
@@ -127,9 +127,9 @@ class CpfHeaderPropagatorTest {
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
 
         assertThat(outbound)
-                .containsEntry(CpfHeaderNames.ROOT_TRANSACTION_ID, "20260703120000000REFtrace010000001")
-                .containsEntry(CpfHeaderNames.TRANSACTION_SEGMENT_ID, "20260703120000000REFtrace010000001-SEG-0001-ABCDEF12")
+                .containsEntry(CpfHeaderNames.TRANSACTION_ID, "20260703120000000REFtrace010000001")
                 .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID, "20260703120000000REFtrace010000001-SEG-0001-ABCDEF12")
-                .containsEntry(CpfHeaderNames.TRANSACTION_CALL_DEPTH, "0");
+                .containsEntry(CpfHeaderNames.TRANSACTION_CALL_DEPTH, "1")
+                .doesNotContainKey(CpfHeaderNames.TRANSACTION_SEGMENT_ID);
     }
 }

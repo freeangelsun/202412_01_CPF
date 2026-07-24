@@ -106,7 +106,7 @@ public class TransactionSegmentFallbackStore {
                 EVENT_VERSION,
                 eventType,
                 record.getSequenceNo(),
-                record.getTransactionGlobalId(),
+                record.getTransactionId(),
                 record.getTransactionSegmentId(),
                 record.getParentSegmentId(),
                 0,
@@ -141,7 +141,7 @@ public class TransactionSegmentFallbackStore {
         }
         return eligible.stream()
                 .sorted(Comparator
-                        .comparing((EligibleFile item) -> text(item.envelope().transactionGlobalId()))
+                        .comparing((EligibleFile item) -> text(item.envelope().transactionId()))
                         .thenComparingInt(item -> item.envelope().sequenceNo())
                         .thenComparingInt(item -> "START".equals(item.envelope().eventType()) ? 0 : 1)
                         .thenComparing(item -> item.envelope().firstFailedAt(), Comparator.nullsFirst(Comparator.naturalOrder()))
@@ -244,7 +244,7 @@ public class TransactionSegmentFallbackStore {
     }
 
     private String eventId(String eventType, TransactionSegmentRecord record) {
-        String source = text(record.getTransactionGlobalId()) + '|'
+        String source = text(record.getTransactionId()) + '|'
                 + text(record.getTransactionSegmentId()) + '|'
                 + eventType + '|'
                 + record.getSequenceNo() + '|'

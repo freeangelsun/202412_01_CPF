@@ -20,7 +20,7 @@ public class ReferenceSftpTransferPlanEducationSample {
         this.transferEngine = transferEngine;
     }
 
-    public CpfFileTransferResult upload(String transactionGlobalId, String localPath) {
+    public CpfFileTransferResult upload(String transactionId, String localPath) {
         CpfFileTransferEndpoint endpoint = new CpfFileTransferEndpoint(
                 "REF_BANK_A",
                 CpfFileTransferProtocol.SFTP.name(),
@@ -31,7 +31,7 @@ public class ReferenceSftpTransferPlanEducationSample {
                 Duration.ofSeconds(30),
                 Map.of("environment", "education"));
         CpfFileTransferRequest request = new CpfFileTransferRequest(
-                transactionGlobalId,
+                transactionId,
                 null,
                 endpoint.endpointCode(),
                 "UPLOAD",
@@ -39,7 +39,7 @@ public class ReferenceSftpTransferPlanEducationSample {
                 "/recv/result.dat",
                 "sha256:pending",
                 0L,
-                Map.of("businessKey", transactionGlobalId + "|result.dat"));
+                Map.of("businessKey", transactionId + "|result.dat"));
         return transferEngine.execute(endpoint, request);
     }
 }

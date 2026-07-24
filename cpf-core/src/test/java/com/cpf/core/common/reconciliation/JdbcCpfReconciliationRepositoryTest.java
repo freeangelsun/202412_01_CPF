@@ -49,7 +49,7 @@ class JdbcCpfReconciliationRepositoryTest {
                         "unknownId", "UNK-1",
                         "unknownType", "BROKER",
                         "unknownStatus", "MANUAL_REVIEW",
-                        "transactionGlobalId", "202607100001",
+                        "transactionId", "202607100001",
                         "segmentId", "SEG-1",
                         "externalKey", "MSG-1",
                         "failureCode", "UNKNOWN",

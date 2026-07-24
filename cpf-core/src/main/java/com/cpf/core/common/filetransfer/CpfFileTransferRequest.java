@@ -6,7 +6,7 @@ import java.util.Map;
  * 파일 송수신 요청 표준 DTO입니다.
  */
 public record CpfFileTransferRequest(
-        String transactionGlobalId,
+        String transactionId,
         String segmentId,
         String endpointCode,
         String operation,

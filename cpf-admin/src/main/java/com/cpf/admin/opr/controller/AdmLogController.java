@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * ADM 거래 로그 관제 API입니다.
  *
- * <p>운영 화면에서 거래 ID를 transactionId 또는 transactionGlobalId라고 부를 수 있으므로
+ * <p>운영 화면에서 거래 ID를 transactionId 또는 transactionId라고 부를 수 있으므로
  * 두 파라미터를 같은 검색 조건으로 처리합니다.</p>
  */
 @RestController
@@ -35,10 +35,10 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
     @CpfOnlineTransaction(id = "OADMOP0001", name = "ADMTransactionLogList")
     @Operation(operationId = "admLogFindLogs",
             summary = "거래 로그 목록 조회",
-            description = "transactionId 또는 transactionGlobalId, traceId, 업무 거래 ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
+            description = "transactionId 또는 transactionId, traceId, 업무 거래 ID, URI, 응답코드, HTTP 상태, 회원번호, 고객번호 기준으로 거래 로그를 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
-            @RequestParam(required = false) String transactionGlobalId,
+
             @RequestParam(required = false) String traceId,
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String memberNo,
@@ -53,7 +53,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
         try {
             response.put("available", true);
             response.put("items", logQueryService.findLogs(
-                    firstText(transactionId, transactionGlobalId), traceId, businessTransactionId, memberNo, customerNo,
+                    transactionId, traceId, businessTransactionId, memberNo, customerNo,
                     uri, responseCode, httpStatus, channelCode, logType, limit));
         } catch (DataAccessException ex) {
             response.put("available", false);

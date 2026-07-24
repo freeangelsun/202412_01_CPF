@@ -187,10 +187,10 @@ public class BzaOperationRepository {
     public void insertBusinessAudit(Map<String, ?> values) {
         jdbc().update("""
                 INSERT INTO bza_business_audit (
-                    transaction_global_id, actor_id, action_type, target_type, target_id,
+                    transaction_id, actor_id, action_type, target_type, target_id,
                     reason, before_data, after_data, created_by, updated_by
                 ) VALUES (
-                    :transactionGlobalId, :actorId, :actionType, :targetType, :targetId,
+                    :transactionId, :actorId, :actionType, :targetType, :targetId,
                     :reason, :beforeData, :afterData, :actorId, :actorId
                 )
                 """, values);

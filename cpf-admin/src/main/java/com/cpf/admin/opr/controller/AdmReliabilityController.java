@@ -62,10 +62,10 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     @Operation(operationId = "findAdmBrokerOutbox", summary = "Broker outbox 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> outbox(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String transactionGlobalId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(required = false) String topic,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(reliabilityService.findOutbox(status, transactionGlobalId, topic, limit));
+        return ResponseEntity.ok(reliabilityService.findOutbox(status, transactionId, topic, limit));
     }
 
     @GetMapping("/broker/inbox")
@@ -83,10 +83,10 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     @Operation(operationId = "findAdmBrokerDlq", summary = "Broker DLQ 목록 조회")
     public ResponseEntity<List<Map<String, Object>>> dlq(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String transactionGlobalId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(required = false) String topic,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(reliabilityService.findDlq(status, transactionGlobalId, topic, limit));
+        return ResponseEntity.ok(reliabilityService.findDlq(status, transactionId, topic, limit));
     }
 
     @PostMapping("/broker/dlq/{messageId}/replay")
@@ -115,10 +115,10 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     @Operation(operationId = "findAdmFileTransferHistory", summary = "파일전송 이력 조회")
     public ResponseEntity<List<Map<String, Object>>> fileTransfers(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String transactionGlobalId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(required = false) String endpointCode,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(reliabilityService.findFileTransfers(status, transactionGlobalId, endpointCode, limit));
+        return ResponseEntity.ok(reliabilityService.findFileTransfers(status, transactionId, endpointCode, limit));
     }
 
     @GetMapping("/unknown-results")
@@ -127,9 +127,9 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     public ResponseEntity<List<Map<String, Object>>> unknownResults(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String transactionGlobalId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(reliabilityService.findUnknownResults(type, status, transactionGlobalId, limit));
+        return ResponseEntity.ok(reliabilityService.findUnknownResults(type, status, transactionId, limit));
     }
 
     @GetMapping("/batch-job-logs")

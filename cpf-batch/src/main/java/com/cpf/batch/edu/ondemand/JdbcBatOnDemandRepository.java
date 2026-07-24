@@ -34,12 +34,12 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
             jdbcTemplate.update("""
                     INSERT INTO bat_on_demand_request (
                         execution_request_id, standard_batch_id, idempotency_key,
-                        transaction_global_id, business_date, request_status,
+                        transaction_id, business_date, request_status,
                         parameters_json, request_reason, request_user, requested_at,
                         created_by, updated_by
                     ) VALUES (?, ?, ?, ?, ?, 'REQUESTED', ?, ?, ?, CURRENT_TIMESTAMP(3), ?, ?)
                     """, requested.executionRequestId(), requested.standardBatchId(), requested.idempotencyKey(),
-                    requested.transactionGlobalId(), requested.businessDate(), parametersJson,
+                    requested.transactionId(), requested.businessDate(), parametersJson,
                     reason, requestUser, requestUser, requestUser);
             return requested;
         } catch (DuplicateKeyException duplicate) {
@@ -91,7 +91,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     private List<BatOnDemandStatus> query(String where, Object... arguments) {
         return jdbcTemplate.query("""
                 SELECT execution_request_id, standard_batch_id, idempotency_key,
-                       transaction_global_id, business_date, request_status,
+                       transaction_id, business_date, request_status,
                        cpf_execution_id, spring_batch_execution_id, result_json,
                        failure_code, failure_message, requested_at, completed_at
                 FROM bat_on_demand_request
@@ -99,7 +99,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
                 rs.getString("execution_request_id"),
                 rs.getString("standard_batch_id"),
                 rs.getString("idempotency_key"),
-                rs.getString("transaction_global_id"),
+                rs.getString("transaction_id"),
                 rs.getString("business_date"),
                 rs.getString("request_status"),
                 nullableLong(rs, "cpf_execution_id"),

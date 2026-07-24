@@ -98,8 +98,8 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
     @Operation(operationId = "admServiceRegistryFindCallHistory", summary = "서비스 호출 이력 조회", description = "CPF 서비스 호출 엔진이 기록한 호출 이력을 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCallHistory(
             @RequestParam(required = false) String serviceId,
-            @RequestParam(required = false) String transactionGlobalId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(serviceRegistryService.findCallHistory(serviceId, transactionGlobalId, limit));
+        return ResponseEntity.ok(serviceRegistryService.findCallHistory(serviceId, transactionId, limit));
     }
 }

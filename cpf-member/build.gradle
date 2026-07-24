@@ -36,4 +36,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    // Tests use the selected central Vendor Pack; module-local SQL fallback remains forbidden.
+    systemProperty 'cpf.db.vendor', 'mariadb'
+    systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
 }

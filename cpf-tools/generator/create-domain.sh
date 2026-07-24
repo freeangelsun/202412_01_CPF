@@ -22,4 +22,4 @@ while (($#)); do
   esac
 done
 
-exec pwsh -NoProfile -File "$script_dir/../../scripts/create-domain.ps1" "${args[@]}"
+exec pwsh -NoProfile -File "$script_dir/../../cpf-tools/scripts/create-domain.ps1" "${args[@]}"

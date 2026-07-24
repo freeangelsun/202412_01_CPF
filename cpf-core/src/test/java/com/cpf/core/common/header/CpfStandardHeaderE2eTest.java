@@ -80,7 +80,7 @@ class CpfStandardHeaderE2eTest {
         Map<String, String> outbound = CpfHeaderPropagator.outboundHeaders();
         assertThat(outbound)
                 .containsEntry(CpfHeaderNames.TRANSACTION_ID, TRANSACTION_ID)
-                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_ID, TRANSACTION_ID)
+                .doesNotContainKey(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID)
                 .containsEntry(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "MOBILE")
                 .containsEntry(CpfHeaderNames.CHANNEL_CODE, "MBR")
                 .containsEntry(CpfHeaderNames.USER_ID, "login-user")
@@ -104,7 +104,7 @@ class CpfStandardHeaderE2eTest {
                 .containsEntry(CpfHeaderNames.CLIENT_IP, "203.0.113.10")
                 .containsEntry(CpfHeaderNames.CHANNEL_DETAIL_CODE, "APP");
         assertThat(snapshot.outboundHeaders())
-                .containsEntry(CpfHeaderNames.PARENT_TRANSACTION_ID, TRANSACTION_ID)
+                .doesNotContainKey(CpfHeaderNames.PARENT_TRANSACTION_SEGMENT_ID)
                 .doesNotContainKey(CpfHeaderNames.AUTHORIZATION);
         assertThat(snapshot.responseHeaders())
                 .containsEntry(CpfHeaderNames.TRANSACTION_ID, TRANSACTION_ID)

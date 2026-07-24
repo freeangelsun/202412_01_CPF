@@ -46,7 +46,7 @@ src/
 
 ## 5. 목록·상세 UX
 
-거래·Batch·Center-Cut 목록은 시작/종료시간, 상태, 소요시간, transactionGlobalId, segment, failure stage, 주요 Header와 운영 가치가 있는 DB Column을 초기 설계에 포함한다.
+거래·Batch·Center-Cut 목록은 시작/종료시간, 상태, 소요시간, transactionId, segment, failure stage, 주요 Header와 운영 가치가 있는 DB Column을 초기 설계에 포함한다.
 
 - filter allowlist
 - sort allowlist

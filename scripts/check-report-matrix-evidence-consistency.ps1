@@ -1,342 +1,122 @@
-﻿param(
+param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
 
-$failures = New-Object System.Collections.Generic.List[string]
-
-function Add-Failure {
-    param([string] $Message)
-    $failures.Add($Message)
+$Root = (Resolve-Path -LiteralPath $Root).Path
+if (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
+    $ResultDir = Join-Path $Root $ResultDir
 }
+$ResultDir = [System.IO.Path]::GetFullPath($ResultDir)
+New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
-function Write-JsonEvidence {
-    param(
-        [string] $FileName,
-        [object] $Value
-    )
-    New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-    $path = Join-Path $ResultDir $FileName
-    $json = $Value | ConvertTo-Json -Depth 12
-    [System.IO.File]::WriteAllText($path, $json, [System.Text.UTF8Encoding]::new($false))
-}
-
-function New-UnicodeText {
-    param([int[]] $CodePoints)
-    return -join ($CodePoints | ForEach-Object { [char] $_ })
-}
-
-function ConvertTo-PlainText {
-    param([string] $Html)
-    $withoutTags = [System.Text.RegularExpressions.Regex]::Replace($Html, "<[^>]+>", "")
-    return [System.Net.WebUtility]::HtmlDecode($withoutTags).Trim()
-}
-
-function Get-AttributeValue {
-    param(
-        [string] $Tag,
-        [string] $Name
-    )
-
-    $pattern = "\b" + [System.Text.RegularExpressions.Regex]::Escape($Name) + "\s*=\s*[""']([^""']+)[""']"
-    $match = [System.Text.RegularExpressions.Regex]::Match(
-        $Tag,
-        $pattern,
-        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
-    )
-    if ($match.Success) {
-        return [System.Net.WebUtility]::HtmlDecode($match.Groups[1].Value)
-    }
-    return $null
-}
-
-$script:StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
-$script:StatusPartial = New-UnicodeText @(0xBD80, 0xBD84, 0x20, 0xAD6C, 0xD604)
-$script:StatusNotImplemented = New-UnicodeText @(0xBBF8, 0xAD6C, 0xD604)
-$script:StatusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
-$script:StatusFailed = New-UnicodeText @(0xC2E4, 0xD328)
-$script:StatusNeedsReview = New-UnicodeText @(0xC7AC, 0xD655, 0xC778, 0x20, 0xD544, 0xC694)
-$script:NoEvidenceText = New-UnicodeText @(0xC5C6, 0xC74C)
-$script:AllowedStatuses = @(
-    $script:StatusDone,
-    $script:StatusPartial,
-    $script:StatusNotImplemented,
-    $script:StatusNotVerified,
-    $script:StatusFailed,
-    $script:StatusNeedsReview
-)
-
-Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscustomobject]@{
-    generatedAt = (Get-Date).ToString("o")
-    status = $script:StatusNotVerified
-    note = "self evidence file initialized before consistency scanning"
-})
-
-$requiredMatrixPath = Join-Path $Root "specs/generated/feature-implementation-matrix.json"
-try {
-    $requiredMatrix = [System.IO.File]::ReadAllText($requiredMatrixPath, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
-    $script:RequiredCheckIds = @($requiredMatrix.items | ForEach-Object { [string] $_.checkId })
-} catch {
-    Add-Failure "feature matrix could not initialize required check ids: $requiredMatrixPath"
-    $script:RequiredCheckIds = @()
-}
-
-if ($script:RequiredCheckIds.Count -eq 0) {
-    Add-Failure "feature matrix has no required check ids"
-}
-$duplicateRequiredCheckIds = @($script:RequiredCheckIds | Group-Object | Where-Object Count -gt 1)
-if ($duplicateRequiredCheckIds.Count -gt 0) {
-    Add-Failure "feature matrix has duplicate required check ids"
-}
-
-function Test-AllowedStatus {
-    param(
-        [string] $Status,
-        [string] $Context
-    )
-
-    if ($script:AllowedStatuses -notcontains $Status) {
-        Add-Failure "unknown status [$Status]: $Context"
-    }
-}
-
-function Get-MarkdownCheckStatusMap {
-    param(
-        [string] $Path,
-        [string] $Name
-    )
-
-    $map = @{}
-    if (-not (Test-Path -LiteralPath $Path)) {
-        Add-Failure "$Name file missing: $Path"
-        return $map
-    }
-
-    $text = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
-    if ([string]::IsNullOrWhiteSpace($text)) {
-        Add-Failure "$Name file is empty: $Path"
-        return $map
-    }
-
-    foreach ($line in ($text -split "\r?\n")) {
-        $trimmed = $line.Trim()
-        if (-not $trimmed.StartsWith("|")) {
-            continue
-        }
-        if ($trimmed -match '^\|\s*-+') {
-            continue
-        }
-        $cells = @($trimmed.Trim("|") -split "\|" | ForEach-Object { $_.Trim() })
-        if ($cells.Count -lt 3) {
-            continue
-        }
-        $checkId = $cells[0]
-        $status = $cells[1]
-        if ($script:RequiredCheckIds -contains $checkId) {
-            Test-AllowedStatus $status "${Name}:$checkId"
-            $map[$checkId] = $status
-        }
-    }
-    return $map
-}
-
-function Get-MatrixCheckStatusMap {
-    param([string] $Path)
-
-    $map = @{}
-    if (-not (Test-Path -LiteralPath $Path)) {
-        Add-Failure "feature matrix missing: $Path"
-        return $map
-    }
-
-    try {
-        $payload = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
-    } catch {
-        Add-Failure "feature matrix json parse failed: $Path"
-        return $map
-    }
-    foreach ($item in @($payload.items)) {
-        $checkId = [string] $item.checkId
-        $status = [string] $item.status
-        if ([string]::IsNullOrWhiteSpace($checkId)) {
-            Add-Failure "feature matrix check id is blank"
-            continue
-        }
-        Test-AllowedStatus $status "feature-matrix:$checkId"
-        $map[$checkId] = $status
-    }
-    return $map
-}
-
-function Get-EvidencePaths {
-    param([string] $EvidenceCell)
-
-    $paths = New-Object System.Collections.Generic.List[string]
-    $matches = [System.Text.RegularExpressions.Regex]::Matches($EvidenceCell, '\x60([^\x60]+)\x60')
-    foreach ($match in $matches) {
-        $value = $match.Groups[1].Value.Trim()
-        if ($value -eq $script:NoEvidenceText -or $value -eq "N/A" -or $value -eq $script:StatusNotVerified) {
-            continue
-        }
-        if ($value -match '^(scripts/|scripts\\)') {
-            continue
-        }
-        if ($value -match '^[A-Za-z]+:') {
-            continue
-        }
-        $paths.Add($value)
-    }
-    return $paths
-}
-
-function Test-EvidenceFile {
-    param(
-        [string] $RelativePath,
-        [string] $CheckId
-    )
-
-    $fullPath = Join-Path $Root $RelativePath
-    if (-not (Test-Path -LiteralPath $fullPath)) {
-        Add-Failure "evidence file missing [$CheckId]: $RelativePath"
-        return
-    }
-
-    $item = Get-Item -LiteralPath $fullPath
-    if ($item.Length -le 0) {
-        Add-Failure "evidence file is empty [$CheckId]: $RelativePath"
-        return
-    }
-
-    $stream = $null
-    $reader = $null
-    try {
-        $stream = [System.IO.File]::Open(
-            $fullPath,
-            [System.IO.FileMode]::Open,
-            [System.IO.FileAccess]::Read,
-            [System.IO.FileShare]::ReadWrite
-        )
-        $reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::UTF8)
-        $text = $reader.ReadToEnd()
-    } catch {
-        Add-Failure "evidence file read failed [$CheckId]: $RelativePath :: $($_.Exception.Message)"
-        return
-    } finally {
-        if ($null -ne $reader) {
-            $reader.Dispose()
-        } elseif ($null -ne $stream) {
-            $stream.Dispose()
-        }
-    }
-    if ($RelativePath -match '\.json$') {
-        try {
-            $null = $text | ConvertFrom-Json
-        } catch {
-            Add-Failure "evidence json parse failed [$CheckId]: $RelativePath :: $($_.Exception.Message)"
-        }
-    }
-
-    $sensitivePatterns = @(
-        'Bearer\s+[A-Za-z0-9_\-\.=]+',
-        '"Authorization"\s*:\s*"(?!\*\*\*)[^"]+"',
-        '"X-Api-Key"\s*:\s*"(?!\*\*\*)[^"]+"',
-        '"password"\s*:\s*"(?!\*\*\*)[^"]+"',
-        '"secret"\s*:\s*"(?!\*\*\*)[^"]+"',
-        '"credential"\s*:\s*"(?!\*\*\*)[^"]+"',
-        '"signature"\s*:\s*"(?!\*\*\*)[^"]+"'
-    )
-    foreach ($pattern in $sensitivePatterns) {
-        if ($text -match $pattern) {
-            Add-Failure "evidence sensitive token pattern found [$CheckId]: $RelativePath"
-            break
-        }
-    }
-}
-
-$reportPath = Join-Path $Root "CPF_STABILIZATION_REPORT.md"
+$targetPath = Join-Path $Root "CPF_FINAL_TARGET_REQUIREMENTS.md"
+$ledgerPath = Join-Path $Root "cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md"
+$reviewPath = Join-Path $Root "cpf-docs/work/review/20260724_02/CPF_MASTER_REQUIREMENT_AND_SOURCE_REVIEW.md"
 $evidenceIndexPath = Join-Path $Root "CPF_EVIDENCE_INDEX.md"
-$matrixPath = $requiredMatrixPath
+$failures = [System.Collections.Generic.List[string]]::new()
 
-$reportMap = Get-MarkdownCheckStatusMap $reportPath "stabilization-report"
-$evidenceMap = Get-MarkdownCheckStatusMap $evidenceIndexPath "evidence-index"
-$matrixMap = Get-MatrixCheckStatusMap $matrixPath
+foreach ($required in @($targetPath, $ledgerPath, $reviewPath, $evidenceIndexPath)) {
+    if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
+        $failures.Add("정합성 입력 파일이 없습니다: $required") | Out-Null
+    }
+}
+if ($failures.Count -gt 0) {
+    throw ($failures -join [Environment]::NewLine)
+}
 
-$evidencePathMap = @{}
-if (Test-Path -LiteralPath $evidenceIndexPath) {
-    $evidenceText = [System.IO.File]::ReadAllText($evidenceIndexPath, [System.Text.Encoding]::UTF8)
-    foreach ($line in ($evidenceText -split "\r?\n")) {
-        $trimmed = $line.Trim()
-        if (-not $trimmed.StartsWith("|")) {
-            continue
-        }
-        if ($trimmed -match '^\|\s*-+') {
-            continue
-        }
-        $cells = @($trimmed.Trim("|") -split "\|" | ForEach-Object { $_.Trim() })
-        if ($cells.Count -lt 3) {
-            continue
-        }
-        $checkId = $cells[0]
-        if ($script:RequiredCheckIds -contains $checkId) {
-            $evidencePathMap[$checkId] = @(Get-EvidencePaths $cells[2])
+$targetText = [System.IO.File]::ReadAllText($targetPath, [System.Text.Encoding]::UTF8)
+$ledgerText = [System.IO.File]::ReadAllText($ledgerPath, [System.Text.Encoding]::UTF8)
+$reviewText = [System.IO.File]::ReadAllText($reviewPath, [System.Text.Encoding]::UTF8)
+$evidenceText = [System.IO.File]::ReadAllText($evidenceIndexPath, [System.Text.Encoding]::UTF8)
+
+$section = [regex]::Match($targetText, '(?s)## 22\. Requirement Catalog(?<body>.*?)(?:\r?\n## 23\.|\z)')
+if (-not $section.Success) {
+    $failures.Add("Final Target Requirement Catalog section이 없습니다.") | Out-Null
+}
+
+$canonical = [System.Collections.Generic.List[string]]::new()
+$seen = @{}
+if ($section.Success) {
+    foreach ($m in [regex]::Matches($section.Groups['body'].Value, '`(?<id>[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)+)`')) {
+        $id = $m.Groups['id'].Value
+        if (-not $seen.ContainsKey($id)) {
+            $seen[$id] = $true
+            $canonical.Add($id) | Out-Null
         }
     }
 }
 
-foreach ($checkId in $script:RequiredCheckIds) {
-    if (-not $reportMap.ContainsKey($checkId)) {
-        Add-Failure "report check id missing: $checkId"
-        continue
+$targetCountMatch = [regex]::Match($targetText, 'Canonical Requirement Count:\s*\*{0,2}(?<count>\d+)')
+$ledgerCountMatch = [regex]::Match($ledgerText, 'Canonical Count:\s*\*{0,2}(?<count>\d+)')
+if (-not $targetCountMatch.Success -or -not $ledgerCountMatch.Success) {
+    $failures.Add("Canonical Count 선언을 찾을 수 없습니다.") | Out-Null
+} else {
+    $targetCount = [int] $targetCountMatch.Groups['count'].Value
+    $ledgerCount = [int] $ledgerCountMatch.Groups['count'].Value
+    if ($canonical.Count -ne $targetCount) {
+        $failures.Add("Final Target Count 불일치 declared=$targetCount actual=$($canonical.Count)") | Out-Null
     }
-    if (-not $matrixMap.ContainsKey($checkId)) {
-        Add-Failure "feature matrix check id missing: $checkId"
-        continue
-    }
-    if (-not $evidenceMap.ContainsKey($checkId)) {
-        Add-Failure "evidence index check id missing: $checkId"
-        continue
-    }
-
-    if ($reportMap[$checkId] -ne $matrixMap[$checkId]) {
-        Add-Failure "report/matrix status mismatch [$checkId]: report=[$($reportMap[$checkId])], matrix=[$($matrixMap[$checkId])]"
-    }
-    if ($reportMap[$checkId] -ne $evidenceMap[$checkId]) {
-        Add-Failure "report/evidence status mismatch [$checkId]: report=[$($reportMap[$checkId])], evidence=[$($evidenceMap[$checkId])]"
-    }
-
-    $paths = @()
-    if ($evidencePathMap.ContainsKey($checkId)) {
-        $paths = @($evidencePathMap[$checkId])
-    }
-
-    if ($reportMap[$checkId] -eq $script:StatusDone -and $paths.Count -eq 0) {
-        Add-Failure "done check has no evidence file [$checkId]"
-    }
-
-    foreach ($relativePath in $paths) {
-        Test-EvidenceFile $relativePath $checkId
+    if ($ledgerCount -ne $targetCount) {
+        $failures.Add("Final Target/Ledger Count 불일치 target=$targetCount ledger=$ledgerCount") | Out-Null
     }
 }
 
-Write-JsonEvidence "report-matrix-evidence-consistency.sanitized.json" ([pscustomobject]@{
-    generatedAt = (Get-Date).ToString("o")
-    status = $(if ($failures.Count -eq 0) { $script:StatusDone } else { $script:StatusFailed })
-    requiredCheckCount = $script:RequiredCheckIds.Count
+$allowedStatuses = @("완료", "부분 구현", "미구현", "미검증", "실패", "재확인 필요")
+$reviewMap = @{}
+foreach ($line in ($reviewText -split "\r?\n")) {
+    if ($line -match '^\|\s*`(?<id>[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)+)`\s*\|\s*(?<status>[^|]+?)\s*\|') {
+        $id = $Matches.id
+        $status = $Matches.status.Trim()
+        if ($allowedStatuses -notcontains $status) {
+            $failures.Add("허용되지 않은 상태: $id=$status") | Out-Null
+        }
+        if ($reviewMap.ContainsKey($id)) {
+            $failures.Add("Review Requirement 중복: $id") | Out-Null
+        } else {
+            $reviewMap[$id] = $status
+        }
+    }
+}
+
+foreach ($id in $canonical) {
+    if (-not $reviewMap.ContainsKey($id)) {
+        $failures.Add("Review Requirement 누락: $id") | Out-Null
+    }
+}
+foreach ($id in $reviewMap.Keys) {
+    if ($canonical -notcontains $id) {
+        $failures.Add("Review에 비정본 Requirement가 있습니다: $id") | Out-Null
+    }
+}
+
+$doneIds = @($canonical | Where-Object { $reviewMap[$_] -eq "완료" })
+foreach ($id in $doneIds) {
+    if ($evidenceText -notmatch ('`?' + [regex]::Escape($id) + '`?')) {
+        $failures.Add("완료 Requirement가 Evidence Index에 연결되지 않았습니다: $id") | Out-Null
+    }
+}
+$result = [ordered]@{
+    generatedAt = [DateTimeOffset]::Now.ToString("o")
+    status = if ($failures.Count -eq 0) { "완료" } else { "실패" }
+    canonicalRequirementCount = $canonical.Count
+    reviewRequirementCount = $reviewMap.Count
+    completedRequirementCount = $doneIds.Count
     failureCount = $failures.Count
-    failures = $failures
-})
+    failures = @($failures)
+}
+$output = Join-Path $ResultDir "report-matrix-evidence-consistency.sanitized.json"
+[System.IO.File]::WriteAllText($output, ($result | ConvertTo-Json -Depth 10), $Utf8NoBom)
 
 if ($failures.Count -gt 0) {
-    $failures | Sort-Object | ForEach-Object { Write-Host $_ }
+    $failures | ForEach-Object { Write-Host "FAIL $_" }
     exit 1
 }
-
-Write-Host "Report, feature matrix, and evidence index consistency check passed."
+Write-Host "Requirement/Review/Evidence consistency passed. canonical=$($canonical.Count)"

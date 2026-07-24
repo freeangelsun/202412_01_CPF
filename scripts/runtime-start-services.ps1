@@ -1,14 +1,16 @@
-﻿param(
+param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string[]] $Modules = @("MBR", "ADM", "BZA", "REF"),
     [string] $ResultDir = "",
     [int] $StartupTimeoutSeconds = 150,
     [int] $HttpTimeoutSeconds = 3,
+    [string] $DbVendor = $env:CPF_DB_VENDOR,
+    [string] $DbResourceRoot = $env:CPF_DB_RESOURCE_ROOT,
     [switch] $BuildBeforeRun,
     [switch] $NoExitOnFailure
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+# PowerShell 7과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
@@ -34,6 +36,22 @@ $Root = Get-CpfRuntimeRoot -Root $Root
 $ResultDir = Get-CpfRuntimeResultDir -Root $Root -ResultDir $ResultDir
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
+if ([string]::IsNullOrWhiteSpace($DbVendor)) { $DbVendor = "mariadb" }
+$DbVendor = $DbVendor.ToLowerInvariant()
+if ($DbVendor -notin @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
+    throw "지원하지 않는 CPF DB Vendor입니다: $DbVendor"
+}
+if ([string]::IsNullOrWhiteSpace($DbResourceRoot)) {
+    # 이 Script는 Repository Local Runtime Harness이므로 중앙 Source Pack을 명시적으로 선택합니다.
+    # 제품 배포에서는 배포 Bundle의 외부 Pack 경로를 CPF_DB_RESOURCE_ROOT로 주입해야 합니다.
+    $DbResourceRoot = Join-Path $Root ("cpf-tools\db\vendor\" + $DbVendor)
+}
+$DbResourceRoot = [System.IO.Path]::GetFullPath($DbResourceRoot)
+$packManifest = Join-Path $DbResourceRoot "pack.json"
+if (-not (Test-Path -LiteralPath $packManifest -PathType Leaf)) {
+    throw "중앙 DB Vendor Pack을 찾을 수 없습니다. vendor=$DbVendor root=$DbResourceRoot"
+}
+
 $resultPath = Join-Path $ResultDir "runtime-start-services-result.json"
 $statePath = Join-Path $ResultDir "runtime-services.json"
 $selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
@@ -42,6 +60,8 @@ $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     status = Get-CpfRuntimeStatusText "Partial"
     modules = @()
+    dbVendor = $DbVendor
+    dbResourceRoot = $DbResourceRoot
     stateFile = Get-CpfRelativePath -Root $Root -Path $statePath
 }
 
@@ -204,6 +224,8 @@ try {
         $previousCpfEnvironment = [Environment]::GetEnvironmentVariable("CPF_ENV", "Process")
         $previousLogRoot = [Environment]::GetEnvironmentVariable("CPF_LOG_ROOT", "Process")
         $previousActiveProfile = [Environment]::GetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "Process")
+        $previousDbVendor = [Environment]::GetEnvironmentVariable("CPF_DB_VENDOR", "Process")
+        $previousDbResourceRoot = [Environment]::GetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", "Process")
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
             [Environment]::SetEnvironmentVariable("WAS_ID", $module.wasId, "Process")
@@ -214,6 +236,8 @@ try {
             [Environment]::SetEnvironmentVariable("CPF_ENV", "local", "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", (Join-Path $Root "logs"), "Process")
             [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "local", "Process")
+            [Environment]::SetEnvironmentVariable("CPF_DB_VENDOR", $DbVendor, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", $DbResourceRoot, "Process")
 
             $process = Start-Process `
                 -FilePath "java" `
@@ -233,6 +257,8 @@ try {
             [Environment]::SetEnvironmentVariable("CPF_ENV", $previousCpfEnvironment, "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", $previousLogRoot, "Process")
             [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", $previousActiveProfile, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_DB_VENDOR", $previousDbVendor, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", $previousDbResourceRoot, "Process")
         }
 
         $moduleResult.processStarted = $true

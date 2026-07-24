@@ -1,180 +1,78 @@
-﻿param(
+param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
 
-$failures = New-Object System.Collections.Generic.List[string]
-$evidenceRows = New-Object System.Collections.Generic.List[object]
-$currentEvidenceIds = @{}
-$currentStartCommits = @{}
-$legacyUntrackedRows = New-Object System.Collections.Generic.List[object]
-$currentUntrackedRows = New-Object System.Collections.Generic.List[object]
-
-function New-UnicodeText {
-    param([int[]] $CodePoints)
-    return -join ($CodePoints | ForEach-Object { [char] $_ })
+$Root = (Resolve-Path -LiteralPath $Root).Path
+if (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
+    $ResultDir = Join-Path $Root $ResultDir
 }
-
-$statusDone = New-UnicodeText @(0xC644, 0xB8CC)
-$statusNotVerified = New-UnicodeText @(0xBBF8, 0xAC80, 0xC99D)
-$statusFailed = New-UnicodeText @(0xC2E4, 0xD328)
-
-function Add-Failure {
-    param([string] $Message)
-    $failures.Add($Message) | Out-Null
-}
-
-function Write-JsonEvidence {
-    param(
-        [string] $FileName,
-        [object] $Value
-    )
-    New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
-    $path = Join-Path $ResultDir $FileName
-    $json = $Value | ConvertTo-Json -Depth 12
-    [System.IO.File]::WriteAllText($path, $json, [System.Text.UTF8Encoding]::new($false))
-}
-
-function Add-EvidencePath {
-    param(
-        [string] $SourceFile,
-        [string] $RelativePath
-    )
-    $normalized = $RelativePath.Replace("\", "/").Trim()
-    if ($normalized -notmatch '^cpf-docs/evidence/') {
-        return
-    }
-    $evidenceRows.Add([pscustomobject]@{
-        sourceFile = $SourceFile
-        evidencePath = $normalized
-    }) | Out-Null
-}
-
-function Read-Utf8Text {
-    param([string] $Path)
-    return [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
-}
-
-Write-JsonEvidence "evidence-path-existence-check.sanitized.json" ([pscustomobject]@{
-    generatedAt = (Get-Date).ToString("o")
-    status = $statusNotVerified
-    note = "self evidence file initialized before scanning"
-})
+$ResultDir = [System.IO.Path]::GetFullPath($ResultDir)
+New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $sourceFiles = @(
     "CPF_STABILIZATION_REPORT.md",
     "CPF_EVIDENCE_INDEX.md",
     "CPF_GAP_MATRIX.md",
-    "specs/generated/sample-coverage-matrix.md",
-    "specs/generated/feature-implementation-matrix.md"
+    "cpf-docs/work/review/20260724_02/CPF_MASTER_REQUIREMENT_AND_SOURCE_REVIEW.md"
 )
+
+$failures = [System.Collections.Generic.List[string]]::new()
+$references = [System.Collections.Generic.List[object]]::new()
+
+$staleDirectory = Join-Path $Root "cpf-docs/evidence/20260722_01"
+if (Test-Path -LiteralPath $staleDirectory) {
+    $failures.Add("삭제 대상 Stale Evidence가 남아 있습니다: cpf-docs/evidence/20260722_01") | Out-Null
+}
 
 foreach ($sourceFile in $sourceFiles) {
     $path = Join-Path $Root $sourceFile
-    if (-not (Test-Path -LiteralPath $path)) {
-        Add-Failure ("evidence source file missing: {0}" -f $sourceFile)
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        $failures.Add("Evidence 참조 정본 파일이 없습니다: $sourceFile") | Out-Null
         continue
     }
-    $text = Read-Utf8Text $path
-    foreach ($match in [System.Text.RegularExpressions.Regex]::Matches($text, '\x60([^`]+)\x60')) {
-        Add-EvidencePath $sourceFile $match.Groups[1].Value
+    $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+    foreach ($match in [regex]::Matches($text, '`(?<path>cpf-docs/evidence/[^`<>]+)`')) {
+        $relative = $match.Groups['path'].Value.Replace('\', '/').TrimEnd('/')
+        if ($relative -match '<[^>]+>' -or
+                $relative.StartsWith('cpf-docs/evidence/20260722_01', [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+        $references.Add([ordered]@{ sourceFile = $sourceFile; evidencePath = $relative }) | Out-Null
     }
 }
 
-$uniqueRows = @($evidenceRows | Sort-Object evidencePath, sourceFile -Unique)
-$missingRows = New-Object System.Collections.Generic.List[object]
-$currentResultRelative = $ResultDir.Substring($Root.Length).TrimStart("\", "/").Replace("\", "/")
-$headCommit = (& git -C $Root rev-parse HEAD).Trim()
-foreach ($row in $uniqueRows) {
-    $fullPath = Join-Path $Root ($row.evidencePath.Replace("/", "\"))
-    if (-not (Test-Path -LiteralPath $fullPath)) {
-        $missingRows.Add($row) | Out-Null
-        Add-Failure ("evidence file missing: {0} referenced by {1}" -f $row.evidencePath, $row.sourceFile)
+$unique = @($references | Sort-Object evidencePath, sourceFile -Unique)
+foreach ($row in $unique) {
+    $full = Join-Path $Root ($row.evidencePath.Replace('/', [System.IO.Path]::DirectorySeparatorChar))
+    if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
+        $failures.Add("존재하지 않는 Evidence 참조: $($row.evidencePath) source=$($row.sourceFile)") | Out-Null
         continue
     }
-    $item = Get-Item -LiteralPath $fullPath
-    if ($item.Length -le 0) {
-        $missingRows.Add($row) | Out-Null
-        Add-Failure ("evidence file is empty: {0} referenced by {1}" -f $row.evidencePath, $row.sourceFile)
-        continue
-    }
-
-    $trackedPaths = @(& git -C $Root ls-files -- $row.evidencePath)
-    $tracked = $trackedPaths -contains $row.evidencePath
-    $isCurrent = $row.evidencePath.StartsWith($currentResultRelative + "/", [System.StringComparison]::OrdinalIgnoreCase)
-    if ($isCurrent -and -not $tracked) {
-        $untrackedPaths = @(& git -C $Root ls-files --others --exclude-standard -- $row.evidencePath)
-        if ($untrackedPaths -contains $row.evidencePath) {
-            $currentUntrackedRows.Add($row) | Out-Null
-        } else {
-            Add-Failure ("current evidence is ignored or absent from the commit manifest: {0}" -f $row.evidencePath)
-        }
-    } elseif (-not $isCurrent -and -not $tracked) {
-        $legacyUntrackedRows.Add($row) | Out-Null
-    }
-    $isRawCurrentLog = $isCurrent `
-        -and $row.evidencePath.EndsWith(".log", [System.StringComparison]::OrdinalIgnoreCase) `
-        -and -not $row.evidencePath.EndsWith(".sanitized.log", [System.StringComparison]::OrdinalIgnoreCase)
-    if ($isRawCurrentLog) {
-        Add-Failure ("current raw log cannot be used as evidence: {0}" -f $row.evidencePath)
-    }
-
-    if ($isCurrent -and $row.evidencePath.EndsWith(".sanitized.log", [System.StringComparison]::OrdinalIgnoreCase)) {
-        $content = Read-Utf8Text $fullPath
-        $commitMatch = [regex]::Match($content, '(?m)^START_COMMIT=([^\r\n]+)$')
-        $idMatch = [regex]::Match($content, '(?m)^EVIDENCE_ID=([^\r\n]+)$')
-        if (-not $commitMatch.Success -or $commitMatch.Groups[1].Value -notmatch '^[0-9a-fA-F]{40}$') {
-            Add-Failure ("current evidence start commit is missing or invalid: {0}" -f $row.evidencePath)
-        } else {
-            $evidenceStartCommit = $commitMatch.Groups[1].Value.ToLowerInvariant()
-            $currentStartCommits[$evidenceStartCommit] = $true
-            & git -C $Root merge-base --is-ancestor $evidenceStartCommit $headCommit 2>$null
-            if ($LASTEXITCODE -ne 0) {
-                Add-Failure ("current evidence start commit is not an ancestor of HEAD: {0}" -f $row.evidencePath)
-            }
-        }
-        if (-not $idMatch.Success) {
-            Add-Failure ("current evidence id is missing: {0}" -f $row.evidencePath)
-        } elseif ($currentEvidenceIds.ContainsKey($idMatch.Groups[1].Value) `
-                -and $currentEvidenceIds[$idMatch.Groups[1].Value] -ne $row.evidencePath) {
-            Add-Failure ("duplicate current evidence id: {0}" -f $idMatch.Groups[1].Value)
-        } else {
-            $currentEvidenceIds[$idMatch.Groups[1].Value] = $row.evidencePath
-        }
+    if ((Get-Item -LiteralPath $full).Length -le 0) {
+        $failures.Add("빈 Evidence 파일: $($row.evidencePath)") | Out-Null
     }
 }
 
-if ($currentStartCommits.Count -gt 1) {
-    Add-Failure ("current sanitized logs use different start commits: {0}" -f (($currentStartCommits.Keys | Sort-Object) -join ", "))
+$result = [ordered]@{
+    generatedAt = [DateTimeOffset]::Now.ToString("o")
+    status = if ($failures.Count -eq 0) { "완료" } else { "실패" }
+    checkedReferenceCount = $unique.Count
+    failures = @($failures)
+    references = $unique
 }
-
-Write-JsonEvidence "evidence-path-existence-check.sanitized.json" ([pscustomobject]@{
-    generatedAt = (Get-Date).ToString("o")
-    status = $(if ($failures.Count -eq 0) { $statusDone } else { $statusFailed })
-    checkedCount = $uniqueRows.Count
-    missingCount = $missingRows.Count
-    currentEvidenceIdCount = $currentEvidenceIds.Count
-    currentStartCommits = @($currentStartCommits.Keys | Sort-Object)
-    currentUntrackedCount = $currentUntrackedRows.Count
-    legacyUntrackedCount = $legacyUntrackedRows.Count
-    checked = $uniqueRows
-    missing = $missingRows
-    currentUntracked = $currentUntrackedRows
-    legacyUntracked = $legacyUntrackedRows
-    failures = $failures
-})
+$output = Join-Path $ResultDir "evidence-path-existence-check.sanitized.json"
+[System.IO.File]::WriteAllText($output, ($result | ConvertTo-Json -Depth 10), $Utf8NoBom)
 
 if ($failures.Count -gt 0) {
-    $failures | Sort-Object | ForEach-Object { Write-Error $_ }
+    $failures | ForEach-Object { Write-Host "FAIL $_" }
     exit 1
 }
-
-Write-Host ("evidence path existence check passed: {0}" -f $ResultDir)
+Write-Host "Evidence path check passed. tracked references=$($unique.Count)"

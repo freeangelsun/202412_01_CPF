@@ -124,7 +124,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
                     approvalId,
                     stepNo,
                     required(line.approverEmployeeNo(), "approverEmployeeNo"),
-                    defaultText(line.decisionRule(), "ALL_APPROVE"),
+                    normalizeLegacyDirectLineRule(line.decisionRule()),
                     user);
         }
         audit(user, "APPROVAL_CREATE", "bza_approval_document", String.valueOf(approvalId),
@@ -306,6 +306,26 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    /**
+     * 기존 사람별 직접 결재선 API가 신규 정책 엔진의 의미를 과장하지 않도록
+     * 현재 구현 가능한 ALL 규칙만 표준 값으로 정규화합니다.
+     *
+     * <p>ANY/N_OF_M, 조직/Role Target, 병렬 부서합의는 정책/참여자 Snapshot 엔진이
+     * 구현된 뒤 별도 경로로 처리해야 합니다. 현재 direct-line 경로에서 값을 받아 놓고
+     * ALL처럼 처리하면 잘못된 완료 판정이 되므로 fail-closed 합니다.</p>
+     */
+    private String normalizeLegacyDirectLineRule(String value) {
+        String normalized = defaultText(value, "ALL").toUpperCase(Locale.ROOT);
+        if ("ALL_APPROVE".equals(normalized)) {
+            return "ALL";
+        }
+        if (!"ALL".equals(normalized)) {
+            throw new CpfValidationException(
+                    "기존 직접 결재선은 ALL만 지원합니다. ANY/N_OF_M/부서합의는 정책 기반 Approval Engine을 사용해야 합니다.");
+        }
+        return normalized;
     }
 
     private String yn(String value, String fallback) {

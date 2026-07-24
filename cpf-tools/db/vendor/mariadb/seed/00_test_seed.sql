@@ -61,62 +61,31 @@ ON DUPLICATE KEY UPDATE
 
 USE mbrDB;
 
-INSERT INTO mbr_member (
-    id, member_no, customer_no, login_id, name, email, mobile_no,
-    password_hash, login_fail_count, password_change_required_yn, password_expire_at,
-    member_status, lock_yn, withdraw_yn, channel_code, description, created_by, updated_by
+INSERT INTO mbr_sample_item (
+    sample_key, item_name, category_code, status_code,
+    searchable_text, owner_reference, sort_order, version_no, deleted_yn,
+    transaction_global_id, idempotency_key, created_by, updated_by
 ) VALUES
-    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
-    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
+    ('MBR-SAMPLE-001', 'MBR 표준 거래 샘플 1', 'GENERAL', 'ACTIVE',
+     'crud search paging duplicate optimistic-lock', 'REF-SAMPLE-001', 10, 0, 'N',
+     '20260615120000000MBRlocal010000001', 'MBR-SEED-IDEMPOTENCY-001', 'MBR_SEED', 'MBR_SEED'),
+    ('MBR-SAMPLE-002', 'MBR 표준 거래 샘플 2', 'TRANSFER', 'ACTIVE',
+     'local remote call rollback', 'ACC-SAMPLE-001', 20, 0, 'N',
+     '20260615120000000MBRlocal010000002', 'MBR-SEED-IDEMPOTENCY-002', 'MBR_SEED', 'MBR_SEED'),
+    ('MBR-SAMPLE-003', 'MBR 비활성 거래 샘플', 'GENERAL', 'INACTIVE',
+     'status filter cursor slice', NULL, 30, 0, 'N',
+     '20260615120000000MBRlocal010000003', 'MBR-SEED-IDEMPOTENCY-003', 'MBR_SEED', 'MBR_SEED')
 ON DUPLICATE KEY UPDATE
-    customer_no = VALUES(customer_no),
-    login_id = VALUES(login_id),
-    password_hash = VALUES(password_hash),
-    login_fail_count = VALUES(login_fail_count),
-    password_change_required_yn = VALUES(password_change_required_yn),
-    password_expire_at = VALUES(password_expire_at),
-    name = VALUES(name),
-    email = VALUES(email),
-    mobile_no = VALUES(mobile_no),
-    member_status = VALUES(member_status),
-    lock_yn = VALUES(lock_yn),
-    withdraw_yn = VALUES(withdraw_yn),
-    channel_code = VALUES(channel_code),
-    description = VALUES(description),
+    item_name = VALUES(item_name),
+    category_code = VALUES(category_code),
+    status_code = VALUES(status_code),
+    searchable_text = VALUES(searchable_text),
+    owner_reference = VALUES(owner_reference),
+    sort_order = VALUES(sort_order),
+    transaction_global_id = VALUES(transaction_global_id),
+    idempotency_key = VALUES(idempotency_key),
     updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO mbr_member_role (
-    member_id, service_code, role_code, role_name, grade_code, temporary_yn, expire_at,
-    granted_by, use_yn, created_by, updated_by
-) VALUES
-    (1, 'MBR', 'MBR_USER', '일반 회원', 'NORMAL', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM'),
-    (2, 'MBR', 'MBR_PREMIUM', '프리미엄 회원', 'PREMIUM', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    role_name = VALUES(role_name),
-    grade_code = VALUES(grade_code),
-    temporary_yn = VALUES(temporary_yn),
-    expire_at = VALUES(expire_at),
-    granted_by = VALUES(granted_by),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO mbr_member_login_history (
-    member_id, login_domain, member_no, customer_no, login_id, login_result, login_ip, user_agent, failure_reason,
-    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
-)
-SELECT 1, 'MBR', 'M000000001', 'C000000001', 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL,
-       '20260615120000000MBRlocal010000001', 'MBR', 'local01', 'local-mbr:seed', 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM mbr_member_login_history
-    WHERE member_id = 1
-      AND login_id = 'mbr001'
-      AND user_agent = 'SQL-SEED'
-);
+    updated_at = CURRENT_TIMESTAMP(3);
 
 USE cpfDB;
 
@@ -372,9 +341,6 @@ INSERT INTO bza_menu (
     ('MENU', '메뉴 관리', 'BZA', '/bza#menus', '/api/bza/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', '권한 관리', 'BZA', '/bza#permissions', '/api/bza/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
     ('APPROVAL', '결재 관리', 'BZA', '/bza#approvals', '/api/bza/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CUSTOMER', '고객 업무 관리', 'BZA', '/bza#customers', '/api/bza/customers', 90, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('PRODUCT', '상품 관리', 'BZA', '/bza#products', '/api/bza/products', 100, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ORDER', '주문 관리', 'BZA', '/bza#orders', '/api/bza/orders', 110, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SETTING', '업무 설정', 'BZA', '/bza#settings', '/api/bza/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD', '다운로드 감사', 'BZA', '/bza#downloads', '/api/bza/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -402,6 +368,19 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+
+INSERT INTO bza_user_role (
+    admin_user_id, role_code, valid_from, valid_to, primary_yn, created_by, updated_by
+)
+SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user
+WHERE admin_login_id = 'bza-admin'
+ON DUPLICATE KEY UPDATE
+    valid_to = NULL,
+    primary_yn = 'Y',
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
 INSERT INTO bza_permission (
     role_code, menu_code, button_code, permission_type, http_method, api_pattern,
     data_scope, allow_yn, created_by, updated_by
@@ -421,10 +400,6 @@ INSERT INTO bza_permission (
     ('BZA_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'CUSTOMER', 'READ', 'API', 'GET', '/api/bza/customers/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'CUSTOMER', 'UNMASK', 'API', 'POST', '/api/bza/masking/unmask', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'PRODUCT', 'READ', 'API', 'GET', '/api/bza/products/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ORDER', 'READ', 'API', 'GET', '/api/bza/orders/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/bza/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/bza/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/bza/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -440,47 +415,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bza_customer (
-    customer_no, customer_name, email, mobile_no, customer_status, created_by, updated_by
-) VALUES (
-    'CUST000001', '샘플 고객', 'customer@example.com', '010-0000-0001', 'ACTIVE', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    customer_name = VALUES(customer_name),
-    email = VALUES(email),
-    mobile_no = VALUES(mobile_no),
-    customer_status = VALUES(customer_status),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO bza_product (
-    product_code, product_name, use_yn, created_by, updated_by
-) VALUES (
-    'PRD_SAMPLE', '샘플 상품', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    product_name = VALUES(product_name),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO bza_order (
-    order_no, customer_no, product_code, order_amount, order_status, created_by, updated_by
-) VALUES (
-    'ORD000001', 'CUST000001', 'PRD_SAMPLE', 10000.00, 'REQUESTED', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    customer_no = VALUES(customer_no),
-    product_code = VALUES(product_code),
-    order_amount = VALUES(order_amount),
-    order_status = VALUES(order_status),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
 INSERT INTO bza_project_setting (
     setting_key, setting_value, description, use_yn, created_by, updated_by
 ) VALUES (
-    'bza.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+    'DOWNLOAD.MASKING.ENABLED', 'Y', '업무 다운로드 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
@@ -489,31 +427,32 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bza_masking_audit (
-    target_type, target_id, operator_id, reason, result_type, created_by, updated_by
-)
-SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM bza_masking_audit
-    WHERE target_type = 'CUSTOMER'
-      AND target_id = 'CUST000001'
-      AND operator_id = 'biz-admin'
-      AND reason = '업무 관리자 샘플 원문보기 감사'
-);
-
 INSERT INTO bza_organization (
     organization_code, parent_organization_code, organization_name, organization_type,
-    sort_order, use_yn, created_by, updated_by
+    sort_order, effective_from, effective_to, use_yn, created_by, updated_by
 ) VALUES
-    ('HQ', NULL, '본사', 'COMPANY', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, 'Y', 'SYSTEM', 'SYSTEM')
+    ('HQ', NULL, '본사', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parent_organization_code = VALUES(parent_organization_code),
     organization_name = VALUES(organization_name),
     organization_type = VALUES(organization_type),
     sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bza_position (
+    position_code, position_name, rank_order, use_yn, created_by, updated_by
+) VALUES ('P3', '책임', 30, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    position_name = VALUES(position_name), rank_order = VALUES(rank_order), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO bza_job_title (
+    job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by
+) VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    job_title_name = VALUES(job_title_name), manager_yn = VALUES(manager_yn), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
 
 INSERT INTO bza_employee (
     employee_no, admin_user_id, organization_code, employee_name, position_code,
@@ -528,6 +467,17 @@ ON DUPLICATE KEY UPDATE
     job_title_code = VALUES(job_title_code), employment_status = VALUES(employment_status),
     email = VALUES(email), use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bza_employee_assignment (
+    employee_no, organization_code, position_code, job_title_code, assignment_type,
+    primary_yn, effective_from, effective_to, created_by, updated_by
+) VALUES (
+    'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    organization_code = VALUES(organization_code), position_code = VALUES(position_code),
+    job_title_code = VALUES(job_title_code), primary_yn = VALUES(primary_yn), effective_to = NULL,
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
 
 INSERT INTO bza_notification (
     recipient_login_id, notification_type, title, message_body,

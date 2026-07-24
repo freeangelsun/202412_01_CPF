@@ -89,7 +89,7 @@
 ## DEC-015 Vendor SQL Pack의 중앙 물리 소유권
 
 - 상태: `완료`
-- 결정: Vendor별 SQL 정본은 개별 제품 Module의 `src/main/resources`가 아니라 `cpf-tools/db/vendor/<vendor>` 중앙 Pack이 소유한다. Pack 내부에서 `provision/install/seed/migration/runtime/<module>/verify/rollback`으로 기능과 Module Ownership을 구분한다. 초기화 Tool은 한 Vendor Pack 전체를 선택하고, Runtime에는 선택 Vendor의 외부 resource root 또는 격리된 generated-resources/classpath overlay만 연결한다. 선택 과정에서 Git Source Tree를 덮어쓰거나 Diff를 만들지 않으며 Java Service/Controller/Domain/Repository 업무 Source와 제품 Module artifact에는 5개 Vendor SQL을 반복 적재하지 않는다. Generator도 신규 Domain Module에 Vendor 디렉터리를 복제하지 않고 중앙 Template/Pack에 Domain resource를 등록한다. 현재 Module-local WIP SQL은 Consumer, Mapper loading, Build와 실제 MariaDB Runtime Query가 중앙 Pack으로 성공한 뒤에만 제거한다.
+- 결정: Vendor별 SQL 정본은 개별 제품 Module의 `src/main/resources`가 아니라 `cpf-tools/db/vendor/<vendor>` 중앙 Pack이 소유한다. Pack 내부에서 `provision/install/seed/migration/runtime/<module>/verify/rollback`으로 기능과 Module Ownership을 구분한다. 초기화 Tool은 한 Vendor Pack 전체를 선택하고, Runtime에는 선택 Vendor의 외부 resource root 또는 격리된 generated-resources/classpath overlay만 연결한다. 선택 과정에서 Git Source Tree를 덮어쓰거나 Diff를 만들지 않으며 Java Service/Controller/Domain/Repository 업무 Source와 제품 Module artifact에는 5개 Vendor SQL을 반복 적재하지 않는다. Generator도 신규 Domain Module에 Vendor 디렉터리를 복제하지 않고 중앙 Template/Pack에 Domain resource를 등록한다. 과도기에는 Consumer 확인 후 제거하도록 했으나 이 이행 규칙은 DEC-019에서 대체됐다. 현재는 중앙 Pack이 정본이며 Module-local fallback을 제거해 fail-fast로 숨은 Consumer를 노출한다.
 - 이유: Vendor SQL의 중복·drift와 모든 Vendor resource의 불필요한 Runtime 활성화를 막고, 동일 Java Source/Artifact에 설치 설정과 선택 Vendor Pack만 결합하는 배포 경계를 만들기 위해서다.
 
 ## DEC-016 생성형 Domain의 Metadata·Template 확장
@@ -103,3 +103,34 @@
 - 상태: `완료`
 - 결정: 현재 Empty Install의 Table, Sequence, Constraint, Index와 Product Seed는 과거 Dump나 Historical Migration에 존재한다는 이유만으로 유지하지 않는다. 각 객체는 최신 정본의 Owner 책임과 실제 Java/MyBatis/Repository/Installer/Framework 동적 Consumer 중 하나로 존재 이유가 확인되어야 한다. 소비자가 없고 활성 원장과 중복되는 객체는 현행 설치 경로에서 제거하며, 정본 요구가 있으나 Consumer가 미완성인 객체는 삭제 대신 `부분 구현`으로 관리한다. MBR/ACC는 단일 `*_sample_item` 공통 Template로 전환하고, BZA의 고객·상품·주문 원장은 기본 제품에서 제거하며, EXS는 기관별 연계·실행·결과 불명 복구에 필요한 최소 구조만 둔다. MariaDB Spring Batch 객체는 사용 중인 Spring Batch Version의 공식 MariaDB Schema 계약을 따른다.
 - 이유: 추정성 Schema와 중복 원장, 사용되지 않는 Seed·Index를 제품 Baseline에 고착시키지 않으면서도 보안·운영 정본 객체를 단순 문자열 검색만으로 잘못 삭제하지 않기 위해서다.
+
+
+## DEC-018 Requirement ID 영구 연속성
+
+- 상태: 완료
+- 결정: 한 번 등록된 Requirement ID는 Mapping 없이 삭제하거나 Rename하지 않는다. 통합/분해/Owner 변경은 Continuity Ledger에 Old→New 관계를 남기며 완료율은 Canonical ID만 집계한다. 133→126 감소 과정의 유실을 보정하여 현재 Canonical Count를 162개로 관리한다.
+- 이유: PC/세션/Codex 교체 때 과거 요구가 조용히 사라지거나 같은 Gap이 새 이름으로 재개발되는 것을 막는다.
+
+## DEC-019 Central Vendor Pack Fail-Fast
+
+- 상태: 완료
+- 결정: 제품 Runtime의 Vendor SQL/MyBatis 정본은 `cpf-tools/db/vendor/<vendor>` 중앙 Pack 하나다. Production resolver/catalog는 `cpf.db.resource-root`가 없거나 Pack이 불완전하면 fail-fast 한다. Module-local vendor SQL을 호환 fallback으로 복구하지 않는다.
+- 이유: 과도기 fallback이 중앙 Pack 연결 오류를 숨기고 같은 SQL을 Module×Vendor로 복제하게 만드는 문제를 제거한다.
+
+## DEC-020 ADM과 BZA Approval 분리
+
+- 상태: 완료
+- 결정: ADM Approval은 플랫폼 위험조치 Dual Control/SoD/Break-glass와 Owner Command 실행을 소유하고, BZA Approval은 고객 업무 조직/직원/부서합의 결재를 소유한다. 두 Engine/Table/Policy는 공유하지 않는다.
+- 이유: 보안 Control Plane과 고객 업무 결재의 책임, 데이터, 감사, 확장 모델이 다르다.
+
+## DEC-021 BZA 조직/직원과 결재 Snapshot
+
+- 상태: 완료
+- 결정: BZA는 조직 Hierarchy, 직원, 직급, 직책, 유효기간 기반 Assignment와 복수 Role을 지원한다. Approval Policy와 Instance를 분리하고 Instance 생성 시 조직/직급/직책/참여자 Snapshot을 고정한다. ALL/ANY/N_OF_M, 필수/선택 부서, 위임/대결/부재를 실제 Engine으로 구현한다.
+- 이유: 조직개편 이후에도 과거 결재를 재현하고 기업 결재 요구를 사람별 고정 Line 구조에 묶지 않기 위해서다.
+
+## DEC-022 ADM Operator Directory 경계
+
+- 상태: 완료
+- 결정: `adm_operator`는 Authentication Identity다. 조직/사번/직급/직책/외부 Directory Subject는 별도 Profile/Directory Port로 관리하고 DB default adapter와 LDAP/AD/IAM/HR 확장을 허용한다. ADM이 기업 HR 원장을 소유하지 않는다.
+- 이유: 승인/Audit에 필요한 조직 문맥은 확보하되 플랫폼 관리자가 고객 HR Master와 결합되지 않게 한다.

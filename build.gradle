@@ -422,8 +422,15 @@ String cpfRequestedEnv() {
     return env
 }
 
+
+String cpfPowerShellExecutable() {
+    return (findProperty('cpfPowerShellExecutable')
+            ?: System.getenv('CPF_POWERSHELL_EXECUTABLE')
+            ?: 'pwsh').toString()
+}
+
 File cpfResultDir() {
-    return file((findProperty('cpfResultDir') ?: 'cpf-docs/evidence/20260722_01').toString())
+    return file((findProperty('cpfResultDir') ?: 'build/cpf-evidence/current').toString())
 }
 
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
@@ -611,31 +618,31 @@ String cpfSha256(File file) {
 tasks.register('checkUtf8', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1'
 }
 
 tasks.register('checkMojibake', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-utf8.ps1', '-CheckMojibake'
 }
 
 tasks.register('checkLegacyName', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-legacy-name.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-legacy-name.ps1'
 }
 
 tasks.register('checkSqlStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sql-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sql-standard.ps1'
 }
 
 tasks.register('checkJavaFormat', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-java-format.ps1'
 }
 
 tasks.register('checkJava25Standard', Exec) {
@@ -643,46 +650,46 @@ tasks.register('checkJava25Standard', Exec) {
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
     dependsOn ':cpf-admin:bootJar', ':cpf-batch:bootJar', ':cpf-biz-admin:bootJar', ':cpf-member:bootJar', ':cpf-reference:bootJar', ':cpf-account:bootJar', ':cpf-external:bootJar', ':cpf-gateway:bootJar'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
 
 tasks.register('checkDocxStandard', Exec) {
     group = 'verification'
     description = 'Checks the nine canonical DOCX package integrity; freshness is a separate final-publication gate.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-docx-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkTransactionIdStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-transaction-id-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-transaction-id-standard.ps1'
 }
 
 tasks.register('checkSecuritySeedStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-security-seed-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-security-seed-standard.ps1'
 }
 
 tasks.register('checkSampleStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sample-standard.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-sample-standard.ps1'
 }
 
 tasks.register('checkCpfRequestProtection', Exec) {
     group = 'verification'
     description = 'CPF_CURRENT_WORK_REQUEST.md must remain unchanged after the work baseline is captured.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('initializeCpfRequestProtection', Exec) {
     group = 'verification'
     description = 'Initialize CPF_CURRENT_WORK_REQUEST.md protection baseline explicitly before protected work starts.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-cpf-request-protection.ps1', '-ResultDir', cpfResultDir().path, '-InitializeBaseline'
 }
 
@@ -690,98 +697,106 @@ tasks.register('checkFeatureEvidence', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn 'exportCapabilityInventory'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-feature-evidence.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportCapabilityInventory', Exec) {
     group = 'verification'
     description = '삭제 전 ACC/EXS 기능 disposition과 현재 대체 구현을 다시 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/export-acc-exs-capability-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportArchitectureInventory', Exec) {
     group = 'verification'
     description = '전체 모듈의 source, test, resource, SQL, script 소유권 인벤토리를 생성하고 누락을 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/export-architecture-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportCpfInventory', Exec) {
     group = 'verification'
     description = '현재 저장소의 source, test, SQL, API, 설정과 문서 inventory를 생성합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/export-cpf-inventory.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('exportRequirementTraceability', Exec) {
     group = 'verification'
-    description = '정본 13,300개 REQ-ID와 구현 자산의 양방향 추적성을 검증합니다.'
+    description = '최신 Canonical Requirement Catalog와 Review 상태의 양방향 추적성을 검증합니다.'
     dependsOn 'exportCpfInventory', 'exportArchitectureInventory'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/export-requirement-traceability.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkFullLayerTaxonomy', Exec) {
     group = 'verification'
     description = '전체 Java 타입의 계층 역할과 확장 방식을 분류하고 미분류 타입을 차단합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-full-layer-taxonomy.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkServiceCallBoundary', Exec) {
     group = 'verification'
     description = 'CPF service call engine boundary rules must prevent direct URL, controller, and cross-domain repository access.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-service-call-boundary.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/check-service-call-boundary.ps1'
 }
 
 tasks.register('checkArchitectureOwnership', Exec) {
     group = 'verification'
     description = 'CPF/CMN/business ownership rules and capability placement must stay aligned.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-architecture-ownership.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkSpringEventUsage', Exec) {
     group = 'verification'
     description = 'Spring Event usage must remain limited to hook, telemetry, cache, and audit support.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-spring-event-usage.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkProfileLoading', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-profile-loading.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkRuntimeConfigStandard', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-runtime-config-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkLogManagementStandard', Exec) {
     group = 'verification'
     description = '런타임 로그 비추적, 공통 로그 경로, 정제 증적 규격을 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-log-management-standard.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkOpenApiSourceCoverage', Exec) {
     group = 'verification'
     description = '전체 Controller의 OpenAPI operationId 자동 보장과 명시 ID 중복을 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-openapi-source-coverage.ps1', '-ResultDir', cpfResultDir().path
+}
+
+tasks.register('buildSampleCoverageMatrix', Exec) {
+    group = 'verification'
+    description = 'REF/BAT EDU Source와 Test에서 build/generated sample coverage matrix를 재생성합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'scripts/build-sample-coverage-matrix.ps1'
 }
 
 tasks.register('checkSampleCoverage', Exec) {
     group = 'verification'
-    description = 'CPF education sample coverage matrix and source evidence must be consistent.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    description = 'Generated EDU sample coverage matrix와 Source/Test 소유권을 검증합니다.'
+    dependsOn 'buildSampleCoverageMatrix'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-sample-coverage.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -789,7 +804,7 @@ tasks.register('checkEvidencePathExistence', Exec) {
     group = 'verification'
     description = 'CPF reports and matrices must not point to missing evidence files.'
     mustRunAfter 'checkRuntimeConfigStandard', 'checkSampleCoverage', 'remoteDeployDryRun'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-evidence-path-existence.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -921,40 +936,40 @@ tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
     description = 'CPF stabilization report, feature matrix, and evidence index must agree.'
     mustRunAfter 'checkEvidencePathExistence'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-report-matrix-evidence-consistency.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('openApiSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-openapi.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-openapi.ps1'
 }
 
 tasks.register('admUiSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-ui.ps1'
 }
 
 tasks.register('checkBaseHierarchy', Exec) {
     group = 'verification'
     description = 'Controller와 Service의 CPF·주제영역 Base 3단 확장 계층을 검사합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-base-hierarchy.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainGenerator', Exec) {
     group = 'verification'
     description = '신규 업무 모듈 생성 결과의 feature-first 구조와 Java 25 산출물을 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-create-domain.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainCapabilityMatrix', Exec) {
     group = 'verification'
     description = '신규 업무 모듈 생성기의 DB, Batch, External, UI capability 조합과 미선택 산출물 0건을 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-domain-capability-matrix.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -962,7 +977,7 @@ tasks.register('checkSqlCanonical', Exec) {
     group = 'verification'
     description = 'SQL 정본 위치, Flyway 버전, 생성기 DB 벤더 지원을 검사합니다.'
     workingDir rootDir
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             file('scripts/check-sql-canonical.ps1').absolutePath,
             '-Root', rootDir.absolutePath,
             '-ResultDir', cpfResultDir().path
@@ -971,7 +986,7 @@ tasks.register('checkSqlCanonical', Exec) {
 tasks.register('checkAccLifecycle', Exec) {
     group = 'verification'
     description = 'ACC 스냅샷, 삭제, 순수 생성, 패키징, 제거, 재생성 parity를 격리 환경에서 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-acc-lifecycle.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -979,7 +994,7 @@ tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
     group = 'verification'
     description = '서로 다른 BAT worker 프로세스 2개의 claim, drain, crash, lease takeover를 MariaDB에서 검증합니다.'
     dependsOn ':cpf-batch:bootJar'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-bat-two-worker-runtime.ps1', '-ResultDir', cpfResultDir().path
 }
 
@@ -987,49 +1002,49 @@ tasks.register('checkModernFrontend', Exec) {
     group = 'verification'
     description = 'ADM/BZA Vue SFC, TypeScript, lockfile, legacy 제거와 JAR/WAR 포함을 검증합니다.'
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', ':cpf-admin:bootJar', ':cpf-admin:bootWar', ':cpf-biz-admin:bootJar', ':cpf-biz-admin:bootWar'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-modern-frontend.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDomainRemoval', Exec) {
     group = 'verification'
     description = '생성 모듈 제거의 dry-run, 사용자 변경 차단, 실제 정리를 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-remove-domain.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkRepositoryHygiene', Exec) {
     group = 'verification'
     description = '추적 중인 생성 중간물, runtime 산출물, 후보·최종 중복과 백업 파일을 차단합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-repository-hygiene.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkDocumentLinks', Exec) {
     group = 'verification'
     description = 'README와 HTML/Markdown 문서의 내부 파일 링크를 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/check-document-links.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('admLogPolicyUiStaticSmoke', Exec) {
     group = 'verification'
     description = 'ADM 로그 정책 화면과 운영 API 연결을 정적으로 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-adm-log-policy-ui-static.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('bzaUiSmoke', Exec) {
     group = 'verification'
     description = 'BZA 메뉴, 권한, 인증 저장소와 API 연결을 정적으로 검증합니다.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'scripts/smoke-bza-ui.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('admRuntimeSmoke', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
-    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-runtime.ps1'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'scripts/smoke-adm-runtime.ps1'
 }
 
 tasks.register('qualityGate') {
@@ -1038,5 +1053,14 @@ tasks.register('qualityGate') {
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocxStandard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+}
+
+
+// 최종 배포 문서가 안정된 뒤에만 실행하는 Publication Gate입니다.
+// 일반 개발 qualityGate가 조기 DOCX/PDF 산출물에 종속되지 않도록 책임을 분리합니다.
+tasks.register('publicationGate') {
+    group = 'verification'
+    description = 'Validates final publication artifacts after product/source/evidence stabilization.'
+    dependsOn 'qualityGate', 'checkDocxStandard'
 }

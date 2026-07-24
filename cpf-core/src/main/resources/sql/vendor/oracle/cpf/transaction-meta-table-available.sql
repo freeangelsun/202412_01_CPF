@@ -1,3 +1,0 @@
-SELECT COUNT(*)
-FROM user_tables
-WHERE table_name = 'CPF_TRANSACTION_META'

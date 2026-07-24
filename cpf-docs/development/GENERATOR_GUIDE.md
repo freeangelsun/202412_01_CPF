@@ -265,3 +265,9 @@ DB가 초기화된 회사·집 PC 양쪽에서 동일 결과가 나와야 합니
 ## 14. 사용자 소유 파일 보호
 
 Manifest로 generated-owned와 user-owned를 구분합니다. Delete/Regenerate가 사용자 작성 Source를 삭제하거나 덮어쓰지 않도록 preview, backup 또는 명시적 conflict 처리를 제공합니다.
+
+## 11. Central Vendor Domain Template
+
+Generated Domain은 MBR/ACC/REF/PAY/INS 고정 목록이 아니다. `DomainName`, `SystemCode`, `ModuleName`, `PackageName`, `SchemaName`, `TablePrefix` Metadata를 중앙 Vendor `domain-template`에 적용한다.
+
+신규 Domain 때문에 CPF Java switch/if를 수정하거나 Domain Module에 MariaDB/MySQL/PostgreSQL/Oracle/SQL Server SQL을 5벌 복제하면 설계 실패다. 기본 Reference DB 모델은 특정 업무 원장이 아니라 동일 논리 `*_sample_item`으로 CRUD/Search/Paging/Transaction/Local·Remote Call/Header/Error/Idempotency/Audit를 검증한다.

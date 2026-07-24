@@ -121,9 +121,14 @@ public class BzaBackofficeRepository {
     public void addApprovalLine(long approvalId, int stepNo, String approverEmployeeNo, String decisionRule, String requestUser) {
         jdbc().update("""
                 INSERT INTO bza_approval_line (
-                    approval_id, step_no, approver_employee_no, decision_rule,
+                    approval_id, step_no, approver_employee_no,
+                    step_type, target_type, target_code, decision_rule, required_yn,
                     decision_status, created_by, updated_by
-                ) VALUES (:approvalId, :stepNo, :approverEmployeeNo, :decisionRule, 'WAITING', :requestUser, :requestUser)
+                ) VALUES (
+                    :approvalId, :stepNo, :approverEmployeeNo,
+                    'APPROVAL', 'EMPLOYEE', :approverEmployeeNo, :decisionRule, 'Y',
+                    'WAITING', :requestUser, :requestUser
+                )
                 """, new MapSqlParameterSource()
                 .addValue("approvalId", approvalId)
                 .addValue("stepNo", stepNo)

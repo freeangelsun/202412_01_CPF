@@ -189,34 +189,8 @@ Masking 전 원문을 다른 Logger에서 출력하지 않는지 검증합니다
 [ ] Dependency·SBOM·License·Secret Scan을 통과했다.
 ```
 
+## 12. ADM/BZA Approval Security
 
-## 13. 금융권 운영 통제
+ADM 위험조치는 단순 RBAC 허용만으로 실행하지 않는다. 정책에 따라 requester/approver separation, SoD, ALL/ANY/N_OF_M, command payload hash, TTL, idempotency, immutable history를 적용하고 승인 후 Owner Command API를 호출한다. Break-glass는 별도 권한/TTL/사후 Review가 필요하다.
 
-- 위험 조치 Dual Control
-- 역할 분리와 최소 권한
-- Break-glass는 시간 제한, 사유와 사후 Review
-- 관리자 Session 재인증
-- 대량 Download 승인, Watermark, 만료와 Audit
-- 개인정보 검색조건과 결과 Masking
-- 운영 Override의 scope, expiry와 rollback
-
-## 14. DB와 Seed
-
-기본 관리자 Password, Token, Private Key와 개인정보를 SQL Seed에 넣지 않습니다. Bootstrap Credential은 환경 Secret 또는 일회성 발급으로 제공하고 최초 로그인 강제 변경과 폐기를 검증합니다.
-
-Service User는 Schema Owner와 Runtime 최소 권한을 분리합니다. Reset/Provision은 정확한 Allowlist를 사용합니다.
-
-## 15. Evidence Security
-
-Raw Log를 그대로 Commit하지 않습니다. Sanitized Evidence는 transaction/requirement 추적에 필요한 정보는 유지하고 Secret, Credential, PII와 내부 접속정보를 제거합니다. Sanitization Rule과 검토자를 기록합니다.
-
-## 16. Security 완료 조건
-
-- positive/negative AuthN/AuthZ
-- menu와 API permission parity
-- masking bypass 방지
-- approval/audit tamper test
-- secret scan와 dependency/SBOM
-- certificate rotation/revocation
-- download governance
-- multi-instance session/token behavior
+BZA 업무결재는 조직/직원/Role/Position Directory와 분리된 Policy/Instance를 사용하고 상신 시 참여자 Snapshot을 고정한다. 위임/대결은 유효기간과 Audit을 가져야 하며 조직개편이 과거 승인 기록을 변경하면 안 된다.

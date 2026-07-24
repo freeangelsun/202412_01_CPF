@@ -60,6 +60,25 @@ final class CpfVendorResourceRoot {
         }
     }
 
+    /**
+     * 제품 Runtime에서 선택된 중앙 Vendor Pack root를 필수로 반환합니다.
+     *
+     * <p>Module-local classpath Vendor SQL은 최종 제품 정본이 아니므로 이 메서드는
+     * {@code cpf.db.resource-root}가 없으면 즉시 실패합니다. Local/DEV/Test도
+     * {@code scripts/select-db-vendor-resources.ps1} 또는 동등한 Bootstrap으로 중앙 Pack을
+     * 명시해야 합니다.</p>
+     *
+     * @param environment Spring Environment
+     * @param selectedVendor 선택된 DB Vendor
+     * @return 검증된 중앙 Vendor Pack 실제 경로
+     * @throws IllegalStateException resource root가 설정되지 않았거나 pack 검증에 실패한 경우
+     */
+    static Path required(Environment environment, CpfDatabaseVendor selectedVendor) {
+        return selected(environment, selectedVendor).orElseThrow(() -> new IllegalStateException(
+                PROPERTY_NAME + "가 필요합니다. Module-local Vendor SQL fallback은 지원하지 않습니다. "
+                        + "선택 Vendor=" + selectedVendor.id()));
+    }
+
     private static void validateManifest(Path realRoot, CpfDatabaseVendor selectedVendor) {
         Path manifest = requiredFile(realRoot, Path.of("pack.json"), "Pack Manifest");
         try {

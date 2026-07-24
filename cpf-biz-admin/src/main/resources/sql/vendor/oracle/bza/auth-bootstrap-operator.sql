@@ -1,8 +1,0 @@
-INSERT INTO bza_admin_user (
-    admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
-    login_fail_count, password_change_required_yn, password_expire_at, created_by, updated_by
-)
-SELECT :loginId, :operatorName, :passwordHash, :roleCode, 'Y', 'N', 0, 'Y',
-       CURRENT_TIMESTAMP + INTERVAL '90' DAY, 'BOOTSTRAP', 'BOOTSTRAP'
-FROM dual
-WHERE NOT EXISTS (SELECT 1 FROM bza_admin_user WHERE admin_login_id = :loginId)

@@ -1,262 +1,318 @@
 # CPF Installation Guide
 
-## 1. Scope
+## 1. 목적과 적용 범위
 
-이 문서는 CPF의 신규 설치와 초기 검증 절차를 설명합니다.
+이 문서는 Core Platform Framework(CPF)의 신규 설치, Vendor Pack 선택, 빈 DB 구축,
+재설치와 설치 후 검증 절차를 정의합니다. 개발 중 문서 정본은 Markdown이며 실제 실행하지 않은
+DB Vendor, Runtime 또는 배포 방식은 지원 완료로 표기하지 않습니다.
 
-## 2. Supported Deployment Models
+현재 검수 기준에서 MariaDB는 실제 실행 검증 대상입니다. MySQL, PostgreSQL, Oracle,
+SQL Server는 중앙 Vendor Pack 계약을 동일하게 따르되 실제 환경 Evidence가 없으면 `미검증`입니다.
+
+## 2. 지원 배포 모델
+
+CPF의 목표 배포 모델은 다음과 같습니다.
 
 - Executable JAR
 - External WAS WAR
-- Docker Container
-- Kubernetes
 - Modular Monolith
 - Independent Microservices
+- 독립 Batch/Agent/Runner/Worker Process
+- ADM/BZA Static Web Artifact와 API 독립 배포
+- Container/Kubernetes
 
-## 3. Prerequisites
+배포 방식이 Public Contract, 표준 Header, 오류 규격, 권한, Audit 또는 Local/Remote 호출 계약을 바꾸면 안 됩니다.
 
-### Runtime
+## 3. 사전 조건
+
+### 3.1 Runtime
 
 - JDK 25
+- Gradle Wrapper
+- PowerShell 7(`pwsh`) — Windows 설치/검증 Script 기준
 - Linux 또는 Windows Server
 - NTP 시간 동기화
-- 충분한 file descriptor
-- 운영 Log와 spool 전용 Disk
+- 운영 Log와 spool을 위한 쓰기 가능한 경로
 
-### Database
+### 3.2 Database
+
+제품 목표 Vendor:
 
 - MariaDB
-- MariaDB — 필수 실검증
-- PostgreSQL, Oracle, SQL Server — Vendor별 설치·Migration·Runtime Evidence가 있는 Release에서만 지원
+- MySQL
+- PostgreSQL
+- Oracle
+- SQL Server
 
-### Optional Infrastructure
+실행 검증 여부는 Vendor별 Evidence로 판정합니다. MariaDB 결과를 다른 Vendor의 성공 근거로 재사용하지 않습니다.
+
+### 3.3 선택 인프라
 
 - Redis
 - Kafka 또는 호환 Broker
 - SFTP
 - Secret Manager
-- Reverse Proxy 또는 Load Balancer
+- Reverse Proxy / Load Balancer
 
-## 4. Service Accounts
+## 4. Secret과 Service Account
 
-서비스별 최소 권한 계정을 분리합니다.
+DB Root/Migration/Application Password, Token, Private Key를 Repository, 명령 이력,
+Evidence 또는 Guide에 평문으로 저장하지 않습니다.
 
-- Application DB user
-- Migration DB user
-- Batch DB user
-- Read-only operation user
-- Broker producer/consumer
-- SFTP account
-- Secret access identity
+권장 분리:
 
-Application 계정에 DDL 권한을 부여하지 않습니다.
+- Provision/Admin DB identity
+- Migration DB identity
+- Application DB identity
+- 운영 Read-only identity
+- Broker producer/consumer identity
+- SFTP identity
+- Secret/Certificate identity
 
-## 5. Configuration
+Application identity에는 DDL/DROP/CREATE USER 권한을 부여하지 않습니다.
 
-환경별 Profile:
+## 5. 중앙 DB Vendor Pack 선택
 
-- `local`
-- `dev`
-- `stg`
-- `prod`
+Physical Vendor SQL의 제품 정본은 다음 중앙 Pack입니다.
 
-설정 우선순위:
-
-1. 안전한 Framework default
-2. Profile configuration
-3. Environment variable
-4. Secret provider
-5. 허용된 동적 운영 설정
-
-Password, Token, Private Key와 원문 Secret을 Repository에 저장하지 않습니다.
-
-## 6. Database Installation
-
-```bash
-./gradlew cpfInstallDb \
-  -PcpfDbVendor=mariadb \
-  -PcpfProfile=prod
+```text
+cpf-tools/db/vendor/<vendor>/
+  pack.json
+  provision/
+  install/
+  seed/
+  migration/
+  runtime/<owner>/
+  verify/
+  rollback/
+  domain-template/
 ```
 
-필수 검증:
+Module `src/main/resources`에 Vendor별 SQL/MyBatis Pack을 다시 복제하지 않습니다.
 
-- schema version
-- table·index·constraint
-- seed
-- 권한
-- 재실행 멱등성
-- timezone과 charset
-- 개인정보 Column
-- Migration history
+Repository Root에서 선택 상태와 parity를 확인합니다.
 
-```bash
-./gradlew cpfVerifyDb \
-  -PcpfDbVendor=mariadb \
-  -PcpfProfile=prod
+```powershell
+pwsh -File scripts/select-db-vendor-resources.ps1 -Vendor mariadb
 ```
 
-## 7. Build Artifacts
+격리된 Runtime resource overlay가 필요한 경우 Source Tree를 덮어쓰지 않고 `build/` 아래에 생성합니다.
 
-```bash
-./gradlew clean build
-./gradlew assemble
+```powershell
+pwsh -File scripts/select-db-vendor-resources.ps1 -Vendor mariadb -AssembleOverlay -RequireExecutable
 ```
 
-검증:
+Runtime은 선택된 Pack의 실제 `pack.json` root를 `cpf.db.resource-root`로 받아야 합니다.
+해당 값이 없거나 `cpf.db.vendor`와 Pack의 Vendor가 다르면 fail-fast해야 합니다.
+삭제된 Module-local Vendor resource를 fallback으로 복구해서는 안 됩니다.
 
-- JAR/WAR
-- frontend asset
-- sources
-- JavaDoc
-- checksum
-- SBOM
-- third-party license
-- signature 또는 provenance
+## 6. Canonical SQL과 Generated Bundle
 
-## 8. Executable JAR
+Schema 설계 정본:
 
-```bash
-java -jar cpf-gateway/build/libs/cpf-gateway.jar \
-  --spring.profiles.active=prod
+```text
+specs/sql/10_cpf_schema.sql
+specs/sql/20_cmn_schema.sql
+specs/sql/30_adm_schema.sql
+specs/sql/35_bat_schema.sql
+specs/sql/40_business_modules_schema.sql
+specs/sql/45_external_schema.sql
 ```
 
-서비스별 JVM memory, GC, timezone, log path와 secret provider를 지정합니다.
-
-## 9. External WAS
-
-- WAR packaging
-- Servlet context
-- JNDI datasource
-- classloader policy
-- shared library 충돌
-- reverse proxy header
-- session policy
-- graceful shutdown
-
-WAS별 설치 예제는 `cpf-deployment/was`를 사용합니다.
-
-## 10. Docker
-
-```bash
-docker compose -f cpf-deployment/docker/compose.yml up -d
-```
-
-Image에는 Secret과 운영 설정을 포함하지 않습니다.
-
-검증:
-
-- non-root
-- read-only filesystem
-- writable log/spool volume
-- healthcheck
-- resource limit
-- image scan
-
-## 11. Kubernetes
-
-- Deployment
-- Service
-- ConfigMap
-- Secret reference
-- readiness
-- liveness
-- startup probe
-- PodDisruptionBudget
-- HPA
-- topology spread
-- persistent spool volume
-- NetworkPolicy
-
-DB Migration은 Application Pod와 분리된 Job으로 실행합니다.
-
-## 12. Installation Order
-
-1. DB backup 기준점
-2. schema·migration
-3. Secret·certificate
-4. cpf-core dependent service
-5. business services
-6. cpf-batch
-7. cpf-admin·cpf-biz-admin
-8. cpf-gateway routing
-9. readiness
-10. Runtime smoke
-11. Monitoring·alert
-12. 운영 인수
-
-## 13. Post-install Verification
-
-- 모든 Service health
-- Registry
-- OpenAPI
-- 표준 Header
-- Local/Remote 호출
-- DB read/write
-- file log
-- DB log
-- Batch worker
-- External mock
-- Admin login·권한
-- Audit
-- Masking
-- backup
-
-## 14. Hardening
-
-- 기본 Password 제거
-- Test endpoint 비활성
-- 불필요 Port 차단
-- TLS 강제
-- mTLS 적용
-- 관리자 접근망 제한
-- Cookie 보안
-- CSP
-- Audit 보존
-- Log 권한
-- File upload 제한
-- Secret rotation
-
-
-## 12. 빈 DB 재구축 계약
-
-회사 PC와 집 PC 모두 기존 CPF Schema/Table이 없다는 전제로 첫 설치를 수행합니다. 기존 Dump나 로컬 잔존 Object를 복구하지 않고 정본 설치 Script가 다음을 생성해야 합니다.
-
-1. 정확한 Schema Allowlist
-2. Service User와 최소 Grant
-3. Table, PK/FK/UK/Check/Index/Constraint
-4. Mandatory Product Meta
-5. 선택 EDU/Sample/Test Seed
-6. Verify Query와 Schema Version
-
-첫 Cycle은 Reset 없이 Empty Install로 성공해야 합니다.
-
-## 13. 설치 책임 분리
+Lifecycle 책임:
 
 ```text
 provision
 install
 product-seed
 optional-sample-seed
+test-seed
 verify
-reset-dry-run/reset-apply
+reset
+migration
+rollback/recovery
 ```
 
-`00_all_install.sql` 같은 단일 파괴적 Script를 정본 제품 설치로 사용하지 않습니다. 다른 Application Schema를 wildcard로 삭제하지 않습니다.
+Split SQL 변경 후 Generated Bundle과 MariaDB 중앙 Pack mirror를 반드시 재생성합니다.
 
-## 14. cmnDB와 Owner Schema
+```powershell
+pwsh -File scripts/build-all-install-sql.ps1
+```
 
-- `cmnDB`: 최소 Sample Table 1개
-- Batch Runtime: `cpf-batch` Owner Schema
-- Fixed-Length Dynamic Layout가 필요하면 Core Owner Schema
-- 기관별 External State: `cpf-external` Owner Schema
-- BZA Sequence Sample: 선택 설치와 Sample 명칭
+`00_empty_install.sql`, `00_product_seed.sql`, `00_verify.sql` 같은 Generated 파일을
+Split SQL과 별도의 설계 정본처럼 직접 편집하지 않습니다.
 
-## 15. 설치 Evidence
+## 7. 신규 Empty Install
 
-- 빈 DB 전/후 Schema Inventory
-- Table/Constraint/Index count와 naming
-- Seed row와 idempotent rerun
-- Service User permission positive/negative
-- 전체 Module Boot
-- API/Batch/Admin smoke
-- reinstall
+첫 설치는 Reset을 선행 조건으로 요구하지 않습니다.
+
+Credential 값은 환경변수 또는 안전한 Secret 주입을 사용하고, Guide/Evidence에는 값 자체를 기록하지 않습니다.
+Initializer의 실제 인자는 `scripts/initialize-cpf-database.ps1`의 계약을 따릅니다.
+
+예시:
+
+```powershell
+$env:CPF_DB_VENDOR = "mariadb"
+$env:CPF_DB_HOST = "<host>"
+$env:CPF_DB_PORT = "<port>"
+$env:CPF_DB_ROOT_USERNAME = "<admin-user>"
+# Password 환경변수 값은 안전한 방식으로 별도 주입
+pwsh -File scripts/initialize-cpf-database.ps1 -RequireRun
+```
+
+Initializer는 최소 다음을 검증해야 합니다.
+
+- CPF-owned Schema exact allowlist
+- Table/PK/FK/UK/Check/Index/Constraint
+- Product Seed
+- Service User/Grant
+- Schema/Object inventory
+- Verify SQL
+- 민감정보가 제거된 실행 결과
+
+현재 Overlay의 `123 CREATE TABLE`은 정적 설계 수치일 뿐입니다.
+실제 MariaDB에서 동일 Object가 생성되었다는 Evidence가 생기기 전에는 Runtime 완료가 아닙니다.
+
+## 8. Reset과 Reinstall
+
+Reset은 첫 설치 경로가 아니라 재설치/복구 검증 경로입니다.
+
+먼저 Dry-run:
+
+```powershell
+pwsh -File scripts/reset-cpf-databases.ps1
+```
+
+Apply는 정확한 Allowlist와 명시적 Confirmation을 모두 요구합니다.
+
+```powershell
+pwsh -File scripts/reset-cpf-databases.ps1 -Apply -Confirmation DROP_CPF_ALLOWLIST_ONLY
+```
+
+Reset Script가 CPF Allowlist 밖의 Application Schema를 DROP하면 실패입니다.
+필요한 데이터가 있으면 Apply 전에 Backup/Restore Point를 확보합니다.
+
+Reset 후 다시 Empty Install → Seed → Verify를 수행하여 재설치 반복성을 확인합니다.
+
+## 9. Module Build
+
+Repository Root:
+
+```powershell
+.\gradlew.bat clean build --no-daemon
+```
+
+또는 Linux/macOS:
+
+```bash
+./gradlew clean build --no-daemon
+```
+
+검증 대상은 단순 Compile에 그치지 않습니다.
+
+- Unit / Integration Test
+- Architecture/Ownership Gate
+- UTF-8
+- SQL canonical/parity
+- OpenAPI source/runtime
+- Frontend build
+- repository hygiene
+- Evidence consistency
+
+DOCX/PDF publication 검증은 개발 중 일반 Quality Gate와 분리하고 최종 정본화 단계에서 수행합니다.
+
+## 10. Runtime 기동
+
+Executable JAR 또는 External WAS의 실제 Artifact 이름과 Port는 각 Module Build/Config 정본을 따릅니다.
+Guide에서 존재하지 않는 배포 경로나 가상의 Task 이름을 만들지 않습니다.
+
+Runtime 검증은 최소 다음을 포함합니다.
+
+- Gateway/API
+- Local/Remote Service Call
+- Registry/Health/Failover
+- 표준 Header/transactionGlobalId/Trace
+- DB Read/Write
+- File/DB Log
+- Broker/Outbox/Inbox/DLQ
+- Batch/Agent/Center-Cut
+- ADM/BZA login/RBAC/Approval
+- External integration mock
+- Audit/Masking
+
+## 11. 배포 Directory와 Environment
+
+현재 Repository의 배포 보조 정본은 `deploy/` 아래의 실제 파일만 사용합니다.
+
+```text
+deploy/env/
+deploy/inventory/
+```
+
+Repository에 존재하지 않는 `cpf-deployment/was`, `cpf-deployment/docker/compose.yml` 같은 경로를
+공식 설치 경로로 문서화하지 않습니다. Container/Kubernetes 배포 파일이 제품화되면 실제 Source와
+검증 Evidence가 존재하는 경로만 Guide에 추가합니다.
+
+## 12. Owner Schema 원칙
+
+- `cpfDB`: 기술 Framework Runtime
+- `cmnDB`: 기본 제품은 `cmn_sample_item` 1개
+- `admDB`: 플랫폼 운영 Control Plane
+- `bzaDB`: 고객 업무 관리자/조직/업무결재
+- `batDB`: Batch/Scheduler/Agent/Runner/Worker/Center-Cut
+- `mbrDB`, `accDB`, `refDB`: Reference/Generator 검증 목적에 맞는 최소 구조
+- `exsDB`: 현재 정본상 `cpf-external` 대외연계 제품 Owner 구조
+
+ADM이 `batDB`, `refDB`, 업무 Domain DB를 직접 수정하는 구조는 설치 편의 때문에 허용하지 않습니다.
+
+## 13. Migration / Upgrade / Rollback
+
+- 이미 적용된 Historical Flyway 파일은 불변
+- 신규 변경은 새 Migration으로 추가
+- V6/V29처럼 checksum 불일치가 있으면 원인을 먼저 확정
+- checksum을 맞추기 위한 임의 편집 금지
+- Empty Install 최종 상태와 Upgrade 최종 상태 parity 검증
+- rollback 불가능 변경은 Forward Recovery + Backup/Restore 전략을 명시
+
+## 14. 설치 후 Evidence
+
+민감정보를 제거한 Evidence에는 최소 다음이 있어야 합니다.
+
+- 기준 Commit
+- PC/환경 구분(HOME/COMPANY 등)
+- Vendor/Profile
+- 실행 명령
+- 시작/종료 시각
+- Reset 여부
+- Schema/Object inventory
+- Seed/Grant 검증
+- Module boot 결과
+- Runtime/API/Batch/Admin/Browser smoke
+- 실패/Blocker
+- Stale 여부
+
+한 PC의 Runtime 성공을 다른 PC의 성공으로 승계하지 않습니다.
+
+## 15. Hardening
+
+- 기본 Password/테스트 계정 제거 또는 강제 초기 변경
+- TLS/mTLS 정책
+- 관리자 접근망 제한
+- Cookie/CSP/보안 Header
+- Upload/Download 권한과 크기 제한
+- Secret/Certificate Rotation
+- Audit 보존과 변조 방지
+- Log/Spool 파일 권한
+- Backup/Restore/DR 검증
+
+## 16. 완료 금지 조건
+
+다음 상태에서는 DB/설치 Requirement를 `완료`로 표시하지 않습니다.
+
+- Split DDL과 Generated Bundle이 다름
+- 중앙 Vendor Pack과 Runtime Consumer가 연결되지 않음
+- Module-local Vendor fallback으로 우연히 통과함
+- MariaDB만 실행하고 다른 Vendor까지 완료 처리함
+- Historical Migration 무결성 문제가 미해결
+- Reset/Upgrade/Rollback/Restore를 실행하지 않았는데 성공으로 기록함
+- Evidence가 현재 Commit/PC/실행환경과 일치하지 않음

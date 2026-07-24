@@ -18,52 +18,50 @@ class CpfSqlResourceResolverTest {
     Path tempDirectory;
 
     @Test
-    void buildsVendorSpecificMapperAndFlywayLocations() {
-        MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.db.vendor", "sqlserver");
+    void failsFastWhenCentralPackRootIsMissing() {
+        MockEnvironment environment = new MockEnvironment().withProperty("cpf.db.vendor", "mariadb");
 
-        assertThat(CpfSqlResourceResolver.mapperPattern(environment, "cpf"))
-                .isEqualTo("classpath*:mybatis/vendor/sqlserver/mapper/cpf/**/*.xml");
-        assertThat(CpfSqlResourceResolver.flywayLocation(environment))
-                .isEqualTo("classpath:db/migration/sqlserver");
+        assertThatThrownBy(() -> CpfSqlResourceResolver.mapperPattern(environment, "cpf"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(CpfVendorResourceRoot.PROPERTY_NAME)
+                .hasMessageContaining("fallback");
+        assertThatThrownBy(() -> CpfSqlResourceResolver.flywayLocation(environment))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(CpfVendorResourceRoot.PROPERTY_NAME);
     }
 
     @Test
-    void rejectsInvalidModulePathInsteadOfBuildingArbitraryResourcePattern() {
+    void rejectsInvalidModulePathBeforeResourceResolution() {
         assertThatThrownBy(() -> CpfSqlResourceResolver.mapperPattern(
                 new MockEnvironment(), "../cpf"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void readsOnlySelectedExternalCentralMapperPackInDeterministicOrder() throws IOException {
+    void readsOnlySelectedCentralMapperPackInDeterministicOrder() throws IOException {
         Path packRoot = centralPackRoot("mariadb");
         Path mapperRoot = packRoot.resolve("runtime/payment-domain/mybatis/query");
         Files.createDirectories(mapperRoot);
         Files.writeString(mapperRoot.resolve("ZMapper.xml"), "<mapper namespace=\"z\"/>");
         Files.writeString(mapperRoot.resolve("AMapper.xml"), "<mapper namespace=\"a\"/>");
 
-        MockEnvironment environment = environment(packRoot);
-        Resource[] resources = CpfSqlResourceResolver.mapperResources(
-                environment,
-                "payment-domain");
+        MockEnvironment environment = environment(packRoot, "mariadb");
+        Resource[] resources = CpfSqlResourceResolver.mapperResources(environment, "payment-domain");
 
         assertThat(CpfSqlResourceResolver.mapperPattern(environment, "payment-domain"))
                 .startsWith("file:")
                 .endsWith("/runtime/payment-domain/mybatis/**/*.xml");
-        assertThat(resources)
-                .extracting(Resource::getFilename)
+        assertThat(resources).extracting(Resource::getFilename)
                 .containsExactly("AMapper.xml", "ZMapper.xml");
     }
 
     @Test
-    void selectedExternalMapperPackDoesNotFallbackToClasspath() throws IOException {
+    void centralMapperPackDoesNotFallbackWhenSelectedModuleIsEmpty() throws IOException {
         Path packRoot = centralPackRoot("mariadb");
         Files.createDirectories(packRoot.resolve("runtime/cpf/mybatis"));
 
         assertThatThrownBy(() -> CpfSqlResourceResolver.mapperResources(
-                environment(packRoot),
-                "cpf"))
+                environment(packRoot, "mariadb"), "cpf"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("비어 있습니다");
     }
@@ -73,35 +71,20 @@ class CpfSqlResourceResolverTest {
         Path packRoot = centralPackRoot("mariadb");
         Files.createDirectories(packRoot.resolve("migration"));
 
-        assertThat(CpfSqlResourceResolver.flywayLocation(environment(packRoot)))
+        assertThat(CpfSqlResourceResolver.flywayLocation(environment(packRoot, "mariadb")))
                 .isEqualTo("filesystem:"
                         + packRoot.resolve("migration").toRealPath().toString().replace('\\', '/'));
     }
 
     @Test
-    void invalidVendorStillFailsWhenExternalPackIsConfigured() throws IOException {
-        Path packRoot = centralPackRoot("mariadb");
+    void rejectsPackForDifferentVendor() throws IOException {
+        Path packRoot = centralPackRoot("mysql");
         Files.createDirectories(packRoot.resolve("runtime/cpf/mybatis"));
 
-        MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.db.vendor", "db2")
-                .withProperty(CpfVendorResourceRoot.PROPERTY_NAME, packRoot.toString());
-
-        assertThatThrownBy(() -> CpfSqlResourceResolver.mapperResources(environment, "cpf"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("지원하지 않는");
-    }
-
-    @Test
-    void rejectsMalformedExternalPackManifest() throws IOException {
-        Path packRoot = centralPackRoot("mariadb");
-        Files.writeString(packRoot.resolve("pack.json"), "{not-json");
-
-        assertThatThrownBy(() -> CpfSqlResourceResolver.mapperResources(
-                environment(packRoot),
-                "cpf"))
+        assertThatThrownBy(() -> CpfSqlResourceResolver.mapperPattern(
+                environment(packRoot, "mariadb"), "cpf"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("pack.json을 검증할 수 없습니다");
+                .hasMessageContaining("일치하지 않습니다");
     }
 
     @Test
@@ -120,8 +103,7 @@ class CpfSqlResourceResolverTest {
         }
 
         assertThatThrownBy(() -> CpfSqlResourceResolver.mapperResources(
-                environment(packRoot),
-                "cpf"))
+                environment(packRoot, "mariadb"), "cpf"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("symbolic link");
     }
@@ -129,9 +111,7 @@ class CpfSqlResourceResolverTest {
     private Path centralPackRoot(String vendor) throws IOException {
         Path root = tempDirectory.resolve("vendor").resolve(vendor);
         Files.createDirectories(root);
-        Files.writeString(
-                root.resolve("pack.json"),
-                """
+        Files.writeString(root.resolve("pack.json"), """
                 {
                   "vendor": "%s",
                   "schemaVersion": 1,
@@ -141,9 +121,9 @@ class CpfSqlResourceResolverTest {
         return root;
     }
 
-    private MockEnvironment environment(Path packRoot) {
+    private MockEnvironment environment(Path packRoot, String vendor) {
         return new MockEnvironment()
-                .withProperty("cpf.db.vendor", "mariadb")
+                .withProperty("cpf.db.vendor", vendor)
                 .withProperty(CpfVendorResourceRoot.PROPERTY_NAME, packRoot.toString());
     }
 }

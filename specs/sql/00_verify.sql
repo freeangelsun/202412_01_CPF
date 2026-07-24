@@ -116,6 +116,14 @@ SELECT 'admDB.adm_api_permission' AS check_name, COUNT(*) AS row_count FROM admD
 SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_api_permission;
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
+SELECT 'admDB.adm_organization' AS check_name, COUNT(*) AS row_count FROM admDB.adm_organization;
+SELECT 'admDB.adm_operator_profile' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator_profile;
+SELECT 'admDB.adm_approval_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_policy;
+SELECT 'admDB.adm_approval_policy_step' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_policy_step;
+SELECT 'admDB.adm_approval_request' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_request;
+SELECT 'admDB.adm_approval_participant' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_participant;
+SELECT 'admDB.adm_approval_history' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_history;
+SELECT 'admDB.adm_approval_execution' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_execution;
 
 SELECT 'refDB.ref_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_target;
 SELECT 'refDB.ref_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_result;
@@ -130,7 +138,15 @@ FROM information_schema.tables
 WHERE
     (table_schema = 'cpfDB' AND table_name IN ('cpf_file_exchange_log'))
     OR (table_schema = 'admDB' AND table_name IN ('adm_operation_log'))
-    OR (table_schema = 'bzaDB' AND table_name IN ('bza_user_role'))
+    OR (
+        table_schema = 'bzaDB'
+        AND table_name IN (
+            'bza_customer',
+            'bza_product',
+            'bza_order',
+            'bza_masking_audit'
+        )
+    )
     OR (
         table_schema = 'exsDB'
         AND table_name IN (
@@ -142,10 +158,15 @@ WHERE
             'exs_retry_log'
         )
     );
-SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
-SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
-SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
-SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
+SELECT 'mbrDB.mbr_sample_item' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_sample_item;
+SELECT 'mbrDB.table_count' AS check_name, COUNT(*) AS row_count
+FROM information_schema.tables
+WHERE table_schema = 'mbrDB' AND table_type = 'BASE TABLE';
+SELECT 'mbrDB.forbidden_table_count' AS check_name, COUNT(*) AS row_count
+FROM information_schema.tables
+WHERE table_schema = 'mbrDB'
+  AND table_type = 'BASE TABLE'
+  AND table_name <> 'mbr_sample_item';
 
 SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
 SELECT 'accDB.acc_account_change_log' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account_change_log;
@@ -156,13 +177,13 @@ SELECT 'bzaDB.bza_refresh_token' AS check_name, COUNT(*) AS row_count FROM bzaDB
 SELECT 'bzaDB.bza_menu' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_menu;
 SELECT 'bzaDB.bza_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_role;
 SELECT 'bzaDB.bza_permission' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_permission;
-SELECT 'bzaDB.bza_customer' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_customer;
-SELECT 'bzaDB.bza_product' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_product;
-SELECT 'bzaDB.bza_order' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_order;
 SELECT 'bzaDB.bza_project_setting' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_project_setting;
-SELECT 'bzaDB.bza_masking_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_masking_audit;
 SELECT 'bzaDB.bza_organization' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_organization;
 SELECT 'bzaDB.bza_employee' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee;
+SELECT 'bzaDB.bza_position' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_position;
+SELECT 'bzaDB.bza_job_title' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_job_title;
+SELECT 'bzaDB.bza_employee_assignment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee_assignment;
+SELECT 'bzaDB.bza_user_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_user_role;
 SELECT 'bzaDB.bza_business_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_business_audit;
 SELECT 'bzaDB.bza_notification' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_notification;
 SELECT 'bzaDB.bza_attachment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_attachment;
@@ -171,6 +192,10 @@ SELECT 'bzaDB.bza_download_audit' AS check_name, COUNT(*) AS row_count FROM bzaD
 SELECT 'bzaDB.bza_approval_document' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_document;
 SELECT 'bzaDB.bza_approval_line' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_line;
 SELECT 'bzaDB.bza_approval_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_history;
+SELECT 'bzaDB.bza_approval_policy' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_policy;
+SELECT 'bzaDB.bza_approval_policy_step' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_policy_step;
+SELECT 'bzaDB.bza_approval_participant' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_participant;
+SELECT 'bzaDB.bza_approval_delegation' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_delegation;
 
 SELECT TRANSACTION_ID, LOG_DATE, DATE(START_TIME) AS start_date, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
        API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
@@ -254,14 +279,11 @@ FROM batDB.bat_ghost_event
 ORDER BY ghost_event_id DESC
 LIMIT 5;
 
-SELECT member_no, customer_no, login_id, name, member_status, lock_yn, withdraw_yn
-FROM mbrDB.mbr_member
-ORDER BY id
-LIMIT 5;
-
-SELECT login_domain, member_no, customer_no, login_id, login_result, transaction_global_id, module_id, was_id, server_instance_id
-FROM mbrDB.mbr_member_login_history
-ORDER BY login_history_id DESC
+SELECT sample_item_id, sample_key, item_name, category_code, status_code,
+       sort_order, version_no, transaction_global_id, idempotency_key
+FROM mbrDB.mbr_sample_item
+WHERE deleted_yn = 'N'
+ORDER BY sort_order, sample_item_id
 LIMIT 5;
 
 SELECT admin_login_id, role_code, use_yn, lock_yn, login_fail_count
@@ -297,11 +319,6 @@ FROM bzaDB.bza_download_audit
 ORDER BY download_audit_id DESC
 LIMIT 5;
 
-SELECT member_id, service_code, role_code, role_name, use_yn
-FROM mbrDB.mbr_member_role
-ORDER BY member_role_id
-LIMIT 5;
-
 SELECT response_code, message_code, result_type, http_status
 FROM cpfDB.cpf_response_code
 WHERE response_code IN ('SCPF000000', 'ECPF010004', 'SMBR000000', 'EMBR010002')
@@ -312,15 +329,15 @@ FROM cpfDB.cpf_message
 WHERE message_code IN ('MCMN000001', 'MCPF010004', 'MMBR010102', 'MREF090001')
 ORDER BY message_code, locale;
 
--- cpf-core 공식 시스템 코드와 구형 CPF 코드의 활성 상태를 확인합니다.
+-- cpf-core 공식 시스템 코드 CPF의 활성 상태를 확인합니다.
 SELECT code_key, code_value, description, use_yn
 FROM cpfDB.cpf_code
-WHERE code_key = 'MODULE' AND code_value IN ('CPF', 'CPF')
+WHERE code_key = 'MODULE' AND code_value = 'CPF'
 ORDER BY code_value;
 
 SELECT module_id, use_yn, COUNT(*) AS response_code_count
 FROM cpfDB.cpf_response_code
-WHERE module_id IN ('CPF', 'CPF')
+WHERE module_id = 'CPF'
 GROUP BY module_id, use_yn
 ORDER BY module_id, use_yn;
 

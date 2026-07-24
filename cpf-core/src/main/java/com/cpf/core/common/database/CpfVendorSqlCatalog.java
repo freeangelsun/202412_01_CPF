@@ -2,87 +2,87 @@ package com.cpf.core.common.database;
 
 import com.cpf.core.api.database.CpfDatabaseVendor;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
- * Vendor별 Repository SQL 파일을 읽는 fail-closed catalog입니다.
+ * 중앙 DB Vendor Pack에서 Repository SQL을 읽는 fail-closed catalog입니다.
  *
- * <p>중앙 Vendor Pack을 선택한 경우
- * {@code {resource-root}/runtime/{module}/repository/{statement}.sql}만 읽습니다.
- * 외부 pack을 선택하지 않은 호환 모드에서만
- * {@code sql/vendor/{vendor}/{module}/{statement}.sql} classpath resource를 읽습니다.
- * 모든 Vendor resource는 같은 statement key와 parameter contract를 가져야 하며
- * 업무 Service는 Vendor를 알지 못합니다.</p>
+ * <p>제품 Runtime의 물리 Vendor SQL 정본은
+ * {@code {cpf.db.resource-root}/runtime/{module}/repository/{statement}.sql}입니다.
+ * Module {@code src/main/resources}의 Vendor SQL fallback은 지원하지 않습니다. 따라서 중앙
+ * Pack 선택 누락, 잘못된 Vendor, 누락된 Statement는 시작 또는 최초 접근 시 명시적으로 실패합니다.</p>
+ *
+ * <p>모든 Vendor Pack은 동일한 statement key와 parameter contract를 유지해야 하며
+ * Controller/Application/Domain 코드는 Vendor를 분기하지 않습니다.</p>
  */
 public final class CpfVendorSqlCatalog {
     private static final Pattern SAFE_TOKEN = Pattern.compile("[a-z][a-z0-9_-]{1,63}");
 
     private final CpfDatabaseVendor vendor;
     private final String moduleCode;
-    private final ClassLoader classLoader;
     private final Path externalResourceRoot;
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     private CpfVendorSqlCatalog(
             CpfDatabaseVendor vendor,
             String moduleCode,
-            ClassLoader classLoader,
             Path externalResourceRoot) {
         this.vendor = vendor;
         this.moduleCode = requireSafeToken(moduleCode, "moduleCode");
-        this.classLoader = classLoader;
         this.externalResourceRoot = externalResourceRoot;
     }
 
+    /**
+     * Spring Environment의 Vendor 선택과 중앙 Pack root를 검증하여 Catalog를 생성합니다.
+     *
+     * @param environment CPF Runtime Environment
+     * @param moduleCode 중앙 Pack의 논리 Owner code
+     * @return fail-closed Repository SQL catalog
+     * @throws IllegalStateException {@code cpf.db.resource-root}가 없거나 Pack 검증에 실패한 경우
+     */
     public static CpfVendorSqlCatalog create(Environment environment, String moduleCode) {
         CpfDatabaseVendor vendor = CpfDatabaseVendor.from(
                 environment.getProperty("cpf.db.vendor", "mariadb"));
-        Optional<Path> externalRoot = CpfVendorResourceRoot.selected(environment, vendor);
-        return new CpfVendorSqlCatalog(
-                vendor,
-                moduleCode,
-                CpfVendorSqlCatalog.class.getClassLoader(),
-                externalRoot.orElse(null));
+        Path externalRoot = CpfVendorResourceRoot.required(environment, vendor);
+        return new CpfVendorSqlCatalog(vendor, moduleCode, externalRoot);
     }
 
-    static CpfVendorSqlCatalog create(
-            CpfDatabaseVendor vendor,
-            String moduleCode,
-            ClassLoader classLoader) {
-        return new CpfVendorSqlCatalog(vendor, moduleCode, classLoader, null);
-    }
-
+    /**
+     * 지정 Statement SQL을 읽습니다. SQL은 UTF-8이며 빈 파일은 허용하지 않습니다.
+     *
+     * @param statementKey 중앙 Pack statement key
+     * @return trim된 SQL text
+     */
     public String required(String statementKey) {
         String safeKey = requireSafeToken(statementKey, "statementKey");
-        return cache.computeIfAbsent(safeKey, this::read);
+        return cache.computeIfAbsent(safeKey, this::readExternal);
     }
 
+    /**
+     * 중앙 Pack root 기준 상대 경로를 반환합니다.
+     *
+     * @param statementKey 중앙 Pack statement key
+     * @return {@code runtime/<module>/repository/<statement>.sql}
+     */
     public String resourcePath(String statementKey) {
         String safeKey = requireSafeToken(statementKey, "statementKey");
-        if (externalResourceRoot != null) {
-            return externalRelativePath(safeKey).toString().replace('\\', '/');
-        }
-        return "sql/vendor/%s/%s/%s.sql".formatted(vendor.id(), moduleCode, safeKey);
+        return externalRelativePath(safeKey).toString().replace('\\', '/');
     }
 
+    /**
+     * 이 Catalog가 검증한 DB Vendor를 반환합니다.
+     *
+     * @return 선택된 CPF DB Vendor
+     */
     public CpfDatabaseVendor vendor() {
         return vendor;
-    }
-
-    private String read(String statementKey) {
-        if (externalResourceRoot != null) {
-            return readExternal(statementKey);
-        }
-        return readClasspath(statementKey);
     }
 
     private String readExternal(String statementKey) {
@@ -102,23 +102,6 @@ public final class CpfVendorSqlCatalog {
             throw new IllegalStateException(
                     "Vendor Repository SQL을 읽을 수 없습니다. path=" + resource,
                     ex);
-        }
-    }
-
-    private String readClasspath(String statementKey) {
-        String path = resourcePath(statementKey);
-        ClassPathResource resource = new ClassPathResource(path, classLoader);
-        if (!resource.exists()) {
-            throw new IllegalStateException("선택한 Vendor Repository SQL이 없습니다. path=" + path);
-        }
-        try {
-            String sql = resource.getContentAsString(StandardCharsets.UTF_8).trim();
-            if (sql.isEmpty()) {
-                throw new IllegalStateException("Vendor Repository SQL이 비어 있습니다. path=" + path);
-            }
-            return sql;
-        } catch (IOException ex) {
-            throw new IllegalStateException("Vendor Repository SQL을 읽을 수 없습니다. path=" + path, ex);
         }
     }
 

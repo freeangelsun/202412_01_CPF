@@ -361,6 +361,19 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
+
+INSERT INTO bza_user_role (
+    admin_user_id, role_code, valid_from, valid_to, primary_yn, created_by, updated_by
+)
+SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'
+FROM bza_admin_user
+WHERE admin_login_id = 'bza-admin'
+ON DUPLICATE KEY UPDATE
+    valid_to = NULL,
+    primary_yn = 'Y',
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);
+
 INSERT INTO bza_permission (
     role_code, menu_code, button_code, permission_type, http_method, api_pattern,
     data_scope, allow_yn, created_by, updated_by
@@ -409,16 +422,30 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO bza_organization (
     organization_code, parent_organization_code, organization_name, organization_type,
-    sort_order, use_yn, created_by, updated_by
+    sort_order, effective_from, effective_to, use_yn, created_by, updated_by
 ) VALUES
-    ('HQ', NULL, '본사', 'COMPANY', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, 'Y', 'SYSTEM', 'SYSTEM')
+    ('HQ', NULL, '본사', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
     parent_organization_code = VALUES(parent_organization_code),
     organization_name = VALUES(organization_name),
     organization_type = VALUES(organization_type),
     sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bza_position (
+    position_code, position_name, rank_order, use_yn, created_by, updated_by
+) VALUES ('P3', '책임', 30, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    position_name = VALUES(position_name), rank_order = VALUES(rank_order), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+
+INSERT INTO bza_job_title (
+    job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by
+) VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE
+    job_title_name = VALUES(job_title_name), manager_yn = VALUES(manager_yn), use_yn = VALUES(use_yn),
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
 
 INSERT INTO bza_employee (
     employee_no, admin_user_id, organization_code, employee_name, position_code,
@@ -433,6 +460,17 @@ ON DUPLICATE KEY UPDATE
     job_title_code = VALUES(job_title_code), employment_status = VALUES(employment_status),
     email = VALUES(email), use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO bza_employee_assignment (
+    employee_no, organization_code, position_code, job_title_code, assignment_type,
+    primary_yn, effective_from, effective_to, created_by, updated_by
+) VALUES (
+    'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE
+    organization_code = VALUES(organization_code), position_code = VALUES(position_code),
+    job_title_code = VALUES(job_title_code), primary_yn = VALUES(primary_yn), effective_to = NULL,
+    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
 
 INSERT INTO bza_notification (
     recipient_login_id, notification_type, title, message_body,

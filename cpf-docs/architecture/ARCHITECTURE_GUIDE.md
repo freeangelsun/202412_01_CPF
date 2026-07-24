@@ -376,3 +376,11 @@ Architecture 변경은 다음이 함께 있어야 합니다.
 - Multi-instance/Failure/Recovery
 - Test와 Runtime Evidence
 - Guide와 Generator 반영
+
+## 15. 2026-07-24 Architecture Baseline
+
+- Vendor SQL physical owner는 `cpf-tools/db/vendor/<vendor>` 하나다. Module-local Vendor SQL fallback은 사용하지 않는다.
+- ADM은 다른 Owner DB를 직접 제어하지 않고 Local/Remote Owner Query/Command Contract를 사용한다.
+- ADM Approval과 BZA Approval은 별도 Engine/DB/Policy다. 상세는 `APPROVAL_ARCHITECTURE_GUIDE.md`를 따른다.
+- Batch/Scheduler/Agent/Worker/Center-Cut Runtime owner는 `cpf-batch`; Core에는 topology-neutral API/SPI만 둔다.
+- Requirement ID는 `CPF_REQUIREMENT_CONTINUITY_LEDGER.md`를 통해 영구 추적한다.

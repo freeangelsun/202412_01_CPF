@@ -45,6 +45,18 @@ public enum CpfDatabaseVendor {
         return defaultPort;
     }
 
+    /**
+     * 구 Module-local classpath migration 경로를 반환하는 호환 API입니다.
+     *
+     * <p>Central Vendor Pack 전환 이후 제품 Runtime은 이 값을 사용하지 않고
+     * {@link com.cpf.core.common.database.CpfSqlResourceResolver#flywayLocation(org.springframework.core.env.Environment)}로
+     * 선택된 외부 Pack의 filesystem location을 해석해야 합니다. 이 메서드는 기존 Consumer 전환이
+     * 끝날 때까지만 유지하며 신규 구현에서 사용하지 않습니다.</p>
+     *
+     * @return 과거 classpath Flyway location
+     * @deprecated Central Vendor Pack의 외부 filesystem migration 경로를 사용하십시오.
+     */
+    @Deprecated(forRemoval = true)
     public String flywayLocation() {
         return flywayLocation;
     }

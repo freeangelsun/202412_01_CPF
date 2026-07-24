@@ -1,95 +1,97 @@
-﻿param(
+param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
-    [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "specs/generated/sample-coverage-matrix.md"),
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/runtime-smoke")
+    [string] $MatrixPath = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/generated/sample-coverage-matrix.md"),
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "build/quality-gate")
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
-$failures = New-Object System.Collections.Generic.List[string]
-$expectedSamples = @(
-    Get-ChildItem -LiteralPath (Join-Path $Root "cpf-reference/src/main/java/com/cpf/reference") -Recurse -File -Filter "*EducationSample.java"
-    Get-ChildItem -LiteralPath (Join-Path $Root "cpf-batch/src/main/java/com/cpf/batch/edu") -Recurse -File -Filter "*EducationSample.java"
-)
-$forbiddenSamples = @(
-    Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
-        Where-Object {
-            $_.FullName -notmatch '\\build\\' -and
-            $_.FullName -notmatch '\\cpf-reference\\src\\main\\java\\com\\cpf\\reference\\' -and
-            $_.FullName -notmatch '\\cpf-batch\\src\\main\\java\\com\\cpf\\batch\\edu\\'
-        }
-)
-foreach ($file in $forbiddenSamples) {
-    $failures.Add("REF/BAT 외 범용 EDU 소스: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
+
+$Root = (Resolve-Path -LiteralPath $Root).Path
+if (-not [System.IO.Path]::IsPathRooted($MatrixPath)) { $MatrixPath = Join-Path $Root $MatrixPath }
+if (-not [System.IO.Path]::IsPathRooted($ResultDir)) { $ResultDir = Join-Path $Root $ResultDir }
+
+$failures = [System.Collections.Generic.List[string]]::new()
+$expected = [System.Collections.Generic.List[object]]::new()
+foreach ($sourceRootRelative in @(
+        "cpf-reference/src/main/java/com/cpf/reference",
+        "cpf-batch/src/main/java/com/cpf/batch/edu"
+    )) {
+    $sourceRoot = Join-Path $Root $sourceRootRelative
+    if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) { continue }
+    foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter "*EducationSample.java") {
+        $relativeSource = $file.FullName.Substring($Root.Length + 1).Replace('\', '/')
+        $relativeTest = $relativeSource.Replace('/src/main/java/', '/src/test/java/').Replace('.java', 'Test.java')
+        $expected.Add([ordered]@{ source = $relativeSource; test = $relativeTest }) | Out-Null
+    }
 }
 
-if (-not (Test-Path -LiteralPath $MatrixPath)) {
-    $failures.Add("샘플 매트릭스가 없습니다: $MatrixPath") | Out-Null
+$forbidden = @(
+    Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
+        Where-Object {
+            $_.FullName -notmatch '[\\/]build[\\/]' -and
+            $_.FullName -notmatch '[\\/]cpf-reference[\\/]src[\\/]main[\\/]java[\\/]com[\\/]cpf[\\/]reference[\\/]' -and
+            $_.FullName -notmatch '[\\/]cpf-batch[\\/]src[\\/]main[\\/]java[\\/]com[\\/]cpf[\\/]batch[\\/]edu[\\/]'
+        }
+)
+foreach ($file in $forbidden) {
+    $failures.Add("REF/BAT 외 범용 EDU Source: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
+}
+
+if (-not (Test-Path -LiteralPath $MatrixPath -PathType Leaf)) {
+    $failures.Add("build/generated Sample Matrix가 없습니다. buildSampleCoverageMatrix를 먼저 실행하세요: $MatrixPath") | Out-Null
     $matrixText = ""
 } else {
     $matrixText = [System.IO.File]::ReadAllText($MatrixPath, [System.Text.Encoding]::UTF8)
 }
 
-foreach ($source in $expectedSamples) {
-    $relativeSource = $source.FullName.Substring($Root.Length + 1).Replace('\', '/')
-    $relativeTest = $relativeSource.Replace('/src/main/java/', '/src/test/java/').Replace('.java', 'Test.java')
-    if (-not (Test-Path -LiteralPath (Join-Path $Root $relativeTest.Replace('/', '\')))) {
-        $failures.Add("EDU 대응 테스트 누락: $relativeTest") | Out-Null
+foreach ($row in $expected) {
+    if (-not (Test-Path -LiteralPath (Join-Path $Root $row.test.Replace('/', [System.IO.Path]::DirectorySeparatorChar)))) {
+        $failures.Add("EDU 대응 Test 누락: $($row.test)") | Out-Null
     }
-    if (-not $matrixText.Contains("| $relativeSource |")) {
-        $failures.Add("매트릭스 sourcePath 누락: $relativeSource") | Out-Null
+    if (-not $matrixText.Contains("| $($row.source) |")) {
+        $failures.Add("Generated Matrix sourcePath 누락: $($row.source)") | Out-Null
     }
-    if (-not $matrixText.Contains("| $relativeTest |")) {
-        $failures.Add("매트릭스 testPath 누락: $relativeTest") | Out-Null
+    if ($row.test -ne "미구현" -and -not $matrixText.Contains("| $($row.test) |")) {
+        $failures.Add("Generated Matrix testPath 누락: $($row.test)") | Out-Null
     }
 }
 
-$matrixSourcePaths = @([regex]::Matches($matrixText, '\|\s*((?:cpf-reference|cpf-batch)/src/main/java/[^|]+EducationSample\.java)\s*\|') |
-    ForEach-Object { $_.Groups[1].Value.Trim() })
-foreach ($sourcePath in $matrixSourcePaths) {
-    if (-not (Test-Path -LiteralPath (Join-Path $Root $sourcePath.Replace('/', '\')))) {
-        $failures.Add("매트릭스의 소스 파일이 없습니다: $sourcePath") | Out-Null
-    }
+$matrixSources = @(
+    [regex]::Matches(
+        $matrixText,
+        '\|\s*((?:cpf-reference|cpf-batch)/src/main/java/[^|]+EducationSample\.java)\s*\|') |
+        ForEach-Object { $_.Groups[1].Value.Trim() }
+)
+if ($matrixSources.Count -ne $expected.Count) {
+    $failures.Add("Generated Matrix 행과 실제 EDU 수가 다릅니다: matrix=$($matrixSources.Count) source=$($expected.Count)") | Out-Null
 }
-if ($matrixSourcePaths.Count -ne $expectedSamples.Count) {
-    $failures.Add("매트릭스 행과 실제 EDU 수가 다릅니다: matrix=$($matrixSourcePaths.Count), source=$($expectedSamples.Count)") | Out-Null
-}
-foreach ($duplicate in @($matrixSourcePaths | Group-Object | Where-Object Count -gt 1)) {
-    $failures.Add("매트릭스 중복 sourcePath: $($duplicate.Name)") | Out-Null
-}
-
-$evidenceMatches = @([regex]::Matches($matrixText, '\|\s*(cpf-docs/evidence/[^|]+)\s*\|') |
-    ForEach-Object { $_.Groups[1].Value.Trim() } | Select-Object -Unique)
-foreach ($evidencePath in $evidenceMatches) {
-    if (-not (Test-Path -LiteralPath (Join-Path $Root $evidencePath.Replace('/', '\')))) {
-        $failures.Add("EDU 증적 파일이 없습니다: $evidencePath") | Out-Null
-    }
+foreach ($duplicate in @($matrixSources | Group-Object | Where-Object Count -gt 1)) {
+    $failures.Add("Generated Matrix 중복 sourcePath: $($duplicate.Name)") | Out-Null
 }
 
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $result = [ordered]@{
-    generatedAt = [DateTimeOffset]::Now.ToString('o')
-    status = if ($failures.Count -eq 0) { 'DONE' } else { 'FAILED' }
-    ownership = [ordered]@{ general = 'REF'; batch = 'BAT' }
-    sampleCount = $expectedSamples.Count
-    matrixRowCount = $matrixSourcePaths.Count
-    forbiddenSampleCount = $forbiddenSamples.Count
+    generatedAt = [DateTimeOffset]::Now.ToString("o")
+    status = if ($failures.Count -eq 0) { "완료" } else { "실패" }
+    completionClaim = $false
+    sampleCount = $expected.Count
+    matrixRowCount = $matrixSources.Count
+    forbiddenSampleCount = $forbidden.Count
     failureCount = $failures.Count
     failures = @($failures)
 }
-$resultPath = Join-Path $ResultDir 'sample-coverage-result.sanitized.json'
+$resultPath = Join-Path $ResultDir "sample-coverage-result.sanitized.json"
 [System.IO.File]::WriteAllText(
     $resultPath,
     ($result | ConvertTo-Json -Depth 8),
-    (New-Object System.Text.UTF8Encoding($false)))
+    [System.Text.UTF8Encoding]::new($false))
 
-Write-Host "Sample coverage status=$($result.status) samples=$($expectedSamples.Count) matrix=$($matrixSourcePaths.Count) evidence=$resultPath"
 if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Host "FAIL $_" }
     exit 1
 }
+Write-Host "Sample coverage structural check passed. Runtime completion is not claimed."

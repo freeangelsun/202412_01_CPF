@@ -1333,6 +1333,237 @@ CREATE TABLE IF NOT EXISTS adm_password_history (
         FOREIGN KEY (OPERATOR_ID) REFERENCES adm_operator(OPERATOR_ID)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 비밀번호 변경 이력';
+
+-- ============================================================================
+-- ADM 운영자 Directory Profile과 위험조치 Approval
+-- adm_operator는 인증 Identity이며 아래 Profile/조직 메타는 승인·감사 문맥을 위한 최소 정보입니다.
+-- 고객 HR Master를 대체하지 않으며 LDAP/AD/IAM/HR Adapter로 교체·동기화할 수 있어야 합니다.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS adm_organization (
+    ORGANIZATION_CODE VARCHAR(50) NOT NULL COMMENT '운영 조직 코드',
+    PARENT_ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '상위 조직 코드',
+    ORGANIZATION_NAME VARCHAR(120) NOT NULL COMMENT '운영 조직명',
+    ORGANIZATION_TYPE VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
+    MANAGER_OPERATOR_ID VARCHAR(50) NULL COMMENT '기본 DB Directory Adapter의 조직 책임자 운영자 ID',
+    EFFECTIVE_FROM DATE NULL COMMENT '적용 시작일',
+    EFFECTIVE_TO DATE NULL COMMENT '적용 종료일',
+    USE_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (ORGANIZATION_CODE),
+    INDEX ix_adm_organization_parent (PARENT_ORGANIZATION_CODE, USE_YN),
+    CONSTRAINT fk_adm_organization_parent FOREIGN KEY (PARENT_ORGANIZATION_CODE)
+        REFERENCES adm_organization(ORGANIZATION_CODE) ON DELETE SET NULL,
+    CONSTRAINT fk_adm_organization_manager FOREIGN KEY (MANAGER_OPERATOR_ID)
+        REFERENCES adm_operator(OPERATOR_ID) ON DELETE SET NULL,
+    CONSTRAINT ck_adm_organization_use CHECK (USE_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_organization_effective CHECK (
+        EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영 조직 Directory 기본 Adapter';
+
+CREATE TABLE IF NOT EXISTS adm_operator_profile (
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
+    EMPLOYEE_NO VARCHAR(50) NULL COMMENT '외부/내부 사번',
+    EXTERNAL_SUBJECT VARCHAR(200) NULL COMMENT 'LDAP/IAM 등 외부 Identity Subject',
+    ORGANIZATION_CODE VARCHAR(50) NULL COMMENT '대표 운영 조직 코드',
+    POSITION_CODE VARCHAR(50) NULL COMMENT '직급 코드',
+    POSITION_NAME VARCHAR(100) NULL COMMENT '직급명 Snapshot/표시값',
+    JOB_TITLE_CODE VARCHAR(50) NULL COMMENT '직책 코드',
+    JOB_TITLE_NAME VARCHAR(100) NULL COMMENT '직책명 Snapshot/표시값',
+    EMAIL VARCHAR(200) NULL COMMENT '업무 이메일',
+    EFFECTIVE_FROM DATETIME(3) NULL COMMENT 'Profile 적용 시작시각',
+    EFFECTIVE_TO DATETIME(3) NULL COMMENT 'Profile 적용 종료시각',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (OPERATOR_ID),
+    UNIQUE KEY uk_adm_operator_profile_employee (EMPLOYEE_NO),
+    INDEX ix_adm_operator_profile_org (ORGANIZATION_CODE, EFFECTIVE_TO),
+    CONSTRAINT fk_adm_operator_profile_operator FOREIGN KEY (OPERATOR_ID)
+        REFERENCES adm_operator(OPERATOR_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_adm_operator_profile_org FOREIGN KEY (ORGANIZATION_CODE)
+        REFERENCES adm_organization(ORGANIZATION_CODE) ON DELETE SET NULL,
+    CONSTRAINT ck_adm_operator_profile_effective CHECK (
+        EFFECTIVE_TO IS NULL OR EFFECTIVE_FROM IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 운영자 조직/직급 Profile';
+
+CREATE TABLE IF NOT EXISTS adm_approval_policy (
+    POLICY_CODE VARCHAR(80) NOT NULL COMMENT '위험조치 승인 정책 코드',
+    POLICY_VERSION INT NOT NULL COMMENT '정책 버전',
+    POLICY_NAME VARCHAR(150) NOT NULL COMMENT '정책명',
+    ACTION_TYPE VARCHAR(80) NOT NULL COMMENT '대상 위험조치 유형',
+    EFFECTIVE_FROM DATETIME(3) NOT NULL COMMENT '시행 시작시각',
+    EFFECTIVE_TO DATETIME(3) NULL COMMENT '시행 종료시각',
+    ENABLED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    SELF_APPROVAL_ALLOWED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '자기승인 허용 여부',
+    BREAK_GLASS_ALLOWED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '긴급 우회 허용 여부',
+    DESCRIPTION VARCHAR(1000) NULL COMMENT '정책 설명',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (POLICY_CODE, POLICY_VERSION),
+    INDEX ix_adm_approval_policy_action (ACTION_TYPE, ENABLED_YN, EFFECTIVE_FROM, EFFECTIVE_TO),
+    CONSTRAINT ck_adm_approval_policy_version CHECK (POLICY_VERSION > 0),
+    CONSTRAINT ck_adm_approval_policy_flags CHECK (
+        ENABLED_YN IN ('Y','N')
+        AND SELF_APPROVAL_ALLOWED_YN IN ('Y','N')
+        AND BREAK_GLASS_ALLOWED_YN IN ('Y','N')
+    ),
+    CONSTRAINT ck_adm_approval_policy_effective CHECK (
+        EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > EFFECTIVE_FROM
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 위험조치 승인 정책 Version';
+
+CREATE TABLE IF NOT EXISTS adm_approval_policy_step (
+    POLICY_CODE VARCHAR(80) NOT NULL COMMENT '승인 정책 코드',
+    POLICY_VERSION INT NOT NULL COMMENT '승인 정책 버전',
+    STEP_NO INT NOT NULL COMMENT '승인 단계',
+    STEP_TYPE VARCHAR(30) NOT NULL DEFAULT 'APPROVAL' COMMENT 'APPROVAL/REVIEW',
+    TARGET_TYPE VARCHAR(30) NOT NULL COMMENT 'OPERATOR/ROLE/ORGANIZATION/ORG_MANAGER',
+    TARGET_CODE VARCHAR(100) NOT NULL COMMENT '대상 운영자/역할/조직 코드',
+    DECISION_RULE VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT 'ALL/ANY/N_OF_M',
+    REQUIRED_COUNT INT NULL COMMENT 'N_OF_M 최소 승인 수',
+    REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 단계 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (POLICY_CODE, POLICY_VERSION, STEP_NO, TARGET_TYPE, TARGET_CODE),
+    CONSTRAINT fk_adm_approval_policy_step_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION)
+        REFERENCES adm_approval_policy(POLICY_CODE, POLICY_VERSION) ON DELETE CASCADE,
+    CONSTRAINT ck_adm_approval_policy_step_no CHECK (STEP_NO >= 1),
+    CONSTRAINT ck_adm_approval_policy_step_type CHECK (STEP_TYPE IN ('APPROVAL','REVIEW')),
+    CONSTRAINT ck_adm_approval_policy_step_target CHECK (
+        TARGET_TYPE IN ('OPERATOR','ROLE','ORGANIZATION','ORG_MANAGER')
+    ),
+    CONSTRAINT ck_adm_approval_policy_step_rule CHECK (DECISION_RULE IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_adm_approval_policy_step_required CHECK (
+        REQUIRED_YN IN ('Y','N')
+        AND (
+            (DECISION_RULE = 'N_OF_M' AND REQUIRED_COUNT IS NOT NULL AND REQUIRED_COUNT > 0)
+            OR (DECISION_RULE <> 'N_OF_M' AND REQUIRED_COUNT IS NULL)
+        )
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 정책 단계';
+
+CREATE TABLE IF NOT EXISTS adm_approval_request (
+    APPROVAL_REQUEST_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '위험조치 승인 요청 순번',
+    REQUEST_KEY VARCHAR(120) NOT NULL COMMENT '멱등 승인 요청 키',
+    POLICY_CODE VARCHAR(80) NOT NULL COMMENT '적용 정책 코드',
+    POLICY_VERSION INT NOT NULL COMMENT '적용 정책 버전 Snapshot',
+    ACTION_TYPE VARCHAR(80) NOT NULL COMMENT '위험조치 유형',
+    OWNER_MODULE VARCHAR(30) NOT NULL COMMENT '실제 Command Owner Module',
+    OWNER_COMMAND VARCHAR(120) NOT NULL COMMENT '실행할 Owner Command',
+    TARGET_TYPE VARCHAR(80) NOT NULL COMMENT '위험조치 대상 유형',
+    TARGET_ID VARCHAR(200) NOT NULL COMMENT '위험조치 대상 ID',
+    REQUESTED_BY VARCHAR(50) NOT NULL COMMENT '요청 운영자',
+    REQUEST_REASON VARCHAR(1000) NOT NULL COMMENT '요청 사유',
+    COMMAND_PAYLOAD_HASH CHAR(64) NOT NULL COMMENT '승인 대상 Command payload SHA-256',
+    COMMAND_PAYLOAD_SNAPSHOT LONGTEXT NULL COMMENT '마스킹된 승인 대상 Command Snapshot',
+    APPROVAL_STATUS VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED/CANCELLED/EXPIRED/EXECUTING/COMPLETED/FAILED/UNKNOWN',
+    CURRENT_STEP_NO INT NOT NULL DEFAULT 1 COMMENT '현재 승인 단계',
+    EXPIRE_AT DATETIME(3) NULL COMMENT '승인 만료시각',
+    TRANSACTION_GLOBAL_ID VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    VERSION_NO BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (APPROVAL_REQUEST_ID),
+    UNIQUE KEY uk_adm_approval_request_key (REQUEST_KEY),
+    INDEX ix_adm_approval_request_status (APPROVAL_STATUS, EXPIRE_AT, APPROVAL_REQUEST_ID),
+    INDEX ix_adm_approval_request_actor (REQUESTED_BY, created_at),
+    CONSTRAINT fk_adm_approval_request_policy FOREIGN KEY (POLICY_CODE, POLICY_VERSION)
+        REFERENCES adm_approval_policy(POLICY_CODE, POLICY_VERSION),
+    CONSTRAINT ck_adm_approval_request_status CHECK (
+        APPROVAL_STATUS IN ('PENDING','APPROVED','REJECTED','CANCELLED','EXPIRED','EXECUTING','COMPLETED','FAILED','UNKNOWN')
+    ),
+    CONSTRAINT ck_adm_approval_request_version CHECK (VERSION_NO >= 0),
+    CONSTRAINT ck_adm_approval_request_step CHECK (CURRENT_STEP_NO >= 1),
+    CONSTRAINT ck_adm_approval_request_hash CHECK (CHAR_LENGTH(COMMAND_PAYLOAD_HASH) = 64)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 위험조치 승인 요청';
+
+CREATE TABLE IF NOT EXISTS adm_approval_participant (
+    APPROVAL_PARTICIPANT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 참여자 순번',
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    STEP_NO INT NOT NULL COMMENT '승인 단계',
+    OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '해석된 실제 승인 운영자',
+    SOURCE_TARGET_TYPE VARCHAR(30) NOT NULL COMMENT '정책 대상 유형 Snapshot',
+    SOURCE_TARGET_CODE VARCHAR(100) NOT NULL COMMENT '정책 대상 코드 Snapshot',
+    ORGANIZATION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 조직 Snapshot',
+    POSITION_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직급 Snapshot',
+    JOB_TITLE_CODE_SNAPSHOT VARCHAR(50) NULL COMMENT '승인 시 직책 Snapshot',
+    DECISION_STATUS VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT 'WAITING/APPROVED/REJECTED/SKIPPED',
+    IDEMPOTENCY_KEY VARCHAR(120) NULL COMMENT '결정 멱등 키',
+    DECISION_REASON VARCHAR(1000) NULL COMMENT '승인/반려 사유',
+    DECIDED_AT DATETIME(3) NULL COMMENT '결정 시각',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (APPROVAL_PARTICIPANT_ID),
+    UNIQUE KEY uk_adm_approval_participant (APPROVAL_REQUEST_ID, STEP_NO, OPERATOR_ID),
+    UNIQUE KEY uk_adm_approval_participant_idem (IDEMPOTENCY_KEY),
+    INDEX ix_adm_approval_participant_inbox (OPERATOR_ID, DECISION_STATUS, APPROVAL_REQUEST_ID),
+    CONSTRAINT fk_adm_approval_participant_request FOREIGN KEY (APPROVAL_REQUEST_ID)
+        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID) ON DELETE CASCADE,
+    CONSTRAINT ck_adm_approval_participant_status CHECK (
+        DECISION_STATUS IN ('WAITING','APPROVED','REJECTED','SKIPPED')
+    ),
+    CONSTRAINT ck_adm_approval_participant_step CHECK (STEP_NO >= 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 참여자 Snapshot';
+
+CREATE TABLE IF NOT EXISTS adm_approval_history (
+    APPROVAL_HISTORY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '승인 이력 순번',
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    EVENT_TYPE VARCHAR(40) NOT NULL COMMENT 'REQUEST/APPROVE/REJECT/CANCEL/EXPIRE/BREAK_GLASS/EXECUTE/RESULT/REVIEW',
+    ACTOR_ID VARCHAR(50) NOT NULL COMMENT '행위 운영자/시스템 ID',
+    BEFORE_STATUS VARCHAR(30) NULL COMMENT '변경 전 상태',
+    AFTER_STATUS VARCHAR(30) NOT NULL COMMENT '변경 후 상태',
+    REASON VARCHAR(1000) NOT NULL COMMENT '행위 사유',
+    EVENT_DATA LONGTEXT NULL COMMENT '마스킹된 사건 Snapshot',
+    TRANSACTION_GLOBAL_ID VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    PRIMARY KEY (APPROVAL_HISTORY_ID),
+    INDEX ix_adm_approval_history_request (APPROVAL_REQUEST_ID, APPROVAL_HISTORY_ID),
+    CONSTRAINT fk_adm_approval_history_request FOREIGN KEY (APPROVAL_REQUEST_ID)
+        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 Immutable 이력';
+
+CREATE TABLE IF NOT EXISTS adm_approval_execution (
+    APPROVAL_REQUEST_ID BIGINT NOT NULL COMMENT '승인 요청 순번',
+    COMMAND_REQUEST_ID VARCHAR(120) NOT NULL COMMENT 'Owner Command 멱등 요청 ID',
+    EXECUTION_STATUS VARCHAR(30) NOT NULL COMMENT 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECOVERED',
+    OWNER_RESULT_CODE VARCHAR(80) NULL COMMENT 'Owner 응답 코드',
+    OWNER_RESULT_MESSAGE VARCHAR(1000) NULL COMMENT '마스킹된 Owner 응답 메시지',
+    STARTED_AT DATETIME(3) NULL COMMENT '실행 시작시각',
+    COMPLETED_AT DATETIME(3) NULL COMMENT '실행 종료시각',
+    RECOVERY_REQUIRED_YN CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과불명/복구 필요 여부',
+    created_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(50) NOT NULL DEFAULT 'ADM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (APPROVAL_REQUEST_ID),
+    UNIQUE KEY uk_adm_approval_execution_command (COMMAND_REQUEST_ID),
+    INDEX ix_adm_approval_execution_recovery (RECOVERY_REQUIRED_YN, EXECUTION_STATUS),
+    CONSTRAINT fk_adm_approval_execution_request FOREIGN KEY (APPROVAL_REQUEST_ID)
+        REFERENCES adm_approval_request(APPROVAL_REQUEST_ID),
+    CONSTRAINT ck_adm_approval_execution_status CHECK (
+        EXECUTION_STATUS IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECOVERED')
+    ),
+    CONSTRAINT ck_adm_approval_execution_recovery CHECK (RECOVERY_REQUIRED_YN IN ('Y','N')),
+    CONSTRAINT ck_adm_approval_execution_time CHECK (
+        COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 후 Owner Command 실행 상태';
 -- ============================================================================
 -- specs/sql/35_bat_schema.sql
 -- ============================================================================
@@ -2012,136 +2243,39 @@ CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
 
 USE mbrDB;
 
-CREATE TABLE IF NOT EXISTS mbr_member (
-    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 순번',
-    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
-    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
-    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
-    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
-    name VARCHAR(100) NOT NULL COMMENT '회원명',
-    email VARCHAR(200) NULL COMMENT '이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
-    member_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태',
-    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
-    withdraw_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '탈퇴 여부',
-    channel_code VARCHAR(30) NOT NULL DEFAULT 'WEB' COMMENT '가입 채널 코드',
-    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
-    last_login_at DATETIME NULL COMMENT '최근 로그인일시',
-    description TEXT NULL COMMENT '회원 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_mbr_member_no (member_no),
-    UNIQUE KEY uk_mbr_member_login_id (login_id),
-    INDEX ix_mbr_member_customer (customer_no),
-    INDEX ix_mbr_member_name (name),
-    INDEX ix_mbr_member_status (member_status, lock_yn, withdraw_yn),
-    INDEX ix_mbr_member_channel_joined (channel_code, joined_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role (
-    member_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    role_name VARCHAR(100) NULL COMMENT '회원 역할명',
-    grade_code VARCHAR(50) NULL COMMENT '회원 등급 코드',
-    temporary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '임시 권한 여부',
-    expire_at DATETIME NULL COMMENT '권한 만료일시',
-    granted_by VARCHAR(100) NULL COMMENT '권한 부여자',
-    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 부여일시',
-    revoked_by VARCHAR(100) NULL COMMENT '권한 회수자',
-    revoked_at DATETIME NULL COMMENT '권한 회수일시',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (member_role_id),
-    UNIQUE KEY uk_mbr_member_role (member_id, service_code, role_code),
-    INDEX ix_mbr_member_role_member (member_id, use_yn),
-    INDEX ix_mbr_member_role_expire (expire_at),
-    CONSTRAINT fk_mbr_member_role_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role_history (
-    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 이력 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    action_type VARCHAR(30) NOT NULL COMMENT '권한 행위 유형',
-    reason VARCHAR(500) NOT NULL COMMENT '권한 변경 사유',
-    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
-    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
-    operator_id VARCHAR(100) NULL COMMENT '처리 운영자 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (history_id),
-    INDEX ix_mbr_member_role_history_member (member_id, created_at),
-    INDEX ix_mbr_member_role_history_role (service_code, role_code, created_at),
-    CONSTRAINT fk_mbr_member_role_history_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 변경 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_member_login_history (
-    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
-    member_id BIGINT NULL COMMENT '회원 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
-    member_no VARCHAR(50) NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
-    login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
-    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
-    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
-    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
-    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (login_history_id),
-    INDEX ix_mbr_member_login_member_time (member_id, created_at),
-    INDEX ix_mbr_member_login_result_time (login_result, created_at),
-    INDEX ix_mbr_member_login_global (transaction_global_id),
-    CONSTRAINT fk_mbr_member_login_history_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_refresh_token (
-    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 refresh token 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
-    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
-    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
-    expire_at DATETIME NOT NULL COMMENT '만료 일시',
-    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
-    revoked_at DATETIME NULL COMMENT '폐기 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (refresh_token_id),
-    UNIQUE KEY uk_mbr_refresh_token_hash (refresh_token_hash),
-    INDEX ix_mbr_refresh_token_member (member_id, revoked_yn, expire_at),
-    CONSTRAINT fk_mbr_refresh_token_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 refresh token hash 저장소';
+-- MBR은 회원·인증 업무를 추정하지 않고 CPF 표준 거래 흐름만 검증합니다.
+-- REF와 Schema/SystemCode/Table prefix만 다르고 논리 Column/Constraint/Index는 동일합니다.
+CREATE TABLE IF NOT EXISTS mbr_sample_item (
+    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
+    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
+    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
+    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
+    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
+    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
+    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (sample_item_id),
+    CONSTRAINT uk_mbr_sample_item_key UNIQUE (sample_key),
+    CONSTRAINT uk_mbr_sample_item_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT ck_mbr_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT ck_mbr_sample_item_version CHECK (version_no >= 0),
+    CONSTRAINT ck_mbr_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
+    INDEX ix_mbr_sample_item_status_sort (status_code, sort_order, sample_item_id),
+    INDEX ix_mbr_sample_item_category_sort (category_code, sort_order, sample_item_id),
+    INDEX ix_mbr_sample_item_name_sort (item_name, sample_item_id),
+    INDEX ix_mbr_sample_item_transaction (transaction_global_id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='MBR Minimal Transaction Reference Sample';
 
 USE bzaDB;
 
@@ -2150,7 +2284,7 @@ CREATE TABLE IF NOT EXISTS bza_admin_user (
     admin_login_id VARCHAR(80) NOT NULL COMMENT '업무 관리자 로그인 ID',
     admin_name VARCHAR(100) NOT NULL COMMENT '업무 관리자명',
     password_hash VARCHAR(300) NULL COMMENT '업무 관리자 비밀번호 hash',
-    role_code VARCHAR(50) NOT NULL COMMENT '업무 관리자 역할 코드',
+    role_code VARCHAR(50) NOT NULL COMMENT '호환용 기본 역할 코드; 실제 권한은 bza_user_role 다중 매핑을 정본으로 사용',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
     login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
@@ -2248,6 +2382,29 @@ CREATE TABLE IF NOT EXISTS bza_role (
     UNIQUE KEY uk_bza_role_code (role_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 역할';
 
+
+CREATE TABLE IF NOT EXISTS bza_user_role (
+    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
+    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
+    valid_from DATETIME(3) NULL COMMENT '역할 적용 시작시각',
+    valid_to DATETIME(3) NULL COMMENT '역할 적용 종료시각',
+    primary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '대표 역할 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (admin_user_id, role_code),
+    INDEX ix_bza_user_role_role (role_code, valid_to, admin_user_id),
+    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id)
+        REFERENCES bza_admin_user(admin_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_user_role_role FOREIGN KEY (role_code)
+        REFERENCES bza_role(role_code),
+    CONSTRAINT ck_bza_user_role_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_user_role_effective CHECK (
+        valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 다중 역할 매핑';
+
 CREATE TABLE IF NOT EXISTS bza_permission (
     permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
@@ -2277,6 +2434,8 @@ CREATE TABLE IF NOT EXISTS bza_organization (
     organization_name VARCHAR(120) NOT NULL COMMENT '조직명',
     organization_type VARCHAR(30) NOT NULL DEFAULT 'DEPARTMENT' COMMENT '조직 유형',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '조직 정렬 순서',
+    effective_from DATETIME(3) NULL COMMENT '조직 적용 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '조직 적용 종료시각',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
@@ -2284,14 +2443,18 @@ CREATE TABLE IF NOT EXISTS bza_organization (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (organization_id),
     UNIQUE KEY uk_bza_organization_code (organization_code),
-    INDEX ix_bza_organization_parent (parent_organization_code, sort_order)
+    INDEX ix_bza_organization_parent (parent_organization_code, sort_order),
+    CONSTRAINT ck_bza_organization_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_organization_effective CHECK (
+        effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 조직';
 
 CREATE TABLE IF NOT EXISTS bza_employee (
     employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 순번',
     employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
     admin_user_id BIGINT NULL COMMENT '연결 업무 관리자 사용자 순번',
-    organization_code VARCHAR(50) NOT NULL COMMENT '소속 조직 코드',
+    organization_code VARCHAR(50) NOT NULL COMMENT '대표 조직 코드; 유효 소속 정본은 bza_employee_assignment',
     employee_name VARCHAR(100) NOT NULL COMMENT '직원명',
     position_code VARCHAR(50) NULL COMMENT '직급 코드',
     job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
@@ -2301,9 +2464,6 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     leave_date DATE NULL COMMENT '퇴사일',
     email VARCHAR(200) NULL COMMENT '업무 이메일',
     mobile_no VARCHAR(50) NULL COMMENT '업무 휴대폰 번호',
-    delegated_approver_no VARCHAR(50) NULL COMMENT '대리 결재자 직원 번호',
-    absence_from DATE NULL COMMENT '부재 시작일',
-    absence_to DATE NULL COMMENT '부재 종료일',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
@@ -2316,8 +2476,77 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     CONSTRAINT fk_bza_employee_admin_user FOREIGN KEY (admin_user_id)
         REFERENCES bza_admin_user(admin_user_id) ON DELETE SET NULL,
     CONSTRAINT fk_bza_employee_organization FOREIGN KEY (organization_code)
-        REFERENCES bza_organization(organization_code)
+        REFERENCES bza_organization(organization_code),
+    CONSTRAINT fk_bza_employee_position FOREIGN KEY (position_code)
+        REFERENCES bza_position(position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code)
+        REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
+    CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_employment_period CHECK (
+        leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 프로필';
+
+
+CREATE TABLE IF NOT EXISTS bza_position (
+    position_code VARCHAR(50) NOT NULL COMMENT '직급 코드',
+    position_name VARCHAR(100) NOT NULL COMMENT '직급명',
+    rank_order INT NOT NULL DEFAULT 0 COMMENT '직급 정렬/서열 값',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (position_code),
+    CONSTRAINT ck_bza_position_use CHECK (use_yn IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직급 기준정보';
+
+CREATE TABLE IF NOT EXISTS bza_job_title (
+    job_title_code VARCHAR(50) NOT NULL COMMENT '직책 코드',
+    job_title_name VARCHAR(100) NOT NULL COMMENT '직책명',
+    manager_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '조직 책임자 성격 여부',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (job_title_code),
+    CONSTRAINT ck_bza_job_title_flags CHECK (manager_yn IN ('Y','N') AND use_yn IN ('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직책 기준정보';
+
+CREATE TABLE IF NOT EXISTS bza_employee_assignment (
+    assignment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '직원 소속/직무 발령 순번',
+    employee_no VARCHAR(50) NOT NULL COMMENT '직원 번호',
+    organization_code VARCHAR(50) NOT NULL COMMENT '소속 조직 코드',
+    position_code VARCHAR(50) NULL COMMENT '직급 코드',
+    job_title_code VARCHAR(50) NULL COMMENT '직책 코드',
+    assignment_type VARCHAR(30) NOT NULL DEFAULT 'PRIMARY' COMMENT 'PRIMARY/CONCURRENT/SECONDMENT/ACTING',
+    primary_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대표 소속 여부',
+    effective_from DATETIME(3) NOT NULL COMMENT '발령 적용 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '발령 적용 종료시각',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (assignment_id),
+    INDEX ix_bza_employee_assignment_current (employee_no, effective_to, primary_yn),
+    INDEX ix_bza_employee_assignment_org (organization_code, effective_to, job_title_code),
+    CONSTRAINT fk_bza_employee_assignment_employee FOREIGN KEY (employee_no)
+        REFERENCES bza_employee(employee_no) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_employee_assignment_org FOREIGN KEY (organization_code)
+        REFERENCES bza_organization(organization_code),
+    CONSTRAINT fk_bza_employee_assignment_position FOREIGN KEY (position_code)
+        REFERENCES bza_position(position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_bza_employee_assignment_job_title FOREIGN KEY (job_title_code)
+        REFERENCES bza_job_title(job_title_code) ON DELETE SET NULL,
+    CONSTRAINT ck_bza_employee_assignment_type CHECK (
+        assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')
+    ),
+    CONSTRAINT ck_bza_employee_assignment_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_employee_assignment_effective CHECK (
+        effective_to IS NULL OR effective_to > effective_from
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 유효기간 기반 조직/직급/직책 Assignment';
 
 CREATE TABLE IF NOT EXISTS bza_business_audit (
     audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 감사 순번',
@@ -2418,13 +2647,78 @@ CREATE TABLE IF NOT EXISTS bza_download_audit (
     INDEX ix_bza_download_audit_status (result_status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 다운로드 감사';
 
+
+CREATE TABLE IF NOT EXISTS bza_approval_policy (
+    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
+    policy_version INT NOT NULL COMMENT '정책 버전',
+    policy_name VARCHAR(150) NOT NULL COMMENT '정책명',
+    business_domain VARCHAR(30) NOT NULL COMMENT '적용 업무 영역',
+    approval_type VARCHAR(50) NOT NULL COMMENT '적용 결재 유형',
+    effective_from DATETIME(3) NOT NULL COMMENT '시행 시작시각',
+    effective_to DATETIME(3) NULL COMMENT '시행 종료시각',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '활성 여부',
+    self_approval_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '자기승인 허용 여부',
+    description VARCHAR(1000) NULL COMMENT '정책 설명',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (policy_code, policy_version),
+    INDEX ix_bza_approval_policy_lookup (business_domain, approval_type, enabled_yn, effective_from, effective_to),
+    CONSTRAINT ck_bza_approval_policy_version CHECK (policy_version > 0),
+    CONSTRAINT ck_bza_approval_policy_flags CHECK (
+        enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')
+    ),
+    CONSTRAINT ck_bza_approval_policy_effective CHECK (
+        effective_to IS NULL OR effective_to > effective_from
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 Version';
+
+CREATE TABLE IF NOT EXISTS bza_approval_policy_step (
+    policy_code VARCHAR(80) NOT NULL COMMENT '업무 결재 정책 코드',
+    policy_version INT NOT NULL COMMENT '정책 버전',
+    step_no INT NOT NULL COMMENT '결재 단계',
+    step_type VARCHAR(30) NOT NULL DEFAULT 'APPROVAL' COMMENT 'APPROVAL/AGREEMENT/REVIEW',
+    target_type VARCHAR(30) NOT NULL COMMENT 'EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION',
+    target_code VARCHAR(100) NOT NULL COMMENT '대상 코드',
+    decision_rule VARCHAR(20) NOT NULL DEFAULT 'ALL' COMMENT 'ALL/ANY/N_OF_M',
+    required_count INT NULL COMMENT 'N_OF_M 최소 결정 수',
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 대상 여부',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '동일 단계 표시 순서',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (policy_code, policy_version, step_no, target_type, target_code),
+    CONSTRAINT fk_bza_approval_policy_step_policy FOREIGN KEY (policy_code, policy_version)
+        REFERENCES bza_approval_policy(policy_code, policy_version) ON DELETE CASCADE,
+    CONSTRAINT ck_bza_approval_policy_step_no CHECK (step_no >= 1),
+    CONSTRAINT ck_bza_approval_policy_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
+    CONSTRAINT ck_bza_approval_policy_step_target CHECK (
+        target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')
+    ),
+    CONSTRAINT ck_bza_approval_policy_step_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_bza_approval_policy_step_required CHECK (
+        required_yn IN ('Y','N')
+        AND (
+            (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0)
+            OR (decision_rule <> 'N_OF_M' AND required_count IS NULL)
+        )
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 결재 정책 단계';
+
 CREATE TABLE IF NOT EXISTS bza_approval_document (
     approval_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 문서 순번',
     approval_no VARCHAR(50) NOT NULL COMMENT '결재 문서 번호',
     approval_type VARCHAR(50) NOT NULL COMMENT '결재 유형',
     business_domain VARCHAR(30) NOT NULL COMMENT '요청 업무 영역',
+    policy_code VARCHAR(80) NULL COMMENT '적용 결재 정책 코드',
+    policy_version INT NULL COMMENT '적용 결재 정책 버전 Snapshot',
     title VARCHAR(200) NOT NULL COMMENT '결재 제목',
     requester_employee_no VARCHAR(50) NOT NULL COMMENT '요청자 직원 번호',
+    requester_organization_code VARCHAR(50) NULL COMMENT '상신 시 요청자 조직 Snapshot',
+    requester_position_code VARCHAR(50) NULL COMMENT '상신 시 요청자 직급 Snapshot',
+    requester_job_title_code VARCHAR(50) NULL COMMENT '상신 시 요청자 직책 Snapshot',
     approval_status VARCHAR(30) NOT NULL DEFAULT 'DRAFT' COMMENT '결재 상태',
     approval_mode VARCHAR(30) NOT NULL DEFAULT 'SEQUENTIAL' COMMENT '결재 방식',
     current_step_no INT NOT NULL DEFAULT 0 COMMENT '현재 결재 단계',
@@ -2440,17 +2734,34 @@ CREATE TABLE IF NOT EXISTS bza_approval_document (
     PRIMARY KEY (approval_id),
     UNIQUE KEY uk_bza_approval_document_no (approval_no),
     INDEX ix_bza_approval_document_status (approval_status, due_at),
-    INDEX ix_bza_approval_document_requester (requester_employee_no, created_at)
+    INDEX ix_bza_approval_document_requester (requester_employee_no, created_at),
+    CONSTRAINT fk_bza_approval_document_policy FOREIGN KEY (policy_code, policy_version)
+        REFERENCES bza_approval_policy(policy_code, policy_version),
+    CONSTRAINT ck_bza_approval_document_policy_pair CHECK (
+        (policy_code IS NULL AND policy_version IS NULL)
+        OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)
+    ),
+    CONSTRAINT ck_bza_approval_document_status CHECK (
+        approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')
+    ),
+    CONSTRAINT ck_bza_approval_document_mode CHECK (approval_mode IN ('SEQUENTIAL','PARALLEL')),
+    CONSTRAINT ck_bza_approval_document_step CHECK (current_step_no >= 0),
+    CONSTRAINT ck_bza_approval_document_version CHECK (version_no >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 문서';
 
 CREATE TABLE IF NOT EXISTS bza_approval_line (
     approval_line_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재선 순번',
     approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
     step_no INT NOT NULL COMMENT '결재 단계',
-    approver_employee_no VARCHAR(50) NOT NULL COMMENT '결재자 직원 번호',
-    decision_rule VARCHAR(30) NOT NULL DEFAULT 'ALL_APPROVE' COMMENT '단계 승인 규칙',
+    approver_employee_no VARCHAR(50) NULL COMMENT '직접 직원 대상 호환 필드; 정책 기반 결재는 participant Snapshot 사용',
+    step_type VARCHAR(30) NOT NULL DEFAULT 'APPROVAL' COMMENT 'APPROVAL/AGREEMENT/REVIEW',
+    target_type VARCHAR(30) NOT NULL DEFAULT 'EMPLOYEE' COMMENT 'EMPLOYEE/ROLE/ORGANIZATION/ORG_MANAGER/POSITION',
+    target_code VARCHAR(100) NOT NULL COMMENT '정책 Target 코드 Snapshot; EMPLOYEE이면 직원번호',
+    target_name_snapshot VARCHAR(150) NULL COMMENT '정책 Target 표시명 Snapshot',
+    decision_rule VARCHAR(30) NOT NULL DEFAULT 'ALL' COMMENT 'ALL/ANY/N_OF_M',
+    required_count INT NULL COMMENT 'N_OF_M 최소 결정 수',
+    required_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '필수 Target 여부',
     decision_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT '결재자 결정 상태',
-    delegated_from_employee_no VARCHAR(50) NULL COMMENT '위임 원 결재자 직원 번호',
     decision_comment VARCHAR(1000) NULL COMMENT '결재 의견',
     decided_at DATETIME NULL COMMENT '결정 일시',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
@@ -2458,11 +2769,85 @@ CREATE TABLE IF NOT EXISTS bza_approval_line (
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (approval_line_id),
-    UNIQUE KEY uk_bza_approval_line (approval_id, step_no, approver_employee_no),
+    UNIQUE KEY uk_bza_approval_line (approval_id, step_no, target_type, target_code),
     INDEX ix_bza_approval_line_approver (approver_employee_no, decision_status),
     CONSTRAINT fk_bza_approval_line_document FOREIGN KEY (approval_id)
-        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE
+        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE,
+    CONSTRAINT ck_bza_approval_line_step CHECK (step_no >= 1),
+    CONSTRAINT ck_bza_approval_line_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
+    CONSTRAINT ck_bza_approval_line_target CHECK (
+        target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')
+    ),
+    CONSTRAINT ck_bza_approval_line_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_bza_approval_line_required CHECK (
+        required_yn IN ('Y','N')
+        AND (
+            (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0)
+            OR (decision_rule <> 'N_OF_M' AND required_count IS NULL)
+        )
+    ),
+    CONSTRAINT ck_bza_approval_line_status CHECK (
+        decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재선';
+
+
+CREATE TABLE IF NOT EXISTS bza_approval_participant (
+    approval_participant_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '실제 결재 참여자 순번',
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    approval_line_id BIGINT NOT NULL COMMENT '정책 Target/결재선 순번',
+    step_no INT NOT NULL COMMENT '결재 단계',
+    approver_employee_no VARCHAR(50) NOT NULL COMMENT '상신 시 해석된 실제 결재자',
+    organization_code_snapshot VARCHAR(50) NULL COMMENT '결재자 조직 Snapshot',
+    position_code_snapshot VARCHAR(50) NULL COMMENT '결재자 직급 Snapshot',
+    job_title_code_snapshot VARCHAR(50) NULL COMMENT '결재자 직책 Snapshot',
+    delegated_from_employee_no VARCHAR(50) NULL COMMENT '위임 원 결재자',
+    decision_status VARCHAR(30) NOT NULL DEFAULT 'WAITING' COMMENT 'WAITING/APPROVED/AGREED/REJECTED/SKIPPED',
+    idempotency_key VARCHAR(120) NULL COMMENT '결정 멱등 키',
+    decision_comment VARCHAR(1000) NULL COMMENT '결재 의견',
+    decided_at DATETIME(3) NULL COMMENT '결정 시각',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (approval_participant_id),
+    UNIQUE KEY uk_bza_approval_participant (approval_line_id, approver_employee_no),
+    UNIQUE KEY uk_bza_approval_participant_idem (idempotency_key),
+    INDEX ix_bza_approval_participant_inbox (approver_employee_no, decision_status, approval_id),
+    CONSTRAINT fk_bza_approval_participant_document FOREIGN KEY (approval_id)
+        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE,
+    CONSTRAINT fk_bza_approval_participant_line FOREIGN KEY (approval_line_id)
+        REFERENCES bza_approval_line(approval_line_id) ON DELETE CASCADE,
+    CONSTRAINT ck_bza_approval_participant_step CHECK (step_no >= 1),
+    CONSTRAINT ck_bza_approval_participant_status CHECK (
+        decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 참여자 Snapshot';
+
+CREATE TABLE IF NOT EXISTS bza_approval_delegation (
+    delegation_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 위임 순번',
+    delegator_employee_no VARCHAR(50) NOT NULL COMMENT '위임자 직원 번호',
+    delegate_employee_no VARCHAR(50) NOT NULL COMMENT '대결/대리 직원 번호',
+    business_domain VARCHAR(30) NULL COMMENT '제한 업무 영역; NULL이면 공통',
+    approval_type VARCHAR(50) NULL COMMENT '제한 결재 유형; NULL이면 공통',
+    valid_from DATETIME(3) NOT NULL COMMENT '위임 시작시각',
+    valid_to DATETIME(3) NOT NULL COMMENT '위임 종료시각',
+    reason VARCHAR(500) NOT NULL COMMENT '위임 사유',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (delegation_id),
+    INDEX ix_bza_approval_delegation_active (delegator_employee_no, use_yn, valid_from, valid_to),
+    CONSTRAINT fk_bza_approval_delegation_from FOREIGN KEY (delegator_employee_no)
+        REFERENCES bza_employee(employee_no),
+    CONSTRAINT fk_bza_approval_delegation_to FOREIGN KEY (delegate_employee_no)
+        REFERENCES bza_employee(employee_no),
+    CONSTRAINT ck_bza_approval_delegation_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_bza_approval_delegation_period CHECK (valid_to > valid_from),
+    CONSTRAINT ck_bza_approval_delegation_self CHECK (delegator_employee_no <> delegate_employee_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 위임/대결 유효기간';
 
 CREATE TABLE IF NOT EXISTS bza_approval_history (
     approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
@@ -2483,54 +2868,8 @@ CREATE TABLE IF NOT EXISTS bza_approval_history (
     UNIQUE KEY uk_bza_approval_history_idempotency (idempotency_key),
     INDEX ix_bza_approval_history_document (approval_id, created_at),
     CONSTRAINT fk_bza_approval_history_document FOREIGN KEY (approval_id)
-        REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE
+        REFERENCES bza_approval_document(approval_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 상태 변경 이력';
-
-CREATE TABLE IF NOT EXISTS bza_customer (
-    customer_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고객 샘플 순번',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    customer_name VARCHAR(100) NOT NULL COMMENT '고객명',
-    email VARCHAR(200) NULL COMMENT '이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
-    customer_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '고객 상태',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (customer_id),
-    UNIQUE KEY uk_bza_customer_no (customer_no),
-    INDEX ix_bza_customer_status (customer_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 고객';
-
-CREATE TABLE IF NOT EXISTS bza_product (
-    product_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '상품 샘플 순번',
-    product_code VARCHAR(50) NOT NULL COMMENT '상품 코드',
-    product_name VARCHAR(120) NOT NULL COMMENT '상품명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (product_id),
-    UNIQUE KEY uk_bza_product_code (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 상품';
-
-CREATE TABLE IF NOT EXISTS bza_order (
-    order_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '주문 샘플 순번',
-    order_no VARCHAR(50) NOT NULL COMMENT '주문 번호',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    product_code VARCHAR(50) NOT NULL COMMENT '상품 코드',
-    order_amount DECIMAL(18,2) NOT NULL DEFAULT 0 COMMENT '주문 금액',
-    order_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT '주문 상태',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (order_id),
-    UNIQUE KEY uk_bza_order_no (order_no),
-    INDEX ix_bza_order_customer (customer_no),
-    INDEX ix_bza_order_product (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 주문';
 
 CREATE TABLE IF NOT EXISTS bza_project_setting (
     setting_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 설정 순번',
@@ -2545,22 +2884,6 @@ CREATE TABLE IF NOT EXISTS bza_project_setting (
     PRIMARY KEY (setting_id),
     UNIQUE KEY uk_bza_project_setting_key (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 프로젝트 설정';
-
-CREATE TABLE IF NOT EXISTS bza_masking_audit (
-    masking_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '마스킹 감사 샘플 순번',
-    target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
-    target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
-    operator_id VARCHAR(100) NOT NULL COMMENT '처리 운영자 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '마스킹 해제 사유',
-    result_type VARCHAR(20) NOT NULL COMMENT '처리 결과 유형',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (masking_audit_id),
-    INDEX ix_bza_masking_audit_target (target_type, target_id, created_at),
-    INDEX ix_bza_masking_audit_operator (operator_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 마스킹 감사';
 
 -- ACC는 create-domain 생성기 결과를 실제 CRUD로 검증하는 선택 reference domain입니다.
 USE accDB;

@@ -109,6 +109,14 @@ SELECT 'admDB.adm_api_permission' AS check_name, COUNT(*) AS row_count FROM admD
 SELECT 'admDB.adm_role_api_permission' AS check_name, COUNT(*) AS row_count FROM admDB.adm_role_api_permission;
 SELECT 'admDB.adm_password_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_password_policy;
 SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm_audit_log;
+SELECT 'admDB.adm_organization' AS check_name, COUNT(*) AS row_count FROM admDB.adm_organization;
+SELECT 'admDB.adm_operator_profile' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator_profile;
+SELECT 'admDB.adm_approval_policy' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_policy;
+SELECT 'admDB.adm_approval_policy_step' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_policy_step;
+SELECT 'admDB.adm_approval_request' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_request;
+SELECT 'admDB.adm_approval_participant' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_participant;
+SELECT 'admDB.adm_approval_history' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_history;
+SELECT 'admDB.adm_approval_execution' AS check_name, COUNT(*) AS row_count FROM admDB.adm_approval_execution;
 
 SELECT 'refDB.ref_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_target;
 SELECT 'refDB.ref_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_result;
@@ -126,7 +134,6 @@ WHERE
     OR (
         table_schema = 'bzaDB'
         AND table_name IN (
-            'bza_user_role',
             'bza_customer',
             'bza_product',
             'bza_order',
@@ -166,6 +173,10 @@ SELECT 'bzaDB.bza_permission' AS check_name, COUNT(*) AS row_count FROM bzaDB.bz
 SELECT 'bzaDB.bza_project_setting' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_project_setting;
 SELECT 'bzaDB.bza_organization' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_organization;
 SELECT 'bzaDB.bza_employee' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee;
+SELECT 'bzaDB.bza_position' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_position;
+SELECT 'bzaDB.bza_job_title' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_job_title;
+SELECT 'bzaDB.bza_employee_assignment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee_assignment;
+SELECT 'bzaDB.bza_user_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_user_role;
 SELECT 'bzaDB.bza_business_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_business_audit;
 SELECT 'bzaDB.bza_notification' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_notification;
 SELECT 'bzaDB.bza_attachment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_attachment;
@@ -174,6 +185,10 @@ SELECT 'bzaDB.bza_download_audit' AS check_name, COUNT(*) AS row_count FROM bzaD
 SELECT 'bzaDB.bza_approval_document' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_document;
 SELECT 'bzaDB.bza_approval_line' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_line;
 SELECT 'bzaDB.bza_approval_history' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_history;
+SELECT 'bzaDB.bza_approval_policy' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_policy;
+SELECT 'bzaDB.bza_approval_policy_step' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_policy_step;
+SELECT 'bzaDB.bza_approval_participant' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_participant;
+SELECT 'bzaDB.bza_approval_delegation' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_approval_delegation;
 
 SELECT TRANSACTION_ID, LOG_DATE, DATE(START_TIME) AS start_date, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
        API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CORRELATION_ID, IDEMPOTENCY_KEY
@@ -307,15 +322,15 @@ FROM cpfDB.cpf_message
 WHERE message_code IN ('MCMN000001', 'MCPF010004', 'MMBR010102', 'MREF090001')
 ORDER BY message_code, locale;
 
--- cpf-core 공식 시스템 코드와 구형 CPF 코드의 활성 상태를 확인합니다.
+-- cpf-core 공식 시스템 코드 CPF의 활성 상태를 확인합니다.
 SELECT code_key, code_value, description, use_yn
 FROM cpfDB.cpf_code
-WHERE code_key = 'MODULE' AND code_value IN ('CPF', 'CPF')
+WHERE code_key = 'MODULE' AND code_value = 'CPF'
 ORDER BY code_value;
 
 SELECT module_id, use_yn, COUNT(*) AS response_code_count
 FROM cpfDB.cpf_response_code
-WHERE module_id IN ('CPF', 'CPF')
+WHERE module_id = 'CPF'
 GROUP BY module_id, use_yn
 ORDER BY module_id, use_yn;
 

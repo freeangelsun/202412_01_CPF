@@ -18,5 +18,5 @@ logging:
 
 cpf:
   cmn:
-    business-db:
-      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
+    sample-db:
+      enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}

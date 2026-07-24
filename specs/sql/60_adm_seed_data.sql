@@ -392,3 +392,32 @@ WHERE NOT EXISTS (
       AND TARGET_TYPE = 'ADM'
       AND TARGET_ID = 'INITIAL_DATA'
 );
+
+-- Product Seed의 마지막 단계까지 성공한 CPF 소유 Schema만 공식 Baseline으로 기록합니다.
+INSERT INTO cpfDB.cpf_schema_installation (
+    schema_name,
+    system_code,
+    database_vendor,
+    product_version,
+    baseline_key,
+    install_state,
+    created_by,
+    updated_by
+) VALUES
+    ('cpfDB', 'CPF', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('cmnDB', 'CMN', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('admDB', 'ADM', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('bzaDB', 'BZA', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('batDB', 'BAT', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('mbrDB', 'MBR', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('accDB', 'ACC', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('refDB', 'REF', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER'),
+    ('exsDB', 'EXS', 'MARIADB', '1.0.0-SNAPSHOT', 'CPF_MARIADB_EMPTY_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER')
+ON DUPLICATE KEY UPDATE
+    system_code = VALUES(system_code),
+    database_vendor = VALUES(database_vendor),
+    product_version = VALUES(product_version),
+    baseline_key = VALUES(baseline_key),
+    install_state = VALUES(install_state),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);

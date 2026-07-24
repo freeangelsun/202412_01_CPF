@@ -1,5 +1,7 @@
 package com.cpf.reference.query.dto;
 
+import java.time.LocalDateTime;
+
 /**
  * 조회 EDU 샘플에서 사용하는 읽기 전용 항목 DTO입니다.
  *
@@ -8,7 +10,7 @@ package com.cpf.reference.query.dto;
  * @param categoryCode 조회 샘플 분류 코드
  * @param statusCode 사용 상태 코드
  * @param ownerMemberNo 예시 소유 회원 번호. MBR 테이블과 직접 조인하지 않고 값만 보관합니다.
- * @param createdAt ISO 형태로 변환한 생성 일시 문자열
+ * @param createdAt JDBC 표준 타입으로 읽은 생성 일시
  */
 public record ReferenceQueryEducationItem(
         Long itemId,
@@ -16,5 +18,5 @@ public record ReferenceQueryEducationItem(
         String categoryCode,
         String statusCode,
         String ownerMemberNo,
-        String createdAt) {
+        LocalDateTime createdAt) {
 }

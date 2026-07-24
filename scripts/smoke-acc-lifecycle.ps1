@@ -184,14 +184,14 @@ try {
         '-Root', $sandboxRoot, '-DomainName', 'account', '-SystemCode', 'ACC',
         '-ResultDir', $databaseInitResultDir))
     $databaseInitResult = Get-Content -LiteralPath (Join-Path $databaseInitResultDir 'domain-db-init-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($databaseInitResult.status -ne 'READY' -or [bool]$databaseInitResult.applied) {
-        throw '순수 생성 ACC DB 초기화 plan 검증이 READY가 아닙니다.'
+    if ($databaseInitResult.status -ne '미검증' -or [bool]$databaseInitResult.applied) {
+        throw '순수 생성 ACC DB 초기화 plan 검증 상태가 미검증이 아닙니다.'
     }
     $result.databaseInit = [ordered]@{
         status = $databaseInitResult.status
         applied = [bool]$databaseInitResult.applied
         vendor = $databaseInitResult.databaseVendor
-        sql = $databaseInitResult.sql.path
+        phases = @($databaseInitResult.phases | ForEach-Object { $_.path })
     }
 
     $verification = Join-Path $sandbox 'verification'

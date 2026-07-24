@@ -23,7 +23,7 @@ public class ReferenceTransactionEducationAuditService extends com.cpf.reference
      *
      * @param message 감사 교육 메시지
      */
-    @Transactional(transactionManager = "cmnTransactionManager", propagation = Propagation.REQUIRES_NEW)
+    @Transactional(transactionManager = "refTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void writeAuditRequiresNew(String message) {
         auditMessages.add(message);
     }

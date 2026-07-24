@@ -13,15 +13,15 @@ import java.util.HexFormat;
 /**
  * CPF 표준 배치 중복 실행 방지 lock 관리자입니다.
  *
- * <p>동일 Job/파라미터 기준으로 여러 WAS가 동시에 실행하지 못하도록 cpf_batch_lock을 사용합니다.</p>
+ * <p>동일 Job/파라미터 기준으로 여러 WAS가 동시에 실행하지 못하도록 bat_lock을 사용합니다.</p>
  */
 public class CpfBatchLockManager {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
     private final ObjectProvider<DataSource> dataSourceProvider;
 
     public CpfBatchLockManager(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("batJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("batDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.dataSourceProvider = dataSourceProvider;
     }
@@ -37,7 +37,7 @@ public class CpfBatchLockManager {
         releaseExpired();
         try {
             jdbc().update("""
-                    INSERT INTO cpf_batch_lock (
+                    INSERT INTO bat_lock (
                         lock_key, job_id, job_parameters_hash, owner_id, expire_at, created_by, updated_by
                     ) VALUES (?, ?, ?, ?, TIMESTAMPADD(SECOND, ?, CURRENT_TIMESTAMP(3)), ?, ?)
                     """,
@@ -59,7 +59,7 @@ public class CpfBatchLockManager {
             return;
         }
         jdbc().update(
-                "DELETE FROM cpf_batch_lock WHERE lock_key = ? AND owner_id = ?",
+                "DELETE FROM bat_lock WHERE lock_key = ? AND owner_id = ?",
                 lockKey,
                 ownerId);
     }
@@ -68,7 +68,7 @@ public class CpfBatchLockManager {
         if (!available()) {
             return;
         }
-        jdbc().update("DELETE FROM cpf_batch_lock WHERE expire_at <= CURRENT_TIMESTAMP(3)");
+        jdbc().update("DELETE FROM bat_lock WHERE expire_at <= CURRENT_TIMESTAMP(3)");
     }
 
     public String lockKey(String jobId, String jobParameters) {
@@ -96,7 +96,7 @@ public class CpfBatchLockManager {
         }
         DataSource dataSource = dataSourceProvider.getIfAvailable();
         if (dataSource == null) {
-            throw new IllegalStateException("CPF datasource가 없어 배치 lock을 사용할 수 없습니다.");
+            throw new IllegalStateException("BAT datasource가 없어 배치 lock을 사용할 수 없습니다.");
         }
         return new JdbcTemplate(dataSource);
     }

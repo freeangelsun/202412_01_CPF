@@ -1,5 +1,8 @@
 package com.cpf.core.common.reconciliation;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.Timestamp;
@@ -16,20 +19,21 @@ import java.util.UUID;
  */
 public class JdbcCpfReconciliationRepository implements CpfReconciliationPort {
     private final JdbcTemplate jdbcTemplate;
+    private final CpfVendorSqlCatalog sql;
 
     public JdbcCpfReconciliationRepository(JdbcTemplate jdbcTemplate) {
+        this(jdbcTemplate, new StandardEnvironment());
+    }
+
+    public JdbcCpfReconciliationRepository(JdbcTemplate jdbcTemplate, Environment environment) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sql = CpfVendorSqlCatalog.create(environment, "cpf");
     }
 
     @Override
     public CpfUnknownResultRecord register(CpfUnknownResultRecord record) {
         String unknownId = hasText(record.unknownId()) ? record.unknownId() : "UNK-" + UUID.randomUUID();
-        jdbcTemplate.update("""
-                INSERT INTO cpf_unknown_result (
-                    unknown_id, unknown_type, unknown_status, transaction_global_id, segment_id,
-                    external_key, failure_code, failure_message, next_action, detected_at, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_RECONCILIATION', 'CPF_RECONCILIATION')
-                """,
+        jdbcTemplate.update(sql.required("reconciliation-register"),
                 unknownId,
                 record.unknownType(),
                 record.unknownStatus(),
@@ -56,24 +60,9 @@ public class JdbcCpfReconciliationRepository implements CpfReconciliationPort {
 
     @Override
     public List<CpfUnknownResultRecord> find(String unknownType, String status, int limit) {
-        return jdbcTemplate.queryForList("""
-                SELECT unknown_id AS unknownId,
-                       unknown_type AS unknownType,
-                       unknown_status AS unknownStatus,
-                       transaction_global_id AS transactionGlobalId,
-                       segment_id AS segmentId,
-                       external_key AS externalKey,
-                       failure_code AS failureCode,
-                       failure_message AS failureMessage,
-                       next_action AS nextAction,
-                       detected_at AS detectedAt,
-                       resolved_at AS resolvedAt
-                FROM cpf_unknown_result
-                WHERE (? IS NULL OR unknown_type = ?)
-                  AND (? IS NULL OR unknown_status = ?)
-                ORDER BY unknown_seq DESC
-                LIMIT ?
-                """, unknownType, unknownType, status, status, safeLimit(limit))
+        return jdbcTemplate.queryForList(
+                        sql.required("reconciliation-find"),
+                        unknownType, unknownType, status, status, safeLimit(limit))
                 .stream()
                 .map(this::mapRecord)
                 .toList();
@@ -87,16 +76,7 @@ public class JdbcCpfReconciliationRepository implements CpfReconciliationPort {
         if (!hasText(auditReason)) {
             throw new IllegalArgumentException("auditReason은 필수입니다.");
         }
-        jdbcTemplate.update("""
-                UPDATE cpf_unknown_result
-                SET unknown_status = ?,
-                    resolved_at = CURRENT_TIMESTAMP(3),
-                    resolved_by = ?,
-                    audit_reason = ?,
-                    updated_by = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE unknown_id = ?
-                """,
+        jdbcTemplate.update(sql.required("reconciliation-resolve"),
                 normalize(status),
                 operatorId,
                 auditReason,

@@ -19,9 +19,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class AdmDownloadServiceTest {
 
     private final JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
+    private final JdbcTemplate batJdbcTemplate = mock(JdbcTemplate.class);
     private final JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
     private final AdmAuditLogService auditLogService = mock(AdmAuditLogService.class);
-    private final AdmDownloadService service = new AdmDownloadService(cpfJdbcTemplate, admJdbcTemplate, auditLogService);
+    private final AdmDownloadService service =
+            new AdmDownloadService(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate, auditLogService);
 
     @Test
     void findPoliciesContainsOperationalDownloadTypes() {
@@ -55,6 +57,6 @@ class AdmDownloadServiceTest {
                 .isInstanceOf(CpfValidationException.class);
 
         verify(auditLogService, never()).requireReason(anyString());
-        verifyNoInteractions(cpfJdbcTemplate, admJdbcTemplate);
+        verifyNoInteractions(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate);
     }
 }

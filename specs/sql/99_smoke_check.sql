@@ -1,7 +1,14 @@
--- CPF 초기 데이터베이스 smoke check입니다.
--- 01_create_databases.sql부터 70_test_data.sql까지 실행한 뒤 수행합니다.
+-- CPF MariaDB 공식 설치 검증 SQL입니다.
+-- Provision -> Empty Install -> Product Seed 실행 후 수행합니다.
+-- Optional Sample Seed와 Test Seed는 필수 조건이 아닙니다.
 
 SELECT 'cpfDB.cpf_transaction_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_log;
+SELECT 'cpfDB.cpf_schema_installation' AS check_name, COUNT(*) AS row_count
+FROM cpfDB.cpf_schema_installation
+WHERE database_vendor = 'MARIADB'
+  AND product_version = '1.0.0-SNAPSHOT'
+  AND baseline_key = 'CPF_MARIADB_EMPTY_INSTALL_V1'
+  AND install_state = 'PRODUCT_SEEDED';
 SELECT 'cpfDB.cpf_transaction_log_detail' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_log_detail;
 SELECT 'cpfDB.cpf_transaction_segment' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_transaction_segment;
 SELECT 'cpfDB.cpf_transaction_segment.timeline_columns' AS check_name, COUNT(*) AS column_count
@@ -27,7 +34,7 @@ SELECT 'cpfDB.cpf_standard_execution_alias' AS check_name, COUNT(*) AS row_count
 SELECT 'cpfDB.cpf_channel_policy_version' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_policy_version;
 SELECT 'cpfDB.cpf_channel_registry' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_registry;
 SELECT 'cpfDB.cpf_channel_execution_policy' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_channel_execution_policy;
-SELECT 'cpfDB.cpf_batch_on_demand_request' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_on_demand_request;
+SELECT 'batDB.bat_on_demand_request' AS check_name, COUNT(*) AS row_count FROM batDB.bat_on_demand_request;
 SELECT 'cpfDB.cpf_log_policy' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy;
 SELECT 'cpfDB.cpf_log_policy_override' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy_override;
 SELECT 'cpfDB.cpf_log_policy_audit' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_log_policy_audit;
@@ -36,29 +43,38 @@ SELECT 'cpfDB.cpf_message' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_m
 SELECT 'cpfDB.cpf_response_code' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_response_code;
 SELECT 'cpfDB.cpf_config' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_config;
 SELECT 'cpfDB.cpf_cache_refresh_event' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_cache_refresh_event;
-SELECT 'cpfDB.BATCH_JOB_INSTANCE' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_INSTANCE;
-SELECT 'cpfDB.BATCH_JOB_EXECUTION' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION;
-SELECT 'cpfDB.BATCH_JOB_EXECUTION_PARAMS' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION_PARAMS;
-SELECT 'cpfDB.BATCH_STEP_EXECUTION' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_STEP_EXECUTION;
-SELECT 'cpfDB.BATCH_JOB_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_SEQ;
-SELECT 'cpfDB.BATCH_JOB_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_JOB_EXECUTION_SEQ;
-SELECT 'cpfDB.BATCH_STEP_EXECUTION_SEQ' AS check_name, COUNT(*) AS row_count FROM cpfDB.BATCH_STEP_EXECUTION_SEQ;
-SELECT 'cpfDB.cpf_batch_job' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_job;
-SELECT 'cpfDB.cpf_batch_schedule' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_schedule;
-SELECT 'cpfDB.cpf_batch_job_relation' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_job_relation;
-SELECT 'cpfDB.cpf_batch_instance' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_instance;
-SELECT 'cpfDB.cpf_batch_worker' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_worker;
-SELECT 'cpfDB.cpf_batch_execution' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_execution;
-SELECT 'cpfDB.cpf_batch_execution_target' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_execution_target;
-SELECT 'cpfDB.cpf_batch_step_execution' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_step_execution;
-SELECT 'cpfDB.cpf_batch_lock' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_lock;
-SELECT 'cpfDB.cpf_batch_operation_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_operation_log;
-SELECT 'cpfDB.cpf_batch_ghost_event' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_batch_ghost_event;
-SELECT 'cpfDB.bat_center_cut_job' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_job;
-SELECT 'cpfDB.bat_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_parameter;
-SELECT 'cpfDB.bat_center_cut_item' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_item;
-SELECT 'cpfDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM cpfDB.bat_center_cut_result;
-SELECT 'cpfDB.cpf_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_business_day_calendar;
+SELECT 'batDB.BATCH_JOB_INSTANCE' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_JOB_INSTANCE;
+SELECT 'batDB.BATCH_JOB_EXECUTION' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_JOB_EXECUTION;
+SELECT 'batDB.BATCH_JOB_EXECUTION_PARAMS' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_JOB_EXECUTION_PARAMS;
+SELECT 'batDB.BATCH_STEP_EXECUTION' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_STEP_EXECUTION;
+SELECT 'batDB.BATCH_STEP_EXECUTION_CONTEXT' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_STEP_EXECUTION_CONTEXT;
+SELECT 'batDB.BATCH_JOB_EXECUTION_CONTEXT' AS check_name, COUNT(*) AS row_count FROM batDB.BATCH_JOB_EXECUTION_CONTEXT;
+SELECT 'batDB.BATCH_JOB_SEQ' AS check_name, COUNT(*) AS object_count
+FROM information_schema.tables
+WHERE table_schema = 'batDB' AND table_name = 'BATCH_JOB_SEQ' AND table_type = 'SEQUENCE';
+SELECT 'batDB.BATCH_JOB_EXECUTION_SEQ' AS check_name, COUNT(*) AS object_count
+FROM information_schema.tables
+WHERE table_schema = 'batDB' AND table_name = 'BATCH_JOB_EXECUTION_SEQ' AND table_type = 'SEQUENCE';
+SELECT 'batDB.BATCH_STEP_EXECUTION_SEQ' AS check_name, COUNT(*) AS object_count
+FROM information_schema.tables
+WHERE table_schema = 'batDB' AND table_name = 'BATCH_STEP_EXECUTION_SEQ' AND table_type = 'SEQUENCE';
+SELECT 'batDB.bat_job' AS check_name, COUNT(*) AS row_count FROM batDB.bat_job;
+SELECT 'batDB.bat_schedule' AS check_name, COUNT(*) AS row_count FROM batDB.bat_schedule;
+SELECT 'batDB.bat_job_relation' AS check_name, COUNT(*) AS row_count FROM batDB.bat_job_relation;
+SELECT 'batDB.bat_instance' AS check_name, COUNT(*) AS row_count FROM batDB.bat_instance;
+SELECT 'batDB.bat_worker' AS check_name, COUNT(*) AS row_count FROM batDB.bat_worker;
+SELECT 'batDB.bat_execution' AS check_name, COUNT(*) AS row_count FROM batDB.bat_execution;
+SELECT 'batDB.bat_execution_lease' AS check_name, COUNT(*) AS row_count FROM batDB.bat_execution_lease;
+SELECT 'batDB.bat_execution_target' AS check_name, COUNT(*) AS row_count FROM batDB.bat_execution_target;
+SELECT 'batDB.bat_step_execution' AS check_name, COUNT(*) AS row_count FROM batDB.bat_step_execution;
+SELECT 'batDB.bat_lock' AS check_name, COUNT(*) AS row_count FROM batDB.bat_lock;
+SELECT 'batDB.bat_operation_log' AS check_name, COUNT(*) AS row_count FROM batDB.bat_operation_log;
+SELECT 'batDB.bat_ghost_event' AS check_name, COUNT(*) AS row_count FROM batDB.bat_ghost_event;
+SELECT 'batDB.bat_center_cut_job' AS check_name, COUNT(*) AS row_count FROM batDB.bat_center_cut_job;
+SELECT 'batDB.bat_center_cut_parameter' AS check_name, COUNT(*) AS row_count FROM batDB.bat_center_cut_parameter;
+SELECT 'batDB.bat_center_cut_item' AS check_name, COUNT(*) AS row_count FROM batDB.bat_center_cut_item;
+SELECT 'batDB.bat_center_cut_result' AS check_name, COUNT(*) AS row_count FROM batDB.bat_center_cut_result;
+SELECT 'batDB.bat_business_day_calendar' AS check_name, COUNT(*) AS row_count FROM batDB.bat_business_day_calendar;
 SELECT 'cpfDB.cpf_notification_rule' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_notification_rule;
 SELECT 'cpfDB.cpf_notification_delivery_log' AS check_name, COUNT(*) AS row_count FROM cpfDB.cpf_notification_delivery_log;
 SELECT 'cpfDB.cpf_broker_outbox.reliability_columns' AS check_name, COUNT(*) AS column_count
@@ -72,15 +88,16 @@ WHERE table_schema = 'cpfDB'
   AND table_name = 'cpf_broker_outbox'
   AND index_name IN ('ix_cpf_broker_outbox_ready', 'ix_cpf_broker_outbox_lease');
 
-SELECT 'cmnDB.cmn_sequence' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence;
-SELECT 'cmnDB.cmn_sequence_issue_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sequence_issue_log;
-SELECT 'cmnDB.cmn_notification_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_notification_log;
-SELECT 'cmnDB.cmn_business_log' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_business_log;
-SELECT 'cmnDB.cmn_edu_query_item' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_edu_query_item;
-SELECT 'cmnDB.cmn_fixed_length_layout' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_layout;
-SELECT 'cmnDB.cmn_fixed_length_group' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_group;
-SELECT 'cmnDB.cmn_fixed_length_field' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_field;
-SELECT 'cmnDB.cmn_fixed_length_masking_policy' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_fixed_length_masking_policy;
+SELECT 'cmnDB.cmn_sample_item' AS check_name, COUNT(*) AS row_count FROM cmnDB.cmn_sample_item;
+SELECT 'cmnDB.table_count' AS check_name, COUNT(*) AS table_count
+FROM information_schema.tables
+WHERE table_schema = 'cmnDB'
+  AND table_type = 'BASE TABLE';
+SELECT 'cmnDB.forbidden_table_count' AS check_name, COUNT(*) AS table_count
+FROM information_schema.tables
+WHERE table_schema = 'cmnDB'
+  AND table_type = 'BASE TABLE'
+  AND table_name <> 'cmn_sample_item';
 
 SELECT 'admDB.adm_operator' AS check_name, COUNT(*) AS row_count FROM admDB.adm_operator;
 SELECT 'admDB.adm_menu' AS check_name, COUNT(*) AS row_count FROM admDB.adm_menu;
@@ -95,15 +112,47 @@ SELECT 'admDB.adm_audit_log' AS check_name, COUNT(*) AS row_count FROM admDB.adm
 
 SELECT 'refDB.ref_center_cut_sample_target' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_target;
 SELECT 'refDB.ref_center_cut_sample_result' AS check_name, COUNT(*) AS row_count FROM refDB.ref_center_cut_sample_result;
+SELECT 'refDB.ref_sample_item' AS check_name, COUNT(*) AS row_count FROM refDB.ref_sample_item;
 SELECT 'exsDB.exs_institution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_institution;
 SELECT 'exsDB.exs_endpoint' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_endpoint;
 SELECT 'exsDB.exs_control_policy' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_control_policy;
 SELECT 'exsDB.exs_execution' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_execution;
 SELECT 'exsDB.exs_reconciliation_log' AS check_name, COUNT(*) AS row_count FROM exsDB.exs_reconciliation_log;
-SELECT 'mbrDB.mbr_member' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member;
-SELECT 'mbrDB.mbr_member_role' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_role;
-SELECT 'mbrDB.mbr_member_login_history' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_member_login_history;
-SELECT 'mbrDB.mbr_refresh_token' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_refresh_token;
+SELECT 'optimized_schema.forbidden_table_count' AS check_name, COUNT(*) AS object_count
+FROM information_schema.tables
+WHERE
+    (table_schema = 'cpfDB' AND table_name IN ('cpf_file_exchange_log'))
+    OR (table_schema = 'admDB' AND table_name IN ('adm_operation_log'))
+    OR (
+        table_schema = 'bzaDB'
+        AND table_name IN (
+            'bza_user_role',
+            'bza_customer',
+            'bza_product',
+            'bza_order',
+            'bza_masking_audit'
+        )
+    )
+    OR (
+        table_schema = 'exsDB'
+        AND table_name IN (
+            'exs_token_store',
+            'exs_token_event_history',
+            'exs_route_rule',
+            'exs_transaction_log',
+            'exs_message_log',
+            'exs_retry_log'
+        )
+    );
+SELECT 'mbrDB.mbr_sample_item' AS check_name, COUNT(*) AS row_count FROM mbrDB.mbr_sample_item;
+SELECT 'mbrDB.table_count' AS check_name, COUNT(*) AS row_count
+FROM information_schema.tables
+WHERE table_schema = 'mbrDB' AND table_type = 'BASE TABLE';
+SELECT 'mbrDB.forbidden_table_count' AS check_name, COUNT(*) AS row_count
+FROM information_schema.tables
+WHERE table_schema = 'mbrDB'
+  AND table_type = 'BASE TABLE'
+  AND table_name <> 'mbr_sample_item';
 
 SELECT 'accDB.acc_account' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account;
 SELECT 'accDB.acc_account_change_log' AS check_name, COUNT(*) AS row_count FROM accDB.acc_account_change_log;
@@ -114,14 +163,9 @@ SELECT 'bzaDB.bza_refresh_token' AS check_name, COUNT(*) AS row_count FROM bzaDB
 SELECT 'bzaDB.bza_menu' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_menu;
 SELECT 'bzaDB.bza_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_role;
 SELECT 'bzaDB.bza_permission' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_permission;
-SELECT 'bzaDB.bza_customer' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_customer;
-SELECT 'bzaDB.bza_product' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_product;
-SELECT 'bzaDB.bza_order' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_order;
 SELECT 'bzaDB.bza_project_setting' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_project_setting;
-SELECT 'bzaDB.bza_masking_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_masking_audit;
 SELECT 'bzaDB.bza_organization' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_organization;
 SELECT 'bzaDB.bza_employee' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_employee;
-SELECT 'bzaDB.bza_user_role' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_user_role;
 SELECT 'bzaDB.bza_business_audit' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_business_audit;
 SELECT 'bzaDB.bza_notification' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_notification;
 SELECT 'bzaDB.bza_attachment' AS check_name, COUNT(*) AS row_count FROM bzaDB.bza_attachment;
@@ -148,24 +192,11 @@ FROM cpfDB.cpf_transaction_log_detail
 WHERE DETAIL_KEY IN ('headers', 'fixedTelegram')
 ORDER BY DETAIL_KEY;
 
-SELECT sequence_key, business_area, business_key, sequence_kind, channel_code, start_value, increment_by, reset_cycle, log_enabled_yn
-FROM cmnDB.cmn_sequence
-WHERE sequence_key = 'CMN_EDU_ORDER';
-
-SELECT item_id, item_name, category_code, status_code, owner_member_no
-FROM cmnDB.cmn_edu_query_item
-WHERE use_yn = 'Y'
-ORDER BY item_id
+SELECT sample_item_id, sample_key, item_name, category_code, status_code,
+       searchable_text, owner_reference, sort_order, version_no, deleted_yn
+FROM cmnDB.cmn_sample_item
+ORDER BY sample_item_id
 LIMIT 5;
-
-SELECT layout_id, institution_code, message_code, direction, version, enabled_yn
-FROM cmnDB.cmn_fixed_length_layout
-WHERE layout_id = 'BANK01_BALANCE_REQ_V1';
-
-SELECT layout_id, group_id, field_name, display_name, start_position, field_length, field_type, masking_type
-FROM cmnDB.cmn_fixed_length_field
-WHERE layout_id = 'BANK01_BALANCE_REQ_V1'
-ORDER BY start_position;
 
 SELECT target_id, center_cut_job_id, business_key, status_code, parent_transaction_global_id, child_transaction_global_id
 FROM refDB.ref_center_cut_sample_target
@@ -193,47 +224,44 @@ WHERE API_PERMISSION_ID IN ('API_PERMISSION_READ', 'API_PERMISSION_WRITE_PUT', '
 ORDER BY ROLE_ID, API_PERMISSION_ID;
 
 SELECT schedule_id, job_id, business_day_only_yn, holiday_policy, available_start_time, available_end_time, run_date_pattern
-FROM cpfDB.cpf_batch_schedule
+FROM batDB.bat_schedule
 ORDER BY schedule_id;
 
 SELECT job_id, related_job_id, relation_type, trigger_condition, required_status
-FROM cpfDB.cpf_batch_job_relation
+FROM batDB.bat_job_relation
 ORDER BY job_id, related_job_id;
 
 SELECT job_id, schedule_id, target_instance_id, business_date, dispatch_status
-FROM cpfDB.cpf_batch_execution_target
+FROM batDB.bat_execution_target
 ORDER BY target_id
 LIMIT 5;
 
 SELECT worker_id, server_instance_id, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id
-FROM cpfDB.cpf_batch_worker
+FROM batDB.bat_worker
 ORDER BY worker_id
 LIMIT 5;
 
 SELECT execution_id, job_id, execution_status, spring_batch_execution_id, batch_instance_id, server_instance_id,
        worker_id, transaction_global_id, requested_by
-FROM cpfDB.cpf_batch_execution
+FROM batDB.bat_execution
 ORDER BY execution_id DESC
 LIMIT 5;
 
 SELECT step_execution_id, execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status
-FROM cpfDB.cpf_batch_step_execution
+FROM batDB.bat_step_execution
 ORDER BY step_execution_id DESC
 LIMIT 5;
 
 SELECT ghost_event_id, execution_id, job_id, worker_id, ghost_status, action_type, lock_released_yn, retryable_yn
-FROM cpfDB.cpf_batch_ghost_event
+FROM batDB.bat_ghost_event
 ORDER BY ghost_event_id DESC
 LIMIT 5;
 
-SELECT member_no, customer_no, login_id, name, member_status, lock_yn, withdraw_yn
-FROM mbrDB.mbr_member
-ORDER BY id
-LIMIT 5;
-
-SELECT login_domain, member_no, customer_no, login_id, login_result, transaction_global_id, module_id, was_id, server_instance_id
-FROM mbrDB.mbr_member_login_history
-ORDER BY login_history_id DESC
+SELECT sample_item_id, sample_key, item_name, category_code, status_code,
+       sort_order, version_no, transaction_global_id, idempotency_key
+FROM mbrDB.mbr_sample_item
+WHERE deleted_yn = 'N'
+ORDER BY sort_order, sample_item_id
 LIMIT 5;
 
 SELECT admin_login_id, role_code, use_yn, lock_yn, login_fail_count
@@ -267,11 +295,6 @@ LIMIT 5;
 SELECT actor_id, download_code, result_status, file_name, masking_applied_yn, transaction_global_id
 FROM bzaDB.bza_download_audit
 ORDER BY download_audit_id DESC
-LIMIT 5;
-
-SELECT member_id, service_code, role_code, role_name, use_yn
-FROM mbrDB.mbr_member_role
-ORDER BY member_role_id
 LIMIT 5;
 
 SELECT response_code, message_code, result_type, http_status

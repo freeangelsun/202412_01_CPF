@@ -34,4 +34,20 @@ public class ReferenceDataSourceConfig {
     public PlatformTransactionManager refTransactionManager(@Qualifier("refDataSource") DataSource refDataSource) {
         return new DataSourceTransactionManager(refDataSource);
     }
+
+    @Bean(name = "batDataSource")
+    public DataSource batDataSource(Environment environment) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
+    }
+
+    @Bean(name = "batTransactionManager")
+    public PlatformTransactionManager batTransactionManager(
+            @Qualifier("batDataSource") DataSource batDataSource) {
+        return new DataSourceTransactionManager(batDataSource);
+    }
+
+    @Bean(name = "batJdbcTemplate")
+    public JdbcTemplate batJdbcTemplate(@Qualifier("batDataSource") DataSource batDataSource) {
+        return new JdbcTemplate(batDataSource);
+    }
 }

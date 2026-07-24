@@ -138,7 +138,7 @@ public class CpfBatchScheduler {
                     rule_id, event_type, target_type, target_id, receiver,
                     delivery_status, delivery_message, requested_at, delivered_at,
                     created_by, updated_by
-                ) VALUES (NULL, 'BATCH_SCHEDULER_FAILED', 'cpf_batch_schedule', ?, 'ADM_OPERATOR',
+                ) VALUES (NULL, 'BATCH_SCHEDULER_FAILED', 'bat_schedule', ?, 'ADM_OPERATOR',
                           'FAILED', ?, CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3), ?, ?)
                 """,
                 candidate.scheduleId(),

@@ -4,11 +4,12 @@ spring:
   datasource:
     cpf:
       mode: ${GWY_DATASOURCE_MODE:${CPF_DB_MODE:url}}
-      url: ${GWY_DATASOURCE_URL:jdbc:mariadb://localhost:3306/cpfDB}
+      url: ${GWY_DATASOURCE_URL:${CPF_DB_URL:}}
+      database-name: ${GWY_DB_NAME:${CPF_DB_NAME:cpfDB}}
       username: ${GWY_DATASOURCE_USERNAME:cpf_app}
       password: ${GWY_DATASOURCE_PASSWORD:__REPLACE_BY_ENV__}
       jndi-name: ${GWY_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfGatewayDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${GWY_DB_DRIVER:${CPF_DB_DRIVER:}}
   config:
     import:
       - optional:classpath:application-cpf.yml

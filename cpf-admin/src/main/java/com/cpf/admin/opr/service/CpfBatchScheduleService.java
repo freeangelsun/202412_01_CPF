@@ -33,19 +33,19 @@ public class CpfBatchScheduleService extends com.cpf.admin.common.base.AdmBaseSe
     private static final Logger log = LoggerFactory.getLogger(CpfBatchScheduleService.class);
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
-    private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
 
-    public CpfBatchScheduleService(@Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate) {
-        this.cpfJdbcTemplate = cpfJdbcTemplate;
+    public CpfBatchScheduleService(@Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate) {
+        this.batJdbcTemplate = batJdbcTemplate;
     }
 
     public List<CpfBatchScheduleCandidate> findDueSchedules(LocalDateTime serverNow) {
-        List<Map<String, Object>> schedules = cpfJdbcTemplate.queryForList("""
+        List<Map<String, Object>> schedules = batJdbcTemplate.queryForList("""
                 SELECT s.schedule_id, s.job_id, s.cron_expression, s.timezone, s.calendar_id,
                        s.business_day_only_yn, s.available_start_time, s.available_end_time,
                        s.run_date_pattern, s.last_fire_at, s.next_fire_at
-                FROM cpf_batch_schedule s
-                JOIN cpf_batch_job j ON j.job_id = s.job_id
+                FROM bat_schedule s
+                JOIN bat_job j ON j.job_id = s.job_id
                 WHERE s.enabled_yn = 'Y'
                   AND j.use_yn = 'Y'
                 ORDER BY s.schedule_id
@@ -58,8 +58,8 @@ public class CpfBatchScheduleService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     public void updateFireTimes(CpfBatchScheduleCandidate candidate, String requestUser) {
-        cpfJdbcTemplate.update("""
-                UPDATE cpf_batch_schedule
+        batJdbcTemplate.update("""
+                UPDATE bat_schedule
                 SET last_fire_at = ?,
                     next_fire_at = ?,
                     updated_by = ?,
@@ -169,9 +169,9 @@ public class CpfBatchScheduleService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private boolean isBusinessDay(String calendarId, LocalDate businessDate) {
-        List<String> rows = cpfJdbcTemplate.queryForList("""
+        List<String> rows = batJdbcTemplate.queryForList("""
                 SELECT business_day_yn
-                FROM cpf_business_day_calendar
+                FROM bat_business_day_calendar
                 WHERE calendar_id = ?
                   AND business_date = ?
                 """, String.class, TextUtils.defaultIfBlank(calendarId, "DEFAULT"), businessDate);

@@ -1,5 +1,8 @@
 package com.cpf.core.common.filetransfer;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -16,21 +19,22 @@ import java.util.Map;
  */
 public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort, CpfDuplicatePreventionPort {
     private final JdbcTemplate jdbcTemplate;
+    private final CpfVendorSqlCatalog sql;
 
     public JdbcCpfFileTransferRepository(JdbcTemplate jdbcTemplate) {
+        this(jdbcTemplate, new StandardEnvironment());
+    }
+
+    public JdbcCpfFileTransferRepository(JdbcTemplate jdbcTemplate, Environment environment) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sql = CpfVendorSqlCatalog.create(environment, "cpf");
     }
 
     @Override
     public boolean alreadyProcessed(String endpointCode, String fileKey, String checksum) {
-        Integer count = jdbcTemplate.queryForObject("""
-                SELECT COUNT(*)
-                FROM cpf_file_transfer_history
-                WHERE endpoint_code = ?
-                  AND duplicate_key = ?
-                  AND (? IS NULL OR checksum = ?)
-                  AND transfer_status = 'SUCCESS'
-                """, Integer.class, endpointCode, fileKey, checksum, checksum);
+        Integer count = jdbcTemplate.queryForObject(
+                sql.required("file-transfer-already-processed"),
+                Integer.class, endpointCode, fileKey, checksum, checksum);
         return count != null && count > 0;
     }
 
@@ -43,13 +47,7 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
     public void record(CpfFileTransferRequest request, CpfFileTransferResult result) {
         String duplicateKey = duplicateKey(request);
         try {
-            jdbcTemplate.update("""
-                    INSERT INTO cpf_file_transfer_history (
-                        transfer_id, transaction_global_id, segment_id, endpoint_code, transfer_operation,
-                        local_path, remote_path, checksum, file_size, duplicate_key, transfer_status,
-                        result_detail, completed_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_FILE_TRANSFER', 'CPF_FILE_TRANSFER')
-                    """,
+            jdbcTemplate.update(sql.required("file-transfer-insert"),
                     request.transactionGlobalId() + ":" + request.endpointCode() + ":" + duplicateKey,
                     request.transactionGlobalId(),
                     request.segmentId(),
@@ -64,15 +62,7 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
                     result.detail(),
                     Timestamp.from(result.completedAt()));
         } catch (DuplicateKeyException ex) {
-            jdbcTemplate.update("""
-                    UPDATE cpf_file_transfer_history
-                    SET transfer_status = ?,
-                        result_detail = ?,
-                        completed_at = ?,
-                        updated_by = 'CPF_FILE_TRANSFER',
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE transfer_id = ?
-                    """,
+            jdbcTemplate.update(sql.required("file-transfer-update"),
                     result.status(),
                     result.detail(),
                     Timestamp.from(result.completedAt()),
@@ -82,22 +72,8 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
 
     @Override
     public List<CpfFileTransferResult> findHistory(String endpointCode, Instant from, Instant to, int limit) {
-        return jdbcTemplate.queryForList("""
-                SELECT transfer_status AS transferStatus,
-                       endpoint_code AS endpointCode,
-                       local_path AS localPath,
-                       remote_path AS remotePath,
-                       checksum,
-                       file_size AS fileSize,
-                       completed_at AS completedAt,
-                       result_detail AS resultDetail
-                FROM cpf_file_transfer_history
-                WHERE (? IS NULL OR endpoint_code = ?)
-                  AND (? IS NULL OR created_at >= ?)
-                  AND (? IS NULL OR created_at <= ?)
-                ORDER BY history_id DESC
-                LIMIT ?
-                """,
+        return jdbcTemplate.queryForList(
+                sql.required("file-transfer-find-history"),
                 endpointCode,
                 endpointCode,
                 timestamp(from),

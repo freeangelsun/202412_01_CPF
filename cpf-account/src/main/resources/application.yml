@@ -8,9 +8,18 @@ spring:
     # 등록된 Job은 ADM/BAT의 승인된 실행 요청으로만 시작하고 애플리케이션 기동 시 자동 실행하지 않습니다.
     job:
       enabled: false
-    # Spring Batch 메타 스키마는 cpfDB 설치 SQL이 관리하므로 app 계정으로 자동 생성하지 않습니다.
+    # Spring Batch 메타 스키마는 batDB 설치 SQL이 관리하므로 app 계정으로 자동 생성하지 않습니다.
     jdbc:
       initialize-schema: never
+  datasource:
+    bat:
+      mode: ${BAT_DATASOURCE_MODE:${BAT_DB_MODE:url}}
+      url: ${BAT_DATASOURCE_URL:${BAT_DB_URL:}}
+      database-name: ${BAT_DB_NAME:batDB}
+      username: ${BAT_DATASOURCE_USERNAME:${BAT_DB_USERNAME:cpf_bat_app}}
+      password: ${BAT_DATASOURCE_PASSWORD:${BAT_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${BAT_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBatchDataSource}
+      driver-class-name: ${BAT_DATASOURCE_DRIVER:${BAT_DB_DRIVER:}}
   config:
     import:
       - optional:classpath:application-cpf.yml

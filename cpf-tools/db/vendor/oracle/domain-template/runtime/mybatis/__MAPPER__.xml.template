@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="@CPF_MAPPER_NAMESPACE@">
+  <select id="search" resultType="map">
+    SELECT sample_item_id,sample_key,item_name,status_code,version_no,idempotency_key,
+      transaction_global_id,transaction_sequence,transaction_at,created_by,created_at,updated_by,updated_at
+    FROM @CPF_TABLE_PREFIX@_sample_item WHERE deleted_yn='N'
+    <if test="keyword != null and keyword != ''">AND item_name LIKE '%' || #{keyword} || '%'</if>
+    ORDER BY ${sortBy} ${sortDirection} OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  <select id="findForUpdate" resultType="map">
+    SELECT * FROM @CPF_TABLE_PREFIX@_sample_item WHERE sample_item_id=#{sampleItemId} AND deleted_yn='N' FOR UPDATE
+  </select>
+  <select id="cursorSlice" resultType="map">
+    SELECT * FROM @CPF_TABLE_PREFIX@_sample_item WHERE deleted_yn='N' AND sample_item_id &gt; #{cursor}
+    ORDER BY sample_item_id ASC OFFSET 0 ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="sampleItemId" keyColumn="sample_item_id">
+    INSERT INTO @CPF_TABLE_PREFIX@_sample_item (
+      sample_key,item_name,status_code,version_no,idempotency_key,transaction_global_id,
+      transaction_sequence,transaction_at,deleted_yn,created_by,created_at,updated_by,updated_at
+    ) VALUES (
+      #{sampleKey},#{itemName},#{statusCode},0,#{idempotencyKey},#{transactionGlobalId},
+      #{transactionSequence},SYSTIMESTAMP,'N',#{createdBy},SYSTIMESTAMP,#{updatedBy},SYSTIMESTAMP)
+  </insert>
+  <update id="updateWithVersion">
+    UPDATE @CPF_TABLE_PREFIX@_sample_item SET item_name=#{itemName},status_code=#{statusCode},
+      version_no=version_no+1,idempotency_key=#{idempotencyKey},transaction_global_id=#{transactionGlobalId},
+      transaction_sequence=#{transactionSequence},transaction_at=SYSTIMESTAMP,
+      updated_by=#{updatedBy},updated_at=SYSTIMESTAMP
+    WHERE sample_item_id=#{sampleItemId} AND version_no=#{versionNo} AND deleted_yn='N'
+  </update>
+  <update id="logicalDeleteWithVersion">
+    UPDATE @CPF_TABLE_PREFIX@_sample_item SET deleted_yn='Y',version_no=version_no+1,
+      transaction_global_id=#{transactionGlobalId},transaction_sequence=#{transactionSequence},
+      transaction_at=SYSTIMESTAMP,updated_by=#{updatedBy},updated_at=SYSTIMESTAMP
+    WHERE sample_item_id=#{sampleItemId} AND version_no=#{versionNo} AND deleted_yn='N'
+  </update>
+</mapper>

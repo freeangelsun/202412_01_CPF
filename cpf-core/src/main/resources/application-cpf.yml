@@ -4,11 +4,12 @@ spring:
   datasource:
     cpf:
       mode: ${CPF_DB_MODE:url}
-      url: ${CPF_DB_URL:jdbc:mariadb://localhost:3306/cpfDB}
+      url: ${CPF_DB_URL:}
+      database-name: ${CPF_DB_NAME:cpfDB}
       username: ${CPF_DB_USERNAME:cpf_app}
       password: ${CPF_DB_PASSWORD:__REPLACE_BY_ENV__}
       jndi-name: ${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${CPF_DB_DRIVER:}
 
 server:
   error:
@@ -40,7 +41,7 @@ management:
 
 mybatis:
   config-location: classpath:mybatis/config/cpf-mybatis-config.xml
-  mapper-locations: classpath:mybatis/mapper/cpf/**/*.xml
+  mapper-locations: classpath*:mybatis/vendor/${CPF_DB_VENDOR:mariadb}/mapper/cpf/**/*.xml
   type-aliases-package: com.cpf.core.common.logging
 
 cpf:

@@ -6,6 +6,7 @@ server:
 spring:
   datasource:
     ref:
-      url: ${REF_DATASOURCE_URL:${REF_DB_URL:jdbc:mariadb://localhost:3306/refDB}}
+      url: ${REF_DATASOURCE_URL:${REF_DB_URL:}}
+      database-name: ${REF_DB_NAME:refDB}
       username: ${REF_DATASOURCE_USERNAME:${REF_DB_USERNAME:cpf_ref_app}}
       password: ${REF_DATASOURCE_PASSWORD:${REF_DB_PASSWORD:__REPLACE_BY_ENV__}}

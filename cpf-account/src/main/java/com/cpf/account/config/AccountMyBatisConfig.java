@@ -1,12 +1,13 @@
 package com.cpf.account.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 
@@ -16,12 +17,11 @@ public class AccountMyBatisConfig {
 
     @Bean(name = "accSqlSessionFactory")
     public SqlSessionFactory accSqlSessionFactory(
-            @Qualifier("accDataSource") DataSource dataSource) throws Exception {
+            @Qualifier("accDataSource") DataSource dataSource,
+            Environment environment) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/acc/**/*.xml"));
+        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "acc"));
         return factoryBean.getObject();
     }
 

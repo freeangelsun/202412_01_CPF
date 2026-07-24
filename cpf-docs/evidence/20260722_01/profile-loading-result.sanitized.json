@@ -1,0 +1,330 @@
+{
+    "generatedAt":  "2026-07-24T13:42:49.2251624+09:00",
+    "status":  "DONE",
+    "failureCount":  0,
+    "checkedModules":  [
+                           "cpf-member",
+                           "cpf-admin",
+                           "cpf-batch",
+                           "cpf-biz-admin",
+                           "cpf-reference",
+                           "cpf-account",
+                           "cpf-external"
+                       ],
+    "checkedProfiles":  [
+                            "local",
+                            "dev",
+                            "stg",
+                            "prod"
+                        ],
+    "failures":  [
+
+                 ],
+    "checks":  [
+                   {
+                       "name":  "CPF_PROFILE_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-core/src/main/resources/application-cpf-local.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-common/src/main/resources/application-cmn-local.yml"
+                   },
+                   {
+                       "name":  "CPF_PROFILE_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-core/src/main/resources/application-cpf-dev.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-common/src/main/resources/application-cmn-dev.yml"
+                   },
+                   {
+                       "name":  "CPF_PROFILE_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-core/src/main/resources/application-cpf-stg.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-common/src/main/resources/application-cmn-stg.yml"
+                   },
+                   {
+                       "name":  "CPF_PROFILE_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-core/src/main/resources/application-cpf-prod.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-common/src/main/resources/application-cmn-prod.yml"
+                   },
+                   {
+                       "name":  "CPF_PROFILE_BASE",
+                       "status":  "DONE",
+                       "detail":  "cpf-core/src/main/resources/application-cpf.yml"
+                   },
+                   {
+                       "name":  "CMN_PROFILE_BASE",
+                       "status":  "DONE",
+                       "detail":  "cpf-common/src/main/resources/application-cmn.yml"
+                   },
+                   {
+                       "name":  "APPLICATION_YML_MBR",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_MBR",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application-mbr.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application-mbr-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application-mbr-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application-mbr-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_MBR_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-member/src/main/resources/application-mbr-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_MBR",
+                       "status":  "DONE",
+                       "detail":  "MBR runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_ADM",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_ADM",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application-adm.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application-adm-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application-adm-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application-adm-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ADM_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-admin/src/main/resources/application-adm-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_ADM",
+                       "status":  "DONE",
+                       "detail":  "ADM runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_BAT",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_BAT",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application-bat.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application-bat-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application-bat-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application-bat-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BAT_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-batch/src/main/resources/application-bat-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_BAT",
+                       "status":  "DONE",
+                       "detail":  "BAT runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_BZA",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_BZA",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application-bza.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BZA_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application-bza-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BZA_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application-bza-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BZA_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application-bza-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BZA_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-biz-admin/src/main/resources/application-bza-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_BZA",
+                       "status":  "DONE",
+                       "detail":  "BZA runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_REF",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_REF",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application-ref.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_REF_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application-ref-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_REF_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application-ref-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_REF_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application-ref-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_REF_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-reference/src/main/resources/application-ref-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_REF",
+                       "status":  "DONE",
+                       "detail":  "REF runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_ACC",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_ACC",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application-acc.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application-acc-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application-acc-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application-acc-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_ACC_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-account/src/main/resources/application-acc-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_ACC",
+                       "status":  "DONE",
+                       "detail":  "ACC runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_EXS",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_BASE_EXS",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application-external.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_LOCAL",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application-external-local.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_DEV",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application-external-dev.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_STG",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application-external-stg.yml"
+                   },
+                   {
+                       "name":  "MODULE_PROFILE_EXS_PROD",
+                       "status":  "DONE",
+                       "detail":  "cpf-external/src/main/resources/application-external-prod.yml"
+                   },
+                   {
+                       "name":  "MODULE_PREFIX_RUNTIME_EXS",
+                       "status":  "DONE",
+                       "detail":  "EXS runtime placeholders found."
+                   },
+                   {
+                       "name":  "APPLICATION_YML_GATEWAY",
+                       "status":  "DONE",
+                       "detail":  "cpf-gateway/src/main/resources/application.yml"
+                   },
+                   {
+                       "name":  "GATEWAY_RUNTIME_CONTRACT",
+                       "status":  "DONE",
+                       "detail":  "CPF profile import와 Gateway 실행 환경변수 계약을 확인했습니다."
+                   }
+               ]
+}

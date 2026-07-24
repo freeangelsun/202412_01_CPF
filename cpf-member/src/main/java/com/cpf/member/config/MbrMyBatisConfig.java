@@ -1,5 +1,6 @@
 package com.cpf.member.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import com.cpf.member.bse.mapper.MemberMapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -8,8 +9,8 @@ import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
@@ -17,9 +18,13 @@ import javax.sql.DataSource;
 public class MbrMyBatisConfig {
 
     private final DataSource dataSource;
+    private final Environment environment;
 
-    public MbrMyBatisConfig(@Qualifier("mbrDataSource") DataSource dataSource) {
+    public MbrMyBatisConfig(
+            @Qualifier("mbrDataSource") DataSource dataSource,
+            Environment environment) {
         this.dataSource = dataSource;
+        this.environment = environment;
     }
 
     @Bean(name = "mbrSqlSessionFactory")
@@ -29,10 +34,7 @@ public class MbrMyBatisConfig {
         sqlSessionFactoryBean.setConfigLocation(
                 new ClassPathResource("mybatis/config/mbr-mybatis-config.xml")
         );
-        sqlSessionFactoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/mbr/**/*.xml")
-        );
+        sqlSessionFactoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "mbr"));
         sqlSessionFactoryBean.setTypeAliasesPackage("com.cpf.member.bse.entity");
 
         return sqlSessionFactoryBean.getObject();
@@ -52,4 +54,3 @@ public class MbrMyBatisConfig {
         return mapperFactoryBean;
     }
 }
-

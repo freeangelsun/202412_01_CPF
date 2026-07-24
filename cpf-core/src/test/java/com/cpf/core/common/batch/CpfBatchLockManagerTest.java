@@ -25,7 +25,7 @@ class CpfBatchLockManagerTest {
         boolean acquired = manager.acquire("batch:file:JOB:1", "JOB", "logical-file", "owner-b", 30);
 
         assertThat(acquired).isTrue();
-        verify(jdbcTemplate).update("DELETE FROM cpf_batch_lock WHERE expire_at <= CURRENT_TIMESTAMP(3)");
+        verify(jdbcTemplate).update("DELETE FROM bat_lock WHERE expire_at <= CURRENT_TIMESTAMP(3)");
         verify(jdbcTemplate).update(anyString(), any(Object[].class));
     }
 

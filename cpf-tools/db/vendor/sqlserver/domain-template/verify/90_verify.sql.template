@@ -1,0 +1,7 @@
+SELECT CASE WHEN OBJECT_ID(N'@CPF_TABLE_PREFIX@_sample_item',N'U') IS NOT NULL THEN 'DONE' ELSE 'FAILED' END AS schema_status;
+SELECT CASE WHEN COUNT(*)=1 THEN 'DONE' ELSE 'FAILED' END AS transaction_global_id_status
+FROM sys.columns
+WHERE object_id=OBJECT_ID(N'@CPF_TABLE_PREFIX@_sample_item',N'U')
+  AND name=N'transaction_global_id';
+SELECT CASE WHEN COUNT(*)>=1 THEN 'DONE' ELSE 'FAILED' END AS seed_status
+FROM @CPF_TABLE_PREFIX@_sample_item WHERE sample_key=N'@CPF_SYSTEM_CODE@_SAMPLE_001';

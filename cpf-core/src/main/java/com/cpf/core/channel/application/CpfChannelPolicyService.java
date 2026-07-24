@@ -21,8 +21,21 @@ public class CpfChannelPolicyService {
     private final AtomicReference<CpfChannelPolicySnapshot> snapshotReference;
 
     public CpfChannelPolicyService(CpfChannelRegistryPort registryPort) {
+        this(registryPort, true);
+    }
+
+    /**
+     * 채널 정책 서비스의 초기 스냅샷을 구성합니다.
+     *
+     * <p>운영 기본값은 {@code loadOnStartup=true}이며 저장소 로드 실패를 숨기지 않습니다.
+     * DB 없는 단위/컨텍스트 테스트만 명시적으로 {@code false}를 사용해 외부 DB 연결 없이
+     * 전체 거부 스냅샷으로 컨텍스트를 구성할 수 있습니다. 이후 {@link #refresh()}와 변경 작업은
+     * 여전히 저장소 오류를 그대로 전파합니다.</p>
+     */
+    public CpfChannelPolicyService(CpfChannelRegistryPort registryPort, boolean loadOnStartup) {
         this.registryPort = registryPort;
-        this.snapshotReference = new AtomicReference<>(registryPort.loadSnapshot());
+        this.snapshotReference = new AtomicReference<>(
+                loadOnStartup ? registryPort.loadSnapshot() : CpfChannelPolicySnapshot.denyAll());
     }
 
     public CpfChannelPolicySnapshot snapshot() {

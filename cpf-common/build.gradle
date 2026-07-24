@@ -30,9 +30,6 @@ dependencies {
 	// JPA/Hibernate가 필요한 프로젝트는 아래 의존성을 활성화한다.
 	// api 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	// MariaDB 드라이버는 CMN optional datasource와 통합 테스트에서 사용한다.
-	api 'org.mariadb.jdbc:mariadb-java-client:3.3.1'
-
 	// 로컬 캐시와 공통 캐시 추상화를 제공한다.
 	api 'org.springframework.boot:spring-boot-starter-cache'
 	api 'com.github.ben-manes.caffeine:caffeine:3.1.8'

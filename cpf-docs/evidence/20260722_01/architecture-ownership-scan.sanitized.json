@@ -1,0 +1,99 @@
+{
+    "generatedAt":  "2026-07-24T13:41:42.2458122+09:00",
+    "status":  "NEEDS_REVIEW",
+    "checkedFiles":  757,
+    "failureCount":  0,
+    "warningCount":  1,
+    "failures":  [
+
+                 ],
+    "reviewCandidates":  [
+                             {
+                                 "rule":  "CMN_TECH_ENGINE_REVIEW",
+                                 "path":  "cpf-common/src/main/java/com/cpf/common/fle/config/CmnFileExchangeProperties.java",
+                                 "detail":  "CMN has broker/file-transfer technical implementation candidate.",
+                                 "recommendation":  "Move technical engine to CPF port if needed; keep CMN as project common rule/helper."
+                             }
+                         ],
+    "requiredCapabilities":  [
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerPublisher.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerConsumer.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerMessage.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerEnvelope.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerReplayPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerHealthPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerHistoryPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerOutboxPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerInboxPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerIdempotencyPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqReplayRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/broker/CpfBrokerDlqReplayResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferClient.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferEndpoint.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHistoryPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHealthPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferProtocol.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferPolicy.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileChecksumPolicy.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfDuplicatePreventionPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/filetransfer/CpfFileTransferHistoryQuery.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialRef.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialProviderPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfCredentialValidationResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfTokenProviderPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfTokenRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfTokenResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfSecretProviderPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfKeyProviderPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfCertificateProviderPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfSignaturePort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/security/CpfEncryptionPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfDistributedLockPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfHeartbeatPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfHealthCheckPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfGhostDetectorPort.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfLockAcquireResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfHeartbeatRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfHeartbeatResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfGhostDetectionResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfWorkerControlRequest.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfWorkerControlResult.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/runtime/CpfRuntimeHealthQuery.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/admin/CpfBrokerStatusQuery.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/admin/CpfFileTransferStatusQuery.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/admin/CpfCredentialStatusQuery.java",
+                                 "cpf-core/src/main/java/com/cpf/core/common/admin/CpfRuntimeHealthStatusQuery.java"
+                             ],
+    "regressionFixtures":  [
+                               {
+                                   "path":  "cpf-account/src/main/java/com/cpf/account/controller/AccountController.java",
+                                   "expectedRule":  "ACC_FEATURE_SLICE_REQUIRED",
+                                   "detectedRule":  "ACC_FEATURE_SLICE_REQUIRED",
+                                   "passed":  true
+                               },
+                               {
+                                   "path":  "cpf-reference/src/main/java/com/cpf/reference/controller/ReferenceCrudEducationController.java",
+                                   "expectedRule":  "REF_EDU_CAPABILITY_SLICE_REQUIRED",
+                                   "detectedRule":  "REF_EDU_CAPABILITY_SLICE_REQUIRED",
+                                   "passed":  true
+                               },
+                               {
+                                   "path":  "cpf-batch/src/main/java/com/cpf/batch/edu/BatTaskletEducationSample.java",
+                                   "expectedRule":  "BAT_JOB_DEFINITION_SLICE_REQUIRED",
+                                   "detectedRule":  "BAT_JOB_DEFINITION_SLICE_REQUIRED",
+                                   "passed":  true
+                               },
+                               {
+                                   "path":  "cpf-batch/src/main/java/com/cpf/batch/job/BatSmokeJobConfig.java",
+                                   "expectedRule":  "BAT_JOB_DEFINITION_SLICE_REQUIRED",
+                                   "detectedRule":  "BAT_JOB_DEFINITION_SLICE_REQUIRED",
+                                   "passed":  true
+                               }
+                           ]
+}

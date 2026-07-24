@@ -14,14 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** CPF DB에 온디맨드 접수와 최종 결과를 저장합니다. */
+/** BAT DB에 온디맨드 접수와 최종 결과를 저장합니다. */
 @Repository
 public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
     public JdbcBatOnDemandRepository(
-            @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Qualifier("batJdbcTemplate") JdbcTemplate jdbcTemplate,
             ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
@@ -32,7 +32,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
             BatOnDemandStatus requested, String parametersJson, String reason, String requestUser) {
         try {
             jdbcTemplate.update("""
-                    INSERT INTO cpf_batch_on_demand_request (
+                    INSERT INTO bat_on_demand_request (
                         execution_request_id, standard_batch_id, idempotency_key,
                         transaction_global_id, business_date, request_status,
                         parameters_json, request_reason, request_user, requested_at,
@@ -56,7 +56,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
     @Override
     public void markRunning(String executionRequestId) {
         jdbcTemplate.update("""
-                UPDATE cpf_batch_on_demand_request
+                UPDATE bat_on_demand_request
                 SET request_status = 'RUNNING', updated_by = 'BAT_WORKER', updated_at = CURRENT_TIMESTAMP
                 WHERE execution_request_id = ? AND request_status = 'REQUESTED'
                 """, executionRequestId);
@@ -72,7 +72,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
             String failureCode,
             String failureMessage) {
         jdbcTemplate.update("""
-                UPDATE cpf_batch_on_demand_request
+                UPDATE bat_on_demand_request
                 SET request_status = ?,
                     cpf_execution_id = COALESCE(?, cpf_execution_id),
                     spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
@@ -94,7 +94,7 @@ public class JdbcBatOnDemandRepository implements BatOnDemandRepository {
                        transaction_global_id, business_date, request_status,
                        cpf_execution_id, spring_batch_execution_id, result_json,
                        failure_code, failure_message, requested_at, completed_at
-                FROM cpf_batch_on_demand_request
+                FROM bat_on_demand_request
                 """ + where, (rs, rowNum) -> new BatOnDemandStatus(
                 rs.getString("execution_request_id"),
                 rs.getString("standard_batch_id"),

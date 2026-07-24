@@ -1,0 +1,8 @@
+SELECT SYS_CONTEXT('USERENV', 'SERVICE_NAME') AS service_name,
+       SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') AS current_schema,
+       CASE
+           WHEN SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') = UPPER('@CPF_SCHEMA_NAME@')
+           THEN 'DONE'
+           ELSE 'FAILED'
+       END AS schema_selection_status
+FROM dual;

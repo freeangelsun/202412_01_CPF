@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 /**
  * REF 배치 교육용 Job 설정입니다.
  *
- * <p>로컬 교육 환경에서는 {@link ReferenceBatchRepositoryConfig}가 CPF DB의 BATCH_* 테이블을
+ * <p>로컬 교육 환경에서는 {@link ReferenceBatchRepositoryConfig}가 BAT DB의 BATCH_* 테이블을
  * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 교육 예제로 동작합니다.</p>
  */
 @Configuration
@@ -38,7 +38,7 @@ public class ReferenceBatchEducationConfig {
     @Bean
     public Step cpfEduTaskletStep(
             JobRepository jobRepository,
-            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_TASKLET_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // Tasklet은 파일 정리, 단건 집계, 외부 시스템 상태 확인처럼 한 번에 끝나는 작업에 적합합니다.
@@ -60,7 +60,7 @@ public class ReferenceBatchEducationConfig {
     @Bean
     public Step cpfEduChunkStep(
             JobRepository jobRepository,
-            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager) {
         List<Integer> educationItems = IntStream.rangeClosed(1, 25).boxed().toList();
         return new StepBuilder("CPF_EDU_CHUNK_STEP", jobRepository)
                 .<Integer, String>chunk(5, transactionManager)
@@ -87,7 +87,7 @@ public class ReferenceBatchEducationConfig {
     @Bean
     public Step cpfEduRetryStep(
             JobRepository jobRepository,
-            @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
+            @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager) {
         return new StepBuilder("CPF_EDU_RETRY_STEP", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
                     // 실제 업무에서는 실패 데이터를 별도 테이블에 적재하고, 재처리 가능 상태만 다시 수행합니다.

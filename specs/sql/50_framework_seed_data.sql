@@ -1,5 +1,5 @@
 -- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
--- 대상 DB: cpfDB
+-- 대상 DB: cpfDB(core), batDB(batch runtime)
 
 USE cpfDB;
 
@@ -279,19 +279,7 @@ WHERE NOT EXISTS (
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
 
-INSERT INTO BATCH_JOB_SEQ (ID)
-SELECT 0
-WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_SEQ);
-
-INSERT INTO BATCH_JOB_EXECUTION_SEQ (ID)
-SELECT 0
-WHERE NOT EXISTS (SELECT 1 FROM BATCH_JOB_EXECUTION_SEQ);
-
-INSERT INTO BATCH_STEP_EXECUTION_SEQ (ID)
-SELECT 0
-WHERE NOT EXISTS (SELECT 1 FROM BATCH_STEP_EXECUTION_SEQ);
-
-INSERT INTO cpf_batch_instance (
+INSERT INTO batDB.bat_instance (
     instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by
 ) VALUES (
     'local-batch-01',
@@ -314,7 +302,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_worker (
+INSERT INTO batDB.bat_worker (
     worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
     active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by
 ) VALUES (
@@ -346,7 +334,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_job (
+INSERT INTO batDB.bat_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -361,7 +349,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_schedule (
+INSERT INTO batDB.bat_schedule (
     schedule_id, job_id, cron_expression, calendar_id, business_day_only_yn,
     holiday_policy, available_start_time, available_end_time, run_date_pattern,
     timezone, enabled_yn, created_by, updated_by
@@ -382,7 +370,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_job_relation (
+INSERT INTO batDB.bat_job_relation (
     job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -395,7 +383,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_execution (
+INSERT INTO batDB.bat_execution (
     job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id,
     worker_id, transaction_global_id, start_time, end_time,
     read_count, write_count, skip_count, requested_by, created_by, updated_by
@@ -419,7 +407,7 @@ SELECT
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
-    FROM cpf_batch_execution
+    FROM batDB.bat_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -427,7 +415,7 @@ WHERE NOT EXISTS (
 
 SET @cpf_edu_execution_id = (
     SELECT execution_id
-    FROM cpf_batch_execution
+    FROM batDB.bat_execution
     WHERE job_id = 'CPF_EDU_TASKLET_JOB'
       AND requested_by = 'SYSTEM'
       AND job_parameters = '{"edu":true}'
@@ -435,7 +423,7 @@ SET @cpf_edu_execution_id = (
     LIMIT 1
 );
 
-INSERT INTO cpf_batch_step_execution (
+INSERT INTO batDB.bat_step_execution (
     execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
     start_time, end_time, read_count, write_count, skip_count, step_log, created_by, updated_by
 )
@@ -443,12 +431,12 @@ SELECT @cpf_edu_execution_id, NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'C
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM cpf_batch_step_execution
+      FROM batDB.bat_step_execution
       WHERE execution_id = @cpf_edu_execution_id
         AND step_name = 'CPF_EDU_TASKLET_STEP'
   );
 
-INSERT INTO cpf_batch_execution_target (
+INSERT INTO batDB.bat_execution_target (
     execution_id, job_id, schedule_id, target_instance_id, business_date, planned_run_at,
     dispatch_status, dispatch_reason, created_by, updated_by
 )
@@ -466,13 +454,13 @@ SELECT
 WHERE @cpf_edu_execution_id IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
-      FROM cpf_batch_execution_target
+      FROM batDB.bat_execution_target
       WHERE job_id = 'CPF_EDU_TASKLET_JOB'
         AND business_date = CURRENT_DATE
         AND target_instance_id = 'local-batch-01'
   );
 
-INSERT INTO cpf_business_day_calendar (
+INSERT INTO batDB.bat_business_day_calendar (
     calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
 ) VALUES
     ('DEFAULT', CURRENT_DATE, 'N', 'Y', '로컬 smoke 검증용 기본 영업일', 'SYSTEM', 'SYSTEM'),
@@ -503,7 +491,7 @@ INSERT INTO cpf_notification_delivery_log (
 SELECT
     rule_id,
     'BATCH_EXECUTION',
-    'cpf_batch_execution',
+    'bat_execution',
     CAST(@cpf_edu_execution_id AS CHAR),
     'ADM_BATCH_OPERATOR',
     'SKIPPED',
@@ -523,7 +511,7 @@ WHERE event_type = 'BATCH_EXECUTION'
   )
 LIMIT 1;
 
-INSERT INTO cpf_batch_job (
+INSERT INTO batDB.bat_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
@@ -544,7 +532,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO cpf_batch_job (
+INSERT INTO batDB.bat_job (
     job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by
 ) VALUES (
     'CPF_REF_CENTER_CUT_SAMPLE_JOB',
@@ -565,7 +553,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bat_center_cut_job (
+INSERT INTO batDB.bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
 ) VALUES (
@@ -593,7 +581,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bat_center_cut_job (
+INSERT INTO batDB.bat_center_cut_job (
     center_cut_job_id, batch_job_id, center_cut_job_name, provider_key, handler_key,
     chunk_size, retry_limit, use_yn, description, created_by, updated_by
 ) VALUES (
@@ -621,7 +609,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bat_center_cut_parameter (
+INSERT INTO batDB.bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_BAT_CENTER_CUT_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -793,7 +781,7 @@ WHERE NOT EXISTS (
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
 );
 
-INSERT INTO bat_center_cut_parameter (
+INSERT INTO batDB.bat_center_cut_parameter (
     center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by
 ) VALUES
     ('CPF_REF_CENTER_CUT_SAMPLE_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTEM', 'SYSTEM'),

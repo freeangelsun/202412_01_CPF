@@ -1,5 +1,8 @@
 package com.cpf.core.common.idempotency;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -17,20 +20,21 @@ import java.util.Optional;
  */
 public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
     private final JdbcTemplate jdbcTemplate;
+    private final CpfVendorSqlCatalog sql;
 
     public JdbcCpfIdempotencyRepository(JdbcTemplate jdbcTemplate) {
+        this(jdbcTemplate, new StandardEnvironment());
+    }
+
+    public JdbcCpfIdempotencyRepository(JdbcTemplate jdbcTemplate, Environment environment) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sql = CpfVendorSqlCatalog.create(environment, "cpf");
     }
 
     @Override
     public boolean reserve(CpfIdempotencyRecord record) {
         try {
-            jdbcTemplate.update("""
-                    INSERT INTO cpf_idempotency_record (
-                        scope, idempotency_key, request_hash, payload_hash, record_status,
-                        retry_allowed_yn, expires_at, created_by, updated_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'CPF_IDEMPOTENCY', 'CPF_IDEMPOTENCY')
-                    """,
+            jdbcTemplate.update(sql.required("idempotency-reserve"),
                     record.scope(),
                     record.idempotencyKey(),
                     record.requestHash(),
@@ -46,38 +50,14 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
 
     @Override
     public Optional<CpfIdempotencyRecord> find(String scope, String idempotencyKey) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT scope,
-                       idempotency_key AS idempotencyKey,
-                       request_hash AS requestHash,
-                       payload_hash AS payloadHash,
-                       record_status AS recordStatus,
-                       stored_response AS storedResponse,
-                       retry_allowed_yn AS retryAllowedYn,
-                       created_at AS createdAt,
-                       completed_at AS completedAt,
-                       expires_at AS expiresAt
-                FROM cpf_idempotency_record
-                WHERE scope = ?
-                  AND idempotency_key = ?
-                LIMIT 1
-                """, scope, idempotencyKey);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                sql.required("idempotency-find"), scope, idempotencyKey);
         return rows.stream().findFirst().map(this::mapRecord);
     }
 
     @Override
     public void complete(String scope, String idempotencyKey, String status, String storedResponse, boolean retryAllowed) {
-        jdbcTemplate.update("""
-                UPDATE cpf_idempotency_record
-                SET record_status = ?,
-                    stored_response = ?,
-                    retry_allowed_yn = ?,
-                    completed_at = CURRENT_TIMESTAMP(3),
-                    updated_by = 'CPF_IDEMPOTENCY',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE scope = ?
-                  AND idempotency_key = ?
-                """,
+        jdbcTemplate.update(sql.required("idempotency-complete"),
                 normalizeStatus(status),
                 storedResponse,
                 retryAllowed ? "Y" : "N",
@@ -93,25 +73,7 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
             String payloadHash,
             Instant now,
             Instant expiresAt) {
-        int updated = jdbcTemplate.update("""
-                UPDATE cpf_idempotency_record
-                SET record_status = 'PROCESSING',
-                    stored_response = NULL,
-                    retry_allowed_yn = 'N',
-                    completed_at = NULL,
-                    expires_at = ?,
-                    updated_by = 'CPF_IDEMPOTENCY',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE scope = ?
-                  AND idempotency_key = ?
-                  AND request_hash = ?
-                  AND payload_hash = ?
-                  AND (
-                      (record_status IN ('FAILED', 'UNKNOWN') AND retry_allowed_yn = 'Y')
-                      OR record_status = 'EXPIRED'
-                      OR (record_status = 'PROCESSING' AND expires_at <= ?)
-                  )
-                """,
+        int updated = jdbcTemplate.update(sql.required("idempotency-restart"),
                 timestamp(expiresAt),
                 scope,
                 idempotencyKey,
@@ -128,18 +90,10 @@ public class JdbcCpfIdempotencyRepository implements CpfIdempotencyPort {
 
     @Override
     public int expireBefore(Instant now, int limit) {
-        return jdbcTemplate.update("""
-                UPDATE cpf_idempotency_record
-                SET record_status = 'EXPIRED',
-                    retry_allowed_yn = 'Y',
-                    updated_by = 'CPF_IDEMPOTENCY_CLEANUP',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE record_status = 'PROCESSING'
-                  AND expires_at IS NOT NULL
-                  AND expires_at <= ?
-                ORDER BY idempotency_id
-                LIMIT ?
-                """, timestamp(now == null ? Instant.now() : now), safeLimit(limit));
+        return jdbcTemplate.update(
+                sql.required("idempotency-expire-before"),
+                timestamp(now == null ? Instant.now() : now),
+                safeLimit(limit));
     }
 
     private CpfIdempotencyRecord mapRecord(Map<String, Object> row) {

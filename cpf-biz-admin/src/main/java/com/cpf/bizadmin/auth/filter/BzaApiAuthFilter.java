@@ -63,9 +63,6 @@ public class BzaApiAuthFilter extends OncePerRequestFilter {
             case "menus" -> "MENU";
             case "roles" -> "ROLE";
             case "permissions" -> "PERMISSION";
-            case "customers", "masking" -> "CUSTOMER";
-            case "products" -> "PRODUCT";
-            case "orders" -> "ORDER";
             case "settings" -> "SETTING";
             case "downloads", "download-audits" -> "DOWNLOAD";
             case "organizations" -> "ORGANIZATION";
@@ -79,9 +76,7 @@ public class BzaApiAuthFilter extends OncePerRequestFilter {
             default -> resource.toUpperCase(Locale.ROOT).replace('-', '_');
         };
         String action = "GET".equalsIgnoreCase(request.getMethod()) ? "READ" : "WRITE";
-        if (path.contains("masking/unmask")) {
-            action = "UNMASK";
-        } else if (path.contains("/download")) {
+        if (path.contains("/download")) {
             action = "DOWNLOAD";
         }
         return new Permission(menu, action);

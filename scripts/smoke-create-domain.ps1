@@ -3,7 +3,12 @@
     [string] $ResultDir = "",
     [string] $DomainName = "lending",
     [string] $SystemCode = "LND",
-    [string] $ModuleName = "Lending"
+    [string] $ModuleName = "Lending",
+    [string] $PackageName = "",
+    [string] $SchemaName = "",
+    [string] $TablePrefix = "",
+    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
+    [string] $DatabaseVendor = "mariadb"
 )
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
@@ -35,9 +40,12 @@ $projectName = "cpf-$DomainName"
 $previewDir = Join-Path $Root "build/domain-generator/$projectName"
 $verificationDir = Join-Path $Root "build/domain-generator-verification/$projectName"
 $moduleClassName = $ModuleName
+$PackageName = if ([string]::IsNullOrWhiteSpace($PackageName)) { "com.cpf.$DomainName" } else { $PackageName }
+$TablePrefix = if ([string]::IsNullOrWhiteSpace($TablePrefix)) { $SystemCode.ToLowerInvariant() } else { $TablePrefix }
+$SchemaName = if ([string]::IsNullOrWhiteSpace($SchemaName)) { "${TablePrefix}DB" } else { $SchemaName }
 $featureClassPrefix = "${ModuleName}Reference"
-$featurePath = "com/cpf/$DomainName/reference"
-$basePath = "com/cpf/$DomainName"
+$basePath = $PackageName.Replace('.', '/')
+$featurePath = "$basePath/reference"
 
 function Save-Result {
     param([object] $Result)
@@ -65,7 +73,10 @@ function Invoke-CreateDomain {
         "-DomainName", $DomainName,
         "-SystemCode", $SystemCode,
         "-ModuleName", $ModuleName,
-        "-TablePrefix", $DomainName,
+        "-PackageName", $PackageName,
+        "-SchemaName", $SchemaName,
+        "-TablePrefix", $TablePrefix,
+        "-DatabaseVendor", $DatabaseVendor,
         "-Port", "8188",
         "-Online", "Y",
         "-Batch", "N",
@@ -79,7 +90,8 @@ function Invoke-CreateDomain {
         $arguments += "-GeneratePatch"
     }
 
-    $output = & powershell @arguments
+    $pwshCommand = Get-Command pwsh -ErrorAction Stop
+    $output = & $pwshCommand.Source @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "create-domain script failed. exitCode=$LASTEXITCODE"
     }
@@ -134,14 +146,15 @@ try {
         "src/main/java/$featurePath/service/${featureClassPrefix}Service.java",
         "src/main/java/$featurePath/repository/${featureClassPrefix}Repository.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}SampleCommand.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}SampleItem.java",
+        "src/main/java/$featurePath/dto/${featureClassPrefix}Slice.java",
         "src/main/java/$featurePath/validation/${featureClassPrefix}SearchValidator.java",
         "src/test/java/$featurePath/service/${featureClassPrefix}ServiceTest.java",
-        "src/main/resources/mybatis/mapper/$DomainName/reference/${featureClassPrefix}Mapper.xml",
         "src/main/java/$featurePath/security/${ModuleName}OperationGuard.java",
         "src/main/java/$featurePath/security/${ModuleName}OperationController.java",
         "src/test/java/$featurePath/security/${ModuleName}OperationGuardTest.java",
-        "smoke/smoke-${DomainName}.ps1",
-        "sql/Vxx__${DomainName}_domain.sql"
+        "smoke/smoke-${DomainName}.ps1"
     )
     foreach ($relative in $required) {
         $path = Join-Path $previewDir $relative
@@ -219,6 +232,7 @@ plugins {
 ext.cpfJavaVersion = (findProperty('cpfJavaVersion') ?: System.getenv('CPF_JAVA_VERSION') ?: '25')
         .toString()
         .toInteger()
+ext.cpfCentralDbPackRoot = '${rootForGradle}/cpf-tools/db/vendor'
 
 allprojects {
     version = '1.0.0-SNAPSHOT'

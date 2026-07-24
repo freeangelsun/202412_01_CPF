@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS @CPF_TABLE_PREFIX@_sample_item;

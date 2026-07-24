@@ -31,8 +31,9 @@ cpf:
     datasource:
       enabled: ${CPF_BZA_DB_ENABLED:false}
       mode: ${BZA_DATASOURCE_MODE:url}
-      url: ${BZA_DATASOURCE_URL:${BZA_DB_URL:jdbc:mariadb://localhost:3306/bzaDB}}
+      url: ${BZA_DATASOURCE_URL:${BZA_DB_URL:}}
+      database-name: ${BZA_DB_NAME:bzaDB}
       username: ${BZA_DATASOURCE_USERNAME:${BZA_DB_USERNAME:cpf_bza_app}}
       password: ${BZA_DATASOURCE_PASSWORD:${BZA_DB_PASSWORD:__REPLACE_BY_ENV__}}
       jndi-name: ${BZA_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBizAdminDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${BZA_DB_DRIVER:}

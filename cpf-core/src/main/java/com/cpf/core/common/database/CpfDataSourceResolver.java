@@ -1,5 +1,6 @@
 package com.cpf.core.common.database;
 
+import com.cpf.core.api.database.CpfDatabaseVendor;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.jndi.JndiTemplate;
@@ -52,13 +53,31 @@ public final class CpfDataSourceResolver {
         if (!"url".equalsIgnoreCase(mode)) {
             throw new IllegalArgumentException(prefix + ".mode는 url 또는 jndi여야 합니다.");
         }
+        CpfDatabaseVendor vendor = CpfDatabaseVendor.from(
+                environment.getProperty("cpf.db.vendor", "mariadb"));
+        String configuredUrl = environment.getProperty(prefix + ".url");
+        String jdbcUrl;
+        if (configuredUrl == null || configuredUrl.isBlank()) {
+            String host = environment.getProperty("cpf.db.host", "localhost");
+            Integer port = environment.getProperty("cpf.db.port", Integer.class);
+            String databaseName = environment.getRequiredProperty(prefix + ".database-name");
+            jdbcUrl = vendor.jdbcUrl(host, port, databaseName);
+        } else {
+            jdbcUrl = configuredUrl.trim();
+            if (!vendor.accepts(jdbcUrl)) {
+                throw new IllegalArgumentException(
+                        prefix + ".url이 cpf.db.vendor=" + vendor.id() + "와 일치하지 않습니다.");
+            }
+        }
+        String configuredDriver = environment.getProperty(prefix + ".driver-class-name");
+        String driverClassName = configuredDriver == null || configuredDriver.isBlank()
+                ? vendor.driverClassName()
+                : configuredDriver.trim();
         return DataSourceBuilder.create()
-                .url(environment.getRequiredProperty(prefix + ".url"))
+                .url(jdbcUrl)
                 .username(environment.getRequiredProperty(prefix + ".username"))
                 .password(environment.getRequiredProperty(prefix + ".password"))
-                .driverClassName(environment.getProperty(
-                        prefix + ".driver-class-name",
-                        "org.mariadb.jdbc.Driver"))
+                .driverClassName(driverClassName)
                 .build();
     }
 

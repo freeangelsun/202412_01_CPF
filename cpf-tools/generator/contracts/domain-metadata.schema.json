@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cpf.local/schemas/generator/domain-metadata.schema.json",
+  "title": "CPF Generated Domain Metadata",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "metadataVersion",
+    "domainType",
+    "domainName",
+    "systemCode",
+    "projectName",
+    "moduleName",
+    "packageName",
+    "schemaName",
+    "tablePrefix",
+    "databaseEnabled"
+  ],
+  "properties": {
+    "metadataVersion": {
+      "const": "1.0"
+    },
+    "domainType": {
+      "const": "GENERATED_DOMAIN"
+    },
+    "domainName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]{1,29}$"
+    },
+    "systemCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{2}$"
+    },
+    "projectName": {
+      "type": "string",
+      "pattern": "^cpf-[a-z][a-z0-9]{1,29}$"
+    },
+    "moduleName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]{1,49}$"
+    },
+    "packageName": {
+      "type": "string",
+      "pattern": "^com\\.cpf\\.[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)*$"
+    },
+    "schemaName": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]{1,29}$"
+    },
+    "tablePrefix": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,19}$"
+    },
+    "databaseEnabled": {
+      "type": "boolean"
+    },
+    "databaseVendor": {
+      "enum": [
+        "mariadb",
+        "mysql",
+        "postgresql",
+        "oracle",
+        "sqlserver"
+      ]
+    },
+    "minimalTransactionContract": {
+      "type": "object",
+      "required": [
+        "model",
+        "logicalTable",
+        "operations"
+      ],
+      "properties": {
+        "model": {
+          "const": "sample-item"
+        },
+        "logicalTable": {
+          "type": "string"
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 21,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,7 +23,7 @@ import java.util.Map;
  * CPF 배치 운영 메타 저장소입니다.
  *
  * <p>Spring Batch 표준 BATCH_* 테이블은 실행 원천 이력으로 유지하고, ADM 관제에 필요한
- * worker heartbeat, 진행률, ghost 후보, 운영 조치 이력은 cpf_batch_* 테이블에 저장합니다.</p>
+ * worker heartbeat, 진행률, ghost 후보, 운영 조치 이력은 bat_* 테이블에 저장합니다.</p>
  */
 public class CpfBatchOperationRepository {
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
@@ -31,8 +31,8 @@ public class CpfBatchOperationRepository {
     private final CpfFileLogWriter fileLogWriter;
 
     public CpfBatchOperationRepository(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            @Qualifier("batJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("batDataSource") ObjectProvider<DataSource> dataSourceProvider,
             CpfFileLogWriter fileLogWriter) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.dataSourceProvider = dataSourceProvider;
@@ -49,7 +49,7 @@ public class CpfBatchOperationRepository {
         }
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         jdbc().update("""
-                INSERT INTO cpf_batch_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
+                INSERT INTO bat_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
                 VALUES (?, ?, ?, ?, 'Y', 'Y', ?, ?)
                 ON DUPLICATE KEY UPDATE
                     job_name = VALUES(job_name),
@@ -80,7 +80,7 @@ public class CpfBatchOperationRepository {
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         ensureBatchInstance(batchInstanceId, serverInstanceId, user);
         jdbc().update("""
-                INSERT INTO cpf_batch_execution (
+                INSERT INTO bat_execution (
                     job_id, schedule_id, job_parameters, execution_status, spring_batch_execution_id,
                     batch_instance_id, server_instance_id, worker_id, transaction_global_id,
                     start_time, end_time, read_count, write_count, skip_count,
@@ -150,7 +150,7 @@ public class CpfBatchOperationRepository {
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         BatchCounts counts = BatchCounts.from(jobExecution);
         jdbc().update("""
-                UPDATE cpf_batch_execution
+                UPDATE bat_execution
                 SET execution_status = ?,
                     spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
                     end_time = COALESCE(?, CURRENT_TIMESTAMP(3)),
@@ -186,7 +186,7 @@ public class CpfBatchOperationRepository {
                        worker_id, transaction_global_id,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, requested_by, created_at, updated_at
-                FROM cpf_batch_execution
+                FROM bat_execution
                 WHERE execution_id = ?
                 """, executionId);
     }
@@ -199,7 +199,7 @@ public class CpfBatchOperationRepository {
                        step_name, execution_status,
                        start_time, end_time, read_count, write_count, skip_count,
                        error_message, step_log, created_at, updated_at
-                FROM cpf_batch_step_execution
+                FROM bat_step_execution
                 WHERE execution_id = ?
                 ORDER BY step_execution_id
                 """, executionId);
@@ -213,7 +213,7 @@ public class CpfBatchOperationRepository {
 
     public void updateExecutionStatus(long executionId, String status, String requestUser) {
         jdbc().update("""
-                UPDATE cpf_batch_execution
+                UPDATE bat_execution
                 SET execution_status = ?,
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -238,7 +238,7 @@ public class CpfBatchOperationRepository {
                 : progress;
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         jdbc().update("""
-                UPDATE cpf_batch_execution
+                UPDATE bat_execution
                 SET execution_status = ?,
                     spring_batch_execution_id = COALESCE(?, spring_batch_execution_id),
                     read_count = ?,
@@ -273,7 +273,7 @@ public class CpfBatchOperationRepository {
                 : progress;
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         int updated = jdbc().update("""
-                UPDATE cpf_batch_step_execution
+                UPDATE bat_step_execution
                 SET spring_batch_step_execution_id = COALESCE(?, spring_batch_step_execution_id),
                     worker_id = ?,
                     execution_status = ?,
@@ -306,7 +306,7 @@ public class CpfBatchOperationRepository {
                 stepName);
         if (updated == 0) {
             jdbc().update("""
-                    INSERT INTO cpf_batch_step_execution (
+                    INSERT INTO bat_step_execution (
                         execution_id, spring_batch_step_execution_id, worker_id, step_name, execution_status,
                         start_time, end_time, read_count, write_count, skip_count,
                         error_message, step_log, created_by, updated_by
@@ -344,7 +344,7 @@ public class CpfBatchOperationRepository {
                 : identity;
         try {
             jdbc().update("""
-                    INSERT INTO cpf_batch_worker (
+                    INSERT INTO bat_worker (
                         worker_id, server_instance_id, host_name, process_id, thread_name, worker_status,
                         active_yn, last_heartbeat_at, current_job_id, current_execution_id, description,
                         created_by, updated_by
@@ -385,7 +385,7 @@ public class CpfBatchOperationRepository {
         String user = defaultIfBlank(requestUser, "CPF_GHOST_DETECTOR");
         try {
             return jdbc().update("""
-                    INSERT INTO cpf_batch_ghost_event (
+                    INSERT INTO bat_ghost_event (
                         execution_id, spring_batch_execution_id, job_id, server_instance_id, worker_id,
                         ghost_status, detected_reason, lock_released_yn, retryable_yn,
                         before_data, created_by, updated_by
@@ -410,8 +410,8 @@ public class CpfBatchOperationRepository {
                                   ', workerHeartbeatAt=', COALESCE(CAST(w.last_heartbeat_at AS CHAR), '')),
                            ?,
                            ?
-                    FROM cpf_batch_execution e
-                    LEFT JOIN cpf_batch_worker w ON w.worker_id = e.worker_id
+                    FROM bat_execution e
+                    LEFT JOIN bat_worker w ON w.worker_id = e.worker_id
                     WHERE e.end_time IS NULL
                       AND e.execution_status IN ('REQUESTED', 'STARTING', 'STARTED', 'RUNNING', 'UNKNOWN', 'STOPPING')
                       AND (
@@ -422,7 +422,7 @@ public class CpfBatchOperationRepository {
                       )
                       AND NOT EXISTS (
                           SELECT 1
-                          FROM cpf_batch_ghost_event g
+                          FROM bat_ghost_event g
                           WHERE g.execution_id = e.execution_id
                             AND g.ghost_status = 'DETECTED'
                       )
@@ -452,7 +452,7 @@ public class CpfBatchOperationRepository {
         }
         String user = defaultIfBlank(operatorId, "CPF_BATCH");
         jdbc().update("""
-                INSERT INTO cpf_batch_operation_log (
+                INSERT INTO bat_operation_log (
                     job_id, execution_id, operation_type, operator_id, reason,
                     before_data, after_data, result_type, result_message, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -485,7 +485,7 @@ public class CpfBatchOperationRepository {
         String user = defaultIfBlank(requestUser, "CPF_BATCH");
         String instanceName = defaultIfBlank(serverInstanceId, batchInstanceId);
         jdbc().update("""
-                INSERT INTO cpf_batch_instance (
+                INSERT INTO bat_instance (
                     instance_id, instance_name, host_name, server_port, active_yn,
                     last_heartbeat_at, description, created_by, updated_by
                 ) VALUES (?, ?, ?, NULL, 'Y', CURRENT_TIMESTAMP(3), ?, ?, ?)
@@ -516,7 +516,7 @@ public class CpfBatchOperationRepository {
                     progress,
                     user);
             jdbc().update("""
-                    UPDATE cpf_batch_step_execution
+                    UPDATE bat_step_execution
                     SET end_time = ?,
                         error_message = ?,
                         updated_by = ?,
@@ -540,7 +540,7 @@ public class CpfBatchOperationRepository {
             String user) {
         try {
             jdbc().update("""
-                    UPDATE cpf_batch_execution
+                    UPDATE bat_execution
                     SET total_count = ?,
                         processed_count = ?,
                         success_count = ?,
@@ -598,7 +598,7 @@ public class CpfBatchOperationRepository {
                                     jobInstanceId,
                                     businessDate))).toString().replace('\\', '/');
             jdbc().update("""
-                    UPDATE cpf_batch_execution
+                    UPDATE bat_execution
                     SET spring_batch_job_instance_id = ?,
                         business_date = ?,
                         run_id = ?,
@@ -640,7 +640,7 @@ public class CpfBatchOperationRepository {
             String user) {
         try {
             jdbc().update("""
-                    UPDATE cpf_batch_step_execution
+                    UPDATE bat_step_execution
                     SET total_count = ?,
                         processed_count = ?,
                         success_count = ?,
@@ -679,7 +679,7 @@ public class CpfBatchOperationRepository {
                     SELECT total_count, processed_count, success_count, failure_count, retry_count,
                            progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
                            last_heartbeat_at, current_step_name
-                    FROM cpf_batch_execution
+                    FROM bat_execution
                     WHERE execution_id = ?
                     """, executionId);
         } catch (DataAccessException ignored) {
@@ -694,7 +694,7 @@ public class CpfBatchOperationRepository {
                            original_job_execution_id, restart_attempt,
                            parent_transaction_global_id, transaction_segment_id, parent_segment_id,
                            job_log_relative_path
-                    FROM cpf_batch_execution
+                    FROM bat_execution
                     WHERE execution_id = ?
                     """, executionId);
         } catch (DataAccessException ignored) {
@@ -708,7 +708,7 @@ public class CpfBatchOperationRepository {
                     SELECT step_execution_id, step_name, total_count, processed_count, success_count,
                            failure_count, retry_count, progress_rate, tps, avg_elapsed_ms,
                            max_elapsed_ms, last_heartbeat_at
-                    FROM cpf_batch_step_execution
+                    FROM bat_step_execution
                     WHERE execution_id = ?
                     ORDER BY step_execution_id
                     """, executionId);
@@ -724,7 +724,7 @@ public class CpfBatchOperationRepository {
         }
         DataSource dataSource = dataSourceProvider.getIfAvailable();
         if (dataSource == null) {
-            throw new IllegalStateException("CPF datasource가 없어 배치 운영 메타를 사용할 수 없습니다.");
+            throw new IllegalStateException("BAT datasource가 없어 배치 운영 메타를 사용할 수 없습니다.");
         }
         return new JdbcTemplate(dataSource);
     }

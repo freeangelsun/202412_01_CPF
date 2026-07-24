@@ -23,7 +23,6 @@ dependencyManagement {
 dependencies {
 	// 프레임워크 DB 로그 적재와 MyBatis 매퍼 구성을 제공합니다.
 	api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
-	api 'org.mariadb.jdbc:mariadb-java-client:3.3.1'
 
 	// 거래 로깅, 서비스 접근 정책, 컨트롤러 메타데이터 검증에 사용합니다.
 	api 'org.springframework.boot:spring-boot-starter-aop'

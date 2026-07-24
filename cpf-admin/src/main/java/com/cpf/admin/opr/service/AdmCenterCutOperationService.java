@@ -28,18 +28,18 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
     private static final int DEFAULT_LIMIT = 100;
     private static final int MAX_LIMIT = 500;
 
-    private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
     private final JdbcTemplate refJdbcTemplate;
 
     public AdmCenterCutOperationService(
-            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             @Qualifier("refJdbcTemplate") JdbcTemplate refJdbcTemplate) {
-        this.cpfJdbcTemplate = cpfJdbcTemplate;
+        this.batJdbcTemplate = batJdbcTemplate;
         this.refJdbcTemplate = refJdbcTemplate;
     }
 
     public List<Map<String, Object>> findJobs() {
-        return queryOrEmpty(cpfJdbcTemplate, """
+        return queryOrEmpty(batJdbcTemplate, """
                 SELECT c.center_cut_job_id AS centerCutJobId,
                        c.batch_job_id AS batchJobId,
                        c.center_cut_job_name AS centerCutJobName,
@@ -54,7 +54,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                        j.job_name AS batchJobName,
                        j.job_type AS batchJobType
                 FROM bat_center_cut_job c
-                LEFT JOIN cpf_batch_job j ON j.job_id = c.batch_job_id
+                LEFT JOIN bat_job j ON j.job_id = c.batch_job_id
                 ORDER BY c.center_cut_job_id
                 """);
     }
@@ -72,7 +72,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
 
     public List<Map<String, Object>> findParameters(String centerCutJobId) {
         String resolvedJobId = TextUtils.requireText(centerCutJobId, "centerCutJobId");
-        return queryOrEmpty(cpfJdbcTemplate, """
+        return queryOrEmpty(batJdbcTemplate, """
                 SELECT parameter_id AS parameterId,
                        center_cut_job_id AS centerCutJobId,
                        parameter_key AS parameterKey,
@@ -123,7 +123,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
             return result;
         }
 
-        result.putAll(queryForMapOrEmpty(cpfJdbcTemplate, """
+        result.putAll(queryForMapOrEmpty(batJdbcTemplate, """
                 SELECT COUNT(*) AS totalCount,
                        SUM(CASE WHEN item_status = 'READY' THEN 1 ELSE 0 END) AS readyCount,
                        SUM(CASE WHEN item_status = 'RUNNING' THEN 1 ELSE 0 END) AS runningCount,
@@ -137,7 +137,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                 FROM bat_center_cut_item
                 WHERE center_cut_job_id = ?
                 """, resolvedJobId));
-        result.putAll(prefix("result", queryForMapOrEmpty(cpfJdbcTemplate, """
+        result.putAll(prefix("result", queryForMapOrEmpty(batJdbcTemplate, """
                 SELECT COUNT(*) AS totalCount,
                        SUM(CASE WHEN result_status = 'SUCCESS' THEN 1 ELSE 0 END) AS successCount,
                        SUM(CASE WHEN result_status = 'FAILED' THEN 1 ELSE 0 END) AS failedCount,
@@ -195,7 +195,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
             args.add(statusCode.trim());
         }
         args.add(resolvedLimit);
-        return queryOrEmpty(cpfJdbcTemplate, """
+        return queryOrEmpty(batJdbcTemplate, """
                 SELECT center_cut_item_id AS targetId,
                        center_cut_job_id AS centerCutJobId,
                        business_key AS businessKey,
@@ -266,7 +266,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
             args.add(resultStatus.trim());
         }
         args.add(resolvedLimit);
-        return queryOrEmpty(cpfJdbcTemplate, """
+        return queryOrEmpty(batJdbcTemplate, """
                 SELECT r.center_cut_result_id AS resultId,
                        r.center_cut_item_id AS targetId,
                        r.center_cut_job_id AS centerCutJobId,
@@ -322,7 +322,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
             return refResult;
         }
 
-        Map<String, Object> batResult = queryForMapOrEmpty(cpfJdbcTemplate, """
+        Map<String, Object> batResult = queryForMapOrEmpty(batJdbcTemplate, """
                 SELECT r.center_cut_result_id AS resultId,
                        r.center_cut_item_id AS targetId,
                        r.center_cut_job_id AS centerCutJobId,
@@ -358,7 +358,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
     }
 
     private Map<String, Object> findJob(String centerCutJobId) {
-        return queryForMapOrEmpty(cpfJdbcTemplate, """
+        return queryForMapOrEmpty(batJdbcTemplate, """
                 SELECT c.center_cut_job_id AS centerCutJobId,
                        c.batch_job_id AS batchJobId,
                        c.center_cut_job_name AS centerCutJobName,
@@ -373,7 +373,7 @@ public class AdmCenterCutOperationService extends com.cpf.admin.common.base.AdmB
                        j.job_name AS batchJobName,
                        j.job_type AS batchJobType
                 FROM bat_center_cut_job c
-                LEFT JOIN cpf_batch_job j ON j.job_id = c.batch_job_id
+                LEFT JOIN bat_job j ON j.job_id = c.batch_job_id
                 WHERE c.center_cut_job_id = ?
                 """, centerCutJobId);
     }

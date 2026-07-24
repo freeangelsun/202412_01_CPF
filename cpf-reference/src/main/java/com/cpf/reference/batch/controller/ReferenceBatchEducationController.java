@@ -71,7 +71,7 @@ public class ReferenceBatchEducationController extends com.cpf.reference.common.
     @Operation(operationId = "refBatchEducationLockPolicy", summary = "중복 실행 방지 lock 설명", description = "동일 job/parameter 중복 실행을 막는 운영 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> lockPolicy() {
         return ResponseEntity.ok(Map.of(
-                "lockTable", "cpf_batch_lock",
+                "lockTable", "bat_lock",
                 "key", "job_id + job_parameters_hash",
                 "owner", "serverInstanceId 또는 batch_instance_id",
                 "expire", "비정상 종료에 대비해 lock 만료 시간을 반드시 둡니다.",
@@ -93,7 +93,7 @@ public class ReferenceBatchEducationController extends com.cpf.reference.common.
     @Operation(operationId = "refBatchEducationAdmLink", summary = "ADM 배치 관제 연동 설명", description = "EDU 배치가 ADM 배치 관제와 연결되는 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> admLink() {
         return ResponseEntity.ok(Map.of(
-                "metadata", List.of("BATCH_*", "cpf_batch_job", "cpf_batch_schedule", "cpf_batch_job_relation", "cpf_batch_execution_target", "cpf_batch_execution", "cpf_batch_step_execution", "cpf_batch_operation_log"),
+                "metadata", List.of("BATCH_*", "bat_job", "bat_schedule", "bat_job_relation", "bat_execution_target", "bat_execution", "bat_step_execution", "bat_operation_log"),
                 "buttons", List.of("조회", "등록", "수동 실행", "실패 재수행", "중지", "스케줄 활성화", "스케줄 비활성화", "수행 시뮬레이션", "관계 조회", "수행 대상 조회"),
                 "audit", "실행, 재수행, 중지, 스케줄 변경은 감사 사유와 before/after diff를 남깁니다.",
                 "facade", "업무 배치는 CpfBatchLauncher 실행 결과의 cpfExecutionId와 Spring Batch executionId를 함께 추적합니다."));
@@ -104,11 +104,11 @@ public class ReferenceBatchEducationController extends com.cpf.reference.common.
     @Operation(operationId = "refBatchEducationSchedulePolicy", summary = "배치 스케줄 정책 설명", description = "영업일 전용 수행, 수행 가능 시간, 선행/트리거 관계, 수행 대상 인스턴스 기준을 설명합니다.")
     public ResponseEntity<Map<String, Object>> schedulePolicy() {
         return ResponseEntity.ok(Map.of(
-                "businessDayOnly", "cpf_batch_schedule.business_day_only_yn='Y'이면 cpf_business_day_calendar 기준 영업일만 수행 후보가 됩니다.",
+                "businessDayOnly", "bat_schedule.business_day_only_yn='Y'이면 bat_business_day_calendar 기준 영업일만 수행 후보가 됩니다.",
                 "availableTime", "available_start_time과 available_end_time은 운영자가 허용 시간대를 확인하고 시뮬레이션할 때 사용합니다.",
                 "simulation", "GET /adm/api/batch/schedules/{scheduleId}/simulation은 기준일과 조회 일수로 수행 가능 후보일을 반환합니다.",
-                "relation", "cpf_batch_job_relation은 PREDECESSOR, SUCCESSOR, TRIGGER 관계와 필요 상태를 관리합니다.",
-                "target", "cpf_batch_execution_target은 수행 대기/배정/완료 대상 인스턴스와 업무 기준일을 관리합니다.",
+                "relation", "bat_job_relation은 PREDECESSOR, SUCCESSOR, TRIGGER 관계와 필요 상태를 관리합니다.",
+                "target", "bat_execution_target은 수행 대기/배정/완료 대상 인스턴스와 업무 기준일을 관리합니다.",
                 "notification", "cpf_notification_rule과 cpf_notification_delivery_log는 배치 실패나 보안 이벤트 알림 기준을 관리합니다."));
     }
 
@@ -123,7 +123,7 @@ public class ReferenceBatchEducationController extends com.cpf.reference.common.
                 requestUser,
                 reason);
 
-        // 2. CPF Facade는 transactionGlobalId, 중복 실행 lock, cpf_batch_execution 기록,
+        // 2. CPF Facade는 transactionGlobalId, 중복 실행 lock, bat_execution 기록,
         //    Spring Batch executionId 연결, fallback 이벤트 발행을 한 번에 처리합니다.
         CpfBatchExecutionResult result = batchLauncher.run(request);
 

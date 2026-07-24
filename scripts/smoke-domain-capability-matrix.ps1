@@ -32,8 +32,11 @@ $matrix = @(
     [ordered]@{ domain = 'securityenabled'; code = 'SCE'; name = 'SecurityEnabled'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' },
     [ordered]@{ domain = 'uienabled'; code = 'UIE'; name = 'UiEnabled'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'Y' },
     [ordered]@{ domain = 'postgresqlsample'; code = 'PGS'; name = 'PostgresqlSample'; database = 'Y'; vendor = 'postgresql'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
+    [ordered]@{ domain = 'mysqlsample'; code = 'MYS'; name = 'MysqlSample'; database = 'Y'; vendor = 'mysql'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
     [ordered]@{ domain = 'oraclesample'; code = 'ORS'; name = 'OracleSample'; database = 'Y'; vendor = 'oracle'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
-    [ordered]@{ domain = 'sqlserversample'; code = 'SQS'; name = 'SqlserverSample'; database = 'Y'; vendor = 'sqlserver'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' }
+    [ordered]@{ domain = 'sqlserversample'; code = 'SQS'; name = 'SqlserverSample'; database = 'Y'; vendor = 'sqlserver'; batch = 'N'; external = 'N'; messaging = 'N'; file = 'N'; security = 'N'; ui = 'N' },
+    [ordered]@{ domain = 'payment'; code = 'PAY'; name = 'Payment'; package = 'com.cpf.payment'; schema = 'payDB'; prefix = 'pay'; database = 'Y'; vendor = 'mariadb'; batch = 'N'; external = 'Y'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' },
+    [ordered]@{ domain = 'insurance'; code = 'INS'; name = 'Insurance'; package = 'com.cpf.insurance'; schema = 'insDB'; prefix = 'ins'; database = 'Y'; vendor = 'postgresql'; batch = 'N'; external = 'Y'; messaging = 'N'; file = 'N'; security = 'Y'; ui = 'N' }
 )
 $result = [ordered]@{
     startedAt = (Get-Date).ToString('o')
@@ -44,11 +47,14 @@ $result = [ordered]@{
 }
 
 function Invoke-Generator([hashtable] $Case, [string] $OutputDir) {
+    $packageName = if ([string]::IsNullOrWhiteSpace([string]$Case.package)) { "com.cpf.$($Case.domain)" } else { [string]$Case.package }
+    $tablePrefix = if ([string]::IsNullOrWhiteSpace([string]$Case.prefix)) { [string]$Case.domain } else { [string]$Case.prefix }
+    $schemaName = if ([string]::IsNullOrWhiteSpace([string]$Case.schema)) { "${tablePrefix}DB" } else { [string]$Case.schema }
     $arguments = @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $runtimeGeneratorPath,
         '-Root', $Root, '-OutputDir', $OutputDir,
         '-DomainName', $Case.domain, '-SystemCode', $Case.code, '-ModuleName', $Case.name,
-        '-TablePrefix', $Case.domain,
+        '-PackageName', $packageName, '-SchemaName', $schemaName, '-TablePrefix', $tablePrefix,
         '-Port', '8280', '-Online', 'Y', '-Database', $Case.database,
         '-DatabaseVendor', $Case.vendor,
         '-Batch', $Case.batch, '-External', $Case.external,
@@ -56,10 +62,20 @@ function Invoke-Generator([hashtable] $Case, [string] $OutputDir) {
         '-Ui', $Case.ui,
         '-BzaMenu', 'N', '-ProductionProfile', 'N'
     )
-    $output = & powershell @arguments 2>&1
+    $pwshCommand = Get-Command pwsh -ErrorAction Stop
+    $output = & $pwshCommand.Source @arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "생성기 실행에 실패했습니다. domain=$($Case.domain), output=$($output -join ' ')"
     }
+}
+
+function Invoke-PwshScript([string] $ScriptPath, [string[]] $Arguments) {
+    $pwshCommand = Get-Command pwsh -ErrorAction Stop
+    $output = & $pwshCommand.Source -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "스크립트 실행에 실패했습니다. script=$ScriptPath output=$($output -join ' ')"
+    }
+    return @($output)
 }
 
 function Assert-Exists([string] $Base, [string] $Relative, [bool] $Expected) {
@@ -87,11 +103,36 @@ function Get-TreeHash([string] $Base) {
     }
 }
 
+function Get-JavaTreeHash([string] $Base) {
+    $lines = Get-ChildItem -LiteralPath (Join-Path $Base 'src/main/java') -Recurse -File -Filter '*.java' |
+        Sort-Object FullName |
+        ForEach-Object {
+            $relative = $_.FullName.Substring($Base.Length + 1).Replace('\', '/')
+            "$relative=$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+        }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return ([BitConverter]::ToString(
+                    $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))))
+        ).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $sha.Dispose()
+    }
+}
+
 try {
     if (Test-Path -LiteralPath $sandbox) {
         Remove-Item -LiteralPath $sandbox -Recurse -Force
     }
     New-Item -ItemType Directory -Force -Path $sandbox | Out-Null
+    $sandboxDbToolParent = Join-Path $sandbox 'cpf-tools/db'
+    New-Item -ItemType Directory -Force -Path $sandboxDbToolParent | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root 'cpf-tools/db/vendor') `
+        -Destination $sandboxDbToolParent -Recurse
+    $sandboxGeneratorParent = Join-Path $sandbox 'cpf-tools/generator'
+    New-Item -ItemType Directory -Force -Path $sandboxGeneratorParent | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root 'cpf-tools/generator/contracts') `
+        -Destination $sandboxGeneratorParent -Recurse
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $runtimeGeneratorPath) | Out-Null
     # Windows PowerShell 5.1이 BOM 없는 UTF-8 스크립트를 ANSI로 해석하지 않도록 실행 사본에 BOM을 붙입니다.
     $generatorText = [IO.File]::ReadAllText((Join-Path $Root 'scripts/create-domain.ps1'), [Text.Encoding]::UTF8)
@@ -105,8 +146,18 @@ try {
         $javaBase = "src/main/java/com/cpf/$($case.domain)"
         $testBase = "src/test/java/com/cpf/$($case.domain)"
         Assert-Exists $moduleDir "$javaBase/config/$($case.name)DataSourceConfig.java" ($case.database -eq 'Y')
-        Assert-Exists $moduleDir "src/main/resources/mybatis/mapper/$($case.domain)/reference/$($case.name)ReferenceMapper.xml" ($case.database -eq 'Y')
-        Assert-Exists $moduleDir "sql/Vxx__$($case.domain)_domain.sql" ($case.database -eq 'Y')
+        foreach ($resourceVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+            foreach ($resourcePath in @(
+                    "src/main/resources/db/vendor/$resourceVendor/provision/01_provision.sql",
+                    "src/main/resources/db/vendor/$resourceVendor/install/10_empty_install.sql",
+                    "src/main/resources/db/vendor/$resourceVendor/seed/20_product_seed.sql",
+                    "src/main/resources/db/vendor/$resourceVendor/migration/V1__$($case.domain)_domain.sql",
+                    "src/main/resources/db/vendor/$resourceVendor/verify/90_verify.sql",
+                    "src/main/resources/db/vendor/$resourceVendor/rollback/R1__remove_$($case.domain)_domain.sql",
+                    "src/main/resources/mybatis/vendor/$resourceVendor/$($case.domain)/reference/$($case.name)ReferenceMapper.xml")) {
+                Assert-Exists $moduleDir $resourcePath $false
+            }
+        }
         Assert-Exists $moduleDir "$javaBase/reference/batch/$($case.name)ReferenceBatchConfig.java" ($case.batch -eq 'Y')
         Assert-Exists $moduleDir "$javaBase/reference/adapter/remote/Remote$($case.name)ReferenceQueryProxy.java" ($case.external -eq 'Y')
         Assert-Exists $moduleDir "$javaBase/reference/messaging/$($case.name)EventPublisher.java" ($case.messaging -eq 'Y')
@@ -123,10 +174,11 @@ try {
         }
         if ($case.database -eq 'Y') {
             $vendorMarkers = [ordered]@{
-                mariadb = @('org.flywaydb:flyway-mysql', 'org.mariadb.jdbc:mariadb-java-client', 'jdbc:mariadb:')
-                postgresql = @('org.flywaydb:flyway-database-postgresql', 'org.postgresql:postgresql', 'jdbc:postgresql:')
-                oracle = @('org.flywaydb:flyway-database-oracle', 'com.oracle.database.jdbc:ojdbc11', 'jdbc:oracle:')
-                sqlserver = @('org.flywaydb:flyway-sqlserver', 'com.microsoft.sqlserver:mssql-jdbc', 'jdbc:sqlserver:')
+                mariadb = @('org.mariadb.jdbc:mariadb-java-client', 'jdbc:mariadb:')
+                mysql = @('com.mysql:mysql-connector-j', 'jdbc:mysql:')
+                postgresql = @('org.postgresql:postgresql', 'jdbc:postgresql:')
+                oracle = @('com.oracle.database.jdbc:ojdbc11', 'jdbc:oracle:')
+                sqlserver = @('com.microsoft.sqlserver:mssql-jdbc', 'jdbc:sqlserver:')
             }
             $resourceText = [IO.File]::ReadAllText(
                 (Join-Path $moduleDir "src/main/resources/application-$($case.domain).yml"),
@@ -145,6 +197,39 @@ try {
             $manifest = Get-Content -LiteralPath (Join-Path $moduleDir 'manifest/domain-manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($manifest.databaseVendor -ne $case.vendor -or $manifest.domainName -ne $case.domain -or $manifest.systemCode -ne $case.code) {
                 throw "도메인 manifest DB 벤더가 일치하지 않습니다. code=$($case.code), expected=$($case.vendor), actual=$($manifest.databaseVendor)"
+            }
+            if ($manifest.databaseVendorProperty -ne 'cpf.db.vendor' -or
+                    @($manifest.supportedDatabaseVendors).Count -ne 5) {
+                throw "Vendor manifest/resource 선택 계약이 누락됐습니다. code=$($case.code)"
+            }
+            foreach ($requiredColumn in @(
+                    'sample_item_id', 'sample_key', 'item_name', 'version_no',
+                    'idempotency_key', 'transaction_global_id', 'transaction_sequence', 'transaction_at')) {
+                foreach ($templateVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+                    $installText = [IO.File]::ReadAllText(
+                        (Join-Path $sandbox "cpf-tools/db/vendor/$templateVendor/domain-template/install/10_empty_install.sql.template"),
+                        [Text.Encoding]::UTF8)
+                    if (-not $installText.Contains($requiredColumn)) {
+                        throw "Minimal Transaction Domain 논리 컬럼이 누락됐습니다. vendor=$templateVendor, column=$requiredColumn"
+                    }
+                }
+            }
+            foreach ($databaseOperation in @('bootstrap', 'migration', 'verify')) {
+                [void](Invoke-PwshScript `
+                    -ScriptPath (Join-Path $Root 'scripts/initialize-domain-database.ps1') `
+                    -Arguments @(
+                        '-Root', $sandbox,
+                        '-DomainName', $case.domain,
+                        '-SystemCode', $case.code,
+                        '-Operation', $databaseOperation,
+                        '-ResultDir', (Join-Path $sandbox "reports/$($case.domain)/$databaseOperation")
+                    ))
+                $dbPlan = Get-Content -LiteralPath (
+                    Join-Path $sandbox "reports/$($case.domain)/$databaseOperation/domain-db-init-result.json"
+                ) -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($dbPlan.status -ne '미검증' -or $dbPlan.databaseVendor -ne $case.vendor) {
+                    throw "DB lifecycle resource 선택 계획이 일치하지 않습니다. domain=$($case.domain), operation=$databaseOperation"
+                }
             }
         }
         if (($case.batch -eq 'N') -and $buildText -match 'starter-batch') {
@@ -206,6 +291,18 @@ subprojects {
 "@
     [IO.File]::WriteAllText((Join-Path $sandbox 'build.gradle'), $rootBuild, $Utf8NoBom)
 
+    foreach ($case in $matrix) {
+        [void](Invoke-PwshScript `
+            -ScriptPath (Join-Path $Root 'scripts/verify-domain.ps1') `
+            -Arguments @(
+                '-Root', $sandbox,
+                '-DomainName', $case.domain,
+                '-SystemCode', $case.code,
+                '-ResultDir', (Join-Path $sandbox "reports/$($case.domain)/generator-verify"),
+                '-SkipBuild'
+            ))
+    }
+
     $tasks = @()
     foreach ($case in $matrix) {
         $projectName = "cpf-$($case.domain)"
@@ -241,16 +338,89 @@ subprojects {
         throw "capability matrix compile/test/package가 실패했습니다. log=$compileLog"
     }
 
+    $vendorParityHashes = [ordered]@{}
+    foreach ($resourceVendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+        $vendorParityCase = [ordered]@{
+            domain = 'vendorparity'; code = 'VPT'; name = 'VendorParity';
+            database = 'Y'; vendor = $resourceVendor; batch = 'N'; external = 'N';
+            messaging = 'N'; file = 'N'; security = 'N'; ui = 'N'
+        }
+        $vendorParityPath = Join-Path $sandbox "vendor-source-parity/$resourceVendor/cpf-vendorparity"
+        Invoke-Generator $vendorParityCase $vendorParityPath
+        $vendorParityHashes[$resourceVendor] = Get-JavaTreeHash $vendorParityPath
+    }
+    if (@($vendorParityHashes.Values | Sort-Object -Unique).Count -ne 1) {
+        throw "기본 Vendor 선택에 따라 생성 Java 업무 Source가 달라졌습니다."
+    }
+
     $parityCase = $matrix[0]
     $firstPath = Join-Path $sandbox "cpf-$($parityCase.domain)"
     $firstHash = Get-TreeHash $firstPath
-    Remove-Item -LiteralPath $firstPath -Recurse -Force
+    $unownedResult = Join-Path $firstPath 'create-domain-result.json'
+    if (Test-Path -LiteralPath $unownedResult -PathType Leaf) {
+        Remove-Item -LiteralPath $unownedResult -Force
+    }
+    [void](Invoke-PwshScript `
+        -ScriptPath (Join-Path $Root 'scripts/remove-domain.ps1') `
+        -Arguments @(
+            '-Root', $sandbox,
+            '-DomainName', $parityCase.domain,
+            '-SystemCode', $parityCase.code,
+            '-ResultDir', (Join-Path $sandbox 'reports/remove-regenerate')
+        ))
+    if (Test-Path -LiteralPath $firstPath) {
+        throw 'remove-domain 이후 생성 모듈 디렉터리가 남았습니다.'
+    }
     Invoke-Generator $parityCase $firstPath
     $secondHash = Get-TreeHash $firstPath
     if ($firstHash -ne $secondHash) {
         throw '동일 입력 재생성 결과의 tree hash가 다릅니다.'
     }
-    $result.parity = [ordered]@{ status = 'DONE'; firstSha256 = $firstHash; secondSha256 = $secondHash }
+    $result.parity = [ordered]@{
+        status = 'DONE'
+        firstSha256 = $firstHash
+        secondSha256 = $secondHash
+        removeRegenerate = 'DONE'
+        javaSourceVendorIndependent = 'DONE'
+        javaSourceSha256ByVendor = $vendorParityHashes
+    }
+
+    $result.arbitraryDomainLifecycle = @()
+    foreach ($lifecycleCase in @($matrix | Where-Object { $_.domain -in @('payment', 'insurance') })) {
+        $lifecyclePath = Join-Path $sandbox "cpf-$($lifecycleCase.domain)"
+        $unownedResult = Join-Path $lifecyclePath 'create-domain-result.json'
+        if (Test-Path -LiteralPath $unownedResult -PathType Leaf) {
+            Remove-Item -LiteralPath $unownedResult -Force
+        }
+        $beforeHash = Get-TreeHash $lifecyclePath
+        [void](Invoke-PwshScript `
+            -ScriptPath (Join-Path $Root 'scripts/remove-domain.ps1') `
+            -Arguments @(
+                '-Root', $sandbox,
+                '-DomainName', $lifecycleCase.domain,
+                '-SystemCode', $lifecycleCase.code,
+                '-ResultDir', (Join-Path $sandbox "reports/$($lifecycleCase.domain)/remove-regenerate")
+            ))
+        if (Test-Path -LiteralPath $lifecyclePath) {
+            throw "임의 Domain remove 이후 모듈 디렉터리가 남았습니다. domain=$($lifecycleCase.domain)"
+        }
+        Invoke-Generator $lifecycleCase $lifecyclePath
+        $afterHash = Get-TreeHash $lifecyclePath
+        if ($beforeHash -ne $afterHash) {
+            throw "임의 Domain 재생성 결과가 최초 생성과 다릅니다. domain=$($lifecycleCase.domain)"
+        }
+        $result.arbitraryDomainLifecycle += [ordered]@{
+            domainName = $lifecycleCase.domain
+            systemCode = $lifecycleCase.code
+            schemaName = $lifecycleCase.schema
+            tablePrefix = $lifecycleCase.prefix
+            create = 'DONE'
+            remove = 'DONE'
+            regenerate = 'DONE'
+            firstSha256 = $beforeHash
+            regeneratedSha256 = $afterHash
+        }
+    }
     $result.status = 'DONE'
 } finally {
     $result.endedAt = (Get-Date).ToString('o')

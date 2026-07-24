@@ -4,12 +4,17 @@ import com.cpf.core.channel.api.CpfChannelRegistryPort;
 import com.cpf.core.channel.model.CpfChannelDefinition;
 import com.cpf.core.channel.model.CpfChannelExecutionPolicy;
 import com.cpf.core.channel.model.CpfChannelPolicySnapshot;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -22,10 +27,18 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     private static final Logger log = LoggerFactory.getLogger(JdbcCpfChannelRegistryAdapter.class);
 
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public JdbcCpfChannelRegistryAdapter(
             @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+        this(jdbcTemplateProvider, new StandardEnvironment());
+    }
+
+    public JdbcCpfChannelRegistryAdapter(
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "cpf");
     }
 
     @Override
@@ -36,13 +49,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
         }
         try {
             Map<String, CpfChannelDefinition> channels = new LinkedHashMap<>();
-            jdbcTemplate.query("""
-                    SELECT channel_code, channel_name, channel_type, trust_level,
-                           client_channel_yn, internal_channel_yn, authentication_required_yn,
-                           signature_required_yn, active_yn, description, policy_version
-                    FROM cpf_channel_registry
-                    ORDER BY channel_code
-                    """, rs -> {
+            jdbcTemplate.query(sql.required("channel-registry-find-all"), rs -> {
                 CpfChannelDefinition definition = new CpfChannelDefinition(
                         rs.getString("channel_code"), rs.getString("channel_name"),
                         rs.getString("channel_type"), rs.getString("trust_level"),
@@ -52,13 +59,9 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
                         rs.getLong("policy_version"));
                 channels.put(definition.channelCode(), definition);
             });
-            List<CpfChannelExecutionPolicy> policies = jdbcTemplate.query("""
-                    SELECT policy_key, standard_execution_id, original_channel_code, caller_channel_code,
-                           request_type, allowed_yn, authentication_required_yn, signature_required_yn,
-                           max_tps, effective_from, effective_to, active_yn, policy_version
-                    FROM cpf_channel_execution_policy
-                    ORDER BY policy_key
-                    """, (rs, rowNum) -> new CpfChannelExecutionPolicy(
+            List<CpfChannelExecutionPolicy> policies = jdbcTemplate.query(
+                    sql.required("channel-policy-find-all"),
+                    (rs, rowNum) -> new CpfChannelExecutionPolicy(
                     rs.getString("policy_key"), rs.getString("standard_execution_id"),
                     rs.getString("original_channel_code"), rs.getString("caller_channel_code"),
                     rs.getString("request_type"), yes(rs.getString("allowed_yn")),
@@ -67,7 +70,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
                     instant(rs.getTimestamp("effective_to")), yes(rs.getString("active_yn")),
                     rs.getLong("policy_version")));
             Long version = jdbcTemplate.queryForObject(
-                    "SELECT COALESCE(MAX(version_id), 0) FROM cpf_channel_policy_version", Long.class);
+                    sql.required("channel-policy-version-current"), Long.class);
             if (channels.isEmpty()) {
                 return CpfChannelPolicySnapshot.localDefault();
             }
@@ -82,21 +85,8 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     public long saveChannel(CpfChannelDefinition channel, String actor, String reason) {
         JdbcTemplate jdbcTemplate = requiredJdbcTemplate();
         long version = nextVersion(jdbcTemplate, "CHANNEL", channel.channelCode(), actor, reason);
-        jdbcTemplate.update("""
-                INSERT INTO cpf_channel_registry (
-                    channel_code, channel_name, channel_type, trust_level, client_channel_yn,
-                    internal_channel_yn, authentication_required_yn, signature_required_yn,
-                    active_yn, description, policy_version, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    channel_name = VALUES(channel_name), channel_type = VALUES(channel_type),
-                    trust_level = VALUES(trust_level), client_channel_yn = VALUES(client_channel_yn),
-                    internal_channel_yn = VALUES(internal_channel_yn),
-                    authentication_required_yn = VALUES(authentication_required_yn),
-                    signature_required_yn = VALUES(signature_required_yn), active_yn = VALUES(active_yn),
-                    description = VALUES(description), policy_version = VALUES(policy_version),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, channel.channelCode(), channel.channelName(), channel.channelType(), channel.trustLevel(),
+        jdbcTemplate.update(sql.required("channel-registry-upsert"),
+                channel.channelCode(), channel.channelName(), channel.channelType(), channel.trustLevel(),
                 yn(channel.clientChannel()), yn(channel.internalChannel()), yn(channel.authenticationRequired()),
                 yn(channel.signatureRequired()), yn(channel.active()), channel.description(), version, actor, actor);
         return version;
@@ -106,23 +96,8 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     public long savePolicy(CpfChannelExecutionPolicy policy, String actor, String reason) {
         JdbcTemplate jdbcTemplate = requiredJdbcTemplate();
         long version = nextVersion(jdbcTemplate, "EXECUTION_POLICY", policy.policyKey(), actor, reason);
-        jdbcTemplate.update("""
-                INSERT INTO cpf_channel_execution_policy (
-                    policy_key, standard_execution_id, original_channel_code, caller_channel_code,
-                    request_type, allowed_yn, authentication_required_yn, signature_required_yn,
-                    max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    standard_execution_id = VALUES(standard_execution_id),
-                    original_channel_code = VALUES(original_channel_code),
-                    caller_channel_code = VALUES(caller_channel_code), request_type = VALUES(request_type),
-                    allowed_yn = VALUES(allowed_yn),
-                    authentication_required_yn = VALUES(authentication_required_yn),
-                    signature_required_yn = VALUES(signature_required_yn), max_tps = VALUES(max_tps),
-                    effective_from = VALUES(effective_from), effective_to = VALUES(effective_to),
-                    active_yn = VALUES(active_yn), policy_version = VALUES(policy_version),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, policy.policyKey(), policy.standardExecutionId(), policy.originalChannelCode(),
+        jdbcTemplate.update(sql.required("channel-policy-upsert"),
+                policy.policyKey(), policy.standardExecutionId(), policy.originalChannelCode(),
                 policy.callerChannelCode(), policy.requestType(), yn(policy.allowed()),
                 yn(policy.authenticationRequired()), yn(policy.signatureRequired()), policy.maxTps(),
                 timestamp(policy.effectiveFrom()), timestamp(policy.effectiveTo()), yn(policy.active()),
@@ -131,16 +106,24 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     }
 
     private long nextVersion(JdbcTemplate jdbcTemplate, String targetType, String targetKey, String actor, String reason) {
-        jdbcTemplate.update("""
-                INSERT INTO cpf_channel_policy_version (
-                    change_type, target_key, change_reason, applied_by, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?)
-                """, targetType, targetKey, reason, actor, actor, actor);
-        Long version = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        if (version == null || version < 1) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            var statement = connection.prepareStatement(
+                    sql.required("channel-policy-version-insert"),
+                    new String[]{"version_id"});
+            statement.setString(1, targetType);
+            statement.setString(2, targetKey);
+            statement.setString(3, reason);
+            statement.setString(4, actor);
+            statement.setString(5, actor);
+            statement.setString(6, actor);
+            return statement;
+        }, keyHolder);
+        Number version = keyHolder.getKey();
+        if (version == null || version.longValue() < 1) {
             throw new IllegalStateException("채널 정책 버전을 생성하지 못했습니다.");
         }
-        return version;
+        return version.longValue();
     }
 
     private JdbcTemplate requiredJdbcTemplate() {

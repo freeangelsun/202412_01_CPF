@@ -13,12 +13,26 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 class CpfExecutionCatalogRepositoryTest {
+
+    @Test
+    void dbAccessDisabledKeepsCatalogInMemoryWithoutResolvingJdbcTemplate() {
+        ObjectProvider<JdbcTemplate> provider = mock(ObjectProvider.class);
+        CpfExecutionCatalogRepository repository = new CpfExecutionCatalogRepository(provider, false);
+
+        repository.upsertAll(List.of(definition("OREFAA0001")));
+
+        assertThat(repository.findAll())
+                .extracting(CpfExecutionDefinition::standardExecutionId)
+                .containsExactly("OREFAA0001");
+        verifyNoInteractions(provider);
+    }
 
     @Test
     void databaseFailureStopsFurtherWritesAndKeepsLocalCatalog() {

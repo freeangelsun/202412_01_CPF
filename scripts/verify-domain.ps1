@@ -88,7 +88,14 @@ try {
     Add-Check "DOMAIN_NAME" ([string]$manifest.domainName -eq $domain) "manifest=$($manifest.domainName), expected=$domain"
     Add-Check "PROJECT_NAME" ([string]$manifest.projectName -eq $projectName) "manifest=$($manifest.projectName), expected=$projectName"
     Add-Check "SYSTEM_CODE" ($manifestCode -eq $expectedCode -and $manifestCode -match '^[A-Z][A-Z0-9]{2}$') "manifest=$manifestCode, expected=$expectedCode"
-    Add-Check "BASE_PACKAGE" ([string]$manifest.basePackage -eq "com.cpf.$domain") "manifest=$($manifest.basePackage)"
+    Add-Check "DOMAIN_TYPE" ([string]$manifest.domainType -eq "GENERATED_DOMAIN") "manifest=$($manifest.domainType)"
+    Add-Check "MODULE_NAME" ([string]$manifest.moduleName -match '^[A-Z][A-Za-z0-9]{1,49}$') "manifest=$($manifest.moduleName)"
+    Add-Check "PACKAGE_NAME" (
+        [string]$manifest.packageName -match '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$' -and
+        [string]$manifest.basePackage -eq [string]$manifest.packageName
+    ) "manifest=$($manifest.packageName)"
+    Add-Check "SCHEMA_NAME" ([string]$manifest.schemaName -match '^[A-Za-z][A-Za-z0-9_]{1,29}$') "manifest=$($manifest.schemaName)"
+    Add-Check "TABLE_PREFIX" ([string]$manifest.tablePrefix -match '^[a-z][a-z0-9_]{1,19}$') "manifest=$($manifest.tablePrefix)"
 
     $settingsPath = Join-Path $Root "settings.gradle"
     $settingsText = if (Test-Path -LiteralPath $settingsPath) {
@@ -100,15 +107,16 @@ try {
     Add-Check "SETTINGS_INCLUDE" $settingsIncluded "settings.gradle include $projectName"
 
     $packagePath = ([string]$manifest.basePackage).Replace('.', '/')
+    $packagePattern = '^' + [regex]::Escape([string]$manifest.packageName) + '(?:\.|$)'
     Add-Check "PACKAGE_ROOT" (Test-Path -LiteralPath (Join-Path $projectDir "src/main/java/$packagePath") -PathType Container) $packagePath
     $wrongPackages = @(Get-ChildItem -LiteralPath (Join-Path $projectDir "src") -Recurse -File -Filter "*.java" -ErrorAction SilentlyContinue | Where-Object {
         $text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
-        $text -match '(?m)^package\s+([^;]+);' -and $Matches[1] -notlike "com.cpf.$domain*"
+        $text -match '(?m)^package\s+([^;]+);' -and $Matches[1] -notmatch $packagePattern
     } | ForEach-Object { $_.FullName.Substring($projectDir.Length + 1).Replace('\', '/') })
     Add-Check "PACKAGE_OWNERSHIP" ($wrongPackages.Count -eq 0) (($wrongPackages | Select-Object -First 10) -join ', ')
 
     $capabilityRules = @(
-        [ordered]@{ name = 'database'; enabled = [bool]$manifest.databaseEnabled; paths = @("sql/Vxx__${domain}_domain.sql"); patterns = @('DataSourceConfig.java', 'MyBatisConfig.java', 'mybatis/mapper') },
+        [ordered]@{ name = 'database'; enabled = [bool]$manifest.databaseEnabled; paths = @(); patterns = @('DataSourceConfig.java', 'MyBatisConfig.java', 'db/vendor/', 'mybatis/vendor/') },
         [ordered]@{ name = 'batch'; enabled = [bool]$manifest.batchEnabled; paths = @(); patterns = @('BatchConfig.java', 'BatchRepositoryConfig.java') },
         [ordered]@{ name = 'external'; enabled = [bool]$manifest.externalEnabled; paths = @(); patterns = @('/adapter/remote/') },
         [ordered]@{ name = 'messaging'; enabled = [bool]$manifest.messagingEnabled; paths = @(); patterns = @('/messaging/') },
@@ -134,17 +142,76 @@ try {
     if ([bool]$manifest.databaseEnabled) {
         $vendor = ([string]$manifest.databaseVendor).ToLowerInvariant()
         $buildText = [System.IO.File]::ReadAllText((Join-Path $projectDir "build.gradle"), [System.Text.Encoding]::UTF8)
-        $vendorMarker = @{
-            mariadb = 'org.mariadb.jdbc:mariadb-java-client'
-            postgresql = 'org.postgresql:postgresql'
-            oracle = 'com.oracle.database.jdbc:ojdbc11'
-            sqlserver = 'com.microsoft.sqlserver:mssql-jdbc'
-        }[$vendor]
-        Add-Check "DATABASE_VENDOR" (-not [string]::IsNullOrWhiteSpace($vendorMarker) -and $buildText.Contains($vendorMarker)) "vendor=$vendor, dependency=$vendorMarker"
+        $supportedVendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
+        Add-Check "DATABASE_VENDOR" ($vendor -in $supportedVendors) "defaultVendor=$vendor"
+        Add-Check "DATABASE_VENDOR_PROPERTY" ([string]$manifest.databaseVendorProperty -eq "cpf.db.vendor") "property=$($manifest.databaseVendorProperty)"
+        $templateRoot = Join-Path $Root "cpf-tools/db/vendor"
+        $contractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+        Add-Check "DATABASE_CENTRAL_PACK_CONTRACT" (Test-Path -LiteralPath $contractPath -PathType Leaf) "cpf-tools/generator/contracts/central-domain-template-contract.json"
+        $missingCentralTemplates = @()
+        foreach ($supportedVendor in @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
+            foreach ($relativeTemplate in @(
+                    "provision/01_provision.sql.template",
+                    "install/10_empty_install.sql.template",
+                    "seed/20_product_seed.sql.template",
+                    "migration/V1____DOMAIN___domain.sql.template",
+                    "runtime/mybatis/__MAPPER__.xml.template",
+                    "verify/90_verify.sql.template",
+                    "rollback/R1__remove___DOMAIN___domain.sql.template")) {
+                $candidate = Join-Path $templateRoot "$supportedVendor/domain-template/$relativeTemplate"
+                if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+                    $missingCentralTemplates += "$supportedVendor/$relativeTemplate"
+                }
+            }
+        }
+        Add-Check "DATABASE_CENTRAL_PACK" ($missingCentralTemplates.Count -eq 0) "missing=$($missingCentralTemplates -join ', ')"
+        Add-Check "DATABASE_GENERATED_RESOURCES_ASSEMBLY" `
+            ($buildText.Contains("prepareCpfVendorResources") -and
+             $buildText.Contains("generated-resources/cpf-vendor") -and
+             $buildText.Contains("cpf-tools/db/vendor")) `
+            "central template -> generated-resources overlay"
+        $moduleLocalVendorResources = @(Get-ChildItem -LiteralPath (Join-Path $projectDir "src/main/resources") -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -match '\\(?:db|sql|mybatis)\\vendor\\' })
+        Add-Check "DATABASE_NO_MODULE_LOCAL_VENDOR_PACK" ($moduleLocalVendorResources.Count -eq 0) "count=$($moduleLocalVendorResources.Count)"
+        $dependencyMarkers = @(
+            'org.mariadb.jdbc:mariadb-java-client',
+            'com.mysql:mysql-connector-j',
+            'org.postgresql:postgresql',
+            'com.oracle.database.jdbc:ojdbc11',
+            'com.microsoft.sqlserver:mssql-jdbc'
+        )
+        $missingDependencies = @($dependencyMarkers | Where-Object { -not $buildText.Contains($_) })
+        Add-Check "DATABASE_VENDOR_DEPENDENCIES" ($missingDependencies.Count -eq 0) "missing=$($missingDependencies -join ', ')"
         $applicationPath = Join-Path $projectDir "src/main/resources/application-${domain}.yml"
         $applicationText = [System.IO.File]::ReadAllText($applicationPath, [System.Text.Encoding]::UTF8)
         $expectedJndiName = "java:comp/env/jdbc/cpf$([string]$manifest.displayName)DataSource"
         Add-Check "DATASOURCE_JNDI_NAME" $applicationText.Contains($expectedJndiName) "expected=$expectedJndiName"
+        Add-Check "DATABASE_VENDOR_CONFIGURATION" $applicationText.Contains("vendor: `${") "cpf.db.vendor environment override"
+
+        $installTexts = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver" | ForEach-Object {
+                [System.IO.File]::ReadAllText(
+                        (Join-Path $templateRoot "$_/domain-template/install/10_empty_install.sql.template"),
+                        [System.Text.Encoding]::UTF8)
+            })
+        $requiredLogicalColumns = @(
+            "@CPF_TABLE_PREFIX@_sample_item", "sample_item_id", "sample_key", "item_name",
+            "version_no", "idempotency_key", "transaction_global_id", "transaction_sequence",
+            "transaction_at", "created_by", "created_at", "updated_by", "updated_at"
+        )
+        foreach ($column in $requiredLogicalColumns) {
+            Add-Check "MINIMAL_TRANSACTION_$($column.ToUpperInvariant())" `
+                (@($installTexts | Where-Object { $_.Contains($column) }).Count -eq 5) `
+                "column=$column vendorTemplateCount=5"
+        }
+        $requiredOperations = @(
+            "create", "read", "update", "delete", "search", "offset-page", "slice", "cursor",
+            "validation", "transaction-commit", "transaction-rollback", "optimistic-lock",
+            "duplicate", "local-call", "remote-call", "standard-header",
+            "transaction-global-id", "error-mapping", "idempotency", "audit", "masking",
+            "framework-edu")
+        $manifestOperations = @($manifest.minimalTransactionContract.operations)
+        $missingOperations = @($requiredOperations | Where-Object { $_ -notin $manifestOperations })
+        Add-Check "MINIMAL_TRANSACTION_CONTRACT" ($missingOperations.Count -eq 0) "missing=$($missingOperations -join ', ')"
     }
 
     $drift = New-Object System.Collections.Generic.List[string]

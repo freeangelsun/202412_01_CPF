@@ -5,7 +5,9 @@
     [string] $Root = "",
     [string] $ModuleName = "",
     [string] $DomainIdCode = "",
+    [string] $PackageName = "",
     [string] $BasePackage = "",
+    [string] $SchemaName = "",
     [string] $TablePrefix = "",
     [ValidateRange(1024, 65535)]
     [int] $Port = 8080,
@@ -14,7 +16,7 @@
     [ValidateSet("Y", "N")]
     [string] $Database = "Y",
     [Alias("DbVendor")]
-    [ValidateSet("mariadb", "postgresql", "oracle", "sqlserver")]
+    [ValidateSet("mariadb", "mysql", "postgresql", "oracle", "sqlserver")]
     [string] $DatabaseVendor = "mariadb",
     [string] $Capabilities = "",
     [ValidateSet("Y", "N")]
@@ -137,10 +139,44 @@ if ($SystemCode -notmatch '^[A-Z][A-Z0-9]{2}$') {
 }
 $DomainIdCode = $SystemCode
 $ModuleUpper = $SystemCode
-$reservedDomains = @('core', 'gateway', 'common', 'admin', 'bizadmin', 'batch', 'member', 'account', 'reference', 'external')
-$reservedSystemCodes = @('CPF', 'GWY', 'CMN', 'ADM', 'BZA', 'BAT', 'MBR', 'ACC', 'REF', 'EXS')
-if (-not $AllowReserved -and ($reservedDomains -contains $module -or $reservedSystemCodes -contains $SystemCode)) {
-    throw "공식 예약 DomainName 또는 SystemCode는 신규 생성에 사용할 수 없습니다. lifecycle 검증에서만 -AllowReserved를 사용하세요."
+
+if ([string]::IsNullOrWhiteSpace($ModuleName)) {
+    $ModuleName = ConvertTo-ClassName $module
+}
+if ($ModuleName -notmatch '^[A-Z][A-Za-z0-9]{1,49}$') {
+    throw "ModuleName은 영문 대문자로 시작하는 2~50자리 Java class 이름이어야 합니다."
+}
+if (-not [string]::IsNullOrWhiteSpace($PackageName) -and
+        -not [string]::IsNullOrWhiteSpace($BasePackage) -and
+        $PackageName.Trim() -ne $BasePackage.Trim()) {
+    throw "PackageName과 이전 호환 입력 BasePackage가 서로 다릅니다."
+}
+if ([string]::IsNullOrWhiteSpace($PackageName)) {
+    $PackageName = $BasePackage
+}
+if ([string]::IsNullOrWhiteSpace($PackageName)) {
+    $PackageName = "com.cpf.$module"
+}
+$PackageName = $PackageName.Trim()
+if ($PackageName -notmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$') {
+    throw "PackageName은 com.cpf 하위의 유효한 Java package여야 합니다."
+}
+# BasePackage는 이전 호출자와 생성 source template을 위한 호환 변수입니다.
+$BasePackage = $PackageName
+
+if ([string]::IsNullOrWhiteSpace($TablePrefix)) {
+    $TablePrefix = $SystemCode.ToLowerInvariant()
+}
+$TablePrefix = $TablePrefix.Trim().ToLowerInvariant()
+if ($TablePrefix -notmatch '^[a-z][a-z0-9_]{1,19}$') {
+    throw "TablePrefix는 영문 소문자로 시작하는 2~20자리 영문 소문자·숫자·밑줄이어야 합니다."
+}
+if ([string]::IsNullOrWhiteSpace($SchemaName)) {
+    $SchemaName = "${TablePrefix}DB"
+}
+$SchemaName = $SchemaName.Trim()
+if ($SchemaName -notmatch '^[A-Za-z][A-Za-z0-9_]{1,29}$') {
+    throw "SchemaName은 영문자로 시작하는 2~30자리 영문·숫자·밑줄이어야 합니다."
 }
 $OnlineEnabled = $Online -eq "Y"
 $DatabaseEnabled = $Database -eq "Y"
@@ -177,59 +213,10 @@ if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
     $UiEnabled = 'ui' -in $requestedCapabilities
     $SecurityAuditEnabled = ('security' -in $requestedCapabilities) -or ('audit' -in $requestedCapabilities)
 }
-$databaseVendorProfile = switch ($DatabaseVendor) {
-    "mariadb" {
-        [ordered]@{
-            flyway = "org.flywaydb:flyway-mysql"
-            driverDependency = "org.mariadb.jdbc:mariadb-java-client"
-            driverClass = "org.mariadb.jdbc.Driver"
-            localUrl = "jdbc:mariadb://localhost:3306/${module}DB"
-        }
-    }
-    "postgresql" {
-        [ordered]@{
-            flyway = "org.flywaydb:flyway-database-postgresql"
-            driverDependency = "org.postgresql:postgresql"
-            driverClass = "org.postgresql.Driver"
-            localUrl = "jdbc:postgresql://localhost:5432/${module}db"
-        }
-    }
-    "oracle" {
-        [ordered]@{
-            flyway = "org.flywaydb:flyway-database-oracle"
-            driverDependency = "com.oracle.database.jdbc:ojdbc11"
-            driverClass = "oracle.jdbc.OracleDriver"
-            localUrl = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"
-        }
-    }
-    "sqlserver" {
-        [ordered]@{
-            flyway = "org.flywaydb:flyway-sqlserver"
-            driverDependency = "com.microsoft.sqlserver:mssql-jdbc"
-            driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-            localUrl = "jdbc:sqlserver://localhost:1433;databaseName=${module}DB;encrypt=true;trustServerCertificate=true"
-        }
-    }
-}
-if ([string]::IsNullOrWhiteSpace($ModuleName)) {
-    $ModuleName = ConvertTo-ClassName $module
-}
-if ($ModuleName -notmatch '^[A-Z][A-Za-z0-9]{1,49}$') {
-    throw "ModuleName은 영문 대문자로 시작하는 2~50자리 Java class 이름이어야 합니다."
-}
 $DataSourceJndiName = "java:comp/env/jdbc/cpf${ModuleName}DataSource"
-if ([string]::IsNullOrWhiteSpace($BasePackage)) {
-    $BasePackage = "com.cpf.$module"
-}
-if ($BasePackage -notmatch '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$') {
-    throw "BasePackage는 com.cpf 하위의 유효한 Java package여야 합니다."
-}
 $ModuleClassName = $ModuleName
 $FeaturePackage = "$BasePackage.reference"
 $FeatureClassPrefix = "${ModuleName}Reference"
-if ([string]::IsNullOrWhiteSpace($TablePrefix)) {
-    $TablePrefix = $module
-}
 if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = if ($Apply) {
         Join-Path $Root $projectName
@@ -256,6 +243,31 @@ if ($DatabaseEnabled -and
 }
 if (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$packagePath")) {
     $conflicts.Add("base package already exists: $BasePackage")
+}
+
+# Platform Module의 SystemCode는 고정 배열로 관리하지 않습니다. 현재 source 설정에서
+# 동적으로 발견하여 Generated Domain metadata와 충돌하는 경우만 차단합니다.
+if (-not $AllowReserved) {
+    $platformConfigurationFiles = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue |
+            ForEach-Object {
+                $resourceDirectory = Join-Path $_.FullName 'src/main/resources'
+                if (Test-Path -LiteralPath $resourceDirectory -PathType Container) {
+                    Get-ChildItem -LiteralPath $resourceDirectory -Recurse -File -Include '*.yml', '*.yaml' -ErrorAction SilentlyContinue
+                }
+            })
+    foreach ($configurationFile in $platformConfigurationFiles) {
+        $configurationText = [System.IO.File]::ReadAllText(
+                $configurationFile.FullName,
+                [System.Text.Encoding]::UTF8)
+        $matches = [regex]::Matches(
+                $configurationText,
+                '(?im)^\s*module-id\s*:\s*(?:\$\{[^:}\r\n]+:)?([A-Z][A-Z0-9]{2})(?:\})?\s*$')
+        if (@($matches | Where-Object { $_.Groups[1].Value -eq $SystemCode }).Count -gt 0) {
+            $conflicts.Add(
+                    "SystemCode가 현재 Platform Module 설정과 중복됩니다: $SystemCode ($($configurationFile.FullName))")
+            break
+        }
+    }
 }
 
 $manifestFiles = @(Get-ChildItem -LiteralPath $Root -Filter 'domain-manifest.json' -Recurse -File -ErrorAction SilentlyContinue |
@@ -296,7 +308,9 @@ $plan = [ordered]@{
     systemCode = $SystemCode
     moduleName = $ModuleName
     domainIdCode = $DomainIdCode
+    packageName = $PackageName
     basePackage = $BasePackage
+    schemaName = $SchemaName
     tablePrefix = $TablePrefix
     port = $Port
     online = $OnlineEnabled
@@ -410,16 +424,18 @@ $controller = @"
 package $FeaturePackage.controller;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
 import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
+import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.common.header.CpfHeaderNames;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Objects;
@@ -454,6 +470,92 @@ public class ${FeatureClassPrefix}Controller extends ${ModuleClassName}BaseContr
         validator.validate(request);
         return ok(facade.search(request));
     }
+
+    @PostMapping("/sample-items")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}IN0001", name = "${ModuleName}Create", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "create${ModuleName}SampleItem", summary = "Minimal Transaction Sample 등록")
+    public ResponseEntity<Map<String, Object>> create(
+            @RequestHeader(CpfHeaderNames.TRANSACTION_ID) String transactionGlobalId,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY, required = false) String idempotencyKey,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, required = false) String idempotencyKeyAlias,
+            @RequestBody ${FeatureClassPrefix}SampleCommand command) {
+        requireTransport(command, transactionGlobalId, firstText(idempotencyKey, idempotencyKeyAlias));
+        return ok(facade.create(command));
+    }
+
+    @GetMapping("/sample-items/{sampleKey}")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}QY0002", name = "${ModuleName}Find", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "find${ModuleName}SampleItem", summary = "Minimal Transaction Sample 단건 조회")
+    public ResponseEntity<Map<String, Object>> findBySampleKey(@PathVariable String sampleKey) {
+        return ok(facade.findBySampleKey(sampleKey)
+                .orElseThrow(() -> new CpfValidationException("Sample Item을 찾을 수 없습니다.")));
+    }
+
+    @PostMapping("/sample-items/{sampleItemId}/update")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}UP0001", name = "${ModuleName}Update", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "update${ModuleName}SampleItem", summary = "낙관적 잠금 Sample 수정")
+    public ResponseEntity<Map<String, Object>> update(
+            @PathVariable long sampleItemId,
+            @RequestHeader(CpfHeaderNames.TRANSACTION_ID) String transactionGlobalId,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY, required = false) String idempotencyKey,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, required = false) String idempotencyKeyAlias,
+            @RequestBody ${FeatureClassPrefix}SampleCommand command) {
+        requireTransport(command, transactionGlobalId, firstText(idempotencyKey, idempotencyKeyAlias));
+        return ok(facade.update(sampleItemId, command));
+    }
+
+    @PostMapping("/sample-items/{sampleItemId}/delete")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}DL0001", name = "${ModuleName}Delete", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "delete${ModuleName}SampleItem", summary = "낙관적 잠금 Sample 논리 삭제")
+    public ResponseEntity<Map<String, Object>> delete(
+            @PathVariable long sampleItemId,
+            @RequestHeader(CpfHeaderNames.TRANSACTION_ID) String transactionGlobalId,
+            @RequestBody Map<String, Object> request) {
+        Object rawVersion = request.get("expectedVersion");
+        if (!(rawVersion instanceof Number version)) {
+            throw new CpfValidationException("expectedVersion은 필수입니다.");
+        }
+        String actor = Objects.toString(request.get("actor"), "$ModuleUpper");
+        facade.delete(sampleItemId, version.longValue(), transactionGlobalId, actor);
+        return ok(Map.of("deleted", true, "sampleItemId", sampleItemId));
+    }
+
+    @GetMapping("/sample-items/cursor")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}QY0003", name = "${ModuleName}Cursor", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "cursor${ModuleName}SampleItems", summary = "Cursor/Slice 조회")
+    public ResponseEntity<${FeatureClassPrefix}Slice> cursor(
+            @RequestParam(required = false) Long afterId,
+            @RequestParam(defaultValue = "20") int size) {
+        return ok(facade.cursor(afterId, size));
+    }
+
+    @PostMapping("/sample-items/rollback-verify")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}TX0001", name = "${ModuleName}Rollback", ownerDomain = "$DomainIdCode")
+    @Operation(operationId = "rollback${ModuleName}SampleItem", summary = "Transaction rollback 검증")
+    public ResponseEntity<Boolean> verifyRollback(
+            @RequestHeader(CpfHeaderNames.TRANSACTION_ID) String transactionGlobalId,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY, required = false) String idempotencyKey,
+            @RequestHeader(value = CpfHeaderNames.IDEMPOTENCY_KEY_ALIAS, required = false) String idempotencyKeyAlias,
+            @RequestBody ${FeatureClassPrefix}SampleCommand command) {
+        requireTransport(command, transactionGlobalId, firstText(idempotencyKey, idempotencyKeyAlias));
+        return ok(facade.verifyRollback(command));
+    }
+
+    private void requireTransport(
+            ${FeatureClassPrefix}SampleCommand command,
+            String transactionGlobalId,
+            String idempotencyKey) {
+        if (command == null ||
+                !Objects.equals(command.transactionGlobalId(), transactionGlobalId) ||
+                !Objects.equals(command.idempotencyKey(), idempotencyKey)) {
+            throw new CpfValidationException(
+                    "표준 Header의 transactionGlobalId/idempotencyKey와 요청 본문이 일치해야 합니다.");
+        }
+    }
+
+    private String firstText(String first, String second) {
+        return first == null || first.isBlank() ? second : first;
+    }
 }
 "@
 
@@ -461,12 +563,15 @@ $facade = @"
 package $FeaturePackage.facade;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'ApplicationFacade;'))
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.service.${FeatureClassPrefix}Service;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Controller와 업무 서비스를 분리하는 진입 Facade입니다.
@@ -484,6 +589,30 @@ public class ${FeatureClassPrefix}Facade implements ${ModuleClassName}Applicatio
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return service.search(request);
     }
+
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        return service.create(command);
+    }
+
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        return service.findBySampleKey(sampleKey);
+    }
+
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        return service.update(sampleItemId, command);
+    }
+
+    public void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor) {
+        service.delete(sampleItemId, expectedVersion, transactionGlobalId, actor);
+    }
+
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        return service.cursor(afterId, size);
+    }
+
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        return service.verifyRollback(command);
+    }
 }
 "@
 
@@ -491,8 +620,11 @@ $queryPortSource = @"
 package $FeaturePackage.port;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'RepositoryPort;'))
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 
+import java.util.Optional;
 import java.util.Map;
 
 /**
@@ -500,6 +632,18 @@ import java.util.Map;
  */
 public interface ${FeatureClassPrefix}QueryPort extends ${ModuleClassName}RepositoryPort<Map<String, Object>, String> {
     Map<String, Object> search(${FeatureClassPrefix}SearchRequest request);
+
+    Map<String, Object> create(${FeatureClassPrefix}SampleCommand command);
+
+    Optional<Map<String, Object>> findBySampleKey(String sampleKey);
+
+    Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command);
+
+    void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor);
+
+    ${FeatureClassPrefix}Slice cursor(Long afterId, int size);
+
+    boolean verifyRollback(${FeatureClassPrefix}SampleCommand command);
 }
 "@
 
@@ -507,6 +651,8 @@ $localAdapter = @"
 package $FeaturePackage.adapter.local;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -514,6 +660,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 같은 주제영역 DB를 사용하는 기본 local adapter입니다.
@@ -531,6 +678,36 @@ public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPre
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return repository.search(request);
     }
+
+    @Override
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        return repository.create(command);
+    }
+
+    @Override
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        return repository.findBySampleKey(sampleKey);
+    }
+
+    @Override
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        return repository.update(sampleItemId, command);
+    }
+
+    @Override
+    public void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor) {
+        repository.delete(sampleItemId, expectedVersion, transactionGlobalId, actor);
+    }
+
+    @Override
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        return repository.cursor(afterId, size);
+    }
+
+    @Override
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        return repository.verifyRollback(command);
+    }
 }
 "@
 
@@ -538,7 +715,9 @@ $remoteMatchIfMissing = if (-not $DatabaseEnabled) { ", matchIfMissing = true" }
 $remoteProxy = @"
 package $FeaturePackage.adapter.remote;
 
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import com.cpf.core.common.http.CpfWebClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -547,6 +726,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 분리 배포된 ${ModuleName} 서비스에 CPF 표준 서비스 호출 경계로 접근하는 remote proxy입니다.
@@ -579,6 +759,69 @@ public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPref
                 },
                 new ParameterizedTypeReference<Map<String, Object>>() { });
     }
+
+    @Override
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        return webClient.post(
+                "$ModuleUpper",
+                "/api/v1/$module/reference/sample-items",
+                command,
+                new ParameterizedTypeReference<Map<String, Object>>() { });
+    }
+
+    @Override
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        Map<String, Object> response = webClient.get(
+                "$ModuleUpper",
+                uriBuilder -> uriBuilder
+                        .path("/api/v1/$module/reference/sample-items/{sampleKey}")
+                        .build(sampleKey),
+                new ParameterizedTypeReference<Map<String, Object>>() { });
+        return Optional.ofNullable(response);
+    }
+
+    @Override
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        return webClient.post(
+                "$ModuleUpper",
+                "/api/v1/$module/reference/sample-items/" + sampleItemId + "/update",
+                command,
+                new ParameterizedTypeReference<Map<String, Object>>() { });
+    }
+
+    @Override
+    public void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor) {
+        webClient.post(
+                "$ModuleUpper",
+                "/api/v1/$module/reference/sample-items/" + sampleItemId + "/delete",
+                Map.of(
+                        "expectedVersion", expectedVersion,
+                        "transactionGlobalId", transactionGlobalId,
+                        "actor", actor),
+                Void.class);
+    }
+
+    @Override
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        return webClient.get(
+                "$ModuleUpper",
+                uriBuilder -> uriBuilder
+                        .path("/api/v1/$module/reference/sample-items/cursor")
+                        .queryParam("afterId", afterId == null ? 0 : afterId)
+                        .queryParam("size", size)
+                        .build(),
+                ${FeatureClassPrefix}Slice.class);
+    }
+
+    @Override
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        Boolean response = webClient.post(
+                "$ModuleUpper",
+                "/api/v1/$module/reference/sample-items/rollback-verify",
+                command,
+                Boolean.class);
+        return Boolean.TRUE.equals(response);
+    }
 }
 "@
 
@@ -586,11 +829,14 @@ $inMemoryAdapter = @"
 package $FeaturePackage.adapter.memory;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * DB와 외부 연동을 선택하지 않은 모듈이 즉시 기동될 수 있도록 제공하는 메모리 참조 adapter입니다.
@@ -601,6 +847,41 @@ public class InMemory${FeatureClassPrefix}QueryAdapter implements ${FeatureClass
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return Map.of("items", List.of(), "criteria", request);
     }
+
+    @Override
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        return Map.of(
+                "sampleKey", command.sampleKey(),
+                "itemName", command.itemName(),
+                "versionNo", command.expectedVersion(),
+                "transactionGlobalId", command.transactionGlobalId(),
+                "idempotencyKey", command.idempotencyKey());
+    }
+
+    @Override
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        return create(command);
+    }
+
+    @Override
+    public void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor) {
+        // DB/integration capability가 없는 EDU 모드는 삭제 계약만 검증하고 상태를 보존하지 않습니다.
+    }
+
+    @Override
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        return new ${FeatureClassPrefix}Slice(List.of(), false, null);
+    }
+
+    @Override
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        return true;
+    }
 }
 "@
 
@@ -608,19 +889,26 @@ $service = @"
 package $FeaturePackage.service;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseService;'))
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
+import com.cpf.core.common.exception.CpfValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * ${ModuleName} 조회 업무를 처리합니다.
  */
 @Service
 public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService {
+    private static final Logger log = LoggerFactory.getLogger(${FeatureClassPrefix}Service.class);
     private final ${FeatureClassPrefix}QueryPort queryPort;
 
     public ${FeatureClassPrefix}Service(${FeatureClassPrefix}QueryPort queryPort) {
@@ -631,30 +919,103 @@ public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService 
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
         return queryPort.search(request.normalized());
     }
+
+    @Transactional
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        requireCommand(command);
+        log.info("$ModuleUpper Sample create auditKey={}, transactionGlobalId={}",
+                command.maskedAuditKey(), command.transactionGlobalId());
+        return queryPort.create(command);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        if (sampleKey == null || sampleKey.isBlank()) {
+            throw new CpfValidationException("sampleKey는 필수입니다.");
+        }
+        return queryPort.findBySampleKey(sampleKey.trim());
+    }
+
+    @Transactional
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        requirePositiveId(sampleItemId);
+        requireCommand(command);
+        return queryPort.update(sampleItemId, command);
+    }
+
+    @Transactional
+    public void delete(
+            long sampleItemId,
+            long expectedVersion,
+            String transactionGlobalId,
+            String actor) {
+        requirePositiveId(sampleItemId);
+        if (expectedVersion < 0 || transactionGlobalId == null || transactionGlobalId.isBlank()) {
+            throw new CpfValidationException("expectedVersion과 transactionGlobalId를 확인하세요.");
+        }
+        queryPort.delete(sampleItemId, expectedVersion, transactionGlobalId.trim(),
+                actor == null || actor.isBlank() ? "$ModuleUpper" : actor.trim());
+    }
+
+    @Transactional(readOnly = true)
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        return queryPort.cursor(afterId, size);
+    }
+
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        requireCommand(command);
+        return queryPort.verifyRollback(command);
+    }
+
+    private void requireCommand(${FeatureClassPrefix}SampleCommand command) {
+        if (command == null) {
+            throw new CpfValidationException("Sample Command는 필수입니다.");
+        }
+    }
+
+    private void requirePositiveId(long sampleItemId) {
+        if (sampleItemId < 1) {
+            throw new CpfValidationException("sampleItemId는 1 이상이어야 합니다.");
+        }
+    }
 }
 "@
 
 $repository = @"
 package $FeaturePackage.repository;
 
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
- * MyBatis mapper 호출을 캡슐화하는 업무 저장소입니다.
+ * 중앙 Vendor Pack이 제공하는 MyBatis statement를 호출하는 DB-neutral 저장소입니다.
  */
 @Repository
 public class ${FeatureClassPrefix}Repository {
+    private static final int MAX_PAGE_SIZE = 200;
     private final SqlSessionTemplate sqlSessionTemplate;
+    private final TransactionTemplate transactionTemplate;
 
     public ${FeatureClassPrefix}Repository(
-            @Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate) {
+            @Qualifier("${module}SqlSessionTemplate") SqlSessionTemplate sqlSessionTemplate,
+            @Qualifier("${module}TransactionManager") PlatformTransactionManager transactionManager) {
         this.sqlSessionTemplate = Objects.requireNonNull(sqlSessionTemplate, "sqlSessionTemplate은 필수입니다.");
+        this.transactionTemplate = new TransactionTemplate(
+                Objects.requireNonNull(transactionManager, "transactionManager는 필수입니다."));
     }
 
     public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
@@ -663,19 +1024,115 @@ public class ${FeatureClassPrefix}Repository {
                         "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper.search", request),
                 "criteria", request);
     }
+
+    public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+        Optional<Map<String, Object>> replay = findByIdempotencyKey(command.idempotencyKey());
+        if (replay.isPresent()) {
+            Map<String, Object> response = new LinkedHashMap<>(replay.get());
+            response.put("idempotentReplay", true);
+            return Map.copyOf(response);
+        }
+        Map<String, Object> parameters = parameters(command);
+        sqlSessionTemplate.insert(statement("insert"), parameters);
+        return findBySampleKey(command.sampleKey())
+                .orElseThrow(() -> new IllegalStateException("등록한 Sample Item을 다시 조회할 수 없습니다."));
+    }
+
+    public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+        return Optional.ofNullable(sqlSessionTemplate.selectOne(statement("findBySampleKey"), sampleKey));
+    }
+
+    public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+        Map<String, Object> parameters = parameters(command);
+        parameters.put("sampleItemId", sampleItemId);
+        int updated = sqlSessionTemplate.update(statement("updateWithVersion"), parameters);
+        if (updated != 1) {
+            throw new OptimisticLockingFailureException(
+                    "Sample Item이 없거나 version이 변경되었습니다. sampleItemId=" + sampleItemId);
+        }
+        return findBySampleKey(command.sampleKey())
+                .orElseThrow(() -> new IllegalStateException("수정한 Sample Item을 다시 조회할 수 없습니다."));
+    }
+
+    public void delete(
+            long sampleItemId,
+            long expectedVersion,
+            String transactionGlobalId,
+            String actor) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("sampleItemId", sampleItemId);
+        parameters.put("versionNo", expectedVersion);
+        parameters.put("transactionGlobalId", transactionGlobalId);
+        parameters.put("transactionSequence", 1L);
+        parameters.put("updatedBy", actor);
+        int updated = sqlSessionTemplate.update(statement("logicalDeleteWithVersion"), parameters);
+        if (updated != 1) {
+            throw new OptimisticLockingFailureException(
+                    "Sample Item이 없거나 version이 변경되었습니다. sampleItemId=" + sampleItemId);
+        }
+    }
+
+    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+        int safeSize = Math.max(1, Math.min(size, MAX_PAGE_SIZE));
+        Map<String, Object> parameters = Map.of(
+                "cursor", afterId == null ? 0L : Math.max(afterId, 0L),
+                "size", safeSize + 1);
+        List<Map<String, Object>> rows = sqlSessionTemplate.selectList(statement("cursorSlice"), parameters);
+        boolean hasNext = rows.size() > safeSize;
+        List<Map<String, Object>> items = hasNext
+                ? List.copyOf(rows.subList(0, safeSize))
+                : List.copyOf(rows);
+        Long nextCursor = hasNext && !items.isEmpty()
+                ? ((Number) items.getLast().get("sampleItemId")).longValue()
+                : null;
+        return new ${FeatureClassPrefix}Slice(items, hasNext, nextCursor);
+    }
+
+    public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+        boolean existedBefore = findBySampleKey(command.sampleKey()).isPresent();
+        transactionTemplate.executeWithoutResult(status -> {
+            sqlSessionTemplate.insert(statement("insert"), parameters(command));
+            status.setRollbackOnly();
+        });
+        return existedBefore == findBySampleKey(command.sampleKey()).isPresent();
+    }
+
+    private Optional<Map<String, Object>> findByIdempotencyKey(String idempotencyKey) {
+        return Optional.ofNullable(
+                sqlSessionTemplate.selectOne(statement("findByIdempotencyKey"), idempotencyKey));
+    }
+
+    private Map<String, Object> parameters(${FeatureClassPrefix}SampleCommand command) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("sampleKey", command.sampleKey());
+        parameters.put("itemName", command.itemName());
+        parameters.put("statusCode", command.statusCode());
+        parameters.put("versionNo", command.expectedVersion());
+        parameters.put("idempotencyKey", command.idempotencyKey());
+        parameters.put("transactionGlobalId", command.transactionGlobalId());
+        parameters.put("transactionSequence", command.transactionSequence());
+        parameters.put("createdBy", command.actor());
+        parameters.put("updatedBy", command.actor());
+        return parameters;
+    }
+
+    private String statement(String id) {
+        return "${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper." + id;
+    }
 }
 "@
 
 $myBatisConfig = @"
 package $BasePackage.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 
@@ -685,12 +1142,11 @@ public class ${ModuleName}MyBatisConfig {
 
     @Bean(name = "${module}SqlSessionFactory")
     public SqlSessionFactory ${module}SqlSessionFactory(
-            @Qualifier("${module}DataSource") DataSource dataSource) throws Exception {
+            @Qualifier("${module}DataSource") DataSource dataSource,
+            Environment environment) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/${module}/**/*.xml"));
+        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "$module"));
         return factoryBean.getObject();
     }
 
@@ -761,7 +1217,7 @@ public record ${FeatureClassPrefix}SearchRequest(
         String sortDirection,
         Integer page,
         Integer size) implements ${ModuleClassName}Request, CpfQuery {
-    private static final Set<String> SORT_COLUMNS = Set.of("created_at", "updated_at", "${TablePrefix}_id");
+    private static final Set<String> SORT_COLUMNS = Set.of("created_at", "updated_at", "sample_item_id", "item_name");
 
     public ${FeatureClassPrefix}SearchRequest normalized() {
         String normalizedSortBy = sortBy != null && SORT_COLUMNS.contains(sortBy) ? sortBy : "created_at";
@@ -776,6 +1232,112 @@ public record ${FeatureClassPrefix}SearchRequest(
         int normalizedPage = page == null || page < 0 ? 0 : page;
         int normalizedSize = size == null || size < 1 ? 20 : Math.min(size, 200);
         return normalizedPage * normalizedSize;
+    }
+}
+"@
+
+$sampleCommand = @"
+package $FeaturePackage.dto;
+
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Request;'))
+import com.cpf.core.common.logging.SensitiveDataMasker;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+
+import java.util.Locale;
+
+/**
+ * 모든 Generated Domain이 공유하는 Minimal Transaction 입력 계약입니다.
+ *
+ * <p>고객 업무 모델이 아니라 CRUD, 중복, idempotency, 낙관적 잠금과
+ * transactionGlobalId 전파를 검증하기 위한 공통 Sample입니다.</p>
+ */
+public record ${FeatureClassPrefix}SampleCommand(
+        @NotBlank @Size(max = 100) String sampleKey,
+        @NotBlank @Size(max = 200) String itemName,
+        @Pattern(regexp = "ACTIVE|INACTIVE") String statusCode,
+        @NotBlank @Size(max = 100) String idempotencyKey,
+        @NotBlank @Size(max = 64) String transactionGlobalId,
+        @Positive long transactionSequence,
+        @PositiveOrZero long expectedVersion,
+        @NotBlank @Size(max = 100) String actor) implements ${ModuleClassName}Request {
+
+    public ${FeatureClassPrefix}SampleCommand {
+        sampleKey = requireText(sampleKey, "sampleKey");
+        itemName = requireText(itemName, "itemName");
+        statusCode = defaultText(statusCode, "ACTIVE").toUpperCase(Locale.ROOT);
+        if (!statusCode.equals("ACTIVE") && !statusCode.equals("INACTIVE")) {
+            throw new IllegalArgumentException("statusCode는 ACTIVE 또는 INACTIVE여야 합니다.");
+        }
+        idempotencyKey = requireText(idempotencyKey, "idempotencyKey");
+        transactionGlobalId = requireText(transactionGlobalId, "transactionGlobalId");
+        transactionSequence = transactionSequence < 1 ? 1 : transactionSequence;
+        if (expectedVersion < 0) {
+            throw new IllegalArgumentException("expectedVersion은 0 이상이어야 합니다.");
+        }
+        actor = defaultText(actor, "$ModuleUpper");
+    }
+
+    /** 감사 로그 예시에 사용하는 마스킹된 식별자이며 원문 secret을 반환하지 않습니다. */
+    public String maskedAuditKey() {
+        return SensitiveDataMasker.mask(sampleKey + "|" + idempotencyKey);
+    }
+
+    private static String requireText(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + "는 필수입니다.");
+        }
+        return value.trim();
+    }
+
+    private static String defaultText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+}
+"@
+
+$sampleItem = @"
+package $FeaturePackage.dto;
+
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Response;'))
+import java.time.Instant;
+
+/** Vendor와 무관한 Generated Domain Sample Item 논리 모델입니다. */
+public record ${FeatureClassPrefix}SampleItem(
+        long sampleItemId,
+        String sampleKey,
+        String itemName,
+        String statusCode,
+        long versionNo,
+        String idempotencyKey,
+        String transactionGlobalId,
+        long transactionSequence,
+        Instant transactionAt,
+        String createdBy,
+        Instant createdAt,
+        String updatedBy,
+        Instant updatedAt) implements ${ModuleClassName}Response {
+}
+"@
+
+$sampleSlice = @"
+package $FeaturePackage.dto;
+
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Response;'))
+import java.util.List;
+import java.util.Map;
+
+/** Count query 없이 다음 cursor 존재 여부를 제공하는 표준 Slice 응답입니다. */
+public record ${FeatureClassPrefix}Slice(
+        List<Map<String, Object>> items,
+        boolean hasNext,
+        Long nextCursor) implements ${ModuleClassName}Response {
+
+    public ${FeatureClassPrefix}Slice {
+        items = List.copyOf(items);
     }
 }
 "@
@@ -803,39 +1365,6 @@ public class ${FeatureClassPrefix}SearchValidator {
 }
 "@
 
-$mapperKeywordPredicate = switch ($DatabaseVendor) {
-    "oracle" { "      AND ${TablePrefix}_name LIKE '%' || #{keyword} || '%'" }
-    default { "      AND ${TablePrefix}_name LIKE CONCAT('%', #{keyword}, '%')" }
-}
-$mapperPagingClause = switch ($DatabaseVendor) {
-    "oracle" { "    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY" }
-    "sqlserver" { "    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY" }
-    default { "    LIMIT #{size} OFFSET #{offset}" }
-}
-$mapperXml = @"
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="$FeaturePackage.mapper.${FeatureClassPrefix}Mapper">
-  <!-- ${ModuleName} 조회: 정렬 컬럼은 DTO whitelist를 통과한 값만 사용합니다. -->
-  <select id="search" resultType="map">
-    SELECT ${TablePrefix}_id,
-           ${TablePrefix}_name,
-           status_code,
-           created_by,
-           created_at,
-           updated_by,
-           updated_at
-    FROM ${TablePrefix}_sample
-    WHERE deleted_yn = 'N'
-    <if test="keyword != null and keyword != ''">
-$mapperKeywordPredicate
-    </if>
-    ORDER BY ${Dollar}{sortBy} ${Dollar}{sortDirection}
-$mapperPagingClause
-  </select>
-</mapper>
-"@
-
 $batchDependency = if ($BatchEnabled) {
     "    implementation 'org.springframework.boot:spring-boot-starter-batch'"
 } else {
@@ -846,8 +1375,99 @@ $databaseDependencies = if ($DatabaseEnabled) {
 @"
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
     implementation 'org.flywaydb:flyway-core'
-    implementation '$($databaseVendorProfile.flyway)'
-    runtimeOnly '$($databaseVendorProfile.driverDependency)'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.flywaydb:flyway-database-oracle'
+    implementation 'org.flywaydb:flyway-sqlserver'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+"@
+} else {
+    ""
+}
+
+$databaseResourceAssembly = if ($DatabaseEnabled) {
+@"
+def cpfDbVendor = (findProperty('cpfDbVendor') ?: System.getenv('${ModuleUpper}_DATABASE_VENDOR') ?: '$DatabaseVendor')
+        .toString()
+        .toLowerCase(Locale.ROOT)
+def cpfSupportedDbVendors = ['mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver'] as Set
+if (!cpfSupportedDbVendors.contains(cpfDbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor: `${cpfDbVendor}")
+}
+def cpfCentralDbPackRoot = file(
+        findProperty('cpfCentralDbPackRoot')
+                ?: "${Dollar}{rootProject.projectDir}/cpf-tools/db/vendor")
+def cpfSelectedDomainTemplate = new File(cpfCentralDbPackRoot, "`${cpfDbVendor}/domain-template")
+def cpfGeneratedVendorResources = layout.buildDirectory.dir('generated-resources/cpf-vendor')
+
+tasks.register('prepareCpfVendorResources', Sync) {
+    def tokenValues = [
+            CPF_VENDOR: cpfDbVendor,
+            CPF_DOMAIN: '$module',
+            CPF_SYSTEM_CODE: '$ModuleUpper',
+            CPF_DISPLAY_NAME: '$ModuleName',
+            CPF_SCHEMA_NAME: '$SchemaName',
+            CPF_MODULE_NAME: '$ModuleName',
+            CPF_PACKAGE_NAME: '$PackageName',
+            CPF_TABLE_PREFIX: '$TablePrefix',
+            CPF_MAPPER_NAMESPACE: '$FeaturePackage.mapper.${FeatureClassPrefix}Mapper',
+            CPF_MAPPER_NAME: '${FeatureClassPrefix}Mapper'
+    ]
+    into cpfGeneratedVendorResources
+    from(cpfSelectedDomainTemplate) {
+        include 'provision/**', 'install/**', 'seed/**', 'migration/**', 'verify/**', 'rollback/**'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', '$module')
+        }
+        into "db/vendor/`${cpfDbVendor}"
+        includeEmptyDirs = false
+    }
+    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', '$module')
+                    .replace('__MAPPER__', '${FeatureClassPrefix}Mapper')
+        }
+        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/reference"
+        includeEmptyDirs = false
+    }
+    from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
+        include '**/*.template'
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName ->
+            fileName
+                    .replace('.template', '')
+                    .replace('__DOMAIN__', '$module')
+        }
+        into "sql/vendor/`${cpfDbVendor}/$module"
+        includeEmptyDirs = false
+    }
+    doFirst {
+        if (!cpfSelectedDomainTemplate.isDirectory()) {
+            throw new GradleException(
+                    "CPF central domain template is missing: `${cpfSelectedDomainTemplate}")
+        }
+        if (!new File(cpfSelectedDomainTemplate, 'runtime/mybatis').isDirectory()) {
+            throw new GradleException(
+                    "CPF central domain runtime MyBatis template is missing: `${cpfSelectedDomainTemplate}")
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir(cpfGeneratedVendorResources)
+tasks.named('processResources') {
+    dependsOn tasks.named('prepareCpfVendorResources')
+}
 "@
 } else {
     ""
@@ -940,6 +1560,8 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+$databaseResourceAssembly
+
 tasks.withType(AbstractArchiveTask).configureEach {
     archiveBaseName = "$projectName"
     preserveFileTimestamps = false
@@ -985,14 +1607,13 @@ public class ${ModuleClassName}Application extends SpringBootServletInitializer 
 $dataSourceConfig = @"
 package $BasePackage.config;
 
+import com.cpf.core.common.database.CpfDataSourceResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jndi.JndiTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.naming.NamingException;
@@ -1006,17 +1627,7 @@ public class ${ModuleName}DataSourceConfig {
 
     @Bean
     public DataSource ${module}DataSource(Environment environment) throws NamingException {
-        String mode = environment.getProperty("cpf.datasource.mode", "url");
-        if ("jndi".equalsIgnoreCase(mode)) {
-            String jndiName = environment.getRequiredProperty("cpf.datasource.jndi-name");
-            return new JndiTemplate().lookup(jndiName, DataSource.class);
-        }
-        return DataSourceBuilder.create()
-                .url(environment.getRequiredProperty("cpf.datasource.url"))
-                .username(environment.getRequiredProperty("cpf.datasource.username"))
-                .password(environment.getRequiredProperty("cpf.datasource.password"))
-                .driverClassName(environment.getRequiredProperty("cpf.datasource.driver-class-name"))
-                .build();
+        return CpfDataSourceResolver.resolve(environment, "cpf.datasource");
     }
 
     /**
@@ -1044,6 +1655,7 @@ $databaseSpringYml = if ($DatabaseEnabled) {
   flyway:
     # DDL migration은 app 계정이 아니라 별도 migration 절차에서 실행합니다.
     enabled: ${Dollar}{$($ModuleUpper)_FLYWAY_ENABLED:false}
+    locations: classpath:db/vendor/${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}/migration
 "@
 } else { "" }
 $applicationYml = @"
@@ -1093,9 +1705,9 @@ $moduleDataSourceYml = if ($DatabaseEnabled) {
   datasource:
     mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
     jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:$DataSourceJndiName}
-    vendor: ${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}
-    url: '${Dollar}{$($ModuleUpper)_DATASOURCE_URL:$($databaseVendorProfile.localUrl)}'
-    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:$($databaseVendorProfile.driverClass)}
+    database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
+    url: '${Dollar}{$($ModuleUpper)_DATASOURCE_URL:}'
+    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:}
     username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
     password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
 "@
@@ -1103,6 +1715,9 @@ $moduleDataSourceYml = if ($DatabaseEnabled) {
 $applicationModuleYml = @"
 # ${ModuleName} 주제영역 공통 설정입니다.
 cpf:
+  db:
+    # Vendor 선택은 Java 업무 Source가 아니라 SQL/Mapper resource 경로만 변경합니다.
+    vendor: ${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
 $moduleDataSourceYml
@@ -1113,96 +1728,6 @@ $moduleDataSourceYml
     file:
       file-pattern: "cpf-{moduleCode}-{logType}-{instanceId}.{date}.log"
 "@
-$sql = switch ($DatabaseVendor) {
-    "mariadb" {
-@"
--- ${ModuleName} 업무 샘플 테이블입니다.
-CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
-    ${TablePrefix}_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '${ModuleName} 식별자',
-    ${TablePrefix}_name VARCHAR(200) NOT NULL COMMENT '${ModuleName} 명칭',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (${TablePrefix}_id),
-    INDEX ix_${TablePrefix}_sample_status (status_code, deleted_yn)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='${ModuleName} 업무 샘플';
-"@
-    }
-    "postgresql" {
-@"
--- ${ModuleName} 업무 샘플 테이블입니다.
-CREATE TABLE IF NOT EXISTS ${TablePrefix}_sample (
-    ${TablePrefix}_id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    ${TablePrefix}_name VARCHAR(200) NOT NULL,
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    created_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
-COMMENT ON TABLE ${TablePrefix}_sample IS '${ModuleName} 업무 샘플';
-COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_id IS '${ModuleName} 식별자';
-COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_name IS '${ModuleName} 명칭';
-COMMENT ON COLUMN ${TablePrefix}_sample.status_code IS '상태 코드';
-COMMENT ON COLUMN ${TablePrefix}_sample.deleted_yn IS '논리 삭제 여부';
-COMMENT ON COLUMN ${TablePrefix}_sample.created_by IS '등록자';
-COMMENT ON COLUMN ${TablePrefix}_sample.created_at IS '등록일시';
-COMMENT ON COLUMN ${TablePrefix}_sample.updated_by IS '수정자';
-COMMENT ON COLUMN ${TablePrefix}_sample.updated_at IS '수정일시';
-"@
-    }
-    "oracle" {
-@"
--- ${ModuleName} 업무 샘플 테이블입니다. Flyway version migration에서 한 번만 실행합니다.
-CREATE TABLE ${TablePrefix}_sample (
-    ${TablePrefix}_id NUMBER(19) GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    ${TablePrefix}_name VARCHAR2(200 CHAR) NOT NULL,
-    status_code VARCHAR2(30 CHAR) DEFAULT 'ACTIVE' NOT NULL,
-    deleted_yn CHAR(1 CHAR) DEFAULT 'N' NOT NULL,
-    created_by VARCHAR2(100 CHAR) DEFAULT '$ModuleUpper' NOT NULL,
-    created_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
-    updated_by VARCHAR2(100 CHAR) DEFAULT '$ModuleUpper' NOT NULL,
-    updated_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL
-);
-CREATE INDEX ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
-COMMENT ON TABLE ${TablePrefix}_sample IS '${ModuleName} 업무 샘플';
-COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_id IS '${ModuleName} 식별자';
-COMMENT ON COLUMN ${TablePrefix}_sample.${TablePrefix}_name IS '${ModuleName} 명칭';
-COMMENT ON COLUMN ${TablePrefix}_sample.status_code IS '상태 코드';
-COMMENT ON COLUMN ${TablePrefix}_sample.deleted_yn IS '논리 삭제 여부';
-COMMENT ON COLUMN ${TablePrefix}_sample.created_by IS '등록자';
-COMMENT ON COLUMN ${TablePrefix}_sample.created_at IS '등록일시';
-COMMENT ON COLUMN ${TablePrefix}_sample.updated_by IS '수정자';
-COMMENT ON COLUMN ${TablePrefix}_sample.updated_at IS '수정일시';
-"@
-    }
-    "sqlserver" {
-@"
--- ${ModuleName} 업무 샘플 테이블입니다.
-IF OBJECT_ID(N'${TablePrefix}_sample', N'U') IS NULL
-BEGIN
-    CREATE TABLE ${TablePrefix}_sample (
-        ${TablePrefix}_id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        ${TablePrefix}_name NVARCHAR(200) NOT NULL,
-        status_code NVARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-        deleted_yn NCHAR(1) NOT NULL DEFAULT 'N',
-        created_by NVARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
-        created_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
-        updated_by NVARCHAR(100) NOT NULL DEFAULT '$ModuleUpper',
-        updated_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME()
-    );
-    CREATE INDEX ix_${TablePrefix}_sample_status ON ${TablePrefix}_sample (status_code, deleted_yn);
-END;
--- 컬럼 의미: 식별자, 명칭, 상태, 논리삭제, 등록자/등록일시, 수정자/수정일시 순입니다.
-"@
-    }
-}
-
 $readme = @"
 # ${ModuleName} 주제영역 골격
 
@@ -1268,22 +1793,22 @@ export async function search${FeatureClassPrefix}(): Promise<Record<string, unkn
 $serviceTest = @"
 package $FeaturePackage.service;
 
+import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
+import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ${FeatureClassPrefix}ServiceTest {
     private final AtomicReference<${FeatureClassPrefix}SearchRequest> capturedRequest = new AtomicReference<>();
-    private final ${FeatureClassPrefix}QueryPort queryPort = request -> {
-        // DB adapter를 우회하지 않고 port 계약을 대역으로 사용해 Service 경계만 검증합니다.
-        capturedRequest.set(request);
-        return Map.of("items", java.util.List.of(), "criteria", request);
-    };
+    private final StubQueryPort queryPort = new StubQueryPort();
     private final ${FeatureClassPrefix}Service service = new ${FeatureClassPrefix}Service(queryPort);
 
     @Test
@@ -1296,6 +1821,67 @@ class ${FeatureClassPrefix}ServiceTest {
         assertThat(capturedRequest.get().sortDirection()).isEqualTo("ASC");
         assertThat(capturedRequest.get().page()).isZero();
         assertThat(capturedRequest.get().size()).isEqualTo(200);
+    }
+
+    @Test
+    void createCarriesIdempotencyTransactionAndAuditContract() {
+        ${FeatureClassPrefix}SampleCommand command = new ${FeatureClassPrefix}SampleCommand(
+                "${ModuleUpper}_TEST_001",
+                "Minimal Transaction",
+                "ACTIVE",
+                "${ModuleUpper}_IDEMPOTENCY_001",
+                "${ModuleUpper}-TX-GLOBAL-001",
+                1,
+                0,
+                "generator-test");
+
+        Map<String, Object> result = service.create(command);
+
+        assertThat(result).containsEntry("transactionGlobalId", "${ModuleUpper}-TX-GLOBAL-001");
+        assertThat(command.maskedAuditKey()).isNotBlank();
+        assertThat(queryPort.created).isSameAs(command);
+    }
+
+    private final class StubQueryPort implements ${FeatureClassPrefix}QueryPort {
+        private ${FeatureClassPrefix}SampleCommand created;
+
+        @Override
+        public Map<String, Object> search(${FeatureClassPrefix}SearchRequest request) {
+            capturedRequest.set(request);
+            return Map.of("items", List.of(), "criteria", request);
+        }
+
+        @Override
+        public Map<String, Object> create(${FeatureClassPrefix}SampleCommand command) {
+            created = command;
+            return Map.of(
+                    "sampleKey", command.sampleKey(),
+                    "transactionGlobalId", command.transactionGlobalId());
+        }
+
+        @Override
+        public Optional<Map<String, Object>> findBySampleKey(String sampleKey) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) {
+            return create(command);
+        }
+
+        @Override
+        public void delete(long sampleItemId, long expectedVersion, String transactionGlobalId, String actor) {
+        }
+
+        @Override
+        public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
+            return new ${FeatureClassPrefix}Slice(List.of(), false, null);
+        }
+
+        @Override
+        public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
+            return true;
+        }
     }
 }
 "@
@@ -1674,8 +2260,8 @@ $applyOrder = @"
 
 1. `settings.gradle.patch` 내용을 검토하고 모듈 include를 반영합니다.
 2. `${projectName}/` 모듈과 `application-${module}.yml` 설정을 반영합니다.
-3. `sql/Vxx__${module}_domain.sql`의 Flyway version을 확정합니다.
-4. `sql/40_business_modules_schema.${module}.candidate.sql`을 split SQL과 all_install에 반영합니다.
+3. 중앙 `cpf-tools/db/vendor/{vendor}/domain-template`과 `prepareCpfVendorResources` 조립 결과를 검토합니다.
+4. `manifest/domain-manifest.json` Metadata로 선택 Vendor의 Provision/Install/Seed/Migration/Runtime/Verify를 수행합니다.
 5. `sql/50_framework_seed.${module}.candidate.sql`의 CPF module registry seed를 반영합니다.
 6. `sql/60_adm_seed.${module}.candidate.sql`의 ADM 메뉴/API/버튼 권한 seed를 반영합니다.
 7. `sql/99_smoke_check.${module}.candidate.sql`을 smoke check에 반영합니다.
@@ -1759,18 +2345,35 @@ $uiJson = $UiEnabled.ToString().ToLowerInvariant()
 $bzaMenuJson = $BzaMenuEnabled.ToString().ToLowerInvariant()
 $domainManifest = @"
 {
+  "metadataVersion": "1.0",
+  "domainType": "GENERATED_DOMAIN",
   "moduleCode": "$ModuleUpper",
   "systemCode": "$SystemCode",
   "domainName": "$module",
   "projectName": "$projectName",
+  "moduleName": "$ModuleName",
   "displayName": "$ModuleName",
   "domainIdCode": "$DomainIdCode",
+  "packageName": "$PackageName",
   "basePackage": "$BasePackage",
+  "schemaName": "$SchemaName",
   "port": $Port,
   "tablePrefix": "$TablePrefix",
+  "sampleTable": "${TablePrefix}_sample_item",
   "onlineEnabled": $onlineJson,
   "databaseEnabled": $databaseJson,
   "databaseVendor": "$DatabaseVendor",
+  "databaseVendorProperty": "cpf.db.vendor",
+  "supportedDatabaseVendors": ["mariadb", "mysql", "postgresql", "oracle", "sqlserver"],
+  "databaseTemplatePack": "cpf-tools/db/vendor/{vendor}/domain-template",
+  "databaseTemplateSelector": {
+    "vendor": "$DatabaseVendor",
+    "metadata": "manifest/domain-manifest.json",
+    "sourceTreeMutation": false,
+    "selectedVendorOnly": true
+  },
+  "databaseResourceAssembly": "prepareCpfVendorResources",
+  "generatedResourceRoot": "build/generated-resources/cpf-vendor",
   "dataSourceJndiName": "$DataSourceJndiName",
   "batchEnabled": $batchJson,
   "externalEnabled": $externalJson,
@@ -1781,7 +2384,17 @@ $domainManifest = @"
   "bzaMenuEnabled": $bzaMenuJson,
   "serviceId": "$ModuleUpper",
   "onlineStandardId": "O${DomainIdCode}QY0001",
-  "batchStandardId": "B${DomainIdCode}TS0001"
+  "batchStandardId": "B${DomainIdCode}TS0001",
+  "minimalTransactionContract": {
+    "model": "sample-item",
+    "logicalTable": "${SchemaName}.${TablePrefix}_sample_item",
+    "operations": [
+      "create", "read", "update", "delete", "search", "offset-page", "slice", "cursor",
+      "validation", "transaction-commit", "transaction-rollback", "optimistic-lock",
+      "duplicate", "local-call", "remote-call", "standard-header",
+      "transaction-global-id", "error-mapping", "idempotency", "audit", "masking", "framework-edu"
+    ]
+  }
 }
 "@
 
@@ -1811,6 +2424,7 @@ $ownershipManifest = @"
   "moduleCode": "$ModuleUpper",
   "ownerDomain": "$DomainIdCode",
   "ownedPackages": ["$BasePackage"],
+  "ownedSchemas": ["$SchemaName"],
   "ownedTablePrefixes": ["${TablePrefix}_"],
   "forbiddenDependencies": ["other-domain-repository", "other-domain-mapper"],
   "crossDomainContract": "CPF Service Call Engine 또는 CMN Facade Contract"
@@ -1819,10 +2433,10 @@ $ownershipManifest = @"
 
 $smokeSql = @"
 -- ${ModuleName} smoke check 후보입니다.
-SELECT '${ModuleUpper}_SAMPLE_TABLE' AS check_id, COUNT(*) AS row_count
+SELECT '${ModuleUpper}_SAMPLE_ITEM_TABLE' AS check_id, COUNT(*) AS row_count
 FROM information_schema.tables
 WHERE table_schema = DATABASE()
-  AND table_name = '${TablePrefix}_sample';
+  AND table_name = '${TablePrefix}_sample_item';
 "@
 
 $profileApplicationFiles = [ordered]@{}
@@ -1833,11 +2447,7 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
     } else {
         "${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}"
     }
-    $profileDataSourceUrl = if ($profileName -eq "prod") {
-        "${Dollar}{$($ModuleUpper)_DATASOURCE_URL}"
-    } else {
-        "${Dollar}{$($ModuleUpper)_DATASOURCE_URL:$($databaseVendorProfile.localUrl)}"
-    }
+    $profileDataSourceUrl = "${Dollar}{$($ModuleUpper)_DATASOURCE_URL:}"
     $profileDataSourceUsername = if ($profileName -eq "prod") {
         "${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME}"
     } else {
@@ -1847,6 +2457,7 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
 @"
   datasource:
     mode: $profileDataSourceMode
+    database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
     url: $profileDataSourceUrl
     username: $profileDataSourceUsername
     password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD}
@@ -1875,12 +2486,12 @@ $profileDataSourceYml
 $deployEnvFiles = [ordered]@{}
 foreach ($profileName in @("local", "dev", "stg", "prod")) {
     $deployDataSourceMode = if ($profileName -eq "prod") { "jndi" } else { "url" }
-    $deployDataSourceUrl = if ($profileName -eq "prod") { "__SET_BY_SECRET_PROVIDER__" } else { $databaseVendorProfile.localUrl }
     $deployDataSourceEnv = if ($DatabaseEnabled) {
 @"
 ${ModuleUpper}_DATASOURCE_MODE=$deployDataSourceMode
 ${ModuleUpper}_DATABASE_VENDOR=$DatabaseVendor
-${ModuleUpper}_DATASOURCE_URL=$deployDataSourceUrl
+${ModuleUpper}_DATABASE_NAME=$SchemaName
+${ModuleUpper}_DATASOURCE_URL=
 ${ModuleUpper}_DATASOURCE_USERNAME=cpf_${module}_app
 ${ModuleUpper}_DATASOURCE_PASSWORD=__SET_BY_SECRET_PROVIDER__
 ${ModuleUpper}_DATASOURCE_JNDI_NAME=$DataSourceJndiName
@@ -1942,18 +2553,19 @@ $files = [ordered]@{
     "src/main/java/$featurePackagePath/port/${FeatureClassPrefix}QueryPort.java" = $queryPortSource
     "src/main/java/$featurePackagePath/service/${FeatureClassPrefix}Service.java" = $service
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchRequest.java" = $dto
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleCommand.java" = $sampleCommand
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleItem.java" = $sampleItem
+    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}Slice.java" = $sampleSlice
     "src/main/java/$featurePackagePath/validation/${FeatureClassPrefix}SearchValidator.java" = $validator
     "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript
 }
 
 if ($DatabaseEnabled) {
-    $files["src/main/resources/mybatis/mapper/${module}/reference/${FeatureClassPrefix}Mapper.xml"] = $mapperXml
     $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
     $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
     $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java"] = $localAdapter
     $files["src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java"] = $repository
-    $files["sql/Vxx__${module}_domain.sql"] = $sql
 }
 if ($ExternalEnabled) {
     $files["src/main/java/$featurePackagePath/adapter/remote/Remote${FeatureClassPrefix}QueryProxy.java"] = $remoteProxy
@@ -2044,6 +2656,10 @@ $generatorOwnership = [ordered]@{
     systemCode = $SystemCode
     domainName = $module
     projectName = $projectName
+    moduleName = $ModuleName
+    packageName = $PackageName
+    schemaName = $SchemaName
+    tablePrefix = $TablePrefix
     moduleDirectory = $projectName
     outputDirectory = $OutputDir
     capabilities = [ordered]@{

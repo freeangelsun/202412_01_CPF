@@ -29,13 +29,13 @@ class BzaSupportServiceTest {
     @Test
     void savedSearchCanonicalizesObjectJsonAndUsesAuthenticatedOperator() {
         var request = new BzaSupportService.SavedSearchRequest(
-                "order", "고액 주문", "{\"amount\":10000,\"status\":\"WAITING\"}", "N", "업무 검색 저장");
+                "approval", "대기 결재", "{\"status\":\"WAITING\"}", "N", "업무 검색 저장");
 
         Map<String, Object> result = service.saveSavedSearch(request, "operator01");
 
         assertThat(result.get("ownerLoginId")).isEqualTo("operator01");
-        assertThat(result.get("screenCode")).isEqualTo("ORDER");
-        assertThat(result.get("criteriaJson")).isEqualTo("{\"amount\":10000,\"status\":\"WAITING\"}");
+        assertThat(result.get("screenCode")).isEqualTo("APPROVAL");
+        assertThat(result.get("criteriaJson")).isEqualTo("{\"status\":\"WAITING\"}");
         verify(repository).saveSavedSearch(any());
         verify(repository).insertBusinessAudit(any());
     }
@@ -43,7 +43,7 @@ class BzaSupportServiceTest {
     @Test
     void savedSearchRejectsArrayJsonBeforeRepositoryWrite() {
         var request = new BzaSupportService.SavedSearchRequest(
-                "ORDER", "잘못된 조건", "[]", "N", "검증");
+                "APPROVAL", "잘못된 조건", "[]", "N", "검증");
 
         assertThatThrownBy(() -> service.saveSavedSearch(request, "operator01"))
                 .isInstanceOf(CpfValidationException.class)
@@ -55,17 +55,17 @@ class BzaSupportServiceTest {
     void permissionSimulationMatchesMethodPathEnvironmentAndDomain() {
         Map<String, Object> permission = new LinkedHashMap<>();
         permission.put("roleCode", "BZA_MANAGER");
-        permission.put("menuCode", "ORDER");
+        permission.put("menuCode", "APPROVAL");
         permission.put("buttonCode", "WRITE");
         permission.put("httpMethod", "POST");
-        permission.put("apiPattern", "/api/bza/orders/**");
+        permission.put("apiPattern", "/api/bza/backoffice/approvals/**");
         permission.put("environmentCode", "ALL");
         permission.put("domainCode", "BZA");
         permission.put("dataScope", "ORGANIZATION");
         permission.put("allowYn", "Y");
         when(repository.findRolePermissions(List.of("BZA_MANAGER"))).thenReturn(List.of(permission));
         var request = new BzaSupportService.PermissionSimulationRequest(
-                "BZA_MANAGER", "ORDER", "WRITE", "POST", "/api/bza/orders/10",
+                "BZA_MANAGER", "APPROVAL", "WRITE", "POST", "/api/bza/backoffice/approvals/10",
                 "PROD", "BZA", "배포 전 권한 확인");
 
         Map<String, Object> result = service.simulatePermission(request, "security-admin");

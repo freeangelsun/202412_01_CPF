@@ -1,7 +1,9 @@
 package com.cpf.bizadmin.auth.repository;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -25,10 +27,13 @@ import java.util.Optional;
 @Repository
 public class BzaAuthRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public BzaAuthRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     /**
@@ -57,18 +62,7 @@ public class BzaAuthRepository {
 
     /** 환경변수로 승인된 최초 BZA 운영자를 기존 계정이 없을 때만 생성합니다. */
     public int bootstrapOperator(String loginId, String operatorName, String passwordHash, String roleCode) {
-        return jdbc().update("""
-                INSERT INTO bza_admin_user (
-                    admin_login_id, admin_name, password_hash, role_code,
-                    use_yn, lock_yn, login_fail_count, password_change_required_yn,
-                    password_expire_at, created_by, updated_by
-                )
-                SELECT :loginId, :operatorName, :passwordHash, :roleCode,
-                       'Y', 'N', 0, 'Y', DATE_ADD(NOW(), INTERVAL 90 DAY), 'BOOTSTRAP', 'BOOTSTRAP'
-                 WHERE NOT EXISTS (
-                       SELECT 1 FROM bza_admin_user WHERE admin_login_id = :loginId
-                 )
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("auth-bootstrap-operator"), new MapSqlParameterSource()
                 .addValue("loginId", loginId)
                 .addValue("operatorName", operatorName)
                 .addValue("passwordHash", passwordHash)
@@ -79,28 +73,16 @@ public class BzaAuthRepository {
      * 비밀번호 실패 횟수를 증가시킵니다.
      */
     public void increaseLoginFailCount(long adminUserId) {
-        jdbc().update("""
-                UPDATE bza_admin_user
-                   SET login_fail_count = login_fail_count + 1,
-                       lock_yn = CASE WHEN login_fail_count + 1 >= 5 THEN 'Y' ELSE lock_yn END,
-                       updated_by = 'BZA_AUTH',
-                       updated_at = NOW()
-                 WHERE admin_user_id = :adminUserId
-                """, new MapSqlParameterSource("adminUserId", adminUserId));
+        jdbc().update(sql.required("auth-increase-login-fail-count"),
+                new MapSqlParameterSource("adminUserId", adminUserId));
     }
 
     /**
      * 로그인 성공 시 실패 횟수와 최근 로그인 일시를 갱신합니다.
      */
     public void markLoginSuccess(long adminUserId) {
-        jdbc().update("""
-                UPDATE bza_admin_user
-                   SET login_fail_count = 0,
-                       last_login_at = NOW(),
-                       updated_by = 'BZA_AUTH',
-                       updated_at = NOW()
-                 WHERE admin_user_id = :adminUserId
-                """, new MapSqlParameterSource("adminUserId", adminUserId));
+        jdbc().update(sql.required("auth-mark-login-success"),
+                new MapSqlParameterSource("adminUserId", adminUserId));
     }
 
     /**
@@ -209,45 +191,20 @@ public class BzaAuthRepository {
      * refresh token을 폐기합니다.
      */
     public int revokeRefreshToken(String refreshTokenHash) {
-        return jdbc().update("""
-                UPDATE bza_refresh_token
-                   SET revoked_yn = 'Y',
-                       revoked_at = NOW(),
-                       updated_by = 'BZA_AUTH',
-                       updated_at = NOW()
-                 WHERE refresh_token_hash = :refreshTokenHash
-                   AND revoked_yn = 'N'
-                   AND expire_at > NOW()
-                """, new MapSqlParameterSource("refreshTokenHash", refreshTokenHash));
+        return jdbc().update(sql.required("auth-revoke-refresh-token"),
+                new MapSqlParameterSource("refreshTokenHash", refreshTokenHash));
     }
 
     /** refresh token 원문과 hash를 제외한 현재 사용자 세션 메타만 조회합니다. */
     public List<Map<String, Object>> findRefreshSessions(long adminUserId, int limit) {
-        return jdbc().queryForList("""
-                SELECT refresh_token_id AS sessionId, login_domain AS loginDomain,
-                       transaction_global_id AS transactionGlobalId, expire_at AS expiresAt,
-                       revoked_yn AS revokedYn, revoked_at AS revokedAt,
-                       created_at AS createdAt, updated_at AS updatedAt
-                  FROM bza_refresh_token
-                 WHERE admin_user_id = :adminUserId
-                 ORDER BY refresh_token_id DESC
-                 LIMIT :limit
-                """, new MapSqlParameterSource()
+        return jdbc().queryForList(sql.required("auth-find-refresh-sessions"), new MapSqlParameterSource()
                 .addValue("adminUserId", adminUserId)
                 .addValue("limit", limit));
     }
 
     /** 본인에게 속한 활성 refresh session만 조건부 폐기합니다. */
     public int revokeRefreshSession(long sessionId, long adminUserId, String updatedBy) {
-        return jdbc().update("""
-                UPDATE bza_refresh_token
-                   SET revoked_yn = 'Y', revoked_at = NOW(),
-                       updated_by = :updatedBy, updated_at = NOW()
-                 WHERE refresh_token_id = :sessionId
-                   AND admin_user_id = :adminUserId
-                   AND revoked_yn = 'N'
-                   AND expire_at > NOW()
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("auth-revoke-refresh-session"), new MapSqlParameterSource()
                 .addValue("sessionId", sessionId)
                 .addValue("adminUserId", adminUserId)
                 .addValue("updatedBy", updatedBy));
@@ -271,14 +228,7 @@ public class BzaAuthRepository {
             String previousHash,
             String newHash,
             String updatedBy) {
-        return jdbc().update("""
-                UPDATE bza_admin_user
-                   SET password_hash = :newHash,
-                       updated_by = :updatedBy,
-                       updated_at = NOW()
-                 WHERE admin_user_id = :adminUserId
-                   AND password_hash = :previousHash
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("auth-update-password-hash-if-unchanged"), new MapSqlParameterSource()
                 .addValue("adminUserId", adminUserId)
                 .addValue("previousHash", previousHash)
                 .addValue("newHash", newHash)
@@ -287,19 +237,7 @@ public class BzaAuthRepository {
 
     /** 본인 비밀번호 변경과 강제 변경 상태 해제를 원자적으로 처리합니다. */
     public int changePassword(long adminUserId, String previousHash, String newHash, String updatedBy) {
-        return jdbc().update("""
-                UPDATE bza_admin_user
-                   SET password_hash = :newHash,
-                       password_change_required_yn = 'N',
-                       password_expire_at = DATE_ADD(NOW(), INTERVAL 90 DAY),
-                       login_fail_count = 0,
-                       lock_yn = 'N',
-                       updated_by = :updatedBy,
-                       updated_at = NOW()
-                 WHERE admin_user_id = :adminUserId
-                   AND password_hash = :previousHash
-                   AND use_yn = 'Y'
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("auth-change-password"), new MapSqlParameterSource()
                 .addValue("adminUserId", adminUserId)
                 .addValue("previousHash", previousHash)
                 .addValue("newHash", newHash)
@@ -308,36 +246,16 @@ public class BzaAuthRepository {
 
     /** 비밀번호 변경 후 해당 사용자의 모든 refresh token을 폐기합니다. */
     public void revokeAllRefreshTokens(long adminUserId) {
-        jdbc().update("""
-                UPDATE bza_refresh_token
-                   SET revoked_yn = 'Y', revoked_at = NOW(), updated_by = 'BZA_AUTH', updated_at = NOW()
-                 WHERE admin_user_id = :adminUserId
-                   AND revoked_yn = 'N'
-                """, new MapSqlParameterSource("adminUserId", adminUserId));
+        jdbc().update(sql.required("auth-revoke-all-refresh-tokens"),
+                new MapSqlParameterSource("adminUserId", adminUserId));
     }
 
     /**
      * 최근 로그인 이력을 조회합니다.
      */
     public List<Map<String, Object>> findLoginHistories(int limit) {
-        return jdbc().queryForList("""
-                SELECT login_history_id AS historyId,
-                       login_domain AS loginDomain,
-                       admin_user_id AS adminUserId,
-                       admin_login_id AS adminLoginId,
-                       login_result AS loginResult,
-                       failure_reason AS failureReason,
-                       client_ip AS clientIp,
-                       user_agent AS userAgent,
-                       transaction_global_id AS transactionGlobalId,
-                       module_id AS moduleId,
-                       was_id AS wasId,
-                       server_instance_id AS serverInstanceId,
-                       created_at AS occurredAt
-                  FROM bza_login_history
-                 ORDER BY login_history_id DESC
-                 LIMIT :limit
-                """, new MapSqlParameterSource("limit", limit));
+        return jdbc().queryForList(sql.required("auth-find-login-histories"),
+                new MapSqlParameterSource("limit", limit));
     }
 
     private List<String> findMenus(String roleCode) {
@@ -352,14 +270,8 @@ public class BzaAuthRepository {
     }
 
     private List<String> findButtons(String roleCode) {
-        return jdbc().queryForList("""
-                SELECT CONCAT(menu_code, ':', button_code) AS button_key
-                  FROM bza_permission
-                 WHERE role_code = :roleCode
-                   AND allow_yn = 'Y'
-                   AND use_yn = 'Y'
-                 ORDER BY menu_code, button_code
-                """, new MapSqlParameterSource("roleCode", roleCode), String.class);
+        return jdbc().queryForList(sql.required("auth-find-buttons"),
+                new MapSqlParameterSource("roleCode", roleCode), String.class);
     }
 
     private NamedParameterJdbcTemplate jdbc() {

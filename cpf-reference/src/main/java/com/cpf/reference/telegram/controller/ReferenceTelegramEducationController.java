@@ -1,8 +1,9 @@
 package com.cpf.reference.telegram.controller;
 
-import com.cpf.common.tlm.core.CmnTelegramParseResult;
-import com.cpf.common.tlm.service.CmnTelegramService;
 import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.fixedlength.CpfFixedLengthDtoMapper;
+import com.cpf.core.api.fixedlength.CpfFixedLengthParseResult;
+import com.cpf.core.api.fixedlength.CpfFixedLengthWriteResult;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
 import com.cpf.reference.telegram.dto.ReferenceFixedLengthMemberTelegram;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,19 +24,25 @@ import java.util.Map;
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 06. Fixed Length", description = "Fixed length telegram parse and write samples")
 public class ReferenceTelegramEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
-    private final CmnTelegramService telegramService;
+    private final CpfFixedLengthDtoMapper fixedLengthMapper;
 
-    public ReferenceTelegramEducationController(CmnTelegramService telegramService) {
-        this.telegramService = telegramService;
+    public ReferenceTelegramEducationController(CpfFixedLengthDtoMapper fixedLengthMapper) {
+        this.fixedLengthMapper = fixedLengthMapper;
     }
 
     @PostMapping("/fixed-length/parse")
     @CpfOnlineTransaction(id = "OREFAA0060", name = "REFFixedLengthParse")
     @Operation(operationId = "refTelegramEducationParseFixedLengthTelegram", summary = "Fixed length parse sample", description = "Parses a fixed length string to DTO and map.")
     public ResponseEntity<Map<String, Object>> parseFixedLengthTelegram(@RequestParam(required = false) String telegram) {
-        String sampleTelegram = TextUtils.hasText(telegram) ? telegram : telegramService.writeFromDto(defaultTelegramDto());
-        CmnTelegramParseResult parseResult = telegramService.parseToMap(sampleTelegram, telegramService.schemaFromDto(ReferenceFixedLengthMemberTelegram.class));
-        ReferenceFixedLengthMemberTelegram dto = telegramService.parseToDto(sampleTelegram, ReferenceFixedLengthMemberTelegram.class);
+        String sampleTelegram = TextUtils.hasText(telegram)
+                ? telegram
+                : fixedLengthMapper.writeFromDto(defaultTelegramDto()).message();
+        CpfFixedLengthParseResult parseResult = fixedLengthMapper.parseToMap(
+                sampleTelegram,
+                ReferenceFixedLengthMemberTelegram.class);
+        ReferenceFixedLengthMemberTelegram dto = fixedLengthMapper.parseToDto(
+                sampleTelegram,
+                ReferenceFixedLengthMemberTelegram.class);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("telegram", sampleTelegram);
@@ -50,13 +57,15 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
     public ResponseEntity<Map<String, Object>> writeFixedLengthTelegram(
             @RequestBody(required = false) ReferenceFixedLengthMemberTelegram request) {
         ReferenceFixedLengthMemberTelegram dto = request == null ? defaultTelegramDto() : request;
-        String telegram = telegramService.writeFromDto(dto);
+        CpfFixedLengthWriteResult writeResult = fixedLengthMapper.writeFromDto(dto);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("dto", dto);
-        response.put("telegram", telegram);
-        response.put("length", telegram.length());
-        response.put("parsedAgain", telegramService.parseToDto(telegram, ReferenceFixedLengthMemberTelegram.class));
+        response.put("telegram", writeResult.message());
+        response.put("length", writeResult.byteLength());
+        response.put("parsedAgain", fixedLengthMapper.parseToDto(
+                writeResult.message(),
+                ReferenceFixedLengthMemberTelegram.class));
         return ResponseEntity.ok(response);
     }
 

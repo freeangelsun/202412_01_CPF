@@ -1,0 +1,9 @@
+{
+    "startedAt":  "2026-07-24T13:41:59.227+09:00",
+    "status":  "FAILED",
+    "moduleCode":  "LNG",
+    "cleanDryRun":  null,
+    "changedFileDryRun":  null,
+    "actualRemove":  null,
+    "endedAt":  "2026-07-24T13:42:00.824+09:00"
+}

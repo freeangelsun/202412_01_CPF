@@ -1,0 +1,12 @@
+MERGE INTO @CPF_TABLE_PREFIX@_sample_item target
+USING (SELECT '@CPF_SYSTEM_CODE@_SAMPLE_001' sample_key, '@CPF_DISPLAY_NAME@ 표준 거래 샘플' item_name FROM dual) source
+ON (target.sample_key=source.sample_key)
+WHEN MATCHED THEN UPDATE SET target.item_name=source.item_name,target.status_code='ACTIVE',
+  target.transaction_global_id='@CPF_SYSTEM_CODE@-SEED-TX-001',target.updated_by='product-seed',target.updated_at=SYSTIMESTAMP
+WHEN NOT MATCHED THEN INSERT (
+  sample_key,item_name,status_code,version_no,idempotency_key,transaction_global_id,
+  transaction_sequence,transaction_at,deleted_yn,created_by,updated_by
+) VALUES (
+  source.sample_key,source.item_name,'ACTIVE',0,'@CPF_SYSTEM_CODE@_SEED_001',
+  '@CPF_SYSTEM_CODE@-SEED-TX-001',1,SYSTIMESTAMP,'N','product-seed','product-seed'
+);

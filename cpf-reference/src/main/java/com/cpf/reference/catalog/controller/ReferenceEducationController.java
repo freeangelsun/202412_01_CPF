@@ -49,10 +49,14 @@ public class ReferenceEducationController extends com.cpf.reference.common.base.
                                 "GET /api/reference/transactions/composite-sample")),
                         Map.of("name", "Dynamic log", "apis", List.of("PUT /api/reference/admin/log-level", "GET /api/reference/admin/log-level")),
                         Map.of("name", "Security", "apis", List.of("GET /api/reference/security/crypto/basic", "POST /api/reference/security/jwt/create", "GET /api/reference/security/oauth/introspect")),
-                        Map.of("name", "CMN business", "apis", List.of(
-                                "POST /api/reference/cmn-business/sequence/issue",
-                                "POST /api/reference/cmn-business/notification-log",
-                                "POST /api/reference/cmn-business/business-log")),
+                        Map.of("name", "CMN sample", "apis", List.of(
+                                "GET /api/reference/cmn-sample/status",
+                                "GET /api/reference/cmn-sample/items",
+                                "GET /api/reference/cmn-sample/items/cursor",
+                                "POST /api/reference/cmn-sample/items",
+                                "PUT /api/reference/cmn-sample/items/{sampleItemId}",
+                                "DELETE /api/reference/cmn-sample/items/{sampleItemId}",
+                                "POST /api/reference/cmn-sample/transaction/rollback-verify")),
                         Map.of("name", "Batch", "apis", List.of(
                                 "POST /api/reference/batch/tasklet/run",
                                 "POST /api/reference/batch/chunk/run",

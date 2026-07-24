@@ -1,0 +1,41 @@
+{
+    "startedAt":  "2026-07-24T13:41:38.8017343+09:00",
+    "status":  "FAILED",
+    "snapshot":  {
+
+                 },
+    "ownership":  [
+
+                  ],
+    "externalReferences":  [
+
+                           ],
+    "legacyRemovalProtection":  {
+
+                                },
+    "delete":  {
+
+               },
+    "generate":  {
+
+                 },
+    "verify":  {
+
+               },
+    "databaseInit":  {
+
+                     },
+    "compile":  {
+
+                },
+    "remove":  {
+
+               },
+    "parity":  {
+
+               },
+    "comparison":  {
+
+                   },
+    "endedAt":  "2026-07-24T13:41:38.9815804+09:00"
+}

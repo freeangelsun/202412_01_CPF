@@ -52,6 +52,14 @@ subprojects {
         testImplementation 'net.bytebuddy:byte-buddy:1.18.7'
         testImplementation 'net.bytebuddy:byte-buddy-agent:1.18.7'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        // 동일 Application binary에서 cpf.db.vendor와 datasource property만 바꿔
+        // 공식 DB Vendor driver를 선택합니다. 업무 Source에는 Vendor 분기를 두지 않습니다.
+        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+        runtimeOnly 'com.mysql:mysql-connector-j'
+        runtimeOnly 'org.postgresql:postgresql'
+        runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+        runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
     }
 
     tasks.withType(JavaCompile).configureEach {

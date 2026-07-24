@@ -29,7 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         controllers = MbrController.class,
         properties = {
                 "cpf.cmn.cache.preload-enabled=false",
-                "cpf.cmn.cache.event-poll-enabled=false"
+                "cpf.cmn.cache.event-poll-enabled=false",
+                "cpf.channel-policy.startup-load-enabled=false",
+                "cpf.execution-catalog.db-access-enabled=false"
         }
 )
 @Import({

@@ -337,7 +337,7 @@ SELECT
     $result.checks.batCenterCutTableCount = [int] (Invoke-Scalar -StepName "batCenterCutTableCount" -SqlText @"
 SELECT COUNT(*)
 FROM information_schema.tables
-WHERE table_schema = 'cpfDB'
+WHERE table_schema = 'batDB'
   AND table_name IN ('bat_center_cut_job', 'bat_center_cut_parameter', 'bat_center_cut_item', 'bat_center_cut_result');
 "@)
     $result.checks.legacyCpfCenterCutTableCount = [int] (Invoke-Scalar -StepName "legacyCpfCenterCutTableCount" -SqlText @"
@@ -348,12 +348,12 @@ WHERE table_schema = 'cpfDB'
 "@)
     $result.checks.centerCutSeedCount = [int] (Invoke-Scalar -StepName "centerCutSeedCount" -SqlText @"
 SELECT COUNT(*)
-FROM cpfDB.bat_center_cut_job
+FROM batDB.bat_center_cut_job
 WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
 "@)
     $result.checks.centerCutParameterSeedCount = [int] (Invoke-Scalar -StepName "centerCutParameterSeedCount" -SqlText @"
 SELECT COUNT(*)
-FROM cpfDB.bat_center_cut_parameter
+FROM batDB.bat_center_cut_parameter
 WHERE center_cut_job_id = 'CPF_BAT_CENTER_CUT_JOB';
 "@)
     $result.checks.refCenterCutTableCount = [int] (Invoke-Scalar -StepName "refCenterCutTableCount" -SqlText @"
@@ -443,7 +443,69 @@ SELECT COUNT(*) FROM cpfDB.cpf_standard_execution_alias;
 "@)
     $result.checks.batchOnDemandTableCount = [int] (Invoke-Scalar -StepName "batchOnDemandTableCount" -SqlText @"
 SELECT COUNT(*) FROM information_schema.tables
-WHERE table_schema = 'cpfDB' AND table_name = 'cpf_batch_on_demand_request';
+WHERE table_schema = 'batDB' AND table_name = 'bat_on_demand_request';
+"@)
+    $result.checks.batRuntimeTableCount = [int] (Invoke-Scalar -StepName "batRuntimeTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'batDB'
+  AND table_type = 'BASE TABLE'
+  AND table_name IN (
+      'BATCH_JOB_INSTANCE',
+      'BATCH_JOB_EXECUTION',
+      'BATCH_JOB_EXECUTION_PARAMS',
+      'BATCH_STEP_EXECUTION',
+      'BATCH_STEP_EXECUTION_CONTEXT',
+      'BATCH_JOB_EXECUTION_CONTEXT',
+      'bat_on_demand_request',
+      'bat_job',
+      'bat_schedule',
+      'bat_job_relation',
+      'bat_instance',
+      'bat_worker',
+      'bat_execution',
+      'bat_execution_lease',
+      'bat_execution_target',
+      'bat_step_execution',
+      'bat_lock',
+      'bat_operation_log',
+      'bat_ghost_event',
+      'bat_business_day_calendar',
+      'bat_center_cut_job',
+      'bat_center_cut_parameter',
+      'bat_center_cut_item',
+      'bat_center_cut_result'
+  );
+"@)
+    $result.checks.legacyCpfBatchTableCount = [int] (Invoke-Scalar -StepName "legacyCpfBatchTableCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'cpfDB'
+  AND (
+      table_name LIKE 'BATCH\_%'
+      OR table_name LIKE 'cpf\_batch\_%'
+      OR table_name LIKE 'bat\_center\_cut\_%'
+      OR table_name = 'cpf_business_day_calendar'
+  );
+"@)
+    $result.checks.batSequenceCount = [int] (Invoke-Scalar -StepName "batSequenceCount" -SqlText @"
+SELECT COUNT(*)
+FROM information_schema.tables
+WHERE table_schema = 'batDB'
+  AND table_name IN ('BATCH_STEP_EXECUTION_SEQ', 'BATCH_JOB_EXECUTION_SEQ', 'BATCH_JOB_SEQ')
+  AND table_type = 'SEQUENCE';
+"@)
+    $result.checks.batAppDmlGrantCount = [int] (Invoke-Scalar -StepName "batAppDmlGrantCount" -SqlText @"
+SELECT (Select_priv = 'Y') + (Insert_priv = 'Y') + (Update_priv = 'Y') + (Delete_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_bat_app' AND Host = 'localhost' AND LOWER(Db) = LOWER('batDB');
+"@)
+    $result.checks.batAppDdlGrantCount = [int] (Invoke-Scalar -StepName "batAppDdlGrantCount" -SqlText @"
+SELECT (Create_priv = 'Y') + (Alter_priv = 'Y') + (Drop_priv = 'Y') + (Index_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_bat_app' AND Host = 'localhost' AND LOWER(Db) = LOWER('batDB');
+"@)
+    $result.checks.batMigrationDdlGrantCount = [int] (Invoke-Scalar -StepName "batMigrationDdlGrantCount" -SqlText @"
+SELECT (Create_priv = 'Y') + (Alter_priv = 'Y') + (Drop_priv = 'Y') + (Index_priv = 'Y')
+FROM mysql.db WHERE User = 'cpf_bat_migration' AND Host = 'localhost' AND LOWER(Db) = LOWER('batDB');
 "@)
     $result.checks.channelPolicyTableCount = [int] (Invoke-Scalar -StepName "channelPolicyTableCount" -SqlText @"
 SELECT COUNT(*) FROM information_schema.tables
@@ -505,9 +567,8 @@ WHERE table_schema = 'bzaDB'
   AND table_name IN (
       'bza_admin_user', 'bza_login_history', 'bza_refresh_token', 'bza_menu',
       'bza_role', 'bza_permission', 'bza_organization', 'bza_employee',
-      'bza_user_role', 'bza_business_audit', 'bza_approval_document',
-      'bza_approval_line', 'bza_approval_history', 'bza_customer', 'bza_product',
-      'bza_order', 'bza_project_setting', 'bza_masking_audit'
+      'bza_business_audit', 'bza_approval_document',
+      'bza_approval_line', 'bza_approval_history', 'bza_project_setting'
   );
 "@)
     $result.checks.bzaCommonColumnCount = [int] (Invoke-Scalar -StepName "bzaCommonColumnCount" -SqlText @"
@@ -677,7 +738,22 @@ WHERE ap.button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_P
         throw "standard execution alias seed count mismatch. actual=$($result.checks.standardExecutionAliasCount)"
     }
     if ($result.checks.batchOnDemandTableCount -ne 1) {
-        throw "cpf_batch_on_demand_request table is missing."
+        throw "bat_on_demand_request table is missing from batDB."
+    }
+    if ($result.checks.batRuntimeTableCount -ne 24) {
+        throw "BAT runtime table count mismatch. actual=$($result.checks.batRuntimeTableCount)"
+    }
+    if ($result.checks.legacyCpfBatchTableCount -ne 0) {
+        throw "BAT-owned runtime tables remain in cpfDB. actual=$($result.checks.legacyCpfBatchTableCount)"
+    }
+    if ($result.checks.batSequenceCount -ne 3) {
+        throw "Spring Batch MariaDB sequence contract mismatch. actual=$($result.checks.batSequenceCount)"
+    }
+    if ($result.checks.batAppDmlGrantCount -ne 4 -or $result.checks.batAppDdlGrantCount -ne 0) {
+        throw "BAT app account privilege separation failed."
+    }
+    if ($result.checks.batMigrationDdlGrantCount -ne 4) {
+        throw "BAT migration account DDL privileges are incomplete."
     }
     if ($result.checks.channelPolicyTableCount -ne 3) {
         throw "CPF channel policy table count mismatch. actual=$($result.checks.channelPolicyTableCount)"
@@ -700,7 +776,7 @@ WHERE ap.button_id IN ('CHANNEL_POLICY_READ', 'CHANNEL_POLICY_WRITE', 'CHANNEL_P
     if ($result.checks.accMigrationDdlGrantCount -ne 4) {
         throw "ACC migration account DDL privileges are incomplete."
     }
-    if ($result.checks.bzaTableCount -ne 18) {
+    if ($result.checks.bzaTableCount -ne 17) {
         throw "BZA baseline table count mismatch. actual=$($result.checks.bzaTableCount)"
     }
     if ($result.checks.bzaCommonColumnCount -ne ($result.checks.bzaAllTableCount * 4)) {

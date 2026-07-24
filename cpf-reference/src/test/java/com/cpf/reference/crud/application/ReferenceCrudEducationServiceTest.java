@@ -9,6 +9,7 @@ import com.cpf.reference.query.dto.ReferenceQueryEducationItem;
 import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +85,8 @@ class ReferenceCrudEducationServiceTest {
     }
 
     private ReferenceQueryEducationItem item(Long itemId, String itemName, String categoryCode, String statusCode) {
-        return new ReferenceQueryEducationItem(itemId, itemName, categoryCode, statusCode, "MBR-001", "2026-07-02T09:00:00");
+        return new ReferenceQueryEducationItem(
+                itemId, itemName, categoryCode, statusCode, "MBR-001",
+                LocalDateTime.parse("2026-07-02T09:00:00"));
     }
 }

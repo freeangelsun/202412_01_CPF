@@ -40,19 +40,22 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
     private final AdmAuditLogService auditLogService;
 
     public AdmDownloadService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             AdmAuditLogService auditLogService) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
+        this.batJdbcTemplate = batJdbcTemplate;
         this.admJdbcTemplate = admJdbcTemplate;
         this.auditLogService = auditLogService;
     }
 
-    @Transactional
+    @Transactional(transactionManager = "admTransactionManager")
     public DownloadResult downloadCsv(DownloadRequest request, String operatorId, String clientIp, String userAgent) {
         DownloadPolicy policy = resolvePolicy(request.downloadType());
         String reason = auditLogService.requireReason(request.reason());
@@ -65,7 +68,11 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         Long downloadId = null;
         try {
             QuerySpec querySpec = buildQuery(policy.downloadType(), request);
-            List<Map<String, Object>> rows = cpfJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
+            JdbcTemplate sourceJdbcTemplate = "BATCH_EXECUTIONS".equals(policy.downloadType())
+                    ? batJdbcTemplate
+                    : cpfJdbcTemplate;
+            List<Map<String, Object>> rows =
+                    sourceJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
             String csv = toCsv(rows, mask);
             String fileName = fileName(policy.downloadType());
             downloadId = recordDownloadAudit(
@@ -202,10 +209,11 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
 
     private QuerySpec batchExecutionQuery(DownloadRequest request) {
         StringBuilder sql = new StringBuilder("""
-                SELECT EXECUTION_ID, JOB_ID, INSTANCE_ID, START_TIME, END_TIME, STATUS, EXIT_CODE,
-                       EXIT_MESSAGE, READ_COUNT, WRITE_COUNT, SKIP_COUNT, RETRY_COUNT,
-                       REQUESTED_BY, REASON, CREATED_AT
-                FROM cpf_batch_execution
+                SELECT execution_id, job_id, schedule_id, execution_status,
+                       spring_batch_execution_id, batch_instance_id, server_instance_id, worker_id,
+                       transaction_global_id, start_time, end_time, read_count, write_count,
+                       skip_count, retry_count, error_message, requested_by, created_at
+                FROM bat_execution
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();

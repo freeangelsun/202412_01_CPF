@@ -1,0 +1,2 @@
+IF OBJECT_ID(N'@CPF_TABLE_PREFIX@_sample_item',N'U') IS NOT NULL
+  DROP TABLE @CPF_TABLE_PREFIX@_sample_item;

@@ -49,4 +49,20 @@ public class AccountDataSourceConfig {
             @Qualifier("accDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
+
+    @Bean(name = "batDataSource")
+    public DataSource batDataSource(Environment environment) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
+    }
+
+    @Bean(name = "batTransactionManager")
+    public PlatformTransactionManager batTransactionManager(
+            @Qualifier("batDataSource") DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean(name = "batJdbcTemplate")
+    public JdbcTemplate batJdbcTemplate(@Qualifier("batDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
 }

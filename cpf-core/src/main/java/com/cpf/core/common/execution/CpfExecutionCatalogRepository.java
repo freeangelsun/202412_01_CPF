@@ -1,9 +1,12 @@
 package com.cpf.core.common.execution;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +25,32 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
     private static final Logger log = LoggerFactory.getLogger(CpfExecutionCatalogRepository.class);
 
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
+    private final boolean dbAccessEnabled;
+    private final CpfVendorSqlCatalog sql;
     private final ConcurrentMap<String, CpfExecutionDefinition> localCatalog = new ConcurrentHashMap<>();
 
     public CpfExecutionCatalogRepository(
             @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
+        this(jdbcTemplateProvider, true, new StandardEnvironment());
+    }
+
+    /**
+     * DB 없는 단위/컨텍스트 테스트에서는 메모리 catalog만 사용하도록 DB 접근을 명시적으로 끌 수 있습니다.
+     * 운영 기본 생성자는 DB 접근을 활성화합니다.
+     */
+    public CpfExecutionCatalogRepository(
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            boolean dbAccessEnabled) {
+        this(jdbcTemplateProvider, dbAccessEnabled, new StandardEnvironment());
+    }
+
+    public CpfExecutionCatalogRepository(
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            boolean dbAccessEnabled,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.dbAccessEnabled = dbAccessEnabled;
+        this.sql = CpfVendorSqlCatalog.create(environment, "cpf");
     }
 
     @Override
@@ -35,43 +59,13 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
             return;
         }
         definitions.forEach(definition -> localCatalog.put(definition.standardExecutionId(), definition));
-        JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
+        JdbcTemplate jdbcTemplate = dbAccessEnabled ? jdbcTemplateProvider.getIfAvailable() : null;
         if (jdbcTemplate == null) {
             return;
         }
         try {
             for (CpfExecutionDefinition definition : definitions) {
-                jdbcTemplate.update("""
-                        INSERT INTO cpf_standard_execution (
-                            standard_execution_id, execution_name, execution_type, owner_domain,
-                            source_module, source_class, source_method, http_method, endpoint, operation_id,
-                            description, required_permission, audit_reason_required_yn, visibility,
-                            direct_allowed_yn, gateway_allowed_yn, source_version,
-                            registration_status, first_registered_at, last_discovered_at,
-                            created_by, updated_by
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'REGISTERED', CURRENT_TIMESTAMP, ?, 'CPF_STARTUP', 'CPF_STARTUP')
-                        ON DUPLICATE KEY UPDATE
-                            execution_name = VALUES(execution_name),
-                            execution_type = VALUES(execution_type),
-                            owner_domain = VALUES(owner_domain),
-                            source_module = VALUES(source_module),
-                            source_class = VALUES(source_class),
-                            source_method = VALUES(source_method),
-                            http_method = VALUES(http_method),
-                            endpoint = VALUES(endpoint),
-                            operation_id = VALUES(operation_id),
-                            description = VALUES(description),
-                            required_permission = VALUES(required_permission),
-                            audit_reason_required_yn = VALUES(audit_reason_required_yn),
-                            visibility = VALUES(visibility),
-                            direct_allowed_yn = VALUES(direct_allowed_yn),
-                            gateway_allowed_yn = VALUES(gateway_allowed_yn),
-                            source_version = VALUES(source_version),
-                            registration_status = 'REGISTERED',
-                            last_discovered_at = VALUES(last_discovered_at),
-                            updated_by = 'CPF_STARTUP',
-                            updated_at = CURRENT_TIMESTAMP
-                        """,
+                jdbcTemplate.update(sql.required("execution-catalog-upsert"),
                         definition.standardExecutionId(),
                         definition.executionName(),
                         definition.executionType().name(),
@@ -100,18 +94,12 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
 
     @Override
     public List<CpfExecutionDefinition> findAll() {
-        JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
+        JdbcTemplate jdbcTemplate = dbAccessEnabled ? jdbcTemplateProvider.getIfAvailable() : null;
         if (jdbcTemplate != null) {
             try {
-                return jdbcTemplate.query("""
-                        SELECT standard_execution_id, execution_name, execution_type, owner_domain,
-                               source_module, source_class, source_method, http_method, endpoint, operation_id,
-                               description, required_permission, audit_reason_required_yn, visibility,
-                               direct_allowed_yn, gateway_allowed_yn, source_version, last_discovered_at
-                        FROM cpf_standard_execution
-                        WHERE registration_status <> 'RETIRED'
-                        ORDER BY standard_execution_id
-                        """, (rs, rowNum) -> new CpfExecutionDefinition(
+                return jdbcTemplate.query(
+                        sql.required("execution-catalog-find-all"),
+                        (rs, rowNum) -> new CpfExecutionDefinition(
                         rs.getString("standard_execution_id"),
                         rs.getString("execution_name"),
                         CpfExecutionType.valueOf(rs.getString("execution_type")),
@@ -155,16 +143,14 @@ public final class CpfExecutionCatalogRepository implements CpfExecutionCatalogP
         if (!CpfStandardExecutionId.isLegacy(executionId)) {
             return Optional.empty();
         }
-        JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
+        JdbcTemplate jdbcTemplate = dbAccessEnabled ? jdbcTemplateProvider.getIfAvailable() : null;
         if (jdbcTemplate == null) {
             return Optional.empty();
         }
         try {
-            List<String> currentIds = jdbcTemplate.queryForList("""
-                    SELECT standard_execution_id
-                    FROM cpf_standard_execution_alias
-                    WHERE legacy_execution_id = ?
-                    """, String.class, executionId);
+            List<String> currentIds = jdbcTemplate.queryForList(
+                    sql.required("execution-catalog-resolve-alias"),
+                    String.class, executionId);
             return currentIds.isEmpty() ? Optional.empty() : findById(currentIds.getFirst());
         } catch (DataAccessException ex) {
             log.warn("레거시 실행 ID alias 조회에 실패했습니다. legacyExecutionId={}", executionId, ex);

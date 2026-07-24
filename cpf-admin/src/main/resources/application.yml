@@ -15,6 +15,13 @@ spring:
     active: local
     include: cpf, cmn
   datasource:
+    bat:
+      mode: ${BAT_DATASOURCE_MODE:${BAT_DB_MODE:url}}
+      driver-class-name: ${BAT_DATASOURCE_DRIVER:${BAT_DB_DRIVER:org.mariadb.jdbc.Driver}}
+      url: ${BAT_DATASOURCE_URL:${BAT_DB_URL:jdbc:mariadb://localhost:3306/batDB}}
+      username: ${BAT_DATASOURCE_USERNAME:${BAT_DB_USERNAME:cpf_bat_app}}
+      password: ${BAT_DATASOURCE_PASSWORD:${BAT_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${BAT_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBatchDataSource}
     adm:
       mode: ${ADM_DATASOURCE_MODE:url}
       driver-class-name: ${ADM_DB_DRIVER:org.mariadb.jdbc.Driver}

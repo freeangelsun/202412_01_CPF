@@ -1,7 +1,9 @@
 package com.cpf.bizadmin.support.repository;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -18,10 +20,13 @@ import java.util.Optional;
 @Repository
 public class BzaSupportRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public BzaSupportRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     public Map<String, Object> dashboard(String loginId) {
@@ -37,18 +42,7 @@ public class BzaSupportRepository {
     }
 
     public List<Map<String, Object>> findNotifications(String loginId, boolean unreadOnly, int limit) {
-        return jdbc().queryForList("""
-                SELECT notification_id AS notificationId, notification_type AS notificationType,
-                       title, message_body AS messageBody, reference_type AS referenceType,
-                       reference_id AS referenceId, read_yn AS readYn, read_at AS readAt,
-                       created_at AS createdAt
-                  FROM bza_notification
-                 WHERE recipient_login_id = :loginId
-                   AND use_yn = 'Y'
-                   AND (:unreadOnly = 'N' OR read_yn = 'N')
-                 ORDER BY notification_id DESC
-                 LIMIT :limit
-                """, new MapSqlParameterSource()
+        return jdbc().queryForList(sql.required("support-find-notifications"), new MapSqlParameterSource()
                 .addValue("loginId", loginId)
                 .addValue("unreadOnly", unreadOnly ? "Y" : "N")
                 .addValue("limit", limit));
@@ -150,18 +144,7 @@ public class BzaSupportRepository {
     }
 
     public void saveSavedSearch(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_saved_search (
-                    owner_login_id, screen_code, search_name, criteria_json,
-                    shared_yn, use_yn, created_by, updated_by
-                ) VALUES (
-                    :ownerLoginId, :screenCode, :searchName, :criteriaJson,
-                    :sharedYn, 'Y', :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    criteria_json = VALUES(criteria_json), shared_yn = VALUES(shared_yn), use_yn = 'Y',
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        jdbc().update(sql.required("support-save-saved-search"), values);
     }
 
     public int disableSavedSearch(long savedSearchId, String loginId, String requestUser) {
@@ -176,16 +159,8 @@ public class BzaSupportRepository {
     }
 
     public List<Map<String, Object>> findDownloadAudits(int limit) {
-        return jdbc().queryForList("""
-                SELECT download_audit_id AS downloadAuditId, actor_id AS actorId,
-                       download_code AS downloadCode, reason, filter_json AS filterJson,
-                       row_count AS rowCount, result_status AS resultStatus, file_name AS fileName,
-                       masking_applied_yn AS maskingAppliedYn,
-                       transaction_global_id AS transactionGlobalId, created_at AS createdAt
-                  FROM bza_download_audit
-                 ORDER BY download_audit_id DESC
-                 LIMIT :limit
-                """, new MapSqlParameterSource("limit", limit));
+        return jdbc().queryForList(sql.required("support-find-download-audits"),
+                new MapSqlParameterSource("limit", limit));
     }
 
     public void insertDownloadAudit(Map<String, ?> values) {

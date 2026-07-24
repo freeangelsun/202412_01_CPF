@@ -1,68 +1,29 @@
 -- 로컬 및 통합 검증용 테스트 데이터입니다.
 
-USE cpfDB;
-
-INSERT INTO cpf_file_exchange_log (
-    EXCHANGE_ID,
-    TRANSACTION_ID,
-    TRACE_ID,
-    BUSINESS_TRANSACTION_ID,
-    ACTION_TYPE,
-    PROTOCOL,
-    DIRECTION,
-    EXECUTED_YN,
-    SUCCESS_YN,
-    HOST,
-    SOURCE_PATH,
-    TARGET_PATH,
-    REQUEST_USER,
-    MESSAGE,
-    created_by,
-    updated_by
-) VALUES (
-    'FILE-LOCAL-SAMPLE-001',
-    'TEST_TRANSACTION',
-    'TEST_TRACE',
-    'REF08EDU0001',
-    'LOCAL_WRITE',
-    'LOCAL',
-    'WRITE',
-    'Y',
-    'Y',
-    'localhost',
-    '/tmp/cpf/source.txt',
-    '/tmp/cpf/target.txt',
-    'SYSTEM',
-    '로컬 파일 교환 샘플 이력입니다.',
-    'SYSTEM',
-    'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    MESSAGE = VALUES(MESSAGE),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
 USE cmnDB;
 
-INSERT INTO cmn_edu_query_item (
-    item_id, item_name, category_code, status_code, owner_member_no, use_yn, created_by, updated_by
+INSERT INTO cmn_sample_item (
+    sample_item_id, sample_key, item_name, category_code, status_code,
+    searchable_text, owner_reference, sort_order, version_no, created_by, updated_by
 ) VALUES
-    (1, '표준 헤더 단건 조회', 'HEADER', 'ACTIVE', 'M000000001', 'Y', 'SYSTEM', 'SYSTEM'),
-    (2, '거래 로그 목록 조회', 'LOG', 'ACTIVE', 'M000000002', 'Y', 'SYSTEM', 'SYSTEM'),
-    (3, 'offset 페이징 조회', 'QUERY', 'ACTIVE', 'M000000003', 'Y', 'SYSTEM', 'SYSTEM'),
-    (4, 'keyset 페이징 조회', 'QUERY', 'ACTIVE', 'M000000004', 'Y', 'SYSTEM', 'SYSTEM'),
-    (5, '검색 조건 정규화', 'QUERY', 'INACTIVE', 'M000000005', 'Y', 'SYSTEM', 'SYSTEM'),
-    (6, '정렬 whitelist', 'QUERY', 'ACTIVE', 'M000000006', 'Y', 'SYSTEM', 'SYSTEM'),
-    (7, '하위 호출 헤더 전파', 'HEADER', 'ACTIVE', 'M000000007', 'Y', 'SYSTEM', 'SYSTEM'),
-    (8, 'Swagger 조회 예시', 'DOC', 'ACTIVE', 'M000000008', 'Y', 'SYSTEM', 'SYSTEM')
+    (101, 'CMN-TEST-101', '표준 헤더 단건 조회', 'HEADER', 'ACTIVE', 'header single query', 'MBR-TEST-101', 101, 0, 'CMN_TEST', 'CMN_TEST'),
+    (102, 'CMN-TEST-102', '거래 로그 목록 조회', 'LOG', 'ACTIVE', 'transaction log list', 'MBR-TEST-102', 102, 0, 'CMN_TEST', 'CMN_TEST'),
+    (103, 'CMN-TEST-103', 'offset 페이징 조회', 'QUERY', 'ACTIVE', 'offset page', 'MBR-TEST-103', 103, 0, 'CMN_TEST', 'CMN_TEST'),
+    (104, 'CMN-TEST-104', 'keyset 페이징 조회', 'QUERY', 'ACTIVE', 'keyset cursor', 'MBR-TEST-104', 104, 0, 'CMN_TEST', 'CMN_TEST'),
+    (105, 'CMN-TEST-105', '검색 조건 정규화', 'QUERY', 'INACTIVE', 'search validation', 'MBR-TEST-105', 105, 0, 'CMN_TEST', 'CMN_TEST'),
+    (106, 'CMN-TEST-106', '정렬 allowlist', 'QUERY', 'ACTIVE', 'stable sort allowlist', 'MBR-TEST-106', 106, 0, 'CMN_TEST', 'CMN_TEST'),
+    (107, 'CMN-TEST-107', '낙관적 잠금 충돌', 'LOCK', 'ACTIVE', 'optimistic lock version', 'MBR-TEST-107', 107, 0, 'CMN_TEST', 'CMN_TEST'),
+    (108, 'CMN-TEST-108', 'Transaction rollback', 'TRANSACTION', 'ACTIVE', 'transaction rollback', 'MBR-TEST-108', 108, 0, 'CMN_TEST', 'CMN_TEST')
 ON DUPLICATE KEY UPDATE
+    sample_key = VALUES(sample_key),
     item_name = VALUES(item_name),
     category_code = VALUES(category_code),
     status_code = VALUES(status_code),
-    owner_member_no = VALUES(owner_member_no),
-    use_yn = VALUES(use_yn),
+    searchable_text = VALUES(searchable_text),
+    owner_reference = VALUES(owner_reference),
+    sort_order = VALUES(sort_order),
     updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
+    updated_at = CURRENT_TIMESTAMP(3);
 
 USE refDB;
 
@@ -93,62 +54,31 @@ ON DUPLICATE KEY UPDATE
 
 USE mbrDB;
 
-INSERT INTO mbr_member (
-    id, member_no, customer_no, login_id, name, email, mobile_no,
-    password_hash, login_fail_count, password_change_required_yn, password_expire_at,
-    member_status, lock_yn, withdraw_yn, channel_code, description, created_by, updated_by
+INSERT INTO mbr_sample_item (
+    sample_key, item_name, category_code, status_code,
+    searchable_text, owner_reference, sort_order, version_no, deleted_yn,
+    transaction_global_id, idempotency_key, created_by, updated_by
 ) VALUES
-    (1, 'M000000001', 'C000000001', 'mbr001', '회원 1', 'mbr001@example.com', '010-1000-0001', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 샘플 회원 1', 'SYSTEM', 'SYSTEM'),
-    (2, 'M000000002', 'C000000002', 'mbr002', '회원 2', 'mbr002@example.com', '010-1000-0002', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'MOBILE', 'MBR 샘플 회원 2', 'SYSTEM', 'SYSTEM'),
-    (3, 'M000000003', 'C000000003', 'mbr003', '회원 3', 'mbr003@example.com', '010-1000-0003', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'DORMANT', 'N', 'N', 'WEB', 'MBR 휴면 회원 샘플', 'SYSTEM', 'SYSTEM'),
-    (100, 'M000000100', 'C000000100', 'search.target', '검색 대상', 'search@example.com', '010-9999-0100', 'PBKDF2$SEED$REPLACE_BY_RUNTIME_HASH', 0, 'N', NULL, 'ACTIVE', 'N', 'N', 'WEB', 'MBR 이름 검색 테스트 행', 'SYSTEM', 'SYSTEM')
+    ('MBR-SAMPLE-001', 'MBR 표준 거래 샘플 1', 'GENERAL', 'ACTIVE',
+     'crud search paging duplicate optimistic-lock', 'REF-SAMPLE-001', 10, 0, 'N',
+     '20260615120000000MBRlocal010000001', 'MBR-SEED-IDEMPOTENCY-001', 'MBR_SEED', 'MBR_SEED'),
+    ('MBR-SAMPLE-002', 'MBR 표준 거래 샘플 2', 'TRANSFER', 'ACTIVE',
+     'local remote call rollback', 'ACC-SAMPLE-001', 20, 0, 'N',
+     '20260615120000000MBRlocal010000002', 'MBR-SEED-IDEMPOTENCY-002', 'MBR_SEED', 'MBR_SEED'),
+    ('MBR-SAMPLE-003', 'MBR 비활성 거래 샘플', 'GENERAL', 'INACTIVE',
+     'status filter cursor slice', NULL, 30, 0, 'N',
+     '20260615120000000MBRlocal010000003', 'MBR-SEED-IDEMPOTENCY-003', 'MBR_SEED', 'MBR_SEED')
 ON DUPLICATE KEY UPDATE
-    customer_no = VALUES(customer_no),
-    login_id = VALUES(login_id),
-    password_hash = VALUES(password_hash),
-    login_fail_count = VALUES(login_fail_count),
-    password_change_required_yn = VALUES(password_change_required_yn),
-    password_expire_at = VALUES(password_expire_at),
-    name = VALUES(name),
-    email = VALUES(email),
-    mobile_no = VALUES(mobile_no),
-    member_status = VALUES(member_status),
-    lock_yn = VALUES(lock_yn),
-    withdraw_yn = VALUES(withdraw_yn),
-    channel_code = VALUES(channel_code),
-    description = VALUES(description),
+    item_name = VALUES(item_name),
+    category_code = VALUES(category_code),
+    status_code = VALUES(status_code),
+    searchable_text = VALUES(searchable_text),
+    owner_reference = VALUES(owner_reference),
+    sort_order = VALUES(sort_order),
+    transaction_global_id = VALUES(transaction_global_id),
+    idempotency_key = VALUES(idempotency_key),
     updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO mbr_member_role (
-    member_id, service_code, role_code, role_name, grade_code, temporary_yn, expire_at,
-    granted_by, use_yn, created_by, updated_by
-) VALUES
-    (1, 'MBR', 'MBR_USER', '일반 회원', 'NORMAL', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM'),
-    (2, 'MBR', 'MBR_PREMIUM', '프리미엄 회원', 'PREMIUM', 'N', NULL, 'SYSTEM', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    role_name = VALUES(role_name),
-    grade_code = VALUES(grade_code),
-    temporary_yn = VALUES(temporary_yn),
-    expire_at = VALUES(expire_at),
-    granted_by = VALUES(granted_by),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO mbr_member_login_history (
-    member_id, login_domain, member_no, customer_no, login_id, login_result, login_ip, user_agent, failure_reason,
-    transaction_global_id, module_id, was_id, server_instance_id, created_by, updated_by
-)
-SELECT 1, 'MBR', 'M000000001', 'C000000001', 'mbr001', 'SUCCESS', '127.0.0.1', 'SQL-SEED', NULL,
-       '20260615120000000MBRlocal010000001', 'MBR', 'local01', 'local-mbr:seed', 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM mbr_member_login_history
-    WHERE member_id = 1
-      AND login_id = 'mbr001'
-      AND user_agent = 'SQL-SEED'
-);
+    updated_at = CURRENT_TIMESTAMP(3);
 
 USE cpfDB;
 
@@ -404,9 +334,6 @@ INSERT INTO bza_menu (
     ('MENU', '메뉴 관리', 'BZA', '/bza#menus', '/api/bza/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', '권한 관리', 'BZA', '/bza#permissions', '/api/bza/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
     ('APPROVAL', '결재 관리', 'BZA', '/bza#approvals', '/api/bza/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CUSTOMER', '고객 업무 관리', 'BZA', '/bza#customers', '/api/bza/customers', 90, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('PRODUCT', '상품 관리', 'BZA', '/bza#products', '/api/bza/products', 100, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ORDER', '주문 관리', 'BZA', '/bza#orders', '/api/bza/orders', 110, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SETTING', '업무 설정', 'BZA', '/bza#settings', '/api/bza/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD', '다운로드 감사', 'BZA', '/bza#downloads', '/api/bza/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -453,10 +380,6 @@ INSERT INTO bza_permission (
     ('BZA_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'CUSTOMER', 'READ', 'API', 'GET', '/api/bza/customers/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'CUSTOMER', 'UNMASK', 'API', 'POST', '/api/bza/masking/unmask', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'PRODUCT', 'READ', 'API', 'GET', '/api/bza/products/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ORDER', 'READ', 'API', 'GET', '/api/bza/orders/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/bza/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/bza/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/bza/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -472,47 +395,10 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO bza_customer (
-    customer_no, customer_name, email, mobile_no, customer_status, created_by, updated_by
-) VALUES (
-    'CUST000001', '샘플 고객', 'customer@example.com', '010-0000-0001', 'ACTIVE', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    customer_name = VALUES(customer_name),
-    email = VALUES(email),
-    mobile_no = VALUES(mobile_no),
-    customer_status = VALUES(customer_status),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO bza_product (
-    product_code, product_name, use_yn, created_by, updated_by
-) VALUES (
-    'PRD_SAMPLE', '샘플 상품', 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    product_name = VALUES(product_name),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO bza_order (
-    order_no, customer_no, product_code, order_amount, order_status, created_by, updated_by
-) VALUES (
-    'ORD000001', 'CUST000001', 'PRD_SAMPLE', 10000.00, 'REQUESTED', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    customer_no = VALUES(customer_no),
-    product_code = VALUES(product_code),
-    order_amount = VALUES(order_amount),
-    order_status = VALUES(order_status),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
 INSERT INTO bza_project_setting (
     setting_key, setting_value, description, use_yn, created_by, updated_by
 ) VALUES (
-    'bza.masking.enabled', 'Y', '업무 관리자 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
+    'DOWNLOAD.MASKING.ENABLED', 'Y', '업무 다운로드 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE
     setting_value = VALUES(setting_value),
@@ -520,19 +406,6 @@ ON DUPLICATE KEY UPDATE
     use_yn = VALUES(use_yn),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO bza_masking_audit (
-    target_type, target_id, operator_id, reason, result_type, created_by, updated_by
-)
-SELECT 'CUSTOMER', 'CUST000001', 'biz-admin', '업무 관리자 샘플 원문보기 감사', 'SUCCESS', 'SYSTEM', 'SYSTEM'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM bza_masking_audit
-    WHERE target_type = 'CUSTOMER'
-      AND target_id = 'CUST000001'
-      AND operator_id = 'biz-admin'
-      AND reason = '업무 관리자 샘플 원문보기 감사'
-);
 
 INSERT INTO bza_organization (
     organization_code, parent_organization_code, organization_name, organization_type,

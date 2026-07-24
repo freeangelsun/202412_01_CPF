@@ -1,27 +1,34 @@
-﻿param(
+param(
     [Parameter(Mandatory = $true)]
     [string] $DomainName,
     [string] $SystemCode = "",
+    [string] $DatabaseVendor = "",
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path,
     [string] $DatabaseHost = $(if ($env:CPF_DOMAIN_DB_HOST) { $env:CPF_DOMAIN_DB_HOST } else { "localhost" }),
     [int] $DatabasePort = 0,
     [string] $DatabaseName = "",
     [string] $DatabaseUsername = $env:CPF_DOMAIN_DB_USERNAME,
     [string] $DatabasePassword = $env:CPF_DOMAIN_DB_PASSWORD,
+    [string] $AdminUsername = $env:CPF_DOMAIN_DB_ADMIN_USERNAME,
+    [string] $AdminPassword = $env:CPF_DOMAIN_DB_ADMIN_PASSWORD,
     [string] $ClientPath = "",
+    [string] $TemplateRoot = "",
     [string] $ResultDir = "",
-    [switch] $Apply
+    [ValidateSet("bootstrap", "migration", "verify", "rollback")]
+    [string] $Operation = "bootstrap",
+    [switch] $Apply,
+    [switch] $ConfirmRollback
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+# Vendor 선택은 생성 Java Source를 변경하지 않고 manifest가 가리키는 SQL resource pack만 선택합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+
 $domain = $DomainName.Trim().ToLowerInvariant()
 if ($domain -notmatch '^[a-z][a-z0-9]{1,29}$') {
     throw "DomainName은 영문자로 시작하는 2~30자리 영문 소문자·숫자여야 합니다."
@@ -38,24 +45,45 @@ if (-not [bool]$manifest.databaseEnabled) {
     throw "DB capability를 선택하지 않은 주제영역은 DB 초기화를 수행할 수 없습니다."
 }
 $manifestCode = ([string]$manifest.systemCode).ToUpperInvariant()
-if (-not [string]::IsNullOrWhiteSpace($SystemCode) -and $manifestCode -ne $SystemCode.Trim().ToUpperInvariant()) {
+if (-not [string]::IsNullOrWhiteSpace($SystemCode) -and
+        $manifestCode -ne $SystemCode.Trim().ToUpperInvariant()) {
     throw "요청 SystemCode와 manifest의 SystemCode가 다릅니다."
 }
 
-$vendor = ([string]$manifest.databaseVendor).ToLowerInvariant()
+$vendor = if ([string]::IsNullOrWhiteSpace($DatabaseVendor)) {
+    ([string]$manifest.databaseVendor).ToLowerInvariant()
+} else {
+    $DatabaseVendor.Trim().ToLowerInvariant()
+}
 $vendorDefaults = @{
-    mariadb = [ordered]@{ port = 3306; database = "${domain}DB"; clients = @('mariadb', 'mysql') }
-    postgresql = [ordered]@{ port = 5432; database = "${domain}db"; clients = @('psql') }
-    oracle = [ordered]@{ port = 1521; database = 'FREEPDB1'; clients = @('sqlplus') }
-    sqlserver = [ordered]@{ port = 1433; database = "${domain}DB"; clients = @('sqlcmd') }
+    mariadb = [ordered]@{ port = 3306; adminDatabase = ""; clients = @('mariadb', 'mysql') }
+    mysql = [ordered]@{ port = 3306; adminDatabase = ""; clients = @('mysql', 'mariadb') }
+    postgresql = [ordered]@{ port = 5432; adminDatabase = "postgres"; clients = @('psql') }
+    oracle = [ordered]@{ port = 1521; database = 'FREEPDB1'; adminDatabase = 'FREEPDB1'; clients = @('sqlplus') }
+    sqlserver = [ordered]@{ port = 1433; adminDatabase = "master"; clients = @('sqlcmd') }
 }
 if (-not $vendorDefaults.ContainsKey($vendor)) {
     throw "지원하지 않는 DB Vendor입니다: $vendor"
 }
 $defaults = $vendorDefaults[$vendor]
 if ($DatabasePort -le 0) { $DatabasePort = [int]$defaults.port }
-if ([string]::IsNullOrWhiteSpace($DatabaseName)) { $DatabaseName = [string]$defaults.database }
+if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
+    $DatabaseName = if ($vendor -eq 'oracle') {
+        [string]$defaults.database
+    } else {
+        [string]$manifest.schemaName
+    }
+}
+if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
+    throw "manifest.schemaName 또는 DatabaseName이 필요합니다."
+}
 if ([string]::IsNullOrWhiteSpace($DatabaseUsername)) { $DatabaseUsername = "cpf_${domain}_migration" }
+if ([string]::IsNullOrWhiteSpace($AdminUsername)) { $AdminUsername = $DatabaseUsername }
+if ([string]::IsNullOrWhiteSpace($AdminPassword)) { $AdminPassword = $DatabasePassword }
+
+if ($Operation -eq "rollback" -and (-not $Apply -or -not $ConfirmRollback)) {
+    throw "Rollback은 -Apply -ConfirmRollback을 함께 지정해야 합니다."
+}
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root "build/reports/domain-db-init/$domain"
@@ -65,10 +93,63 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir "domain-db-init-result.json"
 $logPath = Join-Path $ResultDir "domain-db-init.sanitized.log"
-$sqlRelativePath = "sql/Vxx__${domain}_domain.sql"
-$sqlPath = Join-Path $projectDir $sqlRelativePath
-if (-not (Test-Path -LiteralPath $sqlPath -PathType Leaf)) {
-    throw "주제영역 migration SQL이 없습니다: $projectName/$sqlRelativePath"
+if ([string]::IsNullOrWhiteSpace($TemplateRoot)) {
+    $TemplateRoot = Join-Path $Root "cpf-tools/db/vendor"
+} elseif (-not [System.IO.Path]::IsPathRooted($TemplateRoot)) {
+    $TemplateRoot = Join-Path $Root $TemplateRoot
+}
+$TemplateRoot = [System.IO.Path]::GetFullPath($TemplateRoot)
+$resourceRoot = Join-Path $TemplateRoot "$vendor/domain-template"
+
+$phaseFiles = [ordered]@{
+    provision = "provision/01_provision.sql.template"
+    install = "install/10_empty_install.sql.template"
+    seed = "seed/20_product_seed.sql.template"
+    migration = "migration/V1____DOMAIN___domain.sql.template"
+    verify = "verify/90_verify.sql.template"
+    rollback = "rollback/R1__remove___DOMAIN___domain.sql.template"
+}
+$phaseOrder = switch ($Operation) {
+    "bootstrap" { @("provision", "install", "seed", "verify") }
+    "migration" { @("migration", "verify") }
+    "verify" { @("verify") }
+    "rollback" { @("rollback") }
+}
+
+$plannedPhases = @()
+$renderedRoot = Join-Path $ResultDir "rendered-sql/$vendor"
+New-Item -ItemType Directory -Force -Path $renderedRoot | Out-Null
+foreach ($phase in $phaseOrder) {
+    $relativePath = [string]$phaseFiles[$phase]
+    $absolutePath = Join-Path $resourceRoot $relativePath
+    if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
+        throw "중앙 Generator Vendor SQL template이 없습니다: $absolutePath"
+    }
+    $renderedText = [System.IO.File]::ReadAllText($absolutePath, [System.Text.Encoding]::UTF8).
+            Replace("@CPF_VENDOR@", $vendor).
+             Replace("@CPF_DOMAIN@", $domain).
+             Replace("@CPF_SYSTEM_CODE@", $manifestCode).
+             Replace("@CPF_DISPLAY_NAME@", [string]$manifest.displayName).
+             Replace("@CPF_SCHEMA_NAME@", [string]$manifest.schemaName).
+             Replace("@CPF_MODULE_NAME@", [string]$manifest.moduleName).
+             Replace("@CPF_PACKAGE_NAME@", [string]$manifest.packageName).
+             Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix).
+            Replace("@CPF_MAPPER_NAMESPACE@", "").
+            Replace("@CPF_MAPPER_NAME@", "")
+    $renderedFileName = ([System.IO.Path]::GetFileName($relativePath)).
+            Replace(".template", "").
+            Replace("__VENDOR__", $vendor).
+            Replace("__DOMAIN__", $domain)
+    $renderedPath = Join-Path $renderedRoot "$phase-$renderedFileName"
+    [System.IO.File]::WriteAllText($renderedPath, $renderedText, $Utf8NoBom)
+    $plannedPhases += [ordered]@{
+        phase = $phase
+        templatePath = $absolutePath.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/')
+        renderedPath = $renderedPath.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/')
+        templateSha256 = (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        renderedSha256 = (Get-FileHash -LiteralPath $renderedPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        status = "미검증"
+    }
 }
 
 function Find-DatabaseClient {
@@ -87,103 +168,90 @@ function Find-DatabaseClient {
     return $null
 }
 
-function Join-Arguments {
-    param([string[]] $Values)
-    return ($Values | ForEach-Object {
-        if ($_ -match '[\s"]') { '"' + ($_.Replace('\', '\\').Replace('"', '\"')) + '"' } else { $_ }
-    }) -join ' '
+function Add-ProcessArgument {
+    param(
+        [System.Diagnostics.ProcessStartInfo] $ProcessStartInfo,
+        [string] $Value
+    )
+    [void]$ProcessStartInfo.ArgumentList.Add($Value)
 }
 
 function Mask-Text {
     param([string] $Value)
     if ($null -eq $Value) { return "" }
-    if (-not [string]::IsNullOrWhiteSpace($DatabasePassword)) {
-        return $Value.Replace($DatabasePassword, '****')
+    $safe = $Value
+    foreach ($secret in @($DatabasePassword, $AdminPassword)) {
+        if (-not [string]::IsNullOrWhiteSpace($secret)) {
+            $safe = $safe.Replace($secret, '****')
+        }
     }
-    return $Value
+    return $safe
 }
 
-$result = [ordered]@{
-    startedAt = (Get-Date).ToString('o')
-    status = if ($Apply) { 'FAILED' } else { 'READY' }
-    applied = [bool]$Apply
-    domainName = $domain
-    systemCode = $manifestCode
-    projectName = $projectName
-    databaseVendor = $vendor
-    databaseHost = $DatabaseHost
-    databasePort = $DatabasePort
-    databaseName = $DatabaseName
-    databaseUsername = $DatabaseUsername
-    passwordProvided = -not [string]::IsNullOrWhiteSpace($DatabasePassword)
-    sql = [ordered]@{
-        path = "$projectName/$sqlRelativePath"
-        sha256 = (Get-FileHash -LiteralPath $sqlPath -Algorithm SHA256).Hash.ToLowerInvariant()
+function Invoke-SqlResource {
+    param(
+        [string] $Client,
+        [string] $SqlPath,
+        [string] $TargetDatabase,
+        [string] $Username,
+        [string] $Password
+    )
+    if ([string]::IsNullOrWhiteSpace($Username) -or [string]::IsNullOrWhiteSpace($Password)) {
+        throw "DB 실행 계정과 비밀번호가 필요합니다."
     }
-    client = $null
-    exitCode = $null
-    logPath = $logPath
-}
-
-try {
-    if (-not $Apply) {
-        [System.IO.File]::WriteAllText($logPath, "DB 초기화 계획 검증 완료: 실제 SQL은 실행하지 않았습니다.`n", $Utf8NoBom)
-        Write-Host "domain DB init plan ready. project=$projectName vendor=$vendor result=$resultPath"
-        return
+    if ($Username -match '[\r\n]' -or $Password -match '[\r\n]') {
+        throw "DB 계정과 비밀번호에는 줄바꿈을 사용할 수 없습니다."
     }
-    if ([string]::IsNullOrWhiteSpace($DatabasePassword)) {
-        throw "-Apply 실행에는 migration 계정 비밀번호가 필요합니다. 비밀번호는 환경변수에서 전달하는 것을 권장합니다."
-    }
-    if ($DatabasePassword -match '[\r\n]') {
-        throw "DB 비밀번호에는 줄바꿈을 사용할 수 없습니다."
-    }
-    $client = Find-DatabaseClient
-    if ([string]::IsNullOrWhiteSpace($client)) {
-        throw "DB Vendor용 CLI를 찾지 못했습니다. vendor=$vendor"
-    }
-    $result.client = [System.IO.Path]::GetFileName($client)
 
     $psi = [System.Diagnostics.ProcessStartInfo]::new()
-    $psi.FileName = $client
+    $psi.FileName = $Client
     $psi.UseShellExecute = $false
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
     $inputText = $null
+
     switch ($vendor) {
-        'mariadb' {
+        { $_ -in @("mariadb", "mysql") } {
             $psi.RedirectStandardInput = $true
-            $psi.EnvironmentVariables['MYSQL_PWD'] = $DatabasePassword
-            $psi.EnvironmentVariables['MARIADB_PWD'] = $DatabasePassword
-            $psi.Arguments = Join-Arguments @(
-                '--protocol=tcp', '-h', $DatabaseHost, '-P', [string]$DatabasePort,
-                '-u', $DatabaseUsername, "--database=$DatabaseName",
-                '--default-character-set=utf8mb4', '--batch', '--raw'
-            )
-            $inputText = [System.IO.File]::ReadAllText($sqlPath, [System.Text.Encoding]::UTF8)
+            $psi.EnvironmentVariables['MYSQL_PWD'] = $Password
+            $psi.EnvironmentVariables['MARIADB_PWD'] = $Password
+            foreach ($argument in @(
+                    '--protocol=tcp', '-h', $DatabaseHost, '-P', [string]$DatabasePort,
+                    '-u', $Username, '--default-character-set=utf8mb4', '--batch', '--raw')) {
+                Add-ProcessArgument $psi $argument
+            }
+            if (-not [string]::IsNullOrWhiteSpace($TargetDatabase)) {
+                Add-ProcessArgument $psi "--database=$TargetDatabase"
+            }
+            $inputText = [System.IO.File]::ReadAllText($SqlPath, [System.Text.Encoding]::UTF8)
         }
-        'postgresql' {
-            $psi.EnvironmentVariables['PGPASSWORD'] = $DatabasePassword
-            $psi.Arguments = Join-Arguments @(
-                '-X', '-v', 'ON_ERROR_STOP=1', '-h', $DatabaseHost, '-p', [string]$DatabasePort,
-                '-U', $DatabaseUsername, '-d', $DatabaseName, '-f', $sqlPath
-            )
+        "postgresql" {
+            $psi.EnvironmentVariables['PGPASSWORD'] = $Password
+            foreach ($argument in @(
+                    '-X', '-v', 'ON_ERROR_STOP=1', '-h', $DatabaseHost, '-p', [string]$DatabasePort,
+                    '-U', $Username, '-d', $TargetDatabase, '-f', $SqlPath)) {
+                Add-ProcessArgument $psi $argument
+            }
         }
-        'oracle' {
-            if ($DatabaseUsername -match '["/@]' -or $DatabasePassword -match '"') {
-                throw "Oracle DB 초기화 계정과 비밀번호에는 큰따옴표, 슬래시, @를 사용할 수 없습니다."
+        "oracle" {
+            if ($Username -match '["/@]' -or $Password -match '"') {
+                throw "Oracle 계정과 비밀번호에는 큰따옴표, 슬래시, @를 사용할 수 없습니다."
             }
             $psi.RedirectStandardInput = $true
-            $psi.Arguments = '-S /nolog'
-            $inputText = "WHENEVER SQLERROR EXIT SQL.SQLCODE`nCONNECT $DatabaseUsername/`"$DatabasePassword`"@$DatabaseHost`:$DatabasePort/$DatabaseName`n" +
-                    [System.IO.File]::ReadAllText($sqlPath, [System.Text.Encoding]::UTF8) + "`nEXIT SUCCESS`n"
+            Add-ProcessArgument $psi '-S'
+            Add-ProcessArgument $psi '/nolog'
+            $inputText = "WHENEVER SQLERROR EXIT SQL.SQLCODE`nCONNECT $Username/`"$Password`"@$DatabaseHost`:$DatabasePort/$TargetDatabase`n" +
+                    [System.IO.File]::ReadAllText($SqlPath, [System.Text.Encoding]::UTF8) +
+                    "`nEXIT SUCCESS`n"
         }
-        'sqlserver' {
-            $psi.EnvironmentVariables['SQLCMDPASSWORD'] = $DatabasePassword
-            $psi.Arguments = Join-Arguments @(
-                '-S', "$DatabaseHost,$DatabasePort", '-U', $DatabaseUsername,
-                '-d', $DatabaseName, '-i', $sqlPath, '-b', '-C', '-f', '65001'
-            )
+        "sqlserver" {
+            $psi.EnvironmentVariables['SQLCMDPASSWORD'] = $Password
+            foreach ($argument in @(
+                    '-S', "$DatabaseHost,$DatabasePort", '-U', $Username, '-d', $TargetDatabase,
+                    '-i', $SqlPath, '-b', '-C', '-f', '65001')) {
+                Add-ProcessArgument $psi $argument
+            }
         }
     }
 
@@ -197,19 +265,96 @@ try {
     $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
     $process.WaitForExit()
-    $result.exitCode = $process.ExitCode
-    $safeLog = "STDOUT`n$(Mask-Text $stdout)`nSTDERR`n$(Mask-Text $stderr)`n"
-    [System.IO.File]::WriteAllText($logPath, $safeLog, $Utf8NoBom)
-    if ($process.ExitCode -ne 0) {
-        throw "DB 초기화 SQL 실행이 실패했습니다. vendor=$vendor, exitCode=$($process.ExitCode), log=$logPath"
+    return [ordered]@{
+        exitCode = $process.ExitCode
+        stdout = Mask-Text $stdout
+        stderr = Mask-Text $stderr
     }
-    $result.status = 'DONE'
+}
+
+$result = [ordered]@{
+    startedAt = (Get-Date).ToString('o')
+    status = "미검증"
+    applied = [bool]$Apply
+    operation = $Operation
+    domainName = $domain
+    systemCode = $manifestCode
+    moduleName = [string]$manifest.moduleName
+    packageName = [string]$manifest.packageName
+    schemaName = [string]$manifest.schemaName
+    tablePrefix = [string]$manifest.tablePrefix
+    projectName = $projectName
+    databaseVendorProperty = "cpf.db.vendor"
+    databaseVendor = $vendor
+    databaseHost = $DatabaseHost
+    databasePort = $DatabasePort
+    databaseName = $DatabaseName
+    databaseUsername = $DatabaseUsername
+    adminUsername = $AdminUsername
+    passwordProvided = -not [string]::IsNullOrWhiteSpace($DatabasePassword)
+    adminPasswordProvided = -not [string]::IsNullOrWhiteSpace($AdminPassword)
+    phases = $plannedPhases
+    centralDomainTemplate = "cpf-tools/db/vendor/$vendor/domain-template"
+    runtimeResourceTemplate = "cpf-tools/db/vendor/$vendor/domain-template/runtime"
+    client = $null
+    logPath = $logPath
+}
+
+try {
+    if (-not $Apply) {
+        [System.IO.File]::WriteAllText(
+            $logPath,
+            "DB $Operation 계획 검증 완료: 실제 SQL은 실행하지 않았습니다.`n",
+            $Utf8NoBom)
+        Write-Host "domain DB plan ready. project=$projectName vendor=$vendor operation=$Operation result=$resultPath"
+        return
+    }
+
+    $client = Find-DatabaseClient
+    if ([string]::IsNullOrWhiteSpace($client)) {
+        throw "DB Vendor용 CLI를 찾지 못했습니다. vendor=$vendor"
+    }
+    $result.client = [System.IO.Path]::GetFileName($client)
+    $safeLog = New-Object System.Text.StringBuilder
+
+    foreach ($phaseResult in $result.phases) {
+        $phase = [string]$phaseResult.phase
+        $sqlPath = Join-Path $Root ([string]$phaseResult.renderedPath)
+        $isProvision = $phase -eq "provision"
+        $targetDatabase = if ($isProvision) { [string]$defaults.adminDatabase } else { $DatabaseName }
+        $username = if ($isProvision) { $AdminUsername } else { $DatabaseUsername }
+        $password = if ($isProvision) { $AdminPassword } else { $DatabasePassword }
+
+        $execution = Invoke-SqlResource `
+            -Client $client `
+            -SqlPath $sqlPath `
+            -TargetDatabase $targetDatabase `
+            -Username $username `
+            -Password $password
+        $phaseResult.exitCode = $execution.exitCode
+        [void]$safeLog.AppendLine("[$phase] STDOUT")
+        [void]$safeLog.AppendLine($execution.stdout)
+        [void]$safeLog.AppendLine("[$phase] STDERR")
+        [void]$safeLog.AppendLine($execution.stderr)
+        if ($execution.exitCode -ne 0) {
+            $phaseResult.status = "실패"
+            throw "DB SQL 실행이 실패했습니다. phase=$phase, vendor=$vendor, exitCode=$($execution.exitCode)"
+        }
+        if ($phase -eq "verify" -and $execution.stdout -match '(?i)\bFAILED\b') {
+            $phaseResult.status = "실패"
+            throw "DB Verify SQL이 실패 상태를 반환했습니다. vendor=$vendor"
+        }
+        $phaseResult.status = "완료"
+    }
+    [System.IO.File]::WriteAllText($logPath, $safeLog.ToString(), $Utf8NoBom)
+    $result.status = "완료"
 } catch {
+    $result.status = "실패"
     $result.failure = Mask-Text $_.Exception.Message
     throw
 } finally {
     $result.finishedAt = (Get-Date).ToString('o')
-    [System.IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20), $Utf8NoBom)
+    [System.IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 30), $Utf8NoBom)
 }
 
-Write-Host "domain DB init completed. project=$projectName vendor=$vendor result=$resultPath"
+Write-Host "domain DB operation completed. project=$projectName vendor=$vendor operation=$Operation result=$resultPath"

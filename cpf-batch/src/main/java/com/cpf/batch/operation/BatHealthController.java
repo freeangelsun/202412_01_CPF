@@ -32,7 +32,7 @@ import java.util.Map;
 @RestController
 @Tag(name = "BAT-Operations", description = "BAT 상태, smoke Job 실행, JobInstance 로그 진단 API")
 public class BatHealthController extends com.cpf.batch.common.base.BatBaseController {
-    private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
     private final Environment environment;
     private final BatSmokeOperationService operationService;
     private final BatSmokeExecutionRegistry registry;
@@ -40,13 +40,13 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
     private final ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider;
 
     public BatHealthController(
-            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             Environment environment,
             BatSmokeOperationService operationService,
             BatSmokeExecutionRegistry registry,
             ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider,
             ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider) {
-        this.cpfJdbcTemplate = cpfJdbcTemplate;
+        this.batJdbcTemplate = batJdbcTemplate;
         this.environment = environment;
         this.operationService = operationService;
         this.registry = registry;
@@ -130,7 +130,7 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
 
     private Map<String, Object> checkDatabase() {
         try {
-            Integer value = cpfJdbcTemplate.queryForObject("SELECT 1", Integer.class);
+            Integer value = batJdbcTemplate.queryForObject("SELECT 1", Integer.class);
             return Map.of("status", value != null && value == 1 ? "UP" : "UNKNOWN");
         } catch (Exception ex) {
             return Map.of("status", "DOWN", "message", ex.getClass().getSimpleName());

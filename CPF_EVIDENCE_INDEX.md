@@ -2,11 +2,18 @@
 
 ## 1. 현재 상태
 
-2026-07-22 Repository 정리에서 이전 PC·이전 DB·이전 Commit 기준 Evidence를 제거했다. 현재 Worktree에 실행 Evidence가 없다는 사실은 의도된 초기화 상태이며, 완료를 의미하지 않는다.
+2026-07-22 Repository 정리에서 이전 PC·이전 DB·이전 Commit 기준 Evidence를 제거했다. 2026-07-24부터 현재 기준선의 신규 Evidence만 다시 적재하며, 실패·미검증 Evidence를 완료로 해석하지 않는다.
 
 - 기준 검수 Commit: `8da2e6f395d72ce032e52ea16fef0d1d5f490c5b`
 - 실제 신규 Evidence 기준: 문서 Overlay Push 이후 작업 시작 HEAD
-- 현재 판정: **미구현** 또는 각 요구별 **미검증**
+- 현재 판정: 요구별 `완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요`
+
+현재 신규 Evidence:
+
+- `cpf-docs/evidence/20260724_01/BASELINE_ENVIRONMENT.sanitized.md`
+- `cpf-docs/evidence/20260724_01/DB_STATIC_AUDIT.sanitized.md`
+- `cpf-docs/evidence/20260724_01/MARIADB_INITIALIZER_PREFLIGHT.sanitized.md` — 관리자 인증 부재로 `실패`; DB 설치 성공 근거가 아님
+- `cpf-docs/evidence/20260724_01/MARIADB_EMPTY_INSTALL.sanitized.md` — 실제 Fresh Provision/Empty Install/Product Seed/Verify `완료`
 
 ## 2. 신규 Evidence 위치
 

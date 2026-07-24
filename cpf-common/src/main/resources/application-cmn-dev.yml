@@ -4,20 +4,22 @@ spring:
   datasource:
     cmn:
       mode: ${CMN_DB_MODE:${CPF_DB_MODE:url}}
-      url: ${CMN_DB_URL:${CPF_DB_URL:jdbc:mariadb://localhost:3306/cpfDB}}
+      url: ${CMN_DB_URL:${CPF_DB_URL:}}
+      database-name: ${CMN_DB_NAME:${CPF_DB_NAME:cpfDB}}
       username: ${CMN_DB_USERNAME:${CPF_DB_USERNAME:cpf_app}}
       password: ${CMN_DB_PASSWORD:${CPF_DB_PASSWORD:__REPLACE_BY_ENV__}}
       jndi-name: ${CMN_DB_JNDI_NAME:${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}}
-      driver-class-name: org.mariadb.jdbc.Driver
-    cmn-business:
-      mode: ${CMN_BUSINESS_DB_MODE:url}
-      url: ${CMN_BUSINESS_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
-      username: ${CMN_BUSINESS_DB_USERNAME:cpf_cmn_app}
-      password: ${CMN_BUSINESS_DB_PASSWORD:__REPLACE_BY_ENV__}
-      jndi-name: ${CMN_BUSINESS_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${CMN_DB_DRIVER:${CPF_DB_DRIVER:}}
+    cmn-sample:
+      mode: ${CMN_SAMPLE_DB_MODE:url}
+      url: ${CMN_SAMPLE_DB_URL:}
+      database-name: ${CMN_SAMPLE_DB_NAME:cmnDB}
+      username: ${CMN_SAMPLE_DB_USERNAME:cpf_cmn_app}
+      password: ${CMN_SAMPLE_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${CMN_SAMPLE_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonSampleDataSource}
+      driver-class-name: ${CMN_SAMPLE_DB_DRIVER:}
 
 cpf:
   cmn:
-    business-db:
-      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
+    sample-db:
+      enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}

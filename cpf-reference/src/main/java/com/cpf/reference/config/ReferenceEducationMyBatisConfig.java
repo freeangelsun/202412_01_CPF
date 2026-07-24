@@ -1,40 +1,41 @@
 package com.cpf.reference.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
 /**
  * REF 기준 업무 조회 샘플에서 사용하는 MyBatis 설정입니다.
  *
- * <p>운영 코드가 아니라 교육 샘플이므로 별도 DB를 만들지 않고, 프로젝트 공통 영역인 cmnDB의 교육용 테이블을
- * 조회합니다. 실제 업무 모듈에서는 같은 패턴으로 자기 업무 DB datasource와 Mapper 위치를 분리하면 됩니다.</p>
+ * <p>REF가 자기 업무 DB와 Mapper를 소유하는 기준을 보여주며 CMN/CPF DB를 직접 사용하지 않습니다.</p>
  */
 @Configuration
 @MapperScan(basePackages = "com.cpf.reference.query.adapter", sqlSessionFactoryRef = "refEduSqlSessionFactory")
 public class ReferenceEducationMyBatisConfig {
-    private final DataSource cmnDataSource;
+    private final DataSource refDataSource;
+    private final Environment environment;
 
-    public ReferenceEducationMyBatisConfig(@Qualifier("cmnDataSource") DataSource cmnDataSource) {
-        this.cmnDataSource = cmnDataSource;
+    public ReferenceEducationMyBatisConfig(
+            @Qualifier("refDataSource") DataSource refDataSource,
+            Environment environment) {
+        this.refDataSource = refDataSource;
+        this.environment = environment;
     }
 
     @Bean(name = "refEduSqlSessionFactory")
     public SqlSessionFactory refEduSqlSessionFactory() throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
-        factoryBean.setDataSource(cmnDataSource);
-        factoryBean.setConfigLocation(new ClassPathResource("mybatis/config/cmn-mybatis-config.xml"));
-        factoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/ref/**/*.xml")
-        );
+        factoryBean.setDataSource(refDataSource);
+        factoryBean.setConfigLocation(new ClassPathResource("mybatis/config/ref-mybatis-config.xml"));
+        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "ref"));
         return factoryBean.getObject();
     }
 }

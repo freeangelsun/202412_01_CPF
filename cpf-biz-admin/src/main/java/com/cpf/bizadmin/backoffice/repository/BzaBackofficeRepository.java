@@ -1,7 +1,9 @@
 package com.cpf.bizadmin.backoffice.repository;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,10 +21,13 @@ import java.util.Optional;
 @Repository
 public class BzaBackofficeRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public BzaBackofficeRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     public List<Map<String, Object>> findOrganizations() {
@@ -37,21 +42,7 @@ public class BzaBackofficeRepository {
     }
 
     public int saveOrganization(Map<String, ?> values) {
-        return jdbc().update("""
-                INSERT INTO bza_organization (
-                    organization_code, parent_organization_code, organization_name,
-                    organization_type, sort_order, use_yn, created_by, updated_by
-                ) VALUES (
-                    :organizationCode, :parentOrganizationCode, :organizationName,
-                    :organizationType, :sortOrder, :useYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    parent_organization_code = VALUES(parent_organization_code),
-                    organization_name = VALUES(organization_name),
-                    organization_type = VALUES(organization_type),
-                    sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        return jdbc().update(sql.required("backoffice-save-organization"), values);
     }
 
     public List<Map<String, Object>> findEmployees(String organizationCode, String status) {
@@ -75,28 +66,7 @@ public class BzaBackofficeRepository {
     }
 
     public int saveEmployee(Map<String, ?> values) {
-        return jdbc().update("""
-                INSERT INTO bza_employee (
-                    employee_no, admin_user_id, organization_code, employee_name,
-                    position_code, job_title_code, manager_employee_no, employment_status,
-                    join_date, leave_date, email, mobile_no, delegated_approver_no,
-                    absence_from, absence_to, use_yn, created_by, updated_by
-                ) VALUES (
-                    :employeeNo, :adminUserId, :organizationCode, :employeeName,
-                    :positionCode, :jobTitleCode, :managerEmployeeNo, :employmentStatus,
-                    :joinDate, :leaveDate, :email, :mobileNo, :delegatedApproverNo,
-                    :absenceFrom, :absenceTo, :useYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    admin_user_id = VALUES(admin_user_id), organization_code = VALUES(organization_code),
-                    employee_name = VALUES(employee_name), position_code = VALUES(position_code),
-                    job_title_code = VALUES(job_title_code), manager_employee_no = VALUES(manager_employee_no),
-                    employment_status = VALUES(employment_status), join_date = VALUES(join_date),
-                    leave_date = VALUES(leave_date), email = VALUES(email), mobile_no = VALUES(mobile_no),
-                    delegated_approver_no = VALUES(delegated_approver_no),
-                    absence_from = VALUES(absence_from), absence_to = VALUES(absence_to),
-                    use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        return jdbc().update(sql.required("backoffice-save-employee"), values);
     }
 
     public List<Map<String, Object>> findEffectivePermissions(String loginId) {
@@ -163,21 +133,7 @@ public class BzaBackofficeRepository {
     }
 
     public List<Map<String, Object>> findApprovals(String status, String employeeNo, int limit) {
-        return jdbc().queryForList("""
-                SELECT approval_id AS approvalId, approval_no AS approvalNo, approval_type AS approvalType,
-                       business_domain AS businessDomain, title, requester_employee_no AS requesterEmployeeNo,
-                       approval_status AS approvalStatus, approval_mode AS approvalMode,
-                       current_step_no AS currentStepNo, due_at AS dueAt, version_no AS versionNo,
-                       transaction_global_id AS transactionGlobalId, created_at AS createdAt, updated_at AS updatedAt
-                  FROM bza_approval_document
-                 WHERE (:status IS NULL OR approval_status = :status)
-                   AND (:employeeNo IS NULL OR requester_employee_no = :employeeNo
-                        OR EXISTS (SELECT 1 FROM bza_approval_line l
-                                    WHERE l.approval_id = bza_approval_document.approval_id
-                                      AND l.approver_employee_no = :employeeNo))
-                 ORDER BY approval_id DESC
-                 LIMIT :limit
-                """, new MapSqlParameterSource()
+        return jdbc().queryForList(sql.required("backoffice-find-approvals"), new MapSqlParameterSource()
                 .addValue("status", status)
                 .addValue("employeeNo", employeeNo)
                 .addValue("limit", limit));
@@ -209,13 +165,7 @@ public class BzaBackofficeRepository {
     }
 
     public int decideLine(long approvalId, int stepNo, String actorEmployeeNo, String decision, String comment) {
-        return jdbc().update("""
-                UPDATE bza_approval_line
-                   SET decision_status = :decision, decision_comment = :comment,
-                       decided_at = NOW(), updated_by = :actorEmployeeNo, updated_at = NOW()
-                 WHERE approval_id = :approvalId AND step_no = :stepNo
-                   AND approver_employee_no = :actorEmployeeNo AND decision_status = 'WAITING'
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("backoffice-decide-line"), new MapSqlParameterSource()
                 .addValue("approvalId", approvalId)
                 .addValue("stepNo", stepNo)
                 .addValue("actorEmployeeNo", actorEmployeeNo)
@@ -239,12 +189,7 @@ public class BzaBackofficeRepository {
     }
 
     public int updateApprovalStatus(long approvalId, long expectedVersion, String status, int currentStep, String actor) {
-        return jdbc().update("""
-                UPDATE bza_approval_document
-                   SET approval_status = :status, current_step_no = :currentStep,
-                       version_no = version_no + 1, updated_by = :actor, updated_at = NOW()
-                 WHERE approval_id = :approvalId AND version_no = :expectedVersion
-                """, new MapSqlParameterSource()
+        return jdbc().update(sql.required("backoffice-update-approval-status"), new MapSqlParameterSource()
                 .addValue("approvalId", approvalId)
                 .addValue("expectedVersion", expectedVersion)
                 .addValue("status", status)
@@ -301,13 +246,8 @@ public class BzaBackofficeRepository {
     }
 
     public List<Map<String, Object>> findBusinessAudits(int limit) {
-        return jdbc().queryForList("""
-                SELECT audit_id AS auditId, transaction_global_id AS transactionGlobalId,
-                       actor_id AS actorId, action_type AS actionType, target_type AS targetType,
-                       target_id AS targetId, reason, before_data AS beforeData,
-                       after_data AS afterData, created_at AS createdAt
-                  FROM bza_business_audit ORDER BY audit_id DESC LIMIT :limit
-                """, new MapSqlParameterSource("limit", limit));
+        return jdbc().queryForList(sql.required("backoffice-find-business-audits"),
+                new MapSqlParameterSource("limit", limit));
     }
 
     private NamedParameterJdbcTemplate jdbc() {

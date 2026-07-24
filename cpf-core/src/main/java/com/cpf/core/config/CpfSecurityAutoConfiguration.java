@@ -51,8 +51,13 @@ public class CpfSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfExecutionCatalogPort cpfExecutionCatalogPort(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
-        return new CpfExecutionCatalogRepository(jdbcTemplateProvider);
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
+        boolean dbAccessEnabled = environment.getProperty(
+                "cpf.execution-catalog.db-access-enabled",
+                Boolean.class,
+                true);
+        return new CpfExecutionCatalogRepository(jdbcTemplateProvider, dbAccessEnabled, environment);
     }
 
     @Bean
@@ -67,14 +72,21 @@ public class CpfSecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfChannelRegistryPort cpfChannelRegistryPort(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider) {
-        return new JdbcCpfChannelRegistryAdapter(jdbcTemplateProvider);
+            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
+        return new JdbcCpfChannelRegistryAdapter(jdbcTemplateProvider, environment);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public CpfChannelPolicyService cpfChannelPolicyService(CpfChannelRegistryPort registryPort) {
-        return new CpfChannelPolicyService(registryPort);
+    public CpfChannelPolicyService cpfChannelPolicyService(
+            CpfChannelRegistryPort registryPort,
+            Environment environment) {
+        boolean loadOnStartup = environment.getProperty(
+                "cpf.channel-policy.startup-load-enabled",
+                Boolean.class,
+                true);
+        return new CpfChannelPolicyService(registryPort, loadOnStartup);
     }
 
     @Bean

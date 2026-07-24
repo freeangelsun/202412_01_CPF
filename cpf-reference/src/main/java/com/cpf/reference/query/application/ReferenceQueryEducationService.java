@@ -30,7 +30,7 @@ public class ReferenceQueryEducationService extends com.cpf.reference.common.bas
      * <p>조회 결과가 없으면 CPF 표준 NotFound 예외로 변환합니다. 실제 업무에서도 Service에서 업무 의미가 있는
      * 예외로 바꾸면 Controller의 오류 응답 포맷을 일관되게 유지할 수 있습니다.</p>
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public ReferenceQueryEducationItem getItem(Long itemId) {
         return repository.findById(itemId)
                 .orElseThrow(() -> new CpfNotFoundException("조회 EDU 항목을 찾을 수 없습니다. itemId=" + itemId));
@@ -41,7 +41,7 @@ public class ReferenceQueryEducationService extends com.cpf.reference.common.bas
      *
      * <p>정렬 값은 Repository에서 whitelist 코드로 변환한 뒤 Mapper XML의 choose 분기로만 처리합니다.</p>
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public List<ReferenceQueryEducationItem> findItems(String keyword, String statusCode, String sort, int limit) {
         return repository.findItems(keyword, statusCode, sort, limit);
     }
@@ -51,7 +51,7 @@ public class ReferenceQueryEducationService extends com.cpf.reference.common.bas
      *
      * <p>관리자 목록처럼 전체 건수가 필요한 화면에 적합합니다. 대용량 실시간 목록은 keyset 방식을 우선 검토합니다.</p>
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public ReferenceQueryPageResponse<ReferenceQueryEducationItem> findOffsetPage(
             String keyword,
             String statusCode,
@@ -76,7 +76,7 @@ public class ReferenceQueryEducationService extends com.cpf.reference.common.bas
      *
      * <p>마지막으로 본 itemId 이후를 조회하고, 요청 크기보다 한 건 더 가져와 다음 페이지 존재 여부를 판단합니다.</p>
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public ReferenceQueryKeysetResponse<ReferenceQueryEducationItem> findKeysetPage(Long cursorId, int size) {
         int normalizedSize = repository.normalizeSize(size);
         List<ReferenceQueryEducationItem> page = repository.findKeysetPageItems(cursorId, normalizedSize);

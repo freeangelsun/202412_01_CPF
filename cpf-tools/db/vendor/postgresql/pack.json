@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "vendor": "postgresql",
+  "status": "미구현",
+  "runtimeVerification": "미검증",
+  "canonicalConsumerRoot": "cpf-tools/db/vendor/postgresql",
+  "lifecycleContentAuthority": "미구현",
+  "runtimeContentAuthority": "CENTRAL_VENDOR_PACK",
+  "legacyModuleResourcePolicy": "TRANSITIONAL_HASH_PARITY_MIRROR",
+  "lifecycleStatus": {
+    "provision": "미구현",
+    "install": "미구현",
+    "seed": "미구현",
+    "migration": "미구현",
+    "verify": "미구현",
+    "rollback": "미구현"
+  },
+  "runtimeModules": {
+    "cpf": {
+      "ownerArtifact": "cpf-core",
+      "repository": "부분 구현",
+      "mybatis": "미구현"
+    },
+    "bza": {
+      "ownerArtifact": "cpf-biz-admin",
+      "repository": "부분 구현",
+      "mybatis": "미구현"
+    }
+  },
+  "generatedDomainContract": {
+    "status": "부분 구현",
+    "metadataDriven": true,
+    "fixedDomainList": false,
+    "templateRoot": "domain-template",
+    "tokens": [
+      "CPF_VENDOR",
+      "CPF_DOMAIN",
+      "CPF_SYSTEM_CODE",
+      "CPF_DISPLAY_NAME",
+      "CPF_SCHEMA_NAME",
+      "CPF_TABLE_PREFIX",
+      "CPF_MODULE_NAME",
+      "CPF_PACKAGE_NAME",
+      "CPF_MAPPER_NAMESPACE",
+      "CPF_MAPPER_NAME"
+    ]
+  }
+}

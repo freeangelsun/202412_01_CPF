@@ -7,29 +7,31 @@ spring:
     cmn:
       # CPF가 소유하는 코드, 메시지, 응답코드, 설정, 캐시 이벤트를 조회합니다.
       mode: ${CMN_DB_MODE:${CPF_DB_MODE:url}}
-      url: ${CMN_DB_URL:${CPF_DB_URL:jdbc:mariadb://localhost:3306/cpfDB}}
+      url: ${CMN_DB_URL:${CPF_DB_URL:}}
+      database-name: ${CMN_DB_NAME:${CPF_DB_NAME:cpfDB}}
       username: ${CMN_DB_USERNAME:${CPF_DB_USERNAME:cpf_app}}
       password: ${CMN_DB_PASSWORD:${CPF_DB_PASSWORD:__REPLACE_BY_ENV__}}
       jndi-name: ${CMN_DB_JNDI_NAME:${CPF_DB_JNDI_NAME:java:comp/env/jdbc/cpfCoreDataSource}}
-      driver-class-name: org.mariadb.jdbc.Driver
-    cmn-business:
-      # 채번, 알림 로그, 업무 로그를 저장하는 선택형 업무 공통 DB입니다.
-      mode: ${CMN_BUSINESS_DB_MODE:url}
-      url: ${CMN_BUSINESS_DB_URL:jdbc:mariadb://localhost:3306/cmnDB}
-      username: ${CMN_BUSINESS_DB_USERNAME:cpf_cmn_app}
-      password: ${CMN_BUSINESS_DB_PASSWORD:__REPLACE_BY_ENV__}
-      jndi-name: ${CMN_BUSINESS_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${CMN_DB_DRIVER:${CPF_DB_DRIVER:}}
+    cmn-sample:
+      # 단일 cmn_sample_item을 검증하는 선택형 Sample DB입니다.
+      mode: ${CMN_SAMPLE_DB_MODE:url}
+      url: ${CMN_SAMPLE_DB_URL:}
+      database-name: ${CMN_SAMPLE_DB_NAME:cmnDB}
+      username: ${CMN_SAMPLE_DB_USERNAME:cpf_cmn_app}
+      password: ${CMN_SAMPLE_DB_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${CMN_SAMPLE_DB_JNDI_NAME:java:comp/env/jdbc/cpfCommonSampleDataSource}
+      driver-class-name: ${CMN_SAMPLE_DB_DRIVER:}
 
 mybatis:
   config-location: classpath:mybatis/config/cmn-mybatis-config.xml
-  mapper-locations: classpath*:mybatis/mapper/cmn/**/*.xml
+  mapper-locations: classpath*:mybatis/vendor/${CPF_DB_VENDOR:mariadb}/mapper/cmn/**/*.xml
   type-aliases-package: com.cpf.common
 
 cpf:
   cmn:
-    business-db:
-      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:false}
+    sample-db:
+      enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}
     cache:
       preload-enabled: ${CPF_CMN_CACHE_PRELOAD_ENABLED:true}
       fail-fast-on-startup: ${CPF_CMN_CACHE_FAIL_FAST_ON_STARTUP:false}

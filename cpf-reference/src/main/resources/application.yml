@@ -15,13 +15,22 @@ spring:
     active: local
     include: cpf, cmn
   datasource:
+    bat:
+      mode: ${BAT_DATASOURCE_MODE:${BAT_DB_MODE:url}}
+      url: ${BAT_DATASOURCE_URL:${BAT_DB_URL:}}
+      database-name: ${BAT_DB_NAME:batDB}
+      username: ${BAT_DATASOURCE_USERNAME:${BAT_DB_USERNAME:cpf_bat_app}}
+      password: ${BAT_DATASOURCE_PASSWORD:${BAT_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${BAT_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBatchDataSource}
+      driver-class-name: ${BAT_DATASOURCE_DRIVER:${BAT_DB_DRIVER:}}
     ref:
       mode: ${REF_DATASOURCE_MODE:url}
-      url: ${REF_DATASOURCE_URL:${REF_DB_URL:jdbc:mariadb://localhost:3306/refDB}}
+      url: ${REF_DATASOURCE_URL:${REF_DB_URL:}}
+      database-name: ${REF_DB_NAME:refDB}
       username: ${REF_DATASOURCE_USERNAME:${REF_DB_USERNAME:cpf_ref_app}}
       password: ${REF_DATASOURCE_PASSWORD:${REF_DB_PASSWORD:__REPLACE_BY_ENV__}}
       jndi-name: ${REF_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfReferenceDataSource}
-      driver-class-name: org.mariadb.jdbc.Driver
+      driver-class-name: ${REF_DB_DRIVER:}
   batch:
     job:
       enabled: false
@@ -41,9 +50,9 @@ logging:
 
 cpf:
   cmn:
-    business-db:
-      # 교육 모듈에서 CMN 업무 공통 샘플을 바로 실행할 수 있도록 local 기본값은 활성화합니다.
-      enabled: ${CPF_CMN_BUSINESS_DB_ENABLED:true}
+    sample-db:
+      # DB 없는 기본 기동을 보장하고 명시적 Sample Profile에서만 cmnDB를 활성화합니다.
+      enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}
   framework:
     module-id: REF
     was-id: ${WAS_ID:refAP01}

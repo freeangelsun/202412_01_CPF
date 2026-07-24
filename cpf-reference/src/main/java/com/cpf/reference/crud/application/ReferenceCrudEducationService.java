@@ -20,7 +20,7 @@ import java.util.List;
  * REF CRUD 교육 서비스입니다.
  *
  * <p>이 서비스는 Controller, Service, Repository, Mapper, SQL fixture가 실제로 연결되는 최소 업무 흐름을 보여줍니다.
- * 신규 업무 모듈을 만들 때는 이 구조를 복사하되, ID 발급은 CMN 채번 또는 업무별 sequence 정책으로 승격합니다.</p>
+ * 신규 업무 모듈을 만들 때는 이 구조를 Template으로 사용하되, 업무 번호는 해당 Domain 정책으로 소유합니다.</p>
  */
 @Service
 public class ReferenceCrudEducationService extends com.cpf.reference.common.base.ReferenceBaseService {
@@ -37,7 +37,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목 목록을 조회합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public List<ReferenceCrudEducationResponse> findEducationItems(
             String keyword,
             String statusCode,
@@ -51,7 +51,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목 단건을 조회합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager", readOnly = true)
+    @Transactional(transactionManager = "refTransactionManager", readOnly = true)
     public ReferenceCrudEducationResponse getEducationItem(Long educationItemId) {
         return toCrudResponse(findExistingItem(educationItemId));
     }
@@ -59,7 +59,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목을 등록합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public ReferenceCrudEducationResponse createEducationItem(ReferenceCrudEducationRequest request) {
         validateItemIdRangeRequest(request);
         Long itemId = repository.nextCrudItemId();
@@ -77,7 +77,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목을 수정합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public ReferenceCrudEducationResponse updateEducationItem(Long educationItemId, ReferenceCrudEducationRequest request) {
         findExistingItem(educationItemId);
         validateItemIdRangeRequest(request);
@@ -96,7 +96,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목 상태를 변경합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public ReferenceCrudEducationResponse changeEducationItemStatus(
             Long educationItemId,
             ReferenceCrudEducationStatusRequest request) {
@@ -114,7 +114,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * CRUD 교육 항목을 논리 삭제합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public void deleteEducationItem(Long educationItemId, String requestUser) {
         findExistingItem(educationItemId);
         int updatedRows = repository.logicalDeleteCrudItem(
@@ -128,7 +128,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * 단일 트랜잭션 교육 흐름을 실행합니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public String runSingleTransactionEducation() {
         ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
                 "SINGLE-" + IdUtils.temporaryId("REF"),
@@ -142,7 +142,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     /**
      * REQUIRES_NEW 감사 처리와 주 트랜잭션 실패 흐름을 보여줍니다.
      */
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "refTransactionManager")
     public String runSeparatedTransactionEducation(boolean failAfterAudit) {
         ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
                 "SEPARATED-" + IdUtils.temporaryId("REF"),
@@ -187,7 +187,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 item.itemName(),
                 item.statusCode(),
                 "분류=" + item.categoryCode(),
-                item.createdAt(),
+                item.createdAt() == null ? null : item.createdAt().toString(),
                 item.categoryCode(),
                 item.ownerMemberNo());
     }

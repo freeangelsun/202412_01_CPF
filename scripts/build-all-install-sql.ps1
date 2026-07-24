@@ -1,14 +1,14 @@
-﻿param(
+param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
-# PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+# Console과 산출물을 UTF-8(no BOM)로 고정합니다.
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $CpfUtf8ConsoleEncoding
 [Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
 $OutputEncoding = $CpfUtf8ConsoleEncoding
-
 $ErrorActionPreference = "Stop"
+
 $SqlRoot = Join-Path $Root "specs\sql"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
@@ -17,11 +17,33 @@ function Read-Utf8([string] $Path) {
 }
 
 function Write-Utf8([string] $Path, [string] $Text) {
-    [System.IO.File]::WriteAllText($Path, $Text, $Utf8NoBom)
+    [System.IO.File]::WriteAllText($Path, $Text.TrimEnd() + [Environment]::NewLine, $Utf8NoBom)
 }
 
-function Section([string] $FileName) {
+function Publish-CentralFile([string] $SourcePath, [string] $TargetPath) {
+    if (-not (Test-Path -LiteralPath $SourcePath -PathType Leaf)) {
+        throw "Central Vendor Pack source file is missing: $SourcePath"
+    }
+    $targetDirectory = Split-Path -Parent $TargetPath
+    New-Item -ItemType Directory -Force -Path $targetDirectory | Out-Null
+    [System.IO.File]::Copy($SourcePath, $TargetPath, $true)
+}
+
+function Publish-CentralDirectory([string] $SourceDirectory, [string] $TargetDirectory) {
+    if (-not (Test-Path -LiteralPath $SourceDirectory -PathType Container)) {
+        throw "Central Vendor Pack source directory is missing: $SourceDirectory"
+    }
+    foreach ($sourceFile in Get-ChildItem -LiteralPath $SourceDirectory -Recurse -File) {
+        $relativePath = [System.IO.Path]::GetRelativePath($SourceDirectory, $sourceFile.FullName)
+        Publish-CentralFile $sourceFile.FullName (Join-Path $TargetDirectory $relativePath)
+    }
+}
+
+function Get-Section([string] $FileName) {
     $path = Join-Path $SqlRoot $FileName
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "SQL source file is missing: $path"
+    }
     return @"
 
 -- ============================================================================
@@ -31,183 +53,110 @@ $(Read-Utf8 $path)
 "@
 }
 
-$cleanup = @"
-
--- ============================================================================
--- CPF 현행 테이블 정리
--- ============================================================================
--- 로컬 설치와 smoke 검증을 위해 CPF 현행 표준 테이블을 다시 생성합니다.
-
-DROP TABLE IF EXISTS bzaDB.bza_approval_history;
-DROP TABLE IF EXISTS bzaDB.bza_approval_line;
-DROP TABLE IF EXISTS bzaDB.bza_approval_document;
-DROP TABLE IF EXISTS bzaDB.bza_business_audit;
-DROP TABLE IF EXISTS bzaDB.bza_user_role;
-DROP TABLE IF EXISTS bzaDB.bza_employee;
-DROP TABLE IF EXISTS bzaDB.bza_organization;
-DROP TABLE IF EXISTS bzaDB.bza_masking_audit;
-DROP TABLE IF EXISTS bzaDB.bza_project_setting;
-DROP TABLE IF EXISTS bzaDB.bza_order;
-DROP TABLE IF EXISTS bzaDB.bza_product;
-DROP TABLE IF EXISTS bzaDB.bza_customer;
-DROP TABLE IF EXISTS bzaDB.bza_permission;
-DROP TABLE IF EXISTS bzaDB.bza_role;
-DROP TABLE IF EXISTS bzaDB.bza_menu;
-DROP TABLE IF EXISTS bzaDB.bza_refresh_token;
-DROP TABLE IF EXISTS bzaDB.bza_login_history;
-DROP TABLE IF EXISTS bzaDB.bza_admin_user;
-
-DROP TABLE IF EXISTS mbrDB.mbr_refresh_token;
-DROP TABLE IF EXISTS mbrDB.mbr_member_login_history;
-DROP TABLE IF EXISTS mbrDB.mbr_member_role_history;
-DROP TABLE IF EXISTS mbrDB.mbr_member_role;
-DROP TABLE IF EXISTS mbrDB.mbr_member;
-
-DROP TABLE IF EXISTS accDB.acc_account_change_log;
-DROP TABLE IF EXISTS accDB.acc_account;
-
-DROP TABLE IF EXISTS refDB.ref_center_cut_sample_result;
-DROP TABLE IF EXISTS refDB.ref_center_cut_sample_target;
-
-DROP TABLE IF EXISTS exsDB.exs_token_event_history;
-DROP TABLE IF EXISTS exsDB.exs_reconciliation_log;
-DROP TABLE IF EXISTS exsDB.exs_retry_log;
-DROP TABLE IF EXISTS exsDB.exs_message_log;
-DROP TABLE IF EXISTS exsDB.exs_transaction_log;
-DROP TABLE IF EXISTS exsDB.exs_execution;
-DROP TABLE IF EXISTS exsDB.exs_control_policy;
-DROP TABLE IF EXISTS exsDB.exs_route_rule;
-DROP TABLE IF EXISTS exsDB.exs_token_store;
-DROP TABLE IF EXISTS exsDB.exs_auth_profile;
-DROP TABLE IF EXISTS exsDB.exs_endpoint;
-DROP TABLE IF EXISTS exsDB.exs_channel;
-DROP TABLE IF EXISTS exsDB.exs_institution;
-
-DROP TABLE IF EXISTS admDB.adm_download_audit_log;
-DROP TABLE IF EXISTS admDB.adm_notification_delivery_log;
-DROP TABLE IF EXISTS admDB.adm_notification_rule;
-DROP TABLE IF EXISTS admDB.adm_operator_session;
-DROP TABLE IF EXISTS admDB.adm_login_history;
-DROP TABLE IF EXISTS admDB.adm_password_history;
-DROP TABLE IF EXISTS admDB.adm_password_policy;
-DROP TABLE IF EXISTS admDB.adm_mfa_otp_secret;
-DROP TABLE IF EXISTS admDB.adm_ip_allowlist;
-DROP TABLE IF EXISTS admDB.adm_audit_log;
-DROP TABLE IF EXISTS admDB.adm_role_api_permission;
-DROP TABLE IF EXISTS admDB.adm_api_permission;
-DROP TABLE IF EXISTS admDB.adm_role_button;
-DROP TABLE IF EXISTS admDB.adm_role_menu;
-DROP TABLE IF EXISTS admDB.adm_button;
-DROP TABLE IF EXISTS admDB.adm_menu;
-DROP TABLE IF EXISTS admDB.adm_operator_role;
-DROP TABLE IF EXISTS admDB.adm_role;
-DROP TABLE IF EXISTS admDB.adm_operator;
-
-DROP TABLE IF EXISTS cmnDB.cmn_edu_query_item;
-DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_masking_policy;
-DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_field;
-DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_group;
-DROP TABLE IF EXISTS cmnDB.cmn_fixed_length_layout;
-DROP TABLE IF EXISTS cmnDB.cmn_business_log;
-DROP TABLE IF EXISTS cmnDB.cmn_notification_log;
-DROP TABLE IF EXISTS cmnDB.cmn_sequence_issue_log;
-DROP TABLE IF EXISTS cmnDB.cmn_sequence;
-
-DROP TABLE IF EXISTS cpfDB.cpf_notification_delivery_log;
-DROP TABLE IF EXISTS cpfDB.cpf_notification_rule;
-DROP TABLE IF EXISTS cpfDB.cpf_business_day_calendar;
-DROP TABLE IF EXISTS cpfDB.bat_center_cut_result;
-DROP TABLE IF EXISTS cpfDB.bat_center_cut_item;
-DROP TABLE IF EXISTS cpfDB.bat_center_cut_parameter;
-DROP TABLE IF EXISTS cpfDB.bat_center_cut_job;
-DROP TABLE IF EXISTS cpfDB.cpf_center_cut_result;
-DROP TABLE IF EXISTS cpfDB.cpf_center_cut_item;
-DROP TABLE IF EXISTS cpfDB.cpf_center_cut_parameter;
-DROP TABLE IF EXISTS cpfDB.cpf_center_cut_job;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_ghost_event;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_target;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_operation_log;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_lock;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_step_execution;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_execution_lease;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_execution;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_job_relation;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_worker;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_instance;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_schedule;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_job;
-DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_CONTEXT;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_PARAMS;
-DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_INSTANCE;
-DROP TABLE IF EXISTS cpfDB.BATCH_STEP_EXECUTION_SEQ;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_EXECUTION_SEQ;
-DROP TABLE IF EXISTS cpfDB.BATCH_JOB_SEQ;
-DROP TABLE IF EXISTS cpfDB.cpf_cache_refresh_event;
-DROP TABLE IF EXISTS cpfDB.cpf_dynamic_log_level_rule;
-DROP TABLE IF EXISTS cpfDB.cpf_config;
-DROP TABLE IF EXISTS cpfDB.cpf_response_code;
-DROP TABLE IF EXISTS cpfDB.cpf_message;
-DROP TABLE IF EXISTS cpfDB.cpf_code;
-DROP TABLE IF EXISTS cpfDB.cpf_unknown_result;
-DROP TABLE IF EXISTS cpfDB.cpf_file_transfer_history;
-DROP TABLE IF EXISTS cpfDB.cpf_broker_dlq;
-DROP TABLE IF EXISTS cpfDB.cpf_broker_inbox;
-DROP TABLE IF EXISTS cpfDB.cpf_broker_outbox;
-DROP TABLE IF EXISTS cpfDB.cpf_idempotency_record;
-DROP TABLE IF EXISTS cpfDB.cpf_service_call_history;
-DROP TABLE IF EXISTS cpfDB.cpf_service_circuit_state;
-DROP TABLE IF EXISTS cpfDB.cpf_service_routing_policy;
-DROP TABLE IF EXISTS cpfDB.cpf_service_health_status;
-DROP TABLE IF EXISTS cpfDB.cpf_service_instance;
-DROP TABLE IF EXISTS cpfDB.cpf_service_endpoint;
-DROP TABLE IF EXISTS cpfDB.cpf_service;
-DROP TABLE IF EXISTS cpfDB.cpf_transaction_segment;
-DROP TABLE IF EXISTS cpfDB.cpf_batch_on_demand_request;
-DROP TABLE IF EXISTS cpfDB.cpf_channel_execution_policy;
-DROP TABLE IF EXISTS cpfDB.cpf_channel_registry;
-DROP TABLE IF EXISTS cpfDB.cpf_channel_policy_version;
-DROP TABLE IF EXISTS cpfDB.cpf_standard_execution_alias;
-DROP TABLE IF EXISTS cpfDB.cpf_standard_execution;
-DROP TABLE IF EXISTS cpfDB.cpf_transaction_meta;
-DROP TABLE IF EXISTS cpfDB.cpf_transaction_log_detail;
-DROP TABLE IF EXISTS cpfDB.cpf_transaction_log;
+function New-Bundle(
+    [string] $OutputName,
+    [string] $Purpose,
+    [string[]] $Files
+) {
+    $header = @"
+-- CPF generated SQL bundle: $OutputName
+-- 목적: $Purpose
+-- 정본은 specs/sql의 번호별 분리 SQL입니다.
+-- 분리 SQL 변경 후 pwsh -File scripts/build-all-install-sql.ps1 로 재생성합니다.
 "@
+    $body = $header
+    foreach ($file in $Files) {
+        $body += Get-Section $file
+    }
 
-$installFiles = @(
+    if ($OutputName -notin @("00_provision.sql") -and
+            $body -match "(?im)^\s*(?:CREATE|ALTER|DROP)\s+USER\b") {
+        throw "Runtime/install bundle must not manage DB users: $OutputName"
+    }
+    if ($OutputName -notin @("00_test_seed.sql") -and
+            $body -match "(?im)^\s*DROP\s+(?:DATABASE|TABLE)\b") {
+        throw "Non-destructive bundle contains DROP DATABASE/TABLE: $OutputName"
+    }
+
+    Write-Utf8 (Join-Path $SqlRoot $OutputName) $body
+}
+
+# 관리자 권한 단계: Schema와 최소 권한 계정만 생성합니다.
+$provisionFiles = @(
     "01_create_databases.sql",
-    "02_create_service_users.sql",
+    "02_create_service_users.sql"
+)
+
+# Migration 권한 단계: 제품 Object만 생성하며 Seed나 Reset을 포함하지 않습니다.
+$emptyInstallFiles = @(
     "10_cpf_schema.sql",
     "20_cmn_schema.sql",
     "30_adm_schema.sql",
     "35_bat_schema.sql",
     "40_business_modules_schema.sql",
-    "45_external_schema.sql",
-    "50_framework_seed_data.sql",
-    "52_standard_execution_alias_seed.sql",
-    "55_cmn_seed_data.sql",
-    "57_external_seed_data.sql",
-    "60_adm_seed_data.sql",
-    "70_test_data.sql"
+    "45_external_schema.sql"
 )
 
-$header = @"
--- CPF 전체 설치 SQL입니다.
--- 이 파일은 SOURCE 명령 없이 모든 SQL 본문을 포함합니다.
--- 분리 SQL을 변경한 뒤 scripts/build-all-install-sql.ps1로 다시 생성합니다.
-"@
+# Release와 함께 배포되는 idempotent 제품 기준정보입니다.
+$productSeedFiles = @(
+    "50_framework_seed_data.sql",
+    "52_standard_execution_alias_seed.sql",
+    "57_external_seed_data.sql",
+    "60_adm_seed_data.sql"
+)
 
-$installBody = $header + (Section "01_create_databases.sql") + $cleanup
-foreach ($file in $installFiles | Where-Object { $_ -ne "01_create_databases.sql" }) {
-    $installBody += Section $file
+# 명시적으로 선택해야 하는 Sample/EDU 및 Test fixture입니다.
+$optionalSampleSeedFiles = @("55_cmn_seed_data.sql")
+$testSeedFiles = @("70_test_data.sql")
+$verifyFiles = @("99_smoke_check.sql")
+
+New-Bundle "00_provision.sql" `
+    "관리자 권한으로 Schema와 migration/runtime 최소 권한 계정을 명시적으로 Provision" `
+    $provisionFiles
+New-Bundle "00_empty_install.sql" `
+    "빈 Schema에 제품 Object만 비파괴 설치" `
+    $emptyInstallFiles
+New-Bundle "00_product_seed.sql" `
+    "제품 필수 기준정보만 idempotent 반영" `
+    $productSeedFiles
+New-Bundle "00_optional_sample_seed.sql" `
+    "사용자가 선택한 CMN Sample/EDU 데이터만 반영" `
+    $optionalSampleSeedFiles
+New-Bundle "00_test_seed.sql" `
+    "격리된 Test 환경에서만 fixture 반영" `
+    $testSeedFiles
+New-Bundle "00_verify.sql" `
+    "설치 Object와 제품 Seed를 변경 없이 검증" `
+    $verifyFiles
+
+# 기존 소비자용 편의 bundle도 Provision/Optional/Test/Reset을 포함하지 않습니다.
+New-Bundle "00_all_install.sql" `
+    "제품 Object 설치 후 제품 Seed 반영(Provision/Optional/Test/Reset 제외)" `
+    ($emptyInstallFiles + $productSeedFiles)
+New-Bundle "00_all_install_and_smoke.sql" `
+    "제품 Object 설치, 제품 Seed 반영, read-only Verify(Provision/Optional/Test/Reset 제외)" `
+    ($emptyInstallFiles + $productSeedFiles + $verifyFiles)
+
+$centralMariaRoot = Join-Path $Root "cpf-tools\db\vendor\mariadb"
+$centralLifecycleFiles = [ordered]@{
+    "00_provision.sql" = "provision\00_provision.sql"
+    "00_empty_install.sql" = "install\00_empty_install.sql"
+    "00_product_seed.sql" = "seed\00_product_seed.sql"
+    "00_optional_sample_seed.sql" = "seed\00_optional_sample_seed.sql"
+    "00_test_seed.sql" = "seed\00_test_seed.sql"
+    "00_verify.sql" = "verify\00_verify.sql"
 }
-$installBody = $installBody.TrimEnd() + [Environment]::NewLine
+foreach ($entry in $centralLifecycleFiles.GetEnumerator()) {
+    Publish-CentralFile `
+        (Join-Path $SqlRoot $entry.Key) `
+        (Join-Path $centralMariaRoot $entry.Value)
+}
+Publish-CentralDirectory `
+    (Join-Path $SqlRoot "migration\flyway") `
+    (Join-Path $centralMariaRoot "migration\flyway")
+Publish-CentralDirectory `
+    (Join-Path $SqlRoot "migration\rollback") `
+    (Join-Path $centralMariaRoot "rollback")
 
-Write-Utf8 (Join-Path $SqlRoot "00_all_install.sql") $installBody
-
-$smokeBody = $installBody + (Section "99_smoke_check.sql").TrimEnd() + [Environment]::NewLine
-Write-Utf8 (Join-Path $SqlRoot "00_all_install_and_smoke.sql") $smokeBody
-
-Write-Host "CPF all-install SQL files rebuilt."
+Write-Host "CPF SQL bundles rebuilt without implicit reset or test seed."
+Write-Host "MariaDB central lifecycle WIP mirror published to cpf-tools/db/vendor/mariadb."

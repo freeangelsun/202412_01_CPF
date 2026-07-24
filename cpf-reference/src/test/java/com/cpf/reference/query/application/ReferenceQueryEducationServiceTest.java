@@ -7,6 +7,7 @@ import com.cpf.reference.query.dto.ReferenceQueryPageResponse;
 import com.cpf.reference.query.adapter.ReferenceQueryEducationRepository;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +65,8 @@ class ReferenceQueryEducationServiceTest {
     }
 
     private ReferenceQueryEducationItem item(Long itemId) {
-        return new ReferenceQueryEducationItem(itemId, "조회 샘플 " + itemId, "QUERY", "ACTIVE", "M000000001", "2026-06-29T09:00:00");
+        return new ReferenceQueryEducationItem(
+                itemId, "조회 샘플 " + itemId, "QUERY", "ACTIVE", "M000000001",
+                LocalDateTime.parse("2026-06-29T09:00:00"));
     }
 }

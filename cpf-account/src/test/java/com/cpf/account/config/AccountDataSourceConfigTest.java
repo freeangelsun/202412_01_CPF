@@ -23,4 +23,16 @@ class AccountDataSourceConfigTest {
         assertThat(jdbcTemplate.getDataSource()).isSameAs(dataSource);
         assertThat(transactionManager.getDataSource()).isSameAs(dataSource);
     }
+
+    @Test
+    void createsDedicatedBatJdbcResources() {
+        DataSource batDataSource = mock(DataSource.class);
+
+        JdbcTemplate jdbcTemplate = new AccountDataSourceConfig().batJdbcTemplate(batDataSource);
+        DataSourceTransactionManager transactionManager =
+                (DataSourceTransactionManager) new AccountDataSourceConfig().batTransactionManager(batDataSource);
+
+        assertThat(jdbcTemplate.getDataSource()).isSameAs(batDataSource);
+        assertThat(transactionManager.getDataSource()).isSameAs(batDataSource);
+    }
 }

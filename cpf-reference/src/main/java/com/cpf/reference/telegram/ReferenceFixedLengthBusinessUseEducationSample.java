@@ -1,19 +1,19 @@
 package com.cpf.reference.telegram;
 
-import com.cpf.common.message.fixedlength.FixedLengthFieldSpec;
-import com.cpf.common.message.fixedlength.FixedLengthLayoutSpec;
+import com.cpf.core.api.fixedlength.CpfFixedLengthFieldSpec;
+import com.cpf.core.api.fixedlength.CpfFixedLengthLayout;
 
 import java.util.List;
 
 /**
- * REF 업무가 CMN 고정길이 layout을 사용하는 샘플입니다.
+ * REF 업무가 CPF Core 고정길이 layout을 사용하는 샘플입니다.
  */
 public class ReferenceFixedLengthBusinessUseEducationSample {
 
-    public FixedLengthLayoutSpec layout() {
-        return FixedLengthLayoutSpec.utf8(12, List.of(
-                FixedLengthFieldSpec.of("bankCode", 1, 3),
-                FixedLengthFieldSpec.of("userNo", 4, 9)
+    public CpfFixedLengthLayout layout() {
+        return CpfFixedLengthLayout.utf8(12, List.of(
+                CpfFixedLengthFieldSpec.of("bankCode", 1, 3),
+                CpfFixedLengthFieldSpec.of("userNo", 4, 9)
         ));
     }
 }

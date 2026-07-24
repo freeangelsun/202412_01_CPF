@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.event.EventListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -27,8 +28,9 @@ public class CpfTransactionMetaAutoConfiguration {
     @ConditionalOnMissingBean
     public CpfTransactionMetaRepository cpfTransactionMetaRepository(
             @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
-        return new CpfTransactionMetaRepository(jdbcTemplateProvider, dataSourceProvider);
+            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            Environment environment) {
+        return new CpfTransactionMetaRepository(jdbcTemplateProvider, dataSourceProvider, environment);
     }
 
     @Bean

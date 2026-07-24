@@ -1,0 +1,22 @@
+CREATE TABLE @CPF_TABLE_PREFIX@_sample_item (
+    sample_item_id BIGINT NOT NULL AUTO_INCREMENT,
+    sample_key VARCHAR(100) NOT NULL,
+    item_name VARCHAR(200) NOT NULL,
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    version_no BIGINT NOT NULL DEFAULT 0,
+    idempotency_key VARCHAR(100) NOT NULL,
+    transaction_global_id VARCHAR(64) NOT NULL,
+    transaction_sequence BIGINT NOT NULL DEFAULT 1,
+    transaction_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
+    created_by VARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_by VARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (sample_item_id),
+    UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_key (sample_key),
+    UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_idempotency (idempotency_key),
+    INDEX ix_@CPF_TABLE_PREFIX@_sample_item_status (status_code,deleted_yn,sample_item_id),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_version CHECK(version_no>=0),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_deleted CHECK(deleted_yn IN('Y','N'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -97,6 +97,8 @@ function Start-Worker([string] $WorkerId, [string] $InstanceId, [int] $Index) {
     $stderr = Join-Path $runtimeDir "worker-$Index.stderr.log"
     $old = @{
         CPF_DB_URL = $env:CPF_DB_URL; CPF_DB_USERNAME = $env:CPF_DB_USERNAME; CPF_DB_PASSWORD = $env:CPF_DB_PASSWORD
+        BAT_DATASOURCE_URL = $env:BAT_DATASOURCE_URL; BAT_DATASOURCE_USERNAME = $env:BAT_DATASOURCE_USERNAME
+        BAT_DATASOURCE_PASSWORD = $env:BAT_DATASOURCE_PASSWORD
         CPF_INSTANCE_ID = $env:CPF_INSTANCE_ID; CPF_BAT_WORKER_ID = $env:CPF_BAT_WORKER_ID
         CPF_BAT_WORKER_VERSION = $env:CPF_BAT_WORKER_VERSION; CPF_BAT_WORKER_CAPABILITIES = $env:CPF_BAT_WORKER_CAPABILITIES
         CPF_BAT_WORKER_ENABLED = $env:CPF_BAT_WORKER_ENABLED; CPF_BAT_WORKER_LEASE_SECONDS = $env:CPF_BAT_WORKER_LEASE_SECONDS
@@ -112,6 +114,9 @@ function Start-Worker([string] $WorkerId, [string] $InstanceId, [int] $Index) {
         $env:CPF_DB_URL = "jdbc:mariadb://${HostName}:${Port}/cpfDB"
         $env:CPF_DB_USERNAME = $Username
         $env:CPF_DB_PASSWORD = $Password
+        $env:BAT_DATASOURCE_URL = "jdbc:mariadb://${HostName}:${Port}/batDB"
+        $env:BAT_DATASOURCE_USERNAME = $Username
+        $env:BAT_DATASOURCE_PASSWORD = $Password
         $env:CPF_INSTANCE_ID = $InstanceId
         $env:CPF_BAT_WORKER_ID = $WorkerId
         $env:CPF_BAT_WORKER_VERSION = 'runtime-smoke-v1'
@@ -144,25 +149,25 @@ try {
     $script:MariaClient = Resolve-Client
 
     [void](Invoke-Sql @"
-USE cpfDB;
-DELETE FROM cpf_batch_execution_lease WHERE execution_id IN (
-    SELECT execution_id FROM cpf_batch_execution WHERE created_by = 'BAT_TWO_WORKER_SMOKE'
+USE batDB;
+DELETE FROM bat_execution_lease WHERE execution_id IN (
+    SELECT execution_id FROM bat_execution WHERE created_by = 'BAT_TWO_WORKER_SMOKE'
 );
-DELETE FROM cpf_batch_execution WHERE created_by = 'BAT_TWO_WORKER_SMOKE';
-DELETE FROM cpf_batch_worker WHERE worker_id IN ('bat-smoke-worker-1', 'bat-smoke-worker-2');
-INSERT INTO cpf_batch_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
+DELETE FROM bat_execution WHERE created_by = 'BAT_TWO_WORKER_SMOKE';
+DELETE FROM bat_worker WHERE worker_id IN ('bat-smoke-worker-1', 'bat-smoke-worker-2');
+INSERT INTO bat_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
 VALUES ('CPF_BAT_HEARTBEAT_JOB', 'BAT 2-worker heartbeat 검증 Job', 'TASKLET', '2-worker claim과 takeover 검증', 'Y', 'Y', 'BAT', 'BAT')
 ON DUPLICATE KEY UPDATE job_name=VALUES(job_name), use_yn='Y', updated_by='BAT', updated_at=CURRENT_TIMESTAMP;
 "@)
 
     $first = Start-Worker 'bat-smoke-worker-1' 'bat-smoke-instance-1' 1
     $second = Start-Worker 'bat-smoke-worker-2' 'bat-smoke-instance-2' 2
-    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_worker WHERE worker_id IN ('bat-smoke-worker-1','bat-smoke-worker-2') AND active_yn='Y';") -eq 2 } 60 'worker 2개가 등록되지 않았습니다.'
+    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_worker WHERE worker_id IN ('bat-smoke-worker-1','bat-smoke-worker-2') AND active_yn='Y';") -eq 2 } 60 'worker 2개가 등록되지 않았습니다.'
     $result.workerRegistration = [ordered]@{ status = 'DONE'; workerCount = 2; distinctProcessCount = 2; distinctInstanceCount = 2 }
 
     [void](Invoke-Sql @"
-USE cpfDB;
-INSERT INTO cpf_batch_execution (
+USE batDB;
+INSERT INTO bat_execution (
     job_id, job_parameters, execution_status, required_worker_version, required_capability,
     requested_by, created_by, updated_by
 )
@@ -170,18 +175,18 @@ SELECT 'CPF_BAT_HEARTBEAT_JOB', CONCAT('{"case":"distribution","sequence":', seq
        'runtime-smoke-v1', 'CPF_BAT_HEARTBEAT_JOB', 'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE'
 FROM (SELECT 1 seq UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) value_source;
 "@)
-    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution WHERE created_by='BAT_TWO_WORKER_SMOKE' AND execution_status='COMPLETED';") -ge 4 } 90 '분산 실행 4건이 완료되지 않았습니다.'
-    $distribution = (Invoke-Sql "SELECT COUNT(DISTINCT worker_id), COUNT(*), COUNT(DISTINCT execution_id) FROM cpfDB.cpf_batch_execution_lease WHERE execution_id IN (SELECT execution_id FROM cpfDB.cpf_batch_execution WHERE created_by='BAT_TWO_WORKER_SMOKE');").Split("`t")
+    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution WHERE created_by='BAT_TWO_WORKER_SMOKE' AND execution_status='COMPLETED';") -ge 4 } 90 '분산 실행 4건이 완료되지 않았습니다.'
+    $distribution = (Invoke-Sql "SELECT COUNT(DISTINCT worker_id), COUNT(*), COUNT(DISTINCT execution_id) FROM batDB.bat_execution_lease WHERE execution_id IN (SELECT execution_id FROM batDB.bat_execution WHERE created_by='BAT_TWO_WORKER_SMOKE');").Split("`t")
     if ([int]$distribution[0] -ne 2 -or [int]$distribution[1] -ne [int]$distribution[2]) { throw '2-worker 분산 또는 중복 claim 검증에 실패했습니다.' }
     $duplicateSpringExecutionCount = [int](Invoke-Sql @"
 SELECT COUNT(*)
 FROM (
     SELECT p.PARAMETER_VALUE
-    FROM cpfDB.BATCH_JOB_EXECUTION_PARAMS p
+    FROM batDB.BATCH_JOB_EXECUTION_PARAMS p
     WHERE p.PARAMETER_NAME = 'cpfCpfExecutionId'
       AND CAST(p.PARAMETER_VALUE AS UNSIGNED) IN (
           SELECT execution_id
-          FROM cpfDB.cpf_batch_execution
+          FROM batDB.bat_execution
           WHERE created_by = 'BAT_TWO_WORKER_SMOKE'
             AND job_parameters LIKE '%distribution%'
       )
@@ -198,40 +203,40 @@ FROM (
         duplicateSpringExecutionCount = 0
     }
 
-    $worker1Before = [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution_lease WHERE worker_id='bat-smoke-worker-1';")
-    [void](Invoke-Sql "UPDATE cpfDB.cpf_batch_worker SET control_status='DRAINING', updated_by='BAT_TWO_WORKER_SMOKE' WHERE worker_id='bat-smoke-worker-1';")
+    $worker1Before = [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution_lease WHERE worker_id='bat-smoke-worker-1';")
+    [void](Invoke-Sql "UPDATE batDB.bat_worker SET control_status='DRAINING', updated_by='BAT_TWO_WORKER_SMOKE' WHERE worker_id='bat-smoke-worker-1';")
     Start-Sleep -Seconds 2
     [void](Invoke-Sql @"
-INSERT INTO cpfDB.cpf_batch_execution (
+INSERT INTO batDB.bat_execution (
     job_id, job_parameters, execution_status, required_worker_version, required_capability,
     requested_by, created_by, updated_by
 ) VALUES ('CPF_BAT_HEARTBEAT_JOB', '{"case":"drain"}', 'READY', 'runtime-smoke-v1', 'CPF_BAT_HEARTBEAT_JOB',
           'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE');
 "@)
-    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution WHERE created_by='BAT_TWO_WORKER_SMOKE' AND execution_status='COMPLETED';") -ge 5 } 60 'drain 이후 실행이 완료되지 않았습니다.'
-    $worker1After = [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution_lease WHERE worker_id='bat-smoke-worker-1';")
+    Wait-Until { [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution WHERE created_by='BAT_TWO_WORKER_SMOKE' AND execution_status='COMPLETED';") -ge 5 } 60 'drain 이후 실행이 완료되지 않았습니다.'
+    $worker1After = [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution_lease WHERE worker_id='bat-smoke-worker-1';")
     if ($worker1After -ne $worker1Before) { throw 'DRAINING worker가 신규 실행을 claim했습니다.' }
     $result.drain = [ordered]@{ status = 'DONE'; drainingWorkerNewClaimCount = 0 }
 
-    [void](Invoke-Sql "UPDATE cpfDB.cpf_batch_worker SET control_status='RUNNING' WHERE worker_id='bat-smoke-worker-1';")
+    [void](Invoke-Sql "UPDATE batDB.bat_worker SET control_status='RUNNING' WHERE worker_id='bat-smoke-worker-1';")
     [void](Invoke-Sql @"
-INSERT INTO cpfDB.cpf_batch_execution (
+INSERT INTO batDB.bat_execution (
     job_id, job_parameters, execution_status, required_worker_version, required_capability,
     requested_by, created_by, updated_by
 ) VALUES ('CPF_BAT_HEARTBEAT_JOB', '{"case":"crash"}', 'READY', 'runtime-smoke-v1', 'CPF_BAT_HEARTBEAT_JOB',
           'BAT_TWO_WORKER_SMOKE_CRASH', 'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE');
 "@)
-    $crashExecutionId = [long](Invoke-Sql "SELECT MAX(execution_id) FROM cpfDB.cpf_batch_execution WHERE requested_by='BAT_TWO_WORKER_SMOKE_CRASH';")
-    Wait-Until { (Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution_lease WHERE execution_id=$crashExecutionId AND lease_status='RUNNING';") -eq '1' } 30 'crash 대상 실행이 claim되지 않았습니다.'
-    $crashOwner = Invoke-Sql "SELECT worker_id FROM cpfDB.cpf_batch_execution_lease WHERE execution_id=$crashExecutionId;"
+    $crashExecutionId = [long](Invoke-Sql "SELECT MAX(execution_id) FROM batDB.bat_execution WHERE requested_by='BAT_TWO_WORKER_SMOKE_CRASH';")
+    Wait-Until { (Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution_lease WHERE execution_id=$crashExecutionId AND lease_status='RUNNING';") -eq '1' } 30 'crash 대상 실행이 claim되지 않았습니다.'
+    $crashOwner = Invoke-Sql "SELECT worker_id FROM batDB.bat_execution_lease WHERE execution_id=$crashExecutionId;"
     if ($crashOwner -eq 'bat-smoke-worker-1') { Stop-Process -Id $first.Id -Force } else { Stop-Process -Id $second.Id -Force }
-    Wait-Until { (Invoke-Sql "SELECT execution_status FROM cpfDB.cpf_batch_execution WHERE execution_id=$crashExecutionId;") -eq 'COMPLETED' } 75 'lease 만료 후 surviving worker takeover가 완료되지 않았습니다.'
-    $takeover = (Invoke-Sql "SELECT worker_id, takeover_count, attempt_no FROM cpfDB.cpf_batch_execution_lease WHERE execution_id=$crashExecutionId;").Split("`t")
+    Wait-Until { (Invoke-Sql "SELECT execution_status FROM batDB.bat_execution WHERE execution_id=$crashExecutionId;") -eq 'COMPLETED' } 75 'lease 만료 후 surviving worker takeover가 완료되지 않았습니다.'
+    $takeover = (Invoke-Sql "SELECT worker_id, takeover_count, attempt_no FROM batDB.bat_execution_lease WHERE execution_id=$crashExecutionId;").Split("`t")
     if ($takeover[0] -eq $crashOwner -or [int]$takeover[1] -lt 1 -or [int]$takeover[2] -lt 2) { throw 'crash lease takeover 메타가 올바르지 않습니다.' }
     $result.crashTakeover = [ordered]@{ status = 'DONE'; ownerChanged = $true; takeoverCount = [int]$takeover[1]; attemptNo = [int]$takeover[2] }
 
     [void](Invoke-Sql @"
-INSERT INTO cpfDB.cpf_batch_execution (
+INSERT INTO batDB.bat_execution (
     job_id, job_parameters, execution_status, required_worker_version, required_capability,
     requested_by, created_by, updated_by
 ) VALUES
@@ -239,7 +244,7 @@ INSERT INTO cpfDB.cpf_batch_execution (
 ('CPF_BAT_HEARTBEAT_JOB', '{"case":"capability-mismatch"}', 'READY', 'runtime-smoke-v1', 'NOT_SUPPORTED', 'BAT_TWO_WORKER_SMOKE_MISMATCH', 'BAT_TWO_WORKER_SMOKE', 'BAT_TWO_WORKER_SMOKE');
 "@)
     Start-Sleep -Seconds 3
-    $mismatchReady = [int](Invoke-Sql "SELECT COUNT(*) FROM cpfDB.cpf_batch_execution WHERE requested_by='BAT_TWO_WORKER_SMOKE_MISMATCH' AND execution_status='READY' AND worker_id IS NULL;")
+    $mismatchReady = [int](Invoke-Sql "SELECT COUNT(*) FROM batDB.bat_execution WHERE requested_by='BAT_TWO_WORKER_SMOKE_MISMATCH' AND execution_status='READY' AND worker_id IS NULL;")
     if ($mismatchReady -ne 2) { throw 'version/capability mismatch 실행이 claim되었습니다.' }
     $result.mismatch = [ordered]@{ status = 'DONE'; rejectedCount = 2 }
     $result.status = 'DONE'

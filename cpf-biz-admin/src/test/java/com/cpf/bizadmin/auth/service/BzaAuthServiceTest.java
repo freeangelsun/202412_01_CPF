@@ -207,7 +207,7 @@ class BzaAuthServiceTest {
                 "N",
                 Instant.now().plusSeconds(86400),
                 null,
-                List.of("CUSTOMER"),
-                List.of("CUSTOMER:READ"));
+                List.of("SETTING"),
+                List.of("SETTING:READ"));
     }
 }

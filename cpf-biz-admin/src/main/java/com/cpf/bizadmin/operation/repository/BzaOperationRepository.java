@@ -1,7 +1,9 @@
 package com.cpf.bizadmin.operation.repository;
 
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,10 +24,13 @@ import java.util.Optional;
 @Repository
 public class BzaOperationRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public BzaOperationRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     public List<Map<String, Object>> findAdminUsers() {
@@ -54,21 +59,7 @@ public class BzaOperationRepository {
     }
 
     public void saveAdminUser(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_admin_user (
-                    admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn,
-                    password_change_required_yn, created_by, updated_by
-                ) VALUES (
-                    :loginId, :adminName, :passwordHash, :roleCode, :useYn, :lockYn,
-                    :passwordChangeRequiredYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    admin_name = VALUES(admin_name),
-                    password_hash = COALESCE(VALUES(password_hash), password_hash),
-                    role_code = VALUES(role_code), use_yn = VALUES(use_yn), lock_yn = VALUES(lock_yn),
-                    password_change_required_yn = VALUES(password_change_required_yn),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        jdbc().update(sql.required("operation-save-admin-user"), values);
     }
 
     public List<Map<String, Object>> findMenus() {
@@ -97,21 +88,7 @@ public class BzaOperationRepository {
     }
 
     public void saveMenu(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_menu (
-                    menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code,
-                    environment_code, api_path, sort_order, use_yn, created_by, updated_by
-                ) VALUES (
-                    :menuCode, :menuName, :parentMenuCode, :moduleCode, :routePath, :iconCode,
-                    :environmentCode, :apiPath, :sortOrder, :useYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    menu_name = VALUES(menu_name), parent_menu_code = VALUES(parent_menu_code),
-                    module_code = VALUES(module_code), route_path = VALUES(route_path),
-                    icon_code = VALUES(icon_code), environment_code = VALUES(environment_code),
-                    api_path = VALUES(api_path), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        jdbc().update(sql.required("operation-save-menu"), values);
     }
 
     public List<Map<String, Object>> findRoles() {
@@ -138,17 +115,7 @@ public class BzaOperationRepository {
     }
 
     public void saveRole(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_role (
-                    role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by
-                ) VALUES (
-                    :roleCode, :roleName, :writeAllowedYn, :dataScope, :useYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    role_name = VALUES(role_name), write_allowed_yn = VALUES(write_allowed_yn),
-                    data_scope = VALUES(data_scope), use_yn = VALUES(use_yn),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
+        jdbc().update(sql.required("operation-save-role"), values);
     }
 
     public List<Map<String, Object>> findPermissions() {
@@ -187,94 +154,7 @@ public class BzaOperationRepository {
     }
 
     public void savePermission(Map<String, ?> values) {
-        jdbc().update("""
-                INSERT INTO bza_permission (
-                    role_code, menu_code, button_code, permission_type, http_method, api_pattern,
-                    domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by
-                ) VALUES (
-                    :roleCode, :menuCode, :buttonCode, :permissionType, :httpMethod, :apiPattern,
-                    :domainCode, :environmentCode, :dataScope, :allowYn, :useYn, :requestUser, :requestUser
-                )
-                ON DUPLICATE KEY UPDATE
-                    permission_type = VALUES(permission_type), http_method = VALUES(http_method),
-                    api_pattern = VALUES(api_pattern), domain_code = VALUES(domain_code),
-                    environment_code = VALUES(environment_code), data_scope = VALUES(data_scope),
-                    allow_yn = VALUES(allow_yn), use_yn = VALUES(use_yn),
-                    updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
-                """, values);
-    }
-
-    public List<Map<String, Object>> findCustomers() {
-        return jdbc().queryForList("""
-                SELECT customer_id AS customerId,
-                       customer_no AS customerNo,
-                       customer_name AS customerName,
-                       email,
-                       mobile_no AS mobileNo,
-                       customer_status AS customerStatus,
-                       created_at AS createdAt,
-                       updated_at AS updatedAt
-                  FROM bza_customer
-                 ORDER BY customer_id
-                """, Map.of());
-    }
-
-    /**
-     * 개인정보 원문 조회는 대상, 운영자, 사유, 결과를 감사 이력으로 남깁니다.
-     */
-    public void insertMaskingAudit(String targetId, String operatorId, String reason, String resultType) {
-        jdbc().update("""
-                INSERT INTO bza_masking_audit (
-                    target_type,
-                    target_id,
-                    operator_id,
-                    reason,
-                    result_type,
-                    created_by,
-                    updated_by
-                )
-                VALUES (
-                    'bza_customer',
-                    :targetId,
-                    :operatorId,
-                    :reason,
-                    :resultType,
-                    :operatorId,
-                    :operatorId
-                )
-                """, new MapSqlParameterSource()
-                .addValue("targetId", targetId)
-                .addValue("operatorId", operatorId)
-                .addValue("reason", reason)
-                .addValue("resultType", resultType));
-    }
-
-    public List<Map<String, Object>> findProducts() {
-        return jdbc().queryForList("""
-                SELECT product_id AS productId,
-                       product_code AS productCode,
-                       product_name AS productName,
-                       use_yn AS useYn,
-                       created_at AS createdAt,
-                       updated_at AS updatedAt
-                  FROM bza_product
-                 ORDER BY product_code
-                """, Map.of());
-    }
-
-    public List<Map<String, Object>> findOrders() {
-        return jdbc().queryForList("""
-                SELECT order_id AS orderId,
-                       order_no AS orderNo,
-                       customer_no AS customerNo,
-                       product_code AS productCode,
-                       order_amount AS orderAmount,
-                       order_status AS orderStatus,
-                       created_at AS createdAt,
-                       updated_at AS updatedAt
-                  FROM bza_order
-                 ORDER BY order_id DESC
-                """, Map.of());
+        jdbc().update(sql.required("operation-save-permission"), values);
     }
 
     public List<Map<String, Object>> findSettings() {

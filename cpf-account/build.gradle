@@ -21,7 +21,6 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

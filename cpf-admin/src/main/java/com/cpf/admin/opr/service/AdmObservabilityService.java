@@ -21,12 +21,15 @@ import java.util.Map;
 @Service
 public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
     private final JdbcTemplate admJdbcTemplate;
 
     public AdmObservabilityService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
+        this.batJdbcTemplate = batJdbcTemplate;
         this.admJdbcTemplate = admJdbcTemplate;
     }
 
@@ -203,11 +206,11 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private List<Map<String, Object>> queryBatchExecutions(String transactionGlobalId, int limit) {
-        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(cpfJdbcTemplate, "cpf_batch_execution")) {
+        if (!TextUtils.hasText(transactionGlobalId) || !tableAvailable(batJdbcTemplate, "bat_execution")) {
             return List.of();
         }
         try {
-            return cpfJdbcTemplate.queryForList("""
+            return batJdbcTemplate.queryForList("""
                     SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                            spring_batch_execution_id, spring_batch_job_instance_id, business_date,
                            run_id, rerun_id, original_job_execution_id, restart_attempt,
@@ -216,7 +219,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                            server_instance_id, worker_id, start_time, end_time, processed_count,
                            success_count, failure_count, progress_rate, current_step_name,
                            last_heartbeat_at, created_at
-                    FROM cpf_batch_execution
+                    FROM bat_execution
                     WHERE transaction_global_id = ?
                     ORDER BY execution_id DESC LIMIT ?
                     """, transactionGlobalId.trim(), cappedLimit(limit));

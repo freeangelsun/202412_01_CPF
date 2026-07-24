@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ReferenceFixedLengthBusinessUseEducationSampleTest {
 
     @Test
-    void businessLayoutUsesCmnFixedLengthSpec() {
+    void businessLayoutUsesCpfCoreFixedLengthContract() {
         assertThat(new ReferenceFixedLengthBusinessUseEducationSample().layout().totalLength()).isEqualTo(12);
     }
 }

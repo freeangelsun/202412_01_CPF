@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "status": "부분 구현",
+  "runtimeVerification": "미검증",
+  "canonicalConsumerRoot": "cpf-tools/db/vendor/mariadb",
+  "lifecycleContentAuthority": "WIP_GENERATED_MIRROR",
+  "lifecycleContentNote": "현재 실제 MariaDB Baseline 검증용 specs/sql WIP를 생성 반영하는 전환 Pack이며, 최종 Table 수나 Ownership 확정 근거가 아니다.",
+  "runtimeContentAuthority": "CENTRAL_VENDOR_PACK",
+  "legacyModuleResourcePolicy": "TRANSITIONAL_HASH_PARITY_MIRROR",
+  "lifecycleStatus": {
+    "provision": "부분 구현",
+    "install": "부분 구현",
+    "seed": "부분 구현",
+    "migration": "재확인 필요",
+    "verify": "부분 구현",
+    "rollback": "부분 구현"
+  },
+  "lifecycleAuthoringSources": {
+    "provision/00_provision.sql": "specs/sql/00_provision.sql",
+    "install/00_empty_install.sql": "specs/sql/00_empty_install.sql",
+    "seed/00_product_seed.sql": "specs/sql/00_product_seed.sql",
+    "seed/00_optional_sample_seed.sql": "specs/sql/00_optional_sample_seed.sql",
+    "seed/00_test_seed.sql": "specs/sql/00_test_seed.sql",
+    "verify/00_verify.sql": "specs/sql/00_verify.sql",
+    "migration/flyway": "specs/sql/migration/flyway",
+    "rollback": "specs/sql/migration/rollback"
+  },
+  "runtimeModules": {
+    "cpf": {
+      "ownerArtifact": "cpf-core",
+      "repository": "부분 구현",
+      "mybatis": "부분 구현"
+    },
+    "cmn": {
+      "ownerArtifact": "cpf-common",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
+    },
+    "adm": {
+      "ownerArtifact": "cpf-admin",
+      "repository": "미구현",
+      "mybatis": "미구현"
+    },
+    "bza": {
+      "ownerArtifact": "cpf-biz-admin",
+      "repository": "부분 구현",
+      "mybatis": "미구현"
+    },
+    "bat": {
+      "ownerArtifact": "cpf-batch",
+      "repository": "미구현",
+      "mybatis": "미구현"
+    },
+    "gwy": {
+      "ownerArtifact": "cpf-gateway",
+      "repository": "미구현",
+      "mybatis": "미구현"
+    },
+    "mbr": {
+      "ownerArtifact": "cpf-member",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
+    },
+    "acc": {
+      "ownerArtifact": "cpf-account",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
+    },
+    "ref": {
+      "ownerArtifact": "cpf-reference",
+      "repository": "미구현",
+      "mybatis": "부분 구현"
+    },
+    "exs": {
+      "ownerArtifact": "cpf-external",
+      "repository": "미구현",
+      "mybatis": "미구현"
+    }
+  },
+  "generatedDomainContract": {
+    "status": "부분 구현",
+    "metadataDriven": true,
+    "fixedDomainList": false,
+    "templateRoot": "domain-template",
+    "tokens": [
+      "CPF_VENDOR",
+      "CPF_DOMAIN",
+      "CPF_SYSTEM_CODE",
+      "CPF_DISPLAY_NAME",
+      "CPF_SCHEMA_NAME",
+      "CPF_TABLE_PREFIX",
+      "CPF_MODULE_NAME",
+      "CPF_PACKAGE_NAME",
+      "CPF_MAPPER_NAMESPACE",
+      "CPF_MAPPER_NAME"
+    ]
+  }
+}

@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 /**
  * ADM 운영 화면에서 사용하는 DB 연결을 구성합니다.
  *
- * <p>ADM은 운영 메타 admDB, 프레임워크 로그/설정 cpfDB, 회원 운영 mbrDB,
+ * <p>ADM은 운영 메타 admDB, 프레임워크 로그/설정 cpfDB, 배치 운영 batDB, 회원 운영 mbrDB,
  * EDU 업무 샘플 refDB를 조회합니다. 운영 환경에서는
  * 각 datasource 계정과 비밀번호를 환경변수 또는 Vault/KMS 연동 값으로 주입해야 합니다.</p>
  */
@@ -34,6 +34,22 @@ public class AdmJdbcConfig {
     @Bean(name = "admJdbcTemplate")
     public JdbcTemplate admJdbcTemplate(@Qualifier("admDataSource") DataSource admDataSource) {
         return new JdbcTemplate(admDataSource);
+    }
+
+    @Bean(name = "batDataSource")
+    public DataSource batDataSource(Environment environment) throws NamingException {
+        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
+    }
+
+    @Bean(name = "batTransactionManager")
+    public PlatformTransactionManager batTransactionManager(
+            @Qualifier("batDataSource") DataSource batDataSource) {
+        return new DataSourceTransactionManager(batDataSource);
+    }
+
+    @Bean(name = "batJdbcTemplate")
+    public JdbcTemplate batJdbcTemplate(@Qualifier("batDataSource") DataSource batDataSource) {
+        return new JdbcTemplate(batDataSource);
     }
 
     @Bean(name = "mbrAdmDataSource")

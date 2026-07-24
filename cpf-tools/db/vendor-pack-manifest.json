@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 2,
+  "manifestOwner": "cpf-tools/db",
+  "selectionProperty": "cpf.db.vendor",
+  "packRoot": "cpf-tools/db/vendor",
+  "supportedVendors": [
+    "mariadb",
+    "mysql",
+    "postgresql",
+    "oracle",
+    "sqlserver"
+  ],
+  "platformModuleOwnership": {
+    "cpf": "cpf-core",
+    "cmn": "cpf-common",
+    "adm": "cpf-admin",
+    "bza": "cpf-biz-admin",
+    "bat": "cpf-batch",
+    "gwy": "cpf-gateway",
+    "mbr": "cpf-member",
+    "acc": "cpf-account",
+    "ref": "cpf-reference",
+    "exs": "cpf-external"
+  },
+  "generatedDomainRegistration": {
+    "metadataDriven": true,
+    "fixedDomainList": false,
+    "centralVendorTemplate": "cpf-tools/db/vendor/{vendor}/domain-template",
+    "runtimeModuleKey": "{moduleName}"
+  },
+  "vendors": {
+    "mariadb": {
+      "status": "부분 구현",
+      "client": "mariadb",
+      "pack": "cpf-tools/db/vendor/mariadb/pack.json",
+      "vendorRoot": "cpf-tools/db/vendor/mariadb",
+      "lifecycle": {
+        "provision": "cpf-tools/db/vendor/mariadb/provision/00_provision.sql",
+        "emptyInstall": "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql",
+        "productSeed": "cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql",
+        "optionalSampleSeed": "cpf-tools/db/vendor/mariadb/seed/00_optional_sample_seed.sql",
+        "testSeed": "cpf-tools/db/vendor/mariadb/seed/00_test_seed.sql",
+        "verify": "cpf-tools/db/vendor/mariadb/verify/00_verify.sql",
+        "migration": "cpf-tools/db/vendor/mariadb/migration/flyway",
+        "rollback": "cpf-tools/db/vendor/mariadb/rollback"
+      },
+      "runtimeRoot": "cpf-tools/db/vendor/mariadb/runtime",
+      "domainTemplateRoot": "cpf-tools/db/vendor/mariadb/domain-template"
+    },
+    "mysql": {
+      "status": "미구현",
+      "client": "mysql",
+      "pack": "cpf-tools/db/vendor/mysql/pack.json",
+      "vendorRoot": "cpf-tools/db/vendor/mysql",
+      "lifecycle": {
+        "provision": "cpf-tools/db/vendor/mysql/provision/00_provision.sql",
+        "emptyInstall": "cpf-tools/db/vendor/mysql/install/00_empty_install.sql",
+        "productSeed": "cpf-tools/db/vendor/mysql/seed/00_product_seed.sql",
+        "optionalSampleSeed": "cpf-tools/db/vendor/mysql/seed/00_optional_sample_seed.sql",
+        "testSeed": "cpf-tools/db/vendor/mysql/seed/00_test_seed.sql",
+        "verify": "cpf-tools/db/vendor/mysql/verify/00_verify.sql",
+        "migration": "cpf-tools/db/vendor/mysql/migration/flyway",
+        "rollback": "cpf-tools/db/vendor/mysql/rollback"
+      },
+      "runtimeRoot": "cpf-tools/db/vendor/mysql/runtime",
+      "domainTemplateRoot": "cpf-tools/db/vendor/mysql/domain-template"
+    },
+    "postgresql": {
+      "status": "미구현",
+      "client": "psql",
+      "pack": "cpf-tools/db/vendor/postgresql/pack.json",
+      "vendorRoot": "cpf-tools/db/vendor/postgresql",
+      "lifecycle": {
+        "provision": "cpf-tools/db/vendor/postgresql/provision/00_provision.sql",
+        "emptyInstall": "cpf-tools/db/vendor/postgresql/install/00_empty_install.sql",
+        "productSeed": "cpf-tools/db/vendor/postgresql/seed/00_product_seed.sql",
+        "optionalSampleSeed": "cpf-tools/db/vendor/postgresql/seed/00_optional_sample_seed.sql",
+        "testSeed": "cpf-tools/db/vendor/postgresql/seed/00_test_seed.sql",
+        "verify": "cpf-tools/db/vendor/postgresql/verify/00_verify.sql",
+        "migration": "cpf-tools/db/vendor/postgresql/migration/flyway",
+        "rollback": "cpf-tools/db/vendor/postgresql/rollback"
+      },
+      "runtimeRoot": "cpf-tools/db/vendor/postgresql/runtime",
+      "domainTemplateRoot": "cpf-tools/db/vendor/postgresql/domain-template"
+    },
+    "oracle": {
+      "status": "미구현",
+      "client": "sqlplus",
+      "pack": "cpf-tools/db/vendor/oracle/pack.json",
+      "vendorRoot": "cpf-tools/db/vendor/oracle",
+      "lifecycle": {
+        "provision": "cpf-tools/db/vendor/oracle/provision/00_provision.sql",
+        "emptyInstall": "cpf-tools/db/vendor/oracle/install/00_empty_install.sql",
+        "productSeed": "cpf-tools/db/vendor/oracle/seed/00_product_seed.sql",
+        "optionalSampleSeed": "cpf-tools/db/vendor/oracle/seed/00_optional_sample_seed.sql",
+        "testSeed": "cpf-tools/db/vendor/oracle/seed/00_test_seed.sql",
+        "verify": "cpf-tools/db/vendor/oracle/verify/00_verify.sql",
+        "migration": "cpf-tools/db/vendor/oracle/migration/flyway",
+        "rollback": "cpf-tools/db/vendor/oracle/rollback"
+      },
+      "runtimeRoot": "cpf-tools/db/vendor/oracle/runtime",
+      "domainTemplateRoot": "cpf-tools/db/vendor/oracle/domain-template"
+    },
+    "sqlserver": {
+      "status": "미구현",
+      "client": "sqlcmd",
+      "pack": "cpf-tools/db/vendor/sqlserver/pack.json",
+      "vendorRoot": "cpf-tools/db/vendor/sqlserver",
+      "lifecycle": {
+        "provision": "cpf-tools/db/vendor/sqlserver/provision/00_provision.sql",
+        "emptyInstall": "cpf-tools/db/vendor/sqlserver/install/00_empty_install.sql",
+        "productSeed": "cpf-tools/db/vendor/sqlserver/seed/00_product_seed.sql",
+        "optionalSampleSeed": "cpf-tools/db/vendor/sqlserver/seed/00_optional_sample_seed.sql",
+        "testSeed": "cpf-tools/db/vendor/sqlserver/seed/00_test_seed.sql",
+        "verify": "cpf-tools/db/vendor/sqlserver/verify/00_verify.sql",
+        "migration": "cpf-tools/db/vendor/sqlserver/migration/flyway",
+        "rollback": "cpf-tools/db/vendor/sqlserver/rollback"
+      },
+      "runtimeRoot": "cpf-tools/db/vendor/sqlserver/runtime",
+      "domainTemplateRoot": "cpf-tools/db/vendor/sqlserver/domain-template"
+    }
+  },
+  "runtimeResourceContracts": {
+    "externalRepositorySql": "{vendorRoot}/runtime/{module}/repository/{statement}.sql",
+    "externalMyBatis": "{vendorRoot}/runtime/{module}/mybatis/**/*.xml",
+    "overlayRepositorySql": "sql/vendor/{vendor}/{module}/{statement}.sql",
+    "overlayMyBatis": "mybatis/vendor/{vendor}/mapper/{module}/**/*.xml",
+    "legacyClasspathRepositorySql": "classpath:sql/vendor/{vendor}/{module}/{statement}.sql",
+    "legacyClasspathMyBatis": "classpath*:mybatis/vendor/{vendor}/mapper/{module}/**/*.xml"
+  },
+  "selectionPolicy": {
+    "sourceTreeMutation": false,
+    "selectedVendorOnly": true,
+    "externalPackPreferred": true,
+    "isolatedBuildOverlayAllowed": true
+  }
+}

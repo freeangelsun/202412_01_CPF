@@ -11,11 +11,40 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CpfChannelPolicyServiceTest {
+
+    @Test
+    void 기본생성자는시작정책조회실패를숨기지않는다() {
+        CpfChannelRegistryPort failingPort = failingPort();
+
+        assertThatThrownBy(() -> new CpfChannelPolicyService(failingPort))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("정책 저장소");
+    }
+
+    @Test
+    void 디비없는테스트는시작로드만명시적으로생략할수있다() {
+        AtomicInteger loadCount = new AtomicInteger();
+        CpfChannelRegistryPort failingPort = failingPort(loadCount);
+
+        CpfChannelPolicyService service = new CpfChannelPolicyService(failingPort, false);
+
+        assertThat(loadCount).hasValue(0);
+        assertThat(service.snapshot().version()).isZero();
+        assertThat(service.snapshot().channels()).isEmpty();
+        assertThat(service.snapshot().policies()).isEmpty();
+        assertThat(service.evaluate("OACCAC0001", "UNKNOWN", "WEB", "INQUIRY", true, false).allowed())
+                .isFalse();
+        assertThatThrownBy(service::refresh)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("정책 저장소");
+        assertThat(loadCount).hasValue(1);
+    }
 
     @Test
     void 구체적인거부정책이전체허용정책보다우선한다() {
@@ -111,6 +140,30 @@ class CpfChannelPolicyServiceTest {
         return new CpfChannelExecutionPolicy(key, executionId, originalChannel, callerChannel,
                 requestType, allowed, authenticationRequired, signatureRequired, 0,
                 null, null, true, 1);
+    }
+
+    private CpfChannelRegistryPort failingPort() {
+        return failingPort(new AtomicInteger());
+    }
+
+    private CpfChannelRegistryPort failingPort(AtomicInteger loadCount) {
+        return new CpfChannelRegistryPort() {
+            @Override
+            public CpfChannelPolicySnapshot loadSnapshot() {
+                loadCount.incrementAndGet();
+                throw new IllegalStateException("정책 저장소 연결 실패");
+            }
+
+            @Override
+            public long saveChannel(CpfChannelDefinition channel, String actor, String reason) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public long savePolicy(CpfChannelExecutionPolicy policy, String actor, String reason) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     private static final class InMemoryPort implements CpfChannelRegistryPort {

@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** CMN 기술 DB와 선택형 업무 공통 DB가 서로 다른 설정 경계를 사용하는지 검증합니다. */
+/** CPF 기술 메타 DB와 선택형 CMN sample DB가 서로 다른 설정 경계를 사용하는지 검증합니다. */
 class CmnDataSourceConfigTest {
 
     @Test
@@ -28,13 +28,13 @@ class CmnDataSourceConfigTest {
     }
 
     @Test
-    void createsOptionalBusinessDataSourceFromDedicatedPrefix() throws Exception {
+    void createsOptionalSampleDataSourceFromDedicatedPrefix() throws Exception {
         MockEnvironment environment = urlEnvironment(
-                "spring.datasource.cmn-business",
+                "spring.datasource.cmn-sample",
                 "jdbc:mariadb://localhost:3306/cmnDB",
                 "cpf_cmn_app");
 
-        DataSource result = new CmnBusinessDataSourceConfig().cmnBusinessDataSource(environment);
+        DataSource result = new CmnSampleDataSourceConfig().cmnSampleDataSource(environment);
 
         assertThat(result).isInstanceOf(HikariDataSource.class);
         HikariDataSource hikari = (HikariDataSource) result;

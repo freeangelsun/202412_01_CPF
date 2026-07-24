@@ -1,0 +1,10 @@
+SELECT CASE WHEN COUNT(*) = 1 THEN 'DONE' ELSE 'FAILED' END AS schema_status
+FROM information_schema.tables
+WHERE table_schema = DATABASE() AND table_name = '@CPF_TABLE_PREFIX@_sample_item';
+SELECT CASE WHEN COUNT(*) = 1 THEN 'DONE' ELSE 'FAILED' END AS transaction_global_id_status
+FROM information_schema.columns
+WHERE table_schema = DATABASE()
+  AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+  AND column_name = 'transaction_global_id';
+SELECT CASE WHEN COUNT(*) >= 1 THEN 'DONE' ELSE 'FAILED' END AS seed_status
+FROM @CPF_TABLE_PREFIX@_sample_item WHERE sample_key = '@CPF_SYSTEM_CODE@_SAMPLE_001';

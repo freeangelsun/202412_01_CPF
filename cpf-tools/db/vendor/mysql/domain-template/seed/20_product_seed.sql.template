@@ -1,0 +1,14 @@
+INSERT INTO @CPF_TABLE_PREFIX@_sample_item (
+    sample_key, item_name, status_code, version_no, idempotency_key,
+    transaction_global_id, transaction_sequence, transaction_at, deleted_yn, created_by, updated_by
+) VALUES (
+    '@CPF_SYSTEM_CODE@_SAMPLE_001', '@CPF_DISPLAY_NAME@ 표준 거래 샘플', 'ACTIVE', 0,
+    '@CPF_SYSTEM_CODE@_SEED_001', '@CPF_SYSTEM_CODE@-SEED-TX-001', 1, CURRENT_TIMESTAMP(3), 'N',
+    'product-seed', 'product-seed'
+)
+ON DUPLICATE KEY UPDATE
+    item_name = VALUES(item_name),
+    status_code = VALUES(status_code),
+    transaction_global_id = VALUES(transaction_global_id),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP(3);

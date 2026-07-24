@@ -1,5 +1,6 @@
 package com.cpf.core.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -7,8 +8,8 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
@@ -23,9 +24,13 @@ import javax.sql.DataSource;
 public class CpfMyBatisConfig {
 
     private final DataSource cpfDataSource;
+    private final Environment environment;
 
-    public CpfMyBatisConfig(@Qualifier("cpfDataSource") DataSource cpfDataSource) {
+    public CpfMyBatisConfig(
+            @Qualifier("cpfDataSource") DataSource cpfDataSource,
+            Environment environment) {
         this.cpfDataSource = cpfDataSource;
+        this.environment = environment;
     }
 
     @Bean(name = "cpfSqlSessionFactory")
@@ -33,10 +38,7 @@ public class CpfMyBatisConfig {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(cpfDataSource);
         sqlSessionFactoryBean.setConfigLocation(new ClassPathResource("mybatis/config/cpf-mybatis-config.xml"));
-        sqlSessionFactoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/cpf/**/*.xml")
-        );
+        sqlSessionFactoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "cpf"));
         return sqlSessionFactoryBean.getObject();
     }
 
@@ -46,4 +48,3 @@ public class CpfMyBatisConfig {
         return new SqlSessionTemplate(cpfSqlSessionFactory);
     }
 }
-

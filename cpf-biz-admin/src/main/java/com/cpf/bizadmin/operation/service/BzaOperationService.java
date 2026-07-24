@@ -1,7 +1,6 @@
 package com.cpf.bizadmin.operation.service;
 
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
-import com.cpf.common.utils.MaskingUtils;
 import com.cpf.common.utils.TextUtils;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
@@ -19,8 +18,8 @@ import java.util.Set;
 /**
  * BZA 업무 운영 서비스입니다.
  *
- * <p>조회 데이터는 DB 저장소에서 읽고, 개인정보 원문 조회는 감사 사유를 필수로 남깁니다.
- * 업무 관리자 기능은 ADM 공통 운영자 기능과 분리하되, ADM 화면에서 함께 관제할 수 있도록 동일한 응답 구조와 감사 기준을 사용합니다.</p>
+ * <p>조회 데이터는 BZA 소유 DB 저장소에서 읽습니다. 업무 관리자 기능은 ADM 공통
+ * 운영자 기능과 분리하되 동일한 감사 기준을 사용하며, 고객 업무 원장을 직접 소유하지 않습니다.</p>
  */
 @Service
 public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseService {
@@ -152,40 +151,6 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
         return values;
     }
 
-    /**
-     * 고객 목록은 기본적으로 이메일과 휴대폰 번호를 마스킹해서 반환합니다.
-     */
-    public List<Map<String, Object>> findCustomers() {
-        return repository.findCustomers().stream()
-                .map(this::maskedCustomer)
-                .toList();
-    }
-
-    /**
-     * 고객 원문 조회는 사유와 요청자를 감사 로그에 남긴 뒤 반환합니다.
-     */
-    public List<Map<String, Object>> unmaskCustomers(String reason, String requestUser) {
-        String resolvedReason = TextUtils.requireText(reason, "reason");
-        String resolvedUser = TextUtils.defaultIfBlank(requestUser, "BZA_OPERATOR");
-        return repository.findCustomers().stream()
-                .map(row -> {
-                    repository.insertMaskingAudit(String.valueOf(row.get("customerNo")), resolvedUser, resolvedReason, "SUCCESS");
-                    Map<String, Object> result = new LinkedHashMap<>(row);
-                    result.put("unmaskAuditReason", resolvedReason);
-                    result.put("unmaskRequestUser", resolvedUser);
-                    return result;
-                })
-                .toList();
-    }
-
-    public List<Map<String, Object>> findProducts() {
-        return repository.findProducts();
-    }
-
-    public List<Map<String, Object>> findOrders() {
-        return repository.findOrders();
-    }
-
     public List<Map<String, Object>> findSettings() {
         return repository.findSettings();
     }
@@ -260,13 +225,6 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
             throw new CpfValidationException("Y/N 값이 올바르지 않습니다. value=" + value);
         }
         return resolved;
-    }
-
-    private Map<String, Object> maskedCustomer(Map<String, Object> row) {
-        Map<String, Object> masked = new LinkedHashMap<>(row);
-        masked.put("email", MaskingUtils.maskEmail(String.valueOf(row.get("email"))));
-        masked.put("mobileNo", MaskingUtils.maskMobile(String.valueOf(row.get("mobileNo"))));
-        return masked;
     }
 
     public record AdminUserRequest(

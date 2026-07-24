@@ -1,0 +1,14 @@
+{
+    "generatedAt":  "2026-07-24T13:42:48.1249303+09:00",
+    "status":  "DONE",
+    "fixMode":  false,
+    "controllerCount":  75,
+    "methodMappingCount":  313,
+    "explicitOperationIdCount":  343,
+    "duplicateOperationIdCount":  0,
+    "missingOperationIdCount":  0,
+    "modifiedFileCount":  0,
+    "failures":  [
+
+                 ]
+}

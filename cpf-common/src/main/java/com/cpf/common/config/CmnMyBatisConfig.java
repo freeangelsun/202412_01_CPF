@@ -1,5 +1,6 @@
 package com.cpf.common.config;
 
+import com.cpf.core.common.database.CpfSqlResourceResolver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -8,8 +9,8 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
@@ -25,14 +26,18 @@ import javax.sql.DataSource;
 public class CmnMyBatisConfig {
 
     private final DataSource cmnDataSource;
+    private final Environment environment;
 
     /**
      * CMN 기준 datasource를 주입합니다.
      *
      * @param cmnDataSource CMN 공통 datasource
      */
-    public CmnMyBatisConfig(@Qualifier("cmnDataSource") DataSource cmnDataSource) {
+    public CmnMyBatisConfig(
+            @Qualifier("cmnDataSource") DataSource cmnDataSource,
+            Environment environment) {
         this.cmnDataSource = cmnDataSource;
+        this.environment = environment;
     }
 
     @Bean(name = "cmnSqlSessionFactory")
@@ -42,10 +47,7 @@ public class CmnMyBatisConfig {
         sqlSessionFactoryBean.setConfigLocation(
                 new ClassPathResource("mybatis/config/cmn-mybatis-config.xml")
         );
-        sqlSessionFactoryBean.setMapperLocations(
-                new PathMatchingResourcePatternResolver()
-                        .getResources("classpath:mybatis/mapper/cmn/**/*.xml")
-        );
+        sqlSessionFactoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "cmn"));
         return sqlSessionFactoryBean.getObject();
     }
 

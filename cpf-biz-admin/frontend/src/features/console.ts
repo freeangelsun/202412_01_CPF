@@ -7,7 +7,6 @@ const menus=[
   ['permissions','권한','PERMISSION'],['approvals','결재','APPROVAL'],['audits','업무 감사','AUDIT'],
   ['notifications','알림','NOTIFICATION'],['attachments','첨부파일','ATTACHMENT'],
   ['savedSearches','저장 검색','SAVED_SEARCH'],['permissionTools','권한 분석','PERMISSION'],
-  ['customers','고객','CUSTOMER'],['products','상품','PRODUCT'],['orders','주문','ORDER'],
   ['settings','업무 설정','SETTING'],['downloads','다운로드 감사','DOWNLOAD']
 ];
 const editors={
@@ -81,9 +80,6 @@ const loaders={
   attachments:()=>loadAttachments(),
   savedSearches:()=>loadManagedTable('savedSearches','저장 검색',['screenCode','searchName','criteriaJson','sharedYn','createdBy','updatedAt']),
   permissionTools:()=>loadPermissionTools(),
-  customers:()=>loadTable('/api/bza/customers','고객 목록',['customerNo','customerName','email','mobileNo','customerStatus']),
-  products:()=>loadTable('/api/bza/products','상품 목록',['productCode','productName','productType','price','useYn']),
-  orders:()=>loadTable('/api/bza/orders','주문 목록',['orderNo','customerNo','productCode','orderQuantity','orderAmount','orderStatus']),
   settings:()=>loadTable('/api/bza/settings','업무 설정',['settingKey','settingValue','valueType','encryptedYn','useYn']),
   downloads:async()=>{const [policies,audits]=await Promise.all([api('/api/bza/downloads'),api('/api/bza/download-audits?limit=100')]);$('content').innerHTML=tablePanel('다운로드 정책',policies,['policyKey','policyValue','description','useYn'],false)+tablePanel('다운로드 감사',audits,['createdAt','actorId','downloadCode','fileName','resultStatus','reason'],false);}
 };

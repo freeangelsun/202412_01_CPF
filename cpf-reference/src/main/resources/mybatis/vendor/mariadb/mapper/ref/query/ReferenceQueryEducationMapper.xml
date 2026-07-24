@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cpf.reference.query.adapter.ReferenceQueryEducationMapper">
+    <sql id="BaseColumns">
+        sample_item_id AS itemId,
+        item_name AS itemName,
+        category_code AS categoryCode,
+        status_code AS statusCode,
+        owner_reference AS ownerMemberNo,
+        created_at AS createdAt
+    </sql>
+
+    <sql id="SearchWhere">
+        FROM ref_sample_item
+        WHERE deleted_yn = 'N'
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+                LOWER(item_name) LIKE CONCAT('%', LOWER(#{criteria.keyword}), '%')
+                OR LOWER(category_code) LIKE CONCAT('%', LOWER(#{criteria.keyword}), '%')
+            )
+        </if>
+        <if test="criteria.statusCode != null and criteria.statusCode != ''">
+            AND status_code = #{criteria.statusCode}
+        </if>
+    </sql>
+
+    <sql id="SafeOrderBy">
+        <choose>
+            <when test="criteria.sortCode == 'NAME_ASC'">
+                ORDER BY item_name ASC, sample_item_id ASC
+            </when>
+            <when test="criteria.sortCode == 'CREATED_DESC'">
+                ORDER BY created_at DESC, sample_item_id DESC
+            </when>
+            <otherwise>
+                ORDER BY sample_item_id ASC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="findById" resultType="com.cpf.reference.query.dto.ReferenceQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        FROM ref_sample_item
+        WHERE sample_item_id = #{itemId}
+          AND deleted_yn = 'N'
+    </select>
+
+    <select id="findItems" resultType="com.cpf.reference.query.dto.ReferenceQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        <include refid="SearchWhere"/>
+        <include refid="SafeOrderBy"/>
+        LIMIT #{criteria.limit}
+    </select>
+
+    <select id="findOffsetPageItems" resultType="com.cpf.reference.query.dto.ReferenceQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        <include refid="SearchWhere"/>
+        <include refid="SafeOrderBy"/>
+        LIMIT #{criteria.limit}
+        OFFSET #{criteria.offset}
+    </select>
+
+    <select id="countOffsetPageItems" resultType="long">
+        SELECT COUNT(1)
+        <include refid="SearchWhere"/>
+    </select>
+
+    <select id="findKeysetPageItems" resultType="com.cpf.reference.query.dto.ReferenceQueryEducationItem">
+        SELECT
+            <include refid="BaseColumns"/>
+        FROM ref_sample_item
+        WHERE deleted_yn = 'N'
+        <if test="criteria.cursorId != null">
+          AND sample_item_id &gt; #{criteria.cursorId}
+        </if>
+        ORDER BY sample_item_id ASC
+        LIMIT #{criteria.limit}
+    </select>
+
+    <select id="nextCrudItemId" resultType="long">
+        SELECT COALESCE(MAX(sample_item_id), 90999) + 1
+        FROM ref_sample_item
+        WHERE sample_item_id BETWEEN 91000 AND 91999
+    </select>
+
+    <insert id="insertCrudItem">
+        INSERT INTO ref_sample_item (
+            sample_item_id,
+            sample_key,
+            item_name,
+            category_code,
+            status_code,
+            searchable_text,
+            owner_reference,
+            sort_order,
+            version_no,
+            deleted_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{itemId},
+            CONCAT('REF-CRUD-', #{itemId}),
+            #{itemName},
+            #{categoryCode},
+            #{statusCode},
+            #{categoryCode},
+            #{ownerMemberNo},
+            #{itemId},
+            0,
+            'N',
+            #{requestUser},
+            CURRENT_TIMESTAMP(3),
+            #{requestUser},
+            CURRENT_TIMESTAMP(3)
+        )
+    </insert>
+
+    <update id="updateCrudItem">
+        UPDATE ref_sample_item
+        SET item_name = #{itemName},
+            category_code = #{categoryCode},
+            searchable_text = #{categoryCode},
+            owner_reference = #{ownerMemberNo},
+            version_no = version_no + 1,
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(3)
+        WHERE sample_item_id = #{itemId}
+    </update>
+
+    <update id="updateCrudItemStatus">
+        UPDATE ref_sample_item
+        SET status_code = #{statusCode},
+            version_no = version_no + 1,
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(3)
+        WHERE sample_item_id = #{itemId}
+    </update>
+
+    <update id="logicalDeleteCrudItem">
+        UPDATE ref_sample_item
+        SET deleted_yn = 'Y',
+            status_code = 'INACTIVE',
+            version_no = version_no + 1,
+            updated_by = #{requestUser},
+            updated_at = CURRENT_TIMESTAMP(3)
+        WHERE sample_item_id = #{itemId}
+          AND deleted_yn = 'N'
+    </update>
+</mapper>

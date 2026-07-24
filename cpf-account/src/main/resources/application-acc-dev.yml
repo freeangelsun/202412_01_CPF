@@ -14,7 +14,9 @@ cpf:
     was-id: ${ACC_WAS_ID:ACCD001}
   datasource:
     mode: ${ACC_DATASOURCE_MODE:url}
-    url: ${ACC_DATASOURCE_URL:jdbc:mariadb://localhost:3306/accDB}
+    url: ${ACC_DATASOURCE_URL:}
+    database-name: ${ACC_DB_NAME:accDB}
+    driver-class-name: ${ACC_DB_DRIVER:}
     username: ${ACC_DATASOURCE_USERNAME:cpf_acc_app}
     password: ${ACC_DATASOURCE_PASSWORD}
     jndi-name: ${ACC_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAccountDataSource}

@@ -48,8 +48,8 @@ public class CpfBatchAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfBatchOperationRepository cpfBatchOperationRepository(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider,
+            @Qualifier("batJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("batDataSource") ObjectProvider<DataSource> dataSourceProvider,
             CpfFileLogWriter fileLogWriter) {
         return new CpfBatchOperationRepository(jdbcTemplateProvider, dataSourceProvider, fileLogWriter);
     }
@@ -57,8 +57,8 @@ public class CpfBatchAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CpfBatchLockManager cpfBatchLockManager(
-            @Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
-            @Qualifier("cpfDataSource") ObjectProvider<DataSource> dataSourceProvider) {
+            @Qualifier("batJdbcTemplate") ObjectProvider<JdbcTemplate> jdbcTemplateProvider,
+            @Qualifier("batDataSource") ObjectProvider<DataSource> dataSourceProvider) {
         return new CpfBatchLockManager(jdbcTemplateProvider, dataSourceProvider);
     }
 

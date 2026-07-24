@@ -30,7 +30,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
     // 로컬 교육 실행에서 MariaDB를 사용할 수 있게 합니다.
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

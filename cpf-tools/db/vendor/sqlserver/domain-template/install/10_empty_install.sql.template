@@ -1,0 +1,21 @@
+IF OBJECT_ID(N'@CPF_TABLE_PREFIX@_sample_item',N'U') IS NULL
+BEGIN
+  CREATE TABLE @CPF_TABLE_PREFIX@_sample_item (
+    sample_item_id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    sample_key NVARCHAR(100) NOT NULL UNIQUE,
+    item_name NVARCHAR(200) NOT NULL,
+    status_code NVARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    version_no BIGINT NOT NULL DEFAULT 0 CHECK(version_no>=0),
+    idempotency_key NVARCHAR(100) NOT NULL UNIQUE,
+    transaction_global_id NVARCHAR(64) NOT NULL,
+    transaction_sequence BIGINT NOT NULL DEFAULT 1,
+    transaction_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
+    deleted_yn NCHAR(1) NOT NULL DEFAULT 'N' CHECK(deleted_yn IN('Y','N')),
+    created_by NVARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
+    created_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_by NVARCHAR(100) NOT NULL DEFAULT '@CPF_SYSTEM_CODE@',
+    updated_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME()
+  );
+  CREATE INDEX ix_@CPF_TABLE_PREFIX@_sample_item_st
+    ON @CPF_TABLE_PREFIX@_sample_item(status_code,deleted_yn,sample_item_id);
+END;

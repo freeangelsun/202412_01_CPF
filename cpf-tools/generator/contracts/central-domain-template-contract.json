@@ -1,0 +1,40 @@
+{
+  "contractVersion": "1.0",
+  "owner": "CPF DB Tool",
+  "templateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
+  "supportedVendors": [
+    "mariadb",
+    "mysql",
+    "postgresql",
+    "oracle",
+    "sqlserver"
+  ],
+  "requiredTemplates": [
+    "provision/01_provision.sql.template",
+    "install/10_empty_install.sql.template",
+    "seed/20_product_seed.sql.template",
+    "migration/V1____DOMAIN___domain.sql.template",
+    "runtime/mybatis/__MAPPER__.xml.template",
+    "verify/90_verify.sql.template",
+    "rollback/R1__remove___DOMAIN___domain.sql.template"
+  ],
+  "tokens": [
+    "CPF_VENDOR",
+    "CPF_DOMAIN",
+    "CPF_SYSTEM_CODE",
+    "CPF_DISPLAY_NAME",
+    "CPF_SCHEMA_NAME",
+    "CPF_MODULE_NAME",
+    "CPF_PACKAGE_NAME",
+    "CPF_TABLE_PREFIX",
+    "CPF_MAPPER_NAMESPACE",
+    "CPF_MAPPER_NAME"
+  ],
+  "selection": {
+    "metadataSource": "manifest/domain-manifest.json",
+    "selectedVendorOnly": true,
+    "sourceTreeMutation": false,
+    "moduleLocalVendorPack": false,
+    "assemblyTarget": "build/generated-resources/cpf-vendor"
+  }
+}

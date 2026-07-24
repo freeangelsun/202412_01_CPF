@@ -121,10 +121,6 @@ function Test-AllInstallContainsSchemaTables {
         }
     }
 
-    # EDU 조회 샘플은 SQL/Flyway/문서/테스트가 같이 움직이는 대표 샘플이라 seed 누락도 별도 검출합니다.
-    if ($content -notmatch "(?is)INSERT\s+INTO\s+(?:[a-zA-Z0-9_]+\.)?cmn_edu_query_item\s*\(") {
-        $failures.Add("all install seed missing: $RelativePath -> cmn_edu_query_item")
-    }
 }
 
 Test-AllInstallContainsSchemaTables "specs/sql/00_all_install.sql"
@@ -146,6 +142,7 @@ if (-not (Test-Path -LiteralPath $v37Path)) {
 
 # 현행 설치 스키마와 시드는 cpf-core 시스템 코드와 DB 객체명을 직접 사용해야 합니다.
 $cpfSchema = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/10_cpf_schema.sql"), [System.Text.Encoding]::UTF8)
+$cmnSchema = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/20_cmn_schema.sql"), [System.Text.Encoding]::UTF8)
 $cpfSeed = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/50_framework_seed_data.sql"), [System.Text.Encoding]::UTF8)
 foreach ($marker in @("cpfDB", "cpf_transaction_log", "cpf_message", "cpf_response_code")) {
     if ($cpfSchema -notmatch [regex]::Escape($marker)) {
@@ -155,6 +152,105 @@ foreach ($marker in @("cpfDB", "cpf_transaction_log", "cpf_message", "cpf_respon
 foreach ($marker in @("'CPF'", "MCPF", "SCPF", "ECPF")) {
     if ($cpfSeed -notmatch [regex]::Escape($marker)) {
         $failures.Add("cpf-core seed marker missing: $marker")
+    }
+}
+
+# cpf-common은 DB-less가 기본이고, 선택형 교육 DB에는 공통 Template인 cmn_sample_item 하나만 허용합니다.
+$cmnTableMatches = [regex]::Matches(
+    $cmnSchema,
+    "CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s*\(",
+    [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+)
+if ($cmnTableMatches.Count -ne 1 -or $cmnTableMatches[0].Groups[1].Value -ine "cmn_sample_item") {
+    $cmnTables = @($cmnTableMatches | ForEach-Object { $_.Groups[1].Value }) -join ", "
+    $failures.Add("cmnDB must contain exactly one optional table cmn_sample_item; actual=[$cmnTables]")
+}
+foreach ($forbiddenMarker in @("cmn_sequence", "cmn_edu_query_item", "cmn_fixed_length_", "cmn_notification_log", "cmn_business_log")) {
+    if ($cmnSchema -match [regex]::Escape($forbiddenMarker)) {
+        $failures.Add("cmnDB stale object remains: $forbiddenMarker")
+    }
+}
+
+$batSchema = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/35_bat_schema.sql"), [System.Text.Encoding]::UTF8)
+$databaseProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/01_create_databases.sql"), [System.Text.Encoding]::UTF8)
+$userProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "specs/sql/02_create_service_users.sql"), [System.Text.Encoding]::UTF8)
+if ($databaseProvisioning -notmatch "(?i)CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\s+batDB") {
+    $failures.Add("batDB provisioning is missing")
+}
+foreach ($marker in @(
+    "cpf_bat_migration",
+    "cpf_bat_app",
+    "ON batDB.* TO 'cpf_bat_migration'@'localhost'",
+    "ON batDB.* TO 'cpf_bat_app'@'localhost'"
+)) {
+    if ($userProvisioning -notmatch [regex]::Escape($marker)) {
+        $failures.Add("BAT service-account provisioning marker missing: $marker")
+    }
+}
+if ($batSchema -notmatch "(?im)^\s*USE\s+batDB\s*;") {
+    $failures.Add("BAT schema must target batDB")
+}
+foreach ($marker in @(
+    "BATCH_JOB_INSTANCE",
+    "BATCH_JOB_EXECUTION",
+    "bat_job",
+    "bat_schedule",
+    "bat_worker",
+    "bat_execution",
+    "bat_execution_lease",
+    "bat_business_day_calendar",
+    "bat_center_cut_job",
+    "bat_on_demand_request"
+)) {
+    if ($batSchema -notmatch [regex]::Escape($marker)) {
+        $failures.Add("BAT schema marker missing: $marker")
+    }
+}
+if ($cpfSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(?:BATCH_|cpf_batch_|bat_center_cut_|cpf_business_day_calendar)") {
+    $failures.Add("BAT runtime table remains in cpf-core schema")
+}
+foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
+    if ($batSchema -match "(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+$sequenceName\s*\(") {
+        $failures.Add("Spring Batch MariaDB sequence must not be implemented as a table: $sequenceName")
+    }
+    if ($batSchema -notmatch "(?is)CREATE\s+SEQUENCE\s+IF\s+NOT\s+EXISTS\s+$sequenceName\s+START\s+WITH\s+1\s+MINVALUE\s+1\s+MAXVALUE\s+9223372036854775806\s+INCREMENT\s+BY\s+1\s+NOCACHE\s+NOCYCLE\s+ENGINE\s*=\s*InnoDB\s*;") {
+        $failures.Add("Spring Batch 5.2.4 MariaDB sequence contract missing: $sequenceName")
+    }
+}
+$productSeed = [System.IO.File]::ReadAllText(
+    (Join-Path $Root "specs/sql/50_framework_seed_data.sql"),
+    [System.Text.Encoding]::UTF8
+)
+foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
+    if ($productSeed -match "(?i)INSERT\s+INTO\s+(?:batDB\.)?$sequenceName") {
+        $failures.Add("MariaDB sequence must not be row-seeded: $sequenceName")
+    }
+}
+
+# 실제 Runtime consumer가 없거나 현행 정본 원장과 중복되어 Empty Install에서 제외한
+# object가 다시 추가되지 않도록 active schema만 검사합니다. Historical migration은 불변입니다.
+$forbiddenActiveTables = [ordered]@{
+    "specs/sql/10_cpf_schema.sql" = @("cpf_file_exchange_log")
+    "specs/sql/30_adm_schema.sql" = @("adm_operation_log")
+    "specs/sql/40_business_modules_schema.sql" = @("bza_user_role")
+    "specs/sql/45_external_schema.sql" = @(
+        "exs_token_store",
+        "exs_token_event_history",
+        "exs_route_rule",
+        "exs_transaction_log",
+        "exs_message_log",
+        "exs_retry_log"
+    )
+}
+foreach ($entry in $forbiddenActiveTables.GetEnumerator()) {
+    $activeSchema = [System.IO.File]::ReadAllText(
+        (Join-Path $Root $entry.Key),
+        [System.Text.Encoding]::UTF8
+    )
+    foreach ($tableName in $entry.Value) {
+        if ($activeSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+$tableName\s*\(") {
+            $failures.Add("consumer-less or duplicate table returned to Empty Install: $tableName")
+        }
     }
 }
 

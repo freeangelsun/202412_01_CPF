@@ -3,6 +3,41 @@
 
 USE refDB;
 
+-- Minimal Transaction Reference Schema Template의 REF 인스턴스입니다.
+-- MBR/ACC/Generator 신규 Domain도 Schema/SystemCode/Table prefix만 바꾸고
+-- 같은 논리 Column/Constraint 계약을 사용합니다.
+CREATE TABLE IF NOT EXISTS ref_sample_item (
+    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
+    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
+    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
+    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
+    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
+    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
+    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (sample_item_id),
+    CONSTRAINT uk_ref_sample_item_key UNIQUE (sample_key),
+    CONSTRAINT uk_ref_sample_item_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT ck_ref_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT ck_ref_sample_item_version CHECK (version_no >= 0),
+    CONSTRAINT ck_ref_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
+    INDEX ix_ref_sample_item_status_sort (status_code, sort_order, sample_item_id),
+    INDEX ix_ref_sample_item_category_sort (category_code, sort_order, sample_item_id),
+    INDEX ix_ref_sample_item_name_sort (item_name, sample_item_id),
+    INDEX ix_ref_sample_item_transaction (transaction_global_id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='REF Minimal Transaction Reference Sample';
+
 CREATE TABLE IF NOT EXISTS ref_center_cut_sample_target (
     target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
     center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
@@ -52,136 +87,39 @@ CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
 
 USE mbrDB;
 
-CREATE TABLE IF NOT EXISTS mbr_member (
-    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 순번',
-    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
-    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
-    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
-    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
-    name VARCHAR(100) NOT NULL COMMENT '회원명',
-    email VARCHAR(200) NULL COMMENT '이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
-    member_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태',
-    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
-    withdraw_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '탈퇴 여부',
-    channel_code VARCHAR(30) NOT NULL DEFAULT 'WEB' COMMENT '가입 채널 코드',
-    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
-    last_login_at DATETIME NULL COMMENT '최근 로그인일시',
-    description TEXT NULL COMMENT '회원 설명',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_mbr_member_no (member_no),
-    UNIQUE KEY uk_mbr_member_login_id (login_id),
-    INDEX ix_mbr_member_customer (customer_no),
-    INDEX ix_mbr_member_name (name),
-    INDEX ix_mbr_member_status (member_status, lock_yn, withdraw_yn),
-    INDEX ix_mbr_member_channel_joined (channel_code, joined_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role (
-    member_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    role_name VARCHAR(100) NULL COMMENT '회원 역할명',
-    grade_code VARCHAR(50) NULL COMMENT '회원 등급 코드',
-    temporary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '임시 권한 여부',
-    expire_at DATETIME NULL COMMENT '권한 만료일시',
-    granted_by VARCHAR(100) NULL COMMENT '권한 부여자',
-    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 부여일시',
-    revoked_by VARCHAR(100) NULL COMMENT '권한 회수자',
-    revoked_at DATETIME NULL COMMENT '권한 회수일시',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (member_role_id),
-    UNIQUE KEY uk_mbr_member_role (member_id, service_code, role_code),
-    INDEX ix_mbr_member_role_member (member_id, use_yn),
-    INDEX ix_mbr_member_role_expire (expire_at),
-    CONSTRAINT fk_mbr_member_role_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한';
-
-CREATE TABLE IF NOT EXISTS mbr_member_role_history (
-    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 이력 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    service_code VARCHAR(30) NOT NULL COMMENT '서비스 코드',
-    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
-    action_type VARCHAR(30) NOT NULL COMMENT '권한 행위 유형',
-    reason VARCHAR(500) NOT NULL COMMENT '권한 변경 사유',
-    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
-    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
-    operator_id VARCHAR(100) NULL COMMENT '처리 운영자 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (history_id),
-    INDEX ix_mbr_member_role_history_member (member_id, created_at),
-    INDEX ix_mbr_member_role_history_role (service_code, role_code, created_at),
-    CONSTRAINT fk_mbr_member_role_history_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 변경 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_member_login_history (
-    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
-    member_id BIGINT NULL COMMENT '회원 순번',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
-    member_no VARCHAR(50) NULL COMMENT '회원 번호',
-    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
-    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
-    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
-    login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
-    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
-    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
-    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
-    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
-    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (login_history_id),
-    INDEX ix_mbr_member_login_member_time (member_id, created_at),
-    INDEX ix_mbr_member_login_result_time (login_result, created_at),
-    INDEX ix_mbr_member_login_global (transaction_global_id),
-    CONSTRAINT fk_mbr_member_login_history_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
-
-CREATE TABLE IF NOT EXISTS mbr_refresh_token (
-    refresh_token_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 refresh token 순번',
-    member_id BIGINT NOT NULL COMMENT '회원 순번',
-    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
-    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
-    refresh_token_hash VARCHAR(300) NOT NULL COMMENT 'refresh token hash',
-    transaction_global_id VARCHAR(34) NULL COMMENT '발급 트랜잭션 글로벌 ID',
-    expire_at DATETIME NOT NULL COMMENT '만료 일시',
-    revoked_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '폐기 여부',
-    revoked_at DATETIME NULL COMMENT '폐기 일시',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (refresh_token_id),
-    UNIQUE KEY uk_mbr_refresh_token_hash (refresh_token_hash),
-    INDEX ix_mbr_refresh_token_member (member_id, revoked_yn, expire_at),
-    CONSTRAINT fk_mbr_refresh_token_member
-        FOREIGN KEY (member_id) REFERENCES mbr_member(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 refresh token hash 저장소';
+-- MBR은 회원·인증 업무를 추정하지 않고 CPF 표준 거래 흐름만 검증합니다.
+-- REF와 Schema/SystemCode/Table prefix만 다르고 논리 Column/Constraint/Index는 동일합니다.
+CREATE TABLE IF NOT EXISTS mbr_sample_item (
+    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
+    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
+    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
+    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
+    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
+    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
+    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
+    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
+    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
+    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
+    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    PRIMARY KEY (sample_item_id),
+    CONSTRAINT uk_mbr_sample_item_key UNIQUE (sample_key),
+    CONSTRAINT uk_mbr_sample_item_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT ck_mbr_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
+    CONSTRAINT ck_mbr_sample_item_version CHECK (version_no >= 0),
+    CONSTRAINT ck_mbr_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
+    INDEX ix_mbr_sample_item_status_sort (status_code, sort_order, sample_item_id),
+    INDEX ix_mbr_sample_item_category_sort (category_code, sort_order, sample_item_id),
+    INDEX ix_mbr_sample_item_name_sort (item_name, sample_item_id),
+    INDEX ix_mbr_sample_item_transaction (transaction_global_id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='MBR Minimal Transaction Reference Sample';
 
 USE bzaDB;
 
@@ -359,25 +297,6 @@ CREATE TABLE IF NOT EXISTS bza_employee (
         REFERENCES bza_organization(organization_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 직원 프로필';
 
-CREATE TABLE IF NOT EXISTS bza_user_role (
-    user_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 역할 부여 순번',
-    admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
-    role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
-    effective_from DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 적용 시작일시',
-    effective_to DATETIME NULL COMMENT '권한 적용 종료일시',
-    grant_reason VARCHAR(500) NOT NULL COMMENT '권한 부여 사유',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (user_role_id),
-    UNIQUE KEY uk_bza_user_role (admin_user_id, role_code, effective_from),
-    INDEX ix_bza_user_role_effective (admin_user_id, use_yn, effective_to),
-    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id)
-        REFERENCES bza_admin_user(admin_user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 역할 부여';
-
 CREATE TABLE IF NOT EXISTS bza_business_audit (
     audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 감사 순번',
     transaction_global_id VARCHAR(100) NULL COMMENT 'CPF 전역 거래 ID',
@@ -545,52 +464,6 @@ CREATE TABLE IF NOT EXISTS bza_approval_history (
         REFERENCES bza_approval_document(approval_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 결재 상태 변경 이력';
 
-CREATE TABLE IF NOT EXISTS bza_customer (
-    customer_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '고객 샘플 순번',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    customer_name VARCHAR(100) NOT NULL COMMENT '고객명',
-    email VARCHAR(200) NULL COMMENT '이메일',
-    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
-    customer_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '고객 상태',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (customer_id),
-    UNIQUE KEY uk_bza_customer_no (customer_no),
-    INDEX ix_bza_customer_status (customer_status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 고객';
-
-CREATE TABLE IF NOT EXISTS bza_product (
-    product_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '상품 샘플 순번',
-    product_code VARCHAR(50) NOT NULL COMMENT '상품 코드',
-    product_name VARCHAR(120) NOT NULL COMMENT '상품명',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (product_id),
-    UNIQUE KEY uk_bza_product_code (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 상품';
-
-CREATE TABLE IF NOT EXISTS bza_order (
-    order_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '주문 샘플 순번',
-    order_no VARCHAR(50) NOT NULL COMMENT '주문 번호',
-    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
-    product_code VARCHAR(50) NOT NULL COMMENT '상품 코드',
-    order_amount DECIMAL(18,2) NOT NULL DEFAULT 0 COMMENT '주문 금액',
-    order_status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED' COMMENT '주문 상태',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (order_id),
-    UNIQUE KEY uk_bza_order_no (order_no),
-    INDEX ix_bza_order_customer (customer_no),
-    INDEX ix_bza_order_product (product_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 주문';
-
 CREATE TABLE IF NOT EXISTS bza_project_setting (
     setting_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 설정 순번',
     setting_key VARCHAR(120) NOT NULL COMMENT '업무 설정 키',
@@ -605,24 +478,10 @@ CREATE TABLE IF NOT EXISTS bza_project_setting (
     UNIQUE KEY uk_bza_project_setting_key (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 프로젝트 설정';
 
-CREATE TABLE IF NOT EXISTS bza_masking_audit (
-    masking_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '마스킹 감사 샘플 순번',
-    target_type VARCHAR(80) NOT NULL COMMENT '대상 유형',
-    target_id VARCHAR(120) NOT NULL COMMENT '대상 ID',
-    operator_id VARCHAR(100) NOT NULL COMMENT '처리 운영자 ID',
-    reason VARCHAR(500) NOT NULL COMMENT '마스킹 해제 사유',
-    result_type VARCHAR(20) NOT NULL COMMENT '처리 결과 유형',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    PRIMARY KEY (masking_audit_id),
-    INDEX ix_bza_masking_audit_target (target_type, target_id, created_at),
-    INDEX ix_bza_masking_audit_operator (operator_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 마스킹 감사';
-
 -- ACC는 create-domain 생성기 결과를 실제 CRUD로 검증하는 선택 reference domain입니다.
-CREATE TABLE IF NOT EXISTS accDB.acc_account (
+USE accDB;
+
+CREATE TABLE IF NOT EXISTS acc_account (
     account_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 식별자',
     account_no VARCHAR(50) NOT NULL COMMENT '업무 계정번호',
     account_name VARCHAR(150) NOT NULL COMMENT '계정명',
@@ -640,7 +499,7 @@ CREATE TABLE IF NOT EXISTS accDB.acc_account (
     CONSTRAINT ck_acc_account_deleted CHECK (deleted_yn IN ('Y', 'N'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 중립 계정 reference';
 
-CREATE TABLE IF NOT EXISTS accDB.acc_account_change_log (
+CREATE TABLE IF NOT EXISTS acc_account_change_log (
     account_change_log_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '계정 변경 로그 순번',
     account_id BIGINT NOT NULL COMMENT '변경 계정 식별자',
     action_code VARCHAR(30) NOT NULL COMMENT 'CREATE, UPDATE 또는 DELETE 행위 코드',
@@ -654,5 +513,5 @@ CREATE TABLE IF NOT EXISTS accDB.acc_account_change_log (
     PRIMARY KEY (account_change_log_id),
     INDEX ix_acc_account_change_target (account_id, created_at),
     CONSTRAINT fk_acc_account_change_target FOREIGN KEY (account_id)
-        REFERENCES accDB.acc_account (account_id)
+        REFERENCES acc_account (account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 변경 감사 이력';

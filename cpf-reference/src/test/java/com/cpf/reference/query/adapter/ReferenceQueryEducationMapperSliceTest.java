@@ -37,12 +37,12 @@ class ReferenceQueryEducationMapperSliceTest {
     @Test
     void mapperXmlDoesNotUseUnsafeStringSubstitutionForSort() throws Exception {
         Resource mapperXml = new ClassPathResource(
-                "mybatis/mapper/ref/query/ReferenceQueryEducationMapper.xml");
+                "mybatis/vendor/mariadb/mapper/ref/query/ReferenceQueryEducationMapper.xml");
         String xml = mapperXml.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(xml)
                 .contains("<choose>")
-                .contains("ORDER BY item_id ASC")
+                .contains("ORDER BY sample_item_id ASC")
                 .contains("criteria.sortCode == 'NAME_ASC'")
                 .contains("criteria.sortCode == 'CREATED_DESC'")
                 .contains("insertCrudItem")
@@ -62,14 +62,14 @@ class ReferenceQueryEducationMapperSliceTest {
 
         assertThat(fixtureSql.exists()).isTrue();
         assertThat(sql)
-                .contains("CREATE TABLE IF NOT EXISTS cmn_edu_query_item")
-                .contains("DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 90001 AND 90008")
-                .contains("DELETE FROM cmn_edu_query_item WHERE item_id BETWEEN 91000 AND 91999")
+                .contains("CREATE TABLE IF NOT EXISTS ref_sample_item")
+                .contains("DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 90001 AND 90008")
+                .contains("DELETE FROM ref_sample_item WHERE sample_item_id BETWEEN 91000 AND 91999")
                 .contains("ON DUPLICATE KEY UPDATE")
                 .doesNotContain("DROP TABLE")
                 .doesNotContain("TRUNCATE TABLE")
-                .doesNotContain("DELETE FROM cmn_edu_query_item;")
-                .doesNotContain("DELETE FROM cmn_edu_query_item WHERE 1=1");
+                .doesNotContain("DELETE FROM ref_sample_item;")
+                .doesNotContain("DELETE FROM ref_sample_item WHERE 1=1");
     }
 
     @Test
@@ -156,7 +156,8 @@ class ReferenceQueryEducationMapperSliceTest {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         Resource[] mapperLocations = new PathMatchingResourcePatternResolver()
-                .getResources("classpath*:mybatis/mapper/ref/query/ReferenceQueryEducationMapper.xml");
+                .getResources(
+                        "classpath*:mybatis/vendor/mariadb/mapper/ref/query/ReferenceQueryEducationMapper.xml");
         factoryBean.setMapperLocations(mapperLocations);
         SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
         if (sqlSessionFactory == null) {

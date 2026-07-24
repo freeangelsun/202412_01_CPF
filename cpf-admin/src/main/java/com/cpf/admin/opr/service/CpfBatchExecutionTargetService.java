@@ -12,15 +12,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CpfBatchExecutionTargetService extends com.cpf.admin.common.base.AdmBaseService {
-    private final JdbcTemplate cpfJdbcTemplate;
+    private final JdbcTemplate batJdbcTemplate;
 
-    public CpfBatchExecutionTargetService(@Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate) {
-        this.cpfJdbcTemplate = cpfJdbcTemplate;
+    public CpfBatchExecutionTargetService(@Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate) {
+        this.batJdbcTemplate = batJdbcTemplate;
     }
 
     public long createWaitingTarget(CpfBatchScheduleCandidate candidate, String requestUser) {
-        cpfJdbcTemplate.update("""
-                INSERT INTO cpf_batch_execution_target (
+        batJdbcTemplate.update("""
+                INSERT INTO bat_execution_target (
                     job_id, schedule_id, business_date, planned_run_at,
                     dispatch_status, dispatch_reason, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, 'WAITING', 'SCHEDULER_DUE', ?, ?)
@@ -31,7 +31,7 @@ public class CpfBatchExecutionTargetService extends com.cpf.admin.common.base.Ad
                 candidate.plannedRunAt(),
                 requestUser,
                 requestUser);
-        Long targetId = cpfJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        Long targetId = batJdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         if (targetId == null) {
             throw new IllegalStateException("배치 실행 대상 ID를 확인할 수 없습니다.");
         }
@@ -39,8 +39,8 @@ public class CpfBatchExecutionTargetService extends com.cpf.admin.common.base.Ad
     }
 
     public void markDispatched(long targetId, Long executionId, String requestUser) {
-        cpfJdbcTemplate.update("""
-                UPDATE cpf_batch_execution_target
+        batJdbcTemplate.update("""
+                UPDATE bat_execution_target
                 SET execution_id = ?,
                     dispatch_status = 'DISPATCHED',
                     dispatch_reason = 'SCHEDULER_DISPATCHED',
@@ -51,8 +51,8 @@ public class CpfBatchExecutionTargetService extends com.cpf.admin.common.base.Ad
     }
 
     public void markFailed(long targetId, String reason, String requestUser) {
-        cpfJdbcTemplate.update("""
-                UPDATE cpf_batch_execution_target
+        batJdbcTemplate.update("""
+                UPDATE bat_execution_target
                 SET dispatch_status = 'FAILED',
                     dispatch_reason = ?,
                     updated_by = ?,

@@ -57,6 +57,11 @@ public record CpfChannelPolicySnapshot(
         return new CpfChannelPolicySnapshot(0, Instant.now(), definitions, List.of(fallback));
     }
 
+    /** 외부 저장소를 의도적으로 읽지 않는 테스트 구성에서도 모든 요청을 거부합니다. */
+    public static CpfChannelPolicySnapshot denyAll() {
+        return new CpfChannelPolicySnapshot(0, Instant.now(), Map.of(), List.of());
+    }
+
     private boolean matches(String configured, String actual) {
         return "*".equals(configured) || "ANY".equals(configured) || configured.equalsIgnoreCase(actual);
     }

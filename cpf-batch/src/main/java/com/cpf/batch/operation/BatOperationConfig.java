@@ -1,6 +1,6 @@
 package com.cpf.batch.operation;
 
-import com.cpf.core.common.batch.centercut.CpfCenterCutService;
+import com.cpf.batch.runtime.centercut.BatCenterCutService;
 import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ public class BatOperationConfig {
     }
 
     @Bean
-    public CpfCenterCutService cpfCenterCutService(TransactionIdGenerator transactionIdGenerator) {
-        return new CpfCenterCutService(transactionIdGenerator::generate);
+    public BatCenterCutService batCenterCutService(TransactionIdGenerator transactionIdGenerator) {
+        return new BatCenterCutService(transactionIdGenerator::generate);
     }
 }

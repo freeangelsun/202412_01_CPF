@@ -58,24 +58,17 @@
 </template>
 
 <script lang="ts">
-import { defineAsyncComponent, defineComponent } from "vue";
+import { defineComponent } from "vue";
 import { admConsoleMixin } from "./app/admConsoleMixin";
-import { admGroupLabels, featureGroupForMenu, menuIdFromHash, type AdmFeatureGroup } from "./app/menuRegistry";
+import { admGroupLabels, componentForMenu, featureGroupForMenu, menuIdFromHash, type AdmFeatureGroup } from "./app/routes";
 
-const featureComponents = {
-  observability: defineAsyncComponent(() => import("./features/observability/AdmObservabilityPanels.vue")),
-  platform: defineAsyncComponent(() => import("./features/platform/AdmPlatformPanels.vue")),
-  business: defineAsyncComponent(() => import("./features/business/AdmBusinessPanels.vue")),
-  batch: defineAsyncComponent(() => import("./features/batch/AdmBatchPanels.vue")),
-  access: defineAsyncComponent(() => import("./features/access/AdmAccessPanels.vue"))
-};
 
 export default defineComponent({
   name: "AdmApp",
   mixins: [admConsoleMixin],
   computed: {
     activeFeatureGroup(): AdmFeatureGroup { return featureGroupForMenu(this.activeMenu); },
-    activeFeatureComponent() { return featureComponents[this.activeFeatureGroup]; },
+    activeFeatureComponent() { return componentForMenu(this.activeMenu); },
     currentMenuLabel(): string { return this.visibleMenus.find((menu: any) => menu.id === this.activeMenu)?.label || "운영"; },
     groupedMenus(): Array<{ id: AdmFeatureGroup; label: string; items: any[] }> {
       return (Object.keys(admGroupLabels) as AdmFeatureGroup[]).map(id => ({ id, label: admGroupLabels[id], items: this.visibleMenus.filter((menu: any) => featureGroupForMenu(menu.id) === id) })).filter(group => group.items.length > 0);

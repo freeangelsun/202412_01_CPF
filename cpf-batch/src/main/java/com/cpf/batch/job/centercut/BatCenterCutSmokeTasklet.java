@@ -1,7 +1,7 @@
 package com.cpf.batch.job.centercut;
 
-import com.cpf.core.common.batch.CpfBatchHeartbeatService;
-import com.cpf.core.common.batch.centercut.CpfCenterCutService;
+import com.cpf.batch.runtime.BatBatchHeartbeatService;
+import com.cpf.batch.runtime.centercut.BatCenterCutService;
 import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
@@ -16,17 +16,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class BatCenterCutSmokeTasklet implements Tasklet {
-    private final CpfCenterCutService centerCutService;
+    private final BatCenterCutService centerCutService;
     private final BatCenterCutSampleTargetProvider targetProvider;
     private final BatCenterCutSampleHandler handler;
-    private final CpfBatchHeartbeatService heartbeatService;
+    private final BatBatchHeartbeatService heartbeatService;
     private final int limit;
 
     public BatCenterCutSmokeTasklet(
-            CpfCenterCutService centerCutService,
+            BatCenterCutService centerCutService,
             BatCenterCutSampleTargetProvider targetProvider,
             BatCenterCutSampleHandler handler,
-            CpfBatchHeartbeatService heartbeatService,
+            BatBatchHeartbeatService heartbeatService,
             @Value("${cpf.bat.center-cut.smoke-limit:10}") int limit) {
         this.centerCutService = centerCutService;
         this.targetProvider = targetProvider;

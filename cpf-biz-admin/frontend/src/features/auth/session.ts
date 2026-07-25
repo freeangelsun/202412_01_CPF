@@ -134,16 +134,23 @@ export async function changeBzaPassword(currentPassword: string, newPassword: st
   clearBzaSession();
 }
 
+function normalizeBzaMenuCode(value: string): string {
+  const normalized = value.trim().toUpperCase();
+  return normalized.startsWith("BZA_") ? normalized.substring(4) : normalized;
+}
+
 export function hasBzaMenu(menuCode: string): boolean {
-  if (menuCode === "DASHBOARD") return true;
-  return (bzaSession.operator?.menus || []).some(value => String(value).toUpperCase() === menuCode.toUpperCase());
+  const required = normalizeBzaMenuCode(menuCode);
+  if (required === "DASHBOARD") return true;
+  return (bzaSession.operator?.menus || []).some(value => normalizeBzaMenuCode(String(value)) === required);
 }
 
 export function hasBzaPermission(menuCode: string, actionCode: string): boolean {
-  const required = `${menuCode}:${actionCode}`.toUpperCase();
-  const all = `${menuCode}:ALL`.toUpperCase();
+  const requiredMenu = normalizeBzaMenuCode(menuCode);
+  const requiredAction = actionCode.trim().toUpperCase();
   return (bzaSession.operator?.buttons || []).some(value => {
-    const normalized = String(value).toUpperCase();
-    return normalized === required || normalized === all;
+    const [storedMenu = "", storedAction = ""] = String(value).split(":", 2);
+    return normalizeBzaMenuCode(storedMenu) === requiredMenu
+      && (storedAction.toUpperCase() === requiredAction || storedAction.toUpperCase() === "ALL");
   });
 }

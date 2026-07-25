@@ -4,7 +4,7 @@
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 검수 기준 Commit: `6ceea6642c9bd35f7e94dd82d03ec1b441024135`
+- 검수 기준 Commit: `512e5f2c7f32ba21ef6be570b2efa3dbcbd7a482`
 - 최상위 목표: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - Requirement 연속성: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
 - 장기 결정: `cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md`
@@ -364,3 +364,48 @@ Evidence는 기준 Commit, PC/환경, Profile, DB Vendor, 시작/종료시각, �
 | P1 migration/security/regression/generator | 부분 구현 | guardrail 유지 | 본 요청서 12~15장 순차 실행 |
 
 다음 작업자는 위 표의 `부분 구현`을 `완료`로 임의 승격하지 않는다.
+
+
+## R8 이후 다음 작업/검수 필수 범위
+
+1. `CPF_R8_REQUIREMENT_REVIEW.md` 162개 항목을 정본으로 사용해 상태를 하나씩 실제 Evidence로 승격한다.
+2. R8 APPLY/Full Verify 실패 항목은 최우선으로 수정하며, 실패 검증을 삭제/우회하지 않는다.
+3. Historical V6/V29 migration integrity를 원인 확정 없이 수정하지 않는다.
+4. ADM/BZA Approval의 break-glass, expiry/escalation, withdraw/cancel/resubmit, 조직개편·부재 Snapshot 시나리오를 완성한다.
+5. non-MariaDB Vendor parity와 PROD-MULTITENANT는 명시 잔여 Gap이며 완료로 오판하지 않는다.
+6. 작업 후 Source/API/SQL/Test/Runtime/Browser/Evidence를 다시 162 Requirement에 양방향 연결하고 다음 Handover를 갱신한다.
+
+## 22. R8 구현 후 검증·잔여 Gap 고정 (2026-07-25)
+
+R8는 다음 P0/P1 구현을 추가했으나 **실제 Windows/Java25/MariaDB/Browser Evidence 전에는 완료가 아니다.**
+
+- ADM 24개/BZA 27개 기능별 lazy frontend package
+- ADM Approval runtime/API/UI, BZA 조직/다중 Role/Approval runtime/API/UI
+- BAT Batch runtime/Scheduler/CenterCut Runner Owner 이동 및 ADM Owner Port 경계
+- ADM legacy MBR 업무 CRUD 제거
+- Saga compensation/manual recovery
+- 선택형 BZA 업무 채번 Sample
+- R7 cleanup/move 강제 APPLY
+- Canonical 162 Requirement Gate
+- 통합 Full Verification + sanitized Evidence 자동 보존
+
+### 다음 작업자가 반드시 먼저 할 일
+
+1. `APPLY_R8_20260725.ps1` 적용 후 `git status --short`, `git diff --check`를 저장한다.
+2. Static Runner를 실행하고 실패 Gate를 우회하지 않는다.
+3. Gradle/npm build 전에 `cpf-tools/db/source`/Root compose/R7 coarse UI/ADM direct owner DB residue가 0인지 확인한다.
+4. DB Artifact sync를 실제 실행한다.
+5. 직전 부분 생성 가능성이 있는 `batDB`는 원인 확인 후 **batDB만** 정리하고 `-All -RequireRun`한다.
+6. `external/EXS`가 Generator ownership manifest를 가진 Generated Domain인지 확인한다.
+7. Full Runner `-WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll`을 실행하고 generated Evidence를 보존한다.
+8. `CPF_R8_REQUIREMENT_REVIEW.md` 162개 상태를 Evidence로만 승격한다.
+
+### 완료로 오판하면 안 되는 현재 잔여
+
+- historical V6/V29 migration integrity
+- non-MariaDB Platform vendor parity
+- Core legacy Batch compatibility class 물리 제거
+- REF/Generated Center-Cut extension의 generic 분리 WAS remote routing
+- Approval break-glass/expiry/escalation/withdraw/cancel/resubmit/조직개편·부재 시나리오
+- PROD-MULTITENANT
+- 실제 multi-instance/fault/browser/runtime Evidence

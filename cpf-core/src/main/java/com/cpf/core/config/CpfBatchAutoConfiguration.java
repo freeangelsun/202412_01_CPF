@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,13 +31,17 @@ import java.time.Clock;
 import java.util.Map;
 
 /**
- * CPF 배치 공통 API 자동 구성입니다.
+ * Legacy CPF 배치 Runtime 호환 자동 구성입니다.
+ *
+ * @deprecated 신규 제품 Runtime은 cpf-batch의 BatRuntimeConfiguration이 소유합니다.
  *
  * <p>Spring Batch를 실제로 사용하는 모듈에서만 활성화됩니다. MBR/BZA처럼 배치를 쓰지 않는 모듈에는
  * Spring Batch 런타임 의존성을 전파하지 않아 다중 datasource 자동설정 충돌을 막습니다.</p>
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(name = "org.springframework.batch.core.launch.JobLauncher")
+@ConditionalOnProperty(prefix = "cpf.core", name = "legacy-batch-runtime-enabled", havingValue = "true", matchIfMissing = false)
+@Deprecated(forRemoval = false)
 public class CpfBatchAutoConfiguration {
 
     @Bean

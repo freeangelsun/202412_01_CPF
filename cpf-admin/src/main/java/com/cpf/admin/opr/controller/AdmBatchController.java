@@ -7,7 +7,6 @@ import com.cpf.admin.opr.dto.AdmBatchOperationRequest;
 import com.cpf.admin.opr.dto.AdmBusinessDayRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmBatchOperationService;
-import com.cpf.admin.opr.service.CpfBatchScheduler;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
 import com.cpf.core.common.logging.TransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,15 +35,12 @@ import java.util.Map;
 @Tag(name = "ADM-Batch", description = "CPF 배치 관제와 운영 API")
 public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmBatchOperationService batchOperationService;
-    private final CpfBatchScheduler batchScheduler;
     private final AdmAuditLogService auditLogService;
 
     public AdmBatchController(
             AdmBatchOperationService batchOperationService,
-            CpfBatchScheduler batchScheduler,
             AdmAuditLogService auditLogService) {
         this.batchOperationService = batchOperationService;
-        this.batchScheduler = batchScheduler;
         this.auditLogService = auditLogService;
     }
 
@@ -216,7 +212,7 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        List<Map<String, Object>> result = batchScheduler.runOnce(requestUser(servletRequest, request.requestUser()));
+        List<Map<String, Object>> result = batchOperationService.runSchedulerOnce(requestUser(servletRequest, request.requestUser()));
         recordAudit(servletRequest, request.requestUser(), "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule",
                 "DUE_SCHEDULES", reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);

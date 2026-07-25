@@ -1,6 +1,7 @@
 import { defineComponent } from "vue";
 import { accessMethods } from "../features/access/methods";
 import { batchMethods } from "../features/batch/methods";
+import { approvalMethods } from "../features/approvals/methods";
 import { coreMethods } from "../features/core/methods";
 import { observabilityMethods } from "../features/observability/methods";
 import { platformMethods } from "../features/platform/methods";
@@ -108,6 +109,7 @@ export const admConsoleMixin = defineComponent({
     },
     methods: {
       ...accessMethods,
+      ...approvalMethods,
       ...batchMethods,
       ...coreMethods,
       ...observabilityMethods,

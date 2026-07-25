@@ -4,6 +4,7 @@ import com.cpf.core.common.batch.centercut.CpfCenterCutService;
 import com.cpf.core.common.logging.TransactionIdGenerator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -13,6 +14,8 @@ import org.springframework.context.annotation.Bean;
  * CPF 거래 ID 생성기를 연결한 표준 서비스를 생성합니다.</p>
  */
 @AutoConfiguration
+@ConditionalOnProperty(prefix="cpf.core", name="legacy-batch-runtime-enabled", havingValue="true", matchIfMissing=false)
+@Deprecated(forRemoval=false)
 public class CpfCenterCutAutoConfiguration {
 
     @Bean

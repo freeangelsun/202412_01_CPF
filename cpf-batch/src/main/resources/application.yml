@@ -31,6 +31,9 @@ cpf:
   framework:
     module-id: BAT
     was-id: ${WAS_ID:batWK01}
+  core:
+    # BAT owns Batch/Center-Cut runtime. cpf-core compatibility runtime must stay disabled here.
+    legacy-batch-runtime-enabled: false
   bat:
     worker:
       # 기본 비활성으로 기존 BAT 기동을 보존하며 worker profile 또는 환경변수로 명시적으로 활성화합니다.
@@ -56,3 +59,4 @@ cpf:
     ghost-detection:
       enabled: ${CPF_BATCH_GHOST_DETECTION_ENABLED:true}
       interval-seconds: ${CPF_BATCH_GHOST_DETECTION_INTERVAL_SECONDS:30}
+

@@ -1,9 +1,12 @@
 import type { Component } from "vue";
 
 export type BzaRouteId =
-  | "dashboard" | "users" | "sessions" | "organizations" | "employees" | "roles" | "menus"
-  | "permissions" | "approvals" | "audits" | "notifications" | "attachments" | "savedSearches"
-  | "permissionTools" | "settings" | "downloads";
+  | "dashboard"
+  | "organizations" | "employees" | "positions" | "jobTitles" | "assignments" | "organizationResponsibilities"
+  | "users" | "roles" | "userRoles" | "menus" | "permissions" | "permissionTools"
+  | "approvalInbox" | "approvalSubmissions" | "approvalPolicies" | "approvalSimulation" | "approvalDelegations"
+  | "sessions" | "audits" | "notifications" | "attachments" | "savedSearches"
+  | "settings" | "downloads" | "downloadAudits" | "sequenceSample";
 
 export interface BzaRoute {
   id: BzaRouteId;
@@ -14,29 +17,38 @@ export interface BzaRoute {
   load: () => Promise<{ default: Component }>;
 }
 
-const dashboard = () => import("../features/dashboard/DashboardPage.vue");
-const directory = () => import("../features/directory/DirectoryPage.vue");
-const access = () => import("../features/access/AccessPage.vue");
-const approval = () => import("../features/approval/ApprovalPage.vue");
-const support = () => import("../features/support/SupportPage.vue");
-
 export const bzaRoutes: BzaRoute[] = [
-  { id: "dashboard", label: "대시보드", menuCode: "DASHBOARD", group: "overview", description: "업무 운영 현황", load: dashboard },
-  { id: "organizations", label: "조직", menuCode: "ORGANIZATION", group: "people", description: "조직 계층과 유효 조직", load: directory },
-  { id: "employees", label: "직원", menuCode: "EMPLOYEE", group: "people", description: "직원·직급·직책·배치", load: directory },
-  { id: "users", label: "사용자", menuCode: "USER", group: "access", description: "BZA 인증 사용자", load: access },
-  { id: "roles", label: "역할", menuCode: "ROLE", group: "access", description: "다중 Role과 데이터 범위", load: access },
-  { id: "menus", label: "메뉴", menuCode: "MENU", group: "access", description: "화면 메뉴 Registry", load: access },
-  { id: "permissions", label: "권한", menuCode: "PERMISSION", group: "access", description: "메뉴·행위·API 권한", load: access },
-  { id: "permissionTools", label: "권한 분석", menuCode: "PERMISSION", group: "access", description: "역할 비교와 권한 시뮬레이션", load: access },
-  { id: "approvals", label: "결재", menuCode: "APPROVAL", group: "approval", description: "업무 결재와 승인 처리", load: approval },
-  { id: "sessions", label: "내 세션", menuCode: "USER", group: "support", description: "Refresh session 관리", load: support },
-  { id: "audits", label: "업무 감사", menuCode: "AUDIT", group: "support", description: "Immutable 업무 감사 조회", load: support },
-  { id: "notifications", label: "알림", menuCode: "NOTIFICATION", group: "support", description: "업무 알림", load: support },
-  { id: "attachments", label: "첨부파일", menuCode: "ATTACHMENT", group: "support", description: "첨부 업로드와 조회", load: support },
-  { id: "savedSearches", label: "저장 검색", menuCode: "SAVED_SEARCH", group: "support", description: "사용자 검색 조건", load: support },
-  { id: "settings", label: "업무 설정", menuCode: "SETTING", group: "support", description: "BZA 업무 설정", load: support },
-  { id: "downloads", label: "다운로드 감사", menuCode: "DOWNLOAD", group: "support", description: "다운로드 정책과 감사", load: support }
+  { id:"dashboard", label:"대시보드", menuCode:"DASHBOARD", group:"overview", description:"업무 운영 현황", load:()=>import("../features/dashboard/DashboardPage.vue") },
+
+  { id:"organizations", label:"조직", menuCode:"ORGANIZATION", group:"people", description:"조직 계층", load:()=>import("../features/organizations/OrganizationsPage.vue") },
+  { id:"employees", label:"직원", menuCode:"EMPLOYEE", group:"people", description:"직원 Profile", load:()=>import("../features/employees/EmployeesPage.vue") },
+  { id:"positions", label:"직급", menuCode:"EMPLOYEE", group:"people", description:"직급 기준정보", load:()=>import("../features/positions/PositionsPage.vue") },
+  { id:"jobTitles", label:"직책", menuCode:"EMPLOYEE", group:"people", description:"직책 기준정보", load:()=>import("../features/job-titles/JobTitlesPage.vue") },
+  { id:"assignments", label:"발령·겸직", menuCode:"EMPLOYEE", group:"people", description:"다중 소속·겸직·파견·대행", load:()=>import("../features/assignments/AssignmentsPage.vue") },
+  { id:"organizationResponsibilities", label:"조직 책임", menuCode:"ORGANIZATION", group:"people", description:"조직장·대행·승인 Owner", load:()=>import("../features/organization-responsibilities/OrganizationResponsibilitiesPage.vue") },
+
+  { id:"users", label:"사용자", menuCode:"AUTHORIZATION", group:"access", description:"BZA 인증 사용자", load:()=>import("../features/users/UsersPage.vue") },
+  { id:"roles", label:"역할", menuCode:"AUTHORIZATION", group:"access", description:"업무 역할", load:()=>import("../features/roles/RolesPage.vue") },
+  { id:"userRoles", label:"사용자 Role", menuCode:"AUTHORIZATION", group:"access", description:"다중 Role 유효기간", load:()=>import("../features/user-roles/UserRolesPage.vue") },
+  { id:"menus", label:"메뉴", menuCode:"AUTHORIZATION", group:"access", description:"화면 메뉴 Registry", load:()=>import("../features/menus/MenusPage.vue") },
+  { id:"permissions", label:"권한", menuCode:"AUTHORIZATION", group:"access", description:"화면·행위·API·Data Scope 권한", load:()=>import("../features/permissions/PermissionsPage.vue") },
+  { id:"permissionTools", label:"권한 분석", menuCode:"AUTHORIZATION", group:"access", description:"Role 비교와 권한 Simulation", load:()=>import("../features/permission-tools/PermissionToolsPage.vue") },
+
+  { id:"approvalInbox", label:"결재 처리", menuCode:"APPROVAL", group:"approval", description:"Snapshot 참여자 Inbox", load:()=>import("../features/approval-inbox/ApprovalInboxPage.vue") },
+  { id:"approvalSubmissions", label:"결재 상신", menuCode:"APPROVAL", group:"approval", description:"정책 기반 멱등 상신", load:()=>import("../features/approval-submissions/ApprovalSubmissionsPage.vue") },
+  { id:"approvalPolicies", label:"결재 정책", menuCode:"APPROVAL", group:"approval", description:"Versioned Policy/ALL·ANY·N_OF_M", load:()=>import("../features/approval-policies/ApprovalPoliciesPage.vue") },
+  { id:"approvalSimulation", label:"경로 Simulation", menuCode:"APPROVAL", group:"approval", description:"조직/Role/위임 사전 해석", load:()=>import("../features/approval-simulation/ApprovalSimulationPage.vue") },
+  { id:"approvalDelegations", label:"결재 위임", menuCode:"APPROVAL", group:"approval", description:"유효기간 위임·대결", load:()=>import("../features/approval-delegations/ApprovalDelegationsPage.vue") },
+
+  { id:"sessions", label:"내 세션", menuCode:"AUTHORIZATION", group:"support", description:"Refresh session 관리", load:()=>import("../features/sessions/SessionsPage.vue") },
+  { id:"audits", label:"업무 감사", menuCode:"AUDIT", group:"support", description:"Immutable 업무 감사", load:()=>import("../features/audits/AuditsPage.vue") },
+  { id:"notifications", label:"알림", menuCode:"SETTING", group:"support", description:"업무 알림", load:()=>import("../features/notifications/NotificationsPage.vue") },
+  { id:"attachments", label:"첨부파일", menuCode:"ATTACHMENT", group:"support", description:"첨부 업로드·검증", load:()=>import("../features/attachments/AttachmentsPage.vue") },
+  { id:"savedSearches", label:"저장 검색", menuCode:"SETTING", group:"support", description:"사용자 검색 조건", load:()=>import("../features/saved-searches/SavedSearchesPage.vue") },
+  { id:"settings", label:"업무 설정", menuCode:"SETTING", group:"support", description:"BZA 업무 설정", load:()=>import("../features/settings/SettingsPage.vue") },
+  { id:"downloads", label:"다운로드 정책", menuCode:"SETTING", group:"support", description:"다운로드 정책", load:()=>import("../features/downloads/DownloadsPage.vue") },
+  { id:"downloadAudits", label:"다운로드 감사", menuCode:"AUDIT", group:"support", description:"다운로드 감사", load:()=>import("../features/download-audits/DownloadAuditsPage.vue") },
+  { id:"sequenceSample", label:"업무 채번 Sample", menuCode:"SEQUENCE_SAMPLE", group:"support", description:"선택형 업무 채번 Customization Sample", load:()=>import("../features/sequence-sample/SequenceSamplePage.vue") }
 ];
 
 export function routeFromHash(hash: string): BzaRouteId {

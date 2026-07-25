@@ -23,7 +23,6 @@ export function createAdmState() {
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
           { id: "serviceRegistry", menuId: "SERVICE_REGISTRY", label: "서비스 호출" },
           { id: "reliability", menuId: "RELIABILITY", label: "신뢰성 처리" },
-          { id: "members", menuId: "MEMBER", label: "회원" },
           { id: "batch", menuId: "BATCH", label: "배치" },
           { id: "notifications", menuId: "NOTIFICATION", label: "알림" },
           { id: "downloads", menuId: "DOWNLOAD", label: "다운로드" },
@@ -37,7 +36,8 @@ export function createAdmState() {
           { id: "permissions", menuId: "PERMISSION", label: "권한" },
           { id: "password", menuId: "PASSWORD", label: "비밀번호" },
           { id: "security", menuId: "SECURITY", label: "보안" },
-          { id: "operators", menuId: "OPERATOR", label: "운영자" }
+          { id: "operators", menuId: "OPERATOR", label: "운영자" },
+          { id: "approvals", menuId: "APPROVAL", label: "위험조치 승인" }
         ],
         logSearch: {
           transactionId: "",
@@ -315,6 +315,22 @@ export function createAdmState() {
         apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "샘플 API 조회", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "admin-ui", reason: "API 권한 관리" },
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
+        approvalForm: {
+          actionType: "CACHE_CLEAR",
+          policyCode: "",
+          policyVersion: "",
+          ownerModule: "cpf-core",
+          ownerCommand: "CACHE_CLEAR",
+          targetType: "CACHE",
+          targetId: "DEFAULT",
+          payloadSnapshot: "{}",
+          requestKey: "",
+          expireAt: "",
+          reason: "위험조치 승인 요청",
+          decisionAction: "APPROVE",
+          idempotencyKey: "",
+          selectedRequestId: ""
+        },
         responseCodeForm: {
           responseCode: "EREF010001",
           messageCode: "MREF090001",
@@ -381,6 +397,8 @@ export function createAdmState() {
         securityResult: {} as Record<string, any>,
         serviceRegistryResult: {} as Record<string, any>,
         reliabilityResult: {} as Record<string, any>,
+        approvalResult: {} as Record<string, any>,
+        approvalPolicyResult: [] as any[],
         remoteLogResult: [],
         remoteLogPreview: {} as Record<string, any>,
         selectedRemoteLog: null,

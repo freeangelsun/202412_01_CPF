@@ -14,9 +14,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * BZA 인증 정보를 bzaDB에 영속화하는 저장소입니다.
@@ -55,9 +58,10 @@ public class BzaAuthRepository {
                   FROM bza_admin_user
                  WHERE admin_login_id = :loginId
                 """, new MapSqlParameterSource("loginId", loginId), this::mapOperator);
-        return rows.stream().findFirst().map(row -> row.withPermissions(
-                findMenus(row.roleCode()),
-                findButtons(row.roleCode())));
+        return rows.stream().findFirst().map(row -> {
+            List<String> roleCodes = findEffectiveRoleCodes(row.adminUserId(), row.roleCode());
+            return row.withPermissions(findMenus(roleCodes), findButtons(roleCodes));
+        });
     }
 
     /** 환경변수로 승인된 최초 BZA 운영자를 기존 계정이 없을 때만 생성합니다. */
@@ -258,20 +262,61 @@ public class BzaAuthRepository {
                 new MapSqlParameterSource("limit", limit));
     }
 
-    private List<String> findMenus(String roleCode) {
-        return jdbc().queryForList("""
+    /**
+     * Legacy primary role과 유효기간 내 다중 역할을 합쳐 인증 시점의 실제 역할 집합을 계산합니다.
+     * bza_user_role이 아직 이관되지 않은 고객 DB도 기존 role_code로 계속 동작합니다.
+     */
+    private List<String> findEffectiveRoleCodes(long adminUserId, String legacyRoleCode) {
+        Set<String> roles = new LinkedHashSet<>();
+        if (legacyRoleCode != null && !legacyRoleCode.isBlank()) roles.add(legacyRoleCode);
+        List<String> effective = jdbc().queryForList("""
+                SELECT role_code
+                  FROM bza_user_role
+                 WHERE admin_user_id = :adminUserId
+                   AND (valid_from IS NULL OR valid_from <= CURRENT_TIMESTAMP(3))
+                   AND (valid_to IS NULL OR valid_to > CURRENT_TIMESTAMP(3))
+                 ORDER BY primary_yn DESC, role_code
+                """, new MapSqlParameterSource("adminUserId", adminUserId), String.class);
+        roles.addAll(effective);
+        return List.copyOf(roles);
+    }
+
+    private List<String> findMenus(List<String> roleCodes) {
+        if (roleCodes.isEmpty()) return List.of();
+        List<String> rows = jdbc().queryForList("""
                 SELECT DISTINCT menu_code
                   FROM bza_permission
-                 WHERE role_code = :roleCode
+                 WHERE role_code IN (:roleCodes)
                    AND allow_yn = 'Y'
                    AND use_yn = 'Y'
                  ORDER BY menu_code
-                """, new MapSqlParameterSource("roleCode", roleCode), String.class);
+                """, new MapSqlParameterSource("roleCodes", roleCodes), String.class);
+        return rows.stream().map(BzaAuthRepository::normalizeMenuCode).distinct().toList();
     }
 
-    private List<String> findButtons(String roleCode) {
-        return jdbc().queryForList(sql.required("auth-find-buttons"),
-                new MapSqlParameterSource("roleCode", roleCode), String.class);
+    private List<String> findButtons(List<String> roleCodes) {
+        if (roleCodes.isEmpty()) return List.of();
+        List<Map<String, Object>> rows = jdbc().queryForList("""
+                SELECT menu_code AS menuCode, button_code AS buttonCode
+                  FROM bza_permission
+                 WHERE role_code IN (:roleCodes)
+                   AND allow_yn = 'Y'
+                   AND use_yn = 'Y'
+                 ORDER BY menu_code, button_code
+                """, new MapSqlParameterSource("roleCodes", roleCodes));
+        List<String> permissions = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            String menu = normalizeMenuCode(String.valueOf(row.get("menuCode")));
+            String button = String.valueOf(row.get("buttonCode"));
+            permissions.add(menu + ":" + button);
+        }
+        return permissions.stream().distinct().toList();
+    }
+
+    private static String normalizeMenuCode(String menuCode) {
+        if (menuCode == null) return "";
+        String normalized = menuCode.trim();
+        return normalized.regionMatches(true, 0, "BZA_", 0, 4) ? normalized.substring(4) : normalized;
     }
 
     private NamedParameterJdbcTemplate jdbc() {

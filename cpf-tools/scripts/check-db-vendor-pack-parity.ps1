@@ -92,8 +92,6 @@ function Test-ExactDirectory {
 }
 
 $canonicalManifestPath = Get-RepositoryPath "cpf-tools/db/vendor-pack-manifest.json"
-$compatibilityManifestPath = Get-RepositoryPath "cpf-tools/db/source/mariadb/vendor-resource-manifest.json"
-Test-ExactFile $canonicalManifestPath $compatibilityManifestPath "vendor-pack-manifest"
 if (-not (Test-Path -LiteralPath $canonicalManifestPath -PathType Leaf)) {
     throw "중앙 Vendor Pack manifest가 없습니다: $canonicalManifestPath"
 }

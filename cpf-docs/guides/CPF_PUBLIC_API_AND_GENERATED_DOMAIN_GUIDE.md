@@ -72,3 +72,7 @@ pwsh .\cpf-tools\scripts\check-r11-public-boundary.ps1
 ```
 
 이 Gate는 Golden Generator의 `com.cpf.core.common.*` 참조와 Generated Business Module의 internal import를 fail-closed한다.
+
+## R12 Generator/Library 기준
+
+Generated Domain 기본 dependency는 `cpf-core`와 `cpf-common`입니다. `cpf-core.api.*`/공개 SPI는 직접 사용할 수 있지만 내부 `com.cpf.core.common.*`은 생성하지 않습니다. Memory adapter는 `local/test/edu` profile과 non-product mode에서만 허용하며 production persistence로 사용할 수 없습니다. Generator 정본은 `cpf-tools/generator/create-domain.ps1` 하나입니다.

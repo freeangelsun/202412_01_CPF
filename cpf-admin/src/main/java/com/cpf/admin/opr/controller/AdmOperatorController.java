@@ -11,9 +11,9 @@ import com.cpf.admin.opr.dto.AdmSessionRevokeRequest;
 import com.cpf.admin.opr.service.AdmOperatorService;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmSessionService;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.error.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,7 +61,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.createOperator(request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_CREATE",
                 "adm_operator",
@@ -88,7 +88,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         String reason = auditLogService.requireReason(request.reason());
         AdmOperator operator = operatorService.changePassword(operatorId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 authenticatedOperatorId,
                 "OPERATOR_PASSWORD_CHANGE",
                 "adm_operator",
@@ -120,7 +120,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 .orElse(null);
         AdmOperator operator = operatorService.resetPassword(operatorId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_PASSWORD_RESET",
                 "adm_operator",
@@ -148,7 +148,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 .orElse(null);
         AdmOperator operator = operatorService.unlockOperator(operatorId, requestUser(servletRequest, request.requestUser()));
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_UNLOCK",
                 "adm_operator",
@@ -175,7 +175,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
                 .orElse(null);
         AdmOperator operator = operatorService.updateRoles(operatorId, request);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "OPERATOR_ROLE_UPDATE",
                 "adm_operator_role",
@@ -212,7 +212,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         String reason = auditLogService.requireReason(request.reason());
         int revoked = sessionService.revokeSession(sessionId);
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "SESSION_REVOKE",
                 "adm_operator_session",
@@ -234,7 +234,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         String reason = auditLogService.requireReason(request.reason());
         int revoked = sessionService.cleanupExpiredSessions();
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "SESSION_CLEANUP_EXPIRED",
                 "adm_operator_session",
@@ -262,10 +262,6 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

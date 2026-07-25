@@ -384,3 +384,10 @@ Architecture 변경은 다음이 함께 있어야 합니다.
 - ADM Approval과 BZA Approval은 별도 Engine/DB/Policy다. 상세는 `APPROVAL_ARCHITECTURE_GUIDE.md`를 따른다.
 - Batch/Scheduler/Agent/Worker/Center-Cut Runtime owner는 `cpf-batch`; Core에는 topology-neutral API/SPI만 둔다.
 - Requirement ID는 `CPF_REQUIREMENT_CONTINUITY_LEDGER.md`를 통해 영구 추적한다.
+
+## R12 운영 안전성 경계
+
+- ADM mutation은 인증 Filter가 확정한 `adm.operatorId`를 신뢰 경계로 사용하며 query/body의 `requestUser`가 다르면 fail-closed 합니다.
+- Mandatory Audit은 Owner 작업 전에 ADM DB에 durable reservation을 `REQUIRES_NEW`로 기록하고 `PENDING/RETRY/FAILED/DELIVERED` 상태로 복구합니다. 운영 변경과 ADM Audit DB 사이에 XA를 강제하지 않습니다.
+- BAT Ghost 조치는 `cpf-batch` transaction 안에서 terminal-state CAS와 실제 lock key/owner 검증을 수행합니다. Owner 불명 lock은 삭제하지 않습니다.
+- `cpf-common` product mode는 CMN DB/Calendar를 필수로 하고, DB-less mode는 Library/EDU/Test/Local의 조회 전용 범위로 제한합니다.

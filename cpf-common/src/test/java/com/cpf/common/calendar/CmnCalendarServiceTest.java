@@ -21,4 +21,12 @@ class CmnCalendarServiceTest {
                 service.shiftBusinessDay("DEFAULT", LocalDate.of(2026, 7, 24), 1),
                 "일요일도 Override가 없으므로 다음 영업일은 월요일이어야 함");
     }
+
+    @Test
+    void dbLessWeekendStoreIsReadOnly() {
+        CmnCalendarService service = new CmnCalendarService(new CmnWeekendCalendarStore());
+        assertFalse(service.writable());
+        assertThrows(IllegalStateException.class, () -> service.save(
+                new CmnCalendarDay("DEFAULT", LocalDate.of(2026,7,27), true, "BUSINESS", "", "test", 0), 0));
+    }
 }

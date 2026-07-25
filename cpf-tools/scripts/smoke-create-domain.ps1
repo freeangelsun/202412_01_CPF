@@ -58,7 +58,7 @@ function Invoke-CreateDomain {
         [switch] $GeneratePatch
     )
 
-    $sourceScript = Join-Path $Root "cpf-tools/scripts/create-domain.ps1"
+    $sourceScript = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
     $runtimeScriptDir = Join-Path $Root "build/domain-generator-runtime"
     $runtimeScript = Join-Path $runtimeScriptDir "create-domain.ps1"
     New-Item -ItemType Directory -Force -Path $runtimeScriptDir | Out-Null
@@ -218,8 +218,9 @@ pluginManagement {
 }
 
 rootProject.name = 'cpf-generated-domain-verification'
-include 'cpf-core', '$projectName'
+include 'cpf-core', 'cpf-common', '$projectName'
 project(':cpf-core').projectDir = file('${rootForGradle}/cpf-core')
+project(':cpf-common').projectDir = file('${rootForGradle}/cpf-common')
 project(':$projectName').projectDir = file('$previewForGradle')
 "@
     $rootBuild = @"

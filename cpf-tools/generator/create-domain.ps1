@@ -726,6 +726,8 @@ import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
 import java.util.List;
 import java.util.Map;
@@ -733,6 +735,8 @@ import java.util.Optional;
 
 /** DB capability를 선택하지 않은 경우 계약 검증에 사용하는 메모리 adapter입니다. */
 @Component
+@Profile({"local", "test", "edu"})
+@ConditionalOnExpression("'${Dollar}{cpf.common.runtime-mode:product}'.toLowerCase() != 'product'")
 public class InMemory${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPrefix}QueryPort {
     @Override public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) { return Map.of("items", List.of(), "criteria", request); }
     @Override public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
@@ -1292,6 +1296,7 @@ java {
 
 dependencies {
     implementation project(':cpf-core')
+    implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 $databaseDependencies
@@ -1422,6 +1427,9 @@ $databaseSpringYml
       - optional:classpath:application-$module-${Dollar}{spring.profiles.active:local}.yml
 
 cpf:
+  common:
+    # product에서는 CMN DB/Calendar 등 공식 cpf-common 계약을 fail-closed로 사용합니다.
+    runtime-mode: ${Dollar}{CPF_COMMON_RUNTIME_MODE:product}
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
   logging:
@@ -1475,7 +1483,7 @@ $moduleDataSourceYml
 $readme = @"
 # ${ModuleName} 주제영역 골격
 
-이 디렉터리는 `cpf-tools/scripts/create-domain.ps1`로 생성한 신규 업무 모듈 후보입니다.
+이 디렉터리는 `cpf-tools/generator/create-domain.ps1`로 생성한 신규 업무 모듈 후보입니다.
 
 - 실제 반영 전 `settings.gradle`, `cpf-tools/db/generated/database-schema-manifest.json`, 선택 Vendor Pack, ADM/BZA 연동과 OpenAPI 문서를 함께 검토합니다.
 - Controller, Facade, Service, Repository, DTO, Mapper XML, SQL의 모듈 코드와 테이블 prefix를 일치시킵니다.

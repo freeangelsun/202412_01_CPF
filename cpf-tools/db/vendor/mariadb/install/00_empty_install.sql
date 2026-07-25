@@ -1,9 +1,9 @@
 -- CPF generated SQL bundle: 00_empty_install.sql
 -- 목적: 빈 Schema에 제품 Object만 비파괴 설치
--- 정본은 cpf-tools/db/source/mariadb의 번호별 분리 SQL입니다.
+-- 정본은 cpf-tools/db/vendor/mariadb/source의 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
 -- ============================================================================
--- cpf-tools/db/source/mariadb/10_cpf_schema.sql
+-- cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql
 -- ============================================================================
 -- CPF 프레임워크 엔진 스키마입니다.
 -- 거래로그, 시스템 코드/메시지, 응답코드, 설정, 캐시 이벤트, 보안 메타, 배치 운영 메타를 cpfDB에 배치합니다.
@@ -955,7 +955,7 @@ CREATE TABLE IF NOT EXISTS cpf_unknown_result (
     INDEX ix_cpf_unknown_result_external (external_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF Unknown result 및 reconciliation 이력';
 -- ============================================================================
--- cpf-tools/db/source/mariadb/20_cmn_schema.sql
+-- cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql
 -- ============================================================================
 -- CMN 고객 업무 공통 Extension의 선택형 DB 검증 스키마입니다.
 -- cpf-common은 기본적으로 DB 없이 동작하며, cmnDB에는 표준 DB 기능을 검증하는
@@ -995,7 +995,7 @@ CREATE TABLE IF NOT EXISTS cmn_sample_item (
   COLLATE=utf8mb4_unicode_ci
   COMMENT='CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플';
 -- ============================================================================
--- cpf-tools/db/source/mariadb/30_adm_schema.sql
+-- cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql
 -- ============================================================================
 -- ADM 관리자 운영 스키마입니다.
 -- 운영자, 역할, 메뉴/버튼 권한, 세션, 감사 로그, 보안 운영 메타를 admDB에 배치합니다.
@@ -1563,7 +1563,7 @@ CREATE TABLE IF NOT EXISTS adm_approval_execution (
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 승인 후 Owner Command 실행 상태';
 -- ============================================================================
--- cpf-tools/db/source/mariadb/35_bat_schema.sql
+-- cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql
 -- ============================================================================
 -- BAT가 소유하는 Spring Batch 메타와 배치 런타임 스키마입니다.
 -- 표준 Spring Batch 테이블은 BATCH_* 이름을 유지하고 BAT 전용 런타임 테이블은 bat_* 이름을 사용합니다.
@@ -2154,7 +2154,7 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_result (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
 -- ============================================================================
--- cpf-tools/db/source/mariadb/40_business_modules_schema.sql
+-- cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql
 -- ============================================================================
 -- 업무/교육 샘플 스키마입니다.
 -- 기본 업무 스키마는 REF 교육, MBR 회원, BZA 업무 백오피스 주제영역으로 구성합니다.
@@ -2980,3 +2980,24 @@ CREATE TABLE IF NOT EXISTS acc_account_change_log (
     CONSTRAINT fk_acc_account_change_target FOREIGN KEY (account_id)
         REFERENCES acc_account (account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ACC 계정 변경 감사 이력';
+
+
+-- R12 durable mandatory audit delivery/outbox
+USE admDB;
+
+CREATE TABLE IF NOT EXISTS adm_audit_delivery (
+    DELIVERY_ID BIGINT NOT NULL AUTO_INCREMENT,
+    TRANSACTION_ID VARCHAR(64) NOT NULL, TRACE_ID VARCHAR(64) NULL, OPERATOR_ID VARCHAR(100) NOT NULL,
+    ACTION_TYPE VARCHAR(100) NOT NULL, TARGET_TYPE VARCHAR(100) NULL, TARGET_ID VARCHAR(255) NULL, REASON VARCHAR(1000) NOT NULL,
+    BEFORE_DATA LONGTEXT NULL, AFTER_DATA LONGTEXT NULL, DIFF_DATA LONGTEXT NULL, CLIENT_IP VARCHAR(64) NULL,
+    OPERATION_STATUS VARCHAR(20) NOT NULL DEFAULT 'REQUESTED', DELIVERY_STATUS VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    ATTEMPT_COUNT INT NOT NULL DEFAULT 0, MAX_ATTEMPTS INT NOT NULL DEFAULT 10, NEXT_ATTEMPT_AT DATETIME(3) NULL, LAST_ERROR VARCHAR(1000) NULL,
+    AUDIT_ID BIGINT NULL, REQUESTED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), DELIVERED_AT DATETIME(3) NULL,
+    CREATED_BY VARCHAR(100) NOT NULL, UPDATED_BY VARCHAR(100) NOT NULL, CREATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UPDATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (DELIVERY_ID),
+    INDEX ix_adm_audit_delivery_status (DELIVERY_STATUS, OPERATION_STATUS, NEXT_ATTEMPT_AT),
+    INDEX ix_adm_audit_delivery_tx (TRANSACTION_ID),
+    INDEX ix_adm_audit_delivery_operator (OPERATOR_ID, REQUESTED_AT),
+    CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
+    CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
+);

@@ -43,10 +43,23 @@ export const coreMethods: Record<string, any> = {
         return this.parseResponse(response);
       },
   async sendJson(url, method, body) {
-        const response = await fetch(url, {
+        const mutation = ["POST", "PUT", "PATCH", "DELETE"].includes(String(method).toUpperCase());
+        let resolvedUrl = url;
+        let resolvedBody = body;
+        if (mutation) {
+          const actor = this.currentOperator?.operatorId;
+          if (!actor) throw new Error("검증된 ADM 운영자 ID가 없습니다.");
+          const parsed = new URL(url, window.location.origin);
+          if (parsed.searchParams.has("requestUser")) parsed.searchParams.set("requestUser", actor);
+          resolvedUrl = parsed.pathname + parsed.search + parsed.hash;
+          if (body && typeof body === "object" && !Array.isArray(body) && Object.prototype.hasOwnProperty.call(body, "requestUser")) {
+            resolvedBody = { ...body, requestUser: actor };
+          }
+        }
+        const response = await fetch(resolvedUrl, {
           method,
           headers: this.apiHeaders({ "Content-Type": "application/json" }),
-          body: body ? JSON.stringify(body) : undefined
+          body: resolvedBody ? JSON.stringify(resolvedBody) : undefined
         });
         return this.parseResponse(response);
       },
@@ -123,7 +136,7 @@ export const coreMethods: Record<string, any> = {
         this.reliabilityResult = await this.sendJson(
           `/adm/api/reliability/broker/dlq/${encodeURIComponent(this.reliabilityAction.messageId)}/replay`,
           "POST",
-          { reason: this.reliabilityAction.reason, requestUser: "admin-ui" }
+          { reason: this.reliabilityAction.reason, requestUser: this.currentOperator.operatorId }
         );
         this.setMessage("DLQ 재처리를 요청했습니다.");
       },
@@ -135,7 +148,7 @@ export const coreMethods: Record<string, any> = {
           {
             targetStatus: this.reliabilityAction.targetStatus,
             reason: this.reliabilityAction.reason,
-            requestUser: "admin-ui"
+            requestUser: this.currentOperator.operatorId
           }
         );
         this.setMessage("결과 미확정 건의 수동 처리를 요청했습니다.");
@@ -177,7 +190,7 @@ export const coreMethods: Record<string, any> = {
           ipPattern: this.securityForm.ipPattern,
           description: this.securityForm.description,
           useYn: "Y",
-          requestUser: "admin-ui",
+          requestUser: this.currentOperator.operatorId,
           reason: this.securityForm.reason
         });
         this.setMessage("IP allowlist를 저장했습니다.");

@@ -262,3 +262,11 @@ ACC나 EXS 이름을 Generator의 예약 Template로 하드코딩하지 않는�
 - 최신 Commit과 일치하는 실행 Evidence
 
 실행하지 않은 항목은 `미검증`이다.
+
+## R12 실행 정책
+
+- 정본: `cpf-tools/generator/create-domain.ps1`
+- 호환 launcher: `cpf-tools/scripts/create-domain.ps1` (별도 Template 금지)
+- 기본 Library: `cpf-core`, `cpf-common`
+- `cpf.common.runtime-mode=product`에서는 Memory adapter가 활성화되지 않아야 합니다.
+- 생성 후 `core.common` import 0건, `cpf-common` dependency, compile/test/local lifecycle을 검증합니다.

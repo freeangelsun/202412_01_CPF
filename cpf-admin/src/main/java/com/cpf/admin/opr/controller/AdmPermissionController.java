@@ -14,8 +14,8 @@ import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
 import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmPermissionService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -323,7 +323,7 @@ public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseCo
         Map<String, Object> after = permissionService.updateMenuPermission(
                 roleId, menuId, request.readYn(), request.writeYn(), request.deleteYn(), requestUser(servletRequest, request.requestUser()));
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "MENU_PERMISSION_UPDATE",
                 "adm_role_menu",
@@ -349,7 +349,7 @@ public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseCo
         Map<String, Object> after = permissionService.updateButtonPermission(
                 roleId, buttonId, request.allowYn(), requestUser(servletRequest, request.requestUser()));
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, request.requestUser()),
                 "BUTTON_PERMISSION_UPDATE",
                 "adm_role_button",
@@ -373,7 +373,7 @@ public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseCo
             Object after,
             String diff) {
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(request, fallbackUser),
                 actionType,
                 targetType,
@@ -386,10 +386,6 @@ public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseCo
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

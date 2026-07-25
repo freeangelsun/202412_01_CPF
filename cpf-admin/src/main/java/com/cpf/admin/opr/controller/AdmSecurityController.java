@@ -4,8 +4,8 @@ import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
 import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmSecurityOperationService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -113,7 +113,7 @@ public class AdmSecurityController extends com.cpf.admin.common.base.AdmBaseCont
             String beforeData,
             Object afterData) {
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 actionType,
                 targetType,
@@ -136,10 +136,6 @@ public class AdmSecurityController extends com.cpf.admin.common.base.AdmBaseCont
     }
 
     private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
+        return requireOperator(request);
     }
 }

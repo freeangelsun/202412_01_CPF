@@ -17,12 +17,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.cpf.core.api.logging.CpfTransactionContext;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * CPF 배치 운영 메타와 Spring Batch 실행 기능을 연결합니다.
@@ -57,7 +64,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     }
 
     public List<Map<String, Object>> findJobs() {
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT j.job_id, j.job_name, j.job_type, j.description, j.restartable_yn, j.use_yn,
                        MAX(e.start_time) AS last_start_time,
                        MAX(e.end_time) AS last_end_time,
@@ -76,7 +83,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         String resolvedJobId = requireText(jobId, "jobId");
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("job", findJob(resolvedJobId));
-        result.put("schedules", queryOrEmpty("""
+        result.put("schedules", queryRequired("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
                        calendar_id, business_day_only_yn, holiday_policy,
                        available_start_time, available_end_time, run_date_pattern,
@@ -93,7 +100,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     }
 
     public List<Map<String, Object>> findSchedules() {
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT schedule_id, job_id, cron_expression, timezone, enabled_yn,
                        calendar_id, business_day_only_yn, holiday_policy,
                        available_start_time, available_end_time, run_date_pattern,
@@ -158,7 +165,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         }
         sql.append(" ORDER BY execution_id DESC LIMIT ?");
         args.add(resolvedLimit);
-        return queryOrEmpty(sql.toString(), args.toArray());
+        return queryRequired(sql.toString(), args.toArray());
     }
 
     public Map<String, Object> findExecutionDetail(long executionId) {
@@ -181,13 +188,12 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
             result.put("springBatch", findSpringBatchExecution(execution));
             return result;
         } catch (DataAccessException ex) {
-            log.debug("배치 실행 상세 조회를 건너뜁니다. executionId={}, reason={}", executionId, ex.getMessage());
-            return Map.of();
+            throw queryFailure("executionDetail", ex);
         }
     }
 
     public List<Map<String, Object>> findInstances() {
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT instance_id, instance_name, host_name, server_port, active_yn,
                        last_heartbeat_at, description, created_at, updated_at
                 FROM bat_instance
@@ -197,7 +203,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
     public List<Map<String, Object>> findWorkers(int heartbeatTimeoutSeconds) {
         int timeoutSeconds = Math.max(30, Math.min(heartbeatTimeoutSeconds, 86400));
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT worker_id, server_instance_id, host_name, process_id, thread_name,
                        worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id,
                        CASE
@@ -215,7 +221,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     public List<Map<String, Object>> findStepExecutions(Long executionId, String jobId, int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
         if (executionId != null) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                            s.worker_id, s.step_name, s.execution_status,
                            s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
@@ -229,7 +235,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     """, executionId, resolvedLimit);
         }
         if (hasText(jobId)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                            s.worker_id, s.step_name, s.execution_status,
                            s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
@@ -243,7 +249,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     LIMIT ?
                     """, jobId.trim(), resolvedLimit);
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT s.step_execution_id, s.execution_id, s.spring_batch_step_execution_id,
                        s.worker_id, s.step_name, s.execution_status,
                        s.start_time, s.end_time, s.read_count, s.write_count, s.skip_count,
@@ -258,7 +264,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
     public List<Map<String, Object>> findRelations(String jobId) {
         if (hasText(jobId)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT r.relation_id, r.job_id, j.job_name,
                            r.related_job_id, rel.job_name AS related_job_name,
                            r.relation_type, r.trigger_condition, r.required_status,
@@ -271,7 +277,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     ORDER BY r.job_id, r.sort_order, r.related_job_id
                     """, jobId.trim(), jobId.trim());
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT r.relation_id, r.job_id, j.job_name,
                        r.related_job_id, rel.job_name AS related_job_name,
                        r.relation_type, r.trigger_condition, r.required_status,
@@ -286,7 +292,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     public List<Map<String, Object>> findExecutionTargets(String jobId, String dispatchStatus, int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
         if (hasText(jobId) && hasText(dispatchStatus)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
                            t.target_instance_id, i.instance_name, t.business_date,
                            t.planned_run_at, t.dispatch_status, t.dispatch_reason,
@@ -301,7 +307,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     """, jobId.trim(), dispatchStatus.trim(), resolvedLimit);
         }
         if (hasText(jobId)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
                            t.target_instance_id, i.instance_name, t.business_date,
                            t.planned_run_at, t.dispatch_status, t.dispatch_reason,
@@ -314,7 +320,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     LIMIT ?
                     """, jobId.trim(), resolvedLimit);
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT t.target_id, t.execution_id, t.job_id, j.job_name, t.schedule_id,
                        t.target_instance_id, i.instance_name, t.business_date,
                        t.planned_run_at, t.dispatch_status, t.dispatch_reason,
@@ -329,7 +335,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
     public List<Map<String, Object>> findLocks(String jobId) {
         if (hasText(jobId)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
                            CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
                            created_at, updated_at
@@ -338,7 +344,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     ORDER BY locked_at DESC
                     """, jobId.trim());
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT lock_key, job_id, job_parameters_hash, owner_id, locked_at, expire_at,
                        CASE WHEN expire_at <= CURRENT_TIMESTAMP(3) THEN 'EXPIRED' ELSE 'ACTIVE' END AS lock_state,
                        created_at, updated_at
@@ -347,16 +353,25 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                 """);
     }
 
+    @Transactional(transactionManager = "batTransactionManager")
     public Map<String, Object> releaseLock(String lockKey, String requestUser, String reason) {
         String resolvedLockKey = requireText(lockKey, "lockKey");
+        String operatorId = requireText(requestUser, "requestUser");
+        String resolvedReason = requireText(reason, "reason");
         Map<String, Object> before = findLock(resolvedLockKey);
-        int deleted = batJdbcTemplate.update("DELETE FROM bat_lock WHERE lock_key = ?", resolvedLockKey);
-        String operatorId = defaultIfBlank(requestUser, "ADM");
-        recordOperation(String.valueOf(before.get("job_id")), null, "LOCK_RELEASE", operatorId, reason,
-                String.valueOf(before), "deleted=" + deleted);
+        String ownerId = requireObjectText(before.get("owner_id"), "lock.ownerId");
+        int deleted = batJdbcTemplate.update(
+                "DELETE FROM bat_lock WHERE lock_key = ? AND owner_id = ?",
+                resolvedLockKey, ownerId);
+        if (deleted != 1) {
+            throw new CpfValidationException("배치 lock 소유권이 변경되어 해제하지 않았습니다. lockKey=" + resolvedLockKey);
+        }
+        recordOperation(String.valueOf(before.get("job_id")), null, "LOCK_RELEASE", operatorId, resolvedReason,
+                String.valueOf(before), "deleted=" + deleted + ", ownerId=" + ownerId);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("lockKey", resolvedLockKey);
-        result.put("released", deleted > 0);
+        result.put("released", true);
+        result.put("ownerId", ownerId);
         result.put("before", before);
         return result;
     }
@@ -366,7 +381,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         if (ghostDetectionService != null) {
             ghostDetectionService.detectGhostCandidates(timeoutSeconds);
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT e.execution_id, e.job_id, j.job_name, e.schedule_id, e.job_parameters,
                        e.execution_status, e.spring_batch_execution_id, e.batch_instance_id,
                        e.server_instance_id, e.worker_id, e.transaction_id,
@@ -397,35 +412,36 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                 """, timeoutSeconds, timeoutSeconds);
     }
 
+    @Transactional(transactionManager = "batTransactionManager")
     public Map<String, Object> actGhostExecution(long executionId, String actionType, String requestUser, String reason) {
         String action = normalizeGhostAction(actionType);
-        String operatorId = defaultIfBlank(requestUser, "ADM");
+        String operatorId = requireText(requestUser, "requestUser");
+        String resolvedReason = requireText(reason, "reason");
         Map<String, Object> before = findExecution(executionId);
-        String jobId = String.valueOf(before.get("job_id"));
-        int releasedLocks = 0;
-        if ("FAIL".equals(action)) {
-            batJdbcTemplate.update("""
+        String jobId = requireObjectText(before.get("job_id"), "execution.jobId");
+        int releasedLocks;
+        if ("FAIL".equals(action) || "ABANDON".equals(action)) {
+            String targetStatus = "FAIL".equals(action) ? "FAILED" : "ABANDONED";
+            String message = "FAIL".equals(action)
+                    ? "ADM ghost 조치로 실패 처리되었습니다."
+                    : "ADM ghost 조치로 폐기 처리되었습니다.";
+            int updated = batJdbcTemplate.update("""
                     UPDATE bat_execution
-                    SET execution_status = 'FAILED',
-                        end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
-                        error_message = COALESCE(error_message, 'ADM ghost 조치로 실패 처리되었습니다.'),
+                    SET execution_status = ?,
+                        end_time = CURRENT_TIMESTAMP(3),
+                        error_message = COALESCE(error_message, ?),
                         updated_by = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE execution_id = ?
-                    """, operatorId, executionId);
+                      AND end_time IS NULL
+                      AND execution_status IN ('REQUESTED','STARTING','STARTED','RUNNING','UNKNOWN','STOPPING')
+                    """, targetStatus, message, operatorId, executionId);
+            if (updated != 1) {
+                throw new CpfValidationException(
+                        "배치 실행 상태가 이미 변경되었거나 종료되어 ghost 조치를 적용하지 않았습니다. executionId=" + executionId);
+            }
             releasedLocks = releaseLocksForExecution(before);
-        } else if ("ABANDON".equals(action)) {
-            batJdbcTemplate.update("""
-                    UPDATE bat_execution
-                    SET execution_status = 'ABANDONED',
-                        end_time = COALESCE(end_time, CURRENT_TIMESTAMP(3)),
-                        error_message = COALESCE(error_message, 'ADM ghost 조치로 폐기 처리되었습니다.'),
-                        updated_by = ?,
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE execution_id = ?
-                    """, operatorId, executionId);
-            releasedLocks = releaseLocksForExecution(before);
-        } else if ("RELEASE_LOCK".equals(action)) {
+        } else {
             releasedLocks = releaseLocksForExecution(before);
         }
         Map<String, Object> after = findExecution(executionId);
@@ -436,22 +452,12 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     lock_released_yn, retryable_yn, before_data, after_data, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, 'ACTIONED', ?, ?, ?, ?, CURRENT_TIMESTAMP(3), ?, ?, ?, ?, ?, ?)
                 """,
-                executionId,
-                before.get("spring_batch_execution_id"),
-                jobId,
-                before.get("server_instance_id"),
-                before.get("worker_id"),
-                "ADM에서 ghost 후보를 조치했습니다. action=" + action,
-                action,
-                requireText(reason, "reason"),
-                operatorId,
-                releasedLocks > 0 ? "Y" : "N",
-                "RELEASE_LOCK".equals(action) ? "Y" : "N",
-                String.valueOf(before),
-                String.valueOf(after),
-                operatorId,
-                operatorId);
-        recordOperation(jobId, executionId, "GHOST_" + action, operatorId, reason,
+                executionId, before.get("spring_batch_execution_id"), jobId,
+                before.get("server_instance_id"), before.get("worker_id"),
+                "ADM에서 ghost 후보를 조치했습니다. action=" + action, action, resolvedReason, operatorId,
+                releasedLocks > 0 ? "Y" : "N", "RELEASE_LOCK".equals(action) ? "Y" : "N",
+                String.valueOf(before), String.valueOf(after), operatorId, operatorId);
+        recordOperation(jobId, executionId, "GHOST_" + action, operatorId, resolvedReason,
                 String.valueOf(before), String.valueOf(after) + ", releasedLocks=" + releasedLocks);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("execution", after);
@@ -463,7 +469,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     public List<Map<String, Object>> findOperationLogs(String jobId, Long executionId, int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
         if (executionId != null) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                            reason, before_data, after_data, result_type, result_message,
                            created_at, updated_at
@@ -474,7 +480,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     """, executionId, resolvedLimit);
         }
         if (hasText(jobId)) {
-            return queryOrEmpty("""
+            return queryRequired("""
                     SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                            reason, before_data, after_data, result_type, result_message,
                            created_at, updated_at
@@ -484,7 +490,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     LIMIT ?
                     """, jobId.trim(), resolvedLimit);
         }
-        return queryOrEmpty("""
+        return queryRequired("""
                 SELECT operation_id, job_id, execution_id, operation_type, operator_id,
                        reason, before_data, after_data, result_type, result_message,
                        created_at, updated_at
@@ -508,7 +514,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
 
     public Map<String, Object> registerJob(String jobId, String jobName, String jobType, String description, String requestUser) {
-        String user = defaultIfBlank(requestUser, "ADM");
+        String user = requireText(requestUser, "requestUser");
         batJdbcTemplate.update("""
                 INSERT INTO bat_job (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
                 VALUES (?, ?, ?, ?, 'Y', 'Y', ?, ?)
@@ -532,7 +538,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
     public Map<String, Object> requestRun(String jobId, String jobParameters, String requestUser, String reason) {
         CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.run(
-                jobId, jobParameters, requestUser, reason));
+                jobId, jobParameters, requireText(requestUser, "requestUser"), requireText(reason, "reason")));
         return toAdmExecutionResult(result);
     }
 
@@ -543,19 +549,19 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
             String requestUser,
             String reason) {
         CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.scheduledRun(
-                scheduleId, jobId, jobParameters, requestUser, reason));
+                scheduleId, jobId, jobParameters, requireText(requestUser, "requestUser"), requireText(reason, "reason")));
         return toAdmExecutionResult(result);
     }
 
     public Map<String, Object> requestRetry(long executionId, String requestUser, String reason) {
         CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.retry(
-                executionId, requestUser, reason));
+                executionId, requireText(requestUser, "requestUser"), requireText(reason, "reason")));
         return toAdmExecutionResult(result);
     }
 
     public Map<String, Object> requestStop(long executionId, String requestUser, String reason) {
         CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.stop(
-                executionId, requestUser, reason));
+                executionId, requireText(requestUser, "requestUser"), requireText(reason, "reason")));
         return toAdmExecutionResult(result);
     }
 
@@ -582,10 +588,10 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE schedule_id = ?
-                """, enabled ? "Y" : "N", defaultIfBlank(requestUser, "ADM"), scheduleId);
+                """, enabled ? "Y" : "N", requireText(requestUser, "requestUser"), scheduleId);
         Map<String, Object> after = findSchedule(scheduleId);
         recordOperation(String.valueOf(after.get("job_id")), null, enabled ? "SCHEDULE_ENABLE" : "SCHEDULE_DISABLE",
-                defaultIfBlank(requestUser, "ADM"), reason, String.valueOf(before), String.valueOf(after));
+                requireText(requestUser, "requestUser"), reason, String.valueOf(before), String.valueOf(after));
         return after;
     }
 
@@ -614,8 +620,10 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                     FROM bat_lock
                     WHERE lock_key = ?
                     """, lockKey);
-        } catch (DataAccessException ex) {
+        } catch (org.springframework.dao.EmptyResultDataAccessException ex) {
             throw new CpfValidationException("해제할 배치 lock을 찾을 수 없습니다. lockKey=" + lockKey);
+        } catch (DataAccessException ex) {
+            throw queryFailure("findLock", ex);
         }
     }
 
@@ -717,13 +725,32 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         }
     }
 
-    private List<Map<String, Object>> queryOrEmpty(String sql, Object... args) {
+    private List<Map<String, Object>> queryRequired(String sql, Object... args) {
         try {
             return batJdbcTemplate.queryForList(sql, args);
         } catch (DataAccessException ex) {
-            log.debug("배치 운영 조회를 건너뜁니다. reason={}", ex.getMessage());
-            return List.of();
+            throw queryFailure(callerOperation(), ex);
         }
+    }
+
+    private String callerOperation() {
+        return StackWalker.getInstance().walk(frames -> frames
+                .map(StackWalker.StackFrame::getMethodName)
+                .filter(name -> !"queryRequired".equals(name) && !"callerOperation".equals(name))
+                .findFirst()
+                .orElse("unknownQuery"));
+    }
+
+    private BatOperationQueryException queryFailure(String operation, DataAccessException ex) {
+        String transactionId;
+        try {
+            transactionId = CpfTransactionContext.transactionId();
+        } catch (RuntimeException ignored) {
+            transactionId = "N/A";
+        }
+        log.error("BAT 운영 조회 실패. operation={}, transactionId={}", operation, transactionId, ex);
+        return new BatOperationQueryException(
+                "BAT 운영 조회에 실패했습니다. operation=" + operation + ", transactionId=" + transactionId, ex);
     }
 
     private void recordOperation(
@@ -744,25 +771,57 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     }
 
     private int releaseLocksForExecution(Map<String, Object> execution) {
-        String jobId = String.valueOf(execution.get("job_id"));
-        Object workerId = execution.get("worker_id");
-        Object serverInstanceId = execution.get("server_instance_id");
-        Object batchInstanceId = execution.get("batch_instance_id");
-        return batJdbcTemplate.update("""
-                DELETE FROM bat_lock
-                WHERE job_id = ?
-                  AND (
-                      owner_id = ?
-                      OR owner_id = ?
-                      OR owner_id = ?
-                      OR ? IS NULL
-                  )
-                """,
-                jobId,
-                workerId,
-                serverInstanceId,
-                batchInstanceId,
-                workerId == null && serverInstanceId == null && batchInstanceId == null ? null : "HAS_OWNER");
+        String jobId = requireObjectText(execution.get("job_id"), "execution.jobId");
+        String jobParameters = execution.get("job_parameters") == null ? "{}" : String.valueOf(execution.get("job_parameters"));
+        String lockKey = buildLockKey(jobId, jobParameters);
+        Set<String> ownerCandidates = new LinkedHashSet<>();
+        addOwner(ownerCandidates, execution.get("worker_id"));
+        addOwner(ownerCandidates, execution.get("server_instance_id"));
+        addOwner(ownerCandidates, execution.get("batch_instance_id"));
+        if (ownerCandidates.isEmpty()) {
+            throw new CpfValidationException(
+                    "배치 lock 소유자를 확인할 수 없어 lock을 해제하지 않았습니다. executionId=" + execution.get("execution_id"));
+        }
+        Map<String, Object> lock;
+        try {
+            lock = batJdbcTemplate.queryForMap(
+                    "SELECT lock_key, owner_id FROM bat_lock WHERE lock_key = ?", lockKey);
+        } catch (org.springframework.dao.EmptyResultDataAccessException ex) {
+            return 0;
+        }
+        String actualOwner = requireObjectText(lock.get("owner_id"), "lock.ownerId");
+        if (!ownerCandidates.contains(actualOwner)) {
+            throw new CpfValidationException(
+                    "배치 lock의 현재 소유자가 실행 소유자와 달라 해제하지 않았습니다. lockKey=" + lockKey);
+        }
+        int deleted = batJdbcTemplate.update(
+                "DELETE FROM bat_lock WHERE lock_key = ? AND owner_id = ?", lockKey, actualOwner);
+        if (deleted != 1) {
+            throw new CpfValidationException("배치 lock이 동시 변경되어 해제하지 않았습니다. lockKey=" + lockKey);
+        }
+        return deleted;
+    }
+
+    private static void addOwner(Set<String> owners, Object owner) {
+        if (owner != null && hasText(String.valueOf(owner))) {
+            owners.add(String.valueOf(owner).trim());
+        }
+    }
+
+    private static String buildLockKey(String jobId, String jobParameters) {
+        String normalizedJobId = requireText(jobId, "jobId");
+        String normalizedParameters = hasText(jobParameters) ? jobParameters : "{}";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(normalizedParameters.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte value : hash) {
+                hex.append(String.format("%02x", value));
+            }
+            return "batch:job:" + normalizedJobId + ":" + hex;
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", ex);
+        }
     }
 
     private String normalizeGhostAction(String actionType) {
@@ -782,7 +841,7 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     public List<Map<String,Object>> runSchedulerOnce(String requestUser) {
         BatBatchScheduler scheduler = schedulerProvider.getIfAvailable();
         if (scheduler == null) throw new IllegalStateException("BAT Scheduler가 구성되지 않았습니다.");
-        return scheduler.runOnce(defaultIfBlank(requestUser, "ADM"));
+        return scheduler.runOnce(requireText(requestUser, "requestUser"));
     }
 
     private static boolean hasText(String value) {
@@ -791,6 +850,14 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
 
     private static String defaultIfBlank(String value, String fallback) {
         return hasText(value) ? value.trim() : fallback;
+    }
+
+
+    private static String requireObjectText(Object value, String fieldName) {
+        if (value == null) {
+            throw new CpfValidationException(fieldName + "은(는) 필수입니다.");
+        }
+        return requireText(String.valueOf(value), fieldName);
     }
 
     private static String requireText(String value, String fieldName) {

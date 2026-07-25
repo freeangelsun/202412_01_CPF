@@ -1,96 +1,19 @@
 <template>
-  <section class="cpf-page">
-    <header class="cpf-page-header">
-      <div>
-        <p class="cpf-eyebrow">CMN-CALENDAR · shared policy</p>
-        <h2>영업일 · 휴일 관리</h2>
-        <p class="cpf-muted">ADM에서 관리한 Calendar를 Batch/Scheduler와 업무 Domain이 같은 CMN API로 사용합니다.</p>
-      </div>
-      <div class="cpf-actions">
-        <button class="cpf-btn" @click="load">조회</button>
-        <button class="cpf-btn cpf-btn-primary" @click="save">저장</button>
-      </div>
-    </header>
-
-    <div class="cpf-card-grid">
-      <article class="cpf-card">
-        <span>Calendar</span><strong>{{ calendarId }}</strong>
-      </article>
-      <article class="cpf-card">
-        <span>선택일</span><strong>{{ businessDate }}</strong>
-      </article>
-      <article class="cpf-card">
-        <span>저장 Provider</span><strong>{{ writable ? 'WRITE' : 'READ ONLY' }}</strong>
-      </article>
-    </div>
-
-    <section class="cpf-panel">
-      <div class="cpf-form-grid">
-        <label>Calendar ID<input v-model.trim="calendarId" /></label>
-        <label>기준일<input v-model="businessDate" type="date" /></label>
-        <label>구분
-          <select v-model="businessDay">
-            <option :value="true">영업일</option>
-            <option :value="false">휴일</option>
-          </select>
-        </label>
-        <label>Day Type<input v-model.trim="dayType" placeholder="HOLIDAY" /></label>
-        <label>기관코드<input v-model.trim="institutionCode" placeholder="BANK" /></label>
-        <label>사유<input v-model.trim="reason" placeholder="휴일 사유" /></label>
-      </div>
-    </section>
-
-    <section class="cpf-panel">
-      <div class="cpf-section-title"><h3>Calendar Override</h3><span>{{ items.length }}건</span></div>
-      <div class="cpf-table-wrap">
-        <table class="cpf-table">
-          <thead><tr><th>일자</th><th>구분</th><th>Type</th><th>기관</th><th>사유</th><th>Version</th></tr></thead>
-          <tbody>
-            <tr v-for="row in items" :key="row.businessDate" @click="select(row)">
-              <td>{{ row.businessDate }}</td>
-              <td><span :class="['cpf-badge', row.businessDay ? 'is-success' : 'is-danger']">{{ row.businessDay ? '영업일' : '휴일' }}</span></td>
-              <td>{{ row.dayType }}</td><td>{{ row.institutionCode }}</td><td>{{ row.reason }}</td><td>{{ row.version }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p v-if="message" class="cpf-notice">{{ message }}</p>
-    </section>
-  </section>
+<section class="cpf-page"><header class="cpf-page-header"><div><p class="cpf-eyebrow">CMN-CALENDAR · shared policy</p><h2>영업일 · 휴일 관리</h2><p class="cpf-muted">CMN Owner의 동일 Calendar 계약을 Batch/Scheduler/업무 Domain이 공유합니다.</p></div><div class="cpf-actions"><button class="cpf-btn" :disabled="loading" @click="load">조회</button><button class="cpf-btn cpf-btn-primary" :disabled="!canWrite||loading" @click="save">저장</button><button class="cpf-btn" :disabled="!canDelete||version===0||loading" @click="remove">삭제</button></div></header>
+<div class="cpf-card-grid"><article class="cpf-card"><span>Calendar</span><strong>{{calendarId}}</strong></article><article class="cpf-card"><span>저장 Provider</span><strong>{{writable?'WRITE':'READ ONLY'}}</strong></article><article class="cpf-card"><span>권한</span><strong>{{canWrite?'WRITE':'READ'}}</strong></article></div>
+<section class="cpf-panel"><div class="cpf-form-grid"><label>Calendar ID<input v-model.trim="calendarId"/></label><label>기준일<input v-model="businessDate" type="date"/></label><label>구분<select v-model="businessDay"><option :value="true">영업일</option><option :value="false">휴일</option></select></label><label>Day Type<input v-model.trim="dayType"/></label><label>기관코드<input v-model.trim="institutionCode"/></label><label>업무 사유<input v-model.trim="reason" placeholder="공휴일/영업일 사유"/></label><label>감사 사유<input v-model.trim="auditReason" placeholder="왜 운영 변경하는지"/></label></div></section>
+<section class="cpf-panel"><div class="cpf-section-title"><h3>Calendar Override</h3><span>{{items.length}}건</span></div><p v-if="loading" class="cpf-muted">조회 중...</p><p v-else-if="errorMessage" class="cpf-notice is-danger">{{errorMessage}}</p><p v-else-if="items.length===0" class="cpf-muted">등록된 Override가 없습니다.</p><div v-else class="cpf-table-wrap"><table class="cpf-table"><thead><tr><th>일자</th><th>구분</th><th>Type</th><th>기관</th><th>사유</th><th>Version</th></tr></thead><tbody><tr v-for="row in items" :key="row.businessDate" @click="select(row)"><td>{{row.businessDate}}</td><td>{{row.businessDay?'영업일':'휴일'}}</td><td>{{row.dayType}}</td><td>{{row.institutionCode}}</td><td>{{row.reason}}</td><td>{{row.version}}</td></tr></tbody></table></div><p v-if="message" class="cpf-notice">{{message}}</p></section></section>
 </template>
-
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { cpfApi } from "../../shared/cpfApi";
-
-type CalendarDay = {businessDate:string;businessDay:boolean;dayType:string;institutionCode:string;reason:string;version:number};
-
-const calendarId = ref("DEFAULT");
-const businessDate = ref(new Date().toISOString().slice(0,10));
-const businessDay = ref(false);
-const dayType = ref("HOLIDAY");
-const institutionCode = ref("");
-const reason = ref("");
-const version = ref(0);
-const writable = ref(true);
-const items = ref<CalendarDay[]>([]);
-const message = ref("");
-
-async function load(){
-  message.value="";
-  const result = await cpfApi(`/adm/api/business-calendars/${encodeURIComponent(calendarId.value)}/days?limit=366`);
-  writable.value=Boolean(result.writable); items.value=result.items||[];
-}
-function select(row:CalendarDay){
-  businessDate.value=row.businessDate;businessDay.value=row.businessDay;dayType.value=row.dayType;
-  institutionCode.value=row.institutionCode||"";reason.value=row.reason||"";version.value=row.version||0;
-}
-async function save(){
-  const result=await cpfApi(`/adm/api/business-calendars/${encodeURIComponent(calendarId.value)}/days/${businessDate.value}?expectedVersion=${version.value}`,{
-    method:"PUT",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({businessDay:businessDay.value,dayType:dayType.value,institutionCode:institutionCode.value,reason:reason.value})
-  });
-  version.value=result.version||0;message.value="저장했습니다.";await load();
-}
-onMounted(load);
+import {computed,onMounted,ref} from "vue";import {CpfApiError,cpfApi} from "../../shared/cpfApi";
+type CalendarDay={businessDate:string;businessDay:boolean;dayType:string;institutionCode:string;reason:string;version:number};
+const calendarId=ref("DEFAULT"),businessDate=ref(new Date().toISOString().slice(0,10)),businessDay=ref(false),dayType=ref("HOLIDAY"),institutionCode=ref(""),reason=ref(""),auditReason=ref("");const version=ref(0),writable=ref(false),items=ref<CalendarDay[]>([]),message=ref(""),errorMessage=ref(""),loading=ref(false);const permission=ref({writeAllowed:false,deleteAllowed:false});
+const canWrite=computed(()=>writable.value&&permission.value.writeAllowed);const canDelete=computed(()=>writable.value&&permission.value.deleteAllowed);
+async function loadPermission(){try{const me:any=await cpfApi('/adm/api/auth/me');const menu=(me.menus||[]).find((m:any)=>(m.menuId||m.id)==='BUSINESS_CALENDAR');permission.value={writeAllowed:menu?.writeAllowed===true,deleteAllowed:menu?.deleteAllowed===true};}catch{permission.value={writeAllowed:false,deleteAllowed:false};}}
+async function load(){loading.value=true;errorMessage.value="";message.value="";try{const r:any=await cpfApi(`/adm/api/business-calendars/${encodeURIComponent(calendarId.value)}/days?limit=366`);writable.value=Boolean(r.writable);items.value=r.items||[];}catch(e){errorMessage.value=e instanceof Error?e.message:String(e);}finally{loading.value=false;}}
+function select(row:CalendarDay){businessDate.value=row.businessDate;businessDay.value=row.businessDay;dayType.value=row.dayType;institutionCode.value=row.institutionCode||"";reason.value=row.reason||"";version.value=row.version||0;}
+function validate(){if(!auditReason.value.trim())throw new Error("감사 사유를 입력하세요.");}
+async function save(){try{validate();const r:any=await cpfApi(`/adm/api/business-calendars/${encodeURIComponent(calendarId.value)}/days/${businessDate.value}?expectedVersion=${version.value}`,{method:"PUT",body:JSON.stringify({businessDay:businessDay.value,dayType:dayType.value,institutionCode:institutionCode.value,reason:reason.value,auditReason:auditReason.value})});version.value=r.version||0;message.value="저장했습니다.";await load();}catch(e){errorMessage.value=e instanceof CpfApiError&&e.status===409?`동시 변경 충돌: ${e.message}`:(e instanceof Error?e.message:String(e));}}
+async function remove(){try{validate();await cpfApi(`/adm/api/business-calendars/${encodeURIComponent(calendarId.value)}/days/${businessDate.value}?expectedVersion=${version.value}&auditReason=${encodeURIComponent(auditReason.value)}`,{method:"DELETE"});version.value=0;message.value="삭제했습니다.";await load();}catch(e){errorMessage.value=e instanceof CpfApiError&&e.status===409?`동시 변경 충돌: ${e.message}`:(e instanceof Error?e.message:String(e));}}
+onMounted(async()=>{await loadPermission();await load();});
 </script>

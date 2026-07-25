@@ -144,3 +144,7 @@ pwsh -ExecutionPolicy Bypass -File .\cpf-tools\generator\create-domain.ps1 -Doma
 ```
 
 생성된 EXS는 해당 프로젝트의 Generated Domain이며 Platform install source에는 `exsDB` 또는 `exs_*`를 추가하지 않는다.
+
+## R12 CMN / Migration 정책
+
+정식 Product mode에서 CMN DB는 필수이며 `cmn_business_calendar_day`가 Business Calendar 정본입니다. Migration checksum 검증은 read-only이고 `verify-full-product.ps1`가 정본을 갱신하지 않습니다. checksum/DB bundle 갱신은 명시적 maintenance 작업에서만 수행합니다. PRE-GA canonical repair가 적용된 MariaDB V6/V29와 V40~V51 lifecycle은 canonical source와 동일하게 유지하며 동일 Flyway version 중복을 금지합니다.

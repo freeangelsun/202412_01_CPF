@@ -1,11 +1,11 @@
 import { defineComponent } from "vue";
-import { accessMethods } from "../features/access/methods";
+import { accessMethods } from "./methods/accessMethods";
 import { batchMethods } from "../features/batch/methods";
 import { approvalMethods } from "../features/approvals/methods";
 import { coreMethods } from "../features/core/methods";
-import { observabilityMethods } from "../features/observability/methods";
-import { platformMethods } from "../features/platform/methods";
-import { referenceMethods } from "../features/reference/methods";
+import { observabilityMethods } from "./methods/observabilityMethods";
+import { platformMethods } from "./methods/platformMethods";
+import { referenceMethods } from "./methods/referenceMethods";
 import { admSharedState } from "../state/admSharedState";
 
 export const admConsoleMixin = defineComponent({

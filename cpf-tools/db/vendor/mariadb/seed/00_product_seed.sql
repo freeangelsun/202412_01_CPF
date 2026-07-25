@@ -1,9 +1,9 @@
 -- CPF generated SQL bundle: 00_product_seed.sql
 -- 목적: 제품 필수 기준정보만 idempotent 반영
--- 정본은 cpf-tools/db/source/mariadb의 번호별 분리 SQL입니다.
+-- 정본은 cpf-tools/db/vendor/mariadb/source의 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
 -- ============================================================================
--- cpf-tools/db/source/mariadb/50_framework_seed_data.sql
+-- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
 -- ============================================================================
 -- CPF 프레임워크 초기 코드, 메시지, 응답코드, 설정 데이터입니다.
 -- 대상 DB: cpfDB(core), batDB(batch runtime)
@@ -300,7 +300,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
--- cpf-tools/db/source/mariadb/52_standard_execution_alias_seed.sql
+-- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
 -- ============================================================================
 -- 신규 설치에서도 구형 실행 ID 조회 호환 정보를 제공하는 정본 seed입니다.
 USE cpfDB;
@@ -641,7 +641,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
--- cpf-tools/db/source/mariadb/56_bza_product_seed.sql
+-- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
 -- ============================================================================
 -- BZA 고객 업무 관리자 제품 기본 Metadata입니다.
 -- 조직/직원/직급/직책은 고객사 기준정보이므로 Product Seed에서 임의 생성하지 않습니다.
@@ -748,7 +748,7 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP(3);
 -- ============================================================================
--- cpf-tools/db/source/mariadb/60_adm_seed_data.sql
+-- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
 -- ============================================================================
 -- ADM 초기 역할, 메뉴, 버튼 권한, 보안 정책, 로컬 계정 데이터입니다.
 -- 대상 DB: admDB
@@ -1102,3 +1102,24 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 -- 로컬 IP allowlist와 초기 감사 fixture는 59_adm_local_seed.sql Optional Seed로 분리했습니다.
+
+
+-- R12 감사 전달 복구 권한
+INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by)
+VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
+
+UPDATE adm_role_menu SET WRITE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP
+WHERE MENU_ID='AUDIT_LOG' AND ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR');
+
+INSERT INTO adm_role_button (ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
+SELECT ROLE_ID,'AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
+ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission (API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
+VALUES ('API_AUDIT_LOG_RETRY','AUDIT_LOG','POST','/adm/api/audit-logs/deliveries/*/retry','감사 전달 재처리','WRITE','AUDIT_LOG','AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission (ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
+SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
+ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;

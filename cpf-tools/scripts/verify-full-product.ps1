@@ -18,6 +18,7 @@ $utf8=[Text.UTF8Encoding]::new($false)
 [IO.File]::WriteAllText($raw,"CPF_FULL_PRODUCT_VERIFY`nSTARTED_AT=$($started.ToString('o'))`nROOT=$Root`nPROFILE=$Profile`n`n",$utf8)
 $results=[Collections.Generic.List[object]]::new()
 $allOk=$true
+$worktreeBefore=@(git -C $Root status --porcelain=v1)
 
 function Raw([string]$Text){[IO.File]::AppendAllText($raw,$Text+"`n",$utf8)}
 function Result([string]$Name,[string]$Status,[string]$Detail){
@@ -75,17 +76,14 @@ try{
         @('SQL canonical','cpf-tools/scripts/check-sql-canonical.ps1'),
         @('SQL standard','cpf-tools/scripts/check-sql-standard.ps1'),
         @('DB vendor parity','cpf-tools/scripts/check-db-vendor-pack-parity.ps1'),
-        @('Generated Domain parity','cpf-tools/scripts/check-generated-domain-parity.ps1'),
+        @('R12 product hardening','cpf-tools/scripts/check-r12-product-hardening.ps1'),
+        @('Migration checksum immutable','cpf-tools/scripts/check-migration-checksums.ps1'),
         @('DB profile/generated domain','cpf-tools/scripts/check-database-profile-standard.ps1')
     )){
         OptionalGate $gate[0] $gate[1]
     }
 
-    if(-not(Pwsh 'DB + existing Generated Domain artifact sync/parity'
-        'cpf-tools/scripts/sync-database-artifacts.ps1' @('-Root',$Root))){$allOk=$false}
-
-    if(-not(Pwsh 'Generated Domain full generator-owned parity'
-        'cpf-tools/scripts/sync-generated-domain-artifacts.ps1' @('-Root',$Root,'-Scope','AllGeneratorOwned'))){$allOk=$false}
+    # Verification은 read-only입니다. DB/Generated Domain sync는 명시적 maintenance 단계에서만 실행합니다.
 
     if(-not $StaticOnly){
         $gradle=Join-Path $Root 'gradlew.bat'
@@ -138,8 +136,13 @@ try{
 
     Write-Host '';Write-Host '=== CPF Full Product Verification Summary ==='
     $results|Format-Table -AutoSize
+    $worktreeAfter=@(git -C $Root status --porcelain=v1)
+    if((Compare-Object $worktreeBefore $worktreeAfter).Count -ne 0){
+        Result 'Verification worktree immutability' 'FAIL' 'verification changed product worktree';$allOk=$false
+    }else{Result 'Verification worktree immutability' 'PASS' 'unchanged'}
     $failed=@($results|Where-Object Status -eq 'FAIL').Count
     $skipped=@($results|Where-Object Status -eq 'SKIPPED').Count
+
     $finished=[DateTimeOffset]::Now
     Raw "FINISHED_AT=$($finished.ToString('o'))";Raw "FAILED=$failed";Raw "SKIPPED=$skipped";Raw "REQUIRE_ALL=$RequireAll"
     foreach($r in $results){Raw "$($r.Status)|$($r.Name)|$($r.Detail)"}
@@ -147,13 +150,14 @@ try{
     $exit=0
     if(-not $allOk -or $failed-gt0){$exit=1}
     elseif($RequireAll -and $skipped-gt0){$exit=2}
+    elseif($skipped-gt0){$exit=3}
 
     if([string]::IsNullOrWhiteSpace($EvidenceOutput)){
-        $EvidenceOutput="cpf-docs/work/review/20260725_04/evidence/full-verification-${stamp}.sanitized.log"
+        $EvidenceOutput="cpf-docs/work/evidence/current/full-verification-${stamp}.sanitized.log"
     }
     $writer=Join-Path $Root 'cpf-tools/scripts/write-sanitized-evidence.ps1'
     if(Test-Path $writer){
-        $status=if($exit-eq0){'완료'}elseif($exit-eq2){'미검증'}else{'실패'}
+        $status=if($exit-eq0){'완료'}elseif($exit-eq2 -or $exit-eq3){'미검증'}else{'실패'}
         $reason=if($skipped-gt0){"$skipped verification group(s) skipped."}else{''}
         $command=if([string]::IsNullOrWhiteSpace($MyInvocation.Line)){'verify-full-product.ps1'}else{$MyInvocation.Line.Trim()}
         $reproduce="pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-full-product.ps1 -Root `"$Root`" -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile `"$Profile`""
@@ -168,8 +172,9 @@ try{
     }
 
     if($exit-eq2){Write-Error "RequireAll=true but $skipped verification group(s) were skipped.";exit 2}
+    if($exit-eq3){Write-Warning "CPF development verification PARTIAL. skipped=$skipped evidence=$EvidenceOutput";exit 3}
     if($exit-ne0){Write-Error "CPF full verification FAILED ($failed failure(s)).";exit 1}
-    Write-Host "CPF full verification PASS. skipped=$skipped evidence=$EvidenceOutput"
+    Write-Host "CPF full verification PASS. skipped=0 evidence=$EvidenceOutput"
     exit 0
 } finally {
     Remove-Item $raw -Force -ErrorAction SilentlyContinue

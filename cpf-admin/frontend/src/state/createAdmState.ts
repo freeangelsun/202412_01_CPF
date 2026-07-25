@@ -23,6 +23,7 @@ export function createAdmState() {
           { id: "transactions", menuId: "TRANSACTION_META", label: "거래 메타" },
           { id: "remoteLogs", menuId: "REMOTE_LOG", label: "원격 로그" },
           { id: "auditLogs", menuId: "AUDIT_LOG", label: "감사 로그" },
+          { id: "businessCalendar", menuId: "BUSINESS_CALENDAR", label: "영업일 · 휴일" },
           { id: "logLevel", menuId: "DYNAMIC_LOG", label: "동적 로그" },
           { id: "logPolicies", menuId: "LOG_POLICY", label: "로그 정책" },
           { id: "standardExecutions", menuId: "STANDARD_EXECUTION", label: "표준 실행" },
@@ -103,7 +104,7 @@ export function createAdmState() {
           active: true,
           description: "웹 브라우저 채널",
           reason: "채널 레지스트리 변경",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         channelPolicyForm: {
           policyKey: "WEB.DEFAULT",
@@ -119,7 +120,7 @@ export function createAdmState() {
           effectiveTo: null,
           active: true,
           reason: "거래별 채널 정책 변경",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         channelPackageText: "",
         channelImportDryRun: true,
@@ -158,6 +159,8 @@ export function createAdmState() {
         transactionGroupDetailTab: "요약",
         transactionGroupDetailTabs: ["요약", "Timeline", "Segments", "표준 헤더", "확장 헤더", "External Logs", "원본 JSON"],
         auditSearch: { operatorId: "", actionType: "", targetType: "", targetId: "", limit: 100 },
+        auditDeliveryState: "FAILED",
+        auditRetryReason: "감사 전달 수동 재처리",
         batchForm: {
           jobId: "CPF_EDU_TASKLET_JOB",
           jobName: "CPF EDU Tasklet Job",
@@ -197,7 +200,7 @@ export function createAdmState() {
           receiver: "ADM_OPERATOR",
           message: "ADM notification test message.",
           reason: "알림 규칙 변경",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         downloadForm: {
           downloadType: "TRANSACTION_LOGS",
@@ -210,7 +213,7 @@ export function createAdmState() {
           limit: 1000,
           includeSensitive: false,
           reason: "운영 증적 다운로드",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         cacheTargets: ["ALL", "CODE", "MESSAGE", "RESPONSE_CODE", "CONFIG"],
         cacheReason: "캐시 갱신",
@@ -243,7 +246,7 @@ export function createAdmState() {
           effectiveStartAt: "",
           effectiveEndAt: "",
           reason: "로그 정책 변경",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         operatorForm: { operatorId: "", operatorName: "", password: "", reason: "운영자 등록" },
         messageForm: {
@@ -257,7 +260,7 @@ export function createAdmState() {
           parameterSample: "[]",
           description: "ADM sample",
           useYn: "Y",
-          requestUser: "admin-ui",
+          requestUser: "",
           reason: "메시지 변경"
         },
         codeForm: {
@@ -267,7 +270,7 @@ export function createAdmState() {
           codeValue: "SAMPLE",
           description: "ADM sample code",
           useYn: "Y",
-          requestUser: "admin-ui",
+          requestUser: "",
           reason: "코드 변경"
         },
         configForm: {
@@ -278,14 +281,14 @@ export function createAdmState() {
           description: "ADM sample config",
           encryptedYn: "N",
           useYn: "Y",
-          requestUser: "admin-ui",
+          requestUser: "",
           reason: "설정 변경"
         },
         permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
-        roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "샘플 운영 역할", roleType: "BUSINESS_OPERATOR", description: "ADM permission sample role", useYn: "Y", requestUser: "admin-ui", reason: "역할 관리" },
-        menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "샘플 메뉴", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "admin-ui", reason: "메뉴 관리" },
-        buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "샘플 조회", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "admin-ui", reason: "버튼 관리" },
-        apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "샘플 API 조회", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "admin-ui", reason: "API 권한 관리" },
+        roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "샘플 운영 역할", roleType: "BUSINESS_OPERATOR", description: "ADM permission sample role", useYn: "Y", requestUser: "", reason: "역할 관리" },
+        menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "샘플 메뉴", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "", reason: "메뉴 관리" },
+        buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "샘플 조회", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "", reason: "버튼 관리" },
+        apiPermissionForm: { apiPermissionId: "API_SAMPLE_MENU_READ", apiGroupCode: "SAMPLE_MENU", httpMethod: "GET", apiPath: "/adm/api/sample/**", apiName: "샘플 API 조회", permissionCode: "READ", menuId: "SAMPLE_MENU", buttonId: "SAMPLE_MENU_READ", useYn: "Y", requestUser: "", reason: "API 권한 관리" },
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
         approvalForm: {
@@ -314,7 +317,7 @@ export function createAdmState() {
           httpStatus: 400,
           description: "REF sample response code",
           useYn: "Y",
-          requestUser: "admin-ui"
+          requestUser: ""
         },
         serviceRegistrySearch: {
           serviceId: "",
@@ -349,6 +352,7 @@ export function createAdmState() {
         standardExecutionResult: { items: [], summary: {} },
         standardExecutionDetail: {} as Record<string, any>,
         auditLogs: [],
+        auditDeliveries: [],
         logDetail: {} as Record<string, any>,
         auditResult: {} as Record<string, any>,
         batchResult: {} as Record<string, any>,

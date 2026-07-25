@@ -14,7 +14,7 @@ export const batchMethods: Record<string, any> = {
           ...this.channelPolicyForm,
           ...item,
           reason: "거래별 채널 정책 변경",
-          requestUser: this.currentOperator.operatorId || "admin-ui"
+          requestUser: this.currentOperator.operatorId
         };
       },
   async saveChannelExecutionPolicy() {
@@ -181,7 +181,6 @@ export const batchMethods: Record<string, any> = {
           jobName: this.batchForm.jobName,
           jobType: this.batchForm.jobType,
           description: this.batchForm.description,
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 Job을 등록했습니다.");
@@ -190,7 +189,6 @@ export const batchMethods: Record<string, any> = {
         if (!this.batchForm.jobId || !this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson(`/adm/api/batch/jobs/${this.batchForm.jobId}/run`, "POST", {
           jobParameters: this.batchForm.jobParameters,
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 수동 실행을 요청했습니다.");
@@ -198,7 +196,6 @@ export const batchMethods: Record<string, any> = {
   async retryBatchExecution() {
         if (!this.batchForm.executionId || !this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson(`/adm/api/batch/executions/${this.batchForm.executionId}/retry`, "POST", {
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 재수행을 요청했습니다.");
@@ -206,7 +203,6 @@ export const batchMethods: Record<string, any> = {
   async stopBatchExecution() {
         if (!this.batchForm.executionId || !this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson(`/adm/api/batch/executions/${this.batchForm.executionId}/stop`, "POST", {
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 중지를 요청했습니다.");
@@ -239,7 +235,6 @@ export const batchMethods: Record<string, any> = {
         if (!this.batchForm.lockKey || !this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson("/adm/api/batch/locks/release", "POST", {
           lockKey: this.batchForm.lockKey,
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 lock 강제 해제를 요청했습니다.");
@@ -253,7 +248,6 @@ export const batchMethods: Record<string, any> = {
         if (!this.batchForm.executionId || !this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson(`/adm/api/batch/ghost-candidates/${this.batchForm.executionId}/actions`, "POST", {
           actionType: this.batchForm.ghostActionType,
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 ghost 조치를 요청했습니다.");
@@ -276,7 +270,6 @@ export const batchMethods: Record<string, any> = {
   async runBatchSchedulerOnce() {
         if (!this.requireReason(this.batchForm.reason)) return;
         this.batchResult = await this.sendJson("/adm/api/batch/scheduler/run-once", "POST", {
-          requestUser: "admin-ui",
           reason: this.batchForm.reason
         });
         this.setMessage("배치 스케줄러 1회 실행을 요청했습니다.");

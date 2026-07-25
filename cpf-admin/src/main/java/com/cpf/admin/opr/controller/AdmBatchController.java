@@ -6,8 +6,8 @@ import com.cpf.admin.opr.dto.AdmBatchLockReleaseRequest;
 import com.cpf.admin.opr.dto.AdmBatchOperationRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmBatchOperationService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,8 +69,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
                 request.jobName(),
                 request.jobType(),
                 request.description(),
-                requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "BATCH_JOB_REGISTER", "bat_job",
+                requireOperator(servletRequest));
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_JOB_REGISTER", "bat_job",
                 request.jobId(), reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);
     }
@@ -170,8 +170,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> result = batchOperationService.releaseLock(
-                request.lockKey(), requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_LOCK_RELEASE", "bat_lock",
+                request.lockKey(), requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_LOCK_RELEASE", "bat_lock",
                 request.lockKey(), reason, String.valueOf(result.get("before")), String.valueOf(result));
         return ResponseEntity.ok(result);
     }
@@ -193,8 +193,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> result = batchOperationService.actGhostExecution(
-                executionId, request.actionType(), requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_GHOST_" + result.get("actionType"), "bat_execution",
+                executionId, request.actionType(), requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_GHOST_" + result.get("actionType"), "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);
     }
@@ -216,8 +216,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             @RequestBody AdmBatchOperationRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        List<Map<String, Object>> result = batchOperationService.runSchedulerOnce(requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule",
+        List<Map<String, Object>> result = batchOperationService.runSchedulerOnce(requireOperator(servletRequest));
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule",
                 "DUE_SCHEDULES", reason, null, String.valueOf(result));
         return ResponseEntity.ok(result);
     }
@@ -232,8 +232,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> execution = batchOperationService.requestRun(
-                jobId, request.jobParameters(), requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_RUN", "bat_execution",
+                jobId, request.jobParameters(), requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_RUN", "bat_execution",
                 jobId, reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
     }
@@ -247,8 +247,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> execution = batchOperationService.requestRetry(
-                executionId, requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_RETRY", "bat_execution",
+                executionId, requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_RETRY", "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
     }
@@ -262,8 +262,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> execution = batchOperationService.requestStop(
-                executionId, requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_STOP", "bat_execution",
+                executionId, requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_STOP", "bat_execution",
                 String.valueOf(executionId), reason, null, String.valueOf(execution));
         return ResponseEntity.ok(execution);
     }
@@ -277,8 +277,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(
-                scheduleId, true, requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_SCHEDULE_ENABLE", "bat_schedule",
+                scheduleId, true, requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULE_ENABLE", "bat_schedule",
                 scheduleId, reason, null, String.valueOf(schedule));
         return ResponseEntity.ok(schedule);
     }
@@ -292,8 +292,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> schedule = batchOperationService.updateScheduleEnabled(
-                scheduleId, false, requestUser(servletRequest, request.requestUser()), reason);
-        recordAudit(servletRequest, request.requestUser(), "BATCH_SCHEDULE_DISABLE", "bat_schedule",
+                scheduleId, false, requireOperator(servletRequest), reason);
+        recordAudit(servletRequest, requireOperator(servletRequest), "BATCH_SCHEDULE_DISABLE", "bat_schedule",
                 scheduleId, reason, null, String.valueOf(schedule));
         return ResponseEntity.ok(schedule);
     }
@@ -308,8 +308,8 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
             String beforeData,
             String afterData) {
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
-                requestUser(servletRequest, requestUser),
+                CpfTransactionContext.transactionId(),
+                requireOperator(servletRequest),
                 actionType,
                 targetType,
                 targetId,
@@ -320,11 +320,4 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
                 servletRequest.getRemoteAddr());
     }
 
-    private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
-    }
 }

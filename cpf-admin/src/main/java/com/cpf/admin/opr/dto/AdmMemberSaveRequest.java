@@ -14,7 +14,7 @@ package com.cpf.admin.opr.dto;
  * @param withdrawYn   탈퇴 여부
  * @param channelCode  가입 또는 유입 채널
  * @param description  설명 또는 운영 메모
- * @param requestUser  요청자
+ * @param expectedVersion 수정 시 기대 Version. 등록 시 null
  * @param reason       감사 사유
  */
 public record AdmMemberSaveRequest(
@@ -29,6 +29,6 @@ public record AdmMemberSaveRequest(
         String withdrawYn,
         String channelCode,
         String description,
-        String requestUser,
+        Long expectedVersion,
         String reason) {
 }

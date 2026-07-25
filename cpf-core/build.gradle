@@ -45,6 +45,12 @@ dependencies {
 	compileOnly 'org.springframework:spring-web'
 	compileOnly 'org.springframework:spring-webmvc'
 
+	// Vendor-neutral observability export. CPF public API는 OTel type을 노출하지 않고 runtime adapter만 소유합니다.
+	implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
+	implementation 'io.opentelemetry:opentelemetry-api'
+	implementation 'io.opentelemetry:opentelemetry-sdk'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+
 	// OpenAPI 3 문서, Swagger UI, Scalar API Reference를 제공합니다.
 	api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
 	api 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.17'

@@ -11,6 +11,7 @@ public enum CpfErrorCode {
     INVALID_PARAMETER(com.cpf.core.common.exception.CpfErrorCode.INVALID_PARAMETER),
     NOT_FOUND(com.cpf.core.common.exception.CpfErrorCode.NOT_FOUND),
     DUPLICATE(com.cpf.core.common.exception.CpfErrorCode.DUPLICATE),
+    CONFLICT(com.cpf.core.common.exception.CpfErrorCode.CONFLICT),
     VALIDATION_FAILED(com.cpf.core.common.exception.CpfErrorCode.VALIDATION_FAILED),
     UNAUTHORIZED(com.cpf.core.common.exception.CpfErrorCode.UNAUTHORIZED),
     FORBIDDEN(com.cpf.core.common.exception.CpfErrorCode.FORBIDDEN),

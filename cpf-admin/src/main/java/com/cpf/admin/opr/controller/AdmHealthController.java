@@ -6,6 +6,8 @@ import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,15 +17,10 @@ import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * ADM 기동 검증과 smoke 자동화를 위한 health API입니다.
- *
- * <p>actuator 의존성을 강제하지 않고도 로컬/CI smoke가 ADM/CPF DB와 MBR Owner 운영 Port
- * 연결 상태를 확인할 수 있게 합니다. 운영 보안상 민감한 접속 정보는 반환하지 않습니다.</p>
- */
+/** ADM Liveness/Readiness API. 필수 Dependency 장애를 HTTP 200으로 숨기지 않습니다. */
 @RestController
 @RequestMapping("/adm/api/health")
-@Tag(name = "ADM-Health", description = "ADM health and smoke readiness API")
+@Tag(name = "ADM-Health", description = "ADM liveness/readiness API")
 public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseController {
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate cpfJdbcTemplate;
@@ -38,31 +35,37 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         this.mbrOperations = mbrOperations;
     }
 
-    @GetMapping
-    @Operation(
-            operationId = "getAdmHealth",
-            summary = "ADM health 조회",
-            description = "ADM 앱 기동 상태, 운영 datasource, 거래 context 누락 누적 건수를 확인합니다.")
-    public Map<String, Object> health() {
+    @GetMapping("/liveness")
+    @Operation(operationId = "getAdmLiveness", summary = "ADM Liveness 조회")
+    public ResponseEntity<Map<String, Object>> liveness() {
+        return ResponseEntity.ok(base("UP", Map.of("process", "UP")));
+    }
+
+    @GetMapping({"", "/readiness"})
+    @Operation(operationId = "getAdmReadiness", summary = "ADM Readiness 조회")
+    public ResponseEntity<Map<String, Object>> readiness() {
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
         checks.put("mbrOwner", checkMbrOwner());
+        boolean ready = checks.values().stream().allMatch("UP"::equals);
+        Map<String, Object> response = base(ready ? "UP" : "DOWN", checks);
+        response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
+        return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
 
-        boolean up = checks.values().stream().allMatch("UP"::equals);
+    private Map<String, Object> base(String status, Map<String, Object> checks) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", up ? "UP" : "DEGRADED");
+        response.put("status", status);
         response.put("service", "ADM");
         response.put("checkedAt", OffsetDateTime.now().toString());
         response.put("checks", checks);
-        response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return response;
     }
 
     private String checkMbrOwner() {
         try {
-            Map<String, Object> response = mbrOperations.query(
-                    new CpfOwnerAdminQuery("system", "health", null, Map.of()));
+            Map<String, Object> response = mbrOperations.query(new CpfOwnerAdminQuery("system", "health", null, Map.of()));
             return "UP".equals(String.valueOf(response.get("status"))) ? "UP" : "DOWN";
         } catch (RuntimeException ex) {
             return "DOWN";

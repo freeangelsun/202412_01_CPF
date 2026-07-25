@@ -60,6 +60,18 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
                 memberNo, customerNo, loginId, name, email, mobileNo, memberStatus, channelCode, roleCode, limit));
     }
 
+    @GetMapping("/member-number-issues")
+    @CpfOnlineTransaction(id = "OADMMB0017", name = "ADMMemberNumberIssueHistory")
+    @Operation(operationId = "admMemberFindNumberIssueHistory", summary = "회원번호 발급 이력 조회",
+            description = "자동/수동 회원번호 발급 이력을 회원번호, 발급유형, 발급자로 검색합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findMemberNumberIssueHistory(
+            @RequestParam(required = false) String memberNo,
+            @RequestParam(required = false) String issueType,
+            @RequestParam(required = false) String issuedBy,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(memberOperationService.findMemberNoIssueHistory(memberNo, issueType, issuedBy, limit));
+    }
+
     @GetMapping("/{memberId}")
     @CpfOnlineTransaction(id = "OADMMB0011", name = "ADMMemberDetail")
     @Operation(operationId = "admMemberFindMemberDetail", summary = "회원 상세 조회", description = "회원 기본정보, 권한, 로그인 이력, 거래 로그, 감사 로그를 조회합니다.")
@@ -74,8 +86,9 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @RequestBody AdmMemberSaveRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        Map<String, Object> after = memberOperationService.createMember(request, requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "MEMBER_CREATE", "mbr_member",
+        String operatorId = requireOperator(servletRequest);
+        Map<String, Object> after = memberOperationService.createMember(request, operatorId);
+        recordAudit(servletRequest, operatorId, "MEMBER_CREATE", "mbr_member",
                 String.valueOf(after.get("id")), reason, null, String.valueOf(after));
         return ResponseEntity.ok(after);
     }
@@ -88,9 +101,10 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @RequestBody AdmMemberSaveRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
+        String operatorId = requireOperator(servletRequest);
         Map<String, Object> before = memberOperationService.findMemberDetail(memberId);
-        Map<String, Object> after = memberOperationService.updateMember(memberId, request, requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "MEMBER_UPDATE", "mbr_member",
+        Map<String, Object> after = memberOperationService.updateMember(memberId, request, operatorId);
+        recordAudit(servletRequest, operatorId, "MEMBER_UPDATE", "mbr_member",
                 String.valueOf(memberId), reason, String.valueOf(before.get("member")), String.valueOf(after));
         return ResponseEntity.ok(after);
     }
@@ -103,9 +117,10 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @RequestBody AdmMemberStatusRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
+        String operatorId = requireOperator(servletRequest);
         Map<String, Object> before = memberOperationService.findMemberDetail(memberId);
-        Map<String, Object> after = memberOperationService.updateStatus(memberId, request, requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "MEMBER_STATUS", "mbr_member",
+        Map<String, Object> after = memberOperationService.updateStatus(memberId, request, operatorId);
+        recordAudit(servletRequest, operatorId, "MEMBER_STATUS", "mbr_member",
                 String.valueOf(memberId), reason, String.valueOf(before.get("member")), String.valueOf(after));
         return ResponseEntity.ok(after);
     }
@@ -118,8 +133,9 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @RequestBody AdmMemberRoleRequest request,
             HttpServletRequest servletRequest) {
         String reason = auditLogService.requireReason(request.reason());
-        Map<String, Object> result = memberOperationService.grantRole(memberId, request, requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "MEMBER_ROLE_GRANT", "mbr_member_role",
+        String operatorId = requireOperator(servletRequest);
+        Map<String, Object> result = memberOperationService.grantRole(memberId, request, operatorId);
+        recordAudit(servletRequest, operatorId, "MEMBER_ROLE_GRANT", "mbr_member_role",
                 String.valueOf(memberId), reason, String.valueOf(result.get("before")), String.valueOf(result.get("after")));
         return ResponseEntity.ok(result);
     }
@@ -131,13 +147,15 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @PathVariable long memberId,
             @PathVariable String roleCode,
             @RequestParam(defaultValue = "MBR") String serviceCode,
+            @RequestParam long expectedVersion,
+            @RequestParam String idempotencyKey,
             @RequestParam String reason,
-            @RequestParam(required = false) String requestUser,
             HttpServletRequest servletRequest) {
         String requiredReason = auditLogService.requireReason(reason);
+        String operatorId = requireOperator(servletRequest);
         Map<String, Object> result = memberOperationService.revokeRole(
-                memberId, roleCode, serviceCode, requiredReason, requestUser(servletRequest, requestUser));
-        recordAudit(servletRequest, requestUser, "MEMBER_ROLE_REVOKE", "mbr_member_role",
+                memberId, roleCode, serviceCode, expectedVersion, idempotencyKey, requiredReason, operatorId);
+        recordAudit(servletRequest, operatorId, "MEMBER_ROLE_REVOKE", "mbr_member_role",
                 String.valueOf(memberId), requiredReason, String.valueOf(result.get("before")), String.valueOf(result.get("after")));
         return ResponseEntity.ok(result);
     }
@@ -153,7 +171,7 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             String afterData) {
         auditLogService.record(
                 CpfTransactionContext.transactionId(),
-                requestUser(servletRequest, requestUser),
+                requestUser,
                 actionType,
                 targetType,
                 targetId,
@@ -164,11 +182,4 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
                 servletRequest.getRemoteAddr());
     }
 
-    private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
-    }
 }

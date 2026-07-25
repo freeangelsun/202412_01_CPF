@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,8 @@ public class CacheRefreshEventListener {
     private final ConfigCacheService configCacheService;
 
     private long lastEventId;
+    private volatile String lastFailureType;
+    private volatile Instant lastSuccessfulPollAt;
 
     @Value("${cpf.cmn.cache.event-poll-enabled:true}")
     private boolean eventPollEnabled;
@@ -60,9 +64,12 @@ public class CacheRefreshEventListener {
         try {
             Long maxEventId = cacheRefreshEventMapper.findMaxEventId();
             lastEventId = maxEventId == null ? 0L : maxEventId;
+            lastFailureType = null;
+            lastSuccessfulPollAt = Instant.now();
             logger.info("CMN cache refresh event listener started. lastEventId={}", lastEventId);
         } catch (RuntimeException ex) {
-            logger.warn("CMN cache refresh event listener start skipped. reason={}", ex.getMessage());
+            lastFailureType = ex.getClass().getSimpleName();
+            logger.warn("CMN cache refresh event listener start failed. failureType={}", lastFailureType);
         }
     }
 
@@ -83,9 +90,22 @@ public class CacheRefreshEventListener {
                 refreshCache(cacheName);
                 lastEventId = Math.max(lastEventId, eventId);
             }
+            lastFailureType = null;
+            lastSuccessfulPollAt = Instant.now();
         } catch (RuntimeException ex) {
-            logger.warn("CMN cache refresh event polling skipped. reason={}", ex.getMessage());
+            // 실패한 event ID를 넘기지 않으므로 다음 poll에서 동일 event부터 다시 처리합니다.
+            lastFailureType = ex.getClass().getSimpleName();
+            logger.warn("CMN cache refresh event polling failed. lastEventId={}, failureType={}", lastEventId, lastFailureType);
         }
+    }
+
+    public Map<String, Object> status() {
+        Map<String, Object> status = new LinkedHashMap<>();
+        status.put("enabled", eventPollEnabled);
+        status.put("lastEventId", lastEventId);
+        status.put("lastSuccessfulPollAt", lastSuccessfulPollAt == null ? null : lastSuccessfulPollAt.toString());
+        status.put("lastFailureType", lastFailureType);
+        return status;
     }
 
     private void refreshCache(String cacheName) {

@@ -4,6 +4,8 @@ import com.cpf.common.cde.service.CodeCacheService;
 import com.cpf.common.cfg.service.ConfigCacheService;
 import com.cpf.common.msg.service.MessageCacheService;
 import com.cpf.common.msg.service.ResponseCodeCacheService;
+import com.cpf.common.ref.service.CacheRefreshEventPublisher;
+import com.cpf.common.ref.service.CacheRefreshEventListener;
 import com.cpf.core.api.util.CpfStrings;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +22,22 @@ public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseS
     private final MessageCacheService messageCacheService;
     private final ResponseCodeCacheService responseCodeCacheService;
     private final ConfigCacheService configCacheService;
+    private final CacheRefreshEventPublisher cacheRefreshEventPublisher;
+    private final CacheRefreshEventListener cacheRefreshEventListener;
 
     public AdmCacheOperationService(
             CodeCacheService codeCacheService,
             MessageCacheService messageCacheService,
             ResponseCodeCacheService responseCodeCacheService,
-            ConfigCacheService configCacheService) {
+            ConfigCacheService configCacheService,
+            CacheRefreshEventPublisher cacheRefreshEventPublisher,
+            CacheRefreshEventListener cacheRefreshEventListener) {
         this.codeCacheService = codeCacheService;
         this.messageCacheService = messageCacheService;
         this.responseCodeCacheService = responseCodeCacheService;
         this.configCacheService = configCacheService;
+        this.cacheRefreshEventPublisher = cacheRefreshEventPublisher;
+        this.cacheRefreshEventListener = cacheRefreshEventListener;
     }
 
     /**
@@ -44,6 +52,13 @@ public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseS
         response.put("messageSample", messageCacheService.getMessageByKeyAndLocale("MCMN000001", "ko"));
         response.put("responseCodeSample", responseCodeCacheService.getResponseCode("ECPF010004"));
         response.put("configSample", configCacheService.getConfigByKey("cpf.LOGIN.MAX_FAIL_COUNT"));
+        response.put("cacheStatus", Map.of(
+                "code", codeCacheService.cacheStatus(),
+                "message", messageCacheService.cacheStatus(),
+                "responseCode", responseCodeCacheService.cacheStatus(),
+                "config", configCacheService.cacheStatus()));
+        response.put("refreshEventDelivery", cacheRefreshEventPublisher.status());
+        response.put("refreshEventConsumer", cacheRefreshEventListener.status());
         return response;
     }
 

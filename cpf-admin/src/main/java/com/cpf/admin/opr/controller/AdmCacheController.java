@@ -2,12 +2,13 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmCacheOperationService;
 import com.cpf.admin.opr.service.AdmAuditLogService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,13 +44,13 @@ public class AdmCacheController extends com.cpf.admin.common.base.AdmBaseControl
     public ResponseEntity<Map<String, Object>> refresh(
             @RequestParam(defaultValue = "ALL") String target,
             @RequestParam String reason,
-            @RequestParam(defaultValue = "ADM") String requestUser,
             HttpServletRequest servletRequest) {
         String auditReason = auditLogService.requireReason(reason);
+        String operatorId = requireOperator(servletRequest);
         ResponseEntity<Map<String, Object>> response = safeResponse(() -> cacheOperationService.refresh(target));
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
-                requestUser(servletRequest, requestUser),
+                CpfTransactionContext.transactionId(),
+                operatorId,
                 "CACHE_REFRESH",
                 "cache",
                 target,
@@ -67,9 +68,10 @@ public class AdmCacheController extends com.cpf.admin.common.base.AdmBaseControl
             response.put("available", false);
             response.put("result", Map.of());
             response.put("message", "CMN cache database is not available.");
-            response.put("detail", ex.getMostSpecificCause().getMessage());
         }
-        return ResponseEntity.ok(response);
+        return Boolean.TRUE.equals(response.get("available"))
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 
     @FunctionalInterface
@@ -77,11 +79,4 @@ public class AdmCacheController extends com.cpf.admin.common.base.AdmBaseControl
         Map<String, Object> run();
     }
 
-    private String requestUser(HttpServletRequest request, String fallback) {
-        Object operatorId = request.getAttribute("adm.operatorId");
-        if (operatorId instanceof String value && !value.isBlank()) {
-            return value;
-        }
-        return fallback;
-    }
 }

@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * ADM 공통 다운로드 기능을 처리합니다.
@@ -252,10 +251,10 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                     INSERT INTO adm_download_audit_log (
                         ADMIN_ID, MENU_ID, SCREEN_ID, DOWNLOAD_TYPE, TARGET_TYPE,
                         SEARCH_CONDITION_SUMMARY, ROW_COUNT, MASKED_YN, INCLUDE_SENSITIVE_YN,
-                        REASON, CLIENT_IP, USER_AGENT, REQUESTED_AT, COMPLETED_AT, STATUS,
+                        REASON, CLIENT_IP, USER_AGENT, CSV_POLICY_VERSION, REQUESTED_AT, COMPLETED_AT, STATUS,
                         FAILURE_REASON, FILE_NAME, CREATED_BY, UPDATED_BY
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)
                     """, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, adminId);
             ps.setString(2, policy.menuId());
@@ -269,11 +268,12 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
             ps.setString(10, reason);
             ps.setString(11, clientIp);
             ps.setString(12, CpfMasking.truncate(value(userAgent, ""), 500));
-            ps.setString(13, status);
-            ps.setString(14, failureReason);
-            ps.setString(15, fileName);
-            ps.setString(16, adminId);
+            ps.setString(13, AdmCsvSanitizer.POLICY_VERSION);
+            ps.setString(14, status);
+            ps.setString(15, failureReason);
+            ps.setString(16, fileName);
             ps.setString(17, adminId);
+            ps.setString(18, adminId);
             return ps;
         }, keyHolder);
         Number key = keyHolder.getKey();
@@ -286,22 +286,17 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         }
         List<String> headers = new ArrayList<>(rows.get(0).keySet());
         StringBuilder csv = new StringBuilder("\uFEFF");
-        csv.append(String.join(",", headers)).append("\r\n");
+        csv.append(headers.stream().map(AdmCsvSanitizer::header).reduce((a, b) -> a + "," + b).orElse("")).append("\r\n");
         for (Map<String, Object> row : rows) {
             List<String> values = new ArrayList<>();
             for (String header : headers) {
-                String value = Objects.toString(row.get(header), "");
-                values.add(csvValue(mask ? CpfMasking.mask(value) : value));
+                values.add(AdmCsvSanitizer.cell(row.get(header), mask));
             }
             csv.append(String.join(",", values)).append("\r\n");
         }
         return csv.toString();
     }
 
-    private String csvValue(String value) {
-        String normalized = value == null ? "" : value.replace("\"", "\"\"");
-        return "\"" + normalized + "\"";
-    }
 
     private String fileName(String downloadType) {
         return "cpf_" + downloadType.toLowerCase(Locale.ROOT) + "_" + FILE_TIME.format(LocalDateTime.now()) + ".csv";

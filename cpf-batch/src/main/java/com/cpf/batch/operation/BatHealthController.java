@@ -6,14 +6,15 @@ import com.cpf.batch.job.heartbeat.BatHeartbeatJobConfig;
 import com.cpf.batch.job.smoke.BatSmokeJobConfig;
 import com.cpf.batch.runtime.BatBatchFileLogWriter;
 import com.cpf.batch.runtime.BatBatchRuntimeListener;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.ServerInstanceIdentity;
-import com.cpf.core.common.logging.file.CpfLogPathPolicy;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfServerIdentity;
+import com.cpf.core.api.logging.CpfLogPaths;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,17 +55,23 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
         this.batchRuntimeListenerProvider = batchRuntimeListenerProvider;
     }
 
-    @GetMapping("/bat/api/health")
-    @Operation(operationId = "getBatHealth", summary = "BAT 실행 상태 조회")
+    @GetMapping("/bat/api/health/liveness")
+    @Operation(operationId = "getBatLiveness", summary = "BAT Liveness 조회")
+    public ResponseEntity<Map<String, Object>> liveness() {
+        Map<String, Object> response = baseHealthResponse("UP");
+        response.put("process", "UP");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping({"/bat/api/health", "/bat/api/health/readiness"})
+    @Operation(operationId = "getBatReadiness", summary = "BAT Readiness 조회")
     public ResponseEntity<Map<String, Object>> health() {
-        Map<String, Object> response = new LinkedHashMap<>();
-        ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();
-        response.put("status", "UP");
-        response.put("application", "bat");
-        response.put("serverInstanceId", identity.serverInstanceId());
-        response.put("workerId", identity.serverInstanceId());
-        response.put("profiles", environment.getActiveProfiles());
-        response.put("database", checkDatabase());
+        String database = checkDatabase();
+        boolean runtimeReady = batchRuntimeListenerProvider.getIfAvailable() != null;
+        boolean ready = "UP".equals(database) && runtimeReady;
+        Map<String, Object> response = baseHealthResponse(ready ? "UP" : "DOWN");
+        response.put("database", database);
+        response.put("runtimeListener", runtimeReady ? "UP" : "DOWN");
         response.put("smoke", registry.snapshot());
         response.put("supportedJobs", new String[] {
                 BatSmokeJobConfig.SMOKE_JOB_ID,
@@ -72,7 +79,18 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
                 BatFailureJobConfig.JOB_ID,
                 BatCenterCutJobConfig.JOB_ID
         });
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
+    private Map<String, Object> baseHealthResponse(String status) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
+        response.put("status", status);
+        response.put("application", "bat");
+        response.put("serverInstanceId", identity.serverInstanceId());
+        response.put("workerId", identity.serverInstanceId());
+        response.put("profiles", environment.getActiveProfiles());
+        return response;
     }
 
     @PostMapping("/bat/api/smoke/jobs/{jobId}/run")
@@ -93,7 +111,7 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
     @Operation(operationId = "getBatLoggingDiagnostics", summary = "BAT JobInstance 로그 설정 진단")
     public ResponseEntity<Map<String, Object>> loggingDiagnostics() {
         Map<String, Object> response = new LinkedHashMap<>();
-        CpfLogPathPolicy pathPolicy = new CpfLogPathPolicy(environment);
+        CpfLogPaths pathPolicy = new CpfLogPaths(environment);
         Path basePath = pathPolicy.logRoot();
         Path logDirectory = pathPolicy.batchJobLogPath(Path.of("bat"));
         Path jobsDirectory = logDirectory.resolve("jobs");
@@ -128,12 +146,12 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
         return ResponseEntity.ok(response);
     }
 
-    private Map<String, Object> checkDatabase() {
+    private String checkDatabase() {
         try {
             Integer value = batJdbcTemplate.queryForObject("SELECT 1", Integer.class);
-            return Map.of("status", value != null && value == 1 ? "UP" : "UNKNOWN");
+            return Integer.valueOf(1).equals(value) ? "UP" : "DOWN";
         } catch (Exception ex) {
-            return Map.of("status", "DOWN", "message", ex.getClass().getSimpleName());
+            return "DOWN";
         }
     }
 

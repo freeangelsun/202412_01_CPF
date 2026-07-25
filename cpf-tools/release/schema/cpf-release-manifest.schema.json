@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpf.release-manifest",
+  "type": "object",
+  "required": ["schema", "schemaVersion", "platformVersion", "source", "signature", "artifacts"],
+  "properties": {
+    "schema": {"const": "cpf.release-manifest"},
+    "schemaVersion": {"type": "integer", "minimum": 2},
+    "platformVersion": {"type": "string"},
+    "source": {"type": "object", "required": ["commit", "branch", "dirty"]},
+    "signature": {"type": "object", "required": ["status"]},
+    "artifacts": {"type": "array"}
+  }
+}

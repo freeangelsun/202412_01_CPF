@@ -136,11 +136,22 @@ tasks.register('verifyVersionConsistency') {
                 throw new GradleException("CPF component version format is invalid: ${component.path}=${effective}")
             }
         }
-        def generatorText = file('cpf-tools/scripts/create-domain.ps1').getText('UTF-8')
-        if (generatorText.contains("version = '0.0.1-SNAPSHOT'")) {
-            throw new GradleException('도메인 생성기에 구형 고정 버전이 남아 있습니다.')
+        def canonicalGenerator = file('cpf-tools/generator/create-domain.ps1')
+        if (!canonicalGenerator.isFile()) {
+            throw new GradleException("CPF canonical domain generator is missing: ${canonicalGenerator}")
         }
-        logger.lifecycle("CPF version consistency passed: ${expected}")
+        def generatorText = canonicalGenerator.getText('UTF-8')
+        if ((generatorText =~ /(?m)^\s*version\s*=/).find()) {
+            throw new GradleException('생성 Module은 root platformVersion을 상속해야 하며 Generator template에 독립 version을 선언하면 안 됩니다.')
+        }
+        def compatibilityLauncher = file('cpf-tools/scripts/create-domain.ps1')
+        if (compatibilityLauncher.isFile()) {
+            def launcherText = compatibilityLauncher.getText('UTF-8')
+            if (compatibilityLauncher.length() > 4096 || !(launcherText.contains('generator') && launcherText.contains('create-domain.ps1'))) {
+                throw new GradleException('이전 create-domain 경로는 4KB 이하의 정본 Generator compatibility launcher여야 하며 두 번째 구현을 포함하면 안 됩니다.')
+            }
+        }
+        logger.lifecycle("CPF version consistency passed: ${expected}, generator=cpf-tools/generator/create-domain.ps1")
     }
 }
 
@@ -237,44 +248,212 @@ tasks.register('aggregateJavadoc') {
 
 tasks.register('generateReleaseMetadata') {
     group = 'distribution'
-    description = '현재 CPF 산출물의 checksum, SBOM-lite와 provenance metadata를 생성합니다.'
+    description = 'Release Manifest, dependency SBOM, build provenance를 서로 독립된 schema로 생성합니다.'
     dependsOn subprojects.collect { "${it.path}:assemble" }
     doLast {
         def outputDir = file("${buildDir}/release/${rootProject.ext.cpfPlatformVersion}")
         outputDir.mkdirs()
-        def artifacts = subprojects.collectMany { module ->
-            def libDir = new File(module.buildDir, 'libs')
-            libDir.exists() ? libDir.listFiles().findAll { it.isFile() && it.name =~ /\.(jar|war)$/ } : []
-        }.sort { it.name }
-        def artifactRows = artifacts.collect { artifact ->
+
+        def sha256Of = { File target ->
             def digest = java.security.MessageDigest.getInstance('SHA-256')
-            artifact.withInputStream { stream ->
+            target.withInputStream { stream ->
                 byte[] buffer = new byte[8192]
                 int read
                 while ((read = stream.read(buffer)) > 0) {
                     digest.update(buffer, 0, read)
                 }
             }
-            def sha256 = digest.digest().encodeHex().toString()
-            new File(outputDir, "${artifact.name}.sha256").setText("${sha256}  ${artifact.name}\n", 'UTF-8')
-            [name: artifact.name, sha256: sha256, size: artifact.length()]
+            digest.digest().encodeHex().toString()
         }
+
+        def artifacts = subprojects.collectMany { module ->
+            def libDir = new File(module.buildDir, 'libs')
+            libDir.exists()
+                    ? libDir.listFiles().findAll { it.isFile() && it.name ==~ /.*\.(jar|war)$/ }
+                            .collect { artifact -> [module: module.name, file: artifact] }
+                    : []
+        }.sort { left, right -> left.file.name <=> right.file.name }
+
+        def artifactRows = artifacts.collect { row ->
+            def sha256 = sha256Of(row.file)
+            new File(outputDir, "${row.file.name}.sha256").setText("${sha256}  ${row.file.name}\n", 'UTF-8')
+            [
+                    module: row.module,
+                    name: row.file.name,
+                    version: project(":${row.module}").version.toString(),
+                    sha256: sha256,
+                    size: row.file.length()
+            ]
+        }
+
         def gitSha = providers.exec {
             commandLine 'git', 'rev-parse', 'HEAD'
             ignoreExitValue = true
         }.standardOutput.asText.get().trim()
-        def json = new groovy.json.JsonBuilder([
-                schemaVersion: 1,
-                platformVersion: rootProject.ext.cpfPlatformVersion,
-                compatibleRange: rootProject.ext.cpfCompatibleRange,
-                gitCommit: gitSha,
-                signatureStatus: 'NOT_SIGNED_NO_APPROVED_KEY',
+        def gitBranch = providers.exec {
+            commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+            ignoreExitValue = true
+        }.standardOutput.asText.get().trim()
+        def gitStatus = providers.exec {
+            commandLine 'git', 'status', '--porcelain'
+            ignoreExitValue = true
+        }.standardOutput.asText.get()
+        def dirty = !gitStatus.trim().isEmpty()
+
+        def manifest = [
+                schema: 'cpf.release-manifest',
+                schemaVersion: 2,
+                platformVersion: rootProject.ext.cpfPlatformVersion.toString(),
+                compatibleRange: rootProject.ext.cpfCompatibleRange.toString(),
+                source: [commit: gitSha, branch: gitBranch, dirty: dirty],
+                signature: [status: 'NOT_SIGNED_NO_APPROVED_KEY'],
                 artifacts: artifactRows
-        ]).toPrettyString()
-        new File(outputDir, 'cpf-release-manifest.json').setText(json + '\n', 'UTF-8')
-        new File(outputDir, 'cpf-sbom-lite.json').setText(json + '\n', 'UTF-8')
-        new File(outputDir, 'cpf-provenance.json').setText(json + '\n', 'UTF-8')
+        ]
+
+        def componentByPurl = [:]
+        def dependencyEdges = [] as Set
+        subprojects.each { module ->
+            def runtime = module.configurations.findByName('runtimeClasspath')
+            if (runtime == null || !runtime.canBeResolved) return
+            def resolved = runtime.resolvedConfiguration
+            def artifactHashes = [:]
+            resolved.resolvedArtifacts.each { artifact ->
+                def coordinates = "${artifact.moduleVersion.id.group}:${artifact.name}:${artifact.moduleVersion.id.version}"
+                artifactHashes[coordinates] = artifact.file?.isFile() ? sha256Of(artifact.file) : null
+            }
+            def visit
+            visit = { dep, String parentPurl, int depth ->
+                def purl = "pkg:maven/${dep.moduleGroup}/${dep.moduleName}@${dep.moduleVersion}"
+                def coordinates = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
+                def existing = componentByPurl[purl]
+                if (existing == null || depth < (existing.depth as int)) {
+                    def dependencyHash = artifactHashes[coordinates]
+                    componentByPurl[purl] = [
+                            type: 'library',
+                            group: dep.moduleGroup,
+                            name: dep.moduleName,
+                            version: dep.moduleVersion,
+                            purl: purl,
+                            scope: 'runtime',
+                            dependencyLevel: depth == 1 ? 'direct' : 'transitive',
+                            depth: depth,
+                            hashes: dependencyHash == null ? [] : [[algorithm: 'SHA-256', value: dependencyHash]],
+                            licenses: [[id: 'NOASSERTION']]
+                    ]
+                }
+                if (parentPurl != null) dependencyEdges << "${parentPurl}|${purl}"
+                dep.children.each { child -> visit(child, purl, depth + 1) }
+            }
+            resolved.firstLevelModuleDependencies.each { dep -> visit(dep, "cpf-module:${module.name}", 1) }
+        }
+        def sbom = [
+                schema: 'cpf.sbom',
+                schemaVersion: 2,
+                bomFormat: 'CPF-SBOM',
+                platformVersion: rootProject.ext.cpfPlatformVersion.toString(),
+                sourceCommit: gitSha,
+                components: componentByPurl.values().sort { it.purl },
+                dependencies: dependencyEdges.toList().sort().collect { edge ->
+                    def parts = edge.split(/\|/, 2)
+                    [from: parts[0], to: parts[1]]
+                },
+                licenseResolutionPolicy: 'NOASSERTION is fail-closed for commercial release until the release license gate resolves it.'
+        ]
+
+        def inputFiles = [
+                file('gradle/cpf-platform.properties'),
+                file('settings.gradle'),
+                file('build.gradle'),
+                file('gradle/libs.versions.toml')
+        ].findAll { it.isFile() }
+        def provenance = [
+                schema: 'cpf.provenance',
+                schemaVersion: 2,
+                platformVersion: rootProject.ext.cpfPlatformVersion.toString(),
+                source: [commit: gitSha, branch: gitBranch, dirty: dirty],
+                builder: [
+                        type: System.getenv('CI') ? 'CI' : 'LOCAL',
+                        javaVersion: System.getProperty('java.version'),
+                        gradleVersion: gradle.gradleVersion,
+                        osName: System.getProperty('os.name')
+                ],
+                invocation: [
+                        task: 'generateReleaseMetadata',
+                        declaredCommand: System.getenv('CPF_BUILD_COMMAND') ?: './gradlew generateReleaseMetadata'
+                ],
+                inputs: inputFiles.collect { input -> [
+                        path: rootProject.projectDir.toPath().relativize(input.toPath()).toString().replace('\\', '/'),
+                        sha256: sha256Of(input)
+                ]},
+                outputs: artifactRows.collect { [module: it.module, name: it.name, sha256: it.sha256] }
+        ]
+
+        new File(outputDir, 'cpf-release-manifest.json').setText(new groovy.json.JsonBuilder(manifest).toPrettyString() + '\n', 'UTF-8')
+        new File(outputDir, 'cpf-sbom.json').setText(new groovy.json.JsonBuilder(sbom).toPrettyString() + '\n', 'UTF-8')
+        new File(outputDir, 'cpf-provenance.json').setText(new groovy.json.JsonBuilder(provenance).toPrettyString() + '\n', 'UTF-8')
+        new File(outputDir, 'cpf-sbom-lite.json').delete()
         logger.lifecycle("CPF release metadata generated: ${outputDir}")
+    }
+}
+
+tasks.register('validateReleaseMetadata') {
+    group = 'verification'
+    description = 'Release Manifest/SBOM/Provenance schema 분리와 실제 artifact hash 정합성을 검증합니다.'
+    dependsOn 'generateReleaseMetadata'
+    doLast {
+        def outputDir = file("${buildDir}/release/${rootProject.ext.cpfPlatformVersion}")
+        def slurper = new groovy.json.JsonSlurper()
+        def manifestFile = new File(outputDir, 'cpf-release-manifest.json')
+        def sbomFile = new File(outputDir, 'cpf-sbom.json')
+        def provenanceFile = new File(outputDir, 'cpf-provenance.json')
+        [manifestFile, sbomFile, provenanceFile].each {
+            if (!it.isFile()) throw new GradleException("Release metadata file is missing: ${it}")
+        }
+        def manifest = slurper.parse(manifestFile)
+        def sbom = slurper.parse(sbomFile)
+        def provenance = slurper.parse(provenanceFile)
+        def schemaFiles = [
+                'cpf.release-manifest': file('cpf-tools/release/schema/cpf-release-manifest.schema.json'),
+                'cpf.sbom': file('cpf-tools/release/schema/cpf-sbom.schema.json'),
+                'cpf.provenance': file('cpf-tools/release/schema/cpf-provenance.schema.json')
+        ]
+        schemaFiles.each { schemaId, schemaFile ->
+            if (!schemaFile.isFile()) throw new GradleException("Release metadata schema file is missing: ${schemaFile}")
+            def schemaContract = slurper.parse(schemaFile)
+            if (schemaContract.'$id' != schemaId) throw new GradleException("Release metadata schema id mismatch: ${schemaFile}")
+            def payload = schemaId == 'cpf.release-manifest' ? manifest : (schemaId == 'cpf.sbom' ? sbom : provenance)
+            schemaContract.required.each { requiredKey ->
+                if (!payload.containsKey(requiredKey)) throw new GradleException("${schemaId} required field missing: ${requiredKey}")
+            }
+        }
+        if (manifest.schema != 'cpf.release-manifest' || sbom.schema != 'cpf.sbom' || provenance.schema != 'cpf.provenance') {
+            throw new GradleException('Release metadata schema가 서로 독립된 계약이 아닙니다.')
+        }
+        if (manifestFile.text == sbomFile.text || manifestFile.text == provenanceFile.text || sbomFile.text == provenanceFile.text) {
+            throw new GradleException('Release Manifest/SBOM/Provenance가 동일한 payload를 공유하면 안 됩니다.')
+        }
+        def sha256Of = { File target ->
+            def digest = java.security.MessageDigest.getInstance('SHA-256')
+            target.withInputStream { stream ->
+                byte[] buffer = new byte[8192]
+                int read
+                while ((read = stream.read(buffer)) > 0) digest.update(buffer, 0, read)
+            }
+            digest.digest().encodeHex().toString()
+        }
+        manifest.artifacts.each { artifact ->
+            def candidates = subprojects.collect { new File(it.buildDir, "libs/${artifact.name}") }.findAll { it.isFile() }
+            if (candidates.size() != 1) throw new GradleException("Manifest artifact를 유일하게 찾을 수 없습니다: ${artifact.name}")
+            if (sha256Of(candidates[0]) != artifact.sha256) throw new GradleException("Manifest artifact hash mismatch: ${artifact.name}")
+        }
+        if (sbom.components == null || sbom.dependencies == null) throw new GradleException('SBOM component/dependency graph가 없습니다.')
+        sbom.components.each { component ->
+            if (!component.purl || !component.version) throw new GradleException("SBOM component identity가 불완전합니다: ${component}")
+            if (component.hashes == null || component.hashes.isEmpty()) throw new GradleException("SBOM dependency artifact hash가 없습니다: ${component.purl}")
+            if (component.licenses == null || component.licenses.isEmpty()) throw new GradleException("SBOM license field가 없습니다: ${component.purl}")
+        }
+        if (provenance.source?.commit != manifest.source?.commit) throw new GradleException('Provenance와 Release Manifest commit이 다릅니다.')
+        logger.lifecycle('CPF release metadata validation passed.')
     }
 }
 
@@ -1045,13 +1224,27 @@ tasks.register('admRuntimeSmoke', Exec) {
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/smoke-adm-runtime.ps1'
 }
 
+tasks.register('checkContractCompatibility', Exec) {
+    group = 'verification'
+    description = 'REST/Event/전문/File/Batch 공통 Contract Compatibility engine self-test를 실행합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-contract-compatibility.ps1', '-SelfTest'
+}
+
+tasks.register('checkR13ProductHardening', Exec) {
+    group = 'verification'
+    description = 'R13 보안/동시성/Cache/Generator/Contract 정적 Gate를 실행합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-r13-product-hardening.ps1'
+}
+
 tasks.register('qualityGate') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke'
+    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening'
 }
 
 
@@ -1060,5 +1253,5 @@ tasks.register('qualityGate') {
 tasks.register('publicationGate') {
     group = 'verification'
     description = 'Validates final publication artifacts after product/source/evidence stabilization.'
-    dependsOn 'qualityGate', 'checkDocxStandard'
+    dependsOn 'qualityGate', 'checkDocxStandard', 'validateReleaseMetadata'
 }

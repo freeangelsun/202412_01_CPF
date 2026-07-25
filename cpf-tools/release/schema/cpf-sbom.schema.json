@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpf.sbom",
+  "type": "object",
+  "required": ["schema", "schemaVersion", "bomFormat", "platformVersion", "sourceCommit", "components", "dependencies"],
+  "properties": {
+    "schema": {"const": "cpf.sbom"},
+    "schemaVersion": {"type": "integer", "minimum": 2},
+    "components": {"type": "array"},
+    "dependencies": {"type": "array"}
+  }
+}

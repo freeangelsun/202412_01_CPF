@@ -91,6 +91,145 @@ CREATE TABLE IF NOT EXISTS ref_center_cut_sample_result (
 
 USE mbrDB;
 
+-- MBR 실제 회원 운영 정본. mbr_sample_item은 Generator parity용 Golden Sample이며 운영 회원 테이블과 역할이 다릅니다.
+CREATE TABLE IF NOT EXISTS mbr_member (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 순번',
+    member_no VARCHAR(50) NOT NULL COMMENT '회원 번호',
+    customer_no VARCHAR(50) NOT NULL COMMENT '고객 번호',
+    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    password_hash VARCHAR(300) NULL COMMENT '회원 비밀번호 hash',
+    login_fail_count INT NOT NULL DEFAULT 0 COMMENT '로그인 실패 횟수',
+    password_change_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '비밀번호 강제 변경 여부',
+    password_expire_at DATETIME NULL COMMENT '비밀번호 만료 일시',
+    name VARCHAR(100) NOT NULL COMMENT '회원명',
+    email VARCHAR(200) NULL COMMENT '이메일',
+    mobile_no VARCHAR(50) NULL COMMENT '휴대폰 번호',
+    member_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태',
+    lock_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '잠금 여부',
+    withdraw_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '탈퇴 여부',
+    channel_code VARCHAR(30) NOT NULL DEFAULT 'WEB' COMMENT '가입 채널 코드',
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
+    last_login_at DATETIME NULL COMMENT '최근 로그인일시',
+    description TEXT NULL COMMENT '회원 설명',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '회원 낙관적 잠금 Version',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_mbr_member_no (member_no),
+    UNIQUE KEY uk_mbr_member_login_id (login_id),
+    INDEX ix_mbr_member_customer (customer_no),
+    INDEX ix_mbr_member_status (member_status, lock_yn, withdraw_yn),
+    CONSTRAINT ck_mbr_member_version CHECK (version_no >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원';
+
+CREATE TABLE IF NOT EXISTS mbr_member_role (
+    member_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    service_code VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '서비스 코드',
+    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
+    role_name VARCHAR(100) NULL COMMENT '회원 역할명',
+    role_type VARCHAR(30) NOT NULL DEFAULT 'SERVICE' COMMENT '회원 역할 유형',
+    grade_code VARCHAR(50) NULL COMMENT '회원 등급 코드',
+    temporary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '임시 권한 여부',
+    expire_at DATETIME NULL COMMENT '권한 만료일시',
+    granted_by VARCHAR(100) NULL COMMENT '권한 부여자',
+    granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '권한 부여일시',
+    revoked_by VARCHAR(100) NULL COMMENT '권한 회수자',
+    revoked_at DATETIME NULL COMMENT '권한 회수일시',
+    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    grant_reason VARCHAR(500) NULL COMMENT '권한 부여/갱신 사유',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '권한 낙관적 잠금 Version',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (member_role_id),
+    UNIQUE KEY uk_mbr_member_role (member_id, service_code, role_code),
+    INDEX ix_mbr_member_role_member (member_id, use_yn),
+    CONSTRAINT ck_mbr_member_role_version CHECK (version_no >= 0),
+    CONSTRAINT fk_mbr_member_role_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한';
+
+CREATE TABLE IF NOT EXISTS mbr_member_role_history (
+    history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 권한 이력 순번',
+    member_id BIGINT NOT NULL COMMENT '회원 순번',
+    service_code VARCHAR(30) NOT NULL COMMENT '서비스 코드',
+    role_code VARCHAR(50) NOT NULL COMMENT '회원 역할 코드',
+    action_type VARCHAR(30) NOT NULL COMMENT '권한 행위 유형',
+    reason VARCHAR(500) NOT NULL COMMENT '권한 변경 사유',
+    before_data LONGTEXT NULL COMMENT '변경 전 데이터',
+    after_data LONGTEXT NULL COMMENT '변경 후 데이터',
+    operator_id VARCHAR(100) NULL COMMENT '처리 운영자 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (history_id),
+    INDEX ix_mbr_member_role_history_member (member_id, created_at),
+    CONSTRAINT fk_mbr_member_role_history_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 변경 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_member_login_history (
+    login_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 로그인 이력 순번',
+    member_id BIGINT NULL COMMENT '회원 순번',
+    login_domain VARCHAR(30) NOT NULL DEFAULT 'MBR' COMMENT '로그인 도메인',
+    member_no VARCHAR(50) NULL COMMENT '회원 번호',
+    customer_no VARCHAR(50) NULL COMMENT '고객 번호',
+    login_id VARCHAR(80) NOT NULL COMMENT '로그인 ID',
+    login_result VARCHAR(30) NOT NULL COMMENT '로그인 결과',
+    login_ip VARCHAR(50) NULL COMMENT '로그인 IP',
+    user_agent VARCHAR(500) NULL COMMENT 'User-Agent',
+    failure_reason VARCHAR(500) NULL COMMENT '로그인 실패 사유',
+    transaction_global_id VARCHAR(34) NULL COMMENT 'CPF 트랜잭션 글로벌 ID',
+    module_id VARCHAR(3) NULL COMMENT '모듈 ID',
+    was_id VARCHAR(7) NULL COMMENT 'WAS ID',
+    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (login_history_id),
+    INDEX ix_mbr_member_login_member_time (member_id, created_at),
+    INDEX ix_mbr_member_login_global (transaction_global_id),
+    CONSTRAINT fk_mbr_member_login_history_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_member_no_sequence (
+    sequence_value BIGINT NOT NULL AUTO_INCREMENT,
+    requested_by VARCHAR(100) NOT NULL,
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (sequence_value)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 분산 채번';
+
+CREATE TABLE IF NOT EXISTS mbr_member_no_issue_history (
+    issue_id BIGINT NOT NULL AUTO_INCREMENT,
+    member_no VARCHAR(50) NOT NULL,
+    issue_type VARCHAR(20) NOT NULL,
+    issued_by VARCHAR(100) NOT NULL,
+    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (issue_id),
+    UNIQUE KEY uk_mbr_member_no_issue_history_no (member_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 발급 이력';
+
+CREATE TABLE IF NOT EXISTS mbr_member_role_operation (
+    idempotency_key VARCHAR(120) NOT NULL,
+    member_id BIGINT NOT NULL,
+    service_code VARCHAR(30) NOT NULL,
+    role_code VARCHAR(50) NOT NULL,
+    operation_type VARCHAR(20) NOT NULL,
+    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    result_version BIGINT NULL,
+    result_use_yn CHAR(1) NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    completed_at DATETIME(3) NULL,
+    PRIMARY KEY (idempotency_key),
+    INDEX ix_mbr_member_role_operation_member (member_id, created_at),
+    CONSTRAINT fk_mbr_member_role_operation_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 권한 멱등 변경 이력';
+
 -- MBR은 Golden Generated Domain의 checked-in 검증 인스턴스입니다.
 -- 생성형 Domain은 DomainName/SystemCode/Schema/TablePrefix만 다르고 아래 논리 계약은 동일해야 합니다.
 -- CPF Golden Generated Domain database template.

@@ -6,6 +6,7 @@ import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
 import com.cpf.core.api.admin.CpfOwnerAdminCommand;
 import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
 import com.cpf.core.api.admin.CpfOwnerAdminQuery;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.util.CpfStrings;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -67,15 +68,34 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
         return list(response.get("items"));
     }
 
-    /** MBR Owner 상세에 ADM/CPF read-model을 결합합니다. */
+    /** 회원번호 발급 이력을 MBR Owner에서 조회합니다. */
+    public List<Map<String, Object>> findMemberNoIssueHistory(
+            String memberNo, String issueType, String issuedBy, int limit) {
+        Map<String, Object> criteria = new LinkedHashMap<>();
+        put(criteria, "memberNo", memberNo);
+        put(criteria, "issueType", issueType);
+        put(criteria, "issuedBy", issuedBy);
+        criteria.put("limit", Math.max(1, Math.min(limit, 500)));
+        Map<String, Object> response = mbrOperations.query(
+                new CpfOwnerAdminQuery("member", "findMemberNoIssueHistory", null, criteria));
+        return list(response.get("items"));
+    }
+
+    /** MBR Owner 상세에 ADM/CPF read-model을 결합합니다. 부분 조회 장애를 0건으로 위장하지 않습니다. */
     public Map<String, Object> findMemberDetail(long memberId) {
         Map<String, Object> ownerDetail = mbrOperations.query(
                 new CpfOwnerAdminQuery("member", "findMemberDetail", String.valueOf(memberId), Map.of()));
         Map<String, Object> detail = new LinkedHashMap<>(ownerDetail);
         Map<String, Object> member = map(ownerDetail.get("member"));
         String memberNo = value(member.get("member_no"));
-        detail.put("transactionLogs", findTransactionLogs(memberNo));
-        detail.put("auditLogs", findAuditLogs(String.valueOf(memberId), memberNo));
+
+        ReadSection transactionLogs = readTransactionLogs(memberNo);
+        ReadSection auditLogs = readAuditLogs(String.valueOf(memberId), memberNo);
+        detail.put("transactionLogs", transactionLogs.items());
+        detail.put("auditLogs", auditLogs.items());
+        detail.put("readModelSections", Map.of(
+                "transactionLogs", transactionLogs.status(),
+                "auditLogs", auditLogs.status()));
         return detail;
     }
 
@@ -94,6 +114,7 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
         put(payload, "memberStatus", request.memberStatus());
         put(payload, "lockYn", request.lockYn());
         put(payload, "withdrawYn", request.withdrawYn());
+        payload.put("expectedVersion", request.expectedVersion());
         return mbrOperations.command(new CpfOwnerAdminCommand(
                 "member", "updateStatus", String.valueOf(memberId), payload, requestUser, request.reason()));
     }
@@ -107,6 +128,8 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
         put(payload, "temporaryYn", request.temporaryYn());
         put(payload, "expireAt", request.expireAt());
         put(payload, "useYn", request.useYn());
+        put(payload, "expectedVersion", request.expectedVersion());
+        put(payload, "idempotencyKey", request.idempotencyKey());
         return mbrOperations.command(new CpfOwnerAdminCommand(
                 "member", "grantRole", String.valueOf(memberId), payload, requestUser, request.reason()));
     }
@@ -115,11 +138,15 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
             long memberId,
             String roleCode,
             String serviceCode,
+            long expectedVersion,
+            String idempotencyKey,
             String reason,
             String requestUser) {
         Map<String, Object> payload = new LinkedHashMap<>();
         put(payload, "roleCode", roleCode);
         put(payload, "serviceCode", serviceCode);
+        payload.put("expectedVersion", expectedVersion);
+        put(payload, "idempotencyKey", idempotencyKey);
         return mbrOperations.command(new CpfOwnerAdminCommand(
                 "member", "revokeRole", String.valueOf(memberId), payload, requestUser, reason));
     }
@@ -137,15 +164,14 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
         put(payload, "withdrawYn", request.withdrawYn());
         put(payload, "channelCode", request.channelCode());
         put(payload, "description", request.description());
+        put(payload, "expectedVersion", request.expectedVersion());
         return payload;
     }
 
-    private List<Map<String, Object>> findTransactionLogs(String memberNo) {
-        if (!CpfStrings.hasText(memberNo)) {
-            return List.of();
-        }
+    private ReadSection readTransactionLogs(String memberNo) {
+        if (!CpfStrings.hasText(memberNo)) return ReadSection.available(List.of());
         try {
-            return cpfJdbcTemplate.query("""
+            return ReadSection.available(cpfJdbcTemplate.query("""
                     SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, BUSINESS_TRANSACTION_ID, URI,
                            RESPONSE_CODE, ERROR_CODE, LOG_TYPE, START_TIME, END_TIME, DURATION_MS
                       FROM cpf_transaction_log
@@ -156,15 +182,15 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
                         ps.setString(1, memberNo);
                         ps.setMaxRows(50);
                     },
-                    new ColumnMapRowMapper());
+                    new ColumnMapRowMapper()));
         } catch (DataAccessException ex) {
-            return List.of();
+            return ReadSection.failed("CPF_DB_READ_FAILED", CpfTransactionContext.transactionId());
         }
     }
 
-    private List<Map<String, Object>> findAuditLogs(String memberId, String memberNo) {
+    private ReadSection readAuditLogs(String memberId, String memberNo) {
         try {
-            return admJdbcTemplate.query("""
+            return ReadSection.available(admJdbcTemplate.query("""
                     SELECT AUDIT_ID, OPERATOR_ID, ACTION_TYPE, TARGET_TYPE, TARGET_ID, REASON, CREATED_AT
                       FROM adm_audit_log
                      WHERE TARGET_TYPE IN ('mbr_member', 'mbr_member_role')
@@ -176,9 +202,27 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
                         ps.setString(2, memberNo);
                         ps.setMaxRows(50);
                     },
-                    new ColumnMapRowMapper());
+                    new ColumnMapRowMapper()));
         } catch (DataAccessException ex) {
-            return List.of();
+            return ReadSection.failed("ADM_DB_READ_FAILED", CpfTransactionContext.transactionId());
+        }
+    }
+
+    private record ReadSection(String state, List<Map<String, Object>> items, String errorCode, String transactionId) {
+        static ReadSection available(List<Map<String, Object>> items) {
+            return new ReadSection("AVAILABLE", List.copyOf(items), null, null);
+        }
+
+        static ReadSection failed(String errorCode, String transactionId) {
+            return new ReadSection("FAILED", List.of(), errorCode, transactionId);
+        }
+
+        Map<String, Object> status() {
+            Map<String, Object> status = new LinkedHashMap<>();
+            status.put("state", state);
+            if (errorCode != null) status.put("errorCode", errorCode);
+            if (transactionId != null && !transactionId.isBlank()) status.put("transactionId", transactionId);
+            return status;
         }
     }
 

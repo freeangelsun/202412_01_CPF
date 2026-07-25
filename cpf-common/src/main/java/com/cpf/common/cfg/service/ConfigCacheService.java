@@ -9,144 +9,164 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * CPF 공통 설정 캐시 서비스입니다.
- * 설정 조회, 등록, 수정, 삭제 후 캐시 초기화와 refresh 이벤트 발행을 함께 처리합니다.
- */
+/** CPF 공통 설정 cache를 commit-safe snapshot 방식으로 관리합니다. */
 @Service
 public class ConfigCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigCacheService.class);
     private static final String CACHE_NAME = "configCache";
+    private static final String ALL_KEY = "ALL";
 
     private final ConfigMapper configMapper;
     private final CacheManager cacheManager;
     private final CacheRefreshEventPublisher cacheRefreshEventPublisher;
+    private final AtomicLong cacheVersion = new AtomicLong();
+    private volatile Instant lastSynchronizedAt;
+    private volatile String lastRefreshFailure;
 
     @Value("${cpf.cmn.cache.preload-enabled:true}")
     private boolean preloadEnabled;
-
     @Value("${cpf.cmn.cache.fail-fast-on-startup:false}")
     private boolean failFastOnStartup;
 
-    public ConfigCacheService(
-            ConfigMapper configMapper,
-            CacheManager cacheManager,
+    public ConfigCacheService(ConfigMapper configMapper, CacheManager cacheManager,
             CacheRefreshEventPublisher cacheRefreshEventPublisher) {
         this.configMapper = configMapper;
         this.cacheManager = cacheManager;
         this.cacheRefreshEventPublisher = cacheRefreshEventPublisher;
     }
 
-    @Cacheable("configCache")
+    @Cacheable(value = CACHE_NAME, key = "'ALL'")
     public List<Map<String, Object>> getAllConfigs() {
-        logger.info("Cache Miss: Fetching all configs from database");
         return configMapper.findAllConfigs();
     }
 
-    @Cacheable(value = "configCache", key = "#p0")
+    @Cacheable(value = CACHE_NAME, key = "'KEY:' + #p0")
     public Map<String, Object> getConfigByKey(String configKey) {
-        logger.debug("Cache Miss: Fetching config for key: {}", configKey);
         return configMapper.findConfigByKey(configKey);
     }
 
-    public Map<String, Object> getConfigById(Long configId) {
-        return configMapper.findConfigById(configId);
-    }
+    public Map<String, Object> getConfigById(Long configId) { return configMapper.findConfigById(configId); }
 
     @Transactional(transactionManager = "cmnTransactionManager")
     public Map<String, Object> createConfig(CommonConfigRequest request) {
         configMapper.insertConfig(request);
-        refreshConfigs();
+        Map<String, Object> created = getConfigById(request.getConfigId());
+        scheduleSnapshotAfterCommit(configMapper.findAllConfigs());
         publishRefreshEvent("CREATE", request.getConfigKey(), request.getRequestUser());
-        return getConfigById(request.getConfigId());
+        return created;
     }
 
     @Transactional(transactionManager = "cmnTransactionManager")
     public Map<String, Object> updateConfig(Long configId, CommonConfigRequest request) {
         configMapper.updateConfig(configId, request);
-        refreshConfigs();
+        Map<String, Object> updated = getConfigById(configId);
+        scheduleSnapshotAfterCommit(configMapper.findAllConfigs());
         publishRefreshEvent("UPDATE", request.getConfigKey(), request.getRequestUser());
-        return getConfigById(configId);
+        return updated;
     }
 
     @Transactional(transactionManager = "cmnTransactionManager")
     public List<Map<String, Object>> deleteConfig(Long configId) {
         Map<String, Object> beforeDelete = getConfigById(configId);
-        String eventKey = beforeDelete == null ? String.valueOf(configId) : mapValue(beforeDelete, "configKey", "config_key");
+        String key = beforeDelete == null ? String.valueOf(configId) : mapValue(beforeDelete, "configKey", "config_key");
         configMapper.deleteConfig(configId);
-        List<Map<String, Object>> latestConfigs = refreshConfigs();
-        publishRefreshEvent("DELETE", eventKey, "SYSTEM");
-        return latestConfigs;
+        List<Map<String, Object>> latest = configMapper.findAllConfigs();
+        scheduleSnapshotAfterCommit(latest);
+        publishRefreshEvent("DELETE", key, "SYSTEM");
+        return latest;
     }
 
-    @CachePut("configCache")
-    public List<Map<String, Object>> reloadConfigs() {
-        return refreshConfigs();
-    }
+    public List<Map<String, Object>> reloadConfigs() { return refreshConfigs(); }
 
     public List<Map<String, Object>> refreshConfigs() {
-        logger.info("Cache Refresh: Clearing config cache and fetching updated configs from database");
-        clearCache();
-        return configMapper.findAllConfigs();
+        List<Map<String, Object>> latest = configMapper.findAllConfigs();
+        replaceSnapshot(latest);
+        return latest;
     }
 
     public List<Map<String, Object>> refreshConfigsAndPublish() {
-        List<Map<String, Object>> latestConfigs = refreshConfigs();
+        List<Map<String, Object>> latest = refreshConfigs();
         publishRefreshEvent("MANUAL_REFRESH", "ALL", "SYSTEM");
-        return latestConfigs;
+        return latest;
+    }
+
+    public Map<String, Object> cacheStatus() {
+        Map<String, Object> status = new LinkedHashMap<>();
+        status.put("cacheName", CACHE_NAME);
+        status.put("version", cacheVersion.get());
+        status.put("lastSynchronizedAt", lastSynchronizedAt == null ? null : lastSynchronizedAt.toString());
+        status.put("lastRefreshFailure", lastRefreshFailure);
+        return status;
     }
 
     @PostConstruct
     public void loadCacheOnStartup() {
-        if (!preloadEnabled) {
-            logger.info("Config cache preload skipped");
-            return;
-        }
-
-        logger.info("Initializing config cache at startup");
+        if (!preloadEnabled) return;
         try {
-            getAllConfigs();
+            refreshConfigs();
         } catch (RuntimeException ex) {
-            if (failFastOnStartup) {
-                throw ex;
-            }
-            logger.warn("Config cache preload failed. Application will continue because fail-fast is disabled.", ex);
+            recordFailure(ex);
+            if (failFastOnStartup) throw ex;
+            logger.warn("Config cache preload failed. Existing cache is preserved.", ex);
         }
     }
 
-    @Scheduled(
-            fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
+    @Scheduled(fixedRateString = "${cpf.cmn.cache.periodic-refresh-millis:1800000}",
             initialDelayString = "${cpf.cmn.cache.periodic-refresh-initial-delay-millis:1800000}")
     public void scheduledReloadConfigs() {
-        logger.info("Scheduled config cache reload triggered");
-        refreshConfigs();
-    }
-
-    private void clearCache() {
-        Cache cache = cacheManager.getCache(CACHE_NAME);
-        if (cache != null) {
-            cache.clear();
+        try {
+            refreshConfigs();
+        } catch (RuntimeException ex) {
+            recordFailure(ex);
+            logger.warn("Scheduled config cache reload failed. Existing cache is preserved.", ex);
         }
     }
 
-    private void publishRefreshEvent(String eventType, String eventKey, String requestUser) {
-        cacheRefreshEventPublisher.publishAfterCommit(CACHE_NAME, eventType, eventKey, requestUser);
+    private void scheduleSnapshotAfterCommit(List<Map<String, Object>> latest) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            replaceSnapshot(latest);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { replaceSnapshot(latest); }
+        });
     }
 
+    private void replaceSnapshot(List<Map<String, Object>> latest) {
+        Cache cache = requireCache();
+        cache.clear();
+        cache.put(ALL_KEY, latest);
+        cacheVersion.incrementAndGet();
+        lastSynchronizedAt = Instant.now();
+        lastRefreshFailure = null;
+    }
+
+    private Cache requireCache() {
+        Cache cache = cacheManager.getCache(CACHE_NAME);
+        if (cache == null) throw new IllegalStateException("Required cache is not configured: " + CACHE_NAME);
+        return cache;
+    }
+
+    private void recordFailure(RuntimeException ex) { lastRefreshFailure = ex.getClass().getSimpleName(); }
+    private void publishRefreshEvent(String type, String key, String user) {
+        cacheRefreshEventPublisher.publishAfterCommit(CACHE_NAME, type, key, user);
+    }
     private String mapValue(Map<String, Object> source, String camelKey, String snakeKey) {
         Object value = source.get(camelKey);
-        if (value == null) {
-            value = source.get(snakeKey);
-        }
+        if (value == null) value = source.get(snakeKey);
         return value == null ? "" : String.valueOf(value);
     }
 }

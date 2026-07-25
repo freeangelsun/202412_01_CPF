@@ -70,7 +70,7 @@ function Get-CpfRuntimeModuleMap {
             wasId = "admAP01"
             port = 8090
             portEnv = "ADM_SERVER_PORT"
-            healthPath = "/v3/api-docs"
+            healthPath = "/adm/api/health/readiness"
             jarDir = "cpf-admin/build/libs"
             jarPattern = "cpf-admin-*.jar"
         },
@@ -81,7 +81,7 @@ function Get-CpfRuntimeModuleMap {
             wasId = "batWK01"
             port = 8093
             portEnv = "BAT_SERVER_PORT"
-            healthPath = "/bat/api/health"
+            healthPath = "/bat/api/health/readiness"
             jarDir = "cpf-batch/build/libs"
             jarPattern = "cpf-batch-*.jar"
         },

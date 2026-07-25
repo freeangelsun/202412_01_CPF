@@ -12,6 +12,8 @@ public enum CpfErrorCode implements CpfErrorDefinition {
             "요청한 정보를 찾을 수 없습니다.", "조회 대상 데이터가 존재하지 않습니다. target={0}"),
     DUPLICATE("ECPF010003", "MCPF010003", HttpStatus.CONFLICT,
             "이미 등록된 정보입니다.", "중복 데이터가 감지되었습니다. key={0}"),
+    CONFLICT("ECPF010007", "MCPF010007", HttpStatus.CONFLICT,
+            "다른 요청에 의해 정보가 변경되었습니다.", "낙관적 잠금 또는 상태 전이 충돌이 발생했습니다. target={0}"),
     VALIDATION_FAILED("ECPF010004", "MCPF010004", HttpStatus.BAD_REQUEST,
             "입력값을 확인해 주세요.", "Bean Validation 검증에 실패했습니다. field={0}"),
     UNAUTHORIZED("ECPF010005", "MCPF010005", HttpStatus.UNAUTHORIZED,

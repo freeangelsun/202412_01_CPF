@@ -10,7 +10,8 @@ package com.cpf.admin.opr.dto;
  * @param temporaryYn 임시 권한 여부
  * @param expireAt    권한 만료 일시 문자열
  * @param useYn       사용 여부
- * @param requestUser 요청자
+ * @param expectedVersion 기존 권한 갱신 시 기대 Version
+ * @param idempotencyKey 권한 변경 멱등 키
  * @param reason      감사 사유
  */
 public record AdmMemberRoleRequest(
@@ -21,6 +22,7 @@ public record AdmMemberRoleRequest(
         String temporaryYn,
         String expireAt,
         String useYn,
-        String requestUser,
+        Long expectedVersion,
+        String idempotencyKey,
         String reason) {
 }

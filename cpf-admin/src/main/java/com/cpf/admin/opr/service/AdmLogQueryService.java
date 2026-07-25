@@ -1,6 +1,5 @@
 package com.cpf.admin.opr.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.core.api.fixedlength.CpfFixedLengthLayoutRegistry;
 import com.cpf.core.api.fixedlength.CpfFixedLengthLogDecoder;
@@ -126,7 +125,9 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
         args.add(Math.max(1, Math.min(limit, 500)));
 
-        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray());
+        return cpfJdbcTemplate.queryForList(sql.toString(), args.toArray()).stream()
+                .map(AdmLogSanitizer::sanitizeMap)
+                .toList();
     }
 
     /**
@@ -134,14 +135,24 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
      */
     public Map<String, Object> getLogDetail(Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
-        Map<String, Object> summary = cpfJdbcTemplate.queryForMap(
-                "SELECT * FROM cpf_transaction_log WHERE LOG_IDX = ?",
-                logIdx);
+        Map<String, Object> summary = cpfJdbcTemplate.queryForMap("""
+                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME,
+                       PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME,
+                       LOG_TYPE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO,
+                       HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, EXEC_USER,
+                       START_TIME, END_TIME, DURATION_MS, REQUEST_BODY, RESPONSE, ERROR_MESSAGE
+                  FROM cpf_transaction_log
+                 WHERE LOG_IDX = ?
+                """, logIdx);
         List<Map<String, Object>> details = cpfJdbcTemplate.queryForList(
                 "SELECT DETAIL_KEY, DETAIL_VALUE, CREATED_AT FROM cpf_transaction_log_detail WHERE LOG_IDX = ? ORDER BY DETAIL_KEY",
                 logIdx);
 
-        response.put("summary", summary);
+        Map<String, Object> safeSummary = new LinkedHashMap<>(summary);
+        safeSummary.remove("REQUEST_BODY");
+        safeSummary.remove("RESPONSE");
+        safeSummary.remove("ERROR_MESSAGE");
+        response.put("summary", AdmLogSanitizer.sanitizeMap(safeSummary));
         response.put("headers", formatValue("headers", value(findDetail(details, "headers")), details));
         response.put("inboundHeaders", formatValue("inboundHeaders", value(findDetail(details, "inboundHeaders")), details));
         response.put("resolvedHeaders", formatValue("resolvedHeaders", value(findDetail(details, "resolvedHeaders")), details));
@@ -150,7 +161,6 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         response.put("request", formatValue("request", value(summary.get("REQUEST_BODY")), details));
         response.put("response", formatValue("response", value(summary.get("RESPONSE")), details));
         response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE")), details));
-        response.put("details", details);
         response.put("formattedDetails", details.stream()
                 .map(row -> formatValue(value(row.get("DETAIL_KEY")), value(row.get("DETAIL_VALUE")), details))
                 .toList());
@@ -190,8 +200,8 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     formatted.put("layoutId", view.layoutId());
                     formatted.put("layoutVersion", view.version());
                     formatted.put("byteLength", view.byteLength());
-                    formatted.put("fields", view.fields());
-                    formatted.put("groups", view.groups());
+                    formatted.put("fields", AdmLogSanitizer.sanitizeStructure(view.fields(), "fields"));
+                    formatted.put("groups", AdmLogSanitizer.sanitizeStructure(view.groups(), "groups"));
                     return formatted;
                 } catch (RuntimeException ex) {
                     formatted.put("layoutError", mask(ex.getMessage()));
@@ -222,12 +232,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private String prettyJson(String value) {
-        try {
-            Object parsed = objectMapper.readValue(value, Object.class);
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(parsed);
-        } catch (JsonProcessingException ex) {
-            return mask(value);
-        }
+        return AdmLogSanitizer.sanitizeJson(objectMapper, value);
     }
 
     private boolean isFixedLengthKey(String key) {
@@ -250,13 +255,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private String mask(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value
-                .replaceAll("(?i)(password|passwd|pwd|secret|token)(\"?\\s*[:=]\\s*\"?)[^,\"}\\s]+", "$1$2****")
-                .replaceAll("([0-9]{3})-?([0-9]{3,4})-?([0-9]{4})", "$1-****-$3")
-                .replaceAll("([A-Za-z0-9._%+-]{2})[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+)", "$1****$2");
+        return AdmLogSanitizer.sanitizeText(value);
     }
 
     private String value(Object value) {

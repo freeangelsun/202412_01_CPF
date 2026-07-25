@@ -6,13 +6,13 @@ package com.cpf.admin.opr.dto;
  * @param memberStatus 변경할 회원 상태
  * @param lockYn       잠금 여부
  * @param withdrawYn   탈퇴 여부
- * @param requestUser  요청자
+ * @param expectedVersion 기대 Version
  * @param reason       감사 사유
  */
 public record AdmMemberStatusRequest(
         String memberStatus,
         String lockYn,
         String withdrawYn,
-        String requestUser,
+        long expectedVersion,
         String reason) {
 }

@@ -1,9 +1,10 @@
 package com.cpf.batch.operation;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.batch.scheduler.BatBatchScheduler;
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
 import com.cpf.batch.runtime.BatBatchGhostDetectionService;
 import com.cpf.batch.runtime.BatBatchLauncher;
 import com.cpf.core.common.exception.CpfValidationException;
@@ -38,18 +39,21 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
     private final JobExplorer jobExplorer;
     private final BatBatchGhostDetectionService ghostDetectionService;
     private final org.springframework.beans.factory.ObjectProvider<BatBatchScheduler> schedulerProvider;
+    private final CmnBusinessCalendar businessCalendar;
 
     public BatOperationFacade(
             @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             BatBatchLauncher batchLauncher,
             ObjectProvider<JobExplorer> jobExplorerProvider,
             ObjectProvider<BatBatchGhostDetectionService> ghostDetectionServiceProvider,
-            org.springframework.beans.factory.ObjectProvider<BatBatchScheduler> schedulerProvider) {
+            org.springframework.beans.factory.ObjectProvider<BatBatchScheduler> schedulerProvider,
+            CmnBusinessCalendar businessCalendar) {
         this.batJdbcTemplate = batJdbcTemplate;
         this.batchLauncher = batchLauncher;
         this.jobExplorer = jobExplorerProvider.getIfAvailable();
         this.ghostDetectionService = ghostDetectionServiceProvider.getIfAvailable();
         this.schedulerProvider = schedulerProvider;
+        this.businessCalendar = businessCalendar;
     }
 
     public List<Map<String, Object>> findJobs() {
@@ -99,27 +103,16 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                 """);
     }
 
-    public List<Map<String, Object>> findExecutions(String jobId, int limit) {
+    @Override
+    public List<Map<String, Object>> findExecutions(
+            String jobId,
+            String transactionId,
+            Long springBatchJobInstanceId,
+            String workerId,
+            String serverInstanceId,
+            int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
-        if (hasText(jobId)) {
-            return queryOrEmpty("""
-                    SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                           spring_batch_execution_id, spring_batch_job_instance_id, business_date,
-                           run_id, rerun_id, original_job_execution_id, restart_attempt,
-                           batch_instance_id, server_instance_id, worker_id,
-                           transaction_id, transaction_segment_id, parent_segment_id, job_log_relative_path,
-                           start_time, end_time, read_count, write_count, skip_count,
-                           total_count, processed_count, success_count, failure_count, retry_count,
-                           progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
-                           last_heartbeat_at, current_step_name,
-                           error_message, requested_by, created_at, updated_at
-                    FROM bat_execution
-                    WHERE job_id = ?
-                    ORDER BY execution_id DESC
-                    LIMIT ?
-                    """, jobId.trim(), resolvedLimit);
-        }
-        return queryOrEmpty("""
+        StringBuilder sql = new StringBuilder("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                        spring_batch_execution_id, spring_batch_job_instance_id, business_date,
                        run_id, rerun_id, original_job_execution_id, restart_attempt,
@@ -130,10 +123,21 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                        progress_rate, tps, avg_elapsed_ms, max_elapsed_ms,
                        last_heartbeat_at, current_step_name,
                        error_message, requested_by, created_at, updated_at
-                FROM bat_execution
-                ORDER BY execution_id DESC
-                LIMIT ?
-                """, resolvedLimit);
+                  FROM bat_execution
+                 WHERE 1=1
+                """);
+        java.util.ArrayList<Object> args = new java.util.ArrayList<>();
+        appendEquals(sql, args, "job_id", jobId);
+        appendEquals(sql, args, "transaction_id", transactionId);
+        if (springBatchJobInstanceId != null) {
+            sql.append(" AND spring_batch_job_instance_id = ?");
+            args.add(springBatchJobInstanceId);
+        }
+        appendEquals(sql, args, "worker_id", workerId);
+        appendEquals(sql, args, "server_instance_id", serverInstanceId);
+        sql.append(" ORDER BY execution_id DESC LIMIT ?");
+        args.add(resolvedLimit);
+        return queryOrEmpty(sql.toString(), args.toArray());
     }
 
     public Map<String, Object> findExecutionDetail(long executionId) {
@@ -476,26 +480,11 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         String calendarId = defaultIfBlank(String.valueOf(schedule.get("calendar_id")), "DEFAULT");
         boolean businessDayOnly = "Y".equalsIgnoreCase(String.valueOf(schedule.get("business_day_only_yn")));
         boolean enabled = "Y".equalsIgnoreCase(String.valueOf(schedule.get("enabled_yn")));
-        Map<String, Map<String, Object>> calendarByDate = loadCalendarMap(
-                calendarId, startDate, startDate.plusDays(resolvedDays - 1L));
-
         return startDate.datesUntil(startDate.plusDays(resolvedDays))
-                .map(date -> buildSimulationRow(schedule, calendarByDate.get(date.toString()), date, enabled, businessDayOnly))
+                .map(date -> buildSimulationRow(schedule, calendarId, date, enabled, businessDayOnly))
                 .toList();
     }
 
-    public List<Map<String, Object>> findBusinessCalendar(String calendarId, String fromDate, String toDate) {
-        String resolvedCalendarId = defaultIfBlank(calendarId, "DEFAULT");
-        String from = defaultIfBlank(fromDate, LocalDate.now().withDayOfMonth(1).toString());
-        String to = defaultIfBlank(toDate, LocalDate.now().plusMonths(1).toString());
-        return queryOrEmpty("""
-                SELECT calendar_id, business_date, holiday_yn, business_day_yn, description, created_at, updated_at
-                FROM bat_business_day_calendar
-                WHERE calendar_id = ?
-                  AND business_date BETWEEN ? AND ?
-                ORDER BY business_date
-                """, resolvedCalendarId, from, to);
-    }
 
     public Map<String, Object> registerJob(String jobId, String jobName, String jobType, String description, String requestUser) {
         String user = defaultIfBlank(requestUser, "ADM");
@@ -519,41 +508,6 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         return findJob(jobId);
     }
 
-    public Map<String, Object> saveBusinessDay(
-            String calendarId,
-            String businessDate,
-            String holidayYn,
-            String businessDayYn,
-            String description,
-            String requestUser) {
-        String user = defaultIfBlank(requestUser, "ADM");
-        String resolvedCalendarId = defaultIfBlank(calendarId, "DEFAULT");
-        String resolvedDate = requireText(businessDate, "businessDate");
-        batJdbcTemplate.update("""
-                INSERT INTO bat_business_day_calendar (
-                    calendar_id, business_date, holiday_yn, business_day_yn, description, created_by, updated_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    holiday_yn = VALUES(holiday_yn),
-                    business_day_yn = VALUES(business_day_yn),
-                    description = VALUES(description),
-                    updated_by = VALUES(updated_by),
-                    updated_at = CURRENT_TIMESTAMP
-                """,
-                resolvedCalendarId,
-                resolvedDate,
-                yn(holidayYn, "N"),
-                yn(businessDayYn, "Y"),
-                description,
-                user,
-                user);
-        return batJdbcTemplate.queryForMap("""
-                SELECT calendar_id, business_date, holiday_yn, business_day_yn, description, created_at, updated_at
-                FROM bat_business_day_calendar
-                WHERE calendar_id = ?
-                  AND business_date = ?
-                """, resolvedCalendarId, resolvedDate);
-    }
 
     public Map<String, Object> requestRun(String jobId, String jobParameters, String requestUser, String reason) {
         CpfBatchExecutionResult result = batchLauncher.run(CpfBatchExecutionRequest.run(
@@ -663,27 +617,13 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
                 """, scheduleId);
     }
 
-    private Map<String, Map<String, Object>> loadCalendarMap(String calendarId, LocalDate from, LocalDate to) {
-        List<Map<String, Object>> rows = queryOrEmpty("""
-                SELECT calendar_id, business_date, holiday_yn, business_day_yn, description
-                FROM bat_business_day_calendar
-                WHERE calendar_id = ?
-                  AND business_date BETWEEN ? AND ?
-                """, calendarId, from.toString(), to.toString());
-        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
-        for (Map<String, Object> row : rows) {
-            result.put(String.valueOf(row.get("business_date")), row);
-        }
-        return result;
-    }
-
     private Map<String, Object> buildSimulationRow(
             Map<String, Object> schedule,
-            Map<String, Object> calendar,
+            String calendarId,
             LocalDate date,
             boolean enabled,
             boolean businessDayOnly) {
-        String businessDayYn = resolveBusinessDayYn(calendar, date);
+        String businessDayYn = businessCalendar.isBusinessDay(calendarId, date) ? "Y" : "N";
         boolean runnable = enabled && (!businessDayOnly || "Y".equals(businessDayYn));
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("schedule_id", schedule.get("schedule_id"));
@@ -701,13 +641,6 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         row.put("runnable_yn", runnable ? "Y" : "N");
         row.put("reason", simulationReason(enabled, businessDayOnly, businessDayYn, schedule));
         return row;
-    }
-
-    private String resolveBusinessDayYn(Map<String, Object> calendar, LocalDate date) {
-        if (calendar != null && calendar.get("business_day_yn") != null) {
-            return String.valueOf(calendar.get("business_day_yn"));
-        }
-        return date.getDayOfWeek().getValue() <= 5 ? "Y" : "N";
     }
 
     private String simulationReason(
@@ -753,6 +686,13 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         } catch (Exception ex) {
             log.debug("Spring Batch 실행 상세를 조회할 수 없습니다. reason={}", ex.getMessage());
             return null;
+        }
+    }
+
+    private void appendEquals(StringBuilder sql, java.util.List<Object> args, String column, String value) {
+        if (hasText(value)) {
+            sql.append(" AND ").append(column).append(" = ?");
+            args.add(value.trim());
         }
     }
 

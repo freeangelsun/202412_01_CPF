@@ -4,7 +4,7 @@
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 검수 기준 Commit: `512e5f2c7f32ba21ef6be570b2efa3dbcbd7a482`
+- 검수 기준 Commit: `7dcccafe4445c10a148a7f45473de25c396aebd3`
 - 최상위 목표: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - Requirement 연속성: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
 - 장기 결정: `cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md`
@@ -17,7 +17,7 @@
 1. 사용자 명시 승인 전 commit/push/branch 생성 금지.
 2. 현재 Worktree를 reset/clean/revert/checkout으로 폐기하지 않는다.
 3. 삭제된 Module-local Vendor SQL/MyBatis pack 또는 Stale Evidence를 오류 회피 목적으로 복구하지 않는다.
-4. Historical Flyway Migration은 checksum 원인 확정과 명시 승인 없이 수정·재작성·삭제하지 않는다.
+4. 고객/Release에 적용된 Historical Migration은 임의 수정하지 않는다. 아직 외부 배포되지 않은 pre-GA 개발 Migration은 정본 오류를 영구 보존하지 말고 영향·적용 이력을 확인한 뒤 canonical schema에 맞게 rebaseline하며 checksum은 자동 생성한다.
 5. 실행하지 않은 검증을 완료로 기록하지 않는다.
 6. Source/Class/Table/Swagger/정적 검색만으로 완료 처리하지 않는다.
 7. Secret/Password/Token/Private Key/개인정보 원문을 Source, Log, Evidence에 남기지 않는다.
@@ -255,11 +255,11 @@ Overlay는 기존 사람별 direct-line INSERT를 새 `target_type/target_code` 
 
 ## 12. P1 — Migration/Upgrade/Rollback
 
-- V6/V29 checksum 불일치 원인을 파일/manifest/Git history 기준으로 확정.
-- 임의 checksum 맞추기 금지.
-- Pre-release rebaseline이 필요하면 적용 이력 없음과 모든 개발 DB 폐기 가능성을 증명하고 사용자 승인 요청.
-- Empty Install과 Upgrade path를 별개로 검증.
-- Rollback 불가능 변경은 forward-recovery 전략과 backup/restore를 명시.
+- R9에서 pre-GA V6/V29를 현재 정본 기준으로 rebaseline했다. 과거 원인 분석을 현재 작업으로 반복하지 않는다.
+- Migration checksum은 `generate-migration-checksums.ps1`을 통해 canonical Flyway SQL에서 결정적으로 재생성하고 수작업 hash 보정은 금지한다.
+- 고객/Release에 이미 적용된 Migration은 수정하지 않으며 신규 Version과 forward-recovery로 해결한다. pre-GA 개발 Migration은 적용 이력/호환성 영향이 없음을 확인한 경우 잘못된 역사를 보존하지 않고 정본화한다.
+- Empty Install과 Upgrade path를 별개로 검증하고 Fresh/Upgrade/Rollback 결과를 같은 통합 Evidence에 남긴다.
+- Rollback 불가능 변경은 forward-recovery 전략과 backup/restore를 명시한다.
 
 ## 13. P1 — Protected Baseline 회귀
 
@@ -272,7 +272,7 @@ Overlay는 기존 사람별 direct-line INSERT를 새 `target_type/target_code` 
 - Core Fixed-Length API/SPI
 - File/Attachment/Logging/Masking 기반
 - Generator Metadata + Vendor Domain Template 방향
-- cmnDB minimal sample 정책
+- cmnDB 최소 Sample 원칙 + Final Target에서 명시 승인한 `cmn_business_calendar_day` 제품 공통정책 테이블
 
 ## 14. P1 — Generator Lifecycle
 
@@ -341,99 +341,30 @@ Evidence는 기준 Commit, PC/환경, Profile, DB Vendor, 시작/종료시각, �
 6. ChatGPT/Codex가 서로 교차 검수할 수 있도록 Requirement별 구현 Report와 실제 잔여 Gap을 남긴다.
 7. 작업 종료 시 Current Request, Continuity State, Decision Log(장기 결정만), 검수 Report, 다음 첫 작업을 갱신하고 Root/log/build/temp garbage를 제거한다.
 
-## 20. 현재 우선 중단점
+## 20. 현재 R10 작업 기준과 미검증 상태 (2026-07-25)
 
-`20260725_01`에서 R6.1 DB Artifact sync가 하위 PowerShell script 성공에도 stale `$LASTEXITCODE`를 읽어 실패했다. DB Runtime/BAT 재설치는 아직 미완료다. 다음 구현은 이 gate를 먼저 수정하고 sync PASS를 확인한 뒤 fresh/partial DB 상태를 다시 검증해야 한다.
+- 기준 원격 Commit: `7dcccafe4445c10a148a7f45473de25c396aebd3`
+- R6~R9의 세부 작업 이력과 당시 중단점은 `cpf-docs/work/review/**` 및 `cpf-docs/work/state/CPF_R*_HANDOVER.md`의 역사 기록으로만 사용한다. 과거 “다음 작업” 문구를 현재 지시로 다시 실행하지 않는다.
+- R10은 사용자 추가 15개 원칙을 제품 Guardrail로 편입하고 Core Foundation API/자료구조, Generated Domain 동기화, EXS generated-only lifecycle, CMN Business Calendar, ADM Log/Batch 추적, Core→BAT ownership 정리와 통합 검증 준비를 하나의 완료 묶음으로 다룬다.
+- `cpf-tools/db/source`는 R10 APPLY에서 `cpf-tools/db/vendor/mariadb/source`로 안전 병합 후 제거한다. 새 변경은 Vendor ownership 경계만 수정한다.
+- `cpf-external`은 baseline에 존재하면 오류다. 통합검증에서 `external/EXS`를 생성→검증→삭제한다.
+- Runtime/DB/Browser/Multi-instance 검증은 사용자 요청에 따라 개발 작업을 누적한 뒤 `CPF_INTEGRATED_VERIFICATION_PLAN.md`와 `verify-full-product.ps1`로 한 번에 수행한다. 실행 전까지 해당 항목은 `미검증`이다.
+- R10 Source 변경을 적용한 뒤에는 Generator-owned 기존 Domain 동기화가 완료되어야 하며 직접 수정 충돌을 자동 덮어쓰지 않는다.
 
-## 21. R7 정적 구현 Checkpoint (2026-07-25)
+## R10 이후 모든 작업 요청에 자동 포함할 필수 작업 정책
 
-본 절은 완료 선언이 아니라 다음 작업자가 반복 구현하지 않도록 남기는 현재 상태다.
-
-| Requirement | 상태 | R7 적용 | 다음 완료 조건 |
-|---|---|---|---|
-| DB canonical/vendor ownership | 부분 구현 | MariaDB source를 `vendor/mariadb/source`로 이동, 모든 Vendor 동일 source root 계약 | MariaDB sync/runtime PASS + 타 Vendor Platform pack 실제 구현/검증 |
-| DB artifact sync | 부분 구현 | child gate separate pwsh process로 stale exit code 문제 교정 | 사용자 Windows에서 sync 실제 PASS |
-| DB schema metadata gate | 부분 구현 | multiline FK 96건 포함 local/referenced table/column 검증 보강 | 실제 PowerShell manifest 재생성 및 drift PASS |
-| EXS Generated Domain | 부분 구현 | fixed residue 금지 + Generated `external/EXS` 허용/검증 | Generator create/build/test/db/remove-regenerate Evidence |
-| Root hygiene | 부분 구현 | compose deploy 이동, untracked root logs 조건부 제거, .gitignore 주석 정리 | `check-repository-hygiene.ps1` 실제 PASS |
-| cpf-tools 문서 | 부분 구현 | Tool README + 상세 Guide | 링크/명령 실제 실행 재검증 |
-| ADM frontend packaging | 부분 구현 | App Shell + 5 lazy feature package + shared state/API methods | npm verify + Browser E2E + 권한/위험조치 검증 |
-| BZA frontend packaging | 부분 구현 | console.ts 제거 + lazy route registry + auth/API + reusable components | npm verify + Browser E2E + CRUD/approval/session 검증 |
-| DB Runtime/BAT V39 | 미검증 | Source/V39은 기존 master에 존재 | partial batDB 정리 후 `-All -RequireRun` Evidence |
-| P0 ADM/BZA/Batch 전체 기능 | 부분 구현 | 기존 master 구현 보호 + frontend/DB policy 보강 | 본 요청서 6~9장 Runtime/Evidence closure |
-| P1 migration/security/regression/generator | 부분 구현 | guardrail 유지 | 본 요청서 12~15장 순차 실행 |
-
-다음 작업자는 위 표의 `부분 구현`을 `완료`로 임의 승격하지 않는다.
-
-
-## R8 이후 다음 작업/검수 필수 범위
-
-1. `CPF_R8_REQUIREMENT_REVIEW.md` 162개 항목을 정본으로 사용해 상태를 하나씩 실제 Evidence로 승격한다.
-2. R8 APPLY/Full Verify 실패 항목은 최우선으로 수정하며, 실패 검증을 삭제/우회하지 않는다.
-3. Historical V6/V29는 R9 검수에서 원인이 확정되었다. V6 고정 EXS/BIZADM DDL과 stale BZA V29 baseline을 GA 전 canonical 기준으로 교정하며, fresh/upgrade/rollback 실행 Evidence 전에는 완료 처리하지 않는다.
-4. ADM scoped Break-glass와 BZA withdraw/cancel/resubmit/expiry는 R9 Source로 보강한다. 실제 위험조치별 break-glass scope 소비, escalation, 조직개편·부재 Snapshot 시나리오는 계속 완성한다.
-5. non-MariaDB Vendor parity는 명시 잔여 Gap이다. PROD-MULTITENANT는 R9 opt-in Context/API 기반까지 구현하되 HTTP/JWT/Async/DB isolation/Generator/Evidence 전에는 완료로 오판하지 않는다.
-6. 작업 후 Source/API/SQL/Test/Runtime/Browser/Evidence를 다시 162 Requirement에 양방향 연결하고 다음 Handover를 갱신한다.
-
-## 22. R8 구현 후 검증·잔여 Gap 고정 (2026-07-25)
-
-R8는 다음 P0/P1 구현을 추가했으나 **실제 Windows/Java25/MariaDB/Browser Evidence 전에는 완료가 아니다.**
-
-- ADM 24개/BZA 27개 기능별 lazy frontend package
-- ADM Approval runtime/API/UI, BZA 조직/다중 Role/Approval runtime/API/UI
-- BAT Batch runtime/Scheduler/CenterCut Runner Owner 이동 및 ADM Owner Port 경계
-- ADM legacy MBR 업무 CRUD 제거
-- Saga compensation/manual recovery
-- 선택형 BZA 업무 채번 Sample
-- R7 cleanup/move 강제 APPLY
-- Canonical 162 Requirement Gate
-- 통합 Full Verification + sanitized Evidence 자동 보존
-
-### 다음 작업자가 반드시 먼저 할 일
-
-1. `APPLY_R8_20260725.ps1` 적용 후 `git status --short`, `git diff --check`를 저장한다.
-2. Static Runner를 실행하고 실패 Gate를 우회하지 않는다.
-3. Gradle/npm build 전에 `cpf-tools/db/source`/Root compose/R7 coarse UI/ADM direct owner DB residue가 0인지 확인한다.
-4. DB Artifact sync를 실제 실행한다.
-5. 직전 부분 생성 가능성이 있는 `batDB`는 원인 확인 후 **batDB만** 정리하고 `-All -RequireRun`한다.
-6. `external/EXS`가 Generator ownership manifest를 가진 Generated Domain인지 확인한다.
-7. Full Runner `-WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll`을 실행하고 generated Evidence를 보존한다.
-8. `CPF_R8_REQUIREMENT_REVIEW.md` 162개 상태를 Evidence로만 승격한다.
-
-### 완료로 오판하면 안 되는 현재 잔여
-
-- V6/V29 pre-GA canonical repair의 fresh/upgrade/rollback Runtime 검증
-- non-MariaDB Platform vendor parity
-- R9 Core Batch/Center-Cut physical cleanup의 전체 Compile/Regression 확인
-- R9 generic remote Center-Cut handler의 실제 HTTP/메시징 transport 및 multi-instance/UNKNOWN Evidence
-- Approval break-glass 실제 scope 소비, escalation, 조직개편·부재 시나리오
-- PROD-MULTITENANT HTTP/JWT/Async/DB isolation/Generator wiring
-- 실제 multi-instance/fault/browser/runtime Evidence
-
-
----
-
-## 2026-07-25 R9 누적 작업 원칙 및 다음 구현 기준
-
-### 1. 개발 단계 Legacy 정리 원칙
-- 아직 외부 고객 Release Contract로 고정되지 않은 Legacy 구조는 영향도가 있다는 이유만으로 유지하지 않는다.
-- 목표 Owner와 대체 구현이 준비되면 Consumer/Test/Config/Docs를 함께 이관하고 Legacy Source를 물리 삭제한다.
-- 호환 Layer를 둘 수 있는 경우는 실제 Release Compatibility 요구와 Consumer 근거가 있을 때뿐이다.
-- 특히 Batch/Center-Cut Runtime은 `cpf-batch` Owner이며 `cpf-core`에는 topology-independent API/SPI Contract만 둔다.
-
-### 2. UI 제품 품질
-- ADM/BZA는 기능 존재만으로 완료 처리하지 않는다. Dashboard, 상태·오류·빈 화면, Loading, Filter, Detail, Dialog/Drawer, Timeline/Step, 위험조치 확인 UX, 반응형/keyboard/accessibility를 기능 특성에 맞게 제공한다.
-- 외부 CDN/font/script/image runtime dependency는 금지한다. UI pattern은 검증된 OSS를 참고할 수 있으나 CPF source/assets로 local bundle한다.
-- ADM은 Dashboard/Topology/Incident/Maintenance/Recovery/Worker/Capacity/SLO를 Control Plane의 1급 기능으로 관리한다.
-- BZA는 조직 Tree/직원·조직 상세/Role-Permission Matrix/Approval Inbox·Timeline·Simulation을 실제 업무사용자 수준으로 제공한다.
-
-### 3. R9 이후 계속 닫아야 하는 P0
-- ADM Approval break-glass TTL/post-review, expiry/escalation, owner command mapping 완성.
-- BZA Approval withdraw/cancel/resubmit/expiry/escalation 및 조직변경/부재/퇴직/위임 경계 시나리오.
-- REF/Generated Center-Cut generic remote handler/transport 경계는 R9에서 추가. 실제 HTTP/메시징 transport와 Generator scaffold/Evidence를 완성한다.
-- Multi-tenant HTTP/JWT/Header resolver, async propagation, DB isolation, Audit/Generator 표준.
-- Self-healing Orchestrator와 ServiceCall Lineage hook은 R9에서 추가. Health event/Owner action/audit 및 Batch/File/Broker lineage, DB Primary/Replica failover/lag/read-after-write를 완성한다.
-- V6/V29 pre-GA canonical 정합화 Source를 실제 fresh/upgrade/rollback으로 검증하고 checksum/reset/repair 정책을 고정한다.
-
-### 4. 검증 운영
-사용자 요청에 따라 구현을 충분히 누적한 뒤 Full Verification을 한 번에 수행한다. 중간 작업에서는 Source syntax, route coverage, owner boundary, artifact hygiene 같은 Static Gate만 수행한다. Runtime/DB/Browser를 실행하지 않은 상태를 완료로 기록하지 않는다.
+1. 작업 시작은 `check-work-context.ps1`로 필수 정본/요청/상태 문서와 HEAD를 확인한 뒤 진행한다.
+2. EXS는 baseline에 두지 않는다. 통합 검증에서 Generator로 생성/검증/삭제한다.
+3. SQL/DDL/DML/Mapper/Metadata/domain-template 변경은 Platform DB artifact와 Existing Generated Domain 동기화를 하나의 완료 묶음으로 처리한다.
+4. Current Request, Final Target, README/Tools Guide, Handover, Verification Plan은 Source와 함께 최신화한다.
+5. Runtime/DB/Browser 검증은 동일 시나리오 반복을 줄이도록 통합 검증 Runner에 누적하며, 다른 PC의 성공 결과를 현재 PC 성공으로 간주하지 않는다.
+6. 범용 Utility/Page/Slice/Cursor/Header/ID는 Core Public API를 우선 사용하고 EDU도 같은 표준을 사용한다.
+7. 영업일은 CMN Calendar 단일 계약을 사용한다. ADM은 관리하고 BAT/Scheduler/Domain은 조회 계약을 소비한다.
+8. transactionId와 표준 Header는 Core 정본만 사용하며 별도 Global ID를 신규 생성하지 않는다.
+9. 로그는 Domain/Instance/transactionId와 Batch Job/Execution/Worker 축으로 운영 추적 가능해야 한다.
+10. 가비지/로그/임시 문서/미사용 package를 작업 종료 전에 제거한다.
+11. 명시 요청 외에도 Final Target의 상용 제품 Gap을 선제적으로 탐지·구현한다.
+12. 가능한 구현을 “추후”로 미루지 않는다. Source만 만들고 Consumer/SQL/Test/Guide를 생략하지 않는다.
+13. 실행하지 않은 검증과 껍데기 구현의 완료 처리를 금지한다.
+14. 전달 패치는 CPF Root 구조의 ZIP과 APPLY/VERIFY Script를 포함한다.
+15. 중요 Source는 한글 JavaDoc/주석, Controller는 OpenAPI와 대표 Example을 기본 완료조건으로 한다.

@@ -64,7 +64,6 @@ export const coreMethods: Record<string, any> = {
           this.loadRemoteLogs(),
           this.loadAuditLogs(),
           this.loadServiceRegistry(),
-          this.loadReliability(),
           this.loadBatch(),
           this.loadCenterCut(),
           this.loadNotifications(),
@@ -131,19 +130,7 @@ export const coreMethods: Record<string, any> = {
         );
         this.setMessage("결과 미확정 건의 수동 처리를 요청했습니다.");
       },
-  async saveBusinessDay() {
-        if (!this.batchForm.businessDate || !this.requireReason(this.batchForm.reason)) return;
-        this.batchResult = await this.sendJson("/adm/api/batch/calendar", "POST", {
-          calendarId: this.batchForm.calendarId,
-          businessDate: this.batchForm.businessDate,
-          holidayYn: this.batchForm.holidayYn,
-          businessDayYn: this.batchForm.businessDayYn,
-          description: this.batchForm.description,
-          requestUser: "admin-ui",
-          reason: this.batchForm.reason
-        });
-        this.setMessage("영업일 캘린더를 저장했습니다.");
-      },
+
   async createRole() {
         if (!this.roleForm.roleId || !this.roleForm.roleName || !this.requireReason(this.roleForm.reason)) return;
         this.permissionResult = await this.sendJson("/adm/api/permissions/roles", "POST", this.roleForm);

@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS ix_cpf_transaction_log_module_instance_time ON cpf_transaction_log;
+DROP INDEX IF EXISTS ix_cpf_transaction_log_was_time ON cpf_transaction_log;

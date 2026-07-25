@@ -456,7 +456,7 @@ package $FeaturePackage.controller;
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
 import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
 import com.cpf.core.common.exception.CpfValidationException;
@@ -541,7 +541,7 @@ public class ${FeatureClassPrefix}Controller extends ${ModuleClassName}BaseContr
     @GetMapping("/sample-items/cursor")
     @CpfOnlineTransaction(id = "O${DomainIdCode}QY0003", name = "${ModuleName}Cursor", ownerDomain = "$DomainIdCode")
     @Operation(operationId = "cursor${ModuleName}SampleItems", summary = "Cursor/Slice 조회")
-    public ResponseEntity<${FeatureClassPrefix}Slice> cursor(
+    public ResponseEntity<CpfSlice<Map<String,Object>>> cursor(
             @RequestParam(required = false) Long afterId,
             @RequestParam(defaultValue = "20") int size) {
         return ok(facade.cursor(afterId, size));
@@ -562,7 +562,7 @@ package $FeaturePackage.facade;
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'ApplicationFacade;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.service.${FeatureClassPrefix}Service;
 import org.springframework.stereotype.Component;
 
@@ -584,7 +584,7 @@ public class ${FeatureClassPrefix}Facade implements ${ModuleClassName}Applicatio
     public Optional<Map<String, Object>> findBySampleKey(String sampleKey) { return service.findBySampleKey(sampleKey); }
     public Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command) { return service.update(sampleItemId, command); }
     public void delete(long sampleItemId, long expectedVersion) { service.delete(sampleItemId, expectedVersion); }
-    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) { return service.cursor(afterId, size); }
+    public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return service.cursor(afterId, size); }
     public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) { return service.verifyRollback(command); }
 }
 "@
@@ -595,7 +595,7 @@ package $FeaturePackage.port;
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'RepositoryPort;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 
 import java.util.Optional;
 import java.util.Map;
@@ -609,7 +609,7 @@ public interface ${FeatureClassPrefix}QueryPort extends ${ModuleClassName}Reposi
     Map<String, Object> update(long sampleItemId, ${FeatureClassPrefix}SampleCommand command,
                                String transactionId, String idempotencyKey, long transactionSequence, String actor);
     void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor);
-    ${FeatureClassPrefix}Slice cursor(Long afterId, int size);
+    CpfSlice<Map<String,Object>> cursor(Long afterId, int size);
     boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,
                            String transactionId, String idempotencyKey, long transactionSequence, String actor);
 }
@@ -620,7 +620,7 @@ package $FeaturePackage.adapter.local;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import $FeaturePackage.repository.${FeatureClassPrefix}Repository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -649,7 +649,7 @@ public class Local${FeatureClassPrefix}QueryAdapter implements ${FeatureClassPre
     @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) {
         repository.delete(sampleItemId, expectedVersion, transactionId, transactionSequence, actor);
     }
-    @Override public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) { return repository.cursor(afterId, size); }
+    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return repository.cursor(afterId, size); }
     @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
         return repository.verifyRollback(command, transactionId, idempotencyKey, transactionSequence, actor);
     }
@@ -662,7 +662,7 @@ package $FeaturePackage.adapter.remote;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import com.cpf.core.common.http.CpfWebClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -704,8 +704,8 @@ public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPref
     @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) {
         webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items/"+sampleItemId+"/delete", Map.of("expectedVersion", expectedVersion), Void.class);
     }
-    @Override public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
-        return webClient.get("$ModuleUpper", uriBuilder -> uriBuilder.path("/api/v1/$module/reference/sample-items/cursor").queryParam("afterId", afterId == null ? 0 : afterId).queryParam("size", size).build(), ${FeatureClassPrefix}Slice.class);
+    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) {
+        return webClient.get("$ModuleUpper", uriBuilder -> uriBuilder.path("/api/v1/$module/reference/sample-items/cursor").queryParam("afterId", afterId == null ? 0 : afterId).queryParam("size", size).build(), new ParameterizedTypeReference<CpfSlice<Map<String,Object>>>() {});
     }
     @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
         Boolean response = webClient.post("$ModuleUpper", "/api/v1/$module/reference/sample-items/rollback-verify", command, Boolean.class);
@@ -719,7 +719,7 @@ package $FeaturePackage.adapter.memory;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import org.springframework.stereotype.Component;
 
@@ -739,7 +739,7 @@ public class InMemory${FeatureClassPrefix}QueryAdapter implements ${FeatureClass
         return create(command, transactionId, idempotencyKey, transactionSequence, actor);
     }
     @Override public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) { }
-    @Override public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) { return new ${FeatureClassPrefix}Slice(List.of(), false, null); }
+    @Override public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return new CpfSlice<>(List.of(), 0, Math.max(1, size), false); }
     @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) { return true; }
 }
 "@
@@ -750,7 +750,7 @@ package $FeaturePackage.service;
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseService;'))
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
@@ -802,7 +802,7 @@ public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService 
     }
 
     @Transactional(readOnly = true)
-    public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) { return queryPort.cursor(afterId, size); }
+    public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) { return queryPort.cursor(afterId, size); }
 
     public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command) {
         requireCommand(command); MutationContext context = mutationContext();
@@ -839,7 +839,7 @@ package $FeaturePackage.repository;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -866,7 +866,10 @@ public class ${FeatureClassPrefix}Repository {
         this.transactionTemplate = new TransactionTemplate(Objects.requireNonNull(transactionManager, "transactionManager는 필수입니다."));
     }
     public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) {
-        return Map.of("items", sqlSessionTemplate.selectList("${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper.search", request), "criteria", request);
+        return Map.of(
+                "items", sqlSessionTemplate.selectList("${FeaturePackage}.mapper.${FeatureClassPrefix}Mapper.search", request),
+                "criteria", request,
+                "pageRequest", request.pageRequest());
     }
     public Map<String,Object> create(${FeatureClassPrefix}SampleCommand command, String transactionId, String idempotencyKey, long transactionSequence, String actor) {
         Optional<Map<String,Object>> replay=findByIdempotencyKey(idempotencyKey);
@@ -884,10 +887,10 @@ public class ${FeatureClassPrefix}Repository {
         Map<String,Object> parameters=new HashMap<>(); parameters.put("sampleItemId",sampleItemId); parameters.put("versionNo",expectedVersion); parameters.put("transactionId",transactionId); parameters.put("transactionSequence",transactionSequence); parameters.put("updatedBy",actor);
         int updated=sqlSessionTemplate.update(statement("logicalDeleteWithVersion"),parameters); if(updated!=1) throw new OptimisticLockingFailureException("Sample Item이 없거나 version이 변경되었습니다. sampleItemId="+sampleItemId);
     }
-    public ${FeatureClassPrefix}Slice cursor(Long afterId,int size){
+    public CpfSlice<Map<String,Object>> cursor(Long afterId,int size){
         int safeSize=Math.max(1,Math.min(size,MAX_PAGE_SIZE)); Map<String,Object> parameters=Map.of("cursor",afterId==null?0L:Math.max(afterId,0L),"size",safeSize+1);
         List<Map<String,Object>> rows=sqlSessionTemplate.selectList(statement("cursorSlice"),parameters); boolean hasNext=rows.size()>safeSize; List<Map<String,Object>> items=hasNext?List.copyOf(rows.subList(0,safeSize)):List.copyOf(rows);
-        Long nextCursor=hasNext&&!items.isEmpty()?((Number)items.getLast().get("sampleItemId")).longValue():null; return new ${FeatureClassPrefix}Slice(items,hasNext,nextCursor);
+        return new CpfSlice<>(items, 0, safeSize, hasNext);
     }
     public boolean verifyRollback(${FeatureClassPrefix}SampleCommand command,String transactionId,String idempotencyKey,long transactionSequence,String actor){
         boolean existedBefore=findBySampleKey(command.sampleKey()).isPresent(); transactionTemplate.executeWithoutResult(status->{ sqlSessionTemplate.insert(statement("insert"),parameters(command,transactionId,idempotencyKey,transactionSequence,actor)); status.setRollbackOnly(); });
@@ -983,6 +986,10 @@ package $FeaturePackage.dto;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Request;'))
 import com.cpf.core.common.base.CpfQuery;
+import com.cpf.core.api.page.CpfPageRequest;
+import com.cpf.core.api.page.CpfSort;
+import com.cpf.core.api.page.CpfSortDirection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -1007,10 +1014,15 @@ public record ${FeatureClassPrefix}SearchRequest(
                 keyword, normalizedSortBy, normalizedDirection, normalizedPage, normalizedSize);
     }
 
+    /** CPF 표준 Page 요청으로 변환합니다. Repository/EDU가 별도 Paging DTO를 만들지 않습니다. */
+    public CpfPageRequest pageRequest() {
+        ${FeatureClassPrefix}SearchRequest n = normalized();
+        CpfSortDirection direction = CpfSortDirection.from(n.sortDirection());
+        return new CpfPageRequest(n.page(), n.size(), List.of(new CpfSort(n.sortBy(), direction)));
+    }
+
     public int offset() {
-        int normalizedPage = page == null || page < 0 ? 0 : page;
-        int normalizedSize = size == null || size < 1 ? 20 : Math.min(size, 200);
-        return normalizedPage * normalizedSize;
+        return Math.toIntExact(pageRequest().offset());
     }
 }
 "@
@@ -1069,25 +1081,6 @@ public record ${FeatureClassPrefix}SampleItem(
         Instant createdAt,
         String updatedBy,
         Instant updatedAt) implements ${ModuleClassName}Response {
-}
-"@
-
-$sampleSlice = @"
-package $FeaturePackage.dto;
-
-$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Response;'))
-import java.util.List;
-import java.util.Map;
-
-/** Count query 없이 다음 cursor 존재 여부를 제공하는 표준 Slice 응답입니다. */
-public record ${FeatureClassPrefix}Slice(
-        List<Map<String, Object>> items,
-        boolean hasNext,
-        Long nextCursor) implements ${ModuleClassName}Response {
-
-    public ${FeatureClassPrefix}Slice {
-        items = List.copyOf(items);
-    }
 }
 "@
 
@@ -1544,7 +1537,7 @@ package $FeaturePackage.service;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import $FeaturePackage.dto.${FeatureClassPrefix}Slice;
+import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.logging.TransactionHeader;
@@ -1593,6 +1586,7 @@ class ${FeatureClassPrefix}ServiceTest {
         assertThat(capturedRequest.get().sortDirection()).isEqualTo("ASC");
         assertThat(capturedRequest.get().page()).isZero();
         assertThat(capturedRequest.get().size()).isEqualTo(200);
+        assertThat(capturedRequest.get().pageRequest().size()).isEqualTo(200);
     }
 
     @Test
@@ -1651,8 +1645,8 @@ class ${FeatureClassPrefix}ServiceTest {
         public void delete(long sampleItemId, long expectedVersion, String transactionId, long transactionSequence, String actor) { }
 
         @Override
-        public ${FeatureClassPrefix}Slice cursor(Long afterId, int size) {
-            return new ${FeatureClassPrefix}Slice(List.of(), false, null);
+        public CpfSlice<Map<String,Object>> cursor(Long afterId, int size) {
+            return new CpfSlice<>(List.of(), 0, Math.max(1, size), false);
         }
 
         @Override
@@ -2399,7 +2393,6 @@ $files = [ordered]@{
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SearchRequest.java" = $dto
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleCommand.java" = $sampleCommand
     "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}SampleItem.java" = $sampleItem
-    "src/main/java/$featurePackagePath/dto/${FeatureClassPrefix}Slice.java" = $sampleSlice
     "src/main/java/$featurePackagePath/validation/${FeatureClassPrefix}SearchValidator.java" = $validator
     "src/test/java/$featurePackagePath/service/${FeatureClassPrefix}ServiceTest.java" = $serviceTest
     "smoke/smoke-${module}.ps1" = $smokeScript

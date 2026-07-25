@@ -23,8 +23,9 @@ import java.util.Map;
 /**
  * Spring Batch Job/Step 생명주기를 JobInstance별 JSON Lines 파일에 기록합니다.
  *
- * <p>파일 분리 키는 {@code businessDate + jobName + jobInstanceId}입니다. 같은 JobInstance를
- * 재시작해도 같은 파일을 사용하고, 실행 회차는 본문의 jobExecutionId와 restartAttempt로 구분합니다.</p>
+ * <p>파일 분리 키는 {@code businessDate + jobName + serverInstanceId + jobInstanceId}입니다.
+ * 실행 회차는 본문의 jobExecutionId/restartAttempt로 구분하고, 서버가 바뀐 재시작은 인스턴스별 파일로 분리해
+ * ADM DB 추적 정보와 함께 조회합니다.</p>
  */
 public class BatBatchFileLogWriter {
     public static final String CONTEXT_BUSINESS_DATE = "cpf.batch.businessDate";
@@ -107,8 +108,9 @@ public class BatBatchFileLogWriter {
         event.put("logLevelApplied", contextValue(jobExecution, "cpf.logPolicy.job.fileLogLevel"));
         appendStepFields(event, jobExecution, stepExecution);
 
+        String serverInstanceId = ServerInstanceIdentity.current().serverInstanceId();
         writeWithOwnership(
-                BatBatchJobLogPath.relativePath(jobInstance.getJobName(), jobInstanceId, businessDate),
+                BatBatchJobLogPath.relativePath(jobInstance.getJobName(), jobInstanceId, businessDate, serverInstanceId),
                 jobInstance.getJobName(),
                 jobInstanceId,
                 jobExecution,

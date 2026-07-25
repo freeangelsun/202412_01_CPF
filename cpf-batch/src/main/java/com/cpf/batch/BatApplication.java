@@ -12,7 +12,7 @@ import com.cpf.batch.worker.BatWorkerProperties;
  * <p>BAT는 CPF가 제공하는 Batch 공통 API를 사용해 실제 Job과 Step을 실행하는 worker입니다.
  * ADM은 BAT의 실행 상태와 이력을 관제하고, CPF는 공통 실행 Facade와 운영 메타 표준을 제공합니다.</p>
  */
-@SpringBootApplication(scanBasePackages = {"com.cpf.batch", "com.cpf.core"})
+@SpringBootApplication(scanBasePackages = {"com.cpf.batch", "com.cpf.core", "com.cpf.common"})
 @EnableScheduling
 @EnableConfigurationProperties(BatWorkerProperties.class)
 public class BatApplication {

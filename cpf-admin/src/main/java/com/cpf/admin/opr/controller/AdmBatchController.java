@@ -4,7 +4,6 @@ import com.cpf.admin.opr.dto.AdmBatchGhostActionRequest;
 import com.cpf.admin.opr.dto.AdmBatchJobRegisterRequest;
 import com.cpf.admin.opr.dto.AdmBatchLockReleaseRequest;
 import com.cpf.admin.opr.dto.AdmBatchOperationRequest;
-import com.cpf.admin.opr.dto.AdmBusinessDayRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmBatchOperationService;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
@@ -27,7 +26,7 @@ import java.util.Map;
 /**
  * ADM 배치 관제와 운영 API입니다.
  *
- * <p>운영자는 이 API를 통해 배치 Job, 스케줄, 실행 이력, 인스턴스, 영업일 캘린더를 조회하고
+ * <p>운영자는 이 API를 통해 배치 Job, 스케줄, 실행 이력과 인스턴스를 조회하고
  * 수동 실행, 실패 재수행, 중지, 스케줄 활성/비활성 같은 운영 행위를 수행합니다.</p>
  */
 @RestController
@@ -78,14 +77,14 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
 
     @GetMapping("/schedules")
     @CpfOnlineTransaction(id = "OADMBA0012", name = "ADMBatchScheduleList")
-    @Operation(operationId = "admBatchFindSchedules", summary = "배치 스케줄 조회", description = "배치 스케줄, 영업일 적용 여부, 수행 가능 시간, 휴일 정책을 조회합니다.")
+    @Operation(operationId = "admBatchFindSchedules", summary = "배치 스케줄 조회", description = "배치 스케줄과 수행 정책을 조회합니다. 영업일 정책은 CMN Business Calendar를 참조합니다.")
     public ResponseEntity<List<Map<String, Object>>> findSchedules() {
         return ResponseEntity.ok(batchOperationService.findSchedules());
     }
 
     @GetMapping("/schedules/{scheduleId}/simulation")
     @CpfOnlineTransaction(id = "OADMBA0023", name = "ADMBatchScheduleSimulation")
-    @Operation(operationId = "admBatchSimulateSchedule", summary = "배치 스케줄 시뮬레이션", description = "영업일 캘린더와 스케줄 정책을 기준으로 수행 가능 후보일을 미리 계산합니다.")
+    @Operation(operationId = "admBatchSimulateSchedule", summary = "배치 스케줄 시뮬레이션", description = "CMN Business Calendar와 스케줄 정책을 기준으로 수행 가능 후보일을 미리 계산합니다.")
     public ResponseEntity<List<Map<String, Object>>> simulateSchedule(
             @PathVariable String scheduleId,
             @RequestParam(required = false) String baseDate,
@@ -95,11 +94,16 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
 
     @GetMapping("/executions")
     @CpfOnlineTransaction(id = "OADMBA0013", name = "ADMBatchExecutionList")
-    @Operation(operationId = "admBatchFindExecutions", summary = "배치 실행 이력 조회", description = "배치 실행 상태와 처리 건수를 조회합니다.")
+    @Operation(operationId = "admBatchFindExecutions", summary = "배치 실행 이력 조회", description = "Job/transactionId/Spring Job Instance/Worker/Server Instance와 실행 상태·처리 건수를 함께 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findExecutions(
             @RequestParam(required = false) String jobId,
+            @RequestParam(required = false) String transactionId,
+            @RequestParam(required = false) Long springBatchJobInstanceId,
+            @RequestParam(required = false) String workerId,
+            @RequestParam(required = false) String serverInstanceId,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(batchOperationService.findExecutions(jobId, limit));
+        return ResponseEntity.ok(batchOperationService.findExecutions(
+                jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, limit));
     }
 
     @GetMapping("/executions/{executionId}")
@@ -218,34 +222,6 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/calendar")
-    @CpfOnlineTransaction(id = "OADMBA0016", name = "ADMBusinessCalendarList")
-    @Operation(operationId = "admBatchFindBusinessCalendar", summary = "영업일 캘린더 조회", description = "캘린더 ID와 기간 기준으로 영업일과 휴일 정보를 조회합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findBusinessCalendar(
-            @RequestParam(defaultValue = "DEFAULT") String calendarId,
-            @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String toDate) {
-        return ResponseEntity.ok(batchOperationService.findBusinessCalendar(calendarId, fromDate, toDate));
-    }
-
-    @PostMapping("/calendar")
-    @CpfOnlineTransaction(id = "OADMBA0017", name = "ADMBusinessCalendarSave")
-    @Operation(operationId = "admBatchSaveBusinessDay", summary = "영업일 캘린더 저장", description = "영업일과 휴일 정보를 등록하거나 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> saveBusinessDay(
-            @RequestBody AdmBusinessDayRequest request,
-            HttpServletRequest servletRequest) {
-        String reason = auditLogService.requireReason(request.reason());
-        Map<String, Object> result = batchOperationService.saveBusinessDay(
-                request.calendarId(),
-                request.businessDate(),
-                request.holidayYn(),
-                request.businessDayYn(),
-                request.description(),
-                requestUser(servletRequest, request.requestUser()));
-        recordAudit(servletRequest, request.requestUser(), "BATCH_CALENDAR_SAVE", "bat_business_day_calendar",
-                request.calendarId() + ":" + request.businessDate(), reason, null, String.valueOf(result));
-        return ResponseEntity.ok(result);
-    }
 
     @PostMapping("/jobs/{jobId}/run")
     @CpfOnlineTransaction(id = "OADMBA0018", name = "ADMBatchRun")

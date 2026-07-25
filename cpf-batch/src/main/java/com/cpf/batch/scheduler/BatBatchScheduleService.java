@@ -1,5 +1,6 @@
 package com.cpf.batch.scheduler;
 
+import com.cpf.common.calendar.CmnBusinessCalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,9 +32,16 @@ public class BatBatchScheduleService {
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
     private final JdbcTemplate batJdbcTemplate;
+    private final CmnBusinessCalendar businessCalendar;
 
-    public BatBatchScheduleService(@Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate) {
+    /**
+     * BAT는 영업일 저장소를 직접 소유하지 않고 CMN Calendar 계약만 소비합니다.
+     */
+    public BatBatchScheduleService(
+            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
+            CmnBusinessCalendar businessCalendar) {
         this.batJdbcTemplate = batJdbcTemplate;
+        this.businessCalendar = businessCalendar;
     }
 
     public List<BatBatchScheduleCandidate> findDueSchedules(LocalDateTime serverNow) {
@@ -167,17 +174,7 @@ public class BatBatchScheduleService {
     }
 
     private boolean isBusinessDay(String calendarId, LocalDate businessDate) {
-        List<String> rows = batJdbcTemplate.queryForList("""
-                SELECT business_day_yn
-                FROM bat_business_day_calendar
-                WHERE calendar_id = ?
-                  AND business_date = ?
-                """, String.class, defaultIfBlank(calendarId, "DEFAULT"), businessDate);
-        if (!rows.isEmpty()) {
-            return "Y".equalsIgnoreCase(rows.get(0));
-        }
-        DayOfWeek dayOfWeek = businessDate.getDayOfWeek();
-        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
+        return businessCalendar.isBusinessDay(defaultIfBlank(calendarId, "DEFAULT"), businessDate);
     }
 
     private LocalDateTime toLocalDateTime(Object value) {

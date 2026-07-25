@@ -597,7 +597,8 @@ public class BatBatchOperationRepository {
                             BatBatchJobLogPath.relativePath(
                                     jobExecution.getJobInstance().getJobName(),
                                     jobInstanceId,
-                                    businessDate))).toString().replace('\\', '/');
+                                    businessDate,
+                                    ServerInstanceIdentity.current().serverInstanceId()))).toString().replace('\\', '/');
             jdbc().update("""
                     UPDATE bat_execution
                     SET spring_batch_job_instance_id = ?,

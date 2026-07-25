@@ -1,7 +1,7 @@
 <template>
       <section class="panel">
         <div class="panel-title">
-          <h2>배치 관제</h2>
+          <h2>배치 · Center-Cut 관제</h2><p class="cpf-muted">Schedule의 calendarId는 CMN 영업일 관리 API를 공통 참조하며, Job/Execution/Worker/transactionId를 같은 추적 축으로 사용합니다.</p>
           <div class="actions">
             <button type="button" @click="loadBatch">조회</button>
             <button type="button" v-if="canWrite('BATCH')" @click="registerBatchJob">배치 등록</button>
@@ -9,7 +9,6 @@
             <button type="button" v-if="canWrite('BATCH')" @click="retryBatchExecution">실패 재수행</button>
             <button type="button" v-if="canWrite('BATCH')" @click="stopBatchExecution">중지</button>
             <button type="button" v-if="canWrite('BATCH')" @click="runBatchSchedulerOnce">스케줄러 1회 실행</button>
-            <button type="button" v-if="canWrite('BATCH')" @click="saveBusinessDay">영업일 저장</button>
             <button type="button" @click="loadBatchJobDetail">Job 상세</button>
             <button type="button" @click="simulateBatchSchedule">수행 시뮬레이션</button>
             <button type="button" @click="loadBatchRelations">관계 조회</button>
@@ -39,6 +38,42 @@
           <label>Lock Key <input v-model="batchForm.lockKey" type="text"></label>
           <label>Ghost 조치 <select v-model="batchForm.ghostActionType"><option>FAIL</option><option>ABANDON</option><option>RELEASE_LOCK</option></select></label>
           <label>사유 <input v-model="batchForm.reason" type="text"></label>
+        </div>
+        <div class="subsection">
+          <div class="panel-title">
+            <div>
+              <h3>실행 추적 조회</h3>
+              <p class="cpf-muted">Job · Transaction · Spring Job Instance · Worker · Server Instance를 한 화면에서 교차 검색합니다.</p>
+            </div>
+            <div class="actions"><button type="button" @click="loadExecutionTrace">실행 추적 조회</button></div>
+          </div>
+          <div class="filters">
+            <label>Job ID <input v-model="executionTraceForm.jobId" type="text"></label>
+            <label>Transaction ID <input v-model="executionTraceForm.transactionId" type="text"></label>
+            <label>Spring Job Instance <input v-model.number="executionTraceForm.springBatchJobInstanceId" type="number"></label>
+            <label>Worker ID <input v-model="executionTraceForm.workerId" type="text"></label>
+            <label>Server Instance <input v-model="executionTraceForm.serverInstanceId" type="text"></label>
+            <label>조회 건수 <input v-model.number="executionTraceForm.limit" type="number" min="1" max="500"></label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Execution</th><th>Job</th><th>Spring Job Instance</th><th>Worker</th><th>Server</th><th>Transaction ID</th><th>상태</th><th>시작</th><th>Job Log</th></tr></thead>
+              <tbody>
+                <tr v-for="(row,index) in executionTraceRows" :key="traceValue(row,'execution_id','EXECUTION_ID') || index">
+                  <td>{{ traceValue(row,'execution_id','EXECUTION_ID') }}</td>
+                  <td>{{ traceValue(row,'job_id','JOB_ID') }}</td>
+                  <td>{{ traceValue(row,'spring_batch_job_instance_id','SPRING_BATCH_JOB_INSTANCE_ID') }}</td>
+                  <td>{{ traceValue(row,'worker_id','WORKER_ID') }}</td>
+                  <td>{{ traceValue(row,'server_instance_id','SERVER_INSTANCE_ID') }}</td>
+                  <td>{{ traceValue(row,'transaction_id','TRANSACTION_ID') }}</td>
+                  <td>{{ traceValue(row,'status_code','STATUS_CODE','status','STATUS') }}</td>
+                  <td>{{ traceValue(row,'start_time','START_TIME') }}</td>
+                  <td>{{ traceValue(row,'job_log_relative_path','JOB_LOG_RELATIVE_PATH') }}</td>
+                </tr>
+                <tr v-if="!executionTraceRows.length"><td colspan="9" class="cpf-muted">조회 결과가 없습니다.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         <pre class="detail">{{ pretty(batchResult) }}</pre>
         <div class="subsection">
@@ -126,7 +161,6 @@
         </div>
       </section>
   </template>
-</template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
@@ -134,6 +168,31 @@ import { admConsoleMixin } from "../../app/admConsoleMixin";
 
 export default defineComponent({
   name: "BatchPage",
-  mixins: [admConsoleMixin]
+  mixins: [admConsoleMixin],
+  data() {
+    return {
+      executionTraceForm: {
+        jobId: "",
+        transactionId: "",
+        springBatchJobInstanceId: null as number | null,
+        workerId: "",
+        serverInstanceId: "",
+        limit: 100
+      },
+      executionTraceRows: [] as Array<Record<string, any>>
+    };
+  },
+  methods: {
+    async loadExecutionTrace() {
+      const query = this.buildParams(this.executionTraceForm).toString();
+      this.executionTraceRows = await this.getJson(`/adm/api/batch/executions${query ? `?${query}` : ""}`) || [];
+    },
+    traceValue(row: Record<string, any>, ...keys: string[]) {
+      for (const key of keys) {
+        if (row && row[key] !== undefined && row[key] !== null) return row[key];
+      }
+      return "";
+    }
+  }
 });
 </script>

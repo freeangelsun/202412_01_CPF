@@ -119,6 +119,8 @@ CREATE TABLE IF NOT EXISTS cpf_transaction_log (
     INDEX ix_cpf_transaction_log_channel_time (CHANNEL_CODE, START_TIME),
     INDEX ix_cpf_transaction_log_module_time (MODULE_ID, START_TIME),
     INDEX ix_cpf_transaction_log_server_time (SERVER_INSTANCE_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_was_time (WAS_ID, START_TIME),
+    INDEX ix_cpf_transaction_log_module_instance_time (MODULE_ID, SERVER_INSTANCE_ID, START_TIME),
     INDEX ix_cpf_transaction_log_status_time (LOG_TYPE, RESPONSE_CODE, START_TIME),
     INDEX ix_cpf_transaction_log_http_status_time (HTTP_STATUS, START_TIME)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 거래 요약 로그';
@@ -378,7 +380,7 @@ CREATE TABLE IF NOT EXISTS cpf_service_call_history (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CPF 서비스 호출 이력';
 
 CREATE TABLE IF NOT EXISTS cpf_transaction_meta (
-    transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 ID',
+    transaction_id VARCHAR(20) NOT NULL COMMENT '업무 거래 정의 ID(실행 transactionId와 별개)',
     transaction_name VARCHAR(150) NOT NULL COMMENT '업무 거래명',
     module_code VARCHAR(20) NOT NULL COMMENT '모듈 코드',
     domain_code VARCHAR(50) NULL COMMENT '업무 영역 코드',
@@ -736,7 +738,7 @@ CREATE TABLE IF NOT EXISTS cpf_security_jwt_key (
 
 CREATE TABLE IF NOT EXISTS cpf_security_token_audit_log (
     TOKEN_AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '토큰 감사 로그 순번',
-    TRANSACTION_ID VARCHAR(80) NULL COMMENT '전역 거래 ID',
+    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF transactionId',
     TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
     TOKEN_HASH VARCHAR(512) NULL COMMENT '토큰 해시',
     TOKEN_TYPE VARCHAR(30) NOT NULL DEFAULT 'Bearer' COMMENT '토큰 유형',
@@ -954,7 +956,7 @@ CREATE TABLE IF NOT EXISTS cpf_saga_execution (
     saga_id VARCHAR(100) NOT NULL,
     saga_type VARCHAR(100) NOT NULL,
     business_key VARCHAR(200) NULL,
-    transaction_id VARCHAR(100) NULL,
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
     saga_status VARCHAR(40) NOT NULL,
     version INT NOT NULL DEFAULT 0,
     error_message VARCHAR(2000) NULL,

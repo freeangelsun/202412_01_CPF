@@ -42,6 +42,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             Integer httpStatus,
             String channelCode,
             String logType,
+            String moduleId,
+            String wasId,
+            String serverInstanceId,
+            String hostName,
             int limit) {
 
         StringBuilder sql = new StringBuilder("""
@@ -89,6 +93,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         }
         appendEquals(sql, args, "CHANNEL_CODE", channelCode);
         appendEquals(sql, args, "LOG_TYPE", logType);
+        appendEquals(sql, args, "MODULE_ID", moduleId);
+        appendEquals(sql, args, "WAS_ID", wasId);
+        appendEquals(sql, args, "SERVER_INSTANCE_ID", serverInstanceId);
+        appendEquals(sql, args, "HOST_NAME", hostName);
         sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
         args.add(Math.max(1, Math.min(limit, 500)));
 
@@ -146,8 +154,12 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             return formatted;
         }
         if (isFixedLengthKey(key)) {
-            formatted.put("formatType", "FIXED_LENGTH");
-            formatted.put("fields", parseDefaultFixedLength(mask(value)));
+            // 실제 전문 Layout Metadata가 없는 상태에서 임의 길이로 필드를 분해하면 운영자가 잘못된 값을 볼 수 있다.
+            // Metadata Registry와 연결되기 전에는 Raw/Masked 값만 명시적으로 제공한다.
+            formatted.put("formatType", "FIXED_LENGTH_RAW");
+            formatted.put("pretty", mask(value));
+            formatted.put("layoutResolved", false);
+            formatted.put("message", "전문 Layout Metadata가 연결되지 않아 필드 분해를 수행하지 않았습니다.");
             return formatted;
         }
         formatted.put("formatType", "TEXT");
@@ -171,37 +183,6 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     private boolean isFixedLengthKey(String key) {
         String normalized = key == null ? "" : key.toLowerCase();
         return normalized.contains("fixed") || normalized.contains("telegram") || normalized.contains("전문");
-    }
-
-    private List<Map<String, Object>> parseDefaultFixedLength(String value) {
-        List<FieldSpec> specs = List.of(
-                new FieldSpec("memberNo", "회원번호", 10),
-                new FieldSpec("memberName", "회원명", 20),
-                new FieldSpec("amount", "금액", 12),
-                new FieldSpec("activeYn", "활성 여부", 1),
-                new FieldSpec("baseDate", "기준일자", 8));
-        List<Map<String, Object>> fields = new ArrayList<>();
-        int offset = 0;
-        for (FieldSpec spec : specs) {
-            int end = Math.min(value.length(), offset + spec.length());
-            String raw = offset >= value.length() ? "" : value.substring(offset, end);
-            fields.add(Map.of(
-                    "name", spec.name(),
-                    "koreanName", spec.koreanName(),
-                    "start", offset + 1,
-                    "length", spec.length(),
-                    "value", raw.trim()));
-            offset += spec.length();
-        }
-        if (value.length() > offset) {
-            fields.add(Map.of(
-                    "name", "__remaining",
-                    "koreanName", "여분 데이터",
-                    "start", offset + 1,
-                    "length", value.length() - offset,
-                    "value", value.substring(offset)));
-        }
-        return fields;
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
@@ -232,6 +213,4 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         return value == null ? "" : String.valueOf(value);
     }
 
-    private record FieldSpec(String name, String koreanName, int length) {
-    }
 }

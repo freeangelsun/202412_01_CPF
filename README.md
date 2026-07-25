@@ -159,7 +159,7 @@ Scheduler/Batch/Worker/Center-Cut처럼 내부에서 독립 거래를 기동할 
 - 파일, 첨부, 압축과 SFTP
 - Outbox, Inbox, DLQ와 Replay
 - Saga, Compensation과 Reconciliation
-- MariaDB, PostgreSQL, Oracle과 SQL Server
+- Vendor-neutral DB 계약과 Vendor Pack 구조(MariaDB 검증 기준선, 기타 Vendor는 검증 전 fail-closed)
 - 신규 설치, Migration, Upgrade와 Rollback
 
 ## Repository Layout
@@ -257,7 +257,7 @@ npm run build
 ## Create a New Business Domain
 
 ```powershell
-pwsh -File .\cpf-tools\scripts\create-domain.ps1 `
+pwsh -File .\cpf-tools\generator\create-domain.ps1 `
   -DomainName "payment" `
   -SystemCode "PAY" `
   -DatabaseVendor "mariadb" `
@@ -267,7 +267,7 @@ pwsh -File .\cpf-tools\scripts\create-domain.ps1 `
 생성 후에는 검증 명령을 실행합니다.
 
 ```powershell
-pwsh -File .\cpf-tools\scripts\verify-domain.ps1 `
+pwsh -File .\cpf-tools\generator\verify-domain.ps1 `
   -DomainName "payment" `
   -SystemCode "PAY"
 ```
@@ -306,3 +306,22 @@ CPF의 기능은 Source 작성뿐 아니라 실제 연결과 실행 결과까지
 - 기존 기능의 회귀 방지
 
 각 기능은 구현, 설정, 데이터 구조, 테스트와 문서가 서로 일치하는 상태를 기준으로 관리합니다.
+
+## Developer Foundation
+
+CPF는 업무 Domain이 동일한 개발 표준을 사용하도록 작은 Public Foundation API를 제공합니다.
+
+- 날짜/시간/문자열/숫자/Decimal/List/Map/Hash/File/Validation 편의 API
+- Offset Page, Slice, Keyset/Cursor와 Sort 계약
+- 34자리 transactionId와 표준 Header
+- Generated Domain Golden Template와 기존 Generated Domain artifact parity
+- CMN Business Calendar를 통한 영업일/휴일 단일 정책
+
+자세한 사용법은 `cpf-docs/guides/CPF_FOUNDATION_API_GUIDE.md`를 참고합니다.
+
+## Operations Traceability
+
+온라인, Local/Remote Service Call, Batch와 Center-Cut은 동일한 transactionId/segment 계층을 사용합니다.
+파일 로그는 Environment/Domain/Instance/transactionId 단위로 탐색할 수 있고, DB 로그는 ADM에서 Module/WAS/Server Instance/transactionId를 교차 조회할 수 있습니다.
+Batch 실행은 Spring JobInstance/JobExecution, Worker, Server Instance, transactionId와 Job log path를 함께 보존합니다.
+

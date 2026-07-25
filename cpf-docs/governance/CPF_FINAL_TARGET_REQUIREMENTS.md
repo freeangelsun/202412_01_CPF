@@ -173,9 +173,11 @@ Override는 허용 범위, 권한, 버전, Audit와 Rollback을 가져야 한다
 
 ### 7.1 cmnDB
 
-초기 설치 시 `cmnDB` Schema는 생성하되, 기본 제품은 **최소 검증용 Sample Table 1개만** 제공한다.
+초기 설치 시 `cmnDB` Schema는 생성한다. 고객 업무를 추정해 Table을 선점하지 않는 것이 기본 원칙이며,
+**검증용 Sample Table 1개 + Final Target에서 명시적으로 CPF 제품 기능으로 확정된 최소 공통 Table**만 제공한다.
+현재 정식 제품 Table은 `CMN-CALENDAR`의 `cmn_business_calendar_day`이며, 그 외 고객 업무 Table은 기본 설치에 추가하지 않는다.
 
-그 한 Table로 다음을 검증한다.
+검증용 Sample Table 한 개로 다음을 검증한다.
 
 - Connection과 Migration
 - CRUD
@@ -194,7 +196,8 @@ Override는 허용 범위, 권한, 버전, Audit와 Rollback을 가져야 한다
 - 다수 EDU 전용 Table
 - 실제 고객 요구 없이 추정한 업무 Table
 
-`cpf-common`은 기본적으로 DB-less Library/Extension으로도 사용할 수 있어야 하며, Sample DB 기능은 명시적 Profile 또는 선택 설치로 활성화한다.
+`cpf-common`은 DB-less Library/Extension으로도 사용할 수 있어야 한다. DB-less 모드의 Calendar는 주말 기반 조회만 제공하고
+운영 Override 변경은 fail-closed한다. CPF 제품 설치에서는 CMN canonical Calendar Store를 사용한다.
 
 ## 8. 데이터, SQL과 Migration 원칙
 
@@ -283,7 +286,7 @@ Core는 범용 File, Attachment, Chunk, Compression, Checksum, Path Alias와 Tra
 - 호출 세부 계층은 `segmentId`, `parentSegmentId`, call depth와 attempt로 표현한다.
 - `standardExecutionId`는 `OXYZAA0001` 같은 실행 정의 ID이며 transactionId와 별개다.
 - File Log, DB Log, ADM Timeline, Broker Envelope, Idempotency/Reconciliation, Batch/Center-Cut, OpenAPI/EDU가 같은 계약을 사용한다.
-- DB/Source/API에서 과거 Global/root/parent/child 거래 식별자 명칭을 신규로 만들지 않는다. Historical Migration 원문은 불변 원칙 때문에 예외로 추적한다.
+- DB/Source/API에서 과거 Global/root/parent/child 거래 식별자 명칭을 신규로 만들지 않는다. 고객/Release에 적용된 Historical Migration은 불변으로 추적하되, 외부 배포 전 pre-GA 개발 Migration은 잘못된 명칭을 영구 보존하지 않고 적용 이력·호환성 영향을 확인한 뒤 정본화할 수 있다.
 
 ## 10. 업무 채번 정책
 
@@ -776,3 +779,22 @@ DB Schema, Column, Index, FK, Seed, Migration, Runtime Mapper SQL, Vendor SQL �
 - 모든 Generated Business Domain은 중앙 `domain-template`을 동일하게 사용한다.
 - EXS는 고정 `cpf-external`/`exsDB`를 갖지 않는다. 필요한 경우 다른 업무 Domain과 동일하게 `DomainName=external`, `SystemCode=EXS`로 생성한다.
 - 이후 Codex 요청서의 DB/SQL/metadata 변경 항목에는 위 generator 동기화와 drift gate를 반드시 완료 조건으로 포함한다.
+
+## R10 작업·생성·검증 일관성 가드레일
+
+다음은 CPF 개발 중 모든 요청서와 작업자가 공통으로 지켜야 하는 제품 정책이다.
+
+- 작업 시작 전에 Final Target, Requirement Continuity, Current Work Request, Decision Log, Continuity State와 최신 Git Diff를 반드시 확인한다.
+- EXS는 저장소 정식 Module이 아니라 Generated Domain 검증 대상이다. Baseline에는 `cpf-external`을 남기지 않고 통합 검증에서 `external/EXS` 생성 → verify → remove를 수행한다.
+- DB Schema/SQL/Mapper/Metadata/Generated Domain Template 변경은 `sync-database-artifacts.ps1`과 Generated Domain artifact parity를 함께 통과해야 한다. 기존 Generated Domain의 generator-owned DB/MyBatis/SQL은 `sync-generated-domain-artifacts.ps1`로 checksum 보호 하에 동기화한다.
+- 특정 Vendor만 수작업으로 맞추지 않는다. 지원 Vendor는 동일 계약으로 갱신하고, 미지원 Vendor는 coverage metadata에서 fail-closed한다.
+- 검증은 개발 작업마다 같은 Runtime 시나리오를 반복하지 않고 통합 검증 계획에 누적한다. 최종 검증은 Build/Test/DB/Generator/Runtime/Browser/Multi-instance/Evidence를 한 번의 Runner로 실행할 수 있어야 한다.
+- Framework 기술 편의 API와 자료구조는 `cpf-core` Public API가 소유한다. 거대한 Utils Class는 만들지 않고 목적별 `Cpf*` API와 Page/Slice/Cursor 계약을 제공한다. EDU/Generated Domain은 임의 DTO 대신 표준 계약을 우선 사용한다.
+- 고객 업무공통 Calendar는 `cpf-common`이 소유하고 ADM은 관리 UI/API, BAT/Scheduler/업무 Domain은 동일 `CmnBusinessCalendar` 계약을 소비한다. BAT 전용 영업일 정본을 별도로 만들지 않는다.
+- transactionId/표준 Header는 `cpf-core`가 생성·검증·전파한다. transactionId는 34자리 단일 정본이며 Local/Remote/Async/Batch 로그와 운영 Timeline이 같은 값을 사용한다.
+- File Log는 Environment/Domain/Instance와 transactionId 단위 탐색이 가능해야 하고, DB Log는 ADM에서 Module/Instance/transactionId를 교차 조회할 수 있어야 한다. Batch는 Job/Execution/Worker/transactionId를 연결해 관제한다.
+- 작업 중 생성된 `logs/`, build output, 임시 ZIP, patch staging, stale report와 사용하지 않는 package는 정식 Repository에 남기지 않는다.
+- Source/SQL/API/Test/Guide/Evidence 중 적용 가능한 항목을 같은 작업에서 함께 닫는다. 구현 가능한 항목을 관성적으로 “추후 구현”으로 넘기지 않는다.
+- 실행하지 않은 검증, 빈 Adapter, TODO만 있는 화면/Interface, 실제 Consumer가 없는 추상화를 완료라고 기록하는 가짜 구현·가짜 검증을 금지한다.
+- Public API, 주요 Class/Method, 복구·동시성·보안 로직은 유지보수 가능한 한글 JavaDoc/주석을 제공한다. Controller는 OpenAPI `@Tag/@Operation`, 요청/응답 의미와 대표 Example을 갖춘다.
+- 작업 종료 시 Current Request/Guide/상태/Handover/검증 계획을 최신화하고, 사용자 전달 패치는 CPF Root 상대경로를 보존한 ZIP + APPLY/VERIFY Script로 제공한다.

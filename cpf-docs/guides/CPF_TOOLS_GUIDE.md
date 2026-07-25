@@ -28,10 +28,12 @@ pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-database-artifacts.p
 
 실행 순서:
 
-1. `build-all-install-sql.ps1` — canonical source에서 lifecycle bundle 재생성
-2. `generate-database-schema-manifest.ps1` — Table/Column/Index/FK metadata 생성
-3. `check-database-schema-drift.ps1` — tracked manifest와 재생성 결과 비교
-4. `check-database-profile-standard.ps1` — profile, Generated Domain, EXS fixed residue, seed 정책 검사
+1. `generate-migration-checksums.ps1` — canonical Migration의 SHA-256 checksum 정본 자동 재생성
+2. `build-all-install-sql.ps1` — canonical source에서 lifecycle bundle 재생성
+3. `generate-database-schema-manifest.ps1` — Table/Column/Index/FK metadata 생성
+4. `check-database-schema-drift.ps1` — tracked manifest와 재생성 결과 비교
+5. `check-database-profile-standard.ps1` — profile, Generated Domain, EXS fixed residue, seed 정책 검사
+6. `sync-generated-domain-artifacts.ps1` — 기존 Generated Domain의 DB/Generator-owned artifact parity 확인
 
 각 단계는 별도 `pwsh` process로 실행한다. 하위 Script의 과거 native `$LASTEXITCODE`가 부모 결과로 오판되는 구조를 금지한다.
 
@@ -90,3 +92,75 @@ pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\initialize-generated-doma
 7. 실제 DB install/upgrade/runtime 실행
 8. Evidence 저장
 9. Continuity State와 다음 작업서 갱신
+
+## 9. 여러 PC/AI 작업 인수인계
+
+작업 시작 시 아래 명령을 첫 Gate로 사용한다.
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-work-context.ps1
+```
+
+Gate가 확인하는 정본은 Final Target, Requirement Continuity Ledger, Current Work Request,
+Decision Log, Continuity State와 현재 Git HEAD다. 작업자는 이전 채팅 보고만 읽고 구현을 시작하지 않는다.
+
+작업 종료 시 다음을 함께 갱신한다.
+
+- 실제 Source/API/SQL/Test
+- `CPF_CURRENT_WORK_REQUEST.md`
+- 제품 기능 변경이 있는 README/Guide
+- 현재 작업 Handover
+- 통합 검증 계획과 아직 실행하지 않은 시나리오
+- Requirement 상태와 실제 Evidence
+
+## 10. Generated Domain 기존 인스턴스 동기화
+
+Generator의 SQL/MyBatis/DB Profile/Manifest가 변경되면 이미 생성된 Domain도 drift 대상이다.
+
+```powershell
+# 비교만
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope Database
+
+# DB/SQL/MyBatis 영역만 안전 적용
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope Database -Apply
+
+# Generator Java/API/EDU 템플릿까지 바뀐 경우 전체 generator-owned 영역 적용
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\sync-generated-domain-artifacts.ps1 -Scope AllGeneratorOwned -Apply
+```
+
+`Database` Scope는 DB Profile/SQL/MyBatis/Deploy DB artifact만, `AllGeneratorOwned`는 생성기가 만든 Source/API/Test/Guide까지 비교한다.
+직접 수정된 generator-owned 파일은 기본적으로 덮어쓰지 않는다. `-AllowModifiedGeneratorFiles`는 원인과 영향이
+검토된 경우에만 사용하며, 고객 업무 Source를 Generator가 임의 변경하는 용도로 사용하지 않는다.
+또한 `domainType=GENERATED_DOMAIN`인데 `generator-ownership.json`이 없는 기존 Domain은 조용히 건너뛰지 않고
+fail-closed한다. 먼저 Generator ownership을 정본화한 뒤 동기화해야 한다.
+
+## 11. EXS 검증 정책
+
+Repository baseline에는 `cpf-external`을 보존하지 않는다.
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-exs-generated-domain-lifecycle.ps1
+```
+
+위 Script는 `external/EXS`를 공식 Generator로 생성하고 `verify-domain.ps1`을 통과시킨 뒤 `finally`에서 제거한다.
+따라서 EXS만 특별한 Source/SQL 구조를 갖는 회귀를 검출할 수 있다.
+
+## 12. 통합 검증
+
+반복적인 DB reset, Browser smoke, Generator lifecycle을 개발 항목마다 실행하지 않고
+`CPF_INTEGRATED_VERIFICATION_PLAN.md`에 누적한 뒤 다음 Runner로 한 번에 수행한다.
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\scripts\verify-full-product.ps1 -WithDatabase -WithGeneratorLifecycle -WithBrowser -RequireAll -Profile local
+```
+
+`-RequireAll`에서 `FAIL`뿐 아니라 `SKIPPED`도 전체 완료를 막는다.
+Runner의 결과는 sanitized Evidence로 저장하고, 다른 PC의 과거 PASS를 현재 PC의 PASS로 재사용하지 않는다.
+
+## 13. Source 품질 Gate
+
+- `check-source-documentation-standard.ps1`: 변경된 중요 Public API/Service/Controller의 JavaDoc과 OpenAPI를 확인한다.
+- `check-frontend-route-targets.ps1`: ADM/BZA lazy route 실파일과 외부 Runtime URL을 확인한다.
+- `check-r10-cleanup.ps1`: EXS baseline, Core Batch legacy, root log/ZIP/temp와 stale source를 확인한다.
+- `check-r10-product-standard.ps1`: Calendar/Log/Foundation API/Generated Domain 동기화 등 현재 제품 Guardrail을 확인한다.
+

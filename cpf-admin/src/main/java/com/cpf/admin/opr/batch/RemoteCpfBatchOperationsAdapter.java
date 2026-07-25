@@ -59,7 +59,17 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     public List<Map<String,Object>> findJobs(){return list(invoke("findJobs",Map.of()));}
     public Map<String,Object> findJobDetail(String jobId){return map(invoke("findJobDetail",p("jobId",jobId)));}
     public List<Map<String,Object>> findSchedules(){return list(invoke("findSchedules",Map.of()));}
-    public List<Map<String,Object>> findExecutions(String jobId,int limit){return list(invoke("findExecutions",p("jobId",jobId,"limit",limit)));}
+    public List<Map<String,Object>> findExecutions(
+            String jobId,String transactionId,Long springBatchJobInstanceId,
+            String workerId,String serverInstanceId,int limit){
+        return list(invoke("findExecutions",p(
+                "jobId",jobId,
+                "transactionId",transactionId,
+                "springBatchJobInstanceId",springBatchJobInstanceId,
+                "workerId",workerId,
+                "serverInstanceId",serverInstanceId,
+                "limit",limit)));
+    }
     public Map<String,Object> findExecutionDetail(long executionId){return map(invoke("findExecutionDetail",p("executionId",executionId)));}
     public List<Map<String,Object>> findInstances(){return list(invoke("findInstances",Map.of()));}
     public List<Map<String,Object>> findWorkers(int timeout){return list(invoke("findWorkers",p("heartbeatTimeoutSeconds",timeout)));}
@@ -72,9 +82,7 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     public Map<String,Object> actGhostExecution(long id,String action,String user,String reason){return map(invoke("actGhostExecution",p("executionId",id,"actionType",action,"requestUser",user,"reason",reason)));}
     public List<Map<String,Object>> findOperationLogs(String jobId,Long executionId,int limit){return list(invoke("findOperationLogs",p("jobId",jobId,"executionId",executionId,"limit",limit)));}
     public List<Map<String,Object>> simulateSchedule(String id,String base,int days){return list(invoke("simulateSchedule",p("scheduleId",id,"baseDate",base,"days",days)));}
-    public List<Map<String,Object>> findBusinessCalendar(String id,String from,String to){return list(invoke("findBusinessCalendar",p("calendarId",id,"fromDate",from,"toDate",to)));}
     public Map<String,Object> registerJob(String id,String name,String type,String desc,String user){return map(invoke("registerJob",p("jobId",id,"jobName",name,"jobType",type,"description",desc,"requestUser",user)));}
-    public Map<String,Object> saveBusinessDay(String id,String date,String holiday,String business,String desc,String user){return map(invoke("saveBusinessDay",p("calendarId",id,"businessDate",date,"holidayYn",holiday,"businessDayYn",business,"description",desc,"requestUser",user)));}
     public Map<String,Object> requestRun(String jobId,String params,String user,String reason){return map(invoke("requestRun",p("jobId",jobId,"jobParameters",params,"requestUser",user,"reason",reason)));}
     public Map<String,Object> requestScheduledRun(String schedule,String job,String params,String user,String reason){return map(invoke("requestScheduledRun",p("scheduleId",schedule,"jobId",job,"jobParameters",params,"requestUser",user,"reason",reason)));}
     public Map<String,Object> requestRetry(long id,String user,String reason){return map(invoke("requestRetry",p("executionId",id,"requestUser",user,"reason",reason)));}

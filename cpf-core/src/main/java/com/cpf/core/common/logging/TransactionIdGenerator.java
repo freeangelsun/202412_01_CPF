@@ -1,5 +1,7 @@
 package com.cpf.core.common.logging;
 
+import com.cpf.core.api.transaction.CpfTransactionIdGenerator;
+import com.cpf.core.api.transaction.CpfTransactionIds;
 import com.cpf.core.common.system.CpfSystemCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -11,8 +13,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
+/**
+ * CPF transactionId의 기본 발급 구현입니다.
+ *
+ * <p>Public 계약은 {@link CpfTransactionIdGenerator}이며 이 구현은 Core 내부에서
+ * SystemCode/wasId/일자별 sequence를 결합해 반드시 34자리 ID를 발급합니다.</p>
+ */
 @Component
-public class TransactionIdGenerator {
+public class TransactionIdGenerator implements CpfTransactionIdGenerator {
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     private static final int MODULE_ID_LENGTH = 3;
@@ -32,7 +40,7 @@ public class TransactionIdGenerator {
         this(
                 resolveModuleId(environment),
                 environment.getProperty("cpf.framework.was-id", "local01"),
-                environment.getProperty("cpf.framework.transaction-id.sequence-digits", Integer.class, DEFAULT_SEQUENCE_DIGITS),
+                canonicalSequenceDigits(environment),
                 Clock.systemDefaultZone());
     }
 
@@ -72,7 +80,9 @@ public class TransactionIdGenerator {
         int normalizedSequenceDigits = normalizeSequenceDigits(sequenceDigits);
         String pattern = "^\\d{17}[A-Z0-9]{" + MODULE_ID_LENGTH + "}[A-Za-z0-9]{"
                 + WAS_ID_LENGTH + "}\\d{" + normalizedSequenceDigits + "}$";
-        return Pattern.matches(pattern, transactionId);
+        return normalizedSequenceDigits == DEFAULT_SEQUENCE_DIGITS
+                ? CpfTransactionIds.isCanonical(transactionId)
+                : Pattern.matches(pattern, transactionId);
     }
 
     public String getModuleId() {
@@ -126,14 +136,23 @@ public class TransactionIdGenerator {
     }
 
     private static int normalizeSequenceDigits(int value) {
-        if (value < 4 || value > 12) {
-            return DEFAULT_SEQUENCE_DIGITS;
+        if (value != DEFAULT_SEQUENCE_DIGITS) {
+            throw new IllegalArgumentException("CPF 표준 transactionId sequence는 7자리로 고정입니다. sequenceDigits=" + value);
         }
-        return value;
+        return DEFAULT_SEQUENCE_DIGITS;
+    }
+
+    private static int canonicalSequenceDigits(Environment environment) {
+        Integer configured = environment.getProperty(
+                "cpf.framework.transaction-id.sequence-digits", Integer.class, DEFAULT_SEQUENCE_DIGITS);
+        if (configured == null || configured != DEFAULT_SEQUENCE_DIGITS) {
+            throw new IllegalStateException(
+                    "cpf.framework.transaction-id.sequence-digits는 표준 34자리 transactionId를 위해 7이어야 합니다.");
+        }
+        return DEFAULT_SEQUENCE_DIGITS;
     }
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
     }
 }
-

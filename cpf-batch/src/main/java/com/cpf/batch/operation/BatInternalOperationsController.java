@@ -2,6 +2,8 @@ package com.cpf.batch.operation;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.common.execution.CpfSharedApi;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,7 @@ import java.util.Map;
  * 외부 Gateway 공개 Route가 아니며 {@link CpfSharedApi} 신뢰 경계가 적용됩니다.
  */
 @RestController
+@Tag(name = "BAT Internal Operations", description = "ADM 등 신뢰된 내부 Control Plane이 사용하는 BAT Owner 내부 API")
 @RequestMapping("/bat/internal/operations")
 @CpfSharedApi(id="SBATOP0001", name="BatInternalOperations", ownerDomain="BAT",
         description="BAT Owner query/command contract", allowedCallers={"ADM"})
@@ -24,13 +27,20 @@ public class BatInternalOperationsController {
     }
 
     @PostMapping("/{operation}")
+    @Operation(summary = "BAT Owner 내부 작업 실행", description = "operation에 따라 조회/실행/재시도/중지 등 BAT Owner 기능을 동일 신뢰 경계로 호출합니다.")
     public ResponseEntity<?> invoke(@PathVariable String operation, @RequestBody(required=false) Map<String,Object> p) {
         Map<String,Object> a = p == null ? Map.of() : p;
         return ResponseEntity.ok(switch (operation) {
             case "findJobs" -> operations.findJobs();
             case "findJobDetail" -> operations.findJobDetail(text(a,"jobId"));
             case "findSchedules" -> operations.findSchedules();
-            case "findExecutions" -> operations.findExecutions(textOrNull(a,"jobId"), integer(a,"limit",100));
+            case "findExecutions" -> operations.findExecutions(
+                    textOrNull(a,"jobId"),
+                    textOrNull(a,"transactionId"),
+                    nullableLong(a,"springBatchJobInstanceId"),
+                    textOrNull(a,"workerId"),
+                    textOrNull(a,"serverInstanceId"),
+                    integer(a,"limit",100));
             case "findExecutionDetail" -> operations.findExecutionDetail(longValue(a,"executionId"));
             case "findInstances" -> operations.findInstances();
             case "findWorkers" -> operations.findWorkers(integer(a,"heartbeatTimeoutSeconds",120));
@@ -43,9 +53,7 @@ public class BatInternalOperationsController {
             case "actGhostExecution" -> operations.actGhostExecution(longValue(a,"executionId"), text(a,"actionType"), text(a,"requestUser"), text(a,"reason"));
             case "findOperationLogs" -> operations.findOperationLogs(textOrNull(a,"jobId"), nullableLong(a,"executionId"), integer(a,"limit",100));
             case "simulateSchedule" -> operations.simulateSchedule(text(a,"scheduleId"), textOrNull(a,"baseDate"), integer(a,"days",14));
-            case "findBusinessCalendar" -> operations.findBusinessCalendar(text(a,"calendarId"), textOrNull(a,"fromDate"), textOrNull(a,"toDate"));
             case "registerJob" -> operations.registerJob(text(a,"jobId"), textOrNull(a,"jobName"), textOrNull(a,"jobType"), textOrNull(a,"description"), text(a,"requestUser"));
-            case "saveBusinessDay" -> operations.saveBusinessDay(text(a,"calendarId"), text(a,"businessDate"), textOrNull(a,"holidayYn"), textOrNull(a,"businessDayYn"), textOrNull(a,"description"), text(a,"requestUser"));
             case "requestRun" -> operations.requestRun(text(a,"jobId"), textOrNull(a,"jobParameters"), text(a,"requestUser"), text(a,"reason"));
             case "requestScheduledRun" -> operations.requestScheduledRun(text(a,"scheduleId"), text(a,"jobId"), textOrNull(a,"jobParameters"), text(a,"requestUser"), text(a,"reason"));
             case "requestRetry" -> operations.requestRetry(longValue(a,"executionId"), text(a,"requestUser"), text(a,"reason"));

@@ -13,7 +13,20 @@ public interface CpfBatchOperationsPort {
     List<Map<String,Object>> findJobs();
     Map<String,Object> findJobDetail(String jobId);
     List<Map<String,Object>> findSchedules();
-    List<Map<String,Object>> findExecutions(String jobId, int limit);
+    /**
+     * 배치 실행을 Job/transactionId/Spring Job Instance/Worker/Server Instance 축으로 통합 검색합니다.
+     */
+    List<Map<String,Object>> findExecutions(
+            String jobId,
+            String transactionId,
+            Long springBatchJobInstanceId,
+            String workerId,
+            String serverInstanceId,
+            int limit);
+
+    default List<Map<String,Object>> findExecutions(String jobId, int limit) {
+        return findExecutions(jobId, null, null, null, null, limit);
+    }
     Map<String,Object> findExecutionDetail(long executionId);
     List<Map<String,Object>> findInstances();
     List<Map<String,Object>> findWorkers(int heartbeatTimeoutSeconds);
@@ -26,10 +39,7 @@ public interface CpfBatchOperationsPort {
     Map<String,Object> actGhostExecution(long executionId, String actionType, String requestUser, String reason);
     List<Map<String,Object>> findOperationLogs(String jobId, Long executionId, int limit);
     List<Map<String,Object>> simulateSchedule(String scheduleId, String baseDate, int days);
-    List<Map<String,Object>> findBusinessCalendar(String calendarId, String fromDate, String toDate);
     Map<String,Object> registerJob(String jobId, String jobName, String jobType, String description, String requestUser);
-    Map<String,Object> saveBusinessDay(String calendarId, String businessDate, String holidayYn, String businessDayYn,
-                                       String description, String requestUser);
     Map<String,Object> requestRun(String jobId, String jobParameters, String requestUser, String reason);
     Map<String,Object> requestScheduledRun(String scheduleId, String jobId, String jobParameters, String requestUser, String reason);
     Map<String,Object> requestRetry(long executionId, String requestUser, String reason);

@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     implementation project(':cpf-core')
+    implementation project(':cpf-common') // 영업일/고객 공통 Calendar 계약을 재사용합니다.
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'

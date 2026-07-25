@@ -20,7 +20,11 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     public List<Map<String,Object>> findJobs(){return operations.findJobs();}
     public Map<String,Object> findJobDetail(String jobId){return operations.findJobDetail(jobId);}
     public List<Map<String,Object>> findSchedules(){return operations.findSchedules();}
-    public List<Map<String,Object>> findExecutions(String jobId,int limit){return operations.findExecutions(jobId,limit);}
+    public List<Map<String,Object>> findExecutions(
+            String jobId,String transactionId,Long springBatchJobInstanceId,
+            String workerId,String serverInstanceId,int limit){
+        return operations.findExecutions(jobId,transactionId,springBatchJobInstanceId,workerId,serverInstanceId,limit);
+    }
     public Map<String,Object> findExecutionDetail(long id){return operations.findExecutionDetail(id);}
     public List<Map<String,Object>> findInstances(){return operations.findInstances();}
     public List<Map<String,Object>> findWorkers(int timeout){return operations.findWorkers(timeout);}
@@ -33,9 +37,7 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     public Map<String,Object> actGhostExecution(long id,String action,String user,String reason){return operations.actGhostExecution(id,action,user,reason);}
     public List<Map<String,Object>> findOperationLogs(String jobId,Long executionId,int limit){return operations.findOperationLogs(jobId,executionId,limit);}
     public List<Map<String,Object>> simulateSchedule(String id,String base,int days){return operations.simulateSchedule(id,base,days);}
-    public List<Map<String,Object>> findBusinessCalendar(String id,String from,String to){return operations.findBusinessCalendar(id,from,to);}
     public Map<String,Object> registerJob(String id,String name,String type,String desc,String user){return operations.registerJob(id,name,type,desc,user);}
-    public Map<String,Object> saveBusinessDay(String id,String date,String holiday,String business,String desc,String user){return operations.saveBusinessDay(id,date,holiday,business,desc,user);}
     public Map<String,Object> requestRun(String jobId,String params,String user,String reason){return operations.requestRun(jobId,params,user,reason);}
     public Map<String,Object> requestScheduledRun(String schedule,String job,String params,String user,String reason){return operations.requestScheduledRun(schedule,job,params,user,reason);}
     public Map<String,Object> requestRetry(long id,String user,String reason){return operations.requestRetry(id,user,reason);}

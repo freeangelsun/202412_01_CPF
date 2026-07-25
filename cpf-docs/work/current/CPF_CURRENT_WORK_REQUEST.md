@@ -4,7 +4,7 @@
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 검수 기준 Commit: `22b1874e67547372b51a4bcd21f47aea6fcb5c25`
+- 검수 기준 Commit: `6ceea6642c9bd35f7e94dd82d03ec1b441024135`
 - 최상위 목표: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - Requirement 연속성: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
 - 장기 결정: `cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md`
@@ -88,7 +88,7 @@ Codex 주장보다 실제 Git/Runtime을 우선한다.
 
 ### 목표
 
-`cpf-tools/db/source/mariadb/10_*~45_*` split DDL만 Schema 설계 정본으로 사용하고 `cpf-tools/scripts/build-all-install-sql.ps1`이 generated bundle과 `cpf-tools/db/vendor/mariadb` lifecycle mirror를 결정적으로 재생성한다.
+`cpf-tools/db/vendor/mariadb/source/10_*~45_*` split DDL을 MariaDB Platform Schema 설계 정본으로 사용하고 `cpf-tools/scripts/build-all-install-sql.ps1`이 같은 Vendor 경계의 install/seed/migration/verify lifecycle artifact를 결정적으로 재생성한다. 다른 Vendor도 동일 `cpf-tools/db/vendor/<vendor>/source` 계약을 사용하며 미구현 Vendor는 fail-closed한다.
 
 ### 필수 작업
 
@@ -148,7 +148,7 @@ Owner Query/Command Contract
   ↓
 Local Facade 또는 Remote Facade
   ↓
-cpf-batch / cpf-reference / cpf-external / 해당 Owner
+cpf-batch / cpf-reference / Generated Domain(external/EXS 포함) / 해당 Owner
 ```
 
 - ADM에서 Owner DB 직접 UPDATE/DELETE/INSERT 제거.
@@ -233,22 +233,25 @@ Overlay는 기존 사람별 direct-line INSERT를 새 `target_type/target_code` 
 
 특히 복구된 `DB-MULTI`는 Multi Datasource/Read Replica이며 `DB-MULTI-VENDOR`와 다른 요구다. `CPF-LOGFAIL`, `ADM-SERVICE`, `ADM-LOG`, `OPS-MAINT`, `DATA-RETENTION`, `API-LIMIT`, `RULE-*`, `REQ-GAP` 등 복구 Requirement도 Final Target에서 계속 추적한다.
 
-## 11. P0 — EXS/cpf-external 제품 Owner 정책 보존 및 물리 모델 검증
+## 11. P0 — EXS Generated Domain 정본화
 
-현재 Final Target과 과거 정본 모두 `cpf-external`을 기관별 Endpoint/Auth/Adapter/Execution/Unknown/Reconciliation의 제품 Owner로 정의한다. 따라서 현행 `exsDB` 7개 Table은 `Consumer가 적다` 또는 `Reference Domain은 sample 하나`라는 이유만으로 삭제하지 않는다.
+최상위 목표의 확정 정책은 `EXS`를 고정 Platform Module/SystemCode/DB로 제공하지 않는 것이다. `cpf-external`, `exsDB`, `45_external_schema.sql`, `57_external_seed_data.sql`을 기본 제품 정본으로 복구하지 않는다.
 
-### 필수 판정
+### 필수
 
-- `cpf-external` 제품 Runtime에 필요한 Table과 단순 EDU/Reference Table을 분리한다.
-- 현재 7개 Table 각각을 `Requirement → Owner → Java/Repository Consumer → API/운영/복구 → SQL`로 역추적한다.
-- 기관/Channel/Endpoint/Auth Profile/Control Policy/Execution/Reconciliation 중 중복 책임이나 다른 Owner와 충돌하는 Object만 보완/통합 후보로 잡는다.
-- 사용자 정책이 향후 “EXS를 순수 Reference Sample Domain으로 축소”로 최종 확정되면 먼저 `cpf-external` 제품 Owner의 새 Module/SystemCode/DB 경계와 Consumer Migration을 설계한 뒤 변경한다.
+- EXS가 필요한 프로젝트에서는 다른 Generated Domain과 동일하게 `create-domain.ps1 -DomainName external -SystemCode EXS -Apply`로 생성한다.
+- EXS 이름 전용 switch/if/template을 Generator에 추가하지 않는다.
+- Platform default install/product seed/optional seed/schema manifest에는 EXS Object 0건을 유지한다.
+- 대외연계 공통 기술 Contract/SPI는 `cpf-core`, 고객 공통 정책은 `cpf-common`, EDU는 `cpf-reference`, 기관별 Adapter/업무 데이터는 생성된 EXS 또는 해당 업무 Domain이 소유한다.
+- Generator의 collision 검사는 특정 MariaDB source 파일을 하드코딩하지 않고 schema/domain metadata를 사용한다.
+- create → verify → DB bootstrap → build/test → remove → regenerate parity를 Evidence로 남긴다.
 
-### 금지
+### 완료 금지
 
-- MBR/ACC minimal sample 정책을 EXS 제품 Owner에 기계적으로 적용
-- 실제 Consumer가 있는 External Recovery/Unknown/Reconciliation Object를 정적 문자열 개수만 보고 삭제
-- Final Target/Decision Log 변경 없이 EXS Ownership을 조용히 재설계
+- 옛 `cpf-external` Source를 수동 복구
+- EXS 전용 Platform Table을 중앙 install에 재추가
+- EXS를 Generated Domain이라 부르면서 Generator와 다른 구조를 유지
+- External EDU seed를 EXS product seed로 되돌림
 
 ## 12. P1 — Migration/Upgrade/Rollback
 
@@ -327,3 +330,37 @@ Final Target 162개 Catalog 전체를 Source/API/SQL/Test/Evidence와 다시 대
 Evidence는 기준 Commit, PC/환경, Profile, DB Vendor, 시작/종료시각, 실행 명령, Requirement ID, 결과, 민감정보 제거 여부, Stale 여부를 포함한다. 원시 Secret/PII를 저장하지 않는다.
 
 최종 보고는 본 요청서 3장의 Requirement별 구현 보고 형식을 따른다.
+
+## 19. 2026-07-25 사용자 추가 필수 범위
+
+1. MariaDB만 별도 `cpf-tools/db/source/mariadb`를 갖는 비대칭을 제거하고 Vendor별 동일 `cpf-tools/db/vendor/<vendor>` ownership으로 정리한다.
+2. Root `docker-compose.local.yml`을 `deploy/local`로 이동하고 Root hygiene를 재검증한다.
+3. `cpf-tools` 사용/책임/DB/Generator/검증/안전 규칙을 설명하는 공식 Guide를 완성한다.
+4. 본 요청서 일부만 구현하고 종료하지 않는다. Final Target 전체 Catalog와 본 요청서를 Requirement 단위로 순회하며 상태를 갱신한다.
+5. ADM/BZA Vue 화면을 App Shell + feature package + route registry + state/API boundary + code splitting 구조로 완료한다. 외부 CDN/remote CSS/font/icon Runtime 의존 금지.
+6. ChatGPT/Codex가 서로 교차 검수할 수 있도록 Requirement별 구현 Report와 실제 잔여 Gap을 남긴다.
+7. 작업 종료 시 Current Request, Continuity State, Decision Log(장기 결정만), 검수 Report, 다음 첫 작업을 갱신하고 Root/log/build/temp garbage를 제거한다.
+
+## 20. 현재 우선 중단점
+
+`20260725_01`에서 R6.1 DB Artifact sync가 하위 PowerShell script 성공에도 stale `$LASTEXITCODE`를 읽어 실패했다. DB Runtime/BAT 재설치는 아직 미완료다. 다음 구현은 이 gate를 먼저 수정하고 sync PASS를 확인한 뒤 fresh/partial DB 상태를 다시 검증해야 한다.
+
+## 21. R7 정적 구현 Checkpoint (2026-07-25)
+
+본 절은 완료 선언이 아니라 다음 작업자가 반복 구현하지 않도록 남기는 현재 상태다.
+
+| Requirement | 상태 | R7 적용 | 다음 완료 조건 |
+|---|---|---|---|
+| DB canonical/vendor ownership | 부분 구현 | MariaDB source를 `vendor/mariadb/source`로 이동, 모든 Vendor 동일 source root 계약 | MariaDB sync/runtime PASS + 타 Vendor Platform pack 실제 구현/검증 |
+| DB artifact sync | 부분 구현 | child gate separate pwsh process로 stale exit code 문제 교정 | 사용자 Windows에서 sync 실제 PASS |
+| DB schema metadata gate | 부분 구현 | multiline FK 96건 포함 local/referenced table/column 검증 보강 | 실제 PowerShell manifest 재생성 및 drift PASS |
+| EXS Generated Domain | 부분 구현 | fixed residue 금지 + Generated `external/EXS` 허용/검증 | Generator create/build/test/db/remove-regenerate Evidence |
+| Root hygiene | 부분 구현 | compose deploy 이동, untracked root logs 조건부 제거, .gitignore 주석 정리 | `check-repository-hygiene.ps1` 실제 PASS |
+| cpf-tools 문서 | 부분 구현 | Tool README + 상세 Guide | 링크/명령 실제 실행 재검증 |
+| ADM frontend packaging | 부분 구현 | App Shell + 5 lazy feature package + shared state/API methods | npm verify + Browser E2E + 권한/위험조치 검증 |
+| BZA frontend packaging | 부분 구현 | console.ts 제거 + lazy route registry + auth/API + reusable components | npm verify + Browser E2E + CRUD/approval/session 검증 |
+| DB Runtime/BAT V39 | 미검증 | Source/V39은 기존 master에 존재 | partial batDB 정리 후 `-All -RequireRun` Evidence |
+| P0 ADM/BZA/Batch 전체 기능 | 부분 구현 | 기존 master 구현 보호 + frontend/DB policy 보강 | 본 요청서 6~9장 Runtime/Evidence closure |
+| P1 migration/security/regression/generator | 부분 구현 | guardrail 유지 | 본 요청서 12~15장 순차 실행 |
+
+다음 작업자는 위 표의 `부분 구현`을 `완료`로 임의 승격하지 않는다.

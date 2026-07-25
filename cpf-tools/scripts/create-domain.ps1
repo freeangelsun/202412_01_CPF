@@ -115,19 +115,6 @@ function Test-TextExists {
     return $content.IndexOf($Text, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
 }
 
-function Test-SqlIdentifierPrefixExists {
-    param(
-        [string] $Path,
-        [string] $Prefix
-    )
-    if (-not (Test-Path -LiteralPath $Path)) {
-        return $false
-    }
-    $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
-    $pattern = '(?i)(?<![a-z0-9_])' + [regex]::Escape($Prefix) + '_'
-    return [regex]::IsMatch($content, $pattern)
-}
-
 $requestedDomainName = if ([string]::IsNullOrWhiteSpace($DomainName)) { $ModuleCode } else { $DomainName }
 $module = Normalize-DomainName $requestedDomainName
 $projectName = "cpf-$module"
@@ -268,14 +255,21 @@ if (Test-Path -LiteralPath $targetModuleDir) {
 if (Test-TextExists -Path $settingsPath -Text "include '$projectName'") {
     $conflicts.Add("settings.gradle에 같은 모듈이 이미 등록되어 있습니다: $projectName")
 }
-$businessSchemaCandidates = @(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/40_business_modules_schema.sql")
-)
-if ($DatabaseEnabled -and
-        @($businessSchemaCandidates | Where-Object {
-            Test-SqlIdentifierPrefixExists -Path $_ -Prefix $TablePrefix
-        }).Count -gt 0) {
-    $conflicts.Add("table prefix already appears in canonical business schema: $TablePrefix")
+# Platform/Generated Domain table-prefix collision은 특정 Vendor SQL 경로를 직접 읽지 않는다.
+# generated database-schema-manifest.json이 현재 구현된 Platform schema의 vendor-neutral collision gate다.
+$databaseSchemaManifestPath = Join-Path $Root "cpf-tools/db/generated/database-schema-manifest.json"
+if ($DatabaseEnabled -and (Test-Path -LiteralPath $databaseSchemaManifestPath -PathType Leaf)) {
+    try {
+        $databaseSchemaManifest = Get-Content -LiteralPath $databaseSchemaManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+        $prefixCollision = @($databaseSchemaManifest.tables | Where-Object {
+            ([string]$_.tableName).ToLowerInvariant().StartsWith($TablePrefix + "_")
+        })
+        if ($prefixCollision.Count -gt 0) {
+            $conflicts.Add("table prefix already appears in canonical schema manifest: $TablePrefix")
+        }
+    } catch {
+        $conflicts.Add("database-schema-manifest.json을 해석할 수 없습니다: $databaseSchemaManifestPath")
+    }
 }
 if (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$packagePath")) {
     $conflicts.Add("base package already exists: $BasePackage")
@@ -1488,7 +1482,7 @@ $readme = @"
 
 이 디렉터리는 `cpf-tools/scripts/create-domain.ps1`로 생성한 신규 업무 모듈 후보입니다.
 
-- 실제 반영 전 `settings.gradle`, `cpf-tools/db/source/mariadb`, ADM 메뉴/API/버튼 seed, OpenAPI 문서를 함께 검토합니다.
+- 실제 반영 전 `settings.gradle`, `cpf-tools/db/generated/database-schema-manifest.json`, 선택 Vendor Pack, ADM/BZA 연동과 OpenAPI 문서를 함께 검토합니다.
 - Controller, Facade, Service, Repository, DTO, Mapper XML, SQL의 모듈 코드와 테이블 prefix를 일치시킵니다.
 - 운영 로그는 `${Dollar}{CPF_LOG_ROOT}/{environment}/{moduleCode}/{instanceId}/{category}/cpf-{moduleCode}-{logType}-{instanceId}.{yyyy-MM-dd}.log` 규칙을 사용합니다.
 "@

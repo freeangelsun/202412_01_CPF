@@ -30,7 +30,7 @@
 
 - 상태: `완료`
 - 현재 적용: External 고정 Module 소유 부분은 DEC-024로 대체됨
-- 결정: 범용 고정길이 Layout/Field/Group/Parser/Writer/Validation/Masking/Encoding API·SPI는 `cpf-core`가 소유한다. 기관별 Layout, Mapping, Endpoint, Authentication, Adapter, Retry, Unknown Result와 Reconciliation은 `cpf-external`이 소유한다.
+- 결정: 범용 고정길이 Layout/Field/Group/Parser/Writer/Validation/Masking/Encoding API·SPI는 `cpf-core`가 소유한다. 기관별 Layout, Mapping, Endpoint, Authentication, Adapter, Retry, Unknown Result와 Reconciliation은 고객/업무 Generated Domain이 소유하며, 대외 업무 Domain이 필요하면 `external/EXS`도 동일 Golden Generator로 생성한다.
 - 이유: 재사용 가능한 기술 Contract와 기관별 업무·운영 정책을 분리한다.
 
 ## DEC-006 Batch Physical Ownership
@@ -72,14 +72,14 @@
 ## DEC-012 Multi-Vendor DB 격리
 
 - 상태: `완료`
-- 결정: 공식 지원 구조는 MariaDB, MySQL, PostgreSQL, Oracle, SQL Server를 대상으로 한다. `cpf-core`, `cpf-common`, `cpf-admin`, `cpf-biz-admin`, `cpf-batch`, `cpf-gateway`, MBR/ACC/REF/EXS와 Generator 신규 Domain 전체에서 Vendor 선택을 `cpf.db.vendor`와 Driver/Datasource/Migration/SQL resource로 격리하며 Controller, Service, Domain, API와 일반 Repository 호출 계약에는 Vendor 분기를 두지 않는다. Vendor별 물리 SQL은 달라도 논리 Schema, 상태, Seed, API와 Repository 의미는 동일해야 한다.
+- 결정: 공식 지원 구조는 MariaDB, MySQL, PostgreSQL, Oracle, SQL Server를 대상으로 한다. Platform Module과 모든 Generated Domain(`external/EXS` 포함)에서 Vendor 선택을 `cpf.db.vendor`와 Driver/Datasource/Migration/SQL resource로 격리하며 Controller, Service, Domain, API와 일반 Repository 호출 계약에는 Vendor 분기를 두지 않는다. Vendor별 물리 SQL은 달라도 논리 Schema, 상태, Seed, API와 Repository 의미는 동일해야 한다.
 - 이유: 고객 DB 전환이 Java 업무 Source 수정이나 Module fork를 요구하지 않게 하고 동일 Binary/Source의 배포 가능성을 보장하기 위해서다.
 
 ## DEC-013 Minimal Transaction Reference Schema
 
 - 상태: `완료`
 - 현재 적용: MBR/ACC/REF를 동일 고정 Reference로 보는 부분은 DEC-024로 대체됨
-- 결정: MBR, ACC, REF와 Generator 신규 업무 Domain은 Domain별 임의 원장 대신 동일한 Minimal Transaction Reference Schema Template을 사용한다. Schema/SystemCode/Table prefix만 Domain에 맞추고 CRUD, 검색, 정렬, Offset/Slice/Cursor, Validation, Duplicate, Optimistic Lock, Transaction, 호출·Header·Idempotency·Audit 경로를 같은 논리 계약으로 검증한다. EXS는 대외연계 책임에 필요한 최소 추가 구조만 허용한다.
+- 결정: 모든 Generated Domain은 Domain별 임의 원장 대신 동일한 Minimal Transaction Golden Schema Template을 사용한다. Schema/SystemCode/Table prefix만 Metadata로 달라지고 CRUD, 검색, 정렬, Offset/Slice/Cursor, Validation, Duplicate, Optimistic Lock, Transaction, 호출·Header·Idempotency·Audit 경로를 같은 논리 계약으로 검증한다. `external/EXS` 역시 예외 Template을 두지 않으며 기관별 특화 Adapter/업무 데이터가 필요하면 Generated Domain의 확장 경계에서 추가한다.
 - 이유: Framework 거래 처리 검증을 업무 예시 차이에서 분리하고 Vendor 및 Generator lifecycle parity를 자동 검증하기 위해서다.
 
 ## DEC-014 Vendor SQL Resource Pack 선택
@@ -103,8 +103,8 @@
 ## DEC-017 현행 설치 DB 객체의 최소화 판정
 
 - 상태: `완료`
-- 현재 적용: ACC/EXS 즉시 sample-only 전환 부분은 DEC-024의 Consumer-first retirement로 대체됨
-- 결정: 현재 Empty Install의 Table, Sequence, Constraint, Index와 Product Seed는 과거 Dump나 Historical Migration에 존재한다는 이유만으로 유지하지 않는다. 각 객체는 최신 정본의 Owner 책임과 실제 Java/MyBatis/Repository/Installer/Framework 동적 Consumer 중 하나로 존재 이유가 확인되어야 한다. 소비자가 없고 활성 원장과 중복되는 객체는 현행 설치 경로에서 제거하며, 정본 요구가 있으나 Consumer가 미완성인 객체는 삭제 대신 `부분 구현`으로 관리한다. MBR/ACC는 단일 `*_sample_item` 공통 Template로 전환하고, BZA의 고객·상품·주문 원장은 기본 제품에서 제거하며, EXS는 기관별 연계·실행·결과 불명 복구에 필요한 최소 구조만 둔다. MariaDB Spring Batch 객체는 사용 중인 Spring Batch Version의 공식 MariaDB Schema 계약을 따른다.
+- 현재 적용: Legacy fixed 업무 Domain retirement는 DEC-024의 Golden Generated Domain 정책으로 대체됨
+- 결정: 현재 Empty Install의 Table, Sequence, Constraint, Index와 Product Seed는 과거 Dump나 Historical Migration에 존재한다는 이유만으로 유지하지 않는다. 각 객체는 최신 정본의 Owner 책임과 실제 Java/MyBatis/Repository/Installer/Framework 동적 Consumer 중 하나로 존재 이유가 확인되어야 한다. 소비자가 없고 활성 원장과 중복되는 객체는 현행 설치 경로에서 제거하며, 정본 요구가 있으나 Consumer가 미완성인 객체는 삭제 대신 `부분 구현`으로 관리한다. Generated Domain 기본 구조는 단일 `*_sample_item` Golden Template을 따르고, 기관/고객 특화 원장은 기본 Platform install에 넣지 않는다. MariaDB Spring Batch 객체는 사용 중인 Spring Batch Version의 공식 MariaDB Schema 계약을 따른다.
 - 이유: 추정성 Schema와 중복 원장, 사용되지 않는 Seed·Index를 제품 Baseline에 고착시키지 않으면서도 보안·운영 정본 객체를 단순 문자열 검색만으로 잘못 삭제하지 않기 위해서다.
 
 
@@ -147,13 +147,13 @@
 ## DEC-024 Golden Generated Domain과 Legacy Fixed Domain Retirement
 
 - 상태: `완료`
-- 결정: Generated Domain의 정본은 현재 MBR/ACC/EXS 구현이 아니라 단일 Golden Template이다. 임의 DomainName/SystemCode를 Metadata로 적용하고 동일 Capability 결과는 normalize parity가 같아야 한다. MBR은 Golden Reference Instance로 재정렬한다. ACC/EXS는 고정 Generator 목록이 아니며, 실제 Consumer/고유 기능을 적정 Owner 또는 Generated/Customer Adapter로 이관하고 회귀검증한 뒤 고정 Module/Schema를 제거한다. Consumer가 남은 상태에서 DB만 먼저 축소하지 않는다.
+- 결정: Generated Domain의 정본은 특정 MBR/ACC/EXS 구현이 아니라 단일 Golden Template이다. 임의 DomainName/SystemCode를 Metadata로 적용하고 동일 Capability 결과는 normalize parity가 같아야 한다. 기존 수작업 fixed 업무 Module은 Consumer를 안전하게 이관한 뒤 retirement하며, `external/EXS`가 필요하면 fixed Module 복구가 아니라 동일 Generator로 다시 생성한다.
 - 이유: 현재 수작업 Domain을 Template로 승격하면 과거 가비지/업무특화 구조가 신규 고객 Domain에 복제되고, 반대로 성급한 삭제는 기존 성공 기능을 회귀시킨다.
 
 ## DEC-025 Canonical Repository Path
 
 - 상태: `완료`
-- 결정: 제품 Root의 문서 파일은 최종적으로 `README.md`만 유지한다. Tool Script는 `cpf-tools/scripts`, 사람이 수정하는 DB Source는 `cpf-tools/db/source/<vendor>`, 배포/Runtime Vendor Pack은 `cpf-tools/db/vendor/<vendor>`가 소유한다. Root 작업문서와 기존 `scripts`, `cpf-tools/db/source/mariadb`은 역할별 Canonical Path로 이동하고 모든 Gradle/CI/Guide 참조를 함께 보정한다.
+- 결정: 제품 Root의 문서 파일은 최종적으로 `README.md`만 유지한다. Tool Script는 `cpf-tools/scripts`, Vendor별 사람이 수정하는 Platform DB Source와 배포/Runtime Pack은 모두 `cpf-tools/db/vendor/<vendor>` 경계가 소유하며 Source는 그 아래 `source/`에 둔다. Root 작업문서, 기존 Root `scripts`, 독립 `cpf-tools/db/source/<vendor>` tree는 역할별 Canonical Path로 이동하고 모든 Gradle/CI/Guide 참조를 함께 보정한다.
 - 이유: 작업문서/SQL/Script가 Root에 산재하고 같은 역할의 정본이 중복되는 문제를 제거한다.
 
 ## DEC-026 Vendor-first Schema/Metadata Change Order
@@ -161,3 +161,12 @@
 - 상태: `완료`
 - 결정: Table/Column/Index/Seed/기준 Metadata 변경은 DB Source/Vendor 정본부터 시작하고 generated bundle, migration/rollback, Mapper/Repository, Service/API/UI, Test/Runtime/Evidence 순서로 전파한다. Product Seed에는 설치 직후 필요한 권한/메뉴/정책 Metadata를 제공하고 Local/EDU/고객 조직 Sample은 Optional Seed로 분리한다.
 - 이유: Java나 파생 SQL부터 수정해 Source/Install/Runtime 계약이 갈라지고 Fresh Install 때 Metadata가 비는 재발을 막는다.
+
+
+## 2026-07-25 — Vendor source ownership / EXS / Frontend packaging
+
+- EXS는 고정 Platform Module이 아니라 Generated Domain only로 확정한다. `external/EXS`도 PAY/INS/CRM과 동일 Golden Generator를 사용한다.
+- Platform Vendor canonical source는 `cpf-tools/db/vendor/<vendor>/source` 경계에서 관리한다. 특정 Vendor 전용 top-level source tree를 만들지 않는다.
+- 지원하지 않는 Platform Vendor는 MariaDB 복사본/fallback 없이 fail-closed한다.
+- ADM/BZA frontend는 self-contained static artifact이며 외부 CDN/remote CSS/font/icon에 Runtime 의존하지 않는다. App Shell, feature package, route registry, state/API boundary, code splitting을 표준으로 한다.
+- 환경별 Docker Compose는 Repository Root가 아니라 `deploy/`가 소유한다.

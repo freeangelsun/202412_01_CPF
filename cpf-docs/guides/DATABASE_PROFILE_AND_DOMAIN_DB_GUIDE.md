@@ -129,3 +129,18 @@ See `cpf-tools/config/database-vendor-coverage.json`.
 `cpf-{domain}/deploy/database/database-profile.json`
 
 The generated domain owns its DB connection and Vendor choice. `-ProvisionDatabase` uses that generated profile as the source of truth and does not maintain a second independent set of DB credentials.
+
+
+## 8. Platform Vendor source ownership
+
+Platform canonical SQL source는 Vendor별로 `cpf-tools/db/vendor/{vendor}/source` 아래에 둔다. 특정 Vendor만 `cpf-tools/db/source/{vendor}` 같은 별도 top-level 경로를 사용하지 않는다. 현재 MariaDB만 Platform source/pack이 구현되어 있으며 다른 Vendor는 동일 ownership 경계 아래 구현되기 전까지 fail-closed `미구현` 상태다.
+
+## 9. EXS generated-domain policy
+
+EXS는 Platform 기본 모듈/DB가 아니다. 필요 시 다음과 같이 Golden Generator로 생성한다.
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\cpf-tools\generator\create-domain.ps1 -DomainName external -SystemCode EXS -Apply
+```
+
+생성된 EXS는 해당 프로젝트의 Generated Domain이며 Platform install source에는 `exsDB` 또는 `exs_*`를 추가하지 않는다.

@@ -124,26 +124,53 @@ foreach ($requiredToken in @(
 $generatedBatchInstaller = Join-Path $Root "cpf-tools/scripts/initialize-generated-domain-databases.ps1"
 $unifiedInstaller = Join-Path $Root "cpf-tools/scripts/initialize-databases.ps1"
 $fixedExternalFiles = @(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/45_external_schema.sql"),
-    (Join-Path $Root "cpf-tools/db/source/mariadb/57_external_seed_data.sql"),
-    (Join-Path $Root "cpf-external")
+    (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/45_external_schema.sql"),
+    (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/57_external_seed_data.sql")
 )
 foreach ($fixedExternalPath in $fixedExternalFiles) {
     if (Test-Path -LiteralPath $fixedExternalPath) {
-        throw "EXS fixed-domain residue가 남아 있습니다: $fixedExternalPath"
-    }
-}
-$settingsPath = Join-Path $Root "settings.gradle"
-if (Test-Path -LiteralPath $settingsPath) {
-    $settingsText = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8
-    if ($settingsText -match "cpf-external") {
-        throw "settings.gradle에 fixed cpf-external 등록이 남아 있습니다."
+        throw "EXS fixed-domain SQL residue가 남아 있습니다: $fixedExternalPath"
     }
 }
 
-& (Join-Path $PSScriptRoot "check-database-schema-drift.ps1") -Root $Root
+# cpf-external 이름 자체는 금지 대상이 아니다. 사용자가 external/EXS Domain을 필요로 하면
+# Golden Generator가 동일 project name을 생성할 수 있다. fixed residue와 generated output은
+# Generator ownership manifest로 구분한다.
+$generatedExternalDir = Join-Path $Root "cpf-external"
+$generatedExternalValid = $false
+if (Test-Path -LiteralPath $generatedExternalDir -PathType Container) {
+    $externalManifestPath = Join-Path $generatedExternalDir "manifest/domain-manifest.json"
+    $externalOwnershipPath = Join-Path $generatedExternalDir "manifest/generator-ownership.json"
+    if (-not (Test-Path -LiteralPath $externalManifestPath -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $externalOwnershipPath -PathType Leaf)) {
+        throw "cpf-external이 존재하지만 Generated Domain manifest/ownership이 없습니다. fixed module residue로 판정합니다."
+    }
+    $externalManifest = Get-Content -LiteralPath $externalManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $generatedExternalValid = [string]$externalManifest.domainType -eq "GENERATED_DOMAIN" -and
+        [string]$externalManifest.domainName -eq "external" -and
+        [string]$externalManifest.systemCode -eq "EXS" -and
+        [string]$externalManifest.projectName -eq "cpf-external"
+    if (-not $generatedExternalValid) {
+        throw "cpf-external이 Golden Generated Domain external/EXS 계약과 다릅니다."
+    }
+}
+
+$settingsPath = Join-Path $Root "settings.gradle"
+if (Test-Path -LiteralPath $settingsPath) {
+    $settingsText = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8
+    $settingsHasExternal = $settingsText -match '(?m)^\s*include\s+[''"]cpf-external[''"]'
+    if ($settingsHasExternal -and -not $generatedExternalValid) {
+        throw "settings.gradle에 cpf-external 등록이 있지만 유효한 Generated Domain external/EXS가 없습니다."
+    }
+    if ($generatedExternalValid -and -not $settingsHasExternal) {
+        throw "Generated external/EXS가 존재하지만 settings.gradle include가 없습니다."
+    }
+}
+
+$schemaDriftScript = Join-Path $PSScriptRoot "check-database-schema-drift.ps1"
+& pwsh -NoProfile -ExecutionPolicy Bypass -File $schemaDriftScript -Root $Root
 if ($LASTEXITCODE -ne 0) {
-    throw "DB schema artifact drift gate 실패"
+    throw "DB schema artifact drift gate 실패 exitCode=$LASTEXITCODE"
 }
 
 foreach ($requiredScript in @($generatedBatchInstaller, $unifiedInstaller)) {
@@ -176,9 +203,37 @@ foreach ($match in $insertStatements) {
     }
 }
 
+$legacyVendorSourceRoot = Join-Path $Root "cpf-tools/db/source"
+if (Test-Path -LiteralPath $legacyVendorSourceRoot -PathType Container) {
+    $legacyEntries = @(Get-ChildItem -LiteralPath $legacyVendorSourceRoot -Force -ErrorAction SilentlyContinue)
+    if ($legacyEntries.Count -gt 0) {
+        throw "Legacy standalone DB vendor source tree가 남아 있습니다: $legacyVendorSourceRoot"
+    }
+}
+
 $coveragePath = Join-Path $Root "cpf-tools/config/database-vendor-coverage.json"
 if (-not (Test-Path -LiteralPath $coveragePath -PathType Leaf)) {
     throw "DB Vendor coverage manifest가 없습니다."
+}
+$coverage = Get-Content -LiteralPath $coveragePath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
+foreach ($vendor in @("mariadb","mysql","postgresql","oracle","sqlserver")) {
+    $expectedSourceRoot = "cpf-tools/db/vendor/$vendor/source"
+    $coverageEntry = $coverage.platform.PSObject.Properties[$vendor].Value
+    if ($null -eq $coverageEntry -or [string]$coverageEntry.sourceRoot -ne $expectedSourceRoot) {
+        throw "DB Vendor source ownership manifest 불일치: vendor=$vendor expected=$expectedSourceRoot"
+    }
+    $sourceRootPath = Join-Path $Root $expectedSourceRoot
+    if (-not (Test-Path -LiteralPath $sourceRootPath -PathType Container)) {
+        throw "DB Vendor source ownership directory 누락: $expectedSourceRoot"
+    }
+    if ($vendor -eq "mariadb") {
+        if ([string]$coverageEntry.sourceStatus -ne "implemented" -or
+            -not (Test-Path -LiteralPath (Join-Path $sourceRootPath "10_cpf_schema.sql") -PathType Leaf)) {
+            throw "MariaDB Platform source는 implemented 상태와 실제 split DDL을 모두 가져야 합니다."
+        }
+    } elseif ([string]$coverageEntry.sourceStatus -ne "not-implemented") {
+        throw "미구현 Platform Vendor는 명시적 not-implemented/fail-closed 상태여야 합니다: $vendor"
+    }
 }
 
 Write-Host "CPF database profile/vendor-template check passed."

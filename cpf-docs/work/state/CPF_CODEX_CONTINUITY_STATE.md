@@ -33,14 +33,14 @@
 - Controller는 transport Header/거래ID를 Body에서 중복 수신하지 않고 Core Context를 사용한다.
 - DB bootstrap은 중앙 Vendor `domain-template` + `initialize-domain-database.ps1`만 사용한다.
 - MBR은 최종 Golden Reference Instance로 재정렬한다.
-- ACC/EXS는 실제 Consumer 이관 후 고정 Module/Schema 제거 대상이며 현재 즉시 삭제하면 회귀 위험이 있다.
+- Legacy fixed 업무 Domain은 실제 Consumer 이관 후 제거하고, 필요 Domain은 Golden Generator로 재생성한다. EXS는 fixed Module/Schema가 아니라 `external/EXS` Generated Domain only다.
 
 ### Repository/DB
 
 - Root 문서 최종 허용: `README.md`만.
 - Tool Script: `cpf-tools/scripts/`.
-- MariaDB Source SQL: `cpf-tools/db/source/mariadb/`.
-- MariaDB generated Vendor Pack: `cpf-tools/db/vendor/mariadb/`.
+- Vendor DB ownership: `cpf-tools/db/vendor/<vendor>/`.
+- MariaDB Platform Source SQL: `cpf-tools/db/vendor/mariadb/source/`; lifecycle pack도 동일 MariaDB Vendor 경계가 소유한다.
 - DB 변경은 Source SSOT → Vendor Pack → Migration → Mapper → API/UI → Runtime 순서다.
 
 ## 3. ChatGPT R4 실제 수정
@@ -72,7 +72,7 @@ R4 split DDL `CREATE TABLE` 정적 수:
 - admDB: 25
 - batDB: 24
 - business modules(MBR/ACC/REF/BZA): 32
-- exsDB transitional: 7
+- exsDB: 0 (Platform 기본 설치 대상 아님)
 - 총: **124**
 
 이 숫자는 정적 Source inventory일 뿐 실제 MariaDB 성공 Evidence가 아니다.
@@ -83,7 +83,7 @@ R4 split DDL `CREATE TABLE` 정적 수:
 
 - MBR Source에는 과거 회원/Auth 구조가 남아 있어 Golden Generator 결과와 완전 parity가 아님.
 - ACC는 `acc_account` Consumer가 있어 즉시 sample-only DB로 바꾸면 회귀함. Consumer migration 필요.
-- EXS는 실제 external execution 구현이 남아 있어 Owner 이관 후 제거 필요.
+- EXS fixed 구현은 제거됐으며 필요 시 `external/EXS`를 Golden Generator로 생성한다. Platform install/seed에는 EXS object를 두지 않는다.
 - ADM 일부 조회/제어가 Owner DB 직접 접근 구조를 사용함.
 - BZA 조직/결재 DDL은 보강했지만 Engine/API/UI 전체 연결은 미완료.
 - ADM 위험조치 Approval Engine/API/UI도 전체 Runtime 미완료.
@@ -147,8 +147,21 @@ HOME 결과를 그대로 완료로 승계하지 않는다.
 - Module-local Vendor SQL/MyBatis fallback 복구
 - 과거 Global 거래 ID 개념 재도입
 - Generator에 고정 업무 Domain 목록 추가
-- ACC/EXS Consumer 확인 없이 삭제
+- Generated/legacy 업무 Domain Consumer 확인 없이 파괴적 삭제
 - ADM이 다른 Owner DB를 직접 갱신하는 신규 코드
 - stale Evidence를 현재 성공 근거로 사용
 - 실행하지 않은 검증을 완료 처리
 - 사용자 승인 없는 commit/push/branch
+
+
+## 2026-07-25 ChatGPT R7 작업 인수인계
+
+- 기준 master: `6ceea6642c9bd35f7e94dd82d03ec1b441024135` (`20260725_01`)
+- 확정 정책: EXS는 Generated Domain only. 고정 `cpf-external`/`exsDB`/Platform EXS SQL 금지.
+- 발견 결함: `sync-database-artifacts.ps1`이 하위 `.ps1`을 same-process 호출한 뒤 stale `$LASTEXITCODE`를 검사하여 정상 bundle 생성도 실패로 오판.
+- DB Runtime: BAT 포함 `initialize-cpf-database.ps1 -All -RequireRun` 재검증 전이며 현재 `미검증`. 과거 부분 생성 batDB 가능성 있음.
+- DB 구조 보정: Vendor canonical source ownership을 `cpf-tools/db/vendor/<vendor>/source`로 통합. MariaDB만 구현, 타 Vendor는 fail-closed 미구현.
+- Root 보정: `docker-compose.local.yml`은 `deploy/local`로 이동.
+- Frontend: R7 patch가 ADM/BZA App Shell + feature package + lazy route/code-splitting 소스를 제공한다. 실제 npm verify/Browser E2E 전까지 `미검증`.
+- 다음 첫 실행: patch 적용 → `sync-database-artifacts.ps1` PASS → EXS Generator 생성/검증 → `git diff --check` → DB 재설치/Runtime Evidence.
+- commit/push: 사용자가 직접 수행. ChatGPT 산출물은 patch ZIP으로 전달.

@@ -1,31 +1,41 @@
 {
-  "manifestVersion": 1,
-  "policy": "No cross-vendor fallback. Missing DDL or runtime SQL pack is a hard failure.",
+  "manifestVersion": 2,
+  "policy": "No cross-vendor fallback. Every vendor uses the same vendor-root contract; missing platform source/DDL/runtime SQL is a hard failure.",
   "platform": {
     "mariadb": {
       "ddl": "implemented",
       "runtimeSql": "existing-source-dependent",
-      "runtimeVerified": false
+      "runtimeVerified": false,
+      "sourceRoot": "cpf-tools/db/vendor/mariadb/source",
+      "sourceStatus": "implemented"
     },
     "mysql": {
       "ddl": "not-implemented",
       "runtimeSql": "not-implemented",
-      "runtimeVerified": false
+      "runtimeVerified": false,
+      "sourceRoot": "cpf-tools/db/vendor/mysql/source",
+      "sourceStatus": "not-implemented"
     },
     "postgresql": {
       "ddl": "not-implemented",
       "runtimeSql": "not-implemented",
-      "runtimeVerified": false
+      "runtimeVerified": false,
+      "sourceRoot": "cpf-tools/db/vendor/postgresql/source",
+      "sourceStatus": "not-implemented"
     },
     "oracle": {
       "ddl": "not-implemented",
       "runtimeSql": "not-implemented",
-      "runtimeVerified": false
+      "runtimeVerified": false,
+      "sourceRoot": "cpf-tools/db/vendor/oracle/source",
+      "sourceStatus": "not-implemented"
     },
     "sqlserver": {
       "ddl": "not-implemented",
       "runtimeSql": "not-implemented",
-      "runtimeVerified": false
+      "runtimeVerified": false,
+      "sourceRoot": "cpf-tools/db/vendor/sqlserver/source",
+      "sourceStatus": "not-implemented"
     }
   },
   "generatedDomain": {
@@ -54,5 +64,6 @@
       "mybatisTemplate": "implemented",
       "runtimeVerified": false
     }
-  }
+  },
+  "platformSourceOwnership": "cpf-tools/db/vendor/<vendor>/source"
 }

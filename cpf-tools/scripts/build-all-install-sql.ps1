@@ -9,7 +9,6 @@ $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
-$SqlRoot = Join-Path $Root "cpf-tools\db\source\mariadb"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 function Read-Utf8([string] $Path) {
@@ -47,7 +46,7 @@ function Get-Section([string] $FileName) {
     return @"
 
 -- ============================================================================
--- cpf-tools/db/source/mariadb/$FileName
+-- $($mariaPlan.sourceRoot)/$FileName
 -- ============================================================================
 $(Read-Utf8 $path)
 "@
@@ -61,7 +60,7 @@ function New-Bundle(
     $header = @"
 -- CPF generated SQL bundle: $OutputName
 -- 목적: $Purpose
--- 정본은 cpf-tools/db/source/mariadb의 번호별 분리 SQL입니다.
+-- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
 "@
     $body = $header
@@ -98,6 +97,13 @@ if (-not (Test-Path -LiteralPath $sourcePlanPath -PathType Leaf)) {
 }
 $sourcePlan = Get-Content -LiteralPath $sourcePlanPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
 $mariaPlan = $sourcePlan.mariadb
+if ([string]::IsNullOrWhiteSpace([string]$mariaPlan.sourceRoot)) {
+    throw "database-source-plan.json에 mariadb.sourceRoot가 없습니다."
+}
+$SqlRoot = Join-Path $Root ([string]$mariaPlan.sourceRoot)
+if (-not (Test-Path -LiteralPath $SqlRoot -PathType Container)) {
+    throw "MariaDB canonical vendor source root가 없습니다: $SqlRoot"
+}
 
 $provisionFiles = @($mariaPlan.provisionFiles)
 $emptyInstallFiles = @($mariaPlan.emptyInstallFiles)
@@ -163,4 +169,4 @@ Publish-CentralDirectory `
     (Join-Path $centralMariaRoot "rollback")
 
 Write-Host "CPF SQL bundles rebuilt without implicit reset or test seed."
-Write-Host "MariaDB central lifecycle WIP mirror published to cpf-tools/db/vendor/mariadb."
+Write-Host "MariaDB canonical vendor source and lifecycle pack synchronized under cpf-tools/db/vendor/mariadb."

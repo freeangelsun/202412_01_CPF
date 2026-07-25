@@ -1,10 +1,13 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policy": {
     "generatedBusinessDomainFixedModulesAllowed": false,
     "externalSystemCode": "EXS",
     "externalDomainPolicy": "GENERATED_DOMAIN_ONLY",
-    "artifactSyncCommand": "pwsh -ExecutionPolicy Bypass -File cpf-tools/scripts/sync-database-artifacts.ps1"
+    "artifactSyncCommand": "pwsh -ExecutionPolicy Bypass -File cpf-tools/scripts/sync-database-artifacts.ps1",
+    "platformVendorSourceRootPattern": "cpf-tools/db/vendor/{vendor}/source",
+    "platformVendorLifecycleRootPattern": "cpf-tools/db/vendor/{vendor}",
+    "noStandaloneVendorSourceTree": true
   },
   "mariadb": {
     "provisionFiles": [
@@ -35,6 +38,29 @@
     ],
     "verifyFiles": [
       "99_smoke_check.sql"
-    ]
+    ],
+    "sourceRoot": "cpf-tools/db/vendor/mariadb/source"
+  },
+  "vendorSourceStatus": {
+    "mariadb": {
+      "status": "implemented",
+      "sourceRoot": "cpf-tools/db/vendor/mariadb/source"
+    },
+    "mysql": {
+      "status": "not-implemented",
+      "sourceRoot": "cpf-tools/db/vendor/mysql/source"
+    },
+    "postgresql": {
+      "status": "not-implemented",
+      "sourceRoot": "cpf-tools/db/vendor/postgresql/source"
+    },
+    "oracle": {
+      "status": "not-implemented",
+      "sourceRoot": "cpf-tools/db/vendor/oracle/source"
+    },
+    "sqlserver": {
+      "status": "not-implemented",
+      "sourceRoot": "cpf-tools/db/vendor/sqlserver/source"
+    }
   }
 }

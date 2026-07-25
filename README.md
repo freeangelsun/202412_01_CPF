@@ -55,23 +55,23 @@ flowchart TB
     G --> M[cpf-member]
     G --> A[cpf-account]
     G --> R[cpf-reference]
-    G --> E[cpf-external]
+    G --> D[Generated Business Domain<br/>(e.g. external/EXS)]
 
     M <--> F[Typed Local / Remote Facade]
     A <--> F
     R <--> F
-    E <--> F
+    D <--> F
 
     F --> CORE[cpf-core<br/>Technical Contracts & Runtime Capabilities]
     M --> COMMON[cpf-common<br/>Business Common]
     A --> COMMON
     R --> COMMON
-    E --> COMMON
+    D --> COMMON
 
     B[cpf-batch<br/>Scheduler / Worker / Center-Cut] --> M
     B --> A
     B --> R
-    B --> E
+    B --> D
 
     ADM[cpf-admin<br/>Platform Control Plane] --> G
     ADM --> B
@@ -82,7 +82,7 @@ flowchart TB
 
     CORE --> DB[(Database)]
     B --> DB
-    E --> EXT[External Systems / Broker / File]
+    D --> EXT[External Systems / Broker / File]
 ```
 
 ### Runtime Principles
@@ -109,9 +109,10 @@ CPF의 공식 Module은 기본 구성에 포함되는 **필수 Module**, 프로�
 | `cpf-member` | `MBR` | 생성형 | 회원 업무 도메인 |
 | `cpf-account` | `ACC` | 생성형 | 계좌 업무 도메인 |
 | `cpf-reference` | `REF` | 선택 | 참조 구현·EDU |
-| `cpf-external` | `EXS` | 생성형 | 대외 연계 도메인 |
+| `external / EXS` | `EXS` | 생성형 | 필요 시 Generator로 생성하는 대외 연계 업무 도메인 |
 
 생성형 업무 Module은 필요한 Module만 선택하여 사용할 수 있으며, `cpf-tools`의 Generator를 이용해 동일한 표준 구조의 신규 업무 도메인을 추가할 수 있습니다.
+`EXS`도 고정 Platform Module이 아니며 필요 시 `create-domain.ps1 -DomainName external -SystemCode EXS -Apply`로 다른 생성형 Domain과 동일한 Golden Domain 구조를 생성합니다. EXS 전용 테이블은 Platform 기본 설치에 포함하지 않습니다.
 
 
 ## Core Capabilities
@@ -174,16 +175,16 @@ cpf-core-platform-framework/
 ├─ cpf-member/        회원 업무 도메인
 ├─ cpf-account/       계좌 업무 도메인과 Generator lifecycle 기준
 ├─ cpf-reference/     기준정보, 참조 구현과 EDU 업무 도메인
-├─ cpf-external/      외부기관, 전문, 파일, 메시징과 연계 복구
+├─ cpf-<domain>/      Generator로 생성하는 업무 도메인(PAY/INS/CRM/EXS 등)
 ├─ cpf-docs/          아키텍처, 개발, 운영, 보안, API와 작업 문서
-├─ cpf-deployment/    설치, 배포, 외부 WAS, Container와 운영 Script
+├─ deploy/            설치, 배포, 외부 WAS, Container와 환경별 운영 자산
 ├─ cpf-tools/         Generator, Migration, 검증과 개발 지원 도구
 ├─ build.gradle       공통 Build와 품질 검증 설정
 ├─ settings.gradle    공식 Module 구성
 └─ README.md          제품 소개, 구조, 주요 기능과 시작 안내
 ```
 
-제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합합니다. DB Source SQL은 `cpf-tools/db/source/<vendor>`, 배포/Runtime Vendor Pack은 `cpf-tools/db/vendor/<vendor>`, 실행 Tool은 `cpf-tools/scripts`가 소유합니다. 실행 Evidence는 `cpf-docs/evidence`에서 검증 기준과 함께 관리합니다.
+제품 Specification과 Guide는 역할에 따라 `cpf-docs/` 아래에 통합합니다. DB canonical source와 배포/Runtime lifecycle pack은 `cpf-tools/db/vendor/<vendor>` 아래에서 Vendor별 동일 구조로 관리하고, 실행 Tool은 `cpf-tools/scripts`가 소유합니다. 실행 Evidence는 `cpf-docs/evidence`에서 검증 기준과 함께 관리합니다.
 
 ## Quick Start
 

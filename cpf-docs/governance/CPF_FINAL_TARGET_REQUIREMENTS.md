@@ -543,6 +543,22 @@ MariaDB는 필수 실검증 대상이다. PostgreSQL, Oracle과 SQL Server는 Ve
 - Alert와 Incident Link
 - Retention, Masking과 Secure Evidence
 
+
+### 18.1 DB Vendor source ownership 정본
+
+Platform DB의 canonical source, domain-template, install/seed/migration/rollback/verify는 모두 `cpf-tools/db/vendor/<vendor>` Owner 경계 안에서 동일하게 관리한다. 특정 Vendor만 별도 `cpf-tools/db/source/<vendor>` 경로를 갖지 않는다. 아직 구현되지 않은 Vendor는 빈 성공 산출물이나 MariaDB 복사본을 제공하지 않고 `database-vendor-coverage.json`에서 `미구현`으로 fail-closed한다.
+
+DB/SQL/Metadata 변경 후 `sync-database-artifacts.ps1`은 각 하위 gate의 실제 process exit code를 판정해야 하며 과거 native `$LASTEXITCODE` 잔존값을 성공/실패로 오판해서는 안 된다.
+
+### 18.2 Tooling/Deploy/Frontend Repository 정책
+
+- `cpf-tools/README.md`와 `cpf-docs/guides/CPF_TOOLS_GUIDE.md`를 공식 Tooling 진입점으로 유지한다.
+- Docker Compose, 환경별 배포 파일은 Root에 두지 않고 `deploy/` 아래에 둔다.
+- `logs/`, 임시 ZIP, patch staging, build output은 Root 정식 파일이 아니다.
+- ADM/BZA는 Vue 3 + TypeScript + Vite를 사용하고 App Shell, feature package, route registry, state/API boundary를 분리한다. 대형 단일 `App.vue` 또는 단일 `console.ts`에 운영 기능을 계속 누적하지 않는다.
+- 화면 자산은 제품 Artifact에 self-contained 되어야 하며 외부 CDN/원격 CSS/font/icon을 Runtime 의존성으로 사용하지 않는다.
+- route-level lazy import 또는 동등한 code splitting을 적용하고 Browser E2E 없이 완료 처리하지 않는다.
+
 ## 19. 설치, 배포와 호환성
 
 필수:

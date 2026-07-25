@@ -1,6 +1,6 @@
 package com.cpf.reference.failure.controller;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfBusinessException;
 import com.cpf.core.common.exception.CpfDynamicErrorCode;
 import com.cpf.core.common.exception.CpfExternalServiceException;
@@ -28,7 +28,7 @@ public class ReferenceExceptionEducationController extends com.cpf.reference.com
     @CpfOnlineTransaction(id = "OREFAA0017", name = "REFStandardExceptionSample")
     @Operation(operationId = "refExceptionEducationThrowStandardException", summary = "표준 예외 샘플", description = "업무/외부/검증 오류별 표준 예외 변환 흐름을 확인합니다.")
     public ResponseEntity<String> throwStandardException(@RequestParam(defaultValue = "validation") String type) {
-        String normalizedType = TextUtils.normalizeCode(type);
+        String normalizedType = CpfStrings.normalizeCode(type);
         if ("BUSINESS".equals(normalizedType)) {
             throw new CpfBusinessException("업무 예외 샘플입니다. type=" + type);
         }
@@ -67,7 +67,7 @@ public class ReferenceExceptionEducationController extends com.cpf.reference.com
             @RequestParam(defaultValue = "accountId") String fieldName) {
 
         throw new CpfBusinessException(
-                TextUtils.normalizeCode(responseCode),
+                CpfStrings.normalizeCode(responseCode),
                 "응답코드 기반 예외 샘플입니다. field=" + fieldName,
                 Map.of("0", fieldName));
     }

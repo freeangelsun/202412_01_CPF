@@ -1,6 +1,6 @@
 package com.cpf.batch.runtime.centercut;
 
-import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
+import com.cpf.core.api.centercut.CpfCenterCutSummary;
 
 import java.time.Instant;
 

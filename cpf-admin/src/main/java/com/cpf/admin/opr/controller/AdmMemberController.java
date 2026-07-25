@@ -5,8 +5,8 @@ import com.cpf.admin.opr.dto.AdmMemberSaveRequest;
 import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmMemberOperationService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -152,7 +152,7 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             String beforeData,
             String afterData) {
         auditLogService.record(
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 requestUser(servletRequest, requestUser),
                 actionType,
                 targetType,

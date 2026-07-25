@@ -1,8 +1,8 @@
 package com.cpf.batch.job.centercut;
 
-import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
-import com.cpf.core.common.batch.centercut.CpfCenterCutService;
-import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.batch.runtime.centercut.BatCenterCutService;
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,7 +15,7 @@ class BatCenterCutSampleTargetProviderTest {
     @Test
     void sampleProviderSupportsSingleTransactionAndPerItemSegments() {
         AtomicLong sequence = new AtomicLong();
-        CpfCenterCutService service = new CpfCenterCutService(() ->
+        BatCenterCutService service = new BatCenterCutService(() ->
                 "CC-BAT-20260701120000000-" + String.format("%07d", sequence.incrementAndGet()));
         BatCenterCutSampleTargetProvider provider = new BatCenterCutSampleTargetProvider();
         BatCenterCutSampleHandler handler = new BatCenterCutSampleHandler();

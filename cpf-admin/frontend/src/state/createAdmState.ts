@@ -4,6 +4,7 @@ export function createAdmState() {
         token: localStorage.getItem("admAccessToken") || "",
         currentOperator: {} as Record<string, any>,
         authorizedMenus: [],
+        permissionsLoaded: false,
         authMessage: "",
         uiMessage: "",
         loginForm: { operatorId: "admin", password: "" },

@@ -1,6 +1,6 @@
 package com.cpf.batch.runtime.centercut;
 
-import com.cpf.core.common.servicecall.ServiceCallResolvedTarget;
+import com.cpf.core.api.servicecall.CpfServiceTarget;
 
 /**
  * Generated Domain/분리 WAS의 Center-Cut Handler를 호출하는 실제 전송 SPI입니다.
@@ -9,9 +9,10 @@ import com.cpf.core.common.servicecall.ServiceCallResolvedTarget;
  */
 @FunctionalInterface
 public interface BatCenterCutRemoteTransport {
-    String exchange(ServiceCallResolvedTarget target, BatCenterCutRemoteRequest request);
+    String exchange(CpfServiceTarget target, BatCenterCutRemoteRequest request);
 
     record BatCenterCutRemoteRequest(
+            String requestPath,
             String targetId,
             String centerCutJobId,
             String businessKey,

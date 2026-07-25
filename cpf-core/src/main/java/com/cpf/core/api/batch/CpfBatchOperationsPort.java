@@ -24,6 +24,21 @@ public interface CpfBatchOperationsPort {
             String serverInstanceId,
             int limit);
 
+    /**
+     * 운영 다운로드/추적용 실행 조회입니다. 기간 조건은 BAT Owner가 자신의 스키마에 적용합니다.
+     */
+    default List<Map<String,Object>> findExecutions(
+            String jobId,
+            String transactionId,
+            Long springBatchJobInstanceId,
+            String workerId,
+            String serverInstanceId,
+            String fromDate,
+            String toDate,
+            int limit) {
+        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, limit);
+    }
+
     default List<Map<String,Object>> findExecutions(String jobId, int limit) {
         return findExecutions(jobId, null, null, null, null, limit);
     }

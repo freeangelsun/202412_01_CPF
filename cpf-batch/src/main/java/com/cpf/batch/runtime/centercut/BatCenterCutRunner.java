@@ -1,9 +1,9 @@
 package com.cpf.batch.runtime.centercut;
 
-import com.cpf.core.common.batch.centercut.CenterCutHandler;
-import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
-import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
-import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
+import com.cpf.core.spi.centercut.CenterCutHandler;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutSummary;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -65,7 +65,8 @@ public class BatCenterCutRunner {
                 return result;
             };
             CpfCenterCutSummary summary = service.execute(jobId, limit, definition.provider(), guardedHandler);
-            String status = summary.failedCount() > 0 ? "COMPLETED_WITH_FAILURE"
+            String status = summary.unknownResultCount() > 0 ? "COMPLETED_WITH_UNKNOWN"
+                    : summary.failedCount() > 0 ? "COMPLETED_WITH_FAILURE"
                     : summary.stopRequestedCount() > 0 ? "STOPPED" : "COMPLETED";
             BatCenterCutRunResult result = new BatCenterCutRunResult(
                     jobId, runId, status, started, Instant.now(), summary, null);

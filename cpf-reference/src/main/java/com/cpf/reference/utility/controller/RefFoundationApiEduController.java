@@ -6,7 +6,7 @@ import com.cpf.core.api.transaction.CpfTransactionIdGenerator;
 import com.cpf.core.api.util.CpfDates;
 import com.cpf.core.api.util.CpfPages;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,9 +41,7 @@ public class RefFoundationApiEduController {
             @RequestParam(defaultValue = "2") int size) {
         List<String> all = List.of("ALPHA","BETA","GAMMA");
         CpfPageRequest request = CpfPages.request(page, size);
-        int from = Math.min(all.size(), Math.toIntExact(request.offset()));
-        int to = Math.min(all.size(), from + request.size());
-        return ResponseEntity.ok(CpfPages.page(all.subList(from, to), request, all.size()));
+        return ResponseEntity.ok(CpfPages.offsetPage(all, request));
     }
 
     @PostMapping("/normalize")

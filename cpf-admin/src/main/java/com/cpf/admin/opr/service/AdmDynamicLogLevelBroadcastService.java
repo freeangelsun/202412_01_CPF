@@ -4,7 +4,7 @@ import com.cpf.common.mqe.core.CmnMessageConsumer;
 import com.cpf.common.mqe.core.CmnMessageEnvelope;
 import com.cpf.common.mqe.core.CmnMessagePublisher;
 import com.cpf.common.ref.service.CacheRefreshEventPublisher;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.logging.DynamicLogLevelRule;
 import com.cpf.core.common.logging.DynamicTransactionLogLevelService;
 import org.slf4j.Logger;
@@ -16,6 +16,13 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * ADM에서 동적 로그 레벨 정책 변경을 Runtime과 다중 인스턴스에 전파하는 운영 서비스입니다.
+ *
+ * <p>정책 저장소를 기준으로 로컬 Runtime을 동기화하고, 메시징 및 DB 기반 refresh event를 통해
+ * 다른 인스턴스에도 변경을 전달합니다. 전파 채널 장애는 원 업무 트랜잭션을 오염시키지 않도록
+ * 경고 로그로 격리하며, 최종 상태는 저장소 재동기화로 복구할 수 있습니다.</p>
+ */
 @Service
 public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.base.AdmBaseService {
     public static final String DESTINATION = "com.cpf.admin.dynamic-log-level";
@@ -66,7 +73,7 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("eventType", eventType);
         payload.put("ruleId", ruleId);
-        payload.put("requestUser", TextUtils.defaultIfBlank(requestUser, "ADM"));
+        payload.put("requestUser", CpfStrings.defaultIfBlank(requestUser, "ADM"));
         return payload;
     }
 
@@ -76,8 +83,8 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
             return;
         }
         try {
-            publisher.publish(DESTINATION, TextUtils.defaultIfBlank((String) payload.get("ruleId"), "dynamic-log-level"), payload, Map.of(
-                    "cpf-event-type", TextUtils.defaultIfBlank((String) payload.get("eventType"), "UNKNOWN"),
+            publisher.publish(DESTINATION, CpfStrings.defaultIfBlank((String) payload.get("ruleId"), "dynamic-log-level"), payload, Map.of(
+                    "cpf-event-type", CpfStrings.defaultIfBlank((String) payload.get("eventType"), "UNKNOWN"),
                     "cpf-event-domain", "ADM_DYNAMIC_LOG_LEVEL"));
         } catch (RuntimeException ex) {
             log.warn("Failed to publish dynamic log-level message. ruleId={}, message={}", payload.get("ruleId"), ex.getMessage());

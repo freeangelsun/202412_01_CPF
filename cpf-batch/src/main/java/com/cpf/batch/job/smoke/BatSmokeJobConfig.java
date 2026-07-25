@@ -1,6 +1,6 @@
 package com.cpf.batch.job.smoke;
 
-import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.batch.runtime.BatBatchRuntimeListener;
 import com.cpf.core.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -28,7 +28,7 @@ public class BatSmokeJobConfig {
     public Job cpfBatSmokeJob(
             JobRepository jobRepository,
             Step cpfBatSmokeStep,
-            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+            BatBatchRuntimeListener cpfBatchRuntimeListener) {
         return new JobBuilder(SMOKE_JOB_ID, jobRepository)
                 .listener(cpfBatchRuntimeListener)
                 .start(cpfBatSmokeStep)
@@ -40,7 +40,7 @@ public class BatSmokeJobConfig {
             JobRepository jobRepository,
             @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager,
             BatSmokeTasklet batSmokeTasklet,
-            CpfBatchRuntimeListener cpfBatchRuntimeListener) {
+            BatBatchRuntimeListener cpfBatchRuntimeListener) {
         return new StepBuilder(SMOKE_STEP_ID, jobRepository)
                 .listener(cpfBatchRuntimeListener)
                 .tasklet(batSmokeTasklet, transactionManager)

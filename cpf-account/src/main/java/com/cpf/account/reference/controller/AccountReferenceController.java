@@ -4,7 +4,7 @@ import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
 import com.cpf.account.reference.facade.AccountReferenceFacade;
 import com.cpf.account.reference.validation.AccountReferenceSearchValidator;
 import com.cpf.account.common.base.AccBaseController;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

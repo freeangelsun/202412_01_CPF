@@ -1,6 +1,6 @@
 package com.cpf.common.sec.token;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -16,7 +16,7 @@ public class CmnOAuthBearerTokenService extends com.cpf.common.common.base.CmnBa
 
     /** 대소문자를 구분하지 않고 Bearer scheme의 토큰 값만 추출합니다. */
     public String extractBearerToken(String authorizationHeader) {
-        if (!TextUtils.hasText(authorizationHeader)) {
+        if (!CpfStrings.hasText(authorizationHeader)) {
             return "";
         }
         String prefix = "Bearer ";
@@ -33,7 +33,7 @@ public class CmnOAuthBearerTokenService extends com.cpf.common.common.base.CmnBa
             String expectedIssuer,
             String expectedAudience) {
         String token = extractBearerToken(authorizationHeader);
-        if (!TextUtils.hasText(token)) {
+        if (!CpfStrings.hasText(token)) {
             return new CmnOAuthTokenIntrospectionResult(false, "Bearer", null, null, null, null, Map.of(),
                     "Authorization 헤더에 Bearer 토큰이 없습니다.");
         }

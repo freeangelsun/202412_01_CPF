@@ -4,7 +4,7 @@ import com.cpf.account.account.dto.AccAccountResponse;
 import com.cpf.account.account.port.AccAccountRepository;
 import com.cpf.common.api.account.AccountSummary;
 import com.cpf.common.api.account.AccountSummaryFacade;
-import com.cpf.core.common.exception.CpfNotFoundException;
+import com.cpf.core.api.error.CpfNotFoundException;
 import org.springframework.stereotype.Component;
 
 /** ACC 소유 Repository를 통해 공유 계약을 구현하는 Local Facade Adapter입니다. */

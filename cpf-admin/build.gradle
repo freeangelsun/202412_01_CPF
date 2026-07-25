@@ -24,11 +24,8 @@ dependencies {
     // ADM REST API와 정적 관리 화면을 제공합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // ADM/CPF/MBR 운영 DB를 JdbcTemplate으로 조회하고 변경합니다.
+    // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-
-    // Spring Batch 운영 기능을 ADM에서 수동 실행/재수행/중지할 수 있게 연결합니다.
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
 
     // MariaDB 운영 DB에 연결합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

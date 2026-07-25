@@ -1,6 +1,6 @@
 package com.cpf.batch.job.heartbeat;
 
-import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.batch.runtime.BatBatchRuntimeListener;
 import com.cpf.core.common.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,7 +23,7 @@ public class BatHeartbeatJobConfig {
     public Job cpfBatHeartbeatJob(
             JobRepository jobRepository,
             Step cpfBatHeartbeatStep,
-            CpfBatchRuntimeListener listener) {
+            BatBatchRuntimeListener listener) {
         return new JobBuilder(JOB_ID, jobRepository).listener(listener).start(cpfBatHeartbeatStep).build();
     }
 
@@ -32,7 +32,7 @@ public class BatHeartbeatJobConfig {
             JobRepository jobRepository,
             @Qualifier("batTransactionManager") PlatformTransactionManager transactionManager,
             BatHeartbeatSmokeTasklet tasklet,
-            CpfBatchRuntimeListener listener) {
+            BatBatchRuntimeListener listener) {
         return new StepBuilder(STEP_ID, jobRepository)
                 .listener(listener)
                 .tasklet(tasklet, transactionManager)

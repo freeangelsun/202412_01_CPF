@@ -8,8 +8,8 @@ import com.cpf.admin.opr.dto.AdmOperatorPasswordResetRequest;
 import com.cpf.admin.opr.dto.AdmOperatorRoleUpdateRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.admin.opr.dto.AdmRole;
-import com.cpf.common.utils.DateTimeUtils;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfTimes;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfNotFoundException;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.security.password.CpfPasswordHashingPort;
@@ -86,14 +86,14 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     public AdmOperator createOperator(AdmOperatorCreateRequest request) {
-        String operatorId = TextUtils.requireText(request.operatorId(), "operatorId");
-        String operatorName = TextUtils.requireText(request.operatorName(), "operatorName");
+        String operatorId = CpfStrings.requireText(request.operatorId(), "operatorId");
+        String operatorName = CpfStrings.requireText(request.operatorName(), "operatorName");
         List<String> roleIds = request.roleIds() == null || request.roleIds().isEmpty()
                 ? List.of("ADM_VIEWER")
                 : List.copyOf(request.roleIds());
         passwordPolicyService.requireValid(operatorId, request.password());
         String passwordHash = hashPassword(request.password());
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
 
         try {
             admJdbcTemplate.update("""
@@ -106,7 +106,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         } catch (DataAccessException ex) {
             log.debug("ADM 운영자 DB 생성을 건너뜁니다. operatorId={}, reason={}", operatorId, ex.getMessage());
             OperatorState state = new OperatorState(operatorId, operatorName, passwordHash, roleIds,
-                    false, 0, true, LocalDateTime.now(), DateTimeUtils.nowDateTimeMillis(), DateTimeUtils.nowDateTimeMillis());
+                    false, 0, true, LocalDateTime.now(), CpfTimes.nowDateTimeMillis(), CpfTimes.nowDateTimeMillis());
             if (operators.putIfAbsent(operatorId, state) != null) {
                 throw new CpfValidationException("이미 존재하는 운영자입니다. operatorId=" + operatorId);
             }
@@ -124,8 +124,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
      * @return 새 계정을 생성했으면 {@code true}, 이미 존재하면 {@code false}
      */
     public boolean bootstrapOperator(String operatorIdValue, String operatorNameValue, String password) {
-        String operatorId = TextUtils.requireText(operatorIdValue, "operatorId");
-        String operatorName = TextUtils.requireText(operatorNameValue, "operatorName");
+        String operatorId = CpfStrings.requireText(operatorIdValue, "operatorId");
+        String operatorName = CpfStrings.requireText(operatorNameValue, "operatorName");
         passwordPolicyService.requireValid(operatorId, password);
         String passwordHash = hashPassword(password);
         try {
@@ -154,15 +154,15 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     0,
                     true,
                     LocalDateTime.now(),
-                    DateTimeUtils.nowDateTimeMillis(),
-                    DateTimeUtils.nowDateTimeMillis());
+                    CpfTimes.nowDateTimeMillis(),
+                    CpfTimes.nowDateTimeMillis());
             return operators.putIfAbsent(operatorId, state) == null;
         }
     }
 
     public AdmOperator authenticate(AdmLoginRequest request) {
-        String operatorId = TextUtils.requireText(request.operatorId(), "operatorId");
-        String password = TextUtils.requireText(request.password(), "password");
+        String operatorId = CpfStrings.requireText(request.operatorId(), "operatorId");
+        String password = CpfStrings.requireText(request.password(), "password");
         try {
             OperatorState state = loadOperatorState(operatorId);
             if (state.locked) {
@@ -202,15 +202,15 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     public AdmOperator changePassword(String operatorId, AdmPasswordChangeRequest request) {
-        String newPassword = TextUtils.requireText(request.newPassword(), "newPassword");
-        String currentPassword = TextUtils.requireText(request.currentPassword(), "currentPassword");
-        String newPasswordConfirm = TextUtils.requireText(request.newPasswordConfirm(), "newPasswordConfirm");
+        String newPassword = CpfStrings.requireText(request.newPassword(), "newPassword");
+        String currentPassword = CpfStrings.requireText(request.currentPassword(), "currentPassword");
+        String newPasswordConfirm = CpfStrings.requireText(request.newPasswordConfirm(), "newPasswordConfirm");
         if (!newPassword.equals(newPasswordConfirm)) {
             throw new CpfValidationException("새 비밀번호와 확인값이 일치하지 않습니다.");
         }
         passwordPolicyService.requireValid(operatorId, newPassword);
         String hash = hashPassword(newPassword);
-        String reason = TextUtils.requireText(request.reason(), "reason");
+        String reason = CpfStrings.requireText(request.reason(), "reason");
         try {
             OperatorState before = loadOperatorState(operatorId);
             if (!matchesPassword(currentPassword, before.passwordHash)) {
@@ -248,7 +248,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 state.passwordChangeRequired = false;
                 state.failedLoginCount = 0;
                 state.locked = false;
-                state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+                state.updatedAt = CpfTimes.nowDateTimeMillis();
                 return toResponse(state);
             }
         }
@@ -257,14 +257,14 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     public AdmOperator resetPassword(String operatorId, AdmOperatorPasswordResetRequest request) {
         passwordPolicyService.requireValid(operatorId, request.newPassword());
         String hash = hashPassword(request.newPassword());
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         try {
             OperatorState before = loadOperatorState(operatorId);
             requirePasswordNotReused(operatorId, request.newPassword(), before);
             admJdbcTemplate.update("""
                     INSERT INTO adm_password_history (OPERATOR_ID, PASSWORD_HASH, CHANGED_REASON, CREATED_BY, UPDATED_BY)
                     VALUES (?, ?, ?, ?, ?)
-                    """, operatorId, before.passwordHash, TextUtils.defaultIfBlank(request.reason(), "비밀번호 초기화"), requestUser, requestUser);
+                    """, operatorId, before.passwordHash, CpfStrings.defaultIfBlank(request.reason(), "비밀번호 초기화"), requestUser, requestUser);
             int updated = admJdbcTemplate.update("""
                     UPDATE adm_operator
                     SET PASSWORD_HASH = ?,
@@ -293,14 +293,14 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 state.passwordChangeRequired = request.forceChange();
                 state.failedLoginCount = 0;
                 state.locked = false;
-                state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+                state.updatedAt = CpfTimes.nowDateTimeMillis();
                 return toResponse(state);
             }
         }
     }
 
     public AdmOperator unlockOperator(String operatorId, String requestUser) {
-        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
+        String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         try {
             int updated = admJdbcTemplate.update("""
                     UPDATE adm_operator
@@ -321,7 +321,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             }
             state.failedLoginCount = 0;
             state.locked = false;
-            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            state.updatedAt = CpfTimes.nowDateTimeMillis();
             return toResponse(state);
         }
     }
@@ -330,7 +330,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         List<String> roleIds = request.roleIds() == null || request.roleIds().isEmpty()
                 ? List.of("ADM_VIEWER")
                 : List.copyOf(request.roleIds());
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         try {
             Integer operatorCount = admJdbcTemplate.queryForObject("""
                     SELECT COUNT(*)
@@ -348,7 +348,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                 throw new CpfNotFoundException("운영자를 찾을 수 없습니다. operatorId=" + operatorId);
             }
             state.roleIds = roleIds;
-            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            state.updatedAt = CpfTimes.nowDateTimeMillis();
             return toResponse(state);
         }
     }
@@ -475,14 +475,14 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             if (state.failedLoginCount >= passwordPolicyService.maxFailCount()) {
                 state.locked = true;
             }
-            state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+            state.updatedAt = CpfTimes.nowDateTimeMillis();
             throw new CpfValidationException("운영자 인증에 실패했습니다.");
         }
         state.failedLoginCount = 0;
         if (verification.rehashRequired()) {
             state.passwordHash = hashPassword(password);
         }
-        state.updatedAt = DateTimeUtils.nowDateTimeMillis();
+        state.updatedAt = CpfTimes.nowDateTimeMillis();
         return toResponse(state);
     }
 

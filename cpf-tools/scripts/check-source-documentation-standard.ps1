@@ -31,16 +31,19 @@ foreach ($relative in @($changed | Sort-Object -Unique)) {
     if (-not (Test-Path $path)) { continue }
     $text = Get-Content $path -Raw
 
+    # @RestControllerAdvice를 @RestController로 오인하지 않는다.
+    $isRestController = $text -match '@RestController\b'
+
     # Public API/SPI와 Controller/Service 같은 중요 변경 Source는 최소 class-level JavaDoc을 가진다.
     $important = $relative -match '[/\\]com[/\\]cpf[/\\]core[/\\](api|spi)[/\\]' -or
                  $relative -match '[/\\]calendar[/\\]' -or
-                 $text -match '@RestController' -or
+                 $isRestController -or
                  $text -match '@Service'
     if ($important -and $text -notmatch '(?s)/\*\*.*?\*/\s*(?:@\w+(?:\([^;]*?\))?\s*)*(?:public\s+)?(?:final\s+|abstract\s+)?(?:class|interface|record|enum)\s+') {
         $errors.Add("$relative : 중요 Class/Interface JavaDoc 누락")
     }
 
-    if ($text -match '@RestController') {
+    if ($isRestController) {
         if ($text -notmatch '@Tag\s*\(') { $errors.Add("$relative : Controller @Tag 누락") }
         $mappingCount = ([regex]::Matches($text, '@(?:Get|Post|Put|Delete|Patch)Mapping\s*\(')).Count
         $operationCount = ([regex]::Matches($text, '@Operation\s*\(')).Count

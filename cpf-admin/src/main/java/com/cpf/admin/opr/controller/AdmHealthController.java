@@ -1,6 +1,8 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.core.common.logging.CpfTransactionContextAnomalyMonitor;
+import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
+import com.cpf.core.api.admin.CpfOwnerAdminQuery;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,7 +18,7 @@ import java.util.Map;
 /**
  * ADM 기동 검증과 smoke 자동화를 위한 health API입니다.
  *
- * <p>actuator 의존성을 강제하지 않고도 로컬/CI smoke가 ADM, CPF, MBR datasource
+ * <p>actuator 의존성을 강제하지 않고도 로컬/CI smoke가 ADM/CPF DB와 MBR Owner 운영 Port
  * 연결 상태를 확인할 수 있게 합니다. 운영 보안상 민감한 접속 정보는 반환하지 않습니다.</p>
  */
 @RestController
@@ -25,15 +27,15 @@ import java.util.Map;
 public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseController {
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate cpfJdbcTemplate;
-    private final JdbcTemplate mbrJdbcTemplate;
+    private final CpfOwnerAdminOperationsPort mbrOperations;
 
     public AdmHealthController(
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            @Qualifier("mbrJdbcTemplate") JdbcTemplate mbrJdbcTemplate) {
+            @Qualifier("mbrOwnerAdminOperationsPort") CpfOwnerAdminOperationsPort mbrOperations) {
         this.admJdbcTemplate = admJdbcTemplate;
         this.cpfJdbcTemplate = cpfJdbcTemplate;
-        this.mbrJdbcTemplate = mbrJdbcTemplate;
+        this.mbrOperations = mbrOperations;
     }
 
     @GetMapping
@@ -45,7 +47,7 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
-        checks.put("mbrDB", checkDatabase(mbrJdbcTemplate));
+        checks.put("mbrOwner", checkMbrOwner());
 
         boolean up = checks.values().stream().allMatch("UP"::equals);
         Map<String, Object> response = new LinkedHashMap<>();
@@ -53,8 +55,18 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         response.put("service", "ADM");
         response.put("checkedAt", OffsetDateTime.now().toString());
         response.put("checks", checks);
-        response.put("transactionContextMissingCount", CpfTransactionContextAnomalyMonitor.missingCount());
+        response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return response;
+    }
+
+    private String checkMbrOwner() {
+        try {
+            Map<String, Object> response = mbrOperations.query(
+                    new CpfOwnerAdminQuery("system", "health", null, Map.of()));
+            return "UP".equals(String.valueOf(response.get("status"))) ? "UP" : "DOWN";
+        } catch (RuntimeException ex) {
+            return "DOWN";
+        }
     }
 
     private String checkDatabase(JdbcTemplate jdbcTemplate) {

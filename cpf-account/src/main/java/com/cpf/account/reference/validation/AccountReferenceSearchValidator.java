@@ -1,7 +1,7 @@
 package com.cpf.account.reference.validation;
 
 import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Component;
 
 /**

@@ -4,7 +4,7 @@ import com.cpf.member.bse.dto.MbrDTO;
 import com.cpf.member.bse.service.MbrService;
 import com.cpf.member.common.response.BaseResponse;
 import com.cpf.member.common.response.ResponseCode;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,6 +31,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * MBR 회원 기본 CRUD와 검색 사용법을 제공하는 업무 Domain API입니다.
+ *
+ * <p>입력 Validation, CPF 표준 거래 Annotation, 공통 응답 구조를 함께 적용하여
+ * 생성 Domain과 업무 개발자가 따라야 할 Controller 사용 기준을 보여줍니다.</p>
+ */
 @Slf4j
 @RestController
 @RequestMapping("/mbr")

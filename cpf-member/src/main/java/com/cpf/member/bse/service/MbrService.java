@@ -1,13 +1,13 @@
 package com.cpf.member.bse.service;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.member.bse.dto.MbrDTO;
 import com.cpf.member.bse.entity.Member;
 import com.cpf.member.bse.mapper.MemberMapper;
 import com.cpf.member.common.exception.ApiException;
 import com.cpf.member.common.response.ResponseCode;
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.error.CpfValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,7 +55,7 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
     /** 회원명 일부로 회원을 검색합니다. */
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public List<MbrDTO> searchMembersByName(String name) {
-        if (!TextUtils.hasText(name)) {
+        if (!CpfStrings.hasText(name)) {
             throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명 검색어는 필수입니다.");
         }
         if (name.length() > 100) {
@@ -80,23 +80,23 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
         validateMemberName(request.getMemberName());
         validateDescription(request.getDescription());
 
-        String user = TextUtils.defaultIfBlank(requesterId, "SYSTEM");
-        String memberNo = TextUtils.defaultIfBlank(request.getMemberNo(), generateMemberNo());
-        String loginId = TextUtils.defaultIfBlank(request.getLoginId(), memberNo.toLowerCase());
+        String user = CpfStrings.defaultIfBlank(requesterId, "SYSTEM");
+        String memberNo = CpfStrings.defaultIfBlank(request.getMemberNo(), generateMemberNo());
+        String loginId = CpfStrings.defaultIfBlank(request.getLoginId(), memberNo.toLowerCase());
 
         Member member = Member.builder()
                 .memberNo(memberNo)
-                .customerNo(TextUtils.defaultIfBlank(request.getCustomerNo(), "C" + memberNo.substring(1)))
+                .customerNo(CpfStrings.defaultIfBlank(request.getCustomerNo(), "C" + memberNo.substring(1)))
                 .loginId(loginId)
                 .loginFailCount(0)
                 .passwordChangeRequiredYn("N")
                 .name(request.getMemberName().trim())
                 .email(blankToNull(request.getEmail()))
                 .mobileNo(blankToNull(request.getMobileNo()))
-                .memberStatus(TextUtils.defaultIfBlank(request.getMemberStatus(), "ACTIVE"))
+                .memberStatus(CpfStrings.defaultIfBlank(request.getMemberStatus(), "ACTIVE"))
                 .lockYn(yn(request.getLockYn(), "N"))
                 .withdrawYn(yn(request.getWithdrawYn(), "N"))
-                .channelCode(TextUtils.defaultIfBlank(request.getChannelCode(), "WEB"))
+                .channelCode(CpfStrings.defaultIfBlank(request.getChannelCode(), "WEB"))
                 .joinedAt(request.getJoinedAt())
                 .lastLoginAt(request.getLastLoginAt())
                 .description(blankToNull(request.getDescription()))
@@ -129,13 +129,13 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
 
         Member existing = memberMapper.selectMemberById(request.getMemberId())
                 .orElseThrow(() -> new ApiException(ResponseCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
-        String user = TextUtils.defaultIfBlank(requesterId, "SYSTEM");
+        String user = CpfStrings.defaultIfBlank(requesterId, "SYSTEM");
 
         Member member = Member.builder()
                 .id(request.getMemberId())
-                .memberNo(TextUtils.defaultIfBlank(request.getMemberNo(), existing.getMemberNo()))
+                .memberNo(CpfStrings.defaultIfBlank(request.getMemberNo(), existing.getMemberNo()))
                 .customerNo(firstText(request.getCustomerNo(), existing.getCustomerNo()))
-                .loginId(TextUtils.defaultIfBlank(request.getLoginId(), existing.getLoginId()))
+                .loginId(CpfStrings.defaultIfBlank(request.getLoginId(), existing.getLoginId()))
                 .passwordHash(existing.getPasswordHash())
                 .loginFailCount(existing.getLoginFailCount())
                 .passwordChangeRequiredYn(existing.getPasswordChangeRequiredYn())
@@ -143,10 +143,10 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
                 .name(request.getMemberName().trim())
                 .email(firstText(request.getEmail(), existing.getEmail()))
                 .mobileNo(firstText(request.getMobileNo(), existing.getMobileNo()))
-                .memberStatus(TextUtils.defaultIfBlank(request.getMemberStatus(), existing.getMemberStatus()))
+                .memberStatus(CpfStrings.defaultIfBlank(request.getMemberStatus(), existing.getMemberStatus()))
                 .lockYn(yn(firstText(request.getLockYn(), existing.getLockYn()), "N"))
                 .withdrawYn(yn(firstText(request.getWithdrawYn(), existing.getWithdrawYn()), "N"))
-                .channelCode(TextUtils.defaultIfBlank(request.getChannelCode(), existing.getChannelCode()))
+                .channelCode(CpfStrings.defaultIfBlank(request.getChannelCode(), existing.getChannelCode()))
                 .joinedAt(existing.getJoinedAt())
                 .lastLoginAt(request.getLastLoginAt() != null ? request.getLastLoginAt() : existing.getLastLoginAt())
                 .description(blankToNull(request.getDescription()))
@@ -178,7 +178,7 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
     }
 
     private void validateMemberName(String memberName) {
-        if (!TextUtils.hasText(memberName)) {
+        if (!CpfStrings.hasText(memberName)) {
             throw new ApiException(ResponseCode.INVALID_PARAMETER, "회원명은 필수입니다.");
         }
         if (memberName.length() > 100) {
@@ -197,15 +197,15 @@ public class MbrService extends com.cpf.member.common.base.MbrBaseService {
     }
 
     private String blankToNull(String value) {
-        return TextUtils.hasText(value) ? value.trim() : null;
+        return CpfStrings.hasText(value) ? value.trim() : null;
     }
 
     private String firstText(String value, String fallback) {
-        return TextUtils.hasText(value) ? value.trim() : fallback;
+        return CpfStrings.hasText(value) ? value.trim() : fallback;
     }
 
     private String yn(String value, String fallback) {
-        String normalized = TextUtils.defaultIfBlank(value, fallback).trim().toUpperCase();
+        String normalized = CpfStrings.defaultIfBlank(value, fallback).trim().toUpperCase();
         return "Y".equals(normalized) ? "Y" : "N";
     }
 

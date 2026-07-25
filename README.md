@@ -8,12 +8,6 @@
 
 <br/>
 
-![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
-![Spring](https://img.shields.io/badge/Spring%20Boot-Enterprise-6DB33F?logo=springboot&logoColor=white)
-![Gradle](https://img.shields.io/badge/Gradle-Multi--Module-02303A?logo=gradle&logoColor=white)
-![Vue](https://img.shields.io/badge/Vue-3-42B883?logo=vuedotjs&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6?logo=typescript&logoColor=white)
-![Architecture](https://img.shields.io/badge/Architecture-MSA%20%7C%20Modular%20Monolith-5B5BD6)
 
 </div>
 
@@ -48,42 +42,26 @@ CPF는 기능 구현뿐 아니라 거래 추적, 오류 처리, 재시도, 복�
 
 ## Architecture at a Glance
 
-```mermaid
-flowchart TB
-    C[Client / Channel / Partner] --> G[cpf-gateway<br/>External Entry & Policy Enforcement]
-
-    G --> M[cpf-member]
-    G --> A[cpf-account]
-    G --> R[cpf-reference]
-    G --> D[Generated Business Domain<br/>(e.g. external/EXS)]
-
-    M <--> F[Typed Local / Remote Facade]
-    A <--> F
-    R <--> F
-    D <--> F
-
-    F --> CORE[cpf-core<br/>Technical Contracts & Runtime Capabilities]
-    M --> COMMON[cpf-common<br/>Business Common]
-    A --> COMMON
-    R --> COMMON
-    D --> COMMON
-
-    B[cpf-batch<br/>Scheduler / Worker / Center-Cut] --> M
-    B --> A
-    B --> R
-    B --> D
-
-    ADM[cpf-admin<br/>Platform Control Plane] --> G
-    ADM --> B
-    ADM --> CORE
-    BZA[cpf-biz-admin<br/>Business Administration] --> M
-    BZA --> A
-    BZA --> R
-
-    CORE --> DB[(Database)]
-    B --> DB
-    D --> EXT[External Systems / Broker / File]
+```text
+Client / Channel / Partner
+          |
+     cpf-gateway
+          |
+  +-------+---------------------------+
+  |                 |                 |
+cpf-member      cpf-account      Generated Domain
+  |                 |                 |
+  +------ typed Local / Remote Facade +
+                    |
+          cpf-core + cpf-common
+                    |
+          +---------+---------+
+          |                   |
+      cpf-batch          external/broker/file
+          |
+      cpf-admin      cpf-biz-admin
 ```
+
 
 ### Runtime Principles
 
@@ -93,6 +71,15 @@ flowchart TB
 - 기술 공통은 업무 Module을 참조하지 않습니다.
 - 상태 기반 기능은 멱등성, 동시성, 재시도, 결과 불명과 복구를 함께 설계합니다.
 - 모든 운영 조치는 권한, 승인, 감사와 실행 Evidence를 남깁니다.
+
+### Public Developer Surface
+
+업무 Domain과 Generator 산출물은 `com.cpf.core.api.*` 및 `com.cpf.core.spi.*`만 개발자 계약으로 사용합니다. `com.cpf.core.common.*`은 Runtime 내부 구현이며 Generated Domain에서 직접 import하지 않습니다. Public API 경계, 자료구조/전문 변환, 선택 Build 방법은 아래 Guide를 따릅니다.
+
+- [Public API / Generated Domain Guide](cpf-docs/guides/CPF_PUBLIC_API_AND_GENERATED_DOMAIN_GUIDE.md)
+- [Data Utility / Transform Guide](cpf-docs/guides/CPF_DATA_UTILITY_AND_TRANSFORM_GUIDE.md)
+- [Build / Deployment Topology Guide](cpf-docs/operations/BUILD_AND_DEPLOYMENT_TOPOLOGY_GUIDE.md)
+- [ADM / BZA UI Standard Guide](cpf-docs/guides/CPF_ADMIN_BZA_UI_STANDARD_GUIDE.md)
 
 ## Official Modules
 
@@ -324,4 +311,3 @@ CPF는 업무 Domain이 동일한 개발 표준을 사용하도록 작은 Public
 온라인, Local/Remote Service Call, Batch와 Center-Cut은 동일한 transactionId/segment 계층을 사용합니다.
 파일 로그는 Environment/Domain/Instance/transactionId 단위로 탐색할 수 있고, DB 로그는 ADM에서 Module/WAS/Server Instance/transactionId를 교차 조회할 수 있습니다.
 Batch 실행은 Spring JobInstance/JobExecution, Worker, Server Instance, transactionId와 Job log path를 함께 보존합니다.
-

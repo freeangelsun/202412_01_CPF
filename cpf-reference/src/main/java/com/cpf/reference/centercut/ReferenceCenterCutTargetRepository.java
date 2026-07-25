@@ -1,9 +1,9 @@
 package com.cpf.reference.centercut;
 
-import com.cpf.core.common.batch.centercut.CenterCutTargetProvider;
-import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
-import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
-import com.cpf.core.common.batch.centercut.CpfCenterCutTarget;
+import com.cpf.core.spi.centercut.CenterCutTargetProvider;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

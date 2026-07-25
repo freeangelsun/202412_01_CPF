@@ -2,7 +2,13 @@ package com.cpf.admin.opr.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.fixedlength.CpfFixedLengthLayoutRegistry;
+import com.cpf.core.api.fixedlength.CpfFixedLengthLogDecoder;
+import com.cpf.core.api.fixedlength.CpfFixedLengthLogView;
+import com.cpf.core.api.fixedlength.CpfFixedLengthParser;
+import com.cpf.core.api.util.CpfStrings;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -22,10 +28,30 @@ import java.util.Map;
 public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final CpfFixedLengthLogDecoder fixedLengthDecoder;
 
+    /** 기존 단위테스트/Library 조립 호환 생성자입니다. Layout decoder 없이 raw-only로 동작합니다. */
     public AdmLogQueryService(@Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate, ObjectMapper objectMapper) {
+        this(cpfJdbcTemplate, objectMapper, null);
+    }
+
+    private AdmLogQueryService(JdbcTemplate cpfJdbcTemplate, ObjectMapper objectMapper, CpfFixedLengthLogDecoder decoder) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.objectMapper = objectMapper;
+        this.fixedLengthDecoder = decoder;
+    }
+
+    @Autowired
+    public AdmLogQueryService(
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
+            ObjectMapper objectMapper,
+            ObjectProvider<CpfFixedLengthParser> parserProvider,
+            ObjectProvider<CpfFixedLengthLayoutRegistry> registryProvider) {
+        this(cpfJdbcTemplate, objectMapper, createDecoder(parserProvider.getIfAvailable(), registryProvider.getIfAvailable()));
+    }
+
+    private static CpfFixedLengthLogDecoder createDecoder(CpfFixedLengthParser parser, CpfFixedLengthLayoutRegistry registry) {
+        return parser == null || registry == null ? null : new CpfFixedLengthLogDecoder(parser, registry);
     }
 
     /**
@@ -116,17 +142,17 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                 logIdx);
 
         response.put("summary", summary);
-        response.put("headers", formatValue("headers", value(findDetail(details, "headers"))));
-        response.put("inboundHeaders", formatValue("inboundHeaders", value(findDetail(details, "inboundHeaders"))));
-        response.put("resolvedHeaders", formatValue("resolvedHeaders", value(findDetail(details, "resolvedHeaders"))));
-        response.put("outboundHeaders", formatValue("outboundHeaders", value(findDetail(details, "outboundHeaders"))));
-        response.put("responseHeaders", formatValue("responseHeaders", value(findDetail(details, "responseHeaders"))));
-        response.put("request", formatValue("request", value(summary.get("REQUEST_BODY"))));
-        response.put("response", formatValue("response", value(summary.get("RESPONSE"))));
-        response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE"))));
+        response.put("headers", formatValue("headers", value(findDetail(details, "headers")), details));
+        response.put("inboundHeaders", formatValue("inboundHeaders", value(findDetail(details, "inboundHeaders")), details));
+        response.put("resolvedHeaders", formatValue("resolvedHeaders", value(findDetail(details, "resolvedHeaders")), details));
+        response.put("outboundHeaders", formatValue("outboundHeaders", value(findDetail(details, "outboundHeaders")), details));
+        response.put("responseHeaders", formatValue("responseHeaders", value(findDetail(details, "responseHeaders")), details));
+        response.put("request", formatValue("request", value(summary.get("REQUEST_BODY")), details));
+        response.put("response", formatValue("response", value(summary.get("RESPONSE")), details));
+        response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE")), details));
         response.put("details", details);
         response.put("formattedDetails", details.stream()
-                .map(row -> formatValue(value(row.get("DETAIL_KEY")), value(row.get("DETAIL_VALUE"))))
+                .map(row -> formatValue(value(row.get("DETAIL_KEY")), value(row.get("DETAIL_VALUE")), details))
                 .toList());
         return response;
     }
@@ -139,11 +165,11 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                 .orElse("");
     }
 
-    private Map<String, Object> formatValue(String key, String value) {
+    private Map<String, Object> formatValue(String key, String value, List<Map<String,Object>> details) {
         Map<String, Object> formatted = new LinkedHashMap<>();
         formatted.put("detailKey", key);
         formatted.put("raw", mask(value));
-        if (!TextUtils.hasText(value)) {
+        if (!CpfStrings.hasText(value)) {
             formatted.put("formatType", "EMPTY");
             return formatted;
         }
@@ -154,17 +180,41 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             return formatted;
         }
         if (isFixedLengthKey(key)) {
-            // 실제 전문 Layout Metadata가 없는 상태에서 임의 길이로 필드를 분해하면 운영자가 잘못된 값을 볼 수 있다.
-            // Metadata Registry와 연결되기 전에는 Raw/Masked 값만 명시적으로 제공한다.
+            String layoutId = firstDetail(details, key + ".layoutId", "fixedLengthLayoutId", "telegramLayoutId");
+            String layoutVersion = firstDetail(details, key + ".layoutVersion", "fixedLengthLayoutVersion", "telegramLayoutVersion");
+            if (fixedLengthDecoder != null && CpfStrings.hasText(layoutId) && CpfStrings.hasText(layoutVersion)) {
+                try {
+                    CpfFixedLengthLogView view = fixedLengthDecoder.decode(value, layoutId, layoutVersion);
+                    formatted.put("formatType", "FIXED_LENGTH");
+                    formatted.put("layoutResolved", true);
+                    formatted.put("layoutId", view.layoutId());
+                    formatted.put("layoutVersion", view.version());
+                    formatted.put("byteLength", view.byteLength());
+                    formatted.put("fields", view.fields());
+                    formatted.put("groups", view.groups());
+                    return formatted;
+                } catch (RuntimeException ex) {
+                    formatted.put("layoutError", mask(ex.getMessage()));
+                }
+            }
             formatted.put("formatType", "FIXED_LENGTH_RAW");
             formatted.put("pretty", mask(value));
             formatted.put("layoutResolved", false);
-            formatted.put("message", "전문 Layout Metadata가 연결되지 않아 필드 분해를 수행하지 않았습니다.");
+            formatted.put("message", "등록된 전문 Layout ID/version이 없거나 해석에 실패하여 임의 분해하지 않았습니다.");
             return formatted;
         }
         formatted.put("formatType", "TEXT");
         formatted.put("pretty", mask(value));
         return formatted;
+    }
+
+
+    private String firstDetail(List<Map<String,Object>> details, String... keys) {
+        for (String key : keys) {
+            String found = value(findDetail(details, key));
+            if (CpfStrings.hasText(found)) return found.trim();
+        }
+        return null;
     }
 
     private boolean isJson(String value) {
@@ -186,14 +236,14 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
-        if (TextUtils.hasText(value)) {
+        if (CpfStrings.hasText(value)) {
             sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
             args.add(value.trim());
         }
     }
 
     private void appendEquals(StringBuilder sql, List<Object> args, String column, String value) {
-        if (TextUtils.hasText(value)) {
+        if (CpfStrings.hasText(value)) {
             sql.append(" AND ").append(column).append(" = ?");
             args.add(value.trim());
         }

@@ -1,6 +1,6 @@
 package com.cpf.admin.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,17 +13,16 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 /**
- * ADM 운영 화면에서 사용하는 DB 연결을 구성합니다.
+ * ADM 소유 DB만 구성합니다.
  *
- * <p>ADM은 운영 메타 admDB, 프레임워크 로그/설정 cpfDB, 배치 운영 batDB, 회원 운영 mbrDB,
- * EDU 업무 샘플 refDB를 조회합니다. 운영 환경에서는
- * 각 datasource 계정과 비밀번호를 환경변수 또는 Vault/KMS 연동 값으로 주입해야 합니다.</p>
+ * <p>BAT/MBR/REF 등 다른 Owner의 DataSource/JdbcTemplate/TransactionManager는 ADM에 만들지 않습니다.
+ * Owner 데이터는 각 Owner의 Public API/Operations Port를 통해 조회·변경합니다.</p>
  */
 @Configuration
 public class AdmJdbcConfig {
     @Bean(name = "admDataSource")
     public DataSource admDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.adm");
+        return CpfDataSources.resolve(environment, "spring.datasource.adm");
     }
 
     @Bean(name = "admTransactionManager")
@@ -35,46 +34,4 @@ public class AdmJdbcConfig {
     public JdbcTemplate admJdbcTemplate(@Qualifier("admDataSource") DataSource admDataSource) {
         return new JdbcTemplate(admDataSource);
     }
-
-    @Bean(name = "batDataSource")
-    public DataSource batDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
-    }
-
-    @Bean(name = "batTransactionManager")
-    public PlatformTransactionManager batTransactionManager(
-            @Qualifier("batDataSource") DataSource batDataSource) {
-        return new DataSourceTransactionManager(batDataSource);
-    }
-
-    @Bean(name = "batJdbcTemplate")
-    public JdbcTemplate batJdbcTemplate(@Qualifier("batDataSource") DataSource batDataSource) {
-        return new JdbcTemplate(batDataSource);
-    }
-
-    @Bean(name = "mbrAdmDataSource")
-    public DataSource mbrAdmDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.mbr");
-    }
-
-    @Bean(name = "mbrAdmTransactionManager")
-    public PlatformTransactionManager mbrAdmTransactionManager(@Qualifier("mbrAdmDataSource") DataSource mbrAdmDataSource) {
-        return new DataSourceTransactionManager(mbrAdmDataSource);
-    }
-
-    @Bean(name = "mbrJdbcTemplate")
-    public JdbcTemplate mbrJdbcTemplate(@Qualifier("mbrAdmDataSource") DataSource mbrAdmDataSource) {
-        return new JdbcTemplate(mbrAdmDataSource);
-    }
-
-    @Bean(name = "refAdmDataSource")
-    public DataSource refAdmDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.ref");
-    }
-
-    @Bean(name = "refJdbcTemplate")
-    public JdbcTemplate refJdbcTemplate(@Qualifier("refAdmDataSource") DataSource refAdmDataSource) {
-        return new JdbcTemplate(refAdmDataSource);
-    }
-
 }

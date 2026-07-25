@@ -2,8 +2,7 @@ package com.cpf.member.integration.account;
 
 import com.cpf.common.api.account.AccountSummary;
 import com.cpf.common.api.account.AccountSummaryFacade;
-import com.cpf.core.common.execution.CpfStandardExecutionId;
-import com.cpf.core.common.http.CpfWebClient;
+import com.cpf.core.api.http.CpfHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(prefix = "cpf.mbr.account", name = "mode", havingValue = "remote", matchIfMissing = true)
 public class MbrAccountSummaryRemoteProxy implements AccountSummaryFacade {
-    private static final CpfStandardExecutionId STANDARD_EXECUTION_ID =
-            CpfStandardExecutionId.parse("SACCAC0001");
-    private final CpfWebClient webClient;
+    private static final String STANDARD_EXECUTION_ID = "SACCAC0001";
+    private final CpfHttpClient webClient;
 
-    public MbrAccountSummaryRemoteProxy(CpfWebClient webClient) {
+    public MbrAccountSummaryRemoteProxy(CpfHttpClient webClient) {
         this.webClient = webClient;
     }
 

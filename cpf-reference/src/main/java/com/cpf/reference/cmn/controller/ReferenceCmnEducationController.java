@@ -7,9 +7,9 @@ import com.cpf.common.cfg.service.ConfigCacheService;
 import com.cpf.common.msg.dto.CommonMessageRequest;
 import com.cpf.common.msg.service.MessageCacheService;
 import com.cpf.common.msg.service.ResponseCodeCacheService;
-import com.cpf.common.utils.IdUtils;
-import com.cpf.common.utils.TextUtils;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.util.CpfIds;
+import com.cpf.core.api.util.CpfStrings;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 실제 CMN 코드·메시지·응답코드·설정 API를 사용하는 REF 교육 Controller입니다.
+ *
+ * <p>조회뿐 아니라 생성과 cache refresh까지 제품 Service를 그대로 사용하여,
+ * 업무 Domain에서 공통 기준정보와 실시간 캐시 동기화를 적용하는 방법을 설명합니다.</p>
+ */
 @RestController
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 02. CMN Cache", description = "Common code, message, response code, and config cache samples")
@@ -54,7 +60,7 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("code", codeCacheService.getCodesByKey(codeKey));
         response.put("message", messageCacheService.getMessageByKeyAndLocale(messageKey, "ko"));
-        response.put("responseCode", responseCodeCacheService.getResponseCode(TextUtils.normalizeCode(responseCode)));
+        response.put("responseCode", responseCodeCacheService.getResponseCode(CpfStrings.normalizeCode(responseCode)));
         response.put("config", configCacheService.getConfigByKey(configKey));
         return ResponseEntity.ok(response);
     }
@@ -66,14 +72,14 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
             @RequestParam(defaultValue = "EREF010001") String responseCode,
             @RequestParam(defaultValue = "ko") String locale) {
 
-        Map<String, Object> code = responseCodeCacheService.getResponseCode(TextUtils.normalizeCode(responseCode));
+        Map<String, Object> code = responseCodeCacheService.getResponseCode(CpfStrings.normalizeCode(responseCode));
         String messageCode = value(code, "message_code");
         Map<String, Object> message = messageCacheService.getMessageByKeyAndLocale(messageCode, locale);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("responseCode", code);
         response.put("message", message);
-        response.put("usage", "throw new CpfBusinessException(\"" + TextUtils.normalizeCode(responseCode) + "\", detail, args)");
+        response.put("usage", "throw new CpfBusinessException(\"" + CpfStrings.normalizeCode(responseCode) + "\", detail, args)");
         return ResponseEntity.ok(response);
     }
 
@@ -86,8 +92,8 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
             @RequestParam(defaultValue = "ko") String locale) {
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("indexed", messageCacheService.getMessageByKeyAndLocale(TextUtils.normalizeCode(indexedMessageCode), locale));
-        response.put("fixed", messageCacheService.getMessageByKeyAndLocale(TextUtils.normalizeCode(fixedMessageCode), locale));
+        response.put("indexed", messageCacheService.getMessageByKeyAndLocale(CpfStrings.normalizeCode(indexedMessageCode), locale));
+        response.put("fixed", messageCacheService.getMessageByKeyAndLocale(CpfStrings.normalizeCode(fixedMessageCode), locale));
         response.put("indexedArguments", Map.of("0", "memberNo", "1", "M0001"));
         return ResponseEntity.ok(response);
     }
@@ -112,10 +118,10 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
             @RequestParam(defaultValue = "READY") String codeValue) {
 
         CommonCodeRequest request = new CommonCodeRequest();
-        request.setCodeKey(TextUtils.hasText(codeKey)
-                ? TextUtils.normalizeCode(codeKey)
-                : "REF_SAMPLE_" + IdUtils.uuid32().substring(0, 8).toUpperCase());
-        request.setCodeValue(TextUtils.normalizeCode(codeValue));
+        request.setCodeKey(CpfStrings.hasText(codeKey)
+                ? CpfStrings.normalizeCode(codeKey)
+                : "REF_SAMPLE_" + CpfIds.uuid32().substring(0, 8).toUpperCase());
+        request.setCodeValue(CpfStrings.normalizeCode(codeValue));
         request.setDescription("REF education common code sample");
         request.setUseYn("Y");
         request.setRequestUser("REF_EDU");
@@ -127,7 +133,7 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
     @Operation(operationId = "refCmnEducationCreateCommonMessage", summary = "CMN message create sample", description = "Creates a sample message row with external/internal templates.")
     public ResponseEntity<Map<String, Object>> createCommonMessage() {
         CommonMessageRequest request = new CommonMessageRequest();
-        request.setMessageCode("MREF0900" + IdUtils.uuid32().substring(0, 2).toUpperCase());
+        request.setMessageCode("MREF0900" + CpfIds.uuid32().substring(0, 2).toUpperCase());
         request.setLocale("ko");
         request.setMessageFormatType("INDEXED");
         request.setExternalMessage("REF education message: {0}");
@@ -145,7 +151,7 @@ public class ReferenceCmnEducationController extends com.cpf.reference.common.ba
     @Operation(operationId = "refCmnEducationCreateCommonConfig", summary = "CMN config create sample", description = "Creates a sample common config row through CMN.")
     public ResponseEntity<Map<String, Object>> createCommonConfig() {
         CommonConfigRequest request = new CommonConfigRequest();
-        request.setConfigKey("REF.EDU.FEATURE." + IdUtils.uuid32().substring(0, 8).toUpperCase() + ".ENABLED");
+        request.setConfigKey("REF.EDU.FEATURE." + CpfIds.uuid32().substring(0, 8).toUpperCase() + ".ENABLED");
         request.setConfigValue("Y");
         request.setConfigType("BOOLEAN");
         request.setDescription("REF education feature flag");

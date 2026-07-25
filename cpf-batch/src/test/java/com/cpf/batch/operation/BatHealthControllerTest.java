@@ -1,7 +1,7 @@
 package com.cpf.batch.operation;
 
-import com.cpf.core.common.batch.CpfBatchFileLogWriter;
-import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.batch.runtime.BatBatchFileLogWriter;
+import com.cpf.batch.runtime.BatBatchRuntimeListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -23,8 +23,8 @@ class BatHealthControllerTest {
         BatSmokeOperationService operationService = mock(BatSmokeOperationService.class);
         BatSmokeExecutionRegistry registry = new BatSmokeExecutionRegistry();
         DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-        ObjectProvider<CpfBatchFileLogWriter> fileLogWriterProvider = beanFactory.getBeanProvider(CpfBatchFileLogWriter.class);
-        ObjectProvider<CpfBatchRuntimeListener> runtimeListenerProvider = beanFactory.getBeanProvider(CpfBatchRuntimeListener.class);
+        ObjectProvider<BatBatchFileLogWriter> fileLogWriterProvider = beanFactory.getBeanProvider(BatBatchFileLogWriter.class);
+        ObjectProvider<BatBatchRuntimeListener> runtimeListenerProvider = beanFactory.getBeanProvider(BatBatchRuntimeListener.class);
         BatHealthController controller = new BatHealthController(
                 jdbcTemplate,
                 new StandardEnvironment(),

@@ -1,7 +1,7 @@
 package com.cpf.member.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -63,8 +63,8 @@ public class BaseResponse<T> implements Serializable {
     private static <T> BaseResponse<T> base(ResponseCode code, String message) {
         BaseResponse<T> response = new BaseResponse<>();
         response.messageId = generateMessageId();
-        response.transactionId = TransactionContext.getOrCreateTransactionId();
-        response.traceId = TransactionContext.getOrCreateTraceId();
+        response.transactionId = CpfTransactionContext.transactionId();
+        response.traceId = CpfTransactionContext.traceId();
         response.statusCode = code.getCode();
         response.messageCode = code.getMessageCode();
         response.message = message;

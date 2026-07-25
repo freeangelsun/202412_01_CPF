@@ -75,6 +75,18 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
             String sourceVersion,
             Class<?> beanType,
             Method method) {
+        com.cpf.core.api.execution.CpfOnlineTransaction publicOnline =
+                AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        if (publicOnline == null) {
+            publicOnline = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        }
+        if (publicOnline != null) {
+            definitions.add(definition(
+                    publicOnline.id(), publicOnline.name(), CpfExecutionType.ONLINE, publicOnline.ownerDomain(),
+                    publicOnline.description(), publicOnline.requiredPermission(), publicOnline.auditReasonRequired(),
+                    publicOnline.visibility(), publicOnline.directAllowed(), publicOnline.gatewayAllowed(),
+                    sourceModule, sourceVersion, beanType, method));
+        }
         CpfOnlineTransaction online = AnnotatedElementUtils.findMergedAnnotation(method, CpfOnlineTransaction.class);
         if (online == null) {
             online = AnnotatedElementUtils.findMergedAnnotation(beanType, CpfOnlineTransaction.class);
@@ -84,6 +96,18 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
                     online.id(), online.name(), CpfExecutionType.ONLINE, online.ownerDomain(),
                     online.description(), online.requiredPermission(), online.auditReasonRequired(),
                     online.visibility(), online.directAllowed(), online.gatewayAllowed(),
+                    sourceModule, sourceVersion, beanType, method));
+        }
+        com.cpf.core.api.execution.CpfSharedApi publicShared =
+                AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfSharedApi.class);
+        if (publicShared == null) {
+            publicShared = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfSharedApi.class);
+        }
+        if (publicShared != null) {
+            definitions.add(definition(
+                    publicShared.id(), publicShared.name(), CpfExecutionType.SHARED, publicShared.ownerDomain(),
+                    publicShared.description(), publicShared.requiredPermission(), publicShared.auditReasonRequired(),
+                    "INTERNAL", true, false,
                     sourceModule, sourceVersion, beanType, method));
         }
         CpfSharedApi shared = AnnotatedElementUtils.findMergedAnnotation(method, CpfSharedApi.class);
@@ -96,6 +120,17 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
                     shared.description(), shared.requiredPermission(), shared.auditReasonRequired(),
                     "INTERNAL", true, false,
                     sourceModule, sourceVersion, beanType, method));
+        }
+        com.cpf.core.api.execution.CpfBatchJob publicBatch =
+                AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfBatchJob.class);
+        if (publicBatch == null) {
+            publicBatch = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfBatchJob.class);
+        }
+        if (publicBatch != null) {
+            definitions.add(definition(
+                    publicBatch.id(), publicBatch.name(), CpfExecutionType.BATCH, publicBatch.ownerDomain(),
+                    publicBatch.description(), publicBatch.requiredPermission(), publicBatch.auditReasonRequired(),
+                    "INTERNAL", false, false, sourceModule, sourceVersion, beanType, method));
         }
         CpfBatchJob batch = AnnotatedElementUtils.findMergedAnnotation(method, CpfBatchJob.class);
         if (batch == null) {

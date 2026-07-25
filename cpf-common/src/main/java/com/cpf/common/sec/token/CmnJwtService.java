@@ -3,7 +3,7 @@ package com.cpf.common.sec.token;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.common.sec.crypto.CmnCryptoService;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfExternalServiceException;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
@@ -52,14 +52,14 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
         if (request.claims() != null) {
             payload.putAll(request.claims());
         }
-        payload.put("iss", TextUtils.defaultIfBlank(request.issuer(), "CPF"));
-        payload.put("sub", TextUtils.defaultIfBlank(request.subject(), "anonymous"));
-        payload.put("aud", TextUtils.defaultIfBlank(request.audience(), "CPF"));
+        payload.put("iss", CpfStrings.defaultIfBlank(request.issuer(), "CPF"));
+        payload.put("sub", CpfStrings.defaultIfBlank(request.subject(), "anonymous"));
+        payload.put("aud", CpfStrings.defaultIfBlank(request.audience(), "CPF"));
         payload.put("iat", now);
         payload.put("exp", now + ttl);
 
         String signingInput = encodeJson(header) + "." + encodeJson(payload);
-        return signingInput + "." + cryptoService.hmacSha256Base64Url(signingInput, TextUtils.requireText(request.secret(), "secret"));
+        return signingInput + "." + cryptoService.hmacSha256Base64Url(signingInput, CpfStrings.requireText(request.secret(), "secret"));
     }
 
     /**
@@ -77,7 +77,7 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
             String expectedIssuer,
             String expectedAudience) {
         try {
-            String[] parts = TextUtils.requireText(token, "token").split("\\.");
+            String[] parts = CpfStrings.requireText(token, "token").split("\\.");
             if (parts.length != 3) {
                 return invalid("JWT 형식이 올바르지 않습니다.");
             }
@@ -86,7 +86,7 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
                 return invalid("지원하지 않는 JWT 알고리즘입니다. alg=" + header.get("alg"));
             }
             String signingInput = parts[0] + "." + parts[1];
-            String expectedSignature = cryptoService.hmacSha256Base64Url(signingInput, TextUtils.requireText(secret, "secret"));
+            String expectedSignature = cryptoService.hmacSha256Base64Url(signingInput, CpfStrings.requireText(secret, "secret"));
             if (!MessageDigest.isEqual(expectedSignature.getBytes(StandardCharsets.UTF_8), parts[2].getBytes(StandardCharsets.UTF_8))) {
                 return invalid("JWT 서명이 일치하지 않습니다.");
             }
@@ -100,10 +100,10 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
             if (expiresAt.isBefore(Instant.now())) {
                 return new CmnJwtValidationResult(false, "JWT가 만료되었습니다.", subject, issuer, audience, expiresAt, claims);
             }
-            if (TextUtils.hasText(expectedIssuer) && !expectedIssuer.equals(issuer)) {
+            if (CpfStrings.hasText(expectedIssuer) && !expectedIssuer.equals(issuer)) {
                 return new CmnJwtValidationResult(false, "JWT 발급자가 일치하지 않습니다.", subject, issuer, audience, expiresAt, claims);
             }
-            if (TextUtils.hasText(expectedAudience) && !expectedAudience.equals(audience)) {
+            if (CpfStrings.hasText(expectedAudience) && !expectedAudience.equals(audience)) {
                 return new CmnJwtValidationResult(false, "JWT 대상이 일치하지 않습니다.", subject, issuer, audience, expiresAt, claims);
             }
             return new CmnJwtValidationResult(true, "JWT 검증에 성공했습니다.", subject, issuer, audience, expiresAt, claims);
@@ -122,7 +122,7 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
      */
     public boolean isExpired(String token) {
         try {
-            String[] parts = TextUtils.requireText(token, "token").split("\\.");
+            String[] parts = CpfStrings.requireText(token, "token").split("\\.");
             if (parts.length != 3) {
                 return true;
             }
@@ -140,7 +140,7 @@ public class CmnJwtService extends com.cpf.common.common.base.CmnBaseService {
      * @return JWT claim
      */
     public Map<String, Object> readClaimsWithoutVerification(String token) {
-        String[] parts = TextUtils.requireText(token, "token").split("\\.");
+        String[] parts = CpfStrings.requireText(token, "token").split("\\.");
         if (parts.length != 3) {
             throw new CpfValidationException("JWT 형식이 올바르지 않습니다.");
         }

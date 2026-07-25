@@ -73,6 +73,14 @@ public class CpfGlobalExceptionHandler {
                 .body(response);
     }
 
+    /** Generated Domain 공개 validation 예외를 기존 표준 오류 envelope로 변환합니다. */
+    @ExceptionHandler(com.cpf.core.api.error.CpfValidationException.class)
+    public ResponseEntity<CpfErrorResponse> handlePublicValidation(
+            com.cpf.core.api.error.CpfValidationException ex, HttpServletRequest request) {
+        CpfValidationException adapted = new CpfValidationException(ex.getMessage());
+        return handleCpfException(adapted, request);
+    }
+
     /**
      * 존재하지 않는 정적 리소스와 URL은 운영 장애로 오인되지 않도록 404 표준 응답으로 분리합니다.
      */

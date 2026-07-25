@@ -4,7 +4,7 @@ import com.cpf.common.cde.service.CodeCacheService;
 import com.cpf.common.cfg.service.ConfigCacheService;
 import com.cpf.common.msg.service.MessageCacheService;
 import com.cpf.common.msg.service.ResponseCodeCacheService;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -54,8 +54,8 @@ public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseS
      * @return refresh 결과
      */
     public Map<String, Object> refresh(String target) {
-        String normalizedTarget = TextUtils.normalizeCode(target);
-        if (!TextUtils.hasText(normalizedTarget)) {
+        String normalizedTarget = CpfStrings.normalizeCode(target);
+        if (!CpfStrings.hasText(normalizedTarget)) {
             normalizedTarget = "ALL";
         }
 

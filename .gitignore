@@ -55,3 +55,7 @@ cpf-docs/evidence/**
 !cpf-docs/evidence/**/*.sanitized.json
 !cpf-docs/evidence/**/*.sanitized.png
 !cpf-docs/evidence/**/cpf-current-work-request.baseline.sha256
+
+### CPF transient runtime directories ###
+/tmp/
+/temp/

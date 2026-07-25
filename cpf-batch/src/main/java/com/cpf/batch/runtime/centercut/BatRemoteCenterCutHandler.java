@@ -3,34 +3,34 @@ package com.cpf.batch.runtime.centercut;
 import com.cpf.core.api.centercut.CpfCenterCutResult;
 import com.cpf.core.api.centercut.CpfCenterCutStatus;
 import com.cpf.core.api.centercut.CpfCenterCutTarget;
-import com.cpf.core.common.servicecall.CpfServiceCallEngine;
-import com.cpf.core.common.servicecall.ServiceCallRequest;
-import com.cpf.core.common.servicecall.ServiceCallResult;
+import com.cpf.core.api.servicecall.CpfServiceCaller;
+import com.cpf.core.api.servicecall.CpfServiceRequest;
+import com.cpf.core.api.servicecall.CpfServiceResult;
 import com.cpf.core.spi.centercut.CenterCutHandler;
 
 import java.util.Objects;
 
 /**
- * Generated Domain/분리 WAS Center-Cut을 CPF ServiceCallEngine으로 호출하는 표준 BAT adapter입니다.
- * 내부 호출은 Gateway를 재경유하지 않으며 registry/health/retry/failover/UNKNOWN 처리를 그대로 사용합니다.
+ * Generated Domain/분리 WAS Center-Cut을 CPF 공개 ServiceCall API로 호출하는 BAT 표준 adapter입니다.
+ * 내부 호출은 Gateway를 재경유하지 않으며 registry/health/retry/failover/UNKNOWN 정책을 그대로 사용합니다.
  */
 public final class BatRemoteCenterCutHandler implements CenterCutHandler {
     private final String serviceId;
     private final String endpointCode;
     private final String requestPath;
-    private final CpfServiceCallEngine serviceCallEngine;
+    private final CpfServiceCaller serviceCaller;
     private final BatCenterCutRemoteTransport transport;
 
     public BatRemoteCenterCutHandler(
             String serviceId,
             String endpointCode,
             String requestPath,
-            CpfServiceCallEngine serviceCallEngine,
+            CpfServiceCaller serviceCaller,
             BatCenterCutRemoteTransport transport) {
         this.serviceId = requireText(serviceId, "serviceId");
         this.endpointCode = requireText(endpointCode, "endpointCode");
         this.requestPath = requireText(requestPath, "requestPath");
-        this.serviceCallEngine = Objects.requireNonNull(serviceCallEngine, "serviceCallEngine");
+        this.serviceCaller = Objects.requireNonNull(serviceCaller, "serviceCaller");
         this.transport = Objects.requireNonNull(transport, "transport");
     }
 
@@ -39,6 +39,7 @@ public final class BatRemoteCenterCutHandler implements CenterCutHandler {
         Objects.requireNonNull(target, "target");
         BatCenterCutRemoteTransport.BatCenterCutRemoteRequest remoteRequest =
                 new BatCenterCutRemoteTransport.BatCenterCutRemoteRequest(
+                        requestPath,
                         target.targetId(),
                         target.centerCutJobId(),
                         target.businessKey(),
@@ -49,7 +50,7 @@ public final class BatRemoteCenterCutHandler implements CenterCutHandler {
                         target.transactionSegmentId(),
                         target.retryCount());
 
-        ServiceCallRequest.Builder builder = ServiceCallRequest.builder(serviceId)
+        CpfServiceRequest.Builder builder = CpfServiceRequest.builder(serviceId)
                 .endpointCode(endpointCode)
                 .httpMethod("POST")
                 .requestPath(requestPath)
@@ -60,18 +61,17 @@ public final class BatRemoteCenterCutHandler implements CenterCutHandler {
         addHeader(builder, "X-Cpf-Parent-Segment-Id", target.parentSegmentId());
         addHeader(builder, "X-Cpf-Transaction-Segment-Id", target.transactionSegmentId());
 
-        ServiceCallResult<String> call = serviceCallEngine.invoke(
+        CpfServiceResult<String> call = serviceCaller.invoke(
                 builder.build(),
                 resolvedTarget -> transport.exchange(resolvedTarget, remoteRequest));
 
-        if ("SUCCESS".equals(call.status())) {
+        if (call.success()) {
             return CpfCenterCutResult.success(target, "remote handler success", call.responseBody());
         }
-        if ("UNKNOWN".equals(call.status())) {
-            // 결과불명은 자동 성공/실패로 확정하지 않는다. 운영 재확인/재조정 대상으로 남긴다.
+        if (call.unknown()) {
             return new CpfCenterCutResult(
                     target.targetId(),
-                    CpfCenterCutStatus.RETRY_REQUESTED,
+                    CpfCenterCutStatus.UNKNOWN_RESULT,
                     "UNKNOWN_RESULT: " + safe(call.failureMessage()),
                     null,
                     target.transactionSegmentId());
@@ -82,20 +82,12 @@ public final class BatRemoteCenterCutHandler implements CenterCutHandler {
                 null);
     }
 
-    private static void addHeader(ServiceCallRequest.Builder builder, String name, String value) {
-        if (value != null && !value.isBlank()) {
-            builder.header(name, value);
-        }
+    private static void addHeader(CpfServiceRequest.Builder builder, String name, String value) {
+        if (value != null && !value.isBlank()) builder.header(name, value);
     }
-
     private static String requireText(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(name + " is required");
-        }
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " is required");
         return value;
     }
-
-    private static String safe(String value) {
-        return value == null || value.isBlank() ? "-" : value;
-    }
+    private static String safe(String value) { return value == null || value.isBlank() ? "-" : value; }
 }

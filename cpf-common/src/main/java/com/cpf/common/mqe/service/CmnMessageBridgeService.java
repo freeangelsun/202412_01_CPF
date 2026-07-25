@@ -6,7 +6,7 @@ import com.cpf.common.mqe.core.CmnMessageEnvelope;
 import com.cpf.common.mqe.core.CmnMessageHandler;
 import com.cpf.common.mqe.core.CmnMessagePublishResult;
 import com.cpf.common.mqe.core.CmnMessagePublisher;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.broker.CpfBrokerBridgeMessage;
 import com.cpf.core.common.broker.CpfBrokerBridgePort;
 import com.cpf.core.common.broker.CpfBrokerBridgeResult;
@@ -46,8 +46,8 @@ public class CmnMessageBridgeService extends com.cpf.common.common.base.CmnBaseS
             String key,
             Object payload,
             Map<String, String> headers) {
-        String resolvedDestination = TextUtils.defaultIfBlank(destination, properties.getDefaultDestination());
-        String resolvedKey = TextUtils.defaultIfBlank(key, TransactionContext.getOrCreateTransactionId());
+        String resolvedDestination = CpfStrings.defaultIfBlank(destination, properties.getDefaultDestination());
+        String resolvedKey = CpfStrings.defaultIfBlank(key, TransactionContext.getOrCreateTransactionId());
         CpfBrokerBridgeResult result = brokerBridgePort.publish(
                 resolvedDestination,
                 resolvedKey,
@@ -64,7 +64,7 @@ public class CmnMessageBridgeService extends com.cpf.common.common.base.CmnBaseS
 
     @Override
     public void subscribe(String destination, CmnMessageHandler handler) {
-        String resolvedDestination = TextUtils.defaultIfBlank(destination, properties.getDefaultDestination());
+        String resolvedDestination = CpfStrings.defaultIfBlank(destination, properties.getDefaultDestination());
         brokerBridgePort.subscribe(resolvedDestination, message -> handler.handle(toCmnEnvelope(message)));
     }
 

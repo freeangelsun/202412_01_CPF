@@ -4,9 +4,10 @@ import com.cpf.admin.opr.dto.DownloadAuditLog;
 import com.cpf.admin.opr.dto.DownloadPolicy;
 import com.cpf.admin.opr.dto.DownloadRequest;
 import com.cpf.admin.opr.dto.DownloadResult;
-import com.cpf.common.utils.TextUtils;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.security.CpfMasking;
+import com.cpf.core.api.util.CpfStrings;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -40,17 +41,17 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final JdbcTemplate cpfJdbcTemplate;
-    private final JdbcTemplate batJdbcTemplate;
+    private final CpfBatchOperationsPort batchOperations;
     private final JdbcTemplate admJdbcTemplate;
     private final AdmAuditLogService auditLogService;
 
     public AdmDownloadService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
+            CpfBatchOperationsPort batchOperations,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             AdmAuditLogService auditLogService) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
-        this.batJdbcTemplate = batJdbcTemplate;
+        this.batchOperations = batchOperations;
         this.admJdbcTemplate = admJdbcTemplate;
         this.auditLogService = auditLogService;
     }
@@ -67,12 +68,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
 
         Long downloadId = null;
         try {
-            QuerySpec querySpec = buildQuery(policy.downloadType(), request);
-            JdbcTemplate sourceJdbcTemplate = "BATCH_EXECUTIONS".equals(policy.downloadType())
-                    ? batJdbcTemplate
-                    : cpfJdbcTemplate;
-            List<Map<String, Object>> rows =
-                    sourceJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
+            List<Map<String, Object>> rows = queryRows(policy.downloadType(), request);
             String csv = toCsv(rows, mask);
             String fileName = fileName(policy.downloadType());
             downloadId = recordDownloadAudit(
@@ -120,7 +116,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                     clientIp,
                     userAgent,
                     "FAILED",
-                    SensitiveDataMasker.mask(ex.getMessage(), 1000),
+                    CpfMasking.mask(ex.getMessage(), 1000),
                     null);
             throw ex;
         }
@@ -134,11 +130,11 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        if (TextUtils.hasText(downloadType)) {
+        if (CpfStrings.hasText(downloadType)) {
             sql.append(" AND DOWNLOAD_TYPE = ?");
             args.add(downloadType.trim());
         }
-        if (TextUtils.hasText(adminId)) {
+        if (CpfStrings.hasText(adminId)) {
             sql.append(" AND ADMIN_ID = ?");
             args.add(adminId.trim());
         }
@@ -176,11 +172,26 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                 .orElseThrow(() -> new CpfValidationException("지원하지 않는 다운로드 유형입니다."));
     }
 
+    private List<Map<String, Object>> queryRows(String downloadType, DownloadRequest request) {
+        if ("BATCH_EXECUTIONS".equals(downloadType)) {
+            return batchOperations.findExecutions(
+                    request.jobId(),
+                    request.transactionId(),
+                    null,
+                    null,
+                    null,
+                    request.fromDate(),
+                    request.toDate(),
+                    limit(request.limit()));
+        }
+        QuerySpec querySpec = buildQuery(downloadType, request);
+        return cpfJdbcTemplate.queryForList(querySpec.sql(), querySpec.args().toArray());
+    }
+
     private QuerySpec buildQuery(String downloadType, DownloadRequest request) {
         return switch (downloadType) {
             case "TRANSACTION_LOGS" -> transactionLogQuery(request, false);
             case "ERROR_LOGS" -> transactionLogQuery(request, true);
-            case "BATCH_EXECUTIONS" -> batchExecutionQuery(request);
             case "NOTIFICATION_DELIVERY_LOGS" -> notificationDeliveryLogQuery(request);
             default -> throw new CpfValidationException("지원하지 않는 다운로드 유형입니다.");
         };
@@ -203,26 +214,6 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
             sql.append(" AND (ERROR_CODE IS NOT NULL OR HTTP_STATUS >= 400 OR LOG_TYPE = 'ERROR')");
         }
         sql.append(" ORDER BY LOG_IDX DESC LIMIT ?");
-        args.add(limit(request.limit()));
-        return new QuerySpec(sql.toString(), args);
-    }
-
-    private QuerySpec batchExecutionQuery(DownloadRequest request) {
-        StringBuilder sql = new StringBuilder("""
-                SELECT execution_id, job_id, schedule_id, execution_status,
-                       spring_batch_execution_id, batch_instance_id, server_instance_id, worker_id,
-                       transaction_id, start_time, end_time, read_count, write_count,
-                       skip_count, retry_count, error_message, requested_by, created_at
-                FROM bat_execution
-                WHERE 1 = 1
-                """);
-        List<Object> args = new ArrayList<>();
-        if (TextUtils.hasText(request.jobId())) {
-            sql.append(" AND JOB_ID = ?");
-            args.add(request.jobId().trim());
-        }
-        appendDateRange(sql, args, "CREATED_AT", request.fromDate(), request.toDate());
-        sql.append(" ORDER BY EXECUTION_ID DESC LIMIT ?");
         args.add(limit(request.limit()));
         return new QuerySpec(sql.toString(), args);
     }
@@ -277,7 +268,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
             ps.setString(9, includeSensitiveRequested ? "Y" : "N");
             ps.setString(10, reason);
             ps.setString(11, clientIp);
-            ps.setString(12, SensitiveDataMasker.truncate(value(userAgent, ""), 500));
+            ps.setString(12, CpfMasking.truncate(value(userAgent, ""), 500));
             ps.setString(13, status);
             ps.setString(14, failureReason);
             ps.setString(15, fileName);
@@ -300,7 +291,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
             List<String> values = new ArrayList<>();
             for (String header : headers) {
                 String value = Objects.toString(row.get(header), "");
-                values.add(csvValue(mask ? SensitiveDataMasker.mask(value) : value));
+                values.add(csvValue(mask ? CpfMasking.mask(value) : value));
             }
             csv.append(String.join(",", values)).append("\r\n");
         }
@@ -330,18 +321,18 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
-        if (TextUtils.hasText(value)) {
+        if (CpfStrings.hasText(value)) {
             sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
             args.add(value.trim());
         }
     }
 
     private void appendDateRange(StringBuilder sql, List<Object> args, String column, String fromDate, String toDate) {
-        if (TextUtils.hasText(fromDate)) {
+        if (CpfStrings.hasText(fromDate)) {
             sql.append(" AND ").append(column).append(" >= ?");
             args.add(fromDate.trim());
         }
-        if (TextUtils.hasText(toDate)) {
+        if (CpfStrings.hasText(toDate)) {
             sql.append(" AND ").append(column).append(" <= ?");
             args.add(toDate.trim());
         }
@@ -355,7 +346,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     private String value(String value, String fallback) {
-        return TextUtils.hasText(value) ? value.trim() : fallback;
+        return CpfStrings.hasText(value) ? value.trim() : fallback;
     }
 
     private record QuerySpec(String sql, List<Object> args) {

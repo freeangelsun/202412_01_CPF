@@ -18,9 +18,10 @@ export const admConsoleMixin = defineComponent({
         return this.currentOperator.passwordChangeRequired === true;
       },
       visibleMenus() {
-        if (!this.authorizedMenus.length) {
-          return this.menus;
-        }
+        // 인증 후 권한 정보를 아직 읽지 못했거나 권한이 0건이면 fail-closed 합니다.
+        // "권한 미로딩"과 "전체 권한"을 같은 빈 배열로 취급하지 않습니다.
+        if (!this.authenticated || !this.permissionsLoaded) return [];
+        if (!this.authorizedMenus.length) return [];
         const allowed = new Set(this.authorizedMenus.map(menu => menu.menuId || menu.id));
         return this.menus.filter(menu => allowed.has(menu.menuId));
       },

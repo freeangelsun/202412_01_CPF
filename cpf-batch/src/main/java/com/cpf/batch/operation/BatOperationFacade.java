@@ -7,7 +7,7 @@ import com.cpf.core.api.batch.CpfBatchExecutionRequest;
 import com.cpf.core.api.batch.CpfBatchExecutionResult;
 import com.cpf.batch.runtime.BatBatchGhostDetectionService;
 import com.cpf.batch.runtime.BatBatchLauncher;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
@@ -111,7 +111,20 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
             String workerId,
             String serverInstanceId,
             int limit) {
-        int resolvedLimit = Math.max(1, Math.min(limit, 500));
+        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, null, null, limit);
+    }
+
+    @Override
+    public List<Map<String, Object>> findExecutions(
+            String jobId,
+            String transactionId,
+            Long springBatchJobInstanceId,
+            String workerId,
+            String serverInstanceId,
+            String fromDate,
+            String toDate,
+            int limit) {
+        int resolvedLimit = Math.max(1, Math.min(limit, 10000));
         StringBuilder sql = new StringBuilder("""
                 SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
                        spring_batch_execution_id, spring_batch_job_instance_id, business_date,
@@ -135,6 +148,14 @@ public class BatOperationFacade implements CpfBatchOperationsPort {
         }
         appendEquals(sql, args, "worker_id", workerId);
         appendEquals(sql, args, "server_instance_id", serverInstanceId);
+        if (fromDate != null && !fromDate.isBlank()) {
+            sql.append(" AND created_at >= ?");
+            args.add(fromDate.trim());
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            sql.append(" AND created_at <= ?");
+            args.add(toDate.trim());
+        }
         sql.append(" ORDER BY execution_id DESC LIMIT ?");
         args.add(resolvedLimit);
         return queryOrEmpty(sql.toString(), args.toArray());

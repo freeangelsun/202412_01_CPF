@@ -1,5 +1,7 @@
 package com.cpf.core.common.http;
 
+import com.cpf.core.api.http.CpfHttpClient;
+
 import com.cpf.core.common.execution.CpfStandardExecutionId;
 import com.cpf.core.common.header.CpfHeaderNames;
 import com.cpf.core.common.servicecall.CpfServiceCallEngine;
@@ -25,7 +27,7 @@ import java.util.function.Function;
  * CPF Service Call Engine을 우선 경유합니다. 레지스트리 DB가 아직 준비되지 않은 개발 환경에서는
  * 기존 {@code cpf.services.*.base-url} 설정으로 fallback하여 로컬 기동성을 유지합니다.</p>
  */
-public class CpfWebClient {
+public class CpfWebClient implements CpfHttpClient {
 
     private final WebClient.Builder webClientBuilder;
     private final CpfServiceEndpointRegistry endpointRegistry;
@@ -82,6 +84,15 @@ public class CpfWebClient {
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
+    }
+
+    @Override
+    public <T> T get(
+            String standardExecutionId,
+            String serviceId,
+            Function<UriBuilder, URI> uriFunction,
+            Class<T> responseType) {
+        return get(CpfStandardExecutionId.parse(standardExecutionId), serviceId, uriFunction, responseType);
     }
 
     /**

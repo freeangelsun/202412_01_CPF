@@ -1,9 +1,9 @@
 package com.cpf.batch.operation;
 
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
-import com.cpf.core.common.batch.CpfBatchLauncher;
-import com.cpf.core.common.batch.CpfBatchOperationRepository;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
+import com.cpf.batch.runtime.BatBatchLauncher;
+import com.cpf.batch.runtime.BatBatchOperationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -16,10 +16,10 @@ import java.util.Map;
 public class BatSmokeOperationService extends com.cpf.batch.common.base.BatBaseService {
     private static final String REQUEST_USER = "BAT_SMOKE";
 
-    private final CpfBatchLauncher batchLauncher;
-    private final CpfBatchOperationRepository repository;
+    private final BatBatchLauncher batchLauncher;
+    private final BatBatchOperationRepository repository;
 
-    public BatSmokeOperationService(CpfBatchLauncher batchLauncher, CpfBatchOperationRepository repository) {
+    public BatSmokeOperationService(BatBatchLauncher batchLauncher, BatBatchOperationRepository repository) {
         this.batchLauncher = batchLauncher;
         this.repository = repository;
     }

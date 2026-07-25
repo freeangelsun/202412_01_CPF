@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * CPF ADM 운영 애플리케이션입니다.
  *
- * <p>CPF/CMN 공통 모듈을 함께 스캔하고, ADM 운영 화면과 배치 스케줄러를 제공합니다.</p>
+ * <p>CPF/CMN 공통 모듈을 함께 스캔하고 ADM 운영 화면과 BAT/업무 Owner Control Plane 연동을 제공합니다.</p>
  */
 @SpringBootApplication(scanBasePackages = {"com.cpf.core", "com.cpf.common", "com.cpf.admin"})
 @EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class})

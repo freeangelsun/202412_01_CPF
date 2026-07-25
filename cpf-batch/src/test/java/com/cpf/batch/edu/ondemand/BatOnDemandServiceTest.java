@@ -1,8 +1,8 @@
 package com.cpf.batch.edu.ondemand;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
-import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
+import com.cpf.batch.runtime.BatBatchLauncher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 class BatOnDemandServiceTest {
     private final MemoryRepository repository = new MemoryRepository();
-    private final CpfBatchLauncher launcher = mock(CpfBatchLauncher.class);
+    private final BatBatchLauncher launcher = mock(BatBatchLauncher.class);
     @SuppressWarnings("unchecked")
     private final ObjectProvider<JobExplorer> explorerProvider = mock(ObjectProvider.class);
     private final BatOnDemandService service = new BatOnDemandService(
@@ -75,9 +75,9 @@ class BatOnDemandServiceTest {
         service.rerun(submitted.executionRequestId(), "operator", "전체 신규 재수행");
 
         org.mockito.Mockito.verify(launcher).run(argThat(request ->
-                request.operationType() == com.cpf.core.common.batch.CpfBatchOperationType.RESTART));
+                request.operationType() == com.cpf.core.api.batch.CpfBatchOperationType.RESTART));
         org.mockito.Mockito.verify(launcher).run(argThat(request ->
-                request.operationType() == com.cpf.core.common.batch.CpfBatchOperationType.RERUN));
+                request.operationType() == com.cpf.core.api.batch.CpfBatchOperationType.RERUN));
     }
 
     @Test

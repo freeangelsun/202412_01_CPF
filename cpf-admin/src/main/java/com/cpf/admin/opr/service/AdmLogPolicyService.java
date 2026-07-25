@@ -3,7 +3,7 @@ package com.cpf.admin.opr.service;
 import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.policy.LogPolicyDecision;
 import com.cpf.core.common.logging.policy.LogPolicyResolver;
@@ -370,15 +370,15 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        if (TextUtils.hasText(targetType)) {
+        if (CpfStrings.hasText(targetType)) {
             sql.append(" AND target_type = ?");
             args.add(targetType.trim().toUpperCase());
         }
-        if (TextUtils.hasText(targetId)) {
+        if (CpfStrings.hasText(targetId)) {
             sql.append(" AND target_id LIKE ?");
             args.add("%" + targetId.trim() + "%");
         }
-        if (TextUtils.hasText(activeYn)) {
+        if (CpfStrings.hasText(activeYn)) {
             sql.append(" AND active_yn = ?");
             args.add(yn(activeYn, "Y"));
         }
@@ -520,28 +520,28 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private String required(String value, String label) {
-        if (!TextUtils.hasText(value)) {
+        if (!CpfStrings.hasText(value)) {
             throw new CpfValidationException(label + " 값은 필수입니다.");
         }
         return value.trim();
     }
 
     private String defaultIfBlank(String first, String second, String fallback) {
-        if (TextUtils.hasText(first)) {
+        if (CpfStrings.hasText(first)) {
             return first.trim();
         }
-        if (TextUtils.hasText(second)) {
+        if (CpfStrings.hasText(second)) {
             return second.trim();
         }
         return fallback;
     }
 
     private String defaultIfBlank(String value, String fallback) {
-        return TextUtils.hasText(value) ? value.trim() : fallback;
+        return CpfStrings.hasText(value) ? value.trim() : fallback;
     }
 
     private String blankToNull(String value) {
-        return TextUtils.hasText(value) ? value.trim() : null;
+        return CpfStrings.hasText(value) ? value.trim() : null;
     }
 
     private String yn(String value, String fallback) {
@@ -550,7 +550,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     private String nullableYn(String value) {
-        return TextUtils.hasText(value) ? yn(value, "N") : null;
+        return CpfStrings.hasText(value) ? yn(value, "N") : null;
     }
 
     private int safeInt(Integer value, int fallback, int min, int max) {

@@ -3,7 +3,7 @@ package com.cpf.member.integration.account;
 import com.cpf.common.api.account.AccountSummary;
 import com.cpf.common.api.account.AccountSummaryFacade;
 import com.cpf.member.common.base.MbrBaseController;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;

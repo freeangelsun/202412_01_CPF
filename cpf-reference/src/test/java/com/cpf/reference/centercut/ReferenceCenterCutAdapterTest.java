@@ -1,7 +1,8 @@
 package com.cpf.reference.centercut;
 
-import com.cpf.core.common.batch.centercut.CpfCenterCutService;
-import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +11,6 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -31,7 +31,7 @@ class ReferenceCenterCutAdapterTest {
     @Test
     void handlerReturnsFailureWithSameTransactionAndSegmentContext() {
         ReferenceCenterCutHandler handler = new ReferenceCenterCutHandler();
-        var target = new com.cpf.core.common.batch.centercut.CpfCenterCutTarget(
+        var target = new CpfCenterCutTarget(
                 "REF-CENTER-CUT-FAIL",
                 ReferenceCenterCutConstants.JOB_ID,
                 "REF-BUSINESS-FAIL",
@@ -60,16 +60,32 @@ class ReferenceCenterCutAdapterTest {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         ReferenceCenterCutTargetRepository repository = new ReferenceCenterCutTargetRepository(jdbcTemplate);
         ReferenceCenterCutHandler handler = new ReferenceCenterCutHandler();
-        AtomicLong sequence = new AtomicLong();
-        CpfCenterCutService service = new CpfCenterCutService(() ->
-                "CC-REF-20260702123000000-" + String.format("%07d", sequence.incrementAndGet()));
-
         repository.resetSampleTargetsForSmoke();
-        var summary = service.execute(ReferenceCenterCutConstants.JOB_ID, 10, repository, handler);
+        var targets = repository.findReadyTargets(ReferenceCenterCutConstants.JOB_ID, 10);
+        int success = 0;
+        int failed = 0;
+        int sequence = 0;
+        for (CpfCenterCutTarget target : targets) {
+            String segmentId = "CC-REF-20260702123000000-" + String.format("%07d", ++sequence);
+            CpfCenterCutTarget running = target
+                    .withExecutionContext(
+                            target.transactionId() == null ? "20260702123000000REFlocal010000001" : target.transactionId(),
+                            target.parentSegmentId() == null ? "SEG-REF-PARENT-0001" : target.parentSegmentId(),
+                            segmentId)
+                    .withStatus(CpfCenterCutStatus.RUNNING);
+            repository.markRunning(running);
+            CpfCenterCutResult result = handler.handle(running);
+            repository.markResult(running, result);
+            if (result.status() == CpfCenterCutStatus.SUCCESS) {
+                success++;
+            } else if (result.status() == CpfCenterCutStatus.FAILED) {
+                failed++;
+            }
+        }
 
-        assertThat(summary.requestedCount()).isEqualTo(4);
-        assertThat(summary.successCount()).isEqualTo(3);
-        assertThat(summary.failedCount()).isEqualTo(1);
+        assertThat(targets).hasSize(4);
+        assertThat(success).isEqualTo(3);
+        assertThat(failed).isEqualTo(1);
         assertThat(repository.countResultsByStatus(ReferenceCenterCutConstants.JOB_ID))
                 .containsEntry("SUCCESS", 3L)
                 .containsEntry("FAILED", 1L);

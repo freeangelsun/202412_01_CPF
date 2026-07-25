@@ -6,3 +6,4 @@ com.cpf.core.config.CpfServiceCallAutoConfiguration
 com.cpf.core.config.CpfLogRecoveryAutoConfiguration
 com.cpf.core.config.CpfSecurityAutoConfiguration
 com.cpf.core.config.CpfAttachmentAutoConfiguration
+com.cpf.core.config.CpfPublicBoundaryAutoConfiguration

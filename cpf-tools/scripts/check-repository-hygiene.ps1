@@ -20,10 +20,17 @@ function Add-Failure([string] $Rule, [string] $Path, [string] $Detail) {
     $failures.Add([ordered]@{ rule = $Rule; path = $Path; detail = $Detail }) | Out-Null
 }
 
-$tracked = @(& git -C $Root ls-files)
+$trackedAll = @(& git -C $Root ls-files)
 if ($LASTEXITCODE -ne 0) {
     throw "git 추적 파일 목록을 읽지 못했습니다."
 }
+
+# Commit 전 cleanup 검증에서도 이미 Worktree에서 삭제된 tracked path는 현재 제품 구성에 포함하지 않는다.
+# git ls-files 자체는 삭제된 tracked path도 반환하므로 실제 존재 파일 기준으로 Hygiene를 판정한다.
+$tracked = @($trackedAll | Where-Object {
+    Test-Path -LiteralPath (Join-Path $Root $_)
+})
+$deletedTrackedCount = $trackedAll.Count - $tracked.Count
 
 $forbiddenPrefixes = @(
     "cpf-docs/evidence/20260722_01/",
@@ -96,6 +103,7 @@ $result = [ordered]@{
     generatedAt = [DateTimeOffset]::Now.ToString("o")
     status = if ($failures.Count -eq 0) { "완료" } else { "실패" }
     trackedFileCount = $tracked.Count
+    deletedTrackedCount = $deletedTrackedCount
     failureCount = $failures.Count
     failures = @($failures)
 }
@@ -107,6 +115,6 @@ $resultPath = Join-Path $ResultDir "repository-hygiene.sanitized.json"
 
 if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Host "FAIL [$($_.rule)] $($_.path)" }
-    exit 1
+    throw "Repository hygiene check FAIL: $($failures.Count)건"
 }
-Write-Host "Repository hygiene check passed. tracked=$($tracked.Count)"
+Write-Host "Repository hygiene check passed. tracked=$($tracked.Count), deletedTracked=$deletedTrackedCount"

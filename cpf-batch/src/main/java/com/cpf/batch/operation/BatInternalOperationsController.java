@@ -1,7 +1,7 @@
 package com.cpf.batch.operation;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
-import com.cpf.core.common.execution.CpfSharedApi;
+import com.cpf.core.api.execution.CpfSharedApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +40,8 @@ public class BatInternalOperationsController {
                     nullableLong(a,"springBatchJobInstanceId"),
                     textOrNull(a,"workerId"),
                     textOrNull(a,"serverInstanceId"),
+                    textOrNull(a,"fromDate"),
+                    textOrNull(a,"toDate"),
                     integer(a,"limit",100));
             case "findExecutionDetail" -> operations.findExecutionDetail(longValue(a,"executionId"));
             case "findInstances" -> operations.findInstances();

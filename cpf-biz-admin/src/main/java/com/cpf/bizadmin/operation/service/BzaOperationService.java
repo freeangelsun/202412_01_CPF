@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.operation.service;
 
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.security.password.CpfPasswordHashingPort;
@@ -204,7 +204,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
     }
 
     private String required(String value, String field) {
-        return TextUtils.requireText(value, field);
+        return CpfStrings.requireText(value, field);
     }
 
     private String code(String value, String field) {

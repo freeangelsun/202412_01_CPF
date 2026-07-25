@@ -1,8 +1,8 @@
 package com.cpf.batch.scheduler;
 
 import com.cpf.batch.runtime.BatBatchLockManager;
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
 import com.cpf.batch.runtime.BatBatchLauncher;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import org.springframework.beans.factory.annotation.Value;

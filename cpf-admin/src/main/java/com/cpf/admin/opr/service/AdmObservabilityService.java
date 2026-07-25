@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.util.CpfStrings;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,15 +22,15 @@ import java.util.Map;
 @Service
 public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
-    private final JdbcTemplate batJdbcTemplate;
+    private final CpfBatchOperationsPort batchOperations;
     private final JdbcTemplate admJdbcTemplate;
 
     public AdmObservabilityService(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
+            CpfBatchOperationsPort batchOperations,
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
         this.cpfJdbcTemplate = cpfJdbcTemplate;
-        this.batJdbcTemplate = batJdbcTemplate;
+        this.batchOperations = batchOperations;
         this.admJdbcTemplate = admJdbcTemplate;
     }
 
@@ -159,7 +160,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
         List<Object> args = new ArrayList<>();
         appendLike(sql, args, "TRANSACTION_ID", transactionId);
         appendLike(sql, args, "TRACE_ID", traceId);
-        if (TextUtils.hasText(businessTransactionId)) {
+        if (CpfStrings.hasText(businessTransactionId)) {
             sql.append(" AND (TARGET_ID = ? OR TARGET_ID LIKE CONCAT('%', ?, '%'))");
             args.add(businessTransactionId.trim());
             args.add(businessTransactionId.trim());
@@ -206,23 +207,14 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private List<Map<String, Object>> queryBatchExecutions(String transactionId, int limit) {
-        if (!TextUtils.hasText(transactionId) || !tableAvailable(batJdbcTemplate, "bat_execution")) {
+        if (!CpfStrings.hasText(transactionId)) {
             return List.of();
         }
         try {
-            return batJdbcTemplate.queryForList("""
-                    SELECT execution_id, job_id, schedule_id, job_parameters, execution_status,
-                           spring_batch_execution_id, spring_batch_job_instance_id, business_date,
-                           run_id, rerun_id, original_job_execution_id, restart_attempt,
-                           transaction_id, transaction_segment_id, parent_segment_id, job_log_relative_path, batch_instance_id,
-                           server_instance_id, worker_id, start_time, end_time, processed_count,
-                           success_count, failure_count, progress_rate, current_step_name,
-                           last_heartbeat_at, created_at
-                    FROM bat_execution
-                    WHERE transaction_id = ?
-                    ORDER BY execution_id DESC LIMIT ?
-                    """, transactionId.trim(), cappedLimit(limit));
-        } catch (DataAccessException ex) {
+            return batchOperations.findExecutions(
+                    null, transactionId.trim(), null, null, null, cappedLimit(limit));
+        } catch (RuntimeException ex) {
+            // 관제 보조 조회 실패가 원 거래/로그 조회 전체를 오염시키지 않도록 격리합니다.
             return List.of();
         }
     }
@@ -263,14 +255,14 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {
-        if (TextUtils.hasText(value)) {
+        if (CpfStrings.hasText(value)) {
             sql.append(" AND ").append(column).append(" LIKE CONCAT('%', ?, '%')");
             args.add(value.trim());
         }
     }
 
     private void appendEquals(StringBuilder sql, List<Object> args, String column, String value) {
-        if (TextUtils.hasText(value)) {
+        if (CpfStrings.hasText(value)) {
             sql.append(" AND ").append(column).append(" = ?");
             args.add(value.trim());
         }
@@ -286,7 +278,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
             if (value == null) {
                 value = row.get(name.toLowerCase());
             }
-            if (value != null && TextUtils.hasText(String.valueOf(value))) {
+            if (value != null && CpfStrings.hasText(String.valueOf(value))) {
                 return String.valueOf(value);
             }
         }
@@ -295,7 +287,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
 
     private String firstText(String... values) {
         for (String value : values) {
-            if (TextUtils.hasText(value)) {
+            if (CpfStrings.hasText(value)) {
                 return value.trim();
             }
         }

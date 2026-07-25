@@ -4,8 +4,8 @@ import com.cpf.batch.job.centercut.BatCenterCutJobConfig;
 import com.cpf.batch.job.failure.BatFailureJobConfig;
 import com.cpf.batch.job.heartbeat.BatHeartbeatJobConfig;
 import com.cpf.batch.job.smoke.BatSmokeJobConfig;
-import com.cpf.core.common.batch.CpfBatchFileLogWriter;
-import com.cpf.core.common.batch.CpfBatchRuntimeListener;
+import com.cpf.batch.runtime.BatBatchFileLogWriter;
+import com.cpf.batch.runtime.BatBatchRuntimeListener;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
 import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.file.CpfLogPathPolicy;
@@ -36,16 +36,16 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
     private final Environment environment;
     private final BatSmokeOperationService operationService;
     private final BatSmokeExecutionRegistry registry;
-    private final ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider;
-    private final ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider;
+    private final ObjectProvider<BatBatchFileLogWriter> batchFileLogWriterProvider;
+    private final ObjectProvider<BatBatchRuntimeListener> batchRuntimeListenerProvider;
 
     public BatHealthController(
             @Qualifier("batJdbcTemplate") JdbcTemplate batJdbcTemplate,
             Environment environment,
             BatSmokeOperationService operationService,
             BatSmokeExecutionRegistry registry,
-            ObjectProvider<CpfBatchFileLogWriter> batchFileLogWriterProvider,
-            ObjectProvider<CpfBatchRuntimeListener> batchRuntimeListenerProvider) {
+            ObjectProvider<BatBatchFileLogWriter> batchFileLogWriterProvider,
+            ObjectProvider<BatBatchRuntimeListener> batchRuntimeListenerProvider) {
         this.batJdbcTemplate = batJdbcTemplate;
         this.environment = environment;
         this.operationService = operationService;

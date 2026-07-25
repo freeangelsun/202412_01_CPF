@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
 import org.slf4j.Logger;
@@ -45,19 +45,19 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
-        if (TextUtils.hasText(operatorId)) {
+        if (CpfStrings.hasText(operatorId)) {
             sql.append(" AND OPERATOR_ID = ?");
             args.add(operatorId.trim());
         }
-        if (TextUtils.hasText(actionType)) {
+        if (CpfStrings.hasText(actionType)) {
             sql.append(" AND ACTION_TYPE = ?");
             args.add(actionType.trim());
         }
-        if (TextUtils.hasText(targetType)) {
+        if (CpfStrings.hasText(targetType)) {
             sql.append(" AND TARGET_TYPE = ?");
             args.add(targetType.trim());
         }
-        if (TextUtils.hasText(targetId)) {
+        if (CpfStrings.hasText(targetId)) {
             sql.append(" AND TARGET_ID = ?");
             args.add(targetId.trim());
         }
@@ -124,7 +124,7 @@ public class AdmAuditLogService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     public String requireReason(String reason) {
-        if (!TextUtils.hasText(reason)) {
+        if (!CpfStrings.hasText(reason)) {
             throw new CpfValidationException("감사 사유는 필수입니다.");
         }
         return reason.trim();

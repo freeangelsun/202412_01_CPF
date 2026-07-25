@@ -3,7 +3,7 @@ package com.cpf.admin.opr.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cpf.core.common.batch.CpfBatchJobLogPath;
+import com.cpf.core.api.batch.CpfBatchLogPaths;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.file.CpfLogPathPolicy;
 import org.springframework.core.env.Environment;
@@ -81,7 +81,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
         LocalDate parsedDate = parseBusinessDate(businessDate);
         Path relativePath;
         try {
-            relativePath = CpfBatchJobLogPath.relativePath(jobName, jobInstanceId, parsedDate);
+            relativePath = CpfBatchLogPaths.relativePath(jobName, jobInstanceId, parsedDate);
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException(ex.getMessage());
         }

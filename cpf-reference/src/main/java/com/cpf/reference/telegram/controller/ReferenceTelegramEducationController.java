@@ -1,10 +1,10 @@
 package com.cpf.reference.telegram.controller;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.fixedlength.CpfFixedLengthDtoMapper;
 import com.cpf.core.api.fixedlength.CpfFixedLengthParseResult;
 import com.cpf.core.api.fixedlength.CpfFixedLengthWriteResult;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.reference.telegram.dto.ReferenceFixedLengthMemberTelegram;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +20,12 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * CPF 고정길이 전문의 DTO 변환·파싱·직렬화 사용법을 제공하는 REF 교육 Controller입니다.
+ *
+ * <p>동일 DTO 정의로 전문 문자열과 자료구조를 상호 변환하여,
+ * 업무 Domain이 직접 위치 계산이나 반복적인 문자열 조립을 수행하지 않도록 하는 표준 예제입니다.</p>
+ */
 @RestController
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 06. Fixed Length", description = "Fixed length telegram parse and write samples")
@@ -34,7 +40,7 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
     @CpfOnlineTransaction(id = "OREFAA0060", name = "REFFixedLengthParse")
     @Operation(operationId = "refTelegramEducationParseFixedLengthTelegram", summary = "Fixed length parse sample", description = "Parses a fixed length string to DTO and map.")
     public ResponseEntity<Map<String, Object>> parseFixedLengthTelegram(@RequestParam(required = false) String telegram) {
-        String sampleTelegram = TextUtils.hasText(telegram)
+        String sampleTelegram = CpfStrings.hasText(telegram)
                 ? telegram
                 : fixedLengthMapper.writeFromDto(defaultTelegramDto()).message();
         CpfFixedLengthParseResult parseResult = fixedLengthMapper.parseToMap(

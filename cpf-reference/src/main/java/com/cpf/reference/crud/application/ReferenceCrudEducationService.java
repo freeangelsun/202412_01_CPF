@@ -1,8 +1,8 @@
 package com.cpf.reference.crud.application;
 
 import com.cpf.reference.transaction.application.ReferenceTransactionEducationAuditService;
-import com.cpf.common.utils.IdUtils;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfIds;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfBusinessException;
 import com.cpf.core.common.exception.CpfNotFoundException;
 import com.cpf.core.common.exception.CpfValidationException;
@@ -66,10 +66,10 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
         String requestUser = repository.normalizeRequestUser(request.requestUser());
         repository.insertCrudItem(
                 itemId,
-                TextUtils.requireText(request.title(), "title"),
+                CpfStrings.requireText(request.title(), "title"),
                 repository.normalizeCategoryCode(request.categoryCode()),
                 "ACTIVE",
-                TextUtils.defaultIfBlank(request.ownerMemberNo(), null),
+                CpfStrings.defaultIfBlank(request.ownerMemberNo(), null),
                 requestUser);
         return getEducationItem(itemId);
     }
@@ -83,9 +83,9 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
         validateItemIdRangeRequest(request);
         int updatedRows = repository.updateCrudItem(
                 educationItemId,
-                TextUtils.requireText(request.title(), "title"),
+                CpfStrings.requireText(request.title(), "title"),
                 repository.normalizeCategoryCode(request.categoryCode()),
-                TextUtils.defaultIfBlank(request.ownerMemberNo(), null),
+                CpfStrings.defaultIfBlank(request.ownerMemberNo(), null),
                 repository.normalizeRequestUser(request.requestUser()));
         if (updatedRows != 1) {
             throw new CpfNotFoundException("REF CRUD 교육 항목을 수정할 수 없습니다. educationItemId=" + educationItemId);
@@ -103,7 +103,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
         findExistingItem(educationItemId);
         int updatedRows = repository.updateCrudItemStatus(
                 educationItemId,
-                TextUtils.requireText(request.statusCode(), "statusCode"),
+                CpfStrings.requireText(request.statusCode(), "statusCode"),
                 repository.normalizeRequestUser(request.requestUser()));
         if (updatedRows != 1) {
             throw new CpfNotFoundException("REF CRUD 교육 항목 상태를 변경할 수 없습니다. educationItemId=" + educationItemId);
@@ -131,7 +131,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     @Transactional(transactionManager = "refTransactionManager")
     public String runSingleTransactionEducation() {
         ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
-                "SINGLE-" + IdUtils.temporaryId("REF"),
+                "SINGLE-" + CpfIds.temporaryId("REF"),
                 "단일 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SINGLE",
@@ -145,7 +145,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
     @Transactional(transactionManager = "refTransactionManager")
     public String runSeparatedTransactionEducation(boolean failAfterAudit) {
         ReferenceCrudEducationResponse response = createEducationItem(new ReferenceCrudEducationRequest(
-                "SEPARATED-" + IdUtils.temporaryId("REF"),
+                "SEPARATED-" + CpfIds.temporaryId("REF"),
                 "분리 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SEPARATED",

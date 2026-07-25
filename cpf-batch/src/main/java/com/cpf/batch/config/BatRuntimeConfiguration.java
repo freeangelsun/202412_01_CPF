@@ -1,7 +1,7 @@
 package com.cpf.batch.config;
 
 import com.cpf.batch.runtime.*;
-import com.cpf.core.common.batch.CpfBatchEventPublisher;
+import com.cpf.core.api.batch.CpfBatchEventPublisher;
 import com.cpf.core.common.logging.TransactionIdGenerator;
 import com.cpf.core.common.logging.file.CpfFileLogWriter;
 import com.cpf.core.common.logging.policy.LogPolicyResolver;

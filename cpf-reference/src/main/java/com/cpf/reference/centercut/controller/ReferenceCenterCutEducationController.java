@@ -1,37 +1,37 @@
 package com.cpf.reference.centercut.controller;
 
-import com.cpf.core.common.execution.CpfOnlineTransaction;
-import com.cpf.reference.centercut.dto.ReferenceCenterCutExecutionResponse;
-import com.cpf.reference.centercut.application.ReferenceCenterCutEducationService;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.reference.centercut.ReferenceCenterCutHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 업무 DB 기반 center-cut adapter 교육 API입니다.
+ * BAT Center-Cut Runtime이 호출하는 REF 업무 item adapter EDU입니다.
+ * Runner/재시도/lease/UNKNOWN_RESULT 판정은 BAT가 소유하며 REF는 업무 처리만 담당합니다.
  */
 @RestController
-@RequestMapping({"/api/reference/center-cut", "/reference/edu/center-cut"})
-@Tag(name = "REF Reference 14. Center-Cut", description = "업무 DB 기반 center-cut target/provider/handler/result adapter 샘플")
+@RequestMapping({"/internal/ref/center-cut", "/reference/edu/center-cut"})
+@Tag(name = "REF Reference 14. Center-Cut", description = "BAT Runtime과 업무 Domain의 Center-Cut Handler/SPI 경계 예제")
 public class ReferenceCenterCutEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
-    private final ReferenceCenterCutEducationService educationService;
+    private final ReferenceCenterCutHandler handler;
 
-    public ReferenceCenterCutEducationController(ReferenceCenterCutEducationService educationService) {
-        this.educationService = educationService;
+    public ReferenceCenterCutEducationController(ReferenceCenterCutHandler handler) {
+        this.handler = handler;
     }
 
-    @PostMapping("/run")
-    @CpfOnlineTransaction(id = "OREFAA0056", name = "REFCenterCut업무DBAdapter실행")
-    @Operation(operationId = "refCenterCutEducationRun",
-            summary = "업무 DB 기반 center-cut 샘플 실행",
-            description = "ref_center_cut_sample_target을 조회하고 item별 성공/실패 결과를 ref_center_cut_sample_result에 기록합니다.")
-    public ResponseEntity<ReferenceCenterCutExecutionResponse> run(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "false") boolean resetBeforeRun) {
-        return ResponseEntity.ok(educationService.runSample(limit, resetBeforeRun));
+    @PostMapping("/items")
+    @CpfOnlineTransaction(id = "SREFCC0001", name = "REFCenterCutItem처리", ownerDomain = "REF", visibility = "INTERNAL", gatewayAllowed = false)
+    @Operation(operationId = "refCenterCutItemHandle",
+            summary = "BAT가 선택한 Center-Cut item 업무 처리",
+            description = "BAT가 transactionId/segment 계층과 재처리 정책을 관리하고 REF는 단일 업무 item만 처리합니다.")
+    public ResponseEntity<CpfCenterCutResult> handle(@RequestBody CpfCenterCutTarget target) {
+        return ResponseEntity.ok(handler.handle(target));
     }
 }

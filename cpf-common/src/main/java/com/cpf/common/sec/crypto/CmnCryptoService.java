@@ -1,6 +1,6 @@
 package com.cpf.common.sec.crypto;
 
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfExternalServiceException;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
      */
     public String base64Decode(String encoded) {
         try {
-            return new String(Base64.getDecoder().decode(TextUtils.requireText(encoded, "encoded")), StandardCharsets.UTF_8);
+            return new String(Base64.getDecoder().decode(CpfStrings.requireText(encoded, "encoded")), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException("Base64 값이 올바르지 않습니다.");
         }
@@ -76,7 +76,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
 
     public byte[] base64UrlDecode(String encoded) {
         try {
-            return Base64.getUrlDecoder().decode(TextUtils.requireText(encoded, "encoded"));
+            return Base64.getUrlDecoder().decode(CpfStrings.requireText(encoded, "encoded"));
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException("Base64 URL 값이 올바르지 않습니다.");
         }
@@ -124,7 +124,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
     public byte[] hmacSha256Bytes(String message, String secret) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(TextUtils.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            mac.init(new SecretKeySpec(CpfStrings.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             return mac.doFinal(nullToEmpty(message).getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
             throw new CpfExternalServiceException("HMAC-SHA256 처리에 실패했습니다.", ex);
@@ -159,7 +159,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
      */
     public String aesGcmDecrypt(String cipherText, String secret) {
         try {
-            String[] parts = TextUtils.requireText(cipherText, "cipherText").split("\\.");
+            String[] parts = CpfStrings.requireText(cipherText, "cipherText").split("\\.");
             if (parts.length != 2) {
                 throw new CpfValidationException("AES-GCM 암호문 형식이 올바르지 않습니다.");
             }
@@ -182,7 +182,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
     public String pbkdf2Hash(String password) {
         try {
             byte[] salt = randomBytes(16);
-            byte[] hash = pbkdf2(TextUtils.requireText(password, "password").toCharArray(), salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BITS);
+            byte[] hash = pbkdf2(CpfStrings.requireText(password, "password").toCharArray(), salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BITS);
             return "PBKDF2$" + PBKDF2_ITERATIONS + "$"
                     + Base64.getEncoder().encodeToString(salt) + "$"
                     + Base64.getEncoder().encodeToString(hash);
@@ -200,13 +200,13 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
      */
     public boolean pbkdf2Matches(String password, String storedHash) {
         try {
-            String[] parts = TextUtils.requireText(storedHash, "storedHash").split("\\$");
+            String[] parts = CpfStrings.requireText(storedHash, "storedHash").split("\\$");
             if (parts.length != 4 || !"PBKDF2".equals(parts[0])) {
                 return false;
             }
             byte[] salt = Base64.getDecoder().decode(parts[2]);
             byte[] expected = Base64.getDecoder().decode(parts[3]);
-            byte[] actual = pbkdf2(TextUtils.requireText(password, "password").toCharArray(), salt, Integer.parseInt(parts[1]), expected.length * 8);
+            byte[] actual = pbkdf2(CpfStrings.requireText(password, "password").toCharArray(), salt, Integer.parseInt(parts[1]), expected.length * 8);
             return MessageDigest.isEqual(expected, actual);
         } catch (Exception ex) {
             return false;
@@ -228,7 +228,7 @@ public class CmnCryptoService extends com.cpf.common.common.base.CmnBaseService 
     }
 
     private SecretKeySpec aesKey(String secret) {
-        return new SecretKeySpec(sha256(TextUtils.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8)), "AES");
+        return new SecretKeySpec(sha256(CpfStrings.requireText(secret, "secret").getBytes(StandardCharsets.UTF_8)), "AES");
     }
 
     private byte[] pbkdf2(char[] password, byte[] salt, int iterations, int keyBits) throws Exception {

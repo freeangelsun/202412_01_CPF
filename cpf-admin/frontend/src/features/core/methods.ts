@@ -81,14 +81,24 @@ export const coreMethods: Record<string, any> = {
         ]);
       },
   async loadMe() {
-        const data = await this.getJson("/adm/api/auth/me") || {};
-        this.currentOperator = data.operatorId ? data : {};
-        this.authorizedMenus = data.menus || [];
+        this.permissionsLoaded = false;
+        try {
+          const data = await this.getJson("/adm/api/auth/me") || {};
+          this.currentOperator = data.operatorId ? data : {};
+          this.authorizedMenus = Array.isArray(data.menus) ? data.menus : [];
+          this.permissionsLoaded = true;
+        } catch (error) {
+          this.currentOperator = {};
+          this.authorizedMenus = [];
+          this.permissionsLoaded = false;
+          throw error;
+        }
       },
   clearToken(message) {
         this.token = "";
         this.currentOperator = {};
         this.authorizedMenus = [];
+        this.permissionsLoaded = false;
         localStorage.removeItem("admAccessToken");
         this.authMessage = message || "";
       },

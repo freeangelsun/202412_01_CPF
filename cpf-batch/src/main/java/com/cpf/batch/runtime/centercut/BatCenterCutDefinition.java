@@ -1,7 +1,7 @@
 package com.cpf.batch.runtime.centercut;
 
-import com.cpf.core.common.batch.centercut.CenterCutHandler;
-import com.cpf.core.common.batch.centercut.CenterCutTargetProvider;
+import com.cpf.core.spi.centercut.CenterCutHandler;
+import com.cpf.core.spi.centercut.CenterCutTargetProvider;
 
 /**
  * BAT Center-Cut Runner에 등록되는 실행 정의입니다.

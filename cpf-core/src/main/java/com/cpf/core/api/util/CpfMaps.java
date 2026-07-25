@@ -36,4 +36,12 @@ public final class CpfMaps {
         }
         return Collections.unmodifiableMap(result);
     }
+    public static <K,V> V getOrDefault(Map<K,V> values, K key, V fallback) { return values == null ? fallback : values.getOrDefault(key, fallback); }
+    public static Map<String,Object> mutableCopy(Map<String,?> values) {
+        java.util.LinkedHashMap<String,Object> copy = new java.util.LinkedHashMap<>(); if(values!=null) values.forEach(copy::put); return copy;
+    }
+    public static Map<String,String> stringMap(Map<?,?> values) {
+        if(values==null||values.isEmpty()) return Map.of(); java.util.LinkedHashMap<String,String> result=new java.util.LinkedHashMap<>();
+        values.forEach((k,v)->result.put(String.valueOf(k), v==null?null:String.valueOf(v))); return java.util.Collections.unmodifiableMap(result);
+    }
 }

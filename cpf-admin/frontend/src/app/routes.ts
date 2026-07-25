@@ -21,6 +21,7 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  cache:{group:"platform",icon:"service",component:defineAsyncComponent(()=>import("../features/cache/CachePage.vue"))},
  configs:{group:"platform",icon:"settings",component:defineAsyncComponent(()=>import("../features/configs/ConfigsPage.vue"))},
  responseCodes:{group:"platform",icon:"settings",component:defineAsyncComponent(()=>import("../features/response-codes/ResponseCodesPage.vue"))},
+ businessCalendar:{group:"platform",icon:"settings",component:defineAsyncComponent(()=>import("../features/business-calendar/BusinessCalendarPage.vue"))},
  recoveryCenter:{group:"recovery",icon:"recovery",component:defineAsyncComponent(()=>import("../features/recovery-center/RecoveryCenterPage.vue"))},
  incidents:{group:"recovery",icon:"incident",component:defineAsyncComponent(()=>import("../features/incidents/IncidentsPage.vue"))},
  reliability:{group:"recovery",icon:"recovery",component:defineAsyncComponent(()=>import("../features/reliability/ReliabilityPage.vue"))},

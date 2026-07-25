@@ -2,7 +2,7 @@ package com.cpf.batch.job.centercut;
 
 import com.cpf.batch.runtime.BatBatchHeartbeatService;
 import com.cpf.batch.runtime.centercut.BatCenterCutService;
-import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
+import com.cpf.core.api.centercut.CpfCenterCutSummary;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;

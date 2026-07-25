@@ -1,13 +1,12 @@
 package com.cpf.batch.runtime.centercut;
 
-import com.cpf.core.common.batch.centercut.CenterCutHandler;
-import com.cpf.core.common.batch.centercut.CenterCutTargetProvider;
-import com.cpf.core.common.batch.centercut.CpfCenterCutResult;
-import com.cpf.core.common.batch.centercut.CpfCenterCutStatus;
-import com.cpf.core.common.batch.centercut.CpfCenterCutSummary;
-import com.cpf.core.common.batch.centercut.CpfCenterCutTarget;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.logging.segment.TransactionSegmentContext;
+import com.cpf.core.spi.centercut.CenterCutHandler;
+import com.cpf.core.spi.centercut.CenterCutTargetProvider;
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutSummary;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import com.cpf.core.api.logging.CpfTransactionContext;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -57,13 +56,14 @@ public class BatCenterCutService {
             return CpfCenterCutSummary.empty(centerCutJobId);
         }
 
-        String executionTransactionId = TransactionContext.getOrCreateTransactionId();
-        String executionParentSegmentId = TransactionSegmentContext.currentSegmentId();
+        String executionTransactionId = CpfTransactionContext.transactionId();
+        String executionParentSegmentId = CpfTransactionContext.currentSegmentId();
 
         int success = 0;
         int failed = 0;
         int skipped = 0;
         int retryRequested = 0;
+        int unknownResult = 0;
         int stopRequested = 0;
 
         for (CpfCenterCutTarget target : targets) {
@@ -84,6 +84,7 @@ public class BatCenterCutService {
                 case FAILED -> failed++;
                 case SKIPPED -> skipped++;
                 case RETRY_REQUESTED -> retryRequested++;
+                case UNKNOWN_RESULT -> unknownResult++;
                 case STOP_REQUESTED -> stopRequested++;
                 default -> failed++;
             }
@@ -96,6 +97,7 @@ public class BatCenterCutService {
                 failed,
                 skipped,
                 retryRequested,
+                unknownResult,
                 stopRequested);
     }
 

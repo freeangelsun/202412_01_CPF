@@ -8,6 +8,7 @@ foreach($relative in @(
  'cpf-tools/db/source',
  'docker-compose.local.yml',
  'cpf-core/src/main/java/com/cpf/core/common/batch',
+ 'cpf-core/src/test/java/com/cpf/core/common/batch',
  'cpf-core/src/main/java/com/cpf/core/config/CpfBatchAutoConfiguration.java',
  'cpf-core/src/main/java/com/cpf/core/config/CpfCenterCutAutoConfiguration.java',
  'cpf-biz-admin/frontend/src/features/console.ts',
@@ -24,6 +25,14 @@ foreach($relative in @(
 )){
     if(Test-Path(Join-Path $Root $relative)){$errors.Add("obsolete artifact: $relative")}
 }
+
+$legacyBatchRefs=@(Get-ChildItem $Root -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue |
+    Select-String -Pattern 'com\.cpf\.core\.common\.batch\.' -ErrorAction SilentlyContinue)
+if($legacyBatchRefs.Count){
+    $preview=($legacyBatchRefs | Select-Object -First 20 | ForEach-Object { "$($_.Path):$($_.LineNumber)" }) -join ', '
+    $errors.Add("legacy core batch reference remains: $($legacyBatchRefs.Count) hit(s) [$preview]")
+}
+
 foreach($dir in @('logs','tmp','temp')){
     $path=Join-Path $Root $dir
     if(Test-Path $path){

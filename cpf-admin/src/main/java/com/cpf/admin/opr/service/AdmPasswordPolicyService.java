@@ -1,7 +1,7 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.config.AdmPasswordPolicyProperties;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.springframework.stereotype.Service;
 
@@ -26,14 +26,14 @@ public class AdmPasswordPolicyService extends com.cpf.admin.common.base.AdmBaseS
      */
     public List<String> validate(String operatorId, String password) {
         List<String> violations = new ArrayList<>();
-        if (!TextUtils.hasText(password)) {
+        if (!CpfStrings.hasText(password)) {
             violations.add("비밀번호는 필수입니다.");
             return violations;
         }
         if (password.length() < properties.getMinLength()) {
             violations.add("비밀번호는 " + properties.getMinLength() + "자 이상이어야 합니다.");
         }
-        if (TextUtils.hasText(operatorId) && password.toLowerCase().contains(operatorId.toLowerCase())) {
+        if (CpfStrings.hasText(operatorId) && password.toLowerCase().contains(operatorId.toLowerCase())) {
             violations.add("비밀번호에는 운영자 ID를 포함할 수 없습니다.");
         }
         if (categoryCount(password) < properties.getRequiredCategoryCount()) {

@@ -4,6 +4,7 @@ import com.cpf.core.api.database.CpfDatabaseVendor;
 import org.springframework.batch.core.configuration.support.DefaultBatchConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -17,6 +18,7 @@ import javax.sql.DataSource;
  * batDB의 BATCH_* 테이블에 적재되도록 고정합니다.</p>
  */
 @Configuration
+@ConditionalOnProperty(prefix = "cpf.reference.edu.batch", name = "local-runtime-enabled", havingValue = "true", matchIfMissing = false)
 public class ReferenceBatchRepositoryConfig extends DefaultBatchConfiguration {
     private final DataSource batDataSource;
     private final PlatformTransactionManager batTransactionManager;

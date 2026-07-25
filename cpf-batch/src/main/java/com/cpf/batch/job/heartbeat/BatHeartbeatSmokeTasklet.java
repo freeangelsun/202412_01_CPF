@@ -1,6 +1,6 @@
 package com.cpf.batch.job.heartbeat;
 
-import com.cpf.core.common.batch.CpfBatchHeartbeatService;
+import com.cpf.batch.runtime.BatBatchHeartbeatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -21,12 +21,12 @@ import org.springframework.stereotype.Component;
 public class BatHeartbeatSmokeTasklet implements Tasklet {
     private static final Logger log = LoggerFactory.getLogger(BatHeartbeatSmokeTasklet.class);
 
-    private final CpfBatchHeartbeatService heartbeatService;
+    private final BatBatchHeartbeatService heartbeatService;
     private final int iterations;
     private final long sleepMillis;
 
     public BatHeartbeatSmokeTasklet(
-            CpfBatchHeartbeatService heartbeatService,
+            BatBatchHeartbeatService heartbeatService,
             @Value("${cpf.bat.smoke.heartbeat-iterations:4}") int iterations,
             @Value("${cpf.bat.smoke.heartbeat-sleep-ms:1200}") long sleepMillis) {
         this.heartbeatService = heartbeatService;

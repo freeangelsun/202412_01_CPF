@@ -69,7 +69,7 @@ foreach($column in @('spring_batch_job_instance_id','worker_id','server_instance
 }
 
 RequireContains "cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchJobLogPath.java" 'serverInstanceId' "BAT Job 파일로그 경로에 serverInstanceId 축 누락"
-RequireContains "cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchJobLogPath.java" 'ServerInstanceIdentity\.current' "BAT Job 파일로그 legacy overload가 현재 serverInstance를 보존하지 않음"
+RequireContains "cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchJobLogPath.java" 'CpfServerIdentity\.current' "BAT Job 파일로그 overload가 공개 CPF server identity를 사용해 현재 serverInstance를 보존하지 않음"
 RequireContains "cpf-tools/scripts/sync-database-artifacts.ps1" 'generate-migration-checksums\.ps1' "DB artifact sync가 migration checksum 자동 생성 단계를 호출하지 않음"
 
 $finalTarget=Get-Content (Join-Path $Root "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md") -Raw

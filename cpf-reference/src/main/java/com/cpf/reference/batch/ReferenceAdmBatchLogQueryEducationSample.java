@@ -1,6 +1,6 @@
 package com.cpf.reference.batch;
 
-import com.cpf.core.common.batch.CpfBatchJobLogPath;
+import com.cpf.core.api.batch.CpfBatchLogPaths;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
@@ -19,7 +19,7 @@ public class ReferenceAdmBatchLogQueryEducationSample {
 
     public Map<String, String> queryUrls(LocalDate businessDate, String jobName, long jobInstanceId) {
         // 경로를 계산하는 호출 자체가 jobName과 식별자 규격을 검증합니다.
-        CpfBatchJobLogPath.relativePath(jobName, jobInstanceId, businessDate);
+        CpfBatchLogPaths.relativePath(jobName, jobInstanceId, businessDate);
         String date = businessDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 
         String listUrl = UriComponentsBuilder.fromPath("/adm/api/reliability/batch-job-logs")

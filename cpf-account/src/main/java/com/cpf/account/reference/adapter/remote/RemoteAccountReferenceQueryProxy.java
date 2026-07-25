@@ -2,7 +2,7 @@ package com.cpf.account.reference.adapter.remote;
 
 import com.cpf.account.reference.dto.AccountReferenceSearchRequest;
 import com.cpf.account.reference.port.AccountReferenceQueryPort;
-import com.cpf.core.common.http.CpfWebClient;
+import com.cpf.core.api.http.CpfHttpClient;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.Map;
@@ -13,9 +13,9 @@ import java.util.Map;
  * <p>프로젝트 설정에서 remote 모드를 선택할 때만 Bean으로 등록합니다.</p>
  */
 public class RemoteAccountReferenceQueryProxy implements AccountReferenceQueryPort {
-    private final CpfWebClient webClient;
+    private final CpfHttpClient webClient;
 
-    public RemoteAccountReferenceQueryProxy(CpfWebClient webClient) {
+    public RemoteAccountReferenceQueryProxy(CpfHttpClient webClient) {
         this.webClient = webClient;
     }
 

@@ -1,6 +1,6 @@
 package com.cpf.account.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ public class AccountDataSourceConfig {
     @Bean
     @Primary
     public DataSource accDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "cpf.datasource");
+        return CpfDataSources.resolve(environment, "cpf.datasource");
     }
 
     /**
@@ -52,7 +52,7 @@ public class AccountDataSourceConfig {
 
     @Bean(name = "batDataSource")
     public DataSource batDataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
+        return CpfDataSources.resolve(environment, "spring.datasource.bat");
     }
 
     @Bean(name = "batTransactionManager")

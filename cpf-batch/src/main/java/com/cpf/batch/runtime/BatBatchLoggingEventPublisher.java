@@ -1,6 +1,6 @@
 package com.cpf.batch.runtime;
-import com.cpf.core.common.batch.CpfBatchEventPublisher;
-import com.cpf.core.common.batch.CpfBatchEvent;
+import com.cpf.core.api.batch.CpfBatchEventPublisher;
+import com.cpf.core.api.batch.CpfBatchEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import com.cpf.core.common.logging.ServerInstanceIdentity;
+import com.cpf.core.api.logging.CpfServerIdentity;
 
 /**
  * BAT JobInstance 로그의 표준 상대 경로를 한 곳에서 계산합니다.
@@ -50,7 +50,7 @@ public final class BatBatchJobLogPath {
      * 사용하므로 생성되는 Job 로그 경로의 인스턴스 축은 생략되지 않습니다.</p>
      */
     public static Path relativePath(String jobName, long jobInstanceId, LocalDate businessDate) {
-        return relativePath(jobName, jobInstanceId, businessDate, ServerInstanceIdentity.current().serverInstanceId());
+        return relativePath(jobName, jobInstanceId, businessDate, CpfServerIdentity.current().serverInstanceId());
     }
 
     public static String sanitize(String value) {

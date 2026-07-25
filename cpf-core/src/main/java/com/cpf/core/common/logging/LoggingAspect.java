@@ -599,9 +599,19 @@ public class LoggingAspect {
     }
 
     private OnlineExecutionMetadata resolveOnlineExecution(ProceedingJoinPoint joinPoint) {
+        com.cpf.core.api.execution.CpfOnlineTransaction publicStandard =
+                resolveAnnotation(joinPoint, com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        if (publicStandard != null) {
+            return new OnlineExecutionMetadata(publicStandard.id(), publicStandard.name());
+        }
         CpfOnlineTransaction standard = resolveAnnotation(joinPoint, CpfOnlineTransaction.class);
         if (standard != null) {
             return new OnlineExecutionMetadata(standard.id(), standard.name());
+        }
+        com.cpf.core.api.execution.CpfSharedApi publicShared =
+                resolveAnnotation(joinPoint, com.cpf.core.api.execution.CpfSharedApi.class);
+        if (publicShared != null) {
+            return new OnlineExecutionMetadata(publicShared.id(), publicShared.name());
         }
         CpfSharedApi shared = resolveAnnotation(joinPoint, CpfSharedApi.class);
         if (shared != null) {

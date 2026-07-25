@@ -1,6 +1,6 @@
 package com.cpf.account.config;
 
-import com.cpf.core.common.database.CpfSqlResourceResolver;
+import com.cpf.core.api.database.CpfSqlResources;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -21,7 +21,7 @@ public class AccountMyBatisConfig {
             Environment environment) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "acc"));
+        factoryBean.setMapperLocations(CpfSqlResources.mapperResources(environment, "acc"));
         return factoryBean.getObject();
     }
 

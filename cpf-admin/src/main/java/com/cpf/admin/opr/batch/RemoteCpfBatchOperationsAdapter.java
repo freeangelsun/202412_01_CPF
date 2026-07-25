@@ -2,9 +2,9 @@ package com.cpf.admin.opr.batch;
 
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
-import com.cpf.core.common.servicecall.CpfServiceCallEngine;
-import com.cpf.core.common.servicecall.ServiceCallRequest;
-import com.cpf.core.common.servicecall.ServiceCallResult;
+import com.cpf.core.api.servicecall.CpfServiceCaller;
+import com.cpf.core.api.servicecall.CpfServiceRequest;
+import com.cpf.core.api.servicecall.CpfServiceResult;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -12,35 +12,35 @@ import java.util.Map;
 
 /**
  * 분리 WAS topology에서 ADM이 BAT Owner 계약을 호출하는 Remote Adapter.
- * ServiceCallEngine을 거치므로 Registry/Timeout/Retry/Failover/Trace/Unknown 규칙을 재사용합니다.
+ * CPF 공개 ServiceCall API를 거치므로 Registry/Timeout/Retry/Failover/Trace/Unknown 규칙을 재사용합니다.
  */
 public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     private static final String SERVICE_ID = "BAT";
     private static final String ENDPOINT_CODE = "SBATOP0001";
-    private final CpfServiceCallEngine engine;
+    private final CpfServiceCaller caller;
     private final WebClient webClient;
 
-    public RemoteCpfBatchOperationsAdapter(CpfServiceCallEngine engine, WebClient.Builder webClientBuilder) {
-        this.engine = engine;
+    public RemoteCpfBatchOperationsAdapter(CpfServiceCaller caller, WebClient.Builder webClientBuilder) {
+        this.caller = caller;
         this.webClient = webClientBuilder.build();
     }
 
     private Object invoke(String operation, Map<String,Object> payload) {
         String path = "/bat/internal/operations/" + operation;
-        ServiceCallRequest request = ServiceCallRequest.builder(SERVICE_ID)
+        CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
                 .endpointCode(ENDPOINT_CODE).httpMethod("POST").requestPath(path)
                 .attribute("ownerDomain", "BAT").attribute("callerDomain", "ADM").build();
-        ServiceCallResult<Object> result = engine.invoke(request, target -> webClient.post()
+        CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.post()
                 .uri(join(target.baseUrl(), path))
                 .bodyValue(payload == null ? Map.of() : payload)
                 .retrieve().bodyToMono(Object.class).block());
-        if ("UNKNOWN".equals(result.status())) {
+        if (result.unknown()) {
             throw new CpfBatchOwnerUnknownResultException(
                     result.failureCode(),
                     "BAT Owner 호출 결과를 확정할 수 없습니다. reconciliation 필요. code="
                             + result.failureCode() + ", message=" + result.failureMessage());
         }
-        if (!"SUCCESS".equals(result.status())) {
+        if (!result.success()) {
             throw new IllegalStateException("BAT Owner 호출 실패 status=" + result.status()
                     + ", code=" + result.failureCode() + ", message=" + result.failureMessage());
         }
@@ -62,12 +62,19 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     public List<Map<String,Object>> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
             String workerId,String serverInstanceId,int limit){
+        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, null, null, limit);
+    }
+    public List<Map<String,Object>> findExecutions(
+            String jobId,String transactionId,Long springBatchJobInstanceId,
+            String workerId,String serverInstanceId,String fromDate,String toDate,int limit){
         return list(invoke("findExecutions",p(
                 "jobId",jobId,
                 "transactionId",transactionId,
                 "springBatchJobInstanceId",springBatchJobInstanceId,
                 "workerId",workerId,
                 "serverInstanceId",serverInstanceId,
+                "fromDate",fromDate,
+                "toDate",toDate,
                 "limit",limit)));
     }
     public Map<String,Object> findExecutionDetail(long executionId){return map(invoke("findExecutionDetail",p("executionId",executionId)));}

@@ -9,7 +9,7 @@ import com.cpf.common.sec.crypto.CmnCryptoService;
 import com.cpf.common.sec.token.CmnJwtCreateRequest;
 import com.cpf.common.sec.token.CmnJwtService;
 import com.cpf.common.sec.token.CmnJwtValidationResult;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.TransactionContext;
 import com.cpf.core.common.security.password.CpfPasswordHashingPort;
@@ -73,8 +73,8 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
      * 업무 관리자 로그인을 처리하고 DB에 로그인 이력과 refresh token hash를 저장합니다.
      */
     public LoginResult login(LoginRequest request, String clientIp, String userAgent) {
-        String loginId = TextUtils.requireText(request.loginId(), "loginId");
-        String password = TextUtils.requireText(request.password(), "password");
+        String loginId = CpfStrings.requireText(request.loginId(), "loginId");
+        String password = CpfStrings.requireText(request.password(), "password");
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId).orElse(null);
 
         if (operator == null) {
@@ -85,7 +85,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             recordLogin(operator.adminUserId(), loginId, "FAIL", "사용 중지 또는 잠금 상태", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 계정이 사용할 수 없는 상태입니다.");
         }
-        if (!TextUtils.hasText(operator.passwordHash())) {
+        if (!CpfStrings.hasText(operator.passwordHash())) {
             recordLogin(operator.adminUserId(), loginId, "FAIL", "비밀번호 hash 미등록", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 비밀번호가 초기화되지 않았습니다.");
         }
@@ -121,7 +121,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
      */
     @Transactional(transactionManager = "bzaTransactionManager")
     public LoginResult refresh(RefreshRequest request) {
-        String refreshToken = TextUtils.requireText(request.refreshToken(), "refreshToken");
+        String refreshToken = CpfStrings.requireText(request.refreshToken(), "refreshToken");
         String refreshHash = cryptoService.sha256Base64Url(refreshToken);
         RefreshTokenRow state = authRepository.findRefreshToken(refreshHash)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "refresh token이 유효하지 않습니다."));
@@ -150,7 +150,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
      * 전달받은 refresh token hash를 폐기합니다.
      */
     public Map<String, Object> logout(RefreshRequest request) {
-        if (request != null && TextUtils.hasText(request.refreshToken())) {
+        if (request != null && CpfStrings.hasText(request.refreshToken())) {
             authRepository.revokeRefreshToken(cryptoService.sha256Base64Url(request.refreshToken()));
         }
         return Map.of("logoutYn", "Y", "loginDomain", LOGIN_DOMAIN);
@@ -208,7 +208,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             long sessionId,
             String reason) {
         BzaOperatorRow operator = currentOperatorRow(authorizationHeader);
-        String requiredReason = TextUtils.requireText(reason, "reason");
+        String requiredReason = CpfStrings.requireText(reason, "reason");
         int updated = authRepository.revokeRefreshSession(sessionId, operator.adminUserId(), operator.loginId());
         if (updated != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "폐기할 활성 세션을 찾을 수 없습니다.");
@@ -234,8 +234,8 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 정보를 찾을 수 없습니다."));
         requireActiveOperator(operator);
-        String currentPassword = TextUtils.requireText(request.currentPassword(), "currentPassword");
-        String newPassword = TextUtils.requireText(request.newPassword(), "newPassword");
+        String currentPassword = CpfStrings.requireText(request.currentPassword(), "currentPassword");
+        String newPassword = CpfStrings.requireText(request.newPassword(), "newPassword");
         if (!newPassword.equals(request.newPasswordConfirm())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인값이 일치하지 않습니다.");
         }
@@ -299,7 +299,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     }
 
     private String bearerToken(String authorizationHeader) {
-        if (!TextUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
+        if (!CpfStrings.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bearer token이 필요합니다.");
         }
         return authorizationHeader.substring("Bearer ".length()).trim();

@@ -5,7 +5,7 @@ import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
 import com.cpf.admin.opr.dto.AdmNotificationRuleResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
 import com.cpf.admin.opr.dto.NotificationSendResult;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -300,18 +300,18 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
     }
 
     private String required(String value, String name) {
-        if (!TextUtils.hasText(value)) {
+        if (!CpfStrings.hasText(value)) {
             throw new CpfValidationException(name + " 값은 필수입니다.");
         }
         return value.trim();
     }
 
     private String defaultText(String value, String fallback) {
-        return TextUtils.hasText(value) ? value.trim() : fallback;
+        return CpfStrings.hasText(value) ? value.trim() : fallback;
     }
 
     private String blankToNull(String value) {
-        return TextUtils.hasText(value) ? value.trim() : null;
+        return CpfStrings.hasText(value) ? value.trim() : null;
     }
 
     private String yn(String value, String fallback) {

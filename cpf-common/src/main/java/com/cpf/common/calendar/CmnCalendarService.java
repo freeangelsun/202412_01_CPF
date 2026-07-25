@@ -8,6 +8,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * CPF 고객 업무공통 영업일 Service입니다.
@@ -19,17 +21,23 @@ import java.util.Objects;
 @Service
 public class CmnCalendarService implements CmnBusinessCalendar {
     private static final int MAX_SHIFT_DAYS = 3660;
+    private static final Logger LOGGER = Logger.getLogger(CmnCalendarService.class.getName());
     private final CmnCalendarStore store;
+    private final CmnCalendarChangePublisher changePublisher;
 
     @Autowired
-    public CmnCalendarService(ObjectProvider<CmnCalendarStore> storeProvider) {
+    public CmnCalendarService(
+            ObjectProvider<CmnCalendarStore> storeProvider,
+            ObjectProvider<CmnCalendarChangePublisher> changePublisherProvider) {
         CmnCalendarStore resolved = storeProvider.getIfAvailable();
         this.store = resolved == null ? new CmnWeekendCalendarStore() : resolved;
+        this.changePublisher = changePublisherProvider.getIfAvailable(CmnCalendarChangePublisher::noop);
     }
 
     /** Unit/EDU에서 명시적인 Store를 주입할 때 사용합니다. */
     CmnCalendarService(CmnCalendarStore store) {
         this.store = Objects.requireNonNull(store, "store");
+        this.changePublisher = CmnCalendarChangePublisher.noop();
     }
 
     @Override
@@ -62,15 +70,34 @@ public class CmnCalendarService implements CmnBusinessCalendar {
 
     public CmnCalendarDay save(CmnCalendarDay day, long expectedVersion) {
         requireWritable();
-        return store.save(day, expectedVersion);
+        CmnCalendarDay saved = store.save(day, expectedVersion);
+        safePublish(new CmnCalendarChangeEvent(
+                "UPSERT", saved.calendarId(), saved.businessDate(), saved.version(), java.time.Instant.now()));
+        return saved;
     }
 
     public void delete(String calendarId, LocalDate businessDate, long expectedVersion) {
         requireWritable();
-        store.delete(normalize(calendarId), businessDate, expectedVersion);
+        String normalized = normalize(calendarId);
+        store.delete(normalized, businessDate, expectedVersion);
+        safePublish(new CmnCalendarChangeEvent(
+                "DELETE", normalized, businessDate, expectedVersion + 1, java.time.Instant.now()));
     }
 
     public boolean writable() { return store.writable(); }
+
+    /**
+     * 변경 전파 adapter 실패가 이미 완료된 Calendar 원장 변경을 실패처럼 보이게 하지 않도록 격리합니다.
+     * 제품 환경의 다중 인스턴스 adapter는 durable outbox/broker 같은 복구 가능한 전달 방식을 사용해야 합니다.
+     */
+    private void safePublish(CmnCalendarChangeEvent event) {
+        try {
+            changePublisher.publish(event);
+        } catch (RuntimeException ex) {
+            LOGGER.log(Level.WARNING, "CPF Calendar change propagation failed: operation={0}, calendarId={1}, date={2}",
+                    new Object[]{event.operation(), event.calendarId(), event.businessDate()});
+        }
+    }
 
     private void requireWritable() {
         if (!store.writable()) {

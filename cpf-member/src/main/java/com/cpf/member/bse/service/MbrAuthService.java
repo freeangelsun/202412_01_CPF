@@ -4,11 +4,11 @@ import com.cpf.common.sec.crypto.CmnCryptoService;
 import com.cpf.common.sec.token.CmnJwtCreateRequest;
 import com.cpf.common.sec.token.CmnJwtService;
 import com.cpf.common.sec.token.CmnJwtValidationResult;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.member.bse.entity.Member;
 import com.cpf.member.bse.mapper.MemberMapper;
-import com.cpf.core.common.logging.ServerInstanceIdentity;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.logging.CpfServerIdentity;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -68,8 +68,8 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
      * 회원 로그인을 처리하고 로그인 이력과 refresh token hash를 DB에 저장합니다.
      */
     public LoginResult login(LoginRequest request, String clientIp, String userAgent) {
-        String loginId = TextUtils.requireText(request.loginId(), "loginId");
-        String password = TextUtils.requireText(request.password(), "password");
+        String loginId = CpfStrings.requireText(request.loginId(), "loginId");
+        String password = CpfStrings.requireText(request.password(), "password");
         Member member = memberMapper.selectMemberByLoginId(loginId).orElse(null);
 
         if (member == null) {
@@ -80,7 +80,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
             recordLogin(member, loginId, "FAIL", "로그인 불가 상태", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 상태상 로그인이 불가합니다.");
         }
-        if (!TextUtils.hasText(member.getPasswordHash())) {
+        if (!CpfStrings.hasText(member.getPasswordHash())) {
             recordLogin(member, loginId, "FAIL", "비밀번호 hash 미등록", clientIp, userAgent);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 비밀번호가 초기화되지 않았습니다.");
         }
@@ -106,7 +106,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
      */
     @Transactional(transactionManager = "mbrTransactionManager", readOnly = true)
     public LoginResult refresh(RefreshRequest request) {
-        String refreshToken = TextUtils.requireText(request.refreshToken(), "refreshToken");
+        String refreshToken = CpfStrings.requireText(request.refreshToken(), "refreshToken");
         Map<String, Object> state = memberMapper.selectRefreshTokenByHash(cryptoService.sha256Base64Url(refreshToken));
         if (state == null || isRevoked(state) || expireAt(state).isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "refresh token이 유효하지 않습니다.");
@@ -124,7 +124,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
      * refresh token을 DB에서 폐기합니다.
      */
     public Map<String, Object> logout(RefreshRequest request) {
-        if (request != null && TextUtils.hasText(request.refreshToken())) {
+        if (request != null && CpfStrings.hasText(request.refreshToken())) {
             memberMapper.revokeRefreshTokenByHash(cryptoService.sha256Base64Url(request.refreshToken()));
         }
         return Map.of("logoutYn", "Y", "loginDomain", LOGIN_DOMAIN);
@@ -163,7 +163,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
         claims.put("memberStatus", member.getMemberStatus());
         claims.put("moduleId", moduleId);
         claims.put("wasId", wasId);
-        claims.put("serverInstanceId", ServerInstanceIdentity.current().serverInstanceId());
+        claims.put("serverInstanceId", CpfServerIdentity.current().serverInstanceId());
         return jwtService.createHs256Token(new CmnJwtCreateRequest(
                 ISSUER,
                 member.getMemberNo(),
@@ -187,7 +187,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
     }
 
     private String bearerToken(String authorizationHeader) {
-        if (!TextUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
+        if (!CpfStrings.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bearer token이 필요합니다.");
         }
         return authorizationHeader.substring("Bearer ".length()).trim();
@@ -240,7 +240,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
             String failureReason,
             String clientIp,
             String userAgent) {
-        ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();
+        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("memberId", memberId);
         row.put("loginDomain", LOGIN_DOMAIN);
@@ -251,7 +251,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
         row.put("loginIp", clientIp);
         row.put("userAgent", userAgent);
         row.put("failureReason", failureReason);
-        row.put("transactionId", TransactionContext.getOrCreateTransactionId());
+        row.put("transactionId", CpfTransactionContext.transactionId());
         row.put("moduleId", moduleId);
         row.put("wasId", wasId);
         row.put("serverInstanceId", identity.serverInstanceId());
@@ -264,7 +264,7 @@ public class MbrAuthService extends com.cpf.member.common.base.MbrBaseService {
         row.put("memberNo", member.getMemberNo());
         row.put("loginDomain", LOGIN_DOMAIN);
         row.put("refreshTokenHash", refreshHash);
-        row.put("transactionId", TransactionContext.getOrCreateTransactionId());
+        row.put("transactionId", CpfTransactionContext.transactionId());
         row.put("expireAt", Timestamp.from(refreshExpireAt));
         return row;
     }

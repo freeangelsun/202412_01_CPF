@@ -1,6 +1,6 @@
 package com.cpf.reference.batch.config;
 
-import com.cpf.core.common.execution.CpfBatchJob;
+import com.cpf.core.api.execution.CpfBatchJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -12,6 +12,7 @@ import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.stream.IntStream;
  * JobRepository로 사용하게 하므로, 이 Job들은 실제 Spring Batch 실행 이력을 남기는 교육 예제로 동작합니다.</p>
  */
 @Configuration
+@ConditionalOnProperty(prefix = "cpf.reference.edu.batch", name = "local-runtime-enabled", havingValue = "true", matchIfMissing = false)
 public class ReferenceBatchEducationConfig {
     private static final Logger log = LoggerFactory.getLogger(ReferenceBatchEducationConfig.class);
 

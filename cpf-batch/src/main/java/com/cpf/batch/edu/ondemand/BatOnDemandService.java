@@ -2,9 +2,9 @@ package com.cpf.batch.edu.ondemand;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
-import com.cpf.core.common.batch.CpfBatchLauncher;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
+import com.cpf.batch.runtime.BatBatchLauncher;
 import com.cpf.batch.common.base.BatBaseService;
 import com.cpf.core.common.exception.CpfNotFoundException;
 import com.cpf.core.common.exception.CpfValidationException;
@@ -30,14 +30,14 @@ public class BatOnDemandService extends BatBaseService {
             BatOnDemandJobConfig.STANDARD_BATCH_ID, BatOnDemandJobConfig.JOB_NAME);
 
     private final BatOnDemandRepository repository;
-    private final CpfBatchLauncher batchLauncher;
+    private final BatBatchLauncher batchLauncher;
     private final ObjectProvider<JobExplorer> jobExplorerProvider;
     private final TaskExecutor taskExecutor;
     private final ObjectMapper objectMapper;
 
     public BatOnDemandService(
             BatOnDemandRepository repository,
-            CpfBatchLauncher batchLauncher,
+            BatBatchLauncher batchLauncher,
             ObjectProvider<JobExplorer> jobExplorerProvider,
             @Qualifier("applicationTaskExecutor") TaskExecutor applicationTaskExecutor,
             ObjectMapper objectMapper) {

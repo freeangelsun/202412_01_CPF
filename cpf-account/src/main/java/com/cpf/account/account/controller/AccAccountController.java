@@ -6,7 +6,7 @@ import com.cpf.account.account.dto.AccAccountSearchCriteria;
 import com.cpf.account.account.dto.AccAccountUpdateRequest;
 import com.cpf.account.account.service.AccAccountService;
 import com.cpf.account.common.base.AccBaseController;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

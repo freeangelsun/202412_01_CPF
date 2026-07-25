@@ -2,14 +2,8 @@ package com.cpf.member.common.exception;
 
 import com.cpf.member.common.response.BaseResponse;
 import com.cpf.member.common.response.ResponseCode;
-import com.cpf.core.common.exception.CpfErrorResponse;
-import com.cpf.core.common.exception.CpfException;
-import com.cpf.core.common.exception.CpfResolvedResponse;
-import com.cpf.core.common.exception.CpfResponseCodeResolver;
-import com.cpf.core.common.exception.DefaultCpfResponseCodeResolver;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,42 +24,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private final CpfResponseCodeResolver responseCodeResolver;
-
-    public GlobalExceptionHandler(ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider) {
-        this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
-    }
-
-    @ExceptionHandler(CpfException.class)
-    public ResponseEntity<CpfErrorResponse> handleCpfException(CpfException ex, WebRequest request) {
-        CpfResolvedResponse resolvedResponse = ex.getErrorCode() != null
-                ? responseCodeResolver.resolve(ex.getErrorCode(), java.util.Locale.KOREAN, ex.getMessageArguments(), ex.getDetail())
-                : responseCodeResolver.resolve(ex.getResponseCode(), java.util.Locale.KOREAN, ex.getMessageArguments(), ex.getDetail());
-        String externalMessage = firstText(ex.getExternalMessage(), resolvedResponse.externalMessage());
-
-        log.warn("CPF Exception [{}] - Message: {}, Details: {}",
-                resolvedResponse.messageCode(),
-                externalMessage,
-                ex.getDetail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Error-Code", resolvedResponse.errorCode());
-        headers.add("X-Message-Code", resolvedResponse.messageCode());
-        headers.add("X-Cpf-Response-Code", resolvedResponse.responseCode());
-        headers.add("X-Cpf-Response-Message-Code", resolvedResponse.messageCode());
-        headers.add("X-Cpf-Message-Code", resolvedResponse.messageCode());
-        headers.add("X-Error-Type", ex.getClass().getSimpleName());
-
-        CpfErrorResponse response = CpfErrorResponse.of(
-                resolvedResponse,
-                externalMessage,
-                ex.getClass().getSimpleName(),
-                null);
-
-        return ResponseEntity.status(resolvedResponse.httpStatus())
-                .headers(headers)
-                .body(response);
-    }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<BaseResponse<?>> handleApiException(ApiException ex, WebRequest request) {
@@ -137,22 +95,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(BaseResponse.error(ResponseCode.INVALID_PARAMETER, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<BaseResponse<?>> handleRuntimeException(RuntimeException ex, WebRequest request) {
-        log.error("Unexpected Runtime Exception", ex);
-        return new ResponseEntity<>(
-                BaseResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "처리 중 오류가 발생했습니다."),
-                HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<?>> handleException(Exception ex, WebRequest request) {
-        log.error("Unexpected Exception", ex);
-        return new ResponseEntity<>(
-                BaseResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "처리 중 오류가 발생했습니다."),
-                HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     private ResponseEntity<BaseResponse<?>> badRequest(
             ResponseCode responseCode,
             String errorType,
@@ -176,9 +118,5 @@ public class GlobalExceptionHandler {
             case DUPLICATE -> HttpStatus.CONFLICT;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
-    }
-
-    private String firstText(String first, String second) {
-        return first != null && !first.isBlank() ? first : second;
     }
 }

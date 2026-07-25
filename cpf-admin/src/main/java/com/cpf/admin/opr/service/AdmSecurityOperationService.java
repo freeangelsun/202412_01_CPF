@@ -2,7 +2,7 @@ package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.AdmIpAllowlistRequest;
 import com.cpf.admin.opr.dto.AdmMfaOtpRequest;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,7 +40,7 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
     }
 
     public Map<String, Object> upsertIpAllowlist(AdmIpAllowlistRequest request) {
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         admJdbcTemplate.update("""
                 INSERT INTO adm_ip_allowlist (IP_PATTERN, DESCRIPTION, USE_YN, CREATED_BY, UPDATED_BY)
                 VALUES (?, ?, ?, ?, ?)
@@ -50,7 +50,7 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     UPDATED_BY = VALUES(UPDATED_BY),
                     UPDATED_AT = CURRENT_TIMESTAMP
                 """,
-                TextUtils.requireText(request.ipPattern(), "ipPattern"),
+                CpfStrings.requireText(request.ipPattern(), "ipPattern"),
                 request.description(),
                 "N".equalsIgnoreCase(request.useYn()) ? "N" : "Y",
                 requestUser,
@@ -76,7 +76,7 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
     }
 
     public Map<String, Object> registerMfa(String operatorId, AdmMfaOtpRequest request) {
-        String requestUser = TextUtils.defaultIfBlank(request.requestUser(), "ADM");
+        String requestUser = CpfStrings.defaultIfBlank(request.requestUser(), "ADM");
         admJdbcTemplate.update("""
                 INSERT INTO adm_mfa_otp_secret (OPERATOR_ID, SECRET_REF, ENABLED_YN, CREATED_BY, UPDATED_BY)
                 VALUES (?, ?, 'N', ?, ?)
@@ -86,12 +86,12 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     VERIFIED_AT = NULL,
                     UPDATED_BY = VALUES(UPDATED_BY),
                     UPDATED_AT = CURRENT_TIMESTAMP
-                """, operatorId, TextUtils.requireText(request.secretRef(), "secretRef"), requestUser, requestUser);
+                """, operatorId, CpfStrings.requireText(request.secretRef(), "secretRef"), requestUser, requestUser);
         return findMfaState(operatorId);
     }
 
     public Map<String, Object> verifyMfa(String operatorId, AdmMfaOtpRequest request) {
-        TextUtils.requireText(request.otpCode(), "otpCode");
+        CpfStrings.requireText(request.otpCode(), "otpCode");
         admJdbcTemplate.update("""
                 UPDATE adm_mfa_otp_secret
                 SET ENABLED_YN = 'Y',
@@ -99,7 +99,7 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
                 WHERE OPERATOR_ID = ?
-                """, TextUtils.defaultIfBlank(request.requestUser(), "ADM"), operatorId);
+                """, CpfStrings.defaultIfBlank(request.requestUser(), "ADM"), operatorId);
         return findMfaState(operatorId);
     }
 
@@ -110,7 +110,7 @@ public class AdmSecurityOperationService extends com.cpf.admin.common.base.AdmBa
                     UPDATED_BY = ?,
                     UPDATED_AT = CURRENT_TIMESTAMP
                 WHERE OPERATOR_ID = ?
-                """, TextUtils.defaultIfBlank(requestUser, "ADM"), operatorId);
+                """, CpfStrings.defaultIfBlank(requestUser, "ADM"), operatorId);
         return findMfaState(operatorId);
     }
 

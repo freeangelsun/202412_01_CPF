@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.bizadmin.support.repository.BzaSupportRepository;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.attachment.CpfAttachmentContent;
 import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
 import com.cpf.core.common.attachment.CpfStoredAttachment;
@@ -368,7 +368,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
     }
 
     private String required(String value, String field) {
-        return TextUtils.requireText(value, field);
+        return CpfStrings.requireText(value, field);
     }
 
     private String code(String value, String field) {

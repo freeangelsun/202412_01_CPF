@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.backoffice.service;
 
 import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfNotFoundException;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
@@ -297,7 +297,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
     }
 
     private String required(String value, String field) {
-        return TextUtils.requireText(value, field);
+        return CpfStrings.requireText(value, field);
     }
 
     private String defaultText(String value, String fallback) {

@@ -30,6 +30,8 @@ param(
     [ValidateSet("Y", "N")]
     [string] $Batch = "N",
     [ValidateSet("Y", "N")]
+    [string] $CenterCut = "N",
+    [ValidateSet("Y", "N")]
     [string] $External = "N",
     [ValidateSet("Y", "N")]
     [string] $Messaging = "N",
@@ -189,6 +191,7 @@ if ([string]::IsNullOrWhiteSpace($DatabaseAdminUsername)) {
 if ([string]::IsNullOrWhiteSpace($DatabaseMigrationUsername)) { $DatabaseMigrationUsername = "cpf_${module}_migration" }
 if ([string]::IsNullOrWhiteSpace($DatabaseRuntimeUsername)) { $DatabaseRuntimeUsername = "cpf_${module}_app" }
 $BatchEnabled = $Batch -eq "Y"
+$CenterCutEnabled = $CenterCut -eq "Y"
 $ExternalEnabled = $External -eq "Y"
 $MessagingEnabled = $Messaging -eq "Y"
 $FileEnabled = $File -eq "Y"
@@ -216,7 +219,7 @@ if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
             ForEach-Object { $_.Trim().ToLowerInvariant() } |
             Sort-Object -Unique)
     $supportedCapabilities = @(
-        'database', 'batch', 'external', 'messaging', 'file', 'ui',
+        'database', 'batch', 'center-cut', 'external', 'messaging', 'file', 'ui',
         'security', 'audit', 'local-call', 'remote-call'
     )
     $unknownCapabilities = @($requestedCapabilities | Where-Object { $_ -notin $supportedCapabilities })
@@ -225,6 +228,7 @@ if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
     }
     $DatabaseEnabled = 'database' -in $requestedCapabilities
     $BatchEnabled = 'batch' -in $requestedCapabilities
+    $CenterCutEnabled = 'center-cut' -in $requestedCapabilities
     $ExternalEnabled = ('external' -in $requestedCapabilities) -or ('remote-call' -in $requestedCapabilities)
     $MessagingEnabled = 'messaging' -in $requestedCapabilities
     $FileEnabled = 'file' -in $requestedCapabilities
@@ -382,7 +386,7 @@ $testRoot = Join-Path $OutputDir "src/test/java/$featurePackagePath"
 $moduleBaseController = @"
 package $BasePackage.common.base;
 
-import com.cpf.core.common.base.CpfBaseController;
+import com.cpf.core.api.base.CpfBaseController;
 
 /**
  * $ModuleUpper Controller가 공유하는 주제영역 확장점입니다.
@@ -396,7 +400,7 @@ public abstract class ${ModuleClassName}BaseController extends CpfBaseController
 $moduleBaseService = @"
 package $BasePackage.common.base;
 
-import com.cpf.core.common.base.CpfBaseService;
+import com.cpf.core.api.base.CpfBaseService;
 
 /**
  * $ModuleUpper Service가 공유하는 주제영역 확장점입니다.
@@ -408,7 +412,7 @@ public abstract class ${ModuleClassName}BaseService extends CpfBaseService {
 $moduleFacadeContract = @"
 package $BasePackage.common.contract;
 
-import com.cpf.core.common.base.CpfApplicationFacade;
+import com.cpf.core.api.base.CpfApplicationFacade;
 
 /** $ModuleUpper Application Facade의 주제영역 계약입니다. */
 public interface ${ModuleClassName}ApplicationFacade extends CpfApplicationFacade {
@@ -418,7 +422,7 @@ public interface ${ModuleClassName}ApplicationFacade extends CpfApplicationFacad
 $moduleRepositoryContract = @"
 package $BasePackage.common.contract;
 
-import com.cpf.core.common.base.CpfRepositoryPort;
+import com.cpf.core.api.base.CpfRepositoryPort;
 
 /**
  * $ModuleUpper Repository Port가 공통으로 확장하는 주제영역 계약입니다.
@@ -433,7 +437,7 @@ public interface ${ModuleClassName}RepositoryPort<T, ID> extends CpfRepositoryPo
 $moduleRequestContract = @"
 package $BasePackage.common.contract;
 
-import com.cpf.core.common.base.CpfRequest;
+import com.cpf.core.api.base.CpfRequest;
 
 /** $ModuleUpper 요청 DTO의 주제영역 계약입니다. */
 public interface ${ModuleClassName}Request extends CpfRequest {
@@ -443,7 +447,7 @@ public interface ${ModuleClassName}Request extends CpfRequest {
 $moduleResponseContract = @"
 package $BasePackage.common.contract;
 
-import com.cpf.core.common.base.CpfResponse;
+import com.cpf.core.api.base.CpfResponse;
 
 /** $ModuleUpper 응답 DTO의 주제영역 계약입니다. */
 public interface ${ModuleClassName}Response extends CpfResponse {
@@ -459,8 +463,8 @@ import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.facade.${FeatureClassPrefix}Facade;
 import $FeaturePackage.validation.${FeatureClassPrefix}SearchValidator;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -664,7 +668,7 @@ import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
-import com.cpf.core.common.http.CpfWebClient;
+import com.cpf.core.api.http.CpfHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -675,13 +679,13 @@ import java.util.Optional;
 
 /**
  * 분리 배포된 Generated Domain에 CPF 표준 호출 경계로 접근하는 remote proxy입니다.
- * transactionId/idempotencyKey 등은 CpfWebClient가 현재 TransactionContext에서 자동 전파합니다.
+ * transactionId/idempotencyKey 등은 CpfHttpClient 구현이 현재 거래 Context를 자동 전파합니다.
  */
 @Component
 @ConditionalOnProperty(name = "cpf.$module.reference.mode", havingValue = "remote"$remoteMatchIfMissing)
 public class Remote${FeatureClassPrefix}QueryProxy implements ${FeatureClassPrefix}QueryPort {
-    private final CpfWebClient webClient;
-    public Remote${FeatureClassPrefix}QueryProxy(CpfWebClient webClient) { this.webClient = Objects.requireNonNull(webClient, "webClient는 필수입니다."); }
+    private final CpfHttpClient webClient;
+    public Remote${FeatureClassPrefix}QueryProxy(CpfHttpClient webClient) { this.webClient = Objects.requireNonNull(webClient, "webClient는 필수입니다."); }
     @Override public Map<String,Object> search(${FeatureClassPrefix}SearchRequest request) {
         return webClient.get("$ModuleUpper", uriBuilder -> {
             uriBuilder.path("/api/v1/$module/reference")
@@ -752,9 +756,8 @@ import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.logging.TransactionHeader;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -810,14 +813,13 @@ public class ${FeatureClassPrefix}Service extends ${ModuleClassName}BaseService 
     }
 
     private MutationContext mutationContext() {
-        String transactionId = TransactionContext.getOrCreateTransactionId();
-        TransactionHeader header = TransactionContext.currentHeader();
-        String idempotencyKey = header == null ? null : header.getIdempotencyKey();
+        String transactionId = CpfTransactionContext.transactionId();
+        String idempotencyKey = CpfTransactionContext.idempotencyKey();
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             throw new CpfValidationException("변경 거래에는 표준 Header idempotencyKey가 필수입니다.");
         }
-        String actor = firstText(TransactionContext.operatorId(), TransactionContext.userId(), "$ModuleUpper");
-        return new MutationContext(transactionId, idempotencyKey.trim(), TransactionContext.nextSequenceNo(), actor);
+        String actor = firstText(CpfTransactionContext.operatorId(), CpfTransactionContext.userId(), "$ModuleUpper");
+        return new MutationContext(transactionId, idempotencyKey.trim(), CpfTransactionContext.nextSequence(), actor);
     }
 
     private void requireCommand(${FeatureClassPrefix}SampleCommand command) {
@@ -907,7 +909,7 @@ public class ${FeatureClassPrefix}Repository {
 $myBatisConfig = @"
 package $BasePackage.config;
 
-import com.cpf.core.common.database.CpfSqlResourceResolver;
+import com.cpf.core.api.database.CpfSqlResources;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -928,7 +930,7 @@ public class ${ModuleName}MyBatisConfig {
             Environment environment) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "$module"));
+        factoryBean.setMapperLocations(CpfSqlResources.mapperResources(environment, "$module"));
         return factoryBean.getObject();
     }
 
@@ -985,7 +987,7 @@ $dto = @"
 package $FeaturePackage.dto;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Request;'))
-import com.cpf.core.common.base.CpfQuery;
+import com.cpf.core.api.base.CpfQuery;
 import com.cpf.core.api.page.CpfPageRequest;
 import com.cpf.core.api.page.CpfSort;
 import com.cpf.core.api.page.CpfSortDirection;
@@ -1031,7 +1033,7 @@ $sampleCommand = @"
 package $FeaturePackage.dto;
 
 $([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'Request;'))
-import com.cpf.core.common.logging.SensitiveDataMasker;
+import com.cpf.core.api.security.CpfMasking;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -1054,7 +1056,7 @@ public record ${FeatureClassPrefix}SampleCommand(
         if(!statusCode.equals("ACTIVE")&&!statusCode.equals("INACTIVE")) throw new IllegalArgumentException("statusCode는 ACTIVE 또는 INACTIVE여야 합니다.");
         if(expectedVersion<0) throw new IllegalArgumentException("expectedVersion은 0 이상이어야 합니다.");
     }
-    public String maskedAuditKey(){ return SensitiveDataMasker.mask(sampleKey); }
+    public String maskedAuditKey(){ return CpfMasking.mask(sampleKey); }
     private static String requireText(String value,String field){ if(value==null||value.isBlank()) throw new IllegalArgumentException(field+"는 필수입니다."); return value.trim(); }
     private static String defaultText(String value,String fallback){ return value==null||value.isBlank()?fallback:value.trim(); }
 }
@@ -1088,7 +1090,7 @@ $validator = @"
 package $FeaturePackage.validation;
 
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -1231,7 +1233,7 @@ $batchTransactionBean = if ($DatabaseEnabled) { "" } else {
 $batchConfig = @"
 package $FeaturePackage.batch;
 
-import com.cpf.core.common.execution.CpfBatchJob;
+import com.cpf.core.api.execution.CpfBatchJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -1349,7 +1351,7 @@ public class ${ModuleClassName}Application extends SpringBootServletInitializer 
 $dataSourceConfig = @"
 package $BasePackage.config;
 
-import com.cpf.core.common.database.CpfDataSourceResolver;
+import com.cpf.core.api.database.CpfDataSources;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -1369,7 +1371,7 @@ public class ${ModuleName}DataSourceConfig {
 
     @Bean
     public DataSource ${module}DataSource(Environment environment) throws NamingException {
-        return CpfDataSourceResolver.resolve(environment, "cpf.datasource");
+        return CpfDataSources.resolve(environment, "cpf.datasource");
     }
 
     /**
@@ -1539,8 +1541,7 @@ import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.logging.TransactionHeader;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1559,21 +1560,15 @@ class ${FeatureClassPrefix}ServiceTest {
 
     @BeforeEach
     void setUpTransactionContext() {
-        TransactionHeader header = TransactionHeader.builder()
-                .idempotencyKey("${ModuleUpper}_IDEMPOTENCY_001")
-                .userId("generator-test")
-                .build();
-        TransactionContext.initialize(
+        CpfTransactionContext.initializeForTest(
                 "20260724123456789${DomainIdCode}00000010000001",
-                "generator-trace",
-                null,
-                "20260724123456789${DomainIdCode}00000010000001",
-                header);
+                "${ModuleUpper}_IDEMPOTENCY_001",
+                "generator-test");
     }
 
     @AfterEach
     void clearTransactionContext() {
-        TransactionContext.clear();
+        CpfTransactionContext.clear();
     }
 
     @Test
@@ -1663,59 +1658,33 @@ class ${FeatureClassPrefix}ServiceTest {
 $messagingPublisher = @"
 package $FeaturePackage.messaging;
 
-import com.cpf.core.common.broker.CpfBrokerEnvelope;
-import com.cpf.core.common.broker.CpfBrokerMessage;
-import com.cpf.core.common.broker.CpfBrokerOutboxPort;
-import com.cpf.core.common.broker.CpfBrokerResult;
+import com.cpf.core.api.broker.CpfBrokerClient;
+import com.cpf.core.api.broker.CpfBrokerPublishRequest;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * ${ModuleName} 업무 이벤트를 CPF outbox 계약으로 저장합니다.
- *
- * <p>업무 코드는 Kafka나 RabbitMQ client를 직접 호출하지 않고 이 서비스를 사용합니다.</p>
+ * ${ModuleName} 업무 이벤트를 CPF 공개 transactional-outbox API로 등록합니다.
+ * 업무 코드는 broker 종류와 Outbox 내부 저장소를 직접 참조하지 않습니다.
  */
 @Service
-@ConditionalOnBean(CpfBrokerOutboxPort.class)
+@ConditionalOnBean(CpfBrokerClient.class)
 public class ${ModuleName}EventPublisher {
-    private final CpfBrokerOutboxPort outboxPort;
-
-    public ${ModuleName}EventPublisher(CpfBrokerOutboxPort outboxPort) {
-        this.outboxPort = Objects.requireNonNull(outboxPort, "outboxPort는 필수입니다.");
+    private final CpfBrokerClient brokerClient;
+    public ${ModuleName}EventPublisher(CpfBrokerClient brokerClient) {
+        this.brokerClient = Objects.requireNonNull(brokerClient, "brokerClient는 필수입니다.");
     }
-
-    public CpfBrokerResult publish(
-            String messageId,
-            String topic,
-            String transactionId,
-            String payload) {
-        if (messageId == null || messageId.isBlank()) {
-            throw new IllegalArgumentException("messageId는 필수입니다.");
-        }
-        if (topic == null || topic.isBlank()) {
-            throw new IllegalArgumentException("topic은 필수입니다.");
-        }
-        CpfBrokerMessage message = new CpfBrokerMessage(
-                messageId,
-                topic,
-                messageId,
+    public CpfBrokerPublishResult publish(String messageId,String topic,String transactionId,String payload) {
+        return brokerClient.enqueue(new CpfBrokerPublishRequest(
+                messageId, topic, messageId,
                 payload == null ? new byte[0] : payload.getBytes(StandardCharsets.UTF_8),
-                "application/json",
-                Map.of("cpf-source-system", "$SystemCode"));
-        return outboxPort.saveOutbox(new CpfBrokerEnvelope(
-                transactionId,
-                null,
-                "$SystemCode",
-                null,
-                messageId,
-                Instant.now(),
-                message,
-                Map.of("domainName", "$module")));
+                "application/json", transactionId, null, "$SystemCode", null, messageId,
+                Map.of("cpf-source-system", "$SystemCode"), Map.of("domainName", "$module")));
     }
 }
 "@
@@ -1724,8 +1693,8 @@ $messagingController = @"
 package $FeaturePackage.messaging;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
-import com.cpf.core.common.broker.CpfBrokerResult;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
@@ -1742,24 +1711,13 @@ import java.util.Map;
 @ConditionalOnBean(${ModuleName}EventPublisher.class)
 public class ${ModuleName}MessagingController extends ${ModuleClassName}BaseController {
     private final ${ModuleName}EventPublisher publisher;
-
-    public ${ModuleName}MessagingController(${ModuleName}EventPublisher publisher) {
-        this.publisher = publisher;
-    }
+    public ${ModuleName}MessagingController(${ModuleName}EventPublisher publisher) { this.publisher = publisher; }
 
     @PostMapping
-    @CpfOnlineTransaction(
-            id = "O${DomainIdCode}EV0001",
-            name = "${ModuleName}EventPublish",
-            ownerDomain = "$DomainIdCode",
-            requiredPermission = "$SystemCode:EVENT:PUBLISH")
+    @CpfOnlineTransaction(id = "O${DomainIdCode}EV0001", name = "${ModuleName}EventPublish", ownerDomain = "$DomainIdCode", requiredPermission = "$SystemCode:EVENT:PUBLISH")
     @Operation(operationId = "publish${ModuleName}Event", summary = "${ModuleName} 업무 이벤트 등록")
-    public ResponseEntity<CpfBrokerResult> publish(@RequestBody Map<String, String> request) {
-        return ok(publisher.publish(
-                request.get("messageId"),
-                request.get("topic"),
-                request.get("transactionId"),
-                request.get("payload")));
+    public ResponseEntity<CpfBrokerPublishResult> publish(@RequestBody Map<String,String> request) {
+        return ok(publisher.publish(request.get("messageId"),request.get("topic"),request.get("transactionId"),request.get("payload")));
     }
 }
 "@
@@ -1767,57 +1725,29 @@ public class ${ModuleName}MessagingController extends ${ModuleClassName}BaseCont
 $messagingTest = @"
 package $FeaturePackage.messaging;
 
-import com.cpf.core.common.broker.CpfBrokerEnvelope;
-import com.cpf.core.common.broker.CpfBrokerOutboxPort;
-import com.cpf.core.common.broker.CpfBrokerResult;
+import com.cpf.core.api.broker.CpfBrokerClient;
+import com.cpf.core.api.broker.CpfBrokerPublishRequest;
+import com.cpf.core.api.broker.CpfBrokerPublishResult;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ${ModuleName}EventPublisherTest {
-    @Test
-    void savesTraceableEnvelopeToOutbox() {
-        AtomicReference<CpfBrokerEnvelope> captured = new AtomicReference<>();
-        CpfBrokerOutboxPort port = new CpfBrokerOutboxPort() {
-            @Override
-            public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) {
-                captured.set(envelope);
-                return CpfBrokerResult.accepted(envelope.message().messageId(), "outbox", envelope.message().key());
-            }
-
-            @Override
-            public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) {
-                return List.of();
-            }
-
-            @Override
-            public void markPublished(String messageId, CpfBrokerResult result) {
-                // 이 테스트는 발행 worker가 아니라 업무 outbox 저장 경계만 검증합니다.
-            }
-        };
-
-        CpfBrokerResult result = new ${ModuleName}EventPublisher(port)
-                .publish("MSG-1", "${module}.changed", "TX-1", "{\"id\":1}");
-
+    @Test void savesTraceableRequestThroughPublicBrokerBoundary() {
+        AtomicReference<CpfBrokerPublishRequest> captured=new AtomicReference<>();
+        CpfBrokerClient client=request->{ captured.set(request); return new CpfBrokerPublishResult("ACCEPTED",request.messageId(),"outbox",request.key(),Instant.now(),null); };
+        CpfBrokerPublishResult result=new ${ModuleName}EventPublisher(client).publish("MSG-1","${module}.changed","TX-1","{\"id\":1}");
         assertThat(result.status()).isEqualTo("ACCEPTED");
         assertThat(captured.get().producerModule()).isEqualTo("$SystemCode");
         assertThat(captured.get().transactionId()).isEqualTo("TX-1");
     }
-
-    @Test
-    void rejectsMissingMessageIdBeforeOutboxAccess() {
-        CpfBrokerOutboxPort unused = new CpfBrokerOutboxPort() {
-            @Override public CpfBrokerResult saveOutbox(CpfBrokerEnvelope envelope) { throw new AssertionError(); }
-            @Override public List<CpfBrokerEnvelope> claimPending(String workerId, int limit) { return List.of(); }
-            @Override public void markPublished(String messageId, CpfBrokerResult result) { }
-        };
-
-        assertThatThrownBy(() -> new ${ModuleName}EventPublisher(unused)
-                .publish(" ", "topic", "TX-1", "{}"))
+    @Test void rejectsMissingMessageIdBeforeRuntimeAccess() {
+        CpfBrokerClient unused=request->{ throw new AssertionError(); };
+        assertThatThrownBy(()->new ${ModuleName}EventPublisher(unused).publish(" ","topic","TX-1","{}"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }
@@ -1826,31 +1756,23 @@ class ${ModuleName}EventPublisherTest {
 $fileTransferService = @"
 package $FeaturePackage.file;
 
-import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
-import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
-import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
-import com.cpf.core.common.filetransfer.CpfFileTransferResult;
+import com.cpf.core.api.filetransfer.CpfFileEndpoint;
+import com.cpf.core.api.filetransfer.CpfFileRequest;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfFileTransferClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-/** ${ModuleName} 파일 송수신 요청을 CPF 파일 전송 엔진에 위임합니다. */
+/** ${ModuleName} 파일 송수신 요청을 CPF 공개 파일전송 경계에 위임합니다. */
 @Service
-@ConditionalOnBean(CpfFileTransferEngine.class)
+@ConditionalOnBean(CpfFileTransferClient.class)
 public class ${ModuleName}FileTransferService {
-    private final CpfFileTransferEngine engine;
-
-    public ${ModuleName}FileTransferService(CpfFileTransferEngine engine) {
-        this.engine = Objects.requireNonNull(engine, "engine은 필수입니다.");
-    }
-
-    public CpfFileTransferResult execute(
-            CpfFileTransferEndpoint endpoint,
-            CpfFileTransferRequest request) {
-        return engine.execute(
-                Objects.requireNonNull(endpoint, "endpoint는 필수입니다."),
-                Objects.requireNonNull(request, "request는 필수입니다."));
+    private final CpfFileTransferClient client;
+    public ${ModuleName}FileTransferService(CpfFileTransferClient client) { this.client=Objects.requireNonNull(client,"client는 필수입니다."); }
+    public CpfFileResult execute(CpfFileEndpoint endpoint,CpfFileRequest request) {
+        return client.execute(Objects.requireNonNull(endpoint,"endpoint는 필수입니다."),Objects.requireNonNull(request,"request는 필수입니다."));
     }
 }
 "@
@@ -1858,58 +1780,28 @@ public class ${ModuleName}FileTransferService {
 $fileTransferTest = @"
 package $FeaturePackage.file;
 
-import com.cpf.core.common.filetransfer.CpfFileTransferEndpoint;
-import com.cpf.core.common.filetransfer.CpfFileTransferEngine;
-import com.cpf.core.common.filetransfer.CpfFileTransferHistoryPort;
-import com.cpf.core.common.filetransfer.CpfFileTransferRequest;
-import com.cpf.core.common.filetransfer.CpfFileTransferResult;
-import com.cpf.core.common.filetransfer.CpfDuplicatePreventionPort;
+import com.cpf.core.api.filetransfer.CpfFileEndpoint;
+import com.cpf.core.api.filetransfer.CpfFileRequest;
+import com.cpf.core.api.filetransfer.CpfFileResult;
+import com.cpf.core.api.filetransfer.CpfFileTransferClient;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ${ModuleName}FileTransferServiceTest {
-    @Test
-    void delegatesToCpfFileTransferEngine() {
-        AtomicBoolean transferred = new AtomicBoolean();
-        CpfFileTransferHistoryPort historyPort = new CpfFileTransferHistoryPort() {
-            @Override
-            public void record(CpfFileTransferRequest request, CpfFileTransferResult result) {
-                // 실제 엔진이 성공 이력을 기록할 수 있도록 비영속 대역을 제공합니다.
-            }
-
-            @Override
-            public List<CpfFileTransferResult> findHistory(String endpointCode, Instant from, Instant to, int limit) {
-                return List.of();
-            }
-        };
-        CpfDuplicatePreventionPort duplicatePort = new CpfDuplicatePreventionPort() {
-            @Override public boolean alreadyProcessed(String endpointCode, String fileKey, String checksum) { return false; }
-            @Override public void remember(CpfFileTransferRequest request, CpfFileTransferResult result) { }
-        };
-        CpfFileTransferEngine engine = new CpfFileTransferEngine(
-                (endpoint, request) -> {
-                    transferred.set(true);
-                    return CpfFileTransferResult.success(request, request.checksum(), request.fileSize());
-                },
-                historyPort,
-                duplicatePort,
-                null);
-        CpfFileTransferEndpoint endpoint = new CpfFileTransferEndpoint(
-                "SFTP-1", "SFTP", "localhost", 22, "/upload", null, Duration.ofSeconds(3), Map.of());
-        CpfFileTransferRequest request = new CpfFileTransferRequest(
-                "TX-1", "SEG-1", "SFTP-1", "UPLOAD", "local.dat", "remote.dat", "sha256", 10L, Map.of());
-
-        CpfFileTransferResult actual = new ${ModuleName}FileTransferService(engine).execute(endpoint, request);
-
+    @Test void delegatesThroughPublicFileTransferBoundary() {
+        AtomicBoolean called=new AtomicBoolean();
+        CpfFileTransferClient client=(endpoint,request)->{ called.set(true); return new CpfFileResult("SUCCESS",endpoint.endpointCode(),request.localPath(),request.remotePath(),request.checksum(),request.fileSize(),Instant.now(),null); };
+        CpfFileEndpoint endpoint=new CpfFileEndpoint("SFTP-1","SFTP","localhost",22,"/upload",null,Duration.ofSeconds(3),Map.of());
+        CpfFileRequest request=new CpfFileRequest("TX-1","SEG-1","SFTP-1","UPLOAD","local.dat","remote.dat","sha256",10L,Map.of());
+        CpfFileResult actual=new ${ModuleName}FileTransferService(client).execute(endpoint,request);
         assertThat(actual.status()).isEqualTo("SUCCESS");
-        assertThat(transferred).isTrue();
+        assertThat(called).isTrue();
     }
 }
 "@
@@ -1939,7 +1831,7 @@ $securityAuditController = @"
 package $FeaturePackage.security;
 
 $([string]::Concat('import ', $BasePackage, '.common.base.', $ModuleClassName, 'BaseController;'))
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -2371,6 +2263,80 @@ $domainDatabaseProfile = @"
 }
 "@
 
+
+$centerCutHandlerSource = @"
+package $FeaturePackage.centercut;
+
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import com.cpf.core.spi.centercut.CenterCutHandler;
+import org.springframework.stereotype.Component;
+
+/**
+ * BAT Center-Cut Runner가 local/remote 양쪽에서 호출할 수 있는 $ModuleName 업무 Handler 예제입니다.
+ * 실제 업무에서는 businessKey/idempotency를 기준으로 동일 item 중복 실행을 안전하게 처리하십시오.
+ */
+@Component
+public class ${ModuleName}CenterCutHandler implements CenterCutHandler {
+    @Override
+    public CpfCenterCutResult handle(CpfCenterCutTarget target) {
+        if (target == null) throw new IllegalArgumentException("target은 필수입니다.");
+        return CpfCenterCutResult.success(target, "$ModuleName center-cut handled", target.payload());
+    }
+}
+"@
+
+$centerCutControllerSource = @"
+package $FeaturePackage.centercut;
+
+import com.cpf.core.api.centercut.CpfCenterCutResult;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+/** 분리 WAS BAT가 Gateway 재경유 없이 호출하는 내부 Center-Cut endpoint입니다. */
+@RestController
+@RequestMapping("/internal/$module/center-cut")
+public class ${ModuleName}CenterCutController {
+    private final ${ModuleName}CenterCutHandler handler;
+    public ${ModuleName}CenterCutController(${ModuleName}CenterCutHandler handler) { this.handler = handler; }
+
+    @PostMapping("/{jobId}/items")
+    @CpfOnlineTransaction(
+        id = "S${DomainIdCode}CC0001",
+        name = "${ModuleName}CenterCutItem",
+        ownerDomain = "$DomainIdCode",
+        visibility = "INTERNAL",
+        gatewayAllowed = false,
+        directAllowed = true)
+    public ResponseEntity<CpfCenterCutResult> execute(@PathVariable String jobId, @RequestBody CpfCenterCutTarget target) {
+        if (!jobId.equals(target.centerCutJobId())) throw new IllegalArgumentException("jobId와 target.centerCutJobId가 일치해야 합니다.");
+        return ResponseEntity.ok(handler.handle(target));
+    }
+}
+"@
+
+$centerCutHandlerTest = @"
+package $FeaturePackage.centercut;
+
+import com.cpf.core.api.centercut.CpfCenterCutStatus;
+import com.cpf.core.api.centercut.CpfCenterCutTarget;
+import org.junit.jupiter.api.Test;
+import java.time.LocalDate;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ${ModuleName}CenterCutHandlerTest {
+    @Test
+    void handlesTargetThroughPublicCenterCutContract() {
+        CpfCenterCutTarget target = new CpfCenterCutTarget(
+            "T-1", "$ModuleUpper-CC-1", "BUSINESS-1", LocalDate.of(2026,7,25), "{}",
+            "TX-1", "SEG-P", "SEG-C", 0, CpfCenterCutStatus.RUNNING);
+        assertThat(new ${ModuleName}CenterCutHandler().handle(target).status()).isEqualTo(CpfCenterCutStatus.SUCCESS);
+    }
+}
+"@
+
 $files = [ordered]@{
     "build.gradle" = $buildGradle
     "README.md" = $readme
@@ -2426,6 +2392,12 @@ if ($FileEnabled) {
     $files["src/main/java/$featurePackagePath/file/${ModuleName}FileTransferService.java"] = $fileTransferService
     $files["src/test/java/$featurePackagePath/file/${ModuleName}FileTransferServiceTest.java"] = $fileTransferTest
 }
+if ($CenterCutEnabled) {
+    $files["src/main/java/$featurePackagePath/centercut/${ModuleName}CenterCutHandler.java"] = $centerCutHandlerSource
+    $files["src/main/java/$featurePackagePath/centercut/${ModuleName}CenterCutController.java"] = $centerCutControllerSource
+    $files["src/test/java/$featurePackagePath/centercut/${ModuleName}CenterCutHandlerTest.java"] = $centerCutHandlerTest
+}
+
 if ($SecurityAuditEnabled) {
     $files["src/main/java/$featurePackagePath/security/${ModuleName}OperationGuard.java"] = $securityAuditGuard
     $files["src/test/java/$featurePackagePath/security/${ModuleName}OperationGuardTest.java"] = $securityAuditTest
@@ -2504,6 +2476,7 @@ $generatorOwnership = [ordered]@{
         database = $DatabaseEnabled
         databaseVendor = $DatabaseVendor
         batch = $BatchEnabled
+        centerCut = $CenterCutEnabled
         external = $ExternalEnabled
         messaging = $MessagingEnabled
         file = $FileEnabled

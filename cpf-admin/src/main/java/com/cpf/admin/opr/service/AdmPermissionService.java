@@ -9,7 +9,7 @@ import com.cpf.admin.opr.dto.AdmMenuSaveRequest;
 import com.cpf.admin.opr.dto.AdmRoleManagement;
 import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
 import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
-import com.cpf.common.utils.TextUtils;
+import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.exception.CpfNotFoundException;
 import com.cpf.core.common.exception.CpfValidationException;
 import org.slf4j.Logger;
@@ -78,9 +78,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     public AdmRoleManagement createRole(AdmRoleSaveRequest request) {
-        String roleId = TextUtils.requireText(request.roleId(), "roleId");
-        String roleName = TextUtils.requireText(request.roleName(), "roleName");
-        String roleType = TextUtils.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
+        String roleId = CpfStrings.requireText(request.roleId(), "roleId");
+        String roleName = CpfStrings.requireText(request.roleName(), "roleName");
+        String roleType = CpfStrings.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
                 INSERT INTO adm_role (
@@ -91,8 +91,8 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     public AdmRoleManagement updateRole(String roleId, AdmRoleSaveRequest request) {
-        String roleName = TextUtils.requireText(request.roleName(), "roleName");
-        String roleType = TextUtils.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
+        String roleName = CpfStrings.requireText(request.roleName(), "roleName");
+        String roleType = CpfStrings.defaultIfBlank(request.roleType(), "BUSINESS_OPERATOR");
         String user = requestUser(request.requestUser());
         int updated = admJdbcTemplate.update("""
                 UPDATE adm_role
@@ -165,7 +165,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     public AdmMenuManagement createMenu(AdmMenuSaveRequest request) {
-        String menuId = TextUtils.requireText(request.menuId(), "menuId");
+        String menuId = CpfStrings.requireText(request.menuId(), "menuId");
         validateMenuParent(menuId, request.parentMenuId());
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
@@ -175,8 +175,8 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 """,
                 menuId,
                 blankToNull(request.parentMenuId()),
-                TextUtils.requireText(request.menuName(), "menuName"),
-                TextUtils.defaultIfBlank(request.menuPath(), "/adm"),
+                CpfStrings.requireText(request.menuName(), "menuName"),
+                CpfStrings.defaultIfBlank(request.menuPath(), "/adm"),
                 defaultInt(request.sortOrder()),
                 ynDefaultY(request.useYn()),
                 user,
@@ -199,8 +199,8 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 WHERE MENU_ID = ?
                 """,
                 blankToNull(request.parentMenuId()),
-                TextUtils.requireText(request.menuName(), "menuName"),
-                TextUtils.defaultIfBlank(request.menuPath(), "/adm"),
+                CpfStrings.requireText(request.menuName(), "menuName"),
+                CpfStrings.defaultIfBlank(request.menuPath(), "/adm"),
                 defaultInt(request.sortOrder()),
                 ynDefaultY(request.useYn()),
                 user,
@@ -228,7 +228,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
 
     public List<AdmButton> findButtons(String menuId) {
         try {
-            if (TextUtils.hasText(menuId)) {
+            if (CpfStrings.hasText(menuId)) {
                 return admJdbcTemplate.query("""
                         SELECT BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN,
                                SORT_ORDER, USE_YN, CREATED_AT, UPDATED_AT
@@ -263,7 +263,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     public AdmButton createButton(AdmButtonSaveRequest request) {
-        String buttonId = TextUtils.requireText(request.buttonId(), "buttonId");
+        String buttonId = CpfStrings.requireText(request.buttonId(), "buttonId");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
                 INSERT INTO adm_button (
@@ -272,9 +272,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 buttonId,
-                TextUtils.requireText(request.menuId(), "menuId"),
-                TextUtils.requireText(request.actionCode(), "actionCode"),
-                TextUtils.requireText(request.buttonName(), "buttonName"),
+                CpfStrings.requireText(request.menuId(), "menuId"),
+                CpfStrings.requireText(request.actionCode(), "actionCode"),
+                CpfStrings.requireText(request.buttonName(), "buttonName"),
                 normalizeMethod(request.httpMethod()),
                 request.apiPattern(),
                 defaultInt(request.sortOrder()),
@@ -299,9 +299,9 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     UPDATED_AT = CURRENT_TIMESTAMP
                 WHERE BUTTON_ID = ?
                 """,
-                TextUtils.requireText(request.menuId(), "menuId"),
-                TextUtils.requireText(request.actionCode(), "actionCode"),
-                TextUtils.requireText(request.buttonName(), "buttonName"),
+                CpfStrings.requireText(request.menuId(), "menuId"),
+                CpfStrings.requireText(request.actionCode(), "actionCode"),
+                CpfStrings.requireText(request.buttonName(), "buttonName"),
                 normalizeMethod(request.httpMethod()),
                 request.apiPattern(),
                 defaultInt(request.sortOrder()),
@@ -377,7 +377,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     public AdmApiPermission createApiPermission(AdmApiPermissionSaveRequest request) {
-        String apiPermissionId = TextUtils.requireText(request.apiPermissionId(), "apiPermissionId");
+        String apiPermissionId = CpfStrings.requireText(request.apiPermissionId(), "apiPermissionId");
         String user = requestUser(request.requestUser());
         admJdbcTemplate.update("""
                 INSERT INTO adm_api_permission (
@@ -386,11 +386,11 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 apiPermissionId,
-                TextUtils.defaultIfBlank(request.apiGroupCode(), "ADM"),
+                CpfStrings.defaultIfBlank(request.apiGroupCode(), "ADM"),
                 normalizeMethod(request.httpMethod()),
-                TextUtils.requireText(request.apiPath(), "apiPath"),
-                TextUtils.requireText(request.apiName(), "apiName"),
-                TextUtils.defaultIfBlank(request.permissionCode(), "READ"),
+                CpfStrings.requireText(request.apiPath(), "apiPath"),
+                CpfStrings.requireText(request.apiName(), "apiName"),
+                CpfStrings.defaultIfBlank(request.permissionCode(), "READ"),
                 blankToNull(request.menuId()),
                 blankToNull(request.buttonId()),
                 ynDefaultY(request.useYn()),
@@ -415,11 +415,11 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
                     UPDATED_AT = CURRENT_TIMESTAMP
                 WHERE API_PERMISSION_ID = ?
                 """,
-                TextUtils.defaultIfBlank(request.apiGroupCode(), "ADM"),
+                CpfStrings.defaultIfBlank(request.apiGroupCode(), "ADM"),
                 normalizeMethod(request.httpMethod()),
-                TextUtils.requireText(request.apiPath(), "apiPath"),
-                TextUtils.requireText(request.apiName(), "apiName"),
-                TextUtils.defaultIfBlank(request.permissionCode(), "READ"),
+                CpfStrings.requireText(request.apiPath(), "apiPath"),
+                CpfStrings.requireText(request.apiName(), "apiName"),
+                CpfStrings.defaultIfBlank(request.permissionCode(), "READ"),
                 blankToNull(request.menuId()),
                 blankToNull(request.buttonId()),
                 ynDefaultY(request.useYn()),
@@ -570,7 +570,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             String writeYn,
             String deleteYn,
             String requestUser) {
-        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
+        String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         admJdbcTemplate.update("""
                 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, CREATED_BY, UPDATED_BY)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -589,7 +589,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
             String buttonId,
             String allowYn,
             String requestUser) {
-        String user = TextUtils.defaultIfBlank(requestUser, "ADM");
+        String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         admJdbcTemplate.update("""
                 INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, CREATED_BY, UPDATED_BY)
                 VALUES (?, ?, ?, ?, ?)
@@ -602,7 +602,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     private void validateMenuParent(String menuId, String parentMenuId) {
-        if (!TextUtils.hasText(parentMenuId)) {
+        if (!CpfStrings.hasText(parentMenuId)) {
             return;
         }
         if (menuId.equals(parentMenuId.trim())) {
@@ -610,7 +610,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
         }
         try {
             String current = parentMenuId.trim();
-            for (int depth = 0; depth < 20 && TextUtils.hasText(current); depth++) {
+            for (int depth = 0; depth < 20 && CpfStrings.hasText(current); depth++) {
                 if (menuId.equals(current)) {
                     throw new CpfValidationException("메뉴 상하위 구조에 순환 참조가 발생합니다. menuId=" + menuId);
                 }
@@ -671,7 +671,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     private String requestUser(String requestUser) {
-        return TextUtils.defaultIfBlank(requestUser, "ADM");
+        return CpfStrings.defaultIfBlank(requestUser, "ADM");
     }
 
     private String ynDefaultY(String value) {
@@ -687,7 +687,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     private String normalizeMethod(String value) {
-        String method = TextUtils.defaultIfBlank(value, "GET").trim().toUpperCase();
+        String method = CpfStrings.defaultIfBlank(value, "GET").trim().toUpperCase();
         return switch (method) {
             case "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "ANY" -> method;
             default -> throw new CpfValidationException("허용하지 않는 HTTP 메서드입니다. method=" + value);
@@ -695,7 +695,7 @@ public class AdmPermissionService extends com.cpf.admin.common.base.AdmBaseServi
     }
 
     private String blankToNull(String value) {
-        return TextUtils.hasText(value) ? value.trim() : null;
+        return CpfStrings.hasText(value) ? value.trim() : null;
     }
 
     private String stringTime(Timestamp timestamp) {

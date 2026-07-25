@@ -1,0 +1,25 @@
+pipeline {
+  agent any
+  parameters {
+    booleanParam(name: 'FULL_BUILD', defaultValue: false, description: 'Build every registered CPF module')
+    string(name: 'MODULES', defaultValue: 'cpf-core,cpf-common,cpf-reference', description: 'Comma-separated Gradle modules')
+    choice(name: 'GOAL', choices: ['test','assemble','build'], description: 'Gradle goal per module')
+  }
+  stages {
+    stage('Source Gates') {
+      steps { pwsh './cpf-tools/scripts/verify-r11-source-product.ps1' }
+    }
+    stage('Build') {
+      steps {
+        script {
+          if (params.FULL_BUILD) {
+            pwsh "./cpf-tools/scripts/build-module-set.ps1 -Full -Goal ${params.GOAL} -NoDaemon"
+          } else {
+            pwsh "./cpf-tools/scripts/build-module-set.ps1 -Modules '${params.MODULES}' -Goal ${params.GOAL} -NoDaemon"
+          }
+        }
+      }
+    }
+  }
+  post { always { archiveArtifacts artifacts: '**/build/reports/**', allowEmptyArchive: true } }
+}

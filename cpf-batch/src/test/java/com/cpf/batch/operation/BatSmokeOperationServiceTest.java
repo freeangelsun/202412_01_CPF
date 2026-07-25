@@ -1,9 +1,9 @@
 package com.cpf.batch.operation;
 
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
-import com.cpf.core.common.batch.CpfBatchLauncher;
-import com.cpf.core.common.batch.CpfBatchOperationRepository;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
+import com.cpf.batch.runtime.BatBatchLauncher;
+import com.cpf.batch.runtime.BatBatchOperationRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -19,8 +19,8 @@ class BatSmokeOperationServiceTest {
 
     @Test
     void runUsesCpfBatchLauncherAndLoadsExecutionDetail() {
-        CpfBatchLauncher launcher = mock(CpfBatchLauncher.class);
-        CpfBatchOperationRepository repository = mock(CpfBatchOperationRepository.class);
+        BatBatchLauncher launcher = mock(BatBatchLauncher.class);
+        BatBatchOperationRepository repository = mock(BatBatchOperationRepository.class);
         BatSmokeOperationService service = new BatSmokeOperationService(launcher, repository);
 
         when(launcher.run(any(CpfBatchExecutionRequest.class)))

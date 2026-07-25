@@ -1,0 +1,1 @@
+package com.cpf.core.api.tenant;import java.util.Optional;/** 채널/Header/JWT 등에서 tenant를 해석하는 SPI입니다. */public interface CpfTenantResolver { Optional<CpfTenant> resolve(); }

@@ -1,10 +1,8 @@
 com.cpf.core.config.CpfExceptionAutoConfiguration
 com.cpf.core.config.CpfOpenApiAutoConfiguration
 com.cpf.core.config.CpfLogPolicyAutoConfiguration
-com.cpf.core.config.CpfBatchAutoConfiguration
 com.cpf.core.config.CpfTransactionMetaAutoConfiguration
 com.cpf.core.config.CpfServiceCallAutoConfiguration
 com.cpf.core.config.CpfLogRecoveryAutoConfiguration
-com.cpf.core.config.CpfCenterCutAutoConfiguration
 com.cpf.core.config.CpfSecurityAutoConfiguration
 com.cpf.core.config.CpfAttachmentAutoConfiguration

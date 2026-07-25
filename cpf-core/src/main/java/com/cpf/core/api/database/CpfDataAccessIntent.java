@@ -1,0 +1,1 @@
+package com.cpf.core.api.database;public enum CpfDataAccessIntent { READ, WRITE }

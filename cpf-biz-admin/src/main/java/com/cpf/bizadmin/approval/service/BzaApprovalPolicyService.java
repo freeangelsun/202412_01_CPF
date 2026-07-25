@@ -153,6 +153,32 @@ public class BzaApprovalPolicyService {
 
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String,Object> submit(SubmitRequest request, String operatorId) {
+        return submitInternal(request, operatorId, null);
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> resubmit(long previousApprovalId, SubmitRequest request, String operatorId) {
+        Map<String,Object> previous = repository.findDocument(previousApprovalId)
+                .orElseThrow(() -> new CpfValidationException("재상신 원본 결재 문서를 찾을 수 없습니다."));
+        String status = string(previous, "approvalStatus");
+        if (!Set.of("REJECTED", "WITHDRAWN", "CANCELED", "EXPIRED").contains(status)) {
+            throw new CpfValidationException("반려/철회/취소/만료된 결재만 새 문서로 재상신할 수 있습니다.");
+        }
+        if (!Objects.equals(string(previous, "requesterEmployeeNo"), required(request.requesterEmployeeNo(), "requesterEmployeeNo"))) {
+            throw new CpfValidationException("재상신 요청자는 원본 요청자와 같아야 합니다.");
+        }
+        Map<String,Object> created = submitInternal(request, operatorId, previousApprovalId);
+        String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+                .orElse(request.requesterEmployeeNo());
+        long newApprovalId = number(created, "approvalId").longValue();
+        repository.insertHistory(previousApprovalId, "RESUBMIT", actor,
+                request.requestIdempotencyKey() + ":resubmit-source", required(request.reason(), "reason"),
+                status, status, "새 결재 문서 " + newApprovalId + " 로 재상신",
+                string(previous, "transactionId"), operatorId);
+        return created;
+    }
+
+    private Map<String,Object> submitInternal(SubmitRequest request, String operatorId, Long resubmittedFromApprovalId) {
         String idem = required(request.requestIdempotencyKey(), "requestIdempotencyKey");
         Optional<Long> existing = repository.findApprovalByIdempotencyKey(idem);
         if (existing.isPresent()) return detail(existing.get());
@@ -191,6 +217,7 @@ public class BzaApprovalPolicyService {
         doc.put("payloadHash", sha256(payload));
         doc.put("requestIdempotencyKey", idem);
         doc.put("attachmentGroupId", blankToNull(request.attachmentGroupId()));
+        doc.put("resubmittedFromApprovalId", resubmittedFromApprovalId);
         doc.put("transactionId", TransactionContext.getOrCreateTransactionId());
         doc.put("operatorId", required(operatorId, "operatorId"));
         long approvalId = repository.insertPolicyApproval(doc);
@@ -302,6 +329,62 @@ public class BzaApprovalPolicyService {
         repository.insertHistory(approvalId, action, actor, idem + ":history",
                 required(request.reason(), "reason"), beforeStatus, afterStatus,
                 blankToNull(request.comment()), string(doc, "transactionId"), operatorId);
+        return detail(approvalId);
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> withdraw(long approvalId, LifecycleRequest request, String operatorId) {
+        return requesterLifecycle(approvalId, request, operatorId, "WITHDRAW", "WITHDRAWN");
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> cancel(long approvalId, LifecycleRequest request, String operatorId) {
+        return requesterLifecycle(approvalId, request, operatorId, "CANCEL", "CANCELED");
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public List<Long> expireDue(Instant now, int limit, String operatorId) {
+        Instant effectiveNow = now == null ? Instant.now() : now;
+        int bounded = Math.max(1, Math.min(limit <= 0 ? 100 : limit, 1000));
+        List<Long> expired = new ArrayList<>();
+        for (Long approvalId : repository.findDueApprovalIds(effectiveNow, bounded)) {
+            Map<String,Object> doc = repository.findDocument(approvalId).orElse(null);
+            if (doc == null || !"IN_REVIEW".equals(string(doc, "approvalStatus"))) continue;
+            long version = number(doc, "versionNo").longValue();
+            if (repository.updateDocumentStatus(approvalId, version, "EXPIRED",
+                    number(doc, "currentStepNo").intValue(), true, operatorId) == 1) {
+                String idem = "expire:" + approvalId + ":" + version;
+                if (!repository.historyActionExists(idem)) {
+                    repository.insertHistory(approvalId, "EXPIRE", "SYSTEM", idem,
+                            "dueAt 경과 자동 만료", "IN_REVIEW", "EXPIRED", null,
+                            string(doc, "transactionId"), operatorId);
+                }
+                expired.add(approvalId);
+            }
+        }
+        return List.copyOf(expired);
+    }
+
+    private Map<String,Object> requesterLifecycle(long approvalId, LifecycleRequest request, String operatorId,
+                                                   String action, String targetStatus) {
+        String idem = required(request.idempotencyKey(), "idempotencyKey");
+        if (repository.historyActionExists(idem)) return detail(approvalId);
+        String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+                .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+        Map<String,Object> doc = repository.findDocument(approvalId)
+                .orElseThrow(() -> new CpfValidationException("결재 문서를 찾을 수 없습니다."));
+        if (!actor.equals(string(doc, "requesterEmployeeNo"))) {
+            throw new CpfValidationException("결재 요청자 본인만 철회/취소할 수 있습니다.");
+        }
+        String before = string(doc, "approvalStatus");
+        if (!"IN_REVIEW".equals(before)) throw new CpfValidationException("진행 중인 결재만 철회/취소할 수 있습니다.");
+        long version = number(doc, "versionNo").longValue();
+        if (repository.updateDocumentStatus(approvalId, version, targetStatus,
+                number(doc, "currentStepNo").intValue(), true, operatorId) != 1) {
+            throw new CpfValidationException("결재 문서가 동시에 변경되었습니다. 최신 상태를 다시 조회하세요.");
+        }
+        repository.insertHistory(approvalId, action, actor, idem, required(request.reason(), "reason"),
+                before, targetStatus, blankToNull(request.comment()), string(doc, "transactionId"), operatorId);
         return detail(approvalId);
     }
 
@@ -441,4 +524,5 @@ public class BzaApprovalPolicyService {
             String requesterEmployeeNo, String title, String approvalMode, Instant dueAt,
             String payloadJson, String attachmentGroupId, String requestIdempotencyKey, String reason) {}
     public record DecisionRequest(String action, String idempotencyKey, String reason, String comment) {}
+    public record LifecycleRequest(String idempotencyKey, String reason, String comment) {}
 }

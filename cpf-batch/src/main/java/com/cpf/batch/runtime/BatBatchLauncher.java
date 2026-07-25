@@ -1,8 +1,10 @@
 package com.cpf.batch.runtime;
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
-import com.cpf.core.common.batch.CpfBatchExecutionResult;
-import com.cpf.core.common.batch.CpfBatchEventPublisher;
-import com.cpf.core.common.batch.CpfBatchEvent;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionResult;
+import com.cpf.core.api.batch.CpfBatchEventPublisher;
+import com.cpf.core.api.batch.CpfBatchEvent;
+import com.cpf.core.api.batch.CpfBatchEventType;
+import com.cpf.core.api.batch.CpfBatchOperationType;
 
 import com.cpf.core.common.logging.ServerInstanceIdentity;
 import com.cpf.core.common.logging.ServerInstanceIdentity.Identity;

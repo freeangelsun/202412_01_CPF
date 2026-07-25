@@ -64,7 +64,7 @@ export const coreMethods: Record<string, any> = {
           this.loadRemoteLogs(),
           this.loadAuditLogs(),
           this.loadServiceRegistry(),
-          this.searchMembers(),
+          this.loadReliability(),
           this.loadBatch(),
           this.loadCenterCut(),
           this.loadNotifications(),

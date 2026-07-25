@@ -1,5 +1,5 @@
 package com.cpf.batch.runtime;
-import com.cpf.core.common.batch.CpfBatchExecutionRequest;
+import com.cpf.core.api.batch.CpfBatchExecutionRequest;
 
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.ServerInstanceIdentity;
@@ -594,7 +594,7 @@ public class BatBatchOperationRepository {
             String relativePath = businessDate == null || jobInstanceId < 1
                     ? null
                     : fileLogWriter.relativeToLogRoot(fileLogWriter.batchJobLogPath(
-                            CpfBatchJobLogPath.relativePath(
+                            BatBatchJobLogPath.relativePath(
                                     jobExecution.getJobInstance().getJobName(),
                                     jobInstanceId,
                                     businessDate))).toString().replace('\\', '/');

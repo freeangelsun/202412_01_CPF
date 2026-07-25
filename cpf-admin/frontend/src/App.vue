@@ -29,26 +29,26 @@
     </section>
   </main>
 
-  <div v-else class="adm-shell">
-    <aside class="adm-sidebar">
+  <div v-else class="adm-shell" :class="{ 'sidebar-open': sidebarOpen }">
+    <aside class="adm-sidebar"><button class="adm-sidebar-close" type="button" aria-label="메뉴 닫기" @click="sidebarOpen=false"><CpfIcon name="close" /></button>
       <div class="adm-brand sidebar-brand"><span>CPF</span><div><strong>ADM</strong><small>Platform Admin</small></div></div>
       <nav aria-label="ADM 운영 메뉴">
         <section v-for="group in groupedMenus" :key="group.id" class="adm-nav-group">
           <p>{{ group.label }}</p>
-          <button v-for="menu in group.items" :key="menu.id" type="button" :class="{ active: activeMenu === menu.id }" @click="selectMenu(menu.id)"><span class="dot"></span>{{ menu.label }}</button>
+          <button v-for="menu in group.items" :key="menu.id" type="button" :class="{ active: activeMenu === menu.id }" @click="selectMenu(menu.id)"><CpfIcon class="adm-nav-icon" :name="iconForMenu(menu.id)" />{{ menu.label }}</button>
         </section>
       </nav>
       <footer><div><strong>{{ currentOperator.operatorId }}</strong><small>Platform Operator</small></div><button class="text-button" @click="logout">로그아웃</button></footer>
     </aside>
 
     <section class="adm-workspace">
-      <header class="adm-workspace-header"><div><p class="eyebrow">ADM / {{ activeFeatureGroup.toUpperCase() }}</p><h1>{{ currentMenuLabel }}</h1><p>Core Platform Framework 운영 콘솔</p></div><div class="inline-actions"><button class="ghost" @click="loadInitialData">전체 새로고침</button></div></header>
+      <header class="adm-workspace-header"><button class="ghost adm-mobile-toggle" type="button" aria-label="메뉴 열기" @click="sidebarOpen=true"><CpfIcon name="menu" /></button><div><p class="eyebrow">ADM / {{ activeFeatureGroup.toUpperCase() }}</p><h1>{{ currentMenuLabel }}</h1><p>Core Platform Framework 운영 콘솔</p></div><div class="inline-actions"><span class="cpf-status success">ONLINE</span><button class="ghost" @click="loadInitialData"><CpfIcon name="refresh" /> 전체 새로고침</button></div></header>
       <div class="adm-content">
         <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
         <section class="summary-grid">
-          <div class="metric"><span>서비스</span><strong>ADM</strong></div>
-          <div class="metric"><span>포트</span><strong>8090</strong></div>
-          <div class="metric"><span>공통 모듈</span><strong>CPF / CMN</strong></div>
+          <div class="metric"><span>등록 서비스</span><strong>{{ serviceRegistryResult.services?.length || 0 }}</strong></div>
+          <div class="metric"><span>활성 인스턴스</span><strong>{{ (serviceRegistryResult.instances || []).filter((i:any) => i.instanceStatus === 'UP').length }}</strong></div>
+          <div class="metric"><span>복구 대기</span><strong>{{ (reliabilityResult.unknownResults || []).length + (reliabilityResult.dlq || []).length }}</strong></div>
           <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
         </section>
         <Suspense><component :is="activeFeatureComponent" /><template #fallback><div class="route-loading">운영 화면을 준비하고 있습니다...</div></template></Suspense>
@@ -59,13 +59,16 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import CpfIcon from "./components/CpfIcon.vue";
 import { admConsoleMixin } from "./app/admConsoleMixin";
-import { admGroupLabels, componentForMenu, featureGroupForMenu, menuIdFromHash, type AdmFeatureGroup } from "./app/routes";
+import { admGroupLabels, componentForMenu, featureGroupForMenu, iconForMenu, menuIdFromHash, type AdmFeatureGroup } from "./app/routes";
 
 
 export default defineComponent({
   name: "AdmApp",
+  components: { CpfIcon },
   mixins: [admConsoleMixin],
+  data() { return { sidebarOpen: false }; },
   computed: {
     activeFeatureGroup(): AdmFeatureGroup { return featureGroupForMenu(this.activeMenu); },
     activeFeatureComponent() { return componentForMenu(this.activeMenu); },
@@ -81,11 +84,12 @@ export default defineComponent({
   },
   beforeUnmount() { window.removeEventListener("hashchange", this.syncMenuFromHash); },
   methods: {
-    selectMenu(menuId: string) { if (this.activeMenu !== menuId) this.activeMenu = menuId; if (location.hash !== `#/${menuId}`) location.hash = `#/${menuId}`; },
+    iconForMenu,
+    selectMenu(menuId: string) { if (this.activeMenu !== menuId) this.activeMenu = menuId; this.sidebarOpen = false; if (location.hash !== `#/${menuId}`) location.hash = `#/${menuId}`; },
     syncMenuFromHash() {
       const requested = menuIdFromHash(location.hash);
       if (requested && this.visibleMenus.some((menu: any) => menu.id === requested)) this.activeMenu = requested;
-      else if (!this.visibleMenus.some((menu: any) => menu.id === this.activeMenu)) this.activeMenu = this.visibleMenus[0]?.id || "logs";
+      else if (!this.visibleMenus.some((menu: any) => menu.id === this.activeMenu)) this.activeMenu = this.visibleMenus[0]?.id || "dashboard";
       if (location.hash !== `#/${this.activeMenu}`) history.replaceState(null, "", `#/${this.activeMenu}`);
     }
   }

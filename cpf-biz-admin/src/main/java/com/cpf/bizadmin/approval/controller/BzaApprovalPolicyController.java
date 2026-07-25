@@ -103,6 +103,48 @@ public class BzaApprovalPolicyController extends com.cpf.bizadmin.common.base.Bz
         return ResponseEntity.ok(service.decide(approvalId, request, operatorId));
     }
 
+    @PostMapping("/submissions/{approvalId}/withdraw")
+    @CpfOnlineTransaction(id = "OBZAAP0110", name = "BzaApprovalWithdraw")
+    @Operation(operationId = "bzaApprovalWithdraw", summary = "결재 철회")
+    public ResponseEntity<Map<String,Object>> withdraw(
+            @PathVariable long approvalId,
+            @RequestBody BzaApprovalPolicyService.LifecycleRequest request,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(service.withdraw(approvalId, request, operatorId));
+    }
+
+    @PostMapping("/submissions/{approvalId}/cancel")
+    @CpfOnlineTransaction(id = "OBZAAP0111", name = "BzaApprovalCancel")
+    @Operation(operationId = "bzaApprovalCancel", summary = "결재 취소")
+    public ResponseEntity<Map<String,Object>> cancel(
+            @PathVariable long approvalId,
+            @RequestBody BzaApprovalPolicyService.LifecycleRequest request,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(service.cancel(approvalId, request, operatorId));
+    }
+
+    @PostMapping("/submissions/{approvalId}/resubmit")
+    @CpfOnlineTransaction(id = "OBZAAP0112", name = "BzaApprovalResubmit")
+    @Operation(operationId = "bzaApprovalResubmit", summary = "결재 재상신",
+            description = "기존 Snapshot을 재활성화하지 않고 새로운 정책/참여자 Snapshot의 새 문서를 생성합니다.")
+    public ResponseEntity<Map<String,Object>> resubmit(
+            @PathVariable long approvalId,
+            @RequestBody BzaApprovalPolicyService.SubmitRequest request,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(service.resubmit(approvalId, request, operatorId));
+    }
+
+    @PostMapping("/submissions/expire-due")
+    @CpfOnlineTransaction(id = "OBZAAP0113", name = "BzaApprovalExpireDue")
+    @Operation(operationId = "bzaApprovalExpireDue", summary = "기한 경과 결재 만료 처리",
+            description = "BAT Scheduler 등 외부 실행 Owner가 호출할 수 있는 멱등 만료 처리 API입니다.")
+    public ResponseEntity<Map<String,Object>> expireDue(
+            @RequestParam(defaultValue = "100") int limit,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        List<Long> expired = service.expireDue(Instant.now(), limit, operatorId);
+        return ResponseEntity.ok(Map.of("expiredCount", expired.size(), "approvalIds", expired));
+    }
+
     public record SimulationRequest(String policyCode, Integer policyVersion, String businessDomain,
                                     String approvalType, String requesterEmployeeNo, Instant effectiveAt) {}
 }

@@ -1,0 +1,1 @@
+package com.cpf.core.api.tenant;public record CpfTenant(String tenantId,String displayName){public CpfTenant{if(tenantId==null||tenantId.isBlank())throw new IllegalArgumentException("tenantId is required");}}

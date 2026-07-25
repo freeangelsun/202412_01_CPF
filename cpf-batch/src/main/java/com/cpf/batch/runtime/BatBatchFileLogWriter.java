@@ -108,7 +108,7 @@ public class BatBatchFileLogWriter {
         appendStepFields(event, jobExecution, stepExecution);
 
         writeWithOwnership(
-                CpfBatchJobLogPath.relativePath(jobInstance.getJobName(), jobInstanceId, businessDate),
+                BatBatchJobLogPath.relativePath(jobInstance.getJobName(), jobInstanceId, businessDate),
                 jobInstance.getJobName(),
                 jobInstanceId,
                 jobExecution,
@@ -137,7 +137,7 @@ public class BatBatchFileLogWriter {
         String ownerId = ServerInstanceIdentity.current().serverInstanceId()
                 + ':' + parameterOrContext(execution, "workerInstanceId", "worker")
                 + ':' + executionId(execution);
-        String lockKey = "batch:file:" + CpfBatchJobLogPath.sanitize(jobName) + ':' + jobInstanceId;
+        String lockKey = "batch:file:" + BatBatchJobLogPath.sanitize(jobName) + ':' + jobInstanceId;
         boolean acquired = writerLockManager.acquire(
                 lockKey,
                 jobName,
@@ -165,7 +165,7 @@ public class BatBatchFileLogWriter {
 
     private java.nio.file.Path fragmentPath(java.nio.file.Path logicalPath, String ownerId) {
         String fileName = logicalPath.getFileName().toString();
-        String safeOwner = CpfBatchJobLogPath.sanitize(ownerId);
+        String safeOwner = BatBatchJobLogPath.sanitize(ownerId);
         return logicalPath.getParent()
                 .resolve("fragments")
                 .resolve(fileName.replaceFirst("\\.log$", "") + '-' + safeOwner + ".fragment.log");
@@ -280,7 +280,7 @@ public class BatBatchFileLogWriter {
 
     private String stepSegmentId(StepExecution stepExecution) {
         Object id = stepExecution.getId();
-        return "BAT-STEP-" + (id == null ? CpfBatchJobLogPath.sanitize(stepExecution.getStepName()) : id);
+        return "BAT-STEP-" + (id == null ? BatBatchJobLogPath.sanitize(stepExecution.getStepName()) : id);
     }
 
     private JobInstance requireJobInstance(JobExecution execution) {

@@ -370,9 +370,9 @@ Evidence는 기준 Commit, PC/환경, Profile, DB Vendor, 시작/종료시각, �
 
 1. `CPF_R8_REQUIREMENT_REVIEW.md` 162개 항목을 정본으로 사용해 상태를 하나씩 실제 Evidence로 승격한다.
 2. R8 APPLY/Full Verify 실패 항목은 최우선으로 수정하며, 실패 검증을 삭제/우회하지 않는다.
-3. Historical V6/V29 migration integrity를 원인 확정 없이 수정하지 않는다.
-4. ADM/BZA Approval의 break-glass, expiry/escalation, withdraw/cancel/resubmit, 조직개편·부재 Snapshot 시나리오를 완성한다.
-5. non-MariaDB Vendor parity와 PROD-MULTITENANT는 명시 잔여 Gap이며 완료로 오판하지 않는다.
+3. Historical V6/V29는 R9 검수에서 원인이 확정되었다. V6 고정 EXS/BIZADM DDL과 stale BZA V29 baseline을 GA 전 canonical 기준으로 교정하며, fresh/upgrade/rollback 실행 Evidence 전에는 완료 처리하지 않는다.
+4. ADM scoped Break-glass와 BZA withdraw/cancel/resubmit/expiry는 R9 Source로 보강한다. 실제 위험조치별 break-glass scope 소비, escalation, 조직개편·부재 Snapshot 시나리오는 계속 완성한다.
+5. non-MariaDB Vendor parity는 명시 잔여 Gap이다. PROD-MULTITENANT는 R9 opt-in Context/API 기반까지 구현하되 HTTP/JWT/Async/DB isolation/Generator/Evidence 전에는 완료로 오판하지 않는다.
 6. 작업 후 Source/API/SQL/Test/Runtime/Browser/Evidence를 다시 162 Requirement에 양방향 연결하고 다음 Handover를 갱신한다.
 
 ## 22. R8 구현 후 검증·잔여 Gap 고정 (2026-07-25)
@@ -402,10 +402,38 @@ R8는 다음 P0/P1 구현을 추가했으나 **실제 Windows/Java25/MariaDB/Bro
 
 ### 완료로 오판하면 안 되는 현재 잔여
 
-- historical V6/V29 migration integrity
+- V6/V29 pre-GA canonical repair의 fresh/upgrade/rollback Runtime 검증
 - non-MariaDB Platform vendor parity
-- Core legacy Batch compatibility class 물리 제거
-- REF/Generated Center-Cut extension의 generic 분리 WAS remote routing
-- Approval break-glass/expiry/escalation/withdraw/cancel/resubmit/조직개편·부재 시나리오
-- PROD-MULTITENANT
+- R9 Core Batch/Center-Cut physical cleanup의 전체 Compile/Regression 확인
+- R9 generic remote Center-Cut handler의 실제 HTTP/메시징 transport 및 multi-instance/UNKNOWN Evidence
+- Approval break-glass 실제 scope 소비, escalation, 조직개편·부재 시나리오
+- PROD-MULTITENANT HTTP/JWT/Async/DB isolation/Generator wiring
 - 실제 multi-instance/fault/browser/runtime Evidence
+
+
+---
+
+## 2026-07-25 R9 누적 작업 원칙 및 다음 구현 기준
+
+### 1. 개발 단계 Legacy 정리 원칙
+- 아직 외부 고객 Release Contract로 고정되지 않은 Legacy 구조는 영향도가 있다는 이유만으로 유지하지 않는다.
+- 목표 Owner와 대체 구현이 준비되면 Consumer/Test/Config/Docs를 함께 이관하고 Legacy Source를 물리 삭제한다.
+- 호환 Layer를 둘 수 있는 경우는 실제 Release Compatibility 요구와 Consumer 근거가 있을 때뿐이다.
+- 특히 Batch/Center-Cut Runtime은 `cpf-batch` Owner이며 `cpf-core`에는 topology-independent API/SPI Contract만 둔다.
+
+### 2. UI 제품 품질
+- ADM/BZA는 기능 존재만으로 완료 처리하지 않는다. Dashboard, 상태·오류·빈 화면, Loading, Filter, Detail, Dialog/Drawer, Timeline/Step, 위험조치 확인 UX, 반응형/keyboard/accessibility를 기능 특성에 맞게 제공한다.
+- 외부 CDN/font/script/image runtime dependency는 금지한다. UI pattern은 검증된 OSS를 참고할 수 있으나 CPF source/assets로 local bundle한다.
+- ADM은 Dashboard/Topology/Incident/Maintenance/Recovery/Worker/Capacity/SLO를 Control Plane의 1급 기능으로 관리한다.
+- BZA는 조직 Tree/직원·조직 상세/Role-Permission Matrix/Approval Inbox·Timeline·Simulation을 실제 업무사용자 수준으로 제공한다.
+
+### 3. R9 이후 계속 닫아야 하는 P0
+- ADM Approval break-glass TTL/post-review, expiry/escalation, owner command mapping 완성.
+- BZA Approval withdraw/cancel/resubmit/expiry/escalation 및 조직변경/부재/퇴직/위임 경계 시나리오.
+- REF/Generated Center-Cut generic remote handler/transport 경계는 R9에서 추가. 실제 HTTP/메시징 transport와 Generator scaffold/Evidence를 완성한다.
+- Multi-tenant HTTP/JWT/Header resolver, async propagation, DB isolation, Audit/Generator 표준.
+- Self-healing Orchestrator와 ServiceCall Lineage hook은 R9에서 추가. Health event/Owner action/audit 및 Batch/File/Broker lineage, DB Primary/Replica failover/lag/read-after-write를 완성한다.
+- V6/V29 pre-GA canonical 정합화 Source를 실제 fresh/upgrade/rollback으로 검증하고 checksum/reset/repair 정책을 고정한다.
+
+### 4. 검증 운영
+사용자 요청에 따라 구현을 충분히 누적한 뒤 Full Verification을 한 번에 수행한다. 중간 작업에서는 Source syntax, route coverage, owner boundary, artifact hygiene 같은 Static Gate만 수행한다. Runtime/DB/Browser를 실행하지 않은 상태를 완료로 기록하지 않는다.

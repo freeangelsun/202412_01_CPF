@@ -1,5 +1,7 @@
 package com.cpf.core.common.servicecall;
 
+import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
+
 import com.cpf.core.common.logging.TransactionContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -439,6 +441,43 @@ public class CpfServiceRegistryRepository {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE instance_id = ?
                 """, instanceStatus, target.instanceId());
+    }
+
+
+    /**
+     * 운영 Drain/Disable/Resume 명령을 Registry owner에서 원자적으로 반영합니다.
+     * DRAIN/DISABLE은 active_yn=N으로 내려 health fallback이 다시 선택하지 못하게 합니다.
+     */
+    public Map<String,Object> changeInstanceState(
+            String serviceId, String endpointCode, String instanceId,
+            CpfServiceRegistryControlPort.InstanceCommand command, String reason, String requestedBy) {
+        if (!tableAvailable("cpf_service_instance")) {
+            throw new IllegalStateException("cpf_service_instance table is unavailable");
+        }
+        if (!hasText(serviceId) || !hasText(endpointCode) || !hasText(instanceId)) {
+            throw new IllegalArgumentException("serviceId, endpointCode and instanceId are required");
+        }
+        if (!hasText(reason)) {
+            throw new IllegalArgumentException("maintenance reason is required");
+        }
+        String status; String activeYn;
+        switch (command) {
+            case DRAIN -> { status = "DRAINING"; activeYn = "N"; }
+            case DISABLE -> { status = "DISABLED"; activeYn = "N"; }
+            case RESUME -> { status = "UP"; activeYn = "Y"; }
+            default -> throw new IllegalArgumentException("Unsupported instance command: " + command);
+        }
+        int updated = jdbc().update("""
+                UPDATE cpf_service_instance
+                   SET instance_status = ?, active_yn = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
+                 WHERE service_id = ? AND endpoint_code = ? AND instance_id = ?
+                """, status, activeYn, hasText(requestedBy) ? requestedBy : "CPF_CONTROL", serviceId, endpointCode, instanceId);
+        if (updated != 1) {
+            throw new IllegalArgumentException("Service instance not found: " + serviceId + "/" + endpointCode + "/" + instanceId);
+        }
+        return Map.of(
+                "serviceId", serviceId, "endpointCode", endpointCode, "instanceId", instanceId,
+                "command", command.name(), "instanceStatus", status, "activeYn", activeYn, "reason", reason);
     }
 
     private JdbcTemplate jdbc() {

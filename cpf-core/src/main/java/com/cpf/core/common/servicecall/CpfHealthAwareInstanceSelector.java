@@ -28,19 +28,14 @@ public class CpfHealthAwareInstanceSelector {
             return instances.stream()
                     .filter(row -> requestedInstanceId.equals(String.valueOf(row.get("instanceId"))))
                     .filter(row -> !excluded(excludedInstanceIds, row))
+                    .filter(this::activeAndUp)
                     .findFirst();
         }
         return instances.stream()
                 .filter(row -> !excluded(excludedInstanceIds, row))
                 .filter(this::activeAndUp)
                 .findFirst()
-                .or(() -> instances.stream()
-                        .filter(row -> !excluded(excludedInstanceIds, row))
-                        .filter(this::active)
-                        .findFirst())
-                .or(() -> instances.stream()
-                        .filter(row -> !excluded(excludedInstanceIds, row))
-                        .findFirst());
+;
     }
 
     private boolean activeAndUp(Map<String, Object> row) {

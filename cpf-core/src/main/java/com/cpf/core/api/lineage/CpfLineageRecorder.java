@@ -1,0 +1,1 @@
+package com.cpf.core.api.lineage;public interface CpfLineageRecorder { void record(CpfLineageRecord record); }

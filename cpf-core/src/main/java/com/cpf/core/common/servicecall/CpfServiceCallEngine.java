@@ -6,6 +6,8 @@ import com.cpf.core.common.logging.segment.TransactionSegmentScope;
 import com.cpf.core.common.logging.segment.TransactionSegmentService;
 import com.cpf.core.common.reconciliation.CpfReconciliationPort;
 import com.cpf.core.common.reconciliation.CpfUnknownResultRecord;
+import com.cpf.core.api.lineage.CpfLineageRecord;
+import com.cpf.core.api.lineage.CpfLineageRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -33,12 +35,13 @@ public class CpfServiceCallEngine {
     private final CpfServiceCallProperties properties;
     private final TransactionSegmentService segmentService;
     private final CpfReconciliationPort reconciliationPort;
+    private final CpfLineageRecorder lineageRecorder;
 
     public CpfServiceCallEngine(
             CpfEndpointResolver endpointResolver,
             CpfServiceCallLogWriter logWriter,
             CpfServiceCallProperties properties) {
-        this(endpointResolver, logWriter, properties, null, null);
+        this(endpointResolver, logWriter, properties, null, null, null);
     }
 
     public CpfServiceCallEngine(
@@ -47,11 +50,22 @@ public class CpfServiceCallEngine {
             CpfServiceCallProperties properties,
             TransactionSegmentService segmentService,
             CpfReconciliationPort reconciliationPort) {
+        this(endpointResolver, logWriter, properties, segmentService, reconciliationPort, null);
+    }
+
+    public CpfServiceCallEngine(
+            CpfEndpointResolver endpointResolver,
+            CpfServiceCallLogWriter logWriter,
+            CpfServiceCallProperties properties,
+            TransactionSegmentService segmentService,
+            CpfReconciliationPort reconciliationPort,
+            CpfLineageRecorder lineageRecorder) {
         this.endpointResolver = endpointResolver;
         this.logWriter = logWriter;
         this.properties = properties;
         this.segmentService = segmentService;
         this.reconciliationPort = reconciliationPort;
+        this.lineageRecorder = lineageRecorder;
     }
 
     public boolean isEnabled() {
@@ -103,6 +117,7 @@ public class CpfServiceCallEngine {
                 logWriter.write(effectiveRequest, target, "SUCCESS", 200, elapsed, null, null);
                 logWriter.markSuccess(target, 200, elapsed);
                 successScope(scope, target, attempt, !excludedInstanceIds.isEmpty(), 200);
+                recordLineage(effectiveRequest, target, "SUCCESS", attempt, elapsed);
                 return ServiceCallResult.success(target, response, 200, elapsed, attempt);
             } catch (RuntimeException ex) {
                 long elapsed = elapsedMillis(started);
@@ -121,6 +136,7 @@ public class CpfServiceCallEngine {
                 lastFailure = unknown && attempt >= maxAttempts
                         ? ServiceCallResult.unknown(target, elapsed, attempt, failureCode, failureMessage)
                         : ServiceCallResult.failure(target, httpStatus, elapsed, attempt, failureCode, failureMessage);
+                recordLineage(effectiveRequest, target, resultState, attempt, elapsed);
                 excludeForFailover(target, excludedInstanceIds);
                 if (!target.failoverEnabled() && attempt >= maxAttempts) {
                     return lastFailure;
@@ -220,6 +236,48 @@ public class CpfServiceCallEngine {
             }
         }
         return properties.getDefaultRetryCount();
+    }
+
+
+    private void recordLineage(
+            ServiceCallRequest request,
+            ServiceCallResolvedTarget target,
+            String state,
+            int attempt,
+            long elapsedMillis) {
+        if (lineageRecorder == null || request == null) {
+            return;
+        }
+        try {
+            String transactionId = firstText(
+                    request.headers().get("X-Cpf-Transaction-Id"),
+                    stringValue(request.attributes().get("transactionId")));
+            String endpoint = target == null ? request.endpointCode() : target.endpointCode();
+            String instance = target == null ? request.instanceId() : target.instanceId();
+            lineageRecorder.record(new CpfLineageRecord(
+                    transactionId,
+                    "CPF",
+                    request.requestPath(),
+                    request.serviceId(),
+                    endpoint,
+                    request.httpMethod(),
+                    Instant.now(),
+                    Map.of(
+                            "state", defaultIfBlank(state, "UNKNOWN"),
+                            "instanceId", defaultIfBlank(instance, "-"),
+                            "attempt", String.valueOf(attempt),
+                            "durationMillis", String.valueOf(Math.max(0L, elapsedMillis)))));
+        } catch (RuntimeException lineageFailure) {
+            log.warn("CPF lineage 기록 실패를 서비스 호출 결과로 전파하지 않습니다. serviceId={}", request.serviceId(), lineageFailure);
+        }
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private String firstText(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
     }
 
     private long elapsedMillis(long started) {

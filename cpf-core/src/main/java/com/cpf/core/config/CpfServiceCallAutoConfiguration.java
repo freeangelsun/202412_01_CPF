@@ -13,9 +13,12 @@ import com.cpf.core.common.servicecall.CpfServiceInstanceRegistry;
 import com.cpf.core.common.servicecall.CpfServiceRegistry;
 import com.cpf.core.common.servicecall.CpfServiceRegistryRepository;
 import com.cpf.core.api.servicecall.CpfServiceRegistryQueryPort;
+import com.cpf.core.api.servicecall.CpfServiceRegistryControlPort;
 import com.cpf.core.common.servicecall.CpfServiceRegistryQueryFacade;
+import com.cpf.core.common.servicecall.CpfServiceRegistryControlFacade;
 import com.cpf.core.common.logging.segment.TransactionSegmentService;
 import com.cpf.core.common.reconciliation.CpfReconciliationPort;
+import com.cpf.core.api.lineage.CpfLineageRecorder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -45,6 +48,13 @@ public class CpfServiceCallAutoConfiguration {
     @ConditionalOnMissingBean
     public CpfServiceRegistryQueryPort cpfServiceRegistryQueryPort(CpfServiceRegistryRepository repository) {
         return new CpfServiceRegistryQueryFacade(repository);
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfServiceRegistryControlPort cpfServiceRegistryControlPort(CpfServiceRegistryRepository repository) {
+        return new CpfServiceRegistryControlFacade(repository);
     }
 
     @Bean
@@ -112,13 +122,15 @@ public class CpfServiceCallAutoConfiguration {
             CpfServiceCallLogWriter logWriter,
             CpfServiceCallProperties properties,
             ObjectProvider<TransactionSegmentService> segmentServiceProvider,
-            ObjectProvider<CpfReconciliationPort> reconciliationPortProvider) {
+            ObjectProvider<CpfReconciliationPort> reconciliationPortProvider,
+            ObjectProvider<CpfLineageRecorder> lineageRecorderProvider) {
         return new CpfServiceCallEngine(
                 endpointResolver,
                 logWriter,
                 properties,
                 segmentServiceProvider.getIfAvailable(),
-                reconciliationPortProvider.getIfAvailable());
+                reconciliationPortProvider.getIfAvailable(),
+                lineageRecorderProvider.getIfAvailable());
     }
 
     @Bean

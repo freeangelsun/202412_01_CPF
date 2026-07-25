@@ -294,14 +294,14 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
                     requester_organization_code, requester_position_code, requester_job_title_code,
                     approval_status, approval_mode, current_step_no, due_at,
                     payload_json, payload_hash, request_idempotency_key, attachment_group_id,
-                    version_no, transaction_id, submitted_at, created_by, updated_by
+                    resubmitted_from_approval_id, version_no, transaction_id, submitted_at, created_by, updated_by
                 ) VALUES (
                     :approvalNo, :approvalType, :businessDomain, :policyCode, :policyVersion,
                     :policySnapshotJson, :title, :requesterEmployeeNo,
                     :requesterOrganizationCode, :requesterPositionCode, :requesterJobTitleCode,
                     'IN_REVIEW', :approvalMode, 1, :dueAt,
                     :payloadJson, :payloadHash, :requestIdempotencyKey, :attachmentGroupId,
-                    0, :transactionId, CURRENT_TIMESTAMP(3), :operatorId, :operatorId
+                    :resubmittedFromApprovalId, 0, :transactionId, CURRENT_TIMESTAMP(3), :operatorId, :operatorId
                 )
                 """, new MapSqlParameterSource(values), key, new String[]{"approval_id"});
         Number id = key.getKey();
@@ -384,7 +384,9 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
                        title, requester_employee_no AS requesterEmployeeNo,
                        approval_status AS approvalStatus, approval_mode AS approvalMode,
                        current_step_no AS currentStepNo, version_no AS versionNo,
-                       due_at AS dueAt, transaction_id AS transactionId
+                       due_at AS dueAt, payload_json AS payloadJson, payload_hash AS payloadHash,
+                       attachment_group_id AS attachmentGroupId,
+                       resubmitted_from_approval_id AS resubmittedFromApprovalId, transaction_id AS transactionId
                   FROM bza_approval_document WHERE approval_id=:approvalId
                 """, new MapSqlParameterSource("approvalId", approvalId)).stream().findFirst();
     }
@@ -459,6 +461,24 @@ public class BzaApprovalPolicyRepository implements BzaApprovalDirectoryPort {
                  WHERE approval_id=:approvalId
                  ORDER BY step_no, approval_line_id
                 """, new MapSqlParameterSource("approvalId", approvalId));
+    }
+
+    public boolean historyActionExists(String idempotencyKey) {
+        Long count = jdbc().queryForObject("""
+                SELECT COUNT(*) FROM bza_approval_history WHERE idempotency_key=:key
+                """, new MapSqlParameterSource("key", idempotencyKey), Long.class);
+        return count != null && count > 0;
+    }
+
+    public List<Long> findDueApprovalIds(Instant now, int limit) {
+        return jdbc().queryForList("""
+                SELECT approval_id AS approvalId
+                  FROM bza_approval_document
+                 WHERE approval_status='IN_REVIEW' AND due_at IS NOT NULL AND due_at <= :now
+                 ORDER BY due_at, approval_id
+                 LIMIT :limit
+                """, new MapSqlParameterSource().addValue("now", Timestamp.from(now)).addValue("limit", limit))
+                .stream().map(row -> ((Number) row.get("approvalId")).longValue()).toList();
     }
 
     public int updateDocumentStatus(long approvalId, long versionNo, String status, int currentStep, boolean completed, String operatorId) {

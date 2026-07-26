@@ -1,9 +1,9 @@
 package com.cpf.bizadmin.backoffice.repository;
 
-import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.cpf.core.api.page.CpfPage;
+import com.cpf.core.api.page.CpfPageRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -21,28 +21,55 @@ import java.util.Optional;
 @Repository
 public class BzaBackofficeRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
-    private final CpfVendorSqlCatalog sql;
 
     public BzaBackofficeRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
-            Environment environment) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
-        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     public List<Map<String, Object>> findOrganizations() {
         return jdbc().queryForList("""
                 SELECT organization_id AS organizationId, organization_code AS organizationCode,
                        parent_organization_code AS parentOrganizationCode, organization_name AS organizationName,
-                       organization_type AS organizationType, sort_order AS sortOrder, use_yn AS useYn,
-                       created_at AS createdAt, updated_at AS updatedAt
+                       organization_type AS organizationType, sort_order AS sortOrder, effective_from AS effectiveFrom, effective_to AS effectiveTo, use_yn AS useYn,
+                       version_no AS versionNo, created_at AS createdAt, updated_at AS updatedAt
                   FROM bza_organization
                  ORDER BY sort_order, organization_code
                 """, Map.of());
     }
 
     public int saveOrganization(Map<String, ?> values) {
-        return jdbc().update(sql.required("backoffice-save-organization"), values);
+        if (values.get("expectedVersion") == null && !organizationExists(String.valueOf(values.get("organizationCode")))) {
+            return jdbc().update("""
+                    INSERT INTO bza_organization (organization_code,parent_organization_code,organization_name,organization_type,sort_order,effective_from,effective_to,use_yn,version_no,created_by,updated_by)
+                    VALUES (:organizationCode,:parentOrganizationCode,:organizationName,:organizationType,:sortOrder,:effectiveFrom,:effectiveTo,:useYn,0,:requestUser,:requestUser)
+                    """, values);
+        }
+        return jdbc().update("""
+                UPDATE bza_organization SET parent_organization_code=:parentOrganizationCode,organization_name=:organizationName,organization_type=:organizationType,
+                       sort_order=:sortOrder,effective_from=:effectiveFrom,effective_to=:effectiveTo,use_yn=:useYn,version_no=version_no+1,updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP(3)
+                 WHERE organization_code=:organizationCode AND version_no=:expectedVersion
+                """, values);
+    }
+
+    public boolean organizationExists(String code) {
+        Long count=jdbc().queryForObject("SELECT COUNT(*) FROM bza_organization WHERE organization_code=:code",new MapSqlParameterSource("code",code),Long.class);
+        return count!=null&&count>0;
+    }
+
+    /** parent chain을 재귀 CTE로 조회해 self/descendant parent 지정 cycle을 차단합니다. */
+    public boolean wouldCreateOrganizationCycle(String organizationCode,String parentCode) {
+        if (parentCode==null) return false;
+        if (organizationCode.equalsIgnoreCase(parentCode)) return true;
+        Long count=jdbc().queryForObject("""
+                WITH RECURSIVE descendants AS (
+                    SELECT organization_code FROM bza_organization WHERE parent_organization_code=:organizationCode
+                    UNION ALL
+                    SELECT o.organization_code FROM bza_organization o JOIN descendants d ON o.parent_organization_code=d.organization_code
+                )
+                SELECT COUNT(*) FROM descendants WHERE organization_code=:parentCode
+                """,new MapSqlParameterSource().addValue("organizationCode",organizationCode).addValue("parentCode",parentCode),Long.class);
+        return count!=null&&count>0;
     }
 
     public List<Map<String, Object>> findEmployees(String organizationCode, String status) {
@@ -55,8 +82,7 @@ public class BzaBackofficeRepository {
                        position_code AS positionCode, job_title_code AS jobTitleCode,
                        manager_employee_no AS managerEmployeeNo, employment_status AS employmentStatus,
                        join_date AS joinDate, leave_date AS leaveDate, email, mobile_no AS mobileNo,
-                       delegated_approver_no AS delegatedApproverNo,
-                       absence_from AS absenceFrom, absence_to AS absenceTo, use_yn AS useYn,
+                       use_yn AS useYn, version_no AS versionNo,
                        created_at AS createdAt, updated_at AS updatedAt
                   FROM bza_employee
                  WHERE (:organizationCode IS NULL OR organization_code = :organizationCode)
@@ -66,7 +92,34 @@ public class BzaBackofficeRepository {
     }
 
     public int saveEmployee(Map<String, ?> values) {
-        return jdbc().update(sql.required("backoffice-save-employee"), values);
+        String employeeNo=String.valueOf(values.get("employeeNo"));
+        Long count=jdbc().queryForObject("SELECT COUNT(*) FROM bza_employee WHERE employee_no=:employeeNo",new MapSqlParameterSource("employeeNo",employeeNo),Long.class);
+        if (count==null||count==0) {
+            return jdbc().update("""
+                    INSERT INTO bza_employee(employee_no,admin_user_id,organization_code,employee_name,position_code,job_title_code,manager_employee_no,employment_status,join_date,leave_date,email,mobile_no,use_yn,version_no,created_by,updated_by)
+                    VALUES(:employeeNo,:adminUserId,:organizationCode,:employeeName,:positionCode,:jobTitleCode,:managerEmployeeNo,:employmentStatus,:joinDate,:leaveDate,:email,:mobileNo,:useYn,0,:requestUser,:requestUser)
+                    """,values);
+        }
+        return jdbc().update("""
+                UPDATE bza_employee SET admin_user_id=:adminUserId,organization_code=:organizationCode,employee_name=:employeeName,position_code=:positionCode,job_title_code=:jobTitleCode,
+                       manager_employee_no=:managerEmployeeNo,employment_status=:employmentStatus,join_date=:joinDate,leave_date=:leaveDate,email=:email,mobile_no=:mobileNo,use_yn=:useYn,
+                       version_no=version_no+1,updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP(3)
+                 WHERE employee_no=:employeeNo AND version_no=:expectedVersion
+                """,values);
+    }
+
+    public CpfPage<Map<String,Object>> organizationPage(CpfPageRequest page) {
+        MapSqlParameterSource q=new MapSqlParameterSource().addValue("limit",page.size()).addValue("offset",page.offset());
+        Long total=jdbc().queryForObject("SELECT COUNT(*) FROM bza_organization",new MapSqlParameterSource(),Long.class);
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT organization_id AS organizationId,organization_code AS organizationCode,parent_organization_code AS parentOrganizationCode,organization_name AS organizationName,organization_type AS organizationType,sort_order AS sortOrder,effective_from AS effectiveFrom,effective_to AS effectiveTo,use_yn AS useYn,version_no AS versionNo,updated_at AS updatedAt FROM bza_organization ORDER BY sort_order,organization_code LIMIT :limit OFFSET :offset",q);
+        return new CpfPage<>(rows,total==null?0:total,page.page(),page.size());
+    }
+
+    public CpfPage<Map<String,Object>> employeePage(String organizationCode,String status,CpfPageRequest page) {
+        MapSqlParameterSource q=new MapSqlParameterSource().addValue("organizationCode",organizationCode).addValue("status",status).addValue("limit",page.size()).addValue("offset",page.offset());
+        Long total=jdbc().queryForObject("SELECT COUNT(*) FROM bza_employee WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND (:status IS NULL OR employment_status=:status)",q,Long.class);
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT employee_id AS employeeId,employee_no AS employeeNo,admin_user_id AS adminUserId,organization_code AS organizationCode,employee_name AS employeeName,position_code AS positionCode,job_title_code AS jobTitleCode,manager_employee_no AS managerEmployeeNo,employment_status AS employmentStatus,join_date AS joinDate,leave_date AS leaveDate,email,mobile_no AS mobileNo,use_yn AS useYn,version_no AS versionNo,updated_at AS updatedAt FROM bza_employee WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND (:status IS NULL OR employment_status=:status) ORDER BY organization_code,employee_no LIMIT :limit OFFSET :offset",q);
+        return new CpfPage<>(rows,total==null?0:total,page.page(),page.size());
     }
 
     public List<Map<String, Object>> findEffectivePermissions(String loginId) {
@@ -77,11 +130,14 @@ public class BzaBackofficeRepository {
                        p.domain_code AS domainCode, p.environment_code AS environmentCode,
                        p.data_scope AS dataScope, p.allow_yn AS allowYn
                   FROM bza_admin_user u
-                  JOIN bza_permission p ON p.role_code = u.role_code
-                 WHERE u.admin_login_id = :loginId
-                   AND u.use_yn = 'Y' AND p.use_yn = 'Y'
-                 ORDER BY p.menu_code, p.button_code
-                """, new MapSqlParameterSource("loginId", loginId));
+                  JOIN bza_user_role ur ON ur.admin_user_id=u.admin_user_id
+                  JOIN bza_role r ON r.role_code=ur.role_code AND r.use_yn='Y'
+                  JOIN bza_permission p ON p.role_code=ur.role_code AND p.use_yn='Y'
+                 WHERE u.admin_login_id=:loginId AND u.use_yn='Y'
+                   AND (ur.valid_from IS NULL OR ur.valid_from<=CURRENT_TIMESTAMP(3))
+                   AND (ur.valid_to IS NULL OR ur.valid_to>CURRENT_TIMESTAMP(3))
+                 ORDER BY p.menu_code,p.button_code,p.allow_yn
+                """,new MapSqlParameterSource("loginId",loginId));
     }
 
     /** 인증된 BZA 로그인 ID와 결재 처리용 직원 번호의 바인딩을 조회합니다. */
@@ -138,7 +194,7 @@ public class BzaBackofficeRepository {
     }
 
     public List<Map<String, Object>> findApprovals(String status, String employeeNo, int limit) {
-        return jdbc().queryForList(sql.required("backoffice-find-approvals"), new MapSqlParameterSource()
+        return jdbc().queryForList("SELECT approval_id AS approvalId,approval_no AS approvalNo,approval_type AS approvalType,business_domain AS businessDomain,title,requester_employee_no AS requesterEmployeeNo,approval_status AS approvalStatus,current_step_no AS currentStepNo,version_no AS versionNo,created_at AS createdAt,updated_at AS updatedAt FROM bza_approval_document WHERE (:status IS NULL OR approval_status=:status) AND (:employeeNo IS NULL OR requester_employee_no=:employeeNo) ORDER BY approval_id DESC LIMIT :limit", new MapSqlParameterSource()
                 .addValue("status", status)
                 .addValue("employeeNo", employeeNo)
                 .addValue("limit", limit));
@@ -170,7 +226,7 @@ public class BzaBackofficeRepository {
     }
 
     public int decideLine(long approvalId, int stepNo, String actorEmployeeNo, String decision, String comment) {
-        return jdbc().update(sql.required("backoffice-decide-line"), new MapSqlParameterSource()
+        return jdbc().update("UPDATE bza_approval_line SET decision_status=:decision,decision_comment=:comment,decided_at=CURRENT_TIMESTAMP(3),updated_at=CURRENT_TIMESTAMP(3) WHERE approval_id=:approvalId AND step_no=:stepNo AND approver_employee_no=:actorEmployeeNo AND decision_status='WAITING'", new MapSqlParameterSource()
                 .addValue("approvalId", approvalId)
                 .addValue("stepNo", stepNo)
                 .addValue("actorEmployeeNo", actorEmployeeNo)

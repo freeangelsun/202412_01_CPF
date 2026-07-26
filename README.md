@@ -311,3 +311,23 @@ CPF는 업무 Domain이 동일한 개발 표준을 사용하도록 작은 Public
 온라인, Local/Remote Service Call, Batch와 Center-Cut은 동일한 transactionId/segment 계층을 사용합니다.
 파일 로그는 Environment/Domain/Instance/transactionId 단위로 탐색할 수 있고, DB 로그는 ADM에서 Module/WAS/Server Instance/transactionId를 교차 조회할 수 있습니다.
 Batch 실행은 Spring JobInstance/JobExecution, Worker, Server Instance, transactionId와 Job log path를 함께 보존합니다.
+
+## Product Operations & Tool Guides
+
+- [Health / Service Registry](cpf-docs/guides/CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md)
+- [Default Metadata / Code / Message](cpf-docs/guides/CPF_METADATA_CODE_MESSAGE_GUIDE.md)
+- [Security / DR / Retention](cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md)
+- [CPF Tool Reference](cpf-docs/guides/CPF_TOOL_REFERENCE.md)
+
+공식 가이드는 실제 Source/API/SQL/Script와 함께 관리합니다. 문서의 완료 표시는 Runtime 검증을 대체하지 않습니다.
+
+## 상세 가이드
+- `cpf-docs/guides/CPF_DEVELOPER_GUIDE.md` — Public API/SPI, Paging, 멱등성, Service Call, DB/Generator 개발 표준
+- `cpf-docs/guides/CPF_ADMIN_OPERATOR_GUIDE.md` — ADM Health/Registry/Member/Operator/Secret/장애대응 운영 가이드
+- `cpf-docs/guides/CPF_BIZ_ADMIN_GUIDE.md` — BZA User/Role/Permission/Approval/Attachment/Audit 운영 가이드
+- `cpf-docs/guides/CPF_DATABASE_TOOL_GUIDE.md` — DB canonical source, bundle, migration, backup/restore/DR
+- `cpf-docs/guides/CPF_GENERATOR_TOOL_GUIDE.md` — 신규 업무영역 Golden Template 생성 표준
+- `cpf-docs/guides/CPF_TOOL_REFERENCE.md` — Script parameter/안전조건/Evidence 참조
+- `cpf-docs/guides/CPF_HEALTH_AND_SERVICE_REGISTRY_GUIDE.md` — instance probe와 Registry aggregation
+- `cpf-docs/guides/CPF_SECURITY_DR_RETENTION_GUIDE.md` — Secret/Audit/Retention/DR 보안 운영
+- `cpf-docs/guides/CPF_METADATA_CODE_MESSAGE_GUIDE.md` — 기본 Code/Message/Response/Config 정본

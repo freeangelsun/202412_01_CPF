@@ -1,10 +1,13 @@
 package com.cpf.bizadmin.backoffice.service;
 
 import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.page.CpfPage;
+import com.cpf.core.api.page.CpfPageRequest;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,30 +29,47 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
             "SUBMIT", "APPROVE", "AGREE", "REJECT", "WITHDRAW", "CANCEL", "RESUBMIT");
 
     private final BzaBackofficeRepository repository;
+    private final BzaBusinessAuditService auditService;
 
-    public BzaBackofficeService(BzaBackofficeRepository repository) {
+    public BzaBackofficeService(BzaBackofficeRepository repository, BzaBusinessAuditService auditService) {
         this.repository = repository;
+        this.auditService = auditService;
     }
 
     public List<Map<String, Object>> findOrganizations() {
         return repository.findOrganizations();
     }
 
+    public CpfPage<Map<String,Object>> findOrganizationsPage(Integer page,Integer size) {
+        return repository.organizationPage(CpfPageRequest.of(page,size));
+    }
+
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String, Object> saveOrganization(OrganizationRequest request, String operatorId) {
         String code = required(request.organizationCode(), "organizationCode").toUpperCase(Locale.ROOT);
         String user = required(operatorId, "operatorId");
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("organizationCode", code);
-        values.put("parentOrganizationCode", blankToNull(request.parentOrganizationCode()));
-        values.put("organizationName", required(request.organizationName(), "organizationName"));
-        values.put("organizationType", defaultText(request.organizationType(), "DEPARTMENT"));
-        values.put("sortOrder", request.sortOrder() == null ? 0 : request.sortOrder());
-        values.put("useYn", yn(request.useYn(), "Y"));
-        values.put("requestUser", user);
-        repository.saveOrganization(values);
-        audit(user, "ORGANIZATION_SAVE", "bza_organization", code,
-                required(request.reason(), "reason"), null, values);
+        String parent = blankToNull(request.parentOrganizationCode());
+        if (parent != null) parent = parent.toUpperCase(Locale.ROOT);
+        if (repository.wouldCreateOrganizationCycle(code, parent)) {
+            throw new CpfValidationException("상위 조직 지정으로 조직 순환이 발생합니다. organizationCode=" + code);
+        }
+        boolean exists = repository.organizationExists(code);
+        if (exists && request.expectedVersion() == null) {
+            throw new CpfValidationException("조직 수정에는 expectedVersion이 필요합니다.");
+        }
+        Map<String,Object> values=new LinkedHashMap<>();
+        values.put("organizationCode",code); values.put("parentOrganizationCode",parent);
+        values.put("organizationName",required(request.organizationName(),"organizationName"));
+        values.put("organizationType",defaultText(request.organizationType(),"DEPARTMENT").toUpperCase(Locale.ROOT));
+        values.put("sortOrder",request.sortOrder()==null?0:request.sortOrder());
+        values.put("effectiveFrom",request.effectiveFrom()); values.put("effectiveTo",request.effectiveTo());
+        if (request.effectiveFrom()!=null && request.effectiveTo()!=null && !request.effectiveTo().isAfter(request.effectiveFrom())) {
+            throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");
+        }
+        values.put("useYn",yn(request.useYn(),"Y")); values.put("expectedVersion",request.expectedVersion()); values.put("requestUser",user);
+        int changed=repository.saveOrganization(values);
+        if(changed!=1) throw new CpfValidationException("조직이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");
+        audit(user,"ORGANIZATION_SAVE","bza_organization",code,required(request.reason(),"reason"),null,values);
         return values;
     }
 
@@ -57,31 +77,29 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         return repository.findEmployees(blankToNull(organizationCode), blankToNull(status));
     }
 
+    public CpfPage<Map<String,Object>> findEmployeesPage(String organizationCode,String status,Integer page,Integer size) {
+        return repository.employeePage(blankToNull(organizationCode),blankToNull(status),CpfPageRequest.of(page,size));
+    }
+
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String, Object> saveEmployee(EmployeeRequest request, String operatorId) {
-        String employeeNo = required(request.employeeNo(), "employeeNo").toUpperCase(Locale.ROOT);
-        String user = required(operatorId, "operatorId");
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("employeeNo", employeeNo);
-        values.put("adminUserId", request.adminUserId());
-        values.put("organizationCode", required(request.organizationCode(), "organizationCode").toUpperCase(Locale.ROOT));
-        values.put("employeeName", required(request.employeeName(), "employeeName"));
-        values.put("positionCode", blankToNull(request.positionCode()));
-        values.put("jobTitleCode", blankToNull(request.jobTitleCode()));
-        values.put("managerEmployeeNo", blankToNull(request.managerEmployeeNo()));
-        values.put("employmentStatus", defaultText(request.employmentStatus(), "ACTIVE"));
-        values.put("joinDate", request.joinDate());
-        values.put("leaveDate", request.leaveDate());
-        values.put("email", blankToNull(request.email()));
-        values.put("mobileNo", blankToNull(request.mobileNo()));
-        values.put("delegatedApproverNo", blankToNull(request.delegatedApproverNo()));
-        values.put("absenceFrom", request.absenceFrom());
-        values.put("absenceTo", request.absenceTo());
-        values.put("useYn", yn(request.useYn(), "Y"));
-        values.put("requestUser", user);
-        repository.saveEmployee(values);
-        audit(user, "EMPLOYEE_SAVE", "bza_employee", employeeNo,
-                required(request.reason(), "reason"), null, values);
+        String employeeNo=required(request.employeeNo(),"employeeNo").toUpperCase(Locale.ROOT);
+        String user=required(operatorId,"operatorId");
+        if (request.leaveDate()!=null && request.joinDate()!=null && request.leaveDate().isBefore(request.joinDate())) {
+            throw new CpfValidationException("leaveDate는 joinDate보다 빠를 수 없습니다.");
+        }
+        Map<String,Object> values=new LinkedHashMap<>();
+        values.put("employeeNo",employeeNo); values.put("adminUserId",request.adminUserId());
+        values.put("organizationCode",required(request.organizationCode(),"organizationCode").toUpperCase(Locale.ROOT));
+        values.put("employeeName",required(request.employeeName(),"employeeName")); values.put("positionCode",blankToNull(request.positionCode()));
+        values.put("jobTitleCode",blankToNull(request.jobTitleCode())); values.put("managerEmployeeNo",blankToNull(request.managerEmployeeNo()));
+        values.put("employmentStatus",defaultText(request.employmentStatus(),"ACTIVE").toUpperCase(Locale.ROOT));
+        values.put("joinDate",request.joinDate()); values.put("leaveDate",request.leaveDate()); values.put("email",blankToNull(request.email()));
+        values.put("mobileNo",blankToNull(request.mobileNo())); values.put("useYn",yn(request.useYn(),"Y"));
+        values.put("expectedVersion",request.expectedVersion()); values.put("requestUser",user);
+        int changed=repository.saveEmployee(values);
+        if(changed!=1) throw new CpfValidationException("직원 정보가 다른 관리자에 의해 변경되었거나 expectedVersion이 올바르지 않습니다.");
+        audit(user,"EMPLOYEE_SAVE","bza_employee",employeeNo,required(request.reason(),"reason"),null,values);
         return values;
     }
 
@@ -91,45 +109,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
 
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String, Object> createApproval(ApprovalCreateRequest request, String operatorId) {
-        String requester = required(request.requesterEmployeeNo(), "requesterEmployeeNo");
-        String user = required(operatorId, "operatorId");
-        List<ApprovalLineRequest> lines = request.lines() == null ? List.of() : request.lines();
-        if (lines.isEmpty()) {
-            throw new CpfValidationException("결재선은 한 명 이상이어야 합니다.");
-        }
-        if (lines.stream().anyMatch(line -> requester.equalsIgnoreCase(line.approverEmployeeNo()))) {
-            throw new CpfValidationException("요청자와 결재자는 같을 수 없습니다.");
-        }
-        String approvalNo = "BZA-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
-                + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("approvalNo", approvalNo);
-        values.put("approvalType", required(request.approvalType(), "approvalType"));
-        values.put("businessDomain", required(request.businessDomain(), "businessDomain"));
-        values.put("title", required(request.title(), "title"));
-        values.put("requesterEmployeeNo", requester);
-        values.put("approvalMode", defaultText(request.approvalMode(), "SEQUENTIAL"));
-        values.put("dueAt", request.dueAt());
-        values.put("payloadJson", blankToNull(request.payloadJson()));
-        values.put("attachmentGroupId", blankToNull(request.attachmentGroupId()));
-        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
-        values.put("requestUser", user);
-        long approvalId = repository.createApproval(values);
-        for (ApprovalLineRequest line : lines) {
-            int stepNo = line.stepNo() == null ? 1 : line.stepNo();
-            if (stepNo < 1) {
-                throw new CpfValidationException("결재 단계는 1 이상이어야 합니다.");
-            }
-            repository.addApprovalLine(
-                    approvalId,
-                    stepNo,
-                    required(line.approverEmployeeNo(), "approverEmployeeNo"),
-                    normalizeLegacyDirectLineRule(line.decisionRule()),
-                    user);
-        }
-        audit(user, "APPROVAL_CREATE", "bza_approval_document", String.valueOf(approvalId),
-                required(request.reason(), "reason"), null, values);
-        return findApproval(approvalId);
+        throw new CpfValidationException("Legacy 직접 결재 생성은 서비스 계층에서도 금지됩니다. 정책 기반 Approval Engine을 사용하십시오.");
     }
 
     public List<Map<String, Object>> findApprovals(String status, String employeeNo, int limit) {
@@ -146,46 +126,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
 
     @Transactional(transactionManager = "bzaTransactionManager")
     public Map<String, Object> act(long approvalId, ApprovalActionRequest request, String operatorId) {
-        String action = required(request.action(), "action").toUpperCase(Locale.ROOT);
-        if (!APPROVAL_ACTIONS.contains(action)) {
-            throw new CpfValidationException("지원하지 않는 결재 행위입니다. action=" + action);
-        }
-        String operator = required(operatorId, "operatorId");
-        String actor = repository.findEmployeeNoByLoginId(operator)
-                .orElseThrow(() -> new CpfValidationException(
-                        "결재 처리 운영자와 연결된 직원 프로필이 없습니다. operatorId=" + operator));
-        String idempotencyKey = required(request.idempotencyKey(), "idempotencyKey");
-        String reason = required(request.reason(), "reason");
-        if (repository.approvalActionExists(idempotencyKey)) {
-            return findApproval(approvalId);
-        }
-
-        Map<String, Object> before = repository.findApproval(approvalId)
-                .orElseThrow(() -> new CpfNotFoundException("결재 문서를 찾을 수 없습니다. approvalId=" + approvalId));
-        String beforeStatus = string(before, "approvalStatus");
-        long version = number(before, "versionNo").longValue();
-        int currentStep = number(before, "currentStepNo").intValue();
-        String requester = string(before, "requesterEmployeeNo");
-        Transition transition = transition(action, beforeStatus, actor, requester, approvalId, currentStep, request.comment());
-        int updated = repository.updateApprovalStatus(
-                approvalId, version, transition.afterStatus(), transition.currentStep(), operator);
-        if (updated != 1) {
-            throw new CpfValidationException("결재 상태가 동시에 변경되었습니다. 최신 상태를 다시 조회하세요.");
-        }
-        Map<String, Object> history = new LinkedHashMap<>();
-        history.put("approvalId", approvalId);
-        history.put("actionType", action);
-        history.put("actorEmployeeNo", actor);
-        history.put("idempotencyKey", idempotencyKey);
-        history.put("reason", reason);
-        history.put("beforeStatus", beforeStatus);
-        history.put("afterStatus", transition.afterStatus());
-        history.put("comment", blankToNull(request.comment()));
-        history.put("transactionId", TransactionContext.getOrCreateTransactionId());
-        repository.insertApprovalHistory(history);
-        audit(operator, "APPROVAL_" + action, "bza_approval_document", String.valueOf(approvalId),
-                reason, before, history);
-        return findApproval(approvalId);
+        throw new CpfValidationException("Legacy 직접 결재 상태변경은 서비스 계층에서도 금지됩니다. 정책 기반 Approval Engine을 사용하십시오.");
     }
 
     public List<Map<String, Object>> findAudits(int limit) {
@@ -261,23 +202,9 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
     }
 
     private void audit(
-            String actor,
-            String action,
-            String targetType,
-            String targetId,
-            String reason,
-            Object before,
-            Object after) {
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
-        values.put("actorId", actor);
-        values.put("actionType", action);
-        values.put("targetType", targetType);
-        values.put("targetId", targetId);
-        values.put("reason", reason);
-        values.put("beforeData", before == null ? null : String.valueOf(before));
-        values.put("afterData", after == null ? null : String.valueOf(after));
-        repository.insertBusinessAudit(values);
+            String actor, String action, String targetType, String targetId,
+            String reason, Object before, Object after) {
+        auditService.record(actor, action, targetType, targetId, reason, before, after);
     }
 
     private String string(Map<String, Object> row, String key) {
@@ -340,36 +267,15 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
     }
 
     public record OrganizationRequest(
-            String organizationCode,
-            String parentOrganizationCode,
-            String organizationName,
-            String organizationType,
-            Integer sortOrder,
-            String useYn,
-            String requestUser,
-            String reason) {
-    }
+            String organizationCode, String parentOrganizationCode, String organizationName,
+            String organizationType, Integer sortOrder, LocalDateTime effectiveFrom, LocalDateTime effectiveTo,
+            String useYn, Long expectedVersion, String requestUser, String reason) { }
 
     public record EmployeeRequest(
-            String employeeNo,
-            Long adminUserId,
-            String organizationCode,
-            String employeeName,
-            String positionCode,
-            String jobTitleCode,
-            String managerEmployeeNo,
-            String employmentStatus,
-            LocalDate joinDate,
-            LocalDate leaveDate,
-            String email,
-            String mobileNo,
-            String delegatedApproverNo,
-            LocalDate absenceFrom,
-            LocalDate absenceTo,
-            String useYn,
-            String requestUser,
-            String reason) {
-    }
+            String employeeNo, Long adminUserId, String organizationCode, String employeeName,
+            String positionCode, String jobTitleCode, String managerEmployeeNo, String employmentStatus,
+            LocalDate joinDate, LocalDate leaveDate, String email, String mobileNo,
+            String useYn, Long expectedVersion, String requestUser, String reason) { }
 
     public record ApprovalLineRequest(Integer stepNo, String approverEmployeeNo, String decisionRule) {
     }

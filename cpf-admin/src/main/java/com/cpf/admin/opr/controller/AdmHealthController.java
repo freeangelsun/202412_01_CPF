@@ -3,9 +3,11 @@ package com.cpf.admin.opr.controller;
 import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
 import com.cpf.core.api.admin.CpfOwnerAdminQuery;
 import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.logging.CpfServerIdentity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,14 +27,17 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate cpfJdbcTemplate;
     private final CpfOwnerAdminOperationsPort mbrOperations;
+    private final Environment environment;
 
     public AdmHealthController(
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            @Qualifier("mbrOwnerAdminOperationsPort") CpfOwnerAdminOperationsPort mbrOperations) {
+            @Qualifier("mbrOwnerAdminOperationsPort") CpfOwnerAdminOperationsPort mbrOperations,
+            Environment environment) {
         this.admJdbcTemplate = admJdbcTemplate;
         this.cpfJdbcTemplate = cpfJdbcTemplate;
         this.mbrOperations = mbrOperations;
+        this.environment = environment;
     }
 
     @GetMapping("/liveness")
@@ -47,8 +52,11 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
-        checks.put("mbrOwner", checkMbrOwner());
-        boolean ready = checks.values().stream().allMatch("UP"::equals);
+        String mbrOwner = checkMbrOwner();
+        checks.put("mbrOwner", mbrOwner);
+        boolean gateRemote = environment.getProperty("cpf.health.remote-dependency-gates-readiness", Boolean.class, false);
+        boolean ready = "UP".equals(checks.get("admDB")) && "UP".equals(checks.get("cpfDB"))
+                && (!gateRemote || "UP".equals(mbrOwner));
         Map<String, Object> response = base(ready ? "UP" : "DOWN", checks);
         response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
@@ -56,9 +64,18 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
 
     private Map<String, Object> base(String status, Map<String, Object> checks) {
         Map<String, Object> response = new LinkedHashMap<>();
+        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
         response.put("status", status);
         response.put("service", "ADM");
+        response.put("moduleId", environment.getProperty("cpf.framework.module-id", "ADM"));
+        response.put("wasId", environment.getProperty("cpf.framework.was-id", "admAP01"));
+        response.put("serverInstanceId", identity.serverInstanceId());
+        response.put("host", identity.hostName());
+        response.put("hostName", identity.hostName());
+        response.put("processId", identity.processId());
+        response.put("profiles", environment.getActiveProfiles());
         response.put("checkedAt", OffsetDateTime.now().toString());
+        response.put("remoteDependencyGatesReadiness", environment.getProperty("cpf.health.remote-dependency-gates-readiness", Boolean.class, false));
         response.put("checks", checks);
         return response;
     }

@@ -13,7 +13,7 @@ export const accessMethods: Record<string, any> = {
           headers: this.apiHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify(this.loginForm)
         });
-        const data = await this.parseResponse(response);
+        const data = await this.parseResponse(response, false);
         if (!response.ok || !data.accessToken) {
           this.authMessage = JSON.stringify(data, null, 2);
           return;
@@ -21,7 +21,8 @@ export const accessMethods: Record<string, any> = {
         this.token = data.accessToken;
         this.currentOperator = data.operator || {};
         this.authorizedMenus = data.menus || [];
-        localStorage.setItem("admAccessToken", this.token);
+        sessionStorage.setItem("admAccessToken", this.token);
+        localStorage.removeItem("admAccessToken");
         this.authMessage = "";
         if (this.passwordChangeRequired) {
           this.setMessage("비밀번호 변경이 필요합니다.");
@@ -62,8 +63,13 @@ export const accessMethods: Record<string, any> = {
         this.clearToken("비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인하세요.");
       },
   async logout() {
-        await this.sendJson("/adm/api/auth/logout", "POST");
-        this.clearToken("로그아웃되었습니다.");
+        try {
+          await this.sendJson("/adm/api/auth/logout", "POST");
+        } catch (error) {
+          // 서버 세션 폐기가 실패해도 Browser 자격증명/민감 상태는 반드시 제거한다.
+        } finally {
+          this.clearToken("로그아웃되었습니다.");
+        }
       },
   async searchMembers() {
         const params = this.buildParams(this.memberSearch);
@@ -161,7 +167,7 @@ export const accessMethods: Record<string, any> = {
   async updateButtonPermission() {
         if (!this.permissionForm.roleId || !this.permissionForm.buttonId || !this.requireReason(this.permissionForm.reason)) return;
         this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.permissionForm.roleId}/buttons/${this.permissionForm.buttonId}`, "PUT", {
-          allowYn: this.permissionForm.deleteYn,
+          allowYn: this.permissionForm.buttonAllowYn,
           requestUser: this.currentOperator.operatorId,
           reason: this.permissionForm.reason
         });
@@ -170,7 +176,7 @@ export const accessMethods: Record<string, any> = {
   async updateApiPermissionRole() {
         if (!this.permissionForm.roleId || !this.permissionForm.apiPermissionId || !this.requireReason(this.permissionForm.reason)) return;
         this.permissionResult = await this.sendJson(`/adm/api/permissions/roles/${this.permissionForm.roleId}/api-permissions/${this.permissionForm.apiPermissionId}`, "PUT", {
-          allowYn: this.permissionForm.deleteYn,
+          allowYn: this.permissionForm.apiAllowYn,
           requestUser: this.currentOperator.operatorId,
           reason: this.permissionForm.reason
         });
@@ -199,7 +205,7 @@ export const accessMethods: Record<string, any> = {
           operatorId: this.operatorForm.operatorId,
           operatorName: this.operatorForm.operatorName,
           password: this.operatorForm.password,
-          roleIds: ["ADM_VIEWER"],
+          roleIds: this.operatorForm.roleIds?.length ? this.operatorForm.roleIds : ["ADM_VIEWER"],
           requestUser: this.currentOperator.operatorId,
           reason: this.operatorForm.reason
         });

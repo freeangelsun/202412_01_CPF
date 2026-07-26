@@ -1,7 +1,10 @@
 package com.cpf.bizadmin.backoffice.controller;
 
 import com.cpf.bizadmin.backoffice.service.BzaBackofficeService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.page.CpfPage;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +38,13 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
         return ResponseEntity.ok(backofficeService.findOrganizations());
     }
 
+    @GetMapping("/organizations/page")
+    @CpfOnlineTransaction(id = "OBZAOR1101", name = "BzaOrganizationPage")
+    public ResponseEntity<CpfPage<Map<String,Object>>> organizationsPage(
+            @RequestParam(required=false) Integer page,@RequestParam(required=false) Integer size) {
+        return ResponseEntity.ok(backofficeService.findOrganizationsPage(page,size));
+    }
+
     @PostMapping("/organizations")
     @CpfOnlineTransaction(id = "OBZAOR0002", name = "BzaOrganizationSave")
     @Operation(operationId = "bzaBackofficeSaveOrganization", summary = "조직 등록·수정",
@@ -54,10 +64,18 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
         return ResponseEntity.ok(backofficeService.findEmployees(organizationCode, status));
     }
 
+    @GetMapping("/employees/page")
+    @CpfOnlineTransaction(id = "OBZAEM1101", name = "BzaEmployeePage")
+    public ResponseEntity<CpfPage<Map<String,Object>>> employeesPage(
+            @RequestParam(required=false) String organizationCode,@RequestParam(required=false) String status,
+            @RequestParam(required=false) Integer page,@RequestParam(required=false) Integer size) {
+        return ResponseEntity.ok(backofficeService.findEmployeesPage(organizationCode,status,page,size));
+    }
+
     @PostMapping("/employees")
     @CpfOnlineTransaction(id = "OBZAEM0002", name = "BzaEmployeeSave")
     @Operation(operationId = "bzaBackofficeSaveEmployee", summary = "직원 등록·수정",
-            description = "직원 프로필, 조직, 직급·직책, 부재·대리 결재 정보를 등록하거나 수정합니다.")
+            description = "직원 프로필과 대표 조직·직급·직책을 등록하거나 수정합니다. 부재·대행은 Assignment/조직 책임 정본 API를 사용합니다.")
     public ResponseEntity<Map<String, Object>> saveEmployee(
             @RequestBody BzaBackofficeService.EmployeeRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -89,7 +107,9 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     public ResponseEntity<Map<String, Object>> createApproval(
             @RequestBody BzaBackofficeService.ApprovalCreateRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
-        return ResponseEntity.ok(backofficeService.createApproval(request, operatorId));
+        throw new ResponseStatusException(
+                HttpStatus.GONE,
+                "Legacy 직접 결재 생성 API는 폐기되었습니다. /api/bza/approval/submissions 정책 기반 API를 사용하세요.");
     }
 
     @GetMapping("/approvals/{approvalId}")
@@ -108,7 +128,9 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
             @PathVariable long approvalId,
             @RequestBody BzaBackofficeService.ApprovalActionRequest request,
             @RequestAttribute("bza.operatorId") String operatorId) {
-        return ResponseEntity.ok(backofficeService.act(approvalId, request, operatorId));
+        throw new ResponseStatusException(
+                HttpStatus.GONE,
+                "Legacy 직접 결재 상태변경 API는 폐기되었습니다. /api/bza/approval/submissions/{id}/decisions 정책 기반 API를 사용하세요.");
     }
 
     @GetMapping("/audits")

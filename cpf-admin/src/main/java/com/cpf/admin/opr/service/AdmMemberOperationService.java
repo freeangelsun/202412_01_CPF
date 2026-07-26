@@ -6,6 +6,7 @@ import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
 import com.cpf.core.api.admin.CpfOwnerAdminCommand;
 import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
 import com.cpf.core.api.admin.CpfOwnerAdminQuery;
+import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.util.CpfStrings;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,6 +67,14 @@ public class AdmMemberOperationService extends com.cpf.admin.common.base.AdmBase
         Map<String, Object> response = mbrOperations.query(
                 new CpfOwnerAdminQuery("member", "findMembers", null, criteria));
         return list(response.get("items"));
+    }
+
+    /** MBR Owner의 DB-backed paging 계약을 그대로 ADM 표준 Page로 노출합니다. */
+    public CpfPage<Map<String,Object>> findMembersPage(String memberNo,String customerNo,String loginId,String name,String email,String mobileNo,String memberStatus,String channelCode,String roleCode,int page,int size) {
+        Map<String,Object> c=new LinkedHashMap<>(); put(c,"memberNo",memberNo);put(c,"customerNo",customerNo);put(c,"loginId",loginId);put(c,"name",name);put(c,"email",email);put(c,"mobileNo",mobileNo);put(c,"memberStatus",memberStatus);put(c,"channelCode",channelCode);put(c,"roleCode",roleCode);c.put("page",Math.max(0,page));c.put("size",Math.max(1,Math.min(size,200)));
+        Map<String,Object> r=mbrOperations.query(new CpfOwnerAdminQuery("member","findMembersPage",null,c));
+        long total=((Number)r.getOrDefault("totalElements",0L)).longValue();
+        return new CpfPage<>(list(r.get("items")),((Number)r.getOrDefault("page",0)).intValue(),((Number)r.getOrDefault("size",20)).intValue(),total);
     }
 
     /** 회원번호 발급 이력을 MBR Owner에서 조회합니다. */

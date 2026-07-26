@@ -1,7 +1,7 @@
 export function createAdmState() {
       return {
         activeMenu: "dashboard",
-        token: localStorage.getItem("admAccessToken") || "",
+        token: sessionStorage.getItem("admAccessToken") || "",
         currentOperator: {} as Record<string, any>,
         authorizedMenus: [],
         permissionsLoaded: false,
@@ -284,7 +284,7 @@ export function createAdmState() {
           requestUser: "",
           reason: "설정 변경"
         },
-        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", reason: "권한 변경" },
+        permissionForm: { roleId: "ADM_VIEWER", menuId: "LOG_LIST", buttonId: "LOG_LIST_READ", apiPermissionId: "API_LOG_LIST_READ", readYn: "Y", writeYn: "N", deleteYn: "N", buttonAllowYn: "N", apiAllowYn: "N", reason: "권한 변경" },
         roleForm: { roleId: "ADM_SAMPLE_ROLE", roleName: "샘플 운영 역할", roleType: "BUSINESS_OPERATOR", description: "ADM permission sample role", useYn: "Y", requestUser: "", reason: "역할 관리" },
         menuManageForm: { menuId: "SAMPLE_MENU", parentMenuId: "", menuName: "샘플 메뉴", menuPath: "/adm#sample", sortOrder: 990, useYn: "Y", requestUser: "", reason: "메뉴 관리" },
         buttonForm: { buttonId: "SAMPLE_MENU_READ", menuId: "SAMPLE_MENU", actionCode: "READ", buttonName: "샘플 조회", httpMethod: "GET", apiPattern: "/adm/api/sample/**", sortOrder: 10, useYn: "Y", requestUser: "", reason: "버튼 관리" },
@@ -383,3 +383,54 @@ export function createAdmState() {
         remoteLogBundleGrant: {} as Record<string, any>
       };
     }
+
+/**
+ * 로그아웃/401 시 다른 운영자에게 이전 운영 조회 결과가 노출되지 않도록
+ * 인증정보 외 운영 조회·민감 조회 결과도 함께 초기화한다.
+ */
+export function resetAdmSensitiveState(state: Record<string, any>) {
+  state.logs = [];
+  state.logDetail = {};
+  state.transactionGroupResult = { items: [] };
+  state.transactionGroupDetail = {};
+  state.transactionResult = {};
+  state.standardExecutionResult = { items: [], summary: {} };
+  state.standardExecutionDetail = {};
+  state.auditLogs = [];
+  state.auditDeliveries = [];
+  state.auditResult = {};
+  state.remoteLogResult = [];
+  state.remoteLogPreview = {};
+  state.selectedRemoteLog = null;
+  state.remoteLogSelectedIds = [];
+  state.remoteLogDiagnostics = {};
+  state.remoteLogBundleJob = {};
+  state.remoteLogBundleGrant = {};
+  state.batchResult = {};
+  state.centerCutResult = {};
+  state.notificationResult = {};
+  state.downloadResult = {};
+  state.cacheResult = {};
+  state.responseCodeResult = {};
+  state.logLevelResult = {};
+  state.logPolicyResult = {};
+  state.operatorResult = {};
+  state.messageResult = {};
+  state.codeResult = {};
+  state.configResult = {};
+  state.permissionResult = {};
+  state.passwordResult = {};
+  state.securityResult = {};
+  state.serviceRegistryResult = {};
+  state.reliabilityResult = {};
+  state.approvalResult = {};
+  state.approvalPolicyResult = [];
+  if (state.forcedPasswordForm) {
+    state.forcedPasswordForm.currentPassword = "";
+    state.forcedPasswordForm.newPassword = "";
+    state.forcedPasswordForm.newPasswordConfirm = "";
+  }
+  if (state.loginForm) state.loginForm.password = "";
+  if (state.passwordForm) state.passwordForm.newPassword = "";
+  if (state.securityForm) state.securityForm.otpCode = "";
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CPF Environment Promotion ChangeSet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion","changeSetId","sourceEnvironment","targetEnvironment","baseCommit","reason","createdAt","files"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "changeSetId": {"type":"string","minLength":1},
+    "sourceEnvironment": {"type":"string","minLength":1},
+    "targetEnvironment": {"type":"string","minLength":1},
+    "baseCommit": {"type":"string","minLength":1},
+    "reason": {"type":"string","minLength":1},
+    "createdAt": {"type":"string","format":"date-time"},
+    "files": {"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}}}
+  }
+}

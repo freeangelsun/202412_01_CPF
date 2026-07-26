@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.auth.controller;
 
 import com.cpf.bizadmin.auth.service.BzaAuthService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;

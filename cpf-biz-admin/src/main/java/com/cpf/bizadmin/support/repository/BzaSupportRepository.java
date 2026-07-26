@@ -76,12 +76,16 @@ public class BzaSupportRepository {
                 .addValue("requestUser", requestUser));
     }
 
+    public int markAllNotificationsRead(String loginId,String requestUser) {
+        return jdbc().update("UPDATE bza_notification SET read_yn='Y',read_at=CURRENT_TIMESTAMP,updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP WHERE recipient_login_id=:loginId AND read_yn='N' AND use_yn='Y'",new MapSqlParameterSource().addValue("loginId",loginId).addValue("requestUser",requestUser));
+    }
+
     public List<Map<String, Object>> findAttachments(String groupId) {
         return jdbc().queryForList("""
                 SELECT attachment_id AS attachmentId, attachment_group_id AS attachmentGroupId,
                        original_file_name AS originalFileName, content_type AS contentType,
                        file_size AS fileSize, checksum_sha256 AS checksumSha256,
-                       scan_status AS scanStatus, created_by AS createdBy, created_at AS createdAt
+                       scan_status AS scanStatus, data_classification AS dataClassification, retention_until AS retentionUntil, quarantine_yn AS quarantineYn, created_by AS createdBy, created_at AS createdAt
                   FROM bza_attachment
                  WHERE attachment_group_id = :groupId AND use_yn = 'Y'
                  ORDER BY attachment_id
@@ -93,7 +97,7 @@ public class BzaSupportRepository {
                 SELECT attachment_id AS attachmentId, attachment_group_id AS attachmentGroupId,
                        original_file_name AS originalFileName, stored_file_name AS storedFileName,
                        storage_key AS storageKey, content_type AS contentType, file_size AS fileSize,
-                       checksum_sha256 AS checksumSha256, scan_status AS scanStatus, use_yn AS useYn
+                       checksum_sha256 AS checksumSha256, scan_status AS scanStatus, data_classification AS dataClassification, retention_until AS retentionUntil, quarantine_yn AS quarantineYn, use_yn AS useYn
                   FROM bza_attachment
                  WHERE attachment_id = :attachmentId
                 """, new MapSqlParameterSource("attachmentId", attachmentId)).stream().findFirst();
@@ -104,15 +108,24 @@ public class BzaSupportRepository {
         jdbc().update("""
                 INSERT INTO bza_attachment (
                     attachment_group_id, original_file_name, stored_file_name, storage_key,
-                    content_type, file_size, checksum_sha256, scan_status, use_yn,
+                    content_type, file_size, checksum_sha256, scan_status, data_classification, quarantine_yn, use_yn,
                     created_by, updated_by
                 ) VALUES (
                     :attachmentGroupId, :originalFileName, :storedFileName, :storageKey,
-                    :contentType, :fileSize, :checksumSha256, :scanStatus, 'Y',
+                    :contentType, :fileSize, :checksumSha256, :scanStatus, :dataClassification, :quarantineYn, 'Y',
                     :requestUser, :requestUser
                 )
                 """, new MapSqlParameterSource(values), keyHolder, new String[]{"attachment_id"});
         return requiredKey(keyHolder, "attachment_id");
+    }
+
+    public int updateAttachmentSecurity(long attachmentId,String scanStatus,String dataClassification,java.time.Instant retentionUntil,String quarantineYn,String useYn,String requestUser) {
+        return jdbc().update("""
+            UPDATE bza_attachment SET scan_status=:scanStatus,data_classification=:classification,retention_until=:retentionUntil,
+                   quarantine_yn=:quarantineYn,use_yn=:useYn,updated_by=:requestUser,updated_at=CURRENT_TIMESTAMP
+             WHERE attachment_id=:attachmentId
+            """,new MapSqlParameterSource().addValue("attachmentId",attachmentId).addValue("scanStatus",scanStatus).addValue("classification",dataClassification)
+                 .addValue("retentionUntil",retentionUntil==null?null:java.sql.Timestamp.from(retentionUntil)).addValue("quarantineYn",quarantineYn).addValue("useYn",useYn).addValue("requestUser",requestUser));
     }
 
     public List<Map<String, Object>> findSavedSearches(String loginId, String screenCode) {

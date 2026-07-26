@@ -1,8 +1,8 @@
 import { defineAsyncComponent, type Component } from "vue";
 
-export type AdmFeatureGroup = "overview" | "observability" | "platform" | "recovery" | "execution" | "access" | "approval";
+export type AdmFeatureGroup = "overview" | "observability" | "platform" | "recovery" | "execution" | "access" | "approval" | "business";
 export interface AdmFeatureRoute { group: AdmFeatureGroup; component: Component; icon: string; }
-export const admGroupLabels: Record<AdmFeatureGroup,string> = { overview:"운영 개요", observability:"관측·거래", platform:"플랫폼 제어", recovery:"복구·장애", execution:"Batch / Worker", access:"보안·권한", approval:"승인·통제" };
+export const admGroupLabels: Record<AdmFeatureGroup,string> = { overview:"운영 개요", observability:"관측·거래", platform:"플랫폼 제어", recovery:"복구·장애", execution:"Batch / Worker", access:"보안·권한", approval:"승인·통제", business:"업무 운영" };
 export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  dashboard:{group:"overview",icon:"dashboard",component:defineAsyncComponent(()=>import("../features/dashboard/DashboardPage.vue"))},
  topology:{group:"overview",icon:"topology",component:defineAsyncComponent(()=>import("../features/topology/TopologyPage.vue"))},
@@ -35,6 +35,8 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  password:{group:"access",icon:"security",component:defineAsyncComponent(()=>import("../features/password/PasswordPage.vue"))},
  security:{group:"access",icon:"security",component:defineAsyncComponent(()=>import("../features/security/SecurityPage.vue"))},
  operators:{group:"access",icon:"users",component:defineAsyncComponent(()=>import("../features/operators/OperatorsPage.vue"))},
+ secrets:{group:"access",icon:"security",component:defineAsyncComponent(()=>import("../features/secrets/SecretsPage.vue"))},
+ members:{group:"business",icon:"users",component:defineAsyncComponent(()=>import("../features/members/MembersPage.vue"))},
  approvals:{group:"approval",icon:"approval",component:defineAsyncComponent(()=>import("../features/approvals/ApprovalsPage.vue"))},
  breakGlass:{group:"approval",icon:"security",component:defineAsyncComponent(()=>import("../features/break-glass/BreakGlassPage.vue"))}
 };

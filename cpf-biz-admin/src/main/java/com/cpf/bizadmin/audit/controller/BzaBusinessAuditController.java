@@ -1,0 +1,7 @@
+package com.cpf.bizadmin.audit.controller;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;import com.cpf.core.api.execution.CpfOnlineTransaction;import org.springframework.http.ResponseEntity;import org.springframework.web.bind.annotation.*;import java.util.Map;
+/** BZA 감사 체인 무결성 운영 API. */
+@RestController @RequestMapping("/api/bza/audits") public class BzaBusinessAuditController extends com.cpf.bizadmin.common.base.BzaBaseController{
+ private final BzaBusinessAuditService s;public BzaBusinessAuditController(BzaBusinessAuditService s){this.s=s;}
+ @GetMapping("/verify") @CpfOnlineTransaction(id="OBZAUD1101",name="BzaAuditChainVerify") public ResponseEntity<Map<String,Object>>verify(){return ResponseEntity.ok(s.verify());}
+}

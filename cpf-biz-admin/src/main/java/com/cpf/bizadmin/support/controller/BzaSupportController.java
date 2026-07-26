@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.support.controller;
 
 import com.cpf.bizadmin.support.service.BzaSupportService;
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ContentDisposition;
@@ -74,6 +74,13 @@ public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseCo
         return ResponseEntity.ok(supportService.markNotificationRead(notificationId, reason, operatorId));
     }
 
+    @PostMapping("/notifications/read-all")
+    @CpfOnlineTransaction(id = "OBZANT0004", name = "BzaNotificationReadAll")
+    public ResponseEntity<Map<String,Object>> readAllNotifications(
+            @RequestParam String reason,@RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(supportService.markAllNotificationsRead(reason,operatorId));
+    }
+
     @GetMapping("/attachments")
     @CpfOnlineTransaction(id = "OBZAAT0001", name = "BzaAttachmentList")
     @Operation(operationId = "bzaSupportFindAttachments", summary = "첨부파일 목록 조회")
@@ -117,6 +124,21 @@ public class BzaSupportController extends com.cpf.bizadmin.common.base.BzaBaseCo
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header("X-Checksum-Sha256", download.checksumSha256())
                 .body(download.content());
+    }
+
+    @PostMapping("/attachments/{attachmentId}/security")
+    @CpfOnlineTransaction(id = "OBZAAT0004", name = "BzaAttachmentSecurityUpdate")
+    public ResponseEntity<Map<String,Object>> updateAttachmentSecurity(
+            @PathVariable long attachmentId,@RequestBody BzaSupportService.AttachmentSecurityRequest request,
+            @RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(supportService.updateAttachmentSecurity(attachmentId,request,operatorId));
+    }
+
+    @PostMapping("/attachments/{attachmentId}/recheck")
+    @CpfOnlineTransaction(id = "OBZAAT0005", name = "BzaAttachmentRecheck")
+    public ResponseEntity<Map<String,Object>> recheckAttachment(
+            @PathVariable long attachmentId,@RequestParam String reason,@RequestAttribute("bza.operatorId") String operatorId) {
+        return ResponseEntity.ok(supportService.requestAttachmentRecheck(attachmentId,reason,operatorId));
     }
 
     @GetMapping("/saved-searches")

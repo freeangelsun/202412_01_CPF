@@ -6,6 +6,7 @@ import com.cpf.admin.opr.dto.AdmMemberStatusRequest;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmMemberOperationService;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,6 +59,14 @@ public class AdmMemberController extends com.cpf.admin.common.base.AdmBaseContro
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(memberOperationService.findMembers(
                 memberNo, customerNo, loginId, name, email, mobileNo, memberStatus, channelCode, roleCode, limit));
+    }
+
+    @GetMapping("/page")
+    @CpfOnlineTransaction(id = "OADMMB0018", name = "ADMMemberPage")
+    @Operation(operationId = "admMemberFindMembersPage", summary = "회원 서버 Paging 조회", description = "MBR Owner DB에서 count와 LIMIT/OFFSET을 수행하여 ADM에 표준 Page를 반환합니다.")
+    public ResponseEntity<CpfPage<Map<String,Object>>> findMembersPage(
+            @RequestParam(required=false) String memberNo,@RequestParam(required=false) String customerNo,@RequestParam(required=false) String loginId,@RequestParam(required=false) String name,@RequestParam(required=false) String email,@RequestParam(required=false) String mobileNo,@RequestParam(required=false) String memberStatus,@RequestParam(required=false) String channelCode,@RequestParam(required=false) String roleCode,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return ResponseEntity.ok(memberOperationService.findMembersPage(memberNo,customerNo,loginId,name,email,mobileNo,memberStatus,channelCode,roleCode,page,size));
     }
 
     @GetMapping("/member-number-issues")

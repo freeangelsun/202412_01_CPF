@@ -54,6 +54,7 @@ public class MbrOwnerAdminOperationsService implements CpfOwnerAdminOperationsPo
         requireMemberResource(query.resource());
         return switch (query.operation()) {
             case "findMembers" -> Map.of("items", findMembers(query.criteria()));
+            case "findMembersPage" -> findMembersPage(query.criteria());
             case "findMemberNoIssueHistory" -> Map.of("items", findMemberNoIssueHistory(query.criteria()));
             case "findMemberDetail" -> findMemberDetail(requiredLong(query.resourceId(), "memberId"));
             default -> throw new CpfValidationException("지원하지 않는 MBR 운영 조회입니다. operation=" + query.operation());
@@ -105,6 +106,28 @@ public class MbrOwnerAdminOperationsService implements CpfOwnerAdminOperationsPo
         sql.append(" ORDER BY m.id DESC");
         int limit = clampInt(criteria.get("limit"), 100, 1, 500);
         return limitRows(jdbcTemplate.queryForList(sql.toString(), args.toArray()), limit);
+    }
+
+    /** ADM 대량 운영 조회는 DB에서 직접 page/count하여 Heap 과부하를 방지합니다. */
+    private Map<String, Object> findMembersPage(Map<String, Object> criteria) {
+        int page = clampInt(criteria.get("page"), 0, 0, 1000000);
+        int size = clampInt(criteria.get("size"), 20, 1, 200);
+        StringBuilder where = new StringBuilder(" FROM mbr_member m LEFT JOIN mbr_member_role r ON r.member_id=m.id AND r.use_yn='Y' WHERE 1=1 ");
+        List<Object> args = new ArrayList<>();
+        appendLike(where,args,"m.member_no",text(criteria,"memberNo"));
+        appendLike(where,args,"m.customer_no",text(criteria,"customerNo"));
+        appendLike(where,args,"m.login_id",text(criteria,"loginId"));
+        appendLike(where,args,"m.name",text(criteria,"name"));
+        appendLike(where,args,"m.email",text(criteria,"email"));
+        appendLike(where,args,"m.mobile_no",text(criteria,"mobileNo"));
+        appendEquals(where,args,"m.member_status",text(criteria,"memberStatus"));
+        appendEquals(where,args,"m.channel_code",text(criteria,"channelCode"));
+        appendEquals(where,args,"r.role_code",text(criteria,"roleCode"));
+        Long total=jdbcTemplate.queryForObject("SELECT COUNT(DISTINCT m.id)"+where,Long.class,args.toArray());
+        List<Object> pageArgs=new ArrayList<>(args); pageArgs.add(size); pageArgs.add((long)page*size);
+        String select="SELECT DISTINCT m.id,m.member_no,m.customer_no,m.login_id,m.name,m.email,m.mobile_no,m.member_status,m.lock_yn,m.withdraw_yn,m.channel_code,m.version_no,m.joined_at,m.last_login_at,m.created_at,m.updated_at"+where+" ORDER BY m.id DESC LIMIT ? OFFSET ?";
+        List<Map<String,Object>> items=jdbcTemplate.queryForList(select,pageArgs.toArray());
+        return Map.of("items",items,"page",page,"size",size,"totalElements",total==null?0L:total);
     }
 
     private List<Map<String, Object>> findMemberNoIssueHistory(Map<String, Object> criteria) {

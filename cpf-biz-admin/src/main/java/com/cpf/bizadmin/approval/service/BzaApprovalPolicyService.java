@@ -6,8 +6,8 @@ import com.cpf.bizadmin.approval.api.BzaApprovalStepStatus;
 import com.cpf.bizadmin.approval.api.BzaApprovalTargetType;
 import com.cpf.bizadmin.approval.repository.BzaApprovalPolicyRepository;
 import com.cpf.bizadmin.approval.spi.BzaApprovalDirectoryEntry;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -58,6 +58,10 @@ public class BzaApprovalPolicyService {
         String policyCode = required(request.policyCode(), "policyCode");
         int version = request.policyVersion() == null ? 1 : request.policyVersion();
         if (version < 1) throw new CpfValidationException("policyVersion은 1 이상이어야 합니다.");
+        if (repository.findPolicy(policyCode, version).isPresent()) {
+            throw new CpfValidationException(
+                    "이미 생성된 결재 정책 Version은 수정할 수 없습니다. 새 policyVersion으로 등록하세요.");
+        }
         Instant from = required(request.effectiveFrom(), "effectiveFrom");
         Instant to = request.effectiveTo();
         if (to != null && !to.isAfter(from)) throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");
@@ -164,12 +168,16 @@ public class BzaApprovalPolicyService {
         if (!Set.of("REJECTED", "WITHDRAWN", "CANCELED", "EXPIRED").contains(status)) {
             throw new CpfValidationException("반려/철회/취소/만료된 결재만 새 문서로 재상신할 수 있습니다.");
         }
-        if (!Objects.equals(string(previous, "requesterEmployeeNo"), required(request.requesterEmployeeNo(), "requesterEmployeeNo"))) {
+        String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+                .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+        if (!Objects.equals(string(previous, "requesterEmployeeNo"), actor)) {
             throw new CpfValidationException("재상신 요청자는 원본 요청자와 같아야 합니다.");
         }
+        if (request.requesterEmployeeNo() != null && !request.requesterEmployeeNo().isBlank()
+                && !actor.equalsIgnoreCase(request.requesterEmployeeNo().trim())) {
+            throw new CpfValidationException("requesterEmployeeNo는 인증 사용자와 일치해야 합니다.");
+        }
         Map<String,Object> created = submitInternal(request, operatorId, previousApprovalId);
-        String actor = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
-                .orElse(request.requesterEmployeeNo());
         long newApprovalId = number(created, "approvalId").longValue();
         repository.insertHistory(previousApprovalId, "RESUBMIT", actor,
                 request.requestIdempotencyKey() + ":resubmit-source", required(request.reason(), "reason"),
@@ -184,7 +192,12 @@ public class BzaApprovalPolicyService {
         if (existing.isPresent()) return detail(existing.get());
 
         Instant at = Instant.now();
-        String requester = required(request.requesterEmployeeNo(), "requesterEmployeeNo");
+        String requester = repository.findEmployeeNoByLoginId(required(operatorId, "operatorId"))
+                .orElseThrow(() -> new CpfValidationException("로그인 사용자와 연결된 직원이 없습니다."));
+        if (request.requesterEmployeeNo() != null && !request.requesterEmployeeNo().isBlank()
+                && !requester.equalsIgnoreCase(request.requesterEmployeeNo().trim())) {
+            throw new CpfValidationException("requesterEmployeeNo는 인증 사용자와 일치해야 합니다.");
+        }
         Map<String,Object> policy = resolvePolicy(
                 request.policyCode(), request.policyVersion(), request.businessDomain(), request.approvalType(), at);
         String policyCode = string(policy, "policyCode");
@@ -218,7 +231,7 @@ public class BzaApprovalPolicyService {
         doc.put("requestIdempotencyKey", idem);
         doc.put("attachmentGroupId", blankToNull(request.attachmentGroupId()));
         doc.put("resubmittedFromApprovalId", resubmittedFromApprovalId);
-        doc.put("transactionId", TransactionContext.getOrCreateTransactionId());
+        doc.put("transactionId", CpfTransactionContext.transactionId());
         doc.put("operatorId", required(operatorId, "operatorId"));
         long approvalId = repository.insertPolicyApproval(doc);
 

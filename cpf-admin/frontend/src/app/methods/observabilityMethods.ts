@@ -28,7 +28,7 @@ export const observabilityMethods: Record<string, any> = {
           body: JSON.stringify({ ...this.downloadForm, downloadType })
         });
         if (!response.ok) {
-          await this.parseResponse(response);
+          await this.parseResponse(response, false);
           return;
         }
         const blob = await response.blob();
@@ -70,19 +70,30 @@ export const observabilityMethods: Record<string, any> = {
       },
   async loadTransactionGroupDetail(transactionId) {
         if (!transactionId) return;
-        const [detail, segments, timeline, headers, externalLogs] = await Promise.all([
+        const [detail, segments, timeline, headers, externalLogs] = await Promise.allSettled([
           this.getJson(`/adm/api/transaction-groups/${transactionId}`),
           this.getJson(`/adm/api/transaction-groups/${transactionId}/segments`),
           this.getJson(`/adm/api/transaction-groups/${transactionId}/timeline`),
           this.getJson(`/adm/api/transaction-groups/${transactionId}/headers`),
           this.getJson(`/adm/api/transaction-groups/${transactionId}/external-logs`)
         ]);
+        const section = (result) => result.status === "fulfilled"
+          ? { status: "AVAILABLE", data: result.value }
+          : { status: "FAILED", data: null, message: result.reason?.message || "조회 실패" };
+        const detailSection = section(detail);
         this.transactionGroupDetail = {
-          ...detail,
-          segments,
-          timeline,
-          headers,
-          externalLogs
+          ...(detailSection.data || {}),
+          sectionStatus: {
+            detail: detailSection.status,
+            segments: section(segments).status,
+            timeline: section(timeline).status,
+            headers: section(headers).status,
+            externalLogs: section(externalLogs).status
+          },
+          segments: section(segments),
+          timeline: section(timeline),
+          headers: section(headers),
+          externalLogs: section(externalLogs)
         };
         this.transactionGroupDetailTab = "요약";
         this.setMessage(`거래 그룹 상세를 조회했습니다. transactionId=${transactionId}`);
@@ -131,7 +142,7 @@ export const observabilityMethods: Record<string, any> = {
           { headers: this.apiHeaders() }
         );
         if (!response.ok) {
-          await this.parseResponse(response);
+          await this.parseResponse(response, false);
           return;
         }
         const blobUrl = URL.createObjectURL(await response.blob());
@@ -152,7 +163,7 @@ export const observabilityMethods: Record<string, any> = {
           body: JSON.stringify({ artifactIds: this.remoteLogSelectedIds, reason: this.remoteLogSearch.reason })
         });
         if (!response.ok) {
-          await this.parseResponse(response);
+          await this.parseResponse(response, false);
           return;
         }
         const disposition = response.headers.get('Content-Disposition') || '';

@@ -18,7 +18,6 @@
         </div>
         <pre class="detail">{{ pretty(codeResult) }}</pre>
       </section>
-  </template>
 </template>
 
 <script lang="ts">

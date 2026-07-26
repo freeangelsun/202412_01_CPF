@@ -41,7 +41,6 @@
         </div>
         <pre class="detail">{{ pretty(logPolicyResult) }}</pre>
       </section>
-  </template>
 </template>
 
 <script lang="ts">

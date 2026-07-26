@@ -1,3 +1,5 @@
+-- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
+-- ============================================================================
 -- ADM 초기 역할, 메뉴, 버튼 권한, 보안 정책, 로컬 계정 데이터입니다.
 -- 대상 DB: admDB
 
@@ -7,7 +9,7 @@ INSERT INTO adm_role (ROLE_ID, ROLE_NAME, ROLE_TYPE, DESCRIPTION, USE_YN, create
 VALUES
     ('ADM_ADMIN', '프레임워크 관리자', 'ADMIN', '모든 ADM 메뉴와 운영 작업을 관리합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_DEV_OPERATOR', '개발자 운영자', 'DEVELOPER_OPERATOR', '로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ADM_BIZ_OPERATOR', '업무 운영자', 'BUSINESS_OPERATOR', '거래 조회, 배치, 복구 조회, 캐시 같은 업무 운영 기능을 수행합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_BIZ_OPERATOR', '업무 운영자', 'BUSINESS_OPERATOR', '회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_VIEWER', '조회 전용 운영자', 'VIEWER', '운영 정보를 조회만 할 수 있습니다.', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_OPERATOR', '운영자 호환 역할', 'DEVELOPER_OPERATOR', '기존 ADM_OPERATOR 호환을 위한 역할입니다.', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE
@@ -20,21 +22,16 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES
-    ('DASHBOARD', NULL, '대시보드', '/adm#dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('TOPOLOGY', NULL, '서비스 토폴로지', '/adm#topology', 12, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CAPACITY', NULL, '용량·SLO', '/adm#capacity', 14, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER', NULL, '회원 관리', '/adm#members', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY', NULL, '신뢰성 처리 관제', '/adm#reliability', 52, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('RECOVERY_CENTER', NULL, '복구 센터', '/adm#recoveryCenter', 53, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('INCIDENT', NULL, 'Incident 관리', '/adm#incidents', 54, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MAINTENANCE', NULL, '점검·Drain', '/adm#maintenance', 54, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('WORKER', NULL, 'Agent·Worker', '/adm#workers', 55, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION', NULL, '알림 관리', '/adm#notifications', 55, 'Y', 'SYSTEM', 'SYSTEM'),
     ('DOWNLOAD', NULL, '다운로드 감사', '/adm#downloads', 58, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -77,6 +74,12 @@ VALUES
     ('TRANSACTION_META_SCAN', 'TRANSACTION_META', 'SCAN', '거래 메타 스캔', 'POST', '/adm/api/transactions/scan', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_READ', 'MEMBER', 'READ', '회원 조회', 'GET', '/adm/api/members/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_CREATE', 'MEMBER', 'CREATE', '회원 등록', 'POST', '/adm/api/members', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_UPDATE', 'MEMBER', 'UPDATE', '회원 수정', 'PUT', '/adm/api/members/*', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_STATUS', 'MEMBER', 'STATUS', '회원 상태 변경', 'PUT', '/adm/api/members/*/status', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_ROLE_GRANT', 'MEMBER', 'ROLE_GRANT', '회원 권한 부여', 'POST', '/adm/api/members/*/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MEMBER_ROLE_REVOKE', 'MEMBER', 'ROLE_REVOKE', '회원 권한 회수', 'DELETE', '/adm/api/members/*/roles/*', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_READ', 'BATCH', 'READ', '조회', 'GET', '/adm/api/batch/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_REGISTER', 'BATCH', 'REGISTER', '배치 등록', 'POST', '/adm/api/batch/jobs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BATCH_EXECUTE', 'BATCH', 'EXECUTE', '수동 실행', 'POST', '/adm/api/batch/*/run', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -100,14 +103,6 @@ VALUES
     ('RELIABILITY_REPLAY', 'RELIABILITY', 'REPLAY', 'DLQ 재처리', 'POST', '/adm/api/reliability/broker/dlq/*/replay', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY_RESOLVE', 'RELIABILITY', 'RESOLVE', '결과 미확정 수동 처리', 'POST', '/adm/api/reliability/unknown-results/*/resolve', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('RELIABILITY_RECOVERY_RUN', 'RELIABILITY', 'RECOVERY_RUN', 'DB 거래 로그 복구 실행', 'POST', '/adm/api/reliability/transaction-log-recovery/run', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('TOPOLOGY_READ', 'TOPOLOGY', 'READ', '토폴로지 조회', 'GET', '/adm/api/service-registry/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('CAPACITY_READ', 'CAPACITY', 'READ', '용량·SLO 조회', 'GET', '/adm/api/service-registry/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('RECOVERY_CENTER_READ', 'RECOVERY_CENTER', 'READ', '복구센터 조회', 'GET', '/adm/api/reliability/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('INCIDENT_READ', 'INCIDENT', 'READ', 'Incident 조회', 'GET', '/adm/api/incidents/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('INCIDENT_WRITE', 'INCIDENT', 'WRITE', 'Incident 상태 변경', 'POST', '/adm/api/incidents/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MAINTENANCE_READ', 'MAINTENANCE', 'READ', '점검 명령 조회', 'GET', '/adm/api/maintenance/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MAINTENANCE_EXECUTE', 'MAINTENANCE', 'EXECUTE', 'Drain/Disable/Resume', 'POST', '/adm/api/maintenance/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('WORKER_READ', 'WORKER', 'READ', 'Agent·Worker 조회', 'GET', '/adm/api/batch/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_READ', 'NOTIFICATION', 'READ', '알림 조회', 'GET', '/adm/api/notifications/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_WRITE', 'NOTIFICATION', 'WRITE', '알림 등록/수정', 'POST', '/adm/api/notifications/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION_DISABLE', 'NOTIFICATION', 'DISABLE', '알림 비활성화', 'PUT', '/adm/api/notifications/rules/*/disable', 30, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -189,7 +184,7 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_DEV_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'WORKER', 'RELIABILITY', 'RECOVERY_CENTER', 'INCIDENT', 'MAINTENANCE', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID IN ('TRANSACTION_META', 'CHANNEL_POLICY', 'REMOTE_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        CASE WHEN MENU_ID IN ('TRANSACTION_META', 'MESSAGE', 'CODE', 'DYNAMIC_LOG', 'LOG_POLICY') THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
@@ -203,11 +198,11 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_BIZ_OPERATOR', MENU_ID, 'Y',
-       CASE WHEN MENU_ID IN ('BATCH', 'DOWNLOAD', 'CACHE') THEN 'Y' ELSE 'N' END,
-       'N',
+       CASE WHEN MENU_ID IN ('MEMBER', 'BATCH', 'DOWNLOAD', 'CACHE') THEN 'Y' ELSE 'N' END,
+       CASE WHEN MENU_ID = 'MEMBER' THEN 'Y' ELSE 'N' END,
        'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'TOPOLOGY', 'CAPACITY', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'WORKER', 'RELIABILITY', 'RECOVERY_CENTER', 'INCIDENT', 'MAINTENANCE', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -218,7 +213,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM adm_menu
-WHERE MENU_ID IN ('DASHBOARD', 'TOPOLOGY', 'CAPACITY', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'WORKER', 'RELIABILITY', 'RECOVERY_CENTER', 'INCIDENT', 'MAINTENANCE', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
+WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
 ON DUPLICATE KEY UPDATE
     READ_YN = VALUES(READ_YN),
     WRITE_YN = VALUES(WRITE_YN),
@@ -258,7 +253,8 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
 SELECT 'ADM_BIZ_OPERATOR', BUTTON_ID,
        CASE
-           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'WORKER', 'RELIABILITY', 'RECOVERY_CENTER', 'INCIDENT', 'MAINTENANCE', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
+           WHEN BUTTON_ID IN ('MEMBER_CREATE', 'MEMBER_UPDATE', 'MEMBER_STATUS', 'MEMBER_ROLE_GRANT', 'MEMBER_ROLE_REVOKE', 'BATCH_EXECUTE', 'BATCH_RETRY', 'BATCH_SIMULATION', 'BATCH_RELATION_READ', 'BATCH_TARGET_READ', 'BATCH_SCHEDULER_RUN', 'DOWNLOAD_EXECUTE', 'CACHE_REFRESH') THEN 'Y'
+           WHEN ACTION_CODE IN ('READ', 'DETAIL') AND MENU_ID IN ('LOG_LIST', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'MEMBER', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'MESSAGE', 'CODE', 'LOG_POLICY') THEN 'Y'
            ELSE 'N'
        END,
        'SYSTEM', 'SYSTEM'
@@ -358,153 +354,6 @@ ON DUPLICATE KEY UPDATE
 -- 로컬 IP allowlist와 초기 감사 fixture는 59_adm_local_seed.sql Optional Seed로 분리했습니다.
 
 
--- ============================================================================
--- R8: ADM 위험조치 Approval 메뉴/권한 정본
--- 위험조치 실행 권한은 기본 Role에 자동 부여하지 않는다. 조회만 기본 제공하고,
--- REQUEST/DECIDE/EXECUTE는 권한 관리 화면에서 명시 승인 후 부여한다.
--- ============================================================================
-INSERT INTO adm_menu (
-    MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by
-) VALUES (
-    'APPROVAL', NULL, '위험조치 승인', '/adm#approvals', 160, 'Y', 'SYSTEM', 'SYSTEM'
-)
-ON DUPLICATE KEY UPDATE
-    MENU_NAME=VALUES(MENU_NAME), MENU_PATH=VALUES(MENU_PATH), SORT_ORDER=VALUES(SORT_ORDER),
-    USE_YN=VALUES(USE_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (
-    BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by
-) VALUES
-    ('APPROVAL_READ', 'APPROVAL', 'READ', '승인 조회', 'GET', '/adm/api/approvals/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('APPROVAL_REQUEST', 'APPROVAL', 'REQUEST', '승인 요청', 'POST', '/adm/api/approvals/requests', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('APPROVAL_DECIDE', 'APPROVAL', 'DECIDE', '승인 결정', 'POST', '/adm/api/approvals/requests/*/decisions', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('APPROVAL_EXECUTE', 'APPROVAL', 'EXECUTE', '승인 Command 실행', 'POST', '/adm/api/approvals/requests/*/execute', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('APPROVAL_POLICY_WRITE', 'APPROVAL', 'POLICY_WRITE', '승인 정책 변경', 'POST', '/adm/api/approvals/policies', 50, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),
-    HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),
-    USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT ROLE_ID, 'APPROVAL', 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
-  FROM adm_role WHERE ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_BIZ_OPERATOR','ADM_OPERATOR')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT r.ROLE_ID, b.BUTTON_ID,
-       CASE WHEN b.BUTTON_ID='APPROVAL_READ' THEN 'Y' ELSE 'N' END,
-       'SYSTEM','SYSTEM'
-  FROM adm_role r
-  JOIN adm_button b ON b.MENU_ID='APPROVAL'
- WHERE r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_BIZ_OPERATOR','ADM_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (
-    API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE,
-    MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by
-) VALUES
-    ('API_APPROVAL_READ', 'APPROVAL', 'GET', '/adm/api/approvals/**', '위험조치 승인 조회', 'READ', 'APPROVAL', 'APPROVAL_READ', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('API_APPROVAL_REQUEST', 'APPROVAL', 'POST', '/adm/api/approvals/requests', '위험조치 승인 요청', 'REQUEST', 'APPROVAL', 'APPROVAL_REQUEST', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('API_APPROVAL_DECIDE', 'APPROVAL', 'POST', '/adm/api/approvals/requests/*/decisions', '위험조치 승인 결정', 'DECIDE', 'APPROVAL', 'APPROVAL_DECIDE', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('API_APPROVAL_EXECUTE', 'APPROVAL', 'POST', '/adm/api/approvals/requests/*/execute', '승인 Owner Command 실행', 'EXECUTE', 'APPROVAL', 'APPROVAL_EXECUTE', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('API_APPROVAL_POLICY_WRITE', 'APPROVAL', 'POST', '/adm/api/approvals/policies', '승인 정책 변경', 'POLICY_WRITE', 'APPROVAL', 'APPROVAL_POLICY_WRITE', 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE
-    API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),
-    API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),
-    BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT r.ROLE_ID, a.API_PERMISSION_ID,
-       CASE WHEN a.API_PERMISSION_ID='API_APPROVAL_READ' THEN 'Y' ELSE 'N' END,
-       'SYSTEM','SYSTEM'
-  FROM adm_role r
-  JOIN adm_api_permission a ON a.API_GROUP_CODE='APPROVAL'
- WHERE r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_BIZ_OPERATOR','ADM_OPERATOR')
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-
--- ============================================================================
--- R9: Break-glass 범위/TTL/사후검토 권한
--- 기본 운영 역할에는 부여하지 않고 ADM_ADMIN에만 명시 허용한다.
--- ============================================================================
-INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES ('BREAK_GLASS', NULL, 'Break-glass', '/adm#breakGlass', 170, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
- ('BREAK_GLASS_READ','BREAK_GLASS','READ','비상 세션 조회','GET','/adm/api/break-glass/**',10,'Y','SYSTEM','SYSTEM'),
- ('BREAK_GLASS_OPEN','BREAK_GLASS','OPEN','비상 세션 발급','POST','/adm/api/break-glass',20,'Y','SYSTEM','SYSTEM'),
- ('BREAK_GLASS_CLOSE','BREAK_GLASS','CLOSE','비상 세션 종료','POST','/adm/api/break-glass/*/close',30,'Y','SYSTEM','SYSTEM'),
- ('BREAK_GLASS_REVIEW','BREAK_GLASS','REVIEW','비상 세션 사후검토','POST','/adm/api/break-glass/*/review',40,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-VALUES ('ADM_ADMIN','BREAK_GLASS','Y','Y','N','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_button (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', b.BUTTON_ID, 'Y', 'SYSTEM','SYSTEM' FROM adm_button b WHERE b.MENU_ID='BREAK_GLASS'
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by)
-VALUES
- ('API_BREAK_GLASS_READ','BREAK_GLASS','GET','/adm/api/break-glass/**','Break-glass 조회','READ','BREAK_GLASS','BREAK_GLASS_READ','Y','SYSTEM','SYSTEM'),
- ('API_BREAK_GLASS_OPEN','BREAK_GLASS','POST','/adm/api/break-glass','Break-glass 발급','OPEN','BREAK_GLASS','BREAK_GLASS_OPEN','Y','SYSTEM','SYSTEM'),
- ('API_BREAK_GLASS_CLOSE','BREAK_GLASS','POST','/adm/api/break-glass/*/close','Break-glass 종료','CLOSE','BREAK_GLASS','BREAK_GLASS_CLOSE','Y','SYSTEM','SYSTEM'),
- ('API_BREAK_GLASS_REVIEW','BREAK_GLASS','POST','/adm/api/break-glass/*/review','Break-glass 사후검토','REVIEW','BREAK_GLASS','BREAK_GLASS_REVIEW','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT 'ADM_ADMIN', a.API_PERMISSION_ID, 'Y', 'SYSTEM','SYSTEM' FROM adm_api_permission a WHERE a.API_GROUP_CODE='BREAK_GLASS'
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
--- ============================================================================
--- R10: CMN 영업일/휴일 관리 메뉴와 권한
--- ============================================================================
-INSERT INTO adm_menu (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES ('BUSINESS_CALENDAR', NULL, '영업일 관리', '/adm#businessCalendar', 95, 'Y', 'SYSTEM', 'SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_button (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES
- ('BUSINESS_CALENDAR_READ','BUSINESS_CALENDAR','READ','영업일 조회','GET','/adm/api/business-calendars/**',10,'Y','SYSTEM','SYSTEM'),
- ('BUSINESS_CALENDAR_WRITE','BUSINESS_CALENDAR','WRITE','영업일 변경','PUT','/adm/api/business-calendars/**',20,'Y','SYSTEM','SYSTEM'),
- ('BUSINESS_CALENDAR_DELETE','BUSINESS_CALENDAR','DELETE','영업일 Override 삭제','DELETE','/adm/api/business-calendars/**',30,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_menu (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
-SELECT ROLE_ID,'BUSINESS_CALENDAR','Y',
-       CASE WHEN ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR') THEN 'Y' ELSE 'N' END,
-       CASE WHEN ROLE_ID='ADM_ADMIN' THEN 'Y' ELSE 'N' END,
-       'SYSTEM','SYSTEM'
-FROM adm_role
-WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_BIZ_OPERATOR','ADM_OPERATOR')
-ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_api_permission (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by)
-VALUES
- ('API_BUSINESS_CALENDAR_READ','BUSINESS_CALENDAR','GET','/adm/api/business-calendars/**','영업일 조회','READ','BUSINESS_CALENDAR','BUSINESS_CALENDAR_READ','Y','SYSTEM','SYSTEM'),
- ('API_BUSINESS_CALENDAR_WRITE','BUSINESS_CALENDAR','PUT','/adm/api/business-calendars/**','영업일 변경','WRITE','BUSINESS_CALENDAR','BUSINESS_CALENDAR_WRITE','Y','SYSTEM','SYSTEM'),
- ('API_BUSINESS_CALENDAR_DELETE','BUSINESS_CALENDAR','DELETE','/adm/api/business-calendars/**','영업일 삭제','DELETE','BUSINESS_CALENDAR','BUSINESS_CALENDAR_DELETE','Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN=VALUES(USE_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO adm_role_api_permission (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT rm.ROLE_ID, ap.API_PERMISSION_ID,
-       CASE
-         WHEN ap.PERMISSION_CODE='READ' THEN 'Y'
-         WHEN ap.PERMISSION_CODE='WRITE' AND rm.WRITE_YN='Y' THEN 'Y'
-         WHEN ap.PERMISSION_CODE='DELETE' AND rm.DELETE_YN='Y' THEN 'Y'
-         ELSE 'N'
-       END,
-       'SYSTEM','SYSTEM'
-FROM adm_role_menu rm
-JOIN adm_api_permission ap ON ap.MENU_ID='BUSINESS_CALENDAR'
-WHERE rm.MENU_ID='BUSINESS_CALENDAR'
-ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by=VALUES(updated_by),updated_at=CURRENT_TIMESTAMP;
-
-
-
 -- R12 감사 전달 복구 권한
 INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by)
 VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM')
@@ -524,3 +373,38 @@ ON DUPLICATE KEY UPDATE HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH
 INSERT INTO adm_role_api_permission (ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
 SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM adm_role WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
 ON DUPLICATE KEY UPDATE ALLOW_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+-- R14 Secret/Key metadata management. Raw secret value is never exposed.
+INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by)
+VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
+ ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
+ ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by) VALUES
+ ('ADM_ADMIN','SECRET','Y','Y','N','SYSTEM','SYSTEM'),
+ ('ADM_DEV_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','SECRET','Y','N','N','SYSTEM','SYSTEM'),
+ ('ADM_VIEWER','SECRET','N','N','N','SYSTEM','SYSTEM'),
+ ('ADM_BIZ_OPERATOR','SECRET','N','N','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by) VALUES
+ ('ADM_ADMIN','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_DEV_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','SECRET_ROTATE','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by) VALUES
+ ('API_SECRET_READ','SECRET','GET','/adm/api/secrets/**','Secret Metadata 조회','READ','SECRET','SECRET_READ','Y','SYSTEM','SYSTEM'),
+ ('API_SECRET_ROTATE','SECRET','POST','/adm/api/secrets/rotate','Secret Rotation','ROTATE','SECRET','SECRET_ROTATE','Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by) VALUES
+ ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
+ ('ADM_DEV_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM'),
+ ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;

@@ -27,6 +27,8 @@ export const bzaSession = reactive<SessionState>({
 
 export const authenticated = computed(() => Boolean(bzaSession.accessToken && bzaSession.operator));
 
+let refreshInFlight: Promise<void> | null = null;
+
 function setTokens(result: Record<string, unknown>): void {
   bzaSession.accessToken = typeof result.accessToken === "string" ? result.accessToken : null;
   if (typeof result.refreshToken === "string" && result.refreshToken) {
@@ -62,6 +64,32 @@ async function raw<T>(url: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+async function refreshBzaTokensSingleFlight(): Promise<void> {
+  if (!bzaSession.refreshToken) {
+    clearBzaSession();
+    throw new Error("refresh token이 없습니다.");
+  }
+  if (!refreshInFlight) {
+    const refreshToken = bzaSession.refreshToken;
+    refreshInFlight = raw<Record<string, unknown>>("/api/bza/auth/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken })
+    }).then(result => {
+      setTokens(result);
+      if (!bzaSession.accessToken || !bzaSession.refreshToken) {
+        throw new Error("token rotation 응답이 불완전합니다.");
+      }
+    }).catch(error => {
+      clearBzaSession();
+      throw error;
+    }).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  await refreshInFlight;
+}
+
 export async function bzaApi<T = unknown>(url: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(options.headers || {});
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -71,14 +99,10 @@ export async function bzaApi<T = unknown>(url: string, options: RequestInit = {}
   } catch (error) {
     const httpError = error as Error & { status?: number };
     if (httpError.status === 401 && retry && bzaSession.refreshToken) {
-      const refreshed = await raw<Record<string, unknown>>("/api/bza/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken: bzaSession.refreshToken })
-      });
-      setTokens(refreshed);
+      await refreshBzaTokensSingleFlight();
       return bzaApi<T>(url, options, false);
     }
+    if (httpError.status === 401) clearBzaSession();
     throw error;
   }
 }

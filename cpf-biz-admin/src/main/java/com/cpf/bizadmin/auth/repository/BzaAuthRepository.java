@@ -31,12 +31,14 @@ import java.util.Set;
 public class BzaAuthRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
     private final CpfVendorSqlCatalog sql;
+    private final String environmentCode;
 
     public BzaAuthRepository(
             @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
             Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
         this.sql = CpfVendorSqlCatalog.create(environment, "bza");
+        this.environmentCode = resolveEnvironmentCode(environment);
     }
 
     /**
@@ -268,42 +270,70 @@ public class BzaAuthRepository {
      */
     private List<String> findEffectiveRoleCodes(long adminUserId, String legacyRoleCode) {
         Set<String> roles = new LinkedHashSet<>();
-        if (legacyRoleCode != null && !legacyRoleCode.isBlank()) roles.add(legacyRoleCode);
+        Integer assignmentCount = jdbc().queryForObject(
+                "SELECT COUNT(*) FROM bza_user_role WHERE admin_user_id = :adminUserId",
+                new MapSqlParameterSource("adminUserId", adminUserId), Integer.class);
         List<String> effective = jdbc().queryForList("""
-                SELECT role_code
-                  FROM bza_user_role
-                 WHERE admin_user_id = :adminUserId
-                   AND (valid_from IS NULL OR valid_from <= CURRENT_TIMESTAMP(3))
-                   AND (valid_to IS NULL OR valid_to > CURRENT_TIMESTAMP(3))
-                 ORDER BY primary_yn DESC, role_code
+                SELECT ur.role_code
+                  FROM bza_user_role ur
+                  JOIN bza_role r ON r.role_code = ur.role_code AND r.use_yn = 'Y'
+                 WHERE ur.admin_user_id = :adminUserId
+                   AND (ur.valid_from IS NULL OR ur.valid_from <= CURRENT_TIMESTAMP(3))
+                   AND (ur.valid_to IS NULL OR ur.valid_to > CURRENT_TIMESTAMP(3))
+                 ORDER BY ur.primary_yn DESC, ur.role_code
                 """, new MapSqlParameterSource("adminUserId", adminUserId), String.class);
         roles.addAll(effective);
+
+        // 다중 Role 이력이 한 번도 없는 구형 DB/계정만 legacy role_code를 fallback으로 사용합니다.
+        // 이력이 존재하는 계정에서 만료/회수된 Role이 legacy 컬럼 때문에 부활하지 않게 합니다.
+        if ((assignmentCount == null || assignmentCount == 0) && legacyRoleCode != null && !legacyRoleCode.isBlank()) {
+            Integer activeLegacy = jdbc().queryForObject("""
+                    SELECT COUNT(*) FROM bza_role WHERE role_code = :roleCode AND use_yn = 'Y'
+                    """, new MapSqlParameterSource("roleCode", legacyRoleCode), Integer.class);
+            if (activeLegacy != null && activeLegacy > 0) roles.add(legacyRoleCode);
+        }
         return List.copyOf(roles);
     }
 
     private List<String> findMenus(List<String> roleCodes) {
         if (roleCodes.isEmpty()) return List.of();
         List<String> rows = jdbc().queryForList("""
-                SELECT DISTINCT menu_code
-                  FROM bza_permission
-                 WHERE role_code IN (:roleCodes)
-                   AND allow_yn = 'Y'
-                   AND use_yn = 'Y'
-                 ORDER BY menu_code
-                """, new MapSqlParameterSource("roleCodes", roleCodes), String.class);
+                SELECT p.menu_code
+                  FROM bza_permission p
+                  JOIN bza_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
+                  JOIN bza_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
+                 WHERE p.role_code IN (:roleCodes)
+                   AND p.use_yn = 'Y'
+                   AND p.environment_code IN ('ALL', :environmentCode)
+                   AND m.environment_code IN ('ALL', :environmentCode)
+                 GROUP BY p.menu_code
+                HAVING SUM(CASE WHEN p.allow_yn = 'N' THEN 1 ELSE 0 END) = 0
+                   AND SUM(CASE WHEN p.allow_yn = 'Y' THEN 1 ELSE 0 END) > 0
+                 ORDER BY p.menu_code
+                """, new MapSqlParameterSource()
+                .addValue("roleCodes", roleCodes)
+                .addValue("environmentCode", environmentCode), String.class);
         return rows.stream().map(BzaAuthRepository::normalizeMenuCode).distinct().toList();
     }
 
     private List<String> findButtons(List<String> roleCodes) {
         if (roleCodes.isEmpty()) return List.of();
         List<Map<String, Object>> rows = jdbc().queryForList("""
-                SELECT menu_code AS menuCode, button_code AS buttonCode
-                  FROM bza_permission
-                 WHERE role_code IN (:roleCodes)
-                   AND allow_yn = 'Y'
-                   AND use_yn = 'Y'
-                 ORDER BY menu_code, button_code
-                """, new MapSqlParameterSource("roleCodes", roleCodes));
+                SELECT p.menu_code AS menuCode, p.button_code AS buttonCode
+                  FROM bza_permission p
+                  JOIN bza_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
+                  JOIN bza_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
+                 WHERE p.role_code IN (:roleCodes)
+                   AND p.use_yn = 'Y'
+                   AND p.environment_code IN ('ALL', :environmentCode)
+                   AND m.environment_code IN ('ALL', :environmentCode)
+                 GROUP BY p.menu_code, p.button_code
+                HAVING SUM(CASE WHEN p.allow_yn = 'N' THEN 1 ELSE 0 END) = 0
+                   AND SUM(CASE WHEN p.allow_yn = 'Y' THEN 1 ELSE 0 END) > 0
+                 ORDER BY p.menu_code, p.button_code
+                """, new MapSqlParameterSource()
+                .addValue("roleCodes", roleCodes)
+                .addValue("environmentCode", environmentCode));
         List<String> permissions = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             String menu = normalizeMenuCode(String.valueOf(row.get("menuCode")));
@@ -317,6 +347,14 @@ public class BzaAuthRepository {
         if (menuCode == null) return "";
         String normalized = menuCode.trim();
         return normalized.regionMatches(true, 0, "BZA_", 0, 4) ? normalized.substring(4) : normalized;
+    }
+
+    private static String resolveEnvironmentCode(Environment environment) {
+        String explicit = environment.getProperty("cpf.environment-code");
+        if (explicit != null && !explicit.isBlank()) return explicit.trim().toUpperCase();
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles.length == 0) return "ALL";
+        return profiles[0].trim().toUpperCase();
     }
 
     private NamedParameterJdbcTemplate jdbc() {

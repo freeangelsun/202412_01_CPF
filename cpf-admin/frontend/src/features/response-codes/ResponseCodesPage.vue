@@ -21,7 +21,6 @@
         </div>
         <pre class="detail">{{ pretty(responseCodeResult) }}</pre>
       </section>
-  </template>
 </template>
 
 <script lang="ts">

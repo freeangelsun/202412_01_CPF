@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.time.OffsetDateTime;
 
 /**
  * BAT 단독 기동 상태와 smoke Job 실행 결과를 확인하는 운영 API입니다.
@@ -87,9 +88,15 @@ public class BatHealthController extends com.cpf.batch.common.base.BatBaseContro
         CpfServerIdentity.Identity identity = CpfServerIdentity.current();
         response.put("status", status);
         response.put("application", "bat");
+        response.put("moduleId", environment.getProperty("cpf.framework.module-id", "BAT"));
+        response.put("wasId", environment.getProperty("cpf.framework.was-id", "batWK01"));
         response.put("serverInstanceId", identity.serverInstanceId());
         response.put("workerId", identity.serverInstanceId());
+        response.put("host", identity.hostName());
+        response.put("hostName", identity.hostName());
+        response.put("processId", identity.processId());
         response.put("profiles", environment.getActiveProfiles());
+        response.put("checkedAt", OffsetDateTime.now().toString());
         return response;
     }
 

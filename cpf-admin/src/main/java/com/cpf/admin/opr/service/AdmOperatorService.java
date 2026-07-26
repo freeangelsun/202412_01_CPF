@@ -10,10 +10,10 @@ import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.admin.opr.dto.AdmRole;
 import com.cpf.core.api.util.CpfTimes;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.security.password.CpfPasswordHashingPort;
-import com.cpf.core.common.security.password.CpfPasswordVerification;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.security.password.CpfPasswordService;
+import com.cpf.core.api.security.password.CpfPasswordVerification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,14 +40,14 @@ import java.util.concurrent.ConcurrentMap;
 public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmOperatorService.class);
     private final AdmPasswordPolicyService passwordPolicyService;
-    private final CpfPasswordHashingPort passwordHashingPort;
+    private final CpfPasswordService passwordHashingPort;
     private final JdbcTemplate admJdbcTemplate;
     private final ConcurrentMap<String, OperatorState> operators = new ConcurrentHashMap<>();
     private final List<AdmRole> fallbackRoles = new ArrayList<>();
     private final List<AdmMenu> fallbackMenus = new ArrayList<>();
 
     public AdmOperatorService(AdmPasswordPolicyService passwordPolicyService,
-                              CpfPasswordHashingPort passwordHashingPort,
+                              CpfPasswordService passwordHashingPort,
                               @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate) {
         this.passwordPolicyService = passwordPolicyService;
         this.passwordHashingPort = passwordHashingPort;

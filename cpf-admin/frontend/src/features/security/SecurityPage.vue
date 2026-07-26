@@ -19,9 +19,6 @@
         </div>
         <pre class="detail">{{ pretty(securityResult) }}</pre>
       </section>
-
-
-  </template>
 </template>
 
 <script lang="ts">

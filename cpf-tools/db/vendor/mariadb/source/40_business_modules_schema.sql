@@ -343,6 +343,7 @@ CREATE TABLE IF NOT EXISTS bza_menu (
     api_path VARCHAR(300) NULL COMMENT '연결 API 경로',
     sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -358,6 +359,7 @@ CREATE TABLE IF NOT EXISTS bza_role (
     write_allowed_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '쓰기 허용 여부',
     data_scope VARCHAR(30) NOT NULL DEFAULT 'OWN' COMMENT '기본 데이터 접근 범위',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -368,16 +370,22 @@ CREATE TABLE IF NOT EXISTS bza_role (
 
 
 CREATE TABLE IF NOT EXISTS bza_user_role (
+    user_role_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '사용자 역할 이력 순번',
     admin_user_id BIGINT NOT NULL COMMENT '업무 관리자 사용자 순번',
     role_code VARCHAR(50) NOT NULL COMMENT '업무 역할 코드',
     valid_from DATETIME(3) NULL COMMENT '역할 적용 시작시각',
     valid_to DATETIME(3) NULL COMMENT '역할 적용 종료시각',
     primary_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '대표 역할 여부',
+    grant_reason VARCHAR(500) NOT NULL DEFAULT 'INITIAL' COMMENT '부여/변경 사유',
+    operation_id VARCHAR(100) NULL COMMENT '멱등 작업 식별자',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    PRIMARY KEY (admin_user_id, role_code),
+    PRIMARY KEY (user_role_id),
+    UNIQUE KEY uk_bza_user_role_operation (operation_id),
+    INDEX ix_bza_user_role_user (admin_user_id, valid_to, primary_yn, user_role_id),
     INDEX ix_bza_user_role_role (role_code, valid_to, admin_user_id),
     CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id)
         REFERENCES bza_admin_user(admin_user_id) ON DELETE CASCADE,
@@ -387,7 +395,7 @@ CREATE TABLE IF NOT EXISTS bza_user_role (
     CONSTRAINT ck_bza_user_role_effective CHECK (
         valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from
     )
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 다중 역할 매핑';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 사용자 다중 역할 이력';
 
 CREATE TABLE IF NOT EXISTS bza_permission (
     permission_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 권한 순번',
@@ -402,12 +410,13 @@ CREATE TABLE IF NOT EXISTS bza_permission (
     data_scope VARCHAR(30) NOT NULL DEFAULT 'ROLE' COMMENT '권한 데이터 범위',
     allow_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '허용 여부',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
     PRIMARY KEY (permission_id),
-    UNIQUE KEY uk_bza_permission (role_code, menu_code, button_code),
+    INDEX ix_bza_permission_scope (role_code, menu_code, button_code, environment_code, domain_code, http_method),
     INDEX ix_bza_permission_menu (menu_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 권한';
 
@@ -421,6 +430,7 @@ CREATE TABLE IF NOT EXISTS bza_organization (
     effective_from DATETIME(3) NULL COMMENT '조직 적용 시작시각',
     effective_to DATETIME(3) NULL COMMENT '조직 적용 종료시각',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -440,6 +450,7 @@ CREATE TABLE IF NOT EXISTS bza_position (
     position_name VARCHAR(100) NOT NULL COMMENT '직급명',
     rank_order INT NOT NULL DEFAULT 0 COMMENT '직급 정렬/서열 값',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -453,6 +464,7 @@ CREATE TABLE IF NOT EXISTS bza_job_title (
     job_title_name VARCHAR(100) NOT NULL COMMENT '직책명',
     manager_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '조직 책임자 성격 여부',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -476,6 +488,7 @@ CREATE TABLE IF NOT EXISTS bza_employee (
     email VARCHAR(200) NULL COMMENT '업무 이메일',
     mobile_no VARCHAR(50) NULL COMMENT '업무 휴대폰 번호',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -509,6 +522,7 @@ CREATE TABLE IF NOT EXISTS bza_employee_assignment (
     primary_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '대표 소속 여부',
     effective_from DATETIME(3) NOT NULL COMMENT '발령 적용 시작시각',
     effective_to DATETIME(3) NULL COMMENT '발령 적용 종료시각',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -543,6 +557,7 @@ CREATE TABLE IF NOT EXISTS bza_organization_responsibility (
     effective_to DATETIME(3) NULL COMMENT '책임 종료시각',
     priority_no INT NOT NULL DEFAULT 1 COMMENT '동일 책임 우선순위',
     use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
@@ -586,6 +601,21 @@ CREATE TABLE IF NOT EXISTS bza_business_audit (
     INDEX ix_bza_business_audit_transaction (transaction_id),
     INDEX ix_bza_business_audit_hash (record_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 업무 감사';
+
+
+CREATE TABLE IF NOT EXISTS bza_audit_chain_lock (
+    chain_id BIGINT NOT NULL COMMENT '감사 체인 식별자. 기본 체인은 1',
+    current_hash CHAR(64) NULL COMMENT '현재 감사 체인 head SHA-256',
+    last_audit_id BIGINT NULL COMMENT '현재 체인의 마지막 감사 ID',
+    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '체인 갱신 버전',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '마지막 갱신자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '마지막 갱신시각',
+    PRIMARY KEY (chain_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BZA 감사 체인 동시성/무결성 head';
+
+INSERT INTO bza_audit_chain_lock(chain_id,current_hash,last_audit_id,version_no,updated_by)
+VALUES(1,NULL,NULL,0,'SYSTEM')
+ON DUPLICATE KEY UPDATE chain_id=VALUES(chain_id);
 
 CREATE TABLE IF NOT EXISTS bza_notification (
     notification_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '업무 알림 순번',

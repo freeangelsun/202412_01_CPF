@@ -1,6 +1,7 @@
 package com.cpf.bizadmin.auth.service;
 
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
@@ -10,10 +11,10 @@ import com.cpf.common.sec.token.CmnJwtCreateRequest;
 import com.cpf.common.sec.token.CmnJwtService;
 import com.cpf.common.sec.token.CmnJwtValidationResult;
 import com.cpf.core.api.util.CpfStrings;
-import com.cpf.core.common.logging.ServerInstanceIdentity;
-import com.cpf.core.common.logging.TransactionContext;
-import com.cpf.core.common.security.password.CpfPasswordHashingPort;
-import com.cpf.core.common.security.password.CpfPasswordVerification;
+import com.cpf.core.api.logging.CpfServerIdentity;
+import com.cpf.core.api.logging.CpfTransactionContext;
+import com.cpf.core.api.security.password.CpfPasswordService;
+import com.cpf.core.api.security.password.CpfPasswordVerification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,9 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
 
     private final CmnJwtService jwtService;
     private final CmnCryptoService cryptoService;
-    private final CpfPasswordHashingPort passwordHashingPort;
+    private final CpfPasswordService passwordHashingPort;
     private final BzaAuthRepository authRepository;
+    private final BzaBusinessAuditService auditService;
     private final String jwtSecret;
     private final long accessTokenTtlSeconds;
     private final long refreshTokenTtlSeconds;
@@ -51,8 +53,9 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     public BzaAuthService(
             CmnJwtService jwtService,
             CmnCryptoService cryptoService,
-            CpfPasswordHashingPort passwordHashingPort,
+            CpfPasswordService passwordHashingPort,
             BzaAuthRepository authRepository,
+            BzaBusinessAuditService auditService,
             @Value("${cpf.bza.security.jwt-secret:${CPF_BZA_JWT_SECRET:}}") String jwtSecret,
             @Value("${cpf.bza.security.access-token-ttl-seconds:600}") long accessTokenTtlSeconds,
             @Value("${cpf.bza.security.refresh-token-ttl-seconds:7200}") long refreshTokenTtlSeconds,
@@ -62,6 +65,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         this.cryptoService = cryptoService;
         this.passwordHashingPort = passwordHashingPort;
         this.authRepository = authRepository;
+        this.auditService = auditService;
         this.jwtSecret = jwtSecret;
         this.accessTokenTtlSeconds = accessTokenTtlSeconds;
         this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
@@ -111,7 +115,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
                 operator.adminUserId(),
                 LOGIN_DOMAIN,
                 refreshHash,
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 refreshExpireAt));
         return new LoginResult(accessToken, refreshToken, "Bearer", accessTokenTtlSeconds, refreshExpireAt, toOperatorResponse(operator));
     }
@@ -141,7 +145,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         Instant rotatedExpireAt = Instant.now().plusSeconds(refreshTokenTtlSeconds);
         authRepository.insertRefreshToken(new RefreshTokenWrite(
                 operator.adminUserId(), LOGIN_DOMAIN, rotatedHash,
-                TransactionContext.getOrCreateTransactionId(), rotatedExpireAt));
+                CpfTransactionContext.transactionId(), rotatedExpireAt));
         return new LoginResult(createAccessToken(operator), rotatedToken, "Bearer", accessTokenTtlSeconds,
                 rotatedExpireAt, toOperatorResponse(operator));
     }
@@ -178,6 +182,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         BzaOperatorRow operator = authRepository.findOperatorByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "업무 관리자 정보를 찾을 수 없습니다."));
         requireActiveOperator(operator);
+        requirePasswordPolicySatisfied(operator);
         String required = menuCode + ":" + actionCode;
         boolean allowed = operator.buttons().stream().anyMatch(required::equalsIgnoreCase)
                 || operator.buttons().stream().anyMatch(value -> (menuCode + ":ALL").equalsIgnoreCase(value));
@@ -213,16 +218,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         if (updated != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "폐기할 활성 세션을 찾을 수 없습니다.");
         }
-        Map<String, Object> audit = new LinkedHashMap<>();
-        audit.put("transactionId", TransactionContext.getOrCreateTransactionId());
-        audit.put("actorId", operator.loginId());
-        audit.put("actionType", "SESSION_REVOKE");
-        audit.put("targetType", "bza_refresh_token");
-        audit.put("targetId", String.valueOf(sessionId));
-        audit.put("reason", requiredReason);
-        audit.put("beforeData", null);
-        audit.put("afterData", "{revokedYn=Y}");
-        authRepository.insertBusinessAudit(audit);
+auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", String.valueOf(sessionId), requiredReason, null, Map.of("revokedYn", "Y"));
         return Map.of("sessionId", sessionId, "revokedYn", "Y");
     }
 
@@ -264,7 +260,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         claims.put("roleCode", operator.roleCode());
         claims.put("moduleId", moduleId);
         claims.put("wasId", wasId);
-        claims.put("serverInstanceId", ServerInstanceIdentity.current().serverInstanceId());
+        claims.put("serverInstanceId", CpfServerIdentity.current().serverInstanceId());
         claims.put("menus", operator.menus());
         claims.put("buttons", operator.buttons());
         return jwtService.createHs256Token(new CmnJwtCreateRequest(
@@ -337,6 +333,19 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         }
     }
 
+    private boolean passwordChangeRequired(BzaOperatorRow operator) {
+        return "Y".equals(operator.passwordChangeRequiredYn())
+                || (operator.passwordExpireAt() != null && !operator.passwordExpireAt().isAfter(Instant.now()));
+    }
+
+    private void requirePasswordPolicySatisfied(BzaOperatorRow operator) {
+        if (passwordChangeRequired(operator)) {
+            throw new ResponseStatusException(
+                    HttpStatus.PRECONDITION_REQUIRED,
+                    "비밀번호 변경이 필요합니다. 비밀번호 변경 API 외 업무 API는 사용할 수 없습니다.");
+        }
+    }
+
     private void requireStrongPassword(String loginId, String password) {
         long categories = java.util.stream.Stream.of(
                 password.matches(".*[A-Z].*"),
@@ -359,7 +368,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
             String failureReason,
             String clientIp,
             String userAgent) {
-        ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();
+        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
         authRepository.insertLoginHistory(new LoginHistoryWrite(
                 adminUserId,
                 LOGIN_DOMAIN,
@@ -368,7 +377,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
                 failureReason,
                 clientIp,
                 userAgent,
-                TransactionContext.getOrCreateTransactionId(),
+                CpfTransactionContext.transactionId(),
                 moduleId,
                 wasId,
                 identity.serverInstanceId()));
@@ -383,7 +392,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         response.put("useYn", operator.useYn());
         response.put("lockYn", operator.lockYn());
         response.put("failCount", operator.loginFailCount());
-        response.put("passwordChangeRequiredYn", operator.passwordChangeRequiredYn());
+        response.put("passwordChangeRequiredYn", passwordChangeRequired(operator) ? "Y" : "N");
         response.put("passwordExpireAt", operator.passwordExpireAt());
         response.put("lastLoginAt", operator.lastLoginAt());
         response.put("menus", operator.menus());

@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 2,
+  "sourceOfTruth": "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql",
+  "policy": {
+    "unsupportedVendorSqlCopyForbidden": true,
+    "generatorMustValidateCatalog": true,
+    "unsupportedVendorMustFailClosed": true,
+    "canonicalDbSourcePattern": "cpf-tools/db/vendor/<vendor>/source"
+  },
+  "codeGroups": {
+    "YN": [
+      "Y",
+      "N"
+    ],
+    "MODULE": [
+      "CPF",
+      "CMN",
+      "ADM",
+      "BAT",
+      "BZA",
+      "MBR"
+    ],
+    "REQUEST_TYPE": [
+      "O",
+      "S",
+      "B"
+    ],
+    "CHANNEL_CODE": [
+      "WEB",
+      "APP",
+      "JUT",
+      "BATCH"
+    ],
+    "RESULT_TYPE": [
+      "S",
+      "E",
+      "W"
+    ],
+    "MESSAGE_FORMAT_TYPE": [
+      "FIXED",
+      "PARAMETER"
+    ],
+    "LOG_LEVEL": [
+      "TRACE",
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "ERROR"
+    ],
+    "CACHE_NAME": [
+      "CODE",
+      "MESSAGE",
+      "RESPONSE_CODE",
+      "CONFIG"
+    ],
+    "HTTP_METHOD": [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ],
+    "EXECUTION_STATUS": [
+      "READY",
+      "RUNNING",
+      "SUCCESS",
+      "FAILED",
+      "UNKNOWN_RESULT"
+    ],
+    "ASYNC_STATUS": [
+      "WAITING",
+      "PROCESSING",
+      "COMPLETED",
+      "FAILED",
+      "DLQ"
+    ],
+    "BATCH_JOB_TYPE": [
+      "SPRING_BATCH",
+      "WORKER",
+      "SCHEDULER",
+      "CENTER_CUT"
+    ],
+    "RETRY_STATUS": [
+      "RETRYABLE",
+      "NON_RETRYABLE",
+      "EXHAUSTED"
+    ],
+    "IDEMPOTENCY_STATUS": [
+      "PROCESSING",
+      "COMPLETED",
+      "FAILED",
+      "UNKNOWN_RESULT"
+    ],
+    "HEALTH_STATUS": [
+      "UP",
+      "DOWN",
+      "DEGRADED"
+    ],
+    "CIRCUIT_STATUS": [
+      "CLOSED",
+      "OPEN",
+      "HALF_OPEN"
+    ],
+    "FILE_SCAN_STATUS": [
+      "PENDING",
+      "CLEAN",
+      "INFECTED",
+      "FAILED",
+      "QUARANTINED"
+    ],
+    "DATA_CLASSIFICATION": [
+      "PUBLIC",
+      "INTERNAL",
+      "CONFIDENTIAL",
+      "RESTRICTED"
+    ],
+    "APPROVAL_STATUS": [
+      "DRAFT",
+      "IN_REVIEW",
+      "APPROVED",
+      "REJECTED",
+      "WITHDRAWN",
+      "CANCELED",
+      "EXPIRED"
+    ],
+    "SORT_DIRECTION": [
+      "ASC",
+      "DESC"
+    ],
+    "ERROR_CATEGORY": [
+      "VALIDATION",
+      "AUTHENTICATION",
+      "AUTHORIZATION",
+      "CONFLICT",
+      "TIMEOUT",
+      "TARGET_DOWN",
+      "UNKNOWN_RESULT"
+    ],
+    "RETENTION_ACTION": [
+      "ARCHIVE",
+      "PURGE",
+      "LEGAL_HOLD"
+    ]
+  },
+  "requiredMessages": [
+    "MCPF030002",
+    "MCPF030003",
+    "MCPF030004",
+    "MCPF020002",
+    "MCPF020003",
+    "MCPF040001",
+    "MCPF040002",
+    "MCPF020004",
+    "MCPF020005",
+    "MCPF020006",
+    "MCPF020007",
+    "MCPF040003",
+    "MCPF040004",
+    "MCPF050001",
+    "MCPF050002"
+  ],
+  "requiredResponseCodes": [
+    "ECPF030002",
+    "ECPF030003",
+    "ECPF030004",
+    "ECPF020002",
+    "ECPF020003",
+    "ECPF040001",
+    "ECPF040002",
+    "ECPF020004",
+    "ECPF020005",
+    "ECPF020006",
+    "ECPF020007",
+    "ECPF040003",
+    "ECPF040004",
+    "ECPF050001",
+    "ECPF050002"
+  ],
+  "requiredConfigs": [
+    "CPF.PAGING.DEFAULT_SIZE",
+    "CPF.PAGING.MAX_SIZE",
+    "CPF.RETENTION.DRY_RUN_DEFAULT",
+    "CPF.RETENTION.EXECUTE_ENABLED",
+    "CPF.SECRET.CACHE_TTL_SECONDS",
+    "CPF.TENANT.ENABLED",
+    "CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS"
+  ],
+  "vendorImplementations": {
+    "mariadb": "implemented",
+    "mysql": "not-implemented",
+    "postgresql": "not-implemented",
+    "oracle": "not-implemented",
+    "sqlserver": "not-implemented"
+  }
+}

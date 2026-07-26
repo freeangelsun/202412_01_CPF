@@ -2,27 +2,20 @@ package com.cpf.core.api.page;
 
 import java.util.List;
 
-/** CPF Offset Page 응답 표준입니다. */
-public record CpfPage<T>(
-        List<T> items,
-        int page,
-        int size,
-        long totalElements,
-        long totalPages,
-        boolean hasNext,
-        boolean hasPrevious) {
-
+/** CPF 공통 서버 Paging 응답 계약. */
+public record CpfPage<T>(List<T> content, long totalElements, int page, int size) {
     public CpfPage {
-        items = items == null ? List.of() : List.copyOf(items);
-        if (page < 0 || size <= 0 || totalElements < 0 || totalPages < 0) {
-            throw new IllegalArgumentException("Page metadata가 올바르지 않습니다.");
-        }
+        content = content == null ? List.of() : List.copyOf(content);
+        if (totalElements < 0) throw new IllegalArgumentException("totalElements는 0 이상이어야 합니다.");
+        if (page < 0) throw new IllegalArgumentException("page는 0 이상이어야 합니다.");
+        if (size < 1) throw new IllegalArgumentException("size는 1 이상이어야 합니다.");
     }
 
-    public static <T> CpfPage<T> of(List<T> items, CpfPageRequest request, long totalElements) {
-        long pages = totalElements == 0 ? 0 : ((totalElements - 1) / request.size()) + 1;
-        return new CpfPage<>(
-                items, request.page(), request.size(), totalElements, pages,
-                request.page() + 1 < pages, request.page() > 0);
+    public long totalPages() {
+        return totalElements == 0 ? 0 : (totalElements + size - 1) / size;
+    }
+
+    public boolean hasNext() {
+        return ((long) page + 1L) * size < totalElements;
     }
 }

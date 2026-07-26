@@ -2,17 +2,31 @@ export const referenceMethods: Record<string, any> = {
   setMessage(message) {
         this.uiMessage = message || "";
       },
-  async parseResponse(response) {
+  async parseResponse(response, throwOnError = true) {
         const contentType = response.headers.get("content-type") || "";
-        const data = contentType.includes("application/json")
-          ? await response.json()
-          : { message: await response.text() };
-        if (response.status === 401) {
-          this.clearToken("세션이 만료되었습니다. 다시 로그인하세요.");
-        } else if (response.status === 403) {
-          this.setMessage(data.message || "해당 작업 권한이 없습니다.");
-        } else if (!response.ok) {
-          this.setMessage(data.message || `요청 실패: status=${response.status}`);
+        let data;
+        try {
+          data = contentType.includes("application/json")
+            ? await response.json()
+            : { message: await response.text() };
+        } catch (error) {
+          data = { message: `응답 본문을 해석할 수 없습니다. status=${response.status}` };
+        }
+        if (!response.ok) {
+          const message = response.status === 401
+            ? "세션이 만료되었습니다. 다시 로그인하세요."
+            : response.status === 403
+              ? (data?.message || "해당 작업 권한이 없습니다.")
+              : (data?.message || `요청 실패: status=${response.status}`);
+          if (response.status === 401) this.clearToken(message);
+          else this.setMessage(message);
+          if (throwOnError) {
+            const error = new Error(message);
+            error.name = "CpfApiError";
+            error.status = response.status;
+            error.body = data;
+            throw error;
+          }
         }
         return data;
       },

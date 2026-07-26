@@ -1,160 +1,27 @@
 package com.cpf.bizadmin.directory.service;
 
 import com.cpf.bizadmin.directory.repository.BzaDirectoryRepository;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.page.CpfPage;
+import com.cpf.core.api.page.CpfPageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.sql.Timestamp;import java.time.Instant;import java.util.*;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-/** BZA 조직/직급/직책/발령/조직책임/다중 Role 관리 서비스. */
-@Service
-public class BzaDirectoryService {
-    private static final java.util.Set<String> ASSIGNMENT_TYPES =
-            java.util.Set.of("PRIMARY", "CONCURRENT", "SECONDMENT", "ACTING");
-    private static final java.util.Set<String> RESPONSIBILITY_TYPES =
-            java.util.Set.of("MANAGER", "DEPUTY", "ACTING", "APPROVAL_OWNER");
-
-    private final BzaDirectoryRepository repository;
-
-    public BzaDirectoryService(BzaDirectoryRepository repository) {
-        this.repository = repository;
-    }
-
-    public List<Map<String, Object>> findPositions() { return repository.findPositions(); }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> savePosition(PositionRequest request, String operatorId) {
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("positionCode", required(request.positionCode(), "positionCode"));
-        values.put("positionName", required(request.positionName(), "positionName"));
-        values.put("rankOrder", request.rankOrder() == null ? 0 : request.rankOrder());
-        values.put("useYn", yn(request.useYn(), "Y"));
-        values.put("operatorId", required(operatorId, "operatorId"));
-        repository.savePosition(values);
-        return Map.of("saved", true, "positionCode", values.get("positionCode"));
-    }
-
-    public List<Map<String, Object>> findJobTitles() { return repository.findJobTitles(); }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> saveJobTitle(JobTitleRequest request, String operatorId) {
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("jobTitleCode", required(request.jobTitleCode(), "jobTitleCode"));
-        values.put("jobTitleName", required(request.jobTitleName(), "jobTitleName"));
-        values.put("managerYn", yn(request.managerYn(), "N"));
-        values.put("useYn", yn(request.useYn(), "Y"));
-        values.put("operatorId", required(operatorId, "operatorId"));
-        repository.saveJobTitle(values);
-        return Map.of("saved", true, "jobTitleCode", values.get("jobTitleCode"));
-    }
-
-    public List<Map<String, Object>> findAssignments(String employeeNo, String organizationCode, Instant effectiveAt) {
-        return repository.findAssignments(employeeNo, organizationCode, effectiveAt == null ? Instant.now() : effectiveAt);
-    }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> saveAssignment(AssignmentRequest request, String operatorId) {
-        String employeeNo = required(request.employeeNo(), "employeeNo");
-        Instant from = required(request.effectiveFrom(), "effectiveFrom");
-        Instant to = request.effectiveTo();
-        if (to != null && !to.isAfter(from)) throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");
-        String assignmentType = normalized(request.assignmentType(), "PRIMARY");
-        if (!ASSIGNMENT_TYPES.contains(assignmentType)) throw new CpfValidationException("지원하지 않는 assignmentType입니다.");
-        String primaryYn = yn(request.primaryYn(), "Y");
-        if ("Y".equals(primaryYn)
-                && repository.countOverlappingPrimaryAssignment(employeeNo, from, to, request.assignmentId()) > 0) {
-            throw new CpfValidationException("같은 직원의 대표 소속 유효기간이 중복됩니다.");
-        }
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("assignmentId", request.assignmentId());
-        values.put("employeeNo", employeeNo);
-        values.put("organizationCode", required(request.organizationCode(), "organizationCode"));
-        values.put("positionCode", emptyToNull(request.positionCode()));
-        values.put("jobTitleCode", emptyToNull(request.jobTitleCode()));
-        values.put("assignmentType", assignmentType);
-        values.put("primaryYn", primaryYn);
-        values.put("effectiveFrom", Timestamp.from(from));
-        values.put("effectiveTo", to == null ? null : Timestamp.from(to));
-        values.put("operatorId", required(operatorId, "operatorId"));
-        repository.saveAssignment(values);
-        return Map.of("saved", true, "employeeNo", employeeNo);
-    }
-
-    public List<Map<String, Object>> findResponsibilities(String organizationCode, Instant effectiveAt) {
-        return repository.findResponsibilities(organizationCode, effectiveAt == null ? Instant.now() : effectiveAt);
-    }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> saveResponsibility(ResponsibilityRequest request, String operatorId) {
-        Instant from = required(request.effectiveFrom(), "effectiveFrom");
-        Instant to = request.effectiveTo();
-        if (to != null && !to.isAfter(from)) throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");
-        String type = normalized(request.responsibilityType(), "MANAGER");
-        if (!RESPONSIBILITY_TYPES.contains(type)) throw new CpfValidationException("지원하지 않는 responsibilityType입니다.");
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("responsibilityId", request.responsibilityId());
-        values.put("organizationCode", required(request.organizationCode(), "organizationCode"));
-        values.put("responsibilityType", type);
-        values.put("employeeNo", required(request.employeeNo(), "employeeNo"));
-        values.put("effectiveFrom", Timestamp.from(from));
-        values.put("effectiveTo", to == null ? null : Timestamp.from(to));
-        values.put("operatorId", required(operatorId, "operatorId"));
-        repository.saveResponsibility(values);
-        return Map.of("saved", true, "organizationCode", values.get("organizationCode"));
-    }
-
-    public List<Map<String, Object>> findUserRoles(String loginId, Instant effectiveAt) {
-        return repository.findUserRoles(loginId, effectiveAt == null ? Instant.now() : effectiveAt);
-    }
-
-    @Transactional(transactionManager = "bzaTransactionManager")
-    public Map<String, Object> saveUserRole(UserRoleRequest request, String operatorId) {
-        Instant from = request.validFrom();
-        Instant to = request.validTo();
-        if (from != null && to != null && !to.isAfter(from)) throw new CpfValidationException("validTo는 validFrom보다 뒤여야 합니다.");
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("loginId", required(request.loginId(), "loginId"));
-        values.put("roleCode", required(request.roleCode(), "roleCode"));
-        values.put("validFrom", from == null ? null : Timestamp.from(from));
-        values.put("validTo", to == null ? null : Timestamp.from(to));
-        values.put("primaryYn", yn(request.primaryYn(), "N"));
-        values.put("operatorId", required(operatorId, "operatorId"));
-        int changed = repository.saveUserRole(values);
-        if (changed == 0) throw new CpfValidationException("존재하는 BZA 사용자를 찾을 수 없습니다.");
-        return Map.of("saved", true, "loginId", values.get("loginId"), "roleCode", values.get("roleCode"));
-    }
-
-    private static String required(String value, String field) {
-        if (value == null || value.isBlank()) throw new CpfValidationException(field + "는 필수입니다.");
-        return value.trim();
-    }
-    private static <T> T required(T value, String field) {
-        if (value == null) throw new CpfValidationException(field + "는 필수입니다.");
-        return value;
-    }
-    private static String yn(String value, String defaultValue) {
-        String v = normalized(value, defaultValue);
-        if (!v.equals("Y") && !v.equals("N")) throw new CpfValidationException("Y/N 값이 필요합니다.");
-        return v;
-    }
-    private static String normalized(String value, String defaultValue) {
-        return (value == null || value.isBlank() ? defaultValue : value.trim()).toUpperCase(Locale.ROOT);
-    }
-    private static String emptyToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }
-
-    public record PositionRequest(String positionCode, String positionName, Integer rankOrder, String useYn, String reason) {}
-    public record JobTitleRequest(String jobTitleCode, String jobTitleName, String managerYn, String useYn, String reason) {}
-    public record AssignmentRequest(Long assignmentId, String employeeNo, String organizationCode, String positionCode,
-                                    String jobTitleCode, String assignmentType, String primaryYn,
-                                    Instant effectiveFrom, Instant effectiveTo, String reason) {}
-    public record ResponsibilityRequest(Long responsibilityId, String organizationCode, String responsibilityType,
-                                        String employeeNo, Instant effectiveFrom, Instant effectiveTo, String reason) {}
-    public record UserRoleRequest(String loginId, String roleCode, Instant validFrom, Instant validTo,
-                                  String primaryYn, String reason) {}
+/** BZA 조직/직급/직책/Assignment/User Role 관리. */
+@Service public class BzaDirectoryService {
+ private static final Set<String> ASSIGNMENT_TYPES=Set.of("PRIMARY","CONCURRENT","SECONDMENT","ACTING"); private static final Set<String> RESPONSIBILITY_TYPES=Set.of("MANAGER","DEPUTY","ACTING","APPROVAL_OWNER");
+ private final BzaDirectoryRepository r; public BzaDirectoryService(BzaDirectoryRepository r){this.r=r;}
+ public List<Map<String,Object>> findPositions(){return r.findPositions();} public CpfPage<Map<String,Object>> positionsPage(Integer p,Integer s){return r.positionPage(CpfPageRequest.of(p,s));}
+ @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> savePosition(PositionRequest q,String op){String code=req(q.positionCode(),"positionCode");Map<String,Object>v=new LinkedHashMap<>();v.put("positionCode",code);v.put("positionName",req(q.positionName(),"positionName"));v.put("rankOrder",q.rankOrder()==null?0:q.rankOrder());v.put("useYn",yn(q.useYn(),"Y"));v.put("operatorId",req(op,"operatorId"));v.put("expectedVersion",q.expectedVersion());boolean exists=r.findPosition(code).isPresent();if(exists&&q.expectedVersion()==null)throw new CpfValidationException("직급 수정에는 expectedVersion이 필요합니다.");int c=exists?r.updatePosition(v):r.insertPosition(v);if(c!=1)throw conflict("직급");return Map.of("saved",true,"positionCode",code);}
+ public List<Map<String,Object>> findJobTitles(){return r.findJobTitles();} public CpfPage<Map<String,Object>> jobTitlesPage(Integer p,Integer s){return r.jobTitlePage(CpfPageRequest.of(p,s));}
+ @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveJobTitle(JobTitleRequest q,String op){String code=req(q.jobTitleCode(),"jobTitleCode");Map<String,Object>v=new LinkedHashMap<>();v.put("jobTitleCode",code);v.put("jobTitleName",req(q.jobTitleName(),"jobTitleName"));v.put("managerYn",yn(q.managerYn(),"N"));v.put("useYn",yn(q.useYn(),"Y"));v.put("operatorId",req(op,"operatorId"));v.put("expectedVersion",q.expectedVersion());boolean exists=r.findJobTitle(code).isPresent();if(exists&&q.expectedVersion()==null)throw new CpfValidationException("직책 수정에는 expectedVersion이 필요합니다.");int c=exists?r.updateJobTitle(v):r.insertJobTitle(v);if(c!=1)throw conflict("직책");return Map.of("saved",true,"jobTitleCode",code);}
+ public List<Map<String,Object>> findAssignments(String e,String o,Instant at){return r.findAssignments(e,o,at==null?Instant.now():at);} public CpfPage<Map<String,Object>> assignmentsPage(String e,String o,Instant at,Integer p,Integer s){return r.assignmentPage(e,o,at==null?Instant.now():at,CpfPageRequest.of(p,s));}
+ @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveAssignment(AssignmentRequest q,String op){String e=req(q.employeeNo(),"employeeNo");Instant f=req(q.effectiveFrom(),"effectiveFrom"),t=q.effectiveTo();if(t!=null&&!t.isAfter(f))throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");String type=norm(q.assignmentType(),"PRIMARY");if(!ASSIGNMENT_TYPES.contains(type))throw new CpfValidationException("지원하지 않는 assignmentType입니다.");r.lockEmployee(e);if("Y".equals(yn(q.primaryYn(),"Y"))&&r.countOverlappingPrimaryAssignment(e,f,t,q.assignmentId())>0)throw new CpfValidationException("같은 직원의 대표 소속 유효기간이 중복됩니다.");Map<String,Object>v=new LinkedHashMap<>();v.put("assignmentId",q.assignmentId());v.put("employeeNo",e);v.put("organizationCode",req(q.organizationCode(),"organizationCode"));v.put("positionCode",empty(q.positionCode()));v.put("jobTitleCode",empty(q.jobTitleCode()));v.put("assignmentType",type);v.put("primaryYn",yn(q.primaryYn(),"Y"));v.put("effectiveFrom",Timestamp.from(f));v.put("effectiveTo",t==null?null:Timestamp.from(t));v.put("expectedVersion",q.expectedVersion());v.put("operatorId",req(op,"operatorId"));if(q.assignmentId()!=null&&q.expectedVersion()==null)throw new CpfValidationException("Assignment 수정에는 expectedVersion이 필요합니다.");if(r.saveAssignment(v)!=1)throw conflict("Assignment");return Map.of("saved",true,"employeeNo",e);}
+ public List<Map<String,Object>> findResponsibilities(String o,Instant at){return r.findResponsibilities(o,at==null?Instant.now():at);} public CpfPage<Map<String,Object>> responsibilitiesPage(String o,Instant at,Integer p,Integer s){return r.responsibilityPage(o,at==null?Instant.now():at,CpfPageRequest.of(p,s));}
+ @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveResponsibility(ResponsibilityRequest q,String op){Instant f=req(q.effectiveFrom(),"effectiveFrom"),t=q.effectiveTo();if(t!=null&&!t.isAfter(f))throw new CpfValidationException("effectiveTo는 effectiveFrom보다 뒤여야 합니다.");String type=norm(q.responsibilityType(),"MANAGER");if(!RESPONSIBILITY_TYPES.contains(type))throw new CpfValidationException("지원하지 않는 responsibilityType입니다.");Map<String,Object>v=new LinkedHashMap<>();v.put("responsibilityId",q.responsibilityId());v.put("organizationCode",req(q.organizationCode(),"organizationCode"));v.put("responsibilityType",type);v.put("employeeNo",req(q.employeeNo(),"employeeNo"));v.put("effectiveFrom",Timestamp.from(f));v.put("effectiveTo",t==null?null:Timestamp.from(t));v.put("priorityNo",q.priorityNo()==null?1:q.priorityNo());v.put("useYn",yn(q.useYn(),"Y"));v.put("expectedVersion",q.expectedVersion());v.put("operatorId",req(op,"operatorId"));if(q.responsibilityId()!=null&&q.expectedVersion()==null)throw new CpfValidationException("조직 책임 수정에는 expectedVersion이 필요합니다.");if(r.saveResponsibility(v)!=1)throw conflict("조직 책임");return Map.of("saved",true,"organizationCode",q.organizationCode());}
+ public List<Map<String,Object>> findUserRoles(String l,Instant at){return r.findUserRoles(l,at==null?Instant.now():at);} public CpfPage<Map<String,Object>> userRolesPage(String l,Instant at,Integer p,Integer s){return r.userRolePage(l,at==null?Instant.now():at,CpfPageRequest.of(p,s));}
+ @Transactional(transactionManager="bzaTransactionManager") public Map<String,Object> saveUserRole(UserRoleRequest q,String op){String actor=req(op,"operatorId"),login=req(q.loginId(),"loginId"),role=req(q.roleCode(),"roleCode").toUpperCase(Locale.ROOT),operationId=req(q.operationId(),"operationId");Instant from=q.validFrom()==null?Instant.now():q.validFrom(),to=q.validTo();if(to!=null&&!to.isAfter(from))throw new CpfValidationException("validTo는 validFrom보다 뒤여야 합니다.");Optional<Map<String,Object>> replay=r.findUserRoleByOperationId(operationId);if(replay.isPresent()){Map<String,Object>x=replay.get();if(login.equals(x.get("loginId"))&&role.equals(x.get("roleCode")))return Map.of("saved",false,"idempotent",true,"operationId",operationId,"userRoleId",x.get("userRoleId"));throw new CpfValidationException("동일 operationId가 다른 Role 요청에 이미 사용되었습니다.");}long uid=r.lockUserAndId(login);if(uid==0)throw new CpfValidationException("존재하는 BZA 사용자를 찾을 수 없습니다.");String primary=yn(q.primaryYn(),"N");if("Y".equals(primary))r.clearPrimaryRoles(uid,from,to,actor);Map<String,Object>v=new LinkedHashMap<>();v.put("roleCode",role);v.put("validFrom",Timestamp.from(from));v.put("validTo",to==null?null:Timestamp.from(to));v.put("primaryYn",primary);v.put("grantReason",req(q.reason(),"reason"));v.put("operationId",operationId);v.put("operatorId",actor);if(r.insertUserRole(uid,v)!=1)throw new CpfValidationException("Role 이력을 저장하지 못했습니다.");if("Y".equals(primary))r.syncLegacyPrimaryRole(uid,role,actor);return Map.of("saved",true,"idempotent",false,"loginId",login,"roleCode",role,"operationId",operationId);}
+ private static CpfValidationException conflict(String n){return new CpfValidationException(n+"이 다른 관리자에 의해 변경되었습니다. 다시 조회하십시오.");} private static String req(String v,String f){if(v==null||v.isBlank())throw new CpfValidationException(f+"는 필수입니다.");return v.trim();}private static<T>T req(T v,String f){if(v==null)throw new CpfValidationException(f+"는 필수입니다.");return v;}private static String yn(String v,String d){String x=norm(v,d);if(!Set.of("Y","N").contains(x))throw new CpfValidationException("Y/N 값이 필요합니다.");return x;}private static String norm(String v,String d){return(v==null||v.isBlank()?d:v.trim()).toUpperCase(Locale.ROOT);}private static String empty(String v){return v==null||v.isBlank()?null:v.trim();}
+ public record PositionRequest(String positionCode,String positionName,Integer rankOrder,String useYn,Long expectedVersion,String reason){} public record JobTitleRequest(String jobTitleCode,String jobTitleName,String managerYn,String useYn,Long expectedVersion,String reason){} public record AssignmentRequest(Long assignmentId,String employeeNo,String organizationCode,String positionCode,String jobTitleCode,String assignmentType,String primaryYn,Instant effectiveFrom,Instant effectiveTo,Long expectedVersion,String reason){} public record ResponsibilityRequest(Long responsibilityId,String organizationCode,String responsibilityType,String employeeNo,Instant effectiveFrom,Instant effectiveTo,Integer priorityNo,String useYn,Long expectedVersion,String reason){} public record UserRoleRequest(String loginId,String roleCode,Instant validFrom,Instant validTo,String primaryYn,String operationId,String reason){}
 }

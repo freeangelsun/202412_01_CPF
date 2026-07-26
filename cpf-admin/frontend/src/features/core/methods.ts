@@ -112,7 +112,9 @@ export const coreMethods: Record<string, any> = {
         this.currentOperator = {};
         this.authorizedMenus = [];
         this.permissionsLoaded = false;
-        localStorage.removeItem("admAccessToken");
+        sessionStorage.removeItem("admAccessToken");
+        localStorage.removeItem("admAccessToken"); // R14 이전 token migration/cleanup
+        if (typeof this.resetSensitiveState === "function") this.resetSensitiveState();
         this.authMessage = message || "";
       },
   buildParams(values) {
@@ -197,10 +199,11 @@ export const coreMethods: Record<string, any> = {
       },
   settledValue(result) {
         if (result.status === "fulfilled") {
-          return result.value;
+          return { status: "AVAILABLE", data: result.value, message: "" };
         }
         return {
-          status: "미검증",
+          status: "FAILED",
+          data: null,
           message: result.reason?.message || "API wrapper call failed."
         };
       }

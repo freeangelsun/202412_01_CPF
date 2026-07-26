@@ -1,4 +1,2 @@
-<script setup lang="ts">
-import EndpointList from "../../components/EndpointList.vue";
-</script>
-<template><EndpointList title="업무 감사" endpoint="/api/bza/backoffice/audits" /></template>
+<script setup lang="ts">import{onMounted,ref}from"vue";import{bzaApi}from"../auth/session";const rows=ref<any[]>([]),verify=ref<any>(null),error=ref('');async function load(){try{rows.value=await bzaApi('/api/bza/backoffice/audits?limit=100')}catch(e){error.value=e instanceof Error?e.message:String(e)}}async function verifyChain(){try{verify.value=await bzaApi('/api/bza/audits/verify')}catch(e){error.value=e instanceof Error?e.message:String(e)}}onMounted(load);</script>
+<template><section class="card"><div class="card-head"><div><p class="eyebrow">AUDIT</p><h2>업무 감사</h2></div><button class="primary" @click="verifyChain">Hash Chain 검증</button></div><p v-if="verify" :class="verify.status==='BROKEN'?'error-banner':'success-banner'">{{verify.status}} · {{verify.message}} · {{verify.verifiedRows}} rows</p><p v-if="error" class="error-banner">{{error}}</p><pre>{{JSON.stringify(rows,null,2)}}</pre></section></template>

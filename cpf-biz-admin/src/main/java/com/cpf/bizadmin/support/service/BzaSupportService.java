@@ -4,13 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.bizadmin.support.repository.BzaSupportRepository;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.common.attachment.CpfAttachmentContent;
 import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
 import com.cpf.core.common.attachment.CpfStoredAttachment;
-import com.cpf.core.common.exception.CpfNotFoundException;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.logging.TransactionContext;
+import com.cpf.core.api.error.CpfNotFoundException;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.logging.CpfTransactionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
@@ -28,20 +29,25 @@ import java.util.Set;
 /** BZA 대시보드·알림·첨부·저장 검색·다운로드 감사·권한 분석을 담당합니다. */
 @Service
 public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseService {
-    private static final Set<String> DOWNLOADABLE_SCAN_STATUSES = Set.of("CLEAN", "PASSED_LOCAL_POLICY");
+    private static final Set<String> DOWNLOADABLE_SCAN_STATUSES = Set.of("CLEAN");
+    private static final Set<String> SCAN_STATUSES = Set.of("PENDING","CLEAN","INFECTED","FAILED","QUARANTINED");
+    private static final Set<String> DATA_CLASSES = Set.of("PUBLIC","INTERNAL","CONFIDENTIAL","RESTRICTED");
 
     private final BzaSupportRepository repository;
     private final CpfAttachmentStoragePort attachmentStoragePort;
     private final ObjectMapper objectMapper;
+    private final BzaBusinessAuditService auditService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     public BzaSupportService(
             BzaSupportRepository repository,
             CpfAttachmentStoragePort attachmentStoragePort,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            BzaBusinessAuditService auditService) {
         this.repository = repository;
         this.attachmentStoragePort = attachmentStoragePort;
         this.objectMapper = objectMapper;
+        this.auditService = auditService;
     }
 
     public Map<String, Object> dashboard(String operatorId) {
@@ -87,8 +93,38 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return after;
     }
 
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> markAllNotificationsRead(String reason,String operatorId) {
+        String actor=required(operatorId,"operatorId");
+        int updated=repository.markAllNotificationsRead(actor,actor);
+        audit(actor,"NOTIFICATION_READ_ALL","bza_notification",actor,required(reason,"reason"),null,Map.of("updated",updated));
+        return Map.of("updated",updated);
+    }
+
     public List<Map<String, Object>> findAttachments(String groupId) {
         return repository.findAttachments(safeGroupId(groupId));
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> updateAttachmentSecurity(long attachmentId, AttachmentSecurityRequest request,String operatorId) {
+        String actor=required(operatorId,"operatorId");
+        String scan=code(defaultText(request.scanStatus(),"PENDING"),"scanStatus");
+        String classification=code(defaultText(request.dataClassification(),"INTERNAL"),"dataClassification");
+        if(!SCAN_STATUSES.contains(scan)) throw new CpfValidationException("지원하지 않는 scanStatus입니다. value="+scan);
+        if(!DATA_CLASSES.contains(classification)) throw new CpfValidationException("지원하지 않는 dataClassification입니다. value="+classification);
+        String quarantine=yn(request.quarantineYn(),"QUARANTINED".equals(scan)?"Y":"N");
+        if("INFECTED".equals(scan)) quarantine="Y";
+        Map<String,Object> before=repository.findAttachment(attachmentId).orElseThrow(()->new CpfNotFoundException("첨부파일을 찾을 수 없습니다. attachmentId="+attachmentId));
+        int updated=repository.updateAttachmentSecurity(attachmentId,scan,classification,request.retentionUntil(),quarantine,yn(request.useYn(),"Y"),actor);
+        if(updated!=1) throw new CpfNotFoundException("수정할 첨부파일을 찾을 수 없습니다. attachmentId="+attachmentId);
+        Map<String,Object> after=repository.findAttachment(attachmentId).orElse(Map.of());
+        audit(actor,"ATTACHMENT_SECURITY_UPDATE","bza_attachment",String.valueOf(attachmentId),required(request.reason(),"reason"),before,after);
+        return publicAttachment(after,attachmentId);
+    }
+
+    @Transactional(transactionManager = "bzaTransactionManager")
+    public Map<String,Object> requestAttachmentRecheck(long attachmentId,String reason,String operatorId) {
+        return updateAttachmentSecurity(attachmentId,new AttachmentSecurityRequest("PENDING",null,null,"N","Y",reason),operatorId);
     }
 
     /** 파일 저장 성공 후 DB 적재가 실패하면 저장 파일을 보상 삭제합니다. */
@@ -112,7 +148,9 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
             values.put("contentType", stored.contentType());
             values.put("fileSize", stored.fileSize());
             values.put("checksumSha256", stored.checksumSha256());
-            values.put("scanStatus", "PASSED_LOCAL_POLICY");
+            values.put("scanStatus", "PENDING");
+            values.put("dataClassification", "INTERNAL");
+            values.put("quarantineYn", "N");
             values.put("requestUser", actor);
             long id = repository.insertAttachment(values);
             Map<String, Object> response = publicAttachment(values, id);
@@ -314,7 +352,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         values.put("resultStatus", status);
         values.put("fileName", fileName);
         values.put("maskingAppliedYn", maskingApplied ? "Y" : "N");
-        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
+        values.put("transactionId", CpfTransactionContext.transactionId());
         repository.insertDownloadAudit(values);
     }
 
@@ -326,16 +364,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
             String reason,
             Object before,
             Object after) {
-        Map<String, Object> values = new LinkedHashMap<>();
-        values.put("transactionId", TransactionContext.getOrCreateTransactionId());
-        values.put("actorId", actor);
-        values.put("actionType", action);
-        values.put("targetType", targetType);
-        values.put("targetId", targetId);
-        values.put("reason", reason);
-        values.put("beforeData", before == null ? null : String.valueOf(before));
-        values.put("afterData", after == null ? null : String.valueOf(after));
-        repository.insertBusinessAudit(values);
+auditService.record(actor, action, targetType, targetId, reason, before, after);
     }
 
     private String canonicalObjectJson(String value) {
@@ -402,6 +431,8 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         }
         return value == null ? null : String.valueOf(value);
     }
+
+    public record AttachmentSecurityRequest(String scanStatus,String dataClassification,java.time.Instant retentionUntil,String quarantineYn,String useYn,String reason) {}
 
     public record NotificationRequest(
             String recipientLoginId,

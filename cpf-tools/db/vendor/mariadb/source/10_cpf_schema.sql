@@ -953,48 +953,48 @@ CREATE TABLE IF NOT EXISTS cpf_unknown_result (
 
 -- R8 Saga compensation/manual recovery durable runtime
 CREATE TABLE IF NOT EXISTS cpf_saga_execution (
-    saga_id VARCHAR(100) NOT NULL,
-    saga_type VARCHAR(100) NOT NULL,
-    business_key VARCHAR(200) NULL,
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    saga_type VARCHAR(100) NOT NULL COMMENT 'Saga type',
+    business_key VARCHAR(200) NULL COMMENT 'Business key',
     transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    saga_status VARCHAR(40) NOT NULL,
-    version INT NOT NULL DEFAULT 0,
-    error_message VARCHAR(2000) NULL,
-    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    completed_at DATETIME(3) NULL,
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    saga_status VARCHAR(40) NOT NULL COMMENT 'Saga status',
+    version INT NOT NULL DEFAULT 0 COMMENT 'Version',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Start time',
+    completed_at DATETIME(3) NULL COMMENT 'Completion time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (saga_id),
     KEY idx_cpf_saga_status (saga_status, updated_at),
     KEY idx_cpf_saga_business (saga_type, business_key)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 실행 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_saga_step_execution (
-    saga_id VARCHAR(100) NOT NULL,
-    step_no INT NOT NULL,
-    step_id VARCHAR(100) NOT NULL,
-    step_status VARCHAR(40) NOT NULL,
-    result_code VARCHAR(100) NULL,
-    result_snapshot TEXT NULL,
-    error_message VARCHAR(2000) NULL,
-    execute_attempts INT NOT NULL DEFAULT 0,
-    compensation_attempts INT NOT NULL DEFAULT 0,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    step_no INT NOT NULL COMMENT 'Step number',
+    step_id VARCHAR(100) NOT NULL COMMENT 'Step identifier',
+    step_status VARCHAR(40) NOT NULL COMMENT 'Step status',
+    result_code VARCHAR(100) NULL COMMENT 'Result code',
+    result_snapshot TEXT NULL COMMENT 'Result snapshot',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    execute_attempts INT NOT NULL DEFAULT 0 COMMENT 'Execute attempts',
+    compensation_attempts INT NOT NULL DEFAULT 0 COMMENT 'Compensation attempts',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (saga_id, step_no),
     KEY idx_cpf_saga_step_status (step_status, updated_at),
     CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 단계 실행 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_saga_manual_action (
-    action_id VARCHAR(36) NOT NULL,
-    saga_id VARCHAR(100) NOT NULL,
-    action_type VARCHAR(40) NOT NULL,
-    operator_id VARCHAR(100) NOT NULL,
-    reason VARCHAR(1000) NOT NULL,
-    before_status VARCHAR(40) NULL,
-    after_status VARCHAR(40) NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    action_id VARCHAR(36) NOT NULL COMMENT 'Action identifier',
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    action_type VARCHAR(40) NOT NULL COMMENT 'Action type',
+    operator_id VARCHAR(100) NOT NULL COMMENT 'Operator identifier',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    before_status VARCHAR(40) NULL COMMENT 'Before status',
+    after_status VARCHAR(40) NULL COMMENT 'After status',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
     PRIMARY KEY (action_id),
     KEY idx_cpf_saga_manual (saga_id, created_at),
     CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 수동 복구 조치';

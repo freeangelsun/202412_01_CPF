@@ -4,6 +4,7 @@ import com.cpf.admin.approval.api.*;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryEntry;
 import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
+import com.cpf.admin.common.base.AdmBaseService;
 import com.cpf.core.common.exception.CpfValidationException;
 import com.cpf.core.common.logging.TransactionContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,7 +25,7 @@ import java.util.*;
  * 승인 완료 후 실제 변경은 ADM DB가 아니라 Owner Command Port를 통해 실행합니다.</p>
  */
 @Service
-public class AdmApprovalService {
+public class AdmApprovalService extends AdmBaseService {
     private final AdmApprovalRepository repository;
     private final ObjectMapper objectMapper;
     private final Map<String, AdmApprovalOwnerCommandPort> ownerPorts;

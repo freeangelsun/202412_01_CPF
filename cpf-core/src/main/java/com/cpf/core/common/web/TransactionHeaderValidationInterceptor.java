@@ -183,6 +183,16 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
     }
 
     private OnlineExecutionMetadata resolveTransactionAnnotation(HandlerMethod handlerMethod) {
+        com.cpf.core.api.execution.CpfOnlineTransaction publicStandard =
+                handlerMethod.getMethodAnnotation(com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        if (publicStandard == null) {
+            publicStandard = handlerMethod.getBeanType()
+                    .getAnnotation(com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        }
+        if (publicStandard != null) {
+            return new OnlineExecutionMetadata(
+                    publicStandard.id(), publicStandard.name(), true, CpfExecutionType.ONLINE, Set.of());
+        }
         CpfOnlineTransaction standard = handlerMethod.getMethodAnnotation(CpfOnlineTransaction.class);
         if (standard == null) {
             standard = handlerMethod.getBeanType().getAnnotation(CpfOnlineTransaction.class);
@@ -190,6 +200,20 @@ public class TransactionHeaderValidationInterceptor implements HandlerIntercepto
         if (standard != null) {
             return new OnlineExecutionMetadata(
                     standard.id(), standard.name(), true, CpfExecutionType.ONLINE, Set.of());
+        }
+        com.cpf.core.api.execution.CpfSharedApi publicShared =
+                handlerMethod.getMethodAnnotation(com.cpf.core.api.execution.CpfSharedApi.class);
+        if (publicShared == null) {
+            publicShared = handlerMethod.getBeanType()
+                    .getAnnotation(com.cpf.core.api.execution.CpfSharedApi.class);
+        }
+        if (publicShared != null) {
+            Set<String> allowedCallers = Arrays.stream(publicShared.allowedCallers())
+                    .filter(this::hasText)
+                    .map(value -> value.trim().toUpperCase(Locale.ROOT))
+                    .collect(Collectors.toUnmodifiableSet());
+            return new OnlineExecutionMetadata(
+                    publicShared.id(), publicShared.name(), true, CpfExecutionType.SHARED, allowedCallers);
         }
         CpfSharedApi shared = handlerMethod.getMethodAnnotation(CpfSharedApi.class);
         if (shared == null) {

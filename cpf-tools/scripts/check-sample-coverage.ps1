@@ -17,8 +17,7 @@ if (-not [System.IO.Path]::IsPathRooted($ResultDir)) { $ResultDir = Join-Path $R
 $failures = [System.Collections.Generic.List[string]]::new()
 $expected = [System.Collections.Generic.List[object]]::new()
 foreach ($sourceRootRelative in @(
-        "cpf-reference/src/main/java/com/cpf/reference",
-        "cpf-batch/src/main/java/com/cpf/batch/edu"
+        "cpf-reference/src/main/java/com/cpf/reference"
     )) {
     $sourceRoot = Join-Path $Root $sourceRootRelative
     if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) { continue }
@@ -33,12 +32,11 @@ $forbidden = @(
     Get-ChildItem -LiteralPath $Root -Recurse -File -Filter "*EducationSample.java" |
         Where-Object {
             $_.FullName -notmatch '[\\/]build[\\/]' -and
-            $_.FullName -notmatch '[\\/]cpf-reference[\\/]src[\\/]main[\\/]java[\\/]com[\\/]cpf[\\/]reference[\\/]' -and
-            $_.FullName -notmatch '[\\/]cpf-batch[\\/]src[\\/]main[\\/]java[\\/]com[\\/]cpf[\\/]batch[\\/]edu[\\/]'
+            $_.FullName -notmatch '[\\/]cpf-reference[\\/]src[\\/]main[\\/]java[\\/]com[\\/]cpf[\\/]reference[\\/]'
         }
 )
 foreach ($file in $forbidden) {
-    $failures.Add("REF/BAT 외 범용 EDU Source: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
+    $failures.Add("REF 외 범용 EDU Source: $($file.FullName.Substring($Root.Length + 1))") | Out-Null
 }
 
 if (-not (Test-Path -LiteralPath $MatrixPath -PathType Leaf)) {
@@ -63,7 +61,7 @@ foreach ($row in $expected) {
 $matrixSources = @(
     [regex]::Matches(
         $matrixText,
-        '\|\s*((?:cpf-reference|cpf-batch)/src/main/java/[^|]+EducationSample\.java)\s*\|') |
+        '\|\s*(cpf-reference/src/main/java/[^|]+EducationSample\.java)\s*\|') |
         ForEach-Object { $_.Groups[1].Value.Trim() }
 )
 if ($matrixSources.Count -ne $expected.Count) {

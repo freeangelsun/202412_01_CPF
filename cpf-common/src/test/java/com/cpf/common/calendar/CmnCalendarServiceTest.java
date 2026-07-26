@@ -17,9 +17,12 @@ class CmnCalendarServiceTest {
                 new CmnCalendarDay("DEFAULT", saturday, true, "SPECIAL_OPEN", "BANK", "특별 영업", 0), 0);
         assertEquals(1, saved.version());
         assertTrue(service.isBusinessDay("DEFAULT", saturday));
-        assertEquals(LocalDate.of(2026, 7, 27),
+        assertEquals(saturday,
                 service.shiftBusinessDay("DEFAULT", LocalDate.of(2026, 7, 24), 1),
-                "일요일도 Override가 없으므로 다음 영업일은 월요일이어야 함");
+                "특별 영업으로 Override한 토요일은 첫 번째 영업일이어야 함");
+        assertEquals(LocalDate.of(2026, 7, 27),
+                service.shiftBusinessDay("DEFAULT", LocalDate.of(2026, 7, 24), 2),
+                "Override가 없는 일요일을 건너뛴 두 번째 영업일은 월요일이어야 함");
     }
 
     @Test

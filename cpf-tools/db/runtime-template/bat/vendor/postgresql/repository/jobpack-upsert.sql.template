@@ -1,0 +1,14 @@
+INSERT INTO bat_job_pack(
+    job_pack_id, owner_domain, artifact_coordinate, artifact_version, artifact_checksum,
+    signature_present_yn, platform_range, manifest_json, last_registered_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, @NOW6@)
+ON CONFLICT (job_pack_id) DO UPDATE SET
+    owner_domain = EXCLUDED.owner_domain,
+    artifact_coordinate = EXCLUDED.artifact_coordinate,
+    artifact_version = EXCLUDED.artifact_version,
+    artifact_checksum = EXCLUDED.artifact_checksum,
+    signature_present_yn = EXCLUDED.signature_present_yn,
+    platform_range = EXCLUDED.platform_range,
+    manifest_json = EXCLUDED.manifest_json,
+    last_registered_at = @NOW6@

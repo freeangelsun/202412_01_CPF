@@ -4,6 +4,7 @@ import com.cpf.common.sample.CmnSampleItem;
 import com.cpf.common.sample.CmnSampleItemRequest;
 import com.cpf.common.sample.CmnSampleItemService;
 import com.cpf.common.sample.CmnSampleSlice;
+import com.cpf.reference.common.base.ReferenceBaseController;
 import com.cpf.core.common.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,8 +37,7 @@ import java.util.Map;
 @RestController
 @RequestMapping({"/api/reference/cmn-sample", "/reference/edu/cmn-sample"})
 @Tag(name = "REF Reference 12. CMN Sample", description = "cmnDB 단일 선택형 Sample 테이블 검증")
-public class ReferenceCmnSampleEducationController
-        extends com.cpf.reference.common.base.ReferenceBaseController {
+public class ReferenceCmnSampleEducationController extends ReferenceBaseController {
 
     private final CmnSampleItemService sampleItemService;
 

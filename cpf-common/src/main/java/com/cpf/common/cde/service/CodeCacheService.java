@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 변경 Transaction이 rollback 되면 기존 Cache를 유지하며, commit 이후에만 무효화·재적재합니다.</p>
  */
 @Service
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CodeCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(CodeCacheService.class);
     private static final String CACHE_NAME = "codeCache";

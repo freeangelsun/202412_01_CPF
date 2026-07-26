@@ -1,9 +1,11 @@
 package com.cpf.reference.config;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.batch.BatchDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
+import java.lang.reflect.Method;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,5 +24,14 @@ class ReferenceDataSourceConfigTest {
 
         assertThat(jdbcTemplate.getDataSource()).isSameAs(batDataSource);
         assertThat(transactionManager.getDataSource()).isSameAs(batDataSource);
+    }
+
+    @Test
+    void marksBatDataSourceAsSpringBatchOwner() throws NoSuchMethodException {
+        Method factoryMethod = ReferenceDataSourceConfig.class.getMethod(
+                "batDataSource",
+                org.springframework.core.env.Environment.class);
+
+        assertThat(factoryMethod.getAnnotation(BatchDataSource.class)).isNotNull();
     }
 }

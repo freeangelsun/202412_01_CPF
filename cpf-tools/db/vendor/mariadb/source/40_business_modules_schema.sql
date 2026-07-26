@@ -197,34 +197,34 @@ CREATE TABLE IF NOT EXISTS mbr_member_login_history (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
 
 CREATE TABLE IF NOT EXISTS mbr_member_no_sequence (
-    sequence_value BIGINT NOT NULL AUTO_INCREMENT,
-    requested_by VARCHAR(100) NOT NULL,
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    sequence_value BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Sequence value',
+    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
     PRIMARY KEY (sequence_value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 분산 채번';
 
 CREATE TABLE IF NOT EXISTS mbr_member_no_issue_history (
-    issue_id BIGINT NOT NULL AUTO_INCREMENT,
-    member_no VARCHAR(50) NOT NULL,
-    issue_type VARCHAR(20) NOT NULL,
-    issued_by VARCHAR(100) NOT NULL,
-    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    issue_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Issue identifier',
+    member_no VARCHAR(50) NOT NULL COMMENT 'Member number',
+    issue_type VARCHAR(20) NOT NULL COMMENT 'Issue type',
+    issued_by VARCHAR(100) NOT NULL COMMENT 'Issuer',
+    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Issue time',
     PRIMARY KEY (issue_id),
     UNIQUE KEY uk_mbr_member_no_issue_history_no (member_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 발급 이력';
 
 CREATE TABLE IF NOT EXISTS mbr_member_role_operation (
-    idempotency_key VARCHAR(120) NOT NULL,
-    member_id BIGINT NOT NULL,
-    service_code VARCHAR(30) NOT NULL,
-    role_code VARCHAR(50) NOT NULL,
-    operation_type VARCHAR(20) NOT NULL,
-    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    result_version BIGINT NULL,
-    result_use_yn CHAR(1) NULL,
-    created_by VARCHAR(100) NOT NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    completed_at DATETIME(3) NULL,
+    idempotency_key VARCHAR(120) NOT NULL COMMENT 'Idempotency key',
+    member_id BIGINT NOT NULL COMMENT 'Member identifier',
+    service_code VARCHAR(30) NOT NULL COMMENT 'Service code',
+    role_code VARCHAR(50) NOT NULL COMMENT 'Role code',
+    operation_type VARCHAR(20) NOT NULL COMMENT 'Operation type',
+    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'Operation status',
+    result_version BIGINT NULL COMMENT 'Result version',
+    result_use_yn CHAR(1) NULL COMMENT 'Result usage flag',
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    completed_at DATETIME(3) NULL COMMENT 'Completion time',
     PRIMARY KEY (idempotency_key),
     INDEX ix_mbr_member_role_operation_member (member_id, created_at),
     CONSTRAINT fk_mbr_member_role_operation_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE

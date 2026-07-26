@@ -3,7 +3,10 @@ $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 function Read([string]$Rel){$p=Join-Path $Root $Rel;if(-not(Test-Path $p)){throw "missing: $Rel"};Get-Content -LiteralPath $p -Raw}
 function Must([string]$Name,[bool]$Condition){if(-not $Condition){throw "[FAIL] $Name"};Write-Host "[PASS] $Name"}
 $a=Read 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmAuditDeliveryService.java';Must 'durable audit reservation' ($a.Contains('adm_audit_delivery') -and $a.Contains('PROPAGATION_REQUIRES_NEW'))
-$b=Read 'cpf-batch/src/main/java/com/cpf/batch/operation/BatOperationFacade.java';Must 'BAT query failure not empty' (-not$b.Contains('queryOrEmpty'));Must 'Ghost broad unlock removed' (-not$b.Contains('OR ? IS NULL'));Must 'Ghost BAT transaction' ($b.Contains('@Transactional(transactionManager = "batTransactionManager")'))
+$b=Read 'cpf-batch/control-server/src/main/java/com/cpf/batch/control/compat/BatchOperationsCompatibilityService.java'
+Must 'BAT query failure not empty' (-not$b.Contains('queryOrEmpty') -and $b.Contains('BAT resource not found'))
+Must 'Ghost broad unlock removed' (-not [regex]::IsMatch($b,'DELETE FROM bat_lock[^"\r\n]*OR\s+\?\s+IS\s+NULL'))
+Must 'Ghost BAT transaction' ($b.Contains('new TransactionTemplate') -and $b.Contains('return tx.execute'))
 $bc=Read 'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBatchController.java';Must 'ADM Batch actor fail-closed' (-not $bc.Contains('request.requestUser()'))
 $actor=Read 'cpf-admin/src/main/java/com/cpf/admin/opr/audit/AdmVerifiedActorRequestBodyAdvice.java';Must 'ADM legacy actor spoof guard' ($actor.Contains('requestUser') -and $actor.Contains('adm.operatorId'))
 foreach($d in 'AdmBatchOperationRequest.java','AdmBatchJobRegisterRequest.java','AdmBatchLockReleaseRequest.java','AdmBatchGhostActionRequest.java'){Must "Batch DTO no requestUser $d" (-not(Read ("cpf-admin/src/main/java/com/cpf/admin/opr/dto/"+$d)).Contains('requestUser'))}

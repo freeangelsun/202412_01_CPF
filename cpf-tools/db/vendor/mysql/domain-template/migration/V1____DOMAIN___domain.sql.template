@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS @CPF_TABLE_PREFIX@_sample_item (
+CREATE TABLE IF NOT EXISTS `@CPF_SCHEMA_NAME@`.`@CPF_TABLE_PREFIX@_sample_item` (
     sample_item_id BIGINT NOT NULL AUTO_INCREMENT,
     sample_key VARCHAR(100) NOT NULL,
     item_name VARCHAR(200) NOT NULL,
@@ -17,5 +17,7 @@ CREATE TABLE IF NOT EXISTS @CPF_TABLE_PREFIX@_sample_item (
     UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_key (sample_key),
     UNIQUE KEY uk_@CPF_TABLE_PREFIX@_sample_item_idem (idempotency_key),
     INDEX ix_@CPF_TABLE_PREFIX@_sample_item_status (status_code, deleted_yn, sample_item_id),
-    INDEX ix_@CPF_TABLE_PREFIX@_sample_item_tx (transaction_id, transaction_sequence)
+    INDEX ix_@CPF_TABLE_PREFIX@_sample_item_tx (transaction_id, transaction_sequence),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
+    CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_item_deleted CHECK (deleted_yn IN ('Y','N'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -68,8 +68,11 @@ foreach($column in @('spring_batch_job_instance_id','worker_id','server_instance
     RequireContains "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql" $column "BAT 실행 추적 컬럼 누락: $column"
 }
 
-RequireContains "cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchJobLogPath.java" 'serverInstanceId' "BAT Job 파일로그 경로에 serverInstanceId 축 누락"
-RequireContains "cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchJobLogPath.java" 'CpfServerIdentity\.current' "BAT Job 파일로그 overload가 공개 CPF server identity를 사용해 현재 serverInstance를 보존하지 않음"
+foreach($runtime in @('control-server','scheduler','worker','center-cut-runner','host-agent')){
+    $logback = "cpf-batch/$runtime/src/main/resources/logback-spring.xml"
+    RequireContains $logback 'name="INSTANCE"\s+value="\$\{CPF_INSTANCE_ID:' "BAT Runtime 로그의 CPF_INSTANCE_ID 축 누락: $runtime"
+    RequireContains $logback '\$\{LOG_ROOT\}/\$\{SERVICE\}/\$\{INSTANCE\}' "BAT Runtime 로그 경로의 service/instance 격리 누락: $runtime"
+}
 RequireContains "cpf-tools/scripts/sync-database-artifacts.ps1" 'generate-migration-checksums\.ps1' "DB artifact sync가 migration checksum 자동 생성 단계를 호출하지 않음"
 
 $finalTarget=Get-Content (Join-Path $Root "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md") -Raw

@@ -48,7 +48,7 @@ export const bzaRoutes: BzaRoute[] = [
   { id:"settings", label:"업무 설정", menuCode:"SETTING", group:"support", description:"BZA 업무 설정", load:()=>import("../features/settings/SettingsPage.vue") },
   { id:"downloads", label:"다운로드 정책", menuCode:"SETTING", group:"support", description:"다운로드 정책", load:()=>import("../features/downloads/DownloadsPage.vue") },
   { id:"downloadAudits", label:"다운로드 감사", menuCode:"AUDIT", group:"support", description:"다운로드 감사", load:()=>import("../features/download-audits/DownloadAuditsPage.vue") },
-  { id:"sequenceSample", label:"업무 채번 Sample", menuCode:"SEQUENCE_SAMPLE", group:"support", description:"선택형 업무 채번 Customization Sample", load:()=>import("../features/sequence-sample/SequenceSamplePage.vue") }
+  { id:"sequenceSample", label:"업무 채번 Sample", menuCode:"SETTING", group:"support", description:"선택형 업무 채번 Customization Sample", load:()=>import("../features/sequence-sample/SequenceSamplePage.vue") }
 ];
 
 export function routeFromHash(hash: string): BzaRouteId {

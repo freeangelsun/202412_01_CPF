@@ -83,9 +83,6 @@ cpf:
   filetransfer:
     base-dir: ${CPF_FILETRANSFER_BASE_DIR:${java.io.tmpdir}/cpf-file-exchange}
   services:
-    mbr:
-      base-url: ${CPF_SERVICE_MBR_URL:http://localhost:8081}
-      description: MBR service
     cmn:
       base-url: ${CPF_SERVICE_CMN_URL:http://localhost:8082}
       description: CMN service

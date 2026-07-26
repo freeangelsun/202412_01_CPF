@@ -1,7 +1,8 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.admin.opr.dto.DownloadRequest;
-import com.cpf.core.common.exception.CpfValidationException;
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.core.api.error.CpfValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,11 +20,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class AdmDownloadServiceTest {
 
     private final JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
-    private final JdbcTemplate batJdbcTemplate = mock(JdbcTemplate.class);
+    private final CpfBatchOperationsPort batchOperations = mock(CpfBatchOperationsPort.class);
     private final JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
     private final AdmAuditLogService auditLogService = mock(AdmAuditLogService.class);
     private final AdmDownloadService service =
-            new AdmDownloadService(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate, auditLogService);
+            new AdmDownloadService(cpfJdbcTemplate, batchOperations, admJdbcTemplate, auditLogService);
 
     @Test
     void findPoliciesContainsOperationalDownloadTypes() {
@@ -57,6 +58,6 @@ class AdmDownloadServiceTest {
                 .isInstanceOf(CpfValidationException.class);
 
         verify(auditLogService, never()).requireReason(anyString());
-        verifyNoInteractions(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate);
+        verifyNoInteractions(cpfJdbcTemplate, batchOperations, admJdbcTemplate);
     }
 }

@@ -3,6 +3,7 @@ package com.cpf.common.msg.service;
 import com.cpf.core.common.exception.CpfErrorDefinition;
 import com.cpf.core.common.exception.CpfMessageResolver;
 import com.cpf.core.common.exception.CpfResolvedMessage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 /** DB 캐시 메시지를 우선 사용하고 누락 시 오류 정의 기본값으로 대체합니다. */
 @Primary
 @Component
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CmnCpfMessageResolver implements CpfMessageResolver {
     private final MessageCacheService messageCacheService;
 
@@ -48,4 +50,3 @@ public class CmnCpfMessageResolver implements CpfMessageResolver {
         return value == null ? fallback : String.valueOf(value);
     }
 }
-

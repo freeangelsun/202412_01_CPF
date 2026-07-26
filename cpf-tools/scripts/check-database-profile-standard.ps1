@@ -8,12 +8,35 @@ if ([string]::IsNullOrWhiteSpace($ProfilePath)) {
     $ProfilePath = Join-Path $Root "cpf-tools/config/database-install.default.json"
 }
 $profile = Get-CpfDatabaseProfile $ProfilePath
-$keys = @("core","common","admin","bizAdmin","batch","reference","member","account")
+$keys = @($profile.modules.PSObject.Properties | ForEach-Object { [string]$_.Name })
+if ($keys.Count -eq 0) {
+    throw "Default DB Profile modules가 비어 있습니다."
+}
 $targets = @()
 foreach ($key in $keys) {
-    $target = ConvertTo-CpfModuleProfile $profile $key
+    $target = ConvertTo-CpfModuleProfile $profile $key -SkipSecretResolution
     $targets += $target
     Write-Host "$key domainName=$($target.domainName) systemCode=$($target.systemCode) moduleName=$($target.moduleName) vendor=$($target.vendor) host=$($target.host):$($target.port) db=$($target.databaseName) enabled=$($target.enabled)"
+    if ([string]$target.sslMode -ne "disabled") {
+        throw "Local development DB Profile은 재현 가능한 명시적 sslMode=disabled여야 합니다: module=$key sslMode=$($target.sslMode)"
+    }
+}
+
+$productionProfilePath = Join-Path $Root "cpf-tools/config/database-install.prod.template.json"
+if (-not (Test-Path -LiteralPath $productionProfilePath -PathType Leaf)) {
+    throw "Production DB Profile template이 없습니다."
+}
+$productionProfile = Get-Content -LiteralPath $productionProfilePath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -Depth 50
+$productionKeys = @($productionProfile.modules.PSObject.Properties | ForEach-Object { [string]$_.Name })
+if (@(Compare-Object $keys $productionKeys).Count -ne 0) {
+    throw "Default/Production DB Profile module metadata가 일치하지 않습니다."
+}
+foreach ($key in $keys) {
+    $productionModule = $productionProfile.modules.$key
+    if ($null -eq $productionModule -or [string]$productionModule.sslMode -ne "verify-full") {
+        throw "Production DB Profile은 sslMode=verify-full이어야 합니다: module=$key"
+    }
 }
 
 $domainDuplicates = @($targets | Group-Object domainName | Where-Object Count -gt 1)
@@ -34,6 +57,7 @@ foreach ($vendor in @("mariadb","mysql","postgresql","oracle","sqlserver")) {
     $rootPath = Join-Path $Root "cpf-tools/db/vendor/$vendor/domain-template"
     foreach ($rel in @(
         "provision/01_provision.sql.template",
+        "provision/02_principals.sql.template",
         "install/10_empty_install.sql.template",
         "seed/20_product_seed.sql.template",
         "verify/90_verify.sql.template",
@@ -58,12 +82,17 @@ if ($platformInstaller -notmatch "migrationAccountDynamic" -or
 }
 
 $domainInstaller = Get-Content -LiteralPath (Join-Path $Root "cpf-tools/scripts/initialize-domain-database.ps1") -Raw -Encoding UTF8
-if ($domainInstaller -match 'CONCAT\("CREATE USER IF NOT EXISTS') {
-    throw "Generated Domain Installer가 MariaDB ANSI_QUOTES에 의존하는 CREATE USER 문자열을 사용합니다."
+if ($domainInstaller -match '(?i)\bCREATE\s+USER\b') {
+    throw "Generated Domain Installer에 Vendor별 principal SQL이 하드코딩되어 있습니다."
 }
-if ($domainInstaller -notmatch "migAccountDynamic" -or
-    $domainInstaller -notmatch "runAccountDynamic") {
-    throw "Generated Domain Installer의 동적 account quote 보호 코드가 없습니다."
+foreach ($requiredDomainInstallerToken in @(
+        'provision/02_principals.sql.template',
+        'function Render-DomainTemplate',
+        'secretBearing',
+        'GetTempFileName')) {
+    if (-not $domainInstaller.Contains($requiredDomainInstallerToken)) {
+        throw "Generated Domain Installer principal/secret 보호 계약이 없습니다: $requiredDomainInstallerToken"
+    }
 }
 
 
@@ -98,9 +127,16 @@ if (-not (Test-Path -LiteralPath $testSeedPath -PathType Leaf)) {
 }
 
 
-$createDomainPath = Join-Path $Root "cpf-tools/scripts/create-domain.ps1"
+$createDomainPath = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
 $createDomain = Get-Content -LiteralPath $createDomainPath -Raw -Encoding UTF8
-$createDomainParamHeader = $createDomain.Substring(0, $createDomain.IndexOf("`n)"))
+$createDomainParamEnd = [regex]::Match($createDomain, "(?m)^\)\s*$")
+if (-not $createDomainParamEnd.Success) {
+    throw "Canonical create-domain.ps1 param block 종료를 찾을 수 없습니다."
+}
+$createDomainParamHeader = $createDomain.Substring(
+    0,
+    $createDomainParamEnd.Index + $createDomainParamEnd.Length
+)
 foreach ($parameterName in @(
     "DatabaseHost", "DatabasePort", "DatabaseName", "DatabaseClientPath"
 )) {
@@ -118,6 +154,29 @@ foreach ($requiredToken in @(
 )) {
     if (-not $platformInstaller.Contains($requiredToken)) {
         throw "Platform DB 선택 설치 기능 누락: $requiredToken"
+    }
+}
+
+foreach ($forbiddenPlatformDomainLiteral in @(
+        '"member"',
+        '"account"',
+        'mbrDB',
+        'accDB')) {
+    if ($platformInstaller.Contains($forbiddenPlatformDomainLiteral)) {
+        throw "Platform Installer에 Generated Domain 목록/DB가 하드코딩되어 있습니다: $forbiddenPlatformDomainLiteral"
+    }
+}
+if (-not $platformInstaller.Contains('$profile.modules.PSObject.Properties') -or
+        -not $platformInstaller.Contains('databaseLifecycle')) {
+    throw "Platform Installer가 Profile metadata 기반 module discovery/lifecycle 분리를 사용하지 않습니다."
+}
+
+$generatedTransitions = @($targets | Where-Object {
+        $_.databaseLifecycle -eq "generated-domain"
+    })
+foreach ($transition in $generatedTransitions) {
+    if ($transition.enabled -or -not $transition.transitional) {
+        throw "Generated Domain transition entry는 Platform Pack에서 disabled/transitional이어야 합니다: $($transition.moduleKey)"
     }
 }
 
@@ -184,11 +243,10 @@ if (-not (Test-Path -LiteralPath $resolverPath -PathType Leaf)) {
     throw "Vendor Runtime SQL resolver 누락: $resolverPath"
 }
 $resolver = Get-Content -LiteralPath $resolverPath -Raw -Encoding UTF8
-if ($resolver -notmatch "mybatis/vendor/" -or $resolver -match "fallback") {
-    # source comment contains fallback, so only ensure the strict error contract exists.
-    if ($resolver -notmatch "Runtime Mapper가 없습니다") {
-        throw "Vendor Runtime SQL fail-closed 계약이 없습니다."
-    }
+if ($resolver -notmatch "CpfVendorResourceRoot\.requiredDirectory" -or
+        $resolver -notmatch "Runtime Mapper Pack이 비어 있습니다" -or
+        $resolver -notmatch "지원하지 않는 CPF DB Vendor") {
+    throw "Vendor Runtime SQL fail-closed 계약이 없습니다."
 }
 
 # Product Seed는 반복 실행 가능한 기준정보만 허용한다.

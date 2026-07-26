@@ -1,7 +1,5 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
-import com.cpf.core.api.admin.CpfOwnerAdminQuery;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.logging.CpfServerIdentity;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,17 +24,14 @@ import java.util.Map;
 public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseController {
     private final JdbcTemplate admJdbcTemplate;
     private final JdbcTemplate cpfJdbcTemplate;
-    private final CpfOwnerAdminOperationsPort mbrOperations;
     private final Environment environment;
 
     public AdmHealthController(
             @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
             @Qualifier("cpfJdbcTemplate") JdbcTemplate cpfJdbcTemplate,
-            @Qualifier("mbrOwnerAdminOperationsPort") CpfOwnerAdminOperationsPort mbrOperations,
             Environment environment) {
         this.admJdbcTemplate = admJdbcTemplate;
         this.cpfJdbcTemplate = cpfJdbcTemplate;
-        this.mbrOperations = mbrOperations;
         this.environment = environment;
     }
 
@@ -52,11 +47,7 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         Map<String, Object> checks = new LinkedHashMap<>();
         checks.put("admDB", checkDatabase(admJdbcTemplate));
         checks.put("cpfDB", checkDatabase(cpfJdbcTemplate));
-        String mbrOwner = checkMbrOwner();
-        checks.put("mbrOwner", mbrOwner);
-        boolean gateRemote = environment.getProperty("cpf.health.remote-dependency-gates-readiness", Boolean.class, false);
-        boolean ready = "UP".equals(checks.get("admDB")) && "UP".equals(checks.get("cpfDB"))
-                && (!gateRemote || "UP".equals(mbrOwner));
+        boolean ready = "UP".equals(checks.get("admDB")) && "UP".equals(checks.get("cpfDB"));
         Map<String, Object> response = base(ready ? "UP" : "DOWN", checks);
         response.put("transactionContextMissingCount", CpfTransactionContext.missingCount());
         return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
@@ -75,18 +66,8 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         response.put("processId", identity.processId());
         response.put("profiles", environment.getActiveProfiles());
         response.put("checkedAt", OffsetDateTime.now().toString());
-        response.put("remoteDependencyGatesReadiness", environment.getProperty("cpf.health.remote-dependency-gates-readiness", Boolean.class, false));
         response.put("checks", checks);
         return response;
-    }
-
-    private String checkMbrOwner() {
-        try {
-            Map<String, Object> response = mbrOperations.query(new CpfOwnerAdminQuery("system", "health", null, Map.of()));
-            return "UP".equals(String.valueOf(response.get("status"))) ? "UP" : "DOWN";
-        } catch (RuntimeException ex) {
-            return "DOWN";
-        }
     }
 
     private String checkDatabase(JdbcTemplate jdbcTemplate) {

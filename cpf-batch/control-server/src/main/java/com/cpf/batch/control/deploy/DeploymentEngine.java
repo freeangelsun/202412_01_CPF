@@ -2,6 +2,8 @@ package com.cpf.batch.control.deploy;
 
 import com.cpf.batch.api.*;
 import com.cpf.batch.spi.*;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
@@ -11,9 +13,11 @@ import java.util.*;
 public class DeploymentEngine {
     private final List<DeploymentTargetAdapter> adapters; private final RuntimeHealthProbe health;
     private final CompatibilityService compatibility; private final JdbcTemplate jdbc; private final DeploymentExecutionRepository executions;
+    private final CpfVendorSqlCatalog sql;
     public DeploymentEngine(List<DeploymentTargetAdapter> adapters,RuntimeHealthProbe health,CompatibilityService compatibility,
-                            JdbcTemplate jdbc,DeploymentExecutionRepository executions){
+                            JdbcTemplate jdbc,DeploymentExecutionRepository executions,Environment environment){
         this.adapters=adapters;this.health=health;this.compatibility=compatibility;this.jdbc=jdbc;this.executions=executions;
+        this.sql= CpfVendorSqlCatalog.create(environment, "bat");
     }
 
     public DeploymentResult deploy(DeploymentRequest request) {
@@ -99,12 +103,7 @@ public class DeploymentEngine {
     private DeploymentResult fromExisting(DeploymentRequest r,Map<String,Object> existing,Instant start){CommandState state=CommandState.valueOf(Objects.toString(existing.get("execution_state"),"UNKNOWN_RESULT"));return new DeploymentResult(r.deploymentId(),state,Objects.toString(existing.get("failure_stage"),null),Objects.toString(existing.get("result_message"),"Existing idempotent deployment"),Objects.toString(existing.get("from_version"),null),Objects.toString(existing.get("to_version"),r.manifest().artifact().version()),List.of(),start,Instant.now());}
     private DeploymentTargetAdapter adapter(DeploymentCellManifest m,DeploymentCellManifest.Instance i){return adapters.stream().filter(a->a.supports(i,m.runtimeMode())).findFirst().orElseThrow(()->new IllegalStateException("No deployment adapter for "+i.instanceId()));}
     private boolean success(DeploymentResult.InstanceResult r){return r.state()==CommandState.SUCCEEDED;}
-    private int currentHealthy(String service){Integer n=jdbc.queryForObject("SELECT COUNT(*) FROM bat_runtime_instance WHERE service_id=? AND actual_state IN ('READY','BUSY') AND desired_state='RUNNING'",Integer.class,service);return n==null?0:n;}
-    private boolean lock(String cell,String dep){try{jdbc.update("""
-INSERT INTO bat_deployment_lock(cell_id,owner_deployment_id,fencing_token,locked_at,expires_at)
-      VALUES(?,?,1,CURRENT_TIMESTAMP(6),DATE_ADD(CURRENT_TIMESTAMP(6),INTERVAL 30 MINUTE))
-      ON DUPLICATE KEY UPDATE owner_deployment_id=IF(expires_at<CURRENT_TIMESTAMP(6),VALUES(owner_deployment_id),owner_deployment_id),
-      fencing_token=IF(expires_at<CURRENT_TIMESTAMP(6),fencing_token+1,fencing_token),locked_at=IF(expires_at<CURRENT_TIMESTAMP(6),VALUES(locked_at),locked_at),
-      expires_at=IF(expires_at<CURRENT_TIMESTAMP(6),VALUES(expires_at),expires_at)""",cell,dep);return dep.equals(jdbc.queryForObject("SELECT owner_deployment_id FROM bat_deployment_lock WHERE cell_id=?",String.class,cell));}catch(RuntimeException e){return false;}}
-    private void unlock(String cell,String dep){jdbc.update("DELETE FROM bat_deployment_lock WHERE cell_id=? AND owner_deployment_id=?",cell,dep);}
+    private int currentHealthy(String service){Integer n=jdbc.queryForObject(sql.required("deploy-runtime-healthy-count"),Integer.class,service);return n==null?0:n;}
+    private boolean lock(String cell,String dep){try{jdbc.update(sql.required("deploy-lock-acquire"),cell,dep);return dep.equals(jdbc.queryForObject(sql.required("deploy-lock-owner"),String.class,cell));}catch(RuntimeException e){return false;}}
+    private void unlock(String cell,String dep){jdbc.update(sql.required("deploy-lock-release"),cell,dep);}
 }

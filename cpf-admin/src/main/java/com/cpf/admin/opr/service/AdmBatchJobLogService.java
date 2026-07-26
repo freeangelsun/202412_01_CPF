@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -29,7 +30,6 @@ import java.util.regex.Pattern;
  */
 @Service
 public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseService {
-    private static final Pattern FILE_PATTERN = Pattern.compile("cpf-bat-(.+)-(\\d+)-(\\d{8})\\.log");
     private static final int MAX_RECORDS = 500;
 
     private final Path logRoot;
@@ -48,6 +48,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
             String businessDate,
             String jobName,
             Long jobInstanceId,
+            String serverInstanceId,
             int limit) {
         if (!Files.isDirectory(jobsRoot, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
@@ -63,6 +64,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
                     .filter(row -> matches(row, "jobName", jobName))
                     .filter(row -> jobInstanceId == null
                             || jobInstanceId.equals(((Number) row.get("jobInstanceId")).longValue()))
+                    .filter(row -> matches(row, "serverInstanceId", serverInstanceId))
                     .sorted(Comparator.comparing(
                             row -> (Instant) row.get("lastModifiedAt"),
                             Comparator.reverseOrder()))
@@ -77,11 +79,16 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
             String businessDate,
             String jobName,
             long jobInstanceId,
+            String serverInstanceId,
             int maxRecords) {
         LocalDate parsedDate = parseBusinessDate(businessDate);
         Path relativePath;
         try {
-            relativePath = CpfBatchLogPaths.relativePath(jobName, jobInstanceId, parsedDate);
+            relativePath = CpfBatchLogPaths.relativePath(
+                    jobName,
+                    jobInstanceId,
+                    parsedDate,
+                    serverInstanceId);
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException(ex.getMessage());
         }
@@ -106,21 +113,67 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
     }
 
     private Map<String, Object> metadata(Path path) {
-        Matcher matcher = FILE_PATTERN.matcher(path.getFileName().toString());
-        if (!matcher.matches()) {
+        Path normalizedJobsRoot = jobsRoot.toAbsolutePath().normalize();
+        Path normalizedPath = path.toAbsolutePath().normalize();
+        if (!normalizedPath.startsWith(normalizedJobsRoot)) {
             return null;
         }
+        Path jobsRelativePath = normalizedJobsRoot.relativize(normalizedPath);
+        if (jobsRelativePath.getNameCount() != 4) {
+            return null;
+        }
+        String businessDate = jobsRelativePath.getName(0).toString();
+        String jobName = jobsRelativePath.getName(1).toString();
+        String serverInstanceId = jobsRelativePath.getName(2).toString();
+        String fileName = jobsRelativePath.getFileName().toString();
         try {
+            LocalDate parsedDate = LocalDate.parse(businessDate, DateTimeFormatter.BASIC_ISO_DATE);
+            if (!isCanonicalPathToken(jobName) || !isCanonicalPathToken(serverInstanceId)) {
+                return null;
+            }
+            Pattern filePattern = Pattern.compile(
+                    "^cpf-bat-"
+                            + Pattern.quote(jobName)
+                            + "-(\\d+)-"
+                            + Pattern.quote(serverInstanceId)
+                            + "-"
+                            + Pattern.quote(businessDate)
+                            + "\\.log$");
+            Matcher matcher = filePattern.matcher(fileName);
+            if (!matcher.matches()) {
+                return null;
+            }
+            long jobInstanceId = Long.parseLong(matcher.group(1));
+            Path canonicalRelativePath = CpfBatchLogPaths.relativePath(
+                    jobName,
+                    jobInstanceId,
+                    parsedDate,
+                    serverInstanceId);
+            Path canonicalJobsRelativePath = canonicalRelativePath.subpath(
+                    2,
+                    canonicalRelativePath.getNameCount());
+            if (!jobsRelativePath.equals(canonicalJobsRelativePath)) {
+                return null;
+            }
             Map<String, Object> metadata = new LinkedHashMap<>();
-            metadata.put("businessDate", matcher.group(3));
-            metadata.put("jobName", matcher.group(1));
-            metadata.put("jobInstanceId", Long.parseLong(matcher.group(2)));
-            metadata.put("relativePath", logRoot.relativize(path.toAbsolutePath().normalize()).toString().replace('\\', '/'));
+            metadata.put("businessDate", businessDate);
+            metadata.put("jobName", jobName);
+            metadata.put("jobInstanceId", jobInstanceId);
+            metadata.put("serverInstanceId", serverInstanceId);
+            metadata.put("relativePath", logRoot.relativize(normalizedPath).toString().replace('\\', '/'));
             metadata.put("sizeBytes", Files.size(path));
             metadata.put("lastModifiedAt", Files.getLastModifiedTime(path).toInstant());
             return metadata;
-        } catch (IOException | NumberFormatException ex) {
+        } catch (IOException | IllegalArgumentException ex) {
             return null;
+        }
+    }
+
+    private boolean isCanonicalPathToken(String value) {
+        try {
+            return CpfBatchLogPaths.sanitize(value).equals(value);
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
     }
 
@@ -157,6 +210,10 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
         if (value == null || !value.matches("\\d{8}")) {
             throw new CpfValidationException("businessDate는 yyyyMMdd 형식이어야 합니다.");
         }
-        return LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
+        try {
+            return LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (DateTimeParseException ex) {
+            throw new CpfValidationException("businessDate는 유효한 yyyyMMdd 일자여야 합니다.");
+        }
     }
 }

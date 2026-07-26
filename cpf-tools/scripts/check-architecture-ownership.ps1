@@ -15,7 +15,8 @@ $modules = @(
     "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-biz-admin",
     "cpf-batch", "cpf-admin", "cpf-account", "cpf-external", "cpf-gateway"
 )
-$businessModules = @("cpf-member", "cpf-reference", "cpf-biz-admin", "cpf-batch", "cpf-account", "cpf-external")
+$businessModules = @("cpf-member", "cpf-reference", "cpf-biz-admin", "cpf-account", "cpf-external")
+$businessInternalTargets = @($businessModules + "cpf-batch")
 $implementationPackages = @("member", "reference", "bizadmin", "batch", "admin", "account", "external")
 $modulePackages = @{
     "cpf-member" = "member"; "cpf-reference" = "reference"; "cpf-biz-admin" = "bizadmin";
@@ -58,6 +59,23 @@ function Test-Text {
 
 function Get-JavaFiles {
     param([string] $Module)
+    if ($Module -eq "cpf-batch") {
+        $batchRoot = Join-Path $Root "cpf-batch"
+        if (-not (Test-Path -LiteralPath $batchRoot)) {
+            return @()
+        }
+        return @(
+            Get-ChildItem -LiteralPath $batchRoot -Directory |
+                Where-Object {
+                    $_.Name -ne "src" -and
+                    (Test-Path -LiteralPath (Join-Path $_.FullName "src/main/java"))
+                } |
+                ForEach-Object {
+                    Get-ChildItem -LiteralPath (Join-Path $_.FullName "src/main/java") `
+                            -Recurse -File -Filter "*.java"
+                }
+        )
+    }
     $sourceRoot = Join-Path $Root "$Module/src/main/java"
     if (-not (Test-Path -LiteralPath $sourceRoot)) {
         return @()
@@ -74,11 +92,8 @@ function Get-StructuralPathRule {
     if ($path -match '^cpf-reference/src/(main|test)/java/com/cpf/reference/(controller|dto|service|repository|mapper|facade|operation)/') {
         return 'REF_EDU_CAPABILITY_SLICE_REQUIRED'
     }
-    if ($path -match '^cpf-batch/src/(main|test)/java/com/cpf/batch/edu/[^/]+\.java$' -or
-            $path -match '^cpf-batch/src/(main|test)/java/com/cpf/batch/edu/job/' -or
-            $path -match '^cpf-batch/src/(main|test)/java/com/cpf/batch/job/[^/]+\.java$' -or
-            $path -match '^cpf-batch/src/(main|test)/java/com/cpf/batch/centercut/') {
-        return 'BAT_JOB_DEFINITION_SLICE_REQUIRED'
+    if ($path -match '^cpf-batch/[^/]+/src/(main|test)/java/com/cpf/batch/(?:[^/]+/)*edu(?:/|$)') {
+        return 'BAT_RUNTIME_NO_EDU_SOURCE'
     }
     return $null
 }
@@ -153,7 +168,7 @@ foreach ($module in $modules) {
             if ($text -match '(?m)^\s*@(Aspect|Around|Before|After|AfterReturning|AfterThrowing)\b') {
                 Add-Finding $failures "BUSINESS_NO_TECHNICAL_LOGGING_ASPECT" $relativePath "업무 주제영역에 기술 공통 AOP 구현이 있습니다." "거래·성능·오류 로그 Aspect는 CPF가 소유하고 업무 모듈은 annotation 또는 extension port만 사용하세요."
             }
-            foreach ($targetModule in $businessModules) {
+            foreach ($targetModule in $businessInternalTargets) {
                 if ($targetModule -eq $module) {
                     continue
                 }
@@ -182,8 +197,8 @@ foreach ($module in $modules) {
 $regressionFixtures = @(
     @{ path = 'cpf-account/src/main/java/com/cpf/account/controller/AccountController.java'; rule = 'ACC_FEATURE_SLICE_REQUIRED' },
     @{ path = 'cpf-reference/src/main/java/com/cpf/reference/controller/ReferenceCrudEducationController.java'; rule = 'REF_EDU_CAPABILITY_SLICE_REQUIRED' },
-    @{ path = 'cpf-batch/src/main/java/com/cpf/batch/edu/BatTaskletEducationSample.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' },
-    @{ path = 'cpf-batch/src/main/java/com/cpf/batch/job/BatSmokeJobConfig.java'; rule = 'BAT_JOB_DEFINITION_SLICE_REQUIRED' }
+    @{ path = 'cpf-batch/worker/src/main/java/com/cpf/batch/worker/edu/BadWorkerEducationSample.java'; rule = 'BAT_RUNTIME_NO_EDU_SOURCE' },
+    @{ path = 'cpf-batch/control-server/src/test/java/com/cpf/batch/control/edu/BadControlEducationSample.java'; rule = 'BAT_RUNTIME_NO_EDU_SOURCE' }
 )
 $fixtureResults = @()
 foreach ($fixture in $regressionFixtures) {

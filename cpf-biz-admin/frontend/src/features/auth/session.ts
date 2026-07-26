@@ -1,4 +1,5 @@
 import { computed, reactive } from "vue";
+import { canonicalBzaMenuCode } from "../../shared/bzaPermissionManifest";
 
 export interface BzaOperator {
   loginId?: string;
@@ -28,22 +29,35 @@ export const bzaSession = reactive<SessionState>({
 export const authenticated = computed(() => Boolean(bzaSession.accessToken && bzaSession.operator));
 
 let refreshInFlight: Promise<void> | null = null;
+let sessionGeneration = 0;
 
 function setTokens(result: Record<string, unknown>): void {
-  bzaSession.accessToken = typeof result.accessToken === "string" ? result.accessToken : null;
-  if (typeof result.refreshToken === "string" && result.refreshToken) {
-    bzaSession.refreshToken = result.refreshToken;
+  bzaSession.accessToken = typeof result.accessToken === "string" && result.accessToken
+    ? result.accessToken
+    : null;
+  bzaSession.refreshToken = typeof result.refreshToken === "string" && result.refreshToken
+    ? result.refreshToken
+    : null;
+  if (bzaSession.accessToken) {
+    sessionStorage.setItem("bza.accessToken", bzaSession.accessToken);
+  } else {
+    sessionStorage.removeItem("bza.accessToken");
   }
-  if (bzaSession.accessToken) sessionStorage.setItem("bza.accessToken", bzaSession.accessToken);
-  if (bzaSession.refreshToken) sessionStorage.setItem("bza.refreshToken", bzaSession.refreshToken);
+  if (bzaSession.refreshToken) {
+    sessionStorage.setItem("bza.refreshToken", bzaSession.refreshToken);
+  } else {
+    sessionStorage.removeItem("bza.refreshToken");
+  }
 }
 
 export function clearBzaSession(): void {
+  sessionGeneration += 1;
   sessionStorage.removeItem("bza.accessToken");
   sessionStorage.removeItem("bza.refreshToken");
   bzaSession.accessToken = null;
   bzaSession.refreshToken = null;
   bzaSession.operator = null;
+  bzaSession.message = "";
 }
 
 async function raw<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -71,17 +85,23 @@ async function refreshBzaTokensSingleFlight(): Promise<void> {
   }
   if (!refreshInFlight) {
     const refreshToken = bzaSession.refreshToken;
+    const refreshGeneration = sessionGeneration;
     refreshInFlight = raw<Record<string, unknown>>("/api/bza/auth/refresh", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken })
     }).then(result => {
+      if (refreshGeneration !== sessionGeneration) {
+        throw new Error("이미 종료된 BZA 세션의 refresh 응답입니다.");
+      }
       setTokens(result);
       if (!bzaSession.accessToken || !bzaSession.refreshToken) {
         throw new Error("token rotation 응답이 불완전합니다.");
       }
     }).catch(error => {
-      clearBzaSession();
+      if (refreshGeneration === sessionGeneration) {
+        clearBzaSession();
+      }
       throw error;
     }).finally(() => {
       refreshInFlight = null;
@@ -93,12 +113,16 @@ async function refreshBzaTokensSingleFlight(): Promise<void> {
 export async function bzaApi<T = unknown>(url: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(options.headers || {});
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  if (bzaSession.accessToken) headers.set("Authorization", `Bearer ${bzaSession.accessToken}`);
+  const requestAccessToken = bzaSession.accessToken;
+  if (requestAccessToken) headers.set("Authorization", `Bearer ${requestAccessToken}`);
   try {
     return await raw<T>(url, { ...options, headers });
   } catch (error) {
     const httpError = error as Error & { status?: number };
     if (httpError.status === 401 && retry && bzaSession.refreshToken) {
+      if (requestAccessToken && bzaSession.accessToken && requestAccessToken !== bzaSession.accessToken) {
+        return bzaApi<T>(url, options, false);
+      }
       await refreshBzaTokensSingleFlight();
       return bzaApi<T>(url, options, false);
     }
@@ -108,6 +132,7 @@ export async function bzaApi<T = unknown>(url: string, options: RequestInit = {}
 }
 
 export async function loginBza(loginId: string, password: string): Promise<void> {
+  clearBzaSession();
   bzaSession.busy = true;
   bzaSession.message = "";
   try {
@@ -117,6 +142,10 @@ export async function loginBza(loginId: string, password: string): Promise<void>
       body: JSON.stringify({ loginId, password })
     });
     setTokens(result);
+    if (!bzaSession.accessToken || !bzaSession.refreshToken) {
+      clearBzaSession();
+      throw new Error("로그인 token 응답이 불완전합니다.");
+    }
     bzaSession.operator = (result.operator || null) as BzaOperator | null;
     if (!bzaSession.operator) await loadBzaOperator();
   } finally {
@@ -159,8 +188,7 @@ export async function changeBzaPassword(currentPassword: string, newPassword: st
 }
 
 function normalizeBzaMenuCode(value: string): string {
-  const normalized = value.trim().toUpperCase();
-  return normalized.startsWith("BZA_") ? normalized.substring(4) : normalized;
+  return canonicalBzaMenuCode(value);
 }
 
 export function hasBzaMenu(menuCode: string): boolean {

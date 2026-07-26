@@ -33,7 +33,8 @@ project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-account').projectDir = file('cpf-account')
 
-// Published dependency BOM is an isolated included build; business domains consume it as binary metadata.
+// Published dependency BOM and convention plugin are cpf-tools-owned isolated builds.
+// cpf-tools/build is tracked tooling source; each nested build output remains ignored.
 includeBuild 'cpf-tools/build/platform-bom'
 includeBuild 'cpf-tools/build/gradle-plugin'
 

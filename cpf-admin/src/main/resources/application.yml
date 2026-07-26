@@ -15,13 +15,6 @@ spring:
     active: local
     include: cpf, cmn
   datasource:
-    bat:
-      mode: ${BAT_DATASOURCE_MODE:${BAT_DB_MODE:url}}
-      driver-class-name: ${BAT_DATASOURCE_DRIVER:${BAT_DB_DRIVER:org.mariadb.jdbc.Driver}}
-      url: ${BAT_DATASOURCE_URL:${BAT_DB_URL:jdbc:mariadb://localhost:3306/batDB}}
-      username: ${BAT_DATASOURCE_USERNAME:${BAT_DB_USERNAME:cpf_bat_app}}
-      password: ${BAT_DATASOURCE_PASSWORD:${BAT_DB_PASSWORD:__REPLACE_BY_ENV__}}
-      jndi-name: ${BAT_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfBatchDataSource}
     adm:
       mode: ${ADM_DATASOURCE_MODE:url}
       driver-class-name: ${ADM_DB_DRIVER:org.mariadb.jdbc.Driver}
@@ -29,20 +22,6 @@ spring:
       username: ${ADM_DB_USERNAME:cpf_adm_app}
       password: ${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}
       jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
-    mbr:
-      mode: ${MBR_DB_MODE:url}
-      driver-class-name: ${MBR_DB_DRIVER:org.mariadb.jdbc.Driver}
-      url: ${MBR_DB_URL:jdbc:mariadb://localhost:3306/mbrDB}
-      username: ${MBR_DB_USERNAME:cpf_mbr_app}
-      password: ${MBR_DB_PASSWORD:__REPLACE_BY_ENV__}
-      jndi-name: ${MBR_DB_JNDI_NAME:java:comp/env/jdbc/cpfMemberDataSource}
-    ref:
-      mode: ${REF_DB_MODE:url}
-      driver-class-name: ${REF_DB_DRIVER:org.mariadb.jdbc.Driver}
-      url: ${REF_DB_URL:jdbc:mariadb://localhost:3306/refDB}
-      username: ${REF_DB_USERNAME:cpf_ref_app}
-      password: ${REF_DB_PASSWORD:__REPLACE_BY_ENV__}
-      jndi-name: ${REF_DB_JNDI_NAME:java:comp/env/jdbc/cpfReferenceDataSource}
   batch:
     job:
       enabled: false

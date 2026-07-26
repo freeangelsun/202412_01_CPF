@@ -54,6 +54,7 @@ public class CpfWebClient implements CpfHttpClient {
     public WebClient service(String serviceId) {
         return webClientBuilder.clone()
                 .baseUrl(endpointRegistry.baseUrl(serviceId))
+                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, serviceId)
                 .build();
     }
 
@@ -301,6 +302,7 @@ public class CpfWebClient implements CpfHttpClient {
     private WebClient webClient(ServiceCallResolvedTarget target) {
         return webClientBuilder.clone()
                 .baseUrl(trimTrailingSlash(target.baseUrl()))
+                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, target.serviceId())
                 .build();
     }
 

@@ -35,11 +35,24 @@ R14 catalog는 HTTP/Execution/Async/Batch/Retry/Idempotency/Health/Circuit/File 
 
 ## 8. Migration
 Migration은 설치된 고객 DB를 안전하게 최신 schema로 이동한다. fresh schema 수정만 하고 Migration을 누락하지 않는다.
-R14:
+현재 Lifecycle:
 - V53: BZA governance/operability hardening.
 - V54: BAT operation log retention archive.
+- V57: ADM audit delivery `transactionId` 표준화.
+- V58: Platform schema comment delta.
 
 Migration source와 runtime lifecycle copy는 byte-identical해야 하고 checksum manifest를 갱신한다.
+
+Platform Table의 lifecycle/audit 정책 정본은
+`cpf-tools/db/metadata/platform-table-lifecycle-policy.json`이다. 신규 Table은 기본
+`full-audit` 정책을 적용하며, immutable event, semantic lifecycle, lease, projection,
+sequence, static contract, framework metadata 예외는 사유와 필수 semantic
+actor/time/fencing Column을 Metadata에 명시해야 한다. Gate는 미등록 Table, 알 수 없는
+정책, stale 예외를 fail-closed한다.
+
+V58 Comment Migration 정본은
+`cpf-tools/db/metadata/platform-schema-comment-migration-v58.json`이며 기존 Comment를
+다시 소유하지 않고 이번 Version이 추가한 delta만 생성·Rollback한다.
 
 ## 9. Rollback
 Rollback은 데이터 손실 가능성을 우선 검사한다.
@@ -92,6 +105,20 @@ pwsh -File .\cpf-tools\scripts\verify-dr-restore.ps1 \
 6. rollback 가능한 경우 rollback
 7. re-apply
 8. migration checksum 확인
+
+MariaDB V58의 실제 검증 명령:
+
+```powershell
+pwsh -File .\cpf-tools\scripts\smoke-platform-schema-comment-migration.ps1
+pwsh -File .\cpf-tools\scripts\smoke-platform-schema-comment-migration.ps1 `
+  -Apply -Confirmation APPLY_V58_COMMENT_MIGRATION
+pwsh -File .\cpf-tools\scripts\smoke-platform-schema-comment-migration.ps1 -VerifyOnly
+```
+
+`-Apply` 경로는 Upgrade → Rollback → Re-upgrade를 실행하고 comment delta뿐 아니라
+Column/Index/FK 정의 hash와 `FOREIGN_KEY_CHECKS` 복원도 함께 검증한다. 2026-07-26
+HOME MariaDB 실행에서는 Column Comment 299개와 Table Comment 19개 delta가 왕복 후
+일치했다. 이 Evidence를 다른 PC 또는 Vendor의 실행 성공으로 승계하지 않는다.
 
 ## 17. 완료 기준
 SQL 파일이 존재하는 것만으로 완료가 아니다. MariaDB client에서 fresh/upgrade/rollback을 실행하고 query result를 Evidence로 남겨야 Runtime 완료다.

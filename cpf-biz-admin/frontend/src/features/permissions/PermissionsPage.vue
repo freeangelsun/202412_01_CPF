@@ -1,65 +1,43 @@
-<template>
-      <section class="panel">
-        <div class="panel-title">
-          <h2>권한 관리</h2>
-          <div class="actions">
-            <button type="button" @click="loadPermissions">조회</button>
-            <button type="button" v-if="canWrite('PERMISSION')" @click="updateMenuPermission">메뉴 권한 저장</button>
-            <button type="button" v-if="canWrite('PERMISSION')" @click="updateButtonPermission">버튼 권한 저장</button>
-            <button type="button" v-if="canWrite('PERMISSION')" @click="updateApiPermissionRole">API 권한 저장</button>
-          </div>
-        </div>
-        <div class="filters">
-          <label>Role ID <input v-model="permissionForm.roleId" type="text"></label>
-          <label>Menu ID <input v-model="permissionForm.menuId" type="text"></label>
-          <label>Button ID <input v-model="permissionForm.buttonId" type="text"></label>
-          <label>API Permission ID <input v-model="permissionForm.apiPermissionId" type="text"></label>
-          <label>조회 <select v-model="permissionForm.readYn"><option>Y</option><option>N</option></select></label>
-          <label>쓰기 <select v-model="permissionForm.writeYn"><option>Y</option><option>N</option></select></label>
-          <label>삭제/허용 <select v-model="permissionForm.deleteYn"><option>Y</option><option>N</option></select></label>
-          <label>사유 <input v-model="permissionForm.reason" type="text"></label>
-        </div>
-        <div class="filters">
-          <label>역할명 <input v-model="roleForm.roleName" type="text"></label>
-          <label>역할유형 <input v-model="roleForm.roleType" type="text"></label>
-          <label>역할 설명 <input v-model="roleForm.description" type="text"></label>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="createRole">역할 등록</button>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="updateRole">역할 수정</button>
-        </div>
-        <div class="filters">
-          <label>메뉴명 <input v-model="menuManageForm.menuName" type="text"></label>
-          <label>상위 메뉴 <input v-model="menuManageForm.parentMenuId" type="text"></label>
-          <label>메뉴 경로 <input v-model="menuManageForm.menuPath" type="text"></label>
-          <label>정렬 <input v-model.number="menuManageForm.sortOrder" type="number"></label>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="createManagedMenu">메뉴 등록</button>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="updateManagedMenu">메뉴 수정</button>
-        </div>
-        <div class="filters">
-          <label>행위 코드 <input v-model="buttonForm.actionCode" type="text"></label>
-          <label>버튼명 <input v-model="buttonForm.buttonName" type="text"></label>
-          <label>HTTP <input v-model="buttonForm.httpMethod" type="text"></label>
-          <label>API Pattern <input v-model="buttonForm.apiPattern" type="text"></label>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="createButton">버튼 등록</button>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="updateButton">버튼 수정</button>
-        </div>
-        <div class="filters">
-          <label>API 그룹 <input v-model="apiPermissionForm.apiGroupCode" type="text"></label>
-          <label>API명 <input v-model="apiPermissionForm.apiName" type="text"></label>
-          <label>권한 코드 <input v-model="apiPermissionForm.permissionCode" type="text"></label>
-          <label>API Path <input v-model="apiPermissionForm.apiPath" type="text"></label>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="createApiPermission">API 권한 등록</button>
-          <button type="button" v-if="canWrite('PERMISSION')" @click="updateApiPermission">API 권한 수정</button>
-        </div>
-        <pre class="detail">{{ pretty(permissionResult) }}</pre>
-      </section>
-</template>
+<script setup lang="ts">
+import CrudTable from "../../components/CrudTable.vue";
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import { admConsoleMixin } from "../../app/admConsoleMixin";
+const columns = [
+  "permissionId",
+  "roleCode",
+  "menuCode",
+  "buttonCode",
+  "permissionType",
+  "httpMethod",
+  "apiPattern",
+  "domainCode",
+  "environmentCode",
+  "dataScope",
+  "allowYn",
+  "useYn"
+];
 
-export default defineComponent({
-  name: "PermissionsPage",
-  mixins: [admConsoleMixin]
-});
+const fields = [
+  { name: "permissionId", label: "Permission ID", type: "number" as const },
+  { name: "roleCode", label: "Role 코드", required: true },
+  { name: "menuCode", label: "메뉴 코드", required: true },
+  { name: "buttonCode", label: "행위 코드", required: true },
+  { name: "permissionType", label: "권한 유형", required: true },
+  { name: "httpMethod", label: "HTTP Method" },
+  { name: "apiPattern", label: "API Pattern" },
+  { name: "domainCode", label: "Domain 코드" },
+  { name: "environmentCode", label: "환경 코드" },
+  { name: "dataScope", label: "Data Scope" },
+  { name: "allowYn", label: "허용", type: "yn" as const },
+  { name: "useYn", label: "사용", type: "yn" as const }
+];
 </script>
+
+<template>
+  <CrudTable
+    title="권한"
+    endpoint="/api/bza/permissions"
+    menu-code="AUTHORIZATION"
+    :columns="columns"
+    :fields="fields"
+  />
+</template>

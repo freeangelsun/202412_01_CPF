@@ -2,7 +2,7 @@ SELECT approval_id AS approvalId, approval_no AS approvalNo, approval_type AS ap
        business_domain AS businessDomain, title, requester_employee_no AS requesterEmployeeNo,
        approval_status AS approvalStatus, approval_mode AS approvalMode,
        current_step_no AS currentStepNo, due_at AS dueAt, version_no AS versionNo,
-       transaction_global_id AS transactionGlobalId, created_at AS createdAt, updated_at AS updatedAt
+       transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
 FROM bza_approval_document
 WHERE (:status IS NULL OR approval_status = :status)
   AND (:employeeNo IS NULL OR requester_employee_no = :employeeNo

@@ -196,7 +196,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
      * 최신 로그인 이력을 DB에서 조회합니다.
      */
     public List<Map<String, Object>> loginHistories(String authorizationHeader, int limit) {
-        authorize(authorizationHeader, "USER", "READ");
+        authorize(authorizationHeader, "AUTHORIZATION", "READ");
         return authRepository.findLoginHistories(Math.max(1, Math.min(limit, 500)));
     }
 

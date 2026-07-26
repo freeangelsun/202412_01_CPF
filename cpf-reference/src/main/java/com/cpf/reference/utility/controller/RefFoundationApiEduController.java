@@ -7,6 +7,7 @@ import com.cpf.core.api.util.CpfDates;
 import com.cpf.core.api.util.CpfPages;
 import com.cpf.core.api.util.CpfStrings;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
+import com.cpf.reference.common.base.ReferenceBaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,9 +25,13 @@ import java.util.Map;
  * 실제 Controller에서 사용하는 최소 예제입니다.</p>
  */
 @RestController
-@RequestMapping("/ref/api/edu/foundation")
-@Tag(name = "REF-EDU-Foundation", description = "CPF Public Utility/Page/transactionId 사용 예제")
-public class RefFoundationApiEduController {
+@RequestMapping({
+        "/api/reference/foundation",
+        "/reference/edu/foundation",
+        "/ref/api/edu/foundation"
+})
+@Tag(name = "REF Reference 16. Foundation", description = "CPF Public Utility/Page/transactionId 사용 예제")
+public class RefFoundationApiEduController extends ReferenceBaseController {
     private final CpfTransactionIdGenerator transactionIds;
 
     public RefFoundationApiEduController(CpfTransactionIdGenerator transactionIds) {

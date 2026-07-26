@@ -1,0 +1,21 @@
+MERGE INTO bat_job_pack AS target
+USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?))
+    AS source(job_pack_id, owner_domain, artifact_coordinate, artifact_version, artifact_checksum,
+              signature_present_yn, platform_range, manifest_json)
+ON target.job_pack_id = source.job_pack_id
+WHEN MATCHED THEN UPDATE SET
+    owner_domain = source.owner_domain,
+    artifact_coordinate = source.artifact_coordinate,
+    artifact_version = source.artifact_version,
+    artifact_checksum = source.artifact_checksum,
+    signature_present_yn = source.signature_present_yn,
+    platform_range = source.platform_range,
+    manifest_json = source.manifest_json,
+    last_registered_at = SYSUTCDATETIME()
+WHEN NOT MATCHED THEN INSERT (
+    job_pack_id, owner_domain, artifact_coordinate, artifact_version, artifact_checksum,
+    signature_present_yn, platform_range, manifest_json, last_registered_at
+) VALUES (
+    source.job_pack_id, source.owner_domain, source.artifact_coordinate, source.artifact_version,
+    source.artifact_checksum, source.signature_present_yn, source.platform_range, source.manifest_json, SYSUTCDATETIME()
+);

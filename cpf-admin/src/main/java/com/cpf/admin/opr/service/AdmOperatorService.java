@@ -530,7 +530,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     private void seedFallback() {
         fallbackRoles.add(new AdmRole("ADM_ADMIN", "프레임워크 관리자", "모든 ADM 메뉴와 운영 작업을 관리합니다."));
         fallbackRoles.add(new AdmRole("ADM_DEV_OPERATOR", "개발자 운영자", "로그, 캐시, 코드, 메시지, 설정, 배치 관제를 운영합니다."));
-        fallbackRoles.add(new AdmRole("ADM_BIZ_OPERATOR", "업무 운영자", "회원, 거래 로그, 배치, 캐시 같은 업무 운영 기능을 수행합니다."));
+        fallbackRoles.add(new AdmRole("ADM_BIZ_OPERATOR", "업무 운영자", "거래 로그, 배치, 캐시 같은 공통 업무 운영 기능을 수행합니다."));
         fallbackRoles.add(new AdmRole("ADM_VIEWER", "조회 전용 운영자", "운영 정보를 조회만 할 수 있습니다."));
         fallbackRoles.add(new AdmRole("ADM_OPERATOR", "운영자 호환 역할", "기존 ADM_OPERATOR 호환을 위한 역할입니다."));
 
@@ -539,7 +539,6 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         fallbackMenus.add(new AdmMenu("STANDARD_EXECUTION", null, "표준 실행 카탈로그", "/adm#standard-executions", 23));
         fallbackMenus.add(new AdmMenu("REMOTE_LOG", null, "원격 로그 관리", "/adm#remote-logs", 24));
         fallbackMenus.add(new AdmMenu("AUDIT_LOG", null, "감사 로그", "/adm#audit-logs", 30));
-        fallbackMenus.add(new AdmMenu("MEMBER", null, "회원 관리", "/adm#members", 40));
         fallbackMenus.add(new AdmMenu("BATCH", null, "배치 관제", "/adm#batch", 50));
         fallbackMenus.add(new AdmMenu("CACHE", null, "캐시 관리", "/adm#cache", 60));
         fallbackMenus.add(new AdmMenu("MESSAGE", null, "메시지 관리", "/adm#messages", 70));
@@ -583,14 +582,14 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
         if (roleIds.contains("ADM_BIZ_OPERATOR")) {
             return fallbackMenus.stream()
-                    .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
+                    .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE").contains(menu.menuId()))
                     .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
-                            menu.path(), menu.sortOrder(), true, List.of("MEMBER", "BATCH", "CACHE").contains(menu.menuId()), "MEMBER".equals(menu.menuId())))
+                            menu.path(), menu.sortOrder(), true, List.of("BATCH", "CACHE").contains(menu.menuId()), false))
                     .sorted(Comparator.comparingInt(AdmMenu::sortOrder))
                     .toList();
         }
         return fallbackMenus.stream()
-                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "MEMBER", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
+                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
                 .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                         menu.path(), menu.sortOrder(), true, false, false))
                 .sorted(Comparator.comparingInt(AdmMenu::sortOrder))

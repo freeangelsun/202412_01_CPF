@@ -16,6 +16,13 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$contractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+if (-not (Test-Path -LiteralPath $contractPath -PathType Leaf)) {
+    throw "Generated Domain 중앙 Template 계약이 없습니다: $contractPath"
+}
+$contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$supportedVendors = @($contract.supportedVendors | Sort-Object -Unique)
+$requiredTemplates = @($contract.requiredTemplates | Sort-Object -Unique)
 $domain = $DomainName.Trim().ToLowerInvariant()
 if ($domain -notmatch '^[a-z][a-z0-9]{1,29}$') {
     throw "DomainName은 영문자로 시작하는 2~30자리 영문 소문자·숫자여야 합니다."
@@ -89,6 +96,15 @@ try {
     Add-Check "PROJECT_NAME" ([string]$manifest.projectName -eq $projectName) "manifest=$($manifest.projectName), expected=$projectName"
     Add-Check "SYSTEM_CODE" ($manifestCode -eq $expectedCode -and $manifestCode -match '^[A-Z][A-Z0-9]{2}$') "manifest=$manifestCode, expected=$expectedCode"
     Add-Check "DOMAIN_TYPE" ([string]$manifest.domainType -eq "GENERATED_DOMAIN") "manifest=$($manifest.domainType)"
+    Add-Check "DEPENDENCY_MODEL" (
+        [string]$manifest.dependencyModel -in @("root-project", "published-artifact")
+    ) "manifest=$($manifest.dependencyModel)"
+    Add-Check "PLATFORM_VERSION" (
+        [string]$manifest.platformVersion -match '^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$'
+    ) "manifest=$($manifest.platformVersion)"
+    Add-Check "TEMPLATE_CONTRACT_VERSION" (
+        [string]$manifest.templateContractVersion -eq [string]$contract.contractVersion
+    ) "manifest=$($manifest.templateContractVersion), canonical=$($contract.contractVersion)"
     Add-Check "MODULE_NAME" ([string]$manifest.moduleName -match '^[A-Z][A-Za-z0-9]{1,49}$') "manifest=$($manifest.moduleName)"
     Add-Check "PACKAGE_NAME" (
         [string]$manifest.packageName -match '^com\.cpf\.[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$' -and
@@ -139,25 +155,18 @@ try {
         }
     }
 
+    $buildText = [System.IO.File]::ReadAllText(
+            (Join-Path $projectDir "build.gradle"),
+            [System.Text.Encoding]::UTF8)
     if ([bool]$manifest.databaseEnabled) {
         $vendor = ([string]$manifest.databaseVendor).ToLowerInvariant()
-        $buildText = [System.IO.File]::ReadAllText((Join-Path $projectDir "build.gradle"), [System.Text.Encoding]::UTF8)
-        $supportedVendors = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")
         Add-Check "DATABASE_VENDOR" ($vendor -in $supportedVendors) "defaultVendor=$vendor"
         Add-Check "DATABASE_VENDOR_PROPERTY" ([string]$manifest.databaseVendorProperty -eq "cpf.db.vendor") "property=$($manifest.databaseVendorProperty)"
         $templateRoot = Join-Path $Root "cpf-tools/db/vendor"
-        $contractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
         Add-Check "DATABASE_CENTRAL_PACK_CONTRACT" (Test-Path -LiteralPath $contractPath -PathType Leaf) "cpf-tools/generator/contracts/central-domain-template-contract.json"
         $missingCentralTemplates = @()
-        foreach ($supportedVendor in @("mariadb", "mysql", "postgresql", "oracle", "sqlserver")) {
-            foreach ($relativeTemplate in @(
-                    "provision/01_provision.sql.template",
-                    "install/10_empty_install.sql.template",
-                    "seed/20_product_seed.sql.template",
-                    "migration/V1____DOMAIN___domain.sql.template",
-                    "runtime/mybatis/__MAPPER__.xml.template",
-                    "verify/90_verify.sql.template",
-                    "rollback/R1__remove___DOMAIN___domain.sql.template")) {
+        foreach ($supportedVendor in $supportedVendors) {
+            foreach ($relativeTemplate in $requiredTemplates) {
                 $candidate = Join-Path $templateRoot "$supportedVendor/domain-template/$relativeTemplate"
                 if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
                     $missingCentralTemplates += "$supportedVendor/$relativeTemplate"
@@ -168,27 +177,55 @@ try {
         Add-Check "DATABASE_GENERATED_RESOURCES_ASSEMBLY" `
             ($buildText.Contains("prepareCpfVendorResources") -and
              $buildText.Contains("generated-resources/cpf-vendor") -and
-             $buildText.Contains("cpf-tools/db/vendor")) `
+             ($buildText.Contains("cpf-tools/db/vendor") -or
+              $buildText.Contains("cpf-db/vendor"))) `
             "central template -> generated-resources overlay"
         $moduleLocalVendorResources = @(Get-ChildItem -LiteralPath (Join-Path $projectDir "src/main/resources") -Recurse -File -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -match '\\(?:db|sql|mybatis)\\vendor\\' })
         Add-Check "DATABASE_NO_MODULE_LOCAL_VENDOR_PACK" ($moduleLocalVendorResources.Count -eq 0) "count=$($moduleLocalVendorResources.Count)"
         $dependencyMarkers = @(
-            'org.mariadb.jdbc:mariadb-java-client',
-            'com.mysql:mysql-connector-j',
-            'org.postgresql:postgresql',
-            'com.oracle.database.jdbc:ojdbc11',
-            'com.microsoft.sqlserver:mssql-jdbc'
+            $contract.buildRuntimeContract.vendors.PSObject.Properties |
+                ForEach-Object { [string]$_.Value.jdbcDriver }
         )
         $missingDependencies = @($dependencyMarkers | Where-Object { -not $buildText.Contains($_) })
-        Add-Check "DATABASE_VENDOR_DEPENDENCIES" ($missingDependencies.Count -eq 0) "missing=$($missingDependencies -join ', ')"
+        Add-Check "DATABASE_VENDOR_DEPENDENCY_CATALOG" ($missingDependencies.Count -eq 0) "missing=$($missingDependencies -join ', ')"
+        Add-Check "DATABASE_SELECTED_VENDOR_DEPENDENCY_ONLY" (
+            $buildText.Contains("runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]") -and
+            $buildText.Contains("runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]") -and
+            $buildText -notmatch "(?m)^\s*runtimeOnly\s+['""][^'""]*(?:jdbc|mariadb|mysql|postgresql|ojdbc|mssql)[^'""]*['""]"
+        ) "cpfDbVendor -> one JDBC/Flyway runtime dependency"
         $applicationPath = Join-Path $projectDir "src/main/resources/application-${domain}.yml"
         $applicationText = [System.IO.File]::ReadAllText($applicationPath, [System.Text.Encoding]::UTF8)
         $expectedJndiName = "java:comp/env/jdbc/cpf$([string]$manifest.displayName)DataSource"
         Add-Check "DATASOURCE_JNDI_NAME" $applicationText.Contains($expectedJndiName) "expected=$expectedJndiName"
         Add-Check "DATABASE_VENDOR_CONFIGURATION" $applicationText.Contains("vendor: `${") "cpf.db.vendor environment override"
+        $dataSourceConfigPath = Join-Path $projectDir (
+                "src/main/java/$packagePath/config/$([string]$manifest.moduleName)DataSourceConfig.java")
+        $dataSourceConfigText = if (Test-Path -LiteralPath $dataSourceConfigPath -PathType Leaf) {
+            [IO.File]::ReadAllText($dataSourceConfigPath, [Text.Encoding]::UTF8)
+        } else {
+            ""
+        }
+        $domainDataSourcePrefix = "cpf.$domain.datasource"
+        Add-Check "DATASOURCE_DOMAIN_NAMESPACE" (
+            $dataSourceConfigText.Contains(
+                    "CpfDataSources.resolve(environment, `"$domainDataSourcePrefix`")") -and
+            -not $dataSourceConfigText.Contains(
+                    'CpfDataSources.resolve(environment, "cpf.datasource")')
+        ) "prefix=$domainDataSourcePrefix"
+        $normalizedApplicationText = $applicationText -replace "`r`n?", "`n"
+        Add-Check "DATASOURCE_YAML_NAMESPACE" (
+            $normalizedApplicationText.Contains("  ${domain}:`n    datasource:") -and
+            $normalizedApplicationText -notmatch '(?m)^  datasource:\s*$'
+        ) "prefix=cpf.$domain.datasource"
+        Add-Check "DATASOURCE_NAMESPACE_REGRESSION_TEST" (
+            Test-Path -LiteralPath (
+                    Join-Path $projectDir (
+                        "src/test/java/$packagePath/config/$([string]$manifest.moduleName)DataSourceIsolationTest.java")) `
+                    -PathType Leaf
+        ) "core/domain datasource properties coexistence"
 
-        $installTexts = @("mariadb", "mysql", "postgresql", "oracle", "sqlserver" | ForEach-Object {
+        $installTexts = @($supportedVendors | ForEach-Object {
                 [System.IO.File]::ReadAllText(
                         (Join-Path $templateRoot "$_/domain-template/install/10_empty_install.sql.template"),
                         [System.Text.Encoding]::UTF8)
@@ -203,15 +240,65 @@ try {
                 (@($installTexts | Where-Object { $_.Contains($column) }).Count -eq 5) `
                 "column=$column vendorTemplateCount=5"
         }
-        $requiredOperations = @(
-            "create", "read", "update", "delete", "search", "offset-page", "slice", "cursor",
-            "validation", "transaction-commit", "transaction-rollback", "optimistic-lock",
-            "duplicate", "local-call", "remote-call", "standard-header",
-            "transaction-id", "error-mapping", "idempotency", "audit", "masking",
-            "framework-edu")
+        $requiredManifestColumns = @($contract.verifyContract.requiredColumns)
+        $manifestColumns = @($manifest.minimalTransactionContract.requiredColumns)
+        $missingManifestColumns = @(Compare-Object `
+                ($requiredManifestColumns | Sort-Object -Unique) `
+                ($manifestColumns | Sort-Object -Unique))
+        Add-Check "MINIMAL_TRANSACTION_REQUIRED_COLUMNS" `
+            ($missingManifestColumns.Count -eq 0) `
+            "diff=$($missingManifestColumns -join ', ')"
+        foreach ($contractList in @(
+                [ordered]@{
+                    name = "MINIMAL_TRANSACTION_REQUIRED_KEYS"
+                    expected = @($contract.verifyContract.requiredKeys)
+                    actual = @($manifest.minimalTransactionContract.requiredKeys)
+                },
+                [ordered]@{
+                    name = "MINIMAL_TRANSACTION_REQUIRED_INDEXES"
+                    expected = @($contract.verifyContract.requiredIndexes)
+                    actual = @($manifest.minimalTransactionContract.requiredIndexes)
+                },
+                [ordered]@{
+                    name = "MINIMAL_TRANSACTION_REQUIRED_CHECKS"
+                    expected = @($contract.verifyContract.requiredChecks)
+                    actual = @($manifest.minimalTransactionContract.requiredChecks)
+                })) {
+            $contractDiff = @(Compare-Object `
+                    ($contractList.expected | Sort-Object -Unique) `
+                    ($contractList.actual | Sort-Object -Unique))
+            Add-Check $contractList.name ($contractDiff.Count -eq 0) "diff=$($contractDiff -join ', ')"
+        }
+        $expectedLogicalTable = ([string]$contract.verifyContract.logicalTable).
+                Replace("@CPF_SCHEMA_NAME@", [string]$manifest.schemaName).
+                Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix)
+        Add-Check "MINIMAL_TRANSACTION_MODEL" (
+            [string]$manifest.minimalTransactionContract.model -eq [string]$contract.verifyContract.model
+        ) "manifest=$($manifest.minimalTransactionContract.model)"
+        Add-Check "MINIMAL_TRANSACTION_LOGICAL_TABLE" (
+            [string]$manifest.minimalTransactionContract.logicalTable -eq $expectedLogicalTable
+        ) "manifest=$($manifest.minimalTransactionContract.logicalTable), expected=$expectedLogicalTable"
+        $requiredOperations = @($contract.verifyContract.requiredOperations)
         $manifestOperations = @($manifest.minimalTransactionContract.operations)
-        $missingOperations = @($requiredOperations | Where-Object { $_ -notin $manifestOperations })
-        Add-Check "MINIMAL_TRANSACTION_CONTRACT" ($missingOperations.Count -eq 0) "missing=$($missingOperations -join ', ')"
+        $missingOperations = @(Compare-Object `
+                ($requiredOperations | Sort-Object -Unique) `
+                ($manifestOperations | Sort-Object -Unique))
+        Add-Check "MINIMAL_TRANSACTION_CONTRACT" ($missingOperations.Count -eq 0) "diff=$($missingOperations -join ', ')"
+    }
+
+    $boundaryFiles = @(Get-ChildItem -LiteralPath $projectDir -Recurse -File -Include *.java,*.gradle,*.kts |
+            Where-Object { $_.FullName -notmatch '\\build\\' })
+    $internalHits = @($boundaryFiles | Select-String -Pattern 'com\.cpf\.core\.common\.')
+    Add-Check "NO_CORE_INTERNAL_IMPORT" ($internalHits.Count -eq 0) "count=$($internalHits.Count)"
+    if ([string]$manifest.dependencyModel -eq "published-artifact") {
+        $rootProjectHits = @($boundaryFiles |
+                Select-String -Pattern 'project\s*\(\s*[''"]:cpf-(?:core|common|batch)(?::|[''"])')
+        Add-Check "NO_ROOT_PROJECT_DEPENDENCY" ($rootProjectHits.Count -eq 0) "count=$($rootProjectHits.Count)"
+        Add-Check "PUBLISHED_PLATFORM_DEPENDENCIES" (
+            $buildText.Contains("com.cpf:cpf-bom:") -and
+            $buildText.Contains("com.cpf.core:cpf-core:") -and
+            $buildText.Contains("com.cpf.common:cpf-common:")
+        ) "published CPF BOM/core/common"
     }
 
     $drift = New-Object System.Collections.Generic.List[string]

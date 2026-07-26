@@ -3,8 +3,10 @@ package com.cpf.batch.centercut.runner;
 import com.cpf.batch.runtime.CenterCutParameterProtector;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.batch.spi.CenterCutTargetProvider;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,14 +26,16 @@ public class CenterCutTargetGenerator {
     private final ObjectMapper mapper;
     private final CenterCutParameterProtector protector;
     private final TransactionTemplate tx;
+    private final CpfVendorSqlCatalog sql;
 
     public CenterCutTargetGenerator(JdbcTemplate jdbc, List<CenterCutTargetProvider> providers,
                                     ObjectMapper mapper, CenterCutParameterProtector protector,
-                                    PlatformTransactionManager tm) {
+                                    PlatformTransactionManager tm, Environment environment) {
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.protector = protector;
         this.tx = new TransactionTemplate(tm);
+        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
         Map<String, CenterCutTargetProvider> map = new HashMap<>();
         for (CenterCutTargetProvider provider : providers) {
             if (map.put(provider.providerKey(), provider) != null) {
@@ -43,24 +47,15 @@ public class CenterCutTargetGenerator {
 
     @Scheduled(fixedDelayString = "${cpf.center-cut.target-generation-ms:500}")
     public void generate() {
-        List<Map<String, Object>> executions = jdbc.queryForList("""
-            SELECT e.center_cut_execution_id,e.center_cut_job_id,e.parameter_ciphertext,e.parameter_hash,
-                   e.target_cursor,e.transaction_id,e.parent_segment_id,j.provider_key,j.chunk_size
-              FROM bat_center_cut_execution e
-              JOIN bat_center_cut_job j ON j.center_cut_job_id=e.center_cut_job_id
-             WHERE e.execution_state IN ('CREATED','TARGETING') AND e.target_complete_yn='N'
-             ORDER BY e.created_at
-             LIMIT 20
-            """);
+        List<Map<String, Object>> executions =
+                jdbc.queryForList(sql.required("centercut-target-find-pending"));
         for (Map<String, Object> row : executions) {
             try {
                 generateOne(row);
             } catch (RuntimeException failure) {
-                jdbc.update("""
-                    UPDATE bat_center_cut_execution
-                       SET execution_state='FAILED',last_error_message=?,updated_at=CURRENT_TIMESTAMP(6)
-                     WHERE center_cut_execution_id=?
-                    """, SensitiveTextSanitizer.sanitize(failure.getMessage()), row.get("center_cut_execution_id"));
+                jdbc.update(sql.required("centercut-target-mark-failed"),
+                        SensitiveTextSanitizer.sanitize(failure.getMessage()),
+                        row.get("center_cut_execution_id"));
             }
         }
     }
@@ -88,11 +83,7 @@ public class CenterCutTargetGenerator {
         List<CenterCutTargetProvider.Target> targets = returned == null ? List.of() : List.copyOf(returned);
 
         tx.executeWithoutResult(status -> {
-            jdbc.update("""
-                UPDATE bat_center_cut_execution
-                   SET execution_state='TARGETING',updated_at=CURRENT_TIMESTAMP(6)
-                 WHERE center_cut_execution_id=? AND execution_state='CREATED'
-                """, executionId);
+            jdbc.update(sql.required("centercut-target-mark-targeting"), executionId);
 
             String nextCursor = cursor;
             boolean last = targets.isEmpty();
@@ -104,23 +95,13 @@ public class CenterCutTargetGenerator {
                 nextCursor = target.cursor();
                 last |= target.last();
                 String segmentId = UUID.randomUUID().toString();
-                inserted += jdbc.update("""
-                    INSERT IGNORE INTO bat_center_cut_item(
-                        center_cut_job_id,center_cut_execution_id,business_key,item_status,
-                        transaction_id,transaction_segment_id,parent_segment_id,item_payload,created_by,updated_by)
-                    SELECT center_cut_job_id,?,?,'READY',transaction_id,?,parent_segment_id,?,
-                           'CENTER_CUT_TARGET','CENTER_CUT_TARGET'
-                      FROM bat_center_cut_execution
-                     WHERE center_cut_execution_id=?
-                    """, executionId, target.businessKey(), segmentId, target.payload(), executionId);
+                inserted += jdbc.update(sql.required("centercut-target-insert-item-idempotent"),
+                        executionId, target.businessKey(), segmentId, target.payload(), executionId);
             }
 
-            jdbc.update("""
-                UPDATE bat_center_cut_execution
-                   SET target_cursor=?,target_complete_yn=?,target_count=target_count+?,
-                       execution_state=?,updated_at=CURRENT_TIMESTAMP(6)
-                 WHERE center_cut_execution_id=?
-                """, nextCursor, last ? "Y" : "N", inserted, last ? "RUNNING" : "TARGETING", executionId);
+            jdbc.update(sql.required("centercut-target-update-progress"),
+                    nextCursor, last ? "Y" : "N", inserted,
+                    last ? "RUNNING" : "TARGETING", executionId);
         });
     }
 }

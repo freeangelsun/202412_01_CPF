@@ -1,11 +1,18 @@
 package com.cpf.core.common.database;
 
+import com.cpf.core.api.database.CpfDatabaseVendor;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -23,29 +30,90 @@ public final class CpfSqlResourceResolver {
     private CpfSqlResourceResolver() {
     }
 
-    public static Resource[] mapperResources(Environment environment, String domainName) throws IOException {
-        String vendor = normalizeVendor(environment);
+    /**
+     * 선택 Vendor의 중앙 Mapper Pack 경로를 반환합니다.
+     *
+     * @param environment CPF Runtime 설정
+     * @param domainName 중앙 Pack의 Runtime owner 이름
+     * @return 선택 Pack의 재귀 XML filesystem pattern
+     */
+    public static String mapperPattern(Environment environment, String domainName) {
         String domain = normalizeDomain(domainName);
-        String pattern = "classpath*:mybatis/vendor/" + vendor + "/mapper/" + domain + "/**/*.xml";
+        Path packRoot = requiredPackRoot(environment);
+        Path mapperRoot = CpfVendorResourceRoot.requiredDirectory(
+                packRoot,
+                Path.of("runtime", domain, "mybatis"),
+                "Runtime Mapper");
+        return filePattern(mapperRoot, "/**/*.xml");
+    }
+
+    public static Resource[] mapperResources(Environment environment, String domainName) throws IOException {
+        String domain = normalizeDomain(domainName);
+        Path packRoot = requiredPackRoot(environment);
+        Path mapperRoot = CpfVendorResourceRoot.requiredDirectory(
+                packRoot,
+                Path.of("runtime", domain, "mybatis"),
+                "Runtime Mapper");
+        String pattern = filePattern(mapperRoot, "/**/*.xml");
 
         Resource[] resources = new PathMatchingResourcePatternResolver().getResources(pattern);
-        Resource[] readable = Arrays.stream(resources)
-                .filter(Resource::exists)
-                .filter(Resource::isReadable)
-                .toArray(Resource[]::new);
+        List<ResolvedResource> readable = new ArrayList<>();
+        for (Resource resource : resources) {
+            if (!resource.exists() || !resource.isReadable()) {
+                continue;
+            }
+            Path declaredPath = resource.getFile().toPath().toAbsolutePath().normalize();
+            if (Files.isSymbolicLink(declaredPath)) {
+                throw new IllegalStateException(
+                        "Runtime Mapper symbolic link는 허용하지 않습니다. path=" + declaredPath);
+            }
+            Path realPath = declaredPath.toRealPath();
+            if (!realPath.startsWith(packRoot)) {
+                throw new IllegalStateException(
+                        "Runtime Mapper symbolic link가 중앙 Vendor Pack을 벗어납니다. path="
+                                + declaredPath);
+            }
+            if (!Files.isRegularFile(realPath, LinkOption.NOFOLLOW_LINKS)) {
+                continue;
+            }
+            readable.add(new ResolvedResource(realPath, new FileSystemResource(realPath)));
+        }
 
-        if (readable.length == 0) {
+        if (readable.isEmpty()) {
             throw new IllegalStateException(
-                    "CPF DB Vendor Runtime Mapper가 없습니다. vendor=" + vendor
+                    "선택된 중앙 CPF DB Vendor Runtime Mapper Pack이 비어 있습니다. vendor="
+                            + normalizeVendor(environment)
                             + ", domain=" + domain + ", pattern=" + pattern);
         }
-        return readable;
+        readable.sort(Comparator.comparing(item -> item.path().toString()));
+        return readable.stream()
+                .map(ResolvedResource::resource)
+                .toArray(Resource[]::new);
     }
 
     public static String repositoryResourceRoot(Environment environment, String domainName) {
-        String vendor = normalizeVendor(environment);
         String domain = normalizeDomain(domainName);
-        return "classpath:/sql/vendor/" + vendor + "/" + domain + "/";
+        Path packRoot = requiredPackRoot(environment);
+        Path repositoryRoot = CpfVendorResourceRoot.requiredDirectory(
+                packRoot,
+                Path.of("runtime", domain, "repository"),
+                "Repository SQL");
+        return filePattern(repositoryRoot, "/");
+    }
+
+    /**
+     * 선택 Vendor 중앙 Pack의 Flyway filesystem location을 반환합니다.
+     *
+     * @param environment CPF Runtime 설정
+     * @return {@code filesystem:<pack>/migration}
+     */
+    public static String flywayLocation(Environment environment) {
+        Path packRoot = requiredPackRoot(environment);
+        Path migrationRoot = CpfVendorResourceRoot.requiredDirectory(
+                packRoot,
+                Path.of("migration"),
+                "Migration");
+        return "filesystem:" + portablePath(migrationRoot);
     }
 
     public static String normalizeVendor(Environment environment) {
@@ -60,10 +128,26 @@ public final class CpfSqlResourceResolver {
         return normalized;
     }
 
+    private static Path requiredPackRoot(Environment environment) {
+        CpfDatabaseVendor vendor = CpfDatabaseVendor.from(normalizeVendor(environment));
+        return CpfVendorResourceRoot.required(environment, vendor);
+    }
+
+    private static String filePattern(Path root, String suffix) {
+        return "file:" + portablePath(root) + suffix;
+    }
+
+    private static String portablePath(Path path) {
+        return path.toString().replace('\\', '/');
+    }
+
     private static String normalizeDomain(String domainName) {
         if (domainName == null || !domainName.matches("^[a-z][a-z0-9-]{1,39}$")) {
             throw new IllegalArgumentException("유효하지 않은 CPF DomainName입니다: " + domainName);
         }
         return domainName;
+    }
+
+    private record ResolvedResource(Path path, Resource resource) {
     }
 }

@@ -10,14 +10,14 @@ import java.util.Map;
 /**
  * Service endpoint configuration for inter-service HTTP calls.
  *
- * <p>Example: {@code cpf.services.mbr.base-url=http://localhost:8081}</p>
+ * <p>Example: {@code cpf.services.payment.base-url=http://localhost:8181}</p>
  */
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "cpf")
 public class CpfServiceEndpointProperties {
 
-    /** mbr, bza, ref, adm 같은 서비스 ID를 키로 사용하는 endpoint 설정입니다. */
+    /** Generator/Service Registry에 등록된 임의의 serviceId를 키로 사용하는 endpoint 설정입니다. */
     private Map<String, ServiceEndpoint> services = new LinkedHashMap<>();
 
     @Getter

@@ -1,6 +1,8 @@
 HELP.md
 .gradle
 build/
+# 제품 Build Tooling Source는 cpf-tools 소유이며 산출물 build 디렉터리가 아닙니다.
+!/cpf-tools/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -39,6 +41,9 @@ out/
 ### CPF runtime logs ###
 logs/
 **/logs/
+# ADM의 거래 로그 화면 Source는 runtime log 디렉터리가 아닙니다.
+!cpf-admin/frontend/src/features/logs/
+!cpf-admin/frontend/src/features/logs/**
 *.log
 *.log.*
 

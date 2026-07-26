@@ -27,7 +27,6 @@ import reactor.netty.http.client.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -195,7 +194,7 @@ public class CpfWebClientConfig {
         }
         writer.writeIntegration(
                 null,
-                inferTargetModule(request.url().getHost(), request.url().getPort(), request.url().getPath()),
+                CpfTargetServiceResolver.resolve(request.headers(), request.url()),
                 "OUTBOUND",
                 request.method().name(),
                 request.url().getPath(),
@@ -215,41 +214,6 @@ public class CpfWebClientConfig {
 
     private long elapsedMillis(long started) {
         return (System.nanoTime() - started) / 1_000_000;
-    }
-
-    private String inferTargetModule(String host, int port, String path) {
-        String normalizedPath = path == null ? "" : path.toLowerCase(Locale.ROOT);
-        if (normalizedPath.contains("/mbr/")) {
-            return "MBR";
-        }
-        if (normalizedPath.contains("/adm/")) {
-            return "ADM";
-        }
-        if (normalizedPath.contains("/api/bza/") || normalizedPath.contains("/bza/")) {
-            return "BZA";
-        }
-        if (normalizedPath.contains("/ref/")) {
-            return "REF";
-        }
-        if (normalizedPath.contains("/bat/")) {
-            return "BAT";
-        }
-        if (port == 8081) {
-            return "MBR";
-        }
-        if (port == 8090) {
-            return "ADM";
-        }
-        if (port == 8091) {
-            return "BZA";
-        }
-        if (port == 8093) {
-            return "BAT";
-        }
-        if (port == 8099) {
-            return "REF";
-        }
-        return hasText(host) ? host.toUpperCase(Locale.ROOT) : "UNKNOWN";
     }
 
     private boolean hasText(String value) {

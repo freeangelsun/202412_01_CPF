@@ -21,12 +21,15 @@ public class ReferenceCompositeTransactionEducationController extends com.cpf.re
 
     @GetMapping("/composite-sample")
     @CpfOnlineTransaction(id = "OREFAA0043", name = "REFCompositeTransactionSample")
-    @Operation(operationId = "refCompositeTransactionEducationCompositeSample", summary = "복합 거래 추적 샘플 안내", description = "REF에서 CPF Service Call Engine으로 MBR을 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
+    @Operation(
+            operationId = "refCompositeTransactionEducationCompositeSample",
+            summary = "복합 거래 추적 샘플 안내",
+            description = "REF에서 CPF Service Call Engine으로 중립 시뮬레이터를 호출하고 ADM에서 타임라인을 확인하는 절차를 안내합니다.")
     public ResponseEntity<Map<String, Object>> compositeSample() {
         return ResponseEntity.ok(Map.of(
                 "purpose", "transactionId 하나로 여러 모듈의 segment를 묶어 운영자가 timeline으로 조회하는 샘플입니다.",
                 "patterns", List.of(
-                        "REF Service Call Engine 샘플에서 MBR_MEMBER_SUMMARY endpoint를 호출",
+                        "REF Service Call Engine 샘플에서 REF 자체 중립 endpoint를 호출",
                         "동일 X-Transaction-Id를 승계하고 각 호출 구간은 X-Transaction-Segment-Id로 분리"),
                 "admApis", List.of(
                         "GET /adm/api/transaction-groups",

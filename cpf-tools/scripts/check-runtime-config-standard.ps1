@@ -11,9 +11,41 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("cpf-member", "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-reference", "cpf-account", "cpf-external", "cpf-gateway")
-$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "REF", "ACC", "EXS", "GWY")
+$modules = @("cpf-member", "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-reference", "cpf-account", "cpf-gateway")
+$moduleCodes = @("MBR", "ADM", "BAT", "BZA", "REF", "ACC", "GWY")
 $profiles = @("local", "dev", "stg", "prod")
+$batRuntimeRoles = [ordered]@{
+    CONTROL_SERVER = [ordered]@{
+        envPrefix = "BAT_CONTROL_SERVER"
+        localPort = 8180
+        projectPath = ":cpf-batch:control-server"
+        artifactName = "cpf-batch-control-server"
+    }
+    SCHEDULER = [ordered]@{
+        envPrefix = "BAT_SCHEDULER"
+        localPort = 8181
+        projectPath = ":cpf-batch:scheduler"
+        artifactName = "cpf-batch-scheduler"
+    }
+    WORKER = [ordered]@{
+        envPrefix = "BAT_WORKER"
+        localPort = 8182
+        projectPath = ":cpf-batch:worker"
+        artifactName = "cpf-batch-worker"
+    }
+    CENTER_CUT_RUNNER = [ordered]@{
+        envPrefix = "BAT_CENTER_CUT_RUNNER"
+        localPort = 8183
+        projectPath = ":cpf-batch:center-cut-runner"
+        artifactName = "cpf-center-cut-runner"
+    }
+    HOST_AGENT = [ordered]@{
+        envPrefix = "BAT_HOST_AGENT"
+        localPort = 8184
+        projectPath = ":cpf-batch:host-agent"
+        artifactName = "cpf-batch-host-agent"
+    }
+}
 $prefixByModule = @{
     "cpf-member" = "MBR"
     "cpf-admin" = "ADM"
@@ -21,17 +53,14 @@ $prefixByModule = @{
     "cpf-biz-admin" = "BZA"
     "cpf-reference" = "REF"
     "cpf-account" = "ACC"
-    "cpf-external" = "EXS"
     "cpf-gateway" = "GWY"
 }
 $expectedLocalPorts = @{
     MBR = 8081
     ADM = 8090
     BZA = 8091
-    BAT = 8093
     REF = 8099
     ACC = 8082
-    EXS = 8094
     GWY = 8070
 }
 $schemaByModule = @{
@@ -41,7 +70,6 @@ $schemaByModule = @{
     BAT = "batDB"
     REF = "refDB"
     ACC = "accDB"
-    EXS = "exsDB"
     GWY = "cpfDB"
 }
 $usernameByModule = @{
@@ -51,7 +79,6 @@ $usernameByModule = @{
     BAT = "cpf_bat_app"
     REF = "cpf_ref_app"
     ACC = "cpf_acc_app"
-    EXS = "cpf_exs_app"
     GWY = "cpf_app"
 }
 $jndiByModule = @{
@@ -61,7 +88,6 @@ $jndiByModule = @{
     BAT = "java:comp/env/jdbc/cpfBatchDataSource"
     REF = "java:comp/env/jdbc/cpfReferenceDataSource"
     ACC = "java:comp/env/jdbc/cpfAccountDataSource"
-    EXS = "java:comp/env/jdbc/cpfExternalDataSource"
     GWY = "java:comp/env/jdbc/cpfGatewayDataSource"
 }
 $failures = New-Object System.Collections.Generic.List[string]
@@ -177,6 +203,12 @@ foreach ($deployScript in $deployScriptFiles) {
     Add-Failure ("cpf-tools/scripts/deploy residue remains: {0}" -f $deployScript)
 }
 
+# EXS는 고정 제품 Module이 아니라 Generator lifecycle 검증 대상입니다.
+# 임의 Generated Domain의 배포 설정은 해당 Domain metadata에서 생성해야 하며 baseline에 EXS를 예약하지 않습니다.
+foreach ($relativePath in Get-GitFiles @("deploy/env/*cpf-external.env")) {
+    Add-Failure ("fixed EXS deploy env remains: {0}" -f $relativePath)
+}
+
 $envChecks = New-Object System.Collections.Generic.List[object]
 $inventoryChecks = New-Object System.Collections.Generic.List[object]
 $portRows = New-Object System.Collections.Generic.List[object]
@@ -200,9 +232,6 @@ foreach ($profile in $profiles) {
         $requiredKeys = @(
             "SPRING_PROFILES_ACTIVE",
             ("{0}_MODULE_ID" -f $prefix),
-            ("{0}_INSTANCE_ID" -f $prefix),
-            ("{0}_WAS_ID" -f $prefix),
-            ("{0}_SERVER_PORT" -f $prefix),
             "CPF_LOG_ROOT",
             "CPF_DB_MODE",
             "CPF_DB_URL",
@@ -215,6 +244,21 @@ foreach ($profile in $profiles) {
             ("{0}_DATASOURCE_PASSWORD" -f $prefix),
             ("{0}_DATASOURCE_JNDI_NAME" -f $prefix)
         )
+        if ($prefix -eq "BAT") {
+            foreach ($runtime in $batRuntimeRoles.Values) {
+                $requiredKeys += @(
+                    ("{0}_INSTANCE_ID" -f $runtime.envPrefix),
+                    ("{0}_WAS_ID" -f $runtime.envPrefix),
+                    ("{0}_PORT" -f $runtime.envPrefix)
+                )
+            }
+        } else {
+            $requiredKeys += @(
+                ("{0}_INSTANCE_ID" -f $prefix),
+                ("{0}_WAS_ID" -f $prefix),
+                ("{0}_SERVER_PORT" -f $prefix)
+            )
+        }
         if ($prefix -eq "MBR") {
             $requiredKeys += @(
                 "CPF_MBR_JWT_SECRET",
@@ -244,10 +288,8 @@ foreach ($profile in $profiles) {
         $urlKey = "{0}_DATASOURCE_URL" -f $prefix
         $jndiKey = "{0}_DATASOURCE_JNDI_NAME" -f $prefix
         $passwordKey = "{0}_DATASOURCE_PASSWORD" -f $prefix
-        $portKey = "{0}_SERVER_PORT" -f $prefix
         $moduleIdKey = "{0}_MODULE_ID" -f $prefix
         $mode = [string] $values[$modeKey]
-        $port = [int] $values[$portKey]
         $password = [string] $values[$passwordKey]
         $logRoot = [string] $values["CPF_LOG_ROOT"]
 
@@ -304,8 +346,40 @@ foreach ($profile in $profiles) {
         if ($emptyKeys.Count -gt 0) {
             Add-Failure ("deploy env empty keys: {0} :: {1}" -f $relativePath, ($emptyKeys -join ", "))
         }
-        if ($profile -eq "local" -and $expectedLocalPorts.ContainsKey($prefix) -and $port -ne $expectedLocalPorts[$prefix]) {
-            Add-Failure ("local port mismatch: {0} expected {1}, actual {2}" -f $prefix, $expectedLocalPorts[$prefix], $port)
+        if ($prefix -eq "BAT") {
+            foreach ($entry in $batRuntimeRoles.GetEnumerator()) {
+                $runtime = $entry.Value
+                $runtimePortKey = "{0}_PORT" -f $runtime.envPrefix
+                $runtimePort = if ($values.Contains($runtimePortKey)) {
+                    [int] $values[$runtimePortKey]
+                } else {
+                    0
+                }
+                if ($profile -eq "local" -and $runtimePort -ne [int] $runtime.localPort) {
+                    Add-Failure ("local BAT runtime port mismatch: {0} expected {1}, actual {2}" -f
+                        $entry.Key, $runtime.localPort, $runtimePort)
+                }
+                $portRows.Add([pscustomobject]@{
+                    profile = $profile
+                    module = "BAT"
+                    runtimeRole = $entry.Key
+                    port = $runtimePort
+                    source = $relativePath
+                }) | Out-Null
+            }
+        } else {
+            $portKey = "{0}_SERVER_PORT" -f $prefix
+            $port = if ($values.Contains($portKey)) { [int] $values[$portKey] } else { 0 }
+            if ($profile -eq "local" -and $expectedLocalPorts.ContainsKey($prefix) -and $port -ne $expectedLocalPorts[$prefix]) {
+                Add-Failure ("local port mismatch: {0} expected {1}, actual {2}" -f $prefix, $expectedLocalPorts[$prefix], $port)
+            }
+            $portRows.Add([pscustomobject]@{
+                profile = $profile
+                module = $prefix
+                runtimeRole = $null
+                port = $port
+                source = $relativePath
+            }) | Out-Null
         }
 
         $envChecks.Add([pscustomobject]@{
@@ -314,12 +388,6 @@ foreach ($profile in $profiles) {
             missingKeys = $missingKeys
             emptyKeys = $emptyKeys
             status = $(if ($missingKeys.Count -eq 0 -and $emptyKeys.Count -eq 0) { "DONE" } else { "FAILED" })
-        }) | Out-Null
-        $portRows.Add([pscustomobject]@{
-            profile = $profile
-            module = $prefix
-            port = $port
-            source = $relativePath
         }) | Out-Null
         $datasourceRows.Add([pscustomobject]@{
             profile = $profile
@@ -349,23 +417,74 @@ foreach ($profile in $profiles) {
         $moduleCodes
     }
     foreach ($moduleCode in $expectedModuleCodes) {
-        $service = @($inventory.services) | Where-Object { $_.module -eq $moduleCode } | Select-Object -First 1
-        if ($null -eq $service) {
+        $moduleServices = @($inventory.services) | Where-Object { $_.module -eq $moduleCode }
+        if ($moduleServices.Count -eq 0) {
             Add-Failure ("inventory service missing: {0} :: {1}" -f $relativePath, $moduleCode)
             continue
         }
-        foreach ($field in @("module", "hostAlias", "sshHostEnvKey", "sshUserEnvKey", "deployBase", "healthUrl", "serviceName", "portEnvKey", "profile", "runtimeMode", "approvalRequired", "rollbackEnabled")) {
-            if (-not ($service.PSObject.Properties.Name -contains $field)) {
-                Add-Failure ("inventory field missing: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $field)
+        if ($moduleCode -eq "BAT") {
+            $actualRoles = @($moduleServices | ForEach-Object { [string] $_.runtimeRole })
+            foreach ($role in $batRuntimeRoles.Keys) {
+                $matches = @($moduleServices | Where-Object { $_.runtimeRole -eq $role })
+                if ($matches.Count -ne 1) {
+                    Add-Failure ("BAT inventory runtime role must exist exactly once: {0} :: {1} :: count={2}" -f
+                        $relativePath, $role, $matches.Count)
+                    continue
+                }
+                $service = $matches[0]
+                $expected = $batRuntimeRoles[$role]
+                foreach ($field in @(
+                        "module", "runtimeRole", "projectPath", "artifactName", "hostAlias",
+                        "sshHostEnvKey", "sshUserEnvKey", "deployBase", "healthUrl", "serviceName",
+                        "portEnvKey", "profile", "runtimeMode", "approvalRequired", "rollbackEnabled")) {
+                    if (-not ($service.PSObject.Properties.Name -contains $field)) {
+                        Add-Failure ("inventory field missing: {0} :: BAT/{1} :: {2}" -f
+                            $relativePath, $role, $field)
+                    }
+                }
+                if ([string] $service.projectPath -ne [string] $expected.projectPath) {
+                    Add-Failure ("BAT inventory projectPath mismatch: {0} :: {1}" -f $relativePath, $role)
+                }
+                if ([string] $service.artifactName -ne [string] $expected.artifactName -or
+                        [string] $service.serviceName -ne [string] $expected.artifactName) {
+                    Add-Failure ("BAT inventory artifact/service mismatch: {0} :: {1}" -f $relativePath, $role)
+                }
+                if ([string] $service.portEnvKey -ne ("{0}_PORT" -f $expected.envPrefix)) {
+                    Add-Failure ("BAT inventory portEnvKey mismatch: {0} :: {1}" -f $relativePath, $role)
+                }
+                if (($service.PSObject.Properties.Name -contains "runtimeMode") -and
+                        $service.runtimeMode -ne "embedded-bootjar") {
+                    Add-Failure ("BAT runtimeMode must be embedded-bootjar: {0} :: {1}" -f $relativePath, $role)
+                }
             }
-        }
-        if (($service.PSObject.Properties.Name -contains "runtimeMode") -and $service.runtimeMode -notin @("embedded-bootjar", "external-was", "external-tomcat-war")) {
-            Add-Failure ("inventory runtimeMode invalid: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $service.runtimeMode)
+            $unknownRoles = @($actualRoles | Where-Object { $_ -notin $batRuntimeRoles.Keys })
+            if ($unknownRoles.Count -gt 0) {
+                Add-Failure ("unknown BAT inventory runtime role: {0} :: {1}" -f
+                    $relativePath, ($unknownRoles -join ", "))
+            }
+        } else {
+            if ($moduleServices.Count -ne 1) {
+                Add-Failure ("inventory service must exist exactly once: {0} :: {1} :: count={2}" -f
+                    $relativePath, $moduleCode, $moduleServices.Count)
+            }
+            $service = $moduleServices[0]
+            foreach ($field in @("module", "hostAlias", "sshHostEnvKey", "sshUserEnvKey", "deployBase", "healthUrl", "serviceName", "portEnvKey", "profile", "runtimeMode", "approvalRequired", "rollbackEnabled")) {
+                if (-not ($service.PSObject.Properties.Name -contains $field)) {
+                    Add-Failure ("inventory field missing: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $field)
+                }
+            }
+            if (($service.PSObject.Properties.Name -contains "runtimeMode") -and $service.runtimeMode -notin @("embedded-bootjar", "external-was", "external-tomcat-war")) {
+                Add-Failure ("inventory runtimeMode invalid: {0} :: {1} :: {2}" -f $relativePath, $moduleCode, $service.runtimeMode)
+            }
         }
     }
     $eduService = @($inventory.services) | Where-Object { $_.module -eq "EDU" } | Select-Object -First 1
     if ($null -ne $eduService) {
         Add-Failure ("EDU inventory service must not exist: {0}" -f $relativePath)
+    }
+    $fixedExsService = @($inventory.services) | Where-Object { $_.module -eq "EXS" } | Select-Object -First 1
+    if ($null -ne $fixedExsService) {
+        Add-Failure ("EXS generated-only service must not be fixed in baseline inventory: {0}" -f $relativePath)
     }
     if ($profile -eq "prod") {
         $refService = @($inventory.services) | Where-Object { $_.module -eq "REF" } | Select-Object -First 1
@@ -439,8 +558,6 @@ $emptyTargets = @(
     "cpf-tools/scripts/deploy",
     "deploy/env",
     "deploy/inventory",
-    "cpf-batch/src/main/java/com/cpf/batch/edu",
-    "cpf-batch/src/test/java/com/cpf/batch/edu",
     "cpf-reference/src/main/java/com/cpf/reference",
     "cpf-reference/src/test/java/com/cpf/reference",
     "cpf-common/src/main/java/com/cpf/common",
@@ -462,19 +579,10 @@ foreach ($relativeTarget in $emptyTargets) {
             $emptyDirs.Add([pscustomobject]@{
                 path = $relative
             }) | Out-Null
-            if ($_.FullName.StartsWith($Root, [System.StringComparison]::OrdinalIgnoreCase)) {
-                Remove-Item -LiteralPath $_.FullName -Force
-                $deletedEmptyDirs.Add([pscustomobject]@{
-                    path = $relative
-                    deleted = $true
-                    reason = "empty working directory removed"
-                }) | Out-Null
-            } else {
-                $retainedEmptyDirs.Add([pscustomobject]@{
-                    path = $relative
-                    reason = "path is outside workspace"
-                }) | Out-Null
-            }
+            $retainedEmptyDirs.Add([pscustomobject]@{
+                path = $relative
+                reason = "read-only quality gate; cleanup is a separate explicit operation"
+            }) | Out-Null
         }
     }
 }

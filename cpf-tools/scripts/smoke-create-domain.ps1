@@ -127,6 +127,7 @@ try {
         "manifest/ownership.json",
         "manifest/generator-ownership.json",
         "manifest/standard-execution-catalog.json",
+        "deploy/database/database-profile.json",
         "src/main/resources/application.yml",
         "src/main/resources/application-${DomainName}.yml",
         "src/main/java/$basePath/${moduleClassName}Application.java",
@@ -138,22 +139,18 @@ try {
         "src/main/java/$basePath/common/contract/${moduleClassName}Response.java",
         "src/main/java/$basePath/config/${ModuleName}DataSourceConfig.java",
         "src/main/java/$basePath/config/${ModuleName}MyBatisConfig.java",
+        "src/test/java/$basePath/config/${ModuleName}DataSourceIsolationTest.java",
         "src/main/java/$featurePath/controller/${featureClassPrefix}Controller.java",
         "src/main/java/$featurePath/facade/${featureClassPrefix}Facade.java",
         "src/main/java/$featurePath/port/${featureClassPrefix}QueryPort.java",
         "src/main/java/$featurePath/adapter/local/Local${featureClassPrefix}QueryAdapter.java",
-        "src/main/java/$featurePath/adapter/remote/Remote${featureClassPrefix}QueryProxy.java",
         "src/main/java/$featurePath/service/${featureClassPrefix}Service.java",
         "src/main/java/$featurePath/repository/${featureClassPrefix}Repository.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SearchRequest.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SampleCommand.java",
         "src/main/java/$featurePath/dto/${featureClassPrefix}SampleItem.java",
-        "src/main/java/$featurePath/dto/${featureClassPrefix}Slice.java",
         "src/main/java/$featurePath/validation/${featureClassPrefix}SearchValidator.java",
         "src/test/java/$featurePath/service/${featureClassPrefix}ServiceTest.java",
-        "src/main/java/$featurePath/security/${ModuleName}OperationGuard.java",
-        "src/main/java/$featurePath/security/${ModuleName}OperationController.java",
-        "src/test/java/$featurePath/security/${ModuleName}OperationGuardTest.java",
         "smoke/smoke-${DomainName}.ps1"
     )
     foreach ($relative in $required) {
@@ -172,10 +169,11 @@ try {
         "patch-candidates",
         "src/main/java/$featurePath/batch",
         "src/main/java/$basePath/config/${ModuleName}BatchRepositoryConfig.java",
+        "src/main/java/$featurePath/adapter/remote",
+        "src/main/java/$featurePath/security",
         "src/main/java/$featurePath/messaging",
         "src/main/java/$featurePath/file",
-        "src/main/resources/application-${DomainName}-prod.yml",
-        "deploy"
+        "src/main/resources/application-${DomainName}-prod.yml"
     )
     foreach ($relative in $forbidden) {
         $path = Join-Path $previewDir $relative
@@ -197,6 +195,24 @@ try {
         if ($content.Contains([char]0xFFFD) -or $content -match '\?{2,}') {
             throw "create-domain generated text contains mojibake marker. path=$($textFile.FullName)"
         }
+    }
+
+    $dataSourceConfigText = [IO.File]::ReadAllText(
+            (Join-Path $previewDir "src/main/java/$basePath/config/${ModuleName}DataSourceConfig.java"),
+            [Text.Encoding]::UTF8)
+    if (-not $dataSourceConfigText.Contains(
+                "CpfDataSources.resolve(environment, `"cpf.$DomainName.datasource`")") -or
+            $dataSourceConfigText.Contains(
+                'CpfDataSources.resolve(environment, "cpf.datasource")')) {
+        throw "Generated Domain DataSource가 domain-specific namespace를 사용하지 않습니다."
+    }
+    $applicationModuleText = [IO.File]::ReadAllText(
+            (Join-Path $previewDir "src/main/resources/application-${DomainName}.yml"),
+            [Text.Encoding]::UTF8) -replace "`r`n?", "`n"
+    if (-not $applicationModuleText.Contains(
+                "  ${DomainName}:`n    datasource:") -or
+            $applicationModuleText -match '(?m)^  datasource:\s*$') {
+        throw "Generated Domain application YAML DataSource namespace가 격리되지 않았습니다."
     }
 
     if (Test-Path -LiteralPath $verificationDir) {
@@ -337,12 +353,23 @@ subprojects {
     $result.compile.bootWar = $bootWar.FullName.Substring($Root.Length).TrimStart('\', '/')
     $result.compile.javaExecutable = "JAVA_HOME/bin/java"
 
-    # 검증 산출물은 저장소에 남기지 않고 결과 메타데이터와 컴파일 로그만 증적으로 보존합니다.
+    $result.status = $StatusDone
+    $result.finishedAt = (Get-Date).ToString("o")
+    Write-Host "create-domain smoke passed. result=$resultPath"
+} catch {
+    $result.status = $StatusFailed
+    $result.error = $_.Exception.Message
+    $result.finishedAt = (Get-Date).ToString("o")
+    throw
+} finally {
+    # 성공/실패와 무관하게 임시 Generated Domain을 build 밖에 남기지 않습니다.
     foreach ($temporaryDirectory in @($previewDir, $verificationDir)) {
         if (Test-Path -LiteralPath $temporaryDirectory) {
             $resolvedTemporary = [System.IO.Path]::GetFullPath($temporaryDirectory)
             $allowedRoot = [System.IO.Path]::GetFullPath((Join-Path $Root "build"))
-            if (-not $resolvedTemporary.StartsWith($allowedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            if (-not $resolvedTemporary.StartsWith(
+                        $allowedRoot + [IO.Path]::DirectorySeparatorChar,
+                        [System.StringComparison]::OrdinalIgnoreCase)) {
                 throw "생성기 임시 폴더가 build 경로 밖에 있어 정리할 수 없습니다. path=$resolvedTemporary"
             }
             Remove-Item -LiteralPath $resolvedTemporary -Recurse -Force
@@ -350,15 +377,5 @@ subprojects {
     }
     $result.cleanup.previewRemoved = -not (Test-Path -LiteralPath $previewDir)
     $result.cleanup.verificationRemoved = -not (Test-Path -LiteralPath $verificationDir)
-
-    $result.status = $StatusDone
-    $result.finishedAt = (Get-Date).ToString("o")
     Save-Result $result
-    Write-Host "create-domain smoke passed. result=$resultPath"
-} catch {
-    $result.status = $StatusFailed
-    $result.error = $_.Exception.Message
-    $result.finishedAt = (Get-Date).ToString("o")
-    Save-Result $result
-    throw
 }

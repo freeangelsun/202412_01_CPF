@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 데이터가 cache에 노출되지 않게 합니다.</p>
  */
 @Service
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class ResponseCodeCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCodeCacheService.class);
     public static final String CACHE_NAME = "responseCodeCache";

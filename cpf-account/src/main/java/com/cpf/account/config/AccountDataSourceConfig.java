@@ -22,7 +22,7 @@ public class AccountDataSourceConfig {
     @Bean
     @Primary
     public DataSource accDataSource(Environment environment) throws NamingException {
-        return CpfDataSources.resolve(environment, "cpf.datasource");
+        return CpfDataSources.resolve(environment, "cpf.acc.datasource");
     }
 
     /**

@@ -49,10 +49,6 @@ function Test-AllowedSpringEventUsage {
     if ($RelativePath -eq "cpf-core/src/main/java/com/cpf/core/config/CpfTransactionMetaAutoConfiguration.java") {
         return $true
     }
-    if ($RelativePath -eq "cpf-batch/src/main/java/com/cpf/batch/worker/BatWorkerAgent.java" -and
-            $Text -match "@EventListener\(ApplicationReadyEvent\.class\)") {
-        return $true
-    }
     return $false
 }
 

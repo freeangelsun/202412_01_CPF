@@ -23,9 +23,9 @@ Require-Text "cpf-tools/release/schema/cpf-release-manifest.schema.json" '"$id":
 Require-Text "cpf-tools/release/schema/cpf-sbom.schema.json" '"$id": "cpf.sbom"'
 Require-Text "cpf-tools/release/schema/cpf-provenance.schema.json" '"$id": "cpf.provenance"'
 Require-Text "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmHealthController.java" "SERVICE_UNAVAILABLE"
-Require-Text "cpf-batch/src/main/java/com/cpf/batch/operation/BatHealthController.java" "SERVICE_UNAVAILABLE"
+Require-Text "cpf-batch/runtime-common/src/main/java/com/cpf/batch/runtime/RuntimeIdentityFactory.java" "/actuator/health/readiness"
 Require-Text "cpf-tools/scripts/runtime-common.ps1" 'healthPath = "/adm/api/health/readiness"'
-Require-Text "cpf-tools/scripts/runtime-common.ps1" 'healthPath = "/bat/api/health/readiness"'
+Require-Text "cpf-tools/scripts/runtime-common.ps1" 'healthPath = "/actuator/health/readiness"'
 Reject-Text "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java" 'response.put("details", details)'
 Reject-Text "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java" '"SELECT * FROM cpf_transaction_log'
 Require-Text "cpf-member/src/main/java/com/cpf/member/operation/MbrOwnerAdminOperationsService.java" "EmptyResultDataAccessException"

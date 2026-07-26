@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "contract": "CPF_BZA_CENTRAL_RUNTIME_QUERY_PACK",
+  "vendors": [
+    "mariadb",
+    "mysql",
+    "postgresql",
+    "oracle",
+    "sqlserver"
+  ],
+  "authoringRoot": "cpf-tools/db/runtime-template",
+  "tokens": {
+    "NOW": "Vendor current timestamp",
+    "NOW3": "Vendor current timestamp with millisecond precision",
+    "NOW6": "Vendor current timestamp with microsecond precision",
+    "LIMIT_POSITIONAL": "Ordered JDBC positional row limit",
+    "LIMIT_NAMED": "Ordered Spring named-parameter row limit",
+    "COALESCE_CREATED_BY": "MyBatis createdBy fallback expression",
+    "COALESCE_UPDATED_BY": "MyBatis updatedBy fallback expression"
+  },
+  "forbiddenRuntimeIdentifiers": [
+    "transaction_global_id",
+    "root_transaction_global_id",
+    "parent_transaction_global_id",
+    "transactionGlobalId",
+    "idempotency_id",
+    "delegated_approver_no",
+    "absence_from",
+    "absence_to"
+  ],
+  "modules": [
+    {
+      "module": "cpf",
+      "ownerArtifact": "cpf-core",
+      "profileModuleKey": "core",
+      "parameterStyle": "JDBC_POSITIONAL",
+      "templateRoot": "cpf-tools/db/runtime-template/cpf",
+      "generatedPackPath": "runtime/cpf/repository",
+      "sourceScopes": [
+        "cpf-core/src/main/java"
+      ],
+      "status": "부분 구현",
+      "inlineSqlPolicy": "REPORT_ONLY",
+      "statements": [
+        { "key": "channel-policy-find-all", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 0 },
+        { "key": "channel-policy-upsert", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 15 },
+        { "key": "channel-policy-version-current", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 0 },
+        { "key": "channel-policy-version-insert", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 6 },
+        { "key": "channel-registry-find-all", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 0 },
+        { "key": "channel-registry-upsert", "consumer": "JdbcCpfChannelRegistryAdapter", "usage": "ACTIVE", "parameterCount": 13 },
+        { "key": "execution-catalog-find-all", "consumer": "CpfExecutionCatalogRepository", "usage": "ACTIVE", "parameterCount": 0 },
+        { "key": "execution-catalog-resolve-alias", "consumer": "CpfExecutionCatalogRepository", "usage": "ACTIVE", "parameterCount": 1 },
+        { "key": "execution-catalog-upsert", "consumer": "CpfExecutionCatalogRepository", "usage": "ACTIVE", "parameterCount": 18 },
+        { "key": "file-transfer-already-processed", "consumer": "JdbcCpfFileTransferRepository", "usage": "ACTIVE", "parameterCount": 4 },
+        { "key": "file-transfer-find-history", "consumer": "JdbcCpfFileTransferRepository", "usage": "ACTIVE", "parameterCount": 7 },
+        { "key": "file-transfer-insert", "consumer": "JdbcCpfFileTransferRepository", "usage": "ACTIVE", "parameterCount": 13 },
+        { "key": "file-transfer-update", "consumer": "JdbcCpfFileTransferRepository", "usage": "ACTIVE", "parameterCount": 4 },
+        { "key": "idempotency-complete", "consumer": "JdbcCpfIdempotencyRepository", "usage": "ACTIVE", "parameterCount": 5 },
+        { "key": "idempotency-expire-before", "consumer": "JdbcCpfIdempotencyRepository", "usage": "ACTIVE", "parameterCount": 2 },
+        { "key": "idempotency-find", "consumer": "JdbcCpfIdempotencyRepository", "usage": "ACTIVE", "parameterCount": 2 },
+        { "key": "idempotency-reserve", "consumer": "JdbcCpfIdempotencyRepository", "usage": "ACTIVE", "parameterCount": 7 },
+        { "key": "idempotency-restart", "consumer": "JdbcCpfIdempotencyRepository", "usage": "ACTIVE", "parameterCount": 6 },
+        { "key": "reconciliation-find", "consumer": "JdbcCpfReconciliationRepository", "usage": "ACTIVE", "parameterCount": 5 },
+        { "key": "reconciliation-register", "consumer": "JdbcCpfReconciliationRepository", "usage": "ACTIVE", "parameterCount": 10 },
+        { "key": "reconciliation-resolve", "consumer": "JdbcCpfReconciliationRepository", "usage": "ACTIVE", "parameterCount": 5 },
+        { "key": "transaction-meta-find-all", "consumer": "CpfTransactionMetaRepository", "usage": "ACTIVE", "parameterCount": 7 },
+        { "key": "transaction-meta-find-by-id", "consumer": "CpfTransactionMetaRepository", "usage": "ACTIVE", "parameterCount": 1 },
+        { "key": "transaction-meta-inactivate", "consumer": "CpfTransactionMetaRepository", "usage": "ACTIVE", "parameterCount": 2 },
+        {
+          "key": "transaction-meta-mark-missing-inactive",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1,
+          "formatTokens": [
+            "POSITIONAL_LIST"
+          ]
+        },
+        { "key": "transaction-meta-table-available", "consumer": "CpfTransactionMetaRepository", "usage": "ACTIVE", "parameterCount": 0 },
+        { "key": "transaction-meta-upsert", "consumer": "CpfTransactionMetaRepository", "usage": "ACTIVE", "parameterCount": 14 }
+      ],
+      "managedMyBatis": [
+        {
+          "key": "transaction-segment-mapper",
+          "relativePath": "mybatis/logging/TransactionSegmentMapper.xml",
+          "templateRelativePath": "vendor/{vendor}/mybatis/logging/TransactionSegmentMapper.xml.template",
+          "vendors": [
+            "mariadb"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "bza",
+      "ownerArtifact": "cpf-biz-admin",
+      "profileModuleKey": "bizAdmin",
+      "parameterStyle": "SPRING_NAMED",
+      "templateRoot": "cpf-tools/db/runtime-template/bza",
+      "generatedPackPath": "runtime/bza/repository",
+      "sourceScopes": [
+        "cpf-biz-admin/src/main/java"
+      ],
+      "status": "부분 구현",
+      "inlineSqlPolicy": "REPORT_ONLY",
+      "statements": [
+        { "key": "auth-bootstrap-operator", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["loginId", "operatorName", "passwordHash", "roleCode"] },
+        { "key": "auth-change-password", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId", "newHash", "previousHash", "updatedBy"] },
+        { "key": "auth-find-buttons", "consumer": "BzaAuthRepository", "usage": "STAGED", "parameters": ["roleCode"] },
+        { "key": "auth-find-login-histories", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["limit"] },
+        { "key": "auth-find-refresh-sessions", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId", "limit"] },
+        { "key": "auth-increase-login-fail-count", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId"] },
+        { "key": "auth-mark-login-success", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId"] },
+        { "key": "auth-revoke-all-refresh-tokens", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId"] },
+        { "key": "auth-revoke-refresh-session", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId", "sessionId", "updatedBy"] },
+        { "key": "auth-revoke-refresh-token", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["refreshTokenHash"] },
+        { "key": "auth-update-password-hash-if-unchanged", "consumer": "BzaAuthRepository", "usage": "ACTIVE", "parameters": ["adminUserId", "newHash", "previousHash", "updatedBy"] },
+        { "key": "backoffice-decide-line", "consumer": "BzaBackofficeRepository", "usage": "STAGED", "parameters": ["actorEmployeeNo", "approvalId", "comment", "decision", "stepNo"] },
+        { "key": "backoffice-find-approvals", "consumer": "BzaBackofficeRepository", "usage": "STAGED", "parameters": ["employeeNo", "limit", "status"] },
+        { "key": "backoffice-find-business-audits", "consumer": "BzaBackofficeRepository", "usage": "ACTIVE", "parameters": ["limit"] },
+        { "key": "backoffice-save-employee", "consumer": "BzaBackofficeRepository", "usage": "STAGED", "parameters": ["adminUserId", "email", "employeeName", "employeeNo", "employmentStatus", "jobTitleCode", "joinDate", "leaveDate", "managerEmployeeNo", "mobileNo", "organizationCode", "positionCode", "requestUser", "useYn"] },
+        { "key": "backoffice-save-organization", "consumer": "BzaBackofficeRepository", "usage": "STAGED", "parameters": ["organizationCode", "organizationName", "organizationType", "parentOrganizationCode", "requestUser", "sortOrder", "useYn"] },
+        { "key": "backoffice-update-approval-status", "consumer": "BzaBackofficeRepository", "usage": "ACTIVE", "parameters": ["actor", "approvalId", "currentStep", "expectedVersion", "status"] },
+        { "key": "operation-save-admin-user", "consumer": "BzaOperationRepository", "usage": "STAGED", "parameters": ["adminName", "lockYn", "loginId", "passwordChangeRequiredYn", "passwordHash", "requestUser", "roleCode", "useYn"] },
+        { "key": "operation-save-menu", "consumer": "BzaOperationRepository", "usage": "STAGED", "parameters": ["apiPath", "environmentCode", "iconCode", "menuCode", "menuName", "moduleCode", "parentMenuCode", "requestUser", "routePath", "sortOrder", "useYn"] },
+        { "key": "operation-save-permission", "consumer": "BzaOperationRepository", "usage": "STAGED", "parameters": ["allowYn", "apiPattern", "buttonCode", "dataScope", "domainCode", "environmentCode", "httpMethod", "menuCode", "permissionType", "requestUser", "roleCode", "useYn"] },
+        { "key": "operation-save-role", "consumer": "BzaOperationRepository", "usage": "STAGED", "parameters": ["dataScope", "requestUser", "roleCode", "roleName", "useYn", "writeAllowedYn"] },
+        { "key": "support-find-download-audits", "consumer": "BzaSupportRepository", "usage": "ACTIVE", "parameters": ["limit"] },
+        { "key": "support-find-notifications", "consumer": "BzaSupportRepository", "usage": "ACTIVE", "parameters": ["limit", "loginId", "unreadOnly"] },
+        { "key": "support-save-saved-search", "consumer": "BzaSupportRepository", "usage": "ACTIVE", "parameters": ["criteriaJson", "ownerLoginId", "requestUser", "screenCode", "searchName", "sharedYn"] }
+      ],
+      "managedMyBatis": []
+    }
+  ]
+}

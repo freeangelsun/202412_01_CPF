@@ -1,10 +1,8 @@
 package com.cpf.batch.runtime;
 
 import com.cpf.batch.spi.BusinessJobProvider;
-import org.springframework.stereotype.Component;
 import java.util.*;
 
-@Component
 public final class JobPackCatalog {
     private final Map<String,BusinessJobProvider> providers; private final List<com.cpf.batch.api.JobPackManifest> manifests;
     public JobPackCatalog(List<BusinessJobProvider> springProviders) {

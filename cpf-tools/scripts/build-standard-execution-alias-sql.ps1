@@ -1,7 +1,8 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
     [Parameter(Mandatory = $true)]
-    [string] $MappingEvidence
+    [string] $MappingEvidence,
+    [string] $ResultDir = ""
 )
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
@@ -12,6 +13,17 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path -LiteralPath $Root).Path
+if ([string]::IsNullOrWhiteSpace($ResultDir)) {
+    $ResultDir = Join-Path $Root "build\generated-standard-execution-alias"
+}
+$ResultDir = [System.IO.Path]::GetFullPath($ResultDir)
+$buildRoot = [System.IO.Path]::GetFullPath((Join-Path $Root "build"))
+if (-not $ResultDir.StartsWith(
+        $buildRoot + [System.IO.Path]::DirectorySeparatorChar,
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw "생성 결과는 Historical Migration이나 Source를 덮어쓰지 않도록 build/ 아래에만 만들 수 있습니다: $ResultDir"
+}
 $mappingPath = Join-Path $Root $MappingEvidence
 $mapping = @(Get-Content -Raw -Encoding UTF8 $mappingPath | ConvertFrom-Json | Select-Object -ExpandProperty mappings)
 if ($mapping.Count -eq 0) {
@@ -121,13 +133,15 @@ ON DUPLICATE KEY UPDATE
 "@
 
 $utf8NoBom = [Text.UTF8Encoding]::new($false)
+[IO.Directory]::CreateDirectory($ResultDir) | Out-Null
 [IO.File]::WriteAllText(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V32__standard_execution_id_v2.sql"),
+    (Join-Path $ResultDir "V32__standard_execution_id_v2.candidate.sql"),
     $migration,
     $utf8NoBom)
 [IO.File]::WriteAllText(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/52_standard_execution_alias_seed.sql"),
+    (Join-Path $ResultDir "52_standard_execution_alias_seed.candidate.sql"),
     $seed,
     $utf8NoBom)
 
-Write-Host "표준 실행 ID migration/seed 생성 완료: $($mapping.Count)건"
+Write-Host "표준 실행 ID migration/seed 검토 후보 생성 완료: $($mapping.Count)건 resultDir=$ResultDir"
+Write-Host "Historical V32와 Canonical Seed는 이 도구가 직접 덮어쓰지 않습니다."

@@ -4,6 +4,7 @@ import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.core.api.util.CpfJson;
 import com.cpf.core.api.util.CpfMaps;
 import com.cpf.core.api.util.CpfValues;
+import com.cpf.reference.common.base.ReferenceBaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,13 @@ import java.util.Map;
  * 임의 ObjectMapper/형변환 helper를 업무 도메인마다 다시 만들지 않는 것이 목적입니다.
  */
 @RestController
-@RequestMapping("/ref/api/edu/data-transform")
-@Tag(name="REF-EDU-DataTransform", description="CPF 자료구조/JSON/형변환 표준 사용 예제")
-public class RefDataTransformEduController {
+@RequestMapping({
+        "/api/reference/data-transform",
+        "/reference/edu/data-transform",
+        "/ref/api/edu/data-transform"
+})
+@Tag(name="REF Reference 15. Data Transform", description="CPF 자료구조/JSON/형변환 표준 사용 예제")
+public class RefDataTransformEduController extends ReferenceBaseController {
 
     @PostMapping("/json-map")
     @CpfOnlineTransaction(id="OREFUT0003", name="REFJsonMapTransform", ownerDomain="REF")

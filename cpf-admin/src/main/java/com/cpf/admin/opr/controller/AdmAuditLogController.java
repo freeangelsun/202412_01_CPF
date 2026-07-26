@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/** ADM 감사 로그와 durable delivery 재처리를 제공하는 운영 API입니다. */
 @RestController
 @RequestMapping("/adm/api/audit-logs")
 @Tag(name="ADM-OPR Audit Logs",description="Operator audit and durable delivery recovery APIs")
@@ -23,10 +24,10 @@ public class AdmAuditLogController extends com.cpf.admin.common.base.AdmBaseCont
     public ResponseEntity<Map<String,Object>> find(@RequestParam(required=false)String operatorId,@RequestParam(required=false)String actionType,@RequestParam(required=false)String targetType,@RequestParam(required=false)String targetId,@RequestParam(defaultValue="100")int limit){
         Map<String,Object> r=new LinkedHashMap<>();r.put("items",service.findAuditLogs(operatorId,actionType,targetType,targetId,limit));return ResponseEntity.ok(r);
     }
-    @GetMapping("/deliveries") @CpfOnlineTransaction(id="OADMOP0051",name="ADMAuditDeliveryList")
+    @GetMapping("/deliveries") @CpfOnlineTransaction(id="OADMOP0052",name="ADMAuditDeliveryList")
     @Operation(operationId="admAuditDeliveryList",summary="감사 전달 상태 조회")
     public ResponseEntity<Map<String,Object>> deliveries(@RequestParam(required=false)String deliveryStatus,@RequestParam(defaultValue="100")int limit){return ResponseEntity.ok(Map.of("items",service.findDeliveries(deliveryStatus,limit)));}
-    @PostMapping("/deliveries/{deliveryId}/retry") @CpfOnlineTransaction(id="OADMOP0052",name="ADMAuditDeliveryRetry")
+    @PostMapping("/deliveries/{deliveryId}/retry") @CpfOnlineTransaction(id="OADMOP0053",name="ADMAuditDeliveryRetry")
     @Operation(operationId="admAuditDeliveryRetry",summary="감사 전달 수동 재처리")
     public ResponseEntity<Map<String,Object>> retry(@PathVariable long deliveryId,@RequestParam @NotBlank String reason,HttpServletRequest request){return ResponseEntity.ok(service.retryDelivery(deliveryId,requireOperator(request),reason));}
 }

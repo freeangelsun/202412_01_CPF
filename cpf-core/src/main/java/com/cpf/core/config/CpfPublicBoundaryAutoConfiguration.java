@@ -15,7 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 
 /** Generated Domain/외부 Runtime 공개 API와 Core 내부 구현 사이 adapter를 조립합니다. */
-@AutoConfiguration
+@AutoConfiguration(after = CpfServiceCallAutoConfiguration.class)
 public class CpfPublicBoundaryAutoConfiguration {
     @Bean @ConditionalOnBean(CpfBrokerOutboxPort.class) @ConditionalOnMissingBean(CpfBrokerClient.class)
     CpfBrokerClient cpfBrokerClient(CpfBrokerOutboxPort outbox){ return new CpfBrokerClientAdapter(outbox); }

@@ -9,9 +9,20 @@ if (Test-Path $adminJava) {
     foreach ($m in $directBatDb) { Fail "ADM cross-owner DB access: $($m.Path):$($m.LineNumber)" }
 }
 
-$batchJava = Join-Path $Root 'cpf-batch/src/main/java'
-if (Test-Path $batchJava) {
-    $legacyRuntime = Get-ChildItem $batchJava -Recurse -File -Filter *.java | Select-String -Pattern 'com\.cpf\.core\.common\.batch\.(CpfBatchFileLogWriter|CpfBatchGhostDetectionService|CpfBatchHeartbeatService|CpfBatchLauncher|CpfBatchLockManager|CpfBatchLoggingEventPublisher|CpfBatchOperationRepository|CpfBatchRuntimeListener|CpfBatchRuntimeProgress)|com\.cpf\.core\.common\.batch\.centercut\.CpfCenterCutService'
+$batchJavaRoots = @(
+    'cpf-batch/control-server/src/main/java',
+    'cpf-batch/scheduler/src/main/java',
+    'cpf-batch/worker/src/main/java',
+    'cpf-batch/center-cut-runner/src/main/java',
+    'cpf-batch/host-agent/src/main/java',
+    'cpf-batch/runtime-common/src/main/java',
+    'cpf-batch/contract/src/main/java'
+)
+foreach ($relativeRoot in $batchJavaRoots) {
+    $batchJava = Join-Path $Root $relativeRoot
+    if (-not (Test-Path $batchJava -PathType Container)) { continue }
+    $legacyRuntime = Get-ChildItem $batchJava -Recurse -File -Filter *.java |
+        Select-String -Pattern 'com\.cpf\.core\.common\.batch\.(CpfBatchFileLogWriter|CpfBatchGhostDetectionService|CpfBatchHeartbeatService|CpfBatchLauncher|CpfBatchLockManager|CpfBatchLoggingEventPublisher|CpfBatchOperationRepository|CpfBatchRuntimeListener|CpfBatchRuntimeProgress)|com\.cpf\.core\.common\.batch\.centercut\.CpfCenterCutService'
     foreach ($m in $legacyRuntime) { Fail "BAT still imports Core-owned runtime compatibility type: $($m.Path):$($m.LineNumber)" }
 }
 

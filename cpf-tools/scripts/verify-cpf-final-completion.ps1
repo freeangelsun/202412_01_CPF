@@ -10,7 +10,10 @@ $gradle=if($IsWindows){'.\gradlew.bat'}else{'./gradlew'}
 function Gate([string]$Name,[scriptblock]$Body){Write-Host "==> $Name";&$Body;if($LASTEXITCODE-ne0){throw "$Name failed"}}
 Push-Location $RepoRoot
 try{
- if(Test-Path 'cpf-batch\src'){throw 'Legacy executable cpf-batch/src still exists.'}
+ if(Test-Path 'cpf-batch\src'){
+   $legacyFiles=@(Get-ChildItem -LiteralPath 'cpf-batch\src' -Recurse -File -Force)
+   if($legacyFiles.Count-gt0){throw 'Legacy executable cpf-batch/src still contains files.'}
+ }
  if(Test-Path 'cpf-external'){throw 'EXS fixed module regression detected.'}
  if(Test-Path 'cpf-tools\db\source'){throw 'standalone cpf-tools/db/source regression detected.'}
  $bad=Get-ChildItem -Recurse -File -Include *.java,*.gradle,*.kts |
@@ -18,6 +21,7 @@ try{
    Select-String -Pattern 'com\.cpf\.core\.common\.'
  if($bad){$bad|Format-Table Path,LineNumber,Line -AutoSize;throw 'Public API/SPI boundary regression.'}
 
+ Gate 'Legacy BAT migration' {& pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\scripts\check-legacy-batch-migration.ps1}
  Gate 'Final source architecture gates' {& $gradle verifyCpfFinalSourceGates --no-daemon}
  Gate 'Java 25 standard' {& $gradle checkJava25Standard --no-daemon}
  Gate 'Full Java tests' {& $gradle clean test --no-daemon}

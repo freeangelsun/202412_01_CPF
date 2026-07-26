@@ -1,6 +1,9 @@
+IF SCHEMA_ID(N'@CPF_SCHEMA_NAME@') IS NULL
+    EXEC(N'CREATE SCHEMA [@CPF_SCHEMA_NAME@]');
+
 IF OBJECT_ID(N'@CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item', N'U') IS NULL
 BEGIN
-    CREATE TABLE @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item (
+    CREATE TABLE [@CPF_SCHEMA_NAME@].[@CPF_TABLE_PREFIX@_sample_item] (
         sample_item_id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         sample_key NVARCHAR(100) NOT NULL UNIQUE,
         item_name NVARCHAR(200) NOT NULL,
@@ -18,6 +21,6 @@ BEGIN
         CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_status CHECK (status_code IN ('ACTIVE','INACTIVE')),
         CONSTRAINT ck_@CPF_TABLE_PREFIX@_sample_deleted CHECK (deleted_yn IN ('Y','N'))
     );
-    CREATE INDEX ix_@CPF_TABLE_PREFIX@_sample_status ON @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item(status_code, deleted_yn, sample_item_id);
-    CREATE INDEX ix_@CPF_TABLE_PREFIX@_sample_tx ON @CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item(transaction_id, transaction_sequence);
+    CREATE INDEX ix_@CPF_TABLE_PREFIX@_sample_status ON [@CPF_SCHEMA_NAME@].[@CPF_TABLE_PREFIX@_sample_item](status_code, deleted_yn, sample_item_id);
+    CREATE INDEX ix_@CPF_TABLE_PREFIX@_sample_tx ON [@CPF_SCHEMA_NAME@].[@CPF_TABLE_PREFIX@_sample_item](transaction_id, transaction_sequence);
 END;

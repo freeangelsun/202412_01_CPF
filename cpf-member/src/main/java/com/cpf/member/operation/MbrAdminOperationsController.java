@@ -1,9 +1,12 @@
 package com.cpf.member.operation;
 
+import com.cpf.member.common.base.MbrBaseController;
 import com.cpf.core.api.admin.CpfOwnerAdminCommand;
 import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
 import com.cpf.core.api.admin.CpfOwnerAdminQuery;
 import com.cpf.core.api.execution.CpfSharedApi;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,13 +21,14 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/mbr/internal/admin/operations")
+@Tag(name = "MBR-Admin-Operations", description = "ADM Control Plane용 MBR Owner 내부 운영 API")
 @CpfSharedApi(
         id = "SMBRAD0001",
         name = "MbrAdminOperations",
         ownerDomain = "MBR",
         description = "ADM Control Plane용 MBR Owner 운영 계약",
         allowedCallers = {"ADM"})
-public class MbrAdminOperationsController {
+public class MbrAdminOperationsController extends MbrBaseController {
     private final CpfOwnerAdminOperationsPort operations;
 
     public MbrAdminOperationsController(
@@ -33,11 +37,13 @@ public class MbrAdminOperationsController {
     }
 
     @PostMapping("/query")
+    @Operation(operationId = "mbrAdminOperationsQuery", summary = "MBR Owner 운영 정보 조회")
     public Map<String, Object> query(@RequestBody CpfOwnerAdminQuery query) {
         return operations.query(query);
     }
 
     @PostMapping("/command")
+    @Operation(operationId = "mbrAdminOperationsCommand", summary = "MBR Owner 운영 명령 수행")
     public Map<String, Object> command(@RequestBody CpfOwnerAdminCommand command) {
         return operations.command(command);
     }

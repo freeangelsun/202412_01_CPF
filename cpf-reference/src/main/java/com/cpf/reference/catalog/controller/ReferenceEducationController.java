@@ -1,6 +1,6 @@
 package com.cpf.reference.catalog.controller;
 
-import com.cpf.core.common.execution.CpfOnlineTransaction;
+import com.cpf.core.api.execution.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REF가 제공하는 중립 교육 API를 기능 영역별로 안내하는 카탈로그입니다.
+ */
 @RestController
 @RequestMapping({"/api/reference", "/reference/edu"})
 @Tag(name = "REF Reference 00. Catalog", description = "REF 교육 API 카탈로그")
@@ -41,7 +44,9 @@ public class ReferenceEducationController extends com.cpf.reference.common.base.
                         Map.of("name", "Utility", "apis", List.of("GET /api/reference/utils", "GET /api/reference/headers")),
                         Map.of("name", "Messaging", "apis", List.of("POST /api/reference/messaging/publish", "GET /api/reference/messaging/recent")),
                         Map.of("name", "Fixed length", "apis", List.of("POST /api/reference/fixed-length/marshal", "POST /api/reference/fixed-length/unmarshal")),
-                        Map.of("name", "Service call", "apis", List.of("GET /api/reference/service-call/mbr-detail", "GET /api/reference/webclient/external-get")),
+                        Map.of("name", "Service call", "apis", List.of(
+                                "GET /api/reference/service-call/self-echo",
+                                "GET /api/reference/service-call/external-simulator")),
                         Map.of("name", "File exchange", "apis", List.of("POST /api/reference/file-exchange/local/write", "POST /api/reference/file-exchange/transfer-plan")),
                         Map.of("name", "Transaction", "apis", List.of(
                                 "POST /api/reference/transaction/single",
@@ -65,6 +70,8 @@ public class ReferenceEducationController extends com.cpf.reference.common.base.
                                 "GET /api/reference/batch/lock-policy",
                                 "GET /api/reference/batch/checkpoint-restart",
                                 "GET /api/reference/batch/adm-link",
-                                "GET /api/reference/batch/schedule-policy")))));
+                                "GET /api/reference/batch/ownership",
+                                "GET /api/reference/batch/schedule-policy",
+                                "GET /api/reference/batch/lifecycle-policy")))));
     }
 }

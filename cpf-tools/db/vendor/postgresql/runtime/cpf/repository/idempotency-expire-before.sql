@@ -4,12 +4,12 @@ SET record_status = 'EXPIRED',
     updated_by = 'CPF_IDEMPOTENCY_CLEANUP',
     updated_at = CURRENT_TIMESTAMP
 WHERE record_status = 'PROCESSING'
-  AND idempotency_id IN (
-      SELECT idempotency_id
+  AND idempotency_seq IN (
+      SELECT idempotency_seq
       FROM cpf_idempotency_record
       WHERE record_status = 'PROCESSING'
         AND expires_at IS NOT NULL
         AND expires_at <= ?
-      ORDER BY idempotency_id
+      ORDER BY idempotency_seq
       LIMIT ?
   )

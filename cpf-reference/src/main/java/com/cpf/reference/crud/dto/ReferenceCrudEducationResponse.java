@@ -9,7 +9,7 @@ package com.cpf.reference.crud.dto;
  * @param description 설명
  * @param createdAt 생성 일시
  * @param categoryCode 분류 코드
- * @param ownerMemberNo 예시 소유 회원 번호
+ * @param ownerReference 다른 Domain을 직접 조인하지 않는 중립 소유 참조값
  */
 public record ReferenceCrudEducationResponse(
         Long educationItemId,
@@ -18,5 +18,5 @@ public record ReferenceCrudEducationResponse(
         String description,
         String createdAt,
         String categoryCode,
-        String ownerMemberNo) {
+        String ownerReference) {
 }

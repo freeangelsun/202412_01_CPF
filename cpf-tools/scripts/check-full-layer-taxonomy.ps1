@@ -19,8 +19,16 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
 $modules = @(
     'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
-    'cpf-member', 'cpf-account', 'cpf-batch', 'cpf-reference', 'cpf-external'
+    'cpf-member', 'cpf-account', 'cpf-reference',
+    'cpf-batch/contract', 'cpf-batch/runtime-common', 'cpf-batch/control-server',
+    'cpf-batch/scheduler', 'cpf-batch/worker', 'cpf-batch/center-cut-runner',
+    'cpf-batch/host-agent'
 )
+# Generated Domain은 고정 목록에 예약하지 않고 ownership manifest로만 검증 대상에 편입합니다.
+$generatedModules = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' | Where-Object {
+    Test-Path -LiteralPath (Join-Path $_.FullName 'manifest/generator-ownership.json') -PathType Leaf
+} | ForEach-Object { $_.Name })
+$modules = @($modules + $generatedModules | Sort-Object -Unique)
 $items = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()
 
@@ -90,7 +98,7 @@ foreach ($module in $modules) {
         $packageName = if ($text -match '(?m)^package\s+([a-zA-Z0-9_.]+);') { $Matches[1] } else { '' }
         $declarations = [regex]::Matches(
             $text,
-            '(?m)^(?:public\s+|protected\s+|private\s+)?(?:abstract\s+|final\s+|sealed\s+|non-sealed\s+|static\s+)*(class|interface|record|enum|@interface)\s+([A-Za-z_$][A-Za-z0-9_$]*)([^\r\n{;]*)'
+            '(?m)(?:^|[;{}]\s*)(?:/\*\*?[\s\S]*?\*/\s*)*(?:@[A-Za-z0-9_.$]+(?:\([^)]*\))?\s+)*(?:public\s+|protected\s+|private\s+)?(?:abstract\s+|final\s+|sealed\s+|non-sealed\s+|static\s+)*(class|interface|record|enum|@interface)\s+([A-Za-z_$][A-Za-z0-9_$]*)([^\r\n{;]*)'
         )
         if ($declarations.Count -eq 0) {
             $failures.Add([ordered]@{ module = $module; path = $relative; reason = 'Java 타입 선언을 분류하지 못했습니다.' }) | Out-Null

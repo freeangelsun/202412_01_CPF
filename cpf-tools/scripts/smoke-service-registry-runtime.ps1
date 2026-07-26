@@ -62,12 +62,12 @@ try {
     $result.checks += Test-RequiredFile "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfServiceHealthChecker.java" "CPF_SERVICE_HEALTH_CHECKER"
     $result.checks += Test-RequiredFile "cpf-core/src/main/java/com/cpf/core/common/servicecall/CpfServiceCallProperties.java" "CPF_SERVICE_CALL_PROPERTIES"
     $result.checks += Test-RequiredText "cpf-core/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports" "CpfServiceCallAutoConfiguration" "CPF_SERVICE_CALL_AUTO_CONFIGURATION"
-    $result.checks += Test-RequiredText "cpf-tools/db/source/mariadb/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service" "SQL_CPF_SERVICE"
-    $result.checks += Test-RequiredText "cpf-tools/db/source/mariadb/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_endpoint" "SQL_CPF_SERVICE_ENDPOINT"
-    $result.checks += Test-RequiredText "cpf-tools/db/source/mariadb/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_instance" "SQL_CPF_SERVICE_INSTANCE"
-    $result.checks += Test-RequiredText "cpf-tools/db/source/mariadb/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_call_history" "SQL_CPF_SERVICE_CALL_HISTORY"
-    $result.checks += Test-RequiredText "cpf-tools/db/source/mariadb/50_framework_seed_data.sql" "MBR_API" "SQL_SERVICE_REGISTRY_SEED"
-    $result.checks += Test-RequiredFile "cpf-tools/db/source/mariadb/migration/flyway/V21__cpf_service_call_registry.sql" "FLYWAY_CPF_SERVICE_CALL_REGISTRY"
+    $result.checks += Test-RequiredText "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service" "SQL_CPF_SERVICE"
+    $result.checks += Test-RequiredText "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_endpoint" "SQL_CPF_SERVICE_ENDPOINT"
+    $result.checks += Test-RequiredText "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_instance" "SQL_CPF_SERVICE_INSTANCE"
+    $result.checks += Test-RequiredText "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" "CREATE TABLE IF NOT EXISTS cpf_service_call_history" "SQL_CPF_SERVICE_CALL_HISTORY"
+    $result.checks += Test-RequiredText "cpf-tools/db/vendor/mariadb/source/00_optional_sample_seed.sql" "MBR_API" "SQL_SERVICE_REGISTRY_OPTIONAL_SEED"
+    $result.checks += Test-RequiredFile "cpf-tools/db/vendor/mariadb/migration/flyway/V21__cpf_service_call_registry.sql" "FLYWAY_CPF_SERVICE_CALL_REGISTRY"
     $result.status = $StatusDone
 } catch {
     $result.status = $StatusFailed

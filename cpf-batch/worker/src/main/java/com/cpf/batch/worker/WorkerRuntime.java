@@ -61,7 +61,9 @@ public class WorkerRuntime implements RuntimeStateProvider, AutoCloseable {
     @Scheduled(fixedDelayString="${cpf.batch.worker.heartbeat-ms:5000}")
     public void renew() {
         for(JdbcWorkerLeaseRepository.Lease lease:new ArrayList<>(active.values())) {
-            if(!repository.renew(lease,leaseDuration)) active.remove(lease.executionId(),lease);
+            // Lease를 잃은 실행 Thread를 중단할 수 없으므로 active slot은 Thread 종료까지 유지합니다.
+            // DB completion은 lease token/fencing/expiry CAS로 차단되고 Recovery가 UNKNOWN_RESULT를 소유합니다.
+            repository.renew(lease,leaseDuration);
         }
     }
 

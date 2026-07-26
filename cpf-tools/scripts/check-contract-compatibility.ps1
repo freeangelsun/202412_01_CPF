@@ -13,48 +13,48 @@ function Test-CpfContractCompatibility {
     )
     $breaking = New-Object System.Collections.Generic.List[string]
     if ([string]$Old.contractId -ne [string]$New.contractId) {
-        $breaking.Add("contractId changed: $($Old.contractId) -> $($New.contractId)")
+        [void]$breaking.Add("contractId changed: $($Old.contractId) -> $($New.contractId)")
     }
     if ([string]$Old.kind -ne [string]$New.kind) {
-        $breaking.Add("contract kind changed: $($Old.kind) -> $($New.kind)")
+        [void]$breaking.Add("contract kind changed: $($Old.kind) -> $($New.kind)")
     }
 
     $supportedKinds = @("REST", "SHARED_API", "EVENT", "FIXED_LENGTH", "FILE", "BATCH")
     if ([string]$Old.kind -notin $supportedKinds -or [string]$New.kind -notin $supportedKinds) {
-        $breaking.Add("unsupported contract kind")
+        [void]$breaking.Add("unsupported contract kind")
     }
 
-    $oldFields = @{}
+    $baselineFields = @{}
     foreach ($field in @($Old.fields)) {
         $name = [string]$field.name
-        if ([string]::IsNullOrWhiteSpace($name) -or $oldFields.ContainsKey($name)) {
-            $breaking.Add("baseline contains blank/duplicate field: $name")
+        if ([string]::IsNullOrWhiteSpace($name) -or $baselineFields.ContainsKey($name)) {
+            [void]$breaking.Add("baseline contains blank/duplicate field: $name")
             continue
         }
-        $oldFields[$name] = $field
+        $baselineFields[$name] = $field
     }
-    $newFields = @{}
+    $candidateFields = @{}
     foreach ($field in @($New.fields)) {
         $name = [string]$field.name
-        if ([string]::IsNullOrWhiteSpace($name) -or $newFields.ContainsKey($name)) {
-            $breaking.Add("candidate contains blank/duplicate field: $name")
+        if ([string]::IsNullOrWhiteSpace($name) -or $candidateFields.ContainsKey($name)) {
+            [void]$breaking.Add("candidate contains blank/duplicate field: $name")
             continue
         }
-        $newFields[$name] = $field
+        $candidateFields[$name] = $field
     }
 
-    foreach ($name in $oldFields.Keys) {
-        $before = $oldFields[$name]
-        if (-not $newFields.ContainsKey($name)) {
-            if ([bool]$before.required) { $breaking.Add("required field removed: $name") }
+    foreach ($name in $baselineFields.Keys) {
+        $before = $baselineFields[$name]
+        if (-not $candidateFields.ContainsKey($name)) {
+            if ([bool]$before.required) { [void]$breaking.Add("required field removed: $name") }
             continue
         }
-        $after = $newFields[$name]
+        $after = $candidateFields[$name]
         if ([string]$before.type -ne [string]$after.type) {
-            $breaking.Add("field type changed: $name ($($before.type) -> $($after.type))")
+            [void]$breaking.Add("field type changed: $name ($($before.type) -> $($after.type))")
         }
         if (-not [bool]$before.required -and [bool]$after.required) {
-            $breaking.Add("optional field became required: $name")
+            [void]$breaking.Add("optional field became required: $name")
         }
         foreach ($shapeProperty in @("length", "scale", "encoding", "position")) {
             $beforeProperty = $before.PSObject.Properties[$shapeProperty]
@@ -62,14 +62,14 @@ function Test-CpfContractCompatibility {
             $beforeValue = if ($null -eq $beforeProperty) { $null } else { $beforeProperty.Value }
             $afterValue = if ($null -eq $afterProperty) { $null } else { $afterProperty.Value }
             if ([string]$beforeValue -ne [string]$afterValue) {
-                $breaking.Add("field shape changed: $name.$shapeProperty ($beforeValue -> $afterValue)")
+                [void]$breaking.Add("field shape changed: $name.$shapeProperty ($beforeValue -> $afterValue)")
             }
         }
     }
 
-    foreach ($name in $newFields.Keys) {
-        if (-not $oldFields.ContainsKey($name) -and [bool]$newFields[$name].required) {
-            $breaking.Add("new required field added: $name")
+    foreach ($name in $candidateFields.Keys) {
+        if (-not $baselineFields.ContainsKey($name) -and [bool]$candidateFields[$name].required) {
+            [void]$breaking.Add("new required field added: $name")
         }
     }
 
@@ -84,7 +84,7 @@ function Test-CpfContractCompatibility {
 }
 
 if ($SelfTest) {
-    $baseline = [pscustomobject]@{
+    $baselineContract = [pscustomobject]@{
         contractId = "cpf-self-test"
         kind = "REST"
         version = "1.0.0"
@@ -119,11 +119,13 @@ if ($SelfTest) {
         contractId = "cpf-shape-test"; kind = "FIXED_LENGTH"; version = "1.1.0";
         fields = @([pscustomobject]@{ name="amount"; type="string"; required=$true; position=1 })
     }
-    $ok = Test-CpfContractCompatibility -Old $baseline -New $compatible
-    $bad = Test-CpfContractCompatibility -Old $baseline -New $breaking
+    $ok = Test-CpfContractCompatibility -Old $baselineContract -New $compatible
+    $bad = Test-CpfContractCompatibility -Old $baselineContract -New $breaking
     $shapeBad = Test-CpfContractCompatibility -Old $shapeBaseline -New $shapeCandidate
     if (-not $ok.compatible -or $bad.compatible -or $shapeBad.compatible -or @($bad.breakingChanges).Count -lt 1) {
-        throw "CPF Contract Compatibility self-test failed."
+        throw ("CPF Contract Compatibility self-test failed. compatible={0}, breaking={1}, shapeBreaking={2}, breakingCount={3}, unexpected={4}" -f
+            $ok.compatible, $bad.compatible, $shapeBad.compatible, @($bad.breakingChanges).Count,
+            (@($ok.breakingChanges) -join "; "))
     }
     Write-Host "CPF Contract Compatibility self-test passed."
     exit 0
@@ -135,8 +137,8 @@ if ([string]::IsNullOrWhiteSpace($Baseline) -or [string]::IsNullOrWhiteSpace($Ca
 if (-not (Test-Path -LiteralPath $Baseline -PathType Leaf)) { throw "Baseline contract not found: $Baseline" }
 if (-not (Test-Path -LiteralPath $Candidate -PathType Leaf)) { throw "Candidate contract not found: $Candidate" }
 
-$old = Get-Content -LiteralPath $Baseline -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
-$new = Get-Content -LiteralPath $Candidate -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
-$result = Test-CpfContractCompatibility -Old $old -New $new
+$baselineContract = Get-Content -LiteralPath $Baseline -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+$candidateContract = Get-Content -LiteralPath $Candidate -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+$result = Test-CpfContractCompatibility -Old $baselineContract -New $candidateContract
 $result | ConvertTo-Json -Depth 20
 if (-not $result.compatible) { exit 2 }

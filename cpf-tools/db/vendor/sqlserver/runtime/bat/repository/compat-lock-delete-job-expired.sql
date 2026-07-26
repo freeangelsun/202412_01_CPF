@@ -1,0 +1,3 @@
+DELETE FROM bat_lock
+WHERE job_id = ?
+  AND expire_at < SYSUTCDATETIME()

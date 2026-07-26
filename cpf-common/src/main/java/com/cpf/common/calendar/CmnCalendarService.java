@@ -1,5 +1,6 @@
 package com.cpf.common.calendar;
 
+import com.cpf.common.common.base.CmnBaseService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
 
 /** CPF 고객 업무공통 영업일 Service입니다. */
 @Service
-public class CmnCalendarService implements CmnBusinessCalendar {
+public class CmnCalendarService extends CmnBaseService implements CmnBusinessCalendar {
     private static final int MAX_SHIFT_DAYS=3660;
     private static final Logger LOGGER=Logger.getLogger(CmnCalendarService.class.getName());
     private final CmnCalendarStore store;

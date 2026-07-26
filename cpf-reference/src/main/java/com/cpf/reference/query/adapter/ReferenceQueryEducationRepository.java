@@ -67,18 +67,18 @@ public class ReferenceQueryEducationRepository {
             String itemName,
             String categoryCode,
             String statusCode,
-            String ownerMemberNo,
+            String ownerReference,
             String requestUser) {
-        mapper.insertCrudItem(itemId, itemName, categoryCode, statusCode, ownerMemberNo, requestUser);
+        mapper.insertCrudItem(itemId, itemName, categoryCode, statusCode, ownerReference, requestUser);
     }
 
     public int updateCrudItem(
             Long itemId,
             String itemName,
             String categoryCode,
-            String ownerMemberNo,
+            String ownerReference,
             String requestUser) {
-        return mapper.updateCrudItem(itemId, itemName, categoryCode, ownerMemberNo, requestUser);
+        return mapper.updateCrudItem(itemId, itemName, categoryCode, ownerReference, requestUser);
     }
 
     public int updateCrudItemStatus(Long itemId, String statusCode, String requestUser) {

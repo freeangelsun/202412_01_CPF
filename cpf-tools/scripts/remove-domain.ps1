@@ -93,6 +93,27 @@ foreach ($ownedFile in @($ownership.createdFiles)) {
     }
 }
 
+# Generator 3.1 초기 산출물은 create-domain-result.json을 소유권 manifest 기록 직후 썼습니다.
+# 동일 Domain/SystemCode/OutputDir를 가진 정식 결과만 legacy generator-owned 파일로 인정합니다.
+$legacyResultRelative = "create-domain-result.json"
+$legacyResultPath = Join-Path $moduleDir $legacyResultRelative
+$legacyResultOwned = $false
+if (Test-Path -LiteralPath $legacyResultPath -PathType Leaf) {
+    try {
+        $legacyResult = Get-Content -LiteralPath $legacyResultPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $legacyOutput = [IO.Path]::GetFullPath([string]$legacyResult.outputDir)
+        $expectedOutput = [IO.Path]::GetFullPath($moduleDir)
+        if ([string]$legacyResult.domainName -eq $module -and
+                [string]$legacyResult.systemCode -eq [string]$ownership.systemCode -and
+                $legacyOutput -eq $expectedOutput) {
+            [void]$ownedPaths.Add($legacyResultRelative)
+            $legacyResultOwned = $true
+        }
+    } catch {
+        $legacyResultOwned = $false
+    }
+}
+
 $userOwnedFiles = @(Get-ChildItem -LiteralPath $moduleDir -Recurse -File | Where-Object {
         $_.FullName -notmatch '\\build\\' -and
         $_.FullName -ne $ownershipPath -and
@@ -176,6 +197,9 @@ foreach ($ownedFile in @($ownership.createdFiles)) {
         Remove-Item -LiteralPath $absolute -Force
     }
 }
+if ($legacyResultOwned -and (Test-Path -LiteralPath $legacyResultPath -PathType Leaf)) {
+    Remove-Item -LiteralPath $legacyResultPath -Force
+}
 Remove-Item -LiteralPath $ownershipPath -Force
 
 # 생성 모듈의 compile/test/package 산출물은 사용자 소스가 아니므로 실제 제거 시 함께 정리합니다.
@@ -190,14 +214,16 @@ if (Test-Path -LiteralPath $moduleBuildDir -PathType Container) {
 }
 
 $settingsPath = Join-Path $Root 'settings.gradle'
-$settingsText = [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
-$escapedProjectName = [regex]::Escape($projectName)
-$settingsText = [regex]::Replace($settingsText, "(?m)^\s*include\s+'$escapedProjectName'\s*\r?\n?", '')
-$settingsText = [regex]::Replace(
-        $settingsText,
-        "(?m)^\s*project\(':$escapedProjectName'\)\.projectDir\s*=\s*file\('$escapedProjectName'\)\s*\r?\n?",
-        '')
-[System.IO.File]::WriteAllText($settingsPath, $settingsText, $Utf8NoBom)
+if (Test-Path -LiteralPath $settingsPath -PathType Leaf) {
+    $settingsText = [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
+    $escapedProjectName = [regex]::Escape($projectName)
+    $settingsText = [regex]::Replace($settingsText, "(?m)^\s*include\s+'$escapedProjectName'\s*\r?\n?", '')
+    $settingsText = [regex]::Replace(
+            $settingsText,
+            "(?m)^\s*project\(':$escapedProjectName'\)\.projectDir\s*=\s*file\('$escapedProjectName'\)\s*\r?\n?",
+            '')
+    [System.IO.File]::WriteAllText($settingsPath, $settingsText, $Utf8NoBom)
+}
 
 # 파일 제거 후 비어 있는 생성 디렉터리만 아래에서 위 순서로 정리합니다.
 Get-ChildItem -LiteralPath $moduleDir -Recurse -Directory |

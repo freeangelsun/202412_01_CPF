@@ -10,7 +10,6 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -101,7 +100,7 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
         }
         fileLogWriter.writeIntegration(
                 null,
-                inferTargetModule(request),
+                CpfTargetServiceResolver.resolve(request.getHeaders(), request.getURI()),
                 "OUTBOUND",
                 request.getMethod().name(),
                 request.getURI().getPath(),
@@ -118,24 +117,4 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
                         "requestHeadersMasked", request.getHeaders().toString()));
     }
 
-    private String inferTargetModule(HttpRequest request) {
-        String path = request.getURI().getPath() == null ? "" : request.getURI().getPath().toLowerCase(Locale.ROOT);
-        int port = request.getURI().getPort();
-        if (path.contains("/mbr/") || port == 8081) {
-            return "MBR";
-        }
-        if (path.contains("/adm/") || port == 8090) {
-            return "ADM";
-        }
-        if (path.contains("/api/bza/") || path.contains("/bza/") || port == 8091) {
-            return "BZA";
-        }
-        if (path.contains("/bat/") || port == 8093) {
-            return "BAT";
-        }
-        if (path.contains("/ref/") || port == 8099) {
-            return "REF";
-        }
-        return hasText(request.getURI().getHost()) ? request.getURI().getHost().toUpperCase(Locale.ROOT) : "UNKNOWN";
-    }
 }

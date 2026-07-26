@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.util.Map;
  * 노드 사이에서 최종 일관성을 유지하도록 마지막 처리 이벤트 ID를 추적합니다.</p>
  */
 @Service
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CacheRefreshEventListener {
     private static final Logger logger = LoggerFactory.getLogger(CacheRefreshEventListener.class);
 
@@ -133,4 +135,3 @@ public class CacheRefreshEventListener {
         return value == null ? "" : String.valueOf(value);
     }
 }
-

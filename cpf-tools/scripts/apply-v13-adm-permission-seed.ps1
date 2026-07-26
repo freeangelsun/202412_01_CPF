@@ -26,7 +26,7 @@ if ([string]::IsNullOrWhiteSpace($Password)) {
     throw "ADM_DB_PASSWORD 환경변수 또는 -Password 인수가 필요합니다."
 }
 if ([string]::IsNullOrWhiteSpace($SqlPath)) {
-    $SqlPath = Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V13__adm_runtime_policy_permission_seed.sql"
+    $SqlPath = Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V13__adm_runtime_policy_permission_seed.sql"
 }
 if ([string]::IsNullOrWhiteSpace($ResultPath)) {
     $resultDir = Join-Path $Root "build/runtime-smoke"

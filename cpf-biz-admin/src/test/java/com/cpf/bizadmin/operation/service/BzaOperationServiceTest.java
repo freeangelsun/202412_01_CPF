@@ -1,8 +1,9 @@
 package com.cpf.bizadmin.operation.service;
 
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
-import com.cpf.core.common.exception.CpfValidationException;
-import com.cpf.core.common.security.password.CpfPasswordHashingPort;
+import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.core.api.security.password.CpfPasswordService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -12,6 +13,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,8 +25,10 @@ import static org.mockito.Mockito.when;
 class BzaOperationServiceTest {
 
     private final BzaOperationRepository repository = mock(BzaOperationRepository.class);
-    private final CpfPasswordHashingPort passwordHashingPort = mock(CpfPasswordHashingPort.class);
-    private final BzaOperationService service = new BzaOperationService(repository, passwordHashingPort);
+    private final CpfPasswordService passwordHashingPort = mock(CpfPasswordService.class);
+    private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
+    private final BzaOperationService service =
+            new BzaOperationService(repository, passwordHashingPort, auditService);
 
     @Test
     void saveAdminUserHashesPasswordAndExcludesSecretFromResponseAndAudit() {
@@ -38,23 +44,29 @@ class BzaOperationServiceTest {
         assertThat(result).doesNotContainKeys("passwordHash", "rawPassword");
         verify(repository).saveAdminUser(org.mockito.ArgumentMatchers.argThat(values ->
                 "{cpf-pbkdf2-sha256-v1}encoded".equals(values.get("passwordHash"))));
-        verify(repository).insertBusinessAudit(org.mockito.ArgumentMatchers.argThat(values ->
-                !String.valueOf(values.get("afterData")).contains("encoded")
-                        && "security-admin".equals(values.get("actorId"))
-                        && "신규 운영자 등록".equals(values.get("reason"))));
+        verify(auditService).record(
+                eq("security-admin"),
+                eq("ADMIN_USER_SAVE"),
+                eq("bza_admin_user"),
+                eq("operator01"),
+                eq("신규 운영자 등록"),
+                isNull(),
+                argThat(after -> !String.valueOf(after).contains("encoded")));
     }
 
     @Test
     void savePermissionRejectsUnknownHttpMethodBeforeWrite() {
         var request = new BzaOperationService.PermissionRequest(
+                null,
                 "BZA_OPERATOR", "SETTING", "EXECUTE", "API", "TRACE",
-                "/api/bza/settings/**", "BZA", "ALL", "ROLE", "Y", "Y",
+                "/api/bza/settings/**", "BZA", "ALL", "ROLE", "Y", "Y", null,
                 "security-admin", "설정 실행 권한 등록");
 
         assertThatThrownBy(() -> service.savePermission(request, "security-admin"))
                 .isInstanceOf(CpfValidationException.class)
                 .hasMessageContaining("HTTP 메서드");
-        verify(repository, never()).savePermission(org.mockito.ArgumentMatchers.any());
+        verify(repository, never()).insertPermission(org.mockito.ArgumentMatchers.any());
+        verify(repository, never()).updatePermission(org.mockito.ArgumentMatchers.any());
     }
 
 }

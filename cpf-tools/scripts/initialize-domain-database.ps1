@@ -115,6 +115,38 @@ if ([string]::IsNullOrWhiteSpace($RuntimeUsername)) { $RuntimeUsername = "cpf_${
 if ([string]::IsNullOrWhiteSpace($AdminUsername)) { $AdminUsername = $DatabaseUsername }
 if ([string]::IsNullOrWhiteSpace($AdminPassword)) { $AdminPassword = $DatabasePassword }
 
+Assert-CpfDbIdentifier $DatabaseName "databaseName"
+Assert-CpfDbIdentifier $SchemaName "schemaName"
+Assert-CpfDbUsername $DatabaseUsername "migration.username"
+Assert-CpfDbUsername $RuntimeUsername "runtime.username"
+Assert-CpfDbUsername $AdminUsername "admin.username"
+if ($DatabaseUsername.Equals($RuntimeUsername, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "Generated Domain migration 계정과 runtime 계정은 서로 달라야 합니다."
+}
+if ($vendor -in @("mariadb", "mysql") -and
+        -not $DatabaseName.Equals($SchemaName, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "MariaDB/MySQL은 DatabaseName과 SchemaName이 동일해야 합니다."
+}
+if ($vendor -eq "oracle" -and
+        -not $SchemaName.Equals($DatabaseUsername, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "Oracle Generated Domain의 SchemaName은 migration 계정명과 동일해야 합니다."
+}
+foreach ($secretEntry in @(
+        [ordered]@{ name = "migration.password"; value = $DatabasePassword },
+        [ordered]@{ name = "runtime.password"; value = $RuntimePassword },
+        [ordered]@{ name = "admin.password"; value = $AdminPassword })) {
+    if ([string]::IsNullOrWhiteSpace([string]$secretEntry.value)) {
+        throw "$($secretEntry.name) Secret이 비어 있습니다."
+    }
+    if ([string]$secretEntry.value -match "[`r`n]") {
+        throw "$($secretEntry.name) Secret에는 줄바꿈을 사용할 수 없습니다."
+    }
+}
+if ($vendor -eq "oracle" -and
+        ($DatabasePassword.Contains('"') -or $RuntimePassword.Contains('"'))) {
+    throw "Oracle migration/runtime 비밀번호에는 큰따옴표를 사용할 수 없습니다."
+}
+
 if ($Operation -eq "rollback" -and (-not $Apply -or -not $ConfirmRollback)) {
     throw "Rollback은 -Apply -ConfirmRollback을 함께 지정해야 합니다."
 }
@@ -137,6 +169,7 @@ $resourceRoot = Join-Path $TemplateRoot "$vendor/domain-template"
 
 $phaseFiles = [ordered]@{
     provision = "provision/01_provision.sql.template"
+    principals = "provision/02_principals.sql.template"
     install = "install/10_empty_install.sql.template"
     seed = "seed/20_product_seed.sql.template"
     migration = "migration/V1____DOMAIN___domain.sql.template"
@@ -144,10 +177,51 @@ $phaseFiles = [ordered]@{
     rollback = "rollback/R1__remove___DOMAIN___domain.sql.template"
 }
 $phaseOrder = switch ($Operation) {
-    "bootstrap" { @("provision", "install", "seed", "verify") }
+    "bootstrap" { @("provision", "principals", "install", "seed", "verify") }
     "migration" { @("migration", "verify") }
     "verify" { @("verify") }
     "rollback" { @("rollback") }
+}
+
+function ConvertTo-HexUtf8 {
+    param([Parameter(Mandatory = $true)][string] $Value)
+    return ([BitConverter]::ToString([Text.Encoding]::UTF8.GetBytes($Value))).Replace("-", "")
+}
+
+function Render-DomainTemplate {
+    param(
+        [Parameter(Mandatory = $true)][string] $TemplateText,
+        [switch] $IncludeSecrets
+    )
+
+    $rendered = $TemplateText.
+            Replace("@CPF_VENDOR@", $vendor).
+            Replace("@CPF_DOMAIN@", $domain).
+            Replace("@CPF_SYSTEM_CODE@", $manifestCode).
+            Replace("@CPF_DISPLAY_NAME@", [string]$manifest.displayName).
+            Replace("@CPF_SCHEMA_NAME@", $SchemaName).
+            Replace("@CPF_DATABASE_NAME@", $DatabaseName).
+            Replace("@CPF_MIGRATION_USERNAME@", $DatabaseUsername).
+            Replace("@CPF_RUNTIME_USERNAME@", $RuntimeUsername).
+            Replace("@CPF_MODULE_NAME@", [string]$manifest.moduleName).
+            Replace("@CPF_PACKAGE_NAME@", [string]$manifest.packageName).
+            Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix).
+            Replace("@CPF_MAPPER_NAMESPACE@", "").
+            Replace("@CPF_MAPPER_NAME@", "")
+
+    if ($IncludeSecrets) {
+        return $rendered.
+                Replace("@CPF_MIGRATION_PASSWORD_HEX@", (ConvertTo-HexUtf8 $DatabasePassword)).
+                Replace("@CPF_RUNTIME_PASSWORD_HEX@", (ConvertTo-HexUtf8 $RuntimePassword)).
+                Replace("@CPF_MIGRATION_PASSWORD_SQL_LITERAL@", $DatabasePassword.Replace("'", "''")).
+                Replace("@CPF_RUNTIME_PASSWORD_SQL_LITERAL@", $RuntimePassword.Replace("'", "''"))
+    }
+
+    return $rendered.
+            Replace("@CPF_MIGRATION_PASSWORD_HEX@", "__CPF_SECRET_REDACTED__").
+            Replace("@CPF_RUNTIME_PASSWORD_HEX@", "__CPF_SECRET_REDACTED__").
+            Replace("@CPF_MIGRATION_PASSWORD_SQL_LITERAL@", "__CPF_SECRET_REDACTED__").
+            Replace("@CPF_RUNTIME_PASSWORD_SQL_LITERAL@", "__CPF_SECRET_REDACTED__")
 }
 
 $plannedPhases = @()
@@ -159,20 +233,9 @@ foreach ($phase in $phaseOrder) {
     if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
         throw "중앙 Generator Vendor SQL template이 없습니다: $absolutePath"
     }
-    $renderedText = [System.IO.File]::ReadAllText($absolutePath, [System.Text.Encoding]::UTF8).
-            Replace("@CPF_VENDOR@", $vendor).
-             Replace("@CPF_DOMAIN@", $domain).
-             Replace("@CPF_SYSTEM_CODE@", $manifestCode).
-             Replace("@CPF_DISPLAY_NAME@", [string]$manifest.displayName).
-             Replace("@CPF_SCHEMA_NAME@", $SchemaName).
-             Replace("@CPF_DATABASE_NAME@", $DatabaseName).
-             Replace("@CPF_MIGRATION_USERNAME@", $DatabaseUsername).
-             Replace("@CPF_RUNTIME_USERNAME@", $RuntimeUsername).
-             Replace("@CPF_MODULE_NAME@", [string]$manifest.moduleName).
-             Replace("@CPF_PACKAGE_NAME@", [string]$manifest.packageName).
-             Replace("@CPF_TABLE_PREFIX@", [string]$manifest.tablePrefix).
-            Replace("@CPF_MAPPER_NAMESPACE@", "").
-            Replace("@CPF_MAPPER_NAME@", "")
+    $templateText = [System.IO.File]::ReadAllText($absolutePath, [System.Text.Encoding]::UTF8)
+    $containsSecretTokens = $templateText -match "@CPF_(?:MIGRATION|RUNTIME)_PASSWORD_(?:HEX|SQL_LITERAL)@"
+    $renderedText = Render-DomainTemplate -TemplateText $templateText
     $renderedFileName = ([System.IO.Path]::GetFileName($relativePath)).
             Replace(".template", "").
             Replace("__VENDOR__", $vendor).
@@ -185,6 +248,7 @@ foreach ($phase in $phaseOrder) {
         renderedPath = $renderedPath.Substring($Root.Length).TrimStart('\', '/').Replace('\', '/')
         templateSha256 = (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash.ToLowerInvariant()
         renderedSha256 = (Get-FileHash -LiteralPath $renderedPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        secretBearing = $containsSecretTokens
         status = "미검증"
     }
 }
@@ -217,7 +281,7 @@ function Mask-Text {
     param([string] $Value)
     if ($null -eq $Value) { return "" }
     $safe = $Value
-    foreach ($secret in @($DatabasePassword, $AdminPassword)) {
+    foreach ($secret in @($DatabasePassword, $RuntimePassword, $AdminPassword)) {
         if (-not [string]::IsNullOrWhiteSpace($secret)) {
             $safe = $safe.Replace($secret, '****')
         }
@@ -380,17 +444,44 @@ try {
     foreach ($phaseResult in $result.phases) {
         $phase = [string]$phaseResult.phase
         $sqlPath = Join-Path $Root ([string]$phaseResult.renderedPath)
-        $isProvision = $phase -eq "provision"
-        $targetDatabase = if ($isProvision) { [string]$defaults.adminDatabase } else { $DatabaseName }
-        $username = if ($isProvision) { $AdminUsername } else { $DatabaseUsername }
-        $password = if ($isProvision) { $AdminPassword } else { $DatabasePassword }
+        $isProvisionDatabase = $phase -eq "provision"
+        $isAdminPhase = $phase -in @("provision", "principals")
+        $targetDatabase = if ($isProvisionDatabase) {
+            [string]$defaults.adminDatabase
+        } else {
+            $DatabaseName
+        }
+        $username = if ($isAdminPhase) { $AdminUsername } else { $DatabaseUsername }
+        $password = if ($isAdminPhase) { $AdminPassword } else { $DatabasePassword }
 
-        $execution = Invoke-SqlResource `
-            -Client $client `
-            -SqlPath $sqlPath `
-            -TargetDatabase $targetDatabase `
-            -Username $username `
-            -Password $password
+        $ephemeralSecretSqlPath = $null
+        try {
+            if ([bool]$phaseResult.secretBearing) {
+                $templatePath = Join-Path $Root ([string]$phaseResult.templatePath)
+                $templateText = [System.IO.File]::ReadAllText(
+                        $templatePath,
+                        [System.Text.Encoding]::UTF8)
+                $secretSql = Render-DomainTemplate -TemplateText $templateText -IncludeSecrets
+                $ephemeralSecretSqlPath = [System.IO.Path]::GetTempFileName()
+                [System.IO.File]::WriteAllText(
+                        $ephemeralSecretSqlPath,
+                        $secretSql,
+                        $Utf8NoBom)
+                $sqlPath = $ephemeralSecretSqlPath
+            }
+
+            $execution = Invoke-SqlResource `
+                -Client $client `
+                -SqlPath $sqlPath `
+                -TargetDatabase $targetDatabase `
+                -Username $username `
+                -Password $password
+        } finally {
+            if (-not [string]::IsNullOrWhiteSpace($ephemeralSecretSqlPath) -and
+                    (Test-Path -LiteralPath $ephemeralSecretSqlPath -PathType Leaf)) {
+                Remove-Item -LiteralPath $ephemeralSecretSqlPath -Force
+            }
+        }
         $phaseResult.exitCode = $execution.exitCode
         [void]$safeLog.AppendLine("[$phase] STDOUT")
         [void]$safeLog.AppendLine($execution.stdout)
@@ -401,47 +492,6 @@ try {
             throw "DB SQL 실행이 실패했습니다. phase=$phase, vendor=$vendor, exitCode=$($execution.exitCode)"
         }
 
-        if ($phase -eq "provision" -and $vendor -in @("mariadb", "mysql")) {
-            # Generated Domain의 migration/runtime 계정을 독립 구성합니다.
-            # Password는 파일에 렌더링하지 않고 Process 입력으로만 전달합니다.
-            $runtimeProvisionPath = Join-Path $ResultDir "rendered-sql/$vendor/runtime-account.sql"
-            $migUser = $DatabaseUsername.Replace("'", "''")
-            $runUser = $RuntimeUsername.Replace("'", "''")
-            # 동적 SQL 문자열 내부에서는 account literal의 작은따옴표가 다시 escape되어야 한다.
-            $migAccountDynamic = "''$migUser''@''%''"
-            $runAccountDynamic = "''$runUser''@''%''"
-            $migHex = [Convert]::ToHexString([Text.Encoding]::UTF8.GetBytes($DatabasePassword))
-            $runHex = [Convert]::ToHexString([Text.Encoding]::UTF8.GetBytes($RuntimePassword))
-            $dbSafe = $DatabaseName.Replace("`", "``")
-            $runtimeSql = @"
-SET @cpf_mig_pwd = CONVERT(0x$migHex USING utf8mb4);
-SET @cpf_run_pwd = CONVERT(0x$runHex USING utf8mb4);
-SET @cpf_sql = CONCAT('CREATE USER IF NOT EXISTS $migAccountDynamic IDENTIFIED BY ', QUOTE(@cpf_mig_pwd));
-PREPARE cpf_stmt FROM @cpf_sql; EXECUTE cpf_stmt; DEALLOCATE PREPARE cpf_stmt;
-SET @cpf_sql = CONCAT('ALTER USER $migAccountDynamic IDENTIFIED BY ', QUOTE(@cpf_mig_pwd));
-PREPARE cpf_stmt FROM @cpf_sql; EXECUTE cpf_stmt; DEALLOCATE PREPARE cpf_stmt;
-GRANT ALL PRIVILEGES ON ``$dbSafe``.* TO '$migUser'@'%';
-SET @cpf_sql = CONCAT('CREATE USER IF NOT EXISTS $runAccountDynamic IDENTIFIED BY ', QUOTE(@cpf_run_pwd));
-PREPARE cpf_stmt FROM @cpf_sql; EXECUTE cpf_stmt; DEALLOCATE PREPARE cpf_stmt;
-SET @cpf_sql = CONCAT('ALTER USER $runAccountDynamic IDENTIFIED BY ', QUOTE(@cpf_run_pwd));
-PREPARE cpf_stmt FROM @cpf_sql; EXECUTE cpf_stmt; DEALLOCATE PREPARE cpf_stmt;
-GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON ``$dbSafe``.* TO '$runUser'@'%';
-SET @cpf_mig_pwd = NULL; SET @cpf_run_pwd = NULL; SET @cpf_sql = NULL;
-FLUSH PRIVILEGES;
-"@
-            [System.IO.File]::WriteAllText($runtimeProvisionPath, "-- secret-free runtime account provisioning is executed in-memory only`n", $Utf8NoBom)
-            $tempSecretPath = [System.IO.Path]::GetTempFileName()
-            try {
-                [System.IO.File]::WriteAllText($tempSecretPath, $runtimeSql, $Utf8NoBom)
-                $accountExecution = Invoke-SqlResource -Client $client -SqlPath $tempSecretPath `
-                    -TargetDatabase ([string]$defaults.adminDatabase) -Username $AdminUsername -Password $AdminPassword
-                if ($accountExecution.exitCode -ne 0) {
-                    throw "Generated Domain DB 계정 생성 실패. vendor=$vendor"
-                }
-            } finally {
-                Remove-Item -LiteralPath $tempSecretPath -Force -ErrorAction SilentlyContinue
-            }
-        }
         if ($phase -eq "verify" -and $execution.stdout -match '(?i)\bFAILED\b') {
             $phaseResult.status = "실패"
             throw "DB Verify SQL이 실패 상태를 반환했습니다. vendor=$vendor"

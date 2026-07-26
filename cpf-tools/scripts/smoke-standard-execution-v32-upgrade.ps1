@@ -85,9 +85,9 @@ $result = [ordered]@{
 
 try {
     $v28 = [IO.File]::ReadAllText(
-        (Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V28__standard_execution_catalog.sql"), [Text.Encoding]::UTF8)
+        (Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V28__standard_execution_catalog.sql"), [Text.Encoding]::UTF8)
     $v32 = [IO.File]::ReadAllText(
-        (Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V32__standard_execution_id_v2.sql"), [Text.Encoding]::UTF8)
+        (Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V32__standard_execution_id_v2.sql"), [Text.Encoding]::UTF8)
     $v28 = $v28.Replace("USE cpfDB;", "USE $database;")
     $v32 = $v32.Replace("USE cpfDB;", "USE $database;")
     $fixture = @"

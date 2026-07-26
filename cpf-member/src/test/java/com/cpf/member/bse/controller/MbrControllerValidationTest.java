@@ -6,6 +6,8 @@ import com.cpf.member.common.filter.SecurityHeaderFilter;
 import com.cpf.core.common.exception.CpfGlobalExceptionHandler;
 import com.cpf.core.common.filter.TransactionContextFilter;
 import com.cpf.core.common.logging.TransactionIdGenerator;
+import com.cpf.core.common.web.TransactionHeaderValidationInterceptor;
+import com.cpf.core.common.web.TransactionWebMvcConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -39,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         CpfGlobalExceptionHandler.class,
         TransactionContextFilter.class,
         TransactionIdGenerator.class,
+        TransactionHeaderValidationInterceptor.class,
+        TransactionWebMvcConfig.class,
         SecurityHeaderFilter.class
 })
 class MbrControllerValidationTest {

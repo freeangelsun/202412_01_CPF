@@ -1,5 +1,8 @@
 package com.cpf.admin.opr.batch.runtime;
 
+import com.cpf.admin.common.base.AdmBaseController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +16,8 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping("/adm/api/batch-runtime")
-public class BatchRuntimeControlController {
+@Tag(name = "ADM-Batch-Runtime", description = "BAT Control Server 기반 Runtime 운영 API")
+public class BatchRuntimeControlController extends AdmBaseController {
     private static final Set<String> ALLOWED_VIEWS = Set.of(
             "overview", "instances", "scheduler", "worker-pools", "center-cut", "agents",
             "job-packs", "executions", "deployments", "recovery", "leases", "alerts", "audit");
@@ -25,6 +29,7 @@ public class BatchRuntimeControlController {
     }
 
     @GetMapping("/instances")
+    @Operation(operationId = "admBatchRuntimeInstances", summary = "BAT Runtime Instance 조회")
     Map<String, Object> instances(@RequestParam(defaultValue = "30") long staleAfterSeconds) {
         Instant fetchedAt = Instant.now();
         try {
@@ -37,6 +42,7 @@ public class BatchRuntimeControlController {
     }
 
     @GetMapping("/views/{view}")
+    @Operation(operationId = "admBatchRuntimeView", summary = "BAT Runtime 운영 View 조회")
     ResponseEntity<Map<String, Object>> view(@PathVariable String view) {
         if (!ALLOWED_VIEWS.contains(view)) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", "BAT_VIEW_NOT_ALLOWED"));
@@ -64,6 +70,7 @@ public class BatchRuntimeControlController {
     }
 
     @PostMapping("/deployment-plans")
+    @Operation(operationId = "admBatchRuntimeCreateDeploymentPlan", summary = "BAT 배포 계획 생성")
     ResponseEntity<Map<String, Object>> plan(@RequestBody Map<String, Object> request) {
         try {
             return ResponseEntity.status(201).body(client.createPlan(request));

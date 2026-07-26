@@ -1,6 +1,7 @@
 package com.cpf.bizadmin.auth.filter;
 
 import com.cpf.bizadmin.auth.service.BzaAuthService;
+import com.cpf.bizadmin.auth.permission.BzaPermissionManifest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,16 +12,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
 
 /** BZA 화면 숨김과 별개로 모든 업무 백오피스 API 권한을 서버에서 재검사합니다. */
 @Component
 public class BzaApiAuthFilter extends OncePerRequestFilter {
     private final BzaAuthService authService;
+    private final BzaPermissionManifest permissionManifest;
 
-    public BzaApiAuthFilter(BzaAuthService authService) {
+    public BzaApiAuthFilter(BzaAuthService authService, BzaPermissionManifest permissionManifest) {
         this.authService = authService;
+        this.permissionManifest = permissionManifest;
     }
 
     @Override
@@ -53,28 +55,10 @@ public class BzaApiAuthFilter extends OncePerRequestFilter {
 
     private Permission resolvePermission(HttpServletRequest request) {
         String path = request.getRequestURI().substring("/api/bza/".length());
-        String[] segments = path.split("/");
-        String resource = segments.length == 0 ? "DASHBOARD" : segments[0];
-        if ("backoffice".equals(resource) && segments.length > 1) {
-            resource = segments[1];
-        }
-        String menu = switch (resource) {
-            case "admin-users" -> "USER";
-            case "menus" -> "MENU";
-            case "roles" -> "ROLE";
-            case "permissions" -> "PERMISSION";
-            case "settings" -> "SETTING";
-            case "downloads", "download-audits" -> "DOWNLOAD";
-            case "organizations" -> "ORGANIZATION";
-            case "employees" -> "EMPLOYEE";
-            case "approvals" -> "APPROVAL";
-            case "audits" -> "AUDIT";
-            case "notifications" -> "NOTIFICATION";
-            case "attachments" -> "ATTACHMENT";
-            case "saved-searches" -> "SAVED_SEARCH";
-            case "dashboard" -> "DASHBOARD";
-            default -> resource.toUpperCase(Locale.ROOT).replace('-', '_');
-        };
+        String menu = permissionManifest.resolveApiMenuCode(path)
+                .orElseThrow(() -> new ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN,
+                        "등록되지 않은 BZA API 권한 Resource입니다."));
         String action = "GET".equalsIgnoreCase(request.getMethod()) ? "READ" : "WRITE";
         if (path.contains("/download")) {
             action = "DOWNLOAD";

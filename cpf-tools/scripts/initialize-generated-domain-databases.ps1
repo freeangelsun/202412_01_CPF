@@ -20,12 +20,27 @@ if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
 $catalog = @()
 Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
     $manifestPath = Join-Path $_.FullName "manifest/domain-manifest.json"
+    $ownershipPath = Join-Path $_.FullName "manifest/generator-ownership.json"
     $profilePath = Join-Path $_.FullName "deploy/database/database-profile.json"
     if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { return }
 
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if ([string]$manifest.domainType -ne "GENERATED_DOMAIN") { return }
     if (-not [bool]$manifest.databaseEnabled) { return }
+    if ([string]$manifest.metadataVersion -ne "1.0" -or
+            [string]$manifest.templateContractVersion -ne "1.0" -or
+            [string]$manifest.projectName -ne $_.Name) {
+        throw "Generated Domain manifest identity/contract가 유효하지 않습니다: $manifestPath"
+    }
+    if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
+        throw "Generated Domain ownership manifest가 없습니다: $ownershipPath"
+    }
+    $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$ownership.projectName -ne [string]$manifest.projectName -or
+            [string]$ownership.domainName -ne [string]$manifest.domainName -or
+            [string]$ownership.systemCode -ne [string]$manifest.systemCode) {
+        throw "Generated Domain manifest/ownership identity가 일치하지 않습니다: $($_.FullName)"
+    }
     if (-not (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
         throw "Generated Domain DB Profile이 없습니다: $profilePath"
     }
@@ -34,12 +49,30 @@ Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
         domainName = ([string]$manifest.domainName).ToLowerInvariant()
         systemCode = ([string]$manifest.systemCode).ToUpperInvariant()
         projectName = [string]$manifest.projectName
+        databaseVendor = ([string]$manifest.databaseVendor).ToLowerInvariant()
         profilePath = $profilePath
     }
 }
 
 if ($catalog.Count -eq 0) {
-    throw "DB가 활성화된 GENERATED_DOMAIN을 찾을 수 없습니다."
+    if ($DomainName.Count -gt 0 -or $SystemCode.Count -gt 0) {
+        throw "선택 조건과 일치하는 DB 활성 GENERATED_DOMAIN을 찾을 수 없습니다."
+    }
+    $resultDir = Join-Path $Root "build/db-install/generated-domains"
+    New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
+    $resultPath = Join-Path $resultDir "generated-domain-batch-result.sanitized.json"
+    [IO.File]::WriteAllText(
+            $resultPath,
+            (([ordered]@{
+                generatedAt = (Get-Date).ToString("o")
+                operation = $Operation
+                applied = [bool]$Apply
+                domains = @()
+                reason = "DB가 활성화되고 generator ownership이 확인된 Generated Domain이 없습니다."
+            } | ConvertTo-Json -Depth 10) + [Environment]::NewLine),
+            [Text.UTF8Encoding]::new($false))
+    Write-Host "Generated Domain DB selected: none (optional). result=$resultPath"
+    return
 }
 
 $domainDup = @($catalog | Group-Object domainName | Where-Object Count -gt 1)
@@ -52,7 +85,7 @@ if ($All -and ($DomainName.Count -gt 0 -or $SystemCode.Count -gt 0)) {
 }
 
 if ($All -or ($DomainName.Count -eq 0 -and $SystemCode.Count -eq 0)) {
-    $selected = @($catalog | Sort-Object domainName)
+    $selected = @($catalog | Sort-Object systemCode, domainName)
 } else {
     $selectedMap = [System.Collections.Generic.Dictionary[string,object]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
@@ -69,7 +102,7 @@ if ($All -or ($DomainName.Count -eq 0 -and $SystemCode.Count -eq 0)) {
         $selectedMap[$match[0].domainName] = $match[0]
     }
 
-    $selected = @($selectedMap.Values | Sort-Object domainName)
+    $selected = @($selectedMap.Values | Sort-Object systemCode, domainName)
 }
 
 if ($Operation -eq "rollback" -and (-not $Apply -or -not $ConfirmRollback)) {

@@ -8,7 +8,7 @@
         item_name AS itemName,
         category_code AS categoryCode,
         status_code AS statusCode,
-        owner_reference AS ownerMemberNo,
+        owner_reference AS ownerReference,
         created_at AS createdAt
     </sql>
 
@@ -111,7 +111,7 @@
             #{categoryCode},
             #{statusCode},
             #{categoryCode},
-            #{ownerMemberNo},
+            #{ownerReference},
             #{itemId},
             0,
             'N',
@@ -127,7 +127,7 @@
         SET item_name = #{itemName},
             category_code = #{categoryCode},
             searchable_text = #{categoryCode},
-            owner_reference = #{ownerMemberNo},
+            owner_reference = #{ownerReference},
             version_no = version_no + 1,
             updated_by = #{requestUser},
             updated_at = CURRENT_TIMESTAMP(3)

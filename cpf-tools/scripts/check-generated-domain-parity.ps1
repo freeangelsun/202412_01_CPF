@@ -17,35 +17,88 @@ function Normalize-DomainName([string] $Value) {
 function Read-Manifest([string] $Domain) {
     $path = Join-Path $Root "cpf-$Domain/manifest/domain-manifest.json"
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Generated Domain manifest가 없습니다: $path" }
-    return Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+    $manifest = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$manifest.metadataVersion -ne "1.0" -or
+            [string]$manifest.domainType -ne "GENERATED_DOMAIN" -or
+            [string]$manifest.domainName -ne $Domain -or
+            [string]$manifest.projectName -ne "cpf-$Domain" -or
+            [string]$manifest.templateContractVersion -ne "1.0") {
+        throw "Generated Domain manifest가 canonical metadata 계약과 다릅니다: $path"
+    }
+    $ownershipPath = Join-Path $Root "cpf-$Domain/manifest/generator-ownership.json"
+    if (-not (Test-Path -LiteralPath $ownershipPath -PathType Leaf)) {
+        throw "Generated Domain generator ownership이 없습니다: $ownershipPath"
+    }
+    $ownership = Get-Content -LiteralPath $ownershipPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$ownership.domainName -ne $Domain -or
+            [string]$ownership.projectName -ne "cpf-$Domain" -or
+            [string]$ownership.systemCode -ne [string]$manifest.systemCode -or
+            [string]$ownership.templateContractVersion -ne [string]$manifest.templateContractVersion) {
+        throw "Generated Domain manifest/ownership identity가 일치하지 않습니다: cpf-$Domain"
+    }
+    return [pscustomobject]@{
+        manifest = $manifest
+        ownership = $ownership
+    }
 }
 function Get-Normalizers([object] $Manifest) {
     $pairs = [System.Collections.Generic.List[object]]::new()
-    $values = [ordered]@{
-        projectName = [string]$Manifest.projectName
-        packageName = [string]$Manifest.packageName
-        basePackage = [string]$Manifest.basePackage
-        schemaName = [string]$Manifest.schemaName
-        tablePrefix = [string]$Manifest.tablePrefix
-        domainName = [string]$Manifest.domainName
-        systemCode = [string]$Manifest.systemCode
-        moduleCode = [string]$Manifest.moduleCode
-        moduleName = [string]$Manifest.moduleName
-        domainIdCode = [string]$Manifest.domainIdCode
-        port = [string]$Manifest.port
+    $definitions = @(
+        [ordered]@{ key = "projectName"; value = [string]$Manifest.projectName; kind = "exact" }
+        [ordered]@{ key = "packageName"; value = [string]$Manifest.packageName; kind = "exact" }
+        [ordered]@{ key = "basePackage"; value = [string]$Manifest.basePackage; kind = "exact" }
+        [ordered]@{ key = "dataSourceJndiName"; value = [string]$Manifest.dataSourceJndiName; kind = "exact" }
+        [ordered]@{ key = "onlineStandardId"; value = [string]$Manifest.onlineStandardId; kind = "exact" }
+        [ordered]@{ key = "batchStandardId"; value = [string]$Manifest.batchStandardId; kind = "exact" }
+        [ordered]@{ key = "schemaName"; value = [string]$Manifest.schemaName; kind = "exact" }
+        [ordered]@{ key = "moduleName"; value = [string]$Manifest.moduleName; kind = "class" }
+        [ordered]@{ key = "domainName"; value = [string]$Manifest.domainName; kind = "lower-token" }
+        [ordered]@{ key = "tablePrefix"; value = [string]$Manifest.tablePrefix; kind = "lower-token" }
+        [ordered]@{ key = "systemCode"; value = [string]$Manifest.systemCode; kind = "upper-token" }
+        [ordered]@{ key = "moduleCode"; value = [string]$Manifest.moduleCode; kind = "upper-token" }
+        [ordered]@{ key = "domainIdCode"; value = [string]$Manifest.domainIdCode; kind = "upper-token" }
+        [ordered]@{ key = "port"; value = [string]$Manifest.port; kind = "number" }
+    )
+    foreach ($definition in $definitions) {
+        $value = [string]$definition.value
+        if ([string]::IsNullOrWhiteSpace($value)) { continue }
+        $escaped = [regex]::Escape($value)
+        $pattern = switch ([string]$definition.kind) {
+            "class" { $escaped + "(?=[A-Z0-9_]|[^A-Za-z0-9]|$)" }
+            "lower-token" { "(?<![a-z0-9])" + $escaped + "(?![a-z0-9])" }
+            "upper-token" {
+                "(?:" +
+                    "(?<![A-Z0-9])" + $escaped + "(?![A-Z0-9])" +
+                    "|(?<=[OB])" + $escaped + "(?=[A-Z]{2}[0-9]{4})" +
+                    "|(?<=[0-9]{17})" + $escaped + "(?=[A-Za-z0-9]{14})" +
+                    "|(?<=Cpf)" + $escaped + "(?=(?:Mig|App)#)" +
+                ")"
+            }
+            "number" { "(?<![0-9])" + $escaped + "(?![0-9])" }
+            default { $escaped }
+        }
+        $tokenName = ([string]$definition.key).ToUpperInvariant()
+        $pairs.Add([ordered]@{
+            value = $value
+            pattern = $pattern
+            token = "<$tokenName>"
+        }) | Out-Null
     }
-    foreach ($entry in $values.GetEnumerator()) {
-        if ([string]::IsNullOrWhiteSpace($entry.Value)) { continue }
-        $tokenName = ([string]$entry.Key).ToUpperInvariant()
-        $pairs.Add([ordered]@{ value = [string]$entry.Value; token = "<$tokenName>" }) | Out-Null
-    }
-    return @($pairs | Sort-Object { $_.value.Length } -Descending)
+    return @(
+        $pairs |
+            Sort-Object `
+                @{ Expression = { $_.value.Length }; Descending = $true },
+                @{ Expression = { $_.token }; Descending = $false }
+    )
 }
 function Normalize-Text([string] $Text, [object[]] $Pairs) {
     $value = $Text.Replace("`r`n", "`n")
     foreach ($pair in $Pairs) {
-        $escaped = [regex]::Escape([string]$pair.value)
-        $value = [regex]::Replace($value, $escaped, [string]$pair.token, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        $value = [regex]::Replace(
+            $value,
+            [string]$pair.pattern,
+            [string]$pair.token,
+            [System.Text.RegularExpressions.RegexOptions]::None)
     }
     return $value.TrimEnd()
 }
@@ -69,6 +122,9 @@ function Get-Contract([string] $Domain, [object] $Manifest) {
         $normalizedText = Normalize-Text $text $pairs
         $bytes = [Text.Encoding]::UTF8.GetBytes($normalizedText)
         $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+        if ($map.Contains($normalizedPath)) {
+            throw "정규화된 Generated Domain path가 충돌합니다: domain=$Domain path=$normalizedPath"
+        }
         $map[$normalizedPath] = $hash
     }
     return $map
@@ -77,13 +133,51 @@ function Get-Contract([string] $Domain, [object] $Manifest) {
 $reference = Normalize-DomainName $ReferenceDomain
 $candidate = Normalize-DomainName $CandidateDomain
 if ($reference -eq $candidate) { throw "서로 다른 두 Domain을 지정해야 합니다." }
-$refManifest = Read-Manifest $reference
-$canManifest = Read-Manifest $candidate
+$refMetadata = Read-Manifest $reference
+$canMetadata = Read-Manifest $candidate
+$refManifest = $refMetadata.manifest
+$canManifest = $canMetadata.manifest
 
-$capabilityKeys = @('onlineEnabled','databaseEnabled','databaseVendor','batchEnabled','externalEnabled','messagingEnabled','fileEnabled','securityAuditEnabled','uiEnabled','bzaMenuEnabled','productionProfileEnabled')
+$capabilityKeys = @(
+    'onlineEnabled',
+    'databaseEnabled',
+    'databaseVendor',
+    'batchEnabled',
+    'centerCutEnabled',
+    'externalEnabled',
+    'messagingEnabled',
+    'fileEnabled',
+    'securityAuditEnabled',
+    'uiEnabled',
+    'bzaMenuEnabled',
+    'productionProfileEnabled',
+    'dependencyModel',
+    'platformVersion',
+    'templateContractVersion'
+)
 $capabilityDiff = @()
 foreach ($key in $capabilityKeys) {
     if ([string]$refManifest.$key -ne [string]$canManifest.$key) { $capabilityDiff += "$key=$($refManifest.$key)/$($canManifest.$key)" }
+}
+$structuredCapabilityKeys = @(
+    'online',
+    'database',
+    'batch',
+    'centerCut',
+    'external',
+    'messaging',
+    'file',
+    'securityAudit',
+    'ui',
+    'bzaMenu',
+    'productionProfile'
+)
+foreach ($key in $structuredCapabilityKeys) {
+    if ([string]$refManifest.capabilities.$key -ne
+            [string]$canManifest.capabilities.$key) {
+        $capabilityDiff +=
+                "capabilities.$key=$($refManifest.capabilities.$key)/$($canManifest.capabilities.$key)"
+    }
 }
 
 $refContract = Get-Contract $reference $refManifest
@@ -107,12 +201,21 @@ $result = [ordered]@{
     referenceDomain = $reference
     candidateDomain = $candidate
     capabilityDifferences = $capabilityDiff
+    referenceGeneratorVersion = [string]$refMetadata.ownership.generatorVersion
+    candidateGeneratorVersion = [string]$canMetadata.ownership.generatorVersion
     normalizedReferenceFileCount = $refContract.Count
     normalizedCandidateFileCount = $canContract.Count
     differences = @($diffs)
 }
 $resultPath = Join-Path $ResultDir 'generated-domain-parity.sanitized.json'
 [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20) + [Environment]::NewLine, $Utf8NoBom)
+if ([string]$refMetadata.ownership.generatorVersion -ne
+        [string]$canMetadata.ownership.generatorVersion) {
+    $result.status = '실패'
+    $result.capabilityDifferences +=
+            "generatorVersion=$($refMetadata.ownership.generatorVersion)/$($canMetadata.ownership.generatorVersion)"
+    [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20) + [Environment]::NewLine, $Utf8NoBom)
+}
 if ($result.status -ne '완료') {
     Write-Host "Generated Domain parity FAILED. result=$resultPath"
     exit 1

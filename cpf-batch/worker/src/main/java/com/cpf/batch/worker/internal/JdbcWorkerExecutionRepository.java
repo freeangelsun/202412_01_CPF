@@ -1,6 +1,8 @@
 package com.cpf.batch.worker.internal;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -9,29 +11,36 @@ import java.time.LocalDate;
 @Repository
 public class JdbcWorkerExecutionRepository {
     private final JdbcTemplate jdbc;
-    public JdbcWorkerExecutionRepository(JdbcTemplate jdbc) { this.jdbc=jdbc; }
+    private final CpfVendorSqlCatalog sql;
+
+    public JdbcWorkerExecutionRepository(JdbcTemplate jdbc, Environment environment) {
+        this.jdbc = jdbc;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+    }
 
     public Work load(long executionId) {
-        return jdbc.queryForObject("""
-            SELECT execution_id,job_id,job_parameters,transaction_id,transaction_segment_id,business_date,requested_by
-              FROM bat_execution WHERE execution_id=?
-            """, (rs,n) -> new Work(rs.getLong(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5),
+        return jdbc.queryForObject(sql.required("worker-execution-load"),
+            (rs,n) -> new Work(rs.getLong(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5),
                 rs.getDate(6)==null?null:rs.getDate(6).toLocalDate(),rs.getString(7)), executionId);
     }
 
-    public void markRunning(long executionId,String workerId,Long springExecutionId,Long springInstanceId) {
-        jdbc.update("""
-            UPDATE bat_execution SET execution_status='RUNNING',worker_id=?,spring_batch_execution_id=?,spring_batch_job_instance_id=?,
-                   start_time=COALESCE(start_time,CURRENT_TIMESTAMP(3)),last_heartbeat_at=CURRENT_TIMESTAMP(3),updated_at=CURRENT_TIMESTAMP
-             WHERE execution_id=?
-            """, workerId,springExecutionId,springInstanceId,executionId);
+    public boolean markRunning(JdbcWorkerLeaseRepository.Lease lease) {
+        return jdbc.update(sql.required("worker-execution-mark-running"),
+            lease.workerId(),null,null,lease.executionId(),lease.workerId(),lease.leaseToken(),
+                lease.fencingToken()) == 1;
     }
 
-    public void finish(long executionId,String status,String message) {
-        jdbc.update("""
-            UPDATE bat_execution SET execution_status=?,end_time=CURRENT_TIMESTAMP(3),error_message=?,
-                   last_heartbeat_at=CURRENT_TIMESTAMP(3),updated_at=CURRENT_TIMESTAMP WHERE execution_id=?
-            """, status,SensitiveTextSanitizer.sanitize(message),executionId);
+    public boolean recordSpringExecution(
+            JdbcWorkerLeaseRepository.Lease lease, Long springExecutionId, Long springInstanceId) {
+        return jdbc.update(sql.required("worker-execution-record-spring"),
+            springExecutionId,springInstanceId,lease.executionId(),lease.workerId(),lease.leaseToken(),
+                lease.fencingToken()) == 1;
+    }
+
+    public boolean finish(JdbcWorkerLeaseRepository.Lease lease,String status,String message) {
+        return jdbc.update(sql.required("worker-execution-finish"),
+            status,SensitiveTextSanitizer.sanitize(message),lease.executionId(),lease.workerId(),
+                lease.leaseToken(),lease.fencingToken()) == 1;
     }
 
     public record Work(long executionId,String jobId,String parametersJson,String transactionId,

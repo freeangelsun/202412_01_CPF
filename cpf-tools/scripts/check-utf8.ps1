@@ -12,7 +12,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $textExtensions = @(
-    ".bat", ".cmd", ".css", ".csv", ".gradle", ".html", ".java", ".js",
+    ".bat", ".cmd", ".css", ".csv", ".gradle", ".groovy", ".html", ".java", ".js",
     ".json", ".md", ".properties", ".ps1", ".sql", ".txt", ".xml", ".yml", ".yaml"
 )
 $skipDirectories = @(
@@ -56,9 +56,13 @@ $failures = New-Object System.Collections.Generic.List[string]
 
 Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
     $relative = $_.FullName.Substring($Root.Length)
-    foreach ($directory in $skipDirectories) {
-        if ($relative.Contains($directory)) {
-            return
+    $isCanonicalBuildToolSource =
+        $relative -match '^\\cpf-tools\\build\\(gradle-plugin|platform-bom)\\(build\.gradle|settings\.gradle|src\\(main|test)\\.+)$'
+    if (-not $isCanonicalBuildToolSource) {
+        foreach ($directory in $skipDirectories) {
+            if ($relative.Contains($directory)) {
+                return
+            }
         }
     }
     if ($textExtensions -notcontains $_.Extension.ToLowerInvariant()) {

@@ -1,0 +1,13 @@
+INSERT INTO bat_schedule_trigger (
+    schedule_id,
+    scheduled_fire_at,
+    fencing_token,
+    trigger_status,
+    created_at
+)
+SELECT ?, ?, ?, 'CREATED', @NOW6@
+  FROM bat_scheduler_lease
+ WHERE scheduler_key = ?
+   AND owner_instance_id = ?
+   AND fencing_token = ?
+   AND lease_until >= @NOW6@

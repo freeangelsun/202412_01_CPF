@@ -1,0 +1,8 @@
+UPDATE bat_scheduler_lease
+   SET owner_instance_id = ?,
+       fencing_token = fencing_token + 1,
+       lease_until = ?,
+       last_heartbeat_at = ?,
+       updated_at = SYSUTCDATETIME()
+ WHERE scheduler_key = ?
+   AND (owner_instance_id = ? OR lease_until < ?)

@@ -73,18 +73,19 @@ function Test-ExactDirectory {
     param(
         [string] $CentralDirectory,
         [string] $MirrorDirectory,
-        [string] $Label
+        [string] $Label,
+        [string[]] $Extensions = @()
     )
 
-    $centralFiles = Get-RelativeFileMap $CentralDirectory
-    $mirrorFiles = Get-RelativeFileMap $MirrorDirectory
-    foreach ($relative in @($centralFiles.Keys + $mirrorFiles.Keys | Sort-Object -Unique)) {
+    $centralFiles = Get-RelativeFileMap $CentralDirectory $Extensions
+    $mirrorFiles = Get-RelativeFileMap $MirrorDirectory $Extensions
+    # Authoring source는 현재 수정 가능한 migration/rollback만 보유할 수 있고,
+    # 중앙 lifecycle pack에는 불변 Historical migration이 추가로 존재할 수 있습니다.
+    # Source의 모든 파일이 중앙 Pack과 byte-identical한지만 검사하며 중앙의
+    # Historical 파일을 Source로 다시 복제하도록 강제하지 않습니다.
+    foreach ($relative in @($mirrorFiles.Keys | Sort-Object -Unique)) {
         if (-not $centralFiles.ContainsKey($relative)) {
             $failures.Add("중앙 Directory 파일 누락: $Label/$relative")
-            continue
-        }
-        if (-not $mirrorFiles.ContainsKey($relative)) {
-            $failures.Add("전환 Mirror Directory 파일 누락: $Label/$relative")
             continue
         }
         Test-ExactFile $centralFiles[$relative] $mirrorFiles[$relative] "$Label/$relative"
@@ -96,6 +97,16 @@ if (-not (Test-Path -LiteralPath $canonicalManifestPath -PathType Leaf)) {
     throw "중앙 Vendor Pack manifest가 없습니다: $canonicalManifestPath"
 }
 $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $canonicalManifestPath | ConvertFrom-Json
+$domainTemplateContractPath = Get-RepositoryPath "cpf-tools/generator/contracts/central-domain-template-contract.json"
+if (-not (Test-Path -LiteralPath $domainTemplateContractPath -PathType Leaf)) {
+    throw "Generated Domain Template contract가 없습니다: $domainTemplateContractPath"
+}
+$domainTemplateContract = Get-Content -Raw -Encoding UTF8 -LiteralPath $domainTemplateContractPath |
+        ConvertFrom-Json
+$requiredVerifyColumns = @($domainTemplateContract.verifyContract.requiredColumns)
+if ($requiredVerifyColumns.Count -eq 0) {
+    throw "Generated Domain Template verifyContract.requiredColumns가 비어 있습니다."
+}
 $vendors = if ([string]::IsNullOrWhiteSpace($Vendor)) {
     @($manifest.supportedVendors)
 } else {
@@ -124,7 +135,16 @@ foreach ($currentVendor in $vendors) {
             $centralPath = Join-Path $vendorRoot ($property.Name -replace "/", "\")
             $sourcePath = Get-RepositoryPath ([string] $property.Value)
             if (Test-Path -LiteralPath $sourcePath -PathType Container) {
-                Test-ExactDirectory $centralPath $sourcePath "mariadb/$($property.Name)"
+                $extensions = if ($property.Name -in @("migration/flyway", "rollback")) {
+                    @(".sql")
+                } else {
+                    @()
+                }
+                Test-ExactDirectory `
+                    $centralPath `
+                    $sourcePath `
+                    "mariadb/$($property.Name)" `
+                    $extensions
             } else {
                 Test-ExactFile $centralPath $sourcePath "mariadb/$($property.Name)"
             }
@@ -136,6 +156,10 @@ foreach ($currentVendor in $vendors) {
     $legacyResourceFiles = @(
         Get-ChildItem -LiteralPath $Root -Directory |
             ForEach-Object {
+                # cpf-batch/src is a protected aggregate/source-cleanup area.  The
+                # independent projects below cpf-batch are validated by their own
+                # build and must not make this central pack gate traverse that tree.
+                if ($_.Name -eq "cpf-batch") { return }
                 $resourceRoot = Join-Path $_.FullName "src\main\resources"
                 if (-not (Test-Path -LiteralPath $resourceRoot -PathType Container)) { return }
                 @(
@@ -240,13 +264,73 @@ foreach ($currentVendor in $vendors) {
             )
         }
     }
+    $verifyTemplate = Join-Path $domainTemplateRoot "verify\90_verify.sql.template"
+    if (Test-Path -LiteralPath $verifyTemplate -PathType Leaf) {
+        $verifyTemplateText = [System.IO.File]::ReadAllText(
+                $verifyTemplate,
+                [System.Text.Encoding]::UTF8)
+        foreach ($requiredColumn in $requiredVerifyColumns) {
+            if ($verifyTemplateText -notmatch ("\b" + [regex]::Escape([string]$requiredColumn) + "\b")) {
+                $failures.Add(
+                    "생성형 Domain 물리 Verify 공통 Column 누락: " +
+                    "vendor=$currentVendor column=$requiredColumn"
+                )
+            }
+        }
+        if ($verifyTemplateText -notmatch "(?i)(?:character_maximum_length|char_length|max_length)\s*=\s*34") {
+            $failures.Add(
+                "생성형 Domain transaction_id 길이 Verify 누락: vendor=$currentVendor"
+            )
+        }
+    }
     $provisionTemplate = Join-Path $domainTemplateRoot "provision\01_provision.sql.template"
-    if ((Test-Path -LiteralPath $provisionTemplate -PathType Leaf) -and
-            [System.IO.File]::ReadAllText(
-                $provisionTemplate,
-                [System.Text.Encoding]::UTF8
-            ) -notmatch "@CPF_SCHEMA_NAME@") {
-        $failures.Add("생성형 Domain Provision에 CPF_SCHEMA_NAME Metadata가 없습니다: $currentVendor")
+    if (Test-Path -LiteralPath $provisionTemplate -PathType Leaf) {
+        $provisionTemplateText = [System.IO.File]::ReadAllText(
+            $provisionTemplate,
+            [System.Text.Encoding]::UTF8
+        )
+        # Provision owns the physical database/container only where the vendor
+        # supports it. PostgreSQL/SQL Server create a database here and create
+        # the application schema during Install. Oracle provisioning is a
+        # DBA-owned connectivity check. Requiring CPF_SCHEMA_NAME in every
+        # Provision template incorrectly collapses these lifecycle boundaries.
+        $requiredProvisionToken = switch ($currentVendor) {
+            { $_ -in @("mariadb", "mysql") } { "@CPF_SCHEMA_NAME@"; break }
+            { $_ -in @("postgresql", "sqlserver") } { "@CPF_DATABASE_NAME@"; break }
+            default { $null }
+        }
+        if ($null -ne $requiredProvisionToken -and
+                -not $provisionTemplateText.Contains($requiredProvisionToken)) {
+            $failures.Add(
+                "생성형 Domain Provision 물리 Database Metadata 누락: " +
+                "vendor=$currentVendor token=$requiredProvisionToken"
+            )
+        }
+        if ($currentVendor -eq "oracle" -and
+                $provisionTemplateText -notmatch "(?i)SYS_CONTEXT\s*\(") {
+            $failures.Add("Oracle 생성형 Domain Provision 연결 검증 누락")
+        }
+    }
+    foreach ($schemaOwnedTemplate in @(
+        "install/10_empty_install.sql.template",
+        "migration/V1____DOMAIN___domain.sql.template",
+        "runtime/mybatis/__MAPPER__.xml.template",
+        "verify/90_verify.sql.template",
+        "rollback/R1__remove___DOMAIN___domain.sql.template"
+    )) {
+        $schemaOwnedTemplatePath = Join-Path $domainTemplateRoot (
+            $schemaOwnedTemplate -replace "/", "\"
+        )
+        if ((Test-Path -LiteralPath $schemaOwnedTemplatePath -PathType Leaf) -and
+                -not [System.IO.File]::ReadAllText(
+                    $schemaOwnedTemplatePath,
+                    [System.Text.Encoding]::UTF8
+                ).Contains("@CPF_SCHEMA_NAME@")) {
+            $failures.Add(
+                "생성형 Domain Schema 소유 Phase Metadata 누락: " +
+                "vendor=$currentVendor path=$schemaOwnedTemplate"
+            )
+        }
     }
 
     if ([string] $vendorEntry.status -eq "미구현") {

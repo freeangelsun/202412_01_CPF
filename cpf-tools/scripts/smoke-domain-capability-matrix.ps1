@@ -12,6 +12,13 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$centralContractPath = Join-Path $Root 'cpf-tools/generator/contracts/central-domain-template-contract.json'
+$centralContract = Get-Content -LiteralPath $centralContractPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
+$vendorMarkers = [ordered]@{}
+foreach ($vendorDependency in $centralContract.buildRuntimeContract.vendors.PSObject.Properties) {
+    $vendorMarkers[$vendorDependency.Name] = [string]$vendorDependency.Value.jdbcDriver
+}
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root 'build/runtime-smoke'
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
@@ -135,7 +142,7 @@ try {
         -Destination $sandboxGeneratorParent -Recurse
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $runtimeGeneratorPath) | Out-Null
     # Windows PowerShell 5.1이 BOM 없는 UTF-8 스크립트를 ANSI로 해석하지 않도록 실행 사본에 BOM을 붙입니다.
-    $generatorText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/scripts/create-domain.ps1'), [Text.Encoding]::UTF8)
+    $generatorText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/generator/create-domain.ps1'), [Text.Encoding]::UTF8)
     [IO.File]::WriteAllText($runtimeGeneratorPath, $generatorText, [Text.UTF8Encoding]::new($true))
 
     foreach ($case in $matrix) {
@@ -173,13 +180,6 @@ try {
             throw "DB 미선택 조합에 DB 의존성이 생성됐습니다. code=$($case.code)"
         }
         if ($case.database -eq 'Y') {
-            $vendorMarkers = [ordered]@{
-                mariadb = @('org.mariadb.jdbc:mariadb-java-client', 'jdbc:mariadb:')
-                mysql = @('com.mysql:mysql-connector-j', 'jdbc:mysql:')
-                postgresql = @('org.postgresql:postgresql', 'jdbc:postgresql:')
-                oracle = @('com.oracle.database.jdbc:ojdbc11', 'jdbc:oracle:')
-                sqlserver = @('com.microsoft.sqlserver:mssql-jdbc', 'jdbc:sqlserver:')
-            }
             $resourceText = [IO.File]::ReadAllText(
                 (Join-Path $moduleDir "src/main/resources/application-$($case.domain).yml"),
                 [Text.Encoding]::UTF8
@@ -188,11 +188,34 @@ try {
             if (-not $resourceText.Contains($expectedJndiName)) {
                 throw "표준 JNDI 이름이 생성되지 않았습니다. domain=$($case.domain), expected=$expectedJndiName"
             }
-            foreach ($marker in $vendorMarkers[$case.vendor]) {
-                if (($buildText.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -lt 0) -and
-                        ($resourceText.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -lt 0)) {
-                    throw "DB 벤더 산출물 표식이 없습니다. domain=$($case.domain), vendor=$($case.vendor), marker=$marker"
-                }
+            $marker = [string]$vendorMarkers[$case.vendor]
+            if ($buildText.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -lt 0 -or
+                    -not $buildText.Contains("?: '$($case.vendor)'")) {
+                throw "DB 벤더 산출물 선택 계약이 없습니다. domain=$($case.domain), vendor=$($case.vendor)"
+            }
+            if (-not $buildText.Contains("runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]") -or
+                    -not $buildText.Contains("runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]") -or
+                    $buildText -match "(?m)^\s*runtimeOnly\s+['""][^'""]*(?:jdbc|mariadb|mysql|postgresql|ojdbc|mssql)[^'""]*['""]") {
+                throw "선택 Vendor 외 JDBC/Flyway Runtime 의존성이 활성화됩니다. domain=$($case.domain)"
+            }
+            $dataSourceConfigPath = Join-Path $moduleDir "$javaBase/config/$($case.name)DataSourceConfig.java"
+            $dataSourceConfigText = [IO.File]::ReadAllText($dataSourceConfigPath, [Text.Encoding]::UTF8)
+            if (-not $dataSourceConfigText.Contains(
+                        "CpfDataSources.resolve(environment, `"cpf.$($case.domain).datasource`")") -or
+                    $dataSourceConfigText.Contains(
+                        'CpfDataSources.resolve(environment, "cpf.datasource")')) {
+                throw "Generated Domain DataSource namespace가 격리되지 않았습니다. domain=$($case.domain)"
+            }
+            $normalizedResourceText = $resourceText -replace "`r`n?", "`n"
+            if (-not $normalizedResourceText.Contains(
+                        "  $($case.domain):`n    datasource:") -or
+                    $normalizedResourceText -match '(?m)^  datasource:\s*$') {
+                throw "Generated Domain application YAML DataSource namespace가 격리되지 않았습니다. domain=$($case.domain)"
+            }
+            $dataSourceIsolationTest = Join-Path $moduleDir `
+                    "src/test/java/com/cpf/$($case.domain)/config/$($case.name)DataSourceIsolationTest.java"
+            if (-not (Test-Path -LiteralPath $dataSourceIsolationTest -PathType Leaf)) {
+                throw "Generated Domain DataSource namespace regression test가 없습니다. domain=$($case.domain)"
             }
             $manifest = Get-Content -LiteralPath (Join-Path $moduleDir 'manifest/domain-manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($manifest.databaseVendor -ne $case.vendor -or $manifest.domainName -ne $case.domain -or $manifest.systemCode -ne $case.code) {
@@ -222,6 +245,12 @@ try {
                         '-DomainName', $case.domain,
                         '-SystemCode', $case.code,
                         '-Operation', $databaseOperation,
+                        # This is a plan-only lifecycle selection test. Supplying
+                        # explicit non-secret sentinels keeps it independent of a
+                        # developer workstation's credential environment.
+                        '-DatabasePassword', '__CPF_PLAN_ONLY__',
+                        '-RuntimePassword', '__CPF_PLAN_ONLY__',
+                        '-AdminPassword', '__CPF_PLAN_ONLY__',
                         '-ResultDir', (Join-Path $sandbox "reports/$($case.domain)/$databaseOperation")
                     ))
                 $dbPlan = Get-Content -LiteralPath (
@@ -260,7 +289,9 @@ try {
         "}",
         "rootProject.name = 'cpf-domain-capability-matrix'",
         "include 'cpf-core'",
-        "project(':cpf-core').projectDir = file('${rootForGradle}/cpf-core')"
+        "project(':cpf-core').projectDir = file('${rootForGradle}/cpf-core')",
+        "include 'cpf-common'",
+        "project(':cpf-common').projectDir = file('${rootForGradle}/cpf-common')"
     )
     foreach ($case in $matrix) {
         $projectName = "cpf-$($case.domain)"
@@ -422,6 +453,9 @@ subprojects {
         }
     }
     $result.status = 'DONE'
+} catch {
+    $result['error'] = $_.Exception.Message
+    throw
 } finally {
     $result.endedAt = (Get-Date).ToString('o')
     [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 20), $Utf8NoBom)

@@ -5,12 +5,13 @@ import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.RefreshTokenWrite;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.common.sec.crypto.CmnCryptoService;
 import com.cpf.common.sec.token.CmnJwtCreateRequest;
 import com.cpf.common.sec.token.CmnJwtService;
 import com.cpf.common.sec.token.CmnJwtValidationResult;
-import com.cpf.core.common.security.password.CpfPasswordHashingPort;
-import com.cpf.core.common.security.password.CpfPasswordVerification;
+import com.cpf.core.api.security.password.CpfPasswordService;
+import com.cpf.core.api.security.password.CpfPasswordVerification;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,13 +39,15 @@ class BzaAuthServiceTest {
 
     private final CmnJwtService jwtService = mock(CmnJwtService.class);
     private final CmnCryptoService cryptoService = mock(CmnCryptoService.class);
-    private final CpfPasswordHashingPort passwordHashingPort = mock(CpfPasswordHashingPort.class);
+    private final CpfPasswordService passwordHashingPort = mock(CpfPasswordService.class);
     private final BzaAuthRepository authRepository = mock(BzaAuthRepository.class);
+    private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
     private final BzaAuthService service = new BzaAuthService(
             jwtService,
             cryptoService,
             passwordHashingPort,
             authRepository,
+            auditService,
             "bza-test-secret-must-be-at-least-32-characters",
             600,
             7200,
@@ -142,8 +145,8 @@ class BzaAuthServiceTest {
                 "N",
                 Instant.now().plusSeconds(86400),
                 null,
-                List.of("USER"),
-                List.of("USER:READ"));
+                List.of("AUTHORIZATION"),
+                List.of("AUTHORIZATION:READ"));
         when(jwtService.validateHs256Token(
                 "access-token",
                 "bza-test-secret-must-be-at-least-32-characters",
@@ -188,10 +191,14 @@ class BzaAuthServiceTest {
         Map<String, Object> result = service.revokeSession("Bearer access-token", 77L, "분실 단말 세션 폐기");
 
         assertThat(result).containsEntry("sessionId", 77L).containsEntry("revokedYn", "Y");
-        verify(authRepository).insertBusinessAudit(org.mockito.ArgumentMatchers.argThat(values ->
-                "biz-admin".equals(values.get("actorId"))
-                        && "분실 단말 세션 폐기".equals(values.get("reason"))
-                        && "SESSION_REVOKE".equals(values.get("actionType"))));
+        verify(auditService).record(
+                "biz-admin",
+                "SESSION_REVOKE",
+                "bza_refresh_token",
+                "77",
+                "분실 단말 세션 폐기",
+                null,
+                Map.of("revokedYn", "Y"));
     }
 
     private BzaOperatorRow operator(String useYn, String lockYn, int failCount) {

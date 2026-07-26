@@ -35,6 +35,7 @@
       "databaseName": "cpfDB",
       "schemaName": "cpfDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -79,6 +80,7 @@
       "databaseName": "cmnDB",
       "schemaName": "cmnDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -123,6 +125,7 @@
       "databaseName": "admDB",
       "schemaName": "admDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -167,6 +170,7 @@
       "databaseName": "bzaDB",
       "schemaName": "bzaDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -211,6 +215,7 @@
       "databaseName": "batDB",
       "schemaName": "batDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -255,6 +260,7 @@
       "databaseName": "refDB",
       "schemaName": "refDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -289,7 +295,8 @@
       "domainName": "member",
       "systemCode": "MBR",
       "moduleName": "cpf-member",
-      "enabled": true,
+      "databaseLifecycle": "generated-domain",
+      "enabled": false,
       "required": false,
       "transitional": true,
       "logicalDatabase": "mbrDB",
@@ -299,6 +306,7 @@
       "databaseName": "mbrDB",
       "schemaName": "mbrDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",
@@ -333,7 +341,8 @@
       "domainName": "account",
       "systemCode": "ACC",
       "moduleName": "cpf-account",
-      "enabled": true,
+      "databaseLifecycle": "generated-domain",
+      "enabled": false,
       "required": false,
       "transitional": true,
       "logicalDatabase": "accDB",
@@ -343,6 +352,7 @@
       "databaseName": "accDB",
       "schemaName": "accDB",
       "clientPath": "",
+      "sslMode": "verify-full",
       "admin": {
         "username": "root",
         "userHost": "%",

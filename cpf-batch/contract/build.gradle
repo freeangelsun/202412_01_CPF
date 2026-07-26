@@ -1,3 +1,4 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group='com.cpf.batch'
+tasks.named('test') { useJUnitPlatform() }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-contract' } } }

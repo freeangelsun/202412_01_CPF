@@ -6,6 +6,7 @@ import com.cpf.bizadmin.approval.api.BzaApprovalStepStatus;
 import com.cpf.bizadmin.approval.api.BzaApprovalTargetType;
 import com.cpf.bizadmin.approval.repository.BzaApprovalPolicyRepository;
 import com.cpf.bizadmin.approval.spi.BzaApprovalDirectoryEntry;
+import com.cpf.bizadmin.common.base.BzaBaseService;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +29,7 @@ import java.util.*;
  * Snapshot 분모로 평가합니다. 진행 중 조직/Role 변경은 이미 상신된 결재의 참여자를 바꾸지 않습니다.</p>
  */
 @Service
-public class BzaApprovalPolicyService {
+public class BzaApprovalPolicyService extends BzaBaseService {
     private static final Set<String> STEP_TYPES = Set.of("APPROVAL", "AGREEMENT", "REVIEW");
     private static final Set<String> MODES = Set.of("SEQUENTIAL", "PARALLEL");
     private static final DateTimeFormatter NO_DATE =

@@ -38,6 +38,15 @@ function Publish-CentralDirectory([string] $SourceDirectory, [string] $TargetDir
     }
 }
 
+function Publish-CentralMigrationFiles([string] $SourceDirectory, [string] $TargetDirectory) {
+    if (-not (Test-Path -LiteralPath $SourceDirectory -PathType Container)) {
+        throw "Central Vendor Pack source directory is missing: $SourceDirectory"
+    }
+    foreach ($sourceFile in Get-ChildItem -LiteralPath $SourceDirectory -File -Filter "V*.sql") {
+        Publish-CentralFile $sourceFile.FullName (Join-Path $TargetDirectory $sourceFile.Name)
+    }
+}
+
 function Get-Section([string] $FileName) {
     $path = Join-Path $SqlRoot $FileName
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -161,7 +170,7 @@ foreach ($entry in $centralLifecycleFiles.GetEnumerator()) {
         (Join-Path $SqlRoot $entry.Key) `
         (Join-Path $centralMariaRoot $entry.Value)
 }
-Publish-CentralDirectory `
+Publish-CentralMigrationFiles `
     (Join-Path $SqlRoot "migration\flyway") `
     (Join-Path $centralMariaRoot "migration\flyway")
 Publish-CentralDirectory `

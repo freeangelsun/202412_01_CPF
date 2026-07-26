@@ -21,11 +21,11 @@ export const referenceMethods: Record<string, any> = {
           if (response.status === 401) this.clearToken(message);
           else this.setMessage(message);
           if (throwOnError) {
-            const error = new Error(message);
-            error.name = "CpfApiError";
-            error.status = response.status;
-            error.body = data;
-            throw error;
+            throw Object.assign(new Error(message), {
+              name: "CpfApiError",
+              status: response.status,
+              body: data
+            });
           }
         }
         return data;

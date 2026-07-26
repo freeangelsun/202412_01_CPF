@@ -48,7 +48,10 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
             if (beanType == null || beanType.getName().startsWith("org.springframework")) {
                 continue;
             }
-            ReflectionUtils.doWithMethods(beanType, method -> collect(definitions, sourceModule, sourceVersion, beanType, method));
+            collectType(definitions, sourceModule, sourceVersion, beanType);
+            ReflectionUtils.doWithMethods(
+                    beanType,
+                    method -> collectMethod(definitions, sourceModule, sourceVersion, beanType, method));
         }
         catalogPort.upsertAll(rejectDuplicateIds(definitions));
     }
@@ -69,7 +72,74 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         return List.copyOf(unique.values());
     }
 
-    private void collect(
+    private void collectType(
+            List<CpfExecutionDefinition> definitions,
+            String sourceModule,
+            String sourceVersion,
+            Class<?> beanType) {
+        com.cpf.core.api.execution.CpfOnlineTransaction publicOnline =
+                AnnotatedElementUtils.findMergedAnnotation(
+                        beanType,
+                        com.cpf.core.api.execution.CpfOnlineTransaction.class);
+        if (publicOnline != null) {
+            definitions.add(definition(
+                    publicOnline.id(), publicOnline.name(), CpfExecutionType.ONLINE, publicOnline.ownerDomain(),
+                    publicOnline.description(), publicOnline.requiredPermission(), publicOnline.auditReasonRequired(),
+                    publicOnline.visibility(), publicOnline.directAllowed(), publicOnline.gatewayAllowed(),
+                    sourceModule, sourceVersion, beanType, null));
+        }
+        CpfOnlineTransaction online =
+                AnnotatedElementUtils.findMergedAnnotation(beanType, CpfOnlineTransaction.class);
+        if (online != null) {
+            definitions.add(definition(
+                    online.id(), online.name(), CpfExecutionType.ONLINE, online.ownerDomain(),
+                    online.description(), online.requiredPermission(), online.auditReasonRequired(),
+                    online.visibility(), online.directAllowed(), online.gatewayAllowed(),
+                    sourceModule, sourceVersion, beanType, null));
+        }
+        com.cpf.core.api.execution.CpfSharedApi publicShared =
+                AnnotatedElementUtils.findMergedAnnotation(
+                        beanType,
+                        com.cpf.core.api.execution.CpfSharedApi.class);
+        if (publicShared != null) {
+            definitions.add(definition(
+                    publicShared.id(), publicShared.name(), CpfExecutionType.SHARED, publicShared.ownerDomain(),
+                    publicShared.description(), publicShared.requiredPermission(), publicShared.auditReasonRequired(),
+                    "INTERNAL", true, false,
+                    sourceModule, sourceVersion, beanType, null));
+        }
+        CpfSharedApi shared =
+                AnnotatedElementUtils.findMergedAnnotation(beanType, CpfSharedApi.class);
+        if (shared != null) {
+            definitions.add(definition(
+                    shared.id(), shared.name(), CpfExecutionType.SHARED, shared.ownerDomain(),
+                    shared.description(), shared.requiredPermission(), shared.auditReasonRequired(),
+                    "INTERNAL", true, false,
+                    sourceModule, sourceVersion, beanType, null));
+        }
+        com.cpf.core.api.execution.CpfBatchJob publicBatch =
+                AnnotatedElementUtils.findMergedAnnotation(
+                        beanType,
+                        com.cpf.core.api.execution.CpfBatchJob.class);
+        if (publicBatch != null) {
+            definitions.add(definition(
+                    publicBatch.id(), publicBatch.name(), CpfExecutionType.BATCH, publicBatch.ownerDomain(),
+                    publicBatch.description(), publicBatch.requiredPermission(), publicBatch.auditReasonRequired(),
+                    "INTERNAL", false, false,
+                    sourceModule, sourceVersion, beanType, null));
+        }
+        CpfBatchJob batch =
+                AnnotatedElementUtils.findMergedAnnotation(beanType, CpfBatchJob.class);
+        if (batch != null) {
+            definitions.add(definition(
+                    batch.id(), batch.name(), CpfExecutionType.BATCH, batch.ownerDomain(),
+                    batch.description(), batch.requiredPermission(), batch.auditReasonRequired(),
+                    "INTERNAL", false, false,
+                    sourceModule, sourceVersion, beanType, null));
+        }
+    }
+
+    private void collectMethod(
             List<CpfExecutionDefinition> definitions,
             String sourceModule,
             String sourceVersion,
@@ -77,9 +147,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
             Method method) {
         com.cpf.core.api.execution.CpfOnlineTransaction publicOnline =
                 AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfOnlineTransaction.class);
-        if (publicOnline == null) {
-            publicOnline = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfOnlineTransaction.class);
-        }
         if (publicOnline != null) {
             definitions.add(definition(
                     publicOnline.id(), publicOnline.name(), CpfExecutionType.ONLINE, publicOnline.ownerDomain(),
@@ -88,9 +155,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
                     sourceModule, sourceVersion, beanType, method));
         }
         CpfOnlineTransaction online = AnnotatedElementUtils.findMergedAnnotation(method, CpfOnlineTransaction.class);
-        if (online == null) {
-            online = AnnotatedElementUtils.findMergedAnnotation(beanType, CpfOnlineTransaction.class);
-        }
         if (online != null) {
             definitions.add(definition(
                     online.id(), online.name(), CpfExecutionType.ONLINE, online.ownerDomain(),
@@ -100,9 +164,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         }
         com.cpf.core.api.execution.CpfSharedApi publicShared =
                 AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfSharedApi.class);
-        if (publicShared == null) {
-            publicShared = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfSharedApi.class);
-        }
         if (publicShared != null) {
             definitions.add(definition(
                     publicShared.id(), publicShared.name(), CpfExecutionType.SHARED, publicShared.ownerDomain(),
@@ -111,9 +172,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
                     sourceModule, sourceVersion, beanType, method));
         }
         CpfSharedApi shared = AnnotatedElementUtils.findMergedAnnotation(method, CpfSharedApi.class);
-        if (shared == null) {
-            shared = AnnotatedElementUtils.findMergedAnnotation(beanType, CpfSharedApi.class);
-        }
         if (shared != null) {
             definitions.add(definition(
                     shared.id(), shared.name(), CpfExecutionType.SHARED, shared.ownerDomain(),
@@ -123,9 +181,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
         }
         com.cpf.core.api.execution.CpfBatchJob publicBatch =
                 AnnotatedElementUtils.findMergedAnnotation(method, com.cpf.core.api.execution.CpfBatchJob.class);
-        if (publicBatch == null) {
-            publicBatch = AnnotatedElementUtils.findMergedAnnotation(beanType, com.cpf.core.api.execution.CpfBatchJob.class);
-        }
         if (publicBatch != null) {
             definitions.add(definition(
                     publicBatch.id(), publicBatch.name(), CpfExecutionType.BATCH, publicBatch.ownerDomain(),
@@ -133,9 +188,6 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
                     "INTERNAL", false, false, sourceModule, sourceVersion, beanType, method));
         }
         CpfBatchJob batch = AnnotatedElementUtils.findMergedAnnotation(method, CpfBatchJob.class);
-        if (batch == null) {
-            batch = AnnotatedElementUtils.findMergedAnnotation(beanType, CpfBatchJob.class);
-        }
         if (batch != null) {
             definitions.add(definition(
                     batch.id(), batch.name(), CpfExecutionType.BATCH, batch.ownerDomain(),
@@ -162,17 +214,22 @@ public final class CpfExecutionCatalogScanner implements SmartInitializingSingle
             Method method) {
         CpfStandardExecutionId parsed = CpfStandardExecutionId.parse(id);
         String resolvedOwner = ownerDomain == null || ownerDomain.isBlank() ? parsed.domain() : ownerDomain;
-        RequestMapping mapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+        RequestMapping mapping = method == null
+                ? null
+                : AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
         RequestMapping typeMapping = AnnotatedElementUtils.findMergedAnnotation(beanType, RequestMapping.class);
         String endpoint = combinePaths(firstPath(typeMapping), firstPath(mapping));
-        Operation operation = AnnotatedElementUtils.findMergedAnnotation(method, Operation.class);
+        Operation operation = method == null
+                ? null
+                : AnnotatedElementUtils.findMergedAnnotation(method, Operation.class);
         String operationId = operation == null ? "" : operation.operationId();
         String resolvedDescription = description == null || description.isBlank()
                 ? operation == null ? "" : operation.description()
                 : description;
         return new CpfExecutionDefinition(
                 parsed.value(), name, type, resolvedOwner, sourceModule,
-                beanType.getName(), method.getName(), firstHttpMethod(mapping), endpoint, operationId,
+                beanType.getName(), method == null ? "" : method.getName(),
+                firstHttpMethod(mapping), endpoint, operationId,
                 resolvedDescription, requiredPermission, auditReasonRequired, visibility,
                 directAllowed, gatewayAllowed, sourceVersion, Instant.now());
     }

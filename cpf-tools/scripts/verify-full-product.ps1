@@ -68,6 +68,7 @@ try{
         @('UTF-8','cpf-tools/scripts/check-utf8.ps1'),
         @('Java 25 standard','cpf-tools/scripts/check-java25-standard.ps1'),
         @('Legacy name','cpf-tools/scripts/check-legacy-name.ps1'),
+        @('Legacy BAT migration','cpf-tools/scripts/check-legacy-batch-migration.ps1'),
         @('Log management','cpf-tools/scripts/check-log-management-standard.ps1'),
         @('OpenAPI coverage','cpf-tools/scripts/check-openapi-source-coverage.ps1'),
         @('Sample standard','cpf-tools/scripts/check-sample-standard.ps1'),
@@ -103,17 +104,14 @@ try{
     }
 
     if($WithGeneratorLifecycle){
-        if(-not(Pwsh 'EXS generated-only lifecycle'
-            'cpf-tools/scripts/verify-exs-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
+        if(-not(Pwsh 'EXS generated-only lifecycle' 'cpf-tools/scripts/verify-exs-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
         if(Test-Path(Join-Path $Root 'cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1')){
-            if(-not(Pwsh 'Arbitrary Generated Domain lifecycle'
-                'cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
+            if(-not(Pwsh 'Arbitrary Generated Domain lifecycle' 'cpf-tools/scripts/smoke-generated-domain-lifecycle.ps1' @('-Root',$Root))){$allOk=$false}
         }
     }else{Skip 'Generated Domain lifecycle' 'use -WithGeneratorLifecycle'}
 
     if($WithDatabase){
-        if(-not(Pwsh 'CPF all DB initialize/verify'
-            'cpf-tools/scripts/initialize-cpf-database.ps1' @('-All','-RequireRun'))){$allOk=$false}
+        if(-not(Pwsh 'CPF all DB initialize/verify' 'cpf-tools/scripts/initialize-cpf-database.ps1' @('-All','-RequireRun'))){$allOk=$false}
     }else{Skip 'CPF all DB initialize/verify' 'use -WithDatabase'}
 
     if($WithBrowser){

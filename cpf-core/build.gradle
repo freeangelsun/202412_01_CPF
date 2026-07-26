@@ -62,6 +62,8 @@ dependencies {
 	testImplementation 'org.springframework:spring-test'
 	testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 	testImplementation 'org.springframework.batch:spring-batch-core'
+	// Candidate Vendor URL/driver contract test only. This does not mark PostgreSQL Runtime as verified.
+	testRuntimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {

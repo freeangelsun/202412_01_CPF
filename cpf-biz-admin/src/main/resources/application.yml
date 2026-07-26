@@ -19,6 +19,16 @@ spring:
 server:
   port: ${BZA_SERVER_PORT:8091}
 
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
 cpf:
   framework:
     module-id: BZA

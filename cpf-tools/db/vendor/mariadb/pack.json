@@ -5,7 +5,7 @@
   "runtimeVerification": "미검증",
   "canonicalConsumerRoot": "cpf-tools/db/vendor/mariadb",
   "lifecycleContentAuthority": "GENERATED_FROM_CANONICAL_SOURCE",
-  "lifecycleContentNote": "정본은 cpf-tools/db/source/mariadb이며 build-all-install-sql.ps1이 lifecycle pack을 결정적으로 생성한다. Runtime/DB 실검증 전 상태는 미검증으로 유지한다.",
+  "lifecycleContentNote": "정본은 cpf-tools/db/vendor/mariadb/source이며 build-all-install-sql.ps1이 lifecycle pack을 결정적으로 생성한다. Runtime/DB 실검증 전 상태는 미검증으로 유지한다.",
   "runtimeContentAuthority": "CENTRAL_VENDOR_PACK",
   "legacyModuleResourcePolicy": "FORBIDDEN_AFTER_R4_CANONICALIZATION",
   "lifecycleStatus": {
@@ -17,14 +17,14 @@
     "rollback": "부분 구현"
   },
   "lifecycleAuthoringSources": {
-    "provision/00_provision.sql": "cpf-tools/db/source/mariadb/00_provision.sql",
-    "install/00_empty_install.sql": "cpf-tools/db/source/mariadb/00_empty_install.sql",
-    "seed/00_product_seed.sql": "cpf-tools/db/source/mariadb/00_product_seed.sql",
-    "seed/00_optional_sample_seed.sql": "cpf-tools/db/source/mariadb/00_optional_sample_seed.sql",
-    "seed/00_test_seed.sql": "cpf-tools/db/source/mariadb/00_test_seed.sql",
-    "verify/00_verify.sql": "cpf-tools/db/source/mariadb/00_verify.sql",
-    "migration/flyway": "cpf-tools/db/source/mariadb/migration/flyway",
-    "rollback": "cpf-tools/db/source/mariadb/migration/rollback"
+    "provision/00_provision.sql": "cpf-tools/db/vendor/mariadb/source/00_provision.sql",
+    "install/00_empty_install.sql": "cpf-tools/db/vendor/mariadb/source/00_empty_install.sql",
+    "seed/00_product_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_product_seed.sql",
+    "seed/00_optional_sample_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_optional_sample_seed.sql",
+    "seed/00_test_seed.sql": "cpf-tools/db/vendor/mariadb/source/00_test_seed.sql",
+    "verify/00_verify.sql": "cpf-tools/db/vendor/mariadb/source/00_verify.sql",
+    "migration/flyway": "cpf-tools/db/vendor/mariadb/source/migration/flyway",
+    "rollback": "cpf-tools/db/vendor/mariadb/source/migration/rollback"
   },
   "runtimeModules": {
     "cpf": {
@@ -49,7 +49,7 @@
     },
     "bat": {
       "ownerArtifact": "cpf-batch",
-      "repository": "미구현",
+      "repository": "부분 구현",
       "mybatis": "미구현"
     },
     "gwy": {
@@ -86,7 +86,14 @@
       "CPF_SYSTEM_CODE",
       "CPF_DISPLAY_NAME",
       "CPF_SCHEMA_NAME",
-      "CPF_TABLE_PREFIX",
+      "CPF_DATABASE_NAME",
+    "CPF_MIGRATION_USERNAME",
+    "CPF_RUNTIME_USERNAME",
+    "CPF_MIGRATION_PASSWORD_HEX",
+    "CPF_RUNTIME_PASSWORD_HEX",
+    "CPF_MIGRATION_PASSWORD_SQL_LITERAL",
+    "CPF_RUNTIME_PASSWORD_SQL_LITERAL",
+    "CPF_TABLE_PREFIX",
       "CPF_MODULE_NAME",
       "CPF_PACKAGE_NAME",
       "CPF_MAPPER_NAMESPACE",

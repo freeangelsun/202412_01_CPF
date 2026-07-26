@@ -15,28 +15,15 @@ public final class CpfSystemCodes {
 
     private static final int SYSTEM_CODE_LENGTH = 3;
     private static final Map<String, String> OFFICIAL_CODES = Map.ofEntries(
-            Map.entry("cpf-core", CORE),
             Map.entry("core", CORE),
             Map.entry("cpf", CORE),
-            Map.entry("cpf-gateway", "GWY"),
             Map.entry("gateway", "GWY"),
-            Map.entry("cpf-common", "CMN"),
             Map.entry("common", "CMN"),
-            Map.entry("cpf-admin", "ADM"),
             Map.entry("admin", "ADM"),
-            Map.entry("cpf-biz-admin", "BZA"),
             Map.entry("biz-admin", "BZA"),
             Map.entry("bizadmin", "BZA"),
-            Map.entry("cpf-batch", "BAT"),
             Map.entry("batch", "BAT"),
-            Map.entry("cpf-member", "MBR"),
-            Map.entry("member", "MBR"),
-            Map.entry("cpf-account", "ACC"),
-            Map.entry("account", "ACC"),
-            Map.entry("cpf-reference", "REF"),
-            Map.entry("reference", "REF"),
-            Map.entry("cpf-external", "EXS"),
-            Map.entry("external", "EXS"));
+            Map.entry("reference", "REF"));
 
     private CpfSystemCodes() {
     }
@@ -53,12 +40,16 @@ public final class CpfSystemCodes {
         String target = hasText(value)
                 ? value.trim()
                 : (hasText(fallback) ? fallback.trim() : CORE);
-        String alias = OFFICIAL_CODES.get(target.toLowerCase(Locale.ROOT));
+        String normalizedTarget = target.toLowerCase(Locale.ROOT);
+        if (normalizedTarget.startsWith("cpf-")) {
+            normalizedTarget = normalizedTarget.substring("cpf-".length());
+        }
+        String alias = OFFICIAL_CODES.get(normalizedTarget);
         if (alias != null) {
             return alias;
         }
 
-        String normalized = target.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
+        String normalized = normalizedTarget.replaceAll("[^a-z0-9]", "").toUpperCase(Locale.ROOT);
         if (!hasText(normalized)) {
             return normalize(fallback, CORE);
         }
@@ -78,41 +69,15 @@ public final class CpfSystemCodes {
         if (!hasText(typeName)) {
             return null;
         }
-        if (belongsToModule(typeName, "core") || belongsToModule(typeName, "cpf")) {
-            return CORE;
+        String prefix = "com.cpf.";
+        if (!typeName.startsWith(prefix)) {
+            return null;
         }
-        if (belongsToModule(typeName, "gateway")) {
-            return "GWY";
-        }
-        if (belongsToModule(typeName, "common") || belongsToModule(typeName, "cmn")) {
-            return "CMN";
-        }
-        if (belongsToModule(typeName, "admin") || belongsToModule(typeName, "adm")) {
-            return "ADM";
-        }
-        if (belongsToModule(typeName, "bizadmin") || belongsToModule(typeName, "bza")) {
-            return "BZA";
-        }
-        if (belongsToModule(typeName, "batch") || belongsToModule(typeName, "bat")) {
-            return "BAT";
-        }
-        if (belongsToModule(typeName, "member") || belongsToModule(typeName, "mbr")) {
-            return "MBR";
-        }
-        if (belongsToModule(typeName, "account") || belongsToModule(typeName, "acc")) {
-            return "ACC";
-        }
-        if (belongsToModule(typeName, "reference") || belongsToModule(typeName, "ref")) {
-            return "REF";
-        }
-        if (belongsToModule(typeName, "external") || belongsToModule(typeName, "exs")) {
-            return "EXS";
-        }
-        return null;
-    }
-
-    private static boolean belongsToModule(String typeName, String packageName) {
-        return typeName.startsWith("com.cpf." + packageName + ".");
+        int packageEnd = typeName.indexOf('.', prefix.length());
+        String modulePackage = packageEnd < 0
+                ? typeName.substring(prefix.length())
+                : typeName.substring(prefix.length(), packageEnd);
+        return hasText(modulePackage) ? normalize(modulePackage, CORE) : null;
     }
 
     private static boolean hasText(String value) {

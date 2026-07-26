@@ -27,7 +27,7 @@ $capabilities = @(
             "cpf-account/src/main/java/com/cpf/account/account/controller/AccAccountController.java",
             "cpf-account/src/main/java/com/cpf/account/account/service/AccAccountService.java",
             "cpf-account/src/test/java/com/cpf/account/account/service/AccAccountServiceTest.java",
-            "cpf-tools/db/source/mariadb/migration/flyway/V1__cpf_baseline_install.sql"
+            "cpf-tools/db/vendor/mariadb/migration/flyway/V1__cpf_baseline_install.sql"
         )
     },
     [ordered]@{
@@ -50,7 +50,7 @@ $capabilities = @(
             "cpf-reference/src/main/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorController.java",
             "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceExternalIntegrationEducationSampleTest.java",
             "cpf-reference/src/test/java/com/cpf/reference/external/ReferenceNeutralExternalSimulatorControllerTest.java",
-            "cpf-tools/db/source/mariadb/migration/flyway/V37__official_ref_external_expansion.sql"
+            "cpf-tools/db/vendor/mariadb/migration/flyway/V37__official_ref_external_expansion.sql"
         )
     },
     [ordered]@{
@@ -69,7 +69,7 @@ $capabilities = @(
         paths = @(
             "cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentService.java",
             "cpf-core/src/test/java/com/cpf/core/common/logging/segment/TransactionSegmentServiceTest.java",
-            "cpf-tools/db/source/mariadb/migration/flyway/V19__transaction_segment_trace.sql"
+            "cpf-tools/db/vendor/mariadb/migration/flyway/V19__transaction_segment_trace.sql"
         )
     }
 )

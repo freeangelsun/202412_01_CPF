@@ -24,7 +24,7 @@ public class ReferenceBrokerPublishEducationSample {
                 transactionId,
                 transactionId + "-BROKER",
                 "REF",
-                "MBR",
+                "REF",
                 idempotencyKey,
                 Instant.now(),
                 message,

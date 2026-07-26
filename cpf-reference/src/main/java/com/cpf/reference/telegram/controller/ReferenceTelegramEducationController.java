@@ -5,7 +5,7 @@ import com.cpf.core.api.fixedlength.CpfFixedLengthDtoMapper;
 import com.cpf.core.api.fixedlength.CpfFixedLengthParseResult;
 import com.cpf.core.api.fixedlength.CpfFixedLengthWriteResult;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
-import com.cpf.reference.telegram.dto.ReferenceFixedLengthMemberTelegram;
+import com.cpf.reference.telegram.dto.ReferenceFixedLengthEducationTelegram;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -45,10 +45,10 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
                 : fixedLengthMapper.writeFromDto(defaultTelegramDto()).message();
         CpfFixedLengthParseResult parseResult = fixedLengthMapper.parseToMap(
                 sampleTelegram,
-                ReferenceFixedLengthMemberTelegram.class);
-        ReferenceFixedLengthMemberTelegram dto = fixedLengthMapper.parseToDto(
+                ReferenceFixedLengthEducationTelegram.class);
+        ReferenceFixedLengthEducationTelegram dto = fixedLengthMapper.parseToDto(
                 sampleTelegram,
-                ReferenceFixedLengthMemberTelegram.class);
+                ReferenceFixedLengthEducationTelegram.class);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("telegram", sampleTelegram);
@@ -61,8 +61,8 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
     @CpfOnlineTransaction(id = "OREFAA0028", name = "REFFixedLengthWrite")
     @Operation(operationId = "refTelegramEducationWriteFixedLengthTelegram", summary = "Fixed length write sample", description = "Writes a DTO to a fixed length string.")
     public ResponseEntity<Map<String, Object>> writeFixedLengthTelegram(
-            @RequestBody(required = false) ReferenceFixedLengthMemberTelegram request) {
-        ReferenceFixedLengthMemberTelegram dto = request == null ? defaultTelegramDto() : request;
+            @RequestBody(required = false) ReferenceFixedLengthEducationTelegram request) {
+        ReferenceFixedLengthEducationTelegram dto = request == null ? defaultTelegramDto() : request;
         CpfFixedLengthWriteResult writeResult = fixedLengthMapper.writeFromDto(dto);
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -71,7 +71,7 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
         response.put("length", writeResult.byteLength());
         response.put("parsedAgain", fixedLengthMapper.parseToDto(
                 writeResult.message(),
-                ReferenceFixedLengthMemberTelegram.class));
+                ReferenceFixedLengthEducationTelegram.class));
         return ResponseEntity.ok(response);
     }
 
@@ -79,7 +79,7 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
     @CpfOnlineTransaction(id = "OREFAA0033", name = "REFFixedLengthMarshal")
     @Operation(operationId = "refTelegramEducationMarshalFixedLengthTelegram", summary = "Fixed length marshal sample", description = "Alias for fixed-length write.")
     public ResponseEntity<Map<String, Object>> marshalFixedLengthTelegram(
-            @RequestBody(required = false) ReferenceFixedLengthMemberTelegram request) {
+            @RequestBody(required = false) ReferenceFixedLengthEducationTelegram request) {
         return writeFixedLengthTelegram(request);
     }
 
@@ -90,7 +90,12 @@ public class ReferenceTelegramEducationController extends com.cpf.reference.comm
         return parseFixedLengthTelegram(telegram);
     }
 
-    private ReferenceFixedLengthMemberTelegram defaultTelegramDto() {
-        return new ReferenceFixedLengthMemberTelegram("M000000001", "Sample User", new BigDecimal("12345.67"), true, LocalDate.now());
+    private ReferenceFixedLengthEducationTelegram defaultTelegramDto() {
+        return new ReferenceFixedLengthEducationTelegram(
+                "REF0000001",
+                "Reference Item",
+                new BigDecimal("12345.67"),
+                true,
+                LocalDate.now());
     }
 }

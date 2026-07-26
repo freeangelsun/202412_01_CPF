@@ -91,10 +91,10 @@ if(Test-Path $legacyCenterCut){
 
 # BAT Runtime owner 구현이 존재할 때만 ADM에 남은 과거 BAT DB/Scheduler 소유 코드를 제거합니다.
 $batOwnerRequired = @(
-  'cpf-batch\src\main\java\com\cpf\batch\scheduler\BatBatchScheduler.java',
-  'cpf-batch\src\main\java\com\cpf\batch\scheduler\BatBatchScheduleService.java',
-  'cpf-batch\src\main\java\com\cpf\batch\scheduler\BatBatchExecutionTargetService.java',
-  'cpf-batch\src\main\java\com\cpf\batch\operation\BatOperationFacade.java',
+  'cpf-batch\scheduler\src\main\java\com\cpf\batch\scheduler\BatchSchedulerApplication.java',
+  'cpf-batch\scheduler\src\main\java\com\cpf\batch\scheduler\SchedulerCoordinator.java',
+  'cpf-batch\scheduler\src\main\java\com\cpf\batch\scheduler\SchedulerDispatchService.java',
+  'cpf-batch\control-server\src\main\java\com\cpf\batch\control\compat\BatchOperationsCompatibilityService.java',
   'cpf-admin\src\main\java\com\cpf\admin\opr\batch\RemoteCpfBatchOperationsAdapter.java'
 )
 $missingBatOwner = @($batOwnerRequired | Where-Object { !(Test-Path (Join-Path $Root $_)) })
@@ -160,6 +160,10 @@ $plannedLegacyBatchRemovalFiles = @(
   (Join-Path $Root 'cpf-core\src\main\java\com\cpf\core\config\CpfCenterCutAutoConfiguration.java')
 )
 
+$legacyBatchMigrationRequired =
+  (Test-Path -LiteralPath $legacyBatchRoot) -or
+  @($plannedLegacyBatchRemovalFiles | Where-Object { Test-Path -LiteralPath $_ }).Count -gt 0
+if($legacyBatchMigrationRequired){
 $requiredPublicBatchContracts = @(
   'cpf-core\src\main\java\com\cpf\core\api\batch\CpfBatchEvent.java',
   'cpf-core\src\main\java\com\cpf\core\api\batch\CpfBatchEventPublisher.java',
@@ -170,16 +174,13 @@ $requiredPublicBatchContracts = @(
   'cpf-core\src\main\java\com\cpf\core\api\batch\CpfBatchLogPaths.java'
 )
 $requiredBatRuntime = @(
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchFileLogWriter.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchGhostDetectionService.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchHeartbeatService.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchJobLogPath.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchLauncher.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchLockManager.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchLoggingEventPublisher.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchOperationRepository.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchRuntimeListener.java',
-  'cpf-batch\src\main\java\com\cpf\batch\runtime\BatBatchRuntimeProgress.java'
+  'cpf-batch\runtime-common\src\main\java\com\cpf\batch\runtime\RuntimeReporter.java',
+  'cpf-batch\runtime-common\src\main\java\com\cpf\batch\runtime\RuntimeStateProvider.java',
+  'cpf-batch\control-server\src\main\java\com\cpf\batch\control\internal\JdbcRuntimeRegistry.java',
+  'cpf-batch\worker\src\main\java\com\cpf\batch\worker\WorkerRuntime.java',
+  'cpf-batch\worker\src\main\java\com\cpf\batch\worker\JobPackDispatcher.java',
+  'cpf-batch\scheduler\src\main\java\com\cpf\batch\scheduler\SchedulerCoordinator.java',
+  'cpf-batch\center-cut-runner\src\main\java\com\cpf\batch\centercut\runner\CenterCutRuntime.java'
 )
 $missingBatchBoundary = @(($requiredPublicBatchContracts + $requiredBatRuntime) | Where-Object { !(Test-Path (Join-Path $Root $_)) })
 if($missingBatchBoundary.Count){
@@ -205,18 +206,9 @@ $publicSameName = @(
   'CpfBatchExecutionResult',
   'CpfBatchOperationType'
 )
-$batRuntimeMap = [ordered]@{
-  'CpfBatchFileLogWriter'='BatBatchFileLogWriter'
-  'CpfBatchGhostDetectionService'='BatBatchGhostDetectionService'
-  'CpfBatchHeartbeatService'='BatBatchHeartbeatService'
-  'CpfBatchJobLogPath'='BatBatchJobLogPath'
-  'CpfBatchLauncher'='BatBatchLauncher'
-  'CpfBatchLockManager'='BatBatchLockManager'
-  'CpfBatchLoggingEventPublisher'='BatBatchLoggingEventPublisher'
-  'CpfBatchOperationRepository'='BatBatchOperationRepository'
-  'CpfBatchRuntimeListener'='BatBatchRuntimeListener'
-  'CpfBatchRuntimeProgress'='BatBatchRuntimeProgress'
-}
+# 단일 cpf-batch/src Runtime Class로의 자동 치환은 더 이상 허용하지 않습니다.
+# 남은 내부 Runtime Consumer는 아래 zero-consumer 검사에서 차단하고 역할별 Owner로 수동 이관합니다.
+$batRuntimeMap = [ordered]@{}
 
 $migratedFiles = [System.Collections.Generic.List[string]]::new()
 $illegalExternalRuntimeConsumers = [System.Collections.Generic.List[string]]::new()
@@ -264,60 +256,15 @@ if($illegalExternalRuntimeConsumers.Count){
   throw 'Move non-BAT runtime consumers behind CpfBatchOperationsPort before deleting legacy Core Batch runtime.'
 }
 
-# Core에 남아 있던 과거 Batch Runtime 테스트도 BAT owner test source로 이관합니다.
-$coreBatchTests = [ordered]@{
-  'CpfBatchFileLogWriterTest.java'='BatBatchFileLogWriterTest.java'
-  'CpfBatchHeartbeatServiceLeaseTest.java'='BatBatchHeartbeatServiceLeaseTest.java'
-  'CpfBatchLockManagerTest.java'='BatBatchLockManagerTest.java'
-  'CpfBatchRuntimeListenerPolicyTest.java'='BatBatchRuntimeListenerPolicyTest.java'
-}
-$batRuntimeTestRoot = Join-Path $Root 'cpf-batch\src\test\java\com\cpf\batch\runtime'
-if(!(Test-Path $batRuntimeTestRoot) -and $PSCmdlet.ShouldProcess($batRuntimeTestRoot,'Create BAT runtime test owner directory')){
-  New-Item -ItemType Directory -Path $batRuntimeTestRoot -Force | Out-Null
-}
-foreach($entry in $coreBatchTests.GetEnumerator()){
-  $source = Join-Path $legacyCoreBatchTestRoot $entry.Key
-  if(!(Test-Path $source)){ continue }
-  $target = Join-Path $batRuntimeTestRoot $entry.Value
-  $t = Get-Content -LiteralPath $source -Raw
-  $t = $t.Replace('package com.cpf.core.common.batch;', 'package com.cpf.batch.runtime;')
-  foreach($name in $publicSameName){
-    $t = [regex]::Replace($t, "\b$([regex]::Escape($name))\b", "com.cpf.core.api.batch.$name")
-  }
-  foreach($runtime in $batRuntimeMap.GetEnumerator()){
-    $t = [regex]::Replace($t, "\b$([regex]::Escape([string]$runtime.Key))\b", [string]$runtime.Value)
-  }
-  $oldClass = [System.IO.Path]::GetFileNameWithoutExtension([string]$entry.Key)
-  $newClass = [System.IO.Path]::GetFileNameWithoutExtension([string]$entry.Value)
-  $t = [regex]::Replace($t, "\b$([regex]::Escape($oldClass))\b", $newClass)
-  if($PSCmdlet.ShouldProcess($target,'Move legacy Core Batch test to BAT owner')){
-    Set-Content -LiteralPath $target -Value $t -Encoding utf8 -NoNewline
-    Remove-Item -LiteralPath $source -Force
-    $migratedFiles.Add($target.Substring($Root.Length).TrimStart([char[]]@('\','/')))
-  }
+# 현재 구조에서는 Legacy Core Runtime Test를 삭제된 aggregate Source로 자동 생성하지 않습니다.
+# 남아 있다면 역할별 독립 Runtime 또는 REF Handler Test로 명시적으로 매핑해야 합니다.
+$legacyCoreBatchTests = @(
+  Get-ChildItem -LiteralPath $legacyCoreBatchTestRoot -Recurse -File -Filter '*.java' -ErrorAction SilentlyContinue
+)
+if($legacyCoreBatchTests.Count){
+  throw "Legacy Core Batch test remains; map it explicitly before cleanup:`n$($legacyCoreBatchTests.FullName -join "`n")"
 }
 
-# Core Center-Cut Runtime 테스트도 BAT Center-Cut owner로 이관합니다.
-$coreCenterCutTest = Join-Path $legacyCoreBatchTestRoot 'centercut\CpfCenterCutServiceTest.java'
-if(Test-Path $coreCenterCutTest){
-  $batCenterCutTestRoot = Join-Path $Root 'cpf-batch\src\test\java\com\cpf\batch\runtime\centercut'
-  if(!(Test-Path $batCenterCutTestRoot) -and $PSCmdlet.ShouldProcess($batCenterCutTestRoot,'Create BAT Center-Cut test owner directory')){
-    New-Item -ItemType Directory -Path $batCenterCutTestRoot -Force | Out-Null
-  }
-  $target = Join-Path $batCenterCutTestRoot 'BatCenterCutServiceTest.java'
-  $t = Get-Content -LiteralPath $coreCenterCutTest -Raw
-  $t = $t.Replace('package com.cpf.core.common.batch.centercut;', 'package com.cpf.batch.runtime.centercut;')
-  $t = [regex]::Replace($t, '\bCpfCenterCutServiceTest\b', 'BatCenterCutServiceTest')
-  $t = [regex]::Replace($t, '\bCpfCenterCutService\b', 'BatCenterCutService')
-  $centerCutApi = @('CpfCenterCutResult','CpfCenterCutStatus','CpfCenterCutSummary','CpfCenterCutTarget')
-  foreach($name in $centerCutApi){ $t = [regex]::Replace($t, "\b$name\b", "com.cpf.core.api.centercut.$name") }
-  foreach($name in @('CenterCutHandler','CenterCutTargetProvider')){ $t = [regex]::Replace($t, "\b$name\b", "com.cpf.core.spi.centercut.$name") }
-  if($PSCmdlet.ShouldProcess($target,'Move legacy Core Center-Cut test to BAT owner')){
-    Set-Content -LiteralPath $target -Value $t -Encoding utf8 -NoNewline
-    Remove-Item -LiteralPath $coreCenterCutTest -Force
-    $migratedFiles.Add($target.Substring($Root.Length).TrimStart([char[]]@('\','/')))
-  }
-}
 if(Test-Path $legacyCoreBatchTestRoot){
   $remainingTestFiles = @(Get-ChildItem $legacyCoreBatchTestRoot -Recurse -File -ErrorAction SilentlyContinue)
   if(!$remainingTestFiles.Count -and $PSCmdlet.ShouldProcess($legacyCoreBatchTestRoot,'Remove empty legacy Core Batch test directory')){
@@ -341,6 +288,9 @@ if($legacyBatchConsumers.Count){
 Write-Host "[PASS] Legacy Core Batch consumers migrated: $($migratedFiles.Count) file(s)." -ForegroundColor Green
 $migratedFiles | Sort-Object -Unique | ForEach-Object { Write-Host "  [MIGRATE] $_" }
 Write-Host '[PASS] Legacy Core Batch consumer/FQCN count = 0.' -ForegroundColor Green
+} else {
+  Write-Host '[PASS] Legacy Core Batch migration is already complete; obsolete source prerequisites are not required.' -ForegroundColor Green
+}
 
 # 삭제된 AutoConfiguration class를 import 목록이 계속 참조하지 않도록 동기화합니다.
 $autoConfigImports = Join-Path $Root 'cpf-core\src\main\resources\META-INF\spring\org.springframework.boot.autoconfigure.AutoConfiguration.imports'
@@ -399,10 +349,90 @@ foreach($pattern in $garbagePatterns){
   }
 }
 if($IncludeBuildArtifacts){
-  $dirs = Get-ChildItem $Root -Recurse -Directory | Where-Object { $_.Name -in @('build','.gradle','node_modules','dist') }
+  $canonicalBuildToolRoot = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-tools/build'))
+  $repositoryRootPrefix = [IO.Path]::GetFullPath($Root).TrimEnd(
+    [IO.Path]::DirectorySeparatorChar,
+    [IO.Path]::AltDirectorySeparatorChar
+  ) + [IO.Path]::DirectorySeparatorChar
+  $dirs = Get-ChildItem $Root -Recurse -Directory | Where-Object {
+    if($_.Name -in @('.gradle','node_modules','dist')){
+      return $true
+    }
+    if($_.Name -notin @('build','bin')){
+      return $false
+    }
+    # com/cpf/build 같은 Source package를 산출물로 오인하지 않고, Gradle/JDT가
+    # Project Root에 만든 build/bin만 재생성 가능 산출물로 정리합니다.
+    $projectDirectory = $_.Parent.FullName
+    return (
+      (Test-Path -LiteralPath (Join-Path $projectDirectory 'build.gradle') -PathType Leaf) -or
+      (Test-Path -LiteralPath (Join-Path $projectDirectory 'build.gradle.kts') -PathType Leaf)
+    )
+  }
   foreach($d in ($dirs | Sort-Object FullName -Descending)){
-    if($d.FullName -match '[\\/]cpf-docs[\\/]evidence[\\/]'){ continue }
-    if($PSCmdlet.ShouldProcess($d.FullName,'Remove regenerable build artifact')){ Remove-Item $d.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+    $resolvedDirectory = [IO.Path]::GetFullPath($d.FullName)
+    if(-not $resolvedDirectory.StartsWith($repositoryRootPrefix,[StringComparison]::OrdinalIgnoreCase)){
+      throw "Repository 외부 Build Artifact 삭제를 거부합니다: $resolvedDirectory"
+    }
+    if($resolvedDirectory.Equals($canonicalBuildToolRoot,[StringComparison]::OrdinalIgnoreCase)){
+      Write-Host '[KEEP] canonical build tooling source owner: cpf-tools/build' -ForegroundColor Yellow
+      continue
+    }
+    if($resolvedDirectory -match '[\\/]cpf-docs[\\/]evidence[\\/]'){ continue }
+    if($PSCmdlet.ShouldProcess($resolvedDirectory,'Remove regenerable build artifact')){ Remove-Item -LiteralPath $resolvedDirectory -Recurse -Force -ErrorAction SilentlyContinue }
+  }
+
+  # Build Support Unit의 정본 Source는 cpf-tools/build로 이동했습니다. 과거 Root에는
+  # Git에서 무시되는 Gradle/JDT 산출물과 빈 디렉터리만 남을 수 있으므로, 새 정본 Source와
+  # 추적 파일 삭제 상태를 확인한 뒤 정확한 두 경로만 제거합니다.
+  $relocatedBuildUnits = [ordered]@{
+    'cpf-gradle-plugin' = @(
+      'cpf-tools/build/gradle-plugin/build.gradle',
+      'cpf-tools/build/gradle-plugin/settings.gradle',
+      'cpf-tools/build/gradle-plugin/src/main/groovy/com/cpf/build/CpfDomainConventionPlugin.groovy'
+    )
+    'cpf-platform-bom' = @(
+      'cpf-tools/build/platform-bom/build.gradle',
+      'cpf-tools/build/platform-bom/settings.gradle'
+    )
+  }
+  foreach($legacyRelativePath in $relocatedBuildUnits.Keys){
+    $legacyRoot = [IO.Path]::GetFullPath((Join-Path $Root $legacyRelativePath))
+    if(-not $legacyRoot.StartsWith($repositoryRootPrefix,[StringComparison]::OrdinalIgnoreCase)){
+      throw "Repository 외부 Legacy Build Unit 삭제를 거부합니다: $legacyRoot"
+    }
+    foreach($canonicalRelativePath in $relocatedBuildUnits[$legacyRelativePath]){
+      $canonicalPath = Join-Path $Root $canonicalRelativePath
+      if(-not (Test-Path -LiteralPath $canonicalPath -PathType Leaf)){
+        throw "이관된 Build Unit 정본 Source가 없습니다: $canonicalRelativePath"
+      }
+    }
+    $legacyTrackedFiles = @(& git -C $Root ls-files -- $legacyRelativePath 2>$null)
+    $legacyTrackedFilesStillPresent = @(
+      $legacyTrackedFiles | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf }
+    )
+    if($legacyTrackedFilesStillPresent.Count){
+      throw (
+        "Legacy Build Unit의 추적 Source가 아직 물리적으로 남아 있어 삭제하지 않습니다: " +
+        ($legacyTrackedFilesStillPresent -join ', ')
+      )
+    }
+    $legacyUntrackedFiles = @(
+      & git -C $Root ls-files --others --exclude-standard -- $legacyRelativePath 2>$null
+    )
+    if($legacyUntrackedFiles.Count){
+      throw (
+        "Legacy Build Unit 아래 보존 여부를 알 수 없는 Untracked 파일이 있어 삭제하지 않습니다: " +
+        ($legacyUntrackedFiles -join ', ')
+      )
+    }
+    if(
+      (Test-Path -LiteralPath $legacyRoot -PathType Container) -and
+      $PSCmdlet.ShouldProcess($legacyRoot,'Remove relocated legacy Build Unit cache and empty directories')
+    ){
+      Remove-Item -LiteralPath $legacyRoot -Recurse -Force
+      Write-Host "[REMOVE] relocated legacy Build Unit root: $legacyRelativePath"
+    }
   }
 }
 Write-Host '[PASS] Cleanup completed. Evidence and product source were not pattern-deleted.' -ForegroundColor Green

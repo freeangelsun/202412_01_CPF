@@ -1,9 +1,0 @@
-<script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
-import { admApi } from "../../shared/cpfApi";
-const rows=ref<any[]>([]); const total=ref(0); const page=ref(0); const size=ref(20); const error=ref("");
-const q=reactive({memberNo:"",customerNo:"",loginId:"",name:"",memberStatus:""});
-async function load(next=page.value){error.value="";try{const p=new URLSearchParams({page:String(next),size:String(size.value)});Object.entries(q).forEach(([k,v])=>{if(v)p.set(k,v)});const r=await admApi<any>(`/adm/api/members/page?${p}`);rows.value=r.content||r.items||[];total.value=Number(r.totalElements||0);page.value=Number(r.page||next)}catch(e:any){error.value=e?.message||String(e)}}
-onMounted(()=>load(0));
-</script>
-<template><section><header><h2>회원 운영 조회</h2><p>MBR Owner API를 통해 DB-backed paging으로 조회합니다. ADM이 MBR DB를 직접 조회하지 않습니다.</p></header><div class="toolbar"><input v-model="q.memberNo" placeholder="회원번호"><input v-model="q.customerNo" placeholder="고객번호"><input v-model="q.loginId" placeholder="로그인 ID"><input v-model="q.name" placeholder="이름"><input v-model="q.memberStatus" placeholder="상태"><button @click="load(0)">검색</button></div><p v-if="error" class="error">{{error}}</p><table><thead><tr><th>ID</th><th>회원번호</th><th>고객번호</th><th>로그인</th><th>이름</th><th>상태</th><th>Version</th></tr></thead><tbody><tr v-for="r in rows" :key="r.id"><td>{{r.id}}</td><td>{{r.member_no??r.memberNo}}</td><td>{{r.customer_no??r.customerNo}}</td><td>{{r.login_id??r.loginId}}</td><td>{{r.name}}</td><td>{{r.member_status??r.memberStatus}}</td><td>{{r.version_no??r.versionNo}}</td></tr></tbody></table><footer><button :disabled="page<=0" @click="load(page-1)">이전</button><span>{{page+1}} / {{Math.max(1,Math.ceil(total/size))}} ({{total}}건)</span><button :disabled="(page+1)*size>=total" @click="load(page+1)">다음</button></footer></section></template>

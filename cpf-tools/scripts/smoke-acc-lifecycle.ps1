@@ -1,6 +1,7 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..").Path,
-    [string] $ResultDir = ""
+    [string] $ResultDir = "",
+    [switch] $SkipBuild
 )
 
 # PowerShell 5.1과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
@@ -12,6 +13,13 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$currentPwsh = Join-Path $PSHOME 'pwsh.exe'
+$NestedPowerShell = if (Test-Path -LiteralPath $currentPwsh -PathType Leaf) {
+    $currentPwsh
+} else {
+    $pwshCommand = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($null -ne $pwshCommand) { $pwshCommand.Source } else { 'powershell' }
+}
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
     $ResultDir = Join-Path $Root 'build/runtime-smoke'
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
@@ -70,7 +78,7 @@ function Invoke-Script([string] $Path, [string[]] $Arguments, [bool] $AllowFailu
     $oldPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Path @Arguments 2>&1 | ForEach-Object { $_.ToString() })
+        $output = @(& $NestedPowerShell -NoProfile -ExecutionPolicy Bypass -File $Path @Arguments 2>&1 | ForEach-Object { $_.ToString() })
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $oldPreference
@@ -81,6 +89,13 @@ function Invoke-Script([string] $Path, [string[]] $Arguments, [bool] $AllowFailu
     [ordered]@{ exitCode = $exitCode; output = $output }
 }
 
+function Copy-Utf8ScriptForWindowsPowerShell([string] $Source, [string] $Target) {
+    $parent = Split-Path -Parent $Target
+    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    $text = [IO.File]::ReadAllText($Source, [Text.Encoding]::UTF8)
+    [IO.File]::WriteAllText($Target, $text, [Text.UTF8Encoding]::new($true))
+}
+
 function Invoke-AccGenerator {
     $arguments = @(
         '-Root', $sandboxRoot, '-DomainName', 'account', '-SystemCode', 'ACC', '-ModuleName', 'Account',
@@ -89,7 +104,7 @@ function Invoke-AccGenerator {
         '-External', 'Y', '-Messaging', 'Y', '-File', 'Y', '-SecurityAudit', 'Y',
         '-Ui', 'Y', '-BzaMenu', 'Y', '-ProductionProfile', 'Y', '-AllowReserved', '-Apply'
     )
-    [void](Invoke-Script (Join-Path $sandboxRoot 'cpf-tools/scripts/create-domain.ps1') $arguments)
+    [void](Invoke-Script (Join-Path $sandboxRoot 'cpf-tools/generator/create-domain.ps1') $arguments)
 }
 
 try {
@@ -99,16 +114,34 @@ try {
     if (Test-Path -LiteralPath $sandbox) {
         Remove-Item -LiteralPath $sandbox -Recurse -Force
     }
-    New-Item -ItemType Directory -Force -Path (Join-Path $sandboxRoot 'scripts') | Out-Null
-    New-Item -ItemType Directory -Force -Path (Join-Path $sandboxRoot 'cpf-tools/db/source/mariadb') | Out-Null
-    $createText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/scripts/create-domain.ps1'), [Text.Encoding]::UTF8)
-    $removeText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/scripts/remove-domain.ps1'), [Text.Encoding]::UTF8)
-    $verifyText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/scripts/verify-domain.ps1'), [Text.Encoding]::UTF8)
-    $databaseInitText = [IO.File]::ReadAllText((Join-Path $Root 'cpf-tools/scripts/initialize-domain-database.ps1'), [Text.Encoding]::UTF8)
-    [IO.File]::WriteAllText((Join-Path $sandboxRoot 'cpf-tools/scripts/create-domain.ps1'), $createText, [Text.UTF8Encoding]::new($true))
-    [IO.File]::WriteAllText((Join-Path $sandboxRoot 'cpf-tools/scripts/remove-domain.ps1'), $removeText, [Text.UTF8Encoding]::new($true))
-    [IO.File]::WriteAllText((Join-Path $sandboxRoot 'cpf-tools/scripts/verify-domain.ps1'), $verifyText, [Text.UTF8Encoding]::new($true))
-    [IO.File]::WriteAllText((Join-Path $sandboxRoot 'cpf-tools/scripts/initialize-domain-database.ps1'), $databaseInitText, [Text.UTF8Encoding]::new($true))
+    foreach ($relativeScript in @(
+        'cpf-tools/scripts/create-domain.ps1',
+        'cpf-tools/scripts/remove-domain.ps1',
+        'cpf-tools/scripts/verify-domain.ps1',
+        'cpf-tools/scripts/initialize-domain-database.ps1',
+        'cpf-tools/scripts/database-profile-common.ps1',
+        'cpf-tools/generator/create-domain.ps1'
+    )) {
+        Copy-Utf8ScriptForWindowsPowerShell `
+            -Source (Join-Path $Root $relativeScript) `
+            -Target (Join-Path $sandboxRoot $relativeScript)
+    }
+    $sandboxContractRoot = Join-Path $sandboxRoot 'cpf-tools/generator/contracts'
+    New-Item -ItemType Directory -Force -Path $sandboxContractRoot | Out-Null
+    Copy-Item `
+        -LiteralPath (Join-Path $Root 'cpf-tools/generator/contracts/central-domain-template-contract.json') `
+        -Destination $sandboxContractRoot
+    Copy-Item `
+        -LiteralPath (Join-Path $Root 'cpf-tools/generator/contracts/domain-metadata.schema.json') `
+        -Destination $sandboxContractRoot
+    foreach ($vendor in @('mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver')) {
+        $vendorTarget = Join-Path $sandboxRoot "cpf-tools/db/vendor/$vendor"
+        New-Item -ItemType Directory -Force -Path $vendorTarget | Out-Null
+        Copy-Item `
+            -LiteralPath (Join-Path $Root "cpf-tools/db/vendor/$vendor/domain-template") `
+            -Destination $vendorTarget `
+            -Recurse
+    }
     [IO.File]::WriteAllText((Join-Path $sandboxRoot 'settings.gradle'), "rootProject.name = 'cpf-acc-lifecycle'`r`n", $Utf8NoBom)
 
     $snapshotFiles = Get-SourceFiles $currentAcc
@@ -182,6 +215,7 @@ try {
     $databaseInitResultDir = Join-Path $sandbox 'database-init-plan'
     [void](Invoke-Script (Join-Path $sandboxRoot 'cpf-tools/scripts/initialize-domain-database.ps1') @(
         '-Root', $sandboxRoot, '-DomainName', 'account', '-SystemCode', 'ACC',
+        '-AdminPassword', 'CPF_PLAN_ONLY_NOT_USED',
         '-ResultDir', $databaseInitResultDir))
     $databaseInitResult = Get-Content -LiteralPath (Join-Path $databaseInitResultDir 'domain-db-init-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($databaseInitResult.status -ne '미검증' -or [bool]$databaseInitResult.applied) {
@@ -194,6 +228,13 @@ try {
         phases = @($databaseInitResult.phases | ForEach-Object { $_.path })
     }
 
+    if ($SkipBuild) {
+        $result.compile = [ordered]@{
+            status = '미검증'
+            exitCode = $null
+            tasks = @(':cpf-account:test', ':cpf-account:bootJar', ':cpf-account:bootWar')
+        }
+    } else {
     $verification = Join-Path $sandbox 'verification'
     New-Item -ItemType Directory -Force -Path $verification | Out-Null
     $rootForGradle = $Root.Replace('\', '/')
@@ -258,6 +299,7 @@ subprojects {
         -ReproduceCommand '.\gradlew.bat checkAccLifecycle --no-daemon'
     $result.compile = [ordered]@{ status = if ($compileExit -eq 0) { 'DONE' } else { 'FAILED' }; exitCode = $compileExit; tasks = @(':cpf-account:test', ':cpf-account:bootJar', ':cpf-account:bootWar') }
     if ($compileExit -ne 0) { throw '순수 생성 ACC 컴파일·테스트·패키징이 실패했습니다.' }
+    }
 
     $dryRunDir = Join-Path $sandbox 'generated-remove-dry-run'
     [void](Invoke-Script (Join-Path $sandboxRoot 'cpf-tools/scripts/remove-domain.ps1') @(

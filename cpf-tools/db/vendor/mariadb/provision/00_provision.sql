@@ -2,7 +2,6 @@
 -- 목적: 관리자 권한으로 Schema와 migration/runtime 최소 권한 계정을 명시적으로 Provision
 -- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/01_create_databases.sql
 -- ============================================================================
@@ -44,7 +43,6 @@ CREATE DATABASE IF NOT EXISTS bzaDB
 CREATE DATABASE IF NOT EXISTS accDB
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/02_create_service_users.sql
 -- ============================================================================

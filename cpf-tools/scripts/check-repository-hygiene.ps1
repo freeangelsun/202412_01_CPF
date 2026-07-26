@@ -45,6 +45,8 @@ $forbiddenPrefixes = @(
 
 foreach ($path in $tracked) {
     $normalized = $path.Replace('\', '/')
+    $isCanonicalBuildToolSource =
+        $normalized -match '^cpf-tools/build/(gradle-plugin|platform-bom)/(build\.gradle|settings\.gradle|src/(main|test)/.+)$'
 
     if ($normalized -eq "docker-compose.local.yml") {
         Add-Failure "ROOT_DEPLOY_ARTIFACT" $normalized `
@@ -70,7 +72,8 @@ foreach ($path in $tracked) {
         }
     }
 
-    if ($normalized -notmatch '/src/(main|test)/' -and
+    if (-not $isCanonicalBuildToolSource -and
+            $normalized -notmatch '/src/(main|test)/' -and
             $normalized -notmatch '^cpf-docs/evidence/' -and
             $normalized -notmatch '^cpf-docs/work/' -and
             $normalized -match '(^|/)(build|bin|out|target|logs?|tmp|temp|work)/') {

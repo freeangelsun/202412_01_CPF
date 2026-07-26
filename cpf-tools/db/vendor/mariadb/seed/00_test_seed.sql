@@ -2,7 +2,6 @@
 -- 목적: 격리된 Test 환경에서만 fixture 반영
 -- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/70_test_data.sql
 -- ============================================================================

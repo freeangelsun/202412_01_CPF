@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "migrationVersion": "V58",
+  "description": "Canonical platform schema comments",
+  "sourceFiles": [
+    "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
+  ],
+  "changes": [
+    {
+      "schema": "cpfDB",
+      "table": "cpf_saga_execution",
+      "tableCommentAdded": false,
+      "columns": [
+        "business_key",
+        "completed_at",
+        "error_message",
+        "saga_id",
+        "saga_status",
+        "saga_type",
+        "started_at",
+        "updated_at",
+        "version"
+      ]
+    },
+    {
+      "schema": "cpfDB",
+      "table": "cpf_saga_manual_action",
+      "tableCommentAdded": false,
+      "columns": [
+        "action_id",
+        "action_type",
+        "after_status",
+        "before_status",
+        "created_at",
+        "operator_id",
+        "reason",
+        "saga_id"
+      ]
+    },
+    {
+      "schema": "cpfDB",
+      "table": "cpf_saga_step_execution",
+      "tableCommentAdded": false,
+      "columns": [
+        "compensation_attempts",
+        "created_at",
+        "error_message",
+        "execute_attempts",
+        "result_code",
+        "result_snapshot",
+        "saga_id",
+        "step_id",
+        "step_no",
+        "step_status",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "admDB",
+      "table": "adm_audit_delivery",
+      "tableCommentAdded": false,
+      "columns": [
+        "action_type",
+        "after_data",
+        "attempt_count",
+        "audit_id",
+        "before_data",
+        "client_ip",
+        "created_at",
+        "created_by",
+        "delivered_at",
+        "delivery_id",
+        "delivery_status",
+        "diff_data",
+        "last_error",
+        "max_attempts",
+        "next_attempt_at",
+        "operation_status",
+        "operator_id",
+        "reason",
+        "requested_at",
+        "target_id",
+        "target_type",
+        "trace_id",
+        "updated_at",
+        "updated_by"
+      ]
+    },
+    {
+      "schema": "admDB",
+      "table": "adm_break_glass_session",
+      "tableCommentAdded": false,
+      "columns": [
+        "created_at",
+        "created_by",
+        "updated_at",
+        "updated_by"
+      ]
+    },
+    {
+      "schema": "admDB",
+      "table": "adm_incident",
+      "tableCommentAdded": false,
+      "columns": [
+        "acknowledged_at",
+        "created_at",
+        "created_by",
+        "detected_at",
+        "incident_id",
+        "incident_no",
+        "mitigated_at",
+        "reason",
+        "resolved_at",
+        "severity",
+        "source_id",
+        "source_type",
+        "status",
+        "summary",
+        "title",
+        "updated_at",
+        "updated_by",
+        "version"
+      ]
+    },
+    {
+      "schema": "admDB",
+      "table": "adm_maintenance_action",
+      "tableCommentAdded": false,
+      "columns": [
+        "action_id",
+        "action_type",
+        "after_status",
+        "before_status",
+        "endpoint_code",
+        "instance_id",
+        "reason",
+        "requested_at",
+        "requested_by",
+        "result_detail",
+        "result_status",
+        "service_id"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_center_cut_claim",
+      "tableCommentAdded": true,
+      "columns": [
+        "attempt_no",
+        "center_cut_item_id",
+        "claim_status",
+        "claim_token",
+        "fencing_token",
+        "last_heartbeat_at",
+        "lease_until",
+        "pool_id",
+        "released_at",
+        "runner_id",
+        "takeover_count",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_center_cut_execution",
+      "tableCommentAdded": true,
+      "columns": [
+        "center_cut_execution_id",
+        "center_cut_job_id",
+        "completed_at",
+        "concurrency_limit",
+        "created_at",
+        "execution_state",
+        "failure_count",
+        "idempotency_key",
+        "last_error_message",
+        "parameter_ciphertext",
+        "parameter_hash",
+        "parameter_schema_version",
+        "parent_segment_id",
+        "processed_count",
+        "reason_text",
+        "requested_by",
+        "success_count",
+        "target_complete_yn",
+        "target_count",
+        "target_cursor",
+        "tps_limit",
+        "transaction_id",
+        "unknown_count",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_center_cut_rate_window",
+      "tableCommentAdded": true,
+      "columns": [
+        "admitted_count",
+        "center_cut_execution_id",
+        "updated_at",
+        "window_second"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_cell",
+      "tableCommentAdded": true,
+      "columns": [
+        "cell_id",
+        "created_at",
+        "desired_state",
+        "environment_id",
+        "manifest_hash",
+        "manifest_version",
+        "row_version",
+        "runtime_role",
+        "service_id",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_execution",
+      "tableCommentAdded": true,
+      "columns": [
+        "approved_by",
+        "cell_id",
+        "created_at",
+        "deployment_id",
+        "execution_state",
+        "failure_stage",
+        "finished_at",
+        "from_version",
+        "idempotency_key",
+        "reason_text",
+        "requested_by",
+        "result_message",
+        "started_at",
+        "strategy_code",
+        "to_version"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_instance",
+      "tableCommentAdded": true,
+      "columns": [
+        "agent_base_url",
+        "cell_id",
+        "config_ref",
+        "desired_state",
+        "host_alias",
+        "instance_id",
+        "pool_id",
+        "port_no",
+        "profile_name",
+        "zone_id"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_instance_result",
+      "tableCommentAdded": true,
+      "columns": [
+        "deployment_id",
+        "deployment_result_id",
+        "instance_id",
+        "recorded_at",
+        "result_message",
+        "result_state",
+        "sequence_no",
+        "stage_code"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_lock",
+      "tableCommentAdded": true,
+      "columns": [
+        "cell_id",
+        "expires_at",
+        "fencing_token",
+        "locked_at",
+        "owner_deployment_id"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_deployment_plan",
+      "tableCommentAdded": true,
+      "columns": [
+        "cell_id",
+        "created_at",
+        "manifest_hash",
+        "manifest_json",
+        "plan_id",
+        "plan_state",
+        "reason_text",
+        "requested_by",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_job_pack",
+      "tableCommentAdded": true,
+      "columns": [
+        "artifact_checksum",
+        "artifact_coordinate",
+        "artifact_version",
+        "job_pack_id",
+        "last_registered_at",
+        "manifest_json",
+        "owner_domain",
+        "platform_range",
+        "signature_present_yn"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_job_pack_job",
+      "tableCommentAdded": true,
+      "columns": [
+        "center_cut_handler_key",
+        "center_cut_provider_key",
+        "job_id",
+        "job_pack_id",
+        "restartable_yn"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_runtime_capability",
+      "tableCommentAdded": true,
+      "columns": [
+        "capability_code",
+        "instance_id"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_runtime_command",
+      "tableCommentAdded": true,
+      "columns": [
+        "approval_request_id",
+        "approved_by",
+        "command_id",
+        "command_state",
+        "command_type",
+        "evidence_ref",
+        "execution_attempt",
+        "expected_version",
+        "expires_at",
+        "failure_stage",
+        "idempotency_key",
+        "reason_text",
+        "requested_at",
+        "requested_by",
+        "result_code",
+        "target_snapshot_hash",
+        "target_type",
+        "transaction_id",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_runtime_command_attempt",
+      "tableCommentAdded": true,
+      "columns": [
+        "attempt_id",
+        "attempt_no",
+        "attempt_state",
+        "command_id",
+        "finished_at",
+        "instance_id",
+        "result_message",
+        "stage_code",
+        "started_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_runtime_heartbeat",
+      "tableCommentAdded": true,
+      "columns": [
+        "active_lease_count",
+        "available_capacity",
+        "current_execution_count",
+        "deployment_version",
+        "draining_yn",
+        "heartbeat_at",
+        "heartbeat_id",
+        "instance_id",
+        "last_error_code",
+        "queue_depth",
+        "ready_yn"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_runtime_instance",
+      "tableCommentAdded": true,
+      "columns": [
+        "actual_state",
+        "artifact_checksum",
+        "artifact_version",
+        "config_version",
+        "created_at",
+        "desired_state",
+        "fencing_token",
+        "git_sha",
+        "host_alias",
+        "instance_id",
+        "last_heartbeat_at",
+        "pool_id",
+        "profile_name",
+        "row_version",
+        "runtime_role",
+        "schema_compatibility",
+        "service_id",
+        "started_at",
+        "updated_at",
+        "was_id",
+        "zone_id"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_schedule_trigger",
+      "tableCommentAdded": true,
+      "columns": [
+        "created_at",
+        "execution_id",
+        "fencing_token",
+        "schedule_id",
+        "scheduled_fire_at",
+        "trigger_status"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_scheduler_lease",
+      "tableCommentAdded": true,
+      "columns": [
+        "fencing_token",
+        "last_heartbeat_at",
+        "lease_until",
+        "owner_instance_id",
+        "scheduler_key",
+        "updated_at"
+      ]
+    },
+    {
+      "schema": "batDB",
+      "table": "bat_version_compatibility",
+      "tableCommentAdded": true,
+      "columns": [
+        "compatibility_id",
+        "consumer_coordinate",
+        "enabled_yn",
+        "environment_id",
+        "max_version",
+        "min_version",
+        "provider_coordinate",
+        "required_capability",
+        "schema_range"
+      ]
+    },
+    {
+      "schema": "mbrDB",
+      "table": "mbr_member_no_issue_history",
+      "tableCommentAdded": false,
+      "columns": [
+        "issue_id",
+        "issue_type",
+        "issued_at",
+        "issued_by",
+        "member_no"
+      ]
+    },
+    {
+      "schema": "mbrDB",
+      "table": "mbr_member_no_sequence",
+      "tableCommentAdded": false,
+      "columns": [
+        "requested_at",
+        "requested_by",
+        "sequence_value"
+      ]
+    },
+    {
+      "schema": "mbrDB",
+      "table": "mbr_member_role_operation",
+      "tableCommentAdded": false,
+      "columns": [
+        "completed_at",
+        "created_at",
+        "created_by",
+        "idempotency_key",
+        "member_id",
+        "operation_status",
+        "operation_type",
+        "result_use_yn",
+        "result_version",
+        "role_code",
+        "service_code"
+      ]
+    }
+  ]
+}

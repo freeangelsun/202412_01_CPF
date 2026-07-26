@@ -21,7 +21,7 @@ EDU는 제품 기능을 대신하는 Sample이 아니라 개발자가 CPF 공식
 4. CRUD, Offset, Slice와 Cursor
 5. Idempotency와 Duplicate Request
 6. File/Attachment
-7. Fixed-Length Core Engine과 EXS Adapter
+7. Fixed-Length Core Engine과 Generated Domain Adapter
 8. Event, Outbox/Inbox와 DLQ
 9. Batch와 Center-Cut
 10. Agent/Worker Failure와 Recovery
@@ -30,13 +30,25 @@ EDU는 제품 기능을 대신하는 Sample이 아니라 개발자가 CPF 공식
 
 ## 4. Reference 역할
 
-- `cpf-member`: 최소 업무 API와 Local/Remote 호출
-- `cpf-account`: Generator Lifecycle와 거래 경계
-- `cpf-reference`: 교육·참조 Scenario
-- `cpf-external`: 기관별 Adapter와 결과 불명
+- `cpf-reference`: 교육·참조 Scenario의 유일한 범용 EDU Source Owner
 - `cpf-common`: Sample Table 1개를 통한 DB/Paging/Transaction
+- `cpf-batch`: 독립 Runtime/Contract Owner이며 EDU Source는 두지 않음
+- Generated Domain: 사용자가 입력한 임의 Domain/SystemCode의 Generator lifecycle 검증 대상
 
-ACC/MBR는 검증에 필요한 최소 구조를 유지하며 전체 금융 원장을 추정 구현하지 않는다.
+Generated Domain은 REF의 Compile/Runtime 선행 조건이 아니다. REF의 service-call,
+transaction, fixed-length, messaging 예제는 특정 MBR/ACC/EXS DTO·서비스 ID·URL을
+고정하지 않고 공개 CPF 계약 또는 REF 자체 중립 시뮬레이터를 사용한다.
+
+### Batch와 Center-Cut EDU Ownership
+
+- 범용 EDU와 Batch 업무 Job/Step 교육의 Source Owner는 `cpf-reference`다.
+- `cpf-batch`에는 Control Server, Scheduler, Worker, Center-Cut Runner, Host Agent와
+  Contract/Runtime Common/Testkit만 둔다.
+- REF의 실제 실행·재시도·중지 요청은 `CpfBatchOperationsPort`로 BAT Owner에 위임한다.
+- REF Center-Cut Adapter는 CPF의 공개 `api.centercut`과 `spi.centercut` 경계만 사용한다.
+- REF가 BAT Runtime/Repository 구현을 import하거나 Scheduler/Worker/lease를 복제하지 않는다.
+- Legacy 이관 근거는 [CPF Legacy Batch Migration Map](CPF_LEGACY_BATCH_MIGRATION_MAP.md)에서
+  Source, Owner, Consumer, Test와 Runtime까지 추적한다.
 
 ## 5. Lab 구성
 

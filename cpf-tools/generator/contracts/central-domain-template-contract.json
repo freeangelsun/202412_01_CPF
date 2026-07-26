@@ -11,6 +11,7 @@
   ],
   "requiredTemplates": [
     "provision/01_provision.sql.template",
+    "provision/02_principals.sql.template",
     "install/10_empty_install.sql.template",
     "seed/20_product_seed.sql.template",
     "migration/V1____DOMAIN___domain.sql.template",
@@ -24,17 +25,154 @@
     "CPF_SYSTEM_CODE",
     "CPF_DISPLAY_NAME",
     "CPF_SCHEMA_NAME",
+    "CPF_DATABASE_NAME",
+    "CPF_MIGRATION_USERNAME",
+    "CPF_RUNTIME_USERNAME",
+    "CPF_MIGRATION_PASSWORD_HEX",
+    "CPF_RUNTIME_PASSWORD_HEX",
+    "CPF_MIGRATION_PASSWORD_SQL_LITERAL",
+    "CPF_RUNTIME_PASSWORD_SQL_LITERAL",
     "CPF_MODULE_NAME",
     "CPF_PACKAGE_NAME",
     "CPF_TABLE_PREFIX",
     "CPF_MAPPER_NAMESPACE",
     "CPF_MAPPER_NAME"
   ],
+  "verifyContract": {
+    "model": "sample-item",
+    "requiredTable": "@CPF_TABLE_PREFIX@_sample_item",
+    "logicalTable": "@CPF_SCHEMA_NAME@.@CPF_TABLE_PREFIX@_sample_item",
+    "requiredColumns": [
+      "sample_item_id",
+      "sample_key",
+      "item_name",
+      "status_code",
+      "version_no",
+      "idempotency_key",
+      "transaction_id",
+      "transaction_sequence",
+      "transaction_at",
+      "deleted_yn",
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at"
+    ],
+    "transactionIdWidth": 34,
+    "requiredKeys": [
+      "primary-key",
+      "sample-key-unique",
+      "idempotency-key-unique"
+    ],
+    "requiredIndexes": [
+      "status-deleted-id",
+      "transaction-id-sequence"
+    ],
+    "requiredChecks": [
+      "status-active-inactive",
+      "deleted-yn"
+    ],
+    "requiredOperations": [
+      "create",
+      "read",
+      "update",
+      "delete",
+      "search",
+      "offset-page",
+      "slice",
+      "cursor",
+      "validation",
+      "transaction-commit",
+      "transaction-rollback",
+      "optimistic-lock",
+      "duplicate",
+      "local-call",
+      "remote-call",
+      "standard-header",
+      "transaction-id",
+      "error-mapping",
+      "idempotency",
+      "audit",
+      "masking",
+      "framework-edu"
+    ]
+  },
+  "runtimeContract": {
+    "pessimisticLock": "vendor-native-row-lock",
+    "optimisticLock": "version_no compare-and-increment",
+    "requiredStatements": [
+      "search",
+      "findBySampleKey",
+      "findByIdempotencyKey",
+      "findForUpdate",
+      "cursorSlice",
+      "insert",
+      "updateWithVersion",
+      "logicalDeleteWithVersion"
+    ],
+    "paging": [
+      "offset",
+      "slice",
+      "cursor"
+    ],
+    "productSeedPolicy": "metadata-only-no-business-sample-row"
+  },
+  "capabilityContract": {
+    "metadataProperty": "capabilities",
+    "defaultEnabled": [
+      "online",
+      "database",
+      "local-call"
+    ],
+    "supported": [
+      "database",
+      "batch",
+      "center-cut",
+      "external",
+      "messaging",
+      "file",
+      "ui",
+      "security",
+      "audit",
+      "local-call",
+      "remote-call"
+    ],
+    "emptyPackageForbidden": true,
+    "normalizedParityRequired": true
+  },
+  "buildRuntimeContract": {
+    "selectionProperty": "cpfDbVendor",
+    "selectedVendorOnly": true,
+    "vendors": {
+      "mariadb": {
+        "jdbcDriver": "org.mariadb.jdbc:mariadb-java-client",
+        "flywayDatabase": "org.flywaydb:flyway-mysql"
+      },
+      "mysql": {
+        "jdbcDriver": "com.mysql:mysql-connector-j",
+        "flywayDatabase": "org.flywaydb:flyway-mysql"
+      },
+      "postgresql": {
+        "jdbcDriver": "org.postgresql:postgresql",
+        "flywayDatabase": "org.flywaydb:flyway-database-postgresql"
+      },
+      "oracle": {
+        "jdbcDriver": "com.oracle.database.jdbc:ojdbc11",
+        "flywayDatabase": "org.flywaydb:flyway-database-oracle"
+      },
+      "sqlserver": {
+        "jdbcDriver": "com.microsoft.sqlserver:mssql-jdbc",
+        "flywayDatabase": "org.flywaydb:flyway-sqlserver"
+      }
+    }
+  },
   "selection": {
     "metadataSource": "manifest/domain-manifest.json",
     "selectedVendorOnly": true,
     "sourceTreeMutation": false,
     "moduleLocalVendorPack": false,
-    "assemblyTarget": "build/generated-resources/cpf-vendor"
+    "assemblyTarget": "build/generated-resources/cpf-vendor",
+    "platformTemplateRoot": "cpf-tools/db/vendor/{vendor}/domain-template",
+    "federatedRepositoryTemplateRoot": "cpf-db/vendor/{vendor}/domain-template"
   }
 }

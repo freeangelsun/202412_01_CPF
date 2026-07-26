@@ -85,6 +85,7 @@ class CpfRestClientInterceptorTest {
         CpfFileLogWriter writer = mock(CpfFileLogWriter.class);
         CpfRestClientInterceptor interceptor = new CpfRestClientInterceptor(writer);
         HttpHeaders headers = new HttpHeaders();
+        headers.set(CpfHeaderNames.TARGET_SERVICE, "PAY");
         HttpRequest request = new HttpRequest() {
             @Override
             public HttpMethod getMethod() {
@@ -93,7 +94,7 @@ class CpfRestClientInterceptorTest {
 
             @Override
             public URI getURI() {
-                return URI.create("http://localhost:8091/api/bza/approvals");
+                return URI.create("http://localhost:8081/api/payment/items");
             }
 
             @Override
@@ -114,10 +115,10 @@ class CpfRestClientInterceptorTest {
         var attributes = org.mockito.ArgumentCaptor.forClass(Map.class);
         verify(writer, times(2)).writeIntegration(
                 isNull(),
-                eq("BZA"),
+                eq("PAY"),
                 eq("OUTBOUND"),
                 eq("GET"),
-                eq("/api/bza/approvals"),
+                eq("/api/payment/items"),
                 any(),
                 any(),
                 any(),

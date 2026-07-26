@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
@@ -37,6 +38,7 @@ def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
 def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
 def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
 def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
+def bzaPermissionManifest = rootProject.layout.projectDirectory.file('cpf-tools/db/metadata/bza-permission-manifest.json')
 
 sourceSets.main.resources.srcDir(frontendOutputDir)
 
@@ -60,7 +62,7 @@ tasks.register('frontendInstall', Exec) {
         workingDir frontendDir
         commandLine npmExecutable, 'run', npmScript
         inputs.dir(frontendDir.dir('src'))
-        inputs.files(frontendDir.file('package.json'), frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'), bzaPermissionManifest)
     }
 }
 
@@ -71,7 +73,7 @@ tasks.register('frontendBuild', Exec) {
     workingDir frontendDir
     commandLine npmExecutable, 'run', 'build'
     inputs.dir(frontendDir.dir('src'))
-    inputs.files(frontendDir.file('index.html'), frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'), bzaPermissionManifest)
     outputs.dir(frontendOutputDir.map { it.dir('static/bza') })
 }
 
@@ -83,6 +85,9 @@ tasks.register('frontendVerify') {
 
 tasks.named('processResources') {
     dependsOn 'frontendBuild'
+    from(bzaPermissionManifest) {
+        into 'cpf/bza'
+    }
 }
 
 tasks.named('sourcesJar') {

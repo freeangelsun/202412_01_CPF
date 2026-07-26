@@ -2,7 +2,6 @@
 -- 목적: 빈 Schema에 제품 Object만 비파괴 설치
 -- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql
 -- ============================================================================
@@ -961,52 +960,51 @@ CREATE TABLE IF NOT EXISTS cpf_unknown_result (
 
 -- R8 Saga compensation/manual recovery durable runtime
 CREATE TABLE IF NOT EXISTS cpf_saga_execution (
-    saga_id VARCHAR(100) NOT NULL,
-    saga_type VARCHAR(100) NOT NULL,
-    business_key VARCHAR(200) NULL,
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    saga_type VARCHAR(100) NOT NULL COMMENT 'Saga type',
+    business_key VARCHAR(200) NULL COMMENT 'Business key',
     transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
-    saga_status VARCHAR(40) NOT NULL,
-    version INT NOT NULL DEFAULT 0,
-    error_message VARCHAR(2000) NULL,
-    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    completed_at DATETIME(3) NULL,
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    saga_status VARCHAR(40) NOT NULL COMMENT 'Saga status',
+    version INT NOT NULL DEFAULT 0 COMMENT 'Version',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    started_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Start time',
+    completed_at DATETIME(3) NULL COMMENT 'Completion time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (saga_id),
     KEY idx_cpf_saga_status (saga_status, updated_at),
     KEY idx_cpf_saga_business (saga_type, business_key)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 실행 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_saga_step_execution (
-    saga_id VARCHAR(100) NOT NULL,
-    step_no INT NOT NULL,
-    step_id VARCHAR(100) NOT NULL,
-    step_status VARCHAR(40) NOT NULL,
-    result_code VARCHAR(100) NULL,
-    result_snapshot TEXT NULL,
-    error_message VARCHAR(2000) NULL,
-    execute_attempts INT NOT NULL DEFAULT 0,
-    compensation_attempts INT NOT NULL DEFAULT 0,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    step_no INT NOT NULL COMMENT 'Step number',
+    step_id VARCHAR(100) NOT NULL COMMENT 'Step identifier',
+    step_status VARCHAR(40) NOT NULL COMMENT 'Step status',
+    result_code VARCHAR(100) NULL COMMENT 'Result code',
+    result_snapshot TEXT NULL COMMENT 'Result snapshot',
+    error_message VARCHAR(2000) NULL COMMENT 'Error message',
+    execute_attempts INT NOT NULL DEFAULT 0 COMMENT 'Execute attempts',
+    compensation_attempts INT NOT NULL DEFAULT 0 COMMENT 'Compensation attempts',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (saga_id, step_no),
     KEY idx_cpf_saga_step_status (step_status, updated_at),
     CONSTRAINT fk_cpf_saga_step_execution FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 단계 실행 원장';
 
 CREATE TABLE IF NOT EXISTS cpf_saga_manual_action (
-    action_id VARCHAR(36) NOT NULL,
-    saga_id VARCHAR(100) NOT NULL,
-    action_type VARCHAR(40) NOT NULL,
-    operator_id VARCHAR(100) NOT NULL,
-    reason VARCHAR(1000) NOT NULL,
-    before_status VARCHAR(40) NULL,
-    after_status VARCHAR(40) NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    action_id VARCHAR(36) NOT NULL COMMENT 'Action identifier',
+    saga_id VARCHAR(100) NOT NULL COMMENT 'Saga identifier',
+    action_type VARCHAR(40) NOT NULL COMMENT 'Action type',
+    operator_id VARCHAR(100) NOT NULL COMMENT 'Operator identifier',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    before_status VARCHAR(40) NULL COMMENT 'Before status',
+    after_status VARCHAR(40) NULL COMMENT 'After status',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
     PRIMARY KEY (action_id),
     KEY idx_cpf_saga_manual (saga_id, created_at),
     CONSTRAINT fk_cpf_saga_manual_action FOREIGN KEY (saga_id) REFERENCES cpf_saga_execution(saga_id)
-);
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Saga 수동 복구 조치';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql
 -- ============================================================================
@@ -1069,7 +1067,6 @@ CREATE TABLE IF NOT EXISTS cmn_business_calendar_day (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
   COMMENT='CMN 영업일/휴일 Override 제품 정본';
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql
 -- ============================================================================
@@ -1249,7 +1246,7 @@ CREATE TABLE IF NOT EXISTS adm_role_api_permission (
 
 CREATE TABLE IF NOT EXISTS adm_audit_log (
     AUDIT_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT '감사 로그 순번',
-    TRANSACTION_ID VARCHAR(80) NULL COMMENT '프레임워크 거래 ID',
+    TRANSACTION_ID CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
     TRACE_ID VARCHAR(80) NULL COMMENT '분산 추적 ID',
     OPERATOR_ID VARCHAR(50) NOT NULL COMMENT '운영자 ID',
     MENU_ID VARCHAR(50) NULL COMMENT '메뉴 ID',
@@ -1643,47 +1640,47 @@ CREATE TABLE IF NOT EXISTS adm_approval_execution (
 
 -- R9 ADM control plane: incident lifecycle and maintenance command audit
 CREATE TABLE IF NOT EXISTS adm_incident (
-    incident_id BIGINT NOT NULL AUTO_INCREMENT,
-    incident_no VARCHAR(64) NOT NULL,
-    severity VARCHAR(16) NOT NULL,
-    title VARCHAR(300) NOT NULL,
-    summary VARCHAR(2000) NULL,
-    source_type VARCHAR(40) NOT NULL DEFAULT 'MANUAL',
-    source_id VARCHAR(200) NULL,
-    status VARCHAR(32) NOT NULL DEFAULT 'OPEN',
-    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    acknowledged_at DATETIME(3) NULL,
-    mitigated_at DATETIME(3) NULL,
-    resolved_at DATETIME(3) NULL,
-    reason VARCHAR(1000) NOT NULL,
-    version BIGINT NOT NULL DEFAULT 0,
-    created_by VARCHAR(100) NOT NULL,
-    updated_by VARCHAR(100) NOT NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    incident_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Incident identifier',
+    incident_no VARCHAR(64) NOT NULL COMMENT 'Incident number',
+    severity VARCHAR(16) NOT NULL COMMENT 'Severity',
+    title VARCHAR(300) NOT NULL COMMENT 'Title',
+    summary VARCHAR(2000) NULL COMMENT 'Summary',
+    source_type VARCHAR(40) NOT NULL DEFAULT 'MANUAL' COMMENT 'Source type',
+    source_id VARCHAR(200) NULL COMMENT 'Source identifier',
+    status VARCHAR(32) NOT NULL DEFAULT 'OPEN' COMMENT 'Status',
+    detected_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Detection time',
+    acknowledged_at DATETIME(3) NULL COMMENT 'Acknowledgement time',
+    mitigated_at DATETIME(3) NULL COMMENT 'Mitigation time',
+    resolved_at DATETIME(3) NULL COMMENT 'Resolution time',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    version BIGINT NOT NULL DEFAULT 0 COMMENT 'Version',
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (incident_id),
     UNIQUE KEY uk_adm_incident_no (incident_no),
     KEY idx_adm_incident_status (status, severity, detected_at),
     KEY idx_adm_incident_source (source_type, source_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Incident Lifecycle';
 
 CREATE TABLE IF NOT EXISTS adm_maintenance_action (
-    action_id BIGINT NOT NULL AUTO_INCREMENT,
-    service_id VARCHAR(100) NOT NULL,
-    endpoint_code VARCHAR(100) NOT NULL,
-    instance_id VARCHAR(150) NOT NULL,
-    action_type VARCHAR(20) NOT NULL,
-    before_status VARCHAR(40) NULL,
-    after_status VARCHAR(40) NULL,
-    result_status VARCHAR(20) NOT NULL,
-    reason VARCHAR(1000) NOT NULL,
-    requested_by VARCHAR(100) NOT NULL,
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    result_detail TEXT NULL,
+    action_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Action identifier',
+    service_id VARCHAR(100) NOT NULL COMMENT 'Service identifier',
+    endpoint_code VARCHAR(100) NOT NULL COMMENT 'Endpoint code',
+    instance_id VARCHAR(150) NOT NULL COMMENT 'Instance identifier',
+    action_type VARCHAR(20) NOT NULL COMMENT 'Action type',
+    before_status VARCHAR(40) NULL COMMENT 'Before status',
+    after_status VARCHAR(40) NULL COMMENT 'After status',
+    result_status VARCHAR(20) NOT NULL COMMENT 'Result status',
+    reason VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
+    result_detail TEXT NULL COMMENT 'Result detail',
     PRIMARY KEY (action_id),
     KEY idx_adm_maintenance_target (service_id, endpoint_code, instance_id, requested_at),
     KEY idx_adm_maintenance_result (result_status, requested_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM Maintenance Command Audit';
 
 
 -- R9 ADM scoped break-glass control
@@ -1701,10 +1698,10 @@ CREATE TABLE IF NOT EXISTS adm_break_glass_session (
     reviewed_by VARCHAR(100) NULL COMMENT '사후검토자',
     reviewed_at DATETIME(3) NULL COMMENT '사후검토시각',
     review_reason VARCHAR(1000) NULL COMMENT '사후검토 의견',
-    created_by VARCHAR(100) NOT NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updated_by VARCHAR(100) NOT NULL,
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    updated_by VARCHAR(100) NOT NULL COMMENT 'Last updater',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (session_id),
     INDEX ix_adm_break_glass_operator (operator_id, status, expires_at),
     INDEX ix_adm_break_glass_scope (scope_type, scope_value, status),
@@ -1716,22 +1713,38 @@ CREATE TABLE IF NOT EXISTS adm_break_glass_session (
 
 -- R12 durable mandatory audit delivery/outbox
 CREATE TABLE IF NOT EXISTS adm_audit_delivery (
-    DELIVERY_ID BIGINT NOT NULL AUTO_INCREMENT,
-    TRANSACTION_ID VARCHAR(64) NOT NULL, TRACE_ID VARCHAR(64) NULL, OPERATOR_ID VARCHAR(100) NOT NULL,
-    ACTION_TYPE VARCHAR(100) NOT NULL, TARGET_TYPE VARCHAR(100) NULL, TARGET_ID VARCHAR(255) NULL, REASON VARCHAR(1000) NOT NULL,
-    BEFORE_DATA LONGTEXT NULL, AFTER_DATA LONGTEXT NULL, DIFF_DATA LONGTEXT NULL, CLIENT_IP VARCHAR(64) NULL,
-    OPERATION_STATUS VARCHAR(20) NOT NULL DEFAULT 'REQUESTED', DELIVERY_STATUS VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    ATTEMPT_COUNT INT NOT NULL DEFAULT 0, MAX_ATTEMPTS INT NOT NULL DEFAULT 10, NEXT_ATTEMPT_AT DATETIME(3) NULL, LAST_ERROR VARCHAR(1000) NULL,
-    AUDIT_ID BIGINT NULL, REQUESTED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), DELIVERED_AT DATETIME(3) NULL,
-    CREATED_BY VARCHAR(100) NOT NULL, UPDATED_BY VARCHAR(100) NOT NULL, CREATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), UPDATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    DELIVERY_ID BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Delivery identifier',
+    TRANSACTION_ID CHAR(34) NOT NULL COMMENT 'CPF 전역 transactionId',
+    TRACE_ID VARCHAR(64) NULL COMMENT 'Trace identifier',
+    OPERATOR_ID VARCHAR(100) NOT NULL COMMENT 'Operator identifier',
+    ACTION_TYPE VARCHAR(100) NOT NULL COMMENT 'Action type',
+    TARGET_TYPE VARCHAR(100) NULL COMMENT 'Target type',
+    TARGET_ID VARCHAR(255) NULL COMMENT 'Target identifier',
+    REASON VARCHAR(1000) NOT NULL COMMENT 'Reason',
+    BEFORE_DATA LONGTEXT NULL COMMENT 'Before data',
+    AFTER_DATA LONGTEXT NULL COMMENT 'After data',
+    DIFF_DATA LONGTEXT NULL COMMENT 'Change data',
+    CLIENT_IP VARCHAR(64) NULL COMMENT 'Client IP',
+    OPERATION_STATUS VARCHAR(20) NOT NULL DEFAULT 'REQUESTED' COMMENT 'Operation status',
+    DELIVERY_STATUS VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'Delivery status',
+    ATTEMPT_COUNT INT NOT NULL DEFAULT 0 COMMENT 'Attempt count',
+    MAX_ATTEMPTS INT NOT NULL DEFAULT 10 COMMENT 'Max attempts',
+    NEXT_ATTEMPT_AT DATETIME(3) NULL COMMENT 'Next attempt time',
+    LAST_ERROR VARCHAR(1000) NULL COMMENT 'Last error',
+    AUDIT_ID BIGINT NULL COMMENT 'Audit identifier',
+    REQUESTED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
+    DELIVERED_AT DATETIME(3) NULL COMMENT 'Delivery time',
+    CREATED_BY VARCHAR(100) NOT NULL COMMENT 'Creator',
+    UPDATED_BY VARCHAR(100) NOT NULL COMMENT 'Last updater',
+    CREATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    UPDATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Last update time',
     PRIMARY KEY (DELIVERY_ID),
     INDEX ix_adm_audit_delivery_status (DELIVERY_STATUS, OPERATION_STATUS, NEXT_ATTEMPT_AT),
     INDEX ix_adm_audit_delivery_tx (TRANSACTION_ID),
     INDEX ix_adm_audit_delivery_operator (OPERATOR_ID, REQUESTED_AT),
     CONSTRAINT ck_adm_audit_delivery_operation CHECK (OPERATION_STATUS IN ('REQUESTED','SUCCEEDED','FAILED','UNKNOWN')),
     CONSTRAINT ck_adm_audit_delivery_status CHECK (DELIVERY_STATUS IN ('PENDING','RETRY','FAILED','DELIVERED'))
-);
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM 필수 감사 Delivery 원장';
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql
 -- ============================================================================
@@ -2337,6 +2350,325 @@ CREATE TABLE IF NOT EXISTS bat_center_cut_result (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 센터컷 처리 결과';
 
+-- R15/R16/R17 BAT standalone runtime control-plane
+
+CREATE TABLE IF NOT EXISTS bat_runtime_instance (
+    instance_id VARCHAR(160) PRIMARY KEY COMMENT 'Runtime instance identifier',
+    runtime_role VARCHAR(40) NOT NULL COMMENT 'Standalone runtime role',
+    service_id VARCHAR(120) NOT NULL COMMENT 'Runtime service identifier',
+    was_id VARCHAR(120) NULL COMMENT 'WAS identifier',
+    host_alias VARCHAR(160) NULL COMMENT 'Registered host alias',
+    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
+    artifact_version VARCHAR(80) NOT NULL COMMENT 'Running artifact version',
+    git_sha VARCHAR(64) NULL COMMENT 'Running source commit SHA',
+    artifact_checksum VARCHAR(128) NULL COMMENT 'Running artifact checksum',
+    profile_name VARCHAR(80) NULL COMMENT 'Active runtime profile',
+    desired_state VARCHAR(32) NOT NULL DEFAULT 'RUNNING' COMMENT 'Control-plane desired state',
+    actual_state VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Last observed runtime state',
+    config_version VARCHAR(80) NULL COMMENT 'Applied configuration version',
+    schema_compatibility VARCHAR(120) NULL COMMENT 'Supported schema version range',
+    started_at DATETIME(6) NULL COMMENT 'Runtime start time',
+    last_heartbeat_at DATETIME(6) NULL COMMENT 'Last heartbeat time',
+    fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'Monotonic instance fencing token',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Registration time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last state update time',
+    KEY ix_bat_runtime_instance_service(service_id,actual_state),
+    KEY ix_bat_runtime_instance_heartbeat(last_heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_capability (
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
+    PRIMARY KEY(instance_id,capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY(instance_id)
+      REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (
+    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
+    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
+    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
+    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
+    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
+    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
+    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
+    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
+    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
+    PRIMARY KEY(heartbeat_id),
+    KEY ix_bat_runtime_heartbeat_instance(instance_id,heartbeat_at),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY(instance_id)
+      REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
+
+CREATE TABLE IF NOT EXISTS bat_runtime_command (
+    command_id VARCHAR(80) PRIMARY KEY COMMENT 'Runtime command identifier',
+    idempotency_key VARCHAR(160) NOT NULL UNIQUE COMMENT 'Command idempotency key',
+    command_type VARCHAR(80) NOT NULL COMMENT 'Approved command type',
+    target_type VARCHAR(40) NOT NULL COMMENT 'Command target type',
+    target_snapshot_hash VARCHAR(128) NULL COMMENT 'Target snapshot checksum',
+    expected_version BIGINT NULL COMMENT 'Expected target version',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Command requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory command reason',
+    approval_request_id VARCHAR(80) NULL COMMENT 'ADM approval request identifier',
+    approved_by VARCHAR(120) NULL COMMENT 'Command approver',
+    command_state VARCHAR(40) NOT NULL COMMENT 'Command lifecycle state',
+    execution_attempt INT NOT NULL DEFAULT 0 COMMENT 'Execution attempt count',
+    failure_stage VARCHAR(80) NULL COMMENT 'Last failed stage',
+    result_code VARCHAR(80) NULL COMMENT 'Command result code',
+    requested_at DATETIME(6) NOT NULL COMMENT 'Command request time',
+    expires_at DATETIME(6) NULL COMMENT 'Command expiry time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last command state update time',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    evidence_ref VARCHAR(500) NULL COMMENT 'Audit evidence reference'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved runtime command';
+
+CREATE TABLE IF NOT EXISTS bat_scheduler_lease (
+    scheduler_key VARCHAR(100) PRIMARY KEY COMMENT 'Scheduler leadership key',
+    owner_instance_id VARCHAR(160) NOT NULL COMMENT 'Current leader instance identifier',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic leadership fencing token',
+    lease_until DATETIME(6) NOT NULL COMMENT 'Leadership lease expiry time',
+    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Leader heartbeat time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last lease update time',
+    KEY ix_bat_scheduler_lease_expire(lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduler leader lease';
+
+CREATE TABLE IF NOT EXISTS bat_schedule_trigger (
+    schedule_id VARCHAR(100) NOT NULL COMMENT 'Schedule identifier',
+    scheduled_fire_at DATETIME(6) NOT NULL COMMENT 'Planned fire time',
+    fencing_token BIGINT NOT NULL COMMENT 'Scheduler fencing token',
+    execution_id BIGINT NULL COMMENT 'Created execution identifier',
+    trigger_status VARCHAR(30) NOT NULL COMMENT 'Trigger result status',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Trigger record time',
+    PRIMARY KEY(schedule_id,scheduled_fire_at),
+    CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY(schedule_id)
+      REFERENCES bat_schedule(schedule_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT scheduled trigger evidence';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_claim (
+    center_cut_item_id BIGINT PRIMARY KEY COMMENT 'Claimed center-cut item identifier',
+    runner_id VARCHAR(160) NOT NULL COMMENT 'Owning runner identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Owning runner pool identifier',
+    claim_token VARCHAR(80) NOT NULL UNIQUE COMMENT 'Unique claim token',
+    claim_status VARCHAR(30) NOT NULL COMMENT 'Claim lifecycle status',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic claim fencing token',
+    lease_until DATETIME(6) NOT NULL COMMENT 'Claim lease expiry time',
+    last_heartbeat_at DATETIME(6) NOT NULL COMMENT 'Claim heartbeat time',
+    attempt_no INT NOT NULL DEFAULT 1 COMMENT 'Claim attempt number',
+    takeover_count INT NOT NULL DEFAULT 0 COMMENT 'Claim takeover count',
+    released_at DATETIME(6) NULL COMMENT 'Claim release time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last claim update time',
+    CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY(center_cut_item_id)
+      REFERENCES bat_center_cut_item(center_cut_item_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut item lease claim';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_cell (
+    cell_id VARCHAR(120) PRIMARY KEY COMMENT 'Deployment cell identifier',
+    environment_id VARCHAR(80) NOT NULL COMMENT 'Target environment identifier',
+    runtime_role VARCHAR(40) NOT NULL COMMENT 'Target runtime role',
+    service_id VARCHAR(120) NOT NULL COMMENT 'Target service identifier',
+    manifest_version VARCHAR(80) NOT NULL COMMENT 'Desired manifest version',
+    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Desired manifest checksum',
+    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired cell state',
+    row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Optimistic locking version',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Cell registration time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last desired-state update time'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell desired state';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_instance (
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Deployment cell identifier',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
+    host_alias VARCHAR(160) NOT NULL COMMENT 'Target host alias',
+    port_no INT NOT NULL COMMENT 'Runtime service port',
+    profile_name VARCHAR(80) NOT NULL COMMENT 'Runtime profile name',
+    zone_id VARCHAR(80) NULL COMMENT 'Availability zone identifier',
+    pool_id VARCHAR(80) NULL COMMENT 'Runtime pool identifier',
+    agent_base_url VARCHAR(500) NOT NULL COMMENT 'Approved host-agent base URL',
+    config_ref VARCHAR(1000) NULL COMMENT 'External configuration reference',
+    desired_state VARCHAR(32) NOT NULL COMMENT 'Desired instance state',
+    PRIMARY KEY(cell_id,instance_id),
+    UNIQUE KEY uk_bat_deployment_instance_id(instance_id),
+    CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY(cell_id)
+      REFERENCES bat_deployment_cell(cell_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell instance projection';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_plan (
+    plan_id VARCHAR(80) PRIMARY KEY COMMENT 'Deployment plan identifier',
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
+    manifest_json LONGTEXT NOT NULL COMMENT 'Immutable deployment manifest snapshot',
+    manifest_hash VARCHAR(128) NOT NULL COMMENT 'Deployment manifest checksum',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Plan requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
+    plan_state VARCHAR(40) NOT NULL COMMENT 'Deployment plan lifecycle state',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Plan request time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last plan state update time'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment plan';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_lock (
+    cell_id VARCHAR(120) PRIMARY KEY COMMENT 'Locked deployment cell identifier',
+    owner_deployment_id VARCHAR(80) NOT NULL COMMENT 'Lock owner deployment identifier',
+    fencing_token BIGINT NOT NULL COMMENT 'Monotonic deployment fencing token',
+    locked_at DATETIME(6) NOT NULL COMMENT 'Lock acquisition time',
+    expires_at DATETIME(6) NOT NULL COMMENT 'Lock expiry time'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell lease lock';
+
+CREATE TABLE IF NOT EXISTS bat_version_compatibility (
+    compatibility_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Compatibility rule identifier',
+    environment_id VARCHAR(80) NOT NULL DEFAULT '*' COMMENT 'Applicable environment identifier',
+    provider_coordinate VARCHAR(200) NOT NULL COMMENT 'Provider artifact coordinate',
+    consumer_coordinate VARCHAR(200) NOT NULL DEFAULT '*' COMMENT 'Consumer artifact coordinate',
+    min_version VARCHAR(80) NULL COMMENT 'Minimum compatible version',
+    max_version VARCHAR(80) NULL COMMENT 'Maximum compatible version',
+    schema_range VARCHAR(120) NULL COMMENT 'Compatible schema version range',
+    required_capability VARCHAR(80) NULL COMMENT 'Required runtime capability',
+    enabled_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT 'Rule enabled flag',
+    PRIMARY KEY(compatibility_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT artifact and schema compatibility contract';
+ALTER TABLE bat_execution_lease ADD COLUMN IF NOT EXISTS fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token' AFTER takeover_count;
+ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS target_snapshot LONGTEXT NULL AFTER target_type;
+ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS approval_policy_version VARCHAR(80) NULL AFTER reason_text;
+ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS result_text LONGTEXT NULL AFTER execution_attempt;
+ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS before_state LONGTEXT NULL AFTER failure_stage;
+ALTER TABLE bat_runtime_command ADD COLUMN IF NOT EXISTS after_state LONGTEXT NULL AFTER before_state;
+ALTER TABLE bat_execution ADD COLUMN IF NOT EXISTS stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부' AFTER retry_count;
+
+CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
+    attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Command attempt identifier',
+    command_id VARCHAR(80) NOT NULL COMMENT 'Runtime command identifier',
+    attempt_no INT NOT NULL COMMENT 'Command attempt number',
+    instance_id VARCHAR(160) NULL COMMENT 'Target runtime instance identifier',
+    stage_code VARCHAR(80) NOT NULL COMMENT 'Attempt execution stage',
+    attempt_state VARCHAR(40) NOT NULL COMMENT 'Attempt result state',
+    result_message VARCHAR(4000) NULL COMMENT 'Attempt result detail',
+    started_at DATETIME(6) NOT NULL COMMENT 'Attempt start time',
+    finished_at DATETIME(6) NULL COMMENT 'Attempt finish time',
+    PRIMARY KEY(attempt_id),
+    UNIQUE KEY uk_bat_runtime_command_attempt(command_id,attempt_no,instance_id,stage_code),
+    KEY ix_bat_runtime_command_attempt_instance(instance_id,started_at),
+    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY(command_id)
+      REFERENCES bat_runtime_command(command_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime command execution attempt';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_execution (
+    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
+    cell_id VARCHAR(120) NOT NULL COMMENT 'Target deployment cell identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Deployment idempotency key',
+    from_version VARCHAR(80) NULL COMMENT 'Previous artifact version',
+    to_version VARCHAR(80) NOT NULL COMMENT 'Target artifact version',
+    strategy_code VARCHAR(32) NOT NULL COMMENT 'ROLLING/CANARY/BLUE_GREEN strategy',
+    execution_state VARCHAR(40) NOT NULL COMMENT 'Deployment execution state',
+    failure_stage VARCHAR(80) NULL COMMENT 'Failed deployment stage',
+    result_message VARCHAR(4000) NULL COMMENT 'Deployment result detail',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Deployment requester',
+    approved_by VARCHAR(120) NOT NULL COMMENT 'Deployment approver',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory deployment reason',
+    started_at DATETIME(6) NULL COMMENT 'Deployment start time',
+    finished_at DATETIME(6) NULL COMMENT 'Deployment finish time',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Deployment record time',
+    PRIMARY KEY(deployment_id),
+    UNIQUE KEY uk_bat_deployment_execution_idempotency(idempotency_key),
+    KEY ix_bat_deployment_execution_cell_state(cell_id,execution_state),
+    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY(cell_id)
+      REFERENCES bat_deployment_cell(cell_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT approved deployment execution';
+
+CREATE TABLE IF NOT EXISTS bat_deployment_instance_result (
+    deployment_result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Instance result identifier',
+    deployment_id VARCHAR(80) NOT NULL COMMENT 'Deployment execution identifier',
+    sequence_no INT NOT NULL COMMENT 'Ordered result sequence',
+    instance_id VARCHAR(160) NOT NULL COMMENT 'Target runtime instance identifier',
+    stage_code VARCHAR(80) NOT NULL COMMENT 'Deployment stage code',
+    result_state VARCHAR(40) NOT NULL COMMENT 'Instance stage result state',
+    result_message VARCHAR(4000) NULL COMMENT 'Instance stage result detail',
+    recorded_at DATETIME(6) NOT NULL COMMENT 'Result record time',
+    PRIMARY KEY(deployment_result_id),
+    UNIQUE KEY uk_bat_deployment_instance_result(deployment_id,sequence_no),
+    KEY ix_bat_deployment_instance_result_instance(instance_id,recorded_at),
+    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY(deployment_id)
+      REFERENCES bat_deployment_execution(deployment_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT per-instance deployment result';
+ALTER TABLE bat_deployment_cell ADD COLUMN IF NOT EXISTS desired_instance_count INT NOT NULL DEFAULT 1 AFTER desired_state;
+
+
+CREATE TABLE IF NOT EXISTS bat_job_pack (
+    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Job-pack identifier',
+    owner_domain VARCHAR(20) NOT NULL COMMENT 'Owning domain SystemCode',
+    artifact_coordinate VARCHAR(240) NOT NULL COMMENT 'Job-pack artifact coordinate',
+    artifact_version VARCHAR(80) NOT NULL COMMENT 'Job-pack artifact version',
+    artifact_checksum VARCHAR(128) NULL COMMENT 'Job-pack artifact checksum',
+    signature_present_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Artifact signature presence flag',
+    platform_range VARCHAR(120) NULL COMMENT 'Compatible CPF platform range',
+    manifest_json LONGTEXT NOT NULL COMMENT 'Validated job-pack manifest',
+    last_registered_at DATETIME(6) NOT NULL COMMENT 'Last catalog registration time',
+    PRIMARY KEY(job_pack_id),
+    KEY ix_bat_job_pack_owner(owner_domain,artifact_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT external job-pack catalog';
+
+CREATE TABLE IF NOT EXISTS bat_job_pack_job (
+    job_pack_id VARCHAR(120) NOT NULL COMMENT 'Owning job-pack identifier',
+    job_id VARCHAR(100) NOT NULL COMMENT 'Published job identifier',
+    restartable_yn CHAR(1) NOT NULL COMMENT 'Job restartability flag',
+    center_cut_provider_key VARCHAR(100) NULL COMMENT 'Center-cut target provider key',
+    center_cut_handler_key VARCHAR(100) NULL COMMENT 'Center-cut item handler key',
+    PRIMARY KEY(job_pack_id,job_id),
+    CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY(job_pack_id)
+      REFERENCES bat_job_pack(job_pack_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT job-pack job projection';
+
+-- R15/R16/R17 Center-Cut immutable execution/runtime policy.
+CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    center_cut_job_id VARCHAR(100) NOT NULL COMMENT 'Center-cut job definition identifier',
+    idempotency_key VARCHAR(160) NOT NULL COMMENT 'Execution idempotency key',
+    execution_state VARCHAR(30) NOT NULL COMMENT 'Center-cut execution state',
+    parameter_ciphertext LONGTEXT NOT NULL COMMENT 'Encrypted immutable parameter snapshot',
+    parameter_hash VARCHAR(64) NOT NULL COMMENT 'Parameter snapshot SHA-256',
+    parameter_schema_version VARCHAR(80) NOT NULL COMMENT 'Parameter schema version',
+    target_cursor VARCHAR(1000) NULL COMMENT 'Last generated target cursor',
+    target_complete_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Target generation completion flag',
+    target_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Generated target count',
+    tps_limit INT NOT NULL DEFAULT 0 COMMENT 'Global transactions-per-second limit',
+    concurrency_limit INT NOT NULL DEFAULT 1 COMMENT 'Global runner concurrency limit',
+    processed_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Processed item count',
+    success_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Successful item count',
+    failure_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Failed item count',
+    unknown_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Unknown-result item count',
+    transaction_id CHAR(34) NULL COMMENT 'CPF transactionId',
+    parent_segment_id VARCHAR(120) NULL COMMENT 'Parent trace segment identifier',
+    requested_by VARCHAR(120) NOT NULL COMMENT 'Execution requester',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Mandatory execution reason',
+    last_error_message VARCHAR(1000) NULL COMMENT 'Last execution error detail',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Execution request time',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last execution state update time',
+    completed_at DATETIME(6) NULL COMMENT 'Execution completion time',
+    PRIMARY KEY(center_cut_execution_id),
+    UNIQUE KEY uk_bat_center_cut_execution_idempotency(idempotency_key),
+    KEY ix_bat_center_cut_execution_job_state(center_cut_job_id,execution_state,created_at),
+    CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY(center_cut_job_id)
+      REFERENCES bat_center_cut_job(center_cut_job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut immutable execution policy';
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
+    center_cut_execution_id VARCHAR(80) NOT NULL COMMENT 'Center-cut execution identifier',
+    window_second BIGINT NOT NULL COMMENT 'UTC epoch-second rate window',
+    admitted_count INT NOT NULL DEFAULT 0 COMMENT 'Items admitted in this window',
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last bucket update time',
+    PRIMARY KEY(center_cut_execution_id,window_second),
+    CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY(center_cut_execution_id)
+      REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT center-cut global rate window';
+
+ALTER TABLE bat_center_cut_item ADD COLUMN IF NOT EXISTS center_cut_execution_id VARCHAR(80) NULL AFTER center_cut_job_id;
+ALTER TABLE bat_center_cut_item ADD INDEX IF NOT EXISTS ix_bat_center_cut_item_execution_status(center_cut_execution_id,item_status,center_cut_item_id);
+ALTER TABLE bat_center_cut_item ADD CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY(center_cut_execution_id)
+  REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE;
+
+
+ALTER TABLE bat_center_cut_item DROP INDEX IF EXISTS uk_bat_center_cut_item_business;
+ALTER TABLE bat_center_cut_item ADD UNIQUE INDEX IF NOT EXISTS uk_bat_center_cut_item_execution_business(center_cut_execution_id,business_key);
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql
 -- ============================================================================
@@ -2539,34 +2871,34 @@ CREATE TABLE IF NOT EXISTS mbr_member_login_history (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원 로그인 이력';
 
 CREATE TABLE IF NOT EXISTS mbr_member_no_sequence (
-    sequence_value BIGINT NOT NULL AUTO_INCREMENT,
-    requested_by VARCHAR(100) NOT NULL,
-    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    sequence_value BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Sequence value',
+    requested_by VARCHAR(100) NOT NULL COMMENT 'Requester',
+    requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Request time',
     PRIMARY KEY (sequence_value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 분산 채번';
 
 CREATE TABLE IF NOT EXISTS mbr_member_no_issue_history (
-    issue_id BIGINT NOT NULL AUTO_INCREMENT,
-    member_no VARCHAR(50) NOT NULL,
-    issue_type VARCHAR(20) NOT NULL,
-    issued_by VARCHAR(100) NOT NULL,
-    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    issue_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Issue identifier',
+    member_no VARCHAR(50) NOT NULL COMMENT 'Member number',
+    issue_type VARCHAR(20) NOT NULL COMMENT 'Issue type',
+    issued_by VARCHAR(100) NOT NULL COMMENT 'Issuer',
+    issued_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Issue time',
     PRIMARY KEY (issue_id),
     UNIQUE KEY uk_mbr_member_no_issue_history_no (member_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='MBR 회원번호 발급 이력';
 
 CREATE TABLE IF NOT EXISTS mbr_member_role_operation (
-    idempotency_key VARCHAR(120) NOT NULL,
-    member_id BIGINT NOT NULL,
-    service_code VARCHAR(30) NOT NULL,
-    role_code VARCHAR(50) NOT NULL,
-    operation_type VARCHAR(20) NOT NULL,
-    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    result_version BIGINT NULL,
-    result_use_yn CHAR(1) NULL,
-    created_by VARCHAR(100) NOT NULL,
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    completed_at DATETIME(3) NULL,
+    idempotency_key VARCHAR(120) NOT NULL COMMENT 'Idempotency key',
+    member_id BIGINT NOT NULL COMMENT 'Member identifier',
+    service_code VARCHAR(30) NOT NULL COMMENT 'Service code',
+    role_code VARCHAR(50) NOT NULL COMMENT 'Role code',
+    operation_type VARCHAR(20) NOT NULL COMMENT 'Operation type',
+    operation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'Operation status',
+    result_version BIGINT NULL COMMENT 'Result version',
+    result_use_yn CHAR(1) NULL COMMENT 'Result usage flag',
+    created_by VARCHAR(100) NOT NULL COMMENT 'Creator',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Creation time',
+    completed_at DATETIME(3) NULL COMMENT 'Completion time',
     PRIMARY KEY (idempotency_key),
     INDEX ix_mbr_member_role_operation_member (member_id, created_at),
     CONSTRAINT fk_mbr_member_role_operation_member FOREIGN KEY (member_id) REFERENCES mbr_member(id) ON DELETE CASCADE

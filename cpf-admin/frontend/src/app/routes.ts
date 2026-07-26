@@ -50,7 +50,6 @@ export const admFeatureRoutes: Record<string,AdmFeatureRoute> = {
  security:{group:"access",icon:"security",component:defineAsyncComponent(()=>import("../features/security/SecurityPage.vue"))},
  operators:{group:"access",icon:"users",component:defineAsyncComponent(()=>import("../features/operators/OperatorsPage.vue"))},
  secrets:{group:"access",icon:"security",component:defineAsyncComponent(()=>import("../features/secrets/SecretsPage.vue"))},
- members:{group:"business",icon:"users",component:defineAsyncComponent(()=>import("../features/members/MembersPage.vue"))},
  approvals:{group:"approval",icon:"approval",component:defineAsyncComponent(()=>import("../features/approvals/ApprovalsPage.vue"))},
  breakGlass:{group:"approval",icon:"security",component:defineAsyncComponent(()=>import("../features/break-glass/BreakGlassPage.vue"))}
 };

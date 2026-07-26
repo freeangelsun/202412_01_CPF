@@ -1,0 +1,9 @@
+UPDATE cpf_idempotency_record
+SET record_status = ?,
+    stored_response = ?,
+    retry_allowed_yn = ?,
+    completed_at = @NOW@,
+    updated_by = 'CPF_IDEMPOTENCY',
+    updated_at = @NOW@
+WHERE scope = ?
+  AND idempotency_key = ?

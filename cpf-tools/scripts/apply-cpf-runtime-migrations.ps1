@@ -31,8 +31,8 @@ if ([string]::IsNullOrWhiteSpace($ResultPath)) {
 }
 
 $sqlFiles = @(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V11__transaction_meta_log_policy.sql"),
-    (Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V12__log_policy_runtime_standard.sql")
+    (Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V11__transaction_meta_log_policy.sql"),
+    (Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V12__log_policy_runtime_standard.sql")
 )
 foreach ($sqlFile in $sqlFiles) {
     if (-not (Test-Path -LiteralPath $sqlFile)) {

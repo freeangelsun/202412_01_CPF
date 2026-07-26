@@ -111,13 +111,15 @@ Runtime은 선택된 Pack의 실제 `pack.json` root를 `cpf.db.resource-root`�
 Schema 설계 정본:
 
 ```text
-cpf-tools/db/source/mariadb/10_cpf_schema.sql
-cpf-tools/db/source/mariadb/20_cmn_schema.sql
-cpf-tools/db/source/mariadb/30_adm_schema.sql
-cpf-tools/db/source/mariadb/35_bat_schema.sql
-cpf-tools/db/source/mariadb/40_business_modules_schema.sql
-cpf-tools/db/source/mariadb/45_external_schema.sql
+cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql
+cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql
+cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql
+cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql
+cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql
 ```
+
+EXS를 포함한 Generated Domain은 고정 Platform Source에 추가하지 않고
+`cpf-tools/db/vendor/<vendor>/domain-template`과 Domain Metadata로 생성합니다.
 
 Lifecycle 책임:
 
@@ -170,8 +172,11 @@ Initializer는 최소 다음을 검증해야 합니다.
 - Verify SQL
 - 민감정보가 제거된 실행 결과
 
-현재 Overlay의 `123 CREATE TABLE`은 정적 설계 수치일 뿐입니다.
-실제 MariaDB에서 동일 Object가 생성되었다는 Evidence가 생기기 전에는 Runtime 완료가 아닙니다.
+현재 Canonical Manifest의 수치는 152 Table, 332 Index, 115 FK입니다. 이 값은 정적
+설계 기준이며, 실제 MariaDB에서 동일 Object가 생성되었다는 Evidence가 생기기 전에는
+Runtime 완료가 아닙니다. 2026-07-26 HOME PC에서는 공식 Reset → Provision → Empty
+Install → Product Seed → Verify 경로로 이 수치와 20개 Verify 항목을 실제 확인했습니다.
+이 결과를 다른 PC 또는 Vendor의 성공 근거로 재사용하지 않습니다.
 
 ## 8. Reset과 Reinstall
 
@@ -256,12 +261,16 @@ Repository에 존재하지 않는 `cpf-deployment/was`, `cpf-deployment/docker/c
 ## 12. Owner Schema 원칙
 
 - `cpfDB`: 기술 Framework Runtime
-- `cmnDB`: 기본 제품은 `cmn_sample_item` 1개
+- `cmnDB`: 공통 Business Calendar와 최소 Reference Sample
 - `admDB`: 플랫폼 운영 Control Plane
 - `bzaDB`: 고객 업무 관리자/조직/업무결재
 - `batDB`: Batch/Scheduler/Agent/Runner/Worker/Center-Cut
-- `mbrDB`, `accDB`, `refDB`: Reference/Generator 검증 목적에 맞는 최소 구조
-- `exsDB`: 현재 정본상 `cpf-external` 대외연계 제품 Owner 구조
+- `refDB`: CPF Reference/EDU 기능의 최소 구조
+- 현재 설치에 남은 `mbrDB`, `accDB`는 기존 Consumer를 안전하게 이관하기 전까지 유지하는
+  최소 호환 구조입니다. 이를 Generator의 고정 지원 목록이나 신규 Domain Template의 업무
+  모델로 사용하지 않으며, DEC-024에 따라 Consumer 이관 뒤 retirement합니다.
+- `exsDB`는 Platform 기본 설치 대상이 아닙니다. `external/EXS`가 필요하면 다른 임의 업무 Domain과
+  동일하게 Generator Metadata와 선택 Vendor Domain Template으로 생성합니다.
 
 ADM이 `batDB`, `refDB`, 업무 Domain DB를 직접 수정하는 구조는 설치 편의 때문에 허용하지 않습니다.
 
@@ -273,6 +282,23 @@ ADM이 `batDB`, `refDB`, 업무 Domain DB를 직접 수정하는 구조는 설�
 - checksum을 맞추기 위한 임의 편집 금지
 - Empty Install 최종 상태와 Upgrade 최종 상태 parity 검증
 - rollback 불가능 변경은 Forward Recovery + Backup/Restore 전략을 명시
+- Platform Table lifecycle/audit 예외는
+  `cpf-tools/db/metadata/platform-table-lifecycle-policy.json`에 사유와 필수 semantic
+  Column을 기록하며, Java 또는 SQL Gate에 Table 목록을 하드코딩하지 않음
+- Schema Comment Migration은 Canonical 전체가 아니라 해당 Version delta만 소유하고,
+  Rollback이 기존 Comment를 제거하지 않도록 실제 Upgrade → Rollback → Re-upgrade로 검증
+
+V58 Comment Migration 검증:
+
+```powershell
+pwsh -File cpf-tools/scripts/smoke-platform-schema-comment-migration.ps1
+pwsh -File cpf-tools/scripts/smoke-platform-schema-comment-migration.ps1 `
+  -Apply -Confirmation APPLY_V58_COMMENT_MIGRATION
+pwsh -File cpf-tools/scripts/smoke-platform-schema-comment-migration.ps1 -VerifyOnly
+```
+
+HOME MariaDB의 2026-07-26 실행 결과는 Column Comment 299개, Table Comment 19개이며,
+왕복 전후 Column/Index/FK 정의 hash와 `FOREIGN_KEY_CHECKS=1`도 일치했습니다.
 
 ## 14. 설치 후 Evidence
 

@@ -1,6 +1,7 @@
 package com.cpf.bizadmin.support.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.support.repository.BzaSupportRepository;
 import com.cpf.core.common.attachment.CpfAttachmentContent;
 import com.cpf.core.common.attachment.CpfAttachmentStoragePort;
@@ -16,6 +17,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -24,7 +27,9 @@ import static org.mockito.Mockito.when;
 class BzaSupportServiceTest {
     private final BzaSupportRepository repository = mock(BzaSupportRepository.class);
     private final CpfAttachmentStoragePort storagePort = mock(CpfAttachmentStoragePort.class);
-    private final BzaSupportService service = new BzaSupportService(repository, storagePort, new ObjectMapper());
+    private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
+    private final BzaSupportService service =
+            new BzaSupportService(repository, storagePort, new ObjectMapper(), auditService);
 
     @Test
     void savedSearchCanonicalizesObjectJsonAndUsesAuthenticatedOperator() {
@@ -37,7 +42,14 @@ class BzaSupportServiceTest {
         assertThat(result.get("screenCode")).isEqualTo("APPROVAL");
         assertThat(result.get("criteriaJson")).isEqualTo("{\"status\":\"WAITING\"}");
         verify(repository).saveSavedSearch(any());
-        verify(repository).insertBusinessAudit(any());
+        verify(auditService).record(
+                eq("operator01"),
+                eq("SAVED_SEARCH_SAVE"),
+                eq("bza_saved_search"),
+                eq("APPROVAL:대기 결재"),
+                eq("업무 검색 저장"),
+                isNull(),
+                any());
     }
 
     @Test
@@ -72,7 +84,14 @@ class BzaSupportServiceTest {
 
         assertThat(result.get("allowed")).isEqualTo(true);
         assertThat((List<?>) result.get("matchedRules")).hasSize(1);
-        verify(repository).insertBusinessAudit(any());
+        verify(auditService).record(
+                eq("security-admin"),
+                eq("PERMISSION_SIMULATE"),
+                eq("bza_permission"),
+                eq("BZA_MANAGER:APPROVAL:WRITE"),
+                eq("배포 전 권한 확인"),
+                isNull(),
+                any());
     }
 
     @Test
@@ -97,7 +116,7 @@ class BzaSupportServiceTest {
         metadata.put("storageKey", "GROUP/evidence.txt");
         metadata.put("contentType", "text/plain");
         metadata.put("checksumSha256", "a".repeat(64));
-        metadata.put("scanStatus", "PASSED_LOCAL_POLICY");
+        metadata.put("scanStatus", "CLEAN");
         when(repository.findAttachment(1L)).thenReturn(java.util.Optional.of(metadata));
         when(storagePort.read("GROUP/evidence.txt"))
                 .thenReturn(new CpfAttachmentContent(new byte[]{1}, "b".repeat(64)));

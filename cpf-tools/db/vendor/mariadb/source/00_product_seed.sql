@@ -2,7 +2,6 @@
 -- 목적: 제품 필수 기준정보만 idempotent 반영
 -- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql
 -- ============================================================================
@@ -464,7 +463,6 @@ INSERT INTO cpf_code (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SCHEDULER', 'Scheduler Job', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM cpf_code WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql
 -- ============================================================================
@@ -809,7 +807,6 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP;
 -- ============================================================================
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/56_bza_product_seed.sql
 -- ============================================================================
@@ -920,7 +917,6 @@ ON DUPLICATE KEY UPDATE
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP(3);
 -- ============================================================================
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql
 -- ============================================================================
@@ -1333,4 +1329,71 @@ INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_b
  ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_SECRET_ROTATE','Y','SYSTEM','SYSTEM'),
  ('ADM_DEV_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM'),
  ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+-- R15/R16/R17 BAT Standalone Runtime Control Plane menus/permissions.
+INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
+ ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_WORKER_POOLS','BATCH','Worker Pools','/adm#batch-worker-pools',505,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_CENTER_CUT','BATCH','Center-Cut','/adm#batch-center-cut',506,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AGENTS','BATCH','Host Agents','/adm#batch-agents',507,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_JOB_PACKS','BATCH','Job Packs','/adm#batch-job-packs',508,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_EXECUTIONS','BATCH','Executions','/adm#batch-executions',509,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_DEPLOYMENT','BATCH','Deployment / Rollback','/adm#batch-deployment',510,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE PARENT_MENU_ID=VALUES(PARENT_MENU_ID),MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
+ ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
+ ('BAT_RUNTIME_OPERATE','BATCH_INSTANCES','RUNTIME_OPERATE','Runtime Start/Stop/Drain','POST','/adm/api/approvals/**',20,'Y','SYSTEM','SYSTEM'),
+ ('BAT_JOB_OPERATE','BATCH_EXECUTIONS','JOB_OPERATE','Job 실행/중지/재처리','POST','/adm/api/batch/**',30,'Y','SYSTEM','SYSTEM'),
+ ('BAT_SCHEDULE_OPERATE','BATCH_SCHEDULER','SCHEDULE_OPERATE','Scheduler 운영','POST','/adm/api/batch/**',40,'Y','SYSTEM','SYSTEM'),
+ ('BAT_WORKER_OPERATE','BATCH_WORKER_POOLS','WORKER_OPERATE','Worker Pool 운영','POST','/adm/api/approvals/**',50,'Y','SYSTEM','SYSTEM'),
+ ('BAT_CENTER_CUT_OPERATE','BATCH_CENTER_CUT','CENTER_CUT_OPERATE','Center-Cut 재처리/조정','POST','/adm/api/batch-runtime/**',60,'Y','SYSTEM','SYSTEM'),
+ ('BAT_AGENT_OPERATE','BATCH_AGENTS','AGENT_OPERATE','Host Agent 운영','POST','/adm/api/approvals/**',70,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_PLAN','BATCH_DEPLOYMENT','DEPLOY_PLAN','Deployment Plan 생성','POST','/adm/api/batch-runtime/deployment-plans',80,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_APPROVE','BATCH_DEPLOYMENT','DEPLOY_APPROVE','Deployment 승인','POST','/adm/api/approvals/**',90,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_EXECUTE','BATCH_DEPLOYMENT','DEPLOY_EXECUTE','Deployment 실행','POST','/adm/api/approvals/**',100,'Y','SYSTEM','SYSTEM'),
+ ('BAT_ROLLBACK_EXECUTE','BATCH_DEPLOYMENT','ROLLBACK_EXECUTE','Rollback 실행','POST','/adm/api/approvals/**',110,'Y','SYSTEM','SYSTEM'),
+ ('BAT_RECOVERY_OPERATE','BATCH_RECOVERY','RECOVERY_OPERATE','UNKNOWN_RESULT 조정','POST','/adm/api/batch-runtime/**',120,'Y','SYSTEM','SYSTEM'),
+ ('BAT_SECURITY_AUDIT','BATCH_AUDIT','SECURITY_AUDIT','BAT 보안·감사 조회','GET','/adm/api/batch-runtime/views/audit',130,'Y','SYSTEM','SYSTEM'),
+ ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by)
+SELECT r.ROLE_ID,m.MENU_ID,'Y',
+       CASE WHEN r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR') THEN 'Y' ELSE 'N' END,
+       'N','SYSTEM','SYSTEM'
+FROM adm_role r JOIN adm_menu m ON m.PARENT_MENU_ID='BATCH'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
+ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
+SELECT r.ROLE_ID,b.BUTTON_ID,
+       CASE
+         WHEN r.ROLE_ID='ADM_ADMIN' THEN 'Y'
+         WHEN r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_OPERATOR') AND b.BUTTON_ID NOT IN ('BAT_DEPLOY_APPROVE','BAT_DEPLOY_EXECUTE','BAT_ROLLBACK_EXECUTE') THEN 'Y'
+         WHEN r.ROLE_ID='ADM_BIZ_OPERATOR' AND b.BUTTON_ID IN ('BAT_RUNTIME_VIEW','BAT_JOB_OPERATE','BAT_WORKER_OPERATE','BAT_CENTER_CUT_OPERATE','BAT_SECURITY_AUDIT','BAT_EVIDENCE_DOWNLOAD') THEN 'Y'
+         WHEN r.ROLE_ID='ADM_VIEWER' AND b.BUTTON_ID IN ('BAT_RUNTIME_VIEW','BAT_SECURITY_AUDIT') THEN 'Y'
+         ELSE 'N' END,
+       'SYSTEM','SYSTEM'
+FROM adm_role r JOIN adm_button b ON b.BUTTON_ID LIKE 'BAT_%'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
+SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
+FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL
+ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
+SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
+FROM adm_role_button rb JOIN adm_api_permission ap ON ap.BUTTON_ID=rb.BUTTON_ID
+WHERE rb.BUTTON_ID LIKE 'BAT_%'
 ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;

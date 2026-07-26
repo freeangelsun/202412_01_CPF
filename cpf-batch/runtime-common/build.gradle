@@ -4,4 +4,5 @@ dependencies {
  api project(':cpf-batch:contract'); implementation project(':cpf-core'); implementation project(':cpf-common')
  implementation 'org.springframework.boot:spring-boot-starter-jdbc'; implementation 'org.springframework:spring-web'; implementation 'org.slf4j:slf4j-api'
 }
+tasks.named('test') { useJUnitPlatform() }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-runtime-common' } } }

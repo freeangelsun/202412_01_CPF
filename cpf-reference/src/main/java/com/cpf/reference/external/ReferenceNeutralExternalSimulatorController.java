@@ -56,7 +56,7 @@ public class ReferenceNeutralExternalSimulatorController extends ReferenceBaseCo
     @PostMapping("/executions")
     @CpfOnlineTransaction(
             id = "OREFEX0002", name = "REF 대외요청실행", ownerDomain = "REF",
-            description = "EXS 로컬 런타임 검증용 대외 요청을 멱등 키와 기관 요청 ID로 접수합니다.",
+            description = "REF 로컬 교육용 대외 요청을 멱등 키와 기관 요청 ID로 접수합니다.",
             visibility = "INTERNAL", gatewayAllowed = false)
     @Operation(operationId = "executeNeutralExternalRequest", summary = "중립 외부 시스템 요청 실행")
     public ResponseEntity<Map<String, Object>> execute(

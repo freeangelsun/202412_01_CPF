@@ -8,7 +8,10 @@ class ReferenceBrokerPublishEducationSampleTest {
 
     @Test
     void publishPlanUsesCpfBrokerEnvelope() {
-        assertThat(new ReferenceBrokerPublishEducationSample().publishPlan("T-1", "ID-1").message().topic())
-                .isEqualTo("com.cpf.reference.changed");
+        var envelope = new ReferenceBrokerPublishEducationSample().publishPlan("T-1", "ID-1");
+
+        assertThat(envelope.message().topic()).isEqualTo("com.cpf.reference.changed");
+        assertThat(envelope.producerModule()).isEqualTo("REF");
+        assertThat(envelope.consumerModule()).isEqualTo("REF");
     }
 }

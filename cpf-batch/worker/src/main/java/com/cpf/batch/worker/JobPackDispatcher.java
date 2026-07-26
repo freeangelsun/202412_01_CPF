@@ -40,6 +40,9 @@ public class JobPackDispatcher {
                 "transactionId",Objects.toString(work.transactionId(),""),
                 "segmentId",Objects.toString(work.segmentId(),""),
                 "executionId",Long.toString(work.executionId()),"jobId",work.jobId()))) {
+            if (!executions.markRunning(lease)) {
+                throw new IllegalStateException("Worker lease expired or was fenced before business execution");
+            }
             var provider=catalog.providerFor(work.jobId());
             var definition=provider.manifest().jobs().stream().filter(j->j.jobId().equals(work.jobId())).findFirst().orElseThrow();
             Map<String,Object> raw=parse(work.parametersJson());
@@ -52,8 +55,11 @@ public class JobPackDispatcher {
                     if (!(resolved instanceof Job job)) throw new IllegalStateException("Job Pack returned non-Spring Batch Job");
                     JobParameters parameters=buildParameters(definition,raw,work,lease);
                     JobExecution launched=launcher.run(job,parameters);
-                    executions.markRunning(work.executionId(),lease.workerId(),launched.getId(),
-                            launched.getJobInstance()==null?null:launched.getJobInstance().getId());
+                    if (!executions.recordSpringExecution(
+                            lease, launched.getId(),
+                            launched.getJobInstance()==null?null:launched.getJobInstance().getId())) {
+                        throw new IllegalStateException("Worker lease expired or was fenced while the job was running");
+                    }
                     status=switch(launched.getStatus()) {
                         case COMPLETED -> "COMPLETED";
                         case FAILED, ABANDONED -> "FAILED";
@@ -63,32 +69,31 @@ public class JobPackDispatcher {
                     message=launched.getAllFailureExceptions().stream().map(Throwable::getMessage).filter(Objects::nonNull).findFirst().orElse(null);
                 }
                 case APPROVED_SHELL -> {
-                    executions.markRunning(work.executionId(),lease.workerId(),null,null);
                     var result=shellExecutor.execute(definition.executorKey(),raw);
                     status=result.success()?"COMPLETED":"FAILED"; message=result.output();
                 }
                 case FILE_TRANSFER -> {
-                    executions.markRunning(work.executionId(),lease.workerId(),null,null);
                     fileExecutor.transfer(required(raw,"sourceAlias"),required(raw,"sourcePath"),required(raw,"targetAlias"),required(raw,"targetPath"),Boolean.parseBoolean(Objects.toString(raw.get("overwrite"),"false")));
                     status="COMPLETED";
                 }
                 case FILE_PROCESS -> {
-                    executions.markRunning(work.executionId(),lease.workerId(),null,null);
                     fileExecutor.claimForProcess(required(raw,"sourceAlias"),required(raw,"sourcePath"),required(raw,"processingAlias"));
                     status="COMPLETED";
                 }
                 case FILE_WATCH -> {
-                    executions.markRunning(work.executionId(),lease.workerId(),null,null);
                     fileExecutor.await(required(raw,"watchAlias"),required(raw,"watchPath"),definition.executionPolicy().timeout());
                     status="COMPLETED";
                 }
                 default -> throw new IllegalStateException("Unsupported executor type: "+definition.executorType());
             }
-            executions.finish(work.executionId(),status,message);
+            if (!executions.finish(lease,status,message)) {
+                throw new IllegalStateException("Worker completion rejected because its lease expired or was fenced");
+            }
             leases.complete(lease,status,message);
         } catch (Exception e) {
-            executions.finish(work.executionId(),"FAILED",e.getMessage());
-            try { leases.complete(lease,"FAILED",e.getMessage()); } catch (RuntimeException ignored) { }
+            if (executions.finish(lease,"FAILED",e.getMessage())) {
+                try { leases.complete(lease,"FAILED",e.getMessage()); } catch (RuntimeException ignored) { }
+            }
             throw new IllegalStateException("Batch execution failed: "+SensitiveTextSanitizer.sanitize(e.getMessage()),e);
         }
     }

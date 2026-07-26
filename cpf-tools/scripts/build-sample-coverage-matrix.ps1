@@ -18,8 +18,7 @@ $rows = [System.Collections.Generic.List[string]]::new()
 $sequenceByArea = @{}
 
 foreach ($moduleInfo in @(
-        [ordered]@{ code = "REF"; source = "cpf-reference/src/main/java/com/cpf/reference" },
-        [ordered]@{ code = "BAT"; source = "cpf-batch/src/main/java/com/cpf/batch/edu" }
+        [ordered]@{ code = "REF"; source = "cpf-reference/src/main/java/com/cpf/reference" }
     )) {
     $sourceRoot = Join-Path $Root $moduleInfo.source
     if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
@@ -51,7 +50,8 @@ foreach ($moduleInfo in @(
 $header = @(
     "# CPF EDU Sample Coverage Matrix — generated",
     "",
-    "> 이 파일은 build/generated 산출물이며 Git 정본이 아닙니다. 범용 EDU Owner는 REF, Batch EDU Owner는 BAT입니다.",
+    "> 이 파일은 build/generated 산출물이며 Git 정본이 아닙니다. 범용 EDU Owner는 REF입니다.",
+    "> Batch Job/Step 교육도 REF가 공개 CPF API/SPI를 소비하며, BAT 독립 Runtime에는 EDU Source를 두지 않습니다.",
     "> Source/Test 존재는 Runtime 완료 근거가 아니므로 실제 실행 Evidence 전에는 완료로 표기하지 않습니다.",
     "",
     "| sampleId | module | package | featureArea | sampleName | sourcePath | testPath | runtimeEvidence | status | notes |",

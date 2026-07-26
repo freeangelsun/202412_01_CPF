@@ -1,8 +1,31 @@
 package com.cpf.common.calendar;
-import java.time.DayOfWeek;import java.time.LocalDate;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.Objects;
+
 /** DB 없이 사용할 수 있는 기본 주말 Calendar. 고객사는 Bean/SPI로 교체합니다. */
 public final class CmnWeekendCalendar implements CmnBusinessCalendar {
- public boolean isBusinessDay(String id,LocalDate d){DayOfWeek w=d.getDayOfWeek();return w!=DayOfWeek.SATURDAY&&w!=DayOfWeek.SUNDAY;}
- public LocalDate nextBusinessDay(String id,LocalDate from,int offset){if(offset==0)return normalize(id,from,1);int dir=offset>0?1:-1,remain=Math.abs(offset);LocalDate d=from;while(remain>0){d=d.plusDays(dir);if(isBusinessDay(id,d))remain--;}return d;}
- private LocalDate normalize(String id,LocalDate d,int dir){LocalDate x=d;while(!isBusinessDay(id,x))x=x.plusDays(dir);return x;}
+    @Override
+    public boolean isBusinessDay(String calendarId, LocalDate date) {
+        DayOfWeek dayOfWeek = Objects.requireNonNull(date, "date").getDayOfWeek();
+        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
+    }
+
+    @Override
+    public LocalDate shiftBusinessDay(String calendarId, LocalDate from, int offset) {
+        LocalDate cursor = Objects.requireNonNull(from, "from");
+        if (offset == 0) {
+            return cursor;
+        }
+        int direction = offset > 0 ? 1 : -1;
+        int remaining = Math.abs(offset);
+        while (remaining > 0) {
+            cursor = cursor.plusDays(direction);
+            if (isBusinessDay(calendarId, cursor)) {
+                remaining--;
+            }
+        }
+        return cursor;
+    }
 }

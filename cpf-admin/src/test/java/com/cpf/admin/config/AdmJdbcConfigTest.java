@@ -12,15 +12,15 @@ import static org.mockito.Mockito.mock;
 class AdmJdbcConfigTest {
 
     @Test
-    void createsBatJdbcResourcesFromBatDataSource() {
-        DataSource batDataSource = mock(DataSource.class);
+    void createsOnlyAdmOwnedJdbcResources() {
+        DataSource admDataSource = mock(DataSource.class);
         AdmJdbcConfig config = new AdmJdbcConfig();
 
-        JdbcTemplate jdbcTemplate = config.batJdbcTemplate(batDataSource);
+        JdbcTemplate jdbcTemplate = config.admJdbcTemplate(admDataSource);
         DataSourceTransactionManager transactionManager =
-                (DataSourceTransactionManager) config.batTransactionManager(batDataSource);
+                (DataSourceTransactionManager) config.admTransactionManager(admDataSource);
 
-        assertThat(jdbcTemplate.getDataSource()).isSameAs(batDataSource);
-        assertThat(transactionManager.getDataSource()).isSameAs(batDataSource);
+        assertThat(jdbcTemplate.getDataSource()).isSameAs(admDataSource);
+        assertThat(transactionManager.getDataSource()).isSameAs(admDataSource);
     }
 }

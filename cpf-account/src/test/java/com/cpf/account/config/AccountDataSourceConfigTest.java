@@ -3,7 +3,9 @@ package com.cpf.account.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
@@ -11,6 +13,29 @@ import javax.sql.DataSource;
 
 /** ACC 저장소가 전용 DataSource를 사용하는지 검증합니다. */
 class AccountDataSourceConfigTest {
+
+    @Test
+    void resolvesAccDatabaseWithoutCpfDatasourceEnvironmentCollision() throws Exception {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.db.vendor", "mariadb")
+                .withProperty("cpf.datasource.mode", "url")
+                .withProperty("cpf.datasource.url", "jdbc:mariadb://localhost:3306/cpfDB")
+                .withProperty("cpf.datasource.username", "cpf_app")
+                .withProperty("cpf.datasource.password", "cpf-test")
+                .withProperty("cpf.acc.datasource.mode", "url")
+                .withProperty("cpf.acc.datasource.url", "jdbc:mariadb://localhost:3306/accDB")
+                .withProperty("cpf.acc.datasource.username", "cpf_acc_app")
+                .withProperty("cpf.acc.datasource.password", "acc-test");
+
+        HikariDataSource dataSource =
+                (HikariDataSource) new AccountDataSourceConfig().accDataSource(environment);
+        try {
+            assertThat(dataSource.getJdbcUrl()).isEqualTo("jdbc:mariadb://localhost:3306/accDB");
+            assertThat(dataSource.getUsername()).isEqualTo("cpf_acc_app");
+        } finally {
+            dataSource.close();
+        }
+    }
 
     @Test
     void createsDedicatedJdbcTemplate() {

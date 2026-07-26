@@ -15,7 +15,12 @@ function Resolve-LazyImports([string]$appName,[string]$routeFile) {
 
 $admRoutePath=Join-Path $Root 'cpf-admin/frontend/src/app/routes.ts'
 $admRouteText=Get-Content $admRoutePath -Raw
-$admRouteIds=[regex]::Matches($admRouteText,'(?m)^\s*([A-Za-z][A-Za-z0-9-]*):\s*\{\s*group:')|ForEach-Object{$_.Groups[1].Value}
+$admRouteIds = [regex]::Matches(
+    $admRouteText,
+    '(?m)^\s*(?:"([^"]+)"|([A-Za-z][A-Za-z0-9-]*)):\s*\{\s*group:'
+) | ForEach-Object {
+    if ($_.Groups[1].Success) { $_.Groups[1].Value } else { $_.Groups[2].Value }
+}
 $admImports=Resolve-LazyImports 'ADM' 'cpf-admin/frontend/src/app/routes.ts'
 $admState=Get-Content (Join-Path $Root 'cpf-admin/frontend/src/state/createAdmState.ts') -Raw
 $admMenuIds=[regex]::Matches($admState,'\{\s*id:\s*"([^"]+)"\s*,\s*menuId:')|ForEach-Object{$_.Groups[1].Value}|Sort-Object -Unique

@@ -6,6 +6,7 @@ param(
     [int] $HttpTimeoutSeconds = 3,
     [string] $DbVendor = $env:CPF_DB_VENDOR,
     [string] $DbResourceRoot = $env:CPF_DB_RESOURCE_ROOT,
+    [string] $DatabaseProfilePath = "",
     [switch] $BuildBeforeRun,
     [switch] $NoExitOnFailure
 )
@@ -23,12 +24,12 @@ $RequiredPortEnvMarkers = @(
     "BZA_SERVER_PORT",
     "REF_SERVER_PORT",
     "ACC_SERVER_PORT",
-    "EXS_SERVER_PORT",
     "GWY_SERVER_PORT"
 )
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "runtime-common.ps1")
+. (Join-Path $PSScriptRoot "database-profile-common.ps1")
 
 # 각 모듈은 runtime-common.ps1에 정의된 포트 환경변수로 기동한다.
 # BuildBeforeRun이 요청되면 빌드 실패 시 기존 jar로 대체하지 않고 실패로 기록한다.
@@ -52,6 +53,109 @@ if (-not (Test-Path -LiteralPath $packManifest -PathType Leaf)) {
     throw "중앙 DB Vendor Pack을 찾을 수 없습니다. vendor=$DbVendor root=$DbResourceRoot"
 }
 
+if ([string]::IsNullOrWhiteSpace($DatabaseProfilePath)) {
+    $DatabaseProfilePath = Join-Path $Root "cpf-tools\config\database-install.default.json"
+} elseif (-not [System.IO.Path]::IsPathRooted($DatabaseProfilePath)) {
+    $DatabaseProfilePath = Join-Path $Root $DatabaseProfilePath
+}
+$DatabaseProfilePath = [System.IO.Path]::GetFullPath($DatabaseProfilePath)
+$databaseProfile = Get-CpfDatabaseProfile -Path $DatabaseProfilePath
+$allowRuntimeDevDefault =
+    ([string] $databaseProfile.environment).ToLowerInvariant() -in @("development", "dev", "local") -and
+    [bool] $databaseProfile.policy.allowInlineDevDefaults
+$databaseTargets = [ordered]@{}
+foreach ($moduleKey in $databaseProfile.modules.PSObject.Properties.Name) {
+    $target = ConvertTo-CpfModuleProfile `
+        -Profile $databaseProfile `
+        -ModuleKey $moduleKey `
+        -SkipSecretResolution
+    if (-not $target.enabled) {
+        continue
+    }
+    if ([string] $target.vendor -cne $DbVendor) {
+        throw (
+            "Runtime DB Profile과 선택 Vendor가 다릅니다. " +
+            "module=$moduleKey profileVendor=$($target.vendor) selectedVendor=$DbVendor"
+        )
+    }
+    $target.runtimePassword = Resolve-CpfProfileSecret `
+        -SecretSpec $databaseProfile.modules.$moduleKey.runtime.password `
+        -DisplayName "$moduleKey.runtime.password" `
+        -AllowDevDefault $allowRuntimeDevDefault
+    $databaseTargets[$moduleKey] = $target
+}
+
+function Get-CpfRuntimeJdbcUrl {
+    param([object] $Target)
+
+    $hostName = [string] $Target.host
+    $port = [int] $Target.port
+    $databaseName = [string] $Target.databaseName
+    switch ([string] $Target.vendor) {
+        "mariadb" { return "jdbc:mariadb://${hostName}:${port}/${databaseName}" }
+        "mysql" { return "jdbc:mysql://${hostName}:${port}/${databaseName}" }
+        "postgresql" { return "jdbc:postgresql://${hostName}:${port}/${databaseName}" }
+        "oracle" { return "jdbc:oracle:thin:@//${hostName}:${port}/${databaseName}" }
+        "sqlserver" { return "jdbc:sqlserver://${hostName}:${port};databaseName=${databaseName}" }
+        default { throw "지원하지 않는 Runtime DB Vendor입니다: $($Target.vendor)" }
+    }
+}
+
+function Get-CpfRuntimeDriverClassName {
+    param([string] $Vendor)
+
+    switch ($Vendor) {
+        "mariadb" { return "org.mariadb.jdbc.Driver" }
+        "mysql" { return "com.mysql.cj.jdbc.Driver" }
+        "postgresql" { return "org.postgresql.Driver" }
+        "oracle" { return "oracle.jdbc.OracleDriver" }
+        "sqlserver" { return "com.microsoft.sqlserver.jdbc.SQLServerDriver" }
+        default { throw "지원하지 않는 Runtime DB Vendor입니다: $Vendor" }
+    }
+}
+
+$databaseEnvironment = [ordered]@{}
+function Add-CpfRuntimeDatabaseEnvironment {
+    param(
+        [string] $Prefix,
+        [object] $Target
+    )
+
+    $url = Get-CpfRuntimeJdbcUrl -Target $Target
+    $driver = Get-CpfRuntimeDriverClassName -Vendor ([string] $Target.vendor)
+    $databaseEnvironment["${Prefix}_DB_URL"] = $url
+    $databaseEnvironment["${Prefix}_DB_NAME"] = [string] $Target.databaseName
+    $databaseEnvironment["${Prefix}_DB_USERNAME"] = [string] $Target.runtimeUsername
+    $databaseEnvironment["${Prefix}_DB_PASSWORD"] = [string] $Target.runtimePassword
+    $databaseEnvironment["${Prefix}_DB_DRIVER"] = $driver
+    $databaseEnvironment["${Prefix}_DATASOURCE_URL"] = $url
+    $databaseEnvironment["${Prefix}_DATASOURCE_USERNAME"] = [string] $Target.runtimeUsername
+    $databaseEnvironment["${Prefix}_DATASOURCE_PASSWORD"] = [string] $Target.runtimePassword
+    $databaseEnvironment["${Prefix}_DATASOURCE_DRIVER"] = $driver
+    $databaseEnvironment["${Prefix}_DATABASE_URL"] = $url
+    $databaseEnvironment["${Prefix}_DATABASE_USERNAME"] = [string] $Target.runtimeUsername
+    $databaseEnvironment["${Prefix}_DATABASE_PASSWORD"] = [string] $Target.runtimePassword
+    $databaseEnvironment["${Prefix}_DATABASE_DRIVER"] = $driver
+}
+
+foreach ($moduleKey in $databaseTargets.Keys) {
+    $target = $databaseTargets[$moduleKey]
+    if ($moduleKey -eq "common") {
+        Add-CpfRuntimeDatabaseEnvironment -Prefix "CMN_SAMPLE" -Target $target
+    } else {
+        Add-CpfRuntimeDatabaseEnvironment -Prefix ([string] $target.systemCode) -Target $target
+    }
+}
+if ($databaseTargets.Contains("core")) {
+    $coreTarget = $databaseTargets["core"]
+    # CMN code/message/config는 cpfDB 소유이고 GWY도 CPF 공개 metadata만 읽습니다.
+    Add-CpfRuntimeDatabaseEnvironment -Prefix "CMN" -Target $coreTarget
+    Add-CpfRuntimeDatabaseEnvironment -Prefix "GWY" -Target $coreTarget
+    $databaseEnvironment["CPF_DB_HOST"] = [string] $coreTarget.host
+    $databaseEnvironment["CPF_DB_PORT"] = [string] $coreTarget.port
+}
+$databaseEnvironment["CPF_BZA_DB_ENABLED"] = "true"
+
 $resultPath = Join-Path $ResultDir "runtime-start-services-result.json"
 $statePath = Join-Path $ResultDir "runtime-services.json"
 $selectedModules = Resolve-CpfRuntimeModules -Modules $Modules
@@ -62,6 +166,7 @@ $result = [ordered]@{
     modules = @()
     dbVendor = $DbVendor
     dbResourceRoot = $DbResourceRoot
+    databaseProfile = Get-CpfRelativePath -Root $Root -Path $DatabaseProfilePath
     stateFile = Get-CpfRelativePath -Root $Root -Path $statePath
 }
 
@@ -226,6 +331,7 @@ try {
         $previousActiveProfile = [Environment]::GetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "Process")
         $previousDbVendor = [Environment]::GetEnvironmentVariable("CPF_DB_VENDOR", "Process")
         $previousDbResourceRoot = [Environment]::GetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", "Process")
+        $previousDatabaseEnvironment = [ordered]@{}
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
             [Environment]::SetEnvironmentVariable("WAS_ID", $module.wasId, "Process")
@@ -238,6 +344,14 @@ try {
             [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "local", "Process")
             [Environment]::SetEnvironmentVariable("CPF_DB_VENDOR", $DbVendor, "Process")
             [Environment]::SetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", $DbResourceRoot, "Process")
+            foreach ($environmentName in $databaseEnvironment.Keys) {
+                $previousDatabaseEnvironment[$environmentName] =
+                    [Environment]::GetEnvironmentVariable($environmentName, "Process")
+                [Environment]::SetEnvironmentVariable(
+                    $environmentName,
+                    [string] $databaseEnvironment[$environmentName],
+                    "Process")
+            }
 
             $process = Start-Process `
                 -FilePath "java" `
@@ -259,6 +373,12 @@ try {
             [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", $previousActiveProfile, "Process")
             [Environment]::SetEnvironmentVariable("CPF_DB_VENDOR", $previousDbVendor, "Process")
             [Environment]::SetEnvironmentVariable("CPF_DB_RESOURCE_ROOT", $previousDbResourceRoot, "Process")
+            foreach ($environmentName in $previousDatabaseEnvironment.Keys) {
+                [Environment]::SetEnvironmentVariable(
+                    $environmentName,
+                    $previousDatabaseEnvironment[$environmentName],
+                    "Process")
+            }
         }
 
         $moduleResult.processStarted = $true

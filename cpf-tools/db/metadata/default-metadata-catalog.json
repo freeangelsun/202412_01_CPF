@@ -7,6 +7,9 @@
     "unsupportedVendorMustFailClosed": true,
     "canonicalDbSourcePattern": "cpf-tools/db/vendor/<vendor>/source"
   },
+  "permissionManifests": {
+    "bza": "cpf-tools/db/metadata/bza-permission-manifest.json"
+  },
   "codeGroups": {
     "YN": [
       "Y",

@@ -25,6 +25,11 @@
       "ownerArtifact": "cpf-biz-admin",
       "repository": "부분 구현",
       "mybatis": "미구현"
+    },
+    "bat": {
+      "ownerArtifact": "cpf-batch",
+      "repository": "부분 구현",
+      "mybatis": "미구현"
     }
   },
   "generatedDomainContract": {
@@ -38,7 +43,14 @@
       "CPF_SYSTEM_CODE",
       "CPF_DISPLAY_NAME",
       "CPF_SCHEMA_NAME",
-      "CPF_TABLE_PREFIX",
+      "CPF_DATABASE_NAME",
+    "CPF_MIGRATION_USERNAME",
+    "CPF_RUNTIME_USERNAME",
+    "CPF_MIGRATION_PASSWORD_HEX",
+    "CPF_RUNTIME_PASSWORD_HEX",
+    "CPF_MIGRATION_PASSWORD_SQL_LITERAL",
+    "CPF_RUNTIME_PASSWORD_SQL_LITERAL",
+    "CPF_TABLE_PREFIX",
       "CPF_MODULE_NAME",
       "CPF_PACKAGE_NAME",
       "CPF_MAPPER_NAMESPACE",

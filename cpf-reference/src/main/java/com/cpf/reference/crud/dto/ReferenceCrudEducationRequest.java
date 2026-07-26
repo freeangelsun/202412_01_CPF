@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
  * @param description 항목 설명
  * @param requestUser 요청 사용자
  * @param categoryCode 교육 분류 코드
- * @param ownerMemberNo 예시 소유 회원 번호
+ * @param ownerReference 다른 Domain을 직접 조인하지 않는 중립 소유 참조값
  */
 public record ReferenceCrudEducationRequest(
         @NotBlank(message = "항목명은 필수입니다.")
@@ -27,8 +27,8 @@ public record ReferenceCrudEducationRequest(
         @Pattern(regexp = "^[A-Z0-9_]{1,30}$", message = "분류 코드는 영문 대문자, 숫자, 밑줄만 사용할 수 있습니다.")
         String categoryCode,
 
-        @Size(max = 50, message = "소유 회원 번호는 50자 이하로 입력해야 합니다.")
-        String ownerMemberNo) {
+        @Size(max = 50, message = "소유 참조값은 50자 이하로 입력해야 합니다.")
+        String ownerReference) {
 
     public ReferenceCrudEducationRequest(String title, String description, String requestUser) {
         this(title, description, requestUser, null, null);

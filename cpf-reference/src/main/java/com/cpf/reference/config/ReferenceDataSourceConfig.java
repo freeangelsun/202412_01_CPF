@@ -1,6 +1,8 @@
 package com.cpf.reference.config;
 
 import com.cpf.core.common.database.CpfDataSourceResolver;
+import org.springframework.boot.autoconfigure.batch.BatchDataSource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,17 +38,30 @@ public class ReferenceDataSourceConfig {
     }
 
     @Bean(name = "batDataSource")
+    @BatchDataSource
+    @ConditionalOnProperty(
+            prefix = "cpf.reference.edu.batch",
+            name = "local-runtime-enabled",
+            havingValue = "true")
     public DataSource batDataSource(Environment environment) throws NamingException {
         return CpfDataSourceResolver.resolve(environment, "spring.datasource.bat");
     }
 
     @Bean(name = "batTransactionManager")
+    @ConditionalOnProperty(
+            prefix = "cpf.reference.edu.batch",
+            name = "local-runtime-enabled",
+            havingValue = "true")
     public PlatformTransactionManager batTransactionManager(
             @Qualifier("batDataSource") DataSource batDataSource) {
         return new DataSourceTransactionManager(batDataSource);
     }
 
     @Bean(name = "batJdbcTemplate")
+    @ConditionalOnProperty(
+            prefix = "cpf.reference.edu.batch",
+            name = "local-runtime-enabled",
+            havingValue = "true")
     public JdbcTemplate batJdbcTemplate(@Qualifier("batDataSource") DataSource batDataSource) {
         return new JdbcTemplate(batDataSource);
     }

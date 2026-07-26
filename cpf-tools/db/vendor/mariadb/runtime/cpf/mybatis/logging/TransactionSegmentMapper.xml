@@ -9,9 +9,7 @@
     <insert id="insertSegment" parameterType="com.cpf.core.common.logging.segment.TransactionSegmentRecord">
         INSERT INTO cpf_transaction_segment (
             transaction_segment_id,
-            transaction_global_id,
-            root_transaction_global_id,
-            parent_transaction_global_id,
+            transaction_id,
             parent_segment_id,
             transaction_role,
             module_code,
@@ -51,9 +49,7 @@
             updated_at
         ) VALUES (
             #{transactionSegmentId},
-            #{transactionGlobalId},
-            #{rootTransactionGlobalId},
-            #{parentTransactionGlobalId},
+            #{transactionId},
             #{parentSegmentId},
             #{transactionRole},
             #{moduleCode},
@@ -88,9 +84,9 @@
             #{resultState},
             #{unknownResultId},
             IFNULL(#{createdBy}, 'CPF'),
-            NOW(6),
+            CURRENT_TIMESTAMP(6),
             IFNULL(#{updatedBy}, 'CPF'),
-            NOW(6)
+            CURRENT_TIMESTAMP(6)
         )
         ON DUPLICATE KEY UPDATE
             transaction_segment_id = VALUES(transaction_segment_id)
@@ -117,7 +113,7 @@
                result_state = #{resultState},
                unknown_result_id = #{unknownResultId},
                updated_by = IFNULL(#{updatedBy}, 'CPF'),
-               updated_at = NOW(6)
+               updated_at = CURRENT_TIMESTAMP(6)
          WHERE transaction_segment_id = #{transactionSegmentId}
     </update>
 

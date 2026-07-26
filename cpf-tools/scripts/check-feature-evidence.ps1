@@ -37,12 +37,27 @@ $settings = if (Test-Path $settingsPath) {
     [System.IO.File]::ReadAllText($settingsPath, [System.Text.Encoding]::UTF8)
 } else { "" }
 $modules = @(
-    "cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch",
+    "cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin",
     "cpf-gateway", "cpf-member", "cpf-account", "cpf-reference"
 )
 $moduleOk = Test-Path $settingsPath
 foreach ($module in $modules) {
     if ($settings -notmatch ("(?m)include[^\r\n]*'" + [regex]::Escape($module) + "'")) {
+        $moduleOk = $false
+    }
+}
+$batchProjects = @(
+    ":cpf-batch:contract",
+    ":cpf-batch:runtime-common",
+    ":cpf-batch:control-server",
+    ":cpf-batch:scheduler",
+    ":cpf-batch:worker",
+    ":cpf-batch:center-cut-runner",
+    ":cpf-batch:host-agent",
+    ":cpf-batch:testkit"
+)
+foreach ($batchProject in $batchProjects) {
+    if ($settings -notmatch ("(?m)include[^\r\n]*['""]" + [regex]::Escape($batchProject) + "['""]")) {
         $moduleOk = $false
     }
 }
@@ -79,12 +94,12 @@ Add-Check "CENTRAL_VENDOR_PACK_BOUNDARY" (Test-PathSet $centralPack) $centralPac
     "중앙 Vendor Pack 선택 경계의 구조만 확인합니다. Vendor별 실제 Runtime 검증은 별도입니다."
 
 $generator = @(
-    "cpf-tools/scripts/create-domain.ps1",
-    "cpf-tools/scripts/initialize-domain-database.ps1",
-    "cpf-tools/scripts/verify-domain.ps1",
-    "cpf-tools/scripts/remove-domain.ps1",
-    "cpf-tools/db/domain-metadata.schema.json",
-    "cpf-tools/db/central-domain-template-contract.json"
+    "cpf-tools/generator/create-domain.ps1",
+    "cpf-tools/generator/initialize-domain-database.ps1",
+    "cpf-tools/generator/verify-domain.ps1",
+    "cpf-tools/generator/remove-domain.ps1",
+    "cpf-tools/generator/contracts/domain-metadata.schema.json",
+    "cpf-tools/generator/contracts/central-domain-template-contract.json"
 )
 Add-Check "DOMAIN_GENERATOR_METADATA_BASELINE" (Test-PathSet $generator) $generator `
     "Generator가 Metadata/Template 기반으로 발전할 Source 계약이 존재하는지만 확인합니다."
@@ -94,8 +109,8 @@ $approval = @(
     "cpf-admin/src/main/java/com/cpf/admin/approval/spi/AdmApprovalOwnerCommandPort.java",
     "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/api/BzaApprovalDecisionRule.java",
     "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/spi/BzaApprovalDirectoryPort.java",
-    "cpf-tools/db/source/mariadb/30_adm_schema.sql",
-    "cpf-tools/db/source/mariadb/40_business_modules_schema.sql"
+    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
 )
 Add-Check "APPROVAL_ARCHITECTURE_BASELINE" (Test-PathSet $approval) $approval `
     "ADM/BZA Approval의 Owner별 DDL/API/SPI baseline만 확인합니다. Engine/API/UI 완료가 아닙니다."

@@ -13,17 +13,49 @@ $ErrorActionPreference = "Stop"
 # 공식 설치 기준이 되는 현행 스키마 SQL만 검사합니다.
 # archive 폴더는 과거 전환용 자료이므로 공식 naming/comment gate 대상에서 제외합니다.
 $schemaFiles = @(
-    "cpf-tools/db/source/mariadb/10_cpf_schema.sql",
-    "cpf-tools/db/source/mariadb/20_cmn_schema.sql",
-    "cpf-tools/db/source/mariadb/30_adm_schema.sql",
-    "cpf-tools/db/source/mariadb/35_bat_schema.sql",
-    "cpf-tools/db/source/mariadb/40_business_modules_schema.sql",
-    "cpf-tools/db/source/mariadb/45_external_schema.sql"
+    "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
+    "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
 )
 $allowedPrefixes = @("cpf", "cmn", "adm", "bat", "ref", "mbr", "bza", "acc", "exs")
-$commonColumns = @("created_by", "created_at", "updated_by", "updated_at")
 $failures = New-Object System.Collections.Generic.List[string]
 $schemaTableNames = New-Object System.Collections.Generic.HashSet[string]
+$observedTableNames = New-Object System.Collections.Generic.HashSet[string]
+
+$policyRelativePath = "cpf-tools/db/metadata/platform-table-lifecycle-policy.json"
+$policyPath = Join-Path $Root $policyRelativePath
+if (-not (Test-Path -LiteralPath $policyPath -PathType Leaf)) {
+    throw "canonical table lifecycle policy missing: $policyRelativePath"
+}
+$policyDocument = Get-Content -LiteralPath $policyPath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($policyDocument.schemaVersion -ne 1) {
+    throw "unsupported table lifecycle policy schemaVersion: $($policyDocument.schemaVersion)"
+}
+$knownPolicyIds = @($policyDocument.policies.PSObject.Properties.Name)
+if ($knownPolicyIds -notcontains $policyDocument.defaultPolicy.policyId) {
+    throw "default table lifecycle policy is undefined: $($policyDocument.defaultPolicy.policyId)"
+}
+
+function Resolve-TableLifecyclePolicy {
+    param([string] $TableName)
+
+    $explicitProperty = $policyDocument.tablePolicies.PSObject.Properties |
+        Where-Object { $_.Name -ceq $TableName } |
+        Select-Object -First 1
+    if ($null -ne $explicitProperty) {
+        return $explicitProperty.Value
+    }
+
+    foreach ($patternPolicy in @($policyDocument.patterns)) {
+        if ($TableName -cmatch $patternPolicy.pattern) {
+            return $patternPolicy
+        }
+    }
+
+    return $policyDocument.defaultPolicy
+}
 
 foreach ($relativePath in $schemaFiles) {
     $path = Join-Path $Root $relativePath
@@ -45,6 +77,7 @@ foreach ($relativePath in $schemaFiles) {
         $tail = $tableMatch.Groups["tail"].Value
         $prefix = ($tableName -split "_")[0]
         $isSpringBatchTable = $tableName -like "BATCH_*"
+        [void] $observedTableNames.Add($tableName)
 
         # Spring Batch 표준 JobRepository 테이블은 프레임워크가 대문자 BATCH_* 이름으로 조회하므로
         # CPF 주제영역 prefix와 공통 감사 컬럼 규칙의 예외로 둡니다.
@@ -61,11 +94,16 @@ foreach ($relativePath in $schemaFiles) {
             $failures.Add("table comment missing: $relativePath -> $tableName")
         }
 
-        if (-not $isSpringBatchTable) {
-            foreach ($column in $commonColumns) {
-                if ($body -notmatch "(?im)^\s*$column\s+") {
-                    $failures.Add("common audit column missing: $relativePath -> $tableName.$column")
-                }
+        $lifecyclePolicy = Resolve-TableLifecyclePolicy -TableName $tableName
+        if ($knownPolicyIds -notcontains $lifecyclePolicy.policyId) {
+            $failures.Add("unknown lifecycle policy: $tableName -> $($lifecyclePolicy.policyId)")
+        }
+        if ([string]::IsNullOrWhiteSpace([string] $lifecyclePolicy.reason)) {
+            $failures.Add("lifecycle policy reason missing: $tableName")
+        }
+        foreach ($column in @($lifecyclePolicy.requiredColumns)) {
+            if ($body -notmatch "(?im)^\s*$column\s+") {
+                $failures.Add("lifecycle policy column missing: $relativePath -> $tableName.$column [$($lifecyclePolicy.policyId)]")
             }
         }
 
@@ -123,27 +161,19 @@ function Test-AllInstallContainsSchemaTables {
 
 }
 
-Test-AllInstallContainsSchemaTables "cpf-tools/db/source/mariadb/00_all_install.sql"
-Test-AllInstallContainsSchemaTables "cpf-tools/db/source/mariadb/00_all_install_and_smoke.sql"
-
-# V1은 정식 출시 전 CPF 명명 표준으로 다시 확정한 기준선입니다.
-# 공식 REF/EXS 확장은 V37 expand-contract migration에도 존재해야 합니다.
-$v37Path = Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V37__official_ref_external_expansion.sql"
-if (-not (Test-Path -LiteralPath $v37Path)) {
-    $failures.Add("official REF/EXS migration missing: cpf-tools/db/source/mariadb/migration/flyway/V37__official_ref_external_expansion.sql")
-} else {
-    $v37 = [System.IO.File]::ReadAllText($v37Path, [System.Text.Encoding]::UTF8)
-    foreach ($marker in @("ref_center_cut_sample_target", "ref_center_cut_sample_result", "exs_execution", "exs_reconciliation_log", "REF", "EXS")) {
-        if ($v37 -notmatch [regex]::Escape($marker)) {
-            $failures.Add("official REF/EXS migration marker missing: $marker")
-        }
+foreach ($policyProperty in $policyDocument.tablePolicies.PSObject.Properties) {
+    if (-not $observedTableNames.Contains($policyProperty.Name)) {
+        $failures.Add("stale lifecycle policy table: $($policyProperty.Name)")
     }
 }
 
+Test-AllInstallContainsSchemaTables "cpf-tools/db/vendor/mariadb/source/00_all_install.sql"
+Test-AllInstallContainsSchemaTables "cpf-tools/db/vendor/mariadb/source/00_all_install_and_smoke.sql"
+
 # 현행 설치 스키마와 시드는 cpf-core 시스템 코드와 DB 객체명을 직접 사용해야 합니다.
-$cpfSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/10_cpf_schema.sql"), [System.Text.Encoding]::UTF8)
-$cmnSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/20_cmn_schema.sql"), [System.Text.Encoding]::UTF8)
-$cpfSeed = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/50_framework_seed_data.sql"), [System.Text.Encoding]::UTF8)
+$cpfSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql"), [System.Text.Encoding]::UTF8)
+$cmnSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/20_cmn_schema.sql"), [System.Text.Encoding]::UTF8)
+$cpfSeed = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql"), [System.Text.Encoding]::UTF8)
 foreach ($marker in @("cpfDB", "cpf_transaction_log", "cpf_message", "cpf_response_code")) {
     if ($cpfSchema -notmatch [regex]::Escape($marker)) {
         $failures.Add("cpf-core schema marker missing: $marker")
@@ -155,15 +185,16 @@ foreach ($marker in @("'CPF'", "MCPF", "SCPF", "ECPF")) {
     }
 }
 
-# cpf-common은 DB-less가 기본이고, 선택형 교육 DB에는 공통 Template인 cmn_sample_item 하나만 허용합니다.
+# cpf-common은 공통 EDU Sample과 Platform 영업일 원장만 소유합니다.
 $cmnTableMatches = [regex]::Matches(
     $cmnSchema,
     "CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([a-z0-9_]+)\s*\(",
     [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
 )
-if ($cmnTableMatches.Count -ne 1 -or $cmnTableMatches[0].Groups[1].Value -ine "cmn_sample_item") {
-    $cmnTables = @($cmnTableMatches | ForEach-Object { $_.Groups[1].Value }) -join ", "
-    $failures.Add("cmnDB must contain exactly one optional table cmn_sample_item; actual=[$cmnTables]")
+$cmnTables = @($cmnTableMatches | ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() })
+$expectedCmnTables = @("cmn_business_calendar_day", "cmn_sample_item")
+if ((Compare-Object -ReferenceObject $expectedCmnTables -DifferenceObject @($cmnTables | Sort-Object -Unique)).Count -gt 0) {
+    $failures.Add("cmnDB active table contract mismatch: expected=[$($expectedCmnTables -join ', ')] actual=[$($cmnTables -join ', ')]")
 }
 foreach ($forbiddenMarker in @("cmn_sequence", "cmn_edu_query_item", "cmn_fixed_length_", "cmn_notification_log", "cmn_business_log")) {
     if ($cmnSchema -match [regex]::Escape($forbiddenMarker)) {
@@ -171,9 +202,9 @@ foreach ($forbiddenMarker in @("cmn_sequence", "cmn_edu_query_item", "cmn_fixed_
     }
 }
 
-$batSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/35_bat_schema.sql"), [System.Text.Encoding]::UTF8)
-$databaseProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/01_create_databases.sql"), [System.Text.Encoding]::UTF8)
-$userProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/source/mariadb/02_create_service_users.sql"), [System.Text.Encoding]::UTF8)
+$batSchema = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql"), [System.Text.Encoding]::UTF8)
+$databaseProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/01_create_databases.sql"), [System.Text.Encoding]::UTF8)
+$userProvisioning = [System.IO.File]::ReadAllText((Join-Path $Root "cpf-tools/db/vendor/mariadb/source/02_create_service_users.sql"), [System.Text.Encoding]::UTF8)
 if ($databaseProvisioning -notmatch "(?i)CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\s+batDB") {
     $failures.Add("batDB provisioning is missing")
 }
@@ -198,7 +229,6 @@ foreach ($marker in @(
     "bat_worker",
     "bat_execution",
     "bat_execution_lease",
-    "bat_business_day_calendar",
     "bat_center_cut_job",
     "bat_on_demand_request"
 )) {
@@ -209,6 +239,9 @@ foreach ($marker in @(
 if ($cpfSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(?:BATCH_|cpf_batch_|bat_center_cut_|cpf_business_day_calendar)") {
     $failures.Add("BAT runtime table remains in cpf-core schema")
 }
+if ($batSchema -match "(?i)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+bat_business_day_calendar") {
+    $failures.Add("BAT에 폐기된 영업일 원장이 남아 있습니다. cmn_business_calendar_day만 사용해야 합니다.")
+}
 foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
     if ($batSchema -match "(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+$sequenceName\s*\(") {
         $failures.Add("Spring Batch MariaDB sequence must not be implemented as a table: $sequenceName")
@@ -218,7 +251,7 @@ foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ
     }
 }
 $productSeed = [System.IO.File]::ReadAllText(
-    (Join-Path $Root "cpf-tools/db/source/mariadb/50_framework_seed_data.sql"),
+    (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql"),
     [System.Text.Encoding]::UTF8
 )
 foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_JOB_SEQ")) {
@@ -230,17 +263,8 @@ foreach ($sequenceName in @("BATCH_STEP_EXECUTION_SEQ", "BATCH_JOB_EXECUTION_SEQ
 # 실제 Runtime consumer가 없거나 현행 정본 원장과 중복되어 Empty Install에서 제외한
 # object가 다시 추가되지 않도록 active schema만 검사합니다. Historical migration은 불변입니다.
 $forbiddenActiveTables = [ordered]@{
-    "cpf-tools/db/source/mariadb/10_cpf_schema.sql" = @("cpf_file_exchange_log")
-    "cpf-tools/db/source/mariadb/30_adm_schema.sql" = @("adm_operation_log")
-    "cpf-tools/db/source/mariadb/40_business_modules_schema.sql" = @("bza_user_role")
-    "cpf-tools/db/source/mariadb/45_external_schema.sql" = @(
-        "exs_token_store",
-        "exs_token_event_history",
-        "exs_route_rule",
-        "exs_transaction_log",
-        "exs_message_log",
-        "exs_retry_log"
-    )
+    "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" = @("cpf_file_exchange_log")
+    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql" = @("adm_operation_log")
 }
 foreach ($entry in $forbiddenActiveTables.GetEnumerator()) {
     $activeSchema = [System.IO.File]::ReadAllText(
@@ -254,8 +278,16 @@ foreach ($entry in $forbiddenActiveTables.GetEnumerator()) {
     }
 }
 
+foreach ($fixedGeneratedDomainSource in @("45_external_schema.sql", "57_external_seed_data.sql")) {
+    if (Test-Path -LiteralPath (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/$fixedGeneratedDomainSource") -PathType Leaf) {
+        $failures.Add("Generated Domain 고정 Source가 active MariaDB source에 남아 있습니다: $fixedGeneratedDomainSource")
+    }
+}
+
+& (Join-Path $Root "cpf-tools/scripts/generate-platform-schema-comment-migration.ps1") -Root $Root -Check
+
 if ($failures.Count -gt 0) {
-    $failures | Sort-Object | ForEach-Object { Write-Error $_ }
+    $failures | Sort-Object -Unique | ForEach-Object { Write-Host "FAIL $_" }
     exit 1
 }
 

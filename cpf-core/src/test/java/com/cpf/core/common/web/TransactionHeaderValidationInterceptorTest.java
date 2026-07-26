@@ -70,6 +70,21 @@ class TransactionHeaderValidationInterceptorTest {
     }
 
     @Test
+    void rejectsPublicApiContractWhenRequiredHeadersAreMissing() throws Exception {
+        TransactionHeaderValidationInterceptor interceptor = interceptor();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean allowed = interceptor.preHandle(
+                new MockHttpServletRequest("GET", "/api/v1/public"),
+                response,
+                handler("publicOnlineApi"));
+
+        assertThat(allowed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(400);
+        assertThat(response.getContentAsString()).contains("\"statusCode\":\"ECPF900001\"");
+    }
+
+    @Test
     void allowsExternalOnlineCallWithCallerLabelButWithoutInternalInstanceIdentity() throws Exception {
         TransactionHeaderValidationInterceptor interceptor = interceptor();
         MockHttpServletRequest request = standardRequest("/api/v1/online");
@@ -198,6 +213,13 @@ class TransactionHeaderValidationInterceptorTest {
         @CpfOnlineTransaction(id = "OCPFTS0001", name = "온라인 실행 헤더 검증 테스트")
         @SuppressWarnings("unused")
         public void onlineApi() {
+        }
+
+        @com.cpf.core.api.execution.CpfOnlineTransaction(
+                id = "OCPFTS0002",
+                name = "공개 온라인 실행 헤더 검증 테스트")
+        @SuppressWarnings("unused")
+        public void publicOnlineApi() {
         }
 
         @CpfSharedApi(

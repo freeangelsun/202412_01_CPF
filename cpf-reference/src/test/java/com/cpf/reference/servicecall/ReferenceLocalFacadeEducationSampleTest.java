@@ -8,7 +8,7 @@ class ReferenceLocalFacadeEducationSampleTest {
 
     @Test
     void facadeCallUsesFacadeBoundary() {
-        assertThat(new ReferenceLocalFacadeEducationSample().call("MemberFacade", "find").callType())
+        assertThat(new ReferenceLocalFacadeEducationSample().call("ReferenceFacade", "find").callType())
                 .isEqualTo("LOCAL_FACADE");
     }
 }

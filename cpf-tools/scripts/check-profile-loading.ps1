@@ -15,18 +15,23 @@ $profiles = @("local", "dev", "stg", "prod")
 $modules = @(
     [ordered]@{ project = "cpf-member"; config = "mbr"; code = "MBR" },
     [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM" },
-    [ordered]@{ project = "cpf-batch"; config = "bat"; code = "BAT" },
     [ordered]@{ project = "cpf-biz-admin"; config = "bza"; code = "BZA" },
     [ordered]@{ project = "cpf-reference"; config = "ref"; code = "REF" },
-    [ordered]@{ project = "cpf-account"; config = "acc"; code = "ACC" },
-    [ordered]@{ project = "cpf-external"; config = "external"; code = "EXS" }
+    [ordered]@{ project = "cpf-account"; config = "acc"; code = "ACC" }
+)
+$batchRuntimes = @(
+    [ordered]@{ project = "cpf-batch/control-server"; role = "CONTROL_SERVER"; sharedRuntime = $true },
+    [ordered]@{ project = "cpf-batch/scheduler"; role = "SCHEDULER"; sharedRuntime = $true },
+    [ordered]@{ project = "cpf-batch/worker"; role = "WORKER"; sharedRuntime = $true },
+    [ordered]@{ project = "cpf-batch/center-cut-runner"; role = "CENTER_CUT_RUNNER"; sharedRuntime = $true },
+    [ordered]@{ project = "cpf-batch/host-agent"; role = "HOST_AGENT"; sharedRuntime = $false }
 )
 $failures = New-Object System.Collections.Generic.List[object]
 $checks = New-Object System.Collections.Generic.List[object]
 
 function Add-Check {
     param([string] $Name, [string] $Status, [string] $Detail)
-    $checks.Add([pscustomobject]@{
+    [void]$checks.Add([pscustomobject]@{
         name = $Name
         status = $Status
         detail = $Detail
@@ -35,7 +40,7 @@ function Add-Check {
 
 function Add-Failure {
     param([string] $Name, [string] $Detail)
-    $failures.Add([pscustomobject]@{
+    [void]$failures.Add([pscustomobject]@{
         name = $Name
         detail = $Detail
     })
@@ -126,6 +131,45 @@ foreach ($module in $modules) {
     }
 }
 
+# BAT는 삭제된 단일 cpf-batch/src 실행 모듈이 아니라 역할별 실행 모듈과
+# runtime-common의 공유 설정으로 구성됩니다. Generated Domain인 EXS는 고정 profile 대상이 아닙니다.
+$batchRuntimeConfig = "cpf-batch/runtime-common/src/main/resources/application-bat-runtime.yml"
+if (Test-File $batchRuntimeConfig "BAT_RUNTIME_SHARED_CONFIG") {
+    $batchRuntimeText = Read-Text (Join-Path $Root $batchRuntimeConfig)
+    foreach ($marker in @('${CPF_DB_VENDOR:mariadb}', '${BAT_DATABASE_URL:', '${BAT_DATABASE_USERNAME:', '${BAT_DATABASE_PASSWORD:')) {
+        if ($batchRuntimeText -notlike "*$marker*") {
+            Add-Failure "BAT_RUNTIME_SHARED_CONTRACT" "공유 BAT Runtime 설정 marker가 없습니다: $marker"
+        }
+    }
+}
+foreach ($runtime in $batchRuntimes) {
+    $resourceRoot = "$($runtime.project)/src/main/resources"
+    $relativePath = "$resourceRoot/application.yml"
+    $checkSuffix = ($runtime.role -replace "_", "")
+    if (-not (Test-File $relativePath "APPLICATION_YML_BAT_$checkSuffix")) {
+        continue
+    }
+    $applicationText = Read-Text (Join-Path $Root $relativePath)
+    $requiredMarkers = @(
+        "application-cpf.yml",
+        'application-cpf-${spring.profiles.active:local}.yml',
+        "module-id: BAT",
+        ("role: {0}" -f $runtime.role)
+    )
+    if ($runtime.sharedRuntime) {
+        $requiredMarkers += @(
+            "application-bat-runtime.yml",
+            "application-cmn.yml",
+            'application-cmn-${spring.profiles.active:local}.yml'
+        )
+    }
+    foreach ($marker in $requiredMarkers) {
+        if ($applicationText -notlike "*$marker*") {
+            Add-Failure "BAT_RUNTIME_CONFIG_$checkSuffix" "BAT 역할 설정 marker가 없습니다: $relativePath :: $marker"
+        }
+    }
+}
+
 # Gateway는 CPF가 소유하는 선택 실행 모듈이므로 업무 모듈 profile 파일을 복제하지 않습니다.
 # 대신 CPF profile import와 Gateway 전용 실행·DB 환경변수 계약을 별도로 검증합니다.
 $gatewayPath = Join-Path $Root "cpf-gateway/src/main/resources/application.yml"
@@ -157,7 +201,9 @@ $result = [pscustomobject]@{
     generatedAt = (Get-Date).ToString("o")
     status = $(if ($failures.Count -eq 0) { "DONE" } else { "FAILED" })
     failureCount = $failures.Count
-    checkedModules = @($modules | ForEach-Object { $_.project })
+    checkedModules = @($modules | ForEach-Object { $_.project }) +
+        @($batchRuntimes | ForEach-Object { $_.project }) +
+        @("cpf-gateway")
     checkedProfiles = $profiles
     failures = @($failures.ToArray())
     checks = @($checks.ToArray())

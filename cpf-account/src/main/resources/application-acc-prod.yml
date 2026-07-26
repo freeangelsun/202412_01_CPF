@@ -12,9 +12,10 @@ cpf:
     module-id: ${ACC_MODULE_ID:ACC}
     instance-id: ${ACC_INSTANCE_ID:ACC01}
     was-id: ${ACC_WAS_ID:ACCP001}
-  datasource:
-    mode: ${ACC_DATASOURCE_MODE:jndi}
-    url: ${ACC_DATASOURCE_URL}
-    username: ${ACC_DATASOURCE_USERNAME}
-    password: ${ACC_DATASOURCE_PASSWORD}
-    jndi-name: ${ACC_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAccountDataSource}
+  acc:
+    datasource:
+      mode: ${ACC_DATASOURCE_MODE:jndi}
+      url: ${ACC_DATASOURCE_URL}
+      username: ${ACC_DATASOURCE_USERNAME}
+      password: ${ACC_DATASOURCE_PASSWORD}
+      jndi-name: ${ACC_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAccountDataSource}

@@ -1,6 +1,8 @@
 package com.cpf.batch.control;
 
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +17,12 @@ import java.util.Map;
 @RequestMapping("/api/v1/batch/center-cut")
 public class CenterCutReconciliationController {
     private final JdbcTemplate jdbc;
-    public CenterCutReconciliationController(JdbcTemplate jdbc) { this.jdbc = jdbc; }
+    private final CpfVendorSqlCatalog sql;
+
+    public CenterCutReconciliationController(JdbcTemplate jdbc, Environment environment) {
+        this.jdbc = jdbc;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+    }
 
     @PostMapping("/executions/{executionId}/reprocess-failed")
     @Transactional
@@ -23,18 +30,9 @@ public class CenterCutReconciliationController {
                                                                 @RequestBody ApprovedRequest request) {
         approve(request);
         Map<String, Object> execution = execution(executionId);
-        int changed = jdbc.update("""
-            UPDATE bat_center_cut_item
-               SET item_status='RETRY',retry_count=retry_count+1,completed_at=NULL,
-                   last_error_message=NULL,updated_at=CURRENT_TIMESTAMP
-             WHERE center_cut_execution_id=? AND item_status='FAILED'
-            """, executionId);
-        jdbc.update("""
-            UPDATE bat_center_cut_execution
-               SET failure_count=GREATEST(0,failure_count-?),execution_state='RUNNING',
-                   completed_at=NULL,updated_at=CURRENT_TIMESTAMP(6)
-             WHERE center_cut_execution_id=? AND execution_state IN ('FAILED','PAUSED')
-            """, changed, executionId);
+        int changed = jdbc.update(sql.required("centercut-reconcile-failed-items"), executionId);
+        jdbc.update(sql.required("centercut-reconcile-failed-execution"),
+                changed, changed, executionId);
         audit(String.valueOf(execution.get("center_cut_job_id")), executionId,
                 "REPROCESS_FAILED", request, changed);
         return ResponseEntity.accepted().body(Map.of("executionId", executionId, "requeued", changed));
@@ -46,19 +44,9 @@ public class CenterCutReconciliationController {
                                                                  @RequestBody ApprovedRequest request) {
         approve(request);
         Map<String, Object> execution = execution(executionId);
-        int changed = jdbc.update("""
-            UPDATE bat_center_cut_item
-               SET item_status='RETRY',retry_count=retry_count+1,completed_at=NULL,
-                   last_error_message='Approved replay after UNKNOWN_RESULT reconciliation',
-                   updated_at=CURRENT_TIMESTAMP
-             WHERE center_cut_execution_id=? AND item_status='UNKNOWN_RESULT'
-            """, executionId);
-        jdbc.update("""
-            UPDATE bat_center_cut_execution
-               SET unknown_count=GREATEST(0,unknown_count-?),execution_state='RUNNING',
-                   completed_at=NULL,last_error_message=NULL,updated_at=CURRENT_TIMESTAMP(6)
-             WHERE center_cut_execution_id=? AND execution_state='UNKNOWN_RESULT'
-            """, changed, executionId);
+        int changed = jdbc.update(sql.required("centercut-reconcile-unknown-items"), executionId);
+        jdbc.update(sql.required("centercut-reconcile-unknown-execution"),
+                changed, changed, executionId);
         audit(String.valueOf(execution.get("center_cut_job_id")), executionId,
                 "RECONCILE_UNKNOWN", request, changed);
         return ResponseEntity.accepted().body(Map.of("executionId", executionId, "requeued", changed));
@@ -70,11 +58,7 @@ public class CenterCutReconciliationController {
     public ResponseEntity<Map<String, Object>> failedJob(@PathVariable String jobId,
                                                           @RequestBody ApprovedRequest request) {
         approve(request);
-        int changed = jdbc.update("""
-            UPDATE bat_center_cut_item
-               SET item_status='RETRY',retry_count=retry_count+1,completed_at=NULL,updated_at=CURRENT_TIMESTAMP
-             WHERE center_cut_job_id=? AND item_status='FAILED'
-            """, jobId);
+        int changed = jdbc.update(sql.required("centercut-reconcile-failed-job"), jobId);
         audit(jobId, null, "REPROCESS_FAILED_JOB", request, changed);
         return ResponseEntity.accepted().body(Map.of("jobId", jobId, "requeued", changed));
     }
@@ -84,17 +68,13 @@ public class CenterCutReconciliationController {
     public ResponseEntity<Map<String, Object>> unknownJob(@PathVariable String jobId,
                                                            @RequestBody ApprovedRequest request) {
         approve(request);
-        int changed = jdbc.update("""
-            UPDATE bat_center_cut_item
-               SET item_status='RETRY',retry_count=retry_count+1,completed_at=NULL,updated_at=CURRENT_TIMESTAMP
-             WHERE center_cut_job_id=? AND item_status='UNKNOWN_RESULT'
-            """, jobId);
+        int changed = jdbc.update(sql.required("centercut-reconcile-unknown-job"), jobId);
         audit(jobId, null, "RECONCILE_UNKNOWN_JOB", request, changed);
         return ResponseEntity.accepted().body(Map.of("jobId", jobId, "requeued", changed));
     }
 
     private Map<String, Object> execution(String id) {
-        return jdbc.queryForMap("SELECT center_cut_job_id,execution_state FROM bat_center_cut_execution WHERE center_cut_execution_id=?", id);
+        return jdbc.queryForMap(sql.required("centercut-reconcile-load-execution"), id);
     }
 
     private static void approve(ApprovedRequest request) {
@@ -108,11 +88,8 @@ public class CenterCutReconciliationController {
 
     private void audit(String jobId, String executionId, String operation,
                        ApprovedRequest request, int count) {
-        jdbc.update("""
-            INSERT INTO bat_operation_log(job_id,operation_type,operator_id,reason,after_data,
-                                          result_type,result_message,created_by,updated_by)
-            VALUES(?,?,?,?,?,'S','OK',?,?)
-            """, jobId, operation, request.requestedBy(),
+        jdbc.update(sql.required("centercut-reconcile-audit"),
+                jobId, operation, request.requestedBy(),
                 SensitiveTextSanitizer.sanitize(request.reason()),
                 "executionId=" + executionId + ",count=" + count + ",approvedBy=" + request.approvedBy(),
                 request.requestedBy(), request.requestedBy());

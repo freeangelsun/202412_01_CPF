@@ -142,8 +142,14 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             @RequestParam(required = false) String businessDate,
             @RequestParam(required = false) String jobName,
             @RequestParam(required = false) Long jobInstanceId,
+            @RequestParam(required = false) String serverInstanceId,
             @RequestParam(defaultValue = "100") int limit) {
-        return ResponseEntity.ok(batchJobLogService.findLogs(businessDate, jobName, jobInstanceId, limit));
+        return ResponseEntity.ok(batchJobLogService.findLogs(
+                businessDate,
+                jobName,
+                jobInstanceId,
+                serverInstanceId,
+                limit));
     }
 
     @GetMapping("/batch-job-logs/{businessDate}/{jobName}/{jobInstanceId}")
@@ -156,11 +162,13 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             @PathVariable String businessDate,
             @PathVariable String jobName,
             @PathVariable long jobInstanceId,
+            @RequestParam String serverInstanceId,
             @RequestParam(defaultValue = "200") int maxRecords) {
         return ResponseEntity.ok(batchJobLogService.findDetail(
                 businessDate,
                 jobName,
                 jobInstanceId,
+                serverInstanceId,
                 maxRecords));
     }
 

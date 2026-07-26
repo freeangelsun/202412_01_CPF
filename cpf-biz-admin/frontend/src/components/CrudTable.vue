@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed,onMounted,reactive,ref,watch } from "vue";
 import { bzaApi,hasBzaPermission } from "../features/auth/session";
-export interface CrudField{name:string;label:string;type?:"text"|"password"|"number"|"textarea"|"yn";sourceName?:string;required?:boolean;readonlyOnEdit?:boolean;}
+export interface CrudField{name:string;label:string;type?:string;sourceName?:string;required?:boolean;readonlyOnEdit?:boolean;}
 interface Page<T>{content:T[];totalElements:number;page:number;size:number;}
 const props=withDefaults(defineProps<{title:string;endpoint:string;writeEndpoint?:string;menuCode:string;columns:string[];fields:CrudField[];paged?:boolean;pageSize?:number;}>(),{paged:true,pageSize:20});
 const rows=ref<Record<string,unknown>[]>([]),loading=ref(false),dialogOpen=ref(false),message=ref(""),error=ref("");
-const page=ref(0),size=ref(props.pageSize),total=ref(0),editing=ref(false);const form=reactive<Record<string,unknown>>({});const writable=computed(()=>hasBzaPermission(props.menuCode,"WRITE"));
+const page=ref(0),size=ref(props.pageSize),total=ref(0),editing=ref(false);const form=reactive<Record<string,any>>({});const writable=computed(()=>hasBzaPermission(props.menuCode,"WRITE"));
 const totalPages=computed(()=>total.value===0?0:Math.ceil(total.value/size.value));
 async function load(){loading.value=true;error.value="";try{if(props.paged){const sep=props.endpoint.includes("?")?"&":"?";const url=`${props.endpoint.replace(/\/$/,"")}/page${sep}page=${page.value}&size=${size.value}`;const result=await bzaApi<Page<Record<string,unknown>>>(url);rows.value=result.content||[];total.value=Number(result.totalElements||0);}else{rows.value=await bzaApi<Record<string,unknown>[]>(props.endpoint);total.value=rows.value.length;}}catch(e){error.value=e instanceof Error?e.message:String(e);rows.value=[];}finally{loading.value=false;}}
 function open(item:Record<string,unknown>={}){for(const k of Object.keys(form))delete form[k];editing.value=Object.keys(item).length>0;for(const f of props.fields)form[f.name]=item[f.sourceName||f.name]??(f.type==="yn"?"Y":"");for(const id of ["permissionId","assignmentId","responsibilityId","userRoleId"])if(item[id]!=null)form[id]=item[id];if(item.versionNo!=null)form.expectedVersion=item.versionNo;form.reason="업무 기준정보 변경";message.value="";dialogOpen.value=true;}

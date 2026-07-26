@@ -27,6 +27,29 @@ class AdmApiAuthFilterTest {
     private static final String TOKEN = "test-token";
 
     @Test
+    void readinessAndLivenessArePublicReadOnlyProbes() throws Exception {
+        AdmApiAuthFilter filter = filter(forcedSession());
+        for (String path : List.of(
+                "/adm/api/health",
+                "/adm/api/health/liveness",
+                "/adm/api/health/readiness")) {
+            MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
+            MockFilterChain chain = new MockFilterChain();
+
+            filter.doFilter(request, new MockHttpServletResponse(), chain);
+
+            assertThat(chain.getRequest()).as(path).isNotNull();
+        }
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(
+                new MockHttpServletRequest("POST", "/adm/api/health/readiness"),
+                response,
+                new MockFilterChain());
+        assertThat(response.getStatus()).isEqualTo(401);
+    }
+
+    @Test
     void forcedSessionCannotReadOperationalApi() throws Exception {
         AdmApiAuthFilter filter = filter(forcedSession());
         MockHttpServletRequest request = request("GET", "/adm/api/logs");

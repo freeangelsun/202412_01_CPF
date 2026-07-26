@@ -77,13 +77,13 @@ function Get-CpfRuntimeModuleMap {
         [ordered]@{
             module = "BAT"
             moduleLower = "bat"
-            projectName = "cpf-batch"
-            wasId = "batWK01"
-            port = 8093
-            portEnv = "BAT_SERVER_PORT"
-            healthPath = "/bat/api/health/readiness"
-            jarDir = "cpf-batch/build/libs"
-            jarPattern = "cpf-batch-*.jar"
+            projectName = "cpf-batch:control-server"
+            wasId = "batCT01"
+            port = 8180
+            portEnv = "CPF_PORT"
+            healthPath = "/actuator/health/readiness"
+            jarDir = "cpf-batch/control-server/build/libs"
+            jarPattern = "cpf-batch-control-server-*.jar"
         },
         [ordered]@{
             module = "ACC"
@@ -103,7 +103,7 @@ function Get-CpfRuntimeModuleMap {
             wasId = "bzaAP01"
             port = 8091
             portEnv = "BZA_SERVER_PORT"
-            healthPath = "/v3/api-docs"
+            healthPath = "/actuator/health/readiness"
             jarDir = "cpf-biz-admin/build/libs"
             jarPattern = "cpf-biz-admin-*.jar"
         },
@@ -117,17 +117,6 @@ function Get-CpfRuntimeModuleMap {
             healthPath = "/v3/api-docs"
             jarDir = "cpf-reference/build/libs"
             jarPattern = "cpf-reference-*.jar"
-        },
-        [ordered]@{
-            module = "EXS"
-            moduleLower = "exs"
-            projectName = "cpf-external"
-            wasId = "exsAP01"
-            port = 8094
-            portEnv = "EXS_SERVER_PORT"
-            healthPath = "/actuator/health"
-            jarDir = "cpf-external/build/libs"
-            jarPattern = "cpf-external-*.jar"
         },
         [ordered]@{
             module = "GWY"

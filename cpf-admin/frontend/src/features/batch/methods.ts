@@ -89,21 +89,27 @@ export const batchMethods: Record<string, any> = {
       },
   async loadBatchJobLogDetail() {
         const search = this.reliabilitySearch;
-        if (!search.businessDate || !search.jobName || !search.jobInstanceId) {
-          this.setMessage("업무일자, Job 이름, JobInstance ID를 입력하세요.");
+        if (!search.businessDate || !search.jobName || !search.jobInstanceId || !search.serverInstanceId) {
+          this.setMessage("업무일자, Job 이름, JobInstance ID, Server Instance를 입력하세요.");
           return;
         }
         const path = [search.businessDate, search.jobName, search.jobInstanceId]
           .map(value => encodeURIComponent(value))
           .join("/");
+        const params = this.buildParams({
+          serverInstanceId: search.serverInstanceId,
+          maxRecords: 200
+        });
         this.reliabilityResult = {
           ...this.reliabilityResult,
-          batchJobLogDetail: await this.getJson(`/adm/api/reliability/batch-job-logs/${path}?maxRecords=200`)
+          batchJobLogDetail: await this.getJson(
+            `/adm/api/reliability/batch-job-logs/${path}?${params.toString()}`
+          )
         };
         this.setMessage("BAT JobInstance 로그 상세를 조회했습니다.");
       },
   async loadBatch() {
-        const [jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps, calendar] = await Promise.all([
+        const [jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps] = await Promise.all([
           this.getJson("/adm/api/batch/jobs"),
           this.getJson("/adm/api/batch/executions?limit=50"),
           this.getJson("/adm/api/batch/schedules"),
@@ -114,10 +120,9 @@ export const batchMethods: Record<string, any> = {
           this.getJson(`/adm/api/batch/locks?${this.buildParams({ jobId: this.batchForm.jobId }).toString()}`),
           this.getJson(`/adm/api/batch/ghost-candidates?${this.buildParams({ heartbeatTimeoutSeconds: this.batchForm.heartbeatTimeoutSeconds }).toString()}`),
           this.getJson(`/adm/api/batch/operations?${this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 50 }).toString()}`),
-          this.getJson(`/adm/api/batch/steps?${this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 50 }).toString()}`),
-          this.getJson(`/adm/api/batch/calendar?${this.buildParams({ calendarId: this.batchForm.calendarId }).toString()}`)
+          this.getJson(`/adm/api/batch/steps?${this.buildParams({ jobId: this.batchForm.jobId, executionId: this.batchForm.executionId, limit: 50 }).toString()}`)
         ]);
-        this.batchResult = { jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps, calendar };
+        this.batchResult = { jobs, executions, schedules, instances, workers, relations, targets, locks, ghostCandidates, operations, steps };
       },
   async loadCenterCut() {
         const jobId = this.centerCutForm.centerCutJobId;

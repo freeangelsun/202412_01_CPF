@@ -20,6 +20,7 @@
           <label>업무일자 <input v-model="reliabilitySearch.businessDate" type="text" placeholder="yyyyMMdd"></label>
           <label>Job 이름 <input v-model="reliabilitySearch.jobName" type="text"></label>
           <label>JobInstance ID <input v-model.number="reliabilitySearch.jobInstanceId" type="number" min="1"></label>
+          <label>Server Instance <input v-model="reliabilitySearch.serverInstanceId" type="text"></label>
           <label>조회 건수 <input v-model.number="reliabilitySearch.limit" type="number" min="1" max="500"></label>
           <label>Replay Message ID <input v-model="reliabilityAction.messageId" type="text"></label>
           <label>Unknown ID <input v-model="reliabilityAction.unknownId" type="text"></label>

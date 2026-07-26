@@ -12,6 +12,13 @@ Vendor별 Physical SQL은 `cpf-tools/db/vendor/<vendor>` 하나만 제품 정본
 
 Provision / Install / Product Seed / Optional Sample / Test Seed / Migration / Verify / Rollback을 분리한다. Split DDL이 Schema 설계 정본이며 generated bundle과 central MariaDB mirror는 build script로 재생성한다.
 
+Platform Table lifecycle/audit 계약은
+`cpf-tools/db/metadata/platform-table-lifecycle-policy.json`, Version별 Comment delta는
+`cpf-tools/db/metadata/platform-schema-comment-migration-v*.json`이 소유한다. 신규
+Table은 기본 full-audit이며 명시적 lifecycle 예외만 허용한다. Migration Generator는
+Canonical 전체가 아니라 Version delta를 생성하고, Rollback은 이전 Version의 Comment와
+Object 정의를 보존해야 한다.
+
 ## Generated Domain
 
 DomainName/SystemCode metadata와 Vendor `domain-template`을 조합한다. 신규 PAY/INS 등을 위해 CPF Java source에 switch/if를 추가하거나 Domain마다 5 Vendor SQL을 복제하면 안 된다.

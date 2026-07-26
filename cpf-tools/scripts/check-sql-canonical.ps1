@@ -22,7 +22,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 $result = [ordered]@{
     checkedAt = [DateTimeOffset]::Now.ToString("o")
     status = "실패"
-    canonicalRoot = "cpf-tools/db/source/mariadb"
+    canonicalRoot = "cpf-tools/db/vendor/mariadb/source"
     forbiddenModuleVendorResources = @()
     splitTableCount = 0
     generatedTableCount = 0
@@ -62,20 +62,19 @@ if ($forbidden.Count -gt 0) {
     Add-Failure "Module-local Vendor SQL/MyBatis resource가 남아 있습니다. Central Pack으로만 연결하세요."
 }
 
-$sqlRoot = Join-Path $Root "cpf-tools/db/source/mariadb"
+$sqlRoot = Join-Path $Root "cpf-tools/db/vendor/mariadb/source"
 $splitFiles = @(
     "10_cpf_schema.sql",
     "20_cmn_schema.sql",
     "30_adm_schema.sql",
     "35_bat_schema.sql",
-    "40_business_modules_schema.sql",
-    "45_external_schema.sql"
+    "40_business_modules_schema.sql"
 )
 $splitText = ""
 foreach ($file in $splitFiles) {
     $path = Join-Path $sqlRoot $file
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-        Add-Failure "Split SQL이 없습니다: cpf-tools/db/source/mariadb/$file"
+        Add-Failure "Split SQL이 없습니다: cpf-tools/db/vendor/mariadb/source/$file"
         continue
     }
     $splitText += "`n" + (Read-Utf8 $path)
@@ -114,13 +113,13 @@ if ($result.generatedTableCount -ne $result.centralMariaTableCount) {
 if ((Test-Path $generatedInstall) -and (Test-Path $centralInstall)) {
     if ((Get-FileHash $generatedInstall -Algorithm SHA256).Hash -ne
             (Get-FileHash $centralInstall -Algorithm SHA256).Hash) {
-        Add-Failure "cpf-tools/db/source/mariadb/00_empty_install.sql과 Central MariaDB install이 byte parity가 아닙니다."
+        Add-Failure "MariaDB canonical source/00_empty_install.sql과 Central lifecycle install이 byte parity가 아닙니다."
     }
 }
 if ((Test-Path $generatedVerify) -and (Test-Path $centralVerify)) {
     if ((Get-FileHash $generatedVerify -Algorithm SHA256).Hash -ne
             (Get-FileHash $centralVerify -Algorithm SHA256).Hash) {
-        Add-Failure "cpf-tools/db/source/mariadb/00_verify.sql과 Central MariaDB verify가 byte parity가 아닙니다."
+        Add-Failure "MariaDB canonical source/00_verify.sql과 Central lifecycle verify가 byte parity가 아닙니다."
     }
 }
 
@@ -152,7 +151,7 @@ foreach ($vendor in $requiredVendors) {
 $result.vendorPackStatuses = @($packStatuses)
 
 # Historical Flyway checksum은 변경해서 통과시키지 않습니다.
-$migrationDir = Join-Path $sqlRoot "migration/flyway"
+$migrationDir = Join-Path $centralMariaRoot "migration/flyway"
 if (-not (Test-Path -LiteralPath $migrationDir -PathType Container)) {
     Add-Failure "Flyway migration directory가 없습니다."
 } else {
@@ -209,7 +208,7 @@ if (-not (Test-Path -LiteralPath $migrationDir -PathType Container)) {
     }
 }
 
-$generatorPath = Join-Path $Root "cpf-tools/scripts/create-domain.ps1"
+$generatorPath = Join-Path $Root "cpf-tools/generator/create-domain.ps1"
 if (-not (Test-Path -LiteralPath $generatorPath -PathType Leaf)) {
     Add-Failure "Domain Generator가 없습니다."
 } else {

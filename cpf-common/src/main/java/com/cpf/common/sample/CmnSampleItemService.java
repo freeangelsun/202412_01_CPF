@@ -1,5 +1,6 @@
 package com.cpf.common.sample;
 
+import com.cpf.common.common.base.CmnBaseService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -22,7 +23,7 @@ import java.util.Optional;
  * cmn_sample_item 한 개로 DB 연결과 표준 CRUD/Paging/Transaction을 검증합니다.
  */
 @Service
-public class CmnSampleItemService {
+public class CmnSampleItemService extends CmnBaseService {
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 100;
 
@@ -259,14 +260,6 @@ public class CmnSampleItemService {
             return DEFAULT_LIMIT;
         }
         return Math.min(limit, MAX_LIMIT);
-    }
-
-    private String requireText(String value, String field) {
-        String result = blankToNull(value);
-        if (result == null) {
-            throw new IllegalArgumentException(field + "는 필수입니다.");
-        }
-        return result;
     }
 
     private String defaultText(String value, String defaultValue) {

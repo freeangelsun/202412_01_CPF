@@ -1,0 +1,14 @@
+UPDATE bat_center_cut_execution
+   SET execution_state = 'PAUSED',
+       updated_at = @NOW6@
+ WHERE execution_state = 'DRAINING'
+   AND NOT EXISTS (
+       SELECT 1
+         FROM bat_center_cut_item i
+         JOIN bat_center_cut_claim c
+           ON c.center_cut_item_id = i.center_cut_item_id
+        WHERE i.center_cut_execution_id =
+              bat_center_cut_execution.center_cut_execution_id
+          AND c.claim_status IN ('CLAIMED', 'RUNNING')
+          AND c.lease_until >= @NOW6@
+   )

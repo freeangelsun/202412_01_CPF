@@ -15,8 +15,14 @@
 | `cpf-tools/db/generated/database-schema-manifest.json` | canonical schema metadata | 생성·추적 산출물 |
 | `cpf-tools/generator` | 사용자 진입용 Generated Domain command | 정식 API |
 | `cpf-tools/scripts` | 구현 script와 검증 gate | 내부 Tooling |
+| `cpf-tools/build/gradle-plugin` | CPF Domain Convention Gradle Plugin 격리 Build | 정본 |
+| `cpf-tools/build/platform-bom` | 배포용 CPF Platform BOM 격리 Build | 정본 |
 
 `cpf-tools/db/source/mariadb`처럼 특정 Vendor만 별도 top-level source tree를 갖는 구조는 사용하지 않는다. Vendor source는 모두 `vendor/<vendor>/source` 경계 안에서 관리한다.
+
+`cpf-tools/build`은 이름과 달리 재생성 산출물 디렉터리가 아니라 Build Tooling Source의
+정식 Owner다. 그 아래 각 격리 Build의 `.gradle`, `build`, `bin`만 산출물로 취급한다.
+Root `settings.gradle`은 두 격리 Build를 Composite Build로 직접 참조한다.
 
 ## 3. DB 수정의 유일한 완료 경로
 
@@ -163,4 +169,3 @@ Runner의 결과는 sanitized Evidence로 저장하고, 다른 PC의 과거 PASS
 - `check-frontend-route-targets.ps1`: ADM/BZA lazy route 실파일과 외부 Runtime URL을 확인한다.
 - `check-r10-cleanup.ps1`: EXS baseline, Core Batch legacy, root log/ZIP/temp와 stale source를 확인한다.
 - `check-r10-product-standard.ps1`: Calendar/Log/Foundation API/Generated Domain 동기화 등 현재 제품 Guardrail을 확인한다.
-

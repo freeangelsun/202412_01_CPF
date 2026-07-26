@@ -1,6 +1,7 @@
 package com.cpf.reference.batch;
 
 import com.cpf.core.api.batch.CpfBatchLogPaths;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
@@ -15,23 +16,30 @@ import java.util.Map;
  * 조회할 때 사용합니다. jobName 검증은 CPF 로그 경로 정책을 재사용해 경로 조작 문자열이
  * 운영 조회 URL로 전달되지 않게 합니다.</p>
  */
+@Component
 public class ReferenceAdmBatchLogQueryEducationSample {
 
-    public Map<String, String> queryUrls(LocalDate businessDate, String jobName, long jobInstanceId) {
-        // 경로를 계산하는 호출 자체가 jobName과 식별자 규격을 검증합니다.
-        CpfBatchLogPaths.relativePath(jobName, jobInstanceId, businessDate);
+    public Map<String, String> queryUrls(
+            LocalDate businessDate,
+            String jobName,
+            long jobInstanceId,
+            String serverInstanceId) {
+        // 경로를 계산하는 호출 자체가 jobName과 다중 인스턴스 식별자 규격을 검증합니다.
+        CpfBatchLogPaths.relativePath(jobName, jobInstanceId, businessDate, serverInstanceId);
         String date = businessDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 
         String listUrl = UriComponentsBuilder.fromPath("/adm/api/reliability/batch-job-logs")
                 .queryParam("businessDate", date)
                 .queryParam("jobName", jobName)
                 .queryParam("jobInstanceId", jobInstanceId)
+                .queryParam("serverInstanceId", serverInstanceId)
                 .queryParam("limit", 100)
                 .build()
                 .encode()
                 .toUriString();
         String detailUrl = UriComponentsBuilder
                 .fromPath("/adm/api/reliability/batch-job-logs/{businessDate}/{jobName}/{jobInstanceId}")
+                .queryParam("serverInstanceId", serverInstanceId)
                 .queryParam("maxRecords", 500)
                 .buildAndExpand(date, jobName, jobInstanceId)
                 .encode()

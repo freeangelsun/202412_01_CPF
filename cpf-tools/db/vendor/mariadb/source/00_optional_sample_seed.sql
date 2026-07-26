@@ -2,7 +2,6 @@
 -- 목적: 사용자가 선택한 CMN/REF/로컬 Runtime Sample 데이터만 반영
 -- 정본은 database-source-plan.json의 mariadb.sourceRoot 아래 번호별 분리 SQL입니다.
 -- 분리 SQL 변경 후 pwsh -File cpf-tools/scripts/build-all-install-sql.ps1 로 재생성합니다.
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/55_cmn_seed_data.sql
 -- ============================================================================
@@ -37,7 +36,6 @@ ON DUPLICATE KEY UPDATE
     sort_order = VALUES(sort_order),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP(3);
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/58_reference_external_edu_seed.sql
 -- ============================================================================
@@ -111,7 +109,6 @@ INSERT INTO cpf_service_routing_policy (
     priority = VALUES(priority),
     updated_by = VALUES(updated_by),
     updated_at = CURRENT_TIMESTAMP(3);
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/58_reference_runtime_seed.sql
 -- ============================================================================
@@ -715,7 +712,6 @@ ON DUPLICATE KEY UPDATE
     decision_rule = VALUES(decision_rule), required_count = VALUES(required_count),
     required_yn = VALUES(required_yn), sort_order = VALUES(sort_order),
     updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
-
 -- ============================================================================
 -- cpf-tools/db/vendor/mariadb/source/59_adm_local_seed.sql
 -- ============================================================================

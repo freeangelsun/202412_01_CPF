@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /** CPF 공통 메시지 cache를 commit-safe snapshot 방식으로 관리합니다. */
 @Service
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class MessageCacheService extends com.cpf.common.common.base.CmnBaseService {
     private static final Logger logger = LoggerFactory.getLogger(MessageCacheService.class);
     private static final String CACHE_NAME = "messageCache";

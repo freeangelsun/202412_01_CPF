@@ -43,7 +43,7 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.USER_ID, CpfHeaderCategory.RECOMMENDED, "사용자 계정 ID", "인증 시스템", "인증/감사 계층", true, false, "EXEC_USER", 100, true, true, "주체"),
             spec(CpfHeaderNames.OPERATOR_ID, CpfHeaderCategory.RECOMMENDED, "ADM 운영자 ID", "ADM 인증", "인증/감사 계층", true, false, "OPERATOR_ID", 100, true, true, "주체"),
             spec(CpfHeaderNames.CUSTOMER_NO, CpfHeaderCategory.OPTIONAL, "고객 번호", "업무 서비스", "업무 서비스", true, false, "CUSTOMER_NO", 50, true, true, "주체"),
-            spec(CpfHeaderNames.MEMBER_NO, CpfHeaderCategory.OPTIONAL, "회원 번호", "MBR 서비스", "업무 서비스", true, false, "MEMBER_NO", 50, true, true, "주체"),
+            spec(CpfHeaderNames.MEMBER_NO, CpfHeaderCategory.OPTIONAL, "회원 번호", "업무 서비스", "업무 서비스", true, false, "MEMBER_NO", 50, true, true, "주체"),
             spec(CpfHeaderNames.TENANT_ID, CpfHeaderCategory.OPTIONAL, "테넌트 ID", "Gateway 또는 업무 서비스", "업무 서비스", true, false, "TENANT_ID", 50, true, false, "주체"),
             spec(CpfHeaderNames.ORGANIZATION_CODE, CpfHeaderCategory.OPTIONAL, "조직 코드", "업무 서비스", "업무 서비스", true, false, "ORGANIZATION_CODE", 50, true, false, "주체"),
             spec(CpfHeaderNames.BRANCH_CODE, CpfHeaderCategory.OPTIONAL, "지점 코드", "업무 서비스", "업무 서비스", true, false, "BRANCH_CODE", 50, true, false, "주체"),

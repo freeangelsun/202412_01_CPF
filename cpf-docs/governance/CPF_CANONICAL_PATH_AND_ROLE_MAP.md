@@ -20,9 +20,11 @@
 | 개발/Generator 가이드 | `cpf-docs/development/` | 개발자용 |
 | 운영/설치/복구 가이드 | `cpf-docs/operations/` | 운영자용 |
 | Architecture/Specification | `cpf-docs/architecture/` | 영구 제품 구조/계약 |
-| 제품 Tool/Shell | `cpf-tools/scripts/` | 기존 Root `cpf-tools/scripts/` 대체 |
-| DB Source SSOT | `cpf-tools/db/source/<vendor>/` | 사람이 수정하는 split SQL/metadata |
-| DB Vendor Pack | `cpf-tools/db/vendor/<vendor>/` | 배포/Runtime 선택 Pack |
+| 제품 Tool/Shell | `cpf-tools/scripts/` | Root `scripts/`를 사용하지 않음 |
+| Gradle Convention Plugin | `cpf-tools/build/gradle-plugin/` | 제품 Runtime과 분리된 추적 대상 격리 Build |
+| Platform BOM | `cpf-tools/build/platform-bom/` | 제품 Runtime과 분리된 추적 대상 격리 Build |
+| DB Source SSOT | `cpf-tools/db/vendor/<vendor>/source/` | Vendor Pack 경계 안의 사람이 수정하는 split SQL/metadata |
+| DB Vendor Pack | `cpf-tools/db/vendor/<vendor>/` | Source·Lifecycle·Runtime·Template을 함께 소유하는 배포/Runtime 선택 Pack |
 | Generated Domain DB Template | `cpf-tools/db/vendor/<vendor>/domain-template/` | 임의 Domain 생성 정본 |
 
 ## 이전 경로 → 현재 경로
@@ -35,15 +37,20 @@
 | `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md` | `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md` | 이동 |
 | `cpf-docs/governance/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` | `cpf-docs/work/state/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` | 이동/최종 흡수 |
 | `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md` | `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md` | 이동 |
-| `cpf-tools/scripts/*` | `cpf-tools/scripts/*` | Merge 후 Root scripts 삭제 |
-| `cpf-tools/db/source/mariadb/*` | `cpf-tools/db/source/mariadb/*` | DB Source SSOT로 이동 |
+| Root `scripts/*` | `cpf-tools/scripts/*` | Merge 후 Root scripts 삭제 |
+| Root `cpf-gradle-plugin/*` | `cpf-tools/build/gradle-plugin/*` | Build Tooling Owner로 이동 |
+| Root `cpf-platform-bom/*` | `cpf-tools/build/platform-bom/*` | Build Tooling Owner로 이동 |
+| `cpf-tools/db/source/mariadb/*` | `cpf-tools/db/vendor/mariadb/source/*` | 중앙 Vendor Pack 경계의 DB Source SSOT로 이동 |
 
 ## DB 수정 절차
 
 다음 순서를 거꾸로 하지 않는다.
 
 ```text
-cpf-tools/db/source/<vendor>
+Requirement / Data Model
+→ Canonical Schema / Metadata
+→ Generator / Domain Template
+→ cpf-tools/db/vendor/<vendor>/source
 → build-all-install-sql
 → cpf-tools/db/vendor/<vendor>
 → migration/rollback

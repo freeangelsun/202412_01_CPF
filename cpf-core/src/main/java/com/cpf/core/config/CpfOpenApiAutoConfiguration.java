@@ -73,38 +73,6 @@ public class CpfOpenApiAutoConfiguration {
     }
 
     @Bean
-    public GroupedOpenApi cpfMbrBseApiGroup() {
-        return GroupedOpenApi.builder()
-                .group("MBR-BSE Member")
-                .pathsToMatch("/mbr/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi cpfBzaApiGroup() {
-        return GroupedOpenApi.builder()
-                .group("BZA Backoffice")
-                .pathsToMatch("/bza/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi cpfReferenceApiGroup() {
-        return GroupedOpenApi.builder()
-                .group("REF Reference Samples")
-                .pathsToMatch("/api/reference/**", "/reference/edu/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi cpfAdmOprApiGroup() {
-        return GroupedOpenApi.builder()
-                .group("ADM-OPR Administration")
-                .pathsToMatch("/adm/api/**")
-                .build();
-    }
-
-    @Bean
     @ConditionalOnMissingBean(name = "cpfSwaggerUiHtmlRedirectFilter")
     public FilterRegistrationBean<Filter> cpfSwaggerUiHtmlRedirectFilter() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();

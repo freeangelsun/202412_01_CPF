@@ -48,7 +48,7 @@ function Get-TargetFiles {
     param([string] $BasePath)
 
     $allowedExtensions = @('.java', '.xml', '.yml', '.yaml', '.sql', '.json', '.ps1', '.gradle')
-    $roots = @('cpf', 'cmn', 'mbr', 'ref', 'adm', 'bza', 'bat', 'scripts', 'cpf-tools/db/source/mariadb', 'deploy')
+    $roots = @('cpf', 'cmn', 'mbr', 'ref', 'adm', 'bza', 'bat', 'cpf-tools/scripts', 'cpf-tools/db/vendor/mariadb/source', 'deploy')
     $files = foreach ($relativeRoot in $roots) {
         $path = Join-Path $BasePath $relativeRoot
         if (Test-Path -LiteralPath $path) {

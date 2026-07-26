@@ -35,19 +35,37 @@ if ([string]::IsNullOrWhiteSpace($ResultDir)) {
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 
-$moduleOrder = @("core", "common", "admin", "bizAdmin", "batch", "reference", "member", "account")
+$profileModuleProperties = @($profile.modules.PSObject.Properties)
+if ($profileModuleProperties.Count -eq 0) {
+    throw "DB Profile modules가 비어 있습니다."
+}
+# 설치 순서는 Tool source의 고정 Domain 목록이 아니라 Profile의 선언 순서를 사용합니다.
+$moduleOrder = @($profileModuleProperties | ForEach-Object { [string]$_.Name })
 $moduleProfiles = @{}
 foreach ($key in $moduleOrder) {
     $moduleProfiles[$key] = ConvertTo-CpfModuleProfile $profile $key
 }
 
-$enabledKeys = @($moduleOrder | Where-Object { $moduleProfiles[$_].enabled })
-foreach ($requiredKey in @($moduleOrder | Where-Object { $moduleProfiles[$_].required })) {
+$platformKeys = @($moduleOrder | Where-Object {
+        $moduleProfiles[$_].databaseLifecycle -eq "platform-pack"
+    })
+$generatedProfileKeys = @($moduleOrder | Where-Object {
+        $moduleProfiles[$_].databaseLifecycle -eq "generated-domain"
+    })
+$enabledKeys = @($platformKeys | Where-Object { $moduleProfiles[$_].enabled })
+foreach ($requiredKey in @($platformKeys | Where-Object { $moduleProfiles[$_].required })) {
     if (-not $moduleProfiles[$requiredKey].enabled) {
         throw "필수 Module DB를 disabled로 설정할 수 없습니다: $requiredKey"
     }
 }
 if ($enabledKeys.Count -eq 0) { throw "설치할 Module DB가 하나도 없습니다." }
+$coreCandidates = @($platformKeys | Where-Object {
+        $moduleProfiles[$_].required -and $moduleProfiles[$_].systemCode -eq "CPF"
+    })
+if ($coreCandidates.Count -ne 1) {
+    throw "Profile에는 required=true/systemCode=CPF인 Core DB가 정확히 하나 있어야 합니다."
+}
+$coreKey = $coreCandidates[0]
 
 $hasSelector = $All -or $DomainName.Count -gt 0 -or $SystemCode.Count -gt 0 -or $ModuleName.Count -gt 0
 if ($All -and ($DomainName.Count -gt 0 -or $SystemCode.Count -gt 0 -or $ModuleName.Count -gt 0)) {
@@ -60,31 +78,55 @@ if (-not $hasSelector -or $All) {
     $selected = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
     foreach ($name in $DomainName) {
-        $matched = @($moduleOrder | Where-Object {
+        $matched = @($platformKeys | Where-Object {
             $moduleProfiles[$_].domainName -eq $name
         })
-        if ($matched.Count -eq 0) { throw "알 수 없는 DomainName입니다: $name" }
+        if ($matched.Count -eq 0) {
+            $generatedMatch = @($generatedProfileKeys | Where-Object {
+                    $moduleProfiles[$_].domainName -eq $name
+                })
+            if ($generatedMatch.Count -gt 0) {
+                throw "Generated Domain은 Platform Pack으로 설치하지 않습니다. manifest 기반 initialize-generated-domain-databases.ps1를 사용하세요: $name"
+            }
+            throw "알 수 없는 Platform DomainName입니다: $name"
+        }
         foreach ($key in $matched) { [void]$selected.Add($key) }
     }
 
     foreach ($code in $SystemCode) {
         $normalized = $code.Trim().ToUpperInvariant()
-        $matched = @($moduleOrder | Where-Object {
+        $matched = @($platformKeys | Where-Object {
             $moduleProfiles[$_].systemCode -eq $normalized
         })
-        if ($matched.Count -eq 0) { throw "알 수 없는 SystemCode입니다: $code" }
+        if ($matched.Count -eq 0) {
+            $generatedMatch = @($generatedProfileKeys | Where-Object {
+                    $moduleProfiles[$_].systemCode -eq $normalized
+                })
+            if ($generatedMatch.Count -gt 0) {
+                throw "Generated Domain은 Platform Pack으로 설치하지 않습니다. manifest 기반 initialize-generated-domain-databases.ps1를 사용하세요: $code"
+            }
+            throw "알 수 없는 Platform SystemCode입니다: $code"
+        }
         foreach ($key in $matched) { [void]$selected.Add($key) }
     }
 
     foreach ($name in $ModuleName) {
-        $matched = @($moduleOrder | Where-Object {
+        $matched = @($platformKeys | Where-Object {
             $moduleProfiles[$_].moduleName -eq $name
         })
-        if ($matched.Count -eq 0) { throw "알 수 없는 ModuleName입니다: $name" }
+        if ($matched.Count -eq 0) {
+            $generatedMatch = @($generatedProfileKeys | Where-Object {
+                    $moduleProfiles[$_].moduleName -eq $name
+                })
+            if ($generatedMatch.Count -gt 0) {
+                throw "Generated Domain은 Platform Pack으로 설치하지 않습니다. manifest 기반 initialize-generated-domain-databases.ps1를 사용하세요: $name"
+            }
+            throw "알 수 없는 Platform ModuleName입니다: $name"
+        }
         foreach ($key in $matched) { [void]$selected.Add($key) }
     }
 
-    $selectedKeys = @($moduleOrder | Where-Object { $selected.Contains($_) })
+    $selectedKeys = @($platformKeys | Where-Object { $selected.Contains($_) })
 }
 
 $disabledSelected = @($selectedKeys | Where-Object { -not $moduleProfiles[$_].enabled })
@@ -92,6 +134,9 @@ if ($disabledSelected.Count -gt 0) {
     throw "Profile에서 disabled인 Module은 설치할 수 없습니다: $($disabledSelected -join ', ')"
 }
 if ($selectedKeys.Count -eq 0) { throw "선택된 Module DB가 하나도 없습니다." }
+$fullPlatformSelection = $selectedKeys.Count -eq $enabledKeys.Count -and
+    @($enabledKeys | Where-Object { $_ -notin $selectedKeys }).Count -eq 0 -and
+    $generatedProfileKeys.Count -eq 0
 
 Write-Host "CPF DB selected modules: $($selectedKeys -join ', ')"
 
@@ -105,22 +150,32 @@ if ($unsupportedExecution.Count -gt 0) {
     throw "Platform DB Vendor Pack 실행 미구현/미검증입니다. MariaDB로 fallback하지 않습니다: $($details -join ', ')"
 }
 
-$logicalToKey = @{
-    cpfDB = "core"
-    cmnDB = "common"
-    admDB = "admin"
-    bzaDB = "bizAdmin"
-    batDB = "batch"
-    refDB = "reference"
-    mbrDB = "member"
-    accDB = "account"
+$logicalToKey = @{}
+foreach ($profileKey in $moduleOrder) {
+    $logicalDatabase = [string]$moduleProfiles[$profileKey].logicalDatabase
+    if ([string]::IsNullOrWhiteSpace($logicalDatabase)) {
+        throw "Profile logicalDatabase가 비어 있습니다: module=$profileKey"
+    }
+    if ($logicalToKey.ContainsKey($logicalDatabase)) {
+        throw "Profile logicalDatabase가 중복되었습니다: $logicalDatabase"
+    }
+    $logicalToKey[$logicalDatabase] = $profileKey
 }
 
 $installFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql"
 $productSeedFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql"
 $optionalSampleSeedFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/seed/00_optional_sample_seed.sql"
 $testSeedFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/seed/00_test_seed.sql"
-foreach ($requiredFile in @($installFile, $productSeedFile, $optionalSampleSeedFile, $testSeedFile)) {
+$verifyFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/verify/00_verify.sql"
+$schemaManifestFile = Join-Path $Root "cpf-tools/db/generated/database-schema-manifest.json"
+foreach ($requiredFile in @(
+    $installFile,
+    $productSeedFile,
+    $optionalSampleSeedFile,
+    $testSeedFile,
+    $verifyFile,
+    $schemaManifestFile
+)) {
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         throw "MariaDB Vendor Pack 파일이 없습니다: $requiredFile"
     }
@@ -188,6 +243,31 @@ function New-MariaProcessStartInfo {
         "--raw",
         "--skip-column-names"
     )) { [void]$psi.ArgumentList.Add($arg) }
+
+    switch ([string]$Target.sslMode) {
+        "disabled" {
+            [void]$psi.ArgumentList.Add("--ssl=0")
+        }
+        "required" {
+            [void]$psi.ArgumentList.Add("--ssl=1")
+        }
+        "verify-full" {
+            [void]$psi.ArgumentList.Add("--ssl=1")
+            [void]$psi.ArgumentList.Add("--ssl-verify-server-cert")
+            if (-not [string]::IsNullOrWhiteSpace([string]$Target.sslCaPath)) {
+                if (-not (Test-Path -LiteralPath $Target.sslCaPath -PathType Leaf)) {
+                    throw "MariaDB TLS CA 파일이 없습니다: module=$($Target.moduleKey) path=$($Target.sslCaPath)"
+                }
+                [void]$psi.ArgumentList.Add("--ssl-ca=$($Target.sslCaPath)")
+            }
+        }
+        "preferred" {
+            # MariaDB Client의 기본 TLS negotiation을 사용합니다.
+        }
+        default {
+            throw "지원하지 않는 MariaDB sslMode입니다: module=$($Target.moduleKey) sslMode=$($Target.sslMode)"
+        }
+    }
 
     if (-not [string]::IsNullOrWhiteSpace($Database)) {
         [void]$psi.ArgumentList.Add("--database=$Database")
@@ -349,11 +429,67 @@ function Get-ModuleSql {
     return Render-LogicalDatabaseNames $joined
 }
 
+function Split-CpfSqlDefinitions {
+    param([string] $Body)
+
+    $definitions = [System.Collections.Generic.List[string]]::new()
+    $current = [System.Text.StringBuilder]::new()
+    $depth = 0
+    [char] $quote = [char]0
+    for ($index = 0; $index -lt $Body.Length; $index++) {
+        $character = $Body[$index]
+        if ($quote -ne [char]0) {
+            [void] $current.Append($character)
+            if ($character -eq $quote) {
+                if ($index + 1 -lt $Body.Length -and $Body[$index + 1] -eq $quote) {
+                    [void] $current.Append($Body[++$index])
+                } elseif ($index -eq 0 -or $Body[$index - 1] -ne '\') {
+                    $quote = [char]0
+                }
+            }
+            continue
+        }
+        if ($character -in @("'", '"', '`')) {
+            $quote = $character
+            [void] $current.Append($character)
+            continue
+        }
+        if ($character -eq '(') {
+            $depth++
+            [void] $current.Append($character)
+            continue
+        }
+        if ($character -eq ')') {
+            $depth--
+            if ($depth -lt 0) { throw "Table DDL 괄호 깊이가 올바르지 않습니다." }
+            [void] $current.Append($character)
+            continue
+        }
+        if ($character -eq ',' -and $depth -eq 0) {
+            $definition = $current.ToString().Trim()
+            if (-not [string]::IsNullOrWhiteSpace($definition)) {
+                $definitions.Add($definition)
+            }
+            [void] $current.Clear()
+            continue
+        }
+        [void] $current.Append($character)
+    }
+    if ($quote -ne [char]0 -or $depth -ne 0) {
+        throw "Table DDL 문자열 또는 괄호가 닫히지 않았습니다."
+    }
+    $last = $current.ToString().Trim()
+    if (-not [string]::IsNullOrWhiteSpace($last)) {
+        $definitions.Add($last)
+    }
+    return $definitions.ToArray()
+}
 
 function Get-ExpectedTableColumns {
     param([string] $Sql)
 
     $rows = New-Object System.Collections.Generic.List[object]
+    $rowsByTable = @{}
     $matches = [regex]::Matches(
         $Sql,
         '(?is)CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+`?([A-Za-z][A-Za-z0-9_]*)`?\s*\((.*?)\)\s*ENGINE='
@@ -362,21 +498,39 @@ function Get-ExpectedTableColumns {
         $tableName = $match.Groups[1].Value
         $body = $match.Groups[2].Value
         $columns = New-Object System.Collections.Generic.List[string]
-        foreach ($lineRaw in ($body -split '\r?\n')) {
-            $line = $lineRaw.Trim()
+        foreach ($lineRaw in (Split-CpfSqlDefinitions $body)) {
+            $line = [regex]::Replace($lineRaw.Trim(), '\s+', ' ')
             $columnMatch = [regex]::Match(
                 $line,
-                '^`?([A-Za-z][A-Za-z0-9_]*)`?\s+(BIGINT|INT|INTEGER|SMALLINT|TINYINT|MEDIUMINT|VARCHAR|CHAR|DATE|DATETIME|TIMESTAMP|LONGTEXT|MEDIUMTEXT|TEXT|DECIMAL|NUMERIC|JSON|BLOB|LONGBLOB|DOUBLE|FLOAT|BOOLEAN|VARBINARY|BINARY)\b',
+                '^`?([A-Za-z][A-Za-z0-9_]*)`?\s+(BIGINT|INT|INTEGER|SMALLINT|TINYINT|MEDIUMINT|VARCHAR|CHAR|DATE|DATETIME|TIMESTAMP|TIME|LONGTEXT|MEDIUMTEXT|TEXT|DECIMAL|NUMERIC|JSON|BLOB|LONGBLOB|DOUBLE|FLOAT|BOOLEAN|VARBINARY|BINARY)\b',
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
             )
             if ($columnMatch.Success) {
                 $columns.Add($columnMatch.Groups[1].Value)
             }
         }
-        $rows.Add([pscustomobject]@{
+        $row = [pscustomobject]@{
             tableName = $tableName
             columns = @($columns.ToArray())
-        })
+        }
+        $rows.Add($row)
+        $rowsByTable[$tableName.ToLowerInvariant()] = $row
+    }
+
+    $alterColumnRegex = [regex]::new(
+        'ALTER\s+TABLE\s+`?([A-Za-z][A-Za-z0-9_]*)`?\s+ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([A-Za-z][A-Za-z0-9_]*)`?\s+(BIGINT|INT|INTEGER|SMALLINT|TINYINT|MEDIUMINT|VARCHAR|CHAR|DATE|DATETIME|TIMESTAMP|TIME|LONGTEXT|MEDIUMTEXT|TEXT|DECIMAL|NUMERIC|JSON|BLOB|LONGBLOB|DOUBLE|FLOAT|BOOLEAN|VARBINARY|BINARY)\b',
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+    foreach ($alterMatch in $alterColumnRegex.Matches($Sql)) {
+        $tableKey = $alterMatch.Groups[1].Value.ToLowerInvariant()
+        if (-not $rowsByTable.ContainsKey($tableKey)) {
+            throw "ALTER TABLE이 설치 Bundle에 없는 Table을 참조합니다: $($alterMatch.Groups[1].Value)"
+        }
+        $row = $rowsByTable[$tableKey]
+        $columnName = $alterMatch.Groups[2].Value
+        if ($columnName -notin @($row.columns)) {
+            $row.columns = @($row.columns) + $columnName
+        }
     }
     return @($rows.ToArray())
 }
@@ -408,6 +562,213 @@ ORDER BY ordinal_position;
     }
 }
 
+function Assert-MariaSchemaManifest {
+    param(
+        $Target,
+        [string] $ManifestPath
+    )
+
+    $manifest = Get-Content -LiteralPath $ManifestPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json -Depth 100
+    if ([int]$manifest.schemaVersion -lt 2) {
+        throw "지원하지 않는 Database Schema Manifest입니다: $ManifestPath"
+    }
+
+    $expectedTables = @(
+        $manifest.tables |
+            Where-Object {
+                [string]$_.vendor -eq "mariadb" -and
+                [string]$_.logicalDatabase -eq [string]$Target.logicalDatabase
+            }
+    )
+    if ($expectedTables.Count -eq 0) {
+        throw "Schema Manifest에 Module Table이 없습니다: module=$($Target.moduleKey) logicalDatabase=$($Target.logicalDatabase)"
+    }
+
+    $dbEscaped = ([string]$Target.databaseName).Replace("'", "''")
+    $actualTableText = Invoke-MariaText $Target $Target.adminUsername $Target.adminPassword @"
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = '$dbEscaped'
+  AND table_type = 'BASE TABLE'
+ORDER BY table_name;
+"@
+    $actualTableNames = @(
+        $actualTableText -split '\r?\n' |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_.Trim().ToLowerInvariant() }
+    )
+    $expectedTableNames = @(
+        $expectedTables |
+            ForEach-Object { ([string]$_.tableName).ToLowerInvariant() }
+    )
+    $missingTables = @($expectedTableNames | Where-Object { $_ -notin $actualTableNames })
+    $unexpectedTables = @($actualTableNames | Where-Object { $_ -notin $expectedTableNames })
+    if ($missingTables.Count -gt 0 -or $unexpectedTables.Count -gt 0) {
+        throw "Schema Manifest Table drift. module=$($Target.moduleKey) missing=$($missingTables -join ',') unexpected=$($unexpectedTables -join ',')"
+    }
+
+    $actualColumnText = Invoke-MariaText $Target $Target.adminUsername $Target.adminPassword @"
+SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_schema = '$dbEscaped'
+ORDER BY table_name, ordinal_position;
+"@
+    $actualColumns = @{}
+    foreach ($line in @($actualColumnText -split '\r?\n' | Where-Object { $_ })) {
+        $fields = $line.Split("`t", [System.StringSplitOptions]::None)
+        if ($fields.Count -ne 2) {
+            throw "Schema Manifest Column inventory 형식 오류: module=$($Target.moduleKey) line=$line"
+        }
+        $tableKey = $fields[0].ToLowerInvariant()
+        if (-not $actualColumns.ContainsKey($tableKey)) {
+            $actualColumns[$tableKey] = [System.Collections.Generic.List[string]]::new()
+        }
+        $actualColumns[$tableKey].Add($fields[1].ToLowerInvariant())
+    }
+    foreach ($table in $expectedTables) {
+        $tableKey = ([string]$table.tableName).ToLowerInvariant()
+        $expected = @($table.columns | ForEach-Object { ([string]$_).ToLowerInvariant() })
+        $actual = if ($actualColumns.ContainsKey($tableKey)) {
+            @($actualColumns[$tableKey].ToArray())
+        } else {
+            @()
+        }
+        if (($expected -join ",") -ne ($actual -join ",")) {
+            throw "Schema Manifest Column drift. module=$($Target.moduleKey) table=$($table.tableName) expected=$($expected -join ',') actual=$($actual -join ',')"
+        }
+    }
+
+    $actualIndexText = Invoke-MariaText $Target $Target.adminUsername $Target.adminPassword @"
+SELECT
+    table_name,
+    index_name,
+    non_unique,
+    GROUP_CONCAT(column_name ORDER BY seq_in_index SEPARATOR ',')
+FROM information_schema.statistics
+WHERE table_schema = '$dbEscaped'
+  AND index_name <> 'PRIMARY'
+GROUP BY table_name, index_name, non_unique
+ORDER BY table_name, index_name;
+"@
+    $actualIndexes = @{}
+    foreach ($line in @($actualIndexText -split '\r?\n' | Where-Object { $_ })) {
+        $fields = $line.Split("`t", [System.StringSplitOptions]::None)
+        if ($fields.Count -ne 4) {
+            throw "Schema Manifest Index inventory 형식 오류: module=$($Target.moduleKey) line=$line"
+        }
+        $key = "$($fields[0].ToLowerInvariant())|$($fields[1].ToLowerInvariant())"
+        $actualIndexes[$key] = [pscustomobject]@{
+            unique = $fields[2] -eq "0"
+            columns = $fields[3].ToLowerInvariant()
+        }
+    }
+
+    $declaredIndexKeys = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    $allowedImplicitIndexKeys = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($table in $expectedTables) {
+        $tableKey = ([string]$table.tableName).ToLowerInvariant()
+        foreach ($index in @($table.indexes)) {
+            $key = "$tableKey|$(([string]$index.name).ToLowerInvariant())"
+            [void]$declaredIndexKeys.Add($key)
+            if (-not $actualIndexes.ContainsKey($key)) {
+                throw "Schema Manifest Index 누락. module=$($Target.moduleKey) table=$($table.tableName) index=$($index.name)"
+            }
+            $actual = $actualIndexes[$key]
+            $expectedColumns = @($index.columns | ForEach-Object { ([string]$_).ToLowerInvariant() }) -join ","
+            if ([bool]$index.unique -ne [bool]$actual.unique -or $expectedColumns -ne $actual.columns) {
+                throw "Schema Manifest Index drift. module=$($Target.moduleKey) table=$($table.tableName) index=$($index.name) expectedUnique=$($index.unique) actualUnique=$($actual.unique) expectedColumns=$expectedColumns actualColumns=$($actual.columns)"
+            }
+        }
+        foreach ($foreignKey in @($table.foreignKeys)) {
+            [void]$allowedImplicitIndexKeys.Add(
+                "$tableKey|$(([string]$foreignKey.name).ToLowerInvariant())"
+            )
+        }
+    }
+    $unexpectedIndexes = @(
+        $actualIndexes.Keys |
+            Where-Object {
+                -not $declaredIndexKeys.Contains($_) -and
+                -not $allowedImplicitIndexKeys.Contains($_)
+            }
+    )
+    if ($unexpectedIndexes.Count -gt 0) {
+        throw "Schema Manifest에 없는 Index를 감지했습니다. module=$($Target.moduleKey) indexes=$($unexpectedIndexes -join ',')"
+    }
+
+    $actualForeignKeyText = Invoke-MariaText $Target $Target.adminUsername $Target.adminPassword @"
+SELECT
+    table_name,
+    constraint_name,
+    GROUP_CONCAT(column_name ORDER BY ordinal_position SEPARATOR ','),
+    MIN(referenced_table_name),
+    GROUP_CONCAT(referenced_column_name ORDER BY ordinal_position SEPARATOR ',')
+FROM information_schema.key_column_usage
+WHERE constraint_schema = '$dbEscaped'
+  AND referenced_table_name IS NOT NULL
+GROUP BY table_name, constraint_name
+ORDER BY table_name, constraint_name;
+"@
+    $actualForeignKeys = @{}
+    foreach ($line in @($actualForeignKeyText -split '\r?\n' | Where-Object { $_ })) {
+        $fields = $line.Split("`t", [System.StringSplitOptions]::None)
+        if ($fields.Count -ne 5) {
+            throw "Schema Manifest FK inventory 형식 오류: module=$($Target.moduleKey) line=$line"
+        }
+        $key = "$($fields[0].ToLowerInvariant())|$($fields[1].ToLowerInvariant())"
+        $actualForeignKeys[$key] = [pscustomobject]@{
+            columns = $fields[2].ToLowerInvariant()
+            referencedTable = $fields[3].ToLowerInvariant()
+            referencedColumns = $fields[4].ToLowerInvariant()
+        }
+    }
+
+    $declaredForeignKeyKeys = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($table in $expectedTables) {
+        $tableKey = ([string]$table.tableName).ToLowerInvariant()
+        foreach ($foreignKey in @($table.foreignKeys)) {
+            $key = "$tableKey|$(([string]$foreignKey.name).ToLowerInvariant())"
+            [void]$declaredForeignKeyKeys.Add($key)
+            if (-not $actualForeignKeys.ContainsKey($key)) {
+                throw "Schema Manifest FK 누락. module=$($Target.moduleKey) table=$($table.tableName) fk=$($foreignKey.name)"
+            }
+            $actual = $actualForeignKeys[$key]
+            $expectedColumns = @($foreignKey.columns | ForEach-Object { ([string]$_).ToLowerInvariant() }) -join ","
+            $expectedReferencedColumns = @(
+                $foreignKey.referencedColumns |
+                    ForEach-Object { ([string]$_).ToLowerInvariant() }
+            ) -join ","
+            if (
+                $expectedColumns -ne $actual.columns -or
+                ([string]$foreignKey.referencedTable).ToLowerInvariant() -ne $actual.referencedTable -or
+                $expectedReferencedColumns -ne $actual.referencedColumns
+            ) {
+                throw "Schema Manifest FK drift. module=$($Target.moduleKey) table=$($table.tableName) fk=$($foreignKey.name)"
+            }
+        }
+    }
+    $unexpectedForeignKeys = @(
+        $actualForeignKeys.Keys |
+            Where-Object { -not $declaredForeignKeyKeys.Contains($_) }
+    )
+    if ($unexpectedForeignKeys.Count -gt 0) {
+        throw "Schema Manifest에 없는 FK를 감지했습니다. module=$($Target.moduleKey) foreignKeys=$($unexpectedForeignKeys -join ',')"
+    }
+
+    return [pscustomobject]@{
+        tableCount = $expectedTables.Count
+        indexCount = $declaredIndexKeys.Count
+        foreignKeyCount = $declaredForeignKeyKeys.Count
+    }
+}
+
 function Get-ExpectedTables {
     param([string] $Sql)
     return @([regex]::Matches(
@@ -423,12 +784,28 @@ $result = [ordered]@{
     profileName = [string]$profile.profileName
     seedMode = $SeedMode
     selectedModules = $selectedKeys
+    generatedDomainTransitions = @($generatedProfileKeys | ForEach-Object {
+            [ordered]@{
+                profileKey = $_
+                domainName = $moduleProfiles[$_].domainName
+                systemCode = $moduleProfiles[$_].systemCode
+                moduleName = $moduleProfiles[$_].moduleName
+                enabledInPlatformPack = $moduleProfiles[$_].enabled
+                installer = "cpf-tools/scripts/initialize-generated-domain-databases.ps1"
+            }
+        })
     modules = [ordered]@{}
+    verify = [ordered]@{
+        status = "미검증"
+        checkCount = 0
+        failedChecks = @()
+    }
 }
 
 try {
     foreach ($key in $selectedKeys) {
         $t = $moduleProfiles[$key]
+        $manifestContract = $null
         Write-Host "[$key] vendor=$($t.vendor) host=$($t.host):$($t.port) database=$($t.databaseName)"
 
         if ($RequireRun) {
@@ -543,6 +920,8 @@ ORDER BY table_name;
                 throw "tables 검증 실패. module=$key 누락=$($missing -join ', ')"
             }
             Assert-MariaSchemaColumns $t $t.databaseName $expectedTableColumns
+            $manifestContract = Assert-MariaSchemaManifest $t $schemaManifestFile
+            Write-Host "[$key] schema manifest=PASS tables=$($manifestContract.tableCount) indexes=$($manifestContract.indexCount) foreignKeys=$($manifestContract.foreignKeyCount)"
 
             $probeTable = $expectedTables[0]
             [void](Invoke-MariaText $t $t.runtimeUsername $t.runtimePassword "SELECT COUNT(*) FROM ``$probeTable``;" $t.databaseName)
@@ -559,13 +938,15 @@ ORDER BY table_name;
             systemCode = $t.systemCode
             moduleName = $t.moduleName
             expectedTableCount = $expectedTables.Count
+            manifestIndexCount = if ($null -ne $manifestContract) { $manifestContract.indexCount } else { $null }
+            manifestForeignKeyCount = if ($null -ne $manifestContract) { $manifestContract.foreignKeyCount } else { $null }
             migrationUsername = $t.migrationUsername
             runtimeUsername = $t.runtimeUsername
         }
     }
 
-    if ($RequireRun -and $moduleProfiles["core"].enabled) {
-        $core = $moduleProfiles["core"]
+    if ($RequireRun -and $moduleProfiles[$coreKey].enabled) {
+        $core = $moduleProfiles[$coreKey]
         $baselineTableText = Invoke-MariaText $core $core.adminUsername $core.adminPassword @"
 SELECT COUNT(*)
 FROM information_schema.tables
@@ -596,6 +977,54 @@ ON DUPLICATE KEY UPDATE
             [void](Invoke-MariaText $core $core.migrationUsername $core.migrationPassword $baselineSql $core.databaseName)
         } else {
             Write-Host "CPF baseline registry=SKIP (core baseline table not installed yet)"
+        }
+    }
+
+    if ($RequireRun -and $fullPlatformSelection) {
+        $core = $moduleProfiles[$coreKey]
+        $verifySql = Get-Content -LiteralPath $verifyFile -Raw -Encoding UTF8
+        if ([string]::IsNullOrWhiteSpace($verifySql)) {
+            throw "MariaDB Verify Pack이 비어 있습니다: $verifyFile"
+        }
+        $verifyText = Invoke-MariaText `
+            $core `
+            $core.adminUsername `
+            $core.adminPassword `
+            $verifySql `
+            $core.databaseName
+        $verifyRows = @($verifyText -split '\r?\n' | Where-Object { $_ })
+        if ($verifyRows.Count -eq 0) {
+            throw "MariaDB Verify Pack이 검증 결과를 반환하지 않았습니다."
+        }
+        $failedChecks = [System.Collections.Generic.List[string]]::new()
+        $seenChecks = [System.Collections.Generic.HashSet[string]]::new(
+            [System.StringComparer]::OrdinalIgnoreCase
+        )
+        foreach ($line in $verifyRows) {
+            $fields = $line.Split("`t", [System.StringSplitOptions]::None)
+            if ($fields.Count -ne 2 -or [string]::IsNullOrWhiteSpace($fields[0])) {
+                throw "MariaDB Verify 출력 계약 위반입니다. expected=check_name<TAB>passed line=$line"
+            }
+            if (-not $seenChecks.Add($fields[0])) {
+                throw "MariaDB Verify check_name이 중복되었습니다: $($fields[0])"
+            }
+            if ($fields[1] -ne "1") {
+                $failedChecks.Add($fields[0])
+            }
+        }
+        $result.verify.checkCount = $verifyRows.Count
+        $result.verify.failedChecks = @($failedChecks.ToArray())
+        if ($failedChecks.Count -gt 0) {
+            $result.verify.status = "실패"
+            throw "MariaDB Verify 실패: $($failedChecks -join ', ')"
+        }
+        $result.verify.status = "완료"
+        Write-Host "MariaDB canonical verify=PASS checks=$($verifyRows.Count)"
+    } elseif ($RequireRun) {
+        $result.verify.reason = if ($generatedProfileKeys.Count -gt 0) {
+            "Generated Domain legacy section retirement 전에는 Platform Full Verify Pack을 실행하지 않습니다."
+        } else {
+            "전체 enabled Platform Module 선택이 아니므로 Full Verify Pack은 실행하지 않았습니다."
         }
     }
 

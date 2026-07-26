@@ -1,5 +1,6 @@
 package com.cpf.bizadmin.audit.service;
 
+import com.cpf.bizadmin.common.base.BzaBaseService;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,7 @@ import java.util.*;
  * 여러 BZA 인스턴스가 동시에 기록해도 이전 hash와 현재 hash의 순서를 하나의 체인으로 유지합니다.</p>
  */
 @Service
-public class BzaBusinessAuditService {
+public class BzaBusinessAuditService extends BzaBaseService {
     private static final long LOCK_ID = 1L;
     private static final String GENESIS = "GENESIS";
     private final ObjectProvider<NamedParameterJdbcTemplate> provider;

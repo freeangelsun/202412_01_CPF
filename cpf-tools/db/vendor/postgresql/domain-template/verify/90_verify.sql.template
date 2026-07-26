@@ -1,1 +1,46 @@
-SELECT CASE WHEN COUNT(*)=1 THEN 'PASS' ELSE 'FAILED' END FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='@CPF_TABLE_PREFIX@_sample_item';
+SELECT CASE
+    WHEN (SELECT COUNT(*)
+          FROM information_schema.tables
+          WHERE table_schema = '@CPF_SCHEMA_NAME@'
+            AND table_name = '@CPF_TABLE_PREFIX@_sample_item') = 1
+     AND (SELECT COUNT(DISTINCT column_name)
+          FROM information_schema.columns
+          WHERE table_schema = '@CPF_SCHEMA_NAME@'
+            AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+            AND column_name IN (
+                'sample_item_id', 'sample_key', 'item_name', 'status_code', 'version_no',
+                'idempotency_key', 'transaction_id', 'transaction_sequence', 'transaction_at',
+                'deleted_yn', 'created_by', 'created_at', 'updated_by', 'updated_at'
+            )) = 14
+     AND (SELECT COUNT(*)
+          FROM information_schema.columns
+          WHERE table_schema = '@CPF_SCHEMA_NAME@'
+            AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+            AND column_name = 'transaction_id'
+            AND data_type = 'character'
+            AND character_maximum_length = 34) = 1
+     AND (SELECT COUNT(*)
+          FROM pg_constraint
+          WHERE conrelid = to_regclass(format(
+                    '%I.%I', '@CPF_SCHEMA_NAME@', '@CPF_TABLE_PREFIX@_sample_item'))
+            AND contype IN ('p', 'u')) >= 3
+     AND (SELECT COUNT(*)
+          FROM pg_constraint
+          WHERE conrelid = to_regclass(format(
+                    '%I.%I', '@CPF_SCHEMA_NAME@', '@CPF_TABLE_PREFIX@_sample_item'))
+            AND conname IN (
+                'ck_@CPF_TABLE_PREFIX@_sample_item_status',
+                'ck_@CPF_TABLE_PREFIX@_sample_item_deleted'
+            )
+            AND contype = 'c') = 2
+     AND (SELECT COUNT(*)
+          FROM pg_indexes
+          WHERE schemaname = '@CPF_SCHEMA_NAME@'
+            AND tablename = '@CPF_TABLE_PREFIX@_sample_item'
+            AND indexname IN (
+                'ix_@CPF_TABLE_PREFIX@_sample_item_status',
+                'ix_@CPF_TABLE_PREFIX@_sample_item_tx'
+            )) = 2
+    THEN 'PASS'
+    ELSE 'FAILED'
+END AS minimal_transaction_domain_verify;

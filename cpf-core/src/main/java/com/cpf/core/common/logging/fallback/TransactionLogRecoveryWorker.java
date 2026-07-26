@@ -39,6 +39,7 @@ public class TransactionLogRecoveryWorker {
     private final long initialBackoffMs;
     private final long maxBackoffMs;
     private final Duration processingLeaseTimeout;
+    private final boolean scheduledRecoveryEnabled;
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicLong recoveredCount = new AtomicLong();
     private final AtomicLong failedAttemptCount = new AtomicLong();
@@ -62,6 +63,8 @@ public class TransactionLogRecoveryWorker {
         this.logService = logService;
         this.fileLogWriter = fileLogWriter;
         this.clock = clock;
+        this.scheduledRecoveryEnabled = environment.getProperty(
+                "cpf.logging.db-fallback.enabled", Boolean.class, true);
         this.batchSize = bounded(environment.getProperty(
                 "cpf.logging.db-fallback.recovery-batch-size", Integer.class, 50), 1, 500);
         this.maxAttempts = bounded(environment.getProperty(
@@ -76,6 +79,9 @@ public class TransactionLogRecoveryWorker {
 
     @Scheduled(fixedDelayString = "${cpf.logging.db-fallback.recovery-interval-ms:30000}")
     public void recoverScheduled() {
+        if (!scheduledRecoveryEnabled) {
+            return;
+        }
         recoverPending();
     }
 

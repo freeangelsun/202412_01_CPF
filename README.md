@@ -402,6 +402,9 @@ CPF의 온라인 흐름은 Controller 호출 하나에만 초점을 두지 않�
 → Log / Audit / Trace 연결
 ```
 
+표준 Header `X-Transaction-Id`의 `transactionId`는 `cpf-core`가 생성·검증하는 정확히 34자리의 전역 거래 식별자입니다.
+Local/Remote/Async/Batch 구간에서 새 값으로 바꾸지 않고 동일 값을 Header, Log, Audit과 Timeline에 전파합니다.
+
 <br/>
 
 ### Local과 Remote

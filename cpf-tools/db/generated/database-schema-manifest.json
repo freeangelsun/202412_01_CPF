@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedBy": "cpf-tools/scripts/generate-database-schema-manifest.ps1",
   "sourcePlan": "cpf-tools/config/database-source-plan.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 117,
+  "tableCount": 152,
   "tables": [
     {
       "vendor": "mariadb",
@@ -70,7 +70,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_acc_account_change_target",
+          "columns": [
+            "account_id"
+          ],
+          "referencedTable": "acc_account",
+          "referencedColumns": [
+            "account_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -118,7 +129,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_api_permission_menu",
+          "columns": [
+            "MENU_ID"
+          ],
+          "referencedTable": "adm_menu",
+          "referencedColumns": [
+            "MENU_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_api_permission_button",
+          "columns": [
+            "BUTTON_ID"
+          ],
+          "referencedTable": "adm_button",
+          "referencedColumns": [
+            "BUTTON_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -156,7 +188,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_approval_execution_request",
+          "columns": [
+            "APPROVAL_REQUEST_ID"
+          ],
+          "referencedTable": "adm_approval_request",
+          "referencedColumns": [
+            "APPROVAL_REQUEST_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -186,7 +229,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_approval_history_request",
+          "columns": [
+            "APPROVAL_REQUEST_ID"
+          ],
+          "referencedTable": "adm_approval_request",
+          "referencedColumns": [
+            "APPROVAL_REQUEST_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -239,7 +293,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_approval_participant_request",
+          "columns": [
+            "APPROVAL_REQUEST_ID"
+          ],
+          "referencedTable": "adm_approval_request",
+          "referencedColumns": [
+            "APPROVAL_REQUEST_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -297,7 +362,20 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_approval_policy_step_policy",
+          "columns": [
+            "POLICY_CODE",
+            "POLICY_VERSION"
+          ],
+          "referencedTable": "adm_approval_policy",
+          "referencedColumns": [
+            "POLICY_CODE",
+            "POLICY_VERSION"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -351,6 +429,79 @@
           "columns": [
             "REQUESTED_BY",
             "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_adm_approval_request_policy",
+          "columns": [
+            "POLICY_CODE",
+            "POLICY_VERSION"
+          ],
+          "referencedTable": "adm_approval_policy",
+          "referencedColumns": [
+            "POLICY_CODE",
+            "POLICY_VERSION"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "admDB",
+      "sourceFile": "30_adm_schema.sql",
+      "tableName": "adm_audit_delivery",
+      "columns": [
+        "DELIVERY_ID",
+        "TRANSACTION_ID",
+        "TRACE_ID",
+        "OPERATOR_ID",
+        "ACTION_TYPE",
+        "TARGET_TYPE",
+        "TARGET_ID",
+        "REASON",
+        "BEFORE_DATA",
+        "AFTER_DATA",
+        "DIFF_DATA",
+        "CLIENT_IP",
+        "OPERATION_STATUS",
+        "DELIVERY_STATUS",
+        "ATTEMPT_COUNT",
+        "MAX_ATTEMPTS",
+        "NEXT_ATTEMPT_AT",
+        "LAST_ERROR",
+        "AUDIT_ID",
+        "REQUESTED_AT",
+        "DELIVERED_AT",
+        "CREATED_BY",
+        "UPDATED_BY",
+        "CREATED_AT",
+        "UPDATED_AT"
+      ],
+      "indexes": [
+        {
+          "name": "ix_adm_audit_delivery_status",
+          "unique": false,
+          "columns": [
+            "DELIVERY_STATUS",
+            "OPERATION_STATUS",
+            "NEXT_ATTEMPT_AT"
+          ]
+        },
+        {
+          "name": "ix_adm_audit_delivery_tx",
+          "unique": false,
+          "columns": [
+            "TRANSACTION_ID"
+          ]
+        },
+        {
+          "name": "ix_adm_audit_delivery_operator",
+          "unique": false,
+          "columns": [
+            "OPERATOR_ID",
+            "REQUESTED_AT"
           ]
         }
       ],
@@ -432,6 +583,60 @@
       "vendor": "mariadb",
       "logicalDatabase": "admDB",
       "sourceFile": "30_adm_schema.sql",
+      "tableName": "adm_break_glass_session",
+      "columns": [
+        "session_id",
+        "operator_id",
+        "scope_type",
+        "scope_value",
+        "reason",
+        "status",
+        "expires_at",
+        "closed_at",
+        "close_reason",
+        "post_review_status",
+        "reviewed_by",
+        "reviewed_at",
+        "review_reason",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_adm_break_glass_operator",
+          "unique": false,
+          "columns": [
+            "operator_id",
+            "status",
+            "expires_at"
+          ]
+        },
+        {
+          "name": "ix_adm_break_glass_scope",
+          "unique": false,
+          "columns": [
+            "scope_type",
+            "scope_value",
+            "status"
+          ]
+        },
+        {
+          "name": "ix_adm_break_glass_review",
+          "unique": false,
+          "columns": [
+            "post_review_status",
+            "closed_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "admDB",
+      "sourceFile": "30_adm_schema.sql",
       "tableName": "adm_button",
       "columns": [
         "BUTTON_ID",
@@ -465,7 +670,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_button_menu",
+          "columns": [
+            "MENU_ID"
+          ],
+          "referencedTable": "adm_menu",
+          "referencedColumns": [
+            "MENU_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -486,6 +702,7 @@
         "REASON",
         "CLIENT_IP",
         "USER_AGENT",
+        "CSV_POLICY_VERSION",
         "REQUESTED_AT",
         "COMPLETED_AT",
         "STATUS",
@@ -575,6 +792,59 @@
       "vendor": "mariadb",
       "logicalDatabase": "admDB",
       "sourceFile": "30_adm_schema.sql",
+      "tableName": "adm_incident",
+      "columns": [
+        "incident_id",
+        "incident_no",
+        "severity",
+        "title",
+        "summary",
+        "source_type",
+        "source_id",
+        "status",
+        "detected_at",
+        "acknowledged_at",
+        "mitigated_at",
+        "resolved_at",
+        "reason",
+        "version",
+        "created_by",
+        "updated_by",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_adm_incident_no",
+          "unique": true,
+          "columns": [
+            "incident_no"
+          ]
+        },
+        {
+          "name": "idx_adm_incident_status",
+          "unique": false,
+          "columns": [
+            "status",
+            "severity",
+            "detected_at"
+          ]
+        },
+        {
+          "name": "idx_adm_incident_source",
+          "unique": false,
+          "columns": [
+            "source_type",
+            "source_id"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "admDB",
+      "sourceFile": "30_adm_schema.sql",
       "tableName": "adm_ip_allowlist",
       "columns": [
         "ALLOW_ID",
@@ -608,6 +878,47 @@
       "vendor": "mariadb",
       "logicalDatabase": "admDB",
       "sourceFile": "30_adm_schema.sql",
+      "tableName": "adm_maintenance_action",
+      "columns": [
+        "action_id",
+        "service_id",
+        "endpoint_code",
+        "instance_id",
+        "action_type",
+        "before_status",
+        "after_status",
+        "result_status",
+        "reason",
+        "requested_by",
+        "requested_at",
+        "result_detail"
+      ],
+      "indexes": [
+        {
+          "name": "idx_adm_maintenance_target",
+          "unique": false,
+          "columns": [
+            "service_id",
+            "endpoint_code",
+            "instance_id",
+            "requested_at"
+          ]
+        },
+        {
+          "name": "idx_adm_maintenance_result",
+          "unique": false,
+          "columns": [
+            "result_status",
+            "requested_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "admDB",
+      "sourceFile": "30_adm_schema.sql",
       "tableName": "adm_menu",
       "columns": [
         "MENU_ID",
@@ -631,7 +942,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_menu_parent",
+          "columns": [
+            "PARENT_MENU_ID"
+          ],
+          "referencedTable": "adm_menu",
+          "referencedColumns": [
+            "MENU_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -649,7 +971,18 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_mfa_otp_secret_operator",
+          "columns": [
+            "OPERATOR_ID"
+          ],
+          "referencedTable": "adm_operator",
+          "referencedColumns": [
+            "OPERATOR_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -731,7 +1064,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_operator_profile_operator",
+          "columns": [
+            "OPERATOR_ID"
+          ],
+          "referencedTable": "adm_operator",
+          "referencedColumns": [
+            "OPERATOR_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_operator_profile_org",
+          "columns": [
+            "ORGANIZATION_CODE"
+          ],
+          "referencedTable": "adm_organization",
+          "referencedColumns": [
+            "ORGANIZATION_CODE"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -747,7 +1101,28 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_operator_role_operator",
+          "columns": [
+            "OPERATOR_ID"
+          ],
+          "referencedTable": "adm_operator",
+          "referencedColumns": [
+            "OPERATOR_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_operator_role_role",
+          "columns": [
+            "ROLE_ID"
+          ],
+          "referencedTable": "adm_role",
+          "referencedColumns": [
+            "ROLE_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -825,7 +1200,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_organization_parent",
+          "columns": [
+            "PARENT_ORGANIZATION_CODE"
+          ],
+          "referencedTable": "adm_organization",
+          "referencedColumns": [
+            "ORGANIZATION_CODE"
+          ]
+        },
+        {
+          "name": "fk_adm_organization_manager",
+          "columns": [
+            "MANAGER_OPERATOR_ID"
+          ],
+          "referencedTable": "adm_operator",
+          "referencedColumns": [
+            "OPERATOR_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -852,7 +1248,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_password_history_operator",
+          "columns": [
+            "OPERATOR_ID"
+          ],
+          "referencedTable": "adm_operator",
+          "referencedColumns": [
+            "OPERATOR_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -921,7 +1328,28 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_role_api_permission_role",
+          "columns": [
+            "ROLE_ID"
+          ],
+          "referencedTable": "adm_role",
+          "referencedColumns": [
+            "ROLE_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_role_api_permission_api",
+          "columns": [
+            "API_PERMISSION_ID"
+          ],
+          "referencedTable": "adm_api_permission",
+          "referencedColumns": [
+            "API_PERMISSION_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -938,7 +1366,28 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_role_button_role",
+          "columns": [
+            "ROLE_ID"
+          ],
+          "referencedTable": "adm_role",
+          "referencedColumns": [
+            "ROLE_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_role_button_button",
+          "columns": [
+            "BUTTON_ID"
+          ],
+          "referencedTable": "adm_button",
+          "referencedColumns": [
+            "BUTTON_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -957,35 +1406,131 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_adm_role_menu_role",
+          "columns": [
+            "ROLE_ID"
+          ],
+          "referencedTable": "adm_role",
+          "referencedColumns": [
+            "ROLE_ID"
+          ]
+        },
+        {
+          "name": "fk_adm_role_menu_menu",
+          "columns": [
+            "MENU_ID"
+          ],
+          "referencedTable": "adm_menu",
+          "referencedColumns": [
+            "MENU_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
       "logicalDatabase": "batDB",
       "sourceFile": "35_bat_schema.sql",
-      "tableName": "bat_business_day_calendar",
+      "tableName": "bat_center_cut_claim",
       "columns": [
-        "calendar_id",
-        "business_date",
-        "holiday_yn",
-        "business_day_yn",
-        "description",
-        "created_by",
-        "created_at",
-        "updated_by",
+        "center_cut_item_id",
+        "runner_id",
+        "pool_id",
+        "claim_token",
+        "claim_status",
+        "fencing_token",
+        "lease_until",
+        "last_heartbeat_at",
+        "attempt_no",
+        "takeover_count",
+        "released_at",
         "updated_at"
       ],
       "indexes": [
         {
-          "name": "ix_bat_business_day_calendar_date",
-          "unique": false,
+          "name": "claim_token",
+          "unique": true,
           "columns": [
-            "business_date",
-            "business_day_yn"
+            "claim_token"
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_claim_item",
+          "columns": [
+            "center_cut_item_id"
+          ],
+          "referencedTable": "bat_center_cut_item",
+          "referencedColumns": [
+            "center_cut_item_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_center_cut_execution",
+      "columns": [
+        "center_cut_execution_id",
+        "center_cut_job_id",
+        "idempotency_key",
+        "execution_state",
+        "parameter_ciphertext",
+        "parameter_hash",
+        "parameter_schema_version",
+        "target_cursor",
+        "target_complete_yn",
+        "target_count",
+        "tps_limit",
+        "concurrency_limit",
+        "processed_count",
+        "success_count",
+        "failure_count",
+        "unknown_count",
+        "transaction_id",
+        "parent_segment_id",
+        "requested_by",
+        "reason_text",
+        "last_error_message",
+        "created_at",
+        "updated_at",
+        "completed_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_bat_center_cut_execution_idempotency",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_bat_center_cut_execution_job_state",
+          "unique": false,
+          "columns": [
+            "center_cut_job_id",
+            "execution_state",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_execution_job",
+          "columns": [
+            "center_cut_job_id"
+          ],
+          "referencedTable": "bat_center_cut_job",
+          "referencedColumns": [
+            "center_cut_job_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -995,6 +1540,7 @@
       "columns": [
         "center_cut_item_id",
         "center_cut_job_id",
+        "center_cut_execution_id",
         "business_key",
         "business_date",
         "item_status",
@@ -1012,14 +1558,6 @@
         "updated_at"
       ],
       "indexes": [
-        {
-          "name": "uk_bat_center_cut_item_business",
-          "unique": true,
-          "columns": [
-            "center_cut_job_id",
-            "business_key"
-          ]
-        },
         {
           "name": "ix_bat_center_cut_item_status",
           "unique": false,
@@ -1043,9 +1581,47 @@
           "columns": [
             "parent_segment_id"
           ]
+        },
+        {
+          "name": "ix_bat_center_cut_item_execution_status",
+          "unique": false,
+          "columns": [
+            "center_cut_execution_id",
+            "item_status",
+            "center_cut_item_id"
+          ]
+        },
+        {
+          "name": "uk_bat_center_cut_item_execution_business",
+          "unique": true,
+          "columns": [
+            "center_cut_execution_id",
+            "business_key"
+          ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_item_job",
+          "columns": [
+            "center_cut_job_id"
+          ],
+          "referencedTable": "bat_center_cut_job",
+          "referencedColumns": [
+            "center_cut_job_id"
+          ]
+        },
+        {
+          "name": "fk_bat_center_cut_item_execution",
+          "columns": [
+            "center_cut_execution_id"
+          ],
+          "referencedTable": "bat_center_cut_execution",
+          "referencedColumns": [
+            "center_cut_execution_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1077,7 +1653,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_job_batch",
+          "columns": [
+            "batch_job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1106,7 +1693,43 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_parameter_job",
+          "columns": [
+            "center_cut_job_id"
+          ],
+          "referencedTable": "bat_center_cut_job",
+          "referencedColumns": [
+            "center_cut_job_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_center_cut_rate_window",
+      "columns": [
+        "center_cut_execution_id",
+        "window_second",
+        "admitted_count",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_rate_execution",
+          "columns": [
+            "center_cut_execution_id"
+          ],
+          "referencedTable": "bat_center_cut_execution",
+          "referencedColumns": [
+            "center_cut_execution_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1161,6 +1784,219 @@
           ]
         }
       ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_center_cut_result_item",
+          "columns": [
+            "center_cut_item_id"
+          ],
+          "referencedTable": "bat_center_cut_item",
+          "referencedColumns": [
+            "center_cut_item_id"
+          ]
+        },
+        {
+          "name": "fk_bat_center_cut_result_job",
+          "columns": [
+            "center_cut_job_id"
+          ],
+          "referencedTable": "bat_center_cut_job",
+          "referencedColumns": [
+            "center_cut_job_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_cell",
+      "columns": [
+        "cell_id",
+        "environment_id",
+        "runtime_role",
+        "service_id",
+        "manifest_version",
+        "manifest_hash",
+        "desired_state",
+        "desired_instance_count",
+        "row_version",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_execution",
+      "columns": [
+        "deployment_id",
+        "cell_id",
+        "idempotency_key",
+        "from_version",
+        "to_version",
+        "strategy_code",
+        "execution_state",
+        "failure_stage",
+        "result_message",
+        "requested_by",
+        "approved_by",
+        "reason_text",
+        "started_at",
+        "finished_at",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_bat_deployment_execution_idempotency",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_bat_deployment_execution_cell_state",
+          "unique": false,
+          "columns": [
+            "cell_id",
+            "execution_state"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_deployment_execution_cell",
+          "columns": [
+            "cell_id"
+          ],
+          "referencedTable": "bat_deployment_cell",
+          "referencedColumns": [
+            "cell_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_instance",
+      "columns": [
+        "cell_id",
+        "instance_id",
+        "host_alias",
+        "port_no",
+        "profile_name",
+        "zone_id",
+        "pool_id",
+        "agent_base_url",
+        "config_ref",
+        "desired_state"
+      ],
+      "indexes": [
+        {
+          "name": "uk_bat_deployment_instance_id",
+          "unique": true,
+          "columns": [
+            "instance_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_deployment_instance_cell",
+          "columns": [
+            "cell_id"
+          ],
+          "referencedTable": "bat_deployment_cell",
+          "referencedColumns": [
+            "cell_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_instance_result",
+      "columns": [
+        "deployment_result_id",
+        "deployment_id",
+        "sequence_no",
+        "instance_id",
+        "stage_code",
+        "result_state",
+        "result_message",
+        "recorded_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_bat_deployment_instance_result",
+          "unique": true,
+          "columns": [
+            "deployment_id",
+            "sequence_no"
+          ]
+        },
+        {
+          "name": "ix_bat_deployment_instance_result_instance",
+          "unique": false,
+          "columns": [
+            "instance_id",
+            "recorded_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_deployment_instance_result_execution",
+          "columns": [
+            "deployment_id"
+          ],
+          "referencedTable": "bat_deployment_execution",
+          "referencedColumns": [
+            "deployment_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_lock",
+      "columns": [
+        "cell_id",
+        "owner_deployment_id",
+        "fencing_token",
+        "locked_at",
+        "expires_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_deployment_plan",
+      "columns": [
+        "plan_id",
+        "cell_id",
+        "manifest_json",
+        "manifest_hash",
+        "requested_by",
+        "reason_text",
+        "plan_state",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [],
       "foreignKeys": []
     },
     {
@@ -1200,6 +2036,7 @@
         "success_count",
         "failure_count",
         "retry_count",
+        "stop_requested_yn",
         "progress_rate",
         "tps",
         "avg_elapsed_ms",
@@ -1255,6 +2092,14 @@
           ]
         },
         {
+          "name": "ix_bat_execution_server",
+          "unique": false,
+          "columns": [
+            "server_instance_id",
+            "start_time"
+          ]
+        },
+        {
           "name": "ix_bat_execution_claim",
           "unique": false,
           "columns": [
@@ -1288,7 +2133,38 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_execution_job",
+          "columns": [
+            "job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_instance",
+          "columns": [
+            "batch_instance_id"
+          ],
+          "referencedTable": "bat_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_worker",
+          "columns": [
+            "worker_id"
+          ],
+          "referencedTable": "bat_worker",
+          "referencedColumns": [
+            "worker_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1306,6 +2182,7 @@
         "last_heartbeat_at",
         "attempt_no",
         "takeover_count",
+        "fencing_token",
         "released_at",
         "failure_message",
         "created_by",
@@ -1346,7 +2223,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_execution_lease_execution",
+          "columns": [
+            "execution_id"
+          ],
+          "referencedTable": "bat_execution",
+          "referencedColumns": [
+            "execution_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_lease_worker",
+          "columns": [
+            "worker_id"
+          ],
+          "referencedTable": "bat_worker",
+          "referencedColumns": [
+            "worker_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1394,7 +2292,48 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_execution_target_execution",
+          "columns": [
+            "execution_id"
+          ],
+          "referencedTable": "bat_execution",
+          "referencedColumns": [
+            "execution_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_target_job",
+          "columns": [
+            "job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_target_schedule",
+          "columns": [
+            "schedule_id"
+          ],
+          "referencedTable": "bat_schedule",
+          "referencedColumns": [
+            "schedule_id"
+          ]
+        },
+        {
+          "name": "fk_bat_execution_target_instance",
+          "columns": [
+            "target_instance_id"
+          ],
+          "referencedTable": "bat_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1450,7 +2389,38 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_ghost_event_execution",
+          "columns": [
+            "execution_id"
+          ],
+          "referencedTable": "bat_execution",
+          "referencedColumns": [
+            "execution_id"
+          ]
+        },
+        {
+          "name": "fk_bat_ghost_event_job",
+          "columns": [
+            "job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        },
+        {
+          "name": "fk_bat_ghost_event_worker",
+          "columns": [
+            "worker_id"
+          ],
+          "referencedTable": "bat_worker",
+          "referencedColumns": [
+            "worker_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1515,6 +2485,60 @@
       "vendor": "mariadb",
       "logicalDatabase": "batDB",
       "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_job_pack",
+      "columns": [
+        "job_pack_id",
+        "owner_domain",
+        "artifact_coordinate",
+        "artifact_version",
+        "artifact_checksum",
+        "signature_present_yn",
+        "platform_range",
+        "manifest_json",
+        "last_registered_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_job_pack_owner",
+          "unique": false,
+          "columns": [
+            "owner_domain",
+            "artifact_version"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_job_pack_job",
+      "columns": [
+        "job_pack_id",
+        "job_id",
+        "restartable_yn",
+        "center_cut_provider_key",
+        "center_cut_handler_key"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_job_pack_job_pack",
+          "columns": [
+            "job_pack_id"
+          ],
+          "referencedTable": "bat_job_pack",
+          "referencedColumns": [
+            "job_pack_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
       "tableName": "bat_job_relation",
       "columns": [
         "relation_id",
@@ -1558,7 +2582,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bat_job_relation_job",
+          "columns": [
+            "job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        },
+        {
+          "name": "fk_bat_job_relation_related",
+          "columns": [
+            "related_job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1701,6 +2746,251 @@
       "vendor": "mariadb",
       "logicalDatabase": "batDB",
       "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_operation_log_archive",
+      "columns": [
+        "operation_id",
+        "job_id",
+        "execution_id",
+        "operation_type",
+        "operator_id",
+        "reason",
+        "before_data",
+        "after_data",
+        "result_type",
+        "result_message",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "archived_at",
+        "archived_by",
+        "archive_reason"
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_operation_archive_job_time",
+          "unique": false,
+          "columns": [
+            "job_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_bat_operation_archive_archived",
+          "unique": false,
+          "columns": [
+            "archived_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_runtime_capability",
+      "columns": [
+        "instance_id",
+        "capability_code"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_runtime_capability_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "bat_runtime_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_runtime_command",
+      "columns": [
+        "command_id",
+        "idempotency_key",
+        "command_type",
+        "target_type",
+        "target_snapshot",
+        "target_snapshot_hash",
+        "expected_version",
+        "requested_by",
+        "reason_text",
+        "approval_policy_version",
+        "approval_request_id",
+        "approved_by",
+        "command_state",
+        "execution_attempt",
+        "result_text",
+        "failure_stage",
+        "before_state",
+        "after_state",
+        "result_code",
+        "requested_at",
+        "expires_at",
+        "updated_at",
+        "transaction_id",
+        "evidence_ref"
+      ],
+      "indexes": [
+        {
+          "name": "idempotency_key",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_runtime_command_attempt",
+      "columns": [
+        "attempt_id",
+        "command_id",
+        "attempt_no",
+        "instance_id",
+        "stage_code",
+        "attempt_state",
+        "result_message",
+        "started_at",
+        "finished_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_bat_runtime_command_attempt",
+          "unique": true,
+          "columns": [
+            "command_id",
+            "attempt_no",
+            "instance_id",
+            "stage_code"
+          ]
+        },
+        {
+          "name": "ix_bat_runtime_command_attempt_instance",
+          "unique": false,
+          "columns": [
+            "instance_id",
+            "started_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_runtime_command_attempt_command",
+          "columns": [
+            "command_id"
+          ],
+          "referencedTable": "bat_runtime_command",
+          "referencedColumns": [
+            "command_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_runtime_heartbeat",
+      "columns": [
+        "heartbeat_id",
+        "instance_id",
+        "heartbeat_at",
+        "ready_yn",
+        "available_capacity",
+        "queue_depth",
+        "draining_yn",
+        "current_execution_count",
+        "active_lease_count",
+        "last_error_code",
+        "deployment_version"
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_runtime_heartbeat_instance",
+          "unique": false,
+          "columns": [
+            "instance_id",
+            "heartbeat_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_runtime_heartbeat_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "bat_runtime_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_runtime_instance",
+      "columns": [
+        "instance_id",
+        "runtime_role",
+        "service_id",
+        "was_id",
+        "host_alias",
+        "zone_id",
+        "pool_id",
+        "artifact_version",
+        "git_sha",
+        "artifact_checksum",
+        "profile_name",
+        "desired_state",
+        "actual_state",
+        "config_version",
+        "schema_compatibility",
+        "started_at",
+        "last_heartbeat_at",
+        "fencing_token",
+        "row_version",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_runtime_instance_service",
+          "unique": false,
+          "columns": [
+            "service_id",
+            "actual_state"
+          ]
+        },
+        {
+          "name": "ix_bat_runtime_instance_heartbeat",
+          "unique": false,
+          "columns": [
+            "last_heartbeat_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
       "tableName": "bat_schedule",
       "columns": [
         "schedule_id",
@@ -1709,6 +2999,8 @@
         "calendar_id",
         "business_day_only_yn",
         "holiday_policy",
+        "available_start_time",
+        "available_end_time",
         "run_date_pattern",
         "timezone",
         "enabled_yn",
@@ -1726,6 +3018,68 @@
           "columns": [
             "job_id",
             "enabled_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_schedule_job",
+          "columns": [
+            "job_id"
+          ],
+          "referencedTable": "bat_job",
+          "referencedColumns": [
+            "job_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_schedule_trigger",
+      "columns": [
+        "schedule_id",
+        "scheduled_fire_at",
+        "fencing_token",
+        "execution_id",
+        "trigger_status",
+        "created_at"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_schedule_trigger_schedule",
+          "columns": [
+            "schedule_id"
+          ],
+          "referencedTable": "bat_schedule",
+          "referencedColumns": [
+            "schedule_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_scheduler_lease",
+      "columns": [
+        "scheduler_key",
+        "owner_instance_id",
+        "fencing_token",
+        "lease_until",
+        "last_heartbeat_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_scheduler_lease_expire",
+          "unique": false,
+          "columns": [
+            "lease_until"
           ]
         }
       ],
@@ -1798,6 +3152,46 @@
           ]
         }
       ],
+      "foreignKeys": [
+        {
+          "name": "fk_bat_step_execution_parent",
+          "columns": [
+            "execution_id"
+          ],
+          "referencedTable": "bat_execution",
+          "referencedColumns": [
+            "execution_id"
+          ]
+        },
+        {
+          "name": "fk_bat_step_execution_worker",
+          "columns": [
+            "worker_id"
+          ],
+          "referencedTable": "bat_worker",
+          "referencedColumns": [
+            "worker_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "batDB",
+      "sourceFile": "35_bat_schema.sql",
+      "tableName": "bat_version_compatibility",
+      "columns": [
+        "compatibility_id",
+        "environment_id",
+        "provider_coordinate",
+        "consumer_coordinate",
+        "min_version",
+        "max_version",
+        "schema_range",
+        "required_capability",
+        "enabled_yn"
+      ],
+      "indexes": [],
       "foreignKeys": []
     },
     {
@@ -1882,7 +3276,18 @@
         "LAST_UPDATED"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "JOB_INST_EXEC_FK",
+          "columns": [
+            "JOB_INSTANCE_ID"
+          ],
+          "referencedTable": "BATCH_JOB_INSTANCE",
+          "referencedColumns": [
+            "JOB_INSTANCE_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1895,7 +3300,18 @@
         "SERIALIZED_CONTEXT"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_CTX_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1910,7 +3326,18 @@
         "IDENTIFYING"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_PARAMS_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1962,7 +3389,18 @@
         "LAST_UPDATED"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "JOB_EXEC_STEP_FK",
+          "columns": [
+            "JOB_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_JOB_EXECUTION",
+          "referencedColumns": [
+            "JOB_EXECUTION_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -1975,7 +3413,18 @@
         "SERIALIZED_CONTEXT"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "STEP_EXEC_CTX_FK",
+          "columns": [
+            "STEP_EXECUTION_ID"
+          ],
+          "referencedTable": "BATCH_STEP_EXECUTION",
+          "referencedColumns": [
+            "STEP_EXECUTION_ID"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2050,7 +3499,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_delegation_from",
+          "columns": [
+            "delegator_employee_no"
+          ],
+          "referencedTable": "bza_employee",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        },
+        {
+          "name": "fk_bza_approval_delegation_to",
+          "columns": [
+            "delegate_employee_no"
+          ],
+          "referencedTable": "bza_employee",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2078,6 +3548,7 @@
         "payload_hash",
         "request_idempotency_key",
         "attachment_group_id",
+        "resubmitted_from_approval_id",
         "version_no",
         "transaction_id",
         "submitted_at",
@@ -2125,9 +3596,39 @@
             "transaction_id",
             "created_at"
           ]
+        },
+        {
+          "name": "ix_bza_approval_document_resubmit",
+          "unique": false,
+          "columns": [
+            "resubmitted_from_approval_id"
+          ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_document_policy",
+          "columns": [
+            "policy_code",
+            "policy_version"
+          ],
+          "referencedTable": "bza_approval_policy",
+          "referencedColumns": [
+            "policy_code",
+            "policy_version"
+          ]
+        },
+        {
+          "name": "fk_bza_approval_document_resubmit",
+          "columns": [
+            "resubmitted_from_approval_id"
+          ],
+          "referencedTable": "bza_approval_document",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2167,7 +3668,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_history_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "bza_approval_document",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2214,7 +3726,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_line_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "bza_approval_document",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2268,7 +3791,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_participant_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "bza_approval_document",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        },
+        {
+          "name": "fk_bza_approval_participant_line",
+          "columns": [
+            "approval_line_id"
+          ],
+          "referencedTable": "bza_approval_line",
+          "referencedColumns": [
+            "approval_line_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2328,7 +3872,20 @@
         "updated_at"
       ],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_approval_policy_step_policy",
+          "columns": [
+            "policy_code",
+            "policy_version"
+          ],
+          "referencedTable": "bza_approval_policy",
+          "referencedColumns": [
+            "policy_code",
+            "policy_version"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2387,6 +3944,22 @@
           ]
         }
       ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "bzaDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "bza_audit_chain_lock",
+      "columns": [
+        "chain_id",
+        "current_hash",
+        "last_audit_id",
+        "version_no",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [],
       "foreignKeys": []
     },
     {
@@ -2514,6 +4087,7 @@
         "email",
         "mobile_no",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2543,7 +4117,48 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_employee_admin_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "bza_admin_user",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_organization",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "bza_organization",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_position",
+          "columns": [
+            "position_code"
+          ],
+          "referencedTable": "bza_position",
+          "referencedColumns": [
+            "position_code"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_job_title",
+          "columns": [
+            "job_title_code"
+          ],
+          "referencedTable": "bza_job_title",
+          "referencedColumns": [
+            "job_title_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2560,6 +4175,7 @@
         "primary_yn",
         "effective_from",
         "effective_to",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2585,7 +4201,48 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_employee_assignment_employee",
+          "columns": [
+            "employee_no"
+          ],
+          "referencedTable": "bza_employee",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_assignment_org",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "bza_organization",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_assignment_position",
+          "columns": [
+            "position_code"
+          ],
+          "referencedTable": "bza_position",
+          "referencedColumns": [
+            "position_code"
+          ]
+        },
+        {
+          "name": "fk_bza_employee_assignment_job_title",
+          "columns": [
+            "job_title_code"
+          ],
+          "referencedTable": "bza_job_title",
+          "referencedColumns": [
+            "job_title_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2597,6 +4254,7 @@
         "job_title_name",
         "manager_yn",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2653,7 +4311,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_login_history_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "bza_admin_user",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2672,6 +4341,7 @@
         "api_path",
         "sort_order",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2746,6 +4416,7 @@
         "effective_from",
         "effective_to",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2784,6 +4455,7 @@
         "effective_to",
         "priority_no",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2811,7 +4483,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_org_responsibility_org",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "bza_organization",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_bza_org_responsibility_employee",
+          "columns": [
+            "employee_no"
+          ],
+          "referencedTable": "bza_employee",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2831,6 +4524,7 @@
         "data_scope",
         "allow_yn",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2838,12 +4532,15 @@
       ],
       "indexes": [
         {
-          "name": "uk_bza_permission",
-          "unique": true,
+          "name": "ix_bza_permission_scope",
+          "unique": false,
           "columns": [
             "role_code",
             "menu_code",
-            "button_code"
+            "button_code",
+            "environment_code",
+            "domain_code",
+            "http_method"
           ]
         },
         {
@@ -2866,6 +4563,7 @@
         "position_name",
         "rank_order",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -2938,7 +4636,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_bza_refresh_token_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "bza_admin_user",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -2952,6 +4661,7 @@
         "write_allowed_yn",
         "data_scope",
         "use_yn",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -3014,11 +4724,15 @@
       "sourceFile": "40_business_modules_schema.sql",
       "tableName": "bza_user_role",
       "columns": [
+        "user_role_id",
         "admin_user_id",
         "role_code",
         "valid_from",
         "valid_to",
         "primary_yn",
+        "grant_reason",
+        "operation_id",
+        "version_no",
         "created_by",
         "created_at",
         "updated_by",
@@ -3026,12 +4740,88 @@
       ],
       "indexes": [
         {
+          "name": "uk_bza_user_role_operation",
+          "unique": true,
+          "columns": [
+            "operation_id"
+          ]
+        },
+        {
+          "name": "ix_bza_user_role_user",
+          "unique": false,
+          "columns": [
+            "admin_user_id",
+            "valid_to",
+            "primary_yn",
+            "user_role_id"
+          ]
+        },
+        {
           "name": "ix_bza_user_role_role",
           "unique": false,
           "columns": [
             "role_code",
             "valid_to",
             "admin_user_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_bza_user_role_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "bza_admin_user",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        },
+        {
+          "name": "fk_bza_user_role_role",
+          "columns": [
+            "role_code"
+          ],
+          "referencedTable": "bza_role",
+          "referencedColumns": [
+            "role_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cmnDB",
+      "sourceFile": "20_cmn_schema.sql",
+      "tableName": "cmn_business_calendar_day",
+      "columns": [
+        "calendar_id",
+        "business_date",
+        "business_day_yn",
+        "day_type",
+        "institution_code",
+        "reason",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_cmn_business_calendar_date",
+          "unique": false,
+          "columns": [
+            "business_date",
+            "calendar_id"
+          ]
+        },
+        {
+          "name": "ix_cmn_business_calendar_institution",
+          "unique": false,
+          "columns": [
+            "institution_code",
+            "business_date"
           ]
         }
       ],
@@ -3059,6 +4849,13 @@
         "updated_at"
       ],
       "indexes": [
+        {
+          "name": "uk_cmn_sample_item_key",
+          "unique": true,
+          "columns": [
+            "sample_key"
+          ]
+        },
         {
           "name": "ix_cmn_sample_item_status_sort",
           "unique": false,
@@ -3331,6 +5128,17 @@
       ],
       "indexes": [
         {
+          "name": "ix_cpf_channel_execution_policy_lookup",
+          "unique": false,
+          "columns": [
+            "standard_execution_id",
+            "original_channel_code",
+            "caller_channel_code",
+            "request_type",
+            "active_yn"
+          ]
+        },
+        {
           "name": "ix_cpf_channel_execution_policy_effective",
           "unique": false,
           "columns": [
@@ -3340,7 +5148,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_channel_execution_policy_original",
+          "columns": [
+            "original_channel_code"
+          ],
+          "referencedTable": "cpf_channel_registry",
+          "referencedColumns": [
+            "channel_code"
+          ]
+        },
+        {
+          "name": "fk_cpf_channel_execution_policy_caller",
+          "columns": [
+            "caller_channel_code"
+          ],
+          "referencedTable": "cpf_channel_registry",
+          "referencedColumns": [
+            "channel_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -3447,7 +5276,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_code_parent",
+          "columns": [
+            "parent_id"
+          ],
+          "referencedTable": "cpf_code",
+          "referencedColumns": [
+            "code_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -3693,7 +5533,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_log_policy_audit_policy",
+          "columns": [
+            "policy_id"
+          ],
+          "referencedTable": "cpf_log_policy",
+          "referencedColumns": [
+            "policy_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_log_policy_audit_override",
+          "columns": [
+            "override_id"
+          ],
+          "referencedTable": "cpf_log_policy_override",
+          "referencedColumns": [
+            "override_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -3751,7 +5612,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_log_policy_override_policy",
+          "columns": [
+            "policy_id"
+          ],
+          "referencedTable": "cpf_log_policy",
+          "referencedColumns": [
+            "policy_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -3841,7 +5713,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_notification_delivery_rule",
+          "columns": [
+            "rule_id"
+          ],
+          "referencedTable": "cpf_notification_rule",
+          "referencedColumns": [
+            "rule_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -3922,6 +5805,122 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_saga_execution",
+      "columns": [
+        "saga_id",
+        "saga_type",
+        "business_key",
+        "transaction_id",
+        "saga_status",
+        "version",
+        "error_message",
+        "started_at",
+        "completed_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "idx_cpf_saga_status",
+          "unique": false,
+          "columns": [
+            "saga_status",
+            "updated_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_saga_business",
+          "unique": false,
+          "columns": [
+            "saga_type",
+            "business_key"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_saga_manual_action",
+      "columns": [
+        "action_id",
+        "saga_id",
+        "action_type",
+        "operator_id",
+        "reason",
+        "before_status",
+        "after_status",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "idx_cpf_saga_manual",
+          "unique": false,
+          "columns": [
+            "saga_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_saga_manual_action",
+          "columns": [
+            "saga_id"
+          ],
+          "referencedTable": "cpf_saga_execution",
+          "referencedColumns": [
+            "saga_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "10_cpf_schema.sql",
+      "tableName": "cpf_saga_step_execution",
+      "columns": [
+        "saga_id",
+        "step_no",
+        "step_id",
+        "step_status",
+        "result_code",
+        "result_snapshot",
+        "error_message",
+        "execute_attempts",
+        "compensation_attempts",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "idx_cpf_saga_step_status",
+          "unique": false,
+          "columns": [
+            "step_status",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_saga_step_execution",
+          "columns": [
+            "saga_id"
+          ],
+          "referencedTable": "cpf_saga_execution",
+          "referencedColumns": [
+            "saga_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4128,7 +6127,38 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_call_history_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_call_history_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_call_history_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "cpf_service_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4171,7 +6201,38 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_circuit_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_circuit_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_circuit_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "cpf_service_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4211,7 +6272,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_endpoint_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4253,7 +6325,38 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_health_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_health_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_health_instance",
+          "columns": [
+            "instance_id"
+          ],
+          "referencedTable": "cpf_service_instance",
+          "referencedColumns": [
+            "instance_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4297,7 +6400,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_instance_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_instance_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4340,7 +6464,28 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_service_routing_service",
+          "columns": [
+            "service_id"
+          ],
+          "referencedTable": "cpf_service",
+          "referencedColumns": [
+            "service_id"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_routing_endpoint",
+          "columns": [
+            "endpoint_code"
+          ],
+          "referencedTable": "cpf_service_endpoint",
+          "referencedColumns": [
+            "endpoint_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4617,6 +6762,23 @@
           ]
         },
         {
+          "name": "ix_cpf_transaction_log_was_time",
+          "unique": false,
+          "columns": [
+            "WAS_ID",
+            "START_TIME"
+          ]
+        },
+        {
+          "name": "ix_cpf_transaction_log_module_instance_time",
+          "unique": false,
+          "columns": [
+            "MODULE_ID",
+            "SERVER_INSTANCE_ID",
+            "START_TIME"
+          ]
+        },
+        {
           "name": "ix_cpf_transaction_log_status_time",
           "unique": false,
           "columns": [
@@ -4661,7 +6823,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_cpf_transaction_log_detail_log",
+          "columns": [
+            "LOG_IDX"
+          ],
+          "referencedTable": "cpf_transaction_log",
+          "referencedColumns": [
+            "LOG_IDX"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -4974,6 +7147,304 @@
       "vendor": "mariadb",
       "logicalDatabase": "mbrDB",
       "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member",
+      "columns": [
+        "id",
+        "member_no",
+        "customer_no",
+        "login_id",
+        "password_hash",
+        "login_fail_count",
+        "password_change_required_yn",
+        "password_expire_at",
+        "name",
+        "email",
+        "mobile_no",
+        "member_status",
+        "lock_yn",
+        "withdraw_yn",
+        "channel_code",
+        "joined_at",
+        "last_login_at",
+        "description",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbr_member_no",
+          "unique": true,
+          "columns": [
+            "member_no"
+          ]
+        },
+        {
+          "name": "uk_mbr_member_login_id",
+          "unique": true,
+          "columns": [
+            "login_id"
+          ]
+        },
+        {
+          "name": "ix_mbr_member_customer",
+          "unique": false,
+          "columns": [
+            "customer_no"
+          ]
+        },
+        {
+          "name": "ix_mbr_member_status",
+          "unique": false,
+          "columns": [
+            "member_status",
+            "lock_yn",
+            "withdraw_yn"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_login_history",
+      "columns": [
+        "login_history_id",
+        "member_id",
+        "login_domain",
+        "member_no",
+        "customer_no",
+        "login_id",
+        "login_result",
+        "login_ip",
+        "user_agent",
+        "failure_reason",
+        "transaction_global_id",
+        "module_id",
+        "was_id",
+        "server_instance_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbr_member_login_member_time",
+          "unique": false,
+          "columns": [
+            "member_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbr_member_login_global",
+          "unique": false,
+          "columns": [
+            "transaction_global_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbr_member_login_history_member",
+          "columns": [
+            "member_id"
+          ],
+          "referencedTable": "mbr_member",
+          "referencedColumns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_no_issue_history",
+      "columns": [
+        "issue_id",
+        "member_no",
+        "issue_type",
+        "issued_by",
+        "issued_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbr_member_no_issue_history_no",
+          "unique": true,
+          "columns": [
+            "member_no"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_no_sequence",
+      "columns": [
+        "sequence_value",
+        "requested_by",
+        "requested_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_role",
+      "columns": [
+        "member_role_id",
+        "member_id",
+        "service_code",
+        "role_code",
+        "role_name",
+        "role_type",
+        "grade_code",
+        "temporary_yn",
+        "expire_at",
+        "granted_by",
+        "granted_at",
+        "revoked_by",
+        "revoked_at",
+        "use_yn",
+        "grant_reason",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbr_member_role",
+          "unique": true,
+          "columns": [
+            "member_id",
+            "service_code",
+            "role_code"
+          ]
+        },
+        {
+          "name": "ix_mbr_member_role_member",
+          "unique": false,
+          "columns": [
+            "member_id",
+            "use_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbr_member_role_member",
+          "columns": [
+            "member_id"
+          ],
+          "referencedTable": "mbr_member",
+          "referencedColumns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_role_history",
+      "columns": [
+        "history_id",
+        "member_id",
+        "service_code",
+        "role_code",
+        "action_type",
+        "reason",
+        "before_data",
+        "after_data",
+        "operator_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbr_member_role_history_member",
+          "unique": false,
+          "columns": [
+            "member_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbr_member_role_history_member",
+          "columns": [
+            "member_id"
+          ],
+          "referencedTable": "mbr_member",
+          "referencedColumns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
+      "tableName": "mbr_member_role_operation",
+      "columns": [
+        "idempotency_key",
+        "member_id",
+        "service_code",
+        "role_code",
+        "operation_type",
+        "operation_status",
+        "result_version",
+        "result_use_yn",
+        "created_by",
+        "created_at",
+        "completed_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbr_member_role_operation_member",
+          "unique": false,
+          "columns": [
+            "member_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbr_member_role_operation_member",
+          "columns": [
+            "member_id"
+          ],
+          "referencedTable": "mbr_member",
+          "referencedColumns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbrDB",
+      "sourceFile": "40_business_modules_schema.sql",
       "tableName": "mbr_sample_item",
       "columns": [
         "sample_item_id",
@@ -5080,7 +7551,18 @@
           ]
         }
       ],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "name": "fk_ref_center_cut_sample_result_target",
+          "columns": [
+            "target_id"
+          ],
+          "referencedTable": "ref_center_cut_sample_target",
+          "referencedColumns": [
+            "target_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -5167,6 +7649,20 @@
         "updated_at"
       ],
       "indexes": [
+        {
+          "name": "uk_ref_sample_item_key",
+          "unique": true,
+          "columns": [
+            "sample_key"
+          ]
+        },
+        {
+          "name": "uk_ref_sample_item_idempotency",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
         {
           "name": "ix_ref_sample_item_status_sort",
           "unique": false,

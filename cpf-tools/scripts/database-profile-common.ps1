@@ -39,20 +39,23 @@ function Resolve-CpfProfileSecret {
             return [string]$SecretSpec
         }
     } else {
-        $envName = [string]$SecretSpec.env
+        $envProperty = $SecretSpec.PSObject.Properties["env"]
+        $envName = if ($null -ne $envProperty) { [string]$envProperty.Value } else { "" }
         if (-not [string]::IsNullOrWhiteSpace($envName)) {
             $value = [Environment]::GetEnvironmentVariable($envName)
             if (-not [string]::IsNullOrWhiteSpace($value)) { return $value }
         }
 
-        $fallbackEnv = [string]$SecretSpec.fallbackEnv
+        $fallbackProperty = $SecretSpec.PSObject.Properties["fallbackEnv"]
+        $fallbackEnv = if ($null -ne $fallbackProperty) { [string]$fallbackProperty.Value } else { "" }
         if (-not [string]::IsNullOrWhiteSpace($fallbackEnv)) {
             $value = [Environment]::GetEnvironmentVariable($fallbackEnv)
             if (-not [string]::IsNullOrWhiteSpace($value)) { return $value }
         }
 
         if ($AllowDevDefault) {
-            $devDefault = [string]$SecretSpec.devDefault
+            $devDefaultProperty = $SecretSpec.PSObject.Properties["devDefault"]
+            $devDefault = if ($null -ne $devDefaultProperty) { [string]$devDefaultProperty.Value } else { "" }
             if (-not [string]::IsNullOrWhiteSpace($devDefault)) { return $devDefault }
         }
     }
@@ -104,7 +107,8 @@ function Get-CpfVendorDefaultPort {
 function ConvertTo-CpfModuleProfile {
     param(
         [Parameter(Mandatory = $true)] $Profile,
-        [Parameter(Mandatory = $true)] [string] $ModuleKey
+        [Parameter(Mandatory = $true)] [string] $ModuleKey,
+        [switch] $SkipSecretResolution
     )
 
     $raw = $Profile.modules.$ModuleKey
@@ -126,6 +130,23 @@ function ConvertTo-CpfModuleProfile {
     $port = [int]$raw.port
     if ($port -le 0) { $port = Get-CpfVendorDefaultPort $vendor }
 
+    $sslModeProperty = $raw.PSObject.Properties["sslMode"]
+    $sslMode = if ($null -ne $sslModeProperty) {
+        ([string]$sslModeProperty.Value).Trim().ToLowerInvariant()
+    } else {
+        ""
+    }
+    if ([string]::IsNullOrWhiteSpace($sslMode)) {
+        $sslMode = if (([string]$Profile.environment).ToLowerInvariant() -eq "production") {
+            "verify-full"
+        } else {
+            "preferred"
+        }
+    }
+    if ($sslMode -notin @("disabled", "preferred", "required", "verify-full")) {
+        throw "module=$ModuleKey 지원하지 않는 sslMode=$sslMode"
+    }
+
     $databaseName = [string]$raw.databaseName
     $schemaName = [string]$raw.schemaName
     Assert-CpfDbIdentifier $databaseName "$ModuleKey.databaseName"
@@ -140,6 +161,28 @@ function ConvertTo-CpfModuleProfile {
     $allowDevDefault = ([string]$Profile.environment).ToLowerInvariant() -in @("development", "dev", "local") -and
         [bool]$Profile.policy.allowInlineDevDefaults
 
+    $sslCaPathProperty = $raw.PSObject.Properties["sslCaPath"]
+    $sslCaPath = if ($null -ne $sslCaPathProperty) {
+        [string]$sslCaPathProperty.Value
+    } else {
+        ""
+    }
+    $databaseLifecycleProperty = $raw.PSObject.Properties["databaseLifecycle"]
+    $databaseLifecycle = if ($null -ne $databaseLifecycleProperty) {
+        ([string]$databaseLifecycleProperty.Value).Trim().ToLowerInvariant()
+    } elseif ([bool]$raw.transitional) {
+        "generated-domain"
+    } else {
+        "platform-pack"
+    }
+    if ($databaseLifecycle -notin @("platform-pack", "generated-domain")) {
+        throw "modules.$ModuleKey.databaseLifecycle 값이 올바르지 않습니다: $databaseLifecycle"
+    }
+    if ($databaseLifecycle -eq "generated-domain" -and
+            [bool]$raw.enabled) {
+        throw "Generated Domain DB는 Platform Profile에서 enabled로 둘 수 없습니다. manifest 기반 초기화기를 사용하세요: $ModuleKey"
+    }
+
     return [pscustomobject]@{
         moduleKey = $ModuleKey
         domainName = $domainName
@@ -147,6 +190,7 @@ function ConvertTo-CpfModuleProfile {
         enabled = [bool]$raw.enabled
         required = [bool]$raw.required
         transitional = [bool]$raw.transitional
+        databaseLifecycle = $databaseLifecycle
         systemCode = $systemCode
         logicalDatabase = [string]$raw.logicalDatabase
         vendor = $vendor
@@ -155,15 +199,29 @@ function ConvertTo-CpfModuleProfile {
         databaseName = $databaseName
         schemaName = $schemaName
         clientPath = [string]$raw.clientPath
+        sslMode = $sslMode
+        sslCaPath = $sslCaPath
         adminUsername = [string]$raw.admin.username
         adminUserHost = [string]$raw.admin.userHost
-        adminPassword = Resolve-CpfProfileSecret $raw.admin.password "$ModuleKey.admin.password" $allowDevDefault
+        adminPassword = if ($SkipSecretResolution) {
+            "__CPF_STATIC_PROFILE_VALIDATION__"
+        } else {
+            Resolve-CpfProfileSecret $raw.admin.password "$ModuleKey.admin.password" $allowDevDefault
+        }
         migrationUsername = [string]$raw.migration.username
         migrationUserHost = [string]$raw.migration.userHost
-        migrationPassword = Resolve-CpfProfileSecret $raw.migration.password "$ModuleKey.migration.password" $allowDevDefault
+        migrationPassword = if ($SkipSecretResolution) {
+            "__CPF_STATIC_PROFILE_VALIDATION__"
+        } else {
+            Resolve-CpfProfileSecret $raw.migration.password "$ModuleKey.migration.password" $allowDevDefault
+        }
         runtimeUsername = [string]$raw.runtime.username
         runtimeUserHost = [string]$raw.runtime.userHost
-        runtimePassword = Resolve-CpfProfileSecret $raw.runtime.password "$ModuleKey.runtime.password" $allowDevDefault
+        runtimePassword = if ($SkipSecretResolution) {
+            "__CPF_STATIC_PROFILE_VALIDATION__"
+        } else {
+            Resolve-CpfProfileSecret $raw.runtime.password "$ModuleKey.runtime.password" $allowDevDefault
+        }
         productSeed = [bool]$raw.seed.product
         optionalSampleSeed = [bool]$raw.seed.optionalSample
         testSeed = [bool]$raw.seed.test

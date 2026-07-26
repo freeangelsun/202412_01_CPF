@@ -1,0 +1,5 @@
+SELECT instance_id, runtime_role, actual_state, last_heartbeat_at
+FROM bat_runtime_instance
+WHERE actual_state IN ('FAILED', 'DEGRADED', 'UNKNOWN')
+   OR last_heartbeat_at < @NOW6_MINUS_30_SECONDS@
+ORDER BY runtime_role, instance_id

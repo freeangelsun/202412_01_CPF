@@ -1,5 +1,6 @@
 package com.cpf.bizadmin.sample.sequence;
 
+import com.cpf.bizadmin.common.base.BzaBaseService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import java.util.Map;
 /** 선택형 BZA 업무 채번 Customization Sample. 기본 비활성입니다. */
 @Service
 @ConditionalOnProperty(prefix = "cpf.bza.sample.sequence", name = "enabled", havingValue = "true")
-public class BzaSequenceSampleService {
+public class BzaSequenceSampleService extends BzaBaseService {
     private final BzaSequenceSampleRepository repository;
 
     public BzaSequenceSampleService(BzaSequenceSampleRepository repository) {

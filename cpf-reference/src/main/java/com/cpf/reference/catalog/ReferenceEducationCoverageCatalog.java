@@ -78,7 +78,19 @@ public final class ReferenceEducationCoverageCatalog {
             "REF Reference-OPER-001",
             "REF Reference-OPER-002",
             "REF Reference-ATTACH-001",
-            "REF Reference-ATTACH-002"
+            "REF Reference-ATTACH-002",
+            "REF Reference-BATCH-TASKLET-001",
+            "REF Reference-BATCH-CHUNK-001",
+            "REF Reference-BATCH-RETRY-001",
+            "REF Reference-BATCH-LOCK-001",
+            "REF Reference-BATCH-RESTART-001",
+            "REF Reference-BATCH-SCHEDULE-001",
+            "REF Reference-BATCH-IDEMP-001",
+            "REF Reference-BATCH-UNKNOWN-001",
+            "REF Reference-BATCH-RECON-001",
+            "REF Reference-BATCH-ADM-001",
+            "REF Reference-CENTER-TARGET-001",
+            "REF Reference-CENTER-RESULT-001"
     )));
 
     private ReferenceEducationCoverageCatalog() {

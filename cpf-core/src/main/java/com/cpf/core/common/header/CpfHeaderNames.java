@@ -52,6 +52,8 @@ public final class CpfHeaderNames {
     public static final String CLIENT_VERSION = "X-Client-Version";
     public static final String CALLER_SERVICE = "X-Caller-Service";
     public static final String CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
+    /** CPF 내부 outbound 관측에서 등록된 호출 대상 serviceId를 전달합니다. */
+    public static final String TARGET_SERVICE = "X-Cpf-Target-Service";
     public static final String GATEWAY_INSTANCE_ID = "X-Cpf-Gateway-Instance-Id";
     public static final String GATEWAY_ROUTE_ID = "X-Cpf-Gateway-Route-Id";
     public static final String GATEWAY_ROUTE_VERSION = "X-Cpf-Gateway-Route-Version";

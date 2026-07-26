@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -18,10 +19,10 @@ class AdmObservabilityServiceTest {
     @Test
     void traceReturnsEmptyBucketsWhenSourceTablesAreMissing() {
         JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
-        JdbcTemplate batJdbcTemplate = mock(JdbcTemplate.class);
+        CpfBatchOperationsPort batchOperations = mock(CpfBatchOperationsPort.class);
         JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
         AdmObservabilityService service =
-                new AdmObservabilityService(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate);
+                new AdmObservabilityService(cpfJdbcTemplate, batchOperations, admJdbcTemplate);
 
         Map<String, Object> result = service.traceByBusinessTransactionId("ADM03LGP0014", 20);
 
@@ -36,12 +37,12 @@ class AdmObservabilityServiceTest {
     @Test
     void policyAuditQueryReportsUnavailableWhenTableIsMissing() {
         JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
-        JdbcTemplate batJdbcTemplate = mock(JdbcTemplate.class);
+        CpfBatchOperationsPort batchOperations = mock(CpfBatchOperationsPort.class);
         JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
         when(cpfJdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("cpf_log_policy_audit")))
                 .thenReturn(0);
         AdmObservabilityService service =
-                new AdmObservabilityService(cpfJdbcTemplate, batJdbcTemplate, admJdbcTemplate);
+                new AdmObservabilityService(cpfJdbcTemplate, batchOperations, admJdbcTemplate);
 
         Map<String, Object> result = service.findPolicyAudits(
                 null, null, "ONLINE_TRANSACTION", "ADM03LGP0014", null, null, 10);

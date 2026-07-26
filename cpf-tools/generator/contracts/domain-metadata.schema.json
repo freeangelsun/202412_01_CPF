@@ -14,7 +14,28 @@
     "packageName",
     "schemaName",
     "tablePrefix",
-    "databaseEnabled"
+    "databaseEnabled",
+    "dependencyModel",
+    "platformVersion",
+    "templateContractVersion",
+    "capabilities",
+    "minimalTransactionContract"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "databaseEnabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "databaseVendor"
+        ]
+      }
+    }
   ],
   "properties": {
     "metadataVersion": {
@@ -54,6 +75,19 @@
     "databaseEnabled": {
       "type": "boolean"
     },
+    "dependencyModel": {
+      "enum": [
+        "root-project",
+        "published-artifact"
+      ]
+    },
+    "platformVersion": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$"
+    },
+    "templateContractVersion": {
+      "const": "1.0"
+    },
     "databaseVendor": {
       "enum": [
         "mariadb",
@@ -63,11 +97,67 @@
         "sqlserver"
       ]
     },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "online",
+        "database",
+        "batch",
+        "centerCut",
+        "external",
+        "messaging",
+        "file",
+        "securityAudit",
+        "ui",
+        "bzaMenu",
+        "productionProfile"
+      ],
+      "properties": {
+        "online": {
+          "type": "boolean"
+        },
+        "database": {
+          "type": "boolean"
+        },
+        "batch": {
+          "type": "boolean"
+        },
+        "centerCut": {
+          "type": "boolean"
+        },
+        "external": {
+          "type": "boolean"
+        },
+        "messaging": {
+          "type": "boolean"
+        },
+        "file": {
+          "type": "boolean"
+        },
+        "securityAudit": {
+          "type": "boolean"
+        },
+        "ui": {
+          "type": "boolean"
+        },
+        "bzaMenu": {
+          "type": "boolean"
+        },
+        "productionProfile": {
+          "type": "boolean"
+        }
+      }
+    },
     "minimalTransactionContract": {
       "type": "object",
       "required": [
         "model",
         "logicalTable",
+        "requiredColumns",
+        "requiredKeys",
+        "requiredIndexes",
+        "requiredChecks",
         "operations"
       ],
       "properties": {
@@ -77,12 +167,92 @@
         "logicalTable": {
           "type": "string"
         },
-        "operations": {
+        "requiredColumns": {
           "type": "array",
-          "minItems": 21,
+          "minItems": 14,
           "uniqueItems": true,
           "items": {
-            "type": "string"
+            "enum": [
+              "sample_item_id",
+              "sample_key",
+              "item_name",
+              "status_code",
+              "version_no",
+              "idempotency_key",
+              "transaction_id",
+              "transaction_sequence",
+              "transaction_at",
+              "deleted_yn",
+              "created_by",
+              "created_at",
+              "updated_by",
+              "updated_at"
+            ]
+          }
+        },
+        "requiredKeys": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "primary-key",
+              "sample-key-unique",
+              "idempotency-key-unique"
+            ]
+          }
+        },
+        "requiredIndexes": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "status-deleted-id",
+              "transaction-id-sequence"
+            ]
+          }
+        },
+        "requiredChecks": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "status-active-inactive",
+              "deleted-yn"
+            ]
+          }
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 22,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "create",
+              "read",
+              "update",
+              "delete",
+              "search",
+              "offset-page",
+              "slice",
+              "cursor",
+              "validation",
+              "transaction-commit",
+              "transaction-rollback",
+              "optimistic-lock",
+              "duplicate",
+              "local-call",
+              "remote-call",
+              "standard-header",
+              "transaction-id",
+              "error-mapping",
+              "idempotency",
+              "audit",
+              "masking",
+              "framework-edu"
+            ]
           }
         }
       }

@@ -6,5 +6,5 @@ SET record_status = 'EXPIRED',
 WHERE record_status = 'PROCESSING'
   AND expires_at IS NOT NULL
   AND expires_at <= ?
-ORDER BY idempotency_id
+ORDER BY idempotency_seq
 LIMIT ?

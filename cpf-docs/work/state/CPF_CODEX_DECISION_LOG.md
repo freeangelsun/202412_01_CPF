@@ -159,8 +159,69 @@
 ## DEC-026 Vendor-first Schema/Metadata Change Order
 
 - 상태: `완료`
+- 현재 적용: DEC-027의 Canonical Metadata/Generator-first 순서로 대체됨
 - 결정: Table/Column/Index/Seed/기준 Metadata 변경은 DB Source/Vendor 정본부터 시작하고 generated bundle, migration/rollback, Mapper/Repository, Service/API/UI, Test/Runtime/Evidence 순서로 전파한다. Product Seed에는 설치 직후 필요한 권한/메뉴/정책 Metadata를 제공하고 Local/EDU/고객 조직 Sample은 Optional Seed로 분리한다.
 - 이유: Java나 파생 SQL부터 수정해 Source/Install/Runtime 계약이 갈라지고 Fresh Install 때 Metadata가 비는 재발을 막는다.
+
+## DEC-027 Canonical Metadata / Generator-first DB Change Order
+
+- 상태: `완료`
+- 결정: DB Query, Schema 또는 Metadata를 변경할 때의 정식 순서는 `Requirement / Data Model → Canonical Schema / Metadata → Generator / Domain Template → Generated Domain 산출 기준 → Vendor Source SQL → Migration → Install → Upgrade → Rollback → Seed → Verify → Test → Evidence`다. Platform 고정 제품 DB와 Generated Domain Template의 Ownership은 분리하되, 파생 Vendor SQL이나 Migration만 먼저 고쳐 정본과 산출물이 갈라지는 변경은 허용하지 않는다. Vendor별 물리 차이는 중앙 Pack에서 해결하고 Java 업무 Source는 DB-neutral하게 유지한다.
+- 이유: 최신 사용자 검수 요청의 명시적 보정이며, MariaDB 단독 Hotfix가 Generator와 나머지 Vendor Pack에 Drift를 만드는 일을 막기 위해서다.
+
+## DEC-028 DB 연결 보안과 설치 Verify 계약
+
+- 상태: `완료`
+- 결정: DB TLS mode는 Client/OS의 암묵 기본값에 맡기지 않고 설치 Profile에 `disabled`, `preferred`, `required`, `verify-full` 중 하나로 명시한다. Git 추적 Local Development Profile만 `disabled`를 사용하며 Production Template은 `verify-full`을 사용한다. 공식 Installer는 Canonical Schema Manifest 기준으로 실제 Table, Column 순서, 선언 Index와 FK를 대조하고, Product Seed 이후 중앙 Vendor Verify Pack의 모든 `check_name/passed` 결과가 1일 때만 완료로 판정한다.
+- 이유: PC 재부팅이나 Client Version에 따라 TLS negotiation 결과가 달라지는 문제와, Table 존재 확인만으로 Stale/누락 Schema·잘못된 Seed를 설치 성공으로 기록하는 문제를 막는다.
+
+## DEC-029 Migration Version 선택 기준
+
+- 상태: `완료`
+- 결정: 신규 Platform Migration version은 현재 수정 가능한 Source subset의 마지막 번호가 아니라 중앙 Runtime Lifecycle Pack에 보존된 전체 Historical Migration의 최고 version을 기준으로 선택한다. Historical V55/V56이 Runtime Pack에 이미 있던 상태에서 ADM transactionId 표준화는 V57로 추가하며, 기존 Migration 본문이나 checksum을 덮어쓰지 않는다.
+- 이유: Source subset만 보고 번호를 선택하면 Runtime Historical version과 충돌해 Flyway 적용 순서와 checksum 무결성이 깨진다.
+
+## DEC-030 Platform Table Lifecycle / Audit 정책
+
+- 상태: `완료`
+- 결정: Platform Table의 기본 정책은 `full-audit`이지만 Append-only 기록, 상태 전이 원장, Lock/Claim/Lease, Aggregate Projection, 채번, 정적 호환성 계약과 Spring Batch Framework Table은 `cpf-tools/db/metadata/platform-table-lifecycle-policy.json`에 lifecycle 유형, 필수 semantic actor/time/fencing Column과 사유를 명시해야만 예외로 허용한다. 신규 Table은 명시적 예외가 없으면 공통 Audit 계약을 적용하며, 미등록 Table·알 수 없는 정책·사유/필수 semantic Column 누락·삭제 Table의 stale 정책은 Gate에서 실패한다.
+- 이유: 모든 운영/이력/Lease Table에 `created_by/created_at/updated_by/updated_at`을 기계적으로 추가하면 실제 lifecycle 의미와 중복되고 불필요한 저장 구조가 된다. 반대로 예외를 코드에 하드코딩하면 신규 Table이 검토 없이 빠지므로 Canonical Metadata를 fail-closed 정본으로 둔다.
+
+## DEC-031 Comment Migration Delta와 Rollback 보존
+
+- 상태: `완료`
+- 결정: Schema Comment Migration Metadata에는 Canonical DDL 전체가 아니라 해당 Version이 새로 추가하는 Table/Column Comment Delta만 기록한다. 이전 Migration이나 기존 설치에 이미 있던 Comment는 신규 Migration/Rollback 대상에서 제외한다. V58은 Metadata Generator로 Forward/Rollback을 생성하고, 실제 MariaDB에서 Upgrade → Rollback → Re-upgrade 동안 Comment Delta, Column/Index/FK 정의 Hash와 `FOREIGN_KEY_CHECKS` 복원을 검증한다.
+- 이유: 전체 Canonical Comment를 신규 Version Delta로 오인하면 Rollback이 V57 이전에 존재하던 설명까지 삭제한다. 실제 V57 DB Baseline이 이 위험을 검출했으며, Delta-only Metadata가 Historical 상태를 보존한다.
+
+## DEC-032 Build Tooling 물리 소유권
+
+- 상태: `완료`
+- 결정: CPF Convention Gradle Plugin과 Platform BOM은 제품 Runtime Module이 아니므로
+  Repository Root가 아니라 각각 `cpf-tools/build/gradle-plugin`,
+  `cpf-tools/build/platform-bom`이 소유한다. Root `settings.gradle`은 이 두 격리
+  Composite Build를 직접 참조한다. `cpf-tools/build`의 추적 Source만 `.gitignore`
+  예외로 두고 각 격리 Build의 `.gradle`, `build`, `bin` 산출물은 계속 제외한다.
+- 이유: Repository Root에는 제품 식별·Build 진입에 필요한 최소 구조만 유지하고,
+  Build Support Unit의 소유권을 Tooling 경계에 모으면서 clone 직후에도 Composite
+  Build가 재현되도록 하기 위해서다.
+
+## DEC-033 선택 Generated Domain의 Platform/EDU 비종속과 Self Sample
+
+- 상태: `완료`
+- 결정: `cpf-admin`과 다른 고정 Platform Module은 MBR/ACC/PAY 같은 특정 Generated
+  Domain의 Java Type, URL, DB, DataSource, 메뉴 또는 필수 Readiness에 종속되지 않는다.
+  `cpf-reference`의 Local/Remote/Header/transactionId/Error 교육은 REF가 소유한 중립
+  Self Simulator를 사용하고 특정 Generated Domain의 존재를 전제로 하지 않는다.
+  각 Generated Domain은 동일 Generator-owned Minimal Transaction Source 구조와
+  `${tablePrefix}_sample_item` 한 개를 자체 보유하며 Local/Remote 검증도 자기
+  Public/Internal Sample 경계를 사용한다. 서로 다른 Domain 간 parity는 Generator
+  검증이 임시 Domain을 생성한 동안에만 수행하고 종료 시 모두 제거한다. 기존
+  MBR/ACC 업무특화 Source/Table은 Consumer를 Platform/REF에서 제거하고 필요한 고객
+  확장 Ownership을 분리한 뒤 Golden Template 전환 과정에서 retirement한다.
+- 이유: Generated Domain은 선택적으로 삭제·재생성될 수 있어야 하며, ADM/REF가 특정
+  예시 Domain을 요구하면 제품 Platform 기동과 EDU가 고객 업무 Module 수명주기에
+  결합된다. 한 개의 중립 Self Sample만 정본으로 두면 이름에 따른 업무 가정과
+  Schema/Source drift 없이 임의 Domain을 동일하게 검증할 수 있다.
 
 
 ## 2026-07-25 — Vendor source ownership / EXS / Frontend packaging

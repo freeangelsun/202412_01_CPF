@@ -1,7 +1,9 @@
 package com.cpf.admin.opr.controller;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Map;
 
@@ -12,37 +14,36 @@ import static org.mockito.Mockito.when;
 class AdmHealthControllerTest {
 
     @Test
-    void healthReturnsUpWhenAllDatabasesRespond() {
-        // smoke 자동화는 ADM, CPF, MBR datasource가 모두 응답할 때만 실제 준비 완료로 판단합니다.
+    void readinessReturnsUpWhenOwnedDatabasesRespond() {
         JdbcTemplate adm = respondingTemplate();
         JdbcTemplate cpf = respondingTemplate();
-        JdbcTemplate mbr = respondingTemplate();
 
-        Map<String, Object> result = new AdmHealthController(adm, cpf, mbr).health();
+        var response = new AdmHealthController(adm, cpf, new MockEnvironment()).readiness();
+        Map<String, Object> result = response.getBody();
 
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result).isNotNull();
         assertThat(result)
                 .containsEntry("status", "UP")
                 .containsEntry("service", "ADM");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "cpfDB", "UP",
-                "mbrDB", "UP"));
+                "cpfDB", "UP"));
     }
 
     @Test
-    void healthReturnsDegradedWhenAnyDatabaseFails() {
-        // 앱 프로세스가 떠 있어도 운영 datasource 중 하나가 실패하면 OpenAPI/API smoke 전 단계에서 구분합니다.
+    void readinessFailsWhenOwnedDatabaseIsDown() {
         JdbcTemplate adm = respondingTemplate();
         JdbcTemplate cpf = failingTemplate();
-        JdbcTemplate mbr = respondingTemplate();
 
-        Map<String, Object> result = new AdmHealthController(adm, cpf, mbr).health();
+        var response = new AdmHealthController(adm, cpf, new MockEnvironment()).readiness();
+        Map<String, Object> result = response.getBody();
 
-        assertThat(result).containsEntry("status", "DEGRADED");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(result).isNotNull().containsEntry("status", "DOWN");
         assertThat(result.get("checks")).isEqualTo(Map.of(
                 "admDB", "UP",
-                "cpfDB", "DOWN",
-                "mbrDB", "UP"));
+                "cpfDB", "DOWN"));
     }
 
     private JdbcTemplate respondingTemplate() {

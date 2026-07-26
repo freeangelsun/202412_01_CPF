@@ -94,15 +94,25 @@ subprojects {
         options.addStringOption('Xdoclint:all,-missing', '-quiet')
     }
 
+    def cpfResourcePlatformVersion = rootProject.ext.cpfPlatformVersion.toString()
+    def cpfResourceComponentVersion = version.toString()
+    def cpfResourceCompatibleRange = rootProject.ext.cpfCompatibleRange.toString()
+    def cpfResourceComponentName = name
     tasks.named('processResources').configure {
+        inputs.properties(
+                cpfPlatformVersion: cpfResourcePlatformVersion,
+                cpfComponentVersion: cpfResourceComponentVersion,
+                cpfCompatibleRange: cpfResourceCompatibleRange,
+                cpfComponentName: cpfResourceComponentName
+        )
         doLast {
             def metadataDir = new File(destinationDir, 'META-INF')
             metadataDir.mkdirs()
             new File(metadataDir, 'cpf-platform.properties').setText(
-                            "platformVersion=${rootProject.ext.cpfPlatformVersion}\n" +
-                            "componentVersion=${project.version}\n" +
-                            "compatibleRange=${rootProject.ext.cpfCompatibleRange}\n" +
-                            "component=${project.name}\n",
+                            "platformVersion=${cpfResourcePlatformVersion}\n" +
+                            "componentVersion=${cpfResourceComponentVersion}\n" +
+                            "compatibleRange=${cpfResourceCompatibleRange}\n" +
+                            "component=${cpfResourceComponentName}\n",
                     'UTF-8')
         }
     }
@@ -132,30 +142,52 @@ subprojects {
     }
 }
 
+def versionConsistencyExpected = rootProject.ext.cpfPlatformVersion.toString()
+def versionConsistencyLockedComponents = ['cpf-core', 'cpf-common'].collectEntries { componentName ->
+    [(componentName): project(":${componentName}").version.toString()]
+}
+def versionConsistencyComponents = subprojects.collect { component ->
+    def configuredVersion = cpfPlatformProperties.getProperty("component.${component.name}", 'inherit')
+    [
+            name: component.name,
+            path: component.path,
+            version: component.version.toString(),
+            effective: configuredVersion == 'inherit' ? versionConsistencyExpected : configuredVersion
+    ]
+}
+def versionConsistencyGenerator = layout.projectDirectory.file('cpf-tools/generator/create-domain.ps1').asFile
+def versionConsistencyLauncher = layout.projectDirectory.file('cpf-tools/scripts/create-domain.ps1').asFile
 tasks.register('verifyVersionConsistency') {
     group = 'verification'
     description = '모든 CPF 모듈과 생성기의 제품 버전 정합성을 검사합니다.'
+    inputs.properties(
+            expectedVersion: versionConsistencyExpected,
+            lockedComponents: versionConsistencyLockedComponents,
+            componentVersions: versionConsistencyComponents.collectEntries {
+                [(it.path): "${it.version}|${it.effective}"]
+            }
+    )
+    inputs.file(versionConsistencyGenerator)
+    inputs.file(versionConsistencyLauncher).optional()
     doLast {
-        def expected = rootProject.ext.cpfPlatformVersion.toString()
+        def expected = versionConsistencyExpected
         if (!(expected ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
             throw new GradleException("CPF platform version format is invalid: ${expected}")
         }
-        ['cpf-core', 'cpf-common'].each { lockedComponent ->
-            if (project(":${lockedComponent}").version.toString() != expected) {
-                throw new GradleException("${lockedComponent} component must stay platform-locked: ${project(":${lockedComponent}").version}")
+        versionConsistencyLockedComponents.each { lockedComponent, lockedVersion ->
+            if (lockedVersion != expected) {
+                throw new GradleException("${lockedComponent} component must stay platform-locked: ${lockedVersion}")
             }
         }
-        subprojects.each { component ->
-            def configured = cpfPlatformProperties.getProperty("component.${component.name}", 'inherit')
-            def effective = configured == 'inherit' ? expected : configured
-            if (component.version.toString() != effective) {
-                throw new GradleException("CPF component version mismatch: ${component.path}=${component.version}, expected=${effective}")
+        versionConsistencyComponents.each { component ->
+            if (component.version != component.effective) {
+                throw new GradleException("CPF component version mismatch: ${component.path}=${component.version}, expected=${component.effective}")
             }
-            if (!(effective ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
-                throw new GradleException("CPF component version format is invalid: ${component.path}=${effective}")
+            if (!(component.effective ==~ /\d+\.\d+\.\d+(?:-SNAPSHOT|-rc\.\d+)?/)) {
+                throw new GradleException("CPF component version format is invalid: ${component.path}=${component.effective}")
             }
         }
-        def canonicalGenerator = file('cpf-tools/generator/create-domain.ps1')
+        def canonicalGenerator = versionConsistencyGenerator
         if (!canonicalGenerator.isFile()) {
             throw new GradleException("CPF canonical domain generator is missing: ${canonicalGenerator}")
         }
@@ -163,7 +195,7 @@ tasks.register('verifyVersionConsistency') {
         if ((generatorText =~ /(?m)^\s*version\s*=/).find()) {
             throw new GradleException('생성 Module은 root platformVersion을 상속해야 하며 Generator template에 독립 version을 선언하면 안 됩니다.')
         }
-        def compatibilityLauncher = file('cpf-tools/scripts/create-domain.ps1')
+        def compatibilityLauncher = versionConsistencyLauncher
         if (compatibilityLauncher.isFile()) {
             def launcherText = compatibilityLauncher.getText('UTF-8')
             if (compatibilityLauncher.length() > 4096 || !(launcherText.contains('generator') && launcherText.contains('create-domain.ps1'))) {
@@ -608,10 +640,38 @@ void stopLocalServiceProcesses(List processes) {
 ext.cpfServiceModules = [
         MBR    : 'cpf-member',
         ADM    : 'cpf-admin',
+        BAT    : 'cpf-batch',
         BZA    : 'cpf-biz-admin',
         REF    : 'cpf-reference',
         ACC    : 'cpf-account',
         GWY    : 'cpf-gateway'
+]
+ext.cpfBatRuntimeTargets = [
+        CONTROL_SERVER   : [
+                projectPath: ':cpf-batch:control-server',
+                envPrefix : 'BAT_CONTROL_SERVER',
+                artifact  : 'cpf-batch-control-server'
+        ],
+        SCHEDULER        : [
+                projectPath: ':cpf-batch:scheduler',
+                envPrefix : 'BAT_SCHEDULER',
+                artifact  : 'cpf-batch-scheduler'
+        ],
+        WORKER           : [
+                projectPath: ':cpf-batch:worker',
+                envPrefix : 'BAT_WORKER',
+                artifact  : 'cpf-batch-worker'
+        ],
+        CENTER_CUT_RUNNER: [
+                projectPath: ':cpf-batch:center-cut-runner',
+                envPrefix : 'BAT_CENTER_CUT_RUNNER',
+                artifact  : 'cpf-center-cut-runner'
+        ],
+        HOST_AGENT       : [
+                projectPath: ':cpf-batch:host-agent',
+                envPrefix : 'BAT_HOST_AGENT',
+                artifact  : 'cpf-batch-host-agent'
+        ]
 ]
 ext.cpfDeployEnvs = ['local', 'dev', 'stg', 'prod']
 
@@ -625,6 +685,35 @@ String cpfModuleProjectName(String moduleCode) {
         throw new GradleException("Unsupported CPF deploy module: ${moduleCode}")
     }
     return value
+}
+
+Map cpfRequestedBatRuntimeTarget(String moduleCode) {
+    if (moduleCode != 'BAT') {
+        return null
+    }
+    def role = (findProperty('cpfBatRuntimeRole') ?: '').toString().trim().toUpperCase(Locale.ROOT)
+    if (role.isEmpty()) {
+        throw new GradleException(
+                'BAT deployment requires -PcpfBatRuntimeRole='
+                        + ext.cpfBatRuntimeTargets.keySet().join('|'))
+    }
+    def target = ext.cpfBatRuntimeTargets[role]
+    if (target == null) {
+        throw new GradleException(
+                "Unsupported BAT runtime role: ${role}. expected="
+                        + ext.cpfBatRuntimeTargets.keySet().join('|'))
+    }
+    return [runtimeRole: role] + target
+}
+
+String cpfDeployProjectPath(String moduleCode) {
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    return batTarget == null ? ":${cpfModuleProjectName(moduleCode)}" : batTarget.projectPath
+}
+
+String cpfDeployEvidenceName(String moduleCode) {
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    return batTarget == null ? cpfModuleProjectName(moduleCode) : batTarget.artifact
 }
 
 String cpfRequestedEnv() {
@@ -683,15 +772,14 @@ void cpfWriteJson(File outputFile, Object value) {
 
 Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
     def moduleLower = cpfModuleProjectName(moduleCode)
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    def evidenceName = cpfDeployEvidenceName(moduleCode)
     def envFile = file("deploy/env/${env}-${moduleLower}.env")
     def values = cpfReadEnvFile(envFile)
     def prefix = moduleCode
     def requiredKeys = [
             'SPRING_PROFILES_ACTIVE',
             "${prefix}_MODULE_ID".toString(),
-            "${prefix}_INSTANCE_ID".toString(),
-            "${prefix}_WAS_ID".toString(),
-            "${prefix}_SERVER_PORT".toString(),
             'CPF_LOG_ROOT',
             'CPF_DB_MODE',
             'CPF_DB_URL',
@@ -704,6 +792,19 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
             "${prefix}_DATASOURCE_PASSWORD".toString(),
             "${prefix}_DATASOURCE_JNDI_NAME".toString()
     ]
+    if (batTarget == null) {
+        requiredKeys.addAll([
+                "${prefix}_INSTANCE_ID".toString(),
+                "${prefix}_WAS_ID".toString(),
+                "${prefix}_SERVER_PORT".toString()
+        ])
+    } else {
+        requiredKeys.addAll([
+                "${batTarget.envPrefix}_INSTANCE_ID".toString(),
+                "${batTarget.envPrefix}_WAS_ID".toString(),
+                "${batTarget.envPrefix}_PORT".toString()
+        ])
+    }
     def failures = []
     requiredKeys.each { key ->
         if (!values.containsKey(key)) {
@@ -730,13 +831,14 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
             module     : moduleCode,
+            runtimeRole: batTarget?.runtimeRole,
             env        : env,
             status     : failures.isEmpty() ? 'DONE' : 'FAILED',
             envFile    : "deploy/env/${env}-${moduleLower}.env",
             keyCount   : values.size(),
             failures   : failures
     ]
-    cpfWriteJson(new File(resultDir, "deploy-env-${moduleLower}-${env}.sanitized.json"), result)
+    cpfWriteJson(new File(resultDir, "deploy-env-${evidenceName}-${env}.sanitized.json"), result)
     if (!failures.isEmpty()) {
         throw new GradleException("Deploy env validation failed: ${failures.join(', ')}")
     }
@@ -745,20 +847,50 @@ Map cpfValidateDeployEnv(String moduleCode, String env, File resultDir) {
 
 Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
     def moduleLower = cpfModuleProjectName(moduleCode)
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    def evidenceName = cpfDeployEvidenceName(moduleCode)
     def inventoryFile = file("deploy/inventory/${env}-services.json")
     if (env == 'prod' && !inventoryFile.exists()) {
         throw new GradleException('Production inventory must be explicitly provisioned; template fallback is forbidden.')
     }
     def inventory = cpfReadInventory(inventoryFile)
     def services = inventory.services ?: []
-    def service = services.find { it.module == moduleCode }
+    def service = batTarget == null
+            ? services.find { it.module == moduleCode }
+            : services.find {
+                it.module == moduleCode && it.runtimeRole == batTarget.runtimeRole
+            }
     def failures = []
     if (service == null) {
         failures << "Inventory service is missing: ${moduleCode}"
     } else {
-        ['module', 'hostAlias', 'sshHostEnvKey', 'sshUserEnvKey', 'deployBase', 'healthUrl', 'serviceName', 'portEnvKey', 'profile', 'runtimeMode', 'approvalRequired', 'rollbackEnabled'].each { key ->
+        def requiredFields = [
+                'module', 'hostAlias', 'sshHostEnvKey', 'sshUserEnvKey', 'deployBase',
+                'healthUrl', 'serviceName', 'portEnvKey', 'profile', 'runtimeMode',
+                'approvalRequired', 'rollbackEnabled'
+        ]
+        if (batTarget != null) {
+            requiredFields.addAll(['runtimeRole', 'projectPath', 'artifactName'])
+        }
+        requiredFields.each { key ->
             if (!service.containsKey(key)) {
                 failures << "Inventory field is missing: ${key}"
+            }
+        }
+        if (batTarget != null) {
+            def batServices = services.findAll { it.module == 'BAT' }
+            def actualRoles = batServices.collect { it.runtimeRole }
+            def expectedRoles = ext.cpfBatRuntimeTargets.keySet() as Set
+            if (batServices.size() != expectedRoles.size()
+                    || actualRoles.toSet() != expectedRoles
+                    || actualRoles.size() != actualRoles.toSet().size()) {
+                failures << "BAT inventory must contain five exact runtime roles. actual=${actualRoles}"
+            }
+            if (service.projectPath != batTarget.projectPath
+                    || service.artifactName != batTarget.artifact
+                    || service.serviceName != batTarget.artifact
+                    || service.portEnvKey != "${batTarget.envPrefix}_PORT".toString()) {
+                failures << "BAT inventory target does not match canonical runtime mapping: ${batTarget.runtimeRole}"
             }
         }
         if (service.runtimeMode && !['embedded-bootjar', 'external-was', 'external-tomcat-war'].contains(service.runtimeMode)) {
@@ -768,13 +900,14 @@ Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
             module     : moduleCode,
+            runtimeRole: batTarget?.runtimeRole,
             env        : env,
             status     : failures.isEmpty() ? 'DONE' : 'FAILED',
             inventory  : inventoryFile.path.replace('\\', '/'),
             target     : service,
             failures   : failures
     ]
-    cpfWriteJson(new File(resultDir, "deploy-inventory-${moduleLower}-${env}.sanitized.json"), result)
+    cpfWriteJson(new File(resultDir, "deploy-inventory-${evidenceName}-${env}.sanitized.json"), result)
     if (!failures.isEmpty()) {
         throw new GradleException("Deploy inventory validation failed: ${failures.join(', ')}")
     }
@@ -782,8 +915,10 @@ Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
 }
 
 Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
-    def moduleLower = cpfModuleProjectName(moduleCode)
-    def jarFile = project(":${moduleLower}").tasks.named('bootJar').get().archiveFile.get().asFile
+    def projectPath = cpfDeployProjectPath(moduleCode)
+    def evidenceName = cpfDeployEvidenceName(moduleCode)
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    def jarFile = project(projectPath).tasks.named('bootJar').get().archiveFile.get().asFile
     if (!jarFile.exists()) {
         throw new GradleException("bootJar output is missing: ${jarFile}")
     }
@@ -803,13 +938,14 @@ Map cpfCheckPackagedDependencies(String moduleCode, File resultDir) {
     def result = [
             generatedAt: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
             module     : moduleCode,
+            runtimeRole: batTarget?.runtimeRole,
             status     : failures.isEmpty() ? 'DONE' : 'FAILED',
             artifact   : jarFile.path.replace('\\', '/'),
             containsCore: containsCore,
             containsCommon: containsCommon,
             failures   : failures
     ]
-    cpfWriteJson(new File(resultDir, "packaged-dependencies-${moduleLower}.sanitized.json"), result)
+    cpfWriteJson(new File(resultDir, "packaged-dependencies-${evidenceName}.sanitized.json"), result)
     if (!failures.isEmpty()) {
         throw new GradleException("Package dependency validation failed: ${failures.join(', ')}")
     }
@@ -844,6 +980,13 @@ tasks.register('checkLegacyName', Exec) {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'cpf-tools/scripts/check-legacy-name.ps1'
+}
+
+tasks.register('checkLegacyBatchMigration', Exec) {
+    group = 'verification'
+    description = 'Legacy cpf-batch/src 146-file removal, standalone owner mapping, REF EDU boundary를 검증합니다.'
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/check-legacy-batch-migration.ps1', '-ResultDir', cpfResultDir().path
 }
 
 tasks.register('checkSqlStandard', Exec) {
@@ -1042,8 +1185,8 @@ tasks.register('checkPackagedDependencies') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     def moduleCode = cpfRequestedModule()
-    def moduleLower = cpfModuleProjectName(moduleCode)
-    dependsOn ":${moduleLower}:bootJar"
+    def projectPath = cpfDeployProjectPath(moduleCode)
+    dependsOn "${projectPath}:bootJar"
     doLast {
         cpfCheckPackagedDependencies(moduleCode, cpfResultDir())
     }
@@ -1053,13 +1196,15 @@ tasks.register('remoteDeployDryRun') {
     group = 'verification'
     description = 'CPF verification or deployment task.'
     def moduleCode = cpfRequestedModule()
-    def moduleLower = cpfModuleProjectName(moduleCode)
-    def moduleProject = rootProject.findProject(":${moduleLower}")
+    def projectPath = cpfDeployProjectPath(moduleCode)
+    def evidenceName = cpfDeployEvidenceName(moduleCode)
+    def batTarget = cpfRequestedBatRuntimeTarget(moduleCode)
+    def moduleProject = rootProject.findProject(projectPath)
     if (moduleProject == null) {
-        throw new GradleException("CPF deploy module project is missing: ${moduleLower}")
+        throw new GradleException("CPF deploy module project is missing: ${projectPath}")
     }
     def bootJarTask = moduleProject.tasks.named('bootJar')
-    dependsOn 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', ":${moduleLower}:bootJar"
+    dependsOn 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', "${projectPath}:bootJar"
     doLast {
         def env = cpfRequestedEnv()
         def resultDir = cpfResultDir()
@@ -1079,6 +1224,7 @@ tasks.register('remoteDeployDryRun') {
         def result = [
                 generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
                 module            : moduleCode,
+                runtimeRole       : batTarget?.runtimeRole,
                 env               : env,
                 deployMode        : 'dryRun',
                 status            : 'DONE',
@@ -1093,7 +1239,7 @@ tasks.register('remoteDeployDryRun') {
                 externalWasPlan   : externalWasPlan,
                 rollbackExecuted  : false
         ]
-        cpfWriteJson(new File(resultDir, "remote-deploy-dry-run-${moduleLower}-${env}.sanitized.json"), result)
+        cpfWriteJson(new File(resultDir, "remote-deploy-dry-run-${evidenceName}-${env}.sanitized.json"), result)
         cpfWriteJson(new File(resultDir, "remote-deploy-dry-run.sanitized.json"), result)
     }
 }
@@ -1299,7 +1445,9 @@ tasks.register('verifyBatStandaloneArchitecture') {
     group = 'verification'
     description = 'BAT standalone artifact, legacy source removal, EXS/generator boundary를 검증합니다.'
     doLast {
-        if (file('cpf-batch/src').exists()) throw new GradleException('Legacy executable cpf-batch/src must be removed.')
+        if (file('cpf-batch/src').exists() && !fileTree('cpf-batch/src').files.isEmpty()) {
+            throw new GradleException('Legacy executable cpf-batch/src must be removed.')
+        }
         if (file('cpf-external').exists()) throw new GradleException('EXS is generator-only and must not be restored as a fixed module.')
         if (file('cpf-tools/db/source').exists()) throw new GradleException('Standalone cpf-tools/db/source is forbidden.')
         [
@@ -1311,7 +1459,8 @@ tasks.register('verifyBatStandaloneArchitecture') {
 
 tasks.register('verifyCpfFinalSourceGates') {
     group = 'verification'
-    dependsOn 'verifyVersionConsistency', 'verifyBatStandaloneArchitecture', ':cpf-batch:verifyStandaloneArtifacts'
+    dependsOn 'verifyVersionConsistency', 'verifyBatStandaloneArchitecture',
+            'checkLegacyBatchMigration', ':cpf-batch:verifyStandaloneArtifacts'
 }
 
 

@@ -27,8 +27,8 @@ function Invoke-CpfDatabaseArtifactStep {
     }
 }
 
-Invoke-CpfDatabaseArtifactStep "generate-migration-checksums.ps1" "DB migration checksum generation failed." @("-Apply")
 Invoke-CpfDatabaseArtifactStep "build-all-install-sql.ps1" "DB bundle generation failed."
+Invoke-CpfDatabaseArtifactStep "generate-migration-checksums.ps1" "DB migration checksum generation failed." @("-Apply")
 Invoke-CpfDatabaseArtifactStep "generate-database-schema-manifest.ps1" "DB schema manifest generation failed."
 Invoke-CpfDatabaseArtifactStep "check-database-schema-drift.ps1" "DB schema drift check failed."
 Invoke-CpfDatabaseArtifactStep "check-database-profile-standard.ps1" "DB profile/generated-domain standard check failed."

@@ -321,7 +321,7 @@ $managedGuideDefinitions = @(
                 @("BZA API", "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support"),
                 @("EDU", "cpf-reference/src/main/java/com/cpf/reference/attachment"),
                 @("단위 테스트", "LocalCpfAttachmentStorageAdapterTest, BzaSupportServiceTest, ReferenceAttachmentEducationSampleTest"),
-                @("DB 변경", "cpf-tools/db/source/mariadb/migration/flyway/V31__bza_operation_support.sql")
+                @("DB 변경", "cpf-tools/db/vendor/mariadb/migration/flyway/V31__bza_operation_support.sql")
             ))
         )
     },

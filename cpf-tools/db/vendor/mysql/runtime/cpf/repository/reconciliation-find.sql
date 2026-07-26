@@ -1,7 +1,7 @@
 SELECT unknown_id AS unknownId,
        unknown_type AS unknownType,
        unknown_status AS unknownStatus,
-       transaction_global_id AS transactionGlobalId,
+       transaction_id AS transactionId,
        segment_id AS segmentId,
        external_key AS externalKey,
        failure_code AS failureCode,

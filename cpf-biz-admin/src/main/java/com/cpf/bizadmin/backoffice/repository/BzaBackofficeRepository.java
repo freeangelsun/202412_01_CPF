@@ -2,9 +2,11 @@ package com.cpf.bizadmin.backoffice.repository;
 
 import com.cpf.core.api.page.CpfPage;
 import com.cpf.core.api.page.CpfPageRequest;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -21,10 +23,13 @@ import java.util.Optional;
 @Repository
 public class BzaBackofficeRepository {
     private final ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider;
+    private final CpfVendorSqlCatalog sql;
 
     public BzaBackofficeRepository(
-            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider) {
+            @Qualifier("bzaJdbcTemplate") ObjectProvider<NamedParameterJdbcTemplate> jdbcTemplateProvider,
+            Environment environment) {
         this.jdbcTemplateProvider = jdbcTemplateProvider;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bza");
     }
 
     public List<Map<String, Object>> findOrganizations() {

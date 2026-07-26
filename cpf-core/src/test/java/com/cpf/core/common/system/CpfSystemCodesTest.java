@@ -21,13 +21,15 @@ class CpfSystemCodesTest {
         assertThat(CpfSystemCodes.inferFromTypeName("com.cpf.gateway.SampleController")).isEqualTo("GWY");
         assertThat(CpfSystemCodes.inferFromTypeName("com.cpf.common.SampleService")).isEqualTo("CMN");
         assertThat(CpfSystemCodes.inferFromTypeName("com.cpf.bizadmin.SampleService")).isEqualTo("BZA");
-        assertThat(CpfSystemCodes.inferFromTypeName("com.cpf.external.SampleService")).isEqualTo("EXS");
+        assertThat(CpfSystemCodes.inferFromTypeName("com.cpf.payment.SampleService")).isEqualTo("PAY");
     }
 
     @Test
     void 신규업무코드는기존3자리호환규칙을유지한다() {
         assertThat(CpfSystemCodes.normalize("PAY", "CPF")).isEqualTo("PAY");
         assertThat(CpfSystemCodes.normalize("payment", "CPF")).isEqualTo("PAY");
+        assertThat(CpfSystemCodes.normalize("cpf-payment", "CPF")).isEqualTo("PAY");
+        assertThat(CpfSystemCodes.normalize("cpf-member", "CPF")).isEqualTo("MEM");
         assertThat(CpfSystemCodes.normalize("A", "CPF")).isEqualTo("AXX");
     }
 }

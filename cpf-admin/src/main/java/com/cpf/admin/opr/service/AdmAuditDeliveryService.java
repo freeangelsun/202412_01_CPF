@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.service;
 
+import com.cpf.admin.common.base.AdmBaseService;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import com.cpf.core.api.util.CpfStrings;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import java.util.function.Supplier;
  * Owner 작업 전에 ADM DB reservation을 별도 transaction으로 확정하여 XA 없이도 감사 유실을 막습니다.
  */
 @Service
-public class AdmAuditDeliveryService {
+public class AdmAuditDeliveryService extends AdmBaseService {
     private static final Logger log = LoggerFactory.getLogger(AdmAuditDeliveryService.class);
     private static final int DEFAULT_MAX_ATTEMPTS = 10;
     private static final int RELAY_BATCH_SIZE = 100;

@@ -82,12 +82,12 @@ Assert-Contains `
     "ADM 정적 화면 API 호출용 트랜잭션 ID 생성기가 필요합니다."
 
 Assert-Contains `
-    "cpf-tools/db/source/mariadb/10_cpf_schema.sql" `
+    "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql" `
     "SERVER_INSTANCE_ID\s+VARCHAR\(160\)" `
     "거래 로그 서버 인스턴스 컬럼이 필요합니다."
 
 Assert-Contains `
-    "cpf-tools/db/source/mariadb/70_test_data.sql" `
+    "cpf-tools/db/vendor/mariadb/source/70_test_data.sql" `
     "DATE\(@sample_start_time\)" `
     "테스트 거래 로그의 LOG_DATE는 START_TIME 기준이어야 합니다."
 

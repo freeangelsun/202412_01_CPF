@@ -12,9 +12,6 @@ $mustNotExist = @(
     'cpf-admin/frontend/src/features/business/AdmBusinessPanels.vue',
     'cpf-admin/frontend/src/features/batch/AdmBatchPanels.vue',
     'cpf-admin/frontend/src/features/access/AdmAccessPanels.vue',
-    'cpf-admin/frontend/src/features/members/MembersPage.vue',
-    'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMemberController.java',
-    'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmMemberOperationService.java',
     'cpf-biz-admin/frontend/src/features/directory/DirectoryPage.vue',
     'cpf-biz-admin/frontend/src/features/access/AccessPage.vue',
     'cpf-biz-admin/frontend/src/features/approval/ApprovalPage.vue',
@@ -34,9 +31,15 @@ $required = @(
     'cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql',
     'cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql',
     'cpf-admin/frontend/src/app/routes.ts',
+    'cpf-admin/frontend/src/features/members/MembersPage.vue',
+    'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMemberController.java',
+    'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmMemberOperationService.java',
     'cpf-biz-admin/frontend/src/app/routes.ts',
-    'cpf-batch/src/main/java/com/cpf/batch/runtime/BatBatchLauncher.java',
-    'cpf-batch/src/main/java/com/cpf/batch/runtime/centercut/BatCenterCutRunner.java'
+    'cpf-batch/control-server/src/main/java/com/cpf/batch/control/BatchControlServerApplication.java',
+    'cpf-batch/scheduler/src/main/java/com/cpf/batch/scheduler/BatchSchedulerApplication.java',
+    'cpf-batch/worker/src/main/java/com/cpf/batch/worker/BatchWorkerApplication.java',
+    'cpf-batch/center-cut-runner/src/main/java/com/cpf/batch/centercut/runner/CenterCutRunnerApplication.java',
+    'cpf-batch/host-agent/src/main/java/com/cpf/batch/agent/BatchHostAgentApplication.java'
 )
 foreach ($rel in $required) {
     if (-not (Test-Path (Join-Path $Root $rel))) { Fail "required canonical artifact missing: $rel" }

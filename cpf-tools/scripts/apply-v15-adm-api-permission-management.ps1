@@ -23,7 +23,7 @@ if ([string]::IsNullOrWhiteSpace($Username)) {
     $Username = "cpf_adm_migration"
 }
 if ([string]::IsNullOrWhiteSpace($SqlPath)) {
-    $SqlPath = Join-Path $Root "cpf-tools/db/source/mariadb/migration/flyway/V15__adm_api_permission_management.sql"
+    $SqlPath = Join-Path $Root "cpf-tools/db/vendor/mariadb/migration/flyway/V15__adm_api_permission_management.sql"
 }
 if ([string]::IsNullOrWhiteSpace($ResultPath)) {
     $resultDir = Join-Path $Root "build/runtime-smoke"

@@ -4,6 +4,13 @@
 
 정식 사용 가이드는 [`cpf-docs/guides/CPF_TOOLS_GUIDE.md`](../cpf-docs/guides/CPF_TOOLS_GUIDE.md)를 참조합니다.
 
+Build Support Unit도 제품 Runtime Module과 분리해 이 경계가 소유합니다.
+
+```text
+cpf-tools/build/gradle-plugin   CPF Domain Convention Plugin 격리 Build
+cpf-tools/build/platform-bom    CPF Published Dependency BOM 격리 Build
+```
+
 핵심 명령:
 
 ```powershell
@@ -46,4 +53,3 @@ Generated Domain 동기화는 `generator-ownership.json`의 이전 SHA-256과 �
 
 `verify-full-product.ps1`은 동일 검증을 PC마다 여러 번 수작업하는 대신 Build/Test/DB/Generator/Frontend/Browser/Evidence를 하나의 재현 가능한 순서로 모은다.
 실행하지 않은 그룹은 `SKIPPED`이며 `-RequireAll`에서 전체 완료가 될 수 없다.
-

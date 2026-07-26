@@ -12,19 +12,22 @@ class ReferenceServiceCallEngineEducationSampleTest {
 
     @Test
     void basicSampleUsesTypedClientAndCentralDefaultPolicy() {
-        AtomicReference<ReferenceMemberSummaryRequest> capturedRequest = new AtomicReference<>();
+        AtomicReference<ReferenceServiceEchoRequest> capturedRequest = new AtomicReference<>();
         AtomicReference<CpfServiceCallOptions> capturedOptions = new AtomicReference<>();
-        ReferenceMemberSummaryClient client = (request, options) -> {
+        ReferenceServiceEchoClient client = (request, options) -> {
             capturedRequest.set(request);
             capturedOptions.set(options);
-            return new ReferenceMemberSummaryResponse(request.memberNo(), "홍*동", "ACTIVE");
+            return new ReferenceServiceEchoResponse(
+                    request.requestKey(),
+                    "200",
+                    "2026-07-27T00:00:00Z");
         };
         ReferenceServiceCallEngineEducationSample sample = new ReferenceServiceCallEngineEducationSample(client);
 
-        ReferenceMemberSummaryResponse result = sample.callMemberSummary("M-1");
+        ReferenceServiceEchoResponse result = sample.callEcho("REF-REQUEST-1");
 
-        assertThat(result.statusCode()).isEqualTo("ACTIVE");
-        assertThat(capturedRequest.get().memberNo()).isEqualTo("M-1");
+        assertThat(result.statusCode()).isEqualTo("200");
+        assertThat(capturedRequest.get().requestKey()).isEqualTo("REF-REQUEST-1");
         assertThat(capturedOptions.get().policyId()).isEqualTo(CpfPolicyId.DEFAULT_QUERY);
     }
 }

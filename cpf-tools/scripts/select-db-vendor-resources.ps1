@@ -81,14 +81,7 @@ if ((Test-PathWithin $resultFullPath $Root) -and
 }
 
 $canonicalManifestRelative = "cpf-tools/db/vendor-pack-manifest.json"
-$compatibilityManifestRelative = "cpf-tools/db/source/mariadb/vendor-resource-manifest.json"
 $canonicalManifestPath = Resolve-RepositoryPath $canonicalManifestRelative
-$compatibilityManifestPath = Resolve-RepositoryPath $compatibilityManifestRelative
-$canonicalManifestHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $canonicalManifestPath).Hash
-$compatibilityManifestHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $compatibilityManifestPath).Hash
-if ($canonicalManifestHash -ne $compatibilityManifestHash) {
-    throw "중앙 Vendor Pack manifest와 specs 호환 manifest가 다릅니다."
-}
 
 $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $canonicalManifestPath | ConvertFrom-Json
 if ($Vendor -notin @($manifest.supportedVendors)) {

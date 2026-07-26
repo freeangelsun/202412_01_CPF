@@ -1,2 +1,89 @@
-package com.cpf.batch.control.deploy; import com.cpf.batch.api.DeploymentCellManifest; import com.fasterxml.jackson.databind.ObjectMapper; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Repository; import org.springframework.transaction.annotation.Transactional; import java.nio.charset.StandardCharsets; import java.security.MessageDigest; import java.util.HexFormat;
-@Repository public class DeploymentPlanRepository { private final JdbcTemplate jdbc;private final ObjectMapper mapper;public DeploymentPlanRepository(JdbcTemplate j,ObjectMapper m){jdbc=j;mapper=m;}@Transactional public Plan create(String id,DeploymentCellManifest m,String user,String reason)throws Exception{String json=mapper.writeValueAsString(m);String hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(json.getBytes(StandardCharsets.UTF_8)));jdbc.update("INSERT INTO bat_deployment_plan(plan_id,cell_id,manifest_json,manifest_hash,requested_by,reason_text,plan_state,created_at) VALUES(?,?,?,?,?,?,'PLANNED',CURRENT_TIMESTAMP(6))",id,m.cellId(),json,hash,user,reason);jdbc.update("INSERT INTO bat_deployment_cell(cell_id,environment_id,runtime_role,service_id,manifest_version,manifest_hash,desired_state,row_version) VALUES(?,?,?,?,?,?,?,0) ON DUPLICATE KEY UPDATE environment_id=VALUES(environment_id),runtime_role=VALUES(runtime_role),service_id=VALUES(service_id),manifest_version=VALUES(manifest_version),manifest_hash=VALUES(manifest_hash),desired_state=VALUES(desired_state),row_version=row_version+1",m.cellId(),m.environment(),m.runtimeRole().name(),m.serviceId(),m.artifact().version(),hash,m.desiredState().name());jdbc.update("DELETE FROM bat_deployment_instance WHERE cell_id=?",m.cellId());for(var i:m.instances())jdbc.update("INSERT INTO bat_deployment_instance(cell_id,instance_id,host_alias,port_no,profile_name,zone_id,pool_id,agent_base_url,config_ref,desired_state) VALUES(?,?,?,?,?,?,?,?,?,?)",m.cellId(),i.instanceId(),i.hostAlias(),i.port(),i.profile(),i.zone(),i.pool(),i.agentBaseUrl(),i.configRef(),m.desiredState().name());return new Plan(id,m.cellId(),hash,"PLANNED");}public DeploymentCellManifest load(String id)throws Exception{return mapper.readValue(jdbc.queryForObject("SELECT manifest_json FROM bat_deployment_plan WHERE plan_id=?",String.class,id),DeploymentCellManifest.class);}public void mark(String id,String state){jdbc.update("UPDATE bat_deployment_plan SET plan_state=?,updated_at=CURRENT_TIMESTAMP(6) WHERE plan_id=?",state,id);}public record Plan(String planId,String cellId,String manifestHash,String state){} }
+package com.cpf.batch.control.deploy;
+
+import com.cpf.batch.api.DeploymentCellManifest;
+import com.cpf.core.common.database.CpfVendorSqlCatalog;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+
+@Repository
+public class DeploymentPlanRepository {
+    private final JdbcTemplate jdbc;
+    private final ObjectMapper mapper;
+    private final CpfVendorSqlCatalog sql;
+
+    public DeploymentPlanRepository(
+            JdbcTemplate jdbc,
+            ObjectMapper mapper,
+            Environment environment) {
+        this.jdbc = jdbc;
+        this.mapper = mapper;
+        this.sql = CpfVendorSqlCatalog.create(environment, "bat");
+    }
+
+    @Transactional
+    public Plan create(
+            String planId,
+            DeploymentCellManifest manifest,
+            String user,
+            String reason) throws Exception {
+        String json = mapper.writeValueAsString(manifest);
+        String hash = HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256")
+                        .digest(json.getBytes(StandardCharsets.UTF_8)));
+        jdbc.update(
+                sql.required("deploy-plan-insert"),
+                planId,
+                manifest.cellId(),
+                json,
+                hash,
+                user,
+                reason);
+        jdbc.update(
+                sql.required("deploy-cell-upsert"),
+                manifest.cellId(),
+                manifest.environment(),
+                manifest.runtimeRole().name(),
+                manifest.serviceId(),
+                manifest.artifact().version(),
+                hash,
+                manifest.desiredState().name());
+        jdbc.update(sql.required("deploy-instances-delete"), manifest.cellId());
+        for (var instance : manifest.instances()) {
+            jdbc.update(
+                    sql.required("deploy-instance-insert"),
+                    manifest.cellId(),
+                    instance.instanceId(),
+                    instance.hostAlias(),
+                    instance.port(),
+                    instance.profile(),
+                    instance.zone(),
+                    instance.pool(),
+                    instance.agentBaseUrl(),
+                    instance.configRef(),
+                    manifest.desiredState().name());
+        }
+        return new Plan(planId, manifest.cellId(), hash, "PLANNED");
+    }
+
+    public DeploymentCellManifest load(String planId) throws Exception {
+        String json = jdbc.queryForObject(
+                sql.required("deploy-plan-load"),
+                String.class,
+                planId);
+        return mapper.readValue(json, DeploymentCellManifest.class);
+    }
+
+    public void mark(String planId, String state) {
+        jdbc.update(sql.required("deploy-plan-mark"), state, planId);
+    }
+
+    public record Plan(String planId, String cellId, String manifestHash, String state) {
+    }
+}

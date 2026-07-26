@@ -1,5 +1,6 @@
 package com.cpf.member.operation;
 
+import com.cpf.member.common.base.MbrBaseService;
 import com.cpf.core.api.admin.CpfOwnerAdminCommand;
 import com.cpf.core.api.admin.CpfOwnerAdminOperationsPort;
 import com.cpf.core.api.admin.CpfOwnerAdminQuery;
@@ -32,7 +33,8 @@ import java.sql.Statement;
  * {@link CpfOwnerAdminOperationsPort}만 소비합니다.</p>
  */
 @Service("mbrOwnerAdminOperationsPort")
-public class MbrOwnerAdminOperationsService implements CpfOwnerAdminOperationsPort {
+public class MbrOwnerAdminOperationsService extends MbrBaseService
+        implements CpfOwnerAdminOperationsPort {
     private static final String RESOURCE_MEMBER = "member";
 
     private final JdbcTemplate jdbcTemplate;

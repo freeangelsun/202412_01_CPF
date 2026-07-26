@@ -10,7 +10,7 @@ function Update-CanonicalSource([string]$Dir){
   [IO.File]::WriteAllLines($manifest,@($byVersion.Keys|Sort-Object|ForEach-Object{$byVersion[$_]}),[Text.UTF8Encoding]::new($false));Write-Host "[UPDATED] $manifest"
 }
 function Rebuild-Runtime([string]$Dir){
-  $seen=@{};$lines=@();foreach($f in Get-ChildItem $Dir -Filter 'V*.sql' -File|Sort-Object{Version $_.Name}){$v=Version $f.Name;if($seen.ContainsKey($v)){throw "duplicate runtime Flyway version V$v: $($seen[$v]), $($f.Name)"};$seen[$v]=$f.Name;$lines+=HashLine $f}
+  $seen=@{};$lines=@();foreach($f in Get-ChildItem $Dir -Filter 'V*.sql' -File|Sort-Object{Version $_.Name}){$v=Version $f.Name;if($seen.ContainsKey($v)){throw "duplicate runtime Flyway version V${v}: $($seen[$v]), $($f.Name)"};$seen[$v]=$f.Name;$lines+=HashLine $f}
   $manifest=Join-Path $Dir 'checksums.sha256';[IO.File]::WriteAllLines($manifest,$lines,[Text.UTF8Encoding]::new($false));Write-Host "[UPDATED] $manifest"
 }
 Update-CanonicalSource (Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/migration/flyway')

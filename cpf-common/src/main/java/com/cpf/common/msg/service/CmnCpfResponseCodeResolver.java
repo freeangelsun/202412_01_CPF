@@ -5,6 +5,7 @@ import com.cpf.core.common.exception.CpfErrorDefinition;
 import com.cpf.core.common.exception.CpfMessageFormatter;
 import com.cpf.core.common.exception.CpfResolvedResponse;
 import com.cpf.core.common.exception.CpfResponseCodeResolver;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.Map;
  */
 @Primary
 @Component
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
     private final ResponseCodeCacheService responseCodeCacheService;
     private final MessageCacheService messageCacheService;
@@ -145,4 +147,3 @@ public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
         return first != null && !first.isBlank() ? first : second;
     }
 }
-

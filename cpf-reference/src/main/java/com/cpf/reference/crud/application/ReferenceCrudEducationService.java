@@ -69,7 +69,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 CpfStrings.requireText(request.title(), "title"),
                 repository.normalizeCategoryCode(request.categoryCode()),
                 "ACTIVE",
-                CpfStrings.defaultIfBlank(request.ownerMemberNo(), null),
+                CpfStrings.defaultIfBlank(request.ownerReference(), null),
                 requestUser);
         return getEducationItem(itemId);
     }
@@ -85,7 +85,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 educationItemId,
                 CpfStrings.requireText(request.title(), "title"),
                 repository.normalizeCategoryCode(request.categoryCode()),
-                CpfStrings.defaultIfBlank(request.ownerMemberNo(), null),
+                CpfStrings.defaultIfBlank(request.ownerReference(), null),
                 repository.normalizeRequestUser(request.requestUser()));
         if (updatedRows != 1) {
             throw new CpfNotFoundException("REF CRUD 교육 항목을 수정할 수 없습니다. educationItemId=" + educationItemId);
@@ -135,7 +135,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 "단일 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SINGLE",
-                "MBR-EDU-SINGLE"));
+                "REF-OWNER-SINGLE"));
         return "단일 트랜잭션으로 교육 항목을 등록했습니다. educationItemId=" + response.educationItemId();
     }
 
@@ -149,7 +149,7 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 "분리 트랜잭션 교육 항목",
                 "SYSTEM",
                 "TX_SEPARATED",
-                "MBR-EDU-SEPARATED"));
+                "REF-OWNER-SEPARATED"));
 
         auditService.writeAuditRequiresNew("분리 트랜잭션 감사 교육. educationItemId=" + response.educationItemId());
 
@@ -189,6 +189,6 @@ public class ReferenceCrudEducationService extends com.cpf.reference.common.base
                 "분류=" + item.categoryCode(),
                 item.createdAt() == null ? null : item.createdAt().toString(),
                 item.categoryCode(),
-                item.ownerMemberNo());
+                item.ownerReference());
     }
 }

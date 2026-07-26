@@ -45,7 +45,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/channels", "CHANNEL_POLICY");
         MENU_BY_PATH_PREFIX.put("/adm/api/remote-logs", "REMOTE_LOG");
         MENU_BY_PATH_PREFIX.put("/adm/api/audit-logs", "AUDIT_LOG");
-        MENU_BY_PATH_PREFIX.put("/adm/api/members", "MEMBER");
+        MENU_BY_PATH_PREFIX.put("/adm/api/business-calendars", "BUSINESS_CALENDAR");
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/center-cut", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/notifications", "NOTIFICATION");
@@ -82,10 +82,9 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/audit-logs", "AUDIT_LOG_READ");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/members", "MEMBER_READ");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/members", "MEMBER_CREATE");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/members", "MEMBER_UPDATE");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/members", "MEMBER_DELETE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/business-calendars", "BUSINESS_CALENDAR_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/business-calendars", "BUSINESS_CALENDAR_WRITE");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/business-calendars", "BUSINESS_CALENDAR_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch", "BATCH_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/center-cut", "BATCH_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/notifications", "NOTIFICATION_READ");
@@ -94,7 +93,6 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/downloads", "DOWNLOAD_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/downloads", "DOWNLOAD_EXECUTE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/jobs", "BATCH_REGISTER");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/calendar", "BATCH_CALENDAR_SAVE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/schedules", "BATCH_SCHEDULE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch/executions", "BATCH_RETRY");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch", "BATCH_EXECUTE");
@@ -156,7 +154,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         if (!properties.isEnabled()
                 || !path.startsWith("/adm/api/")
                 || path.equals("/adm/api/auth/login")
-                || path.equals("/adm/api/health")
+                || isPublicHealthRequest(request.getMethod(), path)
                 || HttpMethod.OPTIONS.matches(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
@@ -184,6 +182,13 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicHealthRequest(String method, String path) {
+        boolean readOnly = HttpMethod.GET.matches(method) || HttpMethod.HEAD.matches(method);
+        return readOnly && (path.equals("/adm/api/health")
+                || path.equals("/adm/api/health/liveness")
+                || path.equals("/adm/api/health/readiness"));
     }
 
     private boolean isPasswordChangeOnlyRequest(AdmSession session, String method, String path) {
@@ -377,15 +382,6 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         }
         if (HttpMethod.PUT.matches(method) && path.endsWith("/roles")) {
             return "OPERATOR_ROLE_UPDATE";
-        }
-        if (HttpMethod.POST.matches(method) && path.contains("/members/") && path.endsWith("/roles")) {
-            return "MEMBER_ROLE_GRANT";
-        }
-        if (HttpMethod.DELETE.matches(method) && path.contains("/members/") && path.contains("/roles/")) {
-            return "MEMBER_ROLE_REVOKE";
-        }
-        if (HttpMethod.PUT.matches(method) && path.contains("/members/") && path.endsWith("/status")) {
-            return "MEMBER_STATUS";
         }
         if (HttpMethod.POST.matches(method) && path.contains("/executions/") && path.endsWith("/retry")) {
             return "BATCH_RETRY";

@@ -26,6 +26,9 @@ param(
     [string] $DatabaseMigrationUsername = "",
     [string] $DatabaseRuntimeUsername = "",
     [string] $DatabaseClientPath = "",
+    [ValidateSet("root-project", "published-artifact")]
+    [string] $DependencyModel = "root-project",
+    [string] $PlatformVersion = "1.0.0-SNAPSHOT",
     [string] $Capabilities = "",
     [ValidateSet("Y", "N")]
     [string] $Batch = "N",
@@ -66,6 +69,75 @@ if ([string]::IsNullOrWhiteSpace($Root)) {
     $Root = (Resolve-Path -LiteralPath $Root).Path
 }
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$centralTemplateContractPath = Join-Path $Root "cpf-tools/generator/contracts/central-domain-template-contract.json"
+if (-not (Test-Path -LiteralPath $centralTemplateContractPath -PathType Leaf)) {
+    throw "Generated Domain 중앙 Template 계약이 없습니다: $centralTemplateContractPath"
+}
+$centralTemplateContract = Get-Content -LiteralPath $centralTemplateContractPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
+$supportedDatabaseVendors = @($centralTemplateContract.supportedVendors |
+        ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Sort-Object -Unique)
+if ($supportedDatabaseVendors.Count -ne 5) {
+    throw "Generated Domain 중앙 Template의 지원 Vendor 계약이 유효하지 않습니다."
+}
+$minimalDomainModel = [string]$centralTemplateContract.verifyContract.model
+$minimalTableTemplate = [string]$centralTemplateContract.verifyContract.requiredTable
+$minimalLogicalTableTemplate = [string]$centralTemplateContract.verifyContract.logicalTable
+$minimalRequiredColumns = @($centralTemplateContract.verifyContract.requiredColumns)
+$minimalRequiredKeys = @($centralTemplateContract.verifyContract.requiredKeys)
+$minimalRequiredIndexes = @($centralTemplateContract.verifyContract.requiredIndexes)
+$minimalRequiredChecks = @($centralTemplateContract.verifyContract.requiredChecks)
+$minimalRequiredOperations = @($centralTemplateContract.verifyContract.requiredOperations)
+$supportedCapabilities = @($centralTemplateContract.capabilityContract.supported |
+        ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Sort-Object -Unique)
+$buildRuntimeContract = $centralTemplateContract.buildRuntimeContract
+if ([string]::IsNullOrWhiteSpace($minimalDomainModel) -or
+        [string]::IsNullOrWhiteSpace($minimalTableTemplate) -or
+        [string]::IsNullOrWhiteSpace($minimalLogicalTableTemplate) -or
+        $minimalRequiredColumns.Count -ne 14 -or
+        $minimalRequiredKeys.Count -ne 3 -or
+        $minimalRequiredIndexes.Count -ne 2 -or
+        $minimalRequiredChecks.Count -ne 2 -or
+        $minimalRequiredOperations.Count -ne 22 -or
+        $supportedCapabilities.Count -ne 11) {
+    throw "Generated Domain Minimal Transaction 중앙 계약이 유효하지 않습니다."
+}
+$jdbcDriverMapLines = [System.Collections.Generic.List[string]]::new()
+$flywayDatabaseMapLines = [System.Collections.Generic.List[string]]::new()
+foreach ($supportedVendor in $supportedDatabaseVendors) {
+    $vendorDependencyProperty = $buildRuntimeContract.vendors.PSObject.Properties[$supportedVendor]
+    if ($null -eq $vendorDependencyProperty) {
+        throw "Generated Domain Build Runtime Vendor 계약이 없습니다: $supportedVendor"
+    }
+    $jdbcDriver = [string]$vendorDependencyProperty.Value.jdbcDriver
+    $flywayDatabase = [string]$vendorDependencyProperty.Value.flywayDatabase
+    if ([string]::IsNullOrWhiteSpace($jdbcDriver) -or
+            [string]::IsNullOrWhiteSpace($flywayDatabase)) {
+        throw "Generated Domain Build Runtime 의존성 계약이 유효하지 않습니다: $supportedVendor"
+    }
+    $jdbcDriverMapLines.Add("        '$supportedVendor': '$jdbcDriver'")
+    $flywayDatabaseMapLines.Add("        '$supportedVendor': '$flywayDatabase'")
+}
+$supportedDatabaseVendorsGradle = (
+    $supportedDatabaseVendors | ForEach-Object { "'$_'" }
+) -join ", "
+$jdbcDriverMapGradle = $jdbcDriverMapLines -join ",`n"
+$flywayDatabaseMapGradle = $flywayDatabaseMapLines -join ",`n"
+$protectedLegacyBatchSource = [IO.Path]::GetFullPath((Join-Path $Root "cpf-batch/src")).
+        TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+
+function Test-IsProtectedRepositoryPath {
+    param([string] $Path)
+    $candidate = [IO.Path]::GetFullPath($Path)
+    return $candidate.Equals($protectedLegacyBatchSource, [StringComparison]::OrdinalIgnoreCase) -or
+            $candidate.StartsWith(
+                    $protectedLegacyBatchSource + [IO.Path]::DirectorySeparatorChar,
+                    [StringComparison]::OrdinalIgnoreCase)
+}
 
 function New-StatusText {
     param([int[]] $CodePoints)
@@ -176,9 +248,27 @@ $SchemaName = $SchemaName.Trim()
 if ($SchemaName -notmatch '^[A-Za-z][A-Za-z0-9_]{1,29}$') {
     throw "SchemaName은 영문자로 시작하는 2~30자리 영문·숫자·밑줄이어야 합니다."
 }
+$minimalTableName = $minimalTableTemplate.Replace("@CPF_TABLE_PREFIX@", $TablePrefix)
+$minimalLogicalTable = $minimalLogicalTableTemplate.
+        Replace("@CPF_SCHEMA_NAME@", $SchemaName).
+        Replace("@CPF_TABLE_PREFIX@", $TablePrefix)
+foreach ($renderedContractValue in @($minimalTableName, $minimalLogicalTable)) {
+    if ($renderedContractValue -match '@CPF_[A-Z_]+@') {
+        throw "Generated Domain 중앙 Template 계약 token이 완전히 치환되지 않았습니다: $renderedContractValue"
+    }
+}
+$supportedDatabaseVendorsJson = $supportedDatabaseVendors | ConvertTo-Json -Compress
+$minimalRequiredColumnsJson = $minimalRequiredColumns | ConvertTo-Json -Compress
+$minimalRequiredKeysJson = $minimalRequiredKeys | ConvertTo-Json -Compress
+$minimalRequiredIndexesJson = $minimalRequiredIndexes | ConvertTo-Json -Compress
+$minimalRequiredChecksJson = $minimalRequiredChecks | ConvertTo-Json -Compress
+$minimalRequiredOperationsJson = $minimalRequiredOperations | ConvertTo-Json -Compress
 $OnlineEnabled = $Online -eq "Y"
 $DatabaseEnabled = $Database -eq "Y"
 $DatabaseVendor = $DatabaseVendor.ToLowerInvariant()
+if ($DatabaseVendor -notin $supportedDatabaseVendors) {
+    throw "중앙 Template 계약이 지원하지 않는 DatabaseVendor입니다: $DatabaseVendor"
+}
 $vendorPortDefaults = @{ mariadb = 3306; mysql = 3306; postgresql = 5432; oracle = 1521; sqlserver = 1433 }
 if ($DatabasePort -le 0) { $DatabasePort = [int]$vendorPortDefaults[$DatabaseVendor] }
 if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
@@ -188,7 +278,13 @@ if ([string]::IsNullOrWhiteSpace($DatabaseSchema)) { $DatabaseSchema = $SchemaNa
 if ([string]::IsNullOrWhiteSpace($DatabaseAdminUsername)) {
     $DatabaseAdminUsername = if ($DatabaseVendor -eq "postgresql") { "postgres" } elseif ($DatabaseVendor -eq "oracle") { "SYSTEM" } elseif ($DatabaseVendor -eq "sqlserver") { "sa" } else { "root" }
 }
-if ([string]::IsNullOrWhiteSpace($DatabaseMigrationUsername)) { $DatabaseMigrationUsername = "cpf_${module}_migration" }
+if ([string]::IsNullOrWhiteSpace($DatabaseMigrationUsername)) {
+    $DatabaseMigrationUsername = if ($DatabaseVendor -eq "oracle") {
+        $SchemaName.ToUpperInvariant()
+    } else {
+        "cpf_${module}_migration"
+    }
+}
 if ([string]::IsNullOrWhiteSpace($DatabaseRuntimeUsername)) { $DatabaseRuntimeUsername = "cpf_${module}_app" }
 $BatchEnabled = $Batch -eq "Y"
 $CenterCutEnabled = $CenterCut -eq "Y"
@@ -199,6 +295,11 @@ $SecurityAuditEnabled = $SecurityAudit -eq "Y"
 $UiEnabled = $Ui -eq "Y"
 $BzaMenuEnabled = $BzaMenu -eq "Y"
 $ProductionProfileEnabled = $ProductionProfile -eq "Y"
+$PlatformVersion = $PlatformVersion.Trim()
+if ([string]::IsNullOrWhiteSpace($PlatformVersion) -or
+        $PlatformVersion -notmatch '^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$') {
+    throw "PlatformVersion은 비어 있지 않은 유효한 artifact version이어야 합니다."
+}
 
 if ($ProvisionDatabase -and -not $Apply) {
     throw "DB 실제 생성은 Repository에 생성 결과를 반영하는 -Apply와 함께 사용해야 합니다."
@@ -218,10 +319,6 @@ if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
             ForEach-Object { $_.Trim().ToLowerInvariant() } |
             Sort-Object -Unique)
-    $supportedCapabilities = @(
-        'database', 'batch', 'center-cut', 'external', 'messaging', 'file', 'ui',
-        'security', 'audit', 'local-call', 'remote-call'
-    )
     $unknownCapabilities = @($requestedCapabilities | Where-Object { $_ -notin $supportedCapabilities })
     if ($unknownCapabilities.Count -gt 0) {
         throw "지원하지 않는 capability가 있습니다: $($unknownCapabilities -join ', ')"
@@ -264,7 +361,7 @@ if (Test-TextExists -Path $settingsPath -Text "include '$projectName'") {
 $databaseSchemaManifestPath = Join-Path $Root "cpf-tools/db/generated/database-schema-manifest.json"
 if ($DatabaseEnabled -and (Test-Path -LiteralPath $databaseSchemaManifestPath -PathType Leaf)) {
     try {
-        $databaseSchemaManifest = Get-Content -LiteralPath $databaseSchemaManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+        $databaseSchemaManifest = Get-Content -LiteralPath $databaseSchemaManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
         $prefixCollision = @($databaseSchemaManifest.tables | Where-Object {
             ([string]$_.tableName).ToLowerInvariant().StartsWith($TablePrefix + "_")
         })
@@ -281,12 +378,29 @@ if (Test-Path -LiteralPath (Join-Path $Root "$projectName/src/main/java/$package
 
 # Platform Module의 SystemCode는 고정 배열로 관리하지 않습니다. 현재 source 설정에서
 # 동적으로 발견하여 Generated Domain metadata와 충돌하는 경우만 차단합니다.
+# cpf-batch/src는 별도 정리 대상인 legacy aggregate source이므로 읽지 않고, 독립 하위 Module만 검사합니다.
+$platformSourceRoots = [System.Collections.Generic.List[string]]::new()
+foreach ($platformProject in @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue)) {
+    $sourceCandidates = [System.Collections.Generic.List[string]]::new()
+    [void]$sourceCandidates.Add((Join-Path $platformProject.FullName 'src'))
+    foreach ($childProject in @(Get-ChildItem -LiteralPath $platformProject.FullName -Directory -ErrorAction SilentlyContinue)) {
+        [void]$sourceCandidates.Add((Join-Path $childProject.FullName 'src'))
+    }
+    foreach ($sourceCandidate in $sourceCandidates) {
+        if (-not (Test-IsProtectedRepositoryPath $sourceCandidate) -and
+                (Test-Path -LiteralPath $sourceCandidate -PathType Container) -and
+                -not $platformSourceRoots.Contains([IO.Path]::GetFullPath($sourceCandidate))) {
+            [void]$platformSourceRoots.Add([IO.Path]::GetFullPath($sourceCandidate))
+        }
+    }
+}
 if (-not $AllowReserved) {
-    $platformConfigurationFiles = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue |
+    $platformConfigurationFiles = @($platformSourceRoots |
             ForEach-Object {
-                $resourceDirectory = Join-Path $_.FullName 'src/main/resources'
+                $resourceDirectory = Join-Path $_ 'main/resources'
                 if (Test-Path -LiteralPath $resourceDirectory -PathType Container) {
-                    Get-ChildItem -LiteralPath $resourceDirectory -Recurse -File -Include '*.yml', '*.yaml' -ErrorAction SilentlyContinue
+                    Get-ChildItem -LiteralPath $resourceDirectory -Recurse -File `
+                            -Include '*.yml', '*.yaml' -ErrorAction SilentlyContinue
                 }
             })
     foreach ($configurationFile in $platformConfigurationFiles) {
@@ -305,7 +419,10 @@ if (-not $AllowReserved) {
 }
 
 $manifestFiles = @(Get-ChildItem -LiteralPath $Root -Filter 'domain-manifest.json' -Recurse -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -notmatch '\\build\\|\\.git\\' })
+        Where-Object {
+            $_.FullName -notmatch '\\build\\|\\.git\\' -and
+                    -not (Test-IsProtectedRepositoryPath $_.FullName)
+        })
 foreach ($manifestFile in $manifestFiles) {
     try {
         $manifest = Get-Content -LiteralPath $manifestFile.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -315,14 +432,34 @@ foreach ($manifestFile in $manifestFiles) {
         if ([string]$manifest.domainName -eq $module -or [string]$manifest.projectName -eq $projectName) {
             $conflicts.Add("DomainName 또는 projectName이 기존 manifest와 중복됩니다: $module")
         }
+        $existingPackage = if (-not [string]::IsNullOrWhiteSpace([string]$manifest.packageName)) {
+            [string]$manifest.packageName
+        } else {
+            [string]$manifest.basePackage
+        }
+        if (-not [string]::IsNullOrWhiteSpace($existingPackage) -and
+                $existingPackage -eq $PackageName) {
+            $conflicts.Add("PackageName이 기존 manifest와 중복됩니다: $PackageName ($($manifestFile.FullName))")
+        }
+        if ($DatabaseEnabled -and
+                -not [string]::IsNullOrWhiteSpace([string]$manifest.schemaName) -and
+                [string]$manifest.schemaName -eq $SchemaName) {
+            $conflicts.Add("SchemaName이 기존 manifest와 중복됩니다: $SchemaName ($($manifestFile.FullName))")
+        }
+        if ($DatabaseEnabled -and
+                -not [string]::IsNullOrWhiteSpace([string]$manifest.tablePrefix) -and
+                [string]$manifest.tablePrefix -eq $TablePrefix) {
+            $conflicts.Add("TablePrefix가 기존 manifest와 중복됩니다: $TablePrefix ($($manifestFile.FullName))")
+        }
+        if ($OnlineEnabled -and [int]$manifest.port -gt 0 -and [int]$manifest.port -eq $Port) {
+            $conflicts.Add("Port가 기존 manifest와 중복됩니다: $Port ($($manifestFile.FullName))")
+        }
     } catch {
         $conflicts.Add("기존 domain manifest를 해석할 수 없습니다: $($manifestFile.FullName)")
     }
 }
 
-$sourceRoots = @(Get-ChildItem -LiteralPath $Root -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue |
-        ForEach-Object { Join-Path $_.FullName 'src' } | Where-Object { Test-Path -LiteralPath $_ })
-foreach ($sourceRoot in $sourceRoots) {
+foreach ($sourceRoot in $platformSourceRoots) {
     $candidateFiles = @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Include *.java,*.yml,*.yaml,*.xml -ErrorAction SilentlyContinue)
     foreach ($candidateFile in $candidateFiles) {
         $candidateText = [System.IO.File]::ReadAllText($candidateFile.FullName, [System.Text.Encoding]::UTF8)
@@ -350,6 +487,9 @@ $plan = [ordered]@{
     online = $OnlineEnabled
     database = $DatabaseEnabled
     databaseVendor = $DatabaseVendor
+    dependencyModel = $DependencyModel
+    platformVersion = $PlatformVersion
+    templateContractVersion = [string]$centralTemplateContract.contractVersion
     batch = $BatchEnabled
     external = $ExternalEnabled
     messaging = $MessagingEnabled
@@ -378,10 +518,6 @@ if ($DryRun -or $conflicts.Count -gt 0) {
     }
     exit 0
 }
-
-$javaRoot = Join-Path $OutputDir "src/main/java/$featurePackagePath"
-$resourceRoot = Join-Path $OutputDir "src/main/resources"
-$testRoot = Join-Path $OutputDir "src/test/java/$featurePackagePath"
 
 $moduleBaseController = @"
 package $BasePackage.common.base;
@@ -995,7 +1131,6 @@ import com.cpf.core.api.base.CpfQuery;
 import com.cpf.core.api.page.CpfPageRequest;
 import com.cpf.core.api.page.CpfSort;
 import com.cpf.core.api.page.CpfSortDirection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -1023,8 +1158,13 @@ public record ${FeatureClassPrefix}SearchRequest(
     /** CPF 표준 Page 요청으로 변환합니다. Repository/EDU가 별도 Paging DTO를 만들지 않습니다. */
     public CpfPageRequest pageRequest() {
         ${FeatureClassPrefix}SearchRequest n = normalized();
-        CpfSortDirection direction = CpfSortDirection.from(n.sortDirection());
-        return new CpfPageRequest(n.page(), n.size(), List.of(new CpfSort(n.sortBy(), direction)));
+        return new CpfPageRequest(n.page(), n.size());
+    }
+
+    /** 정규화된 allow-list field와 방향을 CPF 공개 정렬 계약으로 변환합니다. */
+    public CpfSort sort() {
+        ${FeatureClassPrefix}SearchRequest n = normalized();
+        return new CpfSort(n.sortBy(), CpfSortDirection.from(n.sortDirection()));
     }
 
     public int offset() {
@@ -1119,19 +1259,70 @@ $batchDependency = if ($BatchEnabled) {
     ""
 }
 
+$platformDependencies = if ($DependencyModel -eq "published-artifact") {
+@"
+    implementation platform('com.cpf:cpf-bom:$PlatformVersion')
+    implementation 'com.cpf.core:cpf-core:$PlatformVersion'
+    implementation 'com.cpf.common:cpf-common:$PlatformVersion'
+"@
+} else {
+@"
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
+"@
+}
+
+$batchContractDependency = if (($BatchEnabled -or $CenterCutEnabled) -and
+        $DependencyModel -eq "published-artifact") {
+    "    implementation 'com.cpf.batch:cpf-batch-contract:$PlatformVersion'"
+} else {
+    ""
+}
+
+$springBootPlugin = if ($DependencyModel -eq "published-artifact") {
+    "    id 'org.springframework.boot' version '3.4.13'"
+} else {
+    "    id 'org.springframework.boot'"
+}
+$dependencyManagementPlugin = if ($DependencyModel -eq "published-artifact") {
+    "    id 'io.spring.dependency-management' version '1.1.7'"
+} else {
+    "    id 'io.spring.dependency-management'"
+}
+
 $databaseDependencies = if ($DatabaseEnabled) {
 @"
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
     implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-mysql'
-    implementation 'org.flywaydb:flyway-database-postgresql'
-    implementation 'org.flywaydb:flyway-database-oracle'
-    implementation 'org.flywaydb:flyway-sqlserver'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
-    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    runtimeOnly cpfJdbcDriverByVendor[cpfDbVendor]
+    runtimeOnly cpfFlywayDatabaseByVendor[cpfDbVendor]
+"@
+} else {
+    ""
+}
+
+$databaseVendorSelection = if ($DatabaseEnabled) {
+@"
+def cpfDomainMetadataFile = file('manifest/domain-manifest.json')
+if (!cpfDomainMetadataFile.isFile()) {
+    throw new GradleException("CPF Generated Domain metadata is missing: `${cpfDomainMetadataFile}")
+}
+def cpfDomainMetadata = new groovy.json.JsonSlurper().parse(cpfDomainMetadataFile)
+def cpfDbVendor = (findProperty('cpfDbVendor')
+        ?: System.getenv('${ModuleUpper}_DATABASE_VENDOR')
+        ?: cpfDomainMetadata.databaseVendor)
+        .toString()
+        .toLowerCase(Locale.ROOT)
+def cpfSupportedDbVendors = [$supportedDatabaseVendorsGradle] as Set
+if (!cpfSupportedDbVendors.contains(cpfDbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor: `${cpfDbVendor}")
+}
+def cpfJdbcDriverByVendor = [
+$jdbcDriverMapGradle
+]
+def cpfFlywayDatabaseByVendor = [
+$flywayDatabaseMapGradle
+]
 "@
 } else {
     ""
@@ -1139,16 +1330,11 @@ $databaseDependencies = if ($DatabaseEnabled) {
 
 $databaseResourceAssembly = if ($DatabaseEnabled) {
 @"
-def cpfDbVendor = (findProperty('cpfDbVendor') ?: System.getenv('${ModuleUpper}_DATABASE_VENDOR') ?: '$DatabaseVendor')
-        .toString()
-        .toLowerCase(Locale.ROOT)
-def cpfSupportedDbVendors = ['mariadb', 'mysql', 'postgresql', 'oracle', 'sqlserver'] as Set
-if (!cpfSupportedDbVendors.contains(cpfDbVendor)) {
-    throw new GradleException("Unsupported cpfDbVendor: `${cpfDbVendor}")
-}
 def cpfCentralDbPackRoot = file(
         findProperty('cpfCentralDbPackRoot')
-                ?: "${Dollar}{rootProject.projectDir}/cpf-tools/db/vendor")
+                ?: "${Dollar}{rootProject.projectDir}/$(
+                    if ($DependencyModel -eq 'published-artifact') { 'cpf-db/vendor' }
+                    else { 'cpf-tools/db/vendor' })")
 def cpfSelectedDomainTemplate = new File(cpfCentralDbPackRoot, "`${cpfDbVendor}/domain-template")
 def cpfGeneratedVendorResources = layout.buildDirectory.dir('generated-resources/cpf-vendor')
 
@@ -1159,6 +1345,9 @@ tasks.register('prepareCpfVendorResources', Sync) {
             CPF_SYSTEM_CODE: '$ModuleUpper',
             CPF_DISPLAY_NAME: '$ModuleName',
             CPF_SCHEMA_NAME: '$SchemaName',
+            CPF_DATABASE_NAME: '$DatabaseName',
+            CPF_MIGRATION_USERNAME: '$DatabaseMigrationUsername',
+            CPF_RUNTIME_USERNAME: '$DatabaseRuntimeUsername',
             CPF_MODULE_NAME: '$ModuleName',
             CPF_PACKAGE_NAME: '$PackageName',
             CPF_TABLE_PREFIX: '$TablePrefix',
@@ -1167,7 +1356,9 @@ tasks.register('prepareCpfVendorResources', Sync) {
     ]
     into cpfGeneratedVendorResources
     from(cpfSelectedDomainTemplate) {
-        include 'provision/**', 'install/**', 'seed/**', 'migration/**', 'verify/**', 'rollback/**'
+        // Provision/principal SQL contains secret injection points and belongs to
+        // the external DB bootstrap tool, never to an application artifact.
+        include 'install/**', 'seed/**', 'migration/**', 'verify/**', 'rollback/**'
         filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
         rename { fileName ->
             fileName
@@ -1282,8 +1473,8 @@ $buildGradle = @"
 plugins {
     id 'java'
     id 'war'
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+$springBootPlugin
+$dependencyManagementPlugin
 }
 
 group = '$BasePackage'
@@ -1294,9 +1485,11 @@ java {
     }
 }
 
+$databaseVendorSelection
+
 dependencies {
-    implementation project(':cpf-core')
-    implementation project(':cpf-common')
+$platformDependencies
+$batchContractDependency
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 $databaseDependencies
@@ -1307,6 +1500,10 @@ $batchDependency
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+dependencyLocking {
+    lockAllConfigurations()
 }
 
 $databaseResourceAssembly
@@ -1376,7 +1573,7 @@ public class ${ModuleName}DataSourceConfig {
 
     @Bean
     public DataSource ${module}DataSource(Environment environment) throws NamingException {
-        return CpfDataSources.resolve(environment, "cpf.datasource");
+        return CpfDataSources.resolve(environment, "cpf.$module.datasource");
     }
 
     /**
@@ -1395,6 +1592,43 @@ public class ${ModuleName}DataSourceConfig {
     public PlatformTransactionManager ${module}TransactionManager(
             @Qualifier("${module}DataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
+    }
+}
+"@
+
+$dataSourceIsolationTest = @"
+package $BasePackage.config;
+
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * CPF Platform 공통 DataSource 환경변수가 존재해도 Generated Domain은 자기 namespace만 사용합니다.
+ */
+class ${ModuleName}DataSourceIsolationTest {
+
+    @Test
+    void resolvesOnlyDomainSpecificDataSourceProperties() throws Exception {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.db.vendor", "mariadb")
+                .withProperty("cpf.datasource.mode", "url")
+                .withProperty("cpf.datasource.url", "jdbc:mariadb://127.0.0.1:3306/cpfDB")
+                .withProperty("cpf.datasource.username", "cpf_core_app")
+                .withProperty("cpf.datasource.password", "core-secret")
+                .withProperty("cpf.$module.datasource.mode", "url")
+                .withProperty("cpf.$module.datasource.url", "jdbc:mariadb://127.0.0.1:3306/$SchemaName")
+                .withProperty("cpf.$module.datasource.username", "cpf_${module}_app")
+                .withProperty("cpf.$module.datasource.password", "domain-secret");
+
+        try (HikariDataSource dataSource = (HikariDataSource)
+                new ${ModuleName}DataSourceConfig().${module}DataSource(environment)) {
+            assertThat(dataSource.getJdbcUrl())
+                    .isEqualTo("jdbc:mariadb://127.0.0.1:3306/$SchemaName");
+            assertThat(dataSource.getUsername()).isEqualTo("cpf_${module}_app");
+        }
     }
 }
 "@
@@ -1454,14 +1688,14 @@ management:
 $defaultReferenceMode = if ($DatabaseEnabled) { 'local' } elseif ($ExternalEnabled) { 'remote' } else { 'memory' }
 $moduleDataSourceYml = if ($DatabaseEnabled) {
 @"
-  datasource:
-    mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
-    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:$DataSourceJndiName}
-    database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
-    url: '${Dollar}{$($ModuleUpper)_DATASOURCE_URL:}'
-    driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:}
-    username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
-    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
+    datasource:
+      mode: ${Dollar}{$($ModuleUpper)_DATASOURCE_MODE:url}
+      jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:$DataSourceJndiName}
+      database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
+      url: '${Dollar}{$($ModuleUpper)_DATASOURCE_URL:}'
+      driver-class-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_DRIVER_CLASS_NAME:}
+      username: ${Dollar}{$($ModuleUpper)_DATASOURCE_USERNAME:cpf_${module}_app}
+      password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD:}
 "@
 } else { "" }
 $applicationModuleYml = @"
@@ -1472,8 +1706,8 @@ cpf:
     vendor: ${Dollar}{$($ModuleUpper)_DATABASE_VENDOR:$DatabaseVendor}
   framework:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
-$moduleDataSourceYml
   ${module}:
+$moduleDataSourceYml
     reference:
       mode: ${Dollar}{$($ModuleUpper)_REFERENCE_MODE:$defaultReferenceMode}
   logging:
@@ -1548,6 +1782,7 @@ package $FeaturePackage.service;
 import $FeaturePackage.dto.${FeatureClassPrefix}SampleCommand;
 import $FeaturePackage.dto.${FeatureClassPrefix}SearchRequest;
 import com.cpf.core.api.page.CpfSlice;
+import com.cpf.core.api.page.CpfSortDirection;
 import $FeaturePackage.port.${FeatureClassPrefix}QueryPort;
 import com.cpf.core.api.logging.CpfTransactionContext;
 import org.junit.jupiter.api.AfterEach;
@@ -1590,6 +1825,8 @@ class ${FeatureClassPrefix}ServiceTest {
         assertThat(capturedRequest.get().page()).isZero();
         assertThat(capturedRequest.get().size()).isEqualTo(200);
         assertThat(capturedRequest.get().pageRequest().size()).isEqualTo(200);
+        assertThat(capturedRequest.get().sort().field()).isEqualTo("created_at");
+        assertThat(capturedRequest.get().sort().direction()).isEqualTo(CpfSortDirection.ASC);
     }
 
     @Test
@@ -1929,94 +2166,23 @@ Write-Host "${ModuleName} health smoke passed. uri=`$uri"
 "@
 }
 
-$applyOrder = @"
-# ${ModuleName} 주제영역 반영 순서
-
-1. `settings.gradle.patch` 내용을 검토하고 모듈 include를 반영합니다.
-2. `${projectName}/` 모듈과 `application-${module}.yml` 설정을 반영합니다.
-3. 중앙 `cpf-tools/db/vendor/{vendor}/domain-template`과 `prepareCpfVendorResources` 조립 결과를 검토합니다.
-4. `manifest/domain-manifest.json` Metadata로 선택 Vendor의 Provision/Install/Seed/Migration/Runtime/Verify를 수행합니다.
-5. `sql/50_framework_seed.${module}.candidate.sql`의 CPF module registry seed를 반영합니다.
-6. `sql/60_adm_seed.${module}.candidate.sql`의 ADM 메뉴/API/버튼 권한 seed를 반영합니다.
-7. `sql/99_smoke_check.${module}.candidate.sql`을 smoke check에 반영합니다.
-8. `smoke-${module}.ps1`의 포트와 API path를 확인합니다.
-
-후보 파일은 자동 적용하지 않으며 검토 후 정본 SQL과 설정에 반영합니다.
-"@
-
-$settingsPatch = @"
---- a/settings.gradle
-+++ b/settings.gradle
-@@
-+include '$projectName'
-+project(':$projectName').projectDir = file('$projectName')
-"@
-
-$cpfSeed = @"
--- ${ModuleName} CPF 서비스 레지스트리 seed 후보입니다.
-INSERT INTO cpf_service (
-    service_id, service_name, service_type, owner_module_code, description,
-    use_yn, created_by, updated_by
-) VALUES (
-    '$ModuleUpper', '${ModuleName} 서비스', 'INTERNAL', '$ModuleUpper',
-    '${ModuleName} 주제영역 서비스 호출 대상', 'Y', 'create-domain', 'create-domain'
-)
-ON DUPLICATE KEY UPDATE
-    service_name = VALUES(service_name),
-    owner_module_code = VALUES(owner_module_code),
-    description = VALUES(description),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-
-INSERT INTO cpf_service_endpoint (
-    endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path,
-    default_timeout_ms, default_retry_count, use_yn, created_by, updated_by
-) VALUES (
-    '${ModuleUpper}_API', '$ModuleUpper', '${ModuleName} API Endpoint', 'HTTP',
-    'http://localhost:$Port', '/api/v1/$module', 3000, 0, 'Y', 'create-domain', 'create-domain'
-)
-ON DUPLICATE KEY UPDATE
-    service_id = VALUES(service_id),
-    endpoint_name = VALUES(endpoint_name),
-    base_url = VALUES(base_url),
-    context_path = VALUES(context_path),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-"@
-
-$admSeed = @"
--- ${ModuleName} 표준 실행 카탈로그 바로가기 메뉴 seed 후보입니다.
-INSERT INTO adm_menu (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('${ModuleUpper}_STANDARD_EXECUTION', 'STANDARD_EXECUTION', '${ModuleName} 실행 정의', '/adm#standard-executions', 900, 'Y', 'create-domain', 'create-domain')
-ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), menu_path = VALUES(menu_path), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-"@
-
-$bzaSeed = @"
--- ${ModuleName} BZA 업무 메뉴 seed 후보입니다.
-INSERT INTO bza_menu (
-    menu_code, menu_name, parent_menu_code, module_code, route_path,
-    environment_code, api_path, sort_order, use_yn, created_by, updated_by
-) VALUES (
-    '${ModuleUpper}_ROOT', '${ModuleName}', NULL, '$ModuleUpper', '/bza/domain/$module',
-    'ALL', '/api/v1/$module', 900, 'Y', 'create-domain', 'create-domain'
-)
-ON DUPLICATE KEY UPDATE
-    menu_name = VALUES(menu_name),
-    module_code = VALUES(module_code),
-    route_path = VALUES(route_path),
-    api_path = VALUES(api_path),
-    use_yn = VALUES(use_yn),
-    updated_by = VALUES(updated_by),
-    updated_at = CURRENT_TIMESTAMP;
-"@
-
 $onlineJson = $OnlineEnabled.ToString().ToLowerInvariant()
 $databaseJson = $DatabaseEnabled.ToString().ToLowerInvariant()
 $batchJson = $BatchEnabled.ToString().ToLowerInvariant()
+$centerCutJson = $CenterCutEnabled.ToString().ToLowerInvariant()
 $externalJson = $ExternalEnabled.ToString().ToLowerInvariant()
 $uiJson = $UiEnabled.ToString().ToLowerInvariant()
 $bzaMenuJson = $BzaMenuEnabled.ToString().ToLowerInvariant()
+$DatabaseTemplatePack = if ($DependencyModel -eq "published-artifact") {
+    "cpf-db/vendor/{vendor}/domain-template"
+} else {
+    "cpf-tools/db/vendor/{vendor}/domain-template"
+}
+$DatabaseBootstrapScript = if ($DependencyModel -eq "published-artifact") {
+    "cpf-db/initialize-domain-database.ps1"
+} else {
+    "cpf-tools/scripts/initialize-domain-database.ps1"
+}
 $domainManifest = @"
 {
   "metadataVersion": "1.0",
@@ -2033,7 +2199,7 @@ $domainManifest = @"
   "schemaName": "$SchemaName",
   "port": $Port,
   "tablePrefix": "$TablePrefix",
-  "sampleTable": "${TablePrefix}_sample_item",
+  "sampleTable": "$minimalTableName",
   "onlineEnabled": $onlineJson,
   "databaseEnabled": $databaseJson,
   "databaseVendor": "$DatabaseVendor",
@@ -2049,8 +2215,8 @@ $domainManifest = @"
     "migrationUsername": "$DatabaseMigrationUsername",
     "runtimeUsername": "$DatabaseRuntimeUsername"
   },
-  "supportedDatabaseVendors": ["mariadb", "mysql", "postgresql", "oracle", "sqlserver"],
-  "databaseTemplatePack": "cpf-tools/db/vendor/{vendor}/domain-template",
+  "supportedDatabaseVendors": $supportedDatabaseVendorsJson,
+  "databaseTemplatePack": "$DatabaseTemplatePack",
   "databaseTemplateSelector": {
     "vendor": "$DatabaseVendor",
     "metadata": "manifest/domain-manifest.json",
@@ -2059,32 +2225,49 @@ $domainManifest = @"
   },
   "databaseResourceAssembly": "prepareCpfVendorResources",
   "databaseLifecycle": {
-    "sourceOfTruth": "cpf-tools/db/vendor/{vendor}/domain-template",
-    "bootstrapScript": "cpf-tools/scripts/initialize-domain-database.ps1",
-    "defaultSampleTable": "${TablePrefix}_sample_item",
+    "sourceOfTruth": "$DatabaseTemplatePack",
+    "bootstrapScript": "$DatabaseBootstrapScript",
+    "defaultSampleTable": "$minimalTableName",
     "transactionIdentity": "transactionId"
   },
   "generatedResourceRoot": "build/generated-resources/cpf-vendor",
+  "dependencyModel": "$DependencyModel",
+  "platformVersion": "$PlatformVersion",
+  "templateContractVersion": "$($centralTemplateContract.contractVersion)",
   "dataSourceJndiName": "$DataSourceJndiName",
   "batchEnabled": $batchJson,
+  "centerCutEnabled": $centerCutJson,
   "externalEnabled": $externalJson,
   "messagingEnabled": $($MessagingEnabled.ToString().ToLowerInvariant()),
   "fileEnabled": $($FileEnabled.ToString().ToLowerInvariant()),
   "securityAuditEnabled": $($SecurityAuditEnabled.ToString().ToLowerInvariant()),
   "uiEnabled": $uiJson,
   "bzaMenuEnabled": $bzaMenuJson,
+  "productionProfileEnabled": $($ProductionProfileEnabled.ToString().ToLowerInvariant()),
+  "capabilities": {
+    "online": $onlineJson,
+    "database": $databaseJson,
+    "batch": $batchJson,
+    "centerCut": $centerCutJson,
+    "external": $externalJson,
+    "messaging": $($MessagingEnabled.ToString().ToLowerInvariant()),
+    "file": $($FileEnabled.ToString().ToLowerInvariant()),
+    "securityAudit": $($SecurityAuditEnabled.ToString().ToLowerInvariant()),
+    "ui": $uiJson,
+    "bzaMenu": $bzaMenuJson,
+    "productionProfile": $($ProductionProfileEnabled.ToString().ToLowerInvariant())
+  },
   "serviceId": "$ModuleUpper",
   "onlineStandardId": "O${DomainIdCode}QY0001",
   "batchStandardId": "B${DomainIdCode}TS0001",
   "minimalTransactionContract": {
-    "model": "sample-item",
-    "logicalTable": "${SchemaName}.${TablePrefix}_sample_item",
-    "operations": [
-      "create", "read", "update", "delete", "search", "offset-page", "slice", "cursor",
-      "validation", "transaction-commit", "transaction-rollback", "optimistic-lock",
-      "duplicate", "local-call", "remote-call", "standard-header",
-      "transaction-id", "error-mapping", "idempotency", "audit", "masking", "framework-edu"
-    ]
+    "model": "$minimalDomainModel",
+    "logicalTable": "$minimalLogicalTable",
+    "requiredColumns": $minimalRequiredColumnsJson,
+    "requiredKeys": $minimalRequiredKeysJson,
+    "requiredIndexes": $minimalRequiredIndexesJson,
+    "requiredChecks": $minimalRequiredChecksJson,
+    "operations": $minimalRequiredOperationsJson
   }
 }
 "@
@@ -2122,14 +2305,6 @@ $ownershipManifest = @"
 }
 "@
 
-$smokeSql = @"
--- ${ModuleName} smoke check 후보입니다.
-SELECT '${ModuleUpper}_SAMPLE_ITEM_TABLE' AS check_id, COUNT(*) AS row_count
-FROM information_schema.tables
-WHERE table_schema = DATABASE()
-  AND table_name = '${TablePrefix}_sample_item';
-"@
-
 $profileApplicationFiles = [ordered]@{}
 foreach ($profileName in @("local", "dev", "stg", "prod")) {
     $profileWasId = "${DomainIdCode}$($profileName.Substring(0, 1).ToUpperInvariant())001"
@@ -2146,13 +2321,13 @@ foreach ($profileName in @("local", "dev", "stg", "prod")) {
     }
     $profileDataSourceYml = if ($DatabaseEnabled) {
 @"
-  datasource:
-    mode: $profileDataSourceMode
-    database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
-    url: $profileDataSourceUrl
-    username: $profileDataSourceUsername
-    password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD}
-    jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:$DataSourceJndiName}
+    datasource:
+      mode: $profileDataSourceMode
+      database-name: ${Dollar}{$($ModuleUpper)_DATABASE_NAME:$SchemaName}
+      url: $profileDataSourceUrl
+      username: $profileDataSourceUsername
+      password: ${Dollar}{$($ModuleUpper)_DATASOURCE_PASSWORD}
+      jndi-name: ${Dollar}{$($ModuleUpper)_DATASOURCE_JNDI_NAME:$DataSourceJndiName}
 "@
     } else { "" }
     $profileApplicationFiles["src/main/resources/application-${module}-${profileName}.yml"] = @"
@@ -2170,6 +2345,7 @@ cpf:
     module-id: ${Dollar}{$($ModuleUpper)_MODULE_ID:$ModuleUpper}
     instance-id: ${Dollar}{$($ModuleUpper)_INSTANCE_ID:${ModuleUpper}01}
     was-id: ${Dollar}{$($ModuleUpper)_WAS_ID:$profileWasId}
+  ${module}:
 $profileDataSourceYml
 "@
 }
@@ -2375,6 +2551,7 @@ $files = [ordered]@{
 if ($DatabaseEnabled) {
     $files["src/main/java/$packagePath/config/${ModuleName}DataSourceConfig.java"] = $dataSourceConfig
     $files["src/main/java/$packagePath/config/${ModuleName}MyBatisConfig.java"] = $myBatisConfig
+    $files["src/test/java/$packagePath/config/${ModuleName}DataSourceIsolationTest.java"] = $dataSourceIsolationTest
     $files["src/main/java/$featurePackagePath/adapter/local/Local${FeatureClassPrefix}QueryAdapter.java"] = $localAdapter
     $files["src/main/java/$featurePackagePath/repository/${FeatureClassPrefix}Repository.java"] = $repository
 }
@@ -2468,6 +2645,7 @@ foreach ($relativePath in @($plan.generatedFiles)) {
 }
 $generatorOwnership = [ordered]@{
     generatorVersion = "3.1"
+    templateContractVersion = [string]$centralTemplateContract.contractVersion
     generatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffK")
     moduleCode = $ModuleUpper
     systemCode = $SystemCode
@@ -2479,6 +2657,8 @@ $generatorOwnership = [ordered]@{
     tablePrefix = $TablePrefix
     moduleDirectory = $projectName
     outputDirectory = $OutputDir
+    dependencyModel = $DependencyModel
+    platformVersion = $PlatformVersion
     capabilities = [ordered]@{
         online = $OnlineEnabled
         database = $DatabaseEnabled
@@ -2490,6 +2670,7 @@ $generatorOwnership = [ordered]@{
         file = $FileEnabled
         securityAudit = $SecurityAuditEnabled
         ui = $UiEnabled
+        bzaMenu = $BzaMenuEnabled
         productionProfile = $ProductionProfileEnabled
     }
     createdFiles = $ownedFiles
@@ -2539,5 +2720,19 @@ $resultPath = if ($Apply) {
 } else {
     Join-Path $OutputDir "create-domain-result.json"
 }
+$resultInsideGeneratedModule = [IO.Path]::GetFullPath($resultPath).StartsWith(
+        [IO.Path]::GetFullPath($OutputDir).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar,
+        [StringComparison]::OrdinalIgnoreCase)
+if ($resultInsideGeneratedModule) {
+    $plan.generatedFiles += [IO.Path]::GetFullPath($resultPath).Substring($Root.Length).TrimStart('\', '/')
+}
 Write-Utf8 -Path $resultPath -Content ($plan | ConvertTo-Json -Depth 20)
+if ($resultInsideGeneratedModule) {
+    $generatorOwnership.createdFiles += [ordered]@{
+        path = [IO.Path]::GetFullPath($resultPath).Substring(
+                [IO.Path]::GetFullPath($OutputDir).Length).TrimStart('\', '/').Replace('\', '/')
+        sha256 = (Get-FileHash -LiteralPath $resultPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+    Write-Utf8 -Path $ownershipPath -Content ($generatorOwnership | ConvertTo-Json -Depth 20)
+}
 $plan | ConvertTo-Json -Depth 20

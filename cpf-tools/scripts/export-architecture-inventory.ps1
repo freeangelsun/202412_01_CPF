@@ -109,7 +109,7 @@ foreach ($module in $modules) {
     } | ForEach-Object { Add-InventoryFile $_ $module }
 }
 
-foreach ($rootArea in @('scripts', 'cpf-tools/db/source/mariadb', 'deploy')) {
+foreach ($rootArea in @('cpf-tools/scripts', 'cpf-tools/db/vendor/mariadb/source', 'deploy')) {
     $areaPath = Join-Path $Root $rootArea
     if (-not (Test-Path -LiteralPath $areaPath -PathType Container)) { continue }
     Get-ChildItem -LiteralPath $areaPath -Recurse -File | Where-Object {

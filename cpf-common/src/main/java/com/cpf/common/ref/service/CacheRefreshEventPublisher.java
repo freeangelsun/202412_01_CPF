@@ -3,6 +3,7 @@ package com.cpf.common.ref.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * DB 일시 장애는 업무 transaction을 되돌리지 않고 bounded retry queue에 보존하며 운영 상태로 노출합니다.
  */
 @Service
+@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CacheRefreshEventPublisher {
     private static final Logger logger = LoggerFactory.getLogger(CacheRefreshEventPublisher.class);
 

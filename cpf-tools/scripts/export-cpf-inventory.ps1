@@ -153,7 +153,7 @@ foreach ($file in $resourceFiles) {
     $assets.Add((New-Asset "runtime-configuration" $relative $file.Name)) | Out-Null
 }
 
-$sqlFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root "cpf-tools/db/source/mariadb") -Recurse -File -Filter "*.sql")
+$sqlFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root "cpf-tools/db/vendor/mariadb/source") -Recurse -File -Filter "*.sql")
 foreach ($file in $sqlFiles) {
     $relative = Get-RelativePath $file.FullName
     $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)

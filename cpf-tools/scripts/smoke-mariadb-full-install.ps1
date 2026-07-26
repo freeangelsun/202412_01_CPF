@@ -301,13 +301,13 @@ try {
         exit 0
     }
 
-    Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "cpf-tools/db/source/mariadb/00_all_install_and_smoke.sql" -WithServicePasswords | Out-Null
-    Invoke-MariaDbFile -StepName "smokeCheck" -RelativePath "cpf-tools/db/source/mariadb/99_smoke_check.sql" | Out-Null
-    Invoke-MariaDbFile -StepName "frameworkSeedRepeat" -RelativePath "cpf-tools/db/source/mariadb/50_framework_seed_data.sql" | Out-Null
-    Invoke-MariaDbFile -StepName "executionAliasSeedRepeat" -RelativePath "cpf-tools/db/source/mariadb/52_standard_execution_alias_seed.sql" | Out-Null
-    Invoke-MariaDbFile -StepName "cmnSeedRepeat" -RelativePath "cpf-tools/db/source/mariadb/55_cmn_seed_data.sql" | Out-Null
-    Invoke-MariaDbFile -StepName "admSeedRepeat" -RelativePath "cpf-tools/db/source/mariadb/60_adm_seed_data.sql" | Out-Null
-    Invoke-MariaDbFile -StepName "testDataRepeat" -RelativePath "cpf-tools/db/source/mariadb/70_test_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "allInstallAndSmoke" -RelativePath "cpf-tools/db/vendor/mariadb/source/00_all_install_and_smoke.sql" -WithServicePasswords | Out-Null
+    Invoke-MariaDbFile -StepName "smokeCheck" -RelativePath "cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "frameworkSeedRepeat" -RelativePath "cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "executionAliasSeedRepeat" -RelativePath "cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "cmnSeedRepeat" -RelativePath "cpf-tools/db/vendor/mariadb/source/55_cmn_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "admSeedRepeat" -RelativePath "cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql" | Out-Null
+    Invoke-MariaDbFile -StepName "testDataRepeat" -RelativePath "cpf-tools/db/vendor/mariadb/source/70_test_data.sql" | Out-Null
 
     $result.checks.cpfCoreModuleCodeCount = [int] (Invoke-Scalar -StepName "cpfCoreModuleCodeCount" -SqlText @"
 SELECT COUNT(*)

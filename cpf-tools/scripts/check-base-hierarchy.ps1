@@ -14,12 +14,10 @@ $ErrorActionPreference = "Stop"
 $moduleRules = [ordered]@{
     "cpf-account" = [ordered]@{ controller = "AccBaseController"; service = "AccBaseService" }
     "cpf-admin" = [ordered]@{ controller = "AdmBaseController"; service = "AdmBaseService" }
-    "cpf-batch" = [ordered]@{ controller = "BatBaseController"; service = "BatBaseService" }
     "cpf-biz-admin" = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
     "cpf-common" = [ordered]@{ controller = $null; service = "CmnBaseService" }
     "cpf-member" = [ordered]@{ controller = "MbrBaseController"; service = "MbrBaseService" }
     "cpf-reference" = [ordered]@{ controller = "ReferenceBaseController"; service = "ReferenceBaseService" }
-    "cpf-external" = [ordered]@{ controller = "ExternalBaseController"; service = "ExternalBaseService" }
 }
 
 $checked = New-Object System.Collections.Generic.List[object]

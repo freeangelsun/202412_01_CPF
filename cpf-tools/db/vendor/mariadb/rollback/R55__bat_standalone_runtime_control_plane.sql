@@ -1,0 +1,16 @@
+USE batDB;
+ALTER TABLE bat_execution DROP COLUMN IF EXISTS stop_requested_yn;
+ALTER TABLE bat_execution_lease DROP COLUMN IF EXISTS fencing_token;
+ALTER TABLE bat_center_cut_item DROP FOREIGN KEY IF EXISTS fk_bat_center_cut_item_execution;
+ALTER TABLE bat_center_cut_item DROP INDEX IF EXISTS uk_bat_center_cut_item_execution_business;
+ALTER TABLE bat_center_cut_item ADD UNIQUE INDEX IF NOT EXISTS uk_bat_center_cut_item_business(center_cut_job_id,business_key);
+ALTER TABLE bat_center_cut_item DROP INDEX IF EXISTS ix_bat_center_cut_item_execution_status;
+ALTER TABLE bat_center_cut_item DROP COLUMN IF EXISTS center_cut_execution_id;
+DROP TABLE IF EXISTS bat_center_cut_rate_window;
+DROP TABLE IF EXISTS bat_center_cut_execution;
+DROP TABLE IF EXISTS bat_job_pack_job;
+DROP TABLE IF EXISTS bat_job_pack;
+DROP TABLE IF EXISTS bat_deployment_instance_result;
+DROP TABLE IF EXISTS bat_deployment_execution;
+DROP TABLE IF EXISTS bat_runtime_command_attempt;
+DROP TABLE IF EXISTS bat_version_compatibility; DROP TABLE IF EXISTS bat_deployment_lock; DROP TABLE IF EXISTS bat_deployment_plan; DROP TABLE IF EXISTS bat_deployment_instance; DROP TABLE IF EXISTS bat_deployment_cell; DROP TABLE IF EXISTS bat_center_cut_claim; DROP TABLE IF EXISTS bat_schedule_trigger; DROP TABLE IF EXISTS bat_scheduler_lease; DROP TABLE IF EXISTS bat_runtime_command; DROP TABLE IF EXISTS bat_runtime_heartbeat; DROP TABLE IF EXISTS bat_runtime_capability; DROP TABLE IF EXISTS bat_runtime_instance;

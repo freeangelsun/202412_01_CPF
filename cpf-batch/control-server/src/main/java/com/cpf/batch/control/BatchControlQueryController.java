@@ -1,0 +1,22 @@
+package com.cpf.batch.control;
+import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.web.bind.annotation.*;import java.util.*;
+@RestController @RequestMapping("/api/v1/batch/views")
+public class BatchControlQueryController {
+ private final JdbcTemplate jdbc;public BatchControlQueryController(JdbcTemplate j){jdbc=j;}
+ @GetMapping("/{view}") public Map<String,Object> view(@PathVariable String view){return Map.of("view",view,"items",switch(view){
+  case "overview" -> jdbc.queryForList("SELECT runtime_role,actual_state,COUNT(*) count FROM bat_runtime_instance GROUP BY runtime_role,actual_state ORDER BY runtime_role,actual_state");
+  case "instances" -> jdbc.queryForList("SELECT * FROM bat_runtime_instance ORDER BY runtime_role,instance_id");
+  case "scheduler" -> jdbc.queryForList("SELECT r.instance_id,r.actual_state,r.artifact_version,r.last_heartbeat_at,l.owner_instance_id leader_instance,l.fencing_token,l.lease_until FROM bat_runtime_instance r LEFT JOIN bat_scheduler_lease l ON l.scheduler_key='BAT_SCHEDULER' WHERE r.runtime_role='SCHEDULER' ORDER BY r.instance_id");
+  case "worker-pools" -> jdbc.queryForList("SELECT r.pool_id,r.artifact_version,COUNT(*) instances,SUM(CASE WHEN r.actual_state IN ('READY','BUSY') THEN 1 ELSE 0 END) healthy,SUM(CASE WHEN r.actual_state='DRAINING' THEN 1 ELSE 0 END) draining FROM bat_runtime_instance r WHERE r.runtime_role='WORKER' GROUP BY r.pool_id,r.artifact_version ORDER BY r.pool_id,r.artifact_version");
+  case "center-cut" -> jdbc.queryForList("SELECT i.center_cut_job_id,i.item_status,COUNT(*) count,MAX(i.updated_at) last_updated FROM bat_center_cut_item i GROUP BY i.center_cut_job_id,i.item_status ORDER BY i.center_cut_job_id,i.item_status");
+  case "agents" -> jdbc.queryForList("SELECT r.instance_id,r.host_alias,r.zone_id,r.artifact_version,r.actual_state,r.last_heartbeat_at,r.capabilities FROM (SELECT i.*, (SELECT GROUP_CONCAT(c.capability_code) FROM bat_runtime_capability c WHERE c.instance_id=i.instance_id) capabilities FROM bat_runtime_instance i) r WHERE r.runtime_role='HOST_AGENT' ORDER BY r.host_alias,r.instance_id");
+  case "job-packs" -> jdbc.queryForList("SELECT job_pack_id,owner_domain,artifact_coordinate,artifact_version,artifact_checksum,signature_present_yn,platform_range,last_registered_at FROM bat_job_pack ORDER BY owner_domain,job_pack_id");
+  case "executions" -> jdbc.queryForList("SELECT execution_id,job_id,execution_status,worker_id,business_date,start_time,end_time,last_heartbeat_at,retry_count FROM bat_execution ORDER BY execution_id DESC LIMIT 500");
+  case "deployments" -> jdbc.queryForList("SELECT deployment_id,cell_id,to_version,strategy_code,execution_state,failure_stage,requested_by,approved_by,started_at,finished_at FROM bat_deployment_execution ORDER BY created_at DESC LIMIT 500");
+  case "recovery" -> jdbc.queryForList("SELECT 'EXECUTION' type,CAST(execution_id AS CHAR) id,execution_status state,error_message detail FROM bat_execution WHERE execution_status='UNKNOWN_RESULT' UNION ALL SELECT 'CENTER_CUT',CAST(center_cut_item_id AS CHAR),item_status,last_error_message FROM bat_center_cut_item WHERE item_status='UNKNOWN_RESULT' UNION ALL SELECT 'COMMAND',command_id,command_state,result_text FROM bat_runtime_command WHERE command_state='UNKNOWN_RESULT'");
+  case "leases" -> jdbc.queryForList("SELECT 'WORKER' lease_type,CAST(execution_id AS CHAR) target_id,worker_id owner_id,lease_status state,lease_until,fencing_token FROM bat_execution_lease WHERE lease_status<>'RELEASED' UNION ALL SELECT 'CENTER_CUT',CAST(center_cut_item_id AS CHAR),runner_id,claim_status,lease_until,fencing_token FROM bat_center_cut_claim WHERE claim_status<>'RELEASED' UNION ALL SELECT 'SCHEDULER',scheduler_key,owner_instance_id,'LEADER',lease_until,fencing_token FROM bat_scheduler_lease");
+  case "alerts" -> jdbc.queryForList("SELECT instance_id,runtime_role,actual_state,last_heartbeat_at FROM bat_runtime_instance WHERE actual_state IN ('FAILED','DEGRADED','UNKNOWN') OR last_heartbeat_at<DATE_SUB(CURRENT_TIMESTAMP(6),INTERVAL 30 SECOND) ORDER BY runtime_role,instance_id");
+  case "audit" -> jdbc.queryForList("SELECT operation_id,job_id,execution_id,operation_type,operator_id,reason,result_type,result_message,created_at FROM bat_operation_log ORDER BY operation_id DESC LIMIT 500");
+  default -> throw new IllegalArgumentException("Unsupported BAT control view: "+view);
+ });}
+}

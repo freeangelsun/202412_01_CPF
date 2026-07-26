@@ -1,0 +1,1 @@
+package com.cpf.batch.api; public record BatchParameterDefinition(String name,String type,boolean required,String defaultValue,boolean identifying,boolean sensitive){}

@@ -12,7 +12,15 @@ pluginManagement {
 rootProject.name = 'cpf-core-platform-framework'
 
 include 'cpf-core', 'cpf-common', 'cpf-member', 'cpf-reference'
-include 'cpf-admin', 'cpf-biz-admin', 'cpf-batch', 'cpf-gateway', 'cpf-account'
+include 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-account'
+include ':cpf-batch:contract'
+include ':cpf-batch:runtime-common'
+include ':cpf-batch:control-server'
+include ':cpf-batch:scheduler'
+include ':cpf-batch:worker'
+include ':cpf-batch:center-cut-runner'
+include ':cpf-batch:host-agent'
+include ':cpf-batch:testkit'
 // 추가 업무 모듈은 create-domain 생성기로 만든 뒤 명시적으로 등록합니다.
 // include 'cpf-card', 'cpf-loan', 'cpf-payment'
 
@@ -22,6 +30,19 @@ project(':cpf-member').projectDir = file('cpf-member')
 project(':cpf-reference').projectDir = file('cpf-reference')
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
-project(':cpf-batch').projectDir = file('cpf-batch')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
 project(':cpf-account').projectDir = file('cpf-account')
+
+// Published dependency BOM is an isolated included build; business domains consume it as binary metadata.
+includeBuild 'cpf-tools/build/platform-bom'
+includeBuild 'cpf-tools/build/gradle-plugin'
+
+// Additional customer domains are independent repositories. local-domains is development-only composite mounting.
+def localDomainsDir = file('local-domains')
+if (localDomainsDir.isDirectory()) {
+    localDomainsDir.eachDir { candidate ->
+        if (new File(candidate, 'settings.gradle').isFile() || new File(candidate, 'settings.gradle.kts').isFile()) {
+            includeBuild(candidate)
+        }
+    }
+}

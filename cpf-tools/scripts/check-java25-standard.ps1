@@ -16,11 +16,15 @@ $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $ExpectedMajor = 69
 $Modules = @(
     "cpf-core", "cpf-common", "cpf-member", "cpf-reference", "cpf-admin",
-    "cpf-biz-admin", "cpf-batch", "cpf-account", "cpf-external", "cpf-gateway"
+    "cpf-biz-admin", "cpf-account", "cpf-gateway",
+    "cpf-batch/contract", "cpf-batch/runtime-common", "cpf-batch/control-server",
+    "cpf-batch/scheduler", "cpf-batch/worker", "cpf-batch/center-cut-runner",
+    "cpf-batch/host-agent", "cpf-batch/testkit"
 )
 $BootModules = @(
-    "cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-member",
-    "cpf-reference", "cpf-account", "cpf-external", "cpf-gateway"
+    "cpf-admin", "cpf-biz-admin", "cpf-member", "cpf-reference", "cpf-account", "cpf-gateway",
+    "cpf-batch/control-server", "cpf-batch/scheduler", "cpf-batch/worker",
+    "cpf-batch/center-cut-runner", "cpf-batch/host-agent"
 )
 $failures = New-Object System.Collections.Generic.List[string]
 $classRows = New-Object System.Collections.Generic.List[object]

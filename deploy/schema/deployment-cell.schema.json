@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CPF Deployment Cell Manifest",
+  "type": "object",
+  "required": [
+    "cellId",
+    "environment",
+    "runtimeRole",
+    "serviceId",
+    "artifact",
+    "runtimeMode",
+    "instances",
+    "desiredState",
+    "deployment"
+  ],
+  "properties": {
+    "cellId": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "runtimeRole": {
+      "enum": [
+        "CONTROL_SERVER",
+        "SCHEDULER",
+        "WORKER",
+        "CENTER_CUT_RUNNER",
+        "HOST_AGENT"
+      ]
+    },
+    "serviceId": {
+      "type": "string"
+    },
+    "runtimeMode": {
+      "enum": [
+        "embedded-bootjar",
+        "external-tomcat-war",
+        "container"
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "coordinate",
+        "version",
+        "sha256"
+      ],
+      "properties": {
+        "coordinate": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "signatureBase64": {
+          "type": "string"
+        },
+        "sbomRef": {
+          "type": "string"
+        },
+        "provenanceRef": {
+          "type": "string"
+        }
+      }
+    },
+    "instances": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "instanceId",
+          "hostAlias",
+          "port",
+          "profile",
+          "agentBaseUrl"
+        ],
+        "properties": {
+          "instanceId": {
+            "type": "string"
+          },
+          "wasId": {
+            "type": "string"
+          },
+          "hostAlias": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "profile": {
+            "type": "string"
+          },
+          "zone": {
+            "type": "string"
+          },
+          "pool": {
+            "type": "string"
+          },
+          "capability": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "agentBaseUrl": {
+            "type": "string"
+          },
+          "configRef": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "desiredState": {
+      "enum": [
+        "RUNNING",
+        "STOPPED",
+        "DRAINING",
+        "QUARANTINED",
+        "UPGRADING",
+        "ROLLING_BACK"
+      ]
+    },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "enum": [
+            "ROLLING",
+            "CANARY",
+            "BLUE_GREEN"
+          ]
+        },
+        "minHealthy": {
+          "type": "integer"
+        },
+        "maxUnavailable": {
+          "type": "integer"
+        },
+        "healthPath": {
+          "type": "string"
+        },
+        "drainTimeoutSeconds": {
+          "type": "integer"
+        },
+        "healthTimeoutSeconds": {
+          "type": "integer"
+        },
+        "rollbackVersion": {
+          "type": "string"
+        },
+        "functionalSmokeRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array"
+    },
+    "secretReferences": {
+      "type": "array"
+    },
+    "labels": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,21 @@
+[Unit]
+Description=CPF cpf-center-cut-runner
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=cpf
+Group=cpf
+EnvironmentFile=-/etc/cpf/cpf-center-cut-runner.env
+ExecStart=/opt/cpf/bin/cpf-center-cut-runner.sh run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=600
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cpf/cpf-center-cut-runner /var/log/cpf/cpf-center-cut-runner
+[Install]
+WantedBy=multi-user.target

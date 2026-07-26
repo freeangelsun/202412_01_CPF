@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" role="img" aria-labelledby="title desc">
+<title>CPF 기능 범위 지도</title>
+<desc>온라인 실행, 비동기와 메시징, 배치와 대량 처리, 운영과 감사, 보안과 권한, DB와 배포, 확장과 검증 영역을 한 화면에 보여줍니다.</desc>
+<defs>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+</defs>
+<rect width="1400" height="980" fill="#ffffff"/>
+<rect x="30" y="30" width="1340" height="920" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<text x="700" y="88" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="36" font-weight="700" fill="#0f172a">CPF 기능 범위</text>
+<text x="700" y="125" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="18" fill="#475569">개발 · 실행 · 운영 · 복구 · 확장을 연결하는 주요 영역</text>
+
+<!-- row 1 -->
+<g filter="url(#shadow)">
+<rect x="80" y="180" width="380" height="205" rx="22" fill="#dbeafe" stroke="#60a5fa"/>
+<rect x="510" y="180" width="380" height="205" rx="22" fill="#dcfce7" stroke="#4ade80"/>
+<rect x="940" y="180" width="380" height="205" rx="22" fill="#fef3c7" stroke="#f59e0b"/>
+</g>
+<text x="270" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">온라인과 Service Call</text>
+<text x="270" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">표준 Header · 거래 식별자</text>
+<text x="270" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Local / Remote 동일 Contract</text>
+<text x="270" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Retry · Circuit · Idempotency</text>
+<text x="270" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">UNKNOWN_RESULT · Reconciliation</text>
+
+<text x="700" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">Batch와 대량 처리</text>
+<text x="700" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Scheduler · Worker · Job 실행</text>
+<text x="700" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Center-Cut · Partition · Lease</text>
+<text x="700" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Checkpoint · Retry · DLQ</text>
+<text x="700" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">운영 조회 · Retention · Archive</text>
+
+<text x="1130" y="225" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">외부 연계와 비동기</text>
+<text x="1130" y="265" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">REST · Message · File · 전문</text>
+<text x="1130" y="298" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Outbox · Inbox · DLQ</text>
+<text x="1130" y="331" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Retry · Replay · Result Recovery</text>
+<text x="1130" y="364" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Attachment · Scan 상태 · 보존</text>
+
+<!-- row 2 -->
+<g filter="url(#shadow)">
+<rect x="80" y="435" width="380" height="205" rx="22" fill="#fee2e2" stroke="#fb7185"/>
+<rect x="510" y="435" width="380" height="205" rx="22" fill="#ede9fe" stroke="#a78bfa"/>
+<rect x="940" y="435" width="380" height="205" rx="22" fill="#e0f2fe" stroke="#38bdf8"/>
+</g>
+<text x="270" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">운영과 감사</text>
+<text x="270" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">거래 조회 · Timeline · Log</text>
+<text x="270" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Service Registry · Health</text>
+<text x="270" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">재처리 · 복구 · 운영 Command</text>
+<text x="270" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Audit · Hash Chain · Evidence</text>
+
+<text x="700" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">보안과 권한</text>
+<text x="700" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Authentication · RBAC</text>
+<text x="700" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Role · Permission · Approval</text>
+<text x="700" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Masking · Secret Reference</text>
+<text x="700" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Delegation · Session · Audit</text>
+
+<text x="1130" y="480" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">DB와 변경 관리</text>
+<text x="1130" y="520" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Canonical Source · Seed</text>
+<text x="1130" y="553" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Migration · Upgrade · Rollback</text>
+<text x="1130" y="586" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Backup · Restore · DR</text>
+<text x="1130" y="619" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Code · Message · Config Metadata</text>
+
+<!-- row 3 -->
+<g filter="url(#shadow)">
+<rect x="180" y="695" width="440" height="185" rx="22" fill="#ecfccb" stroke="#84cc16"/>
+<rect x="780" y="695" width="440" height="185" rx="22" fill="#fae8ff" stroke="#d946ef"/>
+</g>
+<text x="400" y="742" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">업무 Domain 확장</text>
+<text x="400" y="782" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">DomainName + SystemCode</text>
+<text x="400" y="815" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Generator · Public API · SPI</text>
+<text x="400" y="848" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Module · DB · Test 표준 구조</text>
+
+<text x="1000" y="742" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="26" font-weight="700" fill="#0f172a">검증과 Evidence</text>
+<text x="1000" y="782" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Source · API · SQL · Test</text>
+<text x="1000" y="815" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">Runtime · Browser · Multi-instance</text>
+<text x="1000" y="848" text-anchor="middle" font-family="NanumSquare, Noto Sans CJK KR, Malgun Gothic, sans-serif" font-size="17" fill="#334155">현재 Commit과 실행 근거 연결</text>
+</svg>

@@ -1,0 +1,1 @@
+package com.cpf.batch.spi; import com.cpf.batch.api.JobPackManifest; public interface BusinessJobProvider { JobPackManifest manifest(); Object resolveJob(String jobId); }

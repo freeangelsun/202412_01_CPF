@@ -1,0 +1,4 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.batch'
+dependencies { api project(':cpf-batch:contract'); implementation project(':cpf-batch:runtime-common'); api 'org.junit.jupiter:junit-jupiter-api' }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-testkit' } } }

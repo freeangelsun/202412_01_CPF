@@ -1,0 +1,14 @@
+cpf:
+  db:
+    vendor: ${CPF_DB_VENDOR:mariadb}
+spring:
+  datasource:
+    bat:
+      url: ${BAT_DATABASE_URL:jdbc:mariadb://127.0.0.1:3306/batDB}
+      username: ${BAT_DATABASE_USERNAME:cpf_bat_app}
+      password: ${BAT_DATABASE_PASSWORD:}
+      driver-class-name: ${BAT_DATABASE_DRIVER:org.mariadb.jdbc.Driver}
+      hikari:
+        maximum-pool-size: ${BAT_DATABASE_MAX_POOL_SIZE:10}
+        minimum-idle: ${BAT_DATABASE_MIN_IDLE:1}
+        connection-timeout: ${BAT_DATABASE_CONNECTION_TIMEOUT_MS:5000}

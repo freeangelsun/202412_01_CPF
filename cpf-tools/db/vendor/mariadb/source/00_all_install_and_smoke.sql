@@ -5036,3 +5036,208 @@ ORDER BY endpoint_code;
 
 SELECT institution_code, control_type, enabled_yn, reason
 ORDER BY institution_code, control_type;
+
+-- R15/R16/R17 BAT standalone runtime control-plane
+
+CREATE TABLE IF NOT EXISTS bat_runtime_instance (instance_id VARCHAR(160) PRIMARY KEY,runtime_role VARCHAR(40) NOT NULL,service_id VARCHAR(120) NOT NULL,was_id VARCHAR(120),host_alias VARCHAR(160),zone_id VARCHAR(80),pool_id VARCHAR(80),artifact_version VARCHAR(80) NOT NULL,git_sha VARCHAR(64),artifact_checksum VARCHAR(128),profile_name VARCHAR(80),desired_state VARCHAR(32) NOT NULL DEFAULT 'RUNNING',actual_state VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',config_version VARCHAR(80),schema_compatibility VARCHAR(120),started_at DATETIME(6),last_heartbeat_at DATETIME(6),fencing_token BIGINT NOT NULL DEFAULT 0,row_version BIGINT NOT NULL DEFAULT 0,created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),KEY ix_bat_runtime_instance_service(service_id,actual_state),KEY ix_bat_runtime_instance_heartbeat(last_heartbeat_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_runtime_capability (instance_id VARCHAR(160) NOT NULL,capability_code VARCHAR(80) NOT NULL,PRIMARY KEY(instance_id,capability_code),CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY(instance_id) REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_runtime_heartbeat (heartbeat_id BIGINT AUTO_INCREMENT PRIMARY KEY,instance_id VARCHAR(160) NOT NULL,heartbeat_at DATETIME(6) NOT NULL,ready_yn CHAR(1) NOT NULL,available_capacity INT NOT NULL DEFAULT 0,queue_depth BIGINT NOT NULL DEFAULT 0,draining_yn CHAR(1) NOT NULL DEFAULT 'N',current_execution_count INT NOT NULL DEFAULT 0,active_lease_count INT NOT NULL DEFAULT 0,last_error_code VARCHAR(80),deployment_version VARCHAR(80),KEY ix_bat_runtime_heartbeat_instance(instance_id,heartbeat_at),CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY(instance_id) REFERENCES bat_runtime_instance(instance_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_runtime_command (command_id VARCHAR(80) PRIMARY KEY,idempotency_key VARCHAR(160) NOT NULL UNIQUE,command_type VARCHAR(80) NOT NULL,target_type VARCHAR(40) NOT NULL,target_snapshot_hash VARCHAR(128),expected_version BIGINT,requested_by VARCHAR(120) NOT NULL,reason_text VARCHAR(1000) NOT NULL,approval_request_id VARCHAR(80),approved_by VARCHAR(120),command_state VARCHAR(40) NOT NULL,execution_attempt INT NOT NULL DEFAULT 0,failure_stage VARCHAR(80),result_code VARCHAR(80),requested_at DATETIME(6) NOT NULL,expires_at DATETIME(6),updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),transaction_id CHAR(34),evidence_ref VARCHAR(500)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_scheduler_lease (scheduler_key VARCHAR(100) PRIMARY KEY,owner_instance_id VARCHAR(160) NOT NULL,fencing_token BIGINT NOT NULL,lease_until DATETIME(6) NOT NULL,last_heartbeat_at DATETIME(6) NOT NULL,updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),KEY ix_bat_scheduler_lease_expire(lease_until)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_schedule_trigger (schedule_id VARCHAR(100) NOT NULL,scheduled_fire_at DATETIME(6) NOT NULL,fencing_token BIGINT NOT NULL,execution_id BIGINT,trigger_status VARCHAR(30) NOT NULL,created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),PRIMARY KEY(schedule_id,scheduled_fire_at),CONSTRAINT fk_bat_schedule_trigger_schedule FOREIGN KEY(schedule_id) REFERENCES bat_schedule(schedule_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_center_cut_claim (center_cut_item_id BIGINT PRIMARY KEY,runner_id VARCHAR(160) NOT NULL,pool_id VARCHAR(80),claim_token VARCHAR(80) NOT NULL UNIQUE,claim_status VARCHAR(30) NOT NULL,fencing_token BIGINT NOT NULL,lease_until DATETIME(6) NOT NULL,last_heartbeat_at DATETIME(6) NOT NULL,attempt_no INT NOT NULL DEFAULT 1,takeover_count INT NOT NULL DEFAULT 0,released_at DATETIME(6),updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),CONSTRAINT fk_bat_center_cut_claim_item FOREIGN KEY(center_cut_item_id) REFERENCES bat_center_cut_item(center_cut_item_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_deployment_cell (cell_id VARCHAR(120) PRIMARY KEY,environment_id VARCHAR(80) NOT NULL,runtime_role VARCHAR(40) NOT NULL,service_id VARCHAR(120) NOT NULL,manifest_version VARCHAR(80) NOT NULL,manifest_hash VARCHAR(128) NOT NULL,desired_state VARCHAR(32) NOT NULL,row_version BIGINT NOT NULL DEFAULT 0,created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_deployment_instance (cell_id VARCHAR(120) NOT NULL,instance_id VARCHAR(160) NOT NULL,host_alias VARCHAR(160) NOT NULL,port_no INT NOT NULL,profile_name VARCHAR(80) NOT NULL,zone_id VARCHAR(80),pool_id VARCHAR(80),agent_base_url VARCHAR(500) NOT NULL,config_ref VARCHAR(1000),desired_state VARCHAR(32) NOT NULL,PRIMARY KEY(cell_id,instance_id),UNIQUE KEY uk_bat_deployment_instance_id(instance_id),CONSTRAINT fk_bat_deployment_instance_cell FOREIGN KEY(cell_id) REFERENCES bat_deployment_cell(cell_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_deployment_plan (plan_id VARCHAR(80) PRIMARY KEY,cell_id VARCHAR(120) NOT NULL,manifest_json LONGTEXT NOT NULL,manifest_hash VARCHAR(128) NOT NULL,requested_by VARCHAR(120) NOT NULL,reason_text VARCHAR(1000) NOT NULL,plan_state VARCHAR(40) NOT NULL,created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_deployment_lock (cell_id VARCHAR(120) PRIMARY KEY,owner_deployment_id VARCHAR(80) NOT NULL,fencing_token BIGINT NOT NULL,locked_at DATETIME(6) NOT NULL,expires_at DATETIME(6) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS bat_version_compatibility (compatibility_id BIGINT AUTO_INCREMENT PRIMARY KEY,environment_id VARCHAR(80) NOT NULL DEFAULT '*',provider_coordinate VARCHAR(200) NOT NULL,consumer_coordinate VARCHAR(200) NOT NULL DEFAULT '*',min_version VARCHAR(80),max_version VARCHAR(80),schema_range VARCHAR(120),required_capability VARCHAR(80),enabled_yn CHAR(1) NOT NULL DEFAULT 'Y') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+ALTER TABLE bat_execution_lease ADD COLUMN IF NOT EXISTS fencing_token BIGINT NOT NULL DEFAULT 0 COMMENT 'monotonic fencing token' AFTER takeover_count;
+ALTER TABLE bat_execution ADD COLUMN IF NOT EXISTS stop_requested_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '운영 중지 요청 여부' AFTER retry_count;
+
+CREATE TABLE IF NOT EXISTS bat_runtime_command_attempt (
+    attempt_id BIGINT NOT NULL AUTO_INCREMENT,
+    command_id VARCHAR(80) NOT NULL,
+    attempt_no INT NOT NULL,
+    instance_id VARCHAR(160) NULL,
+    stage_code VARCHAR(80) NOT NULL,
+    attempt_state VARCHAR(40) NOT NULL,
+    result_message VARCHAR(4000) NULL,
+    started_at DATETIME(6) NOT NULL,
+    finished_at DATETIME(6) NULL,
+    PRIMARY KEY(attempt_id),
+    UNIQUE KEY uk_bat_runtime_command_attempt(command_id,attempt_no,instance_id,stage_code),
+    KEY ix_bat_runtime_command_attempt_instance(instance_id,started_at),
+    CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY(command_id)
+      REFERENCES bat_runtime_command(command_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS bat_deployment_execution (
+    deployment_id VARCHAR(80) NOT NULL,
+    cell_id VARCHAR(120) NOT NULL,
+    idempotency_key VARCHAR(160) NOT NULL,
+    from_version VARCHAR(80) NULL,
+    to_version VARCHAR(80) NOT NULL,
+    strategy_code VARCHAR(32) NOT NULL,
+    execution_state VARCHAR(40) NOT NULL,
+    failure_stage VARCHAR(80) NULL,
+    result_message VARCHAR(4000) NULL,
+    requested_by VARCHAR(120) NOT NULL,
+    approved_by VARCHAR(120) NOT NULL,
+    reason_text VARCHAR(1000) NOT NULL,
+    started_at DATETIME(6) NULL,
+    finished_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY(deployment_id),
+    UNIQUE KEY uk_bat_deployment_execution_idempotency(idempotency_key),
+    KEY ix_bat_deployment_execution_cell_state(cell_id,execution_state),
+    CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY(cell_id)
+      REFERENCES bat_deployment_cell(cell_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS bat_deployment_instance_result (
+    deployment_result_id BIGINT NOT NULL AUTO_INCREMENT,
+    deployment_id VARCHAR(80) NOT NULL,
+    sequence_no INT NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
+    stage_code VARCHAR(80) NOT NULL,
+    result_state VARCHAR(40) NOT NULL,
+    result_message VARCHAR(4000) NULL,
+    recorded_at DATETIME(6) NOT NULL,
+    PRIMARY KEY(deployment_result_id),
+    UNIQUE KEY uk_bat_deployment_instance_result(deployment_id,sequence_no),
+    KEY ix_bat_deployment_instance_result_instance(instance_id,recorded_at),
+    CONSTRAINT fk_bat_deployment_instance_result_execution FOREIGN KEY(deployment_id)
+      REFERENCES bat_deployment_execution(deployment_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE bat_deployment_cell ADD COLUMN IF NOT EXISTS desired_instance_count INT NOT NULL DEFAULT 1 AFTER desired_state;
+
+
+CREATE TABLE IF NOT EXISTS bat_job_pack (
+  job_pack_id VARCHAR(120) NOT NULL,owner_domain VARCHAR(20) NOT NULL,artifact_coordinate VARCHAR(240) NOT NULL,
+  artifact_version VARCHAR(80) NOT NULL,artifact_checksum VARCHAR(128) NULL,signature_present_yn CHAR(1) NOT NULL DEFAULT 'N',
+  platform_range VARCHAR(120) NULL,manifest_json LONGTEXT NOT NULL,last_registered_at DATETIME(6) NOT NULL,
+  PRIMARY KEY(job_pack_id),KEY ix_bat_job_pack_owner(owner_domain,artifact_version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS bat_job_pack_job (
+  job_pack_id VARCHAR(120) NOT NULL,job_id VARCHAR(100) NOT NULL,restartable_yn CHAR(1) NOT NULL,
+  center_cut_provider_key VARCHAR(100) NULL,center_cut_handler_key VARCHAR(100) NULL,
+  PRIMARY KEY(job_pack_id,job_id),CONSTRAINT fk_bat_job_pack_job_pack FOREIGN KEY(job_pack_id) REFERENCES bat_job_pack(job_pack_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- R15/R16/R17 BAT Standalone Runtime Control Plane menus/permissions.
+INSERT INTO adm_menu (MENU_ID,PARENT_MENU_ID,MENU_NAME,MENU_PATH,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
+ ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_WORKER_POOLS','BATCH','Worker Pools','/adm#batch-worker-pools',505,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_CENTER_CUT','BATCH','Center-Cut','/adm#batch-center-cut',506,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AGENTS','BATCH','Host Agents','/adm#batch-agents',507,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_JOB_PACKS','BATCH','Job Packs','/adm#batch-job-packs',508,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_EXECUTIONS','BATCH','Executions','/adm#batch-executions',509,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_DEPLOYMENT','BATCH','Deployment / Rollback','/adm#batch-deployment',510,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),
+ ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE PARENT_MENU_ID=VALUES(PARENT_MENU_ID),MENU_NAME=VALUES(MENU_NAME),MENU_PATH=VALUES(MENU_PATH),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_button (BUTTON_ID,MENU_ID,ACTION_CODE,BUTTON_NAME,HTTP_METHOD,API_PATTERN,SORT_ORDER,USE_YN,created_by,updated_by) VALUES
+ ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
+ ('BAT_RUNTIME_OPERATE','BATCH_INSTANCES','RUNTIME_OPERATE','Runtime Start/Stop/Drain','POST','/adm/api/approvals/**',20,'Y','SYSTEM','SYSTEM'),
+ ('BAT_JOB_OPERATE','BATCH_EXECUTIONS','JOB_OPERATE','Job 실행/중지/재처리','POST','/adm/api/batch/**',30,'Y','SYSTEM','SYSTEM'),
+ ('BAT_SCHEDULE_OPERATE','BATCH_SCHEDULER','SCHEDULE_OPERATE','Scheduler 운영','POST','/adm/api/batch/**',40,'Y','SYSTEM','SYSTEM'),
+ ('BAT_WORKER_OPERATE','BATCH_WORKER_POOLS','WORKER_OPERATE','Worker Pool 운영','POST','/adm/api/approvals/**',50,'Y','SYSTEM','SYSTEM'),
+ ('BAT_CENTER_CUT_OPERATE','BATCH_CENTER_CUT','CENTER_CUT_OPERATE','Center-Cut 재처리/조정','POST','/adm/api/batch-runtime/**',60,'Y','SYSTEM','SYSTEM'),
+ ('BAT_AGENT_OPERATE','BATCH_AGENTS','AGENT_OPERATE','Host Agent 운영','POST','/adm/api/approvals/**',70,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_PLAN','BATCH_DEPLOYMENT','DEPLOY_PLAN','Deployment Plan 생성','POST','/adm/api/batch-runtime/deployment-plans',80,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_APPROVE','BATCH_DEPLOYMENT','DEPLOY_APPROVE','Deployment 승인','POST','/adm/api/approvals/**',90,'Y','SYSTEM','SYSTEM'),
+ ('BAT_DEPLOY_EXECUTE','BATCH_DEPLOYMENT','DEPLOY_EXECUTE','Deployment 실행','POST','/adm/api/approvals/**',100,'Y','SYSTEM','SYSTEM'),
+ ('BAT_ROLLBACK_EXECUTE','BATCH_DEPLOYMENT','ROLLBACK_EXECUTE','Rollback 실행','POST','/adm/api/approvals/**',110,'Y','SYSTEM','SYSTEM'),
+ ('BAT_RECOVERY_OPERATE','BATCH_RECOVERY','RECOVERY_OPERATE','UNKNOWN_RESULT 조정','POST','/adm/api/batch-runtime/**',120,'Y','SYSTEM','SYSTEM'),
+ ('BAT_SECURITY_AUDIT','BATCH_AUDIT','SECURITY_AUDIT','BAT 보안·감사 조회','GET','/adm/api/batch-runtime/views/audit',130,'Y','SYSTEM','SYSTEM'),
+ ('BAT_EVIDENCE_DOWNLOAD','BATCH_AUDIT','EVIDENCE_DOWNLOAD','BAT Evidence 다운로드','GET','/adm/api/downloads/**',140,'Y','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE MENU_ID=VALUES(MENU_ID),ACTION_CODE=VALUES(ACTION_CODE),BUTTON_NAME=VALUES(BUTTON_NAME),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATTERN=VALUES(API_PATTERN),SORT_ORDER=VALUES(SORT_ORDER),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_menu(ROLE_ID,MENU_ID,READ_YN,WRITE_YN,DELETE_YN,created_by,updated_by)
+SELECT r.ROLE_ID,m.MENU_ID,'Y',
+       CASE WHEN r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR') THEN 'Y' ELSE 'N' END,
+       'N','SYSTEM','SYSTEM'
+FROM adm_role r JOIN adm_menu m ON m.PARENT_MENU_ID='BATCH'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
+ON DUPLICATE KEY UPDATE READ_YN=VALUES(READ_YN),WRITE_YN=VALUES(WRITE_YN),DELETE_YN=VALUES(DELETE_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_button(ROLE_ID,BUTTON_ID,ALLOW_YN,created_by,updated_by)
+SELECT r.ROLE_ID,b.BUTTON_ID,
+       CASE
+         WHEN r.ROLE_ID='ADM_ADMIN' THEN 'Y'
+         WHEN r.ROLE_ID IN ('ADM_DEV_OPERATOR','ADM_OPERATOR') AND b.BUTTON_ID NOT IN ('BAT_DEPLOY_APPROVE','BAT_DEPLOY_EXECUTE','BAT_ROLLBACK_EXECUTE') THEN 'Y'
+         WHEN r.ROLE_ID='ADM_BIZ_OPERATOR' AND b.BUTTON_ID IN ('BAT_RUNTIME_VIEW','BAT_JOB_OPERATE','BAT_WORKER_OPERATE','BAT_CENTER_CUT_OPERATE','BAT_SECURITY_AUDIT','BAT_EVIDENCE_DOWNLOAD') THEN 'Y'
+         WHEN r.ROLE_ID='ADM_VIEWER' AND b.BUTTON_ID IN ('BAT_RUNTIME_VIEW','BAT_SECURITY_AUDIT') THEN 'Y'
+         ELSE 'N' END,
+       'SYSTEM','SYSTEM'
+FROM adm_role r JOIN adm_button b ON b.BUTTON_ID LIKE 'BAT_%'
+WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_api_permission(API_PERMISSION_ID,API_GROUP_CODE,HTTP_METHOD,API_PATH,API_NAME,PERMISSION_CODE,MENU_ID,BUTTON_ID,USE_YN,created_by,updated_by)
+SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
+FROM adm_button WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL
+ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE),HTTP_METHOD=VALUES(HTTP_METHOD),API_PATH=VALUES(API_PATH),API_NAME=VALUES(API_NAME),PERMISSION_CODE=VALUES(PERMISSION_CODE),MENU_ID=VALUES(MENU_ID),BUTTON_ID=VALUES(BUTTON_ID),USE_YN='Y',updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+INSERT INTO adm_role_api_permission(ROLE_ID,API_PERMISSION_ID,ALLOW_YN,created_by,updated_by)
+SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
+FROM adm_role_button rb JOIN adm_api_permission ap ON ap.BUTTON_ID=rb.BUTTON_ID
+WHERE rb.BUTTON_ID LIKE 'BAT_%'
+ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN),updated_by='SYSTEM',updated_at=CURRENT_TIMESTAMP;
+
+-- R15/R16/R17 Center-Cut immutable execution/runtime policy.
+CREATE TABLE IF NOT EXISTS bat_center_cut_execution (
+  center_cut_execution_id VARCHAR(80) NOT NULL,
+  center_cut_job_id VARCHAR(100) NOT NULL,
+  idempotency_key VARCHAR(160) NOT NULL,
+  execution_state VARCHAR(30) NOT NULL,
+  parameter_ciphertext LONGTEXT NOT NULL,
+  parameter_hash VARCHAR(64) NOT NULL,
+  parameter_schema_version VARCHAR(80) NOT NULL,
+  target_cursor VARCHAR(1000) NULL,
+  target_complete_yn CHAR(1) NOT NULL DEFAULT 'N',
+  target_count BIGINT NOT NULL DEFAULT 0,
+  tps_limit INT NOT NULL DEFAULT 0,
+  concurrency_limit INT NOT NULL DEFAULT 1,
+  processed_count BIGINT NOT NULL DEFAULT 0,
+  success_count BIGINT NOT NULL DEFAULT 0,
+  failure_count BIGINT NOT NULL DEFAULT 0,
+  unknown_count BIGINT NOT NULL DEFAULT 0,
+  transaction_id CHAR(34) NULL,
+  parent_segment_id VARCHAR(120) NULL,
+  requested_by VARCHAR(120) NOT NULL,
+  reason_text VARCHAR(1000) NOT NULL,
+  last_error_message VARCHAR(1000) NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  completed_at DATETIME(6) NULL,
+  PRIMARY KEY(center_cut_execution_id),
+  UNIQUE KEY uk_bat_center_cut_execution_idempotency(idempotency_key),
+  KEY ix_bat_center_cut_execution_job_state(center_cut_job_id,execution_state,created_at),
+  CONSTRAINT fk_bat_center_cut_execution_job FOREIGN KEY(center_cut_job_id) REFERENCES bat_center_cut_job(center_cut_job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS bat_center_cut_rate_window (
+  center_cut_execution_id VARCHAR(80) NOT NULL,
+  window_second BIGINT NOT NULL,
+  admitted_count INT NOT NULL DEFAULT 0,
+  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY(center_cut_execution_id,window_second),
+  CONSTRAINT fk_bat_center_cut_rate_execution FOREIGN KEY(center_cut_execution_id)
+    REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE bat_center_cut_item ADD COLUMN IF NOT EXISTS center_cut_execution_id VARCHAR(80) NULL AFTER center_cut_job_id;
+ALTER TABLE bat_center_cut_item ADD INDEX IF NOT EXISTS ix_bat_center_cut_item_execution_status(center_cut_execution_id,item_status,center_cut_item_id);
+ALTER TABLE bat_center_cut_item ADD CONSTRAINT fk_bat_center_cut_item_execution FOREIGN KEY(center_cut_execution_id)
+  REFERENCES bat_center_cut_execution(center_cut_execution_id) ON DELETE CASCADE;
+
+
+ALTER TABLE bat_center_cut_item DROP INDEX IF EXISTS uk_bat_center_cut_item_business;
+ALTER TABLE bat_center_cut_item ADD UNIQUE INDEX IF NOT EXISTS uk_bat_center_cut_item_execution_business(center_cut_execution_id,business_key);

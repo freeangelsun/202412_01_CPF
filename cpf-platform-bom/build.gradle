@@ -1,0 +1,21 @@
+plugins { id 'java-platform'; id 'maven-publish' }
+group='com.cpf'
+def props=new Properties(); file('../gradle/cpf-platform.properties').withInputStream { props.load(it) }
+version=props.getProperty('platformVersion','1.0.0-SNAPSHOT')
+javaPlatform { allowDependencies() }
+dependencies {
+    constraints {
+        api "com.cpf.core:cpf-core:${version}"
+        api "com.cpf.common:cpf-common:${version}"
+        api "com.cpf.batch:cpf-batch-contract:${version}"
+        api "com.cpf.batch:cpf-batch-testkit:${version}"
+    }
+}
+publishing {
+  publications { cpfBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-bom' } }
+  repositories { maven {
+    def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+    url=uri(repo ?: layout.buildDirectory.dir('repository'))
+    if(repo) credentials { username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER'); password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD') }
+  } }
+}

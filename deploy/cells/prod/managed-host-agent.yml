@@ -1,0 +1,13 @@
+cellId: prod-host-agent-a
+environment: prod
+runtimeRole: HOST_AGENT
+serviceId: cpf-batch-host-agent
+runtimeMode: embedded-bootjar
+artifact: { coordinate: com.cpf.batch:cpf-batch-host-agent, version: 1.0.0, sha256: REPLACE_WITH_64_HEX_SHA256, signatureBase64: REPLACE_WITH_ED25519_SIGNATURE }
+instances:
+  - { instanceId: host-agent-prod-a-01, wasId: batAG01, hostAlias: batch-host-a, port: 8184, profile: prod, zone: zone-a, pool: managed-host, capability: [ARTIFACT_INSTALL,PROCESS_CONTROL,LOG_COLLECTION], agentBaseUrl: https://batch-host-a:8184, configRef: vault://cpf/prod/bat/agent-a/config }
+desiredState: RUNNING
+deployment: { strategy: ROLLING, minHealthy: 0, maxUnavailable: 1, healthPath: /actuator/health/readiness, drainTimeoutSeconds: 120, healthTimeoutSeconds: 120, rollbackVersion: previous, functionalSmokeRequired: true }
+dependencies: []
+secretReferences: [vault://cpf/prod/bat/agent-a]
+labels: { owner: BAT, bootstrap: manual-first-install }

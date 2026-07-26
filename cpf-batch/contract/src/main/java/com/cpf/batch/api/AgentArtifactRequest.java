@@ -1,0 +1,1 @@
+package com.cpf.batch.api; public record AgentArtifactRequest(String serviceId,String coordinate,String version,String sha256,String signatureBase64,String runtimeMode,String configRef,String requestedBy,String reason){}

@@ -1,0 +1,46 @@
+cellId: center-cut-cell
+environment: prod
+runtimeRole: CENTER_CUT_RUNNER
+serviceId: cpf-center-cut-runner
+runtimeMode: embedded-bootjar
+artifact:
+  coordinate: com.cpf.batch:cpf-center-cut-runner
+  version: 1.0.0
+  sha256: REPLACE_WITH_64_HEX_SHA256
+  signatureBase64: REPLACE_WITH_ED25519_SIGNATURE
+  sbomRef: registry://sbom/cpf-center-cut-runner/1.0.0
+  provenanceRef: registry://provenance/cpf-center-cut-runner/1.0.0
+instances:
+  - instanceId: cpf-center-cut-runner-prod-a-01
+    wasId: batCC01
+    hostAlias: batch-host-a
+    port: 8183
+    profile: prod
+    zone: zone-a
+    pool: center-cut
+    capability: [CENTER_CUT]
+    agentBaseUrl: https://batch-host-a:8184
+    configRef: vault://cpf/prod/bat/cpf-center-cut-runner/config
+  - instanceId: cpf-center-cut-runner-prod-b-01
+    wasId: batCC02
+    hostAlias: batch-host-b
+    port: 8283
+    profile: prod
+    zone: zone-b
+    pool: center-cut
+    capability: [CENTER_CUT]
+    agentBaseUrl: https://batch-host-b:8184
+    configRef: vault://cpf/prod/bat/cpf-center-cut-runner/config
+desiredState: RUNNING
+deployment:
+  strategy: ROLLING
+  minHealthy: 1
+  maxUnavailable: 1
+  healthPath: /actuator/health/readiness
+  drainTimeoutSeconds: 600
+  healthTimeoutSeconds: 120
+  rollbackVersion: previous
+  functionalSmokeRequired: true
+dependencies: [batDB, cpf-batch-control-server]
+secretReferences: [vault://cpf/prod/bat/cpf-center-cut-runner]
+labels: { owner: BAT }

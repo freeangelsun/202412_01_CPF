@@ -1,32 +1,19 @@
-plugins {
-    id 'org.springframework.boot' version '3.4.13'
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'java'
+plugins { id 'base' }
+group='com.cpf.batch'
+tasks.register('verifyStandaloneArtifacts') {
+ group='verification'
+ dependsOn ':cpf-batch:contract:build', ':cpf-batch:runtime-common:build',
+ ':cpf-batch:control-server:bootJar', ':cpf-batch:scheduler:bootJar', ':cpf-batch:worker:bootJar',
+ ':cpf-batch:center-cut-runner:bootJar', ':cpf-batch:host-agent:bootJar', ':cpf-batch:testkit:build'
 }
 
-group = 'com.cpf.batch'
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
-    }
-}
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation project(':cpf-core')
-    implementation project(':cpf-common') // 영업일/고객 공통 Calendar 계약을 재사용합니다.
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
+tasks.register('publishStandaloneArtifacts') {
+    group = 'publishing'
+    description = 'Publishes BAT libraries and executable artifacts to the configured CPF repository.'
+    dependsOn(
+      ':cpf-batch:contract:publish', ':cpf-batch:runtime-common:publish', ':cpf-batch:testkit:publish',
+      ':cpf-batch:control-server:publish', ':cpf-batch:scheduler:publish', ':cpf-batch:worker:publish',
+      ':cpf-batch:center-cut-runner:publish', ':cpf-batch:host-agent:publish'
+    )
 }

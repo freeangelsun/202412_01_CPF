@@ -4,11 +4,7 @@
   "selectionProperty": "cpf.db.vendor",
   "packRoot": "cpf-tools/db/vendor",
   "supportedVendors": [
-    "mariadb",
-    "mysql",
-    "postgresql",
-    "oracle",
-    "sqlserver"
+    "mariadb"
   ],
   "platformModuleOwnership": {
     "cpf": "cpf-core",
@@ -16,11 +12,7 @@
     "adm": "cpf-admin",
     "bza": "cpf-biz-admin",
     "bat": "cpf-batch",
-    "gwy": "cpf-gateway",
-    "mbr": "cpf-member",
-    "acc": "cpf-account",
-    "ref": "cpf-reference",
-    "exs": "cpf-external"
+    "gwy": "cpf-gateway"
   },
   "generatedDomainRegistration": {
     "metadataDriven": true,
@@ -30,7 +22,7 @@
   },
   "vendors": {
     "mariadb": {
-      "status": "부분 구현",
+      "status": "미검증",
       "client": "mariadb",
       "pack": "cpf-tools/db/vendor/mariadb/pack.json",
       "vendorRoot": "cpf-tools/db/vendor/mariadb",
@@ -133,5 +125,21 @@
     "selectedVendorOnly": true,
     "externalPackPreferred": true,
     "isolatedBuildOverlayAllowed": true
+  },
+  "candidateVendors": [
+    "mysql",
+    "postgresql",
+    "oracle",
+    "sqlserver"
+  ],
+  "supportPolicy": "Only supportedVendors are selectable. Candidate vendors remain fail-closed until vendor-specific dialect/migration/runtime evidence is complete.",
+  "goldenDomainOwnership": {
+    "mbr": "cpf-member",
+    "acc": "cpf-account",
+    "ref": "cpf-reference"
+  },
+  "generatedDomainPolicy": {
+    "exs": "generator-only; no fixed cpf-external module",
+    "defaultRepositoryMode": "standalone"
   }
 }

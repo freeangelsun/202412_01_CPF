@@ -1,0 +1,76 @@
+spring:
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+  application:
+    name: cpf-batch-host-agent
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+server:
+  port: ${CPF_PORT:8184}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cpf:
+  framework:
+    module-id: BAT
+    was-id: ${CPF_WAS_ID:cpf-batch-host-agent-local-01}
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
+    runtime:
+      role: HOST_AGENT
+      instance-id: ${CPF_INSTANCE_ID:cpf-batch-host-agent-local-01}
+      heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
+  agent:
+    artifact-repository-base-url: ${CPF_ARTIFACT_REPOSITORY_URL:}
+    artifact-public-key-path: ${CPF_ARTIFACT_PUBLIC_KEY_PATH:}
+    require-signature: ${CPF_AGENT_REQUIRE_SIGNATURE:true}
+    max-artifact-bytes: ${CPF_AGENT_MAX_ARTIFACT_BYTES:536870912}
+    max-log-archive-bytes: ${CPF_AGENT_MAX_LOG_ARCHIVE_BYTES:1073741824}
+    allowed-client-subjects: ${CPF_AGENT_ALLOWED_CLIENT_SUBJECTS:}
+    services:
+      control:
+        service-id: cpf-batch-control-server
+        artifact-id: cpf-batch-control-server
+        install-root: ${CPF_CONTROL_INSTALL_ROOT:/opt/cpf/cpf-batch-control-server}
+        log-root: ${CPF_CONTROL_LOG_ROOT:/var/log/cpf/cpf-batch-control-server}
+        systemd-unit: cpf-batch-control-server.service
+        windows-start-script: ${CPF_CONTROL_WINDOWS_SCRIPT:C:/cpf/bin/cpf-batch-control-server.ps1}
+      scheduler:
+        service-id: cpf-batch-scheduler
+        artifact-id: cpf-batch-scheduler
+        install-root: ${CPF_SCHEDULER_INSTALL_ROOT:/opt/cpf/cpf-batch-scheduler}
+        log-root: ${CPF_SCHEDULER_LOG_ROOT:/var/log/cpf/cpf-batch-scheduler}
+        systemd-unit: cpf-batch-scheduler.service
+        windows-start-script: ${CPF_SCHEDULER_WINDOWS_SCRIPT:C:/cpf/bin/cpf-batch-scheduler.ps1}
+      worker:
+        service-id: cpf-batch-worker
+        artifact-id: cpf-batch-worker
+        install-root: ${CPF_WORKER_INSTALL_ROOT:/opt/cpf/cpf-batch-worker}
+        log-root: ${CPF_WORKER_LOG_ROOT:/var/log/cpf/cpf-batch-worker}
+        systemd-unit: cpf-batch-worker.service
+        windows-start-script: ${CPF_WORKER_WINDOWS_SCRIPT:C:/cpf/bin/cpf-batch-worker.ps1}
+        runtime-control-url: http://127.0.0.1:8182/internal/v1/worker
+      center-cut:
+        service-id: cpf-center-cut-runner
+        artifact-id: cpf-center-cut-runner
+        install-root: ${CPF_CENTER_CUT_INSTALL_ROOT:/opt/cpf/cpf-center-cut-runner}
+        log-root: ${CPF_CENTER_CUT_LOG_ROOT:/var/log/cpf/cpf-center-cut-runner}
+        systemd-unit: cpf-center-cut-runner.service
+        windows-start-script: ${CPF_CENTER_CUT_WINDOWS_SCRIPT:C:/cpf/bin/cpf-center-cut-runner.ps1}
+        runtime-control-url: http://127.0.0.1:8183/internal/v1/center-cut
+      host-agent:
+        service-id: cpf-batch-host-agent
+        artifact-id: cpf-batch-host-agent
+        install-root: ${CPF_HOST_AGENT_INSTALL_ROOT:/opt/cpf/cpf-batch-host-agent}
+        log-root: ${CPF_HOST_AGENT_LOG_ROOT:/var/log/cpf/cpf-batch-host-agent}
+        systemd-unit: cpf-batch-host-agent.service
+        windows-start-script: ${CPF_HOST_AGENT_WINDOWS_SCRIPT:C:/cpf/bin/cpf-batch-host-agent.ps1}

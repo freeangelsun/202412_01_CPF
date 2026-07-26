@@ -1,0 +1,10 @@
+# Replace placeholders with actual GitHub teams before enabling this as .github/CODEOWNERS.
+/cpf-core/                 @<platform-core-team> @<security-review-team>
+/cpf-common/               @<platform-common-team>
+/cpf-batch/                @<batch-platform-team> @<security-review-team>
+/cpf-admin/                @<platform-ops-team>
+/cpf-biz-admin/            @<business-admin-team>
+/cpf-tools/db/             @<database-team> @<platform-core-team>
+/cpf-tools/release/        @<release-manager-team> @<security-review-team>
+/cpf-tools/generator/      @<platform-core-team> @<domain-maintainer-team>
+/deploy/                   @<deployment-operator-team> @<deployment-approver-team>

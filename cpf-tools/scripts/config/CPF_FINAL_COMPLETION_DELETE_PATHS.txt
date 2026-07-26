@@ -1,0 +1,2 @@
+# Removed after the standalone BAT replacement files are copied.
+cpf-batch/src

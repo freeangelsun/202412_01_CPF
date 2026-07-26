@@ -1,0 +1,6 @@
+plugins { id 'groovy-gradle-plugin'; id 'java-gradle-plugin'; id 'maven-publish' }
+def props=new Properties();file('../gradle/cpf-platform.properties').withInputStream{props.load(it)}
+group='com.cpf.build';version=props.getProperty('platformVersion','1.0.0-SNAPSHOT')
+repositories { mavenCentral(); gradlePluginPortal() }
+gradlePlugin { plugins { cpfDomain { id='com.cpf.domain-conventions'; implementationClass='com.cpf.build.CpfDomainConventionPlugin'; displayName='CPF Domain Conventions' } } }
+publishing { repositories { maven { def repo=System.getenv('CPF_ARTIFACT_REPOSITORY_URL');url=uri(repo ?: layout.buildDirectory.dir('repository'));if(repo)credentials{username=System.getenv('CPF_ARTIFACT_REPOSITORY_USER');password=System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')} } } }

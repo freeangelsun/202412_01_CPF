@@ -26,6 +26,10 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
     java {
         // CPF의 소스·컴파일·배포 바이트코드 기준을 Java 25 LTS 하나로 고정합니다.
         toolchain {
@@ -53,13 +57,28 @@ subprojects {
         testImplementation 'net.bytebuddy:byte-buddy-agent:1.18.7'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-        // 동일 Application binary에서 cpf.db.vendor와 datasource property만 바꿔
-        // 공식 DB Vendor driver를 선택합니다. 업무 Source에는 Vendor 분기를 두지 않습니다.
+        // MariaDB는 현재 실검증 지원 Vendor다. Candidate Vendor driver는 검증된 Vendor Pack/Runtime profile에서만 추가한다.
         runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-        runtimeOnly 'com.mysql:mysql-connector-j'
-        runtimeOnly 'org.postgresql:postgresql'
-        runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
-        runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    }
+
+    plugins.withId('maven-publish') {
+        publishing {
+            repositories {
+                if (findByName('cpfInternal') == null) {
+                    maven {
+                        name = 'cpfInternal'
+                        def repo = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+                        url = uri(repo ?: layout.buildDirectory.dir('repository'))
+                        if (repo) {
+                            credentials {
+                                username = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                                password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -210,8 +229,20 @@ tasks.register('bumpComponentVersion') {
     }
 }
 
+tasks.register('checkReleaseSourceGuard') {
+    group = 'release'
+    description = 'Release/RC preparation requires a clean master source tree.'
+    doLast {
+        def branch = providers.exec { commandLine 'git','rev-parse','--abbrev-ref','HEAD' }.standardOutput.asText.get().trim()
+        def status = providers.exec { commandLine 'git','status','--porcelain' }.standardOutput.asText.get().trim()
+        if (branch != 'master') throw new GradleException("Release preparation requires master branch: ${branch}")
+        if (!status.isEmpty()) throw new GradleException('Release preparation requires a clean worktree.')
+    }
+}
+
 tasks.register('prepareReleaseCandidate') {
     group = 'release'
+    dependsOn 'checkReleaseSourceGuard'
     description = '현재 CPF platform 개발 버전을 지정한 RC 버전으로 전환합니다.'
     doLast {
         def rc = (findProperty('rc') ?: '').toString().trim()
@@ -227,6 +258,7 @@ tasks.register('prepareReleaseCandidate') {
 
 tasks.register('prepareRelease') {
     group = 'release'
+    dependsOn 'checkReleaseSourceGuard'
     description = '현재 CPF platform SNAPSHOT 또는 RC 버전을 최종 버전으로 전환합니다.'
     doLast {
         def current = rootProject.ext.cpfPlatformVersion.toString()
@@ -306,7 +338,7 @@ tasks.register('generateReleaseMetadata') {
                 platformVersion: rootProject.ext.cpfPlatformVersion.toString(),
                 compatibleRange: rootProject.ext.cpfCompatibleRange.toString(),
                 source: [commit: gitSha, branch: gitBranch, dirty: dirty],
-                signature: [status: 'NOT_SIGNED_NO_APPROVED_KEY'],
+                signature: [status: 'DETACHED_SIGNATURE_REQUIRED_FOR_COMMERCIAL_RELEASE', algorithm: 'Ed25519', index: 'cpf-release-signatures.json'],
                 artifacts: artifactRows
         ]
 
@@ -462,7 +494,8 @@ tasks.register('runLocalServices') {
     description = 'CPF verification or deployment task.'
 
     dependsOn ':cpf-member:classes', ':cpf-reference:classes', ':cpf-admin:classes', ':cpf-biz-admin:classes',
-            ':cpf-batch:classes', ':cpf-account:classes', ':cpf-gateway:classes'
+            ':cpf-batch:control-server:classes', ':cpf-batch:scheduler:classes', ':cpf-batch:worker:classes',
+            ':cpf-batch:center-cut-runner:classes', ':cpf-batch:host-agent:classes', ':cpf-account:classes', ':cpf-gateway:classes'
 
     doLast {
         def services = [
@@ -470,7 +503,11 @@ tasks.register('runLocalServices') {
                  [name: 'REF', project: project(':cpf-reference'), mainClass: 'com.cpf.reference.ReferenceApplication'],
                 [name: 'ADM', project: project(':cpf-admin'), mainClass: 'com.cpf.admin.AdmApplication'],
                 [name: 'BZA', project: project(':cpf-biz-admin'), mainClass: 'com.cpf.bizadmin.BzaApplication', defaultEnabled: true],
-                [name: 'BAT', project: project(':cpf-batch'), mainClass: 'com.cpf.batch.BatApplication', defaultEnabled: false],
+                [name: 'BAT-CTL', project: project(':cpf-batch:control-server'), mainClass: 'com.cpf.batch.control.BatchControlServerApplication', defaultEnabled: false],
+                [name: 'BAT-SCH', project: project(':cpf-batch:scheduler'), mainClass: 'com.cpf.batch.scheduler.BatchSchedulerApplication', defaultEnabled: false],
+                [name: 'BAT-WRK', project: project(':cpf-batch:worker'), mainClass: 'com.cpf.batch.worker.BatchWorkerApplication', defaultEnabled: false],
+                [name: 'BAT-CC', project: project(':cpf-batch:center-cut-runner'), mainClass: 'com.cpf.batch.centercut.runner.CenterCutRunnerApplication', defaultEnabled: false],
+                [name: 'BAT-AGT', project: project(':cpf-batch:host-agent'), mainClass: 'com.cpf.batch.agent.BatchHostAgentApplication', defaultEnabled: false],
                 [name: 'ACC', project: project(':cpf-account'), mainClass: 'com.cpf.account.AccApplication', defaultEnabled: false],
                 [name: 'GWY', project: project(':cpf-gateway'), mainClass: 'com.cpf.gateway.CpfGatewayApplication', defaultEnabled: false]
         ]
@@ -495,7 +532,7 @@ tasks.register('runLocalServices') {
         def logThreads = []
 
         logger.lifecycle("Starting CPF local services: ${services.collect { it.name }.join(', ')}")
-        logger.lifecycle('Default ports: MBR(8081), REF(8099), ADM(8090), BZA(8091), BAT(8093), ACC(8082), GWY(8070)')
+        logger.lifecycle('Default ports: MBR(8081), REF(8099), ADM(8090), BZA(8091), BAT-CTL(8180), BAT-SCH(8181), BAT-WRK(8182), BAT-CC(8183), BAT-AGT(8184), ACC(8082), GWY(8070)')
         logger.lifecycle('cpf-core(CPF)와 cpf-common(CMN)은 라이브러리 모듈이므로 독립 서비스로 기동하지 않습니다.')
 
         services.each { service ->
@@ -571,7 +608,6 @@ void stopLocalServiceProcesses(List processes) {
 ext.cpfServiceModules = [
         MBR    : 'cpf-member',
         ADM    : 'cpf-admin',
-        BAT    : 'cpf-batch',
         BZA    : 'cpf-biz-admin',
         REF    : 'cpf-reference',
         ACC    : 'cpf-account',
@@ -711,7 +747,7 @@ Map cpfValidateDeployInventory(String moduleCode, String env, File resultDir) {
     def moduleLower = cpfModuleProjectName(moduleCode)
     def inventoryFile = file("deploy/inventory/${env}-services.json")
     if (env == 'prod' && !inventoryFile.exists()) {
-        inventoryFile = file('deploy/inventory/prod-services.template.json')
+        throw new GradleException('Production inventory must be explicitly provisioned; template fallback is forbidden.')
     }
     def inventory = cpfReadInventory(inventoryFile)
     def services = inventory.services ?: []
@@ -826,7 +862,8 @@ tasks.register('checkJava25Standard', Exec) {
     group = 'verification'
     description = 'Java 25 toolchain, release, compiled class, and bootJar major version must be 69.'
     dependsOn subprojects.collect { "${it.path}:classes" }
-    dependsOn ':cpf-admin:bootJar', ':cpf-batch:bootJar', ':cpf-biz-admin:bootJar', ':cpf-member:bootJar', ':cpf-reference:bootJar', ':cpf-account:bootJar', ':cpf-gateway:bootJar'
+    dependsOn ':cpf-admin:bootJar', ':cpf-biz-admin:bootJar', ':cpf-member:bootJar', ':cpf-reference:bootJar', ':cpf-account:bootJar', ':cpf-gateway:bootJar',
+            ':cpf-batch:control-server:bootJar', ':cpf-batch:scheduler:bootJar', ':cpf-batch:worker:bootJar', ':cpf-batch:center-cut-runner:bootJar', ':cpf-batch:host-agent:bootJar'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'cpf-tools/scripts/check-java25-standard.ps1', '-ResultDir', cpfResultDir().path, '-RequireClasses', '-RequireBootJars'
 }
@@ -1067,47 +1104,48 @@ tasks.register('checkDeployDryRun') {
     dependsOn 'remoteDeployDryRun'
 }
 
-tasks.register('remoteDeploy') {
+tasks.register('remoteDeploy', Exec) {
     group = 'deployment'
-    description = 'CPF verification or deployment task.'
-    doLast {
-        def moduleCode = cpfRequestedModule()
-        def env = cpfRequestedEnv()
-        def mode = (findProperty('cpfDeployMode') ?: 'remote').toString()
-        def requireApproval = (findProperty('cpfRequireApproval') ?: 'true').toString().toBoolean()
-        def result = [
-                generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
-                module            : moduleCode,
-                env               : env,
-                deployMode        : mode,
-                requireApproval   : requireApproval,
-                realRemoteExecuted: false,
-                status            : 'FAILED',
-                failureReason     : 'Real remote deployment is not executed because no approved remote target is configured.'
-        ]
-        cpfWriteJson(new File(cpfResultDir(), "remote-deploy-${cpfModuleProjectName(moduleCode)}-${env}.sanitized.json"), result)
-        throw new GradleException(result.failureReason)
+    description = 'Executes an approved Deployment Cell plan through the BAT Control Server.'
+    def planId = providers.gradleProperty('cpfPlanId').orElse('')
+    def approvalId = providers.gradleProperty('cpfApprovalRequestId').orElse('')
+    def commandId = providers.gradleProperty('cpfCommandRequestId').orElse('')
+    def requestedBy = providers.gradleProperty('cpfRequestedBy').orElse('')
+    def approvedBy = providers.gradleProperty('cpfApprovedBy').orElse('')
+    def reason = providers.gradleProperty('cpfReason').orElse('')
+    doFirst {
+        if ([planId.get(), approvalId.get(), commandId.get(), requestedBy.get(), approvedBy.get(), reason.get()].any { it == null || it.isBlank() }) {
+            throw new GradleException('remoteDeploy requires cpfPlanId, cpfApprovalRequestId, cpfCommandRequestId, cpfRequestedBy, cpfApprovedBy and cpfReason.')
+        }
+        if (requestedBy.get() == approvedBy.get()) throw new GradleException('Requester and approver must be different.')
     }
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/invoke-bat-deployment.ps1',
+            '-PlanId', planId.get(), '-ApprovalRequestId', approvalId.get(), '-CommandRequestId', commandId.get(),
+            '-RequestedBy', requestedBy.get(), '-ApprovedBy', approvedBy.get(), '-Reason', reason.get(),
+            '-ResultDir', cpfResultDir().path
 }
 
-tasks.register('rollbackDeploy') {
+tasks.register('rollbackDeploy', Exec) {
     group = 'deployment'
-    description = 'CPF verification or deployment task.'
-    doLast {
-        def moduleCode = cpfRequestedModule()
-        def env = cpfRequestedEnv()
-        def result = [
-                generatedAt       : new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
-                module            : moduleCode,
-                env               : env,
-                realRemoteExecuted: false,
-                rollbackExecuted  : false,
-                status            : 'FAILED',
-                failureReason     : 'Real rollback is not executed because no approved remote target or rollback artifact is configured.'
-        ]
-        cpfWriteJson(new File(cpfResultDir(), "rollback-deploy-${cpfModuleProjectName(moduleCode)}-${env}.sanitized.json"), result)
-        throw new GradleException(result.failureReason)
+    description = 'Executes an approved BAT Deployment Cell rollback through the Control Server.'
+    def planId = providers.gradleProperty('cpfPlanId').orElse('')
+    def approvalId = providers.gradleProperty('cpfApprovalRequestId').orElse('')
+    def commandId = providers.gradleProperty('cpfCommandRequestId').orElse('')
+    def requestedBy = providers.gradleProperty('cpfRequestedBy').orElse('')
+    def approvedBy = providers.gradleProperty('cpfApprovedBy').orElse('')
+    def reason = providers.gradleProperty('cpfReason').orElse('')
+    doFirst {
+        if ([planId.get(), approvalId.get(), commandId.get(), requestedBy.get(), approvedBy.get(), reason.get()].any { it == null || it.isBlank() }) {
+            throw new GradleException('rollbackDeploy requires approved plan properties.')
+        }
+        if (requestedBy.get() == approvedBy.get()) throw new GradleException('Requester and approver must be different.')
     }
+    commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            'cpf-tools/scripts/invoke-bat-deployment.ps1',
+            '-PlanId', planId.get(), '-ApprovalRequestId', approvalId.get(), '-CommandRequestId', commandId.get(),
+            '-RequestedBy', requestedBy.get(), '-ApprovedBy', approvedBy.get(), '-Reason', reason.get(), '-Rollback',
+            '-ResultDir', cpfResultDir().path
 }
 tasks.register('checkReportMatrixEvidenceConsistency', Exec) {
     group = 'verification'
@@ -1170,7 +1208,7 @@ tasks.register('checkAccLifecycle', Exec) {
 tasks.register('batTwoWorkerRuntimeSmoke', Exec) {
     group = 'verification'
     description = '서로 다른 BAT worker 프로세스 2개의 claim, drain, crash, lease takeover를 MariaDB에서 검증합니다.'
-    dependsOn ':cpf-batch:bootJar'
+    dependsOn ':cpf-batch:control-server:bootJar', ':cpf-batch:worker:bootJar'
     commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
             'cpf-tools/scripts/smoke-bat-two-worker-runtime.ps1', '-ResultDir', cpfResultDir().path
 }
@@ -1244,7 +1282,7 @@ tasks.register('qualityGate') {
     dependsOn subprojects.collect { "${it.path}:compileJava" }
     dependsOn subprojects.collect { "${it.path}:test" }
     dependsOn ':cpf-admin:frontendVerify', ':cpf-biz-admin:frontendVerify', 'checkModernFrontend'
-    dependsOn 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening'
+    dependsOn 'verifyCpfFinalSourceGates', 'verifyVersionConsistency', 'checkUtf8', 'checkMojibake', 'checkLegacyName', 'checkSqlStandard', 'checkSqlCanonical', 'checkJavaFormat', 'checkJava25Standard', 'checkDocumentLinks', 'checkTransactionIdStandard', 'checkSecuritySeedStandard', 'checkSampleStandard', 'checkCpfRequestProtection', 'checkFeatureEvidence', 'checkServiceCallBoundary', 'checkArchitectureOwnership', 'checkBaseHierarchy', 'checkFullLayerTaxonomy', 'exportArchitectureInventory', 'exportRequirementTraceability', 'checkDomainGenerator', 'checkDomainCapabilityMatrix', 'checkAccLifecycle', 'checkDomainRemoval', 'checkRepositoryHygiene', 'checkSpringEventUsage', 'checkProfileLoading', 'checkRuntimeConfigStandard', 'checkLogManagementStandard', 'checkOpenApiSourceCoverage', 'checkSampleCoverage', 'checkEvidencePathExistence', 'checkDeployEnv', 'checkDeployInventory', 'checkPackagedDependencies', 'remoteDeployDryRun', 'checkReportMatrixEvidenceConsistency', 'admUiSmoke', 'admLogPolicyUiStaticSmoke', 'bzaUiSmoke', 'checkContractCompatibility', 'checkR13ProductHardening'
 }
 
 
@@ -1254,4 +1292,51 @@ tasks.register('publicationGate') {
     group = 'verification'
     description = 'Validates final publication artifacts after product/source/evidence stabilization.'
     dependsOn 'qualityGate', 'checkDocxStandard', 'validateReleaseMetadata'
+}
+
+
+tasks.register('verifyBatStandaloneArchitecture') {
+    group = 'verification'
+    description = 'BAT standalone artifact, legacy source removal, EXS/generator boundary를 검증합니다.'
+    doLast {
+        if (file('cpf-batch/src').exists()) throw new GradleException('Legacy executable cpf-batch/src must be removed.')
+        if (file('cpf-external').exists()) throw new GradleException('EXS is generator-only and must not be restored as a fixed module.')
+        if (file('cpf-tools/db/source').exists()) throw new GradleException('Standalone cpf-tools/db/source is forbidden.')
+        [
+          'cpf-batch/contract','cpf-batch/runtime-common','cpf-batch/control-server','cpf-batch/scheduler',
+          'cpf-batch/worker','cpf-batch/center-cut-runner','cpf-batch/host-agent','cpf-batch/testkit'
+        ].each { path -> if (!file(path).isDirectory()) throw new GradleException("Missing BAT standalone unit: ${path}") }
+    }
+}
+
+tasks.register('verifyCpfFinalSourceGates') {
+    group = 'verification'
+    dependsOn 'verifyVersionConsistency', 'verifyBatStandaloneArchitecture', ':cpf-batch:verifyStandaloneArtifacts'
+}
+
+
+tasks.register('publishCpfPlatformArtifacts') {
+    group = 'publishing'
+    description = 'Publishes CPF public platform artifacts required by independent Domain repositories and remote BAT deployment.'
+    dependsOn ':cpf-core:publish', ':cpf-common:publish', ':cpf-batch:publishStandaloneArtifacts'
+    doLast {
+        logger.lifecycle('Publish CPF BOM and Gradle convention plugin from cpf-tools/build included builds using their own publish tasks.')
+    }
+}
+
+
+tasks.register('commercialReleaseGate', Exec) {
+    group = 'release'
+    description = 'Final commercial release requires clean master, resolved licenses, Ed25519 signatures and current CVE report.'
+    dependsOn 'validateReleaseMetadata'
+    def releaseDir = layout.buildDirectory.dir("release/${rootProject.ext.cpfPlatformVersion}")
+    def publicKey = providers.gradleProperty('releasePublicKey').orElse(providers.environmentVariable('CPF_RELEASE_PUBLIC_KEY'))
+    def vulnerabilityReport = providers.gradleProperty('vulnerabilityReport').orElse(providers.environmentVariable('CPF_VULNERABILITY_REPORT'))
+    doFirst {
+        if (!publicKey.isPresent()) throw new GradleException('releasePublicKey/CPF_RELEASE_PUBLIC_KEY is required.')
+        if (!vulnerabilityReport.isPresent()) throw new GradleException('vulnerabilityReport/CPF_VULNERABILITY_REPORT is required.')
+        commandLine cpfPowerShellExecutable(), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                'cpf-tools/release/check-commercial-release.ps1', '-ReleaseDir', releaseDir.get().asFile.absolutePath,
+                '-PublicKey', publicKey.get(), '-VulnerabilityReport', vulnerabilityReport.get()
+    }
 }

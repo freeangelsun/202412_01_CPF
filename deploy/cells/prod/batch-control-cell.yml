@@ -1,0 +1,46 @@
+cellId: batch-control-cell
+environment: prod
+runtimeRole: CONTROL_SERVER
+serviceId: cpf-batch-control-server
+runtimeMode: embedded-bootjar
+artifact:
+  coordinate: com.cpf.batch:cpf-batch-control-server
+  version: 1.0.0
+  sha256: REPLACE_WITH_64_HEX_SHA256
+  signatureBase64: REPLACE_WITH_ED25519_SIGNATURE
+  sbomRef: registry://sbom/cpf-batch-control-server/1.0.0
+  provenanceRef: registry://provenance/cpf-batch-control-server/1.0.0
+instances:
+  - instanceId: cpf-batch-control-server-prod-a-01
+    wasId: batCTL01
+    hostAlias: batch-host-a
+    port: 8180
+    profile: prod
+    zone: zone-a
+    pool: control
+    capability: [CONTROL]
+    agentBaseUrl: https://batch-host-a:8184
+    configRef: vault://cpf/prod/bat/cpf-batch-control-server/config
+  - instanceId: cpf-batch-control-server-prod-b-01
+    wasId: batCTL02
+    hostAlias: batch-host-b
+    port: 8280
+    profile: prod
+    zone: zone-b
+    pool: control
+    capability: [CONTROL]
+    agentBaseUrl: https://batch-host-b:8184
+    configRef: vault://cpf/prod/bat/cpf-batch-control-server/config
+desiredState: RUNNING
+deployment:
+  strategy: ROLLING
+  minHealthy: 1
+  maxUnavailable: 1
+  healthPath: /actuator/health/readiness
+  drainTimeoutSeconds: 600
+  healthTimeoutSeconds: 120
+  rollbackVersion: previous
+  functionalSmokeRequired: true
+dependencies: [batDB, cpf-batch-control-server]
+secretReferences: [vault://cpf/prod/bat/cpf-batch-control-server]
+labels: { owner: BAT }

@@ -1,0 +1,26 @@
+plugins { id 'org.springframework.boot'; id 'maven-publish' }
+group='com.cpf.batch'
+dependencies {
+    implementation project(':cpf-batch:contract')
+    implementation project(':cpf-batch:runtime-common')
+    implementation project(':cpf-core')
+    implementation project(':cpf-common')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    testImplementation project(':cpf-batch:testkit')
+}
+tasks.named('bootJar') { archiveFileName = "cpf-center-cut-runner-${project.version}.jar" }
+tasks.named('test') { useJUnitPlatform() }
+
+
+publishing {
+    publications {
+        executable(MavenPublication) {
+            groupId = 'com.cpf.batch'
+            artifactId = 'cpf-center-cut-runner'
+            version = project.version.toString()
+            artifact tasks.named('bootJar')
+        }
+    }
+}

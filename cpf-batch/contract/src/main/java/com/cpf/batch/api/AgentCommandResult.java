@@ -1,0 +1,1 @@
+package com.cpf.batch.api; import java.time.Instant; public record AgentCommandResult(String commandId,String serviceId,String commandType,CommandState state,String resultCode,String message,String activeVersion,Instant startedAt,Instant finishedAt){}

@@ -1,0 +1,28 @@
+{
+  "baselineSha": "9253097086322c0eacc00c005e944b132e31ae06",
+  "baselineCommit": "20260726_04",
+  "qaBaselineSha": "56b165513f73f0548d41d2d52197abcdf69a0d14",
+  "package": "CPF_FINAL_COMPLETION_20260726",
+  "packageFileCount": 234,
+  "newFixedBusinessDomainCreated": false,
+  "legacyDeletePaths": [
+    "cpf-batch/src"
+  ],
+  "batExecutables": [
+    "cpf-batch-control-server",
+    "cpf-batch-scheduler",
+    "cpf-batch-worker",
+    "cpf-center-cut-runner",
+    "cpf-batch-host-agent"
+  ],
+  "batLibraries": [
+    "cpf-batch-contract",
+    "cpf-batch-runtime-common",
+    "cpf-batch-testkit"
+  ],
+  "staticValidationEvidence": "cpf-docs/evidence/CPF_FINAL_STATIC_VALIDATION_20260726.txt",
+  "staticValidationResult": "PASS_FOR_STATIC_GATES_EXECUTED_HERE",
+  "unexecutedRuntimeValidationStatus": "미검증",
+  "commitPushBranchPerformed": false,
+  "validationPolicy": "Unexecuted Java25/MariaDB/browser/remote-host/commercial-release scenarios are never claimed PASS."
+}

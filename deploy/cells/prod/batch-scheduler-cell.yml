@@ -1,0 +1,46 @@
+cellId: batch-scheduler-cell
+environment: prod
+runtimeRole: SCHEDULER
+serviceId: cpf-batch-scheduler
+runtimeMode: embedded-bootjar
+artifact:
+  coordinate: com.cpf.batch:cpf-batch-scheduler
+  version: 1.0.0
+  sha256: REPLACE_WITH_64_HEX_SHA256
+  signatureBase64: REPLACE_WITH_ED25519_SIGNATURE
+  sbomRef: registry://sbom/cpf-batch-scheduler/1.0.0
+  provenanceRef: registry://provenance/cpf-batch-scheduler/1.0.0
+instances:
+  - instanceId: cpf-batch-scheduler-prod-a-01
+    wasId: batSCH01
+    hostAlias: batch-host-a
+    port: 8181
+    profile: prod
+    zone: zone-a
+    pool: scheduler
+    capability: [SCHEDULER]
+    agentBaseUrl: https://batch-host-a:8184
+    configRef: vault://cpf/prod/bat/cpf-batch-scheduler/config
+  - instanceId: cpf-batch-scheduler-prod-b-01
+    wasId: batSCH02
+    hostAlias: batch-host-b
+    port: 8281
+    profile: prod
+    zone: zone-b
+    pool: scheduler
+    capability: [SCHEDULER]
+    agentBaseUrl: https://batch-host-b:8184
+    configRef: vault://cpf/prod/bat/cpf-batch-scheduler/config
+desiredState: RUNNING
+deployment:
+  strategy: ROLLING
+  minHealthy: 1
+  maxUnavailable: 1
+  healthPath: /actuator/health/readiness
+  drainTimeoutSeconds: 600
+  healthTimeoutSeconds: 120
+  rollbackVersion: previous
+  functionalSmokeRequired: true
+dependencies: [batDB, cpf-batch-control-server]
+secretReferences: [vault://cpf/prod/bat/cpf-batch-scheduler]
+labels: { owner: BAT }

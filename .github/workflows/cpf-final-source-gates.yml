@@ -1,0 +1,28 @@
+name: CPF Final Source Gates
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  java-and-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            cpf-admin/frontend/package-lock.json
+            cpf-biz-admin/frontend/package-lock.json
+      - name: Repository boundary gate
+        shell: pwsh
+        run: ./cpf-tools/generator/verify-domain-federation.ps1
+      - name: BAT standalone build and tests
+        run: ./gradlew :cpf-batch:verifyStandaloneArtifacts clean test verifyVersionConsistency --no-daemon
+      - name: ADM/BZA frontend verification
+        run: ./gradlew :cpf-admin:frontendVerify :cpf-biz-admin:frontendVerify --no-daemon

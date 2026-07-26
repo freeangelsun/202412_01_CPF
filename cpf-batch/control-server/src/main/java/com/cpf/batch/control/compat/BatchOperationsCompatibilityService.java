@@ -1,0 +1,55 @@
+package com.cpf.batch.control.compat;
+
+import com.cpf.core.api.batch.CpfBatchOperationsPort;
+import com.cpf.common.calendar.CmnBusinessCalendar;
+import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.*;
+import java.util.*;
+
+/** Existing ADM/BAT owner contract implemented by the new Control Server. */
+@Service
+public class BatchOperationsCompatibilityService implements CpfBatchOperationsPort {
+    private final JdbcTemplate jdbc; private final CmnBusinessCalendar calendar; private final TransactionTemplate tx;
+    public BatchOperationsCompatibilityService(JdbcTemplate jdbc,CmnBusinessCalendar calendar,PlatformTransactionManager tm){
+        this.jdbc=jdbc;this.calendar=calendar;this.tx=new TransactionTemplate(tm);
+    }
+    public List<Map<String,Object>> findJobs(){return jdbc.queryForList("SELECT * FROM bat_job ORDER BY job_id");}
+    public Map<String,Object> findJobDetail(String jobId){return one("SELECT * FROM bat_job WHERE job_id=?",req(jobId,"jobId"));}
+    public List<Map<String,Object>> findSchedules(){return jdbc.queryForList("SELECT * FROM bat_schedule ORDER BY schedule_id");}
+    public List<Map<String,Object>> findExecutions(String jobId,String transactionId,Long springInstance,String workerId,String serverInstanceId,int limit){
+        return findExecutions(jobId,transactionId,springInstance,workerId,serverInstanceId,null,null,limit);
+    }
+    public List<Map<String,Object>> findExecutions(String jobId,String transactionId,Long springInstance,String workerId,String serverInstanceId,String fromDate,String toDate,int limit){
+        StringBuilder q=new StringBuilder("SELECT * FROM bat_execution WHERE 1=1");List<Object>a=new ArrayList<>();
+        add(q,a,"job_id",jobId);add(q,a,"transaction_id",transactionId);add(q,a,"worker_id",workerId);add(q,a,"server_instance_id",serverInstanceId);
+        if(springInstance!=null){q.append(" AND spring_batch_job_instance_id=?");a.add(springInstance);} if(text(fromDate)){q.append(" AND created_at>=?");a.add(LocalDate.parse(fromDate).atStartOfDay());} if(text(toDate)){q.append(" AND created_at<?");a.add(LocalDate.parse(toDate).plusDays(1).atStartOfDay());}
+        q.append(" ORDER BY execution_id DESC LIMIT ?");a.add(clamp(limit));return jdbc.queryForList(q.toString(),a.toArray());
+    }
+    public Map<String,Object> findExecutionDetail(long id){Map<String,Object>r=new LinkedHashMap<>(one("SELECT * FROM bat_execution WHERE execution_id=?",id));r.put("steps",findStepExecutions(id,null,1000));return r;}
+    public List<Map<String,Object>> findInstances(){return jdbc.queryForList("SELECT * FROM bat_runtime_instance ORDER BY runtime_role,instance_id");}
+    public List<Map<String,Object>> findWorkers(int timeout){return jdbc.queryForList("SELECT * FROM bat_worker ORDER BY worker_id");}
+    public List<Map<String,Object>> findStepExecutions(Long executionId,String jobId,int limit){return jdbc.queryForList("SELECT s.* FROM bat_step_execution s JOIN bat_execution e ON e.execution_id=s.execution_id WHERE (? IS NULL OR s.execution_id=?) AND (? IS NULL OR e.job_id=?) ORDER BY s.step_execution_id DESC LIMIT ?",executionId,executionId,jobId,jobId,clamp(limit));}
+    public List<Map<String,Object>> findRelations(String jobId){return jdbc.queryForList("SELECT * FROM bat_job_relation WHERE (? IS NULL OR job_id=? OR related_job_id=?) ORDER BY relation_id",jobId,jobId,jobId);}
+    public List<Map<String,Object>> findExecutionTargets(String jobId,String status,int limit){return jdbc.queryForList("SELECT t.* FROM bat_execution_target t JOIN bat_execution e ON e.execution_id=t.execution_id WHERE (? IS NULL OR e.job_id=?) AND (? IS NULL OR t.dispatch_status=?) ORDER BY t.target_id DESC LIMIT ?",jobId,jobId,status,status,clamp(limit));}
+    public List<Map<String,Object>> findLocks(String jobId){return jdbc.queryForList("SELECT * FROM bat_lock WHERE (? IS NULL OR job_id=?) ORDER BY locked_at DESC",jobId,jobId);}
+    public Map<String,Object> releaseLock(String key,String user,String reason){req(key,"lockKey");req(user,"requestUser");req(reason,"reason");return tx.execute(s->{Map<String,Object>b=one("SELECT * FROM bat_lock WHERE lock_key=? FOR UPDATE",key);int n=jdbc.update("DELETE FROM bat_lock WHERE lock_key=? AND expire_at<CURRENT_TIMESTAMP(3)",key);audit(Objects.toString(b.get("job_id"),"SYSTEM"),null,"RELEASE_LOCK",user,reason,b,Map.of("released",n==1));return Map.of("lockKey",key,"released",n==1);});}
+    public List<Map<String,Object>> findGhostCandidates(int timeout){return jdbc.queryForList("SELECT * FROM bat_execution WHERE execution_status IN ('RUNNING','CLAIMED','CLAIMING') AND last_heartbeat_at<DATE_SUB(CURRENT_TIMESTAMP(3),INTERVAL ? SECOND) ORDER BY last_heartbeat_at",Math.max(timeout,10));}
+    public Map<String,Object> actGhostExecution(long id,String action,String user,String reason){req(action,"actionType");req(user,"requestUser");req(reason,"reason");String a=action.toUpperCase(Locale.ROOT);if(!Set.of("FAIL","ABANDON","RELEASE_LOCK").contains(a))throw new IllegalArgumentException("unsupported ghost action");return tx.execute(s->{Map<String,Object>b=one("SELECT * FROM bat_execution WHERE execution_id=? FOR UPDATE",id);String job=Objects.toString(b.get("job_id"),"");if("RELEASE_LOCK".equals(a))jdbc.update("DELETE FROM bat_lock WHERE job_id=? AND expire_at<CURRENT_TIMESTAMP(3)",job);else jdbc.update("UPDATE bat_execution SET execution_status=?,end_time=CURRENT_TIMESTAMP(3) WHERE execution_id=?", "FAIL".equals(a)?"FAILED":"ABANDONED",id);audit(job,id,"GHOST_"+a,user,reason,b,Map.of("action",a));return Map.of("executionId",id,"action",a,"status","ACCEPTED");});}
+    public List<Map<String,Object>> findOperationLogs(String jobId,Long executionId,int limit){return jdbc.queryForList("SELECT * FROM bat_operation_log WHERE (? IS NULL OR job_id=?) AND (? IS NULL OR execution_id=?) ORDER BY operation_id DESC LIMIT ?",jobId,jobId,executionId,executionId,clamp(limit));}
+    public List<Map<String,Object>> simulateSchedule(String scheduleId,String baseDate,int days){Map<String,Object>s=one("SELECT * FROM bat_schedule WHERE schedule_id=?",req(scheduleId,"scheduleId"));LocalDate start=text(baseDate)?LocalDate.parse(baseDate):LocalDate.now();List<Map<String,Object>>out=new ArrayList<>();for(int i=0;i<Math.max(1,Math.min(days,90));i++){LocalDate d=start.plusDays(i);out.add(Map.of("date",d.toString(),"businessDay",calendar.isBusinessDay(Objects.toString(s.get("calendar_id"),"DEFAULT"),d)));}return out;}
+    public Map<String,Object> registerJob(String id,String name,String type,String description,String user){req(id,"jobId");req(user,"requestUser");jdbc.update("INSERT INTO bat_job(job_id,job_name,job_type,description,created_by,updated_by) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE job_name=VALUES(job_name),job_type=VALUES(job_type),description=VALUES(description),updated_by=VALUES(updated_by)",id,blank(name,id),blank(type,"TASKLET"),description,user,user);return findJobDetail(id);}
+    public Map<String,Object> requestRun(String jobId,String params,String user,String reason){return createExecution(null,jobId,params,user,reason);}
+    public Map<String,Object> requestScheduledRun(String scheduleId,String jobId,String params,String user,String reason){req(scheduleId,"scheduleId");return createExecution(scheduleId,jobId,params,user,reason);}
+    public Map<String,Object> requestRetry(long oldId,String user,String reason){Map<String,Object>old=one("SELECT * FROM bat_execution WHERE execution_id=?",oldId);return createExecution(Objects.toString(old.get("schedule_id"),null),Objects.toString(old.get("job_id"),""),Objects.toString(old.get("job_parameters"),"{}"),user,reason);}
+    public Map<String,Object> requestStop(long id,String user,String reason){req(user,"requestUser");req(reason,"reason");Map<String,Object>b=one("SELECT * FROM bat_execution WHERE execution_id=?",id);int n=jdbc.update("UPDATE bat_execution SET stop_requested_yn='Y',updated_at=CURRENT_TIMESTAMP WHERE execution_id=? AND execution_status IN ('READY','CLAIMING','CLAIMED','RUNNING')",id);audit(Objects.toString(b.get("job_id"),""),id,"STOP_REQUEST",user,reason,b,Map.of("updated",n));return Map.of("executionId",id,"stopRequested",n==1);}
+    public Map<String,Object> updateScheduleEnabled(String id,boolean enabled,String user,String reason){req(user,"requestUser");req(reason,"reason");Map<String,Object>b=one("SELECT * FROM bat_schedule WHERE schedule_id=?",id);int n=jdbc.update("UPDATE bat_schedule SET enabled_yn=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE schedule_id=?",enabled?"Y":"N",user,id);audit(Objects.toString(b.get("job_id"),""),null,"SCHEDULE_ENABLE",user,reason,b,Map.of("enabled",enabled));return Map.of("scheduleId",id,"updated",n==1,"enabled",enabled);}
+    public List<Map<String,Object>> runSchedulerOnce(String user){req(user,"requestUser");return jdbc.queryForList("SELECT schedule_id,job_id,next_fire_at,timezone FROM bat_schedule WHERE enabled_yn='Y' AND (next_fire_at IS NULL OR next_fire_at<=CURRENT_TIMESTAMP) ORDER BY schedule_id");}
+    private Map<String,Object> createExecution(String schedule,String job,String params,String user,String reason){req(job,"jobId");req(user,"requestUser");req(reason,"reason");one("SELECT job_id FROM bat_job WHERE job_id=? AND use_yn='Y'",job);jdbc.update("INSERT INTO bat_execution(job_id,schedule_id,job_parameters,execution_status,business_date,requested_by,created_by) VALUES(?,?,?,'READY',CURRENT_DATE,?,?)",job,schedule,text(params)?params:"{}",user,user);Long id=jdbc.queryForObject("SELECT LAST_INSERT_ID()",Long.class);audit(job,id,"RUN_REQUEST",user,reason,Map.of(),Map.of("executionId",id));return one("SELECT * FROM bat_execution WHERE execution_id=?",id);}
+    private void audit(String job,Long id,String op,String user,String reason,Object before,Object after){jdbc.update("INSERT INTO bat_operation_log(job_id,execution_id,operation_type,operator_id,reason,before_data,after_data,result_type,result_message,created_by,updated_by) VALUES(?,?,?,?,?,?,?,?,?,?,?)",blank(job,"SYSTEM"),id,op,user,reason,SensitiveTextSanitizer.sanitize(String.valueOf(before)),SensitiveTextSanitizer.sanitize(String.valueOf(after)),"S","OK",user,user);}
+    private Map<String,Object> one(String sql,Object...args){List<Map<String,Object>>r=jdbc.queryForList(sql,args);if(r.isEmpty())throw new IllegalArgumentException("BAT resource not found");return r.get(0);} private static void add(StringBuilder q,List<Object>a,String c,String v){if(text(v)){q.append(" AND ").append(c).append("=?");a.add(v);}} private static int clamp(int n){return Math.max(1,Math.min(n,1000));} private static String req(String s,String f){if(!text(s))throw new IllegalArgumentException(f+" is required");return s.trim();} private static boolean text(String s){return s!=null&&!s.isBlank();} private static String blank(String s,String d){return text(s)?s.trim():d;}
+}
